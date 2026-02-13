@@ -78,6 +78,7 @@ const TestExecutionStatus = ({
                             onClick={handleStartExecution}
                             disabled={saving}
                             size="small"
+                            data-testid="execution-start-button"
                         >
                             {t('testExecution.actions.startExecution')}
                         </Button>
@@ -90,6 +91,7 @@ const TestExecutionStatus = ({
                             onClick={handleCompleteExecution}
                             disabled={saving}
                             size="small"
+                            data-testid="execution-complete-button"
                         >
                             {t('testExecution.actions.completeExecution')}
                         </Button>
@@ -102,6 +104,7 @@ const TestExecutionStatus = ({
                             onClick={handleRestartExecution}
                             disabled={saving}
                             size="small"
+                            data-testid="execution-restart-button"
                         >
                             {t('testExecution.actions.restartExecution')}
                         </Button>

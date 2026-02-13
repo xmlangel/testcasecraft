@@ -167,11 +167,14 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={handleSearch} edge="end">
+                    <IconButton onClick={handleSearch} edge="end" data-testid="execution-search-button">
                       <SearchIcon />
                     </IconButton>
                   </InputAdornment>
                 ),
+              }}
+              slotProps={{
+                htmlInput: { 'data-testid': 'execution-search-input' }
               }}
               sx={{ width: 250 }}
             />
@@ -181,6 +184,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                 size="small"
                 startIcon={<AddIcon />}
                 onClick={onNewExecution}
+                data-testid="execution-add-button"
               >
                 {t('testExecution.list.newExecution')}
               </Button>
@@ -202,6 +206,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                   <ListItem
                     alignItems="flex-start"
                     disablePadding
+                    data-testid={`execution-item-${execution.id}`}
                     secondaryAction={
                       isAdminOrManager && (
                         <IconButton
@@ -213,6 +218,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                             setDeleteDialogOpen(true);
                           }}
                           sx={{ color: theme.palette.error.main }}
+                          data-testid={`execution-delete-button-${execution.id}`}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -286,6 +292,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
               color="primary"
               showFirstButton
               showLastButton
+              data-testid="execution-list-pagination"
             />
           </Box>
         )}
@@ -296,12 +303,13 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
           <DialogContentText>{t('testExecution.list.delete.confirm')}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>{t('testExecution.list.delete.cancel')}</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)} data-testid="execution-delete-cancel-button">{t('testExecution.list.delete.cancel')}</Button>
           <Button
             onClick={handleConfirmDelete}
             color="error"
             disabled={isLoading}
             startIcon={isLoading ? <CircularProgress size={20} /> : null}
+            data-testid="execution-delete-confirm-button"
           >
             {t('testExecution.list.delete.delete')}
           </Button>

@@ -1,12 +1,12 @@
 # Development Dockerfile - builds and runs the application
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:21-jdk-alpine
 
 # Install curl for health checks, dumb-init for proper signal handling and create a non-root user
-RUN apt-get update && \
-    apt-get install -y curl dumb-init && \
-    rm -rf /var/lib/apt/lists/* && \
-    groupadd --system --gid 1001 appgroup && \
-    useradd --system --uid 1001 --gid appgroup appuser
+# Alpine uses apk instead of apt-get
+RUN apk update && \
+    apk add --no-cache curl dumb-init && \
+    addgroup -S appgroup -g 1001 && \
+    adduser -S appuser -u 1001 -G appgroup
 
 WORKDIR /app
 

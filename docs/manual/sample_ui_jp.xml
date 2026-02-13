@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="ログインUIテスト" tests="1" failures="1" errors="0" skipped="0">
+    <testcase name="ログインボタンのクリック" classname="ui.login.ButtonTest" time="1.2">
+      <failure message="ログイン処理中にエラーが発生しました。" type="UI_Error">
+        <steps>
+          <step index="1">
+            <action>ユーザー名の入力</action>
+            <input_data>test_user_01</input_data>
+            <expected>入力欄にユーザー名が表示されること</expected>
+            <actual>入力欄が空のまま</actual>
+          </step>
+          <step index="2">
+            <action>ログインボタン押下</action>
+            <expected>メインページへ遷移すること</expected>
+            <actual>エラーメッセージ「無効なユーザー」が表示される</actual>
+            <error_code>AUTH_ERR_001</error_code>
+          </step>
+        </steps>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

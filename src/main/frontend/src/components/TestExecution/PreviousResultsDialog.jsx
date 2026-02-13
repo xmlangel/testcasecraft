@@ -203,6 +203,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                                                 onClick={() => handleEditClick(r)}
                                                                 sx={{ p: 0.5 }}
                                                                 color="primary"
+                                                                data-testid={`prev-result-edit-button-${r.id}`}
                                                             >
                                                                 <EditIcon fontSize="small" />
                                                             </IconButton>
@@ -215,6 +216,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                                                 onClick={() => handleDeleteClick(r)}
                                                                 sx={{ p: 0.5 }}
                                                                 color="error"
+                                                                data-testid={`prev-result-delete-button-${r.id}`}
                                                             >
                                                                 <DeleteIcon fontSize="small" />
                                                             </IconButton>
@@ -230,7 +232,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={onClose} color="primary">
+                    <Button onClick={onClose} color="primary" data-testid="prev-result-close-button">
                         {t('common.close')}
                     </Button>
                 </DialogActions>
@@ -311,7 +313,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDeleteConfirmOpen(false)} disabled={deleting}>
+                    <Button onClick={() => setDeleteConfirmOpen(false)} disabled={deleting} data-testid="prev-result-delete-cancel-button">
                         {t('testExecution.previousResults.delete.cancel')}
                     </Button>
                     <Button
@@ -319,6 +321,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                         color="error"
                         variant="contained"
                         disabled={deleting}
+                        data-testid="prev-result-delete-confirm-button"
                     >
                         {deleting ? t('testExecution.previousResults.delete.deleting') : t('testExecution.previousResults.delete.delete')}
                     </Button>

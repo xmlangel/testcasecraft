@@ -818,7 +818,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         )}
 
         <Accordion expanded={accordionExpanded.basicInfo} onChange={handleAccordionChange('basicInfo')} sx={{ mb: 2 }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} data-testid="accordion-basic-info">
             <Typography variant="subtitle1" fontWeight="bold">{t('testcase.sections.basicInfo', '기본 정보')}</Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -853,7 +853,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         </Accordion>
 
         <Accordion expanded={accordionExpanded.steps} onChange={handleAccordionChange('steps')} sx={{ mb: 2 }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} data-testid="accordion-steps">
             <Typography variant="subtitle1" fontWeight="bold">{t('testcase.sections.steps', '테스트 단계')}</Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -873,7 +873,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         </Accordion>
 
         <Accordion expanded={accordionExpanded.expectedResults} onChange={handleAccordionChange('expectedResults')} sx={{ mb: 2 }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} data-testid="accordion-expected-results">
             <Typography variant="subtitle1" fontWeight="bold">{t('testcase.sections.expectedResults', '기대 결과')}</Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -887,6 +887,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               t={t}
               onChange={(value) => handleTestCaseChange('expectedResults', value)}
               onPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'expectedResults' })}
+              testid="testcase-overall-expected-input"
             />
           </AccordionDetails>
         </Accordion>
@@ -910,6 +911,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onClick={handleCancel}
               color="inherit"
               variant="outlined"
+              data-testid="testcase-cancel-button"
             >
               {t('testcase.form.button.cancel', '취소')}
             </Button>
@@ -920,6 +922,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onClick={handleSave}
               disabled={isSaveDisabled() || isSaving}
               startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : <SaveVersionIcon />}
+              data-testid="testcase-save-button"
             >
               {isSaving ? t('testcase.form.button.saving', '저장 중...') : (testCaseId ? t('testcase.form.button.update', '수정') : t('testcase.form.button.save', '저장'))}
             </Button>

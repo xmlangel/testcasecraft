@@ -135,6 +135,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
               margin="normal"
               required
               disabled={loading}
+              slotProps={{ htmlInput: { 'data-testid': 'testplan-name-input' } }}
             />
 
             <TextField
@@ -146,6 +147,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
               multiline
               rows={4}
               disabled={loading}
+              slotProps={{ htmlInput: { 'data-testid': 'testplan-description-input' } }}
             />
           </Grid>
 
@@ -179,6 +181,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           onClick={onCancel}
           color="secondary"
           disabled={loading}
+          data-testid="testplan-cancel-button"
         >
           {t('testPlan.form.button.cancel', '취소')}
         </Button>
@@ -188,6 +191,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           color="primary"
           disabled={!formData.name || !activeProject || loading}
           startIcon={loading && <CircularProgress size={20} />}
+          data-testid="testplan-save-button"
         >
           {loading ? t('testPlan.form.button.processing', '처리 중...') : t('testPlan.form.button.save', '저장')}
         </Button>

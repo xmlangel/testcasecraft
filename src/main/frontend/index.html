@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
@@ -18,16 +18,267 @@
     <link rel="manifest" href="/manifest.json" />
 
     <!-- Google Fonts - Bricolage Grotesque, JetBrains Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+      rel="stylesheet"
+    />
 
     <title>I can craft test case</title>
+    <style>
+      #splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+        font-family:
+          "Bricolage Grotesque",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+
+      .dark-mode #splash-screen {
+        background-color: #121212;
+        color: #ffffff;
+      }
+
+      .loader-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .loader-circle {
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        margin: 8px;
+        border: 4px solid #1976d2;
+        border-radius: 50%;
+        animation: loader-circle 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        border-color: #1976d2 transparent transparent transparent;
+      }
+      .loader-circle:nth-child(1) {
+        animation-delay: -0.45s;
+      }
+      .loader-circle:nth-child(2) {
+        animation-delay: -0.3s;
+      }
+      .loader-circle:nth-child(3) {
+        animation-delay: -0.15s;
+      }
+
+      @keyframes loader-circle {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .splash-logo {
+        width: 180px;
+        margin-bottom: 24px;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.8s ease forwards;
+      }
+
+      .loading-text {
+        margin-top: 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .dark-mode .loading-text {
+        color: #aaa;
+      }
+
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* 프로그레스 바 스타일 */
+      .progress-wrapper {
+        width: 240px;
+        height: 4px;
+        background-color: #eee;
+        border-radius: 2px;
+        margin-top: 24px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .dark-mode .progress-wrapper {
+        background-color: #333;
+      }
+
+      .progress-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 0%;
+        background-color: #1976d2;
+        transition: width 0.3s ease;
+      }
+
+      .progress-stats {
+        margin-top: 8px;
+        font-size: 11px;
+        color: #888;
+        font-family:
+          "JetBrains Mono",
+          monospace;
+      }
+    </style>
+    <script>
+      // 시스템 테마에 따른 다크모드 감지
+      if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        document.documentElement.classList.add("dark-mode");
+      }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <!-- Splash screen move it outside #root to avoid React mount conflicts -->
+    <div id="splash-screen">
+      <img
+        src="/testcasecraft_light.jpg"
+        alt="Logo"
+        class="splash-logo"
+        id="splash-logo-img"
+      />
+      <div class="loader-container">
+        <div class="loader-circle"></div>
+        <div class="loader-circle"></div>
+        <div class="loader-circle"></div>
+        <div class="loader-circle"></div>
+      </div>
+      <div class="loading-text">Crafting your workspace...</div>
+      <div class="progress-wrapper">
+        <div class="progress-bar" id="load-progress-bar"></div>
+      </div>
+      <div class="progress-stats" id="load-progress-text">Initializing...</div>
+    </div>
+
     <div id="root"></div>
-    <script type="module" src="/src/index.jsx"></script>
+
+    <script>
+      // 시스템 테마에 따른 다크모드 및 로고 설정
+      (function () {
+        if (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
+          document.documentElement.classList.add("dark-mode");
+          const logoImg = document.getElementById("splash-logo-img");
+          if (logoImg) logoImg.src = "/testcasecraft_dark.jpg";
+        }
+      })();
+    </script>
+
+    <!-- 원본 엔트리 포인트 (브라우저가 자연스럽게 로드) -->
+    <script type="module" src="/src/index.jsx" id="main-app-entry"></script>
+
+    <script>
+      /**
+       * Shadow-fetch: 메인 번들 다운로드를 병렬로 추적하여 진행률 표시
+       * (중복 실행 문제를 해결하기 위해 직접 주입하지 않고 추적만 수행)
+       */
+      (function () {
+        const progressBar = document.getElementById("load-progress-bar");
+        const progressText = document.getElementById("load-progress-text");
+
+        // 메인 엔트리 스크립트 찾기 (ID 우선, 실패 시 셀렉터)
+        let mainEntry = document.getElementById("main-app-entry");
+        if (!mainEntry) {
+          mainEntry = document.querySelector('script[type="module"][src*="index"]');
+        }
+
+        if (!mainEntry) {
+          if (progressText) progressText.innerText = "Ready to launch";
+          return;
+        }
+
+        const scriptUrl = mainEntry.src || mainEntry.getAttribute("src");
+        if (!scriptUrl) return;
+
+        if (progressText) progressText.innerText = "Connecting to server...";
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", scriptUrl, true);
+
+        xhr.onprogress = function (event) {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            if (progressBar) progressBar.style.width = percent + "%";
+            if (progressText) {
+              const loadedMB = (event.loaded / (1024 * 1024)).toFixed(1);
+              const totalMB = (event.total / (1024 * 1024)).toFixed(1);
+              progressText.innerText = `Loading Assets: ${percent}% (${loadedMB}/${totalMB}MB)`;
+            }
+          } else {
+            // Content-Length가 없는 경우 실시간 진행률 대신 다운로드 중임을 표시
+            const loaded = (event.loaded / (1024 * 1024)).toFixed(1);
+            if (progressText) progressText.innerText = `Receiving Assets: ${loaded}MB...`;
+          }
+        };
+
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            if (progressText) progressText.innerText = "Launching Workspace...";
+            if (progressBar) progressBar.style.width = "100%";
+          } else {
+            if (progressText) progressText.innerText = "Fast launch mode enabled";
+          }
+        };
+
+        xhr.onerror = function () {
+          if (progressText) progressText.innerText = "Network stable. Preparing app...";
+        };
+
+        xhr.send();
+      })();
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

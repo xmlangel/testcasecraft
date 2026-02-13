@@ -2,6 +2,7 @@
 
 package com.testcase.testcasemanagement.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.JunitTestResultDto;
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.service.JunitResultService;
@@ -797,7 +798,34 @@ public class JunitResultController {
             tracelog.put("failureMessage", tc.getFailureMessage());
             tracelog.put("failureType", tc.getFailureType());
             tracelog.put("skipMessage", tc.getSkipMessage());
+            tracelog.put("expectedResult", tc.getExpectedResult());
+            tracelog.put("actualResult", tc.getActualResult());
+
+            // testSteps가 있으면 JSON 파싱하여 전달 (프론트엔드 편의를 위함)
+            if (tc.getTestSteps() != null && !tc.getTestSteps().isEmpty()) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> steps = new ObjectMapper().readValue(tc.getTestSteps(), List.class);
+                    tracelog.put("testSteps", steps);
+                } catch (Exception e) {
+                    logger.warn("Failed to parse testSteps JSON: {}", e.getMessage());
+                    tracelog.put("testSteps", tc.getTestSteps()); // 실패 시 원본 문자열이라도 전달
+                }
+            }
+
             details.put("tracelog", tracelog);
+
+            // properties 정보 (ICT-337: 추가 속성 정보)
+            if (tc.getProperties() != null && !tc.getProperties().isEmpty()) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> properties = new ObjectMapper().readValue(tc.getProperties(), Map.class);
+                    details.put("properties", properties);
+                } catch (Exception e) {
+                    logger.warn("Failed to parse properties JSON: {}", e.getMessage());
+                    details.put("properties", tc.getProperties()); // 실패 시 원본 문자열이라도 전달
+                }
+            }
 
             // testbody 정보 (시스템 출력)
             // ICT-337: 테스트 케이스 자체 로그와 스위트 레벨 로그를 결합하여 제공 (사용자 요청)

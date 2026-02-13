@@ -11,6 +11,7 @@ import {
   BarChart as BarChartIcon,
   SmartToy as SmartToyIcon,
   Description as DescriptionIcon,
+  TravelExplore as TravelExploreIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon
 } from "@mui/icons-material";
@@ -91,13 +92,14 @@ function ProjectHeader({ tabIndex, onTabChange }) {
         aria-label="project tabs"
         sx={{ minHeight: '36px', mt: isHeaderCollapsed ? 0 : 0 }}
       >
-        <Tab icon={<DashboardIcon />} iconPosition="start" label={t('projectHeader.tabs.dashboard', '대시보드')} sx={tabStyle} />
-        <Tab icon={<FormatListBulletedIcon />} iconPosition="start" label={t('projectHeader.tabs.testCases', '테스트케이스')} sx={tabStyle} />
-        <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('testPlan.tab.label', '테스트플랜')} sx={tabStyle} />
-        <Tab icon={<PlayCircleIcon />} iconPosition="start" label={t('projectHeader.tabs.testExecution', '테스트실행')} sx={tabStyle} />
-        <Tab icon={<BarChartIcon />} iconPosition="start" label={t('projectHeader.tabs.testResults', '테스트결과')} sx={tabStyle} />
-        <Tab icon={<SmartToyIcon />} iconPosition="start" label={t('projectHeader.tabs.automation', '자동화 테스트')} sx={tabStyle} />
-        <Tab icon={<DescriptionIcon />} iconPosition="start" label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} sx={tabStyle} />
+        <Tab icon={<DashboardIcon />} iconPosition="start" label={t('projectHeader.tabs.dashboard', '대시보드')} sx={tabStyle} data-testid="tab-dashboard" />
+        <Tab icon={<FormatListBulletedIcon />} iconPosition="start" label={t('projectHeader.tabs.testCases', '테스트케이스')} sx={tabStyle} data-testid="tab-testcases" />
+        <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('testPlan.tab.label', '테스트플랜')} sx={tabStyle} data-testid="tab-testplans" />
+        <Tab icon={<PlayCircleIcon />} iconPosition="start" label={t('projectHeader.tabs.testExecution', '테스트실행')} sx={tabStyle} data-testid="tab-executions" />
+        <Tab icon={<BarChartIcon />} iconPosition="start" label={t('projectHeader.tabs.testResults', '테스트결과')} sx={tabStyle} data-testid="tab-results" />
+        <Tab icon={<SmartToyIcon />} iconPosition="start" label={t('projectHeader.tabs.automation', '자동화 테스트')} sx={tabStyle} data-testid="tab-automation" />
+        <Tab icon={<DescriptionIcon />} iconPosition="start" label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} sx={tabStyle} data-testid="tab-rag" />
+        <Tab icon={<TravelExploreIcon />} iconPosition="start" label={t('projectHeader.tabs.exploratorySessions', '탐색 세션')} sx={tabStyle} data-testid="tab-exploratory" />
       </Tabs>
     </Box>
   );

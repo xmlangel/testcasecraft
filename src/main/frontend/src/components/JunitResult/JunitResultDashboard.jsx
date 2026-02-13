@@ -429,6 +429,7 @@ export default function JunitResultDashboard() {
             startIcon={<Refresh />}
             onClick={() => loadData()}
             disabled={loading}
+            data-testid="automation-refresh-button"
           >
             {t('junit.dashboard.refresh')}
           </Button>
@@ -437,6 +438,7 @@ export default function JunitResultDashboard() {
             startIcon={<CloudUpload />}
             onClick={() => setUploadDialogOpen(true)}
             disabled={loading}
+            data-testid="automation-upload-button"
           >
             {t('junit.dashboard.uploadResult')}
           </Button>
@@ -679,10 +681,12 @@ export default function JunitResultDashboard() {
                             <React.Fragment key={group.fileName}>
                               {/* 그룹의 메인 행 (가장 최신 결과) */}
                               <TableRow
+                                key={group.fileName}
                                 sx={{
                                   bgcolor: isExpanded ? alpha(theme.palette.action.hover, 0.05) : 'inherit',
                                   '& > *': { borderBottom: 'unset' }
                                 }}
+                                data-testid="automation-result-row"
                               >
                                 <TableCell>
                                   {hasMultiple && (
@@ -697,7 +701,7 @@ export default function JunitResultDashboard() {
                                 </TableCell>
                                 <TableCell>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Button
+                                      <Button
                                       variant="text"
                                       sx={{
                                         textAlign: 'left',
@@ -713,6 +717,7 @@ export default function JunitResultDashboard() {
                                         fontWeight: 'bold'
                                       }}
                                       onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${latestResult.id}`)}
+                                      data-testid="automation-file-link"
                                     >
                                       {group.fileName}
                                     </Button>
@@ -793,6 +798,7 @@ export default function JunitResultDashboard() {
                                   <IconButton
                                     size="small"
                                     onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${latestResult.id}`)}
+                                    data-testid="automation-view-button"
                                   >
                                     <Visibility fontSize="small" />
                                   </IconButton>
@@ -800,6 +806,7 @@ export default function JunitResultDashboard() {
                                     size="small"
                                     color="error"
                                     onClick={() => handleDeleteResult(latestResult.id)}
+                                    data-testid="automation-delete-button"
                                   >
                                     <Delete fontSize="small" />
                                   </IconButton>
@@ -1011,11 +1018,22 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
 
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setDragOver(false);
 
     const file = e.dataTransfer.files[0];
     if (file) {
       handleFileSelect(file);
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragOver(true);
+    } else if (e.type === 'dragleave') {
+      setDragOver(false);
     }
   };
 
@@ -1056,8 +1074,9 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
             transition: 'all 0.2s ease'
           }}
           onDrop={handleDrop}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
+          onDragOver={handleDrag}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
         >
           {selectedFile ? (
             <Box>
@@ -1103,6 +1122,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
                     const file = e.target.files[0];
                     if (file) handleFileSelect(file);
                   }}
+                  data-testid="automation-upload-file-input"
                 />
               </Button>
             </Box>
@@ -1155,6 +1175,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
                   borderRadius: '4px',
                   fontSize: '14px'
                 }}
+                data-testid="automation-upload-name-input"
               />
               <textarea
                 placeholder={t('junit.placeholder.description', '설명 (선택사항)')}
@@ -1168,6 +1189,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
                   fontSize: '14px',
                   resize: 'vertical'
                 }}
+                data-testid="automation-upload-description-input"
               />
             </Box>
           </Box>
@@ -1182,6 +1204,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
           onClick={handleUpload}
           disabled={!selectedFile || loading}
           startIcon={loading ? <Schedule /> : <CloudUpload />}
+          data-testid="automation-upload-submit-button"
         >
           {loading ? t('junit.dashboard.uploading', '업로드 중...') : t('junit.dashboard.upload', '업로드')}
         </Button>

@@ -43,14 +43,15 @@ const TestExecutionHeader = ({
                         variant="outlined"
                         startIcon={<InfoIcon />}
                         sx={{ mr: 1 }}
+                        data-testid="execution-guide-button"
                     >
                         {showExecutionGuide ? t('testExecution.guide.hideGuide') : t('testExecution.guide.showGuide')}
                     </Button>
                 )}
-                <Button onClick={onGoToList} sx={{ mr: 1 }}>
+                <Button onClick={onGoToList} sx={{ mr: 1 }} data-testid="execution-list-button">
                     {t('common.list')}
                 </Button>
-                <Button onClick={onCancel} sx={{ mr: 1 }}>
+                <Button onClick={onCancel} sx={{ mr: 1 }} data-testid="execution-cancel-button">
                     {t('common.cancel')}
                 </Button>
                 {canEditBasicInfo && (
@@ -60,6 +61,7 @@ const TestExecutionHeader = ({
                         color="primary"
                         disabled={saving}
                         startIcon={saving ? <CircularProgress size={20} /> : null}
+                        data-testid="execution-save-button"
                     >
                         {startImmediately ? t('testExecution.form.saveAndStart') : t('common.save')}
                     </Button>

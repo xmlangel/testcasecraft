@@ -66,6 +66,7 @@ public class KoreanTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.form.button.showGuide", languageCode, "실행 절차", createdBy);
                 createTranslationIfNotExists("testExecution.info.title", languageCode, "실행 정보", createdBy);
                 createTranslationIfNotExists("testExecution.info.status", languageCode, "상태", createdBy);
+                createTranslationIfNotExists("testExecution.executionSummary", languageCode, "실행 요약", createdBy);
                 createTranslationIfNotExists("testExecution.info.startDate", languageCode, "시작일시", createdBy);
                 createTranslationIfNotExists("testExecution.info.endDate", languageCode, "종료일시", createdBy);
                 createTranslationIfNotExists("testExecution.info.progress", languageCode, "진행률", createdBy);
@@ -171,6 +172,7 @@ public class KoreanTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.dialog.attachments.close", languageCode, "닫기", createdBy);
                 createTranslationIfNotExists("testExecution.progress.completed", languageCode, "완료", createdBy);
                 createTranslationIfNotExists("testExecution.progress.total", languageCode, "전체", createdBy);
+                createTranslationIfNotExists("testExecution.progress", languageCode, "진행률", createdBy);
                 createTranslationIfNotExists("testExecution.table.caseName", languageCode, "케이스명", createdBy);
                 createTranslationIfNotExists("testExecution.table.result", languageCode, "결과", createdBy);
                 createTranslationIfNotExists("testExecution.table.executedAt", languageCode, "실행일시", createdBy);

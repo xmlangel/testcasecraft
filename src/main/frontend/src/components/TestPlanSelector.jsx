@@ -40,12 +40,13 @@ const TestPlanSelector = ({
           endAdornment={loading && (
             <CircularProgress size={20} sx={{ mr: 2 }} />
           )}
+          data-testid="testplan-selector"
         >
-          <MenuItem value="">
+          <MenuItem value="" data-testid="testplan-option-all">
             <em>{t('testPlan.selector.all', '전체')}</em>
           </MenuItem>
           {testPlans.map((plan) => (
-            <MenuItem key={plan.id} value={plan.id}>
+            <MenuItem key={plan.id} value={plan.id} data-testid={`testplan-option-${plan.id}`}>
               <Box sx={{ width: '100%' }}>
                 <Typography variant="body2" noWrap>
                   {plan.name}

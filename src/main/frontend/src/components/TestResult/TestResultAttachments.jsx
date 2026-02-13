@@ -46,6 +46,7 @@ const TestResultAttachments = ({
                     type="file"
                     onChange={handleFileUpload}
                     disabled={isViewer || isFileUploading}
+                    data-testid="result-file-input"
                 />
                 <label htmlFor="file-upload-input">
                     <Button
@@ -54,6 +55,7 @@ const TestResultAttachments = ({
                         disabled={isViewer || isFileUploading}
                         startIcon={isFileUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
                         sx={{ mr: 2 }}
+                        data-testid="result-upload-button"
                     >
                         {isFileUploading ? t('testResult.form.fileUploading') : t('testResult.form.fileSelect')}
                     </Button>

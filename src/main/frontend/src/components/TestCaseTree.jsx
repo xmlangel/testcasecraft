@@ -679,6 +679,7 @@ const TestCaseTree = ({
                 onClick={(e) => e.stopPropagation()}
                 size="small"
                 sx={{ mr: 1 }}
+                inputProps={{ 'data-testid': `testcase-checkbox-${node.id}` }}
               />
             )}
             {isFolder(node) ? (
@@ -758,6 +759,7 @@ const TestCaseTree = ({
         <TreeItem
           key={node.id}
           itemId={node.id}
+          data-testid={`testcase-tree-item-${node.id}`}
           label={
             <Box>
               {labelContent}
@@ -938,12 +940,13 @@ const TestCaseTree = ({
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* 좌측: Select All */}
           {!isViewer(user?.role) && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }} data-testid="testcase-check-all-container">
               <Checkbox
                 checked={isAllChecked}
                 indeterminate={isIndeterminate}
                 onChange={handleCheckAll}
                 size="small"
+                inputProps={{ 'data-testid': 'testcase-check-all-input' }}
               />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

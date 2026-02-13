@@ -1,79 +1,3 @@
-# Docker production data
-docker_prod_data/
-# Build artifacts
-*.jar
-# Log files
-*.log
-# Environment variables (sensitive)
-.env.prod
-GEMINI.md
-e2e-tests/
-.gradle/
-# Log files
-logs/
-
-# SSL certificates (security)
-ssl/*.p12
-ssl/*.pfx
-ssl/*.jks
-ssl/*.keystore
-ssl/*.crt
-ssl/*.pem
-ssl/*.key
-ssl/*.cer
-
-# Keep README files
-!ssl/README.md
-
-# Docker volumes
-postgres_data/
-
-data/*
-
-# Node.js
-node_modules/
-npm-debug.log
-yarn-error.log
-dist/
-.env
-.DS_Store
-
-# Gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-
-# dev/docs
-doc/dev_docs/*
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-.venv
-venv/
-ENV/
-env/
-.idea/
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -249,6 +173,12 @@ playwright-report/
 **/playwright-report/
 test-results/
 test-output/
+**/screenshots/
+**/test-screenshots/
+src/test/e2e/screenshots/
+src/test/e2e/test-screenshots/
+src/test/e2e/regression/screenshots/
+*.png
 
 # 로그 파일들
 *.log
@@ -313,3 +243,7 @@ pip-wheel-metadata/
 # Aider files
 .aider*\n# Ignore generated lock files\nsrc/main/frontend/package-lock.json
 data/minio-test/.minio.sys/format.json
+
+# markdown generated docs files
+docs/*/libs
+docs/*.html

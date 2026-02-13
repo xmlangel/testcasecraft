@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Mobile Multilingual Test" tests="1" failures="1" errors="0" skipped="0">
+    <testcase name="Setting_Language_Change" classname="mobile.settings.LangTest" time="2.5">
+      <failure message="Language did not change as expected" type="LogicError">
+        <steps>
+          <step index="1">
+            <Environment>Android 14 / Samsung Galaxy S23</Environment>
+            <Action>Change language to 日本語</Action>
+            <Expected_Text>설정 -> 設定 (JP)</Expected_Text>
+            <Actual_Text>설정 (Still in KR)</Actual_Text>
+            <Note>Language persistence failed.</Note>
+          </step>
+        </steps>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

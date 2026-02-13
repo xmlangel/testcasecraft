@@ -137,7 +137,8 @@ const TestStepsTable = ({
                                                             type: 'step',
                                                             field: 'description',
                                                             stepNumber: step.stepNumber,
-                                                        })
+                                                        }),
+                                                        'data-testid': `step-description-${step.stepNumber}`
                                                     }}
                                                     disabled={isViewer}
                                                 />
@@ -156,7 +157,8 @@ const TestStepsTable = ({
                                                             type: 'step',
                                                             field: 'expectedResult',
                                                             stepNumber: step.stepNumber,
-                                                        })
+                                                        }),
+                                                        'data-testid': `step-expected-${step.stepNumber}`
                                                     }}
                                                     disabled={isViewer}
                                                 />
@@ -205,6 +207,7 @@ const TestStepsTable = ({
                     size="small"
                     variant="outlined"
                     color="primary"
+                    data-testid="add-step-button"
                 >
                     {t('testcase.button.addStep', '스텝 추가')}
                 </Button>

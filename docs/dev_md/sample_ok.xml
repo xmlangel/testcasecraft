@@ -1,0 +1,1885 @@
+<?xml version="1.0" ?>
+<testsuites>
+  <testsuite name="PostgreSQL Regression Tests" tests="1" failures="0" errors="0" skipped="0">
+    <testcase name="test_setup" classname="Default Group" time="0.139">
+      
+      
+      <system-out>--
+-- TEST_SETUP --- prepare environment expected by regression test scripts
+--
+-- directory paths and dlsuffix are passed to us in environment variables
+\getenv abs_srcdir PG_ABS_SRCDIR
+\getenv libdir PG_LIBDIR
+\getenv dlsuffix PG_DLSUFFIX
+\set regresslib :libdir '/regress' :dlsuffix
+--
+-- synchronous_commit=off delays when hint bits may be set. Some plans change
+-- depending on the number of all-visible pages, which in turn can be
+-- influenced by the delayed hint bits. Force synchronous_commit=on to avoid
+-- that source of variability.
+--
+SET synchronous_commit = on;
+--
+-- Postgres formerly made the public schema read/write by default,
+-- and most of the core regression tests still expect that.
+--
+GRANT ALL ON SCHEMA public TO public;
+-- Create a tablespace we can use in tests.
+SET allow_in_place_tablespaces = true;
+CREATE TABLESPACE regress_tblspace LOCATION '';
+--
+-- These tables have traditionally been referenced by many tests,
+-- so create and populate them.  Insert only non-error values here.
+-- (Some subsequent tests try to insert erroneous values.  That's okay
+-- because the table won't actually change.  Do not change the contents
+-- of these tables in later tests, as it may affect other tests.)
+--
+CREATE TABLE CHAR_TBL(f1 char(4));
+INSERT INTO CHAR_TBL (f1) VALUES
+  ('a'),
+  ('ab'),
+  ('abcd'),
+  ('abcd    ');
+VACUUM CHAR_TBL;
+CREATE TABLE FLOAT8_TBL(f1 float8);
+INSERT INTO FLOAT8_TBL(f1) VALUES
+  ('0.0'),
+  ('-34.84'),
+  ('-1004.30'),
+  ('-1.2345678901234e+200'),
+  ('-1.2345678901234e-200');
+VACUUM FLOAT8_TBL;
+CREATE TABLE INT2_TBL(f1 int2);
+INSERT INTO INT2_TBL(f1) VALUES
+  ('0   '),
+  ('  1234 '),
+  ('    -1234'),
+  ('32767'),  -- largest and smallest values
+  ('-32767');
+VACUUM INT2_TBL;
+CREATE TABLE INT4_TBL(f1 int4);
+INSERT INTO INT4_TBL(f1) VALUES
+  ('   0  '),
+  ('123456     '),
+  ('    -123456'),
+  ('2147483647'),  -- largest and smallest values
+  ('-2147483647');
+VACUUM INT4_TBL;
+CREATE TABLE INT8_TBL(q1 int8, q2 int8);
+INSERT INTO INT8_TBL VALUES
+  ('  123   ','  456'),
+  ('123   ','4567890123456789'),
+  ('4567890123456789','123'),
+  (+4567890123456789,'4567890123456789'),
+  ('+4567890123456789','-4567890123456789');
+VACUUM INT8_TBL;
+CREATE TABLE POINT_TBL(f1 point);
+INSERT INTO POINT_TBL(f1) VALUES
+  ('(0.0,0.0)'),
+  ('(-10.0,0.0)'),
+  ('(-3.0,4.0)'),
+  ('(5.1, 34.5)'),
+  ('(-5.0,-12.0)'),
+  ('(1e-300,-1e-300)'),  -- To underflow
+  ('(1e+300,Inf)'),  -- To overflow
+  ('(Inf,1e+300)'),  -- Transposed
+  (' ( Nan , NaN ) '),
+  ('10.0,10.0');
+-- We intentionally don't vacuum point_tbl here; geometry depends on that
+CREATE TABLE TEXT_TBL (f1 text);
+INSERT INTO TEXT_TBL VALUES
+  ('doh!'),
+  ('hi de ho neighbor');
+VACUUM TEXT_TBL;
+CREATE TABLE VARCHAR_TBL(f1 varchar(4));
+INSERT INTO VARCHAR_TBL (f1) VALUES
+  ('a'),
+  ('ab'),
+  ('abcd'),
+  ('abcd    ');
+VACUUM VARCHAR_TBL;
+CREATE TABLE onek (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);
+\set filename :abs_srcdir '/data/onek.data'
+COPY onek FROM :'filename';
+VACUUM ANALYZE onek;
+CREATE TABLE onek2 AS SELECT * FROM onek;
+VACUUM ANALYZE onek2;
+CREATE TABLE tenk1 (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);
+\set filename :abs_srcdir '/data/tenk.data'
+COPY tenk1 FROM :'filename';
+VACUUM ANALYZE tenk1;
+CREATE TABLE tenk2 AS SELECT * FROM tenk1;
+VACUUM ANALYZE tenk2;
+CREATE TABLE person (
+	name 		text,
+	age			int4,
+	location 	point
+);
+\set filename :abs_srcdir '/data/person.data'
+COPY person FROM :'filename';
+VACUUM ANALYZE person;
+CREATE TABLE emp (
+	salary 		int4,
+	manager 	name
+) INHERITS (person);
+\set filename :abs_srcdir '/data/emp.data'
+COPY emp FROM :'filename';
+VACUUM ANALYZE emp;
+CREATE TABLE student (
+	gpa 		float8
+) INHERITS (person);
+\set filename :abs_srcdir '/data/student.data'
+COPY student FROM :'filename';
+VACUUM ANALYZE student;
+CREATE TABLE stud_emp (
+	percent 	int4
+) INHERITS (emp, student);
+NOTICE:  merging multiple inherited definitions of column &quot;name&quot;
+NOTICE:  merging multiple inherited definitions of column &quot;age&quot;
+NOTICE:  merging multiple inherited definitions of column &quot;location&quot;
+\set filename :abs_srcdir '/data/stud_emp.data'
+COPY stud_emp FROM :'filename';
+VACUUM ANALYZE stud_emp;
+CREATE TABLE road (
+	name		text,
+	thepath 	path
+);
+\set filename :abs_srcdir '/data/streets.data'
+COPY road FROM :'filename';
+VACUUM ANALYZE road;
+CREATE TABLE ihighway () INHERITS (road);
+INSERT INTO ihighway
+   SELECT *
+   FROM ONLY road
+   WHERE name ~ 'I- .*';
+VACUUM ANALYZE ihighway;
+CREATE TABLE shighway (
+	surface		text
+) INHERITS (road);
+INSERT INTO shighway
+   SELECT *, 'asphalt'
+   FROM ONLY road
+   WHERE name ~ 'State Hwy.*';
+VACUUM ANALYZE shighway;
+--
+-- We must have some enum type in the database for opr_sanity and type_sanity.
+--
+create type stoplight as enum ('red', 'yellow', 'green');
+--
+-- Also create some non-built-in range types.
+--
+create type float8range as range (subtype = float8, subtype_diff = float8mi);
+create type textrange as range (subtype = text, collation = &quot;C&quot;);
+--
+-- Create some C functions that will be used by various tests.
+--
+CREATE FUNCTION binary_coercible(oid, oid)
+    RETURNS bool
+    AS :'regresslib', 'binary_coercible'
+    LANGUAGE C STRICT STABLE PARALLEL SAFE;
+CREATE FUNCTION ttdummy ()
+    RETURNS trigger
+    AS :'regresslib'
+    LANGUAGE C;
+-- Use hand-rolled hash functions and operator classes to get predictable
+-- result on different machines.  The hash function for int4 simply returns
+-- the sum of the values passed to it and the one for text returns the length
+-- of the non-empty string value passed to it or 0.
+create function part_hashint4_noop(value int4, seed int8)
+    returns int8 as $$
+    select value + seed;
+    $$ language sql strict immutable parallel safe;
+create operator class part_test_int4_ops for type int4 using hash as
+    operator 1 =,
+    function 2 part_hashint4_noop(int4, int8);
+create function part_hashtext_length(value text, seed int8)
+    returns int8 as $$
+    select length(coalesce(value, ''))::int8
+    $$ language sql strict immutable parallel safe;
+create operator class part_test_text_ops for type text using hash as
+    operator 1 =,
+    function 2 part_hashtext_length(text, int8);
+--
+-- These functions are used in tests that used to use md5(), which we now
+-- mostly avoid so that the tests will pass in FIPS mode.
+--
+create function fipshash(bytea)
+    returns text
+    strict immutable parallel safe leakproof
+    return substr(encode(sha256($1), 'hex'), 1, 32);
+create function fipshash(text)
+    returns text
+    strict immutable parallel safe leakproof
+    return substr(encode(sha256($1::bytea), 'hex'), 1, 32);
+</system-out>
+      
+      
+      <system-err>
+[STEPS]
+STEP 1:
+-- TEST_SETUP --- prepare environment expected by regression test scripts
+--
+EXPECTED:
+-- TEST_SETUP --- prepare environment expected by regression test scripts
+--
+ACTUAL:
+-- TEST_SETUP --- prepare environment expected by regression test scripts
+--
+----------------------------------------
+STEP 2:
+-- directory paths and dlsuffix are passed to us in environment variables
+EXPECTED:
+-- directory paths and dlsuffix are passed to us in environment variables
+ACTUAL:
+-- directory paths and dlsuffix are passed to us in environment variables
+----------------------------------------
+STEP 3:
+\getenv abs_srcdir PG_ABS_SRCDIR
+EXPECTED:
+\getenv abs_srcdir PG_ABS_SRCDIR
+ACTUAL:
+\getenv abs_srcdir PG_ABS_SRCDIR
+----------------------------------------
+STEP 4:
+\getenv libdir PG_LIBDIR
+EXPECTED:
+\getenv libdir PG_LIBDIR
+ACTUAL:
+\getenv libdir PG_LIBDIR
+----------------------------------------
+STEP 5:
+\getenv dlsuffix PG_DLSUFFIX
+EXPECTED:
+\getenv dlsuffix PG_DLSUFFIX
+ACTUAL:
+\getenv dlsuffix PG_DLSUFFIX
+----------------------------------------
+STEP 6:
+\set regresslib :libdir '/regress' :dlsuffix
+--
+EXPECTED:
+\set regresslib :libdir '/regress' :dlsuffix
+--
+ACTUAL:
+\set regresslib :libdir '/regress' :dlsuffix
+--
+----------------------------------------
+STEP 7:
+-- synchronous_commit=off delays when hint bits may be set. Some plans change
+EXPECTED:
+-- synchronous_commit=off delays when hint bits may be set. Some plans change
+ACTUAL:
+-- synchronous_commit=off delays when hint bits may be set. Some plans change
+----------------------------------------
+STEP 8:
+-- depending on the number of all-visible pages, which in turn can be
+EXPECTED:
+-- depending on the number of all-visible pages, which in turn can be
+ACTUAL:
+-- depending on the number of all-visible pages, which in turn can be
+----------------------------------------
+STEP 9:
+-- influenced by the delayed hint bits. Force synchronous_commit=on to avoid
+EXPECTED:
+-- influenced by the delayed hint bits. Force synchronous_commit=on to avoid
+ACTUAL:
+-- influenced by the delayed hint bits. Force synchronous_commit=on to avoid
+----------------------------------------
+STEP 10:
+-- that source of variability.
+--
+SET synchronous_commit = on;
+--
+EXPECTED:
+-- that source of variability.
+--
+SET synchronous_commit = on;
+--
+ACTUAL:
+-- that source of variability.
+--
+SET synchronous_commit = on;
+--
+----------------------------------------
+... and 57 more steps (not shown)
+----------------------------------------
+</system-err>
+      
+      
+      <steps>
+        
+        
+        <step index="1">
+          
+          
+          <sql>-- TEST_SETUP --- prepare environment expected by regression test scripts
+--</sql>
+          
+          
+          <expected>-- TEST_SETUP --- prepare environment expected by regression test scripts
+--</expected>
+          
+          
+          <actual>-- TEST_SETUP --- prepare environment expected by regression test scripts
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="2">
+          
+          
+          <sql>-- directory paths and dlsuffix are passed to us in environment variables</sql>
+          
+          
+          <expected>-- directory paths and dlsuffix are passed to us in environment variables</expected>
+          
+          
+          <actual>-- directory paths and dlsuffix are passed to us in environment variables</actual>
+          
+        
+        </step>
+        
+        
+        <step index="3">
+          
+          
+          <sql>\getenv abs_srcdir PG_ABS_SRCDIR</sql>
+          
+          
+          <expected>\getenv abs_srcdir PG_ABS_SRCDIR</expected>
+          
+          
+          <actual>\getenv abs_srcdir PG_ABS_SRCDIR</actual>
+          
+        
+        </step>
+        
+        
+        <step index="4">
+          
+          
+          <sql>\getenv libdir PG_LIBDIR</sql>
+          
+          
+          <expected>\getenv libdir PG_LIBDIR</expected>
+          
+          
+          <actual>\getenv libdir PG_LIBDIR</actual>
+          
+        
+        </step>
+        
+        
+        <step index="5">
+          
+          
+          <sql>\getenv dlsuffix PG_DLSUFFIX</sql>
+          
+          
+          <expected>\getenv dlsuffix PG_DLSUFFIX</expected>
+          
+          
+          <actual>\getenv dlsuffix PG_DLSUFFIX</actual>
+          
+        
+        </step>
+        
+        
+        <step index="6">
+          
+          
+          <sql>\set regresslib :libdir '/regress' :dlsuffix
+--</sql>
+          
+          
+          <expected>\set regresslib :libdir '/regress' :dlsuffix
+--</expected>
+          
+          
+          <actual>\set regresslib :libdir '/regress' :dlsuffix
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="7">
+          
+          
+          <sql>-- synchronous_commit=off delays when hint bits may be set. Some plans change</sql>
+          
+          
+          <expected>-- synchronous_commit=off delays when hint bits may be set. Some plans change</expected>
+          
+          
+          <actual>-- synchronous_commit=off delays when hint bits may be set. Some plans change</actual>
+          
+        
+        </step>
+        
+        
+        <step index="8">
+          
+          
+          <sql>-- depending on the number of all-visible pages, which in turn can be</sql>
+          
+          
+          <expected>-- depending on the number of all-visible pages, which in turn can be</expected>
+          
+          
+          <actual>-- depending on the number of all-visible pages, which in turn can be</actual>
+          
+        
+        </step>
+        
+        
+        <step index="9">
+          
+          
+          <sql>-- influenced by the delayed hint bits. Force synchronous_commit=on to avoid</sql>
+          
+          
+          <expected>-- influenced by the delayed hint bits. Force synchronous_commit=on to avoid</expected>
+          
+          
+          <actual>-- influenced by the delayed hint bits. Force synchronous_commit=on to avoid</actual>
+          
+        
+        </step>
+        
+        
+        <step index="10">
+          
+          
+          <sql>-- that source of variability.
+--
+SET synchronous_commit = on;
+--</sql>
+          
+          
+          <expected>-- that source of variability.
+--
+SET synchronous_commit = on;
+--</expected>
+          
+          
+          <actual>-- that source of variability.
+--
+SET synchronous_commit = on;
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="11">
+          
+          
+          <sql>-- Postgres formerly made the public schema read/write by default,</sql>
+          
+          
+          <expected>-- Postgres formerly made the public schema read/write by default,</expected>
+          
+          
+          <actual>-- Postgres formerly made the public schema read/write by default,</actual>
+          
+        
+        </step>
+        
+        
+        <step index="12">
+          
+          
+          <sql>-- and most of the core regression tests still expect that.
+--
+GRANT ALL ON SCHEMA public TO public;</sql>
+          
+          
+          <expected>-- and most of the core regression tests still expect that.
+--
+GRANT ALL ON SCHEMA public TO public;</expected>
+          
+          
+          <actual>-- and most of the core regression tests still expect that.
+--
+GRANT ALL ON SCHEMA public TO public;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="13">
+          
+          
+          <sql>-- Create a tablespace we can use in tests.
+SET allow_in_place_tablespaces = true;</sql>
+          
+          
+          <expected>-- Create a tablespace we can use in tests.
+SET allow_in_place_tablespaces = true;</expected>
+          
+          
+          <actual>-- Create a tablespace we can use in tests.
+SET allow_in_place_tablespaces = true;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="14">
+          
+          
+          <sql>CREATE TABLESPACE regress_tblspace LOCATION '';
+--</sql>
+          
+          
+          <expected>CREATE TABLESPACE regress_tblspace LOCATION '';
+--</expected>
+          
+          
+          <actual>CREATE TABLESPACE regress_tblspace LOCATION '';
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="15">
+          
+          
+          <sql>-- These tables have traditionally been referenced by many tests,</sql>
+          
+          
+          <expected>-- These tables have traditionally been referenced by many tests,</expected>
+          
+          
+          <actual>-- These tables have traditionally been referenced by many tests,</actual>
+          
+        
+        </step>
+        
+        
+        <step index="16">
+          
+          
+          <sql>-- so create and populate them.  Insert only non-error values here.</sql>
+          
+          
+          <expected>-- so create and populate them.  Insert only non-error values here.</expected>
+          
+          
+          <actual>-- so create and populate them.  Insert only non-error values here.</actual>
+          
+        
+        </step>
+        
+        
+        <step index="17">
+          
+          
+          <sql>-- (Some subsequent tests try to insert erroneous values.  That's okay</sql>
+          
+          
+          <expected>-- (Some subsequent tests try to insert erroneous values.  That's okay</expected>
+          
+          
+          <actual>-- (Some subsequent tests try to insert erroneous values.  That's okay</actual>
+          
+        
+        </step>
+        
+        
+        <step index="18">
+          
+          
+          <sql>-- because the table won't actually change.  Do not change the contents</sql>
+          
+          
+          <expected>-- because the table won't actually change.  Do not change the contents</expected>
+          
+          
+          <actual>-- because the table won't actually change.  Do not change the contents</actual>
+          
+        
+        </step>
+        
+        
+        <step index="19">
+          
+          
+          <sql>-- of these tables in later tests, as it may affect other tests.)
+--</sql>
+          
+          
+          <expected>-- of these tables in later tests, as it may affect other tests.)
+--</expected>
+          
+          
+          <actual>-- of these tables in later tests, as it may affect other tests.)
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="20">
+          
+          
+          <sql>CREATE TABLE CHAR_TBL(f1 char(4));</sql>
+          
+          
+          <expected>CREATE TABLE CHAR_TBL(f1 char(4));</expected>
+          
+          
+          <actual>CREATE TABLE CHAR_TBL(f1 char(4));</actual>
+          
+        
+        </step>
+        
+        
+        <step index="21">
+          
+          
+          <sql>INSERT INTO CHAR_TBL (f1) VALUES
+  ('a'),
+  ('ab'),
+  ('abcd'),
+  ('abcd    ');
+VACUUM CHAR_TBL;</sql>
+          
+          
+          <expected>INSERT INTO CHAR_TBL (f1) VALUES
+  ('a'),
+  ('ab'),
+  ('abcd'),
+  ('abcd    ');
+VACUUM CHAR_TBL;</expected>
+          
+          
+          <actual>INSERT INTO CHAR_TBL (f1) VALUES
+  ('a'),
+  ('ab'),
+  ('abcd'),
+  ('abcd    ');
+VACUUM CHAR_TBL;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="22">
+          
+          
+          <sql>CREATE TABLE FLOAT8_TBL(f1 float8);</sql>
+          
+          
+          <expected>CREATE TABLE FLOAT8_TBL(f1 float8);</expected>
+          
+          
+          <actual>CREATE TABLE FLOAT8_TBL(f1 float8);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="23">
+          
+          
+          <sql>INSERT INTO FLOAT8_TBL(f1) VALUES
+  ('0.0'),
+  ('-34.84'),
+  ('-1004.30'),
+  ('-1.2345678901234e+200'),
+  ('-1.2345678901234e-200');
+VACUUM FLOAT8_TBL;</sql>
+          
+          
+          <expected>INSERT INTO FLOAT8_TBL(f1) VALUES
+  ('0.0'),
+  ('-34.84'),
+  ('-1004.30'),
+  ('-1.2345678901234e+200'),
+  ('-1.2345678901234e-200');
+VACUUM FLOAT8_TBL;</expected>
+          
+          
+          <actual>INSERT INTO FLOAT8_TBL(f1) VALUES
+  ('0.0'),
+  ('-34.84'),
+  ('-1004.30'),
+  ('-1.2345678901234e+200'),
+  ('-1.2345678901234e-200');
+VACUUM FLOAT8_TBL;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="24">
+          
+          
+          <sql>CREATE TABLE INT2_TBL(f1 int2);</sql>
+          
+          
+          <expected>CREATE TABLE INT2_TBL(f1 int2);</expected>
+          
+          
+          <actual>CREATE TABLE INT2_TBL(f1 int2);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="25">
+          
+          
+          <sql>INSERT INTO INT2_TBL(f1) VALUES
+  ('0   '),
+  ('  1234 '),
+  ('    -1234'),
+  ('32767'),  -- largest and smallest values
+  ('-32767');
+VACUUM INT2_TBL;</sql>
+          
+          
+          <expected>INSERT INTO INT2_TBL(f1) VALUES
+  ('0   '),
+  ('  1234 '),
+  ('    -1234'),
+  ('32767'),  -- largest and smallest values
+  ('-32767');
+VACUUM INT2_TBL;</expected>
+          
+          
+          <actual>INSERT INTO INT2_TBL(f1) VALUES
+  ('0   '),
+  ('  1234 '),
+  ('    -1234'),
+  ('32767'),  -- largest and smallest values
+  ('-32767');
+VACUUM INT2_TBL;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="26">
+          
+          
+          <sql>CREATE TABLE INT4_TBL(f1 int4);</sql>
+          
+          
+          <expected>CREATE TABLE INT4_TBL(f1 int4);</expected>
+          
+          
+          <actual>CREATE TABLE INT4_TBL(f1 int4);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="27">
+          
+          
+          <sql>INSERT INTO INT4_TBL(f1) VALUES
+  ('   0  '),
+  ('123456     '),
+  ('    -123456'),
+  ('2147483647'),  -- largest and smallest values
+  ('-2147483647');
+VACUUM INT4_TBL;</sql>
+          
+          
+          <expected>INSERT INTO INT4_TBL(f1) VALUES
+  ('   0  '),
+  ('123456     '),
+  ('    -123456'),
+  ('2147483647'),  -- largest and smallest values
+  ('-2147483647');
+VACUUM INT4_TBL;</expected>
+          
+          
+          <actual>INSERT INTO INT4_TBL(f1) VALUES
+  ('   0  '),
+  ('123456     '),
+  ('    -123456'),
+  ('2147483647'),  -- largest and smallest values
+  ('-2147483647');
+VACUUM INT4_TBL;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="28">
+          
+          
+          <sql>CREATE TABLE INT8_TBL(q1 int8, q2 int8);</sql>
+          
+          
+          <expected>CREATE TABLE INT8_TBL(q1 int8, q2 int8);</expected>
+          
+          
+          <actual>CREATE TABLE INT8_TBL(q1 int8, q2 int8);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="29">
+          
+          
+          <sql>INSERT INTO INT8_TBL VALUES
+  ('  123   ','  456'),
+  ('123   ','4567890123456789'),
+  ('4567890123456789','123'),
+  (+4567890123456789,'4567890123456789'),
+  ('+4567890123456789','-4567890123456789');
+VACUUM INT8_TBL;</sql>
+          
+          
+          <expected>INSERT INTO INT8_TBL VALUES
+  ('  123   ','  456'),
+  ('123   ','4567890123456789'),
+  ('4567890123456789','123'),
+  (+4567890123456789,'4567890123456789'),
+  ('+4567890123456789','-4567890123456789');
+VACUUM INT8_TBL;</expected>
+          
+          
+          <actual>INSERT INTO INT8_TBL VALUES
+  ('  123   ','  456'),
+  ('123   ','4567890123456789'),
+  ('4567890123456789','123'),
+  (+4567890123456789,'4567890123456789'),
+  ('+4567890123456789','-4567890123456789');
+VACUUM INT8_TBL;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="30">
+          
+          
+          <sql>CREATE TABLE POINT_TBL(f1 point);</sql>
+          
+          
+          <expected>CREATE TABLE POINT_TBL(f1 point);</expected>
+          
+          
+          <actual>CREATE TABLE POINT_TBL(f1 point);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="31">
+          
+          
+          <sql>INSERT INTO POINT_TBL(f1) VALUES
+  ('(0.0,0.0)'),
+  ('(-10.0,0.0)'),
+  ('(-3.0,4.0)'),
+  ('(5.1, 34.5)'),
+  ('(-5.0,-12.0)'),
+  ('(1e-300,-1e-300)'),  -- To underflow
+  ('(1e+300,Inf)'),  -- To overflow
+  ('(Inf,1e+300)'),  -- Transposed
+  (' ( Nan , NaN ) '),
+  ('10.0,10.0');</sql>
+          
+          
+          <expected>INSERT INTO POINT_TBL(f1) VALUES
+  ('(0.0,0.0)'),
+  ('(-10.0,0.0)'),
+  ('(-3.0,4.0)'),
+  ('(5.1, 34.5)'),
+  ('(-5.0,-12.0)'),
+  ('(1e-300,-1e-300)'),  -- To underflow
+  ('(1e+300,Inf)'),  -- To overflow
+  ('(Inf,1e+300)'),  -- Transposed
+  (' ( Nan , NaN ) '),
+  ('10.0,10.0');</expected>
+          
+          
+          <actual>INSERT INTO POINT_TBL(f1) VALUES
+  ('(0.0,0.0)'),
+  ('(-10.0,0.0)'),
+  ('(-3.0,4.0)'),
+  ('(5.1, 34.5)'),
+  ('(-5.0,-12.0)'),
+  ('(1e-300,-1e-300)'),  -- To underflow
+  ('(1e+300,Inf)'),  -- To overflow
+  ('(Inf,1e+300)'),  -- Transposed
+  (' ( Nan , NaN ) '),
+  ('10.0,10.0');</actual>
+          
+        
+        </step>
+        
+        
+        <step index="32">
+          
+          
+          <sql>-- We intentionally don't vacuum point_tbl here; geometry depends on that</sql>
+          
+          
+          <expected>-- We intentionally don't vacuum point_tbl here; geometry depends on that</expected>
+          
+          
+          <actual>-- We intentionally don't vacuum point_tbl here; geometry depends on that</actual>
+          
+        
+        </step>
+        
+        
+        <step index="33">
+          
+          
+          <sql>CREATE TABLE TEXT_TBL (f1 text);</sql>
+          
+          
+          <expected>CREATE TABLE TEXT_TBL (f1 text);</expected>
+          
+          
+          <actual>CREATE TABLE TEXT_TBL (f1 text);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="34">
+          
+          
+          <sql>INSERT INTO TEXT_TBL VALUES
+  ('doh!'),
+  ('hi de ho neighbor');
+VACUUM TEXT_TBL;</sql>
+          
+          
+          <expected>INSERT INTO TEXT_TBL VALUES
+  ('doh!'),
+  ('hi de ho neighbor');
+VACUUM TEXT_TBL;</expected>
+          
+          
+          <actual>INSERT INTO TEXT_TBL VALUES
+  ('doh!'),
+  ('hi de ho neighbor');
+VACUUM TEXT_TBL;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="35">
+          
+          
+          <sql>CREATE TABLE VARCHAR_TBL(f1 varchar(4));</sql>
+          
+          
+          <expected>CREATE TABLE VARCHAR_TBL(f1 varchar(4));</expected>
+          
+          
+          <actual>CREATE TABLE VARCHAR_TBL(f1 varchar(4));</actual>
+          
+        
+        </step>
+        
+        
+        <step index="36">
+          
+          
+          <sql>INSERT INTO VARCHAR_TBL (f1) VALUES
+  ('a'),
+  ('ab'),
+  ('abcd'),
+  ('abcd    ');
+VACUUM VARCHAR_TBL;</sql>
+          
+          
+          <expected>INSERT INTO VARCHAR_TBL (f1) VALUES
+  ('a'),
+  ('ab'),
+  ('abcd'),
+  ('abcd    ');
+VACUUM VARCHAR_TBL;</expected>
+          
+          
+          <actual>INSERT INTO VARCHAR_TBL (f1) VALUES
+  ('a'),
+  ('ab'),
+  ('abcd'),
+  ('abcd    ');
+VACUUM VARCHAR_TBL;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="37">
+          
+          
+          <sql>CREATE TABLE onek (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);</sql>
+          
+          
+          <expected>CREATE TABLE onek (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);</expected>
+          
+          
+          <actual>CREATE TABLE onek (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="38">
+          
+          
+          <sql>\set filename :abs_srcdir '/data/onek.data'
+COPY onek FROM :'filename';
+VACUUM ANALYZE onek;</sql>
+          
+          
+          <expected>\set filename :abs_srcdir '/data/onek.data'
+COPY onek FROM :'filename';
+VACUUM ANALYZE onek;</expected>
+          
+          
+          <actual>\set filename :abs_srcdir '/data/onek.data'
+COPY onek FROM :'filename';
+VACUUM ANALYZE onek;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="39">
+          
+          
+          <sql>CREATE TABLE onek2 AS SELECT * FROM onek;
+VACUUM ANALYZE onek2;</sql>
+          
+          
+          <expected>CREATE TABLE onek2 AS SELECT * FROM onek;
+VACUUM ANALYZE onek2;</expected>
+          
+          
+          <actual>CREATE TABLE onek2 AS SELECT * FROM onek;
+VACUUM ANALYZE onek2;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="40">
+          
+          
+          <sql>CREATE TABLE tenk1 (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);</sql>
+          
+          
+          <expected>CREATE TABLE tenk1 (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);</expected>
+          
+          
+          <actual>CREATE TABLE tenk1 (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="41">
+          
+          
+          <sql>\set filename :abs_srcdir '/data/tenk.data'
+COPY tenk1 FROM :'filename';
+VACUUM ANALYZE tenk1;</sql>
+          
+          
+          <expected>\set filename :abs_srcdir '/data/tenk.data'
+COPY tenk1 FROM :'filename';
+VACUUM ANALYZE tenk1;</expected>
+          
+          
+          <actual>\set filename :abs_srcdir '/data/tenk.data'
+COPY tenk1 FROM :'filename';
+VACUUM ANALYZE tenk1;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="42">
+          
+          
+          <sql>CREATE TABLE tenk2 AS SELECT * FROM tenk1;
+VACUUM ANALYZE tenk2;</sql>
+          
+          
+          <expected>CREATE TABLE tenk2 AS SELECT * FROM tenk1;
+VACUUM ANALYZE tenk2;</expected>
+          
+          
+          <actual>CREATE TABLE tenk2 AS SELECT * FROM tenk1;
+VACUUM ANALYZE tenk2;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="43">
+          
+          
+          <sql>CREATE TABLE person (
+	name 		text,
+	age			int4,
+	location 	point
+);</sql>
+          
+          
+          <expected>CREATE TABLE person (
+	name 		text,
+	age			int4,
+	location 	point
+);</expected>
+          
+          
+          <actual>CREATE TABLE person (
+	name 		text,
+	age			int4,
+	location 	point
+);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="44">
+          
+          
+          <sql>\set filename :abs_srcdir '/data/person.data'
+COPY person FROM :'filename';
+VACUUM ANALYZE person;</sql>
+          
+          
+          <expected>\set filename :abs_srcdir '/data/person.data'
+COPY person FROM :'filename';
+VACUUM ANALYZE person;</expected>
+          
+          
+          <actual>\set filename :abs_srcdir '/data/person.data'
+COPY person FROM :'filename';
+VACUUM ANALYZE person;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="45">
+          
+          
+          <sql>CREATE TABLE emp (
+	salary 		int4,
+	manager 	name
+) INHERITS (person);</sql>
+          
+          
+          <expected>CREATE TABLE emp (
+	salary 		int4,
+	manager 	name
+) INHERITS (person);</expected>
+          
+          
+          <actual>CREATE TABLE emp (
+	salary 		int4,
+	manager 	name
+) INHERITS (person);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="46">
+          
+          
+          <sql>\set filename :abs_srcdir '/data/emp.data'
+COPY emp FROM :'filename';
+VACUUM ANALYZE emp;</sql>
+          
+          
+          <expected>\set filename :abs_srcdir '/data/emp.data'
+COPY emp FROM :'filename';
+VACUUM ANALYZE emp;</expected>
+          
+          
+          <actual>\set filename :abs_srcdir '/data/emp.data'
+COPY emp FROM :'filename';
+VACUUM ANALYZE emp;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="47">
+          
+          
+          <sql>CREATE TABLE student (
+	gpa 		float8
+) INHERITS (person);</sql>
+          
+          
+          <expected>CREATE TABLE student (
+	gpa 		float8
+) INHERITS (person);</expected>
+          
+          
+          <actual>CREATE TABLE student (
+	gpa 		float8
+) INHERITS (person);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="48">
+          
+          
+          <sql>\set filename :abs_srcdir '/data/student.data'
+COPY student FROM :'filename';
+VACUUM ANALYZE student;</sql>
+          
+          
+          <expected>\set filename :abs_srcdir '/data/student.data'
+COPY student FROM :'filename';
+VACUUM ANALYZE student;</expected>
+          
+          
+          <actual>\set filename :abs_srcdir '/data/student.data'
+COPY student FROM :'filename';
+VACUUM ANALYZE student;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="49">
+          
+          
+          <sql>CREATE TABLE stud_emp (
+	percent 	int4
+) INHERITS (emp, student);
+NOTICE:  merging multiple inherited definitions of column &quot;name&quot;
+NOTICE:  merging multiple inherited definitions of column &quot;age&quot;
+NOTICE:  merging multiple inherited definitions of column &quot;location&quot;</sql>
+          
+          
+          <expected>CREATE TABLE stud_emp (
+	percent 	int4
+) INHERITS (emp, student);
+NOTICE:  merging multiple inherited definitions of column &quot;name&quot;
+NOTICE:  merging multiple inherited definitions of column &quot;age&quot;
+NOTICE:  merging multiple inherited definitions of column &quot;location&quot;</expected>
+          
+          
+          <actual>CREATE TABLE stud_emp (
+	percent 	int4
+) INHERITS (emp, student);
+NOTICE:  merging multiple inherited definitions of column &quot;name&quot;
+NOTICE:  merging multiple inherited definitions of column &quot;age&quot;
+NOTICE:  merging multiple inherited definitions of column &quot;location&quot;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="50">
+          
+          
+          <sql>\set filename :abs_srcdir '/data/stud_emp.data'
+COPY stud_emp FROM :'filename';
+VACUUM ANALYZE stud_emp;</sql>
+          
+          
+          <expected>\set filename :abs_srcdir '/data/stud_emp.data'
+COPY stud_emp FROM :'filename';
+VACUUM ANALYZE stud_emp;</expected>
+          
+          
+          <actual>\set filename :abs_srcdir '/data/stud_emp.data'
+COPY stud_emp FROM :'filename';
+VACUUM ANALYZE stud_emp;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="51">
+          
+          
+          <sql>CREATE TABLE road (
+	name		text,
+	thepath 	path
+);</sql>
+          
+          
+          <expected>CREATE TABLE road (
+	name		text,
+	thepath 	path
+);</expected>
+          
+          
+          <actual>CREATE TABLE road (
+	name		text,
+	thepath 	path
+);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="52">
+          
+          
+          <sql>\set filename :abs_srcdir '/data/streets.data'
+COPY road FROM :'filename';
+VACUUM ANALYZE road;</sql>
+          
+          
+          <expected>\set filename :abs_srcdir '/data/streets.data'
+COPY road FROM :'filename';
+VACUUM ANALYZE road;</expected>
+          
+          
+          <actual>\set filename :abs_srcdir '/data/streets.data'
+COPY road FROM :'filename';
+VACUUM ANALYZE road;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="53">
+          
+          
+          <sql>CREATE TABLE ihighway () INHERITS (road);</sql>
+          
+          
+          <expected>CREATE TABLE ihighway () INHERITS (road);</expected>
+          
+          
+          <actual>CREATE TABLE ihighway () INHERITS (road);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="54">
+          
+          
+          <sql>INSERT INTO ihighway
+   SELECT *
+   FROM ONLY road
+   WHERE name ~ 'I- .*';
+VACUUM ANALYZE ihighway;</sql>
+          
+          
+          <expected>INSERT INTO ihighway
+   SELECT *
+   FROM ONLY road
+   WHERE name ~ 'I- .*';
+VACUUM ANALYZE ihighway;</expected>
+          
+          
+          <actual>INSERT INTO ihighway
+   SELECT *
+   FROM ONLY road
+   WHERE name ~ 'I- .*';
+VACUUM ANALYZE ihighway;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="55">
+          
+          
+          <sql>CREATE TABLE shighway (
+	surface		text
+) INHERITS (road);</sql>
+          
+          
+          <expected>CREATE TABLE shighway (
+	surface		text
+) INHERITS (road);</expected>
+          
+          
+          <actual>CREATE TABLE shighway (
+	surface		text
+) INHERITS (road);</actual>
+          
+        
+        </step>
+        
+        
+        <step index="56">
+          
+          
+          <sql>INSERT INTO shighway
+   SELECT *, 'asphalt'
+   FROM ONLY road
+   WHERE name ~ 'State Hwy.*';
+VACUUM ANALYZE shighway;
+--</sql>
+          
+          
+          <expected>INSERT INTO shighway
+   SELECT *, 'asphalt'
+   FROM ONLY road
+   WHERE name ~ 'State Hwy.*';
+VACUUM ANALYZE shighway;
+--</expected>
+          
+          
+          <actual>INSERT INTO shighway
+   SELECT *, 'asphalt'
+   FROM ONLY road
+   WHERE name ~ 'State Hwy.*';
+VACUUM ANALYZE shighway;
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="57">
+          
+          
+          <sql>-- We must have some enum type in the database for opr_sanity and type_sanity.
+--
+create type stoplight as enum ('red', 'yellow', 'green');
+--</sql>
+          
+          
+          <expected>-- We must have some enum type in the database for opr_sanity and type_sanity.
+--
+create type stoplight as enum ('red', 'yellow', 'green');
+--</expected>
+          
+          
+          <actual>-- We must have some enum type in the database for opr_sanity and type_sanity.
+--
+create type stoplight as enum ('red', 'yellow', 'green');
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="58">
+          
+          
+          <sql>-- Also create some non-built-in range types.
+--
+create type float8range as range (subtype = float8, subtype_diff = float8mi);
+create type textrange as range (subtype = text, collation = &quot;C&quot;);
+--</sql>
+          
+          
+          <expected>-- Also create some non-built-in range types.
+--
+create type float8range as range (subtype = float8, subtype_diff = float8mi);
+create type textrange as range (subtype = text, collation = &quot;C&quot;);
+--</expected>
+          
+          
+          <actual>-- Also create some non-built-in range types.
+--
+create type float8range as range (subtype = float8, subtype_diff = float8mi);
+create type textrange as range (subtype = text, collation = &quot;C&quot;);
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="59">
+          
+          
+          <sql>-- Create some C functions that will be used by various tests.
+--</sql>
+          
+          
+          <expected>-- Create some C functions that will be used by various tests.
+--</expected>
+          
+          
+          <actual>-- Create some C functions that will be used by various tests.
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="60">
+          
+          
+          <sql>CREATE FUNCTION binary_coercible(oid, oid)
+    RETURNS bool
+    AS :'regresslib', 'binary_coercible'
+    LANGUAGE C STRICT STABLE PARALLEL SAFE;</sql>
+          
+          
+          <expected>CREATE FUNCTION binary_coercible(oid, oid)
+    RETURNS bool
+    AS :'regresslib', 'binary_coercible'
+    LANGUAGE C STRICT STABLE PARALLEL SAFE;</expected>
+          
+          
+          <actual>CREATE FUNCTION binary_coercible(oid, oid)
+    RETURNS bool
+    AS :'regresslib', 'binary_coercible'
+    LANGUAGE C STRICT STABLE PARALLEL SAFE;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="61">
+          
+          
+          <sql>CREATE FUNCTION ttdummy ()
+    RETURNS trigger
+    AS :'regresslib'
+    LANGUAGE C;</sql>
+          
+          
+          <expected>CREATE FUNCTION ttdummy ()
+    RETURNS trigger
+    AS :'regresslib'
+    LANGUAGE C;</expected>
+          
+          
+          <actual>CREATE FUNCTION ttdummy ()
+    RETURNS trigger
+    AS :'regresslib'
+    LANGUAGE C;</actual>
+          
+        
+        </step>
+        
+        
+        <step index="62">
+          
+          
+          <sql>-- Use hand-rolled hash functions and operator classes to get predictable</sql>
+          
+          
+          <expected>-- Use hand-rolled hash functions and operator classes to get predictable</expected>
+          
+          
+          <actual>-- Use hand-rolled hash functions and operator classes to get predictable</actual>
+          
+        
+        </step>
+        
+        
+        <step index="63">
+          
+          
+          <sql>-- result on different machines.  The hash function for int4 simply returns</sql>
+          
+          
+          <expected>-- result on different machines.  The hash function for int4 simply returns</expected>
+          
+          
+          <actual>-- result on different machines.  The hash function for int4 simply returns</actual>
+          
+        
+        </step>
+        
+        
+        <step index="64">
+          
+          
+          <sql>-- the sum of the values passed to it and the one for text returns the length</sql>
+          
+          
+          <expected>-- the sum of the values passed to it and the one for text returns the length</expected>
+          
+          
+          <actual>-- the sum of the values passed to it and the one for text returns the length</actual>
+          
+        
+        </step>
+        
+        
+        <step index="65">
+          
+          
+          <sql>-- of the non-empty string value passed to it or 0.
+create function part_hashint4_noop(value int4, seed int8)
+    returns int8 as $$
+    select value + seed;
+    $$ language sql strict immutable parallel safe;
+create operator class part_test_int4_ops for type int4 using hash as
+    operator 1 =,
+    function 2 part_hashint4_noop(int4, int8);
+create function part_hashtext_length(value text, seed int8)
+    returns int8 as $$
+    select length(coalesce(value, ''))::int8
+    $$ language sql strict immutable parallel safe;
+create operator class part_test_text_ops for type text using hash as
+    operator 1 =,
+    function 2 part_hashtext_length(text, int8);
+--</sql>
+          
+          
+          <expected>-- of the non-empty string value passed to it or 0.
+create function part_hashint4_noop(value int4, seed int8)
+    returns int8 as $$
+    select value + seed;
+    $$ language sql strict immutable parallel safe;
+create operator class part_test_int4_ops for type int4 using hash as
+    operator 1 =,
+    function 2 part_hashint4_noop(int4, int8);
+create function part_hashtext_length(value text, seed int8)
+    returns int8 as $$
+    select length(coalesce(value, ''))::int8
+    $$ language sql strict immutable parallel safe;
+create operator class part_test_text_ops for type text using hash as
+    operator 1 =,
+    function 2 part_hashtext_length(text, int8);
+--</expected>
+          
+          
+          <actual>-- of the non-empty string value passed to it or 0.
+create function part_hashint4_noop(value int4, seed int8)
+    returns int8 as $$
+    select value + seed;
+    $$ language sql strict immutable parallel safe;
+create operator class part_test_int4_ops for type int4 using hash as
+    operator 1 =,
+    function 2 part_hashint4_noop(int4, int8);
+create function part_hashtext_length(value text, seed int8)
+    returns int8 as $$
+    select length(coalesce(value, ''))::int8
+    $$ language sql strict immutable parallel safe;
+create operator class part_test_text_ops for type text using hash as
+    operator 1 =,
+    function 2 part_hashtext_length(text, int8);
+--</actual>
+          
+        
+        </step>
+        
+        
+        <step index="66">
+          
+          
+          <sql>-- These functions are used in tests that used to use md5(), which we now</sql>
+          
+          
+          <expected>-- These functions are used in tests that used to use md5(), which we now</expected>
+          
+          
+          <actual>-- These functions are used in tests that used to use md5(), which we now</actual>
+          
+        
+        </step>
+        
+        
+        <step index="67">
+          
+          
+          <sql>-- mostly avoid so that the tests will pass in FIPS mode.
+--
+create function fipshash(bytea)
+    returns text
+    strict immutable parallel safe leakproof
+    return substr(encode(sha256($1), 'hex'), 1, 32);
+create function fipshash(text)
+    returns text
+    strict immutable parallel safe leakproof
+    return substr(encode(sha256($1::bytea), 'hex'), 1, 32);</sql>
+          
+          
+          <expected>-- mostly avoid so that the tests will pass in FIPS mode.
+--
+create function fipshash(bytea)
+    returns text
+    strict immutable parallel safe leakproof
+    return substr(encode(sha256($1), 'hex'), 1, 32);
+create function fipshash(text)
+    returns text
+    strict immutable parallel safe leakproof
+    return substr(encode(sha256($1::bytea), 'hex'), 1, 32);</expected>
+          
+          
+          <actual>-- mostly avoid so that the tests will pass in FIPS mode.
+--
+create function fipshash(bytea)
+    returns text
+    strict immutable parallel safe leakproof
+    return substr(encode(sha256($1), 'hex'), 1, 32);
+create function fipshash(text)
+    returns text
+    strict immutable parallel safe leakproof
+    return substr(encode(sha256($1::bytea), 'hex'), 1, 32);</actual>
+          
+        
+        </step>
+        
+      
+      </steps>
+      
+      
+      <expected>-- TEST_SETUP --- prepare environment expected by regression test scripts
+--</expected>
+      
+      
+      <actual>-- TEST_SETUP --- prepare environment expected by regression test scripts
+--</actual>
+      
+    
+    </testcase>
+    
+    
+  </testsuite>
+</testsuites>

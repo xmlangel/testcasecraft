@@ -170,6 +170,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           onClick={() => setModeToggleExpanded(!modeToggleExpanded)}
           endIcon={modeToggleExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           sx={{ mb: 1 }}
+          data-testid="input-mode-expand-button"
         >
           {t('testcase.inputMode.title', '입력 모드 선택')} {modeToggleExpanded ? t('testcase.inputMode.collapse', '접기') : t('testcase.inputMode.expand', '펼치기')}
         </Button>

@@ -12,6 +12,7 @@ const initialState = {
   ],
   translations: {},
   loading: false,
+  initialized: false, // 초기 번역 데이터 로드 여부
   error: null
 };
 
@@ -22,6 +23,7 @@ const I18N_ACTIONS = {
   SET_LANGUAGES: 'SET_LANGUAGES',
   SET_CURRENT_LANGUAGE: 'SET_CURRENT_LANGUAGE',
   SET_TRANSLATIONS: 'SET_TRANSLATIONS',
+  SET_INITIALIZED: 'SET_INITIALIZED',
   CLEAR_ERROR: 'CLEAR_ERROR'
 };
 
@@ -48,6 +50,8 @@ const i18nReducer = (state, action) => {
         loading: false,
         error: null
       };
+    case I18N_ACTIONS.SET_INITIALIZED:
+      return { ...state, initialized: action.payload };
     default:
       return state;
   }
@@ -67,37 +71,10 @@ const getApiBaseUrl = async () => {
   }
 };
 
-// API 호출 함수들
-const apiCall = async (endpoint, options = {}) => {
-  const baseUrl = await getApiBaseUrl();
-  const url = `${baseUrl}${endpoint}`;
-
-  const defaultOptions = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
-  };
-
-  // JWT 토큰이 있으면 Authorization 헤더 추가
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    defaultOptions.headers.Authorization = `Bearer ${token}`;
-  }
-
-  const response = await fetch(url, { ...defaultOptions, ...options });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return await response.json();
-};
-
 // I18n Provider 컴포넌트
 export const I18nProvider = ({ children }) => {
   const [state, dispatch] = useReducer(i18nReducer, initialState);
-  const { user, loadingUser } = useAppContext(); // AppContext에서 user와 loadingUser 가져오기
+  const { user, loadingUser, api } = useAppContext(); // AppContext에서 user, loadingUser, api 가져오기
 
   // AppContext의 user 상태가 변경될 때 언어 설정 동기화
   useEffect(() => {
@@ -165,7 +142,9 @@ export const I18nProvider = ({ children }) => {
     // 2. Promise 생성 및 저장
     const loadingPromise = (async () => {
       try {
-        const languages = await apiCall('/api/i18n/languages');
+        const response = await api('/api/i18n/languages');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const languages = await response.json();
         dispatch({ type: I18N_ACTIONS.SET_LANGUAGES, payload: languages });
         return languages;
       } catch (error) {
@@ -206,7 +185,9 @@ export const I18nProvider = ({ children }) => {
     // 3. 새로운 로딩 Promise 생성 및 저장
     const loadingPromise = (async () => {
       try {
-        const response = await apiCall(`/api/i18n/translations/${languageCode}`);
+        const fetchRes = await api(`/api/i18n/translations/${languageCode}`);
+        if (!fetchRes.ok) throw new Error(`HTTP error! status: ${fetchRes.status}`);
+        const response = await fetchRes.json();
 
         dispatch({
           type: I18N_ACTIONS.SET_TRANSLATIONS,
@@ -215,6 +196,17 @@ export const I18nProvider = ({ children }) => {
             translations: response.translations
           }
         });
+
+        // 4. 로컬 스토리지에 캐싱
+        try {
+          localStorage.setItem(`i18n-cache-${languageCode}`, JSON.stringify({
+            translations: response.translations,
+            timestamp: Date.now()
+          }));
+        } catch (e) {
+          console.warn(`번역 데이터 캐싱 실패 (${languageCode}):`, e);
+        }
+
         return response;
       } catch (error) {
         console.error(`번역 데이터 로드 실패 (${languageCode}):`, error);
@@ -249,7 +241,7 @@ export const I18nProvider = ({ children }) => {
       if (token) {
         try {
           // 서버에 언어 설정 저장
-          await apiCall('/api/auth/preferred-language', {
+          await api(`/api/auth/preferred-language`, {
             method: 'PUT',
             body: JSON.stringify({ languageCode })
           });
@@ -329,11 +321,32 @@ export const I18nProvider = ({ children }) => {
       const preferredLanguage = getUserPreferredLanguage();
       dispatch({ type: I18N_ACTIONS.SET_CURRENT_LANGUAGE, payload: preferredLanguage });
 
-      // 2. 언어 목록 로드
+      // 2. 로컬 스토리지에서 캐싱된 데이터 먼저 시도 (즉시 UI 로드용)
+      try {
+        const cachedData = localStorage.getItem(`i18n-cache-${preferredLanguage}`);
+        if (cachedData) {
+          const { translations } = JSON.parse(cachedData);
+          dispatch({
+            type: I18N_ACTIONS.SET_TRANSLATIONS,
+            payload: { languageCode: preferredLanguage, translations }
+          });
+          // 캐시로 로드된 경우에도 initialized를 true로 설정하여 UI를 바로 보여줌
+          dispatch({ type: I18N_ACTIONS.SET_INITIALIZED, payload: true });
+        }
+      } catch (e) {
+        console.warn('캐시된 번역 데이터 로드 실패:', e);
+      }
+
+      // 3. 언어 목록 로드
       await loadAvailableLanguages();
 
-      // 3. 초기 번역 데이터 로드
-      await loadTranslations(preferredLanguage);
+      // 4. 초기 번역 데이터 로드 (백그라운드 업데이트 또는 초기 로드)
+      try {
+        await loadTranslations(preferredLanguage);
+      } finally {
+        // 모든 로딩이 완료된 후 initialized를 확실히 true로 설정
+        dispatch({ type: I18N_ACTIONS.SET_INITIALIZED, payload: true });
+      }
     };
 
     initializeI18n();
@@ -352,6 +365,7 @@ export const I18nProvider = ({ children }) => {
     availableLanguages: state.availableLanguages,
     translations: state.translations,
     loading: state.loading,
+    initialized: state.initialized,
     error: state.error,
 
     // 함수
@@ -385,8 +399,8 @@ export const useI18n = () => {
 
 // 번역 전용 훅 (성능 최적화)
 export const useTranslation = () => {
-  const { t, currentLanguage, loading } = useI18n();
-  return { t, currentLanguage, loading };
+  const { t, currentLanguage, loading, initialized } = useI18n();
+  return { t, currentLanguage, loading, initialized };
 };
 
 export default I18nContext;

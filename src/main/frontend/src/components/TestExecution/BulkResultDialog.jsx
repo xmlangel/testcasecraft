@@ -115,11 +115,12 @@ const BulkResultDialog = ({
                         {resultButtons.map((btn) => {
                             const isSelected = selectedResult === btn.value;
                             return (
-                                <Button
-                                    key={btn.value}
-                                    onClick={() => setSelectedResult(btn.value)}
-                                    variant={isSelected ? "contained" : "outlined"}
-                                    sx={{
+                                    <Button
+                                        key={btn.value}
+                                        onClick={() => setSelectedResult(btn.value)}
+                                        variant={isSelected ? "contained" : "outlined"}
+                                        data-testid={`bulk-result-button-${btn.value}`}
+                                        sx={{
                                         flex: 1,
                                         py: 2,
                                         border: `3px solid ${btn.color}`,
@@ -164,6 +165,7 @@ const BulkResultDialog = ({
                         fullWidth
                         sx={{ mb: 2 }}
                         disabled={processing}
+                        inputProps={{ 'data-testid': 'bulk-notes-input' }}
                     />
 
                     {/* Common tags */}
@@ -194,6 +196,7 @@ const BulkResultDialog = ({
                         fullWidth
                         placeholder="PROJ-123"
                         disabled={processing}
+                        inputProps={{ 'data-testid': 'bulk-jira-input' }}
                     />
 
                     {/* Processing indicator */}
@@ -210,13 +213,14 @@ const BulkResultDialog = ({
                 </Box>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose} disabled={processing}>
+                <Button onClick={handleClose} disabled={processing} data-testid="bulk-cancel-button">
                     {t('testExecution.bulk.dialog.cancel', '취소')}
                 </Button>
                 <Button
                     onClick={handleConfirm}
                     variant="contained"
                     disabled={!selectedResult || processing}
+                    data-testid="bulk-confirm-button"
                 >
                     {t('testExecution.bulk.dialog.confirm', '확인')}
                 </Button>

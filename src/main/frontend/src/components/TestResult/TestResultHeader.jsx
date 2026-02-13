@@ -31,12 +31,13 @@ const TestResultHeader = ({
                 onClick={onPrevious}
                 disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
                 sx={{ minWidth: 120 }}
+                data-testid="result-prev-button"
             >
                 {t('common.button.previous', '이전')}
             </Button>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }} data-testid="result-index-text">
                     {totalCount > 0 ? `${currentIndex + 1} / ${totalCount}` : '로딩 중...'}
                 </Typography>
                 {testCase?.displayId && (
@@ -52,6 +53,7 @@ const TestResultHeader = ({
                 onClick={onNext}
                 disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
                 sx={{ minWidth: 120 }}
+                data-testid="result-next-button"
             >
                 {t('common.button.next', '다음')}
             </Button>

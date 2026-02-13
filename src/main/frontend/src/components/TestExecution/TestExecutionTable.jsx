@@ -82,7 +82,10 @@ const TestExecutionTable = ({
                                 checked={selectedTestCases?.has(node.id) || false}
                                 onChange={(e) => onSelectionChange?.(node.id, e.target.checked)}
                                 size="small"
-                                inputProps={{ 'aria-label': `${t('testExecution.table.selectTestCase')} ${node.name}` }}
+                                inputProps={{ 
+                                    'aria-label': `${t('testExecution.table.selectTestCase')} ${node.name}`,
+                                    'data-testid': `execution-table-checkbox-${node.id}`
+                                }}
                             />
                         )}
                     </Box>
@@ -133,6 +136,7 @@ const TestExecutionTable = ({
                                         } : {}
                                     }}
                                     onClick={canEnterResults ? () => handleOpenResultForm(node.id) : undefined}
+                                    data-testid={`execution-table-case-name-${node.id}`}
                                 >
                                     {wrapName(node.name)}
                                 </Typography>
@@ -214,6 +218,7 @@ const TestExecutionTable = ({
                                     } : {}
                                 }}
                                 onClick={canEnterResults ? () => handleOpenResultForm(node.id) : undefined}
+                                data-testid={`execution-table-notes-${node.id}`}
                             >
                                 {notes ? notes : getDisplayValue(undefined, "notes")}
                             </Typography>
@@ -256,6 +261,7 @@ const TestExecutionTable = ({
                                 onClick={() => handleOpenResultForm(node.id)}
                                 disabled={!canEnterResults}
                                 sx={{ fontSize: '0.75rem', py: 0.25, px: 1 }}
+                                data-testid={`execution-table-result-button-${node.id}`}
                             >
                                 {t('testExecution.actions.enterResult')}
                             </Button>
@@ -269,6 +275,7 @@ const TestExecutionTable = ({
                                     size="small"
                                     onClick={() => handleShowPrevResults(node.id)}
                                     sx={{ p: 0.5 }}
+                                    data-testid={`execution-table-prev-results-button-${node.id}`}
                                 >
                                     <VisibilityIcon fontSize="small" />
                                 </IconButton>
@@ -283,6 +290,7 @@ const TestExecutionTable = ({
                                     size="small"
                                     onClick={() => handleAttachmentClick(resultObj.id)}
                                     sx={{ p: 0.5 }}
+                                    data-testid={`execution-table-attachments-button-${resultObj.id}`}
                                 >
                                     <AttachFileIcon fontSize="small" />
                                 </IconButton>
@@ -361,7 +369,10 @@ const TestExecutionTable = ({
                                         testCaseIds.forEach(id => onSelectionChange?.(id, false));
                                     }
                                 }}
-                                inputProps={{ 'aria-label': t('testExecution.table.selectAll') }}
+                                inputProps={{ 
+                                    'aria-label': t('testExecution.table.selectAll'),
+                                    'data-testid': 'execution-table-select-all-checkbox'
+                                }}
                             />
                         </Box>
                         <Box sx={{ ...responsiveColumnSx[1], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.id', 'ID')}</Box>
@@ -436,6 +447,7 @@ const TestExecutionTable = ({
                             showFirstButton
                             showLastButton
                             size="medium"
+                            data-testid="execution-table-pagination"
                         />
                     </Box>
                 )}

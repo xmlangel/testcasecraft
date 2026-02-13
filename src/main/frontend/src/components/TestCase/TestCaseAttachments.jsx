@@ -566,7 +566,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                 elevation={0}
                 sx={{
                   p: 2,
-                  backgroundColor: '#f5f5f5',
+                  backgroundColor: 'action.hover',
                   fontFamily: 'monospace',
                   fontSize: '0.875rem',
                   whiteSpace: 'pre-wrap',

@@ -367,6 +367,11 @@ const JunitTestCaseEditor = ({
                             onChange={(e) => handleFormChange('userTitle', e.target.value)}
                             disabled={readOnly}
                             helperText={t('junit.editor.userDefinedTitleHelp', '테스트 케이스에 대한 사용자 정의 제목을 입력하세요.')}
+                            slotProps={{
+                                input: {
+                                    "data-testid": "automation-case-title-input"
+                                }
+                            }}
                         />
                     </Grid>
 
@@ -381,6 +386,11 @@ const JunitTestCaseEditor = ({
                             value={editForm.userDescription}
                             onChange={(e) => handleFormChange('userDescription', e.target.value)}
                             disabled={readOnly}
+                            slotProps={{
+                                input: {
+                                    "data-testid": "automation-case-description-input"
+                                }
+                            }}
                         />
                     </Grid>
 
@@ -392,12 +402,13 @@ const JunitTestCaseEditor = ({
                                 value={editForm.userStatus || ''}
                                 onChange={(e) => handleFormChange('userStatus', e.target.value || null)}
                                 disabled={readOnly}
+                                data-testid="automation-case-status-select"
                             >
-                                <MenuItem value="">
+                                <MenuItem value="" data-testid="automation-case-status-option-original">
                                     <em>{t('junit.editor.useOriginalStatus', '원본 상태 사용')}</em>
                                 </MenuItem>
                                 {Object.entries(statusConfig).map(([key, config]) => (
-                                    <MenuItem key={key} value={key}>
+                                    <MenuItem key={key} value={key} data-testid={`automation-case-status-option-${key}`}>
                                         <Box display="flex" alignItems="center" gap={1}>
                                             {config.icon}
                                             {config.label}
@@ -415,9 +426,10 @@ const JunitTestCaseEditor = ({
                                 value={editForm.priority}
                                 onChange={(e) => handleFormChange('priority', e.target.value)}
                                 disabled={readOnly}
+                                data-testid="automation-case-priority-select"
                             >
                                 {priorityOptions.map(option => (
-                                    <MenuItem key={option.value} value={option.value}>
+                                    <MenuItem key={option.value} value={option.value} data-testid={`automation-case-priority-option-${option.value}`}>
                                         <Chip
                                             label={option.label}
                                             color={option.color}
@@ -439,6 +451,11 @@ const JunitTestCaseEditor = ({
                             onChange={(e) => handleFormChange('tags', e.target.value)}
                             disabled={readOnly}
                             helperText={t('junit.editor.tagsHelp')}
+                            slotProps={{
+                                input: {
+                                    "data-testid": "automation-case-tags-input"
+                                }
+                            }}
                         />
                         {editForm.tags && (
                             <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -466,6 +483,11 @@ const JunitTestCaseEditor = ({
                             value={editForm.userNotes}
                             onChange={(e) => handleFormChange('userNotes', e.target.value)}
                             disabled={readOnly}
+                            slotProps={{
+                                input: {
+                                    "data-testid": "automation-case-notes-input"
+                                }
+                            }}
                         />
                     </Grid>
 
@@ -520,6 +542,7 @@ const JunitTestCaseEditor = ({
                     onClick={readOnly ? onClose : handleCancel}
                     startIcon={<CancelIcon />}
                     disabled={loading}
+                    data-testid="automation-case-cancel-button"
                 >
                     {readOnly ? t('common.close') : t('common.cancel')}
                 </Button>
@@ -529,6 +552,7 @@ const JunitTestCaseEditor = ({
                         onClick={handleSave}
                         startIcon={<SaveIcon />}
                         disabled={loading}
+                        data-testid="automation-case-save-button"
                     >
                         {loading ? t('junit.editor.saving') : t('common.save')}
                     </Button>

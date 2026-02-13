@@ -36,7 +36,10 @@ const TestExecutionInfo = ({
                         required
                         disabled={!canEditBasicInfo}
                         slotProps={{
-                            htmlInput: { "aria-label": t('testExecution.form.executionName') }
+                            htmlInput: { 
+                                "aria-label": t('testExecution.form.executionName'),
+                                "data-testid": "execution-name-input"
+                            }
                         }}
                     />
                 </Grid>
@@ -55,12 +58,13 @@ const TestExecutionInfo = ({
                             onChange={handlePlanChange}
                             label={t('testExecution.form.testPlan')}
                             aria-label={t('testExecution.form.testPlan')}
+                            data-testid="execution-plan-select"
                         >
-                            <MenuItem value="">
+                            <MenuItem value="" data-testid="execution-plan-option-none">
                                 <em>{t('common.select')}</em>
                             </MenuItem>
                             {testPlans.map((plan) => (
-                                <MenuItem key={plan.id} value={plan.id}>
+                                <MenuItem key={plan.id} value={plan.id} data-testid={`execution-plan-option-${plan.id}`}>
                                     {plan.name}
                                 </MenuItem>
                             ))}
@@ -118,7 +122,10 @@ const TestExecutionInfo = ({
                 rows={1}
                 disabled={!canEditBasicInfo}
                 slotProps={{
-                    htmlInput: { "aria-label": t('testExecution.form.description') }
+                    htmlInput: { 
+                        "aria-label": t('testExecution.form.description'),
+                        "data-testid": "execution-description-input"
+                    }
                 }}
             />
             {/* 즉시 실행 시작 옵션 - 새로운 실행 생성시에만 표시 */}
@@ -130,6 +137,7 @@ const TestExecutionInfo = ({
                             onChange={(e) => setStartImmediately(e.target.checked)}
                             color="primary"
                             size="small"
+                            inputProps={{ 'data-testid': 'execution-start-immediately-checkbox' }}
                         />
                     }
                     label={

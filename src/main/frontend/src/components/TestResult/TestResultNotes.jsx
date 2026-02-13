@@ -48,6 +48,9 @@ const TestResultNotes = ({
                     preview="live"
                     height={height}
                     disabled={isViewer}
+                    textareaProps={{
+                        'data-testid': 'result-notes-input'
+                    }}
                 />
                 {notes.length >= 9500 && (
                     <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>

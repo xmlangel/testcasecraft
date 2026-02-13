@@ -241,6 +241,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
             startIcon={<Add />}
             onClick={() => onNewTestPlan(projectId)}
             disabled={globalLoading}
+            data-testid="testplan-add-button"
           >
             {t('testPlan.list.add', '테스트 플랜 추가')}
           </Button>
@@ -285,16 +286,18 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                   </TableHead>
                   <TableBody>
                     {paginatedPlans.map((plan) => (
-                      <TableRow key={plan.id}>
+                      <TableRow key={plan.id} data-testid={`testplan-row-${plan.id}`}>
                         <TableCell
                           onClick={() => handleExecutionClick(plan)}
                           sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                          data-testid="testplan-id"
                         >
                           {plan.id}
                         </TableCell>
                         <TableCell
                           onClick={() => handleExecutionClick(plan)}
                           sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                          data-testid="testplan-name"
                         >
                           {plan.name}
                         </TableCell>
@@ -332,6 +335,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                             onClick={() => handleExecutionClick(plan)}
                             disabled={localLoading}
                             title={t('testPlan.list.table.execute', '실행 및 결과')}
+                            data-testid={`testplan-execute-button-${plan.id}`}
                           >
                             <PlayArrow />
                           </IconButton>
@@ -345,6 +349,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                                 ml: 1,
                                 color: (automatedTestCounts[plan.id] || 0) > 0 ? 'success.main' : 'text.disabled'
                               }}
+                              data-testid={`testplan-link-button-${plan.id}`}
                             >
                               <LinkIcon />
                             </IconButton>
@@ -357,6 +362,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               onClick={() => onEditTestPlan(plan.id)}
                               disabled={localLoading}
                               title={t('testPlan.list.table.edit', '수정')}
+                              data-testid={`testplan-edit-button-${plan.id}`}
                             >
                               <Edit />
                             </IconButton>
@@ -372,6 +378,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               }}
                               disabled={localLoading}
                               title={t('testPlan.list.table.delete', '삭제')}
+                              data-testid={`testplan-delete-button-${plan.id}`}
                             >
                               <Delete />
                             </IconButton>
@@ -589,6 +596,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
             disabled={localLoading}
             startIcon={localLoading ? <CircularProgress size={16} /> : null}
             variant="contained"
+            data-testid="testplan-delete-confirm-button"
           >
             {t('testPlan.delete.button.delete', '삭제')}
           </Button>

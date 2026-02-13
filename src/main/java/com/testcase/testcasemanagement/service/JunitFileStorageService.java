@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -27,49 +28,60 @@ import java.util.List;
  */
 @Service
 public class JunitFileStorageService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(JunitFileStorageService.class);
-    
+
     // 허용되는 파일 확장자
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".xml", ".XML");
-    
+
     // 최대 파일 크기 (100MB)
     private static final long MAX_FILE_SIZE = 100 * 1024 * 1024L;
-    
+
     @Value("${junit.file.upload.dir:uploads/junit}")
     private String uploadDir;
-    
+
     @Value("${junit.file.max-size:104857600}") // 100MB
     private long maxFileSize;
-    
+
+    @Autowired
+    private MinIOService minioService;
+
     /**
      * JUnit XML 파일 업로드 및 저장
      * 
-     * @param file 업로드된 파일
+     * @param file      업로드된 파일
      * @param projectId 프로젝트 ID
      * @return 저장된 파일 정보
      * @throws FileStorageException 파일 저장 중 오류 발생 시
      */
     public FileStorageResult storeFile(MultipartFile file, String projectId) throws FileStorageException {
         validateFile(file);
-        
+
         try {
             // 저장 디렉터리 생성
             Path projectUploadPath = createProjectDirectory(projectId);
-            
+
             // 파일명 정규화 및 중복 방지
             String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
             String storedFileName = generateUniqueFileName(originalFileName);
             Path targetLocation = projectUploadPath.resolve(storedFileName);
-            
+
             // 파일 저장
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
             }
-            
+
             // 체크섬 계산
             String checksum = calculateFileChecksum(targetLocation);
-            
+
+            // MinIO에 파일 업로드 (예비 복사본)
+            try {
+                minioService.uploadFile(file, storedFileName);
+                logger.info("JUnit XML 파일 MinIO 업로드 완료: {}", storedFileName);
+            } catch (Exception e) {
+                logger.warn("MinIO 업로드 실패 (로컬 저장은 이미 완료됨): {}", e.getMessage());
+            }
+
             // 결과 객체 생성
             FileStorageResult result = new FileStorageResult();
             result.setOriginalFileName(originalFileName);
@@ -78,18 +90,18 @@ public class JunitFileStorageService {
             result.setFileSize(file.getSize());
             result.setChecksum(checksum);
             result.setContentType(file.getContentType());
-            
-            logger.info("JUnit XML 파일 저장 완료 - 파일: {}, 경로: {}, 크기: {}bytes", 
-                       originalFileName, targetLocation, file.getSize());
-            
+
+            logger.info("JUnit XML 파일 저장 완료 - 파일: {}, 경로: {}, 크기: {}bytes",
+                    originalFileName, targetLocation, file.getSize());
+
             return result;
-            
+
         } catch (IOException e) {
             logger.error("파일 저장 중 오류 발생: {}", e.getMessage(), e);
             throw new FileStorageException("Failed to store file: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * 저장된 파일 읽기
      * 
@@ -98,20 +110,30 @@ public class JunitFileStorageService {
      * @throws FileStorageException 파일 읽기 중 오류 발생 시
      */
     public InputStream loadFileAsInputStream(String filePath) throws FileStorageException {
+        // 1. 우선적으로 MinIO에서 파일을 로드 시도
+        try {
+            Path path = Paths.get(filePath);
+            String fileName = path.getFileName().toString();
+            return minioService.downloadFile(fileName);
+        } catch (Exception e) {
+            logger.warn("MinIO에서 파일 로드 실패, 로컬 저장소에서 시도합니다: {}", e.getMessage());
+        }
+
+        // 2. 예비책(Fallback): 로컬 저장소에서 파일 로드
         try {
             Path file = Paths.get(filePath);
             if (!Files.exists(file) || !Files.isReadable(file)) {
-                throw new FileStorageException("File not found or not readable: " + filePath);
+                throw new FileStorageException("File not found or not readable in local storage: " + filePath);
             }
-            
+
             return Files.newInputStream(file);
-            
+
         } catch (IOException e) {
-            logger.error("파일 읽기 중 오류 발생: {}", e.getMessage(), e);
-            throw new FileStorageException("Failed to load file: " + e.getMessage(), e);
+            logger.error("로컬 파일 읽기 중 오류 발생: {}", e.getMessage(), e);
+            throw new FileStorageException("Failed to load file from local storage: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * 파일 삭제
      * 
@@ -119,24 +141,38 @@ public class JunitFileStorageService {
      * @return 삭제 성공 여부
      */
     public boolean deleteFile(String filePath) {
+        boolean localDeleted = false;
+        boolean minioDeleted = false;
+
+        // 1. 로컬 파일 삭제
         try {
             Path file = Paths.get(filePath);
-            boolean deleted = Files.deleteIfExists(file);
-            
-            if (deleted) {
-                logger.info("파일 삭제 완료: {}", filePath);
+            localDeleted = Files.deleteIfExists(file);
+
+            if (localDeleted) {
+                logger.info("로컬 파일 삭제 완료: {}", filePath);
             } else {
-                logger.warn("삭제할 파일이 존재하지 않음: {}", filePath);
+                logger.warn("삭제할 로컬 파일이 존재하지 않음: {}", filePath);
             }
-            
-            return deleted;
-            
         } catch (IOException e) {
-            logger.error("파일 삭제 중 오류 발생: {}", e.getMessage(), e);
-            return false;
+            logger.error("로컬 파일 삭제 중 오류 발생: {}", e.getMessage(), e);
         }
+
+        // 2. MinIO 파일 삭제
+        try {
+            Path path = Paths.get(filePath);
+            String fileName = path.getFileName().toString();
+            minioDeleted = minioService.deleteFile(fileName);
+            if (minioDeleted) {
+                logger.info("MinIO 파일 삭제 완료: {}", fileName);
+            }
+        } catch (Exception e) {
+            logger.error("MinIO 파일 삭제 중 오류 발생: {}", e.getMessage(), e);
+        }
+
+        return localDeleted || minioDeleted;
     }
-    
+
     /**
      * 파일 유효성 검증
      */
@@ -145,31 +181,31 @@ public class JunitFileStorageService {
         if (file.isEmpty()) {
             throw new FileStorageException("Cannot store empty file");
         }
-        
+
         // 파일명 확인
         String fileName = file.getOriginalFilename();
         if (fileName == null || fileName.trim().isEmpty()) {
             throw new FileStorageException("File name cannot be empty");
         }
-        
+
         // 파일 확장자 확인
         if (!isValidFileExtension(fileName)) {
             throw new FileStorageException("Invalid file type. Only XML files are allowed");
         }
-        
+
         // 파일 크기 확인
         if (file.getSize() > maxFileSize) {
             throw new FileStorageException(
-                String.format("File size (%d bytes) exceeds maximum allowed size (%d bytes)", 
-                             file.getSize(), maxFileSize));
+                    String.format("File size (%d bytes) exceeds maximum allowed size (%d bytes)",
+                            file.getSize(), maxFileSize));
         }
-        
+
         // 위험한 경로 문자 확인
         if (fileName.contains("..")) {
             throw new FileStorageException("Filename contains invalid path sequence: " + fileName);
         }
     }
-    
+
     /**
      * 파일 확장자 유효성 확인
      */
@@ -177,27 +213,27 @@ public class JunitFileStorageService {
         return ALLOWED_EXTENSIONS.stream()
                 .anyMatch(ext -> fileName.toLowerCase().endsWith(ext.toLowerCase()));
     }
-    
+
     /**
      * 프로젝트별 디렉터리 생성
      */
     private Path createProjectDirectory(String projectId) throws IOException {
         Path projectPath = Paths.get(uploadDir, projectId);
-        
+
         if (!Files.exists(projectPath)) {
             Files.createDirectories(projectPath);
             logger.info("프로젝트 업로드 디렉터리 생성: {}", projectPath);
         }
-        
+
         return projectPath;
     }
-    
+
     /**
      * 중복되지 않는 파일명 생성
      */
     private String generateUniqueFileName(String originalFileName) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        
+
         // 파일명과 확장자 분리
         int lastDotIndex = originalFileName.lastIndexOf('.');
         if (lastDotIndex > 0) {
@@ -208,14 +244,14 @@ public class JunitFileStorageService {
             return String.format("%s_%s", originalFileName, timestamp);
         }
     }
-    
+
     /**
      * 파일 체크섬 계산 (SHA-256)
      */
     private String calculateFileChecksum(Path filePath) throws IOException {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            
+
             try (InputStream inputStream = Files.newInputStream(filePath)) {
                 byte[] buffer = new byte[8192];
                 int bytesRead;
@@ -223,21 +259,21 @@ public class JunitFileStorageService {
                     digest.update(buffer, 0, bytesRead);
                 }
             }
-            
+
             byte[] hashBytes = digest.digest();
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
                 hexString.append(String.format("%02x", b));
             }
-            
+
             return hexString.toString();
-            
+
         } catch (NoSuchAlgorithmException e) {
             logger.error("SHA-256 알고리즘을 찾을 수 없음", e);
             return null;
         }
     }
-    
+
     /**
      * 파일 저장 결과 클래스
      */
@@ -248,27 +284,57 @@ public class JunitFileStorageService {
         private long fileSize;
         private String checksum;
         private String contentType;
-        
+
         // Getters and Setters
-        public String getOriginalFileName() { return originalFileName; }
-        public void setOriginalFileName(String originalFileName) { this.originalFileName = originalFileName; }
-        
-        public String getStoredFileName() { return storedFileName; }
-        public void setStoredFileName(String storedFileName) { this.storedFileName = storedFileName; }
-        
-        public String getFilePath() { return filePath; }
-        public void setFilePath(String filePath) { this.filePath = filePath; }
-        
-        public long getFileSize() { return fileSize; }
-        public void setFileSize(long fileSize) { this.fileSize = fileSize; }
-        
-        public String getChecksum() { return checksum; }
-        public void setChecksum(String checksum) { this.checksum = checksum; }
-        
-        public String getContentType() { return contentType; }
-        public void setContentType(String contentType) { this.contentType = contentType; }
+        public String getOriginalFileName() {
+            return originalFileName;
+        }
+
+        public void setOriginalFileName(String originalFileName) {
+            this.originalFileName = originalFileName;
+        }
+
+        public String getStoredFileName() {
+            return storedFileName;
+        }
+
+        public void setStoredFileName(String storedFileName) {
+            this.storedFileName = storedFileName;
+        }
+
+        public String getFilePath() {
+            return filePath;
+        }
+
+        public void setFilePath(String filePath) {
+            this.filePath = filePath;
+        }
+
+        public long getFileSize() {
+            return fileSize;
+        }
+
+        public void setFileSize(long fileSize) {
+            this.fileSize = fileSize;
+        }
+
+        public String getChecksum() {
+            return checksum;
+        }
+
+        public void setChecksum(String checksum) {
+            this.checksum = checksum;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public void setContentType(String contentType) {
+            this.contentType = contentType;
+        }
     }
-    
+
     /**
      * 파일 저장 예외 클래스
      */
@@ -276,7 +342,7 @@ public class JunitFileStorageService {
         public FileStorageException(String message) {
             super(message);
         }
-        
+
         public FileStorageException(String message, Throwable cause) {
             super(message, cause);
         }

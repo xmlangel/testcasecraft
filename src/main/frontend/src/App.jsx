@@ -51,6 +51,7 @@ import TranslationManagement from "./components/admin/TranslationManagement.jsx"
 import CommonDocumentManagement from "./components/admin/CommonDocumentManagement.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
+import ExploratorySessionWorkspace from "./components/ExploratorySessionWorkspace.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
 import { RAGProvider } from "./context/RAGContext.jsx";
 import { LlmConfigProvider } from "./context/LlmConfigContext.jsx";
@@ -140,8 +141,10 @@ const Resizer = ({ onDrag }) => {
 
 const AppContent = () => {
   const theme = useTheme();
-  const { t } = useTranslation();
+  const { t, initialized: i18nInitialized } = useTranslation();
   const { mode, toggleTheme } = useCustomTheme();
+
+
   const {
     user,
     loadingUser,
@@ -307,6 +310,12 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/rag/);
   };
 
+  // URL이 탐색 세션 섹션인지 확인
+  const isExploratorySection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/exploratory/);
+  };
+
 
 
   // URL 경로에 따른 화면 표시 결정
@@ -395,6 +404,9 @@ const AppContent = () => {
         } else if (isRagSection()) {
           setTabIndex(6);
           setActiveTestCaseId(null);
+        } else if (isExploratorySection()) {
+          setTabIndex(7);
+          setActiveTestCaseId(null);
         } else {
           // 기본 프로젝트 URL 접근 시 대시보드 탭 표시
           setTabIndex(0);
@@ -419,7 +431,7 @@ const AppContent = () => {
   }, [activeProject, tabIndex, activeTestCaseId, treeVisible]);
 
   React.useEffect(() => {
-    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection() && !isRagSection()) {
+    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection() && !isRagSection() && !isExploratorySection()) {
       setTabIndex(0);
     }
   }, [activeProject, location.pathname]);
@@ -462,6 +474,9 @@ const AppContent = () => {
       } else if (newValue === 6) {
         // RAG 문서 탭
         navigate(`/projects/${projectId}/rag`);
+      } else if (newValue === 7) {
+        // 탐색 세션 탭
+        navigate(`/projects/${projectId}/exploratory`);
       } else {
         // 대시보드(0) 탭
         navigate(`/projects/${projectId}`);
@@ -719,7 +734,7 @@ const AppContent = () => {
               </Menu>
             </>
           )}
-          <Button color="inherit" onClick={() => navigate('/projects')}>
+          <Button color="inherit" onClick={() => navigate('/projects')} data-testid="project-selection-nav">
             {t('header.nav.projectSelection')}
           </Button>
 
@@ -758,17 +773,17 @@ const AppContent = () => {
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               transformOrigin={{ vertical: "top", horizontal: "right" }}
             >
-              <MenuItem onClick={handleProfileOpen}>{t('header.userMenu.profile')}</MenuItem>
-              <MenuItem onClick={handleLogout}>{t('header.userMenu.logout')}</MenuItem>
+              <MenuItem onClick={handleProfileOpen} data-testid="profile-menu-item">{t('header.userMenu.profile')}</MenuItem>
+              <MenuItem onClick={handleLogout} data-testid="logout-menu-item">{t('header.userMenu.logout')}</MenuItem>
             </Menu>
           </Box>
         </Toolbar>
       </AppBar>
       <Container maxWidth={false} sx={{ mt: 1, mb: 4, px: 2 }}>
-        {loadingUser || !initialLoad ? (
+        {loadingUser || !initialLoad || !i18nInitialized ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
             <CircularProgress />
-            <Typography sx={{ ml: 2 }}>{t('common.loading')}</Typography>
+            <Typography sx={{ ml: 2 }}>{t('common.loading', '로딩 중...')}</Typography>
           </Box>
         ) : location.pathname === '/dashboard' ? (
           hasSystemAdminAccess(user) ? <SystemDashboard /> : <UnauthorizedPage />
@@ -967,6 +982,11 @@ const AppContent = () => {
                     <RAGDocumentManager projectId={activeProject.id} />
                   </Box>
                 )}
+                {tabIndex === 7 && activeProject && (
+                  <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                    <ExploratorySessionWorkspace />
+                  </Box>
+                )}
               </>
             )}
           </>
@@ -1028,66 +1048,126 @@ function TestExecutionFullPage() {
   );
 }
 
+const AppWrapper = () => {
+  const { initialized } = useTranslation();
+
+  // Splash Screen 제거 로직 이동 (ICT-337 등 전용 페이지 직접 접근 시 무한 로딩 해결)
+  React.useEffect(() => {
+    if (initialized) {
+      const splash = document.getElementById("splash-screen");
+      if (splash) {
+        // 이미 앱이 로드되었으므로 페이드아웃 시작
+        splash.style.opacity = "0";
+        const timer = setTimeout(() => {
+          if (splash && splash.parentNode) {
+            splash.parentNode.removeChild(splash);
+          }
+        }, 500); // transition 시간(0.5s)에 맞춤
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [initialized]);
+
+  if (!initialized) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+          color: 'text.primary'
+        }}
+      >
+        <Box sx={{ position: 'relative', display: 'inline-flex', mb: 3 }}>
+          <CircularProgress size={60} thickness={4} />
+        </Box>
+        <Typography
+          variant="overline"
+          sx={{
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            color: 'text.secondary',
+            animation: 'pulse 1.5s ease-in-out infinite',
+            '@keyframes pulse': {
+              '0%, 100%': { opacity: 0.6 },
+              '50%': { opacity: 1 },
+            }
+          }}
+        >
+          Initializing Experience...
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public route for email verification */}
+        <Route path="/verify-email" element={<EmailVerification />} />
+
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <AppContent />
+          </ProtectedRoute>
+        } />
+        <Route path="/executions/:id" element={
+          <ProtectedRoute>
+            <TestExecutionFullPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/executions/new" element={
+          <ProtectedRoute>
+            <TestExecutionFullPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/executions/:executionId" element={
+          <ProtectedRoute>
+            <TestExecutionFullPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
+          <ProtectedRoute>
+            <TestCaseResultPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/junit-results/:testResultId" element={
+          <ProtectedRoute>
+            <JunitResultDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/junit-results/:testResultId" element={
+          <ProtectedRoute>
+            <JunitResultDetail />
+          </ProtectedRoute>
+        } />
+        {/* 새로운 자동화 테스트 경로 */}
+        <Route path="/automation-tests/:testResultId" element={
+          <ProtectedRoute>
+            <JunitResultDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/automation-results/:testResultId" element={
+          <ProtectedRoute>
+            <JunitResultDetail />
+          </ProtectedRoute>
+        } />
+      </Routes>
+
+      {/* 서버 시간 표시 */}
+      <ServerTimeDisplay />
+    </BrowserRouter>
+  );
+};
+
 const App = () => (
   <AppProvider>
     <I18nProvider>
       <ThemeProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public route for email verification */}
-            <Route path="/verify-email" element={<EmailVerification />} />
-
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <AppContent />
-              </ProtectedRoute>
-            } />
-            <Route path="/executions/:id" element={
-              <ProtectedRoute>
-                <TestExecutionFullPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/:projectId/executions/new" element={
-              <ProtectedRoute>
-                <TestExecutionFullPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/:projectId/executions/:executionId" element={
-              <ProtectedRoute>
-                <TestExecutionFullPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
-              <ProtectedRoute>
-                <TestCaseResultPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/junit-results/:testResultId" element={
-              <ProtectedRoute>
-                <JunitResultDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/:projectId/junit-results/:testResultId" element={
-              <ProtectedRoute>
-                <JunitResultDetail />
-              </ProtectedRoute>
-            } />
-            {/* 새로운 자동화 테스트 경로 */}
-            <Route path="/automation-tests/:testResultId" element={
-              <ProtectedRoute>
-                <JunitResultDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/:projectId/automation-results/:testResultId" element={
-              <ProtectedRoute>
-                <JunitResultDetail />
-              </ProtectedRoute>
-            } />
-          </Routes>
-
-          {/* 서버 시간 표시 */}
-          <ServerTimeDisplay />
-        </BrowserRouter>
+        <AppWrapper />
       </ThemeProvider>
     </I18nProvider>
   </AppProvider>

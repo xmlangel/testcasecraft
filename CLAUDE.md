@@ -9,11 +9,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 1.1. General
 This is a full-stack test case management application built with:
 - **Frontend**: React 18 with Material-UI and React Router for SPA navigation
-- **Backend**: Spring Boot 3.2.4 with Java 21, PostgreSQL database
+- **Backend**: Spring Boot 3.4.12 with Java 21, PostgreSQL database
 - **Authentication**: JWT-based authentication with access/refresh token system
 - **Build System**: Gradle with integrated Node.js frontend build
   - **⚠️ IMPORTANT**: `./gradlew bootRun` builds **both frontend and backend** and runs them together
-  - Frontend is automatically built and served from `src/main/resources/static/`
+  - Frontend is automatically built (Vite build to `src/main/frontend/build`) and served from `src/main/resources/static/`
   - **DO NOT** run frontend dev server separately unless specifically needed for hot-reload development
   - Application runs on **port 8080** (backend serves frontend static files)
   - **개발 환경 전제조건**: Docker Compose로 PostgreSQL, MinIO, RAG 서비스 실행 필요
@@ -82,7 +82,8 @@ PostgreSQL (pgvector) + MinIO (S3)
   - **Database**: PostgreSQL with pgvector extension for vector similarity search
   - **Storage**: MinIO object storage for document files
 
-**Docker Services** (`docker-compose-dev.yml`):
+**Docker Services** (`docker-compose.yml`):
+- `postgres` - Main PostgreSQL (port 5434)
 - `postgres-rag` - PostgreSQL with pgvector (port 5433)
 - `minio` - S3-compatible object storage (ports 9000/9001)
 - `rag-service` - FastAPI application (port 8001)
@@ -100,14 +101,14 @@ PostgreSQL (pgvector) + MinIO (S3)
 
 **Configuration**:
 - **Spring Boot**: `application.yml` - `rag.api.url=http://localhost:8001`
-- **Docker**: `docker-compose-dev.yml` - Environment variables
+- **Docker**: `docker-compose.yml` - Environment variables
 - **FastAPI**: `rag-service/app/main.py` - CORS, database, MinIO settings
 
 **Starting Development Environment**:
 ```bash
 # 1. Start Docker infrastructure services (PostgreSQL + MinIO + RAG Service)
-cd docker-compose-dev-spring
-docker-compose -f docker-compose-dev.yml up -d postgres postgres-rag minio rag-service
+cd docker-compose-build
+docker-compose -f docker-compose.yml up -d postgres postgres-rag minio rag-service
 
 # 2. Start Spring Boot application (includes frontend build)
 cd ..
@@ -142,11 +143,11 @@ cd ..
 - `src/test/resources/schemas/` - JSON schemas for API testing
 
 #### E2E Testing Files
-- `e2e-tests/e2e-testcase-app.js` - 메인 E2E 테스트 스크립트 (UI 검증, 성능 측정)
-- `e2e-tests/playwright-test.js` - 기본 Playwright 기능 테스트
-- `e2e-tests/authentication/` - 인증 관련 E2E 테스트
-- `e2e-tests/dashboard/` - 대시보드 관련 E2E 테스트
-- `playwright.config.js` - Playwright 설정 파일
+- `src/test/e2e/e2e-testcase-app.js` - 메인 E2E 테스트 스크립트 (UI 검증, 성능 측정)
+- `src/test/e2e/playwright-test.js` - 기본 Playwright 기능 테스트
+- `src/test/e2e/authentication/` - 인증 관련 E2E 테스트
+- `src/test/e2e/dashboard/` - 대시보드 관련 E2E 테스트
+- `src/test/e2e/playwright.config.js` - Playwright 설정 파일
 - `playwright-report/` - Playwright 테스트 리포트
 - `.claude-mcp.json` - Playwright MCP 서버 설정
 
@@ -173,8 +174,8 @@ cd ..
   - 기타: `AuthKeysInitializer`, `CommonKeysInitializer`, `MailKeysInitializer`, `OrganizationKeysInitializer`, `TestExecutionKeysInitializer`, `TestPlanKeysInitializer`, `TestResultKeysInitializer`, `TranslationKeysInitializer`
 
 **번역 데이터 (Translations)**:
-- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/KoreanTranslationsInitializer.java` - 한글 번역
-- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/EnglishTranslationsInitializer.java` - 영어 번역
+- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/KoreanTestCaseAndAutomationTranslations.java` - 한글 번역
+- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/EnglishTestCaseAndAutomationTranslations.java` - 영어 번역
 
 **프론트엔드 사용**:
 - `src/main/frontend/src/context/I18nContext.jsx` - i18n Context 및 Hook
@@ -195,7 +196,7 @@ createTranslationKeyIfNotExists(
 
 **2단계: 한글 번역 추가** (Korean Translations)
 ```java
-// src/main/java/.../translations/KoreanTranslationsInitializer.java
+// src/main/java/.../translations/KoreanTestCaseAndAutomationTranslations.java
 createTranslationIfNotExists(
     "testcase.spreadsheet.fallback.title",  // 번역 키 (1단계와 동일)
     languageCode,                             // "ko"
@@ -206,7 +207,7 @@ createTranslationIfNotExists(
 
 **3단계: 영어 번역 추가** (English Translations)
 ```java
-// src/main/java/.../translations/EnglishTranslationsInitializer.java
+// src/main/java/.../translations/EnglishTestCaseAndAutomationTranslations.java
 createTranslationIfNotExists(
     "testcase.spreadsheet.fallback.title",  // 번역 키 (1단계와 동일)
     languageCode,                             // "en"
@@ -280,7 +281,7 @@ function MyComponent() {
 ### 7.2. Default Login Credentials
 ```
 Username: admin
-Password: admin
+Password: admin123
 ```
 
 ### 7.5. Troubleshooting Startup Issues
@@ -289,8 +290,8 @@ Password: admin
 #### Database Connection Issues
 - **Docker 서비스 확인**:
   ```bash
-  cd docker-compose-dev-spring
-  docker-compose -f docker-compose-dev.yml ps
+  cd docker-compose-build
+  docker-compose -f docker-compose.yml ps
   ```
 - **PostgreSQL 컨테이너 로그**:
   ```bash
@@ -538,13 +539,13 @@ print(f'✅ 완료 처리: {result}')
 #### 1단계: Docker Compose로 인프라 서비스 실행
 
 ```bash
-cd docker-compose-dev-spring
+cd docker-compose-build
 
 # PostgreSQL, MinIO, RAG 서비스 시작
-docker-compose -f docker-compose-dev.yml up -d postgres postgres-rag minio rag-service
+docker-compose -f docker-compose.yml up -d postgres postgres-rag minio rag-service
 
 # 서비스 상태 확인
-docker-compose -f docker-compose-dev.yml ps
+docker-compose -f docker-compose.yml ps
 ```
 
 **실행되는 서비스:**
@@ -569,18 +570,18 @@ cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage
 - 기본 프로파일은 `dev` (Docker Compose PostgreSQL 사용)
 - `./gradlew bootRun`은 프론트엔드를 자동으로 빌드하여 `src/main/resources/static/`에 복사
 - 애플리케이션은 **http://localhost:8080**에서 실행
-- PostgreSQL 데이터는 `docker-compose-dev-spring/data/postgres/`에 영구 저장
+- PostgreSQL 데이터는 `docker-compose-build/data/postgres/`에 영구 저장
 
 #### 서비스 중지
 
 ```bash
-cd docker-compose-dev-spring
+cd docker-compose-build
 
 # 인프라 서비스 중지
-docker-compose -f docker-compose-dev.yml down
+docker-compose -f docker-compose.yml down
 
 # 데이터까지 삭제 (주의!)
-docker-compose -f docker-compose-dev.yml down -v
+docker-compose -f docker-compose.yml down -v
 ```
 
 ### 9.6. 환경별 접속 정보
@@ -589,7 +590,7 @@ docker-compose -f docker-compose-dev.yml down -v
 - **애플리케이션**: http://localhost:8080
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **액추에이터**: http://localhost:8080/actuator
-- **기본 로그인**: admin/admin
+- **기본 로그인**: admin/admin123
 
 #### Docker Compose 서비스
 - **PostgreSQL**: localhost:5434
@@ -638,13 +639,13 @@ spring:
 
 #### 개발환경 데이터 관리
 - **데이터베이스**: Docker Compose PostgreSQL (localhost:5434)
-- **데이터 저장 위치**: `docker-compose-dev-spring/data/postgres/`
+- **데이터 저장 위치**: `docker-compose-build/data/postgres/`
 - **데이터 유지**: Docker 볼륨에 영구 저장 (컨테이너 재시작해도 유지)
 - **데이터 초기화**:
   ```bash
   # 컨테이너와 볼륨 모두 삭제
-  cd docker-compose-dev-spring
-  docker-compose -f docker-compose-dev.yml down -v
+  cd docker-compose-build
+  docker-compose -f docker-compose.yml down -v
 
   # 또는 데이터 디렉토리 직접 삭제
   rm -rf data/postgres/

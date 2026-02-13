@@ -39,6 +39,7 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.form.progress", "testExecution", "진행률 라벨", "진행률");
                 createTranslationKeyIfNotExists("testExecution.form.executionInfo", "testExecution", "실행 정보 제목",
                                 "실행 정보");
+                createTranslationKeyIfNotExists("testExecution.executionSummary", "testExecution", "실행 요약 제목", "실행 요약");
 
                 // 테스트 실행 버튼들
                 createTranslationKeyIfNotExists("testExecution.buttons.save", "testExecution", "저장 버튼", "저장");
@@ -161,6 +162,7 @@ public class TestExecutionKeysInitializer {
                                 "완료: {count}");
                 createTranslationKeyIfNotExists("testExecution.progress.total", "testExecution", "전체 테스트 수",
                                 "/ {total}");
+                createTranslationKeyIfNotExists("testExecution.progress", "testExecution", "진행률", "진행률");
 
                 // 추가 번역 키 (누락된 것들)
                 createTranslationKeyIfNotExists("testExecution.list.delete.title", "testExecution", "실행 삭제 제목",

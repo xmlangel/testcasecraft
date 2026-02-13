@@ -36,6 +36,7 @@ public class DataInitializer {
                         AuditLogRepository auditLogRepository,
                         JunitTestResultRepository junitTestResultRepository,
                         JiraConfigRepository jiraConfigRepository,
+                        RagChatThreadRepository ragChatThreadRepository,
                         PasswordEncoder passwordEncoder) {
                 return args -> {
                         System.out.println("🔍 데이터베이스 초기화 설정 확인: TESTCASE_INIT_ENABLED = " + initEnabled);
@@ -68,6 +69,7 @@ public class DataInitializer {
                         testPlanRepository.deleteAll();
                         testCaseRepository.deleteAll();
                         projectUserRepository.deleteAll();
+                        ragChatThreadRepository.deleteAll(); // rag_chat_threads 삭제 (project_id → projects 참조)
                         projectRepository.deleteAll();
                         userRepository.deleteAll();
                         System.out.println("✅ 기존 데이터 삭제 완료");

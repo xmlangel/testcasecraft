@@ -27,6 +27,7 @@ const TestResultFooter = ({
                                 startIcon={<BugReportIcon />}
                                 onClick={handleOpenJiraDialog}
                                 disabled={loading}
+                                data-testid="result-jira-button"
                             >
                                 {t('testResult.form.jiraComment')}
                             </Button>
@@ -42,7 +43,7 @@ const TestResultFooter = ({
 
             {/* 기본 버튼들 (우측) */}
             <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button onClick={onClose} variant="outlined">
+                <Button onClick={onClose} variant="outlined" data-testid="result-cancel-button">
                     {t('common.button.cancel')}
                 </Button>
                 {!isViewer && (
@@ -52,6 +53,7 @@ const TestResultFooter = ({
                         variant="contained"
                         color="primary"
                         disabled={loading || isViewer || !testCase}
+                        data-testid="result-save-button"
                     >
                         {t('common.button.save')}
                     </Button>

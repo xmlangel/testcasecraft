@@ -69,6 +69,7 @@ const TestResultSelector = ({
                             }
                             label={value.replace('_', ' ')}
                             disabled={isViewer}
+                            data-testid={`result-selector-button-${value}`}
                             sx={{
                                 border: `4px solid ${colors.border}`,
                                 borderRadius: 3,

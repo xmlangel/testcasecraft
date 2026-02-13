@@ -26,6 +26,7 @@ public class TranslationKeyDataInitializer {
     private final RAGKeysInitializer ragKeysInitializer;
     private final AttachmentKeysInitializer attachmentKeysInitializer;
     private final SchedulerKeysInitializer schedulerKeysInitializer;
+    private final ExploratorySessionKeysInitializer exploratorySessionKeysInitializer;
 
     // 리팩토링된 번역 키 초기화 클래스들 (TranslationKeysInitializer 분리)
     private final TranslationManagementKeysInitializer translationManagementKeysInitializer;
@@ -50,6 +51,7 @@ public class TranslationKeyDataInitializer {
         ragKeysInitializer.initialize();
         attachmentKeysInitializer.initialize();
         schedulerKeysInitializer.initialize();
+        exploratorySessionKeysInitializer.initialize();
 
         // 리팩토링된 번역 키 초기화 (기존 TranslationKeysInitializer 대체)
         translationManagementKeysInitializer.initialize();

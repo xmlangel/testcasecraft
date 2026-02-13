@@ -25,6 +25,7 @@ const MarkdownFieldEditor = ({
     onChange,
     onPaste,
     defaultMarkdownMode = true,
+    testid,
 }) => {
     const displayHelperText = helperText || (!value
         ? t('testcase.helper.enterContent', '내용을 입력하세요.')
@@ -44,6 +45,7 @@ const MarkdownFieldEditor = ({
                     textareaProps={{
                         placeholder,
                         onPaste,
+                        'data-testid': testid,
                     }}
                     disabled={isViewer}
                 />

@@ -13,21 +13,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Python 가상환경 생성 (더 깔끔한 의존성 관리)
+# Python 가상환경 생성
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# requirements.txt만 먼저 복사 (레이어 캐싱 최적화)
+# requirements.txt만 먼저 복사
 COPY requirements.txt .
 
-# Python 종속성 설치 (wheel 빌드)
+# Python 종속성 설치 (레이어 캐싱 및 빌드 최적화)
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt && \
     find /opt/venv -type d -name __pycache__ -exec rm -rf {} + && \
     find /opt/venv -type f -name '*.pyc' -delete && \
     find /opt/venv -type f -name '*.pyo' -delete
 
-# 애플리케이션 코드 복사 (마지막에 복사하여 코드 변경 시 캐시 활용)
+# 애플리케이션 코드 복사
 COPY ./app /app/app
 
 
@@ -37,7 +37,7 @@ FROM python:3.11-slim
 # 메타데이터 레이블
 LABEL description="TestCaseCraft RAG Service API"
 
-# 런타임 종속성만 설치 (psycopg2용 libpq, 헬스체크용 curl)
+# 런타임 종속성만 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libpq5 \
@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# 빌드 스테이지에서 가상환경 복사 (더 작은 사이즈)
+# 빌드 스테이지에서 가상환경 복사
 COPY --from=builder /opt/venv /opt/venv
 
 # 애플리케이션 코드 복사
@@ -67,10 +67,10 @@ USER raguser
 
 EXPOSE 8000
 
-# 헬스체크 추가 (30초마다 체크, 3번 실패시 unhealthy)
+# 헬스체크 추가
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Uvicorn 실행 (프로덕션 설정)
+# Uvicorn 실행
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
 

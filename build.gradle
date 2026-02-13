@@ -119,7 +119,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.34-SNAPSHOT'
+version = '1.0.41-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -160,24 +160,25 @@ task incrementVersion {
         buildGradleFile.text = content
         println "✓ build.gradle: ${newVersionSnapshot}"
 
-        // 3. package.json 업데이트 (프론트엔드 버전 - 최상위 version 필드만)
-        def packageJsonFile = file('src/main/frontend/package.json')
-        if (packageJsonFile.exists()) {
-            def packageJsonContent = packageJsonFile.text
-            // 최상위 "version" 필드만 매칭 (줄 시작 부분의 공백 + "version":)
-            packageJsonContent = packageJsonContent.replaceAll(
-                /(?m)^\s*"version":\s*"(\d+)\.(\d+)\.(\d+)"/,
-                "  \"version\": \"${newVersion}\""
-            )
-            packageJsonFile.text = packageJsonContent
-            println "✓ package.json: ${newVersion}"
+        // 3. package.json 업데이트 (프론트엔드 버전 - 'all' 또는 'app'일 때)
+        if (target == 'all' || target == 'app') {
+            def packageJsonFile = file('src/main/frontend/package.json')
+            if (packageJsonFile.exists()) {
+                def packageJsonContent = packageJsonFile.text
+                packageJsonContent = packageJsonContent.replaceAll(
+                    /(?m)^\s*"version":\s*"(\d+)\.(\d+)\.(\d+)"/,
+                    "  \"version\": \"${newVersion}\""
+                )
+                packageJsonFile.text = packageJsonContent
+                println "✓ package.json: ${newVersion}"
+            }
         }
 
         // 4. Docker 빌드 스크립트 업데이트
         def dockerScripts = [
-            'docker-compose-dev-spring/build-and-push-multiplatform.sh',
-            'docker-compose-dev-spring/build-app-only.sh',
-            'docker-compose-dev-spring/build-rag-only.sh'
+            'docker-compose-build/build-and-push-multiplatform.sh',
+            'docker-compose-build/build-app-only.sh',
+            'docker-compose-build/build-rag-only.sh'
         ]
 
         dockerScripts.each { scriptPath ->
@@ -185,8 +186,10 @@ task incrementVersion {
             if (scriptFile.exists()) {
                 def scriptContent = scriptFile.text
                 
-                // VERSION 변수 업데이트 (스크립트 상단 정의) - 항상 업데이트
-                scriptContent = scriptContent.replaceAll(/VERSION="(\d+)\.(\d+)\.(\d+)"/, "VERSION=\"${newVersion}\"")
+                // VERSION 변수 업데이트 (스크립트 상단 정의) - 메인 앱 관련일 때만
+                if (target == 'all' || target == 'app') {
+                    scriptContent = scriptContent.replaceAll(/VERSION="(\d+)\.(\d+)\.(\d+)"/, "VERSION=\"${newVersion}\"")
+                }
 
                 // App 이미지 업데이트
                 if (target == 'all' || target == 'app') {
@@ -196,8 +199,8 @@ task incrementVersion {
                     )
                 }
                 
-                // RAG Service 이미지 업데이트
-                if (target == 'all' || target == 'rag-service') {
+                // RAG Service 이미지 업데이트 (명시적으로 지정된 경우만)
+                if (target == 'rag-service') {
                     scriptContent = scriptContent.replaceAll(
                         /(testcasecraft-rag-service):(\d+)\.(\d+)\.(\d+)/,
                         "\$1:${newVersion}"
@@ -209,8 +212,8 @@ task incrementVersion {
             }
         }
 
-        // 4. docker-compose-dev.yml 업데이트
-        def dockerComposeFile = file('docker-compose-dev-spring/docker-compose-dev.yml')
+        // 5. docker-compose.yml 업데이트
+        def dockerComposeFile = file('docker-compose-build/docker-compose.yml')
         if (dockerComposeFile.exists()) {
             def dockerComposeContent = dockerComposeFile.text
             
@@ -222,8 +225,8 @@ task incrementVersion {
                 )
             }
 
-            // RAG Service 이미지 업데이트
-            if (target == 'all' || target == 'rag-service') {
+            // RAG Service 이미지 업데이트 (명시적으로 지정된 경우만)
+            if (target == 'rag-service') {
                 dockerComposeContent = dockerComposeContent.replaceAll(
                     /(xmlangel\/testcasecraft-rag-service):(\d+)\.(\d+)\.(\d+)/,
                     "\$1:${newVersion}"
@@ -231,12 +234,12 @@ task incrementVersion {
             }
 
             dockerComposeFile.text = dockerComposeContent
-            println "✓ docker-compose-dev.yml updated"
+            println "✓ docker-compose.yml updated"
         }
 
 
-        // 7. RAG Service config.py 업데이트 (RAG 관련이므로 rag-service/all 일 때만)
-        if (target == 'all' || target == 'rag-service') {
+        // 6. RAG Service config.py 업데이트 (명시적으로 지정된 경우만)
+        if (target == 'rag-service') {
             def ragConfigFile = file('rag-service/app/core/config.py')
             if (ragConfigFile.exists()) {
                 def ragConfigContent = ragConfigFile.text

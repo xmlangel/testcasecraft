@@ -160,13 +160,14 @@ const TestPlanAutomatedLinkDialog = ({ open, onClose, testPlanId, onLinkComplete
                                 ),
                                 endAdornment: (
                                     <InputAdornment position="end">
-                                        <Button onClick={searchResults} disabled={loading}>
+                                        <Button onClick={searchResults} disabled={loading} data-testid="automation-search-button">
                                             {t('common.search', '검색')}
                                         </Button>
                                     </InputAdornment>
                                 )
                             }
                         }}
+                        inputProps={{ 'data-testid': 'automation-search-input' }}
                     />
                 </Box>
 
@@ -187,7 +188,7 @@ const TestPlanAutomatedLinkDialog = ({ open, onClose, testPlanId, onLinkComplete
                             const linkedToOther = result.testPlanId && result.testPlanId !== testPlanId;
 
                             return (
-                                <ListItem key={result.id} divider>
+                                <ListItem key={result.id} divider data-testid={`automation-result-item-${result.id}`}>
                                     <ListItemText
                                         primary={
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -224,6 +225,7 @@ const TestPlanAutomatedLinkDialog = ({ open, onClose, testPlanId, onLinkComplete
                                                 size="small"
                                                 onClick={() => handleUnlink(result)}
                                                 startIcon={<Cancel />}
+                                                data-testid={`automation-unlink-button-${result.id}`}
                                             >
                                                 {t('common.unlink', '연결 해제')}
                                             </Button>
@@ -235,6 +237,7 @@ const TestPlanAutomatedLinkDialog = ({ open, onClose, testPlanId, onLinkComplete
                                                 onClick={() => handleLink(result)}
                                                 disabled={linkedToOther}
                                                 startIcon={<LinkIcon />}
+                                                data-testid={`automation-link-button-${result.id}`}
                                             >
                                                 {t('common.link', '연결')}
                                             </Button>

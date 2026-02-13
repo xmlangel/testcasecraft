@@ -49,6 +49,7 @@ const TestCaseFormHeader = ({
                         variant="outlined"
                         size="small"
                         startIcon={<AddIcon />}
+                        data-testid="testcase-add-new-button"
                     >
                         {t('testcase.form.button.add', '새 케이스 추가')}
                     </Button>
@@ -93,6 +94,7 @@ const TestCaseFormHeader = ({
                         color="inherit"
                         variant="outlined"
                         sx={{ mr: 1 }}
+                        data-testid="testcase-header-cancel-button"
                     >
                         {t('testcase.form.button.cancel', '취소')}
                     </Button>
@@ -103,6 +105,7 @@ const TestCaseFormHeader = ({
                         disabled={isSaving}
                         startIcon={isSaving ? <CircularProgress size={20} /> : <SaveIcon />}
                         sx={{ mr: 1 }}
+                        data-testid="testcase-header-save-button"
                     >
                         {isSaving ? t('testcase.form.button.saving', '저장 중...') : (testCaseId ? t('testcase.form.button.update', '수정') : t('testcase.form.button.save', '저장'))}
                     </Button>

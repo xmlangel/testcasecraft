@@ -483,19 +483,22 @@ const TestResultAttachmentsView = ({
 
           {(previewType === 'text' || previewType === 'json' || previewType === 'csv') && (
             <Box sx={{ maxHeight: '80vh', overflow: 'auto' }}>
-              <pre style={{
+            <Box
+              component="pre"
+              sx={{
                 fontFamily: 'monospace',
                 fontSize: '0.875rem',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
-                backgroundColor: (theme) => theme.palette.background.paper,
+                backgroundColor: 'action.hover',
                 padding: '16px',
                 borderRadius: '4px',
                 margin: 0,
-                color: (theme) => theme.palette.text.primary
-              }}>
-                {previewContent}
-              </pre>
+                color: 'text.primary'
+              }}
+            >
+              {previewContent}
+            </Box>
             </Box>
           )}
         </DialogContent>

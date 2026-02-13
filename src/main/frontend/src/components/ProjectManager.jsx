@@ -471,23 +471,28 @@ const ProjectManager = ({ onSelectProject }) => {
     };
 
     return (
-      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Card data-testid={`project-card-${project.id}`} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <CardContent sx={{ flexGrow: 1 }}>
           <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
             <Box>
-              <Typography variant="h6" component="h2" gutterBottom>
+              <Typography variant="h6" component="h2" gutterBottom data-testid="project-name">
                 {project.name}
               </Typography>
               <Chip
                 size="small"
                 label={project.code}
                 variant="outlined"
+                slotProps={{
+                  htmlInput: { 'data-testid': 'project-name-input' }
+                }}
                 sx={{ mb: 1 }}
+                data-testid="project-code"
               />
             </Box>
             <IconButton
               size="small"
               onClick={(e) => handleMenuOpen(e, project)}
+              data-testid="project-more-menu-button"
             >
               <MoreVertIcon />
             </IconButton>
@@ -610,6 +615,7 @@ const ProjectManager = ({ onSelectProject }) => {
             fullWidth
             startIcon={<LaunchIcon />}
             onClick={() => onSelectProject(project.id)}
+            data-testid="open-project-button"
           >
             {t('project.buttons.openProject', '프로젝트 열기')}
           </Button>
@@ -688,6 +694,7 @@ const ProjectManager = ({ onSelectProject }) => {
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => handleNewProject()}
+              data-testid="new-project-button"
             >
               {t('project.buttons.createNew', '새 프로젝트 생성')}
             </Button>
@@ -714,7 +721,7 @@ const ProjectManager = ({ onSelectProject }) => {
               }}
             >
               {tabs.map((tab, index) => (
-                <Tab key={tab.originalIndex} label={tab.label} />
+                <Tab key={tab.originalIndex} label={tab.label} data-testid={`project-tab-${tab.originalIndex}`} />
               ))}
             </Tabs>
           </Box>
@@ -961,7 +968,7 @@ const ProjectManager = ({ onSelectProject }) => {
             <TransferIcon fontSize="small" sx={{ mr: 1 }} />
             {t('project.menu.transfer', '조직 이전')}
           </MenuItem>
-          <MenuItem onClick={() => handleDeleteClick(false)} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={() => handleDeleteClick(false)} sx={{ color: 'error.main' }} data-testid="project-delete-menu-item">
             <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
             {t('common.buttons.delete', '삭제')}
           </MenuItem>
@@ -993,6 +1000,7 @@ const ProjectManager = ({ onSelectProject }) => {
                 value={formData.name}
                 onChange={(e) => handleFormChange('name', e.target.value)}
                 required
+                slotProps={{ htmlInput: { 'data-testid': 'project-name-input' } }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -1004,6 +1012,7 @@ const ProjectManager = ({ onSelectProject }) => {
                 onChange={(e) => handleFormChange('code', e.target.value)}
                 required
                 placeholder={t('project.form.codePlaceholder', '예: PROJ001')}
+                slotProps={{ htmlInput: { 'data-testid': 'project-code-input' } }}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
@@ -1013,12 +1022,13 @@ const ProjectManager = ({ onSelectProject }) => {
                   value={formData.organizationId}
                   onChange={(e) => handleFormChange('organizationId', e.target.value)}
                   label={t('project.form.organization', '소속 조직')}
+                  data-testid="project-organization-select"
                 >
                   <MenuItem value="">
                     <em>{t('project.form.noOrganization', '독립 프로젝트 (조직 없음)')}</em>
                   </MenuItem>
                   {organizations.map((org) => (
-                    <MenuItem key={org.id} value={org.id}>
+                    <MenuItem key={org.id} value={org.id} data-testid={`org-option-${org.id}`}>
                       {org.name}
                     </MenuItem>
                   ))}
@@ -1026,16 +1036,17 @@ const ProjectManager = ({ onSelectProject }) => {
               </FormControl>
             </Grid>
             <Grid size={{ xs: 12 }}>
-              <TextField
-                label={t('project.form.description', '설명')}
-                fullWidth
-                variant="outlined"
-                multiline
-                rows={3}
-                value={formData.description}
-                onChange={(e) => handleFormChange('description', e.target.value)}
-                placeholder={t('project.form.descriptionPlaceholder', '프로젝트에 대한 설명을 입력하세요...')}
-              />
+                <TextField
+                  label={t('project.form.description', '설명')}
+                  fullWidth
+                  variant="outlined"
+                  multiline
+                  rows={3}
+                  value={formData.description}
+                  onChange={(e) => handleFormChange('description', e.target.value)}
+                  placeholder={t('project.form.descriptionPlaceholder', '프로젝트에 대한 설명을 입력하세요...')}
+                  data-testid="project-description-field"
+                />
             </Grid>
           </Grid>
         </DialogContent>
@@ -1047,6 +1058,7 @@ const ProjectManager = ({ onSelectProject }) => {
             onClick={handleSubmit}
             variant="contained"
             disabled={submitting}
+            data-testid="project-save-button"
           >
             {submitting ? <CircularProgress size={20} /> : (editingProject ? t('common.buttons.update', '수정') : t('common.buttons.create', '생성'))}
           </Button>
@@ -1152,6 +1164,7 @@ const ProjectManager = ({ onSelectProject }) => {
             color="error"
             variant="contained"
             disabled={submitting}
+            data-testid="project-delete-confirm-button"
           >
             {submitting ? <CircularProgress size={20} /> : (forceDelete ? t('project.buttons.forceDelete', '강제 삭제') : t('common.buttons.delete', '삭제'))}
           </Button>

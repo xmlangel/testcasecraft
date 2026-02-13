@@ -1,0 +1,122 @@
+name: Docker Build and Push
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Build Target'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - app
+          - rag
+      version:
+        description: 'Version (e.g., 1.0.35)'
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Parse Tag and Version
+        id: parse_info
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "TARGET=${{ github.event.inputs.target }}" >> $GITHUB_ENV
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            echo "Processing tag: $TAG_NAME"
+            
+            # v1.2.3-app -> VERSION=1.2.3, TARGET=app
+            # v1.2.3 -> VERSION=1.2.3, TARGET=all
+            
+            if [[ $TAG_NAME =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(app|rag|all)$ ]]; then
+              echo "VERSION=${BASH_REMATCH[1]}" >> $GITHUB_ENV
+              echo "TARGET=${BASH_REMATCH[2]}" >> $GITHUB_ENV
+            elif [[ $TAG_NAME =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+              echo "VERSION=${BASH_REMATCH[1]}" >> $GITHUB_ENV
+              echo "TARGET=all" >> $GITHUB_ENV
+            else
+              echo "Error: Tag format invalid. Use vX.X.X or vX.X.X-app|rag|all"
+              exit 1
+            fi
+          fi
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push with Script
+        run: |
+          chmod +x docker-compose-build/build-and-push-multiplatform.sh
+          ./docker-compose-build/build-and-push-multiplatform.sh --non-interactive --version ${{ env.VERSION }} ${{ env.TARGET }}
+
+      - name: Generate Release Notes
+        id: release_notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION=${{ env.VERSION }}
+          KN_FILE="docs/release_note/RELEASE_NOTE_${VERSION}_KO.md"
+          EN_FILE="docs/release_note/RELEASE_NOTE_${VERSION}_EN.md"
+          
+          echo "Building release notes for version $VERSION"
+          touch release_notes.md
+          
+          # Add Korean Release Notes
+          if [ -f "$KN_FILE" ]; then
+            echo "## Changes (한국어)" >> release_notes.md
+            cat "$KN_FILE" >> release_notes.md
+            echo -e "\n" >> release_notes.md
+          fi
+          
+          # Add English Release Notes
+          if [ -f "$EN_FILE" ]; then
+            echo "## Changes (English)" >> release_notes.md
+            cat "$EN_FILE" >> release_notes.md
+            echo -e "\n" >> release_notes.md
+          fi
+          
+          # Fallback if both files are missing
+          if [ ! -f "$KN_FILE" ] && [ ! -f "$EN_FILE" ]; then
+            PREV_TAG=$(git describe --tags --abbrev=0 ${GITHUB_REF}^ 2>/dev/null || echo "")
+            echo "## Changes" >> release_notes.md
+            if [ -z "$PREV_TAG" ]; then
+              git log --pretty=format:"- %s" >> release_notes.md
+            else
+              git log ${PREV_TAG}..${GITHUB_REF} --pretty=format:"- %s" >> release_notes.md
+            fi
+          fi
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          name: Release ${{ env.VERSION }} (${{ env.TARGET }})
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
-  Box, Grid, CircularProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography,
+  Box, Grid, CircularProgress, LinearProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Chip,
   Accordion, AccordionSummary, AccordionDetails
 } from "@mui/material";
-import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { ExpandMore as ExpandMoreIcon, Info as InfoIcon, Assessment as AssessmentIcon } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from '../context/I18nContext.jsx';
@@ -102,6 +102,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
     const saved = localStorage.getItem('testcase-manager-execution-accordion');
     return saved ? JSON.parse(saved) : {
+      executionSummary: true,
       filters: true,
       list: true
     };
@@ -776,36 +777,81 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         setShowExecutionGuide={setShowExecutionGuide}
       />
 
-      <Grid container spacing={1}>
-        <Grid size={{ xs: 12, md: 6, lg: 5 }}>
-          <TestExecutionInfo
-            execution={execution}
-            handleChange={handleChange}
-            testPlans={testPlans}
-            handlePlanChange={handlePlanChange}
-            availableTags={availableTags}
-            setExecution={setExecution}
-            canEditBasicInfo={canEditBasicInfo}
-            startImmediately={startImmediately}
-            setStartImmediately={setStartImmediately}
-            executionId={executionId}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6, lg: 7 }}>
-          <TestExecutionStatus
-            execution={execution}
-            statusCounts={statusCounts}
-            progress={progress}
-            canStartExecution={canStartExecution}
-            canCompleteExecution={canCompleteExecution}
-            canRestartExecution={canRestartExecution}
-            handleStartExecution={handleStartExecution}
-            handleCompleteExecution={handleCompleteExecution}
-            handleRestartExecution={handleRestartExecution}
-            saving={saving}
-          />
-        </Grid>
-      </Grid>
+      {/* 실행 요약 정보 (Info & Status) - Accordion 적용 */}
+      <Accordion 
+        expanded={accordionExpanded.executionSummary} 
+        onChange={handleAccordionChange('executionSummary')}
+        sx={{ 
+          mb: 2, 
+          boxShadow: 'none', 
+          border: '1px solid',
+          borderColor: 'divider',
+          '&:before': { display: 'none' },
+          borderRadius: '8px !important',
+          overflow: 'hidden'
+        }}
+      >
+        <AccordionSummary 
+          expandIcon={<ExpandMoreIcon />}
+          sx={{ bgcolor: alpha(theme.palette.primary.main, 0.03) }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+            <AssessmentIcon color="primary" />
+            <Typography variant="subtitle1" fontWeight="bold">
+              {t('testExecution.executionSummary', '실행 요약')}
+            </Typography>
+            {!accordionExpanded.executionSummary && execution && (
+              <Box sx={{ display: 'flex', gap: 2, ml: 2, alignItems: 'center' }}>
+                <Chip 
+                  label={execution.status} 
+                  size="small" 
+                  color={execution.status === ExecutionStatus.COMPLETED ? "success" : execution.status === ExecutionStatus.INPROGRESS ? "primary" : "default"}
+                  variant="outlined"
+                  sx={{ height: 20, fontSize: '0.7rem', fontWeight: 'bold' }}
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {t('testExecution.progress', '진행률')}: {progress}%
+                </Typography>
+                <Box sx={{ width: 100 }}>
+                  <LinearProgress variant="determinate" value={progress} sx={{ height: 4, borderRadius: 2 }} />
+                </Box>
+              </Box>
+            )}
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails sx={{ pt: 2 }}>
+          <Grid container spacing={1}>
+            <Grid size={{ xs: 12, md: 6, lg: 5 }}>
+              <TestExecutionInfo
+                execution={execution}
+                handleChange={handleChange}
+                testPlans={testPlans}
+                handlePlanChange={handlePlanChange}
+                availableTags={availableTags}
+                setExecution={setExecution}
+                canEditBasicInfo={canEditBasicInfo}
+                startImmediately={startImmediately}
+                setStartImmediately={setStartImmediately}
+                executionId={executionId}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6, lg: 7 }}>
+              <TestExecutionStatus
+                execution={execution}
+                statusCounts={statusCounts}
+                progress={progress}
+                canStartExecution={canStartExecution}
+                canCompleteExecution={canCompleteExecution}
+                canRestartExecution={canRestartExecution}
+                handleStartExecution={handleStartExecution}
+                handleCompleteExecution={handleCompleteExecution}
+                handleRestartExecution={handleRestartExecution}
+                saving={saving}
+              />
+            </Grid>
+          </Grid>
+        </AccordionDetails>
+      </Accordion>
       <Box sx={{ my: 3 }}>
         <Accordion expanded={accordionExpanded.filters} onChange={handleAccordionChange('filters')} sx={{ mb: 2 }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>

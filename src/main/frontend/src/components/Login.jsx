@@ -108,7 +108,7 @@ const Login = ({ onLoginSuccess }) => {
       </Box>
 
       <Paper elevation={3} sx={{ p: 4, minWidth: 350 }}>
-        <Typography variant="h5" gutterBottom align="center">
+        <Typography variant="h5" gutterBottom align="center" data-testid="login-title">
           {mode === 'login' ? t('login.title', '로그인') : t('register.title', '회원가입')}
         </Typography>
         <Box
@@ -125,7 +125,7 @@ const Login = ({ onLoginSuccess }) => {
             margin="normal"
             disabled={loading}
             autoFocus
-            data-testid="login-username-input"
+            slotProps={{ htmlInput: { 'data-testid': 'login-username-input' } }}
           />
           <TextField
             label={t('login.password', '비밀번호')}
@@ -136,7 +136,7 @@ const Login = ({ onLoginSuccess }) => {
             fullWidth
             margin="normal"
             disabled={loading}
-            data-testid="login-password-input"
+            slotProps={{ htmlInput: { 'data-testid': 'login-password-input' } }}
           />
           {mode === 'register' && (
             <>
@@ -149,7 +149,7 @@ const Login = ({ onLoginSuccess }) => {
                 fullWidth
                 margin="normal"
                 disabled={loading}
-                data-testid="register-confirm-password-input"
+                slotProps={{ htmlInput: { 'data-testid': 'register-confirm-password-input' } }}
               />
               <TextField
                 label={t('register.name', '이름')}
@@ -159,7 +159,7 @@ const Login = ({ onLoginSuccess }) => {
                 fullWidth
                 margin="normal"
                 disabled={loading}
-                data-testid="register-name-input"
+                slotProps={{ htmlInput: { 'data-testid': 'register-name-input' } }}
               />
               <TextField
                 label={t('register.email', '이메일')}
@@ -169,7 +169,7 @@ const Login = ({ onLoginSuccess }) => {
                 fullWidth
                 margin="normal"
                 disabled={loading}
-                data-testid="register-email-input"
+                slotProps={{ htmlInput: { 'data-testid': 'register-email-input' } }}
               />
             </>
           )}

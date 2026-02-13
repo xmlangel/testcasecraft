@@ -1,0 +1,10 @@
+mcp[cli]
+python-dotenv
+sqlite-vec
+torch
+transformers
+jira
+azure.identity
+openai
+fastmcp
+fastapi

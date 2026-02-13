@@ -1,8 +1,7 @@
 services:
   # Spring Boot Application
   app:
-<<<<<<< HEAD
-    image: xmlangel/testcasecraft:1.0.32
+    image: xmlangel/testcasecraft:1.0.41
     container_name: testcasecraft
     environment:
       # Spring Profile
@@ -74,12 +73,12 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    restart: unless-stopped
+    restart: always
+
   
   # FastAPI RAG Service
   rag-service:
-    image: xmlangel/testcasecraft-rag-service:1.0.11
->>>>>>> 1d11fd1f (feat: Add authentication API tests with JSON schema validation and migrate test configuration from properties to YAML.)
+    image: xmlangel/testcasecraft-rag-service:1.0.12
     container_name: testcasecraft-rag-service
     environment:
       # Database
@@ -113,7 +112,8 @@ services:
       minio:
         condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    restart: unless-stopped
+    restart: always
+
 
 
 # PostgreSQL 18 Database
@@ -136,7 +136,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
+
 
 
   # PostgreSQL 18 with pgvector extension (RAG)
@@ -159,7 +160,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
+
 
 # MinIO Object Storage (RAG)
   minio:
@@ -181,7 +183,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
+
 
 networks:
   testcasecraft-network:

@@ -31,6 +31,7 @@ const TestResultJira = ({
                     t('testResult.jira.invalidFormat') :
                     jiraIssueKey ? t('testResult.jira.autoUppercase') : ""}
                 error={isJiraIssueKeyInvalid}
+                slotProps={{ htmlInput: { 'data-testid': 'result-jira-input' } }}
             />
 
             {/* JIRA Integration Section */}

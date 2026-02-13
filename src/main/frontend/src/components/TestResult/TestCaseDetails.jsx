@@ -65,9 +65,10 @@ const TestCaseDetails = ({ testCase, t }) => {
                             variant="outlined"
                             size="small"
                             sx={{ mr: 1 }}
+                            data-testid="result-case-id"
                         />
                     )}
-                    <Subtitle variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
+                    <Subtitle variant="subtitle1" gutterBottom sx={{ mb: 0 }} data-testid="result-case-title">
                         {testCase.parentName && testCase.parentName !== '상위없음'
                             ? `${testCase.parentName} >> ${testCase.name}`
                             : testCase.name}

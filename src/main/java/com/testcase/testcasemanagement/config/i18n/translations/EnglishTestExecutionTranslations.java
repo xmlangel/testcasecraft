@@ -77,6 +77,8 @@ public class EnglishTestExecutionTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testExecution.info.title", languageCode, "Execution Info", createdBy);
                 createTranslationIfNotExists("testExecution.info.status", languageCode, "Status", createdBy);
+                createTranslationIfNotExists("testExecution.executionSummary", languageCode, "Execution Summary",
+                                createdBy);
                 createTranslationIfNotExists("testExecution.info.startDate", languageCode, "Start Date", createdBy);
                 createTranslationIfNotExists("testExecution.info.endDate", languageCode, "End Date", createdBy);
                 createTranslationIfNotExists("testExecution.info.progress", languageCode, "Progress", createdBy);
@@ -224,6 +226,7 @@ public class EnglishTestExecutionTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testExecution.progress.completed", languageCode, "Completed", createdBy);
                 createTranslationIfNotExists("testExecution.progress.total", languageCode, "Total", createdBy);
+                createTranslationIfNotExists("testExecution.progress", languageCode, "Progress", createdBy);
                 createTranslationIfNotExists("testExecution.table.caseName", languageCode, "Case Name", createdBy);
                 createTranslationIfNotExists("testExecution.table.result", languageCode, "Result", createdBy);
                 createTranslationIfNotExists("testExecution.table.executedAt", languageCode, "Executed At", createdBy);

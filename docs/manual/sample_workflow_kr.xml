@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="정산 프로세스 검증" tests="1" failures="1" errors="0" skipped="0">
+    <testcase name="월간_정산_배치_작업" classname="batch.settlement.Monthly" time="15.0">
+      <failure message="데이터 불일치 발생" type="DatabaseSyncError">
+        <steps>
+          <step index="1">
+            <단계명>원천 데이터 추출</단계명>
+            <대상_테이블>TB_ORDER_MASTER</대상_테이블>
+            <기대_레코드수>50000</기대_레코드수>
+            <실제_레코드수>49998</실제_레코드수>
+            <비고>2건의 데이터 유실 의심</비고>
+          </step>
+          <step index="2">
+            <단계명>정산 합계 계산</단계_명>
+            <기대_금액>1,500,000,000</기대_금액>
+            <실제_금액>1,499,950,000</실제_금액>
+            <차액>-50,000</차액>
+          </step>
+        </steps>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

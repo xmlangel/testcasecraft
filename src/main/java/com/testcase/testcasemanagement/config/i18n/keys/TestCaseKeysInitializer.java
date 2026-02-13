@@ -791,6 +791,7 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("junit.stats.failed", "junit", "실패 상태", "실패");
                 createTranslationKeyIfNotExists("junit.stats.error", "junit", "에러 상태", "에러");
                 createTranslationKeyIfNotExists("junit.stats.skipped", "junit", "스킵 상태", "스킵");
+                createTranslationKeyIfNotExists("junit.stats.total", "junit", "전체 테스트", "전체");
                 createTranslationKeyIfNotExists("junit.stats.successRate", "junit", "성공률", "성공률");
                 createTranslationKeyIfNotExists("junit.stats.passedTests", "junit", "통과한 테스트", "통과한 테스트");
                 createTranslationKeyIfNotExists("junit.stats.failedTests", "junit", "실패한 테스트", "실패한 테스트");
@@ -1273,8 +1274,10 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("testcase.bulkOps.button.execute", "testcase", "실행 버튼", "실행");
 
                 // 스프레드시트 행 삽입/삭제 버튼
-                createTranslationKeyIfNotExists("testcase.spreadsheet.button.insertAbove", "testcase", "위에 추가 버튼", "위에 추가");
-                createTranslationKeyIfNotExists("testcase.spreadsheet.button.insertBelow", "testcase", "아래에 추가 버튼", "아래에 추가");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.button.insertAbove", "testcase", "위에 추가 버튼",
+                                "위에 추가");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.button.insertBelow", "testcase", "아래에 추가 버튼",
+                                "아래에 추가");
                 createTranslationKeyIfNotExists("testcase.spreadsheet.button.delete", "testcase", "삭제 버튼", "삭제");
 
                 // 스프레드시트 추가 컬럼

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="사용자 API 테스트" tests="1" failures="1" errors="0" skipped="0">
+    <testcase name="사용자_정보_조회_실패" classname="api.user.GetProfile" time="0.5">
+      <failure message="사용자 정보를 가져오는 중 오류가 발생했습니다." type="API_오류">
+        <steps>
+          <step index="1">
+            <요청경로>GET /api/users/profile</요청경로>
+            <파라미터>user_id=123</파라미터>
+            <기대결과>200 OK 및 사용자 이름 반환</기대결과>
+            <실제결과>401 Unauthorized</실제결과>
+            <상태코드>401</상태코드>
+            <메시지>인증 토큰이 만료되었습니다.</메시지>
+          </step>
+        </steps>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

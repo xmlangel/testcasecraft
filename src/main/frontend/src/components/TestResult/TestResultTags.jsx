@@ -39,6 +39,12 @@ const TestResultTags = ({
                     placeholder={t('testResult.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
                     helperText={t('testResult.helper.tags', '여러 태그를 입력할 수 있습니다')}
                     margin="normal"
+                    slotProps={{
+                        htmlInput: {
+                            ...params.inputProps,
+                            'data-testid': 'result-tags-input'
+                        }
+                    }}
                 />
             )}
             disabled={isViewer}

@@ -113,6 +113,8 @@ public class CommonKeysInitializer {
                 createTranslationKeyIfNotExists("common.actions.view", "common", "보기 액션", "보기");
                 createTranslationKeyIfNotExists("common.actions.download", "common", "다운로드 액션", "다운로드");
                 createTranslationKeyIfNotExists("common.validation.required", "common", "필수 입력 검증", "필수 입력 항목입니다");
+                createTranslationKeyIfNotExists("common.expand", "common", "펼치기", "펼치기");
+                createTranslationKeyIfNotExists("common.collapse", "common", "접기", "접기");
 
                 // 설정 관련 키
                 createTranslationKeyIfNotExists("config.database.title", "config", "데이터베이스 설정", "데이터베이스 설정");

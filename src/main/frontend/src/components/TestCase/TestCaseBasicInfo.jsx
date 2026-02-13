@@ -69,6 +69,7 @@ const TestCaseBasicInfo = ({
                     placeholder={t('testcase.form.testcaseName', '테스트케이스 이름')}
                     helperText={errors.name}
                     disabled={isViewer}
+                    slotProps={{ htmlInput: { 'data-testid': 'testcase-name-input' } }}
                 />
 
                 <MarkdownFieldEditor
@@ -81,6 +82,7 @@ const TestCaseBasicInfo = ({
                     t={t}
                     onChange={(value) => onTestCaseChange('description', value)}
                     onPaste={(event) => onMarkdownPaste(event, { type: 'field', field: 'description' })}
+                    testid="testcase-description-input"
                 />
 
                 <MarkdownFieldEditor
@@ -93,6 +95,7 @@ const TestCaseBasicInfo = ({
                     t={t}
                     onChange={(value) => onTestCaseChange('preCondition', value)}
                     onPaste={(event) => onMarkdownPaste(event, { type: 'field', field: 'preCondition' })}
+                    testid="testcase-precondition-input"
                 />
 
                 <MarkdownFieldEditor

@@ -1,0 +1,43 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "context7-mcp",
+      "description": "Context7 documentation and code examples for React, Spring Boot, and related technologies"
+    },
+    "atlassian": {
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "YOUR_JIRA_URL_HERE",
+        "JIRA_USERNAME": "YOUR_JIRA_USERNAME_HERE",
+        "JIRA_TOKEN": "YOUR_JIRA_TOKEN_HERE"
+      },
+      "description": "Atlassian JIRA and Confluence integration for sprint management and documentation"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "description": "Playwright MCP server for web automation, testing, and browser interaction"
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["chrome-devtools-mcp@latest"],
+      "description": "Chrome DevTools MCP server for browser automation, debugging, and performance analysis"
+    }
+  },
+  "projectConfig": {
+    "name": "test-case-manager",
+    "type": "fullstack",
+    "frontend": {
+      "framework": "React",
+      "version": "18.x",
+      "technologies": ["Material-UI", "Context API", "localStorage", "React Router"]
+    },
+    "backend": {
+      "framework": "Spring Boot",
+      "version": "3.2.4",
+      "technologies": ["JPA", "PostgreSQL", "JWT", "TestNG", "Gradle"]
+    },
+    "buildSystem": "Gradle with Node.js plugin"
+  }
+}
