@@ -111,9 +111,9 @@ const JunitResultDetail = () => {
   const [searchText, setSearchText] = useState("");
   const isDarkMode = theme.palette.mode === "dark";
 
-  // ICT-337: Split Panel 관련 상태
   const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
+  const [editRefreshTrigger, setEditRefreshTrigger] = useState(0);
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   // PDF 내보내기 관련 상태
@@ -370,10 +370,15 @@ const JunitResultDetail = () => {
     // 다이얼로그 닫기
     setEditDialogOpen(false);
     setSelectedTestCase(null);
+    setEditRefreshTrigger((prev) => prev + 1);
 
     // 선택된 스위트 데이터 새로고침 (페이지 유지)
     if (selectedSuite) {
-      await loadTestCases(selectedSuite.id, page - 1);
+      if (selectedSuite.id === ALL_SUITES_ID) {
+        await loadAllTestCases(testSuites, page - 1);
+      } else {
+        await loadTestCases(selectedSuite.id, page - 1);
+      }
     }
   };
 
@@ -1339,6 +1344,7 @@ const JunitResultDetail = () => {
                     >
                       <TestCaseDetailPanel
                         testCaseId={selectedTestCaseId}
+                        refreshTrigger={editRefreshTrigger}
                         onClose={handleCloseDetailPanel}
                         onEditTestCase={handleEditTestCase}
                         onNavigatePrev={handleNavigatePrev}
@@ -1393,6 +1399,7 @@ const JunitResultDetail = () => {
             <FailedTestsTab
               testResultId={testResultId}
               onEditTestCase={handleEditTestCase}
+              refreshTrigger={editRefreshTrigger}
             />
           </AccordionDetails>
         </Accordion>
@@ -1425,6 +1432,7 @@ const JunitResultDetail = () => {
             <SlowestTestsTab
               testResultId={testResultId}
               onEditTestCase={handleEditTestCase}
+              refreshTrigger={editRefreshTrigger}
             />
           </AccordionDetails>
         </Accordion>
@@ -1444,7 +1452,7 @@ const JunitResultDetail = () => {
 };
 
 // 실패한 테스트 탭 컴포넌트 - ICT-337 확장: Split Panel 구조
-const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
+const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) => {
   const { t } = useI18n();
   const [failedTests, setFailedTests] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1469,7 +1477,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
     };
 
     loadFailedTests();
-  }, [testResultId]);
+  }, [testResultId, refreshTrigger]);
 
   // ICT-337: 실패한 테스트 케이스 클릭 핸들러
   const handleFailedTestCaseClick = (testCaseId) => {
@@ -1673,6 +1681,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
             >
               <TestCaseDetailPanel
                 testCaseId={selectedTestCaseId}
+                refreshTrigger={refreshTrigger}
                 onClose={handleCloseDetailPanel}
                 onEditTestCase={onEditTestCase}
                 onNavigatePrev={() => {
@@ -1696,7 +1705,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
 };
 
 // 느린 테스트 탭 컴포넌트
-const SlowestTestsTab = ({ testResultId, onEditTestCase }) => {
+const SlowestTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) => {
   const { t } = useI18n();
   const theme = useTheme();
   const [slowestTests, setSlowestTests] = useState([]);
@@ -1719,7 +1728,7 @@ const SlowestTestsTab = ({ testResultId, onEditTestCase }) => {
     };
 
     loadSlowestTests();
-  }, [testResultId]);
+  }, [testResultId, refreshTrigger]);
 
   const formatDuration = (seconds) => {
     if (seconds < 1) return `${(seconds * 1000).toFixed(0)}ms`;

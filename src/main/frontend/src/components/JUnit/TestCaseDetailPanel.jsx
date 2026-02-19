@@ -43,11 +43,12 @@ import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
 
 /**
- * ICT-337: 테스트 케이스 상세 패널 컴포넌트
+ * 테스트 케이스 상세 패널 컴포넌트
  * tracelog와 testbody를 탭 형태로 표시
  */
 const TestCaseDetailPanel = ({
   testCaseId,
+  refreshTrigger = 0,
   onClose,
   onEditTestCase,
   onNavigatePrev,
@@ -135,7 +136,7 @@ const TestCaseDetailPanel = ({
     if (testCaseId) {
       loadTestCaseDetails();
     }
-  }, [testCaseId]);
+  }, [testCaseId, refreshTrigger]);
 
   // 탭 변경 핸들러
   const handleTabChange = (event, newValue) => {
