@@ -76,8 +76,6 @@ PROTOCOL=https DOMAIN=mydomain.com SERVER_PORT=443 docker compose up -d --build
 docker compose --env-file myenvfile.env up -d --build
 ```
 
-네, 요청하신 **Access & Credentials** 부분을 깔끔한 Markdown 형식으로 정리해 드립니다. 이대로 복사해서 사용하시면 됩니다.
-
 -----
 
 ## 🔌 Access & Credentials
