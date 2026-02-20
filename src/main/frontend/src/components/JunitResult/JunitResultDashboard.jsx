@@ -889,7 +889,7 @@ export default function JunitResultDashboard() {
                                       <Typography variant="caption">{formatDateShort(result.uploadedAt, t)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                      <Tooltip title={t('common.view')}>
+                                      <Tooltip title={t('common.actions.view')}>
                                         <IconButton
                                           size="small"
                                           onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
