@@ -81,7 +81,7 @@ const TRACKED_PAGE_PATHS = [
   '/llm-config',
   '/projectdashboard'
 ];
-const SHOW_EXPLORATORY_SESSION_TAB = false;
+const SHOW_EXPLORATORY_SESSION_TAB = true;
 
 function saveUIState(state) {
   localStorage.setItem(STORAGEKEY, JSON.stringify(state));
