@@ -30,7 +30,7 @@ detect_version_interactive() {
     local current_tag=$(git tag --points-at HEAD | grep '^v' | head -1)
     
     if [[ -n "$current_tag" ]]; then
-        VERSION=$(echo "$current_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        VERSION=$(echo "$current_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?).*/\1/')
         print_msg "$GREEN" "✅ Detected version $VERSION from current tag: $current_tag"
         return 0
     fi
@@ -43,8 +43,8 @@ detect_version_interactive() {
         echo ""
         read -r -p "Do you want to create a new tag for the current commit? (y/n): " create_tag
         if [[ "$create_tag" =~ ^[Yy]$ ]]; then
-            read -r -p "Enter version (e.g., 1.0.40): " input_version
-            if [[ "$input_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            read -r -p "Enter version (e.g., 1.0.40 or 1.0.40-dev): " input_version
+            if [[ "$input_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
                 local new_tag="v${input_version}-app"
                 git tag -a "$new_tag" -m "Release version $input_version"
                 VERSION="$input_version"
@@ -59,7 +59,7 @@ detect_version_interactive() {
     # 3. 차선책: 가장 최근 태그 사용
     local latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
     if [[ -n "$latest_tag" ]]; then
-        VERSION=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        VERSION=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?).*/\1/')
         print_msg "$YELLOW" "⚠️ Not on a tag. Using version $VERSION from latest tag: $latest_tag"
     else
         VERSION="$fallback_version"

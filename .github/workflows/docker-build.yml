@@ -38,6 +38,8 @@ jobs:
 
       - name: Parse Build Context
         run: |
+          VERSION_REGEX='[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?'
+
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "TARGET=${{ github.event.inputs.target }}" >> "$GITHUB_ENV"
             echo "VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_ENV"
@@ -47,15 +49,17 @@ jobs:
             echo "Processing tag: $TAG_NAME"
 
             # v1.2.3-app -> VERSION=1.2.3, TARGET=app
+            # v1.2.3-dev-app -> VERSION=1.2.3-dev, TARGET=app
             # v1.2.3 -> VERSION=1.2.3, TARGET=all
-            if [[ "$TAG_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(app|rag|all)$ ]]; then
+            # v1.2.3-dev -> VERSION=1.2.3-dev, TARGET=all
+            if [[ "$TAG_NAME" =~ ^v(${VERSION_REGEX})-(app|rag|all)$ ]]; then
               echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
               echo "TARGET=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
-            elif [[ "$TAG_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            elif [[ "$TAG_NAME" =~ ^v(${VERSION_REGEX})$ ]]; then
               echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
               echo "TARGET=all" >> "$GITHUB_ENV"
             else
-              echo "Error: Tag format invalid. Use vX.X.X or vX.X.X-app|rag|all"
+              echo "Error: Tag format invalid. Use vX.Y.Z[-PRERELEASE] or vX.Y.Z[-PRERELEASE]-app|rag|all"
               exit 1
             fi
 
@@ -66,8 +70,8 @@ jobs:
 
       - name: Validate Inputs
         run: |
-          if [[ ! "${{ env.VERSION }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: VERSION must be in X.Y.Z format (e.g., 1.0.35)"
+          if [[ ! "${{ env.VERSION }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+            echo "Error: VERSION must be X.Y.Z or X.Y.Z-PRERELEASE format (e.g., 1.0.35, 1.0.42-dev)"
             exit 1
           fi
 
