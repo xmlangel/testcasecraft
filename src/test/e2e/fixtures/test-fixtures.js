@@ -4,6 +4,7 @@ const { TestCasePage } = require('../pages/TestCasePage.js');
 const { ProjectListPage } = require('../pages/ProjectListPage.js');
 const { TestExecutionPage } = require('../pages/TestExecutionPage.js');
 const { TestPlanPage } = require('../pages/TestPlanPage.js');
+const AutomationPage = require('../pages/AutomationPage.js');
 
 const test = base.extend({
     loginPage: async ({ page }, use, testInfo) => {
@@ -20,6 +21,9 @@ const test = base.extend({
     },
     testPlanPage: async ({ page }, use, testInfo) => {
         await use(new TestPlanPage(page, testInfo));
+    },
+    automationPage: async ({ page }, use, testInfo) => {
+        await use(new AutomationPage(page, testInfo));
     }
 });
 

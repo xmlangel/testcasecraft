@@ -1,12 +1,9 @@
 // src/test/e2e/junit/junit-note-column.spec.js
 // JUnit 결과 상세 페이지의 테스트 케이스 리스트에 Note 컬럼이 표시되는지 검증
 
-const { test, expect } = require('@playwright/test');
-const { LoginPage } = require('../pages/LoginPage.js');
-const AutomationPage = require('../pages/AutomationPage.js');
+const { test, expect } = require('../fixtures/test-fixtures.js');
 
 // 테스트 환경 설정
-const BASE_URL = 'http://localhost:3000';
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'admin123';
 
@@ -15,20 +12,17 @@ const TEST_PROJECT_ID = '2fcead1a-83f6-4fe0-a1e5-169f227e23f9';
 const TEST_RESULT_ID = 'ac26d4ce-38c7-401f-8ef6-698513e6b4ec';
 
 test.describe('JUnit 결과 상세 페이지 - Note 컬럼 표시', () => {
-  let loginPage;
-  let automationPage;
 
-  test.beforeEach(async ({ page }) => {
-    loginPage = new LoginPage(page);
-    automationPage = new AutomationPage(page);
-
-    await page.goto(BASE_URL);
+  test.beforeEach(async ({ loginPage, projectListPage }) => {
+    await loginPage.goto();
+    await loginPage.clearStorage();
+    await loginPage.waitForBackend();
     await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await page.waitForURL(`${BASE_URL}/projects`, { timeout: 10000 });
+    await projectListPage.waitForLoad();
   });
 
-  test('테스트 케이스 테이블에 노트 헤더 컬럼이 표시된다', async ({ page }) => {
-    await automationPage.goto(`${BASE_URL}/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`);
+  test('테스트 케이스 테이블에 노트 헤더 컬럼이 표시된다', async ({ automationPage }) => {
+    await automationPage.goto(`/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`);
     await automationPage.waitForIdle();
 
     // 테이블이 렌더링될 때까지 대기
@@ -38,8 +32,8 @@ test.describe('JUnit 결과 상세 페이지 - Note 컬럼 표시', () => {
     await expect(automationPage.noteHeader).toBeVisible({ timeout: 5000 });
   });
 
-  test('테스트 케이스 행에 Note 셀이 존재한다 (노트 없으면 "-" 표시)', async ({ page }) => {
-    await automationPage.goto(`${BASE_URL}/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`);
+  test('테스트 케이스 행에 Note 셀이 존재한다 (노트 없으면 "-" 표시)', async ({ automationPage }) => {
+    await automationPage.goto(`/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`);
     await automationPage.waitForIdle();
 
     await automationPage.caseRow.first().waitFor({ state: 'visible', timeout: 15000 });
@@ -50,8 +44,8 @@ test.describe('JUnit 결과 상세 페이지 - Note 컬럼 표시', () => {
     await expect(automationPage.noteCell.first()).toBeVisible();
   });
 
-  test('노트가 있는 테스트 케이스는 해당 내용이 리스트에 표시된다', async ({ page }) => {
-    await automationPage.goto(`${BASE_URL}/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`);
+  test('노트가 있는 테스트 케이스는 해당 내용이 리스트에 표시된다', async ({ automationPage }) => {
+    await automationPage.goto(`/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`);
     await automationPage.waitForIdle();
 
     await automationPage.caseRow.first().waitFor({ state: 'visible', timeout: 15000 });
@@ -75,10 +69,10 @@ test.describe('JUnit 결과 상세 페이지 - Note 컬럼 표시', () => {
     expect(firstCellText !== null && firstCellText !== undefined).toBe(true);
   });
 
-  test('노트 입력 후 리스트에 반영된다 (편집 → 저장 → 확인)', async ({ page }) => {
+  test('노트 입력 후 리스트에 반영된다 (편집 → 저장 → 확인)', async ({ page, automationPage }) => {
     const testNote = `E2E 테스트 노트 ${Date.now()}`;
 
-    await automationPage.goto(`${BASE_URL}/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`);
+    await automationPage.goto(`/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`);
     await automationPage.waitForIdle();
 
     await automationPage.editCaseButton.first().waitFor({ state: 'visible', timeout: 15000 });
@@ -96,8 +90,8 @@ test.describe('JUnit 결과 상세 페이지 - Note 컬럼 표시', () => {
     await expect(automationPage.noteCell.first()).toContainText(testNote, { timeout: 5000 });
   });
 
-  test('자동화 탭 → JUnit 결과 상세 이동 → Note 컬럼 확인 (전체 플로우)', async ({ page }) => {
-    await automationPage.goto(`${BASE_URL}/projects/${TEST_PROJECT_ID}`);
+  test('자동화 탭 → JUnit 결과 상세 이동 → Note 컬럼 확인 (전체 플로우)', async ({ page, automationPage }) => {
+    await automationPage.goto(`/projects/${TEST_PROJECT_ID}`);
     await automationPage.waitForIdle();
 
     // 자동화 탭 클릭 
