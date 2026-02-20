@@ -67,6 +67,9 @@ const GlobalDocumentManager = ({ onSuccess }) => {
         getLlmAnalysisStatus,
         getLlmAnalysisResults,
         listLlmAnalysisJobs,
+        isRagEnabled,
+        ragDisabledMessage,
+        ragStatusInitialized,
     } = useRAG();
 
     const [globalDocuments, setGlobalDocuments] = useState([]);
@@ -279,6 +282,17 @@ const GlobalDocumentManager = ({ onSuccess }) => {
     );
 
     const fetchGlobalDocuments = useCallback(async () => {
+        // RAG 상태 조회 완료 전에는 API 호출 차단 (마운트 시점 이른 호출 방지)
+        if (!ragStatusInitialized) {
+            return;
+        }
+        // RAG 비활성화 시 API 호출 차단 (에러 루프 방지)
+        if (!isRagEnabled) {
+            setGlobalDocuments([]);
+            setTotalDocs(0);
+            setLoadingGlobalDocs(false);
+            return;
+        }
         if (isDebugEnabled('GlobalDocumentManager')) console.log('[GlobalDocumentManager] Fetching documents - page:', page, 'rowsPerPage:', rowsPerPage);
         setLoadingGlobalDocs(true);
         try {
@@ -304,9 +318,14 @@ const GlobalDocumentManager = ({ onSuccess }) => {
         } finally {
             setLoadingGlobalDocs(false);
         }
-    }, [listDocuments, t, page, rowsPerPage]); // loadGlobalLlmAnalysisStates 제외
+    }, [listDocuments, t, page, rowsPerPage, isRagEnabled, ragStatusInitialized]); // loadGlobalLlmAnalysisStates 제외
 
     const fetchGlobalDocRequests = useCallback(async () => {
+        // RAG 상태 조회 완료 전, 또는 RAG 비활성화 시 API 호출 차단
+        if (!ragStatusInitialized || !isRagEnabled) {
+            setGlobalDocRequests([]);
+            return;
+        }
         setLoadingGlobalDocRequests(true);
         try {
             const response = await listGlobalDocumentRequests('PENDING');
@@ -317,17 +336,17 @@ const GlobalDocumentManager = ({ onSuccess }) => {
         } finally {
             setLoadingGlobalDocRequests(false);
         }
-    }, [listGlobalDocumentRequests]);
+    }, [listGlobalDocumentRequests, isRagEnabled, ragStatusInitialized]);
 
     useEffect(() => {
         fetchGlobalDocuments();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, rowsPerPage]); // fetchGlobalDocuments 제외하여 무한 루프 방지
+    }, [page, rowsPerPage, ragStatusInitialized, isRagEnabled]); // ragStatusInitialized, isRagEnabled 변동 시 재호출
 
     useEffect(() => {
         fetchGlobalDocRequests();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // 최초 마운트 시에만 실행
+    }, [ragStatusInitialized, isRagEnabled]); // 상태 확인 후 실행
 
     // 페이지 변경 핸들러
     const handleChangePage = useCallback((event, newPage) => {
@@ -643,6 +662,22 @@ const GlobalDocumentManager = ({ onSuccess }) => {
 
     return (
         <>
+            {/* RAG 비활성화 시 경고 배너 - 실수 업로드 방지 */}
+            {!isRagEnabled && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    <Typography variant="body2" fontWeight="bold" gutterBottom>
+                        ⚠️ RAG 기능이 현재 비활성화되어 있습니다.
+                    </Typography>
+                    <Typography variant="body2">
+                        {ragDisabledMessage || '시스템 관리자에 의해 RAG 기능이 임시 비활성화되어 있습니다.'}
+                        <br />
+                        LLM 설정 관리 페이지의 &quot;시스템 설정&quot; 탭에서 RAG를 활성화한 후 문서를 업로드해주세요.
+                        <br />
+                        <strong>비활성화 상태에서 업로드 시 RAG 관련 처리가 정상적으로 동작하지 않습니다.</strong>
+                    </Typography>
+                </Alert>
+            )}
+            {isRagEnabled && (
             <Paper sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Box>
@@ -825,6 +860,7 @@ const GlobalDocumentManager = ({ onSuccess }) => {
                     )}
                 </Box>
             </Paper>
+            )}
 
             {/* 미리보기 다이얼로그 */}
             <DocumentPreviewDialog

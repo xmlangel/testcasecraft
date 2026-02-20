@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -23,15 +24,21 @@ public class SchedulerConfigService {
 
     private static final Logger logger = LoggerFactory.getLogger(SchedulerConfigService.class);
 
+    /** RAG 비활성화 시 활성화가 차단되는 스케줄러 목록 */
+    private static final Set<String> RAG_SCHEDULER_KEYS = Set.of("rag-cleanup", "rag-auto-analysis");
+
     private final SchedulerConfigRepository schedulerConfigRepository;
     private final DynamicSchedulerService dynamicSchedulerService;
+    private final SystemSettingService systemSettingService;
 
     @Autowired
     public SchedulerConfigService(
             SchedulerConfigRepository schedulerConfigRepository,
-            DynamicSchedulerService dynamicSchedulerService) {
+            DynamicSchedulerService dynamicSchedulerService,
+            SystemSettingService systemSettingService) {
         this.schedulerConfigRepository = schedulerConfigRepository;
         this.dynamicSchedulerService = dynamicSchedulerService;
+        this.systemSettingService = systemSettingService;
     }
 
     /**
@@ -59,6 +66,11 @@ public class SchedulerConfigService {
     public SchedulerConfigDto updateConfig(String taskKey, UpdateSchedulerDto dto) {
         SchedulerConfig config = schedulerConfigRepository.findByTaskKey(taskKey)
                 .orElseThrow(() -> new IllegalArgumentException("Scheduler config not found: " + taskKey));
+
+        // RAG 비활성화 시 RAG 관련 스케줄러 활성화 시도 차단
+        if (Boolean.TRUE.equals(dto.getEnabled()) && RAG_SCHEDULER_KEYS.contains(taskKey)) {
+            checkRagEnabledForScheduler(taskKey);
+        }
 
         // 스케줄 타입이 변경된 경우
         if (dto.getScheduleType() != null && dto.getScheduleType() != config.getScheduleType()) {
@@ -112,6 +124,12 @@ public class SchedulerConfigService {
         SchedulerConfig config = schedulerConfigRepository.findByTaskKey(taskKey)
                 .orElseThrow(() -> new IllegalArgumentException("Scheduler config not found: " + taskKey));
 
+        // RAG 비활성화 시 RAG 관련 스케줄러 toggle을 활성화하려 할 때 차단
+        boolean willBeEnabled = !config.getEnabled();
+        if (willBeEnabled && RAG_SCHEDULER_KEYS.contains(taskKey)) {
+            checkRagEnabledForScheduler(taskKey);
+        }
+
         config.setEnabled(!config.getEnabled());
         SchedulerConfig savedConfig = schedulerConfigRepository.save(config);
         logger.info("스케줄 활성화 상태 변경: taskKey={}, enabled={}", taskKey, savedConfig.getEnabled());
@@ -133,6 +151,17 @@ public class SchedulerConfigService {
 
         logger.info("스케줄 즉시 실행 요청: taskKey={}", taskKey);
         dynamicSchedulerService.executeTaskNow(taskKey);
+    }
+
+    /**
+     * RAG 스케줄러 활성화 전 RAG 상태 확인
+     */
+    private void checkRagEnabledForScheduler(String taskKey) {
+        if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+            throw new IllegalStateException(
+                    "RAG 기능이 비활성화되어 있어 '" + taskKey + "' 스케줄러를 활성화할 수 없습니다. " +
+                            "RAG 시스템 설정에서 RAG를 먼저 활성화해주세요.");
+        }
     }
 
     /**

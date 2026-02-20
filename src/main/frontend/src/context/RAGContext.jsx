@@ -48,6 +48,7 @@ const initialState = {
   loadedProjectId: null, // 현재 로드된 프로젝트 ID (중복 호출 방지용)
   isRagEnabled: !RAG_DISABLED_MESSAGE_ENV, // RAG 기능 비활성화 토글 상태
   ragDisabledMessage: RAG_DISABLED_MESSAGE_ENV,
+  ragStatusInitialized: RAG_DISABLED_MESSAGE_ENV ? true : false, // 백엔드에서 RAG 상태 조회 완료 여부
 };
 
 const ActionTypes = {
@@ -76,6 +77,7 @@ const ActionTypes = {
   SET_LLM_CHECK_LOADING: 'SET_LLM_CHECK_LOADING',
   SET_LOADED_PROJECT_ID: 'SET_LOADED_PROJECT_ID',
   SET_RAG_ENABLED_STATUS: 'SET_RAG_ENABLED_STATUS',
+  SET_RAG_STATUS_INITIALIZED: 'SET_RAG_STATUS_INITIALIZED',
 };
 
 function ragReducer(state, action) {
@@ -173,8 +175,11 @@ function ragReducer(state, action) {
         ...state, 
         isRagEnabled: action.payload.isEnabled, 
         ragDisabledMessage: action.payload.message,
-        error: action.payload.isEnabled ? null : action.payload.message
+        error: action.payload.isEnabled ? null : action.payload.message,
+        ragStatusInitialized: true,
       };
+    case ActionTypes.SET_RAG_STATUS_INITIALIZED:
+      return { ...state, ragStatusInitialized: true };
     default:
       return state;
   }
@@ -204,9 +209,14 @@ export function RAGProvider({ children }) {
               message: '시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.' 
             } 
           });
+        } else {
+          // RAG 활성화 상태 확인 완료
+          dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
         }
       } catch (err) {
         console.warn('Failed to fetch RAG status:', err);
+        // 조회 실패 시에도 초기화 완료로 처리 (RAG 활성화 상태 유지)
+        dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
       }
     };
     
@@ -274,6 +284,7 @@ export function RAGProvider({ children }) {
     loadedProjectId: state.loadedProjectId,
     isRagEnabled: state.isRagEnabled,
     ragDisabledMessage: state.ragDisabledMessage,
+    ragStatusInitialized: state.ragStatusInitialized, // RAG 상태 조회 완료 여부 (이 값이 true일 때만 API 호출 허용)
 
     // Utility functions
     clearError,
