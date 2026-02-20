@@ -791,7 +791,7 @@ const TestCaseDetailPanel = ({
                       fontSize: "0.875rem",
                       fontFamily: "monospace",
                       whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
+                      wordBreak: "break-all",
                       bgcolor: isDarkMode
                         ? alpha(theme.palette.error.main, 0.1)
                         : "#ffebee",
@@ -801,7 +801,9 @@ const TestCaseDetailPanel = ({
                       border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : "#ffcdd2"}`,
                     }}
                   >
-                    {testCaseDetails.tracelog.failureMessage}
+                    {String(testCaseDetails.tracelog.failureMessage)
+                      .replace(/   File/g, "\n  File")
+                      .replace(/     /g, "\n    ")}
                   </Box>
                 </CardContent>
               </Card>
@@ -820,7 +822,7 @@ const TestCaseDetailPanel = ({
                       fontSize: "0.75rem",
                       fontFamily: "monospace",
                       whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
+                      wordBreak: "break-all",
                       bgcolor: isDarkMode
                         ? alpha(theme.palette.background.paper, 0.5)
                         : "#fafafa",
@@ -832,7 +834,9 @@ const TestCaseDetailPanel = ({
                       overflow: "auto",
                     }}
                   >
-                    {testCaseDetails.tracelog.stackTrace}
+                    {String(testCaseDetails.tracelog.stackTrace)
+                      .replace(/   File/g, "\n  File")
+                      .replace(/     /g, "\n    ")}
                   </Box>
                 </CardContent>
               </Card>
