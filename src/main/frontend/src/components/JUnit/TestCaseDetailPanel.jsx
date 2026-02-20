@@ -719,7 +719,14 @@ const TestCaseDetailPanel = ({
             {onEditTestCase && (
               <Tooltip title={t("junit.testcase.edit")}>
                 <IconButton
-                  onClick={() => onEditTestCase(testCaseDetails)}
+                  onClick={() => {
+                    // JunitTestCaseEditor 호환성을 위해 userInfo 필드를 최상위로 위치시킴
+                    const normalizedTestCase = {
+                      ...testCaseDetails,
+                      ...(testCaseDetails.userInfo || {})
+                    };
+                    onEditTestCase(normalizedTestCase);
+                  }}
                   size="small"
                   color="primary"
                   sx={{
