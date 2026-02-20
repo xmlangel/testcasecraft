@@ -149,9 +149,10 @@ build_jar_step() {
     
     print_msg "$BLUE" "Running gradle build..."
     # cd .. to project root
-    (cd .. && ./gradlew clean build -x test)
+    (cd "$SCRIPT_DIR/.." && ./gradlew clean build -x test)
     
-    local built_jar=$(find ../build/libs -name "*.jar" -not -name "*-plain.jar" | head -1)
+    local built_jar
+    built_jar=$(find "$SCRIPT_DIR/../build/libs" -name "*.jar" -not -name "*-plain.jar" | head -1)
     if [[ ! -f "$built_jar" ]]; then
         print_msg "$RED" "❌ Error: JAR file not found in build/libs!"
         exit 1
@@ -263,7 +264,7 @@ main() {
         [[ "$NON_INTERACTIVE" == "true" ]] && interactive_flag="false"
         detect_version_interactive "$interactive_flag" "$RECENT_VERSION"
     else
-        verify_tag_exists "$VERSION" || exit 1
+        verify_tag_exists "$VERSION" "$BUILD_TARGET" || exit 1
     fi
 
     # Prerequisites & Setup
