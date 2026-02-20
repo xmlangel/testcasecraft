@@ -764,6 +764,42 @@ public class JunitResultController {
     }
 
     /**
+     * 이전 테스트 실행 노트 조회
+     */
+    @GetMapping("/testcases/{testCaseId}/previous-notes")
+    @Operation(summary = "이전 노트 조회", description = "동일한 테스트 케이스의 이전 실행에서 작성한 노트를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getPreviousTestCaseNote(@PathVariable String testCaseId) {
+        logger.info("이전 테스트 케이스 노트 조회 - ID: {}", testCaseId);
+
+        try {
+            Map<String, Object> previousNoteInfo = junitResultService.getPreviousTestCaseNote(testCaseId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+
+            if (previousNoteInfo != null) {
+                response.put("hasNotes", true);
+                response.put("previousNotes", previousNoteInfo.get("userNotes"));
+                response.put("executionName", previousNoteInfo.get("executionName"));
+                response.put("uploadedAt", previousNoteInfo.get("uploadedAt"));
+            } else {
+                response.put("hasNotes", false);
+            }
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("이전 테스트 케이스 노트 조회 실패: {}", e.getMessage(), e);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "이전 노트를 조회할 수 없습니다.");
+
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
      * ICT-337: 테스트 케이스 상세 정보 조회 (tracelog, testbody 포함)
      */
     @GetMapping("/testcases/{testCaseId}/details")

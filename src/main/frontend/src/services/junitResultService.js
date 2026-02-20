@@ -509,6 +509,27 @@ class JunitResultService {
   }
 
   /**
+   * 이전 실행의 테스트 케이스 노트 조회
+   */
+  async getPreviousTestCaseNote(testCaseId) {
+    try {
+        const response = await fetch(`${await this.getBaseUrl()}/testcases/${testCaseId}/previous-notes`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`이전 테스트 케이스 노트 조회 실패: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('이전 테스트 케이스 노트 조회 오류:', error);
+        throw error;
+    }
+  }
+
+  /**
    * JUnit 테스트 케이스 편집
    */
   async updateTestCase(testCaseId, userTitle, userDescription, userNotes, userStatus, tags, priority, userId) {

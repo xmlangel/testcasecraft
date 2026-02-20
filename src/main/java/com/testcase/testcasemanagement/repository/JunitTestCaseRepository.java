@@ -68,6 +68,24 @@ public interface JunitTestCaseRepository extends JpaRepository<JunitTestCase, St
        List<JunitTestCase> findEditedCasesByTestResult(@Param("testResultId") String testResultId);
 
        /**
+        * 이전 실행에서 작성한 노트가 있는 동일 케이스 내역 조회
+        */
+       @Query("SELECT jtc FROM JunitTestCase jtc " +
+                     "WHERE jtc.junitTestSuite.junitTestResult.projectId = :projectId " +
+                     "AND jtc.className = :className " +
+                     "AND jtc.name = :name " +
+                     "AND jtc.id != :currentTestCaseId " +
+                     "AND jtc.userNotes IS NOT NULL " +
+                     "AND TRIM(jtc.userNotes) != '' " +
+                     "ORDER BY jtc.junitTestSuite.junitTestResult.uploadedAt DESC")
+       List<JunitTestCase> findPreviousTestCasesWithNotes(
+                     @Param("projectId") String projectId,
+                     @Param("className") String className,
+                     @Param("name") String name,
+                     @Param("currentTestCaseId") String currentTestCaseId,
+                     Pageable pageable);
+
+       /**
         * 테스트 결과별 상태 통계
         */
        @Query("SELECT jtc.status, COUNT(jtc) FROM JunitTestCase jtc " +
