@@ -1,15 +1,20 @@
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.dto.UpdateSchedulerDto;
+import com.testcase.testcasemanagement.service.SchedulerConfigService;
 import com.testcase.testcasemanagement.service.SystemSettingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/system-settings")
 @RequiredArgsConstructor
@@ -17,13 +22,16 @@ import java.util.Map;
 public class SystemSettingController {
 
     private final SystemSettingService systemSettingService;
+    private final SchedulerConfigService schedulerConfigService;
 
     public static final String RAG_ENABLED_KEY = "RAG_ENABLED";
+
+    /** RAG 관련 스케줄러 taskKey 목록 */
+    private static final List<String> RAG_SCHEDULER_KEYS = List.of("rag-cleanup", "rag-auto-analysis");
 
     @GetMapping("/{key}")
     @Operation(summary = "설정 조회", description = "특정 키의 설정값을 조회합니다.")
     public ResponseEntity<String> getSetting(@PathVariable String key) {
-        // 기본적으로 접근 누구나 가능하도록 (특히 RAG_ENABLED 같은 상태는 조회 필요)
         String value = systemSettingService.getSetting(key, null);
         if (value == null) {
             return ResponseEntity.notFound().build();
@@ -52,6 +60,22 @@ public class SystemSettingController {
         }
 
         systemSettingService.updateSetting(key, value, description);
+
+        // RAG_ENABLED=false 시 RAG 관련 스케줄러를 DB에서 비활성화 (자동 재시작 방지)
+        if (RAG_ENABLED_KEY.equals(key) && "false".equalsIgnoreCase(value)) {
+            for (String taskKey : RAG_SCHEDULER_KEYS) {
+                try {
+                    UpdateSchedulerDto dto = new UpdateSchedulerDto();
+                    dto.setEnabled(false);
+                    schedulerConfigService.updateConfig(taskKey, dto);
+                    log.info("RAG 비활성화로 인해 스케줄러 중지: taskKey={}", taskKey);
+                } catch (Exception e) {
+                    // 스케줄러 설정이 없을 수도 있으므로 오류는 로그로만 처리
+                    log.warn("RAG 스케줄러 중지 실패 (설정 없을 수 있음): taskKey={}, error={}", taskKey, e.getMessage());
+                }
+            }
+        }
+
         return ResponseEntity.ok().build();
     }
 }
