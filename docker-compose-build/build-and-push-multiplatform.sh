@@ -143,8 +143,7 @@ check_prerequisites() {
 build_jar_step() {
     print_step "Building JAR file"
     
-    # We are currently in docker-compose-build/
-    local jar_dest="app.jar"
+    local jar_dest="$SCRIPT_DIR/app.jar"
     backup_jar "$jar_dest"
     local project_root="$SCRIPT_DIR/.."
     
@@ -278,18 +277,18 @@ main() {
     # Process Build
     if [[ "$BUILD_TARGET" == "all" || "$BUILD_TARGET" == "app" ]]; then
         build_jar_step
-        build_docker_image "$APP_IMAGE" "." "Dockerfile" "$VERSION"
+        build_docker_image "$APP_IMAGE" "$SCRIPT_DIR" "$SCRIPT_DIR/Dockerfile" "$VERSION"
     fi
 
     if [[ "$BUILD_TARGET" == "all" || "$BUILD_TARGET" == "rag" ]]; then
-        build_docker_image "$RAG_IMAGE" "../rag-service" "../rag-service/Dockerfile" "$VERSION"
+        build_docker_image "$RAG_IMAGE" "$SCRIPT_DIR/../rag-service" "$SCRIPT_DIR/../rag-service/Dockerfile" "$VERSION"
     fi
 
     # Verification
     verify_images_step
 
     # Cleanup
-    [[ -f "app.jar" ]] && rm "app.jar"
+    [[ -f "$SCRIPT_DIR/app.jar" ]] && rm "$SCRIPT_DIR/app.jar"
     
     print_step "SUMMARY"
     print_msg "$GREEN" "Successfully completed processing for: $BUILD_TARGET"
