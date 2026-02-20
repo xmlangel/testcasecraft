@@ -171,27 +171,54 @@ build_docker_image() {
     local context_path=$2
     local dockerfile=$3
     local tag=$4
+    local add_latest_tag=true
+
+    # Pre-release versions (e.g., 1.0.42-dev, 1.0.42-rc.1) should not move latest.
+    if [[ "$tag" == *-* ]]; then
+        add_latest_tag=false
+    fi
     
     print_step "Building Docker image: $image_name"
     
     if [[ "$PUSH_MODE" == "true" ]]; then
         print_msg "$YELLOW" "Multi-platform Build & Push for: $PLATFORMS"
-        docker buildx build \
-            --platform "$PLATFORMS" \
-            --tag "$image_name:$tag" \
-            --tag "$image_name:latest" \
-            --push \
-            --file "$dockerfile" \
-            "$context_path"
+        if [[ "$add_latest_tag" == "true" ]]; then
+            print_msg "$BLUE" "Tagging as $tag and latest"
+            docker buildx build \
+                --platform "$PLATFORMS" \
+                --tag "$image_name:$tag" \
+                --tag "$image_name:latest" \
+                --push \
+                --file "$dockerfile" \
+                "$context_path"
+        else
+            print_msg "$BLUE" "Pre-release version detected ($tag): skipping latest tag"
+            docker buildx build \
+                --platform "$PLATFORMS" \
+                --tag "$image_name:$tag" \
+                --push \
+                --file "$dockerfile" \
+                "$context_path"
+        fi
     else
         print_msg "$YELLOW" "Local platform build & load (current architecture only)"
         # Note: --load doesn't support multi-platform
-        docker buildx build \
-            --load \
-            --tag "$image_name:$tag" \
-            --tag "$image_name:latest" \
-            --file "$dockerfile" \
-            "$context_path"
+        if [[ "$add_latest_tag" == "true" ]]; then
+            print_msg "$BLUE" "Tagging as $tag and latest"
+            docker buildx build \
+                --load \
+                --tag "$image_name:$tag" \
+                --tag "$image_name:latest" \
+                --file "$dockerfile" \
+                "$context_path"
+        else
+            print_msg "$BLUE" "Pre-release version detected ($tag): skipping latest tag"
+            docker buildx build \
+                --load \
+                --tag "$image_name:$tag" \
+                --file "$dockerfile" \
+                "$context_path"
+        fi
     fi
     
     print_msg "$GREEN" "✅ $image_name built successfully"
