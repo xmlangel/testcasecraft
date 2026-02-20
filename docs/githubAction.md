@@ -35,6 +35,44 @@
 
 GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 
+```
+1. build_release만 먼저 테스트
+
+  - GitHub Actions 탭 → Docker Build, Release and Push 선택
+  - Run workflow 클릭
+  - Use workflow from: PR 브랜치 선택
+  - 입력값:
+      - phase: build_release
+      - target: app (처음엔 app 추천)
+      - version: 이미 존재하는 태그 버전 (X.Y.Z)
+
+  2. 왜 “이미 존재하는 태그 버전”이 필요한가
+
+  - 현재 워크플로는 workflow_dispatch에서도 태그 존재 여부를 검증합니다.
+  - 해당 버전 태그(vX.Y.Z 또는 vX.Y.Z-app|rag|all)가 없으면 실패합니다.
+
+  3. 완전 분리 테스트가 필요하면
+
+  - 테스트용 태그를 하나 만든 뒤 실행:
+
+  git tag v9.9.99-app
+  git push origin v9.9.99-app
+
+  - 이 경우 태그 푸시로 자동 실행되고, Release도 생성됩니다.
+  - 테스트 후 정리:
+
+  git push origin :refs/tags/v9.9.99-app
+  git tag -d v9.9.99-app
+
+  - GitHub Release는 UI에서 수동 삭제.
+
+  4. push_only 테스트 시 주의
+
+  - 실제 Docker Hub에 푸시됩니다.
+  - 마지막 단계 검증으로만 실행하세요.
+
+```
+
 ### 4.1 빌드/릴리즈
 - `phase`: `build_release`
 - `target`: `all` (또는 `app`, `rag`)
@@ -78,3 +116,4 @@ GitHub Release 생성을 위해 기본 `GITHUB_TOKEN`을 사용합니다.
 - `build_release` 성공 후 Release 내용 확인
 - 문제 없으면 동일 버전으로 `push_only` 실행
 - `target`을 빌드 단계와 동일하게 유지
+
