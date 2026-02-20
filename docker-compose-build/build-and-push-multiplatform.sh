@@ -146,10 +146,14 @@ build_jar_step() {
     # We are currently in docker-compose-build/
     local jar_dest="app.jar"
     backup_jar "$jar_dest"
+    local project_root="$SCRIPT_DIR/.."
     
     print_msg "$BLUE" "Running gradle build..."
-    # cd .. to project root
-    (cd "$SCRIPT_DIR/.." && ./gradlew clean build -x test)
+    if [[ ! -f "$project_root/gradlew" ]]; then
+        print_msg "$RED" "❌ Error: gradlew not found at $project_root/gradlew"
+        exit 1
+    fi
+    (cd "$project_root" && ./gradlew clean build -x test)
     
     local built_jar
     built_jar=$(find "$SCRIPT_DIR/../build/libs" -name "*.jar" -not -name "*-plain.jar" | head -1)

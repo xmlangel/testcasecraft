@@ -105,8 +105,8 @@ jobs:
           echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
           echo "Resolved release tag: $RELEASE_TAG"
 
-      - name: Checkout Resolved Tag (workflow_dispatch)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Checkout Resolved Tag (push_only)
+        if: github.event_name == 'workflow_dispatch' && env.PHASE == 'push_only'
         run: |
           git checkout "${{ env.RELEASE_TAG }}"
           echo "Checked out tag: ${{ env.RELEASE_TAG }}"
