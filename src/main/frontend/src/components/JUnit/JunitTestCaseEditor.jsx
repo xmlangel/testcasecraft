@@ -39,7 +39,8 @@ import {
     BugReport as BugIcon,
     CheckCircle as PassIcon,
     Warning as WarningIcon,
-    SkipNext as SkipIcon
+    SkipNext as SkipIcon,
+    ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
@@ -70,6 +71,7 @@ const JunitTestCaseEditor = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [showOriginalData, setShowOriginalData] = useState(false);
+    const [previousNoteInfo, setPreviousNoteInfo] = useState(null);
 
     // 상태별 색상 및 아이콘 매핑
     const statusConfig = {
@@ -118,8 +120,27 @@ const JunitTestCaseEditor = ({
                 priority: testCase.priority || 'MEDIUM'
             });
             setError(null);
+            
+            // 이전 노트 조회
+            fetchPreviousNote();
+        } else {
+            setPreviousNoteInfo(null);
         }
     }, [testCase, isOpen]);
+
+    const fetchPreviousNote = async () => {
+        if (!testCase?.id) return;
+        try {
+            const result = await junitResultService.getPreviousTestCaseNote(testCase.id);
+            if (result && result.success && result.hasNotes) {
+                setPreviousNoteInfo(result);
+            } else {
+                setPreviousNoteInfo(null);
+            }
+        } catch (err) {
+            console.error("Failed to fetch previous note API error: ", err);
+        }
+    };
 
     // 폼 데이터 변경 핸들러
     const handleFormChange = (field, value) => {
@@ -474,6 +495,32 @@ const JunitTestCaseEditor = ({
 
                     {/* 노트 편집 */}
                     <Grid size={{ xs: 12 }}>
+                        {previousNoteInfo && !readOnly && (
+                            <Alert 
+                                severity="info" 
+                                sx={{ mb: 2 }}
+                                action={
+                                    <Button 
+                                        color="inherit" 
+                                        size="small" 
+                                        startIcon={<ContentCopyIcon />}
+                                        onClick={() => {
+                                            const execName = previousNoteInfo.executionName || t('junit.testcase.previous', '이전 테스트 케이스');
+                                            const date = new Date(previousNoteInfo.uploadedAt).toLocaleString();
+                                            const copyText = `\n\n--- [${t('junit.testcase.previous', '이전 테스트 케이스')}: ${execName}, ${date}] ---\n${previousNoteInfo.previousNotes}`;
+                                            handleFormChange('userNotes', editForm.userNotes ? editForm.userNotes + copyText : previousNoteInfo.previousNotes);
+                                        }}
+                                        data-testid="automation-case-copy-prev-note-btn"
+                                    >
+                                        {t('junit.testcase.previousNotes.copyBtn', '현재 노트로 복사')}
+                                    </Button>
+                                }
+                            >
+                                {t('junit.testcase.previousNotes.alert', '이 테스트 케이스에 대한 이전 노트가 존재합니다 (실행: {execution}, 일시: {date})')
+                                    .replace('{execution}', previousNoteInfo.executionName || t('junit.testcase.previous', '이전 테스트 케이스'))
+                                    .replace('{date}', new Date(previousNoteInfo.uploadedAt).toLocaleString())}
+                            </Alert>
+                        )}
                         <TextField
                             fullWidth
                             multiline

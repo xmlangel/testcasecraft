@@ -1,4 +1,4 @@
-name: Docker Build and Push
+name: Docker Build, Release and Push
 
 on:
   push:
@@ -6,6 +6,14 @@ on:
       - 'v*'
   workflow_dispatch:
     inputs:
+      phase:
+        description: 'Execution Phase'
+        required: true
+        default: 'build_release'
+        type: choice
+        options:
+          - build_release
+          - push_only
       target:
         description: 'Build Target'
         required: true
@@ -20,7 +28,7 @@ on:
         required: true
 
 jobs:
-  build-and-push:
+  build-release-push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -28,29 +36,83 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Parse Tag and Version
-        id: parse_info
+      - name: Parse Build Context
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "TARGET=${{ github.event.inputs.target }}" >> $GITHUB_ENV
-            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+            echo "TARGET=${{ github.event.inputs.target }}" >> "$GITHUB_ENV"
+            echo "VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_ENV"
+            echo "PHASE=${{ github.event.inputs.phase }}" >> "$GITHUB_ENV"
           else
             TAG_NAME=${GITHUB_REF#refs/tags/}
             echo "Processing tag: $TAG_NAME"
-            
+
             # v1.2.3-app -> VERSION=1.2.3, TARGET=app
             # v1.2.3 -> VERSION=1.2.3, TARGET=all
-            
-            if [[ $TAG_NAME =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(app|rag|all)$ ]]; then
-              echo "VERSION=${BASH_REMATCH[1]}" >> $GITHUB_ENV
-              echo "TARGET=${BASH_REMATCH[2]}" >> $GITHUB_ENV
-            elif [[ $TAG_NAME =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-              echo "VERSION=${BASH_REMATCH[1]}" >> $GITHUB_ENV
-              echo "TARGET=all" >> $GITHUB_ENV
+            if [[ "$TAG_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(app|rag|all)$ ]]; then
+              echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+              echo "TARGET=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
+            elif [[ "$TAG_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+              echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+              echo "TARGET=all" >> "$GITHUB_ENV"
             else
               echo "Error: Tag format invalid. Use vX.X.X or vX.X.X-app|rag|all"
               exit 1
             fi
+
+            # 태그 이벤트는 기본적으로 빌드 + 릴리즈 생성(푸시 없음)
+            echo "PHASE=build_release" >> "$GITHUB_ENV"
+            echo "RELEASE_TAG=$TAG_NAME" >> "$GITHUB_ENV"
+          fi
+
+      - name: Validate Inputs
+        run: |
+          if [[ ! "${{ env.VERSION }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: VERSION must be in X.Y.Z format (e.g., 1.0.35)"
+            exit 1
+          fi
+
+          if [[ ! "${{ env.PHASE }}" =~ ^(build_release|push_only)$ ]]; then
+            echo "Error: PHASE must be build_release or push_only"
+            exit 1
+          fi
+
+      - name: Resolve Release Tag (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          BASE_TAG="v${{ env.VERSION }}"
+          TARGET_TAG="${BASE_TAG}-${{ env.TARGET }}"
+
+          if [[ "${{ env.TARGET }}" == "all" ]]; then
+            if git tag -l | grep -q "^${BASE_TAG}$"; then
+              RELEASE_TAG="$BASE_TAG"
+            elif git tag -l | grep -q "^${TARGET_TAG}$"; then
+              RELEASE_TAG="$TARGET_TAG"
+            else
+              echo "Error: No matching tag found. Expected ${BASE_TAG} or ${TARGET_TAG}"
+              exit 1
+            fi
+          else
+            if git tag -l | grep -q "^${TARGET_TAG}$"; then
+              RELEASE_TAG="$TARGET_TAG"
+            elif git tag -l | grep -q "^${BASE_TAG}$"; then
+              RELEASE_TAG="$BASE_TAG"
+            else
+              echo "Error: No matching tag found. Expected ${TARGET_TAG} or ${BASE_TAG}"
+              exit 1
+            fi
+          fi
+
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          echo "Resolved release tag: $RELEASE_TAG"
+
+      - name: Configure Phase Flags
+        run: |
+          if [[ "${{ env.PHASE }}" == "push_only" ]]; then
+            echo "SHOULD_PUSH=true" >> "$GITHUB_ENV"
+            echo "SHOULD_CREATE_RELEASE=false" >> "$GITHUB_ENV"
+          else
+            echo "SHOULD_PUSH=false" >> "$GITHUB_ENV"
+            echo "SHOULD_CREATE_RELEASE=true" >> "$GITHUB_ENV"
           fi
 
       - name: Set up JDK 21
@@ -64,56 +126,65 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
+        if: env.SHOULD_PUSH == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push with Script
+      - name: Build (and optionally Push) with Script
         run: |
           chmod +x docker-compose-build/build-and-push-multiplatform.sh
-          ./docker-compose-build/build-and-push-multiplatform.sh --non-interactive --version ${{ env.VERSION }} ${{ env.TARGET }}
+
+          CMD=("./docker-compose-build/build-and-push-multiplatform.sh" "--non-interactive" "${{ env.TARGET }}" "--version" "${{ env.VERSION }}")
+
+          if [[ "${{ env.SHOULD_PUSH }}" == "true" ]]; then
+            CMD+=("--push")
+          else
+            CMD+=("--build-only")
+          fi
+
+          echo "Running: ${CMD[*]}"
+          "${CMD[@]}"
 
       - name: Generate Release Notes
-        id: release_notes
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: env.SHOULD_CREATE_RELEASE == 'true'
         run: |
           VERSION=${{ env.VERSION }}
           KN_FILE="docs/release_note/RELEASE_NOTE_${VERSION}_KO.md"
           EN_FILE="docs/release_note/RELEASE_NOTE_${VERSION}_EN.md"
-          
+
           echo "Building release notes for version $VERSION"
           touch release_notes.md
-          
-          # Add Korean Release Notes
+
           if [ -f "$KN_FILE" ]; then
             echo "## Changes (한국어)" >> release_notes.md
             cat "$KN_FILE" >> release_notes.md
             echo -e "\n" >> release_notes.md
           fi
-          
-          # Add English Release Notes
+
           if [ -f "$EN_FILE" ]; then
             echo "## Changes (English)" >> release_notes.md
             cat "$EN_FILE" >> release_notes.md
             echo -e "\n" >> release_notes.md
           fi
-          
-          # Fallback if both files are missing
+
           if [ ! -f "$KN_FILE" ] && [ ! -f "$EN_FILE" ]; then
-            PREV_TAG=$(git describe --tags --abbrev=0 ${GITHUB_REF}^ 2>/dev/null || echo "")
+            CURRENT_TAG=${{ env.RELEASE_TAG }}
+            PREV_TAG=$(git describe --tags --abbrev=0 ${CURRENT_TAG}^ 2>/dev/null || echo "")
             echo "## Changes" >> release_notes.md
             if [ -z "$PREV_TAG" ]; then
-              git log --pretty=format:"- %s" >> release_notes.md
+              git log ${CURRENT_TAG} --pretty=format:"- %s" >> release_notes.md
             else
-              git log ${PREV_TAG}..${GITHUB_REF} --pretty=format:"- %s" >> release_notes.md
+              git log ${PREV_TAG}..${CURRENT_TAG} --pretty=format:"- %s" >> release_notes.md
             fi
           fi
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: env.SHOULD_CREATE_RELEASE == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.RELEASE_TAG }}
           body_path: release_notes.md
           name: Release ${{ env.VERSION }} (${{ env.TARGET }})
           draft: false

@@ -287,6 +287,57 @@ VERSION="1.1.0"  # 버전 변경
    - Docker Hub에 푸시하기 전에 민감한 정보가 포함되지 않았는지 확인
    - `.dockerignore` 파일 활용
 
+## Docker 이미지 오프라인 복사 및 이동 (save/load)
+
+네트워크가 제한된 환경이나 Docker Hub를 거치지 않고 직접 이미지를 다른 PC로 옮겨야 할 때 유용한 방법입니다. `docker save`와 `docker load` 명령어를 사용합니다.
+
+### 1단계: 원본 PC에서 이미지 저장하기
+
+`docker images`로 이미지 ID 또는 이름을 확인한 후, `.tar` 압축 파일로 저장합니다.
+
+```bash
+# 로컬에 있는 도커 이미지 목록 확인
+docker images
+
+# 이미지를 .tar 파일로 저장 (예: image_backup.tar)
+# docker save [이미지ID_또는_이름:태그] -o [저장할_파일명.tar]
+docker save b7ac12a9ff5c -o my_image.tar
+
+# 만약 이름과 태그를 알고 있다면, 그것을 사용하는 것이 더 명확합니다.
+# docker save xmlangel/testcasecraft:1.0.0 -o testcasecraft_1.0.0.tar
+```
+
+### 2단계: 파일 전송하기
+
+생성된 `.tar` 파일을 USB, 외부 저장 장치, 또는 네트워크 파일 전송 프로토콜(`scp`, `sftp` 등)을 사용하여 대상 PC로 복사합니다.
+
+```bash
+# scp를 사용한 네트워크 전송 예시
+scp my_image.tar user@destination_ip:/path/to/destination/
+```
+
+### 3단계: 대상 PC에서 이미지 불러오기
+
+`.tar` 파일이 위치한 디렉토리에서 아래 명령어를 실행하여 이미지를 로드합니다.
+
+```bash
+# .tar 파일로부터 도커 이미지를 불러오기
+docker load -i my_image.tar
+```
+
+### 4단계: 이미지 이름 및 태그 재지정 (필요시)
+
+이미지 ID로 직접 저장하고 불러온 경우, 이미지의 이름(Repository)과 태그(Tag)가 `<none>`으로 표시될 수 있습니다. 이 경우, `docker tag` 명령어로 다시 지정해줍니다.
+
+```bash
+# 로드된 이미지 확인 (ID 확인)
+docker images
+
+# 이미지에 새로운 태그 부여
+# docker tag [기존_이미지ID] [새로운_이미지_이름]:[태그]
+docker tag b7ac12a9ff5c my-new-app:latest
+```
+
 ## 참고 자료
 
 - [Docker Buildx 문서](https://docs.docker.com/buildx/working-with-buildx/)

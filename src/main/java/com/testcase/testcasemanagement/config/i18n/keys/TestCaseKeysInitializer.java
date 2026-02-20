@@ -779,6 +779,10 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("junit.editor.userDefinedStatus", "junit", "사용자 정의 상태", "사용자 정의 상태");
                 createTranslationKeyIfNotExists("junit.editor.useOriginalStatus", "junit", "원본 상태 사용", "원본 상태 사용");
                 createTranslationKeyIfNotExists("junit.editor.priorityLabel", "junit", "우선순위 라벨", "우선순위");
+                createTranslationKeyIfNotExists("junit.testcase.previousNotes.alert", "junit", "이전 노트 존재 알림",
+                                "이 테스트 케이스에 대한 이전 노트가 존재합니다 (실행: {execution}, 일시: {date})");
+                createTranslationKeyIfNotExists("junit.testcase.previousNotes.copyBtn", "junit", "이전 노트 복사 버튼",
+                                "현재 노트로 복사");
 
                 // 헤더와 제목들
                 createTranslationKeyIfNotExists("junit.header.testResultDashboard", "junit", "테스트 결과 대시보드 헤더",

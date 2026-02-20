@@ -24,6 +24,9 @@ public class SchedulingConfig {
     private com.testcase.testcasemanagement.service.RagService ragService;
 
     @Autowired
+    private com.testcase.testcasemanagement.service.SystemSettingService systemSettingService;
+
+    @Autowired
     private com.testcase.testcasemanagement.repository.TestCaseRepository testCaseRepository;
 
     @Autowired
@@ -119,6 +122,11 @@ public class SchedulingConfig {
      * DynamicSchedulerService에서 호출됨 (taskKey: rag-cleanup)
      */
     public void cleanupOrphanedRagDocuments() {
+        // RAG 비활성화 시 스케줄 스킵
+        if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+            logger.info("RAG 기능이 비활성화되어 있어 rag-cleanup 스케줄을 건너뛹니다.");
+            return;
+        }
         try {
             logger.info("=== RAG 고아 문서 정리 시작 ===");
 
@@ -204,6 +212,11 @@ public class SchedulingConfig {
      * DynamicSchedulerService에서 호출됨 (taskKey: rag-auto-analysis)
      */
     public void autoAnalyzeRagDocumentsWithLlm() {
+        // RAG 비활성화 시 스케줄 스킵
+        if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+            logger.info("RAG 기능이 비활성화되어 있어 rag-auto-analysis 스케줄을 건너뛹니다.");
+            return;
+        }
         try {
             logger.info("=== RAG 문서 자동 LLM 청크 분석 시작 ===");
 

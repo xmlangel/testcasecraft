@@ -56,6 +56,7 @@ import {
   Add,
   ChevronRight as ChevronRightIcon,
   ExpandMore as ExpandMoreIcon,
+  NoteAlt as NoteAltIcon,
 } from '@mui/icons-material';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, LineChart, Line } from 'recharts';
 import junitResultService from '../../services/junitResultService';
@@ -729,6 +730,18 @@ export default function JunitResultDashboard() {
                                         sx={{ height: 20, fontSize: '0.7rem' }}
                                       />
                                     )}
+                                    {latestResult.notesCount > 0 && (
+                                      <Tooltip title={`노트 ${latestResult.notesCount}개`}>
+                                        <Chip
+                                          icon={<NoteAltIcon sx={{ fontSize: '0.85rem !important' }} />}
+                                          label={latestResult.notesCount}
+                                          size="small"
+                                          color="info"
+                                          variant="outlined"
+                                          sx={{ height: 20, fontSize: '0.7rem', pl: 0.5 }}
+                                        />
+                                      </Tooltip>
+                                    )}
                                   </Box>
                                 </TableCell>
                                 <TableCell>
@@ -826,9 +839,23 @@ export default function JunitResultDashboard() {
                                   >
                                     <TableCell />
                                     <TableCell sx={{ pl: 4 }}>
-                                      <Typography variant="caption" color="text.secondary">
-                                        L {t('junit.list.previousExecution', '이전 실행')}
-                                      </Typography>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                          L {t('junit.list.previousExecution', '이전 실행')}
+                                        </Typography>
+                                        {result.notesCount > 0 && (
+                                          <Tooltip title={`노트 ${result.notesCount}개`}>
+                                            <Chip
+                                              icon={<NoteAltIcon sx={{ fontSize: '0.8rem !important' }} />}
+                                              label={result.notesCount}
+                                              size="small"
+                                              color="info"
+                                              variant="outlined"
+                                              sx={{ height: 16, fontSize: '0.65rem', pl: 0.3 }}
+                                            />
+                                          </Tooltip>
+                                        )}
+                                      </Box>
                                     </TableCell>
                                     <TableCell>
                                       {result.testPlanName ? (

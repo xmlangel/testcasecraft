@@ -498,6 +498,10 @@ public class KoreanTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("junit.testcase.close", languageCode, "닫기", createdBy);
                 createTranslationIfNotExists("junit.testcase.previous", languageCode, "이전 테스트 케이스", createdBy);
                 createTranslationIfNotExists("junit.testcase.next", languageCode, "다음 테스트 케이스", createdBy);
+                createTranslationIfNotExists("junit.testcase.previousNotes.alert", languageCode,
+                                "이 테스트 케이스에 대한 이전 노트가 존재합니다 (실행: {execution}, 일시: {date})", createdBy);
+                createTranslationIfNotExists("junit.testcase.previousNotes.copyBtn", languageCode, "현재 노트로 복사",
+                                createdBy);
                 createTranslationIfNotExists("junit.tracelog.tab", languageCode, "Tracelog", createdBy);
                 createTranslationIfNotExists("junit.tracelog.failureMessage", languageCode, "Failure Message",
                                 createdBy);

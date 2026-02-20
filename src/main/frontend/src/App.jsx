@@ -53,7 +53,7 @@ import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import ExploratorySessionWorkspace from "./components/ExploratorySessionWorkspace.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
-import { RAGProvider } from "./context/RAGContext.jsx";
+import { RAGProvider, useRAG } from "./context/RAGContext.jsx";
 import { LlmConfigProvider } from "./context/LlmConfigContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import { SchedulerProvider } from "./context/SchedulerContext.jsx";
@@ -81,6 +81,8 @@ const TRACKED_PAGE_PATHS = [
   '/llm-config',
   '/projectdashboard'
 ];
+const SHOW_EXPLORATORY_SESSION_TAB = false;
+
 function saveUIState(state) {
   localStorage.setItem(STORAGEKEY, JSON.stringify(state));
 }
@@ -158,6 +160,10 @@ const AppContent = () => {
     handleDialogRefresh,
     handleDialogLogin,
   } = useAppContext();
+
+  const { isRagEnabled } = useRAG();
+  // 탐색 세션 탭 비노출 상태에서는 직접 접근도 허용하지 않는다.
+  const EXPLORATORY_TAB = SHOW_EXPLORATORY_SESSION_TAB ? (isRagEnabled ? 7 : 6) : -1;
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -402,10 +408,21 @@ const AppContent = () => {
           setTabIndex(5);
           setActiveTestCaseId(null);
         } else if (isRagSection()) {
-          setTabIndex(6);
+          // RAG 비활성화 시 /rag URL 직접 접근하면 대시보드로 리다이렉트
+          if (!isRagEnabled) {
+            navigate(`/projects/${urlProjectId}`);
+            setTabIndex(0);
+          } else {
+            setTabIndex(6);
+          }
           setActiveTestCaseId(null);
         } else if (isExploratorySection()) {
-          setTabIndex(7);
+          if (SHOW_EXPLORATORY_SESSION_TAB) {
+            setTabIndex(EXPLORATORY_TAB);
+          } else {
+            navigate(`/projects/${urlProjectId}`);
+            setTabIndex(0);
+          }
           setActiveTestCaseId(null);
         } else {
           // 기본 프로젝트 URL 접근 시 대시보드 탭 표시
@@ -429,6 +446,15 @@ const AppContent = () => {
       treeVisible, // ICT-315: 트리 표시 상태 저장
     });
   }, [activeProject, tabIndex, activeTestCaseId, treeVisible]);
+
+  React.useEffect(() => {
+    if (!SHOW_EXPLORATORY_SESSION_TAB) {
+      const maxVisibleTabIndex = isRagEnabled ? 6 : 5;
+      if (tabIndex > maxVisibleTabIndex) {
+        setTabIndex(0);
+      }
+    }
+  }, [tabIndex, isRagEnabled]);
 
   React.useEffect(() => {
     if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection() && !isRagSection() && !isExploratorySection()) {
@@ -472,10 +498,17 @@ const AppContent = () => {
         // 자동화 테스트 탭
         navigate(`/projects/${projectId}/automation`);
       } else if (newValue === 6) {
-        // RAG 문서 탭
-        navigate(`/projects/${projectId}/rag`);
-      } else if (newValue === 7) {
-        // 탐색 세션 탭
+        if (isRagEnabled) {
+          // RAG 활성화 시: 6 = RAG 문서 탭
+          navigate(`/projects/${projectId}/rag`);
+        } else if (SHOW_EXPLORATORY_SESSION_TAB) {
+          // RAG 비활성화 시: 6 = 탘색 세션 탭
+          navigate(`/projects/${projectId}/exploratory`);
+        } else {
+          navigate(`/projects/${projectId}`);
+        }
+      } else if (newValue === 7 && SHOW_EXPLORATORY_SESSION_TAB) {
+        // RAG 활성화 시만 탭 7이 존재 (= 탘색 세션)
         navigate(`/projects/${projectId}/exploratory`);
       } else {
         // 대시보드(0) 탭
@@ -825,6 +858,7 @@ const AppContent = () => {
                 <ProjectHeader
                   tabIndex={tabIndex}
                   onTabChange={handleTabChange}
+                  showExploratoryTab={SHOW_EXPLORATORY_SESSION_TAB}
                 />
                 {tabIndex === 0 && (
                   <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
@@ -977,12 +1011,14 @@ const AppContent = () => {
                     <JunitResultDashboard />
                   </Box>
                 )}
-                {tabIndex === 6 && activeProject && (
+                {/* RAG 문서 탭: RAG 활성화 + tabIndex 6일 때만 표시 */}
+                {tabIndex === 6 && isRagEnabled && activeProject && (
                   <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
                     <RAGDocumentManager projectId={activeProject.id} />
                   </Box>
                 )}
-                {tabIndex === 7 && activeProject && (
+                {/* 탘색 세션 탭: RAG 활성화 시 tabIndex 7, 비활성화 시 tabIndex 6 */}
+                {SHOW_EXPLORATORY_SESSION_TAB && tabIndex === EXPLORATORY_TAB && activeProject && (
                   <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
                     <ExploratorySessionWorkspace />
                   </Box>

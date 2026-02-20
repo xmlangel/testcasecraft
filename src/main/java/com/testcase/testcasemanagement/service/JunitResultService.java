@@ -521,6 +521,46 @@ public class JunitResultService {
     }
 
     /**
+     * 현재 테스트 케이스와 동일한 이전 실행의 노트 정보 조회
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getPreviousTestCaseNote(String testCaseId) {
+        try {
+            Optional<JunitTestCase> testCaseOpt = testCaseRepository.findById(testCaseId);
+            if (testCaseOpt.isEmpty()) {
+                return null;
+            }
+
+            JunitTestCase currentTestCase = testCaseOpt.get();
+            String projectId = currentTestCase.getJunitTestSuite().getJunitTestResult().getProjectId();
+
+            List<JunitTestCase> prevCases = testCaseRepository.findPreviousTestCasesWithNotes(
+                    projectId,
+                    currentTestCase.getClassName(),
+                    currentTestCase.getName(),
+                    testCaseId,
+                    PageRequest.of(0, 1) // 가장 최근 1건만
+            );
+
+            if (prevCases != null && !prevCases.isEmpty()) {
+                JunitTestCase prevCase = prevCases.get(0);
+                Map<String, Object> result = new HashMap<>();
+                result.put("userNotes", prevCase.getUserNotes());
+                JunitTestResult prevResult = prevCase.getJunitTestSuite().getJunitTestResult();
+                result.put("executionName",
+                        prevResult.getTestExecutionName() != null ? prevResult.getTestExecutionName()
+                                : prevResult.getFileName());
+                result.put("uploadedAt", prevResult.getUploadedAt());
+                return result;
+            }
+        } catch (Exception e) {
+            logger.error("이전 테스트 케이스 노트 조회 중 오류 - ID: {}, 오류: {}", testCaseId, e.getMessage(), e);
+        }
+
+        return null;
+    }
+
+    /**
      * 테스트 결과를 테스트 플랜에 연결
      */
     public JunitTestResult linkTestPlan(String testResultId, String testPlanId) {
@@ -556,6 +596,21 @@ public class JunitResultService {
         return testPlanRepository.findById(testPlanId)
                 .map(TestPlan::getName)
                 .orElse(null);
+    }
+
+    /**
+     * 특정 JUnit 결과에서 노트가 있는 테스트 케이스 수 조회
+     */
+    @Transactional(readOnly = true)
+    public int getNotesCountByTestResult(String testResultId) {
+        if (testResultId == null)
+            return 0;
+        try {
+            return testCaseRepository.countNotesInTestResult(testResultId);
+        } catch (Exception e) {
+            logger.error("노트 개수 조회 실패 - testResultId: {}", testResultId, e);
+            return 0;
+        }
     }
 
     /**

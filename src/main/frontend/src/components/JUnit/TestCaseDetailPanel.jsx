@@ -66,6 +66,7 @@ const TestCaseDetailPanel = ({
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [previousNoteInfo, setPreviousNoteInfo] = useState(null);
 
   // 상태별 설정
   const statusConfig = {
@@ -135,8 +136,28 @@ const TestCaseDetailPanel = ({
   useEffect(() => {
     if (testCaseId) {
       loadTestCaseDetails();
+      fetchPreviousNote();
     }
   }, [testCaseId, refreshTrigger]);
+
+  const fetchPreviousNote = async () => {
+    try {
+      const response = await api(
+        `/api/junit-results/testcases/${testCaseId}/previous-notes`,
+        { method: "GET" }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.hasNotes) {
+          setPreviousNoteInfo(data);
+        } else {
+          setPreviousNoteInfo(null);
+        }
+      }
+    } catch (err) {
+      console.error("이전 노트 정보 로드 실패:", err);
+    }
+  };
 
   // 탭 변경 핸들러
   const handleTabChange = (event, newValue) => {
@@ -719,7 +740,14 @@ const TestCaseDetailPanel = ({
             {onEditTestCase && (
               <Tooltip title={t("junit.testcase.edit")}>
                 <IconButton
-                  onClick={() => onEditTestCase(testCaseDetails)}
+                  onClick={() => {
+                    // JunitTestCaseEditor 호환성을 위해 userInfo 필드를 최상위로 위치시킴
+                    const normalizedTestCase = {
+                      ...testCaseDetails,
+                      ...(testCaseDetails.userInfo || {})
+                    };
+                    onEditTestCase(normalizedTestCase);
+                  }}
                   size="small"
                   color="primary"
                   sx={{
@@ -741,6 +769,32 @@ const TestCaseDetailPanel = ({
           </Box>
         </Box>
       </Box>
+
+      {/* 이전 노트 알림 (현재 노트가 없을 때만 표시) */}
+      {previousNoteInfo && !testCaseDetails.userInfo?.userNotes && (
+        <Box sx={{ px: 2, pt: 2 }}>
+          <Alert 
+            severity="info" 
+            action={
+              onEditTestCase && (
+                <Button color="inherit" size="small" onClick={() => {
+                  const normalizedTestCase = {
+                    ...testCaseDetails,
+                    ...(testCaseDetails.userInfo || {})
+                  };
+                  onEditTestCase(normalizedTestCase);
+                }}>
+                  {t("junit.testcase.edit")}
+                </Button>
+              )
+            }
+          >
+            {t("junit.testcase.previousNotes.alert", "이 테스트 케이스에 대한 이전 노트가 존재합니다 (실행: {execution}, 일시: {date})")
+              .replace("{execution}", previousNoteInfo.executionName || t("junit.testcase.previous", "이전 테스트 케이스"))
+              .replace("{date}", new Date(previousNoteInfo.uploadedAt).toLocaleString())}
+          </Alert>
+        </Box>
+      )}
 
       {/* 탭 네비게이션 */}
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>

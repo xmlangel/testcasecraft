@@ -8,13 +8,13 @@ import SimilarTestCases from './SimilarTestCases.jsx';
 import RAGChatInterface from './RAGChatInterface.jsx';
 import DocumentChunks from './DocumentChunks.jsx'; // 청크 다이얼로그 임포트
 import DocumentAnalysis from './DocumentAnalysis.jsx'; // LLM 분석 컴포넌트
-import { useRAG, RAG_DISABLED_MESSAGE } from '../../context/RAGContext.jsx';
+import { useRAG } from '../../context/RAGContext.jsx'; // RAG_DISABLED_MESSAGE 제거
 import { useI18n } from '../../context/I18nContext.jsx';
 import { PAGE_CONTAINER_SX, GRID_SETTINGS, RESPONSIVE_SETTINGS } from '../../styles/layoutConstants';
 
 function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   const { t } = useI18n();
-  const { getDocument } = useRAG();
+  const { getDocument, isRagEnabled, ragDisabledMessage } = useRAG(); // isRagEnabled, ragDisabledMessage 추가
 
   // 청크 다이얼로그 상태 관리
   const [chunksModalState, setChunksModalState] = useState({
@@ -107,10 +107,11 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
     );
   }
 
-  if (RAG_DISABLED_MESSAGE) {
+  // RAG 기능 비활성화 시 경고 메시지 표시
+  if (!isRagEnabled) {
     return (
       <Box sx={PAGE_CONTAINER_SX.main}>
-        <Alert severity="info">{RAG_DISABLED_MESSAGE}</Alert>
+        <Alert severity="info">{ragDisabledMessage || 'RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다.'}</Alert>
       </Box>
     );
   }

@@ -50,6 +50,9 @@ public class JunitTestResultDto {
     private String uploadedByUsername;
     private String uploadedByDisplayName;
 
+    // 노트 통계
+    private Integer notesCount;
+
     /**
      * Entity to DTO 변환
      */

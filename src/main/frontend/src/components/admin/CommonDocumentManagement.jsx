@@ -8,6 +8,7 @@ import { useI18n } from '../../context/I18nContext';
 import LlmConfigList from './LlmConfigList.jsx';
 import LlmTemplateSettings from './LlmTemplateSettings.jsx';
 import GlobalDocumentManager from './GlobalDocumentManager.jsx';
+import RagSystemSettings from './RagSystemSettings.jsx';
 
 const CommonDocumentManagementContent = () => {
     const { t } = useI18n();
@@ -24,6 +25,8 @@ const CommonDocumentManagementContent = () => {
             setCurrentTab(1);
         } else if (path === '/llm-config/global-documents') {
             setCurrentTab(2);
+        } else if (path === '/llm-config/system') {
+            setCurrentTab(3);
         } else if (path === '/llm-config') {
             setCurrentTab(0);
         }
@@ -36,6 +39,8 @@ const CommonDocumentManagementContent = () => {
             navigate('/llm-config/template');
         } else if (newValue === 2) {
             navigate('/llm-config/global-documents');
+        } else if (newValue === 3) {
+            navigate('/llm-config/system');
         } else {
             navigate('/llm-config');
         }
@@ -68,10 +73,11 @@ const CommonDocumentManagementContent = () => {
 
             {/* 탭 네비게이션 */}
             <Paper sx={{ mb: 3 }}>
-                <Tabs value={currentTab} onChange={handleTabChange}>
+                <Tabs value={currentTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
                     <Tab label={t('admin.llmConfig.tab.configList', 'LLM 설정목록')} />
                     <Tab label={t('admin.llmConfig.tab.template', '기본 템플릿')} />
                     <Tab label={t('admin.llmConfig.tab.globalDocuments', 'RAG 공통 문서')} />
+                    <Tab label={t('admin.llmConfig.tab.system', '시스템 설정')} />
                 </Tabs>
             </Paper>
 
@@ -83,6 +89,9 @@ const CommonDocumentManagementContent = () => {
 
             {/* 탭 2: RAG 공통 문서 */}
             {currentTab === 2 && <GlobalDocumentManager onSuccess={handleSuccess} />}
+
+            {/* 탭 3: 시스템 설정 */}
+            {currentTab === 3 && <RagSystemSettings onSuccess={handleSuccess} />}
         </Box>
     );
 };

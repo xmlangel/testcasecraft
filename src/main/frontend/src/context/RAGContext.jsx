@@ -16,12 +16,11 @@ import { useRagGlobalDocs } from '../hooks/rag/useRagGlobalDocs.js';
 
 const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true';
 const RAG_DISABLED_BY_ENV = import.meta.env.VITE_ENABLE_RAG === 'false';
-export const RAG_DISABLED_MESSAGE = RAG_DISABLED_BY_ENV
-  ? '관리자 설정으로 RAG 기능이 비활성화되었습니다.'
+export const RAG_DISABLED_MESSAGE_ENV = RAG_DISABLED_BY_ENV
+  ? '환경 변수 설정으로 RAG 기능이 비활성화되었습니다.'
   : USE_DEMO_DATA
     ? '데모 모드에서는 RAG 기능이 비활성화되어 있습니다. 서버 API 연결 후 이용해주세요.'
     : null;
-const IS_RAG_ENABLED = !RAG_DISABLED_MESSAGE;
 export const GLOBAL_RAG_PROJECT_ID = '00000000-0000-0000-0000-000000000000';
 
 const RAGContext = createContext();
@@ -43,10 +42,13 @@ const initialState = {
   loading: false,
   threadLoading: false,
   persistConversation: true,
-  error: RAG_DISABLED_MESSAGE,
+  error: RAG_DISABLED_MESSAGE_ENV,
   llmAvailable: null, // null: 미확인, true: 가용, false: 불가용
   llmCheckLoading: false,
   loadedProjectId: null, // 현재 로드된 프로젝트 ID (중복 호출 방지용)
+  isRagEnabled: !RAG_DISABLED_MESSAGE_ENV, // RAG 기능 비활성화 토글 상태
+  ragDisabledMessage: RAG_DISABLED_MESSAGE_ENV,
+  ragStatusInitialized: RAG_DISABLED_MESSAGE_ENV ? true : false, // 백엔드에서 RAG 상태 조회 완료 여부
 };
 
 const ActionTypes = {
@@ -74,6 +76,8 @@ const ActionTypes = {
   SET_LLM_AVAILABLE: 'SET_LLM_AVAILABLE',
   SET_LLM_CHECK_LOADING: 'SET_LLM_CHECK_LOADING',
   SET_LOADED_PROJECT_ID: 'SET_LOADED_PROJECT_ID',
+  SET_RAG_ENABLED_STATUS: 'SET_RAG_ENABLED_STATUS',
+  SET_RAG_STATUS_INITIALIZED: 'SET_RAG_STATUS_INITIALIZED',
 };
 
 function ragReducer(state, action) {
@@ -166,6 +170,16 @@ function ragReducer(state, action) {
       return { ...state, llmCheckLoading: action.payload };
     case ActionTypes.SET_LOADED_PROJECT_ID:
       return { ...state, loadedProjectId: action.payload };
+    case ActionTypes.SET_RAG_ENABLED_STATUS:
+      return { 
+        ...state, 
+        isRagEnabled: action.payload.isEnabled, 
+        ragDisabledMessage: action.payload.message,
+        error: action.payload.isEnabled ? null : action.payload.message,
+        ragStatusInitialized: true,
+      };
+    case ActionTypes.SET_RAG_STATUS_INITIALIZED:
+      return { ...state, ragStatusInitialized: true };
     default:
       return state;
   }
@@ -175,17 +189,62 @@ export function RAGProvider({ children }) {
   const { api } = useAppContext();
   const [state, dispatch] = useReducer(ragReducer, initialState);
 
+  // ============ Initial Setup ============
+  React.useEffect(() => {
+    // 백엔드에서 RAG 상태 조회
+    const fetchRagStatus = async () => {
+      try {
+        if (RAG_DISABLED_MESSAGE_ENV) return; // 이미 환경변수로 비활성화된 경우 패스
+        
+        const response = await api('/api/system-settings/rag/status');
+        if (!response.ok) return; // 오류 응답 시 무시
+        const data = await response.json();
+        const isEnabled = data?.data?.enabled ?? data?.enabled;
+        
+        if (isEnabled === false) {
+          dispatch({ 
+            type: ActionTypes.SET_RAG_ENABLED_STATUS, 
+            payload: { 
+              isEnabled: false, 
+              message: '시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.' 
+            } 
+          });
+        } else {
+          // RAG 활성화 상태 확인 완료
+          dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
+        }
+      } catch (err) {
+        console.warn('Failed to fetch RAG status:', err);
+        // 조회 실패 시에도 초기화 완료로 처리 (RAG 활성화 상태 유지)
+        dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
+      }
+    };
+    
+    fetchRagStatus();
+  }, [api]);
+
   // ============ Utility Functions ============
   const ensureRagAvailable = useCallback((operationName) => {
-    if (!IS_RAG_ENABLED) {
-      const error = new Error(RAG_DISABLED_MESSAGE);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: RAG_DISABLED_MESSAGE });
+    if (!state.isRagEnabled) {
+      const errorMsg = state.ragDisabledMessage || 'RAG 기능이 비활성화되었습니다.';
+      const error = new Error(errorMsg);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: errorMsg });
       throw error;
     }
-  }, []);
+  }, [state.isRagEnabled, state.ragDisabledMessage]);
 
   const clearError = useCallback(() => {
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+  }, []);
+
+  const updateRagEnabled = useCallback((isEnabled) => {
+    dispatch({
+      type: ActionTypes.SET_RAG_ENABLED_STATUS,
+      payload: {
+        isEnabled,
+        message: isEnabled ? null : '시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.'
+      }
+    });
   }, []);
 
   const selectThread = useCallback((threadId) => {
@@ -223,9 +282,13 @@ export function RAGProvider({ children }) {
     llmAvailable: state.llmAvailable,
     llmCheckLoading: state.llmCheckLoading,
     loadedProjectId: state.loadedProjectId,
+    isRagEnabled: state.isRagEnabled,
+    ragDisabledMessage: state.ragDisabledMessage,
+    ragStatusInitialized: state.ragStatusInitialized, // RAG 상태 조회 완료 여부 (이 값이 true일 때만 API 호출 허용)
 
     // Utility functions
     clearError,
+    updateRagEnabled,
     selectThread,
     setPersistConversation,
     setLoadedProjectId,

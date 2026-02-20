@@ -44,7 +44,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const { testCases, updateTestCase, updateTestCaseLocal, addTestCase, user, api } = useAppContext();
   const { t } = useI18n();
   const theme = useTheme();
-  const { state: ragState, listDocuments } = useRAG();
+  const { state: ragState, listDocuments, isRagEnabled } = useRAG();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -131,6 +131,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   // RAG 문서 목록 로드
   useEffect(() => {
     if (!projectId) return;
+    if (!isRagEnabled) return; // RAG 비활성화 시 문서 로드 스킵
     const loadDocuments = async () => {
       try {
         await listDocuments(projectId);
@@ -139,7 +140,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       }
     };
     loadDocuments();
-  }, [projectId, listDocuments]);
+  }, [projectId, listDocuments, isRagEnabled]);
 
   // 테스트케이스 데이터 로드
   useEffect(() => {
@@ -837,7 +838,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               errors={errors}
               availableTags={availableTags}
               linkedDocuments={linkedDocuments}
-              ragDocuments={(ragState.documents || []).filter(doc => !doc.fileName?.startsWith('testcase_'))}
+              ragDocuments={isRagEnabled ? (ragState.documents || []).filter(doc => !doc.fileName?.startsWith('testcase_')) : []}
               testCaseInfoOpen={testCaseInfoOpen}
               setTestCaseInfoOpen={setTestCaseInfoOpen}
               isViewer={isViewer}
