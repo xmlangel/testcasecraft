@@ -174,8 +174,29 @@
   - 승인 리포트/증적 접근 가능
 
 ### 6.6 탭별 실행 순서(권장)
-1. 탭 1 차터 관리
+1. 탭 1 차터 관리 (완료)
 2. 탭 2 세션 목록
 3. 탭 3 세션 작성/편집
 4. 탭 4 디브리프/승인
 5. 탭 5 세션 상세
+
+
+
+## 아래부분은 수정하지말아.
+- 백엔드 API 핵심은 구현되어 있습니다. 세션 생성/조회/수정/라이프사이클/제출/승인/보완요청/목록 필터 API가 존재합니다: src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:37, src/main/java/com/
+    testcase/testcasemanagement/controller/TestSessionController.java:109
+  - 서비스 로직도 상태 전이, 중단시간 집계, 승인 이력 append가 구현되어 있습니다: src/main/java/com/testcase/testcasemanagement/service/TestSessionService.java:102, src/main/java/com/testcase/testcasemanagement/service/
+    TestSessionService.java:115, src/main/java/com/testcase/testcasemanagement/service/TestSessionService.java:184
+  - 차터 API도 구현되어 있습니다: src/main/java/com/testcase/testcasemanagement/controller/TestCharterController.java:28
+  - API 테스트는 TestNG로 작성되어 있습니다(5개 시나리오): src/test/java/com/testcase/testcasemanagement/api/SessionControllerApiTest.java:64, src/test/java/com/testcase/testcasemanagement/api/SessionControllerApiTest.java:196
+  - 프론트 SBTM 화면은 실제로는 “UI 초안/목업” 수준입니다. 하드코딩 초기 데이터로 동작하고 백엔드 연동이 없습니다: src/main/frontend/src/components/ExploratorySessionWorkspace.jsx:40, src/main/frontend/src/components/
+    ExploratorySessionWorkspace.jsx:215
+  - 탐색 세션 탭은 현재 노출 상태입니다(true): src/main/frontend/src/App.jsx:84, src/main/frontend/src/App.jsx:1021
+  - 미구현(문서와 코드 일치) 항목은 여전히 없습니다.
+      - 아티팩트 업로드 API (/api/sessions/{id}/artifacts)
+      - SessionNote/SessionIssue 도메인/API
+      - approvals/interruptions 조회 API
+      - Session API의 프로젝트 멤버십 기반 접근제어(projectSecurityService)
+        근거: docs/sbtm/SBTM_IMPLEMENTATION_STATUS.md:82, 그리고 TestSessionController에 해당 엔드포인트/권한식 부재 src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:30
+  ----
+  여기까지 수정하지 말아.

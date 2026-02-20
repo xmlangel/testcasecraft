@@ -1,6 +1,6 @@
 # SBTM 구현 현황 (API 우선/TDD)
 
-기준 시점: 2026-02-20
+기준 시점: 2026-02-20 (최종 업데이트: 세션 목록/편집 UI 반영)
 브랜치: `sbtm-session-api-tdd`
 
 ## 1. 완료 범위
@@ -85,19 +85,90 @@
   - 승인/중단 이력 조회 API
   - OpenAPI/스키마 문서 동기화
 
-## 20260221 현재상태
-- 백엔드 API 핵심은 구현되어 있습니다. 세션 생성/조회/수정/라이프사이클/제출/승인/보완요청/목록 필터 API가 존재합니다: src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:37, src/main/java/com/
-    testcase/testcasemanagement/controller/TestSessionController.java:109
-  - 서비스 로직도 상태 전이, 중단시간 집계, 승인 이력 append가 구현되어 있습니다: src/main/java/com/testcase/testcasemanagement/service/TestSessionService.java:102, src/main/java/com/testcase/testcasemanagement/service/
-    TestSessionService.java:115, src/main/java/com/testcase/testcasemanagement/service/TestSessionService.java:184
-  - 차터 API도 구현되어 있습니다: src/main/java/com/testcase/testcasemanagement/controller/TestCharterController.java:28
-  - API 테스트는 TestNG로 작성되어 있습니다(5개 시나리오): src/test/java/com/testcase/testcasemanagement/api/SessionControllerApiTest.java:64, src/test/java/com/testcase/testcasemanagement/api/SessionControllerApiTest.java:196
-  - 프론트 SBTM 화면은 실제로는 “UI 초안/목업” 수준입니다. 하드코딩 초기 데이터로 동작하고 백엔드 연동이 없습니다: src/main/frontend/src/components/ExploratorySessionWorkspace.jsx:40, src/main/frontend/src/components/
-    ExploratorySessionWorkspace.jsx:215
-  - 탐색 세션 탭은 현재 노출 상태입니다(true): src/main/frontend/src/App.jsx:84, src/main/frontend/src/App.jsx:1021
-  - 미구현(문서와 코드 일치) 항목은 여전히 없습니다.
-      - 아티팩트 업로드 API (/api/sessions/{id}/artifacts)
-      - SessionNote/SessionIssue 도메인/API
-      - approvals/interruptions 조회 API
-      - Session API의 프로젝트 멤버십 기반 접근제어(projectSecurityService)
-        근거: docs/sbtm/SBTM_IMPLEMENTATION_STATUS.md:82, 그리고 TestSessionController에 해당 엔드포인트/권한식 부재 src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:30
+## 4. 문서-코드 불일치 점검 결과 (2026-02-20)
+
+### 4.1 탐색 세션 탭 노출 상태
+- 불일치 내용
+  - `docs/sbtm/Todo.md`는 `SHOW_EXPLORATORY_SESSION_TAB = false`(임시 비노출) 기준으로 기록
+  - 실제 코드 `src/main/frontend/src/App.jsx`는 `SHOW_EXPLORATORY_SESSION_TAB = true`로 동작
+- 영향
+  - 문서/실제 UI의 기능 노출 상태가 달라 운영/QA 커뮤니케이션 혼선 가능
+
+## 5. 프론트 진행 현황 (탭 1 차터 관리) (2026-02-20)
+
+### 5.1 반영 완료
+- 차터 관리 탭 API 연동 완료
+  - 조회: `GET /api/projects/{projectId}/charters`
+  - 생성: `POST /api/charters`
+  - 수정: `PUT /api/charters/{id}`
+- 적용 파일
+  - `src/main/frontend/src/components/ExploratorySessionWorkspace.jsx`
+  - `src/main/frontend/src/App.jsx` (`projectId` 전달)
+- UX 반영
+  - 차터 목록 로딩/에러/빈 목록 상태 표시
+  - 차터 생성/수정 저장 중 버튼 비활성화
+
+### 5.2 현재 한계
+- 탭 3~5(세션 작성/편집 일부, 디브리프/상세)는 여전히 UI 초안 데이터 중심
+- 아티팩트/노트/이슈/이력 조회 API 미구현으로 전체 실데이터 연동 미완료
+
+## 6. 프론트 구조 개선 및 빌드 검증 (2026-02-20)
+
+### 6.1 탭별 파일 분리 완료
+- 부모: `src/main/frontend/src/components/ExploratorySessionWorkspace.jsx`
+- 탭 컴포넌트
+  - `src/main/frontend/src/components/exploratory/ExploratoryCharterTab.jsx`
+  - `src/main/frontend/src/components/exploratory/ExploratorySessionListTab.jsx`
+  - `src/main/frontend/src/components/exploratory/ExploratorySessionEditorTab.jsx`
+  - `src/main/frontend/src/components/exploratory/ExploratoryDebriefTab.jsx`
+  - `src/main/frontend/src/components/exploratory/ExploratoryDetailTab.jsx`
+
+### 6.2 검증 결과
+- 실행: `cd src/main/frontend && npm run build`
+- 결과: `vite build` 성공 (컴파일 에러 없음)
+- 비고: 번들 크기 경고만 존재(기능 오류 아님)
+
+## 7. 추가 진행 현황 (탭 2/탭 3) (2026-02-20)
+
+### 7.1 탭 2 세션 목록 연동 완료
+- 반영 내용
+  - 세션 목록을 실데이터 API로 전환
+  - 호출 API: `GET /api/projects/{projectId}/sessions`
+  - 서버 필터 반영: `status`, `charterId`, `from`, `to`, `sort=createdAt,desc`
+  - 클라이언트 필터 유지: tester 검색(표시 문자열 기준)
+- 상태값 정합성 보정
+  - 목록 상태 필터를 백엔드 enum 기준으로 통일
+  - `DRAFT`, `RUNNING`, `PAUSED`, `SUBMITTED`, `APPROVED`, `NEEDS_UPDATE`
+- UX 반영
+  - 세션 목록 로딩/에러/빈 결과 상태 표시
+  - 카드 메타에서 mock `bugs` 기반 표시 제거, `netDurationMinutes` 기반 표기로 정리
+- 적용 파일
+  - `src/main/frontend/src/components/ExploratorySessionWorkspace.jsx`
+  - `src/main/frontend/src/components/exploratory/ExploratorySessionListTab.jsx`
+
+### 7.2 탭 3 세션 작성/편집 구조 정리
+- 반영 내용
+  - 헤더 유지: 타이머/상태/수행시간 + start/pause/resume/end
+  - `차터 + 시간배분`을 하나의 통합 섹션으로 결합
+  - 나머지 필드를 내부 탭으로 분리
+    - `기본 정보`
+    - `노트/이슈`
+    - `산출물/평가`
+  - 기존 입력 필드/값은 유지
+- 적용 파일
+  - `src/main/frontend/src/components/exploratory/ExploratorySessionEditorTab.jsx`
+
+### 7.3 탭 3 data-testid 추가
+- 목적
+  - Playwright/E2E 안정성 확보(텍스트/레이아웃 변경과 분리)
+- 주요 식별자 추가 범위
+  - 내부 탭 전환, 타이머 버튼, 차터 선택, 시간배분 입력
+  - 노트/이슈 입력
+  - 산출물 업로드/평가 입력
+- 적용 파일
+  - `src/main/frontend/src/components/exploratory/ExploratorySessionEditorTab.jsx`
+
+### 7.4 검증 결과
+- 실행: `cd src/main/frontend && npm run build` (탭2 반영 후, 탭3 반영 후 각각 수행)
+- 결과: 모두 `vite build` 성공 (컴파일 에러 없음)
+- 비고: 번들 크기 경고만 존재(기능 오류 아님)

@@ -1020,7 +1020,7 @@ const AppContent = () => {
                 {/* 탘색 세션 탭: RAG 활성화 시 tabIndex 7, 비활성화 시 tabIndex 6 */}
                 {SHOW_EXPLORATORY_SESSION_TAB && tabIndex === EXPLORATORY_TAB && activeProject && (
                   <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
-                    <ExploratorySessionWorkspace />
+                    <ExploratorySessionWorkspace projectId={activeProject.id} />
                   </Box>
                 )}
               </>
