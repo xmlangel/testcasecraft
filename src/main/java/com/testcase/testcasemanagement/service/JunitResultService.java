@@ -599,6 +599,21 @@ public class JunitResultService {
     }
 
     /**
+     * 특정 JUnit 결과에서 노트가 있는 테스트 케이스 수 조회
+     */
+    @Transactional(readOnly = true)
+    public int getNotesCountByTestResult(String testResultId) {
+        if (testResultId == null)
+            return 0;
+        try {
+            return testCaseRepository.countNotesInTestResult(testResultId);
+        } catch (Exception e) {
+            logger.error("노트 개수 조회 실패 - testResultId: {}", testResultId, e);
+            return 0;
+        }
+    }
+
+    /**
      * 플랜별 JUnit 비교 통계 조회 (View Type: By Plan)
      */
     @Transactional(readOnly = true)

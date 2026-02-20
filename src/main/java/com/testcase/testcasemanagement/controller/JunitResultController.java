@@ -175,6 +175,7 @@ public class JunitResultController {
                         if (entity.getTestPlanId() != null) {
                             dto.setTestPlanName(junitResultService.getTestPlanName(entity.getTestPlanId()));
                         }
+                        dto.setNotesCount(junitResultService.getNotesCountByTestResult(entity.getId()));
                         return dto;
                     })
                     .toList();

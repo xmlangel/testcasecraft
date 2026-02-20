@@ -97,4 +97,13 @@ public interface JunitTestCaseRepository extends JpaRepository<JunitTestCase, St
         * 테스트 스위트 레벨의 테스트 케이스 개수 조회
         */
        int countByJunitTestSuite_Id(String testSuiteId);
+
+        /**
+         * 특정 JUnit 결과에서 노트가 있는 테스트 케이스 수 조회
+         */
+        @Query("SELECT COUNT(jtc) FROM JunitTestCase jtc " +
+               "WHERE jtc.junitTestSuite.junitTestResult.id = :testResultId " +
+               "AND jtc.userNotes IS NOT NULL AND TRIM(jtc.userNotes) <> ''")
+        int countNotesInTestResult(@Param("testResultId") String testResultId);
+
 }
