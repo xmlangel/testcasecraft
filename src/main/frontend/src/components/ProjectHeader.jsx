@@ -20,7 +20,7 @@ import { useI18n } from "../context/I18nContext.jsx";
 import { useNavigate } from 'react-router-dom';
 import { useRAG } from "../context/RAGContext.jsx";
 
-function ProjectHeader({ tabIndex, onTabChange }) {
+function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
   const { activeProject } = useAppContext();
   const { t } = useI18n();
   const navigate = useNavigate();
@@ -104,7 +104,9 @@ function ProjectHeader({ tabIndex, onTabChange }) {
         {isRagEnabled && (
           <Tab icon={<DescriptionIcon />} iconPosition="start" label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} sx={tabStyle} data-testid="tab-rag" />
         )}
-        <Tab icon={<TravelExploreIcon />} iconPosition="start" label={t('projectHeader.tabs.exploratorySessions', '탐색 세션')} sx={tabStyle} data-testid="tab-exploratory" />
+        {showExploratoryTab && (
+          <Tab icon={<TravelExploreIcon />} iconPosition="start" label={t('projectHeader.tabs.exploratorySessions', '탐색 세션')} sx={tabStyle} data-testid="tab-exploratory" />
+        )}
       </Tabs>
     </Box>
   );
@@ -113,6 +115,7 @@ function ProjectHeader({ tabIndex, onTabChange }) {
 ProjectHeader.propTypes = {
   tabIndex: PropTypes.number.isRequired,
   onTabChange: PropTypes.func.isRequired,
+  showExploratoryTab: PropTypes.bool,
 };
 
 export default ProjectHeader;
