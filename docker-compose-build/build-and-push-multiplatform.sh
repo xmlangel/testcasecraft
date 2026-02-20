@@ -151,14 +151,19 @@ build_jar_step() {
     
     local jar_dest="$SCRIPT_DIR/app.jar"
     backup_jar "$jar_dest"
-    local project_root="$SCRIPT_DIR/.."
+    local project_root
+    project_root="$(cd "$SCRIPT_DIR/.." && pwd)"
+    local gradlew_path="$project_root/gradlew"
     
     print_msg "$BLUE" "Running gradle build..."
-    if [[ ! -f "$project_root/gradlew" ]]; then
-        print_msg "$RED" "❌ Error: gradlew not found at $project_root/gradlew"
+    if [[ ! -f "$gradlew_path" ]]; then
+        print_msg "$RED" "❌ Error: gradlew not found at $gradlew_path"
         exit 1
     fi
-    (cd "$project_root" && ./gradlew clean build -x test)
+    if [[ ! -x "$gradlew_path" ]]; then
+        chmod +x "$gradlew_path"
+    fi
+    (cd "$project_root" && bash "$gradlew_path" clean build -x test)
     
     local built_jar
     built_jar=$(find "$SCRIPT_DIR/../build/libs" -name "*.jar" -not -name "*-plain.jar" | head -1)

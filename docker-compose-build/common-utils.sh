@@ -116,7 +116,19 @@ backup_jar() {
 # Gradle 버전 증분 실행 함수
 run_increment_version() {
     local target=$1
+    local utils_dir
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local project_root
+    project_root="$(cd "$utils_dir/.." && pwd)"
+    local gradlew_path="$project_root/gradlew"
+
     print_msg "$BLUE" "Running Gradle incrementVersion for target: $target"
-    # Execute from project root
-    (cd .. && ./gradlew incrementVersion -PtargetComponent="$target")
+    if [[ ! -f "$gradlew_path" ]]; then
+        print_msg "$RED" "❌ Error: gradlew not found at $gradlew_path"
+        return 1
+    fi
+    if [[ ! -x "$gradlew_path" ]]; then
+        chmod +x "$gradlew_path"
+    fi
+    (cd "$project_root" && bash "$gradlew_path" incrementVersion -PtargetComponent="$target")
 }
