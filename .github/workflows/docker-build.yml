@@ -27,6 +27,9 @@ on:
         description: 'Version (e.g., 1.0.35)'
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   build-release-push:
     runs-on: ubuntu-latest
@@ -38,6 +41,8 @@ jobs:
 
       - name: Parse Build Context
         run: |
+          VERSION_REGEX='[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?'
+
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "TARGET=${{ github.event.inputs.target }}" >> "$GITHUB_ENV"
             echo "VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_ENV"
@@ -47,15 +52,17 @@ jobs:
             echo "Processing tag: $TAG_NAME"
 
             # v1.2.3-app -> VERSION=1.2.3, TARGET=app
+            # v1.2.3-dev-app -> VERSION=1.2.3-dev, TARGET=app
             # v1.2.3 -> VERSION=1.2.3, TARGET=all
-            if [[ "$TAG_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(app|rag|all)$ ]]; then
+            # v1.2.3-dev -> VERSION=1.2.3-dev, TARGET=all
+            if [[ "$TAG_NAME" =~ ^v(${VERSION_REGEX})-(app|rag|all)$ ]]; then
               echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
               echo "TARGET=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
-            elif [[ "$TAG_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            elif [[ "$TAG_NAME" =~ ^v(${VERSION_REGEX})$ ]]; then
               echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
               echo "TARGET=all" >> "$GITHUB_ENV"
             else
-              echo "Error: Tag format invalid. Use vX.X.X or vX.X.X-app|rag|all"
+              echo "Error: Tag format invalid. Use vX.Y.Z[-PRERELEASE] or vX.Y.Z[-PRERELEASE]-app|rag|all"
               exit 1
             fi
 
@@ -66,8 +73,8 @@ jobs:
 
       - name: Validate Inputs
         run: |
-          if [[ ! "${{ env.VERSION }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: VERSION must be in X.Y.Z format (e.g., 1.0.35)"
+          if [[ ! "${{ env.VERSION }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+            echo "Error: VERSION must be X.Y.Z or X.Y.Z-PRERELEASE format (e.g., 1.0.35, 1.0.42-dev)"
             exit 1
           fi
 
@@ -81,6 +88,19 @@ jobs:
         run: |
           BASE_TAG="v${{ env.VERSION }}"
           TARGET_TAG="${BASE_TAG}-${{ env.TARGET }}"
+          TAG_EXISTS=false
+
+          if git tag -l | grep -q "^${BASE_TAG}$"; then
+            TAG_EXISTS=true
+          fi
+          if git tag -l | grep -q "^${TARGET_TAG}$"; then
+            TAG_EXISTS=true
+          fi
+
+          if [[ "${{ env.PHASE }}" == "push_only" && "$TAG_EXISTS" != "true" ]]; then
+            echo "Error: No matching tag found for push_only. Expected ${TARGET_TAG} or ${BASE_TAG}"
+            exit 1
+          fi
 
           if [[ "${{ env.TARGET }}" == "all" ]]; then
             if git tag -l | grep -q "^${BASE_TAG}$"; then
@@ -88,8 +108,8 @@ jobs:
             elif git tag -l | grep -q "^${TARGET_TAG}$"; then
               RELEASE_TAG="$TARGET_TAG"
             else
-              echo "Error: No matching tag found. Expected ${BASE_TAG} or ${TARGET_TAG}"
-              exit 1
+              # build_release on workflow_dispatch: allow running without pre-created tag
+              RELEASE_TAG="$BASE_TAG"
             fi
           else
             if git tag -l | grep -q "^${TARGET_TAG}$"; then
@@ -97,13 +117,26 @@ jobs:
             elif git tag -l | grep -q "^${BASE_TAG}$"; then
               RELEASE_TAG="$BASE_TAG"
             else
-              echo "Error: No matching tag found. Expected ${TARGET_TAG} or ${BASE_TAG}"
-              exit 1
+              # build_release on workflow_dispatch: allow running without pre-created tag
+              RELEASE_TAG="$TARGET_TAG"
             fi
           fi
 
           echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
           echo "Resolved release tag: $RELEASE_TAG"
+
+          if git tag -l | grep -q "^${RELEASE_TAG}$"; then
+            echo "RELEASE_TAG_EXISTS=true" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG_EXISTS=false" >> "$GITHUB_ENV"
+            echo "No pre-existing tag found. Release tag ${RELEASE_TAG} will be created from current commit."
+          fi
+
+      - name: Checkout Resolved Tag (push_only)
+        if: github.event_name == 'workflow_dispatch' && env.PHASE == 'push_only'
+        run: |
+          git checkout "${{ env.RELEASE_TAG }}"
+          echo "Checked out tag: ${{ env.RELEASE_TAG }}"
 
       - name: Configure Phase Flags
         run: |
@@ -142,6 +175,7 @@ jobs:
             CMD+=("--push")
           else
             CMD+=("--build-only")
+            CMD+=("--skip-tag-verify")
           fi
 
           echo "Running: ${CMD[*]}"
@@ -171,12 +205,18 @@ jobs:
 
           if [ ! -f "$KN_FILE" ] && [ ! -f "$EN_FILE" ]; then
             CURRENT_TAG=${{ env.RELEASE_TAG }}
-            PREV_TAG=$(git describe --tags --abbrev=0 ${CURRENT_TAG}^ 2>/dev/null || echo "")
             echo "## Changes" >> release_notes.md
-            if [ -z "$PREV_TAG" ]; then
-              git log ${CURRENT_TAG} --pretty=format:"- %s" >> release_notes.md
+
+            if git rev-parse -q --verify "refs/tags/${CURRENT_TAG}" >/dev/null; then
+              PREV_TAG=$(git describe --tags --abbrev=0 ${CURRENT_TAG}^ 2>/dev/null || echo "")
+              if [ -z "$PREV_TAG" ]; then
+                git log ${CURRENT_TAG} --pretty=format:"- %s" >> release_notes.md
+              else
+                git log ${PREV_TAG}..${CURRENT_TAG} --pretty=format:"- %s" >> release_notes.md
+              fi
             else
-              git log ${PREV_TAG}..${CURRENT_TAG} --pretty=format:"- %s" >> release_notes.md
+              echo "- No existing tag baseline found. Showing recent commits from current branch." >> release_notes.md
+              git log -n 20 --pretty=format:"- %s" >> release_notes.md
             fi
           fi
 
@@ -185,6 +225,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
           body_path: release_notes.md
           name: Release ${{ env.VERSION }} (${{ env.TARGET }})
           draft: false

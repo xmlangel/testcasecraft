@@ -30,7 +30,7 @@ detect_version_interactive() {
     local current_tag=$(git tag --points-at HEAD | grep '^v' | head -1)
     
     if [[ -n "$current_tag" ]]; then
-        VERSION=$(echo "$current_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        VERSION=$(echo "$current_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?).*/\1/')
         print_msg "$GREEN" "✅ Detected version $VERSION from current tag: $current_tag"
         return 0
     fi
@@ -43,8 +43,8 @@ detect_version_interactive() {
         echo ""
         read -r -p "Do you want to create a new tag for the current commit? (y/n): " create_tag
         if [[ "$create_tag" =~ ^[Yy]$ ]]; then
-            read -r -p "Enter version (e.g., 1.0.40): " input_version
-            if [[ "$input_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            read -r -p "Enter version (e.g., 1.0.40 or 1.0.40-dev): " input_version
+            if [[ "$input_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
                 local new_tag="v${input_version}-app"
                 git tag -a "$new_tag" -m "Release version $input_version"
                 VERSION="$input_version"
@@ -59,7 +59,7 @@ detect_version_interactive() {
     # 3. 차선책: 가장 최근 태그 사용
     local latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
     if [[ -n "$latest_tag" ]]; then
-        VERSION=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        VERSION=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?).*/\1/')
         print_msg "$YELLOW" "⚠️ Not on a tag. Using version $VERSION from latest tag: $latest_tag"
     else
         VERSION="$fallback_version"
@@ -68,14 +68,38 @@ detect_version_interactive() {
 }
 
 # 태그 존재 여부 검증 함수
+# Usage: verify_tag_exists VERSION [TARGET]
+# TARGET: all|app|rag (default: all)
 verify_tag_exists() {
-    local check_version="v${1}"
-    if ! git tag -l | grep -q "^${check_version}"; then
-        print_msg "$RED" "❌ Error: Git tag ${check_version} does not exist!"
+    local version="$1"
+    local target="${2:-all}"
+    local base_tag="v${version}"
+    local target_tag="${base_tag}-${target}"
+
+    if [[ "$target" == "all" ]]; then
+        if git tag -l | grep -q "^${base_tag}$"; then
+            print_msg "$GREEN" "✅ Verified Git tag ${base_tag} exists"
+            return 0
+        fi
+        if git tag -l | grep -q "^${target_tag}$"; then
+            print_msg "$GREEN" "✅ Verified Git tag ${target_tag} exists"
+            return 0
+        fi
+        print_msg "$RED" "❌ Error: Git tag ${base_tag} or ${target_tag} does not exist!"
         return 1
     fi
-    print_msg "$GREEN" "✅ Verified Git tag ${check_version} exists"
-    return 0
+
+    if git tag -l | grep -q "^${target_tag}$"; then
+        print_msg "$GREEN" "✅ Verified Git tag ${target_tag} exists"
+        return 0
+    fi
+    if git tag -l | grep -q "^${base_tag}$"; then
+        print_msg "$GREEN" "✅ Verified Git tag ${base_tag} exists"
+        return 0
+    fi
+
+    print_msg "$RED" "❌ Error: Git tag ${target_tag} or ${base_tag} does not exist!"
+    return 1
 }
 
 # JAR 파일 백업 함수

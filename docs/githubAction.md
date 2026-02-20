@@ -13,7 +13,7 @@
 핵심 입력값 (`workflow_dispatch`):
 - `phase`: `build_release` | `push_only`
 - `target`: `all` | `app` | `rag`
-- `version`: `X.Y.Z` 형식 (예: `1.0.35`)
+- `version`: `X.Y.Z` 또는 `X.Y.Z-PRERELEASE` 형식 (예: `1.0.35`, `1.0.42-dev`)
 
 ## 2. 권장 운영 절차 (2단계)
 
@@ -44,12 +44,13 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
   - 입력값:
       - phase: build_release
       - target: app (처음엔 app 추천)
-      - version: 이미 존재하는 태그 버전 (X.Y.Z)
+      - version: 이미 존재하는 태그 버전 (X.Y.Z 또는 X.Y.Z-PRERELEASE)
 
   2. 왜 “이미 존재하는 태그 버전”이 필요한가
 
-  - 현재 워크플로는 workflow_dispatch에서도 태그 존재 여부를 검증합니다.
-  - 해당 버전 태그(vX.Y.Z 또는 vX.Y.Z-app|rag|all)가 없으면 실패합니다.
+  - `push_only` 단계에서는 태그 존재 여부를 반드시 검증합니다.
+  - 해당 버전 태그(vX.Y.Z[-PRERELEASE] 또는 vX.Y.Z[-PRERELEASE]-app|rag|all)가 없으면 실패합니다.
+  - `build_release` 단계는 태그가 없어도 실행 가능하며, 스크립트에서 태그 검증을 건너뛴 뒤 릴리즈 생성 시 태그를 현재 커밋 기준으로 생성합니다.
 
   3. 완전 분리 테스트가 필요하면
 
@@ -87,11 +88,15 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 
 허용 태그:
 - `vX.Y.Z`
+- `vX.Y.Z-PRERELEASE`
 - `vX.Y.Z-app`
 - `vX.Y.Z-rag`
 - `vX.Y.Z-all`
+- `vX.Y.Z-PRERELEASE-app`
+- `vX.Y.Z-PRERELEASE-rag`
+- `vX.Y.Z-PRERELEASE-all`
 
-`version` 입력값은 반드시 `X.Y.Z` 형식이어야 합니다.
+`version` 입력값은 `X.Y.Z` 또는 `X.Y.Z-PRERELEASE` 형식이어야 합니다.
 
 ## 6. Release Notes 생성 규칙
 
@@ -116,4 +121,3 @@ GitHub Release 생성을 위해 기본 `GITHUB_TOKEN`을 사용합니다.
 - `build_release` 성공 후 Release 내용 확인
 - 문제 없으면 동일 버전으로 `push_only` 실행
 - `target`을 빌드 단계와 동일하게 유지
-

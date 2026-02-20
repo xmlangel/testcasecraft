@@ -34,6 +34,7 @@ BUILD_TARGET=""
 PUSH_MODE=false
 INCREMENT_VERSION=false
 NON_INTERACTIVE=false
+SKIP_TAG_VERIFY="${SKIP_TAG_VERIFY:-false}"
 
 # Function: Show usage
 show_usage() {
@@ -50,6 +51,7 @@ show_usage() {
     echo "  -i, --increment-version    Run Gradle incrementVersion task"
     echo "  --version VERSION          Force specific version"
     echo "  --non-interactive          Skip all prompts"
+    echo "  --skip-tag-verify          Skip Git tag existence check for provided version"
     echo "  -h, --help                 Show this help"
     echo ""
     print_msg "$GREEN" "Quick Examples:"
@@ -84,6 +86,10 @@ parse_arguments() {
                 ;;
             --non-interactive)
                 NON_INTERACTIVE=true
+                shift
+                ;;
+            --skip-tag-verify)
+                SKIP_TAG_VERIFY=true
                 shift
                 ;;
             -h|--help)
@@ -143,15 +149,19 @@ check_prerequisites() {
 build_jar_step() {
     print_step "Building JAR file"
     
-    # We are currently in docker-compose-build/
-    local jar_dest="app.jar"
+    local jar_dest="$SCRIPT_DIR/app.jar"
     backup_jar "$jar_dest"
+    local project_root="$SCRIPT_DIR/.."
     
     print_msg "$BLUE" "Running gradle build..."
-    # cd .. to project root
-    (cd .. && ./gradlew clean build -x test)
+    if [[ ! -f "$project_root/gradlew" ]]; then
+        print_msg "$RED" "❌ Error: gradlew not found at $project_root/gradlew"
+        exit 1
+    fi
+    (cd "$project_root" && ./gradlew clean build -x test)
     
-    local built_jar=$(find ../build/libs -name "*.jar" -not -name "*-plain.jar" | head -1)
+    local built_jar
+    built_jar=$(find "$SCRIPT_DIR/../build/libs" -name "*.jar" -not -name "*-plain.jar" | head -1)
     if [[ ! -f "$built_jar" ]]; then
         print_msg "$RED" "❌ Error: JAR file not found in build/libs!"
         exit 1
@@ -167,27 +177,54 @@ build_docker_image() {
     local context_path=$2
     local dockerfile=$3
     local tag=$4
+    local add_latest_tag=true
+
+    # Pre-release versions (e.g., 1.0.42-dev, 1.0.42-rc.1) should not move latest.
+    if [[ "$tag" == *-* ]]; then
+        add_latest_tag=false
+    fi
     
     print_step "Building Docker image: $image_name"
     
     if [[ "$PUSH_MODE" == "true" ]]; then
         print_msg "$YELLOW" "Multi-platform Build & Push for: $PLATFORMS"
-        docker buildx build \
-            --platform "$PLATFORMS" \
-            --tag "$image_name:$tag" \
-            --tag "$image_name:latest" \
-            --push \
-            --file "$dockerfile" \
-            "$context_path"
+        if [[ "$add_latest_tag" == "true" ]]; then
+            print_msg "$BLUE" "Tagging as $tag and latest"
+            docker buildx build \
+                --platform "$PLATFORMS" \
+                --tag "$image_name:$tag" \
+                --tag "$image_name:latest" \
+                --push \
+                --file "$dockerfile" \
+                "$context_path"
+        else
+            print_msg "$BLUE" "Pre-release version detected ($tag): skipping latest tag"
+            docker buildx build \
+                --platform "$PLATFORMS" \
+                --tag "$image_name:$tag" \
+                --push \
+                --file "$dockerfile" \
+                "$context_path"
+        fi
     else
         print_msg "$YELLOW" "Local platform build & load (current architecture only)"
         # Note: --load doesn't support multi-platform
-        docker buildx build \
-            --load \
-            --tag "$image_name:$tag" \
-            --tag "$image_name:latest" \
-            --file "$dockerfile" \
-            "$context_path"
+        if [[ "$add_latest_tag" == "true" ]]; then
+            print_msg "$BLUE" "Tagging as $tag and latest"
+            docker buildx build \
+                --load \
+                --tag "$image_name:$tag" \
+                --tag "$image_name:latest" \
+                --file "$dockerfile" \
+                "$context_path"
+        else
+            print_msg "$BLUE" "Pre-release version detected ($tag): skipping latest tag"
+            docker buildx build \
+                --load \
+                --tag "$image_name:$tag" \
+                --file "$dockerfile" \
+                "$context_path"
+        fi
     fi
     
     print_msg "$GREEN" "✅ $image_name built successfully"
@@ -263,7 +300,11 @@ main() {
         [[ "$NON_INTERACTIVE" == "true" ]] && interactive_flag="false"
         detect_version_interactive "$interactive_flag" "$RECENT_VERSION"
     else
-        verify_tag_exists "$VERSION" || exit 1
+        if [[ "$SKIP_TAG_VERIFY" == "true" ]]; then
+            print_msg "$YELLOW" "⚠️ Skipping Git tag verification for version: $VERSION"
+        else
+            verify_tag_exists "$VERSION" "$BUILD_TARGET" || exit 1
+        fi
     fi
 
     # Prerequisites & Setup
@@ -273,18 +314,18 @@ main() {
     # Process Build
     if [[ "$BUILD_TARGET" == "all" || "$BUILD_TARGET" == "app" ]]; then
         build_jar_step
-        build_docker_image "$APP_IMAGE" "." "Dockerfile" "$VERSION"
+        build_docker_image "$APP_IMAGE" "$SCRIPT_DIR" "$SCRIPT_DIR/Dockerfile" "$VERSION"
     fi
 
     if [[ "$BUILD_TARGET" == "all" || "$BUILD_TARGET" == "rag" ]]; then
-        build_docker_image "$RAG_IMAGE" "../rag-service" "../rag-service/Dockerfile" "$VERSION"
+        build_docker_image "$RAG_IMAGE" "$SCRIPT_DIR/../rag-service" "$SCRIPT_DIR/../rag-service/Dockerfile" "$VERSION"
     fi
 
     # Verification
     verify_images_step
 
     # Cleanup
-    [[ -f "app.jar" ]] && rm "app.jar"
+    [[ -f "$SCRIPT_DIR/app.jar" ]] && rm "$SCRIPT_DIR/app.jar"
     
     print_step "SUMMARY"
     print_msg "$GREEN" "Successfully completed processing for: $BUILD_TARGET"
