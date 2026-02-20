@@ -239,9 +239,18 @@ build_docker_image() {
 verify_images_step() {
     if [[ "$PUSH_MODE" == "true" ]]; then
         print_step "Verifying images on Docker Hub"
-        [[ "$BUILD_TARGET" == "all" || "$BUILD_TARGET" == "app" ]] && docker pull "$APP_IMAGE:$VERSION" --platform linux/amd64 && print_msg "$GREEN" "✅ App image verified"
-        [[ "$BUILD_TARGET" == "all" || "$BUILD_TARGET" == "rag" ]] && docker pull "$RAG_IMAGE:$VERSION" --platform linux/amd64 && print_msg "$GREEN" "✅ RAG image verified"
+        if [[ "$BUILD_TARGET" == "all" || "$BUILD_TARGET" == "app" ]]; then
+            docker pull "$APP_IMAGE:$VERSION" --platform linux/amd64
+            print_msg "$GREEN" "✅ App image verified"
+        fi
+
+        if [[ "$BUILD_TARGET" == "all" || "$BUILD_TARGET" == "rag" ]]; then
+            docker pull "$RAG_IMAGE:$VERSION" --platform linux/amd64
+            print_msg "$GREEN" "✅ RAG image verified"
+        fi
     fi
+
+    return 0
 }
 
 # Setup Buildx
