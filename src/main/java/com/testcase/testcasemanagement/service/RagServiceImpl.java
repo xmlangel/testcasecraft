@@ -42,21 +42,25 @@ public class RagServiceImpl implements RagService {
     private final String ragApiUrl;
     private final LlmConfigRepository llmConfigRepository;
     private final EncryptionUtil encryptionUtil;
+    private final SystemSettingService systemSettingService;
 
     public RagServiceImpl(
             WebClient ragWebClient,
             @Value("${rag.api.url:http://localhost:8001}") String ragApiUrl,
             LlmConfigRepository llmConfigRepository,
-            EncryptionUtil encryptionUtil) {
+            EncryptionUtil encryptionUtil,
+            SystemSettingService systemSettingService) {
         this.ragWebClient = ragWebClient;
         this.ragApiUrl = ragApiUrl;
         this.llmConfigRepository = llmConfigRepository;
         this.encryptionUtil = encryptionUtil;
+        this.systemSettingService = systemSettingService;
         log.info("RAG Service initialized with API URL: {}", ragApiUrl);
     }
 
     @Override
     public RagDocumentResponse uploadDocument(MultipartFile file, UUID projectId, String uploadedBy) {
+        checkRagEnabled();
         log.info("Uploading document to RAG API: file={}, projectId={}", file.getOriginalFilename(), projectId);
 
         try {
@@ -97,6 +101,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagDocumentResponse analyzeDocument(UUID documentId, String parser) {
+        checkRagEnabled();
         log.info("Analyzing document in RAG API: documentId={}, parser={}", documentId, parser);
 
         try {
@@ -134,6 +139,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagDocumentResponse generateEmbeddings(UUID documentId) {
+        checkRagEnabled();
         log.info("Generating embeddings in RAG API: documentId={}", documentId);
 
         try {
@@ -178,6 +184,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagSearchResponse searchSimilar(RagSearchRequest request) {
+        checkRagEnabled();
         log.info("Searching similar chunks in RAG API: query={}", request.getQueryText());
 
         try {
@@ -209,6 +216,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagSearchResponse searchAdvanced(RagAdvancedSearchRequest request) {
+        checkRagEnabled();
         log.info("Advanced search in RAG API: query={}, method={}",
                 request.getQueryText(), request.getSearchMethod());
 
@@ -243,6 +251,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagDocumentResponse getDocument(UUID documentId) {
+        checkRagEnabled();
         log.info("Getting document from RAG API: documentId={}", documentId);
 
         try {
@@ -275,6 +284,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagDocumentListResponse listDocuments(UUID projectId, Integer page, Integer size) {
+        checkRagEnabled();
         log.info("Listing documents from RAG API: projectId={}, page={}, size={}", projectId, page, size);
 
         try {
@@ -318,6 +328,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public String deleteDocument(UUID documentId) {
+        checkRagEnabled();
         log.info("Deleting document from RAG API: documentId={}", documentId);
 
         try {
@@ -346,6 +357,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public byte[] downloadDocument(UUID documentId) {
+        checkRagEnabled();
         log.info("Downloading document from RAG API: documentId={}", documentId);
 
         try {
@@ -375,6 +387,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagChunkListResponse getDocumentChunks(UUID documentId, Integer skip, Integer limit) {
+        checkRagEnabled();
         log.info("Getting document chunks from RAG API: documentId={}, skip={}, limit={}", documentId, skip, limit);
 
         try {
@@ -514,6 +527,11 @@ public class RagServiceImpl implements RagService {
     @Async("ragVectorizationExecutor")
     public void vectorizeTestCase(String testCaseId, String testCaseName, String testCaseContent,
             UUID projectId, String uploadedBy) {
+        if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+            log.warn("RAG feature is disabled. Skipping vectorizeTestCase: testCaseId={}", testCaseId);
+            return;
+        }
+
         log.info("[비동기] Vectorizing TestCase to RAG: testCaseId={}, testCaseName={}, projectId={}, thread={}",
                 testCaseId, testCaseName, projectId, Thread.currentThread().getName());
 
@@ -649,6 +667,10 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public void deleteTestCaseFromRAG(String testCaseId) {
+        if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+            log.warn("RAG feature is disabled. Skipping deleteTestCaseFromRAG: testCaseId={}", testCaseId);
+            return;
+        }
         log.info("Deleting TestCase from RAG: testCaseId={}", testCaseId);
 
         try {
@@ -709,6 +731,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagConversationMessageIndexResponse indexConversationMessage(RagConversationMessageIndexRequest request) {
+        checkRagEnabled();
         log.info("Indexing conversation message in RAG: messageId={}", request.getMessageId());
 
         try {
@@ -735,6 +758,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public void deleteConversationMessage(UUID messageId) {
+        checkRagEnabled();
         log.info("Deleting conversation message from RAG: messageId={}", messageId);
 
         try {
@@ -761,6 +785,7 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagDocumentResponse uploadGlobalDocument(MultipartFile file, String uploadedBy) {
+        checkRagEnabled();
         log.info("Uploading global document to RAG API: file={}, globalProjectId={}",
                 file.getOriginalFilename(), GLOBAL_PROJECT_ID);
 
@@ -800,7 +825,13 @@ public class RagServiceImpl implements RagService {
             return response;
         } catch (Exception e) {
             log.error("Failed to upload global document to RAG API", e);
-            throw new RuntimeException("공통 문서 업로드 실패: " + e.getMessage(), e);
+            throw new RuntimeException("글로벌 문서 업로드 실패: " + e.getMessage(), e);
+        }
+    }
+
+    private void checkRagEnabled() {
+        if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+            throw new IllegalStateException("현재 RAG (AI) 시스템이 안정화를 위해 일시 중지되었습니다. 나중에 다시 시도해주세요.");
         }
     }
 

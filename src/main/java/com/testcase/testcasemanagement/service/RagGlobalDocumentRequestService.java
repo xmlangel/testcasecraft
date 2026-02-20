@@ -23,10 +23,12 @@ public class RagGlobalDocumentRequestService {
 
     private final RagGlobalDocumentRequestRepository repository;
     private final RagService ragService;
+    private final SystemSettingService systemSettingService;
     private static final java.util.UUID GLOBAL_PROJECT_ID = RagServiceImpl.GLOBAL_PROJECT_ID;
 
     @Transactional
     public RagGlobalDocumentRequestDto createRequest(UUID documentId, String requestedBy, String message) {
+        checkRagEnabled();
         log.info("Creating global document request: documentId={}, requestedBy={}", documentId, requestedBy);
 
         var document = Optional.ofNullable(ragService.getDocument(documentId))
@@ -112,5 +114,11 @@ public class RagGlobalDocumentRequestService {
                 .createdAt(entity.getCreatedAt())
                 .processedAt(entity.getProcessedAt())
                 .build();
+    }
+
+    private void checkRagEnabled() {
+        if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+            throw new IllegalStateException("현재 RAG (AI) 시스템이 안정화를 위해 일시 중지되었습니다. 나중에 다시 시도해주세요.");
+        }
     }
 }

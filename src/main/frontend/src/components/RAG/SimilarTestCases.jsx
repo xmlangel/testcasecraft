@@ -44,7 +44,7 @@ const SIMILARITY_THRESHOLD = 0.81; // 81% 이상인 경우만 바로 표시
 
 function SimilarTestCases({ projectId, onAddTestCase }) {
   const { t } = useI18n();
-  const { searchSimilar, searchAdvanced, state } = useRAG();
+  const { searchSimilar, searchAdvanced, state, isRagEnabled, ragDisabledMessage } = useRAG();
   const [queryText, setQueryText] = useState('');
   const [expandedIndex, setExpandedIndex] = useState(null);
   const [searchPerformed, setSearchPerformed] = useState(false);
@@ -150,10 +150,17 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
         {t('rag.similar.description', '키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트 케이스 또는 문서를 찾아줍니다.')}
       </Typography>
 
+      {!isRagEnabled && (
+        <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
+          {ragDisabledMessage || 'RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다.'}
+        </Alert>
+      )}
+
       {/* Search Input */}
       <Box sx={{ display: 'flex', gap: 1, mt: 2, mb: 3 }}>
         <TextField
           fullWidth
+          disabled={!isRagEnabled}
           label={t('rag.similar.searchQuery', '검색어')}
           placeholder={t('rag.similar.searchPlaceholder', '예: 로그인 기능 테스트, 회원가입 유효성 검사')}
           value={queryText}
@@ -170,7 +177,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
           color="primary"
           startIcon={<SearchIcon />}
           onClick={handleSearch}
-          disabled={isSearching || !queryText.trim()}
+          disabled={isSearching || !queryText.trim() || !isRagEnabled}
           sx={{ minWidth: 120 }}
         >
           {isSearching ? t('rag.similar.searching', '검색 중...') : t('rag.similar.search', '검색')}

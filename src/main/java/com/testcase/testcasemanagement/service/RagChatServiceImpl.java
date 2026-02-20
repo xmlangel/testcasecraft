@@ -36,9 +36,11 @@ public class RagChatServiceImpl implements RagChatService {
     private final ProjectRepository projectRepository;
     private final RagChatConversationService conversationService;
     private final LlmClientFactory llmClientFactory;
+    private final SystemSettingService systemSettingService;
 
     @Override
     public RagChatResponse chat(RagChatRequest request, String username) {
+        checkRagEnabled();
         long startTime = System.currentTimeMillis();
 
         try {
@@ -148,6 +150,7 @@ public class RagChatServiceImpl implements RagChatService {
 
     @Override
     public SseEmitter chatStream(RagChatRequest request, String username) {
+        checkRagEnabled();
         log.info("💬 RAG 채팅 스트리밍 요청: user={}, message={}, persistConversation={}",
                 username, request.getMessage(), request.getPersistConversation());
 
@@ -182,7 +185,7 @@ public class RagChatServiceImpl implements RagChatService {
 
                 // 4. LLM 스트리밍 호출
                 LlmClient llmClient = llmClientFactory.getClient(llmConfig);
-                boolean[] streamCompleted = {false}; // 스트리밍 완료 플래그
+                boolean[] streamCompleted = { false }; // 스트리밍 완료 플래그
 
                 try {
                     llmClient.chatStream(
@@ -359,5 +362,11 @@ public class RagChatServiceImpl implements RagChatService {
         }
 
         return prompt.toString();
+    }
+
+    private void checkRagEnabled() {
+        if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+            throw new IllegalStateException("현재 RAG (AI) 시스템이 안정화를 위해 일시 중지되었습니다. 나중에 다시 시도해주세요.");
+        }
     }
 }
