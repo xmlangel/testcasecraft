@@ -2,6 +2,7 @@
 // ICT-344: 스프레드시트 오류 행 시각적 표시 기능 E2E 테스트
 
 const { chromium } = require('playwright');
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 const CONFIG = {
   timeout: 30000,
@@ -33,8 +34,8 @@ async function runValidationVisualIndicatorTest() {
     await page.waitForLoadState('networkidle');
     
     // 로그인 (admin/admin)
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', 'admin123');
+    await page.fill('input[name="username"]', ADMIN_USERNAME);
+    await page.fill('input[name="password"]', ADMIN_PASSWORD);
     await page.click('button[type="submit"]');
     await page.waitForLoadState('networkidle');
 

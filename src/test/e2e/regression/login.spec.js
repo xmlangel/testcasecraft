@@ -8,6 +8,7 @@
  */
 
 const { test, expect } = require('../fixtures/test-fixtures.js');
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 test.describe('로그인 회귀 테스트', () => {
 
@@ -17,7 +18,7 @@ test.describe('로그인 회귀 테스트', () => {
     await loginPage.screen('01-initial-page');
 
     await loginPage.waitForBackend();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
     await loginPage.screen('04-after-login-click');
 
     await projectListPage.waitForLoad();

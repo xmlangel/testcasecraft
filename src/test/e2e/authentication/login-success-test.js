@@ -2,6 +2,7 @@
 // 관련 컴포넌트: Login.jsx, ProtectedRoute.jsx, App.jsx
 
 const { test, expect } = require('../fixtures/test-fixtures.js');
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 test.describe('로그인 성공 플로우 E2E 테스트', () => {
   
@@ -25,7 +26,7 @@ test.describe('로그인 성공 플로우 E2E 테스트', () => {
     console.log('✅ 로그인 페이지 렌더링 확인 완료');
 
     // 2. admin/admin 계정 정보 입력 및 로그인
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
     
     console.log('✅ 로그인 요청 전송 완료');
     
@@ -101,8 +102,8 @@ test.describe('로그인 성공 플로우 E2E 테스트', () => {
 
     await loginPage.goto();
 
-    await loginPage.usernameInput.fill('admin');
-    await loginPage.passwordInput.fill('admin123');
+    await loginPage.usernameInput.fill(ADMIN_USERNAME);
+    await loginPage.passwordInput.fill(ADMIN_PASSWORD);
 
     await loginPage.submitButton.click();
 

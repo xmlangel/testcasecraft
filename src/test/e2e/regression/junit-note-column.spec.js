@@ -2,10 +2,7 @@
 // JUnit 결과 상세 페이지의 테스트 케이스 리스트에 Note 컬럼이 표시되는지 검증
 
 const { test, expect } = require('../fixtures/test-fixtures.js');
-
-// 테스트 환경 설정
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'admin123';
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 // 실제 프로젝트/결과 ID (테스트 환경에 맞게 수정 필요)
 const TEST_PROJECT_ID = '2fcead1a-83f6-4fe0-a1e5-169f227e23f9';

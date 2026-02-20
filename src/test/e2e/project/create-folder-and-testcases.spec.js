@@ -1,5 +1,6 @@
 // e2e-tests/project/create-folder-and-testcases.spec.js: 폴더 생성 및 폴더 내 테스트 케이스 생성 E2E 테스트
 const { test, expect } = require('../fixtures/test-fixtures.js');
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 test.describe('폴더 생성 및 폴더 내 테스트 케이스 생성 테스트', () => {
   let projectId = '';
@@ -10,7 +11,7 @@ test.describe('폴더 생성 및 폴더 내 테스트 케이스 생성 테스트
     await loginPage.clearStorage();
     await loginPage.waitForBackend();
 
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
     await projectListPage.waitForLoad();
 
     // 프로젝트로 이동

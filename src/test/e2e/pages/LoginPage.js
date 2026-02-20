@@ -1,4 +1,5 @@
 const { BasePage } = require('./BasePage.js');
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 class LoginPage extends BasePage {
     /**
@@ -73,7 +74,7 @@ class LoginPage extends BasePage {
                 const response = await fetch(`${backendUrl}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                    body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
                 });
                 if (response.ok || response.status === 401) {
                     backendReady = true;

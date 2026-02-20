@@ -12,6 +12,7 @@
  */
 
 const { test, expect } = require('../fixtures/test-fixtures.js');
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 test.describe('테스트실행', () => {
 
@@ -24,7 +25,7 @@ test.describe('테스트실행', () => {
         
         // 백엔드 준비 후 다시 로드 (안정성 확보)
         await loginPage.goto();
-        await loginPage.login('admin', 'admin123');
+        await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
         await projectListPage.waitForLoad();
     });
 
