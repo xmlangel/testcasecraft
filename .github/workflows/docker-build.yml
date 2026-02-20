@@ -172,6 +172,7 @@ jobs:
             CMD+=("--push")
           else
             CMD+=("--build-only")
+            CMD+=("--skip-tag-verify")
           fi
 
           echo "Running: ${CMD[*]}"

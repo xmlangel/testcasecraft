@@ -34,6 +34,7 @@ BUILD_TARGET=""
 PUSH_MODE=false
 INCREMENT_VERSION=false
 NON_INTERACTIVE=false
+SKIP_TAG_VERIFY="${SKIP_TAG_VERIFY:-false}"
 
 # Function: Show usage
 show_usage() {
@@ -50,6 +51,7 @@ show_usage() {
     echo "  -i, --increment-version    Run Gradle incrementVersion task"
     echo "  --version VERSION          Force specific version"
     echo "  --non-interactive          Skip all prompts"
+    echo "  --skip-tag-verify          Skip Git tag existence check for provided version"
     echo "  -h, --help                 Show this help"
     echo ""
     print_msg "$GREEN" "Quick Examples:"
@@ -84,6 +86,10 @@ parse_arguments() {
                 ;;
             --non-interactive)
                 NON_INTERACTIVE=true
+                shift
+                ;;
+            --skip-tag-verify)
+                SKIP_TAG_VERIFY=true
                 shift
                 ;;
             -h|--help)
@@ -294,7 +300,11 @@ main() {
         [[ "$NON_INTERACTIVE" == "true" ]] && interactive_flag="false"
         detect_version_interactive "$interactive_flag" "$RECENT_VERSION"
     else
-        verify_tag_exists "$VERSION" "$BUILD_TARGET" || exit 1
+        if [[ "$SKIP_TAG_VERIFY" == "true" ]]; then
+            print_msg "$YELLOW" "⚠️ Skipping Git tag verification for version: $VERSION"
+        else
+            verify_tag_exists "$VERSION" "$BUILD_TARGET" || exit 1
+        fi
     fi
 
     # Prerequisites & Setup

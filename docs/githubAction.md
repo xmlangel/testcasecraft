@@ -50,7 +50,7 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 
   - `push_only` 단계에서는 태그 존재 여부를 반드시 검증합니다.
   - 해당 버전 태그(vX.Y.Z[-PRERELEASE] 또는 vX.Y.Z[-PRERELEASE]-app|rag|all)가 없으면 실패합니다.
-  - `build_release` 단계는 태그가 없어도 실행 가능하며, 릴리즈 생성 시 태그를 현재 커밋 기준으로 생성합니다.
+  - `build_release` 단계는 태그가 없어도 실행 가능하며, 스크립트에서 태그 검증을 건너뛴 뒤 릴리즈 생성 시 태그를 현재 커밋 기준으로 생성합니다.
 
   3. 완전 분리 테스트가 필요하면
 
