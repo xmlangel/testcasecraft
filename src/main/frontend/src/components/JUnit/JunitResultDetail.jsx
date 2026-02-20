@@ -1181,6 +1181,7 @@ const JunitResultDetail = () => {
                               <TableCell>{t("junit.detail.testSuite")}</TableCell>
                             )}
                             <TableCell>{t("junit.detail.testName")}</TableCell>
+                            <TableCell>{t("junit.editor.notes", "노트")}</TableCell>
                             <TableCell align="center" width="80px">
                               {t("junit.detail.edit")}
                             </TableCell>
@@ -1259,6 +1260,28 @@ const JunitResultDetail = () => {
                                     >
                                       {t("junit.detail.original")}: {testCase.name}
                                     </Typography>
+                                  )}
+                                </TableCell>
+                                <TableCell sx={{ maxWidth: 200 }} data-testid="automation-case-note-cell">
+                                  {testCase.userNotes ? (
+                                    <Tooltip title={testCase.userNotes} arrow placement="top">
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical',
+                                          overflow: 'hidden',
+                                          cursor: 'default',
+                                          lineHeight: 1.4,
+                                        }}
+                                      >
+                                        {testCase.userNotes}
+                                      </Typography>
+                                    </Tooltip>
+                                  ) : (
+                                    <Typography variant="caption" color="text.disabled">-</Typography>
                                   )}
                                 </TableCell>
                                 <TableCell align="center">
@@ -1622,6 +1645,47 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
                               .substring(0, 100)}
                             {testCase.failureMessage.length > 100 ? "..." : ""}
                           </Typography>
+                        </Box>
+                      )}
+
+                      {/* Note 미리보기 */}
+                      {testCase.userNotes && (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 'bold',
+                              color: 'warning.dark',
+                              whiteSpace: 'nowrap',
+                              fontSize: '0.7rem',
+                            }}
+                          >
+                            {t("junit.editor.notes", "노트")}:
+                          </Typography>
+                          <Tooltip title={testCase.userNotes} arrow placement="top">
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                cursor: 'default',
+                                fontSize: '0.7rem',
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {testCase.userNotes}
+                            </Typography>
+                          </Tooltip>
                         </Box>
                       )}
                     </CardContent>
