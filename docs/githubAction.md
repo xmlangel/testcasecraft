@@ -29,7 +29,9 @@
 
 태그를 푸시하면 자동으로 `build_release`가 실행됩니다.
 - 예: `v1.2.3`, `v1.2.3-app`, `v1.2.3-rag`
-- 동작: 빌드 + Release 생성 (Docker Hub 푸시 없음)
+- 동작:
+  - `vX.Y.Z` 태그: 빌드 + Docker Hub 푸시 + Release 생성
+  - 그 외 태그(`-app`, `-rag`, `-dev` 등): 빌드 + Release 생성 (푸시 차단)
 - 기본 타겟: `v1.2.3`/`v1.2.3-dev`처럼 suffix 없는 태그는 `app`으로 처리
 - `-all` 태그 푸시는 비활성화됨 (수동 실행에서만 `target=all` 허용)
 

@@ -47,6 +47,7 @@ jobs:
             echo "TARGET=${{ github.event.inputs.target }}" >> "$GITHUB_ENV"
             echo "VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_ENV"
             echo "PHASE=${{ github.event.inputs.phase }}" >> "$GITHUB_ENV"
+            echo "PUSH_ON_TAG=false" >> "$GITHUB_ENV"
           else
             TAG_NAME=${GITHUB_REF#refs/tags/}
             echo "Processing tag: $TAG_NAME"
@@ -69,7 +70,14 @@ jobs:
               exit 1
             fi
 
-            # 태그 이벤트는 기본적으로 빌드 + 릴리즈 생성(푸시 없음)
+            if [[ "$TAG_NAME" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+              # Stable base tags only (e.g., v1.0.42) can push on tag events.
+              echo "PUSH_ON_TAG=true" >> "$GITHUB_ENV"
+            else
+              echo "PUSH_ON_TAG=false" >> "$GITHUB_ENV"
+            fi
+
+            # 태그 이벤트는 build_release로 처리 (푸시 여부는 PUSH_ON_TAG로 제어)
             echo "PHASE=build_release" >> "$GITHUB_ENV"
             echo "RELEASE_TAG=$TAG_NAME" >> "$GITHUB_ENV"
           fi
@@ -143,11 +151,20 @@ jobs:
 
       - name: Configure Phase Flags
         run: |
-          if [[ "${{ env.PHASE }}" == "push_only" ]]; then
-            echo "SHOULD_PUSH=true" >> "$GITHUB_ENV"
-            echo "SHOULD_CREATE_RELEASE=false" >> "$GITHUB_ENV"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ env.PHASE }}" == "push_only" ]]; then
+              echo "SHOULD_PUSH=true" >> "$GITHUB_ENV"
+              echo "SHOULD_CREATE_RELEASE=false" >> "$GITHUB_ENV"
+            else
+              echo "SHOULD_PUSH=false" >> "$GITHUB_ENV"
+              echo "SHOULD_CREATE_RELEASE=true" >> "$GITHUB_ENV"
+            fi
           else
-            echo "SHOULD_PUSH=false" >> "$GITHUB_ENV"
+            if [[ "${{ env.PUSH_ON_TAG }}" == "true" ]]; then
+              echo "SHOULD_PUSH=true" >> "$GITHUB_ENV"
+            else
+              echo "SHOULD_PUSH=false" >> "$GITHUB_ENV"
+            fi
             echo "SHOULD_CREATE_RELEASE=true" >> "$GITHUB_ENV"
           fi
 
