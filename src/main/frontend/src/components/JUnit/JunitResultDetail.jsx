@@ -1225,7 +1225,18 @@ const JunitResultDetail = () => {
                           <TableRow>
                             <TableCell align="center" width="100px">{t("common.status")}</TableCell>
                             {selectedSuite?.id === ALL_SUITES_ID && (
-                              <TableCell>{t("junit.detail.testSuite")}</TableCell>
+                              <TableCell 
+                                sx={{ 
+                                  whiteSpace: 'nowrap', 
+                                  maxWidth: { xs: 80, sm: 120, md: 150 }, 
+                                  overflow: 'hidden', 
+                                  textOverflow: 'ellipsis' 
+                                }}
+                              >
+                                <Tooltip title={t("junit.detail.testSuite")} arrow placement="top">
+                                  <span>{t("junit.detail.testSuite")}</span>
+                                </Tooltip>
+                              </TableCell>
                             )}
                             <TableCell>{t("junit.detail.testName")}</TableCell>
                             <TableCell>{t("junit.editor.notes", "노트")}</TableCell>
@@ -1273,41 +1284,81 @@ const JunitResultDetail = () => {
                                   />
                                 </TableCell>
                                 {selectedSuite?.id === ALL_SUITES_ID && (
-                                  <TableCell>
-                                    <Typography
-                                      variant="caption"
-                                      color="text.secondary"
-                                    >
-                                      {testCase.suiteName || "-"}
-                                    </Typography>
+                                  <TableCell
+                                    sx={{ 
+                                      whiteSpace: 'nowrap', 
+                                      maxWidth: { xs: 80, sm: 120, md: 150 }, 
+                                      overflow: 'hidden', 
+                                      textOverflow: 'ellipsis' 
+                                    }}
+                                  >
+                                    <Tooltip title={testCase.suiteName || "-"} arrow placement="top">
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{
+                                          display: 'block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis'
+                                        }}
+                                      >
+                                        {testCase.suiteName || "-"}
+                                      </Typography>
+                                    </Tooltip>
                                   </TableCell>
                                 )}
-                                <TableCell>
-                                    <Typography
-                                    variant="body2"
-                                    fontWeight="medium"
-                                    sx={{
-                                      cursor: "pointer",
-                                      color: "primary.main",
-                                      "&:hover": {
-                                        textDecoration: "underline",
-                                      },
-                                    }}
-                                    onClick={() => handleTestCaseClick(testCase.id)}
-                                    data-testid="automation-case-name"
-                                  >
-                                    {testCase.userTitle || testCase.name}
-                                  </Typography>
-                                  {testCase.userTitle && (
-                                    <Typography
-                                      variant="caption"
-                                      color="text.secondary"
-                                      display="block"
-                                      sx={{ fontSize: '0.65rem' }}
-                                    >
-                                      {t("junit.detail.original")}: {testCase.name}
-                                    </Typography>
-                                  )}
+                                <TableCell
+                                  sx={{
+                                    maxWidth: { xs: 120, sm: 200, md: 300, xl: 400 },
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                  }}
+                                >
+                                  <Tooltip title={
+                                    <React.Fragment>
+                                      <Typography variant="body2">{testCase.userTitle || testCase.name}</Typography>
+                                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                        {testCase.userTitle ? `${t("junit.detail.original")}: ${testCase.name}` : ''}
+                                      </Typography>
+                                    </React.Fragment>
+                                  } arrow placement="top">
+                                    <Box sx={{ overflow: 'hidden' }}>
+                                      <Typography
+                                        variant="body2"
+                                        fontWeight="medium"
+                                        sx={{
+                                          cursor: "pointer",
+                                          color: "primary.main",
+                                          display: 'block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          "&:hover": {
+                                            textDecoration: "underline",
+                                          },
+                                        }}
+                                        onClick={() => handleTestCaseClick(testCase.id)}
+                                        data-testid="automation-case-name"
+                                      >
+                                        {testCase.userTitle || testCase.name}
+                                      </Typography>
+                                      {testCase.userTitle && (
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                          display="block"
+                                          sx={{ 
+                                            fontSize: '0.65rem',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                          }}
+                                        >
+                                          {t("junit.detail.original")}: {testCase.name}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                  </Tooltip>
                                 </TableCell>
                                 <TableCell sx={{ maxWidth: 200 }} data-testid="automation-case-note-cell">
                                   {testCase.userNotes ? (
