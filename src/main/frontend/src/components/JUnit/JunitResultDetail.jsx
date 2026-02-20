@@ -102,10 +102,19 @@ const JunitResultDetail = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTestCase, setSelectedTestCase] = useState(null);
 
-  // 페이징 및 필터링
+  const calculateDynamicPageSize = () => {
+    // containerHeight is approx 100vh - 400px.
+    // subtract internal margins, header, filters, pagination (~150px)
+    const availableHeight = window.innerHeight - 550;
+    const rowHeight = 45; // Table size="small" row height
+    const calculated = Math.floor(availableHeight / rowHeight);
+    return Math.max(10, Math.min(calculated, 100)); // Ensure between 10 and 100
+  };
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(calculateDynamicPageSize());
+
   const [statusFilter, setStatusFilter] = useState("ALL");
   const location = useLocation();
   const [searchText, setSearchText] = useState("");
@@ -322,6 +331,44 @@ const JunitResultDetail = () => {
   useEffect(() => {
     loadData();
   }, [testResultId]);
+
+  // 창 크기 조절에 따른 동적 pageSize 업데이트
+  useEffect(() => {
+    let timeoutId;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setPageSize((prevSize) => {
+          const newSize = calculateDynamicPageSize();
+          return prevSize !== newSize ? newSize : prevSize;
+        });
+      }, 500); // 500ms debounce
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  // pageSize 변경 시 리스트 갱신 (초기 로딩 제외)
+  const isFirstRender = React.useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (selectedSuite && testSuites.length > 0) {
+      if (selectedSuite.id === ALL_SUITES_ID) {
+        loadAllTestCases(testSuites, 0);
+      } else {
+        loadTestCases(selectedSuite.id, 0);
+      }
+      setPage(1);
+    }
+  }, [pageSize]);
+
 
   // 스위트 선택 변경
   const handleSuiteChange = async (suite) => {
