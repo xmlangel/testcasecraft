@@ -236,7 +236,7 @@ const JunitTestCaseEditor = ({
                                 <ViewIcon />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title={t('junit.editor.editHistory')}>
+                        <Tooltip title={t('junit.editor.editHistory', '편집 이력')}>
                             <IconButton>
                                 <HistoryIcon />
                             </IconButton>
