@@ -17,7 +17,7 @@ on:
       target:
         description: 'Build Target'
         required: true
-        default: 'all'
+        default: 'app'
         type: choice
         options:
           - all
@@ -53,16 +53,19 @@ jobs:
 
             # v1.2.3-app -> VERSION=1.2.3, TARGET=app
             # v1.2.3-dev-app -> VERSION=1.2.3-dev, TARGET=app
-            # v1.2.3 -> VERSION=1.2.3, TARGET=all
-            # v1.2.3-dev -> VERSION=1.2.3-dev, TARGET=all
-            if [[ "$TAG_NAME" =~ ^v(${VERSION_REGEX})-(app|rag|all)$ ]]; then
+            # v1.2.3 -> VERSION=1.2.3, TARGET=app (default for tag push)
+            # v1.2.3-dev -> VERSION=1.2.3-dev, TARGET=app (default for tag push)
+            if [[ "$TAG_NAME" =~ ^v(${VERSION_REGEX})-(app|rag)$ ]]; then
               echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
               echo "TARGET=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
+            elif [[ "$TAG_NAME" =~ ^v(${VERSION_REGEX})-all$ ]]; then
+              echo "Error: '-all' tag push is disabled. Use workflow_dispatch with target=all."
+              exit 1
             elif [[ "$TAG_NAME" =~ ^v(${VERSION_REGEX})$ ]]; then
               echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
-              echo "TARGET=all" >> "$GITHUB_ENV"
+              echo "TARGET=app" >> "$GITHUB_ENV"
             else
-              echo "Error: Tag format invalid. Use vX.Y.Z[-PRERELEASE] or vX.Y.Z[-PRERELEASE]-app|rag|all"
+              echo "Error: Tag format invalid. Use vX.Y.Z[-PRERELEASE] or vX.Y.Z[-PRERELEASE]-app|rag"
               exit 1
             fi
 

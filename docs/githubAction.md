@@ -28,8 +28,10 @@
 ## 3. 태그 푸시 시 동작
 
 태그를 푸시하면 자동으로 `build_release`가 실행됩니다.
-- 예: `v1.2.3`, `v1.2.3-app`, `v1.2.3-rag`, `v1.2.3-all`
+- 예: `v1.2.3`, `v1.2.3-app`, `v1.2.3-rag`
 - 동작: 빌드 + Release 생성 (Docker Hub 푸시 없음)
+- 기본 타겟: `v1.2.3`/`v1.2.3-dev`처럼 suffix 없는 태그는 `app`으로 처리
+- `-all` 태그 푸시는 비활성화됨 (수동 실행에서만 `target=all` 허용)
 
 ## 4. 수동 실행 방법 (`workflow_dispatch`)
 
@@ -76,7 +78,7 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 
 ### 4.1 빌드/릴리즈
 - `phase`: `build_release`
-- `target`: `all` (또는 `app`, `rag`)
+- `target`: `app` (기본값, 필요 시 `all`, `rag` 선택)
 - `version`: 예) `1.0.35`
 
 ### 4.2 최종 푸시
@@ -91,10 +93,10 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 - `vX.Y.Z-PRERELEASE`
 - `vX.Y.Z-app`
 - `vX.Y.Z-rag`
-- `vX.Y.Z-all`
 - `vX.Y.Z-PRERELEASE-app`
 - `vX.Y.Z-PRERELEASE-rag`
-- `vX.Y.Z-PRERELEASE-all`
+
+`-all` 접미사 태그 푸시는 허용하지 않습니다. `all` 빌드는 `workflow_dispatch`에서만 실행합니다.
 
 `version` 입력값은 `X.Y.Z` 또는 `X.Y.Z-PRERELEASE` 형식이어야 합니다.
 
