@@ -191,8 +191,10 @@ export function RAGProvider({ children }) {
       try {
         if (RAG_DISABLED_MESSAGE_ENV) return; // 이미 환경변수로 비활성화된 경우 패스
         
-        const response = await api.get('/api/system-settings/rag/status');
-        const isEnabled = response.data?.enabled;
+        const response = await api('/api/system-settings/rag/status');
+        if (!response.ok) return; // 오류 응답 시 무시
+        const data = await response.json();
+        const isEnabled = data?.data?.enabled ?? data?.enabled;
         
         if (isEnabled === false) {
           dispatch({ 
@@ -223,6 +225,16 @@ export function RAGProvider({ children }) {
 
   const clearError = useCallback(() => {
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+  }, []);
+
+  const updateRagEnabled = useCallback((isEnabled) => {
+    dispatch({
+      type: ActionTypes.SET_RAG_ENABLED_STATUS,
+      payload: {
+        isEnabled,
+        message: isEnabled ? null : '시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.'
+      }
+    });
   }, []);
 
   const selectThread = useCallback((threadId) => {
@@ -265,6 +277,7 @@ export function RAGProvider({ children }) {
 
     // Utility functions
     clearError,
+    updateRagEnabled,
     selectThread,
     setPersistConversation,
     setLoadedProjectId,

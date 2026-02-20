@@ -7,7 +7,7 @@ import { useI18n } from '../../context/I18nContext';
 const RagSystemSettings = ({ onSuccess }) => {
     const { t } = useI18n();
     const { api } = useAppContext();
-    const { state, dispatch } = useRAG();
+    const { updateRagEnabled } = useRAG();
     
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -23,10 +23,13 @@ const RagSystemSettings = ({ onSuccess }) => {
             setLoading(true);
             setError(null);
             
-            // Fetch RAG status using the regular system settings endpoint to get the full object, 
-            // or we could just use the `/rag/status` endpoint
-            const response = await api.get('/api/system-settings/rag/status');
-            setIsRagEnabled(response.data?.enabled !== false);
+            const response = await api('/api/system-settings/rag/status');
+            if (!response.ok) {
+                throw new Error('Failed to fetch');
+            }
+            const data = await response.json();
+            const enabled = data?.data?.enabled ?? data?.enabled;
+            setIsRagEnabled(enabled !== false);
         } catch (err) {
             console.error('Failed to fetch system settings:', err);
             setError(t('admin.systemSettings.fetchError', '설정을 불러오는데 실패했습니다.'));
@@ -45,21 +48,21 @@ const RagSystemSettings = ({ onSuccess }) => {
             setSaving(true);
             setError(null);
             
-            await api.put('/api/system-settings/RAG_ENABLED', {
-                settingValue: isRagEnabled.toString(),
-                description: 'RAG(AI) 기능 활성화 토글'
+            const response = await api('/api/system-settings/RAG_ENABLED', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    value: isRagEnabled.toString(),
+                    description: 'RAG(AI) 기능 활성화 토글'
+                })
             });
             
-            // Update RAGContext local state
-            if (dispatch) {
-                dispatch({ 
-                    type: 'SET_RAG_ENABLED_STATUS', 
-                    payload: { 
-                        isEnabled: isRagEnabled, 
-                        message: isRagEnabled ? null : '시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.' 
-                    } 
-                });
+            if (!response.ok) {
+                throw new Error('Failed to save setting');
             }
+            
+            // RAGContext 전역 상태 업데이트
+            updateRagEnabled(isRagEnabled);
             
             if (onSuccess) {
                 onSuccess(t('admin.systemSettings.saveSuccess', '시스템 설정이 성공적으로 저장되었습니다.'));

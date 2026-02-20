@@ -53,7 +53,7 @@ import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import ExploratorySessionWorkspace from "./components/ExploratorySessionWorkspace.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
-import { RAGProvider } from "./context/RAGContext.jsx";
+import { RAGProvider, useRAG } from "./context/RAGContext.jsx";
 import { LlmConfigProvider } from "./context/LlmConfigContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import { SchedulerProvider } from "./context/SchedulerContext.jsx";
@@ -158,6 +158,10 @@ const AppContent = () => {
     handleDialogRefresh,
     handleDialogLogin,
   } = useAppContext();
+
+  const { isRagEnabled } = useRAG();
+  // RAG 비활성화 시 탘색 세션 탭은 인덱스 6 (원래 7). RAG 활성화 시는 7.
+  const EXPLORATORY_TAB = isRagEnabled ? 7 : 6;
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -402,10 +406,16 @@ const AppContent = () => {
           setTabIndex(5);
           setActiveTestCaseId(null);
         } else if (isRagSection()) {
-          setTabIndex(6);
+          // RAG 비활성화 시 /rag URL 직접 접근하면 대시보드로 리다이렉트
+          if (!isRagEnabled) {
+            navigate(`/projects/${urlProjectId}`);
+            setTabIndex(0);
+          } else {
+            setTabIndex(6);
+          }
           setActiveTestCaseId(null);
         } else if (isExploratorySection()) {
-          setTabIndex(7);
+          setTabIndex(EXPLORATORY_TAB);
           setActiveTestCaseId(null);
         } else {
           // 기본 프로젝트 URL 접근 시 대시보드 탭 표시
@@ -472,10 +482,15 @@ const AppContent = () => {
         // 자동화 테스트 탭
         navigate(`/projects/${projectId}/automation`);
       } else if (newValue === 6) {
-        // RAG 문서 탭
-        navigate(`/projects/${projectId}/rag`);
+        if (isRagEnabled) {
+          // RAG 활성화 시: 6 = RAG 문서 탭
+          navigate(`/projects/${projectId}/rag`);
+        } else {
+          // RAG 비활성화 시: 6 = 탘색 세션 탭
+          navigate(`/projects/${projectId}/exploratory`);
+        }
       } else if (newValue === 7) {
-        // 탐색 세션 탭
+        // RAG 활성화 시만 탭 7이 존재 (= 탘색 세션)
         navigate(`/projects/${projectId}/exploratory`);
       } else {
         // 대시보드(0) 탭
@@ -977,12 +992,14 @@ const AppContent = () => {
                     <JunitResultDashboard />
                   </Box>
                 )}
-                {tabIndex === 6 && activeProject && (
+                {/* RAG 문서 탭: RAG 활성화 + tabIndex 6일 때만 표시 */}
+                {tabIndex === 6 && isRagEnabled && activeProject && (
                   <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
                     <RAGDocumentManager projectId={activeProject.id} />
                   </Box>
                 )}
-                {tabIndex === 7 && activeProject && (
+                {/* 탘색 세션 탭: RAG 활성화 시 tabIndex 7, 비활성화 시 tabIndex 6 */}
+                {tabIndex === EXPLORATORY_TAB && activeProject && (
                   <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
                     <ExploratorySessionWorkspace />
                   </Box>
