@@ -43,11 +43,12 @@ import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
 
 /**
- * ICT-337: 테스트 케이스 상세 패널 컴포넌트
+ * 테스트 케이스 상세 패널 컴포넌트
  * tracelog와 testbody를 탭 형태로 표시
  */
 const TestCaseDetailPanel = ({
   testCaseId,
+  refreshTrigger = 0,
   onClose,
   onEditTestCase,
   onNavigatePrev,
@@ -135,7 +136,7 @@ const TestCaseDetailPanel = ({
     if (testCaseId) {
       loadTestCaseDetails();
     }
-  }, [testCaseId]);
+  }, [testCaseId, refreshTrigger]);
 
   // 탭 변경 핸들러
   const handleTabChange = (event, newValue) => {
@@ -790,7 +791,7 @@ const TestCaseDetailPanel = ({
                       fontSize: "0.875rem",
                       fontFamily: "monospace",
                       whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
+                      wordBreak: "break-all",
                       bgcolor: isDarkMode
                         ? alpha(theme.palette.error.main, 0.1)
                         : "#ffebee",
@@ -800,7 +801,9 @@ const TestCaseDetailPanel = ({
                       border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : "#ffcdd2"}`,
                     }}
                   >
-                    {testCaseDetails.tracelog.failureMessage}
+                    {String(testCaseDetails.tracelog.failureMessage)
+                      .replace(/   File/g, "\n  File")
+                      .replace(/     /g, "\n    ")}
                   </Box>
                 </CardContent>
               </Card>
@@ -819,7 +822,7 @@ const TestCaseDetailPanel = ({
                       fontSize: "0.75rem",
                       fontFamily: "monospace",
                       whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
+                      wordBreak: "break-all",
                       bgcolor: isDarkMode
                         ? alpha(theme.palette.background.paper, 0.5)
                         : "#fafafa",
@@ -831,7 +834,9 @@ const TestCaseDetailPanel = ({
                       overflow: "auto",
                     }}
                   >
-                    {testCaseDetails.tracelog.stackTrace}
+                    {String(testCaseDetails.tracelog.stackTrace)
+                      .replace(/   File/g, "\n  File")
+                      .replace(/     /g, "\n    ")}
                   </Box>
                 </CardContent>
               </Card>

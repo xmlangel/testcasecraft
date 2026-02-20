@@ -11,6 +11,7 @@
  */
 
 const { test, expect } = require('../fixtures/test-fixtures.js');
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 test.describe('프로젝트 내 테스트 케이스 생성 테스트', () => {
 
@@ -18,7 +19,7 @@ test.describe('프로젝트 내 테스트 케이스 생성 테스트', () => {
     await loginPage.goto();
     await loginPage.clearStorage();
     await loginPage.waitForBackend();
-    await loginPage.login('admin', 'admin123');
+    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
     await projectListPage.waitForLoad();
   });
 

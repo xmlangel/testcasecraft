@@ -31,6 +31,8 @@ src/test/e2e/
 ├── dashboard/               # 대시보드 관련 테스트 스펙
 ├── project/                 # 프로젝트 관리 테스트 스펙
 ├── regression/              # 통합 회귀 테스트 스펙
+├── config/                  # E2E 테스트 공통 설정 (인증 정보 등)
+│   └── credentials.js       # 중앙화된 관리자 계정 저장
 ├── playwright.config.js     # Playwright 전체 설정
 ├── package.json             # E2E 전용 의존성 설정
 └── test-results/            # 테스트 결과 및 스크린샷
@@ -132,11 +134,12 @@ class LoginPage extends BasePage {
 #### 기본 테스트 구조 예시
 ```javascript
 const { test, expect } = require('../fixtures/test-fixtures.js');
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
 
 test('테스트 시나리오 설명', async ({ loginPage, projectListPage, page }) => {
   // 1. 주입받은 loginPage 사용
   await loginPage.goto();
-  await loginPage.login('admin', 'admin123');
+  await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
   
   // 2. BasePage의 공통 기능 사용
   await loginPage.screen('after-login');
@@ -156,6 +159,11 @@ test('테스트 시나리오 설명', async ({ loginPage, projectListPage, page 
 #### 선택자(Selector) 가이드
 - **우선순위**: `data-testid` > `Role` > `Text` > `CSS Selector`
 - **data-testid**: 가급적 `getByTestId()`를 활용하여 안정성을 확보하세요.
+
+#### 인증 정보 중앙화
+- 테스트 코드 내에 계정 정보(`admin`/`admin123` 등)를 하드코딩하지 않습니다.
+- `src/test/e2e/config/credentials.js`에서 `ADMIN_USERNAME`, `ADMIN_PASSWORD`를 임포트하여 사용합니다.
+- CI/CD 환경 적용을 위해, 필요 시 `TEST_ADMIN_USERNAME`, `TEST_ADMIN_PASSWORD` 환경 변수로 주입합니다.
 
 
 ## � 트러블슈팅
@@ -227,7 +235,7 @@ sequenceDiagram
     Fixture-->>Test: 초기화된 페이지 객체 인스턴스 반환
     
     Note over Test, LP: 2. 인증 단계
-    Test->>LP: goto() & login(admin, admin123)
+    Test->>LP: goto() & login(ADMIN_USERNAME, ADMIN_PASSWORD)
     LP->>API: POST /api/auth/login
     API-->>LP: JWT Token 반환
     LP-->>Test: 로그인 완료 및 대시보드 진입

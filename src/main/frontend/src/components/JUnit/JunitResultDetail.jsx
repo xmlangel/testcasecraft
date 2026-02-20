@@ -102,18 +102,27 @@ const JunitResultDetail = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTestCase, setSelectedTestCase] = useState(null);
 
-  // 페이징 및 필터링
+  const calculateDynamicPageSize = () => {
+    // containerHeight is approx 100vh - 400px.
+    // subtract internal margins, header, filters, pagination (~150px)
+    const availableHeight = window.innerHeight - 550;
+    const rowHeight = 45; // Table size="small" row height
+    const calculated = Math.floor(availableHeight / rowHeight);
+    return Math.max(10, Math.min(calculated, 100)); // Ensure between 10 and 100
+  };
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(calculateDynamicPageSize());
+
   const [statusFilter, setStatusFilter] = useState("ALL");
   const location = useLocation();
   const [searchText, setSearchText] = useState("");
   const isDarkMode = theme.palette.mode === "dark";
 
-  // ICT-337: Split Panel 관련 상태
   const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
+  const [editRefreshTrigger, setEditRefreshTrigger] = useState(0);
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   // PDF 내보내기 관련 상태
@@ -323,6 +332,44 @@ const JunitResultDetail = () => {
     loadData();
   }, [testResultId]);
 
+  // 창 크기 조절에 따른 동적 pageSize 업데이트
+  useEffect(() => {
+    let timeoutId;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setPageSize((prevSize) => {
+          const newSize = calculateDynamicPageSize();
+          return prevSize !== newSize ? newSize : prevSize;
+        });
+      }, 500); // 500ms debounce
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  // pageSize 변경 시 리스트 갱신 (초기 로딩 제외)
+  const isFirstRender = React.useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (selectedSuite && testSuites.length > 0) {
+      if (selectedSuite.id === ALL_SUITES_ID) {
+        loadAllTestCases(testSuites, 0);
+      } else {
+        loadTestCases(selectedSuite.id, 0);
+      }
+      setPage(1);
+    }
+  }, [pageSize]);
+
+
   // 스위트 선택 변경
   const handleSuiteChange = async (suite) => {
     setSelectedSuite(suite);
@@ -370,10 +417,15 @@ const JunitResultDetail = () => {
     // 다이얼로그 닫기
     setEditDialogOpen(false);
     setSelectedTestCase(null);
+    setEditRefreshTrigger((prev) => prev + 1);
 
     // 선택된 스위트 데이터 새로고침 (페이지 유지)
     if (selectedSuite) {
-      await loadTestCases(selectedSuite.id, page - 1);
+      if (selectedSuite.id === ALL_SUITES_ID) {
+        await loadAllTestCases(testSuites, page - 1);
+      } else {
+        await loadTestCases(selectedSuite.id, page - 1);
+      }
     }
   };
 
@@ -1173,9 +1225,21 @@ const JunitResultDetail = () => {
                           <TableRow>
                             <TableCell align="center" width="100px">{t("common.status")}</TableCell>
                             {selectedSuite?.id === ALL_SUITES_ID && (
-                              <TableCell>{t("junit.detail.testSuite")}</TableCell>
+                              <TableCell 
+                                sx={{ 
+                                  whiteSpace: 'nowrap', 
+                                  maxWidth: { xs: 80, sm: 120, md: 150 }, 
+                                  overflow: 'hidden', 
+                                  textOverflow: 'ellipsis' 
+                                }}
+                              >
+                                <Tooltip title={t("junit.detail.testSuite")} arrow placement="top">
+                                  <span>{t("junit.detail.testSuite")}</span>
+                                </Tooltip>
+                              </TableCell>
                             )}
                             <TableCell>{t("junit.detail.testName")}</TableCell>
+                            <TableCell>{t("junit.editor.notes", "노트")}</TableCell>
                             <TableCell align="center" width="80px">
                               {t("junit.detail.edit")}
                             </TableCell>
@@ -1220,40 +1284,102 @@ const JunitResultDetail = () => {
                                   />
                                 </TableCell>
                                 {selectedSuite?.id === ALL_SUITES_ID && (
-                                  <TableCell>
-                                    <Typography
-                                      variant="caption"
-                                      color="text.secondary"
-                                    >
-                                      {testCase.suiteName || "-"}
-                                    </Typography>
+                                  <TableCell
+                                    sx={{ 
+                                      whiteSpace: 'nowrap', 
+                                      maxWidth: { xs: 80, sm: 120, md: 150 }, 
+                                      overflow: 'hidden', 
+                                      textOverflow: 'ellipsis' 
+                                    }}
+                                  >
+                                    <Tooltip title={testCase.suiteName || "-"} arrow placement="top">
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{
+                                          display: 'block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis'
+                                        }}
+                                      >
+                                        {testCase.suiteName || "-"}
+                                      </Typography>
+                                    </Tooltip>
                                   </TableCell>
                                 )}
-                                <TableCell>
-                                    <Typography
-                                    variant="body2"
-                                    fontWeight="medium"
-                                    sx={{
-                                      cursor: "pointer",
-                                      color: "primary.main",
-                                      "&:hover": {
-                                        textDecoration: "underline",
-                                      },
-                                    }}
-                                    onClick={() => handleTestCaseClick(testCase.id)}
-                                    data-testid="automation-case-name"
-                                  >
-                                    {testCase.userTitle || testCase.name}
-                                  </Typography>
-                                  {testCase.userTitle && (
-                                    <Typography
-                                      variant="caption"
-                                      color="text.secondary"
-                                      display="block"
-                                      sx={{ fontSize: '0.65rem' }}
-                                    >
-                                      {t("junit.detail.original")}: {testCase.name}
-                                    </Typography>
+                                <TableCell
+                                  sx={{
+                                    maxWidth: { xs: 120, sm: 200, md: 300, xl: 400 },
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                  }}
+                                >
+                                  <Tooltip title={
+                                    <React.Fragment>
+                                      <Typography variant="body2">{testCase.userTitle || testCase.name}</Typography>
+                                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                        {testCase.userTitle ? `${t("junit.detail.original")}: ${testCase.name}` : ''}
+                                      </Typography>
+                                    </React.Fragment>
+                                  } arrow placement="top">
+                                    <Box sx={{ overflow: 'hidden' }}>
+                                      <Typography
+                                        variant="body2"
+                                        fontWeight="medium"
+                                        sx={{
+                                          cursor: "pointer",
+                                          color: "primary.main",
+                                          display: 'block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          "&:hover": {
+                                            textDecoration: "underline",
+                                          },
+                                        }}
+                                        onClick={() => handleTestCaseClick(testCase.id)}
+                                        data-testid="automation-case-name"
+                                      >
+                                        {testCase.userTitle || testCase.name}
+                                      </Typography>
+                                      {testCase.userTitle && (
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                          display="block"
+                                          sx={{ 
+                                            fontSize: '0.65rem',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                          }}
+                                        >
+                                          {t("junit.detail.original")}: {testCase.name}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                  </Tooltip>
+                                </TableCell>
+                                <TableCell sx={{ maxWidth: 200 }} data-testid="automation-case-note-cell">
+                                  {testCase.userNotes ? (
+                                    <Tooltip title={testCase.userNotes} arrow placement="top">
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical',
+                                          overflow: 'hidden',
+                                          cursor: 'default',
+                                          lineHeight: 1.4,
+                                        }}
+                                      >
+                                        {testCase.userNotes}
+                                      </Typography>
+                                    </Tooltip>
+                                  ) : (
+                                    <Typography variant="caption" color="text.disabled">-</Typography>
                                   )}
                                 </TableCell>
                                 <TableCell align="center">
@@ -1339,6 +1465,7 @@ const JunitResultDetail = () => {
                     >
                       <TestCaseDetailPanel
                         testCaseId={selectedTestCaseId}
+                        refreshTrigger={editRefreshTrigger}
                         onClose={handleCloseDetailPanel}
                         onEditTestCase={handleEditTestCase}
                         onNavigatePrev={handleNavigatePrev}
@@ -1393,6 +1520,7 @@ const JunitResultDetail = () => {
             <FailedTestsTab
               testResultId={testResultId}
               onEditTestCase={handleEditTestCase}
+              refreshTrigger={editRefreshTrigger}
             />
           </AccordionDetails>
         </Accordion>
@@ -1425,6 +1553,7 @@ const JunitResultDetail = () => {
             <SlowestTestsTab
               testResultId={testResultId}
               onEditTestCase={handleEditTestCase}
+              refreshTrigger={editRefreshTrigger}
             />
           </AccordionDetails>
         </Accordion>
@@ -1444,7 +1573,7 @@ const JunitResultDetail = () => {
 };
 
 // 실패한 테스트 탭 컴포넌트 - ICT-337 확장: Split Panel 구조
-const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
+const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) => {
   const { t } = useI18n();
   const [failedTests, setFailedTests] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1469,7 +1598,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
     };
 
     loadFailedTests();
-  }, [testResultId]);
+  }, [testResultId, refreshTrigger]);
 
   // ICT-337: 실패한 테스트 케이스 클릭 핸들러
   const handleFailedTestCaseClick = (testCaseId) => {
@@ -1616,6 +1745,47 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                           </Typography>
                         </Box>
                       )}
+
+                      {/* Note 미리보기 */}
+                      {testCase.userNotes && (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 'bold',
+                              color: 'warning.dark',
+                              whiteSpace: 'nowrap',
+                              fontSize: '0.7rem',
+                            }}
+                          >
+                            {t("junit.editor.notes", "노트")}:
+                          </Typography>
+                          <Tooltip title={testCase.userNotes} arrow placement="top">
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                cursor: 'default',
+                                fontSize: '0.7rem',
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {testCase.userNotes}
+                            </Typography>
+                          </Tooltip>
+                        </Box>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -1673,6 +1843,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
             >
               <TestCaseDetailPanel
                 testCaseId={selectedTestCaseId}
+                refreshTrigger={refreshTrigger}
                 onClose={handleCloseDetailPanel}
                 onEditTestCase={onEditTestCase}
                 onNavigatePrev={() => {
@@ -1696,7 +1867,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
 };
 
 // 느린 테스트 탭 컴포넌트
-const SlowestTestsTab = ({ testResultId, onEditTestCase }) => {
+const SlowestTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) => {
   const { t } = useI18n();
   const theme = useTheme();
   const [slowestTests, setSlowestTests] = useState([]);
@@ -1719,7 +1890,7 @@ const SlowestTestsTab = ({ testResultId, onEditTestCase }) => {
     };
 
     loadSlowestTests();
-  }, [testResultId]);
+  }, [testResultId, refreshTrigger]);
 
   const formatDuration = (seconds) => {
     if (seconds < 1) return `${(seconds * 1000).toFixed(0)}ms`;

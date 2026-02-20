@@ -1,4 +1,4 @@
-const BasePage = require('./BasePage');
+const { BasePage } = require('./BasePage');
 
 /**
  * Page Object Model for Automation (JUnit Results) page
@@ -28,6 +28,8 @@ class AutomationPage extends BasePage {
         this.detailRefreshButton = page.locator('[data-testid="automation-detail-refresh-button"]');
         this.caseRow = page.locator('[data-testid="automation-case-row"]');
         this.caseName = page.locator('[data-testid="automation-case-name"]');
+        this.noteHeader = page.locator('thead th').filter({ hasText: '노트' });
+        this.noteCell = page.locator('[data-testid="automation-case-note-cell"]');
         this.editCaseButton = page.locator('[data-testid="automation-edit-case-button"]');
         
         // Case Editor Dialog
@@ -36,7 +38,8 @@ class AutomationPage extends BasePage {
         this.editStatusSelect = page.locator('[data-testid="automation-case-status-select"]');
         this.editPrioritySelect = page.locator('[data-testid="automation-case-priority-select"]');
         this.editTagsInput = page.locator('[data-testid="automation-case-tags-input"]');
-        this.editNotesInput = page.locator('[data-testid="automation-case-notes-input"]');
+        this.editNotesInputWrapper = page.locator('[data-testid="automation-case-notes-input"]');
+        this.editNotesTextarea = this.editNotesInputWrapper.locator('textarea, input').first();
         this.saveCaseButton = page.locator('[data-testid="automation-case-save-button"]');
         this.cancelCaseButton = page.locator('[data-testid="automation-case-cancel-button"]');
     }
@@ -99,7 +102,7 @@ class AutomationPage extends BasePage {
         
         if (data.title) await this.editTitleInput.fill(data.title);
         if (data.description) await this.editDescriptionInput.fill(data.description);
-        if (data.notes) await this.editNotesInput.fill(data.notes);
+        if (data.notes) await this.editNotesTextarea.fill(data.notes);
         if (data.tags) await this.editTagsInput.fill(data.tags);
         
         if (data.status) {
