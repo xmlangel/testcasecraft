@@ -110,15 +110,34 @@ public class TestCaseService {
         Project project = projectRepository.findById(testCaseDto.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
 
+        // 프론트엔드의 가상 폴더 ID(고아 노드)인 경우 Import폴더로 매핑
+        if ("orphaned-items-folder".equals(testCaseDto.getParentId())) {
+            testCaseDto.setParentId(getOrCreateImportFolder(project));
+        }
+
+        // "null" 또는 "undefined" 문자열이 넘어온 경우 실제 null로 변환
+        if ("null".equals(testCaseDto.getParentId()) || "undefined".equals(testCaseDto.getParentId())) {
+            testCaseDto.setParentId(null);
+        }
+
         if (testCaseDto.getParentId() != null && !testCaseDto.getParentId().isEmpty()) {
-            testCaseRepository.findById(testCaseDto.getParentId())
-                    .ifPresentOrElse(
-                            parent -> {
-                                if (!"folder".equals(parent.getType())) {
-                                    errors.put("parentId", "Parent must be a folder");
-                                }
-                            },
-                            () -> errors.put("parentId", "Parent folder not found"));
+            boolean isParentValid = testCaseRepository.findById(testCaseDto.getParentId())
+                    .map(parent -> {
+                        if (!"folder".equals(parent.getType())) {
+                            errors.put("parentId", "Parent must be a folder");
+                            return false;
+                        }
+                        return true;
+                    })
+                    .orElseGet(() -> {
+                        errors.put("parentId", "해당 상위 폴더를 찾을 수 없습니다.");
+                        return false;
+                    });
+
+            // 유효하지 않은 부모 ID인 경우 즉시 에러 발생 (고아 노드 방지)
+            if (!isParentValid) {
+                throw new ResourceNotValidException("Validation failed", errors);
+            }
         }
 
         if (!errors.isEmpty()) {
@@ -299,13 +318,34 @@ public class TestCaseService {
         Project project = projectRepository.findById(testCaseDto.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
 
+        // 프론트엔드의 가상 폴더 ID(고아 노드)인 경우 Import폴더로 매핑
+        if ("orphaned-items-folder".equals(testCaseDto.getParentId())) {
+            testCaseDto.setParentId(getOrCreateImportFolder(project));
+        }
+
+        // "null" 또는 "undefined" 문자열이 넘어온 경우 실제 null로 변환
+        if ("null".equals(testCaseDto.getParentId()) || "undefined".equals(testCaseDto.getParentId())) {
+            testCaseDto.setParentId(null);
+        }
+
         if (testCaseDto.getParentId() != null && !testCaseDto.getParentId().isEmpty()) {
-            testCaseRepository.findById(testCaseDto.getParentId())
-                    .ifPresentOrElse(parent -> {
+            boolean isParentValid = testCaseRepository.findById(testCaseDto.getParentId())
+                    .map(parent -> {
                         if (!"folder".equals(parent.getType())) {
                             errors.put("parentId", "Parent must be a folder");
+                            return false;
                         }
-                    }, () -> errors.put("parentId", "Parent folder not found"));
+                        return true;
+                    })
+                    .orElseGet(() -> {
+                        errors.put("parentId", "해당 상위 폴더를 찾을 수 없습니다.");
+                        return false;
+                    });
+
+            // 유효하지 않은 부모 ID인 경우 즉시 에러 발생 (고아 노드 방지)
+            if (!isParentValid) {
+                throw new ResourceNotValidException("Validation failed", errors);
+            }
         }
 
         // 중복 이름 검증 (자기 자신 제외) - 빈 문자열도 NULL로 처리
@@ -554,29 +594,8 @@ public class TestCaseService {
         List<TestCase> testCases = new ArrayList<>();
         List<Map<String, Object>> errors = new ArrayList<>();
 
-        // Import폴더 자동 생성 또는 재사용
-        String importFolderId = null;
-        TestCase importFolder = null;
-        Optional<TestCase> importFolderOpt = testCaseRepository
-                .findByProjectIdAndType(projectId, "folder")
-                .stream()
-                .filter(tc -> "Import폴더".equals(tc.getName()))
-                .findFirst();
-        if (importFolderOpt.isPresent()) {
-            importFolder = importFolderOpt.get();
-            importFolderId = importFolder.getId();
-        } else {
-            importFolder = new TestCase();
-            importFolder.setName("Import폴더");
-            importFolder.setType("folder");
-            importFolder.setProject(project);
-            importFolder.setCreatedAt(LocalDateTime.now());
-            importFolder.setUpdatedAt(LocalDateTime.now());
-            importFolder.setDisplayOrder(1);
-            importFolder.setDescription("CSV Import 자동 생성 폴더");
-            importFolder = testCaseRepository.save(importFolder);
-            importFolderId = importFolder.getId();
-        }
+        // Import폴더 자동 생성 또는 재사용 (공통 메서드 활용)
+        String importFolderId = getOrCreateImportFolder(project);
 
         // parentId별 displayOrder 관리
         Map<String, Integer> parentMaxOrderMap = new HashMap<>();
@@ -778,31 +797,8 @@ public class TestCaseService {
 
         List<TestCase> testCases = new ArrayList<>();
         List<Map<String, Object>> errors = new ArrayList<>();
-        String importFolderId = null;
-        TestCase importFolder = null;
-
         // Import 폴더 처리 (기존 import와 동일)
-        Optional<TestCase> importFolderOpt = testCaseRepository
-                .findByProjectIdAndType(projectId, "folder")
-                .stream()
-                .filter(tc -> "Import".equals(tc.getName()))
-                .findFirst();
-
-        if (importFolderOpt.isPresent()) {
-            importFolder = importFolderOpt.get();
-            importFolderId = importFolder.getId();
-        } else {
-            importFolder = new TestCase();
-            importFolder.setName("Import");
-            importFolder.setType("folder");
-            importFolder.setProject(project);
-            importFolder.setCreatedAt(LocalDateTime.now());
-            importFolder.setUpdatedAt(LocalDateTime.now());
-            importFolder.setDisplayOrder(1);
-            importFolder.setDescription("Google Sheet Import");
-            testCaseRepository.save(importFolder);
-            importFolderId = importFolder.getId();
-        }
+        String importFolderId = getOrCreateImportFolder(project);
 
         Map<String, Integer> parentMaxOrderMap = new HashMap<>();
         for (int i = 0; i < rows.size(); i++) {
@@ -831,10 +827,38 @@ public class TestCaseService {
                 errors.add(Map.of("row", i + 1, "data", row, "message", e.getMessage()));
             }
         }
+
         if (!errors.isEmpty()) {
             throw new ResourceNotValidException("Google Sheet import failed", Map.of("errors", errors.toString()));
         }
         return testCases;
+    }
+
+    /**
+     * Import 또는 미할당 테스트케이스 보관용 폴더를 조회하거나 새로 생성합니다.
+     */
+    private String getOrCreateImportFolder(Project project) {
+        String projectId = project.getId();
+        Optional<TestCase> importFolderOpt = testCaseRepository
+                .findByProjectIdAndType(projectId, "folder")
+                .stream()
+                .filter(tc -> "Import폴더".equals(tc.getName()))
+                .findFirst();
+
+        if (importFolderOpt.isPresent()) {
+            return importFolderOpt.get().getId();
+        } else {
+            TestCase importFolder = new TestCase();
+            importFolder.setName("Import폴더");
+            importFolder.setType("folder");
+            importFolder.setProject(project);
+            importFolder.setCreatedAt(LocalDateTime.now());
+            importFolder.setUpdatedAt(LocalDateTime.now());
+            importFolder.setDisplayOrder(1);
+            importFolder.setDescription("시스템 자동 생성 폴더 (Import 및 미할당 항목)");
+            importFolder = testCaseRepository.save(importFolder);
+            return importFolder.getId();
+        }
     }
 
     private List<Map<String, String>> parseExcel(InputStream is, CsvMappingConfig config) {
@@ -1163,9 +1187,22 @@ public class TestCaseService {
                                             "프로젝트를 찾을 수 없습니다: " + dto.getProjectId())));
                         }
 
-                        // 부모 설정
-                        if (dto.getParentId() != null && !dto.getParentId().isEmpty()) {
-                            entity.setParentId(dto.getParentId());
+                        // 부모 설정 및 고아 노드 방지 (방안 2)
+                        if (dto.getParentId() != null && !dto.getParentId().trim().isEmpty()) {
+                            String parentId = dto.getParentId().trim();
+                            // DB에 부모가 실제로 존재하는지, 폴더인지 확인
+                            boolean isParentValid = testCaseRepository.findById(parentId)
+                                    .map(parent -> "folder".equals(parent.getType()))
+                                    .orElse(false);
+
+                            if (isParentValid) {
+                                entity.setParentId(parentId);
+                            } else {
+                                log.warn("배치 저장 - 유효하지 않은 parentId 발견: {}. Import폴더로 이동 처리합니다.", parentId);
+                                // Import폴더 찾기 또는 생성
+                                String importFolderId = getOrCreateImportFolder(entity.getProject());
+                                entity.setParentId(importFolderId);
+                            }
                         }
 
                         // 기본값 설정
