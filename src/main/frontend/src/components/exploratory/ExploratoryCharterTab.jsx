@@ -88,10 +88,9 @@ function ExploratoryCharterTab({
             <Alert severity="info">{t("exploratory.charter.empty", "등록된 차터가 없습니다.")}</Alert>
           </Grid>
         )}
-        {filteredCharters.map((item) => (
-          (() => {
-            const mission = parseMission(item.mission, item.areas);
-            return (
+        {filteredCharters.map((item) => {
+          const mission = parseMission(item.mission, item.areas);
+          return (
           <Grid size={{ xs: 12, md: 6 }} key={item.id}>
             <Card variant="outlined">
               <CardContent>
@@ -137,9 +136,8 @@ function ExploratoryCharterTab({
               </CardContent>
             </Card>
           </Grid>
-            );
-          })()
-        ))}
+          );
+        })}
       </Grid>
 
       <Dialog open={charterDialogOpen} onClose={() => setCharterDialogOpen(false)} fullWidth maxWidth="sm">

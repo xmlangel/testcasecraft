@@ -25,6 +25,23 @@ import {
   UploadFile as UploadFileIcon,
 } from "@mui/icons-material";
 
+const parseCharterMission = (mission, areas) => {
+  const normalized = `${mission || ""}`.trim();
+  const lines = normalized.split("\n").map((line) => line.trim()).filter(Boolean);
+  const byPrefix = (prefix) => {
+    const line = lines.find((item) => item.startsWith(prefix));
+    return line ? line.slice(prefix.length).trim() : "";
+  };
+
+  const objective = byPrefix("- 목표:") || normalized;
+  const resources = byPrefix("- 자원:") || areas || "";
+  const timebox = byPrefix("- 시간:");
+  const cautions = byPrefix("- 주의점:");
+  const records = byPrefix("- 기록:");
+
+  return { objective, resources, timebox, cautions, records };
+};
+
 function ExploratorySessionEditorTab({
   t,
   sessionDraft,
@@ -42,6 +59,7 @@ function ExploratorySessionEditorTab({
   statusColor,
 }) {
   const [editorTab, setEditorTab] = React.useState(0);
+  const charterDetail = parseCharterMission(selectedCharter?.mission, selectedCharter?.areas);
 
   const sessionStatusChip = (
     <Chip
@@ -182,9 +200,28 @@ function ExploratorySessionEditorTab({
                 </FormControl>
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  {t("exploratory.editor.charterSection.autoMission", "자동 바인딩된 미션")}: {selectedCharter?.mission || "-"}
-                </Typography>
+                <Box sx={{ mt: 0.5, p: 1.25, borderRadius: 1, bgcolor: "grey.50", border: "1px solid", borderColor: "divider" }}>
+                  <Typography variant="subtitle2" sx={{ mb: 0.75, fontWeight: 700 }}>
+                    {t("exploratory.editor.charterSection.autoMission", "자동 바인딩된 미션")}
+                  </Typography>
+                  <Stack spacing={0.5}>
+                    <Typography variant="body2" color="text.secondary">
+                      목표: {charterDetail.objective || "-"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      자원: {charterDetail.resources || "-"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      시간: {charterDetail.timebox || "-"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      주의점: {charterDetail.cautions || "-"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      기록: {charterDetail.records || "-"}
+                    </Typography>
+                  </Stack>
+                </Box>
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
@@ -232,9 +269,27 @@ function ExploratorySessionEditorTab({
         <>
           <Card variant="outlined">
             <CardContent>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                {t("exploratory.editor.notes.title", "테스트 노트")}
-              </Typography>
+              <Grid container spacing={1.5} sx={{ mb: 1 }}>
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    {t("exploratory.editor.notes.title", "테스트 노트")}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <Box sx={{ p: 1.25, borderRadius: 1, bgcolor: "grey.50", border: "1px solid", borderColor: "divider" }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.75, fontWeight: 700 }}>
+                      {t("exploratory.editor.charterSection.autoMission", "자동 바인딩된 미션")}
+                    </Typography>
+                    <Stack spacing={0.5}>
+                      <Typography variant="body2" color="text.secondary">목표: {charterDetail.objective || "-"}</Typography>
+                      <Typography variant="body2" color="text.secondary">자원: {charterDetail.resources || "-"}</Typography>
+                      <Typography variant="body2" color="text.secondary">시간: {charterDetail.timebox || "-"}</Typography>
+                      <Typography variant="body2" color="text.secondary">주의점: {charterDetail.cautions || "-"}</Typography>
+                      <Typography variant="body2" color="text.secondary">기록: {charterDetail.records || "-"}</Typography>
+                    </Stack>
+                  </Box>
+                </Grid>
+              </Grid>
               <Grid container spacing={1.5}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
