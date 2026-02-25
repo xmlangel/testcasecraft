@@ -49,12 +49,11 @@ public class TestExecutionControllerJsonSchemaTest extends AbstractTransactional
 
         RestAssured.filters(
                 new RequestLoggingFilter(),
-                new ResponseLoggingFilter()
-        );
+                new ResponseLoggingFilter());
 
         // JWT 토큰 발급
         Map<String, Object> loginRequest = new HashMap<>();
-        loginRequest.put("username", "admin");
+        loginRequest.put("username", "test_admin");
         loginRequest.put("password", "admin123");
 
         jwtToken = given()
@@ -63,13 +62,14 @@ public class TestExecutionControllerJsonSchemaTest extends AbstractTransactional
                 .post("/api/auth/login")
                 .then()
                 .statusCode(200)
-                .extract().path("token");
+                .extract().path("accessToken");
 
         // Schema 로딩
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/testexecution-schema.json")) {
             testExecutionSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/testexecution-list-schema.json")) {
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/testexecution-list-schema.json")) {
             testExecutionListSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
@@ -133,7 +133,8 @@ public class TestExecutionControllerJsonSchemaTest extends AbstractTransactional
                                 .header("Authorization", "Bearer " + jwtToken)
                                 .when()
                                 .delete("/api/test-executions/" + execId);
-                    } catch (Exception ignore) {}
+                    } catch (Exception ignore) {
+                    }
                 }
             }
 
@@ -154,7 +155,8 @@ public class TestExecutionControllerJsonSchemaTest extends AbstractTransactional
                                 .header("Authorization", "Bearer " + jwtToken)
                                 .when()
                                 .delete("/api/test-plans/" + planId);
-                    } catch (Exception ignore) {}
+                    } catch (Exception ignore) {
+                    }
                 }
             }
 
@@ -164,7 +166,8 @@ public class TestExecutionControllerJsonSchemaTest extends AbstractTransactional
                         .header("Authorization", "Bearer " + jwtToken)
                         .when()
                         .delete("/api/projects/" + projectId);
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
         }
     }
 
@@ -193,7 +196,6 @@ public class TestExecutionControllerJsonSchemaTest extends AbstractTransactional
 
         testExecutionId = response.path("id");
     }
-
 
     @Test(priority = 2, dependsOnMethods = "createTestExecutionTest")
     @Story("Update Test Execution")

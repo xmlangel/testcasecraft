@@ -64,7 +64,7 @@ public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTes
 
         // Get JWT Token
         Map<String, Object> loginRequest = new HashMap<>();
-        loginRequest.put("username", "admin");
+        loginRequest.put("username", "test_admin");
         loginRequest.put("password", "admin123");
 
         jwtToken = given()
@@ -73,7 +73,7 @@ public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTes
                 .post("/api/auth/login")
                 .then()
                 .statusCode(200)
-                .extract().path("token");
+                .extract().path("accessToken");
     }
 
     @Test(priority = 1)
@@ -137,7 +137,7 @@ public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTes
     @Description("JWT 토큰 발급 검증")
     public void loginTest() {
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("username", "admin");
+        requestBody.put("username", "test_admin");
         requestBody.put("password", "admin123");
 
         given()
@@ -149,8 +149,8 @@ public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTes
                 .then()
                 .statusCode(200)
                 .body(JsonSchemaValidator.matchesJsonSchema(loginSchema))
-                .body("token", notNullValue())
-                .body("expiration", notNullValue());
+                .body("accessToken", notNullValue())
+                .body("accessTokenExpiration", notNullValue());
     }
 
     @Test(priority = 3)
@@ -166,7 +166,7 @@ public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTes
                 .then()
                 .statusCode(200)
                 .body(JsonSchemaValidator.matchesJsonSchema(userInfoSchema))
-                .body("username", equalTo("admin"))
+                .body("username", equalTo("test_admin"))
                 .body("role", equalTo("ADMIN"));
     }
 

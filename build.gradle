@@ -398,8 +398,7 @@ dependencies {
 	testImplementation 'io.rest-assured:rest-assured:5.3.2'
 	testImplementation 'io.rest-assured:json-schema-validator:5.3.2'
 	testImplementation 'org.hamcrest:hamcrest:2.2'
-	testImplementation 'org.springframework:spring-test:6.1.13'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.0'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.testng:testng:7.10.2'
 	testImplementation 'com.h2database:h2:2.2.224'
 	runtimeOnly 'com.h2database:h2:2.2.224'  // 런타임에도 H2 사용 가능하도록 추가

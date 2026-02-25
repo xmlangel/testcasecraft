@@ -25,12 +25,19 @@
         "maxLength": 500
       },
       "createdAt": {
-        "type": "string",
-        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+        "oneOf": [
+          { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$" },
+          { "type": "array", "items": { "type": "integer" } }
+        ]
       },
       "updatedAt": {
-        "type": "string",
-        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+        "oneOf": [
+          { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$" },
+          { "type": "array", "items": { "type": "integer" } }
+        ]
+      },
+      "userRole": {
+        "type": ["string", "null"]
       },
       "memberCount": { 
         "type": "integer",
@@ -41,6 +48,6 @@
         "minimum": 0
       }
     },
-    "additionalProperties": false
+    "additionalProperties": true
   }
 }

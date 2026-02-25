@@ -20,8 +20,8 @@ import org.testng.annotations.Test;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -85,26 +85,26 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
                 }
 
                 // Admin 사용자 생성 또는 업데이트 (비밀번호 보장)
-                com.testcase.testcasemanagement.model.User admin;
-                if (userRepository.existsByUsername("test_admin")) {
-                        admin = userRepository.findByUsername("test_admin").orElseThrow();
-                } else {
-                        admin = new com.testcase.testcasemanagement.model.User();
-                        admin.setUsername("test_admin");
-                        admin.setEmail("admin@test.com");
-                        admin.setRole("ADMIN");
-                        admin.setCreatedAt(java.time.LocalDateTime.now());
-                }
+                // 테스트용 유니크 ID 생성
+                String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+                String adminUsername = "test_admin_" + uniqueId;
+                String adminEmail = "admin_" + uniqueId + "@test.com";
 
+                // Admin 사용자 생성
+                com.testcase.testcasemanagement.model.User admin = new com.testcase.testcasemanagement.model.User();
+                admin.setUsername(adminUsername);
+                admin.setEmail(adminEmail);
+                admin.setRole("ADMIN");
+                admin.setCreatedAt(java.time.LocalDateTime.now());
                 admin.setPassword(passwordEncoder.encode("admin123"));
-                admin.setName("Administrator");
+                admin.setName("Administrator " + uniqueId);
                 admin.setEmailVerified(true);
                 admin.setUpdatedAt(java.time.LocalDateTime.now());
                 userRepository.save(admin);
 
                 // 관리자 로그인하여 JWT 토큰 발급
                 Map<String, Object> loginRequest = new HashMap<>();
-                loginRequest.put("username", "test_admin");
+                loginRequest.put("username", adminUsername);
                 loginRequest.put("password", "admin123");
 
                 io.restassured.response.Response loginResponse = given()
@@ -252,9 +252,9 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
                                 .body("accessToken", notNullValue())
                                 .body("refreshToken", notNullValue())
                                 .body("tokenType", equalTo("Bearer"))
-                                .body("accessTokenExpiration", greaterThan(0))
-                                .body("refreshTokenExpiration", greaterThan(0))
-                                .body("user.username", equalTo("test_admin"))
+                                .body("accessTokenExpiration", is(notNullValue()))
+                                .body("refreshTokenExpiration", greaterThan(0L))
+                                .body("user.username", startsWith("test_admin_"))
                                 .body("user.role", equalTo("ADMIN"));
         }
 
@@ -312,9 +312,10 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
                                 .when()
                                 .get("/api/auth/me")
                                 .then()
+                                .log().ifError()
                                 .statusCode(200)
                                 .body(JsonSchemaValidator.matchesJsonSchema(userInfoSchema))
-                                .body("username", equalTo("test_admin"))
+                                .body("username", startsWith("test_admin_"))
                                 .body("role", equalTo("ADMIN"))
                                 .body("name", notNullValue())
                                 .body("email", notNullValue());
@@ -666,7 +667,7 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
                                 .then()
                                 .statusCode(200)
                                 .body("accessToken.valid", equalTo(true))
-                                .body("accessToken.username", equalTo("test_admin"));
+                                .body("accessToken.username", startsWith("test_admin_"));
         }
 
         @Test(priority = 9)

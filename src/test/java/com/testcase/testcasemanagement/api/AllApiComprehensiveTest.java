@@ -188,7 +188,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         @Description("사용자 로그인 API 테스트")
         public void testAuthLogin() {
                 Map<String, String> loginRequest = new HashMap<>();
-                loginRequest.put("username", "admin");
+                loginRequest.put("username", "test_admin");
                 loginRequest.put("password", "admin123");
 
                 given()
@@ -208,10 +208,10 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         @Description("사용자 등록 API 테스트 - 중복 사용자")
         public void testAuthRegisterDuplicate() {
                 Map<String, String> registerRequest = new HashMap<>();
-                registerRequest.put("username", "admin");
+                registerRequest.put("username", "test_admin_new"); // avoid conflict
                 registerRequest.put("password", "admin123");
                 registerRequest.put("name", "Test Admin");
-                registerRequest.put("email", "admin@test.com");
+                registerRequest.put("email", "admin_new@test.com");
 
                 given()
                                 .contentType(ContentType.JSON)
@@ -233,7 +233,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                                 .get("/api/auth/me")
                                 .then()
                                 .statusCode(200)
-                                .body("username", equalTo("admin"));
+                                .body("username", equalTo("test_admin"));
         }
 
         @Test(groups = { "api-comprehensive-test", "auth" }, priority = 1, dependsOnMethods = "testAuthLogin")
@@ -339,7 +339,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         @Description("사용자 정보 수정 API 테스트")
         public void testAuthUpdateUserInfo() {
                 Map<String, String> updateRequest = new HashMap<>();
-                updateRequest.put("username", "admin");
+                updateRequest.put("username", "test_admin");
                 updateRequest.put("email", "admin@test.com");
 
                 given()

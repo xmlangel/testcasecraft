@@ -3,22 +3,21 @@
 이 문서는 `./gradlew test` 실행 결과를 요약하고 정리한 리포트입니다.
 
 ## 1. 테스트 실행 요약
-- **실행 일시**: 2026-02-25 11:11:54 (KST)
-- **환경**: local profile (Docker 인프라 서비스 가동 상태)
-- **전체 테스트 수**: 410
-- **성공**: 89
-- **실패**: 101
-- **건너뜀(Skipped)**: 220
+- **실행 일시**: 2026-02-25 14:29:29 (KST)
+- **환경**: local profile (MockMvc & RestAssured 혼용 환경)
+- **전체 테스트 수**: 23 (특정 3개 클래스 집중 실행)
+- **성공**: 3
+- **실패**: 7
+- **건너뜀(Skipped)**: 13
 
 ## 2. 패키지별 테스트 상세 결과
 
 | 테스트 클래스 | 테스트 내용 | 총계 | 성공 | 실패 | 건너뜀 | 비고 |
 | :--- | :--- | :---: | :---: | :---: | :---: | :--- |
 | **API 패키지** | | | | | | |
-| `AuthControllerJsonSchemaTest` | 인증 API JSON 스키마 검증 | 6 | 0 | 1 | 5 | context 설정 오류 가능성 |
-| `DashboardControllerJsonSchemaTest` | 대시보드 API 스키마 검증 | 38 | 0 | 1 | 37 | |
-| `OrganizationControllerIntegrationTest` | 조직 관리 통합 테스트 | 13 | 0 | 9 | 4 | |
-| `SessionControllerApiTest` | 테스트 세션 라이프사이클 관리 | 5 | 5 | 0 | 0 | **정상** |
+| `OrganizationControllerJsonSchemaTest` | 조직 API JSON 스키마 검증 | 5 | 0 | 5 | 0 | **인증 성공(401 해결)**, 스키마 불일치 발생 |
+| `GroupControllerJsonSchemaTest` | 그룹 API 스키마 검증 | 14 | 0 | 1 | 13 | `setUp`에서 401 발생 (RestAssured 설정 확인 필요) |
+| `OrganizationControllerIntegrationTest` | 조직 관리 통합 테스트 | 4 | 3 | 1 | 0 | **인증 및 기본 기능 성공**, 전체 워크플로우 중 삭제 403 |
 | `SingleApiTest` | 기본 인증 API 호출 테스트 | 1 | 0 | 1 | 0 | 401 Unauthorized 발생 |
 | **Repository 패키지** | | | | | | |
 | `GroupRepositoryTest` | 그룹 데이터 접근 테스트 | 17 | 17 | 0 | 0 | **정상** |
@@ -89,17 +88,26 @@
 
 - **대상**: `DashboardApiLoadTest`, `DatabaseIndexPerformanceTest` 등
 
-## 4. 주요 실패 원인 분석
+## 4. 주요 실패 원인 및 해결 현황
 
 1.  **Repository 테스트 완결**:
-    *   이전의 `entityManager` 주입 문제 및 객체 ID 충돌 문제를 모두 해결하여 현재 Repository 레이어의 안정성을 확보했습니다.
-    *   `@DataJpaTest`와 `TestEntityManager` 기반의 표준 테스트 패턴이 안착되었습니다.
+    *   **상태**: **✅ 해결 완료 (100% 통과)**
+    *   `entityManager.clear()` 도입 및 UUID 자동 생성 전략 준수(수동 Id 제거)를 통해 레포지토리 레이어의 안정성을 확보했습니다.
 
-2.  **API 테스트의 401 Unauthorized**:
-    *   `SingleApiTest` 등에서 로그인 테스트 시 권한 오류가 발생했습니다. 이는 테스트용 계정 정보가 최신화되지 않았거나 H2 DB 초기화 상태 때문일 수 있습니다.
+2.  **API 테스트의 401 Unauthorized 해결 진전**:
+    *   **현황**: `OrganizationController` 관련 테스트에서 401 오류를 해결했습니다.
+    *   **원인**: `MockMvc` 설정 시 `springSecurity()` 필터링 누락 및 JWT 토큰 주입 문제.
+    *   **조치**: `OrganizationControllerJsonSchemaTest`와 `OrganizationControllerIntegrationTest`에 보안 설정을 적용하여 토큰 인증에 성공했습니다.
+    *   **남은 과제**: `GroupControllerJsonSchemaTest` 등 `RestAssured`를 사용하는 일부 테스트에서 여전히 `setUp` 단계 401이 발생하고 있어 추가 조치가 필요합니다.
 
-3.  **JSON Schema Test의 Skip**:
-    *   대부분의 JsonSchema 테스트가 첫 번째 테스트 실패 후 나머지가 Skip 되었습니다. 이는 테스트 간 의존성 또는 공통 초기화 로직 실패의 영향입니다.
+3.  **JSON Schema Test의 규격 불일치**:
+    *   **현황**: 인증 성공 후, 실제 응답 데이터가 정의된 스키마와 달라 실패 발생.
+    *   **원인**: `LocalDateTime`의 배열 직렬화 문제(`[2026, 2, 25, ...]`) 및 모델에 추가된 필드(`userRole` 등)가 스키마에 정의되지 않음.
+    *   **조치**: `application-test.yml`에 Jackson 날짜 형식 설정을 추가하거나 스키마를 최신화해야 합니다.
+
+4.  **통합 워크플로우 권한 오류 (403)**:
+    *   **현황**: 조직 생성/조회는 성공하나, 최종 삭제 단계에서 403 Forbidden 발생.
+    *   **원인**: 데이터 격리 또는 삭제 권한 매핑 로직의 부작용 가능성.
 
 ## 4. 후속 조치 권장 사항
 *   실패한 통합 테스트(`OrganizationControllerIntegrationTest` 등)의 상세 로그 분석을 통한 로직 수정.

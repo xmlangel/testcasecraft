@@ -51,7 +51,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     private String testExecutionProgressSchema;
     private String projectStatisticsSchema;
     private static String testProjectId;
-    
+
     // 생성된 리소스 ID 리스트
     private final List<String> createdProjectIds = new ArrayList<>();
 
@@ -61,13 +61,12 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
         RestAssured.baseURI = "http://localhost";
         RestAssured.filters(
                 new RequestLoggingFilter(),
-                new ResponseLoggingFilter()
-        );
-        
+                new ResponseLoggingFilter());
+
         // JWT 토큰 획득
         Map<String, Object> loginRequest = new HashMap<>();
-        loginRequest.put("username", "admin");
-        loginRequest.put("password", "admin");
+        loginRequest.put("username", "test_admin");
+        loginRequest.put("password", "admin123");
 
         jwtToken = given()
                 .filter(new AllureRestAssured())
@@ -79,30 +78,36 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
                 .extract().path("accessToken");
 
         // 스키마 파일 사전 로드
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/dashboard-recent-test-results-schema.json")) {
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/dashboard-recent-test-results-schema.json")) {
             recentTestResultsSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/dashboard-open-test-run-assignee-results-schema.json")) {
+
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/dashboard-open-test-run-assignee-results-schema.json")) {
             openTestRunAssigneeResultsSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/dashboard-test-results-trend-schema.json")) {
+
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/dashboard-test-results-trend-schema.json")) {
             testResultsTrendSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/dashboard-test-case-statistics-schema.json")) {
+
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/dashboard-test-case-statistics-schema.json")) {
             testCaseStatisticsSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/dashboard-test-execution-progress-schema.json")) {
+
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/dashboard-test-execution-progress-schema.json")) {
             testExecutionProgressSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/project-statistics-schema.json")) {
+
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/project-statistics-schema.json")) {
             projectStatisticsSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        
+
         // 테스트용 프로젝트 생성
         Map<String, Object> projectRequest = new HashMap<>();
         projectRequest.put("name", "대시보드 테스트용 프로젝트");
@@ -120,7 +125,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
                 .then()
                 .statusCode(201)
                 .extract().path("id");
-        
+
         createdProjectIds.add(testProjectId);
     }
 
@@ -141,7 +146,8 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
                         .header("Authorization", "Bearer " + jwtToken)
                         .when()
                         .delete("/api/projects/" + id + "?force=true");
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
         }
         createdProjectIds.clear();
     }
@@ -295,7 +301,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     @Description("존재하지 않는 프로젝트 ID로 조회 시 빈 결과 반환 테스트")
     public void getRecentTestResultsByNonExistentProjectTest() {
         String nonExistentProjectId = "00000000-0000-0000-0000-000000000000";
-        
+
         Response response = given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
@@ -327,7 +333,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
 
         // 추가 검증: 배열 형태 확인
         List<Map<String, Object>> results = response.jsonPath().getList("$");
-        
+
         // 결과가 있는 경우 필수 필드 검증
         for (Map<String, Object> result : results) {
             assert result.containsKey("assigneeName");
@@ -466,7 +472,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     @Description("존재하지 않는 프로젝트 ID로 조회 시 빈 결과 반환 테스트")
     public void getOpenTestRunAssigneeResultsByNonExistentProjectTest() {
         String nonExistentProjectId = "00000000-0000-0000-0000-000000000000";
-        
+
         Response response = given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
@@ -498,7 +504,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
 
         // 응답 데이터 검증
         List<Map<String, Object>> results = response.jsonPath().getList("$");
-        
+
         // 결과가 있는 경우 필수 필드 검증
         for (Map<String, Object> result : results) {
             assert result.containsKey("date");
@@ -513,7 +519,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
             // 값 타입 및 범위 검증
             Integer completeRate = (Integer) result.get("completeRate");
             assert completeRate >= 0 && completeRate <= 100;
-            
+
             // 개수 필드는 음수가 아니어야 함
             assert (Integer) result.get("PASS") >= 0;
             assert (Integer) result.get("FAIL") >= 0;
@@ -521,7 +527,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
             assert (Integer) result.get("SKIPPED") >= 0;
             assert (Integer) result.get("NOTRUN") >= 0;
             assert (Integer) result.get("notRun") >= 0;
-            
+
             // 날짜 형식 검증
             String dateStr = (String) result.get("date");
             assert dateStr.matches("^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/[0-9]{4}$");
@@ -577,7 +583,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     @Description("존재하지 않는 프로젝트 ID로 조회 시 빈 결과 반환 테스트")
     public void getTestResultsTrendByNonExistentProjectTest() {
         String nonExistentProjectId = "00000000-0000-0000-0000-000000000000";
-        
+
         Response response = given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
@@ -609,7 +615,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
 
         // 응답 데이터 검증
         Map<String, Object> result = response.jsonPath().getMap("$");
-        
+
         // 필수 필드 검증
         assert result.containsKey("totalCases");
         assert result.containsKey("PASS");
@@ -633,7 +639,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
         assert blocked >= 0;
         assert skipped >= 0;
         assert notrun >= 0;
-        
+
         // 각 상태별 개수의 합이 전체 개수와 일치해야 함
         assert totalCases.equals(pass + fail + blocked + skipped + notrun);
 
@@ -646,7 +652,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     @Description("존재하지 않는 프로젝트 ID로 조회 시 0 값들로 구성된 통계 반환 테스트")
     public void getTestCaseStatisticsByNonExistentProjectTest() {
         String nonExistentProjectId = "00000000-0000-0000-0000-000000000000";
-        
+
         Response response = given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
@@ -686,7 +692,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
 
         // 응답 데이터 검증
         List<Map<String, Object>> results = response.jsonPath().getList("$");
-        
+
         // 결과가 있는 경우 필수 필드 검증
         for (Map<String, Object> result : results) {
             assert result.containsKey("testExecutionId");
@@ -704,7 +710,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
             Double passRate = ((Number) result.get("passRate")).doubleValue();
             assert completionRate >= 0 && completionRate <= 100;
             assert passRate >= 0 && passRate <= 100;
-            
+
             // 개수 필드는 음수가 아니어야 함
             assert ((Integer) result.get("totalTestCases")) >= 0;
             assert ((Integer) result.get("completedTestCases")) >= 0;
@@ -810,7 +816,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     @Description("존재하지 않는 프로젝트 ID로 조회 시 빈 결과 반환 테스트")
     public void getInProgressTestExecutionsByNonExistentProjectTest() {
         String nonExistentProjectId = "00000000-0000-0000-0000-000000000000";
-        
+
         Response response = given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
@@ -842,7 +848,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
 
         // 응답 데이터 검증
         Map<String, Object> result = response.jsonPath().getMap("$");
-        
+
         // 필수 필드 검증
         assert result.containsKey("projectId");
         assert result.containsKey("projectName");
@@ -883,7 +889,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
         Double executionRate = ((Number) result.get("executionRate")).doubleValue();
         Double passRate = ((Number) result.get("passRate")).doubleValue();
         Double testCoverage = ((Number) result.get("testCoverage")).doubleValue();
-        
+
         // 개수 필드는 음수가 아니어야 함
         assert totalTestCases >= 0;
         assert executedTestCases >= 0;
@@ -894,21 +900,21 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
         assert (Integer) result.get("blockedTestCases") >= 0;
         assert (Integer) result.get("skippedTestCases") >= 0;
         assert (Integer) result.get("notRunTestCases") >= 0;
-        
+
         // 비율 필드는 0~100 범위여야 함
         assert executionRate >= 0 && executionRate <= 100;
         assert passRate >= 0 && passRate <= 100;
         assert testCoverage >= 0 && testCoverage <= 100;
-        assert ((Number) result.get("averagePassRateLast7Days")).doubleValue() >= 0 
-               && ((Number) result.get("averagePassRateLast7Days")).doubleValue() <= 100;
-        assert ((Number) result.get("averagePassRateLast30Days")).doubleValue() >= 0 
-               && ((Number) result.get("averagePassRateLast30Days")).doubleValue() <= 100;
-        
+        assert ((Number) result.get("averagePassRateLast7Days")).doubleValue() >= 0
+                && ((Number) result.get("averagePassRateLast7Days")).doubleValue() <= 100;
+        assert ((Number) result.get("averagePassRateLast30Days")).doubleValue() >= 0
+                && ((Number) result.get("averagePassRateLast30Days")).doubleValue() <= 100;
+
         // 우선순위별 케이스 개수는 음수가 아니어야 함
         assert (Integer) result.get("activePriorityHighCases") >= 0;
         assert (Integer) result.get("activePriorityMediumCases") >= 0;
         assert (Integer) result.get("activePriorityLowCases") >= 0;
-        
+
         // 실행 관련 개수는 음수가 아니어야 함
         assert (Integer) result.get("yesterdayExecutions") >= 0;
         assert (Integer) result.get("lastWeekExecutions") >= 0;
@@ -916,10 +922,10 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
         assert (Integer) result.get("activeTestExecutions") >= 0;
         assert (Integer) result.get("completedTestExecutions") >= 0;
         assert (Integer) result.get("pausedTestExecutions") >= 0;
-        
+
         // 데이터 신선도는 음수가 아니어야 함
         assert (Integer) result.get("dataFreshnessMinutes") >= 0;
-        
+
         // calculatedAt 필드는 null이 아니어야 함
         assert result.get("calculatedAt") != null;
 
@@ -932,7 +938,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     @Description("존재하지 않는 프로젝트 ID로 조회 시 기본값 통계 반환 테스트")
     public void getProjectStatisticsByNonExistentProjectTest() {
         String nonExistentProjectId = "00000000-0000-0000-0000-000000000000";
-        
+
         Response response = given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
@@ -963,7 +969,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     @Description("잘못된 프로젝트 ID 형식으로 요청 시 처리 테스트")
     public void getProjectStatisticsWithInvalidProjectIdTest() {
         String invalidProjectId = "invalid-project-id";
-        
+
         Response response = given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
@@ -988,7 +994,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
     @Description("잘못된 JWT 토큰으로 API 호출 시 403 Forbidden 응답 테스트")
     public void getProjectStatisticsWithInvalidTokenTest() {
         String invalidToken = "invalid.jwt.token";
-        
+
         given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + invalidToken)
@@ -1027,17 +1033,17 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
 
         // 응답 데이터 검증
         Map<String, Object> result = response.jsonPath().getMap("$");
-        
+
         // 필수 필드 검증
         assert result.containsKey("projectId");
         assert result.containsKey("totalCases");
         assert result.containsKey("lastResult");
         assert result.containsKey("completeRate");
         assert result.containsKey("lastUpdated");
-        
+
         // 프로젝트 ID 검증
         assert result.get("projectId").equals(testProjectId);
-        
+
         // lastResult 객체 검증
         Map<String, Object> lastResult = (Map<String, Object>) result.get("lastResult");
         assert lastResult.containsKey("PASS");
@@ -1078,17 +1084,17 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
 
         // 응답 데이터 검증
         Map<String, Object> result = response.jsonPath().getMap("$");
-        
+
         // 필수 섹션 검증
         assert result.containsKey("projectId");
         assert result.containsKey("basicStatistics");
         assert result.containsKey("activeExecutions");
         assert result.containsKey("activePriorityCases");
         assert result.containsKey("trends");
-        
+
         // 프로젝트 ID 검증
         assert result.get("projectId").equals(testProjectId);
-        
+
         // basicStatistics 섹션 검증
         Map<String, Object> basicStats = (Map<String, Object>) result.get("basicStatistics");
         assert basicStats.containsKey("totalTestCases");
@@ -1096,7 +1102,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
         assert basicStats.containsKey("executionRate");
         assert basicStats.containsKey("passRate");
         assert basicStats.containsKey("testCoverage");
-        
+
         // activeExecutions 섹션 검증
         Map<String, Object> activeExecs = (Map<String, Object>) result.get("activeExecutions");
         assert activeExecs.containsKey("activeTestExecutions");
@@ -1136,7 +1142,7 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
 
         // 응답 데이터 검증
         Map<String, Object> result = response.jsonPath().getMap("$");
-        
+
         // 필수 필드 검증
         assert result.containsKey("projectId");
         assert result.containsKey("testResultsHistory");
@@ -1144,10 +1150,10 @@ public class DashboardControllerJsonSchemaTest extends AbstractTransactionalTest
         assert result.containsKey("startDate");
         assert result.containsKey("endDate");
         assert result.containsKey("period");
-        
+
         // 프로젝트 ID 검증
         assert result.get("projectId").equals(testProjectId);
-        
+
         // period 검증
         assert result.get("period").equals("7일");
 
