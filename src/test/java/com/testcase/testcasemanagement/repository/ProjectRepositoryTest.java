@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -24,7 +25,7 @@ import static org.testng.Assert.*;
  */
 @DataJpaTest
 @ActiveProfiles("test")
-public class ProjectRepositoryTest {
+public class ProjectRepositoryTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -177,14 +178,14 @@ public class ProjectRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(3, result.size());
-        
+
         // 프로젝트 타입별 확인
-        assertTrue(result.stream().anyMatch(project -> 
-            "Organization Project 1".equals(project.getName()) && project.getOrganization() != null));
-        assertTrue(result.stream().anyMatch(project -> 
-            "Organization Project 2".equals(project.getName()) && project.getOrganization() != null));
-        assertTrue(result.stream().anyMatch(project -> 
-            "Independent Project".equals(project.getName()) && project.getOrganization() == null));
+        assertTrue(result.stream().anyMatch(
+                project -> "Organization Project 1".equals(project.getName()) && project.getOrganization() != null));
+        assertTrue(result.stream().anyMatch(
+                project -> "Organization Project 2".equals(project.getName()) && project.getOrganization() != null));
+        assertTrue(result.stream().anyMatch(
+                project -> "Independent Project".equals(project.getName()) && project.getOrganization() == null));
     }
 
     @Test
@@ -206,7 +207,7 @@ public class ProjectRepositoryTest {
         assertNotNull(saved);
         assertEquals("New Project", saved.getName());
         assertEquals("NEW001", saved.getCode());
-        
+
         // 실제로 저장되었는지 확인
         var found = projectRepository.findById("proj4");
         assertTrue(found.isPresent());
@@ -237,7 +238,7 @@ public class ProjectRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // user1은 proj1 (PROJECT_MANAGER), proj3 (PROJECT_MANAGER)에 속함
         assertTrue(result.stream().anyMatch(project -> "proj1".equals(project.getId())));
         assertTrue(result.stream().anyMatch(project -> "proj3".equals(project.getId())));
@@ -251,7 +252,7 @@ public class ProjectRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        
+
         // user2는 proj1 (DEVELOPER)에만 속함
         assertEquals("proj1", result.get(0).getId());
         assertEquals("Organization Project 1", result.get(0).getName());
@@ -392,7 +393,7 @@ public class ProjectRepositoryTest {
     void testCascadeDelete_WithMembers() {
         // Given
         String projectId = "proj1";
-        
+
         // 프로젝트에 멤버가 있는지 확인
         List<ProjectUser> members = projectUserRepository.findByProjectId(projectId);
         assertTrue(members.size() > 0);
@@ -406,7 +407,7 @@ public class ProjectRepositoryTest {
 
         // Then
         assertFalse(projectRepository.findById(projectId).isPresent());
-        
+
         // 관련 ProjectUser도 삭제되었는지 확인
         List<ProjectUser> remainingMembers = projectUserRepository.findByProjectId(projectId);
         assertEquals(0, remainingMembers.size());
@@ -457,7 +458,7 @@ public class ProjectRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(100, result.size());
-        
+
         // 성능 확인 (1초 이내)
         long executionTime = endTime - startTime;
         assertTrue(executionTime < 1000, "Query took too long: " + executionTime + "ms");
@@ -476,7 +477,7 @@ public class ProjectRepositoryTest {
         assertEquals(1, org1Projects.size());
         assertEquals(1, org2Projects.size());
         assertEquals(1, independentProjects.size());
-        
+
         // 전체 프로젝트 수 확인
         List<Project> allProjects = projectRepository.findAll();
         assertEquals(3, allProjects.size());
@@ -486,13 +487,12 @@ public class ProjectRepositoryTest {
     void testProjectSearch_ByNamePattern() {
         // When - 프로젝트명 패턴 검색 (contains)
         List<Project> result = projectRepository.findAll().stream()
-            .filter(project -> project.getName().contains("Organization"))
-            .toList();
+                .filter(project -> project.getName().contains("Organization"))
+                .toList();
 
         // Then
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(project -> 
-            project.getName().contains("Organization")));
+        assertTrue(result.stream().allMatch(project -> project.getName().contains("Organization")));
     }
 
     @Test
@@ -515,7 +515,7 @@ public class ProjectRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // 프로젝트가 포함되어 있는지 확인
         assertTrue(result.stream().anyMatch(project -> "proj1".equals(project.getId())));
         assertTrue(result.stream().anyMatch(project -> "proj_later".equals(project.getId())));

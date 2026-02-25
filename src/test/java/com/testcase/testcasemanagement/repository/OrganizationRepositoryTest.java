@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -23,7 +24,7 @@ import static org.testng.Assert.*;
  */
 @DataJpaTest
 @ActiveProfiles("test")
-public class OrganizationRepositoryTest {
+public class OrganizationRepositoryTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -138,7 +139,7 @@ public class OrganizationRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // 이름으로 정렬 확인
         assertTrue(result.stream().anyMatch(org -> "Test Organization 1".equals(org.getName())));
         assertTrue(result.stream().anyMatch(org -> "Test Organization 2".equals(org.getName())));
@@ -160,7 +161,7 @@ public class OrganizationRepositoryTest {
         // Then
         assertNotNull(saved);
         assertEquals("New Organization", saved.getName());
-        
+
         // 실제로 저장되었는지 확인
         var found = organizationRepository.findById("org3");
         assertTrue(found.isPresent());
@@ -191,7 +192,7 @@ public class OrganizationRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // user1은 org1 (OWNER), org2 (ADMIN)에 속함
         assertTrue(result.stream().anyMatch(org -> "org1".equals(org.getId())));
         assertTrue(result.stream().anyMatch(org -> "org2".equals(org.getId())));
@@ -205,7 +206,7 @@ public class OrganizationRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        
+
         // user2는 org1 (MEMBER)에만 속함
         assertEquals("org1", result.get(0).getId());
         assertEquals("Test Organization 1", result.get(0).getName());
@@ -270,7 +271,7 @@ public class OrganizationRepositoryTest {
     void testCascadeDelete_WithMembers() {
         // Given
         String orgId = "org1";
-        
+
         // 조직에 멤버가 있는지 확인
         List<OrganizationUser> members = organizationUserRepository.findByOrganizationId(orgId);
         assertTrue(members.size() > 0);
@@ -284,7 +285,7 @@ public class OrganizationRepositoryTest {
 
         // Then
         assertFalse(organizationRepository.findById(orgId).isPresent());
-        
+
         // 관련 OrganizationUser도 삭제되었는지 확인
         List<OrganizationUser> remainingMembers = organizationUserRepository.findByOrganizationId(orgId);
         assertEquals(0, remainingMembers.size());
@@ -333,7 +334,7 @@ public class OrganizationRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(100, result.size());
-        
+
         // 성능 확인 (1초 이내)
         long executionTime = endTime - startTime;
         assertTrue(executionTime < 1000, "Query took too long: " + executionTime + "ms");
@@ -368,7 +369,7 @@ public class OrganizationRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(3, result.size()); // org1, org2, org_later
-        
+
         // 조직이 포함되어 있는지 확인
         assertTrue(result.stream().anyMatch(org -> "org1".equals(org.getId())));
         assertTrue(result.stream().anyMatch(org -> "org2".equals(org.getId())));

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -25,7 +26,7 @@ import static org.testng.Assert.*;
  */
 @DataJpaTest
 @ActiveProfiles("test")
-public class GroupRepositoryTest {
+public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -181,15 +182,14 @@ public class GroupRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(3, result.size());
-        
+
         // 그룹 타입별 확인
-        assertTrue(result.stream().anyMatch(group -> 
-            "Organization Group".equals(group.getName()) && group.getOrganization() != null));
-        assertTrue(result.stream().anyMatch(group -> 
-            "Project Group".equals(group.getName()) && group.getProject() != null));
-        assertTrue(result.stream().anyMatch(group -> 
-            "Independent Group".equals(group.getName()) && 
-            group.getOrganization() == null && group.getProject() == null));
+        assertTrue(result.stream()
+                .anyMatch(group -> "Organization Group".equals(group.getName()) && group.getOrganization() != null));
+        assertTrue(result.stream()
+                .anyMatch(group -> "Project Group".equals(group.getName()) && group.getProject() != null));
+        assertTrue(result.stream().anyMatch(group -> "Independent Group".equals(group.getName()) &&
+                group.getOrganization() == null && group.getProject() == null));
     }
 
     @Test
@@ -210,7 +210,7 @@ public class GroupRepositoryTest {
         // Then
         assertNotNull(saved);
         assertEquals("New Group", saved.getName());
-        
+
         // 실제로 저장되었는지 확인
         var found = groupRepository.findById("newgroup1");
         assertTrue(found.isPresent());
@@ -241,7 +241,7 @@ public class GroupRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // user1은 orggroup1 (LEADER), projgroup1 (CO_LEADER)에 속함
         assertTrue(result.stream().anyMatch(group -> "orggroup1".equals(group.getId())));
         assertTrue(result.stream().anyMatch(group -> "projgroup1".equals(group.getId())));
@@ -255,7 +255,7 @@ public class GroupRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        
+
         // user2는 indepgroup1 (MEMBER)에만 속함
         assertEquals("indepgroup1", result.get(0).getId());
         assertEquals("Independent Group", result.get(0).getName());
@@ -367,7 +367,7 @@ public class GroupRepositoryTest {
     void testCascadeDelete_WithMembers() {
         // Given
         String groupId = "orggroup1";
-        
+
         // 그룹에 멤버가 있는지 확인
         List<GroupMember> members = groupMemberRepository.findByGroupId(groupId);
         assertTrue(members.size() > 0);
@@ -381,7 +381,7 @@ public class GroupRepositoryTest {
 
         // Then
         assertFalse(groupRepository.findById(groupId).isPresent());
-        
+
         // 관련 GroupMember도 삭제되었는지 확인
         List<GroupMember> remainingMembers = groupMemberRepository.findByGroupId(groupId);
         assertEquals(0, remainingMembers.size());
@@ -432,7 +432,7 @@ public class GroupRepositoryTest {
         // Then
         assertNotNull(result);
         assertEquals(50, result.size());
-        
+
         // 성능 확인 (1초 이내)
         long executionTime = endTime - startTime;
         assertTrue(executionTime < 1000, "Query took too long: " + executionTime + "ms");
@@ -470,7 +470,7 @@ public class GroupRepositoryTest {
         assertEquals(1, org1Groups.size());
         assertEquals(1, org2Groups.size());
         assertEquals(1, independentGroups.size());
-        
+
         // 전체 그룹 수 확인 (기존 3개 + 새로 추가한 1개)
         List<Group> allGroups = groupRepository.findAll();
         assertEquals(4, allGroups.size());
