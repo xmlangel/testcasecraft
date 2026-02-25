@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.springframework.transaction.annotation.Transactional;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -26,6 +27,7 @@ import static org.testng.Assert.*;
  */
 @DataJpaTest
 @ActiveProfiles("test")
+@Transactional
 public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
@@ -49,26 +51,28 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     void setUp() {
         // 테스트 사용자 생성
         testUser1 = new User();
-        testUser1.setId("user1");
-        testUser1.setUsername("testuser1");
-        testUser1.setEmail("test1@example.com");
+        // testUser1.setId("user1"); // ID는 JPA가 자동 생성하도록 맡김
+        testUser1.setUsername("group_testuser1");
+        testUser1.setEmail("group_test1@example.com");
         testUser1.setName("Test User 1");
+        testUser1.setPassword("password123");
         testUser1.setRole("USER");
         testUser1.setCreatedAt(LocalDateTime.now());
         entityManager.persistAndFlush(testUser1);
 
         testUser2 = new User();
-        testUser2.setId("user2");
-        testUser2.setUsername("testuser2");
-        testUser2.setEmail("test2@example.com");
+        // testUser2.setId("user2");
+        testUser2.setUsername("group_testuser2");
+        testUser2.setEmail("group_test2@example.com");
         testUser2.setName("Test User 2");
+        testUser2.setPassword("password123");
         testUser2.setRole("USER");
         testUser2.setCreatedAt(LocalDateTime.now());
         entityManager.persistAndFlush(testUser2);
 
         // 테스트 조직 생성
         testOrganization = new Organization();
-        testOrganization.setId("org1");
+        // testOrganization.setId("org1");
         testOrganization.setName("Test Organization");
         testOrganization.setDescription("Test Description");
         testOrganization.setCreatedAt(LocalDateTime.now());
@@ -77,7 +81,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
 
         // 테스트 프로젝트 생성
         testProject = new Project();
-        testProject.setId("proj1");
+        // testProject.setId("proj1");
         testProject.setName("Test Project");
         testProject.setCode("TEST001");
         testProject.setDescription("Test Project Description");
@@ -88,7 +92,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
 
         // 테스트 조직 그룹 생성
         testOrganizationGroup = new Group();
-        testOrganizationGroup.setId("orggroup1");
+        // testOrganizationGroup.setId("orggroup1");
         testOrganizationGroup.setName("Organization Group");
         testOrganizationGroup.setDescription("Organization Group Description");
         testOrganizationGroup.setOrganization(testOrganization);
@@ -99,7 +103,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
 
         // 테스트 프로젝트 그룹 생성
         testProjectGroup = new Group();
-        testProjectGroup.setId("projgroup1");
+        // testProjectGroup.setId("projgroup1");
         testProjectGroup.setName("Project Group");
         testProjectGroup.setDescription("Project Group Description");
         testProjectGroup.setOrganization(null);
@@ -110,7 +114,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
 
         // 테스트 독립 그룹 생성
         testIndependentGroup = new Group();
-        testIndependentGroup.setId("indepgroup1");
+        // testIndependentGroup.setId("indepgroup1");
         testIndependentGroup.setName("Independent Group");
         testIndependentGroup.setDescription("Independent Group Description");
         testIndependentGroup.setOrganization(null);
@@ -121,7 +125,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
 
         // 그룹-사용자 관계 생성
         GroupMember member1 = new GroupMember();
-        member1.setId("member1");
+        // member1.setId("member1");
         member1.setGroup(testOrganizationGroup);
         member1.setUser(testUser1);
         member1.setRoleInGroup(GroupMember.GroupRole.LEADER);
@@ -130,7 +134,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         entityManager.persistAndFlush(member1);
 
         GroupMember member2 = new GroupMember();
-        member2.setId("member2");
+        // member2.setId("member2");
         member2.setGroup(testProjectGroup);
         member2.setUser(testUser1);
         member2.setRoleInGroup(GroupMember.GroupRole.CO_LEADER);
@@ -139,7 +143,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         entityManager.persistAndFlush(member2);
 
         GroupMember member3 = new GroupMember();
-        member3.setId("member3");
+        // member3.setId("member3");
         member3.setGroup(testIndependentGroup);
         member3.setUser(testUser2);
         member3.setRoleInGroup(GroupMember.GroupRole.MEMBER);
@@ -155,7 +159,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     @Test
     void testFindById_Success() {
         // When
-        var result = groupRepository.findById("orggroup1");
+        var result = groupRepository.findById(testOrganizationGroup.getId());
 
         // Then
         assertTrue(result.isPresent());
@@ -196,7 +200,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     void testSave_NewGroup() {
         // Given
         Group newGroup = new Group();
-        newGroup.setId("newgroup1");
+        // newGroup.setId("newgroup1");
         newGroup.setName("New Group");
         newGroup.setDescription("New Description");
         newGroup.setOrganization(null);
@@ -212,7 +216,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         assertEquals("New Group", saved.getName());
 
         // 실제로 저장되었는지 확인
-        var found = groupRepository.findById("newgroup1");
+        var found = groupRepository.findById(saved.getId());
         assertTrue(found.isPresent());
         assertEquals("New Group", found.get().getName());
     }
@@ -220,7 +224,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     @Test
     void testDelete() {
         // Given
-        String groupId = "indepgroup1";
+        String groupId = testIndependentGroup.getId();
         assertTrue(groupRepository.findById(groupId).isPresent());
 
         // When
@@ -236,28 +240,28 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     @Test
     void testFindAccessibleGroupsByUserId_Success() {
         // When
-        List<Group> result = groupRepository.findAccessibleGroupsByUserId("user1");
+        List<Group> result = groupRepository.findAccessibleGroupsByUserId(testUser1.getId());
 
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
 
         // user1은 orggroup1 (LEADER), projgroup1 (CO_LEADER)에 속함
-        assertTrue(result.stream().anyMatch(group -> "orggroup1".equals(group.getId())));
-        assertTrue(result.stream().anyMatch(group -> "projgroup1".equals(group.getId())));
+        assertTrue(result.stream().anyMatch(group -> testOrganizationGroup.getId().equals(group.getId())));
+        assertTrue(result.stream().anyMatch(group -> testProjectGroup.getId().equals(group.getId())));
     }
 
     @Test
     void testFindAccessibleGroupsByUserId_SingleGroup() {
         // When
-        List<Group> result = groupRepository.findAccessibleGroupsByUserId("user2");
+        List<Group> result = groupRepository.findAccessibleGroupsByUserId(testUser2.getId());
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
 
         // user2는 indepgroup1 (MEMBER)에만 속함
-        assertEquals("indepgroup1", result.get(0).getId());
+        assertEquals(testIndependentGroup.getId(), result.get(0).getId());
         assertEquals("Independent Group", result.get(0).getName());
     }
 
@@ -265,16 +269,17 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     void testFindAccessibleGroupsByUserId_NoGroups() {
         // Given - 새로운 사용자 생성 (그룹에 속하지 않음)
         User newUser = new User();
-        newUser.setId("user3");
+        // newUser.setId("user3");
         newUser.setUsername("testuser3");
         newUser.setEmail("test3@example.com");
         newUser.setName("Test User 3");
+        newUser.setPassword("password123");
         newUser.setRole("USER");
         newUser.setCreatedAt(LocalDateTime.now());
         entityManager.persistAndFlush(newUser);
 
         // When
-        List<Group> result = groupRepository.findAccessibleGroupsByUserId("user3");
+        List<Group> result = groupRepository.findAccessibleGroupsByUserId(newUser.getId());
 
         // Then
         assertNotNull(result);
@@ -284,12 +289,12 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     @Test
     void testFindByOrganizationId_Success() {
         // When
-        List<Group> result = groupRepository.findByOrganizationId("org1");
+        List<Group> result = groupRepository.findByOrganizationId(testOrganization.getId());
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("orggroup1", result.get(0).getId());
+        assertEquals(testOrganizationGroup.getId(), result.get(0).getId());
         assertEquals("Organization Group", result.get(0).getName());
     }
 
@@ -297,7 +302,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     void testFindByOrganizationId_NoGroups() {
         // Given - 새로운 조직 생성 (그룹 없음)
         Organization newOrg = new Organization();
-        newOrg.setId("org2");
+        // newOrg.setId("org2");
         newOrg.setName("Empty Organization");
         newOrg.setDescription("No groups");
         newOrg.setCreatedAt(LocalDateTime.now());
@@ -305,7 +310,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         entityManager.persistAndFlush(newOrg);
 
         // When
-        List<Group> result = groupRepository.findByOrganizationId("org2");
+        List<Group> result = groupRepository.findByOrganizationId(newOrg.getId());
 
         // Then
         assertNotNull(result);
@@ -315,12 +320,12 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     @Test
     void testFindByProjectId_Success() {
         // When
-        List<Group> result = groupRepository.findByProjectId("proj1");
+        List<Group> result = groupRepository.findByProjectId(testProject.getId());
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("projgroup1", result.get(0).getId());
+        assertEquals(testProjectGroup.getId(), result.get(0).getId());
         assertEquals("Project Group", result.get(0).getName());
     }
 
@@ -328,7 +333,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     void testFindByProjectId_NoGroups() {
         // Given - 새로운 프로젝트 생성 (그룹 없음)
         Project newProject = new Project();
-        newProject.setId("proj2");
+        // newProject.setId("proj2");
         newProject.setName("Empty Project");
         newProject.setCode("EMPTY002");
         newProject.setDescription("No groups");
@@ -338,7 +343,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         entityManager.persistAndFlush(newProject);
 
         // When
-        List<Group> result = groupRepository.findByProjectId("proj2");
+        List<Group> result = groupRepository.findByProjectId(newProject.getId());
 
         // Then
         assertNotNull(result);
@@ -355,7 +360,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("indepgroup1", result.get(0).getId());
+        assertEquals(testIndependentGroup.getId(), result.get(0).getId());
         assertEquals("Independent Group", result.get(0).getName());
         assertNull(result.get(0).getOrganization());
         assertNull(result.get(0).getProject());
@@ -366,7 +371,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     @Test
     void testCascadeDelete_WithMembers() {
         // Given
-        String groupId = "orggroup1";
+        String groupId = testOrganizationGroup.getId();
 
         // 그룹에 멤버가 있는지 확인
         List<GroupMember> members = groupMemberRepository.findByGroupId(groupId);
@@ -393,10 +398,11 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     void testFindAccessibleGroupsByUserId_Performance() {
         // Given - 대량 데이터 생성
         User testUser = new User();
-        testUser.setId("perfuser");
+        // testUser.setId("perfuser");
         testUser.setUsername("perfuser");
         testUser.setEmail("perf@example.com");
         testUser.setName("Performance User");
+        testUser.setPassword("password123");
         testUser.setRole("USER");
         testUser.setCreatedAt(LocalDateTime.now());
         entityManager.persistAndFlush(testUser);
@@ -404,7 +410,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         // 50개의 그룹과 관계 생성
         for (int i = 0; i < 50; i++) {
             Group group = new Group();
-            group.setId("perfgroup" + i);
+            // group.setId("perfgroup" + i);
             group.setName("Performance Group " + i);
             group.setDescription("Performance Description " + i);
             group.setOrganization(null);
@@ -414,7 +420,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
             entityManager.persistAndFlush(group);
 
             GroupMember member = new GroupMember();
-            member.setId("perfmember" + i);
+            // member.setId("perfmember" + i);
             member.setGroup(group);
             member.setUser(testUser);
             member.setRoleInGroup(GroupMember.GroupRole.MEMBER);
@@ -426,7 +432,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
 
         // When
         long startTime = System.currentTimeMillis();
-        List<Group> result = groupRepository.findAccessibleGroupsByUserId("perfuser");
+        List<Group> result = groupRepository.findAccessibleGroupsByUserId(testUser.getId());
         long endTime = System.currentTimeMillis();
 
         // Then
@@ -444,7 +450,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
     void testComplexGroupQueries() {
         // Given - 추가 테스트 데이터 생성
         Organization org2 = new Organization();
-        org2.setId("org2");
+        // org2.setId("org2");
         org2.setName("Second Organization");
         org2.setDescription("Second Description");
         org2.setCreatedAt(LocalDateTime.now());
@@ -452,7 +458,7 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         entityManager.persistAndFlush(org2);
 
         Group org2Group = new Group();
-        org2Group.setId("org2group1");
+        // org2Group.setId("org2group1");
         org2Group.setName("Second Org Group");
         org2Group.setDescription("Second Org Group Description");
         org2Group.setOrganization(org2);
@@ -462,8 +468,8 @@ public class GroupRepositoryTest extends AbstractTestNGSpringContextTests {
         entityManager.persistAndFlush(org2Group);
 
         // When - 조직별 그룹 수 조회
-        List<Group> org1Groups = groupRepository.findByOrganizationId("org1");
-        List<Group> org2Groups = groupRepository.findByOrganizationId("org2");
+        List<Group> org1Groups = groupRepository.findByOrganizationId(testOrganization.getId());
+        List<Group> org2Groups = groupRepository.findByOrganizationId(org2.getId());
         List<Group> independentGroups = groupRepository.findByOrganizationIsNullAndProjectIsNull();
 
         // Then
