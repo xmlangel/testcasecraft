@@ -26,7 +26,7 @@
 | `ProjectRepositoryTest` | 프로젝트 데이터 접근 테스트 | 21 | 21 | 0 | 0 | **정상** |
 | `TestResultRepositoryImprovedTest` | 테스트 결과 저장소 테스트 | 2 | 2 | 0 | 0 | **정상** |
 | **Service/Function 패키지** | | | | | | |
-| `OrganizationServiceTest` | 조직 비즈니스 로직 테스트 | 15 | 10 | 5 | 0 | 일부 실패 |
+| `OrganizationServiceTest` | 조직 비즈니스 로직 테스트 | 15 | 15 | 0 | 0 | **정상** |
 | `JunitXmlParserServiceTest` | JUnit XML 파싱 서비스 테스트 | 11 | 11 | 0 | 0 | **정상** |
 | `ExportServiceComprehensiveTest` | 데이터 내보내기 기능 테스트 | 5 | 5 | 0 | 0 | **정상** |
 | `TestCaseDisplayIdServiceTest` | 테스트케이스 ID 생성 서비스 | 12 | 12 | 0 | 0 | **정상** |
@@ -54,9 +54,24 @@
 - **필수 필드 보완**: `User` 엔티티 제약조건 준수를 위해 `password`, `email`, `name` 데이터 추가
 - **검증 로직 강화**: 리스트 순서에 무관한 ID 존재 여부 검증 (`anyMatch`) 도입
 - **정합성 보장**: `Persistence Context` 최적화 (`entityManager.clear()`)를 통한 DB 직접 조회 유도
-- **대상**: `GroupRepositoryTest`, `OrganizationRepositoryTest`, `ProjectRepositoryTest`
-- **상태**: **✅ 100% 통과 (49/49)**
-- **정기 실행 계획**: 매 빌드 시 전수 실행을 통해 변경 사항에 따른 회귀 테스트 수행
+
+### 2. Service/Function Tests (서비스/함수 테스트)
+- **상태**: **✅ 100% 통과 (43/43)**
+- **실행 방법**:
+```bash
+./gradlew test --tests "com.testcase.testcasemanagement.service.*"
+```
+
+#### 상세 테스트 명세
+
+| 서비스 테스트 | 테스트 대상 (What) | 주요 테스트 항목 (Which) | 테스트 방법 (How) |
+| :--- | :--- | :--- | :--- |
+| **OrganizationServiceTest** | 조직 관리 핵심 비즈니스 로직 및 보안/감사 정책 | - 조직 생성/수정/삭제 권한 검증<br>- 멤버 초대/제거 및 역할 변경 로직<br>- 사용자 권한별 접근 가능 조직 필터링<br>- 감사 로그(Audit Log) 기록의 정확성 검증 | - Mockito를 이용한 의존성(Repository, Security, Audit) 모킹<br>- `@InjectMocks`를 통한 비즈니스 로직 단위 테스트<br>- 예외 상황(권한 없음, 리소스 미발견) 처리 검증 |
+| **JunitXmlParserServiceTest** | JUnit XML 결과 파싱 및 도메인 모델 변환 | - 표준/비표준 JUnit XML 형식 파싱<br>- 파싱된 데이터의 테스트 히스토리/스텝 정합성<br>- 대용량 XML 처리 안정성 및 오류 복구(Robustness)<br>- 메타데이터(System-out 등) 추출 로직 | - 다양한 테스트 케이스 XML 파일을 리소스(InputStream)로 로드<br>- 파싱 결과물의 데이터 구조와 필드값 검증 |
+| **ExportServiceComprehensiveTest** | 테스트 결과 데이터의 다양한 포맷 내보내기 | - PDF 생성 (한글 폰트 적용, 대용량 데이터)<br>- Excel 생성 (통계/요약 정보 포함)<br>- CSV 생성 (UTF-8 인코딩 및 한글 처리)<br>- 모든 포맷 동시 생성 성능 및 안정성 | - 실제 데이터를 담은 DTO를 기반으로 파일 생성 수행<br>- 생성된 파일의 인코딩 및 데이터 유효성 검사 |
+| **TestCaseDisplayIdServiceTest** | 계층형 테스트케이스 ID 생성 로직 | - 프로젝트별 독립적인 ID 시퀀스 생성<br>- 폴더/케이스 구조 변경 시 ID 유지 정책<br>- 중복 없는 고유한 표시 ID 보장 | - 비즈니스 요구사항에 따른 ID 생성 알고리즘 단위 테스트 |
+
+- **대상**: `OrganizationServiceTest`, `JunitXmlParserServiceTest` 등
 
 ## 4. 주요 실패 원인 분석
 
