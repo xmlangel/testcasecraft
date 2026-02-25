@@ -32,7 +32,8 @@
 | `TestCaseDisplayIdServiceTest` | 테스트케이스 ID 생성 서비스 | 12 | 12 | 0 | 0 | **정상** |
 | **Performance 패키지** | | | | | | |
 | `DashboardApiLoadTest` | 대시보드 API 부하 테스트 | 4 | 4 | 0 | 0 | **정상** |
-| `DatabaseIndexPerformanceTest` | DB 인덱스 성능 검증 | 5 | 4 | 1 | 0 | |
+| `DatabaseIndexPerformanceTest` | DB 인덱스 성능 검증 | 5 | 5 | 0 | 0 | **정상** |
+| `TestResultReportPerformanceTest` | 리포트 생성 성능 테스트 | 6 | 6 | 0 | 0 | **정상** |
 
 ### 1. Repository Tests (레포지토리 테스트)
 - **상태**: **✅ 100% 통과 (49/49)**
@@ -71,7 +72,22 @@
 | **ExportServiceComprehensiveTest** | 테스트 결과 데이터의 다양한 포맷 내보내기 | - PDF 생성 (한글 폰트 적용, 대용량 데이터)<br>- Excel 생성 (통계/요약 정보 포함)<br>- CSV 생성 (UTF-8 인코딩 및 한글 처리)<br>- 모든 포맷 동시 생성 성능 및 안정성 | - 실제 데이터를 담은 DTO를 기반으로 파일 생성 수행<br>- 생성된 파일의 인코딩 및 데이터 유효성 검사 |
 | **TestCaseDisplayIdServiceTest** | 계층형 테스트케이스 ID 생성 로직 | - 프로젝트별 독립적인 ID 시퀀스 생성<br>- 폴더/케이스 구조 변경 시 ID 유지 정책<br>- 중복 없는 고유한 표시 ID 보장 | - 비즈니스 요구사항에 따른 ID 생성 알고리즘 단위 테스트 |
 
-- **대상**: `OrganizationServiceTest`, `JunitXmlParserServiceTest` 등
+### 3. Performance Tests (성능 테스트)
+- **상태**: **✅ 100% 통과 (15/15)**
+- **실행 방법**:
+```bash
+./gradlew test --tests "com.testcase.testcasemanagement.performance.*"
+```
+
+#### 상세 테스트 명세
+
+| 성능 테스트 | 테스트 대상 (What) | 주요 테스트 항목 (Which) | 테스트 방법 (How) |
+| :--- | :--- | :--- | :--- |
+| **DashboardApiLoadTest** | 대시보드 API 동시성 및 최적화 | - 동시 사용자 부하(50+ 유저) 안정성<br>- 캐시 적용 전/후 응답속도 개선율<br>- 스트레스 상황에서의 성공률(99% 이상) | - `TestRestTemplate`을 이용한 실제 HTTP 호출<br>- `ExecutorService` 기반 멀티스레드 부하 시뮬레이션 |
+| **DatabaseIndexPerformanceTest** | DB 인덱스 최적화 효과 검증 | - 신규 인덱스(IDX_*) 존재 여부<br>- 주요 쿼리 실행 속도(1초 이내)<br>- 대시보드 통계/리포트 쿼리 성능 | - H2 `INFORMATION_SCHEMA` 기반 인덱스 메타데이터 확인<br>- `EntityManager.createNativeQuery` 기반 실행 시간 측정 |
+| **TestResultReportPerformanceTest** | 대용량 리포트 및 내보내기 성능 | - 대용량 데이터셋(1000건 이상) 조회<br>- 동시 리포트 생성 부하<br>- PDF/Excel/CSV 내보내기 성능 및 메모리 효율성 | - `AbstractTestNGSpringContextTests` 기반 통합 테스트<br>- 대용량 더미 데이터 가공 및 응답 시간 벤치마킹 |
+
+- **대상**: `DashboardApiLoadTest`, `DatabaseIndexPerformanceTest` 등
 
 ## 4. 주요 실패 원인 분석
 
@@ -86,7 +102,6 @@
     *   대부분의 JsonSchema 테스트가 첫 번째 테스트 실패 후 나머지가 Skip 되었습니다. 이는 테스트 간 의존성 또는 공통 초기화 로직 실패의 영향입니다.
 
 ## 4. 후속 조치 권장 사항
-*   인증 테스트용 사용자 정보(Admin/Admin123)가 테스트 DB에 올바르게 적재되는지 확인.
 *   실패한 통합 테스트(`OrganizationControllerIntegrationTest` 등)의 상세 로그 분석을 통한 로직 수정.
 
 ---
