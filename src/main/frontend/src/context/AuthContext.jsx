@@ -234,12 +234,11 @@ export const AuthProvider = ({ children }) => {
             }
         }
 
-        // 403 Forbidden 처리 (권한 없음 or 세션 만료)
+        // 403 Forbidden 처리 (권한 없음)
         if (response.status === 403) {
-            handleSessionExpiry();
-            // 403은 throw하지 않고 다이얼로그로 처리? 
-            // 기존 로직 흐름을 위해 throw 할 수도 있지만, 
-            // 사용자에게는 다이얼로그가 뜸.
+            // 403은 세션 만료(401)가 아닌 권한 접근 거부이므로, 세션 만료 팝업을 띄우지 않고 
+            // 컴포넌트 측에서 에러를 처리하도록 응답을 그대로 반환합니다.
+            console.warn('[AuthContext] 403 Forbidden response. User might lack permissions.');
         }
 
         return response;
