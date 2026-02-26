@@ -424,6 +424,8 @@ public class TestResultReportService {
                 default:
                     throw new IllegalArgumentException("지원하지 않는 내보내기 형식입니다: " + format);
             }
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("파일 내보내기 중 오류가 발생했습니다: " + e.getMessage(), e);
         }

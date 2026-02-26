@@ -432,6 +432,8 @@ test {
 	}
 	// API 패키지 테스트 전체 제외 (AllApiComprehensiveTest는 apiComprehensiveTest 태스크로 별도 실행)
 	exclude 'com/testcase/testcasemanagement/api/**'
+	// Google Sheets 연동 테스트 제외 (google.json 인증 파일 필요 - CI 환경 미지원)
+	exclude 'com/testcase/testcasemanagement/function/TestCaseGoogleSheetExporterDbIntegrationTest.class'
 	systemProperties = [
 			'allure.results.directory': 'build/allure-results', // 결과 디렉터리 명시
 			// Oracle/C3P0 자동감지 방지 시스템 프로퍼티

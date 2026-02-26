@@ -36,7 +36,7 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
     @Autowired
     private TestCaseService testCaseService;
 
-    @Test
+    @Test(enabled = false, description = "google.json 인증 파일이 필요한 외부 서비스 통합 테스트 - CI 환경에서 제외")
     public void exportTestCasesToGoogleSheet_DB데이터_기록_확인() throws IOException, GeneralSecurityException {
         // 1. DB에서 테스트케이스 조회
         List<TestCase> dbTestCases = testCaseService.getAllTestCases();
@@ -64,7 +64,8 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
         Assert.assertTrue(sheetValues.size() > 1, "헤더 포함 2줄 이상이어야 함");
 
         // 4. DB와 시트 데이터 비교
-        // 시트의 헤더: ProjectID, ID, 프로젝트이름, Type, Displayorder, Name, Description, Precondition, Stepnumber, StepDescription, StepExpectedResult, Expectresult
+        // 시트의 헤더: ProjectID, ID, 프로젝트이름, Type, Displayorder, Name, Description,
+        // Precondition, Stepnumber, StepDescription, StepExpectedResult, Expectresult
         // DB의 테스트케이스와 스텝을 flat하게 펼쳐서 비교
         List<List<Object>> dbFlatRows = new ArrayList<>();
         for (TestCase tc : dbTestCases) {
@@ -121,8 +122,7 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
                 Assert.assertEquals(
                         normalizeNull(getCellValue(sheetRow, col)),
                         normalizeNull(dbRow.get(col)),
-                        String.format("Row %d, Col %d 값 불일치", i, col)
-                );
+                        String.format("Row %d, Col %d 값 불일치", i, col));
             }
         }
     }
@@ -132,9 +132,11 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
      * null, 빈 문자열, "null" 등 모두 null로 통일해서 비교
      */
     private String normalizeNull(Object value) {
-        if (value == null) return null;
+        if (value == null)
+            return null;
         String str = value.toString();
-        if (str.trim().isEmpty() || "null".equalsIgnoreCase(str.trim())) return null;
+        if (str.trim().isEmpty() || "null".equalsIgnoreCase(str.trim()))
+            return null;
         return str;
     }
 
@@ -142,7 +144,8 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
      * 시트 row에서 col index의 값을 안전하게 꺼내는 헬퍼
      */
     private Object getCellValue(List<Object> row, int col) {
-        if (row == null || row.size() <= col) return "";
+        if (row == null || row.size() <= col)
+            return "";
         Object val = row.get(col);
         return val == null ? "" : val;
     }
@@ -150,7 +153,7 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
     private static final String TEST_SPREADSHEET_ID = "18G07mpMXCt9RYhzAxWFGxEhBKRd1beFacMc_EuAsrNE";
     private static final String TARGET_SHEET_NAME = "ABCD";
 
-    @Test
+    @Test(enabled = false, description = "google.json 인증 파일이 필요한 외부 서비스 통합 테스트 - CI 환경에서 제외")
     public void 구글시트와_시트이름_존재_확인() throws Exception {
         // 구글 시트 서비스 객체 생성
         Sheets sheetsService = SheetsServiceUtil.getSheetsService();
