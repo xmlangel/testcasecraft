@@ -60,6 +60,8 @@ import { SchedulerProvider } from "./context/SchedulerContext.jsx";
 import SchedulerManagement from "./components/admin/SchedulerManagement.jsx";
 import EmailVerification from "./components/EmailVerification.jsx";
 import SessionExpiryDialog from "./components/common/SessionExpiryDialog.jsx";
+import JiraIssueRedirect from "./components/JiraIntegration/JiraIssueRedirect.jsx";
+
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -1191,6 +1193,12 @@ const AppWrapper = () => {
             <JunitResultDetail />
           </ProtectedRoute>
         } />
+        <Route path="/jira-redirect/:issueKey" element={
+          <ProtectedRoute>
+            <JiraIssueRedirect />
+          </ProtectedRoute>
+        } />
+
       </Routes>
 
       {/* 서버 시간 표시 */}

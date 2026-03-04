@@ -327,4 +327,50 @@ public class JiraIntegrationController {
                 .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
         }
     }
+    /**
+     * JIRA 이슈 키를 기반으로 최근 테스트 실행 컨텍스트 조회
+     * 스마트 리다이렉트 기능을 위해 사용됨
+     */
+    @GetMapping("/latest-execution-context")
+    @io.swagger.v3.oas.annotations.Operation(summary = "JIRA 이슈 기반 최신 실행 컨텍스트 조회", description = "특정 JIRA 이슈와 관련된 가장 최근의 테스트 실행 및 결과 정보를 조회합니다")
+    public org.springframework.http.ResponseEntity<java.util.Map<String, Object>> getLatestExecutionContextByJiraIssue(
+            @org.springframework.web.bind.annotation.RequestParam String issueKey) {
+        
+        try {
+            if (!jiraIntegrationService.isValidJiraIssueKey(issueKey)) {
+                return org.springframework.http.ResponseEntity.badRequest().build();
+            }
+            
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 1);
+            java.util.List<com.testcase.testcasemanagement.model.TestResult> results = testResultRepository.findRecentResultsByJiraIssue(issueKey, pageable);
+            
+            if (results.isEmpty()) {
+                return org.springframework.http.ResponseEntity.notFound().build();
+            }
+            
+            com.testcase.testcasemanagement.model.TestResult lastResult = results.get(0);
+            String projectId = "";
+            String executionId = "";
+            
+            if (lastResult.getTestExecution() != null) {
+                executionId = lastResult.getTestExecution().getId();
+                if (lastResult.getTestExecution().getProject() != null) {
+                    projectId = lastResult.getTestExecution().getProject().getId();
+                }
+            }
+            
+            return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+                "projectId", projectId,
+                "executionId", executionId,
+                "testCaseId", lastResult.getTestCaseId(),
+                "testResultId", lastResult.getId(),
+                "testExecutionName", lastResult.getTestExecution() != null ? lastResult.getTestExecution().getName() : ""
+            ));
+            
+        } catch (Exception e) {
+            log.error("JIRA 이슈 기반 최신 실행 컨텍스트 조회 실패: {}", issueKey, e);
+            return org.springframework.http.ResponseEntity.internalServerError().build();
+        }
+    }
+}
 }

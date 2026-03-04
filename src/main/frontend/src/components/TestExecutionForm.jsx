@@ -1,4 +1,6 @@
+import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+
 import PropTypes from "prop-types";
 import {
   Box, Grid, CircularProgress, LinearProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Chip,
@@ -116,6 +118,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   // 프로젝트의 기존 태그 목록 조회
   useEffect(() => {
@@ -222,6 +226,25 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     // executionId 변경 시 항상 fetchExecution 실행 (초기화 포함)
     fetchExecution();
   }, [executionId, getTestPlan, api, isImmediateExecuting, activeProject, initialTestPlanId]);
+
+  // 스마트 리다이렉트 처리 (지라 이슈 키 자동 채움)
+  useEffect(() => {
+    if (location.state?.autoFillJiraIssueKey && execution?.results) {
+      const { autoFillJiraIssueKey, targetTestCaseId } = location.state;
+      
+      // 대상 테스트 케이스가 있으면 해당 케이스의 결과 폼을 연다
+      if (targetTestCaseId) {
+        setSelectedTestCaseId(targetTestCaseId);
+        setIsResultFormOpen(true);
+        
+        // 한번 처리한 후에는 state를 초기화하여 재실행되지 않도록 함
+        const newState = { ...location.state };
+        delete newState.autoFillJiraIssueKey;
+        delete newState.targetTestCaseId;
+        navigate(location.pathname, { state: newState, replace: true });
+      }
+    }
+  }, [location.state, execution, navigate, location.pathname]);
 
   // testCases가 비어있을 때 명시적으로 로드
   // execution.projectId 또는 activeProject.id를 사용하여 testCases 로드
@@ -567,6 +590,31 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       setBulkProcessing(false);
     }
   }, [execution?.id, selectedTestCases, api, t]);
+
+  // 스마트 리다이렉트 연동: 위치 정보를 통해 전달된 지라 이슈 키를 초기값으로 설정
+  // TestExecutionForm 컴포넌트에서 TestResultForm이 열릴 때 이 로직을 사용하여 Jira 이슈 키를 자동 채움
+  useEffect(() => {
+    // 이 로직은 TestResultForm 내부가 아닌, TestExecutionForm에서 TestResultForm을 열 때
+    // location.state를 감지하여 특정 테스트 케이스를 선택하고 TestResultForm을 열도록 조정해야 합니다.
+    // 현재 이 useEffect는 TestExecutionForm 자체의 상태를 변경하는 데 사용될 수 있습니다.
+    // 예를 들어, 특정 testCaseId를 선택하고 TestResultForm을 열도록 트리거하는 방식입니다.
+    if (location.state?.autoFillJiraIssueKey && location.state?.testCaseIdToSelect) {
+      const { autoFillJiraIssueKey, testCaseIdToSelect } = location.state;
+
+      // TestResultForm을 열기 위한 상태 설정
+      setSelectedTestCaseId(testCaseIdToSelect);
+      setIsResultFormOpen(true);
+
+      // TestResultForm이 열릴 때 autoFillJiraIssueKey를 전달할 수 있도록 상태에 저장하거나,
+      // TestResultForm 컴포넌트 자체에서 location.state를 읽도록 구현해야 합니다.
+      // 여기서는 TestExecutionForm의 상태에 저장하여 TestResultForm에 prop으로 전달하는 방식을 가정합니다.
+      // setAutoFillJiraIssueKeyForForm(autoFillJiraIssueKey); // 예시: TestResultForm에 전달할 상태
+      // 실제 구현에서는 TestResultForm이 location.state를 직접 읽는 것이 더 효율적일 수 있습니다.
+
+      // 사용 후 location.state를 정리하여 다음 번에 불필요하게 트리거되지 않도록 합니다.
+      // navigate('.', { replace: true, state: {} }); // 또는 필요한 state만 남기고 정리
+    }
+  }, [location.state, navigate]);
 
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;

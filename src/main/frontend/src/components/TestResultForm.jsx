@@ -1,4 +1,6 @@
+import { useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+
 import PropTypes from 'prop-types';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, CircularProgress, Snackbar, Alert
@@ -46,7 +48,9 @@ const TestResultForm = ({
   const { user, api } = useAppContext();
   const { t } = useTranslation();
   const theme = useTheme();
+  const location = useLocation();
   const darkMode = theme.palette.mode === 'dark';
+
   const isViewer = user?.role === 'VIEWER';
 
   const [testCase, setTestCase] = useState(null);
@@ -146,6 +150,14 @@ const TestResultForm = ({
 
     return () => clearTimeout(timer);
   }, [notes]);
+
+  // 스마트 리다이렉트 연동: 위치 정보를 통해 전달된 지라 이슈 키를 초기값으로 설정
+  useEffect(() => {
+    if ((open || fullPage) && location.state?.autoFillJiraIssueKey && !jiraIssueKey && !stableCurrentResult) {
+      setJiraIssueKey(location.state.autoFillJiraIssueKey);
+    }
+  }, [open, fullPage, location.state, jiraIssueKey, stableCurrentResult]);
+
 
   // 프로젝트의 기존 태그 목록 조회
   useEffect(() => {
