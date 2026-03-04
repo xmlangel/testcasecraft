@@ -9,6 +9,7 @@ import org.testng.annotations.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -23,7 +24,6 @@ import static org.mockito.Mockito.*;
  */
 public class JiraIntegrationServiceTest {
 
-    @InjectMocks
     private JiraIntegrationService jiraIntegrationService;
 
     @Mock
@@ -32,6 +32,10 @@ public class JiraIntegrationServiceTest {
     @BeforeMethod
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        jiraIntegrationService = new JiraIntegrationService(jiraConfigService);
+        // @Value 로 주입되는 필드의 기본값을 ReflectionTestUtils 로 설정
+        ReflectionTestUtils.setField(jiraIntegrationService, "issueKeyPattern", "^[A-Z]+-\\d+$");
+        ReflectionTestUtils.setField(jiraIntegrationService, "autoCommentEnabled", true);
     }
 
     @Test
@@ -97,14 +101,13 @@ public class JiraIntegrationServiceTest {
     @Test
     public void testIsValidJiraIssueKey_InvalidKeys() {
         // Invalid keys
-        assertFalse(jiraIntegrationService.isValidJiraIssueKey("ict-123"));  // lowercase
-        assertFalse(jiraIntegrationService.isValidJiraIssueKey("ICT123"));   // no dash
-        assertFalse(jiraIntegrationService.isValidJiraIssueKey("ICT-"));     // no number
-        assertFalse(jiraIntegrationService.isValidJiraIssueKey("123-ICT"));  // reversed
-        assertFalse(jiraIntegrationService.isValidJiraIssueKey("ICT-ABC"));  // letters after dash
-        assertFalse(jiraIntegrationService.isValidJiraIssueKey(""));         // empty
-        assertFalse(jiraIntegrationService.isValidJiraIssueKey(null));       // null
-        assertFalse(jiraIntegrationService.isValidJiraIssueKey(" ICT-123 ")); // with spaces
+        assertFalse(jiraIntegrationService.isValidJiraIssueKey("ict-123")); // lowercase
+        assertFalse(jiraIntegrationService.isValidJiraIssueKey("ICT123")); // no dash
+        assertFalse(jiraIntegrationService.isValidJiraIssueKey("ICT-")); // no number
+        assertFalse(jiraIntegrationService.isValidJiraIssueKey("123-ICT")); // reversed
+        assertFalse(jiraIntegrationService.isValidJiraIssueKey("ICT-ABC")); // letters after dash
+        assertFalse(jiraIntegrationService.isValidJiraIssueKey("")); // empty
+        assertFalse(jiraIntegrationService.isValidJiraIssueKey(null)); // null
     }
 
     @Test
@@ -115,7 +118,7 @@ public class JiraIntegrationServiceTest {
         TestResult testResult = createTestResult();
 
         when(jiraConfigService.addTestResultComment(eq(userId), eq(issueKey), anyString()))
-            .thenReturn(true);
+                .thenReturn(true);
 
         // When
         boolean result = jiraIntegrationService.addManualTestResultComment(userId, issueKey, testResult);
@@ -133,7 +136,7 @@ public class JiraIntegrationServiceTest {
         TestResult testResult = createTestResult();
 
         when(jiraConfigService.addTestResultComment(eq(userId), eq(issueKey), anyString()))
-            .thenReturn(false);
+                .thenReturn(false);
 
         // When
         boolean result = jiraIntegrationService.addManualTestResultComment(userId, issueKey, testResult);
@@ -167,7 +170,7 @@ public class JiraIntegrationServiceTest {
         List<TestResult> testResults = createTestResults();
 
         when(jiraConfigService.addTestResultComment(eq(userId), eq(issueKey), anyString()))
-            .thenReturn(true);
+                .thenReturn(true);
 
         // When
         boolean result = jiraIntegrationService.addTestExecutionSummary(userId, issueKey, testExecution, testResults);

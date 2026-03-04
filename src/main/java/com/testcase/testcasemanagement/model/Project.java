@@ -2,6 +2,7 @@
 package com.testcase.testcasemanagement.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -16,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "projects", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"code"})
+        @UniqueConstraint(columnNames = { "code" })
 })
 public class Project {
     @Id
@@ -37,7 +38,7 @@ public class Project {
     private String code; // ✅ NOT NULL + 유니크 제약조건
 
     // 조직과의 관계 - nullable (조직에 속하지 않은 프로젝트 허용)
-    @JsonIgnoreProperties({"projects", "organizationUsers", "groups"}) // 순환 참조 방지를 위해 특정 필드만 제외
+    @JsonBackReference("organization-projects")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id")
     private Organization organization;
@@ -50,19 +51,18 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference("project-testcases")
-    @JsonIgnore  // StackOverflowError 방지: 배치 저장 시 순환 참조 방지
+    @JsonIgnore // StackOverflowError 방지: 배치 저장 시 순환 참조 방지
     private List<TestCase> testCases;
-    
+
     // 프로젝트 멤버 관계 (양방향)
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("project-users")
     private List<ProjectUser> projectUsers = new ArrayList<>();
-    
+
     // 프로젝트에 속한 그룹들
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Group> groups = new ArrayList<>();
-
 
     @PrePersist
     protected void onCreate() {

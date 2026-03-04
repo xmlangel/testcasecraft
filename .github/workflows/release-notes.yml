@@ -1,0 +1,41 @@
+name: Release Notes
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          RELEASE_NOTE_FILE="docs/release_note/RELEASE_NOTE_${VERSION}_KO.md"
+          if [ -f "$RELEASE_NOTE_FILE" ]; then
+            cat "$RELEASE_NOTE_FILE" > release_notes.md
+          else
+            echo "Release note file not found: $RELEASE_NOTE_FILE"
+            echo "Standard release for version $VERSION" > release_notes.md
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          files: |
+            docs/release_note/RELEASE_NOTE_${{ steps.get_version.outputs.VERSION }}_EN.md
+            docs/release_note/RELEASE_NOTE_${{ steps.get_version.outputs.VERSION }}_KO.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

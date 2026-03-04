@@ -57,7 +57,7 @@ public class PreviousResultEditDeleteApiTest extends AbstractTestNGSpringContext
     // 인증 및 JWT 토큰 발급
     private String authenticateAndGetToken() {
         Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "admin");
+        loginRequest.put("username", "test_admin");
         loginRequest.put("password", "admin123");
 
         return given()

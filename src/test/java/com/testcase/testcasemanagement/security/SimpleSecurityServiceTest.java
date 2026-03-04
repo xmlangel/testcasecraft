@@ -42,6 +42,9 @@ public class SimpleSecurityServiceTest {
     @Mock
     private GroupRepository groupRepository;
 
+    @Mock
+    private com.testcase.testcasemanagement.repository.UserRepository userRepository;
+
     @InjectMocks
     private OrganizationSecurityService organizationSecurityService;
 
@@ -68,33 +71,34 @@ public class SimpleSecurityServiceTest {
     void testIsOrganizationMember_WithMember() {
         // Given
         String orgId = "org123";
-        String userId = "user123";
+        String username = "user123";
+        String userId = "user-id-123";
 
-        OrganizationUser orgUser = new OrganizationUser();
-        orgUser.setRoleInOrganization(OrganizationUser.OrganizationRole.MEMBER);
+        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
+        mockUser.setId(userId);
+        mockUser.setUsername(username);
 
-        when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, userId))
-                .thenReturn(Optional.of(orgUser));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(organizationUserRepository.existsByOrganizationIdAndUserId(orgId, userId)).thenReturn(true);
 
         // When
-        boolean result = organizationSecurityService.isOrganizationMember(orgId, userId);
+        boolean result = organizationSecurityService.isOrganizationMember(orgId, username);
 
         // Then
         assertTrue(result);
-        verify(organizationUserRepository).findByOrganizationIdAndUserId(orgId, userId);
+        verify(userRepository).findByUsername(username);
     }
 
     @Test
     void testIsOrganizationMember_WithoutMember() {
         // Given
         String orgId = "org123";
-        String userId = "user123";
+        String username = "user123";
 
-        when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, userId))
-                .thenReturn(Optional.empty());
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         // When
-        boolean result = organizationSecurityService.isOrganizationMember(orgId, userId);
+        boolean result = organizationSecurityService.isOrganizationMember(orgId, username);
 
         // Then
         assertFalse(result);
@@ -104,16 +108,19 @@ public class SimpleSecurityServiceTest {
     void testIsOrganizationOwner_WithOwner() {
         // Given
         String orgId = "org123";
-        String userId = "user123";
+        String username = "user123";
+        String userId = "user-id-123";
 
-        OrganizationUser orgUser = new OrganizationUser();
-        orgUser.setRoleInOrganization(OrganizationUser.OrganizationRole.OWNER);
+        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
+        mockUser.setId(userId);
+        mockUser.setUsername(username);
 
-        when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, userId))
-                .thenReturn(Optional.of(orgUser));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(organizationUserRepository.findRoleByOrganizationIdAndUserId(orgId, userId))
+                .thenReturn(Optional.of(OrganizationUser.OrganizationRole.OWNER));
 
         // When
-        boolean result = organizationSecurityService.isOrganizationOwner(orgId, userId);
+        boolean result = organizationSecurityService.isOrganizationOwner(orgId, username);
 
         // Then
         assertTrue(result);
@@ -123,16 +130,19 @@ public class SimpleSecurityServiceTest {
     void testIsOrganizationOwner_WithMember() {
         // Given
         String orgId = "org123";
-        String userId = "user123";
+        String username = "user123";
+        String userId = "user-id-123";
 
-        OrganizationUser orgUser = new OrganizationUser();
-        orgUser.setRoleInOrganization(OrganizationUser.OrganizationRole.MEMBER);
+        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
+        mockUser.setId(userId);
+        mockUser.setUsername(username);
 
-        when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, userId))
-                .thenReturn(Optional.of(orgUser));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(organizationUserRepository.findRoleByOrganizationIdAndUserId(orgId, userId))
+                .thenReturn(Optional.of(OrganizationUser.OrganizationRole.MEMBER));
 
         // When
-        boolean result = organizationSecurityService.isOrganizationOwner(orgId, userId);
+        boolean result = organizationSecurityService.isOrganizationOwner(orgId, username);
 
         // Then
         assertFalse(result);
@@ -150,20 +160,22 @@ public class SimpleSecurityServiceTest {
     void testIsProjectMember_WithMember() {
         // Given
         String projectId = "proj123";
-        String userId = "user123";
+        String username = "user123";
+        String userId = "user-id-123";
 
-        ProjectUser projUser = new ProjectUser();
-        projUser.setRoleInProject(ProjectUser.ProjectRole.DEVELOPER);
+        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
+        mockUser.setId(userId);
+        mockUser.setUsername(username);
 
-        when(projectUserRepository.findByProjectIdAndUserId(projectId, userId))
-                .thenReturn(Optional.of(projUser));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(projectUserRepository.existsByProjectIdAndUserId(projectId, userId)).thenReturn(true);
 
         // When
-        boolean result = projectSecurityService.isProjectMember(projectId, userId);
+        boolean result = projectSecurityService.isProjectMember(projectId, username);
 
         // Then
         assertTrue(result);
-        verify(projectUserRepository).findByProjectIdAndUserId(projectId, userId);
+        verify(userRepository).findByUsername(username);
     }
 
     @Test
@@ -194,20 +206,22 @@ public class SimpleSecurityServiceTest {
     void testIsGroupMember_WithMember() {
         // Given
         String groupId = "group123";
-        String userId = "user123";
+        String username = "user123";
+        String userId = "user-id-123";
 
-        GroupMember groupMember = new GroupMember();
-        groupMember.setRoleInGroup(GroupMember.GroupRole.MEMBER);
+        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
+        mockUser.setId(userId);
+        mockUser.setUsername(username);
 
-        when(groupMemberRepository.findByGroupIdAndUserId(groupId, userId))
-                .thenReturn(Optional.of(groupMember));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)).thenReturn(true);
 
         // When
-        boolean result = groupSecurityService.isGroupMember(groupId, userId);
+        boolean result = groupSecurityService.isGroupMember(groupId, username);
 
         // Then
         assertTrue(result);
-        verify(groupMemberRepository).findByGroupIdAndUserId(groupId, userId);
+        verify(userRepository).findByUsername(username);
     }
 
     @Test

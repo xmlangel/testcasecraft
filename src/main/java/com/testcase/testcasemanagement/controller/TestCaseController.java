@@ -94,8 +94,10 @@ public class TestCaseController {
             TestCase updatedEntity = testCaseService.updateTestCase(id, testCaseDto);
             return ResponseEntity.ok(TestCaseMapper.toDto(updatedEntity));
         } catch (ResourceNotValidException e) {
+            log.warn("updateTestCase ResourceNotValidException: {}", e.getErrors());
             return ResponseEntity.badRequest().body(e.getErrors());
         } catch (IllegalArgumentException e) {
+            log.warn("updateTestCase IllegalArgumentException: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             // 예외의 메시지와 전체 스택트레이스를 문자열로 변환해서 응답에 포함

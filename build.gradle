@@ -119,7 +119,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.42-SNAPSHOT'
+version = '1.0.43-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -398,8 +398,7 @@ dependencies {
 	testImplementation 'io.rest-assured:rest-assured:5.3.2'
 	testImplementation 'io.rest-assured:json-schema-validator:5.3.2'
 	testImplementation 'org.hamcrest:hamcrest:2.2'
-	testImplementation 'org.springframework:spring-test:6.1.13'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.0'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.testng:testng:7.10.2'
 	testImplementation 'com.h2database:h2:2.2.224'
 	runtimeOnly 'com.h2database:h2:2.2.224'  // 런타임에도 H2 사용 가능하도록 추가
@@ -431,6 +430,10 @@ test {
 		// API 종합 테스트 그룹을 기본 테스트에서 제외하여 빌드에 영향 없도록 함
 		excludeGroups 'api-comprehensive-test'
 	}
+	// API 패키지 테스트 전체 제외 (AllApiComprehensiveTest는 apiComprehensiveTest 태스크로 별도 실행)
+	exclude 'com/testcase/testcasemanagement/api/**'
+	// Google Sheets 연동 테스트 제외 (google.json 인증 파일 필요 - CI 환경 미지원)
+	exclude 'com/testcase/testcasemanagement/function/TestCaseGoogleSheetExporterDbIntegrationTest.class'
 	systemProperties = [
 			'allure.results.directory': 'build/allure-results', // 결과 디렉터리 명시
 			// Oracle/C3P0 자동감지 방지 시스템 프로퍼티

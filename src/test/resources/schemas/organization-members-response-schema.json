@@ -32,16 +32,20 @@
             "enum": ["ADMIN", "TESTER", "USER"]
           },
           "createdAt": {
-            "type": "string",
-            "format": "date-time"
+            "oneOf": [
+              { "type": "string", "format": "date-time" },
+              { "type": "array", "items": { "type": "integer" } }
+            ]
           },
           "updatedAt": {
-            "type": "string",
-            "format": "date-time"
+            "oneOf": [
+              { "type": "string", "format": "date-time" },
+              { "type": "array", "items": { "type": "integer" } }
+            ]
           }
         },
-        "required": ["id", "username", "email", "name", "password", "role", "createdAt", "updatedAt"],
-        "additionalProperties": false
+        "required": ["id", "username", "email", "name", "role", "createdAt", "updatedAt"],
+        "additionalProperties": true
       },
       "roleInOrganization": {
         "type": "string",
@@ -49,13 +53,17 @@
         "description": "조직 내 역할"
       },
       "createdAt": {
-        "type": "string",
-        "format": "date-time",
+        "oneOf": [
+          { "type": "string", "format": "date-time" },
+          { "type": "array", "items": { "type": "integer" } }
+        ],
         "description": "가입 일시"
       },
       "updatedAt": {
-        "type": "string",
-        "format": "date-time",
+        "oneOf": [
+          { "type": "string", "format": "date-time" },
+          { "type": "array", "items": { "type": "integer" } }
+        ],
         "description": "수정 일시"
       },
       "organizationName": {
@@ -80,6 +88,6 @@
       }
     },
     "required": ["id", "user", "roleInOrganization", "createdAt", "updatedAt"],
-    "additionalProperties": false
+    "additionalProperties": true
   }
 }

@@ -52,6 +52,9 @@ public class OrganizationServiceTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private ProjectService projectService;
+
     @InjectMocks
     private OrganizationService organizationService;
 
@@ -92,7 +95,7 @@ public class OrganizationServiceTest {
         // Given
         String orgName = "New Organization";
         String orgDescription = "New Description";
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(organizationRepository.save(any(Organization.class))).thenReturn(testOrganization);
@@ -104,20 +107,17 @@ public class OrganizationServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(testOrganization.getId(), result.getId());
-        
+
         // 조직 저장 확인
-        verify(organizationRepository).save(argThat(org -> 
-            orgName.equals(org.getName()) && orgDescription.equals(org.getDescription())
-        ));
-        
+        verify(organizationRepository)
+                .save(argThat(org -> orgName.equals(org.getName()) && orgDescription.equals(org.getDescription())));
+
         // 생성자가 OWNER로 추가되는지 확인
-        verify(organizationUserRepository).save(argThat(orgUser -> 
-            orgUser.getUser().equals(testUser) && 
-            orgUser.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER
-        ));
-        
+        verify(organizationUserRepository).save(argThat(orgUser -> orgUser.getUser().equals(testUser) &&
+                orgUser.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER));
+
         // 감사 로그 기록 확인
-        verify(auditService, times(2)).logOrganizationAction(any(), any(), any());
+        verify(auditService, times(1)).logOrganizationAction(any(), any(), any());
         verify(auditService).logOrganizationMemberAction(any(), any(), any(), any());
     }
 
@@ -158,11 +158,11 @@ public class OrganizationServiceTest {
     void testGetAccessibleOrganizations_RegularUser() {
         // Given
         List<Organization> userOrganizations = Arrays.asList(testOrganization);
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(securityContextUtil.isSystemAdmin()).thenReturn(false);
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
-        when(organizationRepository.findByUserId("user123")).thenReturn(userOrganizations);
+        when(organizationRepository.findByUserIdWithMembers("user123")).thenReturn(userOrganizations);
 
         // When
         List<Organization> result = organizationService.getAccessibleOrganizations();
@@ -171,19 +171,19 @@ public class OrganizationServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(testOrganization.getId(), result.get(0).getId());
-        
-        verify(organizationRepository).findByUserId("user123");
-        verify(organizationRepository, never()).findAll();
+
+        verify(organizationRepository).findByUserIdWithMembers("user123");
+        verify(organizationRepository, never()).findAllWithMembers();
     }
 
     @Test
     void testGetAccessibleOrganizations_SystemAdmin() {
         // Given
         List<Organization> allOrganizations = Arrays.asList(testOrganization);
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("admin");
         when(securityContextUtil.isSystemAdmin()).thenReturn(true);
-        when(organizationRepository.findAll()).thenReturn(allOrganizations);
+        when(organizationRepository.findAllWithMembers()).thenReturn(allOrganizations);
 
         // When
         List<Organization> result = organizationService.getAccessibleOrganizations();
@@ -191,9 +191,9 @@ public class OrganizationServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        
-        verify(organizationRepository).findAll();
-        verify(organizationRepository, never()).findByUserId(any());
+
+        verify(organizationRepository).findAllWithMembers();
+        verify(organizationRepository, never()).findByUserIdWithMembers(any());
     }
 
     // ==================== 조직 상세 정보 조회 테스트 ====================
@@ -202,10 +202,10 @@ public class OrganizationServiceTest {
     void testGetOrganization_Success() {
         // Given
         String orgId = "org123";
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.canAccessOrganization(orgId, "testuser")).thenReturn(true);
-        when(organizationRepository.findById(orgId)).thenReturn(Optional.of(testOrganization));
+        when(organizationRepository.findByIdWithMembers(orgId)).thenReturn(Optional.of(testOrganization));
 
         // When
         Organization result = organizationService.getOrganization(orgId);
@@ -213,7 +213,7 @@ public class OrganizationServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(testOrganization.getId(), result.getId());
-        
+
         verify(organizationSecurityService).canAccessOrganization(orgId, "testuser");
     }
 
@@ -221,7 +221,7 @@ public class OrganizationServiceTest {
     void testGetOrganization_AccessDenied() {
         // Given
         String orgId = "org123";
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.canAccessOrganization(orgId, "testuser")).thenReturn(false);
 
@@ -243,7 +243,7 @@ public class OrganizationServiceTest {
         String orgId = "org123";
         String newName = "Updated Organization";
         String newDescription = "Updated Description";
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.canManageOrganization(orgId, "testuser")).thenReturn(true);
         when(organizationRepository.findById(orgId)).thenReturn(Optional.of(testOrganization));
@@ -254,11 +254,10 @@ public class OrganizationServiceTest {
 
         // Then
         assertNotNull(result);
-        
+
         verify(organizationSecurityService).canManageOrganization(orgId, "testuser");
-        verify(organizationRepository).save(argThat(org -> 
-            newName.equals(org.getName()) && newDescription.equals(org.getDescription())
-        ));
+        verify(organizationRepository)
+                .save(argThat(org -> newName.equals(org.getName()) && newDescription.equals(org.getDescription())));
         verify(auditService).logOrganizationAction(eq(orgId), any(), contains("Organization updated"));
     }
 
@@ -268,7 +267,7 @@ public class OrganizationServiceTest {
     void testDeleteOrganization_Success() {
         // Given
         String orgId = "org123";
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.isOrganizationOwner(orgId, "testuser")).thenReturn(true);
         when(organizationRepository.findById(orgId)).thenReturn(Optional.of(testOrganization));
@@ -286,7 +285,7 @@ public class OrganizationServiceTest {
     void testDeleteOrganization_NotOwner() {
         // Given
         String orgId = "org123";
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.isOrganizationOwner(orgId, "testuser")).thenReturn(false);
         when(securityContextUtil.isSystemAdmin()).thenReturn(false);
@@ -309,17 +308,17 @@ public class OrganizationServiceTest {
         String orgId = "org123";
         String username = "newuser";
         OrganizationUser.OrganizationRole role = OrganizationUser.OrganizationRole.MEMBER;
-        
+
         User invitedUser = new User();
         invitedUser.setId("newuser123");
         invitedUser.setUsername(username);
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.canInviteMembers(orgId, "testuser")).thenReturn(true);
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(invitedUser));
         when(organizationRepository.findById(orgId)).thenReturn(Optional.of(testOrganization));
         when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, "newuser123"))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
         when(organizationUserRepository.save(any(OrganizationUser.class))).thenReturn(testOrganizationUser);
 
         // When
@@ -327,11 +326,10 @@ public class OrganizationServiceTest {
 
         // Then
         assertNotNull(result);
-        
+
         verify(organizationSecurityService).canInviteMembers(orgId, "testuser");
-        verify(organizationUserRepository).save(argThat(orgUser -> 
-            orgUser.getUser().equals(invitedUser) && orgUser.getRoleInOrganization() == role
-        ));
+        verify(organizationUserRepository).save(
+                argThat(orgUser -> orgUser.getUser().equals(invitedUser) && orgUser.getRoleInOrganization() == role));
         verify(auditService).logOrganizationMemberAction(eq(orgId), eq("newuser123"), any(), eq(role.toString()));
     }
 
@@ -341,17 +339,17 @@ public class OrganizationServiceTest {
         String orgId = "org123";
         String username = "existinguser";
         OrganizationUser.OrganizationRole role = OrganizationUser.OrganizationRole.MEMBER;
-        
+
         User existingUser = new User();
         existingUser.setId("existing123");
         existingUser.setUsername(username);
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.canInviteMembers(orgId, "testuser")).thenReturn(true);
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(existingUser));
         when(organizationRepository.findById(orgId)).thenReturn(Optional.of(testOrganization));
         when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, "existing123"))
-            .thenReturn(Optional.of(testOrganizationUser));
+                .thenReturn(Optional.of(testOrganizationUser));
 
         // When & Then
         try {
@@ -370,11 +368,11 @@ public class OrganizationServiceTest {
         // Given
         String orgId = "org123";
         String targetUserId = "target123";
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.canRemoveMember(orgId, targetUserId, "testuser")).thenReturn(true);
         when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, targetUserId))
-            .thenReturn(Optional.of(testOrganizationUser));
+                .thenReturn(Optional.of(testOrganizationUser));
 
         // When
         organizationService.removeMember(orgId, targetUserId);
@@ -394,13 +392,13 @@ public class OrganizationServiceTest {
         String targetUserId = "target123";
         OrganizationUser.OrganizationRole newRole = OrganizationUser.OrganizationRole.ADMIN;
         OrganizationUser.OrganizationRole oldRole = OrganizationUser.OrganizationRole.MEMBER;
-        
+
         testOrganizationUser.setRoleInOrganization(oldRole);
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.canManageOrganization(orgId, "testuser")).thenReturn(true);
         when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, targetUserId))
-            .thenReturn(Optional.of(testOrganizationUser));
+                .thenReturn(Optional.of(testOrganizationUser));
         when(organizationUserRepository.save(any(OrganizationUser.class))).thenReturn(testOrganizationUser);
 
         // When
@@ -408,13 +406,11 @@ public class OrganizationServiceTest {
 
         // Then
         assertNotNull(result);
-        
+
         verify(organizationSecurityService).canManageOrganization(orgId, "testuser");
-        verify(organizationUserRepository).save(argThat(orgUser -> 
-            orgUser.getRoleInOrganization() == newRole
-        ));
-        verify(auditService).logOrganizationMemberAction(eq(orgId), eq(targetUserId), any(), 
-            contains("oldRole=" + oldRole + ", newRole=" + newRole));
+        verify(organizationUserRepository).save(argThat(orgUser -> orgUser.getRoleInOrganization() == newRole));
+        verify(auditService).logOrganizationMemberAction(eq(orgId), eq(targetUserId), any(),
+                contains("oldRole=" + oldRole + ", newRole=" + newRole));
     }
 
     // ==================== 조직 멤버 목록 조회 테스트 ====================
@@ -424,7 +420,7 @@ public class OrganizationServiceTest {
         // Given
         String orgId = "org123";
         List<OrganizationUser> members = Arrays.asList(testOrganizationUser);
-        
+
         when(securityContextUtil.getCurrentUsername()).thenReturn("testuser");
         when(organizationSecurityService.canAccessOrganization(orgId, "testuser")).thenReturn(true);
         when(organizationUserRepository.findByOrganizationId(orgId)).thenReturn(members);
@@ -436,7 +432,7 @@ public class OrganizationServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(testOrganizationUser.getId(), result.get(0).getId());
-        
+
         verify(organizationSecurityService).canAccessOrganization(orgId, "testuser");
     }
 }

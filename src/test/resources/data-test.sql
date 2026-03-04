@@ -6,7 +6,7 @@
 INSERT INTO users (id, username, password, name, email, role, email_verified, is_active, created_at, updated_at) VALUES 
 ('user-1', 'testuser1', '$2a$10$dXJ9c/lH3xH7xO9xrxvqXuEKhLZ6QZ9MxZQ7xZ8xZ9xZ0xZ1xZ2xZ', 'Test User 1', 'testuser1@test.com', 'TESTER', true, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('user-2', 'testuser2', '$2a$10$dXJ9c/lH3xH7xO9xrxvqXuEKhLZ6QZ9MxZQ7xZ8xZ9xZ0xZ1xZ2xZ', 'Test User 2', 'testuser2@test.com', 'TESTER', true, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('admin-test-id', 'test_admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z2/gnCuDnpbOmAGIIW9a2E1L', 'Administrator', 'admin@test.com', 'ADMIN', true, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('admin-test-id', 'test_admin', '$2a$10$X3lk3TwCWiWSeEnroktrJuoBZDabw8iZjezfgIWCMHFQGq0N8rHIG', 'Administrator', 'admin@test.com', 'ADMIN', true, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('tester-test-id', 'tester', '$2a$10$q2g0Z7b9Z9Z9Z9Z9Z9Z9ZeZ9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z', 'Tester User', 'tester@test.com', 'TESTER', true, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 프로젝트 데이터  
