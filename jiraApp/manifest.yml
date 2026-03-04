@@ -5,7 +5,7 @@ modules:
       render: native
       resolver:
         function: resolver
-      title: testcasecraft 연동
+      title: Testcasecraft
       icon: https://developer.atlassian.com/favicon.ico
   function:
     - key: resolver
@@ -21,3 +21,7 @@ permissions:
   scopes:
     - read:jira-work
     - write:jira-work
+  external:
+    fetch:
+      client:
+        - tc.skaiworldwide.co.kr
