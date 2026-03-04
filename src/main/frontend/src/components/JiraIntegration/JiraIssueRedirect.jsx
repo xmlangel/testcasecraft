@@ -1,17 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, CircularProgress, Typography, Alert, Button, Container } from '@mui/material';
+import { 
+    Box, CircularProgress, Typography, Alert, Button, Container, 
+    Card, CardContent, CardActionArea, Grid, Chip, Divider, Stack 
+} from '@mui/material';
+import { 
+    Timeline as TimelineIcon, 
+    Assignment as AssignmentIcon,
+    Business as BusinessIcon,
+    PlayArrow as PlayArrowIcon,
+    CheckCircle as CheckCircleIcon,
+    Error as ErrorIcon
+} from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext';
 import { useTranslation } from '../../context/I18nContext';
 
 const JiraIssueRedirect = () => {
-    const { issueKey } = useParams();
+    const { issueKey: rawIssueKey } = useParams();
     const navigate = useNavigate();
     const { api, ensureValidToken } = useAppContext();
     const { t } = useTranslation();
     
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [executions, setExecutions] = useState([]);
+
+    const issueKey = rawIssueKey ? rawIssueKey.toUpperCase() : '';
 
     useEffect(() => {
         const fetchContextAndRedirect = async () => {
@@ -25,22 +39,23 @@ const JiraIssueRedirect = () => {
                 await ensureValidToken();
                 const response = await api.get(`/api/jira-integration/latest-execution-context?issueKey=${issueKey}`);
                 
-                if (response.data) {
-                    const { projectId, executionId, testCaseId } = response.data;
+                if (response.data && Array.isArray(response.data)) {
+                    const data = response.data;
                     
-                    if (projectId && executionId) {
-                        // 이슈 키를 결과 입력 폼에 전달하기 위해 state 사용
-                        navigate(`/projects/${projectId}/executions/${executionId}`, { 
-                            state: { 
-                                autoFillJiraIssueKey: issueKey,
-                                targetTestCaseId: testCaseId
-                            } 
-                        });
+                    if (data.length === 1) {
+                        // 결과가 1개인 경우 즉시 리다이렉트
+                        handleRedirect(data[0]);
+                    } else if (data.length > 1) {
+                        // 여러 개인 경우 목록 표시
+                        setExecutions(data);
+                        setLoading(false);
                     } else {
                         setError(t('common.errors.noAssociatedExecution', '연결된 테스트 실행 정보를 찾을 수 없습니다.'));
+                        setLoading(false);
                     }
                 } else {
                     setError(t('common.errors.noDataFound', '데이터를 찾을 수 없습니다.'));
+                    setLoading(false);
                 }
             } catch (err) {
                 console.error('Redirect error:', err);
@@ -49,23 +64,52 @@ const JiraIssueRedirect = () => {
                 } else {
                     setError(t('common.errors.serverError', '서버와의 통신 중 오류가 발생했습니다.'));
                 }
-            } finally {
                 setLoading(false);
             }
         };
 
         fetchContextAndRedirect();
-    }, [issueKey, api, ensureValidToken, navigate, t]);
+    }, [issueKey, api, ensureValidToken, t]);
+
+    const handleRedirect = (exec) => {
+        const { projectId, executionId, testCaseId } = exec;
+        navigate(`/projects/${projectId}/executions/${executionId}`, { 
+            state: { 
+                autoFillJiraIssueKey: issueKey,
+                targetTestCaseId: testCaseId
+            } 
+        });
+    };
+
+    const getStatusChip = (status) => {
+        let color = 'default';
+        let icon = <TimelineIcon />;
+        
+        switch (status) {
+            case 'INPROGRESS':
+                color = 'primary';
+                icon = <PlayArrowIcon />;
+                break;
+            case 'COMPLETED':
+                color = 'success';
+                icon = <CheckCircleIcon />;
+                break;
+            default:
+                color = 'default';
+        }
+        
+        return <Chip size="small" icon={icon} label={status} color={color} variant="outlined" />;
+    };
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-                <CircularProgress size={60} sx={{ mb: 2 }} />
-                <Typography variant="h6">
-                    {t('common.redirecting.jira', 'JIRA 이슈와 연결된 테스트 화면으로 이동 중입니다...')}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+                <CircularProgress size={60} thickness={4} sx={{ mb: 3 }} />
+                <Typography variant="h5" fontWeight="bold" gutterBottom>
+                    {t('common.redirecting.processing', '연관 데이터 조회 중...')}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    {issueKey}
+                <Typography variant="body1" color="text.secondary">
+                    {issueKey} 이슈와 연결된 테스트를 찾고 있습니다.
                 </Typography>
             </Box>
         );
@@ -74,27 +118,90 @@ const JiraIssueRedirect = () => {
     if (error) {
         return (
             <Container maxWidth="sm" sx={{ mt: 10 }}>
-                <Alert 
-                    severity="warning" 
-                    variant="outlined"
-                    action={
-                        <Button color="inherit" size="small" onClick={() => navigate('/projects')}>
-                            {t('common.backToProjects', '프로젝트 목록으로 이동')}
-                        </Button>
-                    }
-                >
-                    <Typography variant="subtitle1" fontWeight="bold">
-                        {t('common.redirecting.failed', '리다이렉션 실패')}
+                <Box sx={{ textAlign: 'center', mb: 4 }}>
+                    <ErrorIcon color="warning" sx={{ fontSize: 60, mb: 2 }} />
+                    <Typography variant="h4" fontWeight="bold" gutterBottom>
+                        {t('common.redirecting.failed', '연결 실패')}
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography variant="body1" color="text.secondary" paragraph>
                         {error}
                     </Typography>
-                </Alert>
+                    <Button 
+                        variant="contained" 
+                        size="large" 
+                        onClick={() => navigate('/projects')}
+                        sx={{ borderRadius: 8, px: 4 }}
+                    >
+                        {t('common.backToProjects', '프로젝트 목록으로 이동')}
+                    </Button>
+                </Box>
             </Container>
         );
     }
 
-    return null;
+    return (
+        <Container maxWidth="md" sx={{ py: 6 }}>
+            <Box sx={{ mb: 4, textAlign: 'center' }}>
+                <Typography variant="h4" fontWeight="800" gutterBottom color="primary">
+                    테스트 실행 선택
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                    <strong>{issueKey}</strong> 이슈와 연관된 테스트가 {executions.length}개 발견되었습니다.<br />
+                    작업을 진행할 실행 항목을 선택해 주세요.
+                </Typography>
+            </Box>
+
+            <Grid container spacing={3}>
+                {executions.map((exec) => (
+                    <Grid item xs={12} key={exec.executionId}>
+                        <Card 
+                            elevation={2} 
+                            sx={{ 
+                                borderRadius: 4, 
+                                transition: 'all 0.2s',
+                                '&:hover': { transform: 'translateY(-4px)', boxShadow: 6 }
+                            }}
+                        >
+                            <CardActionArea onClick={() => handleRedirect(exec)} sx={{ p: 1 }}>
+                                <CardContent>
+                                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                                        <Box>
+                                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                                                <BusinessIcon fontSize="small" color="action" />
+                                                <Typography variant="subtitle2" color="primary" fontWeight="bold">
+                                                    {exec.projectName}
+                                                </Typography>
+                                            </Stack>
+                                            <Typography variant="h6" fontWeight="bold">
+                                                {exec.executionName}
+                                            </Typography>
+                                        </Box>
+                                        {getStatusChip(exec.status)}
+                                    </Stack>
+                                    
+                                    <Divider sx={{ my: 1.5, opacity: 0.6 }} />
+                                    
+                                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                        <Stack direction="row" spacing={2}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                <strong>Case:</strong> {exec.testCaseId}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                <strong>Date:</strong> {exec.startDate ? new Date(exec.startDate).toLocaleDateString() : 'N/A'}
+                                            </Typography>
+                                        </Stack>
+                                        <Button size="small" variant="text" endIcon={<PlayArrowIcon />}>
+                                            바로가기
+                                        </Button>
+                                    </Stack>
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
+        </Container>
+    );
 };
 
 export default JiraIssueRedirect;
