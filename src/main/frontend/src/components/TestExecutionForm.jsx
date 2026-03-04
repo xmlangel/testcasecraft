@@ -74,11 +74,10 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [prevResultsLoading, setPrevResultsLoading] = useState(false);
   const [currentPrevResultsTestCaseId, setCurrentPrevResultsTestCaseId] = useState(null);
 
-  // ICT-362: 첨부파일 다이얼로그 상태
+  //  첨부파일 다이얼로그 상태
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // ICT-362: 첨부파일 다이얼로그 상태
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedTestResultId, setSelectedTestResultId] = useState(null);
 
@@ -441,15 +440,33 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   };
 
   const handleOpenResultForm = useCallback((testCaseId) => {
-    const projectId = execution?.testPlan?.projectId;
+    // projectId를 다양한 소스에서 검색하여 항상 URL 네비게이션을 우선 사용
+    const projectId = execution?.testPlan?.projectId
+      || execution?.projectId
+      || propProjectId;
     if (projectId && execution?.id) {
       navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`);
     } else {
-      // Fallback to dialog mode
+      // Fallback to dialog mode (projectId를 전혀 알 수 없는 경우)
       setSelectedTestCaseId(testCaseId);
       setIsResultFormOpen(true);
     }
-  }, [navigate, execution]);
+  }, [navigate, execution, propProjectId]);
+
+  // 결과 입력 화면의 직접 링크를 클립보드에 복사
+  const handleCopyLink = useCallback((testCaseId) => {
+    const projectId = execution?.testPlan?.projectId
+      || execution?.projectId
+      || propProjectId;
+    if (projectId && execution?.id) {
+      const url = `${window.location.origin}/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`;
+      navigator.clipboard.writeText(url).then(() => {
+        setSuccessMessage(t('testExecution.actions.linkCopied', '결과 입력 링크가 클립보드에 복사되었습니다.'));
+      }).catch(() => {
+        setSuccessMessage(url); // 복사 실패 시 URL을 메시지로 표시
+      });
+    }
+  }, [execution, propProjectId, t]);
 
   const handleCloseResultForm = useCallback(() => {
     setIsResultFormOpen(false);
@@ -1010,6 +1027,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
               handleOpenResultForm={handleOpenResultForm}
               handleShowPrevResults={handleShowPrevResults}
               handleAttachmentClick={handleAttachmentClick}
+              handleCopyLink={handleCopyLink}
               canEnterResults={canEnterResults}
               selectedTestCases={selectedTestCases}
               onSelectionChange={handleSelectionChange}

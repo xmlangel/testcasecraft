@@ -73,12 +73,13 @@ const JiraIssueRedirect = () => {
 
     const handleRedirect = (exec) => {
         const { projectId, executionId, testCaseId } = exec;
-        navigate(`/projects/${projectId}/executions/${executionId}`, { 
-            state: { 
-                autoFillJiraIssueKey: issueKey,
-                targetTestCaseId: testCaseId
-            } 
-        });
+        if (testCaseId) {
+            // 방안 B: 결과 입력 화면 URL로 직접 이동
+            navigate(`/projects/${projectId}/executions/${executionId}/testcases/${testCaseId}/result`);
+        } else {
+            // testCaseId가 없으면 실행 화면으로 이동
+            navigate(`/projects/${projectId}/executions/${executionId}`);
+        }
     };
 
     const getStatusChip = (status) => {

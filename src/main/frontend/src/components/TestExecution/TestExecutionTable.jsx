@@ -9,6 +9,7 @@ import {
     Visibility as VisibilityIcon,
     AttachFile as AttachFileIcon,
     ChevronRight as ChevronRightIcon,
+    ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import { useTranslation } from '../../context/I18nContext.jsx';
 import { TestResult } from "../../models/testExecution.jsx";
@@ -31,6 +32,7 @@ const TestExecutionTable = ({
     handleRowsPerPageChange,
     handleShowPrevResults,
     handleAttachmentClick,
+    handleCopyLink,
     canEnterResults,
     selectedTestCases,
     onSelectionChange
@@ -253,18 +255,33 @@ const TestExecutionTable = ({
                         ) : null}
                     </Box>
                     {/* 9: 결과입력 */}
-                    <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
                         {!isFolder ? (
-                            <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => handleOpenResultForm(node.id)}
-                                disabled={!canEnterResults}
-                                sx={{ fontSize: '0.75rem', py: 0.25, px: 1 }}
-                                data-testid={`execution-table-result-button-${node.id}`}
-                            >
-                                {t('testExecution.actions.enterResult')}
-                            </Button>
+                            <>
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => handleOpenResultForm(node.id)}
+                                    disabled={!canEnterResults}
+                                    sx={{ fontSize: '0.75rem', py: 0.25, px: 1 }}
+                                    data-testid={`execution-table-result-button-${node.id}`}
+                                >
+                                    {t('testExecution.actions.enterResult')}
+                                </Button>
+                                <Tooltip title={t('testExecution.actions.copyResultLink', '결과 입력 링크 복사')}>
+                                    <span>
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => handleCopyLink?.(node.id)}
+                                            disabled={!canEnterResults}
+                                            sx={{ p: 0.5 }}
+                                            data-testid={`execution-table-copy-link-button-${node.id}`}
+                                        >
+                                            <ContentCopyIcon fontSize="small" sx={{ fontSize: '0.9rem' }} />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            </>
                         ) : null}
                     </Box>
                     {/* 10: 이전결과 */}
@@ -468,6 +485,7 @@ TestExecutionTable.propTypes = {
     handleOpenResultForm: PropTypes.func.isRequired,
     handleShowPrevResults: PropTypes.func.isRequired,
     handleAttachmentClick: PropTypes.func.isRequired,
+    handleCopyLink: PropTypes.func,
     canEnterResults: PropTypes.bool,
     selectedTestCases: PropTypes.instanceOf(Set),
     onSelectionChange: PropTypes.func,
