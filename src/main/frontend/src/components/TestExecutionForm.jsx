@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+
 
 import PropTypes from "prop-types";
 import {
@@ -15,7 +16,7 @@ import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
 import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
 import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
-import { useNavigate } from "react-router-dom";
+
 import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX } from '../styles/layoutConstants';
 import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx';

@@ -78,7 +78,7 @@ services:
   
   # FastAPI RAG Service
   rag-service:
-    image: xmlangel/testcasecraft-rag-service:1.0.12
+    image: xmlangel/testcasecraft-rag-service:1.0.11
     container_name: testcasecraft-rag-service
     environment:
       # Database
