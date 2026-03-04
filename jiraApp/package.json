@@ -1,0 +1,21 @@
+{
+  "name": "testcasecraft-jira-app",
+  "version": "1.0.0",
+  "main": "src/index.jsx",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@forge/api": "^4.0.0",
+    "@forge/bridge": "^5.14.0",
+    "@forge/bundler": "^6.1.20",
+    "@forge/react": "^11.13.0",
+    "@forge/resolver": "^1.7.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-react": "^7.28.5",
+    "eslint": "^8.56.0"
+  }
+}

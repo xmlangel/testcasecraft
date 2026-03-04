@@ -1,0 +1,23 @@
+modules:
+  jira:issuePanel:
+    - key: testcasecraft-issue-panel
+      resource: main
+      render: native
+      resolver:
+        function: resolver
+      title: testcasecraft 연동
+      icon: https://developer.atlassian.com/favicon.ico
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+app:
+  id: ari:cloud:ecosystem::app/53c96fb2-3c38-4b39-942b-dc0834f217fc
+  runtime:
+    name: nodejs22.x
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
