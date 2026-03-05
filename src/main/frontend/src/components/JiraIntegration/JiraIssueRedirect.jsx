@@ -18,7 +18,7 @@ import { useTranslation } from '../../context/I18nContext';
 const JiraIssueRedirect = () => {
     const { issueKey: rawIssueKey } = useParams();
     const navigate = useNavigate();
-    const { api, ensureValidToken } = useAppContext();
+    const { api } = useAppContext();
     const { t } = useTranslation();
     
     const [loading, setLoading] = useState(true);
@@ -36,7 +36,6 @@ const JiraIssueRedirect = () => {
             }
 
             try {
-                await ensureValidToken();
                 const response = await api.get(`/api/jira-integration/latest-execution-context?issueKey=${issueKey}`);
                 
                 if (response.data && Array.isArray(response.data)) {
@@ -69,7 +68,7 @@ const JiraIssueRedirect = () => {
         };
 
         fetchContextAndRedirect();
-    }, [issueKey, api, ensureValidToken, t]);
+    }, [issueKey, api, t]);
 
     const handleRedirect = (exec) => {
         const { projectId, executionId, testCaseId } = exec;

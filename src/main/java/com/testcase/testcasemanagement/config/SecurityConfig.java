@@ -32,15 +32,18 @@ public class SecurityConfig {
     private final JwtTokenUtil jwtTokenUtil;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final com.testcase.testcasemanagement.repository.ServiceApiKeyRepository serviceApiKeyRepository;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
             JwtTokenUtil jwtTokenUtil,
             CustomAuthenticationEntryPoint authenticationEntryPoint,
-            CustomAccessDeniedHandler accessDeniedHandler) {
+            CustomAccessDeniedHandler accessDeniedHandler,
+            com.testcase.testcasemanagement.repository.ServiceApiKeyRepository serviceApiKeyRepository) {
         this.userDetailsService = userDetailsService;
         this.jwtTokenUtil = jwtTokenUtil;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.serviceApiKeyRepository = serviceApiKeyRepository;
     }
 
     @Bean
@@ -119,13 +122,22 @@ public class SecurityConfig {
                                 "/llm-config/**",
                                 "/scheduler",
                                 "/scheduler/**",
+                                "/jira-redirect",
+                                "/jira-redirect/**",
                                 "/verify-email",
                                 "/verify-email/**")
                         .permitAll()
                         .anyRequest().authenticated())
+                .addFilterBefore(apiKeyAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // API Key 인증 필터 생성
+    @Bean
+    public ApiKeyAuthenticationFilter apiKeyAuthenticationFilter() {
+        return new ApiKeyAuthenticationFilter(serviceApiKeyRepository);
     }
 
     // JWT 인증 필터 생성

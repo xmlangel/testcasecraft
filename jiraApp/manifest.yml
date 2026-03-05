@@ -7,10 +7,19 @@ modules:
         function: resolver
       title: Testcasecraft
       icon: https://developer.atlassian.com/favicon.ico
+  jira:adminPage:
+    - key: testcasecraft-settings
+      resource: settings
+      render: native
+      resolver:
+        function: resolver
+      title: Testcasecraft Settings
   function:
     - key: resolver
       handler: index.handler
 resources:
+  - key: settings
+    path: src/frontend/settings.jsx
   - key: main
     path: src/frontend/index.jsx
 app:
@@ -21,7 +30,8 @@ permissions:
   scopes:
     - read:jira-work
     - write:jira-work
+    - storage:app
   external:
     fetch:
-      client:
-        - tc.skaiworldwide.co.kr
+      backend:
+        - address: tc.skaiworldwide.co.kr

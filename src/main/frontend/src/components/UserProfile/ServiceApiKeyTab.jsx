@@ -1,0 +1,461 @@
+// src/components/UserProfile/ServiceApiKeyTab.jsx
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  CircularProgress,
+  Divider,
+  InputAdornment,
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  ContentCopy as CopyIcon,
+  Visibility as VisibilityIcon,
+  Key as KeyIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
+
+/**
+ * 서비스 API 토큰 관리 탭
+ * - 사용자 본인의 API 키 목록 조회
+ * - 새 API 키 발급 (발급 후 한 번만 전체 키 표시)
+ * - API 키 비활성화(삭제)
+ */
+function ServiceApiKeyTab() {
+  const [keys, setKeys] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // 새 키 발급 상태
+  const [newKeyName, setNewKeyName] = useState('');
+  const [generating, setGenerating] = useState(false);
+
+  // 발급된 키 표시 팝업
+  const [revealedKey, setRevealedKey] = useState(null); // { apiKey, name, expiresAt }
+  const [copied, setCopied] = useState(false);
+
+  // 삭제 확인 다이얼로그
+  const [deleteTarget, setDeleteTarget] = useState(null); // key object
+  const [deleting, setDeleting] = useState(false);
+
+  const getAuthHeader = () => ({
+    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+    'Content-Type': 'application/json',
+  });
+
+  // API 키 목록 로드
+  const loadKeys = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/users/me/service-api-keys', {
+        headers: getAuthHeader(),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setKeys(data);
+    } catch (err) {
+      setError('API 키 목록을 불러오는데 실패했습니다.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadKeys();
+  }, [loadKeys]);
+
+  // 새 API 키 발급
+  const handleGenerate = async () => {
+    if (!newKeyName.trim()) {
+      setError('키 이름을 입력하세요.');
+      return;
+    }
+    setGenerating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch(
+        `/api/users/me/service-api-keys/generate?name=${encodeURIComponent(newKeyName.trim())}`,
+        { method: 'POST', headers: getAuthHeader() }
+      );
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setError(data.message || 'API 키 발급에 실패했습니다.');
+        return;
+      }
+      setRevealedKey({
+        apiKey: data.apiKey,
+        name: data.name,
+        expiresAt: data.expiresAt,
+      });
+      setNewKeyName('');
+      await loadKeys();
+    } catch (err) {
+      setError('API 키 발급 중 오류가 발생했습니다.');
+      console.error(err);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // 키 복사
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // 키 삭제
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/users/me/service-api-keys/${deleteTarget.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeader(),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSuccess('API 키가 비활성화되었습니다.');
+        setDeleteTarget(null);
+        await loadKeys();
+      } else {
+        setError(data.message || '삭제에 실패했습니다.');
+      }
+    } catch (err) {
+      setError('API 키 삭제 중 오류가 발생했습니다.');
+      console.error(err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    try {
+      return new Date(dateStr).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const isExpired = (dateStr) => {
+    if (!dateStr) return false;
+    return new Date(dateStr) < new Date();
+  };
+
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        서비스 API 토큰
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        서비스 API 토큰은 외부 시스템(예: Jira Forge 앱)에서 이 서비스에 접근할 때 사용합니다.
+        토큰은 발급 시 한 번만 표시되므로 안전한 곳에 보관하세요.
+        사용자당 최대 10개까지 발급 가능합니다.
+      </Typography>
+
+      {/* 에러/성공 메시지 */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+          {success}
+        </Alert>
+      )}
+
+      {/* 새 키 발급 영역 */}
+      <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'action.hover' }}>
+        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+          새 API 토큰 발급
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1 }}>
+          <TextField
+            label="토큰 이름"
+            placeholder="예: Jira Integration, CI/CD Pipeline"
+            value={newKeyName}
+            onChange={(e) => setNewKeyName(e.target.value)}
+            size="small"
+            sx={{ flexGrow: 1 }}
+            onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+            inputProps={{ maxLength: 100 }}
+          />
+          <Button
+            variant="contained"
+            startIcon={generating ? <CircularProgress size={16} color="inherit" /> : <AddIcon />}
+            onClick={handleGenerate}
+            disabled={generating || !newKeyName.trim()}
+            size="medium"
+          >
+            발급
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* 키 목록 */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+          내 API 토큰 목록
+        </Typography>
+        <Tooltip title="목록 새로고침">
+          <IconButton size="small" onClick={loadKeys} disabled={loading}>
+            <RefreshIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : keys.length === 0 ? (
+        <Box
+          sx={{
+            textAlign: 'center',
+            py: 5,
+            border: '1px dashed',
+            borderColor: 'divider',
+            borderRadius: 1,
+          }}
+        >
+          <KeyIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+          <Typography variant="body2" color="text.secondary">
+            발급된 API 토큰이 없습니다.
+          </Typography>
+        </Box>
+      ) : (
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: 'action.selected' }}>
+                <TableCell sx={{ fontWeight: 600 }}>이름</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>키 (마스킹)</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>상태</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>만료일</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>생성일</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 600 }}>관리</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {keys.map((key) => (
+                <TableRow
+                  key={key.id}
+                  sx={{ opacity: key.active ? 1 : 0.5 }}
+                >
+                  <TableCell>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {key.name}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontFamily: 'monospace', color: 'text.secondary' }}
+                    >
+                      {key.apiKey}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    {!key.active ? (
+                      <Chip label="비활성" size="small" color="default" />
+                    ) : isExpired(key.expiresAt) ? (
+                      <Chip
+                        icon={<WarningIcon />}
+                        label="만료됨"
+                        size="small"
+                        color="error"
+                      />
+                    ) : (
+                      <Chip
+                        icon={<CheckCircleIcon />}
+                        label="활성"
+                        size="small"
+                        color="success"
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      color={isExpired(key.expiresAt) ? 'error' : 'text.primary'}
+                    >
+                      {formatDate(key.expiresAt)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {formatDate(key.createdAt)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    {key.active && (
+                      <Tooltip title="삭제(비활성화)">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => setDeleteTarget(key)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {/* 발급된 키 표시 팝업 */}
+      <Dialog
+        open={!!revealedKey}
+        onClose={() => setRevealedKey(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <KeyIcon color="primary" />
+          API 토큰 발급 완료
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <strong>이 토큰은 지금만 확인할 수 있습니다.</strong><br />
+            창을 닫으면 토큰 전체를 다시 볼 수 없으니 안전한 곳에 저장해 주세요.
+          </Alert>
+
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            토큰 이름: <strong>{revealedKey?.name}</strong>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            만료일: <strong>{formatDate(revealedKey?.expiresAt)}</strong>
+          </Typography>
+
+          <Divider sx={{ my: 1.5 }} />
+
+          <Typography variant="body2" gutterBottom sx={{ fontWeight: 600 }}>
+            발급된 토큰:
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            value={revealedKey?.apiKey || ''}
+            InputProps={{
+              readOnly: true,
+              sx: { fontFamily: 'monospace', fontSize: '0.85rem', bgcolor: 'action.hover' },
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Tooltip title={copied ? '복사됨!' : '클립보드에 복사'}>
+                    <IconButton
+                      onClick={() => handleCopy(revealedKey?.apiKey)}
+                      edge="end"
+                      color={copied ? 'success' : 'default'}
+                    >
+                      {copied ? <CheckCircleIcon /> : <CopyIcon />}
+                    </IconButton>
+                  </Tooltip>
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Button
+            variant="outlined"
+            startIcon={copied ? <CheckCircleIcon /> : <CopyIcon />}
+            onClick={() => handleCopy(revealedKey?.apiKey)}
+            sx={{ mt: 1.5 }}
+            color={copied ? 'success' : 'primary'}
+            fullWidth
+          >
+            {copied ? '복사 완료!' : '토큰 전체 복사'}
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => { setRevealedKey(null); setCopied(false); }}
+            variant="contained"
+          >
+            확인 (닫기)
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <Dialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>API 토큰 삭제</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 1 }}>
+            삭제한 토큰은 즉시 사용이 중단됩니다.
+          </Alert>
+          <Typography variant="body2">
+            <strong>{deleteTarget?.name}</strong> 토큰을 비활성화하시겠습니까?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)} disabled={deleting}>
+            취소
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleDelete}
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : <DeleteIcon />}
+          >
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
+
+export default ServiceApiKeyTab;
