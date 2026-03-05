@@ -641,7 +641,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const latestResults = useMemo(() => getLatestResults(execution?.results || []), [execution?.results]);
   const resultsMap = useMemo(() => {
     const map = new Map();
-    latestResults.forEach((r) => map.set(r.testCaseId, r.result));
+    latestResults.forEach((r) => map.set(r.testCaseId, r));
     return map;
   }, [latestResults]);
 
@@ -676,18 +676,18 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         return false;
       }
 
-      // 결과 필터 - latestResults에서 확인
+      // 결과 필터 - resultsMap에서 확인
       if (filters.result) {
-        const resultObj = latestResults?.find(r => r.testCaseId === node.id);
+        const resultObj = resultsMap.get(node.id);
         const result = resultObj?.result || 'NOTRUN';
         if (result !== filters.result) {
           return false;
         }
       }
 
-      // 실행자, 실행일자, JIRA, 노트 필터 - latestResults에서 확인
+      // 실행자, 실행일자, JIRA, 노트 필터 - resultsMap에서 확인
       if (filters.executedBy || filters.executionDate || filters.jiraIssueKey || filters.notes) {
-        const resultObj = latestResults?.find(r => r.testCaseId === node.id);
+        const resultObj = resultsMap.get(node.id);
 
         if (!resultObj) {
           // 결과가 없으면 필터 조건을 만족할 수 없음
@@ -748,12 +748,13 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
       return true;
     });
-  }, [flattenedData, filters, latestResults]);
+  }, [flattenedData, filters, resultsMap]);
 
   const statusCounts = useMemo(() => {
     const counts = { PASS: 0, FAIL: 0, NOTRUN: 0, BLOCKED: 0, total: testCaseIds.length };
     testCaseIds.forEach((id) => {
-      const res = resultsMap.get(id) || TestResult.NOTRUN;
+      const resObj = resultsMap.get(id);
+      const res = resObj?.result || TestResult.NOTRUN;
       if (res === TestResult.PASS) counts.PASS += 1;
       else if (res === TestResult.FAIL) counts.FAIL += 1;
       else if (res === TestResult.BLOCKED) counts.BLOCKED += 1;
@@ -1011,7 +1012,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
             <TestExecutionTable
               visibleData={visibleData}
-              latestResults={latestResults}
+              resultsMap={resultsMap}
               totalItems={filteredData.length}
               hasMore={hasMore}
               loadMore={loadMore}
@@ -1032,7 +1033,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           open={isResultFormOpen}
           testCaseId={selectedTestCaseId}
           executionId={execution.id}
-          currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
+          currentResult={resultsMap?.get(selectedTestCaseId)}
           onClose={handleCloseResultForm}
           onSave={handleSaveResult}
           onNext={() => {
