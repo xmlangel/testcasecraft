@@ -906,7 +906,6 @@ const AppContent = () => {
                             minWidth,
                             maxWidth,
                             height: "100%",
-                            overflow: "auto",
                             transition: "width 0.3s ease-in-out",
                             display: "flex",
                             flexDirection: "column",
