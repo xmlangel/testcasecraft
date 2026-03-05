@@ -14,7 +14,6 @@ import { useTranslation } from '../context/I18nContext.jsx';
 import { RESULT_COLORS } from '../constants/statusColors';
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
-import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
 import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
 
 import { invalidateDashboardCache } from "../services/dashboardService";
@@ -75,8 +74,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [currentPrevResultsTestCaseId, setCurrentPrevResultsTestCaseId] = useState(null);
 
   //  첨부파일 다이얼로그 상태
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(50);
 
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedTestResultId, setSelectedTestResultId] = useState(null);
@@ -647,10 +645,6 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     return map;
   }, [latestResults]);
 
-  const progress = useMemo(
-    () => calculateExecutionProgress(execution, selectedPlan, testCases),
-    [execution, selectedPlan, testCases]
-  );
 
   // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
   const { flattenedData, orderedTestCaseIds: testCaseIds } = useMemo(() => {
@@ -756,13 +750,6 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     });
   }, [flattenedData, filters, latestResults]);
 
-  // ICT-273: 페이지네이션을 위한 totalItems, totalPages 계산
-  const { totalItems, totalPages } = useMemo(() => {
-    const total = filteredData.length;
-    const pages = Math.ceil(total / itemsPerPage);
-    return { totalItems: total, totalPages: pages };
-  }, [filteredData, itemsPerPage]);
-
   const statusCounts = useMemo(() => {
     const counts = { PASS: 0, FAIL: 0, NOTRUN: 0, BLOCKED: 0, total: testCaseIds.length };
     testCaseIds.forEach((id) => {
@@ -775,22 +762,29 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     return counts;
   }, [resultsMap, testCaseIds]);
 
-  // ICT-273: 현재 페이지의 데이터만 추출
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, itemsPerPage]);
+  const progress = useMemo(() => {
+    if (statusCounts.total === 0) return 0;
+    const completed = statusCounts.PASS + statusCounts.FAIL + statusCounts.BLOCKED;
+    return Math.round((completed / statusCounts.total) * 100);
+  }, [statusCounts]);
 
-  // 페이지 변경 핸들러
-  const handlePageChange = useCallback((event, page) => {
-    setCurrentPage(page);
-  }, []);
+  // 인피니티 스크롤을 위한 데이터 추출
+  const visibleData = useMemo(() => {
+    return filteredData.slice(0, visibleCount);
+  }, [filteredData, visibleCount]);
 
-  const handleRowsPerPageChange = useCallback((event) => {
-    setItemsPerPage(parseInt(event.target.value, 10));
-    setCurrentPage(1);
-  }, []);
+  const hasMore = visibleCount < filteredData.length;
+
+  const loadMore = useCallback(() => {
+    if (hasMore) {
+      setVisibleCount(prev => prev + 50);
+    }
+  }, [hasMore]);
+
+  // 필터가 변경될 때 표시 개수 초기화
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [filters]);
 
   // 필터 관련 핸들러
   const handleFilterChange = useCallback((field, value) => {
@@ -798,7 +792,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   }, []);
 
   const handleFilterApply = useCallback(() => {
-    setCurrentPage(1); // 필터 적용 시 첫 페이지로 이동
+    setVisibleCount(50); // 필터 적용 시 표시 개수 초기화
   }, []);
 
   const handleFilterClear = useCallback(() => {
@@ -811,7 +805,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       jiraIssueKey: '',
       notes: ''
     });
-    setCurrentPage(1);
+    setVisibleCount(50);
   }, []);
 
   if (loading)
@@ -1016,14 +1010,11 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
             )}
 
             <TestExecutionTable
-              paginatedData={paginatedData}
+              visibleData={visibleData}
               latestResults={latestResults}
-              totalItems={totalItems}
-              totalPages={totalPages}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-              handlePageChange={handlePageChange}
-              handleRowsPerPageChange={handleRowsPerPageChange}
+              totalItems={filteredData.length}
+              hasMore={hasMore}
+              loadMore={loadMore}
               handleOpenResultForm={handleOpenResultForm}
               handleShowPrevResults={handleShowPrevResults}
               handleAttachmentClick={handleAttachmentClick}

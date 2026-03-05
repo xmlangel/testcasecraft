@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from "prop-types";
 import {
-    Box, Typography, Paper, Tooltip, Chip, Button, Pagination, useTheme, Checkbox, IconButton, Select, MenuItem
+    Box, Typography, Paper, Tooltip, Chip, Button, useTheme, Checkbox, IconButton, CircularProgress
 } from "@mui/material";
 import {
     Folder as FolderIcon,
@@ -11,7 +11,7 @@ import {
     ChevronRight as ChevronRightIcon,
     ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
-import { useTranslation } from '../../context/I18nContext.jsx';
+import { useI18n } from '../../context/I18nContext.jsx';
 import { TestResult } from "../../models/testExecution.jsx";
 import JiraIssueLink from './JiraIssueLink.jsx';
 import {
@@ -21,15 +21,12 @@ import {
 } from './utils.jsx';
 
 const TestExecutionTable = ({
-    paginatedData,
+    visibleData,
     latestResults,
     totalItems,
-    totalPages,
-    currentPage,
-    itemsPerPage,
-    handlePageChange,
+    hasMore,
+    loadMore,
     handleOpenResultForm,
-    handleRowsPerPageChange,
     handleShowPrevResults,
     handleAttachmentClick,
     handleCopyLink,
@@ -37,10 +34,28 @@ const TestExecutionTable = ({
     selectedTestCases,
     onSelectionChange
 }) => {
-    const { t } = useTranslation();
+    const { t } = useI18n();
     const theme = useTheme();
+    const sentinelRef = React.useRef(null);
 
-    const renderPaginatedItems = (nodes) =>
+    // Intersection Observer 설정
+    React.useEffect(() => {
+        if (!sentinelRef.current || !hasMore) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    loadMore();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        observer.observe(sentinelRef.current);
+        return () => observer.disconnect();
+    }, [hasMore, loadMore]);
+
+    const renderItems = (nodes) =>
         nodes.map((node, idx) => {
             const isFolder = node.type === "folder";
             const resultObj = latestResults?.find((r) => r.testCaseId === node.id);
@@ -149,11 +164,11 @@ const TestExecutionTable = ({
                         ) : null}
                     </Box>
                     {/* 3: 결과 */}
-                    <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {!isFolder ? getResultIcon(result) : null}
                     </Box>
                     {/* 4: 실행일시 */}
-                    <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {!isFolder ? (
                             executedAt ? (
                                 <Tooltip
@@ -183,7 +198,7 @@ const TestExecutionTable = ({
                         ) : null}
                     </Box>
                     {/* 5: 실행자 */}
-                    <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {!isFolder ? (
                             <Typography
                                 variant="body2"
@@ -201,7 +216,7 @@ const TestExecutionTable = ({
                         ) : null}
                     </Box>
                     {/* 6: 비고 */}
-                    <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                    <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                         {!isFolder ? (
                             <Typography
                                 variant="body2"
@@ -227,7 +242,7 @@ const TestExecutionTable = ({
                         ) : null}
                     </Box>
                     {/* 7: 태그 */}
-                    <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0.5 }}>
+                    <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0.5 }}>
                         {!isFolder ? (
                             tags && tags.length > 0 ? (
                                 tags.map((tag, index) => (
@@ -245,7 +260,7 @@ const TestExecutionTable = ({
                         ) : null}
                     </Box>
                     {/* 8: JIRA ID */}
-                    <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {!isFolder ? (
                             jiraIssueKey ? (
                                 <JiraIssueLink issueKey={jiraIssueKey} />
@@ -254,8 +269,8 @@ const TestExecutionTable = ({
                             )
                         ) : null}
                     </Box>
-                    {/* 9: 결과입력 */}
-                    <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
+                    {/* 9: 결과입력 및 기타 액션 */}
+                    <Box sx={{ ...responsiveColumnSx[10], gridColumn: "11 / 14", display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
                         {!isFolder ? (
                             <>
                                 <Button
@@ -281,39 +296,29 @@ const TestExecutionTable = ({
                                         </IconButton>
                                     </span>
                                 </Tooltip>
+                                <Tooltip title={t('testExecution.actions.prevResults')}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleShowPrevResults(node.id)}
+                                        sx={{ p: 0.5 }}
+                                        data-testid={`execution-table-prev-results-button-${node.id}`}
+                                    >
+                                        <VisibilityIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                                {resultObj?.id && ((resultObj.attachments && resultObj.attachments.length > 0) || (resultObj.attachmentCount > 0)) && (
+                                    <Tooltip title={t('testExecution.table.viewAttachments')}>
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => handleAttachmentClick(resultObj.id)}
+                                            sx={{ p: 0.5 }}
+                                            data-testid={`execution-table-attachments-button-${resultObj.id}`}
+                                        >
+                                            <AttachFileIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
                             </>
-                        ) : null}
-                    </Box>
-                    {/* 10: 이전결과 */}
-                    <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {!isFolder ? (
-                            <Tooltip title={t('testExecution.actions.prevResults')}>
-                                <IconButton
-                                    size="small"
-                                    onClick={() => handleShowPrevResults(node.id)}
-                                    sx={{ p: 0.5 }}
-                                    data-testid={`execution-table-prev-results-button-${node.id}`}
-                                >
-                                    <VisibilityIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        ) : null}
-                    </Box>
-                    {/* 11: 첨부파일 */}
-                    <Box sx={{ ...responsiveColumnSx[11], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {!isFolder && resultObj?.id && ((resultObj.attachments && resultObj.attachments.length > 0) || (resultObj.attachmentCount > 0)) ? (
-                            <Tooltip title={t('testExecution.table.viewAttachments')}>
-                                <IconButton
-                                    size="small"
-                                    onClick={() => handleAttachmentClick(resultObj.id)}
-                                    sx={{ p: 0.5 }}
-                                    data-testid={`execution-table-attachments-button-${resultObj.id}`}
-                                >
-                                    <AttachFileIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        ) : !isFolder ? (
-                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>-</Typography>
                         ) : null}
                     </Box>
                 </Box>
@@ -335,23 +340,19 @@ const TestExecutionTable = ({
             }}
         >
 
-            {/* ICT-273: 페이지네이션된 테스트 케이스 목록 */}
+            {/* 인피니티 스크롤이 적용된 테스트 케이스 목록 */}
             <Box sx={{ flex: 1, width: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                {/* 페이지 정보 표시 */}
-                <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+                {/* 데이터 요약 정보 표시 */}
+                <Box sx={{ mb: 1, mt: 1, display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
-                        {t('testExecution.pagination.info', {
-                            totalItems,
-                            start: ((currentPage - 1) * itemsPerPage) + 1,
-                            end: Math.min(currentPage * itemsPerPage, totalItems)
-                        })}
+                        {t('testExecution.table.totalCount', '전체: {count}건').replace('{count}', totalItems)}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mr: 4 }}>
-                        {t('testExecution.pagination.page', { current: currentPage, total: totalPages })}
+                    <Typography variant="caption" color="text.secondary" sx={{ mr: 4 }}>
+                        {t('testExecution.scroll.hint', '스크롤하여 더 보기')}
                     </Typography>
                 </Box>
 
-                {/* 페이지네이션된 목록 컨테이너 */}
+                {/* 인피니티 스크롤 목록 컨테이너 */}
                 <Box sx={{
                     width: "100%",
                     flex: 1,
@@ -376,10 +377,10 @@ const TestExecutionTable = ({
                         <Box sx={{ ...responsiveColumnSx[0], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>
                             <Checkbox
                                 size="small"
-                                indeterminate={selectedTestCases?.size > 0 && selectedTestCases?.size < paginatedData.filter(n => n.type !== 'folder').length}
-                                checked={selectedTestCases?.size > 0 && selectedTestCases?.size === paginatedData.filter(n => n.type !== 'folder').length}
+                                indeterminate={selectedTestCases?.size > 0 && selectedTestCases?.size < visibleData.filter(n => n.type !== 'folder').length}
+                                checked={selectedTestCases?.size > 0 && selectedTestCases?.size === visibleData.filter(n => n.type !== 'folder').length}
                                 onChange={(e) => {
-                                    const testCaseIds = paginatedData.filter(n => n.type !== 'folder').map(n => n.id);
+                                    const testCaseIds = visibleData.filter(n => n.type !== 'folder').map(n => n.id);
                                     if (e.target.checked) {
                                         testCaseIds.forEach(id => onSelectionChange?.(id, true));
                                     } else {
@@ -426,8 +427,17 @@ const TestExecutionTable = ({
                         <Box sx={{ ...responsiveColumnSx[9], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.jiraId')}</Box>
                         <Box sx={{ ...responsiveColumnSx[10], gridColumn: "11 / 14", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.actions')}</Box>
                     </Box>
-                    {paginatedData.length > 0 ? (
-                        renderPaginatedItems(paginatedData)
+                    {visibleData.length > 0 ? (
+                        <>
+                            {renderItems(visibleData)}
+                            {/* 감시 엘리먼트 */}
+                            <Box ref={sentinelRef} sx={{ height: 20, width: "100%" }} />
+                            {hasMore && (
+                                <Box sx={{ p: 2, textAlign: "center" }}>
+                                    <CircularProgress size={24} />
+                                </Box>
+                            )}
+                        </>
                     ) : (
                         <Box sx={{ p: 4, textAlign: "center" }}>
                             <Typography variant="body2" color="text.secondary">
@@ -436,52 +446,17 @@ const TestExecutionTable = ({
                         </Box>
                     )}
                 </Box>
-
-                {/* 페이지네이션 컨트롤 */}
-                {totalPages > 0 && (
-                    <Box sx={{ mt: 2, display: "flex", justifyContent: "center", alignItems: "center", flexShrink: 0, gap: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" color="text.secondary">
-                                {t('testExecution.pagination.rowsPerPage', '페이지당 행:')}
-                            </Typography>
-                            <Select
-                                value={itemsPerPage}
-                                onChange={handleRowsPerPageChange}
-                                size="small"
-                                variant="outlined"
-                                sx={{ height: 32 }}
-                            >
-                                <MenuItem value={10}>10</MenuItem>
-                                <MenuItem value={50}>50</MenuItem>
-                                <MenuItem value={100}>100</MenuItem>
-                            </Select>
-                        </Box>
-                        <Pagination
-                            count={totalPages}
-                            page={currentPage}
-                            onChange={handlePageChange}
-                            color="primary"
-                            showFirstButton
-                            showLastButton
-                            size="medium"
-                            data-testid="execution-table-pagination"
-                        />
-                    </Box>
-                )}
             </Box>
         </Paper>
     );
 };
 
 TestExecutionTable.propTypes = {
-    paginatedData: PropTypes.array.isRequired,
+    visibleData: PropTypes.array.isRequired,
     latestResults: PropTypes.array,
     totalItems: PropTypes.number.isRequired,
-    totalPages: PropTypes.number.isRequired,
-    currentPage: PropTypes.number.isRequired,
-    itemsPerPage: PropTypes.number.isRequired,
-    handlePageChange: PropTypes.func.isRequired,
-    handleRowsPerPageChange: PropTypes.func,
+    hasMore: PropTypes.bool.isRequired,
+    loadMore: PropTypes.func.isRequired,
     handleOpenResultForm: PropTypes.func.isRequired,
     handleShowPrevResults: PropTypes.func.isRequired,
     handleAttachmentClick: PropTypes.func.isRequired,
