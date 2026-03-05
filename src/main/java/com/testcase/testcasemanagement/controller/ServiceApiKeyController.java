@@ -2,18 +2,25 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.model.ServiceApiKey;
 import com.testcase.testcasemanagement.repository.ServiceApiKeyRepository;
+import com.testcase.testcasemanagement.service.RedirectTokenStore;
+import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +31,8 @@ import java.util.Optional;
 public class ServiceApiKeyController {
 
     private final ServiceApiKeyRepository serviceApiKeyRepository;
+    private final RedirectTokenStore redirectTokenStore;
+    private final JwtTokenUtil jwtTokenUtil;
 
     // ===================== 관리자 전용 API =====================
 
@@ -112,6 +121,81 @@ public class ServiceApiKeyController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // ===================== 보안 리다이렉트 토큰 API =====================
+
+    /**
+     * Forge 앱이 X-API-KEY 헤더로 인증하여 단기 임시 토큰(5분)을 발급받습니다.
+     * 이 토큰은 URL에 안전하게 포함될 수 있으며, 1회 사용 후 자동 폐기됩니다.
+     * 쿼리 파라미터 방식(?apiKey=) 대신 이 흐름을 사용합니다.
+     */
+    @PostMapping("/api/service-api-keys/redirect-token")
+    @Operation(summary = "임시 리다이렉트 토큰 발급 (X-API-KEY 헤더 필수)")
+    public ResponseEntity<Map<String, Object>> issueRedirectToken(HttpServletRequest request) {
+        String apiKey = request.getHeader("X-API-KEY");
+        if (apiKey == null || apiKey.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "X-API-KEY 헤더가 누락되었습니다."));
+        }
+
+        Optional<ServiceApiKey> keyOpt = serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKey);
+        if (keyOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "유효하지 않은 API 키입니다."));
+        }
+
+        ServiceApiKey serviceApiKey = keyOpt.get();
+        if (serviceApiKey.getExpiresAt().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "만료된 API 키입니다."));
+        }
+
+        String redirectToken = redirectTokenStore.generateToken(apiKey);
+        return ResponseEntity.ok(Map.of(
+                "token", redirectToken,
+                "expiresInSeconds", 300));
+    }
+
+    /**
+     * 임시 토큰을 JWT 액세스 토큰으로 교환합니다.
+     * 1회성: 호출 즉시 임시 토큰이 폐기됩니다.
+     */
+    @PostMapping("/api/service-api-keys/exchange-token")
+    @Operation(summary = "임시 토큰 → JWT 액세스 토큰 교환 (1회성)")
+    public ResponseEntity<Map<String, Object>> exchangeRedirectToken(
+            @RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "token 필드가 누락되었습니다."));
+        }
+
+        String apiKey = redirectTokenStore.consumeToken(token);
+        if (apiKey == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "임시 토큰이 유효하지 않거나 만료되었습니다."));
+        }
+
+        Optional<ServiceApiKey> keyOpt = serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKey);
+        if (keyOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "API 키가 비활성화되었습니다."));
+        }
+
+        ServiceApiKey serviceApiKey = keyOpt.get();
+        // service-account 용 UserDetails 생성 후 JWT 발급
+        UserDetails serviceUser = User.builder()
+                .username("service-account:" + serviceApiKey.getName())
+                .password("")
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_TESTER")))
+                .build();
+
+        String accessToken = jwtTokenUtil.generateAccessToken(serviceUser);
+        return ResponseEntity.ok(Map.of(
+                "accessToken", accessToken,
+                "tokenType", "Bearer",
+                "expiresIn", jwtTokenUtil.getAccessTokenExpirationTime() / 1000));
     }
 
     // ===================== 공통 헬퍼 =====================

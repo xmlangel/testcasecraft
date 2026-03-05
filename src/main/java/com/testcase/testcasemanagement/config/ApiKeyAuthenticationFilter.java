@@ -27,11 +27,9 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
-        // Check for api key in header or query param
+        // X-API-KEY 헤더에서만 API 키를 읽습니다.
+        // ⚠️ 보안: 쿼리 파라미터(?apiKey=)는 브라우저 히스토리/로그에 노출되므로 허용하지 않습니다.
         String apiKey = request.getHeader("X-API-KEY");
-        if (apiKey == null || apiKey.isEmpty()) {
-            apiKey = request.getParameter("apiKey");
-        }
 
         if (apiKey != null && !apiKey.isEmpty() && SecurityContextHolder.getContext().getAuthentication() == null) {
             Optional<ServiceApiKey> keyOpt = serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKey);

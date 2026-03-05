@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
     Box, CircularProgress, Typography, Alert, Button, Container, 
     Card, CardContent, CardActionArea, Grid, Chip, Divider, Stack 
@@ -18,16 +18,62 @@ import { useTranslation } from '../../context/I18nContext';
 const JiraIssueRedirect = () => {
     const { issueKey: rawIssueKey } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { api } = useAppContext();
     const { t } = useTranslation();
-    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [executions, setExecutions] = useState([]);
+    const [isExchangingToken, setIsExchangingToken] = useState(() => {
+        return new URLSearchParams(window.location.search).has('token');
+    });
 
     const issueKey = rawIssueKey ? rawIssueKey.toUpperCase() : '';
 
+    // ================================================================
+    // 한시적 토큰 교환: Forge 앱이 ?token= 파라미터를 통해 접근할 때
+    // 임시 토큰을 JWT 액세스 토큰으로 교환한 후
+    // URL에서 토큰을 제거합니다. (1회성 토큰)
+    // ================================================================
     useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const redirectToken = searchParams.get('token');
+        if (!redirectToken) return;
+
+        const exchangeToken = async () => {
+            try {
+                const res = await fetch('/api/service-api-keys/exchange-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: redirectToken }),
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.accessToken) {
+                        // 기존 로그인 플로우와 동일한 방식으로 JWT 저장
+                        localStorage.setItem('accessToken', data.accessToken);
+                    }
+                } else {
+                    console.warn('[JiraIssueRedirect] 토큰 교환 실패:', res.status);
+                }
+            } catch (err) {
+                console.error('[JiraIssueRedirect] 토큰 교환 오류:', err);
+            } finally {
+                // URL에서 token 파라미터 제거 (주소창 노출 방지)
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+                setIsExchangingToken(false);
+            }
+        };
+
+        exchangeToken();
+    }, [location.search]);
+
+
+    useEffect(() => {
+        if (isExchangingToken) return;
+
         const fetchContextAndRedirect = async () => {
             if (!issueKey) {
                 setError(t('common.errors.invalidIssueKey', '유효하지 않은 이슈 키입니다.'));
@@ -76,7 +122,7 @@ const JiraIssueRedirect = () => {
         };
 
         fetchContextAndRedirect();
-    }, [issueKey, api, t]);
+    }, [issueKey, api, t, isExchangingToken]);
 
     const handleRedirect = (exec) => {
         const { projectId, executionId, testCaseId } = exec;
