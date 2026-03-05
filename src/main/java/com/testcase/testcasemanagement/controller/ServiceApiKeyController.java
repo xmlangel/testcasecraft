@@ -125,6 +125,7 @@ public class ServiceApiKeyController {
         ServiceApiKey newKey = ServiceApiKey.builder()
                 .name(name)
                 .apiKey(apiKey)
+                .createdBy(owner)
                 .expiresAt(LocalDateTime.now().plusYears(1))
                 .isActive(true)
                 .build();

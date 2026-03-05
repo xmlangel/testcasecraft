@@ -36,11 +36,23 @@ const JiraIssueRedirect = () => {
             }
 
             try {
-                const response = await api.get(`/api/jira-integration/latest-execution-context?issueKey=${issueKey}`);
-                
-                if (response.data && Array.isArray(response.data)) {
-                    const data = response.data;
-                    
+                const response = await api(`/api/jira-integration/latest-execution-context?issueKey=${issueKey}`);
+
+                if (response.status === 404) {
+                    setError(t('common.errors.noExecutionForIssue', '해당 이슈와 연결된 최근 테스트 결과가 없습니다.'));
+                    setLoading(false);
+                    return;
+                }
+
+                if (!response.ok) {
+                    setError(t('common.errors.serverError', '서버와의 통신 중 오류가 발생했습니다.'));
+                    setLoading(false);
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
                     if (data.length === 1) {
                         // 결과가 1개인 경우 즉시 리다이렉트
                         handleRedirect(data[0]);
@@ -58,11 +70,7 @@ const JiraIssueRedirect = () => {
                 }
             } catch (err) {
                 console.error('Redirect error:', err);
-                if (err.response && err.response.status === 404) {
-                    setError(t('common.errors.noExecutionForIssue', '해당 이슈와 연결된 최근 테스트 결과가 없습니다.'));
-                } else {
-                    setError(t('common.errors.serverError', '서버와의 통신 중 오류가 발생했습니다.'));
-                }
+                setError(t('common.errors.serverError', '서버와의 통신 중 오류가 발생했습니다.'));
                 setLoading(false);
             }
         };
