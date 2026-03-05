@@ -6,7 +6,7 @@ modules:
       resolver:
         function: resolver
       title: Testcasecraft
-      icon: https://developer.atlassian.com/favicon.ico
+      icon: assets/app-icon.jpg
   jira:adminPage:
     - key: testcasecraft-settings
       resource: settings
