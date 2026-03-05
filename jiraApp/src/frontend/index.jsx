@@ -7,15 +7,18 @@ const App = () => {
   const issueKey = context?.extension?.issue?.key;
 
   const [serverUrl, setServerUrl] = useState(null);
+  const [apiKey, setApiKey] = useState(null);
   const [loading, setLoading] = useState(true);
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 서버 URL만 가져옵니다. API 키는 서버사이드(index.js)에서만 처리됩니다.
+    // 브라우저에서 서버 URL과 API 키를 가져옵니다. 
+    // API 키는 URL에 넣지 않고 POST 요청의 헤더에만 사용합니다.
     invoke('get-config').then((data) => {
       if (data && data.url) {
         setServerUrl(data.url);
+        setApiKey(data.apiKey);
       }
       setLoading(false);
     }).catch(e => {
@@ -25,21 +28,34 @@ const App = () => {
   }, []);
 
   const handleOpenTestResult = async () => {
-    if (!issueKey || !serverUrl) return;
+    if (!issueKey || !serverUrl || !apiKey) return;
 
     setRedirecting(true);
     setError(null);
 
     try {
-      // Forge 서버사이드에서 X-API-KEY 헤더로 임시 토큰을 발급받습니다.
-      // API 키는 브라우저에 절대 전달되지 않습니다.
-      const result = await invoke('request-redirect-token');
+      // Atlassian Forge 백엔드 서버에서 사용자 내부망/로컬 DNS(예: tc.skaiworldwide.co.kr)로
+      // 접근 불가한 문제를 피하기 위해, 브라우저가 직접 API 통신을 수행합니다.
+      const baseUrl = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
+      
+      const response = await fetch(`${baseUrl}/api/service-api-keys/redirect-token`, {
+        method: 'POST',
+        headers: {
+          'X-API-KEY': apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`임시 토큰 발급 실패: ${response.status}`);
+      }
+
+      const result = await response.json();
 
       if (!result || !result.token) {
         throw new Error('임시 토큰을 받지 못했습니다.');
       }
 
-      const baseUrl = result.serverUrl || (serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl);
       // 임시 토큰만 URL에 포함됩니다. API 키는 포함되지 않습니다.
       const redirectUrl = `${baseUrl}/jira-redirect/${issueKey}?token=${result.token}`;
 
@@ -47,7 +63,7 @@ const App = () => {
       window.open(redirectUrl, '_blank');
     } catch (e) {
       console.error('리다이렉트 토큰 발급 오류:', e);
-      setError('테스트 결과 페이지를 열 수 없습니다. 관리자에게 문의하세요.');
+      setError('테스트 결과 페이지를 열 수 없습니다. 내부망 접근 문제일 수 있습니다.');
     } finally {
       setRedirecting(false);
     }
