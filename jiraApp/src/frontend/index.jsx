@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, { Text, Heading, Stack, Button, useProductContext } from '@forge/react';
-import { invoke } from '@forge/bridge';
+import { invoke, router } from '@forge/bridge';
 
 const App = () => {
   const context = useProductContext();
@@ -59,8 +59,8 @@ const App = () => {
       // 임시 토큰만 URL에 포함됩니다. API 키는 포함되지 않습니다.
       const redirectUrl = `${baseUrl}/jira-redirect/${issueKey}?token=${result.token}`;
 
-      // Forge UI Kit에서 새 탭 열기
-      window.open(redirectUrl, '_blank');
+      // Forge UI Kit에서 새 탭 열기 (router 사용)
+      router.open(redirectUrl);
     } catch (e) {
       console.error('리다이렉트 토큰 발급 오류:', e);
       setError('테스트 결과 페이지를 열 수 없습니다. 내부망 접근 문제일 수 있습니다.');
