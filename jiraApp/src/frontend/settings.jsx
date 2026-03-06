@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, { Text, Textfield, Button, Stack, Heading } from '@forge/react';
 import { invoke } from '@forge/bridge';
+import { t } from './i18n';
 
 const App = () => {
     const [url, setUrl] = useState('');
@@ -17,7 +18,7 @@ const App = () => {
             }
         }).catch(e => {
             console.error(e);
-            setError('설정을 불러오는데 실패했습니다.');
+            setError(t('settings.error.load'));
         });
     }, []);
 
@@ -31,7 +32,7 @@ const App = () => {
             setSaved(true);
         } catch (e) {
             console.error(e);
-            setError('설정 저장 중 오류가 발생했습니다.');
+            setError(t('settings.error.save'));
         } finally {
             setIsSaving(false);
         }
@@ -39,29 +40,29 @@ const App = () => {
 
     return (
         <Stack space="space.200">
-            <Heading size="medium">Testcasecraft 서버 설정</Heading>
+            <Heading size="medium">{t('settings.title')}</Heading>
             
             {error && (
                 <Text color="color.text.danger">{error}</Text>
             )}
             
             {saved && (
-                <Text color="color.text.success">설정이 성공적으로 저장되었습니다!</Text>
+                <Text color="color.text.success">{t('settings.success.save')}</Text>
             )}
 
             <Textfield 
-                label="Testcasecraft 서버 URL" 
+                label={t('settings.label.url')} 
                 value={url} 
                 onChange={(e) => setUrl(e.target.value)} 
-                placeholder="http://tc.skaiworldwide.co.kr:8080"
+                placeholder={t('settings.placeholder.url')}
             />
             
             <Textfield 
-                label="서비스 API Key" 
+                label={t('settings.label.apiKey')} 
                 value={apiKey} 
                 onChange={(e) => setApiKey(e.target.value)} 
                 type="password"
-                placeholder="백엔드에서 발급받은 키를 입력하세요"
+                placeholder={t('settings.placeholder.apiKey')}
             />
             
             <Button 
@@ -69,11 +70,13 @@ const App = () => {
                 onClick={handleSave}
                 isLoading={isSaving}
             >
-                설정 저장하기
+                {t('settings.button.save')}
             </Button>
             
             <Text size="small" color="color.text.subtle">
-                URL은 마지막 슬래시(/) 없이 입력해 주세요. 발급받은 API 키는 암호화되어 안전하게 저장됩니다.
+                {t('settings.help.url')} 
+                {t('settings.help.policy')}
+                {t('settings.help.howToGet')}
             </Text>
         </Stack>
     );

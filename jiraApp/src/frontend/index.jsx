@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, { Text, Heading, Stack, Button, useProductContext } from '@forge/react';
 import { invoke, router } from '@forge/bridge';
+import { t } from './i18n';
 
 const App = () => {
   const context = useProductContext();
@@ -63,7 +64,7 @@ const App = () => {
       router.open(redirectUrl);
     } catch (e) {
       console.error('리다이렉트 토큰 발급 오류:', e);
-      setError('테스트 결과 페이지를 열 수 없습니다. 내부망 접근 문제일 수 있습니다.');
+      setError(t('index.error.redirect'));
     } finally {
       setRedirecting(false);
     }
@@ -72,7 +73,7 @@ const App = () => {
   if (!issueKey || loading) {
     return (
       <Stack>
-        <Text>이슈 정보 및 설정을 불러오는 중입니다...</Text>
+        <Text>{t('index.loading')}</Text>
       </Stack>
     );
   }
@@ -80,23 +81,23 @@ const App = () => {
   if (!serverUrl) {
     return (
       <Stack>
-        <Text>앱 설정이 완료되지 않았습니다. 관리자에게 문의하여 Testcasecraft 앱 설정을 진행해주세요.</Text>
+        <Text>{t('index.error.notConfigured')}</Text>
       </Stack>
     );
   }
 
   return (
     <Stack space="space.100">
-      <Heading as="h3">테스트 관리</Heading>
-      <Text>현재 이슈({issueKey})와 연결된 테스트 케이스를 확인하거나 결과를 입력할 수 있습니다.</Text>
+      <Heading as="h3">{t('index.title')}</Heading>
+      <Text>{t('index.description', { issueKey })}</Text>
       {error && <Text color="color.text.danger">{error}</Text>}
       <Button
         onClick={handleOpenTestResult}
         isDisabled={redirecting}
       >
-        {redirecting ? '연결 중...' : '테스트 결과 확인 및 입력 (바로가기)'}
+        {redirecting ? t('index.button.connecting') : t('index.button.open')}
       </Button>
-      <Text size="small" color="color.text.subtle">이동 시 보안 임시 토큰을 통해 자동 인증됩니다.</Text>
+      <Text size="small" color="color.text.subtle">{t('index.footer.hint')}</Text>
     </Stack>
   );
 };

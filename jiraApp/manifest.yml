@@ -34,14 +34,8 @@ permissions:
   external:
     fetch:
       client:
-        - address: tc.skaiworldwide.co.kr
-        - address: tc.skaiworldwide.co.kr:8080
         - address: "*.skaiworldwide.co.kr"
-        - address: testcasecraft.xmlangel.uk
         - address: "*.xmlangel.uk"
       backend:
-        - address: tc.skaiworldwide.co.kr
-        - address: tc.skaiworldwide.co.kr:8080
         - address: "*.skaiworldwide.co.kr"
-        - address: testcasecraft.xmlangel.uk
         - address: "*.xmlangel.uk"
