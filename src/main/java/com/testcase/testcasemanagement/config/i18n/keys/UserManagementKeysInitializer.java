@@ -262,6 +262,7 @@ public class UserManagementKeysInitializer {
                 createTranslationKeyIfNotExists("profile.tabs.language", "profile", "언어 설정 탭", "언어 설정");
                 createTranslationKeyIfNotExists("profile.tabs.appearance", "profile", "화면 설정 탭", "화면 설정");
                 createTranslationKeyIfNotExists("profile.tabs.jira", "profile", "JIRA 설정 탭", "JIRA 설정");
+                createTranslationKeyIfNotExists("profile.tabs.apiToken", "profile", "API 토큰 탭", "API 토큰");
                 createTranslationKeyIfNotExists("profile.form.username", "profile", "사용자명 필드", "사용자명");
                 createTranslationKeyIfNotExists("profile.form.usernameHelper", "profile", "사용자명 도움말",
                                 "사용자명은 변경할 수 없습니다.");
@@ -331,6 +332,84 @@ public class UserManagementKeysInitializer {
                 createTranslationKeyIfNotExists("profile.version.loading", "profile", "버전 정보 로딩", "버전 정보 로딩 중...");
                 createTranslationKeyIfNotExists("profile.version.error", "profile", "버전 정보 로드 실패",
                                 "버전 정보를 불러올 수 없습니다.");
+
+                // 사용자 프로필 - 서비스 API 토큰 관련
+                createTranslationKeyIfNotExists("profile.apiToken.title", "profile", "서비스 API 토큰 제목", "서비스 API 토큰");
+                createTranslationKeyIfNotExists("profile.apiToken.description1", "profile", "서비스 API 토큰 설명 1",
+                                "서비스 API 토큰은 외부 시스템(예: Jira Forge 앱)에서 이 서비스에 접근할 때 사용합니다.");
+                createTranslationKeyIfNotExists("profile.apiToken.description2", "profile", "서비스 API 토큰 설명 2",
+                                "토큰은 발급 시 한 번만 표시되므로 안전한 곳에 보관하세요.");
+                createTranslationKeyIfNotExists("profile.apiToken.description3", "profile", "서비스 API 토큰 설명 3",
+                                "사용자당 최대 10개까지 발급 가능합니다.");
+
+                createTranslationKeyIfNotExists("profile.apiToken.new.title", "profile", "새 API 토큰 발급 제목",
+                                "새 API 토큰 발급");
+                createTranslationKeyIfNotExists("profile.apiToken.new.label", "profile", "토큰 이름 레이블", "토큰 이름");
+                createTranslationKeyIfNotExists("profile.apiToken.new.placeholder", "profile", "토큰 이름 플레이스홀더",
+                                "예: Jira Integration, CI/CD Pipeline");
+                createTranslationKeyIfNotExists("profile.apiToken.new.button", "profile", "발급 버튼", "발급");
+
+                createTranslationKeyIfNotExists("profile.apiToken.list.title", "profile", "내 API 토큰 목록 제목",
+                                "내 API 토큰 목록");
+                createTranslationKeyIfNotExists("profile.apiToken.list.refresh", "profile", "목록 새로고침 툴팁", "목록 새로고침");
+                createTranslationKeyIfNotExists("profile.apiToken.list.empty", "profile", "토큰 없음 메시지",
+                                "발급된 API 토큰이 없습니다.");
+
+                createTranslationKeyIfNotExists("profile.apiToken.table.name", "profile", "테이블 이름 헤더", "이름");
+                createTranslationKeyIfNotExists("profile.apiToken.table.key", "profile", "테이블 키 헤더", "키 (마스킹)");
+                createTranslationKeyIfNotExists("profile.apiToken.table.status", "profile", "테이블 상태 헤더", "상태");
+                createTranslationKeyIfNotExists("profile.apiToken.table.expiry", "profile", "테이블 만료일 헤더", "만료일");
+                createTranslationKeyIfNotExists("profile.apiToken.table.created", "profile", "테이블 생성일 헤더", "생성일");
+                createTranslationKeyIfNotExists("profile.apiToken.table.actions", "profile", "테이블 관리 헤더", "관리");
+
+                createTranslationKeyIfNotExists("profile.apiToken.status.active", "profile", "활성 상태", "활성");
+                createTranslationKeyIfNotExists("profile.apiToken.status.inactive", "profile", "비활성 상태", "비활성");
+                createTranslationKeyIfNotExists("profile.apiToken.status.expired", "profile", "만료됨 상태", "만료됨");
+                createTranslationKeyIfNotExists("profile.apiToken.tooltip.delete", "profile", "삭제 툴팁", "삭제(비활성화)");
+
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.title", "profile", "발급 완료 다이얼로그 제목",
+                                "API 토큰 발급 완료");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.warning", "profile", "발급 주의사항",
+                                "이 토큰은 지금만 확인할 수 있습니다. 창을 닫으면 토큰 전체를 다시 볼 수 없으니 안전한 곳에 저장해 주세요.");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.name", "profile", "토큰 이름 표시",
+                                "토큰 이름: {name}");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.expiry", "profile", "만료일 표시",
+                                "만료일: {date}");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.tokenLabel", "profile", "발급된 토큰 레이블",
+                                "발급된 토큰:");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.copyTooltip", "profile", "복사 툴팁",
+                                "클립보드에 복사");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.copiedTooltip", "profile", "복사됨 툴팁",
+                                "복사됨!");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.copyButton", "profile", "전체 복사 버튼",
+                                "토큰 전체 복사");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.copySuccess", "profile", "복사 완료 메시지",
+                                "복사 완료!");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.revealed.close", "profile", "다이얼로그 닫기 버튼",
+                                "확인 (닫기)");
+
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.delete.title", "profile", "토큰 삭제 제목",
+                                "API 토큰 삭제");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.delete.warning", "profile", "삭제 경고",
+                                "삭제한 토큰은 즉시 사용이 중단됩니다.");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.delete.confirm", "profile", "삭제 확인 질문",
+                                "{name} 토큰을 비활성화하시겠습니까?");
+                createTranslationKeyIfNotExists("profile.apiToken.dialog.delete.button", "profile", "삭제 버튼", "삭제");
+
+                createTranslationKeyIfNotExists("profile.apiToken.message.loadFailed", "profile", "로드 실패 메시지",
+                                "API 키 목록을 불러오는데 실패했습니다.");
+                createTranslationKeyIfNotExists("profile.apiToken.message.nameRequired", "profile", "이름 필수 메시지",
+                                "키 이름을 입력하세요.");
+                createTranslationKeyIfNotExists("profile.apiToken.message.generateFailed", "profile", "발급 실패 메시지",
+                                "API 키 발급에 실패했습니다.");
+                createTranslationKeyIfNotExists("profile.apiToken.message.generateError", "profile", "발급 오류 메시지",
+                                "API 키 발급 중 오류가 발생했습니다.");
+                createTranslationKeyIfNotExists("profile.apiToken.message.deleteSuccess", "profile", "삭제 성공 메시지",
+                                "API 키가 비활성화되었습니다.");
+                createTranslationKeyIfNotExists("profile.apiToken.message.deleteFailed", "profile", "삭제 실패 메시지",
+                                "삭제에 실패했습니다.");
+                createTranslationKeyIfNotExists("profile.apiToken.message.deleteError", "profile", "삭제 오류 메시지",
+                                "API 키 삭제 중 오류가 발생했습니다.");
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

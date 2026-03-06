@@ -848,6 +848,83 @@ public class KoreanTestCaseAndAutomationTranslations {
                                 "폴더 기능: \"폴더 추가\" 버튼을 클릭하거나 이름 셀에 \"📁 폴더명\" 형태로 입력하면 폴더가 생성됩니다.", createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.usage.stepManagement", languageCode,
                                 "스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).", createdBy);
+
+                // 사용자 프로필 - 서비스 API 토큰 한글
+                createTranslationIfNotExists("profile.tabs.apiToken", languageCode, "API 토큰", createdBy);
+                createTranslationIfNotExists("profile.apiToken.title", languageCode, "서비스 API 토큰", createdBy);
+                createTranslationIfNotExists("profile.apiToken.description1", languageCode,
+                                "서비스 API 토큰은 외부 시스템(예: Jira Forge 앱)에서 이 서비스에 접근할 때 사용합니다.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.description2", languageCode,
+                                "토큰은 발급 시 한 번만 표시되므로 안전한 곳에 보관하세요.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.description3", languageCode, "사용자당 최대 10개까지 발급 가능합니다.",
+                                createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.new.title", languageCode, "새 API 토큰 발급", createdBy);
+                createTranslationIfNotExists("profile.apiToken.new.label", languageCode, "토큰 이름", createdBy);
+                createTranslationIfNotExists("profile.apiToken.new.placeholder", languageCode,
+                                "예: Jira Integration, CI/CD Pipeline", createdBy);
+                createTranslationIfNotExists("profile.apiToken.new.button", languageCode, "발급", createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.list.title", languageCode, "내 API 토큰 목록", createdBy);
+                createTranslationIfNotExists("profile.apiToken.list.refresh", languageCode, "목록 새로고침", createdBy);
+                createTranslationIfNotExists("profile.apiToken.list.empty", languageCode, "발급된 API 토큰이 없습니다.",
+                                createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.table.name", languageCode, "이름", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.key", languageCode, "키 (마스킹)", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.status", languageCode, "상태", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.expiry", languageCode, "만료일", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.created", languageCode, "생성일", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.actions", languageCode, "관리", createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.status.active", languageCode, "활성", createdBy);
+                createTranslationIfNotExists("profile.apiToken.status.inactive", languageCode, "비활성", createdBy);
+                createTranslationIfNotExists("profile.apiToken.status.expired", languageCode, "만료됨", createdBy);
+                createTranslationIfNotExists("profile.apiToken.tooltip.delete", languageCode, "삭제(비활성화)", createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.title", languageCode, "API 토큰 발급 완료",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.warning", languageCode,
+                                "이 토큰은 지금만 확인할 수 있습니다. 창을 닫으면 토큰 전체를 다시 볼 수 없으니 안전한 곳에 저장해 주세요.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.name", languageCode, "토큰 이름: {name}",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.expiry", languageCode, "만료일: {date}",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.tokenLabel", languageCode, "발급된 토큰:",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.copyTooltip", languageCode, "클립보드에 복사",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.copiedTooltip", languageCode, "복사됨!",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.copyButton", languageCode, "토큰 전체 복사",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.copySuccess", languageCode, "복사 완료!",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.close", languageCode, "확인 (닫기)",
+                                createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.dialog.delete.title", languageCode, "API 토큰 삭제",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.delete.warning", languageCode,
+                                "삭제한 토큰은 즉시 사용이 중단됩니다.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.delete.confirm", languageCode,
+                                "{name} 토큰을 비활성화하시겠습니까?", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.delete.button", languageCode, "삭제", createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.message.loadFailed", languageCode,
+                                "API 키 목록을 불러오는데 실패했습니다.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.nameRequired", languageCode, "키 이름을 입력하세요.",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.generateFailed", languageCode,
+                                "API 키 발급에 실패했습니다.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.generateError", languageCode,
+                                "API 키 발급 중 오류가 발생했습니다.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.deleteSuccess", languageCode,
+                                "API 키가 비활성화되었습니다.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.deleteFailed", languageCode, "삭제에 실패했습니다.",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.deleteError", languageCode,
+                                "API 키 삭제 중 오류가 발생했습니다.", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

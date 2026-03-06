@@ -34,6 +34,7 @@ import {
   Warning as WarningIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
+import { useI18n } from '../../context/I18nContext';
 
 /**
  * 서비스 API 토큰 관리 탭
@@ -42,6 +43,7 @@ import {
  * - API 키 비활성화(삭제)
  */
 function ServiceApiKeyTab() {
+  const { t } = useI18n();
   const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -76,12 +78,12 @@ function ServiceApiKeyTab() {
       const data = await res.json();
       setKeys(data);
     } catch (err) {
-      setError('API 키 목록을 불러오는데 실패했습니다.');
+      setError(t('profile.apiToken.message.loadFailed', 'API 키 목록을 불러오는데 실패했습니다.'));
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadKeys();
@@ -90,7 +92,7 @@ function ServiceApiKeyTab() {
   // 새 API 키 발급
   const handleGenerate = async () => {
     if (!newKeyName.trim()) {
-      setError('키 이름을 입력하세요.');
+      setError(t('profile.apiToken.message.nameRequired', '키 이름을 입력하세요.'));
       return;
     }
     setGenerating(true);
@@ -103,7 +105,7 @@ function ServiceApiKeyTab() {
       );
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setError(data.message || 'API 키 발급에 실패했습니다.');
+        setError(data.message || t('profile.apiToken.message.generateFailed', 'API 키 발급에 실패했습니다.'));
         return;
       }
       setRevealedKey({
@@ -114,7 +116,7 @@ function ServiceApiKeyTab() {
       setNewKeyName('');
       await loadKeys();
     } catch (err) {
-      setError('API 키 발급 중 오류가 발생했습니다.');
+      setError(t('profile.apiToken.message.generateError', 'API 키 발급 중 오류가 발생했습니다.'));
       console.error(err);
     } finally {
       setGenerating(false);
@@ -151,14 +153,14 @@ function ServiceApiKeyTab() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setSuccess('API 키가 비활성화되었습니다.');
+        setSuccess(t('profile.apiToken.message.deleteSuccess', 'API 키가 비활성화되었습니다.'));
         setDeleteTarget(null);
         await loadKeys();
       } else {
-        setError(data.message || '삭제에 실패했습니다.');
+        setError(data.message || t('profile.apiToken.message.deleteFailed', '삭제에 실패했습니다.'));
       }
     } catch (err) {
-      setError('API 키 삭제 중 오류가 발생했습니다.');
+      setError(t('profile.apiToken.message.deleteError', 'API 키 삭제 중 오류가 발생했습니다.'));
       console.error(err);
     } finally {
       setDeleting(false);
@@ -168,7 +170,7 @@ function ServiceApiKeyTab() {
   const formatDate = (dateStr) => {
     if (!dateStr) return '-';
     try {
-      return new Date(dateStr).toLocaleDateString('ko-KR', {
+      return new Date(dateStr).toLocaleDateString(undefined, {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -186,12 +188,14 @@ function ServiceApiKeyTab() {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
-        서비스 API 토큰
+        {t('profile.apiToken.title', '서비스 API 토큰')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        서비스 API 토큰은 외부 시스템(예: Jira Forge 앱)에서 이 서비스에 접근할 때 사용합니다.
-        토큰은 발급 시 한 번만 표시되므로 안전한 곳에 보관하세요.
-        사용자당 최대 10개까지 발급 가능합니다.
+        {t('profile.apiToken.description1', '서비스 API 토큰은 외부 시스템(예: Jira Forge 앱)에서 이 서비스에 접근할 때 사용합니다.')}
+        <br />
+        {t('profile.apiToken.description2', '토큰은 발급 시 한 번만 표시되므로 안전한 곳에 보관하세요.')}
+        <br />
+        {t('profile.apiToken.description3', '사용자당 최대 10개까지 발급 가능합니다.')}
       </Typography>
 
       {/* 에러/성공 메시지 */}
@@ -209,12 +213,12 @@ function ServiceApiKeyTab() {
       {/* 새 키 발급 영역 */}
       <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'action.hover' }}>
         <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
-          새 API 토큰 발급
+          {t('profile.apiToken.new.title', '새 API 토큰 발급')}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1 }}>
           <TextField
-            label="토큰 이름"
-            placeholder="예: Jira Integration, CI/CD Pipeline"
+            label={t('profile.apiToken.new.label', '토큰 이름')}
+            placeholder={t('profile.apiToken.new.placeholder', '예: Jira Integration, CI/CD Pipeline')}
             value={newKeyName}
             onChange={(e) => setNewKeyName(e.target.value)}
             size="small"
@@ -229,7 +233,7 @@ function ServiceApiKeyTab() {
             disabled={generating || !newKeyName.trim()}
             size="medium"
           >
-            발급
+            {t('profile.apiToken.new.button', '발급')}
           </Button>
         </Box>
       </Paper>
@@ -237,9 +241,9 @@ function ServiceApiKeyTab() {
       {/* 키 목록 */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-          내 API 토큰 목록
+          {t('profile.apiToken.list.title', '내 API 토큰 목록')}
         </Typography>
-        <Tooltip title="목록 새로고침">
+        <Tooltip title={t('profile.apiToken.list.refresh', '목록 새로고침')}>
           <IconButton size="small" onClick={loadKeys} disabled={loading}>
             <RefreshIcon fontSize="small" />
           </IconButton>
@@ -262,7 +266,7 @@ function ServiceApiKeyTab() {
         >
           <KeyIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
           <Typography variant="body2" color="text.secondary">
-            발급된 API 토큰이 없습니다.
+            {t('profile.apiToken.list.empty', '발급된 API 토큰이 없습니다.')}
           </Typography>
         </Box>
       ) : (
@@ -270,12 +274,12 @@ function ServiceApiKeyTab() {
           <Table size="small">
             <TableHead>
               <TableRow sx={{ bgcolor: 'action.selected' }}>
-                <TableCell sx={{ fontWeight: 600 }}>이름</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>키 (마스킹)</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>상태</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>만료일</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>생성일</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600 }}>관리</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('profile.apiToken.table.name', '이름')}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('profile.apiToken.table.key', '키 (마스킹)')}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('profile.apiToken.table.status', '상태')}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('profile.apiToken.table.expiry', '만료일')}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('profile.apiToken.table.created', '생성일')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 600 }}>{t('profile.apiToken.table.actions', '관리')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -299,18 +303,18 @@ function ServiceApiKeyTab() {
                   </TableCell>
                   <TableCell>
                     {!key.active ? (
-                      <Chip label="비활성" size="small" color="default" />
+                      <Chip label={t('profile.apiToken.status.inactive', '비활성')} size="small" color="default" />
                     ) : isExpired(key.expiresAt) ? (
                       <Chip
                         icon={<WarningIcon />}
-                        label="만료됨"
+                        label={t('profile.apiToken.status.expired', '만료됨')}
                         size="small"
                         color="error"
                       />
                     ) : (
                       <Chip
                         icon={<CheckCircleIcon />}
-                        label="활성"
+                        label={t('profile.apiToken.status.active', '활성')}
                         size="small"
                         color="success"
                       />
@@ -331,7 +335,7 @@ function ServiceApiKeyTab() {
                   </TableCell>
                   <TableCell align="center">
                     {key.active && (
-                      <Tooltip title="삭제(비활성화)">
+                      <Tooltip title={t('profile.apiToken.tooltip.delete', '삭제(비활성화)')}>
                         <IconButton
                           size="small"
                           color="error"
@@ -358,25 +362,24 @@ function ServiceApiKeyTab() {
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <KeyIcon color="primary" />
-          API 토큰 발급 완료
+          {t('profile.apiToken.dialog.revealed.title', 'API 토큰 발급 완료')}
         </DialogTitle>
         <DialogContent>
           <Alert severity="warning" sx={{ mb: 2 }}>
-            <strong>이 토큰은 지금만 확인할 수 있습니다.</strong><br />
-            창을 닫으면 토큰 전체를 다시 볼 수 없으니 안전한 곳에 저장해 주세요.
+            <strong>{t('profile.apiToken.dialog.revealed.warning', '이 토큰은 지금만 확인할 수 있습니다. 창을 닫으면 토큰 전체를 다시 볼 수 없으니 안전한 곳에 저장해 주세요.')}</strong>
           </Alert>
 
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            토큰 이름: <strong>{revealedKey?.name}</strong>
+            {t('profile.apiToken.dialog.revealed.name', '토큰 이름: {name}', { name: revealedKey?.name })}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            만료일: <strong>{formatDate(revealedKey?.expiresAt)}</strong>
+            {t('profile.apiToken.dialog.revealed.expiry', '만료일: {date}', { date: formatDate(revealedKey?.expiresAt) })}
           </Typography>
 
           <Divider sx={{ my: 1.5 }} />
 
           <Typography variant="body2" gutterBottom sx={{ fontWeight: 600 }}>
-            발급된 토큰:
+            {t('profile.apiToken.dialog.revealed.tokenLabel', '발급된 토큰:')}
           </Typography>
           <TextField
             fullWidth
@@ -388,7 +391,7 @@ function ServiceApiKeyTab() {
               sx: { fontFamily: 'monospace', fontSize: '0.85rem', bgcolor: 'action.hover' },
               endAdornment: (
                 <InputAdornment position="end">
-                  <Tooltip title={copied ? '복사됨!' : '클립보드에 복사'}>
+                  <Tooltip title={copied ? t('profile.apiToken.dialog.revealed.copiedTooltip', '복사됨!') : t('profile.apiToken.dialog.revealed.copyTooltip', '클립보드에 복사')}>
                     <IconButton
                       onClick={() => handleCopy(revealedKey?.apiKey)}
                       edge="end"
@@ -410,7 +413,7 @@ function ServiceApiKeyTab() {
             color={copied ? 'success' : 'primary'}
             fullWidth
           >
-            {copied ? '복사 완료!' : '토큰 전체 복사'}
+            {copied ? t('profile.apiToken.dialog.revealed.copySuccess', '복사 완료!') : t('profile.apiToken.dialog.revealed.copyButton', '토큰 전체 복사')}
           </Button>
         </DialogContent>
         <DialogActions>
@@ -418,7 +421,7 @@ function ServiceApiKeyTab() {
             onClick={() => { setRevealedKey(null); setCopied(false); }}
             variant="contained"
           >
-            확인 (닫기)
+            {t('profile.apiToken.dialog.revealed.close', '확인 (닫기)')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -430,18 +433,18 @@ function ServiceApiKeyTab() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>API 토큰 삭제</DialogTitle>
+        <DialogTitle>{t('profile.apiToken.dialog.delete.title', 'API 토큰 삭제')}</DialogTitle>
         <DialogContent>
           <Alert severity="warning" sx={{ mb: 1 }}>
-            삭제한 토큰은 즉시 사용이 중단됩니다.
+            {t('profile.apiToken.dialog.delete.warning', '삭제한 토큰은 즉시 사용이 중단됩니다.')}
           </Alert>
           <Typography variant="body2">
-            <strong>{deleteTarget?.name}</strong> 토큰을 비활성화하시겠습니까?
+            {t('profile.apiToken.dialog.delete.confirm', '{name} 토큰을 비활성화하시겠습니까?', { name: deleteTarget?.name })}
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteTarget(null)} disabled={deleting}>
-            취소
+            {t('profile.apiToken.dialog.delete.button.cancel', '취소')}
           </Button>
           <Button
             color="error"
@@ -450,7 +453,7 @@ function ServiceApiKeyTab() {
             disabled={deleting}
             startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : <DeleteIcon />}
           >
-            삭제
+            {t('profile.apiToken.dialog.delete.button', '삭제')}
           </Button>
         </DialogActions>
       </Dialog>
