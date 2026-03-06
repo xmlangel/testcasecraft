@@ -35,6 +35,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useI18n } from '../../context/I18nContext';
+import { formatDateOnlySafe, safeParseDate } from '../../utils/dateUtils';
 
 /**
  * 서비스 API 토큰 관리 탭
@@ -168,21 +169,13 @@ function ServiceApiKeyTab() {
   };
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return '-';
-    try {
-      return new Date(dateStr).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-    } catch {
-      return dateStr;
-    }
+    return formatDateOnlySafe(dateStr);
   };
 
   const isExpired = (dateStr) => {
     if (!dateStr) return false;
-    return new Date(dateStr) < new Date();
+    const date = safeParseDate(dateStr);
+    return date ? date < new Date() : false;
   };
 
   return (
