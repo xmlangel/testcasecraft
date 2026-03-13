@@ -529,6 +529,10 @@ const TestResultForm = ({
               t={t}
               darkMode={darkMode}
               height={fullPage ? 300 : 200}
+              onNext={onNext}
+              onPrevious={onPrevious}
+              currentIndex={currentIndex}
+              totalCount={totalCount}
             />
 
             <TestResultTags
