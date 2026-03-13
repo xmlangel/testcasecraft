@@ -504,7 +504,7 @@ const TestResultForm = ({
         <>
           <TestCaseDetails testCase={testCase} t={t} />
 
-          <Box sx={{ mt: 3 }}>
+          <Box sx={{ mt: 3, width: '100%', boxSizing: 'border-box' }}>
             {/* 기존 TestResultSelector는 플로팅 메뉴로 대체됨 */}
 
             <TestResultNotes
@@ -566,9 +566,11 @@ const TestResultForm = ({
     return (
       <Box sx={{
         width: '100%',
-        height: '100%',
+        minHeight: '100vh',
         bgcolor: (theme) => theme.palette.background.default,
-        p: 2
+        p: { xs: 1, sm: 2, md: 3 }, // 반응형 패딩
+        boxSizing: 'border-box',
+        overflowX: 'hidden' // 가로 스크롤 방지
       }}>
         <TestResultHeader
           onPrevious={onPrevious}
@@ -667,7 +669,7 @@ const TestResultForm = ({
         {t('testResult.form.title')}
       </DialogTitle>
 
-      <DialogContent sx={{ pb: 10 }}> {/* 플로팅 메뉴 공간 확보 */}
+      <DialogContent sx={{ pb: 12, px: { xs: 2, sm: 3 } }}> {/* 플로팅 메뉴 공간 및 좌우 여백 확보 */}
         {renderContent()}
         
         {/* 플로팅 메뉴 (스크롤 시에도 고정) */}
