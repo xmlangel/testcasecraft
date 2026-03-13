@@ -10,7 +10,7 @@ import { TestResult } from "../../models/testExecution.jsx";
 import { RESULT_COLORS } from '../../constants/statusColors';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { isServerUTC } from '../utils/dateUtils';
+import { isServerUTC } from '../../utils/dateUtils';
 
 export function wrapName(name, max = 100) {
     if (!name) return "";
