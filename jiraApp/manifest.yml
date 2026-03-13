@@ -36,6 +36,10 @@ permissions:
       client:
         - address: "*.skaiworldwide.co.kr"
         - address: "*.xmlangel.uk"
+        - address: "*.qaspecialist.uk"
+        - address: "tc.qaspecialist.uk"
       backend:
         - address: "*.skaiworldwide.co.kr"
         - address: "*.xmlangel.uk"
+        - address: "*.qaspecialist.uk"
+        - address: "tc.qaspecialist.uk"
