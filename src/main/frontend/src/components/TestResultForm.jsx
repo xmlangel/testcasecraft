@@ -21,6 +21,7 @@ import TestResultTags from './TestResult/TestResultTags.jsx';
 import TestResultJira from './TestResult/TestResultJira.jsx';
 import TestResultHeader from './TestResult/TestResultHeader.jsx';
 import TestResultFooter from './TestResult/TestResultFooter.jsx';
+import TestResultFloatingMenu from './TestResult/TestResultFloatingMenu.jsx';
 
 const KEY_RESULT_MAP = {
   'N': TestResult.NOTRUN,
@@ -605,9 +606,27 @@ const TestResultForm = ({
           testCase={testCase}
           isViewer={isViewer}
           t={t}
+          hideButtons={true}
         />
 
         {renderContent()}
+
+        {/* 플로팅 메뉴 (스크롤 시에도 고정) */}
+        <TestResultFloatingMenu
+          onPrevious={onPrevious}
+          onNext={onNext}
+          onSave={() => handleSaveAndNext(result)}
+          onClose={onClose}
+          currentIndex={currentIndex}
+          totalCount={totalCount}
+          isViewer={isViewer}
+          loading={loading}
+          shouldShowJiraButton={shouldShowJiraButton}
+          handleOpenJiraDialog={handleOpenJiraDialog}
+          testCase={testCase}
+          saveButtonRef={saveButtonRef}
+          t={t}
+        />
 
         <Snackbar
           open={!!saveError}
@@ -667,8 +686,27 @@ const TestResultForm = ({
         {t('testResult.form.title')}
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ pb: 10 }}> {/* 플로팅 메뉴 공간 확보 */}
         {renderContent()}
+        
+        {/* 플로팅 메뉴 (스크롤 시에도 고정) */}
+        {!loading && testCase && (
+          <TestResultFloatingMenu
+            onPrevious={onPrevious}
+            onNext={onNext}
+            onSave={() => handleSaveAndNext(result)}
+            onClose={onClose}
+            currentIndex={currentIndex}
+            totalCount={totalCount}
+            isViewer={isViewer}
+            loading={loading}
+            shouldShowJiraButton={shouldShowJiraButton}
+            handleOpenJiraDialog={handleOpenJiraDialog}
+            testCase={testCase}
+            saveButtonRef={saveButtonRef}
+            t={t}
+          />
+        )}
       </DialogContent>
 
       <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2, flexWrap: 'wrap', gap: 2, flexDirection: 'column' }}>
@@ -682,6 +720,7 @@ const TestResultForm = ({
             testCase={testCase}
             isViewer={isViewer}
             t={t}
+            hideButtons={true}
           />
         )}
         <TestResultFooter
@@ -695,6 +734,7 @@ const TestResultForm = ({
           testCase={testCase}
           saveButtonRef={saveButtonRef}
           t={t}
+          hideButtons={true}
         />
       </DialogActions>
 

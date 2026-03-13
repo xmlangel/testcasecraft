@@ -9,7 +9,8 @@ const TestResultHeader = ({
     totalCount,
     testCase,
     isViewer,
-    t
+    t,
+    hideButtons = false
 }) => {
     return (
         <Box
@@ -25,16 +26,18 @@ const TestResultHeader = ({
                 boxShadow: 1
             }}
         >
-            <Button
-                variant="outlined"
-                startIcon={<NavigateBeforeIcon />}
-                onClick={onPrevious}
-                disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
-                sx={{ minWidth: 120 }}
-                data-testid="result-prev-button"
-            >
-                {t('common.button.previous', '이전')}
-            </Button>
+            {!hideButtons && (
+                <Button
+                    variant="outlined"
+                    startIcon={<NavigateBeforeIcon />}
+                    onClick={onPrevious}
+                    disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
+                    sx={{ minWidth: 120 }}
+                    data-testid="result-prev-button"
+                >
+                    {t('common.button.previous', '이전')}
+                </Button>
+            )}
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }} data-testid="result-index-text">
@@ -47,16 +50,18 @@ const TestResultHeader = ({
                 )}
             </Box>
 
-            <Button
-                variant="outlined"
-                endIcon={<NavigateNextIcon />}
-                onClick={onNext}
-                disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
-                sx={{ minWidth: 120 }}
-                data-testid="result-next-button"
-            >
-                {t('common.button.next', '다음')}
-            </Button>
+            {!hideButtons && (
+                <Button
+                    variant="outlined"
+                    endIcon={<NavigateNextIcon />}
+                    onClick={onNext}
+                    disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
+                    sx={{ minWidth: 120 }}
+                    data-testid="result-next-button"
+                >
+                    {t('common.button.next', '다음')}
+                </Button>
+            )}
         </Box>
     );
 };
