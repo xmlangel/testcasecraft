@@ -8,6 +8,9 @@ import {
 } from "@mui/icons-material";
 import { TestResult } from "../../models/testExecution.jsx";
 import { RESULT_COLORS } from '../../constants/statusColors';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { isServerUTC } from '../utils/dateUtils';
 
 export function wrapName(name, max = 100) {
     if (!name) return "";
@@ -43,50 +46,20 @@ export const priorityColor = {
 
 // 전체 날짜/시간 형식 (툴팁용)
 export function formatDateTimeFull(dateInput) {
-    if (!dateInput) return "";
+    const date = parseDateTime(dateInput);
+    if (!date || isNaN(date)) return "";
 
-    let date;
-
-    // Spring Boot LocalDateTime이 배열로 올 경우 처리
-    if (Array.isArray(dateInput)) {
-        // [year, month, day, hour, minute, second, nanosecond] 형태
-        const [year, month, day, hour, minute, second] = dateInput;
-        date = new Date(year, month - 1, day, hour, minute, second); // month는 0-based
-    } else {
-        // 문자열 형태의 날짜
-        date = new Date(dateInput);
-    }
-
-    if (isNaN(date)) return "";
-
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    const hh = String(date.getHours()).padStart(2, "0");
-    const min = String(date.getMinutes()).padStart(2, "0");
-    const sec = String(date.getSeconds()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${sec}`;
+    const formatted = format(date, 'yyyy-MM-dd HH:mm:ss', { locale: ko });
+    return isServerUTC() ? `${formatted} (UTC)` : formatted;
 }
 
 // 짧은 날짜 형식 (MM-DD)
 export function formatDateTimeShort(dateInput) {
-    if (!dateInput) return getDisplayValue(undefined, "executedAt");
+    const date = parseDateTime(dateInput);
+    if (!date || isNaN(date)) return getDisplayValue(undefined, "executedAt");
 
-    let date;
-
-    // Spring Boot LocalDateTime이 배열로 올 경우 처리
-    if (Array.isArray(dateInput)) {
-        const [year, month, day, hour, minute, second] = dateInput;
-        date = new Date(year, month - 1, day, hour, minute, second);
-    } else {
-        date = new Date(dateInput);
-    }
-
-    if (isNaN(date)) return getDisplayValue(undefined, "executedAt");
-
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    return `${mm}-${dd}`;
+    const formatted = format(date, 'MM-dd', { locale: ko });
+    return isServerUTC() ? `${formatted} (UTC)` : formatted;
 }
 
 export function getLatestResults(results) {

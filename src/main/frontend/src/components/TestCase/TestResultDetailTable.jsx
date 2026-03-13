@@ -59,6 +59,7 @@ import { useBatchJiraIssueStatus } from '../../hooks/useJiraStatus.js';
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
 import { LEGACY_RESULT_COLORS, getResultLabel } from '../../utils/testResultConstants.js';
 import { API_CONFIG, API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
+import { isServerUTC } from '../../utils/dateUtils.js';
 // ICT-344: 디버그 로깅 유틸리티
 import { debugLog, debugWarn, debugError } from '../../utils/logger.js';
 // ICT-194 Phase 2: 컴포넌트 분할 - 분리된 컴포넌트들
@@ -345,6 +346,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           description: testCase?.description || '',
           result: result.result,
           executedDate: result.executedAt ? new Date(result.executedAt) : null,
+          isServerUTC: isServerUTC(), // 렌더링 시 참조할 수 있도록 데이터에 포함
           executor: result.executorName || t('testResult.defaultValue.system', '시스템'),
           notes: result.notes || '',
           jiraId: jiraId,
