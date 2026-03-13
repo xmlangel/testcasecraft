@@ -505,23 +505,7 @@ const TestResultForm = ({
           <TestCaseDetails testCase={testCase} t={t} />
 
           <Box sx={{ mt: 3 }}>
-            <TestResultSelector
-              result={result}
-              onChange={(e) => {
-                const newResult = e.target.value;
-                setResult(newResult);
-                setTimeout(() => handleSaveAndNext(newResult, {
-                  advanceToNext: false,
-                  keepDialogOpen: true,
-                  showSuccess: true,
-                }), 100);
-              }}
-              isViewer={isViewer}
-              t={t}
-              minWidth={fullPage ? '150px' : '120px'}
-              padding={fullPage ? '16px 24px' : '14px 20px'}
-              fontSize={fullPage ? '1.15rem' : '1.05rem'}
-            />
+            {/* 기존 TestResultSelector는 플로팅 메뉴로 대체됨 */}
 
             <TestResultNotes
               notes={notes}
