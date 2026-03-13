@@ -14,7 +14,8 @@ const TestResultJira = ({
     handleIssueUnlinked,
     linkedIssues,
     isViewer,
-    t
+    t,
+    detectedJiraIssues = []
 }) => {
     return (
         <Box>
@@ -41,6 +42,11 @@ const TestResultJira = ({
                         <BugReportIcon />
                         {t('testResult.form.jiraIntegration')}
                     </Typography>
+                    {detectedJiraIssues.length > 0 && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                            {t('testResult.jira.detectedIssues', '감지된 이슈')}: {detectedJiraIssues.join(', ')}
+                        </Typography>
+                    )}
                     <JiraIssueLinker
                         testResult={{ result, notes }}
                         onIssueLinked={handleIssueLinked}

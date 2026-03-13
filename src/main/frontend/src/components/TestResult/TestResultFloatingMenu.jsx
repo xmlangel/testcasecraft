@@ -20,6 +20,8 @@ import {
 } from '@mui/icons-material';
 
 const TestResultFloatingMenu = ({
+  result,
+  onResultChange,
   onPrevious,
   onNext,
   onSave,
@@ -40,6 +42,13 @@ const TestResultFloatingMenu = ({
   const prevDisabled = !onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1;
   const nextDisabled = !onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1;
 
+  const resultOptions = [
+    { value: 'NOTRUN', label: 'N', color: theme.palette.grey[500], tooltip: t('testResult.status.notRun', '실행 안 함') },
+    { value: 'PASS', label: 'P', color: theme.palette.success.main, tooltip: t('testResult.status.pass', '성공') },
+    { value: 'FAIL', label: 'F', color: theme.palette.error.main, tooltip: t('testResult.status.fail', '실패') },
+    { value: 'BLOCKED', label: 'B', color: theme.palette.warning.main, tooltip: t('testResult.status.blocked', '차단됨') },
+  ];
+
   return (
     <Box
       sx={{
@@ -47,44 +56,44 @@ const TestResultFloatingMenu = ({
         bottom: 24,
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 1300, // Drawer나 Dialog 위에 떠야 함
+        zIndex: 1300,
         width: 'auto',
-        maxWidth: '90vw',
+        maxWidth: '95vw',
       }}
     >
       <Paper
         elevation={6}
         sx={{
-          p: 1,
-          px: 2,
-          borderRadius: 10, // Pill shape
+          p: 0.8,
+          px: 1.5,
+          borderRadius: 10,
           display: 'flex',
           alignItems: 'center',
-          gap: 1,
-          bgcolor: alpha(theme.palette.background.paper, 0.85),
-          backdropFilter: 'blur(10px)',
+          gap: 0.5,
+          bgcolor: alpha(theme.palette.background.paper, 0.9),
+          backdropFilter: 'blur(12px)',
           border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
         }}
       >
         {/* Navigation Section */}
-        <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Stack direction="row" alignItems="center" spacing={0}>
           <Tooltip title={t('common.button.previous', '이전')}>
             <span>
               <IconButton 
                 onClick={onPrevious} 
                 disabled={prevDisabled}
                 color="primary"
-                size="medium"
+                size="small"
               >
-                <NavigateBeforeIcon />
+                <NavigateBeforeIcon fontSize="small" />
               </IconButton>
             </span>
           </Tooltip>
           
-          <Box sx={{ minWidth: 60, textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              {totalCount > 0 ? `${currentIndex + 1} / ${totalCount}` : '- / -'}
+          <Box sx={{ minWidth: 45, textAlign: 'center' }}>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem' }}>
+              {totalCount > 0 ? `${currentIndex + 1}/${totalCount}` : '-/-'}
             </Typography>
           </Box>
 
@@ -94,27 +103,58 @@ const TestResultFloatingMenu = ({
                 onClick={onNext} 
                 disabled={nextDisabled}
                 color="primary"
-                size="medium"
+                size="small"
               >
-                <NavigateNextIcon />
+                <NavigateNextIcon fontSize="small" />
               </IconButton>
             </span>
           </Tooltip>
         </Stack>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
+        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
+
+        {/* Result Selection Section */}
+        <Stack direction="row" spacing={0.5} sx={{ px: 0.5 }}>
+          {resultOptions.map((opt) => (
+            <Tooltip key={opt.value} title={opt.tooltip}>
+              <IconButton
+                size="small"
+                onClick={() => !isViewer && onResultChange(opt.value)}
+                disabled={isViewer}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  bgcolor: result === opt.value ? opt.color : 'transparent',
+                  color: result === opt.value ? '#fff' : opt.color,
+                  border: `1px solid ${opt.color}`,
+                  '&:hover': {
+                    bgcolor: result === opt.value ? opt.color : alpha(opt.color, 0.1),
+                  },
+                  transition: 'all 0.2s',
+                  transform: result === opt.value ? 'scale(1.1)' : 'scale(1)',
+                }}
+              >
+                {opt.label}
+              </IconButton>
+            </Tooltip>
+          ))}
+        </Stack>
+
+        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
 
         {/* Action Section */}
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={0.5} alignItems="center">
           {shouldShowJiraButton && shouldShowJiraButton() && !isViewer && (
             <Tooltip title={t('testResult.form.jiraComment', 'JIRA 코멘트')}>
               <IconButton
                 color="warning"
                 onClick={handleOpenJiraDialog}
                 disabled={loading}
-                size="medium"
+                size="small"
               >
-                <BugReportIcon />
+                <BugReportIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
@@ -123,22 +163,23 @@ const TestResultFloatingMenu = ({
             onClick={onClose}
             variant="text"
             color="inherit"
+            size="small"
             sx={{ 
               borderRadius: 8, 
-              px: 2,
-              display: { xs: 'none', sm: 'inline-flex' }
+              px: 1.5,
+              fontSize: '0.8rem',
+              display: { xs: 'none', md: 'inline-flex' }
             }}
           >
             {t('common.button.cancel', '취소')}
           </Button>
           
-          {/* 모바일용 닫기 아이콘 */}
           <IconButton 
             onClick={onClose} 
-            sx={{ display: { xs: 'flex', sm: 'none' } }}
-            size="medium"
+            sx={{ display: { xs: 'flex', md: 'none' } }}
+            size="small"
           >
-            <CloseIcon />
+            <CloseIcon fontSize="small" />
           </IconButton>
 
           {!isViewer && (
@@ -147,14 +188,17 @@ const TestResultFloatingMenu = ({
               onClick={onSave}
               variant="contained"
               color="primary"
-              startIcon={<SaveIcon />}
+              size="small"
+              startIcon={<SaveIcon fontSize="small" />}
               disabled={loading || !testCase}
               sx={{ 
                 borderRadius: 8, 
-                px: 3,
-                boxShadow: theme.shadows[4],
+                px: 2,
+                fontSize: '0.8rem',
+                minWidth: '70px',
+                boxShadow: theme.shadows[2],
                 '&:hover': {
-                  boxShadow: theme.shadows[8],
+                  boxShadow: theme.shadows[4],
                 }
               }}
               data-testid="floating-save-button"
