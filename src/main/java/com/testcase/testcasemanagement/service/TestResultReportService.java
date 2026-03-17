@@ -729,11 +729,13 @@ public class TestResultReportService {
                 }
             }
         } else if (projectId != null) {
-            // 프로젝트 전체 케이스
+            // 프로젝트 전체 케이스 (ICT-363: testcase 타입만 포함하여 통계 정확도 개선)
             List<TestCase> cases = testCaseRepository.findByProjectId(projectId);
             for (TestCase tc : cases) {
-                targetTestCaseIds.add(tc.getId());
-                testCaseMap.put(tc.getId(), tc);
+                if ("testcase".equals(tc.getType())) {
+                    targetTestCaseIds.add(tc.getId());
+                    testCaseMap.put(tc.getId(), tc);
+                }
             }
         }
 
@@ -741,7 +743,12 @@ public class TestResultReportService {
         if (!targetTestCaseIds.isEmpty() && testCaseMap.isEmpty()) {
             List<TestCase> cases = testCaseRepository.findAllById(targetTestCaseIds);
             for (TestCase tc : cases) {
-                testCaseMap.put(tc.getId(), tc);
+                // ICT-363: 폴더가 아닌 테스트케이스만 인구 조사 대상으로 확정
+                if ("testcase".equals(tc.getType())) {
+                    testCaseMap.put(tc.getId(), tc);
+                } else {
+                    targetTestCaseIds.remove(tc.getId());
+                }
             }
         }
 

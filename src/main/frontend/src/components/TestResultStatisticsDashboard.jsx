@@ -316,8 +316,8 @@ function TestResultStatisticsDashboard() {
       if (filters.viewType === 'by-folder') {
         const reportParams = {
           projectId: activeProject?.id,
-          testPlanId: filters.testPlanId || undefined,
-          testExecutionId: filters.testExecutionId || undefined,
+          testPlanIds: filters.testPlanId ? [filters.testPlanId] : undefined,
+          testExecutionIds: filters.testExecutionId ? [filters.testExecutionId] : undefined,
           includeNotExecuted: true, // ICT-283: 플랜/실행의 전체 인구 기반 통계를 위해 미실행 포함
           size: 2000 // 모든 폴더를 보기 위해 큰 사이즈로 요청
         };
