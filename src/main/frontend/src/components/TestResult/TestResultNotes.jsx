@@ -90,7 +90,6 @@ const TestResultNotes = ({
                         }
                     }}
                     preview={previewMode}
-                    onPreviewChange={handleModeChange}
                     height={height}
                     disabled={isViewer}
                     textareaProps={{

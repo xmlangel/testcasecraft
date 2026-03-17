@@ -117,27 +117,29 @@ const TestResultFloatingMenu = ({
         <Stack direction="row" spacing={0.5} sx={{ px: 0.5 }}>
           {resultOptions.map((opt) => (
             <Tooltip key={opt.value} title={opt.tooltip}>
-              <IconButton
-                size="small"
-                onClick={() => !isViewer && onResultChange(opt.value)}
-                disabled={isViewer}
-                sx={{
-                  width: 28,
-                  height: 28,
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  bgcolor: result === opt.value ? opt.color : 'transparent',
-                  color: result === opt.value ? '#fff' : opt.color,
-                  border: `1px solid ${opt.color}`,
-                  '&:hover': {
-                    bgcolor: result === opt.value ? opt.color : alpha(opt.color, 0.1),
-                  },
-                  transition: 'all 0.2s',
-                  transform: result === opt.value ? 'scale(1.1)' : 'scale(1)',
-                }}
-              >
-                {opt.label}
-              </IconButton>
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => !isViewer && onResultChange(opt.value)}
+                  disabled={isViewer}
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    bgcolor: result === opt.value ? opt.color : 'transparent',
+                    color: result === opt.value ? '#fff' : opt.color,
+                    border: `1px solid ${opt.color}`,
+                    '&:hover': {
+                      bgcolor: result === opt.value ? opt.color : alpha(opt.color, 0.1),
+                    },
+                    transition: 'all 0.2s',
+                    transform: result === opt.value ? 'scale(1.1)' : 'scale(1)',
+                  }}
+                >
+                  {opt.label}
+                </IconButton>
+              </span>
             </Tooltip>
           ))}
         </Stack>
@@ -148,14 +150,16 @@ const TestResultFloatingMenu = ({
         <Stack direction="row" spacing={0.5} alignItems="center">
           {shouldShowJiraButton && shouldShowJiraButton() && !isViewer && (
             <Tooltip title={t('testResult.form.jiraComment', 'JIRA 코멘트')}>
-              <IconButton
-                color="warning"
-                onClick={handleOpenJiraDialog}
-                disabled={loading}
-                size="small"
-              >
-                <BugReportIcon fontSize="small" />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="warning"
+                  onClick={handleOpenJiraDialog}
+                  disabled={loading}
+                  size="small"
+                >
+                  <BugReportIcon fontSize="small" />
+                </IconButton>
+              </span>
             </Tooltip>
           )}
 
