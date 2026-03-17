@@ -54,6 +54,7 @@ public class ConfigController {
         config.put("apiBaseUrl", dynamicUrl);
         config.put("contextPath", contextPath);
         config.put("environment", activeProfile);
+        config.put("serverTimeZone", java.util.TimeZone.getDefault().getID());
 
         // 추가 설정 정보
         config.put("version", "1.0.0");

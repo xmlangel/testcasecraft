@@ -934,7 +934,7 @@ const TestCaseTree = ({
     );
 
   return (
-    <Box sx={{ height: "100%", overflow: "auto" }}>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       {/* 헤더 영역 - Select All + 버튼들 */}
       <Box sx={{ px: 2, pt: 1, pb: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

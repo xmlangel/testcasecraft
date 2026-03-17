@@ -314,6 +314,8 @@ public class GlobalExceptionHandler {
                                                 error -> error.getDefaultMessage() != null ? error.getDefaultMessage()
                                                                 : ""));
 
+                logger.warn("Method argument validation failed: {}", errors);
+
                 ErrorResponse response = new ErrorResponse(
                                 "INVALID_REQUEST",
                                 "유효하지 않은 요청 데이터",

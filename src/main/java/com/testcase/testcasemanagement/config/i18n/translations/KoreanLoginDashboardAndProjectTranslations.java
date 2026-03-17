@@ -46,11 +46,13 @@ public class KoreanLoginDashboardAndProjectTranslations {
                 createTranslationIfNotExists("register.error.general", languageCode, "회원가입 중 오류가 발생했습니다.", createdBy);
 
                 // 세션 만료
-                createTranslationIfNotExists("auth.session.expired.title", languageCode, "연결 및 세션 확인", createdBy);
+                createTranslationIfNotExists("auth.session.expired.title", languageCode, "세션 만료", createdBy);
                 createTranslationIfNotExists("auth.session.expired.message", languageCode,
-                                "세션이 만료되었거나 일시적인 오류일 수 있습니다.", createdBy);
+                                "보안을 위해 세션이 안전하게 종료되었습니다.", createdBy);
                 createTranslationIfNotExists("auth.session.expired.cause", languageCode,
-                                "새로고침으로 해결될 수 있습니다. 문제가 지속되면 다시 로그인해주세요.", createdBy);
+                                "원인: {cause}", createdBy);
+                createTranslationIfNotExists("auth.session.expired.default_help", languageCode,
+                                "계속 이용하시려면 다시 로그인해주세요.", createdBy);
                 createTranslationIfNotExists("auth.session.button.refresh", languageCode, "페이지 새로고침", createdBy);
                 createTranslationIfNotExists("auth.session.button.login", languageCode, "로그인 페이지로 이동", createdBy);
 

@@ -73,7 +73,7 @@ public class DashboardApiLoadTest {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Content-Type", "application/json");
 
-            String loginRequest = "{\"username\":\"admin\",\"password\":\"admin\"}";
+            String loginRequest = "{\"username\":\"admin\",\"password\":\"admin123\"}";
             HttpEntity<String> entity = new HttpEntity<>(loginRequest, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(

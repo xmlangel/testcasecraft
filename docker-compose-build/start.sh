@@ -89,11 +89,6 @@ configure_server_ports() {
     fi
 }
 
-export_docker_variables() {
-    # Export variables for docker compose
-    export PROTOCOL HTTP_PORT HTTPS_PORT SERVER_PORT SERVER_SSL_ENABLED
-    export SSL_KEYSTORE_PATH SSL_KEYSTORE_PASSWORD SSL_KEYSTORE_TYPE
-}
 
 print_configuration() {
     echo "📋 Configuration:"
@@ -143,25 +138,6 @@ handle_arguments() {
 # Validation Functions
 # =============================================================================
 
-validate_ssl_cert() {
-    if [ "$PROTOCOL" = "https" ]; then
-        if [ ! -f "ssl/keystore.p12" ]; then
-            echo "❌ HTTPS mode requires SSL certificate!"
-            echo ""
-            echo "🔧 To create a self-signed certificate for development:"
-            echo "   keytool -genkeypair -alias testcase -keyalg RSA -keysize 2048 "\
-            echo "           -storetype PKCS12 -keystore ssl/keystore.p12 "\
-            echo "           -dname \"CN=$DOMAIN,OU=Dev,O=TestCase,L=Seoul,ST=Seoul,C=KR\" "\
-            echo "           -storepass changeit -keypass changeit -validity 365"
-            echo ""
-            echo "📋 Or see ssl/README.md for more options"
-            return 1
-        else
-            echo "✅ SSL certificate found: ssl/keystore.p12"
-        fi
-    fi
-    return 0
-}
 
 check_port() {
     local port=$1

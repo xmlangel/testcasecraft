@@ -50,11 +50,13 @@ public class EnglishLoginDashboardAndProjectTranslations {
                                 createdBy);
 
                 // Session Expiry
-                createTranslationIfNotExists("auth.session.expired.title", languageCode, "Connection Check", createdBy);
+                createTranslationIfNotExists("auth.session.expired.title", languageCode, "Session Expired", createdBy);
                 createTranslationIfNotExists("auth.session.expired.message", languageCode,
-                                "Session may have expired or a temporary error occurred.", createdBy);
+                                "Your session has expired for security reasons.", createdBy);
                 createTranslationIfNotExists("auth.session.expired.cause", languageCode,
-                                "Try refreshing the page. If the issue persists, please log in again.", createdBy);
+                                "Reason: {cause}", createdBy);
+                createTranslationIfNotExists("auth.session.expired.default_help", languageCode,
+                                "Please log in again to continue.", createdBy);
                 createTranslationIfNotExists("auth.session.button.refresh", languageCode, "Refresh Page", createdBy);
                 createTranslationIfNotExists("auth.session.button.login", languageCode, "Go to Login", createdBy);
 

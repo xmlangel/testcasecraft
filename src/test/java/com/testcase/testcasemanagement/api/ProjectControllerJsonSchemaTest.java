@@ -81,7 +81,7 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = { "ADMIN" })
+    @WithMockUser(username = "test_admin", roles = { "ADMIN" })
     void testCreateProject_Success() throws Exception {
         System.out.println("MockMvc 객체: " + mockMvc); // 디버그 로그 추가
         ProjectDto newProject = new ProjectDto();
@@ -103,7 +103,7 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = { "ADMIN" })
+    @WithMockUser(username = "test_admin", roles = { "ADMIN" })
     void testCreateProject_MissingCode() throws Exception {
         ProjectDto newProject = new ProjectDto();
         newProject.setName("코드 없는 프로젝트");
@@ -118,7 +118,7 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = { "ADMIN" })
+    @WithMockUser(username = "test_admin", roles = { "ADMIN" })
     void testCreateProject_MissingName() throws Exception {
         ProjectDto newProject = new ProjectDto();
         newProject.setCode("NO_NAME_PROJ");
@@ -133,7 +133,7 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = { "ADMIN" })
+    @WithMockUser(username = "test_admin", roles = { "ADMIN" })
     void testCreateOrganizationProject_Success() throws Exception {
         String organizationId = "test-org-123";
 

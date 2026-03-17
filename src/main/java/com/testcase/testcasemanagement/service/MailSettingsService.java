@@ -98,20 +98,20 @@ public class MailSettingsService {
     /**
      * 메일 테스트 발송
      */
-    public boolean testMailSettings(String testRecipient, String adminUser) {
+    public void testMailSettings(String testRecipient, String adminUser) {
         try {
             log.info("메일 테스트 발송 시작 - 수신자: {}", testRecipient);
 
             Optional<MailSettings> settingsOpt = mailSettingsRepository.findFirstByOrderByCreatedAtDesc();
             if (settingsOpt.isEmpty()) {
                 log.warn("메일 설정이 없습니다.");
-                return false;
+                throw new IllegalStateException("메일 설정이 존재하지 않습니다. 먼저 설정을 저장해 주세요.");
             }
 
             MailSettings settings = settingsOpt.get();
             if (!settings.getMailEnabled()) {
                 log.warn("메일 기능이 비활성화되어 있습니다.");
-                return false;
+                throw new IllegalStateException("메일 기능이 비활성화되어 있습니다. 기능을 활성화한 후 테스트해 주세요.");
             }
 
             // 동적 JavaMailSender 생성
@@ -148,11 +148,13 @@ public class MailSettingsService {
             dynamicMailSender.send(message);
 
             log.info("메일 테스트 발송 성공 - 수신자: {}", testRecipient);
-            return true;
 
+        } catch (org.springframework.mail.MailAuthenticationException e) {
+            log.error("메일 인증 실패: {}", e.getMessage());
+            throw e; // 인증 예외는 그대로 던짐
         } catch (Exception e) {
             log.error("메일 테스트 발송 실패", e);
-            return false;
+            throw new RuntimeException("메일 발송 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
 

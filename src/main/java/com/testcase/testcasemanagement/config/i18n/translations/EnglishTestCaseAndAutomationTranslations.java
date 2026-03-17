@@ -1113,6 +1113,90 @@ public class EnglishTestCaseAndAutomationTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.usage.stepManagement", languageCode,
                                 "Step management: Click ⚙️ button to adjust step count (max 10).", createdBy);
+
+                // User Profile - Service API Token English
+                createTranslationIfNotExists("profile.tabs.apiToken", languageCode, "API Token", createdBy);
+                createTranslationIfNotExists("profile.apiToken.title", languageCode, "Service API Token", createdBy);
+                createTranslationIfNotExists("profile.apiToken.description1", languageCode,
+                                "Service API tokens are used to access this service from external systems (e.g., Jira Forge app).",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.description2", languageCode,
+                                "Tokens are only displayed once upon issuance, so please keep them in a safe place.",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.description3", languageCode,
+                                "Up to 10 tokens can be issued per user.", createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.new.title", languageCode, "Generate New API Token",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.new.label", languageCode, "Token Name", createdBy);
+                createTranslationIfNotExists("profile.apiToken.new.placeholder", languageCode,
+                                "e.g., Jira Integration, CI/CD Pipeline", createdBy);
+                createTranslationIfNotExists("profile.apiToken.new.button", languageCode, "Generate", createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.list.title", languageCode, "My API Token List",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.list.refresh", languageCode, "Refresh List", createdBy);
+                createTranslationIfNotExists("profile.apiToken.list.empty", languageCode, "No API tokens issued.",
+                                createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.table.name", languageCode, "Name", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.key", languageCode, "Key (Masked)", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.status", languageCode, "Status", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.expiry", languageCode, "Expiry Date", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.created", languageCode, "Created At", createdBy);
+                createTranslationIfNotExists("profile.apiToken.table.actions", languageCode, "Actions", createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.status.active", languageCode, "Active", createdBy);
+                createTranslationIfNotExists("profile.apiToken.status.inactive", languageCode, "Inactive", createdBy);
+                createTranslationIfNotExists("profile.apiToken.status.expired", languageCode, "Expired", createdBy);
+                createTranslationIfNotExists("profile.apiToken.tooltip.delete", languageCode, "Delete (Deactivate)",
+                                createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.title", languageCode,
+                                "API Token Issuance Complete", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.warning", languageCode,
+                                "This token can only be viewed now. Once you close this window, you will not be able to see the full token again. Please save it securely.",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.name", languageCode,
+                                "Token Name: {name}", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.expiry", languageCode,
+                                "Expiry Date: {date}", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.tokenLabel", languageCode,
+                                "Issued Token:", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.copyTooltip", languageCode,
+                                "Copy to clipboard", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.copiedTooltip", languageCode, "Copied!",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.copyButton", languageCode,
+                                "Copy Full Token", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.copySuccess", languageCode,
+                                "Copy successful!", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.revealed.close", languageCode, "OK (Close)",
+                                createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.dialog.delete.title", languageCode, "Delete API Token",
+                                createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.delete.warning", languageCode,
+                                "Deleted tokens will immediately cease to function.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.delete.confirm", languageCode,
+                                "Are you sure you want to deactivate the {name} token?", createdBy);
+                createTranslationIfNotExists("profile.apiToken.dialog.delete.button", languageCode, "Delete",
+                                createdBy);
+
+                createTranslationIfNotExists("profile.apiToken.message.loadFailed", languageCode,
+                                "Failed to load API key list.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.nameRequired", languageCode,
+                                "Please enter a key name.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.generateFailed", languageCode,
+                                "Failed to issue API key.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.generateError", languageCode,
+                                "An error occurred while issuing the API key.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.deleteSuccess", languageCode,
+                                "API key has been deactivated.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.deleteFailed", languageCode,
+                                "Deactivation failed.", createdBy);
+                createTranslationIfNotExists("profile.apiToken.message.deleteError", languageCode,
+                                "An error occurred while deleting the API key.", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

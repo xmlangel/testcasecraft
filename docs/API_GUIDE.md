@@ -154,7 +154,7 @@ public class OrganizationController {
         return ResponseEntity.ok(organization);
     }
     
-    @PostMapping
+    @POST
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<OrganizationResponse> createOrganization(
             @Valid @RequestBody CreateOrganizationRequest request,
@@ -700,7 +700,8 @@ API 스펙: http://localhost:8080/v3/api-docs
 ---
 
 ## 📚 관련 문서
-
-- **[메인 가이드](../CLAUDE.md)** - 프로젝트 전체 개요
-- **[개발 가이드](./DEVELOPMENT_GUIDE.md)** - 개발 환경 설정
-- **[보안 가이드](./SECURITY_GUIDE.md)** - 보안 및 접근 제어
+- [API 개발 가이드](file:///Users/dicky/kmdata/git/testcase/testcasecraft/docs/API_GUIDE.md): API 설계 및 개발 표준
+- [API 테스트 가이드 요약](file:///Users/dicky/kmdata/git/testcase/testcasecraft/docs/API_TESTING_GUIDE_SUMMARY.md): API 테스트 작성 패턴 및 실행 방법
+- [테스트 아키텍처 가이드](file:///Users/dicky/kmdata/git/testcase/testcasecraft/docs/TEST_ARCHITECTURE_GUIDE.md): 레이어별(API, Service, Repository) 테스트 표준
+- [API 종합 테스트 가이드](file:///Users/dicky/kmdata/git/testcase/testcasecraft/docs/API_COMPREHENSIVE_TEST_README.md): 전체 엔드포인트 커버리지 테스트 안내
+- [API 테스트 결과 리포트](file:///Users/dicky/kmdata/git/testcase/testcasecraft/docs/APITestResult.md): 최근 테스트 실행 결과 요약

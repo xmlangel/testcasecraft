@@ -229,7 +229,7 @@ public class AuthController {
                 "name", user.getName(),
                 "email", user.getEmail(),
                 "role", user.getRole(),
-                "timezone", user.getTimezone()));
+                "timezone", user.getTimezone() != null ? user.getTimezone() : "UTC"));
     }
 
     @Operation(summary = "내 정보 조회", description = "현재 인증된 사용자의 상세 정보를 조회합니다.")
@@ -259,9 +259,9 @@ public class AuthController {
                 "name", user.getName(),
                 "email", user.getEmail(),
                 "role", user.getRole(),
-                "emailVerified", user.getEmailVerified(),
-                "preferredLanguage", user.getPreferredLanguage(),
-                "timezone", user.getTimezone()));
+                "emailVerified", user.getEmailVerified() != null ? user.getEmailVerified() : false,
+                "preferredLanguage", user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "ko",
+                "timezone", user.getTimezone() != null ? user.getTimezone() : "UTC"));
     }
 
     /**

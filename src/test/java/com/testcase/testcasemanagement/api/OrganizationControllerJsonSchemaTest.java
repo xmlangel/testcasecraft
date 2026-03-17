@@ -32,8 +32,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.testng.Assert.assertTrue;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,240 +50,252 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class OrganizationControllerJsonSchemaTest extends AbstractTestNGSpringContextTests {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+        @Autowired
+        private WebApplicationContext webApplicationContext;
 
-    private MockMvc mockMvc;
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+        @Autowired
+        private JwtTokenUtil jwtTokenUtil;
 
-    @Autowired
-    private UserRepository userRepository;
+        @Autowired
+        private UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+        @Autowired
+        private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+        @Autowired
+        private UserDetailsService userDetailsService;
 
-    private User adminUser;
-    private String adminToken;
-    private JsonSchemaFactory jsonSchemaFactory;
+        private User adminUser;
+        private String adminToken;
+        private String uniqueId;
+        private JsonSchemaFactory jsonSchemaFactory;
 
-    @BeforeMethod
-    void setUp() {
-        // MockMvc 초기화
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        
-        // 테스트 사용자 생성
-        adminUser = new User();
-        adminUser.setUsername("admin");
-        adminUser.setEmail("admin@test.com");
-        adminUser.setName("관리자");
-        adminUser.setPassword(passwordEncoder.encode("admin"));
-        adminUser.setRole("ADMIN");
-        adminUser = userRepository.save(adminUser);
+        @BeforeMethod
+        void setUp() throws Exception {
+                // MockMvc 초기화 (보안 설정 포함)
+                mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                                .apply(springSecurity())
+                                .build();
 
-        // JWT 토큰 생성
-        UserDetails adminUserDetails = userDetailsService.loadUserByUsername(adminUser.getUsername());
-        adminToken = jwtTokenUtil.generateAccessToken(adminUserDetails);
+                // 테스트 사용자 생성
+                uniqueId = UUID.randomUUID().toString().substring(0, 8);
+                adminUser = new User();
+                adminUser.setUsername("admin_" + uniqueId);
+                adminUser.setEmail("admin_" + uniqueId + "@test.com");
+                adminUser.setName("관리자_" + uniqueId);
+                adminUser.setPassword(passwordEncoder.encode("admin"));
+                adminUser.setRole("ADMIN");
+                adminUser = userRepository.save(adminUser);
 
-        // JSON 스키마 팩토리 초기화
-        jsonSchemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-    }
+                // JWT 토큰 생성
+                UserDetails adminUserDetails = userDetailsService.loadUserByUsername(adminUser.getUsername());
+                adminToken = jwtTokenUtil.generateAccessToken(adminUserDetails);
 
-    @Test
-    void 조직_목록_조회_응답_스키마_검증() throws Exception {
-        // Given: 조직 생성
-        CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
-        createRequest.setName("스키마 테스트 조직");
-        createRequest.setDescription("JSON 스키마 검증용 조직");
+                // JSON 스키마 팩토리 초기화
+                jsonSchemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+        }
 
-        mockMvc.perform(post("/api/organizations")
-                .header("Authorization", "Bearer " + adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated());
+        @Test
+        void 조직_목록_조회_응답_스키마_검증() throws Exception {
+                // Given: 조직 생성
+                CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
+                createRequest.setName("스키마 테스트 조직");
+                createRequest.setDescription("JSON 스키마 검증용 조직");
 
-        // When: 조직 목록 조회
-        MvcResult result = mockMvc.perform(get("/api/organizations")
-                .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk())
-                .andReturn();
+                mockMvc.perform(post("/api/organizations")
+                                .header("Authorization", "Bearer " + adminToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createRequest)))
+                                .andExpect(status().isCreated());
 
-        // Then: JSON 스키마 검증
-        String responseContent = result.getResponse().getContentAsString();
-        JsonNode responseJson = objectMapper.readTree(responseContent);
+                // When: 조직 목록 조회
+                MvcResult result = mockMvc.perform(get("/api/organizations")
+                                .header("Authorization", "Bearer " + adminToken))
+                                .andExpect(status().isOk())
+                                .andReturn();
 
-        // 조직 목록 스키마 로드
-        InputStream schemaStream = new ClassPathResource("schemas/organization-list-response-schema.json").getInputStream();
-        JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
+                // Then: JSON 스키마 검증
+                String responseContent = result.getResponse().getContentAsString();
+                JsonNode responseJson = objectMapper.readTree(responseContent);
 
-        // 스키마 검증
-        Set<ValidationMessage> validationMessages = schema.validate(responseJson);
-        assertTrue(validationMessages.isEmpty(), 
-            "응답이 스키마를 준수하지 않습니다: " + validationMessages);
-    }
+                // 조직 목록 스키마 로드
+                InputStream schemaStream = new ClassPathResource("schemas/organization-list-response-schema.json")
+                                .getInputStream();
+                JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
 
-    @Test
-    void 조직_생성_응답_스키마_검증() throws Exception {
-        // Given: 조직 생성 요청
-        CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
-        createRequest.setName("스키마 테스트 조직");
-        createRequest.setDescription("JSON 스키마 검증용 조직");
+                // 스키마 검증
+                Set<ValidationMessage> validationMessages = schema.validate(responseJson);
+                assertTrue(validationMessages.isEmpty(),
+                                "응답이 스키마를 준수하지 않습니다: " + validationMessages);
+        }
 
-        // When: 조직 생성
-        MvcResult result = mockMvc.perform(post("/api/organizations")
-                .header("Authorization", "Bearer " + adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andReturn();
+        @Test
+        void 조직_생성_응답_스키마_검증() throws Exception {
+                // Given: 조직 생성 요청
+                CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
+                createRequest.setName("스키마 테스트 조직");
+                createRequest.setDescription("JSON 스키마 검증용 조직");
 
-        // Then: JSON 스키마 검증
-        String responseContent = result.getResponse().getContentAsString();
-        JsonNode responseJson = objectMapper.readTree(responseContent);
+                // When: 조직 생성
+                MvcResult result = mockMvc.perform(post("/api/organizations")
+                                .header("Authorization", "Bearer " + adminToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createRequest)))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        // 조직 생성 응답 스키마 로드
-        InputStream schemaStream = new ClassPathResource("schemas/organization-create-response-schema.json").getInputStream();
-        JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
+                // Then: JSON 스키마 검증
+                String responseContent = result.getResponse().getContentAsString();
+                JsonNode responseJson = objectMapper.readTree(responseContent);
 
-        // 스키마 검증
-        Set<ValidationMessage> validationMessages = schema.validate(responseJson);
-        assertTrue(validationMessages.isEmpty(), 
-            "응답이 스키마를 준수하지 않습니다: " + validationMessages);
-    }
+                // 조직 생성 응답 스키마 로드
+                InputStream schemaStream = new ClassPathResource("schemas/organization-create-response-schema.json")
+                                .getInputStream();
+                JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
 
-    @Test
-    void 조직_상세_조회_응답_스키마_검증() throws Exception {
-        // Given: 조직 생성
-        CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
-        createRequest.setName("스키마 테스트 조직");
-        createRequest.setDescription("JSON 스키마 검증용 조직");
+                // 스키마 검증
+                Set<ValidationMessage> validationMessages = schema.validate(responseJson);
+                assertTrue(validationMessages.isEmpty(),
+                                "응답이 스키마를 준수하지 않습니다: " + validationMessages);
+        }
 
-        MvcResult createResult = mockMvc.perform(post("/api/organizations")
-                .header("Authorization", "Bearer " + adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andReturn();
+        @Test
+        void 조직_상세_조회_응답_스키마_검증() throws Exception {
+                // Given: 조직 생성
+                CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
+                createRequest.setName("스키마 테스트 조직");
+                createRequest.setDescription("JSON 스키마 검증용 조직");
 
-        String createResponse = createResult.getResponse().getContentAsString();
-        JsonNode createJson = objectMapper.readTree(createResponse);
-        String orgId = createJson.get("id").asText();
+                MvcResult createResult = mockMvc.perform(post("/api/organizations")
+                                .header("Authorization", "Bearer " + adminToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createRequest)))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        // When: 조직 상세 조회
-        MvcResult result = mockMvc.perform(get("/api/organizations/" + orgId)
-                .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk())
-                .andReturn();
+                String createResponse = createResult.getResponse().getContentAsString();
+                JsonNode createJson = objectMapper.readTree(createResponse);
+                String orgId = createJson.get("id").asText();
 
-        // Then: JSON 스키마 검증
-        String responseContent = result.getResponse().getContentAsString();
-        JsonNode responseJson = objectMapper.readTree(responseContent);
+                // When: 조직 상세 조회
+                MvcResult result = mockMvc.perform(get("/api/organizations/" + orgId)
+                                .header("Authorization", "Bearer " + adminToken))
+                                .andExpect(status().isOk())
+                                .andReturn();
 
-        // 조직 상세 조회 스키마 로드
-        InputStream schemaStream = new ClassPathResource("schemas/organization-create-response-schema.json").getInputStream();
-        JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
+                // Then: JSON 스키마 검증
+                String responseContent = result.getResponse().getContentAsString();
+                JsonNode responseJson = objectMapper.readTree(responseContent);
 
-        // 스키마 검증
-        Set<ValidationMessage> validationMessages = schema.validate(responseJson);
-        assertTrue(validationMessages.isEmpty(), 
-            "응답이 스키마를 준수하지 않습니다: " + validationMessages);
-    }
+                // 조직 상세 조회 스키마 로드
+                InputStream schemaStream = new ClassPathResource("schemas/organization-create-response-schema.json")
+                                .getInputStream();
+                JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
 
-    @Test
-    void 멤버_초대_응답_스키마_검증() throws Exception {
-        // Given: 조직 생성 및 tester 사용자 생성
-        CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
-        createRequest.setName("스키마 테스트 조직");
-        createRequest.setDescription("JSON 스키마 검증용 조직");
+                // 스키마 검증
+                Set<ValidationMessage> validationMessages = schema.validate(responseJson);
+                assertTrue(validationMessages.isEmpty(),
+                                "응답이 스키마를 준수하지 않습니다: " + validationMessages);
+        }
 
-        MvcResult createResult = mockMvc.perform(post("/api/organizations")
-                .header("Authorization", "Bearer " + adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andReturn();
+        @Test
+        void 멤버_초대_응답_스키마_검증() throws Exception {
+                // Given: 조직 생성 및 tester 사용자 생성
+                CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
+                createRequest.setName("스키마 테스트 조직");
+                createRequest.setDescription("JSON 스키마 검증용 조직");
 
-        String createResponse = createResult.getResponse().getContentAsString();
-        JsonNode createJson = objectMapper.readTree(createResponse);
-        String orgId = createJson.get("id").asText();
+                MvcResult createResult = mockMvc.perform(post("/api/organizations")
+                                .header("Authorization", "Bearer " + adminToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createRequest)))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        // tester 사용자 생성
-        User testerUser = new User();
-        testerUser.setUsername("tester");
-        testerUser.setEmail("tester@test.com");
-        testerUser.setName("테스터");
-        testerUser.setPassword(passwordEncoder.encode("tester"));
-        testerUser.setRole("TESTER");
-        userRepository.save(testerUser);
+                String createResponse = createResult.getResponse().getContentAsString();
+                JsonNode createJson = objectMapper.readTree(createResponse);
+                String orgId = createJson.get("id").asText();
 
-        // When: 멤버 초대
-        InviteMemberRequest inviteRequest = new InviteMemberRequest();
-        inviteRequest.setUsername("tester");
-        inviteRequest.setRole(OrganizationRole.ADMIN);
+                // 고유한 테스터 사용자명 생성
+                String testerUsername = "tester_" + uniqueId;
 
-        MvcResult result = mockMvc.perform(post("/api/organizations/" + orgId + "/members")
-                .header("Authorization", "Bearer " + adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(inviteRequest)))
-                .andExpect(status().isCreated())
-                .andReturn();
+                // 테스터 사용자 생성
+                User testerUser = new User();
+                testerUser.setUsername(testerUsername);
+                testerUser.setEmail(testerUsername + "@test.com");
+                testerUser.setName("테스터_" + uniqueId);
+                testerUser.setPassword(passwordEncoder.encode("tester"));
+                testerUser.setRole("TESTER");
+                userRepository.save(testerUser);
 
-        // Then: JSON 스키마 검증
-        String responseContent = result.getResponse().getContentAsString();
-        JsonNode responseJson = objectMapper.readTree(responseContent);
+                // When: 멤버 초대
+                InviteMemberRequest inviteRequest = new InviteMemberRequest();
+                inviteRequest.setUsername(testerUsername);
+                inviteRequest.setRole(OrganizationRole.ADMIN);
 
-        // 멤버 초대 응답 스키마 로드
-        InputStream schemaStream = new ClassPathResource("schemas/organization-member-schema.json").getInputStream();
-        JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
+                MvcResult result = mockMvc.perform(post("/api/organizations/" + orgId + "/members")
+                                .header("Authorization", "Bearer " + adminToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(inviteRequest)))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        // 스키마 검증
-        Set<ValidationMessage> validationMessages = schema.validate(responseJson);
-        assertTrue(validationMessages.isEmpty(), 
-            "응답이 스키마를 준수하지 않습니다: " + validationMessages);
-    }
+                // Then: JSON 스키마 검증
+                String responseContent = result.getResponse().getContentAsString();
+                JsonNode responseJson = objectMapper.readTree(responseContent);
 
-    @Test
-    void 멤버_목록_조회_응답_스키마_검증() throws Exception {
-        // Given: 조직 생성 및 멤버 추가
-        CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
-        createRequest.setName("스키마 테스트 조직");
-        createRequest.setDescription("JSON 스키마 검증용 조직");
+                // 멤버 초대 응답 스키마 로드
+                InputStream schemaStream = new ClassPathResource("schemas/organization-member-schema.json")
+                                .getInputStream();
+                JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
 
-        MvcResult createResult = mockMvc.perform(post("/api/organizations")
-                .header("Authorization", "Bearer " + adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andReturn();
+                // 스키마 검증
+                Set<ValidationMessage> validationMessages = schema.validate(responseJson);
+                assertTrue(validationMessages.isEmpty(),
+                                "응답이 스키마를 준수하지 않습니다: " + validationMessages);
+        }
 
-        String createResponse = createResult.getResponse().getContentAsString();
-        JsonNode createJson = objectMapper.readTree(createResponse);
-        String orgId = createJson.get("id").asText();
+        @Test
+        void 멤버_목록_조회_응답_스키마_검증() throws Exception {
+                // Given: 조직 생성 및 멤버 추가
+                CreateOrganizationRequest createRequest = new CreateOrganizationRequest();
+                createRequest.setName("스키마 테스트 조직");
+                createRequest.setDescription("JSON 스키마 검증용 조직");
 
-        // When: 멤버 목록 조회
-        MvcResult result = mockMvc.perform(get("/api/organizations/" + orgId + "/members")
-                .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk())
-                .andReturn();
+                MvcResult createResult = mockMvc.perform(post("/api/organizations")
+                                .header("Authorization", "Bearer " + adminToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createRequest)))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        // Then: JSON 스키마 검증
-        String responseContent = result.getResponse().getContentAsString();
-        JsonNode responseJson = objectMapper.readTree(responseContent);
+                String createResponse = createResult.getResponse().getContentAsString();
+                JsonNode createJson = objectMapper.readTree(createResponse);
+                String orgId = createJson.get("id").asText();
 
-        // 멤버 목록 스키마 로드
-        InputStream schemaStream = new ClassPathResource("schemas/organization-members-response-schema.json").getInputStream();
-        JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
+                // When: 멤버 목록 조회
+                MvcResult result = mockMvc.perform(get("/api/organizations/" + orgId + "/members")
+                                .header("Authorization", "Bearer " + adminToken))
+                                .andExpect(status().isOk())
+                                .andReturn();
 
-        // 스키마 검증
-        Set<ValidationMessage> validationMessages = schema.validate(responseJson);
-        assertTrue(validationMessages.isEmpty(), 
-            "응답이 스키마를 준수하지 않습니다: " + validationMessages);
-    }
+                // Then: JSON 스키마 검증
+                String responseContent = result.getResponse().getContentAsString();
+                JsonNode responseJson = objectMapper.readTree(responseContent);
+
+                // 멤버 목록 스키마 로드
+                InputStream schemaStream = new ClassPathResource("schemas/organization-members-response-schema.json")
+                                .getInputStream();
+                JsonSchema schema = jsonSchemaFactory.getSchema(schemaStream);
+
+                // 스키마 검증
+                Set<ValidationMessage> validationMessages = schema.validate(responseJson);
+                assertTrue(validationMessages.isEmpty(),
+                                "응답이 스키마를 준수하지 않습니다: " + validationMessages);
+        }
 }

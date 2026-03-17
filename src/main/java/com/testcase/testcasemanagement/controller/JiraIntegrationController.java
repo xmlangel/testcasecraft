@@ -327,4 +327,60 @@ public class JiraIntegrationController {
                 .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
         }
     }
+    /**
+     * JIRA 이슈 키를 기반으로 최근 테스트 실행 컨텍스트 조회
+     * 스마트 리다이렉트 기능을 위해 사용됨
+    /**
+     * JIRA 이슈 키를 기반으로 관련 테스트 실행 컨텍스트 목록 조회
+     * 다중 결과 대응 (스마트 리다이렉트 고도화)
+     */
+    @GetMapping("/latest-execution-context")
+    @io.swagger.v3.oas.annotations.Operation(summary = "JIRA 이슈 기반 실행 컨텍스트 목록 조회", description = "특정 JIRA 이슈와 관련된 최근 테스트 실행 및 결과 정보 목록을 조회합니다")
+    public org.springframework.http.ResponseEntity<java.util.List<java.util.Map<String, Object>>> getLatestExecutionContextByJiraIssue(
+            @org.springframework.web.bind.annotation.RequestParam String issueKey) {
+        
+        try {
+            if (!jiraIntegrationService.isValidJiraIssueKey(issueKey)) {
+                return org.springframework.http.ResponseEntity.badRequest().build();
+            }
+            
+            // 최근 10개의 결과를 조회하여 중복 제거된 실행 목록 생성
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+            java.util.List<com.testcase.testcasemanagement.model.TestResult> results = testResultRepository.findRecentResultsByJiraIssue(issueKey, pageable);
+            
+            if (results.isEmpty()) {
+                return org.springframework.http.ResponseEntity.notFound().build();
+            }
+            
+            // 실행 ID 기준으로 중복을 제거하면서 정보 추출
+            java.util.Map<String, java.util.Map<String, Object>> executionMap = new java.util.LinkedHashMap<>();
+            
+            for (com.testcase.testcasemanagement.model.TestResult res : results) {
+                if (res.getTestExecution() == null) continue;
+                
+                String execId = res.getTestExecution().getId();
+                if (!executionMap.containsKey(execId)) {
+                    java.util.Map<String, Object> info = new java.util.HashMap<>();
+                    info.put("projectId", res.getTestExecution().getProject() != null ? res.getTestExecution().getProject().getId() : "");
+                    info.put("projectName", res.getTestExecution().getProject() != null ? res.getTestExecution().getProject().getName() : "");
+                    info.put("executionId", execId);
+                    info.put("executionName", res.getTestExecution().getName());
+                    info.put("status", res.getTestExecution().getStatus().toString());
+                    info.put("startDate", res.getTestExecution().getStartDate() != null ? res.getTestExecution().getStartDate().toString() : "");
+                    info.put("testCaseId", res.getTestCaseId()); // 대표 케이스 ID
+                    
+                    executionMap.put(execId, info);
+                }
+                
+                // 최대 10개까지만 유지
+                if (executionMap.size() >= 10) break;
+            }
+            
+            return org.springframework.http.ResponseEntity.ok(new java.util.ArrayList<>(executionMap.values()));
+            
+        } catch (Exception e) {
+            log.error("JIRA 이슈 기반 실행 컨텍스트 목록 조회 실패: {}", issueKey, e);
+            return org.springframework.http.ResponseEntity.internalServerError().build();
+        }
+    }
 }

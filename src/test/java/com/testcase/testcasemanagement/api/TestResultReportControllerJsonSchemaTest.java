@@ -52,7 +52,7 @@ public class TestResultReportControllerJsonSchemaTest extends AbstractTestNGSpri
 
         // JWT 토큰 획득
         Map<String, Object> loginRequest = new HashMap<>();
-        loginRequest.put("username", "admin");
+        loginRequest.put("username", "test_admin");
         loginRequest.put("password", "admin123");
         jwtToken = given()
                 .filter(new AllureRestAssured())
@@ -61,19 +61,23 @@ public class TestResultReportControllerJsonSchemaTest extends AbstractTestNGSpri
                 .post("/api/auth/login")
                 .then()
                 .statusCode(200)
-                .extract().path("token");
+                .extract().path("accessToken");
 
         // JSON 스키마 로딩
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/testresultreport-by-project-schema.json")) {
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/testresultreport-by-project-schema.json")) {
             byProjectSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/testresultreport-by-project-assignee-schema.json")) {
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/testresultreport-by-project-assignee-schema.json")) {
             byProjectAssigneeSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/testresultreport-by-testplan-schema.json")) {
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/testresultreport-by-testplan-schema.json")) {
             byTestPlanSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/testresultreport-by-project-assignee-schema.json")) {
+        try (InputStream is = getClass().getClassLoader()
+                .getResourceAsStream("schemas/testresultreport-by-project-assignee-schema.json")) {
             byTestPlanAssigneeSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
     }

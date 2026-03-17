@@ -22,8 +22,8 @@ import org.testng.annotations.Test;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -65,10 +65,11 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
         // 테스트용 격리된 데이터베이스를 사용하므로 별도 정리 불필요
 
         // 관리자 사용자 생성
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
         adminUser = new User();
-        adminUser.setUsername("admin_test");
-        adminUser.setEmail("admin@test.com");
-        adminUser.setName("Test Admin");
+        adminUser.setUsername("admin_test_" + uniqueId);
+        adminUser.setEmail("admin_" + uniqueId + "@test.com");
+        adminUser.setName("Test Admin " + uniqueId);
         adminUser.setPassword(passwordEncoder.encode("admin123"));
         adminUser.setRole("ADMIN");
         adminUser.setIsActive(true);
@@ -78,9 +79,9 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
 
         // 일반 사용자 생성
         regularUser = new User();
-        regularUser.setUsername("regular_test");
-        regularUser.setEmail("regular@test.com");
-        regularUser.setName("Test User");
+        regularUser.setUsername("regular_test_" + uniqueId);
+        regularUser.setEmail("regular_" + uniqueId + "@test.com");
+        regularUser.setName("Test User " + uniqueId);
         regularUser.setPassword(passwordEncoder.encode("user123"));
         regularUser.setRole("USER");
         regularUser.setIsActive(true);
@@ -90,9 +91,9 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
 
         // 테스트 대상 사용자 생성
         testUser = new User();
-        testUser.setUsername("test_target");
-        testUser.setEmail("target@test.com");
-        testUser.setName("Target User");
+        testUser.setUsername("test_target_" + uniqueId);
+        testUser.setEmail("target_" + uniqueId + "@test.com");
+        testUser.setName("Target User " + uniqueId);
         testUser.setPassword(passwordEncoder.encode("target123"));
         testUser.setRole("USER");
         testUser.setIsActive(true);
@@ -101,8 +102,8 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
         testUser = userRepository.save(testUser);
 
         // JWT 토큰 생성 (로그인을 통해)
-        adminToken = loginAndGetToken("admin_test", "admin123");
-        regularUserToken = loginAndGetToken("regular_test", "user123");
+        adminToken = loginAndGetToken(adminUser.getUsername(), "admin123");
+        regularUserToken = loginAndGetToken(regularUser.getUsername(), "user123");
     }
 
     private String loginAndGetToken(String username, String password) {

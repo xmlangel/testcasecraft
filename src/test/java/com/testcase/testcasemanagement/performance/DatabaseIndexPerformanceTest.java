@@ -67,8 +67,8 @@ public class DatabaseIndexPerformanceTest extends AbstractTransactionalTestNGSpr
     public void verifyIndexesExist() {
         logger.info("=== 인덱스 존재 여부 검증 시작 ===");
 
-        // H2 데이터베이스에서 인덱스 정보 조회
-        String indexQuery = "SELECT INDEX_NAME, TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.INDEXES " +
+        // H2 2.x 데이터베이스에서 인덱스 정보 조회 (COLUMN_NAME 대신 INDEX_NAME과 TABLE_NAME 확인)
+        String indexQuery = "SELECT INDEX_NAME, TABLE_NAME FROM INFORMATION_SCHEMA.INDEXES " +
                 "WHERE TABLE_NAME IN ('TEST_RESULTS', 'TEST_EXECUTIONS') " +
                 "AND INDEX_NAME LIKE 'IDX_%' " +
                 "ORDER BY TABLE_NAME, INDEX_NAME";
@@ -78,7 +78,7 @@ public class DatabaseIndexPerformanceTest extends AbstractTransactionalTestNGSpr
 
         logger.info("현재 생성된 인덱스 목록:");
         for (Object[] index : indexes) {
-            logger.info("- 테이블: {}, 인덱스: {}, 컬럼: {}", index[1], index[0], index[2]);
+            logger.info("- 테이블: {}, 인덱스: {}", index[1], index[0]);
         }
 
         // ICT-133 인덱스 존재 검증

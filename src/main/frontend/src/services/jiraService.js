@@ -7,12 +7,9 @@ class JiraService {
         this.pendingRequests = new Map();
     }
 
-    async getBaseURL() {
-        if (!this.baseURL) {
-            const apiUrl = await getDynamicApiUrl();
-            this.baseURL = `${apiUrl}/api/jira`;
-        }
-        return this.baseURL;
+    async getBaseURL(subPath = '/api/jira') {
+        const apiUrl = await getDynamicApiUrl();
+        return `${apiUrl}${subPath}`;
     }
 
     // JWT 토큰 가져오기
@@ -25,14 +22,14 @@ class JiraService {
     }
 
     // API 요청 공통 처리
-    async apiRequest(url, options = {}) {
+    async apiRequest(url, options = {}, subPath = '/api/jira') {
         const defaultOptions = {
             headers: this.getAuthHeaders(),
             ...options
         };
 
         try {
-            const baseURL = await this.getBaseURL();
+            const baseURL = await this.getBaseURL(subPath);
             const response = await fetch(`${baseURL}${url}`, defaultOptions);
 
             // 401 Unauthorized - 토큰 만료 등
@@ -275,6 +272,34 @@ class JiraService {
     }
 
     /**
+     * JIRA URL에서 이슈 키 추출
+     */
+    extractIssueKeyFromUrl(url) {
+        if (!url || typeof url !== 'string') {
+            return null;
+        }
+
+        // /browse/KEY-123 패턴
+        const browseMatch = url.match(/\/browse\/([A-Z]+-\d+)/i);
+        if (browseMatch && browseMatch[1]) {
+            return browseMatch[1].toUpperCase();
+        }
+
+        // /issues/KEY-123 패턴
+        const issuesMatch = url.match(/\/issues\/([A-Z]+-\d+)/i);
+        if (issuesMatch && issuesMatch[1]) {
+            return issuesMatch[1].toUpperCase();
+        }
+
+        // URL은 아니지만 키만 붙여넣은 경우도 처리
+        if (this.isValidIssueKey(url)) {
+            return url.toUpperCase();
+        }
+
+        return null;
+    }
+
+    /**
      * JIRA 서버 URL 정규화
      */
     normalizeServerUrl(url) {
@@ -345,7 +370,42 @@ class JiraService {
      * JIRA 이슈 상세 정보 조회
      */
     async getIssueDetails(issueKey) {
-        return await this.apiRequest(`/issue/${issueKey}`);
+        try {
+            // 1. 시스템 내부의 통합 상태 정보 조회 시도 (연결된 테스트 결과 등 포함)
+            const internalDetail = await this.apiRequest(`/issues/${issueKey}`, { method: 'GET' }, '/api/jira-status');
+            
+            if (internalDetail) {
+                // UI 컴포넌트 호환성을 위해 필드 복사
+                return {
+                    ...internalDetail,
+                    key: internalDetail.key || internalDetail.jiraIssueKey,
+                    status: internalDetail.status || internalDetail.currentStatus
+                };
+            }
+
+            // 2. 통합 정보가 없는 경우 (404), JIRA 서버에서 실제 이슈가 존재하는지 확인 및 기본 정보 조회
+            console.log(`Internal JIRA status not found for ${issueKey}, checking existence on JIRA server...`);
+            const existsResult = await this.checkIssueExists(issueKey);
+            
+            if (existsResult && existsResult.exists) {
+                // UI 컴포넌트들이 기대하는 필드명(key, status)과 DTO 필드명(jiraIssueKey, currentStatus)을 모두 포함하여 반환
+                return {
+                    key: existsResult.issueKey,
+                    jiraIssueKey: existsResult.issueKey,
+                    summary: existsResult.summary,
+                    status: existsResult.status,
+                    currentStatus: existsResult.status,
+                    priority: existsResult.priority,
+                    issueType: existsResult.issueType,
+                    _isNewLink: true // 신규 연동임을 표시
+                };
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Failed to get JIRA issue details:', error);
+            return null;
+        }
     }
 
     /**

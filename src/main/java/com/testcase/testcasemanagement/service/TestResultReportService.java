@@ -162,9 +162,12 @@ public class TestResultReportService {
 
         Map<String, Long> jiraStatusDistribution = new HashMap<>();
         Map<String, Long> executorDistribution = new HashMap<>();
+        
+        // ICT-247/283: 테스트케이스별 최신 결과를 추적하기 위한 맵
+        Map<String, TestResult> latestResultsMap = new HashMap<>();
 
         for (TestResult result : results) {
-            // 기본 카운트 증가
+            // 1. 전체 수행 이력 통계 (기본 카운트 증가)
             statistics.setTotalTests(statistics.getTotalTests() + 1);
 
             switch (result.getResult()) {
@@ -180,6 +183,19 @@ public class TestResultReportService {
                 case "BLOCKED":
                     statistics.setBlockedCount(statistics.getBlockedCount() + 1);
                     break;
+                case "SKIPPED":
+                    statistics.setSkippedCount(statistics.getSkippedCount() + 1);
+                    break;
+            }
+
+            // 2. 최신 결과 추적 (테스트케이스 ID 기준)
+            String caseId = result.getTestCaseId();
+            if (caseId != null) {
+                TestResult existing = latestResultsMap.get(caseId);
+                if (existing == null || (result.getExecutedAt() != null && 
+                    (existing.getExecutedAt() == null || result.getExecutedAt().isAfter(existing.getExecutedAt())))) {
+                    latestResultsMap.put(caseId, result);
+                }
             }
 
             // JIRA 관련 통계
@@ -194,6 +210,25 @@ public class TestResultReportService {
             if (result.getExecutedBy() != null) {
                 String executor = result.getExecutedBy().getUsername();
                 executorDistribution.put(executor, executorDistribution.getOrDefault(executor, 0L) + 1);
+            }
+        }
+
+        // 3. 최신 결과 요약 통계 계산
+        statistics.setTotalCaseCount((long) latestResultsMap.size());
+        for (TestResult latest : latestResultsMap.values()) {
+            switch (latest.getResult()) {
+                case "PASS":
+                    statistics.setLatestPassCount(statistics.getLatestPassCount() + 1);
+                    break;
+                case "FAIL":
+                    statistics.setLatestFailCount(statistics.getLatestFailCount() + 1);
+                    break;
+                case "NOT_RUN":
+                    statistics.setLatestNotRunCount(statistics.getLatestNotRunCount() + 1);
+                    break;
+                case "BLOCKED":
+                    statistics.setLatestBlockedCount(statistics.getLatestBlockedCount() + 1);
+                    break;
             }
         }
 
@@ -424,6 +459,8 @@ public class TestResultReportService {
                 default:
                     throw new IllegalArgumentException("지원하지 않는 내보내기 형식입니다: " + format);
             }
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("파일 내보내기 중 오류가 발생했습니다: " + e.getMessage(), e);
         }

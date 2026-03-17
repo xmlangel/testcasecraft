@@ -75,6 +75,15 @@ public class KoreanTestResultTranslations {
                                 "긴 내용은 파일 첨부를 권장합니다.",
                                 createdBy);
                 createTranslationIfNotExists("testResult.form.mode.text", languageCode, "텍스트", createdBy);
+
+                // 최신 결과 배지 및 통계
+                createTranslationIfNotExists("testResult.badge.latest", languageCode, "최신 결과", createdBy);
+                createTranslationIfNotExists("testResult.badge.latestShort", languageCode, "최근", createdBy);
+                createTranslationIfNotExists("testResult.statistics.latestSuccessRate", languageCode, "최종 성공률", createdBy);
+                createTranslationIfNotExists("testResult.statistics.totalCaseCount", languageCode, "전체 케이스", createdBy);
+                createTranslationIfNotExists("testResult.statistics.totalExecutionCount", languageCode, "누적 수행 횟수", createdBy);
+                createTranslationIfNotExists("testResult.pieChart.totalCaseCount", languageCode, "전체 테스트케이스", createdBy);
+                createTranslationIfNotExists("testResult.pieChart.totalExecutionCount", languageCode, "누적 수행 횟수", createdBy);
                 createTranslationIfNotExists("testResult.form.mode.markdown", languageCode, "Markdown", createdBy);
                 createTranslationIfNotExists("testResult.form.mode.switch", languageCode, "모드 전환", createdBy);
                 createTranslationIfNotExists("testResult.form.fileAttachment", languageCode, "파일 첨부", createdBy);

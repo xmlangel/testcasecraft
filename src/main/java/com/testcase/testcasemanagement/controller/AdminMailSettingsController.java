@@ -200,19 +200,25 @@ public class AdminMailSettingsController {
         try {
             log.info("메일 테스트 발송 요청 - 수신자: {}, 관리자: {}", testRecipient, principal.getName());
             
-            boolean success = mailSettingsService.testMailSettings(testRecipient, principal.getName());
+            mailSettingsService.testMailSettings(testRecipient, principal.getName());
             
-            if (success) {
-                return ResponseEntity.ok(Map.of(
-                    "message", "테스트 메일이 성공적으로 발송되었습니다.",
-                    "recipient", testRecipient
-                ));
-            } else {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "message", "메일 설정이 없거나 비활성화되어 있습니다."
-                ));
-            }
+            return ResponseEntity.ok(Map.of(
+                "message", "테스트 메일이 성공적으로 발송되었습니다.",
+                "recipient", testRecipient
+            ));
             
+        } catch (org.springframework.mail.MailAuthenticationException e) {
+            log.error("메일 테스트 발송 인증 실패", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "메일 서버 인증에 실패했습니다. (Authentication failed)\n\n" +
+                          "원인: Gmail은 일반 비밀번호 대신 16자리 '앱 비밀번호'가 필요합니다.\n" +
+                          "조치: Gmail 설정 가이드를 참고하여 앱 비밀번호를 다시 확인해 주세요."
+            ));
+        } catch (IllegalStateException e) {
+            log.warn("메일 테스트 발송 상태 오류: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", e.getMessage()
+            ));
         } catch (Exception e) {
             log.error("메일 테스트 발송 실패", e);
             return ResponseEntity.internalServerError().body(Map.of(

@@ -1,4 +1,7 @@
+import { useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+
+
 import PropTypes from "prop-types";
 import {
   Box, Grid, CircularProgress, LinearProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Chip,
@@ -11,9 +14,8 @@ import { useTranslation } from '../context/I18nContext.jsx';
 import { RESULT_COLORS } from '../constants/statusColors';
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
-import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
 import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
-import { useNavigate } from "react-router-dom";
+
 import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX } from '../styles/layoutConstants';
 import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx';
@@ -71,11 +73,9 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [prevResultsLoading, setPrevResultsLoading] = useState(false);
   const [currentPrevResultsTestCaseId, setCurrentPrevResultsTestCaseId] = useState(null);
 
-  // ICT-362: 첨부파일 다이얼로그 상태
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  //  첨부파일 다이얼로그 상태
+  const [visibleCount, setVisibleCount] = useState(50);
 
-  // ICT-362: 첨부파일 다이얼로그 상태
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedTestResultId, setSelectedTestResultId] = useState(null);
 
@@ -116,6 +116,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   // 프로젝트의 기존 태그 목록 조회
   useEffect(() => {
@@ -222,6 +224,25 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     // executionId 변경 시 항상 fetchExecution 실행 (초기화 포함)
     fetchExecution();
   }, [executionId, getTestPlan, api, isImmediateExecuting, activeProject, initialTestPlanId]);
+
+  // 스마트 리다이렉트 처리 (지라 이슈 키 자동 채움)
+  useEffect(() => {
+    if (location.state?.autoFillJiraIssueKey && execution?.results) {
+      const { autoFillJiraIssueKey, targetTestCaseId } = location.state;
+      
+      // 대상 테스트 케이스가 있으면 해당 케이스의 결과 폼을 연다
+      if (targetTestCaseId) {
+        setSelectedTestCaseId(targetTestCaseId);
+        setIsResultFormOpen(true);
+        
+        // 한번 처리한 후에는 state를 초기화하여 재실행되지 않도록 함
+        const newState = { ...location.state };
+        delete newState.autoFillJiraIssueKey;
+        delete newState.targetTestCaseId;
+        navigate(location.pathname, { state: newState, replace: true });
+      }
+    }
+  }, [location.state, execution, navigate, location.pathname]);
 
   // testCases가 비어있을 때 명시적으로 로드
   // execution.projectId 또는 activeProject.id를 사용하여 testCases 로드
@@ -417,15 +438,33 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   };
 
   const handleOpenResultForm = useCallback((testCaseId) => {
-    const projectId = execution?.testPlan?.projectId;
+    // projectId를 다양한 소스에서 검색하여 항상 URL 네비게이션을 우선 사용
+    const projectId = execution?.testPlan?.projectId
+      || execution?.projectId
+      || propProjectId;
     if (projectId && execution?.id) {
       navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`);
     } else {
-      // Fallback to dialog mode
+      // Fallback to dialog mode (projectId를 전혀 알 수 없는 경우)
       setSelectedTestCaseId(testCaseId);
       setIsResultFormOpen(true);
     }
-  }, [navigate, execution]);
+  }, [navigate, execution, propProjectId]);
+
+  // 결과 입력 화면의 직접 링크를 클립보드에 복사
+  const handleCopyLink = useCallback((testCaseId) => {
+    const projectId = execution?.testPlan?.projectId
+      || execution?.projectId
+      || propProjectId;
+    if (projectId && execution?.id) {
+      const url = `${window.location.origin}/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`;
+      navigator.clipboard.writeText(url).then(() => {
+        setSuccessMessage(t('testExecution.actions.linkCopied', '결과 입력 링크가 클립보드에 복사되었습니다.'));
+      }).catch(() => {
+        setSuccessMessage(url); // 복사 실패 시 URL을 메시지로 표시
+      });
+    }
+  }, [execution, propProjectId, t]);
 
   const handleCloseResultForm = useCallback(() => {
     setIsResultFormOpen(false);
@@ -568,6 +607,31 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     }
   }, [execution?.id, selectedTestCases, api, t]);
 
+  // 스마트 리다이렉트 연동: 위치 정보를 통해 전달된 지라 이슈 키를 초기값으로 설정
+  // TestExecutionForm 컴포넌트에서 TestResultForm이 열릴 때 이 로직을 사용하여 Jira 이슈 키를 자동 채움
+  useEffect(() => {
+    // 이 로직은 TestResultForm 내부가 아닌, TestExecutionForm에서 TestResultForm을 열 때
+    // location.state를 감지하여 특정 테스트 케이스를 선택하고 TestResultForm을 열도록 조정해야 합니다.
+    // 현재 이 useEffect는 TestExecutionForm 자체의 상태를 변경하는 데 사용될 수 있습니다.
+    // 예를 들어, 특정 testCaseId를 선택하고 TestResultForm을 열도록 트리거하는 방식입니다.
+    if (location.state?.autoFillJiraIssueKey && location.state?.testCaseIdToSelect) {
+      const { autoFillJiraIssueKey, testCaseIdToSelect } = location.state;
+
+      // TestResultForm을 열기 위한 상태 설정
+      setSelectedTestCaseId(testCaseIdToSelect);
+      setIsResultFormOpen(true);
+
+      // TestResultForm이 열릴 때 autoFillJiraIssueKey를 전달할 수 있도록 상태에 저장하거나,
+      // TestResultForm 컴포넌트 자체에서 location.state를 읽도록 구현해야 합니다.
+      // 여기서는 TestExecutionForm의 상태에 저장하여 TestResultForm에 prop으로 전달하는 방식을 가정합니다.
+      // setAutoFillJiraIssueKeyForForm(autoFillJiraIssueKey); // 예시: TestResultForm에 전달할 상태
+      // 실제 구현에서는 TestResultForm이 location.state를 직접 읽는 것이 더 효율적일 수 있습니다.
+
+      // 사용 후 location.state를 정리하여 다음 번에 불필요하게 트리거되지 않도록 합니다.
+      // navigate('.', { replace: true, state: {} }); // 또는 필요한 state만 남기고 정리
+    }
+  }, [location.state, navigate]);
+
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
@@ -577,14 +641,10 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const latestResults = useMemo(() => getLatestResults(execution?.results || []), [execution?.results]);
   const resultsMap = useMemo(() => {
     const map = new Map();
-    latestResults.forEach((r) => map.set(r.testCaseId, r.result));
+    latestResults.forEach((r) => map.set(r.testCaseId, r));
     return map;
   }, [latestResults]);
 
-  const progress = useMemo(
-    () => calculateExecutionProgress(execution, selectedPlan, testCases),
-    [execution, selectedPlan, testCases]
-  );
 
   // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
   const { flattenedData, orderedTestCaseIds: testCaseIds } = useMemo(() => {
@@ -616,18 +676,18 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         return false;
       }
 
-      // 결과 필터 - latestResults에서 확인
+      // 결과 필터 - resultsMap에서 확인
       if (filters.result) {
-        const resultObj = latestResults?.find(r => r.testCaseId === node.id);
+        const resultObj = resultsMap.get(node.id);
         const result = resultObj?.result || 'NOTRUN';
         if (result !== filters.result) {
           return false;
         }
       }
 
-      // 실행자, 실행일자, JIRA, 노트 필터 - latestResults에서 확인
+      // 실행자, 실행일자, JIRA, 노트 필터 - resultsMap에서 확인
       if (filters.executedBy || filters.executionDate || filters.jiraIssueKey || filters.notes) {
-        const resultObj = latestResults?.find(r => r.testCaseId === node.id);
+        const resultObj = resultsMap.get(node.id);
 
         if (!resultObj) {
           // 결과가 없으면 필터 조건을 만족할 수 없음
@@ -688,19 +748,13 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
       return true;
     });
-  }, [flattenedData, filters, latestResults]);
-
-  // ICT-273: 페이지네이션을 위한 totalItems, totalPages 계산
-  const { totalItems, totalPages } = useMemo(() => {
-    const total = filteredData.length;
-    const pages = Math.ceil(total / itemsPerPage);
-    return { totalItems: total, totalPages: pages };
-  }, [filteredData, itemsPerPage]);
+  }, [flattenedData, filters, resultsMap]);
 
   const statusCounts = useMemo(() => {
     const counts = { PASS: 0, FAIL: 0, NOTRUN: 0, BLOCKED: 0, total: testCaseIds.length };
     testCaseIds.forEach((id) => {
-      const res = resultsMap.get(id) || TestResult.NOTRUN;
+      const resObj = resultsMap.get(id);
+      const res = resObj?.result || TestResult.NOTRUN;
       if (res === TestResult.PASS) counts.PASS += 1;
       else if (res === TestResult.FAIL) counts.FAIL += 1;
       else if (res === TestResult.BLOCKED) counts.BLOCKED += 1;
@@ -709,22 +763,69 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     return counts;
   }, [resultsMap, testCaseIds]);
 
-  // ICT-273: 현재 페이지의 데이터만 추출
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, itemsPerPage]);
+  const progress = useMemo(() => {
+    if (statusCounts.total === 0) return 0;
+    const completed = statusCounts.PASS + statusCounts.FAIL + statusCounts.BLOCKED;
+    return Math.round((completed / statusCounts.total) * 100);
+  }, [statusCounts]);
 
-  // 페이지 변경 핸들러
-  const handlePageChange = useCallback((event, page) => {
-    setCurrentPage(page);
-  }, []);
+  // 인피니티 스크롤을 위한 데이터 추출
+  const visibleData = useMemo(() => {
+    return filteredData.slice(0, visibleCount);
+  }, [filteredData, visibleCount]);
 
-  const handleRowsPerPageChange = useCallback((event) => {
-    setItemsPerPage(parseInt(event.target.value, 10));
-    setCurrentPage(1);
-  }, []);
+  const hasMore = visibleCount < filteredData.length;
+
+  const loadMore = useCallback(() => {
+    if (hasMore) {
+      setVisibleCount(prev => prev + 50);
+    }
+  }, [hasMore]);
+
+  // 필터가 변경될 때 표시 개수 초기화
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [filters]);
+
+  // 스크롤 복구 로직 (scrollTo 쿼리 파라미터 처리)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const scrollToId = searchParams.get('scrollTo');
+    
+    if (scrollToId && filteredData.length > 0) {
+      // 1. 해당 ID가 필터링된 데이터에 있는지 확인 및 인덱스 찾기
+      const targetIndex = filteredData.findIndex(item => item.id === scrollToId);
+      
+      if (targetIndex !== -1) {
+        // 2. 현재 visibleCount보다 뒤에 있다면 visibleCount 확장
+        if (targetIndex >= visibleCount) {
+          // 인덱스를 포함하도록 50 단위로 올림하여 확장
+          const newCount = Math.ceil((targetIndex + 1) / 50) * 50;
+          setVisibleCount(newCount);
+          // visibleCount가 업데이트된 후 다음 렌더링에서 스크롤을 시도해야 하므로 여기서 중단
+          return;
+        }
+        
+        // 3. 렌더링이 완료된 후 스크롤 실행 (setTimeout으로 렌더링 대기)
+        const timer = setTimeout(() => {
+          const element = document.getElementById(`execution-row-${scrollToId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // 4. 스크롤 후 쿼리 파라미터 제거 (반복 방지)
+            const newParams = new URLSearchParams(location.search);
+            newParams.delete('scrollTo');
+            const newSearch = newParams.toString();
+            navigate({
+              pathname: location.pathname,
+              search: newSearch ? `?${newSearch}` : ''
+            }, { replace: true });
+          }
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [location.search, filteredData, visibleCount, navigate, location.pathname]);
 
   // 필터 관련 핸들러
   const handleFilterChange = useCallback((field, value) => {
@@ -732,7 +833,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   }, []);
 
   const handleFilterApply = useCallback(() => {
-    setCurrentPage(1); // 필터 적용 시 첫 페이지로 이동
+    setVisibleCount(50); // 필터 적용 시 표시 개수 초기화
   }, []);
 
   const handleFilterClear = useCallback(() => {
@@ -745,7 +846,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       jiraIssueKey: '',
       notes: ''
     });
-    setCurrentPage(1);
+    setVisibleCount(50);
   }, []);
 
   if (loading)
@@ -950,17 +1051,15 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
             )}
 
             <TestExecutionTable
-              paginatedData={paginatedData}
-              latestResults={latestResults}
-              totalItems={totalItems}
-              totalPages={totalPages}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-              handlePageChange={handlePageChange}
-              handleRowsPerPageChange={handleRowsPerPageChange}
+              visibleData={visibleData}
+              resultsMap={resultsMap}
+              totalItems={filteredData.length}
+              hasMore={hasMore}
+              loadMore={loadMore}
               handleOpenResultForm={handleOpenResultForm}
               handleShowPrevResults={handleShowPrevResults}
               handleAttachmentClick={handleAttachmentClick}
+              handleCopyLink={handleCopyLink}
               canEnterResults={canEnterResults}
               selectedTestCases={selectedTestCases}
               onSelectionChange={handleSelectionChange}
@@ -974,7 +1073,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           open={isResultFormOpen}
           testCaseId={selectedTestCaseId}
           executionId={execution.id}
-          currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
+          currentResult={resultsMap?.get(selectedTestCaseId)}
           onClose={handleCloseResultForm}
           onSave={handleSaveResult}
           onNext={() => {

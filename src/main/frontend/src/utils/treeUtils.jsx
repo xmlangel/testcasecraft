@@ -2,18 +2,51 @@
  * 트리 구조 처리를 위한 유틸리티 함수들
  */
 
-// 목록에서 트리 구조로 변환 (parentId가 null, "", undefined, 없으면 루트)
-export const listToTree = (items, parentId = null) =>
-  items
-    .filter(item =>
-      parentId === null
-        ? item.parentId === null || item.parentId === 'null' || item.parentId === 'undefined'
-        : item.parentId === parentId
-    )
-    .map(item => ({
-      ...item,
-      children: listToTree(items, item.id)
-    }));
+export const listToTree = (items, parentId = null) => {
+  // 고아 노드(Orphaned Nodes) 처리
+  // parentId가 존재하지만 전체 items 중에 해당 ID를 가진 데이터가 없는 경우를 찾아서
+  // 가상의 'orphaned-items-folder' 아래로 모아줍니다.
+  const orphanFolderId = 'orphaned-items-folder';
+  const allNodesExist = new Set(items.map(item => item.id));
+  
+  // 1. 트리 순회 전 고아 노드들의 parentId를 가상 폴더로 변경
+  let processedItems = items.map(item => {
+    // parentId가 유효한 문자열인데, 전체 목록에 그 id를 가진 부모가 없다면 고아 노드
+    if (item.parentId && item.parentId !== 'null' && item.parentId !== 'undefined' && !allNodesExist.has(item.parentId)) {
+      return { ...item, parentId: orphanFolderId };
+    }
+    return item;
+  });
+
+  // 2. 고아 노드가 하나라도 존재한다면, 가상의 '[미할당 항목]' 폴더를 최상위에 생성
+  const hasOrphans = processedItems.some(item => item.parentId === orphanFolderId);
+  const orphanFolderExists = processedItems.some(item => item.id === orphanFolderId);
+  
+  if (hasOrphans && !orphanFolderExists) {
+    processedItems.unshift({
+      id: orphanFolderId,
+      name: '[미할당 항목]',
+      type: 'folder',
+      parentId: null,
+      description: '상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.'
+    });
+  }
+
+  // 3. 기존 트리 생성 로직 수행 (가공된 processedItems 사용)
+  const buildTree = (data, pId) =>
+    data
+      .filter(item =>
+        pId === null
+          ? item.parentId === null || item.parentId === 'null' || item.parentId === 'undefined'
+          : item.parentId === pId
+      )
+      .map(item => ({
+        ...item,
+        children: buildTree(data, item.id)
+      }));
+
+  return buildTree(processedItems, parentId);
+};
 
 // ID를 기준으로 트리에서 아이템 찾기
 export const findItemInTree = (tree, id) => {
@@ -129,29 +162,49 @@ export const calculateExecutionProgress = (execution, testPlan) => {
   return Math.round((completedTests / totalTests) * 100);
 };
 
-/**
- * 테스트 플랜의 testCaseIds를 폴더 계층 구조 순서로 정렬
- * @param {Array} allTestCases - 프로젝트의 모든 테스트케이스
- * @param {Array} planTestCaseIds - 테스트 플랜의 testCaseIds
- * @returns {Object} { flattenedData, orderedTestCaseIds }
- */
 export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
   if (!allTestCases || !planTestCaseIds) {
     return { flattenedData: [], orderedTestCaseIds: [] };
   }
 
-  // 1. 트리 구조 생성
+  // 고아 노드(Orphaned Nodes) 처리
+  const orphanFolderId = 'orphaned-items-folder';
+  const allNodesExist = new Set(allTestCases.map(tc => tc.id));
+  
+  // 1. 트리 순회 전 고아 노드들의 parentId를 가상 폴더로 변경
+  let processedCases = allTestCases.map(tc => {
+    if (tc.parentId && tc.parentId !== 'null' && tc.parentId !== 'undefined' && !allNodesExist.has(tc.parentId)) {
+      return { ...tc, parentId: orphanFolderId };
+    }
+    return tc;
+  });
+
+  // 2. 가상의 '[미할당 항목]' 폴더를 최상위에 생성
+  const hasOrphans = processedCases.some(tc => tc.parentId === orphanFolderId);
+  const orphanFolderExists = processedCases.some(tc => tc.id === orphanFolderId);
+  
+  if (hasOrphans && !orphanFolderExists) {
+    processedCases.unshift({
+      id: orphanFolderId,
+      name: '[미할당 항목]',
+      type: 'folder',
+      parentId: null,
+      description: '상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.'
+    });
+  }
+
+  // 3. 트리 구조 생성 (processedCases 기반)
   const testCaseMap = {};
-  allTestCases.forEach((tc) => {
+  processedCases.forEach((tc) => {
     testCaseMap[tc.id] = { ...tc, children: [] };
   });
-  allTestCases.forEach((tc) => {
+  processedCases.forEach((tc) => {
     if (tc.parentId && testCaseMap[tc.parentId]) {
       testCaseMap[tc.parentId].children.push(testCaseMap[tc.id]);
     }
   });
 
-  // 2. 테스트 플랜의 testCaseIds로 필터링
+  // 4. 테스트 플랜의 testCaseIds로 필터링
   const includedIds = new Set(planTestCaseIds);
 
   function filterTree(node) {

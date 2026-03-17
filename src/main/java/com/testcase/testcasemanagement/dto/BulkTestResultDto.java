@@ -25,6 +25,8 @@ public class BulkTestResultDto {
      */
     @NotEmpty(message = "테스트케이스 ID 목록은 필수입니다")
     private List<String> testCaseIds;
+    private List<String> displayIds;
+
 
     /**
      * 공통 결과 값

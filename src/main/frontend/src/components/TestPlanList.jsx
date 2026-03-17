@@ -273,7 +273,6 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                 <Table size="small" aria-label="testplan table">
                   <TableHead>
                     <TableRow>
-                      <TableCell>{t('testPlan.list.table.id', 'ID')}</TableCell>
                       <TableCell>{t('testPlan.list.table.name', '이름')}</TableCell>
                       <TableCell>{t('testPlan.list.table.description', '설명')}</TableCell>
                       <TableCell align="center">{t('testPlan.list.table.testcaseCount', '테스트케이스 수')}</TableCell>
@@ -287,13 +286,6 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                   <TableBody>
                     {paginatedPlans.map((plan) => (
                       <TableRow key={plan.id} data-testid={`testplan-row-${plan.id}`}>
-                        <TableCell
-                          onClick={() => handleExecutionClick(plan)}
-                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
-                          data-testid="testplan-id"
-                        >
-                          {plan.id}
-                        </TableCell>
                         <TableCell
                           onClick={() => handleExecutionClick(plan)}
                           sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}

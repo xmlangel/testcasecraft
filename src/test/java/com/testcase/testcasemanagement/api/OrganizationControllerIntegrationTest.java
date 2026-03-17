@@ -86,32 +86,34 @@ public class OrganizationControllerIntegrationTest extends AbstractTestNGSpringC
                                 .build();
 
                 // 조직 보안 서비스 모킹 - 모든 권한을 true로 허용
-                when(organizationSecurityService.isOrganizationMember(any(String.class), any(String.class)))
+                when(organizationSecurityService.isOrganizationMember(any(), any()))
                                 .thenReturn(true);
-                when(organizationSecurityService.hasOrganizationAdminRole(any(String.class), any(String.class)))
+                when(organizationSecurityService.hasOrganizationAdminRole(any(), any()))
                                 .thenReturn(true);
-                when(organizationSecurityService.canManageOrganization(any(String.class), any(String.class)))
+                when(organizationSecurityService.canManageOrganization(any(), any()))
                                 .thenReturn(true);
-                when(organizationSecurityService.canAccessOrganization(any(String.class), any(String.class)))
+                when(organizationSecurityService.canAccessOrganization(any(), any()))
                                 .thenReturn(true);
-                when(organizationSecurityService.isOrganizationOwner(any(String.class), any(String.class)))
+                when(organizationSecurityService.isOrganizationOwner(any(), any()))
                                 .thenReturn(true);
-                when(organizationSecurityService.canInviteMembers(any(String.class), any(String.class)))
+                when(organizationSecurityService.canInviteMembers(any(), any()))
+                                .thenReturn(true);
+                when(organizationSecurityService.canDeleteOrganization(any(), any()))
                                 .thenReturn(true);
 
                 // 테스트 사용자 생성
                 adminUser = new User();
-                adminUser.setUsername("admin");
-                adminUser.setEmail("admin@test.com");
-                adminUser.setName("관리자");
+                adminUser.setUsername("org-admin");
+                adminUser.setEmail("org-admin@test.com");
+                adminUser.setName("조직관리자");
                 adminUser.setPassword(passwordEncoder.encode("admin"));
                 adminUser.setRole("ADMIN");
                 adminUser = userRepository.save(adminUser);
 
                 testerUser = new User();
-                testerUser.setUsername("tester");
-                testerUser.setEmail("tester@test.com");
-                testerUser.setName("테스터");
+                testerUser.setUsername("org-tester");
+                testerUser.setEmail("org-tester@test.com");
+                testerUser.setName("조직테스터");
                 testerUser.setPassword(passwordEncoder.encode("tester"));
                 testerUser.setRole("TESTER");
                 testerUser = userRepository.save(testerUser);
@@ -124,7 +126,7 @@ public class OrganizationControllerIntegrationTest extends AbstractTestNGSpringC
         }
 
         @Test
-        @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" })
+        @WithMockUser(username = "org-admin", authorities = { "ROLE_ADMIN" })
         void 조직_전체_워크플로우_테스트() throws Exception {
                 // 1. 초기 상태 - 조직 목록이 비어있음
                 mockMvc.perform(get("/api/organizations"))
@@ -164,7 +166,7 @@ public class OrganizationControllerIntegrationTest extends AbstractTestNGSpringC
 
                 // 5. 멤버 초대
                 InviteMemberRequest inviteRequest = new InviteMemberRequest();
-                inviteRequest.setUsername("tester");
+                inviteRequest.setUsername("org-tester");
                 inviteRequest.setRole(OrganizationRole.ADMIN);
 
                 mockMvc.perform(post("/api/organizations/" + orgId + "/members")
@@ -172,7 +174,7 @@ public class OrganizationControllerIntegrationTest extends AbstractTestNGSpringC
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(inviteRequest)))
                                 .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.user.username", is("tester")))
+                                .andExpect(jsonPath("$.user.username", is("org-tester")))
                                 .andExpect(jsonPath("$.roleInOrganization", is("ADMIN")))
                                 .andExpect(jsonPath("$.organizationName", is("테스트 조직")));
 
@@ -214,19 +216,19 @@ public class OrganizationControllerIntegrationTest extends AbstractTestNGSpringC
         // }
 
         @Test
-        void 인증_없이_접근_시_403_반환() throws Exception {
-                // Spring Security의 기본 동작: 인증되지 않은 요청은 403 Forbidden을 반환
+        void 인증_없이_접근_시_401_반환() throws Exception {
+                // Spring Security의 기본 동작: 인증되지 않은 요청은 401 Unauthorized를 반환
                 mockMvc.perform(get("/api/organizations"))
-                                .andExpect(status().isForbidden());
+                                .andExpect(status().isUnauthorized());
 
                 mockMvc.perform(post("/api/organizations")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{}"))
-                                .andExpect(status().isForbidden());
+                                .andExpect(status().isUnauthorized());
         }
 
         @Test
-        @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" })
+        @WithMockUser(username = "org-admin", authorities = { "ROLE_ADMIN" })
         void 잘못된_요청_데이터_검증() throws Exception {
                 // 현재 DTO에 validation이 없으므로 빈 이름도 생성됨
                 // 대신 존재하지 않는 사용자 초대로 테스트
@@ -257,12 +259,15 @@ public class OrganizationControllerIntegrationTest extends AbstractTestNGSpringC
         }
 
         @Test
-        @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" })
+        @WithMockUser(username = "org-admin", authorities = { "ROLE_ADMIN" })
         void 존재하지_않는_조직_접근_시_403_반환() throws Exception {
-                // OrganizationSecurityService.isOrganizationMember()가 false를 반환하면 403 Forbidden
-                when(organizationSecurityService.isOrganizationMember(any(String.class), any(String.class)))
+                // OrganizationSecurityService.canAccessOrganization() 등이 false를 반환하면 403
+                // Forbidden
+                when(organizationSecurityService.canAccessOrganization(any(String.class), any(String.class)))
                                 .thenReturn(false);
-                when(organizationSecurityService.isOrganizationOwner(any(String.class), any(String.class)))
+                when(organizationSecurityService.canManageOrganization(any(String.class), any(String.class)))
+                                .thenReturn(false);
+                when(organizationSecurityService.canDeleteOrganization(any(String.class), any(String.class)))
                                 .thenReturn(false);
 
                 mockMvc.perform(get("/api/organizations/nonexistent-id"))

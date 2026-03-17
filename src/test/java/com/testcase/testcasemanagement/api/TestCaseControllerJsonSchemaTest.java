@@ -52,7 +52,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
 
                 // JWT 인증
                 Map<String, Object> loginRequest = new HashMap<>();
-                loginRequest.put("username", "admin");
+                loginRequest.put("username", "test_admin");
                 loginRequest.put("password", "admin123");
 
                 jwtToken = given()
@@ -62,7 +62,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                                 .post("/api/auth/login")
                                 .then()
                                 .statusCode(200)
-                                .extract().path("token");
+                                .extract().path("accessToken");
 
                 // JSON Schema 로드
                 try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/testcase-schema.json")) {

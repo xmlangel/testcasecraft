@@ -31,7 +31,6 @@ import { RESULT_COLORS } from '../constants/statusColors';
  */
 function TestResultPieChart({ statistics, loading = false }) {
   const { t } = useTranslation();
-  const theme = useTheme();
 
   const RESULT_LABELS = {
     PASS: t('testResult.status.pass'),
@@ -76,34 +75,37 @@ function TestResultPieChart({ statistics, loading = false }) {
     );
   }
 
+  // ICT-247/283: 최신 결과 통계 우선 사용 여부 확인
+  const isLatestMode = !!statistics?.totalCaseCount;
+
   // 파이차트 데이터 준비
   const pieData = [
     {
       name: 'PASS',
       label: RESULT_LABELS.PASS,
-      value: statistics.passCount || 0,
-      percentage: statistics.passRate || 0,
+      value: isLatestMode ? (statistics.latestPassCount || 0) : (statistics.passCount || 0),
+      percentage: isLatestMode ? (statistics.latestPassRate || 0) : (statistics.passRate || 0),
       color: RESULT_COLORS.PASS
     },
     {
       name: 'FAIL',
       label: RESULT_LABELS.FAIL,
-      value: statistics.failCount || 0,
-      percentage: statistics.failRate || 0,
+      value: isLatestMode ? (statistics.latestFailCount || 0) : (statistics.failCount || 0),
+      percentage: isLatestMode ? (statistics.latestFailRate || 0) : (statistics.failRate || 0),
       color: RESULT_COLORS.FAIL
     },
     {
       name: 'BLOCKED',
       label: RESULT_LABELS.BLOCKED,
-      value: statistics.blockedCount || 0,
-      percentage: statistics.blockedRate || 0,
+      value: isLatestMode ? (statistics.latestBlockedCount || 0) : (statistics.blockedCount || 0),
+      percentage: isLatestMode ? (statistics.latestBlockedRate || 0) : (statistics.blockedRate || 0),
       color: RESULT_COLORS.BLOCKED
     },
     {
       name: 'NOT_RUN',
       label: RESULT_LABELS.NOT_RUN,
-      value: statistics.notRunCount || 0,
-      percentage: statistics.notRunRate || 0,
+      value: isLatestMode ? (statistics.latestNotRunCount || 0) : (statistics.notRunCount || 0),
+      percentage: isLatestMode ? (statistics.latestNotRunRate || 0) : (statistics.notRunRate || 0),
       color: RESULT_COLORS.NOTRUN
     }
   ].filter(item => item.value > 0); // 값이 0인 항목 제외
@@ -218,8 +220,15 @@ function TestResultPieChart({ statistics, loading = false }) {
         {/* 총계 */}
         <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: 'divider' }}>
           <Typography variant="body2" color="text.secondary" align="center">
-            {t('testResult.pieChart.totalTestCases', { total: statistics.totalTests })}
+            {isLatestMode 
+              ? `${t('testResult.pieChart.totalCaseCount', '전체 테스트케이스')}: ${statistics.totalCaseCount || 0}건`
+              : t('testResult.pieChart.totalTestCases', { total: statistics.totalTests })}
           </Typography>
+          {isLatestMode && (
+            <Typography variant="caption" color="text.disabled" align="center" component="div">
+              ({t('testResult.pieChart.totalExecutionCount', '누적 수행 횟수')}: {statistics.totalTests || 0}건)
+            </Typography>
+          )}
         </Box>
       </CardContent>
     </Card>

@@ -61,7 +61,7 @@ public class TestPlanControllerJsonSchemaTest extends AbstractTransactionalTestN
 
         // JWT 토큰 발급
         Map<String, Object> loginRequest = new HashMap<>();
-        loginRequest.put("username", "admin");
+        loginRequest.put("username", "test_admin");
         loginRequest.put("password", "admin123");
 
         jwtToken = given()
@@ -71,7 +71,7 @@ public class TestPlanControllerJsonSchemaTest extends AbstractTransactionalTestN
                 .post("/api/auth/login")
                 .then()
                 .statusCode(200)
-                .extract().path("token");
+                .extract().path("accessToken");
 
         // 스키마 파일 로드
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/testplan-schema.json")) {
@@ -99,7 +99,8 @@ public class TestPlanControllerJsonSchemaTest extends AbstractTransactionalTestN
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("name", "Regression Test");
         requestBody.put("description", "Full regression test suite");
-        requestBody.put("testCaseIds", new String[]{"ba0f5d9c-1486-45cd-bcbe-a4425d688700", "45e3c021-1e46-4e96-b5ca-7507e57ae8fd"});
+        requestBody.put("testCaseIds",
+                new String[] { "ba0f5d9c-1486-45cd-bcbe-a4425d688700", "45e3c021-1e46-4e96-b5ca-7507e57ae8fd" });
         requestBody.put("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3");
 
         Response createRes = given()
@@ -163,7 +164,8 @@ public class TestPlanControllerJsonSchemaTest extends AbstractTransactionalTestN
         Map<String, Object> updateBody = new HashMap<>();
         updateBody.put("name", "Updated Regression Test");
         updateBody.put("description", "Updated test plan description");
-        updateBody.put("testCaseIds", new String[]{"f6912b8f-b10a-4c1a-8dd2-67dfeb9eee97", "adc6a5ee-e809-46bd-8c44-83e8ac182172"});
+        updateBody.put("testCaseIds",
+                new String[] { "f6912b8f-b10a-4c1a-8dd2-67dfeb9eee97", "adc6a5ee-e809-46bd-8c44-83e8ac182172" });
 
         given()
                 .contentType(ContentType.JSON)

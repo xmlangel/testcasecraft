@@ -48,7 +48,6 @@ function TestResultStatisticsDashboard() {
   // 반응형 처리를 위한 미디어 쿼리
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md')); // 960px 미만
-  const isTablet = useMediaQuery(theme.breakpoints.down('lg')); // 1280px 미만
 
   // 상태 관리
   const [filters, setFilters] = useState({
@@ -185,16 +184,32 @@ function TestResultStatisticsDashboard() {
           calculatedAt: new Date().toISOString()
         };
 
+        // Calculate latest results for total
+        total.totalCaseCount = (manualStatistics.totalCaseCount || 0) + (automatedStatistics.totalTests || 0); // Automated is treated as 1:1 case:result here for now
+        total.latestPassCount = (manualStatistics.latestPassCount || 0) + (automatedStatistics.passCount || 0);
+        total.latestFailCount = (manualStatistics.latestFailCount || 0) + (automatedStatistics.failCount || 0);
+        total.latestBlockedCount = (manualStatistics.latestBlockedCount || 0) + (automatedStatistics.skippedCount || 0);
+        total.latestNotRunCount = (manualStatistics.latestNotRunCount || 0) + (automatedStatistics.notRunCount || 0);
+
         // Calculate rates
         total.passRate = total.totalTests > 0 ? (total.passCount / total.totalTests) * 100 : 0;
         total.failRate = total.totalTests > 0 ? (total.failCount / total.totalTests) * 100 : 0;
         total.blockedRate = total.totalTests > 0 ? (total.blockedCount / total.totalTests) * 100 : 0;
         total.notRunRate = total.totalTests > 0 ? (total.notRunCount / total.totalTests) * 100 : 0;
 
+        // Latest rates
+        total.latestPassRate = total.totalCaseCount > 0 ? (total.latestPassCount / total.totalCaseCount) * 100 : 0;
+        total.latestFailRate = total.totalCaseCount > 0 ? (total.latestFailCount / total.totalCaseCount) * 100 : 0;
+        total.latestBlockedRate = total.totalCaseCount > 0 ? (total.latestBlockedCount / total.totalCaseCount) * 100 : 0;
+        total.latestNotRunRate = total.totalCaseCount > 0 ? (total.latestNotRunCount / total.totalCaseCount) * 100 : 0;
+
         // Recalculate execution and success rates
         const executed = total.totalTests - total.notRunCount;
         total.executionRate = total.totalTests > 0 ? (executed / total.totalTests) * 100 : 0;
         total.successRate = executed > 0 ? (total.passCount / executed) * 100 : 0;
+
+        const latestExecuted = total.totalCaseCount - total.latestNotRunCount;
+        total.latestSuccessRate = latestExecuted > 0 ? (total.latestPassCount / latestExecuted) * 100 : 0;
 
         // Jira link rate approximation (if needed)
         total.jiraLinkedCount = (manualStatistics.jiraLinkedCount || 0); // Automated usually doesn't have this yet
@@ -273,9 +288,15 @@ function TestResultStatisticsDashboard() {
   const statisticsSummary = useMemo(() => {
     if (!statistics) return null;
 
+    const isLatestMode = !!statistics.totalCaseCount;
+
     return {
-      executionRate: statistics.executionRate?.toFixed(2) || 0,
-      successRate: statistics.successRate?.toFixed(2) || 0,
+      executionRate: isLatestMode 
+        ? (statistics.latestSuccessRate !== undefined ? (100 - (statistics.latestNotRunRate || 0)).toFixed(2) : 0)
+        : statistics.executionRate?.toFixed(2) || 0,
+      successRate: isLatestMode
+        ? statistics.latestSuccessRate?.toFixed(2) || 0
+        : statistics.successRate?.toFixed(2) || 0,
       jiraLinkRate: statistics.totalTests > 0
         ? (((statistics.jiraLinkedCount || 0) / statistics.totalTests) * 100).toFixed(2)
         : 0,

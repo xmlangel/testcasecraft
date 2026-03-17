@@ -25,20 +25,24 @@
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" }
       },
-      "additionalProperties": false
+      "additionalProperties": true
     },
     "roleInOrganization": {
       "type": "string",
       "enum": ["OWNER", "ADMIN", "MEMBER"]
     },
     "createdAt": {
-      "type": "string",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      "oneOf": [
+        { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$" },
+        { "type": "array", "items": { "type": "integer" } }
+      ]
     },
     "updatedAt": {
-      "type": "string",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      "oneOf": [
+        { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$" },
+        { "type": "array", "items": { "type": "integer" } }
+      ]
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }

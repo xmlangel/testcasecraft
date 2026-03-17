@@ -36,7 +36,7 @@ public class TestCaseControllerNameDuplicateTest extends AbstractTestNGSpringCon
 
         // JWT 인증
         Map<String, Object> loginRequest = new HashMap<>();
-        loginRequest.put("username", "admin");
+        loginRequest.put("username", "test_admin");
         loginRequest.put("password", "admin123");
 
         jwtToken = given()
@@ -46,7 +46,7 @@ public class TestCaseControllerNameDuplicateTest extends AbstractTestNGSpringCon
                 .post("/api/auth/login")
                 .then()
                 .statusCode(200)
-                .extract().path("token");
+                .extract().path("accessToken");
     }
 
     @AfterMethod
@@ -84,7 +84,8 @@ public class TestCaseControllerNameDuplicateTest extends AbstractTestNGSpringCon
         requestBody.put("name", name);
         requestBody.put("type", "folder");
         requestBody.put("projectId", projectId);
-        if (parentId != null) requestBody.put("parentId", parentId);
+        if (parentId != null)
+            requestBody.put("parentId", parentId);
 
         Response response = given()
                 .filter(new AllureRestAssured())
@@ -107,7 +108,8 @@ public class TestCaseControllerNameDuplicateTest extends AbstractTestNGSpringCon
         requestBody.put("projectId", projectId);
         requestBody.put("expectedResults", "결과");
         requestBody.put("description", "설명");
-        if (parentId != null) requestBody.put("parentId", parentId);
+        if (parentId != null)
+            requestBody.put("parentId", parentId);
 
         Response response = given()
                 .filter(new AllureRestAssured())
@@ -130,7 +132,8 @@ public class TestCaseControllerNameDuplicateTest extends AbstractTestNGSpringCon
                     .header("Authorization", "Bearer " + jwtToken)
                     .when()
                     .delete("/api/testcases/" + testCaseId);
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
     }
 
     private void deleteProject(String projectId) {
@@ -140,7 +143,8 @@ public class TestCaseControllerNameDuplicateTest extends AbstractTestNGSpringCon
                     .header("Authorization", "Bearer " + jwtToken)
                     .when()
                     .delete("/api/projects/" + projectId);
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
     }
 
     @Test(description = "동일한 폴더 이름이 중복될 경우 정상적으로 각각 추가되는지 검증")
@@ -188,7 +192,9 @@ public class TestCaseControllerNameDuplicateTest extends AbstractTestNGSpringCon
     }
 
     private void assertNotEquals(String a, String b) {
-        if (a == null || b == null) throw new AssertionError("ID가 null입니다");
-        if (a.equals(b)) throw new AssertionError("ID가 같으면 안 됩니다: " + a);
+        if (a == null || b == null)
+            throw new AssertionError("ID가 null입니다");
+        if (a.equals(b))
+            throw new AssertionError("ID가 같으면 안 됩니다: " + a);
     }
 }

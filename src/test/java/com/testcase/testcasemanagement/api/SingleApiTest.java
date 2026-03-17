@@ -10,8 +10,10 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -20,6 +22,7 @@ import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.greaterThan;
@@ -35,16 +38,35 @@ public class SingleApiTest extends AbstractTestNGSpringContextTests {
     @LocalServerPort
     private int port;
 
+    @Autowired
+    private com.testcase.testcasemanagement.repository.UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    private String testUsername;
+    private String testPassword = "password123";
     private static boolean restAssuredConfigured = false;
 
     @BeforeMethod(alwaysRun = true)
     public void globalSetup() {
-        // RestAssured 설정: port가 주입된 후 설정
         if (port > 0) {
             RestAssured.port = port;
             RestAssured.baseURI = "http://localhost";
 
-            waitForServerReady();
+            // 테스트용 고유 사용자 생성
+            String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+            testUsername = "api_test_user_" + uniqueId;
+
+            com.testcase.testcasemanagement.model.User user = new com.testcase.testcasemanagement.model.User();
+            user.setUsername(testUsername);
+            user.setPassword(passwordEncoder.encode(testPassword));
+            user.setName("API Test User");
+            user.setEmail(testUsername + "@example.com");
+            user.setRole("ADMIN");
+            user.setIsActive(true);
+            user.setEmailVerified(true);
+            userRepository.save(user);
 
             if (!restAssuredConfigured) {
                 RestAssured.filters(
@@ -59,39 +81,13 @@ public class SingleApiTest extends AbstractTestNGSpringContextTests {
         }
     }
 
-    private void waitForServerReady() {
-        int maxRetries = 30;
-        int delay = 1000; // 1 second
-
-        for (int i = 0; i < maxRetries; i++) {
-            try {
-                // Try to connect to the server
-                java.net.Socket socket = new java.net.Socket("localhost", port);
-                socket.close();
-                System.out.println("Server is ready on port " + port);
-                return;
-            } catch (Exception e) {
-                System.out.println("Waiting for server to be ready on port " + port + "... (Attempt " + (i + 1) + "/"
-                        + maxRetries + ")");
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException("Interrupted while waiting for server", ie);
-                }
-            }
-        }
-        throw new RuntimeException(
-                "Server did not become ready on port " + port + " after " + maxRetries + " attempts");
-    }
-
     @Test(priority = 1)
     @Story("사용자 인증")
     @Description("사용자 로그인 API 테스트 - 인프라 연결 확인용")
     public void testAuthLogin() {
         Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "test_admin"); // data-test.sql에 맞게 수정됨
-        loginRequest.put("password", "admin123");
+        loginRequest.put("username", testUsername);
+        loginRequest.put("password", testPassword);
 
         given()
                 .contentType(ContentType.JSON)

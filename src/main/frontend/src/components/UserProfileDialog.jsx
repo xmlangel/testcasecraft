@@ -9,6 +9,7 @@ import { useAppContext } from "../context/AppContext.jsx";
 import JiraStatusIndicator from "./JiraIntegration/JiraStatusIndicator.jsx";
 import JiraConfigDialog from "./JiraSettings/JiraConfigDialog.jsx";
 import PasswordChangeForm from "./UserProfile/PasswordChangeForm.jsx";
+import ServiceApiKeyTab from "./UserProfile/ServiceApiKeyTab.jsx";
 import { jiraService } from "../services/jiraService.js";
 import { LanguageSelector } from "./common/LanguageSelector.jsx";
 import { TimezoneSelector } from "./common/TimezoneSelector.jsx";
@@ -271,6 +272,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               <Tab label={t('profile.tabs.password', '비밀번호')} />
               <Tab label={t('profile.tabs.language', '언어 설정')} />
               <Tab label={t('profile.tabs.jira', 'JIRA 설정')} />
+              <Tab label={t('profile.tabs.apiToken', 'API 토큰')} />
             </Tabs>
           </Box>
 
@@ -523,6 +525,11 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               </Box>
             )}
 
+            {/* API 토큰 탭 */}
+            {tabValue === 4 && (
+              <ServiceApiKeyTab />
+            )}
+
             {/* 공통 에러/성공 메시지 */}
             {error && (
               <Alert severity="error" sx={{ mt: 2 }}>
@@ -544,6 +551,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               {t('button.save', '저장')}
             </Button>
           )}
+          {tabValue === 4 && null}
         </DialogActions>
       </Dialog>
       {/* JIRA 설정 다이얼로그 */}

@@ -12,7 +12,8 @@ const TestResultFooter = ({
     isViewer,
     testCase,
     saveButtonRef,
-    t
+    t,
+    hideButtons = false
 }) => {
     return (
         <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'space-between' }}>
@@ -41,24 +42,26 @@ const TestResultFooter = ({
                 )}
             </Box>
 
-            {/* 기본 버튼들 (우측) */}
-            <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button onClick={onClose} variant="outlined" data-testid="result-cancel-button">
-                    {t('common.button.cancel')}
-                </Button>
-                {!isViewer && (
-                    <Button
-                        ref={saveButtonRef}
-                        onClick={onSave}
-                        variant="contained"
-                        color="primary"
-                        disabled={loading || isViewer || !testCase}
-                        data-testid="result-save-button"
-                    >
-                        {t('common.button.save')}
+            {/* 기본 버튼들 (우측) - hideButtons가 아닐 때만 노출 */}
+            {!hideButtons && (
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Button onClick={onClose} variant="outlined" data-testid="result-cancel-button">
+                        {t('common.button.cancel')}
                     </Button>
-                )}
-            </Box>
+                    {!isViewer && (
+                        <Button
+                            ref={saveButtonRef}
+                            onClick={onSave}
+                            variant="contained"
+                            color="primary"
+                            disabled={loading || isViewer || !testCase}
+                            data-testid="result-save-button"
+                        >
+                            {t('common.button.save')}
+                        </Button>
+                    )}
+                </Box>
+            )}
         </Box>
     );
 };
