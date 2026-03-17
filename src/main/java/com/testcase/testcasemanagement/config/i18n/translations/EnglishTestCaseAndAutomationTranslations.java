@@ -1197,6 +1197,13 @@ public class EnglishTestCaseAndAutomationTranslations {
                                 "Deactivation failed.", createdBy);
                 createTranslationIfNotExists("profile.apiToken.message.deleteError", languageCode,
                                 "An error occurred while deleting the API key.", createdBy);
+
+                // Statistics and Folder View
+                createTranslationIfNotExists("testResult.viewType.byFolder", languageCode, "By Folder", createdBy);
+                createTranslationIfNotExists("testResult.filter.depth", languageCode, "Depth: {depth}", createdBy);
+                createTranslationIfNotExists("testResult.statistics.folderName", languageCode, "Folder Name", createdBy);
+                createTranslationIfNotExists("testResult.statistics.folderResults", languageCode,
+                                "Test Result Statistics by Folder", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

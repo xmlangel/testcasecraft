@@ -1303,6 +1303,12 @@ public class TestCaseKeysInitializer {
                                 "폴더 기능: \"폴더 추가\" 버튼을 클릭하거나 이름 셀에 \"📁 폴더명\" 형태로 입력하면 폴더가 생성됩니다.");
                 createTranslationKeyIfNotExists("testcase.spreadsheet.usage.stepManagement", "testcase", "스텝 관리 설명",
                                 "스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).");
+
+                // 통계 필터 및 폴더별 보기
+                createTranslationKeyIfNotExists("testResult.viewType.byFolder", "testcase", "보기 형태 - 폴더별", "폴더별");
+                createTranslationKeyIfNotExists("testResult.filter.depth", "testcase", "폴더 Depth 필터", "Depth: {depth}");
+                createTranslationKeyIfNotExists("testResult.statistics.folderName", "testcase", "통계 폴더명", "폴더명");
+                createTranslationKeyIfNotExists("testResult.statistics.folderResults", "testcase", "폴더별 별 테스트 결과 통계", "폴더별 테스트 결과 통계");
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

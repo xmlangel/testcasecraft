@@ -56,7 +56,8 @@ function TestResultStatisticsDashboard() {
     dateRange: 'all',
 
     viewType: 'overview',
-    source: 'manual' // manual, automated, total
+    source: 'manual', // manual, automated, total
+    depth: 1
   });
 
   const [statistics, setStatistics] = useState(null);
@@ -86,7 +87,7 @@ function TestResultStatisticsDashboard() {
     if (filters.viewType !== 'overview') {
       loadComparisonData();
     }
-  }, [filters.viewType, activeProject?.id]);
+  }, [filters.viewType, filters.depth, activeProject?.id, filters.testPlanId, filters.testExecutionId]);
 
   /**
    * 통계 데이터 로드
@@ -222,6 +223,64 @@ function TestResultStatisticsDashboard() {
   }, [filters.source, manualStatistics, automatedStatistics]);
 
   /**
+   * 폴더별 통계 계산 로직 구현
+   * ICT-FOLDER-STATS: folderPath를 기반으로 Depth별 그룹화 및 집계
+   */
+  const calculateFolderStatistics = useCallback((reportData, depth) => {
+    if (!reportData || !Array.isArray(reportData)) return [];
+
+    const statsMap = new Map();
+
+    reportData.forEach(item => {
+      const folderPath = item.folderPath || '';
+      // '/' 또는 '>' 등으로 구분될 수 있으나 TestResultReportDto 주석에는 "Root/API/Authentication" 형식임
+      // 실제 데이터가 "Userv2.0 > 로그인/로그아웃" 형태일 수도 있으므로 유연하게 처리
+      const separators = /[\/>]/;
+      const parts = folderPath.split(separators).map(p => p.trim()).filter(p => p);
+      
+      // 요청된 depth까지만 경로 추출 (최대 parts.length)
+      const targetParts = parts.slice(0, Math.min(depth, parts.length));
+      
+      // 만약 depth보다 경로가 짧다면, 하위 폴더가 없는 것이므로 해당 경로 그대로 사용
+      // 만약 folderPath가 비어있다면 'Root' 처리
+      const groupKey = targetParts.length > 0 ? targetParts.join(' > ') : (item.testCaseName ? 'Uncategorized' : 'Root');
+      
+      if (!statsMap.has(groupKey)) {
+        statsMap.set(groupKey, {
+          name: groupKey,
+          pass_count: 0,
+          fail_count: 0,
+          blocked_count: 0,
+          not_run_count: 0,
+          total: 0
+        });
+      }
+      
+      const stats = statsMap.get(groupKey);
+      const result = item.result || 'NOT_RUN';
+      
+      if (result === 'PASS') stats.pass_count++;
+      else if (result === 'FAIL') stats.fail_count++;
+      else if (result === 'BLOCKED') stats.blocked_count++;
+      else stats.not_run_count++;
+      
+      stats.total++;
+    });
+
+    return Array.from(statsMap.values())
+      .map(s => ({
+        ...s,
+        // BarChart 등에서 사용하는 key 이름에 맞춤 (findStatisticsByTestPlan 등 참고)
+        name: s.name,
+        pass_count: s.pass_count,
+        fail_count: s.fail_count,
+        blocked_count: s.blocked_count,
+        not_run_count: s.not_run_count
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, []);
+
+  /**
    * 비교 데이터 로드
    * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
@@ -229,18 +288,29 @@ function TestResultStatisticsDashboard() {
     if (filters.viewType === 'overview') return;
 
     try {
-      const comparisonType = filters.viewType === 'by-plan' ? 'by-plan' : 'by-executor';
-      const data = await testResultService.getComparisonStatistics(comparisonType, {
-        projectId: activeProject?.id,
-        source: filters.source // Source 전달 ('manual', 'automated', 'total')
-      });
-      setComparisonData(data);
+      if (filters.viewType === 'by-folder') {
+        const reportParams = {
+          projectId: activeProject?.id,
+          testPlanId: filters.testPlanId || undefined,
+          testExecutionId: filters.testExecutionId || undefined
+        };
+        const reportData = await testResultService.getDetailedTestResultReport(reportParams);
+        const folderStats = calculateFolderStatistics(reportData, filters.depth || 1);
+        setComparisonData(folderStats);
+      } else {
+        const comparisonType = filters.viewType === 'by-plan' ? 'by-plan' : 'by-executor';
+        const data = await testResultService.getComparisonStatistics(comparisonType, {
+          projectId: activeProject?.id,
+          source: filters.source // Source 전달 ('manual', 'automated', 'total')
+        });
+        setComparisonData(data);
+      }
     } catch (err) {
       console.error('Failed to load comparison data:', err);
       // 비교 데이터는 실패해도 전체 UI를 막지 않음
       setComparisonData([]);
     }
-  }, [filters.viewType, filters.source, activeProject?.id]);
+  }, [filters.viewType, filters.depth, filters.source, activeProject?.id, filters.testPlanId, filters.testExecutionId, calculateFolderStatistics]);
 
   /**
    * 새로고침 핸들러
@@ -279,6 +349,9 @@ function TestResultStatisticsDashboard() {
 
   // ICT-194 Phase 3: 차트 제목 메모이제이션
   const comparisonChartTitle = useMemo(() => {
+    if (filters.viewType === 'by-folder') {
+      return t('testResultDashboard.chart.folderComparison', '폴더별 결과 비교');
+    }
     return filters.viewType === 'by-plan'
       ? t('testResultDashboard.chart.planComparison', '테스트 플랜별 결과 비교')
       : t('testResultDashboard.chart.executorComparison', '실행자별 결과 비교');
