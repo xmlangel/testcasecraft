@@ -55,8 +55,7 @@ function StatisticsFilterPanel({
     onFiltersChange({
       testPlanId: '',
       testExecutionId: '',
-      viewType: 'overview',
-      depth: 1
+      viewType: 'overview'
     });
   };
 
@@ -65,7 +64,6 @@ function StatisticsFilterPanel({
     let count = 0;
     if (filters.testPlanId) count++;
     if (filters.testExecutionId) count++;
-    if (filters.viewType === 'by-folder' && filters.depth > 1) count++;
     return count;
   };
 
@@ -191,26 +189,6 @@ function StatisticsFilterPanel({
               <MenuItem value="by-folder">{t('testResult.filter.folderView', '폴더별')}</MenuItem>
             </Select>
           </FormControl>
-
-          {/* Depth 선택 (폴더별 보기일 때만 표시) */}
-          {filters.viewType === 'by-folder' && (
-            <FormControl size="small" sx={{ minWidth: 100 }}>
-              <InputLabel id="depth-select-label">{t('testResult.filter.depth', 'Depth')}</InputLabel>
-              <Select
-                labelId="depth-select-label"
-                value={filters.depth || 1}
-                label={t('testResult.filter.depth', 'Depth')}
-                onChange={(e) => handleFilterChange('depth', e.target.value)}
-                disabled={loading}
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => (
-                  <MenuItem key={d} value={d}>
-                    {d} Depth
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
         </Stack>
 
         {/* 현재 필터 상태 표시 */}
@@ -238,15 +216,6 @@ function StatisticsFilterPanel({
                     onDelete={() => handleFilterChange('testExecutionId', '')}
                   />
                 )}
-                {filters.viewType === 'by-folder' && filters.depth && (
-                  <Chip
-                    label={`Depth: ${filters.depth}`}
-                    size="small"
-                    variant="outlined"
-                    onDelete={() => handleFilterChange('depth', 1)}
-                  />
-                )}
-
               </Stack>
             </Box>
           </>

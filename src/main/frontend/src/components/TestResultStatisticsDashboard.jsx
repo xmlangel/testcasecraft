@@ -22,6 +22,7 @@ import TestResultStatisticsCard from './TestResultStatisticsCard';
 import TestResultPieChart from './TestResultPieChart';
 import TestResultBarChart from './TestResultBarChart';
 import StatisticsFilterPanel from './StatisticsFilterPanel';
+import TestResultFolderStatsView from './TestResultFolderStatsView';
 
 // 서비스
 import testResultService, { handleTestResultError } from '../services/testResultService';
@@ -57,7 +58,7 @@ function TestResultStatisticsDashboard() {
 
     viewType: 'overview',
     source: 'manual', // manual, automated, total
-    depth: 1
+    depth: 20
   });
 
   const [statistics, setStatistics] = useState(null);
@@ -65,6 +66,7 @@ function TestResultStatisticsDashboard() {
   const [automatedStatistics, setAutomatedStatistics] = useState(null);
   const [comparisonData, setComparisonData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [reportData, setReportData] = useState([]);
   const [error, setError] = useState(null);
   const [showPercentage, setShowPercentage] = useState(false);
 
@@ -285,17 +287,25 @@ function TestResultStatisticsDashboard() {
    * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
   const loadComparisonData = useCallback(async () => {
-    if (filters.viewType === 'overview') return;
-
+    if (filters.viewType === 'overview' || !activeProject?.id) {
+      setReportData([]);
+      return;
+    }
+    
+    setLoading(true);
     try {
       if (filters.viewType === 'by-folder') {
         const reportParams = {
           projectId: activeProject?.id,
           testPlanId: filters.testPlanId || undefined,
-          testExecutionId: filters.testExecutionId || undefined
+          testExecutionId: filters.testExecutionId || undefined,
+          size: 2000 // 모든 폴더를 보기 위해 큰 사이즈로 요청
         };
-        const reportData = await testResultService.getDetailedTestResultReport(reportParams);
-        const folderStats = calculateFolderStatistics(reportData, filters.depth || 1);
+        const response = await testResultService.getDetailedTestResultReport(reportParams);
+        const reportData = response?.content || (Array.isArray(response) ? response : []);
+        setReportData(reportData);
+        // Depth는 고정 20 사용
+        const folderStats = calculateFolderStatistics(reportData, 20);
         setComparisonData(folderStats);
       } else {
         const comparisonType = filters.viewType === 'by-plan' ? 'by-plan' : 'by-executor';
@@ -306,9 +316,10 @@ function TestResultStatisticsDashboard() {
         setComparisonData(data);
       }
     } catch (err) {
-      console.error('Failed to load comparison data:', err);
-      // 비교 데이터는 실패해도 전체 UI를 막지 않음
       setComparisonData([]);
+      setReportData([]);
+    } finally {
+      setLoading(false);
     }
   }, [filters.viewType, filters.depth, filters.source, activeProject?.id, filters.testPlanId, filters.testExecutionId, calculateFolderStatistics]);
 
@@ -440,12 +451,14 @@ function TestResultStatisticsDashboard() {
         {filters.viewType !== 'overview' && (
           <>
             {/* 모바일: 전체 폭, 태블릿+: 1/3 폭 */}
-            <Grid size={{ xs: 12, md: 12, lg: 4 }}>
-              <TestResultStatisticsCard
-                statistics={statistics}
-                loading={loading}
-              />
-            </Grid>
+            {filters.viewType !== 'by-folder' && (
+              <Grid size={{ xs: 12, md: 12, lg: 4 }}>
+                <TestResultStatisticsCard
+                  statistics={statistics}
+                  loading={loading}
+                />
+              </Grid>
+            )}
 
             {/* 비교 차트 - 데이터가 있을 때만 표시 */}
             {!loading &&
@@ -464,6 +477,19 @@ function TestResultStatisticsDashboard() {
                   />
                 </Grid>
               )}
+
+            {/* 폴더별 상세 뷰 */}
+            {!loading && filters.viewType === 'by-folder' && (
+              <Grid size={{ xs: 12 }}>
+                <TestResultFolderStatsView
+                  reportData={reportData}
+                  statistics={statistics}
+                  loading={loading}
+                  projectName={activeProject?.name}
+                  maxDepth={filters.depth}
+                />
+              </Grid>
+            )}
           </>
         )}
 
