@@ -318,6 +318,7 @@ function TestResultStatisticsDashboard() {
           projectId: activeProject?.id,
           testPlanId: filters.testPlanId || undefined,
           testExecutionId: filters.testExecutionId || undefined,
+          includeNotExecuted: true, // ICT-283: 플랜/실행의 전체 인구 기반 통계를 위해 미실행 포함
           size: 2000 // 모든 폴더를 보기 위해 큰 사이즈로 요청
         };
         const response = await testResultService.getDetailedTestResultReport(reportParams);

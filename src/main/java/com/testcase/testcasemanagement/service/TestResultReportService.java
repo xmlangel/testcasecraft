@@ -259,6 +259,27 @@ public class TestResultReportService {
                 filter.getSortBy());
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
 
+        if (Boolean.TRUE.equals(filter.getIncludeNotExecuted())) {
+            // ICT-283: 미실행 케이스 포함 로직 수행
+            List<TestResultReportDto> allCases = getCompletePopulationResults(filter);
+            
+            // 수동 정렬
+            allCases = applySorting(allCases, filter.getSortBy(), filter.getSortDirection());
+            
+            // 수동 페이징
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), allCases.size());
+            
+            List<TestResultReportDto> pageContent;
+            if (start >= allCases.size() || start > end) {
+                pageContent = new ArrayList<>();
+            } else {
+                pageContent = allCases.subList(start, end);
+            }
+            
+            return new PageImpl<>(pageContent, pageable, allCases.size());
+        }
+
         // 프로젝트 ID 필터링이 있는 경우 해당 프로젝트의 테스트 결과만 조회
         Page<TestResult> resultPage;
         if (filter.getProjectId() != null) {
@@ -675,25 +696,138 @@ public class TestResultReportService {
     }
 
     /**
-     * LEFT JOIN을 통한 완전한 테스트 케이스와 결과 조회
+     * 필터 조건에 기반한 전체 테스트케이스 인구(Population) 및 최신 결과 조회
+     * ICT-283: 미실행 케이스를 포함하여 리포트를 생성하기 위한 핵심 로직
+     */
+    private List<TestResultReportDto> getCompletePopulationResults(TestResultFilterDto filter) {
+        String projectId = filter.getProjectId();
+        List<String> testPlanIds = filter.getTestPlanIds();
+        List<String> testExecutionIds = filter.getTestExecutionIds();
+
+        // 1. 대상 테스트케이스 ID 목록 확정 (인구 조사)
+        Set<String> targetTestCaseIds = new HashSet<>();
+        Map<String, TestCase> testCaseMap = new HashMap<>();
+
+        if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
+            // 특정 실행들에 포함된 케이스들
+            List<TestExecution> executions = testExecutionRepository.findAllById(testExecutionIds);
+            for (TestExecution exec : executions) {
+                if (exec.getTestPlanId() != null) {
+                    testPlanRepository.findById(exec.getTestPlanId()).ifPresent(plan -> {
+                        if (plan.getTestCaseIds() != null) {
+                            targetTestCaseIds.addAll(plan.getTestCaseIds());
+                        }
+                    });
+                }
+            }
+        } else if (testPlanIds != null && !testPlanIds.isEmpty()) {
+            // 특정 플랜들에 포함된 케이스들
+            List<com.testcase.testcasemanagement.model.TestPlan> plans = testPlanRepository.findAllById(testPlanIds);
+            for (com.testcase.testcasemanagement.model.TestPlan plan : plans) {
+                if (plan.getTestCaseIds() != null) {
+                    targetTestCaseIds.addAll(plan.getTestCaseIds());
+                }
+            }
+        } else if (projectId != null) {
+            // 프로젝트 전체 케이스
+            List<TestCase> cases = testCaseRepository.findByProjectId(projectId);
+            for (TestCase tc : cases) {
+                targetTestCaseIds.add(tc.getId());
+                testCaseMap.put(tc.getId(), tc);
+            }
+        }
+
+        // TestCase 정보가 Map에 없으면 DB에서 조회 (플랜/실행 기반일 때 필요)
+        if (!targetTestCaseIds.isEmpty() && testCaseMap.isEmpty()) {
+            List<TestCase> cases = testCaseRepository.findAllById(targetTestCaseIds);
+            for (TestCase tc : cases) {
+                testCaseMap.put(tc.getId(), tc);
+            }
+        }
+
+        // 2. 해당 케이스들의 최신 결과 조회 (필터 조건 내에서)
+        List<TestResult> recentResults = testResultRepository.findRecentTestResultsByProject(projectId, 
+                PageRequest.of(0, Integer.MAX_VALUE));
+        
+        // 타겟 케이스별 최신 결과 매칭
+        Map<String, TestResult> latestResultByCase = new HashMap<>();
+        for (TestResult result : recentResults) {
+            String tcId = result.getTestCaseId();
+            if (!targetTestCaseIds.contains(tcId)) continue;
+
+            // 실행 필터 적용
+            if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
+                if (result.getTestExecution() == null || !testExecutionIds.contains(result.getTestExecution().getId())) {
+                    continue;
+                }
+            }
+            // 플랜 필터 적용
+            else if (testPlanIds != null && !testPlanIds.isEmpty()) {
+                if (result.getTestExecution() == null || !testPlanIds.contains(result.getTestExecution().getTestPlanId())) {
+                    continue;
+                }
+            }
+
+            // 가장 최신 결과 하나만 유지 (executedAt 기준)
+            if (!latestResultByCase.containsKey(tcId)) {
+                latestResultByCase.put(tcId, result);
+            } else {
+                TestResult existing = latestResultByCase.get(tcId);
+                if (result.getExecutedAt() != null && existing.getExecutedAt() != null && 
+                    result.getExecutedAt().isAfter(existing.getExecutedAt())) {
+                    latestResultByCase.put(tcId, result);
+                }
+            }
+        }
+
+        // 3. 테스트케이스 목록을 순회하며 DTO 생성
+        List<TestResultReportDto> reportDtos = new ArrayList<>();
+        for (String tcId : targetTestCaseIds) {
+            TestCase tc = testCaseMap.get(tcId);
+            if (tc == null) continue;
+
+            TestResult tr = latestResultByCase.get(tcId);
+            TestResultReportDto dto;
+            if (tr != null) {
+                dto = convertToReportDto(tr);
+            } else {
+                dto = new TestResultReportDto();
+                dto.setTestCaseId(tc.getId());
+                dto.setTestCaseName(tc.getName());
+                dto.setFolderPath(buildFolderPath(tc));
+                dto.setResult("NOT_RUN");
+                dto.setPriority(tc.getPriority());
+                dto.setCategory(tc.getType());
+            }
+            reportDtos.add(dto);
+        }
+
+        return reportDtos;
+    }
+
+    /**
+     * ICT-283: 미실행 테스트 케이스와 결과를 포함한 목록 조회 (폴더 필터 지원)
      */
     private List<TestResultReportDto> getCompleteTestCasesWithResults(String projectId,
             String testPlanId, String folderPath) {
-
-        // 직접 SQL 쿼리를 사용하여 LEFT JOIN 수행
-        // 이 부분은 Repository에서 @Query를 통해 구현하거나
-        // EntityManager를 사용한 네이티브 쿼리로 구현해야 함
-
-        List<TestResultReportDto> completeCases = new ArrayList<>();
-
-        // SELECT tc.*, tr.result, tr.executed_at, tr.executed_by, tr.notes
-        // FROM test_case tc
-        // LEFT JOIN test_result tr ON tc.id = tr.test_case_id
-        // WHERE tc.project_id = ?
-        // [AND tc.test_plan_id = ?]
-        // [AND tc.folder_path LIKE ?]
-
-        return completeCases;
+        
+        TestResultFilterDto filter = new TestResultFilterDto();
+        filter.setProjectId(projectId);
+        if (testPlanId != null) {
+            filter.setTestPlanIds(List.of(testPlanId));
+        }
+        filter.setIncludeNotExecuted(true);
+        
+        List<TestResultReportDto> results = getCompletePopulationResults(filter);
+        
+        // 폴더 경로 필터링 추가
+        if (folderPath != null && !folderPath.isEmpty()) {
+            results = results.stream()
+                .filter(r -> r.getFolderPath() != null && (r.getFolderPath().equals(folderPath) || r.getFolderPath().startsWith(folderPath + "/")))
+                .collect(Collectors.toList());
+        }
+        
+        return results;
     }
 
     /**
