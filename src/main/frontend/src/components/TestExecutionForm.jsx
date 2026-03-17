@@ -787,6 +787,46 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     setVisibleCount(50);
   }, [filters]);
 
+  // 스크롤 복구 로직 (scrollTo 쿼리 파라미터 처리)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const scrollToId = searchParams.get('scrollTo');
+    
+    if (scrollToId && filteredData.length > 0) {
+      // 1. 해당 ID가 필터링된 데이터에 있는지 확인 및 인덱스 찾기
+      const targetIndex = filteredData.findIndex(item => item.id === scrollToId);
+      
+      if (targetIndex !== -1) {
+        // 2. 현재 visibleCount보다 뒤에 있다면 visibleCount 확장
+        if (targetIndex >= visibleCount) {
+          // 인덱스를 포함하도록 50 단위로 올림하여 확장
+          const newCount = Math.ceil((targetIndex + 1) / 50) * 50;
+          setVisibleCount(newCount);
+          // visibleCount가 업데이트된 후 다음 렌더링에서 스크롤을 시도해야 하므로 여기서 중단
+          return;
+        }
+        
+        // 3. 렌더링이 완료된 후 스크롤 실행 (setTimeout으로 렌더링 대기)
+        const timer = setTimeout(() => {
+          const element = document.getElementById(`execution-row-${scrollToId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // 4. 스크롤 후 쿼리 파라미터 제거 (반복 방지)
+            const newParams = new URLSearchParams(location.search);
+            newParams.delete('scrollTo');
+            const newSearch = newParams.toString();
+            navigate({
+              pathname: location.pathname,
+              search: newSearch ? `?${newSearch}` : ''
+            }, { replace: true });
+          }
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [location.search, filteredData, visibleCount, navigate, location.pathname]);
+
   // 필터 관련 핸들러
   const handleFilterChange = useCallback((field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }));

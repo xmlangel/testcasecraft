@@ -55,6 +55,7 @@ const ExecutionRow = memo(({
 
     return (
         <Box
+            id={`execution-row-${node.id}`}
             sx={{
                 display: "grid",
                 gridTemplateColumns: gridTemplateColumns,

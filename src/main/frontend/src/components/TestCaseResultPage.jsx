@@ -109,7 +109,7 @@ const TestCaseResultPage = () => {
   }, [projectId, executionId, testCaseId, api]);
 
   const handleBack = () => {
-    navigate(`/projects/${projectId}/executions/${executionId}`);
+    navigate(`/projects/${projectId}/executions/${executionId}?scrollTo=${testCaseId}`);
   };
 
   const handleSave = (updatedExecution) => {
