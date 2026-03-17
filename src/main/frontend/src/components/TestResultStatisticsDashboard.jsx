@@ -1,7 +1,7 @@
 // src/components/TestResultStatisticsDashboard.jsx
 // ICT-194 Phase 3: React 성능 최적화 적용
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Box,
   Grid,
@@ -11,11 +11,11 @@ import {
   Paper,
   Divider,
   useTheme,
-
   useMediaQuery,
   ToggleButton,
   ToggleButtonGroup
 } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
 
 // ICT-187 컴포넌트들
 import TestResultStatisticsCard from './TestResultStatisticsCard';
@@ -35,7 +35,6 @@ import { useI18n } from '../context/I18nContext';
  * Pass/Fail/NotRun/Blocked 통계를 종합적으로 표시
  */
 function TestResultStatisticsDashboard() {
-  // AppContext에서 필요한 데이터
   const {
     activeProject,
     projects = [],
@@ -43,23 +42,38 @@ function TestResultStatisticsDashboard() {
     testExecutions = []
   } = useAppContext();
 
-  // I18n 훅
   const { t } = useI18n();
 
-  // 반응형 처리를 위한 미디어 쿼리
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // 960px 미만
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // URL에서 초기 필터 설정
+  const getInitialFilters = () => ({
+    testPlanId: searchParams.get('testPlanId') || '',
+    testExecutionId: searchParams.get('testExecutionId') || '',
+    dateRange: searchParams.get('dateRange') || 'all',
+    viewType: searchParams.get('viewType') || 'overview',
+    source: searchParams.get('source') || 'manual',
+    depth: parseInt(searchParams.get('depth') || '20', 10)
+  });
 
   // 상태 관리
-  const [filters, setFilters] = useState({
-    testPlanId: '',
-    testExecutionId: '',
-    dateRange: 'all',
+  const [filters, setFilters] = useState(getInitialFilters);
 
-    viewType: 'overview',
-    source: 'manual', // manual, automated, total
-    depth: 20
-  });
+  // 필터 변경 시 URL 파라미터 업데이트
+  useEffect(() => {
+    const params = {};
+    if (filters.testPlanId) params.testPlanId = filters.testPlanId;
+    if (filters.testExecutionId) params.testExecutionId = filters.testExecutionId;
+    if (filters.dateRange !== 'all') params.dateRange = filters.dateRange;
+    if (filters.viewType !== 'overview') params.viewType = filters.viewType;
+    if (filters.source !== 'manual') params.source = filters.source;
+    if (filters.depth !== 20) params.depth = filters.depth;
+    
+    setSearchParams(params, { replace: true });
+  }, [filters, setSearchParams]);
 
   const [statistics, setStatistics] = useState(null);
   const [manualStatistics, setManualStatistics] = useState(null);
@@ -70,15 +84,20 @@ function TestResultStatisticsDashboard() {
   const [error, setError] = useState(null);
   const [showPercentage, setShowPercentage] = useState(false);
 
+  // 이전 프로젝트 ID 추적 (필터 초기화 방지)
+  const prevProjectIdRef = useRef(activeProject?.id);
+
   // 활성 프로젝트 변경 시 필터 초기화
   useEffect(() => {
-    if (activeProject?.id) {
+    // 프로젝트 ID가 실제로 변경된 경우에만 필터를 초기화함 (초기 로드 시 URL 파라미터 보존을 위해 제외)
+    if (activeProject?.id && prevProjectIdRef.current && activeProject.id !== prevProjectIdRef.current) {
       setFilters(prev => ({
         ...prev,
         testPlanId: '',
         testExecutionId: ''
       }));
     }
+    prevProjectIdRef.current = activeProject?.id;
   }, [activeProject?.id]);
 
   // 필터 변경 시 데이터 새로고침
