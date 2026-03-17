@@ -13,21 +13,13 @@ import {
   Button,
   Menu,
   MenuItem,
-  FormControlLabel,
-  Checkbox,
-  Divider,
-  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
   CircularProgress,
-  Grid,
-  Card,
-  CardContent
+  useTheme,
+  alpha
 } from '@mui/material';
 import {
   DataGrid,
@@ -52,13 +44,12 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
-import { TestResult } from '../../models/testExecution.jsx';
 import jiraService from '../../services/jiraService.js';
 // JIRA 상태 조회를 위한 공통 훅
 import { useBatchJiraIssueStatus } from '../../hooks/useJiraStatus.js';
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
 import { LEGACY_RESULT_COLORS, getResultLabel } from '../../utils/testResultConstants.js';
-import { API_CONFIG, API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
+import { API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
 import { isServerUTC } from '../../utils/dateUtils.js';
 // ICT-344: 디버그 로깅 유틸리티
 import { debugLog, debugWarn, debugError } from '../../utils/logger.js';
@@ -99,8 +90,9 @@ const GRID_PRINT_PAGE_STYLE = `
 `;
 
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
-  const { testCases, activeProject, user, api } = useAppContext();
+  const { testCases, activeProject, api } = useAppContext();
   const { t } = useI18n();
+  const theme = useTheme();
   // ICT-263: URL 쿼리 파라미터 연동
   const location = useLocation();
   const navigate = useNavigate();
@@ -373,6 +365,25 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
       setRawRows(tableData);
 
+      // ICT-247/283: 최신 결과 표시를 위한 로직 추가
+      // 각 테스트케이스별로 가장 최근의 실행일자를 찾음
+      const latestMap = new Map();
+      tableData.forEach(row => {
+        if (!row.testCaseId) return;
+        const currentLatest = latestMap.get(row.testCaseId);
+        if (!currentLatest || (row.executedDate && (!currentLatest.executedDate || row.executedDate > currentLatest.executedDate))) {
+          latestMap.set(row.testCaseId, row);
+        }
+      });
+
+      // 최신 결과인 행에 isLatest 플래그 설정
+      const tableDataWithLatest = tableData.map(row => ({
+        ...row,
+        isLatest: latestMap.get(row.testCaseId)?.id === row.id
+      }));
+
+      setRawRows(tableDataWithLatest);
+
       // ICT-209: 활성 편집본 정보 로드 (비활성화 - 404 에러 방지)
       // await loadActiveEdits(tableData);
     } catch (err) {
@@ -476,41 +487,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
   // handleJiraStatusCheck는 이제 useBatchJiraIssueStatus 훅에서 제공됨 (제거)
 
-  // ICT-209: 활성 편집본 정보 로드 (404 오류 최소화)
-  const loadActiveEdits = async (testResults) => {
-    try {
-      // 편집본 기능이 활성화되어 있는지 확인 (실제 구현 시 조건부 실행)
-      if (!testResultEditService) {
-        debugWarn('TestResultDetailTable', '편집본 기능을 사용할 수 없습니다');
-        return;
-      }
-
-      // 404 오류는 정상적인 응답이므로 경고 로그 줄이기
-      const editPromises = testResults.slice(0, Math.min(testResults.length, 20)).map(async (result) => {
-        try {
-          const activeEdit = await testResultEditService.getActiveEdit(result.testCaseId);
-          return { testResultId: result.testCaseId, activeEdit };
-        } catch (error) {
-          // 404는 정상적인 응답으로 간주 (편집본이 없는 경우)
-          return { testResultId: result.testCaseId, activeEdit: null };
-        }
-      });
-
-      const editResults = await Promise.all(editPromises);
-      const editsMap = {};
-      editResults.forEach(({ testResultId, activeEdit }) => {
-        if (activeEdit) {
-          editsMap[testResultId] = activeEdit;
-        }
-      });
-
-      setActiveEdits(editsMap);
-    } catch (error) {
-      debugWarn('TestResultDetailTable', '활성 편집본 로드 실패:', error);
-      // 오류 시 빈 상태로 설정하여 UI가 정상 동작하도록 함
-      setActiveEdits({});
-    }
-  };
 
   // ICT-209: 편집 다이얼로그 열기
   const handleEditClick = (testResultId, executionId) => {
@@ -684,12 +660,29 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         const label = resultKey ? t(resultKey, getResultLabel(params.value)) : '-';
 
         return (
-          <Chip
-            label={label}
-            color={LEGACY_RESULT_COLORS[params.value] || 'default'}
-            size="small"
-            variant="outlined"
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Chip
+              label={label}
+              color={LEGACY_RESULT_COLORS[params.value] || 'default'}
+              size="small"
+              variant="outlined"
+            />
+            {params.row.isLatest && (
+              <Tooltip title={t('testResult.badge.latest', '최신 결과')}>
+                <Chip
+                  label={t('testResult.badge.latestShort', 'LATEST')}
+                  size="small"
+                  color="info"
+                  sx={{ 
+                    fontSize: '0.65rem', 
+                    height: '20px', 
+                    fontWeight: 'bold',
+                    backgroundColor: alpha(theme.palette.info.main, 0.1)
+                  }}
+                />
+              </Tooltip>
+            )}
+          </Box>
         );
       }
     },
