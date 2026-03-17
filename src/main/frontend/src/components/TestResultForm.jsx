@@ -1,4 +1,6 @@
+import { useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+
 import PropTypes from 'prop-types';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, CircularProgress, Snackbar, Alert
@@ -19,6 +21,7 @@ import TestResultTags from './TestResult/TestResultTags.jsx';
 import TestResultJira from './TestResult/TestResultJira.jsx';
 import TestResultHeader from './TestResult/TestResultHeader.jsx';
 import TestResultFooter from './TestResult/TestResultFooter.jsx';
+import TestResultFloatingMenu from './TestResult/TestResultFloatingMenu.jsx';
 
 const KEY_RESULT_MAP = {
   'N': TestResult.NOTRUN,
@@ -46,7 +49,9 @@ const TestResultForm = ({
   const { user, api } = useAppContext();
   const { t } = useTranslation();
   const theme = useTheme();
+  const location = useLocation();
   const darkMode = theme.palette.mode === 'dark';
+
   const isViewer = user?.role === 'VIEWER';
 
   const [testCase, setTestCase] = useState(null);
@@ -146,6 +151,14 @@ const TestResultForm = ({
 
     return () => clearTimeout(timer);
   }, [notes]);
+
+  // 스마트 리다이렉트 연동: 위치 정보를 통해 전달된 지라 이슈 키를 초기값으로 설정
+  useEffect(() => {
+    if ((open || fullPage) && location.state?.autoFillJiraIssueKey && !jiraIssueKey && !stableCurrentResult) {
+      setJiraIssueKey(location.state.autoFillJiraIssueKey);
+    }
+  }, [open, fullPage, location.state, jiraIssueKey, stableCurrentResult]);
+
 
   // 프로젝트의 기존 태그 목록 조회
   useEffect(() => {
@@ -491,24 +504,8 @@ const TestResultForm = ({
         <>
           <TestCaseDetails testCase={testCase} t={t} />
 
-          <Box sx={{ mt: 3 }}>
-            <TestResultSelector
-              result={result}
-              onChange={(e) => {
-                const newResult = e.target.value;
-                setResult(newResult);
-                setTimeout(() => handleSaveAndNext(newResult, {
-                  advanceToNext: false,
-                  keepDialogOpen: true,
-                  showSuccess: true,
-                }), 100);
-              }}
-              isViewer={isViewer}
-              t={t}
-              minWidth={fullPage ? '150px' : '120px'}
-              padding={fullPage ? '16px 24px' : '14px 20px'}
-              fontSize={fullPage ? '1.15rem' : '1.05rem'}
-            />
+          <Box sx={{ mt: 3, width: '100%', boxSizing: 'border-box' }}>
+            {/* 기존 TestResultSelector는 플로팅 메뉴로 대체됨 */}
 
             <TestResultNotes
               notes={notes}
@@ -517,6 +514,10 @@ const TestResultForm = ({
               t={t}
               darkMode={darkMode}
               height={fullPage ? 300 : 200}
+              onNext={onNext}
+              onPrevious={onPrevious}
+              currentIndex={currentIndex}
+              totalCount={totalCount}
             />
 
             <TestResultTags
@@ -551,22 +552,10 @@ const TestResultForm = ({
               linkedIssues={linkedIssues}
               isViewer={isViewer}
               t={t}
+              detectedJiraIssues={detectedJiraIssues}
             />
 
-            {fullPage && (
-              <TestResultFooter
-                onClose={onClose}
-                onSave={() => handleSaveAndNext(result)}
-                handleOpenJiraDialog={handleOpenJiraDialog}
-                shouldShowJiraButton={shouldShowJiraButton}
-                detectedJiraIssues={detectedJiraIssues}
-                loading={loading}
-                isViewer={isViewer}
-                testCase={testCase}
-                saveButtonRef={saveButtonRef}
-                t={t}
-              />
-            )}
+            {/* 하단 Footer는 플로팅 메뉴로 대체됨 */}
           </Box>
         </>
       ) : null}
@@ -577,9 +566,11 @@ const TestResultForm = ({
     return (
       <Box sx={{
         width: '100%',
-        height: '100%',
+        minHeight: '100vh',
         bgcolor: (theme) => theme.palette.background.default,
-        p: 2
+        p: { xs: 1, sm: 2, md: 3 }, // 반응형 패딩
+        boxSizing: 'border-box',
+        overflowX: 'hidden' // 가로 스크롤 방지
       }}>
         <TestResultHeader
           onPrevious={onPrevious}
@@ -589,9 +580,36 @@ const TestResultForm = ({
           testCase={testCase}
           isViewer={isViewer}
           t={t}
+          hideButtons={true}
         />
 
         {renderContent()}
+
+        {/* 플로팅 메뉴 (스크롤 시에도 고정) */}
+        <TestResultFloatingMenu
+          result={result}
+          onResultChange={(newResult) => {
+            setResult(newResult);
+            setTimeout(() => handleSaveAndNext(newResult, {
+              advanceToNext: false,
+              keepDialogOpen: true,
+              showSuccess: true,
+            }), 100);
+          }}
+          onPrevious={onPrevious}
+          onNext={onNext}
+          onSave={() => handleSaveAndNext(result)}
+          onClose={onClose}
+          currentIndex={currentIndex}
+          totalCount={totalCount}
+          isViewer={isViewer}
+          loading={loading}
+          shouldShowJiraButton={shouldShowJiraButton}
+          handleOpenJiraDialog={handleOpenJiraDialog}
+          testCase={testCase}
+          saveButtonRef={saveButtonRef}
+          t={t}
+        />
 
         <Snackbar
           open={!!saveError}
@@ -651,36 +669,39 @@ const TestResultForm = ({
         {t('testResult.form.title')}
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ pb: 12, px: { xs: 2, sm: 3 } }}> {/* 플로팅 메뉴 공간 및 좌우 여백 확보 */}
         {renderContent()}
-      </DialogContent>
-
-      <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2, flexWrap: 'wrap', gap: 2, flexDirection: 'column' }}>
-        {/* Previous/Next navigation at bottom for easier access after scrolling */}
-        {(onNext || onPrevious) && totalCount > 1 && (
-          <TestResultHeader
+        
+        {/* 플로팅 메뉴 (스크롤 시에도 고정) */}
+        {!loading && testCase && (
+          <TestResultFloatingMenu
+            result={result}
+            onResultChange={(newResult) => {
+              setResult(newResult);
+              setTimeout(() => handleSaveAndNext(newResult, {
+                advanceToNext: false,
+                keepDialogOpen: true,
+                showSuccess: true,
+              }), 100);
+            }}
             onPrevious={onPrevious}
             onNext={onNext}
+            onSave={() => handleSaveAndNext(result)}
+            onClose={onClose}
             currentIndex={currentIndex}
             totalCount={totalCount}
-            testCase={testCase}
             isViewer={isViewer}
+            loading={loading}
+            shouldShowJiraButton={shouldShowJiraButton}
+            handleOpenJiraDialog={handleOpenJiraDialog}
+            testCase={testCase}
+            saveButtonRef={saveButtonRef}
             t={t}
           />
         )}
-        <TestResultFooter
-          onClose={onClose}
-          onSave={() => handleSaveAndNext(result)}
-          handleOpenJiraDialog={handleOpenJiraDialog}
-          shouldShowJiraButton={shouldShowJiraButton}
-          detectedJiraIssues={detectedJiraIssues}
-          loading={loading}
-          isViewer={isViewer}
-          testCase={testCase}
-          saveButtonRef={saveButtonRef}
-          t={t}
-        />
-      </DialogActions>
+      </DialogContent>
+
+      {/* 하단 버튼들은 플로팅 메뉴로 대체됨 */}
 
       <Snackbar
         open={!!saveError}

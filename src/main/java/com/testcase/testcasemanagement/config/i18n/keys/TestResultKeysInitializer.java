@@ -74,6 +74,15 @@ public class TestResultKeysInitializer {
                                 "비고 파일 첨부 권장 메시지",
                                 "긴 내용은 파일 첨부를 권장합니다.");
 
+                // 최신 결과 배지 및 통계
+                createTranslationKeyIfNotExists("testResult.badge.latest", "testResult", "최신 결과 배지 툴팁", "최신 결과");
+                createTranslationKeyIfNotExists("testResult.badge.latestShort", "testResult", "최신 결과 배지 라벨", "LATEST");
+                createTranslationKeyIfNotExists("testResult.statistics.latestSuccessRate", "testResult", "최근 성공률", "최종 성공률");
+                createTranslationKeyIfNotExists("testResult.statistics.totalCaseCount", "testResult", "전체 케이스 수", "전체 케이스");
+                createTranslationKeyIfNotExists("testResult.statistics.totalExecutionCount", "testResult", "누적 수행 횟수", "누적 수행 횟수");
+                createTranslationKeyIfNotExists("testResult.pieChart.totalCaseCount", "testResult", "파이차트 전체 케이스 수", "전체 테스트케이스");
+                createTranslationKeyIfNotExists("testResult.pieChart.totalExecutionCount", "testResult", "파이차트 누적 수행 횟수", "누적 수행 횟수");
+
                 // Markdown 모드 관련
                 createTranslationKeyIfNotExists("testResult.form.mode.text", "testResult", "텍스트 모드", "텍스트");
                 createTranslationKeyIfNotExists("testResult.form.mode.markdown", "testResult", "Markdown 모드",

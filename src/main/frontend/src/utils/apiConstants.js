@@ -173,6 +173,12 @@ export const getDynamicApiUrl = async () => {
 };
 
 /**
+ * 런타임 설정 가져오기
+ * @returns {Object|null} 런타임 설정
+ */
+export const getRuntimeConfig = () => runtimeConfig;
+
+/**
  * API 기본 설정
  * ICT-340: 환경변수 기반 동적 설정
  */

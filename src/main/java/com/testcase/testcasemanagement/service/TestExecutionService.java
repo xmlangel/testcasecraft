@@ -27,6 +27,8 @@ public class TestExecutionService {
     private final UserRepository userRepository;
     private final JiraIntegrationService jiraIntegrationService;
 
+    private final TestCaseRepository testCaseRepository;
+
     @Autowired
     public TestExecutionService(
             TestExecutionRepository testExecutionRepository,
@@ -34,14 +36,17 @@ public class TestExecutionService {
             TestPlanRepository testPlanRepository,
             ProjectRepository projectRepository,
             UserRepository userRepository,
-            JiraIntegrationService jiraIntegrationService) {
+            JiraIntegrationService jiraIntegrationService,
+            TestCaseRepository testCaseRepository) {
         this.testExecutionRepository = testExecutionRepository;
         this.testResultRepository = testResultRepository;
         this.testPlanRepository = testPlanRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.jiraIntegrationService = jiraIntegrationService;
+        this.testCaseRepository = testCaseRepository;
     }
+
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -167,12 +172,26 @@ public class TestExecutionService {
             }
         }
 
+        // ICT-341: displayId 지원 (testCaseId가 없을 경우)
+        String testCaseId = resultDto.getTestCaseId();
+        if ((testCaseId == null || testCaseId.trim().isEmpty())
+                && (resultDto.getDisplayId() != null && !resultDto.getDisplayId().trim().isEmpty())) {
+            testCaseId = testCaseRepository.findByProjectIdAndDisplayId(entity.getProject().getId(), resultDto.getDisplayId())
+                    .map(TestCase::getId)
+                    .orElseThrow(() -> new IllegalArgumentException("DisplayID를 찾을 수 없습니다: " + resultDto.getDisplayId()));
+        }
+
+        if (testCaseId == null || testCaseId.trim().isEmpty()) {
+            throw new IllegalArgumentException("testCaseId 또는 displayId가 필요합니다.");
+        }
+
         // 항상 새로운 결과를 추가
         TestResult r = new TestResult();
         r.setTestExecution(entity);
-        r.setTestCaseId(resultDto.getTestCaseId());
+        r.setTestCaseId(testCaseId);
         r.setResult(resultDto.getResult());
         r.setNotes(resultDto.getNotes());
+
         r.setJiraIssueKey(resultDto.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
         if (resultDto.getTags() != null) {
             r.setTags(new ArrayList<>(resultDto.getTags()));
@@ -231,7 +250,30 @@ public class TestExecutionService {
         }
 
         // 각 테스트케이스에 대해 결과 생성
-        for (String testCaseId : bulkDto.getTestCaseIds()) {
+        Set<String> finalTestCaseIds = new LinkedHashSet<>();
+        
+        // 1. 기존 UUID 기반 ID 추가
+        if (bulkDto.getTestCaseIds() != null) {
+            finalTestCaseIds.addAll(bulkDto.getTestCaseIds());
+        }
+        
+        // 2. DisplayID 기반 ID 추가
+        if (bulkDto.getDisplayIds() != null && !bulkDto.getDisplayIds().isEmpty()) {
+            for (String displayId : bulkDto.getDisplayIds()) {
+                if (displayId != null && !displayId.trim().isEmpty()) {
+                    String caseId = testCaseRepository.findByProjectIdAndDisplayId(entity.getProject().getId(), displayId)
+                            .map(TestCase::getId)
+                            .orElseThrow(() -> new IllegalArgumentException("DisplayID를 찾을 수 없습니다: " + displayId));
+                    finalTestCaseIds.add(caseId);
+                }
+            }
+        }
+
+        if (finalTestCaseIds.isEmpty()) {
+            throw new IllegalArgumentException("결과를 입력할 테스트케이스 ID 또는 DisplayID가 없습니다.");
+        }
+
+        for (String testCaseId : finalTestCaseIds) {
             TestResult r = new TestResult();
             r.setTestExecution(entity);
             r.setTestCaseId(testCaseId);
@@ -246,6 +288,7 @@ public class TestExecutionService {
 
             results.add(r);
         }
+
 
         entity.setResults(results);
         entity.setUpdatedAt(now);

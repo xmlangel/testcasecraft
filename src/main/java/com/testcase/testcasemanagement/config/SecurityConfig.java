@@ -32,15 +32,18 @@ public class SecurityConfig {
     private final JwtTokenUtil jwtTokenUtil;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final com.testcase.testcasemanagement.repository.ServiceApiKeyRepository serviceApiKeyRepository;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
             JwtTokenUtil jwtTokenUtil,
             CustomAuthenticationEntryPoint authenticationEntryPoint,
-            CustomAccessDeniedHandler accessDeniedHandler) {
+            CustomAccessDeniedHandler accessDeniedHandler,
+            com.testcase.testcasemanagement.repository.ServiceApiKeyRepository serviceApiKeyRepository) {
         this.userDetailsService = userDetailsService;
         this.jwtTokenUtil = jwtTokenUtil;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.serviceApiKeyRepository = serviceApiKeyRepository;
     }
 
     @Bean
@@ -76,6 +79,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/i18n/**").permitAll() // 다국어 API 허용
                         .requestMatchers("/api/testcase-attachments/public/**").permitAll()
                         .requestMatchers("/api/rag/**").authenticated() // RAG API는 인증 필요
+                        .requestMatchers("/api/service-api-keys/redirect-token").permitAll() // Forge 앱 임시 토큰 발급 (자체 API
+                                                                                             // 키 검증)
+                        .requestMatchers("/api/service-api-keys/exchange-token").permitAll() // 임시 토큰 → JWT 교환 (1회성)
                         .requestMatchers("/api/email-verification/**").permitAll() // 이메일 인증 API 허용
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
                         // 액추에이터 엔드포인트 허용 (루트, 헬스, 스케줄러)
@@ -119,13 +125,22 @@ public class SecurityConfig {
                                 "/llm-config/**",
                                 "/scheduler",
                                 "/scheduler/**",
+                                "/jira-redirect",
+                                "/jira-redirect/**",
                                 "/verify-email",
                                 "/verify-email/**")
                         .permitAll()
                         .anyRequest().authenticated())
+                .addFilterBefore(apiKeyAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // API Key 인증 필터 생성
+    @Bean
+    public ApiKeyAuthenticationFilter apiKeyAuthenticationFilter() {
+        return new ApiKeyAuthenticationFilter(serviceApiKeyRepository);
     }
 
     // JWT 인증 필터 생성

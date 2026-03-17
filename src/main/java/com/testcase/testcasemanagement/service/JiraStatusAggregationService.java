@@ -569,22 +569,22 @@ public class JiraStatusAggregationService {
         String currentStatus = Optional.ofNullable(issueInfo)
                 .map(info -> info.path("fields").path("status").path("name").asText())
                 .filter(text -> !text.isEmpty())
-                .orElse("Unknown");
+                .orElse("정보 없음");
 
         String issueType = Optional.ofNullable(issueInfo)
                 .map(info -> info.path("fields").path("issuetype").path("name").asText())
                 .filter(text -> !text.isEmpty())
-                .orElse("Unknown");
+                .orElse("정보 없음");
 
         String priority = Optional.ofNullable(issueInfo)
                 .map(info -> info.path("fields").path("priority").path("name").asText())
                 .filter(text -> !text.isEmpty())
-                .orElse("Unknown");
+                .orElse("정보 없음");
 
         String summary = Optional.ofNullable(issueInfo)
                 .map(info -> info.path("fields").path("summary").asText())
                 .filter(text -> !text.isEmpty())
-                .orElse("No Summary");
+                .orElse("제목 없음");
 
         String syncStatus = calculateOverallSyncStatus(testResults);
         LocalDateTime lastSyncAt = testResults.stream()
@@ -616,7 +616,7 @@ public class JiraStatusAggregationService {
                 .latestTestResult(latestTest.getResult())
                 .latestTestDate(latestTest.getExecutedAt())
                 .latestExecutor(
-                        latestTest.getExecutedBy() != null ? latestTest.getExecutedBy().getUsername() : "Unknown")
+                        latestTest.getExecutedBy() != null ? latestTest.getExecutedBy().getUsername() : "정보 없음")
                 .syncStatus(syncStatus)
                 .lastSyncAt(lastSyncAt)
                 .projectId(projectId)
@@ -637,10 +637,10 @@ public class JiraStatusAggregationService {
     private JiraStatusSummaryDto createFailedSummary(String projectId, String jiraId, String errorMessage) {
         return JiraStatusSummaryDto.builder()
                 .jiraIssueKey(jiraId)
-                .currentStatus("ERROR")
-                .issueType("Unknown")
-                .priority("Unknown")
-                .summary("JIRA 이슈 조회 실패")
+                .currentStatus("확인 불가")
+                .issueType("정보 없음")
+                .priority("정보 없음")
+                .summary("이슈 정보를 가져올 수 없습니다")
                 .linkedTestCount(0L)
                 .testResultDistribution(new HashMap<>())
                 .syncStatus("FAILED")

@@ -82,6 +82,15 @@ public class EnglishTestResultTranslations {
                 createTranslationIfNotExists("testResult.form.notesFileRecommendation", languageCode,
                                 "For long content, file attachment is recommended.", createdBy);
                 createTranslationIfNotExists("testResult.form.mode.text", languageCode, "Text", createdBy);
+
+                // Latest Result Badge and Statistics
+                createTranslationIfNotExists("testResult.badge.latest", languageCode, "Latest Result", createdBy);
+                createTranslationIfNotExists("testResult.badge.latestShort", languageCode, "LATEST", createdBy);
+                createTranslationIfNotExists("testResult.statistics.latestSuccessRate", languageCode, "Latest Success Rate", createdBy);
+                createTranslationIfNotExists("testResult.statistics.totalCaseCount", languageCode, "Total Case Count", createdBy);
+                createTranslationIfNotExists("testResult.statistics.totalExecutionCount", languageCode, "Total Execution Count", createdBy);
+                createTranslationIfNotExists("testResult.pieChart.totalCaseCount", languageCode, "Total TestCase Count", createdBy);
+                createTranslationIfNotExists("testResult.pieChart.totalExecutionCount", languageCode, "Total Execution Count", createdBy);
                 createTranslationIfNotExists("testResult.form.mode.markdown", languageCode, "Markdown", createdBy);
                 createTranslationIfNotExists("testResult.form.mode.switch", languageCode, "Mode Switch", createdBy);
                 createTranslationIfNotExists("testResult.form.fileAttachment", languageCode, "File Attachment",

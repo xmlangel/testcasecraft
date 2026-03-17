@@ -24,6 +24,8 @@ public class TestResultDto {
     private String id;
 
     private String testCaseId;
+    private String displayId;
+
 
     @Size(max = 10000, message = "notes는 10,000자 이내로 입력해주세요")
     private String notes;

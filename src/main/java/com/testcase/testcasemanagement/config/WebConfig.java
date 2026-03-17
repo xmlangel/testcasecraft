@@ -53,6 +53,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/llm-config/**").setViewName("forward:/index.html");
         registry.addViewController("/scheduler").setViewName("forward:/index.html");
         registry.addViewController("/scheduler/**").setViewName("forward:/index.html");
+        registry.addViewController("/jira-redirect").setViewName("forward:/index.html");
+        registry.addViewController("/jira-redirect/**").setViewName("forward:/index.html");
         registry.addViewController("/verify-email").setViewName("forward:/index.html");
         registry.addViewController("/verify-email/**").setViewName("forward:/index.html");
 

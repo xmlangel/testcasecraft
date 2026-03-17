@@ -1,0 +1,45 @@
+modules:
+  jira:issuePanel:
+    - key: testcasecraft-issue-panel
+      resource: main
+      render: native
+      resolver:
+        function: resolver
+      title: Testcasecraft
+      icon: assets/app-icon.jpg
+  jira:adminPage:
+    - key: testcasecraft-settings
+      resource: settings
+      render: native
+      resolver:
+        function: resolver
+      title: Testcasecraft Settings
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: settings
+    path: src/frontend/settings.jsx
+  - key: main
+    path: src/frontend/index.jsx
+app:
+  id: ari:cloud:ecosystem::app/53c96fb2-3c38-4b39-942b-dc0834f217fc
+  runtime:
+    name: nodejs22.x
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - storage:app
+  external:
+    fetch:
+      client:
+        - address: "*.skaiworldwide.co.kr"
+        - address: "*.xmlangel.uk"
+        - address: "*.qaspecialist.uk"
+        - address: "tc.qaspecialist.uk"
+      backend:
+        - address: "*.skaiworldwide.co.kr"
+        - address: "*.xmlangel.uk"
+        - address: "*.qaspecialist.uk"
+        - address: "tc.qaspecialist.uk"

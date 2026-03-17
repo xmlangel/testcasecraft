@@ -68,37 +68,40 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
     </Card>
   ), [t]);
 
+  // ICT-247/283: 최신 결과 통계 우선 사용
+  const isLatestMode = !!statistics?.totalCaseCount;
+
   // ICT-194 Phase 3: 통계 아이템 배열 메모이제이션 - statistics 변경 시만 재계산
   const statisticItems = useMemo(() => [
     {
       label: t('testResult.status.pass'),
-      value: statistics?.passCount || 0,
-      percentage: statistics?.passRate || 0,
+      value: isLatestMode ? (statistics?.latestPassCount || 0) : (statistics?.passCount || 0),
+      percentage: isLatestMode ? (statistics?.latestPassRate || 0) : (statistics?.passRate || 0),
       color: RESULT_COLORS.PASS,
       icon: <CheckCircle sx={{ color: RESULT_COLORS.PASS }} />
     },
     {
       label: t('testResult.status.fail'),
-      value: statistics?.failCount || 0,
-      percentage: statistics?.failRate || 0,
+      value: isLatestMode ? (statistics?.latestFailCount || 0) : (statistics?.failCount || 0),
+      percentage: isLatestMode ? (statistics?.latestFailRate || 0) : (statistics?.failRate || 0),
       color: RESULT_COLORS.FAIL,
       icon: <Cancel sx={{ color: RESULT_COLORS.FAIL }} />
     },
     {
       label: t('testResult.status.blocked'),
-      value: statistics?.blockedCount || 0,
-      percentage: statistics?.blockedRate || 0,
+      value: isLatestMode ? (statistics?.latestBlockedCount || 0) : (statistics?.blockedCount || 0),
+      percentage: isLatestMode ? (statistics?.latestBlockedRate || 0) : (statistics?.blockedRate || 0),
       color: RESULT_COLORS.BLOCKED,
       icon: <Block sx={{ color: RESULT_COLORS.BLOCKED }} />
     },
     {
       label: t('testResult.status.notRun'),
-      value: statistics?.notRunCount || 0,
-      percentage: statistics?.notRunRate || 0,
+      value: isLatestMode ? (statistics?.latestNotRunCount || 0) : (statistics?.notRunCount || 0),
+      percentage: isLatestMode ? (statistics?.latestNotRunRate || 0) : (statistics?.notRunRate || 0),
       color: RESULT_COLORS.NOTRUN,
       icon: <PauseCircle sx={{ color: RESULT_COLORS.NOTRUN }} />
     }
-  ], [statistics, t]);
+  ], [statistics, t, isLatestMode]);
 
   if (loading) return loadingCard;
   if (error) return errorCard;
@@ -121,10 +124,10 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
               borderRadius: 1
             }}>
               <Typography variant="body2" color="success.main" fontWeight="bold">
-                {t('testResult.statistics.successRate')}
+                {isLatestMode ? t('testResult.statistics.latestSuccessRate', '최종 성공률') : t('testResult.statistics.successRate')}
               </Typography>
               <Typography variant="h5" color="success.main" fontWeight="bold">
-                <CountUp end={statistics.passRate || 0} duration={1} suffix="%" />
+                <CountUp end={isLatestMode ? (statistics.latestSuccessRate || 0) : (statistics.passRate || 0)} duration={1} suffix="%" />
               </Typography>
             </Box>
           </Grid>
@@ -136,14 +139,25 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
               borderRadius: 1
             }}>
               <Typography variant="body2" color="primary.main" fontWeight="bold">
-                {t('testResult.statistics.totalTests')}
+                {isLatestMode ? t('testResult.statistics.totalCaseCount', '전체 케이스') : t('testResult.statistics.totalTests')}
               </Typography>
               <Typography variant="h5" color="primary.main" fontWeight="bold">
-                <CountUp end={statistics.totalTests || 0} duration={1} />
+                <CountUp end={isLatestMode ? (statistics.totalCaseCount || 0) : (statistics.totalTests || 0)} duration={1} />
               </Typography>
             </Box>
           </Grid>
         </Grid>
+
+        {isLatestMode && (
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+            <Chip 
+              label={`${t('testResult.statistics.totalExecutionCount', '누적 수행 횟수')}: ${statistics.totalTests || 0}`}
+              size="small"
+              variant="outlined"
+              color="primary"
+            />
+          </Box>
+        )}
 
         {/* 상세 통계 */}
         <Grid container spacing={1}>

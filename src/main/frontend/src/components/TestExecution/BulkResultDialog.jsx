@@ -24,6 +24,7 @@ import {
 import { useTranslation } from '../../context/I18nContext.jsx';
 import { TestResult } from '../../models/testExecution.jsx';
 import { RESULT_COLORS } from '../../constants/statusColors';
+import { jiraService } from '../../services/jiraService';
 
 const BulkResultDialog = ({
     open,
@@ -39,6 +40,16 @@ const BulkResultDialog = ({
     const [commonNotes, setCommonNotes] = useState('');
     const [commonTags, setCommonTags] = useState([]);
     const [commonJiraId, setCommonJiraId] = useState('');
+
+    const handleJiraPaste = (e) => {
+        const pastedText = e.clipboardData.getData('text');
+        const extractedKey = jiraService.extractIssueKeyFromUrl(pastedText);
+
+        if (extractedKey) {
+            e.preventDefault();
+            setCommonJiraId(extractedKey);
+        }
+    };
 
     // Set initial result when dialog opens with preselected value
     useEffect(() => {
@@ -192,7 +203,8 @@ const BulkResultDialog = ({
                         id="bulk-common-jira-id"
                         label={t('testExecution.bulk.dialog.commonJiraId', '공통 JIRA ID')}
                         value={commonJiraId}
-                        onChange={(e) => setCommonJiraId(e.target.value)}
+                        onChange={(e) => setCommonJiraId(e.target.value.toUpperCase())}
+                        onPaste={handleJiraPaste}
                         fullWidth
                         placeholder="PROJ-123"
                         disabled={processing}

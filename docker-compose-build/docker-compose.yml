@@ -1,7 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:1.0.43
+    image: xmlangel/testcasecraft:1.0.44
     container_name: testcasecraft
     environment:
       # Spring Profile
@@ -14,11 +14,6 @@ services:
       # Server Configuration
       - SERVER_PORT=${SERVER_PORT}
       
-      # SSL Configuration (only when HTTPS)
-      - SERVER_SSL_ENABLED=${SERVER_SSL_ENABLED}
-      - SERVER_SSL_KEYSTORE=${SSL_KEYSTORE_PATH}
-      - SERVER_SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD}
-      - SERVER_SSL_KEYSTORE_TYPE=${SSL_KEYSTORE_TYPE}
       
       # Database Configuration
       - DATABASE_URL=${DATABASE_URL}
@@ -57,9 +52,6 @@ services:
     ports:
       - "${HTTP_PORT}:${SERVER_PORT}"
       - "${HTTPS_PORT}:${SERVER_PORT}"
-    volumes:
-      - ./logs:/app/logs
-      - ./ssl:/app/ssl:ro
     networks:
       - testcasecraft-network
     depends_on:
@@ -78,7 +70,7 @@ services:
   
   # FastAPI RAG Service
   rag-service:
-    image: xmlangel/testcasecraft-rag-service:1.0.12
+    image: xmlangel/testcasecraft-rag-service:1.0.11
     container_name: testcasecraft-rag-service
     environment:
       # Database

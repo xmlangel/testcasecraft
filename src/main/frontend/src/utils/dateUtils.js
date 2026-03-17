@@ -2,6 +2,16 @@
 /**
  * 날짜 관련 유틸리티 함수들
  */
+import { getRuntimeConfig } from './apiConstants';
+
+/**
+ * 서버의 시간대가 UTC인지 확인
+ * @returns {boolean} UTC 여부
+ */
+export function isServerUTC() {
+  const config = getRuntimeConfig();
+  return config?.serverTimeZone === 'UTC';
+}
 
 /**
  * 날짜를 로케일 문자열로 변환
@@ -240,7 +250,8 @@ export function formatDateSafe(date, locale = 'ko-KR', options = {}) {
     ...options,
   };
   
-  return dateObj.toLocaleString(locale, defaultOptions);
+  const formattedDate = dateObj.toLocaleString(locale, defaultOptions);
+  return isServerUTC() ? `${formattedDate} (UTC)` : formattedDate;
 }
 
 /**

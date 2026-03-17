@@ -72,7 +72,7 @@ public class JiraApiService {
                 JsonNode serverInfo = objectMapper.readTree(response.getBody());
                 String jiraVersion = serverInfo.path("version").asText();
                 if (jiraVersion == null || jiraVersion.isEmpty()) {
-                    jiraVersion = "Unknown";
+                    jiraVersion = "정보 없음";
                 }
 
                 // 선택적으로 프로젝트 접근 권한 테스트
@@ -446,7 +446,7 @@ public class JiraApiService {
         return JiraConfigDto.IssueExistsDto.builder()
                 .exists(false)
                 .issueKey(issueKey)
-                .errorMessage("알 수 없는 오류")
+                .errorMessage("알 수 없는 오류가 발생했습니다.")
                 .build();
     }
 
