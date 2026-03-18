@@ -1308,7 +1308,11 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("testResult.viewType.byFolder", "testcase", "보기 형태 - 폴더별", "폴더별");
                 createTranslationKeyIfNotExists("testResult.filter.depth", "testcase", "폴더 Depth 필터", "Depth: {depth}");
                 createTranslationKeyIfNotExists("testResult.statistics.folderName", "testcase", "통계 폴더명", "폴더명");
-                createTranslationKeyIfNotExists("testResult.statistics.folderResults", "testcase", "폴더별 별 테스트 결과 통계", "폴더별 테스트 결과 통계");
+                                createTranslationKeyIfNotExists("testResult.statistics.folderResults", "testcase", "폴더별 별 테스트 결과 통계", "폴더별 테스트 결과 통계");
+
+                // 노트 복사 관련 키들
+                createTranslationKeyIfNotExists("testcase.notes.copy", "testcase", "노트 복사 버튼 툴팁", "노트 복사");
+                createTranslationKeyIfNotExists("testcase.notes.copy_message", "testcase", "노트 복사 성공 메시지", "노트가 클립보드에 복사되었습니다.");
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

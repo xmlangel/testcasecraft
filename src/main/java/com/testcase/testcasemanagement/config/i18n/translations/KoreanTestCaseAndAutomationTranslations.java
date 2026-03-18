@@ -930,8 +930,12 @@ public class KoreanTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("testResult.viewType.byFolder", languageCode, "폴더별", createdBy);
                 createTranslationIfNotExists("testResult.filter.depth", languageCode, "Depth: {depth}", createdBy);
                 createTranslationIfNotExists("testResult.statistics.folderName", languageCode, "폴더명", createdBy);
-                createTranslationIfNotExists("testResult.statistics.folderResults", languageCode, "폴더별 테스트 결과 통계",
+                                createTranslationIfNotExists("testResult.statistics.folderResults", languageCode, "폴더별 테스트 결과 통계",
                                 createdBy);
+
+                // 노트 복사 관련 한글
+                createTranslationIfNotExists("testcase.notes.copy", languageCode, "노트 복사", createdBy);
+                createTranslationIfNotExists("testcase.notes.copy_message", languageCode, "노트가 클립보드에 복사되었습니다.", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
