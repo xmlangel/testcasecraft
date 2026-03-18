@@ -227,8 +227,14 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
   // 4. 테스트 플랜의 testCaseIds로 필터링
   const includedIds = new Set(planTestCaseIds);
 
+  // 폴더 여부 판단: "testcase" 타입이 아닌 것은 모두 폴더로 처리
+  // ("folder", "systemFolder" 등 모든 비-testcase 타입 포함)
+  function isNodeFolder(node) {
+    return node.type !== "testcase";
+  }
+
   function filterTree(node) {
-    if (node.type === "folder") {
+    if (isNodeFolder(node)) {
       const filteredChildren = node.children.map(filterTree).filter(Boolean);
       if (filteredChildren.length === 0) return null;
       return { ...node, children: filteredChildren };
@@ -236,7 +242,8 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
     return includedIds.has(node.id) ? node : null;
   }
 
-  const fullTreeData = allTestCases
+  // processedCases 사용 (고아 노드 처리 완료된 데이터)
+  const fullTreeData = processedCases
     .filter((tc) => !tc.parentId)
     .map((tc) => filterTree(testCaseMap[tc.id]))
     .filter(Boolean);
