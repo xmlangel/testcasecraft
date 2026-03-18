@@ -13,6 +13,7 @@ import { ExecutionStatus } from '../models/testExecution.jsx';
 import { formatDateSafe, safeParseDate } from '../utils/dateUtils';
 import TestPlanAutomatedLinkDialog from './TestPlanAutomatedLinkDialog';
 import { Link as LinkIcon } from '@mui/icons-material';
+import { countRealTestCases } from '../utils/treeUtils';
 
 const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
 const PLANS_PER_PAGE = 10;
@@ -304,7 +305,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                           onClick={() => handleExecutionClick(plan)}
                           sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
                         >
-                          {plan.testCaseIds?.length ?? 0}
+                          {countRealTestCases(plan.testCaseIds, testCases)}
                         </TableCell>
                         <TableCell
                           align="center"

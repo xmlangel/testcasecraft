@@ -582,6 +582,7 @@ function Dashboard() {
                       testPlans={testPlans}
                       selectedTestPlan={selectedTestPlan}
                       onTestPlanChange={setSelectedTestPlan}
+                      testCases={testCases}
                       loading={testPlansLoading}
                       size="small"
                     />
