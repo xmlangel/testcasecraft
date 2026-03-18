@@ -42,7 +42,7 @@ function StatisticsFilterPanel({
   const handleFilterChange = (filterKey, value) => {
     const newFilters = { ...filters, [filterKey]: value };
 
-    // 테스트 플랜 변경 시 실행 초기화
+    // 테스트 플랜 변경 시 실행 초기화 (배열이거나 단일 ID인 경우 모두 처리)
     if (filterKey === 'testPlanId') {
       newFilters.testExecutionId = '';
     }
@@ -53,7 +53,7 @@ function StatisticsFilterPanel({
   // 전체 초기화
   const handleClearAll = () => {
     onFiltersChange({
-      testPlanId: '',
+      testPlanId: [], // 다중 선택을 위해 빈 배열로 초기화
       testExecutionId: '',
       viewType: 'overview'
     });
@@ -62,7 +62,13 @@ function StatisticsFilterPanel({
   // 적용된 필터 개수 계산
   const getActiveFilterCount = () => {
     let count = 0;
-    if (filters.testPlanId) count++;
+    if (filters.testPlanId) {
+      if (Array.isArray(filters.testPlanId)) {
+        count += filters.testPlanId.length;
+      } else if (filters.testPlanId !== '') {
+        count++;
+      }
+    }
     if (filters.testExecutionId) count++;
     return count;
   };
@@ -70,10 +76,12 @@ function StatisticsFilterPanel({
   // 현재 프로젝트의 테스트 플랜들 필터링 (프로젝트는 이미 컨텍스트에서 결정됨)
   const availableTestPlans = testPlans;
 
-  // 현재 테스트 플랜의 실행들 필터링
-  const availableTestExecutions = filters.testPlanId
+  // 현재 테스트 플랜의 실행들 필터링 (다중 선택인 경우 첫 번째 선택된 플랜의 실행들을 보여주거나 전체를 보여줌)
+  const availableTestExecutions = (filters.testPlanId && !Array.isArray(filters.testPlanId))
     ? testExecutions.filter(exec => exec.testPlanId === filters.testPlanId)
-    : testExecutions;
+    : (Array.isArray(filters.testPlanId) && filters.testPlanId.length === 1)
+      ? testExecutions.filter(exec => exec.testPlanId === filters.testPlanId[0])
+      : testExecutions;
 
   return (
     <Card sx={{ mb: 2 }}>
@@ -131,19 +139,32 @@ function StatisticsFilterPanel({
         {/* 필터 옵션들 */}
         <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
 
-          {/* 테스트 플랜 선택 */}
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+          {/* 테스트 플랜 선택 (다중 선택 가능) */}
+          <FormControl size="small" sx={{ minWidth: 250 }}>
             <InputLabel id="testplan-select-label">{t('testResult.filter.testPlan')}</InputLabel>
             <Select
               labelId="testplan-select-label"
-              value={filters.testPlanId || ''}
+              multiple
+              value={Array.isArray(filters.testPlanId) ? filters.testPlanId : (filters.testPlanId ? [filters.testPlanId] : [])}
               label={t('testResult.filter.testPlan')}
               onChange={(e) => handleFilterChange('testPlanId', e.target.value)}
               disabled={loading}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.length === 0 ? (
+                    <em>{t('testResult.filter.allPlans')}</em>
+                  ) : (
+                    selected.map((value) => (
+                      <Chip 
+                        key={value} 
+                        label={availableTestPlans.find(p => p.id === value)?.name || value} 
+                        size="small" 
+                      />
+                    ))
+                  )}
+                </Box>
+              )}
             >
-              <MenuItem value="">
-                <em>{t('testResult.filter.allPlans')}</em>
-              </MenuItem>
               {availableTestPlans.map((plan) => (
                 <MenuItem key={plan.id} value={plan.id}>
                   {plan.name}
@@ -200,14 +221,23 @@ function StatisticsFilterPanel({
                 {t('testResult.filter.activeFilters')}
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {filters.testPlanId && (
-                  <Chip
-                    label={`${t('testResult.filter.planPrefix')} ${availableTestPlans.find(p => p.id === filters.testPlanId)?.name || filters.testPlanId}`}
-                    size="small"
-                    variant="outlined"
-                    onDelete={() => handleFilterChange('testPlanId', '')}
-                  />
-                )}
+                {filters.testPlanId && (Array.isArray(filters.testPlanId) ? filters.testPlanId : [filters.testPlanId]).map(id => (
+                  id && (
+                    <Chip
+                      key={`filter-plan-${id}`}
+                      label={`${t('testResult.filter.planPrefix')} ${availableTestPlans.find(p => p.id === id)?.name || id}`}
+                      size="small"
+                      variant="outlined"
+                      onDelete={() => {
+                        if (Array.isArray(filters.testPlanId)) {
+                          handleFilterChange('testPlanId', filters.testPlanId.filter(item => item !== id));
+                        } else {
+                          handleFilterChange('testPlanId', '');
+                        }
+                      }}
+                    />
+                  )
+                ))}
                 {filters.testExecutionId && (
                   <Chip
                     label={`${t('testResult.filter.executionPrefix')} ${availableTestExecutions.find(e => e.id === filters.testExecutionId)?.name || filters.testExecutionId}`}

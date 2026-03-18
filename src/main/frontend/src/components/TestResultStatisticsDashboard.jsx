@@ -50,14 +50,17 @@ function TestResultStatisticsDashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   
   // URL에서 초기 필터 설정
-  const getInitialFilters = () => ({
-    testPlanId: searchParams.get('testPlanId') || '',
-    testExecutionId: searchParams.get('testExecutionId') || '',
-    dateRange: searchParams.get('dateRange') || 'all',
-    viewType: searchParams.get('viewType') || 'overview',
-    source: searchParams.get('source') || 'manual',
-    depth: parseInt(searchParams.get('depth') || '20', 10)
-  });
+  const getInitialFilters = () => {
+    const testPlanIdParam = searchParams.get('testPlanId');
+    return {
+      testPlanId: testPlanIdParam ? testPlanIdParam.split(',') : [],
+      testExecutionId: searchParams.get('testExecutionId') || '',
+      dateRange: searchParams.get('dateRange') || 'all',
+      viewType: searchParams.get('viewType') || 'overview',
+      source: searchParams.get('source') || 'manual',
+      depth: parseInt(searchParams.get('depth') || '20', 10)
+    };
+  };
 
   // 상태 관리
   const [filters, setFilters] = useState(getInitialFilters);
@@ -65,7 +68,9 @@ function TestResultStatisticsDashboard() {
   // 필터 변경 시 URL 파라미터 업데이트
   useEffect(() => {
     const params = {};
-    if (filters.testPlanId) params.testPlanId = filters.testPlanId;
+    if (filters.testPlanId && filters.testPlanId.length > 0) {
+      params.testPlanId = Array.isArray(filters.testPlanId) ? filters.testPlanId.join(',') : filters.testPlanId;
+    }
     if (filters.testExecutionId) params.testExecutionId = filters.testExecutionId;
     if (filters.dateRange !== 'all') params.dateRange = filters.dateRange;
     if (filters.viewType !== 'overview') params.viewType = filters.viewType;
@@ -93,7 +98,7 @@ function TestResultStatisticsDashboard() {
     if (activeProject?.id && prevProjectIdRef.current && activeProject.id !== prevProjectIdRef.current) {
       setFilters(prev => ({
         ...prev,
-        testPlanId: '',
+        testPlanId: [], // 배열로 초기화
         testExecutionId: ''
       }));
     }
@@ -167,7 +172,7 @@ function TestResultStatisticsDashboard() {
     try {
       const params = {
         projectId: activeProject?.id || undefined,
-        testPlanId: filters.testPlanId || undefined,
+        testPlanId: (filters.testPlanId && filters.testPlanId.length > 0) ? filters.testPlanId : undefined,
         testExecutionId: filters.testExecutionId || undefined,
         useCache: true
       };
@@ -316,7 +321,9 @@ function TestResultStatisticsDashboard() {
       if (filters.viewType === 'by-folder') {
         const reportParams = {
           projectId: activeProject?.id,
-          testPlanIds: filters.testPlanId ? [filters.testPlanId] : undefined,
+          testPlanIds: (filters.testPlanId && filters.testPlanId.length > 0) 
+            ? (Array.isArray(filters.testPlanId) ? filters.testPlanId : [filters.testPlanId]) 
+            : undefined,
           testExecutionIds: filters.testExecutionId ? [filters.testExecutionId] : undefined,
           includeNotExecuted: true, // ICT-283: 플랜/실행의 전체 인구 기반 통계를 위해 미실행 포함
           size: 2000 // 모든 폴더를 보기 위해 큰 사이즈로 요청

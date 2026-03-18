@@ -124,7 +124,7 @@ public class TestResultReportService {
     /**
      * ICT-185: 테스트 결과 통계 조회
      */
-    public TestResultStatisticsDto getTestResultStatistics(String projectId, String testPlanId,
+    public TestResultStatisticsDto getTestResultStatistics(String projectId, List<String> testPlanIds,
             String testExecutionId) {
         TestResultStatisticsDto.TestResultStatisticsDtoBuilder builder = TestResultStatisticsDto.builder();
 
@@ -136,13 +136,13 @@ public class TestResultReportService {
             Optional<TestExecution> execution = testExecutionRepository.findById(testExecutionId);
             results = execution.map(TestExecution::getResults).orElse(new ArrayList<>());
             builder.filterType("TEST_EXECUTION").filterId(testExecutionId);
-        } else if (testPlanId != null) {
-            // 테스트 플랜 기준
-            List<TestExecution> executions = testExecutionRepository.findByTestPlanId(testPlanId);
+        } else if (testPlanIds != null && !testPlanIds.isEmpty()) {
+            // 테스트 플랜 기준 (다중 지원)
+            List<TestExecution> executions = testExecutionRepository.findAllByTestPlanIdIn(testPlanIds);
             results = executions.stream()
                     .flatMap(exec -> exec.getResults().stream())
                     .collect(Collectors.toList());
-            builder.filterType("TEST_PLAN").filterId(testPlanId);
+            builder.filterType("TEST_PLAN").filterId(String.join(",", testPlanIds));
         } else if (projectId != null) {
             // 프로젝트 기준
             List<TestExecution> executions = testExecutionRepository.findByProjectId(projectId);
@@ -163,8 +163,26 @@ public class TestResultReportService {
         Map<String, Long> jiraStatusDistribution = new HashMap<>();
         Map<String, Long> executorDistribution = new HashMap<>();
         
-        // ICT-247/283: 테스트케이스별 최신 결과를 추적하기 위한 맵
-        Map<String, TestResult> latestResultsMap = new HashMap<>();
+        // ICT-247/283/ICT-418/REPRODUCTION: 통계 정확도를 위해 전체 테스트 케이스 모집단 식별
+        // planId + ":" + caseId 형식의 키를 사용하여 플랜별 독립적인 항목으로 관리
+        Set<String> targetPlanCaseKeys = new HashSet<>();
+        if (testPlanIds != null && !testPlanIds.isEmpty()) {
+            List<com.testcase.testcasemanagement.model.TestPlan> plans = testPlanRepository.findAllById(testPlanIds);
+            for (com.testcase.testcasemanagement.model.TestPlan plan : plans) {
+                if (plan.getTestCaseIds() != null) {
+                    for (String caseId : plan.getTestCaseIds()) {
+                        targetPlanCaseKeys.add(plan.getId() + ":" + caseId);
+                    }
+                }
+            }
+        } else if (projectId != null) {
+            testCaseRepository.findByProjectIdAndType(projectId, "testcase")
+                    .forEach(tc -> targetPlanCaseKeys.add("PROJ:" + tc.getId()));
+        }
+        
+        // ICT-247/283: 플랜별 테스트케이스 최신 결과를 추적하기 위한 맵
+        // 키 형식: planId + ":" + caseId (프로젝트 기준일 경우 "PROJ:" + caseId)
+        Map<String, TestResult> latestPlanCaseResultsMap = new HashMap<>();
 
         for (TestResult result : results) {
             // 1. 전체 수행 이력 통계 (기본 카운트 증가)
@@ -188,13 +206,17 @@ public class TestResultReportService {
                     break;
             }
 
-            // 2. 최신 결과 추적 (테스트케이스 ID 기준)
+            // 2. 최신 결과 추적
             String caseId = result.getTestCaseId();
             if (caseId != null) {
-                TestResult existing = latestResultsMap.get(caseId);
+                String planId = (result.getTestExecution() != null && result.getTestExecution().getTestPlanId() != null) 
+                        ? result.getTestExecution().getTestPlanId() : "PROJ";
+                String key = planId + ":" + caseId;
+                
+                TestResult existing = latestPlanCaseResultsMap.get(key);
                 if (existing == null || (result.getExecutedAt() != null && 
                     (existing.getExecutedAt() == null || result.getExecutedAt().isAfter(existing.getExecutedAt())))) {
-                    latestResultsMap.put(caseId, result);
+                    latestPlanCaseResultsMap.put(key, result);
                 }
             }
 
@@ -214,21 +236,28 @@ public class TestResultReportService {
         }
 
         // 3. 최신 결과 요약 통계 계산
-        statistics.setTotalCaseCount((long) latestResultsMap.size());
-        for (TestResult latest : latestResultsMap.values()) {
-            switch (latest.getResult()) {
-                case "PASS":
-                    statistics.setLatestPassCount(statistics.getLatestPassCount() + 1);
-                    break;
-                case "FAIL":
-                    statistics.setLatestFailCount(statistics.getLatestFailCount() + 1);
-                    break;
-                case "NOT_RUN":
-                    statistics.setLatestNotRunCount(statistics.getLatestNotRunCount() + 1);
-                    break;
-                case "BLOCKED":
-                    statistics.setLatestBlockedCount(statistics.getLatestBlockedCount() + 1);
-                    break;
+        if (!targetPlanCaseKeys.isEmpty()) {
+            statistics.setTotalCaseCount((long) targetPlanCaseKeys.size());
+            
+            // 결과가 있는 플랜:케이스 조합의 상태 합산
+            for (Map.Entry<String, TestResult> entry : latestPlanCaseResultsMap.entrySet()) {
+                if (targetPlanCaseKeys.contains(entry.getKey())) {
+                    updateLatestStatusCount(statistics, entry.getValue().getResult());
+                }
+            }
+            
+            // 결과가 아예 없는 조합들은 NOT_RUN으로 간주
+            long executedInPopulationCount = latestPlanCaseResultsMap.keySet().stream()
+                    .filter(targetPlanCaseKeys::contains).count();
+            long unexecutedCaseCount = targetPlanCaseKeys.size() - executedInPopulationCount;
+            if (unexecutedCaseCount > 0) {
+                statistics.setLatestNotRunCount(statistics.getLatestNotRunCount() + unexecutedCaseCount);
+            }
+        } else {
+            // 필터가 없어 모집단을 알 수 없는 경우 결과가 있는 조합들만 기준
+            statistics.setTotalCaseCount((long) latestPlanCaseResultsMap.size());
+            for (TestResult latest : latestPlanCaseResultsMap.values()) {
+                updateLatestStatusCount(statistics, latest.getResult());
             }
         }
 
@@ -698,14 +727,16 @@ public class TestResultReportService {
     /**
      * 필터 조건에 기반한 전체 테스트케이스 인구(Population) 및 최신 결과 조회
      * ICT-283: 미실행 케이스를 포함하여 리포트를 생성하기 위한 핵심 로직
+     * 다중 플랜 지원: 동일 케이스가 여러 플랜에 속할 경우 각각 독립적인 항목으로 관리
      */
     private List<TestResultReportDto> getCompletePopulationResults(TestResultFilterDto filter) {
         String projectId = filter.getProjectId();
         List<String> testPlanIds = filter.getTestPlanIds();
         List<String> testExecutionIds = filter.getTestExecutionIds();
 
-        // 1. 대상 테스트케이스 ID 목록 확정 (인구 조사)
-        Set<String> targetTestCaseIds = new HashSet<>();
+        // 1. 대상 (플랜:케이스) 키 목록 확정 (인구 조사)
+        // 키 형식: planId + ":" + caseId
+        Set<String> targetPlanCaseKeys = new LinkedHashSet<>(); // 순서 유지를 위해 LinkedHashSet 사용
         Map<String, TestCase> testCaseMap = new HashMap<>();
 
         if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
@@ -715,7 +746,9 @@ public class TestResultReportService {
                 if (exec.getTestPlanId() != null) {
                     testPlanRepository.findById(exec.getTestPlanId()).ifPresent(plan -> {
                         if (plan.getTestCaseIds() != null) {
-                            targetTestCaseIds.addAll(plan.getTestCaseIds());
+                            for (String caseId : plan.getTestCaseIds()) {
+                                targetPlanCaseKeys.add(plan.getId() + ":" + caseId);
+                            }
                         }
                     });
                 }
@@ -725,29 +758,32 @@ public class TestResultReportService {
             List<com.testcase.testcasemanagement.model.TestPlan> plans = testPlanRepository.findAllById(testPlanIds);
             for (com.testcase.testcasemanagement.model.TestPlan plan : plans) {
                 if (plan.getTestCaseIds() != null) {
-                    targetTestCaseIds.addAll(plan.getTestCaseIds());
+                    for (String caseId : plan.getTestCaseIds()) {
+                        targetPlanCaseKeys.add(plan.getId() + ":" + caseId);
+                    }
                 }
             }
         } else if (projectId != null) {
-            // 프로젝트 전체 케이스 (ICT-363: testcase 타입만 포함하여 통계 정확도 개선)
+            // 프로젝트 전체 케이스
             List<TestCase> cases = testCaseRepository.findByProjectId(projectId);
             for (TestCase tc : cases) {
                 if ("testcase".equals(tc.getType())) {
-                    targetTestCaseIds.add(tc.getId());
+                    targetPlanCaseKeys.add("PROJ:" + tc.getId());
                     testCaseMap.put(tc.getId(), tc);
                 }
             }
         }
 
-        // TestCase 정보가 Map에 없으면 DB에서 조회 (플랜/실행 기반일 때 필요)
-        if (!targetTestCaseIds.isEmpty() && testCaseMap.isEmpty()) {
-            List<TestCase> cases = testCaseRepository.findAllById(targetTestCaseIds);
+        // TestCase 정보 로드 (상세 정보를 위해)
+        Set<String> allCaseIds = targetPlanCaseKeys.stream()
+                .map(key -> key.split(":")[1])
+                .collect(Collectors.toSet());
+        
+        if (!allCaseIds.isEmpty()) {
+            List<TestCase> cases = testCaseRepository.findAllById(allCaseIds);
             for (TestCase tc : cases) {
-                // ICT-363: 폴더가 아닌 테스트케이스만 인구 조사 대상으로 확정
                 if ("testcase".equals(tc.getType())) {
                     testCaseMap.put(tc.getId(), tc);
-                } else {
-                    targetTestCaseIds.remove(tc.getId());
                 }
             }
         }
@@ -756,11 +792,17 @@ public class TestResultReportService {
         List<TestResult> recentResults = testResultRepository.findRecentTestResultsByProject(projectId, 
                 PageRequest.of(0, Integer.MAX_VALUE));
         
-        // 타겟 케이스별 최신 결과 매칭
-        Map<String, TestResult> latestResultByCase = new HashMap<>();
+        // (플랜:케이스)별 최신 결과 매칭
+        Map<String, TestResult> latestResultByPlanCase = new HashMap<>();
         for (TestResult result : recentResults) {
             String tcId = result.getTestCaseId();
-            if (!targetTestCaseIds.contains(tcId)) continue;
+            if (tcId == null) continue;
+            
+            String planId = (result.getTestExecution() != null && result.getTestExecution().getTestPlanId() != null) 
+                    ? result.getTestExecution().getTestPlanId() : "PROJ";
+            String key = planId + ":" + tcId;
+            
+            if (!targetPlanCaseKeys.contains(key)) continue;
 
             // 실행 필터 적용
             if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
@@ -768,7 +810,7 @@ public class TestResultReportService {
                     continue;
                 }
             }
-            // 플랜 필터 적용
+            // 플랜 필터 적용 (이미 key에서 걸러지지만 이중 확인)
             else if (testPlanIds != null && !testPlanIds.isEmpty()) {
                 if (result.getTestExecution() == null || !testPlanIds.contains(result.getTestExecution().getTestPlanId())) {
                     continue;
@@ -776,24 +818,24 @@ public class TestResultReportService {
             }
 
             // 가장 최신 결과 하나만 유지 (executedAt 기준)
-            if (!latestResultByCase.containsKey(tcId)) {
-                latestResultByCase.put(tcId, result);
-            } else {
-                TestResult existing = latestResultByCase.get(tcId);
-                if (result.getExecutedAt() != null && existing.getExecutedAt() != null && 
-                    result.getExecutedAt().isAfter(existing.getExecutedAt())) {
-                    latestResultByCase.put(tcId, result);
-                }
+            TestResult existing = latestResultByPlanCase.get(key);
+            if (existing == null || (result.getExecutedAt() != null && 
+                (existing.getExecutedAt() == null || result.getExecutedAt().isAfter(existing.getExecutedAt())))) {
+                latestResultByPlanCase.put(key, result);
             }
         }
 
-        // 3. 테스트케이스 목록을 순회하며 DTO 생성
+        // 3. (플랜:케이스) 목록을 순회하며 DTO 생성
         List<TestResultReportDto> reportDtos = new ArrayList<>();
-        for (String tcId : targetTestCaseIds) {
+        for (String key : targetPlanCaseKeys) {
+            String[] parts = key.split(":");
+            String planId = parts[0];
+            String tcId = parts[1];
+            
             TestCase tc = testCaseMap.get(tcId);
             if (tc == null) continue;
 
-            TestResult tr = latestResultByCase.get(tcId);
+            TestResult tr = latestResultByPlanCase.get(key);
             TestResultReportDto dto;
             if (tr != null) {
                 dto = convertToReportDto(tr);
@@ -805,6 +847,14 @@ public class TestResultReportService {
                 dto.setResult("NOT_RUN");
                 dto.setPriority(tc.getPriority());
                 dto.setCategory(tc.getType());
+                
+                // 플랜 정보 추가 (미실행 케이스라도 플랜 필터가 있으면 플랜 정보를 명시)
+                if (!"PROJ".equals(planId)) {
+                    testPlanRepository.findById(planId).ifPresent(p -> {
+                        dto.setTestPlanId(p.getId());
+                        dto.setTestPlanName(p.getName());
+                    });
+                }
             }
             reportDtos.add(dto);
         }
@@ -1153,5 +1203,26 @@ public class TestResultReportService {
         // TestResult 조회 로직 구현 (기존 로직 활용)
         // 실제 구현에서는 TestResult 엔티티 조회 후 DTO 변환
         return null;
+    }
+
+    private void updateLatestStatusCount(TestResultStatisticsDto statistics, String result) {
+        if (result == null) {
+            statistics.setLatestNotRunCount(statistics.getLatestNotRunCount() + 1);
+            return;
+        }
+        switch (result) {
+            case "PASS":
+                statistics.setLatestPassCount(statistics.getLatestPassCount() + 1);
+                break;
+            case "FAIL":
+                statistics.setLatestFailCount(statistics.getLatestFailCount() + 1);
+                break;
+            case "NOT_RUN":
+                statistics.setLatestNotRunCount(statistics.getLatestNotRunCount() + 1);
+                break;
+            case "BLOCKED":
+                statistics.setLatestBlockedCount(statistics.getLatestBlockedCount() + 1);
+                break;
+        }
     }
 }
