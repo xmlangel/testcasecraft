@@ -27,8 +27,9 @@ import { RESULT_COLORS } from '../constants/statusColors';
  * ICT-185: 테스트 결과 통계 카드 컴포넌트
  * Pass/Fail/NotRun/Blocked 통계를 수치로 표시
  * ICT-194 Phase 3: React 성능 최적화 적용
+ * 미실행/실패 클릭 시 onResultClick 콜백 호출
  */
-function TestResultStatisticsCard({ statistics, loading = false, error = null }) {
+function TestResultStatisticsCard({ statistics, loading = false, error = null, onResultClick }) {
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -85,7 +86,8 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
       value: isLatestMode ? (statistics?.latestFailCount || 0) : (statistics?.failCount || 0),
       percentage: isLatestMode ? (statistics?.latestFailRate || 0) : (statistics?.failRate || 0),
       color: RESULT_COLORS.FAIL,
-      icon: <Cancel sx={{ color: RESULT_COLORS.FAIL }} />
+      icon: <Cancel sx={{ color: RESULT_COLORS.FAIL }} />,
+      resultType: 'FAIL'
     },
     {
       label: t('testResult.status.blocked'),
@@ -99,9 +101,13 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
       value: isLatestMode ? (statistics?.latestNotRunCount || 0) : (statistics?.notRunCount || 0),
       percentage: isLatestMode ? (statistics?.latestNotRunRate || 0) : (statistics?.notRunRate || 0),
       color: RESULT_COLORS.NOTRUN,
-      icon: <PauseCircle sx={{ color: RESULT_COLORS.NOTRUN }} />
+      icon: <PauseCircle sx={{ color: RESULT_COLORS.NOTRUN }} />,
+      resultType: 'NOT_RUN'
     }
   ], [statistics, t, isLatestMode]);
+
+  // 클릭 가능한 결과 유형
+  const clickableTypes = new Set(['NOT_RUN', 'FAIL']);
 
   if (loading) return loadingCard;
   if (error) return errorCard;
@@ -161,29 +167,50 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
 
         {/* 상세 통계 */}
         <Grid container spacing={1}>
-          {statisticItems.map((item) => (
-            <Grid size={{ xs: 6 }} key={item.label}>
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                p: 1,
-                bgcolor: alpha(item.color, 0.1),
-                borderRadius: 1
-              }}>
-                <Box sx={{ mr: 1 }}>
-                  {item.icon}
+          {statisticItems.map((item) => {
+            const isClickable = onResultClick && clickableTypes.has(item.resultType);
+            return (
+              <Grid size={{ xs: 6 }} key={item.label}>
+                <Box
+                  onClick={isClickable ? () => onResultClick(item.resultType) : undefined}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    p: 1,
+                    bgcolor: alpha(item.color, 0.1),
+                    borderRadius: 1,
+                    cursor: isClickable ? 'pointer' : 'default',
+                    transition: 'background-color 0.15s',
+                    '&:hover': isClickable ? {
+                      bgcolor: alpha(item.color, 0.22),
+                    } : {}
+                  }}
+                >
+                  <Box sx={{ mr: 1 }}>
+                    {item.icon}
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      {item.label}
+                      {isClickable && (
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          sx={{ ml: 0.5, color: 'primary.main', fontSize: '0.65rem' }}
+                        >
+                          ▼
+                        </Typography>
+                      )}
+                    </Typography>
+                    <Typography variant="body2" fontWeight="medium">
+                      <CountUp end={item.value} duration={1} />
+                      {' '}({Math.round(item.percentage)}%)
+                    </Typography>
+                  </Box>
                 </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    {item.label}
-                  </Typography>
-                  <Typography variant="body2" fontWeight="medium">
-                    <CountUp end={item.value} duration={1} /> ({Math.round(item.percentage)}%)
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
-          ))}
+              </Grid>
+            );
+          })}
         </Grid>
       </CardContent>
     </Card>

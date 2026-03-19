@@ -23,6 +23,8 @@ import TestResultPieChart from './TestResultPieChart';
 import TestResultBarChart from './TestResultBarChart';
 import StatisticsFilterPanel from './StatisticsFilterPanel';
 import TestResultFolderStatsView from './TestResultFolderStatsView';
+import FilteredCasesDialog from './FilteredCasesDialog';
+import JiraLinkedCasesDialog from './JiraLinkedCasesDialog';
 
 // 서비스
 import testResultService, { handleTestResultError } from '../services/testResultService';
@@ -88,6 +90,13 @@ function TestResultStatisticsDashboard() {
   const [reportData, setReportData] = useState([]);
   const [error, setError] = useState(null);
   const [showPercentage, setShowPercentage] = useState(false);
+
+  // 미실행/실패 케이스 다이얼로그 상태
+  const [filteredCasesDialogOpen, setFilteredCasesDialogOpen] = useState(false);
+  const [filteredCasesResultType, setFilteredCasesResultType] = useState('NOT_RUN');
+
+  // JIRA 연동 이슈 다이얼로그 상태
+  const [jiraDialogOpen, setJiraDialogOpen] = useState(false);
 
   // 이전 프로젝트 ID 추적 (필터 초기화 방지)
   const prevProjectIdRef = useRef(activeProject?.id);
@@ -385,6 +394,21 @@ function TestResultStatisticsDashboard() {
     setError(null);
   }, []);
 
+  /**
+   * 미실행/실패 케이스 다이얼로그 열기 핸들러
+   */
+  const handleResultClick = useCallback((resultType) => {
+    setFilteredCasesResultType(resultType);
+    setFilteredCasesDialogOpen(true);
+  }, []);
+
+  /**
+   * JIRA 연동 이슈 다이얼로그 열기 핸들러
+   */
+  const handleJiraLinkClick = useCallback(() => {
+    setJiraDialogOpen(true);
+  }, []);
+
   // ICT-194 Phase 3: 차트 제목 메모이제이션
   const comparisonChartTitle = useMemo(() => {
     if (filters.viewType === 'by-folder') {
@@ -462,6 +486,7 @@ function TestResultStatisticsDashboard() {
               <TestResultStatisticsCard
                 statistics={statistics}
                 loading={loading}
+                onResultClick={handleResultClick}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6, lg: 6 }} sx={{ height: '100%' }}>
@@ -483,6 +508,7 @@ function TestResultStatisticsDashboard() {
                 <TestResultStatisticsCard
                   statistics={statistics}
                   loading={loading}
+                  onResultClick={handleResultClick}
                 />
               </Grid>
             )}
@@ -592,12 +618,24 @@ function TestResultStatisticsDashboard() {
                   <Typography
                     variant={isMobile ? "h6" : "h6"}
                     color="info.main"
+                    onClick={handleJiraLinkClick}
                     sx={{
                       fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
-                      fontWeight: { xs: 700, md: 600 }
+                      fontWeight: { xs: 700, md: 600 },
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      '&:hover': { textDecoration: 'underline', opacity: 0.8 }
                     }}
                   >
                     {statisticsSummary.jiraLinkRate}%
+                    <Typography
+                      component="span"
+                      sx={{ fontSize: '0.65rem', color: 'info.main' }}
+                    >
+                      ▼
+                    </Typography>
                   </Typography>
                 </Grid>
 
@@ -658,6 +696,25 @@ function TestResultStatisticsDashboard() {
           {error}
         </Alert>
       </Snackbar>
+
+      {/* 미실행/실패 케이스 다이얼로그 */}
+      <FilteredCasesDialog
+        open={filteredCasesDialogOpen}
+        onClose={() => setFilteredCasesDialogOpen(false)}
+        resultType={filteredCasesResultType}
+        projectId={activeProject?.id}
+        testPlanIds={filters.testPlanId && filters.testPlanId.length > 0 ? filters.testPlanId : []}
+        testExecutionId={filters.testExecutionId || null}
+      />
+
+      {/* JIRA 연동 이슈 다이얼로그 */}
+      <JiraLinkedCasesDialog
+        open={jiraDialogOpen}
+        onClose={() => setJiraDialogOpen(false)}
+        projectId={activeProject?.id}
+        testPlanIds={filters.testPlanId && filters.testPlanId.length > 0 ? filters.testPlanId : []}
+        testExecutionId={filters.testExecutionId || null}
+      />
     </Box>
   );
 }
