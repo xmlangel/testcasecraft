@@ -31,6 +31,7 @@ import {
   BugReport as BugReportIcon
 } from '@mui/icons-material';
 import testResultService from '../services/testResultService';
+import jiraService from '../services/jiraService';
 import { useI18n } from '../context/I18nContext';
 
 /**
@@ -58,6 +59,7 @@ function JiraLinkedCasesDialog({
   const theme = useTheme();
 
   const [jiraItems, setJiraItems] = useState([]); // [{ jiraKey, testCases: [...] }]
+  const [activeConfig, setActiveConfig] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -117,14 +119,26 @@ function JiraLinkedCasesDialog({
     }
   }, [projectId, testPlanIds, testExecutionId, t]);
 
+  // 활성화된 JIRA 설정 로드
+  const loadJiraConfig = useCallback(async () => {
+    try {
+      const config = await jiraService.getActiveConfig();
+      setActiveConfig(config);
+    } catch (err) {
+      console.error('JiraLinkedCasesDialog: JIRA 설정 로드 실패', err);
+    }
+  }, []);
+
   useEffect(() => {
     if (open) {
       loadJiraLinkedCases();
+      loadJiraConfig();
     } else {
       setJiraItems([]);
+      setActiveConfig(null);
       setError(null);
     }
-  }, [open, loadJiraLinkedCases]);
+  }, [open, loadJiraLinkedCases, loadJiraConfig]);
 
   // 결과 유형별 Chip 색상
   const getResultChip = (result) => {
@@ -264,9 +278,12 @@ function JiraLinkedCasesDialog({
                               <IconButton
                                 size="small"
                                 component={Link}
-                                href={`https://issues.atlassian.net/browse/${jiraItem.jiraKey}`}
-                                target="_blank"
+                                href={activeConfig?.serverUrl 
+                                  ? `${activeConfig.serverUrl}/browse/${jiraItem.jiraKey}`
+                                  : `#`}
+                                target={activeConfig?.serverUrl ? "_blank" : "_self"}
                                 rel="noopener noreferrer"
+                                disabled={!activeConfig?.serverUrl}
                                 sx={{
                                   p: 0.3,
                                   color: 'info.main',

@@ -75,7 +75,15 @@ function FilteredCasesDialog({
   const resultColor = isNotRun ? theme.palette.grey[500] : theme.palette.error.main;
   const ResultIcon = isNotRun ? PauseCircleIcon : CancelIcon;
 
-  // 케이스 목록 조회
+  // result 값 정규화 (NOTRUN → NOT_RUN 등 혼재 대응)
+  const normalizeResult = (result) => {
+    if (!result) return 'NOT_RUN';
+    const r = String(result).toUpperCase().replace(/[^A-Z]/g, '_');
+    if (r === 'NOTRUN' || r === 'NOT_RUN') return 'NOT_RUN';
+    return r;
+  };
+
+  // 케이스 목록 조회 - 페이지네이션 전체 수집
   const loadCases = useCallback(async () => {
     if (!projectId) return;
 
@@ -83,28 +91,56 @@ function FilteredCasesDialog({
     setError(null);
 
     try {
-      const reportParams = {
-        projectId,
-        testPlanIds: testPlanIds && testPlanIds.length > 0
-          ? (Array.isArray(testPlanIds) ? testPlanIds : [testPlanIds])
-          : undefined,
-        testExecutionIds: testExecutionId ? [testExecutionId] : undefined,
-        includeNotExecuted: true, // 미실행 포함
-        size: 500
-      };
+      // 백엔드 results 필터에 맞게 전달
+      // NOTRUN/NOT_RUN 혼재를 위해 양쪽 다 요청하거나 includeNotExecuted 활용
+      const backendResults = isNotRun ? null : ['FAIL']; // NOT_RUN은 includeNotExecuted로 처리
 
-      const response = await testResultService.getDetailedTestResultReport(reportParams);
-      const allData = response?.content || (Array.isArray(response) ? response : []);
+      const PAGE_SIZE = 2000; // 한 번에 최대 가져올 수
+      let page = 0;
+      let allData = [];
+      let hasMore = true;
 
-      // resultType 기준으로 필터링
-      const filtered = allData.filter(item => {
-        const result = item.result || 'NOT_RUN';
-        if (isNotRun) {
-          // NOT_RUN: result가 없거나 NOT_RUN인 케이스
-          return !item.result || result === 'NOT_RUN';
-        } else {
-          return result === 'FAIL';
+      while (hasMore) {
+        const reportParams = {
+          projectId,
+          testPlanIds: testPlanIds && testPlanIds.length > 0
+            ? (Array.isArray(testPlanIds) ? testPlanIds : [testPlanIds])
+            : undefined,
+          testExecutionIds: testExecutionId ? [testExecutionId] : undefined,
+          includeNotExecuted: isNotRun ? true : false,
+          results: backendResults,
+          page,
+          size: PAGE_SIZE,
+        };
+
+        const response = await testResultService.getDetailedTestResultReport(reportParams);
+
+        // Page<T> 응답 구조 처리
+        let pageData = [];
+        let totalElements = 0;
+        if (response && response.content) {
+          pageData = response.content;
+          totalElements = response.totalElements || 0;
+        } else if (Array.isArray(response)) {
+          pageData = response;
+          totalElements = response.length;
         }
+
+        allData = [...allData, ...pageData];
+
+        // 다음 페이지 필요 여부 판단
+        const fetched = (page + 1) * PAGE_SIZE;
+        hasMore = pageData.length === PAGE_SIZE && fetched < totalElements;
+        page++;
+
+        // 안전망: 최대 10페이지 (20,000건) 초과 방지
+        if (page >= 10) break;
+      }
+
+      // result 값 정규화 후 타입 필터링
+      const filtered = allData.filter(item => {
+        const normalized = normalizeResult(item.result);
+        return normalized === resultType;
       });
 
       setCases(filtered);
@@ -114,7 +150,8 @@ function FilteredCasesDialog({
     } finally {
       setLoading(false);
     }
-  }, [projectId, testPlanIds, testExecutionId, isNotRun, t]);
+  }, [projectId, testPlanIds, testExecutionId, isNotRun, resultType, t]);
+
 
   // 다이얼로그 열릴 때 데이터 로드
   useEffect(() => {
