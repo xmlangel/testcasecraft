@@ -166,17 +166,35 @@ public class TestResultReportService {
         // ICT-247/283/ICT-418/REPRODUCTION: 통계 정확도를 위해 전체 테스트 케이스 모집단 식별
         // planId + ":" + caseId 형식의 키를 사용하여 플랜별 독립적인 항목으로 관리
         Set<String> targetPlanCaseKeys = new HashSet<>();
-        if (testPlanIds != null && !testPlanIds.isEmpty()) {
+        if (testExecutionId != null) {
+            // 특정 실행이 지정된 경우 해당 실행의 플랜 케이스들을 모집단으로 설정
+            testExecutionRepository.findById(testExecutionId).ifPresent(exec -> {
+                if (exec.getTestPlanId() != null) {
+                    testPlanRepository.findById(exec.getTestPlanId()).ifPresent(plan -> {
+                        if (plan.getTestCaseIds() != null && !plan.getTestCaseIds().isEmpty()) {
+                            List<TestCase> existingCases = testCaseRepository.findAllById(plan.getTestCaseIds());
+                            for (TestCase tc : existingCases) {
+                                targetPlanCaseKeys.add(plan.getId() + ":" + tc.getId());
+                            }
+                        }
+                    });
+                }
+            });
+        } else if (testPlanIds != null && !testPlanIds.isEmpty()) {
             List<com.testcase.testcasemanagement.model.TestPlan> plans = testPlanRepository.findAllById(testPlanIds);
             for (com.testcase.testcasemanagement.model.TestPlan plan : plans) {
-                if (plan.getTestCaseIds() != null) {
-                    for (String caseId : plan.getTestCaseIds()) {
-                        targetPlanCaseKeys.add(plan.getId() + ":" + caseId);
+                if (plan.getTestCaseIds() != null && !plan.getTestCaseIds().isEmpty()) {
+                    // ICT-FOLDER-STATS: 실제 존재하는 케이스만 모집단에 포함하여 통계 불일치 해결
+                    List<TestCase> existingCases = testCaseRepository.findAllById(plan.getTestCaseIds());
+                    for (TestCase tc : existingCases) {
+                        targetPlanCaseKeys.add(plan.getId() + ":" + tc.getId());
                     }
                 }
             }
         } else if (projectId != null) {
-            testCaseRepository.findByProjectIdAndType(projectId, "testcase")
+            // ICT-FOLDER-STATS: folder가 아닌 모든 항목(testcase, manual, automated 등)을 포함하여 일관성 유지
+            testCaseRepository.findByProjectId(projectId).stream()
+                    .filter(tc -> tc.getType() == null || !"folder".equalsIgnoreCase(tc.getType()))
                     .forEach(tc -> targetPlanCaseKeys.add("PROJ:" + tc.getId()));
         }
         
