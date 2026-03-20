@@ -264,6 +264,8 @@ function TestResultStatisticsDashboard() {
   const calculateFolderStatistics = useCallback((reportData, depth) => {
     if (!reportData || !Array.isArray(reportData)) return [];
 
+    const statsMap = new Map();
+
     // Root 노드 초기화
     const rootKey = 'Root';
     statsMap.set(rootKey, {

@@ -122,9 +122,9 @@ public class TestResultFilterDto {
      * 기본 페이징 설정
      */
     public void setDefaultPaging() {
-        this.page = 0;
-        this.size = 50;
-        this.limit = 1000;
+        if (this.page == null) this.page = 0;
+        if (this.size == null) this.size = 50;
+        if (this.limit == null) this.limit = 1000;
     }
     
     /**
