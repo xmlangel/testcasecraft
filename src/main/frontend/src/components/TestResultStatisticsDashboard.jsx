@@ -264,42 +264,61 @@ function TestResultStatisticsDashboard() {
   const calculateFolderStatistics = useCallback((reportData, depth) => {
     if (!reportData || !Array.isArray(reportData)) return [];
 
-    const statsMap = new Map();
+    // Root 노드 초기화
+    const rootKey = 'Root';
+    statsMap.set(rootKey, {
+      name: t('testResult.folder.total', '전체'),
+      pass_count: 0,
+      fail_count: 0,
+      blocked_count: 0,
+      not_run_count: 0,
+      total: 0,
+      execution_count: 0
+    });
 
     reportData.forEach(item => {
-      const folderPath = item.folderPath || '';
-      // '/' 또는 '>' 등으로 구분될 수 있으나 TestResultReportDto 주석에는 "Root/API/Authentication" 형식임
-      // 실제 데이터가 "Userv2.0 > 로그인/로그아웃" 형태일 수도 있으므로 유연하게 처리
+      // 백엔드에서 '루트' 또는 null로 올 수 있음
+      const folderPath = item.folderPath === '루트' ? '' : (item.folderPath || '');
       const separators = /[\/>]/;
       const parts = folderPath.split(separators).map(p => p.trim()).filter(p => p);
       
-      // 요청된 depth까지만 경로 추출 (최대 parts.length)
-      const targetParts = parts.slice(0, Math.min(depth, parts.length));
-      
-      // 만약 depth보다 경로가 짧다면, 하위 폴더가 없는 것이므로 해당 경로 그대로 사용
-      // 만약 folderPath가 비어있다면 'Root' 처리
-      const groupKey = targetParts.length > 0 ? targetParts.join(' > ') : (item.testCaseName ? 'Uncategorized' : 'Root');
-      
-      if (!statsMap.has(groupKey)) {
-        statsMap.set(groupKey, {
-          name: groupKey,
-          pass_count: 0,
-          fail_count: 0,
-          blocked_count: 0,
-          not_run_count: 0,
-          total: 0
-        });
-      }
-      
-      const stats = statsMap.get(groupKey);
       const result = item.result || 'NOT_RUN';
-      
-      if (result === 'PASS') stats.pass_count++;
-      else if (result === 'FAIL') stats.fail_count++;
-      else if (result === 'BLOCKED') stats.blocked_count++;
-      else stats.not_run_count++;
-      
-      stats.total++;
+      const execCount = item.executionCount || 0;
+
+      // 상위 폴더들에 통계 합산 (Root 포함)
+      const updateNodeStats = (key, name) => {
+        if (!statsMap.has(key)) {
+          statsMap.set(key, {
+            name: name,
+            pass_count: 0,
+            fail_count: 0,
+            blocked_count: 0,
+            not_run_count: 0,
+            total: 0,
+            execution_count: 0
+          });
+        }
+        const stats = statsMap.get(key);
+        if (result === 'PASS') stats.pass_count++;
+        else if (result === 'FAIL') stats.fail_count++;
+        else if (result === 'BLOCKED') stats.blocked_count++;
+        else stats.not_run_count++;
+        
+        stats.total++;
+        stats.execution_count += execCount;
+      };
+
+      // 1. Root 합산
+      updateNodeStats(rootKey, t('testResult.folder.total', '전체'));
+
+      // 2. 계층별 합산
+      let currentPath = '';
+      parts.forEach((part, index) => {
+        if (index >= depth) return;
+        
+        currentPath = index === 0 ? part : `${currentPath} > ${part}`;
+        updateNodeStats(currentPath, part);
+      });
     });
 
     return Array.from(statsMap.values())
