@@ -767,7 +767,8 @@ public class TestResultReportService {
             // 프로젝트 전체 케이스
             List<TestCase> cases = testCaseRepository.findByProjectId(projectId);
             for (TestCase tc : cases) {
-                if ("testcase".equals(tc.getType())) {
+                // ICT-FOLDER-STATS: folder가 아닌 모든 항목(testcase, manual, automated 등)을 포함
+                if (tc.getType() == null || !"folder".equalsIgnoreCase(tc.getType())) {
                     targetPlanCaseKeys.add("PROJ:" + tc.getId());
                     testCaseMap.put(tc.getId(), tc);
                 }
@@ -782,7 +783,8 @@ public class TestResultReportService {
         if (!allCaseIds.isEmpty()) {
             List<TestCase> cases = testCaseRepository.findAllById(allCaseIds);
             for (TestCase tc : cases) {
-                if ("testcase".equals(tc.getType())) {
+                // ICT-FOLDER-STATS: folder가 아닌 모든 항목을 포함
+                if (tc.getType() == null || !"folder".equalsIgnoreCase(tc.getType())) {
                     testCaseMap.put(tc.getId(), tc);
                 }
             }

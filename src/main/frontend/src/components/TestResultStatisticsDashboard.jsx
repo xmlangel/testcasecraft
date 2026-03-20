@@ -278,9 +278,8 @@ function TestResultStatisticsDashboard() {
 
     reportData.forEach(item => {
       // 백엔드에서 '루트' 또는 null로 올 수 있음
-      const folderPath = item.folderPath === '루트' ? '' : (item.folderPath || '');
-      const separators = /[\/>]/;
-      const parts = folderPath.split(separators).map(p => p.trim()).filter(p => p);
+      const folderPath = (item.folderPath === '루트' || !item.folderPath) ? '' : item.folderPath;
+      const parts = folderPath.split(/[\/>]/).map(p => p.trim()).filter(p => p);
       
       const result = item.result || 'NOT_RUN';
       const execCount = item.executionCount || 0;
@@ -324,15 +323,16 @@ function TestResultStatisticsDashboard() {
     return Array.from(statsMap.values())
       .map(s => ({
         ...s,
-        // BarChart 등에서 사용하는 key 이름에 맞춤 (findStatisticsByTestPlan 등 참고)
         name: s.name,
         pass_count: s.pass_count,
         fail_count: s.fail_count,
         blocked_count: s.blocked_count,
-        not_run_count: s.not_run_count
+        not_run_count: s.not_run_count,
+        total: s.total,
+        execution_count: s.execution_count
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, []);
+  }, [t]);
 
   /**
    * 비교 데이터 로드
