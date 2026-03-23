@@ -122,7 +122,15 @@ export async function getTestResultStatistics(params = {}) {
     // URL과 파라미터 구성
     const searchParams = new URLSearchParams();
     if (projectId) searchParams.append('projectId', projectId);
-    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    
+    if (testPlanId) {
+      if (Array.isArray(testPlanId)) {
+        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+      } else {
+        searchParams.append('testPlanId', testPlanId);
+      }
+    }
+    
     if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
 
     const request = (async () => {
@@ -505,7 +513,15 @@ export async function getFilteredTestResults(filters = {}, useCache = false) {
   try {
     const searchParams = new URLSearchParams();
     searchParams.append('projectId', projectId);
-    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    
+    if (testPlanId) {
+      if (Array.isArray(testPlanId)) {
+        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+      } else {
+        searchParams.append('testPlanId', testPlanId);
+      }
+    }
+    
     if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
     searchParams.append('page', page.toString());
     searchParams.append('size', size.toString());

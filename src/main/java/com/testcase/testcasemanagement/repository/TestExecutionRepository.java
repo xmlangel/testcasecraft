@@ -14,6 +14,9 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, St
        @Query("SELECT te FROM TestExecution te WHERE te.testPlanId = :testPlanId ORDER BY te.startDate DESC")
        List<TestExecution> findByTestPlanId(@Param("testPlanId") String testPlanId);
 
+       @Query("SELECT te FROM TestExecution te WHERE te.testPlanId IN :testPlanIds ORDER BY te.startDate DESC")
+       List<TestExecution> findAllByTestPlanIdIn(@Param("testPlanIds") List<String> testPlanIds);
+
        // ID로 조회하면서 results를 함께 fetch
        @Query("SELECT DISTINCT te FROM TestExecution te " +
                      "LEFT JOIN FETCH te.results " +

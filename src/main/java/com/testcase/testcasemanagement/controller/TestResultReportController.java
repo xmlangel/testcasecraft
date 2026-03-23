@@ -74,7 +74,7 @@ public class TestResultReportController {
     @GetMapping("/statistics")
     public ResponseEntity<TestResultStatisticsDto> getTestResultStatistics(
             @RequestParam(required = false) String projectId,
-            @RequestParam(required = false) String testPlanId,
+            @RequestParam(required = false) List<String> testPlanId,
             @RequestParam(required = false) String testExecutionId) {
 
         TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(

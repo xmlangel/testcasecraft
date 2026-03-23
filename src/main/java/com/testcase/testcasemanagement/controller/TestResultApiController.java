@@ -151,8 +151,9 @@ public class TestResultApiController {
         log.info("기본 통계 조회 요청 - 프로젝트: {}, 플랜: {}", projectId, testPlanId);
 
         try {
+            List<String> testPlanIds = testPlanId != null && !testPlanId.isEmpty() ? List.of(testPlanId) : null;
             TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(
-                    projectId, testPlanId, testExecutionId);
+                    projectId, testPlanIds, testExecutionId);
 
             Map<String, Object> metadata = Map.of(
                     "statisticsType", "basic",

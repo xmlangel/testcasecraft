@@ -8,6 +8,7 @@ import {
 import { useAppContext } from '../context/AppContext.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 import TestCaseTree from './TestCaseTree.jsx';
+import { countRealTestCases } from '../utils/treeUtils';
 
 const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
   const {
@@ -69,7 +70,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
       setError(t('testPlan.validation.nameRequired', '테스트 플랜 이름은 필수 입력 항목입니다'));
       return false;
     }
-    if (formData.testCaseIds.length === 0) {
+    if (countRealTestCases(formData.testCaseIds, testCases) === 0) {
       setError(t('testPlan.validation.testcaseRequired', '최소 한 개 이상의 테스트케이스를 선택해야 합니다'));
       return false;
     }
@@ -102,14 +103,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
   };
 
   // 실제 테스트케이스만 카운트
-  const selectedTestCaseCount = formData.testCaseIds
-    ? formData.testCaseIds.filter(
-      id => {
-        const tc = testCases.find(tc => tc.id === id);
-        return tc && tc.type === "testcase";
-      }
-    ).length
-    : 0;
+  const selectedTestCaseCount = countRealTestCases(formData.testCaseIds, testCases);
 
   return (
     <Dialog open maxWidth="lg" fullWidth onClose={onCancel}>

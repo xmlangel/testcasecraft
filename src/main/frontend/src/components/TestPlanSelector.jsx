@@ -12,11 +12,13 @@ import {
   CircularProgress
 } from '@mui/material';
 import { useI18n } from '../context/I18nContext.jsx';
+import { countRealTestCases } from '../utils/treeUtils';
 
 const TestPlanSelector = ({
   testPlans,
   selectedTestPlan,
   onTestPlanChange,
+  testCases = [],
   loading = false,
   disabled = false,
   size = 'medium'
@@ -53,7 +55,7 @@ const TestPlanSelector = ({
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                   <Chip
-                    label={t('testPlan.selector.caseCount', '{count}개 케이스', { count: plan.testCaseIds?.length || 0 })}
+                    label={t('testPlan.selector.caseCount', '{count}개 케이스', { count: countRealTestCases(plan.testCaseIds, testCases) })}
                     size="small"
                     variant="outlined"
                     sx={{ fontSize: '0.7rem', height: 20 }}
@@ -80,7 +82,7 @@ const TestPlanSelector = ({
           <Typography variant="caption" color="text.secondary">
             {t('testPlan.selector.selected', '선택된 플랜: {planName}', { planName: selectedTestPlan.name })}
             {selectedTestPlan.testCaseIds && (
-              <> {t('testPlan.selector.testcaseCount', '({count}개 테스트케이스)', { count: selectedTestPlan.testCaseIds.length })}</>
+              <> {t('testPlan.selector.testcaseCount', '({count}개 테스트케이스)', { count: countRealTestCases(selectedTestPlan.testCaseIds, testCases) })}</>
             )}
           </Typography>
         </Box>

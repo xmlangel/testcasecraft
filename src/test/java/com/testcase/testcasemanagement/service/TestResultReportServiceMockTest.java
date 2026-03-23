@@ -506,6 +506,102 @@ public class TestResultReportServiceMockTest {
                 System.out.println("✅ Pagination OutOfBounds 처리 성공: 예외 발생 안함, 빈 리스트 반환");
         }
 
+        @Test(priority = 12)
+        public void testGetTestResultStatistics_PlanWithUnexecutedCases() {
+                System.out.println("📊 12. 미실행 케이스 포함 플랜 통계 테스트 (ICT-418)");
+
+                // Given
+                String planId = "plan-multi-1";
+                List<String> planIds = Arrays.asList(planId);
+                
+                // 플랜에 3개의 케이스가 있다고 설정
+                TestPlan plan = new TestPlan();
+                plan.setId(planId);
+                plan.setName("멀티 테스트 플랜");
+                plan.setTestCaseIds(Arrays.asList("tc-1", "tc-2", "tc-3"));
+                
+                when(testPlanRepository.findAllById(planIds)).thenReturn(Arrays.asList(plan));
+
+                // 2개(tc-1, tc-2)만 실행된 결과 생성
+                TestResult res1 = createMockResultWithTestCaseIdAndPlan("PASS", "tc-1", planId);
+                TestResult res2 = createMockResultWithTestCaseIdAndPlan("FAIL", "tc-2", planId);
+                
+                TestExecution execution = new TestExecution();
+                execution.setId("exec-1");
+                execution.setTestPlanId(planId);
+                execution.setResults(Arrays.asList(res1, res2));
+                
+                when(testExecutionRepository.findAllByTestPlanIdIn(planIds)).thenReturn(Arrays.asList(execution));
+
+                // When
+                TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(null, planIds, null);
+
+                // Then
+                assertNotNull(statistics);
+                assertEquals(statistics.getTotalCaseCount(), Long.valueOf(3), "전체 케이스 수는 플랜의 모든 케이스를 포함해야 함");
+                assertEquals(statistics.getLatestPassCount(), Long.valueOf(1), "Pass 카운트 확인");
+                assertEquals(statistics.getLatestFailCount(), Long.valueOf(1), "Fail 카운트 확인");
+                assertEquals(statistics.getLatestNotRunCount(), Long.valueOf(1), "실행되지 않은 tc-3은 Not Run으로 카운트되어야 함");
+                
+                System.out.println("✅ 미실행 케이스 포함 통계 확인 완료: Total=3, Pass=1, Fail=1, NotRun=1");
+        }
+
+        @Test(priority = 13)
+        public void testGetTestResultStatistics_MultiPlanOverlap() {
+                System.out.println("📊 13. 다중 플랜 중복 케이스 독립 집계 테스트 (ICT-418 보완)");
+
+                // Given
+                String plan1Id = "plan-1";
+                String plan2Id = "plan-2";
+                List<String> planIds = Arrays.asList(plan1Id, plan2Id);
+
+                // Plan 1: [tc-A, tc-B, tc-C]
+                TestPlan plan1 = new TestPlan();
+                plan1.setId(plan1Id);
+                plan1.setTestCaseIds(Arrays.asList("tc-A", "tc-B", "tc-C"));
+
+                // Plan 2: [tc-A, tc-B, tc-D]
+                TestPlan plan2 = new TestPlan();
+                plan2.setId(plan2Id);
+                plan2.setTestCaseIds(Arrays.asList("tc-A", "tc-B", "tc-D"));
+
+                when(testPlanRepository.findAllById(planIds)).thenReturn(Arrays.asList(plan1, plan2));
+
+                // Plan 1 실행 (결과 없음 = 모두 Not Run)
+                TestExecution exec1 = new TestExecution();
+                exec1.setId("exec-1");
+                exec1.setTestPlanId(plan1Id);
+                exec1.setResults(new ArrayList<>());
+
+                // Plan 2 실행 (A=PASS, B=FAIL, D=PASS)
+                TestResult resA = createMockResultWithTestCaseIdAndPlan("PASS", "tc-A", plan2Id);
+                TestResult resB = createMockResultWithTestCaseIdAndPlan("FAIL", "tc-B", plan2Id);
+                TestResult resD = createMockResultWithTestCaseIdAndPlan("PASS", "tc-D", plan2Id);
+
+                TestExecution exec2 = new TestExecution();
+                exec2.setId("exec-2");
+                exec2.setTestPlanId(plan2Id);
+                exec2.setResults(Arrays.asList(resA, resB, resD));
+
+                when(testExecutionRepository.findAllByTestPlanIdIn(planIds)).thenReturn(Arrays.asList(exec1, exec2));
+
+                // When
+                TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(null, planIds, null);
+
+                // Then
+                assertNotNull(statistics);
+                // 총 6건 (P1:3 + P2:3)
+                assertEquals(statistics.getTotalCaseCount(), Long.valueOf(6), "플랜별 케이스가 독립적으로 합산되어야 함 (3+3=6)");
+                // Not Run은 P1의 A,B,C 3건
+                assertEquals(statistics.getLatestNotRunCount(), Long.valueOf(3), "플랜 1의 미실행 케이스 3건이 유지되어야 함");
+                // Pass는 P2의 A, D 2건
+                assertEquals(statistics.getLatestPassCount(), Long.valueOf(2), "플랜 2의 Pass 2건 확인");
+                // Fail은 P2의 B 1건
+                assertEquals(statistics.getLatestFailCount(), Long.valueOf(1), "플랜 2의 Fail 1건 확인");
+
+                System.out.println("✅ 다중 플랜 중복 케이스 독립 집계 확인 완료");
+        }
+
         // Helper Methods
         private TestResult createMockResult(String result) {
                 TestResult testResult = new TestResult();
@@ -527,6 +623,10 @@ public class TestResultReportServiceMockTest {
 
         // 중복 제거 로직을 위해 고유 testCaseId/testExecution을 가진 결과 생성
         private TestResult createMockResultWithTestCaseId(String result, String testCaseId) {
+                return createMockResultWithTestCaseIdAndPlan(result, testCaseId, "testplan-1");
+        }
+
+        private TestResult createMockResultWithTestCaseIdAndPlan(String result, String testCaseId, String planId) {
                 TestResult testResult = new TestResult();
                 testResult.setId(UUID.randomUUID().toString());
                 testResult.setResult(result);
@@ -534,9 +634,9 @@ public class TestResultReportServiceMockTest {
                 testResult.setExecutedBy(mockUser);
                 testResult.setTestCaseId(testCaseId);
                 TestExecution uniqueExecution = new TestExecution();
-                uniqueExecution.setId("execution-" + testCaseId);
+                uniqueExecution.setId("execution-" + UUID.randomUUID()); // 고유하게 생성
                 uniqueExecution.setName("실행-" + testCaseId);
-                uniqueExecution.setTestPlanId("testplan-1");
+                uniqueExecution.setTestPlanId(planId);
                 testResult.setTestExecution(uniqueExecution);
                 return testResult;
         }

@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, IconButton } from '@mui/material';
-import { NavigateBefore as NavigateBeforeIcon, NavigateNext as NavigateNextIcon } from '@mui/icons-material';
+import { Box, Typography, Button, IconButton, Snackbar, Alert, Tooltip } from '@mui/material';
+import { 
+    NavigateBefore as NavigateBeforeIcon, 
+    NavigateNext as NavigateNextIcon,
+    ContentCopy as CopyIcon
+} from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
+import { copyToClipboard } from '../../utils';
 
 const TestResultNotes = ({
     notes,
@@ -28,6 +33,9 @@ const TestResultNotes = ({
 
     // 전체화면 상태 감지
     const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // 복사 성공 메시지 상태
+    const [copySuccess, setCopySuccess] = useState(false);
 
     // 에스케이프 키 또는 MDEditor의 전체화면 토글 감지를 위한 효과
     useEffect(() => {
@@ -68,10 +76,39 @@ const TestResultNotes = ({
         localStorage.setItem(STORAGE_KEY, mode);
     };
 
+    // 노트 복사 핸들러
+    const handleCopyNotes = async () => {
+        const success = await copyToClipboard(notes);
+        if (success) {
+            setCopySuccess(true);
+        }
+    };
+
     return (
         <Box sx={{ mt: 2, position: 'relative' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle2">{t('testResult.form.notes', '비고')}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle2">{t('testResult.form.notes', '비고')}</Typography>
+                    {notes && (
+                        <Tooltip title={t('testcase.notes.copy', '노트 복사')}>
+                            <IconButton 
+                                size="small" 
+                                onClick={handleCopyNotes}
+                                sx={{ 
+                                    ml: 0.5,
+                                    padding: '2px',
+                                    color: 'text.secondary',
+                                    '&:hover': {
+                                        color: 'primary.main',
+                                        backgroundColor: 'action.hover'
+                                    }
+                                }}
+                            >
+                                <CopyIcon sx={{ fontSize: '1rem' }} />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Typography variant="caption" color={notes.length >= 9500 ? 'error' : 'text.secondary'}>
                         {notes.length}/10,000
@@ -149,6 +186,18 @@ const TestResultNotes = ({
                     </Typography>
                 )}
             </Box>
+
+            {/* 복사 성공 알림 */}
+            <Snackbar
+                open={copySuccess}
+                autoHideDuration={2000}
+                onClose={() => setCopySuccess(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={() => setCopySuccess(false)} severity="success" sx={{ width: '100%' }}>
+                    {t('testcase.notes.copy_message', '노트가 클립보드에 복사되었습니다.')}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

@@ -1,7 +1,7 @@
-import React, { memo } from 'react';
+import React, { memo, useState, useCallback } from 'react';
 import PropTypes from "prop-types";
 import {
-    Box, Typography, Paper, Tooltip, Chip, Button, useTheme, Checkbox, IconButton, CircularProgress
+    Box, Typography, Paper, Tooltip, Chip, Button, useTheme, Checkbox, IconButton, CircularProgress, Snackbar, Alert
 } from "@mui/material";
 import {
     Folder as FolderIcon,
@@ -18,6 +18,7 @@ import {
     getDisplayValue, priorityColor, responsiveColumnSx,
     gridTemplateColumns
 } from './utils.jsx';
+import { copyToClipboard } from '../../utils';
 
 // 개별 행 컴포넌트 - 메모이제이션 적용
 const ExecutionRow = memo(({ 
@@ -31,6 +32,7 @@ const ExecutionRow = memo(({
     handleShowPrevResults,
     handleAttachmentClick,
     handleCopyLink,
+    handleCopyNotes,
     t,
     theme
 }) => {
@@ -191,29 +193,69 @@ const ExecutionRow = memo(({
                 ) : null}
             </Box>
             {/* 6: 비고 */}
-            <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <Box 
+                sx={{ 
+                    ...responsiveColumnSx[7], 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center", 
+                    overflow: "hidden",
+                    position: 'relative',
+                    '&:hover .copy-notes-btn': {
+                        opacity: 1
+                    }
+                }}
+            >
                 {!isFolder ? (
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            lineHeight: 1.5,
-                            color: notes ? undefined : theme.palette.text.disabled,
-                            textAlign: "center",
-                            cursor: canEnterResults ? 'pointer' : 'default',
-                            width: "100%",
-                            '&:hover': canEnterResults ? {
-                                textDecoration: 'underline',
-                                color: theme.palette.primary.main
-                            } : {}
-                        }}
-                        onClick={canEnterResults ? () => handleOpenResultForm(node.id) : undefined}
-                        data-testid={`execution-table-notes-${node.id}`}
-                    >
-                        {notes ? notes : getDisplayValue(undefined, "notes")}
-                    </Typography>
+                    <>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                lineHeight: 1.5,
+                                color: notes ? undefined : theme.palette.text.disabled,
+                                textAlign: "center",
+                                cursor: canEnterResults ? 'pointer' : 'default',
+                                width: "100%",
+                                pr: notes ? 2.5 : 0,
+                                '&:hover': canEnterResults ? {
+                                    textDecoration: 'underline',
+                                    color: theme.palette.primary.main
+                                } : {}
+                            }}
+                            onClick={canEnterResults ? () => handleOpenResultForm(node.id) : undefined}
+                            data-testid={`execution-table-notes-${node.id}`}
+                        >
+                            {notes ? notes : getDisplayValue(undefined, "notes")}
+                        </Typography>
+                        {notes && (
+                            <Tooltip title={t('testcase.notes.copy', '노트 복사')}>
+                                <IconButton
+                                    className="copy-notes-btn"
+                                    size="small"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCopyNotes(notes);
+                                    }}
+                                    sx={{
+                                        position: 'absolute',
+                                        right: 2,
+                                        opacity: 0,
+                                        transition: 'opacity 0.2s',
+                                        padding: '2px',
+                                        backgroundColor: theme.palette.background.paper,
+                                        '&:hover': {
+                                            backgroundColor: theme.palette.action.hover
+                                        }
+                                    }}
+                                >
+                                    <ContentCopyIcon sx={{ fontSize: '0.8rem' }} />
+                                </IconButton>
+                            </Tooltip>
+                        )}
+                    </>
                 ) : null}
             </Box>
             {/* 7: 태그 */}
@@ -319,6 +361,15 @@ const TestExecutionTable = ({
     const { t } = useI18n();
     const theme = useTheme();
     const sentinelRef = React.useRef(null);
+    const [copySuccess, setCopySuccess] = useState(false);
+
+    // 복사 핸들러
+    const handleCopyNotes = useCallback(async (text) => {
+        const success = await copyToClipboard(text);
+        if (success) {
+            setCopySuccess(true);
+        }
+    }, []);
 
     // Intersection Observer 설정
     React.useEffect(() => {
@@ -351,6 +402,7 @@ const TestExecutionTable = ({
                 handleShowPrevResults={handleShowPrevResults}
                 handleAttachmentClick={handleAttachmentClick}
                 handleCopyLink={handleCopyLink}
+                handleCopyNotes={handleCopyNotes}
                 t={t}
                 theme={theme}
             />
@@ -478,6 +530,18 @@ const TestExecutionTable = ({
                     )}
                 </Box>
             </Box>
+
+            {/* 복사 성공 알림 */}
+            <Snackbar
+                open={copySuccess}
+                autoHideDuration={2000}
+                onClose={() => setCopySuccess(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={() => setCopySuccess(false)} severity="success" sx={{ width: '100%' }}>
+                    {t('testcase.notes.copy_message', '노트가 클립보드에 복사되었습니다.')}
+                </Alert>
+            </Snackbar>
         </Paper>
     );
 };
@@ -498,3 +562,4 @@ TestExecutionTable.propTypes = {
 };
 
 export default TestExecutionTable;
+

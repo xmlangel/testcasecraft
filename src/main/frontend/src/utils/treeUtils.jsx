@@ -152,14 +152,34 @@ export const generateTestCasePaths = (treeNodes) => {
 };
 
 // 테스트 실행 진행상황 계산
-export const calculateExecutionProgress = (execution, testPlan) => {
-  if (!execution || !testPlan || !testPlan.testCaseIds.length) return 0;
-  const totalTests = testPlan.testCaseIds.length;
+export const calculateExecutionProgress = (execution, testPlan, allTestCases) => {
+  if (!execution || !testPlan || !testPlan.testCaseIds || !testPlan.testCaseIds.length) return 0;
+  
+  // 실제 테스트케이스만 필터링
+  const realTestCaseIds = allTestCases 
+    ? testPlan.testCaseIds.filter(id => {
+        const tc = allTestCases.find(t => t.id === id);
+        return tc && tc.type === 'testcase';
+      })
+    : testPlan.testCaseIds;
+
+  if (realTestCaseIds.length === 0) return 0;
+  
+  const totalTests = realTestCaseIds.length;
   const results = execution.results || {};
-  const completedTests = testPlan.testCaseIds.filter(
+  const completedTests = realTestCaseIds.filter(
     id => results[id] && results[id].result !== 'NOT_RUN'
   ).length;
   return Math.round((completedTests / totalTests) * 100);
+};
+
+// 실제 테스트케이스 수 계산 (폴더 제외)
+export const countRealTestCases = (testCaseIds, allTestCases) => {
+  if (!testCaseIds || !allTestCases) return 0;
+  return testCaseIds.filter(id => {
+    const tc = allTestCases.find(t => t.id === id);
+    return tc && tc.type === 'testcase';
+  }).length;
 };
 
 export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
