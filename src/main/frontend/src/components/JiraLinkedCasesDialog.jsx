@@ -2,6 +2,7 @@
 // JIRA 연동률 클릭 시 연결된 JIRA 이슈 목록 (중복 제거) 다이얼로그
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogTitle,
@@ -57,6 +58,7 @@ function JiraLinkedCasesDialog({
 }) {
   const { t } = useI18n();
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const [jiraItems, setJiraItems] = useState([]); // [{ jiraKey, testCases: [...] }]
   const [activeConfig, setActiveConfig] = useState(null);
@@ -100,6 +102,7 @@ function JiraLinkedCasesDialog({
         jiraMap.get(key).testCases.push({
           testCaseId: item.testCaseId,
           testCaseName: item.testCaseName,
+          testExecutionId: item.testExecutionId,
           folderPath: item.folderPath,
           result: item.result || 'NOT_RUN'
         });
@@ -139,6 +142,31 @@ function JiraLinkedCasesDialog({
       setError(null);
     }
   }, [open, loadJiraLinkedCases, loadJiraConfig]);
+
+  // result 값 정규화
+  const normalizeResult = (result) => {
+    if (!result) return 'NOT_RUN';
+    const r = String(result).toUpperCase().replace(/[^A-Z]/g, '_');
+    if (r === 'NOTRUN' || r === 'NOT_RUN') return 'NOT_RUN';
+    return r;
+  };
+
+  // 테스트 실행 또는 결과로 이동
+  const handleGoToExecution = useCallback((item) => {
+    const targetExecutionId = item.testExecutionId || testExecutionId;
+    const normalizedResult = normalizeResult(item.result);
+
+    if (projectId && targetExecutionId) {
+      if (normalizedResult === 'FAIL') {
+        navigate(`/projects/${projectId}/executions/${targetExecutionId}/testcases/${item.testCaseId}/result`);
+      } else {
+        navigate(`/projects/${projectId}/executions/${targetExecutionId}?scrollTo=${item.testCaseId}`);
+      }
+    } else if (projectId) {
+      navigate(`/projects/${projectId}/executions`);
+    }
+    onClose();
+  }, [projectId, testExecutionId, navigate, onClose]);
 
   // 결과 유형별 Chip 색상
   const getResultChip = (result) => {
@@ -299,8 +327,14 @@ function JiraLinkedCasesDialog({
                           </Typography>
                         </TableCell>
                       )}
-                      <TableCell>
-                        <Typography variant="body2" noWrap title={tc.testCaseName}>
+                      <TableCell 
+                        onClick={() => handleGoToExecution(tc)}
+                        sx={{ 
+                          cursor: 'pointer',
+                          '&:hover': { textDecoration: 'underline' }
+                        }}
+                      >
+                        <Typography variant="body2" noWrap title={tc.testCaseName} color="primary">
                           {tc.testCaseName || t('testResult.filteredCases.unnamed', '(이름 없음)')}
                         </Typography>
                       </TableCell>
@@ -312,7 +346,28 @@ function JiraLinkedCasesDialog({
                       <TableCell>
                         {getResultChip(tc.result)}
                       </TableCell>
-                      <TableCell />
+                      <TableCell align="center">
+                        <Tooltip
+                          title={
+                            normalizeResult(tc.result) === 'FAIL'
+                              ? t('testResult.filteredCases.goToResult', '결과 상세 보기')
+                              : (tc.testExecutionId || testExecutionId)
+                                ? t('testResult.filteredCases.goToExecution', '실행으로 이동')
+                                : t('testResult.filteredCases.goToExecutionList', '실행 목록으로 이동')
+                          }
+                        >
+                          <IconButton
+                            size="small"
+                            onClick={() => handleGoToExecution(tc)}
+                            sx={{
+                              color: 'primary.main',
+                              '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.1) }
+                            }}
+                          >
+                            <OpenInNewIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

@@ -91,6 +91,14 @@ public class EnglishTestResultTranslations {
                 createTranslationIfNotExists("testResult.statistics.totalExecutionCount", languageCode, "Total Execution Count", createdBy);
                 createTranslationIfNotExists("testResult.pieChart.totalCaseCount", languageCode, "Total TestCase Count", createdBy);
                 createTranslationIfNotExists("testResult.pieChart.totalExecutionCount", languageCode, "Total Execution Count", createdBy);
+
+                // Filtered Cases Dialog
+                createTranslationIfNotExists("testResult.filteredCases.failTitle", languageCode, "Failed Test Cases", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.notRunTitle", languageCode, "Not Run Test Cases", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.column.actions", languageCode, "Actions", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.goToResult", languageCode, "View Detailed Result", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.goToExecution", languageCode, "Go to Execution", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.goToExecutionList", languageCode, "Go to Execution List", createdBy);
                 createTranslationIfNotExists("testResult.form.mode.markdown", languageCode, "Markdown", createdBy);
                 createTranslationIfNotExists("testResult.form.mode.switch", languageCode, "Mode Switch", createdBy);
                 createTranslationIfNotExists("testResult.form.fileAttachment", languageCode, "File Attachment",

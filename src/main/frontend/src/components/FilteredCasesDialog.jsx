@@ -35,6 +35,16 @@ import testResultService from '../services/testResultService';
 import { useI18n } from '../context/I18nContext';
 
 /**
+ * result 값 정규화 (NOTRUN → NOT_RUN 등 혼재 대응)
+ */
+const normalizeResult = (result) => {
+  if (!result) return 'NOT_RUN';
+  const r = String(result).toUpperCase().replace(/[^A-Z]/g, '_');
+  if (r === 'NOTRUN' || r === 'NOT_RUN') return 'NOT_RUN';
+  return r;
+};
+
+/**
  * FilteredCasesDialog
  *
  * 미실행(NOT_RUN) 또는 실패(FAIL) 케이스 목록을 보여주고,
@@ -74,14 +84,6 @@ function FilteredCasesDialog({
   // 결과 유형 색상
   const resultColor = isNotRun ? theme.palette.grey[500] : theme.palette.error.main;
   const ResultIcon = isNotRun ? PauseCircleIcon : CancelIcon;
-
-  // result 값 정규화 (NOTRUN → NOT_RUN 등 혼재 대응)
-  const normalizeResult = (result) => {
-    if (!result) return 'NOT_RUN';
-    const r = String(result).toUpperCase().replace(/[^A-Z]/g, '_');
-    if (r === 'NOTRUN' || r === 'NOT_RUN') return 'NOT_RUN';
-    return r;
-  };
 
   // 케이스 목록 조회 - 페이지네이션 전체 수집
   const loadCases = useCallback(async () => {
@@ -164,16 +166,22 @@ function FilteredCasesDialog({
     }
   }, [open, loadCases]);
 
-  // 테스트 실행으로 이동
+  // 테스트 실행 또는 결과로 이동
   const handleGoToExecution = useCallback((item) => {
     // 해당 케이스의 실행 ID 결정
     const targetExecutionId = item.testExecutionId || testExecutionId;
+    const normalizedResult = normalizeResult(item.result);
 
     if (projectId && targetExecutionId) {
-      // 특정 실행으로 이동
-      navigate(`/projects/${projectId}/executions/${targetExecutionId}`);
+      if (normalizedResult === 'FAIL') {
+        // FAIL인 경우 결과 상세 페이지로 이동
+        navigate(`/projects/${projectId}/executions/${targetExecutionId}/testcases/${item.testCaseId}/result`);
+      } else {
+        // 그 외(NOT_RUN 등)는 실행 페이지로 이동 (해당 케이스로 스크롤되도록 파라미터 추가)
+        navigate(`/projects/${projectId}/executions/${targetExecutionId}?scrollTo=${item.testCaseId}`);
+      }
     } else if (projectId) {
-      // 실행 목록으로 이동
+      // 실행 정보가 부족하면 실행 목록으로 이동
       navigate(`/projects/${projectId}/executions`);
     }
     onClose();
@@ -270,8 +278,14 @@ function FilteredCasesDialog({
                       }
                     }}
                   >
-                    <TableCell>
-                      <Typography variant="body2" noWrap title={item.testCaseName}>
+                    <TableCell 
+                      onClick={() => handleGoToExecution(item)}
+                      sx={{ 
+                        cursor: 'pointer',
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      <Typography variant="body2" noWrap title={item.testCaseName} color="primary">
                         {item.testCaseName || t('testResult.filteredCases.unnamed', '(이름 없음)')}
                       </Typography>
                     </TableCell>
@@ -293,9 +307,11 @@ function FilteredCasesDialog({
                     <TableCell align="center">
                       <Tooltip
                         title={
-                          (item.testExecutionId || testExecutionId)
-                            ? t('testResult.filteredCases.goToExecution', '실행으로 이동')
-                            : t('testResult.filteredCases.goToExecutionList', '실행 목록으로 이동')
+                          normalizeResult(item.result) === 'FAIL'
+                            ? t('testResult.filteredCases.goToResult', '결과 상세 보기')
+                            : (item.testExecutionId || testExecutionId)
+                              ? t('testResult.filteredCases.goToExecution', '실행으로 이동')
+                              : t('testResult.filteredCases.goToExecutionList', '실행 목록으로 이동')
                         }
                       >
                         <IconButton
