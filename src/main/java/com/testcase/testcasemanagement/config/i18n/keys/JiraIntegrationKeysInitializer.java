@@ -216,6 +216,17 @@ public class JiraIntegrationKeysInitializer {
                 createTranslationKeyIfNotExists("jira.config.error.general", "jira", "일반 설정 오류",
                                 "JIRA 설정 중 오류가 발생했습니다");
 
+                // JIRA 히스토리 다이얼로그 관련 (ICT-188)
+                createTranslationKeyIfNotExists("jira.history.dialogTitle", "jira", "히스토리 다이얼로그 제목", "JIRA 이슈 테스트 히스토리");
+                createTranslationKeyIfNotExists("jira.history.column.execution", "jira", "실행명 컬럼", "테스트 실행");
+                createTranslationKeyIfNotExists("jira.history.column.testcase", "jira", "테스트케이스 컬럼", "테스트케이스");
+                createTranslationKeyIfNotExists("jira.history.column.result", "jira", "결과 컬럼", "결과");
+                createTranslationKeyIfNotExists("jira.history.column.date", "jira", "실행 일시 컬럼", "실행 일시");
+                createTranslationKeyIfNotExists("jira.history.column.executor", "jira", "실행자 컬럼", "실행자");
+                createTranslationKeyIfNotExists("jira.history.column.notes", "jira", "메모 컬럼", "메모");
+                createTranslationKeyIfNotExists("jira.history.noResults", "jira", "결과 없음 메시지", "해당 JIRA 이슈와 연결된 테스트 결과가 없습니다.");
+                createTranslationKeyIfNotExists("jira.history.tooltip", "jira", "히스토리 보기 툴팁", "클릭하여 테스트 히스토리 보기");
+
                 log.info("JIRA 연동 관련 번역 키 초기화 완료");
         }
 
