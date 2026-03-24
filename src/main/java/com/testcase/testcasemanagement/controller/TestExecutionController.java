@@ -126,11 +126,18 @@ public class TestExecutionController {
     }
 
     @GetMapping("/by-project/{projectId}")
-    public ResponseEntity<List<TestExecutionDto>> getTestExecutionsByProject(
+    public ResponseEntity<?> getTestExecutionsByProject(
             @PathVariable String projectId,
-            @RequestParam(required = false) String name) {
-        List<TestExecutionDto> executions = testExecutionService.getTestExecutionsByProject(projectId, name);
-        return ResponseEntity.ok(executions);
+            @RequestParam(required = false) String name,
+            @org.springframework.data.web.PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) org.springframework.data.domain.Pageable pageable) {
+        
+        org.springframework.data.domain.Page<TestExecutionDto> executionPage = testExecutionService.getTestExecutionsByProject(projectId, name, pageable);
+        
+        // 프론트엔드의 호환성을 위해 리스트(Page.getContent())를 반환하거나 
+        // 페이징 정보를 포함한 래퍼 객체를 반환할 수 있습니다.
+        // 여기서는 페이징 정보를 헤더나 별도 필드로 전달하는 것이 좋으나, 
+        // 일단 ApiResponse 형식을 따르거나 Page 자체를 반환합니다.
+        return ResponseEntity.ok(executionPage);
     }
 
     @GetMapping("/by-testcase/{testCaseId}")

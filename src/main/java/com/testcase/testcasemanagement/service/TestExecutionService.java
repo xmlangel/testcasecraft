@@ -11,6 +11,8 @@ import com.testcase.testcasemanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,7 +86,7 @@ public class TestExecutionService {
 
     @Transactional(readOnly = true)
     public Optional<TestExecutionDto> getTestExecutionById(String id) {
-        return testExecutionRepository.findByIdWithResults(id).map(this::toDto);
+        return testExecutionRepository.findByIdWithResults(id).map(entity -> toDto(entity, true));
     }
 
     @Transactional
@@ -313,8 +315,13 @@ public class TestExecutionService {
         return toDto(reloaded);
     }
 
-    // Entity <-> DTO 변환 메서드
+    // Entity <-> DTO 변환 메서드 (기본값: 결과 상세 포함)
     private TestExecutionDto toDto(TestExecution entity) {
+        return toDto(entity, true);
+    }
+
+    // Entity <-> DTO 변환 메서드 (결과 상세 포함 여부 선택 가능)
+    private TestExecutionDto toDto(TestExecution entity, boolean includeResults) {
         TestExecutionDto dto = new TestExecutionDto();
         dto.setId(entity.getId());
         dto.setName(entity.getName());
@@ -329,22 +336,82 @@ public class TestExecutionService {
         if (entity.getTags() != null) {
             dto.setTags(new ArrayList<>(entity.getTags()));
         }
-        // 결과를 실행일시 역순(최신순)으로 정렬해서 반환
-        List<TestResultDto> sortedResults = entity.getResults().stream()
+
+        // 요약 통계 계산 및 결과 정렬
+        List<TestResult> entityResults = entity.getResults();
+        if (entityResults == null) {
+            entityResults = new ArrayList<>();
+        }
+
+        // 1. 실행일시 역순(최신순)으로 정렬
+        List<TestResult> sortedEntityResults = entityResults.stream()
                 .sorted((a, b) -> {
                     LocalDateTime dateA = a.getExecutedAt();
                     LocalDateTime dateB = b.getExecutedAt();
-                    if (dateA == null && dateB == null)
-                        return 0;
-                    if (dateA == null)
-                        return 1;
-                    if (dateB == null)
-                        return -1;
-                    return dateB.compareTo(dateA); // 내림차순 (최신순)
+                    if (dateA == null && dateB == null) return 0;
+                    if (dateA == null) return 1;
+                    if (dateB == null) return -1;
+                    return dateB.compareTo(dateA);
                 })
-                .map(this::toDto)
                 .collect(Collectors.toList());
-        dto.setResults(sortedResults);
+
+        // 2. 요약 통계 계산 (TestPlan의 TestCase 목록 기준)
+        TestPlan testPlan = null;
+        if (entity.getTestPlanId() != null) {
+            testPlan = testPlanRepository.findById(entity.getTestPlanId()).orElse(null);
+        }
+
+        if (testPlan != null && testPlan.getTestCaseIds() != null) {
+            List<String> planCaseIds = testPlan.getTestCaseIds();
+            int total = planCaseIds.size();
+            int passed = 0;
+            int failed = 0;
+            int completed = 0;
+
+            // 각 테스트케이스별 최신 결과 확인
+            Map<String, TestResult> latestResultsMap = new HashMap<>();
+            for (TestResult r : sortedEntityResults) {
+                if (!latestResultsMap.containsKey(r.getTestCaseId())) {
+                    latestResultsMap.put(r.getTestCaseId(), r);
+                }
+            }
+
+            for (String caseId : planCaseIds) {
+                TestResult latest = latestResultsMap.get(caseId);
+                if (latest != null && latest.getResult() != null) {
+                    String resultStatus = latest.getResult();
+                    if (!"NOTRUN".equalsIgnoreCase(resultStatus)) {
+                        completed++;
+                        if ("PASS".equalsIgnoreCase(resultStatus)) {
+                            passed++;
+                        } else if ("FAIL".equalsIgnoreCase(resultStatus)) {
+                            failed++;
+                        }
+                    }
+                }
+            }
+
+            dto.setTotalCount(total);
+            dto.setPassedCount(passed);
+            dto.setFailedCount(failed);
+            dto.setProgress(total > 0 ? (completed * 100 / total) : 0);
+        } else {
+            dto.setTotalCount(0);
+            dto.setPassedCount(0);
+            dto.setFailedCount(0);
+            dto.setProgress(0);
+        }
+
+        // 3. 결과 리스트 설정 (요청된 경우만)
+        if (includeResults) {
+            List<TestResultDto> resultDtos = sortedEntityResults.stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList());
+            dto.setResults(resultDtos);
+        } else {
+            dto.setResults(null); 
+        }
+
         return dto;
     }
 
@@ -404,16 +471,100 @@ public class TestExecutionService {
 
     @Transactional(readOnly = true)
     public List<TestExecutionDto> getTestExecutionsByProject(String projectId, String name) {
-        List<TestExecution> executions;
+        return getTestExecutionsByProject(projectId, name, Pageable.unpaged()).getContent();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TestExecutionDto> getTestExecutionsByProject(String projectId, String name, Pageable pageable) {
+        // 1. 실행 목록 페이징 조회 (results fetch 제거로 매우 빨라짐)
+        org.springframework.data.domain.Page<TestExecution> executionPage;
         if (name != null && !name.trim().isEmpty()) {
-            executions = testExecutionRepository.findByProjectIdAndNameContainingIgnoreCase(projectId, name.trim());
+            executionPage = testExecutionRepository.findPageByProjectIdAndNameContainingIgnoreCase(projectId, name.trim(), pageable);
         } else {
-            executions = testExecutionRepository.findByProjectId(projectId);
+            executionPage = testExecutionRepository.findPageByProjectId(projectId, pageable);
         }
 
-        return executions.stream()
-                .map(this::toDto)
+        if (executionPage.isEmpty()) {
+            return org.springframework.data.domain.Page.empty(pageable);
+        }
+
+        List<TestExecution> executions = executionPage.getContent();
+
+        // 2. 필요한 데이터 일괄 조회를 위한 ID 수집
+        List<String> executionIds = executions.stream().map(TestExecution::getId).collect(Collectors.toList());
+        List<String> testPlanIds = executions.stream()
+                .map(TestExecution::getTestPlanId)
+                .filter(Objects::nonNull)
+                .distinct()
                 .collect(Collectors.toList());
+
+        // 3. TestPlan 정보 벌크 로드
+        Map<String, TestPlan> testPlanMap = new HashMap<>();
+        if (!testPlanIds.isEmpty()) {
+            List<TestPlan> plans = testPlanRepository.findAllById(testPlanIds);
+            plans.forEach(p -> testPlanMap.put(p.getId(), p));
+        }
+
+        // 4. 결과 집계 정보 벌크 로드 (Native Query 사용)
+        List<Map<String, Object>> summaryData = testResultRepository.findSummaryByExecutionIds(executionIds);
+        Map<String, Map<String, Long>> executionSummaryMap = new HashMap<>();
+        
+        for (Map<String, Object> row : summaryData) {
+            String execId = (String) row.get("test_execution_id");
+            String status = (String) row.get("result");
+            Long count = ((Number) row.get("count")).longValue();
+            
+            executionSummaryMap.computeIfAbsent(execId, k -> new HashMap<>()).put(status, count);
+        }
+
+        // 5. DTO 변환 및 Page 생성
+        List<TestExecutionDto> dtos = executions.stream()
+                .map(entity -> {
+                    TestExecutionDto dto = new TestExecutionDto();
+                    dto.setId(entity.getId());
+                    dto.setName(entity.getName());
+                    dto.setTestPlanId(entity.getTestPlanId());
+                    dto.setDescription(entity.getDescription());
+                    dto.setStatus(entity.getStatus());
+                    dto.setStartDate(entity.getStartDate());
+                    dto.setEndDate(entity.getEndDate());
+                    dto.setCreatedAt(entity.getCreatedAt());
+                    dto.setUpdatedAt(entity.getUpdatedAt());
+                    dto.setProjectId(entity.getProject().getId());
+                    if (entity.getTags() != null) {
+                        dto.setTags(new ArrayList<>(entity.getTags()));
+                    }
+
+                    // 집계 데이터 설정
+                    TestPlan plan = testPlanMap.get(entity.getTestPlanId());
+                    Map<String, Long> counts = executionSummaryMap.getOrDefault(entity.getId(), Collections.emptyMap());
+                    
+                    if (plan != null && plan.getTestCaseIds() != null) {
+                        int total = plan.getTestCaseIds().size();
+                        long passed = counts.getOrDefault("PASS", 0L);
+                        long failed = counts.getOrDefault("FAIL", 0L);
+                        long blocked = counts.getOrDefault("BLOCKED", 0L);
+                        long completed = passed + failed + blocked;
+                        
+                        dto.setTotalCount(total);
+                        dto.setPassedCount((int) passed);
+                        dto.setFailedCount((int) failed);
+                        dto.setSkippedCount((int) blocked);
+                        dto.setProgress(total > 0 ? (int)(completed * 100 / total) : 0);
+                    } else {
+                        dto.setTotalCount(0);
+                        dto.setPassedCount(0);
+                        dto.setFailedCount(0);
+                        dto.setSkippedCount(0);
+                        dto.setProgress(0);
+                    }
+                    
+                    dto.setResults(null); 
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        return new org.springframework.data.domain.PageImpl<>(dtos, pageable, executionPage.getTotalElements());
     }
 
     // 테스트케이스ID로 결과 조회 (최신순 정렬)

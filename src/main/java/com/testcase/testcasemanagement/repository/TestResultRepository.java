@@ -637,4 +637,29 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
                      "GROUP BY COALESCE(u.username, 'Unassigned') " +
                      "ORDER BY executor_name", nativeQuery = true)
        List<Map<String, Object>> findStatisticsByExecutor(@Param("projectId") String projectId);
+
+       /**
+        * ICT-Performance: 실행 ID 목록에 대한 결과 상태별 집계 조회
+        * 각 실행 내에서 테스트케이스별 최신 결과를 기준으로 집계합니다.
+        *
+        * @param executionIds 테스트 실행 ID 목록
+        * @return 실행 ID별 상태별 개수 목록 (test_execution_id, result, count)
+        */
+       @Query(value = "WITH latest_results AS ( " +
+                     "    SELECT " +
+                     "        test_execution_id, " +
+                     "        test_case_id, " +
+                     "        result, " +
+                     "        ROW_NUMBER() OVER (PARTITION BY test_execution_id, test_case_id ORDER BY executed_at DESC) as rn " +
+                     "    FROM test_results " +
+                     "    WHERE test_execution_id IN :executionIds " +
+                     ") " +
+                     "SELECT " +
+                     "    test_execution_id, " +
+                     "    result, " +
+                     "    COUNT(*) as count " +
+                     "FROM latest_results " +
+                     "WHERE rn = 1 " +
+                     "GROUP BY test_execution_id, result", nativeQuery = true)
+       List<Map<String, Object>> findSummaryByExecutionIds(@Param("executionIds") List<String> executionIds);
 }

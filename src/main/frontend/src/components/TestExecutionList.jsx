@@ -25,7 +25,7 @@ const EXECUTIONS_PER_PAGE = 5;
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
 const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
-  const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases, api } = useAppContext();
+  const { getTestPlan, activeProject, user, api } = useAppContext();
   const { t } = useTranslation();
   const theme = useTheme();
   const [testExecutions, setTestExecutions] = useState([]);
@@ -34,6 +34,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [executionToDelete, setExecutionToDelete] = useState(null);
   const [page, setPage] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
   const navigate = useNavigate();
 
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
@@ -43,7 +44,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [triggerSearch, setTriggerSearch] = useState(0); // 검색 실행 트리거
 
-  const fetchTestExecutions = useCallback(async (projectId, name) => {
+  const fetchTestExecutions = useCallback(async (projectId, name, pageNum = 1) => {
     if (!projectId) {
       setTestExecutions([]);
       setIsLoading(false);
@@ -51,14 +52,23 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
     }
     try {
       setIsLoading(true);
-      let url = `/api/test-executions/by-project/${projectId}`;
+      // 서버는 0-based page index를 사용하므로 pageNum - 1
+      let url = `/api/test-executions/by-project/${projectId}?page=${pageNum - 1}&size=${EXECUTIONS_PER_PAGE}`;
       if (name) {
-        url += `?name=${encodeURIComponent(name)}`;
+        url += `&name=${encodeURIComponent(name)}`;
       }
       const response = await api(url);
       if (!response.ok) throw new Error('Failed to fetch executions');
       const data = await response.json();
-      setTestExecutions(data);
+      
+      // Page 객체 대응: content에 데이터가 있고 totalElements에 전체 개수가 있음
+      if (data && data.content) {
+        setTestExecutions(data.content);
+        setTotalElements(data.totalElements || data.content.length);
+      } else {
+        setTestExecutions(Array.isArray(data) ? data : []);
+        setTotalElements(Array.isArray(data) ? data.length : 0);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -68,12 +78,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
 
   useEffect(() => {
     if (activeProject?.id) {
-      fetchProjectTestCases(activeProject.id);
-      fetchTestExecutions(activeProject.id, searchQuery);
+      fetchTestExecutions(activeProject.id, searchQuery, page);
     } else {
       setTestExecutions([]);
     }
-  }, [activeProject?.id, fetchProjectTestCases, fetchTestExecutions, triggerSearch]); // triggerSearch가 변경될 때 재검색
+  }, [activeProject?.id, fetchTestExecutions, triggerSearch, page]); // page 변경 시에도 fetch
 
   const handleSearch = () => {
     setTriggerSearch(prev => prev + 1);
@@ -107,21 +116,6 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
     setPage(value);
   };
 
-  const calculateProgress = (execution) => {
-    const testPlan = getTestPlan(execution.testPlanId);
-    if (!testPlan?.testCaseIds?.length || !Array.isArray(testCases)) return 0;
-    const caseIds = testPlan.testCaseIds.filter(id => {
-      const tc = testCases.find(tc => tc.id === id);
-      return tc && tc.type === 'testcase';
-    });
-    if (caseIds.length === 0) return 0;
-    const completedTests = caseIds.filter(id => {
-      const resultObj = execution.results?.find(r => r.testCaseId === id);
-      return resultObj && resultObj.result && resultObj.result !== 'NOTRUN';
-    }).length;
-    return Math.round((completedTests / caseIds.length) * 100);
-  };
-
   const renderStatusChip = (status) => {
     switch (status) {
       case ExecutionStatus.NOTSTARTED:
@@ -135,11 +129,8 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
     }
   };
 
-  const totalPages = Math.ceil(testExecutions.length / EXECUTIONS_PER_PAGE);
-  const paginatedExecutions = testExecutions.slice(
-    (page - 1) * EXECUTIONS_PER_PAGE,
-    page * EXECUTIONS_PER_PAGE
-  );
+  const totalPages = Math.ceil(totalElements / EXECUTIONS_PER_PAGE);
+  const paginatedExecutions = testExecutions; // 서버에서 이미 페이징된 데이터가 오므로 그대로 사용
 
   if (isLoading && !testExecutions.length) // 초기 로딩만 표시, 재검색 시에는 리스트 유지하면서 로딩 처리하려면 조건 변경 필요. 여기서는 간단히.
     return <CircularProgress sx={{ display: 'block', margin: '2rem auto' }} />;
@@ -199,7 +190,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
           <List sx={{ width: '100%' }}>
             {paginatedExecutions.map((execution, index) => {
               const testPlan = getTestPlan(execution.testPlanId);
-              const progress = calculateProgress(execution);
+              const progress = execution.progress || 0;
               return (
                 <React.Fragment key={execution.id}>
                   {index !== 0 && <Divider component="li" />}
