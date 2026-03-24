@@ -520,11 +520,14 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // 프로젝트별 테스트 실행 목록으로 이동
   const handleGoToList = () => {
-    // api() 함수가 자동으로 토큰 갱신을 처리하므로 명시적 검증 불필요
-    if (activeProject?.id) {
-      navigate(`/projects/${activeProject.id}/executions`);
+    // 1. propProjectId (URL Params) -> 2. execution.projectId -> 3. activeProject.id 순으로 확인
+    const projectId = propProjectId || execution?.projectId || activeProject?.id;
+    
+    if (projectId) {
+      navigate(`/projects/${projectId}/executions`);
     } else {
-      navigate("/executions");
+      // 프로젝트 ID를 찾을 수 없는 경우에만 전체 실행 목록 또는 프로젝트 선택으로 이동
+      navigate("/projects");
     }
   };
 

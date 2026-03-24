@@ -27,7 +27,21 @@ const TestExecutionHeader = ({
         <>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
                 <Box sx={{ flex: 1, minWidth: 200 }}>
-                    <Typography variant="h5" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                    <Typography 
+                        variant="h5" 
+                        sx={{ 
+                            fontWeight: "bold", 
+                            color: "#1976d2",
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            '&:hover': {
+                                textDecoration: 'underline',
+                                opacity: 0.8
+                            }
+                        }}
+                        onClick={onGoToList}
+                        data-testid="execution-header-title"
+                    >
                         {executionId ? (
                             <>{t('testExecution.form.editTitle', { name: executionName })}
                             </>) : (
