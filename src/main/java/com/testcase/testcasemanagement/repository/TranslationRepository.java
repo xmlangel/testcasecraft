@@ -28,7 +28,7 @@ public interface TranslationRepository extends JpaRepository<Translation, String
                                                       @Param("languageCode") String languageCode);
 
     // 특정 언어의 모든 번역 조회
-    @Query("SELECT t FROM Translation t WHERE t.language.code = :languageCode AND t.isActive = true")
+    @Query("SELECT t FROM Translation t JOIN FETCH t.translationKey WHERE t.language.code = :languageCode AND t.isActive = true")
     List<Translation> findByLanguageCode(@Param("languageCode") String languageCode);
 
     // 특정 언어의 모든 번역 조회 (활성 상태 무관)
@@ -47,7 +47,7 @@ public interface TranslationRepository extends JpaRepository<Translation, String
     List<Translation> findByKeyNameIn(@Param("keyNames") List<String> keyNames);
 
     // 특정 언어와 카테고리의 번역들 조회
-    @Query("SELECT t FROM Translation t " +
+    @Query("SELECT t FROM Translation t JOIN FETCH t.translationKey " +
            "WHERE t.language.code = :languageCode AND t.translationKey.category = :category AND t.isActive = true")
     List<Translation> findByLanguageCodeAndCategory(@Param("languageCode") String languageCode,
                                                    @Param("category") String category);

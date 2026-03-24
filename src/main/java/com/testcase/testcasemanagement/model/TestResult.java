@@ -164,6 +164,7 @@ public class TestResult {
     /**
      * 첨부파일 목록
      */
+    @org.hibernate.annotations.BatchSize(size = 100)
     @OneToMany(mappedBy = "testResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TestResultAttachment> attachments = new ArrayList<>();
 

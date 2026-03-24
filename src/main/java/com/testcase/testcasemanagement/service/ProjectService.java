@@ -240,8 +240,8 @@ public class ProjectService {
         if (!projectSecurityService.canAccessProject(projectId, currentUsername)) {
             throw new AccessDeniedException("프로젝트에 접근할 권한이 없습니다.");
         }
-
-        return projectRepository.findById(projectId)
+ 
+        return projectRepository.findByIdWithOrganization(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
     }
 
