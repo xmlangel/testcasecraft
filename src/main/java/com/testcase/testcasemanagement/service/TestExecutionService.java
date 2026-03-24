@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -70,6 +71,7 @@ public class TestExecutionService {
         return toDto(saved);
     }
 
+    @Transactional(readOnly = true)
     public List<TestExecutionDto> getTestExecutions(String testPlanId) {
         List<TestExecution> executions;
         if (testPlanId != null) {
@@ -80,15 +82,20 @@ public class TestExecutionService {
         return executions.stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Optional<TestExecutionDto> getTestExecutionById(String id) {
         return testExecutionRepository.findByIdWithResults(id).map(this::toDto);
     }
 
+    @Transactional
     public TestExecutionDto updateTestExecution(String id, TestExecutionDto dto) {
         TestExecution entity = testExecutionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
+        if (dto.getTags() != null) {
+            entity.setTags(new java.util.LinkedHashSet<>(dto.getTags()));
+        }
         entity.setUpdatedAt(LocalDateTime.now());
         TestExecution saved = testExecutionRepository.save(entity);
         return toDto(saved);
@@ -98,6 +105,7 @@ public class TestExecutionService {
         testExecutionRepository.deleteById(id);
     }
 
+    @Transactional
     public TestExecutionDto startTestExecution(String id) {
         TestExecution entity = testExecutionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
@@ -108,6 +116,7 @@ public class TestExecutionService {
         return toDto(saved);
     }
 
+    @Transactional
     public TestExecutionDto completeTestExecution(String id) {
         TestExecution entity = testExecutionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
@@ -118,6 +127,7 @@ public class TestExecutionService {
         return toDto(saved);
     }
 
+    @Transactional
     public TestExecutionDto restartTestExecution(String id) {
         TestExecution entity = testExecutionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
@@ -135,6 +145,7 @@ public class TestExecutionService {
     }
 
     // 수정된 부분: 항상 새로운 TestResult를 추가
+    @Transactional
     public TestExecutionDto updateTestResult(String executionId, TestResultDto resultDto) {
         TestExecution entity = testExecutionRepository.findByIdWithResults(executionId)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
@@ -194,7 +205,7 @@ public class TestExecutionService {
 
         r.setJiraIssueKey(resultDto.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
         if (resultDto.getTags() != null) {
-            r.setTags(new ArrayList<>(resultDto.getTags()));
+            r.setTags(new java.util.LinkedHashSet<>(resultDto.getTags()));
         }
         r.setExecutedAt(LocalDateTime.now());
         r.setExecutedBy(currentUser);
@@ -216,6 +227,7 @@ public class TestExecutionService {
      * 일괄 테스트 결과 업데이트
      * 여러 테스트케이스에 대해 동일한 결과를 한 번에 저장
      */
+    @Transactional
     public TestExecutionDto updateTestResultsBulk(String executionId, BulkTestResultDto bulkDto) {
         TestExecution entity = testExecutionRepository.findByIdWithResults(executionId)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
@@ -281,7 +293,7 @@ public class TestExecutionService {
             r.setNotes(bulkDto.getNotes());
             r.setJiraIssueKey(bulkDto.getJiraIssueKey());
             if (bulkDto.getTags() != null) {
-                r.setTags(new ArrayList<>(bulkDto.getTags()));
+                r.setTags(new java.util.LinkedHashSet<>(bulkDto.getTags()));
             }
             r.setExecutedAt(now);
             r.setExecutedBy(currentUser);
@@ -368,7 +380,7 @@ public class TestExecutionService {
         entity.setUpdatedAt(dto.getUpdatedAt());
         dto.setProjectId(dto.getProjectId());
         if (dto.getTags() != null) {
-            entity.setTags(new ArrayList<>(dto.getTags()));
+            entity.setTags(new java.util.LinkedHashSet<>(dto.getTags()));
         }
 
         if (dto.getResults() != null) {
@@ -384,12 +396,13 @@ public class TestExecutionService {
         entity.setNotes(dto.getNotes());
         entity.setExecutedAt(dto.getExecutedAt());
         if (dto.getTags() != null) {
-            entity.setTags(new ArrayList<>(dto.getTags()));
+            entity.setTags(new java.util.LinkedHashSet<>(dto.getTags()));
         }
         // executedBy는 updateTestResult에서만 세팅
         return entity;
     }
 
+    @Transactional(readOnly = true)
     public List<TestExecutionDto> getTestExecutionsByProject(String projectId, String name) {
         List<TestExecution> executions;
         if (name != null && !name.trim().isEmpty()) {
@@ -504,7 +517,7 @@ public class TestExecutionService {
         existingResult.setJiraIssueKey(resultDto.getJiraIssueKey());
 
         if (resultDto.getTags() != null) {
-            existingResult.setTags(new ArrayList<>(resultDto.getTags()));
+            existingResult.setTags(new java.util.LinkedHashSet<>(resultDto.getTags()));
         }
 
         // 6. 저장

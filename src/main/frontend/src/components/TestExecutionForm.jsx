@@ -87,6 +87,26 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
+  // 일반 정보(이름, 설명, 태그) 편집 모드 여부
+  const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(!executionId);
+  const [originalExecution, setOriginalExecution] = useState(null);
+
+  const handleEditClick = useCallback(() => {
+    setOriginalExecution({ ...execution });
+    setIsEditingBasicInfo(true);
+  }, [execution]);
+
+  const handleCancelEditFromHeader = useCallback(() => {
+    if (!executionId) {
+      onCancel();
+    } else {
+      if (originalExecution) {
+        setExecution(originalExecution);
+      }
+      setIsEditingBasicInfo(false);
+    }
+  }, [executionId, onCancel, originalExecution]);
+
   // 필터 관련 상태
   const [filters, setFilters] = useState({
     name: '',
@@ -293,6 +313,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     try {
       const saved = await addOrUpdateTestExecution(execution);
       setExecution(saved);
+      setIsEditingBasicInfo(false); // 저장 성공 시 편집 모드 종료
 
       // 즉시 시작 옵션이 선택된 경우 테스트 실행 시작
       if (startImmediately && saved.id && saved.status === ExecutionStatus.NOTSTARTED) {
@@ -621,7 +642,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     }
   }, [location.state, navigate]);
 
-  const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
+  const canEditBasicInfo = isEditingBasicInfo; // 이름, 설명, 태그는 편집 모드일 때만 수정 가능
+  const canEditPlan = execution?.status === ExecutionStatus.NOTSTARTED; // 테스트 플랜 변경은 시작 전까지만 가능
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
   const canRestartExecution = execution?.status === ExecutionStatus.COMPLETED;
@@ -919,19 +941,23 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   return (
     <Box sx={PAGE_CONTAINER_SX.main}>
-      <TestExecutionHeader
-        executionId={executionId}
-        executionName={execution?.name}
-        execution={execution}
-        onCancel={onCancel}
-        onGoToList={handleGoToList}
-        onSaveOrUpdate={handleSaveOrUpdate}
-        saving={saving}
-        canEditBasicInfo={canEditBasicInfo}
-        startImmediately={startImmediately}
-        showExecutionGuide={showExecutionGuide}
-        setShowExecutionGuide={setShowExecutionGuide}
-      />
+        <TestExecutionHeader
+          executionId={executionId}
+          executionName={execution?.name}
+          execution={execution}
+          onCancel={onCancel}
+          onGoToList={handleGoToList}
+          onSaveOrUpdate={handleSaveOrUpdate}
+          saving={saving}
+          canEditBasicInfo={canEditBasicInfo}
+          canEditPlan={canEditPlan}
+          startImmediately={startImmediately}
+          showExecutionGuide={showExecutionGuide}
+          setShowExecutionGuide={setShowExecutionGuide}
+          isEditingBasicInfo={isEditingBasicInfo}
+          onEditClick={handleEditClick}
+          onCancelEdit={handleCancelEditFromHeader}
+        />
 
       {/* 실행 요약 정보 (Info & Status) - Accordion 적용 */}
       <Accordion 
@@ -986,6 +1012,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
                 availableTags={availableTags}
                 setExecution={setExecution}
                 canEditBasicInfo={canEditBasicInfo}
+                canEditPlan={canEditPlan}
                 startImmediately={startImmediately}
                 setStartImmediately={setStartImmediately}
                 executionId={executionId}
