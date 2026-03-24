@@ -16,4 +16,3 @@
 #### 🐞 Bug Fixes
 - **Statistics Filter Panel Error Fix**: Resolved a `TypeError` in the statistics panel caused by data type mismatches (Page object vs List) and added defensive data handling.
 - **Floating Menu Visibility Fix**: Corrected a Z-index issue where the navigation menu was hidden behind the full-screen markdown editor in the test result form.
-- **BERT Judge Script Stability**: Fixed a "missing column" error in `bert_llm_judge-file.py`, ensuring stable execution of LLM-based evaluation tools.
