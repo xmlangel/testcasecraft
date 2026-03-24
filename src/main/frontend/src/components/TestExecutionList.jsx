@@ -230,7 +230,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
           <List sx={{ width: '100%' }}>
             {paginatedExecutions.map((execution, index) => {
               const testPlan = getTestPlan(execution.testPlanId);
-              const progress = execution.progress || 0;
+              const progress = Math.min(Math.max(execution.progress || 0, 0), 100);
               return (
                 <React.Fragment key={execution.id}>
                   {index !== 0 && <Divider component="li" />}
