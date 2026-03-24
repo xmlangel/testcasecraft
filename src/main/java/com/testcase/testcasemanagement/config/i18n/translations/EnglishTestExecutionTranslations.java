@@ -183,6 +183,9 @@ public class EnglishTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.jira.urlNotSet", languageCode,
                                 "{issueKey} (JIRA URL not set)",
                                 createdBy);
+                createTranslationIfNotExists("testExecution.jira.historical", languageCode,
+                                "Historical Linkage",
+                                createdBy);
                 createTranslationIfNotExists("testExecution.success.savedAndStarted", languageCode,
                                 "Test execution '{name}' has been successfully saved and started. You can now enter results for each test case.",
                                 createdBy);

@@ -627,12 +627,34 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const canRestartExecution = execution?.status === ExecutionStatus.COMPLETED;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
 
+  // 1. 테스트 케이스별 가장 최근 유효한 JIRA ID 맵 생성 (같은 실행 내의 과거 이력 포함)
+  const effectiveJiraMap = useMemo(() => {
+    const map = new Map();
+    const results = execution?.results || [];
+    // execution.results를 순회하며 각 케이스별로 발견되는 모든 JIRA ID 중 가장 최근 것을 저장합니다.
+    // getLatestResults와 정렬 방식이 일치하도록 처리합니다.
+    [...results]
+      .sort((a, b) => new Date(b.executedAt || 0) - new Date(a.executedAt || 0))
+      .forEach(r => {
+        if (r.jiraIssueKey && !map.has(r.testCaseId)) {
+          map.set(r.testCaseId, r.jiraIssueKey);
+        }
+      });
+    return map;
+  }, [execution?.results]);
+
   const latestResults = useMemo(() => getLatestResults(execution?.results || []), [execution?.results]);
   const resultsMap = useMemo(() => {
     const map = new Map();
-    latestResults.forEach((r) => map.set(r.testCaseId, r));
+    latestResults.forEach((r) => {
+      const effectiveJira = effectiveJiraMap.get(r.testCaseId);
+      map.set(r.testCaseId, {
+        ...r,
+        effectiveJiraIssueKey: effectiveJira // 과거 이력 포함 가장 최근 JIRA ID
+      });
+    });
     return map;
-  }, [latestResults]);
+  }, [latestResults, effectiveJiraMap]);
 
 
   // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
@@ -729,7 +751,11 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           // JIRA 아이디 필터
           if (matches && filters.jiraIssueKey) {
             const jiraKey = resultObj.jiraIssueKey || '';
-            if (!jiraKey.toLowerCase().includes(filters.jiraIssueKey.trim().toLowerCase())) {
+            const effectiveJiraKey = resultObj.effectiveJiraIssueKey || '';
+            const searchStr = filters.jiraIssueKey.trim().toLowerCase();
+            
+            if (!jiraKey.toLowerCase().includes(searchStr) && 
+                !effectiveJiraKey.toLowerCase().includes(searchStr)) {
               matches = false;
             }
           }

@@ -458,21 +458,21 @@ public class TestResultReportService {
     }
 
     /**
-     * ICT-185: JIRA 상태 통합 리스트 조회
+     * ICT-185: JIRA 상태 통합 리스트 조회 (다중 플랜 지원)
      */
-    public List<JiraStatusSummaryDto> getJiraStatusSummary(String projectId, String testPlanId,
+    public List<JiraStatusSummaryDto> getJiraStatusSummary(String projectId, List<String> testPlanIds,
             Boolean activeOnly, boolean refreshCache) {
         // JIRA 이슈가 연결된 테스트 결과들 조회
         List<TestResult> resultsWithJira;
 
-        if (projectId != null) {
-            List<TestExecution> executions = testExecutionRepository.findByProjectId(projectId);
+        if (testPlanIds != null && !testPlanIds.isEmpty()) {
+            List<TestExecution> executions = testExecutionRepository.findAllByTestPlanIdIn(testPlanIds);
             resultsWithJira = executions.stream()
                     .flatMap(exec -> exec.getResults().stream())
                     .filter(TestResult::hasJiraIssue)
                     .collect(Collectors.toList());
-        } else if (testPlanId != null) {
-            List<TestExecution> executions = testExecutionRepository.findByTestPlanId(testPlanId);
+        } else if (projectId != null) {
+            List<TestExecution> executions = testExecutionRepository.findByProjectId(projectId);
             resultsWithJira = executions.stream()
                     .flatMap(exec -> exec.getResults().stream())
                     .filter(TestResult::hasJiraIssue)
@@ -854,9 +854,10 @@ public class TestResultReportService {
         List<TestResult> recentResults = testResultRepository.findRecentTestResultsByProject(projectId, 
                 PageRequest.of(0, Integer.MAX_VALUE));
         
-        // (플랜:케이스)별 최신 결과 및 수행 횟수 관리
+        // (플랜:케이스)별 최신 결과, 수행 횟수 및 JIRA 연동 정보 관리
         Map<String, TestResult> latestResultByPlanCase = new HashMap<>();
         Map<String, Integer> executionCountByPlanCase = new HashMap<>();
+        Map<String, TestResult> latestJiraInfoByPlanCase = new HashMap<>(); // ICT-JIRA-LATEST: 과거 이력의 JIRA 정보 추적용
 
         for (TestResult result : recentResults) {
             String tcId = result.getTestCaseId();
@@ -900,6 +901,15 @@ public class TestResultReportService {
                     (existing.getExecutedAt() == null || result.getExecutedAt().isAfter(existing.getExecutedAt())))) {
                     latestResultByPlanCase.put(key, result);
                 }
+                
+                // JIRA 정보 추적: 현재 결과에 JIRA 정보가 있다면 최신 정보로 갱신
+                if (result.hasJiraIssue()) {
+                    TestResult existingJira = latestJiraInfoByPlanCase.get(key);
+                    if (existingJira == null || (result.getExecutedAt() != null && 
+                        (existingJira.getExecutedAt() == null || result.getExecutedAt().isAfter(existingJira.getExecutedAt())))) {
+                        latestJiraInfoByPlanCase.put(key, result);
+                    }
+                }
             }
         }
 
@@ -914,11 +924,21 @@ public class TestResultReportService {
             if (tc == null) continue;
 
             TestResult tr = latestResultByPlanCase.get(key);
+            TestResult jiraTr = latestJiraInfoByPlanCase.get(key); // ICT-JIRA-LATEST: 과거 이력이더라도 가장 최신 JIRA 정보 사용
             Integer execCount = executionCountByPlanCase.getOrDefault(key, 0);
             
             TestResultReportDto dto;
             if (tr != null) {
                 dto = convertToReportDto(tr);
+                
+                // ICT-JIRA-LATEST: 최신 결과에 JIRA 정보가 없으나 과거 이력에 있는 경우 JIRA 정보 합성
+                if (!tr.hasJiraIssue() && jiraTr != null) {
+                    dto.setJiraIssueKey(jiraTr.getJiraIssueKey());
+                    dto.setJiraIssueUrl(jiraTr.getJiraIssueUrl());
+                    dto.setJiraStatus(jiraTr.getJiraStatus());
+                    dto.setJiraSyncStatus(jiraTr.getJiraSyncStatus() != null ? jiraTr.getJiraSyncStatus().toString() : null);
+                }
+                
                 dto.setExecutionCount(execCount); // 집계된 수행 횟수 설정
             } else {
                 dto = new TestResultReportDto();
@@ -926,6 +946,15 @@ public class TestResultReportService {
                 dto.setTestCaseName(tc.getName());
                 dto.setFolderPath(buildFolderPath(tc));
                 dto.setResult("NOT_RUN");
+                
+                // ICT-JIRA-LATEST: 결과가 없더라도(미실행) 과거 이력에 JIRA가 있으면 표시
+                if (jiraTr != null) {
+                    dto.setJiraIssueKey(jiraTr.getJiraIssueKey());
+                    dto.setJiraIssueUrl(jiraTr.getJiraIssueUrl());
+                    dto.setJiraStatus(jiraTr.getJiraStatus());
+                    dto.setJiraSyncStatus(jiraTr.getJiraSyncStatus() != null ? jiraTr.getJiraSyncStatus().toString() : null);
+                }
+                
                 dto.setPriority(tc.getPriority());
                 dto.setCategory(tc.getType());
                 dto.setExecutionCount(0); // 미실행 시 0

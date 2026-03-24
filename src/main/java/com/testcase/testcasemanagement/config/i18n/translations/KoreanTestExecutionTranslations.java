@@ -143,6 +143,8 @@ public class KoreanTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.attachments.close", languageCode, "닫기", createdBy);
                 createTranslationIfNotExists("testExecution.jira.urlNotSet", languageCode, "{issueKey} (JIRA URL 미설정)",
                                 createdBy);
+                createTranslationIfNotExists("testExecution.jira.historical", languageCode, "과거 연결 이력",
+                                createdBy);
                 createTranslationIfNotExists("testExecution.success.savedAndStarted", languageCode,
                                 "테스트 실행 '{name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.", createdBy);
                 createTranslationIfNotExists("testExecution.form.status", languageCode, "상태", createdBy);
