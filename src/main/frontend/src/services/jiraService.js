@@ -501,6 +501,39 @@ class JiraService {
 
         return results;
     }
+
+    /**
+     * 특정 JIRA 이슈와 연결된 모든 테스트 결과 조회
+     * ICT-188: JIRA ID 기반 과거 테스트 결과 모두 표시
+     */
+    async getAllTestResultsByIssue(jiraIssueKey) {
+        try {
+            if (!jiraIssueKey) return [];
+            
+            const apiUrl = await getDynamicApiUrl();
+            const url = `${apiUrl}/api/jira-integration/all-test-results-by-issue?jiraIssueKey=${encodeURIComponent(jiraIssueKey)}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/login';
+                throw new Error('인증이 필요합니다');
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('JIRA 이슈 테스트 결과 조회 실패:', error);
+            throw error;
+        }
+    }
 }
 
 export const jiraService = new JiraService();

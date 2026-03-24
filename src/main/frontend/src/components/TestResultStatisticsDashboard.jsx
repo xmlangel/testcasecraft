@@ -23,6 +23,8 @@ import TestResultPieChart from './TestResultPieChart';
 import TestResultBarChart from './TestResultBarChart';
 import StatisticsFilterPanel from './StatisticsFilterPanel';
 import TestResultFolderStatsView from './TestResultFolderStatsView';
+import FilteredCasesDialog from './FilteredCasesDialog';
+import JiraLinkedCasesDialog from './JiraLinkedCasesDialog';
 
 // 서비스
 import testResultService, { handleTestResultError } from '../services/testResultService';
@@ -88,6 +90,13 @@ function TestResultStatisticsDashboard() {
   const [reportData, setReportData] = useState([]);
   const [error, setError] = useState(null);
   const [showPercentage, setShowPercentage] = useState(false);
+
+  // 미실행/실패 케이스 다이얼로그 상태
+  const [filteredCasesDialogOpen, setFilteredCasesDialogOpen] = useState(false);
+  const [filteredCasesResultType, setFilteredCasesResultType] = useState('NOT_RUN');
+
+  // JIRA 연동 이슈 다이얼로그 상태
+  const [jiraDialogOpen, setJiraDialogOpen] = useState(false);
 
   // 이전 프로젝트 ID 추적 (필터 초기화 방지)
   const prevProjectIdRef = useRef(activeProject?.id);
@@ -257,54 +266,75 @@ function TestResultStatisticsDashboard() {
 
     const statsMap = new Map();
 
+    // Root 노드 초기화
+    const rootKey = 'Root';
+    statsMap.set(rootKey, {
+      name: t('testResult.folder.total', '전체'),
+      pass_count: 0,
+      fail_count: 0,
+      blocked_count: 0,
+      not_run_count: 0,
+      total: 0,
+      execution_count: 0
+    });
+
     reportData.forEach(item => {
-      const folderPath = item.folderPath || '';
-      // '/' 또는 '>' 등으로 구분될 수 있으나 TestResultReportDto 주석에는 "Root/API/Authentication" 형식임
-      // 실제 데이터가 "Userv2.0 > 로그인/로그아웃" 형태일 수도 있으므로 유연하게 처리
-      const separators = /[\/>]/;
-      const parts = folderPath.split(separators).map(p => p.trim()).filter(p => p);
+      // 백엔드에서 '루트' 또는 null로 올 수 있음
+      const folderPath = (item.folderPath === '루트' || !item.folderPath) ? '' : item.folderPath;
+      const parts = folderPath.split(/[\/>]/).map(p => p.trim()).filter(p => p);
       
-      // 요청된 depth까지만 경로 추출 (최대 parts.length)
-      const targetParts = parts.slice(0, Math.min(depth, parts.length));
-      
-      // 만약 depth보다 경로가 짧다면, 하위 폴더가 없는 것이므로 해당 경로 그대로 사용
-      // 만약 folderPath가 비어있다면 'Root' 처리
-      const groupKey = targetParts.length > 0 ? targetParts.join(' > ') : (item.testCaseName ? 'Uncategorized' : 'Root');
-      
-      if (!statsMap.has(groupKey)) {
-        statsMap.set(groupKey, {
-          name: groupKey,
-          pass_count: 0,
-          fail_count: 0,
-          blocked_count: 0,
-          not_run_count: 0,
-          total: 0
-        });
-      }
-      
-      const stats = statsMap.get(groupKey);
       const result = item.result || 'NOT_RUN';
-      
-      if (result === 'PASS') stats.pass_count++;
-      else if (result === 'FAIL') stats.fail_count++;
-      else if (result === 'BLOCKED') stats.blocked_count++;
-      else stats.not_run_count++;
-      
-      stats.total++;
+      const execCount = item.executionCount || 0;
+
+      // 상위 폴더들에 통계 합산 (Root 포함)
+      const updateNodeStats = (key, name) => {
+        if (!statsMap.has(key)) {
+          statsMap.set(key, {
+            name: name,
+            pass_count: 0,
+            fail_count: 0,
+            blocked_count: 0,
+            not_run_count: 0,
+            total: 0,
+            execution_count: 0
+          });
+        }
+        const stats = statsMap.get(key);
+        if (result === 'PASS') stats.pass_count++;
+        else if (result === 'FAIL') stats.fail_count++;
+        else if (result === 'BLOCKED') stats.blocked_count++;
+        else stats.not_run_count++;
+        
+        stats.total++;
+        stats.execution_count += execCount;
+      };
+
+      // 1. Root 합산
+      updateNodeStats(rootKey, t('testResult.folder.total', '전체'));
+
+      // 2. 계층별 합산
+      let currentPath = '';
+      parts.forEach((part, index) => {
+        if (index >= depth) return;
+        
+        currentPath = index === 0 ? part : `${currentPath} > ${part}`;
+        updateNodeStats(currentPath, part);
+      });
     });
 
     return Array.from(statsMap.values())
       .map(s => ({
         ...s,
-        // BarChart 등에서 사용하는 key 이름에 맞춤 (findStatisticsByTestPlan 등 참고)
         name: s.name,
         pass_count: s.pass_count,
         fail_count: s.fail_count,
         blocked_count: s.blocked_count,
-        not_run_count: s.not_run_count
+        not_run_count: s.not_run_count,
+        total: s.total,
+        execution_count: s.execution_count
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, []);
+  }, [t]);
 
   /**
    * 비교 데이터 로드
@@ -385,6 +415,21 @@ function TestResultStatisticsDashboard() {
     setError(null);
   }, []);
 
+  /**
+   * 미실행/실패 케이스 다이얼로그 열기 핸들러
+   */
+  const handleResultClick = useCallback((resultType) => {
+    setFilteredCasesResultType(resultType);
+    setFilteredCasesDialogOpen(true);
+  }, []);
+
+  /**
+   * JIRA 연동 이슈 다이얼로그 열기 핸들러
+   */
+  const handleJiraLinkClick = useCallback(() => {
+    setJiraDialogOpen(true);
+  }, []);
+
   // ICT-194 Phase 3: 차트 제목 메모이제이션
   const comparisonChartTitle = useMemo(() => {
     if (filters.viewType === 'by-folder') {
@@ -462,6 +507,7 @@ function TestResultStatisticsDashboard() {
               <TestResultStatisticsCard
                 statistics={statistics}
                 loading={loading}
+                onResultClick={handleResultClick}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6, lg: 6 }} sx={{ height: '100%' }}>
@@ -483,6 +529,7 @@ function TestResultStatisticsDashboard() {
                 <TestResultStatisticsCard
                   statistics={statistics}
                   loading={loading}
+                  onResultClick={handleResultClick}
                 />
               </Grid>
             )}
@@ -592,12 +639,24 @@ function TestResultStatisticsDashboard() {
                   <Typography
                     variant={isMobile ? "h6" : "h6"}
                     color="info.main"
+                    onClick={handleJiraLinkClick}
                     sx={{
                       fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
-                      fontWeight: { xs: 700, md: 600 }
+                      fontWeight: { xs: 700, md: 600 },
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      '&:hover': { textDecoration: 'underline', opacity: 0.8 }
                     }}
                   >
                     {statisticsSummary.jiraLinkRate}%
+                    <Typography
+                      component="span"
+                      sx={{ fontSize: '0.65rem', color: 'info.main' }}
+                    >
+                      ▼
+                    </Typography>
                   </Typography>
                 </Grid>
 
@@ -658,6 +717,25 @@ function TestResultStatisticsDashboard() {
           {error}
         </Alert>
       </Snackbar>
+
+      {/* 미실행/실패 케이스 다이얼로그 */}
+      <FilteredCasesDialog
+        open={filteredCasesDialogOpen}
+        onClose={() => setFilteredCasesDialogOpen(false)}
+        resultType={filteredCasesResultType}
+        projectId={activeProject?.id}
+        testPlanIds={filters.testPlanId && filters.testPlanId.length > 0 ? filters.testPlanId : []}
+        testExecutionId={filters.testExecutionId || null}
+      />
+
+      {/* JIRA 연동 이슈 다이얼로그 */}
+      <JiraLinkedCasesDialog
+        open={jiraDialogOpen}
+        onClose={() => setJiraDialogOpen(false)}
+        projectId={activeProject?.id}
+        testPlanIds={filters.testPlanId && filters.testPlanId.length > 0 ? filters.testPlanId : []}
+        testExecutionId={filters.testExecutionId || null}
+      />
     </Box>
   );
 }

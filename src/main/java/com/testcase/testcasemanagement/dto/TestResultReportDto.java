@@ -65,4 +65,7 @@ public class TestResultReportDto {
 
     // ICT-361: 첨부파일 개수
     private int attachmentCount;
+
+    // ICT-FOLDER-STATS: 테스트 케이스별 총 수행 횟수
+    private int executionCount;
 }

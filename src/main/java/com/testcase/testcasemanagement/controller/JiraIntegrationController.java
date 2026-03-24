@@ -172,7 +172,7 @@ public class JiraIntegrationController {
      * JIRA 이슈에 연결된 테스트 결과 조회
      */
     @GetMapping("/test-results-by-issue")
-    @Operation(summary = "JIRA 이슈 연결 테스트 결과 조회", description = "특정 JIRA 이슈에 연결된 테스트 결과 목록을 조회합니다")
+    @Operation(summary = "JIRA 이슈 연결 테스트 결과 조회 (제한 있음)", description = "특정 JIRA 이슈에 연결된 최근 테스트 결과 목록을 조회합니다 (기본 10개)")
     public ResponseEntity<List<TestResult>> getTestResultsByJiraIssue(
             @RequestParam String jiraIssueKey,
             @RequestParam(defaultValue = "10") int limit) {
@@ -189,6 +189,25 @@ public class JiraIntegrationController {
             
         } catch (Exception e) {
             log.error("JIRA 이슈 연결 테스트 결과 조회 실패: {}", jiraIssueKey, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/all-test-results-by-issue")
+    @Operation(summary = "JIRA 이슈 연결 모든 테스트 결과 조회", description = "특정 JIRA 이슈에 연결된 모든 과거 테스트 결과 목록을 최신순으로 조회합니다")
+    public ResponseEntity<List<TestResult>> getAllTestResultsByJiraIssue(
+            @RequestParam String jiraIssueKey) {
+        
+        try {
+            if (!jiraIntegrationService.isValidJiraIssueKey(jiraIssueKey)) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            List<TestResult> testResults = testResultRepository.findByJiraIssueKeyOrderByExecutedAtDesc(jiraIssueKey);
+            
+            return ResponseEntity.ok(testResults);
+        } catch (Exception e) {
+            log.error("JIRA 이슈 연결 모든 테스트 결과 조회 실패: {}, {}", jiraIssueKey, e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }

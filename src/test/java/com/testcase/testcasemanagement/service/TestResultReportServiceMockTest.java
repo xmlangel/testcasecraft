@@ -532,6 +532,18 @@ public class TestResultReportServiceMockTest {
                 execution.setResults(Arrays.asList(res1, res2));
                 
                 when(testExecutionRepository.findAllByTestPlanIdIn(planIds)).thenReturn(Arrays.asList(execution));
+                
+                // ICT-FOLDER-STATS: 존재 여부 확인 목킹 추가
+                when(testCaseRepository.findAllById(anyList())).thenAnswer(invocation -> {
+                    List<String> ids = invocation.getArgument(0);
+                    List<TestCase> result = new ArrayList<>();
+                    for (String id : ids) {
+                        TestCase tc = new TestCase();
+                        tc.setId(id);
+                        result.add(tc);
+                    }
+                    return result;
+                });
 
                 // When
                 TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(null, planIds, null);
@@ -584,6 +596,17 @@ public class TestResultReportServiceMockTest {
                 exec2.setResults(Arrays.asList(resA, resB, resD));
 
                 when(testExecutionRepository.findAllByTestPlanIdIn(planIds)).thenReturn(Arrays.asList(exec1, exec2));
+
+                when(testCaseRepository.findAllById(anyList())).thenAnswer(invocation -> {
+                    List<String> ids = invocation.getArgument(0);
+                    List<TestCase> result = new ArrayList<>();
+                    for (String id : ids) {
+                        TestCase tc = new TestCase();
+                        tc.setId(id);
+                        result.add(tc);
+                    }
+                    return result;
+                });
 
                 // When
                 TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(null, planIds, null);

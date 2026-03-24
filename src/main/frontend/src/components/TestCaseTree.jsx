@@ -204,7 +204,8 @@ const TestCaseTree = ({
     return filteredTestCases.filter(tc => tc.type === 'folder').length;
   }, [filteredTestCases]);
 
-  const allIds = filteredTestCases.map((tc) => tc.id);
+  // testcase 타입만 선택 (폴더 제외)
+  const allIds = filteredTestCases.filter((tc) => tc.type === 'testcase').map((tc) => tc.id);
   const isAllChecked = allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));
   const isIndeterminate = checkedIds.length > 0 && !isAllChecked;
 
@@ -379,9 +380,24 @@ const TestCaseTree = ({
     const isChecked = event.target.checked;
     let newCheckedIds = [...checkedIds];
     const childIds = getAllChildIds(filteredTestCases, nodeId);
+    
+    // 폴더 자체 ID는 제외하고, testcase 타입인 자식만 포함
+    const testcaseChildIds = childIds.filter(id => {
+      const tc = filteredTestCases.find(t => t.id === id);
+      return tc && tc.type === 'testcase';
+    });
+    
+    // 현재 노드가 testcase인 경우에만 자신을 포함
+    const currentNode = filteredTestCases.find(t => t.id === nodeId);
+    const isCurrentTestCase = currentNode && currentNode.type === 'testcase';
+    
     if (isChecked) {
-      newCheckedIds = Array.from(new Set([...newCheckedIds, nodeId, ...childIds]));
+      const idsToAdd = isCurrentTestCase 
+        ? [nodeId, ...testcaseChildIds] 
+        : testcaseChildIds;  // 폴더이면 자신(폴더ID) 제외, 하위 testcase만 추가
+      newCheckedIds = Array.from(new Set([...newCheckedIds, ...idsToAdd]));
     } else {
+      // 체크 해제: 자신 + 모든 하위 아이템 제거 (폴더도 제거)
       newCheckedIds = newCheckedIds.filter(
         (id) => id !== nodeId && !childIds.includes(id)
       );

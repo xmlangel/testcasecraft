@@ -259,6 +259,14 @@ public class TestResultKeysInitializer {
                 createTranslationKeyIfNotExists("testResult.pieChart.totalTestCases", "testResult", "총 테스트케이스",
                                 "총 테스트 케이스: {total}건");
 
+                // 필터링된 케이스 다이얼로그 (FilteredCasesDialog)
+                createTranslationKeyIfNotExists("testResult.filteredCases.failTitle", "testResult", "실패 케이스 다이얼로그 제목", "실패 테스트 케이스");
+                createTranslationKeyIfNotExists("testResult.filteredCases.notRunTitle", "testResult", "미실행 케이스 다이얼로그 제목", "미실행 테스트 케이스");
+                createTranslationKeyIfNotExists("testResult.filteredCases.column.actions", "testResult", "작업 컬럼 헤더", "작업");
+                createTranslationKeyIfNotExists("testResult.filteredCases.goToResult", "testResult", "결과 상세 보기 버튼 툴팁", "결과 상세 보기");
+                createTranslationKeyIfNotExists("testResult.filteredCases.goToExecution", "testResult", "실행으로 이동 버튼 툴팁", "실행으로 이동");
+                createTranslationKeyIfNotExists("testResult.filteredCases.goToExecutionList", "testResult", "실행 목록으로 이동 버튼 툴팁", "실행 목록으로 이동");
+
                 // 통계 필터 패널
                 createTranslationKeyIfNotExists("testResult.filter.title", "testResult", "필터 제목", "통계 필터");
                 createTranslationKeyIfNotExists("testResult.filter.applied", "testResult", "필터 적용됨", "{count}개 적용");

@@ -201,6 +201,17 @@ public class KoreanJiraIntegrationTranslations {
                 "조치 필요: 실패한 테스트를 검토하고 관련 이슈를 수정해 주세요.", createdBy);
         createTranslationIfNotExists("jira.comment.template.footer", languageCode, "Test Case Manager에서 자동 생성됨",
                 createdBy);
+
+        // JIRA 히스토리 다이얼로그 (ICT-188)
+        createTranslationIfNotExists("jira.history.dialogTitle", languageCode, "JIRA 이슈 테스트 히스토리", createdBy);
+        createTranslationIfNotExists("jira.history.column.execution", languageCode, "테스트 실행", createdBy);
+        createTranslationIfNotExists("jira.history.column.testcase", languageCode, "테스트케이스", createdBy);
+        createTranslationIfNotExists("jira.history.column.result", languageCode, "결과", createdBy);
+        createTranslationIfNotExists("jira.history.column.date", languageCode, "실행 일시", createdBy);
+        createTranslationIfNotExists("jira.history.column.executor", languageCode, "실행자", createdBy);
+        createTranslationIfNotExists("jira.history.column.notes", languageCode, "메모", createdBy);
+        createTranslationIfNotExists("jira.history.noResults", languageCode, "해당 JIRA 이슈와 연결된 테스트 결과가 없습니다.", createdBy);
+        createTranslationIfNotExists("jira.history.tooltip", languageCode, "클릭하여 테스트 히스토리 보기", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

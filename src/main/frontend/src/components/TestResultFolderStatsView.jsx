@@ -167,7 +167,7 @@ const TestResultFolderStatsView = ({
     const treeMap = { 'Root': root };
 
     data.forEach(item => {
-      const folderPath = item.folderPath || '';
+      const folderPath = (item.folderPath === '루트' || !item.folderPath) ? '' : item.folderPath;
       const parts = folderPath.split(/[\/>]/).map(p => p.trim()).filter(p => p);
       
       let currentPath = 'Root';
@@ -176,7 +176,10 @@ const TestResultFolderStatsView = ({
       // 트리 생성 및 통계 합산 (모든 부모 폴더에 합산)
       const updateStats = (node) => {
         node.total++;
-        node.execution_count += (item.executionCount || 1);
+        // 백엔드에서 직접 계산된 executionCount 사용 (없으면 0으로 처리하되, 하위 호환성을 위해 결과가 있으면 최소 1로 취급할 수도 있음)
+        // 하지만 여기서는 백엔드 로직을 믿고 0 또는 item.executionCount 사용
+        node.execution_count += (item.executionCount !== undefined ? item.executionCount : (item.result && item.result !== 'NOT_RUN' ? 1 : 0));
+        
         const result = item.result || 'NOT_RUN';
         if (result === 'PASS') node.pass++;
         else if (result === 'FAIL') node.fail++;

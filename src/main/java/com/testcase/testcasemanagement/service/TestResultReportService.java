@@ -166,17 +166,35 @@ public class TestResultReportService {
         // ICT-247/283/ICT-418/REPRODUCTION: 통계 정확도를 위해 전체 테스트 케이스 모집단 식별
         // planId + ":" + caseId 형식의 키를 사용하여 플랜별 독립적인 항목으로 관리
         Set<String> targetPlanCaseKeys = new HashSet<>();
-        if (testPlanIds != null && !testPlanIds.isEmpty()) {
+        if (testExecutionId != null) {
+            // 특정 실행이 지정된 경우 해당 실행의 플랜 케이스들을 모집단으로 설정
+            testExecutionRepository.findById(testExecutionId).ifPresent(exec -> {
+                if (exec.getTestPlanId() != null) {
+                    testPlanRepository.findById(exec.getTestPlanId()).ifPresent(plan -> {
+                        if (plan.getTestCaseIds() != null && !plan.getTestCaseIds().isEmpty()) {
+                            List<TestCase> existingCases = testCaseRepository.findAllById(plan.getTestCaseIds());
+                            for (TestCase tc : existingCases) {
+                                targetPlanCaseKeys.add(plan.getId() + ":" + tc.getId());
+                            }
+                        }
+                    });
+                }
+            });
+        } else if (testPlanIds != null && !testPlanIds.isEmpty()) {
             List<com.testcase.testcasemanagement.model.TestPlan> plans = testPlanRepository.findAllById(testPlanIds);
             for (com.testcase.testcasemanagement.model.TestPlan plan : plans) {
-                if (plan.getTestCaseIds() != null) {
-                    for (String caseId : plan.getTestCaseIds()) {
-                        targetPlanCaseKeys.add(plan.getId() + ":" + caseId);
+                if (plan.getTestCaseIds() != null && !plan.getTestCaseIds().isEmpty()) {
+                    // ICT-FOLDER-STATS: 실제 존재하는 케이스만 모집단에 포함하여 통계 불일치 해결
+                    List<TestCase> existingCases = testCaseRepository.findAllById(plan.getTestCaseIds());
+                    for (TestCase tc : existingCases) {
+                        targetPlanCaseKeys.add(plan.getId() + ":" + tc.getId());
                     }
                 }
             }
         } else if (projectId != null) {
-            testCaseRepository.findByProjectIdAndType(projectId, "testcase")
+            // ICT-FOLDER-STATS: folder가 아닌 모든 항목(testcase, manual, automated 등)을 포함하여 일관성 유지
+            testCaseRepository.findByProjectId(projectId).stream()
+                    .filter(tc -> tc.getType() == null || !"folder".equalsIgnoreCase(tc.getType()))
                     .forEach(tc -> targetPlanCaseKeys.add("PROJ:" + tc.getId()));
         }
         
@@ -767,7 +785,8 @@ public class TestResultReportService {
             // 프로젝트 전체 케이스
             List<TestCase> cases = testCaseRepository.findByProjectId(projectId);
             for (TestCase tc : cases) {
-                if ("testcase".equals(tc.getType())) {
+                // ICT-FOLDER-STATS: folder가 아닌 모든 항목(testcase, manual, automated 등)을 포함
+                if (tc.getType() == null || !"folder".equalsIgnoreCase(tc.getType())) {
                     targetPlanCaseKeys.add("PROJ:" + tc.getId());
                     testCaseMap.put(tc.getId(), tc);
                 }
@@ -782,46 +801,63 @@ public class TestResultReportService {
         if (!allCaseIds.isEmpty()) {
             List<TestCase> cases = testCaseRepository.findAllById(allCaseIds);
             for (TestCase tc : cases) {
-                if ("testcase".equals(tc.getType())) {
+                // ICT-FOLDER-STATS: folder가 아닌 모든 항목을 포함
+                if (tc.getType() == null || !"folder".equalsIgnoreCase(tc.getType())) {
                     testCaseMap.put(tc.getId(), tc);
                 }
             }
         }
 
-        // 2. 해당 케이스들의 최신 결과 조회 (필터 조건 내에서)
+        // 2. 해당 케이스들의 모든 결과 조회 (수행 횟수 합산 및 최신 결과 매칭을 위해)
         List<TestResult> recentResults = testResultRepository.findRecentTestResultsByProject(projectId, 
                 PageRequest.of(0, Integer.MAX_VALUE));
         
-        // (플랜:케이스)별 최신 결과 매칭
+        // (플랜:케이스)별 최신 결과 및 수행 횟수 관리
         Map<String, TestResult> latestResultByPlanCase = new HashMap<>();
+        Map<String, Integer> executionCountByPlanCase = new HashMap<>();
+
         for (TestResult result : recentResults) {
             String tcId = result.getTestCaseId();
             if (tcId == null) continue;
             
-            String planId = (result.getTestExecution() != null && result.getTestExecution().getTestPlanId() != null) 
+            String resultPlanId = (result.getTestExecution() != null && result.getTestExecution().getTestPlanId() != null) 
                     ? result.getTestExecution().getTestPlanId() : "PROJ";
-            String key = planId + ":" + tcId;
             
-            if (!targetPlanCaseKeys.contains(key)) continue;
-
-            // 실행 필터 적용
-            if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
-                if (result.getTestExecution() == null || !testExecutionIds.contains(result.getTestExecution().getId())) {
-                    continue;
-                }
+            // 매칭을 위한 가능한 모든 키 검토
+            // 1. 특정 플랜/실행 필터가 있는 경우 정확한 매칭 필요
+            // 2. 프로젝트 전체 보기('PROJ')인 경우, 어떤 플랜에서 실행되었든 해당 케이스면 매칭
+            
+            List<String> matchingKeys = new ArrayList<>();
+            if (testPlanIds != null && !testPlanIds.isEmpty()) {
+                // 특정 플랜 필터가 있을 때는 해당 플랜의 결과만 매칭
+                matchingKeys.add(resultPlanId + ":" + tcId);
+            } else if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
+                // 특정 실행 필터가 있을 때는 해당 실행의 결과만 매칭 (나중에 filtering 로직에서 걸러짐)
+                matchingKeys.add(resultPlanId + ":" + tcId);
+            } else {
+                // 프로젝트 전체 보기인 경우, 'PROJ:tcId' 키로 집계
+                matchingKeys.add("PROJ:" + tcId);
             }
-            // 플랜 필터 적용 (이미 key에서 걸러지지만 이중 확인)
-            else if (testPlanIds != null && !testPlanIds.isEmpty()) {
-                if (result.getTestExecution() == null || !testPlanIds.contains(result.getTestExecution().getTestPlanId())) {
-                    continue;
-                }
-            }
 
-            // 가장 최신 결과 하나만 유지 (executedAt 기준)
-            TestResult existing = latestResultByPlanCase.get(key);
-            if (existing == null || (result.getExecutedAt() != null && 
-                (existing.getExecutedAt() == null || result.getExecutedAt().isAfter(existing.getExecutedAt())))) {
-                latestResultByPlanCase.put(key, result);
+            for (String key : matchingKeys) {
+                if (!targetPlanCaseKeys.contains(key)) continue;
+
+                // 실행 필터 적용
+                if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
+                    if (result.getTestExecution() == null || !testExecutionIds.contains(result.getTestExecution().getId())) {
+                        continue;
+                    }
+                }
+
+                // 수행 횟수 증가
+                executionCountByPlanCase.put(key, executionCountByPlanCase.getOrDefault(key, 0) + 1);
+
+                // 가장 최신 결과 하나만 유지 (executedAt 기준)
+                TestResult existing = latestResultByPlanCase.get(key);
+                if (existing == null || (result.getExecutedAt() != null && 
+                    (existing.getExecutedAt() == null || result.getExecutedAt().isAfter(existing.getExecutedAt())))) {
+                    latestResultByPlanCase.put(key, result);
+                }
             }
         }
 
@@ -836,9 +872,12 @@ public class TestResultReportService {
             if (tc == null) continue;
 
             TestResult tr = latestResultByPlanCase.get(key);
+            Integer execCount = executionCountByPlanCase.getOrDefault(key, 0);
+            
             TestResultReportDto dto;
             if (tr != null) {
                 dto = convertToReportDto(tr);
+                dto.setExecutionCount(execCount); // 집계된 수행 횟수 설정
             } else {
                 dto = new TestResultReportDto();
                 dto.setTestCaseId(tc.getId());
@@ -847,6 +886,7 @@ public class TestResultReportService {
                 dto.setResult("NOT_RUN");
                 dto.setPriority(tc.getPriority());
                 dto.setCategory(tc.getType());
+                dto.setExecutionCount(0); // 미실행 시 0
                 
                 // 플랜 정보 추가 (미실행 케이스라도 플랜 필터가 있으면 플랜 정보를 명시)
                 if (!"PROJ".equals(planId)) {
