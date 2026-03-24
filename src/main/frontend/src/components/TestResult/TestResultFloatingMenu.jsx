@@ -34,7 +34,8 @@ const TestResultFloatingMenu = ({
   handleOpenJiraDialog,
   testCase,
   saveButtonRef,
-  t
+  t,
+  isNotesFullscreen = false
 }) => {
   const theme = useTheme();
   
@@ -56,7 +57,7 @@ const TestResultFloatingMenu = ({
         bottom: 24,
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 1300,
+        zIndex: isNotesFullscreen ? 11000 : 1300,
         width: 'auto',
         maxWidth: '95vw',
       }}
