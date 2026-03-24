@@ -77,11 +77,14 @@ function StatisticsFilterPanel({
   const availableTestPlans = testPlans;
 
   // 현재 테스트 플랜의 실행들 필터링 (다중 선택인 경우 첫 번째 선택된 플랜의 실행들을 보여주거나 전체를 보여줌)
+  // ICT-187: testExecutions가 배열이 아닐 경우를 대비한 방어 코드 추가
+  const safeTestExecutions = Array.isArray(testExecutions) ? testExecutions : [];
+  
   const availableTestExecutions = (filters.testPlanId && !Array.isArray(filters.testPlanId))
-    ? testExecutions.filter(exec => exec.testPlanId === filters.testPlanId)
+    ? safeTestExecutions.filter(exec => exec.testPlanId === filters.testPlanId)
     : (Array.isArray(filters.testPlanId) && filters.testPlanId.length === 1)
-      ? testExecutions.filter(exec => exec.testPlanId === filters.testPlanId[0])
-      : testExecutions;
+      ? safeTestExecutions.filter(exec => exec.testPlanId === filters.testPlanId[0])
+      : safeTestExecutions;
 
   return (
     <Card sx={{ mb: 2 }}>
@@ -186,7 +189,7 @@ function StatisticsFilterPanel({
               <MenuItem value="">
                 <em>{t('testResult.filter.allExecutions')}</em>
               </MenuItem>
-              {availableTestExecutions.map((execution) => (
+              {Array.isArray(availableTestExecutions) && availableTestExecutions.map((execution) => (
                 <MenuItem key={execution.id} value={execution.id}>
                   {execution.name}
                 </MenuItem>
