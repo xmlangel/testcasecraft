@@ -326,3 +326,24 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
   return { flattenedData, orderedTestCaseIds };
 };
 
+// 트리를 평탄화하여 가상 스크롤에 적합한 배열로 변환
+export const flattenTree = (nodes, expandedIds = []) => {
+  const result = [];
+  const expandedSet = new Set(expandedIds);
+
+  const recurse = (list, depth = 0) => {
+    // 순서 정렬 보장
+    const sorted = list.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    
+    sorted.forEach((node) => {
+      result.push({ ...node, depth });
+      if (node.type === 'folder' && expandedSet.has(node.id) && Array.isArray(node.children)) {
+        recurse(node.children, depth + 1);
+      }
+    });
+  };
+
+  recurse(nodes);
+  return result;
+};
+

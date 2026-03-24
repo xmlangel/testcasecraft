@@ -1,7 +1,5 @@
-// src/components/TestCaseTree.jsx
-
 import React, { useState, useRef, useMemo, useEffect } from "react";
-import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import {
   Box, IconButton, Menu, MenuItem, Typography, TextField, CircularProgress,
@@ -32,7 +30,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useProject } from "../context/ProjectContext.jsx";
 import { useTest } from "../context/TestContext.jsx";
 import { useInputMode } from "../context/InputModeContext.jsx";
-import { listToTree, isFolder, getAncestorIds, getAllChildIds, getAllDescendants, buildChildrenMap } from "../utils/treeUtils.jsx";
+import { listToTree, isFolder, getAncestorIds, getAllChildIds, getAllDescendants, buildChildrenMap, flattenTree } from "../utils/treeUtils.jsx";
 import TestCaseVersionHistory from "./TestCase/TestCaseVersionHistory.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { DeleteConfirmationDialog } from "./TestCase/Spreadsheet/components/DeleteConfirmationDialog.jsx";
@@ -81,9 +79,10 @@ const MemoizedTreeItem = React.memo(({
   newItemData,
   setNewItemData,
   handleConfirmAdd,
-  handleCancelAdd,
   t,
-  renderTreeChildren
+  depth,
+  isExpanded,
+  onToggle
 }) => {
   // ... (labelContent and addChildInput remain the same, but using userRole)
   const isViewerRole = userRole === "VIEWER";
@@ -197,32 +196,48 @@ const MemoizedTreeItem = React.memo(({
   );
 
   return (
-    <TreeItem
-      itemId={node.id}
-      data-testid={`testcase-tree-item-${node.id}`}
-      label={<Box>{labelContent}</Box>}
+    <Box
       sx={{
+        pl: `${(depth || 0) * 20}px`,
+        width: "100%",
         "& .MuiTreeItem-content.Mui-selected": { backgroundColor: "rgba(0, 123, 255, 0.15)" },
         "& .MuiTreeItem-content.Mui-selected:hover": { backgroundColor: "rgba(0, 123, 255, 0.25)" },
-        "& .MuiTreeItem-label.Mui-selected": { fontWeight: "bold" },
       }}
     >
-      {addChildInput}
-      {renderTreeChildren}
-    </TreeItem>
+      <Box
+        onClick={isFolder(node) ? onToggle : undefined}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          cursor: "pointer",
+          py: 0.5,
+          "&:hover": { bgcolor: "action.hover" },
+          bgcolor: isSelected ? "rgba(0, 123, 255, 0.1)" : "transparent",
+        }}
+      >
+        {isFolder(node) && (
+          <IconButton size="small" onClick={onToggle} sx={{ p: 0.5 }}>
+            {isExpanded ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
+          </IconButton>
+        )}
+        {!isFolder(node) && <Box sx={{ width: 34 }} />}
+        {labelContent}
+      </Box>
+      {isExpanded && addChildInput}
+    </Box>
   );
 }, (prevProps, nextProps) => {
-  // 정밀한 비교 로직: 렌더링 성능의 핵심
   return (
     prevProps.isSelected === nextProps.isSelected &&
     prevProps.isChecked === nextProps.isChecked &&
+    prevProps.isExpanded === nextProps.isExpanded &&
     prevProps.nodeOrder === nextProps.nodeOrder &&
     prevProps.testCaseCount === nextProps.testCaseCount &&
     prevProps.orderEditMode === nextProps.orderEditMode &&
     prevProps.userRole === nextProps.userRole &&
-    prevProps.node === nextProps.node && // 노드 객체 참조 비교
+    prevProps.node === nextProps.node &&
     prevProps.newItemData === nextProps.newItemData &&
-    prevProps.renderTreeChildren === nextProps.renderTreeChildren
+    prevProps.depth === nextProps.depth
   );
 });
 
@@ -312,10 +327,22 @@ const TestCaseTree = ({
     }
   }, [filteredTestCases, orderEditMode]);
 
-  const treeData = useMemo(() => listToTree(filteredTestCases, null), [filteredTestCases]);
-
   // O(N) 최적화: childrenMap을 useMemo로 캐싱하여 리트리 및 자식수 계산 시 재사용
   const childrenMap = useMemo(() => buildChildrenMap(filteredTestCases), [filteredTestCases]);
+
+  const treeData = useMemo(() => listToTree(filteredTestCases, null), [filteredTestCases]);
+
+  // 가상화를 위한 평탄화 데이터
+  const flatData = useMemo(() => flattenTree(treeData, expanded), [treeData, expanded]);
+
+  const parentRef = useRef(null);
+
+  const virtualizer = useVirtualizer({
+    count: flatData.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 36, // 각 행의 추정 높이
+    overscan: 10,
+  });
 
   // 전체 테스트케이스 수 계산 (폴더 제외)
   const totalTestCaseCount = useMemo(() => {
@@ -764,40 +791,83 @@ const TestCaseTree = ({
     );
   } else {
     content = (
-      <SimpleTreeView
-        slots={{
-          collapseIcon: ExpandMoreIcon,
-          expandIcon: ChevronRightIcon,
-        }}
-        expandedItems={expanded}
-        selectedItems={selectable ? undefined : selected}
-        onExpandedItemsChange={(event, nodeIds) => setExpanded(nodeIds)}
-        onSelectedItemsChange={(event, nodeId) => handleSelect(event, nodeId)}
-        onKeyDown={(event) => {
-          // TreeView의 기본 검색 기능 비활성화 (TextField에서 입력 중일 때만 허용)
-          const target = event.target;
-          if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-            // 입력 필드가 아닌 경우에만 문자 입력 차단
-            if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
-              event.preventDefault();
-            }
-          }
-        }}
+      <Box
+        ref={parentRef}
         sx={{
           height: "100%",
           flexGrow: 1,
           overflowY: "auto",
+          position: "relative",
           "& .MuiTreeItem-content": { padding: "4px 8px" },
         }}
       >
-        {treeData.length > 0 ? (
-          renderTree(treeData)
-        ) : (
-          <Typography variant="body2" sx={{ p: 2 }}>
-            {t('testcase.tree.message.noTestcases', '테스트케이스가 없습니다.')}
-          </Typography>
-        )}
-      </SimpleTreeView>
+        <Box
+          sx={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualItem) => {
+            const node = flatData[virtualItem.index];
+            const isSelected = selected === node.id;
+            const isChecked = checkedIds.includes(node.id);
+            const isExpanded = expanded.includes(node.id);
+            const nodeOrder = orderMap[node.id] ?? node.displayOrder ?? 0;
+            const testCaseCount = isFolder(node) ? countTestCasesRecursive(node.children || []) : 0;
+
+            return (
+              <Box
+                key={node.id}
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualItem.size}px`,
+                  transform: `translateY(${virtualItem.start}px)`,
+                  pl: `${node.depth * 20}px`, // 계층 깊이 표현
+                }}
+              >
+                <MemoizedTreeItem
+                  node={node}
+                  isSelected={isSelected}
+                  isChecked={isChecked}
+                  isExpanded={isExpanded}
+                  onToggle={(e) => {
+                    e.stopPropagation();
+                    const next = isExpanded 
+                      ? expanded.filter(id => id !== node.id)
+                      : [...expanded, node.id];
+                    handleToggle(e, next);
+                  }}
+                  selectable={selectable}
+                  userRole={user?.role}
+                  orderEditMode={orderEditMode}
+                  nodeOrder={nodeOrder}
+                  testCaseCount={testCaseCount}
+                  onCheck={handleCheck}
+                  onContextMenu={handleContextMenu}
+                  onAddItem={handleAddItem}
+                  onRename={handleRename}
+                  onDelete={handleDeleteClick}
+                  onMoveOrder={moveNodeOrder}
+                  onOpenVersionHistory={(id) => {
+                    setSelectedVersionTestCaseId(id);
+                    setVersionHistoryOpen(true);
+                  }}
+                  newItemData={newItemData}
+                  setNewItemData={setNewItemData}
+                  handleConfirmAdd={handleConfirmAdd}
+                  handleCancelAdd={handleCancelAdd}
+                  t={t}
+                  depth={node.depth}
+                />
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
     );
   }
 
