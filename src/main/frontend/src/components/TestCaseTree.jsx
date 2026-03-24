@@ -132,10 +132,19 @@ const MemoizedTreeItem = React.memo(({
       ) : (
         <DescriptionIcon sx={{ mr: 1 }} />
       )}
-      <Typography variant="body2" sx={{ fontWeight: isSelected ? "bold" : "normal" }}>
+      <Typography 
+        variant="body2" 
+        sx={{ 
+          fontWeight: isSelected ? "bold" : "normal",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          flexGrow: 1
+        }}
+      >
         {node.name}
       </Typography>
-      <Typography variant="caption" sx={{ ml: 1, color: "primary.dark", fontWeight: "bold" }}>
+      <Typography variant="caption" sx={{ ml: 1, color: "primary.dark", fontWeight: "bold", whiteSpace: "nowrap" }}>
         #{nodeOrder}
       </Typography>
       {orderEditMode && !isViewerRole && (
@@ -198,7 +207,7 @@ const MemoizedTreeItem = React.memo(({
   return (
     <Box
       sx={{
-        pl: `${(depth || 0) * 20}px`,
+        pl: `${(depth || 0) * 16}px`, // 계층 깊이 표현 (16px 간격으로 최적화)
         width: "100%",
         "& .MuiTreeItem-content.Mui-selected": { backgroundColor: "rgba(0, 123, 255, 0.15)" },
         "& .MuiTreeItem-content.Mui-selected:hover": { backgroundColor: "rgba(0, 123, 255, 0.25)" },
@@ -210,13 +219,16 @@ const MemoizedTreeItem = React.memo(({
           display: "flex",
           alignItems: "center",
           cursor: "pointer",
-          py: 0.5,
+          py: 0.25, // 패딩을 줄여서 한 번에 더 많은 항목 노출
+          minHeight: 32, // 최소 높이 보장
           "&:hover": { bgcolor: "action.hover" },
           bgcolor: isSelected ? "rgba(0, 123, 255, 0.1)" : "transparent",
+          borderRadius: 1,
+          mr: 1
         }}
       >
         {isFolder(node) && (
-          <IconButton size="small" onClick={onToggle} sx={{ p: 0.5 }}>
+          <IconButton size="small" onClick={onToggle} sx={{ p: 0.5, mr: 0.5 }}>
             {isExpanded ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
           </IconButton>
         )}
@@ -826,7 +838,6 @@ const TestCaseTree = ({
                   width: "100%",
                   height: `${virtualItem.size}px`,
                   transform: `translateY(${virtualItem.start}px)`,
-                  pl: `${node.depth * 20}px`, // 계층 깊이 표현
                 }}
               >
                 <MemoizedTreeItem
