@@ -109,7 +109,7 @@ function FilteredCasesDialog({
             ? (Array.isArray(testPlanIds) ? testPlanIds : [testPlanIds])
             : undefined,
           testExecutionIds: testExecutionId ? [testExecutionId] : undefined,
-          includeNotExecuted: isNotRun ? true : false,
+          includeNotExecuted: true, // ICT-JIRA-LATEST: 항상 최신 결과 기준(Population)으로 가져와서 통계와 일관성 유지
           results: backendResults,
           page,
           size: PAGE_SIZE,
