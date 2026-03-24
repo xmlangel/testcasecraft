@@ -1,10 +1,10 @@
 // src/components/TestExecutionList.jsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, Card, CardContent, Typography, List, ListItem, ListItemButton, ListItemText, ListItemSecondaryAction,
   IconButton, Divider, Button, Dialog, DialogTitle, DialogContent, DialogContentText,
-  DialogActions, LinearProgress, Chip, CircularProgress, Alert, Pagination,
+  DialogActions, LinearProgress, Chip, CircularProgress, Alert,
   TextField, InputAdornment
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -33,8 +33,10 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const [error, setError] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [executionToDelete, setExecutionToDelete] = useState(null);
-  const [page, setPage] = useState(1);
-  const [totalElements, setTotalElements] = useState(0);
+  const [page, setPage] = useState(0); // 서버는 0-based
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const loaderRef = useRef(null);
   const navigate = useNavigate();
 
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
@@ -44,16 +46,20 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [triggerSearch, setTriggerSearch] = useState(0); // 검색 실행 트리거
 
-  const fetchTestExecutions = useCallback(async (projectId, name, pageNum = 1) => {
+  const fetchTestExecutions = useCallback(async (projectId, name, pageNum = 0, isInitial = false) => {
     if (!projectId) {
       setTestExecutions([]);
       setIsLoading(false);
       return;
     }
     try {
-      setIsLoading(true);
-      // 서버는 0-based page index를 사용하므로 pageNum - 1
-      let url = `/api/test-executions/by-project/${projectId}?page=${pageNum - 1}&size=${EXECUTIONS_PER_PAGE}`;
+      if (isInitial) {
+        setIsLoading(true);
+      } else {
+        setIsFetchingMore(true);
+      }
+      
+      let url = `/api/test-executions/by-project/${projectId}?page=${pageNum}&size=${EXECUTIONS_PER_PAGE}`;
       if (name) {
         url += `&name=${encodeURIComponent(name)}`;
       }
@@ -61,32 +67,70 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
       if (!response.ok) throw new Error('Failed to fetch executions');
       const data = await response.json();
       
-      // Page 객체 대응: content에 데이터가 있고 totalElements에 전체 개수가 있음
-      if (data && data.content) {
-        setTestExecutions(data.content);
-        setTotalElements(data.totalElements || data.content.length);
+      const newContent = data.content || (Array.isArray(data) ? data : []);
+      
+      if (isInitial) {
+        setTestExecutions(newContent);
       } else {
-        setTestExecutions(Array.isArray(data) ? data : []);
-        setTotalElements(Array.isArray(data) ? data.length : 0);
+        setTestExecutions(prev => {
+          const existingIds = new Set(prev.map(item => item.id));
+          const uniqueNewContent = newContent.filter(item => !existingIds.has(item.id));
+          return [...prev, ...uniqueNewContent];
+        });
+      }
+      
+      // 더 가져올 데이터가 있는지 판단
+      if (data.last !== undefined) {
+        setHasMore(!data.last);
+      } else {
+        setHasMore(newContent.length === EXECUTIONS_PER_PAGE);
       }
     } catch (err) {
       setError(err.message);
     } finally {
       setIsLoading(false);
+      setIsFetchingMore(false);
     }
   }, [api]);
 
   useEffect(() => {
     if (activeProject?.id) {
-      fetchTestExecutions(activeProject.id, searchQuery, page);
+      setPage(0);
+      setHasMore(true);
+      fetchTestExecutions(activeProject.id, searchQuery, 0, true);
     } else {
       setTestExecutions([]);
     }
-  }, [activeProject?.id, fetchTestExecutions, triggerSearch, page]); // page 변경 시에도 fetch
+  }, [activeProject?.id, triggerSearch]); // projectId나 검색 트리거 시 초기화 로드
+
+  // Intersection Observer 설정
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading && !isFetchingMore && activeProject?.id) {
+          setPage(prevPage => {
+            const nextPage = prevPage + 1;
+            fetchTestExecutions(activeProject.id, searchQuery, nextPage, false);
+            return nextPage;
+          });
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => {
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
+    };
+  }, [hasMore, isLoading, isFetchingMore, activeProject?.id, searchQuery, fetchTestExecutions]);
 
   const handleSearch = () => {
     setTriggerSearch(prev => prev + 1);
-    setPage(1); // 검색 시 첫 페이지로 이동
   };
 
   const handleKeyPress = (e) => {
@@ -112,9 +156,6 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
     }
   };
 
-  const handlePageChange = (event, value) => {
-    setPage(value);
-  };
 
   const renderStatusChip = (status) => {
     switch (status) {
@@ -129,8 +170,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
     }
   };
 
-  const totalPages = Math.ceil(totalElements / EXECUTIONS_PER_PAGE);
-  const paginatedExecutions = testExecutions; // 서버에서 이미 페이징된 데이터가 오므로 그대로 사용
+  const paginatedExecutions = testExecutions; 
 
   if (isLoading && !testExecutions.length) // 초기 로딩만 표시, 재검색 시에는 리스트 유지하면서 로딩 처리하려면 조건 변경 필요. 여기서는 간단히.
     return <CircularProgress sx={{ display: 'block', margin: '2rem auto' }} />;
@@ -274,18 +314,22 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
             })}
           </List>
         )}
-        {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={handlePageChange}
-              color="primary"
-              showFirstButton
-              showLastButton
-              data-testid="execution-list-pagination"
-            />
+        {hasMore && (
+          <Box 
+            ref={loaderRef} 
+            sx={{ display: 'flex', justifyContent: 'center', p: 2 }}
+          >
+            {isFetchingMore && <CircularProgress size={24} />}
           </Box>
+        )}
+        {!hasMore && testExecutions.length > 0 && (
+          <Typography 
+            variant="body2" 
+            color="text.secondary" 
+            sx={{ textAlign: 'center', mt: 2, mb: 1 }}
+          >
+            {t('testExecution.list.noMoreExecutions', '모든 데이터를 불러왔습니다.')}
+          </Typography>
         )}
       </CardContent>
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} disableRestoreFocus>
