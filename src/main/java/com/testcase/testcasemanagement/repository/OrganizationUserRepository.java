@@ -61,6 +61,9 @@ public interface OrganizationUserRepository extends JpaRepository<OrganizationUs
     
     // 조직의 총 멤버 수 조회
     long countByOrganizationId(String organizationId);
+ 
+    @Query("SELECT ou.organization.id, COUNT(ou) FROM OrganizationUser ou WHERE ou.organization.id IN :organizationIds GROUP BY ou.organization.id")
+    List<Object[]> countByOrganizationIds(@Param("organizationIds") List<String> organizationIds);
     
     // 사용자가 속한 조직 수 조회
     long countByUserId(String userId);

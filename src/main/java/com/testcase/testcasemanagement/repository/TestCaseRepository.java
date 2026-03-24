@@ -47,6 +47,9 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
         List<TestCase> findAllByProjectIdWithSteps(@Param("projectId") String projectId);
 
         long countByProjectId(String projectId);
+ 
+        @Query("SELECT t.project.id, COUNT(t) FROM TestCase t WHERE t.project.id IN :projectIds GROUP BY t.project.id")
+        List<Object[]> countByProjectIds(@Param("projectIds") List<String> projectIds);
 
         // 특정 프로젝트의 모든 테스트케이스 조회 (태그 목록 조회용)
         @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId")

@@ -25,6 +25,9 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, St
        Optional<TestExecution> findByIdWithResults(@Param("id") String id);
 
        long countByProjectId(String projectId);
+ 
+       @Query("SELECT te.project.id, COUNT(te) FROM TestExecution te WHERE te.project.id IN :projectIds GROUP BY te.project.id")
+       List<Object[]> countByProjectIds(@Param("projectIds") List<String> projectIds);
 
        // 프로젝트 ID로 직접 조회 추가 (Project와 Results, executedBy를 함께 fetch) - 시작일 역순 정렬
        @Query("SELECT DISTINCT te FROM TestExecution te " +

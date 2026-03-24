@@ -142,29 +142,67 @@ public class ProjectController {
         public ResponseEntity<List<ProjectWithTestCaseCountDto>> getAllProjects(
                         Authentication authentication) {
                 List<Project> projects = projectService.getAllProjects();
+
+                if (projects.isEmpty()) {
+                        return ResponseEntity.ok(List.of());
+                }
+
+                // 프로젝트 및 조직 ID 목록 수집
+                List<String> projectIds = projects.stream()
+                                .map(Project::getId)
+                                .collect(Collectors.toList());
+
+                List<String> organizationIds = projects.stream()
+                                .map(Project::getOrganization)
+                                .filter(java.util.Objects::nonNull)
+                                .map(Organization::getId)
+                                .distinct()
+                                .collect(Collectors.toList());
+
+                // 배치 카운트 조회 (N+1 문제 해결)
+                Map<String, Long> testCaseCounts = convertToCountMap(testCaseRepository.countByProjectIds(projectIds));
+                Map<String, Long> testPlanCounts = convertToCountMap(testPlanRepository.countByProjectIds(projectIds));
+                Map<String, Long> testExecutionCounts = convertToCountMap(
+                                testExecutionRepository.countByProjectIds(projectIds));
+                Map<String, Long> projectMemberCounts = convertToCountMap(
+                                projectUserRepository.countByProjectIds(projectIds));
+                Map<String, Long> organizationMemberCounts = organizationIds.isEmpty() ? Map.of()
+                                : convertToCountMap(organizationUserRepository.countByOrganizationIds(organizationIds));
+
+                // DTO 변환
                 List<ProjectWithTestCaseCountDto> dtos = projects.stream()
                                 .map(project -> {
-                                        long testCaseCount = testCaseRepository.countByProjectId(project.getId());
+                                        long testCaseCount = testCaseCounts.getOrDefault(project.getId(), 0L);
+                                        long testPlanCount = testPlanCounts.getOrDefault(project.getId(), 0L);
+                                        long testExecutionCount = testExecutionCounts.getOrDefault(project.getId(), 0L);
 
-                                        // 조직 프로젝트인 경우 조직 멤버 수, 독립 프로젝트인 경우 프로젝트 멤버 수
                                         long memberCount;
                                         if (project.getOrganization() != null) {
-                                                memberCount = organizationUserRepository
-                                                                .countByOrganizationId(
-                                                                                project.getOrganization().getId());
+                                                memberCount = organizationMemberCounts.getOrDefault(
+                                                                project.getOrganization().getId(), 0L);
                                         } else {
-                                                memberCount = projectUserRepository.countByProjectId(project.getId());
+                                                memberCount = projectMemberCounts.getOrDefault(project.getId(), 0L);
                                         }
 
-                                        long testPlanCount = testPlanRepository.countByProjectId(project.getId());
-                                        long testExecutionCount = testExecutionRepository
-                                                        .countByProjectId(project.getId());
                                         return new ProjectWithTestCaseCountDto(project, testCaseCount, memberCount,
                                                         testPlanCount,
                                                         testExecutionCount);
                                 })
                                 .collect(Collectors.toList());
+
                 return ResponseEntity.ok(dtos);
+        }
+
+        /**
+         * List<Object[]> 형태의 카운트 조회 결과를 Map<String, Long>으로 변환
+         */
+        private Map<String, Long> convertToCountMap(List<Object[]> results) {
+                return results.stream()
+                                .collect(Collectors.toMap(
+                                                r -> (String) r[0],
+                                                r -> (Long) r[1],
+                                                (existing, replacement) -> existing // 중복 키 발생 시 기존 값 유지 (이론상 발생 안함)
+                                ));
         }
 
         /**
