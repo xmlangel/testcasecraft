@@ -132,15 +132,22 @@ const useInlineImagePaste = ({
     try {
       setInlineImageUploading(true);
       const attachment = await uploadInlineImage(file);
-      setImageDialogState({
-        open: true,
-        placeholder: placeholderText,
-        fieldConfig,
-        attachment,
-        altText: getDefaultAltText(file.name),
-        width: '100',
-        widthUnit: '%',
+      
+      // 다이얼로그를 띄우지 않고 즉시 삽입하도록 변경 (사용자 피드백 반영)
+      const altText = getDefaultAltText(file.name);
+      const styleAttr = 'max-width: 100%; height: auto';
+      const imageMarkup = `<img src="${attachment.publicUrl}" alt="${sanitizeAltText(altText)}" data-attachment-id="${attachment.id}" style="${styleAttr}" />`;
+      
+      // placeholder를 실제 이미지 태그로 교체
+      const escapedId = placeholderId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`!\\[${escapedId}\\]\\([^)]*\\)`, 'g');
+      
+      updateFieldValue(fieldConfig, (currentValue = '') => {
+        return currentValue.replace(regex, imageMarkup);
       });
+
+      // 상태 초기화
+      resetDialogState();
     } catch (error) {
       console.error('inline image upload failed:', error);
       replacePlaceholder(fieldConfig, placeholderText, '');
