@@ -31,6 +31,7 @@ public class TestExecutionService {
     private final JiraIntegrationService jiraIntegrationService;
 
     private final TestCaseRepository testCaseRepository;
+    private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
 
     @Autowired
     public TestExecutionService(
@@ -40,7 +41,8 @@ public class TestExecutionService {
             ProjectRepository projectRepository,
             UserRepository userRepository,
             JiraIntegrationService jiraIntegrationService,
-            TestCaseRepository testCaseRepository) {
+            TestCaseRepository testCaseRepository,
+            TestCaseFileStorageService fileStorageService) {
         this.testExecutionRepository = testExecutionRepository;
         this.testResultRepository = testResultRepository;
         this.testPlanRepository = testPlanRepository;
@@ -48,6 +50,7 @@ public class TestExecutionService {
         this.userRepository = userRepository;
         this.jiraIntegrationService = jiraIntegrationService;
         this.testCaseRepository = testCaseRepository;
+        this.fileStorageService = fileStorageService;
     }
 
 
@@ -103,8 +106,19 @@ public class TestExecutionService {
         return toDto(saved);
     }
 
+    @Transactional
     public void deleteTestExecution(String id) {
-        testExecutionRepository.deleteById(id);
+        // ICT-InlineImage: 실행 삭제 전 모든 결과의 인라인 이미지 정리
+        TestExecution entity = testExecutionRepository.findByIdWithResults(id)
+                .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+        
+        if (entity.getResults() != null) {
+            for (TestResult result : entity.getResults()) {
+                deleteInlineImagesFromNotes(result.getNotes());
+            }
+        }
+        
+        testExecutionRepository.delete(entity);
     }
 
     @Transactional
@@ -728,9 +742,41 @@ public class TestExecutionService {
                             currentUser.getRole()));
         }
 
-        // 4. 삭제
+        // 4. ICT-InlineImage: 인라인 이미지 삭제 연동
+        deleteInlineImagesFromNotes(existingResult.getNotes());
+
+        // 5. 삭제
         testResultRepository.delete(existingResult);
 
         System.out.println("🗑️ 테스트 결과 삭제 완료: " + resultId + " by " + currentUsername);
+    }
+
+    /**
+     * ICT-InlineImage: 노트 본문에서 인라인 이미지 ID를 추출하여 삭제 처리
+     * 
+     * @param notes 마크다운 본문
+     */
+    private void deleteInlineImagesFromNotes(String notes) {
+        if (notes == null || notes.isBlank()) {
+            return;
+        }
+
+        // 인라인 이미지 패턴 추출: ![[...]] (/api/testcase-attachments/public/{id}?token=...)
+        // 공통 이미지 URL 패턴: /api/testcase-attachments/public/([a-f0-9\-]{36})
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "/api/testcase-attachments/public/([a-f0-9\\-]{36})");
+        java.util.regex.Matcher matcher = pattern.matcher(notes);
+
+        User currentUser = getCurrentUser();
+        while (matcher.find()) {
+            String attachmentId = matcher.group(1);
+            try {
+                fileStorageService.deleteAttachment(attachmentId, currentUser);
+                System.out.println("🖼️ 인라인 이미지 연계 삭제 완료: " + attachmentId);
+            } catch (Exception e) {
+                System.err.println("❌ 인라인 이미지 삭제 실패 (ID: " + attachmentId + "): " + e.getMessage());
+                // 개별 이미지 삭제 실패가 전체 프로세스를 중단시키지 않도록 예외 처리
+            }
+        }
     }
 }

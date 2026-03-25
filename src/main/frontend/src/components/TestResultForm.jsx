@@ -22,6 +22,9 @@ import TestResultJira from './TestResult/TestResultJira.jsx';
 import TestResultHeader from './TestResult/TestResultHeader.jsx';
 import TestResultFooter from './TestResult/TestResultFooter.jsx';
 import TestResultFloatingMenu from './TestResult/TestResultFloatingMenu.jsx';
+import InlineImageDialog from './TestCase/InlineImageDialog.jsx';
+import useInlineImagePaste from '../hooks/useInlineImagePaste.js';
+import { extractAttachmentIds } from '../utils/testCaseFormUtils.js';
 
 const KEY_RESULT_MAP = {
   'N': TestResult.NOTRUN,
@@ -138,6 +141,44 @@ const TestResultForm = ({
       checkJiraStatus();
     }
   }, [open, fullPage]);
+
+  // 인라인 이미지 훅 연동
+  const getInlineImageValue = useCallback((fieldConfig) => {
+    if (fieldConfig?.field === 'notes') return notes;
+    return '';
+  }, [notes]);
+
+  const updateInlineImageValue = useCallback((fieldConfig, updater) => {
+    if (fieldConfig?.field === 'notes') {
+      setNotes(prev => {
+        const nextValue = typeof updater === 'function' ? updater(prev) : updater;
+        return nextValue;
+      });
+    }
+  }, []);
+
+  const showInlineImageError = useCallback((message) => {
+    if (!message) return;
+    setSaveError(message);
+    setShowSaveSuccess(false); // 에러 시 성공 메시지 가림
+  }, []);
+
+  const {
+    imageDialogState,
+    inlineImageUploading,
+    handleMarkdownPaste,
+    handleInlineImageDialogClose,
+    handleInlineImageInsert,
+    updateImageDialogState,
+  } = useInlineImagePaste({
+    api,
+    testCaseId,
+    isViewer,
+    t,
+    getFieldValue: getInlineImageValue,
+    updateFieldValue: updateInlineImageValue,
+    onError: showInlineImageError,
+  });
 
   // 노트 변경 시 JIRA 이슈 키 감지 (사용자가 notes를 직접 수정할 때만 실행)
   useEffect(() => {
@@ -354,6 +395,24 @@ const TestResultForm = ({
         await handleFileUploads(updatedExecution.results?.find(r => r.testCaseId === testCaseId)?.id);
       }
 
+      // 인라인 이미지 사용 상태 업데이트
+      try {
+        const resultId = isPreviousResultEdit ? currentResult?.id : (updatedExecution.results?.find(r => r.testCaseId === testCaseId)?.id);
+        if (resultId) {
+          const allAttachmentIds = extractAttachmentIds(notes);
+          if (allAttachmentIds.size > 0 || allAttachmentIds.length > 0) {
+             await Promise.all(
+              Array.from(allAttachmentIds).map(id =>
+                api(`/api/testcase-attachments/${id}/mark-used`, { method: 'PATCH' })
+                  .catch(err => console.error(`Failed to mark attachment ${id} as used:`, err))
+              )
+            );
+          }
+        }
+      } catch (err) {
+        console.error('Failed to update inline image usage status:', err);
+      }
+
       onSave(updatedExecution, { keepDialogOpen });
       if (advanceToNext && onNext) onNext();
       if (showSuccess) {
@@ -522,6 +581,9 @@ const TestResultForm = ({
               currentIndex={currentIndex}
               totalCount={totalCount}
               onFullscreenChange={setIsNotesFullscreen}
+              // 인라인 이미지 관련 추가
+              onMarkdownPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'notes' })}
+              inlineImageUploading={inlineImageUploading}
               // 플로팅 메뉴용 prop 추가
               result={result}
               onResultChange={(newResult) => {
@@ -769,6 +831,15 @@ const TestResultForm = ({
         testCase={testCase}
         linkedIssues={linkedIssues}
         onCommentAdded={handleJiraCommentAdded}
+      />
+
+      <InlineImageDialog
+        open={imageDialogState.open}
+        imageDialogState={imageDialogState}
+        t={t}
+        onClose={handleInlineImageDialogClose}
+        onInsert={handleInlineImageInsert}
+        updateImageDialogState={updateImageDialogState}
       />
     </Dialog>
   );

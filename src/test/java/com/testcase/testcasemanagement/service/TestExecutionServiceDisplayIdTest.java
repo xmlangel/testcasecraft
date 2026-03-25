@@ -41,6 +41,8 @@ public class TestExecutionServiceDisplayIdTest {
     private JiraIntegrationService jiraIntegrationService;
     @Mock
     private TestCaseRepository testCaseRepository;
+    @Mock
+    private TestCaseFileStorageService fileStorageService;
 
     private TestExecutionService testExecutionService;
 
@@ -61,7 +63,8 @@ public class TestExecutionServiceDisplayIdTest {
                 projectRepository,
                 userRepository,
                 jiraIntegrationService,
-                testCaseRepository
+                testCaseRepository,
+                fileStorageService
         );
 
         // SecurityContext Mocking
