@@ -212,23 +212,27 @@ const SchedulerManagement = () => {
             renderCell: (params) => (
                 <Box>
                     <Tooltip title={t('scheduler.tooltip.edit', '편집')}>
-                        <IconButton
-                            size="small"
-                            onClick={() => handleEdit(params.row)}
-                            color="primary"
-                        >
-                            <EditIcon />
-                        </IconButton>
+                        <span>
+                            <IconButton
+                                size="small"
+                                onClick={() => handleEdit(params.row)}
+                                color="primary"
+                            >
+                                <EditIcon />
+                            </IconButton>
+                        </span>
                     </Tooltip>
                     <Tooltip title={t('scheduler.tooltip.execute', '즉시 실행')}>
-                        <IconButton
-                            size="small"
-                            onClick={() => handleExecuteNow(params.row.taskKey, params.row.taskName)}
-                            color="success"
-                            disabled={!params.row.enabled}
-                        >
-                            <PlayIcon />
-                        </IconButton>
+                        <span>
+                            <IconButton
+                                size="small"
+                                onClick={() => handleExecuteNow(params.row.taskKey, params.row.taskName)}
+                                color="success"
+                                disabled={!params.row.enabled}
+                            >
+                                <PlayIcon />
+                            </IconButton>
+                        </span>
                     </Tooltip>
                 </Box>
             ),

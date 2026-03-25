@@ -237,9 +237,11 @@ function ServiceApiKeyTab() {
           {t('profile.apiToken.list.title', '내 API 토큰 목록')}
         </Typography>
         <Tooltip title={t('profile.apiToken.list.refresh', '목록 새로고침')}>
-          <IconButton size="small" onClick={loadKeys} disabled={loading}>
-            <RefreshIcon fontSize="small" />
-          </IconButton>
+          <span>
+            <IconButton size="small" onClick={loadKeys} disabled={loading}>
+              <RefreshIcon fontSize="small" />
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
 

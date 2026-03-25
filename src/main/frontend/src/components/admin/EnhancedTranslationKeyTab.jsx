@@ -191,23 +191,27 @@ export const EnhancedTranslationKeyTab = ({
                 </TableCell>
                 <TableCell>
                   <Tooltip title={t('common.buttons.edit')}>
-                    <IconButton
-                      size="small"
-                      onClick={() => onEdit(key)}
-                      disabled={loading}
-                    >
-                      <EditIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        size="small"
+                        onClick={() => onEdit(key)}
+                        disabled={loading}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                   <Tooltip title={t('common.buttons.delete')}>
-                    <IconButton
-                      size="small"
-                      onClick={() => onDelete(key.id)}
-                      disabled={loading}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        size="small"
+                        onClick={() => onDelete(key.id)}
+                        disabled={loading}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                 </TableCell>
               </TableRow>
