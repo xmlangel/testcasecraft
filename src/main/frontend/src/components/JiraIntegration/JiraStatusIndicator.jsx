@@ -256,18 +256,6 @@ const JiraStatusIndicator = ({
                                 </>
                             )}
 
-                            <Tooltip title={isSyncing ? t('common.syncing', '동기화 중...') : t('common.syncNow', '지금 동기화')}>
-                            <span>
-                                <IconButton
-                                    size="small"
-                                    onClick={handleSync}
-                                    disabled={isSyncing || !jiraConfig?.isActive}
-                                    color="primary"
-                                >
-                                    <SyncIcon className={isSyncing ? 'animate-spin' : ''} />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
                             <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                                 <Button
                                     size="small"
