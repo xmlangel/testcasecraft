@@ -509,18 +509,23 @@ public class TestCaseService {
     }
 
     private TestCaseDto toDtoWithParentName(TestCase entity) {
+        return toDtoWithParentName(entity, null);
+    }
+
+    private TestCaseDto toDtoWithParentName(TestCase entity, Map<String, String> pathCache) {
         TestCaseDto dto = TestCaseMapper.toDto(entity);
         if (entity.getParentId() == null) {
             dto.setParentName("상위없음");
         } else {
-            // 전체 폴더 경로 구성
-            String fullPath = buildFullFolderPath(entity.getParentId());
+            // 전체 폴더 경로 구성 (캐시 활용)
+            String fullPath = buildFullFolderPath(entity.getParentId(), pathCache);
             dto.setParentName(fullPath);
         }
 
         // ICT-388: RAG 벡터화 상태 설정 (folder는 제외)
         if (!"folder".equals(entity.getType())) {
             try {
+                // TODO: RAG 서비스의 bulk 조회 기능이 필요함. 현재는 N+1 존재.
                 boolean vectorized = ragService.isTestCaseVectorized(entity.getId());
                 dto.setRagVectorized(vectorized);
             } catch (Exception e) {
@@ -534,11 +539,16 @@ public class TestCaseService {
         return dto;
     }
 
+    private String buildFullFolderPath(String parentId) {
+        return buildFullFolderPath(parentId, null);
+    }
+
     /**
      * 테스트케이스의 전체 폴더 경로를 구성합니다.
      * 예: "폴더A >> 하위폴더1 >> 하위폴더2"
+     * pathCache를 전달받아 중복 조회를 방지합니다.
      */
-    private String buildFullFolderPath(String parentId) {
+    private String buildFullFolderPath(String parentId, Map<String, String> pathCache) {
         if (parentId == null) {
             return "상위없음";
         }
@@ -548,18 +558,33 @@ public class TestCaseService {
 
         // 루트까지 거슬러 올라가며 경로 구성
         while (currentId != null) {
+            // 캐시 확인
+            if (pathCache != null && pathCache.containsKey(currentId)) {
+                pathElements.add(0, pathCache.get(currentId));
+                break;
+            }
+
             Optional<TestCase> parentOpt = testCaseRepository.findById(currentId);
             if (parentOpt.isPresent()) {
                 TestCase parent = parentOpt.get();
-                pathElements.add(parent.getName());
+                String name = parent.getName();
+                pathElements.add(name);
+                
+                // 캐시에 저장 (이후 다른 테스트케이스에서 활용 가능)
+                if (pathCache != null) {
+                    pathCache.put(currentId, name);
+                }
+                
                 currentId = parent.getParentId();
             } else {
                 break;
             }
         }
 
-        // 경로 역순으로 정렬 (루트 -> 리프)
-        Collections.reverse(pathElements);
+        // pathCache가 없을 때만 reverse 수행 (위에서 순서대로 넣었으므로)
+        if (pathCache == null) {
+            Collections.reverse(pathElements);
+        }
 
         // ">>" 구분자로 연결
         return pathElements.isEmpty() ? "상위없음" : String.join(" >> ", pathElements);
@@ -567,8 +592,9 @@ public class TestCaseService {
 
     public List<TestCaseDto> getAllTestCasesWithParentName() {
         List<TestCase> entities = getAllTestCases();
+        Map<String, String> pathCache = new HashMap<>();
         return entities.stream()
-                .map(this::toDtoWithParentName)
+                .map(e -> toDtoWithParentName(e, pathCache))
                 .collect(Collectors.toList());
     }
 

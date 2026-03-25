@@ -69,8 +69,13 @@ public class TestResultStatisticsDto {
     
     // JIRA 연동 통계
     private Long jiraLinkedCount; // JIRA와 연결된 테스트 수
+    private Long latestJiraLinkedCount; // JIRA와 연결된 테스트케이스 수 (최신 기준)
     private Long jiraSyncedCount; // JIRA 동기화 완료된 테스트 수
     private Map<String, Long> jiraStatusDistribution; // JIRA 상태별 분포
+    
+    // JIRA 연동률 (백분율)
+    private BigDecimal jiraLinkRate; // 전체 실행 대비 연동률 (기존)
+    private BigDecimal latestJiraLinkRate; // 테스트케이스 대비 연동률 (권장)
     
     // 실행자별 통계 (선택적)
     private Map<String, Long> executorDistribution;
@@ -104,6 +109,9 @@ public class TestResultStatisticsDto {
             } else {
                 this.successRate = BigDecimal.ZERO;
             }
+            
+            // JIRA 연동률 (실행 기준)
+            this.jiraLinkRate = calculatePercentage(jiraLinkedCount, total);
         }
 
         // 최신 결과 기반 비율 계산
@@ -120,12 +128,16 @@ public class TestResultStatisticsDto {
             } else {
                 this.latestSuccessRate = BigDecimal.ZERO;
             }
+            
+            // JIRA 연동률 (케이스 기준)
+            this.latestJiraLinkRate = calculatePercentage(latestJiraLinkedCount, totalCases);
         } else {
             this.latestPassRate = BigDecimal.ZERO;
             this.latestFailRate = BigDecimal.ZERO;
             this.latestNotRunRate = BigDecimal.ZERO;
             this.latestBlockedRate = BigDecimal.ZERO;
             this.latestSuccessRate = BigDecimal.ZERO;
+            this.latestJiraLinkRate = BigDecimal.ZERO;
         }
 
         this.calculatedAt = LocalDateTime.now();
@@ -170,6 +182,7 @@ public class TestResultStatisticsDto {
         this.latestNotRunCount = 0L;
         this.latestBlockedCount = 0L;
         this.jiraLinkedCount = 0L;
+        this.latestJiraLinkedCount = 0L;
         this.jiraSyncedCount = 0L;
     }
 }

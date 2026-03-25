@@ -79,7 +79,7 @@ function JiraLinkedCasesDialog({
           ? (Array.isArray(testPlanIds) ? testPlanIds : [testPlanIds])
           : undefined,
         testExecutionIds: testExecutionId ? [testExecutionId] : undefined,
-        includeNotExecuted: false,
+        includeNotExecuted: true, // ICT-JIRA-LATEST: 최신 결과 기준(Project/Plan Population)으로 가져옴
         size: 2000
       };
 

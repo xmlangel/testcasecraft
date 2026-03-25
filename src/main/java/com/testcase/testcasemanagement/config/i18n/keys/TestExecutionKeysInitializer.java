@@ -338,6 +338,8 @@ public class TestExecutionKeysInitializer {
                 // JIRA 이슈 링크
                 createTranslationKeyIfNotExists("testExecution.jira.urlNotSet", "testExecution", "JIRA URL 미설정",
                                 "{issueKey} (JIRA URL 미설정)");
+                createTranslationKeyIfNotExists("testExecution.jira.historical", "testExecution", "JIRA 과거 연결 이력 안내",
+                                "과거 연결 이력");
 
                 // 성공 메시지
                 createTranslationKeyIfNotExists("testExecution.success.savedAndStarted", "testExecution", "저장 및 시작 성공",

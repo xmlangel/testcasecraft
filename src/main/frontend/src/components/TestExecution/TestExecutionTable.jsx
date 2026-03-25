@@ -9,6 +9,7 @@ import {
     Visibility as VisibilityIcon,
     AttachFile as AttachFileIcon,
     ContentCopy as ContentCopyIcon,
+    History as HistoryIcon
 } from "@mui/icons-material";
 import { useI18n } from '../../context/I18nContext.jsx';
 import { TestResult } from "../../models/testExecution.jsx";
@@ -41,6 +42,7 @@ const ExecutionRow = memo(({
     const notes = resultObj?.notes;
     const tags = resultObj?.tags || [];
     const jiraIssueKey = resultObj?.jiraIssueKey;
+    const effectiveJiraIssueKey = resultObj?.effectiveJiraIssueKey;
     const executedBy = resultObj?.executedBy;
     const executedAt = resultObj?.executedAt;
 
@@ -281,6 +283,13 @@ const ExecutionRow = memo(({
                 {!isFolder ? (
                     jiraIssueKey ? (
                         <JiraIssueLink issueKey={jiraIssueKey} />
+                    ) : effectiveJiraIssueKey ? (
+                        <Tooltip title={t('testExecution.jira.historical', '과거 연결 이력')}>
+                            <Box sx={{ opacity: 0.6, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <JiraIssueLink issueKey={effectiveJiraIssueKey} />
+                                <HistoryIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                            </Box>
+                        </Tooltip>
                     ) : (
                         getDisplayValue(undefined, "jiraIssueKey")
                     )

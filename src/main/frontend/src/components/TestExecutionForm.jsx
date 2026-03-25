@@ -87,6 +87,26 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
+  // 일반 정보(이름, 설명, 태그) 편집 모드 여부
+  const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(!executionId);
+  const [originalExecution, setOriginalExecution] = useState(null);
+
+  const handleEditClick = useCallback(() => {
+    setOriginalExecution({ ...execution });
+    setIsEditingBasicInfo(true);
+  }, [execution]);
+
+  const handleCancelEditFromHeader = useCallback(() => {
+    if (!executionId) {
+      onCancel();
+    } else {
+      if (originalExecution) {
+        setExecution(originalExecution);
+      }
+      setIsEditingBasicInfo(false);
+    }
+  }, [executionId, onCancel, originalExecution]);
+
   // 필터 관련 상태
   const [filters, setFilters] = useState({
     name: '',
@@ -293,6 +313,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     try {
       const saved = await addOrUpdateTestExecution(execution);
       setExecution(saved);
+      setIsEditingBasicInfo(false); // 저장 성공 시 편집 모드 종료
 
       // 즉시 시작 옵션이 선택된 경우 테스트 실행 시작
       if (startImmediately && saved.id && saved.status === ExecutionStatus.NOTSTARTED) {
@@ -499,11 +520,14 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // 프로젝트별 테스트 실행 목록으로 이동
   const handleGoToList = () => {
-    // api() 함수가 자동으로 토큰 갱신을 처리하므로 명시적 검증 불필요
-    if (activeProject?.id) {
-      navigate(`/projects/${activeProject.id}/executions`);
+    // 1. propProjectId (URL Params) -> 2. execution.projectId -> 3. activeProject.id 순으로 확인
+    const projectId = propProjectId || execution?.projectId || activeProject?.id;
+    
+    if (projectId) {
+      navigate(`/projects/${projectId}/executions`);
     } else {
-      navigate("/executions");
+      // 프로젝트 ID를 찾을 수 없는 경우에만 전체 실행 목록 또는 프로젝트 선택으로 이동
+      navigate("/projects");
     }
   };
 
@@ -621,18 +645,41 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     }
   }, [location.state, navigate]);
 
-  const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
+  const canEditBasicInfo = isEditingBasicInfo; // 이름, 설명, 태그는 편집 모드일 때만 수정 가능
+  const canEditPlan = execution?.status === ExecutionStatus.NOTSTARTED; // 테스트 플랜 변경은 시작 전까지만 가능
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
   const canRestartExecution = execution?.status === ExecutionStatus.COMPLETED;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
 
+  // 1. 테스트 케이스별 가장 최근 유효한 JIRA ID 맵 생성 (같은 실행 내의 과거 이력 포함)
+  const effectiveJiraMap = useMemo(() => {
+    const map = new Map();
+    const results = execution?.results || [];
+    // execution.results를 순회하며 각 케이스별로 발견되는 모든 JIRA ID 중 가장 최근 것을 저장합니다.
+    // getLatestResults와 정렬 방식이 일치하도록 처리합니다.
+    [...results]
+      .sort((a, b) => new Date(b.executedAt || 0) - new Date(a.executedAt || 0))
+      .forEach(r => {
+        if (r.jiraIssueKey && !map.has(r.testCaseId)) {
+          map.set(r.testCaseId, r.jiraIssueKey);
+        }
+      });
+    return map;
+  }, [execution?.results]);
+
   const latestResults = useMemo(() => getLatestResults(execution?.results || []), [execution?.results]);
   const resultsMap = useMemo(() => {
     const map = new Map();
-    latestResults.forEach((r) => map.set(r.testCaseId, r));
+    latestResults.forEach((r) => {
+      const effectiveJira = effectiveJiraMap.get(r.testCaseId);
+      map.set(r.testCaseId, {
+        ...r,
+        effectiveJiraIssueKey: effectiveJira // 과거 이력 포함 가장 최근 JIRA ID
+      });
+    });
     return map;
-  }, [latestResults]);
+  }, [latestResults, effectiveJiraMap]);
 
 
   // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
@@ -729,7 +776,11 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           // JIRA 아이디 필터
           if (matches && filters.jiraIssueKey) {
             const jiraKey = resultObj.jiraIssueKey || '';
-            if (!jiraKey.toLowerCase().includes(filters.jiraIssueKey.trim().toLowerCase())) {
+            const effectiveJiraKey = resultObj.effectiveJiraIssueKey || '';
+            const searchStr = filters.jiraIssueKey.trim().toLowerCase();
+            
+            if (!jiraKey.toLowerCase().includes(searchStr) && 
+                !effectiveJiraKey.toLowerCase().includes(searchStr)) {
               matches = false;
             }
           }
@@ -893,19 +944,23 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   return (
     <Box sx={PAGE_CONTAINER_SX.main}>
-      <TestExecutionHeader
-        executionId={executionId}
-        executionName={execution?.name}
-        execution={execution}
-        onCancel={onCancel}
-        onGoToList={handleGoToList}
-        onSaveOrUpdate={handleSaveOrUpdate}
-        saving={saving}
-        canEditBasicInfo={canEditBasicInfo}
-        startImmediately={startImmediately}
-        showExecutionGuide={showExecutionGuide}
-        setShowExecutionGuide={setShowExecutionGuide}
-      />
+        <TestExecutionHeader
+          executionId={executionId}
+          executionName={execution?.name}
+          execution={execution}
+          onCancel={onCancel}
+          onGoToList={handleGoToList}
+          onSaveOrUpdate={handleSaveOrUpdate}
+          saving={saving}
+          canEditBasicInfo={canEditBasicInfo}
+          canEditPlan={canEditPlan}
+          startImmediately={startImmediately}
+          showExecutionGuide={showExecutionGuide}
+          setShowExecutionGuide={setShowExecutionGuide}
+          isEditingBasicInfo={isEditingBasicInfo}
+          onEditClick={handleEditClick}
+          onCancelEdit={handleCancelEditFromHeader}
+        />
 
       {/* 실행 요약 정보 (Info & Status) - Accordion 적용 */}
       <Accordion 
@@ -960,6 +1015,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
                 availableTags={availableTags}
                 setExecution={setExecution}
                 canEditBasicInfo={canEditBasicInfo}
+                canEditPlan={canEditPlan}
                 startImmediately={startImmediately}
                 setStartImmediately={setStartImmediately}
                 executionId={executionId}

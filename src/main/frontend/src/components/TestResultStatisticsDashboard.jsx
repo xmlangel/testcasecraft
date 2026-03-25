@@ -453,9 +453,11 @@ function TestResultStatisticsDashboard() {
       successRate: isLatestMode
         ? statistics.latestSuccessRate?.toFixed(2) || 0
         : statistics.successRate?.toFixed(2) || 0,
-      jiraLinkRate: statistics.totalTests > 0
-        ? (((statistics.jiraLinkedCount || 0) / statistics.totalTests) * 100).toFixed(2)
-        : 0,
+      jiraLinkRate: isLatestMode && statistics.totalCaseCount > 0
+        ? ((statistics.latestJiraLinkedCount || 0) / statistics.totalCaseCount * 100).toFixed(2)
+        : (statistics.totalTests > 0 
+           ? (((statistics.jiraLinkedCount || 0) / statistics.totalTests) * 100).toFixed(2)
+           : 0),
       lastUpdated: statistics.calculatedAt
         ? new Date(statistics.calculatedAt).toLocaleString('ko-KR')
         : t('testResultDashboard.summary.unknown', '알 수 없음')

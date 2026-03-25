@@ -10,20 +10,33 @@ import { debugLog } from '../utils/logger.js';
 const TestContext = createContext();
 
 const getDescendantIds = (items, parentId) => {
-    const result = new Set([parentId]);
+    if (!Array.isArray(items) || !parentId) return [];
+    
+    // O(N) 인덱스 생성
+    const childrenMap = new Map();
+    items.forEach(item => {
+        const pId = item.parentId || 'root';
+        if (!childrenMap.has(pId)) childrenMap.set(pId, []);
+        childrenMap.get(pId).push(item.id);
+    });
+
+    const result = [parentId];
     const stack = [parentId];
+    const visited = new Set([parentId]);
+
     while (stack.length) {
         const current = stack.pop();
-        items
-            .filter(item => item.parentId === current)
-            .forEach(child => {
-                if (!result.has(child.id)) {
-                    result.add(child.id);
-                    stack.push(child.id);
-                }
-            });
+        const children = childrenMap.get(current) || [];
+        
+        children.forEach(childId => {
+            if (!visited.has(childId)) {
+                visited.add(childId);
+                result.push(childId);
+                stack.push(childId);
+            }
+        });
     }
-    return Array.from(result);
+    return result;
 };
 
 export const TestProvider = ({ children }) => {
@@ -268,8 +281,10 @@ export const TestProvider = ({ children }) => {
                 const res = await api(`${baseUrl}/api/test-executions/by-project/${projectId}`);
                 if (!res.ok) throw new Error('테스트 실행 조회 실패');
                 const data = await res.json();
-                setTestExecutions(data);
-                return data;
+                // ICT-187: Page 객체인 경우 content 추출, 아니면 데이터 그대로 사용
+                const executions = data.content || (Array.isArray(data) ? data : []);
+                setTestExecutions(executions);
+                return executions;
             } catch (error) {
                 console.error('테스트 실행 조회 오류:', error);
                 setTestExecutions([]);

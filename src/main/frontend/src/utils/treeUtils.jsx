@@ -3,49 +3,69 @@
  */
 
 export const listToTree = (items, parentId = null) => {
-  // 고아 노드(Orphaned Nodes) 처리
-  // parentId가 존재하지만 전체 items 중에 해당 ID를 가진 데이터가 없는 경우를 찾아서
-  // 가상의 'orphaned-items-folder' 아래로 모아줍니다.
+  if (!Array.isArray(items) || items.length === 0) return [];
+
+  // 고아 노드(Orphaned Nodes) 처리 및 맵 생성 준비
   const orphanFolderId = 'orphaned-items-folder';
-  const allNodesExist = new Set(items.map(item => item.id));
+  const itemMap = new Map();
+  const allIds = new Set(items.map(item => item.id));
   
-  // 1. 트리 순회 전 고아 노드들의 parentId를 가상 폴더로 변경
-  let processedItems = items.map(item => {
-    // parentId가 유효한 문자열인데, 전체 목록에 그 id를 가진 부모가 없다면 고아 노드
-    if (item.parentId && item.parentId !== 'null' && item.parentId !== 'undefined' && !allNodesExist.has(item.parentId)) {
-      return { ...item, parentId: orphanFolderId };
+  // 1. 맵 초기화 및 데이터 전처리
+  const processedItems = items.map(item => {
+    let currentParentId = item.parentId;
+    // 부모가 없는데 parentId가 'null' 등의 문자열인 경우 실제 null로 처리
+    if (currentParentId === 'null' || currentParentId === 'undefined' || !currentParentId) {
+        currentParentId = null;
     }
-    return item;
+    
+    // 고아 노드 감지: 부모가 지정되어 있으나 실제 존재하지 않는 경우
+    if (currentParentId && !allIds.has(currentParentId)) {
+      currentParentId = orphanFolderId;
+    }
+    
+    const node = { ...item, parentId: currentParentId, children: [] };
+    itemMap.set(node.id, node);
+    return node;
   });
 
-  // 2. 고아 노드가 하나라도 존재한다면, 가상의 '[미할당 항목]' 폴더를 최상위에 생성
+  // 2. 고아 폴더 추가 (필요한 경우)
   const hasOrphans = processedItems.some(item => item.parentId === orphanFolderId);
-  const orphanFolderExists = processedItems.some(item => item.id === orphanFolderId);
-  
-  if (hasOrphans && !orphanFolderExists) {
-    processedItems.unshift({
+  if (hasOrphans && !itemMap.has(orphanFolderId)) {
+    const orphanFolder = {
       id: orphanFolderId,
       name: '[미할당 항목]',
       type: 'folder',
       parentId: null,
-      description: '상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.'
-    });
+      description: '상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.',
+      children: []
+    };
+    itemMap.set(orphanFolderId, orphanFolder);
+    processedItems.unshift(orphanFolder);
   }
 
-  // 3. 기존 트리 생성 로직 수행 (가공된 processedItems 사용)
-  const buildTree = (data, pId) =>
-    data
-      .filter(item =>
-        pId === null
-          ? item.parentId === null || item.parentId === 'null' || item.parentId === 'undefined'
-          : item.parentId === pId
-      )
-      .map(item => ({
-        ...item,
-        children: buildTree(data, item.id)
-      }));
+  // 3. 트리 구조 구축 (O(N))
+  const tree = [];
+  processedItems.forEach(item => {
+    if (item.parentId === null) {
+      tree.push(item);
+    } else {
+      const parent = itemMap.get(item.parentId);
+      if (parent) {
+        parent.children.push(item);
+      } else if (item.id !== orphanFolderId) {
+        // 부모를 못 찾은 경우 (이론적으로 고아 폴더가 처리하므로 여기 오면 안 됨)
+        tree.push(item);
+      }
+    }
+  });
 
-  return buildTree(processedItems, parentId);
+  // 4. 요청된 parentId에 해당하는 서브트리 반환
+  if (parentId !== null) {
+    const targetRoot = itemMap.get(parentId);
+    return targetRoot ? targetRoot.children : [];
+  }
+
+  return tree;
 };
 
 // ID를 기준으로 트리에서 아이템 찾기
@@ -63,13 +83,39 @@ export const findItemInTree = (tree, id) => {
 // 폴더 아이템인지 체크
 export const isFolder = (item) => item.type === 'folder';
 
+// O(N) 효율성을 위한 인덱스 생성용 유틸리티
+export const buildChildrenMap = (items) => {
+  const map = new Map();
+  items.forEach((item) => {
+    const pId = item.parentId || "root";
+    if (!map.has(pId)) map.set(pId, []);
+    map.get(pId).push(item);
+  });
+  return map;
+};
+
 // 아이템의 모든 하위 항목 ID 가져오기
 export const getAllChildIds = (items, parentId) => {
+  if (!Array.isArray(items) || !parentId) return [];
+  
+  const childrenMap = buildChildrenMap(items);
+
   const result = [];
-  const children = items.filter(item => item.parentId === parentId);
-  for (const child of children) {
-    result.push(child.id);
-    result.push(...getAllChildIds(items, child.id));
+  const stack = [parentId];
+  const visited = new Set();
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const children = childrenMap.get(current);
+    if (children) {
+      children.forEach(childId => {
+        result.push(childId);
+        stack.push(childId);
+      });
+    }
   }
   return result;
 };
@@ -103,14 +149,24 @@ export const getAllFolderIds = (items) =>
 
 // 특정 ID의 모든 상위 폴더 ID 가져오기 (가장 가까운 부모부터 루트까지 순서대로)
 export const getAncestorIds = (items, id) => {
+  if (!Array.isArray(items) || !id) return [];
+  
+  // O(N) 인덱스 생성
+  const itemMap = new Map(items.map(item => [item.id, item]));
+  
   const result = [];
   let currentId = id;
-  const findItemById = (id) => items.find(item => item.id === id);
-  while (currentId) {
-    const item = findItemById(currentId);
-    if (!item || !item.parentId) break;
-    result.unshift(item.parentId); // 루트부터 가까운 순서로 넣고 싶으면 unshift, 아니면 push
+  const visited = new Set(); // 순환 참조 방지
+
+  while (currentId && !visited.has(currentId)) {
+    visited.add(currentId);
+    const item = itemMap.get(currentId);
+    if (!item || !item.parentId || item.parentId === 'null' || item.parentId === 'undefined') break;
+    result.unshift(item.parentId);
     currentId = item.parentId;
+    
+    // 무제한 루프 방지
+    if (result.length > 100) break;
   }
   return result;
 };
@@ -268,5 +324,26 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
     .map((node) => node.id);
 
   return { flattenedData, orderedTestCaseIds };
+};
+
+// 트리를 평탄화하여 가상 스크롤에 적합한 배열로 변환
+export const flattenTree = (nodes, expandedIds = []) => {
+  const result = [];
+  const expandedSet = new Set(expandedIds);
+
+  const recurse = (list, depth = 0) => {
+    // 순서 정렬 보장
+    const sorted = list.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    
+    sorted.forEach((node) => {
+      result.push({ ...node, depth });
+      if (node.type === 'folder' && expandedSet.has(node.id) && Array.isArray(node.children)) {
+        recurse(node.children, depth + 1);
+      }
+    });
+  };
+
+  recurse(nodes);
+  return result;
 };
 

@@ -7,6 +7,7 @@ import {
 } from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
 import { copyToClipboard } from '../../utils';
+import TestResultFloatingMenu from './TestResultFloatingMenu.jsx';
 
 const TestResultNotes = ({
     notes,
@@ -18,7 +19,18 @@ const TestResultNotes = ({
     onNext,
     onPrevious,
     currentIndex,
-    totalCount
+    totalCount,
+    onFullscreenChange, // 추가된 콜백
+    // 플로팅 메뉴를 위한 추가 prop들
+    result,
+    onResultChange,
+    onSave,
+    onClose,
+    loading,
+    shouldShowJiraButton,
+    handleOpenJiraDialog,
+    testCase,
+    saveButtonRef
 }) => {
     // localStorage key
     const STORAGE_KEY = 'notes-editor-preview-mode';
@@ -42,18 +54,30 @@ const TestResultNotes = ({
         const handleFullscreenChange = () => {
             // MDEditor는 클래스 이름 변경으로 전체화면을 처리하므로 DOM 상태 확인
             const editorElement = document.querySelector('.w-md-editor-fullscreen');
-            setIsFullscreen(!!editorElement);
+            const newIsFullscreen = !!editorElement;
+            
+            if (newIsFullscreen !== isFullscreen) {
+                setIsFullscreen(newIsFullscreen);
+                if (onFullscreenChange) {
+                    onFullscreenChange(newIsFullscreen);
+                }
+            }
         };
 
+        // DOM 변화가 생길 때마다 전체화면 여부 확인 (MDEditor가 DOM을 직접 조작할 수 있으므로 body 관찰)
         const observer = new MutationObserver(handleFullscreenChange);
-        const editorContainer = document.querySelector('[data-testid="result-notes-input"]')?.closest('.w-md-editor');
         
-        if (editorContainer) {
-            observer.observe(editorContainer, { attributes: true, attributeFilter: ['class'] });
-        }
+        observer.observe(document.body, { 
+            attributes: true, 
+            subtree: true, 
+            attributeFilter: ['class'] 
+        });
+
+        // 초기 상태 확인
+        handleFullscreenChange();
 
         return () => observer.disconnect();
-    }, []);
+    }, [isFullscreen, onFullscreenChange]);
 
     // 디버그 모드일 때 노트 내 첨부파일 URL 로그 출력
     useEffect(() => {
@@ -134,49 +158,26 @@ const TestResultNotes = ({
                     }}
                 />
                 
-                {/* 전체화면 모드일 때 상단 내비게이션 바 */}
+                {/* 전체화면 모드일 때 메인 플로팅 메뉴 노출 (zIndex 문제 해결을 위해 내부에서 렌더링) */}
                 {isFullscreen && (
-                    <Box sx={{
-                        position: 'fixed',
-                        top: 10,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 2,
-                        bgcolor: 'rgba(0, 0, 0, 0.6)',
-                        px: 3,
-                        py: 1,
-                        borderRadius: 10,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                    }}>
-                        <Button
-                            variant="text"
-                            startIcon={<NavigateBeforeIcon />}
-                            onClick={onPrevious}
-                            disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
-                            sx={{ color: '#fff', '&.Mui-disabled': { color: 'rgba(255,255,255,0.3)' } }}
-                        >
-                            {t('common.button.previous', '이전')}
-                        </Button>
-                        
-                        <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600, mx: 2 }}>
-                            {totalCount > 0 ? `${currentIndex + 1} / ${totalCount}` : ''}
-                        </Typography>
-
-                        <Button
-                            variant="text"
-                            endIcon={<NavigateNextIcon />}
-                            onClick={onNext}
-                            disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
-                            sx={{ color: '#fff', '&.Mui-disabled': { color: 'rgba(255,255,255,0.3)' } }}
-                        >
-                            {t('common.button.next', '다음')}
-                        </Button>
-                    </Box>
+                    <TestResultFloatingMenu
+                        result={result}
+                        onResultChange={onResultChange}
+                        onPrevious={onPrevious}
+                        onNext={onNext}
+                        onSave={onSave}
+                        onClose={onClose}
+                        currentIndex={currentIndex}
+                        totalCount={totalCount}
+                        isViewer={isViewer}
+                        loading={loading}
+                        shouldShowJiraButton={shouldShowJiraButton}
+                        handleOpenJiraDialog={handleOpenJiraDialog}
+                        testCase={testCase}
+                        saveButtonRef={saveButtonRef}
+                        t={t}
+                        isNotesFullscreen={true}
+                    />
                 )}
 
                 {notes.length >= 9500 && (

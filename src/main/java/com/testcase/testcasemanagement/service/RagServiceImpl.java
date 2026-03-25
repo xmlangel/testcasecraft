@@ -43,6 +43,11 @@ public class RagServiceImpl implements RagService {
     private final LlmConfigRepository llmConfigRepository;
     private final EncryptionUtil encryptionUtil;
     private final SystemSettingService systemSettingService;
+    
+    // ICT-Performance: RAG 문서 목록 캐시 (N+1 조회를 방지하기 위해 10초간 유지)
+    private RagDocumentListResponse documentListCache;
+    private long lastCacheUpdate = 0;
+    private static final long CACHE_TTL_MS = 10000; // 10초
 
     public RagServiceImpl(
             WebClient ragWebClient,
@@ -711,8 +716,18 @@ public class RagServiceImpl implements RagService {
             // TestCase ID로 문서 검색 (파일명 기반)
             String searchFileName = String.format("testcase_%s.txt", testCaseId);
 
-            // 전체 문서 목록에서 해당 TestCase 찾기
-            RagDocumentListResponse documents = listDocuments(null, 1, 1000);
+            // 캐시 확인 및 업데이트 (10초간 유지)
+            long currentTime = System.currentTimeMillis();
+            RagDocumentListResponse documents;
+            
+            synchronized (this) {
+                if (documentListCache == null || (currentTime - lastCacheUpdate) > CACHE_TTL_MS) {
+                    log.debug("Refreshing RAG document list cache for vectorization check");
+                    documentListCache = listDocuments(null, 1, 1000);
+                    lastCacheUpdate = currentTime;
+                }
+                documents = documentListCache;
+            }
 
             if (documents != null && documents.getDocuments() != null) {
                 boolean exists = documents.getDocuments().stream()

@@ -625,6 +625,63 @@ public class TestResultReportServiceMockTest {
                 System.out.println("✅ 다중 플랜 중복 케이스 독립 집계 확인 완료");
         }
 
+        @Test(priority = 14)
+        public void testGetDetailedTestResultReport_JiraInfoAggregation() {
+                System.out.println("📋 14. JIRA 정보 집계(과거 이력 포함) 테스트 (ICT-JIRA-LATEST)");
+
+                // Given
+                String projectId = "project-1";
+                String tcId = "tc-jira-1";
+                
+                // 1. 과거 결과 (JIRA 연동됨)
+                TestResult oldResult = createMockResultWithTestCaseIdAndPlan("FAIL", tcId, "plan-1");
+                oldResult.setJiraIssueKey("JIRA-OLD-1");
+                oldResult.setExecutedAt(LocalDateTime.now().minusDays(2));
+
+                // 2. 최신 결과 (JIRA 연동 안됨)
+                TestResult latestResult = createMockResultWithTestCaseIdAndPlan("PASS", tcId, "plan-1");
+                latestResult.setJiraIssueKey(null); // 연동 정보 없음
+                latestResult.setExecutedAt(LocalDateTime.now().minusDays(1));
+
+                TestCase tc = new TestCase();
+                tc.setId(tcId);
+                tc.setName("JIRA 테스트 케이스");
+                Project mockProj = new Project();
+                mockProj.setId(projectId);
+                tc.setProject(mockProj);
+                tc.setType("testcase");
+
+                when(testResultRepository.findRecentTestResultsByProject(eq(projectId), any(PageRequest.of(0, Integer.MAX_VALUE).getClass())))
+                                .thenReturn(Arrays.asList(oldResult, latestResult));
+                when(testCaseRepository.findByProjectId(projectId)).thenReturn(Arrays.asList(tc));
+                when(testCaseRepository.findById(tcId)).thenReturn(Optional.of(tc));
+                when(testPlanRepository.findById(anyString())).thenReturn(Optional.of(mockTestPlan));
+
+                TestResultFilterDto filter = TestResultFilterDto.builder()
+                                .projectId(projectId)
+                                .includeNotExecuted(true)
+                                .page(0)
+                                .size(10)
+                                .build();
+                filter.setDefaultSort();
+                filter.setDefaultDisplayColumns();
+
+                // When
+                Page<TestResultReportDto> result = testResultReportService.getDetailedTestResultReport(filter);
+
+                // Then
+                assertNotNull(result);
+                assertFalse(result.isEmpty());
+                TestResultReportDto dto = result.getContent().get(0);
+                
+                // 최신 결과는 PASS여야 함
+                assertEquals(dto.getResult(), "PASS");
+                // 하지만 JIRA 정보는 과거 결과에서 가져와야 함 (집계 로직)
+                assertEquals(dto.getJiraIssueKey(), "JIRA-OLD-1", "최신 결과에 JIRA가 없어도 과거 이력에서 가져와야 함");
+
+                System.out.println("✅ JIRA 정보 집계(과거 이력 포함) 확인 완료: Result=PASS, JiraKey=JIRA-OLD-1");
+        }
+
         // Helper Methods
         private TestResult createMockResult(String result) {
                 TestResult testResult = new TestResult();

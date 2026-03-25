@@ -85,6 +85,9 @@ const TestResultForm = ({
   const [previewTitle, setPreviewTitle] = useState('');
   const isJiraIssueKeyInvalid = Boolean(jiraIssueKey) && !jiraService.isValidIssueKey(jiraIssueKey);
 
+  // 노트 전체화면 상태 관리
+  const [isNotesFullscreen, setIsNotesFullscreen] = useState(false);
+
   // useMemo를 사용하여 currentResult의 안정적인 참조 생성
   const stableCurrentResult = React.useMemo(() => {
     if (!currentResult) return null;
@@ -518,6 +521,24 @@ const TestResultForm = ({
               onPrevious={onPrevious}
               currentIndex={currentIndex}
               totalCount={totalCount}
+              onFullscreenChange={setIsNotesFullscreen}
+              // 플로팅 메뉴용 prop 추가
+              result={result}
+              onResultChange={(newResult) => {
+                setResult(newResult);
+                setTimeout(() => handleSaveAndNext(newResult, {
+                  advanceToNext: false,
+                  keepDialogOpen: true,
+                  showSuccess: true,
+                }), 100);
+              }}
+              onSave={() => handleSaveAndNext(result)}
+              onClose={onClose}
+              loading={loading}
+              shouldShowJiraButton={shouldShowJiraButton}
+              handleOpenJiraDialog={handleOpenJiraDialog}
+              testCase={testCase}
+              saveButtonRef={saveButtonRef}
             />
 
             <TestResultTags
@@ -585,31 +606,34 @@ const TestResultForm = ({
 
         {renderContent()}
 
-        {/* 플로팅 메뉴 (스크롤 시에도 고정) */}
-        <TestResultFloatingMenu
-          result={result}
-          onResultChange={(newResult) => {
-            setResult(newResult);
-            setTimeout(() => handleSaveAndNext(newResult, {
-              advanceToNext: false,
-              keepDialogOpen: true,
-              showSuccess: true,
-            }), 100);
-          }}
-          onPrevious={onPrevious}
-          onNext={onNext}
-          onSave={() => handleSaveAndNext(result)}
-          onClose={onClose}
-          currentIndex={currentIndex}
-          totalCount={totalCount}
-          isViewer={isViewer}
-          loading={loading}
-          shouldShowJiraButton={shouldShowJiraButton}
-          handleOpenJiraDialog={handleOpenJiraDialog}
-          testCase={testCase}
-          saveButtonRef={saveButtonRef}
-          t={t}
-        />
+        {/* 플로팅 메뉴 (스크롤 시에도 고정) - 비고 전체화면이 아닐 때만 표시 */}
+        {!isNotesFullscreen && (
+          <TestResultFloatingMenu
+            result={result}
+            onResultChange={(newResult) => {
+              setResult(newResult);
+              setTimeout(() => handleSaveAndNext(newResult, {
+                advanceToNext: false,
+                keepDialogOpen: true,
+                showSuccess: true,
+              }), 100);
+            }}
+            onPrevious={onPrevious}
+            onNext={onNext}
+            onSave={() => handleSaveAndNext(result)}
+            onClose={onClose}
+            currentIndex={currentIndex}
+            totalCount={totalCount}
+            isViewer={isViewer}
+            loading={loading}
+            shouldShowJiraButton={shouldShowJiraButton}
+            handleOpenJiraDialog={handleOpenJiraDialog}
+            testCase={testCase}
+            saveButtonRef={saveButtonRef}
+            t={t}
+            isNotesFullscreen={isNotesFullscreen}
+          />
+        )}
 
         <Snackbar
           open={!!saveError}
@@ -672,8 +696,8 @@ const TestResultForm = ({
       <DialogContent sx={{ pb: 12, px: { xs: 2, sm: 3 } }}> {/* 플로팅 메뉴 공간 및 좌우 여백 확보 */}
         {renderContent()}
         
-        {/* 플로팅 메뉴 (스크롤 시에도 고정) */}
-        {!loading && testCase && (
+        {/* 플로팅 메뉴 (스크롤 시에도 고정) - 비고 전체화면이 아닐 때만 표시 */}
+        {!loading && testCase && !isNotesFullscreen && (
           <TestResultFloatingMenu
             result={result}
             onResultChange={(newResult) => {
@@ -697,6 +721,7 @@ const TestResultForm = ({
             testCase={testCase}
             saveButtonRef={saveButtonRef}
             t={t}
+            isNotesFullscreen={isNotesFullscreen}
           />
         )}
       </DialogContent>

@@ -4,7 +4,7 @@
 spring:
   # 데이터소스 설정 (Docker Compose PostgreSQL)
   datasource:
-    url: jdbc:postgresql://localhost:5434/testcase_management
+    url: jdbc:postgresql://192.168.1.156:5434/testcase_management
     username: testcase_user
     password: testcase_password
     driver-class-name: org.postgresql.Driver
