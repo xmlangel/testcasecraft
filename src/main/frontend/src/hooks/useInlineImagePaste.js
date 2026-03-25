@@ -125,7 +125,7 @@ const useInlineImagePaste = ({
     const selectionEnd = typeof target?.selectionEnd === 'number' ? target.selectionEnd : selectionStart;
 
     const placeholderId = `inline-img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const placeholderText = `![${t('testcase.inlineImage.uploading', '이미지 업로드 중')}...](${placeholderId})`;
+    const placeholderText = `![${placeholderId}](uploading...)`;
 
     insertPlaceholderAtSelection(fieldConfig, placeholderText, selectionStart, selectionEnd);
 
@@ -206,9 +206,23 @@ const useInlineImagePaste = ({
 
     const imageMarkup = `<img src="${attachment.publicUrl}" alt="${sanitizeAltText(altText)}" data-attachment-id="${attachment.id}" style="${styleAttr}" />`;
 
-    replacePlaceholder(fieldConfig, placeholder, imageMarkup);
+    // placeholder의 id를 사용하여 정규표현식으로 교체 (더 안전한 교체)
+    const idMatch = placeholder.match(/!\[(inline-img-[^\]]+)\]/);
+    if (idMatch && idMatch[1]) {
+      const imgId = idMatch[1];
+      updateFieldValue(fieldConfig, (currentValue = '') => {
+        // ![id](...) 형태의 모든 텍스트를 찾아서 교체
+        const escapedId = imgId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`!\\[${escapedId}\\]\\([^)]*\\)`, 'g');
+        return currentValue.replace(regex, imageMarkup);
+      });
+    } else {
+      // 폴백: 단순 문자열 대체
+      replacePlaceholder(fieldConfig, placeholder, imageMarkup);
+    }
+    
     resetDialogState();
-  }, [handleInlineImageDialogClose, imageDialogState, replacePlaceholder, resetDialogState]);
+  }, [handleInlineImageDialogClose, imageDialogState, replacePlaceholder, updateFieldValue, resetDialogState]);
 
   const updateImageDialogState = useCallback((updater) => {
     setImageDialogState((prev) => {
