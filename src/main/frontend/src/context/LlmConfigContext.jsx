@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useAppContext } from './AppContext';
+import { useAuth } from './AuthContext';
 
 const LlmConfigContext = createContext();
 
@@ -67,7 +67,7 @@ const parseApiResponse = async (response, actionDescription) => {
 };
 
 export const LlmConfigProvider = ({ children }) => {
-  const { api, user } = useAppContext();
+  const { api, user } = useAuth();
   const [configs, setConfigs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

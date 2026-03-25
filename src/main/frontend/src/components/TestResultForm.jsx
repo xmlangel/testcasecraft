@@ -1,16 +1,22 @@
-import { useNavigate, useLocation } from 'react-router-dom';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, CircularProgress, Snackbar, Alert
+import { 
+    Dialog, 
+    DialogTitle, 
+    DialogContent, 
+    DialogActions, 
+    Button, 
+    Box, 
+    CircularProgress, 
+    Snackbar, 
+    Alert 
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { TestResult } from '../models/testExecution.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
-import { useTranslation } from '../context/I18nContext.jsx';
+import { useI18n } from '../context/I18nContext';
 import JiraCommentDialog from './JiraIntegration/JiraCommentDialog.jsx';
 import { jiraService } from '../services/jiraService.js';
+import { TestResult } from '../models/testExecution.jsx';
 
 // Import new components
 import TestResultSelector from './TestResult/TestResultSelector.jsx';
@@ -22,9 +28,7 @@ import TestResultJira from './TestResult/TestResultJira.jsx';
 import TestResultHeader from './TestResult/TestResultHeader.jsx';
 import TestResultFooter from './TestResult/TestResultFooter.jsx';
 import TestResultFloatingMenu from './TestResult/TestResultFloatingMenu.jsx';
-import InlineImageDialog from './TestCase/InlineImageDialog.jsx';
 import useInlineImagePaste from '../hooks/useInlineImagePaste.js';
-import { extractAttachmentIds } from '../utils/testCaseFormUtils.js';
 
 const KEY_RESULT_MAP = {
   'N': TestResult.NOTRUN,
@@ -50,9 +54,8 @@ const TestResultForm = ({
 }) => {
 
   const { user, api } = useAppContext();
-  const { t } = useTranslation();
+  const { t } = useI18n();
   const theme = useTheme();
-  const location = useLocation();
   const darkMode = theme.palette.mode === 'dark';
 
   const isViewer = user?.role === 'VIEWER';
@@ -92,7 +95,7 @@ const TestResultForm = ({
   const [isNotesFullscreen, setIsNotesFullscreen] = useState(false);
 
   // useMemo를 사용하여 currentResult의 안정적인 참조 생성
-  const stableCurrentResult = React.useMemo(() => {
+  const stableCurrentResult = useMemo(() => {
     if (!currentResult) return null;
     return {
       result: currentResult.result,

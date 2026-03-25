@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, IconButton, Snackbar, Alert, Tooltip } from '@mui/material';
+import { Box, Typography, IconButton, Snackbar, Alert, Tooltip } from '@mui/material';
 import { 
-    NavigateBefore as NavigateBeforeIcon, 
-    NavigateNext as NavigateNextIcon,
     ContentCopy as CopyIcon
 } from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
