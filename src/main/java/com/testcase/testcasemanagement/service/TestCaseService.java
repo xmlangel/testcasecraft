@@ -55,6 +55,7 @@ public class TestCaseService {
     private final RagService ragService;
     private final TestCaseAttachmentRepository testCaseAttachmentRepository;
     private final com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository;
+    private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -67,13 +68,15 @@ public class TestCaseService {
             ApplicationEventPublisher eventPublisher,
             RagService ragService,
             TestCaseAttachmentRepository testCaseAttachmentRepository,
-            com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository) {
+            com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository,
+            TestCaseFileStorageService fileStorageService) {
         this.testCaseRepository = testCaseRepository;
         this.displayIdService = displayIdService;
         this.eventPublisher = eventPublisher;
         this.ragService = ragService;
         this.testCaseAttachmentRepository = testCaseAttachmentRepository;
         this.displayIdHistoryRepository = displayIdHistoryRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     public List<TestCase> getAllTestCases() {
@@ -233,17 +236,40 @@ public class TestCaseService {
             }
         });
 
-        // ICT-386: 첨부파일 삭제 (외래 키 제약 조건 방지)
+        // ICT-386 & ICT-InlineImage: 첨부파일 삭제 (물리적 삭제 포함)
         try {
+            // 1. 본문(description)의 인라인 이미지 삭제
+            deleteInlineImagesFromDescription(testCase.getDescription());
+
+            // 2. 일반 첨부파일 삭제 (MinIO 실제 삭제 보장)
             List<TestCaseAttachment> attachments = testCaseAttachmentRepository.findByTestCase_Id(id);
             if (!attachments.isEmpty()) {
-                log.info("테스트케이스 삭제 전 첨부파일 삭제: testCaseId={}, 첨부파일 개수={}", id, attachments.size());
-                testCaseAttachmentRepository.deleteAll(attachments);
-                log.info("테스트케이스 첨부파일 DB 삭제 완료: testCaseId={}, {} 개", id, attachments.size());
+                log.info("테스트케이스 삭제 전 첨부파일 실제 삭제 시작: testCaseId={}, 첨부파일 개수={}", id, attachments.size());
+                
+                // 현재 사용자 정보 가져오기
+                com.testcase.testcasemanagement.model.User currentUser = null;
+                try {
+                    String username = getCurrentUsername();
+                    if (username != null && !username.equals("anonymousUser")) {
+                        currentUser = entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", com.testcase.testcasemanagement.model.User.class)
+                            .setParameter("username", username)
+                            .getSingleResult();
+                    }
+                } catch (Exception e) {
+                    log.warn("사용자 정보 조회 실패 (삭제 로직 계속 진행): {}", e.getMessage());
+                }
+
+                for (TestCaseAttachment attachment : attachments) {
+                    try {
+                        fileStorageService.deleteAttachment(attachment.getId(), currentUser);
+                    } catch (Exception e) {
+                        log.error("첨부파일 물리 삭제 실패: attachmentId={}, error={}", attachment.getId(), e.getMessage());
+                    }
+                }
+                log.info("테스트케이스 첨부파일 물리 삭제 완료: testCaseId={}", id);
             }
         } catch (Exception e) {
-            log.error("첨부파일 삭제 중 오류 발생: testCaseId={}", id, e);
-            throw new RuntimeException("첨부파일 삭제 실패로 인해 테스트케이스를 삭제할 수 없습니다: " + e.getMessage(), e);
+            log.error("첨부파일 처리 중 오류 발생 (계속 진행): testCaseId={}", id, e);
         }
 
         // 테스트케이스 삭제 (다시 한 번 존재 확인)
@@ -1636,5 +1662,46 @@ public class TestCaseService {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * ICT-InlineImage: 본문(description)에서 인라인 이미지 ID를 추출하여 삭제 처리
+     * 
+     * @param description 마크다운 본문
+     */
+    private void deleteInlineImagesFromDescription(String description) {
+        if (description == null || description.isBlank()) {
+            return;
+        }
+
+        // 인라인 이미지 패턴 추출: ![[...]] (/api/testcase-attachments/public/{id}?token=...)
+        // 공통 이미지 URL 패턴: /api/testcase-attachments/public/([a-f0-9\-]{36})
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "/api/testcase-attachments/public/([a-f0-9\\-]{36})");
+        java.util.regex.Matcher matcher = pattern.matcher(description);
+
+        // 현재 사용자 정보 가져오기 (감사용)
+        com.testcase.testcasemanagement.model.User currentUser = null;
+        try {
+            String username = getCurrentUsername();
+            if (username != null && !username.equals("anonymousUser")) {
+                currentUser = entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", com.testcase.testcasemanagement.model.User.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
+            }
+        } catch (Exception e) {
+            log.warn("사용자 정보 조회 실패 (인라인 이미지 삭제 로직 계속 진행): {}", e.getMessage());
+        }
+
+        while (matcher.find()) {
+            String attachmentId = matcher.group(1);
+            try {
+                fileStorageService.deleteAttachment(attachmentId, currentUser);
+                log.info("🖼️ 테스트케이스 인라인 이미지 연계 삭제 완료: attachmentId={}", attachmentId);
+            } catch (Exception e) {
+                log.error("❌ 테스트케이스 인라인 이미지 삭제 실패 (ID: {}): {}", attachmentId, e.getMessage());
+                // 개별 이미지 삭제 실패가 전체 프로세스를 중단시키지 않도록 예외 처리
+            }
+        }
     }
 }

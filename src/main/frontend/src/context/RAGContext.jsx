@@ -5,7 +5,7 @@
  * - File reduced from 1680 lines to ~300 lines by extracting functions into hooks
  */
 import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
-import { useAppContext } from './AppContext.jsx';
+import { useAuth } from './AuthContext';
 
 // Import custom hooks
 import { useRagDocuments } from '../hooks/rag/useRagDocuments.js';
@@ -186,7 +186,7 @@ function ragReducer(state, action) {
 }
 
 export function RAGProvider({ children }) {
-  const { api } = useAppContext();
+  const { api } = useAuth();
   const [state, dispatch] = useReducer(ragReducer, initialState);
 
   // ============ Initial Setup ============
@@ -214,8 +214,7 @@ export function RAGProvider({ children }) {
           dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
         }
       } catch (err) {
-        console.warn('Failed to fetch RAG status:', err);
-        // 조회 실패 시에도 초기화 완료로 처리 (RAG 활성화 상태 유지)
+        // 세션 만료 등으로 인한 조회 실패 시 로그를 남기지 않고 조용히 처리 완료
         dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
       }
     };

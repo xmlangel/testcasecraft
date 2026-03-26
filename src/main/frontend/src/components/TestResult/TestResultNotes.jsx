@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, IconButton, Snackbar, Alert, Tooltip } from '@mui/material';
+import { Box, Typography, IconButton, Snackbar, Alert, Tooltip } from '@mui/material';
 import { 
-    NavigateBefore as NavigateBeforeIcon, 
-    NavigateNext as NavigateNextIcon,
     ContentCopy as CopyIcon
 } from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
@@ -30,7 +28,9 @@ const TestResultNotes = ({
     shouldShowJiraButton,
     handleOpenJiraDialog,
     testCase,
-    saveButtonRef
+    saveButtonRef,
+    onMarkdownPaste,
+    inlineImageUploading
 }) => {
     // localStorage key
     const STORAGE_KEY = 'notes-editor-preview-mode';
@@ -150,6 +150,7 @@ const TestResultNotes = ({
                             setNotes('');
                         }
                     }}
+                    onPaste={onMarkdownPaste}
                     preview={previewMode}
                     height={height}
                     disabled={isViewer}
@@ -157,6 +158,14 @@ const TestResultNotes = ({
                         'data-testid': 'result-notes-input'
                     }}
                 />
+
+                {inlineImageUploading && (
+                    <Box sx={{ mt: 1 }}>
+                        <Alert severity="info" sx={{ py: 0 }}>
+                            {t('testcase.inlineImage.uploadingProgress', '이미지 업로드 중...')}
+                        </Alert>
+                    </Box>
+                )}
                 
                 {/* 전체화면 모드일 때 메인 플로팅 메뉴 노출 (zIndex 문제 해결을 위해 내부에서 렌더링) */}
                 {isFullscreen && (

@@ -125,22 +125,29 @@ const useInlineImagePaste = ({
     const selectionEnd = typeof target?.selectionEnd === 'number' ? target.selectionEnd : selectionStart;
 
     const placeholderId = `inline-img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const placeholderText = `![${t('testcase.inlineImage.uploading', '이미지 업로드 중')}...](${placeholderId})`;
+    const placeholderText = `![${placeholderId}](uploading...)`;
 
     insertPlaceholderAtSelection(fieldConfig, placeholderText, selectionStart, selectionEnd);
 
     try {
       setInlineImageUploading(true);
       const attachment = await uploadInlineImage(file);
-      setImageDialogState({
-        open: true,
-        placeholder: placeholderText,
-        fieldConfig,
-        attachment,
-        altText: getDefaultAltText(file.name),
-        width: '100',
-        widthUnit: '%',
+      
+      // 다이얼로그를 띄우지 않고 즉시 삽입하도록 변경 (사용자 피드백 반영)
+      const altText = getDefaultAltText(file.name);
+      const styleAttr = 'max-width: 100%; height: auto';
+      const imageMarkup = `<img src="${attachment.publicUrl}" alt="${sanitizeAltText(altText)}" data-attachment-id="${attachment.id}" style="${styleAttr}" />`;
+      
+      // placeholder를 실제 이미지 태그로 교체
+      const escapedId = placeholderId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`!\\[${escapedId}\\]\\([^)]*\\)`, 'g');
+      
+      updateFieldValue(fieldConfig, (currentValue = '') => {
+        return currentValue.replace(regex, imageMarkup);
       });
+
+      // 상태 초기화
+      resetDialogState();
     } catch (error) {
       console.error('inline image upload failed:', error);
       replacePlaceholder(fieldConfig, placeholderText, '');
@@ -206,9 +213,23 @@ const useInlineImagePaste = ({
 
     const imageMarkup = `<img src="${attachment.publicUrl}" alt="${sanitizeAltText(altText)}" data-attachment-id="${attachment.id}" style="${styleAttr}" />`;
 
-    replacePlaceholder(fieldConfig, placeholder, imageMarkup);
+    // placeholder의 id를 사용하여 정규표현식으로 교체 (더 안전한 교체)
+    const idMatch = placeholder.match(/!\[(inline-img-[^\]]+)\]/);
+    if (idMatch && idMatch[1]) {
+      const imgId = idMatch[1];
+      updateFieldValue(fieldConfig, (currentValue = '') => {
+        // ![id](...) 형태의 모든 텍스트를 찾아서 교체
+        const escapedId = imgId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`!\\[${escapedId}\\]\\([^)]*\\)`, 'g');
+        return currentValue.replace(regex, imageMarkup);
+      });
+    } else {
+      // 폴백: 단순 문자열 대체
+      replacePlaceholder(fieldConfig, placeholder, imageMarkup);
+    }
+    
     resetDialogState();
-  }, [handleInlineImageDialogClose, imageDialogState, replacePlaceholder, resetDialogState]);
+  }, [handleInlineImageDialogClose, imageDialogState, replacePlaceholder, updateFieldValue, resetDialogState]);
 
   const updateImageDialogState = useCallback((updater) => {
     setImageDialogState((prev) => {
