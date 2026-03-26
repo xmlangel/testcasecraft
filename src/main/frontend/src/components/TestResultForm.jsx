@@ -127,7 +127,17 @@ const TestResultForm = ({
     setResult(stableCurrentResult.result || TestResult.NOTRUN);
     setNotes(stableCurrentResult.notes || '');
     setTags(stableCurrentResult.tags || []);
-    setJiraIssueKey(stableCurrentResult.jiraIssueKey || '');
+    const initialJiraKey = stableCurrentResult.jiraIssueKey || '';
+    setJiraIssueKey(initialJiraKey);
+
+    // 다중 JIRA 이슈 초기화
+    if (initialJiraKey) {
+      const keys = initialJiraKey.split(',').map(k => k.trim()).filter(Boolean);
+      const initialIssues = keys.map(key => ({ key, summary: 'Loading...', status: { name: '...' } }));
+      setLinkedIssues(initialIssues);
+    } else {
+      setLinkedIssues([]);
+    }
 
     // 노트에서 JIRA 이슈 키 자동 감지
     if (stableCurrentResult.notes) {
@@ -463,13 +473,28 @@ const TestResultForm = ({
 
   const handleIssueLinked = (issue) => {
     if (linkedIssues.some(li => li.key === issue.key)) return;
+    
     setLinkedIssues(prev => [...prev, issue]);
-    setJiraIssueKey(issue.key);
+    
+    // 콤마로 구분된 문자열에 추가
+    setJiraIssueKey(prev => {
+      const keys = prev ? prev.split(',').map(k => k.trim()).filter(Boolean) : [];
+      if (!keys.includes(issue.key)) {
+        keys.push(issue.key);
+      }
+      return keys.join(',');
+    });
   };
 
   const handleIssueUnlinked = (issueKey) => {
     setLinkedIssues(prev => prev.filter(issue => issue.key !== issueKey));
-    if (jiraIssueKey === issueKey) setJiraIssueKey('');
+    
+    // 콤마로 구분된 문자열에서 제거
+    setJiraIssueKey(prev => {
+      const keys = prev ? prev.split(',').map(k => k.trim()).filter(Boolean) : [];
+      const updatedKeys = keys.filter(k => k !== issueKey);
+      return updatedKeys.join(',');
+    });
   };
 
   const shouldShowJiraButton = () => {

@@ -54,7 +54,7 @@ public class TestResult {
     /**
      * 연결된 JIRA 이슈 키 (예: PRJ-123)
      */
-    @Column(name = "jira_issue_key", length = 100)
+    @Column(name = "jira_issue_key", length = 500)
     private String jiraIssueKey;
 
     /**

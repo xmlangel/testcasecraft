@@ -171,31 +171,32 @@ public class TestExecutionService {
 
         // ICT-184: JIRA 이슈 키 존재 여부 검증 (JIRA 설정이 있을 때만)
         if (resultDto.getJiraIssueKey() != null && !resultDto.getJiraIssueKey().trim().isEmpty()) {
-            String jiraIssueKey = resultDto.getJiraIssueKey().trim();
+            String[] jiraIssueKeys = resultDto.getJiraIssueKey().split(",");
+            for (String rawKey : jiraIssueKeys) {
+                String jiraIssueKey = rawKey.trim();
+                if (jiraIssueKey.isEmpty()) continue;
 
-            try {
-                JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
-                        .checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
+                try {
+                    JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
+                            .checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
 
-                // JIRA 설정이 없는 경우는 검증을 건너뛰고 계속 진행
-                if (validationResult.getErrorMessage() != null
-                        && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
-                    System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
-                } else if (!validationResult.getExists()) {
-                    // JIRA 설정은 있지만 이슈가 존재하지 않는 경우만 에러 처리
-                    throw new IllegalArgumentException(
-                            String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
-                                    jiraIssueKey,
-                                    validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
-                                            : "이슈를 찾을 수 없습니다"));
+                    // JIRA 설정이 없는 경우는 검증을 건너뛰고 계속 진행
+                    if (validationResult.getErrorMessage() != null
+                            && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+                        System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
+                    } else if (!validationResult.getExists()) {
+                        // JIRA 설정은 있지만 이슈가 존재하지 않는 경우만 에러 처리
+                        throw new IllegalArgumentException(
+                                String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                                        jiraIssueKey,
+                                        validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
+                                                : "이슈를 찾을 수 없습니다"));
+                    }
+                } catch (IllegalArgumentException e) {
+                    throw e;
+                } catch (Exception e) {
+                    System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
                 }
-            } catch (IllegalArgumentException e) {
-                // JIRA 검증 실패 시 다시 던지기 (위에서 처리된 경우)
-                throw e;
-            } catch (Exception e) {
-                // 기타 예외의 경우 경고 로그를 남기고 계속 진행 (JIRA 서버 장애 등)
-                System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
-                // 검증 실패를 에러로 처리하지 않고 계속 진행 (서버 장애 시에도 테스트 결과 저장 허용)
             }
         }
 
@@ -254,26 +255,30 @@ public class TestExecutionService {
 
         // JIRA 이슈 키 검증 (한 번만)
         if (bulkDto.getJiraIssueKey() != null && !bulkDto.getJiraIssueKey().trim().isEmpty()) {
-            String jiraIssueKey = bulkDto.getJiraIssueKey().trim();
+            String[] jiraIssueKeys = bulkDto.getJiraIssueKey().split(",");
+            for (String rawKey : jiraIssueKeys) {
+                String jiraIssueKey = rawKey.trim();
+                if (jiraIssueKey.isEmpty()) continue;
 
-            try {
-                JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
-                        .checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
+                try {
+                    JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
+                            .checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
 
-                if (validationResult.getErrorMessage() != null
-                        && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
-                    System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
-                } else if (!validationResult.getExists()) {
-                    throw new IllegalArgumentException(
-                            String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
-                                    jiraIssueKey,
-                                    validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
-                                            : "이슈를 찾을 수 없습니다"));
+                    if (validationResult.getErrorMessage() != null
+                            && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+                        System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
+                    } else if (!validationResult.getExists()) {
+                        throw new IllegalArgumentException(
+                                String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                                        jiraIssueKey,
+                                        validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
+                                                : "이슈를 찾을 수 없습니다"));
+                    }
+                } catch (IllegalArgumentException e) {
+                    throw e;
+                } catch (Exception e) {
+                    System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
                 }
-            } catch (IllegalArgumentException e) {
-                throw e;
-            } catch (Exception e) {
-                System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
             }
         }
 
@@ -651,27 +656,40 @@ public class TestExecutionService {
 
         // 4. JIRA 이슈 키 검증 (변경된 경우에만)
         if (resultDto.getJiraIssueKey() != null && !resultDto.getJiraIssueKey().trim().isEmpty()) {
-            String jiraIssueKey = resultDto.getJiraIssueKey().trim();
-            // 기존 값과 다를 때만 검증
-            if (!jiraIssueKey.equals(existingResult.getJiraIssueKey())) {
-                try {
-                    JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
-                            .checkJiraIssueExists(currentUsername, jiraIssueKey);
-
-                    if (validationResult.getErrorMessage() != null
-                            && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
-                        System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
-                    } else if (!validationResult.getExists()) {
-                        throw new IllegalArgumentException(
-                                String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
-                                        jiraIssueKey,
-                                        validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
-                                                : "이슈를 찾을 수 없습니다"));
+            String[] jiraIssueKeys = resultDto.getJiraIssueKey().split(",");
+            for (String rawKey : jiraIssueKeys) {
+                String jiraIssueKey = rawKey.trim();
+                if (jiraIssueKey.isEmpty()) continue;
+                
+                // 기존 값들 중에 포함되어 있지 않은 새로운 키만 검증
+                boolean isNewKey = true;
+                if (existingResult.getJiraIssueKey() != null) {
+                    List<String> existingKeys = Arrays.asList(existingResult.getJiraIssueKey().split(","));
+                    if (existingKeys.stream().anyMatch(k -> k.trim().equals(jiraIssueKey))) {
+                        isNewKey = false;
                     }
-                } catch (IllegalArgumentException e) {
-                    throw e;
-                } catch (Exception e) {
-                    System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
+                }
+
+                if (isNewKey) {
+                    try {
+                        JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
+                                .checkJiraIssueExists(currentUsername, jiraIssueKey);
+
+                        if (validationResult.getErrorMessage() != null
+                                && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+                            System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
+                        } else if (!validationResult.getExists()) {
+                            throw new IllegalArgumentException(
+                                    String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                                            jiraIssueKey,
+                                            validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
+                                                    : "이슈를 찾을 수 없습니다"));
+                        }
+                    } catch (IllegalArgumentException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
+                    }
                 }
             }
         }
