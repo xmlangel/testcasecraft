@@ -19,6 +19,7 @@ const MarkdownFieldEditor = ({
     placeholder,
     height = 250,
     isViewer = false,
+    error = false,
     helperText,
     theme,
     t,
@@ -26,6 +27,7 @@ const MarkdownFieldEditor = ({
     onPaste,
     defaultMarkdownMode = true,
     testid,
+    preview,
 }) => {
     const displayHelperText = helperText || (!value
         ? t('testcase.helper.enterContent', '내용을 입력하세요.')
@@ -34,13 +36,23 @@ const MarkdownFieldEditor = ({
     return (
         <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle2">{label}</Typography>
+                <Typography variant="subtitle2" color={error ? 'error' : 'inherit'}>
+                    {label}
+                </Typography>
             </Box>
-            <Box data-color-mode={theme.palette.mode} sx={{ mt: 1 }}>
+            <Box 
+                data-color-mode={theme.palette.mode} 
+                sx={{ 
+                    mt: 1,
+                    '& .w-md-editor': {
+                        border: error ? `1px solid ${theme.palette.error.main}` : undefined,
+                    }
+                }}
+            >
                 <MDEditor
                     value={value}
                     onChange={(val) => onChange(val || '')}
-                    preview="live"
+                    preview={preview || "live"}
                     height={height}
                     textareaProps={{
                         placeholder,
@@ -51,7 +63,11 @@ const MarkdownFieldEditor = ({
                 />
             </Box>
             {displayHelperText && (
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                <Typography 
+                    variant="caption" 
+                    color={error ? 'error' : 'text.secondary'} 
+                    sx={{ mt: 0.5, display: 'block' }}
+                >
                     {displayHelperText}
                 </Typography>
             )}
@@ -63,13 +79,14 @@ MarkdownFieldEditor.propTypes = {
     label: PropTypes.string.isRequired,
     value: PropTypes.string,
     placeholder: PropTypes.string,
-    height: PropTypes.number,
+    height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     isViewer: PropTypes.bool,
     helperText: PropTypes.string,
     theme: PropTypes.object.isRequired,
     t: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     onPaste: PropTypes.func,
+    preview: PropTypes.oneOf(['live', 'edit', 'preview']),
 };
 
 export default MarkdownFieldEditor;
