@@ -22,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -323,40 +325,128 @@ public class JiraApiService {
         if (text == null || text.trim().isEmpty()) {
             return "null";
         }
-        
-        // 줄바꿈을 기준으로 단락(paragraph) 분리 및 특수문자 이스케이프
-        String[] lines = text.split("\n");
-        StringBuilder adf = new StringBuilder();
-        adf.append("{\"version\": 1, \"type\": \"doc\", \"content\": [");
-        
-        boolean first = true;
-        for (String line : lines) {
-            if (!first) {
-                adf.append(",");
-            }
-            
-            String escapedLine = line.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "");
-            
-            if (escapedLine.trim().isEmpty()) {
-                adf.append("{\"type\": \"paragraph\"}");
-            } else {
-                adf.append(String.format("""
-                    {
-                        "type": "paragraph",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": "%s"
-                            }
-                        ]
+
+        try {
+            // ObjectMapper를 사용하여 구조적으로 빌드 (보안 및 안정성 향상)
+            Map<String, Object> adf = new HashMap<>();
+            adf.put("version", 1);
+            adf.put("type", "doc");
+
+            List<Map<String, Object>> content = new ArrayList<>();
+            String[] lines = text.split("\n");
+
+            for (String line : lines) {
+                line = line.replace("\r", "");
+                
+                // 1. 구분선 (Horizontal Rule)
+                if (line.trim().equals("---") || line.trim().equals("***")) {
+                    content.add(Map.of("type", "rule"));
+                    continue;
+                }
+
+                // 2. 헤더 (Headers)
+                Matcher headerMatcher = Pattern.compile("^(#{1,6})\\s+(.+)$").matcher(line.trim());
+                if (headerMatcher.find()) {
+                    int level = headerMatcher.group(1).length();
+                    String headerText = headerMatcher.group(2);
+                    
+                    Map<String, Object> heading = new HashMap<>();
+                    heading.put("type", "heading");
+                    heading.put("attrs", Map.of("level", level));
+                    heading.put("content", parseInlineContent(headerText));
+                    content.add(heading);
+                    continue;
+                }
+
+                // 3. 불렛 리스트 (Bullet List - 간단히 구현)
+                Matcher listMatcher = Pattern.compile("^([\\-*])\\s+(.+)$").matcher(line.trim());
+                if (listMatcher.find()) {
+                    String itemText = listMatcher.group(2);
+                    
+                    Map<String, Object> listItem = new HashMap<>();
+                    listItem.put("type", "listItem");
+                    listItem.put("content", List.of(Map.of(
+                        "type", "paragraph",
+                        "content", parseInlineContent(itemText)
+                    )));
+
+                    // 이전 노드가 bulletList이면 거기에 추가, 아니면 새로 생성
+                    if (!content.isEmpty() && "bulletList".equals(content.get(content.size() - 1).get("type"))) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> items = (List<Object>) content.get(content.size() - 1).get("content");
+                        items.add(listItem);
+                    } else {
+                        Map<String, Object> bulletList = new HashMap<>();
+                        bulletList.put("type", "bulletList");
+                        bulletList.put("content", new ArrayList<>(List.of(listItem)));
+                        content.add(bulletList);
                     }
-                    """, escapedLine));
+                    continue;
+                }
+
+                // 4. 일반 단락 (Paragraph)
+                if (line.trim().isEmpty()) {
+                    content.add(Map.of("type", "paragraph"));
+                } else {
+                    Map<String, Object> paragraph = new HashMap<>();
+                    paragraph.put("type", "paragraph");
+                    paragraph.put("content", parseInlineContent(line));
+                    content.add(paragraph);
+                }
             }
-            first = false;
+
+            adf.put("content", content);
+            return objectMapper.writeValueAsString(adf);
+        } catch (Exception e) {
+            log.error("ADF 변환 실패, 일반 텍스트로 폴백", e);
+            return String.format("{\"version\": 1, \"type\": \"doc\", \"content\": [{\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"%s\"}]}]}", 
+                text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n"));
+        }
+    }
+
+    /**
+     * 인라인 마크다운(굵게) 처리
+     */
+    private List<Map<String, Object>> parseInlineContent(String text) {
+        List<Map<String, Object>> content = new ArrayList<>();
+        
+        // **bold** 또는 __bold__ 처리 (매우 단순화된 구현)
+        Pattern boldPattern = Pattern.compile("(\\*\\*|__)(.*?)\\1");
+        Matcher matcher = boldPattern.matcher(text);
+        
+        int lastEnd = 0;
+        while (matcher.find()) {
+            // 이전 일반 텍스트 추가
+            if (matcher.start() > lastEnd) {
+                content.add(Map.of(
+                    "type", "text", 
+                    "text", text.substring(lastEnd, matcher.start())
+                ));
+            }
+            
+            // 굵은 텍스트 추가
+            Map<String, Object> boldText = new HashMap<>();
+            boldText.put("type", "text");
+            boldText.put("text", matcher.group(2));
+            boldText.put("marks", List.of(Map.of("type", "strong")));
+            content.add(boldText);
+            
+            lastEnd = matcher.end();
         }
         
-        adf.append("]}");
-        return adf.toString();
+        // 남은 텍스트 추가
+        if (lastEnd < text.length()) {
+            content.add(Map.of(
+                "type", "text", 
+                "text", text.substring(lastEnd)
+            ));
+        }
+        
+        if (content.isEmpty() && !text.isEmpty()) {
+            content.add(Map.of("type", "text", "text", text));
+        }
+        
+        return content;
     }
 
     /**
@@ -760,38 +850,13 @@ public class JiraApiService {
     private String createCommentBody(String comment) {
         try {
             // Atlassian Document Format으로 코멘트 생성
-            String commentJson = String.format("""
-                    {
-                        "body": {
-                            "version": 1,
-                            "type": "doc",
-                            "content": [
-                                {
-                                    "type": "paragraph",
-                                    "content": [
-                                        {
-                                            "type": "text",
-                                            "text": "%s"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "paragraph",
-                                    "content": [
-                                        {
-                                            "type": "text",
-                                            "text": "\\n\\n자동 생성 시각: %s"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                    """,
-                    comment.replace("\"", "\\\"").replace("\n", "\\n"),
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-
-            return commentJson;
+            // createAdfDescription에서 생성하는 'doc' 전체를 'body' 하위에 넣어야 함
+            String adfJson = createAdfDescription(comment + "\n\n자동 생성 시각: " + 
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            
+            // createAdfDescription은 {"version":1, "type":"doc", "content": [...]} 형태를 반환함
+            // 코멘트 API는 "body": { ... } 형태를 요구함
+            return String.format("{\"body\": %s}", adfJson);
 
         } catch (Exception e) {
             log.error("코멘트 본문 생성 실패", e);
