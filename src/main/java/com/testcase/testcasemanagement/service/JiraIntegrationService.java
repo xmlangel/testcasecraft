@@ -4,15 +4,19 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
+import com.testcase.testcasemanagement.model.TestResultAttachment;
+import com.testcase.testcasemanagement.repository.TestResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -23,6 +27,8 @@ import java.util.regex.Matcher;
 public class JiraIntegrationService {
 
     private final JiraConfigService jiraConfigService;
+    private final TestResultRepository testResultRepository;
+    private final MinIOService minIOService;
 
     @Value("${app.jira.auto-comment.enabled:true}")
     private boolean autoCommentEnabled;
@@ -121,12 +127,100 @@ public class JiraIntegrationService {
             }
 
             return success;
-
         } catch (Exception e) {
             log.error("테스트 실행 요약 JIRA 코멘트 추가 실패: userId={}, issueKey={}, executionId={}",
                     userId, issueKey, testExecution.getId(), e);
             return false;
         }
+    }
+
+    /**
+     * JIRA 이슈 생성
+     */
+    public JiraConfigDto.IssueCreateResponseDto createIssue(String userId, JiraConfigDto.IssueCreateRequestDto request) {
+        log.info("JIRA 이슈 생성 요청: userId={}, projectKey={}, summary={}", 
+                userId, request.getProjectKey(), request.getSummary());
+        
+        JiraConfigDto.IssueCreateResponseDto response = jiraConfigService.createIssue(userId, request);
+        
+        // 이슈 생성 성공 시 첨부파일 업로드 처리
+        if (Boolean.TRUE.equals(response.getSuccess()) && request.getTestResultId() != null && !request.getTestResultId().isEmpty()) {
+            try {
+                uploadAttachmentsToJira(userId, response.getIssueKey(), request.getTestResultId(), response);
+            } catch (Exception e) {
+                log.error("JIRA 이슈 생성 후 첨부파일 업로드 실패: issueKey={}", response.getIssueKey(), e);
+                response.setAttachmentErrorMessage("첨부파일 업로드 중 오류 발생: " + e.getMessage());
+            }
+        }
+        
+        return response;
+    }
+
+    /**
+     * 테스트 결과의 첨부파일들을 JIRA 이슈에 업로드
+     */
+    private void uploadAttachmentsToJira(String userId, String issueKey, String testResultId, 
+                                        JiraConfigDto.IssueCreateResponseDto response) {
+        Optional<TestResult> resultOpt = testResultRepository.findById(testResultId);
+        if (resultOpt.isEmpty()) {
+            log.warn("첨부파일 업로드를 위한 테스트 결과를 찾을 수 없음: testResultId={}", testResultId);
+            return;
+        }
+
+        TestResult testResult = resultOpt.get();
+        List<TestResultAttachment> attachments = testResult.getAttachments();
+
+        if (attachments == null || attachments.isEmpty()) {
+            log.info("업로드할 첨부파일이 없습니다: testResultId={}", testResultId);
+            return;
+        }
+
+        int successCount = 0;
+        for (TestResultAttachment attachment : attachments) {
+            // 삭제된 파일은 제외
+            if (attachment.getStatus() != TestResultAttachment.AttachmentStatus.ACTIVE) {
+                continue;
+            }
+
+            try {
+                log.info("JIRA 첨부파일 업로드 시작: fileName={}, size={}", attachment.getOriginalFileName(), attachment.getFileSize());
+                
+                // MinIO에서 파일 가져오기
+                InputStream fileStream = minIOService.downloadFile(attachment.getFilePath());
+                byte[] fileData = fileStream.readAllBytes();
+                
+                boolean success = jiraConfigService.uploadAttachment(
+                    userId, 
+                    issueKey, 
+                    attachment.getOriginalFileName(), 
+                    fileData, 
+                    attachment.getMimeType()
+                );
+
+                if (success) {
+                    successCount++;
+                } else {
+                    log.warn("JIRA 첨부파일 업로드 실패: fileName={}", attachment.getOriginalFileName());
+                }
+            } catch (Exception e) {
+                log.error("파일 처리 중 오류 발생: fileName={}", attachment.getOriginalFileName(), e);
+            }
+        }
+
+        response.setAttachmentCount(successCount);
+        if (successCount < attachments.size()) {
+            response.setAttachmentErrorMessage(
+                String.format("총 %d개의 파일 중 %d개 업로드 성공", attachments.size(), successCount)
+            );
+        }
+    }
+
+    /**
+     * JIRA 이슈 유형 조회
+     */
+    public List<JiraConfigDto.IssueTypeDto> getIssueTypes(String userId, String projectKey) {
+        log.info("JIRA 이슈 유형 조회 요청: userId={}, projectKey={}", userId, projectKey);
+        return jiraConfigService.getProjectIssueTypes(userId, projectKey);
     }
 
     /**

@@ -487,6 +487,109 @@ public class JiraConfigService {
     }
 
     /**
+     * JIRA 이슈 생성
+     */
+    public JiraConfigDto.IssueCreateResponseDto createIssue(String userId, JiraConfigDto.IssueCreateRequestDto createRequest) {
+        try {
+            Optional<JiraConfig> configOpt = jiraConfigRepository.findByUserIdAndIsActiveTrue(userId);
+
+            if (configOpt.isEmpty()) {
+                return JiraConfigDto.IssueCreateResponseDto.builder()
+                        .success(false)
+                        .errorMessage("활성화된 JIRA 설정을 찾을 수 없습니다.")
+                        .build();
+            }
+
+            JiraConfig config = configOpt.get();
+            String decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
+
+            // 프로젝트 키가 없으면 기본 설정된 프로젝트 키 사용
+            if (createRequest.getProjectKey() == null || createRequest.getProjectKey().trim().isEmpty()) {
+                createRequest.setProjectKey(config.getTestProjectKey());
+            }
+
+            return jiraApiService.createIssue(
+                    config.getServerUrl(),
+                    config.getUsername(),
+                    decryptedApiToken,
+                    createRequest);
+
+        } catch (Exception e) {
+            log.error("JIRA 이슈 생성 서비스 오류: userId={}", userId, e);
+            return JiraConfigDto.IssueCreateResponseDto.builder()
+                    .success(false)
+                    .errorMessage("이슈 생성 중 시스템 오류 발생: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * JIRA 이슈에 첨부파일 업로드
+     */
+    public boolean uploadAttachment(String userId, String issueKey, String fileName, byte[] fileData, String mimeType) {
+        try {
+            Optional<JiraConfig> configOpt = jiraConfigRepository.findByUserIdAndIsActiveTrue(userId);
+
+            if (configOpt.isEmpty()) {
+                log.warn("활성화된 JIRA 설정 없음: userId={}", userId);
+                return false;
+            }
+
+            JiraConfig config = configOpt.get();
+            String decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
+
+            return jiraApiService.uploadAttachment(
+                    config.getServerUrl(),
+                    config.getUsername(),
+                    decryptedApiToken,
+                    issueKey,
+                    fileName,
+                    fileData,
+                    mimeType);
+
+        } catch (Exception e) {
+            log.error("JIRA 이슈 첨부파일 업로드 서비스 오류: userId={}, issueKey={}", userId, issueKey, e);
+            return false;
+        }
+    }
+
+    /**
+     * 프로젝트별 이슈 유형 조회
+     */
+    public List<JiraConfigDto.IssueTypeDto> getProjectIssueTypes(String userId, String projectKey) {
+        try {
+            Optional<JiraConfig> configOpt = jiraConfigRepository.findByUserIdAndIsActiveTrue(userId);
+
+            if (configOpt.isEmpty()) {
+                log.warn("활성화된 JIRA 설정 없음: userId={}", userId);
+                return List.of();
+            }
+
+            JiraConfig config = configOpt.get();
+            String decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
+
+            // 프로젝트 키가 전달되지 않았으면 설정된 기본값 사용
+            String targetProjectKey = (projectKey != null && !projectKey.trim().isEmpty()) 
+                    ? projectKey.trim() : config.getTestProjectKey();
+
+            if (targetProjectKey == null || targetProjectKey.isEmpty()) {
+                log.warn("조회할 프로젝트 키가 없습니다.");
+                return List.of();
+            }
+
+            return jiraApiService.getProjectIssueTypes(
+                    config.getServerUrl(),
+                    config.getUsername(),
+                    decryptedApiToken,
+                    targetProjectKey);
+
+        } catch (Exception e) {
+            log.error("JIRA 이슈 유형 조회 서비스 오류: userId={}, projectKey={}", userId, projectKey, e);
+            return List.of();
+        }
+    }
+
+    /**
      * 연결 상태가 오래된 설정들을 정리하는 배치 작업
      */
     @Transactional

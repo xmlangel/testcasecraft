@@ -178,6 +178,9 @@ public class JiraIntegrationKeysInitializer {
                 createTranslationKeyIfNotExists("jira.comment.button.send", "jira", "전송 버튼", "코멘트 전송");
                 createTranslationKeyIfNotExists("jira.comment.button.sending", "jira", "전송 중", "전송 중...");
                 createTranslationKeyIfNotExists("jira.comment.button.regenerate", "jira", "재생성 버튼", "코멘트 재생성");
+                createTranslationKeyIfNotExists("jira.comment.tab.edit", "jira", "편집 탭 라벨", "편집");
+                createTranslationKeyIfNotExists("jira.comment.tab.preview", "jira", "미리보기 탭 라벨", "미리보기");
+                createTranslationKeyIfNotExists("jira.comment.preview.empty", "jira", "빈 미리보기 메시지", "미리 볼 내용이 없습니다.");
 
                 // 자동 생성 코멘트 템플릿 관련
                 createTranslationKeyIfNotExists("jira.comment.template.title", "jira", "코멘트 템플릿 제목", "테스트 결과 업데이트");
@@ -226,6 +229,32 @@ public class JiraIntegrationKeysInitializer {
                 createTranslationKeyIfNotExists("jira.history.column.notes", "jira", "메모 컬럼", "메모");
                 createTranslationKeyIfNotExists("jira.history.noResults", "jira", "결과 없음 메시지", "해당 JIRA 이슈와 연결된 테스트 결과가 없습니다.");
                 createTranslationKeyIfNotExists("jira.history.tooltip", "jira", "히스토리 보기 툴팁", "클릭하여 테스트 히스토리 보기");
+
+                // JIRA 이슈 생성 관련 (ICT-184)
+                createTranslationKeyIfNotExists("jira.create.dialogTitle", "jira", "이슈 생성 다이얼로그 제목", "JIRA 이슈 생성");
+                createTranslationKeyIfNotExists("jira.create.field.project.label", "jira", "프로젝트 필드 라벨", "JIRA 프로젝트");
+                createTranslationKeyIfNotExists("jira.create.field.issueType.label", "jira", "이슈 유형 필드 라벨", "이슈 유형");
+                createTranslationKeyIfNotExists("jira.create.field.summary.label", "jira", "요약 필드 라벨", "요약");
+                createTranslationKeyIfNotExists("jira.create.field.summary.placeholder", "jira", "요약 플레이스홀더", "이슈 요약을 입력하세요");
+                createTranslationKeyIfNotExists("jira.create.field.description.label", "jira", "설명 필드 라벨", "설명 (Markdown)");
+                createTranslationKeyIfNotExists("jira.create.field.description.placeholder", "jira", "설명 플레이스홀더", "이슈 설명을 입력하세요");
+                createTranslationKeyIfNotExists("jira.create.button.create", "jira", "생성 버튼", "이슈 생성");
+                createTranslationKeyIfNotExists("jira.create.button.creating", "jira", "생성 중 버튼", "생성 중...");
+                createTranslationKeyIfNotExists("jira.create.success.message", "jira", "생성 성공 메시지", "JIRA 이슈가 성공적으로 생성되었습니다: {issueKey}");
+                createTranslationKeyIfNotExists("jira.create.error.fetchIssueTypes", "jira", "이슈 유형 로드 실패", "이슈 유형을 불러오는데 실패했습니다.");
+                createTranslationKeyIfNotExists("jira.create.error.fetchProjects", "jira", "프로젝트 로드 실패", "JIRA 프로젝트 목록을 불러오는데 실패했습니다.");
+                createTranslationKeyIfNotExists("jira.create.error.fieldsRequired", "jira", "필수 필드 누락 오류", "모든 필수 필드를 입력해주세요.");
+                
+                // 이슈 생성 템플릿
+                createTranslationKeyIfNotExists("jira.create.template.preCondition", "jira", "사전 조건 템플릿 헤더", "### 사전 조건");
+                createTranslationKeyIfNotExists("jira.create.template.expectedResult", "jira", "예상 결과 템플릿 헤더", "### 예상 결과");
+                createTranslationKeyIfNotExists("jira.create.template.actualResult", "jira", "실제 결과 템플릿 헤더", "### 실제 결과");
+                createTranslationKeyIfNotExists("jira.create.template.testCase", "jira", "테스트 케이스 정보 템플릿", "**테스트 케이스**: {name}");
+                
+                // 첨부파일 관련
+                createTranslationKeyIfNotExists("jira.create.error.noConfig", "jira", "JIRA 미설정 오류", "JIRA 연동 설정이 없습니다. 설정 페이지에서 JIRA 연동을 먼저 완료해주세요.");
+                createTranslationKeyIfNotExists("jira.create.success.attachmentCount", "jira", "첨부파일 업로드 성공 메시지", "{count}개의 첨부파일이 함께 업로드되었습니다.");
+                createTranslationKeyIfNotExists("jira.create.error.attachmentFailed", "jira", "첨부파일 업로드 실패 메시지", "첨부파일 업로드 중 일부 오류가 발생했습니다: {message}");
 
                 log.info("JIRA 연동 관련 번역 키 초기화 완료");
         }

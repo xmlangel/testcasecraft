@@ -218,6 +218,9 @@ public class EnglishJiraIntegrationTranslations {
         createTranslationIfNotExists("jira.comment.button.send", languageCode, "Send Comment", createdBy);
         createTranslationIfNotExists("jira.comment.button.sending", languageCode, "Sending...", createdBy);
         createTranslationIfNotExists("jira.comment.button.regenerate", languageCode, "Regenerate Comment", createdBy);
+        createTranslationIfNotExists("jira.comment.tab.edit", languageCode, "Edit", createdBy);
+        createTranslationIfNotExists("jira.comment.tab.preview", languageCode, "Preview", createdBy);
+        createTranslationIfNotExists("jira.comment.preview.empty", languageCode, "No content to preview.", createdBy);
         createTranslationIfNotExists("jira.comment.template.title", languageCode, "Test Result Update", createdBy);
         createTranslationIfNotExists("jira.comment.template.testCase", languageCode, "Test Case:", createdBy);
         createTranslationIfNotExists("jira.comment.template.result", languageCode, "Result:", createdBy);
@@ -238,6 +241,32 @@ public class EnglishJiraIntegrationTranslations {
         createTranslationIfNotExists("jira.history.column.notes", languageCode, "Notes", createdBy);
         createTranslationIfNotExists("jira.history.noResults", languageCode, "No test results linked to this JIRA issue.", createdBy);
         createTranslationIfNotExists("jira.history.tooltip", languageCode, "Click to view test history", createdBy);
+
+        // JIRA Issue Creation (ICT-184)
+        createTranslationIfNotExists("jira.create.dialogTitle", languageCode, "Create JIRA Issue", createdBy);
+        createTranslationIfNotExists("jira.create.field.project.label", languageCode, "JIRA Project", createdBy);
+        createTranslationIfNotExists("jira.create.field.issueType.label", languageCode, "Issue Type", createdBy);
+        createTranslationIfNotExists("jira.create.field.summary.label", languageCode, "Summary", createdBy);
+        createTranslationIfNotExists("jira.create.field.summary.placeholder", languageCode, "Enter issue summary", createdBy);
+        createTranslationIfNotExists("jira.create.field.description.label", languageCode, "Description (Markdown)", createdBy);
+        createTranslationIfNotExists("jira.create.field.description.placeholder", languageCode, "Enter issue description", createdBy);
+        createTranslationIfNotExists("jira.create.button.create", languageCode, "Create Issue", createdBy);
+        createTranslationIfNotExists("jira.create.button.creating", languageCode, "Creating...", createdBy);
+        createTranslationIfNotExists("jira.create.success.message", languageCode, "JIRA issue successfully created: {issueKey}", createdBy);
+        createTranslationIfNotExists("jira.create.error.fetchIssueTypes", languageCode, "Failed to load issue types.", createdBy);
+        createTranslationIfNotExists("jira.create.error.fetchProjects", languageCode, "Failed to load JIRA projects.", createdBy);
+        createTranslationIfNotExists("jira.create.error.fieldsRequired", languageCode, "Please enter all required fields.", createdBy);
+        
+        // Issue Creation Template
+        createTranslationIfNotExists("jira.create.template.preCondition", languageCode, "### Pre-conditions", createdBy);
+        createTranslationIfNotExists("jira.create.template.expectedResult", languageCode, "### Expected Results", createdBy);
+        createTranslationIfNotExists("jira.create.template.actualResult", languageCode, "### Actual Results", createdBy);
+        createTranslationIfNotExists("jira.create.template.testCase", languageCode, "**Test Case**: {name}", createdBy);
+
+        // Attachment related
+        createTranslationIfNotExists("jira.create.error.noConfig", languageCode, "JIRA integration is not configured. Please complete JIRA integration on the settings page first.", createdBy);
+        createTranslationIfNotExists("jira.create.success.attachmentCount", languageCode, "{count} attachments have been uploaded together.", createdBy);
+        createTranslationIfNotExists("jira.create.error.attachmentFailed", languageCode, "Some errors occurred during attachment upload: {message}", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

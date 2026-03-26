@@ -6,8 +6,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -17,10 +21,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -168,6 +169,241 @@ public class JiraApiService {
         }
 
         return projects;
+    }
+
+    /**
+     * JIRA 이슈 생성
+     */
+    public JiraConfigDto.IssueCreateResponseDto createIssue(String serverUrl, String username, String apiToken,
+            JiraConfigDto.IssueCreateRequestDto createRequest) {
+        long startTime = System.currentTimeMillis();
+        boolean success = false;
+
+        try {
+            String normalizedUrl = normalizeServerUrl(serverUrl);
+            String issueUrl = normalizedUrl + "/rest/api/3/issue";
+            String authHeader = createBasicAuthHeader(username, apiToken);
+
+            // 이슈 생성 본문 구성 (Atlassian Document Format)
+            String requestBody = createIssueRequestBody(createRequest);
+
+            HttpHeaders headers = createHeaders(authHeader);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            // 연결 풀에서 최적화된 RestTemplate 획득
+            RestTemplate optimizedRestTemplate = jiraConnectionManager != null
+                    ? jiraConnectionManager.getRestTemplate(normalizedUrl)
+                    : restTemplate;
+
+            ResponseEntity<String> response = optimizedRestTemplate.exchange(
+                    URI.create(issueUrl),
+                    HttpMethod.POST,
+                    entity,
+                    String.class);
+
+            if (response.getStatusCode() == HttpStatus.CREATED) {
+                JsonNode result = objectMapper.readTree(response.getBody());
+                String issueKey = result.path("key").asText();
+                success = true;
+                
+                // JIRA 이슈 상세 주소(Browse URL) 생성
+                String browseUrl = normalizedUrl + "/browse/" + issueKey;
+                log.info("JIRA 이슈 생성 성공: issueKey={}, browseUrl={}", issueKey, browseUrl);
+                
+                return JiraConfigDto.IssueCreateResponseDto.builder()
+                        .success(true)
+                        .issueKey(issueKey)
+                        .issueId(result.path("id").asText())
+                        .self(result.path("self").asText())
+                        .browseUrl(browseUrl)
+                        .build();
+            }
+
+            return JiraConfigDto.IssueCreateResponseDto.builder()
+                    .success(false)
+                    .errorMessage("이슈 생성 실패: " + response.getStatusCode())
+                    .build();
+
+        } catch (Exception e) {
+            log.error("JIRA 이슈 생성 실패", e);
+            jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 이슈 생성 오류", e));
+            return JiraConfigDto.IssueCreateResponseDto.builder()
+                    .success(false)
+                    .errorMessage("이슈 생성 중 오류 발생: " + e.getMessage())
+                    .build();
+        } finally {
+            final boolean finalSuccess = success;
+            jiraMonitoringService.ifPresent(service -> {
+                long responseTime = System.currentTimeMillis() - startTime;
+                service.recordApiCall(finalSuccess, responseTime);
+            });
+        }
+    }
+
+    /**
+     * 프로젝트별 사용 가능한 이슈 유형 조회
+     */
+    public List<JiraConfigDto.IssueTypeDto> getProjectIssueTypes(String serverUrl, String username, String apiToken, String projectKey) {
+        List<JiraConfigDto.IssueTypeDto> issueTypes = new ArrayList<>();
+        try {
+            String normalizedUrl = normalizeServerUrl(serverUrl);
+            // 프로젝트 정보를 가져오면 이슈 유형 목록이 포함됨
+            String projectUrl = normalizedUrl + "/rest/api/3/project/" + projectKey;
+            String authHeader = createBasicAuthHeader(username, apiToken);
+
+            HttpHeaders headers = createHeaders(authHeader);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            RestTemplate optimizedRestTemplate = jiraConnectionManager != null
+                    ? jiraConnectionManager.getRestTemplate(normalizedUrl)
+                    : restTemplate;
+
+            ResponseEntity<String> response = optimizedRestTemplate.exchange(
+                    URI.create(projectUrl),
+                    HttpMethod.GET,
+                    entity,
+                    String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode projectData = objectMapper.readTree(response.getBody());
+                JsonNode issueTypesNode = projectData.path("issueTypes");
+
+                if (issueTypesNode.isArray()) {
+                    for (JsonNode type : issueTypesNode) {
+                        issueTypes.add(JiraConfigDto.IssueTypeDto.builder()
+                                .id(type.path("id").asText())
+                                .name(type.path("name").asText())
+                                .description(type.path("description").asText())
+                                .iconUrl(type.path("iconUrl").asText())
+                                .subtask(type.path("subtask").asBoolean())
+                                .build());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("JIRA 이슈 유형 조회 실패: projectKey={}", projectKey, e);
+        }
+        return issueTypes;
+    }
+
+    private String createIssueRequestBody(JiraConfigDto.IssueCreateRequestDto request) throws Exception {
+        // ADF 형식으로 설명 구성
+        String descriptionJson = createAdfDescription(request.getDescription());
+        
+        // 이슈 유형 처리
+        String issueTypeNode;
+        if (request.getIssueTypeId() != null && !request.getIssueTypeId().isEmpty()) {
+            issueTypeNode = String.format("{\"id\": \"%s\"}", request.getIssueTypeId().replace("\"", "\\\""));
+        } else {
+            String typeName = request.getIssueTypeName() != null ? request.getIssueTypeName() : "Bug";
+            issueTypeNode = String.format("{\"name\": \"%s\"}", typeName.replace("\"", "\\\""));
+        }
+
+        return String.format("""
+            {
+                "fields": {
+                    "project": {
+                        "key": "%s"
+                    },
+                    "summary": "%s",
+                    "description": %s,
+                    "issuetype": %s
+                }
+            }
+            """,
+            request.getProjectKey().replace("\"", "\\\""),
+            request.getSummary().replace("\"", "\\\""),
+            descriptionJson,
+            issueTypeNode
+        );
+    }
+
+    private String createAdfDescription(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return "null";
+        }
+        
+        // 줄바꿈을 기준으로 단락(paragraph) 분리 및 특수문자 이스케이프
+        String[] lines = text.split("\n");
+        StringBuilder adf = new StringBuilder();
+        adf.append("{\"version\": 1, \"type\": \"doc\", \"content\": [");
+        
+        boolean first = true;
+        for (String line : lines) {
+            if (!first) {
+                adf.append(",");
+            }
+            
+            String escapedLine = line.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "");
+            
+            if (escapedLine.trim().isEmpty()) {
+                adf.append("{\"type\": \"paragraph\"}");
+            } else {
+                adf.append(String.format("""
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "%s"
+                            }
+                        ]
+                    }
+                    """, escapedLine));
+            }
+            first = false;
+        }
+        
+        adf.append("]}");
+        return adf.toString();
+    }
+
+    /**
+     * JIRA 이슈에 파일 업로드
+     */
+    public boolean uploadAttachment(String serverUrl, String username, String apiToken,
+            String issueKey, String fileName, byte[] fileData, String mimeType) {
+        try {
+            String normalizedUrl = normalizeServerUrl(serverUrl);
+            String uploadUrl = normalizedUrl + "/rest/api/3/issue/" + issueKey + "/attachments";
+            String authHeader = createBasicAuthHeader(username, apiToken);
+
+            HttpHeaders headers = createHeaders(authHeader);
+            // JIRA 첨부파일 API 필수 헤더
+            headers.set("X-Atlassian-Token", "no-check");
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            
+            // ByteArrayResource를 상속받아 파일명을 제공하는 익명 클래스 사용
+            Resource resource = new ByteArrayResource(fileData) {
+                @Override
+                public String getFilename() {
+                    return fileName;
+                }
+            };
+            
+            body.add("file", resource);
+
+            HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            RestTemplate optimizedRestTemplate = jiraConnectionManager != null
+                    ? jiraConnectionManager.getRestTemplate(normalizedUrl)
+                    : restTemplate;
+
+            ResponseEntity<String> response = optimizedRestTemplate.exchange(
+                    URI.create(uploadUrl),
+                    HttpMethod.POST,
+                    entity,
+                    String.class);
+
+            return response.getStatusCode() == HttpStatus.OK;
+
+        } catch (Exception e) {
+            log.error("JIRA 이슈 첨부파일 업로드 실패: issueKey={}, fileName={}", issueKey, fileName, e);
+            return false;
+        }
     }
 
     /**

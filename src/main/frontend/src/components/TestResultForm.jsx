@@ -19,16 +19,15 @@ import { jiraService } from '../services/jiraService.js';
 import { TestResult } from '../models/testExecution.jsx';
 
 // Import new components
-import TestResultSelector from './TestResult/TestResultSelector.jsx';
 import TestCaseDetails from './TestResult/TestCaseDetails.jsx';
 import TestResultNotes from './TestResult/TestResultNotes.jsx';
 import TestResultAttachments from './TestResult/TestResultAttachments.jsx';
 import TestResultTags from './TestResult/TestResultTags.jsx';
 import TestResultJira from './TestResult/TestResultJira.jsx';
 import TestResultHeader from './TestResult/TestResultHeader.jsx';
-import TestResultFooter from './TestResult/TestResultFooter.jsx';
 import TestResultFloatingMenu from './TestResult/TestResultFloatingMenu.jsx';
 import useInlineImagePaste from '../hooks/useInlineImagePaste.js';
+import InlineImageDialog from './TestCase/InlineImageDialog.jsx';
 
 const KEY_RESULT_MAP = {
   'N': TestResult.NOTRUN,
@@ -89,7 +88,6 @@ const TestResultForm = ({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
-  const isJiraIssueKeyInvalid = Boolean(jiraIssueKey) && !jiraService.isValidIssueKey(jiraIssueKey);
 
   // 노트 전체화면 상태 관리
   const [isNotesFullscreen, setIsNotesFullscreen] = useState(false);
@@ -101,12 +99,14 @@ const TestResultForm = ({
       result: currentResult.result,
       notes: currentResult.notes,
       tags: currentResult.tags,
-      jiraIssueKey: currentResult.jiraIssueKey
+      jiraIssueKey: currentResult.jiraIssueKey,
+      id: currentResult.id
     };
   }, [
     currentResult?.result,
     currentResult?.notes,
     currentResult?.jiraIssueKey,
+    currentResult?.id,
     // tags는 배열이므로 JSON으로 비교
     JSON.stringify(currentResult?.tags || [])
   ]);
@@ -199,14 +199,6 @@ const TestResultForm = ({
     return () => clearTimeout(timer);
   }, [notes]);
 
-  // 스마트 리다이렉트 연동: 위치 정보를 통해 전달된 지라 이슈 키를 초기값으로 설정
-  useEffect(() => {
-    if ((open || fullPage) && location.state?.autoFillJiraIssueKey && !jiraIssueKey && !stableCurrentResult) {
-      setJiraIssueKey(location.state.autoFillJiraIssueKey);
-    }
-  }, [open, fullPage, location.state, jiraIssueKey, stableCurrentResult]);
-
-
   // 프로젝트의 기존 태그 목록 조회
   useEffect(() => {
     if (!testCase?.project?.id) return;
@@ -236,6 +228,27 @@ const TestResultForm = ({
     }
   };
 
+  // JIRA 설정이 있고 연결된 경우, 기존에 입력된 이슈 키가 있다면 상세 정보 조회
+  useEffect(() => {
+    const fetchInitialIssueDetails = async () => {
+      if (jiraConnectionStatus?.hasConfig && jiraConnectionStatus?.isConnected && 
+          jiraIssueKey && linkedIssues.length === 0) {
+        try {
+          const details = await jiraService.getIssueDetails(jiraIssueKey);
+          if (details) {
+            setLinkedIssues([details]);
+          }
+        } catch (err) {
+          console.warn('기존 JIRA 이슈 상세 정보 로드 실패:', err);
+        }
+      }
+    };
+
+    if (open || fullPage) {
+      fetchInitialIssueDetails();
+    }
+  }, [open, fullPage, jiraConnectionStatus?.isConnected, jiraIssueKey]);
+
   // 파일 처리 함수들
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
@@ -261,19 +274,16 @@ const TestResultForm = ({
     setFileUploadError('');
 
     try {
-      // 임시로 로컬에 {t('common.button.save')} (나중에 API로 교체)
       const newFiles = files.map(file => ({
         id: Date.now() + Math.random(),
         name: file.name,
         size: file.size,
         type: file.type,
         lastModified: file.lastModified,
-        file: file  // 실제 파일 객체 {t('common.button.save')} (임시)
+        file: file
       }));
 
       setAttachedFiles(prev => [...prev, ...newFiles]);
-
-      // 파일 입력 필드 초기화
       event.target.value = '';
     } catch (error) {
       setFileUploadError('파일 업로드 중 오류가 발생했습니다.');
@@ -342,7 +352,6 @@ const TestResultForm = ({
     }
 
     try {
-      // JIRA 이슈 키 처리: 빈 값일 때는 필드 자체를 제외
       const requestData = {
         testCaseId,
         result: actualResult,
@@ -350,15 +359,13 @@ const TestResultForm = ({
         tags: tags || [],
       };
 
-      // JIRA 이슈 키가 있고 유효한 값일 때만 추가 (대문자로 변환)
       const trimmedJiraKey = jiraIssueKey ? jiraIssueKey.trim().toUpperCase() : '';
       if (trimmedJiraKey && trimmedJiraKey.length > 0) {
         requestData.jiraIssueKey = trimmedJiraKey;
       }
 
-      // 이전 결과 수정 모드일 경우 PUT 요청
-      if (isPreviousResultEdit && currentResult?.id) {
-        const response = await api(`/api/test-executions/results/${currentResult.id}`, {
+      if (isPreviousResultEdit && stableCurrentResult?.id) {
+        const response = await api(`/api/test-executions/results/${stableCurrentResult.id}`, {
           method: 'PUT',
           body: JSON.stringify(requestData),
         });
@@ -369,18 +376,11 @@ const TestResultForm = ({
         }
 
         const updatedResult = await response.json();
-
-        // 성공 메시지
-        if (showSuccess) {
-          setShowSaveSuccess(true);
-        }
-
-        // onSave 콜백으로 비행 폼 닫기
+        if (showSuccess) setShowSaveSuccess(true);
         onSave(updatedResult, { keepDialogOpen });
         return;
       }
 
-      // 기본 모드: POST 요청 (새로운 결과 추가)
       const response = await api(`/api/test-executions/${executionId}/results`, {
         method: 'POST',
         body: JSON.stringify(requestData),
@@ -393,40 +393,18 @@ const TestResultForm = ({
 
       const updatedExecution = await response.json();
 
-      // ICT-361: 첨부파일이 있는 경우 파일 업로드 처리
       if (attachedFiles.length > 0) {
         await handleFileUploads(updatedExecution.results?.find(r => r.testCaseId === testCaseId)?.id);
       }
 
-      // 인라인 이미지 사용 상태 업데이트
-      try {
-        const resultId = isPreviousResultEdit ? currentResult?.id : (updatedExecution.results?.find(r => r.testCaseId === testCaseId)?.id);
-        if (resultId) {
-          const allAttachmentIds = extractAttachmentIds(notes);
-          if (allAttachmentIds.size > 0 || allAttachmentIds.length > 0) {
-             await Promise.all(
-              Array.from(allAttachmentIds).map(id =>
-                api(`/api/testcase-attachments/${id}/mark-used`, { method: 'PATCH' })
-                  .catch(err => console.error(`Failed to mark attachment ${id} as used:`, err))
-              )
-            );
-          }
-        }
-      } catch (err) {
-        console.error('Failed to update inline image usage status:', err);
-      }
-
       onSave(updatedExecution, { keepDialogOpen });
       if (advanceToNext && onNext) onNext();
-      if (showSuccess) {
-        setShowSaveSuccess(true);
-      }
+      if (showSuccess) setShowSaveSuccess(true);
     } catch (err) {
       setSaveError(err.message);
     }
-  }, [api, executionId, testCaseId, notes, tags, jiraIssueKey, onSave, onNext, isViewer, result, attachedFiles, t]);
+  }, [api, executionId, testCaseId, notes, tags, jiraIssueKey, onSave, onNext, isViewer, result, attachedFiles, t, isPreviousResultEdit, stableCurrentResult?.id]);
 
-  // ICT-361: 파일 업로드 처리 함수
   const handleFileUploads = async (testResultId) => {
     if (!testResultId || attachedFiles.length === 0) return;
 
@@ -435,21 +413,14 @@ const TestResultForm = ({
       const uploadPromises = attachedFiles.map(async (fileInfo) => {
         const formData = new FormData();
         formData.append('file', fileInfo.file);
-        if (fileInfo.description) {
-          formData.append('description', fileInfo.description);
-        }
-
-        // XMLHttpRequest를 사용하여 multipart 업로드 (fetch 대신)
+        
         const baseUrl = window.location.origin || 'http://localhost:8080';
         const accessToken = localStorage.getItem('accessToken');
 
         const response = await new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
-
           xhr.open('POST', `${baseUrl}/api/attachments/upload/${testResultId}`);
           xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
-          // Content-Type을 설정하지 않으면 XMLHttpRequest가 자동으로 multipart/form-data 설정
-
           xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
               try {
@@ -462,28 +433,18 @@ const TestResultForm = ({
               reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
             }
           };
-
           xhr.onerror = () => reject(new Error('Network error'));
           xhr.send(formData);
         });
 
-        if (!response.ok) {
-          throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
-        }
-
+        if (!response.ok) throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
         const data = await response.json();
-        if (!data.success) {
-          throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
-        }
-
+        if (!data.success) throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
         return data.attachment;
       });
 
       await Promise.all(uploadPromises);
-
-      // 업로드 성공 후 첨부파일 목록 초기화
       setAttachedFiles([]);
-
     } catch (error) {
       console.error('파일 업로드 오류:', error);
       throw new Error('파일 업로드 중 오류가 발생했습니다: ' + error.message);
@@ -497,19 +458,18 @@ const TestResultForm = ({
   };
 
   const handleJiraCommentAdded = (issueKey, comment) => {
-    // 성공적으로 코멘트가 추가된 후 추가 작업이 필요하면 여기에 구현
+    // 코멘트 추가 후 필요 시 구현
   };
 
   const handleIssueLinked = (issue) => {
-    // 중복 방지
-    if (linkedIssues.some(li => li.key === issue.key)) {
-      return;
-    }
+    if (linkedIssues.some(li => li.key === issue.key)) return;
     setLinkedIssues(prev => [...prev, issue]);
+    setJiraIssueKey(issue.key);
   };
 
   const handleIssueUnlinked = (issueKey) => {
     setLinkedIssues(prev => prev.filter(issue => issue.key !== issueKey));
+    if (jiraIssueKey === issueKey) setJiraIssueKey('');
   };
 
   const shouldShowJiraButton = () => {
@@ -550,9 +510,7 @@ const TestResultForm = ({
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, fullPage, isViewer, handleSaveAndNext, result]);
 
   const renderContent = () => (
@@ -562,16 +520,12 @@ const TestResultForm = ({
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Alert severity="error" sx={{ my: 2 }}>
-          {error}
-        </Alert>
+        <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>
       ) : testCase ? (
         <>
           <TestCaseDetails testCase={testCase} t={t} />
 
           <Box sx={{ mt: 3, width: '100%', boxSizing: 'border-box' }}>
-            {/* 기존 TestResultSelector는 플로팅 메뉴로 대체됨 */}
-
             <TestResultNotes
               notes={notes}
               setNotes={setNotes}
@@ -584,10 +538,8 @@ const TestResultForm = ({
               currentIndex={currentIndex}
               totalCount={totalCount}
               onFullscreenChange={setIsNotesFullscreen}
-              // 인라인 이미지 관련 추가
               onMarkdownPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'notes' })}
               inlineImageUploading={inlineImageUploading}
-              // 플로팅 메뉴용 prop 추가
               result={result}
               onResultChange={(newResult) => {
                 setResult(newResult);
@@ -623,13 +575,11 @@ const TestResultForm = ({
               t={t}
               fileUploadError={fileUploadError}
               isFileUploading={isFileUploading}
-              currentResult={currentResult}
+              currentResult={stableCurrentResult}
             />
 
             <TestResultJira
               jiraIssueKey={jiraIssueKey}
-              setJiraIssueKey={setJiraIssueKey}
-              isJiraIssueKeyInvalid={isJiraIssueKeyInvalid}
               jiraConnectionStatus={jiraConnectionStatus}
               result={result}
               notes={notes}
@@ -639,9 +589,8 @@ const TestResultForm = ({
               isViewer={isViewer}
               t={t}
               detectedJiraIssues={detectedJiraIssues}
+              testCase={testCase}
             />
-
-            {/* 하단 Footer는 플로팅 메뉴로 대체됨 */}
           </Box>
         </>
       ) : null}
@@ -651,76 +600,49 @@ const TestResultForm = ({
   if (fullPage) {
     return (
       <Box sx={{
-        width: '100%',
-        minHeight: '100vh',
+        width: '100%', minHeight: '100vh',
         bgcolor: (theme) => theme.palette.background.default,
-        p: { xs: 1, sm: 2, md: 3 }, // 반응형 패딩
-        boxSizing: 'border-box',
-        overflowX: 'hidden' // 가로 스크롤 방지
+        p: { xs: 1, sm: 2, md: 3 }, boxSizing: 'border-box', overflowX: 'hidden'
       }}>
         <TestResultHeader
-          onPrevious={onPrevious}
-          onNext={onNext}
-          currentIndex={currentIndex}
-          totalCount={totalCount}
-          testCase={testCase}
-          isViewer={isViewer}
-          t={t}
-          hideButtons={true}
+          onPrevious={onPrevious} onNext={onNext}
+          currentIndex={currentIndex} totalCount={totalCount}
+          testCase={testCase} isViewer={isViewer} t={t} hideButtons={true}
         />
 
         {renderContent()}
 
-        {/* 플로팅 메뉴 (스크롤 시에도 고정) - 비고 전체화면이 아닐 때만 표시 */}
         {!isNotesFullscreen && (
           <TestResultFloatingMenu
             result={result}
             onResultChange={(newResult) => {
               setResult(newResult);
               setTimeout(() => handleSaveAndNext(newResult, {
-                advanceToNext: false,
-                keepDialogOpen: true,
-                showSuccess: true,
+                advanceToNext: false, keepDialogOpen: true, showSuccess: true,
               }), 100);
             }}
-            onPrevious={onPrevious}
-            onNext={onNext}
+            onPrevious={onPrevious} onNext={onNext}
             onSave={() => handleSaveAndNext(result)}
             onClose={onClose}
-            currentIndex={currentIndex}
-            totalCount={totalCount}
-            isViewer={isViewer}
-            loading={loading}
+            currentIndex={currentIndex} totalCount={totalCount}
+            isViewer={isViewer} loading={loading}
             shouldShowJiraButton={shouldShowJiraButton}
             handleOpenJiraDialog={handleOpenJiraDialog}
-            testCase={testCase}
-            saveButtonRef={saveButtonRef}
-            t={t}
+            testCase={testCase} saveButtonRef={saveButtonRef} t={t}
             isNotesFullscreen={isNotesFullscreen}
           />
         )}
 
-        <Snackbar
-          open={!!saveError}
-          autoHideDuration={6000}
-          onClose={() => setSaveError(undefined)}
-        >
-          <Alert severity="error" onClose={() => setSaveError(undefined)}>
-            {saveError}
-          </Alert>
+        <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
+          <Alert severity="error" onClose={() => setSaveError(undefined)}>{saveError}</Alert>
         </Snackbar>
-        <Snackbar
-          open={showSaveSuccess}
-          autoHideDuration={3000}
-          onClose={() => setShowSaveSuccess(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
+        <Snackbar open={showSaveSuccess} autoHideDuration={3000} onClose={() => setShowSaveSuccess(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
           <Alert severity="success" onClose={() => setShowSaveSuccess(false)}>
             {t('testcase.message.saved', '저장되었습니다.')}
           </Alert>
         </Snackbar>
 
-        {/* 미리보기 다이얼로그 */}
         <Dialog open={previewOpen} onClose={handleClosePreview} maxWidth="lg" fullWidth>
           <DialogTitle>{previewTitle}</DialogTitle>
           <DialogContent>
@@ -733,13 +655,10 @@ const TestResultForm = ({
           </DialogActions>
         </Dialog>
 
-        {/* {t('testResult.form.jiraComment')} 다이얼로그 */}
         <JiraCommentDialog
-          open={jiraDialogOpen}
-          onClose={() => setJiraDialogOpen(false)}
+          open={jiraDialogOpen} onClose={() => setJiraDialogOpen(false)}
           testResult={{ result, notes, jiraIssueKey }}
-          testCase={testCase}
-          linkedIssues={linkedIssues}
+          testCase={testCase} linkedIssues={linkedIssues}
           onCommentAdded={handleJiraCommentAdded}
         />
       </Box>
@@ -747,73 +666,42 @@ const TestResultForm = ({
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="lg"
-      fullWidth
-      aria-labelledby="test-result-dialog"
-    >
-      <DialogTitle id="test-result-dialog">
-        {t('testResult.form.title')}
-      </DialogTitle>
-
-      <DialogContent sx={{ pb: 12, px: { xs: 2, sm: 3 } }}> {/* 플로팅 메뉴 공간 및 좌우 여백 확보 */}
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth aria-labelledby="test-result-dialog">
+      <DialogTitle id="test-result-dialog">{t('testResult.form.title')}</DialogTitle>
+      <DialogContent sx={{ pb: 12, px: { xs: 2, sm: 3 } }}>
         {renderContent()}
-        
-        {/* 플로팅 메뉴 (스크롤 시에도 고정) - 비고 전체화면이 아닐 때만 표시 */}
         {!loading && testCase && !isNotesFullscreen && (
           <TestResultFloatingMenu
             result={result}
             onResultChange={(newResult) => {
               setResult(newResult);
               setTimeout(() => handleSaveAndNext(newResult, {
-                advanceToNext: false,
-                keepDialogOpen: true,
-                showSuccess: true,
+                advanceToNext: false, keepDialogOpen: true, showSuccess: true,
               }), 100);
             }}
-            onPrevious={onPrevious}
-            onNext={onNext}
+            onPrevious={onPrevious} onNext={onNext}
             onSave={() => handleSaveAndNext(result)}
             onClose={onClose}
-            currentIndex={currentIndex}
-            totalCount={totalCount}
-            isViewer={isViewer}
-            loading={loading}
+            currentIndex={currentIndex} totalCount={totalCount}
+            isViewer={isViewer} loading={loading}
             shouldShowJiraButton={shouldShowJiraButton}
             handleOpenJiraDialog={handleOpenJiraDialog}
-            testCase={testCase}
-            saveButtonRef={saveButtonRef}
-            t={t}
+            testCase={testCase} saveButtonRef={saveButtonRef} t={t}
             isNotesFullscreen={isNotesFullscreen}
           />
         )}
       </DialogContent>
 
-      {/* 하단 버튼들은 플로팅 메뉴로 대체됨 */}
-
-      <Snackbar
-        open={!!saveError}
-        autoHideDuration={6000}
-        onClose={() => setSaveError(undefined)}
-      >
-        <Alert severity="error" onClose={() => setSaveError(undefined)}>
-          {saveError}
-        </Alert>
+      <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
+        <Alert severity="error" onClose={() => setSaveError(undefined)}>{saveError}</Alert>
       </Snackbar>
-      <Snackbar
-        open={showSaveSuccess}
-        autoHideDuration={3000}
-        onClose={() => setShowSaveSuccess(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
+      <Snackbar open={showSaveSuccess} autoHideDuration={3000} onClose={() => setShowSaveSuccess(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert severity="success" onClose={() => setShowSaveSuccess(false)}>
           {t('testcase.message.saved', '저장되었습니다.')}
         </Alert>
       </Snackbar>
 
-      {/* 미리보기 다이얼로그 */}
       <Dialog open={previewOpen} onClose={handleClosePreview} maxWidth="lg" fullWidth>
         <DialogTitle>{previewTitle}</DialogTitle>
         <DialogContent>
@@ -826,13 +714,10 @@ const TestResultForm = ({
         </DialogActions>
       </Dialog>
 
-      {/* {t('testResult.form.jiraComment')} 다이얼로그 */}
       <JiraCommentDialog
-        open={jiraDialogOpen}
-        onClose={() => setJiraDialogOpen(false)}
+        open={jiraDialogOpen} onClose={() => setJiraDialogOpen(false)}
         testResult={{ result, notes, jiraIssueKey }}
-        testCase={testCase}
-        linkedIssues={linkedIssues}
+        testCase={testCase} linkedIssues={linkedIssues}
         onCommentAdded={handleJiraCommentAdded}
       />
 
@@ -861,7 +746,7 @@ TestResultForm.propTypes = {
   totalCount: PropTypes.number,
   fullPage: PropTypes.bool,
   onOpenFullPage: PropTypes.func,
-  isPreviousResultEdit: PropTypes.bool,  // 이전 결과 수정 모드 여부
+  isPreviousResultEdit: PropTypes.bool,
 };
 
 export default TestResultForm;

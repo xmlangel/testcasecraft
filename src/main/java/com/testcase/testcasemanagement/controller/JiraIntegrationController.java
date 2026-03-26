@@ -107,6 +107,62 @@ public class JiraIntegrationController {
     }
 
     /**
+     * JIRA 이슈 생성
+     */
+    @PostMapping("/create-issue")
+    @Operation(summary = "JIRA 이슈 생성", description = "테스트 결과를 기반으로 새로운 JIRA 이슈를 생성합니다")
+    public ResponseEntity<JiraConfigDto.IssueCreateResponseDto> createIssue(
+            @RequestBody JiraConfigDto.IssueCreateRequestDto request) {
+        
+        try {
+            String userId = securityContextUtil.getCurrentUserId();
+            if (userId == null) {
+                return ResponseEntity.ok(
+                    JiraConfigDto.IssueCreateResponseDto.builder()
+                        .success(false)
+                        .errorMessage("사용자 정보를 찾을 수 없습니다.")
+                        .build()
+                );
+            }
+            
+            JiraConfigDto.IssueCreateResponseDto result = jiraIntegrationService.createIssue(userId, request);
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("JIRA 이슈 생성 실패", e);
+            return ResponseEntity.ok(
+                JiraConfigDto.IssueCreateResponseDto.builder()
+                    .success(false)
+                    .errorMessage("이슈 생성 중 오류 발생: " + e.getMessage())
+                    .build()
+            );
+        }
+    }
+
+    /**
+     * 프로젝트별 JIRA 이슈 유형 조회
+     */
+    @GetMapping("/issue-types")
+    @Operation(summary = "JIRA 이슈 유형 조회", description = "지정된 JIRA 프로젝트에서 사용 가능한 이슈 유형 목록을 조회합니다")
+    public ResponseEntity<List<JiraConfigDto.IssueTypeDto>> getIssueTypes(
+            @RequestParam(required = false) String projectKey) {
+        
+        try {
+            String userId = securityContextUtil.getCurrentUserId();
+            if (userId == null) {
+                return ResponseEntity.status(401).build();
+            }
+            
+            List<JiraConfigDto.IssueTypeDto> issueTypes = jiraIntegrationService.getIssueTypes(userId, projectKey);
+            return ResponseEntity.ok(issueTypes);
+            
+        } catch (Exception e) {
+            log.error("JIRA 이슈 유형 조회 실패: projectKey={}", projectKey, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * 개별 테스트 결과에 수동으로 JIRA 코멘트 추가
      */
     @PostMapping("/add-test-result-comment")

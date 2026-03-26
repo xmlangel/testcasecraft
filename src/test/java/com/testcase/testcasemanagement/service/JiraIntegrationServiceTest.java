@@ -1,15 +1,15 @@
 // src/test/java/com/testcase/testcasemanagement/service/JiraIntegrationServiceTest.java
 package com.testcase.testcasemanagement.service;
 
-import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.TestExecution;
+import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.User;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import org.mockito.InjectMocks;
+import com.testcase.testcasemanagement.repository.TestResultRepository;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -29,10 +29,16 @@ public class JiraIntegrationServiceTest {
     @Mock
     private JiraConfigService jiraConfigService;
 
+    @Mock
+    private TestResultRepository testResultRepository;
+
+    @Mock
+    private MinIOService minIOService;
+
     @BeforeMethod
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        jiraIntegrationService = new JiraIntegrationService(jiraConfigService);
+        jiraIntegrationService = new JiraIntegrationService(jiraConfigService, testResultRepository, minIOService);
         // @Value 로 주입되는 필드의 기본값을 ReflectionTestUtils 로 설정
         ReflectionTestUtils.setField(jiraIntegrationService, "issueKeyPattern", "^[A-Z]+-\\d+$");
         ReflectionTestUtils.setField(jiraIntegrationService, "autoCommentEnabled", true);
