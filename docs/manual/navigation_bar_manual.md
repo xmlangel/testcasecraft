@@ -68,3 +68,4 @@
 
 *   [API 토큰 관리 매뉴얼](./api_token_manual.md) — 서비스 API 토큰 발급 및 관리
 *   [사용자 관리 매뉴얼](./user_management_manual.md) — 관리자용 사용자 계정 관리
+*   [테스트 통계 분석 매뉴얼](./test_statistics_manual.md) — 테스트 결과 대시보드 및 폴더별 분석 가이드

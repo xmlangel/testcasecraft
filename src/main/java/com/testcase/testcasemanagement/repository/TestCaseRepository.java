@@ -40,13 +40,16 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
         @Query("SELECT MAX(t.displayOrder) FROM TestCase t WHERE t.parentId = :parentId")
         Integer findMaxDisplayOrderByParentId(@Param("parentId") String parentId);
 
-        @Query("SELECT t FROM TestCase t LEFT JOIN FETCH t.steps WHERE t.id = :id")
+        @Query("SELECT t FROM TestCase t LEFT JOIN FETCH t.project LEFT JOIN FETCH t.steps WHERE t.id = :id")
         Optional<TestCase> findByIdWithSteps(@Param("id") String id);
 
-        @Query("SELECT DISTINCT t FROM TestCase t LEFT JOIN FETCH t.steps WHERE t.project.id = :projectId ORDER BY t.parentId NULLS FIRST, t.displayOrder")
+        @Query("SELECT DISTINCT t FROM TestCase t LEFT JOIN FETCH t.project LEFT JOIN FETCH t.steps WHERE t.project.id = :projectId ORDER BY t.parentId NULLS FIRST, t.displayOrder")
         List<TestCase> findAllByProjectIdWithSteps(@Param("projectId") String projectId);
 
         long countByProjectId(String projectId);
+ 
+        @Query("SELECT t.project.id, COUNT(t) FROM TestCase t WHERE t.project.id IN :projectIds GROUP BY t.project.id")
+        List<Object[]> countByProjectIds(@Param("projectIds") List<String> projectIds);
 
         // 특정 프로젝트의 모든 테스트케이스 조회 (태그 목록 조회용)
         @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId")

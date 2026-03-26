@@ -61,6 +61,9 @@ public interface ProjectUserRepository extends JpaRepository<ProjectUser, String
     
     // 프로젝트의 총 멤버 수 조회
     long countByProjectId(String projectId);
+ 
+    @Query("SELECT pu.project.id, COUNT(pu) FROM ProjectUser pu WHERE pu.project.id IN :projectIds GROUP BY pu.project.id")
+    List<Object[]> countByProjectIds(@Param("projectIds") List<String> projectIds);
     
     // 사용자가 참여한 프로젝트 수 조회
     long countByUserId(String userId);

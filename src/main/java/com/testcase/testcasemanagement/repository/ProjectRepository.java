@@ -21,6 +21,10 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
        boolean existsByCode(String code);
 
        Optional<Project> findByCode(String code);
+ 
+       // ID로 조회하면서 조직 정보를 함께 fetch
+       @Query("SELECT p FROM Project p LEFT JOIN FETCH p.organization WHERE p.id = :id")
+       Optional<Project> findByIdWithOrganization(@Param("id") String id);
 
        // 조직별 프로젝트 조회 (조직 정보 포함)
        @Query("SELECT p FROM Project p LEFT JOIN FETCH p.organization WHERE p.organization.id = :organizationId")

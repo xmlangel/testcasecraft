@@ -506,6 +506,182 @@ public class TestResultReportServiceMockTest {
                 System.out.println("✅ Pagination OutOfBounds 처리 성공: 예외 발생 안함, 빈 리스트 반환");
         }
 
+        @Test(priority = 12)
+        public void testGetTestResultStatistics_PlanWithUnexecutedCases() {
+                System.out.println("📊 12. 미실행 케이스 포함 플랜 통계 테스트 (ICT-418)");
+
+                // Given
+                String planId = "plan-multi-1";
+                List<String> planIds = Arrays.asList(planId);
+                
+                // 플랜에 3개의 케이스가 있다고 설정
+                TestPlan plan = new TestPlan();
+                plan.setId(planId);
+                plan.setName("멀티 테스트 플랜");
+                plan.setTestCaseIds(Arrays.asList("tc-1", "tc-2", "tc-3"));
+                
+                when(testPlanRepository.findAllById(planIds)).thenReturn(Arrays.asList(plan));
+
+                // 2개(tc-1, tc-2)만 실행된 결과 생성
+                TestResult res1 = createMockResultWithTestCaseIdAndPlan("PASS", "tc-1", planId);
+                TestResult res2 = createMockResultWithTestCaseIdAndPlan("FAIL", "tc-2", planId);
+                
+                TestExecution execution = new TestExecution();
+                execution.setId("exec-1");
+                execution.setTestPlanId(planId);
+                execution.setResults(Arrays.asList(res1, res2));
+                
+                when(testExecutionRepository.findAllByTestPlanIdIn(planIds)).thenReturn(Arrays.asList(execution));
+                
+                // ICT-FOLDER-STATS: 존재 여부 확인 목킹 추가
+                when(testCaseRepository.findAllById(anyList())).thenAnswer(invocation -> {
+                    List<String> ids = invocation.getArgument(0);
+                    List<TestCase> result = new ArrayList<>();
+                    for (String id : ids) {
+                        TestCase tc = new TestCase();
+                        tc.setId(id);
+                        result.add(tc);
+                    }
+                    return result;
+                });
+
+                // When
+                TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(null, planIds, null);
+
+                // Then
+                assertNotNull(statistics);
+                assertEquals(statistics.getTotalCaseCount(), Long.valueOf(3), "전체 케이스 수는 플랜의 모든 케이스를 포함해야 함");
+                assertEquals(statistics.getLatestPassCount(), Long.valueOf(1), "Pass 카운트 확인");
+                assertEquals(statistics.getLatestFailCount(), Long.valueOf(1), "Fail 카운트 확인");
+                assertEquals(statistics.getLatestNotRunCount(), Long.valueOf(1), "실행되지 않은 tc-3은 Not Run으로 카운트되어야 함");
+                
+                System.out.println("✅ 미실행 케이스 포함 통계 확인 완료: Total=3, Pass=1, Fail=1, NotRun=1");
+        }
+
+        @Test(priority = 13)
+        public void testGetTestResultStatistics_MultiPlanOverlap() {
+                System.out.println("📊 13. 다중 플랜 중복 케이스 독립 집계 테스트 (ICT-418 보완)");
+
+                // Given
+                String plan1Id = "plan-1";
+                String plan2Id = "plan-2";
+                List<String> planIds = Arrays.asList(plan1Id, plan2Id);
+
+                // Plan 1: [tc-A, tc-B, tc-C]
+                TestPlan plan1 = new TestPlan();
+                plan1.setId(plan1Id);
+                plan1.setTestCaseIds(Arrays.asList("tc-A", "tc-B", "tc-C"));
+
+                // Plan 2: [tc-A, tc-B, tc-D]
+                TestPlan plan2 = new TestPlan();
+                plan2.setId(plan2Id);
+                plan2.setTestCaseIds(Arrays.asList("tc-A", "tc-B", "tc-D"));
+
+                when(testPlanRepository.findAllById(planIds)).thenReturn(Arrays.asList(plan1, plan2));
+
+                // Plan 1 실행 (결과 없음 = 모두 Not Run)
+                TestExecution exec1 = new TestExecution();
+                exec1.setId("exec-1");
+                exec1.setTestPlanId(plan1Id);
+                exec1.setResults(new ArrayList<>());
+
+                // Plan 2 실행 (A=PASS, B=FAIL, D=PASS)
+                TestResult resA = createMockResultWithTestCaseIdAndPlan("PASS", "tc-A", plan2Id);
+                TestResult resB = createMockResultWithTestCaseIdAndPlan("FAIL", "tc-B", plan2Id);
+                TestResult resD = createMockResultWithTestCaseIdAndPlan("PASS", "tc-D", plan2Id);
+
+                TestExecution exec2 = new TestExecution();
+                exec2.setId("exec-2");
+                exec2.setTestPlanId(plan2Id);
+                exec2.setResults(Arrays.asList(resA, resB, resD));
+
+                when(testExecutionRepository.findAllByTestPlanIdIn(planIds)).thenReturn(Arrays.asList(exec1, exec2));
+
+                when(testCaseRepository.findAllById(anyList())).thenAnswer(invocation -> {
+                    List<String> ids = invocation.getArgument(0);
+                    List<TestCase> result = new ArrayList<>();
+                    for (String id : ids) {
+                        TestCase tc = new TestCase();
+                        tc.setId(id);
+                        result.add(tc);
+                    }
+                    return result;
+                });
+
+                // When
+                TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(null, planIds, null);
+
+                // Then
+                assertNotNull(statistics);
+                // 총 6건 (P1:3 + P2:3)
+                assertEquals(statistics.getTotalCaseCount(), Long.valueOf(6), "플랜별 케이스가 독립적으로 합산되어야 함 (3+3=6)");
+                // Not Run은 P1의 A,B,C 3건
+                assertEquals(statistics.getLatestNotRunCount(), Long.valueOf(3), "플랜 1의 미실행 케이스 3건이 유지되어야 함");
+                // Pass는 P2의 A, D 2건
+                assertEquals(statistics.getLatestPassCount(), Long.valueOf(2), "플랜 2의 Pass 2건 확인");
+                // Fail은 P2의 B 1건
+                assertEquals(statistics.getLatestFailCount(), Long.valueOf(1), "플랜 2의 Fail 1건 확인");
+
+                System.out.println("✅ 다중 플랜 중복 케이스 독립 집계 확인 완료");
+        }
+
+        @Test(priority = 14)
+        public void testGetDetailedTestResultReport_JiraInfoAggregation() {
+                System.out.println("📋 14. JIRA 정보 집계(과거 이력 포함) 테스트 (ICT-JIRA-LATEST)");
+
+                // Given
+                String projectId = "project-1";
+                String tcId = "tc-jira-1";
+                
+                // 1. 과거 결과 (JIRA 연동됨)
+                TestResult oldResult = createMockResultWithTestCaseIdAndPlan("FAIL", tcId, "plan-1");
+                oldResult.setJiraIssueKey("JIRA-OLD-1");
+                oldResult.setExecutedAt(LocalDateTime.now().minusDays(2));
+
+                // 2. 최신 결과 (JIRA 연동 안됨)
+                TestResult latestResult = createMockResultWithTestCaseIdAndPlan("PASS", tcId, "plan-1");
+                latestResult.setJiraIssueKey(null); // 연동 정보 없음
+                latestResult.setExecutedAt(LocalDateTime.now().minusDays(1));
+
+                TestCase tc = new TestCase();
+                tc.setId(tcId);
+                tc.setName("JIRA 테스트 케이스");
+                Project mockProj = new Project();
+                mockProj.setId(projectId);
+                tc.setProject(mockProj);
+                tc.setType("testcase");
+
+                when(testResultRepository.findRecentTestResultsByProject(eq(projectId), any(PageRequest.of(0, Integer.MAX_VALUE).getClass())))
+                                .thenReturn(Arrays.asList(oldResult, latestResult));
+                when(testCaseRepository.findByProjectId(projectId)).thenReturn(Arrays.asList(tc));
+                when(testCaseRepository.findById(tcId)).thenReturn(Optional.of(tc));
+                when(testPlanRepository.findById(anyString())).thenReturn(Optional.of(mockTestPlan));
+
+                TestResultFilterDto filter = TestResultFilterDto.builder()
+                                .projectId(projectId)
+                                .includeNotExecuted(true)
+                                .page(0)
+                                .size(10)
+                                .build();
+                filter.setDefaultSort();
+                filter.setDefaultDisplayColumns();
+
+                // When
+                Page<TestResultReportDto> result = testResultReportService.getDetailedTestResultReport(filter);
+
+                // Then
+                assertNotNull(result);
+                assertFalse(result.isEmpty());
+                TestResultReportDto dto = result.getContent().get(0);
+                
+                // 최신 결과는 PASS여야 함
+                assertEquals(dto.getResult(), "PASS");
+                // 하지만 JIRA 정보는 과거 결과에서 가져와야 함 (집계 로직)
+                assertEquals(dto.getJiraIssueKey(), "JIRA-OLD-1", "최신 결과에 JIRA가 없어도 과거 이력에서 가져와야 함");
+
+                System.out.println("✅ JIRA 정보 집계(과거 이력 포함) 확인 완료: Result=PASS, JiraKey=JIRA-OLD-1");
+        }
+
         // Helper Methods
         private TestResult createMockResult(String result) {
                 TestResult testResult = new TestResult();
@@ -527,6 +703,10 @@ public class TestResultReportServiceMockTest {
 
         // 중복 제거 로직을 위해 고유 testCaseId/testExecution을 가진 결과 생성
         private TestResult createMockResultWithTestCaseId(String result, String testCaseId) {
+                return createMockResultWithTestCaseIdAndPlan(result, testCaseId, "testplan-1");
+        }
+
+        private TestResult createMockResultWithTestCaseIdAndPlan(String result, String testCaseId, String planId) {
                 TestResult testResult = new TestResult();
                 testResult.setId(UUID.randomUUID().toString());
                 testResult.setResult(result);
@@ -534,9 +714,9 @@ public class TestResultReportServiceMockTest {
                 testResult.setExecutedBy(mockUser);
                 testResult.setTestCaseId(testCaseId);
                 TestExecution uniqueExecution = new TestExecution();
-                uniqueExecution.setId("execution-" + testCaseId);
+                uniqueExecution.setId("execution-" + UUID.randomUUID()); // 고유하게 생성
                 uniqueExecution.setName("실행-" + testCaseId);
-                uniqueExecution.setTestPlanId("testplan-1");
+                uniqueExecution.setTestPlanId(planId);
                 testResult.setTestExecution(uniqueExecution);
                 return testResult;
         }

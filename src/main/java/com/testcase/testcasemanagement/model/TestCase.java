@@ -110,13 +110,14 @@ public class TestCase {
     @Version
     private Long version;
 
-    // 태그 목록
+    @org.hibernate.annotations.BatchSize(size = 100)
     @ElementCollection
     @CollectionTable(name = "testcase_tags", joinColumns = @JoinColumn(name = "testcase_id"))
     @Column(name = "tag", length = 100)
     private List<String> tags;
 
     // 연결된 RAG 문서 ID 목록
+    @org.hibernate.annotations.BatchSize(size = 100)
     @ElementCollection
     @CollectionTable(name = "testcase_linked_documents", joinColumns = @JoinColumn(name = "testcase_id"))
     @Column(name = "document_id", length = 36)

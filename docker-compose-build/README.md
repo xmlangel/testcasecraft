@@ -71,13 +71,6 @@ SSL_KEYSTORE_TYPE=PKCS12
 | Swagger UI | http://localhost/swagger-ui.html | API 문서 |
 | Health Check | http://localhost/actuator/health | 서비스 상태 확인 |
 
-### HTTPS 모드  
-| 서비스 | URL | 설명 |
-|--------|-----|------|
-| 애플리케이션 | https://localhost | 메인 웹 애플리케이션 |
-| Swagger UI | https://localhost/swagger-ui.html | API 문서 |
-| Health Check | https://localhost/actuator/health | 서비스 상태 확인 |
-
 ### 공통
 | 서비스 | URL | 설명 |
 |--------|-----|------|
@@ -85,7 +78,7 @@ SSL_KEYSTORE_TYPE=PKCS12
 
 ### 🔐 기본 로그인
 - **Username**: `admin`
-- **Password**: `admin`
+- **Password**: `admin123`
 
 ## 🔒 SSL 인증서 설정
 

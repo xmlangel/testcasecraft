@@ -74,7 +74,7 @@ public class TestResultReportController {
     @GetMapping("/statistics")
     public ResponseEntity<TestResultStatisticsDto> getTestResultStatistics(
             @RequestParam(required = false) String projectId,
-            @RequestParam(required = false) String testPlanId,
+            @RequestParam(required = false) List<String> testPlanId,
             @RequestParam(required = false) String testExecutionId) {
 
         TestResultStatisticsDto statistics = testResultReportService.getTestResultStatistics(
@@ -102,14 +102,14 @@ public class TestResultReportController {
     @GetMapping("/report")
     public ResponseEntity<Page<TestResultReportDto>> getDetailedTestResultReportSimple(
             @RequestParam(required = false) String projectId,
-            @RequestParam(required = false) String testPlanId,
+            @RequestParam(required = false) List<String> testPlanId,
             @RequestParam(required = false) String testExecutionId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
 
         TestResultFilterDto filter = TestResultFilterDto.builder()
                 .projectId(projectId)
-                .testPlanIds(testPlanId != null ? List.of(testPlanId) : null)
+                .testPlanIds(testPlanId)
                 .testExecutionIds(testExecutionId != null ? List.of(testExecutionId) : null)
                 .page(page)
                 .size(size)
@@ -130,7 +130,7 @@ public class TestResultReportController {
     @GetMapping("/jira-status")
     public ResponseEntity<List<JiraStatusSummaryDto>> getJiraStatusSummary(
             @RequestParam(required = false) String projectId,
-            @RequestParam(required = false) String testPlanId,
+            @RequestParam(required = false) List<String> testPlanId,
             @RequestParam(required = false) Boolean activeOnly,
             @RequestParam(defaultValue = "false") boolean refreshCache) {
 
@@ -204,7 +204,7 @@ public class TestResultReportController {
     @GetMapping("/detailed-report/{projectId}")
     public ResponseEntity<Map<String, Object>> getHierarchicalTestResultReportSimple(
             @PathVariable String projectId,
-            @RequestParam(required = false) String testPlanId,
+            @RequestParam(required = false) List<String> testPlanId,
             @RequestParam(required = false) String testExecutionId,
             @RequestParam(defaultValue = "false") boolean includeNotExecuted,
             @RequestParam(defaultValue = "0") int page,
@@ -212,7 +212,7 @@ public class TestResultReportController {
 
         TestResultFilterDto filter = TestResultFilterDto.builder()
                 .projectId(projectId)
-                .testPlanIds(testPlanId != null ? List.of(testPlanId) : null)
+                .testPlanIds(testPlanId)
                 .testExecutionIds(testExecutionId != null ? List.of(testExecutionId) : null)
                 .includeNotExecuted(includeNotExecuted)
                 .page(page)

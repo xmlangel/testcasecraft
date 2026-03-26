@@ -38,7 +38,7 @@ task appNpmBuild(type: NpmTask) {
 	]
 }
 
-// ICT-216: 개발용 Vite 빌드 태스크 (명시적 로컬 서버 설정)
+//  개발용 Vite 빌드 태스크 (명시적 로컬 서버 설정)
 task appNpmBuildDev(type: NpmTask) {
 	dependsOn appNpmInstall
 	workingDir = file(frontendDir)
@@ -56,14 +56,14 @@ task appNpmBuildDev(type: NpmTask) {
 	]
 }
 
-// ICT-216: 개발용 전체 빌드 태스크
+//  개발용 전체 빌드 태스크
 task buildDev {
 	dependsOn appNpmBuildDev
 	description = '개발용 통합 빌드 (로컬 서버 설정)'
 	group = 'build'
 }
 
-// ICT-216: 개발용 실행 태스크 - 단순화
+//  개발용 실행 태스크 - 단순화
 task bootRunDev {
 	dependsOn buildDev
 	description = '개발용 애플리케이션 실행 (dev 프로파일 + 로컬 빌드)'
@@ -72,6 +72,32 @@ task bootRunDev {
 	doLast {
 		exec {
 			commandLine './gradlew', 'bootRun', '--args=--spring.profiles.active=dev'
+		}
+	}
+}
+
+// 로컬 DB용 실행 태스크 (application-local.yml 사용)
+task bootRunLocal {
+	dependsOn processResources
+	description = '로컬 DB 환경용 애플리케이션 실행 (local 프로파일)'
+	group = 'application'
+	
+	doLast {
+		exec {
+			commandLine './gradlew', 'bootRun', '--args=--spring.profiles.active=local'
+		}
+	}
+}
+
+// ICT-216: 원격 DB용 실행 태스크 (application-remote.yml 사용)
+task bootRunRemote {
+	dependsOn processResources
+	description = '원격 DB 환경용 애플리케이션 실행 (remote 프로파일)'
+	group = 'application'
+	
+	doLast {
+		exec {
+			commandLine './gradlew', 'bootRun', '--args=--spring.profiles.active=remote'
 		}
 	}
 }
@@ -119,7 +145,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.44-SNAPSHOT'
+version = '1.0.51-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 

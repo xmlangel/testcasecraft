@@ -51,14 +51,14 @@ public class TestExecution {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    @OneToMany(mappedBy = "testExecution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "testExecution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TestResult> results = new ArrayList<>();
 
     // 태그 목록
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "test_execution_tags", joinColumns = @JoinColumn(name = "test_execution_id"))
     @Column(name = "tag", length = 100)
-    private List<String> tags;
+    private java.util.Set<String> tags;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

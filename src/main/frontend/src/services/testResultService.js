@@ -122,7 +122,15 @@ export async function getTestResultStatistics(params = {}) {
     // URL과 파라미터 구성
     const searchParams = new URLSearchParams();
     if (projectId) searchParams.append('projectId', projectId);
-    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    
+    if (testPlanId) {
+      if (Array.isArray(testPlanId)) {
+        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+      } else {
+        searchParams.append('testPlanId', testPlanId);
+      }
+    }
+    
     if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
 
     const request = (async () => {
@@ -225,7 +233,15 @@ export async function getSimpleTestResultReport(params = {}) {
   try {
     const searchParams = new URLSearchParams();
     if (projectId) searchParams.append('projectId', projectId);
-    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    
+    if (testPlanId) {
+      if (Array.isArray(testPlanId)) {
+        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+      } else {
+        searchParams.append('testPlanId', testPlanId);
+      }
+    }
+    
     if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
     searchParams.append('page', page.toString());
     searchParams.append('size', size.toString());
@@ -277,7 +293,15 @@ export async function getJiraStatusSummary(params = {}) {
   try {
     const searchParams = new URLSearchParams();
     if (projectId) searchParams.append('projectId', projectId);
-    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    
+    if (testPlanId) {
+      if (Array.isArray(testPlanId)) {
+        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+      } else {
+        searchParams.append('testPlanId', testPlanId);
+      }
+    }
+    
     if (activeOnly !== undefined) searchParams.append('activeOnly', activeOnly.toString());
     if (refreshCache) searchParams.append('refreshCache', 'true');
 
@@ -505,7 +529,15 @@ export async function getFilteredTestResults(filters = {}, useCache = false) {
   try {
     const searchParams = new URLSearchParams();
     searchParams.append('projectId', projectId);
-    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    
+    if (testPlanId) {
+      if (Array.isArray(testPlanId)) {
+        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+      } else {
+        searchParams.append('testPlanId', testPlanId);
+      }
+    }
+    
     if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
     searchParams.append('page', page.toString());
     searchParams.append('size', size.toString());
@@ -624,7 +656,14 @@ export async function getHierarchicalTestResultReportSimple(params = {}) {
 
   try {
     const searchParams = new URLSearchParams();
-    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    if (testPlanId) {
+      if (Array.isArray(testPlanId)) {
+        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+      } else {
+        searchParams.append('testPlanId', testPlanId);
+      }
+    }
+    
     if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
     searchParams.append('includeNotExecuted', includeNotExecuted.toString());
     searchParams.append('page', page.toString());
@@ -719,7 +758,14 @@ export async function getCompleteTestCasesList(params = {}) {
 
   try {
     const searchParams = new URLSearchParams();
-    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    if (testPlanId) {
+      if (Array.isArray(testPlanId)) {
+        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+      } else {
+        searchParams.append('testPlanId', testPlanId);
+      }
+    }
+    
     if (folderPath) searchParams.append('folderPath', folderPath);
     searchParams.append('page', page.toString());
     searchParams.append('size', size.toString());

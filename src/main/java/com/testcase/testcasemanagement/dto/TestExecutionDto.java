@@ -27,5 +27,9 @@ public class TestExecutionDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<String> tags;
-
+    private Integer totalCount;
+    private Integer passedCount;
+    private Integer failedCount;
+    private Integer skippedCount;
+    private Integer progress;
 }

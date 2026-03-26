@@ -14,6 +14,7 @@ const TestExecutionInfo = ({
     availableTags,
     setExecution,
     canEditBasicInfo,
+    canEditPlan,
     startImmediately,
     setStartImmediately,
     executionId
@@ -44,7 +45,7 @@ const TestExecutionInfo = ({
                     />
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
-                    <FormControl fullWidth margin="dense" size="small" disabled={!canEditBasicInfo}>
+                    <FormControl fullWidth margin="dense" size="small" disabled={!canEditPlan}>
                         <InputLabel id="test-plan-label">{t('testExecution.form.testPlan')}</InputLabel>
                         <Select
                             id="test-plan-select"
@@ -165,6 +166,7 @@ TestExecutionInfo.propTypes = {
     availableTags: PropTypes.array,
     setExecution: PropTypes.func.isRequired,
     canEditBasicInfo: PropTypes.bool,
+    canEditPlan: PropTypes.bool,
     startImmediately: PropTypes.bool,
     setStartImmediately: PropTypes.func,
     executionId: PropTypes.string,

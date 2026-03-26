@@ -55,6 +55,7 @@ public class TestCaseService {
     private final RagService ragService;
     private final TestCaseAttachmentRepository testCaseAttachmentRepository;
     private final com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository;
+    private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -67,13 +68,15 @@ public class TestCaseService {
             ApplicationEventPublisher eventPublisher,
             RagService ragService,
             TestCaseAttachmentRepository testCaseAttachmentRepository,
-            com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository) {
+            com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository,
+            TestCaseFileStorageService fileStorageService) {
         this.testCaseRepository = testCaseRepository;
         this.displayIdService = displayIdService;
         this.eventPublisher = eventPublisher;
         this.ragService = ragService;
         this.testCaseAttachmentRepository = testCaseAttachmentRepository;
         this.displayIdHistoryRepository = displayIdHistoryRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     public List<TestCase> getAllTestCases() {
@@ -233,17 +236,40 @@ public class TestCaseService {
             }
         });
 
-        // ICT-386: 첨부파일 삭제 (외래 키 제약 조건 방지)
+        // ICT-386 & ICT-InlineImage: 첨부파일 삭제 (물리적 삭제 포함)
         try {
+            // 1. 본문(description)의 인라인 이미지 삭제
+            deleteInlineImagesFromDescription(testCase.getDescription());
+
+            // 2. 일반 첨부파일 삭제 (MinIO 실제 삭제 보장)
             List<TestCaseAttachment> attachments = testCaseAttachmentRepository.findByTestCase_Id(id);
             if (!attachments.isEmpty()) {
-                log.info("테스트케이스 삭제 전 첨부파일 삭제: testCaseId={}, 첨부파일 개수={}", id, attachments.size());
-                testCaseAttachmentRepository.deleteAll(attachments);
-                log.info("테스트케이스 첨부파일 DB 삭제 완료: testCaseId={}, {} 개", id, attachments.size());
+                log.info("테스트케이스 삭제 전 첨부파일 실제 삭제 시작: testCaseId={}, 첨부파일 개수={}", id, attachments.size());
+                
+                // 현재 사용자 정보 가져오기
+                com.testcase.testcasemanagement.model.User currentUser = null;
+                try {
+                    String username = getCurrentUsername();
+                    if (username != null && !username.equals("anonymousUser")) {
+                        currentUser = entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", com.testcase.testcasemanagement.model.User.class)
+                            .setParameter("username", username)
+                            .getSingleResult();
+                    }
+                } catch (Exception e) {
+                    log.warn("사용자 정보 조회 실패 (삭제 로직 계속 진행): {}", e.getMessage());
+                }
+
+                for (TestCaseAttachment attachment : attachments) {
+                    try {
+                        fileStorageService.deleteAttachment(attachment.getId(), currentUser);
+                    } catch (Exception e) {
+                        log.error("첨부파일 물리 삭제 실패: attachmentId={}, error={}", attachment.getId(), e.getMessage());
+                    }
+                }
+                log.info("테스트케이스 첨부파일 물리 삭제 완료: testCaseId={}", id);
             }
         } catch (Exception e) {
-            log.error("첨부파일 삭제 중 오류 발생: testCaseId={}", id, e);
-            throw new RuntimeException("첨부파일 삭제 실패로 인해 테스트케이스를 삭제할 수 없습니다: " + e.getMessage(), e);
+            log.error("첨부파일 처리 중 오류 발생 (계속 진행): testCaseId={}", id, e);
         }
 
         // 테스트케이스 삭제 (다시 한 번 존재 확인)
@@ -509,18 +535,23 @@ public class TestCaseService {
     }
 
     private TestCaseDto toDtoWithParentName(TestCase entity) {
+        return toDtoWithParentName(entity, null);
+    }
+
+    private TestCaseDto toDtoWithParentName(TestCase entity, Map<String, String> pathCache) {
         TestCaseDto dto = TestCaseMapper.toDto(entity);
         if (entity.getParentId() == null) {
             dto.setParentName("상위없음");
         } else {
-            // 전체 폴더 경로 구성
-            String fullPath = buildFullFolderPath(entity.getParentId());
+            // 전체 폴더 경로 구성 (캐시 활용)
+            String fullPath = buildFullFolderPath(entity.getParentId(), pathCache);
             dto.setParentName(fullPath);
         }
 
         // ICT-388: RAG 벡터화 상태 설정 (folder는 제외)
         if (!"folder".equals(entity.getType())) {
             try {
+                // TODO: RAG 서비스의 bulk 조회 기능이 필요함. 현재는 N+1 존재.
                 boolean vectorized = ragService.isTestCaseVectorized(entity.getId());
                 dto.setRagVectorized(vectorized);
             } catch (Exception e) {
@@ -534,11 +565,16 @@ public class TestCaseService {
         return dto;
     }
 
+    private String buildFullFolderPath(String parentId) {
+        return buildFullFolderPath(parentId, null);
+    }
+
     /**
      * 테스트케이스의 전체 폴더 경로를 구성합니다.
      * 예: "폴더A >> 하위폴더1 >> 하위폴더2"
+     * pathCache를 전달받아 중복 조회를 방지합니다.
      */
-    private String buildFullFolderPath(String parentId) {
+    private String buildFullFolderPath(String parentId, Map<String, String> pathCache) {
         if (parentId == null) {
             return "상위없음";
         }
@@ -548,18 +584,33 @@ public class TestCaseService {
 
         // 루트까지 거슬러 올라가며 경로 구성
         while (currentId != null) {
+            // 캐시 확인
+            if (pathCache != null && pathCache.containsKey(currentId)) {
+                pathElements.add(0, pathCache.get(currentId));
+                break;
+            }
+
             Optional<TestCase> parentOpt = testCaseRepository.findById(currentId);
             if (parentOpt.isPresent()) {
                 TestCase parent = parentOpt.get();
-                pathElements.add(parent.getName());
+                String name = parent.getName();
+                pathElements.add(name);
+                
+                // 캐시에 저장 (이후 다른 테스트케이스에서 활용 가능)
+                if (pathCache != null) {
+                    pathCache.put(currentId, name);
+                }
+                
                 currentId = parent.getParentId();
             } else {
                 break;
             }
         }
 
-        // 경로 역순으로 정렬 (루트 -> 리프)
-        Collections.reverse(pathElements);
+        // pathCache가 없을 때만 reverse 수행 (위에서 순서대로 넣었으므로)
+        if (pathCache == null) {
+            Collections.reverse(pathElements);
+        }
 
         // ">>" 구분자로 연결
         return pathElements.isEmpty() ? "상위없음" : String.join(" >> ", pathElements);
@@ -567,8 +618,9 @@ public class TestCaseService {
 
     public List<TestCaseDto> getAllTestCasesWithParentName() {
         List<TestCase> entities = getAllTestCases();
+        Map<String, String> pathCache = new HashMap<>();
         return entities.stream()
-                .map(this::toDtoWithParentName)
+                .map(e -> toDtoWithParentName(e, pathCache))
                 .collect(Collectors.toList());
     }
 
@@ -1610,5 +1662,46 @@ public class TestCaseService {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * ICT-InlineImage: 본문(description)에서 인라인 이미지 ID를 추출하여 삭제 처리
+     * 
+     * @param description 마크다운 본문
+     */
+    private void deleteInlineImagesFromDescription(String description) {
+        if (description == null || description.isBlank()) {
+            return;
+        }
+
+        // 인라인 이미지 패턴 추출: ![[...]] (/api/testcase-attachments/public/{id}?token=...)
+        // 공통 이미지 URL 패턴: /api/testcase-attachments/public/([a-f0-9\-]{36})
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "/api/testcase-attachments/public/([a-f0-9\\-]{36})");
+        java.util.regex.Matcher matcher = pattern.matcher(description);
+
+        // 현재 사용자 정보 가져오기 (감사용)
+        com.testcase.testcasemanagement.model.User currentUser = null;
+        try {
+            String username = getCurrentUsername();
+            if (username != null && !username.equals("anonymousUser")) {
+                currentUser = entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", com.testcase.testcasemanagement.model.User.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
+            }
+        } catch (Exception e) {
+            log.warn("사용자 정보 조회 실패 (인라인 이미지 삭제 로직 계속 진행): {}", e.getMessage());
+        }
+
+        while (matcher.find()) {
+            String attachmentId = matcher.group(1);
+            try {
+                fileStorageService.deleteAttachment(attachmentId, currentUser);
+                log.info("🖼️ 테스트케이스 인라인 이미지 연계 삭제 완료: attachmentId={}", attachmentId);
+            } catch (Exception e) {
+                log.error("❌ 테스트케이스 인라인 이미지 삭제 실패 (ID: {}): {}", attachmentId, e.getMessage());
+                // 개별 이미지 삭제 실패가 전체 프로세스를 중단시키지 않도록 예외 처리
+            }
+        }
     }
 }

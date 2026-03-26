@@ -157,13 +157,14 @@ public class TestResult {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "test_result_tags", joinColumns = @JoinColumn(name = "test_result_id"))
     @Column(name = "tag", length = 100)
-    private List<String> tags;
+    private java.util.Set<String> tags;
 
     // ICT-361: 테스트 결과 첨부파일 관계
 
     /**
      * 첨부파일 목록
      */
+    @org.hibernate.annotations.BatchSize(size = 100)
     @OneToMany(mappedBy = "testResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TestResultAttachment> attachments = new ArrayList<>();
 

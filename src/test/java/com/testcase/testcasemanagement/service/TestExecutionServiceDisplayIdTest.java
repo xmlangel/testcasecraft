@@ -4,13 +4,11 @@ import com.testcase.testcasemanagement.dto.BulkTestResultDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +39,8 @@ public class TestExecutionServiceDisplayIdTest {
     private JiraIntegrationService jiraIntegrationService;
     @Mock
     private TestCaseRepository testCaseRepository;
+    @Mock
+    private TestCaseFileStorageService fileStorageService;
 
     private TestExecutionService testExecutionService;
 
@@ -61,7 +61,8 @@ public class TestExecutionServiceDisplayIdTest {
                 projectRepository,
                 userRepository,
                 jiraIntegrationService,
-                testCaseRepository
+                testCaseRepository,
+                fileStorageService
         );
 
         // SecurityContext Mocking

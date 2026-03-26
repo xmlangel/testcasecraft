@@ -1,7 +1,7 @@
 // src/main/frontend/src/context/I18nContext.jsx
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
-import { useAppContext } from './AppContext'; // AppContext import
+import { useAuth } from './AuthContext';
 
 // 초기 상태
 const initialState = {
@@ -74,7 +74,7 @@ const getApiBaseUrl = async () => {
 // I18n Provider 컴포넌트
 export const I18nProvider = ({ children }) => {
   const [state, dispatch] = useReducer(i18nReducer, initialState);
-  const { user, loadingUser, api } = useAppContext(); // AppContext에서 user, loadingUser, api 가져오기
+  const { user, loadingUser, api } = useAuth(); // AuthContext에서 user, loadingUser, api 가져오기
 
   // AppContext의 user 상태가 변경될 때 언어 설정 동기화
   useEffect(() => {

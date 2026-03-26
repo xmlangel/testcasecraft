@@ -14,9 +14,12 @@ const TestExecutionHeader = ({
     onSaveOrUpdate,
     saving,
     canEditBasicInfo,
-    startImmediately,
+    isEditingBasicInfo,
+    onEditClick,
+    onCancelEdit,
     showExecutionGuide,
-    setShowExecutionGuide
+    setShowExecutionGuide,
+    startImmediately
 }) => {
     const { t } = useTranslation();
 
@@ -24,7 +27,21 @@ const TestExecutionHeader = ({
         <>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
                 <Box sx={{ flex: 1, minWidth: 200 }}>
-                    <Typography variant="h5" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                    <Typography 
+                        variant="h5" 
+                        sx={{ 
+                            fontWeight: "bold", 
+                            color: "#1976d2",
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            '&:hover': {
+                                textDecoration: 'underline',
+                                opacity: 0.8
+                            }
+                        }}
+                        onClick={onGoToList}
+                        data-testid="execution-header-title"
+                    >
                         {executionId ? (
                             <>{t('testExecution.form.editTitle', { name: executionName })}
                             </>) : (
@@ -48,13 +65,36 @@ const TestExecutionHeader = ({
                         {showExecutionGuide ? t('testExecution.guide.hideGuide') : t('testExecution.guide.showGuide')}
                     </Button>
                 )}
-                <Button onClick={onGoToList} sx={{ mr: 1 }} data-testid="execution-list-button">
-                    {t('common.list')}
-                </Button>
-                <Button onClick={onCancel} sx={{ mr: 1 }} data-testid="execution-cancel-button">
-                    {t('common.cancel')}
-                </Button>
-                {canEditBasicInfo && (
+                
+                {/* 편집 모드가 아닐 때만 '목록' 버튼 표시 */}
+                {!isEditingBasicInfo && (
+                    <Button onClick={onGoToList} sx={{ mr: 1 }} data-testid="execution-list-button">
+                        {t('common.list')}
+                    </Button>
+                )}
+
+                {/* 편집 모드일 때 '취소' 버튼 (신규 생성 시 또는 편집 취소 시) */}
+                {isEditingBasicInfo && (
+                    <Button onClick={onCancelEdit} sx={{ mr: 1 }} data-testid="execution-cancel-edit-button">
+                        {t('common.cancel')}
+                    </Button>
+                )}
+
+                {/* 기존 데이터 조회 중이고 편집 모드가 아닐 때 '수정' 버튼 표시 */}
+                {executionId && !isEditingBasicInfo && (
+                    <Button 
+                        onClick={onEditClick} 
+                        variant="contained" 
+                        color="primary" 
+                        sx={{ mr: 1 }}
+                        data-testid="execution-edit-button"
+                    >
+                        {t('common.edit', '수정')}
+                    </Button>
+                )}
+
+                {/* 편집 모드이거나 신규 생성일 때 '저장' 버튼 표시 */}
+                {(isEditingBasicInfo || !executionId) && (
                     <Button
                         onClick={onSaveOrUpdate}
                         variant="contained"
@@ -87,9 +127,13 @@ TestExecutionHeader.propTypes = {
     onSaveOrUpdate: PropTypes.func.isRequired,
     saving: PropTypes.bool,
     canEditBasicInfo: PropTypes.bool,
+    canEditPlan: PropTypes.bool,
     startImmediately: PropTypes.bool,
     showExecutionGuide: PropTypes.bool,
     setShowExecutionGuide: PropTypes.func.isRequired,
+    isEditingBasicInfo: PropTypes.bool,
+    onEditClick: PropTypes.func,
+    onCancelEdit: PropTypes.func,
 };
 
 export default TestExecutionHeader;

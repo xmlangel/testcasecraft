@@ -239,6 +239,14 @@ public class KoreanTestResultTranslations {
                 createTranslationIfNotExists("testResult.pieChart.percentage", languageCode, "비율", createdBy);
                 createTranslationIfNotExists("testResult.pieChart.totalTestCases", languageCode, "총 테스트 케이스: {total}건",
                                 createdBy);
+
+                // 필터링된 케이스 다이얼로그 (FilteredCasesDialog)
+                createTranslationIfNotExists("testResult.filteredCases.failTitle", languageCode, "실패 테스트 케이스", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.notRunTitle", languageCode, "미실행 테스트 케이스", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.column.actions", languageCode, "작업", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.goToResult", languageCode, "결과 상세 보기", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.goToExecution", languageCode, "실행으로 이동", createdBy);
+                createTranslationIfNotExists("testResult.filteredCases.goToExecutionList", languageCode, "실행 목록으로 이동", createdBy);
                 createTranslationIfNotExists("testResult.filter.title", languageCode, "통계 필터", createdBy);
                 createTranslationIfNotExists("testResult.filter.applied", languageCode, "{count}개 적용", createdBy);
                 createTranslationIfNotExists("testResult.filter.refresh", languageCode, "새로고침", createdBy);

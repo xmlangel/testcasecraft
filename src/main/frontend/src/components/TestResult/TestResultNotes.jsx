@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, IconButton } from '@mui/material';
-import { NavigateBefore as NavigateBeforeIcon, NavigateNext as NavigateNextIcon } from '@mui/icons-material';
+import { Box, Typography, IconButton, Snackbar, Alert, Tooltip } from '@mui/material';
+import { 
+    ContentCopy as CopyIcon
+} from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
+import { copyToClipboard } from '../../utils';
+import TestResultFloatingMenu from './TestResultFloatingMenu.jsx';
 
 const TestResultNotes = ({
     notes,
@@ -13,7 +17,20 @@ const TestResultNotes = ({
     onNext,
     onPrevious,
     currentIndex,
-    totalCount
+    totalCount,
+    onFullscreenChange, // 추가된 콜백
+    // 플로팅 메뉴를 위한 추가 prop들
+    result,
+    onResultChange,
+    onSave,
+    onClose,
+    loading,
+    shouldShowJiraButton,
+    handleOpenJiraDialog,
+    testCase,
+    saveButtonRef,
+    onMarkdownPaste,
+    inlineImageUploading
 }) => {
     // localStorage key
     const STORAGE_KEY = 'notes-editor-preview-mode';
@@ -29,23 +46,38 @@ const TestResultNotes = ({
     // 전체화면 상태 감지
     const [isFullscreen, setIsFullscreen] = useState(false);
 
+    // 복사 성공 메시지 상태
+    const [copySuccess, setCopySuccess] = useState(false);
+
     // 에스케이프 키 또는 MDEditor의 전체화면 토글 감지를 위한 효과
     useEffect(() => {
         const handleFullscreenChange = () => {
             // MDEditor는 클래스 이름 변경으로 전체화면을 처리하므로 DOM 상태 확인
             const editorElement = document.querySelector('.w-md-editor-fullscreen');
-            setIsFullscreen(!!editorElement);
+            const newIsFullscreen = !!editorElement;
+            
+            if (newIsFullscreen !== isFullscreen) {
+                setIsFullscreen(newIsFullscreen);
+                if (onFullscreenChange) {
+                    onFullscreenChange(newIsFullscreen);
+                }
+            }
         };
 
+        // DOM 변화가 생길 때마다 전체화면 여부 확인 (MDEditor가 DOM을 직접 조작할 수 있으므로 body 관찰)
         const observer = new MutationObserver(handleFullscreenChange);
-        const editorContainer = document.querySelector('[data-testid="result-notes-input"]')?.closest('.w-md-editor');
         
-        if (editorContainer) {
-            observer.observe(editorContainer, { attributes: true, attributeFilter: ['class'] });
-        }
+        observer.observe(document.body, { 
+            attributes: true, 
+            subtree: true, 
+            attributeFilter: ['class'] 
+        });
+
+        // 초기 상태 확인
+        handleFullscreenChange();
 
         return () => observer.disconnect();
-    }, []);
+    }, [isFullscreen, onFullscreenChange]);
 
     // 디버그 모드일 때 노트 내 첨부파일 URL 로그 출력
     useEffect(() => {
@@ -68,10 +100,39 @@ const TestResultNotes = ({
         localStorage.setItem(STORAGE_KEY, mode);
     };
 
+    // 노트 복사 핸들러
+    const handleCopyNotes = async () => {
+        const success = await copyToClipboard(notes);
+        if (success) {
+            setCopySuccess(true);
+        }
+    };
+
     return (
         <Box sx={{ mt: 2, position: 'relative' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle2">{t('testResult.form.notes', '비고')}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle2">{t('testResult.form.notes', '비고')}</Typography>
+                    {notes && (
+                        <Tooltip title={t('testcase.notes.copy', '노트 복사')}>
+                            <IconButton 
+                                size="small" 
+                                onClick={handleCopyNotes}
+                                sx={{ 
+                                    ml: 0.5,
+                                    padding: '2px',
+                                    color: 'text.secondary',
+                                    '&:hover': {
+                                        color: 'primary.main',
+                                        backgroundColor: 'action.hover'
+                                    }
+                                }}
+                            >
+                                <CopyIcon sx={{ fontSize: '1rem' }} />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Typography variant="caption" color={notes.length >= 9500 ? 'error' : 'text.secondary'}>
                         {notes.length}/10,000
@@ -89,6 +150,7 @@ const TestResultNotes = ({
                             setNotes('');
                         }
                     }}
+                    onPaste={onMarkdownPaste}
                     preview={previewMode}
                     height={height}
                     disabled={isViewer}
@@ -96,50 +158,35 @@ const TestResultNotes = ({
                         'data-testid': 'result-notes-input'
                     }}
                 />
-                
-                {/* 전체화면 모드일 때 상단 내비게이션 바 */}
-                {isFullscreen && (
-                    <Box sx={{
-                        position: 'fixed',
-                        top: 10,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 2,
-                        bgcolor: 'rgba(0, 0, 0, 0.6)',
-                        px: 3,
-                        py: 1,
-                        borderRadius: 10,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                    }}>
-                        <Button
-                            variant="text"
-                            startIcon={<NavigateBeforeIcon />}
-                            onClick={onPrevious}
-                            disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
-                            sx={{ color: '#fff', '&.Mui-disabled': { color: 'rgba(255,255,255,0.3)' } }}
-                        >
-                            {t('common.button.previous', '이전')}
-                        </Button>
-                        
-                        <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600, mx: 2 }}>
-                            {totalCount > 0 ? `${currentIndex + 1} / ${totalCount}` : ''}
-                        </Typography>
 
-                        <Button
-                            variant="text"
-                            endIcon={<NavigateNextIcon />}
-                            onClick={onNext}
-                            disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
-                            sx={{ color: '#fff', '&.Mui-disabled': { color: 'rgba(255,255,255,0.3)' } }}
-                        >
-                            {t('common.button.next', '다음')}
-                        </Button>
+                {inlineImageUploading && (
+                    <Box sx={{ mt: 1 }}>
+                        <Alert severity="info" sx={{ py: 0 }}>
+                            {t('testcase.inlineImage.uploadingProgress', '이미지 업로드 중...')}
+                        </Alert>
                     </Box>
+                )}
+                
+                {/* 전체화면 모드일 때 메인 플로팅 메뉴 노출 (zIndex 문제 해결을 위해 내부에서 렌더링) */}
+                {isFullscreen && (
+                    <TestResultFloatingMenu
+                        result={result}
+                        onResultChange={onResultChange}
+                        onPrevious={onPrevious}
+                        onNext={onNext}
+                        onSave={onSave}
+                        onClose={onClose}
+                        currentIndex={currentIndex}
+                        totalCount={totalCount}
+                        isViewer={isViewer}
+                        loading={loading}
+                        shouldShowJiraButton={shouldShowJiraButton}
+                        handleOpenJiraDialog={handleOpenJiraDialog}
+                        testCase={testCase}
+                        saveButtonRef={saveButtonRef}
+                        t={t}
+                        isNotesFullscreen={true}
+                    />
                 )}
 
                 {notes.length >= 9500 && (
@@ -149,6 +196,18 @@ const TestResultNotes = ({
                     </Typography>
                 )}
             </Box>
+
+            {/* 복사 성공 알림 */}
+            <Snackbar
+                open={copySuccess}
+                autoHideDuration={2000}
+                onClose={() => setCopySuccess(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={() => setCopySuccess(false)} severity="success" sx={{ width: '100%' }}>
+                    {t('testcase.notes.copy_message', '노트가 클립보드에 복사되었습니다.')}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

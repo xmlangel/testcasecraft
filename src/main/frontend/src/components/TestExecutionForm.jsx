@@ -87,6 +87,26 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
+  // 일반 정보(이름, 설명, 태그) 편집 모드 여부
+  const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(!executionId);
+  const [originalExecution, setOriginalExecution] = useState(null);
+
+  const handleEditClick = useCallback(() => {
+    setOriginalExecution({ ...execution });
+    setIsEditingBasicInfo(true);
+  }, [execution]);
+
+  const handleCancelEditFromHeader = useCallback(() => {
+    if (!executionId) {
+      onCancel();
+    } else {
+      if (originalExecution) {
+        setExecution(originalExecution);
+      }
+      setIsEditingBasicInfo(false);
+    }
+  }, [executionId, onCancel, originalExecution]);
+
   // 필터 관련 상태
   const [filters, setFilters] = useState({
     name: '',
@@ -293,6 +313,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     try {
       const saved = await addOrUpdateTestExecution(execution);
       setExecution(saved);
+      setIsEditingBasicInfo(false); // 저장 성공 시 편집 모드 종료
 
       // 즉시 시작 옵션이 선택된 경우 테스트 실행 시작
       if (startImmediately && saved.id && saved.status === ExecutionStatus.NOTSTARTED) {
@@ -499,11 +520,14 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // 프로젝트별 테스트 실행 목록으로 이동
   const handleGoToList = () => {
-    // api() 함수가 자동으로 토큰 갱신을 처리하므로 명시적 검증 불필요
-    if (activeProject?.id) {
-      navigate(`/projects/${activeProject.id}/executions`);
+    // 1. propProjectId (URL Params) -> 2. execution.projectId -> 3. activeProject.id 순으로 확인
+    const projectId = propProjectId || execution?.projectId || activeProject?.id;
+    
+    if (projectId) {
+      navigate(`/projects/${projectId}/executions`);
     } else {
-      navigate("/executions");
+      // 프로젝트 ID를 찾을 수 없는 경우에만 전체 실행 목록 또는 프로젝트 선택으로 이동
+      navigate("/projects");
     }
   };
 
@@ -612,38 +636,50 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   useEffect(() => {
     // 이 로직은 TestResultForm 내부가 아닌, TestExecutionForm에서 TestResultForm을 열 때
     // location.state를 감지하여 특정 테스트 케이스를 선택하고 TestResultForm을 열도록 조정해야 합니다.
-    // 현재 이 useEffect는 TestExecutionForm 자체의 상태를 변경하는 데 사용될 수 있습니다.
-    // 예를 들어, 특정 testCaseId를 선택하고 TestResultForm을 열도록 트리거하는 방식입니다.
     if (location.state?.autoFillJiraIssueKey && location.state?.testCaseIdToSelect) {
-      const { autoFillJiraIssueKey, testCaseIdToSelect } = location.state;
+      const { testCaseIdToSelect } = location.state;
 
       // TestResultForm을 열기 위한 상태 설정
       setSelectedTestCaseId(testCaseIdToSelect);
       setIsResultFormOpen(true);
-
-      // TestResultForm이 열릴 때 autoFillJiraIssueKey를 전달할 수 있도록 상태에 저장하거나,
-      // TestResultForm 컴포넌트 자체에서 location.state를 읽도록 구현해야 합니다.
-      // 여기서는 TestExecutionForm의 상태에 저장하여 TestResultForm에 prop으로 전달하는 방식을 가정합니다.
-      // setAutoFillJiraIssueKeyForForm(autoFillJiraIssueKey); // 예시: TestResultForm에 전달할 상태
-      // 실제 구현에서는 TestResultForm이 location.state를 직접 읽는 것이 더 효율적일 수 있습니다.
-
-      // 사용 후 location.state를 정리하여 다음 번에 불필요하게 트리거되지 않도록 합니다.
-      // navigate('.', { replace: true, state: {} }); // 또는 필요한 state만 남기고 정리
     }
   }, [location.state, navigate]);
 
-  const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
+  const canEditBasicInfo = isEditingBasicInfo; // 이름, 설명, 태그는 편집 모드일 때만 수정 가능
+  const canEditPlan = execution?.status === ExecutionStatus.NOTSTARTED; // 테스트 플랜 변경은 시작 전까지만 가능
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
   const canRestartExecution = execution?.status === ExecutionStatus.COMPLETED;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
 
+  // 1. 테스트 케이스별 가장 최근 유효한 JIRA ID 맵 생성 (같은 실행 내의 과거 이력 포함)
+  const effectiveJiraMap = useMemo(() => {
+    const map = new Map();
+    const results = execution?.results || [];
+    // execution.results를 순회하며 각 케이스별로 발견되는 모든 JIRA ID 중 가장 최근 것을 저장합니다.
+    // getLatestResults와 정렬 방식이 일치하도록 처리합니다.
+    [...results]
+      .sort((a, b) => new Date(b.executedAt || 0) - new Date(a.executedAt || 0))
+      .forEach(r => {
+        if (r.jiraIssueKey && !map.has(r.testCaseId)) {
+          map.set(r.testCaseId, r.jiraIssueKey);
+        }
+      });
+    return map;
+  }, [execution?.results]);
+
   const latestResults = useMemo(() => getLatestResults(execution?.results || []), [execution?.results]);
   const resultsMap = useMemo(() => {
     const map = new Map();
-    latestResults.forEach((r) => map.set(r.testCaseId, r));
+    latestResults.forEach((r) => {
+      const effectiveJira = effectiveJiraMap.get(r.testCaseId);
+      map.set(r.testCaseId, {
+        ...r,
+        effectiveJiraIssueKey: effectiveJira // 과거 이력 포함 가장 최근 JIRA ID
+      });
+    });
     return map;
-  }, [latestResults]);
+  }, [latestResults, effectiveJiraMap]);
 
 
   // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
@@ -660,96 +696,140 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // 필터링된 데이터
   const filteredData = useMemo(() => {
-    return flattenedData.filter(node => {
-      // 폴더는 항상 표시
-      if (node.type === 'folder') return true;
+    // 1. 필터가 활성화되어 있는지 확인
+    const hasActiveFilters = !!(filters.name || filters.priority || filters.result || filters.executedBy || filters.executionDate || filters.jiraIssueKey || filters.notes);
+
+    if (!hasActiveFilters) {
+      return flattenedData;
+    }
+
+    // 2. 필터에 매칭되는 테스트 케이스 ID 식별
+    const matchingTestCaseIds = new Set();
+    flattenedData.forEach(node => {
+      if (node.type !== 'testcase') return;
+
+      let matches = true;
 
       // 이름 필터
       if (filters.name) {
         if (!node.name.toLowerCase().includes(filters.name.trim().toLowerCase())) {
-          return false;
+          matches = false;
         }
       }
 
       // 우선순위 필터
-      if (filters.priority && node.priority !== filters.priority) {
-        return false;
+      if (matches && filters.priority && node.priority !== filters.priority) {
+        matches = false;
       }
 
       // 결과 필터 - resultsMap에서 확인
-      if (filters.result) {
+      if (matches && filters.result) {
         const resultObj = resultsMap.get(node.id);
         const result = resultObj?.result || 'NOTRUN';
         if (result !== filters.result) {
-          return false;
+          matches = false;
         }
       }
 
       // 실행자, 실행일자, JIRA, 노트 필터 - resultsMap에서 확인
-      if (filters.executedBy || filters.executionDate || filters.jiraIssueKey || filters.notes) {
+      if (matches && (filters.executedBy || filters.executionDate || filters.jiraIssueKey || filters.notes)) {
         const resultObj = resultsMap.get(node.id);
 
         if (!resultObj) {
-          // 결과가 없으면 필터 조건을 만족할 수 없음
-          return false;
-        }
+          matches = false;
+        } else {
+          // 실행자 필터
+          if (filters.executedBy) {
+            const executedBy = resultObj.executedBy;
+            let executedByStr = '';
 
-        // 실행자 필터
-        if (filters.executedBy) {
-          const executedBy = resultObj.executedBy;
-          let executedByStr = '';
+            if (executedBy && typeof executedBy === 'object') {
+              executedByStr = executedBy.username || executedBy.name || '';
+            } else if (executedBy) {
+              executedByStr = String(executedBy);
+            }
 
-          if (executedBy && typeof executedBy === 'object') {
-            executedByStr = executedBy.username || executedBy.name || '';
-          } else if (executedBy) {
-            executedByStr = String(executedBy);
+            if (!executedByStr.toLowerCase().includes(filters.executedBy.trim().toLowerCase())) {
+              matches = false;
+            }
           }
 
-          if (!executedByStr.toLowerCase().includes(filters.executedBy.trim().toLowerCase())) {
-            return false;
+          // 실행일자 필터
+          if (matches && filters.executionDate) {
+            const executedAt = parseDateTime(resultObj.executedAt);
+
+            if (!executedAt) {
+              matches = false;
+            } else {
+              // YYYY-MM-DD 형식 문자열 비교 (로컬 시간 기준)
+              const year = executedAt.getFullYear();
+              const month = String(executedAt.getMonth() + 1).padStart(2, '0');
+              const day = String(executedAt.getDate()).padStart(2, '0');
+              const dateString = `${year}-${month}-${day}`;
+
+              if (dateString !== filters.executionDate) {
+                matches = false;
+              }
+            }
           }
-        }
 
-        // 실행일자 필터
-        if (filters.executionDate) {
-          const executedAt = parseDateTime(resultObj.executedAt);
-
-          if (!executedAt) {
-            return false;
+          // JIRA 아이디 필터
+          if (matches && filters.jiraIssueKey) {
+            const jiraKey = resultObj.jiraIssueKey || '';
+            const effectiveJiraKey = resultObj.effectiveJiraIssueKey || '';
+            const searchStr = filters.jiraIssueKey.trim().toLowerCase();
+            
+            if (!jiraKey.toLowerCase().includes(searchStr) && 
+                !effectiveJiraKey.toLowerCase().includes(searchStr)) {
+              matches = false;
+            }
           }
 
-          // YYYY-MM-DD 형식 문자열 비교 (로컬 시간 기준)
-          const year = executedAt.getFullYear();
-          const month = String(executedAt.getMonth() + 1).padStart(2, '0');
-          const day = String(executedAt.getDate()).padStart(2, '0');
-          const dateString = `${year}-${month}-${day}`;
-
-          if (dateString !== filters.executionDate) {
-            return false;
-          }
-        }
-
-        // JIRA 아이디 필터
-        if (filters.jiraIssueKey) {
-          const jiraKey = resultObj.jiraIssueKey || '';
-          if (!jiraKey.toLowerCase().includes(filters.jiraIssueKey.trim().toLowerCase())) {
-            return false;
-          }
-        }
-
-        // 노트 필터
-        if (filters.notes) {
-          const notes = resultObj.notes || '';
-          if (!notes.toLowerCase().includes(filters.notes.trim().toLowerCase())) {
-            return false;
+          // 노트 필터
+          if (matches && filters.notes) {
+            const notes = resultObj.notes || '';
+            if (!notes.toLowerCase().includes(filters.notes.trim().toLowerCase())) {
+              matches = false;
+            }
           }
         }
       }
 
-      return true;
+      if (matches) {
+        matchingTestCaseIds.add(node.id);
+      }
     });
-  }, [flattenedData, filters, resultsMap]);
 
+    // 3. 보여줄 폴더 ID 식별 (매칭된 테스트 케이스의 모든 상위 폴더)
+    const folderIdsToShow = new Set();
+    if (matchingTestCaseIds.size > 0) {
+      // 빠른 조회를 위해 맵 생성
+      const idToNode = {};
+      flattenedData.forEach(node => {
+        idToNode[node.id] = node;
+      });
+
+      matchingTestCaseIds.forEach(id => {
+        let current = idToNode[id];
+        // 상위로 올라가며 폴더들을 표시 대상에 추가
+        while (current && current.parentId) {
+          const parent = idToNode[current.parentId];
+          if (parent && parent.type === 'folder') {
+            if (folderIdsToShow.has(parent.id)) break; // 이미 추가된 상위 구조
+            folderIdsToShow.add(parent.id);
+            current = parent;
+          } else {
+            break;
+          }
+        }
+      });
+    }
+
+    // 4. 매칭된 케이스와 관련 폴더만 반환
+    return flattenedData.filter(node =>
+      matchingTestCaseIds.has(node.id) || folderIdsToShow.has(node.id)
+    );
+  }, [flattenedData, filters, resultsMap]);
   const statusCounts = useMemo(() => {
     const counts = { PASS: 0, FAIL: 0, NOTRUN: 0, BLOCKED: 0, total: testCaseIds.length };
     testCaseIds.forEach((id) => {
@@ -864,19 +944,23 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   return (
     <Box sx={PAGE_CONTAINER_SX.main}>
-      <TestExecutionHeader
-        executionId={executionId}
-        executionName={execution?.name}
-        execution={execution}
-        onCancel={onCancel}
-        onGoToList={handleGoToList}
-        onSaveOrUpdate={handleSaveOrUpdate}
-        saving={saving}
-        canEditBasicInfo={canEditBasicInfo}
-        startImmediately={startImmediately}
-        showExecutionGuide={showExecutionGuide}
-        setShowExecutionGuide={setShowExecutionGuide}
-      />
+        <TestExecutionHeader
+          executionId={executionId}
+          executionName={execution?.name}
+          execution={execution}
+          onCancel={onCancel}
+          onGoToList={handleGoToList}
+          onSaveOrUpdate={handleSaveOrUpdate}
+          saving={saving}
+          canEditBasicInfo={canEditBasicInfo}
+          canEditPlan={canEditPlan}
+          startImmediately={startImmediately}
+          showExecutionGuide={showExecutionGuide}
+          setShowExecutionGuide={setShowExecutionGuide}
+          isEditingBasicInfo={isEditingBasicInfo}
+          onEditClick={handleEditClick}
+          onCancelEdit={handleCancelEditFromHeader}
+        />
 
       {/* 실행 요약 정보 (Info & Status) - Accordion 적용 */}
       <Accordion 
@@ -931,6 +1015,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
                 availableTags={availableTags}
                 setExecution={setExecution}
                 canEditBasicInfo={canEditBasicInfo}
+                canEditPlan={canEditPlan}
                 startImmediately={startImmediately}
                 setStartImmediately={setStartImmediately}
                 executionId={executionId}
@@ -1053,7 +1138,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
             <TestExecutionTable
               visibleData={visibleData}
               resultsMap={resultsMap}
-              totalItems={filteredData.length}
+              totalItems={filteredData.filter(n => n.type === 'testcase').length}
               hasMore={hasMore}
               loadMore={loadMore}
               handleOpenResultForm={handleOpenResultForm}
