@@ -192,6 +192,9 @@ public class KoreanJiraIntegrationTranslations {
         createTranslationIfNotExists("jira.comment.button.send", languageCode, "코멘트 전송", createdBy);
         createTranslationIfNotExists("jira.comment.button.sending", languageCode, "전송 중...", createdBy);
         createTranslationIfNotExists("jira.comment.button.regenerate", languageCode, "코멘트 재생성", createdBy);
+        createTranslationIfNotExists("jira.comment.tab.edit", languageCode, "편집", createdBy);
+        createTranslationIfNotExists("jira.comment.tab.preview", languageCode, "미리보기", createdBy);
+        createTranslationIfNotExists("jira.comment.preview.empty", languageCode, "미리 볼 내용이 없습니다.", createdBy);
         createTranslationIfNotExists("jira.comment.template.title", languageCode, "테스트 결과 업데이트", createdBy);
         createTranslationIfNotExists("jira.comment.template.testCase", languageCode, "테스트 케이스:", createdBy);
         createTranslationIfNotExists("jira.comment.template.result", languageCode, "결과:", createdBy);
@@ -212,6 +215,31 @@ public class KoreanJiraIntegrationTranslations {
         createTranslationIfNotExists("jira.history.column.notes", languageCode, "메모", createdBy);
         createTranslationIfNotExists("jira.history.noResults", languageCode, "해당 JIRA 이슈와 연결된 테스트 결과가 없습니다.", createdBy);
         createTranslationIfNotExists("jira.history.tooltip", languageCode, "클릭하여 테스트 히스토리 보기", createdBy);
+
+        // JIRA 이슈 생성 관련 (ICT-184)
+        createTranslationIfNotExists("jira.create.dialogTitle", languageCode, "JIRA 이슈 생성", createdBy);
+        createTranslationIfNotExists("jira.create.field.project.label", languageCode, "JIRA 프로젝트", createdBy);
+        createTranslationIfNotExists("jira.create.field.issueType.label", languageCode, "이슈 유형", createdBy);
+        createTranslationIfNotExists("jira.create.field.summary.label", languageCode, "요약", createdBy);
+        createTranslationIfNotExists("jira.create.field.summary.placeholder", languageCode, "이슈 요약을 입력하세요", createdBy);
+        createTranslationIfNotExists("jira.create.field.description.label", languageCode, "설명 (Markdown)", createdBy);
+        createTranslationIfNotExists("jira.create.field.description.placeholder", languageCode, "이슈 설명을 입력하세요", createdBy);
+        createTranslationIfNotExists("jira.create.button.create", languageCode, "이슈 생성", createdBy);
+        createTranslationIfNotExists("jira.create.button.creating", languageCode, "생성 중...", createdBy);
+        createTranslationIfNotExists("jira.create.success.message", languageCode, "JIRA 이슈가 성공적으로 생성되었습니다: {issueKey}", createdBy);
+        createTranslationIfNotExists("jira.create.error.fetchIssueTypes", languageCode, "이슈 유형을 불러오는데 실패했습니다.", createdBy);
+        createTranslationIfNotExists("jira.create.error.fetchProjects", languageCode, "JIRA 프로젝트 목록을 불러오는데 실패했습니다.", createdBy);
+        createTranslationIfNotExists("jira.create.error.fieldsRequired", languageCode, "모든 필수 필드를 입력해주세요.", createdBy);
+        
+        // 이슈 생성 템플릿
+        createTranslationIfNotExists("jira.create.template.preCondition", languageCode, "### 사전 조건", createdBy);
+        createTranslationIfNotExists("jira.create.template.expectedResult", languageCode, "### 예상 결과", createdBy);
+        createTranslationIfNotExists("jira.create.template.actualResult", languageCode, "### 실제 결과", createdBy);
+        createTranslationIfNotExists("jira.create.template.testCase", languageCode, "**테스트 케이스**: {name}", createdBy);
+
+        // 첨부파일 관련
+        createTranslationIfNotExists("jira.create.success.attachmentCount", languageCode, "{count}개의 첨부파일이 함께 업로드되었습니다.", createdBy);
+        createTranslationIfNotExists("jira.create.error.attachmentFailed", languageCode, "첨부파일 업로드 중 일부 오류가 발생했습니다: {message}", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

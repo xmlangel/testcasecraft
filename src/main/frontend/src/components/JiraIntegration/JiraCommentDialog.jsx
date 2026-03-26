@@ -19,15 +19,23 @@ import {
     ListItem,
     ListItemText,
     ListItemIcon,
-    Divider
+    Divider,
+    Tabs,
+    Tab,
+    Paper
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
     Close as CloseIcon,
     Send as SendIcon,
     BugReport as BugIcon,
     Link as LinkIcon,
     CheckCircle as CheckCircleIcon,
-    Error as ErrorIcon
+    Error as ErrorIcon,
+    Edit as EditIcon,
+    Visibility as PreviewIcon
 } from '@mui/icons-material';
 import { jiraService } from '../../services/jiraService';
 import { useI18n } from '../../context/I18nContext';
@@ -42,7 +50,9 @@ const JiraCommentDialog = ({
     onCommentAdded = null
 }) => {
     const { t } = useI18n();
+    const theme = useTheme();
     const [issueKey, setIssueKey] = useState('');
+    const [activeTab, setActiveTab] = useState(0); // 0: Edit, 1: Preview
     const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -96,6 +106,7 @@ const JiraCommentDialog = ({
         setError(null);
         setSuccess(false);
         setDetectedIssues([]);
+        setActiveTab(0);
     };
 
     const checkJiraStatus = async () => {
@@ -316,18 +327,83 @@ const JiraCommentDialog = ({
                         label={t('jira.comment.field.autoGenerate.label')}
                     />
 
-                    {/* 코멘트 내용 입력 */}
-                    <TextField
-                        label={t('jira.comment.field.comment.label')}
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        fullWidth
-                        multiline
-                        rows={8}
-                        placeholder={t('jira.comment.field.comment.placeholder')}
-                        disabled={loading || success}
-                        helperText={t('jira.comment.field.comment.charCount', { count: comment.length })}
-                    />
+                    {/* 코멘트 내용 입력 / 미리보기 */}
+                    <Box sx={{ width: '100%' }}>
+                        <Tabs
+                            value={activeTab}
+                            onChange={(e, newValue) => setActiveTab(newValue)}
+                            sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+                            variant="fullWidth"
+                        >
+                            <Tab icon={<EditIcon />} iconPosition="start" label={t('jira.comment.tab.edit', '편집')} />
+                            <Tab icon={<PreviewIcon />} iconPosition="start" label={t('jira.comment.tab.preview', '미리보기')} />
+                        </Tabs>
+
+                        {activeTab === 0 ? (
+                            <TextField
+                                label={t('jira.comment.field.comment.label')}
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                fullWidth
+                                multiline
+                                rows={8}
+                                placeholder={t('jira.comment.field.comment.placeholder')}
+                                disabled={loading || success}
+                                helperText={t('jira.comment.field.comment.charCount', { count: comment.length })}
+                            />
+                        ) : (
+                            <Paper
+                                variant="outlined"
+                                sx={{
+                                    p: 2,
+                                    minHeight: '228px',
+                                    maxHeight: '400px',
+                                    overflowY: 'auto',
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
+                                    '& p': { m: 0, mb: 1.5 },
+                                    '& p:last-child': { mb: 0 },
+                                    '& h1, & h2, & h3, & h4, & h5, & h6': { mt: 2, mb: 1 },
+                                    '& ul, & ol': { pl: 2.5, mb: 1.5 },
+                                    '& li': { mb: 0.5 },
+                                    '& code': {
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'grey.200',
+                                        px: 0.5,
+                                        py: 0.25,
+                                        borderRadius: 0.5,
+                                        fontFamily: 'monospace',
+                                    },
+                                    '& pre': {
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'grey.200',
+                                        p: 1.5,
+                                        borderRadius: 1,
+                                        overflowX: 'auto',
+                                        '& code': { bgcolor: 'transparent', p: 0 }
+                                    },
+                                    '& blockquote': {
+                                        borderLeft: 4,
+                                        borderColor: 'divider',
+                                        pl: 2,
+                                        py: 0.5,
+                                        m: 0,
+                                        mb: 1.5,
+                                        fontStyle: 'italic',
+                                        color: 'text.secondary'
+                                    },
+                                    '& hr': { my: 2, border: 0, borderTop: 1, borderColor: 'divider' }
+                                }}
+                            >
+                                {comment ? (
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {comment}
+                                    </ReactMarkdown>
+                                ) : (
+                                    <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                        {t('jira.comment.preview.empty', '미리 볼 내용이 없습니다.')}
+                                    </Typography>
+                                )}
+                            </Paper>
+                        )}
+                    </Box>
 
                     {/* 테스트 정보 표시 */}
                     {testCase && testResult && (

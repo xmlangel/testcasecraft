@@ -88,3 +88,115 @@
 - 에러 응답 규약(`ErrorResponse`) 준수
 - `docs/sbtm/SBTM_IMPLEMENTATION_STATUS.md` 업데이트
 
+## 6. 탭별 작업 진행계획 (Exploratory Session Workspace)
+
+### 6.1 탭 1: 차터 관리
+- 목표
+  - `차터 생성/조회/수정/ARCHIVED 전환`을 실데이터로 운영
+- 백엔드 작업
+  - `POST /api/charters`, `GET /api/projects/{projectId}/charters`, `GET /api/charters/{id}`, `PUT /api/charters/{id}` 응답 필드 점검
+  - ARCHIVED 차터 사용 제한(세션 생성 차단) 회귀 점검
+- 프론트 작업
+  - `ExploratorySessionWorkspace` 하드코딩 차터 목록 제거
+  - 프로젝트 단위 차터 조회, 상태 필터, 생성/수정 다이얼로그 API 연동
+- 테스트
+  - 차터 생성/수정/상태 변경 API 테스트
+  - UI E2E: 필터/생성/수정/보관 플로우
+- 완료 기준
+  - 탭 진입 시 실데이터 표시
+  - ARCHIVED 차터는 신규 세션 할당 불가
+
+### 6.2 탭 2: 세션 목록
+- 목표
+  - 세션 목록 필터/페이징/정렬을 실데이터로 제공
+- 백엔드 작업
+  - `GET /api/projects/{projectId}/sessions` 필터(`status`, `from`, `to`, `testerId`, `charterId`) 검증
+  - 목록 응답 성능 점검(인덱스/쿼리 플랜)
+- 프론트 작업
+  - 하드코딩 세션 목록 제거
+  - 필터 입력값을 쿼리 파라미터로 매핑
+  - 페이지 전환/정렬 UX 반영
+- 테스트
+  - 필터 조합 API 테스트 추가
+  - UI E2E: 필터 조건별 결과 정확성 검증
+- 완료 기준
+  - 동일 조건 재조회 시 일관된 결과
+  - 대시보드/상세 이동 경로 정상 동작
+
+### 6.3 탭 3: 세션 작성/편집
+- 목표
+  - 세션 생성/수정 + 라이프사이클(`start/pause/resume/end/submit`) 실사용 가능 상태
+- 백엔드 작업
+  - 기존 세션 상태 전이 API 안정화
+  - `POST /api/sessions/{id}/artifacts` 신규 구현
+  - SessionNote/SessionIssue CRUD API 구현
+- 프론트 작업
+  - 타이머/시간 배분/노트/이슈/증적 업로드를 API 연동
+  - 상태별 버튼 활성/비활성 제어
+  - 100% 시간 배분 검증 메시지 표준화
+- 테스트
+  - 상태 전이 API + 아티팩트/노트/이슈 API TestNG
+  - UI E2E: 작성 중단/재개/종료/제출 시나리오
+- 완료 기준
+  - 작성 데이터 새로고침 후 재현
+  - 상태 전이 오류 없이 제출 가능
+
+### 6.4 탭 4: 디브리프/승인
+- 목표
+  - 제출 세션에 대해 리드 승인/보완요청 운영 가능
+- 백엔드 작업
+  - `POST /api/sessions/{id}/approve`, `POST /api/sessions/{id}/request-update` 권한 강화
+  - 승인 이력 조회 API(`GET /api/sessions/{id}/approvals`) 구현
+- 프론트 작업
+  - 제출 상태 세션 선택, 리드 코멘트 입력, 승인/보완요청 액션 연결
+  - 승인 결과/코멘트/처리자 표시
+- 테스트
+  - 권한별 승인 API 접근 테스트
+  - UI E2E: 제출→보완요청→재제출→승인 플로우
+- 완료 기준
+  - 승인/보완요청 이력이 누락 없이 저장/조회
+  - 비권한 사용자 승인 액션 차단
+
+### 6.5 탭 5: 세션 상세
+- 목표
+  - 세션 단위 타임라인(중단/재개/승인/이슈/아티팩트) 통합 조회
+- 백엔드 작업
+  - `GET /api/sessions/{id}` 확장 필드 또는 전용 상세 API 설계
+  - `GET /api/sessions/{id}/interruptions`, `GET /api/sessions/{id}/approvals` 구현
+- 프론트 작업
+  - 읽기 전용 타임라인 컴포넌트 구성
+  - 아티팩트 미리보기/다운로드 링크 연결
+- 테스트
+  - 상세 조회 API 정합성 테스트
+  - UI E2E: 타임라인 이벤트 순서/내용 검증
+- 완료 기준
+  - 단일 세션의 핵심 이벤트를 한 화면에서 재구성 가능
+  - 승인 리포트/증적 접근 가능
+
+### 6.6 탭별 실행 순서(권장)
+1. 탭 1 차터 관리 (완료)
+2. 탭 2 세션 목록
+3. 탭 3 세션 작성/편집
+4. 탭 4 디브리프/승인
+5. 탭 5 세션 상세
+
+
+
+## 아래부분은 수정하지말아.
+- 백엔드 API 핵심은 구현되어 있습니다. 세션 생성/조회/수정/라이프사이클/제출/승인/보완요청/목록 필터 API가 존재합니다: src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:37, src/main/java/com/
+    testcase/testcasemanagement/controller/TestSessionController.java:109
+  - 서비스 로직도 상태 전이, 중단시간 집계, 승인 이력 append가 구현되어 있습니다: src/main/java/com/testcase/testcasemanagement/service/TestSessionService.java:102, src/main/java/com/testcase/testcasemanagement/service/
+    TestSessionService.java:115, src/main/java/com/testcase/testcasemanagement/service/TestSessionService.java:184
+  - 차터 API도 구현되어 있습니다: src/main/java/com/testcase/testcasemanagement/controller/TestCharterController.java:28
+  - API 테스트는 TestNG로 작성되어 있습니다(5개 시나리오): src/test/java/com/testcase/testcasemanagement/api/SessionControllerApiTest.java:64, src/test/java/com/testcase/testcasemanagement/api/SessionControllerApiTest.java:196
+  - 프론트 SBTM 화면은 실제로는 “UI 초안/목업” 수준입니다. 하드코딩 초기 데이터로 동작하고 백엔드 연동이 없습니다: src/main/frontend/src/components/ExploratorySessionWorkspace.jsx:40, src/main/frontend/src/components/
+    ExploratorySessionWorkspace.jsx:215
+  - 탐색 세션 탭은 현재 노출 상태입니다(true): src/main/frontend/src/App.jsx:84, src/main/frontend/src/App.jsx:1021
+  - 미구현(문서와 코드 일치) 항목은 여전히 없습니다.
+      - 아티팩트 업로드 API (/api/sessions/{id}/artifacts)
+      - SessionNote/SessionIssue 도메인/API
+      - approvals/interruptions 조회 API
+      - Session API의 프로젝트 멤버십 기반 접근제어(projectSecurityService)
+        근거: docs/sbtm/SBTM_IMPLEMENTATION_STATUS.md:82, 그리고 TestSessionController에 해당 엔드포인트/권한식 부재 src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:30
+  ----
+  여기까지 수정하지 말아.

@@ -1,4 +1,3 @@
-// src/components/JiraIntegration/JiraIssueLinker.jsx
 import React, { useState, useEffect } from 'react';
 import {
     Box,
@@ -33,14 +32,20 @@ import {
 } from '@mui/icons-material';
 import { jiraService } from '../../services/jiraService';
 import { useTheme } from '@mui/material/styles';
+import { useI18n } from '../../context/I18nContext';
+import JiraIssueCreationDialog from './JiraIssueCreationDialog.jsx';
 
 const JiraIssueLinker = ({
     testResult = null,
+    testCase = null,
+    projectId = null,
     onIssueLinked = null,
     onIssueUnlinked = null,
     linkedIssues = [],
-    disabled = false
+    disabled = false,
+    initialSearchQuery = ''
 }) => {
+    const { t } = useI18n();
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -51,11 +56,17 @@ const JiraIssueLinker = ({
     // ICT-184: 이슈 존재 여부 검증 상태
     const [issueValidation, setIssueValidation] = useState({ status: null, message: null });
     const [validationLoading, setValidationLoading] = useState(false);
+    const [creationDialogOpen, setCreationDialogOpen] = useState(false);
     const theme = useTheme();
 
     useEffect(() => {
         checkJiraStatus();
         loadRecentIssues();
+        
+        // ICT-184: 기존 입력된 이슈 키가 있다면 검색어에 채우기
+        if (initialSearchQuery && !searchQuery) {
+            setSearchQuery(initialSearchQuery);
+        }
     }, []);
 
     // ICT-184: 검색어 변경 시 실시간 검증
@@ -107,17 +118,16 @@ const JiraIssueLinker = ({
             setJiraStatus(status);
 
             if (!status.hasConfig || !status.isConnected) {
-                setError('JIRA 설정이 없거나 연결에 실패했습니다.');
+                setError(t('jira.linker.noConfig', 'JIRA 설정이 없거나 연결에 실패했습니다.'));
             }
         } catch (error) {
             console.error('JIRA 상태 확인 실패:', error);
-            setError('JIRA 연결 상태를 확인할 수 없습니다.');
+            setError(t('jira.linker.connectionError', 'JIRA 연결 상태를 확인할 수 없습니다.'));
         }
     };
 
     const loadRecentIssues = async () => {
         try {
-            // 최근 검색한 이슈들을 로컬 스토리지에서 불러오기
             const recent = localStorage.getItem('jira-recent-issues');
             if (recent) {
                 setRecentIssues(JSON.parse(recent));
@@ -137,7 +147,7 @@ const JiraIssueLinker = ({
             }
 
             recent.unshift(issue);
-            const limitedRecent = recent.slice(0, 5); // 최대 5개까지만 저장
+            const limitedRecent = recent.slice(0, 5);
 
             setRecentIssues(limitedRecent);
             localStorage.setItem('jira-recent-issues', JSON.stringify(limitedRecent));
@@ -148,13 +158,12 @@ const JiraIssueLinker = ({
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) {
-            setError('검색어를 입력하세요.');
+            setError(t('jira.linker.enterSearchQuery', '검색어를 입력하세요.'));
             return;
         }
 
-        // ICT-184: 존재하지 않는 이슈 검색 방지
         if (issueValidation.status === 'error' && jiraService.isValidIssueKey(searchQuery.trim())) {
-            setError(`이슈 ${searchQuery.trim()}가 존재하지 않아 검색할 수 없습니다.`);
+            setError(t('jira.linker.issueNotFound', '해당 이슈가 존재하지 않아 검색할 수 없습니다.'));
             return;
         }
 
@@ -166,7 +175,7 @@ const JiraIssueLinker = ({
             setSearchResults(results || []);
 
             if (!results || results.length === 0) {
-                setError('검색 결과가 없습니다.');
+                setError(t('jira.linker.noResults', '검색 결과가 없습니다.'));
             }
         } catch (error) {
             console.error('JIRA 이슈 검색 실패:', error);
@@ -184,13 +193,13 @@ const JiraIssueLinker = ({
 
     const handleIssueSelect = async (issue) => {
         try {
-            // 이슈 상세 정보 로드
+            setSearchQuery(issue.key); // 검색창에 이슈 키 자동 기입
             const detailedIssue = await jiraService.getIssueDetails(issue.key);
             setSelectedIssue(detailedIssue);
             saveRecentIssue(detailedIssue);
         } catch (error) {
             console.error('이슈 상세 정보 로드 실패:', error);
-            setError('이슈 정보를 불러올 수 없습니다.');
+            setError(t('jira.linker.detailsError', '이슈 정보를 불러올 수 없습니다.'));
         }
     };
 
@@ -244,7 +253,7 @@ const JiraIssueLinker = ({
         return (
             <Alert severity="warning" sx={{ mb: 2 }}>
                 <Typography variant="body2">
-                    JIRA 이슈 연동을 사용하려면 먼저 JIRA 설정을 완료해주세요.
+                    {t('jira.linker.noConfigWarning', 'JIRA 이슈 연동을 사용하려면 먼저 JIRA 설정을 완료해주세요.')}
                 </Typography>
             </Alert>
         );
@@ -256,7 +265,7 @@ const JiraIssueLinker = ({
             {linkedIssues.length > 0 && (
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
-                        연결된 JIRA 이슈:
+                        {t('jira.linker.linkedIssues', '연결된 JIRA 이슈')}:
                     </Typography>
                     <List dense>
                         {linkedIssues.map((issue) => (
@@ -289,23 +298,21 @@ const JiraIssueLinker = ({
                                     secondary={issue.summary}
                                 />
                                 <ListItemSecondaryAction>
-                                    <Tooltip title="JIRA에서 열기">
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => openJiraIssue(issue.key)}
+                                        title={t('jira.linker.openInJira', 'JIRA에서 열기')}
+                                    >
+                                        <LaunchIcon />
+                                    </IconButton>
+                                    {!disabled && (
                                         <IconButton
                                             size="small"
-                                            onClick={() => openJiraIssue(issue.key)}
+                                            onClick={() => handleUnlinkIssue(issue.key)}
+                                            title={t('jira.linker.unlink', '연결 해제')}
                                         >
-                                            <LaunchIcon />
+                                            <DeleteIcon />
                                         </IconButton>
-                                    </Tooltip>
-                                    {!disabled && (
-                                        <Tooltip title="연결 해제">
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => handleUnlinkIssue(issue.key)}
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Tooltip>
                                     )}
                                 </ListItemSecondaryAction>
                             </ListItem>
@@ -318,7 +325,7 @@ const JiraIssueLinker = ({
                     {/* 이슈 검색 */}
                     <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" gutterBottom>
-                            JIRA 이슈 검색 및 연결:
+                            {t('jira.linker.searchAndLink', 'JIRA 이슈 검색 및 연결')}:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                             <TextField
@@ -327,9 +334,8 @@ const JiraIssueLinker = ({
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                placeholder="이슈 키 또는 제목으로 검색 (예: TEST-123, '버그 수정')"
+                                placeholder={t('jira.linker.placeholder', '이슈 키, 제목 또는 JIRA URL을 입력하세요 (예: TEST-123)')}
                                 disabled={loading}
-                                // ICT-184: 실시간 검증 결과에 따른 색상 변경
                                 color={
                                     issueValidation.status === 'success' ? 'success' :
                                         issueValidation.status === 'error' ? 'error' : 'primary'
@@ -341,7 +347,6 @@ const JiraIssueLinker = ({
                                                 <SearchIcon />
                                             </InputAdornment>
                                         ),
-                                        // ICT-184: 검증 로딩 및 결과 아이콘 표시
                                         endAdornment: validationLoading || issueValidation.status ? (
                                             <InputAdornment position="end">
                                                 {validationLoading ? (
@@ -357,16 +362,25 @@ const JiraIssueLinker = ({
                                 }}
                             />
                             <Button
-                                variant="outlined"
+                                variant="contained"
                                 onClick={handleSearch}
                                 disabled={loading || !searchQuery.trim()}
                                 startIcon={loading ? <CircularProgress size={16} /> : <SearchIcon />}
                             >
-                                검색
+                                {t('common.button.search', '검색')}
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="secondary"
+                                onClick={() => setCreationDialogOpen(true)}
+                                startIcon={<AddIcon />}
+                                disabled={loading}
+                                sx={{ ml: 1, minWidth: '120px' }}
+                            >
+                                {t('jira.linker.createIssue', '이슈 생성')}
                             </Button>
                         </Box>
 
-                        {/* ICT-184: 실시간 검증 메시지 표시 */}
                         {issueValidation.status && issueValidation.message && (
                             <Alert
                                 severity={issueValidation.status === 'success' ? 'success' : 'error'}
@@ -378,18 +392,16 @@ const JiraIssueLinker = ({
                         )}
                     </Box>
 
-                    {/* 에러 메시지 */}
                     {error && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             {error}
                         </Alert>
                     )}
 
-                    {/* 최근 이슈 목록 */}
                     {recentIssues.length > 0 && searchResults.length === 0 && (
                         <Box sx={{ mb: 2 }}>
                             <Typography variant="caption" color="text.secondary" gutterBottom>
-                                최근 검색한 이슈:
+                                {t('jira.linker.recentIssues', '최근 검색한 이슈')}:
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                 {recentIssues.map((issue) => (
@@ -406,11 +418,10 @@ const JiraIssueLinker = ({
                         </Box>
                     )}
 
-                    {/* 검색 결과 */}
                     {searchResults.length > 0 && (
                         <Box sx={{ mb: 2 }}>
                             <Typography variant="subtitle2" gutterBottom>
-                                검색 결과:
+                                {t('jira.linker.searchResults', '검색 결과')}:
                             </Typography>
                             <List dense sx={{ maxHeight: 300, overflow: 'auto' }}>
                                 {searchResults.map((issue) => (
@@ -437,7 +448,11 @@ const JiraIssueLinker = ({
                                                     />
                                                 </Box>
                                             }
-                                            secondary={issue.summary}
+                                            secondary={
+                                                <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                                                    {issue.summary}
+                                                </Typography>
+                                            }
                                         />
                                     </ListItem>
                                 ))}
@@ -445,7 +460,6 @@ const JiraIssueLinker = ({
                         </Box>
                     )}
 
-                    {/* 선택된 이슈 상세 */}
                     {selectedIssue && (
                         <Card sx={{ mb: 2 }}>
                             <CardContent>
@@ -493,20 +507,22 @@ const JiraIssueLinker = ({
                                         onClick={() => handleLinkIssue(selectedIssue)}
                                         disabled={linkedIssues.some(li => li.key === selectedIssue.key)}
                                     >
-                                        {linkedIssues.some(li => li.key === selectedIssue.key) ? '이미 연결됨' : '연결'}
+                                        {linkedIssues.some(li => li.key === selectedIssue.key) 
+                                            ? t('jira.linker.alreadyLinked', '이미 연결됨') 
+                                            : t('jira.linker.link', '연결')}
                                     </Button>
                                     <Button
                                         variant="outlined"
                                         startIcon={<LaunchIcon />}
                                         onClick={() => openJiraIssue(selectedIssue.key)}
                                     >
-                                        JIRA에서 열기
+                                        {t('jira.linker.openInJira', 'JIRA에서 열기')}
                                     </Button>
                                     <Button
                                         variant="text"
                                         onClick={() => setSelectedIssue(null)}
                                     >
-                                        취소
+                                        {t('common.button.cancel', '취소')}
                                     </Button>
                                 </Box>
                             </CardContent>
@@ -514,6 +530,15 @@ const JiraIssueLinker = ({
                     )}
                 </>
             )}
+
+            <JiraIssueCreationDialog
+                open={creationDialogOpen}
+                onClose={() => setCreationDialogOpen(false)}
+                onIssueCreated={handleIssueSelect}
+                testResult={testResult}
+                testCase={testCase}
+                projectId={projectId}
+            />
         </Box>
     );
 };

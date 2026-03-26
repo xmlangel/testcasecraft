@@ -142,7 +142,8 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
         timezone: form.timezone,
       });
       setSuccess(t('profile.success.updated', '정보가 성공적으로 변경되었습니다.'));
-      onUserUpdated?.(updated);
+      // 언어 탭 저장 시 프로필 갱신 응답으로 preferredLanguage가 덮어써지지 않도록 보정
+      onUserUpdated?.({ ...updated, preferredLanguage: currentLanguage });
       setTimeout(onClose, 700);
     } catch (err) {
       setError(err.message || t('profile.error.updateFailed', '정보 변경에 실패했습니다.'));
