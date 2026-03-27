@@ -369,16 +369,20 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds, options = {
 };
 
 // 트리를 평탄화하여 가상 스크롤에 적합한 배열로 변환
-export const flattenTree = (nodes, expandedIds = []) => {
+export const flattenTree = (nodes, expandedIds = [], orderMap = {}) => {
   const result = [];
   const expandedSet = new Set(expandedIds);
 
   const recurse = (list, depth = 0) => {
-    // 순서 정렬 보장
-    const sorted = list.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    // orderMap이 있으면 그것을 우선 사용, 없으면 displayOrder 사용
+    const sorted = list.slice().sort((a, b) => {
+      const orderA = orderMap[a.id] ?? a.displayOrder ?? 0;
+      const orderB = orderMap[b.id] ?? b.displayOrder ?? 0;
+      return orderA - orderB;
+    });
     
-    sorted.forEach((node) => {
-      result.push({ ...node, depth });
+    sorted.forEach((node, idx, siblings) => {
+      result.push({ ...node, depth, idx, siblings });
       if (node.type === 'folder' && expandedSet.has(node.id) && Array.isArray(node.children)) {
         recurse(node.children, depth + 1);
       }
