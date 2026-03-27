@@ -12,9 +12,9 @@ BOLD = "\033[1m"
 RESET = "\033[0m"
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-# 사용자가 요청한 두 모델
+# 사용자가 요청한 두 모델 및 허용 목록
 MODELS = ["deepseek-coder", "qwen2.5-coder:7b"]
-
+ALLOWED_MODELS = MODELS + ["qwen2.5-coder"]
 
 def get_git_diff():
     result = subprocess.run(
@@ -25,6 +25,10 @@ def get_git_diff():
     return result.stdout
 
 def translate_to_korean(text, model="qwen2.5-coder:7b"):
+    # 보안: 허용된 모델인지 확인
+    if model not in ALLOWED_MODELS:
+        return f"번역 실패: 허용되지 않는 모델({model})입니다."
+
     # Qwen을 사용하여 영어 리뷰를 한국어로 번역
     system_instruction = "당신은 전문 번역가입니다. IT 기술 리뷰 내용을 한국어로 자연스럽고 정확하게 번역하세요. 번역 결과만 출력하세요."
     prompt = f"다음 영문 코드 리뷰를 한국어로 번역해 주세요:\n\n{text}"
@@ -43,7 +47,7 @@ def translate_to_korean(text, model="qwen2.5-coder:7b"):
         )
         response.raise_for_status()
         return response.json()["response"]
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         return f"번역 실패: {str(e)}"
 
 def ask_ollama(diff, model):
@@ -71,8 +75,8 @@ def ask_ollama(diff, model):
         )
         response.raise_for_status()
         return response.json()["response"]
-    except Exception as e:
-        return f"{RED}Error calling {model}: {str(e)}{RESET}"
+    except requests.exceptions.RequestException as e:
+        return f"{RED}리뷰 실패 ({model}): {str(e)}{RESET}"
 
 
 def main():
@@ -106,7 +110,8 @@ def main():
         
         print(f"\n{color}{'━' * 60}{RESET}")
         
-        if "버그" in review or "심각한 문제" in review or "bug" in review.lower():
+        # 주요 이슈 키워드 체크
+        if any(kw in review.lower() for kw in ["버그", "심각한 문제", "bug", "vulnerability"]):
             has_issue = True
 
     if has_issue:
