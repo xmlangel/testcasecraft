@@ -1182,8 +1182,9 @@ public class TestCaseService {
             List<TestCase> testCaseEntities = new ArrayList<>();
             Map<Integer, com.testcase.testcasemanagement.dto.TestCaseDto> indexToDtoMap = new HashMap<>();
 
-            // ICT-373 수정: 배치 내에서 sequentialId 추적 (프로젝트별)
+            // ICT-373 수정: 배치 내에서 sequentialId 및 displayOrder 추적 (프로젝트/부모별)
             Map<String, Integer> projectMaxSeqIdMap = new HashMap<>();
+            Map<String, Integer> parentMaxOrderMap = new HashMap<>();
 
             for (int i = 0; i < testCaseDtos.size(); i++) {
                 com.testcase.testcasemanagement.dto.TestCaseDto dto = testCaseDtos.get(i);
@@ -1293,6 +1294,23 @@ public class TestCaseService {
                             entity.setDisplayId(generatedDisplayId);
                             log.info("배치 저장 - 새 테스트케이스에 Display ID 할당: {} (프로젝트: {})",
                                     generatedDisplayId, entity.getProject().getId());
+                        }
+
+                        // ICT-OrderReset: 신규 엔티티의 순서 자동 할당 (null인 경우)
+                        if (entity.getDisplayOrder() == null) {
+                            String parentId = entity.getParentId();
+                            String parentKey = (parentId == null) ? "root" : parentId;
+
+                            if (!parentMaxOrderMap.containsKey(parentKey)) {
+                                Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(parentId);
+                                parentMaxOrderMap.put(parentKey, maxOrder == null ? 0 : maxOrder);
+                            }
+
+                            Integer newOrder = parentMaxOrderMap.get(parentKey) + 1;
+                            parentMaxOrderMap.put(parentKey, newOrder);
+                            entity.setDisplayOrder(newOrder);
+
+                            log.info("배치 저장 - 새 테스트케이스에 순서 할당: {} (부모: {})", newOrder, parentKey);
                         }
                     }
 

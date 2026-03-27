@@ -471,15 +471,8 @@ const TestCaseSpreadsheet = ({
         // 선택된 행 삭제
         newData.splice(startRow, count);
 
-        // ICT-414: displayOrder 재계산
-        return newData.map((row, index) => {
-          const newRow = [...row];
-          // row가 유효하고 길이가 충분한지 확인
-          if (newRow.length > 3) {
-            newRow[3] = { ...newRow[3], value: index + 1 };
-          }
-          return newRow;
-        });
+        // ICT-414: displayOrder 재계산 로직 제거 (필터링된 뷰에서의 부작용 방지)
+        return newData;
       });
 
       setHasChanges(true); // 순서 변경 등으로 인한 저장 필요 상태 유지
@@ -561,14 +554,8 @@ const TestCaseSpreadsheet = ({
       // 선택된 행 위에 삽입
       newData.splice(currentSelectedRow, 0, ...newRows);
 
-      // ICT-414: displayOrder 재계산 (시각적 순서 반영)
-      return newData.map((row, index) => {
-        const newRow = [...row];
-        if (newRow.length > 3) {
-          newRow[3] = { ...newRow[3], value: index + 1 };
-        }
-        return newRow;
-      });
+      // ICT-414: displayOrder 재계산 로직 제거 (필터링된 뷰에서의 부작용 방지)
+      return newData;
     });
     setHasChanges(true);
     setSnackbarMessage(`${currentSelectedRow + 1}번 행 위에 ${safeCount}개 새 행이 추가되었습니다.`);
@@ -624,14 +611,8 @@ const TestCaseSpreadsheet = ({
       // 선택된 행 아래에 삽입
       newData.splice(currentSelectedRow + 1, 0, ...newRows);
 
-      // ICT-414: displayOrder 재계산 (시각적 순서 반영)
-      return newData.map((row, index) => {
-        const newRow = [...row];
-        if (newRow.length > 3) {
-          newRow[3] = { ...newRow[3], value: index + 1 };
-        }
-        return newRow;
-      });
+      // ICT-414: displayOrder 재계산 로직 제거 (필터링된 뷰에서의 부작용 방지)
+      return newData;
     });
     setHasChanges(true);
     setSnackbarMessage(`${currentSelectedRow + 1}번 행 아래에 ${safeCount}개 새 행이 추가되었습니다.`);
@@ -825,7 +806,7 @@ const TestCaseSpreadsheet = ({
             tags: isFolder ? [] : (row[14]?.value ? String(row[14].value).split(',').map(t => t.trim()).filter(Boolean) : []),
             steps,
             type: isFolder ? 'folder' : 'testcase',
-            displayOrder: index + 1,
+            displayOrder: (row[3] && row[3].value !== '' && row[3].value !== null) ? Number(row[3].value) : null,
             projectId,
             parentId,
             parentFolderName // 추후 참조 해결을 위해 임시 저장
