@@ -145,7 +145,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.53'
+version = '1.0.54-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -164,9 +164,11 @@ task incrementVersion {
         def buildGradleFile = file('build.gradle')
         def content = buildGradleFile.text
 
-        def matcher = content =~ /version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/
+        // SNAPSHOT 유무와 관계없이 버전 추출 (Major.Minor.Patch)
+        // 프로젝트 전체 버전(보통 group 정의 근처)을 찾기 위해 줄 시작 부분의 version 선언을 찾습니다.
+        def matcher = content =~ /(?m)^version = '(\d+)\.(\d+)\.(\d+)(-SNAPSHOT)?'/
         if (!matcher.find()) {
-            throw new GradleException("Could not find version string in build.gradle")
+            throw new GradleException("Could not find project version string in build.gradle")
         }
 
         def major = matcher.group(1).toInteger()
@@ -181,8 +183,8 @@ task incrementVersion {
         println "Version Increment: ${major}.${minor}.${patch - 1} -> ${newVersion} (Target: ${target})"
         println "========================================="
 
-        // 2. build.gradle 업데이트 (항상 업데이트 - 마스터 버전)
-        content = content.replaceAll(/version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/, "version = '${newVersionSnapshot}'")
+        // 2. build.gradle 업데이트 (항상 SNAPSHOT으로 업데이트 - 개발 단계 규칙 서비스)
+        content = content.replaceAll(/(?m)^version = '(\d+)\.(\d+)\.(\d+)(-SNAPSHOT)?'/, "version = '${newVersionSnapshot}'")
         buildGradleFile.text = content
         println "✓ build.gradle: ${newVersionSnapshot}"
 
@@ -203,8 +205,7 @@ task incrementVersion {
         // 4. Docker 빌드 스크립트 업데이트
         def dockerScripts = [
             'docker-compose-build/build-and-push-multiplatform.sh',
-            'docker-compose-build/build-app-only.sh',
-            'docker-compose-build/build-rag-only.sh'
+            'docker-compose-build/build-local-amd64.sh'
         ]
 
         dockerScripts.each { scriptPath ->
@@ -212,9 +213,10 @@ task incrementVersion {
             if (scriptFile.exists()) {
                 def scriptContent = scriptFile.text
                 
-                // VERSION 변수 업데이트 (스크립트 상단 정의) - 메인 앱 관련일 때만
+                // VERSION 변수 업데이트 (스크립트 상단 정의)
                 if (target == 'all' || target == 'app') {
-                    scriptContent = scriptContent.replaceAll(/VERSION="(\d+)\.(\d+)\.(\d+)"/, "VERSION=\"${newVersion}\"")
+                    // VERSION="X.Y.Z" 또는 RECENT_VERSION="X.Y.Z" 처리
+                    scriptContent = scriptContent.replaceAll(/(VERSION|RECENT_VERSION)="(\d+)\.(\d+)\.(\d+)"/, "\$1=\"${newVersion}\"")
                 }
 
                 // App 이미지 업데이트
