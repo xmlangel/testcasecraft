@@ -202,6 +202,8 @@ export const validateSpreadsheetData = (rows, options) => {
                 const typeValue = row[4]?.value;
                 if (typeValue && typeof typeValue === 'string') {
                     const normalizedType = typeValue.trim().toLowerCase();
+                    // ICT-UserReq: 필수 항목이 아닌 경우 경고 표시 안함
+                    /*
                     if (normalizedType && !['폴더', 'folder', '📁', '테스트케이스', 'testcase', 'test case'].includes(normalizedType)) {
                         warnings.push({
                             type: 'invalid_type',
@@ -211,6 +213,7 @@ export const validateSpreadsheetData = (rows, options) => {
                             severity: 'warning'
                         });
                     }
+                    */
                 }
 
             } catch (error) {
@@ -267,6 +270,8 @@ export const validateSpreadsheetData = (rows, options) => {
                         if (existingFolderId) {
                             const existingItem = data?.find(item => item.id === existingFolderId);
                             if (existingItem && existingItem.type !== 'folder') {
+                                // ICT-UserReq: 필수 항목이 아닌 경우 경고 표시 안함
+                                /*
                                 warnings.push({
                                     type: 'invalid_parent_type',
                                     row: rowNumber,
@@ -274,6 +279,7 @@ export const validateSpreadsheetData = (rows, options) => {
                                     message: t('testcase.spreadsheet.validation.warning.invalidParentType', '{row}번 행: "{parent}"은 폴더가 아닙니다.', { row: rowNumber, parent: parentFolderName }),
                                     severity: 'warning'
                                 });
+                                */
                             }
                         }
                     }
@@ -313,6 +319,8 @@ export const validateSpreadsheetData = (rows, options) => {
                             hasSteps = true;
 
                             if (!stepExpected || (typeof stepExpected === 'string' && !stepExpected.trim())) {
+                                // ICT-UserReq: 필수 항목이 아닌 경우 경고 표시 안함
+                                /*
                                 warnings.push({
                                     type: 'missing_expected_result',
                                     row: rowNumber,
@@ -321,11 +329,14 @@ export const validateSpreadsheetData = (rows, options) => {
                                     severity: 'warning',
                                     suggestion: t('testcase.spreadsheet.validation.suggestion.addExpectedResult', '각 스텝에 대한 예상 결과를 입력하면 테스트의 명확성이 향상됩니다.')
                                 });
+                                */
                             }
                         }
                     }
 
                     if (!hasSteps) {
+                        // ICT-UserReq: 필수 항목이 아닌 경우 경고 표시 안함
+                        /*
                         warnings.push({
                             type: 'no_steps',
                             row: rowNumber,
@@ -334,6 +345,7 @@ export const validateSpreadsheetData = (rows, options) => {
                             severity: 'warning',
                             suggestion: t('testcase.spreadsheet.validation.suggestion.addSteps', '최소 하나 이상의 테스트 단계를 추가하세요.')
                         });
+                        */
                     }
                 }
             } catch (error) {

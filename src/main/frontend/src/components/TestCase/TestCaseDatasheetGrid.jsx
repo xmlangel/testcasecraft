@@ -77,7 +77,9 @@ const TestCaseDatasheetGrid = ({
   onSave,
   onRefresh,
   readOnly = false,
-  projectId
+  projectId,
+  activeFolderName = '',
+  allData = []
 }) => {
   const { t } = useI18n();
   const apiRef = useGridApiRef();
@@ -105,8 +107,10 @@ const TestCaseDatasheetGrid = ({
     if (isAIGeneratedData) {
       return data;
     }
-
-    const treeData = listToTree(data, null);
+    
+    // allKnownIds는 Set 형태로 전달
+    const allKnownIds = new Set(allData.map(tc => tc.id));
+    const treeData = listToTree(data, null, { allKnownIds });
 
     const flattenWithRenderTreeLogic = (nodes, result = []) => {
       let sortedNodes = nodes.slice();
@@ -153,7 +157,7 @@ const TestCaseDatasheetGrid = ({
         displayId: testCase.displayId || testCase.sequentialId || '',
         displayOrder: testCase.displayOrder || (index + 1) * 10,
         type: testCase.type === 'folder' ? 'folder' : 'testcase',
-        parentFolder: testCase.parentId ? (flattenedTestCases.find(item => item.id === testCase.parentId)?.name || '') : '',
+        parentFolder: testCase.parentId ? (allData.find(item => item.id === testCase.parentId)?.name || '') : '',
         name: testCase.name || '',
         description: testCase.description || '',
         preCondition: testCase.preCondition || '',
@@ -278,7 +282,7 @@ const TestCaseDatasheetGrid = ({
       displayId: '',
       displayOrder: gridRows.length > 0 ? Math.max(...gridRows.map(r => r.displayOrder || 0)) + 10 : 10,
       type: 'testcase',
-      parentFolder: '',
+      parentFolder: activeFolderName || '',
       name: '',
       description: '',
       preCondition: '',

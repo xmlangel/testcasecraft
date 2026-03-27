@@ -2,8 +2,11 @@
  * 트리 구조 처리를 위한 유틸리티 함수들
  */
 
-export const listToTree = (items, parentId = null) => {
+export const listToTree = (items, parentId = null, options = {}) => {
   if (!Array.isArray(items) || items.length === 0) return [];
+
+  const { allKnownIds } = options;
+  const allKnownIdsSet = allKnownIds ? (allKnownIds instanceof Set ? allKnownIds : new Set(allKnownIds)) : null;
 
   // 고아 노드(Orphaned Nodes) 처리 및 맵 생성 준비
   const orphanFolderId = 'orphaned-items-folder';
@@ -18,19 +21,22 @@ export const listToTree = (items, parentId = null) => {
         currentParentId = null;
     }
     
-    // 고아 노드 감지: 부모가 지정되어 있으나 실제 존재하지 않는 경우
-    if (currentParentId && !allIds.has(currentParentId)) {
-      currentParentId = orphanFolderId;
-    }
-    
+    // 원본 parentId 데이터 보존을 위해 별도로 처리하지 않고 속성만 정제하여 샌드위치 복사
     const node = { ...item, parentId: currentParentId, children: [] };
     itemMap.set(node.id, node);
     return node;
   });
 
   // 2. 고아 폴더 추가 (필요한 경우)
-  const hasOrphans = processedItems.some(item => item.parentId === orphanFolderId);
-  if (hasOrphans && !itemMap.has(orphanFolderId)) {
+  const hasRealOrphans = processedItems.some(item => {
+    if (!item.parentId) return false;
+    // 현재 리스트에도 없고, 전체 데이터셋에도 없는 경우 진짜 고아
+    const isMissingInCurrent = !allIds.has(item.parentId);
+    const isMissingInAll = allKnownIdsSet ? !allKnownIdsSet.has(item.parentId) : false;
+    return isMissingInCurrent && isMissingInAll;
+  });
+
+  if (hasRealOrphans && !itemMap.has(orphanFolderId)) {
     const orphanFolder = {
       id: orphanFolderId,
       name: '[미할당 항목]',
@@ -53,8 +59,19 @@ export const listToTree = (items, parentId = null) => {
       if (parent) {
         parent.children.push(item);
       } else if (item.id !== orphanFolderId) {
-        // 부모를 못 찾은 경우 (이론적으로 고아 폴더가 처리하므로 여기 오면 안 됨)
-        tree.push(item);
+        // 부모를 현재 리스트에서 못 찾은 경우
+        if (allKnownIdsSet && allKnownIdsSet.has(item.parentId)) {
+          // 전체 데이터에는 존재함 -> 필터링된 뷰이므로 루트로 표시
+          tree.push(item);
+        } else {
+          // 진짜 고아 또는 미처리 항목
+          const orphanFolder = itemMap.get(orphanFolderId);
+          if (orphanFolder) {
+            orphanFolder.children.push(item);
+          } else {
+            tree.push(item);
+          }
+        }
       }
     }
   });
@@ -238,28 +255,30 @@ export const countRealTestCases = (testCaseIds, allTestCases) => {
   }).length;
 };
 
-export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
+export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds, options = {}) => {
   if (!allTestCases || !planTestCaseIds) {
     return { flattenedData: [], orderedTestCaseIds: [] };
   }
+
+  const { allKnownIds } = options;
+  const allKnownIdsSet = allKnownIds ? (allKnownIds instanceof Set ? allKnownIds : new Set(allKnownIds)) : null;
 
   // 고아 노드(Orphaned Nodes) 처리
   const orphanFolderId = 'orphaned-items-folder';
   const allNodesExist = new Set(allTestCases.map(tc => tc.id));
   
-  // 1. 트리 순회 전 고아 노드들의 parentId를 가상 폴더로 변경
-  let processedCases = allTestCases.map(tc => {
-    if (tc.parentId && tc.parentId !== 'null' && tc.parentId !== 'undefined' && !allNodesExist.has(tc.parentId)) {
-      return { ...tc, parentId: orphanFolderId };
-    }
-    return tc;
+  // 1. 트리 순회 전 가상의 '[미할당 항목]' 폴더 필요 여부 확인
+  const hasRealOrphans = allTestCases.some(tc => {
+    if (!tc.parentId || tc.parentId === 'null' || tc.parentId === 'undefined') return false;
+    const isMissingInCurrent = !allNodesExist.has(tc.parentId);
+    const isMissingInAll = allKnownIdsSet ? !allKnownIdsSet.has(tc.parentId) : false;
+    return isMissingInCurrent && isMissingInAll;
   });
-
-  // 2. 가상의 '[미할당 항목]' 폴더를 최상위에 생성
-  const hasOrphans = processedCases.some(tc => tc.parentId === orphanFolderId);
+  
+  let processedCases = [...allTestCases];
   const orphanFolderExists = processedCases.some(tc => tc.id === orphanFolderId);
   
-  if (hasOrphans && !orphanFolderExists) {
+  if (hasRealOrphans && !orphanFolderExists) {
     processedCases.unshift({
       id: orphanFolderId,
       name: '[미할당 항목]',
@@ -269,27 +288,51 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
     });
   }
 
-  // 3. 트리 구조 생성 (processedCases 기반)
+  // 2. 트리 구조 생성
   const testCaseMap = {};
   processedCases.forEach((tc) => {
     testCaseMap[tc.id] = { ...tc, children: [] };
   });
+
   processedCases.forEach((tc) => {
-    if (tc.parentId && testCaseMap[tc.parentId]) {
-      testCaseMap[tc.parentId].children.push(testCaseMap[tc.id]);
+    if (!tc.parentId || tc.parentId === 'null' || tc.parentId === 'undefined') return;
+    
+    const parent = testCaseMap[tc.parentId];
+    if (parent) {
+      parent.children.push(testCaseMap[tc.id]);
+    } else if (tc.id !== orphanFolderId) {
+      // 부모가 리스트에 없음. 전체 데이터에 있으면 루트 취급, 없으면 고아 폴더로.
+      if (allKnownIdsSet && allKnownIdsSet.has(tc.parentId)) {
+        // Root candidate - no children push needed here
+      } else {
+        const orphanFolder = testCaseMap[orphanFolderId];
+        if (orphanFolder) {
+          orphanFolder.children.push(testCaseMap[tc.id]);
+        }
+      }
     }
   });
 
-  // 4. 테스트 플랜의 testCaseIds로 필터링
+  // 3. 루트 노드 결정 및 트리 필터링/순회 준비
   const includedIds = new Set(planTestCaseIds);
+  
+  const rootNodes = processedCases.filter(tc => {
+    if (!tc.parentId || tc.parentId === 'null' || tc.parentId === 'undefined') return true;
+    if (!testCaseMap[tc.parentId]) {
+      // 부모가 리스트에 없는 경우. 전체에 존재하면 현재 뷰의 루트.
+      if (allKnownIdsSet && allKnownIdsSet.has(tc.parentId)) return true;
+      // 전체에도 없으면 고아 폴더가 처리하므로, 여기서는 루트 아님
+      return false;
+    }
+    return false;
+  });
 
-  // 폴더 여부 판단: "testcase" 타입이 아닌 것은 모두 폴더로 처리
-  // ("folder", "systemFolder" 등 모든 비-testcase 타입 포함)
   function isNodeFolder(node) {
     return node.type !== "testcase";
   }
 
   function filterTree(node) {
+    if (!node) return null;
     if (isNodeFolder(node)) {
       const filteredChildren = node.children.map(filterTree).filter(Boolean);
       if (filteredChildren.length === 0) return null;
@@ -298,9 +341,8 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
     return includedIds.has(node.id) ? node : null;
   }
 
-  // processedCases 사용 (고아 노드 처리 완료된 데이터)
-  const fullTreeData = processedCases
-    .filter((tc) => !tc.parentId)
+  // rootNodes를 사용하여 트리 필터링 시작
+  const fullTreeData = rootNodes
     .map((tc) => filterTree(testCaseMap[tc.id]))
     .filter(Boolean);
 
