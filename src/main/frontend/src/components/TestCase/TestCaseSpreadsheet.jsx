@@ -715,7 +715,7 @@ const TestCaseSpreadsheet = ({
     try {
       const result = validateSpreadsheetData(spreadsheetData, {
         maxSteps,
-        data: data || [],
+        data: allData || [],
         t
       });
 
@@ -756,7 +756,7 @@ const TestCaseSpreadsheet = ({
       // 검증
       const validationResult = validateSpreadsheetData(spreadsheetData, {
         maxSteps: safeMaxSteps,
-        data: data || [],
+        data: allData || [],
         t
       });
 
