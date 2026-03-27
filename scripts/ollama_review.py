@@ -1,20 +1,22 @@
 import subprocess
 import sys
 import requests
+import json
 
-# ANSI 色相 (Colors)
+# ANSI 색상 (Colors)
 BLUE = "\033[94m"
 CYAN = "\033[96m"
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
+MAGENTA = "\033[95m"
 RED = "\033[91m"
 BOLD = "\033[1m"
 RESET = "\033[0m"
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-# 사용자가 요청한 두 모델 및 허용 목록
-MODELS = ["deepseek-coder", "qwen2.5-coder:7b"]
-ALLOWED_MODELS = MODELS + ["qwen2.5-coder"]
+# 리뷰에 사용할 모델 목록
+MODELS = ["deepseek-coder", "qwen2.5-coder:7b", "glm-4.7-flash:latest"]
+ALLOWED_MODELS = MODELS + ["qwen2.5-coder", "glm-4.7-flash"]
 
 def get_git_diff():
     result = subprocess.run(
@@ -33,6 +35,7 @@ def translate_to_korean(text, model="qwen2.5-coder:7b"):
     system_instruction = "당신은 전문 번역가입니다. IT 기술 리뷰 내용을 한국어로 자연스럽고 정확하게 번역하세요. 번역 결과만 출력하세요."
     prompt = f"다음 영문 코드 리뷰를 한국어로 번역해 주세요:\n\n{text}"
     
+    full_response = ""
     try:
         response = requests.post(
             OLLAMA_URL,
@@ -40,14 +43,25 @@ def translate_to_korean(text, model="qwen2.5-coder:7b"):
                 "model": model,
                 "system": system_instruction,
                 "prompt": prompt,
-                "stream": False,
+                "stream": True,
                 "options": {"temperature": 0.3}
             },
-            timeout=180
+            timeout=300,
+            stream=True
         )
         response.raise_for_status()
-        return response.json()["response"]
+        
+        for line in response.iter_lines():
+            if line:
+                chunk = json.loads(line.decode('utf-8'))
+                content = chunk.get("response", "")
+                sys.stdout.write(content)
+                sys.stdout.flush()
+                full_response += content
+        print() # 개행
+        return full_response
     except requests.exceptions.RequestException as e:
+        print(f"\n번역 실패: {str(e)}")
         return f"번역 실패: {str(e)}"
 
 def ask_ollama(diff, model):
@@ -59,6 +73,7 @@ def ask_ollama(diff, model):
 {diff}
 """
 
+    full_response = ""
     try:
         response = requests.post(
             OLLAMA_URL,
@@ -66,18 +81,29 @@ def ask_ollama(diff, model):
                 "model": model,
                 "system": system_instruction,
                 "prompt": prompt,
-                "stream": False,
+                "stream": True,
                 "options": {
                     "temperature": 0.2
                 }
             },
-            timeout=240
+            timeout=600,
+            stream=True
         )
         response.raise_for_status()
-        return response.json()["response"]
+        
+        for line in response.iter_lines():
+            if line:
+                chunk = json.loads(line.decode('utf-8'))
+                content = chunk.get("response", "")
+                sys.stdout.write(content)
+                sys.stdout.flush()
+                full_response += content
+        print() # 개행
+        return full_response
     except requests.exceptions.RequestException as e:
-        return f"{RED}리뷰 실패 ({model}): {str(e)}{RESET}"
-
+        error_msg = f"\n{RED}리뷰 실패 ({model}): {str(e)}{RESET}"
+        print(error_msg)
+        return error_msg
 
 def main():
     diff = get_git_diff()
@@ -87,26 +113,31 @@ def main():
         return 0
 
     print(f"\n{BOLD}{CYAN}" + "━" * 60)
-    print(" 🤖 Ollama Multi-Model Code Review (DeepSeek & Qwen)")
+    print(" 🤖 Ollama Multi-Model Code Review")
     print("━" * 60 + f"{RESET}")
 
     has_issue = False
     for model in MODELS:
         # 모델별 색상 구분
-        color = BLUE if "deepseek" in model else GREEN
+        if "deepseek" in model:
+            color = BLUE
+        elif "qwen" in model:
+            color = GREEN
+        elif "glm" in model:
+            color = MAGENTA
+        else:
+            color = CYAN
         
         print(f"\n{color}{BOLD}▶ [Model: {model.upper()}]{RESET}")
         print(f"{color}{'━' * 60}{RESET}")
         
         review = ask_ollama(diff, model)
-        print(review)
         
-        # DeepSeek인 경우 Qwen으로 번역 서비스 제공
-        if "deepseek" in model:
+        # 한국어 출력이 불안정한 모델(DeepSeek)에 대해 Qwen 번역 제공
+        if "deepseek" in model and "리뷰 실패" not in review:
             print(f"\n{BOLD}{YELLOW}🌐 [번역본: Qwen2.5-Coder에 의한 한글 번역]{RESET}")
             print(f"{YELLOW}{'┈' * 60}{RESET}")
             translation = translate_to_korean(review)
-            print(translation)
         
         print(f"\n{color}{'━' * 60}{RESET}")
         
@@ -116,10 +147,9 @@ def main():
 
     if has_issue:
         print(f"\n{BOLD}{YELLOW}⚠️  잠재적인 이슈가 보고되었습니다. 확인 후 진행해 주세요.{RESET}")
-        # return 1  # 커밋을 강제로 막으려면 1을 반환하도록 설정 가능
 
     return 0
 
-
 if __name__ == "__main__":
     sys.exit(main())
+
