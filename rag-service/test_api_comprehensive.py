@@ -28,21 +28,16 @@ TEST_PROJECT_ID = str(uuid4())
 TEST_UPLOADED_BY = "test_user"
 
 # Colors for output
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-CYAN = '\033[96m'
-RESET = '\033[0m'
-BOLD = '\033[1m'
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+CYAN = "\033[96m"
+RESET = "\033[0m"
+BOLD = "\033[1m"
 
 # Test results tracking
-test_results = {
-    "total": 0,
-    "passed": 0,
-    "failed": 0,
-    "skipped": 0
-}
+test_results = {"total": 0, "passed": 0, "failed": 0, "skipped": 0}
 
 
 def print_header(message: str):
@@ -89,7 +84,7 @@ def print_test_summary():
     print(f"{RED}Failed: {test_results['failed']}{RESET}")
     print(f"{YELLOW}Skipped: {test_results['skipped']}{RESET}")
 
-    if test_results['failed'] == 0:
+    if test_results["failed"] == 0:
         print(f"\n{GREEN}{BOLD}🎉 All tests passed!{RESET}")
         return True
     else:
@@ -100,6 +95,7 @@ def print_test_summary():
 # ============================================================================
 # Health Check
 # ============================================================================
+
 
 def test_health_check() -> bool:
     """Test health check endpoint"""
@@ -125,11 +121,14 @@ def test_health_check() -> bool:
 # Documents API Tests
 # ============================================================================
 
-def create_test_file(filename: str = "test_document.txt",
-                     content: str = "This is a test document for RAG service testing. " * 50) -> str:
+
+def create_test_file(
+    filename: str = "test_document.txt",
+    content: str = "This is a test document for RAG service testing. " * 50,
+) -> str:
     """Create a test file for upload"""
     print_info(f"Creating test file: {filename}")
-    with open(filename, 'w', encoding='utf-8') as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(content)
     print_success(f"Test file created: {filename} ({len(content)} bytes)")
     return filename
@@ -140,23 +139,17 @@ def test_upload_document(file_path: str) -> Optional[str]:
     print_test("Testing document upload...")
 
     try:
-        with open(file_path, 'rb') as f:
-            files = {'file': (os.path.basename(file_path), f, 'text/plain')}
-            data = {
-                'project_id': TEST_PROJECT_ID,
-                'uploaded_by': TEST_UPLOADED_BY
-            }
+        with open(file_path, "rb") as f:
+            files = {"file": (os.path.basename(file_path), f, "text/plain")}
+            data = {"project_id": TEST_PROJECT_ID, "uploaded_by": TEST_UPLOADED_BY}
 
             response = requests.post(
-                f"{BASE_URL}/documents/upload",
-                files=files,
-                data=data,
-                timeout=30
+                f"{BASE_URL}/documents/upload", files=files, data=data, timeout=30
             )
 
         if response.status_code == 201:
             result = response.json()
-            document_id = result['id']
+            document_id = result["id"]
             print_success(f"Document uploaded successfully!")
             print_info(f"  Document ID: {document_id}")
             print_info(f"  File name: {result['file_name']}")
@@ -206,17 +199,17 @@ def test_list_documents() -> bool:
 
     try:
         response = requests.get(
-            f"{BASE_URL}/documents/",
-            params={"project_id": TEST_PROJECT_ID},
-            timeout=10
+            f"{BASE_URL}/documents/", params={"project_id": TEST_PROJECT_ID}, timeout=10
         )
 
         if response.status_code == 200:
             result = response.json()
-            total = result.get('total', 0)
+            total = result.get("total", 0)
             print_success(f"Documents listed successfully! Total: {total}")
-            for doc in result.get('documents', []):
-                print_info(f"  - {doc.get('file_name', 'N/A')} (ID: {doc.get('id', 'N/A')})")
+            for doc in result.get("documents", []):
+                print_info(
+                    f"  - {doc.get('file_name', 'N/A')} (ID: {doc.get('id', 'N/A')})"
+                )
             record_test(True)
             return True
         else:
@@ -237,12 +230,8 @@ def test_list_documents_pagination() -> bool:
     try:
         response = requests.get(
             f"{BASE_URL}/documents/",
-            params={
-                "project_id": TEST_PROJECT_ID,
-                "page": 1,
-                "page_size": 10
-            },
-            timeout=10
+            params={"project_id": TEST_PROJECT_ID, "page": 1, "page_size": 10},
+            timeout=10,
         )
 
         if response.status_code == 200:
@@ -272,7 +261,7 @@ def test_analyze_document(document_id: str) -> bool:
         response = requests.post(
             f"{BASE_URL}/documents/{document_id}/analyze",
             params={"parser": "pymupdf"},
-            timeout=10
+            timeout=10,
         )
 
         if response.status_code == 202:
@@ -286,15 +275,19 @@ def test_analyze_document(document_id: str) -> bool:
             max_wait = 30  # seconds
             for i in range(max_wait):
                 time.sleep(1)
-                doc_response = requests.get(f"{BASE_URL}/documents/{document_id}", timeout=10)
+                doc_response = requests.get(
+                    f"{BASE_URL}/documents/{document_id}", timeout=10
+                )
                 if doc_response.status_code == 200:
                     doc_data = doc_response.json()
-                    status = doc_data.get('analysis_status', 'unknown')
-                    if status == 'completed':
-                        print_success(f"Analysis completed! Total chunks: {doc_data.get('total_chunks', 0)}")
+                    status = doc_data.get("analysis_status", "unknown")
+                    if status == "completed":
+                        print_success(
+                            f"Analysis completed! Total chunks: {doc_data.get('total_chunks', 0)}"
+                        )
                         record_test(True)
                         return True
-                    elif status == 'failed':
+                    elif status == "failed":
                         print_error("Analysis failed!")
                         record_test(False)
                         return False
@@ -322,18 +315,24 @@ def test_get_document_chunks(document_id: str) -> bool:
         response = requests.get(
             f"{BASE_URL}/documents/{document_id}/chunks",
             params={"skip": 0, "limit": 10},
-            timeout=10
+            timeout=10,
         )
 
         if response.status_code == 200:
             result = response.json()
-            total = result.get('total', 0)
-            chunks = result.get('chunks', [])
-            print_success(f"Chunks retrieved successfully! Total: {total}, Retrieved: {len(chunks)}")
+            total = result.get("total", 0)
+            chunks = result.get("chunks", [])
+            print_success(
+                f"Chunks retrieved successfully! Total: {total}, Retrieved: {len(chunks)}"
+            )
             if chunks:
                 first_chunk = chunks[0]
-                print_info(f"  First chunk index: {first_chunk.get('chunk_index', 'N/A')}")
-                print_info(f"  First chunk text preview: {first_chunk.get('chunk_text', '')[:50]}...")
+                print_info(
+                    f"  First chunk index: {first_chunk.get('chunk_index', 'N/A')}"
+                )
+                print_info(
+                    f"  First chunk text preview: {first_chunk.get('chunk_text', '')[:50]}..."
+                )
             record_test(True)
             return True
         else:
@@ -347,15 +346,19 @@ def test_get_document_chunks(document_id: str) -> bool:
         return False
 
 
-def test_download_document(document_id: str, save_path: str = "downloaded_test.txt") -> bool:
+def test_download_document(
+    document_id: str, save_path: str = "downloaded_test.txt"
+) -> bool:
     """Test document download"""
     print_test(f"Testing document download for {document_id}...")
 
     try:
-        response = requests.get(f"{BASE_URL}/documents/{document_id}/download", timeout=10)
+        response = requests.get(
+            f"{BASE_URL}/documents/{document_id}/download", timeout=10
+        )
 
         if response.status_code == 200:
-            with open(save_path, 'wb') as f:
+            with open(save_path, "wb") as f:
                 f.write(response.content)
             print_success(f"Document downloaded to {save_path}")
             print_info(f"  Downloaded size: {len(response.content)} bytes")
@@ -377,17 +380,10 @@ def test_update_document(document_id: str) -> bool:
     print_test(f"Testing document update for {document_id}...")
 
     try:
-        payload = {
-            "metadata": {
-                "custom_field": "test_value",
-                "updated": "true"
-            }
-        }
+        payload = {"metadata": {"custom_field": "test_value", "updated": "true"}}
 
         response = requests.patch(
-            f"{BASE_URL}/documents/{document_id}",
-            json=payload,
-            timeout=10
+            f"{BASE_URL}/documents/{document_id}", json=payload, timeout=10
         )
 
         if response.status_code == 200:
@@ -395,7 +391,7 @@ def test_update_document(document_id: str) -> bool:
             print_success("Document updated successfully!")
             print_info(f"  Document ID: {result.get('id', 'N/A')}")
             print_info(f"  Analysis status: {result.get('analysis_status', 'N/A')}")
-            if result.get('meta_data'):
+            if result.get("meta_data"):
                 print_info(f"  Metadata: {result.get('meta_data')}")
             record_test(True)
             return True
@@ -415,6 +411,7 @@ def test_update_document(document_id: str) -> bool:
 # Embeddings API Tests
 # ============================================================================
 
+
 def test_generate_embeddings(document_id: str) -> bool:
     """Test embedding generation"""
     print_test(f"Testing embedding generation for {document_id}...")
@@ -422,9 +419,7 @@ def test_generate_embeddings(document_id: str) -> bool:
     try:
         payload = {"document_id": document_id}
         response = requests.post(
-            f"{BASE_URL}/embeddings/generate",
-            json=payload,
-            timeout=10
+            f"{BASE_URL}/embeddings/generate", json=payload, timeout=10
         )
 
         if response.status_code == 202:
@@ -435,7 +430,9 @@ def test_generate_embeddings(document_id: str) -> bool:
 
             # Wait for embeddings to complete
             print_info("Waiting for embeddings to complete...")
-            print_info(f"  Checking status endpoint: {BASE_URL}/embeddings/status/{document_id}")
+            print_info(
+                f"  Checking status endpoint: {BASE_URL}/embeddings/status/{document_id}"
+            )
             max_wait = 90  # seconds (increased from 60)
             check_interval = 3  # seconds
             max_attempts = max_wait // check_interval
@@ -444,34 +441,45 @@ def test_generate_embeddings(document_id: str) -> bool:
                 time.sleep(check_interval)
                 try:
                     status_response = requests.get(
-                        f"{BASE_URL}/embeddings/status/{document_id}",
-                        timeout=10
+                        f"{BASE_URL}/embeddings/status/{document_id}", timeout=10
                     )
                     if status_response.status_code == 200:
                         status_data = status_response.json()
-                        status = status_data.get('status', 'unknown')
-                        progress = status_data.get('progress_percentage', 0)
-                        embedded = status_data.get('embedded_chunks', 0)
-                        total = status_data.get('total_chunks', 0)
-                        print_info(f"  [{i+1}/{max_attempts}] Progress: {progress:.1f}% ({embedded}/{total}) - Status: {status}")
+                        status = status_data.get("status", "unknown")
+                        progress = status_data.get("progress_percentage", 0)
+                        embedded = status_data.get("embedded_chunks", 0)
+                        total = status_data.get("total_chunks", 0)
+                        print_info(
+                            f"  [{i+1}/{max_attempts}] Progress: {progress:.1f}% ({embedded}/{total}) - Status: {status}"
+                        )
 
-                        if status == 'completed':
-                            print_success(f"Embeddings completed! {embedded} chunks embedded")
+                        if status == "completed":
+                            print_success(
+                                f"Embeddings completed! {embedded} chunks embedded"
+                            )
                             record_test(True)
                             return True
-                        elif status == 'failed':
-                            print_error(f"Embeddings failed: {status_data.get('error_message', 'Unknown error')}")
+                        elif status == "failed":
+                            print_error(
+                                f"Embeddings failed: {status_data.get('error_message', 'Unknown error')}"
+                            )
                             record_test(False)
                             return False
                     else:
-                        print_error(f"  [{i+1}/{max_attempts}] Status check failed: {status_response.status_code}")
+                        print_error(
+                            f"  [{i+1}/{max_attempts}] Status check failed: {status_response.status_code}"
+                        )
                         if i == 0:  # Only print response on first error
                             print_error(f"  Response: {status_response.text}")
                 except Exception as status_error:
-                    print_error(f"  [{i+1}/{max_attempts}] Status check error: {status_error}")
+                    print_error(
+                        f"  [{i+1}/{max_attempts}] Status check error: {status_error}"
+                    )
 
             print_error(f"Embedding generation timeout after {max_wait} seconds")
-            print_info("  Note: Embedding generation may still be running in background")
+            print_info(
+                "  Note: Embedding generation may still be running in background"
+            )
             record_test(False)
             return False
         else:
@@ -491,14 +499,18 @@ def test_get_embedding_status(document_id: str) -> bool:
     print_test(f"Testing get embedding status for {document_id}...")
 
     try:
-        response = requests.get(f"{BASE_URL}/embeddings/status/{document_id}", timeout=10)
+        response = requests.get(
+            f"{BASE_URL}/embeddings/status/{document_id}", timeout=10
+        )
 
         if response.status_code == 200:
             result = response.json()
             print_success("Embedding status retrieved!")
             print_info(f"  Status: {result.get('status', 'N/A')}")
             print_info(f"  Progress: {result.get('progress_percentage', 0):.1f}%")
-            print_info(f"  Embedded chunks: {result.get('embedded_chunks', 0)}/{result.get('total_chunks', 0)}")
+            print_info(
+                f"  Embedded chunks: {result.get('embedded_chunks', 0)}/{result.get('total_chunks', 0)}"
+            )
             record_test(True)
             return True
         else:
@@ -515,6 +527,7 @@ def test_get_embedding_status(document_id: str) -> bool:
 # ============================================================================
 # Conversations API Tests
 # ============================================================================
+
 
 def test_create_conversation_message() -> Optional[str]:
     """Test creating conversation message"""
@@ -534,14 +547,12 @@ def test_create_conversation_message() -> Optional[str]:
             "combined_text": "Question: What is a test case? Answer: A test case is a set of conditions or variables under which a tester will determine whether an application is working correctly.",
             "metadata": {
                 "threadTitle": "Test Case Discussion",
-                "timestamp": "2024-01-01T00:00:00Z"
-            }
+                "timestamp": "2024-01-01T00:00:00Z",
+            },
         }
 
         response = requests.post(
-            f"{BASE_URL}/conversations/messages",
-            json=payload,
-            timeout=10
+            f"{BASE_URL}/conversations/messages", json=payload, timeout=10
         )
 
         if response.status_code == 200:
@@ -569,8 +580,7 @@ def test_delete_conversation_message(message_id: str) -> bool:
 
     try:
         response = requests.delete(
-            f"{BASE_URL}/conversations/messages/{message_id}",
-            timeout=10
+            f"{BASE_URL}/conversations/messages/{message_id}", timeout=10
         )
 
         if response.status_code == 204:
@@ -593,6 +603,7 @@ def test_delete_conversation_message(message_id: str) -> bool:
 # Search API Tests
 # ============================================================================
 
+
 def test_search_similar_chunks(document_id: str) -> bool:
     """Test searching for similar chunks"""
     print_test("Testing search for similar chunks...")
@@ -602,19 +613,15 @@ def test_search_similar_chunks(document_id: str) -> bool:
             "query_text": "test document",
             "project_id": TEST_PROJECT_ID,
             "similarity_threshold": 0.3,
-            "max_results": 5
+            "max_results": 5,
         }
 
-        response = requests.post(
-            f"{BASE_URL}/search/similar",
-            json=payload,
-            timeout=10
-        )
+        response = requests.post(f"{BASE_URL}/search/similar", json=payload, timeout=10)
 
         if response.status_code == 200:
             result = response.json()
-            total_results = result.get('total_results', 0)
-            results = result.get('results', [])
+            total_results = result.get("total_results", 0)
+            results = result.get("results", [])
             print_success(f"Search completed! Found {total_results} results")
 
             for i, res in enumerate(results[:3]):  # Show top 3
@@ -646,18 +653,16 @@ def test_search_with_filters() -> bool:
             "query_text": "test",
             "project_id": TEST_PROJECT_ID,
             "similarity_threshold": 0.5,
-            "max_results": 10
+            "max_results": 10,
         }
 
-        response = requests.post(
-            f"{BASE_URL}/search/similar",
-            json=payload,
-            timeout=10
-        )
+        response = requests.post(f"{BASE_URL}/search/similar", json=payload, timeout=10)
 
         if response.status_code == 200:
             result = response.json()
-            print_success(f"Search with filters completed! Found {result.get('total_results', 0)} results")
+            print_success(
+                f"Search with filters completed! Found {result.get('total_results', 0)} results"
+            )
             record_test(True)
             return True
         else:
@@ -674,6 +679,7 @@ def test_search_with_filters() -> bool:
 # ============================================================================
 # Cleanup
 # ============================================================================
+
 
 def test_delete_document(document_id: str) -> bool:
     """Test document deletion"""
@@ -713,6 +719,7 @@ def cleanup_files(files: list):
 # Main Test Runner
 # ============================================================================
 
+
 def main():
     """Run all tests"""
     print_header("RAG Service - Comprehensive API Test Suite")
@@ -727,7 +734,9 @@ def main():
         print_header("1. Health Check")
         if not test_health_check():
             print_error("\nService is not running. Please start the RAG service first.")
-            print_info("Start command: cd rag-service && uvicorn app.main:app --host 0.0.0.0 --port 8001")
+            print_info(
+                "Start command: cd rag-service && uvicorn app.main:app --host 0.0.0.0 --port 8001"
+            )
             sys.exit(1)
 
         # 2. Documents API Tests
@@ -809,6 +818,7 @@ def main():
     except Exception as e:
         print_error(f"\n\nUnexpected error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

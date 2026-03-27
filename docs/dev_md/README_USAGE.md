@@ -2,7 +2,7 @@
 
 # React를 이용한 트리 형태의 테스트케이스 관리 툴 개발 가이드
 
-트리 구조로 테스트케이스를 효과적으로 관리할 수 있는 테스트 관리 도구를 React로 단계별로 개발하는 방법을 상세히 설명합니다. 
+트리 구조로 테스트케이스를 효과적으로 관리할 수 있는 테스트 관리 도구를 React로 단계별로 개발하는 방법을 상세히 설명합니다.
 이 도구는 테스트케이스 관리, 테스트 플랜 생성, 테스트 실행 및 결과 기록 기능을 모두 제공합니다.
 
 ## 1. 프로젝트 기본 구조 설정
@@ -86,7 +86,6 @@
 }
 ```
 
-
 ## 2. 데이터 모델 정의
 
 다음으로 애플리케이션에서 사용할 데이터 모델을 정의합니다.
@@ -141,7 +140,6 @@ export const initialTestCases = [
 ];
 ```
 
-
 ### 테스트 플랜 모델
 
 ```javascript
@@ -166,7 +164,6 @@ export const initialTestPlans = [
   createTestPlan('plan-2', '사용자 관리 테스트', '사용자 CRUD 기능 테스트', ['test-3', 'test-4'])
 ];
 ```
-
 
 ### 테스트 실행 모델
 
@@ -219,7 +216,6 @@ export const initialTestExecutions = [
 ];
 ```
 
-
 ## 3. 상태 관리 설정 (Context API)
 
 애플리케이션의 상태를 관리하기 위한 Context API 설정입니다.
@@ -249,13 +245,13 @@ const ActionTypes = {
   UPDATE_TEST_CASE: 'UPDATE_TEST_CASE',
   DELETE_TEST_CASE: 'DELETE_TEST_CASE',
   SET_ACTIVE_TEST_CASE: 'SET_ACTIVE_TEST_CASE',
-  
+
   // 테스트 플랜 관련 액션
   ADD_TEST_PLAN: 'ADD_TEST_PLAN',
   UPDATE_TEST_PLAN: 'UPDATE_TEST_PLAN',
   DELETE_TEST_PLAN: 'DELETE_TEST_PLAN',
   SET_ACTIVE_TEST_PLAN: 'SET_ACTIVE_TEST_PLAN',
-  
+
   // 테스트 실행 관련 액션
   ADD_TEST_EXECUTION: 'ADD_TEST_EXECUTION',
   UPDATE_TEST_EXECUTION: 'UPDATE_TEST_EXECUTION',
@@ -275,15 +271,15 @@ const appReducer = (state, action) =&gt; {
         ...state,
         testCases: [...state.testCases, action.payload]
       };
-    
+
     case ActionTypes.UPDATE_TEST_CASE:
       return {
         ...state,
-        testCases: state.testCases.map(tc =&gt; 
+        testCases: state.testCases.map(tc =&gt;
           tc.id === action.payload.id ? { ...tc, ...action.payload, updatedAt: new Date().toISOString() } : tc
         )
       };
-    
+
     case ActionTypes.DELETE_TEST_CASE:
       // ID로 테스트케이스 및 모든 하위 테스트케이스 삭제
       const idsToDelete = getDescendantIds(state.testCases, action.payload);
@@ -296,28 +292,28 @@ const appReducer = (state, action) =&gt; {
           testCaseIds: plan.testCaseIds.filter(id =&gt; !idsToDelete.includes(id))
         }))
       };
-    
+
     case ActionTypes.SET_ACTIVE_TEST_CASE:
       return {
         ...state,
         activeTestCase: action.payload
       };
-    
+
     // 테스트 플랜 관련 리듀서
     case ActionTypes.ADD_TEST_PLAN:
       return {
         ...state,
         testPlans: [...state.testPlans, action.payload]
       };
-    
+
     case ActionTypes.UPDATE_TEST_PLAN:
       return {
         ...state,
-        testPlans: state.testPlans.map(plan =&gt; 
+        testPlans: state.testPlans.map(plan =&gt;
           plan.id === action.payload.id ? { ...plan, ...action.payload, updatedAt: new Date().toISOString() } : plan
         )
       };
-    
+
     case ActionTypes.DELETE_TEST_PLAN:
       return {
         ...state,
@@ -325,75 +321,75 @@ const appReducer = (state, action) =&gt; {
         // 해당 테스트 플랜을 참조하는 테스트 실행도 삭제
         testExecutions: state.testExecutions.filter(exec =&gt; exec.testPlanId !== action.payload)
       };
-    
+
     case ActionTypes.SET_ACTIVE_TEST_PLAN:
       return {
         ...state,
         activeTestPlan: action.payload
       };
-    
+
     // 테스트 실행 관련 리듀서
     case ActionTypes.ADD_TEST_EXECUTION:
       return {
         ...state,
         testExecutions: [...state.testExecutions, action.payload]
       };
-    
+
     case ActionTypes.UPDATE_TEST_EXECUTION:
       return {
         ...state,
-        testExecutions: state.testExecutions.map(exec =&gt; 
+        testExecutions: state.testExecutions.map(exec =&gt;
           exec.id === action.payload.id ? { ...exec, ...action.payload, updatedAt: new Date().toISOString() } : exec
         )
       };
-    
+
     case ActionTypes.DELETE_TEST_EXECUTION:
       return {
         ...state,
         testExecutions: state.testExecutions.filter(exec =&gt; exec.id !== action.payload)
       };
-    
+
     case ActionTypes.SET_ACTIVE_TEST_EXECUTION:
       return {
         ...state,
         activeTestExecution: action.payload
       };
-    
+
     case ActionTypes.START_TEST_EXECUTION:
       return {
         ...state,
-        testExecutions: state.testExecutions.map(exec =&gt; 
-          exec.id === action.payload ? 
-          { 
-            ...exec, 
-            status: ExecutionStatus.IN_PROGRESS, 
+        testExecutions: state.testExecutions.map(exec =&gt;
+          exec.id === action.payload ?
+          {
+            ...exec,
+            status: ExecutionStatus.IN_PROGRESS,
             startDate: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           } : exec
         )
       };
-    
+
     case ActionTypes.COMPLETE_TEST_EXECUTION:
       return {
         ...state,
-        testExecutions: state.testExecutions.map(exec =&gt; 
-          exec.id === action.payload ? 
-          { 
-            ...exec, 
-            status: ExecutionStatus.COMPLETED, 
+        testExecutions: state.testExecutions.map(exec =&gt;
+          exec.id === action.payload ?
+          {
+            ...exec,
+            status: ExecutionStatus.COMPLETED,
             endDate: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           } : exec
         )
       };
-    
+
     case ActionTypes.UPDATE_TEST_RESULT:
       return {
         ...state,
-        testExecutions: state.testExecutions.map(exec =&gt; 
-          exec.id === action.payload.executionId ? 
-          { 
-            ...exec, 
+        testExecutions: state.testExecutions.map(exec =&gt;
+          exec.id === action.payload.executionId ?
+          {
+            ...exec,
             results: {
               ...exec.results,
               [action.payload.testCaseId]: {
@@ -406,7 +402,7 @@ const appReducer = (state, action) =&gt; {
           } : exec
         )
       };
-    
+
     default:
       return state;
   }
@@ -416,11 +412,11 @@ const appReducer = (state, action) =&gt; {
 const getDescendantIds = (items, parentId) =&gt; {
   let result = [parentId];
   const children = items.filter(item =&gt; item.parentId === parentId);
-  
+
   children.forEach(child =&gt; {
     result = [...result, ...getDescendantIds(items, child.id)];
   });
-  
+
   return result;
 };
 
@@ -430,7 +426,7 @@ const AppContext = createContext();
 // Context Provider 컴포넌트
 export const AppProvider = ({ children }) =&gt; {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  
+
   // 로컬 스토리지에서 상태 불러오기
   useEffect(() =&gt; {
     const savedState = localStorage.getItem('testCaseManagerState');
@@ -447,12 +443,12 @@ export const AppProvider = ({ children }) =&gt; {
       }
     }
   }, []);
-  
+
   // 상태 변경 시 로컬 스토리지에 저장
   useEffect(() =&gt; {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
-  
+
   // 유용한 액션 생성자 함수들
   const value = {
     state,
@@ -460,9 +456,9 @@ export const AppProvider = ({ children }) =&gt; {
     // 테스트케이스 액션
     addTestCase: (testCase) =&gt; {
       const id = testCase.id || `test-${uuidv4()}`;
-      dispatch({ 
-        type: ActionTypes.ADD_TEST_CASE, 
-        payload: { ...testCase, id } 
+      dispatch({
+        type: ActionTypes.ADD_TEST_CASE,
+        payload: { ...testCase, id }
       });
       return id;
     },
@@ -475,13 +471,13 @@ export const AppProvider = ({ children }) =&gt; {
     setActiveTestCase: (id) =&gt; {
       dispatch({ type: ActionTypes.SET_ACTIVE_TEST_CASE, payload: id });
     },
-    
+
     // 테스트 플랜 액션
     addTestPlan: (testPlan) =&gt; {
       const id = testPlan.id || `plan-${uuidv4()}`;
-      dispatch({ 
-        type: ActionTypes.ADD_TEST_PLAN, 
-        payload: { ...testPlan, id } 
+      dispatch({
+        type: ActionTypes.ADD_TEST_PLAN,
+        payload: { ...testPlan, id }
       });
       return id;
     },
@@ -494,13 +490,13 @@ export const AppProvider = ({ children }) =&gt; {
     setActiveTestPlan: (id) =&gt; {
       dispatch({ type: ActionTypes.SET_ACTIVE_TEST_PLAN, payload: id });
     },
-    
+
     // 테스트 실행 액션
     addTestExecution: (testExecution) =&gt; {
       const id = testExecution.id || `exec-${uuidv4()}`;
-      dispatch({ 
-        type: ActionTypes.ADD_TEST_EXECUTION, 
-        payload: { ...testExecution, id } 
+      dispatch({
+        type: ActionTypes.ADD_TEST_EXECUTION,
+        payload: { ...testExecution, id }
       });
       return id;
     },
@@ -520,36 +516,36 @@ export const AppProvider = ({ children }) =&gt; {
       dispatch({ type: ActionTypes.COMPLETE_TEST_EXECUTION, payload: id });
     },
     updateTestResult: (executionId, testCaseId, result, notes = '') =&gt; {
-      dispatch({ 
-        type: ActionTypes.UPDATE_TEST_RESULT, 
-        payload: { executionId, testCaseId, result, notes } 
+      dispatch({
+        type: ActionTypes.UPDATE_TEST_RESULT,
+        payload: { executionId, testCaseId, result, notes }
       });
     },
-    
+
     // 유틸리티 함수
     getTestCase: (id) =&gt; state.testCases.find(tc =&gt; tc.id === id),
     getTestPlan: (id) =&gt; state.testPlans.find(plan =&gt; plan.id === id),
     getTestExecution: (id) =&gt; state.testExecutions.find(exec =&gt; exec.id === id),
-    
+
     // 테스트 실행 진행률 계산
     calculateExecutionProgress: (executionId) =&gt; {
       const execution = state.testExecutions.find(exec =&gt; exec.id === executionId);
       if (!execution) return 0;
-      
+
       const testPlan = state.testPlans.find(plan =&gt; plan.id === execution.testPlanId);
       if (!testPlan) return 0;
-      
+
       const totalTests = testPlan.testCaseIds.length;
       if (totalTests === 0) return 0;
-      
+
       const completedTests = Object.values(execution.results || {})
         .filter(result =&gt; result.result !== TestResult.NOT_RUN)
         .length;
-      
+
       return Math.round((completedTests / totalTests) * 100);
     }
   };
-  
+
   return (
     &lt;AppContext.Provider value={value}&gt;
       {children}
@@ -562,7 +558,6 @@ export const useAppContext = () =&gt; useContext(AppContext);
 
 export default AppContext;
 ```
-
 
 ## 4. 유틸리티 함수 구현
 
@@ -609,12 +604,12 @@ export const isFolder = (item) =&gt; {
 export const getAllChildIds = (items, parentId) =&gt; {
   const result = [];
   const children = items.filter(item =&gt; item.parentId === parentId);
-  
+
   children.forEach(child =&gt; {
     result.push(child.id);
     result.push(...getAllChildIds(items, child.id));
   });
-  
+
   return result;
 };
 
@@ -629,15 +624,15 @@ export const getAllFolderIds = (items) =&gt; {
 export const getAncestorIds = (items, id) =&gt; {
   const result = [];
   let currentId = id;
-  
+
   while (currentId) {
     const item = items.find(item =&gt; item.id === currentId);
     if (!item || !item.parentId) break;
-    
+
     result.push(item.parentId);
     currentId = item.parentId;
   }
-  
+
   return result;
 };
 
@@ -658,17 +653,16 @@ export const calculateExecutionProgress = (execution, testPlan) =&gt; {
   if (!execution || !testPlan || !testPlan.testCaseIds.length) {
     return 0;
   }
-  
+
   const totalTests = testPlan.testCaseIds.length;
   const results = execution.results || {};
-  const completedTests = testPlan.testCaseIds.filter(id =&gt; 
+  const completedTests = testPlan.testCaseIds.filter(id =&gt;
     results[id] &amp;&amp; results[id].result !== 'NOT_RUN'
   ).length;
-  
+
   return Math.round((completedTests / totalTests) * 100);
 };
 ```
-
 
 ## 5. 테스트케이스 관련 컴포넌트 구현
 
@@ -696,26 +690,26 @@ import { listToTree, isFolder } from '../utils/treeUtils';
 const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], onSelectionChange }) =&gt; {
   const { state, addTestCase, updateTestCase, deleteTestCase, setActiveTestCase } = useAppContext();
   const { testCases } = state;
-  
+
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState('');
   const [contextMenu, setContextMenu] = useState(null);
   const [newItemData, setNewItemData] = useState(null);
   const [renameData, setRenameData] = useState(null);
-  
+
   // TreeView 데이터 준비
   const treeData = listToTree([...testCases], null);
-  
+
   // 노드 확장 처리
   const handleToggle = (event, nodeIds) =&gt; {
     setExpanded(nodeIds);
   };
-  
+
   // 노드 선택 처리
   const handleSelect = (event, nodeId) =&gt; {
     setSelected(nodeId);
     const selectedTestCase = testCases.find(tc =&gt; tc.id === nodeId);
-    
+
     if (selectable) {
       // 다중 선택 모드
       if (selectedIds.includes(nodeId)) {
@@ -731,7 +725,7 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
       }
     }
   };
-  
+
   // 컨텍스트 메뉴 열기
   const handleContextMenu = (event, nodeId) =&gt; {
     event.preventDefault();
@@ -739,12 +733,12 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
     setSelected(nodeId);
     setContextMenu({ mouseX: event.clientX, mouseY: event.clientY, nodeId });
   };
-  
+
   // 컨텍스트 메뉴 닫기
   const handleCloseContextMenu = () =&gt; {
     setContextMenu(null);
   };
-  
+
   // 새 항목 추가 시작
   const handleAddItem = (type) =&gt; {
     setNewItemData({
@@ -753,12 +747,12 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
     });
     handleCloseContextMenu();
   };
-  
+
   // 새 항목 추가 취소
   const handleCancelAdd = () =&gt; {
     setNewItemData(null);
   };
-  
+
   // 새 항목 추가 완료
   const handleConfirmAdd = () =&gt; {
     if (newItemData &amp;&amp; newItemData.name &amp;&amp; newItemData.name.trim()) {
@@ -771,13 +765,13 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      
+
       addTestCase(newItem);
       setExpanded([...expanded, newItemData.parentId]);
       setNewItemData(null);
     }
   };
-  
+
   // 이름 변경 시작
   const handleRename = () =&gt; {
     const node = testCases.find(tc =&gt; tc.id === contextMenu.nodeId);
@@ -787,12 +781,12 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
     });
     handleCloseContextMenu();
   };
-  
+
   // 이름 변경 취소
   const handleCancelRename = () =&gt; {
     setRenameData(null);
   };
-  
+
   // 이름 변경 완료
   const handleConfirmRename = () =&gt; {
     if (renameData &amp;&amp; renameData.name &amp;&amp; renameData.name.trim()) {
@@ -804,13 +798,13 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
       setRenameData(null);
     }
   };
-  
+
   // 삭제 처리
   const handleDelete = () =&gt; {
     deleteTestCase(contextMenu.nodeId);
     handleCloseContextMenu();
   };
-  
+
   // TreeItem 렌더링 함수
   const renderTree = (nodes) =&gt; {
     return nodes.map((node) =&gt; {
@@ -846,8 +840,8 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
           {isFolder(node) ? &lt;FolderIcon color="primary" sx={{ mr: 1 }} /&gt; : &lt;DescriptionIcon sx={{ mr: 1 }} /&gt;}
           &lt;Typography variant="body2"&gt;{node.name}&lt;/Typography&gt;
           &lt;Box sx={{ marginLeft: 'auto' }}&gt;
-            &lt;IconButton 
-              size="small" 
+            &lt;IconButton
+              size="small"
               onClick={(e) =&gt; {
                 e.stopPropagation();
                 handleContextMenu(e, node.id);
@@ -858,11 +852,11 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
           &lt;/Box&gt;
         &lt;/Box&gt;
       );
-      
+
       return (
-        &lt;TreeItem 
-          key={node.id} 
-          nodeId={node.id} 
+        &lt;TreeItem
+          key={node.id}
+          nodeId={node.id}
           label={labelContent}
         &gt;
           {/* 새 항목 추가 폼 */}
@@ -886,19 +880,19 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
               &lt;/IconButton&gt;
             &lt;/Box&gt;
           )}
-          
+
           {/* 자식 노드 렌더링 */}
           {Array.isArray(node.children) &amp;&amp; node.children.length &gt; 0 ? renderTree(node.children) : null}
         &lt;/TreeItem&gt;
       );
     });
   };
-  
+
   return (
     &lt;Box sx={{ height: '100%', overflow: 'auto' }}&gt;
       &lt;Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}&gt;
         &lt;Typography variant="h6"&gt;테스트케이스 트리&lt;/Typography&gt;
-        &lt;IconButton 
+        &lt;IconButton
           onClick={(e) =&gt; {
             setContextMenu({ mouseX: e.clientX, mouseY: e.clientY, nodeId: null });
           }}
@@ -906,7 +900,7 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
           &lt;AddIcon /&gt;
         &lt;/IconButton&gt;
       &lt;/Box&gt;
-      
+
       &lt;TreeView
         defaultCollapseIcon={&lt;ExpandMoreIcon /&gt;}
         defaultExpandIcon={&lt;ChevronRightIcon /&gt;}
@@ -914,9 +908,9 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
         selected={selectable ? [] : selected}
         onNodeToggle={handleToggle}
         onNodeSelect={handleSelect}
-        sx={{ 
-          height: '100%', 
-          flexGrow: 1, 
+        sx={{
+          height: '100%',
+          flexGrow: 1,
           overflowY: 'auto',
           '&amp; .MuiTreeItem-content': {
             padding: '4px 8px'
@@ -931,7 +925,7 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
           &lt;/Typography&gt;
         )}
       &lt;/TreeView&gt;
-      
+
       {/* 컨텍스트 메뉴 */}
       &lt;Menu
         open={contextMenu !== null}
@@ -953,7 +947,7 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
               &lt;DescriptionIcon fontSize="small" sx={{ mr: 1 }} /&gt;
               최상위 테스트케이스 추가
             &lt;/MenuItem&gt;
-          
+
         ) : (
           &lt;&gt;
             {contextMenu &amp;&amp; isFolder(testCases.find(tc =&gt; tc.id === contextMenu.nodeId)) &amp;&amp; (
@@ -967,7 +961,7 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
                   하위 테스트케이스 추가
                 &lt;/MenuItem&gt;
                 &lt;MenuItem divider /&gt;
-              
+
             )}
             &lt;MenuItem onClick={handleRename}&gt;
               &lt;EditIcon fontSize="small" sx={{ mr: 1 }} /&gt;
@@ -977,7 +971,7 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
               &lt;DeleteIcon fontSize="small" sx={{ mr: 1 }} /&gt;
               삭제
             &lt;/MenuItem&gt;
-          
+
         )}
       &lt;/Menu&gt;
     &lt;/Box&gt;
@@ -1016,9 +1010,9 @@ import { createTestStep } from '../models/testCase';
 const TestCaseForm = ({ testCaseId }) =&gt; {
   const { state, updateTestCase } = useAppContext();
   const { testCases } = state;
-  
+
   const [testCase, setTestCase] = useState(null);
-  
+
   // 초기 테스트케이스 데이터 로드
   useEffect(() =&gt; {
     if (testCaseId) {
@@ -1031,7 +1025,7 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
       }
     }
   }, [testCaseId, testCases]);
-  
+
   // 테스트케이스가 없으면 표시하지 않음
   if (!testCase || testCase.type !== 'testcase') {
     return (
@@ -1042,7 +1036,7 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
       &lt;/Card&gt;
     );
   }
-  
+
   // 테스트케이스 정보 업데이트 핸들러
   const handleChange = (field) =&gt; (event) =&gt; {
     setTestCase({
@@ -1050,13 +1044,13 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
       [field]: event.target.value
     });
   };
-  
+
   // 테스트 단계 추가 핸들러
   const handleAddStep = () =&gt; {
-    const newStepNumber = testCase.steps.length &gt; 0 
-      ? Math.max(...testCase.steps.map(step =&gt; step.stepNumber)) + 1 
+    const newStepNumber = testCase.steps.length &gt; 0
+      ? Math.max(...testCase.steps.map(step =&gt; step.stepNumber)) + 1
       : 1;
-    
+
     setTestCase({
       ...testCase,
       steps: [
@@ -1065,7 +1059,7 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
       ]
     });
   };
-  
+
   // 테스트 단계 삭제 핸들러
   const handleDeleteStep = (stepNumber) =&gt; {
     setTestCase({
@@ -1073,31 +1067,31 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
       steps: testCase.steps.filter(step =&gt; step.stepNumber !== stepNumber)
     });
   };
-  
+
   // 테스트 단계 업데이트 핸들러
   const handleStepChange = (stepNumber, field) =&gt; (event) =&gt; {
     setTestCase({
       ...testCase,
-      steps: testCase.steps.map(step =&gt; 
-        step.stepNumber === stepNumber 
-          ? { ...step, [field]: event.target.value } 
+      steps: testCase.steps.map(step =&gt;
+        step.stepNumber === stepNumber
+          ? { ...step, [field]: event.target.value }
           : step
       )
     });
   };
-  
+
   // 테스트케이스 저장 핸들러
   const handleSave = () =&gt; {
     updateTestCase(testCase);
   };
-  
+
   return (
     &lt;Card sx={{ minHeight: 400 }}&gt;
       &lt;CardContent&gt;
         &lt;Typography variant="h6" gutterBottom&gt;
           테스트케이스 상세
         &lt;/Typography&gt;
-        
+
         &lt;TextField
           label="테스트케이스 이름"
           value={testCase.name}
@@ -1106,7 +1100,7 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
           margin="normal"
           variant="outlined"
         /&gt;
-        
+
         &lt;TextField
           label="설명"
           value={testCase.description || ''}
@@ -1117,12 +1111,12 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
           multiline
           rows={3}
         /&gt;
-        
+
         &lt;Box sx={{ mt: 3, mb: 2 }}&gt;
           &lt;Typography variant="subtitle1" gutterBottom&gt;
             테스트 단계
           &lt;/Typography&gt;
-          
+
           &lt;TableContainer component={Paper} variant="outlined"&gt;
             &lt;Table size="small"&gt;
               &lt;TableHead&gt;
@@ -1173,8 +1167,8 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
                           /&gt;
                         &lt;/TableCell&gt;
                         &lt;TableCell align="center"&gt;
-                          &lt;IconButton 
-                            size="small" 
+                          &lt;IconButton
+                            size="small"
                             color="error"
                             onClick={() =&gt; handleDeleteStep(step.stepNumber)}
                           &gt;
@@ -1187,7 +1181,7 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
               &lt;/TableBody&gt;
             &lt;/Table&gt;
           &lt;/TableContainer&gt;
-          
+
           &lt;Button
             startIcon={&lt;AddIcon /&gt;}
             onClick={handleAddStep}
@@ -1197,7 +1191,7 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
             단계 추가
           &lt;/Button&gt;
         &lt;/Box&gt;
-        
+
         &lt;TextField
           label="기대 결과 (전체)"
           value={testCase.expectedResults || ''}
@@ -1209,10 +1203,10 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
           rows={3}
         /&gt;
       &lt;/CardContent&gt;
-      
+
       &lt;CardActions&gt;
-        &lt;Button 
-          variant="contained" 
+        &lt;Button
+          variant="contained"
           color="primary"
           onClick={handleSave}
         &gt;
@@ -1225,7 +1219,6 @@ const TestCaseForm = ({ testCaseId }) =&gt; {
 
 export default TestCaseForm;
 ```
-
 
 ## 6. 테스트 플랜 관련 컴포넌트 구현
 
@@ -1263,22 +1256,22 @@ import { useAppContext } from '../context/AppContext';
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) =&gt; {
   const { state, deleteTestPlan } = useAppContext();
   const { testPlans, testCases } = state;
-  
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
-  
+
   // 삭제 다이얼로그 열기
   const handleOpenDeleteDialog = (testPlanId) =&gt; {
     setPlanToDelete(testPlanId);
     setDeleteDialogOpen(true);
   };
-  
+
   // 삭제 다이얼로그 닫기
   const handleCloseDeleteDialog = () =&gt; {
     setDeleteDialogOpen(false);
     setPlanToDelete(null);
   };
-  
+
   // 테스트 플랜 삭제 확인
   const handleConfirmDelete = () =&gt; {
     if (planToDelete) {
@@ -1286,12 +1279,12 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) =&gt;
     }
     handleCloseDeleteDialog();
   };
-  
+
   // 테스트케이스 수 계산
   const getTestCaseCount = (testPlan) =&gt; {
     return testPlan.testCaseIds.length;
   };
-  
+
   return (
     &lt;Card sx={{ height: '100%' }}&gt;
       &lt;CardContent&gt;
@@ -1306,7 +1299,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) =&gt;
             새 테스트 플랜
           &lt;/Button&gt;
         &lt;/Box&gt;
-        
+
         {testPlans.length === 0 ? (
           &lt;Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}&gt;
             테스트 플랜이 없습니다. 새 테스트 플랜을 생성하세요.
@@ -1325,29 +1318,29 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) =&gt;
                           테스트케이스: {getTestCaseCount(plan)}개
                         &lt;/Typography&gt;
                         <br>
-                        {plan.description &amp;&amp; plan.description.length &gt; 60 
-                          ? `${plan.description.substring(0, 60)}...` 
+                        {plan.description &amp;&amp; plan.description.length &gt; 60
+                          ? `${plan.description.substring(0, 60)}...`
                           : plan.description}
-                      
+
                     }
                   /&gt;
                   &lt;ListItemSecondaryAction&gt;
-                    &lt;IconButton 
-                      edge="end" 
+                    &lt;IconButton
+                      edge="end"
                       aria-label="실행"
                       onClick={() =&gt; onStartExecution(plan.id)}
                     &gt;
                       &lt;PlayArrowIcon /&gt;
                     &lt;/IconButton&gt;
-                    &lt;IconButton 
-                      edge="end" 
+                    &lt;IconButton
+                      edge="end"
                       aria-label="수정"
                       onClick={() =&gt; onEditTestPlan(plan.id)}
                     &gt;
                       &lt;EditIcon /&gt;
                     &lt;/IconButton&gt;
-                    &lt;IconButton 
-                      edge="end" 
+                    &lt;IconButton
+                      edge="end"
                       aria-label="삭제"
                       onClick={() =&gt; handleOpenDeleteDialog(plan.id)}
                     &gt;
@@ -1360,7 +1353,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) =&gt;
           &lt;/List&gt;
         )}
       &lt;/CardContent&gt;
-      
+
       {/* 삭제 확인 다이얼로그 */}
       &lt;Dialog
         open={deleteDialogOpen}
@@ -1420,15 +1413,15 @@ import TestCaseTree from './TestCaseTree';
 const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
   const { state, addTestPlan, updateTestPlan, getTestCase } = useAppContext();
   const { testCases, testPlans } = state;
-  
+
   const [formOpen, setFormOpen] = useState(true);
   const [testPlan, setTestPlan] = useState(
-    testPlanId 
-      ? testPlans.find(plan =&gt; plan.id === testPlanId) 
+    testPlanId
+      ? testPlans.find(plan =&gt; plan.id === testPlanId)
       : createTestPlan(`plan-${uuidv4()}`, '')
   );
   const [selectedTestCaseIds, setSelectedTestCaseIds] = useState([]);
-  
+
   // 초기 선택된 테스트케이스 설정
   useEffect(() =&gt; {
     if (testPlanId) {
@@ -1439,7 +1432,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
       }
     }
   }, [testPlanId, testPlans]);
-  
+
   // 폼 필드 변경 핸들러
   const handleChange = (field) =&gt; (event) =&gt; {
     setTestPlan({
@@ -1447,12 +1440,12 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
       [field]: event.target.value
     });
   };
-  
+
   // 테스트케이스 선택 변경 핸들러
   const handleSelectionChange = (selectedIds) =&gt; {
     setSelectedTestCaseIds(selectedIds);
   };
-  
+
   // 테스트 플랜 저장 핸들러
   const handleSave = () =&gt; {
     const updatedTestPlan = {
@@ -1460,19 +1453,19 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
       testCaseIds: selectedTestCaseIds,
       updatedAt: new Date().toISOString()
     };
-    
+
     if (testPlanId) {
       updateTestPlan(updatedTestPlan);
     } else {
       addTestPlan(updatedTestPlan);
     }
-    
+
     setFormOpen(false);
     if (onSave) {
       onSave();
     }
   };
-  
+
   // 취소 핸들러
   const handleCancel = () =&gt; {
     setFormOpen(false);
@@ -1480,11 +1473,11 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
       onCancel();
     }
   };
-  
+
   if (!formOpen) {
     return null;
   }
-  
+
   return (
     &lt;Dialog
       open={formOpen}
@@ -1495,7 +1488,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
       &lt;DialogTitle&gt;
         {testPlanId ? '테스트 플랜 수정' : '새 테스트 플랜 생성'}
       &lt;/DialogTitle&gt;
-      
+
       &lt;DialogContent&gt;
         &lt;TextField
           label="테스트 플랜 이름"
@@ -1506,7 +1499,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
           variant="outlined"
           required
         /&gt;
-        
+
         &lt;TextField
           label="설명"
           value={testPlan.description || ''}
@@ -1517,28 +1510,28 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
           multiline
           rows={3}
         /&gt;
-        
+
         &lt;Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}&gt;
           테스트케이스 선택
         &lt;/Typography&gt;
-        
+
         &lt;Grid container spacing={2} sx={{ minHeight: 400 }}&gt;
           &lt;Grid item xs={6}&gt;
             &lt;Paper variant="outlined" sx={{ height: '100%', p: 2 }}&gt;
-              &lt;TestCaseTree 
+              &lt;TestCaseTree
                 selectable={true}
                 selectedIds={selectedTestCaseIds}
                 onSelectionChange={handleSelectionChange}
               /&gt;
             &lt;/Paper&gt;
           &lt;/Grid&gt;
-          
+
           &lt;Grid item xs={6}&gt;
             &lt;Paper variant="outlined" sx={{ height: '100%', p: 2 }}&gt;
               &lt;Typography variant="subtitle2" gutterBottom&gt;
                 선택된 테스트케이스 ({selectedTestCaseIds.length})
               &lt;/Typography&gt;
-              
+
               &lt;List sx={{ overflow: 'auto', maxHeight: 400 }}&gt;
                 {selectedTestCaseIds.length === 0 ? (
                   &lt;ListItem&gt;
@@ -1564,10 +1557,10 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
                         &lt;/ListItemIcon&gt;
                         &lt;ListItemText
                           primary={testCase.name}
-                          secondary={testCase.description ? 
-                            (testCase.description.length &gt; 50 ? 
-                              `${testCase.description.substring(0, 50)}...` : 
-                              testCase.description) : 
+                          secondary={testCase.description ?
+                            (testCase.description.length &gt; 50 ?
+                              `${testCase.description.substring(0, 50)}...` :
+                              testCase.description) :
                             null
                           }
                         /&gt;
@@ -1580,12 +1573,12 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
           &lt;/Grid&gt;
         &lt;/Grid&gt;
       &lt;/DialogContent&gt;
-      
+
       &lt;DialogActions&gt;
         &lt;Button onClick={handleCancel}&gt;취소&lt;/Button&gt;
-        &lt;Button 
-          onClick={handleSave} 
-          variant="contained" 
+        &lt;Button
+          onClick={handleSave}
+          variant="contained"
           color="primary"
           disabled={!testPlan.name || selectedTestCaseIds.length === 0}
         &gt;
@@ -1598,7 +1591,6 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
 
 export default TestPlanForm;
 ```
-
 
 ## 7. 테스트 실행 관련 컴포넌트 구현
 
@@ -1643,22 +1635,22 @@ import { ExecutionStatus } from '../models/testExecution';
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) =&gt; {
   const { state, deleteTestExecution, getTestPlan } = useAppContext();
   const { testExecutions } = state;
-  
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [executionToDelete, setExecutionToDelete] = useState(null);
-  
+
   // 삭제 다이얼로그 열기
   const handleOpenDeleteDialog = (executionId) =&gt; {
     setExecutionToDelete(executionId);
     setDeleteDialogOpen(true);
   };
-  
+
   // 삭제 다이얼로그 닫기
   const handleCloseDeleteDialog = () =&gt; {
     setDeleteDialogOpen(false);
     setExecutionToDelete(null);
   };
-  
+
   // 테스트 실행 삭제 확인
   const handleConfirmDelete = () =&gt; {
     if (executionToDelete) {
@@ -1666,19 +1658,19 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     }
     handleCloseDeleteDialog();
   };
-  
+
   // 테스트 진행률 계산
   const calculateProgress = (execution) =&gt; {
     const testPlan = getTestPlan(execution.testPlanId);
     if (!testPlan || !testPlan.testCaseIds.length) return 0;
-    
+
     const totalTests = testPlan.testCaseIds.length;
     const results = execution.results || {};
     const completedTests = Object.keys(results).length;
-    
+
     return Math.round((completedTests / totalTests) * 100);
   };
-  
+
   // 상태에 따른 칩 렌더링
   const renderStatusChip = (status) =&gt; {
     switch (status) {
@@ -1692,7 +1684,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
         return null;
     }
   };
-  
+
   return (
     &lt;Card sx={{ height: '100%' }}&gt;
       &lt;CardContent&gt;
@@ -1707,7 +1699,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
             새 테스트 실행
           &lt;/Button&gt;
         &lt;/Box&gt;
-        
+
         {testExecutions.length === 0 ? (
           &lt;Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}&gt;
             테스트 실행이 없습니다. 새 테스트 실행을 생성하세요.
@@ -1717,11 +1709,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
             {testExecutions.map((execution, index) =&gt; {
               const testPlan = getTestPlan(execution.testPlanId);
               const progress = calculateProgress(execution);
-              
+
               return (
                 &lt;React.Fragment key={execution.id}&gt;
                   {index &gt; 0 &amp;&amp; &lt;Divider component="li" /&gt;}
-                  &lt;ListItem 
+                  &lt;ListItem
                     alignItems="flex-start"
                     button
                     onClick={() =&gt; onViewExecution(execution.id)}
@@ -1742,19 +1734,19 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                           &lt;/Typography&gt;
                           <br>
                           &lt;Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}&gt;
-                            &lt;LinearProgress 
-                              variant="determinate" 
-                              value={progress} 
-                              sx={{ flexGrow: 1, mr: 1 }} 
+                            &lt;LinearProgress
+                              variant="determinate"
+                              value={progress}
+                              sx={{ flexGrow: 1, mr: 1 }}
                             /&gt;
                             &lt;Typography variant="body2"&gt;{progress}%&lt;/Typography&gt;
                           &lt;/Box&gt;
-                        
+
                       }
                     /&gt;
                     &lt;ListItemSecondaryAction&gt;
-                      &lt;IconButton 
-                        edge="end" 
+                      &lt;IconButton
+                        edge="end"
                         aria-label="수정"
                         onClick={(e) =&gt; {
                           e.stopPropagation();
@@ -1763,8 +1755,8 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                       &gt;
                         &lt;EditIcon /&gt;
                       &lt;/IconButton&gt;
-                      &lt;IconButton 
-                        edge="end" 
+                      &lt;IconButton
+                        edge="end"
                         aria-label="삭제"
                         onClick={(e) =&gt; {
                           e.stopPropagation();
@@ -1781,7 +1773,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
           &lt;/List&gt;
         )}
       &lt;/CardContent&gt;
-      
+
       {/* 삭제 확인 다이얼로그 */}
       &lt;Dialog
         open={deleteDialogOpen}
@@ -1851,37 +1843,37 @@ import {
 } from '@mui/icons-material';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppContext } from '../context/AppContext';
-import { 
-  createTestExecution, 
-  ExecutionStatus, 
-  TestResult 
+import {
+  createTestExecution,
+  ExecutionStatus,
+  TestResult
 } from '../models/testExecution';
 import TestResultForm from './TestResultForm';
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
-  const { 
-    state, 
-    addTestExecution, 
-    updateTestExecution, 
-    startTestExecution, 
+  const {
+    state,
+    addTestExecution,
+    updateTestExecution,
+    startTestExecution,
     completeTestExecution,
     updateTestResult,
     getTestCase,
     getTestPlan
   } = useAppContext();
   const { testPlans, testExecutions, testCases } = state;
-  
+
   const [formOpen, setFormOpen] = useState(true);
   const [execution, setExecution] = useState(
-    executionId 
-      ? testExecutions.find(exec =&gt; exec.id === executionId) 
+    executionId
+      ? testExecutions.find(exec =&gt; exec.id === executionId)
       : createTestExecution(`exec-${uuidv4()}`, '', '', '')
   );
-  
+
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isResultFormOpen, setIsResultFormOpen] = useState(false);
   const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
-  
+
   // 초기 테스트 실행 및 플랜 설정
   useEffect(() =&gt; {
     if (executionId) {
@@ -1893,7 +1885,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
       }
     }
   }, [executionId, testExecutions, testPlans]);
-  
+
   // 테스트 플랜 변경 시 호출
   const handlePlanChange = (event) =&gt; {
     const planId = event.target.value;
@@ -1905,7 +1897,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
       results: {}
     });
   };
-  
+
   // 폼 필드 변경 핸들러
   const handleChange = (field) =&gt; (event) =&gt; {
     setExecution({
@@ -1913,7 +1905,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
       [field]: event.target.value
     });
   };
-  
+
   // 테스트 실행 시작 핸들러
   const handleStartExecution = () =&gt; {
     if (execution.id &amp;&amp; execution.status === ExecutionStatus.NOT_STARTED) {
@@ -1925,7 +1917,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
       });
     }
   };
-  
+
   // 테스트 실행 완료 핸들러
   const handleCompleteExecution = () =&gt; {
     if (execution.id &amp;&amp; execution.status === ExecutionStatus.IN_PROGRESS) {
@@ -1937,24 +1929,24 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
       });
     }
   };
-  
+
   // 결과 입력 폼 열기
   const handleOpenResultForm = (testCaseId) =&gt; {
     setSelectedTestCaseId(testCaseId);
     setIsResultFormOpen(true);
   };
-  
+
   // 결과 입력 폼 닫기
   const handleCloseResultForm = () =&gt; {
     setIsResultFormOpen(false);
     setSelectedTestCaseId(null);
   };
-  
+
   // 테스트 결과 저장
   const handleSaveResult = (result, notes) =&gt; {
     if (execution.id &amp;&amp; selectedTestCaseId) {
       updateTestResult(execution.id, selectedTestCaseId, result, notes);
-      
+
       setExecution({
         ...execution,
         results: {
@@ -1969,26 +1961,26 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
     }
     handleCloseResultForm();
   };
-  
+
   // 테스트 실행 저장 핸들러
   const handleSave = () =&gt; {
     const updatedExecution = {
       ...execution,
       updatedAt: new Date().toISOString()
     };
-    
+
     if (executionId) {
       updateTestExecution(updatedExecution);
     } else {
       addTestExecution(updatedExecution);
     }
-    
+
     setFormOpen(false);
     if (onSave) {
       onSave(updatedExecution.id);
     }
   };
-  
+
   // 취소 핸들러
   const handleCancel = () =&gt; {
     setFormOpen(false);
@@ -1996,7 +1988,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
       onCancel();
     }
   };
-  
+
   // 테스트 결과 상태에 따른 아이콘 렌더링
   const renderResultIcon = (result) =&gt; {
     switch (result) {
@@ -2010,29 +2002,29 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
         return &lt;HourglassEmptyIcon fontSize="small" color="disabled" /&gt;;
     }
   };
-  
+
   // 진행률 계산
   const calculateProgress = () =&gt; {
     if (!selectedPlan || !selectedPlan.testCaseIds.length) return 0;
-    
+
     const totalTests = selectedPlan.testCaseIds.length;
     const results = execution.results || {};
     const completedTests = Object.keys(results).filter(
       id =&gt; results[id].result !== TestResult.NOT_RUN
     ).length;
-    
+
     return Math.round((completedTests / totalTests) * 100);
   };
-  
+
   if (!formOpen) {
     return null;
   }
-  
+
   const canEditBasicInfo = execution.status === ExecutionStatus.NOT_STARTED;
   const canStartExecution = execution.status === ExecutionStatus.NOT_STARTED &amp;&amp; execution.testPlanId;
   const canCompleteExecution = execution.status === ExecutionStatus.IN_PROGRESS;
   const canEnterResults = execution.status === ExecutionStatus.IN_PROGRESS;
-  
+
   return (
     &lt;Dialog
       open={formOpen}
@@ -2043,7 +2035,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
       &lt;DialogTitle&gt;
         {executionId ? '테스트 실행 상세' : '새 테스트 실행 생성'}
       &lt;/DialogTitle&gt;
-      
+
       &lt;DialogContent&gt;
         &lt;Grid container spacing={2}&gt;
           &lt;Grid item xs={12} md={6}&gt;
@@ -2057,7 +2049,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
               required
               disabled={!canEditBasicInfo}
             /&gt;
-            
+
             &lt;FormControl fullWidth margin="normal" disabled={!canEditBasicInfo}&gt;
               &lt;InputLabel id="test-plan-select-label"&gt;테스트 플랜&lt;/InputLabel&gt;
               &lt;Select
@@ -2076,7 +2068,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
                 ))}
               &lt;/Select&gt;
             &lt;/FormControl&gt;
-            
+
             &lt;TextField
               label="설명"
               value={execution.description || ''}
@@ -2089,59 +2081,59 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
               disabled={!canEditBasicInfo}
             /&gt;
           &lt;/Grid&gt;
-          
+
           &lt;Grid item xs={12} md={6}&gt;
             &lt;Card variant="outlined" sx={{ p: 2, height: '100%' }}&gt;
               &lt;Typography variant="subtitle1" gutterBottom&gt;
                 상태 정보
               &lt;/Typography&gt;
-              
+
               &lt;Box sx={{ mb: 2 }}&gt;
                 &lt;Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}&gt;
                   &lt;Typography variant="body2"&gt;상태:&lt;/Typography&gt;
-                  &lt;Chip 
-                    size="small" 
-                    label={execution.status} 
+                  &lt;Chip
+                    size="small"
+                    label={execution.status}
                     color={
-                      execution.status === ExecutionStatus.COMPLETED 
-                        ? 'success' 
-                        : execution.status === ExecutionStatus.IN_PROGRESS 
-                          ? 'primary' 
+                      execution.status === ExecutionStatus.COMPLETED
+                        ? 'success'
+                        : execution.status === ExecutionStatus.IN_PROGRESS
+                          ? 'primary'
                           : 'default'
                     }
                   /&gt;
                 &lt;/Box&gt;
-                
+
                 &lt;Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}&gt;
                   &lt;Typography variant="body2"&gt;시작 일시:&lt;/Typography&gt;
                   &lt;Typography variant="body2"&gt;
-                    {execution.startDate 
-                      ? new Date(execution.startDate).toLocaleString() 
+                    {execution.startDate
+                      ? new Date(execution.startDate).toLocaleString()
                       : '-'}
                   &lt;/Typography&gt;
                 &lt;/Box&gt;
-                
+
                 &lt;Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}&gt;
                   &lt;Typography variant="body2"&gt;종료 일시:&lt;/Typography&gt;
                   &lt;Typography variant="body2"&gt;
-                    {execution.endDate 
-                      ? new Date(execution.endDate).toLocaleString() 
+                    {execution.endDate
+                      ? new Date(execution.endDate).toLocaleString()
                       : '-'}
                   &lt;/Typography&gt;
                 &lt;/Box&gt;
-                
+
                 &lt;Box sx={{ mt: 2 }}&gt;
                   &lt;Typography variant="body2" gutterBottom&gt;
                     진행률: {calculateProgress()}%
                   &lt;/Typography&gt;
-                  &lt;LinearProgress 
-                    variant="determinate" 
-                    value={calculateProgress()} 
-                    sx={{ height: 10, borderRadius: 5 }} 
+                  &lt;LinearProgress
+                    variant="determinate"
+                    value={calculateProgress()}
+                    sx={{ height: 10, borderRadius: 5 }}
                   /&gt;
                 &lt;/Box&gt;
               &lt;/Box&gt;
-              
+
               &lt;Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 3 }}&gt;
                 &lt;Button
                   variant="contained"
@@ -2152,7 +2144,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
                 &gt;
                   테스트 시작
                 &lt;/Button&gt;
-                
+
                 &lt;Button
                   variant="contained"
                   color="success"
@@ -2166,13 +2158,13 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
             &lt;/Card&gt;
           &lt;/Grid&gt;
         &lt;/Grid&gt;
-        
+
         &lt;Divider sx={{ my: 3 }} /&gt;
-        
+
         &lt;Typography variant="subtitle1" gutterBottom&gt;
           테스트케이스 및 결과
         &lt;/Typography&gt;
-        
+
         {selectedPlan ? (
           &lt;TableContainer component={Paper} variant="outlined" sx={{ mt: 2 }}&gt;
             &lt;Table size="small"&gt;
@@ -2198,11 +2190,11 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
                   selectedPlan.testCaseIds.map((testCaseId, index) =&gt; {
                     const testCase = getTestCase(testCaseId);
                     if (!testCase) return null;
-                    
+
                     const result = execution.results &amp;&amp; execution.results[testCaseId]
                       ? execution.results[testCaseId]
                       : { result: TestResult.NOT_RUN, notes: '' };
-                    
+
                     return (
                       &lt;TableRow key={testCaseId}&gt;
                         &lt;TableCell&gt;{index + 1}&lt;/TableCell&gt;
@@ -2221,8 +2213,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
                           &lt;/Typography&gt;
                         &lt;/TableCell&gt;
                         &lt;TableCell align="center"&gt;
-                          &lt;IconButton 
-                            size="small" 
+                          &lt;IconButton
+                            size="small"
                             color="primary"
                             onClick={() =&gt; handleOpenResultForm(testCaseId)}
                             disabled={!canEnterResults}
@@ -2243,13 +2235,13 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
           &lt;/Typography&gt;
         )}
       &lt;/DialogContent&gt;
-      
+
       &lt;DialogActions&gt;
         &lt;Button onClick={handleCancel}&gt;닫기&lt;/Button&gt;
         {execution.status === ExecutionStatus.NOT_STARTED &amp;&amp; (
-          &lt;Button 
-            onClick={handleSave} 
-            variant="contained" 
+          &lt;Button
+            onClick={handleSave}
+            variant="contained"
             color="primary"
             disabled={!execution.name || !execution.testPlanId}
           &gt;
@@ -2257,10 +2249,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
           &lt;/Button&gt;
         )}
       &lt;/DialogActions&gt;
-      
+
       {/* 테스트 결과 입력 폼 */}
       {isResultFormOpen &amp;&amp; selectedTestCaseId &amp;&amp; (
-        &lt;TestResultForm 
+        &lt;TestResultForm
           open={isResultFormOpen}
           testCaseId={selectedTestCaseId}
           executionId={execution.id}
@@ -2279,7 +2271,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
 
 export default TestExecutionForm;
 ```
-
 
 ## 8. 테스트 결과 입력 컴포넌트 구현
 
@@ -2307,20 +2298,20 @@ import {
 import { useAppContext } from '../context/AppContext';
 import { TestResult } from '../models/testExecution';
 
-const TestResultForm = ({ 
-  open, 
-  testCaseId, 
-  executionId, 
-  currentResult = { result: TestResult.NOT_RUN, notes: '' }, 
-  onClose, 
-  onSave 
+const TestResultForm = ({
+  open,
+  testCaseId,
+  executionId,
+  currentResult = { result: TestResult.NOT_RUN, notes: '' },
+  onClose,
+  onSave
 }) =&gt; {
   const { getTestCase } = useAppContext();
-  
+
   const [testCase, setTestCase] = useState(null);
   const [result, setResult] = useState(currentResult.result);
   const [notes, setNotes] = useState(currentResult.notes || '');
-  
+
   // 테스트케이스 정보 로드
   useEffect(() =&gt; {
     if (testCaseId) {
@@ -2330,26 +2321,26 @@ const TestResultForm = ({
       }
     }
   }, [testCaseId, getTestCase]);
-  
+
   // 테스트 결과 변경 핸들러
   const handleResultChange = (event) =&gt; {
     setResult(event.target.value);
   };
-  
+
   // 메모 변경 핸들러
   const handleNotesChange = (event) =&gt; {
     setNotes(event.target.value);
   };
-  
+
   // 저장 핸들러
   const handleSave = () =&gt; {
     onSave(result, notes);
   };
-  
+
   if (!testCase) {
     return null;
   }
-  
+
   return (
     &lt;Dialog
       open={open}
@@ -2358,7 +2349,7 @@ const TestResultForm = ({
       fullWidth
     &gt;
       &lt;DialogTitle&gt;테스트 결과 입력&lt;/DialogTitle&gt;
-      
+
       &lt;DialogContent&gt;
         &lt;Box sx={{ mb: 3 }}&gt;
           &lt;Typography variant="subtitle1" gutterBottom&gt;
@@ -2368,16 +2359,16 @@ const TestResultForm = ({
             {testCase.description}
           &lt;/Typography&gt;
         &lt;/Box&gt;
-        
+
         &lt;Divider sx={{ my: 2 }} /&gt;
-        
+
         &lt;Box sx={{ mt: 3 }}&gt;
           &lt;FormControl component="fieldset" sx={{ mb: 3 }}&gt;
             &lt;FormLabel component="legend"&gt;테스트 결과&lt;/FormLabel&gt;
-            &lt;RadioGroup 
+            &lt;RadioGroup
               row
-              name="test-result" 
-              value={result} 
+              name="test-result"
+              value={result}
               onChange={handleResultChange}
             &gt;
               &lt;FormControlLabel value={TestResult.PASS} control={&lt;Radio /&gt;} label="통과(PASS)" /&gt;
@@ -2386,7 +2377,7 @@ const TestResultForm = ({
               &lt;FormControlLabel value={TestResult.NOT_RUN} control={&lt;Radio /&gt;} label="미실행(NOT RUN)" /&gt;
             &lt;/RadioGroup&gt;
           &lt;/FormControl&gt;
-          
+
           &lt;TextField
             label="메모 및 특이사항"
             value={notes}
@@ -2397,7 +2388,7 @@ const TestResultForm = ({
             variant="outlined"
           /&gt;
         &lt;/Box&gt;
-        
+
         {testCase.steps &amp;&amp; testCase.steps.length &gt; 0 &amp;&amp; (
           &lt;Box sx={{ mt: 3 }}&gt;
             &lt;Typography variant="subtitle2" gutterBottom&gt;
@@ -2416,12 +2407,12 @@ const TestResultForm = ({
           &lt;/Box&gt;
         )}
       &lt;/DialogContent&gt;
-      
+
       &lt;DialogActions&gt;
         &lt;Button onClick={onClose}&gt;취소&lt;/Button&gt;
-        &lt;Button 
-          onClick={handleSave} 
-          variant="contained" 
+        &lt;Button
+          onClick={handleSave}
+          variant="contained"
           color="primary"
         &gt;
           저장
@@ -2433,7 +2424,6 @@ const TestResultForm = ({
 
 export default TestResultForm;
 ```
-
 
 ## 9. 메인 애플리케이션 컴포넌트 구현
 
@@ -2471,18 +2461,18 @@ import TestExecutionForm from './components/TestExecutionForm';
 const App = () =&gt; {
   const [tabIndex, setTabIndex] = useState(0);
   const [activeTestCaseId, setActiveTestCaseId] = useState(null);
-  
+
   const [showTestPlanForm, setShowTestPlanForm] = useState(false);
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
-  
+
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
-  
+
   // 탭 변경 핸들러
   const handleTabChange = (event, newValue) =&gt; {
     setTabIndex(newValue);
   };
-  
+
   // 테스트케이스 선택 핸들러
   const handleSelectTestCase = (testCase) =&gt; {
     if (testCase) {
@@ -2491,37 +2481,37 @@ const App = () =&gt; {
       setActiveTestCaseId(null);
     }
   };
-  
+
   // 테스트 플랜 생성 모달 열기
   const handleNewTestPlan = () =&gt; {
     setEditingTestPlanId(null);
     setShowTestPlanForm(true);
   };
-  
+
   // 테스트 플랜 수정 모달 열기
   const handleEditTestPlan = (testPlanId) =&gt; {
     setEditingTestPlanId(testPlanId);
     setShowTestPlanForm(true);
   };
-  
+
   // 테스트 플랜 모달 닫기
   const handleCloseTestPlanForm = () =&gt; {
     setShowTestPlanForm(false);
     setEditingTestPlanId(null);
   };
-  
+
   // 테스트 실행 생성 모달 열기
   const handleNewTestExecution = () =&gt; {
     setEditingTestExecutionId(null);
     setShowTestExecutionForm(true);
   };
-  
+
   // 테스트 실행 보기/수정 모달 열기
   const handleViewTestExecution = (testExecutionId) =&gt; {
     setEditingTestExecutionId(testExecutionId);
     setShowTestExecutionForm(true);
   };
-  
+
   // 테스트 플랜에서 테스트 실행 시작
   const handleStartExecutionFromPlan = (testPlanId) =&gt; {
     setTabIndex(2); // 테스트 실행 탭으로 이동
@@ -2529,13 +2519,13 @@ const App = () =&gt; {
     setShowTestExecutionForm(true);
     // 선택된 플랜 정보는 TestExecutionForm 내부에서 처리할 예정
   };
-  
+
   // 테스트 실행 모달 닫기
   const handleCloseTestExecutionForm = () =&gt; {
     setShowTestExecutionForm(false);
     setEditingTestExecutionId(null);
   };
-  
+
   return (
     &lt;AppProvider&gt;
       &lt;CssBaseline /&gt;
@@ -2546,14 +2536,14 @@ const App = () =&gt; {
           &lt;/Typography&gt;
         &lt;/Toolbar&gt;
       &lt;/AppBar&gt;
-      
+
       &lt;Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}&gt;
         &lt;Tabs value={tabIndex} onChange={handleTabChange} sx={{ mb: 3 }}&gt;
           &lt;Tab icon={&lt;TestCaseIcon /&gt;} label="테스트케이스" /&gt;
           &lt;Tab icon={&lt;TestPlanIcon /&gt;} label="테스트 플랜" /&gt;
           &lt;Tab icon={&lt;ExecutionIcon /&gt;} label="테스트 실행" /&gt;
         &lt;/Tabs&gt;
-        
+
         {/* 테스트케이스 관리 탭 */}
         {tabIndex === 0 &amp;&amp; (
           &lt;Grid container spacing={3}&gt;
@@ -2567,18 +2557,18 @@ const App = () =&gt; {
             &lt;/Grid&gt;
           &lt;/Grid&gt;
         )}
-        
+
         {/* 테스트 플랜 관리 탭 */}
         {tabIndex === 1 &amp;&amp; (
           &lt;Paper sx={{ p: 2, minHeight: 'calc(100vh - 180px)' }}&gt;
-            &lt;TestPlanList 
+            &lt;TestPlanList
               onNewTestPlan={handleNewTestPlan}
               onEditTestPlan={handleEditTestPlan}
               onStartExecution={handleStartExecutionFromPlan}
             /&gt;
-            
+
             {showTestPlanForm &amp;&amp; (
-              &lt;TestPlanForm 
+              &lt;TestPlanForm
                 testPlanId={editingTestPlanId}
                 onCancel={handleCloseTestPlanForm}
                 onSave={handleCloseTestPlanForm}
@@ -2586,16 +2576,16 @@ const App = () =&gt; {
             )}
           &lt;/Paper&gt;
         )}
-        
+
         {/* 테스트 실행 관리 탭 */}
         {tabIndex === 2 &amp;&amp; (
           &lt;Paper sx={{ p: 2, minHeight: 'calc(100vh - 180px)' }}&gt;
-            &lt;TestExecutionList 
+            &lt;TestExecutionList
               onNewExecution={handleNewTestExecution}
               onEditExecution={handleViewTestExecution}
               onViewExecution={handleViewTestExecution}
             /&gt;
-            
+
             {showTestExecutionForm &amp;&amp; (
               &lt;TestExecutionForm
                 executionId={editingTestExecutionId}
@@ -2636,16 +2626,16 @@ root.render(
 /* /src/styles.css */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f5f5f5;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
 
@@ -2669,7 +2659,6 @@ code {
 }
 ```
 
-
 ## 결론
 
 이렇게 React를 이용한 트리 형태의 테스트케이스 관리 툴 개발을 완료했습니다. 이 툴은 다음과 같은 주요 기능을 제공합니다:
@@ -2688,6 +2677,5 @@ code {
 
 새로운 테스트 케이스 추가 삭제 안됨.
 새로운 테스트 케이스 폴더 추가 안됨.
+
 <div style="text-align: center">⁂</div>
-
-

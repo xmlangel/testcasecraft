@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
@@ -8,14 +8,14 @@ import {
   Toolbar,
   IconButton,
   CircularProgress,
-  Alert
-} from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import TestResultForm from './TestResultForm.jsx';
-import { useAppContext } from '../context/AppContext.jsx';
-import { useTranslation } from '../context/I18nContext.jsx';
-import { invalidateDashboardCache } from '../services/dashboardService';
-import { getOrderedTestCaseIds } from '../utils/treeUtils.jsx';
+  Alert,
+} from "@mui/material";
+import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
+import TestResultForm from "./TestResultForm.jsx";
+import { useAppContext } from "../context/AppContext.jsx";
+import { useTranslation } from "../context/I18nContext.jsx";
+import { invalidateDashboardCache } from "../services/dashboardService";
+import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
 
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
@@ -41,25 +41,26 @@ const TestCaseResultPage = () => {
         // 테스트 실행과 테스트케이스 정보를 병렬로 조회
         const [executionResponse, testCaseResponse] = await Promise.all([
           api(`/api/test-executions/${executionId}`),
-          api(`/api/testcases/${testCaseId}`)
+          api(`/api/testcases/${testCaseId}`),
         ]);
 
         if (!executionResponse.ok) {
-          throw new Error('테스트 실행 정보를 불러올 수 없습니다.');
+          throw new Error("테스트 실행 정보를 불러올 수 없습니다.");
         }
         if (!testCaseResponse.ok) {
-          throw new Error('테스트케이스 정보를 불러올 수 없습니다.');
+          throw new Error("테스트케이스 정보를 불러올 수 없습니다.");
         }
 
         const executionData = await executionResponse.json();
         const testCaseData = await testCaseResponse.json();
 
         // 테스트 플랜의 테스트 케이스 목록 가져오기
-        const testPlanId = executionData.testPlanId || executionData.testPlan?.id;
+        const testPlanId =
+          executionData.testPlanId || executionData.testPlan?.id;
         if (testPlanId) {
           const [testPlanResponse, testCasesResponse] = await Promise.all([
             api(`/api/test-plans/${testPlanId}`),
-            api(`/api/testcases/project/${projectId}`)
+            api(`/api/testcases/project/${projectId}`),
           ]);
 
           if (testPlanResponse.ok && testCasesResponse.ok) {
@@ -69,17 +70,20 @@ const TestCaseResultPage = () => {
             // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
             const { orderedTestCaseIds } = getOrderedTestCaseIds(
               allTestCases,
-              testPlanData.testCaseIds || []
+              testPlanData.testCaseIds || [],
             );
 
             // orderedTestCaseIds가 비어있거나 현재 testCaseId가 없으면 현재 testCaseId를 추가
             let finalTestCaseIds = orderedTestCaseIds;
-            if (finalTestCaseIds.length === 0 || !finalTestCaseIds.includes(testCaseId)) {
+            if (
+              finalTestCaseIds.length === 0 ||
+              !finalTestCaseIds.includes(testCaseId)
+            ) {
               // 현재 testCaseId를 포함시킴
               finalTestCaseIds = [testCaseId];
             }
 
-            const casesList = finalTestCaseIds.map(id => ({ id }));
+            const casesList = finalTestCaseIds.map((id) => ({ id }));
             setTestCasesList(casesList);
             setTestCases(allTestCases);
 
@@ -109,7 +113,9 @@ const TestCaseResultPage = () => {
   }, [projectId, executionId, testCaseId, api]);
 
   const handleBack = () => {
-    navigate(`/projects/${projectId}/executions/${executionId}?scrollTo=${testCaseId}`);
+    navigate(
+      `/projects/${projectId}/executions/${executionId}?scrollTo=${testCaseId}`,
+    );
   };
 
   const handleSave = (updatedExecution) => {
@@ -118,9 +124,8 @@ const TestCaseResultPage = () => {
     // ICT-198: 대시보드 캐시 무효화
     try {
       invalidateDashboardCache();
-
     } catch (e) {
-      console.error('Failed to invalidate dashboard cache:', e);
+      console.error("Failed to invalidate dashboard cache:", e);
     }
   };
 
@@ -131,20 +136,31 @@ const TestCaseResultPage = () => {
   const handleNext = () => {
     if (currentIndex < testCasesList.length - 1) {
       const nextTestCase = testCasesList[currentIndex + 1];
-      navigate(`/projects/${projectId}/executions/${executionId}/testcases/${nextTestCase.id}/result`);
+      navigate(
+        `/projects/${projectId}/executions/${executionId}/testcases/${nextTestCase.id}/result`,
+      );
     }
   };
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
       const prevTestCase = testCasesList[currentIndex - 1];
-      navigate(`/projects/${projectId}/executions/${executionId}/testcases/${prevTestCase.id}/result`);
+      navigate(
+        `/projects/${projectId}/executions/${executionId}/testcases/${prevTestCase.id}/result`,
+      );
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -152,35 +168,33 @@ const TestCaseResultPage = () => {
 
   if (error) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#fafbfc' }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#fafbfc" }}>
         <AppBar position="static">
           <Toolbar>
             <IconButton edge="start" color="inherit" onClick={handleBack}>
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              {t('testCaseResult.page.title')}
+              {t("testCaseResult.page.title")}
             </Typography>
           </Toolbar>
         </AppBar>
         <Container maxWidth="md" sx={{ mt: 4 }}>
-          <Alert severity="error">
-            {error}
-          </Alert>
+          <Alert severity="error">{error}</Alert>
         </Container>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#fafbfc' }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#fafbfc" }}>
       <AppBar position="static">
         <Toolbar>
           <IconButton edge="start" color="inherit" onClick={handleBack}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {t('testCaseResult.page.title')}
+            {t("testCaseResult.page.title")}
           </Typography>
           {testCase && (
             <Typography variant="body1" sx={{ mr: 2 }}>
@@ -189,14 +203,23 @@ const TestCaseResultPage = () => {
           )}
         </Toolbar>
       </AppBar>
-      
-      <Box sx={{ width: '100%', height: 'calc(100vh - 64px)', overflow: 'auto', p: 2 }}>
+
+      <Box
+        sx={{
+          width: "100%",
+          height: "calc(100vh - 64px)",
+          overflow: "auto",
+          p: 2,
+        }}
+      >
         {execution && testCase ? (
           <TestResultForm
             open={true}
             testCaseId={testCaseId}
             executionId={executionId}
-            currentResult={execution.results?.find((r) => r.testCaseId === testCaseId)}
+            currentResult={execution.results?.find(
+              (r) => r.testCaseId === testCaseId,
+            )}
             onClose={handleClose}
             onSave={handleSave}
             onNext={handleNext}
@@ -206,9 +229,19 @@ const TestCaseResultPage = () => {
             fullPage={true}
           />
         ) : (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "50vh",
+            }}
+          >
             <Alert severity="info">
-              {t('testCaseResult.page.loadingData', '테스트 케이스 정보를 불러오는 중입니다...')}
+              {t(
+                "testCaseResult.page.loadingData",
+                "테스트 케이스 정보를 불러오는 중입니다...",
+              )}
             </Alert>
           </Box>
         )}

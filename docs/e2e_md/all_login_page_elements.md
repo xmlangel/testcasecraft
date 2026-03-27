@@ -5,6 +5,7 @@
 ## 1. 페이지 구조 및 컨테이너
 
 - **`Box` (최상위 컨테이너)**
+
   - 역할: 전체 페이지 레이아웃 (중앙 정렬, 배경색)
   - Playwright 선택자 예시: `body > div` 또는 `div[style*="min-height: 100vh"]`
 
@@ -30,11 +31,13 @@
 ## 4. 입력 필드 (TextField 컴포넌트)
 
 ### 4.1. 아이디 (Username)
+
 - **라벨 텍스트**: `아이디`
 - **`name` 속성**: `username`
 - **Playwright 선택자 예시**: `input[name="username"]` 또는 `label:has-text("아이디") + input`
 
 ### 4.2. 비밀번호 (Password)
+
 - **라벨 텍스트**: `비밀번호`
 - **`name` 속성**: `password`
 - **`type` 속성**: `password`

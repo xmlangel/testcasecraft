@@ -5,7 +5,7 @@
  * ICT-186에서 구현된 백엔드 API와 연동
  */
 
-import { getDynamicApiUrl } from '../utils/apiConstants.js';
+import { getDynamicApiUrl } from "../utils/apiConstants.js";
 
 // 동적 API URL 관리
 let API_BASE_URL = null;
@@ -32,28 +32,28 @@ const pendingRequests = new Map();
  */
 async function fetchWithAuth(url, options = {}) {
   await initializeUrls(); // URL 초기화 보장
-  const token = localStorage.getItem('accessToken');
+  const token = localStorage.getItem("accessToken");
 
   const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers
+    "Content-Type": "application/json",
+    ...options.headers,
   };
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const response = await fetch(url, {
     ...options,
-    headers
+    headers,
   });
 
   // 401 에러 시 토큰 만료 처리
   if (response.status === 401) {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    window.location.href = '/login';
-    throw new Error('Authentication failed');
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    window.location.href = "/login";
+    throw new Error("Authentication failed");
   }
 
   if (!response.ok) {
@@ -70,8 +70,8 @@ async function fetchWithAuth(url, options = {}) {
 function getCacheKey(endpoint, params = {}) {
   const paramStr = Object.keys(params)
     .sort()
-    .map(key => `${key}=${params[key]}`)
-    .join('&');
+    .map((key) => `${key}=${params[key]}`)
+    .join("&");
   return `${endpoint}?${paramStr}`;
 }
 
@@ -92,7 +92,7 @@ function getFromCache(cacheKey) {
 function setCache(cacheKey, data) {
   cache.set(cacheKey, {
     data,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 }
 
@@ -103,7 +103,11 @@ export async function getTestResultStatistics(params = {}) {
   const { projectId, testPlanId, testExecutionId, useCache = true } = params;
 
   // 캐시 키 생성
-  const cacheKey = getCacheKey('statistics', { projectId, testPlanId, testExecutionId });
+  const cacheKey = getCacheKey("statistics", {
+    projectId,
+    testPlanId,
+    testExecutionId,
+  });
 
   // 캐시 확인
   if (useCache) {
@@ -121,17 +125,18 @@ export async function getTestResultStatistics(params = {}) {
   try {
     // URL과 파라미터 구성
     const searchParams = new URLSearchParams();
-    if (projectId) searchParams.append('projectId', projectId);
-    
+    if (projectId) searchParams.append("projectId", projectId);
+
     if (testPlanId) {
       if (Array.isArray(testPlanId)) {
-        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+        testPlanId.forEach((id) => searchParams.append("testPlanId", id));
       } else {
-        searchParams.append('testPlanId', testPlanId);
+        searchParams.append("testPlanId", testPlanId);
       }
     }
-    
-    if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
+
+    if (testExecutionId)
+      searchParams.append("testExecutionId", testExecutionId);
 
     const request = (async () => {
       try {
@@ -139,7 +144,7 @@ export async function getTestResultStatistics(params = {}) {
         const url = `${API_BASE_URL}/statistics?${searchParams.toString()}`;
 
         // API 호출
-        const data = await fetchWithAuth(url).then(res => res.json());
+        const data = await fetchWithAuth(url).then((res) => res.json());
 
         // 캐시 저장
         if (useCache) {
@@ -156,10 +161,9 @@ export async function getTestResultStatistics(params = {}) {
     pendingRequests.set(cacheKey, request);
 
     return request;
-
   } catch (error) {
     // 동기적 에러 발생 시 (위의 async IIFE 밖에서는 거의 발생 안함)
-    console.error('Failed to setup test result statistics fetch:', error);
+    console.error("Failed to setup test result statistics fetch:", error);
     throw error;
   }
 }
@@ -167,8 +171,11 @@ export async function getTestResultStatistics(params = {}) {
 /**
  * ICT-186 API: 상세 테스트 결과 리포트 조회 (POST 버전)
  */
-export async function getDetailedTestResultReport(filter = {}, useCache = false) {
-  const cacheKey = getCacheKey('detailed-report', filter);
+export async function getDetailedTestResultReport(
+  filter = {},
+  useCache = false,
+) {
+  const cacheKey = getCacheKey("detailed-report", filter);
 
   // 상세 리포트는 필터가 복잡하므로 기본적으로 캐시 비활성화
   if (useCache) {
@@ -187,11 +194,11 @@ export async function getDetailedTestResultReport(filter = {}, useCache = false)
     const url = `${API_BASE_URL}/report`;
 
     const request = fetchWithAuth(url, {
-      method: 'POST',
-      body: JSON.stringify(filter)
+      method: "POST",
+      body: JSON.stringify(filter),
     })
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -203,10 +210,9 @@ export async function getDetailedTestResultReport(filter = {}, useCache = false)
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch detailed test result report:', error);
+    console.error("Failed to fetch detailed test result report:", error);
     throw error;
   }
 }
@@ -215,9 +221,22 @@ export async function getDetailedTestResultReport(filter = {}, useCache = false)
  * ICT-186 API: 간단한 상세 테스트 결과 리포트 조회 (GET 버전)
  */
 export async function getSimpleTestResultReport(params = {}) {
-  const { projectId, testPlanId, testExecutionId, page = 0, size = 50, useCache = true } = params;
+  const {
+    projectId,
+    testPlanId,
+    testExecutionId,
+    page = 0,
+    size = 50,
+    useCache = true,
+  } = params;
 
-  const cacheKey = getCacheKey('simple-report', { projectId, testPlanId, testExecutionId, page, size });
+  const cacheKey = getCacheKey("simple-report", {
+    projectId,
+    testPlanId,
+    testExecutionId,
+    page,
+    size,
+  });
 
   if (useCache) {
     const cached = getFromCache(cacheKey);
@@ -232,26 +251,27 @@ export async function getSimpleTestResultReport(params = {}) {
 
   try {
     const searchParams = new URLSearchParams();
-    if (projectId) searchParams.append('projectId', projectId);
-    
+    if (projectId) searchParams.append("projectId", projectId);
+
     if (testPlanId) {
       if (Array.isArray(testPlanId)) {
-        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+        testPlanId.forEach((id) => searchParams.append("testPlanId", id));
       } else {
-        searchParams.append('testPlanId', testPlanId);
+        searchParams.append("testPlanId", testPlanId);
       }
     }
-    
-    if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
-    searchParams.append('page', page.toString());
-    searchParams.append('size', size.toString());
+
+    if (testExecutionId)
+      searchParams.append("testExecutionId", testExecutionId);
+    searchParams.append("page", page.toString());
+    searchParams.append("size", size.toString());
 
     const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/report?${searchParams.toString()}`;
 
     const request = fetchWithAuth(url)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -263,10 +283,9 @@ export async function getSimpleTestResultReport(params = {}) {
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch simple test result report:', error);
+    console.error("Failed to fetch simple test result report:", error);
     throw error;
   }
 }
@@ -275,9 +294,19 @@ export async function getSimpleTestResultReport(params = {}) {
  * ICT-186 API: JIRA 상태 통합 리스트 조회
  */
 export async function getJiraStatusSummary(params = {}) {
-  const { projectId, testPlanId, activeOnly, refreshCache = false, useCache = true } = params;
+  const {
+    projectId,
+    testPlanId,
+    activeOnly,
+    refreshCache = false,
+    useCache = true,
+  } = params;
 
-  const cacheKey = getCacheKey('jira-status', { projectId, testPlanId, activeOnly });
+  const cacheKey = getCacheKey("jira-status", {
+    projectId,
+    testPlanId,
+    activeOnly,
+  });
 
   if (useCache && !refreshCache) {
     const cached = getFromCache(cacheKey);
@@ -292,25 +321,26 @@ export async function getJiraStatusSummary(params = {}) {
 
   try {
     const searchParams = new URLSearchParams();
-    if (projectId) searchParams.append('projectId', projectId);
-    
+    if (projectId) searchParams.append("projectId", projectId);
+
     if (testPlanId) {
       if (Array.isArray(testPlanId)) {
-        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+        testPlanId.forEach((id) => searchParams.append("testPlanId", id));
       } else {
-        searchParams.append('testPlanId', testPlanId);
+        searchParams.append("testPlanId", testPlanId);
       }
     }
-    
-    if (activeOnly !== undefined) searchParams.append('activeOnly', activeOnly.toString());
-    if (refreshCache) searchParams.append('refreshCache', 'true');
+
+    if (activeOnly !== undefined)
+      searchParams.append("activeOnly", activeOnly.toString());
+    if (refreshCache) searchParams.append("refreshCache", "true");
 
     const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/jira-status?${searchParams.toString()}`;
 
     const request = fetchWithAuth(url)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -322,10 +352,9 @@ export async function getJiraStatusSummary(params = {}) {
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch JIRA status summary:', error);
+    console.error("Failed to fetch JIRA status summary:", error);
     throw error;
   }
 }
@@ -335,34 +364,43 @@ export async function getJiraStatusSummary(params = {}) {
  * @param {string} type - 'by-plan' 또는 'by-executor'
  * @param {object} params - { projectId, source }
  */
-export async function getComparisonStatistics(type = 'by-plan', params = {}) {
-  const { projectId, source = 'manual' } = params;
+export async function getComparisonStatistics(type = "by-plan", params = {}) {
+  const { projectId, source = "manual" } = params;
 
   if (!projectId) {
-    console.warn('프로젝트 ID가 없습니다. 빈 배열 반환');
+    console.warn("프로젝트 ID가 없습니다. 빈 배열 반환");
     return [];
   }
 
   try {
-    const endpoint = type === 'by-plan' ? 'by-plan' : 'by-executor';
+    const endpoint = type === "by-plan" ? "by-plan" : "by-executor";
     const baseUrl = await getDynamicApiUrl();
 
     // Source에 따라 다른 API 호출
-    const apiPath = source === 'automated'
-      ? `/api/junit-results/comparison/${endpoint}`  // 자동화 테스트
-      : `/api/test-results-v2/comparison/${endpoint}`; // 수동 테스트 또는 TOTAL
+    const apiPath =
+      source === "automated"
+        ? `/api/junit-results/comparison/${endpoint}` // 자동화 테스트
+        : `/api/test-results-v2/comparison/${endpoint}`; // 수동 테스트 또는 TOTAL
 
     const response = await fetchWithAuth(
-      `${baseUrl}${apiPath}?projectId=${projectId}`
+      `${baseUrl}${apiPath}?projectId=${projectId}`,
     );
 
     return await response.json();
   } catch (error) {
-    console.error('Failed to fetch comparison statistics:', error);
+    console.error("Failed to fetch comparison statistics:", error);
 
     // 에러 발생 시 기본 안내 데이터 반환
     return [
-      { name: '데이터 로드 실패', passCount: 0, failCount: 0, blockedCount: 0, notRunCount: 0, totalTests: 0, successRate: 0 }
+      {
+        name: "데이터 로드 실패",
+        passCount: 0,
+        failCount: 0,
+        blockedCount: 0,
+        notRunCount: 0,
+        totalTests: 0,
+        successRate: 0,
+      },
     ];
   }
 }
@@ -377,29 +415,32 @@ export function clearCache() {
 /**
  * 에러 처리 헬퍼
  */
-export function handleTestResultError(error, context = 'test result operation') {
+export function handleTestResultError(
+  error,
+  context = "test result operation",
+) {
   console.error(`Error during ${context}:`, error);
 
-  if (error.message?.includes('Authentication failed')) {
+  if (error.message?.includes("Authentication failed")) {
     return {
-      type: 'auth_error',
-      message: '로그인이 필요합니다.',
-      action: 'redirect_login'
+      type: "auth_error",
+      message: "로그인이 필요합니다.",
+      action: "redirect_login",
     };
   }
 
-  if (error.message?.includes('Network')) {
+  if (error.message?.includes("Network")) {
     return {
-      type: 'network_error',
-      message: '네트워크 연결을 확인해주세요.',
-      action: 'retry'
+      type: "network_error",
+      message: "네트워크 연결을 확인해주세요.",
+      action: "retry",
     };
   }
 
   return {
-    type: 'api_error',
-    message: error.message || '데이터를 불러오는 중 오류가 발생했습니다.',
-    action: 'refresh'
+    type: "api_error",
+    message: error.message || "데이터를 불러오는 중 오류가 발생했습니다.",
+    action: "refresh",
   };
 }
 
@@ -410,10 +451,10 @@ export function handleTestResultError(error, context = 'test result operation') 
  */
 export async function getTestPlansForFilter(projectId, useCache = true) {
   if (!projectId) {
-    throw new Error('Project ID is required');
+    throw new Error("Project ID is required");
   }
 
-  const cacheKey = getCacheKey('filter-test-plans', { projectId });
+  const cacheKey = getCacheKey("filter-test-plans", { projectId });
 
   if (useCache) {
     const cached = getFromCache(cacheKey);
@@ -427,11 +468,13 @@ export async function getTestPlansForFilter(projectId, useCache = true) {
   }
 
   try {
-    const url = `${API_V2_BASE_URL}/filter/test-plans?projectId=${encodeURIComponent(projectId)}`;
+    const url = `${API_V2_BASE_URL}/filter/test-plans?projectId=${encodeURIComponent(
+      projectId,
+    )}`;
 
     const request = fetchWithAuth(url)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -443,10 +486,9 @@ export async function getTestPlansForFilter(projectId, useCache = true) {
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch test plans for filter:', error);
+    console.error("Failed to fetch test plans for filter:", error);
     throw error;
   }
 }
@@ -454,12 +496,19 @@ export async function getTestPlansForFilter(projectId, useCache = true) {
 /**
  * 테스트 플랜의 테스트 실행 목록 조회 (필터링용)
  */
-export async function getTestExecutionsForFilter(projectId, testPlanId = null, useCache = true) {
+export async function getTestExecutionsForFilter(
+  projectId,
+  testPlanId = null,
+  useCache = true,
+) {
   if (!projectId) {
-    throw new Error('Project ID is required');
+    throw new Error("Project ID is required");
   }
 
-  const cacheKey = getCacheKey('filter-test-executions', { projectId, testPlanId });
+  const cacheKey = getCacheKey("filter-test-executions", {
+    projectId,
+    testPlanId,
+  });
 
   if (useCache) {
     const cached = getFromCache(cacheKey);
@@ -474,16 +523,16 @@ export async function getTestExecutionsForFilter(projectId, testPlanId = null, u
 
   try {
     const searchParams = new URLSearchParams();
-    searchParams.append('projectId', projectId);
+    searchParams.append("projectId", projectId);
     if (testPlanId) {
-      searchParams.append('testPlanId', testPlanId);
+      searchParams.append("testPlanId", testPlanId);
     }
 
     const url = `${API_V2_BASE_URL}/filter/test-executions?${searchParams.toString()}`;
 
     const request = fetchWithAuth(url)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -495,10 +544,9 @@ export async function getTestExecutionsForFilter(projectId, testPlanId = null, u
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch test executions for filter:', error);
+    console.error("Failed to fetch test executions for filter:", error);
     throw error;
   }
 }
@@ -507,13 +555,19 @@ export async function getTestExecutionsForFilter(projectId, testPlanId = null, u
  * 필터링된 테스트 결과 조회
  */
 export async function getFilteredTestResults(filters = {}, useCache = false) {
-  const { projectId, testPlanId, testExecutionId, page = 0, size = 1000 } = filters;
+  const {
+    projectId,
+    testPlanId,
+    testExecutionId,
+    page = 0,
+    size = 1000,
+  } = filters;
 
   if (!projectId) {
-    throw new Error('Project ID is required');
+    throw new Error("Project ID is required");
   }
 
-  const cacheKey = getCacheKey('filtered-results', filters);
+  const cacheKey = getCacheKey("filtered-results", filters);
 
   if (useCache) {
     const cached = getFromCache(cacheKey);
@@ -528,25 +582,26 @@ export async function getFilteredTestResults(filters = {}, useCache = false) {
 
   try {
     const searchParams = new URLSearchParams();
-    searchParams.append('projectId', projectId);
-    
+    searchParams.append("projectId", projectId);
+
     if (testPlanId) {
       if (Array.isArray(testPlanId)) {
-        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+        testPlanId.forEach((id) => searchParams.append("testPlanId", id));
       } else {
-        searchParams.append('testPlanId', testPlanId);
+        searchParams.append("testPlanId", testPlanId);
       }
     }
-    
-    if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
-    searchParams.append('page', page.toString());
-    searchParams.append('size', size.toString());
+
+    if (testExecutionId)
+      searchParams.append("testExecutionId", testExecutionId);
+    searchParams.append("page", page.toString());
+    searchParams.append("size", size.toString());
 
     const url = `${API_V2_BASE_URL}/filter/results?${searchParams.toString()}`;
 
     const request = fetchWithAuth(url)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -558,10 +613,9 @@ export async function getFilteredTestResults(filters = {}, useCache = false) {
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch filtered test results:', error);
+    console.error("Failed to fetch filtered test results:", error);
     throw error;
   }
 }
@@ -572,8 +626,11 @@ export async function getFilteredTestResults(filters = {}, useCache = false) {
  * ICT-283: 계층적 테스트 결과 상세 리포트 조회
  * 테스트플랜 > 실행 > 케이스 3단계 계층 구조로 반환
  */
-export async function getHierarchicalTestResultReport(filter = {}, useCache = false) {
-  const cacheKey = getCacheKey('hierarchical-report', filter);
+export async function getHierarchicalTestResultReport(
+  filter = {},
+  useCache = false,
+) {
+  const cacheKey = getCacheKey("hierarchical-report", filter);
 
   if (useCache) {
     const cached = getFromCache(cacheKey);
@@ -591,17 +648,17 @@ export async function getHierarchicalTestResultReport(filter = {}, useCache = fa
     const url = `${API_BASE_URL}/detailed-report`;
 
     const request = fetchWithAuth(url, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         ...filter,
         hierarchicalStructure: true,
         includeNotExecuted: filter.includeNotExecuted !== false, // 기본값 true
         includeTestPlanInfo: true,
-        includeTestExecutionInfo: true
-      })
+        includeTestExecutionInfo: true,
+      }),
     })
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -613,16 +670,15 @@ export async function getHierarchicalTestResultReport(filter = {}, useCache = fa
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch hierarchical test result report:', error);
+    console.error("Failed to fetch hierarchical test result report:", error);
     throw error;
   }
 }
 
 /**
- * ICT-283: 계층적 테스트 결과 상세 리포트 조회 (GET 버전) 
+ * ICT-283: 계층적 테스트 결과 상세 리포트 조회 (GET 버전)
  */
 export async function getHierarchicalTestResultReportSimple(params = {}) {
   const {
@@ -632,15 +688,20 @@ export async function getHierarchicalTestResultReportSimple(params = {}) {
     includeNotExecuted = true,
     page = 0,
     size = 50,
-    useCache = true
+    useCache = true,
   } = params;
 
   if (!projectId) {
-    throw new Error('Project ID is required for hierarchical report');
+    throw new Error("Project ID is required for hierarchical report");
   }
 
-  const cacheKey = getCacheKey('hierarchical-simple', {
-    projectId, testPlanId, testExecutionId, includeNotExecuted, page, size
+  const cacheKey = getCacheKey("hierarchical-simple", {
+    projectId,
+    testPlanId,
+    testExecutionId,
+    includeNotExecuted,
+    page,
+    size,
   });
 
   if (useCache) {
@@ -658,23 +719,24 @@ export async function getHierarchicalTestResultReportSimple(params = {}) {
     const searchParams = new URLSearchParams();
     if (testPlanId) {
       if (Array.isArray(testPlanId)) {
-        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+        testPlanId.forEach((id) => searchParams.append("testPlanId", id));
       } else {
-        searchParams.append('testPlanId', testPlanId);
+        searchParams.append("testPlanId", testPlanId);
       }
     }
-    
-    if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
-    searchParams.append('includeNotExecuted', includeNotExecuted.toString());
-    searchParams.append('page', page.toString());
-    searchParams.append('size', size.toString());
+
+    if (testExecutionId)
+      searchParams.append("testExecutionId", testExecutionId);
+    searchParams.append("includeNotExecuted", includeNotExecuted.toString());
+    searchParams.append("page", page.toString());
+    searchParams.append("size", size.toString());
 
     const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/detailed-report/${projectId}?${searchParams.toString()}`;
 
     const request = fetchWithAuth(url)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -686,10 +748,12 @@ export async function getHierarchicalTestResultReportSimple(params = {}) {
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch simple hierarchical test result report:', error);
+    console.error(
+      "Failed to fetch simple hierarchical test result report:",
+      error,
+    );
     throw error;
   }
 }
@@ -703,21 +767,20 @@ export async function exportHierarchicalTestResultReport(filter = {}) {
     const url = `${API_BASE_URL}/export-hierarchical`;
 
     const response = await fetchWithAuth(url, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         ...filter,
         hierarchicalStructure: true,
         includeNotExecuted: filter.includeNotExecuted !== false,
         includeTestPlanInfo: true,
         includeTestExecutionInfo: true,
-        exportFormat: filter.exportFormat || 'EXCEL'
-      })
+        exportFormat: filter.exportFormat || "EXCEL",
+      }),
     });
 
     return response;
-
   } catch (error) {
-    console.error('Failed to export hierarchical test result report:', error);
+    console.error("Failed to export hierarchical test result report:", error);
     throw error;
   }
 }
@@ -732,17 +795,23 @@ export async function getCompleteTestCasesList(params = {}) {
     folderPath,
     page = 0,
     size = 100,
-    sortBy = 'testCaseName',
-    sortDirection = 'asc',
-    useCache = true
+    sortBy = "testCaseName",
+    sortDirection = "asc",
+    useCache = true,
   } = params;
 
   if (!projectId) {
-    throw new Error('Project ID is required for complete test cases list');
+    throw new Error("Project ID is required for complete test cases list");
   }
 
-  const cacheKey = getCacheKey('complete-cases', {
-    projectId, testPlanId, folderPath, page, size, sortBy, sortDirection
+  const cacheKey = getCacheKey("complete-cases", {
+    projectId,
+    testPlanId,
+    folderPath,
+    page,
+    size,
+    sortBy,
+    sortDirection,
   });
 
   if (useCache) {
@@ -760,24 +829,24 @@ export async function getCompleteTestCasesList(params = {}) {
     const searchParams = new URLSearchParams();
     if (testPlanId) {
       if (Array.isArray(testPlanId)) {
-        testPlanId.forEach(id => searchParams.append('testPlanId', id));
+        testPlanId.forEach((id) => searchParams.append("testPlanId", id));
       } else {
-        searchParams.append('testPlanId', testPlanId);
+        searchParams.append("testPlanId", testPlanId);
       }
     }
-    
-    if (folderPath) searchParams.append('folderPath', folderPath);
-    searchParams.append('page', page.toString());
-    searchParams.append('size', size.toString());
-    searchParams.append('sortBy', sortBy);
-    searchParams.append('sortDirection', sortDirection);
+
+    if (folderPath) searchParams.append("folderPath", folderPath);
+    searchParams.append("page", page.toString());
+    searchParams.append("size", size.toString());
+    searchParams.append("sortBy", sortBy);
+    searchParams.append("sortDirection", sortDirection);
 
     const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/complete-cases/${projectId}?${searchParams.toString()}`;
 
     const request = fetchWithAuth(url)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (useCache) {
           setCache(cacheKey, data);
         }
@@ -789,10 +858,9 @@ export async function getCompleteTestCasesList(params = {}) {
 
     pendingRequests.set(cacheKey, request);
     return await request;
-
   } catch (error) {
     pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch complete test cases list:', error);
+    console.error("Failed to fetch complete test cases list:", error);
     throw error;
   }
 }
@@ -814,7 +882,7 @@ const testResultService = {
   getHierarchicalTestResultReport,
   getHierarchicalTestResultReportSimple,
   exportHierarchicalTestResultReport,
-  getCompleteTestCasesList
+  getCompleteTestCasesList,
 };
 
 export default testResultService;

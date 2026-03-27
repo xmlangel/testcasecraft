@@ -7,25 +7,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * RAG 채팅 카테고리 갱신 요청 DTO
- */
+/** RAG 채팅 카테고리 갱신 요청 DTO */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RagChatCategoryUpdateRequest {
 
-    @NotNull
-    @JsonProperty("categoryId")
-    private String categoryId;
+  @NotNull
+  @JsonProperty("categoryId")
+  private String categoryId;
 
-    @JsonProperty("name")
-    private String name;
+  @JsonProperty("name")
+  private String name;
 
-    @JsonProperty("color")
-    private String color;
+  @JsonProperty("color")
+  private String color;
 
-    @JsonProperty("description")
-    private String description;
+  @JsonProperty("description")
+  private String description;
 }

@@ -2,7 +2,7 @@
 /**
  * 날짜 관련 유틸리티 함수들
  */
-import { getRuntimeConfig } from './apiConstants';
+import { getRuntimeConfig } from "./apiConstants";
 
 /**
  * 서버의 시간대가 UTC인지 확인
@@ -10,7 +10,7 @@ import { getRuntimeConfig } from './apiConstants';
  */
 export function isServerUTC() {
   const config = getRuntimeConfig();
-  return config?.serverTimeZone === 'UTC';
+  return config?.serverTimeZone === "UTC";
 }
 
 /**
@@ -20,21 +20,21 @@ export function isServerUTC() {
  * @param {object} options - 포맷 옵션
  * @returns {string} 포맷된 날짜 문자열
  */
-export function formatDate(date, locale = 'ko-KR', options = {}) {
-  if (!date) return '-';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(dateObj.getTime())) return '-';
-  
+export function formatDate(date, locale = "ko-KR", options = {}) {
+  if (!date) return "-";
+
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return "-";
+
   const defaultOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
     ...options,
   };
-  
+
   return dateObj.toLocaleString(locale, defaultOptions);
 }
 
@@ -44,11 +44,11 @@ export function formatDate(date, locale = 'ko-KR', options = {}) {
  * @param {string} locale - 로케일 (기본: 'ko-KR')
  * @returns {string} 포맷된 날짜 문자열
  */
-export function formatDateOnly(date, locale = 'ko-KR') {
+export function formatDateOnly(date, locale = "ko-KR") {
   return formatDate(date, locale, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
 }
 
@@ -58,11 +58,11 @@ export function formatDateOnly(date, locale = 'ko-KR') {
  * @param {string} locale - 로케일 (기본: 'ko-KR')
  * @returns {string} 포맷된 시간 문자열
  */
-export function formatTimeOnly(date, locale = 'ko-KR') {
+export function formatTimeOnly(date, locale = "ko-KR") {
   return formatDate(date, locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 }
 
@@ -73,23 +73,24 @@ export function formatTimeOnly(date, locale = 'ko-KR') {
  * @returns {string} 상대적 시간 문자열
  */
 export function formatRelativeTime(date, baseDate = new Date()) {
-  if (!date) return '-';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const baseDateObj = typeof baseDate === 'string' ? new Date(baseDate) : baseDate;
-  
-  if (isNaN(dateObj.getTime()) || isNaN(baseDateObj.getTime())) return '-';
-  
+  if (!date) return "-";
+
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const baseDateObj =
+    typeof baseDate === "string" ? new Date(baseDate) : baseDate;
+
+  if (isNaN(dateObj.getTime()) || isNaN(baseDateObj.getTime())) return "-";
+
   const diffMs = baseDateObj.getTime() - dateObj.getTime();
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
-  if (diffMinutes < 1) return '방금 전';
+
+  if (diffMinutes < 1) return "방금 전";
   if (diffMinutes < 60) return `${diffMinutes}분 전`;
   if (diffHours < 24) return `${diffHours}시간 전`;
   if (diffDays < 7) return `${diffDays}일 전`;
-  
+
   // 일주일 이상은 실제 날짜 표시
   return formatDateOnly(date);
 }
@@ -101,37 +102,41 @@ export function formatRelativeTime(date, baseDate = new Date()) {
  * @returns {string} 기간 문자열
  */
 export function formatDuration(startDate, endDate) {
-  if (!startDate || !endDate) return '-';
-  
-  const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
-  const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
-  
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return '-';
-  
+  if (!startDate || !endDate) return "-";
+
+  const start = typeof startDate === "string" ? new Date(startDate) : startDate;
+  const end = typeof endDate === "string" ? new Date(endDate) : endDate;
+
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return "-";
+
   const diffMs = end.getTime() - start.getTime();
-  
-  if (diffMs < 0) return '0초';
-  
+
+  if (diffMs < 0) return "0초";
+
   const seconds = Math.floor(diffMs / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
+
   if (days > 0) {
     const remainingHours = hours % 24;
     return remainingHours > 0 ? `${days}일 ${remainingHours}시간` : `${days}일`;
   }
-  
+
   if (hours > 0) {
     const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
+    return remainingMinutes > 0
+      ? `${hours}시간 ${remainingMinutes}분`
+      : `${hours}시간`;
   }
-  
+
   if (minutes > 0) {
     const remainingSeconds = seconds % 60;
-    return remainingSeconds > 0 ? `${minutes}분 ${remainingSeconds}초` : `${minutes}분`;
+    return remainingSeconds > 0
+      ? `${minutes}분 ${remainingSeconds}초`
+      : `${minutes}분`;
   }
-  
+
   return `${seconds}초`;
 }
 
@@ -142,7 +147,7 @@ export function formatDuration(startDate, endDate) {
  */
 export function isValidDate(date) {
   if (!date) return false;
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = typeof date === "string" ? new Date(date) : date;
   return dateObj instanceof Date && !isNaN(dateObj.getTime());
 }
 
@@ -152,14 +157,14 @@ export function isValidDate(date) {
  * @returns {string} 로컬 날짜 문자열 (YYYY-MM-DD)
  */
 export function isoToLocalDateString(isoString) {
-  if (!isoString) return '';
+  if (!isoString) return "";
   const date = new Date(isoString);
-  if (isNaN(date.getTime())) return '';
-  
+  if (isNaN(date.getTime())) return "";
+
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
   return `${year}-${month}-${day}`;
 }
 
@@ -169,10 +174,10 @@ export function isoToLocalDateString(isoString) {
  * @returns {string} ISO 날짜 문자열
  */
 export function localDateStringToISO(localDateString) {
-  if (!localDateString) return '';
+  if (!localDateString) return "";
   const date = new Date(localDateString);
-  if (isNaN(date.getTime())) return '';
-  
+  if (isNaN(date.getTime())) return "";
+
   return date.toISOString();
 }
 
@@ -186,19 +191,19 @@ export function convertLocalDateTimeArrayToDate(dateArray) {
   if (!Array.isArray(dateArray) || dateArray.length < 6) {
     return null;
   }
-  
+
   try {
     const [year, month, day, hour = 0, minute = 0, second = 0] = dateArray;
     // JavaScript Date의 월은 0-based (0 = 1월)이므로 1을 빼야 함
     const date = new Date(year, month - 1, day, hour, minute, second);
-    
+
     if (isNaN(date.getTime())) {
       return null;
     }
-    
+
     return date;
   } catch (error) {
-    console.error('날짜 배열 변환 오류:', error, dateArray);
+    console.error("날짜 배열 변환 오류:", error, dateArray);
     return null;
   }
 }
@@ -210,23 +215,23 @@ export function convertLocalDateTimeArrayToDate(dateArray) {
  */
 export function safeParseDate(date) {
   if (!date) return null;
-  
+
   // 이미 Date 객체인 경우
   if (date instanceof Date) {
     return isNaN(date.getTime()) ? null : date;
   }
-  
+
   // 배열 형식인 경우 (LocalDateTime)
   if (Array.isArray(date)) {
     return convertLocalDateTimeArrayToDate(date);
   }
-  
+
   // 문자열인 경우
-  if (typeof date === 'string') {
+  if (typeof date === "string") {
     const parsedDate = new Date(date);
     return isNaN(parsedDate.getTime()) ? null : parsedDate;
   }
-  
+
   return null;
 }
 
@@ -237,19 +242,19 @@ export function safeParseDate(date) {
  * @param {object} options - 포맷 옵션
  * @returns {string} 포맷된 날짜 문자열
  */
-export function formatDateSafe(date, locale = 'ko-KR', options = {}) {
+export function formatDateSafe(date, locale = "ko-KR", options = {}) {
   const dateObj = safeParseDate(date);
-  if (!dateObj) return '-';
-  
+  if (!dateObj) return "-";
+
   const defaultOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
     ...options,
   };
-  
+
   const formattedDate = dateObj.toLocaleString(locale, defaultOptions);
   return isServerUTC() ? `${formattedDate} (UTC)` : formattedDate;
 }
@@ -260,10 +265,10 @@ export function formatDateSafe(date, locale = 'ko-KR', options = {}) {
  * @param {string} locale - 로케일 (기본: 'ko-KR')
  * @returns {string} 포맷된 날짜 문자열
  */
-export function formatDateOnlySafe(date, locale = 'ko-KR') {
+export function formatDateOnlySafe(date, locale = "ko-KR") {
   return formatDateSafe(date, locale, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
 }

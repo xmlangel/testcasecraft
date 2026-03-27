@@ -17,12 +17,12 @@ import importlib.util
 from pathlib import Path
 
 # Colors
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-RESET = '\033[0m'
-BOLD = '\033[1m'
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+RESET = "\033[0m"
+BOLD = "\033[1m"
 
 
 def print_header(msg):
@@ -47,9 +47,9 @@ def validate_syntax(file_path):
     """Validate Python syntax"""
     print_header("1. Syntax Validation")
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             code = f.read()
-        compile(code, file_path, 'exec')
+        compile(code, file_path, "exec")
         print_success("Python syntax is valid")
         return True
     except SyntaxError as e:
@@ -62,15 +62,15 @@ def validate_imports(file_path):
     print_header("2. Import Validation")
 
     required_imports = {
-        'requests': 'HTTP client for API calls',
-        'json': 'JSON handling',
-        'os': 'File operations',
-        'sys': 'System operations',
-        'uuid': 'UUID generation',
+        "requests": "HTTP client for API calls",
+        "json": "JSON handling",
+        "os": "File operations",
+        "sys": "System operations",
+        "uuid": "UUID generation",
     }
 
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             code = f.read()
 
         tree = ast.parse(code)
@@ -104,39 +104,47 @@ def analyze_test_functions(file_path):
     print_header("3. Test Function Analysis")
 
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             code = f.read()
 
         tree = ast.parse(code)
 
         # Find all functions
-        functions = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
-        test_functions = [f for f in functions if f.name.startswith('test_')]
+        functions = [
+            node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+        ]
+        test_functions = [f for f in functions if f.name.startswith("test_")]
 
         print_success(f"Total functions: {len(functions)}")
         print_success(f"Test functions: {len(test_functions)}")
 
         # Categorize tests
         categories = {
-            'Documents API': [],
-            'Embeddings API': [],
-            'Conversations API': [],
-            'Search API': [],
-            'Other': []
+            "Documents API": [],
+            "Embeddings API": [],
+            "Conversations API": [],
+            "Search API": [],
+            "Other": [],
         }
 
         for func in test_functions:
             name = func.name
-            if 'document' in name or 'upload' in name or 'download' in name or 'chunk' in name or 'analyze' in name:
-                categories['Documents API'].append(name)
-            elif 'embedding' in name:
-                categories['Embeddings API'].append(name)
-            elif 'conversation' in name or 'message' in name:
-                categories['Conversations API'].append(name)
-            elif 'search' in name:
-                categories['Search API'].append(name)
+            if (
+                "document" in name
+                or "upload" in name
+                or "download" in name
+                or "chunk" in name
+                or "analyze" in name
+            ):
+                categories["Documents API"].append(name)
+            elif "embedding" in name:
+                categories["Embeddings API"].append(name)
+            elif "conversation" in name or "message" in name:
+                categories["Conversations API"].append(name)
+            elif "search" in name:
+                categories["Search API"].append(name)
             else:
-                categories['Other'].append(name)
+                categories["Other"].append(name)
 
         print_info("\nTest coverage by API:")
         for category, tests in categories.items():
@@ -157,32 +165,32 @@ def validate_api_endpoints(file_path):
     print_header("4. API Endpoint Coverage")
 
     expected_endpoints = {
-        'Documents API': [
-            'POST /documents/upload',
-            'POST /documents/',
-            'GET /documents/{id}',
-            'GET /documents/',
-            'PATCH /documents/{id}',
-            'DELETE /documents/{id}',
-            'POST /documents/{id}/analyze',
-            'GET /documents/{id}/chunks',
-            'GET /documents/{id}/download',
+        "Documents API": [
+            "POST /documents/upload",
+            "POST /documents/",
+            "GET /documents/{id}",
+            "GET /documents/",
+            "PATCH /documents/{id}",
+            "DELETE /documents/{id}",
+            "POST /documents/{id}/analyze",
+            "GET /documents/{id}/chunks",
+            "GET /documents/{id}/download",
         ],
-        'Embeddings API': [
-            'POST /embeddings/generate',
-            'GET /embeddings/status/{id}',
+        "Embeddings API": [
+            "POST /embeddings/generate",
+            "GET /embeddings/status/{id}",
         ],
-        'Conversations API': [
-            'POST /conversations/messages',
-            'DELETE /conversations/messages/{id}',
+        "Conversations API": [
+            "POST /conversations/messages",
+            "DELETE /conversations/messages/{id}",
         ],
-        'Search API': [
-            'POST /search/similar',
+        "Search API": [
+            "POST /search/similar",
         ],
     }
 
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             content = f.read()
 
         print_info("Checking endpoint coverage in test file:\n")
@@ -194,16 +202,18 @@ def validate_api_endpoints(file_path):
             print(f"  {BOLD}{api}:{RESET}")
             for endpoint in endpoints:
                 total_endpoints += 1
-                method, path = endpoint.split(' ', 1)
+                method, path = endpoint.split(" ", 1)
                 # Simple check: look for the path in the file
                 # More flexible pattern matching
-                base_path = path.replace('{id}', '').replace('{document_id}', '').split('?')[0]
+                base_path = (
+                    path.replace("{id}", "").replace("{document_id}", "").split("?")[0]
+                )
 
                 # Check multiple patterns
                 patterns = [
-                    f'/{base_path}',
-                    path.replace('{id}', '{document_id}'),
-                    path.replace('{id}', '{'),
+                    f"/{base_path}",
+                    path.replace("{id}", "{document_id}"),
+                    path.replace("{id}", "{"),
                     base_path,
                 ]
 
@@ -215,8 +225,12 @@ def validate_api_endpoints(file_path):
                 else:
                     print_error(f"    {endpoint} (not found)")
 
-        coverage_percent = (covered_endpoints / total_endpoints * 100) if total_endpoints > 0 else 0
-        print(f"\n{BOLD}Coverage:{RESET} {covered_endpoints}/{total_endpoints} ({coverage_percent:.1f}%)")
+        coverage_percent = (
+            (covered_endpoints / total_endpoints * 100) if total_endpoints > 0 else 0
+        )
+        print(
+            f"\n{BOLD}Coverage:{RESET} {covered_endpoints}/{total_endpoints} ({coverage_percent:.1f}%)"
+        )
 
         return coverage_percent >= 90  # 90% coverage threshold
 
@@ -230,17 +244,17 @@ def check_test_structure(file_path):
     print_header("5. Test Structure & Best Practices")
 
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             content = f.read()
 
         checks = {
-            'Has main() function': 'def main():' in content,
-            'Has test result tracking': 'test_results' in content,
-            'Has error handling': 'try:' in content and 'except' in content,
-            'Has cleanup function': 'cleanup' in content.lower(),
-            'Has colored output': 'GREEN' in content or '\\033' in content,
-            'Has timeout handling': 'timeout=' in content,
-            'Has proper status codes': 'status_code ==' in content,
+            "Has main() function": "def main():" in content,
+            "Has test result tracking": "test_results" in content,
+            "Has error handling": "try:" in content and "except" in content,
+            "Has cleanup function": "cleanup" in content.lower(),
+            "Has colored output": "GREEN" in content or "\\033" in content,
+            "Has timeout handling": "timeout=" in content,
+            "Has proper status codes": "status_code ==" in content,
         }
 
         all_passed = True
@@ -270,11 +284,11 @@ def main():
         sys.exit(1)
 
     results = {
-        'Syntax': validate_syntax(test_file),
-        'Imports': validate_imports(test_file),
-        'Functions': analyze_test_functions(test_file),
-        'Endpoints': validate_api_endpoints(test_file),
-        'Structure': check_test_structure(test_file),
+        "Syntax": validate_syntax(test_file),
+        "Imports": validate_imports(test_file),
+        "Functions": analyze_test_functions(test_file),
+        "Endpoints": validate_api_endpoints(test_file),
+        "Structure": check_test_structure(test_file),
     }
 
     # Summary
@@ -291,7 +305,9 @@ def main():
 
     if passed == total:
         print(f"\n{GREEN}{BOLD}✓ All validations passed!{RESET}")
-        print(f"\n{YELLOW}Note:{RESET} To run actual API tests, start the RAG service first:")
+        print(
+            f"\n{YELLOW}Note:{RESET} To run actual API tests, start the RAG service first:"
+        )
         print("  cd docker-compose-dev-spring")
         print("  docker-compose up -d postgres-rag minio rag-service")
         print("  cd ../rag-service")

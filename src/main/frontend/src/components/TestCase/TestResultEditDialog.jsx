@@ -1,6 +1,6 @@
 // src/components/TestCase/TestResultEditDialog.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -28,8 +28,8 @@ import {
   ListItemText,
   ListItemIcon,
   InputAdornment,
-  CircularProgress
-} from '@mui/material';
+  CircularProgress,
+} from "@mui/material";
 import {
   Edit as EditIcon,
   Save as SaveIcon,
@@ -38,18 +38,18 @@ import {
   CompareArrows as CompareIcon,
   Info as InfoIcon,
   CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon
-} from '@mui/icons-material';
-import { useAppContext } from '../../context/AppContext.jsx';
-import { useI18n } from '../../context/I18nContext.jsx';
-import testResultEditService from '../../services/testResultEditService.js';
-import { getResultLabel } from '../../utils/testResultConstants.js';
-import { formatDateSafe } from '../../utils/dateUtils';
-import { jiraService } from '../../services/jiraService.js';
+  Error as ErrorIcon,
+} from "@mui/icons-material";
+import { useAppContext } from "../../context/AppContext.jsx";
+import { useI18n } from "../../context/I18nContext.jsx";
+import testResultEditService from "../../services/testResultEditService.js";
+import { getResultLabel } from "../../utils/testResultConstants.js";
+import { formatDateSafe } from "../../utils/dateUtils";
+import { jiraService } from "../../services/jiraService.js";
 // ICT-361: 테스트 결과 첨부파일 보기
-import TestResultAttachmentsView from './TestResultAttachmentsView.jsx';
+import TestResultAttachmentsView from "./TestResultAttachmentsView.jsx";
 // Markdown 뷰어
-import MarkdownViewer from '../common/MarkdownViewer.jsx';
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 /**
  * ICT-209: 테스트 결과 편집 다이얼로그
@@ -60,21 +60,21 @@ const TestResultEditDialog = ({
   onClose,
   testResult,
   testCase,
-  onEditSaved
+  onEditSaved,
 }) => {
   const { user } = useAppContext();
   const { t } = useI18n();
 
   // 편집 상태
   const [editData, setEditData] = useState({
-    editedTestCaseName: '',
-    editedResult: '',
-    editedNotes: '',
-    editedJiraIssueKey: '',
-    editedJiraIssueUrl: '',
+    editedTestCaseName: "",
+    editedResult: "",
+    editedNotes: "",
+    editedJiraIssueKey: "",
+    editedJiraIssueUrl: "",
     addedTags: [],
-    editReason: '',
-    saveAsDraft: true
+    editReason: "",
+    saveAsDraft: true,
   });
 
   // UI 상태
@@ -85,10 +85,13 @@ const TestResultEditDialog = ({
   const [permissions, setPermissions] = useState({});
   const [showHistory, setShowHistory] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
-  const [newTag, setNewTag] = useState('');
+  const [newTag, setNewTag] = useState("");
 
   // ICT-184: JIRA 이슈 검증 상태
-  const [jiraValidation, setJiraValidation] = useState({ status: null, message: null });
+  const [jiraValidation, setJiraValidation] = useState({
+    status: null,
+    message: null,
+  });
   const [jiraValidationLoading, setJiraValidationLoading] = useState(false);
 
   // 초기화
@@ -116,20 +119,22 @@ const TestResultEditDialog = ({
 
         if (result.exists) {
           setJiraValidation({
-            status: 'success',
-            message: `✅ ${result.issueKey}: ${result.summary || '이슈가 존재합니다'}`
+            status: "success",
+            message: `✅ ${result.issueKey}: ${
+              result.summary || "이슈가 존재합니다"
+            }`,
           });
         } else {
           setJiraValidation({
-            status: 'error',
-            message: result.errorMessage || '이슈를 찾을 수 없습니다'
+            status: "error",
+            message: result.errorMessage || "이슈를 찾을 수 없습니다",
           });
         }
       } catch (error) {
-        console.error('JIRA 이슈 검증 실패:', error);
+        console.error("JIRA 이슈 검증 실패:", error);
         setJiraValidation({
-          status: 'error',
-          message: '이슈 검증 중 오류가 발생했습니다'
+          status: "error",
+          message: "이슈 검증 중 오류가 발생했습니다",
         });
       } finally {
         setJiraValidationLoading(false);
@@ -150,7 +155,7 @@ const TestResultEditDialog = ({
       const [activeEditData, permissionsData, historyData] = await Promise.all([
         testResultEditService.getActiveEdit(testResult.id),
         testResultEditService.checkEditPermissions(testResult.id, user?.id),
-        testResultEditService.getEditHistory(testResult.id)
+        testResultEditService.getEditHistory(testResult.id),
       ]);
 
       setActiveEdit(activeEditData);
@@ -158,34 +163,37 @@ const TestResultEditDialog = ({
       setEditHistory(historyData);
 
       // 편집 폼 초기화
-      if (activeEditData && activeEditData.editStatus === 'DRAFT' && activeEditData.editedByUserId === user?.id) {
+      if (
+        activeEditData &&
+        activeEditData.editStatus === "DRAFT" &&
+        activeEditData.editedByUserId === user?.id
+      ) {
         // 기존 DRAFT 편집본 로드
         setEditData({
-          editedTestCaseName: activeEditData.editedTestCaseName || '',
-          editedResult: activeEditData.editedResult || '',
-          editedNotes: activeEditData.editedNotes || '',
-          editedJiraIssueKey: activeEditData.editedJiraIssueKey || '',
-          editedJiraIssueUrl: activeEditData.editedJiraIssueUrl || '',
+          editedTestCaseName: activeEditData.editedTestCaseName || "",
+          editedResult: activeEditData.editedResult || "",
+          editedNotes: activeEditData.editedNotes || "",
+          editedJiraIssueKey: activeEditData.editedJiraIssueKey || "",
+          editedJiraIssueUrl: activeEditData.editedJiraIssueUrl || "",
           addedTags: activeEditData.addedTags || [],
-          editReason: activeEditData.editReason || '',
-          saveAsDraft: true
+          editReason: activeEditData.editReason || "",
+          saveAsDraft: true,
         });
       } else {
         // 새로운 편집본을 위한 원본 데이터 로드
         setEditData({
-          editedTestCaseName: testCase?.name || '',
-          editedResult: testResult.result || '',
-          editedNotes: testResult.notes || '',
-          editedJiraIssueKey: testResult.jiraIssueKey || '',
-          editedJiraIssueUrl: testResult.jiraIssueUrl || '',
+          editedTestCaseName: testCase?.name || "",
+          editedResult: testResult.result || "",
+          editedNotes: testResult.notes || "",
+          editedJiraIssueKey: testResult.jiraIssueKey || "",
+          editedJiraIssueUrl: testResult.jiraIssueUrl || "",
           addedTags: [],
-          editReason: '',
-          saveAsDraft: true
+          editReason: "",
+          saveAsDraft: true,
         });
       }
-
     } catch (err) {
-      console.error('편집 다이얼로그 초기화 오류:', err);
+      console.error("편집 다이얼로그 초기화 오류:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -193,26 +201,26 @@ const TestResultEditDialog = ({
   };
 
   const handleInputChange = (field, value) => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleAddTag = () => {
     if (newTag.trim() && !editData.addedTags.includes(newTag.trim())) {
-      setEditData(prev => ({
+      setEditData((prev) => ({
         ...prev,
-        addedTags: [...prev.addedTags, newTag.trim()]
+        addedTags: [...prev.addedTags, newTag.trim()],
       }));
-      setNewTag('');
+      setNewTag("");
     }
   };
 
   const handleRemoveTag = (tagToRemove) => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
-      addedTags: prev.addedTags.filter(tag => tag !== tagToRemove)
+      addedTags: prev.addedTags.filter((tag) => tag !== tagToRemove),
     }));
   };
 
@@ -223,16 +231,25 @@ const TestResultEditDialog = ({
     try {
       // ICT-184: JIRA 이슈 존재 여부 검증 (저장 시점)
       if (editData.editedJiraIssueKey.trim()) {
-        if (jiraValidation.status === 'error') {
+        if (jiraValidation.status === "error") {
           setError(`JIRA 이슈 검증 실패: ${jiraValidation.message}`);
           return;
         }
 
         // 검증이 아직 완료되지 않았으면 다시 한번 확인
-        if (!jiraValidation.status && jiraService.isValidIssueKey(editData.editedJiraIssueKey.trim())) {
-          const result = await jiraService.checkIssueExists(editData.editedJiraIssueKey.trim());
+        if (
+          !jiraValidation.status &&
+          jiraService.isValidIssueKey(editData.editedJiraIssueKey.trim())
+        ) {
+          const result = await jiraService.checkIssueExists(
+            editData.editedJiraIssueKey.trim(),
+          );
           if (!result.exists) {
-            setError(`존재하지 않는 JIRA 이슈입니다: ${result.errorMessage || '이슈를 찾을 수 없습니다'}`);
+            setError(
+              `존재하지 않는 JIRA 이슈입니다: ${
+                result.errorMessage || "이슈를 찾을 수 없습니다"
+              }`,
+            );
             return;
           }
         }
@@ -241,26 +258,30 @@ const TestResultEditDialog = ({
       // 유효성 검사
       const validation = testResultEditService.validateEditRequest({
         ...editData,
-        originalTestResultId: testResult.id
+        originalTestResultId: testResult.id,
       });
 
       if (!validation.isValid) {
-        setError(validation.errors.join(', '));
+        setError(validation.errors.join(", "));
         return;
       }
 
       let result;
-      if (activeEdit && activeEdit.editStatus === 'DRAFT' && activeEdit.editedByUserId === user?.id) {
+      if (
+        activeEdit &&
+        activeEdit.editStatus === "DRAFT" &&
+        activeEdit.editedByUserId === user?.id
+      ) {
         // 기존 DRAFT 편집본 수정
         result = await testResultEditService.updateEdit(activeEdit.id, {
           ...editData,
-          originalTestResultId: testResult.id
+          originalTestResultId: testResult.id,
         });
       } else {
         // 새로운 편집본 생성
         result = await testResultEditService.createEdit({
           ...editData,
-          originalTestResultId: testResult.id
+          originalTestResultId: testResult.id,
         });
       }
 
@@ -270,9 +291,8 @@ const TestResultEditDialog = ({
 
       // 성공 메시지 및 다이얼로그 닫기
       onClose();
-
     } catch (err) {
-      console.error('편집 저장 오류:', err);
+      console.error("편집 저장 오류:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -287,7 +307,7 @@ const TestResultEditDialog = ({
       await testResultEditService.processEditApproval(editId, approved);
       await initializeEditDialog(); // 상태 새로고침
     } catch (err) {
-      console.error('편집 승인 처리 오류:', err);
+      console.error("편집 승인 처리 오류:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -309,7 +329,7 @@ const TestResultEditDialog = ({
         setError(result.message);
       }
     } catch (err) {
-      console.error('편집 적용 오류:', err);
+      console.error("편집 적용 오류:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -324,7 +344,7 @@ const TestResultEditDialog = ({
       await testResultEditService.revertEdit(editId);
       await initializeEditDialog(); // 상태 새로고침
     } catch (err) {
-      console.error('편집 되돌리기 오류:', err);
+      console.error("편집 되돌리기 오류:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -335,42 +355,64 @@ const TestResultEditDialog = ({
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom color="text.secondary">
-          <InfoIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+          <InfoIcon sx={{ mr: 1, verticalAlign: "middle" }} />
           원본 데이터
         </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
-            <Typography variant="body2" color="text.secondary">테스트케이스명</Typography>
-            <Typography variant="body1">{testCase?.name || '알 수 없음'}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              테스트케이스명
+            </Typography>
+            <Typography variant="body1">
+              {testCase?.name || "알 수 없음"}
+            </Typography>
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
-            <Typography variant="body2" color="text.secondary">결과</Typography>
+            <Typography variant="body2" color="text.secondary">
+              결과
+            </Typography>
             <Chip
               label={getResultLabel(testResult?.result)}
               size="small"
-              color={testResult?.result === 'PASS' ? 'success' : testResult?.result === 'FAIL' ? 'error' : 'default'}
+              color={
+                testResult?.result === "PASS"
+                  ? "success"
+                  : testResult?.result === "FAIL"
+                    ? "error"
+                    : "default"
+              }
             />
           </Grid>
           <Grid size={{ xs: 12 }}>
-            <Typography variant="body2" color="text.secondary">비고</Typography>
+            <Typography variant="body2" color="text.secondary">
+              비고
+            </Typography>
             {testResult?.notes ? (
-              <Box sx={{
-                border: '1px solid #e0e0e0',
-                borderRadius: 1,
-                p: 1.5,
-                bgcolor: '#f9f9f9',
-                maxHeight: 200,
-                overflow: 'auto'
-              }}>
+              <Box
+                sx={{
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 1,
+                  p: 1.5,
+                  bgcolor: "#f9f9f9",
+                  maxHeight: 200,
+                  overflow: "auto",
+                }}
+              >
                 <MarkdownViewer content={testResult.notes} />
               </Box>
             ) : (
-              <Typography variant="body1" color="text.secondary">없음</Typography>
+              <Typography variant="body1" color="text.secondary">
+                없음
+              </Typography>
             )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
-            <Typography variant="body2" color="text.secondary">JIRA ID</Typography>
-            <Typography variant="body1">{testResult?.jiraIssueKey || '없음'}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              JIRA ID
+            </Typography>
+            <Typography variant="body1">
+              {testResult?.jiraIssueKey || "없음"}
+            </Typography>
           </Grid>
         </Grid>
       </CardContent>
@@ -381,7 +423,7 @@ const TestResultEditDialog = ({
     <Card variant="outlined" sx={{ mt: 2 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+          <HistoryIcon sx={{ mr: 1, verticalAlign: "middle" }} />
           편집 이력
         </Typography>
         {editHistory.length === 0 ? (
@@ -391,15 +433,22 @@ const TestResultEditDialog = ({
         ) : (
           <List dense>
             {editHistory.map((edit, index) => {
-              const statusInfo = testResultEditService.getEditStatusInfo(edit.editStatus);
+              const statusInfo = testResultEditService.getEditStatusInfo(
+                edit.editStatus,
+              );
               return (
-                <ListItem key={edit.id} divider={index < editHistory.length - 1}>
+                <ListItem
+                  key={edit.id}
+                  divider={index < editHistory.length - 1}
+                >
                   <ListItemIcon>
-                    <span style={{ fontSize: '1.2em' }}>{statusInfo.icon}</span>
+                    <span style={{ fontSize: "1.2em" }}>{statusInfo.icon}</span>
                   </ListItemIcon>
                   <ListItemText
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
                         <Chip
                           label={statusInfo.label}
                           size="small"
@@ -421,8 +470,8 @@ const TestResultEditDialog = ({
                       </Box>
                     }
                   />
-                  {edit.editStatus === 'PENDING' && permissions.canApprove && (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                  {edit.editStatus === "PENDING" && permissions.canApprove && (
+                    <Box sx={{ display: "flex", gap: 1 }}>
                       <Button
                         size="small"
                         color="success"
@@ -439,7 +488,7 @@ const TestResultEditDialog = ({
                       </Button>
                     </Box>
                   )}
-                  {edit.editStatus === 'APPROVED' && permissions.canApply && (
+                  {edit.editStatus === "APPROVED" && permissions.canApply && (
                     <Button
                       size="small"
                       color="primary"
@@ -448,7 +497,7 @@ const TestResultEditDialog = ({
                       적용
                     </Button>
                   )}
-                  {edit.editStatus === 'APPLIED' && permissions.canRevert && (
+                  {edit.editStatus === "APPLIED" && permissions.canRevert && (
                     <Button
                       size="small"
                       color="secondary"
@@ -475,19 +524,25 @@ const TestResultEditDialog = ({
       disableRestoreFocus
       slotProps={{
         paper: {
-          sx: { minHeight: '70vh' }
-        }
+          sx: { minHeight: "70vh" },
+        },
       }}
     >
       <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <EditIcon />
           테스트 결과 편집
           {activeEdit && (
             <Chip
-              label={testResultEditService.getEditStatusInfo(activeEdit.editStatus).label}
+              label={
+                testResultEditService.getEditStatusInfo(activeEdit.editStatus)
+                  .label
+              }
               size="small"
-              color={testResultEditService.getEditStatusInfo(activeEdit.editStatus).color}
+              color={
+                testResultEditService.getEditStatusInfo(activeEdit.editStatus)
+                  .color
+              }
             />
           )}
         </Box>
@@ -505,7 +560,8 @@ const TestResultEditDialog = ({
         {!permissions.canEdit && (
           <Alert severity="info" sx={{ mb: 2 }}>
             현재 편집 권한이 없습니다.
-            {activeEdit && `활성 편집본(${activeEdit.editedByUserName})이 존재합니다.`}
+            {activeEdit &&
+              `활성 편집본(${activeEdit.editedByUserName})이 존재합니다.`}
           </Alert>
         )}
 
@@ -525,7 +581,9 @@ const TestResultEditDialog = ({
                   fullWidth
                   label="테스트케이스명"
                   value={editData.editedTestCaseName}
-                  onChange={(e) => handleInputChange('editedTestCaseName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("editedTestCaseName", e.target.value)
+                  }
                   disabled={loading}
                 />
               </Grid>
@@ -535,7 +593,9 @@ const TestResultEditDialog = ({
                   <InputLabel>테스트 결과</InputLabel>
                   <Select
                     value={editData.editedResult}
-                    onChange={(e) => handleInputChange('editedResult', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("editedResult", e.target.value)
+                    }
                     disabled={loading}
                     label="테스트 결과"
                   >
@@ -552,35 +612,44 @@ const TestResultEditDialog = ({
                   fullWidth
                   label="JIRA 이슈 키"
                   value={editData.editedJiraIssueKey}
-                  onChange={(e) => handleInputChange('editedJiraIssueKey', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("editedJiraIssueKey", e.target.value)
+                  }
                   placeholder="예: PRJ-123"
                   disabled={loading}
                   // ICT-184: 실시간 검증 결과에 따른 색상 변경
                   color={
-                    jiraValidation.status === 'success' ? 'success' :
-                      jiraValidation.status === 'error' ? 'error' : 'primary'
+                    jiraValidation.status === "success"
+                      ? "success"
+                      : jiraValidation.status === "error"
+                        ? "error"
+                        : "primary"
                   }
                   helperText={
-                    jiraValidation.status && jiraValidation.message ?
-                      jiraValidation.message :
-                      "JIRA 이슈 키를 입력하면 존재 여부를 확인합니다"
+                    jiraValidation.status && jiraValidation.message
+                      ? jiraValidation.message
+                      : "JIRA 이슈 키를 입력하면 존재 여부를 확인합니다"
                   }
-                  error={jiraValidation.status === 'error'}
+                  error={jiraValidation.status === "error"}
                   slotProps={{
                     input: {
                       // ICT-184: 검증 로딩 및 결과 아이콘 표시
-                      endAdornment: jiraValidationLoading || jiraValidation.status ? (
-                        <InputAdornment position="end">
-                          {jiraValidationLoading ? (
-                            <CircularProgress size={16} />
-                          ) : jiraValidation.status === 'success' ? (
-                            <CheckCircleIcon color="success" fontSize="small" />
-                          ) : jiraValidation.status === 'error' ? (
-                            <ErrorIcon color="error" fontSize="small" />
-                          ) : null}
-                        </InputAdornment>
-                      ) : null
-                    }
+                      endAdornment:
+                        jiraValidationLoading || jiraValidation.status ? (
+                          <InputAdornment position="end">
+                            {jiraValidationLoading ? (
+                              <CircularProgress size={16} />
+                            ) : jiraValidation.status === "success" ? (
+                              <CheckCircleIcon
+                                color="success"
+                                fontSize="small"
+                              />
+                            ) : jiraValidation.status === "error" ? (
+                              <ErrorIcon color="error" fontSize="small" />
+                            ) : null}
+                          </InputAdornment>
+                        ) : null,
+                    },
                   }}
                 />
               </Grid>
@@ -590,7 +659,9 @@ const TestResultEditDialog = ({
                   fullWidth
                   label="JIRA 이슈 URL"
                   value={editData.editedJiraIssueUrl}
-                  onChange={(e) => handleInputChange('editedJiraIssueUrl', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("editedJiraIssueUrl", e.target.value)
+                  }
                   placeholder="https://jira.company.com/browse/PRJ-123"
                   disabled={loading}
                 />
@@ -603,20 +674,24 @@ const TestResultEditDialog = ({
                   rows={3}
                   label="비고"
                   value={editData.editedNotes}
-                  onChange={(e) => handleInputChange('editedNotes', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("editedNotes", e.target.value)
+                  }
                   disabled={loading}
                 />
               </Grid>
 
               {/* 태그 입력 */}
               <Grid size={{ xs: 12 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+                >
                   <TextField
                     size="small"
                     label="태그 추가"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                    onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
                     disabled={loading}
                   />
                   <Button
@@ -626,7 +701,7 @@ const TestResultEditDialog = ({
                     추가
                   </Button>
                 </Box>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                   {editData.addedTags.map((tag, index) => (
                     <Chip
                       key={index}
@@ -647,7 +722,9 @@ const TestResultEditDialog = ({
                   rows={2}
                   label="편집 이유"
                   value={editData.editReason}
-                  onChange={(e) => handleInputChange('editReason', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("editReason", e.target.value)
+                  }
                   placeholder="편집하는 이유를 입력해주세요..."
                   disabled={loading}
                   helperText="편집 이유는 필수입니다"
@@ -659,13 +736,19 @@ const TestResultEditDialog = ({
                   control={
                     <Switch
                       checked={editData.saveAsDraft}
-                      onChange={(e) => handleInputChange('saveAsDraft', e.target.checked)}
+                      onChange={(e) =>
+                        handleInputChange("saveAsDraft", e.target.checked)
+                      }
                       disabled={loading}
                     />
                   }
                   label={editData.saveAsDraft ? "임시저장" : "승인 요청"}
                 />
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                >
                   {editData.saveAsDraft
                     ? "임시저장하면 나중에 계속 편집할 수 있습니다"
                     : "승인 요청하면 관리자의 승인 후 적용됩니다"}
@@ -678,7 +761,7 @@ const TestResultEditDialog = ({
         <Divider sx={{ my: 2 }} />
 
         {/* ICT-361: 첨부파일 섹션 */}
-        {testResult?.id && (testResult.attachmentCount > 0) && (
+        {testResult?.id && testResult.attachmentCount > 0 && (
           <Box sx={{ mb: 2 }}>
             <TestResultAttachmentsView
               testResultId={testResult.id}
@@ -691,13 +774,13 @@ const TestResultEditDialog = ({
         <Divider sx={{ my: 2 }} />
 
         {/* 이력 토글 버튼 */}
-        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+        <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
           <Button
             startIcon={<HistoryIcon />}
             onClick={() => setShowHistory(!showHistory)}
             size="small"
           >
-            편집 이력 {showHistory ? '숨기기' : '보기'}
+            편집 이력 {showHistory ? "숨기기" : "보기"}
           </Button>
         </Box>
 
@@ -705,12 +788,8 @@ const TestResultEditDialog = ({
         {showHistory && renderEditHistory()}
       </DialogContent>
       <DialogActions>
-        <Button
-          onClick={onClose}
-          disabled={loading}
-          startIcon={<CancelIcon />}
-        >
-          {t('common.cancel', '취소')}
+        <Button onClick={onClose} disabled={loading} startIcon={<CancelIcon />}>
+          {t("common.cancel", "취소")}
         </Button>
 
         {permissions.canEdit && (
@@ -720,7 +799,9 @@ const TestResultEditDialog = ({
             variant="contained"
             startIcon={<SaveIcon />}
           >
-            {editData.saveAsDraft ? t('common.save', '임시저장') : t('common.save', '승인 요청')}
+            {editData.saveAsDraft
+              ? t("common.save", "임시저장")
+              : t("common.save", "승인 요청")}
           </Button>
         )}
       </DialogActions>

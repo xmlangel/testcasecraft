@@ -10,22 +10,22 @@
  * @returns {string} 포맷된 파일 크기 (예: "1.5 KB", "2.3 MB")
  */
 export function formatFileSize(bytes) {
-    if (!bytes || typeof bytes !== 'number') {
-        return '알 수 없음';
-    }
+  if (!bytes || typeof bytes !== "number") {
+    return "알 수 없음";
+  }
 
-    const kb = bytes / 1024;
-    if (kb < 1024) {
-        return `${kb.toFixed(1)} KB`;
-    }
+  const kb = bytes / 1024;
+  if (kb < 1024) {
+    return `${kb.toFixed(1)} KB`;
+  }
 
-    const mb = kb / 1024;
-    if (mb < 1024) {
-        return `${mb.toFixed(1)} MB`;
-    }
+  const mb = kb / 1024;
+  if (mb < 1024) {
+    return `${mb.toFixed(1)} MB`;
+  }
 
-    const gb = mb / 1024;
-    return `${gb.toFixed(1)} GB`;
+  const gb = mb / 1024;
+  return `${gb.toFixed(1)} GB`;
 }
 
 /**
@@ -34,16 +34,16 @@ export function formatFileSize(bytes) {
  * @returns {string} 포맷된 날짜 (예: "2024. 1. 15.")
  */
 export function formatDate(date) {
-    if (!date) {
-        return '알 수 없음';
-    }
+  if (!date) {
+    return "알 수 없음";
+  }
 
-    try {
-        const dateObj = typeof date === 'string' ? new Date(date) : date;
-        return dateObj.toLocaleDateString('ko-KR');
-    } catch (error) {
-        return '알 수 없음';
-    }
+  try {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return dateObj.toLocaleDateString("ko-KR");
+  } catch (error) {
+    return "알 수 없음";
+  }
 }
 
 /**
@@ -52,38 +52,38 @@ export function formatDate(date) {
  * @returns {string} 상대 시간 (예: "방금 전", "5분 전", "2시간 전")
  */
 export function formatRelativeTime(timestamp) {
-    if (!timestamp || typeof timestamp !== 'number') {
-        return '';
-    }
+  if (!timestamp || typeof timestamp !== "number") {
+    return "";
+  }
 
-    const now = Date.now();
-    const diff = now - timestamp;
+  const now = Date.now();
+  const diff = now - timestamp;
 
-    const seconds = Math.floor(diff / 1000);
-    if (seconds < 60) {
-        return '방금 전';
-    }
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) {
+    return "방금 전";
+  }
 
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) {
-        return `${minutes}분 전`;
-    }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes}분 전`;
+  }
 
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-        return `${hours}시간 전`;
-    }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}시간 전`;
+  }
 
-    const days = Math.floor(hours / 24);
-    if (days < 30) {
-        return `${days}일 전`;
-    }
+  const days = Math.floor(hours / 24);
+  if (days < 30) {
+    return `${days}일 전`;
+  }
 
-    const months = Math.floor(days / 30);
-    if (months < 12) {
-        return `${months}개월 전`;
-    }
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return `${months}개월 전`;
+  }
 
-    const years = Math.floor(months / 12);
-    return `${years}년 전`;
+  const years = Math.floor(months / 12);
+  return `${years}년 전`;
 }

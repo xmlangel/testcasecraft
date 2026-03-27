@@ -5,7 +5,11 @@
  * Allure 스타일 대시보드를 위한 JUnit 결과 관리
  */
 
-import { buildUrl, API_ENDPOINTS, getDynamicApiUrl } from '../utils/apiConstants.js';
+import {
+  buildUrl,
+  API_ENDPOINTS,
+  getDynamicApiUrl,
+} from "../utils/apiConstants.js";
 
 class JunitResultService {
   constructor() {
@@ -26,10 +30,11 @@ class JunitResultService {
    */
   getAuthHeaders() {
     // AppContext에서 accessToken으로 저장하므로 accessToken을 먼저 확인
-    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+    const token =
+      localStorage.getItem("accessToken") || localStorage.getItem("token");
     return {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : '',
+      "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : "",
     };
   }
 
@@ -38,28 +43,29 @@ class JunitResultService {
    */
   getMultipartHeaders() {
     // AppContext에서 accessToken으로 저장하므로 accessToken을 먼저 확인
-    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+    const token =
+      localStorage.getItem("accessToken") || localStorage.getItem("token");
     return {
-      'Authorization': token ? `Bearer ${token}` : '',
+      Authorization: token ? `Bearer ${token}` : "",
     };
   }
 
   /**
    * JUnit XML 파일 업로드
    */
-  async uploadJunitXml(file, projectId, executionName, description = '') {
+  async uploadJunitXml(file, projectId, executionName, description = "") {
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('projectId', projectId);
-      formData.append('executionName', executionName);
+      formData.append("file", file);
+      formData.append("projectId", projectId);
+      formData.append("executionName", executionName);
       if (description) {
-        formData.append('description', description);
+        formData.append("description", description);
       }
 
       const baseUrl = await this.getBaseUrl();
       const response = await fetch(`${baseUrl}/upload`, {
-        method: 'POST',
+        method: "POST",
         headers: this.getMultipartHeaders(),
         body: formData,
       });
@@ -71,7 +77,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('JUnit XML 업로드 오류:', error);
+      console.error("JUnit XML 업로드 오류:", error);
       throw error;
     }
   }
@@ -94,10 +100,13 @@ class JunitResultService {
         });
 
         const baseUrl = await this.getBaseUrl();
-        const response = await fetch(`${baseUrl}/projects/${projectId}?${params}`, {
-          method: 'GET',
-          headers: this.getAuthHeaders(),
-        });
+        const response = await fetch(
+          `${baseUrl}/projects/${projectId}?${params}`,
+          {
+            method: "GET",
+            headers: this.getAuthHeaders(),
+          },
+        );
 
         if (!response.ok) {
           throw new Error(`JUnit 결과 목록 조회 실패: ${response.status}`);
@@ -105,7 +114,7 @@ class JunitResultService {
 
         return await response.json();
       } catch (error) {
-        console.error('JUnit 결과 목록 조회 오류:', error);
+        console.error("JUnit 결과 목록 조회 오류:", error);
         throw error;
       } finally {
         this.pendingRequests.delete(cacheKey);
@@ -122,7 +131,7 @@ class JunitResultService {
   async getJunitResultDetail(resultId) {
     try {
       const response = await fetch(`${await this.getBaseUrl()}/${resultId}`, {
-        method: 'GET',
+        method: "GET",
         headers: this.getAuthHeaders(),
       });
 
@@ -132,7 +141,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('JUnit 결과 상세 조회 오류:', error);
+      console.error("JUnit 결과 상세 조회 오류:", error);
       throw error;
     }
   }
@@ -140,7 +149,7 @@ class JunitResultService {
   /**
    * JUnit 결과 통계 조회 (대시보드용)
    */
-  async getJunitStatistics(projectId, timeRange = '7d') {
+  async getJunitStatistics(projectId, timeRange = "7d") {
     const cacheKey = `statistics-${projectId}-${timeRange}`;
 
     if (this.pendingRequests.has(cacheKey)) {
@@ -151,14 +160,17 @@ class JunitResultService {
       try {
         const params = new URLSearchParams();
         if (projectId) {
-          params.append('projectId', projectId);
+          params.append("projectId", projectId);
         }
-        params.append('timeRange', timeRange);
+        params.append("timeRange", timeRange);
 
-        const response = await fetch(`${await this.getBaseUrl()}/statistics?${params}`, {
-          method: 'GET',
-          headers: this.getAuthHeaders(),
-        });
+        const response = await fetch(
+          `${await this.getBaseUrl()}/statistics?${params}`,
+          {
+            method: "GET",
+            headers: this.getAuthHeaders(),
+          },
+        );
 
         if (!response.ok) {
           throw new Error(`JUnit 통계 조회 실패: ${response.status}`);
@@ -166,7 +178,7 @@ class JunitResultService {
 
         return await response.json();
       } catch (error) {
-        console.error('JUnit 통계 조회 오류:', error);
+        console.error("JUnit 통계 조회 오류:", error);
         throw error;
       } finally {
         this.pendingRequests.delete(cacheKey);
@@ -182,10 +194,13 @@ class JunitResultService {
    */
   async getTestCaseDetails(resultId, suiteId, caseId) {
     try {
-      const response = await fetch(`${await this.getBaseUrl()}/${resultId}/suites/${suiteId}/cases/${caseId}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/${resultId}/suites/${suiteId}/cases/${caseId}`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`테스트 케이스 상세 조회 실패: ${response.status}`);
@@ -193,7 +208,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('테스트 케이스 상세 조회 오류:', error);
+      console.error("테스트 케이스 상세 조회 오류:", error);
       throw error;
     }
   }
@@ -204,7 +219,7 @@ class JunitResultService {
   async deleteJunitResult(resultId) {
     try {
       const response = await fetch(`${await this.getBaseUrl()}/${resultId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: this.getAuthHeaders(),
       });
 
@@ -214,7 +229,7 @@ class JunitResultService {
 
       return true;
     } catch (error) {
-      console.error('JUnit 결과 삭제 오류:', error);
+      console.error("JUnit 결과 삭제 오류:", error);
       throw error;
     }
   }
@@ -224,10 +239,13 @@ class JunitResultService {
    */
   async getUploadStatus(resultId) {
     try {
-      const response = await fetch(`${await this.getBaseUrl()}/${resultId}/status`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/${resultId}/status`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`업로드 상태 조회 실패: ${response.status}`);
@@ -235,7 +253,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('업로드 상태 조회 오류:', error);
+      console.error("업로드 상태 조회 오류:", error);
       throw error;
     }
   }
@@ -243,17 +261,20 @@ class JunitResultService {
   /**
    * 테스트 결과 트렌드 분석 (시간별)
    */
-  async getTestResultTrend(projectId, period = '30d') {
+  async getTestResultTrend(projectId, period = "30d") {
     try {
       const params = new URLSearchParams({
         projectId,
         period,
       });
 
-      const response = await fetch(`${await this.getBaseUrl()}/trend?${params}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/trend?${params}`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`테스트 결과 트렌드 조회 실패: ${response.status}`);
@@ -261,7 +282,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('테스트 결과 트렌드 조회 오류:', error);
+      console.error("테스트 결과 트렌드 조회 오류:", error);
       throw error;
     }
   }
@@ -276,10 +297,13 @@ class JunitResultService {
         limit: limit.toString(),
       });
 
-      const response = await fetch(`${await this.getBaseUrl()}/top-failing?${params}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/top-failing?${params}`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`최다 실패 테스트 조회 실패: ${response.status}`);
@@ -287,7 +311,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('최다 실패 테스트 조회 오류:', error);
+      console.error("최다 실패 테스트 조회 오류:", error);
       throw error;
     }
   }
@@ -298,16 +322,23 @@ class JunitResultService {
   async searchJunitResults(filters) {
     try {
       const params = new URLSearchParams();
-      Object.keys(filters).forEach(key => {
-        if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+      Object.keys(filters).forEach((key) => {
+        if (
+          filters[key] !== null &&
+          filters[key] !== undefined &&
+          filters[key] !== ""
+        ) {
           params.append(key, filters[key]);
         }
       });
 
-      const response = await fetch(`${await this.getBaseUrl()}/search?${params}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/search?${params}`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`JUnit 결과 검색 실패: ${response.status}`);
@@ -315,7 +346,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('JUnit 결과 검색 오류:', error);
+      console.error("JUnit 결과 검색 오류:", error);
       throw error;
     }
   }
@@ -328,29 +359,29 @@ class JunitResultService {
 
     // 파일 존재 확인
     if (!file) {
-      errors.push('파일을 선택해주세요');
+      errors.push("파일을 선택해주세요");
       return { isValid: false, errors };
     }
 
     // 파일 타입 확인
-    if (!file.name.toLowerCase().endsWith('.xml')) {
-      errors.push('XML 파일만 업로드 가능합니다');
+    if (!file.name.toLowerCase().endsWith(".xml")) {
+      errors.push("XML 파일만 업로드 가능합니다");
     }
 
     // 파일 크기 확인 (100MB 제한)
     const maxSize = 100 * 1024 * 1024; // 100MB
     if (file.size > maxSize) {
-      errors.push('파일 크기는 100MB를 초과할 수 없습니다');
+      errors.push("파일 크기는 100MB를 초과할 수 없습니다");
     }
 
     // 빈 파일 확인
     if (file.size === 0) {
-      errors.push('빈 파일은 업로드할 수 없습니다');
+      errors.push("빈 파일은 업로드할 수 없습니다");
     }
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -358,11 +389,11 @@ class JunitResultService {
    * 파일 크기를 사람이 읽기 쉬운 형태로 변환
    */
   formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
 
   /**
@@ -370,73 +401,75 @@ class JunitResultService {
    */
   getTestStatusInfo(status, t = null) {
     const statusMap = {
-      'PASSED': {
-        label: t ? t('junit.stats.passed') : 'PASSED',
-        translationKey: 'junit.stats.passed',
-        color: 'success',
-        icon: '✅',
-        bgColor: '#e8f5e8'
+      PASSED: {
+        label: t ? t("junit.stats.passed") : "PASSED",
+        translationKey: "junit.stats.passed",
+        color: "success",
+        icon: "✅",
+        bgColor: "#e8f5e8",
       },
-      'FAILED': {
-        label: t ? t('junit.stats.failed') : 'FAILED',
-        translationKey: 'junit.stats.failed',
-        color: 'error',
-        icon: '❌',
-        bgColor: '#ffebee'
+      FAILED: {
+        label: t ? t("junit.stats.failed") : "FAILED",
+        translationKey: "junit.stats.failed",
+        color: "error",
+        icon: "❌",
+        bgColor: "#ffebee",
       },
-      'ERROR': {
-        label: t ? t('junit.stats.error') : 'ERROR',
-        translationKey: 'junit.stats.error',
-        color: 'warning',
-        icon: '⚠️',
-        bgColor: '#fff3e0'
+      ERROR: {
+        label: t ? t("junit.stats.error") : "ERROR",
+        translationKey: "junit.stats.error",
+        color: "warning",
+        icon: "⚠️",
+        bgColor: "#fff3e0",
       },
-      'SKIPPED': {
-        label: t ? t('junit.stats.skipped') : 'SKIPPED',
-        translationKey: 'junit.stats.skipped',
-        color: 'default',
-        icon: '⏭️',
-        bgColor: '#f5f5f5'
+      SKIPPED: {
+        label: t ? t("junit.stats.skipped") : "SKIPPED",
+        translationKey: "junit.stats.skipped",
+        color: "default",
+        icon: "⏭️",
+        bgColor: "#f5f5f5",
       },
-      'UPLOADING': {
-        label: t ? t('junit.status.uploading') : 'UPLOADING',
-        translationKey: 'junit.status.uploading',
-        color: 'info',
-        icon: '⏳',
-        bgColor: '#e3f2fd'
+      UPLOADING: {
+        label: t ? t("junit.status.uploading") : "UPLOADING",
+        translationKey: "junit.status.uploading",
+        color: "info",
+        icon: "⏳",
+        bgColor: "#e3f2fd",
       },
-      'PARSING': {
-        label: t ? t('junit.status.parsing') : 'PARSING',
-        translationKey: 'junit.status.parsing',
-        color: 'info',
-        icon: '🔄',
-        bgColor: '#e3f2fd'
+      PARSING: {
+        label: t ? t("junit.status.parsing") : "PARSING",
+        translationKey: "junit.status.parsing",
+        color: "info",
+        icon: "🔄",
+        bgColor: "#e3f2fd",
       },
-      'COMPLETED': {
-        label: t ? t('junit.status.completed') : 'COMPLETED',
-        translationKey: 'junit.status.completed',
-        color: 'success',
-        icon: '✅',
-        bgColor: '#e8f5e8'
-      }
+      COMPLETED: {
+        label: t ? t("junit.status.completed") : "COMPLETED",
+        translationKey: "junit.status.completed",
+        color: "success",
+        icon: "✅",
+        bgColor: "#e8f5e8",
+      },
     };
 
-    return statusMap[status] || {
-      label: t ? t('junit.status.unknown') : 'UNKNOWN',
-      translationKey: 'junit.status.unknown',
-      color: 'default',
-      icon: '❓',
-      bgColor: '#f5f5f5'
-    };
+    return (
+      statusMap[status] || {
+        label: t ? t("junit.status.unknown") : "UNKNOWN",
+        translationKey: "junit.status.unknown",
+        color: "default",
+        icon: "❓",
+        bgColor: "#f5f5f5",
+      }
+    );
   }
 
   /**
    * 성공률에 따른 색상 결정
    */
   getSuccessRateColor(successRate) {
-    if (successRate >= 95) return 'success';
-    if (successRate >= 80) return 'warning';
-    return 'error';
+    if (successRate >= 95) return "success";
+    if (successRate >= 80) return "warning";
+    return "error";
   }
 
   /**
@@ -444,10 +477,13 @@ class JunitResultService {
    */
   async getProcessingProgress(testResultId) {
     try {
-      const response = await fetch(`${await this.getBaseUrl()}/${testResultId}/processing-progress`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/${testResultId}/processing-progress`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`처리 진행률 조회 실패: ${response.status}`);
@@ -455,7 +491,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('처리 진행률 조회 오류:', error);
+      console.error("처리 진행률 조회 오류:", error);
       throw error;
     }
   }
@@ -465,10 +501,13 @@ class JunitResultService {
    */
   async getActiveProcessing() {
     try {
-      const response = await fetch(`${await this.getBaseUrl()}/active-processing`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/active-processing`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`활성 처리 작업 조회 실패: ${response.status}`);
@@ -476,7 +515,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('활성 처리 작업 조회 오류:', error);
+      console.error("활성 처리 작업 조회 오류:", error);
       throw error;
     }
   }
@@ -513,26 +552,40 @@ class JunitResultService {
    */
   async getPreviousTestCaseNote(testCaseId) {
     try {
-        const response = await fetch(`${await this.getBaseUrl()}/testcases/${testCaseId}/previous-notes`, {
-            method: 'GET',
-            headers: this.getAuthHeaders(),
-        });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/testcases/${testCaseId}/previous-notes`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
-        if (!response.ok) {
-            throw new Error(`이전 테스트 케이스 노트 조회 실패: ${response.status}`);
-        }
+      if (!response.ok) {
+        throw new Error(
+          `이전 테스트 케이스 노트 조회 실패: ${response.status}`,
+        );
+      }
 
-        return await response.json();
+      return await response.json();
     } catch (error) {
-        console.error('이전 테스트 케이스 노트 조회 오류:', error);
-        throw error;
+      console.error("이전 테스트 케이스 노트 조회 오류:", error);
+      throw error;
     }
   }
 
   /**
    * JUnit 테스트 케이스 편집
    */
-  async updateTestCase(testCaseId, userTitle, userDescription, userNotes, userStatus, tags, priority, userId) {
+  async updateTestCase(
+    testCaseId,
+    userTitle,
+    userDescription,
+    userNotes,
+    userStatus,
+    tags,
+    priority,
+    userId,
+  ) {
     try {
       const requestBody = {
         userTitle,
@@ -541,23 +594,28 @@ class JunitResultService {
         userStatus,
         tags,
         priority,
-        userId
+        userId,
       };
 
-      const response = await fetch(`${await this.getBaseUrl()}/cases/${testCaseId}`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(requestBody),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/cases/${testCaseId}`,
+        {
+          method: "PUT",
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(requestBody),
+        },
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `테스트 케이스 편집 실패: ${response.status}`);
+        throw new Error(
+          errorData.error || `테스트 케이스 편집 실패: ${response.status}`,
+        );
       }
 
       return await response.json();
     } catch (error) {
-      console.error('테스트 케이스 편집 오류:', error);
+      console.error("테스트 케이스 편집 오류:", error);
       throw error;
     }
   }
@@ -572,10 +630,13 @@ class JunitResultService {
         size: size.toString(),
       });
 
-      const response = await fetch(`${await this.getBaseUrl()}/suites/${testSuiteId}/cases?${params}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/suites/${testSuiteId}/cases?${params}`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`테스트 케이스 목록 조회 실패: ${response.status}`);
@@ -583,7 +644,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('테스트 케이스 목록 조회 오류:', error);
+      console.error("테스트 케이스 목록 조회 오류:", error);
       throw error;
     }
   }
@@ -593,10 +654,13 @@ class JunitResultService {
    */
   async getFailedTestCases(testResultId) {
     try {
-      const response = await fetch(`${await this.getBaseUrl()}/${testResultId}/failed-cases`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/${testResultId}/failed-cases`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`실패한 테스트 케이스 조회 실패: ${response.status}`);
@@ -604,7 +668,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('실패한 테스트 케이스 조회 오류:', error);
+      console.error("실패한 테스트 케이스 조회 오류:", error);
       throw error;
     }
   }
@@ -618,18 +682,23 @@ class JunitResultService {
         limit: limit.toString(),
       });
 
-      const response = await fetch(`${await this.getBaseUrl()}/${testResultId}/slowest-cases?${params}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/${testResultId}/slowest-cases?${params}`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
-        throw new Error(`가장 느린 테스트 케이스 조회 실패: ${response.status}`);
+        throw new Error(
+          `가장 느린 테스트 케이스 조회 실패: ${response.status}`,
+        );
       }
 
       return await response.json();
     } catch (error) {
-      console.error('가장 느린 테스트 케이스 조회 오류:', error);
+      console.error("가장 느린 테스트 케이스 조회 오류:", error);
       throw error;
     }
   }
@@ -639,10 +708,13 @@ class JunitResultService {
    */
   async getTestSuitesByResult(testResultId) {
     try {
-      const response = await fetch(`${await this.getBaseUrl()}/${testResultId}/suites`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/${testResultId}/suites`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`테스트 스위트 목록 조회 실패: ${response.status}`);
@@ -650,7 +722,7 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('테스트 스위트 목록 조회 오류:', error);
+      console.error("테스트 스위트 목록 조회 오류:", error);
       throw error;
     }
   }
@@ -660,10 +732,13 @@ class JunitResultService {
    */
   async getProjectJunitSummary(projectId) {
     try {
-      const response = await fetch(`${await this.getBaseUrl()}/projects/${projectId}/summary`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/projects/${projectId}/summary`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -676,16 +751,18 @@ class JunitResultService {
               latestSuccessRate: 0.0,
               averageSuccessRate: 0.0,
               lastExecutedAt: null,
-              qualityGrade: 'NONE'
-            }
+              qualityGrade: "NONE",
+            },
           };
         }
-        throw new Error(`프로젝트 JUnit 요약 통계 조회 실패: ${response.status}`);
+        throw new Error(
+          `프로젝트 JUnit 요약 통계 조회 실패: ${response.status}`,
+        );
       }
 
       return await response.json();
     } catch (error) {
-      console.error('프로젝트 JUnit 요약 통계 조회 오류:', error);
+      console.error("프로젝트 JUnit 요약 통계 조회 오류:", error);
       // 오류 발생 시 기본값 반환
       return {
         success: false,
@@ -695,8 +772,8 @@ class JunitResultService {
           latestSuccessRate: 0.0,
           averageSuccessRate: 0.0,
           lastExecutedAt: null,
-          qualityGrade: 'UNKNOWN'
-        }
+          qualityGrade: "UNKNOWN",
+        },
       };
     }
   }
@@ -706,11 +783,14 @@ class JunitResultService {
    */
   async getBatchProjectJunitSummary(projectIds) {
     try {
-      const response = await fetch(`${await this.getBaseUrl()}/projects/batch-summary`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(projectIds),
-      });
+      const response = await fetch(
+        `${await this.getBaseUrl()}/projects/batch-summary`,
+        {
+          method: "POST",
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(projectIds),
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`배치 JUnit 요약 통계 조회 실패: ${response.status}`);
@@ -718,24 +798,24 @@ class JunitResultService {
 
       return await response.json();
     } catch (error) {
-      console.error('배치 JUnit 요약 통계 조회 오류:', error);
+      console.error("배치 JUnit 요약 통계 조회 오류:", error);
       // 오류 발생 시 빈 결과 반환
       const defaultSummaries = {};
-      projectIds.forEach(projectId => {
+      projectIds.forEach((projectId) => {
         defaultSummaries[projectId] = {
           hasResults: false,
           totalResults: 0,
           latestSuccessRate: 0.0,
           averageSuccessRate: 0.0,
           lastExecutedAt: null,
-          qualityGrade: 'UNKNOWN'
+          qualityGrade: "UNKNOWN",
         };
       });
 
       return {
         success: false,
         summaries: defaultSummaries,
-        count: projectIds.length
+        count: projectIds.length,
       };
     }
   }
@@ -745,46 +825,46 @@ class JunitResultService {
    */
   getQualityGradeInfo(qualityGrade) {
     switch (qualityGrade) {
-      case 'EXCELLENT':
+      case "EXCELLENT":
         return {
-          color: 'success',
-          bgColor: '#e8f5e8',
-          textColor: '#2e7d32',
-          label: '우수',
-          description: '성공률 90% 이상'
+          color: "success",
+          bgColor: "#e8f5e8",
+          textColor: "#2e7d32",
+          label: "우수",
+          description: "성공률 90% 이상",
         };
-      case 'GOOD':
+      case "GOOD":
         return {
-          color: 'warning',
-          bgColor: '#fff8e1',
-          textColor: '#f57c00',
-          label: '양호',
-          description: '성공률 70-90%'
+          color: "warning",
+          bgColor: "#fff8e1",
+          textColor: "#f57c00",
+          label: "양호",
+          description: "성공률 70-90%",
         };
-      case 'POOR':
+      case "POOR":
         return {
-          color: 'error',
-          bgColor: '#ffebee',
-          textColor: '#d32f2f',
-          label: '개선필요',
-          description: '성공률 70% 미만'
+          color: "error",
+          bgColor: "#ffebee",
+          textColor: "#d32f2f",
+          label: "개선필요",
+          description: "성공률 70% 미만",
         };
-      case 'NONE':
+      case "NONE":
         return {
-          color: 'default',
-          bgColor: '#f5f5f5',
-          textColor: '#757575',
-          label: '결과없음',
-          description: 'JUnit 결과 없음'
+          color: "default",
+          bgColor: "#f5f5f5",
+          textColor: "#757575",
+          label: "결과없음",
+          description: "JUnit 결과 없음",
         };
-      case 'UNKNOWN':
+      case "UNKNOWN":
       default:
         return {
-          color: 'default',
-          bgColor: '#f5f5f5',
-          textColor: '#757575',
-          label: '미확인',
-          description: '상태 확인 불가'
+          color: "default",
+          bgColor: "#f5f5f5",
+          textColor: "#757575",
+          label: "미확인",
+          description: "상태 확인 불가",
         };
     }
   }
@@ -793,13 +873,13 @@ class JunitResultService {
    * 파일 크기 포맷팅 유틸리티
    */
   formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
 
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
 }
 

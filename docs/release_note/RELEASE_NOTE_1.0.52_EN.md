@@ -7,11 +7,13 @@
 #### 🚀 Features & Enhancements
 
 - **Dashboard API Performance Optimization (ICT-130)**:
+
   - Replaced inefficient in-memory processing with optimized database-level aggregation using CTEs (Common Table Expressions) and Native SQL.
   - Eliminated N+1 query issues and implemented bulk aggregation in the service layer, resulting in response times **reduced from over 10 seconds to under 500ms (approx. 95% improvement)**.
   - Enhanced DTO mapping and null-safe handling ensuring robust JSON schema validation and stability.
 
 - **Advanced JIRA Integration (ICT-JIRA)**:
+
   - **Multiple JIRA IDs Support**: Now users can associate and manage multiple JIRA issues with a single test result.
   - **JIRA Comment Preview**: Added a preview tab in the JIRA comment dialog to visualize Markdown rendering before submission.
   - **Automatic Issue Sync**: JIRA issue status, summary, and priority are now automatically fetched and displayed when an ID is entered.

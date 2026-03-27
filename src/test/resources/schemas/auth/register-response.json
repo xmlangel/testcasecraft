@@ -1,37 +1,25 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "required": [
-        "message",
-        "username"
-    ],
-    "properties": {
-        "message": {
-            "type": "string",
-            "enum": [
-                "User registered successfully",
-                "Username already exists"
-            ]
-        },
-        "username": {
-            "type": "string"
-        },
-        "name": {
-            "type": "string"
-        },
-        "email": {
-            "type": "string",
-            "format": "email"
-        },
-        "role": {
-            "type": "string",
-            "enum": [
-                "ADMIN",
-                "PROJECT_MANAGER",
-                "TESTER",
-                "DEVELOPER",
-                "VIEWER"
-            ]
-        }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["message", "username"],
+  "properties": {
+    "message": {
+      "type": "string",
+      "enum": ["User registered successfully", "Username already exists"]
+    },
+    "username": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["ADMIN", "PROJECT_MANAGER", "TESTER", "DEVELOPER", "VIEWER"]
     }
+  }
 }

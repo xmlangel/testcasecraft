@@ -1,4 +1,5 @@
 """Korean-optimized Chunking Service with Sentence Splitting"""
+
 from typing import List, Dict, Any, Optional
 import logging
 import re
@@ -24,6 +25,7 @@ class KoreanChunkingService:
         # Try to import kss (Korean Sentence Splitter)
         try:
             import kss
+
             self.kss = kss
             self.kss_available = True
             logger.info("KSS (Korean Sentence Splitter) available")
@@ -67,15 +69,15 @@ class KoreanChunkingService:
         """
         # Korean sentence ending patterns
         patterns = [
-            r'([^.!?\n]+[.!?。]+)',  # Sentence ending with punctuation
-            r'([^.!?\n]+\n)',  # Newline as sentence boundary
+            r"([^.!?\n]+[.!?。]+)",  # Sentence ending with punctuation
+            r"([^.!?\n]+\n)",  # Newline as sentence boundary
         ]
 
         sentences = []
         remaining = text
 
         # Primary split: period/question/exclamation
-        parts = re.split(r'([.!?。]+)', remaining)
+        parts = re.split(r"([.!?。]+)", remaining)
 
         current_sentence = ""
         for i, part in enumerate(parts):
@@ -85,7 +87,7 @@ class KoreanChunkingService:
             current_sentence += part
 
             # If this is punctuation and next part exists, complete the sentence
-            if re.match(r'[.!?。]+', part):
+            if re.match(r"[.!?。]+", part):
                 sentences.append(current_sentence.strip())
                 current_sentence = ""
 
@@ -104,7 +106,7 @@ class KoreanChunkingService:
         text: str,
         target_chunk_size: int = 1200,
         overlap_sentences: int = 1,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Create chunks based on sentence boundaries
@@ -164,19 +166,19 @@ class KoreanChunkingService:
                 chunk_text = " ".join(sentence_list)
 
                 chunk_metadata = metadata.copy() if metadata else {}
-                chunk_metadata.update({
-                    "chunk_index": idx,
-                    "chunk_size": len(chunk_text),
-                    "sentence_count": len(sentence_list),
-                    "chunking_method": "sentence_based",
-                    "language": "korean"
-                })
+                chunk_metadata.update(
+                    {
+                        "chunk_index": idx,
+                        "chunk_size": len(chunk_text),
+                        "sentence_count": len(sentence_list),
+                        "chunking_method": "sentence_based",
+                        "language": "korean",
+                    }
+                )
 
-                chunk_objects.append({
-                    "index": idx,
-                    "text": chunk_text,
-                    "metadata": chunk_metadata
-                })
+                chunk_objects.append(
+                    {"index": idx, "text": chunk_text, "metadata": chunk_metadata}
+                )
 
             logger.info(
                 f"Created {len(chunk_objects)} sentence-based chunks "
@@ -191,10 +193,7 @@ class KoreanChunkingService:
             raise
 
     def create_morpheme_aware_chunks(
-        self,
-        text: str,
-        target_chunk_size: int = 1200,
-        overlap_size: int = 180
+        self, text: str, target_chunk_size: int = 1200, overlap_size: int = 180
     ) -> List[Dict[str, Any]]:
         """
         Create chunks with morpheme awareness (word boundary preservation)
@@ -224,7 +223,10 @@ class KoreanChunkingService:
                 word_size = len(word) + 1  # +1 for space
 
                 # If adding this word exceeds target, save current chunk
-                if current_chunk_words and (current_size + word_size) > target_chunk_size:
+                if (
+                    current_chunk_words
+                    and (current_size + word_size) > target_chunk_size
+                ):
                     chunk_text = " ".join(current_chunk_words)
                     chunks.append(chunk_text)
 
@@ -253,16 +255,18 @@ class KoreanChunkingService:
             # Build chunk objects
             chunk_objects = []
             for idx, chunk_text in enumerate(chunks):
-                chunk_objects.append({
-                    "index": idx,
-                    "text": chunk_text,
-                    "metadata": {
-                        "chunk_index": idx,
-                        "chunk_size": len(chunk_text),
-                        "chunking_method": "morpheme_aware",
-                        "language": "korean"
+                chunk_objects.append(
+                    {
+                        "index": idx,
+                        "text": chunk_text,
+                        "metadata": {
+                            "chunk_index": idx,
+                            "chunk_size": len(chunk_text),
+                            "chunking_method": "morpheme_aware",
+                            "language": "korean",
+                        },
                     }
-                })
+                )
 
             logger.info(f"Created {len(chunk_objects)} morpheme-aware chunks")
             return chunk_objects
@@ -275,7 +279,7 @@ class KoreanChunkingService:
         self,
         text: str,
         target_chunk_size: int = 1200,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Create chunks using hybrid approach optimized for Korean
@@ -295,7 +299,7 @@ class KoreanChunkingService:
         """
         try:
             # Split by paragraphs first
-            paragraphs = text.split('\n\n')
+            paragraphs = text.split("\n\n")
 
             all_chunks = []
             chunk_index = 0
@@ -309,19 +313,23 @@ class KoreanChunkingService:
                 # Small paragraph: keep as one chunk
                 if para_size <= target_chunk_size * 1.2:
                     chunk_metadata = metadata.copy() if metadata else {}
-                    chunk_metadata.update({
-                        "chunk_index": chunk_index,
-                        "chunk_size": para_size,
-                        "paragraph_index": para_idx,
-                        "chunking_method": "hybrid_korean",
-                        "chunk_type": "paragraph"
-                    })
+                    chunk_metadata.update(
+                        {
+                            "chunk_index": chunk_index,
+                            "chunk_size": para_size,
+                            "paragraph_index": para_idx,
+                            "chunking_method": "hybrid_korean",
+                            "chunk_type": "paragraph",
+                        }
+                    )
 
-                    all_chunks.append({
-                        "index": chunk_index,
-                        "text": paragraph,
-                        "metadata": chunk_metadata
-                    })
+                    all_chunks.append(
+                        {
+                            "index": chunk_index,
+                            "text": paragraph,
+                            "metadata": chunk_metadata,
+                        }
+                    )
                     chunk_index += 1
 
                 # Large paragraph: split by sentences
@@ -330,7 +338,7 @@ class KoreanChunkingService:
                         paragraph,
                         target_chunk_size=target_chunk_size,
                         overlap_sentences=1,
-                        metadata=metadata
+                        metadata=metadata,
                     )
 
                     for chunk in sentence_chunks:
@@ -342,7 +350,9 @@ class KoreanChunkingService:
                         all_chunks.append(chunk)
                         chunk_index += 1
 
-            logger.info(f"Created {len(all_chunks)} hybrid Korean chunks from {len(paragraphs)} paragraphs")
+            logger.info(
+                f"Created {len(all_chunks)} hybrid Korean chunks from {len(paragraphs)} paragraphs"
+            )
             return all_chunks
 
         except Exception as e:

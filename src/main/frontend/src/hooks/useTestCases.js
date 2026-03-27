@@ -3,8 +3,13 @@
  * 테스트 케이스 관련 React Query 훅들
  */
 
-import { testCaseService } from '../services';
-import { useQueryWithDefaults, useMutationWithDefaults, queryKeys, useInvalidateQueries } from './useReactQuery.js';
+import { testCaseService } from "../services";
+import {
+  useQueryWithDefaults,
+  useMutationWithDefaults,
+  queryKeys,
+  useInvalidateQueries,
+} from "./useReactQuery.js";
 
 /**
  * 프로젝트의 테스트 케이스 목록 조회
@@ -15,7 +20,7 @@ export function useTestCases(projectId) {
     () => testCaseService.getTestCasesByProject(projectId),
     {
       enabled: !!projectId,
-    }
+    },
   );
 }
 
@@ -28,7 +33,7 @@ export function useTestCase(testCaseId) {
     () => testCaseService.getTestCase(testCaseId),
     {
       enabled: !!testCaseId,
-    }
+    },
   );
 }
 
@@ -37,15 +42,12 @@ export function useTestCase(testCaseId) {
  */
 export function useCreateTestCase() {
   const { invalidateTestCases } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    testCaseService.createTestCase,
-    {
-      onSuccess: (data) => {
-        invalidateTestCases(data.projectId);
-      },
-    }
-  );
+
+  return useMutationWithDefaults(testCaseService.createTestCase, {
+    onSuccess: (data) => {
+      invalidateTestCases(data.projectId);
+    },
+  });
 }
 
 /**
@@ -53,15 +55,16 @@ export function useCreateTestCase() {
  */
 export function useUpdateTestCase() {
   const { invalidateTestCases, invalidateTestCase } = useInvalidateQueries();
-  
+
   return useMutationWithDefaults(
-    ({ testCaseId, ...data }) => testCaseService.updateTestCase(testCaseId, data),
+    ({ testCaseId, ...data }) =>
+      testCaseService.updateTestCase(testCaseId, data),
     {
       onSuccess: (data, variables) => {
         invalidateTestCase(variables.testCaseId);
         invalidateTestCases(data.projectId);
       },
-    }
+    },
   );
 }
 
@@ -70,15 +73,12 @@ export function useUpdateTestCase() {
  */
 export function useDeleteTestCase() {
   const { invalidateTestCases } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    testCaseService.deleteTestCase,
-    {
-      onSuccess: (result, testCaseId) => {
-        // 프로젝트별로 캐시 무효화가 필요하지만, 여기서는 전체 테스트케이스 캐시를 무효화
-        // 더 정교한 구현을 위해서는 추가 정보가 필요
-        invalidateTestCases();
-      },
-    }
-  );
+
+  return useMutationWithDefaults(testCaseService.deleteTestCase, {
+    onSuccess: (result, testCaseId) => {
+      // 프로젝트별로 캐시 무효화가 필요하지만, 여기서는 전체 테스트케이스 캐시를 무효화
+      // 더 정교한 구현을 위해서는 추가 정보가 필요
+      invalidateTestCases();
+    },
+  });
 }

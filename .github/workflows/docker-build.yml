@@ -3,28 +3,28 @@ name: Docker Build, Release and Push
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       phase:
-        description: 'Execution Phase'
+        description: "Execution Phase"
         required: true
-        default: 'build_release'
+        default: "build_release"
         type: choice
         options:
           - build_release
           - push_only
       target:
-        description: 'Build Target'
+        description: "Build Target"
         required: true
-        default: 'app'
+        default: "app"
         type: choice
         options:
           - all
           - app
           - rag
       version:
-        description: 'Version (e.g., 1.0.35)'
+        description: "Version (e.g., 1.0.35)"
         required: true
 
 permissions:
@@ -171,9 +171,9 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

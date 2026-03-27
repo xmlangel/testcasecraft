@@ -7,30 +7,34 @@
  * 5. 로컬 스토리지에 accessToken이 정상적으로 저장되었는지 검증
  */
 
-const { test, expect } = require('../fixtures/test-fixtures.js');
-const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('../config/credentials.js');
+const { test, expect } = require("../fixtures/test-fixtures.js");
+const { ADMIN_USERNAME, ADMIN_PASSWORD } = require("../config/credentials.js");
 
-test.describe('로그인 회귀 테스트', () => {
-
-  test('admin/admin 계정으로 성공적인 로그인', async ({ loginPage, projectListPage, page }) => {
+test.describe("로그인 회귀 테스트", () => {
+  test("admin/admin 계정으로 성공적인 로그인", async ({
+    loginPage,
+    projectListPage,
+    page,
+  }) => {
     await loginPage.goto();
     await loginPage.clearStorage();
-    await loginPage.screen('01-initial-page');
+    await loginPage.screen("01-initial-page");
 
     await loginPage.waitForBackend();
     await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await loginPage.screen('04-after-login-click');
+    await loginPage.screen("04-after-login-click");
 
     await projectListPage.waitForLoad();
-    await projectListPage.screen('05-redirected-to-projects');
+    await projectListPage.screen("05-redirected-to-projects");
 
     await expect(loginPage.loginTitle).not.toBeVisible();
-    await expect(page.locator('body')).toBeVisible();
-    await projectListPage.screen('06-projects-page-visible');
+    await expect(page.locator("body")).toBeVisible();
+    await projectListPage.screen("06-projects-page-visible");
 
     // JWT 토큰 저장 확인
-    const accessToken = await page.evaluate(() => localStorage.getItem('accessToken'));
+    const accessToken = await page.evaluate(() =>
+      localStorage.getItem("accessToken"),
+    );
     expect(accessToken).toBeTruthy();
   });
 });
-

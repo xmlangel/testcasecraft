@@ -3,8 +3,13 @@
  * 테스트 실행 관련 React Query 훅들
  */
 
-import { testExecutionService } from '../services';
-import { useQueryWithDefaults, useMutationWithDefaults, queryKeys, useInvalidateQueries } from './useReactQuery.js';
+import { testExecutionService } from "../services";
+import {
+  useQueryWithDefaults,
+  useMutationWithDefaults,
+  queryKeys,
+  useInvalidateQueries,
+} from "./useReactQuery.js";
 
 /**
  * 프로젝트의 테스트 실행 목록 조회
@@ -15,7 +20,7 @@ export function useTestExecutions(projectId) {
     () => testExecutionService.getTestExecutionsByProject(projectId),
     {
       enabled: !!projectId,
-    }
+    },
   );
 }
 
@@ -28,7 +33,7 @@ export function useTestExecutionsByTestCase(testCaseId) {
     () => testExecutionService.getTestExecutionsByTestCase(testCaseId),
     {
       enabled: !!testCaseId,
-    }
+    },
   );
 }
 
@@ -41,7 +46,7 @@ export function useTestExecution(executionId) {
     () => testExecutionService.getTestExecution(executionId),
     {
       enabled: !!executionId,
-    }
+    },
   );
 }
 
@@ -50,31 +55,30 @@ export function useTestExecution(executionId) {
  */
 export function useCreateTestExecution() {
   const { invalidateTestExecutions } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    testExecutionService.createTestExecution,
-    {
-      onSuccess: (data) => {
-        invalidateTestExecutions(data.projectId);
-      },
-    }
-  );
+
+  return useMutationWithDefaults(testExecutionService.createTestExecution, {
+    onSuccess: (data) => {
+      invalidateTestExecutions(data.projectId);
+    },
+  });
 }
 
 /**
  * 테스트 실행 수정
  */
 export function useUpdateTestExecution() {
-  const { invalidateTestExecutions, invalidateTestExecution } = useInvalidateQueries();
-  
+  const { invalidateTestExecutions, invalidateTestExecution } =
+    useInvalidateQueries();
+
   return useMutationWithDefaults(
-    ({ executionId, ...data }) => testExecutionService.updateTestExecution(executionId, data),
+    ({ executionId, ...data }) =>
+      testExecutionService.updateTestExecution(executionId, data),
     {
       onSuccess: (data, variables) => {
         invalidateTestExecution(variables.executionId);
         invalidateTestExecutions(data.projectId);
       },
-    }
+    },
   );
 }
 
@@ -83,49 +87,42 @@ export function useUpdateTestExecution() {
  */
 export function useDeleteTestExecution() {
   const { invalidateTestExecutions } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    testExecutionService.deleteTestExecution,
-    {
-      onSuccess: () => {
-        invalidateTestExecutions();
-      },
-    }
-  );
+
+  return useMutationWithDefaults(testExecutionService.deleteTestExecution, {
+    onSuccess: () => {
+      invalidateTestExecutions();
+    },
+  });
 }
 
 /**
  * 테스트 실행 시작
  */
 export function useStartTestExecution() {
-  const { invalidateTestExecution, invalidateTestExecutions } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    testExecutionService.startTestExecution,
-    {
-      onSuccess: (data) => {
-        invalidateTestExecution(data.id);
-        invalidateTestExecutions(data.projectId);
-      },
-    }
-  );
+  const { invalidateTestExecution, invalidateTestExecutions } =
+    useInvalidateQueries();
+
+  return useMutationWithDefaults(testExecutionService.startTestExecution, {
+    onSuccess: (data) => {
+      invalidateTestExecution(data.id);
+      invalidateTestExecutions(data.projectId);
+    },
+  });
 }
 
 /**
  * 테스트 실행 완료
  */
 export function useCompleteTestExecution() {
-  const { invalidateTestExecution, invalidateTestExecutions } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    testExecutionService.completeTestExecution,
-    {
-      onSuccess: (data) => {
-        invalidateTestExecution(data.id);
-        invalidateTestExecutions(data.projectId);
-      },
-    }
-  );
+  const { invalidateTestExecution, invalidateTestExecutions } =
+    useInvalidateQueries();
+
+  return useMutationWithDefaults(testExecutionService.completeTestExecution, {
+    onSuccess: (data) => {
+      invalidateTestExecution(data.id);
+      invalidateTestExecutions(data.projectId);
+    },
+  });
 }
 
 /**
@@ -133,14 +130,19 @@ export function useCompleteTestExecution() {
  */
 export function useUpdateTestResult() {
   const { invalidateTestExecution } = useInvalidateQueries();
-  
+
   return useMutationWithDefaults(
-    ({ executionId, testCaseId, result, notes }) => 
-      testExecutionService.updateTestResult(executionId, testCaseId, result, notes),
+    ({ executionId, testCaseId, result, notes }) =>
+      testExecutionService.updateTestResult(
+        executionId,
+        testCaseId,
+        result,
+        notes,
+      ),
     {
       onSuccess: (data, variables) => {
         invalidateTestExecution(variables.executionId);
       },
-    }
+    },
   );
 }

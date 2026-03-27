@@ -1,4 +1,5 @@
 """LLM Analysis API endpoints"""
+
 import logging
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from sqlalchemy.orm import Session
@@ -23,7 +24,7 @@ from ...schemas.llm_analysis import (
     CostInfo,
     LlmAnalysisResultItem,
     LlmAnalysisJobListResponse,
-    LlmAnalysisJobSummary
+    LlmAnalysisJobSummary,
 )
 from ...services.cost_estimator import CostEstimator
 from ...services.llm_analysis_service import LlmAnalysisService
@@ -37,7 +38,7 @@ async def _run_llm_analysis_background(
     llm_api_key: Optional[str],
     llm_base_url: Optional[str],
     max_tokens: int,
-    temperature: float
+    temperature: float,
 ):
     """백그라운드에서 LLM 분석 실행
 
@@ -56,7 +57,7 @@ async def _run_llm_analysis_background(
             llm_api_key=llm_api_key,
             llm_base_url=llm_base_url,
             max_tokens=max_tokens,
-            temperature=temperature
+            temperature=temperature,
         )
     except Exception as e:
         logger.error(f"Background LLM analysis failed for job {job_id}: {e}")
@@ -64,11 +65,11 @@ async def _run_llm_analysis_background(
         db.close()
 
 
-@router.post("/{document_id}/estimate-analysis-cost", response_model=CostEstimateResponse)
+@router.post(
+    "/{document_id}/estimate-analysis-cost", response_model=CostEstimateResponse
+)
 async def estimate_analysis_cost(
-    document_id: UUID,
-    request: CostEstimateRequest,
-    db: Session = Depends(get_db)
+    document_id: UUID, request: CostEstimateRequest, db: Session = Depends(get_db)
 ):
     """비용 추정 (분석 시작 전)
 
@@ -89,7 +90,7 @@ async def estimate_analysis_cost(
             llm_provider=request.llm_provider,
             llm_model=request.llm_model,
             prompt_template=request.prompt_template,
-            max_tokens=request.max_tokens
+            max_tokens=request.max_tokens,
         )
         return result
 
@@ -100,12 +101,14 @@ async def estimate_analysis_cost(
         raise HTTPException(status_code=500, detail=f"Cost estimation failed: {str(e)}")
 
 
-@router.post("/{document_id}/analyze-chunks-with-llm", response_model=LlmAnalysisResponse)
+@router.post(
+    "/{document_id}/analyze-chunks-with-llm", response_model=LlmAnalysisResponse
+)
 async def analyze_chunks_with_llm(
     document_id: UUID,
     request: LlmAnalysisRequest,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """청크 순차 LLM 분석 시작
 
@@ -136,7 +139,7 @@ async def analyze_chunks_with_llm(
             chunk_batch_size=request.chunk_batch_size,
             pause_after_batch=request.pause_after_batch,
             max_tokens=request.max_tokens,
-            temperature=request.temperature
+            temperature=request.temperature,
         )
 
         # 백그라운드 작업 시작
@@ -146,7 +149,7 @@ async def analyze_chunks_with_llm(
             llm_api_key=request.llm_api_key,
             llm_base_url=request.llm_base_url,
             max_tokens=request.max_tokens,
-            temperature=request.temperature
+            temperature=request.temperature,
         )
 
         return LlmAnalysisResponse(
@@ -154,7 +157,7 @@ async def analyze_chunks_with_llm(
             document_id=document_id,
             job_id=job.id,
             total_chunks=job.total_chunks,
-            message="분석이 시작되었습니다. 진행 상황을 확인하세요."
+            message="분석이 시작되었습니다. 진행 상황을 확인하세요.",
         )
 
     except ValueError as e:
@@ -164,11 +167,10 @@ async def analyze_chunks_with_llm(
         raise HTTPException(status_code=500, detail=f"Analysis start failed: {str(e)}")
 
 
-@router.get("/{document_id}/llm-analysis-status", response_model=LlmAnalysisStatusResponse)
-async def get_llm_analysis_status(
-    document_id: UUID,
-    db: Session = Depends(get_db)
-):
+@router.get(
+    "/{document_id}/llm-analysis-status", response_model=LlmAnalysisStatusResponse
+)
+async def get_llm_analysis_status(document_id: UUID, db: Session = Depends(get_db)):
     """LLM 분석 진행 상황 조회
 
     Args:
@@ -180,10 +182,12 @@ async def get_llm_analysis_status(
     """
     try:
         # 최신 작업 조회
-        job = db.query(LlmAnalysisJob)\
-            .filter(LlmAnalysisJob.document_id == document_id)\
-            .order_by(LlmAnalysisJob.started_at.desc())\
+        job = (
+            db.query(LlmAnalysisJob)
+            .filter(LlmAnalysisJob.document_id == document_id)
+            .order_by(LlmAnalysisJob.started_at.desc())
             .first()
+        )
 
         if not job:
             raise HTTPException(status_code=404, detail="No analysis job found")
@@ -201,8 +205,7 @@ async def get_llm_analysis_status(
         cost_info = None
         if total_tokens_used > 0:
             cost_info = CostInfo(
-                total_tokens_used=total_tokens_used,
-                total_cost_usd=total_cost_usd
+                total_tokens_used=total_tokens_used, total_cost_usd=total_cost_usd
             )
 
         return LlmAnalysisStatusResponse(
@@ -213,28 +216,32 @@ async def get_llm_analysis_status(
             progress=ProgressInfo(
                 total_chunks=total_chunks,
                 processed_chunks=processed_chunks,
-                percentage=round(percentage, 2)
+                percentage=round(percentage, 2),
             ),
             actual_cost_so_far=cost_info,
             started_at=job.started_at,
             completed_at=job.completed_at,
             paused_at=job.paused_at,
-            error_message=job.error_message
+            error_message=job.error_message,
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Status retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Status retrieval failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Status retrieval failed: {str(e)}"
+        )
 
 
-@router.get("/{document_id}/llm-analysis-results", response_model=LlmAnalysisResultsResponse)
+@router.get(
+    "/{document_id}/llm-analysis-results", response_model=LlmAnalysisResultsResponse
+)
 async def get_llm_analysis_results(
     document_id: UUID,
     skip: int = Query(0, ge=0, description="Skip offset"),
     limit: int = Query(50, ge=1, le=200, description="Result limit"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """LLM 분석 결과 조회
 
@@ -249,10 +256,12 @@ async def get_llm_analysis_results(
     """
     try:
         # 최신 작업 조회
-        job = db.query(LlmAnalysisJob)\
-            .filter(LlmAnalysisJob.document_id == document_id)\
-            .order_by(LlmAnalysisJob.started_at.desc())\
+        job = (
+            db.query(LlmAnalysisJob)
+            .filter(LlmAnalysisJob.document_id == document_id)
+            .order_by(LlmAnalysisJob.started_at.desc())
             .first()
+        )
 
         if not job:
             raise HTTPException(status_code=404, detail="No analysis job found")
@@ -266,7 +275,7 @@ async def get_llm_analysis_results(
                 chunk_text=r.chunk_text,
                 llm_response=r.llm_response,
                 tokens_used=r.tokens_used,
-                processing_time_ms=r.processing_time_ms
+                processing_time_ms=r.processing_time_ms,
             )
             for r in results
         ]
@@ -277,21 +286,20 @@ async def get_llm_analysis_results(
             results=result_items,
             total=total,
             skip=skip,
-            limit=limit
+            limit=limit,
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Results retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Results retrieval failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Results retrieval failed: {str(e)}"
+        )
 
 
 @router.post("/{document_id}/pause-analysis", response_model=PauseAnalysisResponse)
-async def pause_analysis(
-    document_id: UUID,
-    db: Session = Depends(get_db)
-):
+async def pause_analysis(document_id: UUID, db: Session = Depends(get_db)):
     """LLM 분석 일시정지
 
     Args:
@@ -303,11 +311,13 @@ async def pause_analysis(
     """
     try:
         # 최신 작업 조회
-        job = db.query(LlmAnalysisJob)\
-            .filter(LlmAnalysisJob.document_id == document_id)\
-            .filter(LlmAnalysisJob.status == 'processing')\
-            .order_by(LlmAnalysisJob.started_at.desc())\
+        job = (
+            db.query(LlmAnalysisJob)
+            .filter(LlmAnalysisJob.document_id == document_id)
+            .filter(LlmAnalysisJob.status == "processing")
+            .order_by(LlmAnalysisJob.started_at.desc())
             .first()
+        )
 
         if not job:
             raise HTTPException(status_code=404, detail="No processing job found")
@@ -327,10 +337,9 @@ async def pause_analysis(
             processed_chunks=processed_chunks,
             total_chunks=total_chunks,
             actual_cost_so_far=CostInfo(
-                total_tokens_used=total_tokens_used,
-                total_cost_usd=total_cost_usd
+                total_tokens_used=total_tokens_used, total_cost_usd=total_cost_usd
             ),
-            message="분석이 일시정지되었습니다. 재개하려면 resume-analysis를 호출하세요."
+            message="분석이 일시정지되었습니다. 재개하려면 resume-analysis를 호출하세요.",
         )
 
     except HTTPException:
@@ -347,7 +356,7 @@ async def resume_analysis(
     document_id: UUID,
     request: ResumeAnalysisRequest,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """LLM 분석 재개
 
@@ -362,11 +371,13 @@ async def resume_analysis(
     """
     try:
         # 최신 일시정지된 작업 조회
-        job = db.query(LlmAnalysisJob)\
-            .filter(LlmAnalysisJob.document_id == document_id)\
-            .filter(LlmAnalysisJob.status == 'paused')\
-            .order_by(LlmAnalysisJob.started_at.desc())\
+        job = (
+            db.query(LlmAnalysisJob)
+            .filter(LlmAnalysisJob.document_id == document_id)
+            .filter(LlmAnalysisJob.status == "paused")
+            .order_by(LlmAnalysisJob.started_at.desc())
             .first()
+        )
 
         if not job:
             raise HTTPException(status_code=404, detail="No paused job found")
@@ -388,7 +399,7 @@ async def resume_analysis(
             llm_api_key=api_key,
             llm_base_url=base_url,
             max_tokens=500,
-            temperature=0.7
+            temperature=0.7,
         )
 
         # 백그라운드 작업 재시작
@@ -398,7 +409,7 @@ async def resume_analysis(
             llm_api_key=api_key,
             llm_base_url=base_url,
             max_tokens=500,
-            temperature=0.7
+            temperature=0.7,
         )
 
         total_chunks = job.total_chunks or 0
@@ -411,7 +422,7 @@ async def resume_analysis(
             status=job.status,
             processed_chunks=processed_chunks,
             remaining_chunks=remaining_chunks,
-            message="분석이 재개되었습니다."
+            message="분석이 재개되었습니다.",
         )
 
     except HTTPException:
@@ -424,10 +435,7 @@ async def resume_analysis(
 
 
 @router.post("/{document_id}/cancel-analysis", response_model=CancelAnalysisResponse)
-async def cancel_analysis(
-    document_id: UUID,
-    db: Session = Depends(get_db)
-):
+async def cancel_analysis(document_id: UUID, db: Session = Depends(get_db)):
     """LLM 분석 취소
 
     Args:
@@ -439,11 +447,13 @@ async def cancel_analysis(
     """
     try:
         # 최신 진행 중/일시정지 작업 조회
-        job = db.query(LlmAnalysisJob)\
-            .filter(LlmAnalysisJob.document_id == document_id)\
-            .filter(LlmAnalysisJob.status.in_(['processing', 'paused']))\
-            .order_by(LlmAnalysisJob.started_at.desc())\
+        job = (
+            db.query(LlmAnalysisJob)
+            .filter(LlmAnalysisJob.document_id == document_id)
+            .filter(LlmAnalysisJob.status.in_(["processing", "paused"]))
+            .order_by(LlmAnalysisJob.started_at.desc())
             .first()
+        )
 
         if not job:
             raise HTTPException(status_code=404, detail="No active job found")
@@ -457,7 +467,7 @@ async def cancel_analysis(
             status=job.status,
             processed_chunks=job.processed_chunks,
             total_cost_usd=float(job.total_cost_usd),
-            message="분석이 취소되었습니다. 지금까지 처리된 결과는 보존됩니다."
+            message="분석이 취소되었습니다. 지금까지 처리된 결과는 보존됩니다.",
         )
 
     except HTTPException:
@@ -475,7 +485,7 @@ async def list_llm_analysis_jobs(
     status: Optional[str] = Query(None, description="Filter by status"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Page size"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """LLM 분석 작업 목록 조회
 
@@ -508,10 +518,12 @@ async def list_llm_analysis_jobs(
 
         # 페이지네이션 적용 및 정렬 (최신순)
         offset = (page - 1) * size
-        jobs = query.order_by(LlmAnalysisJob.started_at.desc())\
-            .offset(offset)\
-            .limit(size)\
+        jobs = (
+            query.order_by(LlmAnalysisJob.started_at.desc())
+            .offset(offset)
+            .limit(size)
             .all()
+        )
 
         # 응답 생성
         job_summaries = []
@@ -522,32 +534,35 @@ async def list_llm_analysis_jobs(
                 percentage = (job.processed_chunks / job.total_chunks) * 100
 
             # 문서 정보 조회
-            document = db.query(RAGDocument).filter(RAGDocument.id == job.document_id).first()
+            document = (
+                db.query(RAGDocument).filter(RAGDocument.id == job.document_id).first()
+            )
 
-            job_summaries.append(LlmAnalysisJobSummary(
-                job_id=job.id,
-                document_id=job.document_id,
-                file_name=document.file_name if document else "Unknown",
-                project_id=document.project_id if document else None,
-                llm_provider=job.llm_provider,
-                llm_model=job.llm_model,
-                status=job.status,
-                total_chunks=job.total_chunks,
-                processed_chunks=job.processed_chunks,
-                percentage=percentage,
-                total_cost_usd=float(job.total_cost_usd) if job.total_cost_usd else 0.0,
-                total_tokens=job.total_tokens_used if job.total_tokens_used else 0,
-                started_at=job.started_at,
-                completed_at=job.completed_at,
-                paused_at=job.paused_at,
-                error_message=job.error_message
-            ))
+            job_summaries.append(
+                LlmAnalysisJobSummary(
+                    job_id=job.id,
+                    document_id=job.document_id,
+                    file_name=document.file_name if document else "Unknown",
+                    project_id=document.project_id if document else None,
+                    llm_provider=job.llm_provider,
+                    llm_model=job.llm_model,
+                    status=job.status,
+                    total_chunks=job.total_chunks,
+                    processed_chunks=job.processed_chunks,
+                    percentage=percentage,
+                    total_cost_usd=(
+                        float(job.total_cost_usd) if job.total_cost_usd else 0.0
+                    ),
+                    total_tokens=job.total_tokens_used if job.total_tokens_used else 0,
+                    started_at=job.started_at,
+                    completed_at=job.completed_at,
+                    paused_at=job.paused_at,
+                    error_message=job.error_message,
+                )
+            )
 
         return LlmAnalysisJobListResponse(
-            jobs=job_summaries,
-            total_count=total_count,
-            page=page,
-            page_size=size
+            jobs=job_summaries, total_count=total_count, page=page, page_size=size
         )
 
     except Exception as e:

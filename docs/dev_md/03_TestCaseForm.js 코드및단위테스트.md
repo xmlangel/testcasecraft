@@ -49,7 +49,6 @@ test('TestCaseForm submits input value', () =&gt; {
 
 - 컴포넌트의 prop 타입을 명시해주면 유지보수에 도움이 됩니다.
 
-
 ### 개선된 코드 예시
 
 ```javascript
@@ -97,11 +96,9 @@ TestCaseForm.propTypes = {
 export default TestCaseForm;
 ```
 
-
 ### 요약
 
 - 단위 테스트를 통해 기본 동작이 정상임을 확인했습니다.
 - UX 향상을 위해 입력값 유효성 메시지, 버튼 비활성화, PropTypes 명시를 추가하는 개선을 추천합니다.
 
 <div style="text-align: center">⁂</div>
-

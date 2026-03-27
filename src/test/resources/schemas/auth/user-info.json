@@ -1,41 +1,30 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "required": [
-        "username",
-        "name",
-        "email",
-        "role"
-    ],
-    "properties": {
-        "username": {
-            "type": "string"
-        },
-        "name": {
-            "type": "string"
-        },
-        "email": {
-            "type": "string",
-            "format": "email"
-        },
-        "role": {
-            "type": "string",
-            "enum": [
-                "ADMIN",
-                "PROJECT_MANAGER",
-                "TESTER",
-                "DEVELOPER",
-                "VIEWER"
-            ]
-        },
-        "emailVerified": {
-            "type": "boolean"
-        },
-        "preferredLanguage": {
-            "type": "string"
-        },
-        "timezone": {
-            "type": "string"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["username", "name", "email", "role"],
+  "properties": {
+    "username": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["ADMIN", "PROJECT_MANAGER", "TESTER", "DEVELOPER", "VIEWER"]
+    },
+    "emailVerified": {
+      "type": "boolean"
+    },
+    "preferredLanguage": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
     }
+  }
 }

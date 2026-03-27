@@ -9,9 +9,11 @@
 ## 설명 (Description)
 
 ### 목적
+
 사용자 이메일 주소를 인증할 수 있는 1회성 토큰 기반 이메일 인증 시스템을 구축합니다.
 
 ### 주요 기능
+
 - 이메일 인증 토큰 생성 및 발송
 - 1회성 토큰 검증 (한 번 사용 후 재사용 불가)
 - 24시간 자동 만료
@@ -20,6 +22,7 @@
 ### 구현 범위
 
 #### Backend
+
 - ✅ `EmailVerificationToken` 엔티티 생성
 - ✅ `EmailVerificationRepository` 생성
 - ✅ `EmailVerificationService` 구현
@@ -28,6 +31,7 @@
 - ✅ HTML 이메일 템플릿 구현
 
 #### Frontend
+
 - ✅ `EmailVerification.jsx` 컴포넌트 생성
 - ✅ App.jsx 라우팅 추가 (`/verify-email`)
 - ✅ Material-UI 기반 UI/UX 구현
@@ -42,24 +46,26 @@
 
 **테이블명**: `email_verification_tokens`
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | UUID | 기본 키 |
-| token | VARCHAR(100) | 인증 토큰 (UUID, UNIQUE) |
-| user_id | UUID | 사용자 ID (FK) |
-| email | VARCHAR(100) | 인증 대상 이메일 |
-| is_used | BOOLEAN | 사용 여부 (기본값: false) |
-| expires_at | TIMESTAMP | 만료 시간 |
-| used_at | TIMESTAMP | 사용 시간 (nullable) |
-| created_at | TIMESTAMP | 생성 시간 |
+| 컬럼       | 타입         | 설명                      |
+| ---------- | ------------ | ------------------------- |
+| id         | UUID         | 기본 키                   |
+| token      | VARCHAR(100) | 인증 토큰 (UUID, UNIQUE)  |
+| user_id    | UUID         | 사용자 ID (FK)            |
+| email      | VARCHAR(100) | 인증 대상 이메일          |
+| is_used    | BOOLEAN      | 사용 여부 (기본값: false) |
+| expires_at | TIMESTAMP    | 만료 시간                 |
+| used_at    | TIMESTAMP    | 사용 시간 (nullable)      |
+| created_at | TIMESTAMP    | 생성 시간                 |
 
 **인덱스**:
+
 - `idx_token` on `token`
 - `idx_user_id` on `user_id`
 
 ## 검증 계획
 
 ### 필수 테스트
+
 1. ✅ 이메일 발송 테스트
 2. ✅ 토큰 검증 성공 케이스
 3. ✅ 토큰 재사용 방지 (1회성 검증)
@@ -68,12 +74,14 @@
 6. ⚠️ 재발송 테스트
 
 ### 환경 설정 필요사항
+
 - SMTP 서버 설정 (`application-dev.yml` 또는 환경 변수)
 - 프론트엔드 URL 설정: `app.frontend.url` (기본값: http://localhost:8080)
 
 ## 구현 파일 목록
 
 ### Backend
+
 - `src/main/java/com/testcase/testcasemanagement/model/EmailVerificationToken.java`
 - `src/main/java/com/testcase/testcasemanagement/repository/EmailVerificationRepository.java`
 - `src/main/java/com/testcase/testcasemanagement/service/EmailVerificationService.java`
@@ -81,6 +89,7 @@
 - `src/main/java/com/testcase/testcasemanagement/dto/EmailVerificationDto.java`
 
 ### Frontend
+
 - `src/main/frontend/src/components/EmailVerification.jsx`
 - `src/main/frontend/src/App.jsx` (라우팅 추가)
 

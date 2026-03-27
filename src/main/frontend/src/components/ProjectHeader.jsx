@@ -2,7 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Box, Typography, Tabs, Tab, Breadcrumbs, Link, IconButton, Collapse } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Breadcrumbs,
+  Link,
+  IconButton,
+  Collapse,
+} from "@mui/material";
 import {
   FormatListBulleted as FormatListBulletedIcon,
   Assignment as AssignmentIcon,
@@ -13,11 +22,11 @@ import {
   Description as DescriptionIcon,
   TravelExplore as TravelExploreIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
-  KeyboardArrowDown as KeyboardArrowDownIcon
+  KeyboardArrowDown as KeyboardArrowDownIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { useRAG } from "../context/RAGContext.jsx";
 
 function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
@@ -29,7 +38,7 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
   // ICT-PROJECT-HEADER-COLLAPSE: Initialize state from localStorage
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(() => {
     try {
-      return localStorage.getItem('projectHeaderCollapsed') === 'true';
+      return localStorage.getItem("projectHeaderCollapsed") === "true";
     } catch (e) {
       return false;
     }
@@ -39,50 +48,76 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
   const toggleHeader = () => {
     const newState = !isHeaderCollapsed;
     setIsHeaderCollapsed(newState);
-    localStorage.setItem('projectHeaderCollapsed', String(newState));
+    localStorage.setItem("projectHeaderCollapsed", String(newState));
   };
 
   if (!activeProject) return null;
 
   const handleProjectClick = (e) => {
     e.preventDefault();
-    navigate('/');
+    navigate("/");
   };
 
   const tabStyle = {
-    minHeight: '36px',
+    minHeight: "36px",
     px: 1,
     py: 0.5,
     borderRadius: 1,
-    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-    '&:hover': {
-      transform: 'translateY(-4px) scale(1.05)',
-      color: 'primary.main',
-      backgroundColor: 'action.hover',
+    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+    "&:hover": {
+      transform: "translateY(-4px) scale(1.05)",
+      color: "primary.main",
+      backgroundColor: "action.hover",
       boxShadow: 3,
-      fontWeight: 'bold'
-    }
+      fontWeight: "bold",
+    },
   };
 
   return (
     <Box sx={{ mb: 0.5 }}>
-      <Box sx={{ mb: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box
+        sx={{
+          mb: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <Breadcrumbs aria-label="breadcrumb">
-          <Link underline="hover" color="inherit" href="#" onClick={handleProjectClick}>
-            {t('projectHeader.breadcrumb.projects', '프로젝트')}
+          <Link
+            underline="hover"
+            color="inherit"
+            href="#"
+            onClick={handleProjectClick}
+          >
+            {t("projectHeader.breadcrumb.projects", "프로젝트")}
           </Link>
-          <Typography color="text.primary" fontWeight="bold">{activeProject.name}</Typography>
+          <Typography color="text.primary" fontWeight="bold">
+            {activeProject.name}
+          </Typography>
         </Breadcrumbs>
 
-        <IconButton size="small" onClick={toggleHeader} title={isHeaderCollapsed ? "Show details" : "Hide details"}>
-          {isHeaderCollapsed ? <KeyboardArrowDownIcon /> : <KeyboardArrowUpIcon />}
+        <IconButton
+          size="small"
+          onClick={toggleHeader}
+          title={isHeaderCollapsed ? "Show details" : "Hide details"}
+        >
+          {isHeaderCollapsed ? (
+            <KeyboardArrowDownIcon />
+          ) : (
+            <KeyboardArrowUpIcon />
+          )}
         </IconButton>
       </Box>
 
       {/* Collapsible description area */}
       <Collapse in={!isHeaderCollapsed}>
         {activeProject.description && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, mb: 0.5 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 0.25, mb: 0.5 }}
+          >
             {activeProject.description}
           </Typography>
         )}
@@ -92,20 +127,68 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
         value={tabIndex}
         onChange={onTabChange}
         aria-label="project tabs"
-        sx={{ minHeight: '36px', mt: isHeaderCollapsed ? 0 : 0 }}
+        sx={{ minHeight: "36px", mt: isHeaderCollapsed ? 0 : 0 }}
       >
-        <Tab icon={<DashboardIcon />} iconPosition="start" label={t('projectHeader.tabs.dashboard', '대시보드')} sx={tabStyle} data-testid="tab-dashboard" />
-        <Tab icon={<FormatListBulletedIcon />} iconPosition="start" label={t('projectHeader.tabs.testCases', '테스트케이스')} sx={tabStyle} data-testid="tab-testcases" />
-        <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('testPlan.tab.label', '테스트플랜')} sx={tabStyle} data-testid="tab-testplans" />
-        <Tab icon={<PlayCircleIcon />} iconPosition="start" label={t('projectHeader.tabs.testExecution', '테스트실행')} sx={tabStyle} data-testid="tab-executions" />
-        <Tab icon={<BarChartIcon />} iconPosition="start" label={t('projectHeader.tabs.testResults', '테스트결과')} sx={tabStyle} data-testid="tab-results" />
-        <Tab icon={<SmartToyIcon />} iconPosition="start" label={t('projectHeader.tabs.automation', '자동화 테스트')} sx={tabStyle} data-testid="tab-automation" />
+        <Tab
+          icon={<DashboardIcon />}
+          iconPosition="start"
+          label={t("projectHeader.tabs.dashboard", "대시보드")}
+          sx={tabStyle}
+          data-testid="tab-dashboard"
+        />
+        <Tab
+          icon={<FormatListBulletedIcon />}
+          iconPosition="start"
+          label={t("projectHeader.tabs.testCases", "테스트케이스")}
+          sx={tabStyle}
+          data-testid="tab-testcases"
+        />
+        <Tab
+          icon={<AssignmentIcon />}
+          iconPosition="start"
+          label={t("testPlan.tab.label", "테스트플랜")}
+          sx={tabStyle}
+          data-testid="tab-testplans"
+        />
+        <Tab
+          icon={<PlayCircleIcon />}
+          iconPosition="start"
+          label={t("projectHeader.tabs.testExecution", "테스트실행")}
+          sx={tabStyle}
+          data-testid="tab-executions"
+        />
+        <Tab
+          icon={<BarChartIcon />}
+          iconPosition="start"
+          label={t("projectHeader.tabs.testResults", "테스트결과")}
+          sx={tabStyle}
+          data-testid="tab-results"
+        />
+        <Tab
+          icon={<SmartToyIcon />}
+          iconPosition="start"
+          label={t("projectHeader.tabs.automation", "자동화 테스트")}
+          sx={tabStyle}
+          data-testid="tab-automation"
+        />
         {/* RAG 비활성화 시 탭 자동 숨김, 활성화 시 자동 표시 */}
         {isRagEnabled && (
-          <Tab icon={<DescriptionIcon />} iconPosition="start" label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} sx={tabStyle} data-testid="tab-rag" />
+          <Tab
+            icon={<DescriptionIcon />}
+            iconPosition="start"
+            label={t("projectHeader.tabs.ragDocuments", "RAG 문서")}
+            sx={tabStyle}
+            data-testid="tab-rag"
+          />
         )}
         {showExploratoryTab && (
-          <Tab icon={<TravelExploreIcon />} iconPosition="start" label={t('projectHeader.tabs.exploratorySessions', '탐색 세션')} sx={tabStyle} data-testid="tab-exploratory" />
+          <Tab
+            icon={<TravelExploreIcon />}
+            iconPosition="start"
+            label={t("projectHeader.tabs.exploratorySessions", "탐색 세션")}
+            sx={tabStyle}
+            data-testid="tab-exploratory"
+          />
         )}
       </Tabs>
     </Box>

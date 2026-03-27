@@ -7,13 +7,13 @@
       "type": "string",
       "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
     },
-    "name": {"type": "string"},
+    "name": { "type": "string" },
     "testPlanId": {
       "type": ["string", "null"],
       "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
     },
     "projectId": { "type": "string" },
-    "description": {"type": "string"},
+    "description": { "type": "string" },
     "status": {
       "type": "string",
       "enum": ["NOTSTARTED", "INPROGRESS", "COMPLETED"]
@@ -39,9 +39,9 @@
       "items": {
         "type": "object",
         "properties": {
-          "testCaseId": {"type": "string"},
-          "result": {"type": "string"},
-          "notes": {"type": "string"}
+          "testCaseId": { "type": "string" },
+          "result": { "type": "string" },
+          "notes": { "type": "string" }
         }
       }
     }

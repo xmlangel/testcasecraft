@@ -3,6 +3,7 @@ import os
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
+
 def init_logger():
     """
     Initializes the logger with configurations from environment variables.
@@ -19,10 +20,12 @@ def init_logger():
 
     # Configure logging
     logging.basicConfig(
-        level=getattr(logging, 'DEBUG', logging.DEBUG),
+        level=getattr(logging, "DEBUG", logging.DEBUG),
         format=log_format,
         handlers=[
-            RotatingFileHandler(log_file_path, maxBytes=log_file_size, backupCount=backup_count),
+            RotatingFileHandler(
+                log_file_path, maxBytes=log_file_size, backupCount=backup_count
+            ),
             logging.StreamHandler(),
-        ]
+        ],
     )

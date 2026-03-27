@@ -17,8 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 /**
  * RAG 채팅 REST API 컨트롤러
  *
- * RAG 문서 검색 + LLM 질의응답 기능 제공
- * 일반 응답과 스트리밍 응답 모두 지원
+ * <p>RAG 문서 검색 + LLM 질의응답 기능 제공 일반 응답과 스트리밍 응답 모두 지원
  */
 @RestController
 @RequestMapping("/api/rag/chat")
@@ -32,18 +31,20 @@ public class RagChatController {
   /**
    * RAG 기반 채팅 (일반 응답)
    *
-   * POST /api/rag/chat
+   * <p>POST /api/rag/chat
    *
-   * RAG 문서 검색 → LLM 질의 → 응답 반환
-   * 전체 응답이 생성된 후 한 번에 반환
+   * <p>RAG 문서 검색 → LLM 질의 → 응답 반환 전체 응답이 생성된 후 한 번에 반환
    *
-   * @param request        채팅 요청 (질문, 프로젝트 ID, LLM 설정 등)
+   * @param request 채팅 요청 (질문, 프로젝트 ID, LLM 설정 등)
    * @param authentication 인증 정보
    * @return 채팅 응답 (LLM 답변 + 출처 정보)
    */
   @PostMapping
   @PreAuthorize("isAuthenticated()")
-  @Operation(summary = "RAG 기반 채팅", description = """
+  @Operation(
+      summary = "RAG 기반 채팅",
+      description =
+          """
       RAG 문서 검색 결과를 바탕으로 LLM이 질문에 답변합니다.
 
       **처리 과정**:
@@ -56,10 +57,12 @@ public class RagChatController {
       - llmConfigId 미지정: 기본 LLM 설정 사용
       """)
   public RagChatResponse chat(
-      @Valid @RequestBody RagChatRequest request,
-      Authentication authentication) {
+      @Valid @RequestBody RagChatRequest request, Authentication authentication) {
     String username = authentication.getName();
-    log.info("💬 RAG 채팅 요청: user={}, project={}, llmConfigId={}", username, request.getProjectId(),
+    log.info(
+        "💬 RAG 채팅 요청: user={}, project={}, llmConfigId={}",
+        username,
+        request.getProjectId(),
         request.getLlmConfigId());
 
     return ragChatService.chat(request, username);
@@ -68,18 +71,20 @@ public class RagChatController {
   /**
    * RAG 기반 채팅 (스트리밍 응답)
    *
-   * POST /api/rag/chat/stream
+   * <p>POST /api/rag/chat/stream
    *
-   * SSE(Server-Sent Events)로 실시간 스트리밍 응답
-   * LLM이 생성하는 응답을 실시간으로 전송
+   * <p>SSE(Server-Sent Events)로 실시간 스트리밍 응답 LLM이 생성하는 응답을 실시간으로 전송
    *
-   * @param request        채팅 요청
+   * @param request 채팅 요청
    * @param authentication 인증 정보
    * @return SSE Emitter
    */
   @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   @PreAuthorize("isAuthenticated()")
-  @Operation(summary = "RAG 기반 채팅 (스트리밍)", description = """
+  @Operation(
+      summary = "RAG 기반 채팅 (스트리밍)",
+      description =
+          """
       RAG 문서 검색 결과를 바탕으로 LLM이 실시간 스트리밍으로 답변합니다.
 
       **SSE 이벤트 타입**:
@@ -104,8 +109,7 @@ public class RagChatController {
       ```
       """)
   public SseEmitter chatStream(
-      @Valid @RequestBody RagChatRequest request,
-      Authentication authentication) {
+      @Valid @RequestBody RagChatRequest request, Authentication authentication) {
     String username = authentication.getName();
     log.info("💬 RAG 채팅 스트리밍 요청: user={}, project={}", username, request.getProjectId());
 

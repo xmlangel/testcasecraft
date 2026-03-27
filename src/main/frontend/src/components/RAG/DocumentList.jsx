@@ -1,6 +1,6 @@
 // src/components/RAG/DocumentList.jsx
-import React, { useEffect, useCallback, useState } from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useCallback, useState } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Paper,
@@ -10,29 +10,32 @@ import {
   IconButton,
   Tooltip,
   Button,
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import PublicIcon from '@mui/icons-material/Public';
-import SendIcon from '@mui/icons-material/Send';
-import DescriptionIcon from '@mui/icons-material/Description';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { useRAG } from '../../context/RAGContext.jsx';
-import { useI18n } from '../../context/I18nContext.jsx';
-import { useAppContext } from '../../context/AppContext.jsx';
-import DocumentTableSection from './DocumentTableSection.jsx';
-import DocumentListHeader from './DocumentListHeader.jsx';
-import DocumentListTabs from './DocumentListTabs.jsx';
-import SummaryDialog from './SummaryDialog.jsx';
-import JobHistoryDialog from './JobHistoryDialog.jsx';
-import DocumentListDialogs from './DocumentListDialogs.jsx';
-import { DOCUMENT_LIST_CONSTANTS } from './constants.js';
-import { filterRegularDocuments, filterTestCaseDocuments } from './utils/documentFilters.js';
-import { useDocumentList } from './hooks/useDocumentList.js';
-import { useExpandableRows } from './hooks/useExpandableRows.js';
-import { useLlmAnalysisStates } from './hooks/useLlmAnalysisStates.js';
-import { useDocumentActions } from './hooks/useDocumentActions.js';
-import { useSummaryDialog } from './hooks/useSummaryDialog.js';
-import { useJobHistory } from './hooks/useJobHistory.js';
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import PublicIcon from "@mui/icons-material/Public";
+import SendIcon from "@mui/icons-material/Send";
+import DescriptionIcon from "@mui/icons-material/Description";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useRAG } from "../../context/RAGContext.jsx";
+import { useI18n } from "../../context/I18nContext.jsx";
+import { useAppContext } from "../../context/AppContext.jsx";
+import DocumentTableSection from "./DocumentTableSection.jsx";
+import DocumentListHeader from "./DocumentListHeader.jsx";
+import DocumentListTabs from "./DocumentListTabs.jsx";
+import SummaryDialog from "./SummaryDialog.jsx";
+import JobHistoryDialog from "./JobHistoryDialog.jsx";
+import DocumentListDialogs from "./DocumentListDialogs.jsx";
+import { DOCUMENT_LIST_CONSTANTS } from "./constants.js";
+import {
+  filterRegularDocuments,
+  filterTestCaseDocuments,
+} from "./utils/documentFilters.js";
+import { useDocumentList } from "./hooks/useDocumentList.js";
+import { useExpandableRows } from "./hooks/useExpandableRows.js";
+import { useLlmAnalysisStates } from "./hooks/useLlmAnalysisStates.js";
+import { useDocumentActions } from "./hooks/useDocumentActions.js";
+import { useSummaryDialog } from "./hooks/useSummaryDialog.js";
+import { useJobHistory } from "./hooks/useJobHistory.js";
 
 /**
  * 문서 목록 컴포넌트
@@ -41,7 +44,7 @@ import { useJobHistory } from './hooks/useJobHistory.js';
 function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const { t } = useI18n();
   const theme = useTheme();
-  const colorMode = theme.palette.mode === 'dark' ? 'dark' : 'light';
+  const colorMode = theme.palette.mode === "dark" ? "dark" : "light";
 
   const {
     listDocuments,
@@ -62,26 +65,41 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   } = useRAG();
 
   const { user } = useAppContext();
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === "ADMIN";
 
   // 로컬 상태
   const [localError, setLocalError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [statusNotice, setStatusNotice] = useState(null);
-  const [promoteDialogState, setPromoteDialogState] = useState({ open: false, document: null, reason: '' });
-  const [requestDialogState, setRequestDialogState] = useState({ open: false, document: null, message: '' });
+  const [promoteDialogState, setPromoteDialogState] = useState({
+    open: false,
+    document: null,
+    reason: "",
+  });
+  const [requestDialogState, setRequestDialogState] = useState({
+    open: false,
+    document: null,
+    message: "",
+  });
   const [promoteSubmitting, setPromoteSubmitting] = useState(false);
   const [requestSubmitting, setRequestSubmitting] = useState(false);
 
   // 상태 알림 표시 헬퍼
-  const showStatusNotice = useCallback((message, severity = 'info') => {
+  const showStatusNotice = useCallback((message, severity = "info") => {
     setStatusNotice({ message, severity });
-    setTimeout(() => setStatusNotice(null), DOCUMENT_LIST_CONSTANTS.STATUS_NOTICE_AUTO_DISMISS);
+    setTimeout(
+      () => setStatusNotice(null),
+      DOCUMENT_LIST_CONSTANTS.STATUS_NOTICE_AUTO_DISMISS,
+    );
   }, []);
 
   // Custom Hooks
-  const documentList = useDocumentList({ projectId, listDocuments, setLocalError });
+  const documentList = useDocumentList({
+    projectId,
+    listDocuments,
+    setLocalError,
+  });
   const {
     page,
     rowsPerPage,
@@ -203,28 +221,31 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   }, [loadDocuments]);
 
   // 탭 변경
-  const handleTabChange = useCallback((event, newValue) => {
-    if (!isAdmin) {
-      return;
-    }
-    setTabValue(newValue);
-  }, [isAdmin]);
+  const handleTabChange = useCallback(
+    (event, newValue) => {
+      if (!isAdmin) {
+        return;
+      }
+      setTabValue(newValue);
+    },
+    [isAdmin],
+  );
 
   // 공통 문서 관련
   const openPromoteDialog = useCallback((document) => {
-    setPromoteDialogState({ open: true, document, reason: '' });
+    setPromoteDialogState({ open: true, document, reason: "" });
   }, []);
 
   const closePromoteDialog = useCallback(() => {
-    setPromoteDialogState({ open: false, document: null, reason: '' });
+    setPromoteDialogState({ open: false, document: null, reason: "" });
   }, []);
 
   const openRequestDialog = useCallback((document) => {
-    setRequestDialogState({ open: true, document, message: '' });
+    setRequestDialogState({ open: true, document, message: "" });
   }, []);
 
   const closeRequestDialog = useCallback(() => {
-    setRequestDialogState({ open: false, document: null, message: '' });
+    setRequestDialogState({ open: false, document: null, message: "" });
   }, []);
 
   const handlePromoteSubmit = useCallback(async () => {
@@ -233,23 +254,38 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     try {
       await promoteDocumentToGlobal(
         promoteDialogState.document.id,
-        promoteDialogState.reason?.trim() || null
+        promoteDialogState.reason?.trim() || null,
       );
       showStatusNotice(
-        t('rag.document.global.promoteSuccess', '선택한 문서가 공통 RAG 문서로 이동되었습니다.'),
-        'success'
+        t(
+          "rag.document.global.promoteSuccess",
+          "선택한 문서가 공통 RAG 문서로 이동되었습니다.",
+        ),
+        "success",
       );
       await loadDocuments();
       await loadLlmAnalysisStates();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || '공통 문서 이동에 실패했습니다.';
+      const errorMessage =
+        err.response?.data?.message || "공통 문서 이동에 실패했습니다.";
       setLocalError(errorMessage);
-      setTimeout(() => setLocalError(null), DOCUMENT_LIST_CONSTANTS.ERROR_AUTO_DISMISS);
+      setTimeout(
+        () => setLocalError(null),
+        DOCUMENT_LIST_CONSTANTS.ERROR_AUTO_DISMISS,
+      );
     } finally {
       setPromoteSubmitting(false);
       closePromoteDialog();
     }
-  }, [promoteDialogState, promoteDocumentToGlobal, showStatusNotice, t, loadDocuments, loadLlmAnalysisStates, closePromoteDialog]);
+  }, [
+    promoteDialogState,
+    promoteDocumentToGlobal,
+    showStatusNotice,
+    t,
+    loadDocuments,
+    loadLlmAnalysisStates,
+    closePromoteDialog,
+  ]);
 
   const handleRequestSubmit = useCallback(async () => {
     if (!requestDialogState.document) return;
@@ -257,52 +293,86 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     try {
       await requestPromoteDocument(
         requestDialogState.document.id,
-        requestDialogState.message?.trim() || null
+        requestDialogState.message?.trim() || null,
       );
       showStatusNotice(
-        t('rag.document.global.requestSubmitted', '관리자에게 공통 문서 등록 요청이 전송되었습니다.'),
-        'info'
+        t(
+          "rag.document.global.requestSubmitted",
+          "관리자에게 공통 문서 등록 요청이 전송되었습니다.",
+        ),
+        "info",
       );
     } catch (err) {
-      const errorMessage = err.response?.data?.message || '공통 문서 등록 요청에 실패했습니다.';
+      const errorMessage =
+        err.response?.data?.message || "공통 문서 등록 요청에 실패했습니다.";
       setLocalError(errorMessage);
-      setTimeout(() => setLocalError(null), DOCUMENT_LIST_CONSTANTS.ERROR_AUTO_DISMISS);
+      setTimeout(
+        () => setLocalError(null),
+        DOCUMENT_LIST_CONSTANTS.ERROR_AUTO_DISMISS,
+      );
     } finally {
       setRequestSubmitting(false);
       closeRequestDialog();
     }
-  }, [requestDialogState, requestPromoteDocument, showStatusNotice, t, closeRequestDialog]);
+  }, [
+    requestDialogState,
+    requestPromoteDocument,
+    showStatusNotice,
+    t,
+    closeRequestDialog,
+  ]);
 
   // 문서 액션 렌더러
-  const renderDocumentExtraActions = useCallback((doc) => {
-    if (!doc) return null;
-    if (isAdmin) {
+  const renderDocumentExtraActions = useCallback(
+    (doc) => {
+      if (!doc) return null;
+      if (isAdmin) {
+        return (
+          <Tooltip
+            title={t("rag.document.global.promoteAction", "공통 문서로 이동")}
+          >
+            <IconButton
+              size="small"
+              color="secondary"
+              onClick={() => openPromoteDialog(doc)}
+            >
+              <PublicIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        );
+      }
       return (
-        <Tooltip title={t('rag.document.global.promoteAction', '공통 문서로 이동')}>
-          <IconButton size="small" color="secondary" onClick={() => openPromoteDialog(doc)}>
-            <PublicIcon fontSize="small" />
+        <Tooltip
+          title={t("rag.document.global.requestAction", "공통 문서 등록 요청")}
+        >
+          <IconButton
+            size="small"
+            color="secondary"
+            onClick={() => openRequestDialog(doc)}
+          >
+            <SendIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       );
-    }
-    return (
-      <Tooltip title={t('rag.document.global.requestAction', '공통 문서 등록 요청')}>
-        <IconButton size="small" color="secondary" onClick={() => openRequestDialog(doc)}>
-          <SendIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
-    );
-  }, [isAdmin, t, openPromoteDialog, openRequestDialog]);
+    },
+    [isAdmin, t, openPromoteDialog, openRequestDialog],
+  );
 
-  const handleDownloadDocumentAction = useCallback((doc) => {
-    if (!doc) return;
-    handleDownloadClick(doc.id, doc.fileName);
-  }, [handleDownloadClick]);
+  const handleDownloadDocumentAction = useCallback(
+    (doc) => {
+      if (!doc) return;
+      handleDownloadClick(doc.id, doc.fileName);
+    },
+    [handleDownloadClick],
+  );
 
-  const handleDeleteDocumentAction = useCallback((doc) => {
-    if (!doc) return;
-    handleDeleteClick(doc.id);
-  }, [handleDeleteClick]);
+  const handleDeleteDocumentAction = useCallback(
+    (doc) => {
+      if (!doc) return;
+      handleDeleteClick(doc.id);
+    },
+    [handleDeleteClick],
+  );
 
   // 문서 필터링
   const regularDocuments = filterRegularDocuments(state.documents);
@@ -311,13 +381,18 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   // 빈 상태 렌더링
   if (state.documents.length === 0) {
     return (
-      <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
-        <DescriptionIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+      <Paper elevation={2} sx={{ p: 3, textAlign: "center" }}>
+        <DescriptionIcon
+          sx={{ fontSize: 48, color: "text.secondary", mb: 2 }}
+        />
         <Typography variant="h6" color="text.secondary">
-          {t('rag.document.empty', '업로드된 문서가 없습니다')}
+          {t("rag.document.empty", "업로드된 문서가 없습니다")}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {t('rag.document.emptyDescription', '문서 업로드 버튼을 사용하여 파일을 추가하세요')}
+          {t(
+            "rag.document.emptyDescription",
+            "문서 업로드 버튼을 사용하여 파일을 추가하세요",
+          )}
         </Typography>
         <Button
           variant="contained"
@@ -325,32 +400,32 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           sx={{ mt: 2 }}
           onClick={handleUploadDialogOpen}
         >
-          {t('rag.document.list.uploadButton', '문서 업로드')}
+          {t("rag.document.list.uploadButton", "문서 업로드")}
         </Button>
 
         <DocumentListDialogs
           deleteDialogOpen={false}
-          onDeleteCancel={() => { }}
-          onDeleteConfirm={() => { }}
+          onDeleteCancel={() => {}}
+          onDeleteConfirm={() => {}}
           uploadDialogOpen={uploadDialogOpen}
           onUploadClose={handleUploadDialogClose}
           onUploadSuccess={handleUploadSuccess}
           projectId={projectId}
-          promoteDialogState={{ open: false, document: null, reason: '' }}
-          onPromoteClose={() => { }}
-          onPromoteReasonChange={() => { }}
-          onPromoteSubmit={() => { }}
+          promoteDialogState={{ open: false, document: null, reason: "" }}
+          onPromoteClose={() => {}}
+          onPromoteReasonChange={() => {}}
+          onPromoteSubmit={() => {}}
           promoteSubmitting={false}
-          requestDialogState={{ open: false, document: null, message: '' }}
-          onRequestClose={() => { }}
-          onRequestMessageChange={() => { }}
-          onRequestSubmit={() => { }}
+          requestDialogState={{ open: false, document: null, message: "" }}
+          onRequestClose={() => {}}
+          onRequestMessageChange={() => {}}
+          onRequestSubmit={() => {}}
           requestSubmitting={false}
           previewDialogState={{ open: false, document: null }}
-          onPreviewClose={() => { }}
+          onPreviewClose={() => {}}
           fetchPreview={fetchDocumentBlob}
           chunksDialogState={{ open: false, document: null }}
-          onChunksClose={() => { }}
+          onChunksClose={() => {}}
           onViewChunks={onViewChunks}
           t={t}
         />
@@ -363,7 +438,11 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       <Paper elevation={5} className="glass-border" sx={{ p: 3 }}>
         {/* 에러 및 상태 알림 */}
         {localError && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLocalError(null)}>
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            onClose={() => setLocalError(null)}
+          >
             {localError}
           </Alert>
         )}
@@ -379,7 +458,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
 
         {/* 헤더 */}
         <DocumentListHeader
-          title={t('rag.document.list.title', '문서 목록')}
+          title={t("rag.document.list.title", "문서 목록")}
           onRefresh={handleRefreshWithStates}
           onUpload={handleUploadDialogOpen}
           isRefreshing={isRefreshing}
@@ -400,7 +479,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         {/* 일반 문서 */}
         {(!isAdmin || tabValue === 0) && (
           <DocumentTableSection
-            title={t('rag.document.list.regularDocuments', '업로드된 문서')}
+            title={t("rag.document.list.regularDocuments", "업로드된 문서")}
             documents={regularDocuments}
             llmAnalysisStates={llmAnalysisStates}
             expandedRows={expandedRows}
@@ -426,7 +505,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         {/* 테스트케이스 문서 (관리자만) */}
         {isAdmin && tabValue === 1 && (
           <DocumentTableSection
-            title={t('rag.document.list.testCaseDocuments', '테스트케이스 문서')}
+            title={t(
+              "rag.document.list.testCaseDocuments",
+              "테스트케이스 문서",
+            )}
             documents={testCaseDocuments}
             llmAnalysisStates={llmAnalysisStates}
             expandedRows={expandedRows}
@@ -458,7 +540,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           rowsPerPageOptions={DOCUMENT_LIST_CONSTANTS.ROWS_PER_PAGE_OPTIONS}
-          labelRowsPerPage={t('rag.document.pagination.rowsPerPage', '페이지당 행 수:')}
+          labelRowsPerPage={t(
+            "rag.document.pagination.rowsPerPage",
+            "페이지당 행 수:",
+          )}
           labelDisplayedRows={({ from, to, count }) =>
             `${from}-${to} / ${count !== -1 ? count : `more than ${to}`}`
           }
@@ -503,12 +588,19 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         projectId={projectId}
         promoteDialogState={promoteDialogState}
         onPromoteClose={closePromoteDialog}
-        onPromoteReasonChange={(e) => setPromoteDialogState(prev => ({ ...prev, reason: e.target.value }))}
+        onPromoteReasonChange={(e) =>
+          setPromoteDialogState((prev) => ({ ...prev, reason: e.target.value }))
+        }
         onPromoteSubmit={handlePromoteSubmit}
         promoteSubmitting={promoteSubmitting}
         requestDialogState={requestDialogState}
         onRequestClose={closeRequestDialog}
-        onRequestMessageChange={(e) => setRequestDialogState(prev => ({ ...prev, message: e.target.value }))}
+        onRequestMessageChange={(e) =>
+          setRequestDialogState((prev) => ({
+            ...prev,
+            message: e.target.value,
+          }))
+        }
         onRequestSubmit={handleRequestSubmit}
         requestSubmitting={requestSubmitting}
         previewDialogState={previewDialogState}

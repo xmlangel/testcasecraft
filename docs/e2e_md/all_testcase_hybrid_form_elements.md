@@ -13,16 +13,19 @@
 ## 2. 모드에 따른 컴포넌트 렌더링
 
 ### 2.1. 개별 폼 모드 (`inputMode === 'form'`)
+
 - **`TestCaseForm` 컴포넌트**
   - 역할: 단일 테스트케이스를 상세하게 입력하고 수정하는 폼.
   - 이 컴포넌트의 상세 요소는 `src/main/frontend/src/components/TestCaseForm.jsx` 파일을 별도로 분석하여 기록합니다.
 
 ### 2.2. 기본 스프레드시트 모드 (`inputMode === 'spreadsheet'`)
+
 - **`TestCaseSpreadsheet` 컴포넌트**
   - 역할: 여러 테스트케이스를 스프레드시트 형태로 일괄 입력하고 수정하는 인터페이스.
   - 이 컴포넌트의 상세 요소는 `src/main/frontend/src/components/TestCase/TestCaseSpreadsheet.jsx` 파일을 별도로 분석하여 기록합니다.
 
 ### 2.3. 고급 스프레드시트 모드 (`inputMode === 'advanced-spreadsheet'`)
+
 - **`TestCaseDatasheetGrid` 컴포넌트**
   - 역할: 고급 기능을 포함한 스프레드시트 형태의 테스트케이스 관리 인터페이스.
   - 이 컴포넌트의 상세 요소는 `src/main/frontend/src/components/TestCase/TestCaseDatasheetGrid.jsx` 파일을 별도로 분석하여 기록합니다.

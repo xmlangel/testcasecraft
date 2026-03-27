@@ -1,4 +1,5 @@
 """Embedding Service using Sentence Transformers"""
+
 from typing import List, Dict, Any
 import logging
 import numpy as np
@@ -55,7 +56,9 @@ class EmbeddingService:
             # Convert to list and ensure correct dimensions
             embedding_list = embedding.tolist()
 
-            logger.info(f"Generated embedding for text (length: {len(text)} chars, vector dim: {len(embedding_list)})")
+            logger.info(
+                f"Generated embedding for text (length: {len(text)} chars, vector dim: {len(embedding_list)})"
+            )
             return embedding_list
 
         except Exception as e:
@@ -76,14 +79,18 @@ class EmbeddingService:
             self.load_model()
 
             if not texts:
-                logger.warning("Empty text list provided for batch embedding generation")
+                logger.warning(
+                    "Empty text list provided for batch embedding generation"
+                )
                 return []
 
             # Filter out empty texts
             valid_texts = [text if text and text.strip() else " " for text in texts]
 
             # Generate embeddings in batch
-            embeddings = self.model.encode(valid_texts, convert_to_numpy=True, show_progress_bar=True)
+            embeddings = self.model.encode(
+                valid_texts, convert_to_numpy=True, show_progress_bar=True
+            )
 
             # Convert to list of lists
             embeddings_list = [emb.tolist() for emb in embeddings]
@@ -95,7 +102,9 @@ class EmbeddingService:
             logger.error(f"Error generating batch embeddings: {str(e)}")
             raise Exception(f"Batch embedding generation failed: {str(e)}")
 
-    def compute_similarity(self, embedding1: List[float], embedding2: List[float]) -> float:
+    def compute_similarity(
+        self, embedding1: List[float], embedding2: List[float]
+    ) -> float:
         """
         Compute cosine similarity between two embeddings
 

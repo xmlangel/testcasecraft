@@ -7,10 +7,12 @@
 워크플로 이름: `Docker Build, Release and Push`
 
 트리거:
+
 - `push.tags: v*`
 - `workflow_dispatch` (수동 실행)
 
 핵심 입력값 (`workflow_dispatch`):
+
 - `phase`: `build_release` | `push_only`
 - `target`: `all` | `app` | `rag`
 - `version`: `X.Y.Z` 또는 `X.Y.Z-PRERELEASE` 형식 (예: `1.0.35`, `1.0.42-dev`)
@@ -18,16 +20,19 @@
 ## 2. 권장 운영 절차 (2단계)
 
 1. `build_release` 단계 실행
+
 - 목적: Docker 빌드 검증 + GitHub Release 생성
 - Docker Hub 푸시는 하지 않음 (`--build-only`)
 
 2. `push_only` 단계 실행
+
 - 목적: 최종 Docker Hub 푸시
 - Release 생성은 하지 않음
 
 ## 3. 태그 푸시 시 동작
 
 태그를 푸시하면 자동으로 `build_release`가 실행됩니다.
+
 - 예: `v1.2.3`, `v1.2.3-app`, `v1.2.3-rag`
 - 동작:
   - `vX.Y.Z` 태그: 빌드 + Docker Hub 푸시 + Release 생성
@@ -79,11 +84,13 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 ```
 
 ### 4.1 빌드/릴리즈
+
 - `phase`: `build_release`
 - `target`: `app` (기본값, 필요 시 `all`, `rag` 선택)
 - `version`: 예) `1.0.35`
 
 ### 4.2 최종 푸시
+
 - `phase`: `push_only`
 - `target`: `all` (또는 `app`, `rag`)
 - `version`: 빌드/릴리즈 때와 동일 버전
@@ -91,6 +98,7 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 ## 5. 태그 규칙
 
 허용 태그:
+
 - `vX.Y.Z`
 - `vX.Y.Z-PRERELEASE`
 - `vX.Y.Z-app`
@@ -107,6 +115,7 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 `build_release`에서만 생성됩니다.
 
 우선순위:
+
 1. `docs/release_note/RELEASE_NOTE_{VERSION}_KO.md`
 2. `docs/release_note/RELEASE_NOTE_{VERSION}_EN.md`
 3. 둘 다 없으면 Git 로그 기반 자동 생성
@@ -114,6 +123,7 @@ GitHub > Actions > `Docker Build, Release and Push` > `Run workflow`
 ## 7. 필요한 Secrets
 
 Docker Hub 푸시(`push_only`)를 위해 아래 시크릿이 필요합니다.
+
 - `DOCKER_USERNAME`
 - `DOCKER_PASSWORD`
 

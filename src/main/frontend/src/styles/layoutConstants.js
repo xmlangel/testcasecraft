@@ -10,7 +10,7 @@ export const STANDARD_MAX_WIDTH = {
   sm: "100%",
   md: "1600px",
   lg: "1900px",
-  xl: "98vw"
+  xl: "98vw",
 };
 
 /**
@@ -23,7 +23,7 @@ export const PAGE_CONTAINER_SX = {
     mx: "auto",
     p: 2,
     bgcolor: "background.default",
-    minHeight: "calc(100vh - 64px)" // AppBar 높이 제외
+    minHeight: "calc(100vh - 64px)", // AppBar 높이 제외
   },
 
   // 폼 페이지 컨테이너 (TestExecutionForm, TestPlanForm 등)
@@ -35,13 +35,13 @@ export const PAGE_CONTAINER_SX = {
     boxShadow: 1,
     p: 3,
     mt: 2,
-    mb: 2
+    mb: 2,
   },
 
   // 다이얼로그 내부 컨테이너
   dialog: {
     maxWidth: "100%",
-    p: 2
+    p: 2,
   },
 
   // 카드/Paper 컨테이너
@@ -49,8 +49,8 @@ export const PAGE_CONTAINER_SX = {
     maxWidth: "100%",
     p: 2,
     borderRadius: 2,
-    elevation: 1
-  }
+    elevation: 1,
+  },
 };
 
 /**
@@ -61,21 +61,21 @@ export const GRID_SETTINGS = {
   mainContent: {
     container: true,
     spacing: 3,
-    sx: { mt: 1 }
+    sx: { mt: 1 },
   },
 
-  // 폼 영역  
+  // 폼 영역
   formContent: {
     container: true,
-    spacing: 2
+    spacing: 2,
   },
 
   // 대시보드 카드 그리드
   dashboardCards: {
     container: true,
     spacing: 3,
-    sx: { mt: 2 }
-  }
+    sx: { mt: 2 },
+  },
 };
 
 /**
@@ -89,23 +89,23 @@ export const RESPONSIVE_SETTINGS = {
       xs: 12,
       md: 8,
       lg: 9,
-      xl: 10
-    }
+      xl: 10,
+    },
   },
 
-  // 전체 폭 사용하는 레이아웃  
+  // 전체 폭 사용하는 레이아웃
   fullWidth: {
     size: {
-      xs: 12
-    }
+      xs: 12,
+    },
   },
 
   // 절반 폭 사용하는 레이아웃
   halfWidth: {
     size: {
       xs: 12,
-      md: 6
-    }
+      md: 6,
+    },
   },
 
   // 1/3 폭 사용하는 레이아웃
@@ -113,9 +113,9 @@ export const RESPONSIVE_SETTINGS = {
     size: {
       xs: 12,
       sm: 6,
-      md: 4
-    }
-  }
+      md: 4,
+    },
+  },
 };
 
 /**
@@ -127,7 +127,7 @@ export const LAYOUT_UTILS = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    minHeight: "200px"
+    minHeight: "200px",
   },
 
   // 플렉스 헤더 (제목 + 액션 버튼)
@@ -135,13 +135,13 @@ export const LAYOUT_UTILS = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    mb: 2
+    mb: 2,
   },
 
   // 스크롤 가능한 콘텐츠
   scrollableContent: {
     maxHeight: "70vh",
     overflowY: "auto",
-    overflowX: "hidden"
-  }
+    overflowX: "hidden",
+  },
 };

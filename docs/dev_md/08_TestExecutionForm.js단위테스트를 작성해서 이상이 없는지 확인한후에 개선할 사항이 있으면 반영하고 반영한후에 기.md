@@ -32,7 +32,7 @@ jest.mock('../context/AppContext', () =&gt; ({
     updateTestExecution: jest.fn(),
     startTestExecution: jest.fn(),
     completeTestExecution: jest.fn(),
-    getTestCase: jest.fn().mockImplementation(id =&gt; 
+    getTestCase: jest.fn().mockImplementation(id =&gt;
       ({ id, name: `테스트케이스 ${id}` }))
   })
 }));
@@ -40,7 +40,7 @@ jest.mock('../context/AppContext', () =&gt; ({
 describe('TestExecutionForm', () =&gt; {
   test('새 실행 생성시 필수 필드 검증', async () =&gt; {
     render(&lt;TestExecutionForm onCancel={jest.fn()} /&gt;);
-    
+
     const saveButton = screen.getByRole('button', { name: /저장/ });
     expect(saveButton).toBeDisabled();
 
@@ -67,23 +67,22 @@ describe('TestExecutionForm', () =&gt; {
 
   test('테스트 결과 입력 다이얼로그 열기', async () =&gt; {
     render(&lt;TestExecutionForm executionId="exec1" onCancel={jest.fn()} /&gt;);
-    
-    const resultButtons = await screen.findAllByRole('button', { 
-      name: /테스트 결과 입력/ 
+
+    const resultButtons = await screen.findAllByRole('button', {
+      name: /테스트 결과 입력/
     });
     fireEvent.click(resultButtons[^0]);
-    
+
     expect(screen.getByText('테스트 결과 입력')).toBeInTheDocument();
   });
 });
 ```
 
-
 ---
 
 ## 2. 개선 사항 반영된 전체 코드
 
-```javascript
+````javascript
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -121,30 +120,30 @@ import {
 } from '@mui/icons-material';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppContext } from '../context/AppContext';
-import { 
-  createTestExecution, 
-  ExecutionStatus, 
-  TestResult 
+import {
+  createTestExecution,
+  ExecutionStatus,
+  TestResult
 } from '../models/testExecution';
 import TestResultForm from './TestResultForm';
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
-  const { 
-    state, 
-    addTestExecution, 
-    updateTestExecution, 
-    startTestExecution, 
+  const {
+    state,
+    addTestExecution,
+    updateTestExecution,
+    startTestExecution,
     completeTestExecution,
     updateTestResult,
     getTestCase,
     getTestPlan
   } = useAppContext();
   const { testPlans, testExecutions, testCases } = state;
-  
+
   const [formOpen, setFormOpen] = useState(true);
   const [execution, setExecution] = useState(
-    executionId 
-      ? testExecutions.find(exec =&gt; exec.id === executionId) 
+    executionId
+      ? testExecutions.find(exec =&gt; exec.id === executionId)
       : createTestExecution
 
 <div style="text-align: center">⁂</div>
@@ -192,3 +191,4 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
 [^41]: https://github.com/testing-library/user-event/issues/549
 [^42]: https://raygun.com/blog/improve-node-performance/```
 
+````

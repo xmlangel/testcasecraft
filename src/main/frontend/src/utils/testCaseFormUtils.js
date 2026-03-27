@@ -9,15 +9,17 @@
  * @returns {string} 필드 값
  */
 export const resolveFieldValue = (fieldConfig, state) => {
-    if (!fieldConfig || !state) return '';
-    if (fieldConfig.type === 'field') {
-        return state[fieldConfig.field] || '';
-    }
-    if (fieldConfig.type === 'step') {
-        const step = state.steps?.find((s) => s.stepNumber === fieldConfig.stepNumber);
-        return step?.[fieldConfig.field] || '';
-    }
-    return '';
+  if (!fieldConfig || !state) return "";
+  if (fieldConfig.type === "field") {
+    return state[fieldConfig.field] || "";
+  }
+  if (fieldConfig.type === "step") {
+    const step = state.steps?.find(
+      (s) => s.stepNumber === fieldConfig.stepNumber,
+    );
+    return step?.[fieldConfig.field] || "";
+  }
+  return "";
 };
 
 /**
@@ -28,19 +30,21 @@ export const resolveFieldValue = (fieldConfig, state) => {
  * @returns {object} 업데이트된 상태
  */
 export const applyFieldValueToState = (state, fieldConfig, nextValue) => {
-    if (!state || !fieldConfig) return state;
-    if (fieldConfig.type === 'field') {
-        return { ...state, [fieldConfig.field]: nextValue };
-    }
-    if (fieldConfig.type === 'step') {
-        return {
-            ...state,
-            steps: (state.steps || []).map((step) =>
-                step.stepNumber === fieldConfig.stepNumber ? { ...step, [fieldConfig.field]: nextValue } : step
-            ),
-        };
-    }
-    return state;
+  if (!state || !fieldConfig) return state;
+  if (fieldConfig.type === "field") {
+    return { ...state, [fieldConfig.field]: nextValue };
+  }
+  if (fieldConfig.type === "step") {
+    return {
+      ...state,
+      steps: (state.steps || []).map((step) =>
+        step.stepNumber === fieldConfig.stepNumber
+          ? { ...step, [fieldConfig.field]: nextValue }
+          : step,
+      ),
+    };
+  }
+  return state;
 };
 
 /**
@@ -49,12 +53,12 @@ export const applyFieldValueToState = (state, fieldConfig, nextValue) => {
  * @returns {string[]} attachment ID 배열
  */
 export const extractAttachmentIds = (htmlContent) => {
-    if (!htmlContent || typeof htmlContent !== 'string') return [];
-    const imgRegex = /<img[^>]+data-attachment-id="([^"]+)"[^>]*>/g;
-    const ids = new Set();
-    let match;
-    while ((match = imgRegex.exec(htmlContent)) !== null) {
-        ids.add(match[1]);
-    }
-    return Array.from(ids);
+  if (!htmlContent || typeof htmlContent !== "string") return [];
+  const imgRegex = /<img[^>]+data-attachment-id="([^"]+)"[^>]*>/g;
+  const ids = new Set();
+  let match;
+  while ((match = imgRegex.exec(htmlContent)) !== null) {
+    ids.add(match[1]);
+  }
+  return Array.from(ids);
 };

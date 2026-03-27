@@ -1,13 +1,13 @@
 // src/components/UserManagement/UserList.jsx
 /**
  * 사용자 목록 컴포넌트
- * 
+ *
  * 시스템 관리자를 위한 종합적인 사용자 관리 인터페이스를 제공합니다.
  * 검색, 필터링, 정렬, 페이징 기능과 함께 사용자 상세 정보 조회,
  * 활성화/비활성화, 역할 변경 등의 관리 기능을 포함합니다.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -39,8 +39,8 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  Snackbar
-} from '@mui/material';
+  Snackbar,
+} from "@mui/material";
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
@@ -58,16 +58,16 @@ import {
   Visibility as ViewIcon,
   VerifiedUser as VerifiedIcon,
   Email as EmailIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
+  Warning as WarningIcon,
+} from "@mui/icons-material";
 
-import { useUserManagement } from '../../hooks/useUserManagement.js';
-import { useAppContext } from '../../context/AppContext.jsx';
-import UserDetailDialog from './UserDetailDialog.jsx';
-import LoadingSpinner from '../atoms/LoadingSpinner/LoadingSpinner.jsx';
-import ErrorMessage from '../atoms/ErrorMessage/ErrorMessage.jsx';
-import { formatDateOnlySafe } from '../../utils/dateUtils';
-import { useI18n } from '../../context/I18nContext.jsx';
+import { useUserManagement } from "../../hooks/useUserManagement.js";
+import { useAppContext } from "../../context/AppContext.jsx";
+import UserDetailDialog from "./UserDetailDialog.jsx";
+import LoadingSpinner from "../atoms/LoadingSpinner/LoadingSpinner.jsx";
+import ErrorMessage from "../atoms/ErrorMessage/ErrorMessage.jsx";
+import { formatDateOnlySafe } from "../../utils/dateUtils";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
  * 역할 아이콘 매핑
@@ -76,7 +76,7 @@ const ROLE_ICONS = {
   ADMIN: AdminIcon,
   MANAGER: WorkIcon,
   TESTER: BugReportIcon,
-  USER: UserIcon
+  USER: UserIcon,
 };
 
 /**
@@ -114,7 +114,7 @@ const UserList = () => {
     getRoleLabel,
     getStatusColor,
     getStatusLabel,
-    USER_ROLES
+    USER_ROLES,
   } = useUserManagement();
 
   // 로컬 상태
@@ -124,46 +124,61 @@ const UserList = () => {
   const [actionMenuUser, setActionMenuUser] = useState(null);
   const [searchInput, setSearchInput] = useState(searchParams.keyword);
   const [sendingEmail, setSendingEmail] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   /**
    * 인증 이메일 발송
    */
-  const handleSendVerificationEmail = useCallback(async (userId) => {
-    handleActionMenuClose();
-    setSendingEmail(true);
+  const handleSendVerificationEmail = useCallback(
+    async (userId) => {
+      handleActionMenuClose();
+      setSendingEmail(true);
 
-    try {
-      const response = await api(`/api/admin/users/${userId}/send-verification-email`, {
-        method: 'POST'
-      });
+      try {
+        const response = await api(
+          `/api/admin/users/${userId}/send-verification-email`,
+          {
+            method: "POST",
+          },
+        );
 
-      const result = await response.json();
+        const result = await response.json();
 
-      if (response.ok && result.success) {
+        if (response.ok && result.success) {
+          setSnackbar({
+            open: true,
+            message: t("userList.email.sent", "인증 이메일이 발송되었습니다."),
+            severity: "success",
+          });
+        } else {
+          setSnackbar({
+            open: true,
+            message:
+              result.message ||
+              t("userList.email.failed", "이메일 발송에 실패했습니다."),
+            severity: "error",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to send verification email:", error);
         setSnackbar({
           open: true,
-          message: t('userList.email.sent', '인증 이메일이 발송되었습니다.'),
-          severity: 'success'
+          message: t(
+            "userList.email.error",
+            "이메일 발송 중 오류가 발생했습니다.",
+          ),
+          severity: "error",
         });
-      } else {
-        setSnackbar({
-          open: true,
-          message: result.message || t('userList.email.failed', '이메일 발송에 실패했습니다.'),
-          severity: 'error'
-        });
+      } finally {
+        setSendingEmail(false);
       }
-    } catch (error) {
-      console.error('Failed to send verification email:', error);
-      setSnackbar({
-        open: true,
-        message: t('userList.email.error', '이메일 발송 중 오류가 발생했습니다.'),
-        severity: 'error'
-      });
-    } finally {
-      setSendingEmail(false);
-    }
-  }, [api, t]);
+    },
+    [api, t],
+  );
 
   /**
    * 스낵바 닫기
@@ -182,25 +197,31 @@ const UserList = () => {
   /**
    * 검색 키 다운 이벤트
    */
-  const handleSearchKeyDown = useCallback((event) => {
-    if (event.key === 'Enter') {
-      handleSearch();
-    }
-  }, [handleSearch]);
+  const handleSearchKeyDown = useCallback(
+    (event) => {
+      if (event.key === "Enter") {
+        handleSearch();
+      }
+    },
+    [handleSearch],
+  );
 
   /**
    * 사용자 상세 다이얼로그 열기
    */
-  const handleViewUser = useCallback(async (userId) => {
-    // 액션 메뉴가 열려있다면 먼저 닫기 (접근성 개선)
-    if (actionMenuAnchor) {
-      setActionMenuAnchor(null);
-      setActionMenuUser(null);
-    }
-    setSelectedUserId(userId);
-    await selectUser(userId);
-    setDetailDialogOpen(true);
-  }, [selectUser, actionMenuAnchor]);
+  const handleViewUser = useCallback(
+    async (userId) => {
+      // 액션 메뉴가 열려있다면 먼저 닫기 (접근성 개선)
+      if (actionMenuAnchor) {
+        setActionMenuAnchor(null);
+        setActionMenuUser(null);
+      }
+      setSelectedUserId(userId);
+      await selectUser(userId);
+      setDetailDialogOpen(true);
+    },
+    [selectUser, actionMenuAnchor],
+  );
 
   /**
    * 사용자 상세 다이얼로그 닫기
@@ -229,16 +250,19 @@ const UserList = () => {
   /**
    * 사용자 활성화/비활성화 토글
    */
-  const handleToggleUserStatus = useCallback(async (user) => {
-    const action = user.isActive ? deactivateUser : activateUser;
-    const result = await action(user.id);
+  const handleToggleUserStatus = useCallback(
+    async (user) => {
+      const action = user.isActive ? deactivateUser : activateUser;
+      const result = await action(user.id);
 
-    if (!result.success) {
-      console.error(result.error);
-    }
+      if (!result.success) {
+        console.error(result.error);
+      }
 
-    handleActionMenuClose();
-  }, [activateUser, deactivateUser]);
+      handleActionMenuClose();
+    },
+    [activateUser, deactivateUser],
+  );
 
   /**
    * 데이터 내보내기
@@ -253,24 +277,36 @@ const UserList = () => {
   /**
    * 테이블 정렬 변경
    */
-  const handleSort = useCallback((field) => {
-    const direction = searchParams.sort === field && searchParams.direction === 'desc' ? 'asc' : 'desc';
-    changeSort(field, direction);
-  }, [searchParams.sort, searchParams.direction, changeSort]);
+  const handleSort = useCallback(
+    (field) => {
+      const direction =
+        searchParams.sort === field && searchParams.direction === "desc"
+          ? "asc"
+          : "desc";
+      changeSort(field, direction);
+    },
+    [searchParams.sort, searchParams.direction, changeSort],
+  );
 
   /**
    * 페이지 변경
    */
-  const handlePageChange = useCallback((event, newPage) => {
-    changePage(newPage);
-  }, [changePage]);
+  const handlePageChange = useCallback(
+    (event, newPage) => {
+      changePage(newPage);
+    },
+    [changePage],
+  );
 
   /**
    * 페이지 크기 변경
    */
-  const handlePageSizeChange = useCallback((event) => {
-    changePageSize(parseInt(event.target.value, 10));
-  }, [changePageSize]);
+  const handlePageSizeChange = useCallback(
+    (event) => {
+      changePageSize(parseInt(event.target.value, 10));
+    },
+    [changePageSize],
+  );
 
   /**
    * 역할 아이콘 렌더링
@@ -285,8 +321,15 @@ const UserList = () => {
    */
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <LoadingSpinner message={t('userList.loading', '사용자 목록을 불러오는 중...')} />
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
+        <LoadingSpinner
+          message={t("userList.loading", "사용자 목록을 불러오는 중...")}
+        />
       </Box>
     );
   }
@@ -297,10 +340,7 @@ const UserList = () => {
   if (error) {
     return (
       <Box p={3}>
-        <ErrorMessage
-          message={error}
-          onRetry={refresh}
-        />
+        <ErrorMessage message={error} onRetry={refresh} />
       </Box>
     );
   }
@@ -314,7 +354,7 @@ const UserList = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  {t('userList.stats.totalUsers', '전체 사용자')}
+                  {t("userList.stats.totalUsers", "전체 사용자")}
                 </Typography>
                 <Typography variant="h4" component="h2">
                   {statistics.totalUsers}
@@ -326,7 +366,7 @@ const UserList = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  {t('userList.stats.activeUsers', '활성 사용자')}
+                  {t("userList.stats.activeUsers", "활성 사용자")}
                 </Typography>
                 <Typography variant="h4" component="h2" color="success.main">
                   {statistics.activeUsers}
@@ -338,7 +378,7 @@ const UserList = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  {t('userList.stats.inactiveUsers', '비활성 사용자')}
+                  {t("userList.stats.inactiveUsers", "비활성 사용자")}
                 </Typography>
                 <Typography variant="h4" component="h2" color="error.main">
                   {statistics.inactiveUsers}
@@ -350,7 +390,7 @@ const UserList = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  {t('userList.stats.recentRegistrations', '최근 가입')}
+                  {t("userList.stats.recentRegistrations", "최근 가입")}
                 </Typography>
                 <Typography variant="h4" component="h2" color="primary.main">
                   {statistics.recentRegistrations}
@@ -365,13 +405,16 @@ const UserList = () => {
         {/* 툴바 */}
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {t('userList.title', '사용자 관리')}
+            {t("userList.title", "사용자 관리")}
           </Typography>
 
           {/* 검색 */}
           <TextField
             size="small"
-            placeholder={t('userList.search.placeholder', '이름, 사용자명, 이메일 검색...')}
+            placeholder={t(
+              "userList.search.placeholder",
+              "이름, 사용자명, 이메일 검색...",
+            )}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleSearchKeyDown}
@@ -383,19 +426,19 @@ const UserList = () => {
                     <SearchIcon />
                   </InputAdornment>
                 ),
-              }
+              },
             }}
           />
 
           {/* 역할 필터 */}
           <FormControl size="small" sx={{ minWidth: 120, mr: 2 }}>
-            <InputLabel>{t('userList.filter.role', '역할')}</InputLabel>
+            <InputLabel>{t("userList.filter.role", "역할")}</InputLabel>
             <Select
               value={searchParams.role}
-              label={t('userList.filter.role', '역할')}
+              label={t("userList.filter.role", "역할")}
               onChange={(e) => setRoleFilter(e.target.value)}
             >
-              <MenuItem value="">{t('userList.filter.all', '전체')}</MenuItem>
+              <MenuItem value="">{t("userList.filter.all", "전체")}</MenuItem>
               {Object.entries(USER_ROLES).map(([value, role]) => (
                 <MenuItem key={value} value={value}>
                   {renderRoleIcon(value)}
@@ -407,29 +450,37 @@ const UserList = () => {
 
           {/* 활성 상태 필터 */}
           <FormControl size="small" sx={{ minWidth: 120, mr: 2 }}>
-            <InputLabel>{t('userList.filter.status', '상태')}</InputLabel>
+            <InputLabel>{t("userList.filter.status", "상태")}</InputLabel>
             <Select
-              value={searchParams.isActive === null ? '' : searchParams.isActive.toString()}
-              label={t('userList.filter.status', '상태')}
+              value={
+                searchParams.isActive === null
+                  ? ""
+                  : searchParams.isActive.toString()
+              }
+              label={t("userList.filter.status", "상태")}
               onChange={(e) => {
                 const value = e.target.value;
-                setActiveFilter(value === '' ? null : value === 'true');
+                setActiveFilter(value === "" ? null : value === "true");
               }}
             >
-              <MenuItem value="">{t('userList.filter.all', '전체')}</MenuItem>
-              <MenuItem value="true">{t('userList.filter.active', '활성')}</MenuItem>
-              <MenuItem value="false">{t('userList.filter.inactive', '비활성')}</MenuItem>
+              <MenuItem value="">{t("userList.filter.all", "전체")}</MenuItem>
+              <MenuItem value="true">
+                {t("userList.filter.active", "활성")}
+              </MenuItem>
+              <MenuItem value="false">
+                {t("userList.filter.inactive", "비활성")}
+              </MenuItem>
             </Select>
           </FormControl>
 
           {/* 액션 버튼들 */}
-          <Tooltip title={t('userList.button.refresh', '새로고침')}>
+          <Tooltip title={t("userList.button.refresh", "새로고침")}>
             <IconButton onClick={refresh}>
               <RefreshIcon />
             </IconButton>
           </Tooltip>
 
-          <Tooltip title={t('userList.button.export', '데이터 내보내기')}>
+          <Tooltip title={t("userList.button.export", "데이터 내보내기")}>
             <IconButton onClick={handleExport}>
               <DownloadIcon />
             </IconButton>
@@ -441,7 +492,7 @@ const UserList = () => {
             onClick={resetSearch}
             sx={{ ml: 1 }}
           >
-            {t('userList.button.reset', '초기화')}
+            {t("userList.button.reset", "초기화")}
           </Button>
         </Toolbar>
 
@@ -451,34 +502,36 @@ const UserList = () => {
             <TableHead>
               <TableRow>
                 <TableCell
-                  onClick={() => handleSort('username')}
-                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => handleSort("username")}
+                  sx={{ cursor: "pointer", userSelect: "none" }}
                 >
-                  {t('userList.table.username', '사용자명')}
+                  {t("userList.table.username", "사용자명")}
                 </TableCell>
                 <TableCell
-                  onClick={() => handleSort('name')}
-                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => handleSort("name")}
+                  sx={{ cursor: "pointer", userSelect: "none" }}
                 >
-                  {t('userList.table.name', '이름')}
+                  {t("userList.table.name", "이름")}
                 </TableCell>
-                <TableCell>{t('userList.table.email', '이메일')}</TableCell>
-                <TableCell>{t('userList.table.emailVerified', '이메일 인증')}</TableCell>
-                <TableCell>{t('userList.table.role', '역할')}</TableCell>
-                <TableCell>{t('userList.table.status', '상태')}</TableCell>
+                <TableCell>{t("userList.table.email", "이메일")}</TableCell>
+                <TableCell>
+                  {t("userList.table.emailVerified", "이메일 인증")}
+                </TableCell>
+                <TableCell>{t("userList.table.role", "역할")}</TableCell>
+                <TableCell>{t("userList.table.status", "상태")}</TableCell>
                 <TableCell
-                  onClick={() => handleSort('createdAt')}
-                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => handleSort("createdAt")}
+                  sx={{ cursor: "pointer", userSelect: "none" }}
                 >
-                  {t('userList.table.createdAt', '가입일')}
+                  {t("userList.table.createdAt", "가입일")}
                 </TableCell>
                 <TableCell
-                  onClick={() => handleSort('lastLoginAt')}
-                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => handleSort("lastLoginAt")}
+                  sx={{ cursor: "pointer", userSelect: "none" }}
                 >
-                  {t('userList.table.lastLogin', '최종 로그인')}
+                  {t("userList.table.lastLogin", "최종 로그인")}
                 </TableCell>
-                <TableCell>{t('userList.table.actions', '작업')}</TableCell>
+                <TableCell>{t("userList.table.actions", "작업")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -487,7 +540,7 @@ const UserList = () => {
                   <TableRow key={user.id} hover>
                     <TableCell>
                       <Box display="flex" alignItems="center">
-                        <PersonIcon sx={{ mr: 1, color: 'action.active' }} />
+                        <PersonIcon sx={{ mr: 1, color: "action.active" }} />
                         {user.username}
                       </Box>
                     </TableCell>
@@ -497,7 +550,7 @@ const UserList = () => {
                       {user.emailVerified ? (
                         <Chip
                           icon={<VerifiedIcon />}
-                          label={t('userList.email.verified', '인증됨')}
+                          label={t("userList.email.verified", "인증됨")}
                           size="small"
                           color="success"
                           variant="outlined"
@@ -505,7 +558,7 @@ const UserList = () => {
                       ) : (
                         <Chip
                           icon={<WarningIcon />}
-                          label={t('userList.email.notVerified', '미인증')}
+                          label={t("userList.email.notVerified", "미인증")}
                           size="small"
                           color="warning"
                           variant="outlined"
@@ -518,11 +571,11 @@ const UserList = () => {
                         label={getRoleLabel(user.role)}
                         size="small"
                         sx={{
-                          bgcolor: getRoleColor(user.role) + '20',
+                          bgcolor: getRoleColor(user.role) + "20",
                           color: getRoleColor(user.role),
-                          '& .MuiChip-icon': {
-                            color: getRoleColor(user.role)
-                          }
+                          "& .MuiChip-icon": {
+                            color: getRoleColor(user.role),
+                          },
                         }}
                       />
                     </TableCell>
@@ -530,21 +583,18 @@ const UserList = () => {
                       <Chip
                         label={getStatusLabel(user.isActive)}
                         size="small"
-                        color={user.isActive ? 'success' : 'error'}
-                        variant={user.isActive ? 'filled' : 'outlined'}
+                        color={user.isActive ? "success" : "error"}
+                        variant={user.isActive ? "filled" : "outlined"}
                       />
                     </TableCell>
-                    <TableCell>
-                      {formatDateOnlySafe(user.createdAt)}
-                    </TableCell>
+                    <TableCell>{formatDateOnlySafe(user.createdAt)}</TableCell>
                     <TableCell>
                       {user.lastLoginAt
                         ? formatDateOnlySafe(user.lastLoginAt)
-                        : t('userList.status.none', '없음')
-                      }
+                        : t("userList.status.none", "없음")}
                     </TableCell>
                     <TableCell>
-                      <Tooltip title={t('userList.action.view', '상세 보기')}>
+                      <Tooltip title={t("userList.action.view", "상세 보기")}>
                         <IconButton
                           size="small"
                           onClick={() => handleViewUser(user.id)}
@@ -552,14 +602,22 @@ const UserList = () => {
                           <ViewIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title={t('userList.action.moreActions', '더 많은 작업')}>
+                      <Tooltip
+                        title={t("userList.action.moreActions", "더 많은 작업")}
+                      >
                         <IconButton
                           id="user-action-button"
                           size="small"
                           onClick={(e) => handleActionMenuOpen(e, user)}
-                          aria-controls={Boolean(actionMenuAnchor) ? 'user-action-menu' : undefined}
+                          aria-controls={
+                            Boolean(actionMenuAnchor)
+                              ? "user-action-menu"
+                              : undefined
+                          }
                           aria-haspopup="true"
-                          aria-expanded={Boolean(actionMenuAnchor) ? 'true' : undefined}
+                          aria-expanded={
+                            Boolean(actionMenuAnchor) ? "true" : undefined
+                          }
                         >
                           <MoreIcon />
                         </IconButton>
@@ -571,11 +629,16 @@ const UserList = () => {
                 <TableRow>
                   <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
-                      {t('userList.empty.message', '검색 조건에 맞는 사용자가 없습니다.')}
+                      {t(
+                        "userList.empty.message",
+                        "검색 조건에 맞는 사용자가 없습니다.",
+                      )}
                     </Typography>
-                    {searchParams.keyword || searchParams.role || searchParams.isActive !== null ? (
+                    {searchParams.keyword ||
+                    searchParams.role ||
+                    searchParams.isActive !== null ? (
                       <Button onClick={resetSearch} sx={{ mt: 1 }}>
-                        {t('userList.empty.resetButton', '검색 조건 초기화')}
+                        {t("userList.empty.resetButton", "검색 조건 초기화")}
                       </Button>
                     ) : null}
                   </TableCell>
@@ -595,12 +658,15 @@ const UserList = () => {
             rowsPerPage={pagination.size}
             onRowsPerPageChange={handlePageSizeChange}
             rowsPerPageOptions={[10, 20, 50, 100]}
-            labelRowsPerPage={t('userList.pagination.rowsPerPage', '페이지당 행 수:')}
+            labelRowsPerPage={t(
+              "userList.pagination.rowsPerPage",
+              "페이지당 행 수:",
+            )}
             labelDisplayedRows={({ from, to, count }) =>
-              t('userList.pagination.displayedRows', '{from}-{to} / {count} 중')
-                .replace('{from}', from)
-                .replace('{to}', to)
-                .replace('{count}', count !== -1 ? count : to)
+              t("userList.pagination.displayedRows", "{from}-{to} / {count} 중")
+                .replace("{from}", from)
+                .replace("{to}", to)
+                .replace("{count}", count !== -1 ? count : to)
             }
           />
         )}
@@ -613,15 +679,15 @@ const UserList = () => {
         id="user-action-menu"
         slotProps={{
           list: {
-            'aria-labelledby': 'user-action-button',
-          }
+            "aria-labelledby": "user-action-button",
+          },
         }}
       >
         <MenuItem onClick={() => handleViewUser(actionMenuUser?.id)}>
           <ListItemIcon>
             <ViewIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>{t('userList.action.view', '상세 보기')}</ListItemText>
+          <ListItemText>{t("userList.action.view", "상세 보기")}</ListItemText>
         </MenuItem>
 
         <Divider />
@@ -635,7 +701,9 @@ const UserList = () => {
             )}
           </ListItemIcon>
           <ListItemText>
-            {actionMenuUser?.isActive ? t('userList.action.deactivate', '비활성화') : t('userList.action.activate', '활성화')}
+            {actionMenuUser?.isActive
+              ? t("userList.action.deactivate", "비활성화")
+              : t("userList.action.activate", "활성화")}
           </ListItemText>
         </MenuItem>
 
@@ -650,7 +718,7 @@ const UserList = () => {
                 <EmailIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText>
-                {t('userList.action.sendVerificationEmail', '인증 이메일 발송')}
+                {t("userList.action.sendVerificationEmail", "인증 이메일 발송")}
               </ListItemText>
             </MenuItem>
           </>
@@ -670,9 +738,13 @@ const UserList = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

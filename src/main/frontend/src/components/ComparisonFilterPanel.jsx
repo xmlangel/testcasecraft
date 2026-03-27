@@ -1,6 +1,6 @@
 // src/components/ComparisonFilterPanel.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -18,27 +18,30 @@ import {
   CardContent,
   Divider,
   Alert,
-  CircularProgress
-} from '@mui/material';
+  CircularProgress,
+} from "@mui/material";
 import {
   Assessment as AssessmentIcon,
   Group as GroupIcon,
   Timeline as TimelineIcon,
-  CompareArrows as CompareArrowsIcon
-} from '@mui/icons-material';
-import { getProjectTestPlans, getProjectAssigneeResults } from '../services/dashboardService';
+  CompareArrows as CompareArrowsIcon,
+} from "@mui/icons-material";
+import {
+  getProjectTestPlans,
+  getProjectAssigneeResults,
+} from "../services/dashboardService";
 
 /**
  * ICT-202: 테스트 결과 비교 필터 패널 컴포넌트
  * 플랜별/실행자별 결과 비교를 위한 필터링 UI
  */
-function ComparisonFilterPanel({ 
-  projectId, 
-  comparisonMode, 
-  onComparisonModeChange, 
-  selectedItems, 
+function ComparisonFilterPanel({
+  projectId,
+  comparisonMode,
+  onComparisonModeChange,
+  selectedItems,
   onSelectedItemsChange,
-  onApplyFilter 
+  onApplyFilter,
 }) {
   const [testPlans, setTestPlans] = useState([]);
   const [assignees, setAssignees] = useState([]);
@@ -48,12 +51,11 @@ function ComparisonFilterPanel({
   // 테스트 플랜 및 실행자 데이터 로드
   useEffect(() => {
     if (!projectId) {
-      console.warn('ComparisonFilterPanel: No projectId provided');
-      setError('프로젝트가 선택되지 않았습니다.');
+      console.warn("ComparisonFilterPanel: No projectId provided");
+      setError("프로젝트가 선택되지 않았습니다.");
       return;
     }
 
-    
     loadFilterData();
   }, [projectId]);
 
@@ -62,62 +64,72 @@ function ComparisonFilterPanel({
     setError(null);
 
     try {
-      
-      
       const [plansResponse, assigneesResponse] = await Promise.all([
         getProjectTestPlans(projectId),
-        getProjectAssigneeResults(projectId, 50)
+        getProjectAssigneeResults(projectId, 50),
       ]);
-
-      
-        
 
       // 테스트 플랜 데이터 설정
       if (Array.isArray(plansResponse)) {
-        
         setTestPlans(plansResponse);
       } else {
-        console.warn('⚠️ ComparisonFilterPanel: Test plans response is not an array:', plansResponse);
+        console.warn(
+          "⚠️ ComparisonFilterPanel: Test plans response is not an array:",
+          plansResponse,
+        );
         setTestPlans([]);
       }
 
       // 실행자 데이터 설정 (openTestRunResults 배열에서 assignee 추출)
-      if (assigneesResponse && Array.isArray(assigneesResponse.openTestRunResults)) {
+      if (
+        assigneesResponse &&
+        Array.isArray(assigneesResponse.openTestRunResults)
+      ) {
         const uniqueAssignees = assigneesResponse.openTestRunResults
-          .map(result => ({
+          .map((result) => ({
             id: result.assignee,
             name: result.assignee,
             totalCases: result.totalCases,
-            completionRate: result.completionRate
+            completionRate: result.completionRate,
           }))
-          .filter((assignee, index, self) => 
-            assignee.id && index === self.findIndex(a => a.id === assignee.id)
+          .filter(
+            (assignee, index, self) =>
+              assignee.id &&
+              index === self.findIndex((a) => a.id === assignee.id),
           );
-        
+
         setAssignees(uniqueAssignees);
       } else {
-        console.warn('⚠️ ComparisonFilterPanel: Assignees response structure unexpected:', assigneesResponse);
+        console.warn(
+          "⚠️ ComparisonFilterPanel: Assignees response structure unexpected:",
+          assigneesResponse,
+        );
         setAssignees([]);
       }
-
     } catch (err) {
-      console.error('Filter data load failed:', err);
-      console.error('Error details:', {
+      console.error("Filter data load failed:", err);
+      console.error("Error details:", {
         message: err.message,
         stack: err.stack,
-        projectId: projectId
+        projectId: projectId,
       });
-      
+
       // 더 구체적인 에러 메시지 제공
-      let errorMessage = '필터 데이터를 불러오는데 실패했습니다.';
-      if (err.message.includes('401') || err.message.includes('Authentication')) {
-        errorMessage = '인증이 필요합니다. 다시 로그인해주세요.';
-      } else if (err.message.includes('404')) {
-        errorMessage = '프로젝트 데이터를 찾을 수 없습니다.';
-      } else if (err.message.includes('Network') || err.message.includes('fetch')) {
-        errorMessage = '네트워크 연결을 확인해주세요.';
+      let errorMessage = "필터 데이터를 불러오는데 실패했습니다.";
+      if (
+        err.message.includes("401") ||
+        err.message.includes("Authentication")
+      ) {
+        errorMessage = "인증이 필요합니다. 다시 로그인해주세요.";
+      } else if (err.message.includes("404")) {
+        errorMessage = "프로젝트 데이터를 찾을 수 없습니다.";
+      } else if (
+        err.message.includes("Network") ||
+        err.message.includes("fetch")
+      ) {
+        errorMessage = "네트워크 연결을 확인해주세요.";
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -135,29 +147,29 @@ function ComparisonFilterPanel({
   // 선택 항목 변경 핸들러
   const handleSelectionChange = (event) => {
     const value = event.target.value;
-    onSelectedItemsChange(typeof value === 'string' ? value.split(',') : value);
+    onSelectedItemsChange(typeof value === "string" ? value.split(",") : value);
   };
 
   // 선택 항목 삭제 핸들러
   const handleDeleteChip = (itemToDelete) => {
-    const newSelected = selectedItems.filter(item => item !== itemToDelete);
+    const newSelected = selectedItems.filter((item) => item !== itemToDelete);
     onSelectedItemsChange(newSelected);
   };
 
   // 현재 선택 가능한 옵션들
   const getCurrentOptions = () => {
     switch (comparisonMode) {
-      case 'testplan':
-        return testPlans.map(plan => ({
+      case "testplan":
+        return testPlans.map((plan) => ({
           id: plan.id,
           name: plan.name || `Plan ${plan.id}`,
-          description: plan.description || ''
+          description: plan.description || "",
         }));
-      case 'assignee':
-        return assignees.map(assignee => ({
+      case "assignee":
+        return assignees.map((assignee) => ({
           id: assignee.id,
           name: assignee.name,
-          description: `${assignee.totalCases}건 (완료율 ${assignee.completionRate}%)`
+          description: `${assignee.totalCases}건 (완료율 ${assignee.completionRate}%)`,
         }));
       default:
         return [];
@@ -168,8 +180,8 @@ function ComparisonFilterPanel({
 
   // 선택된 항목들의 표시 이름 가져오기
   const getSelectedDisplayNames = () => {
-    return selectedItems.map(itemId => {
-      const option = currentOptions.find(opt => opt.id === itemId);
+    return selectedItems.map((itemId) => {
+      const option = currentOptions.find((opt) => opt.id === itemId);
       return option ? option.name : itemId;
     });
   };
@@ -178,11 +190,9 @@ function ComparisonFilterPanel({
     return (
       <Card>
         <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <CircularProgress size={20} />
-            <Typography variant="body2">
-              필터 옵션을 불러오는 중...
-            </Typography>
+            <Typography variant="body2">필터 옵션을 불러오는 중...</Typography>
           </Box>
         </CardContent>
       </Card>
@@ -200,11 +210,9 @@ function ComparisonFilterPanel({
   return (
     <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
           <CompareArrowsIcon color="primary" />
-          <Typography variant="h6">
-            비교 분석 필터
-          </Typography>
+          <Typography variant="h6">비교 분석 필터</Typography>
         </Box>
 
         {/* 비교 모드 선택 */}
@@ -235,27 +243,43 @@ function ComparisonFilterPanel({
         </Box>
 
         {/* 비교 대상 선택 */}
-        {comparisonMode !== 'overall' && (
+        {comparisonMode !== "overall" && (
           <>
             <Divider sx={{ mb: 2 }} />
-            
+
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel>
-                {comparisonMode === 'testplan' ? '비교할 테스트 플랜' : '비교할 실행자'}
+                {comparisonMode === "testplan"
+                  ? "비교할 테스트 플랜"
+                  : "비교할 실행자"}
               </InputLabel>
               <Select
                 multiple
                 value={selectedItems}
                 onChange={handleSelectionChange}
-                input={<OutlinedInput label={comparisonMode === 'testplan' ? '비교할 테스트 플랜' : '비교할 실행자'} />}
+                input={
+                  <OutlinedInput
+                    label={
+                      comparisonMode === "testplan"
+                        ? "비교할 테스트 플랜"
+                        : "비교할 실행자"
+                    }
+                  />
+                }
                 renderValue={() => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {getSelectedDisplayNames().map((name) => (
-                      <Chip 
-                        key={name} 
-                        label={name} 
+                      <Chip
+                        key={name}
+                        label={name}
                         size="small"
-                        onDelete={() => handleDeleteChip(selectedItems[getSelectedDisplayNames().indexOf(name)])}
+                        onDelete={() =>
+                          handleDeleteChip(
+                            selectedItems[
+                              getSelectedDisplayNames().indexOf(name)
+                            ],
+                          )
+                        }
                         onMouseDown={(event) => event.stopPropagation()}
                       />
                     ))}
@@ -265,7 +289,7 @@ function ComparisonFilterPanel({
                 {currentOptions.map((option) => (
                   <MenuItem key={option.id} value={option.id}>
                     <Checkbox checked={selectedItems.indexOf(option.id) > -1} />
-                    <ListItemText 
+                    <ListItemText
                       primary={option.name}
                       secondary={option.description}
                     />
@@ -278,15 +302,19 @@ function ComparisonFilterPanel({
             <Box sx={{ mb: 2 }}>
               {selectedItems.length === 0 ? (
                 <Alert severity="info" variant="outlined">
-                  {comparisonMode === 'testplan' 
-                    ? '비교할 테스트 플랜을 선택해주세요 (최대 5개)'
-                    : '비교할 실행자를 선택해주세요 (최대 10개)'}
+                  {comparisonMode === "testplan"
+                    ? "비교할 테스트 플랜을 선택해주세요 (최대 5개)"
+                    : "비교할 실행자를 선택해주세요 (최대 10개)"}
                 </Alert>
               ) : (
                 <Typography variant="body2" color="text.secondary">
-                  {selectedItems.length}개 항목이 선택됨 
-                  {comparisonMode === 'testplan' && selectedItems.length > 5 && ' (최대 5개까지 선택 가능)'}
-                  {comparisonMode === 'assignee' && selectedItems.length > 10 && ' (최대 10개까지 선택 가능)'}
+                  {selectedItems.length}개 항목이 선택됨
+                  {comparisonMode === "testplan" &&
+                    selectedItems.length > 5 &&
+                    " (최대 5개까지 선택 가능)"}
+                  {comparisonMode === "assignee" &&
+                    selectedItems.length > 10 &&
+                    " (최대 10개까지 선택 가능)"}
                 </Typography>
               )}
             </Box>
@@ -294,7 +322,7 @@ function ComparisonFilterPanel({
         )}
 
         {/* 적용 안내 */}
-        <Box sx={{ textAlign: 'center' }}>
+        <Box sx={{ textAlign: "center" }}>
           <Typography variant="caption" color="text.secondary">
             필터 설정이 자동으로 차트에 적용됩니다.
           </Typography>

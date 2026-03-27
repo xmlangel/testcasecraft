@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class RagGlobalDocumentRequestDecisionRequest {
-    private String note;
+  private String note;
 }

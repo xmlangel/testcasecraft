@@ -3,17 +3,19 @@
  * 프로젝트 관련 React Query 훅들
  */
 
-import { projectService } from '../services';
-import { useQueryWithDefaults, useMutationWithDefaults, queryKeys, useInvalidateQueries } from './useReactQuery.js';
+import { projectService } from "../services";
+import {
+  useQueryWithDefaults,
+  useMutationWithDefaults,
+  queryKeys,
+  useInvalidateQueries,
+} from "./useReactQuery.js";
 
 /**
  * 모든 프로젝트 조회
  */
 export function useProjects() {
-  return useQueryWithDefaults(
-    queryKeys.projects,
-    projectService.getProjects
-  );
+  return useQueryWithDefaults(queryKeys.projects, projectService.getProjects);
 }
 
 /**
@@ -25,7 +27,7 @@ export function useProject(projectId) {
     () => projectService.getProject(projectId),
     {
       enabled: !!projectId,
-    }
+    },
   );
 }
 
@@ -34,15 +36,12 @@ export function useProject(projectId) {
  */
 export function useCreateProject() {
   const { invalidateProjects } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    projectService.createProject,
-    {
-      onSuccess: () => {
-        invalidateProjects();
-      },
-    }
-  );
+
+  return useMutationWithDefaults(projectService.createProject, {
+    onSuccess: () => {
+      invalidateProjects();
+    },
+  });
 }
 
 /**
@@ -50,7 +49,7 @@ export function useCreateProject() {
  */
 export function useUpdateProject() {
   const { invalidateProjects, invalidateProject } = useInvalidateQueries();
-  
+
   return useMutationWithDefaults(
     ({ projectId, ...data }) => projectService.updateProject(projectId, data),
     {
@@ -58,7 +57,7 @@ export function useUpdateProject() {
         invalidateProjects();
         invalidateProject(variables.projectId);
       },
-    }
+    },
   );
 }
 
@@ -67,13 +66,14 @@ export function useUpdateProject() {
  */
 export function useDeleteProject() {
   const { invalidateProjects } = useInvalidateQueries();
-  
+
   return useMutationWithDefaults(
-    ({ projectId, force = false }) => projectService.deleteProject(projectId, force),
+    ({ projectId, force = false }) =>
+      projectService.deleteProject(projectId, force),
     {
       onSuccess: () => {
         invalidateProjects();
       },
-    }
+    },
   );
 }

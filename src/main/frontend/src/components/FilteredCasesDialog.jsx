@@ -1,8 +1,8 @@
 // src/components/FilteredCasesDialog.jsx
 // 미실행(NOT_RUN) / 실패(FAIL) 케이스 목록 다이얼로그 - 해당 테스트 실행으로 이동 가능
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogTitle,
@@ -23,24 +23,26 @@ import {
   IconButton,
   Tooltip,
   alpha,
-  useTheme
-} from '@mui/material';
+  useTheme,
+} from "@mui/material";
 import {
   Close as CloseIcon,
   OpenInNew as OpenInNewIcon,
   PauseCircle as PauseCircleIcon,
-  Cancel as CancelIcon
-} from '@mui/icons-material';
-import testResultService from '../services/testResultService';
-import { useI18n } from '../context/I18nContext';
+  Cancel as CancelIcon,
+} from "@mui/icons-material";
+import testResultService from "../services/testResultService";
+import { useI18n } from "../context/I18nContext";
 
 /**
  * result 값 정규화 (NOTRUN → NOT_RUN 등 혼재 대응)
  */
 const normalizeResult = (result) => {
-  if (!result) return 'NOT_RUN';
-  const r = String(result).toUpperCase().replace(/[^A-Z]/g, '_');
-  if (r === 'NOTRUN' || r === 'NOT_RUN') return 'NOT_RUN';
+  if (!result) return "NOT_RUN";
+  const r = String(result)
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "_");
+  if (r === "NOTRUN" || r === "NOT_RUN") return "NOT_RUN";
   return r;
 };
 
@@ -61,10 +63,10 @@ const normalizeResult = (result) => {
 function FilteredCasesDialog({
   open,
   onClose,
-  resultType = 'NOT_RUN',
+  resultType = "NOT_RUN",
   projectId,
   testPlanIds = [],
-  testExecutionId = null
+  testExecutionId = null,
 }) {
   const { t } = useI18n();
   const theme = useTheme();
@@ -74,15 +76,17 @@ function FilteredCasesDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const isNotRun = resultType === 'NOT_RUN';
+  const isNotRun = resultType === "NOT_RUN";
 
   // 다이얼로그 제목
   const dialogTitle = isNotRun
-    ? t('testResult.filteredCases.notRunTitle', '미실행 케이스 목록')
-    : t('testResult.filteredCases.failTitle', '실패 케이스 목록');
+    ? t("testResult.filteredCases.notRunTitle", "미실행 케이스 목록")
+    : t("testResult.filteredCases.failTitle", "실패 케이스 목록");
 
   // 결과 유형 색상
-  const resultColor = isNotRun ? theme.palette.grey[500] : theme.palette.error.main;
+  const resultColor = isNotRun
+    ? theme.palette.grey[500]
+    : theme.palette.error.main;
   const ResultIcon = isNotRun ? PauseCircleIcon : CancelIcon;
 
   // 케이스 목록 조회 - 페이지네이션 전체 수집
@@ -95,7 +99,7 @@ function FilteredCasesDialog({
     try {
       // 백엔드 results 필터에 맞게 전달
       // NOTRUN/NOT_RUN 혼재를 위해 양쪽 다 요청하거나 includeNotExecuted 활용
-      const backendResults = isNotRun ? null : ['FAIL']; // NOT_RUN은 includeNotExecuted로 처리
+      const backendResults = isNotRun ? null : ["FAIL"]; // NOT_RUN은 includeNotExecuted로 처리
 
       const PAGE_SIZE = 2000; // 한 번에 최대 가져올 수
       let page = 0;
@@ -105,9 +109,12 @@ function FilteredCasesDialog({
       while (hasMore) {
         const reportParams = {
           projectId,
-          testPlanIds: testPlanIds && testPlanIds.length > 0
-            ? (Array.isArray(testPlanIds) ? testPlanIds : [testPlanIds])
-            : undefined,
+          testPlanIds:
+            testPlanIds && testPlanIds.length > 0
+              ? Array.isArray(testPlanIds)
+                ? testPlanIds
+                : [testPlanIds]
+              : undefined,
           testExecutionIds: testExecutionId ? [testExecutionId] : undefined,
           includeNotExecuted: true, // ICT-JIRA-LATEST: 항상 최신 결과 기준(Population)으로 가져와서 통계와 일관성 유지
           results: backendResults,
@@ -115,7 +122,8 @@ function FilteredCasesDialog({
           size: PAGE_SIZE,
         };
 
-        const response = await testResultService.getDetailedTestResultReport(reportParams);
+        const response =
+          await testResultService.getDetailedTestResultReport(reportParams);
 
         // Page<T> 응답 구조 처리
         let pageData = [];
@@ -140,20 +148,24 @@ function FilteredCasesDialog({
       }
 
       // result 값 정규화 후 타입 필터링
-      const filtered = allData.filter(item => {
+      const filtered = allData.filter((item) => {
         const normalized = normalizeResult(item.result);
         return normalized === resultType;
       });
 
       setCases(filtered);
     } catch (err) {
-      console.error('FilteredCasesDialog: 케이스 목록 조회 실패', err);
-      setError(t('testResult.filteredCases.loadError', '케이스 목록을 불러오는 중 오류가 발생했습니다.'));
+      console.error("FilteredCasesDialog: 케이스 목록 조회 실패", err);
+      setError(
+        t(
+          "testResult.filteredCases.loadError",
+          "케이스 목록을 불러오는 중 오류가 발생했습니다.",
+        ),
+      );
     } finally {
       setLoading(false);
     }
   }, [projectId, testPlanIds, testExecutionId, isNotRun, resultType, t]);
-
 
   // 다이얼로그 열릴 때 데이터 로드
   useEffect(() => {
@@ -167,25 +179,32 @@ function FilteredCasesDialog({
   }, [open, loadCases]);
 
   // 테스트 실행 또는 결과로 이동
-  const handleGoToExecution = useCallback((item) => {
-    // 해당 케이스의 실행 ID 결정
-    const targetExecutionId = item.testExecutionId || testExecutionId;
-    const normalizedResult = normalizeResult(item.result);
+  const handleGoToExecution = useCallback(
+    (item) => {
+      // 해당 케이스의 실행 ID 결정
+      const targetExecutionId = item.testExecutionId || testExecutionId;
+      const normalizedResult = normalizeResult(item.result);
 
-    if (projectId && targetExecutionId) {
-      if (normalizedResult === 'FAIL') {
-        // FAIL인 경우 결과 상세 페이지로 이동
-        navigate(`/projects/${projectId}/executions/${targetExecutionId}/testcases/${item.testCaseId}/result`);
-      } else {
-        // 그 외(NOT_RUN 등)는 실행 페이지로 이동 (해당 케이스로 스크롤되도록 파라미터 추가)
-        navigate(`/projects/${projectId}/executions/${targetExecutionId}?scrollTo=${item.testCaseId}`);
+      if (projectId && targetExecutionId) {
+        if (normalizedResult === "FAIL") {
+          // FAIL인 경우 결과 상세 페이지로 이동
+          navigate(
+            `/projects/${projectId}/executions/${targetExecutionId}/testcases/${item.testCaseId}/result`,
+          );
+        } else {
+          // 그 외(NOT_RUN 등)는 실행 페이지로 이동 (해당 케이스로 스크롤되도록 파라미터 추가)
+          navigate(
+            `/projects/${projectId}/executions/${targetExecutionId}?scrollTo=${item.testCaseId}`,
+          );
+        }
+      } else if (projectId) {
+        // 실행 정보가 부족하면 실행 목록으로 이동
+        navigate(`/projects/${projectId}/executions`);
       }
-    } else if (projectId) {
-      // 실행 정보가 부족하면 실행 목록으로 이동
-      navigate(`/projects/${projectId}/executions`);
-    }
-    onClose();
-  }, [projectId, testExecutionId, navigate, onClose]);
+      onClose();
+    },
+    [projectId, testExecutionId, navigate, onClose],
+  );
 
   return (
     <Dialog
@@ -194,36 +213,41 @@ function FilteredCasesDialog({
       maxWidth="md"
       fullWidth
       PaperProps={{
-        sx: { borderRadius: 2, maxHeight: '80vh' }
+        sx: { borderRadius: 2, maxHeight: "80vh" },
       }}
     >
       {/* 다이얼로그 제목 */}
-      <DialogTitle sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        pr: 6,
-        borderBottom: `1px solid ${theme.palette.divider}`
-      }}>
+      <DialogTitle
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          pr: 6,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        }}
+      >
         <ResultIcon sx={{ color: resultColor }} />
         <Typography variant="h6" component="span">
           {dialogTitle}
         </Typography>
         {!loading && (
           <Chip
-            label={t('testResult.filteredCases.count', '{count}건').replace('{count}', cases.length)}
+            label={t("testResult.filteredCases.count", "{count}건").replace(
+              "{count}",
+              cases.length,
+            )}
             size="small"
             sx={{
               ml: 1,
               bgcolor: alpha(resultColor, 0.12),
               color: resultColor,
-              fontWeight: 'bold'
+              fontWeight: "bold",
             }}
           />
         )}
         <IconButton
           onClick={onClose}
-          sx={{ position: 'absolute', right: 8, top: 8 }}
+          sx={{ position: "absolute", right: 8, top: 8 }}
           size="small"
         >
           <CloseIcon />
@@ -233,7 +257,14 @@ function FilteredCasesDialog({
       {/* 다이얼로그 내용 */}
       <DialogContent sx={{ p: 0 }}>
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 6 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              py: 6,
+            }}
+          >
             <CircularProgress />
           </Box>
         ) : error ? (
@@ -241,29 +272,51 @@ function FilteredCasesDialog({
             <Alert severity="error">{error}</Alert>
           </Box>
         ) : cases.length === 0 ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 6 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              py: 6,
+            }}
+          >
             <Typography color="text.secondary">
               {isNotRun
-                ? t('testResult.filteredCases.noNotRun', '미실행 케이스가 없습니다.')
-                : t('testResult.filteredCases.noFail', '실패 케이스가 없습니다.')}
+                ? t(
+                    "testResult.filteredCases.noNotRun",
+                    "미실행 케이스가 없습니다.",
+                  )
+                : t(
+                    "testResult.filteredCases.noFail",
+                    "실패 케이스가 없습니다.",
+                  )}
             </Typography>
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: '55vh' }}>
+          <TableContainer sx={{ maxHeight: "55vh" }}>
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>
-                    {t('testResult.filteredCases.col.testCase', '테스트 케이스')}
+                  <TableCell sx={{ fontWeight: "bold", width: "40%" }}>
+                    {t(
+                      "testResult.filteredCases.col.testCase",
+                      "테스트 케이스",
+                    )}
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>
-                    {t('testResult.filteredCases.col.folder', '폴더 경로')}
+                  <TableCell sx={{ fontWeight: "bold", width: "35%" }}>
+                    {t("testResult.filteredCases.col.folder", "폴더 경로")}
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>
-                    {t('testResult.filteredCases.col.testPlan', '테스트 플랜')}
+                  <TableCell sx={{ fontWeight: "bold", width: "15%" }}>
+                    {t("testResult.filteredCases.col.testPlan", "테스트 플랜")}
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%', textAlign: 'center' }}>
-                    {t('testResult.filteredCases.col.action', '이동')}
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      width: "10%",
+                      textAlign: "center",
+                    }}
+                  >
+                    {t("testResult.filteredCases.col.action", "이동")}
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -273,20 +326,26 @@ function FilteredCasesDialog({
                     key={`${item.testCaseId}-${index}`}
                     hover
                     sx={{
-                      '&:hover': {
-                        bgcolor: alpha(resultColor, 0.04)
-                      }
+                      "&:hover": {
+                        bgcolor: alpha(resultColor, 0.04),
+                      },
                     }}
                   >
-                    <TableCell 
+                    <TableCell
                       onClick={() => handleGoToExecution(item)}
-                      sx={{ 
-                        cursor: 'pointer',
-                        '&:hover': { textDecoration: 'underline' }
+                      sx={{
+                        cursor: "pointer",
+                        "&:hover": { textDecoration: "underline" },
                       }}
                     >
-                      <Typography variant="body2" noWrap title={item.testCaseName} color="primary">
-                        {item.testCaseName || t('testResult.filteredCases.unnamed', '(이름 없음)')}
+                      <Typography
+                        variant="body2"
+                        noWrap
+                        title={item.testCaseName}
+                        color="primary"
+                      >
+                        {item.testCaseName ||
+                          t("testResult.filteredCases.unnamed", "(이름 없음)")}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -294,32 +353,47 @@ function FilteredCasesDialog({
                         variant="caption"
                         color="text.secondary"
                         noWrap
-                        title={item.folderPath || ''}
+                        title={item.folderPath || ""}
                       >
-                        {item.folderPath || '-'}
+                        {item.folderPath || "-"}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="caption" color="text.secondary" noWrap>
-                        {item.testPlanName || '-'}
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        noWrap
+                      >
+                        {item.testPlanName || "-"}
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip
                         title={
-                          normalizeResult(item.result) === 'FAIL'
-                            ? t('testResult.filteredCases.goToResult', '결과 상세 보기')
-                            : (item.testExecutionId || testExecutionId)
-                              ? t('testResult.filteredCases.goToExecution', '실행으로 이동')
-                              : t('testResult.filteredCases.goToExecutionList', '실행 목록으로 이동')
+                          normalizeResult(item.result) === "FAIL"
+                            ? t(
+                                "testResult.filteredCases.goToResult",
+                                "결과 상세 보기",
+                              )
+                            : item.testExecutionId || testExecutionId
+                              ? t(
+                                  "testResult.filteredCases.goToExecution",
+                                  "실행으로 이동",
+                                )
+                              : t(
+                                  "testResult.filteredCases.goToExecutionList",
+                                  "실행 목록으로 이동",
+                                )
                         }
                       >
                         <IconButton
                           size="small"
                           onClick={() => handleGoToExecution(item)}
                           sx={{
-                            color: 'primary.main',
-                            '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.1) }
+                            color: "primary.main",
+                            "&:hover": {
+                              bgcolor: alpha(theme.palette.primary.main, 0.1),
+                            },
                           }}
                         >
                           <OpenInNewIcon fontSize="small" />
@@ -335,22 +409,33 @@ function FilteredCasesDialog({
       </DialogContent>
 
       {/* 하단 액션 */}
-      <DialogActions sx={{ px: 2, py: 1.5, borderTop: `1px solid ${theme.palette.divider}` }}>
-        {!loading && !error && cases.length > 0 && projectId && testExecutionId && (
-          <Button
-            variant="contained"
-            startIcon={<OpenInNewIcon />}
-            onClick={() => {
-              navigate(`/projects/${projectId}/executions/${testExecutionId}`);
-              onClose();
-            }}
-            size="small"
-          >
-            {t('testResult.filteredCases.goToExecutionAll', '실행 페이지로 이동')}
-          </Button>
-        )}
+      <DialogActions
+        sx={{ px: 2, py: 1.5, borderTop: `1px solid ${theme.palette.divider}` }}
+      >
+        {!loading &&
+          !error &&
+          cases.length > 0 &&
+          projectId &&
+          testExecutionId && (
+            <Button
+              variant="contained"
+              startIcon={<OpenInNewIcon />}
+              onClick={() => {
+                navigate(
+                  `/projects/${projectId}/executions/${testExecutionId}`,
+                );
+                onClose();
+              }}
+              size="small"
+            >
+              {t(
+                "testResult.filteredCases.goToExecutionAll",
+                "실행 페이지로 이동",
+              )}
+            </Button>
+          )}
         <Button onClick={onClose} size="small">
-          {t('common.close', '닫기')}
+          {t("common.close", "닫기")}
         </Button>
       </DialogActions>
     </Dialog>

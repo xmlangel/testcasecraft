@@ -1,6 +1,7 @@
 """
 d MCP server for JIRA implementation
 """
+
 import logging
 import os
 import json
@@ -21,19 +22,18 @@ from sqlite import (
 )
 
 
-
 # Determine log file path
 actual_log_file_path = os.getenv("LOG_FILE_PATH", "logs/mcpsvr_jira.log")
 
 # Ensure the logs directory exists
 actual_log_dir = os.path.dirname(actual_log_file_path)
-if actual_log_dir: # Ensure dirname is not empty (e.g. if log file is in CWD)
+if actual_log_dir:  # Ensure dirname is not empty (e.g. if log file is in CWD)
     os.makedirs(actual_log_dir, exist_ok=True)
 
 # Ensure the log file exists
 if not os.path.exists(actual_log_file_path):
-    with open(actual_log_file_path, 'w') as f:
-        pass # Just to create it
+    with open(actual_log_file_path, "w") as f:
+        pass  # Just to create it
 
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -49,7 +49,7 @@ logging.basicConfig(
         logging.handlers.RotatingFileHandler(  # Use logging.handlers to access RotatingFileHandler
             actual_log_file_path, maxBytes=log_file_size, backupCount=backup_count
         )
-    ]
+    ],
 )
 
 # Suppress DEBUG and INFO logs from mcp.server.lowlevel.server in the terminal
@@ -60,7 +60,9 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 logging.getLogger("azure").setLevel(logging.WARNING)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("openai._base_client").setLevel(logging.WARNING)
-logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(
+    logging.WARNING
+)
 
 
 # Example log to verify setup
@@ -71,13 +73,21 @@ create_test_db()
 # Create server instance
 mcp = FastMCP("d_mcpsvr_jira")
 
+
 @mcp.tool()
 def echo(message: str) -> str:
     """Echo tool that returns the input message as is"""
     return f"Echo from d_mcpsvr_jira: {message}"
 
+
 @mcp.tool()
-def search(project: str, prompt: str="", conditions: str="", top_n: int=5, resp_format: str="json") -> str:
+def search(
+    project: str,
+    prompt: str = "",
+    conditions: str = "",
+    top_n: int = 5,
+    resp_format: str = "json",
+) -> str:
     """JIRA search by Vector Search
     Args:
         project (str): Project name
@@ -98,9 +108,11 @@ def search(project: str, prompt: str="", conditions: str="", top_n: int=5, resp_
         return result
     elif resp_format == "readable":
         # Convert JSON to a readable format
-        try:            
+        try:
             result_json = json.loads(result)
-            readable_result = "\n".join([f"{item['ticket_id']}: {item['summary']}" for item in result_json])
+            readable_result = "\n".join(
+                [f"{item['ticket_id']}: {item['summary']}" for item in result_json]
+            )
             return readable_result
         except json.JSONDecodeError as e:
             logging.error(f"Error decoding JSON: {e}")
@@ -108,6 +120,7 @@ def search(project: str, prompt: str="", conditions: str="", top_n: int=5, resp_
     else:
         logging.error(f"Invalid response format: {resp_format}")
         return f"Err101: Invalid response format '{resp_format}'. Expected 'json' or 'readable'."
+
 
 @mcp.tool()
 def init_project(project_name: str) -> str:
@@ -141,8 +154,9 @@ def init_project(project_name: str) -> str:
 
     msg = f"Succ: Init project DB of {project_name} and appended {count} tickets to the database."
     logging.info(msg)
-    
+
     return msg
+
 
 @mcp.tool()
 def load_tickets(project_name: str, jql: str) -> str:
@@ -160,11 +174,12 @@ def load_tickets(project_name: str, jql: str) -> str:
             msg = f"Succ: Appended {count} tickets to the database."
             logging.info(msg)
             return msg
-        
+
     except Exception as e:
         msg = f"Err111: Failed to load tickets from JIRA: {e}"
         logging.error(msg)
         return msg
+
 
 @mcp.tool()
 def del_project(project_name: str) -> str:
@@ -176,8 +191,9 @@ def del_project(project_name: str) -> str:
     """
     return del_project_db(project_name)
 
-#app = FastAPI()
-#app.mount("/", mcp.sse_app())
+
+# app = FastAPI()
+# app.mount("/", mcp.sse_app())
 
 # Main execution block (if run directly)
 if __name__ == "__main__":

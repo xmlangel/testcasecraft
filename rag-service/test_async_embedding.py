@@ -32,23 +32,27 @@ async def upload_document(session, project_id=None):
         print(f"   Generated project_id: {project_id}")
 
     # 간단한 테스트 문서 생성
-    test_content = "\n\n".join([
-        f"Test Paragraph {i}: " + ("This is a test sentence. " * 20)
-        for i in range(10)  # 10개 문단 생성
-    ])
+    test_content = "\n\n".join(
+        [
+            f"Test Paragraph {i}: " + ("This is a test sentence. " * 20)
+            for i in range(10)  # 10개 문단 생성
+        ]
+    )
 
     data = aiohttp.FormData()
-    data.add_field('file',
-                   test_content.encode('utf-8'),
-                   filename='test_async.txt',
-                   content_type='text/plain')
-    data.add_field('project_id', str(project_id))
-    data.add_field('uploaded_by', 'test-user')
+    data.add_field(
+        "file",
+        test_content.encode("utf-8"),
+        filename="test_async.txt",
+        content_type="text/plain",
+    )
+    data.add_field("project_id", str(project_id))
+    data.add_field("uploaded_by", "test-user")
 
     async with session.post(f"{RAG_API_URL}/documents/upload", data=data) as response:
         if response.status in [200, 201]:
             result = await response.json()
-            doc_id = result.get('id') or result.get('document_id')
+            doc_id = result.get("id") or result.get("document_id")
             print(f"✅ Document uploaded: {doc_id}")
             return doc_id
         else:
@@ -61,13 +65,11 @@ async def analyze_document(session, doc_id):
     """문서 분석 (청크 생성)"""
     print(f"\n🔍 Step 2: Analyzing document {doc_id}...")
 
-    payload = {
-        "parser_mode": "pymupdf4llm",
-        "chunk_size": 500,
-        "chunk_overlap": 50
-    }
+    payload = {"parser_mode": "pymupdf4llm", "chunk_size": 500, "chunk_overlap": 50}
 
-    async with session.post(f"{RAG_API_URL}/documents/{doc_id}/analyze", json=payload) as response:
+    async with session.post(
+        f"{RAG_API_URL}/documents/{doc_id}/analyze", json=payload
+    ) as response:
         if response.status in [200, 202]:
             result = await response.json()
             print(f"✅ Document analysis started (async)")
@@ -75,18 +77,24 @@ async def analyze_document(session, doc_id):
             # 분석 완료까지 대기 (최대 30초)
             for i in range(30):
                 await asyncio.sleep(1)
-                async with session.get(f"{RAG_API_URL}/documents/{doc_id}") as doc_response:
+                async with session.get(
+                    f"{RAG_API_URL}/documents/{doc_id}"
+                ) as doc_response:
                     if doc_response.status == 200:
                         doc_data = await doc_response.json()
-                        if doc_data.get('analysis_status') == 'completed':
+                        if doc_data.get("analysis_status") == "completed":
                             # 청크 개수 조회
-                            async with session.get(f"{RAG_API_URL}/documents/{doc_id}/chunks") as chunks_response:
+                            async with session.get(
+                                f"{RAG_API_URL}/documents/{doc_id}/chunks"
+                            ) as chunks_response:
                                 if chunks_response.status == 200:
                                     chunks_data = await chunks_response.json()
-                                    total_chunks = chunks_data.get('total', 0)
-                                    print(f"✅ Document analyzed: {total_chunks} chunks created")
+                                    total_chunks = chunks_data.get("total", 0)
+                                    print(
+                                        f"✅ Document analyzed: {total_chunks} chunks created"
+                                    )
                                     return total_chunks
-                        elif doc_data.get('analysis_status') == 'failed':
+                        elif doc_data.get("analysis_status") == "failed":
                             print(f"❌ Analysis failed")
                             return 0
 
@@ -105,12 +113,16 @@ async def start_embedding(session, doc_id):
     payload = {"document_id": doc_id}
 
     start_time = time.time()
-    async with session.post(f"{RAG_API_URL}/embeddings/generate", json=payload) as response:
+    async with session.post(
+        f"{RAG_API_URL}/embeddings/generate", json=payload
+    ) as response:
         response_time = time.time() - start_time
 
         if response.status == 202:
             result = await response.json()
-            print(f"✅ Embedding generation started (response time: {response_time:.3f}s)")
+            print(
+                f"✅ Embedding generation started (response time: {response_time:.3f}s)"
+            )
             print(f"   Message: {result['message']}")
             print(f"   Total chunks: {result['total_chunks']}")
             return True
@@ -143,7 +155,9 @@ async def test_concurrent_requests(session, doc_id):
     tasks.append(session.get(f"{RAG_API_URL}/documents/{doc_id}"))
 
     # 3. 청크 목록 조회
-    tasks.append(session.get(f"{RAG_API_URL}/documents/{doc_id}/chunks?skip=0&limit=10"))
+    tasks.append(
+        session.get(f"{RAG_API_URL}/documents/{doc_id}/chunks?skip=0&limit=10")
+    )
 
     # 4. 임베딩 상태 조회
     tasks.append(session.get(f"{RAG_API_URL}/embeddings/status/{doc_id}"))
@@ -171,7 +185,9 @@ async def test_concurrent_requests(session, doc_id):
     return success_count == len(tasks)
 
 
-async def monitor_embedding_progress(session, doc_id, check_interval=2, max_duration=60):
+async def monitor_embedding_progress(
+    session, doc_id, check_interval=2, max_duration=60
+):
     """임베딩 진행 상황 모니터링"""
     print(f"\n👀 Step 5: Monitoring embedding progress...")
 
@@ -190,26 +206,28 @@ async def monitor_embedding_progress(session, doc_id, check_interval=2, max_dura
             await asyncio.sleep(check_interval)
             continue
 
-        current_status = status_data.get('status')
-        progress = status_data.get('progress_percentage', 0)
-        embedded = status_data.get('embedded_chunks', 0)
-        total = status_data.get('total_chunks', 0)
+        current_status = status_data.get("status")
+        progress = status_data.get("progress_percentage", 0)
+        embedded = status_data.get("embedded_chunks", 0)
+        total = status_data.get("total_chunks", 0)
 
         if current_status != last_status:
             print(f"\n   📍 Status changed: {last_status} → {current_status}")
             last_status = current_status
 
-        print(f"   [{datetime.now().strftime('%H:%M:%S')}] "
-              f"Progress: {progress:.1f}% ({embedded}/{total} chunks) - {current_status}")
+        print(
+            f"   [{datetime.now().strftime('%H:%M:%S')}] "
+            f"Progress: {progress:.1f}% ({embedded}/{total} chunks) - {current_status}"
+        )
 
         if current_status == "completed":
             print(f"\n✅ Embedding generation completed!")
-            if 'completed_at' in status_data:
+            if "completed_at" in status_data:
                 print(f"   Completed at: {status_data['completed_at']}")
             break
         elif current_status == "failed":
             print(f"\n❌ Embedding generation failed!")
-            if 'error_message' in status_data:
+            if "error_message" in status_data:
                 print(f"   Error: {status_data['error_message']}")
             break
 
@@ -252,8 +270,12 @@ async def main():
         print(f"✅ Document upload:              SUCCESS")
         print(f"✅ Document analysis:            SUCCESS ({chunk_count} chunks)")
         print(f"✅ Async embedding start:        SUCCESS")
-        print(f"{'✅' if concurrent_success else '❌'} Concurrent requests:         {'SUCCESS' if concurrent_success else 'FAILED'}")
-        print(f"{'✅' if embedding_success else '❌'} Embedding completion:        {'SUCCESS' if embedding_success else 'FAILED'}")
+        print(
+            f"{'✅' if concurrent_success else '❌'} Concurrent requests:         {'SUCCESS' if concurrent_success else 'FAILED'}"
+        )
+        print(
+            f"{'✅' if embedding_success else '❌'} Embedding completion:        {'SUCCESS' if embedding_success else 'FAILED'}"
+        )
         print("=" * 70)
 
         return concurrent_success and embedding_success

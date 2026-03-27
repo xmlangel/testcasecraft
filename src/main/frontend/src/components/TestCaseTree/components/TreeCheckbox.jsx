@@ -13,39 +13,53 @@ import { useI18n } from "../../../context/I18nContext.jsx";
  * @param {number} totalFolderCount - 전체 폴더 개수
  */
 const TreeCheckbox = ({
-    checked,
-    indeterminate,
-    onChange,
-    totalTestCaseCount,
-    totalFolderCount,
+  checked,
+  indeterminate,
+  onChange,
+  totalTestCaseCount,
+  totalFolderCount,
 }) => {
-    const { t } = useI18n();
+  const { t } = useI18n();
 
-    return (
-        <Box sx={{ px: 2, pb: 1 }}>
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        checked={checked}
-                        indeterminate={indeterminate}
-                        onChange={onChange}
-                        size="small"
-                    />
-                }
-                label={
-                    <Box component="span" sx={{ fontSize: 14, display: 'flex', alignItems: 'center' }}>
-                        {t('testcase.tree.selectAll', '전체 선택')}
-                        {totalTestCaseCount > 0 && (
-                            <Typography component="span" variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
-                                ({t('testcase.tree.count.testcase', 'TC: {count}', { count: totalTestCaseCount })},
-                                {t('testcase.tree.count.folder', 'Folder: {count}', { count: totalFolderCount })})
-                            </Typography>
-                        )}
-                    </Box>
-                }
-            />
-        </Box>
-    );
+  return (
+    <Box sx={{ px: 2, pb: 1 }}>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={checked}
+            indeterminate={indeterminate}
+            onChange={onChange}
+            size="small"
+          />
+        }
+        label={
+          <Box
+            component="span"
+            sx={{ fontSize: 14, display: "flex", alignItems: "center" }}
+          >
+            {t("testcase.tree.selectAll", "전체 선택")}
+            {totalTestCaseCount > 0 && (
+              <Typography
+                component="span"
+                variant="caption"
+                sx={{ ml: 1, color: "text.secondary" }}
+              >
+                (
+                {t("testcase.tree.count.testcase", "TC: {count}", {
+                  count: totalTestCaseCount,
+                })}
+                ,
+                {t("testcase.tree.count.folder", "Folder: {count}", {
+                  count: totalFolderCount,
+                })}
+                )
+              </Typography>
+            )}
+          </Box>
+        }
+      />
+    </Box>
+  );
 };
 
 export default TreeCheckbox;

@@ -1,4 +1,5 @@
 """RAG Document model"""
+
 from sqlalchemy import Column, String, BigInteger, Integer, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -21,15 +22,19 @@ class RAGDocument(Base):
     uploaded_by = Column(String(255))
     minio_bucket = Column(String(255), nullable=False)
     minio_object_key = Column(Text, nullable=False)
-    analysis_status = Column(String(50), default='pending', index=True)
+    analysis_status = Column(String(50), default="pending", index=True)
     analysis_date = Column(DateTime(timezone=True))
     total_chunks = Column(Integer, default=0)
     meta_data = Column("metadata", JSONB)  # Map meta_data attribute to metadata column
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationship
-    embeddings = relationship("RAGEmbedding", back_populates="document", cascade="all, delete-orphan")
+    embeddings = relationship(
+        "RAGEmbedding", back_populates="document", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<RAGDocument(id={self.id}, file_name={self.file_name}, status={self.analysis_status})>"

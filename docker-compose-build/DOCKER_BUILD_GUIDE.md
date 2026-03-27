@@ -6,84 +6,90 @@
 
 🚀 사용 방법
 
-  방법 1: 전체 빌드 (권장)
+방법 1: 전체 빌드 (권장)
 
-  cd docker-compose-dev-spring
-  ./build-and-push-multiplatform.sh
+cd docker-compose-dev-spring
+./build-and-push-multiplatform.sh
 
-  실행 과정:
-  1. ✅ Docker 및 Buildx 확인
-  2. ✅ Docker Hub 로그인 확인
-  3. ✅ Buildx 빌더 설정
-  4. ✅ Gradle로 JAR 빌드
-  5. ✅ 메인 앱 이미지 빌드 & 푸시 (amd64 + arm64)
-  6. ✅ RAG 서비스 이미지 빌드 & 푸시 (amd64 + arm64)
-  7. ✅ 이미지 검증
-  8. ✅ 정리
+실행 과정:
 
-  방법 2: 개별 빌드
+1. ✅ Docker 및 Buildx 확인
+2. ✅ Docker Hub 로그인 확인
+3. ✅ Buildx 빌더 설정
+4. ✅ Gradle로 JAR 빌드
+5. ✅ 메인 앱 이미지 빌드 & 푸시 (amd64 + arm64)
+6. ✅ RAG 서비스 이미지 빌드 & 푸시 (amd64 + arm64)
+7. ✅ 이미지 검증
+8. ✅ 정리
 
-  # 메인 애플리케이션만
-  ./build-app-only.sh
+방법 2: 개별 빌드
 
-  # RAG 서비스만
-  ./build-rag-only.sh
+# 메인 애플리케이션만
 
-  📋 사전 준비사항
+./build-app-only.sh
 
-  1. Docker Hub 로그인
-  docker login
-  # Username: xmlangel
-  # Password: [your-password]
+# RAG 서비스만
 
-  2. Docker Desktop 실행 확인
-  - Docker Desktop이 실행 중이어야 합니다
+./build-rag-only.sh
 
-  🎯 빌드되는 이미지
+📋 사전 준비사항
 
-  메인 애플리케이션
+1. Docker Hub 로그인
+   docker login
 
-  - xmlangel/testcasecraft:1.0.0
-  - xmlangel/testcasecraft:latest
-  - 플랫폼: linux/amd64, linux/arm64
+# Username: xmlangel
 
-  RAG 서비스
+# Password: [your-password]
 
-  - xmlangel/testcasecraft-rag-service:1.0.0
-  - xmlangel/testcasecraft-rag-service:latest
-  - 플랫폼: linux/amd64, linux/arm64
+2. Docker Desktop 실행 확인
 
-  ⏱️ 예상 소요 시간
+- Docker Desktop이 실행 중이어야 합니다
 
-  - 전체 빌드: 약 10-15분
-    - JAR 빌드: 2-3분
-    - 메인 앱 이미지: 3-7분
-    - RAG 이미지: 3-5분
+🎯 빌드되는 이미지
 
-  🔧 주요 기능
+메인 애플리케이션
 
-  자동화된 기능
+- xmlangel/testcasecraft:1.0.0
+- xmlangel/testcasecraft:latest
+- 플랫폼: linux/amd64, linux/arm64
 
-  - ✅ Docker/Buildx 사전 확인
-  - ✅ Docker Hub 로그인 확인 및 안내
-  - ✅ Buildx 빌더 자동 생성/설정
-  - ✅ Gradle 빌드 자동 실행
-  - ✅ 멀티 플랫폼 빌드 (amd64 + arm64)
-  - ✅ Docker Hub 자동 푸시
-  - ✅ 이미지 검증
-  - ✅ 임시 파일 자동 정리
-  - ✅ 컬러 출력으로 진행 상황 표시
+RAG 서비스
 
-  에러 처리
+- xmlangel/testcasecraft-rag-service:1.0.0
+- xmlangel/testcasecraft-rag-service:latest
+- 플랫폼: linux/amd64, linux/arm64
 
-  - 각 단계마다 검증
-  - 실패 시 명확한 에러 메시지
-  - 자동 롤백 및 정리
+⏱️ 예상 소요 시간
 
+- 전체 빌드: 약 10-15분
+  - JAR 빌드: 2-3분
+  - 메인 앱 이미지: 3-7분
+  - RAG 이미지: 3-5분
+
+🔧 주요 기능
+
+자동화된 기능
+
+- ✅ Docker/Buildx 사전 확인
+- ✅ Docker Hub 로그인 확인 및 안내
+- ✅ Buildx 빌더 자동 생성/설정
+- ✅ Gradle 빌드 자동 실행
+- ✅ 멀티 플랫폼 빌드 (amd64 + arm64)
+- ✅ Docker Hub 자동 푸시
+- ✅ 이미지 검증
+- ✅ 임시 파일 자동 정리
+- ✅ 컬러 출력으로 진행 상황 표시
+
+에러 처리
+
+- 각 단계마다 검증
+- 실패 시 명확한 에러 메시지
+- 자동 롤백 및 정리
 
 ## 빌드되는 이미지
 
 1. **메인 애플리케이션**: `xmlangel/testcasecraft:1.0.0`
+
    - Spring Boot 애플리케이션
    - 프론트엔드 포함
 
@@ -99,10 +105,12 @@
 ## 사전 요구사항
 
 ### 1. Docker 설치
+
 - Docker Desktop 최신 버전 설치
 - Docker Buildx 플러그인 포함되어 있어야 함
 
 ### 2. Docker Hub 계정
+
 - Docker Hub 계정 필요
 - 로그인 명령어:
   ```bash
@@ -110,6 +118,7 @@
   ```
 
 ### 3. 개발 환경
+
 - Java 21 이상
 - Gradle
 
@@ -127,27 +136,33 @@ cd docker-compose-dev-spring
 ### 스크립트 실행 과정
 
 1. **사전 확인** (STEP 1)
+
    - Docker 설치 확인
    - Docker Buildx 확인
    - Docker Hub 로그인 확인
 
 2. **Buildx 빌더 설정** (STEP 2)
+
    - 멀티 플랫폼 빌더 생성
    - 빌더 활성화
 
 3. **JAR 파일 빌드** (STEP 3)
+
    - Gradle로 애플리케이션 빌드
    - JAR 파일 생성
 
 4. **메인 애플리케이션 이미지 빌드** (STEP 4)
+
    - 멀티 플랫폼 빌드
    - Docker Hub에 푸시
 
 5. **RAG 서비스 이미지 빌드** (STEP 5)
+
    - 멀티 플랫폼 빌드
    - Docker Hub에 푸시
 
 6. **검증** (STEP 6)
+
    - 이미지 pull 테스트
    - 정상 업로드 확인
 
@@ -193,10 +208,12 @@ docker buildx build \
 ## 빌드 시간
 
 - **메인 애플리케이션**: 약 5-10분
+
   - JAR 빌드: 2-3분
   - Docker 이미지 빌드: 3-7분
 
 - **RAG 서비스**: 약 3-5분
+
   - Python 의존성 설치 시간 포함
 
 - **전체 프로세스**: 약 10-15분
@@ -233,6 +250,7 @@ docker buildx create --name testcasecraft-multiplatform --use
 ### 메모리 부족 오류
 
 Docker Desktop 설정에서 메모리 할당량 증가:
+
 - Settings → Resources → Memory
 - 최소 4GB 이상 권장
 
@@ -276,10 +294,12 @@ VERSION="1.1.0"  # 버전 변경
 ## 주의사항
 
 1. **Docker Hub 저장소 용량**
+
    - 무료 계정은 저장 용량 제한이 있을 수 있음
    - 필요 없는 오래된 태그는 삭제 권장
 
 2. **빌드 시간**
+
    - 멀티 플랫폼 빌드는 시간이 오래 걸림
    - 안정적인 인터넷 연결 필요
 

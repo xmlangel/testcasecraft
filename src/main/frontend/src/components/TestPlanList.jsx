@@ -1,25 +1,68 @@
 // src/components/TestPlanList.jsx
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import PropTypes from "prop-types";
 import {
-  Box, Button, Card, CardContent, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, LinearProgress, Divider,
-  Accordion, AccordionSummary, AccordionDetails
-} from '@mui/material';
-import { Add, Edit, Delete, PlayArrow, CheckCircle, Schedule, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
-import { useAppContext } from '../context/AppContext.jsx';
-import { useI18n } from '../context/I18nContext.jsx';
-import { ExecutionStatus } from '../models/testExecution.jsx';
-import { formatDateSafe, safeParseDate } from '../utils/dateUtils';
-import TestPlanAutomatedLinkDialog from './TestPlanAutomatedLinkDialog';
-import { Link as LinkIcon } from '@mui/icons-material';
-import { countRealTestCases } from '../utils/treeUtils';
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  CircularProgress,
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Pagination,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Chip,
+  LinearProgress,
+  Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from "@mui/material";
+import {
+  Add,
+  Edit,
+  Delete,
+  PlayArrow,
+  CheckCircle,
+  Schedule,
+  ExpandMore as ExpandMoreIcon,
+} from "@mui/icons-material";
+import { useAppContext } from "../context/AppContext.jsx";
+import { useI18n } from "../context/I18nContext.jsx";
+import { ExecutionStatus } from "../models/testExecution.jsx";
+import { formatDateSafe, safeParseDate } from "../utils/dateUtils";
+import TestPlanAutomatedLinkDialog from "./TestPlanAutomatedLinkDialog";
+import { Link as LinkIcon } from "@mui/icons-material";
+import { countRealTestCases } from "../utils/treeUtils";
 
-const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
+const ADMIN_ROLES = ["ADMIN", "MANAGER"];
 const PLANS_PER_PAGE = 10;
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
-const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditExecution, onViewExecution }) => {
+const TestPlanList = ({
+  onNewTestPlan,
+  onEditTestPlan,
+  onStartExecution,
+  onEditExecution,
+  onViewExecution,
+}) => {
   const {
     activeProject,
     testPlans,
@@ -42,13 +85,16 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
 
   // Accordion state
   const [expanded, setExpanded] = useState(() => {
-    const saved = localStorage.getItem('testcase-manager-testplan-accordion');
+    const saved = localStorage.getItem("testcase-manager-testplan-accordion");
     return saved !== null ? JSON.parse(saved) : true;
   });
 
   const handleAccordionChange = (event, isExpanded) => {
     setExpanded(isExpanded);
-    localStorage.setItem('testcase-manager-testplan-accordion', JSON.stringify(isExpanded));
+    localStorage.setItem(
+      "testcase-manager-testplan-accordion",
+      JSON.stringify(isExpanded),
+    );
   };
 
   // Test execution dialog state
@@ -86,45 +132,60 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   }, [sortedTestPlans, page]);
 
   // Fetch test executions for a specific test plan
-  const fetchTestExecutionsForPlan = useCallback(async (testPlanId) => {
-    if (!activeProject?.id) return;
-    try {
-      setExecutionsLoading(true);
-      const response = await api(`/api/test-executions/by-project/${activeProject.id}`);
-      if (!response.ok) throw new Error('Failed to fetch executions');
-      const data = await response.json();
-      // Filter executions for the specific test plan
-      const planExecutions = data.filter(execution => execution.testPlanId === testPlanId);
-      setTestExecutions(planExecutions);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setExecutionsLoading(false);
-    }
-  }, [activeProject?.id, api]);
+  const fetchTestExecutionsForPlan = useCallback(
+    async (testPlanId) => {
+      if (!activeProject?.id) return;
+      try {
+        setExecutionsLoading(true);
+        const response = await api(
+          `/api/test-executions/by-project/${activeProject.id}`,
+        );
+        if (!response.ok) throw new Error("Failed to fetch executions");
+        const data = await response.json();
+        // Filter executions for the specific test plan
+        const planExecutions = data.filter(
+          (execution) => execution.testPlanId === testPlanId,
+        );
+        setTestExecutions(planExecutions);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setExecutionsLoading(false);
+      }
+    },
+    [activeProject?.id, api],
+  );
 
   // Fetch linked automated tests for a plan
-  const fetchLinkedAutomatedTests = useCallback(async (testPlanId) => {
-    if (!activeProject?.id) return;
-    try {
-      const response = await api(`/api/junit-results/by-plan/${testPlanId}`);
-      if (!response.ok) {
-        console.error('Failed to fetch linked automated tests');
-        return;
+  const fetchLinkedAutomatedTests = useCallback(
+    async (testPlanId) => {
+      if (!activeProject?.id) return;
+      try {
+        const response = await api(`/api/junit-results/by-plan/${testPlanId}`);
+        if (!response.ok) {
+          console.error("Failed to fetch linked automated tests");
+          return;
+        }
+        const data = await response.json();
+        setLinkedAutomatedTests(data.content || []);
+      } catch (err) {
+        console.error("Error fetching linked automated tests:", err);
+        setLinkedAutomatedTests([]);
       }
-      const data = await response.json();
-      setLinkedAutomatedTests(data.content || []);
-    } catch (err) {
-      console.error('Error fetching linked automated tests:', err);
-      setLinkedAutomatedTests([]);
-    }
-  }, [activeProject, api]);
+    },
+    [activeProject, api],
+  );
 
   // Fetch automated test counts for all plans
   const fetchAutomatedTestCounts = useCallback(async () => {
     if (!activeProject?.id || sortedTestPlans.length === 0) return;
-    const isDebug = localStorage.getItem('debug') === 'true';
-    if (isDebug) console.log('Fetching automated test counts for', sortedTestPlans.length, 'plans');
+    const isDebug = localStorage.getItem("debug") === "true";
+    if (isDebug)
+      console.log(
+        "Fetching automated test counts for",
+        sortedTestPlans.length,
+        "plans",
+      );
     try {
       const counts = {};
       for (const plan of sortedTestPlans) {
@@ -133,10 +194,17 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           if (response.ok) {
             const data = await response.json();
             const count = data.count || data.content?.length || 0;
-            if (isDebug) console.log(`Plan ${plan.id} (${plan.name}): ${count} automated tests`, data);
+            if (isDebug)
+              console.log(
+                `Plan ${plan.id} (${plan.name}): ${count} automated tests`,
+                data,
+              );
             counts[plan.id] = count;
           } else {
-            console.warn(`Failed to fetch for plan ${plan.id}:`, response.status);
+            console.warn(
+              `Failed to fetch for plan ${plan.id}:`,
+              response.status,
+            );
             counts[plan.id] = 0;
           }
         } catch (err) {
@@ -144,10 +212,10 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           counts[plan.id] = 0;
         }
       }
-      if (isDebug) console.log('Final counts:', counts);
+      if (isDebug) console.log("Final counts:", counts);
       setAutomatedTestCounts(counts);
     } catch (err) {
-      console.error('Error fetching automated test counts:', err);
+      console.error("Error fetching automated test counts:", err);
     }
   }, [activeProject, sortedTestPlans, api]);
 
@@ -157,16 +225,19 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   }, [fetchAutomatedTestCounts]);
 
   // Handle execution button click
-  const handleExecutionClick = useCallback(async (testPlan) => {
-    setSelectedTestPlan(testPlan);
-    setExecutionDialogOpen(true);
-    setExecutionsLoading(true);
-    await Promise.all([
-      fetchTestExecutionsForPlan(testPlan.id),
-      fetchLinkedAutomatedTests(testPlan.id)
-    ]);
-    setExecutionsLoading(false);
-  }, [fetchTestExecutionsForPlan, fetchLinkedAutomatedTests]);
+  const handleExecutionClick = useCallback(
+    async (testPlan) => {
+      setSelectedTestPlan(testPlan);
+      setExecutionDialogOpen(true);
+      setExecutionsLoading(true);
+      await Promise.all([
+        fetchTestExecutionsForPlan(testPlan.id),
+        fetchLinkedAutomatedTests(testPlan.id),
+      ]);
+      setExecutionsLoading(false);
+    },
+    [fetchTestExecutionsForPlan, fetchLinkedAutomatedTests],
+  );
 
   const handleLinkClick = (testPlan) => {
     setSelectedPlanForLink(testPlan);
@@ -174,29 +245,54 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   };
 
   // Calculate progress for test execution
-  const calculateProgress = useCallback((execution) => {
-    if (!selectedTestPlan?.testCaseIds?.length || !Array.isArray(testCases)) return 0;
-    const caseIds = selectedTestPlan.testCaseIds.filter(id => {
-      const tc = testCases.find(tc => tc.id === id);
-      return tc && tc.type === 'testcase';
-    });
-    if (caseIds.length === 0) return 0;
-    const completedTests = caseIds.filter(id => {
-      const resultObj = execution.results?.find(r => r.testCaseId === id);
-      return resultObj && resultObj.result && resultObj.result !== 'NOTRUN';
-    }).length;
-    return Math.round((completedTests / caseIds.length) * 100);
-  }, [selectedTestPlan, testCases]);
+  const calculateProgress = useCallback(
+    (execution) => {
+      if (!selectedTestPlan?.testCaseIds?.length || !Array.isArray(testCases))
+        return 0;
+      const caseIds = selectedTestPlan.testCaseIds.filter((id) => {
+        const tc = testCases.find((tc) => tc.id === id);
+        return tc && tc.type === "testcase";
+      });
+      if (caseIds.length === 0) return 0;
+      const completedTests = caseIds.filter((id) => {
+        const resultObj = execution.results?.find((r) => r.testCaseId === id);
+        return resultObj && resultObj.result && resultObj.result !== "NOTRUN";
+      }).length;
+      return Math.round((completedTests / caseIds.length) * 100);
+    },
+    [selectedTestPlan, testCases],
+  );
 
   // Render status chip
   const renderStatusChip = (status) => {
     switch (status) {
       case ExecutionStatus.NOTSTARTED:
-        return <Chip size="small" icon={<Schedule />} label={t('testPlan.status.notStarted', 'Not Started')} color="default" />;
+        return (
+          <Chip
+            size="small"
+            icon={<Schedule />}
+            label={t("testPlan.status.notStarted", "Not Started")}
+            color="default"
+          />
+        );
       case ExecutionStatus.INPROGRESS:
-        return <Chip size="small" icon={<PlayArrow />} label={t('testPlan.status.inProgress', 'In Progress')} color="primary" />;
+        return (
+          <Chip
+            size="small"
+            icon={<PlayArrow />}
+            label={t("testPlan.status.inProgress", "In Progress")}
+            color="primary"
+          />
+        );
       case ExecutionStatus.COMPLETED:
-        return <Chip size="small" icon={<CheckCircle />} label={t('testPlan.status.completed', 'Completed')} color="success" />;
+        return (
+          <Chip
+            size="small"
+            icon={<CheckCircle />}
+            label={t("testPlan.status.completed", "Completed")}
+            color="success"
+          />
+        );
       default:
         return null;
     }
@@ -219,10 +315,13 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   // Project selection check
   if (!projectId) {
     return (
-      <Card sx={{ height: '100%' }}>
+      <Card sx={{ height: "100%" }}>
         <CardContent>
-          <Typography color="textSecondary" sx={{ textAlign: 'center' }}>
-            {t('testPlan.form.projectSelectFirst', '프로젝트를 먼저 선택하세요.')}
+          <Typography color="textSecondary" sx={{ textAlign: "center" }}>
+            {t(
+              "testPlan.form.projectSelectFirst",
+              "프로젝트를 먼저 선택하세요.",
+            )}
           </Typography>
         </CardContent>
       </Card>
@@ -231,7 +330,14 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
 
   return (
     <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 1,
+        }}
+      >
         <Typography variant="h6" component="h2">
           {activeProject?.name}
         </Typography>
@@ -244,29 +350,44 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
             disabled={globalLoading}
             data-testid="testplan-add-button"
           >
-            {t('testPlan.list.add', '테스트 플랜 추가')}
+            {t("testPlan.list.add", "테스트 플랜 추가")}
           </Button>
         )}
       </Box>
-      <Accordion expanded={expanded} onChange={handleAccordionChange} sx={{ width: '100%' }}>
+      <Accordion
+        expanded={expanded}
+        onChange={handleAccordionChange}
+        sx={{ width: "100%" }}
+      >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="subtitle1">
-            {t('testPlan.list.title', '테스트 플랜 목록')}
+            {t("testPlan.list.title", "테스트 플랜 목록")}
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              onClose={() => setError(null)}
+            >
               {error}
             </Alert>
           )}
           {globalLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
               <CircularProgress size={24} />
             </Box>
           ) : sortedTestPlans.length === 0 ? (
-            <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
-              {t('testPlan.list.empty.message', '등록된 테스트 플랜이 없습니다.')}
+            <Typography
+              variant="body2"
+              color="textSecondary"
+              sx={{ textAlign: "center", mt: 3 }}
+            >
+              {t(
+                "testPlan.list.empty.message",
+                "등록된 테스트 플랜이 없습니다.",
+              )}
             </Typography>
           ) : (
             <>
@@ -274,48 +395,93 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                 <Table size="small" aria-label="testplan table">
                   <TableHead>
                     <TableRow>
-                      <TableCell>{t('testPlan.list.table.name', '이름')}</TableCell>
-                      <TableCell>{t('testPlan.list.table.description', '설명')}</TableCell>
-                      <TableCell align="center">{t('testPlan.list.table.testcaseCount', '테스트케이스 수')}</TableCell>
-                      <TableCell align="center">{t('testPlan.list.table.automationCount', '자동화 테스트')}</TableCell>
-                      <TableCell align="center">{t('testPlan.list.table.createdAt', '생성일')}</TableCell>
-                      <TableCell align="center">{t('testPlan.list.table.execute', '실행')}</TableCell>
-                      <TableCell align="center">{t('testPlan.list.table.edit', '수정')}</TableCell>
-                      <TableCell align="center">{t('testPlan.list.table.delete', '삭제')}</TableCell>
+                      <TableCell>
+                        {t("testPlan.list.table.name", "이름")}
+                      </TableCell>
+                      <TableCell>
+                        {t("testPlan.list.table.description", "설명")}
+                      </TableCell>
+                      <TableCell align="center">
+                        {t(
+                          "testPlan.list.table.testcaseCount",
+                          "테스트케이스 수",
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        {t(
+                          "testPlan.list.table.automationCount",
+                          "자동화 테스트",
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        {t("testPlan.list.table.createdAt", "생성일")}
+                      </TableCell>
+                      <TableCell align="center">
+                        {t("testPlan.list.table.execute", "실행")}
+                      </TableCell>
+                      <TableCell align="center">
+                        {t("testPlan.list.table.edit", "수정")}
+                      </TableCell>
+                      <TableCell align="center">
+                        {t("testPlan.list.table.delete", "삭제")}
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {paginatedPlans.map((plan) => (
-                      <TableRow key={plan.id} data-testid={`testplan-row-${plan.id}`}>
+                      <TableRow
+                        key={plan.id}
+                        data-testid={`testplan-row-${plan.id}`}
+                      >
                         <TableCell
                           onClick={() => handleExecutionClick(plan)}
-                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                          sx={{
+                            cursor: "pointer",
+                            "&:hover": { backgroundColor: "action.hover" },
+                          }}
                           data-testid="testplan-name"
                         >
                           {plan.name}
                         </TableCell>
                         <TableCell
                           onClick={() => handleExecutionClick(plan)}
-                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                          sx={{
+                            cursor: "pointer",
+                            "&:hover": { backgroundColor: "action.hover" },
+                          }}
                         >
-                          <span style={{ color: '#aaa' }}>{plan.description}</span>
+                          <span style={{ color: "#aaa" }}>
+                            {plan.description}
+                          </span>
                         </TableCell>
                         <TableCell
                           align="center"
                           onClick={() => handleExecutionClick(plan)}
-                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                          sx={{
+                            cursor: "pointer",
+                            "&:hover": { backgroundColor: "action.hover" },
+                          }}
                         >
                           {countRealTestCases(plan.testCaseIds, testCases)}
                         </TableCell>
                         <TableCell
                           align="center"
                           onClick={() => canManage && handleLinkClick(plan)}
-                          sx={{ cursor: canManage ? 'pointer' : 'default', '&:hover': canManage ? { backgroundColor: 'action.hover' } : {} }}
+                          sx={{
+                            cursor: canManage ? "pointer" : "default",
+                            "&:hover": canManage
+                              ? { backgroundColor: "action.hover" }
+                              : {},
+                          }}
                         >
                           <Chip
                             label={automatedTestCounts[plan.id] || 0}
                             size="small"
-                            color={(automatedTestCounts[plan.id] || 0) > 0 ? "success" : "default"}
+                            color={
+                              (automatedTestCounts[plan.id] || 0) > 0
+                                ? "success"
+                                : "default"
+                            }
                             variant="outlined"
                           />
                         </TableCell>
@@ -327,7 +493,10 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                             edge="end"
                             onClick={() => handleExecutionClick(plan)}
                             disabled={localLoading}
-                            title={t('testPlan.list.table.execute', '실행 및 결과')}
+                            title={t(
+                              "testPlan.list.table.execute",
+                              "실행 및 결과",
+                            )}
                             data-testid={`testplan-execute-button-${plan.id}`}
                           >
                             <PlayArrow />
@@ -337,10 +506,16 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               edge="end"
                               onClick={() => handleLinkClick(plan)}
                               disabled={localLoading}
-                              title={t('testPlan.list.table.linkAutomated', '자동화 테스트 연결')}
+                              title={t(
+                                "testPlan.list.table.linkAutomated",
+                                "자동화 테스트 연결",
+                              )}
                               sx={{
                                 ml: 1,
-                                color: (automatedTestCounts[plan.id] || 0) > 0 ? 'success.main' : 'text.disabled'
+                                color:
+                                  (automatedTestCounts[plan.id] || 0) > 0
+                                    ? "success.main"
+                                    : "text.disabled",
                               }}
                               data-testid={`testplan-link-button-${plan.id}`}
                             >
@@ -354,7 +529,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               edge="end"
                               onClick={() => onEditTestPlan(plan.id)}
                               disabled={localLoading}
-                              title={t('testPlan.list.table.edit', '수정')}
+                              title={t("testPlan.list.table.edit", "수정")}
                               data-testid={`testplan-edit-button-${plan.id}`}
                             >
                               <Edit />
@@ -370,7 +545,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                                 setDeleteDialogOpen(true);
                               }}
                               disabled={localLoading}
-                              title={t('testPlan.list.table.delete', '삭제')}
+                              title={t("testPlan.list.table.delete", "삭제")}
                               data-testid={`testplan-delete-button-${plan.id}`}
                             >
                               <Delete />
@@ -382,7 +557,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                   </TableBody>
                 </Table>
               </TableContainer>
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                 <Pagination
                   count={totalPages}
                   page={page}
@@ -405,11 +580,13 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
         disableRestoreFocus
       >
         <DialogTitle>
-          {t('testPlan.execution.dialog.title', '테스트 실행 - {planName}', { planName: selectedTestPlan?.name })}
+          {t("testPlan.execution.dialog.title", "테스트 실행 - {planName}", {
+            planName: selectedTestPlan?.name,
+          })}
         </DialogTitle>
         <DialogContent>
           {executionsLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
               <CircularProgress />
             </Box>
           ) : (
@@ -425,12 +602,19 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                   }}
                   sx={{ mb: 2 }}
                 >
-                  {t('testPlan.execution.button.newExecution', '새 실행 생성')}
+                  {t("testPlan.execution.button.newExecution", "새 실행 생성")}
                 </Button>
               </Box>
               {testExecutions.length === 0 ? (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-                  {t('testPlan.execution.empty.message', '이 테스트 플랜의 실행 이력이 없습니다.')}
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: "center", py: 3 }}
+                >
+                  {t(
+                    "testPlan.execution.empty.message",
+                    "이 테스트 플랜의 실행 이력이 없습니다.",
+                  )}
                 </Typography>
               ) : (
                 <List>
@@ -441,32 +625,67 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                         <ListItem alignItems="flex-start">
                           <ListItemText
                             primary={
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Typography variant="subtitle1" component="span">
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Typography
+                                  variant="subtitle1"
+                                  component="span"
+                                >
                                   {execution.name}
                                 </Typography>
                                 {renderStatusChip(execution.status)}
                               </Box>
                             }
                             secondary={
-                              <Box component="span" sx={{ display: 'block', mt: 1 }}>
-                                <Typography variant="body2" color="text.secondary" component="span">
-                                  {t('testPlan.execution.list.createdAt', '생성일: {date}', { date: formatDateSafe(execution.createdAt) })}
+                              <Box
+                                component="span"
+                                sx={{ display: "block", mt: 1 }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  component="span"
+                                >
+                                  {t(
+                                    "testPlan.execution.list.createdAt",
+                                    "생성일: {date}",
+                                    {
+                                      date: formatDateSafe(execution.createdAt),
+                                    },
+                                  )}
                                 </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                                  <Box sx={{ width: '100%', mr: 1 }}>
-                                    <LinearProgress variant="determinate" value={progress} />
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    mt: 1,
+                                  }}
+                                >
+                                  <Box sx={{ width: "100%", mr: 1 }}>
+                                    <LinearProgress
+                                      variant="determinate"
+                                      value={progress}
+                                    />
                                   </Box>
                                   <Box sx={{ minWidth: 35 }}>
-                                    <Typography variant="body2" color="text.secondary">{`${Math.round(progress)}%`}</Typography>
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
+                                    >{`${Math.round(progress)}%`}</Typography>
                                   </Box>
                                 </Box>
                               </Box>
                             }
                             slotProps={{
                               primary: { component: "div" },
-                              secondary: { component: "div" }
-                            }} />
+                              secondary: { component: "div" },
+                            }}
+                          />
                           <ListItemSecondaryAction>
                             <IconButton
                               edge="end"
@@ -475,12 +694,14 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                                 setExecutionDialogOpen(false);
                                 onEditExecution(execution.id);
                               }}
-                              sx={{ color: '#1976d2', mr: 1 }}
-                              title={t('testPlan.execution.action.edit', '편집')}
+                              sx={{ color: "#1976d2", mr: 1 }}
+                              title={t(
+                                "testPlan.execution.action.edit",
+                                "편집",
+                              )}
                             >
                               <PlayArrow />
                             </IconButton>
-
                           </ListItemSecondaryAction>
                         </ListItem>
                         <Divider component="li" />
@@ -496,11 +717,21 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           {!executionsLoading && (
             <Box sx={{ mt: 4 }}>
               <Typography variant="h6" gutterBottom>
-                {t('testPlan.execution.automated.title', '연결된 자동화 테스트')}
+                {t(
+                  "testPlan.execution.automated.title",
+                  "연결된 자동화 테스트",
+                )}
               </Typography>
               {linkedAutomatedTests.length === 0 ? (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                  {t('testPlan.execution.automated.empty', '연결된 자동화 테스트가 없습니다.')}
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: "center", py: 2 }}
+                >
+                  {t(
+                    "testPlan.execution.automated.empty",
+                    "연결된 자동화 테스트가 없습니다.",
+                  )}
                 </Typography>
               ) : (
                 <List>
@@ -509,39 +740,72 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                       <ListItem alignItems="flex-start">
                         <ListItemText
                           primary={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
                               <Typography variant="subtitle1" component="span">
                                 {result.testExecutionName || result.fileName}
                               </Typography>
                               <Chip
                                 label={result.status}
                                 size="small"
-                                color={result.status === 'COMPLETED' ? 'success' : 'default'}
+                                color={
+                                  result.status === "COMPLETED"
+                                    ? "success"
+                                    : "default"
+                                }
                               />
                             </Box>
                           }
                           secondary={
-                            <Box component="span" sx={{ display: 'block', mt: 1 }}>
-                              <Typography variant="body2" color="text.secondary" component="span">
-                                {t('testPlan.execution.list.createdAt', '업로드: {date}', { date: formatDateSafe(result.uploadedAt) })}
+                            <Box
+                              component="span"
+                              sx={{ display: "block", mt: 1 }}
+                            >
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                component="span"
+                              >
+                                {t(
+                                  "testPlan.execution.list.createdAt",
+                                  "업로드: {date}",
+                                  { date: formatDateSafe(result.uploadedAt) },
+                                )}
                               </Typography>
                               <Box sx={{ mt: 1 }}>
                                 <Typography variant="body2">
-                                  Total: {result.totalTests} | Pass: {result.totalTests - result.failures - result.errors - result.skipped} | Fail: {result.failures + result.errors}
+                                  Total: {result.totalTests} | Pass:{" "}
+                                  {result.totalTests -
+                                    result.failures -
+                                    result.errors -
+                                    result.skipped}{" "}
+                                  | Fail: {result.failures + result.errors}
                                 </Typography>
                                 <LinearProgress
                                   variant="determinate"
                                   value={result.successRate || 0}
                                   sx={{ mt: 1, height: 6, borderRadius: 3 }}
-                                  color={result.successRate >= 90 ? "success" : result.successRate >= 70 ? "warning" : "error"}
+                                  color={
+                                    result.successRate >= 90
+                                      ? "success"
+                                      : result.successRate >= 70
+                                        ? "warning"
+                                        : "error"
+                                  }
                                 />
                               </Box>
                             </Box>
                           }
                           slotProps={{
                             primary: { component: "div" },
-                            secondary: { component: "div" }
-                          }} />
+                            secondary: { component: "div" },
+                          }}
+                        />
                       </ListItem>
                       <Divider component="li" />
                     </React.Fragment>
@@ -550,14 +814,13 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
               )}
             </Box>
           )}
-
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setExecutionDialogOpen(false)}>
-            {t('testPlan.execution.dialog.close', '닫기')}
+            {t("testPlan.execution.dialog.close", "닫기")}
           </Button>
         </DialogActions>
-      </Dialog >
+      </Dialog>
       <TestPlanAutomatedLinkDialog
         open={linkDialogOpen}
         onClose={() => setLinkDialogOpen(false)}
@@ -572,16 +835,28 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
         }}
       />
       {/* 삭제 확인 다이얼로그 */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} disableRestoreFocus>
-        <DialogTitle>{t('testPlan.delete.dialog.title', '테스트 플랜 삭제')}</DialogTitle>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        disableRestoreFocus
+      >
+        <DialogTitle>
+          {t("testPlan.delete.dialog.title", "테스트 플랜 삭제")}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {t('testPlan.delete.dialog.message', '정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.')}
+            {t(
+              "testPlan.delete.dialog.message",
+              "정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.",
+            )}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} disabled={localLoading}>
-            {t('testPlan.delete.button.cancel', '취소')}
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={localLoading}
+          >
+            {t("testPlan.delete.button.cancel", "취소")}
           </Button>
           <Button
             onClick={handleConfirmDelete}
@@ -591,7 +866,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
             variant="contained"
             data-testid="testplan-delete-confirm-button"
           >
-            {t('testPlan.delete.button.delete', '삭제')}
+            {t("testPlan.delete.button.delete", "삭제")}
           </Button>
         </DialogActions>
       </Dialog>

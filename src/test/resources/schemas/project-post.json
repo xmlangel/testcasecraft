@@ -39,9 +39,6 @@
       "description": "수정일시"
     }
   },
-  "required": [
-    "code",
-    "name"
-  ],
+  "required": ["code", "name"],
   "additionalProperties": false
 }

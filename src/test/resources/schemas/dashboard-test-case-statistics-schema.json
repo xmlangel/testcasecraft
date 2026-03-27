@@ -15,7 +15,7 @@
       "description": "PASS 개수"
     },
     "FAIL": {
-      "type": "integer", 
+      "type": "integer",
       "minimum": 0,
       "description": "FAIL 개수"
     },
@@ -35,13 +35,6 @@
       "description": "NOTRUN 개수"
     }
   },
-  "required": [
-    "totalCases",
-    "PASS",
-    "FAIL", 
-    "BLOCKED",
-    "SKIPPED",
-    "NOTRUN"
-  ],
+  "required": ["totalCases", "PASS", "FAIL", "BLOCKED", "SKIPPED", "NOTRUN"],
   "additionalProperties": false
 }

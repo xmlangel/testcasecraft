@@ -1,6 +1,6 @@
 // src/components/RAG/ResumeAnalysisDialog.jsx
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 import {
   Dialog,
   DialogTitle,
@@ -11,10 +11,10 @@ import {
   Box,
   LinearProgress,
   Alert,
-} from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import CancelIcon from '@mui/icons-material/Cancel';
+} from "@mui/material";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 /**
  * LLM 분석 재개/처음부터 시작 선택 다이얼로그
@@ -26,9 +26,11 @@ function ResumeAnalysisDialog({ open, onClose, onResume, onRestart, status }) {
   }
 
   const { progress } = status;
-  const analyzedChunks = progress?.processedChunks || progress?.analyzedChunks || 0;
+  const analyzedChunks =
+    progress?.processedChunks || progress?.analyzedChunks || 0;
   const totalChunks = progress?.totalChunks || 0;
-  const percentage = totalChunks > 0 ? Math.round((analyzedChunks / totalChunks) * 100) : 0;
+  const percentage =
+    totalChunks > 0 ? Math.round((analyzedChunks / totalChunks) * 100) : 0;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -45,11 +47,16 @@ function ResumeAnalysisDialog({ open, onClose, onResume, onRestart, status }) {
 
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            진행 상태: <strong>{status.status === 'paused' ? '일시정지' : '진행 중'}</strong>
+            진행 상태:{" "}
+            <strong>
+              {status.status === "paused" ? "일시정지" : "진행 중"}
+            </strong>
           </Typography>
 
           <Box sx={{ mt: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography variant="body2" color="text.secondary">
                 분석 진행률
               </Typography>
@@ -69,13 +76,15 @@ function ResumeAnalysisDialog({ open, onClose, onResume, onRestart, status }) {
           어떻게 하시겠습니까?
         </Typography>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           <Alert severity="success" icon={<PlayArrowIcon />}>
-            <strong>이어서 하기:</strong> 기존 진행 내역을 유지하고 {analyzedChunks + 1}번 청크부터 계속 분석합니다.
+            <strong>이어서 하기:</strong> 기존 진행 내역을 유지하고{" "}
+            {analyzedChunks + 1}번 청크부터 계속 분석합니다.
           </Alert>
           <Alert severity="warning" icon={<RestartAltIcon />}>
-            <strong>처음부터 시작:</strong> 기존 진행 내역을 모두 삭제하고 1번 청크부터 다시 분석합니다.
-            (이미 분석된 {analyzedChunks}개 청크의 비용이 다시 발생합니다)
+            <strong>처음부터 시작:</strong> 기존 진행 내역을 모두 삭제하고 1번
+            청크부터 다시 분석합니다. (이미 분석된 {analyzedChunks}개 청크의
+            비용이 다시 발생합니다)
           </Alert>
         </Box>
       </DialogContent>

@@ -1,15 +1,15 @@
 // src/utils/logger.js
 // 환경별 로깅 제어 유틸리티
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = process.env.NODE_ENV === "development";
+const isProduction = process.env.NODE_ENV === "production";
 
 // 로그 레벨 정의
 const LOG_LEVELS = {
   ERROR: 0,
   WARN: 1,
   INFO: 2,
-  DEBUG: 3
+  DEBUG: 3,
 };
 
 // 환경변수에서 로그 레벨 읽기
@@ -31,7 +31,7 @@ const getLogLevelFromEnv = () => {
 const CURRENT_LOG_LEVEL = getLogLevelFromEnv();
 
 class Logger {
-  constructor(context = '') {
+  constructor(context = "") {
     this.context = context;
   }
 
@@ -42,7 +42,7 @@ class Logger {
   _formatMessage(level, message, ...args) {
     const timestamp = new Date().toISOString();
     const levelStr = Object.keys(LOG_LEVELS)[level];
-    const contextStr = this.context ? `[${this.context}] ` : '';
+    const contextStr = this.context ? `[${this.context}] ` : "";
     return [`${timestamp} ${levelStr} ${contextStr}${message}`, ...args];
   }
 
@@ -126,31 +126,31 @@ export const logInfo = (message, ...args) => logger.info(message, ...args);
 export const logDebug = (message, ...args) => logger.debug(message, ...args);
 
 // ICT-344 전용 로거
-export const validationLogger = createLogger('ICT-344-Validation');
+export const validationLogger = createLogger("ICT-344-Validation");
 
 // ============================================
 // localStorage 기반 디버그 로깅
 // ============================================
 /**
  * 디버그 로깅 제어
- * 
+ *
  * 사용법:
  * - 전체 활성화: localStorage.setItem('debug', 'true')
  * - 특정 모듈만: localStorage.setItem('debug', 'Spreadsheet,HybridForm,DatasheetGrid')
  * - 비활성화: localStorage.removeItem('debug')
  */
 
-const isDebugEnabled = (module = '') => {
+const isDebugEnabled = (module = "") => {
   try {
-    const debugValue = localStorage.getItem('debug');
+    const debugValue = localStorage.getItem("debug");
     if (!debugValue) return false;
 
     // 'true'면 모든 디버그 로그 활성화
-    if (debugValue === 'true') return true;
+    if (debugValue === "true") return true;
 
     // 특정 모듈만 활성화 (쉼표로 구분)
     if (module) {
-      const enabledModules = debugValue.split(',').map(m => m.trim());
+      const enabledModules = debugValue.split(",").map((m) => m.trim());
       return enabledModules.includes(module);
     }
 

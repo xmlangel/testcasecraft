@@ -1,6 +1,6 @@
 // src/components/RAG/AnalysisJobList.jsx
-import React, { useState, useEffect, useCallback } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Paper,
@@ -22,26 +22,27 @@ import {
   MenuItem,
   Alert,
   CircularProgress,
-} from '@mui/material';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import StopIcon from '@mui/icons-material/Stop';
-import { useRAG } from '../../context/RAGContext';
+} from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
+import StopIcon from "@mui/icons-material/Stop";
+import { useRAG } from "../../context/RAGContext";
 
 /**
  * LLM 분석 작업 목록 컴포넌트
  * 프로젝트별 LLM 분석 작업 목록을 표시하고 관리
  */
 function AnalysisJobList({ projectId, onViewDetails }) {
-  const { listLlmAnalysisJobs, pauseAnalysis, resumeAnalysis, cancelAnalysis } = useRAG();
+  const { listLlmAnalysisJobs, pauseAnalysis, resumeAnalysis, cancelAnalysis } =
+    useRAG();
 
   const [jobs, setJobs] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0); // MUI TablePagination은 0부터 시작
   const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -55,14 +56,14 @@ function AnalysisJobList({ projectId, onViewDetails }) {
         projectId,
         statusFilter || null,
         page + 1, // API는 1부터 시작
-        rowsPerPage
+        rowsPerPage,
       );
 
       setJobs(response.jobs || []);
       setTotalCount(response.totalCount || 0);
     } catch (err) {
-      console.error('작업 목록 조회 실패:', err);
-      setError('작업 목록을 불러오는데 실패했습니다.');
+      console.error("작업 목록 조회 실패:", err);
+      setError("작업 목록을 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -93,34 +94,34 @@ function AnalysisJobList({ projectId, onViewDetails }) {
   // 작업 상태별 색상
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'completed':
-        return 'success';
-      case 'processing':
-        return 'primary';
-      case 'paused':
-        return 'warning';
-      case 'failed':
-        return 'error';
-      case 'cancelled':
-        return 'default';
+      case "completed":
+        return "success";
+      case "processing":
+        return "primary";
+      case "paused":
+        return "warning";
+      case "failed":
+        return "error";
+      case "cancelled":
+        return "default";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   // 작업 상태별 라벨
   const getStatusLabel = (status) => {
     switch (status?.toLowerCase()) {
-      case 'completed':
-        return '완료';
-      case 'processing':
-        return '진행중';
-      case 'paused':
-        return '일시정지';
-      case 'failed':
-        return '실패';
-      case 'cancelled':
-        return '취소됨';
+      case "completed":
+        return "완료";
+      case "processing":
+        return "진행중";
+      case "paused":
+        return "일시정지";
+      case "failed":
+        return "실패";
+      case "cancelled":
+        return "취소됨";
       default:
         return status;
     }
@@ -132,7 +133,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
       await pauseAnalysis(documentId);
       fetchJobs(); // 목록 새로고침
     } catch (err) {
-      console.error('일시정지 실패:', err);
+      console.error("일시정지 실패:", err);
     }
   };
 
@@ -141,12 +142,14 @@ function AnalysisJobList({ projectId, onViewDetails }) {
       await resumeAnalysis(documentId);
       fetchJobs(); // 목록 새로고침
     } catch (err) {
-      console.error('재개 실패:', err);
+      console.error("재개 실패:", err);
     }
   };
 
   const handleCancel = async (jobId, documentId) => {
-    if (!window.confirm('분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.')) {
+    if (
+      !window.confirm("분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.")
+    ) {
       return;
     }
 
@@ -154,38 +157,49 @@ function AnalysisJobList({ projectId, onViewDetails }) {
       await cancelAnalysis(documentId);
       fetchJobs(); // 목록 새로고침
     } catch (err) {
-      console.error('취소 실패:', err);
+      console.error("취소 실패:", err);
     }
   };
 
   // 날짜 포맷
   const formatDate = (dateArray) => {
-    if (!dateArray) return '-';
+    if (!dateArray) return "-";
     try {
       const [year, month, day, hour, minute, second] = dateArray;
       const date = new Date(year, month - 1, day, hour, minute, second);
-      return date.toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
+      return date.toLocaleString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch (e) {
-      return '-';
+      return "-";
     }
   };
 
   return (
     <Box>
       {/* 헤더 */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         <Typography variant="h6">LLM 분석 작업 목록</Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           {/* 상태 필터 */}
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <InputLabel>상태 필터</InputLabel>
-            <Select value={statusFilter} label="상태 필터" onChange={handleStatusFilterChange}>
+            <Select
+              value={statusFilter}
+              label="상태 필터"
+              onChange={handleStatusFilterChange}
+            >
               <MenuItem value="">전체</MenuItem>
               <MenuItem value="processing">진행중</MenuItem>
               <MenuItem value="paused">일시정지</MenuItem>
@@ -213,7 +227,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
 
       {/* 로딩 인디케이터 */}
       {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
           <CircularProgress />
         </Box>
       )}
@@ -240,7 +254,11 @@ function AnalysisJobList({ projectId, onViewDetails }) {
               {jobs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} align="center">
-                    <Typography variant="body2" color="textSecondary" sx={{ py: 3 }}>
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      sx={{ py: 3 }}
+                    >
                       분석 작업이 없습니다.
                     </Typography>
                   </TableCell>
@@ -291,33 +309,43 @@ function AnalysisJobList({ projectId, onViewDetails }) {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">{(job.totalTokens || 0).toLocaleString()}</Typography>
+                      <Typography variant="body2">
+                        {(job.totalTokens || 0).toLocaleString()}
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="caption">{formatDate(job.startedAt)}</Typography>
+                      <Typography variant="caption">
+                        {formatDate(job.startedAt)}
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="caption">{formatDate(job.completedAt)}</Typography>
+                      <Typography variant="caption">
+                        {formatDate(job.completedAt)}
+                      </Typography>
                     </TableCell>
                     <TableCell align="center">
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <Box sx={{ display: "flex", gap: 0.5 }}>
                         {/* 상세보기 */}
                         <Tooltip title="상세보기">
                           <IconButton
                             size="small"
-                            onClick={() => onViewDetails && onViewDetails(job.documentId)}
+                            onClick={() =>
+                              onViewDetails && onViewDetails(job.documentId)
+                            }
                           >
                             <VisibilityIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
 
                         {/* 재개 버튼 (일시정지 상태) */}
-                        {job.status === 'paused' && (
+                        {job.status === "paused" && (
                           <Tooltip title="재개">
                             <IconButton
                               size="small"
                               color="primary"
-                              onClick={() => handleResume(job.jobId, job.documentId)}
+                              onClick={() =>
+                                handleResume(job.jobId, job.documentId)
+                              }
                             >
                               <PlayArrowIcon fontSize="small" />
                             </IconButton>
@@ -325,12 +353,14 @@ function AnalysisJobList({ projectId, onViewDetails }) {
                         )}
 
                         {/* 일시정지 버튼 (진행중 상태) */}
-                        {job.status === 'processing' && (
+                        {job.status === "processing" && (
                           <Tooltip title="일시정지">
                             <IconButton
                               size="small"
                               color="warning"
-                              onClick={() => handlePause(job.jobId, job.documentId)}
+                              onClick={() =>
+                                handlePause(job.jobId, job.documentId)
+                              }
                             >
                               <PauseIcon fontSize="small" />
                             </IconButton>
@@ -338,12 +368,15 @@ function AnalysisJobList({ projectId, onViewDetails }) {
                         )}
 
                         {/* 취소 버튼 (진행중/일시정지 상태) */}
-                        {(job.status === 'processing' || job.status === 'paused') && (
+                        {(job.status === "processing" ||
+                          job.status === "paused") && (
                           <Tooltip title="취소">
                             <IconButton
                               size="small"
                               color="error"
-                              onClick={() => handleCancel(job.jobId, job.documentId)}
+                              onClick={() =>
+                                handleCancel(job.jobId, job.documentId)
+                              }
                             >
                               <StopIcon fontSize="small" />
                             </IconButton>
@@ -367,7 +400,9 @@ function AnalysisJobList({ projectId, onViewDetails }) {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
             labelRowsPerPage="페이지당 행 수:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} / 전체 ${count}개`}
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}-${to} / 전체 ${count}개`
+            }
           />
         </TableContainer>
       )}

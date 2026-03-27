@@ -9,9 +9,9 @@ import os
 # os.environ['JIRA_API_TOKEN'] = 'your_jira_api_token'
 
 issue = create_board_visible_issue_simple(
-    project_key='ICT',
-    summary='ICT-XXX: 테스트 케이스 실행 화면에서 폴더명>>케이스명 표시 기능 구현',
-    description='''## 📋 작업 개요
+    project_key="ICT",
+    summary="ICT-XXX: 테스트 케이스 실행 화면에서 폴더명>>케이스명 표시 기능 구현",
+    description="""## 📋 작업 개요
 테스트 케이스 실행 화면에서 테스트 케이스를 표시할 때, 해당 테스트 케이스의 상위 폴더가 존재할 경우 '폴더명>>케이스명' 형식으로 표시되도록 기능을 구현합니다.
 
 ## 🎯 목표
@@ -27,8 +27,8 @@ issue = create_board_visible_issue_simple(
 ## 📝 승인 기준
 - [ ] 테스트 케이스 실행 화면에서 폴더 내의 테스트 케이스가 '폴더명>>케이스명' 형식으로 올바르게 표시되는 것을 확인
 - [ ] 폴더가 없는 최상위 테스트 케이스는 기존과 동일하게 테스트 케이스명만 표시되는 것을 확인
-- [ ] 기능 구현 후 애플리케이션이 정상적으로 동작하는 것을 확인''',
-    issue_type='10003'  # Task
+- [ ] 기능 구현 후 애플리케이션이 정상적으로 동작하는 것을 확인""",
+    issue_type="10003",  # Task
 )
 if issue:
     print(f"✅ 이슈 생성 성공: {issue.key}")

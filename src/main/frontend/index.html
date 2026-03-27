@@ -162,9 +162,7 @@
         margin-top: 8px;
         font-size: 11px;
         color: #888;
-        font-family:
-          "JetBrains Mono",
-          monospace;
+        font-family: "JetBrains Mono", monospace;
       }
     </style>
     <script>
@@ -231,7 +229,9 @@
         // 메인 엔트리 스크립트 찾기 (ID 우선, 실패 시 셀렉터)
         let mainEntry = document.getElementById("main-app-entry");
         if (!mainEntry) {
-          mainEntry = document.querySelector('script[type="module"][src*="index"]');
+          mainEntry = document.querySelector(
+            'script[type="module"][src*="index"]',
+          );
         }
 
         if (!mainEntry) {
@@ -259,7 +259,8 @@
           } else {
             // Content-Length가 없는 경우 실시간 진행률 대신 다운로드 중임을 표시
             const loaded = (event.loaded / (1024 * 1024)).toFixed(1);
-            if (progressText) progressText.innerText = `Receiving Assets: ${loaded}MB...`;
+            if (progressText)
+              progressText.innerText = `Receiving Assets: ${loaded}MB...`;
           }
         };
 
@@ -268,12 +269,14 @@
             if (progressText) progressText.innerText = "Launching Workspace...";
             if (progressBar) progressBar.style.width = "100%";
           } else {
-            if (progressText) progressText.innerText = "Fast launch mode enabled";
+            if (progressText)
+              progressText.innerText = "Fast launch mode enabled";
           }
         };
 
         xhr.onerror = function () {
-          if (progressText) progressText.innerText = "Network stable. Preparing app...";
+          if (progressText)
+            progressText.innerText = "Network stable. Preparing app...";
         };
 
         xhr.send();

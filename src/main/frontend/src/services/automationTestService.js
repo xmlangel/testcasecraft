@@ -5,7 +5,7 @@
  * 기존 junitResultService와 동일한 기능을 새로운 API 경로로 제공
  */
 
-import { getDynamicApiUrl } from '../utils/apiConstants.js';
+import { getDynamicApiUrl } from "../utils/apiConstants.js";
 
 let API_BASE_URL = null;
 
@@ -34,21 +34,21 @@ class AutomationTestService {
    */
   async uploadTestResult(file, projectId) {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('projectId', projectId);
+    formData.append("file", file);
+    formData.append("projectId", projectId);
 
     const baseUrl = await this.getBaseUrl();
     const response = await fetch(`${baseUrl}/upload`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
-      body: formData
+      body: formData,
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Upload failed');
+      throw new Error(error.message || "Upload failed");
     }
 
     return response.json();
@@ -59,14 +59,17 @@ class AutomationTestService {
    */
   async getTestResultsByProject(projectId, page = 0, size = 20) {
     const baseUrl = await this.getBaseUrl();
-    const response = await fetch(`${baseUrl}/projects/${projectId}?page=${page}&size=${size}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      }
-    });
+    const response = await fetch(
+      `${baseUrl}/projects/${projectId}?page=${page}&size=${size}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      },
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to fetch test results');
+      throw new Error("Failed to fetch test results");
     }
 
     return response.json();
@@ -79,12 +82,12 @@ class AutomationTestService {
     const baseUrl = await this.getBaseUrl();
     const response = await fetch(`${baseUrl}/${testResultId}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch test result');
+      throw new Error("Failed to fetch test result");
     }
 
     return response.json();
@@ -96,14 +99,14 @@ class AutomationTestService {
   async deleteTestResult(testResultId) {
     const baseUrl = await this.getBaseUrl();
     const response = await fetch(`${baseUrl}/${testResultId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to delete test result');
+      throw new Error("Failed to delete test result");
     }
 
     return response.json();
@@ -112,16 +115,19 @@ class AutomationTestService {
   /**
    * 프로젝트별 자동화 테스트 통계 조회
    */
-  async getTestStatistics(projectId, timeRange = '30d') {
+  async getTestStatistics(projectId, timeRange = "30d") {
     const baseUrl = await this.getBaseUrl();
-    const response = await fetch(`${baseUrl}/statistics?projectId=${projectId}&timeRange=${timeRange}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      }
-    });
+    const response = await fetch(
+      `${baseUrl}/statistics?projectId=${projectId}&timeRange=${timeRange}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      },
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to fetch test statistics');
+      throw new Error("Failed to fetch test statistics");
     }
 
     return response.json();
@@ -134,12 +140,12 @@ class AutomationTestService {
     const baseUrl = await this.getBaseUrl();
     const response = await fetch(`${baseUrl}/projects/${projectId}/summary`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch test summary');
+      throw new Error("Failed to fetch test summary");
     }
 
     return response.json();
@@ -151,16 +157,16 @@ class AutomationTestService {
   async getBatchProjectTestSummary(projectIds) {
     const baseUrl = await this.getBaseUrl();
     const response = await fetch(`${baseUrl}/batch-summary`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
-      body: JSON.stringify({ projectIds })
+      body: JSON.stringify({ projectIds }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch batch test summary');
+      throw new Error("Failed to fetch batch test summary");
     }
 
     return response.json();
@@ -168,40 +174,52 @@ class AutomationTestService {
 
   // 호환성을 위한 기존 메서드명 유지 (deprecated)
   async uploadJunitXml(file, projectId) {
-    console.warn('uploadJunitXml is deprecated. Use uploadTestResult instead.');
+    console.warn("uploadJunitXml is deprecated. Use uploadTestResult instead.");
     return this.uploadTestResult(file, projectId);
   }
 
   async getJunitResultsByProject(projectId, page, size) {
-    console.warn('getJunitResultsByProject is deprecated. Use getTestResultsByProject instead.');
+    console.warn(
+      "getJunitResultsByProject is deprecated. Use getTestResultsByProject instead.",
+    );
     return this.getTestResultsByProject(projectId, page, size);
   }
 
   async getJunitStatistics(projectId, timeRange) {
-    console.warn('getJunitStatistics is deprecated. Use getTestStatistics instead.');
+    console.warn(
+      "getJunitStatistics is deprecated. Use getTestStatistics instead.",
+    );
     return this.getTestStatistics(projectId, timeRange);
   }
 
   async getBatchProjectJunitSummary(projectIds) {
-    console.warn('getBatchProjectJunitSummary is deprecated. Use getBatchProjectTestSummary instead.');
+    console.warn(
+      "getBatchProjectJunitSummary is deprecated. Use getBatchProjectTestSummary instead.",
+    );
     return this.getBatchProjectTestSummary(projectIds);
   }
 
   // 기존 junitResultService와의 호환성을 위한 헬퍼 메서드들
   getTestStatusInfo(status) {
     const statusMap = {
-      'PROCESSING': { label: '처리중', color: 'warning', icon: 'schedule' },
-      'COMPLETED': { label: '완료', color: 'success', icon: 'check_circle' },
-      'FAILED': { label: '실패', color: 'error', icon: 'error' },
-      'PARSING_ERROR': { label: '파싱 오류', color: 'error', icon: 'error' }
+      PROCESSING: { label: "처리중", color: "warning", icon: "schedule" },
+      COMPLETED: { label: "완료", color: "success", icon: "check_circle" },
+      FAILED: { label: "실패", color: "error", icon: "error" },
+      PARSING_ERROR: { label: "파싱 오류", color: "error", icon: "error" },
     };
-    return statusMap[status] || { label: '알 수 없음', color: 'default', icon: 'help' };
+    return (
+      statusMap[status] || {
+        label: "알 수 없음",
+        color: "default",
+        icon: "help",
+      }
+    );
   }
 
   getSuccessRateColor(successRate) {
-    if (successRate >= 90) return 'success';
-    if (successRate >= 70) return 'warning';
-    return 'error';
+    if (successRate >= 90) return "success";
+    if (successRate >= 70) return "warning";
+    return "error";
   }
 }
 

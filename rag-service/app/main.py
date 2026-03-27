@@ -1,4 +1,5 @@
 """FastAPI RAG Service Main Application"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
@@ -10,14 +11,14 @@ from .models import (
     RAGConversationMessage,
     LlmAnalysisJob,
     LlmAnalysisResult,
-    AnalysisSummary
+    AnalysisSummary,
 )  # Import models for table creation
 import logging
 
 # Configure logging
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ app = FastAPI(
     version=settings.APP_VERSION,
     description="RAG (Retrieval-Augmented Generation) Service for Test Case Management",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # Configure CORS
@@ -70,14 +71,20 @@ async def startup_event():
         logger.info("Creating additional indexes and functions...")
         with engine.connect() as conn:
             # Create HNSW index for vector similarity search
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE INDEX IF NOT EXISTS idx_rag_embeddings_vector
                 ON rag_embeddings USING hnsw (embedding vector_cosine_ops)
                 WITH (m = 16, ef_construction = 64)
-            """))
+            """
+                )
+            )
 
             # Create update trigger function
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE OR REPLACE FUNCTION update_updated_at_column()
                 RETURNS TRIGGER AS $$
                 BEGIN
@@ -85,20 +92,32 @@ async def startup_event():
                     RETURN NEW;
                 END;
                 $$ language 'plpgsql'
-            """))
+            """
+                )
+            )
 
             # Create update trigger
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 DROP TRIGGER IF EXISTS update_rag_documents_updated_at ON rag_documents
-            """))
-            conn.execute(text("""
+            """
+                )
+            )
+            conn.execute(
+                text(
+                    """
                 CREATE TRIGGER update_rag_documents_updated_at
                 BEFORE UPDATE ON rag_documents
                 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
-            """))
+            """
+                )
+            )
 
             # Create similarity search function
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE OR REPLACE FUNCTION search_similar_chunks(
                     query_embedding vector(768),
                     similarity_threshold FLOAT DEFAULT 0.7,
@@ -132,7 +151,9 @@ async def startup_event():
                     LIMIT max_results;
                 END;
                 $$ LANGUAGE plpgsql
-            """))
+            """
+                )
+            )
 
             conn.commit()
         logger.info("Database initialization completed successfully")
@@ -156,7 +177,7 @@ async def root():
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "status": "running",
-        "environment": settings.APP_ENV
+        "environment": settings.APP_ENV,
     }
 
 
@@ -166,7 +187,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": settings.APP_NAME,
-        "version": settings.APP_VERSION
+        "version": settings.APP_VERSION,
     }
 
 
@@ -175,14 +196,10 @@ async def api_info():
     """API information endpoint"""
     return {
         "api_version": "v1",
-        "endpoints": {
-            "health": "/health",
-            "docs": "/docs",
-            "redoc": "/redoc"
-        },
+        "endpoints": {"health": "/health", "docs": "/docs", "redoc": "/redoc"},
         "features": {
             "document_upload": "enabled",
             "vector_search": "enabled",
-            "similar_testcases": "enabled"
-        }
+            "similar_testcases": "enabled",
+        },
     }

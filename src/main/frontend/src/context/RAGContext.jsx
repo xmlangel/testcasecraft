@@ -4,24 +4,30 @@
  * - All API calls now use AppContext.api() for centralized token management
  * - File reduced from 1680 lines to ~300 lines by extracting functions into hooks
  */
-import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
-import { useAuth } from './AuthContext';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useRef,
+} from "react";
+import { useAuth } from "./AuthContext";
 
 // Import custom hooks
-import { useRagDocuments } from '../hooks/rag/useRagDocuments.js';
-import { useRagLlmAnalysis } from '../hooks/rag/useRagLlmAnalysis.js';
-import { useRagChat } from '../hooks/rag/useRagChat.js';
-import { useRagSearch } from '../hooks/rag/useRagSearch.js';
-import { useRagGlobalDocs } from '../hooks/rag/useRagGlobalDocs.js';
+import { useRagDocuments } from "../hooks/rag/useRagDocuments.js";
+import { useRagLlmAnalysis } from "../hooks/rag/useRagLlmAnalysis.js";
+import { useRagChat } from "../hooks/rag/useRagChat.js";
+import { useRagSearch } from "../hooks/rag/useRagSearch.js";
+import { useRagGlobalDocs } from "../hooks/rag/useRagGlobalDocs.js";
 
-const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true';
-const RAG_DISABLED_BY_ENV = import.meta.env.VITE_ENABLE_RAG === 'false';
+const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === "true";
+const RAG_DISABLED_BY_ENV = import.meta.env.VITE_ENABLE_RAG === "false";
 export const RAG_DISABLED_MESSAGE_ENV = RAG_DISABLED_BY_ENV
-  ? '환경 변수 설정으로 RAG 기능이 비활성화되었습니다.'
+  ? "환경 변수 설정으로 RAG 기능이 비활성화되었습니다."
   : USE_DEMO_DATA
-    ? '데모 모드에서는 RAG 기능이 비활성화되어 있습니다. 서버 API 연결 후 이용해주세요.'
+    ? "데모 모드에서는 RAG 기능이 비활성화되어 있습니다. 서버 API 연결 후 이용해주세요."
     : null;
-export const GLOBAL_RAG_PROJECT_ID = '00000000-0000-0000-0000-000000000000';
+export const GLOBAL_RAG_PROJECT_ID = "00000000-0000-0000-0000-000000000000";
 
 const RAGContext = createContext();
 
@@ -52,32 +58,32 @@ const initialState = {
 };
 
 const ActionTypes = {
-  SET_DOCUMENTS: 'SET_DOCUMENTS',
-  ADD_DOCUMENT: 'ADD_DOCUMENT',
-  DELETE_DOCUMENT: 'DELETE_DOCUMENT',
-  SET_ACTIVE_DOCUMENT: 'SET_ACTIVE_DOCUMENT',
-  SET_SEARCH_RESULTS: 'SET_SEARCH_RESULTS',
-  SET_UPLOADING_FILES: 'SET_UPLOADING_FILES',
-  ADD_UPLOADING_FILE: 'ADD_UPLOADING_FILE',
-  REMOVE_UPLOADING_FILE: 'REMOVE_UPLOADING_FILE',
-  SET_PAGINATION: 'SET_PAGINATION',
-  SET_LOADING: 'SET_LOADING',
-  SET_ERROR: 'SET_ERROR',
-  CLEAR_ERROR: 'CLEAR_ERROR',
-  UPDATE_DOCUMENT: 'UPDATE_DOCUMENT',
-  SET_THREADS: 'SET_THREADS',
-  UPSERT_THREAD: 'UPSERT_THREAD',
-  REMOVE_THREAD: 'REMOVE_THREAD',
-  SET_CATEGORIES: 'SET_CATEGORIES',
-  SET_THREAD_MESSAGES: 'SET_THREAD_MESSAGES',
-  SET_SELECTED_THREAD: 'SET_SELECTED_THREAD',
-  SET_THREAD_LOADING: 'SET_THREAD_LOADING',
-  SET_PERSIST_CONVERSATION: 'SET_PERSIST_CONVERSATION',
-  SET_LLM_AVAILABLE: 'SET_LLM_AVAILABLE',
-  SET_LLM_CHECK_LOADING: 'SET_LLM_CHECK_LOADING',
-  SET_LOADED_PROJECT_ID: 'SET_LOADED_PROJECT_ID',
-  SET_RAG_ENABLED_STATUS: 'SET_RAG_ENABLED_STATUS',
-  SET_RAG_STATUS_INITIALIZED: 'SET_RAG_STATUS_INITIALIZED',
+  SET_DOCUMENTS: "SET_DOCUMENTS",
+  ADD_DOCUMENT: "ADD_DOCUMENT",
+  DELETE_DOCUMENT: "DELETE_DOCUMENT",
+  SET_ACTIVE_DOCUMENT: "SET_ACTIVE_DOCUMENT",
+  SET_SEARCH_RESULTS: "SET_SEARCH_RESULTS",
+  SET_UPLOADING_FILES: "SET_UPLOADING_FILES",
+  ADD_UPLOADING_FILE: "ADD_UPLOADING_FILE",
+  REMOVE_UPLOADING_FILE: "REMOVE_UPLOADING_FILE",
+  SET_PAGINATION: "SET_PAGINATION",
+  SET_LOADING: "SET_LOADING",
+  SET_ERROR: "SET_ERROR",
+  CLEAR_ERROR: "CLEAR_ERROR",
+  UPDATE_DOCUMENT: "UPDATE_DOCUMENT",
+  SET_THREADS: "SET_THREADS",
+  UPSERT_THREAD: "UPSERT_THREAD",
+  REMOVE_THREAD: "REMOVE_THREAD",
+  SET_CATEGORIES: "SET_CATEGORIES",
+  SET_THREAD_MESSAGES: "SET_THREAD_MESSAGES",
+  SET_SELECTED_THREAD: "SET_SELECTED_THREAD",
+  SET_THREAD_LOADING: "SET_THREAD_LOADING",
+  SET_PERSIST_CONVERSATION: "SET_PERSIST_CONVERSATION",
+  SET_LLM_AVAILABLE: "SET_LLM_AVAILABLE",
+  SET_LLM_CHECK_LOADING: "SET_LLM_CHECK_LOADING",
+  SET_LOADED_PROJECT_ID: "SET_LOADED_PROJECT_ID",
+  SET_RAG_ENABLED_STATUS: "SET_RAG_ENABLED_STATUS",
+  SET_RAG_STATUS_INITIALIZED: "SET_RAG_STATUS_INITIALIZED",
 };
 
 function ragReducer(state, action) {
@@ -89,7 +95,7 @@ function ragReducer(state, action) {
     case ActionTypes.DELETE_DOCUMENT:
       return {
         ...state,
-        documents: state.documents.filter(doc => doc.id !== action.payload)
+        documents: state.documents.filter((doc) => doc.id !== action.payload),
       };
     case ActionTypes.SET_ACTIVE_DOCUMENT:
       return { ...state, activeDocument: action.payload };
@@ -98,11 +104,16 @@ function ragReducer(state, action) {
     case ActionTypes.SET_UPLOADING_FILES:
       return { ...state, uploadingFiles: action.payload };
     case ActionTypes.ADD_UPLOADING_FILE:
-      return { ...state, uploadingFiles: [...state.uploadingFiles, action.payload] };
+      return {
+        ...state,
+        uploadingFiles: [...state.uploadingFiles, action.payload],
+      };
     case ActionTypes.REMOVE_UPLOADING_FILE:
       return {
         ...state,
-        uploadingFiles: state.uploadingFiles.filter(file => file.id !== action.payload)
+        uploadingFiles: state.uploadingFiles.filter(
+          (file) => file.id !== action.payload,
+        ),
       };
     case ActionTypes.SET_PAGINATION:
       return { ...state, pagination: action.payload };
@@ -113,8 +124,8 @@ function ragReducer(state, action) {
     case ActionTypes.CLEAR_ERROR:
       return { ...state, error: null };
     case ActionTypes.UPDATE_DOCUMENT: {
-      const updatedDocuments = state.documents.map(doc =>
-        doc.id === action.payload.id ? { ...doc, ...action.payload } : doc
+      const updatedDocuments = state.documents.map((doc) =>
+        doc.id === action.payload.id ? { ...doc, ...action.payload } : doc,
       );
       const updatedActiveDocument =
         state.activeDocument && state.activeDocument.id === action.payload.id
@@ -129,18 +140,29 @@ function ragReducer(state, action) {
     case ActionTypes.SET_THREADS:
       return { ...state, threads: action.payload };
     case ActionTypes.UPSERT_THREAD: {
-      const existingIndex = state.threads.findIndex(thread => thread.id === action.payload.id);
+      const existingIndex = state.threads.findIndex(
+        (thread) => thread.id === action.payload.id,
+      );
       if (existingIndex === -1) {
         return { ...state, threads: [action.payload, ...state.threads] };
       }
       const updatedThreads = [...state.threads];
-      updatedThreads[existingIndex] = { ...updatedThreads[existingIndex], ...action.payload };
+      updatedThreads[existingIndex] = {
+        ...updatedThreads[existingIndex],
+        ...action.payload,
+      };
       return { ...state, threads: updatedThreads };
     }
     case ActionTypes.REMOVE_THREAD: {
-      const filteredThreads = state.threads.filter(thread => thread.id !== action.payload);
-      const { [action.payload]: _removed, ...restMessages } = state.threadMessages;
-      const nextSelectedId = state.selectedThreadId === action.payload ? null : state.selectedThreadId;
+      const filteredThreads = state.threads.filter(
+        (thread) => thread.id !== action.payload,
+      );
+      const { [action.payload]: _removed, ...restMessages } =
+        state.threadMessages;
+      const nextSelectedId =
+        state.selectedThreadId === action.payload
+          ? null
+          : state.selectedThreadId;
       return {
         ...state,
         threads: filteredThreads,
@@ -171,9 +193,9 @@ function ragReducer(state, action) {
     case ActionTypes.SET_LOADED_PROJECT_ID:
       return { ...state, loadedProjectId: action.payload };
     case ActionTypes.SET_RAG_ENABLED_STATUS:
-      return { 
-        ...state, 
-        isRagEnabled: action.payload.isEnabled, 
+      return {
+        ...state,
+        isRagEnabled: action.payload.isEnabled,
         ragDisabledMessage: action.payload.message,
         error: action.payload.isEnabled ? null : action.payload.message,
         ragStatusInitialized: true,
@@ -195,19 +217,20 @@ export function RAGProvider({ children }) {
     const fetchRagStatus = async () => {
       try {
         if (RAG_DISABLED_MESSAGE_ENV) return; // 이미 환경변수로 비활성화된 경우 패스
-        
-        const response = await api('/api/system-settings/rag/status');
+
+        const response = await api("/api/system-settings/rag/status");
         if (!response.ok) return; // 오류 응답 시 무시
         const data = await response.json();
         const isEnabled = data?.data?.enabled ?? data?.enabled;
-        
+
         if (isEnabled === false) {
-          dispatch({ 
-            type: ActionTypes.SET_RAG_ENABLED_STATUS, 
-            payload: { 
-              isEnabled: false, 
-              message: '시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.' 
-            } 
+          dispatch({
+            type: ActionTypes.SET_RAG_ENABLED_STATUS,
+            payload: {
+              isEnabled: false,
+              message:
+                "시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.",
+            },
           });
         } else {
           // RAG 활성화 상태 확인 완료
@@ -218,19 +241,23 @@ export function RAGProvider({ children }) {
         dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
       }
     };
-    
+
     fetchRagStatus();
   }, [api]);
 
   // ============ Utility Functions ============
-  const ensureRagAvailable = useCallback((operationName) => {
-    if (!state.isRagEnabled) {
-      const errorMsg = state.ragDisabledMessage || 'RAG 기능이 비활성화되었습니다.';
-      const error = new Error(errorMsg);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: errorMsg });
-      throw error;
-    }
-  }, [state.isRagEnabled, state.ragDisabledMessage]);
+  const ensureRagAvailable = useCallback(
+    (operationName) => {
+      if (!state.isRagEnabled) {
+        const errorMsg =
+          state.ragDisabledMessage || "RAG 기능이 비활성화되었습니다.";
+        const error = new Error(errorMsg);
+        dispatch({ type: ActionTypes.SET_ERROR, payload: errorMsg });
+        throw error;
+      }
+    },
+    [state.isRagEnabled, state.ragDisabledMessage],
+  );
 
   const clearError = useCallback(() => {
     dispatch({ type: ActionTypes.CLEAR_ERROR });
@@ -241,8 +268,10 @@ export function RAGProvider({ children }) {
       type: ActionTypes.SET_RAG_ENABLED_STATUS,
       payload: {
         isEnabled,
-        message: isEnabled ? null : '시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.'
-      }
+        message: isEnabled
+          ? null
+          : "시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.",
+      },
     });
   }, []);
 
@@ -262,11 +291,41 @@ export function RAGProvider({ children }) {
   const requestCache = useRef(new Map());
 
   // ============ Use Custom Hooks ============
-  const documentHooks = useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
-  const llmAnalysisHooks = useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
-  const chatHooks = useRagChat(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
-  const searchHooks = useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
-  const globalDocsHooks = useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
+  const documentHooks = useRagDocuments(
+    state,
+    dispatch,
+    ActionTypes,
+    ensureRagAvailable,
+    requestCache,
+  );
+  const llmAnalysisHooks = useRagLlmAnalysis(
+    state,
+    dispatch,
+    ActionTypes,
+    ensureRagAvailable,
+    requestCache,
+  );
+  const chatHooks = useRagChat(
+    state,
+    dispatch,
+    ActionTypes,
+    ensureRagAvailable,
+    requestCache,
+  );
+  const searchHooks = useRagSearch(
+    state,
+    dispatch,
+    ActionTypes,
+    ensureRagAvailable,
+    requestCache,
+  );
+  const globalDocsHooks = useRagGlobalDocs(
+    state,
+    dispatch,
+    ActionTypes,
+    ensureRagAvailable,
+    requestCache,
+  );
 
   // ============ Context Value ============
   const value = {
@@ -352,17 +411,13 @@ export function RAGProvider({ children }) {
     requestPromoteDocument: globalDocsHooks.requestPromoteDocument,
   };
 
-  return (
-    <RAGContext.Provider value={value}>
-      {children}
-    </RAGContext.Provider>
-  );
+  return <RAGContext.Provider value={value}>{children}</RAGContext.Provider>;
 }
 
 export function useRAG() {
   const context = useContext(RAGContext);
   if (!context) {
-    throw new Error('useRAG must be used within a RAGProvider');
+    throw new Error("useRAG must be used within a RAGProvider");
   }
   return context;
 }

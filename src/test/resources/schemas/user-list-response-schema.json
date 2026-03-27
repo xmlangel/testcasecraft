@@ -21,7 +21,15 @@
       "description": "사용자 목록",
       "items": {
         "type": "object",
-        "required": ["id", "username", "email", "name", "role", "isActive", "createdAt"],
+        "required": [
+          "id",
+          "username",
+          "email",
+          "name",
+          "role",
+          "isActive",
+          "createdAt"
+        ],
         "properties": {
           "id": {
             "type": "string",

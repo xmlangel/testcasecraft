@@ -12,6 +12,7 @@ import time
 import requests
 from multiprocessing import Process
 
+
 def start_mock_server():
     """Start a minimal FastAPI server for testing"""
     from fastapi import FastAPI
@@ -25,31 +26,23 @@ def start_mock_server():
             "service": "RAG Service",
             "version": "0.1.0",
             "status": "running",
-            "environment": "test"
+            "environment": "test",
         }
 
     @app.get("/health")
     def health_check():
-        return {
-            "status": "healthy",
-            "service": "RAG Service",
-            "version": "0.1.0"
-        }
+        return {"status": "healthy", "service": "RAG Service", "version": "0.1.0"}
 
     @app.get("/api/v1/info")
     def api_info():
         return {
             "api_version": "v1",
-            "endpoints": {
-                "health": "/health",
-                "docs": "/docs",
-                "redoc": "/redoc"
-            },
+            "endpoints": {"health": "/health", "docs": "/docs", "redoc": "/redoc"},
             "features": {
                 "document_upload": "enabled",
                 "vector_search": "enabled",
-                "similar_testcases": "enabled"
-            }
+                "similar_testcases": "enabled",
+            },
         }
 
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="error")
@@ -57,9 +50,9 @@ def start_mock_server():
 
 def test_endpoints():
     """Test basic endpoints"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🧪 Testing RAG Service Endpoints")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     base_url = "http://localhost:8001"
 
@@ -85,24 +78,24 @@ def test_endpoints():
             print(f"✗ {test_name}: ERROR ({e})")
             failed += 1
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(f"Results: {passed} passed, {failed} failed")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     return failed == 0
 
 
 def main():
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🚀 RAG Service Quick Test")
-    print("="*70)
+    print("=" * 70)
     print("\n📋 This script will:")
     print("  1. Start a minimal FastAPI server on port 8001")
     print("  2. Test basic endpoints (/, /health, /api/v1/info)")
     print("  3. Show results")
     print("\n⚠️  Note: This is a mock server for quick testing.")
     print("   For full API testing, use Docker Compose setup.")
-    print("\n" + "="*70 + "\n")
+    print("\n" + "=" * 70 + "\n")
 
     input("Press Enter to continue or Ctrl+C to cancel...")
 

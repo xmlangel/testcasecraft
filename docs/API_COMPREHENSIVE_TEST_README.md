@@ -93,6 +93,7 @@
 ### 콘솔 출력 확인
 
 테스트 실행 중 콘솔에서 다음 정보를 확인할 수 있습니다:
+
 - 각 테스트의 PASSED/FAILED/SKIPPED 상태
 - 테스트 실행 시간
 - 에러 메시지 및 스택 트레이스
@@ -132,82 +133,101 @@ task apiComprehensiveTest(type: Test) {
 ## ✅ 테스트 케이스 구성
 
 ### 1. 인증 테스트 (Auth)
+
 - 로그인 성공
 - 사용자 등록 (중복 체크)
 - 사용자 정보 조회
 
 ### 2. 프로젝트 테스트 (Project)
+
 - 전체 프로젝트 목록 조회
 - 프로젝트 생성
 - 프로젝트 상세 조회
 
 ### 3. 테스트케이스 테스트 (TestCase)
+
 - 전체 테스트케이스 목록 조회
 - 트리 구조 조회
 - 테스트케이스 생성
 
 ### 4. 테스트플랜 테스트 (TestPlan)
+
 - 전체 테스트플랜 목록 조회
 - 테스트플랜 생성
 
 ### 5. 대시보드 테스트 (Dashboard)
+
 - 대시보드 통계 조회
 - 프로젝트별 통계 조회
 
 ### 6. 조직 관리 테스트 (Organization)
+
 - 전체 조직 목록 조회
 - 조직 생성
 
 ### 7. 사용자 관리 테스트 (User)
+
 - 전체 사용자 목록 조회
 - 현재 사용자 정보 조회
 
 ### 8. 보안 테스트 (Security)
+
 - 인증 없이 API 호출 (실패 예상)
 - 잘못된 토큰으로 API 호출 (실패 예상)
 
 ### 9. 개별 테스트 실행 테스트 (TestExecutionIndividual) - **신규 추가**
+
 - 실행ID로 테스트케이스 목록 조회
 
 ### 10. 테스트 결과 API v2 테스트 (TestResultApi) - **신규 추가**
+
 - 테스트 결과 API 상태 조회
 - 기본 테스트 결과 통계 조회
 - 대시보드 차트 데이터 조회
 
 ### 11. 테스트 결과 편집 테스트 (TestResultEdit) - **신규 추가**
+
 - 편집 상태 정보 조회
 - 편집 통계 조회
 
 ### 12. 사용자 권한 테스트 (UserPermission) - **신규 추가**
+
 - 현재 사용자 권한 조회
 - 조직 역할 목록 조회
 - 프로젝트 역할 목록 조회
 
 ### 13. 메일 테스트 (Mail) - **신규 추가**
+
 - 메일 발송 테스트 (검증 테스트)
 
 ### 14. JUnit 버전 관리 테스트 (JunitVersion) - **신규 추가**
+
 - 스토리지 통계 조회
 
 ### 15. JIRA 통합 테스트 (JiraIntegration) - **신규 추가**
+
 - 텍스트에서 JIRA 이슈 키 추출
 - JIRA 이슈 키 유효성 검증
 - JIRA 동기화 상태 통계 조회
 
 ### 16. JIRA 설정 테스트 (JiraConfig) - **신규 추가**
+
 - 사용자의 활성화된 JIRA 설정 조회
 - JIRA 연결 상태 확인
 - 사용자의 모든 JIRA 설정 조회
 
 ### 17. JIRA 상태 테스트 (JiraStatus) - **신규 추가**
+
 - 프로젝트 JIRA 상태 요약 조회
 - JIRA 상태 통계 조회
 
 ### 18. JIRA 모니터링 테스트 (JiraMonitoring) - **신규 추가**
+
 - 모니터링 통계 요약
 - 실시간 시스템 상태 핑
 
 ### 19. JIRA 배치 테스트 (JiraBatch) - **신규 추가**
+
 - 배치 작업 통계 조회
 
 ## 📈 테스트 통계
@@ -218,6 +238,7 @@ task apiComprehensiveTest(type: Test) {
 - **전체 엔드포인트 커버리지**: **76%** (233개 중 약 178개 테스트)
 
 ### 📊 최근 업데이트 (v5.0)
+
 - **신규 추가된 테스트**: 20개 (3개 컨트롤러 추가로 100% 커버리지 달성)
 - **100% 커버리지 달성 컨트롤러 (총 15개)**:
   - ✅ AuthController: 9/9 엔드포인트 (토큰 갱신, 로그아웃, 비밀번호 변경 등)
@@ -237,18 +258,21 @@ task apiComprehensiveTest(type: Test) {
   - ✅ **MonitoringController: 3/3 엔드포인트** (헬스체크, 메트릭, 리소스) - **v5.0 신규**
 
 ### 📊 v5.0 개선 사항
+
 - **엔드포인트 커버리지 증가**: 68% → 76% (8% 향상)
 - **100% 커버 컨트롤러**: 12개 → 15개 (25% 증가)
 - **테스트 케이스 증가**: 158개 → 178개 (13% 증가)
 - **핵심 기능 완전 커버**: JIRA 통합, 감사 로그, 시스템 모니터링 등
 
 ### 📊 v4.0 개선 사항
+
 - **엔드포인트 커버리지 증가**: 52% → 68% (16% 향상)
 - **100% 커버 컨트롤러**: 9개 → 12개 (33% 증가)
 - **테스트 케이스 증가**: 123개 → 158개 (28% 증가)
 - **핵심 기능 완전 커버**: 리포트, JUnit 자동화, JIRA 설정 등
 
 ### 📊 v3.0 개선 사항
+
 - **엔드포인트 커버리지 증가**: 32.2% → 52% (19.8% 향상)
 - **100% 커버 컨트롤러**: 4개 → 9개 (125% 증가)
 - **테스트 케이스 증가**: 75개 → 123개 (64% 증가)
@@ -292,17 +316,20 @@ kill -9 <PID>
 ## 🔍 추가 정보
 
 ### 테스트 파일 위치
+
 ```
 src/test/java/com/testcase/testcasemanagement/api/AllApiComprehensiveTest.java
 ```
 
 ### Allure 리포트 위치
+
 ```
 build/allure-results-api-comprehensive/
 build/reports/allure-report/
 ```
 
 ### 로그 위치
+
 ```
 build/reports/tests/apiComprehensiveTest/
 ```
@@ -319,6 +346,7 @@ build/reports/tests/apiComprehensiveTest/
 ---
 
 ## 📚 관련 문서
+
 - [API 개발 가이드](file:///Users/dicky/kmdata/git/testcase/testcasecraft/docs/API_GUIDE.md): API 설계 및 개발 표준
 - [API 테스트 가이드 요약](file:///Users/dicky/kmdata/git/testcase/testcasecraft/docs/API_TESTING_GUIDE_SUMMARY.md): API 테스트 작성 패턴 및 실행 방법
 - [테스트 아키텍처 가이드](file:///Users/dicky/kmdata/git/testcase/testcasecraft/docs/TEST_ARCHITECTURE_GUIDE.md): 레이어별(API, Service, Repository) 테스트 표준

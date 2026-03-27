@@ -11,51 +11,58 @@
  * @returns {Array} 모든 하위 노드 ID 배열
  */
 export function getAllChildIds(items, parentId) {
-    // 안전장치: 유효성 검사
-    if (!Array.isArray(items)) {
-        console.error('[TestCaseTree] getAllChildIds: items가 배열이 아닙니다:', typeof items);
-        return [];
+  // 안전장치: 유효성 검사
+  if (!Array.isArray(items)) {
+    console.error(
+      "[TestCaseTree] getAllChildIds: items가 배열이 아닙니다:",
+      typeof items,
+    );
+    return [];
+  }
+
+  if (!parentId) {
+    console.warn(
+      "[TestCaseTree] getAllChildIds: parentId가 제공되지 않았습니다",
+    );
+    return [];
+  }
+
+  const result = [];
+  const stack = [parentId];
+  const visited = new Set(); // 순환 참조 방지
+  const MAX_ITERATIONS = 1000; // 무한 루프 방지
+  let iterations = 0;
+
+  while (stack.length > 0) {
+    iterations++;
+
+    // 무한 루프 방지
+    if (iterations > MAX_ITERATIONS) {
+      console.error(
+        "[TestCaseTree] getAllChildIds: 최대 반복 횟수 초과 (순환 참조 가능성)",
+      );
+      break;
     }
 
-    if (!parentId) {
-        console.warn('[TestCaseTree] getAllChildIds: parentId가 제공되지 않았습니다');
-        return [];
+    const current = stack.pop();
+
+    // 이미 방문한 노드는 스킵 (순환 참조 방지)
+    if (visited.has(current)) {
+      continue;
     }
+    visited.add(current);
 
-    const result = [];
-    const stack = [parentId];
-    const visited = new Set(); // 순환 참조 방지
-    const MAX_ITERATIONS = 1000; // 무한 루프 방지
-    let iterations = 0;
+    const children = items.filter((item) => item?.parentId === current);
 
-    while (stack.length > 0) {
-        iterations++;
-
-        // 무한 루프 방지
-        if (iterations > MAX_ITERATIONS) {
-            console.error('[TestCaseTree] getAllChildIds: 최대 반복 횟수 초과 (순환 참조 가능성)');
-            break;
-        }
-
-        const current = stack.pop();
-
-        // 이미 방문한 노드는 스킵 (순환 참조 방지)
-        if (visited.has(current)) {
-            continue;
-        }
-        visited.add(current);
-
-        const children = items.filter((item) => item?.parentId === current);
-
-        for (const child of children) {
-            if (child?.id && !visited.has(child.id)) {
-                result.push(child.id);
-                stack.push(child.id);
-            }
-        }
+    for (const child of children) {
+      if (child?.id && !visited.has(child.id)) {
+        result.push(child.id);
+        stack.push(child.id);
+      }
     }
+  }
 
-    return result;
+  return result;
 }
 
 /**
@@ -64,7 +71,9 @@ export function getAllChildIds(items, parentId) {
  * @returns {Array} 정렬된 항목 배열
  */
 export function sortByDisplayOrder(items) {
-    return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+  return items
+    .slice()
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 }
 
 /**
@@ -73,11 +82,11 @@ export function sortByDisplayOrder(items) {
  * @returns {number} 하위 테스트케이스 개수
  */
 export function countTestCasesRecursive(node) {
-    if (!node.children || node.children.length === 0) return 0;
-    let count = 0;
-    node.children.forEach((child) => {
-        if (child.type === "testcase") count += 1;
-        else if (child.type === "folder") count += countTestCasesRecursive(child);
-    });
-    return count;
+  if (!node.children || node.children.length === 0) return 0;
+  let count = 0;
+  node.children.forEach((child) => {
+    if (child.type === "testcase") count += 1;
+    else if (child.type === "folder") count += countTestCasesRecursive(child);
+  });
+  return count;
 }

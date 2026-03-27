@@ -1,299 +1,291 @@
 // src/test/java/com/testcase/testcasemanagement/security/SimpleSecurityServiceTest.java
 package com.testcase.testcasemanagement.security;
 
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
+
+import com.testcase.testcasemanagement.model.GroupMember;
 import com.testcase.testcasemanagement.model.OrganizationUser;
 import com.testcase.testcasemanagement.model.ProjectUser;
-import com.testcase.testcasemanagement.model.GroupMember;
-import com.testcase.testcasemanagement.repository.OrganizationUserRepository;
-import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.repository.GroupMemberRepository;
-import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.GroupRepository;
-
+import com.testcase.testcasemanagement.repository.OrganizationUserRepository;
+import com.testcase.testcasemanagement.repository.ProjectRepository;
+import com.testcase.testcasemanagement.repository.ProjectUserRepository;
+import java.util.Optional;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.Optional;
-
-import static org.testng.Assert.*;
-import static org.mockito.Mockito.*;
-
-/**
- * SecurityService 기본 테스트
- * Task 17: Security 서비스 기본 기능 검증
- */
+/** SecurityService 기본 테스트 Task 17: Security 서비스 기본 기능 검증 */
 public class SimpleSecurityServiceTest {
 
-    @Mock
-    private OrganizationUserRepository organizationUserRepository;
+  @Mock private OrganizationUserRepository organizationUserRepository;
 
-    @Mock
-    private ProjectUserRepository projectUserRepository;
+  @Mock private ProjectUserRepository projectUserRepository;
 
-    @Mock
-    private GroupMemberRepository groupMemberRepository;
+  @Mock private GroupMemberRepository groupMemberRepository;
 
-    @Mock
-    private ProjectRepository projectRepository;
+  @Mock private ProjectRepository projectRepository;
 
-    @Mock
-    private GroupRepository groupRepository;
+  @Mock private GroupRepository groupRepository;
 
-    @Mock
-    private com.testcase.testcasemanagement.repository.UserRepository userRepository;
+  @Mock private com.testcase.testcasemanagement.repository.UserRepository userRepository;
 
-    @InjectMocks
-    private OrganizationSecurityService organizationSecurityService;
+  @InjectMocks private OrganizationSecurityService organizationSecurityService;
 
-    @InjectMocks
-    private ProjectSecurityService projectSecurityService;
+  @InjectMocks private ProjectSecurityService projectSecurityService;
 
-    @InjectMocks
-    private GroupSecurityService groupSecurityService;
+  @InjectMocks private GroupSecurityService groupSecurityService;
 
-    @BeforeMethod
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+  @BeforeMethod
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
+  }
 
-    // ==================== OrganizationSecurityService 기본 테스트 ====================
+  // ==================== OrganizationSecurityService 기본 테스트 ====================
 
-    @Test
-    void testOrganizationSecurityService_Creation() {
-        // When & Then
-        assertNotNull(organizationSecurityService);
-    }
+  @Test
+  void testOrganizationSecurityService_Creation() {
+    // When & Then
+    assertNotNull(organizationSecurityService);
+  }
 
-    @Test
-    void testIsOrganizationMember_WithMember() {
-        // Given
-        String orgId = "org123";
-        String username = "user123";
-        String userId = "user-id-123";
+  @Test
+  void testIsOrganizationMember_WithMember() {
+    // Given
+    String orgId = "org123";
+    String username = "user123";
+    String userId = "user-id-123";
 
-        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
-        mockUser.setId(userId);
-        mockUser.setUsername(username);
+    com.testcase.testcasemanagement.model.User mockUser =
+        new com.testcase.testcasemanagement.model.User();
+    mockUser.setId(userId);
+    mockUser.setUsername(username);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
-        when(organizationUserRepository.existsByOrganizationIdAndUserId(orgId, userId)).thenReturn(true);
+    when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+    when(organizationUserRepository.existsByOrganizationIdAndUserId(orgId, userId))
+        .thenReturn(true);
 
-        // When
-        boolean result = organizationSecurityService.isOrganizationMember(orgId, username);
+    // When
+    boolean result = organizationSecurityService.isOrganizationMember(orgId, username);
 
-        // Then
-        assertTrue(result);
-        verify(userRepository).findByUsername(username);
-    }
+    // Then
+    assertTrue(result);
+    verify(userRepository).findByUsername(username);
+  }
 
-    @Test
-    void testIsOrganizationMember_WithoutMember() {
-        // Given
-        String orgId = "org123";
-        String username = "user123";
+  @Test
+  void testIsOrganizationMember_WithoutMember() {
+    // Given
+    String orgId = "org123";
+    String username = "user123";
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+    when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
-        // When
-        boolean result = organizationSecurityService.isOrganizationMember(orgId, username);
+    // When
+    boolean result = organizationSecurityService.isOrganizationMember(orgId, username);
 
-        // Then
-        assertFalse(result);
-    }
+    // Then
+    assertFalse(result);
+  }
 
-    @Test
-    void testIsOrganizationOwner_WithOwner() {
-        // Given
-        String orgId = "org123";
-        String username = "user123";
-        String userId = "user-id-123";
+  @Test
+  void testIsOrganizationOwner_WithOwner() {
+    // Given
+    String orgId = "org123";
+    String username = "user123";
+    String userId = "user-id-123";
 
-        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
-        mockUser.setId(userId);
-        mockUser.setUsername(username);
+    com.testcase.testcasemanagement.model.User mockUser =
+        new com.testcase.testcasemanagement.model.User();
+    mockUser.setId(userId);
+    mockUser.setUsername(username);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
-        when(organizationUserRepository.findRoleByOrganizationIdAndUserId(orgId, userId))
-                .thenReturn(Optional.of(OrganizationUser.OrganizationRole.OWNER));
+    when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+    when(organizationUserRepository.findRoleByOrganizationIdAndUserId(orgId, userId))
+        .thenReturn(Optional.of(OrganizationUser.OrganizationRole.OWNER));
 
-        // When
-        boolean result = organizationSecurityService.isOrganizationOwner(orgId, username);
+    // When
+    boolean result = organizationSecurityService.isOrganizationOwner(orgId, username);
 
-        // Then
-        assertTrue(result);
-    }
+    // Then
+    assertTrue(result);
+  }
 
-    @Test
-    void testIsOrganizationOwner_WithMember() {
-        // Given
-        String orgId = "org123";
-        String username = "user123";
-        String userId = "user-id-123";
+  @Test
+  void testIsOrganizationOwner_WithMember() {
+    // Given
+    String orgId = "org123";
+    String username = "user123";
+    String userId = "user-id-123";
 
-        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
-        mockUser.setId(userId);
-        mockUser.setUsername(username);
+    com.testcase.testcasemanagement.model.User mockUser =
+        new com.testcase.testcasemanagement.model.User();
+    mockUser.setId(userId);
+    mockUser.setUsername(username);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
-        when(organizationUserRepository.findRoleByOrganizationIdAndUserId(orgId, userId))
-                .thenReturn(Optional.of(OrganizationUser.OrganizationRole.MEMBER));
+    when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+    when(organizationUserRepository.findRoleByOrganizationIdAndUserId(orgId, userId))
+        .thenReturn(Optional.of(OrganizationUser.OrganizationRole.MEMBER));
 
-        // When
-        boolean result = organizationSecurityService.isOrganizationOwner(orgId, username);
+    // When
+    boolean result = organizationSecurityService.isOrganizationOwner(orgId, username);
 
-        // Then
-        assertFalse(result);
-    }
+    // Then
+    assertFalse(result);
+  }
 
-    // ==================== ProjectSecurityService 기본 테스트 ====================
+  // ==================== ProjectSecurityService 기본 테스트 ====================
 
-    @Test
-    void testProjectSecurityService_Creation() {
-        // When & Then
-        assertNotNull(projectSecurityService);
-    }
+  @Test
+  void testProjectSecurityService_Creation() {
+    // When & Then
+    assertNotNull(projectSecurityService);
+  }
 
-    @Test
-    void testIsProjectMember_WithMember() {
-        // Given
-        String projectId = "proj123";
-        String username = "user123";
-        String userId = "user-id-123";
+  @Test
+  void testIsProjectMember_WithMember() {
+    // Given
+    String projectId = "proj123";
+    String username = "user123";
+    String userId = "user-id-123";
 
-        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
-        mockUser.setId(userId);
-        mockUser.setUsername(username);
+    com.testcase.testcasemanagement.model.User mockUser =
+        new com.testcase.testcasemanagement.model.User();
+    mockUser.setId(userId);
+    mockUser.setUsername(username);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
-        when(projectUserRepository.existsByProjectIdAndUserId(projectId, userId)).thenReturn(true);
+    when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+    when(projectUserRepository.existsByProjectIdAndUserId(projectId, userId)).thenReturn(true);
 
-        // When
-        boolean result = projectSecurityService.isProjectMember(projectId, username);
+    // When
+    boolean result = projectSecurityService.isProjectMember(projectId, username);
 
-        // Then
-        assertTrue(result);
-        verify(userRepository).findByUsername(username);
-    }
+    // Then
+    assertTrue(result);
+    verify(userRepository).findByUsername(username);
+  }
 
-    @Test
-    void testIsProjectMember_WithoutMember() {
-        // Given
-        String projectId = "proj123";
-        String userId = "user123";
+  @Test
+  void testIsProjectMember_WithoutMember() {
+    // Given
+    String projectId = "proj123";
+    String userId = "user123";
 
-        when(projectUserRepository.findByProjectIdAndUserId(projectId, userId))
-                .thenReturn(Optional.empty());
+    when(projectUserRepository.findByProjectIdAndUserId(projectId, userId))
+        .thenReturn(Optional.empty());
 
-        // When
-        boolean result = projectSecurityService.isProjectMember(projectId, userId);
+    // When
+    boolean result = projectSecurityService.isProjectMember(projectId, userId);
 
-        // Then
-        assertFalse(result);
-    }
+    // Then
+    assertFalse(result);
+  }
 
-    // ==================== GroupSecurityService 기본 테스트 ====================
+  // ==================== GroupSecurityService 기본 테스트 ====================
 
-    @Test
-    void testGroupSecurityService_Creation() {
-        // When & Then
-        assertNotNull(groupSecurityService);
-    }
+  @Test
+  void testGroupSecurityService_Creation() {
+    // When & Then
+    assertNotNull(groupSecurityService);
+  }
 
-    @Test
-    void testIsGroupMember_WithMember() {
-        // Given
-        String groupId = "group123";
-        String username = "user123";
-        String userId = "user-id-123";
+  @Test
+  void testIsGroupMember_WithMember() {
+    // Given
+    String groupId = "group123";
+    String username = "user123";
+    String userId = "user-id-123";
 
-        com.testcase.testcasemanagement.model.User mockUser = new com.testcase.testcasemanagement.model.User();
-        mockUser.setId(userId);
-        mockUser.setUsername(username);
+    com.testcase.testcasemanagement.model.User mockUser =
+        new com.testcase.testcasemanagement.model.User();
+    mockUser.setId(userId);
+    mockUser.setUsername(username);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
-        when(groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)).thenReturn(true);
+    when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+    when(groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)).thenReturn(true);
 
-        // When
-        boolean result = groupSecurityService.isGroupMember(groupId, username);
+    // When
+    boolean result = groupSecurityService.isGroupMember(groupId, username);
 
-        // Then
-        assertTrue(result);
-        verify(userRepository).findByUsername(username);
-    }
+    // Then
+    assertTrue(result);
+    verify(userRepository).findByUsername(username);
+  }
 
-    @Test
-    void testIsGroupMember_WithoutMember() {
-        // Given
-        String groupId = "group123";
-        String userId = "user123";
+  @Test
+  void testIsGroupMember_WithoutMember() {
+    // Given
+    String groupId = "group123";
+    String userId = "user123";
 
-        when(groupMemberRepository.findByGroupIdAndUserId(groupId, userId))
-                .thenReturn(Optional.empty());
+    when(groupMemberRepository.findByGroupIdAndUserId(groupId, userId))
+        .thenReturn(Optional.empty());
 
-        // When
-        boolean result = groupSecurityService.isGroupMember(groupId, userId);
+    // When
+    boolean result = groupSecurityService.isGroupMember(groupId, userId);
 
-        // Then
-        assertFalse(result);
-    }
+    // Then
+    assertFalse(result);
+  }
 
-    // ==================== 권한 레벨 테스트 ====================
+  // ==================== 권한 레벨 테스트 ====================
 
-    @Test
-    void testOrganizationRoleHierarchy() {
-        // Given
-        OrganizationUser.OrganizationRole owner = OrganizationUser.OrganizationRole.OWNER;
-        OrganizationUser.OrganizationRole admin = OrganizationUser.OrganizationRole.ADMIN;
-        OrganizationUser.OrganizationRole member = OrganizationUser.OrganizationRole.MEMBER;
+  @Test
+  void testOrganizationRoleHierarchy() {
+    // Given
+    OrganizationUser.OrganizationRole owner = OrganizationUser.OrganizationRole.OWNER;
+    OrganizationUser.OrganizationRole admin = OrganizationUser.OrganizationRole.ADMIN;
+    OrganizationUser.OrganizationRole member = OrganizationUser.OrganizationRole.MEMBER;
 
-        // When & Then - 권한 계층 확인
-        assertNotNull(owner);
-        assertNotNull(admin);
-        assertNotNull(member);
+    // When & Then - 권한 계층 확인
+    assertNotNull(owner);
+    assertNotNull(admin);
+    assertNotNull(member);
 
-        // 각 역할이 다른지 확인
-        assertNotEquals(owner, admin);
-        assertNotEquals(admin, member);
-        assertNotEquals(owner, member);
-    }
+    // 각 역할이 다른지 확인
+    assertNotEquals(owner, admin);
+    assertNotEquals(admin, member);
+    assertNotEquals(owner, member);
+  }
 
-    @Test
-    void testProjectRoleHierarchy() {
-        // Given
-        ProjectUser.ProjectRole manager = ProjectUser.ProjectRole.PROJECT_MANAGER;
-        ProjectUser.ProjectRole lead = ProjectUser.ProjectRole.LEAD_DEVELOPER;
-        ProjectUser.ProjectRole developer = ProjectUser.ProjectRole.DEVELOPER;
-        ProjectUser.ProjectRole tester = ProjectUser.ProjectRole.TESTER;
-        ProjectUser.ProjectRole contributor = ProjectUser.ProjectRole.CONTRIBUTOR;
-        ProjectUser.ProjectRole viewer = ProjectUser.ProjectRole.VIEWER;
+  @Test
+  void testProjectRoleHierarchy() {
+    // Given
+    ProjectUser.ProjectRole manager = ProjectUser.ProjectRole.PROJECT_MANAGER;
+    ProjectUser.ProjectRole lead = ProjectUser.ProjectRole.LEAD_DEVELOPER;
+    ProjectUser.ProjectRole developer = ProjectUser.ProjectRole.DEVELOPER;
+    ProjectUser.ProjectRole tester = ProjectUser.ProjectRole.TESTER;
+    ProjectUser.ProjectRole contributor = ProjectUser.ProjectRole.CONTRIBUTOR;
+    ProjectUser.ProjectRole viewer = ProjectUser.ProjectRole.VIEWER;
 
-        // When & Then - 모든 역할이 존재하는지 확인
-        assertNotNull(manager);
-        assertNotNull(lead);
-        assertNotNull(developer);
-        assertNotNull(tester);
-        assertNotNull(contributor);
-        assertNotNull(viewer);
-    }
+    // When & Then - 모든 역할이 존재하는지 확인
+    assertNotNull(manager);
+    assertNotNull(lead);
+    assertNotNull(developer);
+    assertNotNull(tester);
+    assertNotNull(contributor);
+    assertNotNull(viewer);
+  }
 
-    @Test
-    void testGroupRoleHierarchy() {
-        // Given
-        GroupMember.GroupRole leader = GroupMember.GroupRole.LEADER;
-        GroupMember.GroupRole coLeader = GroupMember.GroupRole.CO_LEADER;
-        GroupMember.GroupRole member = GroupMember.GroupRole.MEMBER;
+  @Test
+  void testGroupRoleHierarchy() {
+    // Given
+    GroupMember.GroupRole leader = GroupMember.GroupRole.LEADER;
+    GroupMember.GroupRole coLeader = GroupMember.GroupRole.CO_LEADER;
+    GroupMember.GroupRole member = GroupMember.GroupRole.MEMBER;
 
-        // When & Then - 권한 계층 확인
-        assertNotNull(leader);
-        assertNotNull(coLeader);
-        assertNotNull(member);
+    // When & Then - 권한 계층 확인
+    assertNotNull(leader);
+    assertNotNull(coLeader);
+    assertNotNull(member);
 
-        // 각 역할이 다른지 확인
-        assertNotEquals(leader, coLeader);
-        assertNotEquals(coLeader, member);
-        assertNotEquals(leader, member);
-    }
+    // 각 역할이 다른지 확인
+    assertNotEquals(leader, coLeader);
+    assertNotEquals(coLeader, member);
+    assertNotEquals(leader, member);
+  }
 }

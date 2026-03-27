@@ -1,16 +1,28 @@
 // src/components/RAG/RAGDocumentManager.jsx
-import React, { useCallback, useState } from 'react';
-import PropTypes from 'prop-types';
-import { Box, Grid, Alert, Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import DocumentList from './DocumentList.jsx';
-import SimilarTestCases from './SimilarTestCases.jsx';
-import RAGChatInterface from './RAGChatInterface.jsx';
-import DocumentChunks from './DocumentChunks.jsx'; // 청크 다이얼로그 임포트
-import DocumentAnalysis from './DocumentAnalysis.jsx'; // LLM 분석 컴포넌트
-import { useRAG } from '../../context/RAGContext.jsx'; // RAG_DISABLED_MESSAGE 제거
-import { useI18n } from '../../context/I18nContext.jsx';
-import { PAGE_CONTAINER_SX, GRID_SETTINGS, RESPONSIVE_SETTINGS } from '../../styles/layoutConstants';
+import React, { useCallback, useState } from "react";
+import PropTypes from "prop-types";
+import {
+  Box,
+  Grid,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import DocumentList from "./DocumentList.jsx";
+import SimilarTestCases from "./SimilarTestCases.jsx";
+import RAGChatInterface from "./RAGChatInterface.jsx";
+import DocumentChunks from "./DocumentChunks.jsx"; // 청크 다이얼로그 임포트
+import DocumentAnalysis from "./DocumentAnalysis.jsx"; // LLM 분석 컴포넌트
+import { useRAG } from "../../context/RAGContext.jsx"; // RAG_DISABLED_MESSAGE 제거
+import { useI18n } from "../../context/I18nContext.jsx";
+import {
+  PAGE_CONTAINER_SX,
+  GRID_SETTINGS,
+  RESPONSIVE_SETTINGS,
+} from "../../styles/layoutConstants";
 
 function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   const { t } = useI18n();
@@ -30,18 +42,25 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
     document: null,
   });
 
-  const handleAddTestCase = useCallback((testCaseData) => {
-    if (onAddTestCase) {
-      onAddTestCase(testCaseData);
-    }
-  }, [onAddTestCase]);
+  const handleAddTestCase = useCallback(
+    (testCaseData) => {
+      if (onAddTestCase) {
+        onAddTestCase(testCaseData);
+      }
+    },
+    [onAddTestCase],
+  );
 
   // 채팅창에서 문서 클릭 시 (청크 인덱스와 함께 호출됨)
   const handleDocumentClick = useCallback(async (ragDocument) => {
     // documentId 결정: ragDocument.documentId 또는 ragDocument.id 사용
     const documentId = ragDocument?.documentId || ragDocument?.id;
 
-    if (!ragDocument || !documentId || ragDocument.fileName?.startsWith('testcase_')) {
+    if (
+      !ragDocument ||
+      !documentId ||
+      ragDocument.fileName?.startsWith("testcase_")
+    ) {
       return;
     }
 
@@ -69,28 +88,35 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   }, []);
 
   const handleCloseChunksDialog = useCallback(() => {
-    setChunksModalState({ open: false, document: null, highlightChunkId: null });
+    setChunksModalState({
+      open: false,
+      document: null,
+      highlightChunkId: null,
+    });
   }, []);
 
   // LLM 분석 다이얼로그 열기
-  const handleLlmAnalysis = useCallback(async (documentOrId) => {
-    // documentOrId가 문자열(UUID)이면 문서를 조회, 객체면 그대로 사용
-    let document = documentOrId;
+  const handleLlmAnalysis = useCallback(
+    async (documentOrId) => {
+      // documentOrId가 문자열(UUID)이면 문서를 조회, 객체면 그대로 사용
+      let document = documentOrId;
 
-    if (typeof documentOrId === 'string') {
-      try {
-        document = await getDocument(documentOrId);
-      } catch (error) {
-        console.error('문서 조회 실패:', error);
-        return;
+      if (typeof documentOrId === "string") {
+        try {
+          document = await getDocument(documentOrId);
+        } catch (error) {
+          console.error("문서 조회 실패:", error);
+          return;
+        }
       }
-    }
 
-    setLlmAnalysisModalState({
-      open: true,
-      document,
-    });
-  }, [getDocument]);
+      setLlmAnalysisModalState({
+        open: true,
+        document,
+      });
+    },
+    [getDocument],
+  );
 
   // LLM 분석 다이얼로그 닫기
   const handleCloseLlmAnalysis = useCallback(() => {
@@ -101,7 +127,7 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
     return (
       <Box sx={PAGE_CONTAINER_SX.main}>
         <Alert severity="warning">
-          {t('rag.manager.noProject', '프로젝트를 먼저 선택해주세요.')}
+          {t("rag.manager.noProject", "프로젝트를 먼저 선택해주세요.")}
         </Alert>
       </Box>
     );
@@ -111,7 +137,10 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   if (!isRagEnabled) {
     return (
       <Box sx={PAGE_CONTAINER_SX.main}>
-        <Alert severity="info">{ragDisabledMessage || 'RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다.'}</Alert>
+        <Alert severity="info">
+          {ragDisabledMessage ||
+            "RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다."}
+        </Alert>
       </Box>
     );
   }
@@ -166,8 +195,15 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
           maxWidth="lg"
           fullWidth
         >
-          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {t('rag.llmAnalysis.title', 'LLM 청크 분석')} - {llmAnalysisModalState.document.fileName}
+          <DialogTitle
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            {t("rag.llmAnalysis.title", "LLM 청크 분석")} -{" "}
+            {llmAnalysisModalState.document.fileName}
             <IconButton onClick={handleCloseLlmAnalysis} size="small">
               <CloseIcon />
             </IconButton>
@@ -187,9 +223,7 @@ RAGDocumentManagerContent.propTypes = {
 };
 
 function RAGDocumentManager(props) {
-  return (
-    <RAGDocumentManagerContent {...props} />
-  );
+  return <RAGDocumentManagerContent {...props} />;
 }
 
 RAGDocumentManager.propTypes = {

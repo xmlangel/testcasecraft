@@ -1,5 +1,5 @@
-const path = require('path');
-const fs = require('fs');
+const path = require("path");
+const fs = require("fs");
 
 /**
  * Takes a screenshot for a specific test step and saves it in a structured directory.
@@ -10,20 +10,24 @@ const fs = require('fs');
  */
 async function takeStepScreenshot(page, testInfo, stepName) {
   // Extract the base name of the test file (e.g., 'login.spec')
-  const baseName = path.basename(testInfo.file, '.js');
-  
+  const baseName = path.basename(testInfo.file, ".js");
+
   // Create a unique directory for the test's screenshots
   // e.g., .../e2e-tests/regression/screenshots/login.spec/
-  const screenshotDir = path.join(path.dirname(testInfo.file), 'screenshots', baseName);
+  const screenshotDir = path.join(
+    path.dirname(testInfo.file),
+    "screenshots",
+    baseName,
+  );
 
   // Ensure the directory for the test's screenshots exists
   if (!fs.existsSync(screenshotDir)) {
     fs.mkdirSync(screenshotDir, { recursive: true });
   }
-  
+
   // Define the full path for the screenshot
   const screenshotPath = path.join(screenshotDir, `${stepName}.png`);
-  
+
   // Take and save the screenshot
   await page.screenshot({ path: screenshotPath });
 }

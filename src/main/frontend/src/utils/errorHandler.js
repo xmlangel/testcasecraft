@@ -3,17 +3,17 @@
  * 통합 에러 핸들링 시스템
  */
 
-import { ApiError } from '../services/apiService.js';
+import { ApiError } from "../services/apiService.js";
 
 /**
  * 에러 타입 정의
  */
 export const ErrorTypes = {
-  NETWORK: 'NETWORK',
-  AUTH: 'AUTH',
-  VALIDATION: 'VALIDATION',
-  SERVER: 'SERVER',
-  UNKNOWN: 'UNKNOWN',
+  NETWORK: "NETWORK",
+  AUTH: "AUTH",
+  VALIDATION: "VALIDATION",
+  SERVER: "SERVER",
+  UNKNOWN: "UNKNOWN",
 };
 
 /**
@@ -26,7 +26,7 @@ export function classifyError(error) {
     if (error.status >= 400 && error.status < 500) return ErrorTypes.VALIDATION;
     if (error.status >= 500) return ErrorTypes.SERVER;
   }
-  
+
   return ErrorTypes.UNKNOWN;
 }
 
@@ -35,22 +35,22 @@ export function classifyError(error) {
  */
 export function getUserFriendlyMessage(error) {
   const errorType = classifyError(error);
-  
+
   switch (errorType) {
     case ErrorTypes.NETWORK:
-      return '네트워크 연결을 확인해주세요.';
-    
+      return "네트워크 연결을 확인해주세요.";
+
     case ErrorTypes.AUTH:
-      return '로그인이 필요하거나 권한이 없습니다.';
-    
+      return "로그인이 필요하거나 권한이 없습니다.";
+
     case ErrorTypes.VALIDATION:
-      return error.message || '입력한 정보를 확인해주세요.';
-    
+      return error.message || "입력한 정보를 확인해주세요.";
+
     case ErrorTypes.SERVER:
-      return '서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    
+      return "서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
+
     default:
-      return error.message || '알 수 없는 오류가 발생했습니다.';
+      return error.message || "알 수 없는 오류가 발생했습니다.";
   }
 }
 
@@ -68,20 +68,20 @@ class ErrorHandler {
    */
   setupGlobalHandlers() {
     // unhandled promise rejection 처리
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
+    window.addEventListener("unhandledrejection", (event) => {
+      console.error("Unhandled promise rejection:", event.reason);
       this.handleError(event.reason);
       event.preventDefault();
     });
 
     // 일반 JavaScript 에러 처리
-    window.addEventListener('error', (event) => {
-      console.error('Global error:', event.error);
+    window.addEventListener("error", (event) => {
+      console.error("Global error:", event.error);
       this.handleError(event.error);
     });
 
     // 인증 실패 이벤트 처리
-    window.addEventListener('auth:logout', () => {
+    window.addEventListener("auth:logout", () => {
       this.handleAuthFailure();
     });
   }
@@ -102,15 +102,19 @@ class ErrorHandler {
     };
 
     // 개발 환경에서 에러 정보만 출력
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error Handled:', { type: errorType, message: userMessage, error });
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error Handled:", {
+        type: errorType,
+        message: userMessage,
+        error,
+      });
     }
 
     // 에러 리스너들에게 알림
     this.notifyListeners(errorInfo);
 
     // 에러 로깅 (운영 환경에서)
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       this.logError(errorInfo);
     }
 
@@ -124,7 +128,7 @@ class ErrorHandler {
     // 로그인 페이지로 리다이렉트하거나 모달 표시
     this.notifyListeners({
       type: ErrorTypes.AUTH,
-      message: '세션이 만료되었습니다. 다시 로그인해주세요.',
+      message: "세션이 만료되었습니다. 다시 로그인해주세요.",
       timestamp: new Date().toISOString(),
       requiresReauth: true,
     });
@@ -135,7 +139,7 @@ class ErrorHandler {
    */
   addErrorListener(listener) {
     this.errorListeners.push(listener);
-    
+
     // 리스너 제거 함수 반환
     return () => {
       const index = this.errorListeners.indexOf(listener);
@@ -149,11 +153,11 @@ class ErrorHandler {
    * 에러 리스너들에게 알림
    */
   notifyListeners(errorInfo) {
-    this.errorListeners.forEach(listener => {
+    this.errorListeners.forEach((listener) => {
       try {
         listener(errorInfo);
       } catch (e) {
-        console.error('Error in error listener:', e);
+        console.error("Error in error listener:", e);
       }
     });
   }
@@ -164,7 +168,7 @@ class ErrorHandler {
   logError(errorInfo) {
     // 여기에 외부 로깅 서비스 연동 (예: Sentry, LogRocket 등)
     // 현재는 콘솔에만 출력
-    console.error('Production error:', errorInfo);
+    console.error("Production error:", errorInfo);
   }
 
   /**
@@ -187,7 +191,7 @@ class ErrorHandler {
   createErrorBoundaryInfo(error, errorInfo) {
     return {
       type: ErrorTypes.UNKNOWN,
-      message: '화면을 표시하는 중 오류가 발생했습니다.',
+      message: "화면을 표시하는 중 오류가 발생했습니다.",
       originalError: error,
       componentStack: errorInfo?.componentStack,
       timestamp: new Date().toISOString(),

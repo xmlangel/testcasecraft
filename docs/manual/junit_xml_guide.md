@@ -15,6 +15,7 @@ JUnit XML은 소프트웨어 테스트 결과를 기계가 읽을 수 있는 XML
 ## 2. 지원하는 XML 구조
 
 ### 2.1. 표준 JUnit 형식 (General)
+
 일반적인 테스트 성공/실패 정보를 포함하는 구조입니다.
 
 ```xml
@@ -32,6 +33,7 @@ JUnit XML은 소프트웨어 테스트 결과를 기계가 읽을 수 있는 XML
 ```
 
 ### 2.2. 상세 단계 확장 형식 (Structured Steps)
+
 테스트를 여러 단계로 나누어 각 단계의 이름, 기대값, 실제값을 구조적으로 표현할 수 있습니다. 시스템은 개발자가 정의한 임의의 태그 이름(한글 포함)을 자동으로 인식하여 화면에 표시합니다.
 
 ```xml
@@ -56,15 +58,18 @@ JUnit XML은 소프트웨어 테스트 결과를 기계가 읽을 수 있는 XML
 업로드된 JUnit XML 결과는 시스템에서 다음과 같이 표시됩니다.
 
 ### 3.1. 대시보드 및 리스트
+
 - 전체 테스트 수, 성공률(%), 실패/에러/스킵 수 집계.
 
 ### 3.2. 상세 내역 (TestCaseDetailPanel)
-- **TraceLog 및 Test Body 탭**: 
+
+- **TraceLog 및 Test Body 탭**:
   - 상세 단계 정보(`steps`)가 있는 경우, **최상단**에 "Detailed Test steps" 섹션이 나타납니다.
   - XML에 정의된 태그 이름(예: `<단계명>`, `<상태>`)이 레이블로 변환되어 가독성 있게 표시됩니다.
   - 데이터는 자동으로 격자 형태로 배치되며, 화면 크기에 맞게 조절됩니다.
 
 ### 3.3. 전체 화면 보기
+
 - 우측 상단의 **전체 화면 버튼**을 눌러 복잡한 단계 내역과 로그를 큰 화면에서 분석할 수 있습니다.
 
 ---
@@ -82,6 +87,7 @@ JUnit XML은 소프트웨어 테스트 결과를 기계가 읽을 수 있는 XML
 본 시스템은 한국어, 영어, 일본어 등 다국어 내용을 완벽하게 지원하며, 태그 이름 자체를 한국어로 구성해도 정상적으로 인식합니다.
 
 ### 샘플 파일 다운로드/참조
+
 - [한국어 태그 및 내용 샘플](file:///Users/dicky/kmdata/git/testcase/testcasecraft-private/docs/manual/sample_api_kr.xml): `<기대결과>`, `<실제결과>` 등 한글 태그 활용 예시
 - [일본어 내용 샘플](file:///Users/dicky/kmdata/git/testcase/testcasecraft-private/docs/manual/sample_ui_jp.xml): 일본어로 된 테스트 단계 및 결과 예시
 - [다국어 혼합 샘플](file:///Users/dicky/kmdata/git/testcase/testcasecraft-private/docs/manual/sample_mobile_multi.xml): 한/영/일 언어가 혼합된 모바일 테스트 예시

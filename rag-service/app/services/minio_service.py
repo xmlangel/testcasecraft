@@ -1,4 +1,5 @@
 """MinIO storage service for document management"""
+
 import io
 import logging
 from typing import Optional, BinaryIO
@@ -21,7 +22,7 @@ class MinIOService:
             settings.MINIO_ENDPOINT,
             access_key=settings.MINIO_ACCESS_KEY,
             secret_key=settings.MINIO_SECRET_KEY,
-            secure=settings.MINIO_SECURE
+            secure=settings.MINIO_SECURE,
         )
         self.bucket_name = settings.MINIO_BUCKET
         self._ensure_bucket_exists()
@@ -39,10 +40,7 @@ class MinIOService:
             raise HTTPException(status_code=500, detail=f"MinIO bucket error: {str(e)}")
 
     async def upload_file(
-        self,
-        file: UploadFile,
-        object_key: str,
-        content_type: Optional[str] = None
+        self, file: UploadFile, object_key: str, content_type: Optional[str] = None
     ) -> dict:
         """
         Upload a file to MinIO
@@ -73,7 +71,7 @@ class MinIOService:
                 object_name=object_key,
                 data=io.BytesIO(file_content),
                 length=file_size,
-                content_type=content_type
+                content_type=content_type,
             )
 
             logger.info(f"Uploaded file to MinIO: {object_key} ({file_size} bytes)")
@@ -82,7 +80,7 @@ class MinIOService:
                 "bucket": self.bucket_name,
                 "object_key": object_key,
                 "file_size": file_size,
-                "content_type": content_type
+                "content_type": content_type,
             }
 
         except S3Error as e:
@@ -104,8 +102,7 @@ class MinIOService:
         """
         try:
             response = self.client.get_object(
-                bucket_name=self.bucket_name,
-                object_name=object_key
+                bucket_name=self.bucket_name, object_name=object_key
             )
             logger.info(f"Downloaded file from MinIO: {object_key}")
             return response
@@ -114,7 +111,9 @@ class MinIOService:
             logger.error(f"MinIO download error for {object_key}: {e}")
             if e.code == "NoSuchKey":
                 raise HTTPException(status_code=404, detail="File not found in storage")
-            raise HTTPException(status_code=500, detail=f"File download failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"File download failed: {str(e)}"
+            )
         except Exception as e:
             logger.error(f"Unexpected error during download: {e}")
             raise HTTPException(status_code=500, detail=f"Download error: {str(e)}")
@@ -131,8 +130,7 @@ class MinIOService:
         """
         try:
             self.client.remove_object(
-                bucket_name=self.bucket_name,
-                object_name=object_key
+                bucket_name=self.bucket_name, object_name=object_key
             )
             logger.info(f"Deleted file from MinIO: {object_key}")
             return True
@@ -141,9 +139,13 @@ class MinIOService:
             logger.error(f"MinIO delete error for {object_key}: {e}")
             # Don't raise exception if file doesn't exist
             if e.code == "NoSuchKey":
-                logger.warning(f"File not found in MinIO, skipping deletion: {object_key}")
+                logger.warning(
+                    f"File not found in MinIO, skipping deletion: {object_key}"
+                )
                 return True
-            raise HTTPException(status_code=500, detail=f"File deletion failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"File deletion failed: {str(e)}"
+            )
         except Exception as e:
             logger.error(f"Unexpected error during deletion: {e}")
             raise HTTPException(status_code=500, detail=f"Deletion error: {str(e)}")
@@ -160,8 +162,7 @@ class MinIOService:
         """
         try:
             stat = self.client.stat_object(
-                bucket_name=self.bucket_name,
-                object_name=object_key
+                bucket_name=self.bucket_name, object_name=object_key
             )
 
             return {
@@ -170,16 +171,20 @@ class MinIOService:
                 "size": stat.size,
                 "content_type": stat.content_type,
                 "etag": stat.etag,
-                "last_modified": stat.last_modified
+                "last_modified": stat.last_modified,
             }
 
         except S3Error as e:
             logger.error(f"MinIO stat error for {object_key}: {e}")
             if e.code == "NoSuchKey":
                 raise HTTPException(status_code=404, detail="File not found in storage")
-            raise HTTPException(status_code=500, detail=f"Failed to get file metadata: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to get file metadata: {str(e)}"
+            )
 
-    def generate_presigned_url(self, object_key: str, expires: timedelta = timedelta(hours=1)) -> str:
+    def generate_presigned_url(
+        self, object_key: str, expires: timedelta = timedelta(hours=1)
+    ) -> str:
         """
         Generate a presigned URL for temporary file access
 
@@ -192,16 +197,16 @@ class MinIOService:
         """
         try:
             url = self.client.presigned_get_object(
-                bucket_name=self.bucket_name,
-                object_name=object_key,
-                expires=expires
+                bucket_name=self.bucket_name, object_name=object_key, expires=expires
             )
             logger.info(f"Generated presigned URL for: {object_key}")
             return url
 
         except S3Error as e:
             logger.error(f"MinIO presigned URL error for {object_key}: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to generate download URL: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to generate download URL: {str(e)}"
+            )
 
 
 # Global MinIO service instance

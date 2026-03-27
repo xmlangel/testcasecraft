@@ -43,34 +43,34 @@ import {
 } from '@mui/icons-material';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppContext } from '../context/AppContext';
-import { 
-  createTestExecution, 
-  ExecutionStatus, 
-  TestResult 
+import {
+  createTestExecution,
+  ExecutionStatus,
+  TestResult
 } from '../models/testExecution';
 import TestResultForm from './TestResultForm';
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
-  const { 
-    state, 
-    addTestExecution, 
-    updateTestExecution, 
-    startTestExecution, 
+  const {
+    state,
+    addTestExecution,
+    updateTestExecution,
+    startTestExecution,
     completeTestExecution,
     updateTestResult,
     getTestCase,
     getTestPlan
   } = useAppContext();
-  
+
   const { testPlans, testExecutions } = state;
   const [formOpen, setFormOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Execution state initialization
-  const initialExecution = useMemo(() =&gt; 
-    executionId 
-      ? testExecutions.find(exec =&gt; exec.id === executionId) 
+  const initialExecution = useMemo(() =&gt;
+    executionId
+      ? testExecutions.find(exec =&gt; exec.id === executionId)
       : createTestExecution(`exec-${uuidv4()}`, '', '', '')
   , [executionId, testExecutions]);
 
@@ -275,28 +275,28 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
                   &lt;/Typography&gt;
 
                   &lt;Box sx={{ mb: 2 }}&gt;
-                    &lt;StatusInfoItem 
+                    &lt;StatusInfoItem
                       label="현재 상태"
                       value={renderStatusChip(execution.status)}
                     /&gt;
-                    &lt;StatusInfoItem 
+                    &lt;StatusInfoItem
                       label="시작 일시"
-                      value={execution.startDate ? 
+                      value={execution.startDate ?
                         new Date(execution.startDate).toLocaleString() : '-'}
                     /&gt;
-                    &lt;StatusInfoItem 
+                    &lt;StatusInfoItem
                       label="종료 일시"
-                      value={execution.endDate ? 
+                      value={execution.endDate ?
                         new Date(execution.endDate).toLocaleString() : '-'}
                     /&gt;
-                    
+
                     &lt;Box sx={{ mt: 2 }}&gt;
                       &lt;Typography variant="body2" gutterBottom&gt;
                         전체 진행률: {calculateProgress()}%
                       &lt;/Typography&gt;
-                      &lt;LinearProgress 
-                        variant="determinate" 
-                        value={calculateProgress()} 
+                      &lt;LinearProgress
+                        variant="determinate"
+                        value={calculateProgress()}
                         sx={{ height: 8, borderRadius: 4 }}
                       /&gt;
                     &lt;/Box&gt;
@@ -338,26 +338,26 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
               canEnterResults={canEnterResults}
               onOpenResultForm={handleOpenResultForm}
             /&gt;
-          
+
         )}
       &lt;/DialogContent&gt;
 
       &lt;DialogActions&gt;
-        &lt;Button 
+        &lt;Button
           onClick={onCancel}
           aria-label="테스트 실행 관리 닫기"
         &gt;
           닫기
         &lt;/Button&gt;
         {execution.status === ExecutionStatus.NOT_STARTED &amp;&amp; (
-          &lt;Button 
+          &lt;Button
             onClick={() =&gt; {
               const updated = { ...execution, updatedAt: new Date().toISOString() };
               executionId ? updateTestExecution(updated) : addTestExecution(updated);
               onSave?.(updated.id);
               setFormOpen(false);
             }}
-            variant="contained" 
+            variant="contained"
             color="primary"
             disabled={!execution.name || !execution.testPlanId}
             aria-label="테스트 실행 저장"
@@ -369,7 +369,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) =&gt; {
 
       {/* Result Form */}
       {isResultFormOpen &amp;&amp; (
-        &lt;TestResultForm 
+        &lt;TestResultForm
           open={isResultFormOpen}
           testCaseId={selectedTestCaseId}
           executionId={execution.id}
@@ -424,7 +424,7 @@ const TestCaseResultsTable = ({ selectedPlan, execution, getTestCase, canEnterRe
             selectedPlan.testCaseIds.map((testCaseId, index) =&gt; {
               const testCase = getTestCase(testCaseId);
               const result = results[testCaseId] || { result: TestResult.NOT_RUN };
-              
+
               return testCase ? (
                 &lt;TableRow key={testCaseId}&gt;
                   &lt;TableCell&gt;{index + 1}&lt;/TableCell&gt;
@@ -438,8 +438,8 @@ const TestCaseResultsTable = ({ selectedPlan, execution, getTestCase, canEnterRe
                     &lt;/Typography&gt;
                   &lt;/TableCell&gt;
                   &lt;TableCell align="center"&gt;
-                    &lt;IconButton 
-                      size="small" 
+                    &lt;IconButton
+                      size="small"
                       onClick={() =&gt; onOpenResultForm(testCaseId)}
                       disabled={!canEnterResults}
                       aria-label={`${testCase.name} 결과 입력`}
@@ -502,27 +502,27 @@ export default TestExecutionForm;
 **주요 개선 사항**:
 
 1. **성능 최적화**:
-    - `useCallback` 및 `useMemo`를 사용한 메모이제이션
-    - 불필요한 재렌더링 방지
+   - `useCallback` 및 `useMemo`를 사용한 메모이제이션
+   - 불필요한 재렌더링 방지
 2. **접근성 강화**:
-    - 모든 상호작용 요소에 aria-label 추가
-    - 테이블에 aria-label 적용
+   - 모든 상호작용 요소에 aria-label 추가
+   - 테이블에 aria-label 적용
 3. **코드 구조 개선**:
-    - 재사용 가능한 서브 컴포넌트 분리
-    - 상태 관리 로직 간소화
+   - 재사용 가능한 서브 컴포넌트 분리
+   - 상태 관리 로직 간소화
 4. **에러 처리 강화**:
-    - 데이터 로딩 상태 표시
-    - 에러 메시지 표시 기능 추가
+   - 데이터 로딩 상태 표시
+   - 에러 메시지 표시 기능 추가
 5. **타입 안정성**:
-    - PropTypes 명시적 정의
-    - 중복 코드 제거
+   - PropTypes 명시적 정의
+   - 중복 코드 제거
 6. **UX 개선**:
-    - 진행률 표시 방식 개선
-    - 결과 아이콘 통일성 강화
-    - 툴팁 및 접근성 정보 추가
+   - 진행률 표시 방식 개선
+   - 결과 아이콘 통일성 강화
+   - 툴팁 및 접근성 정보 추가
 7. **테스트 용이성**:
-    - 컴포넌트 분리를 통한 테스트 용이성 개선
-    - 데이터 테스트 ID 속성 추가
+   - 컴포넌트 분리를 통한 테스트 용이성 개선
+   - 데이터 테스트 ID 속성 추가
 
 단위 테스트 시 다음 사항들을 주요 검증 포인트로 삼아야 합니다:
 
@@ -535,6 +535,4 @@ export default TestExecutionForm;
 <div style="text-align: center">⁂</div>
 
 [^1]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/64515862/4066763e-f2b0-4f88-8a6e-b259cb17b258/paste-1.txt
-
 [^2]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/64515862/3aee9113-5561-4fa5-abbc-57aa7515ef9c/paste-2.txt
-

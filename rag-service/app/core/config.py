@@ -1,4 +1,5 @@
 """Application configuration settings"""
+
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -13,7 +14,9 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Database
-    DATABASE_URL: str = "postgresql://rag_user:rag_dev_password_123@postgres-rag:5432/rag_db"
+    DATABASE_URL: str = (
+        "postgresql://rag_user:rag_dev_password_123@postgres-rag:5432/rag_db"
+    )
 
     # MinIO
     MINIO_ENDPOINT: str = "host.docker.internal:9000"

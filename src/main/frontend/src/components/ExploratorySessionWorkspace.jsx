@@ -153,7 +153,10 @@ function ExploratorySessionWorkspace({ projectId }) {
     try {
       const response = await api(`/api/projects/${projectId}/charters`);
       if (!response.ok) {
-        const message = await parseApiError(response, "차터 목록을 불러오지 못했습니다.");
+        const message = await parseApiError(
+          response,
+          "차터 목록을 불러오지 못했습니다.",
+        );
         setCharterError(message);
         return;
       }
@@ -177,7 +180,10 @@ function ExploratorySessionWorkspace({ projectId }) {
     }
 
     setSessionDraft((prev) => {
-      if (prev.charterId && charters.some((charter) => charter.id === prev.charterId)) {
+      if (
+        prev.charterId &&
+        charters.some((charter) => charter.id === prev.charterId)
+      ) {
         return prev;
       }
       return { ...prev, charterId: charters[0].id };
@@ -214,15 +220,26 @@ function ExploratorySessionWorkspace({ projectId }) {
 
     const newErrors = {};
     if (!charterForm.title.trim()) {
-      newErrors.title = t("exploratory.charter.error.titleRequired", "차터 이름은 필수입니다.");
+      newErrors.title = t(
+        "exploratory.charter.error.titleRequired",
+        "차터 이름은 필수입니다.",
+      );
     }
     if (!charterForm.mission.trim()) {
-      newErrors.mission = t("exploratory.charter.error.missionRequired", "내용은 필수입니다.");
+      newErrors.mission = t(
+        "exploratory.charter.error.missionRequired",
+        "내용은 필수입니다.",
+      );
     }
 
     if (Object.keys(newErrors).length > 0) {
       setCharterErrors(newErrors);
-      setCharterError(t("exploratory.charter.error.checkFields", "필수 항목을 확인해 주세요."));
+      setCharterError(
+        t(
+          "exploratory.charter.error.checkFields",
+          "필수 항목을 확인해 주세요.",
+        ),
+      );
       return;
     }
 
@@ -252,7 +269,9 @@ function ExploratorySessionWorkspace({ projectId }) {
       if (!response.ok) {
         const message = await parseApiError(
           response,
-          editingCharter ? "차터 수정에 실패했습니다." : "차터 생성에 실패했습니다."
+          editingCharter
+            ? "차터 수정에 실패했습니다."
+            : "차터 생성에 실패했습니다.",
         );
         setCharterError(message);
         return;
@@ -297,9 +316,14 @@ function ExploratorySessionWorkspace({ projectId }) {
       params.set("sort", "createdAt,desc");
 
       const query = params.toString();
-      const response = await api(`/api/projects/${projectId}/sessions${query ? `?${query}` : ""}`);
+      const response = await api(
+        `/api/projects/${projectId}/sessions${query ? `?${query}` : ""}`,
+      );
       if (!response.ok) {
-        const message = await parseApiError(response, "세션 목록을 불러오지 못했습니다.");
+        const message = await parseApiError(
+          response,
+          "세션 목록을 불러오지 못했습니다.",
+        );
         setSessionError(message);
         return;
       }
@@ -345,7 +369,9 @@ function ExploratorySessionWorkspace({ projectId }) {
     return true;
   });
 
-  const selectedCharter = charters.find((item) => item.id === sessionDraft.charterId);
+  const selectedCharter = charters.find(
+    (item) => item.id === sessionDraft.charterId,
+  );
   const totalRatio =
     Number(sessionDraft.timeExecution) +
     Number(sessionDraft.timeBugInvestigation) +
@@ -366,9 +392,21 @@ function ExploratorySessionWorkspace({ projectId }) {
 
   return (
     <Paper sx={{ p: 2, minHeight: "calc(100vh - 230px)" }}>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
-        <Typography variant="h6">{t("exploratory.workspace.title", "탐색 세션 워크스페이스")}</Typography>
-        <Chip label={t("exploratory.workspace.badgeDraft", "UI 초안")} size="small" />
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 1,
+        }}
+      >
+        <Typography variant="h6">
+          {t("exploratory.workspace.title", "탐색 세션 워크스페이스")}
+        </Typography>
+        <Chip
+          label={t("exploratory.workspace.badgeDraft", "UI 초안")}
+          size="small"
+        />
       </Box>
 
       <Tabs value={view} onChange={(_, value) => setView(value)} sx={{ mb: 2 }}>

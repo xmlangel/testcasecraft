@@ -1,7 +1,7 @@
 // src/components/TestCase/JiraIntegrationReportSection.jsx
 // ICT-224: JIRA 연동 리포트 섹션 컴포넌트
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -25,8 +25,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   Tooltip,
-  Badge
-} from '@mui/material';
+  Badge,
+} from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
   OpenInNew as OpenInNewIcon,
@@ -38,10 +38,21 @@ import {
   Warning as WarningIcon,
   Info as InfoIcon,
   Link as LinkIcon,
-  LinkOff as LinkOffIcon
-} from '@mui/icons-material';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { JIRA_STATUS_COLORS, CHART_COLORS } from '../../constants/statusColors';
+  LinkOff as LinkOffIcon,
+} from "@mui/icons-material";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { JIRA_STATUS_COLORS, CHART_COLORS } from "../../constants/statusColors";
 
 /**
  * JIRA 연동 리포트 섹션 컴포넌트
@@ -54,13 +65,13 @@ const JiraIntegrationReportSection = ({
   testResults = [],
   projectId,
   onRefresh,
-  loading = false
+  loading = false,
 }) => {
   // 상태 관리
   const [jiraData, setJiraData] = useState({
     statusSummary: [],
     issueDetails: [],
-    unlinkedCases: []
+    unlinkedCases: [],
   });
   const [expanded, setExpanded] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -73,11 +84,11 @@ const JiraIntegrationReportSection = ({
   // JIRA 상태별 아이콘
   const getJiraStatusIcon = (status) => {
     switch (status) {
-      case 'Done':
+      case "Done":
         return <CheckCircleIcon fontSize="small" />;
-      case 'Blocked':
+      case "Blocked":
         return <ErrorIcon fontSize="small" />;
-      case 'In Progress':
+      case "In Progress":
         return <WarningIcon fontSize="small" />;
       default:
         return <InfoIcon fontSize="small" />;
@@ -95,50 +106,52 @@ const JiraIntegrationReportSection = ({
       setJiraData({
         statusSummary: [],
         issueDetails: [],
-        unlinkedCases: []
+        unlinkedCases: [],
       });
       return;
     }
 
     // JIRA 이슈가 있는 케이스와 없는 케이스 분리
-    const linkedCases = testResults.filter(result => result.jiraIssueKey);
-    const unlinkedCases = testResults.filter(result => !result.jiraIssueKey);
+    const linkedCases = testResults.filter((result) => result.jiraIssueKey);
+    const unlinkedCases = testResults.filter((result) => !result.jiraIssueKey);
 
     // JIRA 상태별 집계
     const statusCounts = {};
-    linkedCases.forEach(result => {
-      const status = result.jiraStatus || 'Unknown';
+    linkedCases.forEach((result) => {
+      const status = result.jiraStatus || "Unknown";
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
 
-    const statusSummary = Object.entries(statusCounts).map(([status, count]) => ({
-      status,
-      count,
-      color: getJiraStatusColor(status)
-    }));
+    const statusSummary = Object.entries(statusCounts).map(
+      ([status, count]) => ({
+        status,
+        count,
+        color: getJiraStatusColor(status),
+      }),
+    );
 
     // JIRA 이슈 상세 정보
     const issueMap = {};
-    linkedCases.forEach(result => {
+    linkedCases.forEach((result) => {
       const issueKey = result.jiraIssueKey;
       if (!issueMap[issueKey]) {
         issueMap[issueKey] = {
           issueKey,
-          status: result.jiraStatus || 'Unknown',
+          status: result.jiraStatus || "Unknown",
           testCases: [],
-          results: { PASS: 0, FAIL: 0, BLOCKED: 0, NOT_RUN: 0 }
+          results: { PASS: 0, FAIL: 0, BLOCKED: 0, NOT_RUN: 0 },
         };
       }
-      
+
       issueMap[issueKey].testCases.push({
         id: result.testCaseId,
         name: result.testCaseName,
         result: result.result,
         executedAt: result.executedAt,
-        folderPath: result.folderPath
+        folderPath: result.folderPath,
       });
-      
-      issueMap[issueKey].results[result.result] = 
+
+      issueMap[issueKey].results[result.result] =
         (issueMap[issueKey].results[result.result] || 0) + 1;
     });
 
@@ -147,13 +160,13 @@ const JiraIntegrationReportSection = ({
     setJiraData({
       statusSummary,
       issueDetails,
-      unlinkedCases: unlinkedCases.map(result => ({
+      unlinkedCases: unlinkedCases.map((result) => ({
         id: result.testCaseId,
         name: result.testCaseName,
         folderPath: result.folderPath,
         result: result.result,
-        executedAt: result.executedAt
-      }))
+        executedAt: result.executedAt,
+      })),
     });
   };
 
@@ -165,7 +178,7 @@ const JiraIntegrationReportSection = ({
         await onRefresh();
       }
     } catch (error) {
-      console.error('JIRA 데이터 새로고침 실패:', error);
+      console.error("JIRA 데이터 새로고침 실패:", error);
     } finally {
       setRefreshing(false);
     }
@@ -174,8 +187,9 @@ const JiraIntegrationReportSection = ({
   // JIRA 이슈 링크 열기
   const openJiraIssue = (issueKey) => {
     // 실제 JIRA 서버 URL로 변경 필요
-    const jiraBaseUrl = import.meta.env.VITE_JIRA_BASE_URL || 'https://your-jira-server.com';
-    window.open(`${jiraBaseUrl}/browse/${issueKey}`, '_blank');
+    const jiraBaseUrl =
+      import.meta.env.VITE_JIRA_BASE_URL || "https://your-jira-server.com";
+    window.open(`${jiraBaseUrl}/browse/${issueKey}`, "_blank");
   };
 
   // 통계 카드 렌더링
@@ -183,13 +197,14 @@ const JiraIntegrationReportSection = ({
     const totalLinked = jiraData.issueDetails.length;
     const totalUnlinked = jiraData.unlinkedCases.length;
     const totalCases = totalLinked + totalUnlinked;
-    const linkageRate = totalCases > 0 ? Math.round((totalLinked / totalCases) * 100) : 0;
+    const linkageRate =
+      totalCases > 0 ? Math.round((totalLinked / totalCases) * 100) : 0;
 
     return (
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
-            <CardContent sx={{ textAlign: 'center', p: 2 }}>
+            <CardContent sx={{ textAlign: "center", p: 2 }}>
               <LinkIcon color="primary" sx={{ fontSize: 32, mb: 1 }} />
               <Typography variant="h6" fontWeight="bold">
                 {totalLinked}
@@ -200,10 +215,10 @@ const JiraIntegrationReportSection = ({
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
-            <CardContent sx={{ textAlign: 'center', p: 2 }}>
+            <CardContent sx={{ textAlign: "center", p: 2 }}>
               <LinkOffIcon color="warning" sx={{ fontSize: 32, mb: 1 }} />
               <Typography variant="h6" fontWeight="bold">
                 {totalUnlinked}
@@ -214,10 +229,10 @@ const JiraIntegrationReportSection = ({
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
-            <CardContent sx={{ textAlign: 'center', p: 2 }}>
+            <CardContent sx={{ textAlign: "center", p: 2 }}>
               <AssignmentIcon color="info" sx={{ fontSize: 32, mb: 1 }} />
               <Typography variant="h6" fontWeight="bold">
                 {jiraData.issueDetails.length}
@@ -228,10 +243,10 @@ const JiraIntegrationReportSection = ({
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
-            <CardContent sx={{ textAlign: 'center', p: 2 }}>
+            <CardContent sx={{ textAlign: "center", p: 2 }}>
               <CheckCircleIcon color="success" sx={{ fontSize: 32, mb: 1 }} />
               <Typography variant="h6" fontWeight="bold">
                 {linkageRate}%
@@ -249,11 +264,7 @@ const JiraIntegrationReportSection = ({
   // 상태별 차트 렌더링
   const renderStatusChart = () => {
     if (!jiraData.statusSummary.length) {
-      return (
-        <Alert severity="info">
-          JIRA 연동 데이터가 없습니다.
-        </Alert>
-      );
+      return <Alert severity="info">JIRA 연동 데이터가 없습니다.</Alert>;
     }
 
     return (
@@ -282,7 +293,7 @@ const JiraIntegrationReportSection = ({
             </ResponsiveContainer>
           </Paper>
         </Grid>
-        
+
         <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
@@ -306,11 +317,7 @@ const JiraIntegrationReportSection = ({
   // JIRA 이슈 상세 목록 렌더링
   const renderIssueDetails = () => {
     if (!jiraData.issueDetails.length) {
-      return (
-        <Alert severity="info">
-          연결된 JIRA 이슈가 없습니다.
-        </Alert>
-      );
+      return <Alert severity="info">연결된 JIRA 이슈가 없습니다.</Alert>;
     }
 
     return (
@@ -331,7 +338,7 @@ const JiraIntegrationReportSection = ({
             {jiraData.issueDetails.map((issue) => (
               <TableRow key={issue.issueKey} hover>
                 <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <BugReportIcon fontSize="small" color="primary" />
                     <Typography variant="body2" fontWeight="medium">
                       {issue.issueKey}
@@ -343,9 +350,9 @@ const JiraIntegrationReportSection = ({
                     icon={getJiraStatusIcon(issue.status)}
                     label={issue.status}
                     size="small"
-                    sx={{ 
+                    sx={{
                       backgroundColor: getJiraStatusColor(issue.status),
-                      color: 'white'
+                      color: "white",
                     }}
                   />
                 </TableCell>
@@ -355,33 +362,36 @@ const JiraIntegrationReportSection = ({
                   </Badge>
                 </TableCell>
                 <TableCell align="center">
-                  <Chip 
-                    label={issue.results.PASS || 0} 
-                    size="small" 
-                    color="success" 
+                  <Chip
+                    label={issue.results.PASS || 0}
+                    size="small"
+                    color="success"
                     variant="outlined"
                   />
                 </TableCell>
                 <TableCell align="center">
-                  <Chip 
-                    label={issue.results.FAIL || 0} 
-                    size="small" 
-                    color="error" 
+                  <Chip
+                    label={issue.results.FAIL || 0}
+                    size="small"
+                    color="error"
                     variant="outlined"
                   />
                 </TableCell>
                 <TableCell align="center">
-                  <Chip 
-                    label={(issue.results.BLOCKED || 0) + (issue.results.NOT_RUN || 0)} 
-                    size="small" 
-                    color="default" 
+                  <Chip
+                    label={
+                      (issue.results.BLOCKED || 0) +
+                      (issue.results.NOT_RUN || 0)
+                    }
+                    size="small"
+                    color="default"
                     variant="outlined"
                   />
                 </TableCell>
                 <TableCell align="center">
                   <Tooltip title="JIRA에서 열기">
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       onClick={() => openJiraIssue(issue.issueKey)}
                     >
                       <OpenInNewIcon fontSize="small" />
@@ -409,9 +419,10 @@ const JiraIntegrationReportSection = ({
     return (
       <Box>
         <Alert severity="warning" sx={{ mb: 2 }}>
-          {jiraData.unlinkedCases.length}개의 테스트 케이스가 JIRA 이슈와 연결되지 않았습니다.
+          {jiraData.unlinkedCases.length}개의 테스트 케이스가 JIRA 이슈와
+          연결되지 않았습니다.
         </Alert>
-        
+
         <TableContainer component={Paper} variant="outlined">
           <Table size="small">
             <TableHead>
@@ -431,21 +442,21 @@ const JiraIntegrationReportSection = ({
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">
-                      {testCase.name}
-                    </Typography>
+                    <Typography variant="body2">{testCase.name}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip 
-                      label={testCase.result} 
+                    <Chip
+                      label={testCase.result}
                       size="small"
-                      color={testCase.result === 'PASS' ? 'success' : 'error'}
+                      color={testCase.result === "PASS" ? "success" : "error"}
                       variant="outlined"
                     />
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
-                      {testCase.executedAt ? new Date(testCase.executedAt).toLocaleDateString() : '-'}
+                      {testCase.executedAt
+                        ? new Date(testCase.executedAt).toLocaleDateString()
+                        : "-"}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -453,9 +464,13 @@ const JiraIntegrationReportSection = ({
             </TableBody>
           </Table>
         </TableContainer>
-        
+
         {jiraData.unlinkedCases.length > 10 && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 1, textAlign: "center" }}
+          >
             ... 및 {jiraData.unlinkedCases.length - 10}개 더
           </Typography>
         )}
@@ -465,14 +480,24 @@ const JiraIntegrationReportSection = ({
 
   return (
     <Box>
-      <Accordion expanded={expanded} onChange={(e, isExpanded) => setExpanded(isExpanded)}>
+      <Accordion
+        expanded={expanded}
+        onChange={(e, isExpanded) => setExpanded(isExpanded)}
+      >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              width: "100%",
+            }}
+          >
             <BugReportIcon color="primary" />
             <Typography variant="h6">JIRA 연동 리포트</Typography>
-            <Box sx={{ ml: 'auto', mr: 2 }}>
-              <IconButton 
-                size="small" 
+            <Box sx={{ ml: "auto", mr: 2 }}>
+              <IconButton
+                size="small"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRefresh();
@@ -488,22 +513,20 @@ const JiraIntegrationReportSection = ({
             </Box>
           </Box>
         </AccordionSummary>
-        
+
         <AccordionDetails>
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <CircularProgress />
             </Box>
           ) : (
             <Box>
               {/* 요약 카드 */}
               {renderSummaryCards()}
-              
+
               {/* 상태별 차트 */}
-              <Box sx={{ mb: 3 }}>
-                {renderStatusChart()}
-              </Box>
-              
+              <Box sx={{ mb: 3 }}>{renderStatusChart()}</Box>
+
               {/* JIRA 이슈 상세 */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
@@ -511,7 +534,7 @@ const JiraIntegrationReportSection = ({
                 </Typography>
                 {renderIssueDetails()}
               </Box>
-              
+
               {/* 미연결 케이스 */}
               <Box>
                 <Typography variant="h6" gutterBottom>

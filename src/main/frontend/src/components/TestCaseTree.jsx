@@ -1,10 +1,30 @@
-import React, { useState, useRef, useMemo, useEffect, useCallback, startTransition } from "react";
+import React, {
+  useState,
+  useRef,
+  useMemo,
+  useEffect,
+  useCallback,
+  startTransition,
+} from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import {
-  Box, IconButton, Menu, MenuItem, Typography, TextField, CircularProgress,
-  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  Button, Checkbox, Toolbar, FormControlLabel
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+  TextField,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+  Checkbox,
+  Toolbar,
+  FormControlLabel,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -30,7 +50,15 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useProject } from "../context/ProjectContext.jsx";
 import { useTest } from "../context/TestContext.jsx";
 import { useInputMode } from "../context/InputModeContext.jsx";
-import { listToTree, isFolder, getAncestorIds, getAllChildIds, getAllDescendants, buildChildrenMap, flattenTree } from "../utils/treeUtils.jsx";
+import {
+  listToTree,
+  isFolder,
+  getAncestorIds,
+  getAllChildIds,
+  getAllDescendants,
+  buildChildrenMap,
+  flattenTree,
+} from "../utils/treeUtils.jsx";
 import TestCaseVersionHistory from "./TestCase/TestCaseVersionHistory.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { DeleteConfirmationDialog } from "./TestCase/Spreadsheet/components/DeleteConfirmationDialog.jsx";
@@ -58,220 +86,271 @@ const countTestCasesRecursive = (nodes) => {
 };
 
 // 개별 트리 아이템 컴포넌트 (성능을 위해 메모이제이션)
-const MemoizedTreeItem = React.memo(({
-  node,
-  idx,
-  siblings,
-  isSelected,
-  isChecked,
-  selectable,
-  userRole, // role만 전달하여 객체 참조 변경 방지
-  orderEditMode,
-  nodeOrder,
-  testCaseCount,
-  onCheck,
-  onContextMenu,
-  onAddItem,
-  onRename,
-  onDelete,
-  onMoveOrder,
-  onOpenVersionHistory,
-  newItemData,
-  setNewItemData,
-  handleConfirmAdd,
-  handleCancelAdd,
-  t,
-  depth,
-  isExpanded,
-  onToggle,
-  onSelect
-}) => {
-  // ... (labelContent and addChildInput remain the same, but using userRole)
-  const isViewerRole = userRole === "VIEWER";
-  
-  // placeholder 타입인 경우 (신규 항목 추가 중)
-  if (node.type === 'placeholder') {
-    return (
-      <Box 
-        sx={{ 
-          pl: `${(depth || 0) * 16}px`, 
-          display: "flex", 
-          alignItems: "center",
-          py: 0.5,
-          width: "100%",
-          bgcolor: "rgba(0, 123, 255, 0.05)",
-          borderRadius: 1,
-          mb: 0.5
-        }}
-      >
-        {newItemData?.type === "folder" ? (
-          <FolderIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
-        ) : (
-          <DescriptionIcon sx={{ mr: 1, fontSize: 20 }} />
-        )}
-        <TextField
-          size="small"
-          placeholder={newItemData?.type === 'folder' ? t('common.folder', '폴더') : t('common.testcase', '테스트케이스')}
-          value={newItemData?.name || ''}
-          onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
-          onKeyDown={(e) => e.stopPropagation()}
-          onKeyPress={(e) => { if (e.key === "Enter") handleConfirmAdd(); }}
-          autoFocus
-          sx={{ flexGrow: 1, mr: 1, "& .MuiInputBase-root": { height: 32, fontSize: "0.875rem" } }}
-        />
-        <IconButton size="small" onClick={handleConfirmAdd} color="primary" data-add-confirm="true">
-          <AddIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" onClick={handleCancelAdd} color="error" data-add-cancel="true">
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
-    );
-  }
+const MemoizedTreeItem = React.memo(
+  ({
+    node,
+    idx,
+    siblings,
+    isSelected,
+    isChecked,
+    selectable,
+    userRole, // role만 전달하여 객체 참조 변경 방지
+    orderEditMode,
+    nodeOrder,
+    testCaseCount,
+    onCheck,
+    onContextMenu,
+    onAddItem,
+    onRename,
+    onDelete,
+    onMoveOrder,
+    onOpenVersionHistory,
+    newItemData,
+    setNewItemData,
+    handleConfirmAdd,
+    handleCancelAdd,
+    t,
+    depth,
+    isExpanded,
+    onToggle,
+    onSelect,
+  }) => {
+    // ... (labelContent and addChildInput remain the same, but using userRole)
+    const isViewerRole = userRole === "VIEWER";
 
-  const labelContent = (
-    <Box
-      sx={{ display: "flex", alignItems: "center", width: "100%" }}
-      onContextMenu={(e) => onContextMenu(e, node.id)}
-    >
-      {!isViewerRole && (
-        <Checkbox
-          size="small"
-          checked={isChecked}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => onCheck(e, node.id)}
-          sx={{ mr: 0.5, p: 0.5 }}
-        />
-      )}
-      {isFolder(node) ? (
-        <FolderIcon color="primary" sx={{ mr: 1 }} />
-      ) : (
-        <DescriptionIcon sx={{ mr: 1 }} />
-      )}
-      <Typography 
-        variant="body2" 
-        sx={{ 
-          fontWeight: isSelected ? "bold" : "normal",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          flexGrow: 1
-        }}
-      >
-        {node.name}
-      </Typography>
-      <Typography variant="caption" sx={{ ml: 1, color: "primary.dark", fontWeight: "bold", whiteSpace: "nowrap" }}>
-        #{nodeOrder}
-      </Typography>
-      {orderEditMode && !isViewerRole && (
-        <Box sx={{ display: "flex", ml: 1 }}>
+    // placeholder 타입인 경우 (신규 항목 추가 중)
+    if (node.type === "placeholder") {
+      return (
+        <Box
+          sx={{
+            pl: `${(depth || 0) * 16}px`,
+            display: "flex",
+            alignItems: "center",
+            py: 0.5,
+            width: "100%",
+            bgcolor: "rgba(0, 123, 255, 0.05)",
+            borderRadius: 1,
+            mb: 0.5,
+          }}
+        >
+          {newItemData?.type === "folder" ? (
+            <FolderIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
+          ) : (
+            <DescriptionIcon sx={{ mr: 1, fontSize: 20 }} />
+          )}
+          <TextField
+            size="small"
+            placeholder={
+              newItemData?.type === "folder"
+                ? t("common.folder", "폴더")
+                : t("common.testcase", "테스트케이스")
+            }
+            value={newItemData?.name || ""}
+            onChange={(e) =>
+              setNewItemData({ ...newItemData, name: e.target.value })
+            }
+            onKeyDown={(e) => e.stopPropagation()}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") handleConfirmAdd();
+            }}
+            autoFocus
+            sx={{
+              flexGrow: 1,
+              mr: 1,
+              "& .MuiInputBase-root": { height: 32, fontSize: "0.875rem" },
+            }}
+          />
           <IconButton
             size="small"
-            disabled={idx === 0 || !siblings}
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveOrder(node.id, "up");
-            }}
+            onClick={handleConfirmAdd}
+            color="primary"
+            data-add-confirm="true"
           >
-            <ArrowUpwardIcon fontSize="inherit" />
+            <AddIcon fontSize="small" />
           </IconButton>
           <IconButton
             size="small"
-            disabled={idx === (siblings?.length || 0) - 1}
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveOrder(node.id, "down");
-            }}
+            onClick={handleCancelAdd}
+            color="error"
+            data-add-cancel="true"
           >
-            <ArrowDownwardIcon fontSize="inherit" />
+            <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
-      )}
-      {isFolder(node) && (
-        <Typography variant="body2" sx={{ ml: 1, color: "success.light", fontWeight: "bold" }}>
-          {testCaseCount}
+      );
+    }
+
+    const labelContent = (
+      <Box
+        sx={{ display: "flex", alignItems: "center", width: "100%" }}
+        onContextMenu={(e) => onContextMenu(e, node.id)}
+      >
+        {!isViewerRole && (
+          <Checkbox
+            size="small"
+            checked={isChecked}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => onCheck(e, node.id)}
+            sx={{ mr: 0.5, p: 0.5 }}
+          />
+        )}
+        {isFolder(node) ? (
+          <FolderIcon color="primary" sx={{ mr: 1 }} />
+        ) : (
+          <DescriptionIcon sx={{ mr: 1 }} />
+        )}
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: isSelected ? "bold" : "normal",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            flexGrow: 1,
+          }}
+        >
+          {node.name}
         </Typography>
-      )}
-      {!selectable && !isViewerRole && (
-        <Box sx={{ marginLeft: "auto", display: "flex" }}>
-          {node.type === 'testcase' && (
+        <Typography
+          variant="caption"
+          sx={{
+            ml: 1,
+            color: "primary.dark",
+            fontWeight: "bold",
+            whiteSpace: "nowrap",
+          }}
+        >
+          #{nodeOrder}
+        </Typography>
+        {orderEditMode && !isViewerRole && (
+          <Box sx={{ display: "flex", ml: 1 }}>
+            <IconButton
+              size="small"
+              disabled={idx === 0 || !siblings}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveOrder(node.id, "up");
+              }}
+            >
+              <ArrowUpwardIcon fontSize="inherit" />
+            </IconButton>
+            <IconButton
+              size="small"
+              disabled={idx === (siblings?.length || 0) - 1}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveOrder(node.id, "down");
+              }}
+            >
+              <ArrowDownwardIcon fontSize="inherit" />
+            </IconButton>
+          </Box>
+        )}
+        {isFolder(node) && (
+          <Typography
+            variant="body2"
+            sx={{ ml: 1, color: "success.light", fontWeight: "bold" }}
+          >
+            {testCaseCount}
+          </Typography>
+        )}
+        {!selectable && !isViewerRole && (
+          <Box sx={{ marginLeft: "auto", display: "flex" }}>
+            {node.type === "testcase" && (
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenVersionHistory(node.id);
+                }}
+                title={t(
+                  "testcase.tree.action.versionHistory",
+                  "버전 히스토리",
+                )}
+              >
+                <HistoryIcon fontSize="small" />
+              </IconButton>
+            )}
             <IconButton
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
-                onOpenVersionHistory(node.id);
+                onContextMenu(e, node.id);
               }}
-              title={t('testcase.tree.action.versionHistory', '버전 히스토리')}
             >
-              <HistoryIcon fontSize="small" />
+              <MoreVertIcon fontSize="small" />
             </IconButton>
-          )}
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onContextMenu(e, node.id);
-            }}
-          >
-            <MoreVertIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      )}
-    </Box>
-  );
+          </Box>
+        )}
+      </Box>
+    );
 
-  return (
-    <Box
-      sx={{
-        pl: `${(depth || 0) * 16}px`, // 계층 깊이 표현 (16px 간격으로 최적화)
-        width: "100%",
-        "& .MuiTreeItem-content.Mui-selected": { backgroundColor: "rgba(0, 123, 255, 0.15)" },
-        "& .MuiTreeItem-content.Mui-selected:hover": { backgroundColor: "rgba(0, 123, 255, 0.25)" },
-      }}
-    >
+    return (
       <Box
-        onClick={(e) => onSelect(e, node.id)}
         sx={{
-          display: "flex",
-          alignItems: "center",
-          cursor: "pointer",
-          py: 0.25, // 패딩을 줄여서 한 번에 더 많은 항목 노출
-          minHeight: 32, // 최소 높이 보장
-          "&:hover": { bgcolor: "action.hover" },
-          bgcolor: isSelected ? "rgba(0, 123, 255, 0.1)" : "transparent",
-          borderRadius: 1,
-          mr: 1
+          pl: `${(depth || 0) * 16}px`, // 계층 깊이 표현 (16px 간격으로 최적화)
+          width: "100%",
+          "& .MuiTreeItem-content.Mui-selected": {
+            backgroundColor: "rgba(0, 123, 255, 0.15)",
+          },
+          "& .MuiTreeItem-content.Mui-selected:hover": {
+            backgroundColor: "rgba(0, 123, 255, 0.25)",
+          },
         }}
       >
-        {isFolder(node) && (
-          <IconButton size="small" onClick={onToggle} sx={{ p: 0.5, mr: 0.5 }}>
-            {isExpanded ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
-          </IconButton>
-        )}
-        {!isFolder(node) && <Box sx={{ width: 34 }} />}
-        {labelContent}
+        <Box
+          onClick={(e) => onSelect(e, node.id)}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
+            py: 0.25, // 패딩을 줄여서 한 번에 더 많은 항목 노출
+            minHeight: 32, // 최소 높이 보장
+            "&:hover": { bgcolor: "action.hover" },
+            bgcolor: isSelected ? "rgba(0, 123, 255, 0.1)" : "transparent",
+            borderRadius: 1,
+            mr: 1,
+          }}
+        >
+          {isFolder(node) && (
+            <IconButton
+              size="small"
+              onClick={onToggle}
+              sx={{ p: 0.5, mr: 0.5 }}
+            >
+              {isExpanded ? (
+                <ExpandMoreIcon fontSize="small" />
+              ) : (
+                <ChevronRightIcon fontSize="small" />
+              )}
+            </IconButton>
+          )}
+          {!isFolder(node) && <Box sx={{ width: 34 }} />}
+          {labelContent}
+        </Box>
       </Box>
-    </Box>
-  );
-}, (prevProps, nextProps) => {
-  return (
-    prevProps.isSelected === nextProps.isSelected &&
-    prevProps.isChecked === nextProps.isChecked &&
-    prevProps.isExpanded === nextProps.isExpanded &&
-    prevProps.nodeOrder === nextProps.nodeOrder &&
-    prevProps.testCaseCount === nextProps.testCaseCount &&
-    prevProps.orderEditMode === nextProps.orderEditMode &&
-    prevProps.userRole === nextProps.userRole &&
-    prevProps.node === nextProps.node &&
-    prevProps.newItemData === nextProps.newItemData &&
-    prevProps.depth === nextProps.depth &&
-    prevProps.idx === nextProps.idx &&
-    prevProps.siblings === nextProps.siblings &&
-    prevProps.onSelect === nextProps.onSelect &&
-    prevProps.handleCancelAdd === nextProps.handleCancelAdd &&
-    prevProps.handleConfirmAdd === nextProps.handleConfirmAdd
-  );
-});
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.isSelected === nextProps.isSelected &&
+      prevProps.isChecked === nextProps.isChecked &&
+      prevProps.isExpanded === nextProps.isExpanded &&
+      prevProps.nodeOrder === nextProps.nodeOrder &&
+      prevProps.testCaseCount === nextProps.testCaseCount &&
+      prevProps.orderEditMode === nextProps.orderEditMode &&
+      prevProps.userRole === nextProps.userRole &&
+      prevProps.node === nextProps.node &&
+      prevProps.newItemData === nextProps.newItemData &&
+      prevProps.depth === nextProps.depth &&
+      prevProps.idx === nextProps.idx &&
+      prevProps.siblings === nextProps.siblings &&
+      prevProps.onSelect === nextProps.onSelect &&
+      prevProps.handleCancelAdd === nextProps.handleCancelAdd &&
+      prevProps.handleConfirmAdd === nextProps.handleConfirmAdd
+    );
+  },
+);
 
 function sortByDisplayOrder(items, orderMap = {}) {
   return items.slice().sort((a, b) => {
@@ -291,17 +370,17 @@ const TestCaseTree = ({
 }) => {
   const { user } = useAuth();
   const { activeProject } = useProject();
-  const { 
-    testCases, 
-    addTestCase, 
-    updateTestCase, 
-    updateTestCaseLocal, 
-    deleteTestCase, 
-    setActiveTestCase, 
-    fetchProjectTestCases 
+  const {
+    testCases,
+    addTestCase,
+    updateTestCase,
+    updateTestCaseLocal,
+    deleteTestCase,
+    setActiveTestCase,
+    fetchProjectTestCases,
   } = useTest();
   const { inputMode, setInputMode } = useInputMode();
-  
+
   const { t } = useI18n();
 
   const [expanded, setExpanded] = useState([]);
@@ -319,7 +398,8 @@ const TestCaseTree = ({
   const [orderChanged, setOrderChanged] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
-  const [selectedVersionTestCaseId, setSelectedVersionTestCaseId] = useState(null);
+  const [selectedVersionTestCaseId, setSelectedVersionTestCaseId] =
+    useState(null);
 
   const highlightTimeout = useRef(null);
   const selectTimeout = useRef(null);
@@ -333,8 +413,11 @@ const TestCaseTree = ({
   }, [projectId]);
 
   const filteredTestCases = useMemo(
-    () => (projectId ? testCases.filter((tc) => tc.projectId === projectId) : testCases),
-    [projectId, testCases]
+    () =>
+      projectId
+        ? testCases.filter((tc) => tc.projectId === projectId)
+        : testCases,
+    [projectId, testCases],
   );
 
   // 외부 선택 상태 동기화
@@ -373,9 +456,15 @@ const TestCaseTree = ({
   }, [filteredTestCases, orderMap]);
 
   // O(N) 최적화: childrenMap을 useMemo로 캐싱하여 리트리 및 자식수 계산 시 재사용
-  const childrenMap = useMemo(() => buildChildrenMap(sortedTestCases), [sortedTestCases]);
+  const childrenMap = useMemo(
+    () => buildChildrenMap(sortedTestCases),
+    [sortedTestCases],
+  );
 
-  const treeData = useMemo(() => listToTree(sortedTestCases, null), [sortedTestCases]);
+  const treeData = useMemo(
+    () => listToTree(sortedTestCases, null),
+    [sortedTestCases],
+  );
 
   // 가상화를 위한 평탄화 데이터
   const flatData = useMemo(() => {
@@ -384,15 +473,15 @@ const TestCaseTree = ({
       const parentId = newItemData.parentId;
       if (parentId === null) {
         // 루트 추가: 맨 앞에 삽입
-        flat.unshift({ 
-          id: 'new-item-placeholder', 
-          type: 'placeholder', 
-          depth: 0, 
-          parentId: null 
+        flat.unshift({
+          id: "new-item-placeholder",
+          type: "placeholder",
+          depth: 0,
+          parentId: null,
         });
       } else {
         // 하위 추가: 부모 노드 바로 다음(또는 자식들 다음)에 삽입
-        const parentIndex = flat.findIndex(n => n.id === parentId);
+        const parentIndex = flat.findIndex((n) => n.id === parentId);
         if (parentIndex !== -1) {
           const parentDepth = flat[parentIndex].depth;
           // 부모의 자식들 중 마지막 위치 찾기
@@ -404,11 +493,11 @@ const TestCaseTree = ({
               break;
             }
           }
-          flat.splice(insertIndex, 0, { 
-            id: 'new-item-placeholder', 
-            type: 'placeholder', 
-            depth: parentDepth + 1, 
-            parentId 
+          flat.splice(insertIndex, 0, {
+            id: "new-item-placeholder",
+            type: "placeholder",
+            depth: parentDepth + 1,
+            parentId,
           });
         }
       }
@@ -427,17 +516,20 @@ const TestCaseTree = ({
 
   // 전체 테스트케이스 수 계산 (폴더 제외)
   const totalTestCaseCount = useMemo(() => {
-    return filteredTestCases.filter(tc => tc.type === 'testcase').length;
+    return filteredTestCases.filter((tc) => tc.type === "testcase").length;
   }, [filteredTestCases]);
 
   // 전체 폴더 수 계산
   const totalFolderCount = useMemo(() => {
-    return filteredTestCases.filter(tc => tc.type === 'folder').length;
+    return filteredTestCases.filter((tc) => tc.type === "folder").length;
   }, [filteredTestCases]);
 
   // testcase 타입만 선택 (폴더 제외)
-  const allIds = filteredTestCases.filter((tc) => tc.type === 'testcase').map((tc) => tc.id);
-  const isAllChecked = allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));
+  const allIds = filteredTestCases
+    .filter((tc) => tc.type === "testcase")
+    .map((tc) => tc.id);
+  const isAllChecked =
+    allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));
   const isIndeterminate = checkedIds.length > 0 && !isAllChecked;
 
   const handleCheckAll = (event) => {
@@ -458,76 +550,100 @@ const TestCaseTree = ({
 
   const handleToggleNode = useCallback((e, nodeId) => {
     e.stopPropagation();
-    setExpanded(prev => {
+    setExpanded((prev) => {
       const isExpanded = prev.includes(nodeId);
       const next = isExpanded
-        ? prev.filter(id => id !== nodeId)
+        ? prev.filter((id) => id !== nodeId)
         : [...prev, nodeId];
       return next;
     });
   }, []);
 
-  const handleSelect = useCallback((event, nodeId) => {
-    // 즉각적인 UI 피드백 (하이라이트 등)
-    setSelected(nodeId);
+  const handleSelect = useCallback(
+    (event, nodeId) => {
+      // 즉각적인 UI 피드백 (하이라이트 등)
+      setSelected(nodeId);
 
-    // 무거운 후속 작업은 Transition으로 분리하여 INP 개선
-    startTransition(() => {
-      const selectedTestCase = filteredTestCases.find((tc) => tc.id === nodeId);
-      if (selectable) {
-        if (selectedIds.includes(nodeId)) {
-          onSelectionChange(selectedIds.filter((id) => id !== nodeId));
+      // 무거운 후속 작업은 Transition으로 분리하여 INP 개선
+      startTransition(() => {
+        const selectedTestCase = filteredTestCases.find(
+          (tc) => tc.id === nodeId,
+        );
+        if (selectable) {
+          if (selectedIds.includes(nodeId)) {
+            onSelectionChange(selectedIds.filter((id) => id !== nodeId));
+          } else {
+            onSelectionChange([...selectedIds, nodeId]);
+          }
         } else {
-          onSelectionChange([...selectedIds, nodeId]);
+          setActiveTestCase(nodeId);
         }
-      } else {
-        setActiveTestCase(nodeId);
-      }
 
-      // 외부 콜백은 디바운싱 처리하여 잦은 대규모 상태 업데이트 방지
-      if (onSelectTestCase) {
-        if (selectTimeout.current) clearTimeout(selectTimeout.current);
-        selectTimeout.current = setTimeout(() => {
-          onSelectTestCase(selectedTestCase);
-        }, 50);
-      }
-    });
-  }, [filteredTestCases, selectable, selectedIds, onSelectionChange, setActiveTestCase, onSelectTestCase]);
+        // 외부 콜백은 디바운싱 처리하여 잦은 대규모 상태 업데이트 방지
+        if (onSelectTestCase) {
+          if (selectTimeout.current) clearTimeout(selectTimeout.current);
+          selectTimeout.current = setTimeout(() => {
+            onSelectTestCase(selectedTestCase);
+          }, 50);
+        }
+      });
+    },
+    [
+      filteredTestCases,
+      selectable,
+      selectedIds,
+      onSelectionChange,
+      setActiveTestCase,
+      onSelectTestCase,
+    ],
+  );
 
-  const handleContextMenu = useCallback((event, nodeId) => {
-    if (isViewer(user?.role) || selectable) return; // Viewer 또는 selectable 모드에서는 컨텍스트 메뉴 차단
-    event.preventDefault();
-    event.stopPropagation();
-    setSelected(nodeId);
-    setContextMenu({
-      mouseX: event.clientX,
-      mouseY: event.clientY,
-      nodeId,
-    });
-  }, [user?.role, selectable]);
+  const handleContextMenu = useCallback(
+    (event, nodeId) => {
+      if (isViewer(user?.role) || selectable) return; // Viewer 또는 selectable 모드에서는 컨텍스트 메뉴 차단
+      event.preventDefault();
+      event.stopPropagation();
+      setSelected(nodeId);
+      setContextMenu({
+        mouseX: event.clientX,
+        mouseY: event.clientY,
+        nodeId,
+      });
+    },
+    [user?.role, selectable],
+  );
 
   const handleCloseContextMenu = useCallback(() => setContextMenu(null), []);
 
-  const handleAddItem = useCallback((type) => {
-    // USER, VIEWER는 추가 불가
-    if (!canAdd(user?.role)) return;
-    const parentId = contextMenu?.nodeId ?? null;
-    setNewItemData({
-      type,
-      parentId,
-      name: "",
-      projectId,
-    });
-    if (parentId) {
-      const ancestorIds = getAncestorIds(filteredTestCases, parentId);
-      setExpanded((prev) => {
-        const set = new Set(prev);
-        ancestorIds.concat(parentId).forEach((id) => set.add(id));
-        return Array.from(set);
+  const handleAddItem = useCallback(
+    (type) => {
+      // USER, VIEWER는 추가 불가
+      if (!canAdd(user?.role)) return;
+      const parentId = contextMenu?.nodeId ?? null;
+      setNewItemData({
+        type,
+        parentId,
+        name: "",
+        projectId,
       });
-    }
-    handleCloseContextMenu();
-  }, [user?.role, contextMenu?.nodeId, projectId, filteredTestCases, handleCloseContextMenu]);
+      if (parentId) {
+        const ancestorIds = getAncestorIds(filteredTestCases, parentId);
+        setExpanded((prev) => {
+          const set = new Set(prev);
+          ancestorIds.concat(parentId).forEach((id) => set.add(id));
+          return Array.from(set);
+        });
+      }
+      handleCloseContextMenu();
+    },
+    [
+      user?.role,
+      contextMenu?.nodeId,
+      projectId,
+      filteredTestCases,
+      handleCloseContextMenu,
+    ],
+  );
 
   const handleCancelAdd = useCallback(() => setNewItemData(null), []);
 
@@ -535,7 +651,8 @@ const TestCaseTree = ({
     if (!newItemData || !newItemData.name || !newItemData.name.trim()) return;
     const id =
       newItemData.type === "folder" ? `folder-${uuidv4()}` : `test-${uuidv4()}`;
-    const parentId = newItemData.parentId === undefined ? null : newItemData.parentId;
+    const parentId =
+      newItemData.parentId === undefined ? null : newItemData.parentId;
     const siblings = filteredTestCases.filter((tc) => tc.parentId === parentId);
     const displayOrder =
       siblings.length > 0
@@ -559,42 +676,69 @@ const TestCaseTree = ({
     if (addedItem && onSelectTestCase) {
       onSelectTestCase(addedItem);
     }
-    if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
-      setInputMode('form');
+    if (inputMode === "spreadsheet" || inputMode === "advanced-spreadsheet") {
+      setInputMode("form");
     }
 
     // highlight use addedItem.id if available, fallback to local id
     const targetId = addedItem?.id || id;
     setHighlightedItemId(targetId);
     if (highlightTimeout.current) clearTimeout(highlightTimeout.current);
-    highlightTimeout.current = setTimeout(() => setHighlightedItemId(null), 1500);
-  }, [newItemData, filteredTestCases, projectId, addTestCase, onSelectTestCase, inputMode, setInputMode]);
+    highlightTimeout.current = setTimeout(
+      () => setHighlightedItemId(null),
+      1500,
+    );
+  }, [
+    newItemData,
+    filteredTestCases,
+    projectId,
+    addTestCase,
+    onSelectTestCase,
+    inputMode,
+    setInputMode,
+  ]);
 
   const handleRename = useCallback(() => {
     if (isViewer(user?.role)) return;
     const node = filteredTestCases.find((tc) => tc.id === contextMenu.nodeId);
     setRenameData({ id: node.id, name: node.name });
     handleCloseContextMenu();
-  }, [user?.role, filteredTestCases, contextMenu?.nodeId, handleCloseContextMenu]);
+  }, [
+    user?.role,
+    filteredTestCases,
+    contextMenu?.nodeId,
+    handleCloseContextMenu,
+  ]);
 
   const handleCancelRename = useCallback(() => setRenameData(null), []);
 
   const handleConfirmRename = async () => {
     if (!renameData.name || !renameData.name.trim()) {
-      alert(t('testcase.tree.validation.nameRequired', '이름을 입력하세요.'));
+      alert(t("testcase.tree.validation.nameRequired", "이름을 입력하세요."));
       return;
     }
-    const testCase = filteredTestCases.find(tc => tc.id === renameData.id);
+    const testCase = filteredTestCases.find((tc) => tc.id === renameData.id);
     if (!testCase) return;
-    const payload = testCase.type === 'folder'
-      ? { id: testCase.id, name: renameData.name.trim(), projectId: testCase.projectId, parentId: testCase.parentId, displayOrder: testCase.displayOrder, type: 'folder' }
-      : { ...testCase, name: renameData.name.trim() };
+    const payload =
+      testCase.type === "folder"
+        ? {
+            id: testCase.id,
+            name: renameData.name.trim(),
+            projectId: testCase.projectId,
+            parentId: testCase.parentId,
+            displayOrder: testCase.displayOrder,
+            type: "folder",
+          }
+        : { ...testCase, name: renameData.name.trim() };
     try {
       await updateTestCase(payload);
       // await fetchProjectTestCases(projectId);
       setRenameData(null);
     } catch (err) {
-      alert(t('testcase.tree.error.renameFailed', '이름 변경에 실패했습니다: ') + err.message);
+      alert(
+        t("testcase.tree.error.renameFailed", "이름 변경에 실패했습니다: ") +
+          err.message,
+      );
     }
   };
 
@@ -617,14 +761,16 @@ const TestCaseTree = ({
       // await fetchProjectTestCases(projectId); // State is already updated by deleteTestCase
 
       // 삭제 시 스프레드시트 깜빡임 방지를 위해 폼 모드로 전환 (ICT-UserReq)
-      if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
-        setInputMode('form');
+      if (inputMode === "spreadsheet" || inputMode === "advanced-spreadsheet") {
+        setInputMode("form");
       }
 
       setDeleteConfirmationOpen(false);
       setItemToDeleteId(null);
     } catch (err) {
-      let msg = err?.message || t('testcase.tree.error.deleteFailed', '삭제 중 오류가 발생했습니다.');
+      let msg =
+        err?.message ||
+        t("testcase.tree.error.deleteFailed", "삭제 중 오류가 발생했습니다.");
       if (err?.response?.data?.message) {
         msg = err.response.data.message;
       }
@@ -634,34 +780,39 @@ const TestCaseTree = ({
     }
   };
 
-  const handleCheck = useCallback((event, nodeId) => {
-    const isChecked = event.target.checked;
+  const handleCheck = useCallback(
+    (event, nodeId) => {
+      const isChecked = event.target.checked;
 
-    // O(N) 최적화된 getAllChildIds 사용
-    const childIds = getAllChildIds(filteredTestCases, nodeId);
+      // O(N) 최적화된 getAllChildIds 사용
+      const childIds = getAllChildIds(filteredTestCases, nodeId);
 
-    // 필터링 최적화: Map을 사용하여 한 번만 순회
-    const testCaseMap = new Map();
-    filteredTestCases.forEach(tc => {
-      if (tc.type === 'testcase') testCaseMap.set(tc.id, tc);
-    });
+      // 필터링 최적화: Map을 사용하여 한 번만 순회
+      const testCaseMap = new Map();
+      filteredTestCases.forEach((tc) => {
+        if (tc.type === "testcase") testCaseMap.set(tc.id, tc);
+      });
 
-    const testcaseChildIds = childIds.filter(id => testCaseMap.has(id));
-    const currentNode = testCaseMap.get(nodeId);
-    const isCurrentTestCase = !!currentNode;
+      const testcaseChildIds = childIds.filter((id) => testCaseMap.has(id));
+      const currentNode = testCaseMap.get(nodeId);
+      const isCurrentTestCase = !!currentNode;
 
-    let newCheckedIds;
-    if (isChecked) {
-      const idsToAdd = isCurrentTestCase ? [nodeId, ...testcaseChildIds] : testcaseChildIds;
-      newCheckedIds = Array.from(new Set([...checkedIds, ...idsToAdd]));
-    } else {
-      const idsToRemove = new Set([nodeId, ...childIds]);
-      newCheckedIds = checkedIds.filter(id => !idsToRemove.has(id));
-    }
+      let newCheckedIds;
+      if (isChecked) {
+        const idsToAdd = isCurrentTestCase
+          ? [nodeId, ...testcaseChildIds]
+          : testcaseChildIds;
+        newCheckedIds = Array.from(new Set([...checkedIds, ...idsToAdd]));
+      } else {
+        const idsToRemove = new Set([nodeId, ...childIds]);
+        newCheckedIds = checkedIds.filter((id) => !idsToRemove.has(id));
+      }
 
-    setCheckedIds(newCheckedIds);
-    if (selectable && onSelectionChange) onSelectionChange(newCheckedIds);
-  }, [filteredTestCases, checkedIds, selectable, onSelectionChange]);
+      setCheckedIds(newCheckedIds);
+      if (selectable && onSelectionChange) onSelectionChange(newCheckedIds);
+    },
+    [filteredTestCases, checkedIds, selectable, onSelectionChange],
+  );
 
   const isNodeChecked = (nodeId) => checkedIds.includes(nodeId);
 
@@ -678,43 +829,51 @@ const TestCaseTree = ({
       setSelected(selectedTestCaseId);
 
       // 해당 노드까지의 경로를 모두 확장
-      const selectedTestCase = filteredTestCases.find(tc => tc.id === selectedTestCaseId);
+      const selectedTestCase = filteredTestCases.find(
+        (tc) => tc.id === selectedTestCaseId,
+      );
       if (selectedTestCase) {
-        const ancestorIds = getAncestorIds(filteredTestCases, selectedTestCaseId);
-        setExpanded(prev => {
+        const ancestorIds = getAncestorIds(
+          filteredTestCases,
+          selectedTestCaseId,
+        );
+        setExpanded((prev) => {
           const expandedSet = new Set(prev);
-          ancestorIds.forEach(id => expandedSet.add(id));
+          ancestorIds.forEach((id) => expandedSet.add(id));
           return Array.from(expandedSet);
         });
       }
     }
   }, [selectedTestCaseId, filteredTestCases]);
 
-  const moveNodeOrder = useCallback((nodeId, direction) => {
-    if (isViewer(user?.role)) return;
-    const node = filteredTestCases.find((tc) => tc.id === nodeId);
-    if (!node) return;
+  const moveNodeOrder = useCallback(
+    (nodeId, direction) => {
+      if (isViewer(user?.role)) return;
+      const node = filteredTestCases.find((tc) => tc.id === nodeId);
+      if (!node) return;
 
-    const parentId = node.parentId ?? null;
-    const siblings = filteredTestCases
-      .filter((tc) => (tc.parentId ?? null) === parentId)
-      .sort((a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0));
+      const parentId = node.parentId ?? null;
+      const siblings = filteredTestCases
+        .filter((tc) => (tc.parentId ?? null) === parentId)
+        .sort((a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0));
 
-    const idx = siblings.findIndex((tc) => tc.id === nodeId);
-    if (idx === -1) return;
-    let targetIdx = direction === "up" ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= siblings.length) return;
+      const idx = siblings.findIndex((tc) => tc.id === nodeId);
+      if (idx === -1) return;
+      let targetIdx = direction === "up" ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= siblings.length) return;
 
-    const targetNode = siblings[targetIdx];
-    const newOrderMap = { ...orderMap };
-    [newOrderMap[nodeId], newOrderMap[targetNode.id]] = [
-      newOrderMap[targetNode.id],
-      newOrderMap[nodeId],
-    ];
+      const targetNode = siblings[targetIdx];
+      const newOrderMap = { ...orderMap };
+      [newOrderMap[nodeId], newOrderMap[targetNode.id]] = [
+        newOrderMap[targetNode.id],
+        newOrderMap[nodeId],
+      ];
 
-    setOrderMap(newOrderMap);
-    setOrderChanged(true);
-  }, [user?.role, filteredTestCases, orderMap]);
+      setOrderMap(newOrderMap);
+      setOrderChanged(true);
+    },
+    [user?.role, filteredTestCases, orderMap],
+  );
 
   const handleOrderEditMode = () => {
     if (isViewer(user?.role)) return;
@@ -746,20 +905,21 @@ const TestCaseTree = ({
 
         if (item.displayOrder !== newOrder) {
           // 폴더 타입의 경우 필수 필드만 전달 (스프레드시트 저장 후 데이터 불일치 방지)
-          const payload = item.type === 'folder'
-            ? {
-              id: item.id,
-              name: item.name,
-              type: 'folder',
-              projectId: item.projectId,
-              parentId: item.parentId ?? null,
-              displayOrder: newOrder,
-              description: item.description || ''
-            }
-            : {
-              ...item,
-              displayOrder: newOrder,
-            };
+          const payload =
+            item.type === "folder"
+              ? {
+                  id: item.id,
+                  name: item.name,
+                  type: "folder",
+                  projectId: item.projectId,
+                  parentId: item.parentId ?? null,
+                  displayOrder: newOrder,
+                  description: item.description || "",
+                }
+              : {
+                  ...item,
+                  displayOrder: newOrder,
+                };
 
           updates.push(updateTestCase(payload));
         }
@@ -788,8 +948,8 @@ const TestCaseTree = ({
     const nodeId = contextMenu?.nodeId;
     if (!nodeId) return;
 
-    const testCase = filteredTestCases.find(tc => tc.id === nodeId);
-    if (testCase && testCase.type === 'testcase') {
+    const testCase = filteredTestCases.find((tc) => tc.id === nodeId);
+    if (testCase && testCase.type === "testcase") {
       setSelectedVersionTestCaseId(nodeId);
       setVersionHistoryOpen(true);
     }
@@ -803,7 +963,9 @@ const TestCaseTree = ({
     }
     // 복원된 테스트케이스 자동 선택
     if (restoredVersion && onSelectTestCase) {
-      const testCase = filteredTestCases.find(tc => tc.id === restoredVersion.testCaseId);
+      const testCase = filteredTestCases.find(
+        (tc) => tc.id === restoredVersion.testCaseId,
+      );
       if (testCase) {
         onSelectTestCase(testCase);
       }
@@ -815,7 +977,9 @@ const TestCaseTree = ({
       const isSelected = selected === node.id;
       const isChecked = checkedIds.includes(node.id);
       const nodeOrder = orderMap[node.id] ?? node.displayOrder ?? 0;
-      const testCaseCount = isFolder(node) ? countTestCasesRecursive(node.children || []) : 0;
+      const testCaseCount = isFolder(node)
+        ? countTestCasesRecursive(node.children || [])
+        : 0;
 
       return (
         <MemoizedTreeItem
@@ -862,7 +1026,7 @@ const TestCaseTree = ({
     content = (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          {t('testcase.tree.message.selectProject', '프로젝트를 선택하세요.')}
+          {t("testcase.tree.message.selectProject", "프로젝트를 선택하세요.")}
         </Typography>
       </Box>
     );
@@ -871,7 +1035,7 @@ const TestCaseTree = ({
       <Box sx={{ p: 2 }}>
         <CircularProgress size={24} />
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {t('testcase.tree.message.loading', '로딩 중...')}
+          {t("testcase.tree.message.loading", "로딩 중...")}
         </Typography>
       </Box>
     );
@@ -879,7 +1043,7 @@ const TestCaseTree = ({
     content = (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          {t('testcase.tree.message.noTestcases', '테스트케이스가 없습니다.')}
+          {t("testcase.tree.message.noTestcases", "테스트케이스가 없습니다.")}
         </Typography>
       </Box>
     );
@@ -908,7 +1072,9 @@ const TestCaseTree = ({
             const isChecked = checkedIds.includes(node.id);
             const isExpanded = expanded.includes(node.id);
             const nodeOrder = orderMap[node.id] ?? node.displayOrder ?? 0;
-            const testCaseCount = isFolder(node) ? countTestCasesRecursive(node.children || []) : 0;
+            const testCaseCount = isFolder(node)
+              ? countTestCasesRecursive(node.children || [])
+              : 0;
 
             return (
               <Box
@@ -948,7 +1114,7 @@ const TestCaseTree = ({
                   handleConfirmAdd={handleConfirmAdd}
                   handleCancelAdd={handleCancelAdd}
                   t={t}
-                   onSelect={handleSelect}
+                  onSelect={handleSelect}
                   depth={node.depth}
                   idx={node.idx}
                   siblings={node.siblings}
@@ -962,33 +1128,40 @@ const TestCaseTree = ({
   }
 
   // 전체선택 체크박스: Viewer는 숨김
-  const rootCheckAll =
-    !isViewer(user?.role) && (
-      <Box sx={{ px: 2, pb: 1 }}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={isAllChecked}
-              indeterminate={isIndeterminate}
-              onChange={handleCheckAll}
-              size="small"
-            />
-          }
-          label={
-            <Box component="span" sx={{ fontSize: 14 }}>
-              {t('testcase.tree.selectAll', '전체 선택')}
-            </Box>
-          }
-        />
-      </Box>
-    );
+  const rootCheckAll = !isViewer(user?.role) && (
+    <Box sx={{ px: 2, pb: 1 }}>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={isAllChecked}
+            indeterminate={isIndeterminate}
+            onChange={handleCheckAll}
+            size="small"
+          />
+        }
+        label={
+          <Box component="span" sx={{ fontSize: 14 }}>
+            {t("testcase.tree.selectAll", "전체 선택")}
+          </Box>
+        }
+      />
+    </Box>
+  );
 
   // 루트 추가 입력: USER, VIEWER는 노출 금지
-  const rootAddInput =
-    newItemData && newItemData.parentId === null && canAdd(user?.role) && (
-      <Box sx={{ mb: 2, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+  const rootAddInput = newItemData &&
+    newItemData.parentId === null &&
+    canAdd(user?.role) && (
+      <Box
+        sx={{
+          mb: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+        }}
+      >
         <Typography variant="caption" color="text.secondary">
-          {t('testcase.tree.root', '루트')}
+          {t("testcase.tree.root", "루트")}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           {newItemData.type === "folder" ? (
@@ -1013,7 +1186,11 @@ const TestCaseTree = ({
             onBlur={(e) => {
               // 입력 필드 외부 클릭 시 포커스 다시 가져오기 (추가/취소 버튼 제외)
               const relatedTarget = e.relatedTarget;
-              if (!relatedTarget || (!relatedTarget.closest('[data-add-confirm]') && !relatedTarget.closest('[data-add-cancel]'))) {
+              if (
+                !relatedTarget ||
+                (!relatedTarget.closest("[data-add-confirm]") &&
+                  !relatedTarget.closest("[data-add-cancel]"))
+              ) {
                 setTimeout(() => {
                   e.target.focus();
                 }, 0);
@@ -1036,7 +1213,11 @@ const TestCaseTree = ({
           >
             <AddIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" onClick={handleCancelAdd} data-add-cancel="true">
+          <IconButton
+            size="small"
+            onClick={handleCancelAdd}
+            data-add-cancel="true"
+          >
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -1044,26 +1225,42 @@ const TestCaseTree = ({
     );
 
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
       {/* 헤더 영역 - Select All + 버튼들 */}
       <Box sx={{ px: 2, pt: 1, pb: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           {/* 좌측: Select All */}
           {!isViewer(user?.role) && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }} data-testid="testcase-check-all-container">
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1 }}
+              data-testid="testcase-check-all-container"
+            >
               <Checkbox
                 checked={isAllChecked}
                 indeterminate={isIndeterminate}
                 onChange={handleCheckAll}
                 size="small"
-                inputProps={{ 'data-testid': 'testcase-check-all-input' }}
+                inputProps={{ "data-testid": "testcase-check-all-input" }}
               />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                   <FolderIcon fontSize="small" color="action" />
                   <Typography variant="body2">{totalFolderCount}</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                   <DescriptionIcon fontSize="small" color="action" />
                   <Typography variant="body2">{totalTestCaseCount}</Typography>
                 </Box>
@@ -1073,7 +1270,7 @@ const TestCaseTree = ({
 
           {/* 우측: 버튼 그룹 (selectable 모드에서는 숨김) */}
           {!selectable && (
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Box sx={{ display: "flex", gap: 0.5 }}>
               {/* 1. 삭제 버튼 (체크박스 선택 시) */}
               {!isViewer(user?.role) && checkedIds.length > 0 && (
                 <Button
@@ -1082,14 +1279,20 @@ const TestCaseTree = ({
                   variant="outlined"
                   startIcon={<DeleteIcon />}
                   onClick={() => setBatchDeleteDialogOpen(true)}
-                  style={user?.role === "USER" ? { display: "none" } : undefined}
+                  style={
+                    user?.role === "USER" ? { display: "none" } : undefined
+                  }
                 >
                   ({checkedIds.length})
                 </Button>
               )}
 
               {/* 2. 새로고침 버튼 */}
-              <IconButton size="small" onClick={handleRefresh} title={t('testcase.tree.button.refresh', '리프레시')}>
+              <IconButton
+                size="small"
+                onClick={handleRefresh}
+                title={t("testcase.tree.button.refresh", "리프레시")}
+              >
                 <RefreshIcon />
               </IconButton>
 
@@ -1115,9 +1318,15 @@ const TestCaseTree = ({
                   {/* 4. 순서 변경 버튼 */}
                   <IconButton
                     size="small"
-                    onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
-                    color={orderEditMode ? 'primary' : 'default'}
-                    title={orderEditMode ? t('testcase.tree.button.saveOrder', '순서 저장') : t('testcase.tree.button.editOrder', '순서 편집')}
+                    onClick={
+                      orderEditMode ? handleOrderSave : handleOrderEditMode
+                    }
+                    color={orderEditMode ? "primary" : "default"}
+                    title={
+                      orderEditMode
+                        ? t("testcase.tree.button.saveOrder", "순서 저장")
+                        : t("testcase.tree.button.editOrder", "순서 편집")
+                    }
                     disabled={orderEditMode && !orderChanged}
                   >
                     {orderEditMode ? <SaveIcon /> : <SwapVertIcon />}
@@ -1129,7 +1338,7 @@ const TestCaseTree = ({
                       size="small"
                       color="error"
                       onClick={handleOrderCancel}
-                      title={t('testcase.tree.button.cancel', '취소')}
+                      title={t("testcase.tree.button.cancel", "취소")}
                     >
                       <CloseIcon />
                     </IconButton>
@@ -1142,7 +1351,7 @@ const TestCaseTree = ({
       </Box>
 
       {/* 구분선 */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mx: 2 }} />
+      <Box sx={{ borderBottom: 1, borderColor: "divider", mx: 2 }} />
 
       {/* Select All 아래로 이동 (이제 필요없음, 헤더에 통합됨) */}
       {content}
@@ -1163,84 +1372,96 @@ const TestCaseTree = ({
               <>
                 <MenuItem onClick={() => handleAddItem("folder")}>
                   <FolderIcon fontSize="small" sx={{ mr: 1 }} />
-                  {t('testcase.tree.action.addFolder', '폴더 추가')}
+                  {t("testcase.tree.action.addFolder", "폴더 추가")}
                 </MenuItem>
                 <MenuItem onClick={() => handleAddItem("testcase")}>
                   <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                  {t('testcase.tree.action.addTestcase', '테스트케이스 추가')}
+                  {t("testcase.tree.action.addTestcase", "테스트케이스 추가")}
                 </MenuItem>
               </>
             )
           ) : (
             <>
-              {isFolder(filteredTestCases.find((tc) => tc.id === contextMenu.nodeId)) &&
+              {isFolder(
+                filteredTestCases.find((tc) => tc.id === contextMenu.nodeId),
+              ) &&
                 canAdd(user?.role) && (
                   <>
                     <MenuItem onClick={() => handleAddItem("folder")}>
                       <FolderIcon fontSize="small" sx={{ mr: 1 }} />
-                      {t('testcase.tree.action.addSubFolder', '하위 폴더 추가')}
+                      {t("testcase.tree.action.addSubFolder", "하위 폴더 추가")}
                     </MenuItem>
                     <MenuItem onClick={() => handleAddItem("testcase")}>
                       <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                      {t('testcase.tree.action.addSubTestcase', '하위 테스트케이스 추가')}
+                      {t(
+                        "testcase.tree.action.addSubTestcase",
+                        "하위 테스트케이스 추가",
+                      )}
                     </MenuItem>
                   </>
                 )}
               <MenuItem divider />
               <MenuItem onClick={handleRename}>
                 <EditIcon fontSize="small" sx={{ mr: 1 }} />
-                {t('testcase.tree.action.rename', '이름 변경')}
+                {t("testcase.tree.action.rename", "이름 변경")}
               </MenuItem>
               {/* 테스트케이스에만 버전 히스토리 메뉴 표시 */}
-              {filteredTestCases.find(tc => tc.id === contextMenu.nodeId)?.type === 'testcase' && (
+              {filteredTestCases.find((tc) => tc.id === contextMenu.nodeId)
+                ?.type === "testcase" && (
                 <MenuItem onClick={handleOpenVersionHistory}>
                   <HistoryIcon fontSize="small" sx={{ mr: 1 }} />
-                  {t('testcase.tree.action.versionHistory', '버전 히스토리')}
+                  {t("testcase.tree.action.versionHistory", "버전 히스토리")}
                 </MenuItem>
               )}
               {canDelete(user?.role) && (
                 <MenuItem onClick={handleDeleteClick}>
                   <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-                  {t('testcase.tree.action.delete', '삭제')}
+                  {t("testcase.tree.action.delete", "삭제")}
                 </MenuItem>
               )}
             </>
           )}
         </Menu>
-      )
-      }
+      )}
       {/* 선택 삭제 다이얼로그 */}
       <DeleteConfirmationDialog
         open={batchDeleteDialogOpen}
         onClose={() => setBatchDeleteDialogOpen(false)}
         onConfirm={handleConfirmBatchDelete}
-        title={t('testcase.tree.dialog.batchDelete.title', '선택 삭제')}
-        description={t('testcase.tree.dialog.batchDelete.message', '{count}개 항목(하위 포함)을 삭제하시겠습니까?', { count: checkedIds.length })}
+        title={t("testcase.tree.dialog.batchDelete.title", "선택 삭제")}
+        description={t(
+          "testcase.tree.dialog.batchDelete.message",
+          "{count}개 항목(하위 포함)을 삭제하시겠습니까?",
+          { count: checkedIds.length },
+        )}
         items={(() => {
           // 선택된 항목과 그 하위 항목들을 모두 포함
           const allItems = new Map();
 
-          checkedIds.forEach(id => {
-            const item = filteredTestCases.find(tc => tc.id === id);
+          checkedIds.forEach((id) => {
+            const item = filteredTestCases.find((tc) => tc.id === id);
             if (item) {
               if (!allItems.has(item.id)) {
                 allItems.set(item.id, {
                   id: item.id,
                   displayId: item.displayId || item.sequentialId,
                   name: item.name,
-                  type: item.type
+                  type: item.type,
                 });
               }
               // 하위 항목 추가
-              if (item.type === 'folder') {
-                const descendants = getAllDescendants(filteredTestCases, item.id);
-                descendants.forEach(desc => {
+              if (item.type === "folder") {
+                const descendants = getAllDescendants(
+                  filteredTestCases,
+                  item.id,
+                );
+                descendants.forEach((desc) => {
                   if (!allItems.has(desc.id)) {
                     allItems.set(desc.id, {
                       id: desc.id,
                       displayId: desc.displayId || desc.sequentialId,
                       name: desc.name,
-                      type: desc.type
+                      type: desc.type,
                     });
                   }
                 });
@@ -1257,28 +1478,33 @@ const TestCaseTree = ({
         open={deleteConfirmationOpen}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title={t('testcase.tree.dialog.deleteConfirm.title', '삭제 확인')}
-        description={t('testcase.tree.dialog.deleteConfirm.message', '정말로 삭제하시겠습니까? (하위 항목 포함)')}
+        title={t("testcase.tree.dialog.deleteConfirm.title", "삭제 확인")}
+        description={t(
+          "testcase.tree.dialog.deleteConfirm.message",
+          "정말로 삭제하시겠습니까? (하위 항목 포함)",
+        )}
         items={(() => {
           if (!itemToDeleteId) return [];
-          const item = filteredTestCases.find(tc => tc.id === itemToDeleteId);
+          const item = filteredTestCases.find((tc) => tc.id === itemToDeleteId);
           if (!item) return [];
 
-          const items = [{
-            id: item.id,
-            displayId: item.displayId || item.sequentialId,
-            name: item.name,
-            type: item.type
-          }];
+          const items = [
+            {
+              id: item.id,
+              displayId: item.displayId || item.sequentialId,
+              name: item.name,
+              type: item.type,
+            },
+          ];
 
-          if (item.type === 'folder') {
+          if (item.type === "folder") {
             const descendants = getAllDescendants(filteredTestCases, item.id);
-            descendants.forEach(desc => {
+            descendants.forEach((desc) => {
               items.push({
                 id: desc.id,
                 displayId: desc.displayId || desc.sequentialId,
                 name: desc.name,
-                type: desc.type
+                type: desc.type,
               });
             });
           }
@@ -1286,13 +1512,15 @@ const TestCaseTree = ({
         })()}
       />
       <Dialog open={!!errorMessage} onClose={() => setErrorMessage("")}>
-        <DialogTitle>{t('testcase.tree.dialog.error.title', '오류')}</DialogTitle>
+        <DialogTitle>
+          {t("testcase.tree.dialog.error.title", "오류")}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>{errorMessage}</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setErrorMessage("")} autoFocus>
-            {t('testcase.tree.button.close', '닫기')}
+            {t("testcase.tree.button.close", "닫기")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1307,7 +1535,7 @@ const TestCaseTree = ({
         }}
         onRestore={handleVersionRestore}
       />
-    </Box >
+    </Box>
   );
 
   // 체크된 모든 항목(하위포함) 일괄 삭제
@@ -1315,8 +1543,8 @@ const TestCaseTree = ({
     try {
       // 백엔드 Cascade 설정으로 자식이 자동 삭제되므로, 선택된 항목만 삭제
       // 부모 노드들만 필터링 (자식 노드는 제외)
-      const parentOnlyIds = checkedIds.filter(id => {
-        const item = filteredTestCases.find(tc => tc.id === id);
+      const parentOnlyIds = checkedIds.filter((id) => {
+        const item = filteredTestCases.find((tc) => tc.id === id);
         if (!item) {
           return false;
         }
@@ -1328,7 +1556,9 @@ const TestCaseTree = ({
             // 부모가 이미 선택되어 있으면 현재 항목은 삭제 대상에서 제외
             return false;
           }
-          const parent = filteredTestCases.find(tc => tc.id === currentParentId);
+          const parent = filteredTestCases.find(
+            (tc) => tc.id === currentParentId,
+          );
           currentParentId = parent?.parentId;
         }
         return true;
@@ -1343,8 +1573,8 @@ const TestCaseTree = ({
       setBatchDeleteDialogOpen(false);
 
       // 삭제 시 스프레드시트 깜빡임 방지를 위해 폼 모드로 전환 (ICT-UserReq)
-      if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
-        setInputMode('form');
+      if (inputMode === "spreadsheet" || inputMode === "advanced-spreadsheet") {
+        setInputMode("form");
       }
 
       // 포커스 이슈 방지를 위해 setTimeout으로 체크박스 초기화
@@ -1354,8 +1584,10 @@ const TestCaseTree = ({
 
       // await fetchProjectTestCases(projectId);
     } catch (err) {
-      console.error('[TestCaseTree] 배치 삭제 중 오류:', err);
-      let msg = err?.message || t('testcase.tree.error.deleteFailed', '삭제 중 오류가 발생했습니다.');
+      console.error("[TestCaseTree] 배치 삭제 중 오류:", err);
+      let msg =
+        err?.message ||
+        t("testcase.tree.error.deleteFailed", "삭제 중 오류가 발생했습니다.");
       if (err?.response?.data?.message) {
         msg = err.response.data.message;
       }

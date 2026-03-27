@@ -3,6 +3,7 @@ from server import *
 import os
 from util import init_logger
 
+
 class TestServerFeatures(unittest.TestCase):
 
     def test_init_project(self):
@@ -16,14 +17,17 @@ class TestServerFeatures(unittest.TestCase):
         # Check if the project database was created
         db_dir = os.getenv("DB_DIR", "databases")
         db_path = os.path.join(db_dir, f"{project}.db")
-        self.assertTrue(os.path.exists(db_path), f"Database for project {project} was not created.")
-       
+        self.assertTrue(
+            os.path.exists(db_path), f"Database for project {project} was not created."
+        )
+
+
 if __name__ == "__main__":
     try:
-        init_logger()  # Initialize the logger       
+        init_logger()  # Initialize the logger
 
         unittest.main()
-        
+
     except Exception as e:
         # Log the error
         logging.error(f"Test failed: {e}")

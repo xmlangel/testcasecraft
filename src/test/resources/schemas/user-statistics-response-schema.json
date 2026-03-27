@@ -4,7 +4,7 @@
   "title": "사용자 통계 응답 스키마",
   "required": [
     "totalUsers",
-    "activeUsers", 
+    "activeUsers",
     "inactiveUsers",
     "adminUsers",
     "regularUsers",

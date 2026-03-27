@@ -3,13 +3,13 @@
  * 원자적 로딩 스피너 컴포넌트
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import React from "react";
+import PropTypes from "prop-types";
+import { Box, CircularProgress, Typography } from "@mui/material";
 
 const LoadingSpinner = ({
   size = 40,
-  color = 'primary',
+  color = "primary",
   text,
   centered = true,
   fullPage = false,
@@ -19,10 +19,10 @@ const LoadingSpinner = ({
     <>
       <CircularProgress size={size} color={color} {...props} />
       {text && (
-        <Typography 
-          variant="body2" 
-          color="textSecondary" 
-          sx={{ mt: 2, textAlign: 'center' }}
+        <Typography
+          variant="body2"
+          color="textSecondary"
+          sx={{ mt: 2, textAlign: "center" }}
         >
           {text}
         </Typography>
@@ -34,16 +34,16 @@ const LoadingSpinner = ({
     return (
       <Box
         sx={{
-          position: 'fixed',
+          position: "fixed",
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.8)",
           zIndex: 9999,
         }}
       >
@@ -56,10 +56,10 @@ const LoadingSpinner = ({
     return (
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           p: 3,
         }}
       >
@@ -73,7 +73,15 @@ const LoadingSpinner = ({
 
 LoadingSpinner.propTypes = {
   size: PropTypes.number,
-  color: PropTypes.oneOf(['inherit', 'primary', 'secondary', 'error', 'info', 'success', 'warning']),
+  color: PropTypes.oneOf([
+    "inherit",
+    "primary",
+    "secondary",
+    "error",
+    "info",
+    "success",
+    "warning",
+  ]),
   text: PropTypes.string,
   centered: PropTypes.bool,
   fullPage: PropTypes.bool,

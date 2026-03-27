@@ -1,4 +1,5 @@
 """Document Analysis Service with Multiple Parser Support"""
+
 from typing import List, Dict, Any, Optional
 import logging
 import httpx
@@ -33,10 +34,12 @@ class UpstageService:
                 # Try to import libraries to determine best local parser
                 try:
                     import pymupdf4llm
+
                     self.active_parser = "pymupdf4llm"
                 except ImportError:
                     try:
                         import fitz  # PyMuPDF
+
                         self.active_parser = "pymupdf"
                     except ImportError:
                         self.active_parser = "pypdf"  # Fallback to pypdf
@@ -48,12 +51,16 @@ class UpstageService:
             chunk_size=1000,
             chunk_overlap=200,
             length_function=len,
-            separators=["\n\n", "\n", " ", ""]
+            separators=["\n\n", "\n", " ", ""],
         )
 
-        logger.info(f"UpstageService initialized (mode: {self.parser_mode}, active: {self.active_parser})")
+        logger.info(
+            f"UpstageService initialized (mode: {self.parser_mode}, active: {self.active_parser})"
+        )
 
-    async def analyze_document(self, file_content: bytes, file_name: str) -> Dict[str, Any]:
+    async def analyze_document(
+        self, file_content: bytes, file_name: str
+    ) -> Dict[str, Any]:
         """
         Analyze document using configured parser
 
@@ -66,16 +73,18 @@ class UpstageService:
         """
         try:
             # Determine file type
-            file_ext = file_name.lower().split('.')[-1]
+            file_ext = file_name.lower().split(".")[-1]
 
-            if file_ext not in ['pdf', 'docx', 'doc', 'txt']:
+            if file_ext not in ["pdf", "docx", "doc", "txt"]:
                 raise ValueError(f"Unsupported file type: {file_ext}")
 
             # Route to appropriate parser
             if self.active_parser == "upstage":
                 return await self._parse_with_upstage(file_content, file_name, file_ext)
             elif self.active_parser == "pymupdf4llm":
-                return await self._parse_with_pymupdf4llm(file_content, file_name, file_ext)
+                return await self._parse_with_pymupdf4llm(
+                    file_content, file_name, file_ext
+                )
             elif self.active_parser == "pymupdf":
                 return await self._parse_with_pymupdf(file_content, file_name, file_ext)
             else:  # pypdf
@@ -85,7 +94,9 @@ class UpstageService:
             logger.error(f"Error analyzing document {file_name}: {str(e)}")
             raise Exception(f"Document analysis failed: {str(e)}")
 
-    async def _parse_with_upstage(self, file_content: bytes, file_name: str, file_ext: str) -> Dict[str, Any]:
+    async def _parse_with_upstage(
+        self, file_content: bytes, file_name: str, file_ext: str
+    ) -> Dict[str, Any]:
         """Parse document using Upstage Layout Analysis API"""
         try:
             logger.info(f"Parsing with Upstage API: {file_name}")
@@ -105,11 +116,7 @@ class UpstageService:
                 data = {"ocr": "true"}
 
                 response = await client.post(
-                    self.api_url,
-                    files=files,
-                    headers=headers,
-                    data=data,
-                    timeout=60.0
+                    self.api_url, files=files, headers=headers, data=data, timeout=60.0
                 )
 
                 response.raise_for_status()
@@ -125,8 +132,8 @@ class UpstageService:
                     "file_type": file_ext,
                     "pages": data.get("pages", 0),
                     "elements": data.get("elements", []),
-                    "parser": "upstage"
-                }
+                    "parser": "upstage",
+                },
             }
 
             logger.info(f"Upstage parsing completed: {file_name}")
@@ -136,7 +143,9 @@ class UpstageService:
             logger.error(f"Upstage API error: {str(e)}")
             raise Exception(f"Upstage API request failed: {str(e)}")
 
-    async def _parse_with_pymupdf4llm(self, file_content: bytes, file_name: str, file_ext: str) -> Dict[str, Any]:
+    async def _parse_with_pymupdf4llm(
+        self, file_content: bytes, file_name: str, file_ext: str
+    ) -> Dict[str, Any]:
         """Parse document using PyMuPDF4LLM (LLM-optimized markdown)"""
         try:
             logger.info(f"Parsing with PyMuPDF4LLM: {file_name}")
@@ -148,14 +157,14 @@ class UpstageService:
             markdown = ""
             pages = 0
 
-            if file_ext == 'pdf':
+            if file_ext == "pdf":
                 # Use PyMuPDF4LLM for LLM-optimized markdown extraction
                 # PyMuPDF4LLM requires a file path, so save to temp file
                 import tempfile
                 import os
 
                 # Create temporary file and write content
-                temp_fd, temp_path = tempfile.mkstemp(suffix='.pdf')
+                temp_fd, temp_path = tempfile.mkstemp(suffix=".pdf")
                 try:
                     # Write content to temp file and close it
                     os.write(temp_fd, file_content)
@@ -175,19 +184,23 @@ class UpstageService:
                     # Get page count if not already set
                     if pages == 0:
                         import fitz
+
                         doc = fitz.open(temp_path)
                         pages = len(doc)
                         doc.close()
 
-                    logger.info(f"Extracted {len(text)} characters from {pages} pages (PyMuPDF4LLM)")
+                    logger.info(
+                        f"Extracted {len(text)} characters from {pages} pages (PyMuPDF4LLM)"
+                    )
                 finally:
                     # Clean up temporary file
                     if os.path.exists(temp_path):
                         os.unlink(temp_path)
 
-            elif file_ext in ['doc', 'docx']:
+            elif file_ext in ["doc", "docx"]:
                 # Fallback to python-docx for DOCX
                 from docx import Document
+
                 docx_file = io.BytesIO(file_content)
                 doc = Document(docx_file)
                 pages = 1
@@ -196,8 +209,8 @@ class UpstageService:
                 markdown = text
                 logger.info(f"Extracted {len(text)} characters from DOCX (python-docx)")
 
-            elif file_ext == 'txt':
-                text = file_content.decode('utf-8', errors='ignore')
+            elif file_ext == "txt":
+                text = file_content.decode("utf-8", errors="ignore")
                 markdown = text
                 pages = 1
 
@@ -210,8 +223,8 @@ class UpstageService:
                     "file_type": file_ext,
                     "pages": pages,
                     "elements": [],
-                    "parser": "pymupdf4llm"
-                }
+                    "parser": "pymupdf4llm",
+                },
             }
 
             logger.info(f"PyMuPDF4LLM parsing completed: {file_name}")
@@ -221,7 +234,9 @@ class UpstageService:
             logger.error(f"PyMuPDF4LLM parsing error: {str(e)}")
             raise Exception(f"PyMuPDF4LLM parsing failed: {str(e)}")
 
-    async def _parse_with_pymupdf(self, file_content: bytes, file_name: str, file_ext: str) -> Dict[str, Any]:
+    async def _parse_with_pymupdf(
+        self, file_content: bytes, file_name: str, file_ext: str
+    ) -> Dict[str, Any]:
         """Parse document using PyMuPDF (fitz) - fast and feature-rich"""
         try:
             logger.info(f"Parsing with PyMuPDF: {file_name}")
@@ -232,7 +247,7 @@ class UpstageService:
             text = ""
             pages = 0
 
-            if file_ext == 'pdf':
+            if file_ext == "pdf":
                 # Use PyMuPDF for PDF parsing
                 pdf_file = io.BytesIO(file_content)
                 doc = fitz.open(stream=pdf_file, filetype="pdf")
@@ -247,11 +262,14 @@ class UpstageService:
 
                 text = "\n\n".join(text_parts)
                 doc.close()
-                logger.info(f"Extracted {len(text)} characters from {pages} pages (PyMuPDF)")
+                logger.info(
+                    f"Extracted {len(text)} characters from {pages} pages (PyMuPDF)"
+                )
 
-            elif file_ext in ['doc', 'docx']:
+            elif file_ext in ["doc", "docx"]:
                 # Fallback to python-docx for DOCX
                 from docx import Document
+
                 docx_file = io.BytesIO(file_content)
                 doc = Document(docx_file)
                 pages = 1
@@ -259,8 +277,8 @@ class UpstageService:
                 text = "\n\n".join(text_parts)
                 logger.info(f"Extracted {len(text)} characters from DOCX (python-docx)")
 
-            elif file_ext == 'txt':
-                text = file_content.decode('utf-8', errors='ignore')
+            elif file_ext == "txt":
+                text = file_content.decode("utf-8", errors="ignore")
                 pages = 1
 
             result = {
@@ -272,8 +290,8 @@ class UpstageService:
                     "file_type": file_ext,
                     "pages": pages,
                     "elements": [],
-                    "parser": "pymupdf"
-                }
+                    "parser": "pymupdf",
+                },
             }
 
             logger.info(f"PyMuPDF parsing completed: {file_name}")
@@ -283,7 +301,9 @@ class UpstageService:
             logger.error(f"PyMuPDF parsing error: {str(e)}")
             raise Exception(f"PyMuPDF parsing failed: {str(e)}")
 
-    async def _parse_with_pypdf(self, file_content: bytes, file_name: str, file_ext: str) -> Dict[str, Any]:
+    async def _parse_with_pypdf(
+        self, file_content: bytes, file_name: str, file_ext: str
+    ) -> Dict[str, Any]:
         """Parse document using pypdf and python-docx (basic parsers)"""
         try:
             logger.info(f"Parsing with pypdf: {file_name}")
@@ -293,9 +313,10 @@ class UpstageService:
             text = ""
             pages = 0
 
-            if file_ext == 'pdf':
+            if file_ext == "pdf":
                 # Use PyPDF2 for PDF parsing
                 from pypdf import PdfReader
+
                 pdf_file = io.BytesIO(file_content)
                 reader = PdfReader(pdf_file)
                 pages = len(reader.pages)
@@ -308,11 +329,14 @@ class UpstageService:
                         text_parts.append(page_text)
 
                 text = "\n\n".join(text_parts)
-                logger.info(f"Extracted {len(text)} characters from {pages} pages (pypdf)")
+                logger.info(
+                    f"Extracted {len(text)} characters from {pages} pages (pypdf)"
+                )
 
-            elif file_ext in ['doc', 'docx']:
+            elif file_ext in ["doc", "docx"]:
                 # Use python-docx for DOCX parsing
                 from docx import Document
+
                 docx_file = io.BytesIO(file_content)
                 doc = Document(docx_file)
                 pages = 1
@@ -320,8 +344,8 @@ class UpstageService:
                 text = "\n\n".join(text_parts)
                 logger.info(f"Extracted {len(text)} characters from DOCX (python-docx)")
 
-            elif file_ext == 'txt':
-                text = file_content.decode('utf-8', errors='ignore')
+            elif file_ext == "txt":
+                text = file_content.decode("utf-8", errors="ignore")
                 pages = 1
 
             result = {
@@ -333,8 +357,8 @@ class UpstageService:
                     "file_type": file_ext,
                     "pages": pages,
                     "elements": [],
-                    "parser": "pypdf"
-                }
+                    "parser": "pypdf",
+                },
             }
 
             logger.info(f"pypdf parsing completed: {file_name}")
@@ -344,7 +368,9 @@ class UpstageService:
             logger.error(f"pypdf parsing error: {str(e)}")
             raise Exception(f"pypdf parsing failed: {str(e)}")
 
-    def create_chunks(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    def create_chunks(
+        self, text: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
         """
         Split text into semantic chunks
 
@@ -367,25 +393,26 @@ class UpstageService:
             chunk_objects = []
             for idx, chunk_text in enumerate(chunks):
                 chunk_metadata = metadata.copy() if metadata else {}
-                chunk_metadata.update({
-                    "chunk_index": idx,
-                    "chunk_size": len(chunk_text)
-                })
+                chunk_metadata.update(
+                    {"chunk_index": idx, "chunk_size": len(chunk_text)}
+                )
 
-                chunk_objects.append({
-                    "index": idx,
-                    "text": chunk_text,
-                    "metadata": chunk_metadata
-                })
+                chunk_objects.append(
+                    {"index": idx, "text": chunk_text, "metadata": chunk_metadata}
+                )
 
-            logger.info(f"Created {len(chunk_objects)} chunks from text (length: {len(text)})")
+            logger.info(
+                f"Created {len(chunk_objects)} chunks from text (length: {len(text)})"
+            )
             return chunk_objects
 
         except Exception as e:
             logger.error(f"Error creating chunks: {str(e)}")
             raise Exception(f"Chunk creation failed: {str(e)}")
 
-    async def analyze_and_chunk(self, file_content: bytes, file_name: str) -> Dict[str, Any]:
+    async def analyze_and_chunk(
+        self, file_content: bytes, file_name: str
+    ) -> Dict[str, Any]:
         """
         Analyze document and create chunks in one operation
 
@@ -403,16 +430,13 @@ class UpstageService:
             # Create chunks from extracted text
             chunks = self.create_chunks(
                 text=analysis_result["text"],
-                metadata={
-                    "file_name": file_name,
-                    "source": "document_analysis"
-                }
+                metadata={"file_name": file_name, "source": "document_analysis"},
             )
 
             return {
                 "analysis": analysis_result,
                 "chunks": chunks,
-                "total_chunks": len(chunks)
+                "total_chunks": len(chunks),
             }
 
         except Exception as e:
