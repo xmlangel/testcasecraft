@@ -2,6 +2,7 @@ import subprocess
 import sys
 import requests
 import json
+import argparse
 
 # ANSI 색상 (Colors)
 BLUE = "\033[94m"
@@ -18,13 +19,23 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 MODELS = ["deepseek-coder", "qwen2.5-coder:7b", "glm-4.7-flash:latest"]
 ALLOWED_MODELS = MODELS + ["qwen2.5-coder", "glm-4.7-flash"]
 
-def get_git_diff():
-    result = subprocess.run(
-        ["git", "diff", "--cached"],
-        capture_output=True,
-        text=True
-    )
-    return result.stdout
+def get_git_diff(filenames=None):
+    if filenames:
+        # 특정 파일들에 대한 HEAD 대비 diff
+        result = subprocess.run(
+            ["git", "diff", "HEAD", "--"] + filenames,
+            capture_output=True,
+            text=True
+        )
+        return result.stdout
+    else:
+        # staged (이미 add된) 변경사항 diff
+        result = subprocess.run(
+            ["git", "diff", "--cached"],
+            capture_output=True,
+            text=True
+        )
+        return result.stdout
 
 def translate_to_korean(text, model="qwen2.5-coder:7b"):
     # 보안: 허용된 모델인지 확인
@@ -106,14 +117,27 @@ def ask_ollama(diff, model):
         return error_msg
 
 def main():
-    diff = get_git_diff()
+    parser = argparse.ArgumentParser(description="Ollama Multi-Model Code Review")
+    parser.add_argument("--file", "-f", nargs="+", help="Review specific files (HEAD vs current)")
+    args = parser.parse_args()
+    
+    specified_files = args.file
+    
+    diff = get_git_diff(specified_files if specified_files else None)
 
     if not diff.strip():
-        print(f"{YELLOW}No changes to review.{RESET}")
+        if specified_files:
+            print(f"{YELLOW}No changes found in specified files: {', '.join(specified_files)}{RESET}")
+        else:
+            print(f"{YELLOW}No staged changes to review.{RESET}")
         return 0
 
     print(f"\n{BOLD}{CYAN}" + "━" * 60)
     print(" 🤖 Ollama Multi-Model Code Review")
+    if specified_files:
+        print(f" 📂 Target: {', '.join(specified_files)}")
+    else:
+        print(" 📂 Target: Staged Changes")
     print("━" * 60 + f"{RESET}")
 
     has_issue = False
