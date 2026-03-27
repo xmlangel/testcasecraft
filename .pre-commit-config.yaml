@@ -30,3 +30,9 @@ repos:
         entry: bash -c 'find . -name "*.java" | xargs java -jar google-java-format.jar --replace'
         language: system
         types: [java]
+
+      - id: ollama-code-review
+        name: Ollama Code Review
+        entry: python scripts/ollama_review.py
+        language: system
+        pass_filenames: false
