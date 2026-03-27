@@ -7,11 +7,12 @@ import { listToTree } from '../../../../utils/treeUtils.jsx';
  * @param {Array} data - 테스트케이스 데이터 배열
  * @returns {Array} - 평면화된 데이터 배열
  */
-export const flattenTreeInOrder = (data) => {
+export const flattenTreeInOrder = (data, allKnownIds = null) => {
     if (!data || data.length === 0) return [];
 
     // 트리 구조로 변환 (TestCaseTree와 동일: filteredTestCases -> listToTree)
-    const treeData = listToTree(data, null);
+    // allKnownIds가 있으면 고아 노드 판별에 사용
+    const treeData = listToTree(data, null, { allKnownIds });
 
     // renderTree와 완전히 동일한 방식으로 평면화 및 정렬
     const flattenWithRenderTreeLogic = (nodes, result = []) => {

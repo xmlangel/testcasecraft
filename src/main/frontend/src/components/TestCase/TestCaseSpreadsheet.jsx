@@ -84,7 +84,8 @@ const TestCaseSpreadsheet = ({
   readOnly = false,
   projectId,
   isLoading: externalLoading = false,
-  activeFolderName = ''
+  activeFolderName = '',
+  allTestCaseIds = null
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
@@ -205,7 +206,7 @@ const TestCaseSpreadsheet = ({
     }
 
     // 트리 구조를 평면화하면서 트리 순서를 유지
-    const flattenedData = flattenTreeInOrder(data);
+    const flattenedData = flattenTreeInOrder(data, allTestCaseIds);
 
     const convertedData = flattenedData.map(testCase => {
       // 안전한 상위폴더명 추출

@@ -126,6 +126,11 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
     return parentFolder ? parentFolder.name : '';
   }, [testCases, effectiveTestCaseId]);
 
+  // 전체 프로젝트의 테스트케이스 ID 집합 (고아 노드 판별용)
+  const allTestCaseIds = useMemo(() => {
+    return new Set(testCases.map(tc => tc.id));
+  }, [testCases]);
+
   // 스프레드시트 데이터 변경 핸들러
   const handleSpreadsheetChange = (updatedTestCases) => {
     debugLog('HybridForm', '📝 사용자 입력 감지:', updatedTestCases.length, '개 행');
@@ -241,6 +246,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           projectId={effectiveProjectId}
           isLoading={testCasesLoading}
           activeFolderName={activeFolderName}
+          allTestCaseIds={allTestCaseIds}
         />
       ) : (
         <TestCaseDatasheetGrid
@@ -250,6 +256,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           onRefresh={handleRefreshData}
           projectId={effectiveProjectId}
           activeFolderName={activeFolderName}
+          allTestCaseIds={allTestCaseIds}
         />
       )}
     </Box>

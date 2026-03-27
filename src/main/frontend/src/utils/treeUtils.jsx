@@ -2,8 +2,11 @@
  * 트리 구조 처리를 위한 유틸리티 함수들
  */
 
-export const listToTree = (items, parentId = null) => {
+export const listToTree = (items, parentId = null, options = {}) => {
   if (!Array.isArray(items) || items.length === 0) return [];
+
+  const { allKnownIds } = options;
+  const allKnownIdsSet = allKnownIds ? (allKnownIds instanceof Set ? allKnownIds : new Set(allKnownIds)) : null;
 
   // 고아 노드(Orphaned Nodes) 처리 및 맵 생성 준비
   const orphanFolderId = 'orphaned-items-folder';
@@ -20,7 +23,14 @@ export const listToTree = (items, parentId = null) => {
     
     // 고아 노드 감지: 부모가 지정되어 있으나 실제 존재하지 않는 경우
     if (currentParentId && !allIds.has(currentParentId)) {
-      currentParentId = orphanFolderId;
+      // 필터링된 데이터셋일 수 있으므로 전체 알려진 ID 집합에서 확인
+      if (allKnownIdsSet && allKnownIdsSet.has(currentParentId)) {
+        // 전체 데이터에는 존재함 -> 현재 필터링된 뷰에서는 루트로 취급하여 표시
+        currentParentId = null;
+      } else {
+        // 전체 데이터에도 없음 -> 진짜 고아
+        currentParentId = orphanFolderId;
+      }
     }
     
     const node = { ...item, parentId: currentParentId, children: [] };
@@ -238,10 +248,13 @@ export const countRealTestCases = (testCaseIds, allTestCases) => {
   }).length;
 };
 
-export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
+export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds, options = {}) => {
   if (!allTestCases || !planTestCaseIds) {
     return { flattenedData: [], orderedTestCaseIds: [] };
   }
+
+  const { allKnownIds } = options;
+  const allKnownIdsSet = allKnownIds ? (allKnownIds instanceof Set ? allKnownIds : new Set(allKnownIds)) : null;
 
   // 고아 노드(Orphaned Nodes) 처리
   const orphanFolderId = 'orphaned-items-folder';
@@ -250,6 +263,10 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
   // 1. 트리 순회 전 고아 노드들의 parentId를 가상 폴더로 변경
   let processedCases = allTestCases.map(tc => {
     if (tc.parentId && tc.parentId !== 'null' && tc.parentId !== 'undefined' && !allNodesExist.has(tc.parentId)) {
+      // 필터링된 뷰인 경우를 고려하여 전체 알려진 ID 세트에서 한 번 더 확인
+      if (allKnownIdsSet && allKnownIdsSet.has(tc.parentId)) {
+        return { ...tc, parentId: null };
+      }
       return { ...tc, parentId: orphanFolderId };
     }
     return tc;

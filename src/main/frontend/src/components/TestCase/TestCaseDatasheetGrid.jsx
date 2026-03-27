@@ -78,7 +78,8 @@ const TestCaseDatasheetGrid = ({
   onRefresh,
   readOnly = false,
   projectId,
-  activeFolderName = ''
+  activeFolderName = '',
+  allTestCaseIds = null
 }) => {
   const { t } = useI18n();
   const apiRef = useGridApiRef();
@@ -107,7 +108,7 @@ const TestCaseDatasheetGrid = ({
       return data;
     }
 
-    const treeData = listToTree(data, null);
+    const treeData = listToTree(data, null, { allKnownIds: allTestCaseIds });
 
     const flattenWithRenderTreeLogic = (nodes, result = []) => {
       let sortedNodes = nodes.slice();
