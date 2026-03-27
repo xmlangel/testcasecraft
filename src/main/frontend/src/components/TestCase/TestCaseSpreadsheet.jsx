@@ -86,7 +86,7 @@ const TestCaseSpreadsheet = ({
   projectId,
   isLoading: externalLoading = false,
   activeFolderName = '',
-  allTestCaseIds = null
+  allData = []
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
@@ -212,13 +212,15 @@ const TestCaseSpreadsheet = ({
     }
 
     // 트리 구조를 평면화하면서 트리 순서를 유지
-    const flattenedData = flattenTreeInOrder(data, allTestCaseIds);
+    // allKnownIds는 Set 형태로 전달
+    const allKnownIds = new Set(allData.map(tc => tc.id));
+    const flattenedData = flattenTreeInOrder(data, allKnownIds);
 
     const convertedData = flattenedData.map(testCase => {
-      // 안전한 상위폴더명 추출
+      // 안전한 상위폴더명 추출 (전체 데이터셋 allData에서 조회)
       let parentFolderName = '';
       if (testCase.parentId) {
-        const parentFolder = data.find(item => item.id === testCase.parentId);
+        const parentFolder = allData.find(item => item.id === testCase.parentId);
         parentFolderName = parentFolder?.name || '';
       }
 
