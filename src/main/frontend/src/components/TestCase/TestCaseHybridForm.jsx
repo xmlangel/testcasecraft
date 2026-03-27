@@ -37,25 +37,41 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   // 프로젝트의 테스트케이스 및 폴더 개수 계산 (ICT-343: 폴더도 스프레드시트에 표시)
   // 유령 데이터 필터링: 이름이 없거나 빈 문자열인 경우 제외
   // useMemo로 불필요한 재계산 방지
+  // 프로젝트의 테스트케이스 및 폴더 필터링 (ICT-UserReq: 폴더별 필터링 기능)
   const projectTestCases = useMemo(() => {
-    debugLog('HybridForm', '🔍 projectTestCases 재계산:', testCases.length, '개 전체 테스트케이스');
+    debugLog('HybridForm', '🔍 projectTestCases 필터링 시작 (선택 ID:', effectiveTestCaseId, ')');
 
-    const filtered = testCases.filter(tc => {
+    // 1. 프로젝트 ID 및 데이터 유효성 기본 필터링
+    const baseFiltered = testCases.filter(tc => {
       const hasValidProjectId = String(tc.projectId) === String(effectiveProjectId);
       const hasValidType = tc.type === 'testcase' || tc.type === 'folder' || tc.type === null;
-      const hasValidName = tc.name && tc.name.trim().length > 0; // 이름이 있고 빈 문자열이 아님
-
-      // 필터링 실패한 케이스 로그
-      if (hasValidProjectId && hasValidType && !hasValidName) {
-        debugWarn('HybridForm', '⚠️ 유령 데이터 발견 (이름 없음):', tc.id, tc);
-      }
+      const hasValidName = tc.name && tc.name.trim().length > 0;
 
       return hasValidProjectId && hasValidType && hasValidName;
     });
 
-    debugLog('HybridForm', '✅ 필터링 결과:', filtered.length, '개 (프로젝트 ID:', effectiveProjectId, ')');
-    return filtered;
-  }, [testCases, effectiveProjectId]);
+    // 2. 선택된 폴더 기준 계층 필터링 (스프레드시트/데이터시트 모드용)
+    if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
+      // 선택된 항목이 테스트케이스인 경우, 그 부모 폴더의 내용을 보여줌
+      const selectedItem = baseFiltered.find(tc => String(tc.id) === String(effectiveTestCaseId));
+      const targetParentId = selectedItem?.type === 'testcase' ? selectedItem.parentId : effectiveTestCaseId;
+
+      const hierarchicalFiltered = baseFiltered.filter(tc => {
+        // 부모 ID가 일치하거나 (선택된 폴더의 자식)
+        // 선택된 폴더 자체를 포함 (이름 수정 등을 위해)
+        const isChild = String(tc.parentId) === String(targetParentId) || (tc.parentId === null && !targetParentId);
+        const isSelf = String(tc.id) === String(targetParentId);
+
+        return isChild || isSelf;
+      });
+
+      debugLog('HybridForm', '✅ 계층 필터링 결과:', hierarchicalFiltered.length, '개 (Target Parent ID:', targetParentId, ')');
+      return hierarchicalFiltered;
+    }
+
+    debugLog('HybridForm', '✅ 기본 필터링 결과:', baseFiltered.length, '개');
+    return baseFiltered;
+  }, [testCases, effectiveProjectId, effectiveTestCaseId, inputMode]);
 
   // 스프레드시트 모드에서 사용할 데이터 준비 (중복 방지) - ICT-158 개선
   useEffect(() => {
@@ -98,6 +114,17 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       setSpreadsheetData(projectTestCases);
     }
   };
+
+  // 현재 선택된 폴더 이름 추출 (새 행 생성 시 기본값으로 사용)
+  const activeFolderName = useMemo(() => {
+    const selectedItem = testCases.find(tc => String(tc.id) === String(effectiveTestCaseId));
+    if (!selectedItem) return '';
+    if (selectedItem.type === 'folder') return selectedItem.name;
+    
+    // 테스트케이스인 경우 부모 폴더의 이름을 찾음
+    const parentFolder = testCases.find(tc => tc.id === selectedItem.parentId);
+    return parentFolder ? parentFolder.name : '';
+  }, [testCases, effectiveTestCaseId]);
 
   // 스프레드시트 데이터 변경 핸들러
   const handleSpreadsheetChange = (updatedTestCases) => {
@@ -213,6 +240,8 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           onRefresh={handleRefreshData}
           projectId={effectiveProjectId}
           isLoading={testCasesLoading}
+          activeFolderName={activeFolderName}
+          allData={testCases}
         />
       ) : (
         <TestCaseDatasheetGrid
@@ -221,6 +250,8 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           onSave={handleSpreadsheetSave}
           onRefresh={handleRefreshData}
           projectId={effectiveProjectId}
+          activeFolderName={activeFolderName}
+          allData={testCases}
         />
       )}
     </Box>

@@ -117,6 +117,16 @@ public class KoreanTestCaseAndAutomationTranslations {
                                 "예: API 테스트, UI 테스트", createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.folderDialog.cancel", languageCode, "취소", createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.folderDialog.create", languageCode, "생성", createdBy);
+
+                // 행 추가 다이얼로그 (RowCountDialog) 한글 번역
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.titleAbove", languageCode, "위에 {count}개 행 추가", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.titleBelow", languageCode, "아래에 {count}개 행 추가", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.titleAppend", languageCode, "{count}개 행 추가", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.confirm", languageCode, "추가", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.description", languageCode, "추가할 행의 개수를 입력하세요 (1-100).", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.label", languageCode, "행 개수", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.helper", languageCode, "기본값은 5개입니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.cancel", languageCode, "취소", createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.export.csv.title", languageCode, "CSV로 내보내기",
                                 createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.export.csv.description", languageCode,

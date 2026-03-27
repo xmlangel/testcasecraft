@@ -71,7 +71,8 @@ import {
 import {
   StepSettingsDialog,
   FolderCreateDialog,
-  ValidationResultDialog
+  ValidationResultDialog,
+  RowCountDialog
 } from './Spreadsheet/components/SpreadsheetDialogs.jsx';
 import { DeleteConfirmationDialog } from './Spreadsheet/components/DeleteConfirmationDialog.jsx';
 import KoreanAwareDataEditor from './Spreadsheet/components/KoreanAwareDataEditor.jsx';
@@ -83,7 +84,9 @@ const TestCaseSpreadsheet = ({
   onRefresh,
   readOnly = false,
   projectId,
-  isLoading: externalLoading = false
+  isLoading: externalLoading = false,
+  activeFolderName = '',
+  allData = []
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
@@ -135,6 +138,11 @@ const TestCaseSpreadsheet = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rowsToDelete, setRowsToDelete] = useState([]);
   const [deleteTargetRange, setDeleteTargetRange] = useState(null);
+
+  // 행 추가 갯수 다이얼로그 상태
+  const [rowCountDialogOpen, setRowCountDialogOpen] = useState(false);
+  const [rowCountToAdd, setRowCountToAdd] = useState(5);
+  const [rowAddMode, setRowAddMode] = useState('append'); // 'append', 'above', 'below'
 
   // 이전 데이터 참조
   const prevDataRef = useRef();
@@ -204,13 +212,15 @@ const TestCaseSpreadsheet = ({
     }
 
     // 트리 구조를 평면화하면서 트리 순서를 유지
-    const flattenedData = flattenTreeInOrder(data);
+    // allKnownIds는 Set 형태로 전달
+    const allKnownIds = new Set(allData.map(tc => tc.id));
+    const flattenedData = flattenTreeInOrder(data, allKnownIds);
 
     const convertedData = flattenedData.map(testCase => {
-      // 안전한 상위폴더명 추출
+      // 안전한 상위폴더명 추출 (전체 데이터셋 allData에서 조회)
       let parentFolderName = '';
       if (testCase.parentId) {
-        const parentFolder = data.find(item => item.id === testCase.parentId);
+        const parentFolder = allData.find(item => item.id === testCase.parentId);
         parentFolderName = parentFolder?.name || '';
       }
 
@@ -311,6 +321,15 @@ const TestCaseSpreadsheet = ({
     }
   }, []); // 의존성 배열 비우기 - 콜백 재생성 방지
 
+  // 행 추가 다이얼로그 열기 핸들러
+  const handleOpenRowCountDialog = useCallback((mode = 'append') => {
+    setRowAddMode(mode);
+    setRowCountToAdd(5);
+    setRowCountDialogOpen(true);
+  }, []);
+
+
+
   // 행 추가 핸들러
   const handleAddRows = useCallback((count = 5) => {
     const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
@@ -318,21 +337,21 @@ const TestCaseSpreadsheet = ({
 
     setSpreadsheetData(prevData => {
       const baseFields = [
-        { value: '' },
-        { value: '', readOnly: true },
-        { value: '', readOnly: true },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
+        { value: '' }, // 0: ID
+        { value: '', readOnly: true }, // 1: 작성자
+        { value: '', readOnly: true }, // 2: 수정자
+        { value: '' }, // 3: 순서
+        { value: '' }, // 4: 타입
+        { value: activeFolderName || '' }, // 5: 상위폴더 (ICT-UserReq: 자동 입력)
+        { value: '' }, // 6: 이름
+        { value: '' }, // 7: 설명
+        { value: '' }, // 8: 사전조건
+        { value: '' }, // 9: 사후조건
+        { value: '' }, // 10: 예상결과
+        { value: '' }, // 11: 우선순위
+        { value: '' }, // 12: 수행유형
+        { value: '' }, // 13: 테스트기법
+        { value: '' }, // 14: 태그
       ];
 
       const stepFields = [];
@@ -346,7 +365,12 @@ const TestCaseSpreadsheet = ({
       return [...prevData, ...newRows];
     });
     setHasChanges(true);
-  }, [maxSteps]);
+    if (count > 0) {
+      setSnackbarMessage(`${count}개 행이 맨 아래에 추가되었습니다.`);
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    }
+  }, [maxSteps, activeFolderName]);
 
   // 행 삭제 핸들러 (다중 선택 지원)
   const handleDeleteRows = useCallback(() => {
@@ -447,15 +471,8 @@ const TestCaseSpreadsheet = ({
         // 선택된 행 삭제
         newData.splice(startRow, count);
 
-        // ICT-414: displayOrder 재계산
-        return newData.map((row, index) => {
-          const newRow = [...row];
-          // row가 유효하고 길이가 충분한지 확인
-          if (newRow.length > 3) {
-            newRow[3] = { ...newRow[3], value: index + 1 };
-          }
-          return newRow;
-        });
+        // ICT-414: displayOrder 재계산 로직 제거 (필터링된 뷰에서의 부작용 방지)
+        return newData;
       });
 
       setHasChanges(true); // 순서 변경 등으로 인한 저장 필요 상태 유지
@@ -491,7 +508,7 @@ const TestCaseSpreadsheet = ({
 
   // 중간 행 삽입 핸들러 - 선택된 행 위에 추가 (ICT-414)
   // 다중 선택 시 범위의 시작(가장 위)을 기준으로 함
-  const handleInsertRowAbove = useCallback(() => {
+  const handleInsertRowAbove = useCallback((count = 1) => {
     const currentRange = selectedRangeRef.current;
     const currentSelectedRow = currentRange ? Math.min(currentRange.start.row, currentRange.end.row) : selectedRowIndexRef.current;
 
@@ -503,6 +520,7 @@ const TestCaseSpreadsheet = ({
     }
 
     const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
+    const safeCount = Number.isFinite(count) && count >= 1 && count <= 100 ? count : 1;
 
     setSpreadsheetData(prevData => {
       const baseFields = [
@@ -510,8 +528,8 @@ const TestCaseSpreadsheet = ({
         { value: '', readOnly: true },
         { value: '', readOnly: true },
         { value: '', readOnly: true }, // displayOrder - readOnly (ICT-414)
-        { value: '' },
-        { value: '' },
+        { value: '' }, // 4: 타입
+        { value: activeFolderName || '' }, // 5: 상위폴더 (ICT-UserReq: 자동 입력)
         { value: '' },
         { value: '' },
         { value: '' },
@@ -530,29 +548,24 @@ const TestCaseSpreadsheet = ({
       }
 
       const emptyRow = [...baseFields, ...stepFields];
+      const newRows = Array.from({ length: safeCount }, () => [...emptyRow]);
       const newData = [...prevData];
 
       // 선택된 행 위에 삽입
-      newData.splice(currentSelectedRow, 0, emptyRow);
+      newData.splice(currentSelectedRow, 0, ...newRows);
 
-      // ICT-414: displayOrder 재계산 (시각적 순서 반영)
-      return newData.map((row, index) => {
-        const newRow = [...row];
-        if (newRow.length > 3) {
-          newRow[3] = { ...newRow[3], value: index + 1 };
-        }
-        return newRow;
-      });
+      // ICT-414: displayOrder 재계산 로직 제거 (필터링된 뷰에서의 부작용 방지)
+      return newData;
     });
     setHasChanges(true);
-    setSnackbarMessage(`${currentSelectedRow + 1}번 행 위에 새 행이 추가되었습니다.`);
+    setSnackbarMessage(`${currentSelectedRow + 1}번 행 위에 ${safeCount}개 새 행이 추가되었습니다.`);
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
-  }, [maxSteps]);
+  }, [maxSteps, activeFolderName]);
 
   // 중간 행 삽입 핸들러 - 선택된 행 아래에 추가 (ICT-414)
   // 다중 선택 시 범위의 끝(가장 아래)을 기준으로 함
-  const handleInsertRowBelow = useCallback(() => {
+  const handleInsertRowBelow = useCallback((count = 1) => {
     const currentRange = selectedRangeRef.current;
     const currentSelectedRow = currentRange ? Math.max(currentRange.start.row, currentRange.end.row) : selectedRowIndexRef.current;
 
@@ -564,6 +577,7 @@ const TestCaseSpreadsheet = ({
     }
 
     const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
+    const safeCount = Number.isFinite(count) && count >= 1 && count <= 100 ? count : 1;
 
     setSpreadsheetData(prevData => {
       const baseFields = [
@@ -571,7 +585,8 @@ const TestCaseSpreadsheet = ({
         { value: '', readOnly: true },
         { value: '', readOnly: true },
         { value: '', readOnly: true }, // displayOrder - readOnly (ICT-414)
-        { value: '' },
+        { value: '' }, // 4: 타입
+        { value: activeFolderName || '' }, // 5: 상위폴더 (ICT-UserReq: 자동 입력)
         { value: '' },
         { value: '' },
         { value: '' },
@@ -590,25 +605,37 @@ const TestCaseSpreadsheet = ({
       }
 
       const emptyRow = [...baseFields, ...stepFields];
+      const newRows = Array.from({ length: safeCount }, () => [...emptyRow]);
       const newData = [...prevData];
 
       // 선택된 행 아래에 삽입
-      newData.splice(currentSelectedRow + 1, 0, emptyRow);
+      newData.splice(currentSelectedRow + 1, 0, ...newRows);
 
-      // ICT-414: displayOrder 재계산 (시각적 순서 반영)
-      return newData.map((row, index) => {
-        const newRow = [...row];
-        if (newRow.length > 3) {
-          newRow[3] = { ...newRow[3], value: index + 1 };
-        }
-        return newRow;
-      });
+      // ICT-414: displayOrder 재계산 로직 제거 (필터링된 뷰에서의 부작용 방지)
+      return newData;
     });
     setHasChanges(true);
-    setSnackbarMessage(`${currentSelectedRow + 1}번 행 아래에 새 행이 추가되었습니다.`);
+    setSnackbarMessage(`${currentSelectedRow + 1}번 행 아래에 ${safeCount}개 새 행이 추가되었습니다.`);
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
-  }, [maxSteps]);
+  }, [maxSteps, activeFolderName]);
+
+  // 행 추가 확정 핸들러
+  const handleConfirmRowCountAdd = useCallback(() => {
+    switch (rowAddMode) {
+      case 'above':
+        handleInsertRowAbove(rowCountToAdd);
+        break;
+      case 'below':
+        handleInsertRowBelow(rowCountToAdd);
+        break;
+      case 'append':
+      default:
+        handleAddRows(rowCountToAdd);
+        break;
+    }
+    setRowCountDialogOpen(false);
+  }, [rowAddMode, rowCountToAdd, handleAddRows, handleInsertRowAbove, handleInsertRowBelow]);
 
   // 폴더 추가 핸들러
   const handleAddFolder = () => {
@@ -669,7 +696,7 @@ const TestCaseSpreadsheet = ({
     try {
       const result = validateSpreadsheetData(spreadsheetData, {
         maxSteps,
-        data: data || [],
+        data: allData || [],
         t
       });
 
@@ -710,7 +737,7 @@ const TestCaseSpreadsheet = ({
       // 검증
       const validationResult = validateSpreadsheetData(spreadsheetData, {
         maxSteps: safeMaxSteps,
-        data: data || [],
+        data: allData || [],
         t
       });
 
@@ -779,7 +806,7 @@ const TestCaseSpreadsheet = ({
             tags: isFolder ? [] : (row[14]?.value ? String(row[14].value).split(',').map(t => t.trim()).filter(Boolean) : []),
             steps,
             type: isFolder ? 'folder' : 'testcase',
-            displayOrder: index + 1,
+            displayOrder: (row[3] && row[3].value !== '' && row[3].value !== null) ? Number(row[3].value) : null,
             projectId,
             parentId,
             parentFolderName // 추후 참조 해결을 위해 임시 저장
@@ -1298,7 +1325,7 @@ const TestCaseSpreadsheet = ({
                 <Button
                   size="small"
                   startIcon={<AddIcon />}
-                  onClick={() => handleAddRows(5)}
+                  onClick={() => handleOpenRowCountDialog('append')}
                   disabled={isLoading}
                 >
                   {t('testcase.spreadsheet.button.addRows', '행 추가')}
@@ -1308,7 +1335,7 @@ const TestCaseSpreadsheet = ({
                 <Button
                   size="small"
                   startIcon={<ArrowUpwardIcon />}
-                  onClick={handleInsertRowAbove}
+                  onClick={() => handleOpenRowCountDialog('above')}
                   disabled={isLoading || selectedRowIndex === null}
                   color="primary"
                   variant="outlined"
@@ -1319,7 +1346,7 @@ const TestCaseSpreadsheet = ({
                 <Button
                   size="small"
                   startIcon={<ArrowDownwardIcon />}
-                  onClick={handleInsertRowBelow}
+                  onClick={() => handleOpenRowCountDialog('below')}
                   disabled={isLoading || selectedRowIndex === null}
                   color="primary"
                   variant="outlined"
@@ -1489,6 +1516,17 @@ const TestCaseSpreadsheet = ({
           description={t('testcase.spreadsheet.delete.description', '{count}개 항목을 삭제하시겠습니까? 삭제된 항목은 복구할 수 없습니다.', { count: rowsToDelete.length })}
         />
 
+        {/* 행 추가 갯수 입력 다이얼로그 */}
+        <RowCountDialog
+          open={rowCountDialogOpen}
+          onClose={() => setRowCountDialogOpen(false)}
+          rowCount={rowCountToAdd}
+          setRowCount={setRowCountToAdd}
+          onConfirm={handleConfirmRowCountAdd}
+          mode={rowAddMode}
+          t={t}
+        />
+
         {/* Export 메뉴 */}
         <Menu
           anchorEl={exportMenuAnchor}
@@ -1600,7 +1638,7 @@ const TestCaseSpreadsheet = ({
               <Button
                 size="small"
                 startIcon={<AddIcon />}
-                onClick={() => handleAddRows(5)}
+                onClick={() => handleOpenRowCountDialog('append')}
                 disabled={isLoading}
               >
                 {t('testcase.spreadsheet.button.addRows', '행 추가')}
@@ -1609,7 +1647,7 @@ const TestCaseSpreadsheet = ({
               <Button
                 size="small"
                 startIcon={<ArrowUpwardIcon />}
-                onClick={handleInsertRowAbove}
+                onClick={() => handleOpenRowCountDialog('above')}
                 disabled={isLoading || selectedRowIndex === null}
                 color="primary"
                 variant="outlined"
@@ -1620,7 +1658,7 @@ const TestCaseSpreadsheet = ({
               <Button
                 size="small"
                 startIcon={<ArrowDownwardIcon />}
-                onClick={handleInsertRowBelow}
+                onClick={() => handleOpenRowCountDialog('below')}
                 disabled={isLoading || selectedRowIndex === null}
                 color="primary"
                 variant="outlined"

@@ -387,3 +387,87 @@ ValidationResultDialog.propTypes = {
 };
 
 
+/**
+ * 행 추가 갯수 입력 다이얼로그
+ */
+export const RowCountDialog = ({
+    open,
+    onClose,
+    rowCount,
+    setRowCount,
+    onConfirm,
+    mode = 'append',
+    t
+}) => {
+    const getTitle = () => {
+        switch (mode) {
+            case 'above':
+                return t('testcase.spreadsheet.rowCountDialog.titleAbove', '위에 행 추가');
+            case 'below':
+                return t('testcase.spreadsheet.rowCountDialog.titleBelow', '아래에 행 추가');
+            default:
+                return t('testcase.spreadsheet.rowCountDialog.titleAppend', '행 추가');
+        }
+    };
+
+    const getButtonLabel = () => {
+        return t('testcase.spreadsheet.rowCountDialog.confirm', '추가');
+    };
+
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="xs"
+            fullWidth
+            disableRestoreFocus
+        >
+            <DialogTitle>{getTitle()}</DialogTitle>
+            <DialogContent>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t('testcase.spreadsheet.rowCountDialog.description', '추가할 행의 갯수를 입력하세요. 기본값은 5개이며, 최대 100개까지 가능합니다.')}
+                </Typography>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    label={t('testcase.spreadsheet.rowCountDialog.label', '행 수')}
+                    type="number"
+                    fullWidth
+                    variant="outlined"
+                    value={rowCount}
+                    onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        setRowCount(isNaN(val) ? '' : Math.min(100, Math.max(1, val)));
+                    }}
+                    onKeyPress={(e) => {
+                        if (e.key === 'Enter' && rowCount) {
+                            onConfirm();
+                        }
+                    }}
+                    inputProps={{ min: 1, max: 100 }}
+                    helperText={t('testcase.spreadsheet.rowCountDialog.helper', '1~100 사이의 숫자를 입력하세요.')}
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>{t('testcase.spreadsheet.rowCountDialog.cancel', '취소')}</Button>
+                <Button
+                    onClick={onConfirm}
+                    variant="contained"
+                    disabled={!rowCount || rowCount < 1}
+                >
+                    {getButtonLabel()}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
+RowCountDialog.propTypes = {
+    open: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    rowCount: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    setRowCount: PropTypes.func.isRequired,
+    onConfirm: PropTypes.func.isRequired,
+    mode: PropTypes.oneOf(['append', 'above', 'below']),
+    t: PropTypes.func.isRequired
+};

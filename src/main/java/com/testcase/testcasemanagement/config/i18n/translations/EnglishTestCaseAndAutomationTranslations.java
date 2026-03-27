@@ -352,6 +352,16 @@ public class EnglishTestCaseAndAutomationTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.folderDialog.create", languageCode, "Create",
                                 createdBy);
+
+                // Row Count Dialog (RowCountDialog) English translations
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.titleAbove", languageCode, "Add {count} Row(s) Above", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.titleBelow", languageCode, "Add {count} Row(s) Below", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.titleAppend", languageCode, "Add {count} Row(s)", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.confirm", languageCode, "Add", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.description", languageCode, "Enter the number of rows to add (1-100).", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.label", languageCode, "Number of Rows", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.helper", languageCode, "Default is 5 rows.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.rowCountDialog.cancel", languageCode, "Cancel", createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.export.csv.title", languageCode, "Export to CSV",
                                 createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.export.csv.description", languageCode,
