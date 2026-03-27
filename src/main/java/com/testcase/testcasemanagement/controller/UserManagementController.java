@@ -2,9 +2,8 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.UserDto;
-import com.testcase.testcasemanagement.service.UserManagementService;
 import com.testcase.testcasemanagement.service.EmailVerificationService;
-
+import com.testcase.testcasemanagement.service.UserManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,9 +13,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
+import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -25,14 +24,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import java.util.Map;
-
 /**
  * 사용자 관리 API 컨트롤러 (관리자용)
- * 
- * 시스템 관리자를 위한 종합적인 사용자 관리 기능을 제공합니다.
- * 모든 API는 ADMIN 권한과 JWT 인증이 필요합니다.
+ *
+ * <p>시스템 관리자를 위한 종합적인 사용자 관리 기능을 제공합니다. 모든 API는 ADMIN 권한과 JWT 인증이 필요합니다.
  */
 @Tag(name = "User Management", description = "사용자 관리 API (관리자 전용)")
 @Slf4j
@@ -41,16 +36,15 @@ import java.util.Map;
 @SecurityRequirement(name = "bearerAuth")
 public class UserManagementController {
 
-    @Autowired
-    private UserManagementService userManagementService;
+  @Autowired private UserManagementService userManagementService;
 
-    @Autowired
-    private EmailVerificationService emailVerificationService;
+  @Autowired private EmailVerificationService emailVerificationService;
 
-    /**
-     * 사용자 목록 조회 (검색, 정렬, 페이징)
-     */
-    @Operation(summary = "사용자 목록 조회", description = """
+  /** 사용자 목록 조회 (검색, 정렬, 페이징) */
+  @Operation(
+      summary = "사용자 목록 조회",
+      description =
+          """
             **🔍 사용자 목록 조회 및 관리**
 
             시스템에 등록된 모든 사용자의 목록을 조회하고 관리할 수 있는 핵심 API입니다.
@@ -76,9 +70,22 @@ public class UserManagementController {
             • ADMIN 역할 필수 - 일반 사용자는 접근 불가
             • JWT Bearer Token 인증 필요
             • 민감한 정보(비밀번호 등)는 응답에서 제외
-            """, tags = { "User Management" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "사용자 목록 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.ListResponse.class), examples = @ExampleObject(name = "사용자 목록 응답 예제", value = """
+            """,
+      tags = {"User Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "사용자 목록 조회 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.ListResponse.class),
+                    examples =
+                        @ExampleObject(
+                            name = "사용자 목록 응답 예제",
+                            value =
+                                """
                     {
                         "content": [
                             {
@@ -100,13 +107,27 @@ public class UserManagementController {
                         "totalPages": 1
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"Unauthorized\"}"))),
-            @ApiResponse(responseCode = "403", description = "관리자 권한 없음", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"Access Denied\"}")))
-    })
-    @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<UserDto.ListResponse>> getUsers(
-            @Parameter(description = """
+        @ApiResponse(
+            responseCode = "401",
+            description = "인증되지 않은 사용자",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = "{\"error\": \"Unauthorized\"}"))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "관리자 권한 없음",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = "{\"error\": \"Access Denied\"}")))
+      })
+  @GetMapping
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Page<UserDto.ListResponse>> getUsers(
+      @Parameter(
+              description =
+                  """
                     **🔍 검색 키워드** (선택사항)
 
                     • **검색 대상**: 사용자명(username), 이름(name), 이메일(email)
@@ -116,8 +137,13 @@ public class UserManagementController {
                       - "김" → 이름에 김이 포함된 모든 사용자
                       - "@gmail.com" → Gmail 사용자 검색
                     • **빈 값 처리**: null 또는 빈 문자열 시 전체 검색
-                    """, example = "admin") @RequestParam(required = false) String keyword,
-            @Parameter(description = """
+                    """,
+              example = "admin")
+          @RequestParam(required = false)
+          String keyword,
+      @Parameter(
+              description =
+                  """
                     **👥 역할 필터** (선택사항)
 
                     • **ADMIN**: 시스템 관리자 (모든 권한)
@@ -128,8 +154,13 @@ public class UserManagementController {
                     **⚠️ 주의사항**:
                     • 정확한 역할명을 입력해야 함 (대소문자 구분)
                     • 잘못된 역할명 입력 시 빈 결과 반환
-                    """, example = "ADMIN") @RequestParam(required = false) String role,
-            @Parameter(description = """
+                    """,
+              example = "ADMIN")
+          @RequestParam(required = false)
+          String role,
+      @Parameter(
+              description =
+                  """
                     **🟢 활성 상태 필터** (선택사항)
 
                     • **true**: 활성 계정만 조회 (로그인 가능한 계정)
@@ -140,8 +171,13 @@ public class UserManagementController {
                     • 일반적인 사용자 관리: true 사용
                     • 정지된 계정 관리: false 사용
                     • 전체 현황 파악: 파라미터 생략
-                    """, example = "true") @RequestParam(required = false) Boolean isActive,
-            @Parameter(description = """
+                    """,
+              example = "true")
+          @RequestParam(required = false)
+          Boolean isActive,
+      @Parameter(
+              description =
+                  """
                     **📄 페이지 번호** (0부터 시작)
 
                     • **기본값**: 0 (첫 번째 페이지)
@@ -152,8 +188,13 @@ public class UserManagementController {
                       - n페이지: page=n-1
 
                     **📊 페이지 정보**: 응답의 pageable 객체에서 확인 가능
-                    """, example = "0") @RequestParam(defaultValue = "0") Integer page,
-            @Parameter(description = """
+                    """,
+              example = "0")
+          @RequestParam(defaultValue = "0")
+          Integer page,
+      @Parameter(
+              description =
+                  """
                     **📋 페이지 크기** (한 페이지당 항목 수)
 
                     • **기본값**: 20개
@@ -164,24 +205,28 @@ public class UserManagementController {
                     • 작은 값(10-20): 빠른 응답, 많은 페이지 수
                     • 큰 값(50-100): 느린 응답, 적은 페이지 수
                     • 대량 데이터 처리 시 20-50개 권장
-                    """, example = "20") @RequestParam(defaultValue = "20") Integer size,
-            Authentication authentication) {
+                    """,
+              example = "20")
+          @RequestParam(defaultValue = "20")
+          Integer size,
+      Authentication authentication) {
 
-        UserDto.SearchRequest searchRequest = new UserDto.SearchRequest();
-        searchRequest.setKeyword(keyword);
-        searchRequest.setRole(role);
-        searchRequest.setIsActive(isActive);
-        searchRequest.setPage(page);
-        searchRequest.setSize(size);
+    UserDto.SearchRequest searchRequest = new UserDto.SearchRequest();
+    searchRequest.setKeyword(keyword);
+    searchRequest.setRole(role);
+    searchRequest.setIsActive(isActive);
+    searchRequest.setPage(page);
+    searchRequest.setSize(size);
 
-        Page<UserDto.ListResponse> users = userManagementService.getUsers(searchRequest);
-        return ResponseEntity.ok(users);
-    }
+    Page<UserDto.ListResponse> users = userManagementService.getUsers(searchRequest);
+    return ResponseEntity.ok(users);
+  }
 
-    /**
-     * 사용자 상세 정보 조회
-     */
-    @Operation(summary = "사용자 상세 정보 조회", description = """
+  /** 사용자 상세 정보 조회 */
+  @Operation(
+      summary = "사용자 상세 정보 조회",
+      description =
+          """
             **👤 개별 사용자 상세 정보 조회**
 
             특정 사용자의 완전한 프로필 정보를 조회하는 API입니다.
@@ -207,9 +252,22 @@ public class UserManagementController {
             • ADMIN 역할 필수 - 관리자만 다른 사용자 정보 조회 가능
             • 사용자 ID 검증 - 존재하지 않는 사용자 접근 시 404 에러
             • 감사 로그 기록 - 사용자 정보 조회 기록 자동 저장
-            """, tags = { "User Management" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Response.class), examples = @ExampleObject(name = "사용자 상세 응답 예제", value = """
+            """,
+      tags = {"User Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "사용자 정보 조회 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.Response.class),
+                    examples =
+                        @ExampleObject(
+                            name = "사용자 상세 응답 예제",
+                            value =
+                                """
                     {
                         "id": "user-123",
                         "username": "testuser",
@@ -222,14 +280,22 @@ public class UserManagementController {
                         "lastLoginAt": "2025-01-01T12:00:00"
                     }
                     """))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"User not found\"}"))),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
-    })
-    @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto.Response> getUserById(
-            @Parameter(description = """
+        @ApiResponse(
+            responseCode = "404",
+            description = "사용자를 찾을 수 없음",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = "{\"error\": \"User not found\"}"))),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+      })
+  @GetMapping("/{userId}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<UserDto.Response> getUserById(
+      @Parameter(
+              description =
+                  """
                     **🆔 사용자 고유 식별자**
 
                     • **형식**: UUID 문자열 (예: "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
@@ -244,17 +310,22 @@ public class UserManagementController {
                     • 존재하지 않는 ID 사용 시 404 에러 발생
                     • 잘못된 형식의 ID 사용 시 400 에러 발생
                     • 대소문자를 정확히 입력해야 함
-                    """, required = true, example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890") @PathVariable String userId,
-            Authentication authentication) {
+                    """,
+              required = true,
+              example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+          @PathVariable
+          String userId,
+      Authentication authentication) {
 
-        UserDto.Response user = userManagementService.getUserById(userId);
-        return ResponseEntity.ok(user);
-    }
+    UserDto.Response user = userManagementService.getUserById(userId);
+    return ResponseEntity.ok(user);
+  }
 
-    /**
-     * 사용자 정보 수정 (관리자용)
-     */
-    @Operation(summary = "사용자 정보 수정", description = """
+  /** 사용자 정보 수정 (관리자용) */
+  @Operation(
+      summary = "사용자 정보 수정",
+      description =
+          """
             **✏️ 사용자 기본 정보 수정**
 
             관리자가 특정 사용자의 기본 프로필 정보를 안전하게 수정할 수 있는 API입니다.
@@ -291,18 +362,34 @@ public class UserManagementController {
             • ADMIN 권한 필수 - 관리자만 수정 가능
             • 수정 내역 감사 로그 자동 저장
             • 업데이트 시간 자동 갱신
-            """, tags = { "User Management" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Response.class))),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"Invalid request data\"}"))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
-    })
-    @PutMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto.Response> updateUser(
-            @Parameter(description = """
+            """,
+      tags = {"User Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "사용자 정보 수정 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.Response.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "잘못된 요청 데이터",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = "{\"error\": \"Invalid request data\"}"))),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+      })
+  @PutMapping("/{userId}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<UserDto.Response> updateUser(
+      @Parameter(
+              description =
+                  """
                     **🆔 수정할 사용자의 고유 식별자**
 
                     • **형식**: UUID 문자열
@@ -312,8 +399,14 @@ public class UserManagementController {
                     **⚠️ 주의사항**:
                     • 비활성 사용자도 정보 수정 가능
                     • 존재하지 않는 사용자 ID 시 404 에러
-                    """, required = true, example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890") @PathVariable String userId,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = """
+                    """,
+              required = true,
+              example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+          @PathVariable
+          String userId,
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              description =
+                  """
                     **📝 수정할 사용자 정보**
 
                     **필수 입력 필드:**
@@ -329,36 +422,55 @@ public class UserManagementController {
                     **검증 실패 시:**
                     • 400 Bad Request 응답
                     • 구체적인 오류 메시지 제공
-                    """, required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.UpdateRequest.class), examples = {
-                    @ExampleObject(name = "일반적인 정보 수정", value = """
+                    """,
+              required = true,
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = UserDto.UpdateRequest.class),
+                      examples = {
+                        @ExampleObject(
+                            name = "일반적인 정보 수정",
+                            value =
+                                """
                             {
                                 "name": "김철수",
                                 "email": "chulsoo.kim@company.com"
                             }
                             """),
-                    @ExampleObject(name = "이메일만 변경", value = """
+                        @ExampleObject(
+                            name = "이메일만 변경",
+                            value =
+                                """
                             {
                                 "name": "기존사용자명",
                                 "email": "newemail@example.com"
                             }
                             """),
-                    @ExampleObject(name = "이름만 변경", value = """
+                        @ExampleObject(
+                            name = "이름만 변경",
+                            value =
+                                """
                             {
                                 "name": "새로운이름",
                                 "email": "existing@example.com"
                             }
                             """)
-            })) @Valid @RequestBody UserDto.UpdateRequest updateRequest,
-            Authentication authentication) {
+                      }))
+          @Valid
+          @RequestBody
+          UserDto.UpdateRequest updateRequest,
+      Authentication authentication) {
 
-        UserDto.Response updatedUser = userManagementService.updateUser(userId, updateRequest);
-        return ResponseEntity.ok(updatedUser);
-    }
+    UserDto.Response updatedUser = userManagementService.updateUser(userId, updateRequest);
+    return ResponseEntity.ok(updatedUser);
+  }
 
-    /**
-     * 사용자 계정 활성화
-     */
-    @Operation(summary = "사용자 계정 활성화", description = """
+  /** 사용자 계정 활성화 */
+  @Operation(
+      summary = "사용자 계정 활성화",
+      description =
+          """
             **🟢 사용자 계정 활성화**
 
             비활성화된 사용자 계정을 다시 활성화하여 로그인 및 시스템 사용을 가능하게 하는 API입니다.
@@ -393,9 +505,22 @@ public class UserManagementController {
             • 이미 활성화된 계정에 대해서도 안전하게 호출 가능
             • 사용자의 기존 역할 및 권한은 그대로 유지
             • 비밀번호 등 인증 정보는 변경되지 않음
-            """, tags = { "User Management" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "계정 활성화 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Response.class), examples = @ExampleObject(name = "계정 활성화 응답 예제", value = """
+            """,
+      tags = {"User Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "계정 활성화 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.Response.class),
+                    examples =
+                        @ExampleObject(
+                            name = "계정 활성화 응답 예제",
+                            value =
+                                """
                     {
                         "id": "user-123",
                         "username": "testuser",
@@ -407,24 +532,26 @@ public class UserManagementController {
                         "updatedAt": "2025-01-01T14:00:00"
                     }
                     """))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
-    })
-    @PostMapping("/{userId}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto.Response> activateUser(
-            @Parameter(description = "활성화할 사용자 ID", required = true, example = "user-123") @PathVariable String userId,
-            Authentication authentication) {
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+      })
+  @PostMapping("/{userId}/activate")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<UserDto.Response> activateUser(
+      @Parameter(description = "활성화할 사용자 ID", required = true, example = "user-123") @PathVariable
+          String userId,
+      Authentication authentication) {
 
-        UserDto.Response user = userManagementService.activateUser(userId);
-        return ResponseEntity.ok(user);
-    }
+    UserDto.Response user = userManagementService.activateUser(userId);
+    return ResponseEntity.ok(user);
+  }
 
-    /**
-     * 사용자 계정 비활성화
-     */
-    @Operation(summary = "사용자 계정 비활성화", description = """
+  /** 사용자 계정 비활성화 */
+  @Operation(
+      summary = "사용자 계정 비활성화",
+      description =
+          """
             **🔴 사용자 계정 비활성화**
 
             활성화된 사용자 계정을 비활성화하여 로그인 및 시스템 접근을 차단하는 API입니다.
@@ -472,9 +599,22 @@ public class UserManagementController {
             • 비활성화된 계정도 관리자는 정보 조회/수정 가능
             • 데이터 삭제가 아닌 접근 차단이므로 언제든 활성화 가능
             • 본인 계정 비활성화는 권장하지 않음 (관리자 접근 불가 위험)
-            """, tags = { "User Management" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "계정 비활성화 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Response.class), examples = @ExampleObject(name = "계정 비활성화 응답 예제", value = """
+            """,
+      tags = {"User Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "계정 비활성화 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.Response.class),
+                    examples =
+                        @ExampleObject(
+                            name = "계정 비활성화 응답 예제",
+                            value =
+                                """
                     {
                         "id": "user-123",
                         "username": "testuser",
@@ -486,30 +626,46 @@ public class UserManagementController {
                         "updatedAt": "2025-01-01T14:00:00"
                     }
                     """))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
-    })
-    @PostMapping("/{userId}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto.Response> deactivateUser(
-            @Parameter(description = "비활성화할 사용자 ID", required = true, example = "user-123") @PathVariable String userId,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "비활성화 사유 (선택사항)", required = false, content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.ActivationRequest.class), examples = @ExampleObject(name = "비활성화 요청 예제", value = """
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+      })
+  @PostMapping("/{userId}/deactivate")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<UserDto.Response> deactivateUser(
+      @Parameter(description = "비활성화할 사용자 ID", required = true, example = "user-123") @PathVariable
+          String userId,
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              description = "비활성화 사유 (선택사항)",
+              required = false,
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = UserDto.ActivationRequest.class),
+                      examples =
+                          @ExampleObject(
+                              name = "비활성화 요청 예제",
+                              value =
+                                  """
                     {
                         "reason": "장기 미사용으로 인한 계정 비활성화"
                     }
-                    """))) @Valid @RequestBody(required = false) UserDto.ActivationRequest activationRequest,
-            Authentication authentication) {
+                    """)))
+          @Valid
+          @RequestBody(required = false)
+          UserDto.ActivationRequest activationRequest,
+      Authentication authentication) {
 
-        String reason = activationRequest != null ? activationRequest.getReason() : null;
-        UserDto.Response user = userManagementService.deactivateUser(userId, reason);
-        return ResponseEntity.ok(user);
-    }
+    String reason = activationRequest != null ? activationRequest.getReason() : null;
+    UserDto.Response user = userManagementService.deactivateUser(userId, reason);
+    return ResponseEntity.ok(user);
+  }
 
-    /**
-     * 사용자 역할 변경
-     */
-    @Operation(summary = "사용자 역할 변경", description = """
+  /** 사용자 역할 변경 */
+  @Operation(
+      summary = "사용자 역할 변경",
+      description =
+          """
             **👥 사용자 역할 및 권한 변경**
 
             특정 사용자의 시스템 역할을 변경하여 접근 권한을 조정하는 중요한 관리 API입니다.
@@ -577,9 +733,22 @@ public class UserManagementController {
             • 조직 내 규정 준수를 위한 근거 자료
             • 향후 감사 및 추적을 위한 참고 정보
             • 역할 변경 히스토리 관리
-            """, tags = { "User Management" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "역할 변경 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Response.class), examples = @ExampleObject(name = "역할 변경 응답 예제", value = """
+            """,
+      tags = {"User Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "역할 변경 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.Response.class),
+                    examples =
+                        @ExampleObject(
+                            name = "역할 변경 응답 예제",
+                            value =
+                                """
                     {
                         "id": "user-123",
                         "username": "testuser",
@@ -591,31 +760,54 @@ public class UserManagementController {
                         "updatedAt": "2025-01-01T14:00:00"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "잘못된 역할 값", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"Invalid role\"}"))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
-    })
-    @PutMapping("/{userId}/role")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto.Response> changeUserRole(
-            @Parameter(description = "역할을 변경할 사용자 ID", required = true, example = "user-123") @PathVariable String userId,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "변경할 역할 정보", required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.ChangeRoleRequest.class), examples = @ExampleObject(name = "역할 변경 요청 예제", value = """
+        @ApiResponse(
+            responseCode = "400",
+            description = "잘못된 역할 값",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = "{\"error\": \"Invalid role\"}"))),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+      })
+  @PutMapping("/{userId}/role")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<UserDto.Response> changeUserRole(
+      @Parameter(description = "역할을 변경할 사용자 ID", required = true, example = "user-123")
+          @PathVariable
+          String userId,
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              description = "변경할 역할 정보",
+              required = true,
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = UserDto.ChangeRoleRequest.class),
+                      examples =
+                          @ExampleObject(
+                              name = "역할 변경 요청 예제",
+                              value =
+                                  """
                     {
                         "role": "MANAGER",
                         "reason": "프로젝트 관리 업무 담당으로 역할 변경"
                     }
-                    """))) @Valid @RequestBody UserDto.ChangeRoleRequest roleRequest,
-            Authentication authentication) {
+                    """)))
+          @Valid
+          @RequestBody
+          UserDto.ChangeRoleRequest roleRequest,
+      Authentication authentication) {
 
-        UserDto.Response user = userManagementService.changeUserRole(userId, roleRequest);
-        return ResponseEntity.ok(user);
-    }
+    UserDto.Response user = userManagementService.changeUserRole(userId, roleRequest);
+    return ResponseEntity.ok(user);
+  }
 
-    /**
-     * 사용자 비밀번호 변경 (관리자용)
-     */
-    @Operation(summary = "사용자 비밀번호 변경 (관리자용)", description = """
+  /** 사용자 비밀번호 변경 (관리자용) */
+  @Operation(
+      summary = "사용자 비밀번호 변경 (관리자용)",
+      description =
+          """
             **🔐 관리자용 사용자 비밀번호 변경**
 
             시스템 관리자가 특정 사용자의 비밀번호를 변경할 수 있는 API입니다.
@@ -651,34 +843,65 @@ public class UserManagementController {
             • 모든 변경 이력 감사 로그에 기록
             • 비밀번호는 응답에 포함되지 않음
             • bcrypt 해시 알고리즘 사용
-            """, tags = { "User Management" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Response.class))),
-            @ApiResponse(responseCode = "400", description = "잘못된 비밀번호 형식", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"비밀번호는 최소 8자 이상이어야 합니다.\"}"))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
-    })
-    @PutMapping("/{userId}/password")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto.Response> changeUserPassword(
-            @Parameter(description = "비밀번호를 변경할 사용자 ID", required = true, example = "user-123") @PathVariable String userId,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "새로운 비밀번호 정보", required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.ChangePasswordRequest.class), examples = @ExampleObject(name = "비밀번호 변경 요청 예제", value = """
+            """,
+      tags = {"User Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "비밀번호 변경 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.Response.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "잘못된 비밀번호 형식",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = "{\"error\": \"비밀번호는 최소 8자 이상이어야 합니다.\"}"))),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+      })
+  @PutMapping("/{userId}/password")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<UserDto.Response> changeUserPassword(
+      @Parameter(description = "비밀번호를 변경할 사용자 ID", required = true, example = "user-123")
+          @PathVariable
+          String userId,
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              description = "새로운 비밀번호 정보",
+              required = true,
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = UserDto.ChangePasswordRequest.class),
+                      examples =
+                          @ExampleObject(
+                              name = "비밀번호 변경 요청 예제",
+                              value =
+                                  """
                     {
                         "currentPassword": "oldPassword123!",
                         "newPassword": "newSecurePassword456@"
                     }
-                    """))) @Valid @RequestBody UserDto.ChangePasswordRequest passwordRequest,
-            Authentication authentication) {
+                    """)))
+          @Valid
+          @RequestBody
+          UserDto.ChangePasswordRequest passwordRequest,
+      Authentication authentication) {
 
-        UserDto.Response user = userManagementService.changeUserPassword(userId, passwordRequest);
-        return ResponseEntity.ok(user);
-    }
+    UserDto.Response user = userManagementService.changeUserPassword(userId, passwordRequest);
+    return ResponseEntity.ok(user);
+  }
 
-    /**
-     * 사용자 통계 조회
-     */
-    @Operation(summary = "사용자 통계 조회", description = """
+  /** 사용자 통계 조회 */
+  @Operation(
+      summary = "사용자 통계 조회",
+      description =
+          """
             **📊 시스템 사용자 통계 및 현황 분석**
 
             시스템의 전체 사용자 현황을 한눈에 파악할 수 있는 종합적인 통계 정보를 제공하는 API입니다.
@@ -737,9 +960,22 @@ public class UserManagementController {
             • 급격한 변화 감지 시 보안 점검 실시
             • 역할 분포 불균형 시 조직 구조 검토
             • 비활성 사용자 증가 시 정책 검토
-            """, tags = { "User Management" })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "사용자 통계 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.StatisticsResponse.class), examples = @ExampleObject(name = "사용자 통계 응답 예제", value = """
+            """,
+      tags = {"User Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "사용자 통계 조회 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.StatisticsResponse.class),
+                    examples =
+                        @ExampleObject(
+                            name = "사용자 통계 응답 예제",
+                            value =
+                                """
                     {
                         "totalUsers": 150,
                         "activeUsers": 135,
@@ -754,65 +990,66 @@ public class UserManagementController {
                         "generatedAt": "2025-01-01T14:00:00"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
-    })
-    @GetMapping("/statistics")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto.StatisticsResponse> getUserStatistics(Authentication authentication) {
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+      })
+  @GetMapping("/statistics")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<UserDto.StatisticsResponse> getUserStatistics(
+      Authentication authentication) {
 
-        UserDto.StatisticsResponse statistics = userManagementService.getUserStatistics();
-        return ResponseEntity.ok(statistics);
+    UserDto.StatisticsResponse statistics = userManagementService.getUserStatistics();
+    return ResponseEntity.ok(statistics);
+  }
+
+  /**
+   * 사용자에게 이메일 인증 발송 (관리자용)
+   *
+   * @param userId 인증 이메일을 보낼 사용자 ID
+   * @param authentication 인증 정보
+   * @return 발송 결과
+   */
+  @PostMapping("/{userId}/send-verification-email")
+  @Operation(summary = "사용자 이메일 인증 발송", description = "관리자가 특정 사용자에게 이메일 인증 메일을 발송합니다.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "이메일 발송 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (메일 설정 비활성화 등)"),
+        @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN이 아님)"),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+      })
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<?> sendVerificationEmail(
+      @Parameter(description = "인증 이메일을 보낼 사용자 ID", required = true) @PathVariable String userId,
+      Authentication authentication,
+      jakarta.servlet.http.HttpServletRequest request) {
+
+    log.info("Admin {} sending verification email to user: {}", authentication.getName(), userId);
+
+    try {
+      UserDto.Response userDto = userManagementService.getUserById(userId);
+      if (userDto == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("message", "사용자를 찾을 수 없습니다."));
+      }
+
+      // Extract base URL from request
+      String baseUrl =
+          request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+
+      var result =
+          emailVerificationService.createVerificationToken(userId, userDto.getEmail(), baseUrl);
+
+      if (result.isSuccess()) {
+        return ResponseEntity.ok(result);
+      } else {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+      }
+
+    } catch (Exception e) {
+      log.error("Failed to send verification email", e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(Map.of("message", "이메일 발송 중 오류가 발생했습니다."));
     }
-
-    /**
-     * 사용자에게 이메일 인증 발송 (관리자용)
-     * 
-     * @param userId         인증 이메일을 보낼 사용자 ID
-     * @param authentication 인증 정보
-     * @return 발송 결과
-     */
-    @PostMapping("/{userId}/send-verification-email")
-    @Operation(summary = "사용자 이메일 인증 발송", description = "관리자가 특정 사용자에게 이메일 인증 메일을 발송합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "이메일 발송 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (메일 설정 비활성화 등)"),
-            @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN이 아님)"),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
-    })
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> sendVerificationEmail(
-            @Parameter(description = "인증 이메일을 보낼 사용자 ID", required = true) @PathVariable String userId,
-            Authentication authentication,
-            jakarta.servlet.http.HttpServletRequest request) {
-
-        log.info("Admin {} sending verification email to user: {}",
-                authentication.getName(), userId);
-
-        try {
-            UserDto.Response userDto = userManagementService.getUserById(userId);
-            if (userDto == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("message", "사용자를 찾을 수 없습니다."));
-            }
-
-            // Extract base URL from request
-            String baseUrl = request.getScheme() + "://" + request.getServerName() + ":"
-                    + request.getServerPort();
-
-            var result = emailVerificationService.createVerificationToken(userId, userDto.getEmail(),
-                    baseUrl);
-
-            if (result.isSuccess()) {
-                return ResponseEntity.ok(result);
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-            }
-
-        } catch (Exception e) {
-            log.error("Failed to send verification email", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "이메일 발송 중 오류가 발생했습니다."));
-        }
-    }
+  }
 }

@@ -1,6 +1,6 @@
 // src/components/RAG/DocumentUpload.jsx
-import React, { useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useCallback } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Paper,
@@ -18,19 +18,19 @@ import {
   Select,
   MenuItem,
   Tooltip,
-} from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import DeleteIcon from '@mui/icons-material/Delete';
-import DescriptionIcon from '@mui/icons-material/Description';
-import InfoIcon from '@mui/icons-material/Info';
-import { useRAG } from '../../context/RAGContext.jsx';
-import { useI18n } from '../../context/I18nContext.jsx';
+} from "@mui/material";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
+import DescriptionIcon from "@mui/icons-material/Description";
+import InfoIcon from "@mui/icons-material/Info";
+import { useRAG } from "../../context/RAGContext.jsx";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 const ALLOWED_FILE_TYPES = [
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/msword',
-  'text/plain',
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/msword",
+  "text/plain",
 ];
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -38,22 +38,22 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 // 문서 파서 옵션
 const PARSER_OPTIONS = [
   {
-    value: 'pypdf',
-    label: 'pypdf',
-    description: 'Basic local parser',
-    descriptionKo: '기본 로컬 파서',
+    value: "pypdf",
+    label: "pypdf",
+    description: "Basic local parser",
+    descriptionKo: "기본 로컬 파서",
   },
   {
-    value: 'pymupdf',
-    label: 'PyMuPDF',
-    description: 'Fast local parser with rich features',
-    descriptionKo: '다양한 기능을 갖춘 빠른 로컬 파서',
+    value: "pymupdf",
+    label: "PyMuPDF",
+    description: "Fast local parser with rich features",
+    descriptionKo: "다양한 기능을 갖춘 빠른 로컬 파서",
   },
   {
-    value: 'pymupdf4llm',
-    label: 'PyMuPDF4LLM',
-    description: 'LLM-optimized markdown extraction',
-    descriptionKo: 'LLM 최적화 마크다운 추출',
+    value: "pymupdf4llm",
+    label: "PyMuPDF4LLM",
+    description: "LLM-optimized markdown extraction",
+    descriptionKo: "LLM 최적화 마크다운 추출",
   },
 ];
 
@@ -65,30 +65,40 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
     waitForDocumentAnalysis,
     waitForEmbeddingGeneration,
     generateEmbeddings,
-    state
+    state,
   } = useRAG();
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [validationError, setValidationError] = useState(null);
   const [localError, setLocalError] = useState(null);
-  const [selectedParser, setSelectedParser] = useState('pymupdf4llm');
+  const [selectedParser, setSelectedParser] = useState("pymupdf4llm");
 
-  const validateFile = useCallback((file) => {
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      return t('rag.upload.error.unsupportedFileType', '지원하지 않는 파일 형식입니다. (PDF, DOCX, DOC, TXT만 가능)');
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return t('rag.upload.error.fileTooLarge', `파일 크기가 너무 큽니다. (최대 ${MAX_FILE_SIZE / 1024 / 1024}MB)`, { maxSize: MAX_FILE_SIZE / 1024 / 1024 });
-    }
-    return null;
-  }, [t]);
+  const validateFile = useCallback(
+    (file) => {
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        return t(
+          "rag.upload.error.unsupportedFileType",
+          "지원하지 않는 파일 형식입니다. (PDF, DOCX, DOC, TXT만 가능)",
+        );
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        return t(
+          "rag.upload.error.fileTooLarge",
+          `파일 크기가 너무 큽니다. (최대 ${MAX_FILE_SIZE / 1024 / 1024}MB)`,
+          { maxSize: MAX_FILE_SIZE / 1024 / 1024 },
+        );
+      }
+      return null;
+    },
+    [t],
+  );
 
   const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   }, []);
@@ -107,29 +117,34 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
     handleFilesSelection(files);
   }, []);
 
-  const handleFilesSelection = useCallback((files) => {
-    setValidationError(null);
+  const handleFilesSelection = useCallback(
+    (files) => {
+      setValidationError(null);
 
-    const validFiles = [];
-    for (const file of files) {
-      const error = validateFile(file);
-      if (error) {
-        setValidationError(error);
-        return;
+      const validFiles = [];
+      for (const file of files) {
+        const error = validateFile(file);
+        if (error) {
+          setValidationError(error);
+          return;
+        }
+        validFiles.push(file);
       }
-      validFiles.push(file);
-    }
 
-    setSelectedFiles(prev => [...prev, ...validFiles]);
-  }, [validateFile]);
+      setSelectedFiles((prev) => [...prev, ...validFiles]);
+    },
+    [validateFile],
+  );
 
   const handleRemoveFile = useCallback((index) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const handleUpload = useCallback(async () => {
     if (selectedFiles.length === 0) {
-      setValidationError(t('rag.upload.error.noFilesSelected', '업로드할 파일을 선택해주세요.'));
+      setValidationError(
+        t("rag.upload.error.noFilesSelected", "업로드할 파일을 선택해주세요."),
+      );
       return;
     }
 
@@ -152,12 +167,16 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
 
         // 3. 임베딩 생성
         await generateEmbeddings(uploadedDoc.id);
-        const embeddingCompletedDocument = await waitForEmbeddingGeneration(uploadedDoc.id, {
-          intervalMs: 2000,
-          timeoutMs: 5 * 60 * 1000,
-        });
+        const embeddingCompletedDocument = await waitForEmbeddingGeneration(
+          uploadedDoc.id,
+          {
+            intervalMs: 2000,
+            timeoutMs: 5 * 60 * 1000,
+          },
+        );
 
-        lastProcessedDocument = embeddingCompletedDocument || analyzedDocument || uploadedDoc;
+        lastProcessedDocument =
+          embeddingCompletedDocument || analyzedDocument || uploadedDoc;
       }
 
       if (onUploadSuccess && lastProcessedDocument) {
@@ -167,7 +186,10 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
       setSelectedFiles([]);
     } catch (error) {
       // console.error('문서 업로드 처리 실패:', error);
-      const errorMessage = error.response?.data?.message || error.message || '문서 업로드에 실패했습니다.';
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "문서 업로드에 실패했습니다.";
       setLocalError(errorMessage);
 
       // 5초 후 자동으로 오류 메시지 제거
@@ -185,60 +207,79 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
     waitForEmbeddingGeneration,
     generateEmbeddings,
     onUploadSuccess,
-    t
+    t,
   ]);
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   const content = (
     <>
       <Typography variant="h6" gutterBottom>
-        {t('rag.upload.title', '문서 업로드')}
+        {t("rag.upload.title", "문서 업로드")}
       </Typography>
 
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        {t('rag.upload.description', 'PDF, DOCX, DOC, TXT 파일을 업로드하여 RAG 시스템에 등록할 수 있습니다. (최대 50MB)')}
+        {t(
+          "rag.upload.description",
+          "PDF, DOCX, DOC, TXT 파일을 업로드하여 RAG 시스템에 등록할 수 있습니다. (최대 50MB)",
+        )}
       </Typography>
 
       {/* Parser Selection */}
       <Box sx={{ mt: 2, mb: 2 }}>
         <FormControl fullWidth size="small">
           <InputLabel id="parser-select-label">
-            {t('rag.upload.parser.label', '문서 분석 파서')}
+            {t("rag.upload.parser.label", "문서 분석 파서")}
           </InputLabel>
           <Select
             labelId="parser-select-label"
             id="parser-select"
             value={selectedParser}
-            label={t('rag.upload.parser.label', '문서 분석 파서')}
+            label={t("rag.upload.parser.label", "문서 분석 파서")}
             onChange={(e) => setSelectedParser(e.target.value)}
           >
             {PARSER_OPTIONS.map((option) => (
               <MenuItem key={option.value} value={option.value}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    width: "100%",
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: "medium" }}>
                     {option.label}
                   </Typography>
                   <Tooltip
-                    title={t(`rag.upload.parser.${option.value}.description`, option.descriptionKo)}
+                    title={t(
+                      `rag.upload.parser.${option.value}.description`,
+                      option.descriptionKo,
+                    )}
                     placement="right"
                   >
-                    <InfoIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <InfoIcon sx={{ fontSize: 16, color: "text.secondary" }} />
                   </Tooltip>
                 </Box>
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-          {t(`rag.upload.parser.${selectedParser}.description`,
-            PARSER_OPTIONS.find(p => p.value === selectedParser)?.descriptionKo || ''
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 0.5, display: "block" }}
+        >
+          {t(
+            `rag.upload.parser.${selectedParser}.description`,
+            PARSER_OPTIONS.find((p) => p.value === selectedParser)
+              ?.descriptionKo || "",
           )}
         </Typography>
       </Box>
@@ -250,28 +291,31 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
         onDragOver={handleDrag}
         onDrop={handleDrop}
         sx={{
-          border: '2px dashed',
-          borderColor: dragActive ? 'primary.main' : 'grey.300',
+          border: "2px dashed",
+          borderColor: dragActive ? "primary.main" : "grey.300",
           borderRadius: 2,
           p: 4,
           mt: 2,
           mb: 2,
-          textAlign: 'center',
-          backgroundColor: dragActive ? 'action.hover' : 'background.paper',
-          cursor: 'pointer',
-          transition: 'all 0.3s',
+          textAlign: "center",
+          backgroundColor: dragActive ? "action.hover" : "background.paper",
+          cursor: "pointer",
+          transition: "all 0.3s",
         }}
       >
-        <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
+        <CloudUploadIcon sx={{ fontSize: 48, color: "primary.main", mb: 1 }} />
         <Typography variant="body1" gutterBottom>
-          {t('rag.upload.dragAndDrop', '파일을 이곳에 드래그하거나 클릭하여 선택하세요')}
+          {t(
+            "rag.upload.dragAndDrop",
+            "파일을 이곳에 드래그하거나 클릭하여 선택하세요",
+          )}
         </Typography>
         <input
           type="file"
           multiple
           accept=".pdf,.docx,.doc,.txt"
           onChange={handleFileInput}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
           id="file-upload-input"
         />
         <label htmlFor="file-upload-input">
@@ -281,21 +325,29 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
             startIcon={<CloudUploadIcon />}
             sx={{ mt: 1 }}
           >
-            {t('rag.upload.selectFiles', '파일 선택')}
+            {t("rag.upload.selectFiles", "파일 선택")}
           </Button>
         </label>
       </Box>
 
       {/* Validation Error */}
       {validationError && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setValidationError(null)}>
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          onClose={() => setValidationError(null)}
+        >
           {validationError}
         </Alert>
       )}
 
       {/* Local Error (Upload-specific) */}
       {localError && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLocalError(null)}>
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          onClose={() => setLocalError(null)}
+        >
           {localError}
         </Alert>
       )}
@@ -304,12 +356,13 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
       {selectedFiles.length > 0 && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle2" gutterBottom>
-            {t('rag.upload.selectedFiles', '선택된 파일')} ({selectedFiles.length})
+            {t("rag.upload.selectedFiles", "선택된 파일")} (
+            {selectedFiles.length})
           </Typography>
           <List dense>
             {selectedFiles.map((file, index) => (
               <ListItem key={index}>
-                <DescriptionIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <DescriptionIcon sx={{ mr: 1, color: "primary.main" }} />
                 <ListItemText
                   primary={file.name}
                   secondary={formatFileSize(file.size)}
@@ -333,18 +386,28 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
       {state.uploadingFiles.length > 0 && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle2" gutterBottom>
-            {t('rag.upload.uploading', '업로드 중')} ({state.uploadingFiles.length})
+            {t("rag.upload.uploading", "업로드 중")} (
+            {state.uploadingFiles.length})
           </Typography>
           <List dense>
             {state.uploadingFiles.map((file) => (
               <ListItem key={file.id}>
-                <DescriptionIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <DescriptionIcon sx={{ mr: 1, color: "primary.main" }} />
                 <ListItemText
                   primary={file.name}
                   secondary={
                     <>
-                      <LinearProgress variant="determinate" value={file.progress} sx={{ width: '100%', mt: 0.5 }} />
-                      <Typography variant="caption" color="text.secondary" component="span" sx={{ display: 'block' }}>
+                      <LinearProgress
+                        variant="determinate"
+                        value={file.progress}
+                        sx={{ width: "100%", mt: 0.5 }}
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        component="span"
+                        sx={{ display: "block" }}
+                      >
                         {file.progress}%
                       </Typography>
                     </>
@@ -357,7 +420,7 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
       )}
 
       {/* Upload Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
         <Button
           variant="contained"
           color="primary"
@@ -365,7 +428,9 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
           onClick={handleUpload}
           disabled={selectedFiles.length === 0 || state.loading}
         >
-          {state.loading ? t('rag.upload.uploading', '업로드 중...') : t('rag.upload.upload', '업로드')}
+          {state.loading
+            ? t("rag.upload.uploading", "업로드 중...")
+            : t("rag.upload.upload", "업로드")}
         </Button>
       </Box>
     </>
@@ -373,7 +438,9 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
 
   if (embedded) {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+      <Box
+        sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}
+      >
         {content}
       </Box>
     );

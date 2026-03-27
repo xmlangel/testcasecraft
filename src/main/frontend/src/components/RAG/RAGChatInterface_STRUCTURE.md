@@ -3,12 +3,14 @@
 ## 📊 리팩토링 최종 결과
 
 ### 코드 줄 수 변화
-| 항목 | 이전 | 이후 | 변화 |
-|------|------|------|------|
-| **RAGChatInterface.jsx** | 2,108줄 | ~630줄 | **-70%** |
-| **handleSendMessage 함수** | ~360줄 | ~180줄 | **-50%** |
+
+| 항목                       | 이전    | 이후   | 변화     |
+| -------------------------- | ------- | ------ | -------- |
+| **RAGChatInterface.jsx**   | 2,108줄 | ~630줄 | **-70%** |
+| **handleSendMessage 함수** | ~360줄  | ~180줄 | **-50%** |
 
 ### 생성된 파일
+
 - **Utilities**: 5개 모듈 + 1개 constants (~550줄)
 - **Custom Hooks**: 6개 (~1,285줄)
 - **UI Components**: 5개 (~750줄)
@@ -57,6 +59,7 @@ src/main/frontend/src/components/RAG/
 ## 📦 유틸리티 상세
 
 ### constants.js
+
 **공통 상수 정의**
 
 ```javascript
@@ -71,13 +74,13 @@ export const STREAMING_CONSTANTS = {
 };
 
 export const MESSAGE_ROLES = {
-  USER: 'user',
-  ASSISTANT: 'assistant',
-  SYSTEM: 'system',
+  USER: "user",
+  ASSISTANT: "assistant",
+  SYSTEM: "system",
 };
 
 export const STORAGE_PREFIX = {
-  CHAT_HISTORY: 'rag-chat-history-',
+  CHAT_HISTORY: "rag-chat-history-",
 };
 
 export const PAGINATION_CONSTANTS = {
@@ -87,13 +90,15 @@ export const PAGINATION_CONSTANTS = {
 ```
 
 **사용 위치**:
+
 - `useScrollManagement.js` - SCROLL_CONSTANTS
-- `useMessageManagement.js` - STORAGE_PREFIX  
+- `useMessageManagement.js` - STORAGE_PREFIX
 - `useChatSender.js` - PAGINATION_CONSTANTS
 
 ---
 
 ### utils/messageUtils.js
+
 **메시지 처리 순수 함수**
 
 ```javascript
@@ -110,6 +115,7 @@ export function mapPersistedMessages(persistedMessages)
 ---
 
 ### utils/formatUtils.js
+
 **포맷팅 순수 함수**
 
 ```javascript
@@ -123,6 +129,7 @@ export function formatRelativeTime(timestamp)
 ---
 
 ### utils/keywordUtils.js
+
 **키워드 감지/필터링**
 
 ```javascript
@@ -144,6 +151,7 @@ export function filterNonTestCaseDocuments(documents)
 ---
 
 ### utils/documentUtils.js
+
 **문서 처리 함수**
 
 ```javascript
@@ -163,6 +171,7 @@ export function sortDocumentsByDate(documents)
 ---
 
 ### utils/index.js
+
 **통합 export**
 
 ```javascript
@@ -172,7 +181,7 @@ import {
   formatFileSize,
   isFileListRequest,
   SCROLL_CONSTANTS,
-} from './utils';
+} from "./utils";
 ```
 
 ---
@@ -181,10 +190,10 @@ import {
 
 ### 코드 감소
 
-| 파일 | Before | After | 감소율 |
-|------|--------|-------|--------|
-| `useChatSender.js` | 329줄 | 259줄 | -21% |
-| `useMessageManagement.js` | 119줄 | 73줄 | -39% |
+| 파일                      | Before | After | 감소율 |
+| ------------------------- | ------ | ----- | ------ |
+| `useChatSender.js`        | 329줄  | 259줄 | -21%   |
+| `useMessageManagement.js` | 119줄  | 73줄  | -39%   |
 
 ### 중복 제거
 
@@ -198,7 +207,7 @@ import {
 
 ```javascript
 // 다른 파일에서도 동일한 함수 사용
-import { formatDate, isFileListRequest } from '@/components/RAG/utils';
+import { formatDate, isFileListRequest } from "@/components/RAG/utils";
 ```
 
 ---
@@ -206,27 +215,31 @@ import { formatDate, isFileListRequest } from '@/components/RAG/utils';
 ## 🎯 개선 효과
 
 ### 1. **유지보수성** ⬆️
+
 - 로직 변경 시 한 곳만 수정
 - 버그 수정 범위 명확
 
 ### 2. **가독성** ⬆️
+
 ```javascript
 // Before
-const isRequest = keywords.some(kw => input.toLowerCase().includes(kw));
+const isRequest = keywords.some((kw) => input.toLowerCase().includes(kw));
 
-// After  
+// After
 const isRequest = isFileListRequest(input);
 ```
 
 ### 3. **테스트성** ⬆️
+
 ```javascript
 // 순수 함수는 테스트가 쉬움
-test('formatFileSize', () => {
-  expect(formatFileSize(1024)).toBe('1.0 KB');
+test("formatFileSize", () => {
+  expect(formatFileSize(1024)).toBe("1.0 KB");
 });
 ```
 
 ### 4. **재사용성** ⬆️
+
 - 유틸리티 함수는 어디서든 사용 가능
 - 중복 코드 없음
 
@@ -263,6 +276,7 @@ test('formatFileSize', () => {
 ## ✅ 결론
 
 ### 달성한 목표
+
 - ✅ 메인 컴포넌트 70% 감소 (2,108줄 → 630줄)
 - ✅ handleSendMessage 50% 감소 (360줄 → 180줄)
 - ✅ 17개 모듈로 분리 (Hooks 6 + UI 5 + Utils 5 + Constants 1)
@@ -271,6 +285,7 @@ test('formatFileSize', () => {
 - ✅ 모든 기존 기능 100% 보존
 
 ### 다음 단계
+
 1. 빌드 및 테스트
 2. 성능 프로파일링 (필요시)
 3. 추가 최적화 (Memoization 등)

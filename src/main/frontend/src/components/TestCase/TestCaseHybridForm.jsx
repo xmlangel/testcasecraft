@@ -1,34 +1,57 @@
 // src/components/TestCase/TestCaseHybridForm.jsx
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import PropTypes from 'prop-types';
-import { Box, CircularProgress, Backdrop, Button, Collapse } from '@mui/material';
-import { ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
-import { useAppContext } from '../../context/AppContext.jsx';
-import { useI18n } from '../../context/I18nContext.jsx';
-import { debugLog, debugWarn } from '../../utils/logger.js';
-import InputModeToggle from './InputModeToggle.jsx';
-import TestCaseForm from '../TestCaseForm.jsx';
-import TestCaseSpreadsheet from './TestCaseSpreadsheet.jsx';
-import TestCaseDatasheetGrid from './TestCaseDatasheetGrid.jsx';
-import NoSelectionPlaceholder from '../common/NoSelectionPlaceholder.jsx';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
+import PropTypes from "prop-types";
+import {
+  Box,
+  CircularProgress,
+  Backdrop,
+  Button,
+  Collapse,
+} from "@mui/material";
+import {
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+} from "@mui/icons-material";
+import { useParams } from "react-router-dom";
+import { useAppContext } from "../../context/AppContext.jsx";
+import { useI18n } from "../../context/I18nContext.jsx";
+import { debugLog, debugWarn } from "../../utils/logger.js";
+import InputModeToggle from "./InputModeToggle.jsx";
+import TestCaseForm from "../TestCaseForm.jsx";
+import TestCaseSpreadsheet from "./TestCaseSpreadsheet.jsx";
+import TestCaseDatasheetGrid from "./TestCaseDatasheetGrid.jsx";
+import NoSelectionPlaceholder from "../common/NoSelectionPlaceholder.jsx";
 
 const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const params = useParams();
 
   // Props가 없으면 URL Params 사용
   // testCaseId가 'new' 문자열이면 null로 처리하여 생성 모드로 진입
-  const effectiveTestCaseId = (testCaseId === 'new' || params.testCaseId === 'new')
-    ? null
-    : (testCaseId || params.testCaseId);
+  const effectiveTestCaseId =
+    testCaseId === "new" || params.testCaseId === "new"
+      ? null
+      : testCaseId || params.testCaseId;
   const effectiveProjectId = projectId || params.projectId;
 
-  const { testCases, addTestCase, updateTestCase, fetchProjectTestCases, testCasesLoading, inputMode, setInputMode } = useAppContext();
+  const {
+    testCases,
+    addTestCase,
+    updateTestCase,
+    fetchProjectTestCases,
+    testCasesLoading,
+    inputMode,
+    setInputMode,
+  } = useAppContext();
   const { t } = useI18n();
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
-
 
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const isUserEditingRef = useRef(false); // 사용자 입력 중 플래그
@@ -39,37 +62,58 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   // useMemo로 불필요한 재계산 방지
   // 프로젝트의 테스트케이스 및 폴더 필터링 (ICT-UserReq: 폴더별 필터링 기능)
   const projectTestCases = useMemo(() => {
-    debugLog('HybridForm', '🔍 projectTestCases 필터링 시작 (선택 ID:', effectiveTestCaseId, ')');
+    debugLog(
+      "HybridForm",
+      "🔍 projectTestCases 필터링 시작 (선택 ID:",
+      effectiveTestCaseId,
+      ")",
+    );
 
     // 1. 프로젝트 ID 및 데이터 유효성 기본 필터링
-    const baseFiltered = testCases.filter(tc => {
-      const hasValidProjectId = String(tc.projectId) === String(effectiveProjectId);
-      const hasValidType = tc.type === 'testcase' || tc.type === 'folder' || tc.type === null;
+    const baseFiltered = testCases.filter((tc) => {
+      const hasValidProjectId =
+        String(tc.projectId) === String(effectiveProjectId);
+      const hasValidType =
+        tc.type === "testcase" || tc.type === "folder" || tc.type === null;
       const hasValidName = tc.name && tc.name.trim().length > 0;
 
       return hasValidProjectId && hasValidType && hasValidName;
     });
 
     // 2. 선택된 폴더 기준 계층 필터링 (스프레드시트/데이터시트 모드용)
-    if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
+    if (inputMode === "spreadsheet" || inputMode === "advanced-spreadsheet") {
       // 선택된 항목이 테스트케이스인 경우, 그 부모 폴더의 내용을 보여줌
-      const selectedItem = baseFiltered.find(tc => String(tc.id) === String(effectiveTestCaseId));
-      const targetParentId = selectedItem?.type === 'testcase' ? selectedItem.parentId : effectiveTestCaseId;
+      const selectedItem = baseFiltered.find(
+        (tc) => String(tc.id) === String(effectiveTestCaseId),
+      );
+      const targetParentId =
+        selectedItem?.type === "testcase"
+          ? selectedItem.parentId
+          : effectiveTestCaseId;
 
-      const hierarchicalFiltered = baseFiltered.filter(tc => {
+      const hierarchicalFiltered = baseFiltered.filter((tc) => {
         // 부모 ID가 일치하거나 (선택된 폴더의 자식)
         // 선택된 폴더 자체를 포함 (이름 수정 등을 위해)
-        const isChild = String(tc.parentId) === String(targetParentId) || (tc.parentId === null && !targetParentId);
+        const isChild =
+          String(tc.parentId) === String(targetParentId) ||
+          (tc.parentId === null && !targetParentId);
         const isSelf = String(tc.id) === String(targetParentId);
 
         return isChild || isSelf;
       });
 
-      debugLog('HybridForm', '✅ 계층 필터링 결과:', hierarchicalFiltered.length, '개 (Target Parent ID:', targetParentId, ')');
+      debugLog(
+        "HybridForm",
+        "✅ 계층 필터링 결과:",
+        hierarchicalFiltered.length,
+        "개 (Target Parent ID:",
+        targetParentId,
+        ")",
+      );
       return hierarchicalFiltered;
     }
 
-    debugLog('HybridForm', '✅ 기본 필터링 결과:', baseFiltered.length, '개');
+    debugLog("HybridForm", "✅ 기본 필터링 결과:", baseFiltered.length, "개");
     return baseFiltered;
   }, [testCases, effectiveProjectId, effectiveTestCaseId, inputMode]);
 
@@ -82,11 +126,11 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   }, [effectiveProjectId, fetchProjectTestCases]);
 
   useEffect(() => {
-    if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
+    if (inputMode === "spreadsheet" || inputMode === "advanced-spreadsheet") {
       // 사용자가 입력 중이면 백엔드 데이터로 덮어쓰지 않음
       // 단, 현재 스프레드시트 데이터가 비어있다면(초기 로딩) 강제로 업데이트 허용
       if (isUserEditingRef.current && spreadsheetData.length > 0) {
-        debugLog('HybridForm', '⏸️ 사용자 입력 중 - 업데이트 스킵');
+        debugLog("HybridForm", "⏸️ 사용자 입력 중 - 업데이트 스킵");
         return;
       }
 
@@ -96,10 +140,15 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
       // 데이터가 실제로 다를 때만 업데이트 (사용자 입력 보호)
       if (currentDataJson !== newDataJson) {
-        debugLog('HybridForm', '🔄 데이터 업데이트:', projectTestCases.length, '개 테스트케이스');
+        debugLog(
+          "HybridForm",
+          "🔄 데이터 업데이트:",
+          projectTestCases.length,
+          "개 테스트케이스",
+        );
         setSpreadsheetData(projectTestCases);
       } else {
-        debugLog('HybridForm', '✅ 데이터 동일 - 업데이트 스킵');
+        debugLog("HybridForm", "✅ 데이터 동일 - 업데이트 스킵");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,38 +159,48 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
     setInputMode(newMode);
 
     // 모드 변경 시 데이터 새로고침
-    if (newMode === 'spreadsheet' || newMode === 'advanced-spreadsheet') {
+    if (newMode === "spreadsheet" || newMode === "advanced-spreadsheet") {
       setSpreadsheetData(projectTestCases);
     }
   };
 
   // 현재 선택된 폴더 이름 추출 (새 행 생성 시 기본값으로 사용)
   const activeFolderName = useMemo(() => {
-    const selectedItem = testCases.find(tc => String(tc.id) === String(effectiveTestCaseId));
-    if (!selectedItem) return '';
-    if (selectedItem.type === 'folder') return selectedItem.name;
-    
+    const selectedItem = testCases.find(
+      (tc) => String(tc.id) === String(effectiveTestCaseId),
+    );
+    if (!selectedItem) return "";
+    if (selectedItem.type === "folder") return selectedItem.name;
+
     // 테스트케이스인 경우 부모 폴더의 이름을 찾음
-    const parentFolder = testCases.find(tc => tc.id === selectedItem.parentId);
-    return parentFolder ? parentFolder.name : '';
+    const parentFolder = testCases.find(
+      (tc) => tc.id === selectedItem.parentId,
+    );
+    return parentFolder ? parentFolder.name : "";
   }, [testCases, effectiveTestCaseId]);
 
   // 스프레드시트 데이터 변경 핸들러
   const handleSpreadsheetChange = (updatedTestCases) => {
-    debugLog('HybridForm', '📝 사용자 입력 감지:', updatedTestCases.length, '개 행');
+    debugLog(
+      "HybridForm",
+      "📝 사용자 입력 감지:",
+      updatedTestCases.length,
+      "개 행",
+    );
 
     // 무한 루프 방지를 위해 직접 비교
     if (JSON.stringify(updatedTestCases) !== JSON.stringify(spreadsheetData)) {
       // 데이터가 실제로 변경되었을 때만 사용자 입력으로 간주
       isUserEditingRef.current = true;
-      debugLog('HybridForm', '💾 스프레드시트 데이터 상태 업데이트');
+      debugLog("HybridForm", "💾 스프레드시트 데이터 상태 업데이트");
       setSpreadsheetData(updatedTestCases);
 
       // 입력 완료 후 플래그 리셋 (디바운스)
-      if (window.spreadsheetDebounceTimer) clearTimeout(window.spreadsheetDebounceTimer);
+      if (window.spreadsheetDebounceTimer)
+        clearTimeout(window.spreadsheetDebounceTimer);
       window.spreadsheetDebounceTimer = setTimeout(() => {
         isUserEditingRef.current = false;
-        debugLog('HybridForm', '✅ 사용자 입력 플래그 해제');
+        debugLog("HybridForm", "✅ 사용자 입력 플래그 해제");
       }, 500);
     }
   };
@@ -175,7 +234,6 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
       // useEffect가 자동으로 스프레드시트 데이터를 업데이트할 것임
       // 따라서 여기서는 백엔드 호출만 하고 UI 업데이트는 useEffect에 맡김
-
     } catch (error) {
       throw error;
     }
@@ -199,7 +257,10 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           sx={{ mb: 1 }}
           data-testid="input-mode-expand-button"
         >
-          {t('testcase.inputMode.title', '입력 모드 선택')} {modeToggleExpanded ? t('testcase.inputMode.collapse', '접기') : t('testcase.inputMode.expand', '펼치기')}
+          {t("testcase.inputMode.title", "입력 모드 선택")}{" "}
+          {modeToggleExpanded
+            ? t("testcase.inputMode.collapse", "접기")
+            : t("testcase.inputMode.expand", "펼치기")}
         </Button>
         <Collapse in={modeToggleExpanded}>
           <InputModeToggle
@@ -211,9 +272,14 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       </Box>
 
       {/* 로딩 인디케이터 (스프레드시트 모드에서만 표시) */}
-      {(inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') && (
+      {(inputMode === "spreadsheet" ||
+        inputMode === "advanced-spreadsheet") && (
         <Backdrop
-          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, position: 'absolute' }}
+          sx={{
+            color: "#fff",
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            position: "absolute",
+          }}
           open={testCasesLoading && spreadsheetData.length === 0}
         >
           <CircularProgress color="inherit" />
@@ -221,18 +287,18 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       )}
 
       {/* 모드에 따른 컴포넌트 렌더링 */}
-      {inputMode === 'form' ? (
+      {inputMode === "form" ? (
         effectiveTestCaseId === undefined ? (
           <NoSelectionPlaceholder />
         ) : (
           <TestCaseForm
-            key={effectiveTestCaseId || 'new'}
+            key={effectiveTestCaseId || "new"}
             testCaseId={effectiveTestCaseId}
             projectId={effectiveProjectId}
             onSave={handleFormSave}
           />
         )
-      ) : inputMode === 'spreadsheet' ? (
+      ) : inputMode === "spreadsheet" ? (
         <TestCaseSpreadsheet
           data={spreadsheetData}
           onChange={handleSpreadsheetChange}

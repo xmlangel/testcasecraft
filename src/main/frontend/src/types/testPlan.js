@@ -1,4 +1,4 @@
-// src/types/testPlan.js  
+// src/types/testPlan.js
 /**
  * 테스트플랜 관련 타입 정의
  */

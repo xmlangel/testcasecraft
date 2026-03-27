@@ -17,7 +17,7 @@
         "description": "PASS 개수"
       },
       "FAIL": {
-        "type": "integer", 
+        "type": "integer",
         "minimum": 0,
         "description": "FAIL 개수"
       },
@@ -51,7 +51,7 @@
     "required": [
       "date",
       "PASS",
-      "FAIL", 
+      "FAIL",
       "BLOCKED",
       "SKIPPED",
       "NOTRUN",

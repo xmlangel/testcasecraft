@@ -4,18 +4,16 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.dto.ProjectDto;
 import com.testcase.testcasemanagement.dto.ProjectWithTestCaseCountDto;
 import com.testcase.testcasemanagement.mapper.ProjectMapper;
-import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.Organization;
-import com.testcase.testcasemanagement.service.ProjectService;
-import com.testcase.testcasemanagement.service.OrganizationService;
-import com.testcase.testcasemanagement.repository.TestCaseRepository;
-import com.testcase.testcasemanagement.repository.TestPlanRepository;
-import com.testcase.testcasemanagement.repository.TestExecutionRepository;
-import com.testcase.testcasemanagement.repository.ProjectUserRepository;
-import com.testcase.testcasemanagement.repository.OrganizationUserRepository;
+import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.ProjectUser;
-
-import jakarta.servlet.http.HttpServletRequest;
+import com.testcase.testcasemanagement.repository.OrganizationUserRepository;
+import com.testcase.testcasemanagement.repository.ProjectUserRepository;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.repository.TestExecutionRepository;
+import com.testcase.testcasemanagement.repository.TestPlanRepository;
+import com.testcase.testcasemanagement.service.OrganizationService;
+import com.testcase.testcasemanagement.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,7 +23,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid; // 올바른 위치에 있는 import 문
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,18 +36,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid; // 올바른 위치에 있는 import 문
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 /**
  * 프로젝트 관리 API 컨트롤러
- * 
- * 테스트 케이스 관리 시스템의 핵심인 프로젝트 생성, 수정, 삭제 및 관리 기능을 제공합니다.
- * 조직 기반 프로젝트 관리와 독립 프로젝트 관리를 모두 지원합니다.
+ *
+ * <p>테스트 케이스 관리 시스템의 핵심인 프로젝트 생성, 수정, 삭제 및 관리 기능을 제공합니다. 조직 기반 프로젝트 관리와 독립 프로젝트 관리를 모두 지원합니다.
  */
 @Tag(name = "Project Management", description = "프로젝트 관리 API")
 @RestController
@@ -53,31 +48,25 @@ import java.util.stream.Collectors;
 @SecurityRequirement(name = "bearerAuth")
 public class ProjectController {
 
-        @Autowired
-        private ProjectService projectService;
+  @Autowired private ProjectService projectService;
 
-        @Autowired
-        private OrganizationService organizationService;
+  @Autowired private OrganizationService organizationService;
 
-        @Autowired
-        private TestCaseRepository testCaseRepository;
+  @Autowired private TestCaseRepository testCaseRepository;
 
-        @Autowired
-        private TestPlanRepository testPlanRepository;
+  @Autowired private TestPlanRepository testPlanRepository;
 
-        @Autowired
-        private TestExecutionRepository testExecutionRepository;
+  @Autowired private TestExecutionRepository testExecutionRepository;
 
-        @Autowired
-        private ProjectUserRepository projectUserRepository;
+  @Autowired private ProjectUserRepository projectUserRepository;
 
-        @Autowired
-        private OrganizationUserRepository organizationUserRepository;
+  @Autowired private OrganizationUserRepository organizationUserRepository;
 
-        /**
-         * 전체 프로젝트 목록 조회
-         */
-        @Operation(summary = "전체 프로젝트 목록 조회", description = """
+  /** 전체 프로젝트 목록 조회 */
+  @Operation(
+      summary = "전체 프로젝트 목록 조회",
+      description =
+          """
                         **📂 전체 프로젝트 목록 조회**
 
                         현재 사용자가 접근 가능한 모든 프로젝트의 목록을 조회하는 핵심 API입니다.
@@ -104,9 +93,22 @@ public class ProjectController {
                         • 기본 사용자 권한 이상 필요 (USER, TESTER, ADMIN)
                         • 사용자가 멤버로 속한 프로젝트만 조회 가능
                         • 시스템 관리자는 모든 프로젝트 조회 가능
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "프로젝트 목록 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectWithTestCaseCountDto.class), examples = @ExampleObject(name = "프로젝트 목록 응답 예제", value = """
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "프로젝트 목록 조회 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectWithTestCaseCountDto.class),
+                    examples =
+                        @ExampleObject(
+                            name = "프로젝트 목록 응답 예제",
+                            value =
+                                """
                                         [
                                             {
                                                 "id": "proj-123",
@@ -134,81 +136,86 @@ public class ProjectController {
                                             }
                                         ]
                                         """))),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "접근 권한 없음")
-        })
-        @GetMapping
-        @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER')")
-        public ResponseEntity<List<ProjectWithTestCaseCountDto>> getAllProjects(
-                        Authentication authentication) {
-                List<Project> projects = projectService.getAllProjects();
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "접근 권한 없음")
+      })
+  @GetMapping
+  @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER')")
+  public ResponseEntity<List<ProjectWithTestCaseCountDto>> getAllProjects(
+      Authentication authentication) {
+    List<Project> projects = projectService.getAllProjects();
 
-                if (projects.isEmpty()) {
-                        return ResponseEntity.ok(List.of());
-                }
+    if (projects.isEmpty()) {
+      return ResponseEntity.ok(List.of());
+    }
 
-                // 프로젝트 및 조직 ID 목록 수집
-                List<String> projectIds = projects.stream()
-                                .map(Project::getId)
-                                .collect(Collectors.toList());
+    // 프로젝트 및 조직 ID 목록 수집
+    List<String> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
 
-                List<String> organizationIds = projects.stream()
-                                .map(Project::getOrganization)
-                                .filter(java.util.Objects::nonNull)
-                                .map(Organization::getId)
-                                .distinct()
-                                .collect(Collectors.toList());
+    List<String> organizationIds =
+        projects.stream()
+            .map(Project::getOrganization)
+            .filter(java.util.Objects::nonNull)
+            .map(Organization::getId)
+            .distinct()
+            .collect(Collectors.toList());
 
-                // 배치 카운트 조회 (N+1 문제 해결)
-                Map<String, Long> testCaseCounts = convertToCountMap(testCaseRepository.countByProjectIds(projectIds));
-                Map<String, Long> testPlanCounts = convertToCountMap(testPlanRepository.countByProjectIds(projectIds));
-                Map<String, Long> testExecutionCounts = convertToCountMap(
-                                testExecutionRepository.countByProjectIds(projectIds));
-                Map<String, Long> projectMemberCounts = convertToCountMap(
-                                projectUserRepository.countByProjectIds(projectIds));
-                Map<String, Long> organizationMemberCounts = organizationIds.isEmpty() ? Map.of()
-                                : convertToCountMap(organizationUserRepository.countByOrganizationIds(organizationIds));
+    // 배치 카운트 조회 (N+1 문제 해결)
+    Map<String, Long> testCaseCounts =
+        convertToCountMap(testCaseRepository.countByProjectIds(projectIds));
+    Map<String, Long> testPlanCounts =
+        convertToCountMap(testPlanRepository.countByProjectIds(projectIds));
+    Map<String, Long> testExecutionCounts =
+        convertToCountMap(testExecutionRepository.countByProjectIds(projectIds));
+    Map<String, Long> projectMemberCounts =
+        convertToCountMap(projectUserRepository.countByProjectIds(projectIds));
+    Map<String, Long> organizationMemberCounts =
+        organizationIds.isEmpty()
+            ? Map.of()
+            : convertToCountMap(organizationUserRepository.countByOrganizationIds(organizationIds));
 
-                // DTO 변환
-                List<ProjectWithTestCaseCountDto> dtos = projects.stream()
-                                .map(project -> {
-                                        long testCaseCount = testCaseCounts.getOrDefault(project.getId(), 0L);
-                                        long testPlanCount = testPlanCounts.getOrDefault(project.getId(), 0L);
-                                        long testExecutionCount = testExecutionCounts.getOrDefault(project.getId(), 0L);
+    // DTO 변환
+    List<ProjectWithTestCaseCountDto> dtos =
+        projects.stream()
+            .map(
+                project -> {
+                  long testCaseCount = testCaseCounts.getOrDefault(project.getId(), 0L);
+                  long testPlanCount = testPlanCounts.getOrDefault(project.getId(), 0L);
+                  long testExecutionCount = testExecutionCounts.getOrDefault(project.getId(), 0L);
 
-                                        long memberCount;
-                                        if (project.getOrganization() != null) {
-                                                memberCount = organizationMemberCounts.getOrDefault(
-                                                                project.getOrganization().getId(), 0L);
-                                        } else {
-                                                memberCount = projectMemberCounts.getOrDefault(project.getId(), 0L);
-                                        }
+                  long memberCount;
+                  if (project.getOrganization() != null) {
+                    memberCount =
+                        organizationMemberCounts.getOrDefault(
+                            project.getOrganization().getId(), 0L);
+                  } else {
+                    memberCount = projectMemberCounts.getOrDefault(project.getId(), 0L);
+                  }
 
-                                        return new ProjectWithTestCaseCountDto(project, testCaseCount, memberCount,
-                                                        testPlanCount,
-                                                        testExecutionCount);
-                                })
-                                .collect(Collectors.toList());
+                  return new ProjectWithTestCaseCountDto(
+                      project, testCaseCount, memberCount, testPlanCount, testExecutionCount);
+                })
+            .collect(Collectors.toList());
 
-                return ResponseEntity.ok(dtos);
-        }
+    return ResponseEntity.ok(dtos);
+  }
 
-        /**
-         * List<Object[]> 형태의 카운트 조회 결과를 Map<String, Long>으로 변환
-         */
-        private Map<String, Long> convertToCountMap(List<Object[]> results) {
-                return results.stream()
-                                .collect(Collectors.toMap(
-                                                r -> (String) r[0],
-                                                r -> (Long) r[1],
-                                                (existing, replacement) -> existing // 중복 키 발생 시 기존 값 유지 (이론상 발생 안함)
-                                ));
-        }
+  /** List<Object[]> 형태의 카운트 조회 결과를 Map<String, Long>으로 변환 */
+  private Map<String, Long> convertToCountMap(List<Object[]> results) {
+    return results.stream()
+        .collect(
+            Collectors.toMap(
+                r -> (String) r[0],
+                r -> (Long) r[1],
+                (existing, replacement) -> existing // 중복 키 발생 시 기존 값 유지 (이론상 발생 안함)
+                ));
+  }
 
-        /**
-         * 새 프로젝트 생성
-         */
-        @Operation(summary = "새 프로젝트 생성", description = """
+  /** 새 프로젝트 생성 */
+  @Operation(
+      summary = "새 프로젝트 생성",
+      description =
+          """
                         **🆕 새로운 테스트 프로젝트 생성**
 
                         새로운 테스트 프로젝트를 생성하여 테스트 케이스 관리를 시작하는 필수 API입니다.
@@ -245,9 +252,22 @@ public class ProjectController {
                         • 생성자는 자동으로 PROJECT_MANAGER 권한 획득
                         • 독립 프로젝트: 모든 인증된 사용자 생성 가능
                         • 조직 소속 프로젝트: 조직 멤버십 및 권한 필요
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "201", description = "프로젝트 생성 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectDto.class), examples = @ExampleObject(name = "프로젝트 생성 응답 예제", value = """
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "201",
+            description = "프로젝트 생성 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectDto.class),
+                    examples =
+                        @ExampleObject(
+                            name = "프로젝트 생성 응답 예제",
+                            value =
+                                """
                                         {
                                             "id": "proj-new-123",
                                             "code": "NEW_PROJECT",
@@ -259,18 +279,30 @@ public class ProjectController {
                                             "updatedAt": "2025-01-25T10:00:00"
                                         }
                                         """))),
-                        @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content(mediaType = "application/json", examples = {
-                                        @ExampleObject(name = "코드 중복 오류", value = "{\"error\": \"이미 사용 중인 프로젝트 코드입니다: NEW_PROJECT\"}"),
-                                        @ExampleObject(name = "유효성 검증 오류", value = "{\"error\": \"코드는 필수 항목입니다\"}"),
-                                        @ExampleObject(name = "조직 ID 오류", value = "{\"error\": \"유효하지 않은 조직 ID입니다: invalid-org-123\"}")
-                        })),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "프로젝트 생성 권한 없음")
-        })
-        @PostMapping(value = "")
-        @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
-        public ResponseEntity<?> createProject(
-                        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = """
+        @ApiResponse(
+            responseCode = "400",
+            description = "잘못된 요청 데이터",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = {
+                      @ExampleObject(
+                          name = "코드 중복 오류",
+                          value = "{\"error\": \"이미 사용 중인 프로젝트 코드입니다: NEW_PROJECT\"}"),
+                      @ExampleObject(name = "유효성 검증 오류", value = "{\"error\": \"코드는 필수 항목입니다\"}"),
+                      @ExampleObject(
+                          name = "조직 ID 오류",
+                          value = "{\"error\": \"유효하지 않은 조직 ID입니다: invalid-org-123\"}")
+                    })),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "프로젝트 생성 권한 없음")
+      })
+  @PostMapping(value = "")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  public ResponseEntity<?> createProject(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              description =
+                  """
                                         **📄 새 프로젝트 생성 정보**
 
                                         **필수 입력 필드:**
@@ -290,8 +322,17 @@ public class ProjectController {
                                         **검증 실패 시:**
                                         • 400 Bad Request 응답
                                         • 구체적인 오류 메시지 제공
-                                        """, required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectDto.class), examples = {
-                                        @ExampleObject(name = "독립 프로젝트 생성", value = """
+                                        """,
+              required = true,
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = ProjectDto.class),
+                      examples = {
+                        @ExampleObject(
+                            name = "독립 프로젝트 생성",
+                            value =
+                                """
                                                         {
                                                             "code": "MOBILE_TEST",
                                                             "name": "모바일 앱 테스트",
@@ -299,7 +340,10 @@ public class ProjectController {
                                                             "displayOrder": 1
                                                         }
                                                         """),
-                                        @ExampleObject(name = "조직 소속 프로젝트 생성", value = """
+                        @ExampleObject(
+                            name = "조직 소속 프로젝트 생성",
+                            value =
+                                """
                                                         {
                                                             "code": "WEB_API_TEST",
                                                             "name": "웹 API 테스트",
@@ -308,49 +352,55 @@ public class ProjectController {
                                                             "displayOrder": 2
                                                         }
                                                         """),
-                                        @ExampleObject(name = "최소 입력 예제", value = """
+                        @ExampleObject(
+                            name = "최소 입력 예제",
+                            value =
+                                """
                                                         {
                                                             "code": "QUICK_TEST",
                                                             "name": "빠른 테스트"
                                                         }
                                                         """)
-                        })) @Valid @RequestBody ProjectDto projectDto,
-                        Authentication authentication) { // @Valid 추가
-                System.out.println("createProject 메서드 호출됨: " + projectDto.getName()); // 디버그 로그 유지
-                System.out.println("DTO code: " + projectDto.getCode()); // 디버그 로그 추가
-                System.out.println("DTO id: " + projectDto.getId()); // 디버그 로그 추가
-                System.out.println("DTO description: " + projectDto.getDescription()); // 디버그 로그 추가
-                // 기존 수동 코드 필드 검증 로직 제거
+                      }))
+          @Valid
+          @RequestBody
+          ProjectDto projectDto,
+      Authentication authentication) { // @Valid 추가
+    System.out.println("createProject 메서드 호출됨: " + projectDto.getName()); // 디버그 로그 유지
+    System.out.println("DTO code: " + projectDto.getCode()); // 디버그 로그 추가
+    System.out.println("DTO id: " + projectDto.getId()); // 디버그 로그 추가
+    System.out.println("DTO description: " + projectDto.getDescription()); // 디버그 로그 추가
+    // 기존 수동 코드 필드 검증 로직 제거
 
-                Project project = ProjectMapper.toEntity(projectDto);
-                System.out.println("Entity code: " + project.getCode()); // 디버그 로그 추가
-                System.out.println("DTO organizationId: " + projectDto.getOrganizationId()); // 디버그 로그 추가
+    Project project = ProjectMapper.toEntity(projectDto);
+    System.out.println("Entity code: " + project.getCode()); // 디버그 로그 추가
+    System.out.println("DTO organizationId: " + projectDto.getOrganizationId()); // 디버그 로그 추가
 
-                // organizationId가 있으면 Organization 객체 설정
-                if (projectDto.getOrganizationId() != null && !projectDto.getOrganizationId().trim().isEmpty()) {
-                        try {
-                                // OrganizationService를 통해 조직 존재 여부 확인 및 조직 객체 설정
-                                Organization organization = organizationService
-                                                .getOrganization(projectDto.getOrganizationId());
-                                project.setOrganization(organization);
-                                System.out.println("Organization 설정 완료: " + organization.getName()); // 디버그 로그
-                        } catch (Exception e) {
-                                System.out.println("Organization 설정 실패: " + e.getMessage()); // 디버그 로그
-                                return ResponseEntity.badRequest()
-                                                .body(Map.of("error",
-                                                                "유효하지 않은 조직 ID입니다: " + projectDto.getOrganizationId()));
-                        }
-                }
+    // organizationId가 있으면 Organization 객체 설정
+    if (projectDto.getOrganizationId() != null
+        && !projectDto.getOrganizationId().trim().isEmpty()) {
+      try {
+        // OrganizationService를 통해 조직 존재 여부 확인 및 조직 객체 설정
+        Organization organization =
+            organizationService.getOrganization(projectDto.getOrganizationId());
+        project.setOrganization(organization);
+        System.out.println("Organization 설정 완료: " + organization.getName()); // 디버그 로그
+      } catch (Exception e) {
+        System.out.println("Organization 설정 실패: " + e.getMessage()); // 디버그 로그
+        return ResponseEntity.badRequest()
+            .body(Map.of("error", "유효하지 않은 조직 ID입니다: " + projectDto.getOrganizationId()));
+      }
+    }
 
-                Project savedProject = projectService.saveProject(project);
-                return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(ProjectMapper.toDto(savedProject));
-        }
+    Project savedProject = projectService.saveProject(project);
+    return ResponseEntity.status(HttpStatus.CREATED).body(ProjectMapper.toDto(savedProject));
+  }
 
-        /**
-         * 개별 프로젝트 상세 조회
-         */
-        @Operation(summary = "개별 프로젝트 상세 조회", description = """
+  /** 개별 프로젝트 상세 조회 */
+  @Operation(
+      summary = "개별 프로젝트 상세 조회",
+      description =
+          """
                         **🔍 특정 프로젝트 상세 정보 조회**
 
                         특정 프로젝트의 상세 정보를 조회하여 프로젝트 관리 및 테스트 케이스 작업을 위한 기본 정보를 제공합니다.
@@ -383,9 +433,22 @@ public class ProjectController {
                         • 빠른 인덱스 기반 조회 (평균 20-50ms)
                         • 케시 결과 활용 가능 (내부 최적화)
                         • 필요한 데이터만 선택적 로드
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "프로젝트 상세 정보 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectDto.class), examples = @ExampleObject(name = "프로젝트 상세 정보 예제", value = """
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "프로젝트 상세 정보 조회 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectDto.class),
+                    examples =
+                        @ExampleObject(
+                            name = "프로젝트 상세 정보 예제",
+                            value =
+                                """
                                         {
                                             "id": "proj-mobile-123",
                                             "code": "MOBILE_APP",
@@ -397,14 +460,22 @@ public class ProjectController {
                                             "updatedAt": "2025-01-20T15:30:00"
                                         }
                                         """))),
-                        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음 또는 접근 권한 없음", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"요청한 리소스를 찾을 수 없습니다\"}"))),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "프로젝트 접근 권한 없음")
-        })
-        @GetMapping("/{id}")
-        @PreAuthorize("@projectSecurityService.canAccessProject(#id, authentication.name)")
-        public ResponseEntity<ProjectDto> getProjectById(
-                        @Parameter(description = """
+        @ApiResponse(
+            responseCode = "404",
+            description = "프로젝트를 찾을 수 없음 또는 접근 권한 없음",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = "{\"error\": \"요청한 리소스를 찾을 수 없습니다\"}"))),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "프로젝트 접근 권한 없음")
+      })
+  @GetMapping("/{id}")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#id, authentication.name)")
+  public ResponseEntity<ProjectDto> getProjectById(
+      @Parameter(
+              description =
+                  """
                                         **🆔 프로젝트 고유 식별자**
 
                                         • **형식**: UUID 문자열 (예: "proj-a1b2c3d4-e5f6-7890")
@@ -421,17 +492,23 @@ public class ProjectController {
                                         • 접근 권한 없는 프로젝트 ID 사용 시 404 에러 (보안)
                                         • 잘못된 형식의 ID 사용 시 400 에러 발생
                                         • 대소문자를 정확히 입력해야 함
-                                        """, required = true, example = "proj-mobile-app-123") @PathVariable String id,
-                        Authentication authentication) {
-                Optional<Project> project = projectService.getProjectById(id);
-                return project.map(value -> ResponseEntity.ok(ProjectMapper.toDto(value)))
-                                .orElseGet(() -> ResponseEntity.notFound().build());
-        }
+                                        """,
+              required = true,
+              example = "proj-mobile-app-123")
+          @PathVariable
+          String id,
+      Authentication authentication) {
+    Optional<Project> project = projectService.getProjectById(id);
+    return project
+        .map(value -> ResponseEntity.ok(ProjectMapper.toDto(value)))
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
 
-        /**
-         * 프로젝트 정보 수정
-         */
-        @Operation(summary = "프로젝트 정보 수정", description = """
+  /** 프로젝트 정보 수정 */
+  @Operation(
+      summary = "프로젝트 정보 수정",
+      description =
+          """
                         **✏️ 프로젝트 기본 정보 수정**
 
                         기존 프로젝트의 기본 정보를 안전하게 수정하는 API입니다.
@@ -475,9 +552,22 @@ public class ProjectController {
                         • 모든 수정 작업 감사 로그 자동 기록
                         • 변경 전후 값 비교 및 변경 사유 기록
                         • 동시 수정 방지를 위한 낙관적 잠금
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "프로젝트 정보 수정 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectDto.class), examples = @ExampleObject(name = "수정된 프로젝트 정보 예제", value = """
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "프로젝트 정보 수정 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectDto.class),
+                    examples =
+                        @ExampleObject(
+                            name = "수정된 프로젝트 정보 예제",
+                            value =
+                                """
                                         {
                                             "id": "proj-mobile-123",
                                             "code": "MOBILE_APP",
@@ -489,16 +579,26 @@ public class ProjectController {
                                             "updatedAt": "2025-01-25T14:30:00"
                                         }
                                         """))),
-                        @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"이름은 100자 이내로 입력해주세요\"}"))),
-                        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음"),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "프로젝트 수정 권한 없음")
-        })
-        @PutMapping("/{id}")
-        @PreAuthorize("@projectSecurityService.canManageProject(#id, authentication.name)")
-        public ResponseEntity<ProjectDto> updateProject(
-                        @Parameter(description = "수정할 프로젝트 ID", required = true, example = "proj-mobile-123") @PathVariable String id,
-                        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = """
+        @ApiResponse(
+            responseCode = "400",
+            description = "잘못된 요청 데이터",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = "{\"error\": \"이름은 100자 이내로 입력해주세요\"}"))),
+        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "프로젝트 수정 권한 없음")
+      })
+  @PutMapping("/{id}")
+  @PreAuthorize("@projectSecurityService.canManageProject(#id, authentication.name)")
+  public ResponseEntity<ProjectDto> updateProject(
+      @Parameter(description = "수정할 프로젝트 ID", required = true, example = "proj-mobile-123")
+          @PathVariable
+          String id,
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              description =
+                  """
                                         **📄 수정할 프로젝트 정보**
 
                                         **수정 가능한 필드:**
@@ -516,24 +616,38 @@ public class ProjectController {
                                         • 모든 필드는 필수 입력 (null 불가)
                                         • 변경되지 않은 필드도 기존 값으로 전송 필요
                                         • 빈 문자열(\"\") 사용 금지
-                                        """, required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectDto.class), examples = @ExampleObject(name = "프로젝트 수정 예제", value = """
+                                        """,
+              required = true,
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = ProjectDto.class),
+                      examples =
+                          @ExampleObject(
+                              name = "프로젝트 수정 예제",
+                              value =
+                                  """
                                         {
                                             "code": "MOBILE_APP",
                                             "name": "업데이트된 모바일 앱 테스트",
                                             "description": "새로운 기능이 추가된 모바일 애플리케이션 전범위 테스트",
                                             "displayOrder": 2
                                         }
-                                        """))) @Valid @RequestBody ProjectDto projectDto,
-                        Authentication authentication) { // ✅ ProjectDto로 받아야 함
+                                        """)))
+          @Valid
+          @RequestBody
+          ProjectDto projectDto,
+      Authentication authentication) { // ✅ ProjectDto로 받아야 함
 
-                Project updatedProject = projectService.updateProject(id, projectDto);
-                return ResponseEntity.ok(ProjectMapper.toDto(updatedProject));
-        }
+    Project updatedProject = projectService.updateProject(id, projectDto);
+    return ResponseEntity.ok(ProjectMapper.toDto(updatedProject));
+  }
 
-        /**
-         * 프로젝트 삭제
-         */
-        @Operation(summary = "프로젝트 삭제", description = """
+  /** 프로젝트 삭제 */
+  @Operation(
+      summary = "프로젝트 삭제",
+      description =
+          """
                         **🗑️ 프로젝트 삭제 및 데이터 정리**
 
                         기존 프로젝트를 안전하게 삭제하여 시스템에서 제거하는 중요한 관리 API입니다.
@@ -586,9 +700,22 @@ public class ProjectController {
                         • 대용량 프로젝트 삭제 시 시간이 오래 걸릴 수 있음
                         • 삭제 중 시스템 장애 시 데이터 불일치 가능성
                         • 다른 사용자의 작업 도중 방해 가능성
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "프로젝트 삭제 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectDto.class), examples = @ExampleObject(name = "삭제된 프로젝트 정보 예제", value = """
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "프로젝트 삭제 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectDto.class),
+                    examples =
+                        @ExampleObject(
+                            name = "삭제된 프로젝트 정보 예제",
+                            value =
+                                """
                                         {
                                             "id": "proj-deleted-123",
                                             "code": "OLD_PROJECT",
@@ -600,20 +727,36 @@ public class ProjectController {
                                             "updatedAt": "2025-01-25T16:45:00"
                                         }
                                         """))),
-                        @ApiResponse(responseCode = "400", description = "삭제 불가능 - 연관 데이터 존재", content = @Content(mediaType = "application/json", examples = {
-                                        @ExampleObject(name = "테스트 케이스 존재 시", value = "{\"error\": \"프로젝트에 테스트 케이스가 존재합니다. force=true 옵션을 사용하세요\"}"),
-                                        @ExampleObject(name = "활성 멤버 존재 시", value = "{\"error\": \"프로젝트에 활성 멤버가 있습니다. 멤버를 먼저 제거하시기 바랍니다\"}"),
-                                        @ExampleObject(name = "실행 중인 테스트 존재 시", value = "{\"error\": \"실행 중인 테스트가 있습니다. 테스트 완료 후 삭제하시기 바랍니다\"}")
-                        })),
-                        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음"),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "프로젝트 삭제 권한 없음")
-        })
-        @DeleteMapping("/{id}")
-        @PreAuthorize("@projectSecurityService.canManageProject(#id, authentication.name)")
-        public ResponseEntity<ProjectDto> deleteProject(
-                        @Parameter(description = "삭제할 프로젝트 ID", required = true, example = "proj-old-123") @PathVariable String id,
-                        @Parameter(description = """
+        @ApiResponse(
+            responseCode = "400",
+            description = "삭제 불가능 - 연관 데이터 존재",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    examples = {
+                      @ExampleObject(
+                          name = "테스트 케이스 존재 시",
+                          value = "{\"error\": \"프로젝트에 테스트 케이스가 존재합니다. force=true 옵션을 사용하세요\"}"),
+                      @ExampleObject(
+                          name = "활성 멤버 존재 시",
+                          value = "{\"error\": \"프로젝트에 활성 멤버가 있습니다. 멤버를 먼저 제거하시기 바랍니다\"}"),
+                      @ExampleObject(
+                          name = "실행 중인 테스트 존재 시",
+                          value = "{\"error\": \"실행 중인 테스트가 있습니다. 테스트 완료 후 삭제하시기 바랍니다\"}")
+                    })),
+        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "프로젝트 삭제 권한 없음")
+      })
+  @DeleteMapping("/{id}")
+  @PreAuthorize("@projectSecurityService.canManageProject(#id, authentication.name)")
+  public ResponseEntity<ProjectDto> deleteProject(
+      @Parameter(description = "삭제할 프로젝트 ID", required = true, example = "proj-old-123")
+          @PathVariable
+          String id,
+      @Parameter(
+              description =
+                  """
                                         **🚨 강제 삭제 모드**
 
                                         • **false (\uae30\ubcf8\uac12)**: \uc548\uc804 \uc0ad\uc81c - \uc5f0\uad00 \ub370\uc774\ud130 \uc874\uc7ac \uc2dc \uc0ad\uc81c \uac70\ubd80
@@ -629,18 +772,22 @@ public class ProjectController {
                                         • force=true \uc0ac\uc6a9 \uc2dc \ubcf5\uad6c \ubd88\uac00\ub2a5\ud55c \ub370\uc774\ud130 \uc190\uc2e4
                                         • \ub300\uc6a9\ub7c9 \ud504\ub85c\uc81d\ud2b8\uc758 \uacbd\uc6b0 \uc0ad\uc81c \uc2dc\uac04 \uc624\ub798 \uc18c\uc694
                                         • \ub2e4\ub978 \uc0ac\uc6a9\uc790\uc758 \uc791\uc5c5 \ub3c4\uc911 \ubc29\ud574 \uac00\ub2a5
-                                        """, example = "false") @RequestParam(value = "force", defaultValue = "false") boolean force,
-                        Authentication authentication) {
-                Project deletedProject = projectService.deleteProject(id, force);
-                return ResponseEntity.ok(ProjectMapper.toDto(deletedProject));
-        }
+                                        """,
+              example = "false")
+          @RequestParam(value = "force", defaultValue = "false")
+          boolean force,
+      Authentication authentication) {
+    Project deletedProject = projectService.deleteProject(id, force);
+    return ResponseEntity.ok(ProjectMapper.toDto(deletedProject));
+  }
 
-        // ===== 조직-프로젝트 관리 API =====
+  // ===== 조직-프로젝트 관리 API =====
 
-        /**
-         * 조직별 프로젝트 목록 조회
-         */
-        @Operation(summary = "조직별 프로젝트 목록 조회", description = """
+  /** 조직별 프로젝트 목록 조회 */
+  @Operation(
+      summary = "조직별 프로젝트 목록 조회",
+      description =
+          """
                         **🏢 특정 조직 소속 프로젝트 목록 조회**
 
                         특정 조직에 속한 모든 프로젝트의 목록을 조회하는 API입니다.
@@ -661,31 +808,45 @@ public class ProjectController {
                         • 조직 멤버 권한 필수 - 조직에 속한 사용자만 접근
                         • 시스템 관리자는 모든 조직 프로젝트 조회 가능
                         • 비멤버는 404 Not Found 응답 (보안상 존재 여부 숨김)
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "조직 프로젝트 목록 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectWithTestCaseCountDto.class))),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "조직 접근 권한 없음"),
-                        @ApiResponse(responseCode = "404", description = "조직을 찾을 수 없음")
-        })
-        @GetMapping("/organization/{organizationId}")
-        @PreAuthorize("@organizationSecurityService.isOrganizationMember(#organizationId, authentication.name)")
-        public ResponseEntity<List<ProjectWithTestCaseCountDto>> getOrganizationProjects(
-                        @Parameter(description = "조직 고유 식별자", required = true, example = "org-mobile-team-123") @PathVariable String organizationId) {
-                List<Project> projects = projectService.getOrganizationProjects(organizationId);
-                List<ProjectWithTestCaseCountDto> dtos = projects.stream()
-                                .map(project -> {
-                                        long testCaseCount = testCaseRepository.countByProjectId(project.getId());
-                                        return new ProjectWithTestCaseCountDto(project, testCaseCount);
-                                })
-                                .collect(Collectors.toList());
-                return ResponseEntity.ok(dtos);
-        }
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "조직 프로젝트 목록 조회 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectWithTestCaseCountDto.class))),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "조직 접근 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "조직을 찾을 수 없음")
+      })
+  @GetMapping("/organization/{organizationId}")
+  @PreAuthorize(
+      "@organizationSecurityService.isOrganizationMember(#organizationId, authentication.name)")
+  public ResponseEntity<List<ProjectWithTestCaseCountDto>> getOrganizationProjects(
+      @Parameter(description = "조직 고유 식별자", required = true, example = "org-mobile-team-123")
+          @PathVariable
+          String organizationId) {
+    List<Project> projects = projectService.getOrganizationProjects(organizationId);
+    List<ProjectWithTestCaseCountDto> dtos =
+        projects.stream()
+            .map(
+                project -> {
+                  long testCaseCount = testCaseRepository.countByProjectId(project.getId());
+                  return new ProjectWithTestCaseCountDto(project, testCaseCount);
+                })
+            .collect(Collectors.toList());
+    return ResponseEntity.ok(dtos);
+  }
 
-        /**
-         * 조직에 새 프로젝트 생성
-         */
-        @Operation(summary = "조직에 새 프로젝트 생성", description = """
+  /** 조직에 새 프로젝트 생성 */
+  @Operation(
+      summary = "조직에 새 프로젝트 생성",
+      description =
+          """
                         **🆕 조직 소속 새 프로젝트 생성**
 
                         특정 조직 내에 새로운 프로젝트를 생성하는 API입니다.
@@ -706,72 +867,109 @@ public class ProjectController {
                         • 조직 접근 권한 필수 - 조직 멤버 (USER, TESTER, MANAGER, ADMIN)
                         • 생성자는 자동으로 프로젝트 관리자 권한 획득
                         • 조직 설정이 프로젝트에 자동 상속 적용
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "201", description = "조직 프로젝트 생성 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectDto.class))),
-                        @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "조직 접근 권한 없음"),
-                        @ApiResponse(responseCode = "404", description = "조직을 찾을 수 없음")
-        })
-        @PostMapping("/organization/{organizationId}")
-        @PreAuthorize("(hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')) and @organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
-        public ResponseEntity<ProjectDto> createOrganizationProject(
-                        @Parameter(description = "프로젝트를 생성할 조직 ID", required = true, example = "org-mobile-team-123") @PathVariable String organizationId,
-                        @Parameter(description = "프로젝트 코드 (2-50자, 영문/숫자/언더스코어/하이픈만 허용)", required = true, example = "MOBILE_APP_TEST") @RequestParam(value = "code", required = false) String code,
-                        @Parameter(description = "프로젝트 명 (1-100자)", required = true, example = "모바일 앱 테스트") @RequestParam(value = "name", required = false) String name,
-                        @Parameter(description = "프로젝트 설명 (선택사항, 0-1000자)", required = false, example = "iOS와 Android 모바일 애플리케이션 테스트 프로젝트") @RequestParam(value = "description", required = false) String description,
-                        HttpServletRequest request) {
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "201",
+            description = "조직 프로젝트 생성 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectDto.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "조직 접근 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "조직을 찾을 수 없음")
+      })
+  @PostMapping("/organization/{organizationId}")
+  @PreAuthorize(
+      "(hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')) and"
+          + " @organizationSecurityService.canAccessOrganization(#organizationId,"
+          + " authentication.name)")
+  public ResponseEntity<ProjectDto> createOrganizationProject(
+      @Parameter(description = "프로젝트를 생성할 조직 ID", required = true, example = "org-mobile-team-123")
+          @PathVariable
+          String organizationId,
+      @Parameter(
+              description = "프로젝트 코드 (2-50자, 영문/숫자/언더스코어/하이픈만 허용)",
+              required = true,
+              example = "MOBILE_APP_TEST")
+          @RequestParam(value = "code", required = false)
+          String code,
+      @Parameter(description = "프로젝트 명 (1-100자)", required = true, example = "모바일 앱 테스트")
+          @RequestParam(value = "name", required = false)
+          String name,
+      @Parameter(
+              description = "프로젝트 설명 (선택사항, 0-1000자)",
+              required = false,
+              example = "iOS와 Android 모바일 애플리케이션 테스트 프로젝트")
+          @RequestParam(value = "description", required = false)
+          String description,
+      HttpServletRequest request) {
 
-                // 디버깅: 모든 파라미터 값과 요청 정보 출력
-                System.out.println("=== createOrganizationProject 호출됨 ===");
-                System.out.println("organizationId: " + organizationId);
-                System.out.println("@RequestParam code: " + code);
-                System.out.println("@RequestParam name: " + name);
-                System.out.println("@RequestParam description: " + description);
-                System.out.println("Content-Type: " + request.getContentType());
-                System.out.println("Method: " + request.getMethod());
+    // 디버깅: 모든 파라미터 값과 요청 정보 출력
+    System.out.println("=== createOrganizationProject 호출됨 ===");
+    System.out.println("organizationId: " + organizationId);
+    System.out.println("@RequestParam code: " + code);
+    System.out.println("@RequestParam name: " + name);
+    System.out.println("@RequestParam description: " + description);
+    System.out.println("Content-Type: " + request.getContentType());
+    System.out.println("Method: " + request.getMethod());
 
-                // 모든 요청 파라미터 출력
-                System.out.println("=== 모든 요청 파라미터 ===");
-                request.getParameterMap().forEach((key, values) -> {
-                        System.out.println(key + ": " + String.join(", ", values));
-                });
-                System.out.println("=============================");
+    // 모든 요청 파라미터 출력
+    System.out.println("=== 모든 요청 파라미터 ===");
+    request
+        .getParameterMap()
+        .forEach(
+            (key, values) -> {
+              System.out.println(key + ": " + String.join(", ", values));
+            });
+    System.out.println("=============================");
 
-                // form data에서 직접 파라미터 읽기 (fallback)
-                if (code == null) {
-                        code = request.getParameter("code");
-                }
-                if (name == null) {
-                        name = request.getParameter("name");
-                }
-                if (description == null) {
-                        description = request.getParameter("description");
-                }
+    // form data에서 직접 파라미터 읽기 (fallback)
+    if (code == null) {
+      code = request.getParameter("code");
+    }
+    if (name == null) {
+      name = request.getParameter("name");
+    }
+    if (description == null) {
+      description = request.getParameter("description");
+    }
 
-                // 필수 파라미터 검증
-                if (code == null || code.trim().isEmpty()) {
-                        throw new IllegalArgumentException("프로젝트 코드는 필수입니다");
-                }
-                if (name == null || name.trim().isEmpty()) {
-                        throw new IllegalArgumentException("프로젝트 이름은 필수입니다");
-                }
+    // 필수 파라미터 검증
+    if (code == null || code.trim().isEmpty()) {
+      throw new IllegalArgumentException("프로젝트 코드는 필수입니다");
+    }
+    if (name == null || name.trim().isEmpty()) {
+      throw new IllegalArgumentException("프로젝트 이름은 필수입니다");
+    }
 
-                System.out.println(
-                                "createOrganizationProject - code: " + code + ", name: " + name + ", description: "
-                                                + description); // 디버그
-                                                                // 로그
+    System.out.println(
+        "createOrganizationProject - code: "
+            + code
+            + ", name: "
+            + name
+            + ", description: "
+            + description); // 디버그
+    // 로그
 
-                Project project = projectService.createProjectWithCode(name.trim(), code.trim(),
-                                description != null ? description.trim() : null, organizationId);
-                return ResponseEntity.status(HttpStatus.CREATED).body(ProjectMapper.toDto(project));
-        }
+    Project project =
+        projectService.createProjectWithCode(
+            name.trim(),
+            code.trim(),
+            description != null ? description.trim() : null,
+            organizationId);
+    return ResponseEntity.status(HttpStatus.CREATED).body(ProjectMapper.toDto(project));
+  }
 
-        /**
-         * 프로젝트에 멤버 초대
-         */
-        @Operation(summary = "프로젝트 멤버 초대", description = """
+  /** 프로젝트에 멤버 초대 */
+  @Operation(
+      summary = "프로젝트 멤버 초대",
+      description =
+          """
                         **👥 프로젝트에 새로운 멤버 초대**
 
                         기존 사용자를 프로젝트 멤버로 초대하고 역할을 부여하는 API입니다.
@@ -794,28 +992,43 @@ public class ProjectController {
                         • 프로젝트 관리 권한 필수 - PROJECT_MANAGER 이상 또는 시스템 관리자
                         • 모든 멤버 초대 작업 감사 로그 자동 기록
                         • 초대된 사용자에게 알림 전송
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "201", description = "멤버 초대 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectUser.class))),
-                        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 이미 멤버인 사용자"),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "프로젝트 관리 권한 없음"),
-                        @ApiResponse(responseCode = "404", description = "프로젝트 또는 사용자를 찾을 수 없음")
-        })
-        @PostMapping("/{projectId}/members")
-        @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
-        public ResponseEntity<ProjectUser> inviteProjectMember(
-                        @Parameter(description = "멤버를 초대할 프로젝트 ID", required = true, example = "proj-mobile-123") @PathVariable String projectId,
-                        @Parameter(description = "초대할 사용자의 사용자명", required = true, example = "developer1") @RequestParam String username,
-                        @Parameter(description = "부여할 프로젝트 내 역할", required = true, example = "DEVELOPER") @RequestParam ProjectUser.ProjectRole role) {
-                ProjectUser member = projectService.inviteMember(projectId, username, role);
-                return ResponseEntity.status(HttpStatus.CREATED).body(member);
-        }
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "201",
+            description = "멤버 초대 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectUser.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 이미 멤버인 사용자"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "프로젝트 관리 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "프로젝트 또는 사용자를 찾을 수 없음")
+      })
+  @PostMapping("/{projectId}/members")
+  @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
+  public ResponseEntity<ProjectUser> inviteProjectMember(
+      @Parameter(description = "멤버를 초대할 프로젝트 ID", required = true, example = "proj-mobile-123")
+          @PathVariable
+          String projectId,
+      @Parameter(description = "초대할 사용자의 사용자명", required = true, example = "developer1")
+          @RequestParam
+          String username,
+      @Parameter(description = "부여할 프로젝트 내 역할", required = true, example = "DEVELOPER")
+          @RequestParam
+          ProjectUser.ProjectRole role) {
+    ProjectUser member = projectService.inviteMember(projectId, username, role);
+    return ResponseEntity.status(HttpStatus.CREATED).body(member);
+  }
 
-        /**
-         * 프로젝트에서 멤버 제거
-         */
-        @Operation(summary = "프로젝트 멤버 제거", description = """
+  /** 프로젝트에서 멤버 제거 */
+  @Operation(
+      summary = "프로젝트 멤버 제거",
+      description =
+          """
                         **🚫 프로젝트에서 멤버 제거**
 
                         프로젝트에서 특정 멤버를 제거하여 접근 권한을 회수하는 API입니다.
@@ -841,27 +1054,35 @@ public class ProjectController {
                         • 프로젝트 관리 권한 필수 - PROJECT_MANAGER 이상 또는 시스템 관리자
                         • 자신의 계정은 항상 제거 가능 (자발적 탈퇴)
                         • 모든 멤버 제거 작업 감사 로그 자동 기록
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "204", description = "멤버 제거 성공"),
-                        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 마지막 관리자 제거 시도"),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "멤버 제거 권한 없음"),
-                        @ApiResponse(responseCode = "404", description = "프로젝트 또는 사용자를 찾을 수 없음")
-        })
-        @DeleteMapping("/{projectId}/members/{userId}")
-        @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name) or authentication.name == #userId")
-        public ResponseEntity<Void> removeProjectMember(
-                        @Parameter(description = "멤버를 제거할 프로젝트 ID", required = true, example = "proj-mobile-123") @PathVariable String projectId,
-                        @Parameter(description = "제거할 사용자 ID", required = true, example = "user-456") @PathVariable String userId) {
-                projectService.removeMember(projectId, userId);
-                return ResponseEntity.noContent().build();
-        }
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "멤버 제거 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 마지막 관리자 제거 시도"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "멤버 제거 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "프로젝트 또는 사용자를 찾을 수 없음")
+      })
+  @DeleteMapping("/{projectId}/members/{userId}")
+  @PreAuthorize(
+      "@projectSecurityService.hasManagementRole(#projectId, authentication.name) or"
+          + " authentication.name == #userId")
+  public ResponseEntity<Void> removeProjectMember(
+      @Parameter(description = "멤버를 제거할 프로젝트 ID", required = true, example = "proj-mobile-123")
+          @PathVariable
+          String projectId,
+      @Parameter(description = "제거할 사용자 ID", required = true, example = "user-456") @PathVariable
+          String userId) {
+    projectService.removeMember(projectId, userId);
+    return ResponseEntity.noContent().build();
+  }
 
-        /**
-         * 프로젝트 멤버 역할 변경
-         */
-        @Operation(summary = "프로젝트 멤버 역할 변경", description = """
+  /** 프로젝트 멤버 역할 변경 */
+  @Operation(
+      summary = "프로젝트 멤버 역할 변경",
+      description =
+          """
                         **🔄 프로젝트 멤버의 역할 및 권한 변경**
 
                         기존 프로젝트 멤버의 역할을 변경하여 권한 수준을 조정하는 API입니다.
@@ -896,32 +1117,54 @@ public class ProjectController {
                         • 프로젝트 관리 권한 필수 - PROJECT_MANAGER 이상 또는 시스템 관리자
                         • 모든 역할 변경 작업 감사 로그 자동 기록
                         • 변경된 사용자에게 권한 변경 알림 전송
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "역할 변경 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectUser.class))),
-                        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 유효하지 않은 역할"),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "프로젝트 관리 권한 없음"),
-                        @ApiResponse(responseCode = "404", description = "프로젝트 또는 사용자를 찾을 수 없음"),
-                        @ApiResponse(responseCode = "409", description = "마지막 PROJECT_MANAGER 권한 변경 시도")
-        })
-        @PutMapping("/{projectId}/members/{userId}/role")
-        @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
-        public ResponseEntity<ProjectUser> updateProjectMemberRole(
-                        @Parameter(description = "역할을 변경할 프로젝트 ID", required = true, example = "proj-mobile-123") @PathVariable String projectId,
-                        @Parameter(description = "역할을 변경할 사용자 ID", required = true, example = "user-developer-456") @PathVariable String userId,
-                        @Parameter(description = "새로 적용할 프로젝트 역할", required = true, example = "PROJECT_MANAGER", schema = @Schema(implementation = ProjectUser.ProjectRole.class, allowableValues = {
-                                        "PROJECT_MANAGER", "LEAD_DEVELOPER", "DEVELOPER",
-                                        "TESTER", "CONTRIBUTOR", "VIEWER"
-                        })) @RequestParam ProjectUser.ProjectRole role) {
-                ProjectUser member = projectService.updateMemberRole(projectId, userId, role);
-                return ResponseEntity.ok(member);
-        }
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "역할 변경 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectUser.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 유효하지 않은 역할"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "프로젝트 관리 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "프로젝트 또는 사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "409", description = "마지막 PROJECT_MANAGER 권한 변경 시도")
+      })
+  @PutMapping("/{projectId}/members/{userId}/role")
+  @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
+  public ResponseEntity<ProjectUser> updateProjectMemberRole(
+      @Parameter(description = "역할을 변경할 프로젝트 ID", required = true, example = "proj-mobile-123")
+          @PathVariable
+          String projectId,
+      @Parameter(description = "역할을 변경할 사용자 ID", required = true, example = "user-developer-456")
+          @PathVariable
+          String userId,
+      @Parameter(
+              description = "새로 적용할 프로젝트 역할",
+              required = true,
+              example = "PROJECT_MANAGER",
+              schema =
+                  @Schema(
+                      implementation = ProjectUser.ProjectRole.class,
+                      allowableValues = {
+                        "PROJECT_MANAGER", "LEAD_DEVELOPER", "DEVELOPER",
+                        "TESTER", "CONTRIBUTOR", "VIEWER"
+                      }))
+          @RequestParam
+          ProjectUser.ProjectRole role) {
+    ProjectUser member = projectService.updateMemberRole(projectId, userId, role);
+    return ResponseEntity.ok(member);
+  }
 
-        /**
-         * 프로젝트 멤버 목록 조회
-         */
-        @Operation(summary = "프로젝트 멤버 목록 조회", description = """
+  /** 프로젝트 멤버 목록 조회 */
+  @Operation(
+      summary = "프로젝트 멤버 목록 조회",
+      description =
+          """
                         **👥 프로젝트 멤버 전체 목록 조회**
 
                         특정 프로젝트에 속한 모든 멤버의 정보와 역할을 조회하는 API입니다.
@@ -949,25 +1192,36 @@ public class ProjectController {
                         • 프로젝트 접근 권한 필수 - 프로젝트 멤버 또는 시스템 관리자
                         • 개인정보 보호 - 멤버가 아닌 사용자에게는 제한된 정보만 제공
                         • 조회 기록 - 멤버 조회 작업 감사 로그 자동 기록
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "프로젝트 멤버 목록 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectUser.class))),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "프로젝트 접근 권한 없음"),
-                        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음")
-        })
-        @GetMapping("/{projectId}/members")
-        @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
-        public ResponseEntity<List<ProjectUser>> getProjectMembers(
-                        @Parameter(description = "멤버 목록을 조회할 프로젝트 ID", required = true, example = "proj-mobile-123") @PathVariable String projectId) {
-                List<ProjectUser> members = projectService.getProjectMembers(projectId);
-                return ResponseEntity.ok(members);
-        }
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "프로젝트 멤버 목록 조회 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectUser.class))),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "프로젝트 접근 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음")
+      })
+  @GetMapping("/{projectId}/members")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
+  public ResponseEntity<List<ProjectUser>> getProjectMembers(
+      @Parameter(description = "멤버 목록을 조회할 프로젝트 ID", required = true, example = "proj-mobile-123")
+          @PathVariable
+          String projectId) {
+    List<ProjectUser> members = projectService.getProjectMembers(projectId);
+    return ResponseEntity.ok(members);
+  }
 
-        /**
-         * 프로젝트를 다른 조직으로 이전
-         */
-        @Operation(summary = "프로젝트를 다른 조직으로 이전", description = """
+  /** 프로젝트를 다른 조직으로 이전 */
+  @Operation(
+      summary = "프로젝트를 다른 조직으로 이전",
+      description =
+          """
                         **🔄 프로젝트 소유권 및 조직 소속 변경**
 
                         기존 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 전환하는 API입니다.
@@ -1009,28 +1263,45 @@ public class ProjectController {
                         • 대상 조직에 대한 적절한 권한 필요 (조직 ADMIN 이상)
                         • 모든 이전 작업 상세 감사 로그 자동 기록
                         • 이전 완료 후 관련자들에게 알림 전송
-                        """, tags = { "Project Management" })
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "프로젝트 이전 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProjectDto.class))),
-                        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 유효하지 않은 조직 ID"),
-                        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-                        @ApiResponse(responseCode = "403", description = "프로젝트 이전 권한 없음 또는 대상 조직 권한 부족"),
-                        @ApiResponse(responseCode = "404", description = "프로젝트 또는 대상 조직을 찾을 수 없음"),
-                        @ApiResponse(responseCode = "409", description = "이전할 수 없는 프로젝트 상태 (진행 중인 테스트 등)")
-        })
-        @PutMapping("/{projectId}/transfer")
-        @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
-        public ResponseEntity<ProjectDto> transferProject(
-                        @Parameter(description = "이전할 프로젝트 ID", required = true, example = "proj-mobile-123") @PathVariable String projectId,
-                        @Parameter(description = """
+                        """,
+      tags = {"Project Management"})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "프로젝트 이전 성공",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ProjectDto.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 유효하지 않은 조직 ID"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "프로젝트 이전 권한 없음 또는 대상 조직 권한 부족"),
+        @ApiResponse(responseCode = "404", description = "프로젝트 또는 대상 조직을 찾을 수 없음"),
+        @ApiResponse(responseCode = "409", description = "이전할 수 없는 프로젝트 상태 (진행 중인 테스트 등)")
+      })
+  @PutMapping("/{projectId}/transfer")
+  @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
+  public ResponseEntity<ProjectDto> transferProject(
+      @Parameter(description = "이전할 프로젝트 ID", required = true, example = "proj-mobile-123")
+          @PathVariable
+          String projectId,
+      @Parameter(
+              description =
+                  """
                                         이전 대상 조직 ID
 
                                         **설정 옵션:**
                                         • **조직 ID 지정**: 해당 조직으로 프로젝트 이전
                                         • **null 또는 빈 값**: 독립 프로젝트로 전환
                                         • **기존과 동일한 ID**: 오류 반환 (의미 없는 작업)
-                                        """, required = false, example = "org-target-organization-789", schema = @Schema(nullable = true)) @RequestParam(required = false) String newOrganizationId) {
-                Project project = projectService.transferProject(projectId, newOrganizationId);
-                return ResponseEntity.ok(ProjectMapper.toDto(project));
-        }
+                                        """,
+              required = false,
+              example = "org-target-organization-789",
+              schema = @Schema(nullable = true))
+          @RequestParam(required = false)
+          String newOrganizationId) {
+    Project project = projectService.transferProject(projectId, newOrganizationId);
+    return ResponseEntity.ok(ProjectMapper.toDto(project));
+  }
 }

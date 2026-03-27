@@ -12,31 +12,35 @@
  * @param {object} options - Intl.DateTimeFormat 옵션
  * @returns {string} 변환된 날짜 문자열
  */
-export function convertToUserTimezone(isoDateString, timezone = 'UTC', options = {}) {
-  if (!isoDateString) return '';
+export function convertToUserTimezone(
+  isoDateString,
+  timezone = "UTC",
+  options = {},
+) {
+  if (!isoDateString) return "";
 
   try {
     const date = new Date(isoDateString);
 
     // 기본 옵션
     const defaultOptions = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
       hour12: false,
-      timeZone: timezone
+      timeZone: timezone,
     };
 
     const finalOptions = { ...defaultOptions, ...options };
 
     // Intl.DateTimeFormat을 사용하여 시간대 변환
-    const formatter = new Intl.DateTimeFormat('ko-KR', finalOptions);
+    const formatter = new Intl.DateTimeFormat("ko-KR", finalOptions);
     return formatter.format(date);
   } catch (error) {
-    console.error('Timezone conversion error:', error);
+    console.error("Timezone conversion error:", error);
     return isoDateString; // 오류 시 원본 반환
   }
 }
@@ -48,12 +52,12 @@ export function convertToUserTimezone(isoDateString, timezone = 'UTC', options =
  * @param {string} timezone - 사용자 시간대
  * @returns {string} 변환된 날짜 문자열 (YYYY-MM-DD)
  */
-export function convertToUserDate(isoDateString, timezone = 'UTC') {
+export function convertToUserDate(isoDateString, timezone = "UTC") {
   return convertToUserTimezone(isoDateString, timezone, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour12: false
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour12: false,
   });
 }
 
@@ -64,12 +68,12 @@ export function convertToUserDate(isoDateString, timezone = 'UTC') {
  * @param {string} timezone - 사용자 시간대
  * @returns {string} 변환된 시간 문자열 (HH:MM:SS)
  */
-export function convertToUserTime(isoDateString, timezone = 'UTC') {
+export function convertToUserTime(isoDateString, timezone = "UTC") {
   return convertToUserTimezone(isoDateString, timezone, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
   });
 }
 
@@ -81,41 +85,49 @@ export function convertToUserTime(isoDateString, timezone = 'UTC') {
  * @param {string} format - 포맷 문자열 ('datetime', 'date', 'time', 'long')
  * @returns {string} 변환된 날짜 문자열
  */
-export function formatDateTime(isoDateString, timezone = 'UTC', format = 'datetime') {
-  if (!isoDateString) return '';
+export function formatDateTime(
+  isoDateString,
+  timezone = "UTC",
+  format = "datetime",
+) {
+  if (!isoDateString) return "";
 
   const formats = {
     datetime: {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     },
     date: {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
     },
     time: {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     },
     long: {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
       hour12: false,
-      timeZoneName: 'short'
-    }
+      timeZoneName: "short",
+    },
   };
 
-  return convertToUserTimezone(isoDateString, timezone, formats[format] || formats.datetime);
+  return convertToUserTimezone(
+    isoDateString,
+    timezone,
+    formats[format] || formats.datetime,
+  );
 }
 
 /**
@@ -125,7 +137,10 @@ export function formatDateTime(isoDateString, timezone = 'UTC', format = 'dateti
  * @param {string} format - 포맷 문자열
  * @returns {string} 현재 시간 문자열
  */
-export function getCurrentTimeInTimezone(timezone = 'UTC', format = 'datetime') {
+export function getCurrentTimeInTimezone(
+  timezone = "UTC",
+  format = "datetime",
+) {
   const now = new Date().toISOString();
   return formatDateTime(now, timezone, format);
 }
@@ -136,24 +151,28 @@ export function getCurrentTimeInTimezone(timezone = 'UTC', format = 'datetime') 
  * @param {string} timezone - 시간대
  * @returns {string} 오프셋 문자열 (예: "+09:00", "-05:00")
  */
-export function getTimezoneOffset(timezone = 'UTC') {
+export function getTimezoneOffset(timezone = "UTC") {
   try {
     const date = new Date();
-    const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
-    const tzDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+    const utcDate = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
+    const tzDate = new Date(
+      date.toLocaleString("en-US", { timeZone: timezone }),
+    );
 
     const offsetMs = tzDate.getTime() - utcDate.getTime();
     const offsetHours = Math.floor(offsetMs / (1000 * 60 * 60));
-    const offsetMinutes = Math.abs(Math.floor((offsetMs % (1000 * 60 * 60)) / (1000 * 60)));
+    const offsetMinutes = Math.abs(
+      Math.floor((offsetMs % (1000 * 60 * 60)) / (1000 * 60)),
+    );
 
-    const sign = offsetHours >= 0 ? '+' : '-';
-    const hours = Math.abs(offsetHours).toString().padStart(2, '0');
-    const minutes = offsetMinutes.toString().padStart(2, '0');
+    const sign = offsetHours >= 0 ? "+" : "-";
+    const hours = Math.abs(offsetHours).toString().padStart(2, "0");
+    const minutes = offsetMinutes.toString().padStart(2, "0");
 
     return `${sign}${hours}:${minutes}`;
   } catch (error) {
-    console.error('Error calculating timezone offset:', error);
-    return '+00:00';
+    console.error("Error calculating timezone offset:", error);
+    return "+00:00";
   }
 }
 
@@ -165,5 +184,5 @@ export function getTimezoneOffset(timezone = 'UTC') {
  * @returns {string} 사용자 시간대
  */
 export function getUserTimezone(user) {
-  return user?.timezone || 'UTC';
+  return user?.timezone || "UTC";
 }

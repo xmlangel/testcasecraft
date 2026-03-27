@@ -1,7 +1,13 @@
 // src/components/TestResultStatisticsDashboard.jsx
 // ICT-194 Phase 3: React 성능 최적화 적용
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import {
   Box,
   Grid,
@@ -13,24 +19,26 @@ import {
   useTheme,
   useMediaQuery,
   ToggleButton,
-  ToggleButtonGroup
-} from '@mui/material';
-import { useSearchParams } from 'react-router-dom';
+  ToggleButtonGroup,
+} from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 
 // ICT-187 컴포넌트들
-import TestResultStatisticsCard from './TestResultStatisticsCard';
-import TestResultPieChart from './TestResultPieChart';
-import TestResultBarChart from './TestResultBarChart';
-import StatisticsFilterPanel from './StatisticsFilterPanel';
-import TestResultFolderStatsView from './TestResultFolderStatsView';
-import FilteredCasesDialog from './FilteredCasesDialog';
-import JiraLinkedCasesDialog from './JiraLinkedCasesDialog';
+import TestResultStatisticsCard from "./TestResultStatisticsCard";
+import TestResultPieChart from "./TestResultPieChart";
+import TestResultBarChart from "./TestResultBarChart";
+import StatisticsFilterPanel from "./StatisticsFilterPanel";
+import TestResultFolderStatsView from "./TestResultFolderStatsView";
+import FilteredCasesDialog from "./FilteredCasesDialog";
+import JiraLinkedCasesDialog from "./JiraLinkedCasesDialog";
 
 // 서비스
-import testResultService, { handleTestResultError } from '../services/testResultService';
-import junitResultService from '../services/junitResultService';
-import { useAppContext } from '../context/AppContext';
-import { useI18n } from '../context/I18nContext';
+import testResultService, {
+  handleTestResultError,
+} from "../services/testResultService";
+import junitResultService from "../services/junitResultService";
+import { useAppContext } from "../context/AppContext";
+import { useI18n } from "../context/I18nContext";
 
 /**
  * ICT-187: 테스트 결과 통계 대시보드 메인 컴포넌트
@@ -41,26 +49,26 @@ function TestResultStatisticsDashboard() {
     activeProject,
     projects = [],
     testPlans = [],
-    testExecutions = []
+    testExecutions = [],
   } = useAppContext();
 
   const { t } = useI18n();
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // URL에서 초기 필터 설정
   const getInitialFilters = () => {
-    const testPlanIdParam = searchParams.get('testPlanId');
+    const testPlanIdParam = searchParams.get("testPlanId");
     return {
-      testPlanId: testPlanIdParam ? testPlanIdParam.split(',') : [],
-      testExecutionId: searchParams.get('testExecutionId') || '',
-      dateRange: searchParams.get('dateRange') || 'all',
-      viewType: searchParams.get('viewType') || 'overview',
-      source: searchParams.get('source') || 'manual',
-      depth: parseInt(searchParams.get('depth') || '20', 10)
+      testPlanId: testPlanIdParam ? testPlanIdParam.split(",") : [],
+      testExecutionId: searchParams.get("testExecutionId") || "",
+      dateRange: searchParams.get("dateRange") || "all",
+      viewType: searchParams.get("viewType") || "overview",
+      source: searchParams.get("source") || "manual",
+      depth: parseInt(searchParams.get("depth") || "20", 10),
     };
   };
 
@@ -71,14 +79,17 @@ function TestResultStatisticsDashboard() {
   useEffect(() => {
     const params = {};
     if (filters.testPlanId && filters.testPlanId.length > 0) {
-      params.testPlanId = Array.isArray(filters.testPlanId) ? filters.testPlanId.join(',') : filters.testPlanId;
+      params.testPlanId = Array.isArray(filters.testPlanId)
+        ? filters.testPlanId.join(",")
+        : filters.testPlanId;
     }
-    if (filters.testExecutionId) params.testExecutionId = filters.testExecutionId;
-    if (filters.dateRange !== 'all') params.dateRange = filters.dateRange;
-    if (filters.viewType !== 'overview') params.viewType = filters.viewType;
-    if (filters.source !== 'manual') params.source = filters.source;
+    if (filters.testExecutionId)
+      params.testExecutionId = filters.testExecutionId;
+    if (filters.dateRange !== "all") params.dateRange = filters.dateRange;
+    if (filters.viewType !== "overview") params.viewType = filters.viewType;
+    if (filters.source !== "manual") params.source = filters.source;
     if (filters.depth !== 20) params.depth = filters.depth;
-    
+
     setSearchParams(params, { replace: true });
   }, [filters, setSearchParams]);
 
@@ -93,7 +104,8 @@ function TestResultStatisticsDashboard() {
 
   // 미실행/실패 케이스 다이얼로그 상태
   const [filteredCasesDialogOpen, setFilteredCasesDialogOpen] = useState(false);
-  const [filteredCasesResultType, setFilteredCasesResultType] = useState('NOT_RUN');
+  const [filteredCasesResultType, setFilteredCasesResultType] =
+    useState("NOT_RUN");
 
   // JIRA 연동 이슈 다이얼로그 상태
   const [jiraDialogOpen, setJiraDialogOpen] = useState(false);
@@ -104,11 +116,15 @@ function TestResultStatisticsDashboard() {
   // 활성 프로젝트 변경 시 필터 초기화
   useEffect(() => {
     // 프로젝트 ID가 실제로 변경된 경우에만 필터를 초기화함 (초기 로드 시 URL 파라미터 보존을 위해 제외)
-    if (activeProject?.id && prevProjectIdRef.current && activeProject.id !== prevProjectIdRef.current) {
-      setFilters(prev => ({
+    if (
+      activeProject?.id &&
+      prevProjectIdRef.current &&
+      activeProject.id !== prevProjectIdRef.current
+    ) {
+      setFilters((prev) => ({
         ...prev,
         testPlanId: [], // 배열로 초기화
-        testExecutionId: ''
+        testExecutionId: "",
       }));
     }
     prevProjectIdRef.current = activeProject?.id;
@@ -116,25 +132,32 @@ function TestResultStatisticsDashboard() {
 
   // 필터 변경 시 데이터 새로고침
 
-
   // 보기 형태 변경 시 비교 데이터 로드
   useEffect(() => {
-    if (filters.viewType !== 'overview') {
+    if (filters.viewType !== "overview") {
       loadComparisonData();
     }
-  }, [filters.viewType, filters.depth, activeProject?.id, filters.testPlanId, filters.testExecutionId]);
+  }, [
+    filters.viewType,
+    filters.depth,
+    activeProject?.id,
+    filters.testPlanId,
+    filters.testExecutionId,
+  ]);
 
   /**
    * 통계 데이터 로드
    * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
 
-
   // Load Automated Statistics
   const loadAutomatedStatistics = useCallback(async () => {
     if (!activeProject?.id) return;
     try {
-      const data = await junitResultService.getJunitStatistics(activeProject.id, filters.dateRange === 'all' ? '30d' : filters.dateRange);
+      const data = await junitResultService.getJunitStatistics(
+        activeProject.id,
+        filters.dateRange === "all" ? "30d" : filters.dateRange,
+      );
 
       // Calculate counts
       const totalTests = data.totalTests || 0;
@@ -165,11 +188,11 @@ function TestResultStatisticsDashboard() {
         successRate: data.successRate || 0,
         executionRate: 100, // Automated tests are usually considered executed if they exist
         jiraLinkedCount: 0, // Automated tests don't have JIRA links yet
-        calculatedAt: new Date().toISOString()
+        calculatedAt: new Date().toISOString(),
       };
       setAutomatedStatistics(transformed);
     } catch (err) {
-      console.error('Failed to load automated statistics:', err);
+      console.error("Failed to load automated statistics:", err);
     }
   }, [activeProject?.id, filters.dateRange]);
 
@@ -181,17 +204,20 @@ function TestResultStatisticsDashboard() {
     try {
       const params = {
         projectId: activeProject?.id || undefined,
-        testPlanId: (filters.testPlanId && filters.testPlanId.length > 0) ? filters.testPlanId : undefined,
+        testPlanId:
+          filters.testPlanId && filters.testPlanId.length > 0
+            ? filters.testPlanId
+            : undefined,
         testExecutionId: filters.testExecutionId || undefined,
-        useCache: true
+        useCache: true,
       };
 
       const data = await testResultService.getTestResultStatistics(params);
       setManualStatistics(data);
     } catch (err) {
-      const errorInfo = handleTestResultError(err, 'statistics loading');
+      const errorInfo = handleTestResultError(err, "statistics loading");
       setError(errorInfo.message);
-      console.error('Failed to load statistics:', err);
+      console.error("Failed to load statistics:", err);
     } finally {
       setLoading(false);
     }
@@ -204,51 +230,90 @@ function TestResultStatisticsDashboard() {
 
   // Combine Statistics based on Source
   useEffect(() => {
-    if (filters.source === 'manual') {
+    if (filters.source === "manual") {
       setStatistics(manualStatistics);
-    } else if (filters.source === 'automated') {
+    } else if (filters.source === "automated") {
       setStatistics(automatedStatistics);
-    } else if (filters.source === 'total') {
+    } else if (filters.source === "total") {
       if (manualStatistics && automatedStatistics) {
         const total = {
-          totalTests: manualStatistics.totalTests + automatedStatistics.totalTests,
+          totalTests:
+            manualStatistics.totalTests + automatedStatistics.totalTests,
           passCount: manualStatistics.passCount + automatedStatistics.passCount,
           failCount: manualStatistics.failCount + automatedStatistics.failCount,
-          skippedCount: manualStatistics.skippedCount + automatedStatistics.skippedCount,
-          blockedCount: manualStatistics.blockedCount + automatedStatistics.blockedCount,
-          notRunCount: manualStatistics.notRunCount + automatedStatistics.notRunCount,
-          calculatedAt: new Date().toISOString()
+          skippedCount:
+            manualStatistics.skippedCount + automatedStatistics.skippedCount,
+          blockedCount:
+            manualStatistics.blockedCount + automatedStatistics.blockedCount,
+          notRunCount:
+            manualStatistics.notRunCount + automatedStatistics.notRunCount,
+          calculatedAt: new Date().toISOString(),
         };
 
         // Calculate latest results for total
-        total.totalCaseCount = (manualStatistics.totalCaseCount || 0) + (automatedStatistics.totalTests || 0); // Automated is treated as 1:1 case:result here for now
-        total.latestPassCount = (manualStatistics.latestPassCount || 0) + (automatedStatistics.passCount || 0);
-        total.latestFailCount = (manualStatistics.latestFailCount || 0) + (automatedStatistics.failCount || 0);
-        total.latestBlockedCount = (manualStatistics.latestBlockedCount || 0) + (automatedStatistics.skippedCount || 0);
-        total.latestNotRunCount = (manualStatistics.latestNotRunCount || 0) + (automatedStatistics.notRunCount || 0);
+        total.totalCaseCount =
+          (manualStatistics.totalCaseCount || 0) +
+          (automatedStatistics.totalTests || 0); // Automated is treated as 1:1 case:result here for now
+        total.latestPassCount =
+          (manualStatistics.latestPassCount || 0) +
+          (automatedStatistics.passCount || 0);
+        total.latestFailCount =
+          (manualStatistics.latestFailCount || 0) +
+          (automatedStatistics.failCount || 0);
+        total.latestBlockedCount =
+          (manualStatistics.latestBlockedCount || 0) +
+          (automatedStatistics.skippedCount || 0);
+        total.latestNotRunCount =
+          (manualStatistics.latestNotRunCount || 0) +
+          (automatedStatistics.notRunCount || 0);
 
         // Calculate rates
-        total.passRate = total.totalTests > 0 ? (total.passCount / total.totalTests) * 100 : 0;
-        total.failRate = total.totalTests > 0 ? (total.failCount / total.totalTests) * 100 : 0;
-        total.blockedRate = total.totalTests > 0 ? (total.blockedCount / total.totalTests) * 100 : 0;
-        total.notRunRate = total.totalTests > 0 ? (total.notRunCount / total.totalTests) * 100 : 0;
+        total.passRate =
+          total.totalTests > 0 ? (total.passCount / total.totalTests) * 100 : 0;
+        total.failRate =
+          total.totalTests > 0 ? (total.failCount / total.totalTests) * 100 : 0;
+        total.blockedRate =
+          total.totalTests > 0
+            ? (total.blockedCount / total.totalTests) * 100
+            : 0;
+        total.notRunRate =
+          total.totalTests > 0
+            ? (total.notRunCount / total.totalTests) * 100
+            : 0;
 
         // Latest rates
-        total.latestPassRate = total.totalCaseCount > 0 ? (total.latestPassCount / total.totalCaseCount) * 100 : 0;
-        total.latestFailRate = total.totalCaseCount > 0 ? (total.latestFailCount / total.totalCaseCount) * 100 : 0;
-        total.latestBlockedRate = total.totalCaseCount > 0 ? (total.latestBlockedCount / total.totalCaseCount) * 100 : 0;
-        total.latestNotRunRate = total.totalCaseCount > 0 ? (total.latestNotRunCount / total.totalCaseCount) * 100 : 0;
+        total.latestPassRate =
+          total.totalCaseCount > 0
+            ? (total.latestPassCount / total.totalCaseCount) * 100
+            : 0;
+        total.latestFailRate =
+          total.totalCaseCount > 0
+            ? (total.latestFailCount / total.totalCaseCount) * 100
+            : 0;
+        total.latestBlockedRate =
+          total.totalCaseCount > 0
+            ? (total.latestBlockedCount / total.totalCaseCount) * 100
+            : 0;
+        total.latestNotRunRate =
+          total.totalCaseCount > 0
+            ? (total.latestNotRunCount / total.totalCaseCount) * 100
+            : 0;
 
         // Recalculate execution and success rates
         const executed = total.totalTests - total.notRunCount;
-        total.executionRate = total.totalTests > 0 ? (executed / total.totalTests) * 100 : 0;
-        total.successRate = executed > 0 ? (total.passCount / executed) * 100 : 0;
+        total.executionRate =
+          total.totalTests > 0 ? (executed / total.totalTests) * 100 : 0;
+        total.successRate =
+          executed > 0 ? (total.passCount / executed) * 100 : 0;
 
         const latestExecuted = total.totalCaseCount - total.latestNotRunCount;
-        total.latestSuccessRate = latestExecuted > 0 ? (total.latestPassCount / latestExecuted) * 100 : 0;
+        total.latestSuccessRate =
+          latestExecuted > 0
+            ? (total.latestPassCount / latestExecuted) * 100
+            : 0;
 
         // Jira link rate approximation (if needed)
-        total.jiraLinkedCount = (manualStatistics.jiraLinkedCount || 0); // Automated usually doesn't have this yet
+        total.jiraLinkedCount = manualStatistics.jiraLinkedCount || 0; // Automated usually doesn't have this yet
 
         setStatistics(total);
       } else {
@@ -261,115 +326,133 @@ function TestResultStatisticsDashboard() {
    * 폴더별 통계 계산 로직 구현
    * ICT-FOLDER-STATS: folderPath를 기반으로 Depth별 그룹화 및 집계
    */
-  const calculateFolderStatistics = useCallback((reportData, depth) => {
-    if (!reportData || !Array.isArray(reportData)) return [];
+  const calculateFolderStatistics = useCallback(
+    (reportData, depth) => {
+      if (!reportData || !Array.isArray(reportData)) return [];
 
-    const statsMap = new Map();
+      const statsMap = new Map();
 
-    // Root 노드 초기화
-    const rootKey = 'Root';
-    statsMap.set(rootKey, {
-      name: t('testResult.folder.total', '전체'),
-      pass_count: 0,
-      fail_count: 0,
-      blocked_count: 0,
-      not_run_count: 0,
-      total: 0,
-      execution_count: 0
-    });
-
-    reportData.forEach(item => {
-      // 백엔드에서 '루트' 또는 null로 올 수 있음
-      const folderPath = (item.folderPath === '루트' || !item.folderPath) ? '' : item.folderPath;
-      const parts = folderPath.split(/[\/>]/).map(p => p.trim()).filter(p => p);
-      
-      const result = item.result || 'NOT_RUN';
-      const execCount = item.executionCount || 0;
-
-      // 상위 폴더들에 통계 합산 (Root 포함)
-      const updateNodeStats = (key, name) => {
-        if (!statsMap.has(key)) {
-          statsMap.set(key, {
-            name: name,
-            pass_count: 0,
-            fail_count: 0,
-            blocked_count: 0,
-            not_run_count: 0,
-            total: 0,
-            execution_count: 0
-          });
-        }
-        const stats = statsMap.get(key);
-        if (result === 'PASS') stats.pass_count++;
-        else if (result === 'FAIL') stats.fail_count++;
-        else if (result === 'BLOCKED') stats.blocked_count++;
-        else stats.not_run_count++;
-        
-        stats.total++;
-        stats.execution_count += execCount;
-      };
-
-      // 1. Root 합산
-      updateNodeStats(rootKey, t('testResult.folder.total', '전체'));
-
-      // 2. 계층별 합산
-      let currentPath = '';
-      parts.forEach((part, index) => {
-        if (index >= depth) return;
-        
-        currentPath = index === 0 ? part : `${currentPath} > ${part}`;
-        updateNodeStats(currentPath, part);
+      // Root 노드 초기화
+      const rootKey = "Root";
+      statsMap.set(rootKey, {
+        name: t("testResult.folder.total", "전체"),
+        pass_count: 0,
+        fail_count: 0,
+        blocked_count: 0,
+        not_run_count: 0,
+        total: 0,
+        execution_count: 0,
       });
-    });
 
-    return Array.from(statsMap.values())
-      .map(s => ({
-        ...s,
-        name: s.name,
-        pass_count: s.pass_count,
-        fail_count: s.fail_count,
-        blocked_count: s.blocked_count,
-        not_run_count: s.not_run_count,
-        total: s.total,
-        execution_count: s.execution_count
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [t]);
+      reportData.forEach((item) => {
+        // 백엔드에서 '루트' 또는 null로 올 수 있음
+        const folderPath =
+          item.folderPath === "루트" || !item.folderPath ? "" : item.folderPath;
+        const parts = folderPath
+          .split(/[\/>]/)
+          .map((p) => p.trim())
+          .filter((p) => p);
+
+        const result = item.result || "NOT_RUN";
+        const execCount = item.executionCount || 0;
+
+        // 상위 폴더들에 통계 합산 (Root 포함)
+        const updateNodeStats = (key, name) => {
+          if (!statsMap.has(key)) {
+            statsMap.set(key, {
+              name: name,
+              pass_count: 0,
+              fail_count: 0,
+              blocked_count: 0,
+              not_run_count: 0,
+              total: 0,
+              execution_count: 0,
+            });
+          }
+          const stats = statsMap.get(key);
+          if (result === "PASS") stats.pass_count++;
+          else if (result === "FAIL") stats.fail_count++;
+          else if (result === "BLOCKED") stats.blocked_count++;
+          else stats.not_run_count++;
+
+          stats.total++;
+          stats.execution_count += execCount;
+        };
+
+        // 1. Root 합산
+        updateNodeStats(rootKey, t("testResult.folder.total", "전체"));
+
+        // 2. 계층별 합산
+        let currentPath = "";
+        parts.forEach((part, index) => {
+          if (index >= depth) return;
+
+          currentPath = index === 0 ? part : `${currentPath} > ${part}`;
+          updateNodeStats(currentPath, part);
+        });
+      });
+
+      return Array.from(statsMap.values())
+        .map((s) => ({
+          ...s,
+          name: s.name,
+          pass_count: s.pass_count,
+          fail_count: s.fail_count,
+          blocked_count: s.blocked_count,
+          not_run_count: s.not_run_count,
+          total: s.total,
+          execution_count: s.execution_count,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+    [t],
+  );
 
   /**
    * 비교 데이터 로드
    * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
   const loadComparisonData = useCallback(async () => {
-    if (filters.viewType === 'overview' || !activeProject?.id) {
+    if (filters.viewType === "overview" || !activeProject?.id) {
       setReportData([]);
       return;
     }
-    
+
     setLoading(true);
     try {
-      if (filters.viewType === 'by-folder') {
+      if (filters.viewType === "by-folder") {
         const reportParams = {
           projectId: activeProject?.id,
-          testPlanIds: (filters.testPlanId && filters.testPlanId.length > 0) 
-            ? (Array.isArray(filters.testPlanId) ? filters.testPlanId : [filters.testPlanId]) 
+          testPlanIds:
+            filters.testPlanId && filters.testPlanId.length > 0
+              ? Array.isArray(filters.testPlanId)
+                ? filters.testPlanId
+                : [filters.testPlanId]
+              : undefined,
+          testExecutionIds: filters.testExecutionId
+            ? [filters.testExecutionId]
             : undefined,
-          testExecutionIds: filters.testExecutionId ? [filters.testExecutionId] : undefined,
           includeNotExecuted: true, // ICT-283: 플랜/실행의 전체 인구 기반 통계를 위해 미실행 포함
-          size: 2000 // 모든 폴더를 보기 위해 큰 사이즈로 요청
+          size: 2000, // 모든 폴더를 보기 위해 큰 사이즈로 요청
         };
-        const response = await testResultService.getDetailedTestResultReport(reportParams);
-        const reportData = response?.content || (Array.isArray(response) ? response : []);
+        const response =
+          await testResultService.getDetailedTestResultReport(reportParams);
+        const reportData =
+          response?.content || (Array.isArray(response) ? response : []);
         setReportData(reportData);
         // Depth는 고정 20 사용
         const folderStats = calculateFolderStatistics(reportData, 20);
         setComparisonData(folderStats);
       } else {
-        const comparisonType = filters.viewType === 'by-plan' ? 'by-plan' : 'by-executor';
-        const data = await testResultService.getComparisonStatistics(comparisonType, {
-          projectId: activeProject?.id,
-          source: filters.source // Source 전달 ('manual', 'automated', 'total')
-        });
+        const comparisonType =
+          filters.viewType === "by-plan" ? "by-plan" : "by-executor";
+        const data = await testResultService.getComparisonStatistics(
+          comparisonType,
+          {
+            projectId: activeProject?.id,
+            source: filters.source, // Source 전달 ('manual', 'automated', 'total')
+          },
+        );
         setComparisonData(data);
       }
     } catch (err) {
@@ -378,7 +461,15 @@ function TestResultStatisticsDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filters.viewType, filters.depth, filters.source, activeProject?.id, filters.testPlanId, filters.testExecutionId, calculateFolderStatistics]);
+  }, [
+    filters.viewType,
+    filters.depth,
+    filters.source,
+    activeProject?.id,
+    filters.testPlanId,
+    filters.testExecutionId,
+    calculateFolderStatistics,
+  ]);
 
   /**
    * 새로고침 핸들러
@@ -388,22 +479,27 @@ function TestResultStatisticsDashboard() {
     testResultService.clearCache();
     loadManualStatistics();
     loadAutomatedStatistics();
-    if (filters.viewType !== 'overview') {
+    if (filters.viewType !== "overview") {
       loadComparisonData();
     }
-  }, [loadManualStatistics, loadAutomatedStatistics, loadComparisonData, filters.viewType]);
+  }, [
+    loadManualStatistics,
+    loadAutomatedStatistics,
+    loadComparisonData,
+    filters.viewType,
+  ]);
 
   /**
    * 필터 변경 핸들러
    * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
   const handleFiltersChange = useCallback((newFilters) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   }, []);
 
   const handleSourceChange = (event, newSource) => {
     if (newSource !== null) {
-      setFilters(prev => ({ ...prev, source: newSource }));
+      setFilters((prev) => ({ ...prev, source: newSource }));
     }
   };
 
@@ -432,12 +528,15 @@ function TestResultStatisticsDashboard() {
 
   // ICT-194 Phase 3: 차트 제목 메모이제이션
   const comparisonChartTitle = useMemo(() => {
-    if (filters.viewType === 'by-folder') {
-      return t('testResultDashboard.chart.folderComparison', '폴더별 결과 비교');
+    if (filters.viewType === "by-folder") {
+      return t(
+        "testResultDashboard.chart.folderComparison",
+        "폴더별 결과 비교",
+      );
     }
-    return filters.viewType === 'by-plan'
-      ? t('testResultDashboard.chart.planComparison', '테스트 플랜별 결과 비교')
-      : t('testResultDashboard.chart.executorComparison', '실행자별 결과 비교');
+    return filters.viewType === "by-plan"
+      ? t("testResultDashboard.chart.planComparison", "테스트 플랜별 결과 비교")
+      : t("testResultDashboard.chart.executorComparison", "실행자별 결과 비교");
   }, [filters.viewType, t]);
 
   // ICT-194 Phase 3: 통계 요약 정보 메모이제이션
@@ -447,26 +546,35 @@ function TestResultStatisticsDashboard() {
     const isLatestMode = !!statistics.totalCaseCount;
 
     return {
-      executionRate: isLatestMode 
-        ? (statistics.latestSuccessRate !== undefined ? (100 - (statistics.latestNotRunRate || 0)).toFixed(2) : 0)
+      executionRate: isLatestMode
+        ? statistics.latestSuccessRate !== undefined
+          ? (100 - (statistics.latestNotRunRate || 0)).toFixed(2)
+          : 0
         : statistics.executionRate?.toFixed(2) || 0,
       successRate: isLatestMode
         ? statistics.latestSuccessRate?.toFixed(2) || 0
         : statistics.successRate?.toFixed(2) || 0,
-      jiraLinkRate: isLatestMode && statistics.totalCaseCount > 0
-        ? ((statistics.latestJiraLinkedCount || 0) / statistics.totalCaseCount * 100).toFixed(2)
-        : (statistics.totalTests > 0 
-           ? (((statistics.jiraLinkedCount || 0) / statistics.totalTests) * 100).toFixed(2)
-           : 0),
+      jiraLinkRate:
+        isLatestMode && statistics.totalCaseCount > 0
+          ? (
+              ((statistics.latestJiraLinkedCount || 0) /
+                statistics.totalCaseCount) *
+              100
+            ).toFixed(2)
+          : statistics.totalTests > 0
+            ? (
+                ((statistics.jiraLinkedCount || 0) / statistics.totalTests) *
+                100
+              ).toFixed(2)
+            : 0,
       lastUpdated: statistics.calculatedAt
-        ? new Date(statistics.calculatedAt).toLocaleString('ko-KR')
-        : t('testResultDashboard.summary.unknown', '알 수 없음')
+        ? new Date(statistics.calculatedAt).toLocaleString("ko-KR")
+        : t("testResultDashboard.summary.unknown", "알 수 없음"),
     };
   }, [statistics, t]);
 
   return (
     <Box sx={{ p: 0 }}>
-
       {/* 필터 패널 */}
       <StatisticsFilterPanel
         filters={filters}
@@ -479,7 +587,7 @@ function TestResultStatisticsDashboard() {
       />
 
       {/* Source Toggle */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
         <ToggleButtonGroup
           value={filters.source}
           exclusive
@@ -488,21 +596,25 @@ function TestResultStatisticsDashboard() {
           size="small"
         >
           <ToggleButton value="manual">
-            {t('dashboard.source.manual', '수동 테스트')}
+            {t("dashboard.source.manual", "수동 테스트")}
           </ToggleButton>
           <ToggleButton value="automated">
-            {t('dashboard.source.automated', '자동화 테스트')}
+            {t("dashboard.source.automated", "자동화 테스트")}
           </ToggleButton>
           <ToggleButton value="total">
-            {t('dashboard.source.total', '전체 합계')}
+            {t("dashboard.source.total", "전체 합계")}
           </ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
       {/* 메인 대시보드 - 반응형 개선 */}
-      <Grid container spacing={{ xs: 2, sm: 2, md: 3 }} sx={{ minHeight: '400px' }}>
+      <Grid
+        container
+        spacing={{ xs: 2, sm: 2, md: 3 }}
+        sx={{ minHeight: "400px" }}
+      >
         {/* 전체 개요 모드 */}
-        {filters.viewType === 'overview' && (
+        {filters.viewType === "overview" && (
           <>
             {/* 모바일: 세로 배치, 데스크탑: 좌우 분할 */}
             <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -512,7 +624,7 @@ function TestResultStatisticsDashboard() {
                 onResultClick={handleResultClick}
               />
             </Grid>
-            <Grid size={{ xs: 12, md: 6, lg: 6 }} sx={{ height: '100%' }}>
+            <Grid size={{ xs: 12, md: 6, lg: 6 }} sx={{ height: "100%" }}>
               <TestResultPieChart
                 statistics={statistics}
                 loading={loading}
@@ -523,10 +635,10 @@ function TestResultStatisticsDashboard() {
         )}
 
         {/* 비교 모드 - 반응형 개선 */}
-        {filters.viewType !== 'overview' && (
+        {filters.viewType !== "overview" && (
           <>
             {/* 모바일: 전체 폭, 태블릿+: 1/3 폭 */}
-            {filters.viewType !== 'by-folder' && (
+            {filters.viewType !== "by-folder" && (
               <Grid size={{ xs: 12, md: 12, lg: 4 }}>
                 <TestResultStatisticsCard
                   statistics={statistics}
@@ -538,7 +650,8 @@ function TestResultStatisticsDashboard() {
 
             {/* 비교 차트 - 데이터가 있을 때만 표시 */}
             {!loading &&
-              (filters.viewType === 'by-plan' || filters.viewType === 'by-executor') &&
+              (filters.viewType === "by-plan" ||
+                filters.viewType === "by-executor") &&
               comparisonData &&
               Array.isArray(comparisonData) &&
               comparisonData.length > 0 && (
@@ -555,7 +668,7 @@ function TestResultStatisticsDashboard() {
               )}
 
             {/* 폴더별 상세 뷰 */}
-            {!loading && filters.viewType === 'by-folder' && (
+            {!loading && filters.viewType === "by-folder" && (
               <Grid size={{ xs: 12 }}>
                 <TestResultFolderStatsView
                   reportData={reportData}
@@ -572,20 +685,22 @@ function TestResultStatisticsDashboard() {
         {/* 추가 정보 패널 - 반응형 개선 */}
         {statisticsSummary && (
           <Grid size={{ xs: 12 }}>
-            <Paper sx={{
-              p: { xs: 1.5, sm: 2 },
-              mt: { xs: 1, md: 2 },
-              borderRadius: { xs: 1, md: 2 }
-            }}>
+            <Paper
+              sx={{
+                p: { xs: 1.5, sm: 2 },
+                mt: { xs: 1, md: 2 },
+                borderRadius: { xs: 1, md: 2 },
+              }}
+            >
               <Typography
                 variant={isMobile ? "subtitle1" : "h6"}
                 gutterBottom
                 sx={{
-                  fontSize: { xs: '1rem', md: '1.25rem' },
-                  fontWeight: { xs: 600, md: 500 }
+                  fontSize: { xs: "1rem", md: "1.25rem" },
+                  fontWeight: { xs: 600, md: 500 },
                 }}
               >
-                {t('testResultDashboard.summary.title', '통계 요약')}
+                {t("testResultDashboard.summary.title", "통계 요약")}
               </Typography>
               <Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 
@@ -594,16 +709,16 @@ function TestResultStatisticsDashboard() {
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                   >
-                    {t('testResultDashboard.summary.executionRate', '실행률')}
+                    {t("testResultDashboard.summary.executionRate", "실행률")}
                   </Typography>
                   <Typography
                     variant={isMobile ? "h6" : "h6"}
                     color="primary"
                     sx={{
-                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
-                      fontWeight: { xs: 700, md: 600 }
+                      fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
+                      fontWeight: { xs: 700, md: 600 },
                     }}
                   >
                     {statisticsSummary.executionRate}%
@@ -614,16 +729,16 @@ function TestResultStatisticsDashboard() {
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                   >
-                    {t('testResultDashboard.summary.successRate', '성공률')}
+                    {t("testResultDashboard.summary.successRate", "성공률")}
                   </Typography>
                   <Typography
                     variant={isMobile ? "h6" : "h6"}
                     color="success.main"
                     sx={{
-                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
-                      fontWeight: { xs: 700, md: 600 }
+                      fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
+                      fontWeight: { xs: 700, md: 600 },
                     }}
                   >
                     {statisticsSummary.successRate}%
@@ -634,28 +749,31 @@ function TestResultStatisticsDashboard() {
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                   >
-                    {t('testResultDashboard.summary.jiraLinkRate', 'JIRA 연동률')}
+                    {t(
+                      "testResultDashboard.summary.jiraLinkRate",
+                      "JIRA 연동률",
+                    )}
                   </Typography>
                   <Typography
                     variant={isMobile ? "h6" : "h6"}
                     color="info.main"
                     onClick={handleJiraLinkClick}
                     sx={{
-                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
+                      fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
                       fontWeight: { xs: 700, md: 600 },
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
                       gap: 0.5,
-                      '&:hover': { textDecoration: 'underline', opacity: 0.8 }
+                      "&:hover": { textDecoration: "underline", opacity: 0.8 },
                     }}
                   >
                     {statisticsSummary.jiraLinkRate}%
                     <Typography
                       component="span"
-                      sx={{ fontSize: '0.65rem', color: 'info.main' }}
+                      sx={{ fontSize: "0.65rem", color: "info.main" }}
                     >
                       ▼
                     </Typography>
@@ -666,21 +784,27 @@ function TestResultStatisticsDashboard() {
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                   >
-                    {t('testResultDashboard.summary.lastUpdated', '최종 업데이트')}
+                    {t(
+                      "testResultDashboard.summary.lastUpdated",
+                      "최종 업데이트",
+                    )}
                   </Typography>
                   <Typography
                     variant={isMobile ? "body2" : "body2"}
                     sx={{
-                      fontSize: { xs: '0.75rem', sm: '0.825rem', md: '0.875rem' },
-                      wordBreak: { xs: 'break-all', md: 'normal' }
+                      fontSize: {
+                        xs: "0.75rem",
+                        sm: "0.825rem",
+                        md: "0.875rem",
+                      },
+                      wordBreak: { xs: "break-all", md: "normal" },
                     }}
                   >
                     {isMobile
-                      ? statisticsSummary.lastUpdated.split(' ')[0] // 모바일에서는 날짜만
-                      : statisticsSummary.lastUpdated
-                    }
+                      ? statisticsSummary.lastUpdated.split(" ")[0] // 모바일에서는 날짜만
+                      : statisticsSummary.lastUpdated}
                   </Typography>
                 </Grid>
               </Grid>
@@ -695,14 +819,14 @@ function TestResultStatisticsDashboard() {
         autoHideDuration={6000}
         onClose={handleCloseError}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: isMobile ? 'center' : 'right'
+          vertical: "bottom",
+          horizontal: isMobile ? "center" : "right",
         }}
         sx={{
-          '& .MuiSnackbarContent-root': {
-            minWidth: { xs: '90vw', sm: '400px' },
-            maxWidth: { xs: '95vw', sm: '600px' }
-          }
+          "& .MuiSnackbarContent-root": {
+            minWidth: { xs: "90vw", sm: "400px" },
+            maxWidth: { xs: "95vw", sm: "600px" },
+          },
         }}
       >
         <Alert
@@ -710,10 +834,10 @@ function TestResultStatisticsDashboard() {
           onClose={handleCloseError}
           variant="filled"
           sx={{
-            fontSize: { xs: '0.875rem', md: '1rem' },
-            '& .MuiAlert-message': {
-              wordBreak: 'break-word'
-            }
+            fontSize: { xs: "0.875rem", md: "1rem" },
+            "& .MuiAlert-message": {
+              wordBreak: "break-word",
+            },
           }}
         >
           {error}
@@ -726,7 +850,11 @@ function TestResultStatisticsDashboard() {
         onClose={() => setFilteredCasesDialogOpen(false)}
         resultType={filteredCasesResultType}
         projectId={activeProject?.id}
-        testPlanIds={filters.testPlanId && filters.testPlanId.length > 0 ? filters.testPlanId : []}
+        testPlanIds={
+          filters.testPlanId && filters.testPlanId.length > 0
+            ? filters.testPlanId
+            : []
+        }
         testExecutionId={filters.testExecutionId || null}
       />
 
@@ -735,7 +863,11 @@ function TestResultStatisticsDashboard() {
         open={jiraDialogOpen}
         onClose={() => setJiraDialogOpen(false)}
         projectId={activeProject?.id}
-        testPlanIds={filters.testPlanId && filters.testPlanId.length > 0 ? filters.testPlanId : []}
+        testPlanIds={
+          filters.testPlanId && filters.testPlanId.length > 0
+            ? filters.testPlanId
+            : []
+        }
         testExecutionId={filters.testExecutionId || null}
       />
     </Box>

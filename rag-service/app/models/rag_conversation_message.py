@@ -1,4 +1,5 @@
 """RAG Conversation message model"""
+
 from sqlalchemy import Column, String, Text, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from pgvector.sqlalchemy import Vector
@@ -22,7 +23,9 @@ class RAGConversationMessage(Base):
     metadata_json = Column("metadata", JSONB)
     embedding = Column(Vector(768))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     def __repr__(self):
         return (

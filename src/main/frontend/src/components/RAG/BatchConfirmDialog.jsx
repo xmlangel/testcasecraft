@@ -1,6 +1,6 @@
 // src/components/RAG/BatchConfirmDialog.jsx
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 import {
   Dialog,
   DialogTitle,
@@ -13,11 +13,11 @@ import {
   Alert,
   Divider,
   Chip,
-} from '@mui/material';
-import PauseCircleIcon from '@mui/icons-material/PauseCircle';
-import PlayCircleIcon from '@mui/icons-material/PlayCircle';
-import StopCircleIcon from '@mui/icons-material/StopCircle';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+} from "@mui/material";
+import PauseCircleIcon from "@mui/icons-material/PauseCircle";
+import PlayCircleIcon from "@mui/icons-material/PlayCircle";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 
 /**
  * 배치 확인 다이얼로그
@@ -50,7 +50,7 @@ function BatchConfirmDialog({
 
   return (
     <Dialog open={open} onClose={onPause} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <PauseCircleIcon color="primary" />
         배치 처리 완료 - 계속하시겠습니까?
       </DialogTitle>
@@ -58,7 +58,7 @@ function BatchConfirmDialog({
       <DialogContent dividers>
         {/* 진행 상황 */}
         <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="subtitle2" color="textSecondary">
               진행 상황
             </Typography>
@@ -71,7 +71,11 @@ function BatchConfirmDialog({
             value={progressPercentage || 0}
             sx={{ height: 8, borderRadius: 4 }}
           />
-          <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: 'block' }}>
+          <Typography
+            variant="caption"
+            color="textSecondary"
+            sx={{ mt: 0.5, display: "block" }}
+          >
             {processedChunks} / {totalChunks} 청크 처리 완료
           </Typography>
         </Box>
@@ -81,12 +85,15 @@ function BatchConfirmDialog({
         {/* 실제 사용 비용 */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-            <AttachMoneyIcon sx={{ fontSize: 16, verticalAlign: 'text-bottom', mr: 0.5 }} />
+            <AttachMoneyIcon
+              sx={{ fontSize: 16, verticalAlign: "text-bottom", mr: 0.5 }}
+            />
             실제 사용 비용
           </Typography>
           <Box sx={{ pl: 2 }}>
             <Typography variant="body2">
-              • 사용된 토큰: <strong>{totalTokensUsed?.toLocaleString()}</strong>
+              • 사용된 토큰:{" "}
+              <strong>{totalTokensUsed?.toLocaleString()}</strong>
             </Typography>
             <Typography variant="h6" color="primary.main" sx={{ mt: 1 }}>
               누적 비용: <strong>${currentCost.toFixed(4)}</strong>
@@ -111,7 +118,8 @@ function BatchConfirmDialog({
         {/* 안내 메시지 */}
         <Alert severity="info" sx={{ mt: 2 }}>
           <Typography variant="body2">
-            배치 단위 처리가 완료되었습니다. 계속 진행하면 다음 배치가 처리됩니다.
+            배치 단위 처리가 완료되었습니다. 계속 진행하면 다음 배치가
+            처리됩니다.
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             • <strong>계속</strong>: 다음 배치 처리
@@ -125,7 +133,7 @@ function BatchConfirmDialog({
         </Alert>
       </DialogContent>
 
-      <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2 }}>
+      <DialogActions sx={{ justifyContent: "space-between", px: 3, py: 2 }}>
         <Button
           onClick={onCancel}
           startIcon={<StopCircleIcon />}
@@ -150,7 +158,7 @@ function BatchConfirmDialog({
             color="primary"
             disabled={loading}
           >
-            {loading ? '처리 중...' : '계속'}
+            {loading ? "처리 중..." : "계속"}
           </Button>
         </Box>
       </DialogActions>

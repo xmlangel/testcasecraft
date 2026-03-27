@@ -4,11 +4,7 @@
   "type": "array",
   "items": {
     "type": "object",
-    "required": [
-      "testResultId",
-      "testCaseId",
-      "result"
-    ],
+    "required": ["testResultId", "testCaseId", "result"],
     "properties": {
       "testResultId": {
         "type": "string",

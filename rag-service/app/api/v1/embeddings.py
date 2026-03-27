@@ -1,4 +1,5 @@
 """Embedding API endpoints"""
+
 import asyncio
 import logging
 from datetime import datetime
@@ -18,14 +19,20 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-def _set_embedding_status(document_id: UUID, status: str, extra: Optional[dict] = None) -> None:
+def _set_embedding_status(
+    document_id: UUID, status: str, extra: Optional[dict] = None
+) -> None:
     """Update embedding status metadata for a document"""
     session = SessionLocal()
     try:
-        document_query = session.query(RAGDocument).filter(RAGDocument.id == document_id)
+        document_query = session.query(RAGDocument).filter(
+            RAGDocument.id == document_id
+        )
         document = document_query.first()
         if not document:
-            logger.warning("Document %s not found when updating embedding status", document_id)
+            logger.warning(
+                "Document %s not found when updating embedding status", document_id
+            )
             return
 
         meta = document.meta_data or {}
@@ -36,7 +43,9 @@ def _set_embedding_status(document_id: UUID, status: str, extra: Optional[dict] 
         session.commit()
     except Exception as exc:
         session.rollback()
-        logger.exception("Failed to update embedding status for document %s: %s", document_id, exc)
+        logger.exception(
+            "Failed to update embedding status for document %s: %s", document_id, exc
+        )
     finally:
         session.close()
 
@@ -52,51 +61,63 @@ def _run_embedding_generation(document_id: UUID) -> None:
     # Step 1: Fetch chunk texts outside of long-lived sessions
     fetch_session = SessionLocal()
     try:
-        document = fetch_session.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+        document = (
+            fetch_session.query(RAGDocument)
+            .filter(RAGDocument.id == document_id)
+            .first()
+        )
         if not document:
-            logger.warning("Document %s not found during embedding generation", document_id)
+            logger.warning(
+                "Document %s not found during embedding generation", document_id
+            )
             return
 
-        chunk_rows = fetch_session.query(
-            RAGEmbedding.id,
-            RAGEmbedding.chunk_text
-        ).filter(
-            RAGEmbedding.document_id == document_id
-        ).order_by(
-            RAGEmbedding.chunk_index
-        ).all()
+        chunk_rows = (
+            fetch_session.query(RAGEmbedding.id, RAGEmbedding.chunk_text)
+            .filter(RAGEmbedding.document_id == document_id)
+            .order_by(RAGEmbedding.chunk_index)
+            .all()
+        )
 
         chunk_data = [(row[0], row[1]) for row in chunk_rows]
     finally:
         fetch_session.close()
 
     if not chunk_data:
-        logger.warning("No chunks available for embedding generation (document: %s)", document_id)
+        logger.warning(
+            "No chunks available for embedding generation (document: %s)", document_id
+        )
         _set_embedding_status(
             document_id,
             "failed",
             {
                 "embedding_error": "No chunks found for embedding generation",
-                "embedding_completed_at": datetime.utcnow().isoformat()
-            }
+                "embedding_completed_at": datetime.utcnow().isoformat(),
+            },
         )
         return
 
     chunk_texts = [text for _, text in chunk_data]
-    logger.info("Starting embedding generation for document %s (%s chunks)", document_id, len(chunk_texts))
+    logger.info(
+        "Starting embedding generation for document %s (%s chunks)",
+        document_id,
+        len(chunk_texts),
+    )
 
     try:
         embedding_service = get_embedding_service()
         embeddings = embedding_service.generate_embeddings_batch(chunk_texts)
     except Exception as exc:
-        logger.exception("Embedding generation failed for document %s: %s", document_id, exc)
+        logger.exception(
+            "Embedding generation failed for document %s: %s", document_id, exc
+        )
         _set_embedding_status(
             document_id,
             "failed",
             {
                 "embedding_error": str(exc),
-                "embedding_completed_at": datetime.utcnow().isoformat()
-            }
+                "embedding_completed_at": datetime.utcnow().isoformat(),
+            },
         )
         return
 
@@ -105,15 +126,15 @@ def _run_embedding_generation(document_id: UUID) -> None:
             "Embedding generation count mismatch for document %s: expected %s, got %s",
             document_id,
             len(chunk_data),
-            len(embeddings)
+            len(embeddings),
         )
         _set_embedding_status(
             document_id,
             "failed",
             {
                 "embedding_error": "Embedding count mismatch",
-                "embedding_completed_at": datetime.utcnow().isoformat()
-            }
+                "embedding_completed_at": datetime.utcnow().isoformat(),
+            },
         )
         return
 
@@ -123,14 +144,15 @@ def _run_embedding_generation(document_id: UUID) -> None:
         for (chunk_id, _), embedding in zip(chunk_data, embeddings):
             persist_session.query(RAGEmbedding).filter(
                 RAGEmbedding.id == chunk_id
-            ).update(
-                {"embedding": embedding},
-                synchronize_session=False
-            )
+            ).update({"embedding": embedding}, synchronize_session=False)
 
         completed_at = datetime.utcnow().isoformat()
 
-        document = persist_session.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+        document = (
+            persist_session.query(RAGDocument)
+            .filter(RAGDocument.id == document_id)
+            .first()
+        )
         if document:
             meta = document.meta_data or {}
             meta["embedding_status"] = "completed"
@@ -138,10 +160,7 @@ def _run_embedding_generation(document_id: UUID) -> None:
             meta["embedding_chunks"] = len(embeddings)
             persist_session.query(RAGDocument).filter(
                 RAGDocument.id == document_id
-            ).update(
-                {"meta_data": meta},
-                synchronize_session=False
-            )
+            ).update({"meta_data": meta}, synchronize_session=False)
 
         persist_session.commit()
 
@@ -153,31 +172,41 @@ def _run_embedding_generation(document_id: UUID) -> None:
             {
                 "embedding_generated_at": completed_at,
                 "embedding_chunks": len(embeddings),
-            }
+            },
         )
 
-        logger.info("Embeddings generated successfully for document %s (%s chunks)", document_id, len(embeddings))
+        logger.info(
+            "Embeddings generated successfully for document %s (%s chunks)",
+            document_id,
+            len(embeddings),
+        )
 
     except Exception as exc:
         persist_session.rollback()
-        logger.exception("Failed to persist embeddings for document %s: %s", document_id, exc)
+        logger.exception(
+            "Failed to persist embeddings for document %s: %s", document_id, exc
+        )
         _set_embedding_status(
             document_id,
             "failed",
             {
                 "embedding_error": str(exc),
-                "embedding_completed_at": datetime.utcnow().isoformat()
-            }
+                "embedding_completed_at": datetime.utcnow().isoformat(),
+            },
         )
     finally:
         persist_session.close()
 
 
-@router.post("/generate", response_model=GenerateEmbeddingResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/generate",
+    response_model=GenerateEmbeddingResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def generate_embeddings(
     request: GenerateEmbeddingRequest,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Generate embeddings for all chunks of a document (Non-blocking)
@@ -221,52 +250,66 @@ async def generate_embeddings(
         raise HTTPException(status_code=404, detail="Document not found")
 
     # Get all chunks for this document
-    chunks = db.query(RAGEmbedding).filter(
-        RAGEmbedding.document_id == document_id
-    ).order_by(RAGEmbedding.chunk_index).all()
+    chunks = (
+        db.query(RAGEmbedding)
+        .filter(RAGEmbedding.document_id == document_id)
+        .order_by(RAGEmbedding.chunk_index)
+        .all()
+    )
 
     if not chunks:
-        raise HTTPException(status_code=400, detail="No chunks found for this document. Please analyze the document first.")
+        raise HTTPException(
+            status_code=400,
+            detail="No chunks found for this document. Please analyze the document first.",
+        )
 
     # Prevent duplicate generation requests
     meta = document.meta_data or {}
     embedding_status = (meta.get("embedding_status") or "").lower()
     if embedding_status == "generating":
-        raise HTTPException(status_code=400, detail="Embedding generation already in progress for this document.")
+        raise HTTPException(
+            status_code=400,
+            detail="Embedding generation already in progress for this document.",
+        )
 
     try:
         # Mark embedding generation as in-progress
-        meta.update({
-            "embedding_status": "generating",
-            "embedding_started_at": datetime.utcnow().isoformat(),
-            "embedding_chunks": len(chunks)
-        })
+        meta.update(
+            {
+                "embedding_status": "generating",
+                "embedding_started_at": datetime.utcnow().isoformat(),
+                "embedding_chunks": len(chunks),
+            }
+        )
         document.meta_data = meta
         db.commit()
 
         # Add background task - this is non-blocking and allows other requests to proceed
         background_tasks.add_task(_run_embedding_generation, document_id)
 
-        logger.info(f"Embedding generation task queued for document {document_id} ({len(chunks)} chunks)")
+        logger.info(
+            f"Embedding generation task queued for document {document_id} ({len(chunks)} chunks)"
+        )
 
         return GenerateEmbeddingResponse(
             document_id=document_id,
             total_chunks=len(chunks),
             embeddings_generated=0,
-            message="Embedding generation started in background. API is now available for other requests."
+            message="Embedding generation started in background. API is now available for other requests.",
         )
 
     except Exception as e:
         db.rollback()
-        logger.error(f"Error starting embedding generation for document {document_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to start embedding generation: {str(e)}")
+        logger.error(
+            f"Error starting embedding generation for document {document_id}: {str(e)}"
+        )
+        raise HTTPException(
+            status_code=500, detail=f"Failed to start embedding generation: {str(e)}"
+        )
 
 
 @router.get("/status/{document_id}", status_code=status.HTTP_200_OK)
-async def get_embedding_status(
-    document_id: UUID,
-    db: Session = Depends(get_db)
-):
+async def get_embedding_status(document_id: UUID, db: Session = Depends(get_db)):
     """
     Get embedding generation status for a document
     문서의 임베딩 생성 상태 조회
@@ -307,21 +350,26 @@ async def get_embedding_status(
     embedding_status = meta.get("embedding_status", "pending")
 
     # Get chunk count information
-    total_chunks = db.query(RAGEmbedding).filter(
-        RAGEmbedding.document_id == document_id
-    ).count()
+    total_chunks = (
+        db.query(RAGEmbedding).filter(RAGEmbedding.document_id == document_id).count()
+    )
 
-    embedded_chunks = db.query(RAGEmbedding).filter(
-        RAGEmbedding.document_id == document_id,
-        RAGEmbedding.embedding.isnot(None)
-    ).count()
+    embedded_chunks = (
+        db.query(RAGEmbedding)
+        .filter(
+            RAGEmbedding.document_id == document_id, RAGEmbedding.embedding.isnot(None)
+        )
+        .count()
+    )
 
     response = {
         "document_id": str(document_id),
         "status": embedding_status,
         "total_chunks": total_chunks,
         "embedded_chunks": embedded_chunks,
-        "progress_percentage": round((embedded_chunks / total_chunks * 100), 2) if total_chunks > 0 else 0
+        "progress_percentage": (
+            round((embedded_chunks / total_chunks * 100), 2) if total_chunks > 0 else 0
+        ),
     }
 
     # Add timestamps if available

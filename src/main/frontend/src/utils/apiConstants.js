@@ -2,18 +2,26 @@
 // ICT-194 Phase 2: API 호출 관련 상수 및 유틸리티 통합
 // ICT-340: 프론트엔드 환경변수 기반 API 엔드포인트 관리 시스템 구축
 
-const LOCAL_API_FALLBACK = 'http://localhost:8080';
-const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]']);
-const LOCAL_DEV_PORTS = new Set(['3000', '5173']);
-const isBrowserEnv = typeof window !== 'undefined' && typeof window.location !== 'undefined';
+const LOCAL_API_FALLBACK = "http://localhost:8080";
+const LOCAL_HOSTNAMES = new Set([
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+  "[::1]",
+]);
+const LOCAL_DEV_PORTS = new Set(["3000", "5173"]);
+const isBrowserEnv =
+  typeof window !== "undefined" && typeof window.location !== "undefined";
 
-const sanitizeUrl = (value) => (typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '');
+const sanitizeUrl = (value) =>
+  typeof value === "string" ? value.trim().replace(/\/+$/, "") : "";
 
 const ensureAbsoluteUrl = (value) => {
   const sanitized = sanitizeUrl(value);
-  if (!sanitized) return '';
+  if (!sanitized) return "";
 
-  if (sanitized.startsWith('/')) {
+  if (sanitized.startsWith("/")) {
     const origin = resolveBrowserOrigin() || LOCAL_API_FALLBACK;
     return `${origin}${sanitized}`;
   }
@@ -24,12 +32,12 @@ const ensureAbsoluteUrl = (value) => {
 const isFrontendDevServer = () => {
   if (!isBrowserEnv) return false;
   const { hostname, port, protocol } = window.location;
-  const normalizedPort = port || (protocol === 'https:' ? '443' : '80');
+  const normalizedPort = port || (protocol === "https:" ? "443" : "80");
   return LOCAL_HOSTNAMES.has(hostname) && LOCAL_DEV_PORTS.has(normalizedPort);
 };
 
 const resolveBrowserOrigin = () => {
-  if (!isBrowserEnv) return '';
+  if (!isBrowserEnv) return "";
   if (isFrontendDevServer()) {
     return LOCAL_API_FALLBACK;
   }
@@ -54,14 +62,24 @@ const normalizeApiUrl = (candidate) => {
     return LOCAL_API_FALLBACK;
   }
 
-  const normalizedPort = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+  const normalizedPort =
+    parsed.port || (parsed.protocol === "https:" ? "443" : "80");
 
-  if (isFrontendDevServer() && LOCAL_HOSTNAMES.has(parsed.hostname) && LOCAL_DEV_PORTS.has(normalizedPort)) {
+  if (
+    isFrontendDevServer() &&
+    LOCAL_HOSTNAMES.has(parsed.hostname) &&
+    LOCAL_DEV_PORTS.has(normalizedPort)
+  ) {
     return LOCAL_API_FALLBACK;
   }
 
-  const normalizedPath = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/+$/, '');
-  return sanitizeUrl(`${parsed.protocol}//${parsed.hostname}${parsed.port ? `:${parsed.port}` : ''}${normalizedPath}`);
+  const normalizedPath =
+    parsed.pathname === "/" ? "" : parsed.pathname.replace(/\/+$/, "");
+  return sanitizeUrl(
+    `${parsed.protocol}//${parsed.hostname}${
+      parsed.port ? `:${parsed.port}` : ""
+    }${normalizedPath}`,
+  );
 };
 
 /**
@@ -82,8 +100,8 @@ const getEnvironment = () => {
 const getDefaultApiUrl = () => {
   const env = getEnvironment();
 
-  if (env === 'production') {
-    return normalizeApiUrl('https://your-production-domain.com');
+  if (env === "production") {
+    return normalizeApiUrl("https://your-production-domain.com");
   }
 
   const browserOrigin = resolveBrowserOrigin();
@@ -116,29 +134,32 @@ export const resetRuntimeConfig = () => {
 const fetchRuntimeConfig = async () => {
   try {
     // 런타임 설정 로드 시에는 현재 페이지 origin을 우선 사용
-    const baseCandidate = import.meta.env.VITE_API_BASE_URL || resolveBrowserOrigin() || getDefaultApiUrl();
+    const baseCandidate =
+      import.meta.env.VITE_API_BASE_URL ||
+      resolveBrowserOrigin() ||
+      getDefaultApiUrl();
     const baseUrl = normalizeApiUrl(baseCandidate);
-    const configUrl = `${baseUrl}/api/config/api-url`;
+    const configUrl = `${baseUrl}/api/config`; // /api-url 대신 전체 config 호출
 
     const response = await fetch(configUrl, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      timeout: 5000 // 5초 타임아웃
+      timeout: 5000, // 5초 타임아웃
     });
 
     if (response.ok) {
       const config = await response.json();
       return config;
     } else {
-      console.warn('⚠️ 설정 응답 오류:', response.status, response.statusText);
+      console.warn("⚠️ 설정 응답 오류:", response.status, response.statusText);
     }
   } catch (error) {
-    console.error('❌ 런타임 설정 로드 실패:', error.message);
+    console.error("❌ 런타임 설정 로드 실패:", error.message);
     const fallback = resolveBrowserOrigin() || LOCAL_API_FALLBACK;
     if (fallback) {
-      console.warn('🔧 기본값 사용:', fallback);
+      console.warn("🔧 기본값 사용:", fallback);
     }
   }
 
@@ -154,7 +175,7 @@ export const getDynamicApiUrl = async () => {
   if (!runtimeConfig) {
     // 진행 중인 요청이 없으면 새로 요청
     if (!runtimeConfigPromise) {
-      runtimeConfigPromise = fetchRuntimeConfig().then(config => {
+      runtimeConfigPromise = fetchRuntimeConfig().then((config) => {
         // 설정 로드 완료 후 저장
         runtimeConfig = config;
         return config;
@@ -164,10 +185,11 @@ export const getDynamicApiUrl = async () => {
     await runtimeConfigPromise;
   }
 
-  const candidate = runtimeConfig?.apiUrl
-    || import.meta.env.VITE_API_BASE_URL
-    || resolveBrowserOrigin()
-    || getDefaultApiUrl();
+  const candidate =
+    runtimeConfig?.apiUrl ||
+    import.meta.env.VITE_API_BASE_URL ||
+    resolveBrowserOrigin() ||
+    getDefaultApiUrl();
 
   return normalizeApiUrl(candidate);
 };
@@ -179,6 +201,15 @@ export const getDynamicApiUrl = async () => {
 export const getRuntimeConfig = () => runtimeConfig;
 
 /**
+ * 탐색 세션 탭 노출 여부 확인
+ * @returns {boolean} 노출 여부 (기본값 true)
+ */
+export const getShowExploratorySessionTab = () => {
+  if (!runtimeConfig) return false; // 설정 로드 전에는 기본적으로 비노출
+  return runtimeConfig.showExploratorySessionTab === true;
+};
+
+/**
  * API 기본 설정
  * ICT-340: 환경변수 기반 동적 설정
  */
@@ -186,16 +217,18 @@ export const API_CONFIG = {
   // 환경변수 우선, 없으면 런타임에 현재 origin 사용
   get BASE_URL() {
     return normalizeApiUrl(
-      import.meta.env.VITE_API_BASE_URL
-      || resolveBrowserOrigin()
-      || getDefaultApiUrl()
+      import.meta.env.VITE_API_BASE_URL ||
+        resolveBrowserOrigin() ||
+        getDefaultApiUrl(),
     );
   },
   TIMEOUT: parseInt(import.meta.env.VITE_API_TIMEOUT) || 30000, // 30초
   RETRY_COUNT: parseInt(import.meta.env.VITE_API_RETRY_COUNT) || 3,
   RETRY_DELAY: parseInt(import.meta.env.VITE_API_RETRY_DELAY) || 1000, // 1초
   ENVIRONMENT: getEnvironment(),
-  DEBUG: import.meta.env.VITE_DEBUG_MODE === 'true' || process.env.NODE_ENV === 'development'
+  DEBUG:
+    import.meta.env.VITE_DEBUG_MODE === "true" ||
+    process.env.NODE_ENV === "development",
 };
 
 /**
@@ -206,7 +239,7 @@ export const DYNAMIC_API_CONFIG = {
   // 런타임에 BASE_URL이 업데이트됨
   async getBaseUrl() {
     return await getDynamicApiUrl();
-  }
+  },
 };
 
 /**
@@ -215,75 +248,78 @@ export const DYNAMIC_API_CONFIG = {
 export const API_ENDPOINTS = {
   // 인증
   AUTH: {
-    LOGIN: '/api/auth/login',
-    REFRESH: '/api/auth/refresh',
-    LOGOUT: '/api/auth/logout'
+    LOGIN: "/api/auth/login",
+    REFRESH: "/api/auth/refresh",
+    LOGOUT: "/api/auth/logout",
   },
 
   // 프로젝트
-  PROJECTS: '/api/projects',
+  PROJECTS: "/api/projects",
   PROJECT_BY_ID: (id) => `/api/projects/${id}`,
 
   // 테스트 케이스
-  TESTCASES: '/api/testcases',
+  TESTCASES: "/api/testcases",
   TESTCASE_BY_ID: (id) => `/api/testcases/${id}`,
   TESTCASES_BY_PROJECT: (projectId) => `/api/testcases?projectId=${projectId}`,
 
   // 테스트 플랜
-  TESTPLANS: '/api/testplans',
+  TESTPLANS: "/api/testplans",
   TESTPLAN_BY_ID: (id) => `/api/testplans/${id}`,
   TESTPLANS_BY_PROJECT: (projectId) => `/api/testplans?projectId=${projectId}`,
 
   // 테스트 실행
-  EXECUTIONS: '/api/test-executions',
+  EXECUTIONS: "/api/test-executions",
   EXECUTION_BY_ID: (id) => `/api/test-executions/${id}`,
-  EXECUTIONS_BY_PROJECT: (projectId) => `/api/test-executions?projectId=${projectId}`,
+  EXECUTIONS_BY_PROJECT: (projectId) =>
+    `/api/test-executions?projectId=${projectId}`,
 
   // ICT-185: 테스트 결과 리포트 API
   TEST_RESULTS: {
-    STATISTICS: '/api/test-results/statistics',
-    REPORT: '/api/test-results/report',
-    EXPORT: '/api/test-results/export',
-    JIRA_STATUS: '/api/test-results/jira-status',
-    FILTER_PRESETS: '/api/test-results/filter-presets'
+    STATISTICS: "/api/test-results/statistics",
+    REPORT: "/api/test-results/report",
+    EXPORT: "/api/test-results/export",
+    JIRA_STATUS: "/api/test-results/jira-status",
+    FILTER_PRESETS: "/api/test-results/filter-presets",
   },
 
   // JIRA 통합
   JIRA: {
-    CONFIG: '/api/jira/config',
-    STATUS: '/api/jira/status',
-    SYNC: '/api/jira/sync',
-    ISSUES: '/api/jira/issues'
+    CONFIG: "/api/jira/config",
+    STATUS: "/api/jira/status",
+    SYNC: "/api/jira/sync",
+    ISSUES: "/api/jira/issues",
   },
 
   // ICT-200: JUnit 테스트 결과
   JUNIT: {
-    UPLOAD: '/api/junit-results/upload',
+    UPLOAD: "/api/junit-results/upload",
     BY_PROJECT: (projectId) => `/api/junit-results/projects/${projectId}`,
     BY_ID: (id) => `/api/junit-results/${id}`,
-    STATISTICS: '/api/junit-results/statistics',
+    STATISTICS: "/api/junit-results/statistics",
     SUITES: (testResultId) => `/api/junit-results/${testResultId}/suites`,
     CASES: (testSuiteId) => `/api/junit-results/suites/${testSuiteId}/cases`,
-    FAILED_CASES: (testResultId) => `/api/junit-results/${testResultId}/failed-cases`,
-    SLOWEST_CASES: (testResultId) => `/api/junit-results/${testResultId}/slowest-cases`,
-    TREND: '/api/junit-results/trend',
-    TOP_FAILING: '/api/junit-results/top-failing',
-    SEARCH: '/api/junit-results/search',
+    FAILED_CASES: (testResultId) =>
+      `/api/junit-results/${testResultId}/failed-cases`,
+    SLOWEST_CASES: (testResultId) =>
+      `/api/junit-results/${testResultId}/slowest-cases`,
+    TREND: "/api/junit-results/trend",
+    TOP_FAILING: "/api/junit-results/top-failing",
+    SEARCH: "/api/junit-results/search",
     DELETE: (id) => `/api/junit-results/${id}`,
     STATUS: (id) => `/api/junit-results/${id}/status`,
-    UPDATE_CASE: (caseId) => `/api/junit-results/cases/${caseId}`
-  }
+    UPDATE_CASE: (caseId) => `/api/junit-results/cases/${caseId}`,
+  },
 };
 
 /**
  * HTTP 메서드
  */
 export const HTTP_METHODS = {
-  GET: 'GET',
-  POST: 'POST',
-  PUT: 'PUT',
-  PATCH: 'PATCH',
-  DELETE: 'DELETE'
+  GET: "GET",
+  POST: "POST",
+  PUT: "PUT",
+  PATCH: "PATCH",
+  DELETE: "DELETE",
 };
 
 /**
@@ -298,35 +334,35 @@ export const HTTP_STATUS = {
   FORBIDDEN: 403,
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503
+  SERVICE_UNAVAILABLE: 503,
 };
 
 /**
  * 컨텐츠 타입
  */
 export const CONTENT_TYPES = {
-  JSON: 'application/json',
-  FORM_DATA: 'multipart/form-data',
-  FORM_URLENCODED: 'application/x-www-form-urlencoded',
-  TEXT: 'text/plain',
-  CSV: 'text/csv',
-  EXCEL: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  PDF: 'application/pdf'
+  JSON: "application/json",
+  FORM_DATA: "multipart/form-data",
+  FORM_URLENCODED: "application/x-www-form-urlencoded",
+  TEXT: "text/plain",
+  CSV: "text/csv",
+  EXCEL: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  PDF: "application/pdf",
 };
 
 /**
  * 에러 메시지
  */
 export const ERROR_MESSAGES = {
-  NETWORK: '네트워크 연결을 확인해주세요.',
-  TIMEOUT: '요청 시간이 초과되었습니다.',
-  UNAUTHORIZED: '로그인이 필요합니다.',
-  FORBIDDEN: '접근 권한이 없습니다.',
-  NOT_FOUND: '요청한 리소스를 찾을 수 없습니다.',
-  SERVER_ERROR: '서버 오류가 발생했습니다.',
-  UNKNOWN: '알 수 없는 오류가 발생했습니다.',
-  INVALID_RESPONSE: '잘못된 응답 형식입니다.',
-  PARSE_ERROR: '데이터 파싱 중 오류가 발생했습니다.'
+  NETWORK: "네트워크 연결을 확인해주세요.",
+  TIMEOUT: "요청 시간이 초과되었습니다.",
+  UNAUTHORIZED: "로그인이 필요합니다.",
+  FORBIDDEN: "접근 권한이 없습니다.",
+  NOT_FOUND: "요청한 리소스를 찾을 수 없습니다.",
+  SERVER_ERROR: "서버 오류가 발생했습니다.",
+  UNKNOWN: "알 수 없는 오류가 발생했습니다.",
+  INVALID_RESPONSE: "잘못된 응답 형식입니다.",
+  PARSE_ERROR: "데이터 파싱 중 오류가 발생했습니다.",
 };
 
 /**
@@ -335,10 +371,10 @@ export const ERROR_MESSAGES = {
 export const DEFAULT_REQUEST_OPTIONS = {
   method: HTTP_METHODS.GET,
   headers: {
-    'Content-Type': CONTENT_TYPES.JSON,
-    'Accept': CONTENT_TYPES.JSON
+    "Content-Type": CONTENT_TYPES.JSON,
+    Accept: CONTENT_TYPES.JSON,
   },
-  timeout: API_CONFIG.TIMEOUT
+  timeout: API_CONFIG.TIMEOUT,
 };
 
 // ========== 유틸리티 함수들 ==========
@@ -351,13 +387,15 @@ export const DEFAULT_REQUEST_OPTIONS = {
  */
 export const buildUrl = (endpoint, baseUrl = API_CONFIG.BASE_URL) => {
   // 이미 전체 URL인 경우
-  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+  if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
     return endpoint;
   }
 
   // 슬래시 정규화
-  const normalizedBaseUrl = baseUrl.replace(/\/$/, '');
-  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+  const normalizedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
 
   return `${normalizedBaseUrl}${normalizedEndpoint}`;
 };
@@ -376,9 +414,9 @@ export const addQueryParams = (url, params = {}) => {
   const urlObj = new URL(url);
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== null && value !== undefined && value !== '') {
+    if (value !== null && value !== undefined && value !== "") {
       if (Array.isArray(value)) {
-        value.forEach(v => urlObj.searchParams.append(key, v));
+        value.forEach((v) => urlObj.searchParams.append(key, v));
       } else {
         urlObj.searchParams.set(key, value);
       }
@@ -404,9 +442,9 @@ export const isSuccessStatus = (status) => {
  */
 export const parseErrorResponse = async (response) => {
   try {
-    const contentType = response.headers.get('content-type');
+    const contentType = response.headers.get("content-type");
 
-    if (contentType && contentType.includes('application/json')) {
+    if (contentType && contentType.includes("application/json")) {
       const data = await response.json();
       return data.message || data.error || ERROR_MESSAGES.UNKNOWN;
     } else {
@@ -454,7 +492,7 @@ export const createAuthHeaders = (token) => {
   if (!token) return {};
 
   return {
-    'Authorization': `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   };
 };
 
@@ -464,13 +502,16 @@ export const createAuthHeaders = (token) => {
  * @param {string} filename 파일명
  * @returns {Object} 다운로드 헤더
  */
-export const createDownloadHeaders = (contentType = CONTENT_TYPES.JSON, filename = null) => {
+export const createDownloadHeaders = (
+  contentType = CONTENT_TYPES.JSON,
+  filename = null,
+) => {
   const headers = {
-    'Content-Type': contentType
+    "Content-Type": contentType,
   };
 
   if (filename) {
-    headers['Content-Disposition'] = `attachment; filename="${filename}"`;
+    headers["Content-Disposition"] = `attachment; filename="${filename}"`;
   }
 
   return headers;
@@ -489,8 +530,8 @@ export const createFormData = (data) => {
       if (value instanceof File) {
         formData.append(key, value);
       } else if (Array.isArray(value)) {
-        value.forEach(item => formData.append(key, item));
-      } else if (typeof value === 'object') {
+        value.forEach((item) => formData.append(key, item));
+      } else if (typeof value === "object") {
         formData.append(key, JSON.stringify(value));
       } else {
         formData.append(key, value);
@@ -516,5 +557,5 @@ export default {
   isSuccessStatus,
   parseErrorResponse,
   createAuthHeaders,
-  createDownloadHeaders
+  createDownloadHeaders,
 };

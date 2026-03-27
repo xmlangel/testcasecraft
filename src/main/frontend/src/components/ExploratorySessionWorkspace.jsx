@@ -26,50 +26,46 @@ const statusColor = {
   DRAFT: "default",
 };
 
-const parseStructuredMission = (mission) => {
-  const normalized = `${mission || ""}`.trim();
-  const parsed = {
-    objective: "",
-    resources: "",
-    timebox: "",
-    cautions: "",
-    records: "",
-  };
+const CHARTER_TEMPLATE = `# 🎯 목적 (Objective)
+- 
 
-  if (!normalized) {
-    return parsed;
-  }
+---
 
-  const lines = normalized.split("\n").map((line) => line.trim()).filter(Boolean);
-  const byPrefix = (prefix) => {
-    const line = lines.find((item) => item.startsWith(prefix));
-    return line ? line.slice(prefix.length).trim() : "";
-  };
+# ⏱️ 세션 정보 (Session Info)
+- 테스트 시간: 
+- 테스터: 
+- 환경: 
 
-  parsed.objective = byPrefix("- 목표:");
-  parsed.resources = byPrefix("- 자원:");
-  parsed.timebox = byPrefix("- 시간:");
-  parsed.cautions = byPrefix("- 주의점:");
-  parsed.records = byPrefix("- 기록:");
+---
 
-  if (!parsed.objective) {
-    parsed.objective = normalized;
-  }
+# 🔍 테스트 범위 (Scope)
+- 
 
-  return parsed;
-};
+---
 
-const buildStructuredMission = (form) => {
-  const lines = [];
+# 🧭 테스트 아이디어 (Test Ideas)
+- 
 
-  if (form.objective.trim()) lines.push(`- 목표: ${form.objective.trim()}`);
-  if (form.resources.trim()) lines.push(`- 자원: ${form.resources.trim()}`);
-  if (form.timebox.trim()) lines.push(`- 시간: ${form.timebox.trim()}`);
-  if (form.cautions.trim()) lines.push(`- 주의점: ${form.cautions.trim()}`);
-  if (form.records.trim()) lines.push(`- 기록: ${form.records.trim()}`);
+---
 
-  return lines.join("\n");
-};
+# ⚠️ 리스크 영역 (Risks)
+- 
+
+---
+
+# 🧪 테스트 전략 (Approach)
+- 
+
+---
+
+# ✅ 완료 기준 (Exit Criteria)
+- 
+
+---
+
+# 📝 결과 기록 (Notes)
+- 
+`;
 
 function ExploratorySessionWorkspace({ projectId }) {
   const { t } = useI18n();
@@ -94,13 +90,10 @@ function ExploratorySessionWorkspace({ projectId }) {
   const [editingCharter, setEditingCharter] = React.useState(null);
   const [charterForm, setCharterForm] = React.useState({
     title: "",
-    objective: "",
-    resources: "",
-    timebox: "",
-    cautions: "",
-    records: "",
+    mission: CHARTER_TEMPLATE,
     status: "ACTIVE",
   });
+  const [charterErrors, setCharterErrors] = React.useState({});
   const [timerStatus, setTimerStatus] = React.useState("idle");
   const [elapsedSec, setElapsedSec] = React.useState(0);
   const [pausedSec, setPausedSec] = React.useState(0);
@@ -160,7 +153,10 @@ function ExploratorySessionWorkspace({ projectId }) {
     try {
       const response = await api(`/api/projects/${projectId}/charters`);
       if (!response.ok) {
-        const message = await parseApiError(response, "차터 목록을 불러오지 못했습니다.");
+        const message = await parseApiError(
+          response,
+          "차터 목록을 불러오지 못했습니다.",
+        );
         setCharterError(message);
         return;
       }
@@ -184,7 +180,10 @@ function ExploratorySessionWorkspace({ projectId }) {
     }
 
     setSessionDraft((prev) => {
-      if (prev.charterId && charters.some((charter) => charter.id === prev.charterId)) {
+      if (
+        prev.charterId &&
+        charters.some((charter) => charter.id === prev.charterId)
+      ) {
         return prev;
       }
       return { ...prev, charterId: charters[0].id };
@@ -195,28 +194,21 @@ function ExploratorySessionWorkspace({ projectId }) {
     setEditingCharter(null);
     setCharterForm({
       title: "",
-      objective: "",
-      resources: "",
-      timebox: "",
-      cautions: "",
-      records: "",
+      mission: CHARTER_TEMPLATE,
       status: "ACTIVE",
     });
+    setCharterErrors({});
     setCharterDialogOpen(true);
   };
 
   const openEditCharterDialog = (charter) => {
-    const parsedMission = parseStructuredMission(charter.mission);
     setEditingCharter(charter.id);
     setCharterForm({
       title: charter.title,
-      objective: parsedMission.objective,
-      resources: parsedMission.resources || charter.areas || "",
-      timebox: parsedMission.timebox,
-      cautions: parsedMission.cautions,
-      records: parsedMission.records,
+      mission: charter.mission || "",
       status: charter.status,
     });
+    setCharterErrors({});
     setCharterDialogOpen(true);
   };
 
@@ -226,20 +218,39 @@ function ExploratorySessionWorkspace({ projectId }) {
       return;
     }
 
-    if (!charterForm.title.trim() || !charterForm.objective.trim()) {
-      setCharterError("차터 이름과 목표는 필수입니다.");
+    const newErrors = {};
+    if (!charterForm.title.trim()) {
+      newErrors.title = t(
+        "exploratory.charter.error.titleRequired",
+        "차터 이름은 필수입니다.",
+      );
+    }
+    if (!charterForm.mission.trim()) {
+      newErrors.mission = t(
+        "exploratory.charter.error.missionRequired",
+        "내용은 필수입니다.",
+      );
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setCharterErrors(newErrors);
+      setCharterError(
+        t(
+          "exploratory.charter.error.checkFields",
+          "필수 항목을 확인해 주세요.",
+        ),
+      );
       return;
     }
 
     setSavingCharter(true);
     setCharterError("");
-    const mission = buildStructuredMission(charterForm);
+    setCharterErrors({});
 
     const payload = {
       projectId,
       title: charterForm.title.trim(),
-      mission,
-      areas: charterForm.resources.trim() || null,
+      mission: charterForm.mission.trim(),
       status: charterForm.status,
       createdBy: user?.username || user?.id || "exploratory-user",
     };
@@ -258,7 +269,9 @@ function ExploratorySessionWorkspace({ projectId }) {
       if (!response.ok) {
         const message = await parseApiError(
           response,
-          editingCharter ? "차터 수정에 실패했습니다." : "차터 생성에 실패했습니다."
+          editingCharter
+            ? "차터 수정에 실패했습니다."
+            : "차터 생성에 실패했습니다.",
         );
         setCharterError(message);
         return;
@@ -303,9 +316,14 @@ function ExploratorySessionWorkspace({ projectId }) {
       params.set("sort", "createdAt,desc");
 
       const query = params.toString();
-      const response = await api(`/api/projects/${projectId}/sessions${query ? `?${query}` : ""}`);
+      const response = await api(
+        `/api/projects/${projectId}/sessions${query ? `?${query}` : ""}`,
+      );
       if (!response.ok) {
-        const message = await parseApiError(response, "세션 목록을 불러오지 못했습니다.");
+        const message = await parseApiError(
+          response,
+          "세션 목록을 불러오지 못했습니다.",
+        );
         setSessionError(message);
         return;
       }
@@ -351,7 +369,9 @@ function ExploratorySessionWorkspace({ projectId }) {
     return true;
   });
 
-  const selectedCharter = charters.find((item) => item.id === sessionDraft.charterId);
+  const selectedCharter = charters.find(
+    (item) => item.id === sessionDraft.charterId,
+  );
   const totalRatio =
     Number(sessionDraft.timeExecution) +
     Number(sessionDraft.timeBugInvestigation) +
@@ -372,9 +392,21 @@ function ExploratorySessionWorkspace({ projectId }) {
 
   return (
     <Paper sx={{ p: 2, minHeight: "calc(100vh - 230px)" }}>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
-        <Typography variant="h6">{t("exploratory.workspace.title", "탐색 세션 워크스페이스")}</Typography>
-        <Chip label={t("exploratory.workspace.badgeDraft", "UI 초안")} size="small" />
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 1,
+        }}
+      >
+        <Typography variant="h6">
+          {t("exploratory.workspace.title", "탐색 세션 워크스페이스")}
+        </Typography>
+        <Chip
+          label={t("exploratory.workspace.badgeDraft", "UI 초안")}
+          size="small"
+        />
       </Box>
 
       <Tabs value={view} onChange={(_, value) => setView(value)} sx={{ mb: 2 }}>
@@ -403,6 +435,7 @@ function ExploratorySessionWorkspace({ projectId }) {
           setCharterForm={setCharterForm}
           saveCharter={saveCharter}
           savingCharter={savingCharter}
+          charterErrors={charterErrors}
         />
       )}
 

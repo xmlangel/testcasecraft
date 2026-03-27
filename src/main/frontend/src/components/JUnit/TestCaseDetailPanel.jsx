@@ -144,7 +144,7 @@ const TestCaseDetailPanel = ({
     try {
       const response = await api(
         `/api/junit-results/testcases/${testCaseId}/previous-notes`,
-        { method: "GET" }
+        { method: "GET" },
       );
       if (response.ok) {
         const data = await response.json();
@@ -353,7 +353,9 @@ const TestCaseDetailPanel = ({
                 <Box sx={{ flex: 1 }}>
                   <Typography
                     variant="caption"
-                    color={testCaseDetails.status === "PASSED" ? "success" : "error"}
+                    color={
+                      testCaseDetails.status === "PASSED" ? "success" : "error"
+                    }
                     sx={{ fontWeight: "bold", mb: 0.5, display: "block" }}
                   >
                     ACTUAL
@@ -363,8 +365,15 @@ const TestCaseDetailPanel = ({
                     sx={{
                       p: 1.5,
                       bgcolor: isDarkMode
-                        ? alpha(testCaseDetails.status === "PASSED" ? theme.palette.success.main : theme.palette.error.main, 0.05)
-                        : (testCaseDetails.status === "PASSED" ? "#f8fff8" : "#fffaf8"),
+                        ? alpha(
+                            testCaseDetails.status === "PASSED"
+                              ? theme.palette.success.main
+                              : theme.palette.error.main,
+                            0.05,
+                          )
+                        : testCaseDetails.status === "PASSED"
+                          ? "#f8fff8"
+                          : "#fffaf8",
                       fontFamily: "monospace",
                       fontSize: "0.8rem",
                       whiteSpace: "pre-wrap",
@@ -460,9 +469,13 @@ const TestCaseDetailPanel = ({
                     )}
                     {step.actual && (
                       <Box sx={{ flex: 1, minWidth: "200px" }}>
-                        <Typography 
-                          variant="caption" 
-                          color={testCaseDetails.status === "PASSED" ? "success" : "error"}
+                        <Typography
+                          variant="caption"
+                          color={
+                            testCaseDetails.status === "PASSED"
+                              ? "success"
+                              : "error"
+                          }
                         >
                           ACTUAL:
                         </Typography>
@@ -477,7 +490,11 @@ const TestCaseDetailPanel = ({
                               theme.palette.action.disabledBackground,
                               0.05,
                             ),
-                            borderLeft: `3px solid ${testCaseDetails.status === "PASSED" ? theme.palette.success.light : theme.palette.error.light}`,
+                            borderLeft: `3px solid ${
+                              testCaseDetails.status === "PASSED"
+                                ? theme.palette.success.light
+                                : theme.palette.error.light
+                            }`,
                             whiteSpace: "pre-wrap",
                           }}
                         >
@@ -744,7 +761,7 @@ const TestCaseDetailPanel = ({
                     // JunitTestCaseEditor 호환성을 위해 userInfo 필드를 최상위로 위치시킴
                     const normalizedTestCase = {
                       ...testCaseDetails,
-                      ...(testCaseDetails.userInfo || {})
+                      ...(testCaseDetails.userInfo || {}),
                     };
                     onEditTestCase(normalizedTestCase);
                   }}
@@ -773,25 +790,39 @@ const TestCaseDetailPanel = ({
       {/* 이전 노트 알림 (현재 노트가 없을 때만 표시) */}
       {previousNoteInfo && !testCaseDetails.userInfo?.userNotes && (
         <Box sx={{ px: 2, pt: 2 }}>
-          <Alert 
-            severity="info" 
+          <Alert
+            severity="info"
             action={
               onEditTestCase && (
-                <Button color="inherit" size="small" onClick={() => {
-                  const normalizedTestCase = {
-                    ...testCaseDetails,
-                    ...(testCaseDetails.userInfo || {})
-                  };
-                  onEditTestCase(normalizedTestCase);
-                }}>
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    const normalizedTestCase = {
+                      ...testCaseDetails,
+                      ...(testCaseDetails.userInfo || {}),
+                    };
+                    onEditTestCase(normalizedTestCase);
+                  }}
+                >
                   {t("junit.testcase.edit")}
                 </Button>
               )
             }
           >
-            {t("junit.testcase.previousNotes.alert", "이 테스트 케이스에 대한 이전 노트가 존재합니다 (실행: {execution}, 일시: {date})")
-              .replace("{execution}", previousNoteInfo.executionName || t("junit.testcase.previous", "이전 테스트 케이스"))
-              .replace("{date}", new Date(previousNoteInfo.uploadedAt).toLocaleString())}
+            {t(
+              "junit.testcase.previousNotes.alert",
+              "이 테스트 케이스에 대한 이전 노트가 존재합니다 (실행: {execution}, 일시: {date})",
+            )
+              .replace(
+                "{execution}",
+                previousNoteInfo.executionName ||
+                  t("junit.testcase.previous", "이전 테스트 케이스"),
+              )
+              .replace(
+                "{date}",
+                new Date(previousNoteInfo.uploadedAt).toLocaleString(),
+              )}
           </Alert>
         </Box>
       )}
@@ -852,7 +883,11 @@ const TestCaseDetailPanel = ({
                       color: theme.palette.text.primary,
                       p: 2,
                       borderRadius: 1,
-                      border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : "#ffcdd2"}`,
+                      border: `1px solid ${
+                        isDarkMode
+                          ? alpha(theme.palette.error.main, 0.3)
+                          : "#ffcdd2"
+                      }`,
                     }}
                   >
                     {String(testCaseDetails.tracelog.failureMessage)
@@ -971,7 +1006,11 @@ const TestCaseDetailPanel = ({
                       color: theme.palette.text.primary,
                       p: 2,
                       borderRadius: 1,
-                      border: `1px solid ${isDarkMode ? alpha(theme.palette.success.main, 0.3) : "#c8e6c9"}`,
+                      border: `1px solid ${
+                        isDarkMode
+                          ? alpha(theme.palette.success.main, 0.3)
+                          : "#c8e6c9"
+                      }`,
                       overflow: "auto",
                     }}
                   >
@@ -1001,7 +1040,11 @@ const TestCaseDetailPanel = ({
                       color: theme.palette.text.primary,
                       p: 2,
                       borderRadius: 1,
-                      border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : "#ffcdd2"}`,
+                      border: `1px solid ${
+                        isDarkMode
+                          ? alpha(theme.palette.error.main, 0.3)
+                          : "#ffcdd2"
+                      }`,
                       overflow: "auto",
                     }}
                   >
@@ -1138,7 +1181,11 @@ const TestCaseDetailPanel = ({
                             : "#ffebee",
                           p: 2,
                           borderRadius: 1,
-                          border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : "#ffcdd2"}`,
+                          border: `1px solid ${
+                            isDarkMode
+                              ? alpha(theme.palette.error.main, 0.3)
+                              : "#ffcdd2"
+                          }`,
                         }}
                       >
                         {testCaseDetails.tracelog.failureMessage}
@@ -1213,7 +1260,11 @@ const TestCaseDetailPanel = ({
                           color: theme.palette.text.primary,
                           p: 2,
                           borderRadius: 1,
-                          border: `1px solid ${isDarkMode ? alpha(theme.palette.success.main, 0.3) : "#c8e6c9"}`,
+                          border: `1px solid ${
+                            isDarkMode
+                              ? alpha(theme.palette.success.main, 0.3)
+                              : "#c8e6c9"
+                          }`,
                           overflow: "auto",
                         }}
                       >
@@ -1247,7 +1298,11 @@ const TestCaseDetailPanel = ({
                           color: theme.palette.text.primary,
                           p: 2,
                           borderRadius: 1,
-                          border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : "#ffcdd2"}`,
+                          border: `1px solid ${
+                            isDarkMode
+                              ? alpha(theme.palette.error.main, 0.3)
+                              : "#ffcdd2"
+                          }`,
                           overflow: "auto",
                         }}
                       >

@@ -117,7 +117,7 @@ return (
           margin="normal"
           variant="outlined"
         />
-        
+
         <TextField
           label="설명"
           value={testCase.description || ''}
@@ -128,12 +128,12 @@ return (
           multiline
           rows={3}
         />
-        
+
         <Box sx={{ mt: 3, mb: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
             테스트 단계
           </Typography>
-          
+
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
               <TableHead>
@@ -184,8 +184,8 @@ return (
                           />
                         </TableCell>
                         <TableCell align="center">
-                          <IconButton 
-                            size="small" 
+                          <IconButton
+                            size="small"
                             color="error"
                             onClick={() => handleDeleteStep(step.stepNumber)}
                           >
@@ -198,7 +198,7 @@ return (
               </TableBody>
             </Table>
           </TableContainer>
-          
+
           <Button
             startIcon={<AddIcon />}
             onClick={handleAddStep}
@@ -208,7 +208,7 @@ return (
             단계 추가
           </Button>
         </Box>
-        
+
         <TextField
           label="기대 결과 (전체)"
           value={testCase.expectedResults || ''}
@@ -220,10 +220,10 @@ return (
           rows={3}
         />
       </CardContent>
-      
+
       <CardActions>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           color="primary"
           onClick={handleSave}
         >
@@ -232,6 +232,7 @@ return (
       </CardActions>
     </Card>
     );
+
 };
 
 export default TestCaseForm;
@@ -249,8 +250,8 @@ export default TestCaseForm;
 ---
 
 ```javascript
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Button,
@@ -266,11 +267,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper
-} from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { useAppContext } from '../context/AppContext';
-import { createTestStep } from '../models/testCase';
+  Paper,
+} from "@mui/material";
+import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { useAppContext } from "../context/AppContext";
+import { createTestStep } from "../models/testCase";
 
 const TestCaseForm = ({ testCaseId }) => {
   const { state, updateTestCase } = useAppContext();
@@ -280,27 +281,34 @@ const TestCaseForm = ({ testCaseId }) => {
 
   // 에러 상태
   const [errors, setErrors] = useState({
-    name: '',
+    name: "",
     steps: {},
   });
 
   // 초기 테스트케이스 데이터 로드
   useEffect(() => {
     if (testCaseId) {
-      const tc = testCases.find(tc => tc.id === testCaseId);
+      const tc = testCases.find((tc) => tc.id === testCaseId);
       if (tc) {
         setTestCase({
           ...tc,
-          steps: tc.steps || []
+          steps: tc.steps || [],
         });
       }
     }
   }, [testCaseId, testCases]);
 
   // 테스트케이스가 없으면 표시하지 않음
-  if (!testCase || testCase.type !== 'testcase') {
+  if (!testCase || testCase.type !== "testcase") {
     return (
-      <Card sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card
+        sx={{
+          minHeight: 400,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Typography variant="body1" color="text.secondary">
           왼쪽 트리에서 테스트케이스를 선택하세요.
         </Typography>
@@ -312,27 +320,25 @@ const TestCaseForm = ({ testCaseId }) => {
   const handleChange = (field) => (event) => {
     setTestCase({
       ...testCase,
-      [field]: event.target.value
+      [field]: event.target.value,
     });
     // 에러 초기화
     setErrors({
       ...errors,
-      [field]: ''
+      [field]: "",
     });
   };
 
   // 테스트 단계 추가 핸들러
   const handleAddStep = () => {
-    const newStepNumber = testCase.steps.length > 0
-      ? Math.max(...testCase.steps.map(step => step.stepNumber)) + 1
-      : 1;
+    const newStepNumber =
+      testCase.steps.length > 0
+        ? Math.max(...testCase.steps.map((step) => step.stepNumber)) + 1
+        : 1;
 
     setTestCase({
       ...testCase,
-      steps: [
-        ...testCase.steps,
-        createTestStep(newStepNumber)
-      ]
+      steps: [...testCase.steps, createTestStep(newStepNumber)],
     });
   };
 
@@ -340,7 +346,7 @@ const TestCaseForm = ({ testCaseId }) => {
   const handleDeleteStep = (stepNumber) => {
     setTestCase({
       ...testCase,
-      steps: testCase.steps.filter(step => step.stepNumber !== stepNumber)
+      steps: testCase.steps.filter((step) => step.stepNumber !== stepNumber),
     });
     setErrors((prev) => {
       const newSteps = { ...prev.steps };
@@ -353,11 +359,11 @@ const TestCaseForm = ({ testCaseId }) => {
   const handleStepChange = (stepNumber, field) => (event) => {
     setTestCase({
       ...testCase,
-      steps: testCase.steps.map(step =>
+      steps: testCase.steps.map((step) =>
         step.stepNumber === stepNumber
           ? { ...step, [field]: event.target.value }
-          : step
-      )
+          : step,
+      ),
     });
     // 에러 초기화
     setErrors((prev) => ({
@@ -366,28 +372,38 @@ const TestCaseForm = ({ testCaseId }) => {
         ...prev.steps,
         [stepNumber]: {
           ...prev.steps[stepNumber],
-          [field]: ''
-        }
-      }
+          [field]: "",
+        },
+      },
     }));
   };
 
   // 유효성 검사
   const validate = () => {
     let valid = true;
-    const newErrors = { name: '', steps: {} };
+    const newErrors = { name: "", steps: {} };
 
-    if (!testCase.name || testCase.name.trim() === '') {
-      newErrors.name = '테스트케이스 이름을 입력해 주세요.';
+    if (!testCase.name || testCase.name.trim() === "") {
+      newErrors.name = "테스트케이스 이름을 입력해 주세요.";
       valid = false;
     }
 
     testCase.steps.forEach((step) => {
-      if (!step.description || step.description.trim() === '' ||
-          !step.expectedResult || step.expectedResult.trim() === '') {
+      if (
+        !step.description ||
+        step.description.trim() === "" ||
+        !step.expectedResult ||
+        step.expectedResult.trim() === ""
+      ) {
         newErrors.steps[step.stepNumber] = {
-          description: !step.description || step.description.trim() === '' ? '단계 설명을 입력해 주세요.' : '',
-          expectedResult: !step.expectedResult || step.expectedResult.trim() === '' ? '기대 결과를 입력해 주세요.' : ''
+          description:
+            !step.description || step.description.trim() === ""
+              ? "단계 설명을 입력해 주세요."
+              : "",
+          expectedResult:
+            !step.expectedResult || step.expectedResult.trim() === ""
+              ? "기대 결과를 입력해 주세요."
+              : "",
         };
         valid = false;
       }
@@ -399,10 +415,14 @@ const TestCaseForm = ({ testCaseId }) => {
 
   // 저장 버튼 비활성화 조건
   const isSaveDisabled = () => {
-    if (!testCase.name || testCase.name.trim() === '') return true;
+    if (!testCase.name || testCase.name.trim() === "") return true;
     for (const step of testCase.steps) {
-      if (!step.description || step.description.trim() === '' ||
-          !step.expectedResult || step.expectedResult.trim() === '') {
+      if (
+        !step.description ||
+        step.description.trim() === "" ||
+        !step.expectedResult ||
+        step.expectedResult.trim() === ""
+      ) {
         return true;
       }
     }
@@ -425,7 +445,7 @@ const TestCaseForm = ({ testCaseId }) => {
         <TextField
           label="테스트케이스 이름"
           value={testCase.name}
-          onChange={handleChange('name')}
+          onChange={handleChange("name")}
           fullWidth
           margin="normal"
           variant="outlined"
@@ -435,8 +455,8 @@ const TestCaseForm = ({ testCaseId }) => {
 
         <TextField
           label="설명"
-          value={testCase.description || ''}
-          onChange={handleChange('description')}
+          value={testCase.description || ""}
+          onChange={handleChange("description")}
           fullWidth
           margin="normal"
           variant="outlined"
@@ -456,7 +476,9 @@ const TestCaseForm = ({ testCaseId }) => {
                   <TableCell width="10%">No.</TableCell>
                   <TableCell width="45%">단계 설명</TableCell>
                   <TableCell width="35%">기대 결과</TableCell>
-                  <TableCell width="10%" align="center">동작</TableCell>
+                  <TableCell width="10%" align="center">
+                    동작
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -464,42 +486,65 @@ const TestCaseForm = ({ testCaseId }) => {
                   <TableRow>
                     <TableCell colSpan={4} align="center">
                       <Typography variant="body2" color="text.secondary">
-                        테스트 단계가 없습니다. 추가 버튼을 눌러 단계를 추가하세요.
+                        테스트 단계가 없습니다. 추가 버튼을 눌러 단계를
+                        추가하세요.
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
                   testCase.steps
                     .sort((a, b) => a.stepNumber - b.stepNumber)
-                    .map(step => (
+                    .map((step) => (
                       <TableRow key={step.stepNumber}>
                         <TableCell>{step.stepNumber}</TableCell>
                         <TableCell>
                           <TextField
                             value={step.description}
-                            onChange={handleStepChange(step.stepNumber, 'description')}
+                            onChange={handleStepChange(
+                              step.stepNumber,
+                              "description",
+                            )}
                             fullWidth
                             size="small"
                             placeholder="단계 설명"
                             multiline
                             minRows={1}
                             maxRows={3}
-                            error={!!(errors.steps[step.stepNumber] && errors.steps[step.stepNumber].description)}
-                            helperText={errors.steps[step.stepNumber] && errors.steps[step.stepNumber].description}
+                            error={
+                              !!(
+                                errors.steps[step.stepNumber] &&
+                                errors.steps[step.stepNumber].description
+                              )
+                            }
+                            helperText={
+                              errors.steps[step.stepNumber] &&
+                              errors.steps[step.stepNumber].description
+                            }
                           />
                         </TableCell>
                         <TableCell>
                           <TextField
                             value={step.expectedResult}
-                            onChange={handleStepChange(step.stepNumber, 'expectedResult')}
+                            onChange={handleStepChange(
+                              step.stepNumber,
+                              "expectedResult",
+                            )}
                             fullWidth
                             size="small"
                             placeholder="기대 결과"
                             multiline
                             minRows={1}
                             maxRows={3}
-                            error={!!(errors.steps[step.stepNumber] && errors.steps[step.stepNumber].expectedResult)}
-                            helperText={errors.steps[step.stepNumber] && errors.steps[step.stepNumber].expectedResult}
+                            error={
+                              !!(
+                                errors.steps[step.stepNumber] &&
+                                errors.steps[step.stepNumber].expectedResult
+                              )
+                            }
+                            helperText={
+                              errors.steps[step.stepNumber] &&
+                              errors.steps[step.stepNumber].expectedResult
+                            }
                           />
                         </TableCell>
                         <TableCell align="center">
@@ -531,8 +576,8 @@ const TestCaseForm = ({ testCaseId }) => {
 
         <TextField
           label="기대 결과 (전체)"
-          value={testCase.expectedResults || ''}
-          onChange={handleChange('expectedResults')}
+          value={testCase.expectedResults || ""}
+          onChange={handleChange("expectedResults")}
           fullWidth
           margin="normal"
           variant="outlined"
@@ -556,12 +601,11 @@ const TestCaseForm = ({ testCaseId }) => {
 };
 
 TestCaseForm.propTypes = {
-  testCaseId: PropTypes.string
+  testCaseId: PropTypes.string,
 };
 
 export default TestCaseForm;
 ```
-
 
 ---
 
@@ -572,4 +616,3 @@ export default TestCaseForm;
 - UX 향상을 위한 에러 메시지 및 입력값 검증 추가
 
 추가로 궁금한 점이나 더 개선하고 싶은 부분이 있으면 언제든 말씀해 주세요!
-

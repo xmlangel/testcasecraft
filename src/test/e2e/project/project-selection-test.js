@@ -2,28 +2,27 @@
 // 관련 컴포넌트: ProjectManager.jsx, AppContext.jsx
 // 프로젝트 목록 조회, 선택, 전환 시 상태 관리 E2E 테스트
 
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require("@playwright/test");
 
-test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
-
+test.describe("프로젝트 선택 및 전환 E2E 테스트", () => {
   test.beforeEach(async ({ page }) => {
     // 각 테스트 전에 로컬스토리지 초기화
-    await page.goto('http://localhost:3000');
+    await page.goto("http://localhost:3000");
     await page.evaluate(() => localStorage.clear());
   });
 
   // 성공 스크린샷 헬퍼 함수
   async function takeSuccessScreenshot(page, testInfo, testName) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const screenshotPath = `test-results/success-screenshots/${testName}-${timestamp}.png`;
     await page.screenshot({
       path: screenshotPath,
-      fullPage: true
+      fullPage: true,
     });
 
-    await testInfo.attach('success-screenshot', {
+    await testInfo.attach("success-screenshot", {
       path: screenshotPath,
-      contentType: 'image/png'
+      contentType: "image/png",
     });
 
     console.log(`📸 성공 스크린샷 저장: ${screenshotPath}`);
@@ -32,33 +31,33 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
 
   // 로그인 헬퍼 함수
   async function loginAsAdmin(page) {
-    console.log('🔐 Admin 로그인 수행...');
+    console.log("🔐 Admin 로그인 수행...");
 
     // 백엔드 서버 연결 확인 (올바른 계정으로)
     let backendReady = false;
     for (let i = 0; i < 30; i++) {
       try {
-        const response = await fetch('http://localhost:8080/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: 'admin', password: 'admin' })
+        const response = await fetch("http://localhost:8080/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: "admin", password: "admin" }),
         });
         backendReady = true;
-        console.log('🚀 백엔드 서버 준비 완료');
+        console.log("🚀 백엔드 서버 준비 완료");
         break;
       } catch (e) {
         console.log(`⏳ 백엔드 대기 중... (${i + 1}/30)`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
     if (!backendReady) {
-      throw new Error('백엔드 서버가 30초 내에 준비되지 않았습니다.');
+      throw new Error("백엔드 서버가 30초 내에 준비되지 않았습니다.");
     }
 
     // 로그인 폼 작성 및 제출
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', 'admin');
+    await page.fill('input[name="username"]', "admin");
+    await page.fill('input[name="password"]', "admin");
     await page.click('button[type="submit"]');
 
     // 로그인 성공 확인 - 프로젝트 관리 페이지로 이동
@@ -66,21 +65,31 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     for (let attempt = 1; attempt <= 5; attempt++) {
       try {
         await page.waitForTimeout(2000);
-        const token = await page.evaluate(() => localStorage.getItem('accessToken'));
+        const token = await page.evaluate(() =>
+          localStorage.getItem("accessToken"),
+        );
 
         // 프로젝트 관리 페이지 요소 확인
-        const projectPageIndicators = await page.locator('h1:has-text("프로젝트 관리"), [data-testid="project-management"], .project-management').count();
+        const projectPageIndicators = await page
+          .locator(
+            'h1:has-text("프로젝트 관리"), [data-testid="project-management"], .project-management',
+          )
+          .count();
 
         if (token && projectPageIndicators > 0) {
-          console.log('✅ 로그인 성공 및 프로젝트 관리 페이지 도달');
+          console.log("✅ 로그인 성공 및 프로젝트 관리 페이지 도달");
           loginSuccess = true;
           break;
         } else if (token) {
-          console.log('✅ 로그인 성공, 프로젝트 관리 페이지 로딩 대기 중...');
+          console.log("✅ 로그인 성공, 프로젝트 관리 페이지 로딩 대기 중...");
           await page.waitForTimeout(3000);
-          const retryIndicators = await page.locator('h1:has-text("프로젝트 관리"), [data-testid="project-management"], .project-management').count();
+          const retryIndicators = await page
+            .locator(
+              'h1:has-text("프로젝트 관리"), [data-testid="project-management"], .project-management',
+            )
+            .count();
           if (retryIndicators > 0) {
-            console.log('✅ 프로젝트 관리 페이지 로딩 완료');
+            console.log("✅ 프로젝트 관리 페이지 로딩 완료");
             loginSuccess = true;
             break;
           }
@@ -92,7 +101,9 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     }
 
     if (!loginSuccess) {
-      throw new Error('로그인 실패: 프로젝트 관리 페이지에 도달하지 못했습니다.');
+      throw new Error(
+        "로그인 실패: 프로젝트 관리 페이지에 도달하지 못했습니다.",
+      );
     }
   }
 
@@ -100,7 +111,9 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
   async function switchToTab(page, tabName) {
     console.log(`📑 "${tabName}" 탭으로 전환...`);
 
-    const tab = page.locator(`tab:has-text("${tabName}"), [role="tab"]:has-text("${tabName}"), button:has-text("${tabName}")`);
+    const tab = page.locator(
+      `tab:has-text("${tabName}"), [role="tab"]:has-text("${tabName}"), button:has-text("${tabName}")`,
+    );
     if (await tab.isVisible({ timeout: 2000 })) {
       await tab.click();
       console.log(`📑 "${tabName}" 탭 클릭 완료`);
@@ -116,7 +129,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
       'button:has-text("프로젝트 열기")',
       '.MuiCard-root:has(button:has-text("프로젝트 열기"))',
       '[data-testid="project-card"]',
-      'div:has(h2):has(button:has-text("프로젝트 열기"))'
+      'div:has(h2):has(button:has-text("프로젝트 열기"))',
     ];
 
     for (const selector of projectSelectors) {
@@ -135,48 +148,60 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     return { selector: null, count: 0, elements: null };
   }
 
-  test('프로젝트 선택 페이지 접속 및 기본 구조 확인', async ({ page }, testInfo) => {
-    console.log('🌐 프로젝트 선택 페이지 접속 테스트 시작...');
+  test("프로젝트 선택 페이지 접속 및 기본 구조 확인", async ({
+    page,
+  }, testInfo) => {
+    console.log("🌐 프로젝트 선택 페이지 접속 테스트 시작...");
 
     // 로그인 수행
     await loginAsAdmin(page);
 
     // 페이지 로딩 상태 확인
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState("networkidle");
 
     // 프로젝트 관리 페이지 구조 확인
     const pageStructure = await page.evaluate(() => {
-      const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).map(h => h.textContent);
-      const tabs = Array.from(document.querySelectorAll('[role="tab"], tab, button')).map(t => t.textContent).filter(text => text && text.length < 20);
-      const cards = document.querySelectorAll('.MuiCard-root').length;
+      const headings = Array.from(
+        document.querySelectorAll("h1, h2, h3, h4, h5, h6"),
+      ).map((h) => h.textContent);
+      const tabs = Array.from(
+        document.querySelectorAll('[role="tab"], tab, button'),
+      )
+        .map((t) => t.textContent)
+        .filter((text) => text && text.length < 20);
+      const cards = document.querySelectorAll(".MuiCard-root").length;
 
       return {
         headings: headings.slice(0, 5),
         tabs: tabs.slice(0, 10),
         cardCount: cards,
-        url: window.location.href
+        url: window.location.href,
       };
     });
 
-    console.log('📄 페이지 구조 분석:', JSON.stringify(pageStructure, null, 2));
+    console.log("📄 페이지 구조 분석:", JSON.stringify(pageStructure, null, 2));
 
     // 필수 요소 확인
-    expect(pageStructure.url).toContain('localhost:3000');
+    expect(pageStructure.url).toContain("localhost:3000");
 
     // 성공 스크린샷 촬영
-    await takeSuccessScreenshot(page, testInfo, 'project-selection-page-access');
+    await takeSuccessScreenshot(
+      page,
+      testInfo,
+      "project-selection-page-access",
+    );
 
-    console.log('✅ 프로젝트 선택 페이지 접속 및 기본 구조 확인 완료');
+    console.log("✅ 프로젝트 선택 페이지 접속 및 기본 구조 확인 완료");
   });
 
-  test('사용자별 접근 가능 프로젝트 목록 확인', async ({ page }, testInfo) => {
-    console.log('👥 사용자별 접근 가능 프로젝트 목록 확인 테스트 시작...');
+  test("사용자별 접근 가능 프로젝트 목록 확인", async ({ page }, testInfo) => {
+    console.log("👥 사용자별 접근 가능 프로젝트 목록 확인 테스트 시작...");
 
     // 로그인 수행
     await loginAsAdmin(page);
 
     // 탭별 프로젝트 목록 확인
-    const tabs = ['조직별 프로젝트', '독립 프로젝트', '전체 프로젝트'];
+    const tabs = ["조직별 프로젝트", "독립 프로젝트", "전체 프로젝트"];
     const tabResults = {};
 
     for (const tabName of tabs) {
@@ -188,7 +213,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
         tabResults[tabName] = {
           found: projectInfo.count > 0,
           count: projectInfo.count,
-          selector: projectInfo.selector
+          selector: projectInfo.selector,
         };
 
         console.log(`📊 "${tabName}" 결과:`, tabResults[tabName]);
@@ -197,26 +222,31 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
           found: false,
           count: 0,
           selector: null,
-          note: '탭을 찾을 수 없음'
+          note: "탭을 찾을 수 없음",
         };
       }
     }
 
     // 결과 요약
-    console.log('📋 프로젝트 목록 확인 결과:', JSON.stringify(tabResults, null, 2));
+    console.log(
+      "📋 프로젝트 목록 확인 결과:",
+      JSON.stringify(tabResults, null, 2),
+    );
 
     // 최소 하나의 탭에서 프로젝트가 발견되어야 함
-    const hasProjects = Object.values(tabResults).some(result => result.found);
+    const hasProjects = Object.values(tabResults).some(
+      (result) => result.found,
+    );
     expect(hasProjects).toBe(true);
 
     // 성공 스크린샷 촬영
-    await takeSuccessScreenshot(page, testInfo, 'project-list-by-user-access');
+    await takeSuccessScreenshot(page, testInfo, "project-list-by-user-access");
 
-    console.log('✅ 사용자별 접근 가능 프로젝트 목록 확인 완료');
+    console.log("✅ 사용자별 접근 가능 프로젝트 목록 확인 완료");
   });
 
-  test('프로젝트 검색 및 필터링 기능 테스트', async ({ page }, testInfo) => {
-    console.log('🔍 프로젝트 검색 및 필터링 기능 테스트 시작...');
+  test("프로젝트 검색 및 필터링 기능 테스트", async ({ page }, testInfo) => {
+    console.log("🔍 프로젝트 검색 및 필터링 기능 테스트 시작...");
 
     // 로그인 수행
     await loginAsAdmin(page);
@@ -227,7 +257,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
       'input[placeholder*="검색"]',
       'input[placeholder*="search"]',
       '[data-testid="search-input"]',
-      '.search-input'
+      ".search-input",
     ];
 
     let searchElement = null;
@@ -246,8 +276,8 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
 
     if (searchElement) {
       // 검색 기능 테스트
-      console.log('🔎 검색 기능 테스트...');
-      await searchElement.fill('QA');
+      console.log("🔎 검색 기능 테스트...");
+      await searchElement.fill("QA");
       await page.waitForTimeout(1000);
 
       // 검색 결과 확인
@@ -258,16 +288,16 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
       await searchElement.clear();
       await page.waitForTimeout(1000);
     } else {
-      console.log('⚠️ 검색 요소를 찾을 수 없음');
+      console.log("⚠️ 검색 요소를 찾을 수 없음");
     }
 
     // 필터 요소 찾기
     const filterSelectors = [
-      'select',
+      "select",
       '[data-testid="filter-select"]',
-      '.filter-select',
+      ".filter-select",
       'button:has-text("필터")',
-      'div[role="combobox"]'
+      'div[role="combobox"]',
     ];
 
     let filterElement = null;
@@ -285,32 +315,32 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     }
 
     if (filterElement) {
-      console.log('🎛️ 필터 기능 테스트...');
+      console.log("🎛️ 필터 기능 테스트...");
       // 필터 클릭하여 옵션 확인
       await filterElement.click();
       await page.waitForTimeout(1000);
 
       // ESC로 필터 닫기
-      await page.keyboard.press('Escape');
+      await page.keyboard.press("Escape");
       await page.waitForTimeout(500);
     } else {
-      console.log('⚠️ 필터 요소를 찾을 수 없음');
+      console.log("⚠️ 필터 요소를 찾을 수 없음");
     }
 
     // 성공 스크린샷 촬영
-    await takeSuccessScreenshot(page, testInfo, 'project-search-filtering');
+    await takeSuccessScreenshot(page, testInfo, "project-search-filtering");
 
-    console.log('✅ 프로젝트 검색 및 필터링 기능 테스트 완료');
+    console.log("✅ 프로젝트 검색 및 필터링 기능 테스트 완료");
   });
 
-  test('프로젝트 선택 및 전환 기능 테스트', async ({ page }, testInfo) => {
-    console.log('🔄 프로젝트 선택 및 전환 기능 테스트 시작...');
+  test("프로젝트 선택 및 전환 기능 테스트", async ({ page }, testInfo) => {
+    console.log("🔄 프로젝트 선택 및 전환 기능 테스트 시작...");
 
     // 로그인 수행
     await loginAsAdmin(page);
 
     // 사용 가능한 탭 확인 및 프로젝트 찾기
-    const tabs = ['조직별 프로젝트', '독립 프로젝트', '전체 프로젝트'];
+    const tabs = ["조직별 프로젝트", "독립 프로젝트", "전체 프로젝트"];
     let projectFound = false;
     let selectedProjectInfo = null;
 
@@ -322,19 +352,24 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
         const projectInfo = await getProjectElements(page);
 
         if (projectInfo.count > 0) {
-          console.log(`📁 "${tabName}" 탭에서 프로젝트 발견: ${projectInfo.count}개`);
+          console.log(
+            `📁 "${tabName}" 탭에서 프로젝트 발견: ${projectInfo.count}개`,
+          );
 
           // 첫 번째 프로젝트 선택
           const firstProject = projectInfo.elements.first();
 
           // 프로젝트 정보 수집
-          const projectCard = firstProject.locator('..').locator('..');
-          let projectTitle = 'Unknown Project';
+          const projectCard = firstProject.locator("..").locator("..");
+          let projectTitle = "Unknown Project";
 
           try {
-            projectTitle = await projectCard.locator('h2, .MuiTypography-h2, [class*="title"]').first().textContent();
+            projectTitle = await projectCard
+              .locator('h2, .MuiTypography-h2, [class*="title"]')
+              .first()
+              .textContent();
           } catch (e) {
-            console.log('⚠️ 프로젝트 제목 찾기 실패, 기본값 사용');
+            console.log("⚠️ 프로젝트 제목 찾기 실패, 기본값 사용");
           }
 
           console.log(`📁 선택할 프로젝트: ${projectTitle}`);
@@ -343,13 +378,13 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
           const beforeSelection = await page.evaluate(() => {
             return {
               url: window.location.href,
-              selectedProject: localStorage.getItem('selectedProject'),
-              currentProject: localStorage.getItem('currentProject'),
-              projectId: localStorage.getItem('projectId')
+              selectedProject: localStorage.getItem("selectedProject"),
+              currentProject: localStorage.getItem("currentProject"),
+              projectId: localStorage.getItem("projectId"),
             };
           });
 
-          console.log('📋 선택 전 상태:', beforeSelection);
+          console.log("📋 선택 전 상태:", beforeSelection);
 
           // 프로젝트 열기 버튼 클릭
           await firstProject.click();
@@ -361,20 +396,22 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
           const afterSelection = await page.evaluate(() => {
             return {
               url: window.location.href,
-              selectedProject: localStorage.getItem('selectedProject'),
-              currentProject: localStorage.getItem('currentProject'),
-              projectId: localStorage.getItem('projectId')
+              selectedProject: localStorage.getItem("selectedProject"),
+              currentProject: localStorage.getItem("currentProject"),
+              projectId: localStorage.getItem("projectId"),
             };
           });
 
-          console.log('📋 선택 후 상태:', afterSelection);
+          console.log("📋 선택 후 상태:", afterSelection);
 
           // URL 변경 확인
           const urlChanged = beforeSelection.url !== afterSelection.url;
           console.log(`🌐 URL 변경 여부: ${urlChanged}`);
 
           // 컨텍스트 변경 확인
-          const contextChanged = beforeSelection.selectedProject !== afterSelection.selectedProject ||
+          const contextChanged =
+            beforeSelection.selectedProject !==
+              afterSelection.selectedProject ||
             beforeSelection.currentProject !== afterSelection.currentProject ||
             beforeSelection.projectId !== afterSelection.projectId;
 
@@ -386,7 +423,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
             beforeSelection,
             afterSelection,
             urlChanged,
-            contextChanged
+            contextChanged,
           };
 
           projectFound = true;
@@ -396,28 +433,30 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     }
 
     if (!projectFound) {
-      console.log('❌ 선택 가능한 프로젝트를 찾을 수 없음');
-      throw new Error('선택 가능한 프로젝트를 찾을 수 없습니다.');
+      console.log("❌ 선택 가능한 프로젝트를 찾을 수 없음");
+      throw new Error("선택 가능한 프로젝트를 찾을 수 없습니다.");
     }
 
     // 검증
     expect(selectedProjectInfo).toBeTruthy();
-    console.log('✅ 프로젝트 선택 및 전환 성공');
+    console.log("✅ 프로젝트 선택 및 전환 성공");
 
     // 성공 스크린샷 촬영
-    await takeSuccessScreenshot(page, testInfo, 'project-selection-transition');
+    await takeSuccessScreenshot(page, testInfo, "project-selection-transition");
 
-    console.log('✅ 프로젝트 선택 및 전환 기능 테스트 완료');
+    console.log("✅ 프로젝트 선택 및 전환 기능 테스트 완료");
   });
 
-  test('프로젝트 정보 표시 및 헤더 업데이트 테스트', async ({ page }, testInfo) => {
-    console.log('📊 프로젝트 정보 표시 및 헤더 업데이트 테스트 시작...');
+  test("프로젝트 정보 표시 및 헤더 업데이트 테스트", async ({
+    page,
+  }, testInfo) => {
+    console.log("📊 프로젝트 정보 표시 및 헤더 업데이트 테스트 시작...");
 
     // 로그인 수행
     await loginAsAdmin(page);
 
     // 프로젝트 선택 (이전 테스트 로직 재사용)
-    const tabs = ['조직별 프로젝트', '독립 프로젝트', '전체 프로젝트'];
+    const tabs = ["조직별 프로젝트", "독립 프로젝트", "전체 프로젝트"];
     let projectSelected = false;
 
     for (const tabName of tabs) {
@@ -436,16 +475,16 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     }
 
     if (!projectSelected) {
-      throw new Error('프로젝트 선택에 실패했습니다.');
+      throw new Error("프로젝트 선택에 실패했습니다.");
     }
 
     // 헤더에서 현재 프로젝트 정보 확인
     const headerSelectors = [
-      'h1, h2, h3, h4, h5, h6',
+      "h1, h2, h3, h4, h5, h6",
       '[data-testid="project-header"]',
-      '.project-header',
-      'header',
-      '.MuiAppBar-root'
+      ".project-header",
+      "header",
+      ".MuiAppBar-root",
     ];
 
     let headerInfo = null;
@@ -458,7 +497,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
           headerInfo = {
             selector,
             count,
-            texts: texts.slice(0, 5)
+            texts: texts.slice(0, 5),
           };
           console.log(`📊 헤더 정보 발견: ${selector}`, headerInfo.texts);
           break;
@@ -471,10 +510,10 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     // 프로젝트 상태 정보 확인
     const statusSelectors = [
       '[data-testid="project-status"]',
-      '.project-status',
+      ".project-status",
       'span:has-text("활성")',
       'span:has-text("진행중")',
-      '.status'
+      ".status",
     ];
 
     let statusInfo = null;
@@ -485,7 +524,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
           const text = await element.textContent();
           statusInfo = {
             selector,
-            text
+            text,
           };
           console.log(`📈 상태 정보 발견: ${selector} - ${text}`);
           break;
@@ -501,7 +540,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
       'button:has-text("★")',
       'button:has-text("☆")',
       '[data-testid="favorite-button"]',
-      '.favorite-button'
+      ".favorite-button",
     ];
 
     let favoriteInfo = null;
@@ -511,7 +550,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
         if (await element.isVisible({ timeout: 2000 })) {
           favoriteInfo = {
             selector,
-            visible: true
+            visible: true,
           };
           console.log(`⭐ 즐겨찾기 버튼 발견: ${selector}`);
           break;
@@ -523,27 +562,29 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
 
     // 결과 요약
     const displayResult = {
-      header: headerInfo ? '발견됨' : '찾을 수 없음',
-      status: statusInfo ? '발견됨' : '찾을 수 없음',
-      favorite: favoriteInfo ? '발견됨' : '찾을 수 없음'
+      header: headerInfo ? "발견됨" : "찾을 수 없음",
+      status: statusInfo ? "발견됨" : "찾을 수 없음",
+      favorite: favoriteInfo ? "발견됨" : "찾을 수 없음",
     };
 
-    console.log('📊 프로젝트 정보 표시 결과:', displayResult);
+    console.log("📊 프로젝트 정보 표시 결과:", displayResult);
 
     // 성공 스크린샷 촬영
-    await takeSuccessScreenshot(page, testInfo, 'project-info-display');
+    await takeSuccessScreenshot(page, testInfo, "project-info-display");
 
-    console.log('✅ 프로젝트 정보 표시 및 헤더 업데이트 테스트 완료');
+    console.log("✅ 프로젝트 정보 표시 및 헤더 업데이트 테스트 완료");
   });
 
-  test('브라우저 새로고침 시 컨텍스트 유지 테스트', async ({ page }, testInfo) => {
-    console.log('🔄 브라우저 새로고침 시 컨텍스트 유지 테스트 시작...');
+  test("브라우저 새로고침 시 컨텍스트 유지 테스트", async ({
+    page,
+  }, testInfo) => {
+    console.log("🔄 브라우저 새로고침 시 컨텍스트 유지 테스트 시작...");
 
     // 로그인 수행
     await loginAsAdmin(page);
 
     // 프로젝트 선택
-    const tabs = ['조직별 프로젝트', '독립 프로젝트', '전체 프로젝트'];
+    const tabs = ["조직별 프로젝트", "독립 프로젝트", "전체 프로젝트"];
     let projectSelected = false;
     let selectedContext = null;
 
@@ -561,20 +602,20 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
           selectedContext = await page.evaluate(() => {
             return {
               localStorage: {
-                selectedProject: localStorage.getItem('selectedProject'),
-                currentProject: localStorage.getItem('currentProject'),
-                projectId: localStorage.getItem('projectId'),
-                accessToken: localStorage.getItem('accessToken')
+                selectedProject: localStorage.getItem("selectedProject"),
+                currentProject: localStorage.getItem("currentProject"),
+                projectId: localStorage.getItem("projectId"),
+                accessToken: localStorage.getItem("accessToken"),
               },
               sessionStorage: {
-                selectedProject: sessionStorage.getItem('selectedProject'),
-                currentProject: sessionStorage.getItem('currentProject')
+                selectedProject: sessionStorage.getItem("selectedProject"),
+                currentProject: sessionStorage.getItem("currentProject"),
               },
-              url: window.location.href
+              url: window.location.href,
             };
           });
 
-          console.log('📋 선택된 프로젝트 컨텍스트:', selectedContext);
+          console.log("📋 선택된 프로젝트 컨텍스트:", selectedContext);
           projectSelected = true;
           break;
         }
@@ -582,36 +623,39 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     }
 
     if (!projectSelected) {
-      throw new Error('프로젝트 선택에 실패했습니다.');
+      throw new Error("프로젝트 선택에 실패했습니다.");
     }
 
     // 브라우저 새로고침
-    console.log('🔄 브라우저 새로고침 수행...');
+    console.log("🔄 브라우저 새로고침 수행...");
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState("networkidle");
 
     // 새로고침 후 컨텍스트 확인
     const restoredContext = await page.evaluate(() => {
       return {
         localStorage: {
-          selectedProject: localStorage.getItem('selectedProject'),
-          currentProject: localStorage.getItem('currentProject'),
-          projectId: localStorage.getItem('projectId'),
-          accessToken: localStorage.getItem('accessToken')
+          selectedProject: localStorage.getItem("selectedProject"),
+          currentProject: localStorage.getItem("currentProject"),
+          projectId: localStorage.getItem("projectId"),
+          accessToken: localStorage.getItem("accessToken"),
         },
         sessionStorage: {
-          selectedProject: sessionStorage.getItem('selectedProject'),
-          currentProject: sessionStorage.getItem('currentProject')
+          selectedProject: sessionStorage.getItem("selectedProject"),
+          currentProject: sessionStorage.getItem("currentProject"),
         },
-        url: window.location.href
+        url: window.location.href,
       };
     });
 
-    console.log('📋 복원된 컨텍스트:', restoredContext);
+    console.log("📋 복원된 컨텍스트:", restoredContext);
 
     // localStorage 유지 확인
-    const localStoragePersisted = selectedContext.localStorage.selectedProject === restoredContext.localStorage.selectedProject &&
-      selectedContext.localStorage.accessToken === restoredContext.localStorage.accessToken;
+    const localStoragePersisted =
+      selectedContext.localStorage.selectedProject ===
+        restoredContext.localStorage.selectedProject &&
+      selectedContext.localStorage.accessToken ===
+        restoredContext.localStorage.accessToken;
 
     console.log(`💾 localStorage 유지 여부: ${localStoragePersisted}`);
 
@@ -623,19 +667,23 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
     expect(localStoragePersisted).toBe(true);
 
     // 성공 스크린샷 촬영
-    await takeSuccessScreenshot(page, testInfo, 'context-persistence-after-refresh');
+    await takeSuccessScreenshot(
+      page,
+      testInfo,
+      "context-persistence-after-refresh",
+    );
 
-    console.log('✅ 브라우저 새로고침 시 컨텍스트 유지 테스트 완료');
+    console.log("✅ 브라우저 새로고침 시 컨텍스트 유지 테스트 완료");
   });
 
-  test('권한별 프로젝트 목록 필터링 검증', async ({ page }, testInfo) => {
-    console.log('🔐 권한별 프로젝트 목록 필터링 검증 테스트 시작...');
+  test("권한별 프로젝트 목록 필터링 검증", async ({ page }, testInfo) => {
+    console.log("🔐 권한별 프로젝트 목록 필터링 검증 테스트 시작...");
 
     // 로그인 수행
     await loginAsAdmin(page);
 
     // 각 탭별로 프로젝트 접근 권한 확인
-    const tabs = ['조직별 프로젝트', '독립 프로젝트', '전체 프로젝트'];
+    const tabs = ["조직별 프로젝트", "독립 프로젝트", "전체 프로젝트"];
     const accessResults = {};
 
     for (const tabName of tabs) {
@@ -653,15 +701,23 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
           for (let i = 0; i < Math.min(cards.length, 3); i++) {
             try {
               const card = cards[i];
-              const cardContainer = card.locator('..').locator('..');
+              const cardContainer = card.locator("..").locator("..");
 
-              const title = await cardContainer.locator('h2, .MuiTypography-h2, [class*="title"]').first().textContent().catch(() => `프로젝트 ${i + 1}`);
-              const description = await cardContainer.locator('p, .MuiTypography-body2, [class*="description"]').first().textContent().catch(() => '설명 없음');
+              const title = await cardContainer
+                .locator('h2, .MuiTypography-h2, [class*="title"]')
+                .first()
+                .textContent()
+                .catch(() => `프로젝트 ${i + 1}`);
+              const description = await cardContainer
+                .locator('p, .MuiTypography-body2, [class*="description"]')
+                .first()
+                .textContent()
+                .catch(() => "설명 없음");
 
               projectDetails.push({
                 index: i,
                 title: title.trim(),
-                description: description.trim().slice(0, 50) + '...'
+                description: description.trim().slice(0, 50) + "...",
               });
             } catch (e) {
               console.log(`⚠️ 프로젝트 ${i + 1} 정보 수집 실패:`, e.message);
@@ -672,7 +728,7 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
         accessResults[tabName] = {
           accessible: projectInfo.count > 0,
           count: projectInfo.count,
-          projects: projectDetails
+          projects: projectDetails,
         };
 
         console.log(`📊 "${tabName}" 결과:`, accessResults[tabName]);
@@ -681,26 +737,36 @@ test.describe('프로젝트 선택 및 전환 E2E 테스트', () => {
           accessible: false,
           count: 0,
           projects: [],
-          note: '탭 접근 불가'
+          note: "탭 접근 불가",
         };
       }
     }
 
     // 권한 검증 결과 요약
-    console.log('🔐 권한별 접근 결과 요약:', JSON.stringify(accessResults, null, 2));
+    console.log(
+      "🔐 권한별 접근 결과 요약:",
+      JSON.stringify(accessResults, null, 2),
+    );
 
     // admin 사용자는 최소 하나의 탭에서 프로젝트에 접근할 수 있어야 함
-    const hasAccessToProjects = Object.values(accessResults).some(result => result.accessible);
+    const hasAccessToProjects = Object.values(accessResults).some(
+      (result) => result.accessible,
+    );
     expect(hasAccessToProjects).toBe(true);
 
     // 전체 프로젝트 수가 개별 탭의 합보다 크거나 같아야 함 (중복 제외)
-    const totalAccessibleTabs = Object.values(accessResults).filter(result => result.accessible).length;
+    const totalAccessibleTabs = Object.values(accessResults).filter(
+      (result) => result.accessible,
+    ).length;
     expect(totalAccessibleTabs).toBeGreaterThan(0);
 
     // 성공 스크린샷 촬영
-    await takeSuccessScreenshot(page, testInfo, 'project-access-permission-filtering');
+    await takeSuccessScreenshot(
+      page,
+      testInfo,
+      "project-access-permission-filtering",
+    );
 
-    console.log('✅ 권한별 프로젝트 목록 필터링 검증 완료');
+    console.log("✅ 권한별 프로젝트 목록 필터링 검증 완료");
   });
-
 });

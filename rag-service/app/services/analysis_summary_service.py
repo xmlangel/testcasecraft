@@ -1,4 +1,5 @@
 """Analysis Summary CRUD Service"""
+
 import logging
 from typing import Optional, List
 from uuid import UUID
@@ -6,10 +7,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from ..models.llm_analysis import AnalysisSummary
-from ..schemas.analysis_summary import (
-    AnalysisSummaryCreate,
-    AnalysisSummaryUpdate
-)
+from ..schemas.analysis_summary import AnalysisSummaryCreate, AnalysisSummaryUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +18,7 @@ class AnalysisSummaryService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_summary(
-        self,
-        data: AnalysisSummaryCreate
-    ) -> AnalysisSummary:
+    def create_summary(self, data: AnalysisSummaryCreate) -> AnalysisSummary:
         """요약 생성
 
         Args:
@@ -41,7 +36,7 @@ class AnalysisSummaryService:
             tags=data.tags or [],
             is_public=data.is_public,
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
 
         self.db.add(summary)
@@ -60,9 +55,11 @@ class AnalysisSummaryService:
         Returns:
             Optional[AnalysisSummary]: 요약 객체 또는 None
         """
-        summary = self.db.query(AnalysisSummary)\
-            .filter(AnalysisSummary.id == summary_id)\
+        summary = (
+            self.db.query(AnalysisSummary)
+            .filter(AnalysisSummary.id == summary_id)
             .first()
+        )
 
         return summary
 
@@ -72,7 +69,7 @@ class AnalysisSummaryService:
         user_id: Optional[UUID] = None,
         is_public: Optional[bool] = None,
         skip: int = 0,
-        limit: int = 20
+        limit: int = 20,
     ) -> tuple:
         """요약 목록 조회
 
@@ -102,18 +99,17 @@ class AnalysisSummaryService:
         total = query.count()
 
         # 페이지네이션
-        summaries = query\
-            .order_by(AnalysisSummary.created_at.desc())\
-            .offset(skip)\
-            .limit(limit)\
+        summaries = (
+            query.order_by(AnalysisSummary.created_at.desc())
+            .offset(skip)
+            .limit(limit)
             .all()
+        )
 
         return summaries, total
 
     def update_summary(
-        self,
-        summary_id: UUID,
-        data: AnalysisSummaryUpdate
+        self, summary_id: UUID, data: AnalysisSummaryUpdate
     ) -> Optional[AnalysisSummary]:
         """요약 수정
 
@@ -124,9 +120,11 @@ class AnalysisSummaryService:
         Returns:
             Optional[AnalysisSummary]: 업데이트된 요약 또는 None
         """
-        summary = self.db.query(AnalysisSummary)\
-            .filter(AnalysisSummary.id == summary_id)\
+        summary = (
+            self.db.query(AnalysisSummary)
+            .filter(AnalysisSummary.id == summary_id)
             .first()
+        )
 
         if not summary:
             return None
@@ -161,9 +159,11 @@ class AnalysisSummaryService:
         Returns:
             bool: 삭제 성공 여부
         """
-        summary = self.db.query(AnalysisSummary)\
-            .filter(AnalysisSummary.id == summary_id)\
+        summary = (
+            self.db.query(AnalysisSummary)
+            .filter(AnalysisSummary.id == summary_id)
             .first()
+        )
 
         if not summary:
             return False
@@ -183,9 +183,11 @@ class AnalysisSummaryService:
         Returns:
             int: 삭제된 요약 수
         """
-        count = self.db.query(AnalysisSummary)\
-            .filter(AnalysisSummary.document_id == document_id)\
+        count = (
+            self.db.query(AnalysisSummary)
+            .filter(AnalysisSummary.document_id == document_id)
             .delete()
+        )
 
         self.db.commit()
 
@@ -202,9 +204,11 @@ class AnalysisSummaryService:
             int: 삭제된 요약 수
         """
         # job_id가 NULL이 되도록 업데이트 (ON DELETE SET NULL)
-        count = self.db.query(AnalysisSummary)\
-            .filter(AnalysisSummary.job_id == job_id)\
+        count = (
+            self.db.query(AnalysisSummary)
+            .filter(AnalysisSummary.job_id == job_id)
             .update({"job_id": None})
+        )
 
         self.db.commit()
 

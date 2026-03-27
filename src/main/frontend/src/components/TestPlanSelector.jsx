@@ -1,6 +1,6 @@
 // src/components/TestPlanSelector.jsx
 
-import React from 'react';
+import React from "react";
 import {
   FormControl,
   InputLabel,
@@ -9,10 +9,10 @@ import {
   Box,
   Typography,
   Chip,
-  CircularProgress
-} from '@mui/material';
-import { useI18n } from '../context/I18nContext.jsx';
-import { countRealTestCases } from '../utils/treeUtils';
+  CircularProgress,
+} from "@mui/material";
+import { useI18n } from "../context/I18nContext.jsx";
+import { countRealTestCases } from "../utils/treeUtils";
 
 const TestPlanSelector = ({
   testPlans,
@@ -21,49 +21,61 @@ const TestPlanSelector = ({
   testCases = [],
   loading = false,
   disabled = false,
-  size = 'medium'
+  size = "medium",
 }) => {
   const { t } = useI18n();
   return (
     <Box sx={{ minWidth: 250 }}>
       <FormControl fullWidth size={size} disabled={disabled}>
         <InputLabel id="test-plan-selector-label">
-          {t('testPlan.selector.label', '테스트 플랜 선택')}
+          {t("testPlan.selector.label", "테스트 플랜 선택")}
         </InputLabel>
         <Select
           labelId="test-plan-selector-label"
           id="test-plan-selector"
-          value={selectedTestPlan?.id || ''}
-          label={t('testPlan.selector.label', '테스트 플랜 선택')}
+          value={selectedTestPlan?.id || ""}
+          label={t("testPlan.selector.label", "테스트 플랜 선택")}
           onChange={(e) => {
-            const selectedPlan = testPlans.find(plan => plan.id === e.target.value);
+            const selectedPlan = testPlans.find(
+              (plan) => plan.id === e.target.value,
+            );
             onTestPlanChange(selectedPlan || null);
           }}
-          endAdornment={loading && (
-            <CircularProgress size={20} sx={{ mr: 2 }} />
-          )}
+          endAdornment={
+            loading && <CircularProgress size={20} sx={{ mr: 2 }} />
+          }
           data-testid="testplan-selector"
         >
           <MenuItem value="" data-testid="testplan-option-all">
-            <em>{t('testPlan.selector.all', '전체')}</em>
+            <em>{t("testPlan.selector.all", "전체")}</em>
           </MenuItem>
           {testPlans.map((plan) => (
-            <MenuItem key={plan.id} value={plan.id} data-testid={`testplan-option-${plan.id}`}>
-              <Box sx={{ width: '100%' }}>
+            <MenuItem
+              key={plan.id}
+              value={plan.id}
+              data-testid={`testplan-option-${plan.id}`}
+            >
+              <Box sx={{ width: "100%" }}>
                 <Typography variant="body2" noWrap>
                   {plan.name}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
                   <Chip
-                    label={t('testPlan.selector.caseCount', '{count}개 케이스', { count: countRealTestCases(plan.testCaseIds, testCases) })}
+                    label={t(
+                      "testPlan.selector.caseCount",
+                      "{count}개 케이스",
+                      {
+                        count: countRealTestCases(plan.testCaseIds, testCases),
+                      },
+                    )}
                     size="small"
                     variant="outlined"
-                    sx={{ fontSize: '0.7rem', height: 20 }}
+                    sx={{ fontSize: "0.7rem", height: 20 }}
                   />
                   {plan.description && (
-                    <Typography 
-                      variant="caption" 
-                      color="text.secondary" 
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
                       sx={{ ml: 1, opacity: 0.7 }}
                       noWrap
                     >
@@ -76,13 +88,27 @@ const TestPlanSelector = ({
           ))}
         </Select>
       </FormControl>
-      
+
       {selectedTestPlan && (
         <Box sx={{ mt: 1 }}>
           <Typography variant="caption" color="text.secondary">
-            {t('testPlan.selector.selected', '선택된 플랜: {planName}', { planName: selectedTestPlan.name })}
+            {t("testPlan.selector.selected", "선택된 플랜: {planName}", {
+              planName: selectedTestPlan.name,
+            })}
             {selectedTestPlan.testCaseIds && (
-              <> {t('testPlan.selector.testcaseCount', '({count}개 테스트케이스)', { count: countRealTestCases(selectedTestPlan.testCaseIds, testCases) })}</>
+              <>
+                {" "}
+                {t(
+                  "testPlan.selector.testcaseCount",
+                  "({count}개 테스트케이스)",
+                  {
+                    count: countRealTestCases(
+                      selectedTestPlan.testCaseIds,
+                      testCases,
+                    ),
+                  },
+                )}
+              </>
             )}
           </Typography>
         </Box>

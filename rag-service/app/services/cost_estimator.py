@@ -1,4 +1,5 @@
 """Cost Estimator Service for LLM API usage"""
+
 from typing import Dict, List
 from sqlalchemy.orm import Session
 from ..models.rag_embedding import RAGEmbedding
@@ -29,7 +30,7 @@ class CostEstimator:
         "ollama": {
             # 로컬 모델은 비용 없음
             "*": {"input": 0, "output": 0}
-        }
+        },
     }
 
     def __init__(self, db: Session):
@@ -41,7 +42,7 @@ class CostEstimator:
         llm_provider: str,
         llm_model: str,
         prompt_template: str,
-        max_tokens: int
+        max_tokens: int,
     ) -> CostEstimateResponse:
         """분석 비용 추정
 
@@ -57,9 +58,11 @@ class CostEstimator:
         """
 
         # 1. 청크 조회
-        chunks = self.db.query(RAGEmbedding)\
-            .filter(RAGEmbedding.document_id == document_id)\
+        chunks = (
+            self.db.query(RAGEmbedding)
+            .filter(RAGEmbedding.document_id == document_id)
             .all()
+        )
 
         total_chunks = len(chunks)
 
@@ -112,16 +115,16 @@ class CostEstimator:
             cost_breakdown=CostBreakdown(
                 input_cost_usd=round(input_cost, 4),
                 output_cost_usd=round(output_cost, 4),
-                total_cost_usd=round(total_cost, 4)
+                total_cost_usd=round(total_cost, 4),
             ),
             cost_per_chunk_usd=round(cost_per_chunk, 4),
             model_pricing=ModelPricing(
                 provider=llm_provider,
                 model=llm_model,
                 input_price_per_1k=pricing["input"],
-                output_price_per_1k=pricing["output"]
+                output_price_per_1k=pricing["output"],
             ),
-            warnings=warnings
+            warnings=warnings,
         )
 
     def _get_pricing(self, provider: str, model: str) -> Dict[str, float]:
@@ -164,7 +167,7 @@ class CostEstimator:
         total_cost: float,
         total_chunks: int,
         provider: str,
-        avg_chunk_length: float
+        avg_chunk_length: float,
     ) -> List[str]:
         """경고 메시지 생성
 
@@ -219,10 +222,7 @@ class CostEstimator:
         return warnings
 
     def _create_empty_response(
-        self,
-        document_id: UUID,
-        llm_provider: str,
-        llm_model: str
+        self, document_id: UUID, llm_provider: str, llm_model: str
     ) -> CostEstimateResponse:
         """청크가 없는 경우의 빈 응답 생성
 
@@ -243,19 +243,17 @@ class CostEstimator:
             estimated_output_tokens=0,
             estimated_total_tokens=0,
             cost_breakdown=CostBreakdown(
-                input_cost_usd=0.0,
-                output_cost_usd=0.0,
-                total_cost_usd=0.0
+                input_cost_usd=0.0, output_cost_usd=0.0, total_cost_usd=0.0
             ),
             cost_per_chunk_usd=0.0,
             model_pricing=ModelPricing(
                 provider=llm_provider,
                 model=llm_model,
                 input_price_per_1k=pricing["input"],
-                output_price_per_1k=pricing["output"]
+                output_price_per_1k=pricing["output"],
             ),
             warnings=[
                 "⚠️ 이 문서에는 분석된 청크가 없습니다.",
-                "문서를 먼저 업로드하고 임베딩을 생성하세요."
-            ]
+                "문서를 먼저 업로드하고 임베딩을 생성하세요.",
+            ],
         )

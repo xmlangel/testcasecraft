@@ -3,8 +3,8 @@
  * React Query 설정 및 기본 훅들
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import errorHandler from '../utils/errorHandler.js';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import errorHandler from "../utils/errorHandler.js";
 
 /**
  * 기본 React Query 옵션
@@ -39,24 +39,28 @@ export const defaultMutationOptions = {
  */
 export const queryKeys = {
   // 프로젝트
-  projects: ['projects'],
-  project: (id) => ['projects', id],
-  
+  projects: ["projects"],
+  project: (id) => ["projects", id],
+
   // 테스트 케이스
-  testCases: (projectId) => ['testCases', { projectId }],
-  testCase: (id) => ['testCases', id],
-  
+  testCases: (projectId) => ["testCases", { projectId }],
+  testCase: (id) => ["testCases", id],
+
   // 테스트 플랜
-  testPlans: (projectId) => ['testPlans', { projectId }],
-  testPlan: (id) => ['testPlans', id],
-  
+  testPlans: (projectId) => ["testPlans", { projectId }],
+  testPlan: (id) => ["testPlans", id],
+
   // 테스트 실행
-  testExecutions: (projectId) => ['testExecutions', { projectId }],
-  testExecution: (id) => ['testExecutions', id],
-  testExecutionsByTestCase: (testCaseId) => ['testExecutions', 'byTestCase', testCaseId],
-  
+  testExecutions: (projectId) => ["testExecutions", { projectId }],
+  testExecution: (id) => ["testExecutions", id],
+  testExecutionsByTestCase: (testCaseId) => [
+    "testExecutions",
+    "byTestCase",
+    testCaseId,
+  ],
+
   // 사용자
-  user: ['user'],
+  user: ["user"],
 };
 
 /**
@@ -87,18 +91,33 @@ export function useMutationWithDefaults(mutationFn, options = {}) {
  */
 export function useInvalidateQueries() {
   const queryClient = useQueryClient();
-  
+
   return {
-    invalidateProjects: () => queryClient.invalidateQueries({ queryKey: queryKeys.projects }),
-    invalidateProject: (id) => queryClient.invalidateQueries({ queryKey: queryKeys.project(id) }),
-    invalidateTestCases: (projectId) => queryClient.invalidateQueries({ queryKey: queryKeys.testCases(projectId) }),
-    invalidateTestCase: (id) => queryClient.invalidateQueries({ queryKey: queryKeys.testCase(id) }),
-    invalidateTestPlans: (projectId) => queryClient.invalidateQueries({ queryKey: queryKeys.testPlans(projectId) }),
-    invalidateTestPlan: (id) => queryClient.invalidateQueries({ queryKey: queryKeys.testPlan(id) }),
-    invalidateTestExecutions: (projectId) => queryClient.invalidateQueries({ queryKey: queryKeys.testExecutions(projectId) }),
-    invalidateTestExecution: (id) => queryClient.invalidateQueries({ queryKey: queryKeys.testExecution(id) }),
-    invalidateUser: () => queryClient.invalidateQueries({ queryKey: queryKeys.user }),
-    
+    invalidateProjects: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects }),
+    invalidateProject: (id) =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.project(id) }),
+    invalidateTestCases: (projectId) =>
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.testCases(projectId),
+      }),
+    invalidateTestCase: (id) =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCase(id) }),
+    invalidateTestPlans: (projectId) =>
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.testPlans(projectId),
+      }),
+    invalidateTestPlan: (id) =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.testPlan(id) }),
+    invalidateTestExecutions: (projectId) =>
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.testExecutions(projectId),
+      }),
+    invalidateTestExecution: (id) =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.testExecution(id) }),
+    invalidateUser: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.user }),
+
     // 전체 캐시 무효화
     invalidateAll: () => queryClient.invalidateQueries(),
   };

@@ -1,4 +1,5 @@
 """LLM Analysis Service for sequential chunk processing"""
+
 import asyncio
 import logging
 from datetime import datetime
@@ -34,7 +35,7 @@ class LlmAnalysisService:
         chunk_batch_size: int = 10,
         pause_after_batch: bool = True,
         max_tokens: int = 500,
-        temperature: float = 0.7
+        temperature: float = 0.7,
     ) -> LlmAnalysisJob:
         """분석 시작
 
@@ -55,10 +56,12 @@ class LlmAnalysisService:
             LlmAnalysisJob: 생성된 작업
         """
         # 청크 조회
-        chunks = self.db.query(RAGEmbedding)\
-            .filter(RAGEmbedding.document_id == document_id)\
-            .order_by(RAGEmbedding.chunk_index)\
+        chunks = (
+            self.db.query(RAGEmbedding)
+            .filter(RAGEmbedding.document_id == document_id)
+            .order_by(RAGEmbedding.chunk_index)
             .all()
+        )
 
         if not chunks:
             raise ValueError(f"Document {document_id} has no chunks")
@@ -75,8 +78,8 @@ class LlmAnalysisService:
             pause_after_batch=pause_after_batch,
             total_chunks=len(chunks),
             processed_chunks=0,
-            status='processing',
-            started_at=datetime.utcnow()
+            status="processing",
+            started_at=datetime.utcnow(),
         )
         self.db.add(job)
         self.db.commit()
@@ -95,7 +98,7 @@ class LlmAnalysisService:
         llm_api_key: Optional[str],
         llm_base_url: Optional[str],
         max_tokens: int = 500,
-        temperature: float = 0.7
+        temperature: float = 0.7,
     ):
         """청크 순차 처리 (비동기)
 
@@ -116,14 +119,16 @@ class LlmAnalysisService:
                 provider=job.llm_provider,
                 api_key=llm_api_key,
                 model=job.llm_model,
-                base_url=llm_base_url
+                base_url=llm_base_url,
             )
 
             # 청크 조회
-            chunks = self.db.query(RAGEmbedding)\
-                .filter(RAGEmbedding.document_id == job.document_id)\
-                .order_by(RAGEmbedding.chunk_index)\
+            chunks = (
+                self.db.query(RAGEmbedding)
+                .filter(RAGEmbedding.document_id == job.document_id)
+                .order_by(RAGEmbedding.chunk_index)
                 .all()
+            )
 
             # 배치 단위 처리
             chunk_batch_size = job.chunk_batch_size
@@ -132,12 +137,12 @@ class LlmAnalysisService:
             for i in range(processed_count, len(chunks), chunk_batch_size):
                 # 취소 확인
                 self.db.refresh(job)
-                if job.status == 'cancelled':
+                if job.status == "cancelled":
                     logger.info(f"Job {job_id} cancelled by user")
                     return
 
                 # 배치 추출
-                batch = chunks[i:i + chunk_batch_size]
+                batch = chunks[i : i + chunk_batch_size]
 
                 # 배치 처리
                 await self._process_batch(
@@ -145,7 +150,7 @@ class LlmAnalysisService:
                     llm_client=llm_client,
                     batch=batch,
                     max_tokens=max_tokens,
-                    temperature=temperature
+                    temperature=temperature,
                 )
 
                 # 최신 진행 상황 반영
@@ -156,21 +161,21 @@ class LlmAnalysisService:
 
                 # 배치마다 일시정지 확인
                 if job.pause_after_batch and job.processed_chunks < job.total_chunks:
-                    job.status = 'paused'
+                    job.status = "paused"
                     job.paused_at = datetime.utcnow()
                     self.db.commit()
                     logger.info(f"Job {job_id} paused after batch")
                     return
 
             # 완료 처리
-            job.status = 'completed'
+            job.status = "completed"
             job.completed_at = datetime.utcnow()
             self.db.commit()
             logger.info(f"Job {job_id} completed successfully")
 
         except Exception as e:
             # 에러 처리
-            job.status = 'failed'
+            job.status = "failed"
             job.error_message = str(e)
             self.db.commit()
             logger.error(f"Job {job_id} failed: {e}")
@@ -182,7 +187,7 @@ class LlmAnalysisService:
         llm_client,
         batch,
         max_tokens: int,
-        temperature: float
+        temperature: float,
     ):
         """배치 처리 (병렬)
 
@@ -201,7 +206,7 @@ class LlmAnalysisService:
                 llm_client=llm_client,
                 chunk=chunk,
                 max_tokens=max_tokens,
-                temperature=temperature
+                temperature=temperature,
             )
             tasks.append(task)
 
@@ -214,7 +219,7 @@ class LlmAnalysisService:
         llm_client,
         chunk,
         max_tokens: int,
-        temperature: float
+        temperature: float,
     ):
         """단일 청크 처리
 
@@ -236,7 +241,9 @@ class LlmAnalysisService:
 
         response = await retry_with_exponential_backoff(call_llm, max_retries=3)
 
-        processing_time_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+        processing_time_ms = int(
+            (datetime.utcnow() - start_time).total_seconds() * 1000
+        )
 
         # 결과 저장
         result = LlmAnalysisResult(
@@ -245,7 +252,7 @@ class LlmAnalysisService:
             chunk_text=chunk.chunk_text,
             llm_response=response["text"],
             tokens_used=response["tokens_used"],
-            processing_time_ms=processing_time_ms
+            processing_time_ms=processing_time_ms,
         )
         self.db.add(result)
 
@@ -255,13 +262,16 @@ class LlmAnalysisService:
         # 비용 계산 (간단한 추정)
         pricing = self.cost_estimator._get_pricing(job.llm_provider, job.llm_model)
         cost_increment = (
-            response.get("input_tokens", 0) / 1000 * pricing["input"] +
-            response.get("output_tokens", 0) / 1000 * pricing["output"]
+            response.get("input_tokens", 0) / 1000 * pricing["input"]
+            + response.get("output_tokens", 0) / 1000 * pricing["output"]
         )
         current_cost = float(job.total_cost_usd or 0)
         job.total_cost_usd = current_cost + cost_increment
         # 청크 진행상황을 개별 단위로 업데이트
-        job.processed_chunks = min((job.processed_chunks or 0) + 1, job.total_chunks or (job.processed_chunks or 0) + 1)
+        job.processed_chunks = min(
+            (job.processed_chunks or 0) + 1,
+            job.total_chunks or (job.processed_chunks or 0) + 1,
+        )
 
         self.db.commit()
 
@@ -284,10 +294,10 @@ class LlmAnalysisService:
         if not job:
             raise ValueError(f"Job {job_id} not found")
 
-        if job.status != 'processing':
+        if job.status != "processing":
             raise ValueError(f"Job {job_id} is not processing (status: {job.status})")
 
-        job.status = 'paused'
+        job.status = "paused"
         job.paused_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(job)
@@ -301,7 +311,7 @@ class LlmAnalysisService:
         llm_api_key: Optional[str],
         llm_base_url: Optional[str],
         max_tokens: int = 500,
-        temperature: float = 0.7
+        temperature: float = 0.7,
     ) -> LlmAnalysisJob:
         """분석 재개
 
@@ -319,10 +329,10 @@ class LlmAnalysisService:
         if not job:
             raise ValueError(f"Job {job_id} not found")
 
-        if job.status != 'paused':
+        if job.status != "paused":
             raise ValueError(f"Job {job_id} is not paused (status: {job.status})")
 
-        job.status = 'processing'
+        job.status = "processing"
         job.paused_at = None
         self.db.commit()
         self.db.refresh(job)
@@ -348,10 +358,10 @@ class LlmAnalysisService:
         if not job:
             raise ValueError(f"Job {job_id} not found")
 
-        if job.status in ('completed', 'failed', 'cancelled'):
+        if job.status in ("completed", "failed", "cancelled"):
             raise ValueError(f"Job {job_id} cannot be cancelled (status: {job.status})")
 
-        job.status = 'cancelled'
+        job.status = "cancelled"
         job.completed_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(job)
@@ -374,12 +384,7 @@ class LlmAnalysisService:
 
         return job
 
-    def get_results(
-        self,
-        job_id: UUID,
-        skip: int = 0,
-        limit: int = 50
-    ) -> tuple:
+    def get_results(self, job_id: UUID, skip: int = 0, limit: int = 50) -> tuple:
         """분석 결과 조회
 
         Args:
@@ -390,15 +395,19 @@ class LlmAnalysisService:
         Returns:
             tuple: (결과 목록, 총 개수)
         """
-        total = self.db.query(LlmAnalysisResult)\
-            .filter(LlmAnalysisResult.job_id == job_id)\
+        total = (
+            self.db.query(LlmAnalysisResult)
+            .filter(LlmAnalysisResult.job_id == job_id)
             .count()
+        )
 
-        results = self.db.query(LlmAnalysisResult)\
-            .filter(LlmAnalysisResult.job_id == job_id)\
-            .order_by(LlmAnalysisResult.chunk_index)\
-            .offset(skip)\
-            .limit(limit)\
+        results = (
+            self.db.query(LlmAnalysisResult)
+            .filter(LlmAnalysisResult.job_id == job_id)
+            .order_by(LlmAnalysisResult.chunk_index)
+            .offset(skip)
+            .limit(limit)
             .all()
+        )
 
         return results, total

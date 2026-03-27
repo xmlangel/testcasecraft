@@ -5,6 +5,7 @@ import requests
 import sys
 from multiprocessing import Process
 
+
 def start_mock_server():
     """Start minimal FastAPI server"""
     from fastapi import FastAPI
@@ -26,11 +27,12 @@ def start_mock_server():
 
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="error")
 
+
 def test_endpoints():
     """Test basic endpoints"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🧪 Testing Mock RAG Service")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     tests = [
         ("GET /health", "http://localhost:8001/health"),
@@ -54,11 +56,12 @@ def test_endpoints():
             print(f"  Error: {e}")
             failed += 1
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(f"Results: {passed}/{len(tests)} passed")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     return failed == 0
+
 
 # Start server
 print("🚀 Starting mock server on port 8001...")

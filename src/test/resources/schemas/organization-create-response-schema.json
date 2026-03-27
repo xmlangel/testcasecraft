@@ -42,7 +42,15 @@
       "description": "조직 그룹 목록"
     }
   },
-  "required": ["id", "name", "createdAt", "updatedAt", "organizationUsers", "projects", "groups"],
+  "required": [
+    "id",
+    "name",
+    "createdAt",
+    "updatedAt",
+    "organizationUsers",
+    "projects",
+    "groups"
+  ],
   "additionalProperties": false,
   "definitions": {
     "OrganizationUser": {
@@ -82,7 +90,13 @@
           "type": "boolean"
         }
       },
-      "required": ["id", "user", "roleInOrganization", "createdAt", "updatedAt"],
+      "required": [
+        "id",
+        "user",
+        "roleInOrganization",
+        "createdAt",
+        "updatedAt"
+      ],
       "additionalProperties": false
     },
     "User": {
@@ -114,10 +128,19 @@
         },
         "updatedAt": {
           "type": "string",
-          "format": "date-time"  
+          "format": "date-time"
         }
       },
-      "required": ["id", "username", "email", "name", "password", "role", "createdAt", "updatedAt"],
+      "required": [
+        "id",
+        "username",
+        "email",
+        "name",
+        "password",
+        "role",
+        "createdAt",
+        "updatedAt"
+      ],
       "additionalProperties": false
     }
   }

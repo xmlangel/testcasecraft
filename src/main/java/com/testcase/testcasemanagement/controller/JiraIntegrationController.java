@@ -10,6 +10,9 @@ import com.testcase.testcasemanagement.service.JiraIntegrationService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -18,14 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-
-/**
- * JIRA 통합 관련 REST API 컨트롤러
- * ICT-162: JIRA API 클라이언트 및 연동 서비스 구현
- */
+/** JIRA 통합 관련 REST API 컨트롤러 ICT-162: JIRA API 클라이언트 및 연동 서비스 구현 */
 @RestController
 @RequestMapping("/api/jira-integration")
 @RequiredArgsConstructor
@@ -33,429 +29,416 @@ import java.util.Map;
 @Tag(name = "JIRA - Integration", description = "JIRA 통합 관리 API")
 public class JiraIntegrationController {
 
-    private final JiraIntegrationService jiraIntegrationService;
-    private final TestResultRepository testResultRepository;
-    private final DashboardService dashboardService;
-    private final SecurityContextUtil securityContextUtil;
+  private final JiraIntegrationService jiraIntegrationService;
+  private final TestResultRepository testResultRepository;
+  private final DashboardService dashboardService;
+  private final SecurityContextUtil securityContextUtil;
 
-    /**
-     * 텍스트에서 JIRA 이슈 키 추출
-     */
-    @GetMapping("/extract-issues")
-    @Operation(summary = "텍스트에서 JIRA 이슈 키 추출", description = "주어진 텍스트에서 JIRA 이슈 키 패턴을 찾아 추출합니다")
-    public ResponseEntity<List<String>> extractJiraIssueKeys(@RequestParam String text) {
-        try {
-            List<String> issueKeys = jiraIntegrationService.extractJiraIssueKeys(text);
-            return ResponseEntity.ok(issueKeys);
-        } catch (Exception e) {
-            log.error("JIRA 이슈 키 추출 실패", e);
-            return ResponseEntity.internalServerError().build();
-        }
+  /** 텍스트에서 JIRA 이슈 키 추출 */
+  @GetMapping("/extract-issues")
+  @Operation(summary = "텍스트에서 JIRA 이슈 키 추출", description = "주어진 텍스트에서 JIRA 이슈 키 패턴을 찾아 추출합니다")
+  public ResponseEntity<List<String>> extractJiraIssueKeys(@RequestParam String text) {
+    try {
+      List<String> issueKeys = jiraIntegrationService.extractJiraIssueKeys(text);
+      return ResponseEntity.ok(issueKeys);
+    } catch (Exception e) {
+      log.error("JIRA 이슈 키 추출 실패", e);
+      return ResponseEntity.internalServerError().build();
     }
+  }
 
-    /**
-     * JIRA 이슈 키 유효성 검증
-     */
-    @GetMapping("/validate-issue-key")
-    @Operation(summary = "JIRA 이슈 키 유효성 검증", description = "JIRA 이슈 키 형식이 올바른지 검증합니다")
-    public ResponseEntity<Boolean> validateJiraIssueKey(@RequestParam String issueKey) {
-        try {
-            boolean isValid = jiraIntegrationService.isValidJiraIssueKey(issueKey);
-            return ResponseEntity.ok(isValid);
-        } catch (Exception e) {
-            log.error("JIRA 이슈 키 검증 실패: {}", issueKey, e);
-            return ResponseEntity.internalServerError().build();
-        }
+  /** JIRA 이슈 키 유효성 검증 */
+  @GetMapping("/validate-issue-key")
+  @Operation(summary = "JIRA 이슈 키 유효성 검증", description = "JIRA 이슈 키 형식이 올바른지 검증합니다")
+  public ResponseEntity<Boolean> validateJiraIssueKey(@RequestParam String issueKey) {
+    try {
+      boolean isValid = jiraIntegrationService.isValidJiraIssueKey(issueKey);
+      return ResponseEntity.ok(isValid);
+    } catch (Exception e) {
+      log.error("JIRA 이슈 키 검증 실패: {}", issueKey, e);
+      return ResponseEntity.internalServerError().build();
     }
+  }
 
-    /**
-     * JIRA 이슈 존재 여부 확인
-     * ICT-184: 이슈 입력 시 존재 여부 검증
-     */
-    @GetMapping("/check-issue-exists")
-    @Operation(summary = "JIRA 이슈 존재 여부 확인", description = "JIRA 서버에서 실제 이슈가 존재하는지 확인합니다")
-    public ResponseEntity<JiraConfigDto.IssueExistsDto> checkJiraIssueExists(
-            @RequestParam String issueKey,
-            Authentication authentication) {
-        
-        try {
-            // 현재 로그인한 사용자의 실제 사용자 ID 사용 (웹 애플리케이션 내부 ID)
-            String userId = securityContextUtil.getCurrentUserId();
-            if (userId == null) {
-                return ResponseEntity.ok(
-                    JiraConfigDto.IssueExistsDto.builder()
-                        .exists(false)
-                        .issueKey(issueKey)
-                        .errorMessage("사용자 정보를 찾을 수 없습니다.")
-                        .build()
-                );
-            }
-            
-            JiraConfigDto.IssueExistsDto result = jiraIntegrationService.checkJiraIssueExists(userId, issueKey);
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            log.error("JIRA 이슈 존재 확인 실패: issueKey={}", issueKey, e);
-            return ResponseEntity.ok(
-                JiraConfigDto.IssueExistsDto.builder()
-                    .exists(false)
-                    .issueKey(issueKey)
-                    .errorMessage("시스템 오류가 발생했습니다.")
-                    .build()
-            );
-        }
-    }
+  /** JIRA 이슈 존재 여부 확인 ICT-184: 이슈 입력 시 존재 여부 검증 */
+  @GetMapping("/check-issue-exists")
+  @Operation(summary = "JIRA 이슈 존재 여부 확인", description = "JIRA 서버에서 실제 이슈가 존재하는지 확인합니다")
+  public ResponseEntity<JiraConfigDto.IssueExistsDto> checkJiraIssueExists(
+      @RequestParam String issueKey, Authentication authentication) {
 
-    /**
-     * JIRA 이슈 생성
-     */
-    @PostMapping("/create-issue")
-    @Operation(summary = "JIRA 이슈 생성", description = "테스트 결과를 기반으로 새로운 JIRA 이슈를 생성합니다")
-    public ResponseEntity<JiraConfigDto.IssueCreateResponseDto> createIssue(
-            @RequestBody JiraConfigDto.IssueCreateRequestDto request) {
-        
-        try {
-            String userId = securityContextUtil.getCurrentUserId();
-            if (userId == null) {
-                return ResponseEntity.ok(
-                    JiraConfigDto.IssueCreateResponseDto.builder()
-                        .success(false)
-                        .errorMessage("사용자 정보를 찾을 수 없습니다.")
-                        .build()
-                );
-            }
-            
-            JiraConfigDto.IssueCreateResponseDto result = jiraIntegrationService.createIssue(userId, request);
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            log.error("JIRA 이슈 생성 실패", e);
-            return ResponseEntity.ok(
-                JiraConfigDto.IssueCreateResponseDto.builder()
-                    .success(false)
-                    .errorMessage("이슈 생성 중 오류 발생: " + e.getMessage())
-                    .build()
-            );
-        }
-    }
+    try {
+      // 현재 로그인한 사용자의 실제 사용자 ID 사용 (웹 애플리케이션 내부 ID)
+      String userId = securityContextUtil.getCurrentUserId();
+      if (userId == null) {
+        return ResponseEntity.ok(
+            JiraConfigDto.IssueExistsDto.builder()
+                .exists(false)
+                .issueKey(issueKey)
+                .errorMessage("사용자 정보를 찾을 수 없습니다.")
+                .build());
+      }
 
-    /**
-     * 프로젝트별 JIRA 이슈 유형 조회
-     */
-    @GetMapping("/issue-types")
-    @Operation(summary = "JIRA 이슈 유형 조회", description = "지정된 JIRA 프로젝트에서 사용 가능한 이슈 유형 목록을 조회합니다")
-    public ResponseEntity<List<JiraConfigDto.IssueTypeDto>> getIssueTypes(
-            @RequestParam(required = false) String projectKey) {
-        
-        try {
-            String userId = securityContextUtil.getCurrentUserId();
-            if (userId == null) {
-                return ResponseEntity.status(401).build();
-            }
-            
-            List<JiraConfigDto.IssueTypeDto> issueTypes = jiraIntegrationService.getIssueTypes(userId, projectKey);
-            return ResponseEntity.ok(issueTypes);
-            
-        } catch (Exception e) {
-            log.error("JIRA 이슈 유형 조회 실패: projectKey={}", projectKey, e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+      JiraConfigDto.IssueExistsDto result =
+          jiraIntegrationService.checkJiraIssueExists(userId, issueKey);
+      return ResponseEntity.ok(result);
 
-    /**
-     * 개별 테스트 결과에 수동으로 JIRA 코멘트 추가
-     */
-    @PostMapping("/add-test-result-comment")
-    @Operation(summary = "테스트 결과 JIRA 코멘트 추가", description = "개별 테스트 결과를 JIRA 이슈에 코멘트로 추가합니다")
-    public ResponseEntity<Map<String, Object>> addTestResultComment(
-            @RequestParam String testResultId,
-            @RequestParam String jiraIssueKey,
-            Authentication authentication) {
-        
-        try {
-            String userId = authentication.getName();
-            
-            // 테스트 결과 조회
-            TestResult testResult = testResultRepository.findById(testResultId)
-                .orElseThrow(() -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + testResultId));
-            
-            // 이슈 키 유효성 검증
-            if (!jiraIntegrationService.isValidJiraIssueKey(jiraIssueKey)) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "유효하지 않은 JIRA 이슈 키입니다"));
-            }
-            
-            // JIRA 코멘트 추가
-            boolean success = jiraIntegrationService.addManualTestResultComment(userId, jiraIssueKey, testResult);
-            
-            if (success) {
-                // TestResult에 JIRA 이슈 정보 업데이트
-                testResult.setJiraIssueKey(jiraIssueKey);
-                testResult.markJiraSyncSuccess(null); // 코멘트 ID는 실제 구현에서 반환받아야 함
-                testResultRepository.save(testResult);
+    } catch (Exception e) {
+      log.error("JIRA 이슈 존재 확인 실패: issueKey={}", issueKey, e);
+      return ResponseEntity.ok(
+          JiraConfigDto.IssueExistsDto.builder()
+              .exists(false)
+              .issueKey(issueKey)
+              .errorMessage("시스템 오류가 발생했습니다.")
+              .build());
+    }
+  }
 
-                // ICT-198: 대시보드 캐시 무효화
-                try {
-                    if (testResult.getTestExecution() != null && testResult.getTestExecution().getProject() != null) {
-                        String projectId = testResult.getTestExecution().getProject().getId();
-                        // 캐시 제거됨 - 직접 데이터베이스에서 조회됨
-                        log.info("대시보드 캐시가 무효화되었습니다. projectId: {}", projectId);
-                    }
-                } catch (Exception e) {
-                    log.error("대시보드 캐시 무효화 실패: {}", e.getMessage());
-                }
-                
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "테스트 결과가 JIRA 이슈에 성공적으로 추가되었습니다"
-                ));
-            } else {
-                return ResponseEntity.ok(Map.of(
-                    "success", false,
-                    "message", "JIRA 코멘트 추가에 실패했습니다"
-                ));
-            }
-            
-        } catch (Exception e) {
-            log.error("테스트 결과 JIRA 코멘트 추가 실패: testResultId={}, jiraIssueKey={}", 
-                     testResultId, jiraIssueKey, e);
-            return ResponseEntity.internalServerError()
-                .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
-        }
-    }
+  /** JIRA 이슈 생성 */
+  @PostMapping("/create-issue")
+  @Operation(summary = "JIRA 이슈 생성", description = "테스트 결과를 기반으로 새로운 JIRA 이슈를 생성합니다")
+  public ResponseEntity<JiraConfigDto.IssueCreateResponseDto> createIssue(
+      @RequestBody JiraConfigDto.IssueCreateRequestDto request) {
 
-    /**
-     * JIRA 이슈에 연결된 테스트 결과 조회
-     */
-    @GetMapping("/test-results-by-issue")
-    @Operation(summary = "JIRA 이슈 연결 테스트 결과 조회 (제한 있음)", description = "특정 JIRA 이슈에 연결된 최근 테스트 결과 목록을 조회합니다 (기본 10개)")
-    public ResponseEntity<List<TestResult>> getTestResultsByJiraIssue(
-            @RequestParam String jiraIssueKey,
-            @RequestParam(defaultValue = "10") int limit) {
-        
-        try {
-            if (!jiraIntegrationService.isValidJiraIssueKey(jiraIssueKey)) {
-                return ResponseEntity.badRequest().build();
-            }
-            
-            Pageable pageable = PageRequest.of(0, limit);
-            List<TestResult> testResults = testResultRepository.findRecentResultsByJiraIssue(jiraIssueKey, pageable);
-            
-            return ResponseEntity.ok(testResults);
-            
-        } catch (Exception e) {
-            log.error("JIRA 이슈 연결 테스트 결과 조회 실패: {}", jiraIssueKey, e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+    try {
+      String userId = securityContextUtil.getCurrentUserId();
+      if (userId == null) {
+        return ResponseEntity.ok(
+            JiraConfigDto.IssueCreateResponseDto.builder()
+                .success(false)
+                .errorMessage("사용자 정보를 찾을 수 없습니다.")
+                .build());
+      }
 
-    @GetMapping("/all-test-results-by-issue")
-    @Operation(summary = "JIRA 이슈 연결 모든 테스트 결과 조회", description = "특정 JIRA 이슈에 연결된 모든 과거 테스트 결과 목록을 최신순으로 조회합니다")
-    public ResponseEntity<List<TestResult>> getAllTestResultsByJiraIssue(
-            @RequestParam String jiraIssueKey) {
-        
-        try {
-            if (!jiraIntegrationService.isValidJiraIssueKey(jiraIssueKey)) {
-                return ResponseEntity.badRequest().build();
-            }
-            
-            List<TestResult> testResults = testResultRepository.findByJiraIssueKeyOrderByExecutedAtDesc(jiraIssueKey);
-            
-            return ResponseEntity.ok(testResults);
-        } catch (Exception e) {
-            log.error("JIRA 이슈 연결 모든 테스트 결과 조회 실패: {}, {}", jiraIssueKey, e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+      JiraConfigDto.IssueCreateResponseDto result =
+          jiraIntegrationService.createIssue(userId, request);
+      return ResponseEntity.ok(result);
 
-    /**
-     * JIRA 동기화가 필요한 테스트 결과 조회
-     */
-    @GetMapping("/pending-sync-results")
-    @Operation(summary = "동기화 대기 테스트 결과 조회", description = "JIRA 동기화가 필요한 테스트 결과 목록을 조회합니다")
-    public ResponseEntity<List<TestResult>> getPendingSyncResults(
-            @RequestParam(required = false) String projectId,
-            @RequestParam(defaultValue = "50") int limit) {
-        
-        try {
-            Pageable pageable = PageRequest.of(0, limit);
-            List<JiraSyncStatus> syncStatuses = List.of(
-                JiraSyncStatus.NOT_SYNCED, 
-                JiraSyncStatus.FAILED, 
-                JiraSyncStatus.RETRY_REQUIRED
-            );
-            
-            List<TestResult> pendingResults;
-            if (projectId != null && !projectId.isEmpty()) {
-                pendingResults = testResultRepository.findByProjectAndSyncStatusIn(projectId, syncStatuses);
-            } else {
-                pendingResults = testResultRepository.findBySyncStatusIn(syncStatuses, pageable);
-            }
-            
-            return ResponseEntity.ok(pendingResults);
-            
-        } catch (Exception e) {
-            log.error("동기화 대기 테스트 결과 조회 실패: projectId={}", projectId, e);
-            return ResponseEntity.internalServerError().build();
-        }
+    } catch (Exception e) {
+      log.error("JIRA 이슈 생성 실패", e);
+      return ResponseEntity.ok(
+          JiraConfigDto.IssueCreateResponseDto.builder()
+              .success(false)
+              .errorMessage("이슈 생성 중 오류 발생: " + e.getMessage())
+              .build());
     }
+  }
 
-    /**
-     * JIRA 동기화 상태 통계 조회
-     */
-    @GetMapping("/sync-status-statistics")
-    @Operation(summary = "JIRA 동기화 상태 통계", description = "JIRA 동기화 상태별 통계를 조회합니다")
-    public ResponseEntity<List<Map<String, Object>>> getSyncStatusStatistics(
-            @RequestParam(required = false) String projectId) {
-        
-        try {
-            List<Map<String, Object>> statistics = testResultRepository.findJiraSyncStatusStatistics(projectId);
-            return ResponseEntity.ok(statistics);
-            
-        } catch (Exception e) {
-            log.error("JIRA 동기화 상태 통계 조회 실패: projectId={}", projectId, e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+  /** 프로젝트별 JIRA 이슈 유형 조회 */
+  @GetMapping("/issue-types")
+  @Operation(summary = "JIRA 이슈 유형 조회", description = "지정된 JIRA 프로젝트에서 사용 가능한 이슈 유형 목록을 조회합니다")
+  public ResponseEntity<List<JiraConfigDto.IssueTypeDto>> getIssueTypes(
+      @RequestParam(required = false) String projectKey) {
 
-    /**
-     * 실패한 JIRA 동기화 재시도
-     */
-    @PostMapping("/retry-failed-syncs")
-    @Operation(summary = "실패한 JIRA 동기화 재시도", description = "실패한 JIRA 동기화를 재시도합니다")
-    public ResponseEntity<Map<String, Object>> retryFailedSyncs(
-            @RequestParam(defaultValue = "30") int retryDelayMinutes,
-            @RequestParam(defaultValue = "20") int batchSize) {
-        
-        try {
-            LocalDateTime retryAfter = LocalDateTime.now().minusMinutes(retryDelayMinutes);
-            Pageable pageable = PageRequest.of(0, batchSize);
-            
-            List<TestResult> failedSyncs = testResultRepository.findFailedSyncsForRetry(retryAfter, pageable);
-            
-            if (failedSyncs.isEmpty()) {
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "재시도할 실패한 동기화가 없습니다",
-                    "retryCount", 0
-                ));
-            }
-            
-            // 상태를 RETRY_REQUIRED로 변경
-            List<String> failedIds = failedSyncs.stream()
-                .map(TestResult::getId)
-                .toList();
-            
-            testResultRepository.updateJiraSyncStatus(failedIds, JiraSyncStatus.RETRY_REQUIRED, 
-                "재시도 대상으로 설정됨 - " + LocalDateTime.now());
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "재시도 대상으로 설정되었습니다",
-                "retryCount", failedSyncs.size()
-            ));
-            
-        } catch (Exception e) {
-            log.error("실패한 JIRA 동기화 재시도 실패", e);
-            return ResponseEntity.internalServerError()
-                .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
-        }
-    }
+    try {
+      String userId = securityContextUtil.getCurrentUserId();
+      if (userId == null) {
+        return ResponseEntity.status(401).build();
+      }
 
-    /**
-     * 타임아웃된 진행 중 동기화 정리
-     */
-    @PostMapping("/cleanup-timed-out-syncs")
-    @Operation(summary = "타임아웃 동기화 정리", description = "오래된 진행 중 상태의 동기화를 정리합니다")
-    public ResponseEntity<Map<String, Object>> cleanupTimedOutSyncs(
-            @RequestParam(defaultValue = "30") int timeoutMinutes) {
-        
-        try {
-            LocalDateTime timeoutTime = LocalDateTime.now().minusMinutes(timeoutMinutes);
-            List<TestResult> timedOutSyncs = testResultRepository.findTimedOutInProgressSyncs(timeoutTime);
-            
-            if (timedOutSyncs.isEmpty()) {
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "타임아웃된 동기화가 없습니다",
-                    "cleanupCount", 0
-                ));
-            }
-            
-            // 상태를 RETRY_REQUIRED로 변경
-            List<String> timedOutIds = timedOutSyncs.stream()
-                .map(TestResult::getId)
-                .toList();
-            
-            testResultRepository.updateJiraSyncStatus(timedOutIds, JiraSyncStatus.RETRY_REQUIRED, 
-                "타임아웃으로 인한 재시도 설정 - " + LocalDateTime.now());
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "타임아웃된 동기화가 정리되었습니다",
-                "cleanupCount", timedOutSyncs.size()
-            ));
-            
-        } catch (Exception e) {
-            log.error("타임아웃된 JIRA 동기화 정리 실패", e);
-            return ResponseEntity.internalServerError()
-                .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
-        }
+      List<JiraConfigDto.IssueTypeDto> issueTypes =
+          jiraIntegrationService.getIssueTypes(userId, projectKey);
+      return ResponseEntity.ok(issueTypes);
+
+    } catch (Exception e) {
+      log.error("JIRA 이슈 유형 조회 실패: projectKey={}", projectKey, e);
+      return ResponseEntity.internalServerError().build();
     }
-    /**
-     * JIRA 이슈 키를 기반으로 최근 테스트 실행 컨텍스트 조회
-     * 스마트 리다이렉트 기능을 위해 사용됨
-    /**
-     * JIRA 이슈 키를 기반으로 관련 테스트 실행 컨텍스트 목록 조회
-     * 다중 결과 대응 (스마트 리다이렉트 고도화)
-     */
-    @GetMapping("/latest-execution-context")
-    @io.swagger.v3.oas.annotations.Operation(summary = "JIRA 이슈 기반 실행 컨텍스트 목록 조회", description = "특정 JIRA 이슈와 관련된 최근 테스트 실행 및 결과 정보 목록을 조회합니다")
-    public org.springframework.http.ResponseEntity<java.util.List<java.util.Map<String, Object>>> getLatestExecutionContextByJiraIssue(
-            @org.springframework.web.bind.annotation.RequestParam String issueKey) {
-        
+  }
+
+  /** 개별 테스트 결과에 수동으로 JIRA 코멘트 추가 */
+  @PostMapping("/add-test-result-comment")
+  @Operation(summary = "테스트 결과 JIRA 코멘트 추가", description = "개별 테스트 결과를 JIRA 이슈에 코멘트로 추가합니다")
+  public ResponseEntity<Map<String, Object>> addTestResultComment(
+      @RequestParam String testResultId,
+      @RequestParam String jiraIssueKey,
+      Authentication authentication) {
+
+    try {
+      String userId = authentication.getName();
+
+      // 테스트 결과 조회
+      TestResult testResult =
+          testResultRepository
+              .findById(testResultId)
+              .orElseThrow(
+                  () -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + testResultId));
+
+      // 이슈 키 유효성 검증
+      if (!jiraIntegrationService.isValidJiraIssueKey(jiraIssueKey)) {
+        return ResponseEntity.badRequest()
+            .body(Map.of("success", false, "message", "유효하지 않은 JIRA 이슈 키입니다"));
+      }
+
+      // JIRA 코멘트 추가
+      boolean success =
+          jiraIntegrationService.addManualTestResultComment(userId, jiraIssueKey, testResult);
+
+      if (success) {
+        // TestResult에 JIRA 이슈 정보 업데이트
+        testResult.setJiraIssueKey(jiraIssueKey);
+        testResult.markJiraSyncSuccess(null); // 코멘트 ID는 실제 구현에서 반환받아야 함
+        testResultRepository.save(testResult);
+
+        // ICT-198: 대시보드 캐시 무효화
         try {
-            if (!jiraIntegrationService.isValidJiraIssueKey(issueKey)) {
-                return org.springframework.http.ResponseEntity.badRequest().build();
-            }
-            
-            // 최근 10개의 결과를 조회하여 중복 제거된 실행 목록 생성
-            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-            java.util.List<com.testcase.testcasemanagement.model.TestResult> results = testResultRepository.findRecentResultsByJiraIssue(issueKey, pageable);
-            
-            if (results.isEmpty()) {
-                return org.springframework.http.ResponseEntity.notFound().build();
-            }
-            
-            // 실행 ID 기준으로 중복을 제거하면서 정보 추출
-            java.util.Map<String, java.util.Map<String, Object>> executionMap = new java.util.LinkedHashMap<>();
-            
-            for (com.testcase.testcasemanagement.model.TestResult res : results) {
-                if (res.getTestExecution() == null) continue;
-                
-                String execId = res.getTestExecution().getId();
-                if (!executionMap.containsKey(execId)) {
-                    java.util.Map<String, Object> info = new java.util.HashMap<>();
-                    info.put("projectId", res.getTestExecution().getProject() != null ? res.getTestExecution().getProject().getId() : "");
-                    info.put("projectName", res.getTestExecution().getProject() != null ? res.getTestExecution().getProject().getName() : "");
-                    info.put("executionId", execId);
-                    info.put("executionName", res.getTestExecution().getName());
-                    info.put("status", res.getTestExecution().getStatus().toString());
-                    info.put("startDate", res.getTestExecution().getStartDate() != null ? res.getTestExecution().getStartDate().toString() : "");
-                    info.put("testCaseId", res.getTestCaseId()); // 대표 케이스 ID
-                    
-                    executionMap.put(execId, info);
-                }
-                
-                // 최대 10개까지만 유지
-                if (executionMap.size() >= 10) break;
-            }
-            
-            return org.springframework.http.ResponseEntity.ok(new java.util.ArrayList<>(executionMap.values()));
-            
+          if (testResult.getTestExecution() != null
+              && testResult.getTestExecution().getProject() != null) {
+            String projectId = testResult.getTestExecution().getProject().getId();
+            // 캐시 제거됨 - 직접 데이터베이스에서 조회됨
+            log.info("대시보드 캐시가 무효화되었습니다. projectId: {}", projectId);
+          }
         } catch (Exception e) {
-            log.error("JIRA 이슈 기반 실행 컨텍스트 목록 조회 실패: {}", issueKey, e);
-            return org.springframework.http.ResponseEntity.internalServerError().build();
+          log.error("대시보드 캐시 무효화 실패: {}", e.getMessage());
         }
+
+        return ResponseEntity.ok(
+            Map.of("success", true, "message", "테스트 결과가 JIRA 이슈에 성공적으로 추가되었습니다"));
+      } else {
+        return ResponseEntity.ok(Map.of("success", false, "message", "JIRA 코멘트 추가에 실패했습니다"));
+      }
+
+    } catch (Exception e) {
+      log.error(
+          "테스트 결과 JIRA 코멘트 추가 실패: testResultId={}, jiraIssueKey={}", testResultId, jiraIssueKey, e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
     }
+  }
+
+  /** JIRA 이슈에 연결된 테스트 결과 조회 */
+  @GetMapping("/test-results-by-issue")
+  @Operation(
+      summary = "JIRA 이슈 연결 테스트 결과 조회 (제한 있음)",
+      description = "특정 JIRA 이슈에 연결된 최근 테스트 결과 목록을 조회합니다 (기본 10개)")
+  public ResponseEntity<List<TestResult>> getTestResultsByJiraIssue(
+      @RequestParam String jiraIssueKey, @RequestParam(defaultValue = "10") int limit) {
+
+    try {
+      if (!jiraIntegrationService.isValidJiraIssueKey(jiraIssueKey)) {
+        return ResponseEntity.badRequest().build();
+      }
+
+      Pageable pageable = PageRequest.of(0, limit);
+      List<TestResult> testResults =
+          testResultRepository.findRecentResultsByJiraIssue(jiraIssueKey, pageable);
+
+      return ResponseEntity.ok(testResults);
+
+    } catch (Exception e) {
+      log.error("JIRA 이슈 연결 테스트 결과 조회 실패: {}", jiraIssueKey, e);
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  @GetMapping("/all-test-results-by-issue")
+  @Operation(
+      summary = "JIRA 이슈 연결 모든 테스트 결과 조회",
+      description = "특정 JIRA 이슈에 연결된 모든 과거 테스트 결과 목록을 최신순으로 조회합니다")
+  public ResponseEntity<List<TestResult>> getAllTestResultsByJiraIssue(
+      @RequestParam String jiraIssueKey) {
+
+    try {
+      if (!jiraIntegrationService.isValidJiraIssueKey(jiraIssueKey)) {
+        return ResponseEntity.badRequest().build();
+      }
+
+      List<TestResult> testResults =
+          testResultRepository.findByJiraIssueKeyOrderByExecutedAtDesc(jiraIssueKey);
+
+      return ResponseEntity.ok(testResults);
+    } catch (Exception e) {
+      log.error("JIRA 이슈 연결 모든 테스트 결과 조회 실패: {}, {}", jiraIssueKey, e.getMessage());
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  /** JIRA 동기화가 필요한 테스트 결과 조회 */
+  @GetMapping("/pending-sync-results")
+  @Operation(summary = "동기화 대기 테스트 결과 조회", description = "JIRA 동기화가 필요한 테스트 결과 목록을 조회합니다")
+  public ResponseEntity<List<TestResult>> getPendingSyncResults(
+      @RequestParam(required = false) String projectId,
+      @RequestParam(defaultValue = "50") int limit) {
+
+    try {
+      Pageable pageable = PageRequest.of(0, limit);
+      List<JiraSyncStatus> syncStatuses =
+          List.of(JiraSyncStatus.NOT_SYNCED, JiraSyncStatus.FAILED, JiraSyncStatus.RETRY_REQUIRED);
+
+      List<TestResult> pendingResults;
+      if (projectId != null && !projectId.isEmpty()) {
+        pendingResults = testResultRepository.findByProjectAndSyncStatusIn(projectId, syncStatuses);
+      } else {
+        pendingResults = testResultRepository.findBySyncStatusIn(syncStatuses, pageable);
+      }
+
+      return ResponseEntity.ok(pendingResults);
+
+    } catch (Exception e) {
+      log.error("동기화 대기 테스트 결과 조회 실패: projectId={}", projectId, e);
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  /** JIRA 동기화 상태 통계 조회 */
+  @GetMapping("/sync-status-statistics")
+  @Operation(summary = "JIRA 동기화 상태 통계", description = "JIRA 동기화 상태별 통계를 조회합니다")
+  public ResponseEntity<List<Map<String, Object>>> getSyncStatusStatistics(
+      @RequestParam(required = false) String projectId) {
+
+    try {
+      List<Map<String, Object>> statistics =
+          testResultRepository.findJiraSyncStatusStatistics(projectId);
+      return ResponseEntity.ok(statistics);
+
+    } catch (Exception e) {
+      log.error("JIRA 동기화 상태 통계 조회 실패: projectId={}", projectId, e);
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  /** 실패한 JIRA 동기화 재시도 */
+  @PostMapping("/retry-failed-syncs")
+  @Operation(summary = "실패한 JIRA 동기화 재시도", description = "실패한 JIRA 동기화를 재시도합니다")
+  public ResponseEntity<Map<String, Object>> retryFailedSyncs(
+      @RequestParam(defaultValue = "30") int retryDelayMinutes,
+      @RequestParam(defaultValue = "20") int batchSize) {
+
+    try {
+      LocalDateTime retryAfter = LocalDateTime.now().minusMinutes(retryDelayMinutes);
+      Pageable pageable = PageRequest.of(0, batchSize);
+
+      List<TestResult> failedSyncs =
+          testResultRepository.findFailedSyncsForRetry(retryAfter, pageable);
+
+      if (failedSyncs.isEmpty()) {
+        return ResponseEntity.ok(
+            Map.of("success", true, "message", "재시도할 실패한 동기화가 없습니다", "retryCount", 0));
+      }
+
+      // 상태를 RETRY_REQUIRED로 변경
+      List<String> failedIds = failedSyncs.stream().map(TestResult::getId).toList();
+
+      testResultRepository.updateJiraSyncStatus(
+          failedIds, JiraSyncStatus.RETRY_REQUIRED, "재시도 대상으로 설정됨 - " + LocalDateTime.now());
+
+      return ResponseEntity.ok(
+          Map.of("success", true, "message", "재시도 대상으로 설정되었습니다", "retryCount", failedSyncs.size()));
+
+    } catch (Exception e) {
+      log.error("실패한 JIRA 동기화 재시도 실패", e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
+    }
+  }
+
+  /** 타임아웃된 진행 중 동기화 정리 */
+  @PostMapping("/cleanup-timed-out-syncs")
+  @Operation(summary = "타임아웃 동기화 정리", description = "오래된 진행 중 상태의 동기화를 정리합니다")
+  public ResponseEntity<Map<String, Object>> cleanupTimedOutSyncs(
+      @RequestParam(defaultValue = "30") int timeoutMinutes) {
+
+    try {
+      LocalDateTime timeoutTime = LocalDateTime.now().minusMinutes(timeoutMinutes);
+      List<TestResult> timedOutSyncs =
+          testResultRepository.findTimedOutInProgressSyncs(timeoutTime);
+
+      if (timedOutSyncs.isEmpty()) {
+        return ResponseEntity.ok(
+            Map.of("success", true, "message", "타임아웃된 동기화가 없습니다", "cleanupCount", 0));
+      }
+
+      // 상태를 RETRY_REQUIRED로 변경
+      List<String> timedOutIds = timedOutSyncs.stream().map(TestResult::getId).toList();
+
+      testResultRepository.updateJiraSyncStatus(
+          timedOutIds, JiraSyncStatus.RETRY_REQUIRED, "타임아웃으로 인한 재시도 설정 - " + LocalDateTime.now());
+
+      return ResponseEntity.ok(
+          Map.of(
+              "success",
+              true,
+              "message",
+              "타임아웃된 동기화가 정리되었습니다",
+              "cleanupCount",
+              timedOutSyncs.size()));
+
+    } catch (Exception e) {
+      log.error("타임아웃된 JIRA 동기화 정리 실패", e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
+    }
+  }
+
+  /**
+   * JIRA 이슈 키를 기반으로 최근 테스트 실행 컨텍스트 조회 스마트 리다이렉트 기능을 위해 사용됨 /** JIRA 이슈 키를 기반으로 관련 테스트 실행 컨텍스트 목록 조회
+   * 다중 결과 대응 (스마트 리다이렉트 고도화)
+   */
+  @GetMapping("/latest-execution-context")
+  @io.swagger.v3.oas.annotations.Operation(
+      summary = "JIRA 이슈 기반 실행 컨텍스트 목록 조회",
+      description = "특정 JIRA 이슈와 관련된 최근 테스트 실행 및 결과 정보 목록을 조회합니다")
+  public org.springframework.http.ResponseEntity<java.util.List<java.util.Map<String, Object>>>
+      getLatestExecutionContextByJiraIssue(
+          @org.springframework.web.bind.annotation.RequestParam String issueKey) {
+
+    try {
+      if (!jiraIntegrationService.isValidJiraIssueKey(issueKey)) {
+        return org.springframework.http.ResponseEntity.badRequest().build();
+      }
+
+      // 최근 10개의 결과를 조회하여 중복 제거된 실행 목록 생성
+      org.springframework.data.domain.Pageable pageable =
+          org.springframework.data.domain.PageRequest.of(0, 20);
+      java.util.List<com.testcase.testcasemanagement.model.TestResult> results =
+          testResultRepository.findRecentResultsByJiraIssue(issueKey, pageable);
+
+      if (results.isEmpty()) {
+        return org.springframework.http.ResponseEntity.notFound().build();
+      }
+
+      // 실행 ID 기준으로 중복을 제거하면서 정보 추출
+      java.util.Map<String, java.util.Map<String, Object>> executionMap =
+          new java.util.LinkedHashMap<>();
+
+      for (com.testcase.testcasemanagement.model.TestResult res : results) {
+        if (res.getTestExecution() == null) continue;
+
+        String execId = res.getTestExecution().getId();
+        if (!executionMap.containsKey(execId)) {
+          java.util.Map<String, Object> info = new java.util.HashMap<>();
+          info.put(
+              "projectId",
+              res.getTestExecution().getProject() != null
+                  ? res.getTestExecution().getProject().getId()
+                  : "");
+          info.put(
+              "projectName",
+              res.getTestExecution().getProject() != null
+                  ? res.getTestExecution().getProject().getName()
+                  : "");
+          info.put("executionId", execId);
+          info.put("executionName", res.getTestExecution().getName());
+          info.put("status", res.getTestExecution().getStatus().toString());
+          info.put(
+              "startDate",
+              res.getTestExecution().getStartDate() != null
+                  ? res.getTestExecution().getStartDate().toString()
+                  : "");
+          info.put("testCaseId", res.getTestCaseId()); // 대표 케이스 ID
+
+          executionMap.put(execId, info);
+        }
+
+        // 최대 10개까지만 유지
+        if (executionMap.size() >= 10) break;
+      }
+
+      return org.springframework.http.ResponseEntity.ok(
+          new java.util.ArrayList<>(executionMap.values()));
+
+    } catch (Exception e) {
+      log.error("JIRA 이슈 기반 실행 컨텍스트 목록 조회 실패: {}", issueKey, e);
+      return org.springframework.http.ResponseEntity.internalServerError().build();
+    }
+  }
 }

@@ -15,10 +15,12 @@ if issues:
         "summary": issue.fields.summary,
         "description": issue.fields.description,
         "status": issue.fields.status.name,
-        "assignee": issue.fields.assignee.displayName if issue.fields.assignee else "Unassigned",
+        "assignee": (
+            issue.fields.assignee.displayName if issue.fields.assignee else "Unassigned"
+        ),
         "reporter": issue.fields.reporter.displayName,
         "created": issue.fields.created,
-        "updated": issue.fields.updated
+        "updated": issue.fields.updated,
     }
     print(json.dumps(issue_details, indent=2))
 else:

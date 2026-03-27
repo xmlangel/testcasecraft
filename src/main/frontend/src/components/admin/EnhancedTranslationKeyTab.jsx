@@ -1,5 +1,5 @@
 // src/main/frontend/src/components/admin/EnhancedTranslationKeyTab.jsx
-import React from 'react';
+import React from "react";
 import {
   Box,
   Table,
@@ -20,15 +20,15 @@ import {
   Typography,
   Pagination,
   Stack,
-  Tooltip
-} from '@mui/material';
+  Tooltip,
+} from "@mui/material";
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Search as SearchIcon
-} from '@mui/icons-material';
-import { useI18n } from '../../context/I18nContext.jsx';
+  Search as SearchIcon,
+} from "@mui/icons-material";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 // 개선된 번역 키 관리 탭
 export const EnhancedTranslationKeyTab = ({
@@ -42,17 +42,27 @@ export const EnhancedTranslationKeyTab = ({
   onAdd,
   onEdit,
   onDelete,
-  loading
+  loading,
 }) => {
   const { t } = useI18n();
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         <Box>
-          <Typography variant="h6">{t('translation.keyTab.listTitle')}</Typography>
+          <Typography variant="h6">
+            {t("translation.keyTab.listTitle")}
+          </Typography>
           <Typography variant="body2" color="text.secondary">
-            총 {pagination.totalElements}개 키 (페이지 {pagination.page + 1}/{pagination.totalPages})
+            총 {pagination.totalElements}개 키 (페이지 {pagination.page + 1}/
+            {pagination.totalPages})
           </Typography>
         </Box>
         <Button
@@ -61,7 +71,7 @@ export const EnhancedTranslationKeyTab = ({
           onClick={onAdd}
           disabled={loading}
         >
-          {t('translation.keyTab.addKey')}
+          {t("translation.keyTab.addKey")}
         </Button>
       </Box>
       {/* 필터 */}
@@ -69,27 +79,31 @@ export const EnhancedTranslationKeyTab = ({
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 4 }}>
             <TextField
-              label={t('common.search.keyword')}
+              label={t("common.search.keyword")}
               value={filters.keyword}
-              onChange={(e) => onFiltersChange({ ...filters, keyword: e.target.value })}
+              onChange={(e) =>
+                onFiltersChange({ ...filters, keyword: e.target.value })
+              }
               fullWidth
               size="small"
               slotProps={{
                 input: {
-                  startAdornment: <SearchIcon color="action" />
-                }
+                  startAdornment: <SearchIcon color="action" />,
+                },
               }}
             />
           </Grid>
           <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
-              <InputLabel>{t('translation.keyTab.categoryLabel')}</InputLabel>
+              <InputLabel>{t("translation.keyTab.categoryLabel")}</InputLabel>
               <Select
                 value={filters.category}
-                onChange={(e) => onFiltersChange({ ...filters, category: e.target.value })}
-                label={t('translation.keyTab.categoryLabel')}
+                onChange={(e) =>
+                  onFiltersChange({ ...filters, category: e.target.value })
+                }
+                label={t("translation.keyTab.categoryLabel")}
               >
-                <MenuItem value="">{t('common.all')}</MenuItem>
+                <MenuItem value="">{t("common.all")}</MenuItem>
                 {availableCategories.map((category) => (
                   <MenuItem key={category} value={category}>
                     {category}
@@ -100,15 +114,17 @@ export const EnhancedTranslationKeyTab = ({
           </Grid>
           <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
-              <InputLabel>{t('translation.keyTab.statusLabel')}</InputLabel>
+              <InputLabel>{t("translation.keyTab.statusLabel")}</InputLabel>
               <Select
                 value={filters.isActive}
-                onChange={(e) => onFiltersChange({ ...filters, isActive: e.target.value })}
-                label={t('translation.keyTab.statusLabel')}
+                onChange={(e) =>
+                  onFiltersChange({ ...filters, isActive: e.target.value })
+                }
+                label={t("translation.keyTab.statusLabel")}
               >
-                <MenuItem value="">{t('common.all')}</MenuItem>
-                <MenuItem value="true">{t('common.active')}</MenuItem>
-                <MenuItem value="false">{t('common.inactive')}</MenuItem>
+                <MenuItem value="">{t("common.all")}</MenuItem>
+                <MenuItem value="true">{t("common.active")}</MenuItem>
+                <MenuItem value="false">{t("common.inactive")}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -118,23 +134,27 @@ export const EnhancedTranslationKeyTab = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>{t('translation.keyTab.table.keyName')}</TableCell>
-              <TableCell>{t('translation.keyTab.table.category')}</TableCell>
+              <TableCell>{t("translation.keyTab.table.keyName")}</TableCell>
+              <TableCell>{t("translation.keyTab.table.category")}</TableCell>
               <TableCell>기본값</TableCell>
               <TableCell>번역 상태</TableCell>
-              <TableCell>{t('translation.keyTab.table.isActive')}</TableCell>
-              <TableCell>{t('common.table.actions')}</TableCell>
+              <TableCell>{t("translation.keyTab.table.isActive")}</TableCell>
+              <TableCell>{t("common.table.actions")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {translationKeys.map((key) => (
               <TableRow key={key.id}>
                 <TableCell>
-                  <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                  <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
                     {key.keyName}
                   </Typography>
                   {key.description && (
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                    >
                       {key.description}
                     </Typography>
                   )}
@@ -155,13 +175,14 @@ export const EnhancedTranslationKeyTab = ({
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2" color="text.secondary" noWrap>
-                    {key.defaultValue || '-'}
+                    {key.defaultValue || "-"}
                   </Typography>
                 </TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={0.5} flexWrap="wrap">
                     {languages.map((language) => {
-                      const hasTranslation = key.translationStatus?.[language.code] || false;
+                      const hasTranslation =
+                        key.translationStatus?.[language.code] || false;
                       return (
                         <Chip
                           key={language.code}
@@ -171,26 +192,38 @@ export const EnhancedTranslationKeyTab = ({
                           color={hasTranslation ? "success" : "default"}
                           sx={{
                             minWidth: 40,
-                            fontSize: '0.75rem',
-                            height: 20
+                            fontSize: "0.75rem",
+                            height: 20,
                           }}
                         />
                       );
                     })}
                   </Stack>
-                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-                    {languages.filter(lang => key.translationStatus?.[lang.code]).length}/{languages.length} 완료
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                    sx={{ mt: 0.5 }}
+                  >
+                    {
+                      languages.filter(
+                        (lang) => key.translationStatus?.[lang.code],
+                      ).length
+                    }
+                    /{languages.length} 완료
                   </Typography>
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={key.isActive ? t('common.active') : t('common.inactive')}
+                    label={
+                      key.isActive ? t("common.active") : t("common.inactive")
+                    }
                     size="small"
-                    color={key.isActive ? 'success' : 'default'}
+                    color={key.isActive ? "success" : "default"}
                   />
                 </TableCell>
                 <TableCell>
-                  <Tooltip title={t('common.buttons.edit')}>
+                  <Tooltip title={t("common.buttons.edit")}>
                     <span>
                       <IconButton
                         size="small"
@@ -201,7 +234,7 @@ export const EnhancedTranslationKeyTab = ({
                       </IconButton>
                     </span>
                   </Tooltip>
-                  <Tooltip title={t('common.buttons.delete')}>
+                  <Tooltip title={t("common.buttons.delete")}>
                     <span>
                       <IconButton
                         size="small"
@@ -221,7 +254,7 @@ export const EnhancedTranslationKeyTab = ({
       </TableContainer>
       {/* 페이지네이션 */}
       {pagination.totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
           <Pagination
             count={pagination.totalPages}
             page={pagination.page + 1}

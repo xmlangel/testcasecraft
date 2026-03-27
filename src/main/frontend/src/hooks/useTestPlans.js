@@ -3,8 +3,13 @@
  * 테스트 플랜 관련 React Query 훅들
  */
 
-import { testPlanService } from '../services';
-import { useQueryWithDefaults, useMutationWithDefaults, queryKeys, useInvalidateQueries } from './useReactQuery.js';
+import { testPlanService } from "../services";
+import {
+  useQueryWithDefaults,
+  useMutationWithDefaults,
+  queryKeys,
+  useInvalidateQueries,
+} from "./useReactQuery.js";
 
 /**
  * 프로젝트의 테스트 플랜 목록 조회
@@ -15,7 +20,7 @@ export function useTestPlans(projectId) {
     () => testPlanService.getTestPlansByProject(projectId),
     {
       enabled: !!projectId,
-    }
+    },
   );
 }
 
@@ -28,7 +33,7 @@ export function useTestPlan(testPlanId) {
     () => testPlanService.getTestPlan(testPlanId),
     {
       enabled: !!testPlanId,
-    }
+    },
   );
 }
 
@@ -37,15 +42,12 @@ export function useTestPlan(testPlanId) {
  */
 export function useCreateTestPlan() {
   const { invalidateTestPlans } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    testPlanService.createTestPlan,
-    {
-      onSuccess: (data) => {
-        invalidateTestPlans(data.projectId);
-      },
-    }
-  );
+
+  return useMutationWithDefaults(testPlanService.createTestPlan, {
+    onSuccess: (data) => {
+      invalidateTestPlans(data.projectId);
+    },
+  });
 }
 
 /**
@@ -53,15 +55,16 @@ export function useCreateTestPlan() {
  */
 export function useUpdateTestPlan() {
   const { invalidateTestPlans, invalidateTestPlan } = useInvalidateQueries();
-  
+
   return useMutationWithDefaults(
-    ({ testPlanId, ...data }) => testPlanService.updateTestPlan(testPlanId, data),
+    ({ testPlanId, ...data }) =>
+      testPlanService.updateTestPlan(testPlanId, data),
     {
       onSuccess: (data, variables) => {
         invalidateTestPlan(variables.testPlanId);
         invalidateTestPlans(data.projectId);
       },
-    }
+    },
   );
 }
 
@@ -70,14 +73,11 @@ export function useUpdateTestPlan() {
  */
 export function useDeleteTestPlan() {
   const { invalidateTestPlans } = useInvalidateQueries();
-  
-  return useMutationWithDefaults(
-    testPlanService.deleteTestPlan,
-    {
-      onSuccess: () => {
-        // 모든 테스트 플랜 캐시 무효화
-        invalidateTestPlans();
-      },
-    }
-  );
+
+  return useMutationWithDefaults(testPlanService.deleteTestPlan, {
+    onSuccess: () => {
+      // 모든 테스트 플랜 캐시 무효화
+      invalidateTestPlans();
+    },
+  });
 }

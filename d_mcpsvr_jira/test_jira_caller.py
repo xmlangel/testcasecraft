@@ -4,6 +4,7 @@ import logging.handlers  # Import the handlers module to access RotatingFileHand
 import os
 from util import init_logger
 
+
 class TestJiraFeatures(unittest.TestCase):
 
     def test_jira_flow(self):
@@ -12,13 +13,14 @@ class TestJiraFeatures(unittest.TestCase):
         self.assertIsInstance(tickets, list)
         self.assertGreater(len(tickets), 0)
         print("JIRA 1 ticket:", tickets[0])
-       
+
+
 if __name__ == "__main__":
     try:
-        init_logger()  # Initialize the logger       
+        init_logger()  # Initialize the logger
 
         unittest.main()
-        
+
     except Exception as e:
         # Log the error
         logging.error(f"Test failed: {e}")

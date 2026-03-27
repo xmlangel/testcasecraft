@@ -3,16 +3,18 @@
 ## 1. 📋 프로젝트 개요
 
 ### 1.1 기본 정보
+
 - **프로젝트명**: TestCaseCraft (테스트케이스 관리 시스템)
-- **버전**: 0.0.2-SNAPSHOT  
+- **버전**: 0.0.2-SNAPSHOT
 - **아키텍처**: Full-Stack 웹 애플리케이션
-- **기술 스택**: 
+- **기술 스택**:
   - **Frontend**: React 18 + Material-UI + React Router
   - **Backend**: Spring Boot 3.2.4 + Java 21 + PostgreSQL
   - **Build**: Gradle + Node.js 통합 빌드
   - **Testing**: TestNG + Allure + Playwright
 
 ### 1.2 프로젝트 목적
+
 - 테스트케이스의 계층적 관리 및 조직화
 - 테스트 계획 수립 및 실행 관리
 - 테스트 결과 추적 및 리포팅
@@ -32,6 +34,7 @@ TestCaseCraft/
 ```
 
 ### 2.1 아키텍처 특징
+
 - **SPA (Single Page Application)**: React 기반 클라이언트 사이드 라우팅
 - **RESTful API**: Spring Boot로 구현된 REST API 서버
 - **JWT 인증**: 토큰 기반 인증 및 세션 관리
@@ -41,6 +44,7 @@ TestCaseCraft/
 ## 3. 📂 디렉토리 구조 상세
 
 ### 3.1 루트 디렉토리
+
 ```
 TestCaseCraft/
 ├── 📄 build.gradle                  # 메인 빌드 설정
@@ -57,6 +61,7 @@ TestCaseCraft/
 ```
 
 ### 3.2 소스 코드 구조 (`src/`)
+
 ```
 src/
 ├── main/
@@ -76,6 +81,7 @@ src/
 ## 4. 🎨 Frontend 구조 (React)
 
 ### 4.1 프론트엔드 디렉토리 (`src/main/frontend/src/`)
+
 ```
 frontend/src/
 ├── 📄 App.jsx                       # 메인 애플리케이션 컴포넌트
@@ -96,6 +102,7 @@ frontend/src/
 ```
 
 ### 4.2 주요 컴포넌트
+
 - **App.jsx**: 라우팅 및 인증 관리
 - **AppContext.jsx**: 전역 상태 관리 (프로젝트, 사용자, API 토큰)
 - **Dashboard/**: 프로젝트별 대시보드 및 통계
@@ -104,6 +111,7 @@ frontend/src/
 - **TestExecution/**: 테스트 실행 및 결과 입력
 
 ### 4.3 기술 스택
+
 - **React 18**: 함수형 컴포넌트 + Hooks
 - **Material-UI 5**: 디자인 시스템 및 컴포넌트 라이브러리
 - **React Router 7**: 클라이언트 사이드 라우팅
@@ -114,6 +122,7 @@ frontend/src/
 ## 5. ⚙️ Backend 구조 (Spring Boot)
 
 ### 5.1 백엔드 디렉토리 (`src/main/java/com/testcase/testcasemanagement/`)
+
 ```
 backend/
 ├── 📄 TestcasemanagementApplication.java  # 메인 애플리케이션
@@ -133,12 +142,14 @@ backend/
 ```
 
 ### 5.2 레이어 구조
+
 1. **Controller Layer**: HTTP 요청/응답 처리
 2. **Service Layer**: 비즈니스 로직 구현
 3. **Repository Layer**: 데이터베이스 액세스 (Spring Data JPA)
 4. **Model Layer**: JPA 엔티티 정의
 
 ### 5.3 주요 기능 모듈
+
 - **Authentication**: JWT 기반 인증 및 권한 관리
 - **Project Management**: 다중 프로젝트 및 조직 지원
 - **Test Case Management**: 계층형 테스트케이스 구조
@@ -148,6 +159,7 @@ backend/
 ## 6. 🗄️ 데이터베이스 설계
 
 ### 6.1 주요 엔티티
+
 ```sql
 -- 조직 관리
 Organization (조직)
@@ -167,6 +179,7 @@ TestPlan (테스트계획)
 ```
 
 ### 6.2 관계형 설계
+
 - **1:N 관계**: Organization → Project, Project → TestCase
 - **계층형 구조**: TestCase의 parent-child 관계
 - **다대다 관계**: TestPlan ↔ TestCase (TestPlanTestCase)
@@ -175,19 +188,21 @@ TestPlan (테스트계획)
 ## 7. 🔧 빌드 시스템 (Gradle)
 
 ### 7.1 통합 빌드 프로세스
+
 ```gradle
 1. Frontend Build (React)
    ├── npm install        # 의존성 설치
    ├── npm run build      # React 애플리케이션 빌드
    └── Copy to static/    # Spring Boot static 리소스로 복사
 
-2. Backend Build (Spring Boot)  
+2. Backend Build (Spring Boot)
    ├── Java 컴파일        # Java 소스 컴파일
    ├── 테스트 실행        # 단위 테스트 실행
    └── JAR 패키징        # 실행 가능한 JAR 생성
 ```
 
 ### 7.2 주요 Gradle Task
+
 - **`./gradlew bootRun`**: 개발 서버 실행
 - **`./gradlew build`**: 전체 빌드 (Frontend + Backend)
 - **`./gradlew test`**: 단위 테스트 실행
@@ -197,6 +212,7 @@ TestPlan (테스트계획)
 ## 8. 🧪 테스팅 구조
 
 ### 8.1 테스트 계층
+
 ```
 Testing/
 ├── 📁 Unit Tests (TestNG)           # Java 단위 테스트
@@ -212,6 +228,7 @@ Testing/
 ```
 
 ### 8.2 테스트 도구
+
 - **TestNG**: Java 단위 테스트 프레임워크
 - **Allure**: 테스트 결과 리포팅
 - **Playwright**: 브라우저 자동화 (E2E 테스트)
@@ -221,6 +238,7 @@ Testing/
 ## 9. 🔌 통합 시스템
 
 ### 9.1 JIRA 통합 (`d_mcpsvr_jira/`)
+
 ```
 JIRA Integration/
 ├── 📄 jira_workflow.py             # JIRA API 워크플로우
@@ -230,11 +248,13 @@ JIRA Integration/
 ```
 
 **기능**:
+
 - 자동 이슈 생성 및 상태 업데이트
 - 테스트 결과와 JIRA 이슈 연동
 - 워크플로우 자동화
 
 ### 9.2 외부 API 통합
+
 - **Google Sheets API**: 테스트케이스 일괄 가져오기/내보내기
 - **SMTP**: 이메일 알림
 - **File Upload**: JUnit XML, Excel 파일 업로드
@@ -242,6 +262,7 @@ JIRA Integration/
 ## 10. 🚀 배포 및 환경 관리
 
 ### 10.1 환경 설정
+
 ```
 Environments/
 ├── 📁 Development (개발)
@@ -258,6 +279,7 @@ Environments/
 ```
 
 ### 10.2 배포 스크립트
+
 - **`start-dev.sh`**: 개발 환경 시작
 - **`start-dev-postgresql.sh`**: PostgreSQL 개발 환경
 - **`docker-compose-*/manage.sh`**: Docker 환경 관리
@@ -265,12 +287,14 @@ Environments/
 ## 11. 📊 모니터링 및 성능
 
 ### 11.1 성능 모니터링 (ICT-130)
+
 - **Spring Actuator**: 애플리케이션 상태 모니터링
 - **Prometheus**: 메트릭 수집
 - **Performance Tests**: 대시보드 API 부하 테스트
 - **Load Testing**: 시스템 부하 테스트
 
 ### 11.2 로깅 시스템
+
 - **개발**: DEBUG 레벨, SQL 로깅
 - **운영**: INFO 레벨, 구조화된 로그
 - **파일 기반**: 애플리케이션별 로그 파일 분리
@@ -278,11 +302,13 @@ Environments/
 ## 12. 🔐 보안 및 인증
 
 ### 12.1 인증 시스템
+
 - **JWT (JSON Web Token)**: 상태 비저장 토큰 인증
 - **Access Token + Refresh Token**: 토큰 갱신 메커니즘
 - **Role-Based Access Control**: 역할 기반 권한 관리
 
 ### 12.2 보안 기능
+
 - **Password Encoding**: BCrypt 해시화
 - **CORS 설정**: 크로스 오리진 요청 제어
 - **HTTPS Support**: SSL/TLS 암호화 통신
@@ -291,12 +317,14 @@ Environments/
 ## 13. 📈 확장성 및 유지보수
 
 ### 13.1 확장 포인트
+
 - **모듈형 구조**: 기능별 독립적 개발 가능
 - **API First**: REST API를 통한 다양한 클라이언트 지원
 - **데이터베이스 독립성**: JPA 추상화를 통한 DB 변경 용이성
 - **플러그인 아키텍처**: JIRA 외 다른 시스템 통합 가능
 
 ### 13.2 유지보수 지원
+
 - **코드 품질**: SonarQube 정적 분석
 - **자동 테스트**: CI/CD 파이프라인 통합
 - **문서화**: API 문서 (Swagger), 기술 문서
@@ -305,12 +333,14 @@ Environments/
 ## 14. 🛠️ 개발 도구 및 IDE 설정
 
 ### 14.1 권장 개발 도구
+
 - **IDE**: IntelliJ IDEA (Spring Boot), VS Code (React)
 - **Database**: DBeaver, pgAdmin
 - **API Testing**: Postman, Swagger UI
 - **Version Control**: Git, GitHub
 
 ### 14.2 개발 환경 설정
+
 ```bash
 # 개발 환경 시작
 ./gradlew bootRunDev
@@ -325,6 +355,7 @@ npm run test:e2e
 ## 15. 📚 관련 문서
 
 ### 15.1 프로젝트 문서
+
 - **`CLAUDE.md`**: AI 어시스턴트 통합 가이드
 - **`docs/API_GUIDE.md`**: API 사용법
 - **`docs/DEVELOPMENT_GUIDE.md`**: 개발 가이드
@@ -332,6 +363,7 @@ npm run test:e2e
 - **`docs/JIRA_INTEGRATION.md`**: JIRA 통합 가이드
 
 ### 15.2 운영 문서
+
 - **`docker-compose-*/README.md`**: Docker 배포 가이드
 - **`scripts/`**: 배포 및 관리 스크립트
 - **`docs/manual/`**: 사용자 매뉴얼
@@ -340,11 +372,12 @@ npm run test:e2e
 
 ## 🎯 결론
 
-TestCaseCraft는 현대적인 웹 기술을 사용하여 구축된 **포괄적인 테스트 관리 시스템**입니다. 
+TestCaseCraft는 현대적인 웹 기술을 사용하여 구축된 **포괄적인 테스트 관리 시스템**입니다.
 
 **핵심 특징**:
+
 - ✅ **모던 기술 스택**: React 18 + Spring Boot 3 + Java 21
-- ✅ **통합 빌드**: Frontend와 Backend 단일 JAR 패키징  
+- ✅ **통합 빌드**: Frontend와 Backend 단일 JAR 패키징
 - ✅ **확장 가능한 아키텍처**: 모듈형 설계 및 API 우선
 - ✅ **포괄적 테스팅**: Unit + Integration + E2E 테스트
 - ✅ **외부 시스템 연동**: JIRA, Google Sheets 등

@@ -5,89 +5,94 @@ JIRA 이슈 생성 스크립트 - 조직-프로젝트 관리 시스템
 import logging
 from jira_caller import get_jira_client
 
+
 def create_epic(title, description, project_key="ICT"):
     """Epic 이슈 생성"""
     try:
         jira = get_jira_client()
-        
+
         issue_dict = {
-            'project': {'key': project_key},
-            'summary': title,
-            'description': description,
-            'issuetype': {'name': 'Epic'},
+            "project": {"key": project_key},
+            "summary": title,
+            "description": description,
+            "issuetype": {"name": "Epic"},
         }
-        
+
         new_issue = jira.create_issue(fields=issue_dict)
         return new_issue
     except Exception as e:
         logging.error(f"Epic 생성 실패: {e}")
         return None
 
+
 def create_story(title, description, epic_key=None, project_key="ICT", priority="High"):
     """Story 이슈 생성"""
     try:
         jira = get_jira_client()
-        
+
         issue_dict = {
-            'project': {'key': project_key},
-            'summary': title,
-            'description': description,
-            'issuetype': {'name': 'Story'},
-            'priority': {'name': priority}
+            "project": {"key": project_key},
+            "summary": title,
+            "description": description,
+            "issuetype": {"name": "Story"},
+            "priority": {"name": priority},
         }
-        
+
         # Epic 링크 추가 (Epic이 있는 경우)
         if epic_key:
-            issue_dict['customfield_10014'] = epic_key  # Epic Link field
-        
+            issue_dict["customfield_10014"] = epic_key  # Epic Link field
+
         new_issue = jira.create_issue(fields=issue_dict)
         return new_issue
     except Exception as e:
         logging.error(f"Story 생성 실패: {e}")
         return None
 
+
 def create_bug(title, description, priority="Medium", project_key="ICT"):
     """Bug 이슈 생성"""
     try:
         jira = get_jira_client()
-        
+
         issue_dict = {
-            'project': {'key': project_key},
-            'summary': title,
-            'description': description,
-            'issuetype': {'name': 'Bug'},
-            'priority': {'name': priority}
+            "project": {"key": project_key},
+            "summary": title,
+            "description": description,
+            "issuetype": {"name": "Bug"},
+            "priority": {"name": priority},
         }
-        
+
         new_issue = jira.create_issue(fields=issue_dict)
         return new_issue
     except Exception as e:
         logging.error(f"Bug 생성 실패: {e}")
         return None
 
+
 def create_task(title, description, priority="Low", project_key="ICT"):
     """Task 이슈 생성"""
     try:
         jira = get_jira_client()
-        
+
         issue_dict = {
-            'project': {'key': project_key},
-            'summary': title,
-            'description': description,
-            'issuetype': {'name': 'Task'},
-            'priority': {'name': priority}
+            "project": {"key": project_key},
+            "summary": title,
+            "description": description,
+            "issuetype": {"name": "Task"},
+            "priority": {"name": priority},
         }
-        
+
         new_issue = jira.create_issue(fields=issue_dict)
         return new_issue
     except Exception as e:
         logging.error(f"Task 생성 실패: {e}")
         return None
 
+
 def main():
     """메인 함수 - 조직-프로젝트 관리 시스템 이슈들 생성"""
     print("🎯 조직-프로젝트 관리 시스템 JIRA 이슈 생성 시작...")
-    
+
     # Epic 1: 조직-프로젝트 데이터 모델 구현 (완료)
     epic1_desc = """조직, 프로젝트, 사용자, 그룹 간의 관계를 표현하는 데이터 모델 및 권한 체계 구현
 
@@ -101,11 +106,11 @@ def main():
 
 **상태**: Done ✅
 **스토리 포인트**: 21"""
-    
+
     epic1 = create_epic("조직-프로젝트 데이터 모델 구현", epic1_desc)
     if epic1:
         print(f"✅ Epic 1 생성 완료: {epic1.key} - {epic1.fields.summary}")
-    
+
     # Epic 2: 비즈니스 로직 및 API 구현 (완료)
     epic2_desc = """조직-프로젝트 관리를 위한 서비스 로직, API 엔드포인트, 테스트 구현
 
@@ -122,11 +127,11 @@ def main():
 
 **상태**: Done ✅
 **스토리 포인트**: 34"""
-    
+
     epic2 = create_epic("비즈니스 로직 및 API 구현", epic2_desc)
     if epic2:
         print(f"✅ Epic 2 생성 완료: {epic2.key} - {epic2.fields.summary}")
-    
+
     # Epic 3: 프론트엔드 조직 관리 시스템 (완료)
     epic3_desc = """React 기반 조직-프로젝트 관리 사용자 인터페이스 구현
 
@@ -139,11 +144,11 @@ def main():
 
 **상태**: Done ✅
 **스토리 포인트**: 21"""
-    
+
     epic3 = create_epic("프론트엔드 조직 관리 시스템", epic3_desc)
     if epic3:
         print(f"✅ Epic 3 생성 완료: {epic3.key} - {epic3.fields.summary}")
-    
+
     # Story 1: admin 사용자 멤버십 불일치 문제 해결 (Critical)
     story1_desc = """**문제 설명**:
 - H2 인메모리 DB 재시작 시 사용자 ID가 변경됨
@@ -163,12 +168,16 @@ def main():
 
 **우선순위**: Critical
 **스토리 포인트**: 8"""
-    
-    story1 = create_story("admin 사용자 멤버십 불일치 문제 해결", story1_desc, 
-                         epic_key=epic2.key if epic2 else None, priority="Highest")
+
+    story1 = create_story(
+        "admin 사용자 멤버십 불일치 문제 해결",
+        story1_desc,
+        epic_key=epic2.key if epic2 else None,
+        priority="Highest",
+    )
     if story1:
         print(f"🚨 Critical Story 생성 완료: {story1.key} - {story1.fields.summary}")
-    
+
     # Story 2: JSON 직렬화 순환 참조 해결 (완료)
     story2_desc = """**문제 설명**:
 - Organization과 OrganizationUser 간 양방향 관계로 인한 JSON 직렬화 오류
@@ -181,12 +190,16 @@ def main():
 **상태**: Done ✅
 **우선순위**: High
 **스토리 포인트**: 5"""
-    
-    story2 = create_story("JSON 직렬화 순환 참조 해결", story2_desc, 
-                         epic_key=epic2.key if epic2 else None, priority="High")
+
+    story2 = create_story(
+        "JSON 직렬화 순환 참조 해결",
+        story2_desc,
+        epic_key=epic2.key if epic2 else None,
+        priority="High",
+    )
     if story2:
         print(f"✅ Story 2 생성 완료: {story2.key} - {story2.fields.summary}")
-    
+
     # Story 3: 조직 멤버 fetch join 적용
     story3_desc = """**문제 설명**:
 - 조직 상세 조회 시 organizationUsers 배열이 비어있음
@@ -199,12 +212,18 @@ def main():
 
 **우선순위**: High
 **스토리 포인트**: 3"""
-    
-    story3 = create_story("조직 멤버 fetch join 적용", story3_desc, 
-                         epic_key=epic2.key if epic2 else None, priority="High")
+
+    story3 = create_story(
+        "조직 멤버 fetch join 적용",
+        story3_desc,
+        epic_key=epic2.key if epic2 else None,
+        priority="High",
+    )
     if story3:
-        print(f"🔥 High Priority Story 생성 완료: {story3.key} - {story3.fields.summary}")
-    
+        print(
+            f"🔥 High Priority Story 생성 완료: {story3.key} - {story3.fields.summary}"
+        )
+
     # Bug 1: 권한 체크 로직 일관성 문제
     bug1_desc = """**문제 설명**:
 - canAccessOrganization: 시스템 관리자 권한 포함 ✅
@@ -218,11 +237,11 @@ def main():
 
 **우선순위**: Medium
 **스토리 포인트**: 3"""
-    
+
     bug1 = create_bug("권한 체크 로직 일관성 문제", bug1_desc, priority="Medium")
     if bug1:
         print(f"🐛 Bug 생성 완료: {bug1.key} - {bug1.fields.summary}")
-    
+
     # Task 1: JIRA MCP 서버 활성화
     task1_desc = """**작업 내용**:
 - d_mcpsvr_jira 디렉토리의 의존성 설치
@@ -233,17 +252,18 @@ def main():
 
 **우선순위**: Low
 **스토리 포인트**: 5"""
-    
+
     task1 = create_task("JIRA MCP 서버 활성화", task1_desc, priority="Low")
     if task1:
         print(f"📝 Task 생성 완료: {task1.key} - {task1.fields.summary}")
-    
+
     print("\n🎉 JIRA 이슈 생성 완료!")
     print("\n📋 생성된 이슈 요약:")
     print("   Epic: 3개 (완료된 대형 작업들)")
     print("   Story: 3개 (현재 진행중/차단된 작업들)")
     print("   Bug: 1개 (권한 체크 로직 문제)")
     print("   Task: 1개 (JIRA MCP 서버 활성화)")
+
 
 if __name__ == "__main__":
     main()

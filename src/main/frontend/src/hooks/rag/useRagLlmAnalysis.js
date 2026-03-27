@@ -4,367 +4,421 @@
  * - LLM 가용성 확인, 분석 작업 관리
  * - 원래 버그 수정: checkLlmAvailability에서 getAuthHeaders is not defined 에러 해결
  */
-import { useCallback } from 'react';
-import { useAppContext } from '../../context/AppContext.jsx';
-import { API_CONFIG } from '../../utils/apiConstants.js';
+import { useCallback } from "react";
+import { useAppContext } from "../../context/AppContext.jsx";
+import { API_CONFIG } from "../../utils/apiConstants.js";
 
-import { debugLog } from '../../utils/logger.js';
+import { debugLog } from "../../utils/logger.js";
 
-const IS_RAG_ENABLED = import.meta.env.VITE_ENABLE_RAG !== 'false' && import.meta.env.VITE_USE_DEMO_DATA !== 'true';
+const IS_RAG_ENABLED =
+  import.meta.env.VITE_ENABLE_RAG !== "false" &&
+  import.meta.env.VITE_USE_DEMO_DATA !== "true";
 
-export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailable, requestCache) {
-    const { api } = useAppContext();
+export function useRagLlmAnalysis(
+  state,
+  dispatch,
+  ActionTypes,
+  ensureRagAvailable,
+  requestCache,
+) {
+  const { api } = useAppContext();
 
-    // ============ LLM 가용성 확인 ⭐ (원래 버그 수정!) ============
-    const checkLlmAvailability = useCallback(async () => {
-        if (!IS_RAG_ENABLED) {
-            dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
-            return false;
+  // ============ LLM 가용성 확인 ⭐ (원래 버그 수정!) ============
+  const checkLlmAvailability = useCallback(async () => {
+    if (!IS_RAG_ENABLED) {
+      dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
+      return false;
+    }
+
+    const cacheKey = "checkLlmAvailability";
+    if (requestCache && requestCache.current.has(cacheKey)) {
+      debugLog(
+        "useRagLlmAnalysis",
+        "Skipping duplicate checkLlmAvailability call",
+      );
+      return requestCache.current.get(cacheKey);
+    }
+
+    const promise = (async () => {
+      dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: true });
+      dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+      try {
+        // 🔧 수정: api()를 사용하여 자동 토큰 관리
+        const response = await api("/api/llm-configs/check-availability");
+
+        if (!response.ok) {
+          throw new Error("LLM 설정 확인 실패");
         }
 
-        const cacheKey = 'checkLlmAvailability';
-        if (requestCache && requestCache.current.has(cacheKey)) {
-            debugLog('useRagLlmAnalysis', 'Skipping duplicate checkLlmAvailability call');
-            return requestCache.current.get(cacheKey);
+        const result = await response.json();
+        const isAvailable = result.data === true;
+
+        dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: isAvailable });
+
+        if (!isAvailable) {
+          dispatch({
+            type: ActionTypes.SET_ERROR,
+            payload:
+              "기본 LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 기본값으로 설정해야 합니다.",
+          });
+        }
+        return isAvailable;
+      } catch (error) {
+        console.error("LLM 가용성 확인 실패:", error);
+        dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "LLM 설정 확인에 실패했습니다.",
+        });
+        return false;
+      } finally {
+        requestCache.current.delete(cacheKey);
+        dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: false });
+      }
+    })();
+
+    if (requestCache) {
+      requestCache.current.set(cacheKey, promise);
+    }
+    return promise;
+  }, [api, dispatch, ActionTypes, requestCache]);
+
+  // ============ LLM 분석 비용 추정 ============
+  const estimateAnalysisCost = useCallback(
+    async (documentId, config = {}) => {
+      ensureRagAvailable("estimateAnalysisCost");
+      debugLog("useRagLlmAnalysis", "estimateAnalysisCost called with:", {
+        documentId,
+        config,
+      });
+
+      try {
+        const response = await api(
+          `/api/rag/documents/${documentId}/estimate-cost`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              document_id: documentId,
+              llmConfigId: config.llmConfigId, // Backend DTO expects camelCase for this field (no @JsonProperty annotation)
+              llm_provider: config.llmProvider,
+              llm_model: config.llmModel,
+              prompt_template: config.promptTemplate,
+              max_tokens: config.maxTokens,
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("비용 추정 요청 실패");
         }
 
-        const promise = (async () => {
-            dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: true });
-            dispatch({ type: ActionTypes.CLEAR_ERROR });
+        const data = await response.json();
+        debugLog("useRagLlmAnalysis", "estimateAnalysisCost response:", data);
+        return data;
+      } catch (error) {
+        console.error("비용 추정 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "비용 추정에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-            try {
-                // 🔧 수정: api()를 사용하여 자동 토큰 관리
-                const response = await api('/api/llm-configs/check-availability');
+  // ============ LLM 분석 시작 ============
+  const startLlmAnalysis = useCallback(
+    async (documentId, config = {}) => {
+      ensureRagAvailable("startLlmAnalysis");
 
-                if (!response.ok) {
-                    throw new Error('LLM 설정 확인 실패');
-                }
+      try {
+        const response = await api(
+          `/api/rag/documents/${documentId}/analyze-with-llm`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              llmConfigId: config.llmConfigId,
+              llm_provider: config.llmProvider,
+              llm_model: config.llmModel,
+              llm_base_url: config.llmBaseUrl,
+              prompt_template: config.promptTemplate,
+              chunk_batch_size: config.chunkBatchSize || 10,
+              pause_after_batch: config.pauseAfterBatch !== false,
+              max_tokens: config.maxTokens,
+              temperature: config.temperature || 0.7,
+            }),
+          },
+        );
 
-                const result = await response.json();
-                const isAvailable = result.data === true;
-
-                dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: isAvailable });
-
-                if (!isAvailable) {
-                    dispatch({
-                        type: ActionTypes.SET_ERROR,
-                        payload: '기본 LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 기본값으로 설정해야 합니다.',
-                    });
-                }
-                return isAvailable;
-            } catch (error) {
-                console.error('LLM 가용성 확인 실패:', error);
-                dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
-                dispatch({
-                    type: ActionTypes.SET_ERROR,
-                    payload: error.message || 'LLM 설정 확인에 실패했습니다.',
-                });
-                return false;
-            } finally {
-                requestCache.current.delete(cacheKey);
-                dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: false });
-            }
-        })();
-
-        if (requestCache) {
-            requestCache.current.set(cacheKey, promise);
+        if (!response.ok) {
+          throw new Error("LLM 분석 시작 요청 실패");
         }
-        return promise;
 
-    }, [api, dispatch, ActionTypes, requestCache]);
+        return await response.json();
+      } catch (error) {
+        console.error("LLM 분석 시작 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "LLM 분석 시작에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-    // ============ LLM 분석 비용 추정 ============
-    const estimateAnalysisCost = useCallback(async (documentId, config = {}) => {
-        ensureRagAvailable('estimateAnalysisCost');
-        debugLog('useRagLlmAnalysis', 'estimateAnalysisCost called with:', { documentId, config });
+  // ============ LLM 분석 상태 조회 ============
+  const getLlmAnalysisStatus = useCallback(
+    async (documentId) => {
+      ensureRagAvailable("getLlmAnalysisStatus");
 
-        try {
-            const response = await api(
-                `/api/rag/documents/${documentId}/estimate-cost`,
-                {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        document_id: documentId,
-                        llmConfigId: config.llmConfigId, // Backend DTO expects camelCase for this field (no @JsonProperty annotation)
-                        llm_provider: config.llmProvider,
-                        llm_model: config.llmModel,
-                        prompt_template: config.promptTemplate,
-                        max_tokens: config.maxTokens,
-                    }),
-                }
-            );
+      try {
+        const response = await api(
+          `/api/rag/documents/${documentId}/llm-analysis-status`,
+        );
+        return await response.json();
+      } catch (error) {
+        console.error("분석 상태 조회 실패:", error);
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable],
+  );
 
-            if (!response.ok) {
-                throw new Error('비용 추정 요청 실패');
-            }
+  // ============ LLM 분석 작업 목록 ============
+  const listLlmAnalysisJobs = useCallback(
+    async (projectId = null, status = null, page = 1, size = 20) => {
+      ensureRagAvailable("listLlmAnalysisJobs");
 
-            const data = await response.json();
-            debugLog('useRagLlmAnalysis', 'estimateAnalysisCost response:', data);
-            return data;
-        } catch (error) {
-            console.error('비용 추정 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || '비용 추정에 실패했습니다.'
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+      try {
+        // Build query parameters object, only including non-null values
+        const params = new URLSearchParams();
+        if (projectId) params.append("projectId", projectId);
+        if (status) params.append("status", status);
+        params.append("page", page);
+        params.append("size", size);
 
-    // ============ LLM 분석 시작 ============
-    const startLlmAnalysis = useCallback(async (documentId, config = {}) => {
-        ensureRagAvailable('startLlmAnalysis');
+        const url = `/api/rag/llm-analysis/jobs?${params.toString()}`;
+        const response = await api(url);
+        return await response.json();
+      } catch (error) {
+        console.error("분석 작업 목록 조회 실패:", error);
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable],
+  );
 
-        try {
-            const response = await api(
-                `/api/rag/documents/${documentId}/analyze-with-llm`,
-                {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        llmConfigId: config.llmConfigId,
-                        llm_provider: config.llmProvider,
-                        llm_model: config.llmModel,
-                        llm_base_url: config.llmBaseUrl,
-                        prompt_template: config.promptTemplate,
-                        chunk_batch_size: config.chunkBatchSize || 10,
-                        pause_after_batch: config.pauseAfterBatch !== false,
-                        max_tokens: config.maxTokens,
-                        temperature: config.temperature || 0.7,
-                    })
-                }
-            );
+  // ============ 분석 일시정지 ============
+  const pauseAnalysis = useCallback(
+    async (documentId) => {
+      ensureRagAvailable("pauseAnalysis");
 
-            if (!response.ok) {
-                throw new Error('LLM 분석 시작 요청 실패');
-            }
+      try {
+        const response = await api(
+          `/api/rag/documents/${documentId}/pause-analysis`,
+          { method: "POST", body: JSON.stringify({}) },
+        );
+        return await response.json();
+      } catch (error) {
+        console.error("분석 일시정지 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "분석 일시정지에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-            return await response.json();
-        } catch (error) {
-            console.error('LLM 분석 시작 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || 'LLM 분석 시작에 실패했습니다.'
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+  // ============ 분석 재개 ============
+  const resumeAnalysis = useCallback(
+    async (documentId) => {
+      ensureRagAvailable("resumeAnalysis");
 
-    // ============ LLM 분석 상태 조회 ============
-    const getLlmAnalysisStatus = useCallback(async (documentId) => {
-        ensureRagAvailable('getLlmAnalysisStatus');
+      try {
+        const response = await api(
+          `/api/rag/documents/${documentId}/resume-analysis`,
+          { method: "POST", body: JSON.stringify({}) },
+        );
+        return await response.json();
+      } catch (error) {
+        console.error("분석 재개 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "분석 재개에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-        try {
-            const response = await api(`/api/rag/documents/${documentId}/llm-analysis-status`);
-            return await response.json();
-        } catch (error) {
-            console.error('분석 상태 조회 실패:', error);
-            throw error;
-        }
-    }, [api, ensureRagAvailable]);
+  // ============ 분석 취소 ============
+  const cancelAnalysis = useCallback(
+    async (documentId) => {
+      ensureRagAvailable("cancelAnalysis");
 
-    // ============ LLM 분석 작업 목록 ============
-    const listLlmAnalysisJobs = useCallback(async (projectId = null, status = null, page = 1, size = 20) => {
-        ensureRagAvailable('listLlmAnalysisJobs');
+      try {
+        const response = await api(
+          `/api/rag/documents/${documentId}/cancel-analysis`,
+          { method: "POST", body: JSON.stringify({}) },
+        );
+        return await response.json();
+      } catch (error) {
+        console.error("분석 취소 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "분석 취소에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-        try {
-            // Build query parameters object, only including non-null values
-            const params = new URLSearchParams();
-            if (projectId) params.append('projectId', projectId);
-            if (status) params.append('status', status);
-            params.append('page', page);
-            params.append('size', size);
+  // ============ LLM 분석 결과 조회 ============
+  const getLlmAnalysisResults = useCallback(
+    async (documentId, skip = 0, limit = 50) => {
+      ensureRagAvailable("getLlmAnalysisResults");
 
-            const url = `/api/rag/llm-analysis/jobs?${params.toString()}`;
-            const response = await api(url);
-            return await response.json();
-        } catch (error) {
-            console.error('분석 작업 목록 조회 실패:', error);
-            throw error;
-        }
-    }, [api, ensureRagAvailable]);
+      try {
+        const url = `/api/rag/documents/${documentId}/llm-analysis-results?skip=${skip}&limit=${limit}`;
+        const response = await api(url);
+        return await response.json();
+      } catch (error) {
+        console.error("분석 결과 조회 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload:
+            error.response?.data?.message || "분석 결과 조회에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-    // ============ 분석 일시정지 ============
-    const pauseAnalysis = useCallback(async (documentId) => {
-        ensureRagAvailable('pauseAnalysis');
+  // ============ 분석 요약 생성 ============
+  const createAnalysisSummary = useCallback(
+    async (summaryData) => {
+      ensureRagAvailable("createAnalysisSummary");
 
-        try {
-            const response = await api(
-                `/api/rag/documents/${documentId}/pause-analysis`,
-                { method: 'POST', body: JSON.stringify({}) }
-            );
-            return await response.json();
-        } catch (error) {
-            console.error('분석 일시정지 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || '분석 일시정지에 실패했습니다.',
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+      try {
+        const response = await api("/api/rag/analysis-summaries", {
+          method: "POST",
+          body: JSON.stringify(summaryData),
+        });
+        return await response.json();
+      } catch (error) {
+        console.error("분석 요약 생성 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "분석 요약 생성에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-    // ============ 분석 재개 ============
-    const resumeAnalysis = useCallback(async (documentId) => {
-        ensureRagAvailable('resumeAnalysis');
+  // ============ 분석 요약 조회 ============
+  const getAnalysisSummary = useCallback(
+    async (summaryId) => {
+      ensureRagAvailable("getAnalysisSummary");
 
-        try {
-            const response = await api(
-                `/api/rag/documents/${documentId}/resume-analysis`,
-                { method: 'POST', body: JSON.stringify({}) }
-            );
-            return await response.json();
-        } catch (error) {
-            console.error('분석 재개 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || '분석 재개에 실패했습니다.',
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+      try {
+        const response = await api(`/api/rag/analysis-summaries/${summaryId}`);
+        return await response.json();
+      } catch (error) {
+        console.error("분석 요약 조회 실패:", error);
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable],
+  );
 
-    // ============ 분석 취소 ============
-    const cancelAnalysis = useCallback(async (documentId) => {
-        ensureRagAvailable('cancelAnalysis');
+  // ============ 분석 요약 목록 조회 ============
+  const listAnalysisSummaries = useCallback(
+    async (filters = {}) => {
+      ensureRagAvailable("listAnalysisSummaries");
 
-        try {
-            const response = await api(
-                `/api/rag/documents/${documentId}/cancel-analysis`,
-                { method: 'POST', body: JSON.stringify({}) }
-            );
-            return await response.json();
-        } catch (error) {
-            console.error('분석 취소 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || '분석 취소에 실패했습니다.',
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+      try {
+        const queryParams = new URLSearchParams(filters).toString();
+        const url = `/api/rag/analysis-summaries${
+          queryParams ? `?${queryParams}` : ""
+        }`;
+        const response = await api(url);
+        return await response.json();
+      } catch (error) {
+        console.error("분석 요약 목록 조회 실패:", error);
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable],
+  );
 
-    // ============ LLM 분석 결과 조회 ============
-    const getLlmAnalysisResults = useCallback(async (documentId, skip = 0, limit = 50) => {
-        ensureRagAvailable('getLlmAnalysisResults');
+  // ============ 분석 요약 수정 ============
+  const updateAnalysisSummary = useCallback(
+    async (summaryId, summaryData) => {
+      ensureRagAvailable("updateAnalysisSummary");
 
-        try {
-            const url = `/api/rag/documents/${documentId}/llm-analysis-results?skip=${skip}&limit=${limit}`;
-            const response = await api(url);
-            return await response.json();
-        } catch (error) {
-            console.error('분석 결과 조회 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.response?.data?.message || '분석 결과 조회에 실패했습니다.',
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+      try {
+        const response = await api(`/api/rag/analysis-summaries/${summaryId}`, {
+          method: "PUT",
+          body: JSON.stringify(summaryData),
+        });
+        return await response.json();
+      } catch (error) {
+        console.error("분석 요약 수정 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "분석 요약 수정에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-    // ============ 분석 요약 생성 ============
-    const createAnalysisSummary = useCallback(async (summaryData) => {
-        ensureRagAvailable('createAnalysisSummary');
+  // ============ 분석 요약 삭제 ============
+  const deleteAnalysisSummary = useCallback(
+    async (summaryId) => {
+      ensureRagAvailable("deleteAnalysisSummary");
 
-        try {
-            const response = await api(
-                '/api/rag/analysis-summaries',
-                {
-                    method: 'POST',
-                    body: JSON.stringify(summaryData),
-                }
-            );
-            return await response.json();
-        } catch (error) {
-            console.error('분석 요약 생성 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || '분석 요약 생성에 실패했습니다.',
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+      try {
+        await api(`/api/rag/analysis-summaries/${summaryId}`, {
+          method: "DELETE",
+        });
+      } catch (error) {
+        console.error("분석 요약 삭제 실패:", error);
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: error.message || "분석 요약 삭제에 실패했습니다.",
+        });
+        throw error;
+      }
+    },
+    [api, ensureRagAvailable, dispatch, ActionTypes],
+  );
 
-    // ============ 분석 요약 조회 ============
-    const getAnalysisSummary = useCallback(async (summaryId) => {
-        ensureRagAvailable('getAnalysisSummary');
-
-        try {
-            const response = await api(`/api/rag/analysis-summaries/${summaryId}`);
-            return await response.json();
-        } catch (error) {
-            console.error('분석 요약 조회 실패:', error);
-            throw error;
-        }
-    }, [api, ensureRagAvailable]);
-
-    // ============ 분석 요약 목록 조회 ============
-    const listAnalysisSummaries = useCallback(async (filters = {}) => {
-        ensureRagAvailable('listAnalysisSummaries');
-
-        try {
-            const queryParams = new URLSearchParams(filters).toString();
-            const url = `/api/rag/analysis-summaries${queryParams ? `?${queryParams}` : ''}`;
-            const response = await api(url);
-            return await response.json();
-        } catch (error) {
-            console.error('분석 요약 목록 조회 실패:', error);
-            throw error;
-        }
-    }, [api, ensureRagAvailable]);
-
-    // ============ 분석 요약 수정 ============
-    const updateAnalysisSummary = useCallback(async (summaryId, summaryData) => {
-        ensureRagAvailable('updateAnalysisSummary');
-
-        try {
-            const response = await api(
-                `/api/rag/analysis-summaries/${summaryId}`,
-                {
-                    method: 'PUT',
-                    body: JSON.stringify(summaryData),
-                }
-            );
-            return await response.json();
-        } catch (error) {
-            console.error('분석 요약 수정 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || '분석 요약 수정에 실패했습니다.',
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
-
-    // ============ 분석 요약 삭제 ============
-    const deleteAnalysisSummary = useCallback(async (summaryId) => {
-        ensureRagAvailable('deleteAnalysisSummary');
-
-        try {
-            await api(`/api/rag/analysis-summaries/${summaryId}`, { method: 'DELETE' });
-        } catch (error) {
-            console.error('분석 요약 삭제 실패:', error);
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || '분석 요약 삭제에 실패했습니다.',
-            });
-            throw error;
-        }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
-
-    return {
-        checkLlmAvailability,
-        estimateAnalysisCost,
-        startLlmAnalysis,
-        getLlmAnalysisStatus,
-        listLlmAnalysisJobs,
-        pauseAnalysis,
-        resumeAnalysis,
-        cancelAnalysis,
-        getLlmAnalysisResults,
-        createAnalysisSummary,
-        getAnalysisSummary,
-        listAnalysisSummaries,
-        updateAnalysisSummary,
-        deleteAnalysisSummary,
-    };
+  return {
+    checkLlmAvailability,
+    estimateAnalysisCost,
+    startLlmAnalysis,
+    getLlmAnalysisStatus,
+    listLlmAnalysisJobs,
+    pauseAnalysis,
+    resumeAnalysis,
+    cancelAnalysis,
+    getLlmAnalysisResults,
+    createAnalysisSummary,
+    getAnalysisSummary,
+    listAnalysisSummaries,
+    updateAnalysisSummary,
+    deleteAnalysisSummary,
+  };
 }

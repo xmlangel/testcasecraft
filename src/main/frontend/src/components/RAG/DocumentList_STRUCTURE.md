@@ -3,11 +3,13 @@
 ## 📊 리팩토링 최종 결과
 
 ### 코드 줄 수 변화
-| 항목 | 이전 | 이후 | 변화 |
-|------|------|------|------|
+
+| 항목                 | 이전    | 이후   | 변화     |
+| -------------------- | ------- | ------ | -------- |
 | **DocumentList.jsx** | 1,485줄 | ~550줄 | **-63%** |
 
 ### 생성된 파일
+
 - **Utilities**: 3개 모듈 + constants.js (~300줄)
 - **Custom Hooks**: 6개 (~600줄)
 - **UI Components**: 5개 (~550줄)
@@ -75,6 +77,7 @@ src/main/frontend/src/components/RAG/
 ## 📦 유틸리티 상세
 
 ### constants.js (확장됨)
+
 **DocumentList 관련 상수 추가**
 
 ```javascript
@@ -88,24 +91,25 @@ export const DOCUMENT_LIST_CONSTANTS = {
 };
 
 export const LLM_ANALYSIS_STATUS = {
-  NOT_STARTED: 'not_started',
-  PENDING: 'pending',
-  PROCESSING: 'processing',
-  PAUSED: 'paused',
-  RESUMING: 'resuming',
-  COMPLETED: 'completed',
-  CANCELLED: 'cancelled',
-  ERROR: 'error',
+  NOT_STARTED: "not_started",
+  PENDING: "pending",
+  PROCESSING: "processing",
+  PAUSED: "paused",
+  RESUMING: "resuming",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+  ERROR: "error",
 };
 
 export const DOCUMENT_TYPE = {
-  TESTCASE_PREFIX: 'testcase_',
+  TESTCASE_PREFIX: "testcase_",
 };
 ```
 
 ---
 
 ### utils/documentFormatUtils.js
+
 **날짜 및 진행률 포맷팅 함수**
 
 ```javascript
@@ -114,7 +118,8 @@ export function formatProgressSummary(llmState)
 export function getProgressColor(progress)
 ```
 
-**사용 위치**: 
+**사용 위치**:
+
 - `JobHistoryDialog.jsx`
 - `SummaryDialog.jsx`
 - `useLlmAnalysisStates.js`
@@ -122,6 +127,7 @@ export function getProgressColor(progress)
 ---
 
 ### utils/llmAnalysisUtils.js
+
 **LLM 분석 관련 유틸리티**
 
 ```javascript
@@ -130,13 +136,15 @@ export function calculateProgress(processedChunks, totalChunks)
 export function getSummaryMarkdownStyles(theme, isFullScreen)
 ```
 
-**사용 위치**: 
+**사용 위치**:
+
 - `useSummaryDialog.js`
 - `useLlmAnalysisStates.js`
 
 ---
 
 ### utils/documentFilters.js
+
 **문서 필터링 로직**
 
 ```javascript
@@ -152,7 +160,9 @@ export function filterTestCaseDocuments(documents)
 ## 🎣 Custom Hooks 상세
 
 ### useDocumentList.js
+
 **문서 목록 관리**
+
 - 페이지네이션 상태 (`page`, `rowsPerPage`)
 - 문서 로드 (`loadDocuments`)
 - 새로고침 (`handleRefresh`)
@@ -162,7 +172,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### useExpandableRows.js
+
 **행 확장/축소**
+
 - 확장 상태 관리 (`expandedRows`)
 - 토글 핸들러 (`handleRowExpand`)
 - 전체 축소 (`collapseAll`)
@@ -172,7 +184,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### useLlmAnalysisStates.js
+
 **LLM 분석 상태 관리**
+
 - 각 문서의 분석 상태 조회
 - 진행률 계산
 - 작업 제어 (일시정지/재개/취소)
@@ -182,7 +196,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### useDocumentActions.js
+
 **문서 액션 핸들러**
+
 - 삭제, 다운로드
 - 분석, 임베딩 생성
 - 미리보기, 청크 보기
@@ -192,7 +208,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### useSummaryDialog.js
+
 **LLM 분석 요약 다이얼로그**
+
 - 요약 페이지네이션
 - 요약 데이터 로드
 - 전체화면 토글
@@ -203,7 +221,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### useJobHistory.js
+
 **작업 이력 관리**
+
 - 작업 이력 조회
 - 다이얼로그 상태
 
@@ -214,7 +234,9 @@ export function filterTestCaseDocuments(documents)
 ## 🎨 UI Components 상세
 
 ### DocumentListHeader.jsx (~70줄)
+
 **헤더 컴포넌트**
+
 - 제목
 - 새로고침 버튼
 - 업로드 버튼
@@ -224,7 +246,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### DocumentListTabs.jsx (~50줄)
+
 **탭 컴포넌트**
+
 - 일반 문서 탭
 - 테스트케이스 문서 탭 (관리자만)
 
@@ -233,7 +257,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### SummaryDialog.jsx (~220줄)
+
 **LLM 분석 요약 다이얼로그**
+
 - 마크다운 렌더링 with MDEditor
 - 페이지네이션
 - 전체화면 토글
@@ -244,7 +270,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### JobHistoryDialog.jsx (~180줄)
+
 **작업 이력 다이얼로그**
+
 - 작업 테이블
 - 상태, 진행률, 비용 표시
 - 에러 메시지 툴팁
@@ -254,7 +282,9 @@ export function filterTestCaseDocuments(documents)
 ---
 
 ### DocumentListDialogs.jsx (~230줄)
+
 **기타 다이얼로그 모음**
+
 - 삭제 확인
 - 업로드
 - 공통 문서 이동
@@ -297,21 +327,24 @@ export function filterTestCaseDocuments(documents)
 ## 📈 개선 효과
 
 ### 코드 감소
+
 - **메인 컴포넌트**: 1,485줄 → ~550줄 (**-63%**)
 - **생성되는 모듈**: Hooks 6개 + UI 5개 + Utils 3개 = **14개**
 
 ### 중복 제거
+
 - 날짜 포맷팅: 3곳 중복 → 1곳 정의
 - 진행률 계산: 2곳 중복 → 1곳 정의
 - 문서 필터링: 2곳 중복 → 1곳 정의
 
 ### 재사용성
+
 모든 유틸리티 함수와 hooks는 다른 컴포넌트에서도 사용 가능:
 
 ```javascript
 // 다른 파일에서도 동일한 함수 사용
-import { formatDateArray, getProgressColor } from '@/components/RAG/utils';
-import { useDocumentList } from '@/components/RAG/hooks/useDocumentList';
+import { formatDateArray, getProgressColor } from "@/components/RAG/utils";
+import { useDocumentList } from "@/components/RAG/hooks/useDocumentList";
 ```
 
 ---
@@ -319,6 +352,7 @@ import { useDocumentList } from '@/components/RAG/hooks/useDocumentList';
 ## ✅ 결론
 
 ### 달성한 목표
+
 - ✅ 메인 컴포넌트 63% 감소 (1,485줄 → 550줄)
 - ✅ 14개 모듈로 분리 (Hooks 6 + UI 5 + Utils 3)
 - ✅ 중복 코드 제거
@@ -327,14 +361,14 @@ import { useDocumentList } from '@/components/RAG/hooks/useDocumentList';
 
 ### 비교: RAGChatInterface vs DocumentList
 
-| 항목 | RAGChatInterface | DocumentList |
-|------|------------------|--------------|
-| **Before** | 2,108줄 | 1,485줄 |
-| **After** | ~630줄 | ~550줄 |
-| **감소율** | -70% | -63% |
-| **Hooks** | 6개 | 6개 |
-| **UI Components** | 5개 | 5개 |
-| **Utils** | 5개 | 3개 (+ 기존 5개 활용) |
+| 항목              | RAGChatInterface | DocumentList          |
+| ----------------- | ---------------- | --------------------- |
+| **Before**        | 2,108줄          | 1,485줄               |
+| **After**         | ~630줄           | ~550줄                |
+| **감소율**        | -70%             | -63%                  |
+| **Hooks**         | 6개              | 6개                   |
+| **UI Components** | 5개              | 5개                   |
+| **Utils**         | 5개              | 3개 (+ 기존 5개 활용) |
 
 ---
 

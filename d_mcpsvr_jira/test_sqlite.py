@@ -1,11 +1,19 @@
 import unittest
 import os
 from util import init_logger
-from sqlite import init_project_db, add_ticket, search_tickets, del_project_db, get_tickets_count
+from sqlite import (
+    init_project_db,
+    add_ticket,
+    search_tickets,
+    del_project_db,
+    get_tickets_count,
+)
 import sqlite3
 import sqlite_vec
 import json
 import logging
+
+
 class TestSQLiteFeatures(unittest.TestCase):
 
     def test_db_flow(self):
@@ -48,7 +56,7 @@ class TestSQLiteFeatures(unittest.TestCase):
         self.assertIsNotNone(ticket)
         self.assertEqual(ticket[1], "TICKET-1")
         self.assertEqual(ticket[2], "Test Ticket")
-        self.assertEqual(ticket[3], "This is a test ticket.")  
+        self.assertEqual(ticket[3], "This is a test ticket.")
 
         cursor.execute("SELECT * FROM jira_tickets WHERE status = 'In Progress'")
         ticket = cursor.fetchone()
@@ -58,27 +66,27 @@ class TestSQLiteFeatures(unittest.TestCase):
         conn.close()
 
         # search for the test ticket
-        result = search_tickets(project_name, "Test")  
-        #parse the result as JSON
-        result_json = json.loads(result)      
+        result = search_tickets(project_name, "Test")
+        # parse the result as JSON
+        result_json = json.loads(result)
         self.assertIn("TICKET-1", result_json[0]["ticket_id"])
 
         # search for the finished ticket
-        result = search_tickets(project_name, "finished")  
-        #parse the result as JSON
-        result_json = json.loads(result)      
+        result = search_tickets(project_name, "finished")
+        # parse the result as JSON
+        result_json = json.loads(result)
         self.assertIn("TICKET-2", result_json[0]["ticket_id"])
 
         # search for the finished ticket
-        result = search_tickets(project_name, "ticket", "(status = 'In Progress')")  
-        #parse the result as JSON
+        result = search_tickets(project_name, "ticket", "(status = 'In Progress')")
+        # parse the result as JSON
         result_json = json.loads(result)
         self.assertEqual(len(result_json), 1)
         self.assertIn("TICKET-2", result_json[0]["ticket_id"])
 
         # search for the finished ticket
-        result = search_tickets(project_name, "", "(status = 'In Progress')")  
-        #parse the result as JSON
+        result = search_tickets(project_name, "", "(status = 'In Progress')")
+        # parse the result as JSON
         result_json = json.loads(result)
         self.assertEqual(len(result_json), 1)
         self.assertIn("TICKET-2", result_json[0]["ticket_id"])
@@ -86,16 +94,16 @@ class TestSQLiteFeatures(unittest.TestCase):
         # delete the project database
         result = del_project_db(project_name)
         self.assertIn("Succ", result)
-        
+
 
 if __name__ == "__main__":
     try:
-       
-       init_logger()  # Initialize the logger
-        
-       try:
+
+        init_logger()  # Initialize the logger
+
+        try:
             unittest.main()
-       finally:
+        finally:
             db_dir = os.getenv("DB_DIR", "databases")
             db_path = os.path.join(db_dir, "test_project.db")
             if os.path.exists(db_path):

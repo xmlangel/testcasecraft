@@ -77,7 +77,7 @@ updatedAt: new Date().toISOString()
     } else {
       addTestPlan(updatedTestPlan);
     }
-    
+
     setFormOpen(false);
     if (onSave) {
       onSave();
@@ -97,6 +97,7 @@ return null;
 }
 
 return (
+
 <Dialog
       open={formOpen}
       onClose={handleCancel}
@@ -117,7 +118,7 @@ return (
           variant="outlined"
           required
         />
-        
+
         <TextField
           label="설명"
           value={testPlan.description || ''}
@@ -128,28 +129,28 @@ return (
           multiline
           rows={3}
         />
-        
+
         <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
           테스트케이스 선택
         </Typography>
-        
+
         <Grid container spacing={2} sx={{ minHeight: 400 }}>
           <Grid item xs={6}>
             <Paper variant="outlined" sx={{ height: '100%', p: 2 }}>
-              <TestCaseTree 
+              <TestCaseTree
                 selectable={true}
                 selectedIds={selectedTestCaseIds}
                 onSelectionChange={handleSelectionChange}
               />
             </Paper>
           </Grid>
-          
+
           <Grid item xs={6}>
             <Paper variant="outlined" sx={{ height: '100%', p: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
                 선택된 테스트케이스 ({selectedTestCaseIds.length})
               </Typography>
-              
+
               <List sx={{ overflow: 'auto', maxHeight: 400 }}>
                 {selectedTestCaseIds.length === 0 ? (
                   <ListItem>
@@ -175,10 +176,10 @@ return (
                         </ListItemIcon>
                         <ListItemText
                           primary={testCase.name}
-                          secondary={testCase.description ? 
-                            (testCase.description.length > 50 ? 
-                              `${testCase.description.substring(0, 50)}...` : 
-                              testCase.description) : 
+                          secondary={testCase.description ?
+                            (testCase.description.length > 50 ?
+                              `${testCase.description.substring(0, 50)}...` :
+                              testCase.description) :
                             null
                           }
                         />
@@ -191,12 +192,12 @@ return (
           </Grid>
         </Grid>
       </DialogContent>
-      
+
       <DialogActions>
         <Button onClick={handleCancel}>취소</Button>
-        <Button 
-          onClick={handleSave} 
-          variant="contained" 
+        <Button
+          onClick={handleSave}
+          variant="contained"
           color="primary"
           disabled={!testPlan.name || selectedTestCaseIds.length === 0}
         >
@@ -205,11 +206,12 @@ return (
       </DialogActions>
     </Dialog>
     );
+
 };
 
 export default TestPlanForm;
 
-TestPlanForm.js 도 단위테스트를 작성해서 이상이 없는지 확인한후에 개선할 사항이 있으면 반영하고 반영한후에 기존코드에  수정해서 보여줘. 보여주는건 전체 코드를 보여줘
+TestPlanForm.js 도 단위테스트를 작성해서 이상이 없는지 확인한후에 개선할 사항이 있으면 반영하고 반영한후에 기존코드에 수정해서 보여줘. 보여주는건 전체 코드를 보여줘
 
 테스트 플랜 폼 컴포넌트를 개선한 내용과 단위 테스트 결과를 포함해 설명드리겠습니다.
 
@@ -237,7 +239,7 @@ jest.mock('../context/AppContext', () =&gt; ({
     },
     addTestPlan: jest.fn(),
     updateTestPlan: jest.fn(),
-    getTestCase: jest.fn().mockImplementation(id =&gt; 
+    getTestCase: jest.fn().mockImplementation(id =&gt;
       ({ id: 'tc1', name: 'Test Case 1' }))
   })
 }));
@@ -301,11 +303,11 @@ import TestCaseTree from './TestCaseTree';
 const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
   const { state, addTestPlan, updateTestPlan, getTestCase } = useAppContext();
   const { testPlans } = state;
-  
+
   const [formOpen, setFormOpen] = useState(true);
   const [testPlan, setTestPlan] = useState(
-    testPlanId 
-      ? testPlans.find(plan =&gt; plan.id === testPlanId) 
+    testPlanId
+      ? testPlans.find(plan =&gt; plan.id === testPlanId)
       : createTestPlan(`plan-${uuidv4()}`, '')
   );
   const [selectedTestCaseIds, setSelectedTestCaseIds] = useState([]);
@@ -340,12 +342,12 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
   const validate = useCallback(() =&gt; {
     const newErrors = { name: '' };
     let isValid = true;
-    
+
     if (!testPlan.name.trim()) {
       newErrors.name = '테스트 플랜 이름을 입력해 주세요';
       isValid = false;
     }
-    
+
     setErrors(newErrors);
     return isValid;
   }, [testPlan.name]);
@@ -353,7 +355,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
   // 저장 핸들러
   const handleSave = useCallback(() =&gt; {
     if (!validate()) return;
-    
+
     const updatedTestPlan = {
       ...testPlan,
       testCaseIds: selectedTestCaseIds,
@@ -423,20 +425,20 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
         &lt;Grid container spacing={2} sx={{ minHeight: 400 }}&gt;
           &lt;Grid item xs={6}&gt;
             &lt;Paper variant="outlined" sx={{ height: '100%', p: 2 }}&gt;
-              &lt;TestCaseTree 
+              &lt;TestCaseTree
                 selectable={true}
                 selectedIds={selectedTestCaseIds}
                 onSelectionChange={handleSelectionChange}
               /&gt;
             &lt;/Paper&gt;
           &lt;/Grid&gt;
-          
+
           &lt;Grid item xs={6}&gt;
             &lt;Paper variant="outlined" sx={{ height: '100%', p: 2 }}&gt;
               &lt;Typography variant="subtitle2" gutterBottom&gt;
                 선택된 테스트케이스 ({selectedTestCaseIds.length})
               &lt;/Typography&gt;
-              
+
               &lt;List sx={{ overflow: 'auto', maxHeight: 400 }}&gt;
                 {selectedTestCaseIds.length === 0 ? (
                   &lt;ListItem&gt;
@@ -454,10 +456,10 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
                           &lt;Checkbox
                             edge="start"
                             checked={true}
-                            onChange={() =&gt; setSelectedTestCaseIds(prev =&gt; 
+                            onChange={() =&gt; setSelectedTestCaseIds(prev =&gt;
                               prev.filter(tcId =&gt; tcId !== id)
                             )}
-                            inputProps={{ 
+                            inputProps={{
                               'aria-label': `${testCase.name} 선택 해제`
                             }}
                           /&gt;
@@ -477,15 +479,15 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) =&gt; {
       &lt;/DialogContent&gt;
 
       &lt;DialogActions&gt;
-        &lt;Button 
+        &lt;Button
           onClick={handleCancel}
           aria-label="테스트 플랜 편집 취소"
         &gt;
           취소
         &lt;/Button&gt;
-        &lt;Button 
-          onClick={handleSave} 
-          variant="contained" 
+        &lt;Button
+          onClick={handleSave}
+          variant="contained"
           color="primary"
           disabled={!testPlan.name || selectedTestCaseIds.length === 0}
           aria-label="테스트 플랜 저장"
@@ -506,7 +508,6 @@ TestPlanForm.propTypes = {
 export default TestPlanForm;
 ```
 
-
 ---
 
 ### **주요 개선 사항**
@@ -514,16 +515,15 @@ export default TestPlanForm;
 1. **PropTypes 추가**: 컴포넌트 prop 타입 명시
 2. **성능 최적화**: `useCallback`으로 핸들러 메모이제이션
 3. **유효성 검증 강화**:
-    - 이름 필드 에러 메시지 표시
-    - 저장 버튼 상태 관리 개선
+   - 이름 필드 에러 메시지 표시
+   - 저장 버튼 상태 관리 개선
 4. **접근성 개선**:
-    - 모든 상호작용 요소에 aria-label 추가
-    - 키보드 네비게이션 지원 개선
+   - 모든 상호작용 요소에 aria-label 추가
+   - 키보드 네비게이션 지원 개선
 5. **코드 품질 개선**:
-    - 상태 업데이트 함수형 방식으로 변경
-    - 중복 코드 제거 및 가독성 향상
+   - 상태 업데이트 함수형 방식으로 변경
+   - 중복 코드 제거 및 가독성 향상
 
 테스트 케이스와 함께 동작을 검증했으며, 사용자 경험과 코드 유지보수성을 크게 개선했습니다. 추가 질문 있으면 언제든 요청해주세요!
 
 <div style="text-align: center">⁂</div>
-

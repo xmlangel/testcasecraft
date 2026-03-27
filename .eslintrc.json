@@ -1,0 +1,38 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2020": true
+  },
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-undef": "off",
+    "no-prototype-builtins": "off",
+    "no-empty": "warn",
+    "no-dupe-class-members": "warn"
+  },
+  "ignorePatterns": [".agent/workflows/**", "build/**", "node_modules/**"],
+  "overrides": [
+    {
+      "files": ["src/main/frontend/**"],
+      "env": {
+        "browser": true
+      }
+    },
+    {
+      "files": ["src/test/e2e/**"],
+      "env": {
+        "node": true
+      }
+    }
+  ]
+}

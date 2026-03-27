@@ -3,6 +3,7 @@
 ## 1. 우선순위 P1 (다음 스프린트)
 
 ### P1-1. 아티팩트 업로드 API
+
 - 목표
   - `POST /api/sessions/{id}/artifacts` 구현
 - 포함 범위
@@ -14,6 +15,7 @@
   - API 테스트 통과
 
 ### P1-2. SessionNote / SessionIssue API
+
 - 목표
   - 세션 노트, 버그/이슈/질문을 구조화 저장
 - 포함 범위
@@ -24,6 +26,7 @@
   - TDD 통과
 
 ### P1-3. 프로젝트 접근 제어 강화
+
 - 목표
   - 프로젝트 멤버십/조직 멤버십 기반 접근 제어 적용
 - 포함 범위
@@ -35,6 +38,7 @@
 ## 2. 우선순위 P2 (안정화)
 
 ### P2-1. 승인/중단 이력 조회 API
+
 - 목표
   - 상세 화면에서 타임라인 재구성 가능
 - 포함 범위
@@ -44,6 +48,7 @@
   - 최신순/시간순 정렬 및 조회 가능
 
 ### P2-2. 목록 조회 성능/정합성 보강
+
 - 목표
   - 대용량 데이터에서도 일관된 응답 시간 유지
 - 포함 범위
@@ -53,6 +58,7 @@
   - 기준 데이터셋에서 응답 SLA 충족
 
 ### P2-3. API 문서/스키마 동기화
+
 - 목표
   - 구현 API와 문서 일치
 - 포함 범위
@@ -64,16 +70,20 @@
 ## 3. 우선순위 P3 (UI 연동)
 
 ### P3-1. 차터 관리 화면
+
 - 차터 생성/조회/보관(ARCHIVED) 연동
 
 ### P3-2. 세션 작성/라이프사이클 화면
+
 - start/pause/resume/end 버튼 상태 제어
 - 제출/승인/보완 요청 플로우 연동
 
 ### P3-3. 세션 상세 타임라인
+
 - 승인/중단/이슈/아티팩트 통합 표시
 
 ## 4. 권장 실행 순서
+
 1. P1-1 아티팩트 API
 2. P1-2 노트/이슈 API
 3. P1-3 권한 강화
@@ -83,6 +93,7 @@
 7. P3 UI 연동
 
 ## 5. 각 항목 공통 DoD
+
 - TestNG 기반 API 테스트 추가
 - 기존 SessionControllerApiTest + 신규 테스트 통과
 - 에러 응답 규약(`ErrorResponse`) 준수
@@ -91,6 +102,7 @@
 ## 6. 탭별 작업 진행계획 (Exploratory Session Workspace)
 
 ### 6.1 탭 1: 차터 관리
+
 - 목표
   - `차터 생성/조회/수정/ARCHIVED 전환`을 실데이터로 운영
 - 백엔드 작업
@@ -107,6 +119,7 @@
   - ARCHIVED 차터는 신규 세션 할당 불가
 
 ### 6.2 탭 2: 세션 목록
+
 - 목표
   - 세션 목록 필터/페이징/정렬을 실데이터로 제공
 - 백엔드 작업
@@ -124,6 +137,7 @@
   - 대시보드/상세 이동 경로 정상 동작
 
 ### 6.3 탭 3: 세션 작성/편집
+
 - 목표
   - 세션 생성/수정 + 라이프사이클(`start/pause/resume/end/submit`) 실사용 가능 상태
 - 백엔드 작업
@@ -142,6 +156,7 @@
   - 상태 전이 오류 없이 제출 가능
 
 ### 6.4 탭 4: 디브리프/승인
+
 - 목표
   - 제출 세션에 대해 리드 승인/보완요청 운영 가능
 - 백엔드 작업
@@ -158,6 +173,7 @@
   - 비권한 사용자 승인 액션 차단
 
 ### 6.5 탭 5: 세션 상세
+
 - 목표
   - 세션 단위 타임라인(중단/재개/승인/이슈/아티팩트) 통합 조회
 - 백엔드 작업
@@ -174,17 +190,17 @@
   - 승인 리포트/증적 접근 가능
 
 ### 6.6 탭별 실행 순서(권장)
+
 1. 탭 1 차터 관리 (완료)
 2. 탭 2 세션 목록
 3. 탭 3 세션 작성/편집
 4. 탭 4 디브리프/승인
 5. 탭 5 세션 상세
 
-
-
 ## 아래부분은 수정하지말아.
+
 - 백엔드 API 핵심은 구현되어 있습니다. 세션 생성/조회/수정/라이프사이클/제출/승인/보완요청/목록 필터 API가 존재합니다: src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:37, src/main/java/com/
-    testcase/testcasemanagement/controller/TestSessionController.java:109
+  testcase/testcasemanagement/controller/TestSessionController.java:109
   - 서비스 로직도 상태 전이, 중단시간 집계, 승인 이력 append가 구현되어 있습니다: src/main/java/com/testcase/testcasemanagement/service/TestSessionService.java:102, src/main/java/com/testcase/testcasemanagement/service/
     TestSessionService.java:115, src/main/java/com/testcase/testcasemanagement/service/TestSessionService.java:184
   - 차터 API도 구현되어 있습니다: src/main/java/com/testcase/testcasemanagement/controller/TestCharterController.java:28
@@ -193,10 +209,10 @@
     ExploratorySessionWorkspace.jsx:215
   - 탐색 세션 탭은 현재 노출 상태입니다(true): src/main/frontend/src/App.jsx:84, src/main/frontend/src/App.jsx:1021
   - 미구현(문서와 코드 일치) 항목은 여전히 없습니다.
-      - 아티팩트 업로드 API (/api/sessions/{id}/artifacts)
-      - SessionNote/SessionIssue 도메인/API
-      - approvals/interruptions 조회 API
-      - Session API의 프로젝트 멤버십 기반 접근제어(projectSecurityService)
-        근거: docs/sbtm/SBTM_IMPLEMENTATION_STATUS.md:82, 그리고 TestSessionController에 해당 엔드포인트/권한식 부재 src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:30
-  ----
+    - 아티팩트 업로드 API (/api/sessions/{id}/artifacts)
+    - SessionNote/SessionIssue 도메인/API
+    - approvals/interruptions 조회 API
+    - Session API의 프로젝트 멤버십 기반 접근제어(projectSecurityService)
+      근거: docs/sbtm/SBTM_IMPLEMENTATION_STATUS.md:82, 그리고 TestSessionController에 해당 엔드포인트/권한식 부재 src/main/java/com/testcase/testcasemanagement/controller/TestSessionController.java:30
+  ***
   여기까지 수정하지 말아.

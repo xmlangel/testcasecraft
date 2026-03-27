@@ -3,28 +3,28 @@
  * 검색 입력 분자적 컴포넌트
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { InputAdornment, IconButton } from '@mui/material';
-import { Search, Clear } from '@mui/icons-material';
-import { Input } from '../../atoms';
+import React, { useState, useCallback, useEffect } from "react";
+import PropTypes from "prop-types";
+import { InputAdornment, IconButton } from "@mui/material";
+import { Search, Clear } from "@mui/icons-material";
+import { Input } from "../../atoms";
 
 const SearchInput = ({
-  value = '',
+  value = "",
   onChange,
   onSearch,
-  placeholder = '검색어를 입력하세요',
+  placeholder = "검색어를 입력하세요",
   debounceMs = 300,
   clearable = true,
   autoSearch = true,
   ...props
 }) => {
   const [searchValue, setSearchValue] = useState(value);
-  
+
   // Debounce search
   useEffect(() => {
     if (!autoSearch) return;
-    
+
     const timeoutId = setTimeout(() => {
       if (searchValue !== value) {
         onChange?.(searchValue);
@@ -40,24 +40,30 @@ const SearchInput = ({
     setSearchValue(value);
   }, [value]);
 
-  const handleChange = useCallback((newValue) => {
-    setSearchValue(newValue);
-    if (!autoSearch) {
-      onChange?.(newValue);
-    }
-  }, [onChange, autoSearch]);
+  const handleChange = useCallback(
+    (newValue) => {
+      setSearchValue(newValue);
+      if (!autoSearch) {
+        onChange?.(newValue);
+      }
+    },
+    [onChange, autoSearch],
+  );
 
-  const handleKeyPress = useCallback((event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      onSearch?.(searchValue);
-    }
-  }, [onSearch, searchValue]);
+  const handleKeyPress = useCallback(
+    (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        onSearch?.(searchValue);
+      }
+    },
+    [onSearch, searchValue],
+  );
 
   const handleClear = useCallback(() => {
-    setSearchValue('');
-    onChange?.('');
-    onSearch?.('');
+    setSearchValue("");
+    onChange?.("");
+    onSearch?.("");
   }, [onChange, onSearch]);
 
   const handleSearchClick = useCallback(() => {
@@ -66,26 +72,20 @@ const SearchInput = ({
 
   const startAdornment = (
     <InputAdornment position="start">
-      <IconButton
-        size="small"
-        onClick={handleSearchClick}
-        disabled={!onSearch}
-      >
+      <IconButton size="small" onClick={handleSearchClick} disabled={!onSearch}>
         <Search />
       </IconButton>
     </InputAdornment>
   );
 
-  const endAdornment = clearable && searchValue ? (
-    <InputAdornment position="end">
-      <IconButton
-        size="small"
-        onClick={handleClear}
-      >
-        <Clear />
-      </IconButton>
-    </InputAdornment>
-  ) : null;
+  const endAdornment =
+    clearable && searchValue ? (
+      <InputAdornment position="end">
+        <IconButton size="small" onClick={handleClear}>
+          <Clear />
+        </IconButton>
+      </InputAdornment>
+    ) : null;
 
   return (
     <Input

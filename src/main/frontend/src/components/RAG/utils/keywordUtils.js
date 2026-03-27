@@ -8,28 +8,48 @@
  * 파일 리스트 요청 키워드 목록
  */
 export const FILE_LIST_KEYWORDS = [
-    '파일리스트', '파일 리스트', '파일 목록', '파일목록',
-    '문서리스트', '문서 리스트', '문서 목록', '문서목록',
-    'file list', 'filelist', 'document list', 'documentlist',
-    '파일을 보여', '파일 보여', '문서를 보여', '문서 보여',
-    '업로드된 파일', '업로드 파일', '업로드된 문서', '업로드 문서'
+  "파일리스트",
+  "파일 리스트",
+  "파일 목록",
+  "파일목록",
+  "문서리스트",
+  "문서 리스트",
+  "문서 목록",
+  "문서목록",
+  "file list",
+  "filelist",
+  "document list",
+  "documentlist",
+  "파일을 보여",
+  "파일 보여",
+  "문서를 보여",
+  "문서 보여",
+  "업로드된 파일",
+  "업로드 파일",
+  "업로드된 문서",
+  "업로드 문서",
 ];
 
 /**
  * 테스트 케이스 요청 키워드 목록
  */
 export const TEST_CASE_KEYWORDS = [
-    '테스트 케이스', '테스트케이스',
-    'test case', 'testcase',
-    '테스트 시나리오'
+  "테스트 케이스",
+  "테스트케이스",
+  "test case",
+  "testcase",
+  "테스트 시나리오",
 ];
 
 /**
  * 테스트 케이스 파일 필터링 키워드 목록
  */
 export const TEST_CASE_FILE_KEYWORDS = [
-    'testcase', '테스트케이스', '테스트 케이스',
-    'test case', 'test-case'
+  "testcase",
+  "테스트케이스",
+  "테스트 케이스",
+  "test case",
+  "test-case",
 ];
 
 /**
@@ -39,14 +59,12 @@ export const TEST_CASE_FILE_KEYWORDS = [
  * @returns {boolean} 키워드 포함 여부
  */
 export function containsKeyword(text, keywords) {
-    if (!text || typeof text !== 'string') {
-        return false;
-    }
+  if (!text || typeof text !== "string") {
+    return false;
+  }
 
-    const lowerText = text.toLowerCase();
-    return keywords.some(keyword =>
-        lowerText.includes(keyword.toLowerCase())
-    );
+  const lowerText = text.toLowerCase();
+  return keywords.some((keyword) => lowerText.includes(keyword.toLowerCase()));
 }
 
 /**
@@ -55,7 +73,7 @@ export function containsKeyword(text, keywords) {
  * @returns {boolean} 파일 리스트 요청 여부
  */
 export function isFileListRequest(text) {
-    return containsKeyword(text, FILE_LIST_KEYWORDS);
+  return containsKeyword(text, FILE_LIST_KEYWORDS);
 }
 
 /**
@@ -64,7 +82,7 @@ export function isFileListRequest(text) {
  * @returns {boolean} 테스트 케이스 요청 여부
  */
 export function isTestCaseRequest(text) {
-    return containsKeyword(text, TEST_CASE_KEYWORDS);
+  return containsKeyword(text, TEST_CASE_KEYWORDS);
 }
 
 /**
@@ -73,19 +91,20 @@ export function isTestCaseRequest(text) {
  * @returns {boolean} 테스트 케이스 파일 여부
  */
 export function isTestCaseDocument(document) {
-    if (!document) {
-        return false;
-    }
+  if (!document) {
+    return false;
+  }
 
-    const fileName = (document.fileName || '').toLowerCase();
-    const description = (document.description || '').toLowerCase();
-    const fileType = (document.fileType || '').toLowerCase();
+  const fileName = (document.fileName || "").toLowerCase();
+  const description = (document.description || "").toLowerCase();
+  const fileType = (document.fileType || "").toLowerCase();
 
-    return TEST_CASE_FILE_KEYWORDS.some(keyword =>
-        fileName.includes(keyword) ||
-        description.includes(keyword) ||
-        fileType.includes(keyword)
-    );
+  return TEST_CASE_FILE_KEYWORDS.some(
+    (keyword) =>
+      fileName.includes(keyword) ||
+      description.includes(keyword) ||
+      fileType.includes(keyword),
+  );
 }
 
 /**
@@ -94,9 +113,9 @@ export function isTestCaseDocument(document) {
  * @returns {Array} 필터링된 문서 배열
  */
 export function filterNonTestCaseDocuments(documents) {
-    if (!Array.isArray(documents)) {
-        return [];
-    }
+  if (!Array.isArray(documents)) {
+    return [];
+  }
 
-    return documents.filter(doc => !isTestCaseDocument(doc));
+  return documents.filter((doc) => !isTestCaseDocument(doc));
 }

@@ -3,13 +3,13 @@
 import React from "react";
 import { Box, IconButton, Toolbar, Button } from "@mui/material";
 import {
-    Add as AddIcon,
-    Delete as DeleteIcon,
-    Save as SaveIcon,
-    Close as CloseIcon,
-    Refresh as RefreshIcon,
-    CreateNewFolder as CreateNewFolderIcon,
-    SwapVert as SwapVertIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  Close as CloseIcon,
+  Refresh as RefreshIcon,
+  CreateNewFolder as CreateNewFolderIcon,
+  SwapVert as SwapVertIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../../context/I18nContext.jsx";
 
@@ -30,108 +30,120 @@ import { useI18n } from "../../../context/I18nContext.jsx";
  * @param {boolean} showMinimalToolbar - 새로고침만 표시 (TestPlanForm용)
  */
 const TreeToolbar = ({
-    onRefresh,
-    onAddFolder,
-    onAddTestCase,
-    onToggleOrderEdit,
-    onOrderSave,
-    onOrderCancel,
-    onBulkDelete,
-    checkedCount,
-    orderEditMode,
-    userRole,
-    isViewer,
-    canDelete,
-    showMinimalToolbar = false,
+  onRefresh,
+  onAddFolder,
+  onAddTestCase,
+  onToggleOrderEdit,
+  onOrderSave,
+  onOrderCancel,
+  onBulkDelete,
+  checkedCount,
+  orderEditMode,
+  userRole,
+  isViewer,
+  canDelete,
+  showMinimalToolbar = false,
 }) => {
-    const { t } = useI18n();
+  const { t } = useI18n();
 
-    return (
-        <Toolbar
-            variant="dense"
-            sx={{
-                borderBottom: 1,
-                borderColor: "divider",
-                justifyContent: "flex-end",
-                minHeight: 48,
-                px: 1,
-            }}
+  return (
+    <Toolbar
+      variant="dense"
+      sx={{
+        borderBottom: 1,
+        borderColor: "divider",
+        justifyContent: "flex-end",
+        minHeight: 48,
+        px: 1,
+      }}
+    >
+      <Box>
+        {/* 최소 모드일 때는 새로고침만 표시 */}
+        <IconButton
+          size="small"
+          onClick={onRefresh}
+          title={t("testcase.tree.action.refresh", "새로고침")}
         >
-            <Box>
-                {/* 최소 모드일 때는 새로고침만 표시 */}
-                <IconButton size="small" onClick={onRefresh} title={t('testcase.tree.action.refresh', '새로고침')}>
-                    <RefreshIcon fontSize="small" />
+          <RefreshIcon fontSize="small" />
+        </IconButton>
+
+        {/* 일반 모드일 때 나머지 버튼들 표시 */}
+        {!showMinimalToolbar && (
+          <>
+            {/* 일괄 삭제 버튼 (선택된 항목이 있고 권한이 있을 때) */}
+            {checkedCount > 0 && canDelete && (
+              <Button
+                size="small"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={onBulkDelete}
+                sx={{ mr: 1 }}
+              >
+                {t("testcase.tree.action.deleteSelected", "삭제 ({count})", {
+                  count: checkedCount,
+                })}
+              </Button>
+            )}
+
+            {!isViewer && (
+              <>
+                <IconButton
+                  size="small"
+                  onClick={onAddFolder}
+                  title={t("testcase.tree.action.addFolder", "폴더 추가")}
+                  disabled={orderEditMode}
+                >
+                  <CreateNewFolderIcon fontSize="small" />
                 </IconButton>
-
-                {/* 일반 모드일 때 나머지 버튼들 표시 */}
-                {!showMinimalToolbar && (
-                    <>
-                        {/* 일괄 삭제 버튼 (선택된 항목이 있고 권한이 있을 때) */}
-                        {checkedCount > 0 && canDelete && (
-                            <Button
-                                size="small"
-                                color="error"
-                                startIcon={<DeleteIcon />}
-                                onClick={onBulkDelete}
-                                sx={{ mr: 1 }}
-                            >
-                                {t('testcase.tree.action.deleteSelected', '삭제 ({count})', { count: checkedCount })}
-                            </Button>
-                        )}
-
-                        {!isViewer && (
-                            <>
-                                <IconButton
-                                    size="small"
-                                    onClick={onAddFolder}
-                                    title={t('testcase.tree.action.addFolder', '폴더 추가')}
-                                    disabled={orderEditMode}
-                                >
-                                    <CreateNewFolderIcon fontSize="small" />
-                                </IconButton>
-                                <IconButton
-                                    size="small"
-                                    onClick={onAddTestCase}
-                                    title={t('testcase.tree.action.addTestCase', '테스트케이스 추가')}
-                                    disabled={orderEditMode}
-                                >
-                                    <AddIcon fontSize="small" />
-                                </IconButton>
-                                {orderEditMode ? (
-                                    <>
-                                        <IconButton
-                                            size="small"
-                                            onClick={onOrderSave}
-                                            color="primary"
-                                            title={t('testcase.tree.action.saveOrder', '순서 저장')}
-                                        >
-                                            <SaveIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton
-                                            size="small"
-                                            onClick={onOrderCancel}
-                                            color="error"
-                                            title={t('testcase.tree.action.cancelOrder', '순서 변경 취소')}
-                                        >
-                                            <CloseIcon fontSize="small" />
-                                        </IconButton>
-                                    </>
-                                ) : (
-                                    <IconButton
-                                        size="small"
-                                        onClick={onToggleOrderEdit}
-                                        title={t('testcase.tree.action.editOrder', '순서 변경')}
-                                    >
-                                        <SwapVertIcon fontSize="small" />
-                                    </IconButton>
-                                )}
-                            </>
-                        )}
-                    </>
+                <IconButton
+                  size="small"
+                  onClick={onAddTestCase}
+                  title={t(
+                    "testcase.tree.action.addTestCase",
+                    "테스트케이스 추가",
+                  )}
+                  disabled={orderEditMode}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+                {orderEditMode ? (
+                  <>
+                    <IconButton
+                      size="small"
+                      onClick={onOrderSave}
+                      color="primary"
+                      title={t("testcase.tree.action.saveOrder", "순서 저장")}
+                    >
+                      <SaveIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={onOrderCancel}
+                      color="error"
+                      title={t(
+                        "testcase.tree.action.cancelOrder",
+                        "순서 변경 취소",
+                      )}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </>
+                ) : (
+                  <IconButton
+                    size="small"
+                    onClick={onToggleOrderEdit}
+                    title={t("testcase.tree.action.editOrder", "순서 변경")}
+                  >
+                    <SwapVertIcon fontSize="small" />
+                  </IconButton>
                 )}
-            </Box>
-        </Toolbar>
-    );
+              </>
+            )}
+          </>
+        )}
+      </Box>
+    </Toolbar>
+  );
 };
 
 export default TreeToolbar;

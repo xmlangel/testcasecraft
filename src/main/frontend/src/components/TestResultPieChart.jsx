@@ -1,7 +1,7 @@
 // src/components/TestResultPieChart.jsx
 
-import React from 'react';
-import { useTranslation } from '../context/I18nContext';
+import React from "react";
+import { useTranslation } from "../context/I18nContext";
 import {
   Box,
   Card,
@@ -12,18 +12,18 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  useTheme
-} from '@mui/material';
+  useTheme,
+} from "@mui/material";
 import {
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
   Tooltip as ReTooltip,
-  Legend
-} from 'recharts';
-import { Circle } from '@mui/icons-material';
-import { RESULT_COLORS } from '../constants/statusColors';
+  Legend,
+} from "recharts";
+import { Circle } from "@mui/icons-material";
+import { RESULT_COLORS } from "../constants/statusColors";
 
 /**
  * ICT-187: 테스트 결과 파이차트 컴포넌트
@@ -33,11 +33,11 @@ function TestResultPieChart({ statistics, loading = false }) {
   const { t } = useTranslation();
 
   const RESULT_LABELS = {
-    PASS: t('testResult.status.pass'),
-    FAIL: t('testResult.status.fail'),
-    BLOCKED: t('testResult.status.blocked'),
-    NOT_RUN: t('testResult.status.notRun'),
-    NOTRUN: t('testResult.status.notRun')
+    PASS: t("testResult.status.pass"),
+    FAIL: t("testResult.status.fail"),
+    BLOCKED: t("testResult.status.blocked"),
+    NOT_RUN: t("testResult.status.notRun"),
+    NOTRUN: t("testResult.status.notRun"),
   };
 
   // 로딩 상태 처리
@@ -46,11 +46,11 @@ function TestResultPieChart({ statistics, loading = false }) {
       <Card sx={{ minHeight: 350 }}>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
-            {t('testResult.pieChart.title')}
+            {t("testResult.pieChart.title")}
           </Typography>
           <LinearProgress sx={{ mt: 2 }} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {t('testResult.pieChart.loading')}
+            {t("testResult.pieChart.loading")}
           </Typography>
         </CardContent>
       </Card>
@@ -63,11 +63,11 @@ function TestResultPieChart({ statistics, loading = false }) {
       <Card sx={{ minHeight: 350 }}>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
-            {t('testResult.pieChart.title')}
+            {t("testResult.pieChart.title")}
           </Typography>
-          <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Box sx={{ textAlign: "center", py: 4 }}>
             <Typography variant="body2" color="text.secondary">
-              {t('testResult.pieChart.noData')}
+              {t("testResult.pieChart.noData")}
             </Typography>
           </Box>
         </CardContent>
@@ -81,34 +81,50 @@ function TestResultPieChart({ statistics, loading = false }) {
   // 파이차트 데이터 준비
   const pieData = [
     {
-      name: 'PASS',
+      name: "PASS",
       label: RESULT_LABELS.PASS,
-      value: isLatestMode ? (statistics.latestPassCount || 0) : (statistics.passCount || 0),
-      percentage: isLatestMode ? (statistics.latestPassRate || 0) : (statistics.passRate || 0),
-      color: RESULT_COLORS.PASS
+      value: isLatestMode
+        ? statistics.latestPassCount || 0
+        : statistics.passCount || 0,
+      percentage: isLatestMode
+        ? statistics.latestPassRate || 0
+        : statistics.passRate || 0,
+      color: RESULT_COLORS.PASS,
     },
     {
-      name: 'FAIL',
+      name: "FAIL",
       label: RESULT_LABELS.FAIL,
-      value: isLatestMode ? (statistics.latestFailCount || 0) : (statistics.failCount || 0),
-      percentage: isLatestMode ? (statistics.latestFailRate || 0) : (statistics.failRate || 0),
-      color: RESULT_COLORS.FAIL
+      value: isLatestMode
+        ? statistics.latestFailCount || 0
+        : statistics.failCount || 0,
+      percentage: isLatestMode
+        ? statistics.latestFailRate || 0
+        : statistics.failRate || 0,
+      color: RESULT_COLORS.FAIL,
     },
     {
-      name: 'BLOCKED',
+      name: "BLOCKED",
       label: RESULT_LABELS.BLOCKED,
-      value: isLatestMode ? (statistics.latestBlockedCount || 0) : (statistics.blockedCount || 0),
-      percentage: isLatestMode ? (statistics.latestBlockedRate || 0) : (statistics.blockedRate || 0),
-      color: RESULT_COLORS.BLOCKED
+      value: isLatestMode
+        ? statistics.latestBlockedCount || 0
+        : statistics.blockedCount || 0,
+      percentage: isLatestMode
+        ? statistics.latestBlockedRate || 0
+        : statistics.blockedRate || 0,
+      color: RESULT_COLORS.BLOCKED,
     },
     {
-      name: 'NOT_RUN',
+      name: "NOT_RUN",
       label: RESULT_LABELS.NOT_RUN,
-      value: isLatestMode ? (statistics.latestNotRunCount || 0) : (statistics.notRunCount || 0),
-      percentage: isLatestMode ? (statistics.latestNotRunRate || 0) : (statistics.notRunRate || 0),
-      color: RESULT_COLORS.NOTRUN
-    }
-  ].filter(item => item.value > 0); // 값이 0인 항목 제외
+      value: isLatestMode
+        ? statistics.latestNotRunCount || 0
+        : statistics.notRunCount || 0,
+      percentage: isLatestMode
+        ? statistics.latestNotRunRate || 0
+        : statistics.notRunRate || 0,
+      color: RESULT_COLORS.NOTRUN,
+    },
+  ].filter((item) => item.value > 0); // 값이 0인 항목 제외
 
   // 커스텀 툴팁
   const CustomTooltip = ({ active, payload, label }) => {
@@ -117,22 +133,22 @@ function TestResultPieChart({ statistics, loading = false }) {
       return (
         <Box
           sx={{
-            bgcolor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'divider',
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
             borderRadius: 1,
             p: 1.5,
-            boxShadow: 2
+            boxShadow: 2,
           }}
         >
           <Typography variant="subtitle2" sx={{ color: data.color, mb: 0.5 }}>
             {data.label}
           </Typography>
           <Typography variant="body2" color="text.primary">
-            {t('testResult.pieChart.count')}: {data.value}건
+            {t("testResult.pieChart.count")}: {data.value}건
           </Typography>
           <Typography variant="body2" color="text.primary">
-            {t('testResult.pieChart.percentage')}: {data.percentage.toFixed(1)}%
+            {t("testResult.pieChart.percentage")}: {data.percentage.toFixed(1)}%
           </Typography>
         </Box>
       );
@@ -141,7 +157,14 @@ function TestResultPieChart({ statistics, loading = false }) {
   };
 
   // 커스텀 레이블
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+  }) => {
     if (percent < 0.05) return null; // 5% 미만인 경우 레이블 숨김
 
     const RADIAN = Math.PI / 180;
@@ -154,7 +177,7 @@ function TestResultPieChart({ statistics, loading = false }) {
         x={x}
         y={y}
         fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
+        textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
         fontSize="12"
         fontWeight="bold"
@@ -168,7 +191,7 @@ function TestResultPieChart({ statistics, loading = false }) {
     <Card sx={{ minHeight: 350 }}>
       <CardContent>
         <Typography variant="h6" component="h2" gutterBottom>
-          {t('testResult.pieChart.title')}
+          {t("testResult.pieChart.title")}
         </Typography>
 
         {/* 차트 영역 */}
@@ -203,10 +226,14 @@ function TestResultPieChart({ statistics, loading = false }) {
               </ListItemIcon>
               <ListItemText
                 primary={
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2">
-                      {item.label}
-                    </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography variant="body2">{item.label}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       {item.value}건 ({item.percentage.toFixed(1)}%)
                     </Typography>
@@ -218,15 +245,26 @@ function TestResultPieChart({ statistics, loading = false }) {
         </List>
 
         {/* 총계 */}
-        <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: 'divider' }}>
+        <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: "divider" }}>
           <Typography variant="body2" color="text.secondary" align="center">
-            {isLatestMode 
-              ? `${t('testResult.pieChart.totalCaseCount', '전체 테스트케이스')}: ${statistics.totalCaseCount || 0}건`
-              : t('testResult.pieChart.totalTestCases', { total: statistics.totalTests })}
+            {isLatestMode
+              ? `${t(
+                  "testResult.pieChart.totalCaseCount",
+                  "전체 테스트케이스",
+                )}: ${statistics.totalCaseCount || 0}건`
+              : t("testResult.pieChart.totalTestCases", {
+                  total: statistics.totalTests,
+                })}
           </Typography>
           {isLatestMode && (
-            <Typography variant="caption" color="text.disabled" align="center" component="div">
-              ({t('testResult.pieChart.totalExecutionCount', '누적 수행 횟수')}: {statistics.totalTests || 0}건)
+            <Typography
+              variant="caption"
+              color="text.disabled"
+              align="center"
+              component="div"
+            >
+              ({t("testResult.pieChart.totalExecutionCount", "누적 수행 횟수")}:{" "}
+              {statistics.totalTests || 0}건)
             </Typography>
           )}
         </Box>

@@ -2,34 +2,33 @@
 
 package com.testcase.testcasemanagement.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestExecutionDto {
-    private String id;
-    private String name;
-    private String testPlanId;
-    private String projectId;
-    private String description;
-    private String status; // NOTSTARTED, INPROGRESS, COMPLETED
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private List<TestResultDto> results;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private List<String> tags;
-    private Integer totalCount;
-    private Integer passedCount;
-    private Integer failedCount;
-    private Integer skippedCount;
-    private Integer progress;
+  private String id;
+  private String name;
+  private String testPlanId;
+  private String projectId;
+  private String description;
+  private String status; // NOTSTARTED, INPROGRESS, COMPLETED
+  private LocalDateTime startDate;
+  private LocalDateTime endDate;
+  private List<TestResultDto> results;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
+  private List<String> tags;
+  private Integer totalCount;
+  private Integer passedCount;
+  private Integer failedCount;
+  private Integer skippedCount;
+  private Integer progress;
 }

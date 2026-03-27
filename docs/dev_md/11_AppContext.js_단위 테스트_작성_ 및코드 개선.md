@@ -101,7 +101,6 @@ describe('AppContext', () =&gt; {
 });
 ```
 
-
 ---
 
 **2. 개선 사항**
@@ -109,8 +108,8 @@ describe('AppContext', () =&gt; {
 테스트 결과, 다음 개선점을 반영합니다:
 
 - `getDescendantIds` 함수는 불필요한 중복을 줄이기 위해 `Set`을 사용하도록 개선.
-- 액션 타입이 누락되어 발생하는 LOAD_* 타입의 예외를 방지.
-- `AppProvider`의 `useEffect`에서 `dispatch`로 LOAD_*를 호출할 때, 해당 타입이 없으므로 무시하도록 처리.
+- 액션 타입이 누락되어 발생하는 LOAD\_\* 타입의 예외를 방지.
+- `AppProvider`의 `useEffect`에서 `dispatch`로 LOAD\_\*를 호출할 때, 해당 타입이 없으므로 무시하도록 처리.
 
 ---
 
@@ -436,17 +435,15 @@ export const useAppContext = () =&gt; useContext(AppContext);
 export default AppContext;
 ```
 
-
 ---
 
 ### 요약
 
 - 단위 테스트로 주요 액션 및 리듀서 동작을 검증했습니다.
 - 하위 ID 검색 로직을 Set 기반으로 개선해 중복을 방지했습니다.
-- LOAD_* 타입에 대한 예외처리를 추가하여 불필요한 dispatch를 방지했습니다.
+- LOAD\_\* 타입에 대한 예외처리를 추가하여 불필요한 dispatch를 방지했습니다.
 - 전체 코드를 개선사항 반영 후 제공했습니다.
 
 <div style="text-align: center">⁂</div>
 
 [^1]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/64515862/67f877ed-b0fc-4459-9132-fad4ddcc73b1/paste.txt
-

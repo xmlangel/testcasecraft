@@ -5,6 +5,7 @@
 ### Main Changes
 
 #### 🐞 Bug Fixes
+
 - **Enhanced Test Case Tree UI Stability**:
   - Restored item selection functionality, fixing integration issues with the detail form that occurred after the virtualization update.
   - Fixed layout overlaps and rendering glitches when adding folders or test cases to the tree.

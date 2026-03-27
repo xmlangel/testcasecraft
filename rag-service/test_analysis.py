@@ -12,11 +12,11 @@ import os
 BASE_URL = "http://localhost:8001/api/v1"
 
 # Colors for output
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-RESET = '\033[0m'
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+RESET = "\033[0m"
 
 
 def print_test(message):
@@ -59,7 +59,7 @@ This test validates the end-to-end document analysis workflow.
 """
 
     print_info(f"Creating test file: {filename}")
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(content)
     print_success(f"Test file created: {filename}")
     return filename
@@ -72,17 +72,12 @@ def upload_document(file_path):
     project_id = str(uuid.uuid4())
 
     try:
-        with open(file_path, 'rb') as f:
-            files = {'file': (os.path.basename(file_path), f, 'text/plain')}
-            data = {
-                'project_id': project_id,
-                'uploaded_by': 'test_user'
-            }
+        with open(file_path, "rb") as f:
+            files = {"file": (os.path.basename(file_path), f, "text/plain")}
+            data = {"project_id": project_id, "uploaded_by": "test_user"}
 
             response = requests.post(
-                f"{BASE_URL}/documents/upload",
-                files=files,
-                data=data
+                f"{BASE_URL}/documents/upload", files=files, data=data
             )
 
         if response.status_code == 201:
@@ -90,7 +85,7 @@ def upload_document(file_path):
             print_success("Document uploaded successfully!")
             print_info(f"Document ID: {result['id']}")
             print_info(f"Analysis status: {result['analysis_status']}")
-            return result['id']
+            return result["id"]
         else:
             print_error(f"Upload failed: {response.status_code}")
             print_error(f"Response: {response.text}")
@@ -113,7 +108,7 @@ def analyze_document(document_id):
             print_success("Document analysis completed!")
             print_info(f"Status: {result['status']}")
             print_info(f"Total chunks: {result['total_chunks']}")
-            if result.get('analysis_result'):
+            if result.get("analysis_result"):
                 print_info(f"Metadata: {result['analysis_result']}")
             return True
         else:
@@ -138,13 +133,13 @@ def get_chunks(document_id):
             print_success(f"Retrieved {result['total']} chunks")
 
             # Display first few chunks
-            for i, chunk in enumerate(result['chunks'][:3]):
+            for i, chunk in enumerate(result["chunks"][:3]):
                 print_info(f"\nChunk {chunk['chunk_index']}:")
                 print(f"  Text: {chunk['chunk_text'][:100]}...")
-                if chunk.get('chunk_metadata'):
+                if chunk.get("chunk_metadata"):
                     print(f"  Metadata: {chunk['chunk_metadata']}")
 
-            if result['total'] > 3:
+            if result["total"] > 3:
                 print_info(f"... and {result['total'] - 3} more chunks")
 
             return True
@@ -171,7 +166,7 @@ def get_document_status(document_id):
             print_info(f"File name: {result['file_name']}")
             print_info(f"Analysis status: {result['analysis_status']}")
             print_info(f"Total chunks: {result['total_chunks']}")
-            if result.get('analysis_date'):
+            if result.get("analysis_date"):
                 print_info(f"Analysis date: {result['analysis_date']}")
             return result
         else:
@@ -194,9 +189,9 @@ def cleanup(files):
 
 def main():
     """Run all tests"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"{BLUE}RAG Service - Document Analysis Tests{RESET}")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     test_file = None
 
@@ -234,12 +229,14 @@ def main():
             get_chunks(document_id)
             print()
 
-        print("="*60)
+        print("=" * 60)
         if analysis_success:
             print(f"{GREEN}All tests completed successfully!{RESET}")
         else:
-            print(f"{YELLOW}Tests completed with expected failures (API key needed){RESET}")
-        print("="*60 + "\n")
+            print(
+                f"{YELLOW}Tests completed with expected failures (API key needed){RESET}"
+            )
+        print("=" * 60 + "\n")
 
         print_info(f"Document ID for reference: {document_id}")
 

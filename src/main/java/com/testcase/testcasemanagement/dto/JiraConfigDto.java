@@ -1,15 +1,14 @@
 // src/main/java/com/testcase/testcasemanagement/dto/JiraConfigDto.java
 package com.testcase.testcasemanagement.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -17,155 +16,155 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JiraConfigDto {
-    private String id;
-    private String userId;
+  private String id;
+  private String userId;
+  private String serverUrl;
+  private String username;
+
+  private String apiToken; // 마스킹된 API 토큰 (응답에 포함)
+
+  private String testProjectKey; // 테스트할 프로젝트 키 (선택적)
+
+  private Boolean isActive;
+  private Boolean connectionVerified;
+
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+  private LocalDateTime lastConnectionTest;
+
+  private String lastConnectionError;
+
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+  private LocalDateTime createdAt;
+
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+  private LocalDateTime updatedAt;
+
+  // 연결 상태 확인용 응답 DTO
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class ConnectionStatusDto {
+    private Boolean isConnected;
+    private String status;
+    private String message;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime lastTested;
+
+    private String jiraVersion;
+    private String projectKey; // 테스트 프로젝트 키 (선택적)
+  }
+
+  // JIRA 설정 테스트 요청 DTO
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class TestConnectionDto {
     private String serverUrl;
     private String username;
-    
-    private String apiToken;  // 마스킹된 API 토큰 (응답에 포함)
-    
-    private String testProjectKey;  // 테스트할 프로젝트 키 (선택적)
-    
-    private Boolean isActive;
-    private Boolean connectionVerified;
+    private String apiToken;
+    private String testProjectKey; // 테스트할 프로젝트 키 (선택적)
+  }
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime lastConnectionTest;
+  // JIRA 프로젝트 목록 DTO
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class JiraProjectDto {
+    private String id;
+    private String key;
+    private String name;
+    private String description;
+    private String projectTypeKey;
+    private String leadDisplayName;
+  }
 
-    private String lastConnectionError;
+  // JIRA 이슈 존재 여부 확인 결과 DTO
+  // ICT-184: 이슈 입력 시 존재 여부 검증
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class IssueExistsDto {
+    @JsonProperty("exists")
+    private Boolean exists;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime createdAt;
+    @JsonProperty("issueKey")
+    private String issueKey;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime updatedAt;
-    
-    // 연결 상태 확인용 응답 DTO
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ConnectionStatusDto {
-        private Boolean isConnected;
-        private String status;
-        private String message;
+    @JsonProperty("summary")
+    private String summary;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-        private LocalDateTime lastTested;
+    @JsonProperty("status")
+    private String status;
 
-        private String jiraVersion;
-        private String projectKey;  // 테스트 프로젝트 키 (선택적)
-    }
-    
-    // JIRA 설정 테스트 요청 DTO
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TestConnectionDto {
-        private String serverUrl;
-        private String username;
-        private String apiToken;
-        private String testProjectKey;  // 테스트할 프로젝트 키 (선택적)
-    }
-    
-    // JIRA 프로젝트 목록 DTO
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class JiraProjectDto {
-        private String id;
-        private String key;
-        private String name;
-        private String description;
-        private String projectTypeKey;
-        private String leadDisplayName;
-    }
-    
-    // JIRA 이슈 존재 여부 확인 결과 DTO
-    // ICT-184: 이슈 입력 시 존재 여부 검증
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class IssueExistsDto {
-        @JsonProperty("exists")
-        private Boolean exists;
-        
-        @JsonProperty("issueKey")
-        private String issueKey;
-        
-        @JsonProperty("summary")
-        private String summary;
-        
-        @JsonProperty("status")
-        private String status;
-        
-        @JsonProperty("priority")
-        private String priority;
-        
-        @JsonProperty("issueType")
-        private String issueType;
-        
-        @JsonProperty("errorMessage")
-        private String errorMessage;
-    }
+    @JsonProperty("priority")
+    private String priority;
 
-    // JIRA 이슈 생성 요청 DTO
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class IssueCreateRequestDto {
-        private String projectKey;
-        private String summary;
-        private String description;
-        private String issueTypeId;
-        private String issueTypeName; // ID 대신 이름으로도 생성 가능하게 지원
-        private String testResultId;   // 첨부파일 처리를 위한 테스트 결과 ID (선택사항)
-    }
+    @JsonProperty("issueType")
+    private String issueType;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class IssueCreateResponseDto {
-        @JsonProperty("success")
-        private Boolean success;
-        
-        @JsonProperty("issueKey")
-        private String issueKey;
-        
-        @JsonProperty("issueId")
-        private String issueId;
-        
-        @JsonProperty("self")
-        private String self;
-        
-        @JsonProperty("browseUrl")
-        private String browseUrl;
-        
-        @JsonProperty("errorMessage")
-        private String errorMessage;
-        
-        @JsonProperty("attachmentCount")
-        private Integer attachmentCount;
-        
-        @JsonProperty("attachmentErrorMessage")
-        private String attachmentErrorMessage;
-    }
+    @JsonProperty("errorMessage")
+    private String errorMessage;
+  }
 
-    // JIRA 이슈 유형 DTO
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class IssueTypeDto {
-        private String id;
-        private String name;
-        private String description;
-        private String iconUrl;
-        private Boolean subtask;
-    }
+  // JIRA 이슈 생성 요청 DTO
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class IssueCreateRequestDto {
+    private String projectKey;
+    private String summary;
+    private String description;
+    private String issueTypeId;
+    private String issueTypeName; // ID 대신 이름으로도 생성 가능하게 지원
+    private String testResultId; // 첨부파일 처리를 위한 테스트 결과 ID (선택사항)
+  }
+
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class IssueCreateResponseDto {
+    @JsonProperty("success")
+    private Boolean success;
+
+    @JsonProperty("issueKey")
+    private String issueKey;
+
+    @JsonProperty("issueId")
+    private String issueId;
+
+    @JsonProperty("self")
+    private String self;
+
+    @JsonProperty("browseUrl")
+    private String browseUrl;
+
+    @JsonProperty("errorMessage")
+    private String errorMessage;
+
+    @JsonProperty("attachmentCount")
+    private Integer attachmentCount;
+
+    @JsonProperty("attachmentErrorMessage")
+    private String attachmentErrorMessage;
+  }
+
+  // JIRA 이슈 유형 DTO
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class IssueTypeDto {
+    private String id;
+    private String name;
+    private String description;
+    private String iconUrl;
+    private Boolean subtask;
+  }
 }

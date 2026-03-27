@@ -1,4 +1,5 @@
 """Hybrid Search Service combining Vector Search and BM25 Keyword Search"""
+
 from typing import List, Dict, Any, Optional
 import logging
 from rank_bm25 import BM25Okapi
@@ -51,7 +52,7 @@ class HybridSearchService:
             korean_chars.append(word)
 
             # Also add individual characters for Korean words
-            if any('\uac00' <= c <= '\ud7a3' for c in word):  # Korean character range
+            if any("\uac00" <= c <= "\ud7a3" for c in word):  # Korean character range
                 korean_chars.extend(list(word))
 
         return korean_chars
@@ -64,7 +65,7 @@ class HybridSearchService:
         self,
         documents: List[Dict[str, Any]],
         text_field: str = "text",
-        use_korean_tokenizer: bool = True
+        use_korean_tokenizer: bool = True,
     ):
         """
         Build BM25 index from documents
@@ -76,7 +77,9 @@ class HybridSearchService:
         """
         try:
             self.documents = documents
-            self.document_ids = [doc.get("id", idx) for idx, doc in enumerate(documents)]
+            self.document_ids = [
+                doc.get("id", idx) for idx, doc in enumerate(documents)
+            ]
 
             # Extract and tokenize texts
             tokenized_corpus = []
@@ -98,10 +101,7 @@ class HybridSearchService:
             raise
 
     def search_bm25(
-        self,
-        query: str,
-        top_k: int = 10,
-        use_korean_tokenizer: bool = True
+        self, query: str, top_k: int = 10, use_korean_tokenizer: bool = True
     ) -> List[Dict[str, Any]]:
         """
         Search using BM25
@@ -139,7 +139,9 @@ class HybridSearchService:
                 doc["score"] = doc["bm25_score"]
                 results.append(doc)
 
-            logger.info(f"BM25 search returned {len(results)} results (top score: {results[0]['bm25_score']:.4f})")
+            logger.info(
+                f"BM25 search returned {len(results)} results (top score: {results[0]['bm25_score']:.4f})"
+            )
             return results
 
         except Exception as e:
@@ -153,7 +155,7 @@ class HybridSearchService:
         k: int = 60,
         vector_weight: float = 0.5,
         bm25_weight: float = 0.5,
-        id_field: str = "id"
+        id_field: str = "id",
     ) -> List[Dict[str, Any]]:
         """
         Combine vector and BM25 results using Reciprocal Rank Fusion (RRF)
@@ -187,7 +189,7 @@ class HybridSearchService:
                         "vector_rank": None,
                         "bm25_rank": None,
                         "vector_score": None,
-                        "bm25_score": None
+                        "bm25_score": None,
                     }
 
                 rrf_scores[doc_id]["rrf_score"] += rrf_score
@@ -206,7 +208,7 @@ class HybridSearchService:
                         "vector_rank": None,
                         "bm25_rank": None,
                         "vector_score": None,
-                        "bm25_score": None
+                        "bm25_score": None,
                     }
 
                 rrf_scores[doc_id]["rrf_score"] += rrf_score
@@ -215,9 +217,7 @@ class HybridSearchService:
 
             # Sort by RRF score
             sorted_results = sorted(
-                rrf_scores.values(),
-                key=lambda x: x["rrf_score"],
-                reverse=True
+                rrf_scores.values(), key=lambda x: x["rrf_score"], reverse=True
             )
 
             # Build final result list
@@ -253,7 +253,7 @@ class HybridSearchService:
         vector_weight: float = 0.6,
         bm25_weight: float = 0.4,
         use_korean_tokenizer: bool = True,
-        vector_scores: Optional[List[float]] = None
+        vector_scores: Optional[List[float]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Perform hybrid search combining vector and BM25
@@ -275,7 +275,9 @@ class HybridSearchService:
             self.build_bm25_index(documents, use_korean_tokenizer=use_korean_tokenizer)
 
             # Get BM25 results
-            bm25_results = self.search_bm25(query, top_k=top_k * 2, use_korean_tokenizer=use_korean_tokenizer)
+            bm25_results = self.search_bm25(
+                query, top_k=top_k * 2, use_korean_tokenizer=use_korean_tokenizer
+            )
 
             # Prepare vector results
             if vector_scores is not None:
@@ -285,14 +287,16 @@ class HybridSearchService:
                         doc["score"] = vector_scores[idx]
 
             # Sort by vector score for vector results
-            vector_results = sorted(documents, key=lambda x: x.get("score", 0.0), reverse=True)[:top_k * 2]
+            vector_results = sorted(
+                documents, key=lambda x: x.get("score", 0.0), reverse=True
+            )[: top_k * 2]
 
             # Fuse results
             fused_results = self.reciprocal_rank_fusion(
                 vector_results=vector_results,
                 bm25_results=bm25_results,
                 vector_weight=vector_weight,
-                bm25_weight=bm25_weight
+                bm25_weight=bm25_weight,
             )
 
             # Return top K
@@ -301,7 +305,9 @@ class HybridSearchService:
         except Exception as e:
             logger.error(f"Error in hybrid search: {str(e)}")
             # Fallback to documents sorted by existing score
-            return sorted(documents, key=lambda x: x.get("score", 0.0), reverse=True)[:top_k]
+            return sorted(documents, key=lambda x: x.get("score", 0.0), reverse=True)[
+                :top_k
+            ]
 
 
 # Global instance (singleton pattern)

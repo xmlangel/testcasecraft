@@ -44,7 +44,15 @@
             ]
           }
         },
-        "required": ["id", "username", "email", "name", "role", "createdAt", "updatedAt"],
+        "required": [
+          "id",
+          "username",
+          "email",
+          "name",
+          "role",
+          "createdAt",
+          "updatedAt"
+        ],
         "additionalProperties": true
       },
       "roleInOrganization": {

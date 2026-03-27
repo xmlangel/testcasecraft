@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class TestSessionPauseRequestDto {
-    private String reason;
+  private String reason;
 }

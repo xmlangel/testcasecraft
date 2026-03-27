@@ -18,8 +18,8 @@ spring:
   # JPA/Hibernate 설정
   jpa:
     hibernate:
-      ddl-auto: update  # Flyway 사용 시 validate로 변경 (스키마는 Flyway가 관리)
-    show-sql: true      # SQL 로그 출력 (개발용)
+      ddl-auto: update # Flyway 사용 시 validate로 변경 (스키마는 Flyway가 관리)
+    show-sql: true # SQL 로그 출력 (개발용)
     properties:
       hibernate:
         format_sql: true

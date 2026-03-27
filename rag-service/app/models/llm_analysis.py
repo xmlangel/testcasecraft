@@ -1,5 +1,16 @@
 """LLM Analysis models for sequential chunk processing"""
-from sqlalchemy import Column, String, Integer, DateTime, Text, Boolean, ForeignKey, DECIMAL, func
+
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    DateTime,
+    Text,
+    Boolean,
+    ForeignKey,
+    DECIMAL,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from ..core.database import Base
@@ -12,7 +23,12 @@ class LlmAnalysisJob(Base):
     __tablename__ = "llm_analysis_jobs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    document_id = Column(UUID(as_uuid=True), ForeignKey('rag_documents.id', ondelete='CASCADE'), nullable=False, index=True)
+    document_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("rag_documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
     # LLM 설정
     llm_provider = Column(String(50), nullable=False)  # openai, anthropic, ollama
@@ -26,7 +42,9 @@ class LlmAnalysisJob(Base):
     pause_after_batch = Column(Boolean, default=True)
 
     # 진행 상황
-    status = Column(String(20), default='pending', index=True)  # pending, processing, paused, completed, failed, cancelled
+    status = Column(
+        String(20), default="pending", index=True
+    )  # pending, processing, paused, completed, failed, cancelled
     total_chunks = Column(Integer)
     processed_chunks = Column(Integer, default=0)
 
@@ -44,10 +62,14 @@ class LlmAnalysisJob(Base):
 
     # 메타데이터
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
-    results = relationship("LlmAnalysisResult", back_populates="job", cascade="all, delete-orphan")
+    results = relationship(
+        "LlmAnalysisResult", back_populates="job", cascade="all, delete-orphan"
+    )
     summaries = relationship("AnalysisSummary", back_populates="job")
 
     def __repr__(self):
@@ -60,7 +82,12 @@ class LlmAnalysisResult(Base):
     __tablename__ = "llm_analysis_results"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    job_id = Column(UUID(as_uuid=True), ForeignKey('llm_analysis_jobs.id', ondelete='CASCADE'), nullable=False, index=True)
+    job_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("llm_analysis_jobs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
     # 청크 정보
     chunk_index = Column(Integer, nullable=False)
@@ -89,8 +116,17 @@ class AnalysisSummary(Base):
     __tablename__ = "analysis_summaries"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    document_id = Column(UUID(as_uuid=True), ForeignKey('rag_documents.id', ondelete='CASCADE'), nullable=False, index=True)
-    job_id = Column(UUID(as_uuid=True), ForeignKey('llm_analysis_jobs.id', ondelete='SET NULL'), index=True)
+    document_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("rag_documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    job_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("llm_analysis_jobs.id", ondelete="SET NULL"),
+        index=True,
+    )
 
     # 작성자 (선택)
     user_id = Column(UUID(as_uuid=True), index=True)
@@ -105,7 +141,9 @@ class AnalysisSummary(Base):
 
     # 메타데이터
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
     job = relationship("LlmAnalysisJob", back_populates="summaries")

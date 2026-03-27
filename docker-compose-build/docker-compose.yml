@@ -6,27 +6,27 @@ services:
     environment:
       # Spring Profile
       - SPRING_PROFILES_ACTIVE=prod
-      
+
       # Protocol and Domain Configuration
       - PROTOCOL=${PROTOCOL}
       - DOMAIN=${DOMAIN}
-      
+
       # Server Configuration
       - SERVER_PORT=${SERVER_PORT}
-      
-      
+
       # Database Configuration
       - DATABASE_URL=${DATABASE_URL}
       - DATABASE_USERNAME=${POSTGRES_USER}
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
-      
+
       # JWT Configuration
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
-      
+
       # Application Configuration
       - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      - SHOW_EXPLORATORY_SESSION_TAB=${SHOW_EXPLORATORY_SESSION_TAB:-false}
 
       - SPRING_JPA_SHOW_SQL=false
       - LOGGING_LEVEL_COM_TESTCASE=INFO
@@ -46,7 +46,7 @@ services:
       - MAIL_PASSWORD=${MAIL_PASSWORD:-}
       - MAIL_HOST=${MAIL_HOST:-localhost}
       - MAIL_PORT=${MAIL_PORT:-587}
-      
+
       # Frontend API Configuration
       - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL:-http://localhost:8080}
     ports:
@@ -60,14 +60,17 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f -k ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f -k ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
     restart: always
 
-  
   # FastAPI RAG Service
   rag-service:
     image: xmlangel/testcasecraft-rag-service:1.0.11
@@ -106,9 +109,7 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     restart: always
 
-
-
-# PostgreSQL 18 Database
+  # PostgreSQL 18 Database
   postgres:
     image: postgres:18
     container_name: testcasecraft_postgres_spring
@@ -129,8 +130,6 @@ services:
       timeout: 5s
       retries: 5
     restart: always
-
-
 
   # PostgreSQL 18 with pgvector extension (RAG)
   postgres-rag:
@@ -154,8 +153,7 @@ services:
       retries: 5
     restart: always
 
-
-# MinIO Object Storage (RAG)
+  # MinIO Object Storage (RAG)
   minio:
     image: minio/minio:latest
     container_name: testcasecraft-minio-rag
@@ -163,8 +161,8 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
     ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console
+      - "9000:9000" # API
+      - "9001:9001" # Console
     volumes:
       - ./data/minio:/data
     networks:
@@ -176,7 +174,6 @@ services:
       timeout: 5s
       retries: 5
     restart: always
-
 
 networks:
   testcasecraft-network:

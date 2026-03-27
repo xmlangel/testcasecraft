@@ -22,15 +22,20 @@ function parseTestCasesFromJSON(content) {
 
       // 배열인 경우
       if (Array.isArray(parsed)) {
-        testCases.push(...parsed.filter(tc => isValidTestCase(tc)));
+        testCases.push(...parsed.filter((tc) => isValidTestCase(tc)));
       }
       // testCases 래퍼 객체인 경우 (예: {testCases: [...]})
-      else if (parsed && typeof parsed === 'object') {
+      else if (parsed && typeof parsed === "object") {
         // testCases, test_cases, testcase, test-cases 등 다양한 키 지원
-        const tcArray = parsed.testCases || parsed.test_cases || parsed.testcase || parsed['test-cases'] || parsed.cases;
+        const tcArray =
+          parsed.testCases ||
+          parsed.test_cases ||
+          parsed.testcase ||
+          parsed["test-cases"] ||
+          parsed.cases;
 
         if (Array.isArray(tcArray)) {
-          testCases.push(...tcArray.filter(tc => isValidTestCase(tc)));
+          testCases.push(...tcArray.filter((tc) => isValidTestCase(tc)));
         }
         // 단일 객체인 경우
         else if (isValidTestCase(parsed)) {
@@ -38,7 +43,7 @@ function parseTestCasesFromJSON(content) {
         }
       }
     } catch (error) {
-      console.warn('[parseJSON] JSON 파싱 실패:', error);
+      console.warn("[parseJSON] JSON 파싱 실패:", error);
     }
   }
 
@@ -51,7 +56,7 @@ function parseTestCasesFromJSON(content) {
  * @returns {boolean}
  */
 function isValidTestCase(tc) {
-  return tc && typeof tc === 'object' && tc.name && typeof tc.name === 'string';
+  return tc && typeof tc === "object" && tc.name && typeof tc.name === "string";
 }
 
 /**
@@ -64,7 +69,8 @@ function parseTestCasesFromMarkdownTable(content) {
 
   // 마크다운 테이블 감지 (| 필드 | 내용 | 형태)
   // 테이블 헤더와 본문을 찾기
-  const tableRegex = /\|[^\n]+\|\s*\n\s*\|[-:\s|]+\|\s*\n((?:\|[^\n]+\|\s*\n?)+)/g;
+  const tableRegex =
+    /\|[^\n]+\|\s*\n\s*\|[-:\s|]+\|\s*\n((?:\|[^\n]+\|\s*\n?)+)/g;
   let match;
 
   while ((match = tableRegex.exec(content)) !== null) {
@@ -76,7 +82,7 @@ function parseTestCasesFromMarkdownTable(content) {
         testCases.push(testCase);
       }
     } catch (error) {
-      console.warn('[parseMarkdownTable] 테이블 파싱 실패:', error);
+      console.warn("[parseMarkdownTable] 테이블 파싱 실패:", error);
     }
   }
 
@@ -90,24 +96,28 @@ function parseTestCasesFromMarkdownTable(content) {
  */
 function parseTableToTestCase(tableBody) {
   const testCase = {};
-  const rows = tableBody.trim().split('\n');
-  let testStepsContent = '';
-  let expectedResultsContent = '';
+  const rows = tableBody.trim().split("\n");
+  let testStepsContent = "";
+  let expectedResultsContent = "";
   const steps = [];
 
   for (const row of rows) {
     // | 필드 | 내용 | 형태에서 필드와 내용 추출
-    const cells = row.split('|').map(cell => cell.trim()).filter(cell => cell);
+    const cells = row
+      .split("|")
+      .map((cell) => cell.trim())
+      .filter((cell) => cell);
 
     if (cells.length < 2) continue;
 
-    const fieldName = cells[0].replace(/\*\*/g, '').trim(); // ** 제거
+    const fieldName = cells[0].replace(/\*\*/g, "").trim(); // ** 제거
     const fieldValue = cells[1].trim();
 
     // 필드명을 소문자로 변환하여 매핑
-    const normalizedField = fieldName.toLowerCase()
-      .replace(/[‑-]/g, '') // 하이픈 제거
-      .replace(/\s+/g, ''); // 공백 제거
+    const normalizedField = fieldName
+      .toLowerCase()
+      .replace(/[‑-]/g, "") // 하이픈 제거
+      .replace(/\s+/g, ""); // 공백 제거
 
     // Step 행 감지 (Step 1, Step 2, 스텝 1 등)
     const stepMatch = fieldName.match(/(?:step|스텝)\s*(\d+)/i);
@@ -115,99 +125,164 @@ function parseTableToTestCase(tableBody) {
       const stepNumber = parseInt(stepMatch[1]);
 
       // 설명과 예상 결과 추출
-      let stepDescription = '';
-      let stepExpectedResult = '';
+      let stepDescription = "";
+      let stepExpectedResult = "";
 
       // "**설명**: 내용 <br>**예상 결과**: 내용" 형식 파싱
-      const descMatch = fieldValue.match(/\*\*설명\*\*[：:]\s*(.+?)(?:\s*<br\s*\/?>|\s*\*\*예상)/i);
-      const expectedMatch = fieldValue.match(/\*\*예상\s*결과\*\*[：:]\s*(.+)/i);
+      const descMatch = fieldValue.match(
+        /\*\*설명\*\*[：:]\s*(.+?)(?:\s*<br\s*\/?>|\s*\*\*예상)/i,
+      );
+      const expectedMatch = fieldValue.match(
+        /\*\*예상\s*결과\*\*[：:]\s*(.+)/i,
+      );
 
       if (descMatch) {
         stepDescription = descMatch[1].trim();
-      } else if (fieldValue.includes('설명:') || fieldValue.includes('설명：')) {
+      } else if (
+        fieldValue.includes("설명:") ||
+        fieldValue.includes("설명：")
+      ) {
         const parts = fieldValue.split(/예상\s*결과/i);
-        stepDescription = parts[0].replace(/.*설명[：:]/i, '').trim();
+        stepDescription = parts[0].replace(/.*설명[：:]/i, "").trim();
       } else {
         stepDescription = fieldValue;
       }
 
       if (expectedMatch) {
         stepExpectedResult = expectedMatch[1].trim();
-      } else if (fieldValue.includes('예상 결과:') || fieldValue.includes('예상 결과：')) {
-        stepExpectedResult = fieldValue.split(/예상\s*결과[：:]/i)[1]?.trim() || '';
+      } else if (
+        fieldValue.includes("예상 결과:") ||
+        fieldValue.includes("예상 결과：")
+      ) {
+        stepExpectedResult =
+          fieldValue.split(/예상\s*결과[：:]/i)[1]?.trim() || "";
       }
 
       steps.push({
         stepNumber: stepNumber,
-        description: stepDescription,  // TestCaseForm 필드명
-        expectedResult: stepExpectedResult,  // TestCaseForm 필드명
+        description: stepDescription, // TestCaseForm 필드명
+        expectedResult: stepExpectedResult, // TestCaseForm 필드명
       });
       continue;
     }
 
     // 필드 매핑
-    if (normalizedField.includes('tcid') || normalizedField.includes('testcaseid')) {
+    if (
+      normalizedField.includes("tcid") ||
+      normalizedField.includes("testcaseid")
+    ) {
       // TC-ID는 선택사항 (무시 또는 나중에 추가 가능)
       continue;
-    }
-    else if (normalizedField === 'name' || normalizedField.includes('제목') || normalizedField.includes('title') || normalizedField.includes('테스트케이스제목')) {
+    } else if (
+      normalizedField === "name" ||
+      normalizedField.includes("제목") ||
+      normalizedField.includes("title") ||
+      normalizedField.includes("테스트케이스제목")
+    ) {
       testCase.name = fieldValue;
-    }
-    else if (normalizedField === 'description' || normalizedField.includes('설명') || normalizedField.includes('테스트목적') || normalizedField.includes('목적')) {
+    } else if (
+      normalizedField === "description" ||
+      normalizedField.includes("설명") ||
+      normalizedField.includes("테스트목적") ||
+      normalizedField.includes("목적")
+    ) {
       testCase.description = fieldValue;
-    }
-    else if (normalizedField.includes('우선순위') || normalizedField === 'priority') {
+    } else if (
+      normalizedField.includes("우선순위") ||
+      normalizedField === "priority"
+    ) {
       // "P1 (가장 중요한..." 형태에서 P1 추출 또는 HIGH/MEDIUM/LOW 추출
-      const priorityMatch = fieldValue.match(/P(\d+)|HIGH|MEDIUM|LOW|High|Medium|Low/i);
+      const priorityMatch = fieldValue.match(
+        /P(\d+)|HIGH|MEDIUM|LOW|High|Medium|Low/i,
+      );
       if (priorityMatch) {
         if (priorityMatch[1]) {
           // P1 → High, P2 → Medium, P3+ → Low
           const pNum = parseInt(priorityMatch[1], 10);
-          testCase.priority = pNum === 1 ? 'High' : pNum === 2 ? 'Medium' : 'Low';
+          testCase.priority =
+            pNum === 1 ? "High" : pNum === 2 ? "Medium" : "Low";
         } else {
           // HIGH → High, MEDIUM → Medium, LOW → Low
           const priority = priorityMatch[0];
-          testCase.priority = priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase();
+          testCase.priority =
+            priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase();
         }
       } else {
         testCase.priority = fieldValue;
       }
-    }
-    else if (normalizedField === 'tags' || normalizedField.includes('태그')) {
+    } else if (normalizedField === "tags" || normalizedField.includes("태그")) {
       // 대괄호 안의 태그 추출: ["태그1", "태그2"]
       const tagsMatch = fieldValue.match(/\[([^\]]+)\]/);
       if (tagsMatch) {
-        testCase.tags = tagsMatch[1].split(',').map(t => t.trim().replace(/['"]/g, ''));
+        testCase.tags = tagsMatch[1]
+          .split(",")
+          .map((t) => t.trim().replace(/['"]/g, ""));
       } else {
         // 쉼표로 구분된 태그
-        testCase.tags = fieldValue.split(',').map(t => t.trim()).filter(t => t);
+        testCase.tags = fieldValue
+          .split(",")
+          .map((t) => t.trim())
+          .filter((t) => t);
       }
-    }
-    else if (normalizedField === 'precondition' || normalizedField === 'preconditions' || normalizedField.includes('전제조건') || normalizedField.includes('사전조건')) {
+    } else if (
+      normalizedField === "precondition" ||
+      normalizedField === "preconditions" ||
+      normalizedField.includes("전제조건") ||
+      normalizedField.includes("사전조건")
+    ) {
       // 여러 줄 처리: "1. ... <br> 2. ..." 형식
-      testCase.preCondition = fieldValue.replace(/<br\s*\/?>/gi, '\n');
-    }
-    else if (normalizedField === 'steps' || normalizedField.includes('테스트입력') || normalizedField.includes('teststeps') || normalizedField.includes('inputdata') || normalizedField.includes('스텝')) {
+      testCase.preCondition = fieldValue.replace(/<br\s*\/?>/gi, "\n");
+    } else if (
+      normalizedField === "steps" ||
+      normalizedField.includes("테스트입력") ||
+      normalizedField.includes("teststeps") ||
+      normalizedField.includes("inputdata") ||
+      normalizedField.includes("스텝")
+    ) {
       testStepsContent = fieldValue;
-    }
-    else if (normalizedField === 'expectedresults' || normalizedField.includes('예상결과') || normalizedField.includes('예상된결과') || normalizedField.includes('기대결과')) {
+    } else if (
+      normalizedField === "expectedresults" ||
+      normalizedField.includes("예상결과") ||
+      normalizedField.includes("예상된결과") ||
+      normalizedField.includes("기대결과")
+    ) {
       testCase.expectedResults = fieldValue;
-    }
-    else if (normalizedField.includes('사후조건') || normalizedField.includes('postcondition')) {
-      testCase.postCondition = fieldValue.replace(/<br\s*\/?>/gi, '\n');
-    }
-    else if (normalizedField.includes('자동화여부') || normalizedField.includes('isautomated') || normalizedField.includes('automationflag')) {
+    } else if (
+      normalizedField.includes("사후조건") ||
+      normalizedField.includes("postcondition")
+    ) {
+      testCase.postCondition = fieldValue.replace(/<br\s*\/?>/gi, "\n");
+    } else if (
+      normalizedField.includes("자동화여부") ||
+      normalizedField.includes("isautomated") ||
+      normalizedField.includes("automationflag")
+    ) {
       const lowerValue = fieldValue.trim().toLowerCase();
-      if (['y', 'yes', 'true', '1', '자동', '자동화'].some(token => lowerValue.includes(token))) {
+      if (
+        ["y", "yes", "true", "1", "자동", "자동화"].some((token) =>
+          lowerValue.includes(token),
+        )
+      ) {
         testCase.isAutomated = true;
-      } else if (['n', 'no', 'false', '0', '수동'].some(token => lowerValue.includes(token))) {
+      } else if (
+        ["n", "no", "false", "0", "수동"].some((token) =>
+          lowerValue.includes(token),
+        )
+      ) {
         testCase.isAutomated = false;
       }
-    }
-    else if (normalizedField.includes('manualautomation') || normalizedField.includes('executiontype') || normalizedField.includes('실행유형') || normalizedField.includes('실행방식')) {
+    } else if (
+      normalizedField.includes("manualautomation") ||
+      normalizedField.includes("executiontype") ||
+      normalizedField.includes("실행유형") ||
+      normalizedField.includes("실행방식")
+    ) {
       testCase.executionType = fieldValue;
-    }
-    else if (normalizedField.includes('테스트기법') || normalizedField.includes('testtechnique') || normalizedField.includes('technique')) {
+    } else if (
+      normalizedField.includes("테스트기법") ||
+      normalizedField.includes("testtechnique") ||
+      normalizedField.includes("technique")
+    ) {
       testCase.testTechnique = fieldValue;
     }
   }
@@ -219,39 +294,41 @@ function parseTableToTestCase(tableBody) {
   // 그렇지 않고 testStepsContent가 있으면 번호 리스트로 파싱
   else if (testStepsContent) {
     const stepsList = parseNumberedList(testStepsContent);
-    const expectedStepsList = expectedResultsContent ? parseNumberedList(expectedResultsContent) : [];
+    const expectedStepsList = expectedResultsContent
+      ? parseNumberedList(expectedResultsContent)
+      : [];
 
     testCase.steps = stepsList.map((step, index) => ({
       stepNumber: index + 1,
-      description: step,  // TestCaseForm 필드명
-      expectedResult: expectedStepsList[index] || '',  // TestCaseForm 필드명
+      description: step, // TestCaseForm 필드명
+      expectedResult: expectedStepsList[index] || "", // TestCaseForm 필드명
     }));
   }
 
-  if (typeof testCase.isAutomated === 'boolean') {
+  if (typeof testCase.isAutomated === "boolean") {
     if (!testCase.executionType || !testCase.executionType.trim()) {
-      testCase.executionType = testCase.isAutomated ? 'Automation' : 'Manual';
+      testCase.executionType = testCase.isAutomated ? "Automation" : "Manual";
     }
   }
 
-  if (testCase.executionType && typeof testCase.executionType === 'string') {
+  if (testCase.executionType && typeof testCase.executionType === "string") {
     const normalized = testCase.executionType.trim().toLowerCase();
-    if (['automation', 'auto', 'a', '자동화'].includes(normalized)) {
-      testCase.executionType = 'Automation';
-      if (typeof testCase.isAutomated !== 'boolean') {
+    if (["automation", "auto", "a", "자동화"].includes(normalized)) {
+      testCase.executionType = "Automation";
+      if (typeof testCase.isAutomated !== "boolean") {
         testCase.isAutomated = true;
       }
-    } else if (['manual', 'm', '수동'].includes(normalized)) {
-      testCase.executionType = 'Manual';
-      if (typeof testCase.isAutomated !== 'boolean') {
+    } else if (["manual", "m", "수동"].includes(normalized)) {
+      testCase.executionType = "Manual";
+      if (typeof testCase.isAutomated !== "boolean") {
         testCase.isAutomated = false;
       }
-    } else if (['hybrid', 'mixed', '혼합', '복합'].includes(normalized)) {
-      testCase.executionType = 'Hybrid';
+    } else if (["hybrid", "mixed", "혼합", "복합"].includes(normalized)) {
+      testCase.executionType = "Hybrid";
     }
   }
 
-  if (typeof testCase.isAutomated !== 'boolean') {
+  if (typeof testCase.isAutomated !== "boolean") {
     testCase.isAutomated = false;
   }
 
@@ -269,12 +346,12 @@ function parseNumberedList(content) {
 
   // HTML <br> 태그를 개행으로 변환
   const normalized = content
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/?(p|div|li)>/gi, '\n');
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/?(p|div|li)>/gi, "\n");
 
   // 번호로 시작하는 패턴 찾기: "1. ", "2. " 등
-  const lines = normalized.split('\n');
-  let currentItem = '';
+  const lines = normalized.split("\n");
+  let currentItem = "";
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -290,7 +367,7 @@ function parseNumberedList(content) {
       currentItem = numberedMatch[2];
     } else {
       // 번호 없이 이어지는 내용은 현재 항목에 추가
-      currentItem += ' ' + trimmed;
+      currentItem += " " + trimmed;
     }
   }
 
@@ -313,7 +390,8 @@ function parseNumberedList(content) {
  */
 function parseTestCasesFromMarkers(content) {
   const testCases = [];
-  const markerRegex = /===\s*TESTCASE\s+START\s*===([\s\S]*?)===\s*TESTCASE\s+END\s*===/gi;
+  const markerRegex =
+    /===\s*TESTCASE\s+START\s*===([\s\S]*?)===\s*TESTCASE\s+END\s*===/gi;
   let match;
 
   while ((match = markerRegex.exec(content)) !== null) {
@@ -325,7 +403,7 @@ function parseTestCasesFromMarkers(content) {
         testCases.push(testCase);
       }
     } catch (error) {
-      console.warn('마커 형식 파싱 실패:', error);
+      console.warn("마커 형식 파싱 실패:", error);
     }
   }
 
@@ -337,7 +415,7 @@ function parseTestCasesFromMarkers(content) {
  */
 function parseStructuredTestCase(content) {
   const testCase = {};
-  const lines = content.split('\n');
+  const lines = content.split("\n");
   let currentSection = null;
   let stepsData = [];
 
@@ -347,19 +425,22 @@ function parseStructuredTestCase(content) {
     if (!trimmedLine) continue;
 
     // 스텝 섹션 시작
-    if (trimmedLine.toLowerCase().includes('steps:') || trimmedLine.toLowerCase().includes('테스트 스텝:')) {
-      currentSection = 'steps';
+    if (
+      trimmedLine.toLowerCase().includes("steps:") ||
+      trimmedLine.toLowerCase().includes("테스트 스텝:")
+    ) {
+      currentSection = "steps";
       continue;
     }
 
     // 스텝 데이터 (번호. 동작 | 예상결과 형식)
-    if (currentSection === 'steps') {
+    if (currentSection === "steps") {
       const stepMatch = trimmedLine.match(/^(\d+)\.\s*(.+?)\s*\|\s*(.+)$/);
       if (stepMatch) {
         stepsData.push({
           stepNumber: parseInt(stepMatch[1], 10),
-          description: stepMatch[2].trim(),  // TestCaseForm 필드명
-          expectedResult: stepMatch[3].trim(),  // TestCaseForm 필드명
+          description: stepMatch[2].trim(), // TestCaseForm 필드명
+          expectedResult: stepMatch[3].trim(), // TestCaseForm 필드명
         });
         continue;
       }
@@ -372,31 +453,31 @@ function parseStructuredTestCase(content) {
       const value = kvMatch[2].trim();
 
       switch (key) {
-        case 'name':
-        case '이름':
-        case 'testcase name':
+        case "name":
+        case "이름":
+        case "testcase name":
           testCase.name = value;
           break;
-        case 'description':
-        case '설명':
+        case "description":
+        case "설명":
           testCase.description = value;
           break;
-        case 'priority':
-        case '우선순위':
+        case "priority":
+        case "우선순위":
           testCase.priority = value.toUpperCase();
           break;
-        case 'tags':
-        case '태그':
-          testCase.tags = value.split(',').map(t => t.trim());
+        case "tags":
+        case "태그":
+          testCase.tags = value.split(",").map((t) => t.trim());
           break;
-        case 'precondition':
-        case 'preconditions':
-        case '전제조건':
+        case "precondition":
+        case "preconditions":
+        case "전제조건":
           testCase.preCondition = value;
           break;
-        case 'expectedresults':
-        case 'expected results':
-        case '예상 결과':
+        case "expectedresults":
+        case "expected results":
+        case "예상 결과":
           testCase.expectedResults = value;
           break;
       }
@@ -416,7 +497,7 @@ function parseStructuredTestCase(content) {
  * @returns {Array<Object>} - 파싱된 테스트케이스 배열
  */
 export function extractTestCasesFromAIResponse(content) {
-  if (!content || typeof content !== 'string') {
+  if (!content || typeof content !== "string") {
     return [];
   }
 

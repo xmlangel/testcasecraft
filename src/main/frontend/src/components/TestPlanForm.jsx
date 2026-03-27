@@ -1,14 +1,24 @@
 // src/components/TestPlanForm.jsx
 
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Typography, Grid, Paper, CircularProgress, Alert
-} from '@mui/material';
-import { useAppContext } from '../context/AppContext.jsx';
-import { useI18n } from '../context/I18nContext.jsx';
-import TestCaseTree from './TestCaseTree.jsx';
-import { countRealTestCases } from '../utils/treeUtils';
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Typography,
+  Grid,
+  Paper,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { useAppContext } from "../context/AppContext.jsx";
+import { useI18n } from "../context/I18nContext.jsx";
+import TestCaseTree from "./TestCaseTree.jsx";
+import { countRealTestCases } from "../utils/treeUtils";
 
 const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
   const {
@@ -17,16 +27,16 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
     addTestPlan,
     updateTestPlan,
     testCases,
-    activeTestPlan
+    activeTestPlan,
   } = useAppContext();
 
   const { t } = useI18n();
 
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     testCaseIds: [],
-    projectId: activeProject?.id || ''
+    projectId: activeProject?.id || "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -38,40 +48,50 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
         name: activeTestPlan.name,
         description: activeTestPlan.description,
         testCaseIds: activeTestPlan.testCaseIds,
-        projectId: activeTestPlan.projectId
+        projectId: activeTestPlan.projectId,
       });
     } else if (testPlanId) {
-      const existingPlan = testPlans.find(p => p.id === testPlanId);
+      const existingPlan = testPlans.find((p) => p.id === testPlanId);
       if (existingPlan) {
         setFormData({
           name: existingPlan.name,
           description: existingPlan.description,
           testCaseIds: existingPlan.testCaseIds,
-          projectId: existingPlan.projectId
+          projectId: existingPlan.projectId,
         });
       }
     }
   }, [testPlanId, testPlans, activeTestPlan]);
 
   // 입력 핸들러
-  const handleChange = field => e => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  const handleChange = (field) => (e) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     setError(null);
   };
 
   // 테스트케이스 선택 핸들러
-  const handleTestCaseSelect = selectedIds => {
-    setFormData(prev => ({ ...prev, testCaseIds: selectedIds }));
+  const handleTestCaseSelect = (selectedIds) => {
+    setFormData((prev) => ({ ...prev, testCaseIds: selectedIds }));
   };
 
   // 유효성 검사
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError(t('testPlan.validation.nameRequired', '테스트 플랜 이름은 필수 입력 항목입니다'));
+      setError(
+        t(
+          "testPlan.validation.nameRequired",
+          "테스트 플랜 이름은 필수 입력 항목입니다",
+        ),
+      );
       return false;
     }
     if (countRealTestCases(formData.testCaseIds, testCases) === 0) {
-      setError(t('testPlan.validation.testcaseRequired', '최소 한 개 이상의 테스트케이스를 선택해야 합니다'));
+      setError(
+        t(
+          "testPlan.validation.testcaseRequired",
+          "최소 한 개 이상의 테스트케이스를 선택해야 합니다",
+        ),
+      );
       return false;
     }
     return true;
@@ -85,7 +105,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
       setLoading(true);
       const payload = {
         ...formData,
-        projectId: activeProject.id
+        projectId: activeProject.id,
       };
 
       if (testPlanId) {
@@ -96,19 +116,27 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
 
       onSave?.();
     } catch (err) {
-      setError(t('testPlan.error.saveFailed', '저장 처리 중 오류가 발생했습니다: ') + err.message);
+      setError(
+        t("testPlan.error.saveFailed", "저장 처리 중 오류가 발생했습니다: ") +
+          err.message,
+      );
     } finally {
       setLoading(false);
     }
   };
 
   // 실제 테스트케이스만 카운트
-  const selectedTestCaseCount = countRealTestCases(formData.testCaseIds, testCases);
+  const selectedTestCaseCount = countRealTestCases(
+    formData.testCaseIds,
+    testCases,
+  );
 
   return (
     <Dialog open maxWidth="lg" fullWidth onClose={onCancel}>
       <DialogTitle>
-        {testPlanId ? t('testPlan.form.title.edit', '테스트 플랜 수정') : t('testPlan.form.title.create', '새 테스트 플랜 생성')}
+        {testPlanId
+          ? t("testPlan.form.title.edit", "테스트 플랜 수정")
+          : t("testPlan.form.title.create", "새 테스트 플랜 생성")}
       </DialogTitle>
 
       <DialogContent dividers>
@@ -122,34 +150,42 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           {/* 기본 정보 입력 섹션 */}
           <Grid size={{ xs: 12, md: 4 }}>
             <TextField
-              label={t('testPlan.form.planName', '플랜 이름')}
+              label={t("testPlan.form.planName", "플랜 이름")}
               value={formData.name}
-              onChange={handleChange('name')}
+              onChange={handleChange("name")}
               fullWidth
               margin="normal"
               required
               disabled={loading}
-              slotProps={{ htmlInput: { 'data-testid': 'testplan-name-input' } }}
+              slotProps={{
+                htmlInput: { "data-testid": "testplan-name-input" },
+              }}
             />
 
             <TextField
-              label={t('testPlan.form.description', '설명')}
+              label={t("testPlan.form.description", "설명")}
               value={formData.description}
-              onChange={handleChange('description')}
+              onChange={handleChange("description")}
               fullWidth
               margin="normal"
               multiline
               rows={4}
               disabled={loading}
-              slotProps={{ htmlInput: { 'data-testid': 'testplan-description-input' } }}
+              slotProps={{
+                htmlInput: { "data-testid": "testplan-description-input" },
+              }}
             />
           </Grid>
 
           {/* 테스트케이스 선택 섹션 */}
           <Grid size={{ xs: 12, md: 8 }}>
-            <Paper variant="outlined" sx={{ p: 2, height: '400px' }}>
+            <Paper variant="outlined" sx={{ p: 2, height: "400px" }}>
               <Typography variant="subtitle1" gutterBottom>
-                {t('testPlan.form.testcaseSelection', '테스트케이스 선택')} ({t('testPlan.form.selectedCount', '{count}개 선택됨', { count: selectedTestCaseCount })})
+                {t("testPlan.form.testcaseSelection", "테스트케이스 선택")} (
+                {t("testPlan.form.selectedCount", "{count}개 선택됨", {
+                  count: selectedTestCaseCount,
+                })}
+                )
               </Typography>
 
               {activeProject?.id ? (
@@ -162,7 +198,10 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
                 />
               ) : (
                 <Typography color="textSecondary">
-                  {t('testPlan.form.projectSelectFirst', '프로젝트를 먼저 선택해주세요')}
+                  {t(
+                    "testPlan.form.projectSelectFirst",
+                    "프로젝트를 먼저 선택해주세요",
+                  )}
                 </Typography>
               )}
             </Paper>
@@ -177,7 +216,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           disabled={loading}
           data-testid="testplan-cancel-button"
         >
-          {t('testPlan.form.button.cancel', '취소')}
+          {t("testPlan.form.button.cancel", "취소")}
         </Button>
         <Button
           onClick={handleSave}
@@ -187,7 +226,9 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           startIcon={loading && <CircularProgress size={20} />}
           data-testid="testplan-save-button"
         >
-          {loading ? t('testPlan.form.button.processing', '처리 중...') : t('testPlan.form.button.save', '저장')}
+          {loading
+            ? t("testPlan.form.button.processing", "처리 중...")
+            : t("testPlan.form.button.save", "저장")}
         </Button>
       </DialogActions>
     </Dialog>
@@ -197,7 +238,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
 TestPlanForm.propTypes = {
   testPlanId: PropTypes.string,
   onCancel: PropTypes.func.isRequired,
-  onSave: PropTypes.func
+  onSave: PropTypes.func,
 };
 
 export default TestPlanForm;

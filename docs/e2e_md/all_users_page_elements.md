@@ -17,6 +17,7 @@
   - Playwright 선택자 예시: `div.MuiPaper-root`
 
 ### 2.1. 툴바 (필터 및 액션)
+
 - **`Typography` (h6) - 사용자 관리 제목**
   - 텍스트: `사용자 관리`
   - Playwright 선택자 예시: `h6:has-text("사용자 관리")`
@@ -43,6 +44,7 @@
   - Playwright 선택자 예시: `button:has-text("초기화")`
 
 ### 2.2. 사용자 테이블
+
 - **`TableContainer` 내 `Table`**
 - **테이블 헤더 (`TableHead` 내 `TableRow`, `TableCell`)**
   - 컬럼: `사용자명`, `이름`, `이메일`, `역할`, `상태`, `가입일`, `최종 로그인`, `작업`
@@ -52,6 +54,7 @@
 - **검색 조건 초기화 버튼 (`Button`)**: `검색 조건 초기화` (검색 결과 없을 때)
 
 ### 2.3. 페이지네이션
+
 - **`TablePagination` 컴포넌트**
   - 역할: 사용자 목록 페이징 처리.
   - Playwright 선택자 예시: `div.MuiTablePagination-root`

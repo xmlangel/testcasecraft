@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import {
   Dialog,
   DialogTitle,
@@ -10,11 +10,11 @@ import {
   CircularProgress,
   Button,
   Alert,
-  IconButton
-} from '@mui/material';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import CloseIcon from '@mui/icons-material/Close';
-import { useI18n } from '../../context/I18nContext.jsx';
+  IconButton,
+} from "@mui/material";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import CloseIcon from "@mui/icons-material/Close";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
   const { t } = useI18n();
@@ -33,9 +33,9 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
         return;
       }
 
-      const isPdf = document.fileName?.toLowerCase().endsWith('.pdf');
+      const isPdf = document.fileName?.toLowerCase().endsWith(".pdf");
       if (!isPdf) {
-        setError(t('rag.preview.pdfOnly', 'PDF 파일만 미리보기가 가능합니다.'));
+        setError(t("rag.preview.pdfOnly", "PDF 파일만 미리보기가 가능합니다."));
         setPreviewUrl(null);
         setLoading(false);
         return;
@@ -52,7 +52,11 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
         setPreviewUrl(currentUrl);
       } catch (err) {
         if (!isMounted) return;
-        setError(err?.response?.data?.message || err?.message || t('rag.preview.error', 'PDF를 불러올 수 없습니다.'));
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            t("rag.preview.error", "PDF를 불러올 수 없습니다."),
+        );
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -89,11 +93,17 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
       fullWidth
       disableEnforceFocus
       slotProps={{
-        paper: { sx: { minHeight: '80vh' } }
+        paper: { sx: { minHeight: "80vh" } },
       }}
     >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <DialogTitle
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <PictureAsPdfIcon color="error" />
           <Typography variant="h6">{document?.fileName}</Typography>
         </Box>
@@ -101,37 +111,52 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
+      <DialogContent
+        dividers
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "70vh",
+        }}
+      >
         {loading ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
             <CircularProgress />
             <Typography variant="body2" color="text.secondary">
-              {t('rag.preview.loading', 'PDF를 불러오는 중...')}
+              {t("rag.preview.loading", "PDF를 불러오는 중...")}
             </Typography>
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ width: '100%' }}>
+          <Alert severity="error" sx={{ width: "100%" }}>
             {error}
           </Alert>
         ) : previewUrl ? (
-          <Box sx={{ width: '100%', height: '70vh' }}>
+          <Box sx={{ width: "100%", height: "70vh" }}>
             <iframe
               src={previewUrl}
-              title={document?.fileName || 'PDF Preview'}
+              title={document?.fileName || "PDF Preview"}
               width="100%"
               height="100%"
-              style={{ border: 'none' }}
+              style={{ border: "none" }}
               allow="fullscreen"
             />
           </Box>
         ) : (
           <Typography variant="body2" color="text.secondary">
-            {t('rag.preview.loading', 'PDF를 불러오는 중...')}
+            {t("rag.preview.loading", "PDF를 불러오는 중...")}
           </Typography>
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>{t('common.close', '닫기')}</Button>
+        <Button onClick={handleClose}>{t("common.close", "닫기")}</Button>
       </DialogActions>
     </Dialog>
   );

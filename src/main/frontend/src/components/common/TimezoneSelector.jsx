@@ -9,7 +9,7 @@ import {
   FormHelperText,
   Box,
   Autocomplete,
-  TextField
+  TextField,
 } from "@mui/material";
 import { useI18n } from "../../context/I18nContext.jsx";
 
@@ -27,23 +27,63 @@ export function TimezoneSelector({
   error = false,
   errorText = "",
   disabled = false,
-  useAutocomplete = false
+  useAutocomplete = false,
 }) {
   const { t } = useI18n();
 
   // 주요 타임존 목록
   const commonTimezones = [
-    { value: "UTC", label: t('timezone.utc', 'UTC (UTC+0)'), offset: "+0:00" },
-    { value: "Asia/Seoul", label: t('timezone.seoul', 'Seoul (UTC+9)'), offset: "+9:00" },
-    { value: "America/New_York", label: t('timezone.newYork', 'New York (UTC-5/-4)'), offset: "-5:00/-4:00" },
-    { value: "America/Los_Angeles", label: t('timezone.losAngeles', 'Los Angeles (UTC-8/-7)'), offset: "-8:00/-7:00" },
-    { value: "Europe/London", label: t('timezone.london', 'London (UTC+0/+1)'), offset: "+0:00/+1:00" },
-    { value: "Europe/Paris", label: t('timezone.paris', 'Paris (UTC+1/+2)'), offset: "+1:00/+2:00" },
-    { value: "Asia/Tokyo", label: t('timezone.tokyo', 'Tokyo (UTC+9)'), offset: "+9:00" },
-    { value: "Asia/Shanghai", label: t('timezone.shanghai', 'Shanghai (UTC+8)'), offset: "+8:00" },
-    { value: "Asia/Singapore", label: t('timezone.singapore', 'Singapore (UTC+8)'), offset: "+8:00" },
-    { value: "Asia/Hong_Kong", label: t('timezone.hongKong', 'Hong Kong (UTC+8)'), offset: "+8:00" },
-    { value: "Australia/Sydney", label: t('timezone.sydney', 'Sydney (UTC+10/+11)'), offset: "+10:00/+11:00" },
+    { value: "UTC", label: t("timezone.utc", "UTC (UTC+0)"), offset: "+0:00" },
+    {
+      value: "Asia/Seoul",
+      label: t("timezone.seoul", "Seoul (UTC+9)"),
+      offset: "+9:00",
+    },
+    {
+      value: "America/New_York",
+      label: t("timezone.newYork", "New York (UTC-5/-4)"),
+      offset: "-5:00/-4:00",
+    },
+    {
+      value: "America/Los_Angeles",
+      label: t("timezone.losAngeles", "Los Angeles (UTC-8/-7)"),
+      offset: "-8:00/-7:00",
+    },
+    {
+      value: "Europe/London",
+      label: t("timezone.london", "London (UTC+0/+1)"),
+      offset: "+0:00/+1:00",
+    },
+    {
+      value: "Europe/Paris",
+      label: t("timezone.paris", "Paris (UTC+1/+2)"),
+      offset: "+1:00/+2:00",
+    },
+    {
+      value: "Asia/Tokyo",
+      label: t("timezone.tokyo", "Tokyo (UTC+9)"),
+      offset: "+9:00",
+    },
+    {
+      value: "Asia/Shanghai",
+      label: t("timezone.shanghai", "Shanghai (UTC+8)"),
+      offset: "+8:00",
+    },
+    {
+      value: "Asia/Singapore",
+      label: t("timezone.singapore", "Singapore (UTC+8)"),
+      offset: "+8:00",
+    },
+    {
+      value: "Asia/Hong_Kong",
+      label: t("timezone.hongKong", "Hong Kong (UTC+8)"),
+      offset: "+8:00",
+    },
+    {
+      value: "Australia/Sydney",
+      label: t("timezone.sydney", "Sydney (UTC+10/+11)"),
+      offset: "+10:00/+11:00",
+    },
   ];
 
   const handleChange = (event) => {
@@ -61,7 +101,8 @@ export function TimezoneSelector({
 
   // Autocomplete 버전
   if (useAutocomplete) {
-    const selectedTimezone = commonTimezones.find(tz => tz.value === value) || null;
+    const selectedTimezone =
+      commonTimezones.find((tz) => tz.value === value) || null;
 
     return (
       <FormControl
@@ -79,7 +120,7 @@ export function TimezoneSelector({
           renderInput={(params) => (
             <TextField
               {...params}
-              label={label || t('timezone.label', '시간대')}
+              label={label || t("timezone.label", "시간대")}
               variant={variant}
               error={error}
               helperText={error && errorText ? errorText : helperText}
@@ -88,8 +129,8 @@ export function TimezoneSelector({
           renderOption={(props, option) => (
             <Box component="li" {...props}>
               <Box>
-                <Box sx={{ fontWeight: 'medium' }}>{option.label}</Box>
-                <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                <Box sx={{ fontWeight: "medium" }}>{option.label}</Box>
+                <Box sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
                   {option.value}
                 </Box>
               </Box>
@@ -98,9 +139,7 @@ export function TimezoneSelector({
           disabled={disabled}
           disableClearable
         />
-        {!error && helperText && (
-          <FormHelperText>{helperText}</FormHelperText>
-        )}
+        {!error && helperText && <FormHelperText>{helperText}</FormHelperText>}
       </FormControl>
     );
   }
@@ -114,17 +153,17 @@ export function TimezoneSelector({
       error={error}
       disabled={disabled}
     >
-      <InputLabel>{label || t('timezone.label', '시간대')}</InputLabel>
+      <InputLabel>{label || t("timezone.label", "시간대")}</InputLabel>
       <Select
         value={value || "UTC"}
         onChange={handleChange}
-        label={label || t('timezone.label', '시간대')}
+        label={label || t("timezone.label", "시간대")}
       >
         {commonTimezones.map((tz) => (
           <MenuItem key={tz.value} value={tz.value}>
             <Box>
-              <Box sx={{ fontWeight: 'medium' }}>{tz.label}</Box>
-              <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+              <Box sx={{ fontWeight: "medium" }}>{tz.label}</Box>
+              <Box sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
                 {tz.value}
               </Box>
             </Box>
@@ -151,7 +190,7 @@ TimezoneSelector.propTypes = {
   error: PropTypes.bool,
   errorText: PropTypes.string,
   disabled: PropTypes.bool,
-  useAutocomplete: PropTypes.bool
+  useAutocomplete: PropTypes.bool,
 };
 
 export default TimezoneSelector;

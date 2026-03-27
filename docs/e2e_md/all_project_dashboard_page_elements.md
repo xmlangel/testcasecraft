@@ -56,6 +56,7 @@
 ## 5. 차트 및 데이터 섹션
 
 ### 5.1. 최근 테스트케이스 결과 (Pie Chart)
+
 - **제목**: `최근 테스트케이스 결과` (번역 키: `dashboard.chart.recentTestResults`)
 - **차트 요소**: `PieChart`, `Pie`, `Cell`, `ReTooltip` (recharts 라이브러리)
 - **완료율**: `CountUp` 컴포넌트 (예: `80% 완료`)
@@ -63,27 +64,32 @@
 - **개별 결과 수**: `CountUp` 컴포넌트와 함께 `성공`, `실패`, `차단됨`, `건너뜀`, `미실행` 텍스트 (번역 키: `dashboard.status.pass` 등)
 
 ### 5.2. 테스트케이스 결과 추이 (Line Chart)
+
 - **제목**: `테스트케이스 결과 추이` (번역 키: `dashboard.chart.testResultTrend`)
 - **시간 범위 선택 (`FormControl`, `Select`)**: `최근 15일` (번역 키: `dashboard.time.last15Days`)
 - **차트 요소**: `LineChart`, `XAxis`, `YAxis`, `ReTooltip`, `Legend`, `Line`
 - **데이터 없음 메시지**: `데이터 로딩 중...` 또는 `표시할 데이터가 없습니다.`
 
 ### 5.3. 오픈 테스트런별 테스트케이스 결과 (Bar Chart)
+
 - **제목**: `오픈 테스트런별 테스트케이스 결과` (번역 키: `dashboard.chart.openTestRunResults`)
 - **차트 요소**: `BarChart`, `XAxis`, `YAxis`, `ReTooltip`, `Legend`, `Bar`
 - **데이터 없음 메시지**: `데이터 로딩 중...` 또는 `진행 중인 테스트런이 없습니다.`
 
 ### 5.4. 오픈 테스트런 담당자별 테스트케이스 결과 (Vertical Bar Chart)
+
 - **제목**: `오픈 테스트런 담당자별 테스트케이스 결과` (번역 키: `dashboard.chart.assigneeResults`)
 - **차트 요소**: `BarChart`, `XAxis`, `YAxis`, `ReTooltip`, `Legend`, `Bar`
 
 ### 5.5. 테스트 플랜별 최근 테스트 결과
+
 - **제목**: `테스트 플랜별 최근 테스트 결과` (번역 키: `dashboard.chart.testPlanResults`)
 - **`TestPlanSelector` 컴포넌트**: 테스트 플랜 선택 드롭다운 (커스텀 컴포넌트)
 - **`RecentTestResults` 컴포넌트**: 최근 테스트 결과 목록 (커스텀 컴포넌트)
 - **메시지**: `프로젝트를 선택해주세요.`
 
 ### 5.6. 오픈 테스트런 미실행 테스트케이스 추이 (Line Chart)
+
 - **제목**: `오픈 테스트런 미실행 테스트케이스 추이` (번역 키: `dashboard.chart.notRunTrend`)
 - **시간 범위 선택**: `최근 15일`
 - **차트 요소**: `LineChart`, `XAxis`, `YAxis`, `ReTooltip`, `Line`

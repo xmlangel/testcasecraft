@@ -4,7 +4,7 @@ import logging
 from dotenv import load_dotenv
 
 # .env 파일 먼저 로드 (절대 경로 지정)
-env_path = os.path.join(os.path.dirname(__file__), '.env')
+env_path = os.path.join(os.path.dirname(__file__), ".env")
 load_dotenv(env_path)
 
 JIRA_SERVER = os.getenv("JIRA_SERVER")
@@ -21,21 +21,20 @@ if not JIRA_SERVER or not JIRA_USERNAME or not JIRA_API_TOKEN:
 else:
     print("✅ JIRA 환경 변수 로드 성공")
 
+
 def get_jira_client():
     """
     Returns a JIRA client instance.
     """
     try:
-        jira = JIRA(
-            server=JIRA_SERVER,
-            basic_auth=(JIRA_USERNAME, JIRA_API_TOKEN)
-        )
+        jira = JIRA(server=JIRA_SERVER, basic_auth=(JIRA_USERNAME, JIRA_API_TOKEN))
         return jira
     except Exception as e:
         msg = "Err108:Failed to connect to JIRA. Please check your credentials and server URL."
         logging.error(msg)
         raise RuntimeError(msg) from e
-    
+
+
 def jql_query(jql: str) -> list:
     """
     Executes a JQL query and returns the results.

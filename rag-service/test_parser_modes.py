@@ -14,11 +14,11 @@ BASE_URL = "http://localhost:8001/api/v1"
 PDF_FILE = "test.pdf"  # 이미 존재하는 PDF 파일
 
 # Colors for output
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-RESET = '\033[0m'
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+RESET = "\033[0m"
 
 
 def print_test(message):
@@ -38,9 +38,9 @@ def print_info(message):
 
 
 def print_section(title):
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"{BLUE}{title}{RESET}")
-    print("="*60)
+    print("=" * 60)
 
 
 def upload_and_analyze_pdf():
@@ -50,17 +50,12 @@ def upload_and_analyze_pdf():
     project_id = str(uuid.uuid4())
 
     try:
-        with open(PDF_FILE, 'rb') as f:
-            files = {'file': (os.path.basename(PDF_FILE), f, 'application/pdf')}
-            data = {
-                'project_id': project_id,
-                'uploaded_by': 'parser_test_user'
-            }
+        with open(PDF_FILE, "rb") as f:
+            files = {"file": (os.path.basename(PDF_FILE), f, "application/pdf")}
+            data = {"project_id": project_id, "uploaded_by": "parser_test_user"}
 
             response = requests.post(
-                f"{BASE_URL}/documents/upload",
-                files=files,
-                data=data
+                f"{BASE_URL}/documents/upload", files=files, data=data
             )
 
         if response.status_code == 201:
@@ -69,7 +64,7 @@ def upload_and_analyze_pdf():
             print_info(f"Document ID: {result['id']}")
 
             # Analyze document
-            doc_id = result['id']
+            doc_id = result["id"]
             response = requests.post(f"{BASE_URL}/documents/{doc_id}/analyze")
 
             if response.status_code == 200:
@@ -77,16 +72,17 @@ def upload_and_analyze_pdf():
                 print_success("Document analysis completed!")
 
                 # Check which parser was used
-                parser = 'unknown'
-                if 'analysis_result' in analysis and 'metadata' in analysis['analysis_result']:
-                    parser = analysis['analysis_result']['metadata'].get('parser', 'unknown')
+                parser = "unknown"
+                if (
+                    "analysis_result" in analysis
+                    and "metadata" in analysis["analysis_result"]
+                ):
+                    parser = analysis["analysis_result"]["metadata"].get(
+                        "parser", "unknown"
+                    )
                 print_info(f"Parser used: {parser}")
 
-                return {
-                    'doc_id': doc_id,
-                    'analysis': analysis,
-                    'parser': parser
-                }
+                return {"doc_id": doc_id, "analysis": analysis, "parser": parser}
             else:
                 print_error(f"Analysis failed: {response.status_code}")
                 print_error(f"Response: {response.text}")
@@ -129,22 +125,22 @@ def compare_results(upstage_result, local_result):
         print_error("Cannot compare - missing results")
         return
 
-    upstage_analysis = upstage_result['analysis']
-    local_analysis = local_result['analysis']
+    upstage_analysis = upstage_result["analysis"]
+    local_analysis = local_result["analysis"]
 
     print_info("\n📊 Comparison Results:")
 
     # Compare chunk counts
-    upstage_chunks = upstage_analysis.get('total_chunks', 0)
-    local_chunks = local_analysis.get('total_chunks', 0)
+    upstage_chunks = upstage_analysis.get("total_chunks", 0)
+    local_chunks = local_analysis.get("total_chunks", 0)
 
     print(f"\n  Chunks created:")
     print(f"    Upstage: {upstage_chunks}")
     print(f"    Local:   {local_chunks}")
 
     # Compare metadata
-    upstage_meta = upstage_analysis.get('analysis_result', {}).get('metadata', {})
-    local_meta = local_analysis.get('analysis_result', {}).get('metadata', {})
+    upstage_meta = upstage_analysis.get("analysis_result", {}).get("metadata", {})
+    local_meta = local_analysis.get("analysis_result", {}).get("metadata", {})
 
     print(f"\n  Pages detected:")
     print(f"    Upstage: {upstage_meta.get('pages', 0)}")
@@ -155,8 +151,8 @@ def compare_results(upstage_result, local_result):
     print(f"    Local:   {len(local_meta.get('elements', []))}")
 
     # Text length comparison
-    upstage_text_len = len(upstage_analysis.get('analysis_result', {}).get('text', ''))
-    local_text_len = len(local_analysis.get('analysis_result', {}).get('text', ''))
+    upstage_text_len = len(upstage_analysis.get("analysis_result", {}).get("text", ""))
+    local_text_len = len(local_analysis.get("analysis_result", {}).get("text", ""))
 
     print(f"\n  Text extracted (characters):")
     print(f"    Upstage: {upstage_text_len:,}")
@@ -165,12 +161,16 @@ def compare_results(upstage_result, local_result):
     # Quality assessment
     print(f"\n  Quality Assessment:")
     if upstage_chunks > local_chunks:
-        print(f"    {GREEN}✓{RESET} Upstage extracted more chunks (better segmentation)")
+        print(
+            f"    {GREEN}✓{RESET} Upstage extracted more chunks (better segmentation)"
+        )
     else:
         print(f"    {GREEN}✓{RESET} Local parser created comparable chunks")
 
-    if len(upstage_meta.get('elements', [])) > 0:
-        print(f"    {GREEN}✓{RESET} Upstage provides structural elements (headings, tables, etc.)")
+    if len(upstage_meta.get("elements", [])) > 0:
+        print(
+            f"    {GREEN}✓{RESET} Upstage provides structural elements (headings, tables, etc.)"
+        )
 
     if local_text_len > 0:
         print(f"    {GREEN}✓{RESET} Local parser successfully extracted text")
@@ -183,9 +183,9 @@ def compare_results(upstage_result, local_result):
 
 def main():
     """Run comprehensive parser mode tests"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"{BLUE}RAG Service - Parser Mode Comparison Test{RESET}")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     # Check if PDF file exists
     if not os.path.exists(PDF_FILE):
@@ -215,20 +215,22 @@ def main():
     print_info("     docker-compose restart rag-service")
     print_info("  3. Run this test again")
     print_info("")
-    print_info("Or temporarily remove UPSTAGE_API_KEY to trigger auto fallback to local")
+    print_info(
+        "Or temporarily remove UPSTAGE_API_KEY to trigger auto fallback to local"
+    )
 
     # Summary
     print_section("Test Summary")
 
     if upstage_result:
-        parser_used = upstage_result['parser']
+        parser_used = upstage_result["parser"]
 
-        if parser_used == 'upstage':
+        if parser_used == "upstage":
             print_success("✅ Upstage API integration: Working")
             print_info("   - Cloud-based document analysis")
             print_info("   - Advanced layout detection")
             print_info("   - Structured element extraction")
-        elif parser_used == 'local':
+        elif parser_used == "local":
             print_success("✅ Local parser integration: Working")
             print_info("   - PyPDF2 for PDF parsing")
             print_info("   - python-docx for DOCX parsing")
@@ -239,9 +241,9 @@ def main():
         print_info("   - upstage: Always use cloud API")
         print_info("   - local: Always use PyPDF2/python-docx")
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print(f"{GREEN}✅ Parser mode testing completed!{RESET}")
-        print("="*60 + "\n")
+        print("=" * 60 + "\n")
     else:
         print_error("❌ Parser test failed")
 

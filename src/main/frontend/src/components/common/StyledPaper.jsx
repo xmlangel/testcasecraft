@@ -1,6 +1,6 @@
-import React from 'react';
-import { Paper } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import React from "react";
+import { Paper } from "@mui/material";
+import { styled } from "@mui/material/styles";
 
 const StyledPaperRoot = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),

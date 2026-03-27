@@ -1,4 +1,4 @@
-# src/main/resources/application.yml  
+# src/main/resources/application.yml
 # 공통 설정 파일 - 모든 환경에서 공유하는 기본 설정
 
 spring:
@@ -11,25 +11,25 @@ spring:
   # HTTP Client 공통 설정 (Spring Boot 3.4+)
   http:
     client:
-      connect-timeout: 10s     # JIRA API 연결 타임아웃
-      read-timeout: 30s        # JIRA API 읽기 타임아웃
+      connect-timeout: 10s # JIRA API 연결 타임아웃
+      read-timeout: 30s # JIRA API 읽기 타임아웃
 
   # Flyway Database Migration 설정
   flyway:
     enabled: false
     locations: classpath:db/migration
-    baseline-on-migrate: true  # 기존 DB에 Flyway 적용 시 필요
-    baseline-version: 0        # 기존 스키마를 버전 0으로 간주
+    baseline-on-migrate: true # 기존 DB에 Flyway 적용 시 필요
+    baseline-version: 0 # 기존 스키마를 버전 0으로 간주
     validate-on-migrate: true
     out-of-order: false
-  
+
   # 파일 업로드 설정
   servlet:
     multipart:
-      max-file-size: ${MAX_FILE_SIZE:100MB}     # 개별 파일 최대 크기
+      max-file-size: ${MAX_FILE_SIZE:100MB} # 개별 파일 최대 크기
       max-request-size: ${MAX_REQUEST_SIZE:100MB} # 전체 요청 최대 크기
       enabled: true
-    
+
   # Jackson JSON 설정
   jackson:
     time-zone: Asia/Seoul
@@ -38,22 +38,22 @@ spring:
       write-dates-as-timestamps: false
     deserialization:
       fail-on-unknown-properties: false
-  
+
   # 공통 메일 설정 (프로필별 설정에서 오버라이드)
   mail:
     default-encoding: UTF-8
     test-connection: false
-  
+
   # JPA/Hibernate 설정 (배치 처리 최적화)
   jpa:
     properties:
       hibernate:
         jdbc:
-          batch_size: 100              # INSERT/UPDATE를 20개씩 묶어서 실행
-        order_inserts: true           # INSERT를 엔티티 타입별로 그룹화
-        order_updates: true           # UPDATE를 엔티티 타입별로 그룹화
-        batch_versioned_data: true    # 버전 관리되는 엔티티도 배치 활성화
-  
+          batch_size: 100 # INSERT/UPDATE를 20개씩 묶어서 실행
+        order_inserts: true # INSERT를 엔티티 타입별로 그룹화
+        order_updates: true # UPDATE를 엔티티 타입별로 그룹화
+        batch_versioned_data: true # 버전 관리되는 엔티티도 배치 활성화
+
   # 공통 보안 설정
   security:
     oauth2:
@@ -67,8 +67,8 @@ spring:
   # JWT 공통 설정
   jwt:
     secret: ${JWT_SECRET:dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=}
-    access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}     # 1시간
-    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:86400000}  # 24시간
+    access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000} # 1시간
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:86400000} # 24시간
 
 # ICT-203: JUnit XML 파일 업로드 설정
 junit:
@@ -131,9 +131,9 @@ rag:
   api:
     url: ${RAG_API_URL:http://localhost:8001}
     timeout:
-      connection: ${RAG_API_CONNECTION_TIMEOUT:5000}     # 연결 타임아웃: 5초
-      read: ${RAG_API_READ_TIMEOUT:300000}               # 읽기 타임아웃: 5분 (모델 다운로드 및 분석 지원)
-      write: ${RAG_API_WRITE_TIMEOUT:300000}             # 쓰기 타임아웃: 5분 (대용량 파일 업로드 지원)
+      connection: ${RAG_API_CONNECTION_TIMEOUT:5000} # 연결 타임아웃: 5초
+      read: ${RAG_API_READ_TIMEOUT:300000} # 읽기 타임아웃: 5분 (모델 다운로드 및 분석 지원)
+      write: ${RAG_API_WRITE_TIMEOUT:300000} # 쓰기 타임아웃: 5분 (대용량 파일 업로드 지원)
 
 # MinIO Object Storage 설정 (TestCase Attachments)
 minio:
@@ -162,15 +162,15 @@ resilience4j:
   ratelimiter:
     instances:
       pageRefreshLimiter:
-        limit-for-period: 10              # 기간당 최대 10회 요청
-        limit-refresh-period: 60s         # 60초마다 제한 리셋
-        timeout-duration: 0s              # 대기 시간 없음 (즉시 거부)
-        register-health-indicator: true   # Actuator health 엔드포인트에 등록
-        subscribe-for-events: true        # 이벤트 구독 활성화
+        limit-for-period: 10 # 기간당 최대 10회 요청
+        limit-refresh-period: 60s # 60초마다 제한 리셋
+        timeout-duration: 0s # 대기 시간 없음 (즉시 거부)
+        register-health-indicator: true # Actuator health 엔드포인트에 등록
+        subscribe-for-events: true # 이벤트 구독 활성화
         allow-health-indicator-to-fail: false
         event-consumer-buffer-size: 100
     metrics:
-      enabled: true                       # Prometheus 메트릭 활성화
+      enabled: true # Prometheus 메트릭 활성화
       legacy:
         enabled: true
 
@@ -179,3 +179,7 @@ jira:
   security:
     encryption:
       key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
+
+# 프론트엔드 기능 제어 설정 (런타임용)
+frontend:
+  show-exploratory-session-tab: ${SHOW_EXPLORATORY_SESSION_TAB:false}

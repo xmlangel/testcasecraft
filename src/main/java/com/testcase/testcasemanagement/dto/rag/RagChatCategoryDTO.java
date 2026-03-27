@@ -6,24 +6,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * RAG 채팅 카테고리 DTO
- */
+/** RAG 채팅 카테고리 DTO */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RagChatCategoryDTO {
 
-    @JsonProperty("id")
-    private String id;
+  @JsonProperty("id")
+  private String id;
 
-    @JsonProperty("name")
-    private String name;
+  @JsonProperty("name")
+  private String name;
 
-    @JsonProperty("color")
-    private String color;
+  @JsonProperty("color")
+  private String color;
 
-    @JsonProperty("description")
-    private String description;
+  @JsonProperty("description")
+  private String description;
 }

@@ -1,4 +1,5 @@
 """Korean Reranker Service for RAG Search Quality Improvement"""
+
 from typing import List, Dict, Any, Tuple
 import logging
 from sentence_transformers import CrossEncoder
@@ -29,7 +30,9 @@ class RerankerService:
                 - Default: "Dongjin-kr/ko-reranker" (Korean-optimized)
                 - Alternative: "cross-encoder/ms-marco-MiniLM-L-6-v2" (multilingual)
         """
-        self.model_name = model_name or "cross-encoder/ms-marco-MiniLM-L-6-v2"  # Use multilingual by default
+        self.model_name = (
+            model_name or "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        )  # Use multilingual by default
         self.model = None
 
         logger.info(f"RerankerService initialized with model: {self.model_name}")
@@ -42,8 +45,12 @@ class RerankerService:
                 self.model = CrossEncoder(self.model_name)
                 logger.info(f"Reranker model loaded successfully: {self.model_name}")
             except Exception as e:
-                logger.warning(f"Failed to load reranker model {self.model_name}: {str(e)}")
-                logger.info("Falling back to multilingual model: cross-encoder/ms-marco-MiniLM-L-6-v2")
+                logger.warning(
+                    f"Failed to load reranker model {self.model_name}: {str(e)}"
+                )
+                logger.info(
+                    "Falling back to multilingual model: cross-encoder/ms-marco-MiniLM-L-6-v2"
+                )
                 self.model_name = "cross-encoder/ms-marco-MiniLM-L-6-v2"
                 self.model = CrossEncoder(self.model_name)
 
@@ -52,7 +59,7 @@ class RerankerService:
         query: str,
         documents: List[Dict[str, Any]],
         top_k: int = None,
-        score_threshold: float = None
+        score_threshold: float = None,
     ) -> List[Dict[str, Any]]:
         """
         Rerank documents based on query-document relevance
@@ -78,7 +85,9 @@ class RerankerService:
             for doc in documents:
                 doc_text = doc.get("text", "")
                 if not doc_text:
-                    logger.warning(f"Empty document text at index {documents.index(doc)}")
+                    logger.warning(
+                        f"Empty document text at index {documents.index(doc)}"
+                    )
                     doc_text = doc.get("content", "")  # Fallback to 'content' field
 
                 pairs.append([query, doc_text])
@@ -99,15 +108,20 @@ class RerankerService:
                 doc["score"] = doc["reranker_score"]
 
             # Sort by reranker score (descending)
-            reranked_docs = sorted(documents, key=lambda x: x["reranker_score"], reverse=True)
+            reranked_docs = sorted(
+                documents, key=lambda x: x["reranker_score"], reverse=True
+            )
 
             # Apply score threshold filter
             if score_threshold is not None:
                 reranked_docs = [
-                    doc for doc in reranked_docs
+                    doc
+                    for doc in reranked_docs
                     if doc["reranker_score"] >= score_threshold
                 ]
-                logger.info(f"Filtered to {len(reranked_docs)} documents above threshold {score_threshold}")
+                logger.info(
+                    f"Filtered to {len(reranked_docs)} documents above threshold {score_threshold}"
+                )
 
             # Apply top_k limit
             if top_k is not None:
@@ -127,11 +141,7 @@ class RerankerService:
             logger.warning("Returning original document order due to reranking error")
             return documents
 
-    def compute_relevance_scores(
-        self,
-        query: str,
-        documents: List[str]
-    ) -> List[float]:
+    def compute_relevance_scores(self, query: str, documents: List[str]) -> List[float]:
         """
         Compute relevance scores for query-document pairs
 
@@ -154,11 +164,7 @@ class RerankerService:
             logger.error(f"Error computing relevance scores: {str(e)}")
             return [0.0] * len(documents)
 
-    def get_best_match(
-        self,
-        query: str,
-        documents: List[str]
-    ) -> Tuple[int, float]:
+    def get_best_match(self, query: str, documents: List[str]) -> Tuple[int, float]:
         """
         Get the best matching document index and score
 

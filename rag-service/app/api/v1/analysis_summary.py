@@ -1,4 +1,5 @@
 """Analysis Summary CRUD API endpoints"""
+
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -12,7 +13,7 @@ from ...schemas.analysis_summary import (
     AnalysisSummaryResponse,
     AnalysisSummaryListResponse,
     AnalysisSummaryDeleteResponse,
-    AnalysisSummaryListItem
+    AnalysisSummaryListItem,
 )
 from ...services.analysis_summary_service import AnalysisSummaryService
 
@@ -21,10 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("", response_model=AnalysisSummaryResponse, status_code=201)
-async def create_summary(
-    data: AnalysisSummaryCreate,
-    db: Session = Depends(get_db)
-):
+async def create_summary(data: AnalysisSummaryCreate, db: Session = Depends(get_db)):
     """요약 생성 (임시 저장)
 
     분석 결과를 사용자가 정리하여 요약으로 저장합니다.
@@ -50,12 +48,14 @@ async def create_summary(
             tags=summary.tags or [],
             is_public=summary.is_public,
             created_at=summary.created_at,
-            updated_at=summary.updated_at
+            updated_at=summary.updated_at,
         )
 
     except Exception as e:
         logger.error(f"Summary creation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Summary creation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Summary creation failed: {str(e)}"
+        )
 
 
 @router.get("", response_model=AnalysisSummaryListResponse)
@@ -65,7 +65,7 @@ async def list_summaries(
     is_public: Optional[bool] = Query(None, description="Filter by public visibility"),
     skip: int = Query(0, ge=0, description="Skip offset"),
     limit: int = Query(20, ge=1, le=100, description="Result limit"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """요약 목록 조회
 
@@ -87,7 +87,7 @@ async def list_summaries(
             user_id=user_id,
             is_public=is_public,
             skip=skip,
-            limit=limit
+            limit=limit,
         )
 
         summary_items = [
@@ -98,28 +98,24 @@ async def list_summaries(
                 tags=s.tags or [],
                 is_public=s.is_public,
                 created_at=s.created_at,
-                updated_at=s.updated_at
+                updated_at=s.updated_at,
             )
             for s in summaries
         ]
 
         return AnalysisSummaryListResponse(
-            summaries=summary_items,
-            total=total,
-            skip=skip,
-            limit=limit
+            summaries=summary_items, total=total, skip=skip, limit=limit
         )
 
     except Exception as e:
         logger.error(f"Summary list retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Summary list retrieval failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Summary list retrieval failed: {str(e)}"
+        )
 
 
 @router.get("/{summary_id}", response_model=AnalysisSummaryResponse)
-async def get_summary(
-    summary_id: UUID,
-    db: Session = Depends(get_db)
-):
+async def get_summary(summary_id: UUID, db: Session = Depends(get_db)):
     """요약 상세 조회
 
     Args:
@@ -146,21 +142,21 @@ async def get_summary(
             tags=summary.tags or [],
             is_public=summary.is_public,
             created_at=summary.created_at,
-            updated_at=summary.updated_at
+            updated_at=summary.updated_at,
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Summary retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Summary retrieval failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Summary retrieval failed: {str(e)}"
+        )
 
 
 @router.put("/{summary_id}", response_model=AnalysisSummaryResponse)
 async def update_summary(
-    summary_id: UUID,
-    data: AnalysisSummaryUpdate,
-    db: Session = Depends(get_db)
+    summary_id: UUID, data: AnalysisSummaryUpdate, db: Session = Depends(get_db)
 ):
     """요약 수정
 
@@ -189,7 +185,7 @@ async def update_summary(
             tags=summary.tags or [],
             is_public=summary.is_public,
             created_at=summary.created_at,
-            updated_at=summary.updated_at
+            updated_at=summary.updated_at,
         )
 
     except HTTPException:
@@ -200,10 +196,7 @@ async def update_summary(
 
 
 @router.delete("/{summary_id}", response_model=AnalysisSummaryDeleteResponse)
-async def delete_summary(
-    summary_id: UUID,
-    db: Session = Depends(get_db)
-):
+async def delete_summary(summary_id: UUID, db: Session = Depends(get_db)):
     """요약 삭제
 
     Args:
@@ -221,12 +214,13 @@ async def delete_summary(
             raise HTTPException(status_code=404, detail="Summary not found")
 
         return AnalysisSummaryDeleteResponse(
-            message="요약이 삭제되었습니다.",
-            deleted_id=summary_id
+            message="요약이 삭제되었습니다.", deleted_id=summary_id
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Summary deletion failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Summary deletion failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Summary deletion failed: {str(e)}"
+        )

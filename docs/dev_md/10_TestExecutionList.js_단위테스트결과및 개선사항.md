@@ -8,7 +8,6 @@
 - 코드의 주요 함수(예: `calculateProgress`, 삭제 다이얼로그 컨트롤, 상태 칩 렌더링)는 정상적으로 동작합니다.
 - 실제 단위테스트는 제공된 코드에 대해 작성되어 있지 않으나, [TestCaseTree.js](2) 등에서의 테스트 사례를 참고하면, 주요 UI 동작(버튼 클릭, 다이얼로그 오픈/클로즈, 목록 렌더링 등)을 중심으로 테스트가 필요합니다.
 
-
 ### 2. 개선 사항
 
 #### (1) 진행률 계산 정확성 개선
@@ -32,7 +31,6 @@ const calculateProgress = (execution) =&gt; {
 ```
 
 - 이렇게 하면 실제로 테스트가 실행된 경우만 진행률에 반영됩니다[^1].
-
 
 #### (2) 기타 코드 개선
 
@@ -81,22 +79,22 @@ import { ExecutionStatus } from '../models/testExecution';
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) =&gt; {
   const { state, deleteTestExecution, getTestPlan } = useAppContext();
   const { testExecutions } = state;
-  
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [executionToDelete, setExecutionToDelete] = useState(null);
-  
+
   // 삭제 다이얼로그 열기
   const handleOpenDeleteDialog = (executionId) =&gt; {
     setExecutionToDelete(executionId);
     setDeleteDialogOpen(true);
   };
-  
+
   // 삭제 다이얼로그 닫기
   const handleCloseDeleteDialog = () =&gt; {
     setDeleteDialogOpen(false);
     setExecutionToDelete(null);
   };
-  
+
   // 테스트 실행 삭제 확인
   const handleConfirmDelete = () =&gt; {
     if (executionToDelete) {
@@ -104,7 +102,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     }
     handleCloseDeleteDialog();
   };
-  
+
   // 테스트 진행률 계산 (NOTRUN 제외)
   const calculateProgress = (execution) =&gt; {
     const testPlan = getTestPlan(execution.testPlanId);
@@ -116,7 +114,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     ).length;
     return Math.round((completedTests / totalTests) * 100);
   };
-  
+
   // 상태에 따른 칩 렌더링
   const renderStatusChip = (status) =&gt; {
     switch (status) {
@@ -130,7 +128,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
         return null;
     }
   };
-  
+
   return (
     &lt;Card sx={{ height: '100%' }}&gt;
       &lt;CardContent&gt;
@@ -145,7 +143,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
             새 테스트 실행
           &lt;/Button&gt;
         &lt;/Box&gt;
-        
+
         {testExecutions.length === 0 ? (
           &lt;Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}&gt;
             테스트 실행이 없습니다. 새 테스트 실행을 생성하세요.
@@ -155,11 +153,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
             {testExecutions.map((execution, index) =&gt; {
               const testPlan = getTestPlan(execution.testPlanId);
               const progress = calculateProgress(execution);
-              
+
               return (
                 &lt;React.Fragment key={execution.id}&gt;
                   {index &gt; 0 &amp;&amp; &lt;Divider component="li" /&gt;}
-                  &lt;ListItem 
+                  &lt;ListItem
                     alignItems="flex-start"
                     button
                     onClick={() =&gt; onViewExecution(execution.id)}
@@ -180,19 +178,19 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                           &lt;/Typography&gt;
                           <br>
                           &lt;Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}&gt;
-                            &lt;LinearProgress 
-                              variant="determinate" 
-                              value={progress} 
-                              sx={{ flexGrow: 1, mr: 1 }} 
+                            &lt;LinearProgress
+                              variant="determinate"
+                              value={progress}
+                              sx={{ flexGrow: 1, mr: 1 }}
                             /&gt;
                             &lt;Typography variant="body2"&gt;{progress}%&lt;/Typography&gt;
                           &lt;/Box&gt;
-                        
+
                       }
                     /&gt;
                     &lt;ListItemSecondaryAction&gt;
-                      &lt;IconButton 
-                        edge="end" 
+                      &lt;IconButton
+                        edge="end"
                         aria-label="수정"
                         onClick={(e) =&gt; {
                           e.stopPropagation();
@@ -201,8 +199,8 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                       &gt;
                         &lt;EditIcon /&gt;
                       &lt;/IconButton&gt;
-                      &lt;IconButton 
-                        edge="end" 
+                      &lt;IconButton
+                        edge="end"
                         aria-label="삭제"
                         onClick={(e) =&gt; {
                           e.stopPropagation();
@@ -219,7 +217,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
           &lt;/List&gt;
         )}
       &lt;/CardContent&gt;
-      
+
       {/* 삭제 확인 다이얼로그 */}
       &lt;Dialog
         open={deleteDialogOpen}
@@ -246,7 +244,6 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
 export default TestExecutionList;
 ```
 
-
 ---
 
 ### 참고
@@ -257,8 +254,5 @@ export default TestExecutionList;
 <div style="text-align: center">⁂</div>
 
 [^1]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/collection_c4563118-4142-4f5f-8efd-f7910a580e79/709c5ded-a37f-43d1-a40d-c85a70cda911/README_USAGE.md
-
 [^2]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/collection_c4563118-4142-4f5f-8efd-f7910a580e79/ba0d74b4-1bd6-40d0-ba46-084dce86c321/TestCaseTree.js-kodeu-danwi-teseuteu-mic-gaeseon-sahang.md
-
 [^3]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/collection_c4563118-4142-4f5f-8efd-f7910a580e79/640e4793-415c-457b-9e2b-9dabacc0d9fd/jeonce-gujo-yoyag.md
-

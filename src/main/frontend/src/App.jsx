@@ -1,6 +1,13 @@
 // src/App.js
 
-import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useNavigate,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import React, { useState, useRef } from "react";
 import {
   Container,
@@ -20,11 +27,11 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import { useAppContext, AppProvider } from "./context/AppContext";
 import {
-  useAppContext,
-  AppProvider,
-} from "./context/AppContext";
-import { ThemeProvider, useTheme as useCustomTheme } from "./context/ThemeContext.jsx";
+  ThemeProvider,
+  useTheme as useCustomTheme,
+} from "./context/ThemeContext.jsx";
 import { I18nProvider, useTranslation } from "./context/I18nContext.jsx";
 import ProjectManager from "./components/ProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
@@ -72,18 +79,21 @@ import {
 
 const STORAGEKEY = "testcase-manager-ui-state";
 const TRACKED_PAGE_PATHS = [
-  '/dashboard',
-  '/organizations',
-  '/organizations/*',
-  '/projects',
-  '/projects/*',
-  '/users',
-  '/mail-settings',
-  '/translation-management',
-  '/llm-config',
-  '/projectdashboard'
+  "/dashboard",
+  "/organizations",
+  "/organizations/*",
+  "/projects",
+  "/projects/*",
+  "/users",
+  "/mail-settings",
+  "/translation-management",
+  "/llm-config",
+  "/projectdashboard",
 ];
-const SHOW_EXPLORATORY_SESSION_TAB = false;
+import {
+  getDynamicApiUrl,
+  getShowExploratorySessionTab,
+} from "./utils/apiConstants";
 
 function saveUIState(state) {
   localStorage.setItem(STORAGEKEY, JSON.stringify(state));
@@ -148,7 +158,6 @@ const AppContent = () => {
   const { t, initialized: i18nInitialized } = useTranslation();
   const { mode, toggleTheme } = useCustomTheme();
 
-
   const {
     user,
     loadingUser,
@@ -163,21 +172,40 @@ const AppContent = () => {
     handleDialogLogin,
   } = useAppContext();
 
+  const [showExploratorySessionTab, setShowExploratorySessionTab] = useState(
+    getShowExploratorySessionTab(),
+  );
+
+  // 런타임 설정 로드 (ICT-340 연동)
+  React.useEffect(() => {
+    const loadConfig = async () => {
+      await getDynamicApiUrl(); // 설정 로드 트리거
+      setShowExploratorySessionTab(getShowExploratorySessionTab());
+    };
+    loadConfig();
+  }, []);
+
   const { isRagEnabled } = useRAG();
   // 탐색 세션 탭 비노출 상태에서는 직접 접근도 허용하지 않는다.
-  const EXPLORATORY_TAB = SHOW_EXPLORATORY_SESSION_TAB ? (isRagEnabled ? 7 : 6) : -1;
+  const EXPLORATORY_TAB = showExploratorySessionTab
+    ? isRagEnabled
+      ? 7
+      : 6
+    : -1;
 
   const navigate = useNavigate();
   const location = useLocation();
 
   usePageViewTracker({
-    enabled: !!user && !loadingUser && user?.role === 'ADMIN',
-    include: TRACKED_PAGE_PATHS
+    enabled: !!user && !loadingUser && user?.role === "ADMIN",
+    include: TRACKED_PAGE_PATHS,
   });
 
   const uiState = loadUIState();
   const [tabIndex, setTabIndex] = useState(uiState.tabIndex ?? 0);
-  const [activeTestCaseId, setActiveTestCaseId] = useState(uiState.activeTestCaseId ?? null);
+  const [activeTestCaseId, setActiveTestCaseId] = useState(
+    uiState.activeTestCaseId ?? null,
+  );
   const [showTestPlanForm, setShowTestPlanForm] = useState(false);
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
@@ -185,7 +213,10 @@ const AppContent = () => {
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
   const [initialLoad, setInitialLoad] = useState(false);
   const [managementAnchorEl, setManagementAnchorEl] = useState(null);
-  const [selectedTestPlanIdForNewExecution, setSelectedTestPlanIdForNewExecution] = useState(null);
+  const [
+    selectedTestPlanIdForNewExecution,
+    setSelectedTestPlanIdForNewExecution,
+  ] = useState(null);
 
   // 사용자 로그인 완료 시 initialLoad 설정 (프로젝트가 없어도 로딩 완료로 처리)
   React.useEffect(() => {
@@ -209,14 +240,14 @@ const AppContent = () => {
       setErrorSnackbarOpen(true);
     };
 
-    window.addEventListener('api-error', handleApiError);
+    window.addEventListener("api-error", handleApiError);
     return () => {
-      window.removeEventListener('api-error', handleApiError);
+      window.removeEventListener("api-error", handleApiError);
     };
   }, []);
 
   const handleErrorSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setErrorSnackbarOpen(false);
@@ -324,23 +355,28 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/exploratory/);
   };
 
-
-
   // URL 경로에 따른 화면 표시 결정
   React.useEffect(() => {
     const urlProjectId = getProjectIdFromUrl();
-    const isHomePage = location.pathname === '/';
-    const isProjectsPage = location.pathname === '/projects';
-    const isDashboardPage = location.pathname === '/dashboard';
-    const isOrganizationPage = location.pathname.startsWith('/organizations');
-
+    const isHomePage = location.pathname === "/";
+    const isProjectsPage = location.pathname === "/projects";
+    const isDashboardPage = location.pathname === "/dashboard";
+    const isOrganizationPage = location.pathname.startsWith("/organizations");
 
     // 사용자나 프로젝트가 아직 로드되지 않았으면 대기
-    if (loadingUser || projectsLoading || (user && projects.length === 0 && !initialLoad)) {
+    if (
+      loadingUser ||
+      projectsLoading ||
+      (user && projects.length === 0 && !initialLoad)
+    ) {
       return;
     }
 
-    if ((isHomePage || isProjectsPage || !urlProjectId) && !isOrganizationPage && !isDashboardPage) {
+    if (
+      (isHomePage || isProjectsPage || !urlProjectId) &&
+      !isOrganizationPage &&
+      !isDashboardPage
+    ) {
       setProjectSelectionOpen(true);
       setActiveProject(null);
     } else if (!isOrganizationPage && !isDashboardPage) {
@@ -359,7 +395,6 @@ const AppContent = () => {
     const urlTestPlanId = getTestPlanIdFromUrl();
     const urlTestExecutionId = getTestExecutionIdFromUrl();
 
-
     if (urlProjectId) {
       const project = projects.find((p) => p.id === urlProjectId);
       if (project) {
@@ -375,7 +410,7 @@ const AppContent = () => {
           setActiveTestCaseId(null);
         } else if (urlTestPlanId) {
           setTabIndex(2);
-          if (urlTestPlanId === 'new') {
+          if (urlTestPlanId === "new") {
             // 새 테스트플랜 생성
             setEditingTestPlanId(null);
             setShowTestPlanForm(true);
@@ -390,7 +425,7 @@ const AppContent = () => {
           setEditingTestPlanId(null);
         } else if (urlTestExecutionId) {
           setTabIndex(3);
-          if (urlTestExecutionId === 'new') {
+          if (urlTestExecutionId === "new") {
             // 새 테스트실행 생성
             setEditingTestExecutionId(null);
             setShowTestExecutionForm(true);
@@ -419,7 +454,7 @@ const AppContent = () => {
           }
           setActiveTestCaseId(null);
         } else if (isExploratorySection()) {
-          if (SHOW_EXPLORATORY_SESSION_TAB) {
+          if (showExploratorySessionTab) {
             setTabIndex(EXPLORATORY_TAB);
           } else {
             navigate(`/projects/${urlProjectId}`);
@@ -432,13 +467,23 @@ const AppContent = () => {
           setActiveTestCaseId(null);
         }
       } else if (projects.length > 0) {
-        navigate('/');
+        navigate("/");
       }
-    } else if (location.pathname === '/') {
+    } else if (location.pathname === "/") {
       // 홈페이지 접근 시 프로젝트 선택 페이지로 이동
-      navigate('/projects');
+      navigate("/projects");
     }
-  }, [projects, initialLoad, location.pathname, navigate, activeProject, setActiveProject, uiState.activeProjectId, loadingUser, user]);
+  }, [
+    projects,
+    initialLoad,
+    location.pathname,
+    navigate,
+    activeProject,
+    setActiveProject,
+    uiState.activeProjectId,
+    loadingUser,
+    user,
+  ]);
 
   React.useEffect(() => {
     saveUIState({
@@ -450,7 +495,7 @@ const AppContent = () => {
   }, [activeProject, tabIndex, activeTestCaseId, treeVisible]);
 
   React.useEffect(() => {
-    if (!SHOW_EXPLORATORY_SESSION_TAB) {
+    if (!showExploratorySessionTab) {
       const maxVisibleTabIndex = isRagEnabled ? 6 : 5;
       if (tabIndex > maxVisibleTabIndex) {
         setTabIndex(0);
@@ -459,7 +504,17 @@ const AppContent = () => {
   }, [tabIndex, isRagEnabled]);
 
   React.useEffect(() => {
-    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection() && !isRagSection() && !isExploratorySection()) {
+    if (
+      activeProject &&
+      !getTestCaseIdFromUrl() &&
+      !isTestCasesSection() &&
+      !isTestPlansSection() &&
+      !isTestExecutionsSection() &&
+      !isTestResultsSection() &&
+      !isAutomationTestsSection() &&
+      !isRagSection() &&
+      !isExploratorySection()
+    ) {
       setTabIndex(0);
     }
   }, [activeProject, location.pathname]);
@@ -489,7 +544,9 @@ const AppContent = () => {
       } else if (newValue === 3) {
         // 테스트실행 탭
         if (editingTestExecutionId && showTestExecutionForm) {
-          navigate(`/projects/${projectId}/executions/${editingTestExecutionId}`);
+          navigate(
+            `/projects/${projectId}/executions/${editingTestExecutionId}`,
+          );
         } else {
           navigate(`/projects/${projectId}/executions`);
         }
@@ -503,13 +560,13 @@ const AppContent = () => {
         if (isRagEnabled) {
           // RAG 활성화 시: 6 = RAG 문서 탭
           navigate(`/projects/${projectId}/rag`);
-        } else if (SHOW_EXPLORATORY_SESSION_TAB) {
+        } else if (showExploratorySessionTab) {
           // RAG 비활성화 시: 6 = 탘색 세션 탭
           navigate(`/projects/${projectId}/exploratory`);
         } else {
           navigate(`/projects/${projectId}`);
         }
-      } else if (newValue === 7 && SHOW_EXPLORATORY_SESSION_TAB) {
+      } else if (newValue === 7 && showExploratorySessionTab) {
         // RAG 활성화 시만 탭 7이 존재 (= 탘색 세션)
         navigate(`/projects/${projectId}/exploratory`);
       } else {
@@ -520,7 +577,8 @@ const AppContent = () => {
   };
 
   const handleSelectTestCase = (testCase) => {
-    const projectId = typeof activeProject === 'object' ? activeProject?.id : activeProject;
+    const projectId =
+      typeof activeProject === "object" ? activeProject?.id : activeProject;
     if (testCase && projectId) {
       setActiveTestCaseId(testCase.id);
       navigate(`/projects/${projectId}/testcases/${testCase.id}`);
@@ -583,7 +641,9 @@ const AppContent = () => {
     const projectId = activeProject?.id;
     if (projectId) {
       // 전체화면 페이지로 이동 (쿼리 파라미터 사용)
-      navigate(`/projects/${projectId}/executions/new?testPlanId=${testPlanId}`);
+      navigate(
+        `/projects/${projectId}/executions/new?testPlanId=${testPlanId}`,
+      );
     }
   };
 
@@ -631,25 +691,25 @@ const AppContent = () => {
 
   // 관리 메뉴 접근 권한 확인 함수
   const hasManagementAccess = (user) => {
-    return user?.role === 'ADMIN' || user?.role === 'MANAGER';
+    return user?.role === "ADMIN" || user?.role === "MANAGER";
   };
 
   // 시스템 관리자 권한 확인 함수 (대시보드용)
   const hasSystemAdminAccess = (user) => {
-    return user?.role === 'ADMIN';
+    return user?.role === "ADMIN";
   };
 
   // 프로젝트가 없는 경우 안내 메시지 컴포넌트
   const NoProjectsMessage = () => (
-    <Container maxWidth={false} sx={{ mt: 4, px: 2, textAlign: 'center' }}>
+    <Container maxWidth={false} sx={{ mt: 4, px: 2, textAlign: "center" }}>
       <Typography variant="h5" gutterBottom>
-        {t('project.messages.noParticipatingProjects')}
+        {t("project.messages.noParticipatingProjects")}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-        {t('project.messages.needInvitation')}
+        {t("project.messages.needInvitation")}
       </Typography>
-      <Typography variant="body1" color="primary" sx={{ fontWeight: 'medium' }}>
-        {t('project.messages.requestInvitation')}
+      <Typography variant="body1" color="primary" sx={{ fontWeight: "medium" }}>
+        {t("project.messages.requestInvitation")}
       </Typography>
     </Container>
   );
@@ -658,22 +718,22 @@ const AppContent = () => {
   const UnauthorizedPage = () => (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '60vh',
-        textAlign: 'center'
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "60vh",
+        textAlign: "center",
       }}
     >
       <Typography variant="h4" color="error" gutterBottom>
-        {t('common.unauthorized.title')}
+        {t("common.unauthorized.title")}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        {t('common.unauthorized.message')}
+        {t("common.unauthorized.message")}
       </Typography>
-      <Button variant="contained" onClick={() => navigate('/projects')}>
-        {t('common.unauthorized.backToProjects')}
+      <Button variant="contained" onClick={() => navigate("/projects")}>
+        {t("common.unauthorized.backToProjects")}
       </Button>
     </Box>
   );
@@ -682,33 +742,37 @@ const AppContent = () => {
     <>
       <CssBaseline />
       <AppBar position="static">
-        <Toolbar variant="dense" sx={{ minHeight: '64px !important' }}>
+        <Toolbar variant="dense" sx={{ minHeight: "64px !important" }}>
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               flexGrow: 1,
-              cursor: 'pointer',
-              '&:hover': {
-                opacity: 0.8
-              }
+              cursor: "pointer",
+              "&:hover": {
+                opacity: 0.8,
+              },
             }}
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate("/projects")}
           >
             <Box
               component="img"
-              src={theme.palette.mode === 'dark' ? "/testcasecraft_dark.jpg" : "/testcasecraft_light.jpg"}
+              src={
+                theme.palette.mode === "dark"
+                  ? "/testcasecraft_dark.jpg"
+                  : "/testcasecraft_light.jpg"
+              }
               alt="TestCaseCraft"
               sx={{
                 height: 60,
-                width: 'auto',
-                objectFit: 'contain'
+                width: "auto",
+                objectFit: "contain",
               }}
             />
           </Box>
           {hasSystemAdminAccess(user) && (
-            <Button color="inherit" onClick={() => navigate('/dashboard')}>
-              {t('header.nav.dashboard')}
+            <Button color="inherit" onClick={() => navigate("/dashboard")}>
+              {t("header.nav.dashboard")}
             </Button>
           )}
           {hasSystemAdminAccess(user) && (
@@ -718,37 +782,43 @@ const AppContent = () => {
                 onClick={handleManagementMenuOpen}
                 endIcon={<KeyboardArrowDownIcon />}
                 aria-haspopup="true"
-                aria-controls={Boolean(managementAnchorEl) ? 'management-menu' : undefined}
+                aria-controls={
+                  Boolean(managementAnchorEl) ? "management-menu" : undefined
+                }
               >
-                {t('header.nav.managementMenu', '관리 메뉴')}
+                {t("header.nav.managementMenu", "관리 메뉴")}
               </Button>
               <Menu
                 id="management-menu"
                 anchorEl={managementAnchorEl}
                 open={Boolean(managementAnchorEl)}
                 onClose={handleManagementMenuClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
                 PaperProps={{
                   sx: { minWidth: 200, mt: 1 },
                 }}
                 slotProps={{
-                  list: { dense: true }
+                  list: { dense: true },
                 }}
               >
-                <MenuItem onClick={() => handleManagementNavigate('/organizations')}>
+                <MenuItem
+                  onClick={() => handleManagementNavigate("/organizations")}
+                >
                   <Typography variant="body2">
-                    {t('header.nav.organizationManagement')}
+                    {t("header.nav.organizationManagement")}
                   </Typography>
                 </MenuItem>
-                <MenuItem onClick={() => handleManagementNavigate('/users')}>
+                <MenuItem onClick={() => handleManagementNavigate("/users")}>
                   <Typography variant="body2">
-                    {t('header.nav.userManagement')}
+                    {t("header.nav.userManagement")}
                   </Typography>
                 </MenuItem>
-                <MenuItem onClick={() => handleManagementNavigate('/mail-settings')}>
+                <MenuItem
+                  onClick={() => handleManagementNavigate("/mail-settings")}
+                >
                   <Typography variant="body2">
-                    {t('header.nav.mailSettings')}
+                    {t("header.nav.mailSettings")}
                   </Typography>
                 </MenuItem>
                 {/* <MenuItem onClick={() => handleManagementNavigate('/translation-management')}>
@@ -756,28 +826,34 @@ const AppContent = () => {
                     {t('header.nav.translationManagement')}
                   </Typography>
                 </MenuItem> */}
-                <MenuItem onClick={() => handleManagementNavigate('/llm-config')}>
+                <MenuItem
+                  onClick={() => handleManagementNavigate("/llm-config")}
+                >
                   <Typography variant="body2">
-                    {t('header.nav.llmConfig', 'LLM 설정')}
+                    {t("header.nav.llmConfig", "LLM 설정")}
                   </Typography>
                 </MenuItem>
-                <MenuItem onClick={() => handleManagementNavigate('/scheduler')}>
+                <MenuItem
+                  onClick={() => handleManagementNavigate("/scheduler")}
+                >
                   <Typography variant="body2">
-                    {t('header.nav.schedulerManagement', '스케줄러 관리')}
+                    {t("header.nav.schedulerManagement", "스케줄러 관리")}
                   </Typography>
                 </MenuItem>
               </Menu>
             </>
           )}
-          <Button color="inherit" onClick={() => navigate('/projects')} data-testid="project-selection-nav">
-            {t('header.nav.projectSelection')}
+          <Button
+            color="inherit"
+            onClick={() => navigate("/projects")}
+            data-testid="project-selection-nav"
+          >
+            {t("header.nav.projectSelection")}
           </Button>
 
           {/* JIRA 상태 인디케이터 */}
           <Box sx={{ ml: 2, mr: 1 }}>
-            <JiraStatusIndicator
-              compact={true}
-            />
+            <JiraStatusIndicator compact={true} />
           </Box>
 
           {/* Dark/Light 모드 토글 버튼 */}
@@ -786,9 +862,11 @@ const AppContent = () => {
               color="inherit"
               onClick={toggleTheme}
               aria-label="toggle theme"
-              title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              title={
+                mode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
+              }
             >
-              {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+              {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
           </Box>
 
@@ -808,50 +886,96 @@ const AppContent = () => {
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               transformOrigin={{ vertical: "top", horizontal: "right" }}
             >
-              <MenuItem onClick={handleProfileOpen} data-testid="profile-menu-item">{t('header.userMenu.profile')}</MenuItem>
-              <MenuItem onClick={handleLogout} data-testid="logout-menu-item">{t('header.userMenu.logout')}</MenuItem>
+              <MenuItem
+                onClick={handleProfileOpen}
+                data-testid="profile-menu-item"
+              >
+                {t("header.userMenu.profile")}
+              </MenuItem>
+              <MenuItem onClick={handleLogout} data-testid="logout-menu-item">
+                {t("header.userMenu.logout")}
+              </MenuItem>
             </Menu>
           </Box>
         </Toolbar>
       </AppBar>
       <Container maxWidth={false} sx={{ mt: 1, mb: 4, px: 2 }}>
         {loadingUser || !initialLoad || !i18nInitialized ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "50vh",
+            }}
+          >
             <CircularProgress />
-            <Typography sx={{ ml: 2 }}>{t('common.loading', '로딩 중...')}</Typography>
+            <Typography sx={{ ml: 2 }}>
+              {t("common.loading", "로딩 중...")}
+            </Typography>
           </Box>
-        ) : location.pathname === '/dashboard' ? (
-          hasSystemAdminAccess(user) ? <SystemDashboard /> : <UnauthorizedPage />
-        ) : location.pathname === '/organizations' ? (
-          hasSystemAdminAccess(user) ? <OrganizationList /> : <UnauthorizedPage />
-        ) : location.pathname === '/users' ? (
-          hasSystemAdminAccess(user) ? <UserList /> : <UnauthorizedPage />
-        ) : location.pathname === '/mail-settings' ? (
-          hasSystemAdminAccess(user) ? <MailSettingsManager /> : <UnauthorizedPage />
-        ) : location.pathname === '/translation-management' ? (
-          hasSystemAdminAccess(user) ? <TranslationManagement /> : <UnauthorizedPage />
-        ) : location.pathname.startsWith('/llm-config') ? (
-          hasSystemAdminAccess(user) ? <CommonDocumentManagement /> : <UnauthorizedPage />
-        ) : location.pathname === '/scheduler' ? (
-          hasSystemAdminAccess(user) ? <SchedulerManagement /> : <UnauthorizedPage />
-        ) : location.pathname === '/projectdashboard' ? (
+        ) : location.pathname === "/dashboard" ? (
+          hasSystemAdminAccess(user) ? (
+            <SystemDashboard />
+          ) : (
+            <UnauthorizedPage />
+          )
+        ) : location.pathname === "/organizations" ? (
+          hasSystemAdminAccess(user) ? (
+            <OrganizationList />
+          ) : (
+            <UnauthorizedPage />
+          )
+        ) : location.pathname === "/users" ? (
+          hasSystemAdminAccess(user) ? (
+            <UserList />
+          ) : (
+            <UnauthorizedPage />
+          )
+        ) : location.pathname === "/mail-settings" ? (
+          hasSystemAdminAccess(user) ? (
+            <MailSettingsManager />
+          ) : (
+            <UnauthorizedPage />
+          )
+        ) : location.pathname === "/translation-management" ? (
+          hasSystemAdminAccess(user) ? (
+            <TranslationManagement />
+          ) : (
+            <UnauthorizedPage />
+          )
+        ) : location.pathname.startsWith("/llm-config") ? (
+          hasSystemAdminAccess(user) ? (
+            <CommonDocumentManagement />
+          ) : (
+            <UnauthorizedPage />
+          )
+        ) : location.pathname === "/scheduler" ? (
+          hasSystemAdminAccess(user) ? (
+            <SchedulerManagement />
+          ) : (
+            <UnauthorizedPage />
+          )
+        ) : location.pathname === "/projectdashboard" ? (
           <Dashboard />
-        ) : location.pathname.startsWith('/organizations/') ? (
+        ) : location.pathname.startsWith("/organizations/") ? (
           hasSystemAdminAccess(user) ? (
             (() => {
-              const match = location.pathname.match(/^\/organizations\/([^\/]+)/);
+              const match = location.pathname.match(
+                /^\/organizations\/([^\/]+)/,
+              );
               const organizationId = match ? match[1] : null;
               return <OrganizationDetail organizationId={organizationId} />;
             })()
-          ) : <UnauthorizedPage />
+          ) : (
+            <UnauthorizedPage />
+          )
         ) : projectSelectionOpen ? (
           <Box sx={{ mt: 3, mb: 3 }}>
             <Typography variant="h5" gutterBottom>
-              {t('header.nav.projectSelection')}
+              {t("header.nav.projectSelection")}
             </Typography>
-            <ProjectManager
-              onSelectProject={handleProjectSelect}
-            />
+            <ProjectManager onSelectProject={handleProjectSelect} />
           </Box>
         ) : (
           <>
@@ -890,7 +1014,7 @@ const AppContent = () => {
                             color: "primary.main",
                             "&:hover": { backgroundColor: "action.hover" },
                           }}
-                          title={t('testcase.tree.tooltip.open')}
+                          title={t("testcase.tree.tooltip.open")}
                         >
                           <ChevronRightIcon />
                         </IconButton>
@@ -930,17 +1054,21 @@ const AppContent = () => {
                                 color: "text.secondary",
                                 "&:hover": {
                                   backgroundColor: "action.hover",
-                                  color: "primary.main"
+                                  color: "primary.main",
                                 },
                               }}
-                              title={t('testcase.tree.tooltip.close')}
+                              title={t("testcase.tree.tooltip.close")}
                             >
                               <ChevronLeftIcon />
                             </IconButton>
                           </Box>
 
                           <TestCaseTree
-                            projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
+                            projectId={
+                              typeof activeProject === "object"
+                                ? activeProject.id
+                                : activeProject
+                            }
                             onSelectTestCase={handleSelectTestCase}
                             selectedTestCaseId={activeTestCaseId}
                           />
@@ -955,11 +1083,15 @@ const AppContent = () => {
                         flex: 1,
                         minWidth: 0,
                         ml: treeVisible ? 1 : 0,
-                        transition: "margin-left 0.3s ease-in-out"
+                        transition: "margin-left 0.3s ease-in-out",
                       }}
                     >
                       <TestCaseHybridForm
-                        projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
+                        projectId={
+                          typeof activeProject === "object"
+                            ? activeProject.id
+                            : activeProject
+                        }
                         testCaseId={activeTestCaseId}
                       />
                     </Box>
@@ -1019,11 +1151,15 @@ const AppContent = () => {
                   </Box>
                 )}
                 {/* 탘색 세션 탭: RAG 활성화 시 tabIndex 7, 비활성화 시 tabIndex 6 */}
-                {SHOW_EXPLORATORY_SESSION_TAB && tabIndex === EXPLORATORY_TAB && activeProject && (
-                  <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
-                    <ExploratorySessionWorkspace projectId={activeProject.id} />
-                  </Box>
-                )}
+                {SHOW_EXPLORATORY_SESSION_TAB &&
+                  tabIndex === EXPLORATORY_TAB &&
+                  activeProject && (
+                    <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                      <ExploratorySessionWorkspace
+                        projectId={activeProject.id}
+                      />
+                    </Box>
+                  )}
               </>
             )}
           </>
@@ -1041,9 +1177,13 @@ const AppContent = () => {
         open={errorSnackbarOpen}
         autoHideDuration={6000}
         onClose={handleErrorSnackbarClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleErrorSnackbarClose} severity={errorSeverity} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleErrorSnackbarClose}
+          severity={errorSeverity}
+          sx={{ width: "100%" }}
+        >
           {errorMessage}
         </Alert>
       </Snackbar>
@@ -1061,14 +1201,23 @@ function TestExecutionFullPage() {
   const { id, projectId, executionId } = useParams();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const initialTestPlanId = searchParams.get('testPlanId');
-  const { sessionExpired, handleDialogRefresh, handleDialogLogin } = useAppContext();
+  const initialTestPlanId = searchParams.get("testPlanId");
+  const { sessionExpired, handleDialogRefresh, handleDialogLogin } =
+    useAppContext();
 
   const actualExecutionId = executionId || id; // executionId는 새로운 패턴, id는 레거시
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: '#fafbfc', px: 2, py: 0 }}>
+    <Box
+      sx={{
+        width: "100%",
+        minHeight: "100vh",
+        bgcolor: "#fafbfc",
+        px: 2,
+        py: 0,
+      }}
+    >
       <TestExecutionForm
         executionId={actualExecutionId}
         projectId={projectId}
@@ -1109,29 +1258,29 @@ const AppWrapper = () => {
     return (
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          bgcolor: 'background.default',
-          color: 'text.primary'
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          color: "text.primary",
         }}
       >
-        <Box sx={{ position: 'relative', display: 'inline-flex', mb: 3 }}>
+        <Box sx={{ position: "relative", display: "inline-flex", mb: 3 }}>
           <CircularProgress size={60} thickness={4} />
         </Box>
         <Typography
           variant="overline"
           sx={{
             fontWeight: 700,
-            letterSpacing: '0.1em',
-            color: 'text.secondary',
-            animation: 'pulse 1.5s ease-in-out infinite',
-            '@keyframes pulse': {
-              '0%, 100%': { opacity: 0.6 },
-              '50%': { opacity: 1 },
-            }
+            letterSpacing: "0.1em",
+            color: "text.secondary",
+            animation: "pulse 1.5s ease-in-out infinite",
+            "@keyframes pulse": {
+              "0%, 100%": { opacity: 0.6 },
+              "50%": { opacity: 1 },
+            },
           }}
         >
           Initializing Experience...
@@ -1146,58 +1295,87 @@ const AppWrapper = () => {
         {/* Public route for email verification */}
         <Route path="/verify-email" element={<EmailVerification />} />
 
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <AppContent />
-          </ProtectedRoute>
-        } />
-        <Route path="/executions/:id" element={
-          <ProtectedRoute>
-            <TestExecutionFullPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/executions/new" element={
-          <ProtectedRoute>
-            <TestExecutionFullPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/executions/:executionId" element={
-          <ProtectedRoute>
-            <TestExecutionFullPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
-          <ProtectedRoute>
-            <TestCaseResultPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/junit-results/:testResultId" element={
-          <ProtectedRoute>
-            <JunitResultDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/junit-results/:testResultId" element={
-          <ProtectedRoute>
-            <JunitResultDetail />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <AppContent />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/executions/:id"
+          element={
+            <ProtectedRoute>
+              <TestExecutionFullPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:projectId/executions/new"
+          element={
+            <ProtectedRoute>
+              <TestExecutionFullPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:projectId/executions/:executionId"
+          element={
+            <ProtectedRoute>
+              <TestExecutionFullPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result"
+          element={
+            <ProtectedRoute>
+              <TestCaseResultPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/junit-results/:testResultId"
+          element={
+            <ProtectedRoute>
+              <JunitResultDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:projectId/junit-results/:testResultId"
+          element={
+            <ProtectedRoute>
+              <JunitResultDetail />
+            </ProtectedRoute>
+          }
+        />
         {/* 새로운 자동화 테스트 경로 */}
-        <Route path="/automation-tests/:testResultId" element={
-          <ProtectedRoute>
-            <JunitResultDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/automation-results/:testResultId" element={
-          <ProtectedRoute>
-            <JunitResultDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/jira-redirect/:issueKey" element={
-          <ProtectedRoute>
-            <JiraIssueRedirect />
-          </ProtectedRoute>
-        } />
-
+        <Route
+          path="/automation-tests/:testResultId"
+          element={
+            <ProtectedRoute>
+              <JunitResultDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:projectId/automation-results/:testResultId"
+          element={
+            <ProtectedRoute>
+              <JunitResultDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/jira-redirect/:issueKey"
+          element={
+            <ProtectedRoute>
+              <JiraIssueRedirect />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
       {/* 서버 시간 표시 */}

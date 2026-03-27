@@ -133,18 +133,23 @@ const JunitResultDetail = () => {
 
   // Accordion state - 섹션별 확장 상태 관리
   const [expandedSections, setExpandedSections] = useState(() => {
-    const saved = localStorage.getItem("testcase-manager-junit-detail-expanded-sections");
+    const saved = localStorage.getItem(
+      "testcase-manager-junit-detail-expanded-sections",
+    );
     if (saved !== null) return JSON.parse(saved);
-    
+
     // 기존 stats 상태 마이그레이션 확인
-    const oldStatsSaved = localStorage.getItem("testcase-manager-junit-detail-stats-accordion");
-    const statsInitial = oldStatsSaved !== null ? JSON.parse(oldStatsSaved) : true;
-    
+    const oldStatsSaved = localStorage.getItem(
+      "testcase-manager-junit-detail-stats-accordion",
+    );
+    const statsInitial =
+      oldStatsSaved !== null ? JSON.parse(oldStatsSaved) : true;
+
     return {
       stats: statsInitial,
       testCases: true,
       failedTests: false,
-      slowTests: false
+      slowTests: false,
     };
   });
 
@@ -153,7 +158,7 @@ const JunitResultDetail = () => {
     setExpandedSections(newExpanded);
     localStorage.setItem(
       "testcase-manager-junit-detail-expanded-sections",
-      JSON.stringify(newExpanded)
+      JSON.stringify(newExpanded),
     );
   };
 
@@ -369,7 +374,6 @@ const JunitResultDetail = () => {
     }
   }, [pageSize]);
 
-
   // 스위트 선택 변경
   const handleSuiteChange = async (suite) => {
     setSelectedSuite(suite);
@@ -428,7 +432,6 @@ const JunitResultDetail = () => {
       }
     }
   };
-
 
   // ICT-337: 테스트 케이스 클릭 핸들러
   const handleTestCaseClick = (testCaseId) => {
@@ -919,7 +922,12 @@ const JunitResultDetail = () => {
                   variant="outlined"
                 />
                 <Chip
-                  label={`${t("junit.stats.passed")}: ${testResult.totalTests - testResult.failures - testResult.errors - testResult.skipped}`}
+                  label={`${t("junit.stats.passed")}: ${
+                    testResult.totalTests -
+                    testResult.failures -
+                    testResult.errors -
+                    testResult.skipped
+                  }`}
                   size="small"
                   color="success"
                   variant="outlined"
@@ -1099,14 +1107,24 @@ const JunitResultDetail = () => {
             expandIcon={<ExpandMoreIcon />}
             sx={{ bgcolor: alpha(theme.palette.primary.main, 0.03) }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+              }}
+            >
               <TableChartIcon color="primary" />
               <Typography variant="subtitle1" fontWeight="bold">
                 {t("junit.detail.tab.testCases", "테스트 케이스")}
               </Typography>
               {!expandedSections.testCases && (
                 <Chip
-                  label={`${testResult?.totalTests || 0}${t("common.unit.count", "개")}`}
+                  label={`${testResult?.totalTests || 0}${t(
+                    "common.unit.count",
+                    "개",
+                  )}`}
                   size="small"
                   variant="outlined"
                   sx={{ height: 20, fontSize: "0.7rem", ml: 1 }}
@@ -1115,7 +1133,15 @@ const JunitResultDetail = () => {
             </Box>
           </AccordionSummary>
           <AccordionDetails sx={{ pt: 0, px: 0 }}>
-            <Box sx={{ p: 2, display: "flex", gap: 2, height: "calc(100vh - 400px)", position: 'relative' }}>
+            <Box
+              sx={{
+                p: 2,
+                display: "flex",
+                gap: 2,
+                height: "calc(100vh - 400px)",
+                position: "relative",
+              }}
+            >
               {/* 좌측 패널: 테스트 케이스 목록 */}
               {sidebarVisible && (
                 <Card
@@ -1125,7 +1151,7 @@ const JunitResultDetail = () => {
                     display: "flex",
                     flexDirection: "column",
                     border: "none",
-                    transition: 'all 0.3s ease',
+                    transition: "all 0.3s ease",
                   }}
                 >
                   <CardContent
@@ -1194,7 +1220,9 @@ const JunitResultDetail = () => {
                           <MenuItem value="FAILED">
                             {t("junit.stats.failed")}
                           </MenuItem>
-                          <MenuItem value="ERROR">{t("junit.stats.error")}</MenuItem>
+                          <MenuItem value="ERROR">
+                            {t("junit.stats.error")}
+                          </MenuItem>
                           <MenuItem value="SKIPPED">
                             {t("junit.stats.skipped")}
                           </MenuItem>
@@ -1223,23 +1251,31 @@ const JunitResultDetail = () => {
                       <Table size="small" stickyHeader>
                         <TableHead>
                           <TableRow>
-                            <TableCell align="center" width="100px">{t("common.status")}</TableCell>
+                            <TableCell align="center" width="100px">
+                              {t("common.status")}
+                            </TableCell>
                             {selectedSuite?.id === ALL_SUITES_ID && (
-                              <TableCell 
-                                sx={{ 
-                                  whiteSpace: 'nowrap', 
-                                  maxWidth: { xs: 80, sm: 120, md: 150 }, 
-                                  overflow: 'hidden', 
-                                  textOverflow: 'ellipsis' 
+                              <TableCell
+                                sx={{
+                                  whiteSpace: "nowrap",
+                                  maxWidth: { xs: 80, sm: 120, md: 150 },
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
                                 }}
                               >
-                                <Tooltip title={t("junit.detail.testSuite")} arrow placement="top">
+                                <Tooltip
+                                  title={t("junit.detail.testSuite")}
+                                  arrow
+                                  placement="top"
+                                >
                                   <span>{t("junit.detail.testSuite")}</span>
                                 </Tooltip>
                               </TableCell>
                             )}
                             <TableCell>{t("junit.detail.testName")}</TableCell>
-                            <TableCell>{t("junit.editor.notes", "노트")}</TableCell>
+                            <TableCell>
+                              {t("junit.editor.notes", "노트")}
+                            </TableCell>
                             <TableCell align="center" width="80px">
                               {t("junit.detail.edit")}
                             </TableCell>
@@ -1248,7 +1284,8 @@ const JunitResultDetail = () => {
                         <TableBody>
                           {filteredTestCases.map((testCase) => {
                             const status =
-                              statusConfig[testCase.status] || statusConfig.PASSED;
+                              statusConfig[testCase.status] ||
+                              statusConfig.PASSED;
                             const hasUserEdits =
                               testCase.userTitle ||
                               testCase.userDescription ||
@@ -1260,7 +1297,9 @@ const JunitResultDetail = () => {
                               <TableRow
                                 key={testCase.id}
                                 sx={{
-                                  bgcolor: hasUserEdits ? "action.hover" : "inherit",
+                                  bgcolor: hasUserEdits
+                                    ? "action.hover"
+                                    : "inherit",
                                   "&:hover": { bgcolor: "action.selected" },
                                 }}
                                 data-testid="automation-case-row"
@@ -1285,21 +1324,25 @@ const JunitResultDetail = () => {
                                 </TableCell>
                                 {selectedSuite?.id === ALL_SUITES_ID && (
                                   <TableCell
-                                    sx={{ 
-                                      whiteSpace: 'nowrap', 
-                                      maxWidth: { xs: 80, sm: 120, md: 150 }, 
-                                      overflow: 'hidden', 
-                                      textOverflow: 'ellipsis' 
+                                    sx={{
+                                      whiteSpace: "nowrap",
+                                      maxWidth: { xs: 80, sm: 120, md: 150 },
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
                                     }}
                                   >
-                                    <Tooltip title={testCase.suiteName || "-"} arrow placement="top">
+                                    <Tooltip
+                                      title={testCase.suiteName || "-"}
+                                      arrow
+                                      placement="top"
+                                    >
                                       <Typography
                                         variant="caption"
                                         color="text.secondary"
                                         sx={{
-                                          display: 'block',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis'
+                                          display: "block",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
                                         }}
                                       >
                                         {testCase.suiteName || "-"}
@@ -1309,35 +1352,57 @@ const JunitResultDetail = () => {
                                 )}
                                 <TableCell
                                   sx={{
-                                    maxWidth: { xs: 120, sm: 200, md: 300, xl: 400 },
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
+                                    maxWidth: {
+                                      xs: 120,
+                                      sm: 200,
+                                      md: 300,
+                                      xl: 400,
+                                    },
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
                                   }}
                                 >
-                                  <Tooltip title={
-                                    <React.Fragment>
-                                      <Typography variant="body2">{testCase.userTitle || testCase.name}</Typography>
-                                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                                        {testCase.userTitle ? `${t("junit.detail.original")}: ${testCase.name}` : ''}
-                                      </Typography>
-                                    </React.Fragment>
-                                  } arrow placement="top">
-                                    <Box sx={{ overflow: 'hidden' }}>
+                                  <Tooltip
+                                    title={
+                                      <React.Fragment>
+                                        <Typography variant="body2">
+                                          {testCase.userTitle || testCase.name}
+                                        </Typography>
+                                        <Typography
+                                          variant="caption"
+                                          sx={{
+                                            color: "rgba(255,255,255,0.7)",
+                                          }}
+                                        >
+                                          {testCase.userTitle
+                                            ? `${t("junit.detail.original")}: ${
+                                                testCase.name
+                                              }`
+                                            : ""}
+                                        </Typography>
+                                      </React.Fragment>
+                                    }
+                                    arrow
+                                    placement="top"
+                                  >
+                                    <Box sx={{ overflow: "hidden" }}>
                                       <Typography
                                         variant="body2"
                                         fontWeight="medium"
                                         sx={{
                                           cursor: "pointer",
                                           color: "primary.main",
-                                          display: 'block',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
+                                          display: "block",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
                                           "&:hover": {
                                             textDecoration: "underline",
                                           },
                                         }}
-                                        onClick={() => handleTestCaseClick(testCase.id)}
+                                        onClick={() =>
+                                          handleTestCaseClick(testCase.id)
+                                        }
                                         data-testid="automation-case-name"
                                       >
                                         {testCase.userTitle || testCase.name}
@@ -1347,31 +1412,39 @@ const JunitResultDetail = () => {
                                           variant="caption"
                                           color="text.secondary"
                                           display="block"
-                                          sx={{ 
-                                            fontSize: '0.65rem',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap'
+                                          sx={{
+                                            fontSize: "0.65rem",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
                                           }}
                                         >
-                                          {t("junit.detail.original")}: {testCase.name}
+                                          {t("junit.detail.original")}:{" "}
+                                          {testCase.name}
                                         </Typography>
                                       )}
                                     </Box>
                                   </Tooltip>
                                 </TableCell>
-                                <TableCell sx={{ maxWidth: 200 }} data-testid="automation-case-note-cell">
+                                <TableCell
+                                  sx={{ maxWidth: 200 }}
+                                  data-testid="automation-case-note-cell"
+                                >
                                   {testCase.userNotes ? (
-                                    <Tooltip title={testCase.userNotes} arrow placement="top">
+                                    <Tooltip
+                                      title={testCase.userNotes}
+                                      arrow
+                                      placement="top"
+                                    >
                                       <Typography
                                         variant="caption"
                                         color="text.secondary"
                                         sx={{
-                                          display: '-webkit-box',
+                                          display: "-webkit-box",
                                           WebkitLineClamp: 2,
-                                          WebkitBoxOrient: 'vertical',
-                                          overflow: 'hidden',
-                                          cursor: 'default',
+                                          WebkitBoxOrient: "vertical",
+                                          overflow: "hidden",
+                                          cursor: "default",
                                           lineHeight: 1.4,
                                         }}
                                       >
@@ -1379,7 +1452,12 @@ const JunitResultDetail = () => {
                                       </Typography>
                                     </Tooltip>
                                   ) : (
-                                    <Typography variant="caption" color="text.disabled">-</Typography>
+                                    <Typography
+                                      variant="caption"
+                                      color="text.disabled"
+                                    >
+                                      -
+                                    </Typography>
                                   )}
                                 </TableCell>
                                 <TableCell align="center">
@@ -1401,7 +1479,15 @@ const JunitResultDetail = () => {
 
                     {/* 페이지네이션 */}
                     {totalPages > 1 && (
-                      <Box sx={{ display: "flex", justifyContent: "center", py: 2, borderTop: 1, borderColor: 'divider' }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          py: 2,
+                          borderTop: 1,
+                          borderColor: "divider",
+                        }}
+                      >
                         <Pagination
                           count={totalPages}
                           page={page}
@@ -1419,27 +1505,35 @@ const JunitResultDetail = () => {
               {showDetailPanel && (
                 <Box
                   sx={{
-                    position: 'absolute',
-                    left: sidebarVisible ? '30%' : '10px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    position: "absolute",
+                    left: sidebarVisible ? "30%" : "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     zIndex: 10,
-                    transition: 'left 0.3s ease',
+                    transition: "left 0.3s ease",
                   }}
                 >
-                  <Tooltip title={sidebarVisible ? t("common.collapse") : t("common.expand")}>
+                  <Tooltip
+                    title={
+                      sidebarVisible ? t("common.collapse") : t("common.expand")
+                    }
+                  >
                     <IconButton
                       size="small"
                       onClick={() => setSidebarVisible(!sidebarVisible)}
                       sx={{
-                        bgcolor: 'background.paper',
+                        bgcolor: "background.paper",
                         boxShadow: 2,
-                        '&:hover': { bgcolor: 'action.hover' },
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        "&:hover": { bgcolor: "action.hover" },
+                        border: "1px solid",
+                        borderColor: "divider",
                       }}
                     >
-                      {sidebarVisible ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+                      {sidebarVisible ? (
+                        <ChevronLeftIcon />
+                      ) : (
+                        <ChevronRightIcon />
+                      )}
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -1460,7 +1554,7 @@ const JunitResultDetail = () => {
                         flexDirection: "column",
                         border: "1px solid",
                         borderColor: "divider",
-                        transition: 'all 0.3s ease',
+                        transition: "all 0.3s ease",
                       }}
                     >
                       <TestCaseDetailPanel
@@ -1500,14 +1594,24 @@ const JunitResultDetail = () => {
             expandIcon={<ExpandMoreIcon />}
             sx={{ bgcolor: alpha(theme.palette.error.main, 0.03) }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+              }}
+            >
               <BugIcon color="error" />
               <Typography variant="subtitle1" fontWeight="bold">
                 {t("junit.detail.tab.failedTests", "실패한 테스트")}
               </Typography>
               {!expandedSections.failedTests && (
                 <Chip
-                  label={`${testResult?.failures + testResult?.errors || 0}${t("common.unit.count", "개")}`}
+                  label={`${testResult?.failures + testResult?.errors || 0}${t(
+                    "common.unit.count",
+                    "개",
+                  )}`}
                   size="small"
                   color="error"
                   variant="outlined"
@@ -1542,7 +1646,14 @@ const JunitResultDetail = () => {
             expandIcon={<ExpandMoreIcon />}
             sx={{ bgcolor: alpha(theme.palette.warning.main, 0.03) }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+              }}
+            >
               <SpeedIcon color="warning" />
               <Typography variant="subtitle1" fontWeight="bold">
                 {t("junit.detail.tab.slowTests", "느린 테스트")}
@@ -1573,7 +1684,11 @@ const JunitResultDetail = () => {
 };
 
 // 실패한 테스트 탭 컴포넌트 - ICT-337 확장: Split Panel 구조
-const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) => {
+const FailedTestsTab = ({
+  testResultId,
+  onEditTestCase,
+  refreshTrigger = 0,
+}) => {
   const { t } = useI18n();
   const [failedTests, setFailedTests] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1617,7 +1732,14 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
   }
 
   return (
-    <Box sx={{ display: "flex", gap: 2, height: "calc(100vh - 400px)", position: 'relative' }}>
+    <Box
+      sx={{
+        display: "flex",
+        gap: 2,
+        height: "calc(100vh - 400px)",
+        position: "relative",
+      }}
+    >
       {/* 좌측 패널: 실패한 테스트 케이스 목록 */}
       {sidebarVisible && (
         <Card
@@ -1626,7 +1748,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
             minWidth: 0,
             display: "flex",
             flexDirection: "column",
-            transition: 'all 0.3s ease',
+            transition: "all 0.3s ease",
           }}
         >
           <CardContent
@@ -1639,15 +1761,22 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
             }}
           >
             {failedTests.length === 0 ? (
-              <Alert severity="success">{t("junit.detail.noFailedTests")}</Alert>
+              <Alert severity="success">
+                {t("junit.detail.noFailedTests")}
+              </Alert>
             ) : (
               <Box sx={{ overflow: "auto", flex: 1, p: 1 }}>
                 {failedTests.map((testCase, index) => (
                   <Card
                     key={testCase.id}
-                    sx={{ mb: 2, border: "1px solid", borderColor: "divider", boxShadow: 'none' }}
+                    sx={{
+                      mb: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      boxShadow: "none",
+                    }}
                   >
-                    <CardContent sx={{ p: '12px !important' }}>
+                    <CardContent sx={{ p: "12px !important" }}>
                       <Box
                         sx={{
                           display: "flex",
@@ -1659,9 +1788,9 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
                         <Chip
                           icon={
                             testCase.status === "FAILED" ? (
-                              <FailIcon sx={{ fontSize: '1rem !important' }} />
+                              <FailIcon sx={{ fontSize: "1rem !important" }} />
                             ) : (
-                              <ErrorIcon sx={{ fontSize: '1rem !important' }} />
+                              <ErrorIcon sx={{ fontSize: "1rem !important" }} />
                             )
                           }
                           label={
@@ -1681,7 +1810,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
                                 : STATUS_COLORS.ERROR,
                             fontWeight: "bold",
                             height: 20,
-                            fontSize: '0.7rem',
+                            fontSize: "0.7rem",
                             "& .MuiChip-icon": {
                               color: "inherit",
                             },
@@ -1699,14 +1828,20 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
                               fontWeight: "bold",
                               mb: 0.5,
                             }}
-                            onClick={() => handleFailedTestCaseClick(testCase.id)}
+                            onClick={() =>
+                              handleFailedTestCaseClick(testCase.id)
+                            }
                           >
                             {testCase.userTitle || testCase.name}
                           </Typography>
                           <Typography
                             variant="caption"
                             color="text.secondary"
-                            sx={{ fontFamily: "monospace", display: 'block', fontSize: '0.7rem' }}
+                            sx={{
+                              fontFamily: "monospace",
+                              display: "block",
+                              fontSize: "0.7rem",
+                            }}
                           >
                             {testCase.className}
                           </Typography>
@@ -1729,7 +1864,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
                               fontFamily: "monospace",
                               p: 1,
                               borderRadius: 1,
-                              display: 'block',
+                              display: "block",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -1751,33 +1886,37 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
                         <Box
                           sx={{
                             mt: 1,
-                            display: 'flex',
-                            alignItems: 'flex-start',
+                            display: "flex",
+                            alignItems: "flex-start",
                             gap: 0.5,
                           }}
                         >
                           <Typography
                             variant="caption"
                             sx={{
-                              fontWeight: 'bold',
-                              color: 'warning.dark',
-                              whiteSpace: 'nowrap',
-                              fontSize: '0.7rem',
+                              fontWeight: "bold",
+                              color: "warning.dark",
+                              whiteSpace: "nowrap",
+                              fontSize: "0.7rem",
                             }}
                           >
                             {t("junit.editor.notes", "노트")}:
                           </Typography>
-                          <Tooltip title={testCase.userNotes} arrow placement="top">
+                          <Tooltip
+                            title={testCase.userNotes}
+                            arrow
+                            placement="top"
+                          >
                             <Typography
                               variant="caption"
                               color="text.secondary"
                               sx={{
-                                display: '-webkit-box',
+                                display: "-webkit-box",
                                 WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                cursor: 'default',
-                                fontSize: '0.7rem',
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                                cursor: "default",
+                                fontSize: "0.7rem",
                                 lineHeight: 1.4,
                               }}
                             >
@@ -1799,24 +1938,26 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
       {showDetailPanel && (
         <Box
           sx={{
-            position: 'absolute',
-            left: sidebarVisible ? '30%' : '10px',
-            top: '50%',
-            transform: 'translateY(-50%)',
+            position: "absolute",
+            left: sidebarVisible ? "30%" : "10px",
+            top: "50%",
+            transform: "translateY(-50%)",
             zIndex: 10,
-            transition: 'left 0.3s ease',
+            transition: "left 0.3s ease",
           }}
         >
-          <Tooltip title={sidebarVisible ? t("common.collapse") : t("common.expand")}>
+          <Tooltip
+            title={sidebarVisible ? t("common.collapse") : t("common.expand")}
+          >
             <IconButton
               size="small"
               onClick={() => setSidebarVisible(!sidebarVisible)}
               sx={{
-                bgcolor: 'background.paper',
+                bgcolor: "background.paper",
                 boxShadow: 2,
-                '&:hover': { bgcolor: 'action.hover' },
-                border: '1px solid',
-                borderColor: 'divider',
+                "&:hover": { bgcolor: "action.hover" },
+                border: "1px solid",
+                borderColor: "divider",
               }}
             >
               {sidebarVisible ? <ChevronLeftIcon /> : <ChevronRightIcon />}
@@ -1838,7 +1979,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
                 minWidth: 0,
                 display: "flex",
                 flexDirection: "column",
-                transition: 'all 0.3s ease',
+                transition: "all 0.3s ease",
               }}
             >
               <TestCaseDetailPanel
@@ -1867,7 +2008,11 @@ const FailedTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =>
 };
 
 // 느린 테스트 탭 컴포넌트
-const SlowestTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) => {
+const SlowestTestsTab = ({
+  testResultId,
+  onEditTestCase,
+  refreshTrigger = 0,
+}) => {
   const { t } = useI18n();
   const theme = useTheme();
   const [slowestTests, setSlowestTests] = useState([]);
@@ -1913,24 +2058,42 @@ const SlowestTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =
             sx={{
               border: "1px solid",
               borderColor: "divider",
-              borderRadius: '8px',
+              borderRadius: "8px",
               mb: 1.5,
-              bgcolor: index < 3 ? alpha(theme.palette.warning.main, 0.05) : "background.paper",
-              boxShadow: 'none',
+              bgcolor:
+                index < 3
+                  ? alpha(theme.palette.warning.main, 0.05)
+                  : "background.paper",
+              boxShadow: "none",
               p: 1.5,
             }}
             secondaryAction={
-              <IconButton edge="end" onClick={() => onEditTestCase(testCase)} color="primary" size="small">
+              <IconButton
+                edge="end"
+                onClick={() => onEditTestCase(testCase)}
+                color="primary"
+                size="small"
+              >
                 <EditIcon fontSize="small" />
               </IconButton>
             }
           >
             <ListItemIcon sx={{ minWidth: 40 }}>
-              <SpeedIcon color={index < 3 ? "warning" : "action"} fontSize="small" />
+              <SpeedIcon
+                color={index < 3 ? "warning" : "action"}
+                fontSize="small"
+              />
             </ListItemIcon>
             <ListItemText
               primary={
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: 'wrap' }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    flexWrap: "wrap",
+                  }}
+                >
                   <Typography variant="body2" fontWeight="bold">
                     {testCase.userTitle || testCase.name}
                   </Typography>
@@ -1939,18 +2102,22 @@ const SlowestTestsTab = ({ testResultId, onEditTestCase, refreshTrigger = 0 }) =
                     size="small"
                     color={index < 3 ? "warning" : "default"}
                     variant="outlined"
-                    sx={{ height: 18, fontSize: '0.65rem' }}
+                    sx={{ height: 18, fontSize: "0.65rem" }}
                   />
                   <Chip
                     label={formatDuration(testCase.time || 0)}
                     size="small"
                     color="primary"
-                    sx={{ height: 18, fontSize: '0.65rem', fontWeight: 'bold' }}
+                    sx={{ height: 18, fontSize: "0.65rem", fontWeight: "bold" }}
                   />
                 </Box>
               }
               secondary={
-                <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontFamily: "monospace", fontSize: "0.7rem" }}
+                >
                   {testCase.className}
                 </Typography>
               }

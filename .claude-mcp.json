@@ -31,7 +31,12 @@
     "frontend": {
       "framework": "React",
       "version": "18.x",
-      "technologies": ["Material-UI", "Context API", "localStorage", "React Router"]
+      "technologies": [
+        "Material-UI",
+        "Context API",
+        "localStorage",
+        "React Router"
+      ]
     },
     "backend": {
       "framework": "Spring Boot",

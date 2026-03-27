@@ -6,21 +6,29 @@ export const listToTree = (items, parentId = null, options = {}) => {
   if (!Array.isArray(items) || items.length === 0) return [];
 
   const { allKnownIds } = options;
-  const allKnownIdsSet = allKnownIds ? (allKnownIds instanceof Set ? allKnownIds : new Set(allKnownIds)) : null;
+  const allKnownIdsSet = allKnownIds
+    ? allKnownIds instanceof Set
+      ? allKnownIds
+      : new Set(allKnownIds)
+    : null;
 
   // 고아 노드(Orphaned Nodes) 처리 및 맵 생성 준비
-  const orphanFolderId = 'orphaned-items-folder';
+  const orphanFolderId = "orphaned-items-folder";
   const itemMap = new Map();
-  const allIds = new Set(items.map(item => item.id));
-  
+  const allIds = new Set(items.map((item) => item.id));
+
   // 1. 맵 초기화 및 데이터 전처리
-  const processedItems = items.map(item => {
+  const processedItems = items.map((item) => {
     let currentParentId = item.parentId;
     // 부모가 없는데 parentId가 'null' 등의 문자열인 경우 실제 null로 처리
-    if (currentParentId === 'null' || currentParentId === 'undefined' || !currentParentId) {
-        currentParentId = null;
+    if (
+      currentParentId === "null" ||
+      currentParentId === "undefined" ||
+      !currentParentId
+    ) {
+      currentParentId = null;
     }
-    
+
     // 원본 parentId 데이터 보존을 위해 별도로 처리하지 않고 속성만 정제하여 샌드위치 복사
     const node = { ...item, parentId: currentParentId, children: [] };
     itemMap.set(node.id, node);
@@ -28,22 +36,25 @@ export const listToTree = (items, parentId = null, options = {}) => {
   });
 
   // 2. 고아 폴더 추가 (필요한 경우)
-  const hasRealOrphans = processedItems.some(item => {
+  const hasRealOrphans = processedItems.some((item) => {
     if (!item.parentId) return false;
     // 현재 리스트에도 없고, 전체 데이터셋에도 없는 경우 진짜 고아
     const isMissingInCurrent = !allIds.has(item.parentId);
-    const isMissingInAll = allKnownIdsSet ? !allKnownIdsSet.has(item.parentId) : false;
+    const isMissingInAll = allKnownIdsSet
+      ? !allKnownIdsSet.has(item.parentId)
+      : false;
     return isMissingInCurrent && isMissingInAll;
   });
 
   if (hasRealOrphans && !itemMap.has(orphanFolderId)) {
     const orphanFolder = {
       id: orphanFolderId,
-      name: '[미할당 항목]',
-      type: 'folder',
+      name: "[미할당 항목]",
+      type: "folder",
       parentId: null,
-      description: '상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.',
-      children: []
+      description:
+        "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.",
+      children: [],
     };
     itemMap.set(orphanFolderId, orphanFolder);
     processedItems.unshift(orphanFolder);
@@ -51,7 +62,7 @@ export const listToTree = (items, parentId = null, options = {}) => {
 
   // 3. 트리 구조 구축 (O(N))
   const tree = [];
-  processedItems.forEach(item => {
+  processedItems.forEach((item) => {
     if (item.parentId === null) {
       tree.push(item);
     } else {
@@ -98,7 +109,7 @@ export const findItemInTree = (tree, id) => {
 };
 
 // 폴더 아이템인지 체크
-export const isFolder = (item) => item.type === 'folder';
+export const isFolder = (item) => item.type === "folder";
 
 // O(N) 효율성을 위한 인덱스 생성용 유틸리티
 export const buildChildrenMap = (items) => {
@@ -114,7 +125,7 @@ export const buildChildrenMap = (items) => {
 // 아이템의 모든 하위 항목 ID 가져오기
 export const getAllChildIds = (items, parentId) => {
   if (!Array.isArray(items) || !parentId) return [];
-  
+
   const childrenMap = buildChildrenMap(items);
 
   const result = [];
@@ -128,7 +139,7 @@ export const getAllChildIds = (items, parentId) => {
 
     const children = childrenMap.get(current);
     if (children) {
-      children.forEach(childId => {
+      children.forEach((childId) => {
         result.push(childId);
         stack.push(childId);
       });
@@ -162,15 +173,15 @@ export const getAllDescendants = (items, parentId) => {
 
 // 모든 폴더 ID 가져오기
 export const getAllFolderIds = (items) =>
-  items.filter(item => item.type === 'folder').map(item => item.id);
+  items.filter((item) => item.type === "folder").map((item) => item.id);
 
 // 특정 ID의 모든 상위 폴더 ID 가져오기 (가장 가까운 부모부터 루트까지 순서대로)
 export const getAncestorIds = (items, id) => {
   if (!Array.isArray(items) || !id) return [];
-  
+
   // O(N) 인덱스 생성
-  const itemMap = new Map(items.map(item => [item.id, item]));
-  
+  const itemMap = new Map(items.map((item) => [item.id, item]));
+
   const result = [];
   let currentId = id;
   const visited = new Set(); // 순환 참조 방지
@@ -178,10 +189,16 @@ export const getAncestorIds = (items, id) => {
   while (currentId && !visited.has(currentId)) {
     visited.add(currentId);
     const item = itemMap.get(currentId);
-    if (!item || !item.parentId || item.parentId === 'null' || item.parentId === 'undefined') break;
+    if (
+      !item ||
+      !item.parentId ||
+      item.parentId === "null" ||
+      item.parentId === "undefined"
+    )
+      break;
     result.unshift(item.parentId);
     currentId = item.parentId;
-    
+
     // 무제한 루프 방지
     if (result.length > 100) break;
   }
@@ -191,12 +208,12 @@ export const getAncestorIds = (items, id) => {
 // Material UI TreeView용 트리 데이터 변환
 export const prepareTreeData = (items, parentId = null) => {
   return items
-    .filter(item => item.parentId === parentId)
-    .map(item => ({
+    .filter((item) => item.parentId === parentId)
+    .map((item) => ({
       id: item.id,
       name: item.name,
       type: item.type,
-      children: prepareTreeData(items, item.id)
+      children: prepareTreeData(items, item.id),
     }));
 };
 
@@ -205,11 +222,17 @@ export const generateTestCasePaths = (treeNodes) => {
   const paths = [];
 
   const traverse = (nodes, currentPath) => {
-    nodes.forEach(node => {
-      const newPath = currentPath ? `${currentPath} >> ${node.name}` : node.name;
+    nodes.forEach((node) => {
+      const newPath = currentPath
+        ? `${currentPath} >> ${node.name}`
+        : node.name;
 
       // 현재 노드가 테스트 케이스이거나, 폴더이지만 하위 노드가 없는 경우 경로 추가
-      if (node.type === 'testcase' || (node.type === 'folder' && (!node.children || node.children.length === 0))) {
+      if (
+        node.type === "testcase" ||
+        (node.type === "folder" &&
+          (!node.children || node.children.length === 0))
+      ) {
         paths.push(newPath);
       }
 
@@ -220,28 +243,38 @@ export const generateTestCasePaths = (treeNodes) => {
     });
   };
 
-  traverse(treeNodes, '');
+  traverse(treeNodes, "");
   return paths;
 };
 
 // 테스트 실행 진행상황 계산
-export const calculateExecutionProgress = (execution, testPlan, allTestCases) => {
-  if (!execution || !testPlan || !testPlan.testCaseIds || !testPlan.testCaseIds.length) return 0;
-  
+export const calculateExecutionProgress = (
+  execution,
+  testPlan,
+  allTestCases,
+) => {
+  if (
+    !execution ||
+    !testPlan ||
+    !testPlan.testCaseIds ||
+    !testPlan.testCaseIds.length
+  )
+    return 0;
+
   // 실제 테스트케이스만 필터링
-  const realTestCaseIds = allTestCases 
-    ? testPlan.testCaseIds.filter(id => {
-        const tc = allTestCases.find(t => t.id === id);
-        return tc && tc.type === 'testcase';
+  const realTestCaseIds = allTestCases
+    ? testPlan.testCaseIds.filter((id) => {
+        const tc = allTestCases.find((t) => t.id === id);
+        return tc && tc.type === "testcase";
       })
     : testPlan.testCaseIds;
 
   if (realTestCaseIds.length === 0) return 0;
-  
+
   const totalTests = realTestCaseIds.length;
   const results = execution.results || {};
   const completedTests = realTestCaseIds.filter(
-    id => results[id] && results[id].result !== 'NOT_RUN'
+    (id) => results[id] && results[id].result !== "NOT_RUN",
   ).length;
   return Math.round((completedTests / totalTests) * 100);
 };
@@ -249,42 +282,56 @@ export const calculateExecutionProgress = (execution, testPlan, allTestCases) =>
 // 실제 테스트케이스 수 계산 (폴더 제외)
 export const countRealTestCases = (testCaseIds, allTestCases) => {
   if (!testCaseIds || !allTestCases) return 0;
-  return testCaseIds.filter(id => {
-    const tc = allTestCases.find(t => t.id === id);
-    return tc && tc.type === 'testcase';
+  return testCaseIds.filter((id) => {
+    const tc = allTestCases.find((t) => t.id === id);
+    return tc && tc.type === "testcase";
   }).length;
 };
 
-export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds, options = {}) => {
+export const getOrderedTestCaseIds = (
+  allTestCases,
+  planTestCaseIds,
+  options = {},
+) => {
   if (!allTestCases || !planTestCaseIds) {
     return { flattenedData: [], orderedTestCaseIds: [] };
   }
 
   const { allKnownIds } = options;
-  const allKnownIdsSet = allKnownIds ? (allKnownIds instanceof Set ? allKnownIds : new Set(allKnownIds)) : null;
+  const allKnownIdsSet = allKnownIds
+    ? allKnownIds instanceof Set
+      ? allKnownIds
+      : new Set(allKnownIds)
+    : null;
 
   // 고아 노드(Orphaned Nodes) 처리
-  const orphanFolderId = 'orphaned-items-folder';
-  const allNodesExist = new Set(allTestCases.map(tc => tc.id));
-  
+  const orphanFolderId = "orphaned-items-folder";
+  const allNodesExist = new Set(allTestCases.map((tc) => tc.id));
+
   // 1. 트리 순회 전 가상의 '[미할당 항목]' 폴더 필요 여부 확인
-  const hasRealOrphans = allTestCases.some(tc => {
-    if (!tc.parentId || tc.parentId === 'null' || tc.parentId === 'undefined') return false;
+  const hasRealOrphans = allTestCases.some((tc) => {
+    if (!tc.parentId || tc.parentId === "null" || tc.parentId === "undefined")
+      return false;
     const isMissingInCurrent = !allNodesExist.has(tc.parentId);
-    const isMissingInAll = allKnownIdsSet ? !allKnownIdsSet.has(tc.parentId) : false;
+    const isMissingInAll = allKnownIdsSet
+      ? !allKnownIdsSet.has(tc.parentId)
+      : false;
     return isMissingInCurrent && isMissingInAll;
   });
-  
+
   let processedCases = [...allTestCases];
-  const orphanFolderExists = processedCases.some(tc => tc.id === orphanFolderId);
-  
+  const orphanFolderExists = processedCases.some(
+    (tc) => tc.id === orphanFolderId,
+  );
+
   if (hasRealOrphans && !orphanFolderExists) {
     processedCases.unshift({
       id: orphanFolderId,
-      name: '[미할당 항목]',
-      type: 'folder',
+      name: "[미할당 항목]",
+      type: "folder",
       parentId: null,
-      description: '상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.'
+      description:
+        "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.",
     });
   }
 
@@ -295,8 +342,9 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds, options = {
   });
 
   processedCases.forEach((tc) => {
-    if (!tc.parentId || tc.parentId === 'null' || tc.parentId === 'undefined') return;
-    
+    if (!tc.parentId || tc.parentId === "null" || tc.parentId === "undefined")
+      return;
+
     const parent = testCaseMap[tc.parentId];
     if (parent) {
       parent.children.push(testCaseMap[tc.id]);
@@ -315,9 +363,10 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds, options = {
 
   // 3. 루트 노드 결정 및 트리 필터링/순회 준비
   const includedIds = new Set(planTestCaseIds);
-  
-  const rootNodes = processedCases.filter(tc => {
-    if (!tc.parentId || tc.parentId === 'null' || tc.parentId === 'undefined') return true;
+
+  const rootNodes = processedCases.filter((tc) => {
+    if (!tc.parentId || tc.parentId === "null" || tc.parentId === "undefined")
+      return true;
     if (!testCaseMap[tc.parentId]) {
       // 부모가 리스트에 없는 경우. 전체에 존재하면 현재 뷰의 루트.
       if (allKnownIdsSet && allKnownIdsSet.has(tc.parentId)) return true;
@@ -349,7 +398,7 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds, options = {
   // 3. 트리 평면화
   const flatten = (nodes, level = 0, parentName = null) => {
     let result = [];
-    nodes.forEach(node => {
+    nodes.forEach((node) => {
       result.push({ ...node, level, parentName });
       if (node.children && node.children.length > 0) {
         result = result.concat(flatten(node.children, level + 1, node.name));
@@ -380,10 +429,14 @@ export const flattenTree = (nodes, expandedIds = [], orderMap = {}) => {
       const orderB = orderMap[b.id] ?? b.displayOrder ?? 0;
       return orderA - orderB;
     });
-    
+
     sorted.forEach((node, idx, siblings) => {
       result.push({ ...node, depth, idx, siblings });
-      if (node.type === 'folder' && expandedSet.has(node.id) && Array.isArray(node.children)) {
+      if (
+        node.type === "folder" &&
+        expandedSet.has(node.id) &&
+        Array.isArray(node.children)
+      ) {
         recurse(node.children, depth + 1);
       }
     });
@@ -392,4 +445,3 @@ export const flattenTree = (nodes, expandedIds = [], orderMap = {}) => {
   recurse(nodes);
   return result;
 };
-

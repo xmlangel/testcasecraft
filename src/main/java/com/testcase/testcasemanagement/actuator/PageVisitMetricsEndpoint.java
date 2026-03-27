@@ -8,21 +8,19 @@ import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.stereotype.Component;
 
-/**
- * 페이지 방문 메트릭을 노출하는 커스텀 Actuator 엔드포인트.
- */
+/** 페이지 방문 메트릭을 노출하는 커스텀 Actuator 엔드포인트. */
 @Component
 @Endpoint(id = "pagevisits")
 public class PageVisitMetricsEndpoint {
 
-    private final PageVisitMetricsService pageVisitMetricsService;
+  private final PageVisitMetricsService pageVisitMetricsService;
 
-    public PageVisitMetricsEndpoint(PageVisitMetricsService pageVisitMetricsService) {
-        this.pageVisitMetricsService = pageVisitMetricsService;
-    }
+  public PageVisitMetricsEndpoint(PageVisitMetricsService pageVisitMetricsService) {
+    this.pageVisitMetricsService = pageVisitMetricsService;
+  }
 
-    @ReadOperation
-    public PageVisitMetricsDto pageVisitMetrics() {
-        return pageVisitMetricsService.getCurrentMetrics();
-    }
+  @ReadOperation
+  public PageVisitMetricsDto pageVisitMetrics() {
+    return pageVisitMetricsService.getCurrentMetrics();
+  }
 }

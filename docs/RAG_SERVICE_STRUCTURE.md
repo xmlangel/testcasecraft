@@ -19,6 +19,7 @@
 RAG Service는 FastAPI 기반의 문서 처리 및 벡터 검색 서비스입니다.
 
 ### 주요 기능
+
 - **문서 업로드 및 저장**: MinIO를 사용한 객체 스토리지
 - **문서 파싱**: 4가지 파서 지원 (Upstage API, PyMuPDF4LLM, PyMuPDF, PyPDF2)
 - **텍스트 임베딩**: Sentence Transformers를 이용한 벡터 생성
@@ -26,6 +27,7 @@ RAG Service는 FastAPI 기반의 문서 처리 및 벡터 검색 서비스입니
 - **대화 관리**: 검색 기반 대화 컨텍스트 저장
 
 ### 기술 스택
+
 ```
 FastAPI (0.104.1)          - REST API 프레임워크
 PostgreSQL + pgvector      - 벡터 데이터베이스
@@ -97,12 +99,14 @@ rag-service/
 **위치**: `rag-service/app/main.py`
 
 **주요 역할**:
+
 - FastAPI 애플리케이션 초기화
 - CORS 미들웨어 설정 (모든 오리진 허용)
 - API 라우터 등록 (`/api/v1` 프리픽스)
 - 데이터베이스 테이블 자동 생성 (startup 이벤트)
 
 **주요 엔드포인트**:
+
 ```python
 GET  /                   # 서비스 정보
 GET  /health             # 헬스 체크
@@ -112,6 +116,7 @@ GET  /redoc              # ReDoc (자동 생성)
 ```
 
 **설정 정보**:
+
 - App Name: "RAG Service"
 - Version: "0.1.0"
 - Description: "RAG (Retrieval-Augmented Generation) Service for Test Case Management"
@@ -124,16 +129,17 @@ GET  /redoc              # ReDoc (자동 생성)
 
 **파일**: `rag-service/app/api/v1/documents.py`
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| `POST` | `/` | 문서 업로드 (MinIO 저장) |
-| `GET` | `/` | 문서 목록 조회 (프로젝트별 필터링) |
-| `GET` | `/{document_id}` | 특정 문서 조회 |
-| `DELETE` | `/{document_id}` | 문서 삭제 (MinIO + DB) |
-| `POST` | `/{document_id}/analyze` | 문서 분석 (파싱 + 청킹) |
-| `GET` | `/{document_id}/download` | 문서 다운로드 URL 생성 |
+| 메서드   | 경로                      | 설명                               |
+| -------- | ------------------------- | ---------------------------------- |
+| `POST`   | `/`                       | 문서 업로드 (MinIO 저장)           |
+| `GET`    | `/`                       | 문서 목록 조회 (프로젝트별 필터링) |
+| `GET`    | `/{document_id}`          | 특정 문서 조회                     |
+| `DELETE` | `/{document_id}`          | 문서 삭제 (MinIO + DB)             |
+| `POST`   | `/{document_id}/analyze`  | 문서 분석 (파싱 + 청킹)            |
+| `GET`    | `/{document_id}/download` | 문서 다운로드 URL 생성             |
 
 **주요 기능**:
+
 1. **업로드**: MultipartForm 파일 업로드 → MinIO 저장 → DB 메타데이터 저장
 2. **분석**: 문서 파싱 → 텍스트 추출 → 청킹 → DB 저장
 3. **다운로드**: MinIO presigned URL 생성 (1시간 유효)
@@ -142,14 +148,15 @@ GET  /redoc              # ReDoc (자동 생성)
 
 **파일**: `rag-service/app/api/v1/embeddings.py`
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| `POST` | `/document/{document_id}` | 문서의 청크들에 대한 임베딩 생성 |
-| `GET` | `/document/{document_id}` | 문서의 모든 임베딩 조회 |
-| `POST` | `/text` | 단일 텍스트 임베딩 생성 |
-| `DELETE` | `/document/{document_id}` | 문서의 모든 임베딩 삭제 |
+| 메서드   | 경로                      | 설명                             |
+| -------- | ------------------------- | -------------------------------- |
+| `POST`   | `/document/{document_id}` | 문서의 청크들에 대한 임베딩 생성 |
+| `GET`    | `/document/{document_id}` | 문서의 모든 임베딩 조회          |
+| `POST`   | `/text`                   | 단일 텍스트 임베딩 생성          |
+| `DELETE` | `/document/{document_id}` | 문서의 모든 임베딩 삭제          |
 
 **주요 기능**:
+
 1. **배치 임베딩**: 문서의 모든 청크를 한 번에 벡터화
 2. **단일 임베딩**: 검색 쿼리용 벡터 생성
 3. **768차원 벡터**: `paraphrase-multilingual-mpnet-base-v2` 모델 사용
@@ -158,12 +165,13 @@ GET  /redoc              # ReDoc (자동 생성)
 
 **파일**: `rag-service/app/api/v1/search.py`
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| `POST` | `/similar` | 벡터 유사도 검색 (코사인 유사도) |
+| 메서드 | 경로                 | 설명                                |
+| ------ | -------------------- | ----------------------------------- |
+| `POST` | `/similar`           | 벡터 유사도 검색 (코사인 유사도)    |
 | `POST` | `/similar-testcases` | 유사 테스트케이스 검색 (프로젝트별) |
 
 **주요 기능**:
+
 1. **벡터 검색**: pgvector의 코사인 유사도 검색 (`<=>` 연산자)
 2. **필터링**: 프로젝트 ID, 유사도 임계값, 결과 개수 제한
 3. **정렬**: 유사도 점수 기준 내림차순
@@ -172,12 +180,13 @@ GET  /redoc              # ReDoc (자동 생성)
 
 **파일**: `rag-service/app/api/v1/conversations.py`
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| `POST` | `/messages` | 대화 메시지 저장 |
-| `GET` | `/project/{project_id}/messages` | 프로젝트 대화 이력 조회 |
+| 메서드 | 경로                             | 설명                    |
+| ------ | -------------------------------- | ----------------------- |
+| `POST` | `/messages`                      | 대화 메시지 저장        |
+| `GET`  | `/project/{project_id}/messages` | 프로젝트 대화 이력 조회 |
 
 **주요 기능**:
+
 - 사용자 질문 및 AI 응답 저장
 - 프로젝트별 대화 컨텍스트 관리
 
@@ -191,26 +200,27 @@ GET  /redoc              # ReDoc (자동 생성)
 
 **테이블**: `rag_documents`
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| `id` | UUID | 문서 ID (PK) |
-| `project_id` | UUID | 프로젝트 ID (인덱스) |
-| `file_name` | String(512) | 파일명 |
-| `file_path` | Text | 파일 경로 |
-| `file_type` | String(50) | 파일 확장자 (pdf, docx, txt 등) |
-| `file_size` | BigInteger | 파일 크기 (bytes) |
-| `upload_date` | DateTime | 업로드 날짜 |
-| `uploaded_by` | String(255) | 업로드 사용자 |
-| `minio_bucket` | String(255) | MinIO 버킷명 |
-| `minio_object_key` | Text | MinIO 객체 키 |
-| `analysis_status` | String(50) | 분석 상태 (pending, analyzing, completed, failed) |
-| `analysis_date` | DateTime | 분석 완료 날짜 |
-| `total_chunks` | Integer | 청크 개수 |
-| `metadata` | JSONB | 추가 메타데이터 (JSON) |
-| `created_at` | DateTime | 생성 시각 |
-| `updated_at` | DateTime | 수정 시각 |
+| 컬럼               | 타입        | 설명                                              |
+| ------------------ | ----------- | ------------------------------------------------- |
+| `id`               | UUID        | 문서 ID (PK)                                      |
+| `project_id`       | UUID        | 프로젝트 ID (인덱스)                              |
+| `file_name`        | String(512) | 파일명                                            |
+| `file_path`        | Text        | 파일 경로                                         |
+| `file_type`        | String(50)  | 파일 확장자 (pdf, docx, txt 등)                   |
+| `file_size`        | BigInteger  | 파일 크기 (bytes)                                 |
+| `upload_date`      | DateTime    | 업로드 날짜                                       |
+| `uploaded_by`      | String(255) | 업로드 사용자                                     |
+| `minio_bucket`     | String(255) | MinIO 버킷명                                      |
+| `minio_object_key` | Text        | MinIO 객체 키                                     |
+| `analysis_status`  | String(50)  | 분석 상태 (pending, analyzing, completed, failed) |
+| `analysis_date`    | DateTime    | 분석 완료 날짜                                    |
+| `total_chunks`     | Integer     | 청크 개수                                         |
+| `metadata`         | JSONB       | 추가 메타데이터 (JSON)                            |
+| `created_at`       | DateTime    | 생성 시각                                         |
+| `updated_at`       | DateTime    | 수정 시각                                         |
 
 **관계**:
+
 - `embeddings`: RAGEmbedding 1:N (cascade delete)
 
 ### 5.2. RAGEmbedding (임베딩 벡터)
@@ -219,20 +229,22 @@ GET  /redoc              # ReDoc (자동 생성)
 
 **테이블**: `rag_embeddings`
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| `id` | UUID | 임베딩 ID (PK) |
-| `document_id` | UUID | 문서 ID (FK, cascade delete) |
-| `chunk_index` | Integer | 청크 순서 |
-| `chunk_text` | Text | 청크 텍스트 |
-| `chunk_metadata` | JSONB | 청크 메타데이터 (JSON) |
-| `embedding` | Vector(768) | 임베딩 벡터 (pgvector) |
-| `created_at` | DateTime | 생성 시각 |
+| 컬럼             | 타입        | 설명                         |
+| ---------------- | ----------- | ---------------------------- |
+| `id`             | UUID        | 임베딩 ID (PK)               |
+| `document_id`    | UUID        | 문서 ID (FK, cascade delete) |
+| `chunk_index`    | Integer     | 청크 순서                    |
+| `chunk_text`     | Text        | 청크 텍스트                  |
+| `chunk_metadata` | JSONB       | 청크 메타데이터 (JSON)       |
+| `embedding`      | Vector(768) | 임베딩 벡터 (pgvector)       |
+| `created_at`     | DateTime    | 생성 시각                    |
 
 **관계**:
+
 - `document`: RAGDocument N:1
 
 **인덱스**:
+
 - `document_id`: 외래키 인덱스
 - `embedding`: 벡터 유사도 검색용 인덱스 (ivfflat/hnsw)
 
@@ -242,15 +254,15 @@ GET  /redoc              # ReDoc (자동 생성)
 
 **테이블**: `rag_conversation_messages`
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| `id` | UUID | 메시지 ID (PK) |
-| `project_id` | UUID | 프로젝트 ID |
-| `user_id` | String(255) | 사용자 ID |
-| `message` | Text | 메시지 내용 |
-| `role` | String(50) | 역할 (user, assistant) |
-| `context` | JSONB | 검색 컨텍스트 (JSON) |
-| `created_at` | DateTime | 생성 시각 |
+| 컬럼         | 타입        | 설명                   |
+| ------------ | ----------- | ---------------------- |
+| `id`         | UUID        | 메시지 ID (PK)         |
+| `project_id` | UUID        | 프로젝트 ID            |
+| `user_id`    | String(255) | 사용자 ID              |
+| `message`    | Text        | 메시지 내용            |
+| `role`       | String(50)  | 역할 (user, assistant) |
+| `context`    | JSONB       | 검색 컨텍스트 (JSON)   |
+| `created_at` | DateTime    | 생성 시각              |
 
 ---
 
@@ -262,12 +274,12 @@ GET  /redoc              # ReDoc (자동 생성)
 
 **지원 파서**:
 
-| 파서 | 설명 | 장점 | 단점 |
-|------|------|------|------|
-| `upstage` | Upstage Layout Analysis API | 고급 레이아웃 분석, 표/이미지 인식 | API 키 필요, 네트워크 의존 |
-| `pymupdf4llm` | PyMuPDF4LLM (LLM 최적화) | LLM용 마크다운 추출, 고품질 | 임시 파일 필요 |
-| `pymupdf` | PyMuPDF (fitz) | 빠르고 안정적, 풍부한 기능 | 기본 텍스트 추출 |
-| `pypdf2` | PyPDF2 (기본) | 의존성 적음, 간단 | 복잡한 PDF 처리 약함 |
+| 파서          | 설명                        | 장점                               | 단점                       |
+| ------------- | --------------------------- | ---------------------------------- | -------------------------- |
+| `upstage`     | Upstage Layout Analysis API | 고급 레이아웃 분석, 표/이미지 인식 | API 키 필요, 네트워크 의존 |
+| `pymupdf4llm` | PyMuPDF4LLM (LLM 최적화)    | LLM용 마크다운 추출, 고품질        | 임시 파일 필요             |
+| `pymupdf`     | PyMuPDF (fitz)              | 빠르고 안정적, 풍부한 기능         | 기본 텍스트 추출           |
+| `pypdf2`      | PyPDF2 (기본)               | 의존성 적음, 간단                  | 복잡한 PDF 처리 약함       |
 
 **주요 메서드**:
 
@@ -284,6 +296,7 @@ async def analyze_and_chunk(file_content: bytes, file_name: str) -> Dict[str, An
 ```
 
 **청킹 설정**:
+
 ```python
 RecursiveCharacterTextSplitter(
     chunk_size=1000,        # 청크당 1000자
@@ -298,6 +311,7 @@ RecursiveCharacterTextSplitter(
 **파일**: `rag-service/app/services/embedding_service.py`
 
 **모델**: `paraphrase-multilingual-mpnet-base-v2` (Sentence Transformers)
+
 - **차원**: 768
 - **다국어 지원**: 한국어, 영어 등 50+ 언어
 - **성능**: 약 15,000 토큰/초
@@ -319,6 +333,7 @@ def compute_similarity(embedding1: List[float], embedding2: List[float]) -> floa
 ```
 
 **싱글톤 패턴**:
+
 ```python
 _embedding_service_instance = None
 
@@ -331,6 +346,7 @@ def get_embedding_service() -> EmbeddingService:
 **파일**: `rag-service/app/services/minio_service.py`
 
 **설정** (기본값):
+
 - Endpoint: `host.docker.internal:9000`
 - Bucket: `rag-documents`
 - Secure: `False` (HTTP)
@@ -355,6 +371,7 @@ def generate_presigned_url(object_key: str, expires: timedelta) -> str
 ```
 
 **자동 버킷 생성**:
+
 ```python
 def _ensure_bucket_exists()
     """시작 시 버킷 존재 확인 및 생성"""
@@ -411,6 +428,7 @@ class Settings(BaseSettings):
 ```
 
 **환경 변수 우선순위**:
+
 1. `.env` 파일
 2. 시스템 환경 변수
 3. 기본값 (코드 내)
@@ -447,6 +465,7 @@ def get_db():
 ```
 
 **pgvector 확장**:
+
 ```sql
 -- 데이터베이스 초기화 시 실행 필요
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -458,17 +477,17 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 ### 8.1. 테스트 스크립트 목록
 
-| 파일 | 설명 |
-|------|------|
-| `quick_test.py` | 기본 API 테스트 (업로드, 분석, 임베딩, 검색) |
-| `test_api.py` | API 통합 테스트 |
-| `test_api_comprehensive.py` | 종합 API 테스트 (27개 테스트 케이스) |
-| `test_embedding_search.py` | 임베딩 생성 및 검색 테스트 |
-| `test_parser_modes.py` | 4가지 파서 모드 비교 테스트 |
-| `test_pdf_analysis.py` | PDF 분석 테스트 |
-| `test_async_embedding.py` | 비동기 임베딩 성능 테스트 |
-| `test_validation.py` | 입력 검증 테스트 |
-| `auto_quick_test.py` | 자동화된 빠른 테스트 |
+| 파일                        | 설명                                         |
+| --------------------------- | -------------------------------------------- |
+| `quick_test.py`             | 기본 API 테스트 (업로드, 분석, 임베딩, 검색) |
+| `test_api.py`               | API 통합 테스트                              |
+| `test_api_comprehensive.py` | 종합 API 테스트 (27개 테스트 케이스)         |
+| `test_embedding_search.py`  | 임베딩 생성 및 검색 테스트                   |
+| `test_parser_modes.py`      | 4가지 파서 모드 비교 테스트                  |
+| `test_pdf_analysis.py`      | PDF 분석 테스트                              |
+| `test_async_embedding.py`   | 비동기 임베딩 성능 테스트                    |
+| `test_validation.py`        | 입력 검증 테스트                             |
+| `auto_quick_test.py`        | 자동화된 빠른 테스트                         |
 
 ### 8.2. 테스트 실행 예시
 
@@ -616,8 +635,8 @@ services:
   minio:
     image: minio/minio:latest
     ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console
+      - "9000:9000" # API
+      - "9001:9001" # Console
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin_dev_password_789
@@ -648,6 +667,7 @@ curl -X POST "http://localhost:8001/api/v1/documents/" \
 ```
 
 **응답**:
+
 ```json
 {
   "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -667,6 +687,7 @@ curl -X POST "http://localhost:8001/api/v1/documents/{document_id}/analyze"
 ```
 
 **응답**:
+
 ```json
 {
   "document_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -692,6 +713,7 @@ curl -X POST "http://localhost:8001/api/v1/embeddings/document/{document_id}"
 ```
 
 **응답**:
+
 ```json
 {
   "document_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -714,6 +736,7 @@ curl -X POST "http://localhost:8001/api/v1/search/similar" \
 ```
 
 **응답**:
+
 ```json
 {
   "results": [
@@ -769,12 +792,14 @@ curl http://localhost:8001/docs  # Swagger UI
 ### 12.2. 파서 모드 변경
 
 **환경 변수로 변경**:
+
 ```bash
 export DOCUMENT_PARSER=upstage
 export UPSTAGE_API_KEY=your_api_key_here
 ```
 
 **코드에서 직접 변경**:
+
 ```python
 from app.services.upstage_service import UpstageService
 
@@ -788,11 +813,13 @@ service = UpstageService(parser="auto")
 ### 12.3. 디버깅
 
 **로그 레벨 변경**:
+
 ```bash
 export LOG_LEVEL=DEBUG
 ```
 
 **SQLAlchemy 쿼리 로깅**:
+
 ```python
 # app/core/database.py
 engine = create_engine(
@@ -807,18 +834,19 @@ engine = create_engine(
 
 ### 13.1. 일반적인 오류
 
-| 오류 메시지 | 원인 | 해결 방법 |
-|------------|------|----------|
-| `Connection refused (MinIO)` | MinIO 서비스 미실행 | `docker-compose up -d minio` |
-| `Connection refused (PostgreSQL)` | DB 서비스 미실행 | `docker-compose up -d postgres-rag` |
-| `ModuleNotFoundError: No module named 'pymupdf4llm'` | 의존성 미설치 | `pip install -r requirements.txt` |
-| `Bucket does not exist` | MinIO 버킷 미생성 | 자동 생성됨 (재시작 확인) |
-| `pgvector extension not found` | pgvector 미설치 | `CREATE EXTENSION vector;` |
-| `Embedding dimension mismatch` | 모델 변경 시 차원 불일치 | 데이터베이스 재생성 또는 컬럼 변경 |
+| 오류 메시지                                          | 원인                     | 해결 방법                           |
+| ---------------------------------------------------- | ------------------------ | ----------------------------------- |
+| `Connection refused (MinIO)`                         | MinIO 서비스 미실행      | `docker-compose up -d minio`        |
+| `Connection refused (PostgreSQL)`                    | DB 서비스 미실행         | `docker-compose up -d postgres-rag` |
+| `ModuleNotFoundError: No module named 'pymupdf4llm'` | 의존성 미설치            | `pip install -r requirements.txt`   |
+| `Bucket does not exist`                              | MinIO 버킷 미생성        | 자동 생성됨 (재시작 확인)           |
+| `pgvector extension not found`                       | pgvector 미설치          | `CREATE EXTENSION vector;`          |
+| `Embedding dimension mismatch`                       | 모델 변경 시 차원 불일치 | 데이터베이스 재생성 또는 컬럼 변경  |
 
 ### 13.2. 성능 최적화
 
 **임베딩 속도 향상**:
+
 ```python
 # GPU 사용 (CUDA 설치 필요)
 import torch
@@ -827,6 +855,7 @@ model = SentenceTransformer(model_name, device=device)
 ```
 
 **벡터 검색 인덱스 생성**:
+
 ```sql
 -- IVFFlat 인덱스 (근사 검색, 빠름)
 CREATE INDEX ON rag_embeddings USING ivfflat (embedding vector_cosine_ops)
@@ -837,6 +866,7 @@ CREATE INDEX ON rag_embeddings USING hnsw (embedding vector_cosine_ops);
 ```
 
 **데이터베이스 커넥션 풀 조정**:
+
 ```python
 engine = create_engine(
     settings.DATABASE_URL,

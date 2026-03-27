@@ -1,37 +1,61 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-
 
 import PropTypes from "prop-types";
 import {
-  Box, Grid, CircularProgress, LinearProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Chip,
-  Accordion, AccordionSummary, AccordionDetails
+  Box,
+  Grid,
+  CircularProgress,
+  LinearProgress,
+  Alert,
+  Snackbar,
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import { ExpandMore as ExpandMoreIcon, Info as InfoIcon, Assessment as AssessmentIcon } from '@mui/icons-material';
-import { alpha } from '@mui/material/styles';
+import {
+  ExpandMore as ExpandMoreIcon,
+  Info as InfoIcon,
+  Assessment as AssessmentIcon,
+} from "@mui/icons-material";
+import { alpha } from "@mui/material/styles";
 import { useAppContext } from "../context/AppContext.jsx";
-import { useTranslation } from '../context/I18nContext.jsx';
-import { RESULT_COLORS } from '../constants/statusColors';
+import { useTranslation } from "../context/I18nContext.jsx";
+import { RESULT_COLORS } from "../constants/statusColors";
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
 import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
 
 import { invalidateDashboardCache } from "../services/dashboardService";
-import { PAGE_CONTAINER_SX } from '../styles/layoutConstants';
-import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx';
-import { debugLog } from '../utils/logger';
+import { PAGE_CONTAINER_SX } from "../styles/layoutConstants";
+import TestResultAttachmentsView from "./TestCase/TestResultAttachmentsView.jsx";
+import { debugLog } from "../utils/logger";
 
 // New Components
-import TestExecutionHeader from './TestExecution/TestExecutionHeader.jsx';
-import TestExecutionInfo from './TestExecution/TestExecutionInfo.jsx';
-import TestExecutionStatus from './TestExecution/TestExecutionStatus.jsx';
-import TestExecutionTable from './TestExecution/TestExecutionTable.jsx';
-import TestExecutionFilterPanel from './TestExecution/TestExecutionFilterPanel.jsx';
-import PreviousResultsDialog from './TestExecution/PreviousResultsDialog.jsx';
-import BulkResultDialog from './TestExecution/BulkResultDialog.jsx';
-import { getLatestResults, parseDateTime } from './TestExecution/utils.jsx';
+import TestExecutionHeader from "./TestExecution/TestExecutionHeader.jsx";
+import TestExecutionInfo from "./TestExecution/TestExecutionInfo.jsx";
+import TestExecutionStatus from "./TestExecution/TestExecutionStatus.jsx";
+import TestExecutionTable from "./TestExecution/TestExecutionTable.jsx";
+import TestExecutionFilterPanel from "./TestExecution/TestExecutionFilterPanel.jsx";
+import PreviousResultsDialog from "./TestExecution/PreviousResultsDialog.jsx";
+import BulkResultDialog from "./TestExecution/BulkResultDialog.jsx";
+import { getLatestResults, parseDateTime } from "./TestExecution/utils.jsx";
 
-const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestPlanId, onCancel, onSave }) => {
+const TestExecutionForm = ({
+  executionId,
+  projectId: propProjectId,
+  initialTestPlanId,
+  onCancel,
+  onSave,
+}) => {
   const {
     testPlans,
     getTestPlan,
@@ -71,7 +95,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [isPrevResultsOpen, setIsPrevResultsOpen] = useState(false);
   const [prevResults, setPrevResults] = useState([]);
   const [prevResultsLoading, setPrevResultsLoading] = useState(false);
-  const [currentPrevResultsTestCaseId, setCurrentPrevResultsTestCaseId] = useState(null);
+  const [currentPrevResultsTestCaseId, setCurrentPrevResultsTestCaseId] =
+    useState(null);
 
   //  첨부파일 다이얼로그 상태
   const [visibleCount, setVisibleCount] = useState(50);
@@ -109,35 +134,39 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // 필터 관련 상태
   const [filters, setFilters] = useState({
-    name: '',
-    priority: '',
-    result: '',
-    executedBy: '',
-    executionDate: '',
-    jiraIssueKey: '',
-    notes: ''
+    name: "",
+    priority: "",
+    result: "",
+    executedBy: "",
+    executionDate: "",
+    jiraIssueKey: "",
+    notes: "",
   });
 
   // Accordion state
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
-    const saved = localStorage.getItem('testcase-manager-execution-accordion');
-    return saved ? JSON.parse(saved) : {
-      executionSummary: true,
-      filters: true,
-      list: true
-    };
+    const saved = localStorage.getItem("testcase-manager-execution-accordion");
+    return saved
+      ? JSON.parse(saved)
+      : {
+          executionSummary: true,
+          filters: true,
+          list: true,
+        };
   });
 
   const handleAccordionChange = (panel) => (event, isExpanded) => {
     const newExpanded = { ...accordionExpanded, [panel]: isExpanded };
     setAccordionExpanded(newExpanded);
-    localStorage.setItem('testcase-manager-execution-accordion', JSON.stringify(newExpanded));
+    localStorage.setItem(
+      "testcase-manager-execution-accordion",
+      JSON.stringify(newExpanded),
+    );
   };
 
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-
 
   // 프로젝트의 기존 태그 목록 조회
   useEffect(() => {
@@ -145,13 +174,15 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
     const fetchTags = async () => {
       try {
-        const response = await api(`/api/testcases/projects/${execution.projectId}/tags`);
+        const response = await api(
+          `/api/testcases/projects/${execution.projectId}/tags`,
+        );
         if (response.ok) {
           const tags = await response.json();
           setAvailableTags(Array.from(tags));
         }
       } catch (error) {
-        console.error('태그 목록 조회 실패:', error);
+        console.error("태그 목록 조회 실패:", error);
       }
     };
 
@@ -161,7 +192,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   useEffect(() => {
     const fetchExecution = async () => {
       // 새 실행 등록 페이지인 경우
-      if (!executionId || executionId === 'new') {
+      if (!executionId || executionId === "new") {
         // 즉시실행 진행 중이 아닌 경우에만 초기화
         if (!isImmediateExecuting) {
           setExecution({
@@ -183,14 +214,17 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
               setSelectedPlan(plan);
             } else {
               // If not found in context, try to fetch it
-              api(`/api/test-plans/${initialTestPlanId}`).then(res => {
-                if (res.ok) return res.json();
-                throw new Error('Failed to fetch test plan');
-              }).then(data => {
-                setSelectedPlan(data);
-              }).catch(err => {
-                console.error("Error fetching initial test plan:", err);
-              });
+              api(`/api/test-plans/${initialTestPlanId}`)
+                .then((res) => {
+                  if (res.ok) return res.json();
+                  throw new Error("Failed to fetch test plan");
+                })
+                .then((data) => {
+                  setSelectedPlan(data);
+                })
+                .catch((err) => {
+                  console.error("Error fetching initial test plan:", err);
+                });
             }
           } else {
             setSelectedPlan(null);
@@ -206,7 +240,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         const data = await res.json();
 
         setExecution(data);
-        debugLog('TestExecutionForm', 'Execution data fetched', data);
+        debugLog("TestExecutionForm", "Execution data fetched", data);
 
         // 테스트 플랜 정보 조회 - testPlans가 로드되지 않은 경우 API 직접 호출
         if (data.testPlanId) {
@@ -222,7 +256,9 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
                 const planData = await planRes.json();
                 setSelectedPlan(planData);
               } else {
-                console.warn(`테스트 플랜을 찾을 수 없습니다: ${data.testPlanId}`);
+                console.warn(
+                  `테스트 플랜을 찾을 수 없습니다: ${data.testPlanId}`,
+                );
                 setSelectedPlan(null);
               }
             } catch (planErr) {
@@ -243,18 +279,25 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
     // executionId 변경 시 항상 fetchExecution 실행 (초기화 포함)
     fetchExecution();
-  }, [executionId, getTestPlan, api, isImmediateExecuting, activeProject, initialTestPlanId]);
+  }, [
+    executionId,
+    getTestPlan,
+    api,
+    isImmediateExecuting,
+    activeProject,
+    initialTestPlanId,
+  ]);
 
   // 스마트 리다이렉트 처리 (지라 이슈 키 자동 채움)
   useEffect(() => {
     if (location.state?.autoFillJiraIssueKey && execution?.results) {
       const { autoFillJiraIssueKey, targetTestCaseId } = location.state;
-      
+
       // 대상 테스트 케이스가 있으면 해당 케이스의 결과 폼을 연다
       if (targetTestCaseId) {
         setSelectedTestCaseId(targetTestCaseId);
         setIsResultFormOpen(true);
-        
+
         // 한번 처리한 후에는 state를 초기화하여 재실행되지 않도록 함
         const newState = { ...location.state };
         delete newState.autoFillJiraIssueKey;
@@ -269,18 +312,23 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   useEffect(() => {
     const projectId = execution?.projectId || activeProject?.id;
 
-    debugLog('TestExecutionForm', 'Check testCases loading', {
+    debugLog("TestExecutionForm", "Check testCases loading", {
       projectId,
       testCasesLength: testCases?.length,
       executionProjectId: execution?.projectId,
-      activeProjectId: activeProject?.id
+      activeProjectId: activeProject?.id,
     });
 
     if (projectId && (!testCases || testCases.length === 0)) {
-      debugLog('TestExecutionForm', 'Fetching project test cases', projectId);
+      debugLog("TestExecutionForm", "Fetching project test cases", projectId);
       fetchProjectTestCases(projectId);
     }
-  }, [execution?.projectId, activeProject?.id, testCases, fetchProjectTestCases]);
+  }, [
+    execution?.projectId,
+    activeProject?.id,
+    testCases,
+    fetchProjectTestCases,
+  ]);
 
   const handlePlanChange = useCallback(
     (event) => {
@@ -293,7 +341,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         results: [],
       }));
     },
-    [getTestPlan]
+    [getTestPlan],
   );
 
   const handleChange = useCallback(
@@ -304,11 +352,12 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         projectId: prev.projectId,
       }));
     },
-    []
+    [],
   );
 
   const handleSaveOrUpdate = async () => {
-    if (!execution.name || !execution.testPlanId || !execution.projectId) return;
+    if (!execution.name || !execution.testPlanId || !execution.projectId)
+      return;
     setSaving(true);
     try {
       const saved = await addOrUpdateTestExecution(execution);
@@ -316,7 +365,11 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       setIsEditingBasicInfo(false); // 저장 성공 시 편집 모드 종료
 
       // 즉시 시작 옵션이 선택된 경우 테스트 실행 시작
-      if (startImmediately && saved.id && saved.status === ExecutionStatus.NOTSTARTED) {
+      if (
+        startImmediately &&
+        saved.id &&
+        saved.status === ExecutionStatus.NOTSTARTED
+      ) {
         // 즉시실행 시작 표시
         setIsImmediateExecuting(true);
 
@@ -329,7 +382,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           // execution 상태 업데이트 시 testPlanId 확실히 보존
           const updatedExecution = {
             ...started,
-            testPlanId: started.testPlanId || saved.testPlanId || execution.testPlanId,
+            testPlanId:
+              started.testPlanId || saved.testPlanId || execution.testPlanId,
           };
 
           setExecution(updatedExecution);
@@ -338,11 +392,13 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           // 즉시실행 후 selectedPlan 상태를 업데이트하여 테스트케이스 리스트가 표시되도록 함
 
           if (started.testPlanId) {
-
             const finalTestPlanId = updatedExecution.testPlanId;
 
             // 1차: 백업된 플랜 사용 시도
-            if (currentSelectedPlan && currentSelectedPlan.id === finalTestPlanId) {
+            if (
+              currentSelectedPlan &&
+              currentSelectedPlan.id === finalTestPlanId
+            ) {
               setSelectedPlan(currentSelectedPlan);
               // execution 상태는 이미 설정했으므로 추가 설정 불필요
             } else {
@@ -355,13 +411,18 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
               } else {
                 // 3차: API 직접 조회
                 try {
-                  const planRes = await api(`/api/test-plans/${finalTestPlanId}`);
+                  const planRes = await api(
+                    `/api/test-plans/${finalTestPlanId}`,
+                  );
                   if (planRes.ok) {
                     const planData = await planRes.json();
                     setSelectedPlan(planData);
                     // execution 상태는 이미 설정했으므로 추가 설정 불필요
                   } else {
-                    console.error("❌ API에서 테스트플랜 조회 실패 - 상태:", planRes.status);
+                    console.error(
+                      "❌ API에서 테스트플랜 조회 실패 - 상태:",
+                      planRes.status,
+                    );
                   }
                 } catch (planErr) {
                   console.error("❌ 테스트 플랜 조회 오류:", planErr);
@@ -380,7 +441,9 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           }
 
           // 즉시 실행 완료 표시 및 성공 메시지
-          setSuccessMessage(`테스트 실행 '${started.name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.`);
+          setSuccessMessage(
+            `테스트 실행 '${started.name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.`,
+          );
 
           // 즉시실행 완료 표시
           setIsImmediateExecuting(false);
@@ -402,7 +465,9 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           return; // 즉시 실행의 경우 여기서 종료
         } catch (startErr) {
           setIsImmediateExecuting(false); // 에러 시에도 상태 초기화
-          setSaveError(`저장은 성공했으나 실행 시작 중 오류: ${startErr.message}`);
+          setSaveError(
+            `저장은 성공했으나 실행 시작 중 오류: ${startErr.message}`,
+          );
         }
       }
 
@@ -417,7 +482,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   };
 
   const handleStartExecution = async () => {
-    if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED) return;
+    if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED)
+      return;
     setSaving(true);
     try {
       const updated = await startTestExecution(execution.id);
@@ -431,7 +497,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   };
 
   const handleCompleteExecution = async () => {
-    if (!execution?.id || execution.status !== ExecutionStatus.INPROGRESS) return;
+    if (!execution?.id || execution.status !== ExecutionStatus.INPROGRESS)
+      return;
     setSaving(true);
     try {
       const updated = await completeTestExecution(execution.id);
@@ -445,7 +512,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   };
 
   const handleRestartExecution = async () => {
-    if (!execution?.id || execution.status !== ExecutionStatus.COMPLETED) return;
+    if (!execution?.id || execution.status !== ExecutionStatus.COMPLETED)
+      return;
     setSaving(true);
     try {
       const updated = await restartTestExecution(execution.id);
@@ -458,34 +526,48 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     }
   };
 
-  const handleOpenResultForm = useCallback((testCaseId) => {
-    // projectId를 다양한 소스에서 검색하여 항상 URL 네비게이션을 우선 사용
-    const projectId = execution?.testPlan?.projectId
-      || execution?.projectId
-      || propProjectId;
-    if (projectId && execution?.id) {
-      navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`);
-    } else {
-      // Fallback to dialog mode (projectId를 전혀 알 수 없는 경우)
-      setSelectedTestCaseId(testCaseId);
-      setIsResultFormOpen(true);
-    }
-  }, [navigate, execution, propProjectId]);
+  const handleOpenResultForm = useCallback(
+    (testCaseId) => {
+      // projectId를 다양한 소스에서 검색하여 항상 URL 네비게이션을 우선 사용
+      const projectId =
+        execution?.testPlan?.projectId || execution?.projectId || propProjectId;
+      if (projectId && execution?.id) {
+        navigate(
+          `/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`,
+        );
+      } else {
+        // Fallback to dialog mode (projectId를 전혀 알 수 없는 경우)
+        setSelectedTestCaseId(testCaseId);
+        setIsResultFormOpen(true);
+      }
+    },
+    [navigate, execution, propProjectId],
+  );
 
   // 결과 입력 화면의 직접 링크를 클립보드에 복사
-  const handleCopyLink = useCallback((testCaseId) => {
-    const projectId = execution?.testPlan?.projectId
-      || execution?.projectId
-      || propProjectId;
-    if (projectId && execution?.id) {
-      const url = `${window.location.origin}/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`;
-      navigator.clipboard.writeText(url).then(() => {
-        setSuccessMessage(t('testExecution.actions.linkCopied', '결과 입력 링크가 클립보드에 복사되었습니다.'));
-      }).catch(() => {
-        setSuccessMessage(url); // 복사 실패 시 URL을 메시지로 표시
-      });
-    }
-  }, [execution, propProjectId, t]);
+  const handleCopyLink = useCallback(
+    (testCaseId) => {
+      const projectId =
+        execution?.testPlan?.projectId || execution?.projectId || propProjectId;
+      if (projectId && execution?.id) {
+        const url = `${window.location.origin}/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`;
+        navigator.clipboard
+          .writeText(url)
+          .then(() => {
+            setSuccessMessage(
+              t(
+                "testExecution.actions.linkCopied",
+                "결과 입력 링크가 클립보드에 복사되었습니다.",
+              ),
+            );
+          })
+          .catch(() => {
+            setSuccessMessage(url); // 복사 실패 시 URL을 메시지로 표시
+          });
+      }
+    },
+    [execution, propProjectId, t],
+  );
 
   const handleCloseResultForm = useCallback(() => {
     setIsResultFormOpen(false);
@@ -506,23 +588,23 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       // ICT-198: 대시보드 캐시 무효화
       try {
         invalidateDashboardCache();
-
       } catch (e) {
-        console.error('Failed to invalidate dashboard cache:', e);
+        console.error("Failed to invalidate dashboard cache:", e);
       }
 
       if (!options.keepDialogOpen) {
         handleCloseResultForm();
       }
     },
-    [fetchTestExecutions, handleCloseResultForm]
+    [fetchTestExecutions, handleCloseResultForm],
   );
 
   // 프로젝트별 테스트 실행 목록으로 이동
   const handleGoToList = () => {
     // 1. propProjectId (URL Params) -> 2. execution.projectId -> 3. activeProject.id 순으로 확인
-    const projectId = propProjectId || execution?.projectId || activeProject?.id;
-    
+    const projectId =
+      propProjectId || execution?.projectId || activeProject?.id;
+
     if (projectId) {
       navigate(`/projects/${projectId}/executions`);
     } else {
@@ -554,7 +636,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         setPrevResultsLoading(false);
       }
     },
-    [fetchTestExecutionsByTestCase]
+    [fetchTestExecutionsByTestCase],
   );
 
   // ICT-362: 첨부파일 버튼 클릭 핸들러
@@ -565,7 +647,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // 체크박스 선택 핸들러
   const handleSelectionChange = useCallback((testCaseId, checked) => {
-    setSelectedTestCases(prev => {
+    setSelectedTestCases((prev) => {
       const newSet = new Set(prev);
       if (checked) {
         newSet.add(testCaseId);
@@ -579,64 +661,93 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   // 일괄 액션 버튼 클릭
   const [preselectedResult, setPreselectedResult] = useState(null);
 
-  const handleBulkActionClick = useCallback((result) => {
-    if (selectedTestCases.size > 0) {
-      setPreselectedResult(result);
-      setIsBulkDialogOpen(true);
-    }
-  }, [selectedTestCases]);
+  const handleBulkActionClick = useCallback(
+    (result) => {
+      if (selectedTestCases.size > 0) {
+        setPreselectedResult(result);
+        setIsBulkDialogOpen(true);
+      }
+    },
+    [selectedTestCases],
+  );
 
   // 일괄 결과 업데이트
-  const handleBulkUpdate = useCallback(async ({ result, notes, tags: newTags, jiraIssueKey }) => {
-    if (!execution?.id) return;
+  const handleBulkUpdate = useCallback(
+    async ({ result, notes, tags: newTags, jiraIssueKey }) => {
+      if (!execution?.id) return;
 
-    setBulkProcessing(true);
-    const testCaseArray = Array.from(selectedTestCases);
+      setBulkProcessing(true);
+      const testCaseArray = Array.from(selectedTestCases);
 
-    try {
-      // 일괄 API 호출
-      const response = await api(`/api/test-executions/${execution.id}/results/bulk`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          testCaseIds: testCaseArray,
-          result,
-          notes,
-          tags: newTags,
-          jiraIssueKey
-        })
-      });
+      try {
+        // 일괄 API 호출
+        const response = await api(
+          `/api/test-executions/${execution.id}/results/bulk`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              testCaseIds: testCaseArray,
+              result,
+              notes,
+              tags: newTags,
+              jiraIssueKey,
+            }),
+          },
+        );
 
-      if (response.ok) {
-        const updatedExecution = await response.json();
-        setExecution(updatedExecution);
+        if (response.ok) {
+          const updatedExecution = await response.json();
+          setExecution(updatedExecution);
 
-        // 성공 메시지 표시
-        setSuccessMessage(t('testExecution.bulk.success', '{count}개 테스트케이스 결과가 저장되었습니다').replace('{count}', testCaseArray.length));
+          // 성공 메시지 표시
+          setSuccessMessage(
+            t(
+              "testExecution.bulk.success",
+              "{count}개 테스트케이스 결과가 저장되었습니다",
+            ).replace("{count}", testCaseArray.length),
+          );
 
-        // 대시보드 캐시 무효화
-        invalidateDashboardCache();
+          // 대시보드 캐시 무효화
+          invalidateDashboardCache();
 
-        // 선택 해제 및 다이얼로그 닫기
-        setSelectedTestCases(new Set());
-        setIsBulkDialogOpen(false);
-      } else {
-        const errorData = await response.json().catch(() => ({ message: '알 수 없는 오류' }));
-        setSaveError(t('testExecution.bulk.error', '일괄 결과 저장 중 오류 발생: {error}').replace('{error}', errorData.message || response.statusText));
+          // 선택 해제 및 다이얼로그 닫기
+          setSelectedTestCases(new Set());
+          setIsBulkDialogOpen(false);
+        } else {
+          const errorData = await response
+            .json()
+            .catch(() => ({ message: "알 수 없는 오류" }));
+          setSaveError(
+            t(
+              "testExecution.bulk.error",
+              "일괄 결과 저장 중 오류 발생: {error}",
+            ).replace("{error}", errorData.message || response.statusText),
+          );
+        }
+      } catch (err) {
+        setSaveError(
+          t(
+            "testExecution.bulk.error",
+            "일괄 결과 저장 중 오류 발생: {error}",
+          ).replace("{error}", err.message),
+        );
+      } finally {
+        setBulkProcessing(false);
       }
-    } catch (err) {
-      setSaveError(t('testExecution.bulk.error', '일괄 결과 저장 중 오류 발생: {error}').replace('{error}', err.message));
-    } finally {
-      setBulkProcessing(false);
-    }
-  }, [execution?.id, selectedTestCases, api, t]);
+    },
+    [execution?.id, selectedTestCases, api, t],
+  );
 
   // 스마트 리다이렉트 연동: 위치 정보를 통해 전달된 지라 이슈 키를 초기값으로 설정
   // TestExecutionForm 컴포넌트에서 TestResultForm이 열릴 때 이 로직을 사용하여 Jira 이슈 키를 자동 채움
   useEffect(() => {
     // 이 로직은 TestResultForm 내부가 아닌, TestExecutionForm에서 TestResultForm을 열 때
     // location.state를 감지하여 특정 테스트 케이스를 선택하고 TestResultForm을 열도록 조정해야 합니다.
-    if (location.state?.autoFillJiraIssueKey && location.state?.testCaseIdToSelect) {
+    if (
+      location.state?.autoFillJiraIssueKey &&
+      location.state?.testCaseIdToSelect
+    ) {
       const { testCaseIdToSelect } = location.state;
 
       // TestResultForm을 열기 위한 상태 설정
@@ -647,7 +758,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   const canEditBasicInfo = isEditingBasicInfo; // 이름, 설명, 태그는 편집 모드일 때만 수정 가능
   const canEditPlan = execution?.status === ExecutionStatus.NOTSTARTED; // 테스트 플랜 변경은 시작 전까지만 가능
-  const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;
+  const canStartExecution =
+    execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
   const canRestartExecution = execution?.status === ExecutionStatus.COMPLETED;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
@@ -660,7 +772,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     // getLatestResults와 정렬 방식이 일치하도록 처리합니다.
     [...results]
       .sort((a, b) => new Date(b.executedAt || 0) - new Date(a.executedAt || 0))
-      .forEach(r => {
+      .forEach((r) => {
         if (r.jiraIssueKey && !map.has(r.testCaseId)) {
           map.set(r.testCaseId, r.jiraIssueKey);
         }
@@ -668,26 +780,28 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     return map;
   }, [execution?.results]);
 
-  const latestResults = useMemo(() => getLatestResults(execution?.results || []), [execution?.results]);
+  const latestResults = useMemo(
+    () => getLatestResults(execution?.results || []),
+    [execution?.results],
+  );
   const resultsMap = useMemo(() => {
     const map = new Map();
     latestResults.forEach((r) => {
       const effectiveJira = effectiveJiraMap.get(r.testCaseId);
       map.set(r.testCaseId, {
         ...r,
-        effectiveJiraIssueKey: effectiveJira // 과거 이력 포함 가장 최근 JIRA ID
+        effectiveJiraIssueKey: effectiveJira, // 과거 이력 포함 가장 최근 JIRA ID
       });
     });
     return map;
   }, [latestResults, effectiveJiraMap]);
 
-
   // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
   const { flattenedData, orderedTestCaseIds: testCaseIds } = useMemo(() => {
     if (!selectedPlan || !testCases || testCases.length === 0) {
-      debugLog('TestExecutionForm', 'Cannot generate flattened data', {
+      debugLog("TestExecutionForm", "Cannot generate flattened data", {
         hasSelectedPlan: !!selectedPlan,
-        testCasesLength: testCases?.length
+        testCasesLength: testCases?.length,
       });
       return { flattenedData: [], orderedTestCaseIds: [] };
     }
@@ -697,7 +811,15 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   // 필터링된 데이터
   const filteredData = useMemo(() => {
     // 1. 필터가 활성화되어 있는지 확인
-    const hasActiveFilters = !!(filters.name || filters.priority || filters.result || filters.executedBy || filters.executionDate || filters.jiraIssueKey || filters.notes);
+    const hasActiveFilters = !!(
+      filters.name ||
+      filters.priority ||
+      filters.result ||
+      filters.executedBy ||
+      filters.executionDate ||
+      filters.jiraIssueKey ||
+      filters.notes
+    );
 
     if (!hasActiveFilters) {
       return flattenedData;
@@ -705,14 +827,16 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
     // 2. 필터에 매칭되는 테스트 케이스 ID 식별
     const matchingTestCaseIds = new Set();
-    flattenedData.forEach(node => {
-      if (node.type !== 'testcase') return;
+    flattenedData.forEach((node) => {
+      if (node.type !== "testcase") return;
 
       let matches = true;
 
       // 이름 필터
       if (filters.name) {
-        if (!node.name.toLowerCase().includes(filters.name.trim().toLowerCase())) {
+        if (
+          !node.name.toLowerCase().includes(filters.name.trim().toLowerCase())
+        ) {
           matches = false;
         }
       }
@@ -725,14 +849,20 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       // 결과 필터 - resultsMap에서 확인
       if (matches && filters.result) {
         const resultObj = resultsMap.get(node.id);
-        const result = resultObj?.result || 'NOTRUN';
+        const result = resultObj?.result || "NOTRUN";
         if (result !== filters.result) {
           matches = false;
         }
       }
 
       // 실행자, 실행일자, JIRA, 노트 필터 - resultsMap에서 확인
-      if (matches && (filters.executedBy || filters.executionDate || filters.jiraIssueKey || filters.notes)) {
+      if (
+        matches &&
+        (filters.executedBy ||
+          filters.executionDate ||
+          filters.jiraIssueKey ||
+          filters.notes)
+      ) {
         const resultObj = resultsMap.get(node.id);
 
         if (!resultObj) {
@@ -741,15 +871,19 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           // 실행자 필터
           if (filters.executedBy) {
             const executedBy = resultObj.executedBy;
-            let executedByStr = '';
+            let executedByStr = "";
 
-            if (executedBy && typeof executedBy === 'object') {
-              executedByStr = executedBy.username || executedBy.name || '';
+            if (executedBy && typeof executedBy === "object") {
+              executedByStr = executedBy.username || executedBy.name || "";
             } else if (executedBy) {
               executedByStr = String(executedBy);
             }
 
-            if (!executedByStr.toLowerCase().includes(filters.executedBy.trim().toLowerCase())) {
+            if (
+              !executedByStr
+                .toLowerCase()
+                .includes(filters.executedBy.trim().toLowerCase())
+            ) {
               matches = false;
             }
           }
@@ -763,8 +897,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
             } else {
               // YYYY-MM-DD 형식 문자열 비교 (로컬 시간 기준)
               const year = executedAt.getFullYear();
-              const month = String(executedAt.getMonth() + 1).padStart(2, '0');
-              const day = String(executedAt.getDate()).padStart(2, '0');
+              const month = String(executedAt.getMonth() + 1).padStart(2, "0");
+              const day = String(executedAt.getDate()).padStart(2, "0");
               const dateString = `${year}-${month}-${day}`;
 
               if (dateString !== filters.executionDate) {
@@ -775,20 +909,24 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
           // JIRA 아이디 필터
           if (matches && filters.jiraIssueKey) {
-            const jiraKey = resultObj.jiraIssueKey || '';
-            const effectiveJiraKey = resultObj.effectiveJiraIssueKey || '';
+            const jiraKey = resultObj.jiraIssueKey || "";
+            const effectiveJiraKey = resultObj.effectiveJiraIssueKey || "";
             const searchStr = filters.jiraIssueKey.trim().toLowerCase();
-            
-            if (!jiraKey.toLowerCase().includes(searchStr) && 
-                !effectiveJiraKey.toLowerCase().includes(searchStr)) {
+
+            if (
+              !jiraKey.toLowerCase().includes(searchStr) &&
+              !effectiveJiraKey.toLowerCase().includes(searchStr)
+            ) {
               matches = false;
             }
           }
 
           // 노트 필터
           if (matches && filters.notes) {
-            const notes = resultObj.notes || '';
-            if (!notes.toLowerCase().includes(filters.notes.trim().toLowerCase())) {
+            const notes = resultObj.notes || "";
+            if (
+              !notes.toLowerCase().includes(filters.notes.trim().toLowerCase())
+            ) {
               matches = false;
             }
           }
@@ -805,16 +943,16 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     if (matchingTestCaseIds.size > 0) {
       // 빠른 조회를 위해 맵 생성
       const idToNode = {};
-      flattenedData.forEach(node => {
+      flattenedData.forEach((node) => {
         idToNode[node.id] = node;
       });
 
-      matchingTestCaseIds.forEach(id => {
+      matchingTestCaseIds.forEach((id) => {
         let current = idToNode[id];
         // 상위로 올라가며 폴더들을 표시 대상에 추가
         while (current && current.parentId) {
           const parent = idToNode[current.parentId];
-          if (parent && parent.type === 'folder') {
+          if (parent && parent.type === "folder") {
             if (folderIdsToShow.has(parent.id)) break; // 이미 추가된 상위 구조
             folderIdsToShow.add(parent.id);
             current = parent;
@@ -826,12 +964,19 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     }
 
     // 4. 매칭된 케이스와 관련 폴더만 반환
-    return flattenedData.filter(node =>
-      matchingTestCaseIds.has(node.id) || folderIdsToShow.has(node.id)
+    return flattenedData.filter(
+      (node) =>
+        matchingTestCaseIds.has(node.id) || folderIdsToShow.has(node.id),
     );
   }, [flattenedData, filters, resultsMap]);
   const statusCounts = useMemo(() => {
-    const counts = { PASS: 0, FAIL: 0, NOTRUN: 0, BLOCKED: 0, total: testCaseIds.length };
+    const counts = {
+      PASS: 0,
+      FAIL: 0,
+      NOTRUN: 0,
+      BLOCKED: 0,
+      total: testCaseIds.length,
+    };
     testCaseIds.forEach((id) => {
       const resObj = resultsMap.get(id);
       const res = resObj?.result || TestResult.NOTRUN;
@@ -845,7 +990,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   const progress = useMemo(() => {
     if (statusCounts.total === 0) return 0;
-    const completed = statusCounts.PASS + statusCounts.FAIL + statusCounts.BLOCKED;
+    const completed =
+      statusCounts.PASS + statusCounts.FAIL + statusCounts.BLOCKED;
     return Math.round((completed / statusCounts.total) * 100);
   }, [statusCounts]);
 
@@ -858,7 +1004,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   const loadMore = useCallback(() => {
     if (hasMore) {
-      setVisibleCount(prev => prev + 50);
+      setVisibleCount((prev) => prev + 50);
     }
   }, [hasMore]);
 
@@ -870,12 +1016,14 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   // 스크롤 복구 로직 (scrollTo 쿼리 파라미터 처리)
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const scrollToId = searchParams.get('scrollTo');
-    
+    const scrollToId = searchParams.get("scrollTo");
+
     if (scrollToId && filteredData.length > 0) {
       // 1. 해당 ID가 필터링된 데이터에 있는지 확인 및 인덱스 찾기
-      const targetIndex = filteredData.findIndex(item => item.id === scrollToId);
-      
+      const targetIndex = filteredData.findIndex(
+        (item) => item.id === scrollToId,
+      );
+
       if (targetIndex !== -1) {
         // 2. 현재 visibleCount보다 뒤에 있다면 visibleCount 확장
         if (targetIndex >= visibleCount) {
@@ -885,31 +1033,42 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           // visibleCount가 업데이트된 후 다음 렌더링에서 스크롤을 시도해야 하므로 여기서 중단
           return;
         }
-        
+
         // 3. 렌더링이 완료된 후 스크롤 실행 (setTimeout으로 렌더링 대기)
         const timer = setTimeout(() => {
-          const element = document.getElementById(`execution-row-${scrollToId}`);
+          const element = document.getElementById(
+            `execution-row-${scrollToId}`,
+          );
           if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+
             // 4. 스크롤 후 쿼리 파라미터 제거 (반복 방지)
             const newParams = new URLSearchParams(location.search);
-            newParams.delete('scrollTo');
+            newParams.delete("scrollTo");
             const newSearch = newParams.toString();
-            navigate({
-              pathname: location.pathname,
-              search: newSearch ? `?${newSearch}` : ''
-            }, { replace: true });
+            navigate(
+              {
+                pathname: location.pathname,
+                search: newSearch ? `?${newSearch}` : "",
+              },
+              { replace: true },
+            );
           }
         }, 300);
         return () => clearTimeout(timer);
       }
     }
-  }, [location.search, filteredData, visibleCount, navigate, location.pathname]);
+  }, [
+    location.search,
+    filteredData,
+    visibleCount,
+    navigate,
+    location.pathname,
+  ]);
 
   // 필터 관련 핸들러
   const handleFilterChange = useCallback((field, value) => {
-    setFilters(prev => ({ ...prev, [field]: value }));
+    setFilters((prev) => ({ ...prev, [field]: value }));
   }, []);
 
   const handleFilterApply = useCallback(() => {
@@ -918,20 +1077,27 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   const handleFilterClear = useCallback(() => {
     setFilters({
-      name: '',
-      priority: '',
-      result: '',
-      executedBy: '',
-      executionDate: '',
-      jiraIssueKey: '',
-      notes: ''
+      name: "",
+      priority: "",
+      result: "",
+      executedBy: "",
+      executionDate: "",
+      jiraIssueKey: "",
+      notes: "",
     });
     setVisibleCount(50);
   }, []);
 
   if (loading)
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 4, minHeight: "60vh" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          p: 4,
+          minHeight: "60vh",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -944,61 +1110,80 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   return (
     <Box sx={PAGE_CONTAINER_SX.main}>
-        <TestExecutionHeader
-          executionId={executionId}
-          executionName={execution?.name}
-          execution={execution}
-          onCancel={onCancel}
-          onGoToList={handleGoToList}
-          onSaveOrUpdate={handleSaveOrUpdate}
-          saving={saving}
-          canEditBasicInfo={canEditBasicInfo}
-          canEditPlan={canEditPlan}
-          startImmediately={startImmediately}
-          showExecutionGuide={showExecutionGuide}
-          setShowExecutionGuide={setShowExecutionGuide}
-          isEditingBasicInfo={isEditingBasicInfo}
-          onEditClick={handleEditClick}
-          onCancelEdit={handleCancelEditFromHeader}
-        />
+      <TestExecutionHeader
+        executionId={executionId}
+        executionName={execution?.name}
+        execution={execution}
+        onCancel={onCancel}
+        onGoToList={handleGoToList}
+        onSaveOrUpdate={handleSaveOrUpdate}
+        saving={saving}
+        canEditBasicInfo={canEditBasicInfo}
+        canEditPlan={canEditPlan}
+        startImmediately={startImmediately}
+        showExecutionGuide={showExecutionGuide}
+        setShowExecutionGuide={setShowExecutionGuide}
+        isEditingBasicInfo={isEditingBasicInfo}
+        onEditClick={handleEditClick}
+        onCancelEdit={handleCancelEditFromHeader}
+      />
 
       {/* 실행 요약 정보 (Info & Status) - Accordion 적용 */}
-      <Accordion 
-        expanded={accordionExpanded.executionSummary} 
-        onChange={handleAccordionChange('executionSummary')}
-        sx={{ 
-          mb: 2, 
-          boxShadow: 'none', 
-          border: '1px solid',
-          borderColor: 'divider',
-          '&:before': { display: 'none' },
-          borderRadius: '8px !important',
-          overflow: 'hidden'
+      <Accordion
+        expanded={accordionExpanded.executionSummary}
+        onChange={handleAccordionChange("executionSummary")}
+        sx={{
+          mb: 2,
+          boxShadow: "none",
+          border: "1px solid",
+          borderColor: "divider",
+          "&:before": { display: "none" },
+          borderRadius: "8px !important",
+          overflow: "hidden",
         }}
       >
-        <AccordionSummary 
+        <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           sx={{ bgcolor: alpha(theme.palette.primary.main, 0.03) }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              width: "100%",
+            }}
+          >
             <AssessmentIcon color="primary" />
             <Typography variant="subtitle1" fontWeight="bold">
-              {t('testExecution.executionSummary', '실행 요약')}
+              {t("testExecution.executionSummary", "실행 요약")}
             </Typography>
             {!accordionExpanded.executionSummary && execution && (
-              <Box sx={{ display: 'flex', gap: 2, ml: 2, alignItems: 'center' }}>
-                <Chip 
-                  label={execution.status} 
-                  size="small" 
-                  color={execution.status === ExecutionStatus.COMPLETED ? "success" : execution.status === ExecutionStatus.INPROGRESS ? "primary" : "default"}
+              <Box
+                sx={{ display: "flex", gap: 2, ml: 2, alignItems: "center" }}
+              >
+                <Chip
+                  label={execution.status}
+                  size="small"
+                  color={
+                    execution.status === ExecutionStatus.COMPLETED
+                      ? "success"
+                      : execution.status === ExecutionStatus.INPROGRESS
+                        ? "primary"
+                        : "default"
+                  }
                   variant="outlined"
-                  sx={{ height: 20, fontSize: '0.7rem', fontWeight: 'bold' }}
+                  sx={{ height: 20, fontSize: "0.7rem", fontWeight: "bold" }}
                 />
                 <Typography variant="caption" color="text.secondary">
-                  {t('testExecution.progress', '진행률')}: {progress}%
+                  {t("testExecution.progress", "진행률")}: {progress}%
                 </Typography>
                 <Box sx={{ width: 100 }}>
-                  <LinearProgress variant="determinate" value={progress} sx={{ height: 4, borderRadius: 2 }} />
+                  <LinearProgress
+                    variant="determinate"
+                    value={progress}
+                    sx={{ height: 4, borderRadius: 2 }}
+                  />
                 </Box>
               </Box>
             )}
@@ -1039,9 +1224,15 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         </AccordionDetails>
       </Accordion>
       <Box sx={{ my: 3 }}>
-        <Accordion expanded={accordionExpanded.filters} onChange={handleAccordionChange('filters')} sx={{ mb: 2 }}>
+        <Accordion
+          expanded={accordionExpanded.filters}
+          onChange={handleAccordionChange("filters")}
+          sx={{ mb: 2 }}
+        >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1" fontWeight="bold">{t('testExecution.sections.filters', '필터')}</Typography>
+            <Typography variant="subtitle1" fontWeight="bold">
+              {t("testExecution.sections.filters", "필터")}
+            </Typography>
           </AccordionSummary>
           <AccordionDetails>
             <TestExecutionFilterPanel
@@ -1053,35 +1244,56 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           </AccordionDetails>
         </Accordion>
 
-        <Accordion expanded={accordionExpanded.list} onChange={handleAccordionChange('list')}>
+        <Accordion
+          expanded={accordionExpanded.list}
+          onChange={handleAccordionChange("list")}
+        >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1" fontWeight="bold">{t('testExecution.sections.list', '테스트 실행 목록')}</Typography>
+            <Typography variant="subtitle1" fontWeight="bold">
+              {t("testExecution.sections.list", "테스트 실행 목록")}
+            </Typography>
           </AccordionSummary>
           <AccordionDetails>
             {selectedTestCases.size > 0 && (
-              <Box sx={{ my: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                  {t('testExecution.bulk.selectedCount', '{count}개 선택됨').replace('{count}', selectedTestCases.size)}
+              <Box
+                sx={{
+                  my: 2,
+                  p: 2,
+                  bgcolor: "action.hover",
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  {t(
+                    "testExecution.bulk.selectedCount",
+                    "{count}개 선택됨",
+                  ).replace("{count}", selectedTestCases.size)}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: "flex", gap: 1 }}>
                   <Button
                     variant="outlined"
                     size="small"
                     onClick={() => setSelectedTestCases(new Set())}
                   >
-                    {t('testExecution.bulk.actionToolbar.deselect', '선택 해제')}
+                    {t(
+                      "testExecution.bulk.actionToolbar.deselect",
+                      "선택 해제",
+                    )}
                   </Button>
                   <Button
                     variant="contained"
                     size="small"
-                    onClick={() => handleBulkActionClick('PASS')}
+                    onClick={() => handleBulkActionClick("PASS")}
                     sx={{
                       bgcolor: RESULT_COLORS.PASS,
                       border: `2px solid ${RESULT_COLORS.PASS}`,
-                      '&:hover': { bgcolor: alpha(RESULT_COLORS.PASS, 0.8) },
+                      "&:hover": { bgcolor: alpha(RESULT_COLORS.PASS, 0.8) },
                       fontWeight: 600,
-                      textTransform: 'uppercase',
-                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.PASS, 0.3)}`
+                      textTransform: "uppercase",
+                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.PASS, 0.3)}`,
                     }}
                   >
                     PASS
@@ -1089,14 +1301,14 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
                   <Button
                     variant="contained"
                     size="small"
-                    onClick={() => handleBulkActionClick('FAIL')}
+                    onClick={() => handleBulkActionClick("FAIL")}
                     sx={{
                       bgcolor: RESULT_COLORS.FAIL,
                       border: `2px solid ${RESULT_COLORS.FAIL}`,
-                      '&:hover': { bgcolor: alpha(RESULT_COLORS.FAIL, 0.8) },
+                      "&:hover": { bgcolor: alpha(RESULT_COLORS.FAIL, 0.8) },
                       fontWeight: 600,
-                      textTransform: 'uppercase',
-                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.FAIL, 0.3)}`
+                      textTransform: "uppercase",
+                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.FAIL, 0.3)}`,
                     }}
                   >
                     FAIL
@@ -1104,14 +1316,17 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
                   <Button
                     variant="contained"
                     size="small"
-                    onClick={() => handleBulkActionClick('BLOCKED')}
+                    onClick={() => handleBulkActionClick("BLOCKED")}
                     sx={{
                       bgcolor: RESULT_COLORS.BLOCKED,
                       border: `2px solid ${RESULT_COLORS.BLOCKED}`,
-                      '&:hover': { bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.8) },
+                      "&:hover": { bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.8) },
                       fontWeight: 600,
-                      textTransform: 'uppercase',
-                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.BLOCKED, 0.3)}`
+                      textTransform: "uppercase",
+                      boxShadow: `0 2px 8px ${alpha(
+                        RESULT_COLORS.BLOCKED,
+                        0.3,
+                      )}`,
                     }}
                   >
                     BLOCKED
@@ -1119,14 +1334,17 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
                   <Button
                     variant="contained"
                     size="small"
-                    onClick={() => handleBulkActionClick('NOT_RUN')}
+                    onClick={() => handleBulkActionClick("NOT_RUN")}
                     sx={{
                       bgcolor: RESULT_COLORS.NOTRUN,
                       border: `2px solid ${RESULT_COLORS.NOTRUN}`,
-                      '&:hover': { bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.8) },
+                      "&:hover": { bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.8) },
                       fontWeight: 600,
-                      textTransform: 'uppercase',
-                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.NOTRUN, 0.3)}`
+                      textTransform: "uppercase",
+                      boxShadow: `0 2px 8px ${alpha(
+                        RESULT_COLORS.NOTRUN,
+                        0.3,
+                      )}`,
                     }}
                   >
                     NOT RUN
@@ -1138,7 +1356,9 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
             <TestExecutionTable
               visibleData={visibleData}
               resultsMap={resultsMap}
-              totalItems={filteredData.filter(n => n.type === 'testcase').length}
+              totalItems={
+                filteredData.filter((n) => n.type === "testcase").length
+              }
               hasMore={hasMore}
               loadMore={loadMore}
               handleOpenResultForm={handleOpenResultForm}
@@ -1179,19 +1399,28 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           totalCount={testCaseIds.length}
           onOpenFullPage={() => {
             // prop으로 받은 projectId를 우선 사용, 없으면 execution.projectId 또는 testPlan.projectId 사용
-            const projectId = propProjectId || execution?.projectId || execution?.testPlan?.projectId || activeProject?.id;
+            const projectId =
+              propProjectId ||
+              execution?.projectId ||
+              execution?.testPlan?.projectId ||
+              activeProject?.id;
             if (projectId && execution?.id && selectedTestCaseId) {
-              navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`);
+              navigate(
+                `/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`,
+              );
               handleCloseResultForm();
             } else {
-              console.error('전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다', {
-                propProjectId,
-                executionProjectId: execution?.projectId,
-                testPlanProjectId: execution?.testPlan?.projectId,
-                activeProjectId: activeProject?.id,
-                executionId: execution?.id,
-                selectedTestCaseId
-              });
+              console.error(
+                "전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다",
+                {
+                  propProjectId,
+                  executionProjectId: execution?.projectId,
+                  testPlanProjectId: execution?.testPlan?.projectId,
+                  activeProjectId: activeProject?.id,
+                  executionId: execution?.id,
+                  selectedTestCaseId,
+                },
+              );
             }
           }}
         />
@@ -1214,9 +1443,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>
-          {t('testExecution.attachments.title')}
-        </DialogTitle>
+        <DialogTitle>{t("testExecution.attachments.title")}</DialogTitle>
         <DialogContent>
           {selectedTestResultId && (
             <TestResultAttachmentsView
@@ -1226,11 +1453,13 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {
-            setAttachmentDialogOpen(false);
-            setSelectedTestResultId(null);
-          }}>
-            {t('common.close')}
+          <Button
+            onClick={() => {
+              setAttachmentDialogOpen(false);
+              setSelectedTestResultId(null);
+            }}
+          >
+            {t("common.close")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1239,20 +1468,30 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       <BulkResultDialog
         open={isBulkDialogOpen}
         onClose={() => setIsBulkDialogOpen(false)}
-        selectedTestCases={flattenedData.filter(item => selectedTestCases.has(item.id) && item.type !== 'folder')}
+        selectedTestCases={flattenedData.filter(
+          (item) => selectedTestCases.has(item.id) && item.type !== "folder",
+        )}
         availableTags={availableTags}
         onBulkUpdate={handleBulkUpdate}
         processing={bulkProcessing}
         preselectedResult={preselectedResult}
       />
 
-      <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
+      <Snackbar
+        open={!!saveError}
+        autoHideDuration={6000}
+        onClose={() => setSaveError(undefined)}
+      >
         <Alert severity="error" onClose={() => setSaveError(undefined)}>
           {saveError}
         </Alert>
       </Snackbar>
 
-      <Snackbar open={!!successMessage} autoHideDuration={8000} onClose={() => setSuccessMessage(undefined)}>
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={8000}
+        onClose={() => setSuccessMessage(undefined)}
+      >
         <Alert severity="success" onClose={() => setSuccessMessage(undefined)}>
           {successMessage}
         </Alert>
