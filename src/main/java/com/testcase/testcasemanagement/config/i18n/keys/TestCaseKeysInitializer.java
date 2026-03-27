@@ -295,6 +295,16 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.cancel", "testcase", "취소 버튼", "취소");
                 createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.create", "testcase", "생성 버튼", "생성");
 
+                // 행 추가 다이얼로그 (RowCountDialog)
+                createTranslationKeyIfNotExists("testcase.spreadsheet.rowCountDialog.titleAbove", "testcase", "위에 추가 제목", "위에 {count}개 행 추가");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.rowCountDialog.titleBelow", "testcase", "아래에 추가 제목", "아래에 {count}개 행 추가");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.rowCountDialog.titleAppend", "testcase", "행 추가 제목", "{count}개 행 추가");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.rowCountDialog.confirm", "testcase", "확인 버튼", "추가");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.rowCountDialog.description", "testcase", "행 추가 설명", "추가할 행의 개수를 입력하세요 (1-100).");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.rowCountDialog.label", "testcase", "행 개수 레이블", "행 개수");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.rowCountDialog.helper", "testcase", "행 개수 도움말", "기본값은 5개입니다.");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.rowCountDialog.cancel", "testcase", "취소 버튼", "취소");
+
                 // Export 메뉴
                 createTranslationKeyIfNotExists("testcase.spreadsheet.export.csv.title", "testcase", "CSV 내보내기 제목",
                                 "CSV로 내보내기");
