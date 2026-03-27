@@ -167,7 +167,7 @@ const MemoizedTreeItem = React.memo(({
         <Box sx={{ display: "flex", ml: 1 }}>
           <IconButton
             size="small"
-            disabled={idx === 0}
+            disabled={idx === 0 || !siblings}
             onClick={(e) => {
               e.stopPropagation();
               onMoveOrder(node.id, "up");
@@ -177,7 +177,7 @@ const MemoizedTreeItem = React.memo(({
           </IconButton>
           <IconButton
             size="small"
-            disabled={idx === siblings.length - 1}
+            disabled={idx === (siblings?.length || 0) - 1}
             onClick={(e) => {
               e.stopPropagation();
               onMoveOrder(node.id, "down");
@@ -265,14 +265,20 @@ const MemoizedTreeItem = React.memo(({
     prevProps.node === nextProps.node &&
     prevProps.newItemData === nextProps.newItemData &&
     prevProps.depth === nextProps.depth &&
+    prevProps.idx === nextProps.idx &&
+    prevProps.siblings === nextProps.siblings &&
     prevProps.onSelect === nextProps.onSelect &&
     prevProps.handleCancelAdd === nextProps.handleCancelAdd &&
     prevProps.handleConfirmAdd === nextProps.handleConfirmAdd
   );
 });
 
-function sortByDisplayOrder(items) {
-  return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+function sortByDisplayOrder(items, orderMap = {}) {
+  return items.slice().sort((a, b) => {
+    const orderA = orderMap[a.id] ?? a.displayOrder ?? 0;
+    const orderB = orderMap[b.id] ?? b.displayOrder ?? 0;
+    return orderA - orderB;
+  });
 }
 
 const TestCaseTree = ({
@@ -357,14 +363,23 @@ const TestCaseTree = ({
     }
   }, [filteredTestCases, orderEditMode]);
 
-  // O(N) 최적화: childrenMap을 useMemo로 캐싱하여 리트리 및 자식수 계산 시 재사용
-  const childrenMap = useMemo(() => buildChildrenMap(filteredTestCases), [filteredTestCases]);
+  // 순차적으로 정렬된 테스트케이스 (orderMap 반영)
+  const sortedTestCases = useMemo(() => {
+    return filteredTestCases.slice().sort((a, b) => {
+      const orderA = orderMap[a.id] ?? a.displayOrder ?? 0;
+      const orderB = orderMap[b.id] ?? b.displayOrder ?? 0;
+      return orderA - orderB;
+    });
+  }, [filteredTestCases, orderMap]);
 
-  const treeData = useMemo(() => listToTree(filteredTestCases, null), [filteredTestCases]);
+  // O(N) 최적화: childrenMap을 useMemo로 캐싱하여 리트리 및 자식수 계산 시 재사용
+  const childrenMap = useMemo(() => buildChildrenMap(sortedTestCases), [sortedTestCases]);
+
+  const treeData = useMemo(() => listToTree(sortedTestCases, null), [sortedTestCases]);
 
   // 가상화를 위한 평탄화 데이터
   const flatData = useMemo(() => {
-    const flat = flattenTree(treeData, expanded);
+    const flat = flattenTree(treeData, expanded, orderMap);
     if (newItemData) {
       const parentId = newItemData.parentId;
       if (parentId === null) {
@@ -796,7 +811,7 @@ const TestCaseTree = ({
   };
 
   const renderTree = (nodes, parentId = null) => {
-    return sortByDisplayOrder(nodes).map((node, idx, siblings) => {
+    return sortByDisplayOrder(nodes, orderMap).map((node, idx, siblings) => {
       const isSelected = selected === node.id;
       const isChecked = checkedIds.includes(node.id);
       const nodeOrder = orderMap[node.id] ?? node.displayOrder ?? 0;
@@ -897,7 +912,7 @@ const TestCaseTree = ({
 
             return (
               <Box
-                key={node.id}
+                key={`${node.id}-${nodeOrder}`}
                 sx={{
                   position: "absolute",
                   top: 0,
@@ -933,8 +948,10 @@ const TestCaseTree = ({
                   handleConfirmAdd={handleConfirmAdd}
                   handleCancelAdd={handleCancelAdd}
                   t={t}
-                  onSelect={handleSelect}
+                   onSelect={handleSelect}
                   depth={node.depth}
+                  idx={node.idx}
+                  siblings={node.siblings}
                 />
               </Box>
             );
