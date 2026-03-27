@@ -24,19 +24,33 @@ def get_git_diff():
     )
     return result.stdout
 
+def translate_to_korean(text, model="qwen2.5-coder:7b"):
+    # Qwen을 사용하여 영어 리뷰를 한국어로 번역
+    system_instruction = "당신은 전문 번역가입니다. IT 기술 리뷰 내용을 한국어로 자연스럽고 정확하게 번역하세요. 번역 결과만 출력하세요."
+    prompt = f"다음 영문 코드 리뷰를 한국어로 번역해 주세요:\n\n{text}"
+    
+    try:
+        response = requests.post(
+            OLLAMA_URL,
+            json={
+                "model": model,
+                "system": system_instruction,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0.3}
+            },
+            timeout=180
+        )
+        response.raise_for_status()
+        return response.json()["response"]
+    except Exception as e:
+        return f"번역 실패: {str(e)}"
 
 def ask_ollama(diff, model):
+    system_instruction = "당신은 시니어 코드 리뷰어입니다. 변경사항을 분석하여 상세히 리뷰해 주세요."
     prompt = f"""
-너는 {model}의 시각을 가진 시니어 코드 리뷰어다.
-아래 변경사항을 분석하여 다음 기준에 따라 한국어로 상세히 리뷰해라.
-
-1. 버그 가능성 (Bug Vulnerability)
-2. 성능 및 효율성 (Performance & Efficiency)
-3. 보안 (Security)
-4. 코드 스타일 및 모범 사례 (Style & Best Practices)
-
-각 항목별로 문제점을 지적하고, 개선된 코드 예시를 포함해라. 
-답변은 읽기 좋게 구조화하여 작성해라.
+아래의 코드 변경사항을 버그, 성능, 보안, 스타일 관점에서 리뷰해 주세요.
+가능한 경우 구체적인 수정 코드 예시를 포함해 주세요.
 
 {diff}
 """
@@ -46,10 +60,14 @@ def ask_ollama(diff, model):
             OLLAMA_URL,
             json={
                 "model": model,
+                "system": system_instruction,
                 "prompt": prompt,
-                "stream": False
+                "stream": False,
+                "options": {
+                    "temperature": 0.2
+                }
             },
-            timeout=240  # 타임아웃을 넉넉히 설정
+            timeout=240
         )
         response.raise_for_status()
         return response.json()["response"]
@@ -70,7 +88,7 @@ def main():
 
     has_issue = False
     for model in MODELS:
-        # 모델별 색상 구분 (DeepSeek: Blue, Qwen: Green)
+        # 모델별 색상 구분
         color = BLUE if "deepseek" in model else GREEN
         
         print(f"\n{color}{BOLD}▶ [Model: {model.upper()}]{RESET}")
@@ -79,13 +97,20 @@ def main():
         review = ask_ollama(diff, model)
         print(review)
         
-        print(f"{color}{'━' * 60}{RESET}")
+        # DeepSeek인 경우 Qwen으로 번역 서비스 제공
+        if "deepseek" in model:
+            print(f"\n{BOLD}{YELLOW}🌐 [번역본: Qwen2.5-Coder에 의한 한글 번역]{RESET}")
+            print(f"{YELLOW}{'┈' * 60}{RESET}")
+            translation = translate_to_korean(review)
+            print(translation)
         
-        if "버그" in review or "심각한 문제" in review:
+        print(f"\n{color}{'━' * 60}{RESET}")
+        
+        if "버그" in review or "심각한 문제" in review or "bug" in review.lower():
             has_issue = True
 
     if has_issue:
-        print(f"\n{BOLD}{YELLOW}⚠️  일부 모델에서 잠재적인 이슈가 보고되었습니다. 확인 후 진행해 주세요.{RESET}")
+        print(f"\n{BOLD}{YELLOW}⚠️  잠재적인 이슈가 보고되었습니다. 확인 후 진행해 주세요.{RESET}")
         # return 1  # 커밋을 강제로 막으려면 1을 반환하도록 설정 가능
 
     return 0
