@@ -534,6 +534,70 @@ class JiraService {
             throw error;
         }
     }
+
+    /**
+     * JIRA 이슈 유형 조회
+     */
+    async getIssueTypes(projectKey = null) {
+        try {
+            const apiUrl = await getDynamicApiUrl();
+            let url = `${apiUrl}/api/jira-integration/issue-types`;
+            if (projectKey) {
+                url += `?projectKey=${encodeURIComponent(projectKey)}`;
+            }
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/login';
+                throw new Error('인증이 필요합니다');
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('JIRA 이슈 유형 조회 실패:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * JIRA 이슈 생성
+     */
+    async createIssue(issueData) {
+        try {
+            const apiUrl = await getDynamicApiUrl();
+            const url = `${apiUrl}/api/jira-integration/create-issue`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(issueData)
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/login';
+                throw new Error('인증이 필요합니다');
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('JIRA 이슈 생성 실패:', error);
+            throw error;
+        }
+    }
 }
 
 export const jiraService = new JiraService();

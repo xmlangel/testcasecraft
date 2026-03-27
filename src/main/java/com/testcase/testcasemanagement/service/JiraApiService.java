@@ -6,8 +6,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -17,10 +21,9 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -168,6 +171,329 @@ public class JiraApiService {
         }
 
         return projects;
+    }
+
+    /**
+     * JIRA 이슈 생성
+     */
+    public JiraConfigDto.IssueCreateResponseDto createIssue(String serverUrl, String username, String apiToken,
+            JiraConfigDto.IssueCreateRequestDto createRequest) {
+        long startTime = System.currentTimeMillis();
+        boolean success = false;
+
+        try {
+            String normalizedUrl = normalizeServerUrl(serverUrl);
+            String issueUrl = normalizedUrl + "/rest/api/3/issue";
+            String authHeader = createBasicAuthHeader(username, apiToken);
+
+            // 이슈 생성 본문 구성 (Atlassian Document Format)
+            String requestBody = createIssueRequestBody(createRequest);
+
+            HttpHeaders headers = createHeaders(authHeader);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            // 연결 풀에서 최적화된 RestTemplate 획득
+            RestTemplate optimizedRestTemplate = jiraConnectionManager != null
+                    ? jiraConnectionManager.getRestTemplate(normalizedUrl)
+                    : restTemplate;
+
+            ResponseEntity<String> response = optimizedRestTemplate.exchange(
+                    URI.create(issueUrl),
+                    HttpMethod.POST,
+                    entity,
+                    String.class);
+
+            if (response.getStatusCode() == HttpStatus.CREATED) {
+                JsonNode result = objectMapper.readTree(response.getBody());
+                String issueKey = result.path("key").asText();
+                success = true;
+                
+                // JIRA 이슈 상세 주소(Browse URL) 생성
+                String browseUrl = normalizedUrl + "/browse/" + issueKey;
+                log.info("JIRA 이슈 생성 성공: issueKey={}, browseUrl={}", issueKey, browseUrl);
+                
+                return JiraConfigDto.IssueCreateResponseDto.builder()
+                        .success(true)
+                        .issueKey(issueKey)
+                        .issueId(result.path("id").asText())
+                        .self(result.path("self").asText())
+                        .browseUrl(browseUrl)
+                        .build();
+            }
+
+            return JiraConfigDto.IssueCreateResponseDto.builder()
+                    .success(false)
+                    .errorMessage("이슈 생성 실패: " + response.getStatusCode())
+                    .build();
+
+        } catch (Exception e) {
+            log.error("JIRA 이슈 생성 실패", e);
+            jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 이슈 생성 오류", e));
+            return JiraConfigDto.IssueCreateResponseDto.builder()
+                    .success(false)
+                    .errorMessage("이슈 생성 중 오류 발생: " + e.getMessage())
+                    .build();
+        } finally {
+            final boolean finalSuccess = success;
+            jiraMonitoringService.ifPresent(service -> {
+                long responseTime = System.currentTimeMillis() - startTime;
+                service.recordApiCall(finalSuccess, responseTime);
+            });
+        }
+    }
+
+    /**
+     * 프로젝트별 사용 가능한 이슈 유형 조회
+     */
+    public List<JiraConfigDto.IssueTypeDto> getProjectIssueTypes(String serverUrl, String username, String apiToken, String projectKey) {
+        List<JiraConfigDto.IssueTypeDto> issueTypes = new ArrayList<>();
+        try {
+            String normalizedUrl = normalizeServerUrl(serverUrl);
+            // 프로젝트 정보를 가져오면 이슈 유형 목록이 포함됨
+            String projectUrl = normalizedUrl + "/rest/api/3/project/" + projectKey;
+            String authHeader = createBasicAuthHeader(username, apiToken);
+
+            HttpHeaders headers = createHeaders(authHeader);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            RestTemplate optimizedRestTemplate = jiraConnectionManager != null
+                    ? jiraConnectionManager.getRestTemplate(normalizedUrl)
+                    : restTemplate;
+
+            ResponseEntity<String> response = optimizedRestTemplate.exchange(
+                    URI.create(projectUrl),
+                    HttpMethod.GET,
+                    entity,
+                    String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode projectData = objectMapper.readTree(response.getBody());
+                JsonNode issueTypesNode = projectData.path("issueTypes");
+
+                if (issueTypesNode.isArray()) {
+                    for (JsonNode type : issueTypesNode) {
+                        issueTypes.add(JiraConfigDto.IssueTypeDto.builder()
+                                .id(type.path("id").asText())
+                                .name(type.path("name").asText())
+                                .description(type.path("description").asText())
+                                .iconUrl(type.path("iconUrl").asText())
+                                .subtask(type.path("subtask").asBoolean())
+                                .build());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("JIRA 이슈 유형 조회 실패: projectKey={}", projectKey, e);
+        }
+        return issueTypes;
+    }
+
+    private String createIssueRequestBody(JiraConfigDto.IssueCreateRequestDto request) throws Exception {
+        // ADF 형식으로 설명 구성
+        String descriptionJson = createAdfDescription(request.getDescription());
+        
+        // 이슈 유형 처리
+        String issueTypeNode;
+        if (request.getIssueTypeId() != null && !request.getIssueTypeId().isEmpty()) {
+            issueTypeNode = String.format("{\"id\": \"%s\"}", request.getIssueTypeId().replace("\"", "\\\""));
+        } else {
+            String typeName = request.getIssueTypeName() != null ? request.getIssueTypeName() : "Bug";
+            issueTypeNode = String.format("{\"name\": \"%s\"}", typeName.replace("\"", "\\\""));
+        }
+
+        return String.format("""
+            {
+                "fields": {
+                    "project": {
+                        "key": "%s"
+                    },
+                    "summary": "%s",
+                    "description": %s,
+                    "issuetype": %s
+                }
+            }
+            """,
+            request.getProjectKey().replace("\"", "\\\""),
+            request.getSummary().replace("\"", "\\\""),
+            descriptionJson,
+            issueTypeNode
+        );
+    }
+
+    private String createAdfDescription(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return "null";
+        }
+
+        try {
+            // ObjectMapper를 사용하여 구조적으로 빌드 (보안 및 안정성 향상)
+            Map<String, Object> adf = new HashMap<>();
+            adf.put("version", 1);
+            adf.put("type", "doc");
+
+            List<Map<String, Object>> content = new ArrayList<>();
+            String[] lines = text.split("\n");
+
+            for (String line : lines) {
+                line = line.replace("\r", "");
+                
+                // 1. 구분선 (Horizontal Rule)
+                if (line.trim().equals("---") || line.trim().equals("***")) {
+                    content.add(Map.of("type", "rule"));
+                    continue;
+                }
+
+                // 2. 헤더 (Headers)
+                Matcher headerMatcher = Pattern.compile("^(#{1,6})\\s+(.+)$").matcher(line.trim());
+                if (headerMatcher.find()) {
+                    int level = headerMatcher.group(1).length();
+                    String headerText = headerMatcher.group(2);
+                    
+                    Map<String, Object> heading = new HashMap<>();
+                    heading.put("type", "heading");
+                    heading.put("attrs", Map.of("level", level));
+                    heading.put("content", parseInlineContent(headerText));
+                    content.add(heading);
+                    continue;
+                }
+
+                // 3. 불렛 리스트 (Bullet List - 간단히 구현)
+                Matcher listMatcher = Pattern.compile("^([\\-*])\\s+(.+)$").matcher(line.trim());
+                if (listMatcher.find()) {
+                    String itemText = listMatcher.group(2);
+                    
+                    Map<String, Object> listItem = new HashMap<>();
+                    listItem.put("type", "listItem");
+                    listItem.put("content", List.of(Map.of(
+                        "type", "paragraph",
+                        "content", parseInlineContent(itemText)
+                    )));
+
+                    // 이전 노드가 bulletList이면 거기에 추가, 아니면 새로 생성
+                    if (!content.isEmpty() && "bulletList".equals(content.get(content.size() - 1).get("type"))) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> items = (List<Object>) content.get(content.size() - 1).get("content");
+                        items.add(listItem);
+                    } else {
+                        Map<String, Object> bulletList = new HashMap<>();
+                        bulletList.put("type", "bulletList");
+                        bulletList.put("content", new ArrayList<>(List.of(listItem)));
+                        content.add(bulletList);
+                    }
+                    continue;
+                }
+
+                // 4. 일반 단락 (Paragraph)
+                if (line.trim().isEmpty()) {
+                    content.add(Map.of("type", "paragraph"));
+                } else {
+                    Map<String, Object> paragraph = new HashMap<>();
+                    paragraph.put("type", "paragraph");
+                    paragraph.put("content", parseInlineContent(line));
+                    content.add(paragraph);
+                }
+            }
+
+            adf.put("content", content);
+            return objectMapper.writeValueAsString(adf);
+        } catch (Exception e) {
+            log.error("ADF 변환 실패, 일반 텍스트로 폴백", e);
+            return String.format("{\"version\": 1, \"type\": \"doc\", \"content\": [{\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"%s\"}]}]}", 
+                text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n"));
+        }
+    }
+
+    /**
+     * 인라인 마크다운(굵게) 처리
+     */
+    private List<Map<String, Object>> parseInlineContent(String text) {
+        List<Map<String, Object>> content = new ArrayList<>();
+        
+        // **bold** 또는 __bold__ 처리 (매우 단순화된 구현)
+        Pattern boldPattern = Pattern.compile("(\\*\\*|__)(.*?)\\1");
+        Matcher matcher = boldPattern.matcher(text);
+        
+        int lastEnd = 0;
+        while (matcher.find()) {
+            // 이전 일반 텍스트 추가
+            if (matcher.start() > lastEnd) {
+                content.add(Map.of(
+                    "type", "text", 
+                    "text", text.substring(lastEnd, matcher.start())
+                ));
+            }
+            
+            // 굵은 텍스트 추가
+            Map<String, Object> boldText = new HashMap<>();
+            boldText.put("type", "text");
+            boldText.put("text", matcher.group(2));
+            boldText.put("marks", List.of(Map.of("type", "strong")));
+            content.add(boldText);
+            
+            lastEnd = matcher.end();
+        }
+        
+        // 남은 텍스트 추가
+        if (lastEnd < text.length()) {
+            content.add(Map.of(
+                "type", "text", 
+                "text", text.substring(lastEnd)
+            ));
+        }
+        
+        if (content.isEmpty() && !text.isEmpty()) {
+            content.add(Map.of("type", "text", "text", text));
+        }
+        
+        return content;
+    }
+
+    /**
+     * JIRA 이슈에 파일 업로드
+     */
+    public boolean uploadAttachment(String serverUrl, String username, String apiToken,
+            String issueKey, String fileName, byte[] fileData, String mimeType) {
+        try {
+            String normalizedUrl = normalizeServerUrl(serverUrl);
+            String uploadUrl = normalizedUrl + "/rest/api/3/issue/" + issueKey + "/attachments";
+            String authHeader = createBasicAuthHeader(username, apiToken);
+
+            HttpHeaders headers = createHeaders(authHeader);
+            // JIRA 첨부파일 API 필수 헤더
+            headers.set("X-Atlassian-Token", "no-check");
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            
+            // ByteArrayResource를 상속받아 파일명을 제공하는 익명 클래스 사용
+            Resource resource = new ByteArrayResource(fileData) {
+                @Override
+                public String getFilename() {
+                    return fileName;
+                }
+            };
+            
+            body.add("file", resource);
+
+            HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            RestTemplate optimizedRestTemplate = jiraConnectionManager != null
+                    ? jiraConnectionManager.getRestTemplate(normalizedUrl)
+                    : restTemplate;
+
+            ResponseEntity<String> response = optimizedRestTemplate.exchange(
+                    URI.create(uploadUrl),
+                    HttpMethod.POST,
+                    entity,
+                    String.class);
+
+            return response.getStatusCode() == HttpStatus.OK;
+
+        } catch (Exception e) {
+            log.error("JIRA 이슈 첨부파일 업로드 실패: issueKey={}, fileName={}", issueKey, fileName, e);
+            return false;
+        }
     }
 
     /**
@@ -524,38 +850,13 @@ public class JiraApiService {
     private String createCommentBody(String comment) {
         try {
             // Atlassian Document Format으로 코멘트 생성
-            String commentJson = String.format("""
-                    {
-                        "body": {
-                            "version": 1,
-                            "type": "doc",
-                            "content": [
-                                {
-                                    "type": "paragraph",
-                                    "content": [
-                                        {
-                                            "type": "text",
-                                            "text": "%s"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "paragraph",
-                                    "content": [
-                                        {
-                                            "type": "text",
-                                            "text": "\\n\\n자동 생성 시각: %s"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                    """,
-                    comment.replace("\"", "\\\"").replace("\n", "\\n"),
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-
-            return commentJson;
+            // createAdfDescription에서 생성하는 'doc' 전체를 'body' 하위에 넣어야 함
+            String adfJson = createAdfDescription(comment + "\n\n자동 생성 시각: " + 
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            
+            // createAdfDescription은 {"version":1, "type":"doc", "content": [...]} 형태를 반환함
+            // 코멘트 API는 "body": { ... } 형태를 요구함
+            return String.format("{\"body\": %s}", adfJson);
 
         } catch (Exception e) {
             log.error("코멘트 본문 생성 실패", e);

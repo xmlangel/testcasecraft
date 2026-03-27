@@ -39,9 +39,9 @@ public class TestResultDto {
     private String testExecutionName;
     
     // ICT-178: JIRA 연동 필드 추가
-    @Size(max = 100, message = "JIRA 이슈 키는 100자 이내로 입력해주세요")
-    @Pattern(regexp = "^$|^[A-Z]+-\\d+$", 
-            message = "JIRA 이슈 키는 'PROJECT-123' 형식이어야 합니다")
+    @Size(max = 500, message = "JIRA 이슈 키는 500자 이내로 입력해주세요")
+    @Pattern(regexp = "^$|^[A-Z]+-\\d+(,[A-Z]+-\\d+)*$", 
+            message = "JIRA 이슈 키는 'PROJECT-123' 또는 'PRJ-1,PRJ-2' 형식이어야 합니다")
     private String jiraIssueKey;
 
     private int attachmentCount;

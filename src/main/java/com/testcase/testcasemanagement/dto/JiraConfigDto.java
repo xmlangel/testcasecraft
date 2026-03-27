@@ -90,12 +90,82 @@ public class JiraConfigDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class IssueExistsDto {
+        @JsonProperty("exists")
         private Boolean exists;
+        
+        @JsonProperty("issueKey")
         private String issueKey;
+        
+        @JsonProperty("summary")
         private String summary;
+        
+        @JsonProperty("status")
         private String status;
+        
+        @JsonProperty("priority")
         private String priority;
+        
+        @JsonProperty("issueType")
         private String issueType;
+        
+        @JsonProperty("errorMessage")
         private String errorMessage;
+    }
+
+    // JIRA 이슈 생성 요청 DTO
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class IssueCreateRequestDto {
+        private String projectKey;
+        private String summary;
+        private String description;
+        private String issueTypeId;
+        private String issueTypeName; // ID 대신 이름으로도 생성 가능하게 지원
+        private String testResultId;   // 첨부파일 처리를 위한 테스트 결과 ID (선택사항)
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class IssueCreateResponseDto {
+        @JsonProperty("success")
+        private Boolean success;
+        
+        @JsonProperty("issueKey")
+        private String issueKey;
+        
+        @JsonProperty("issueId")
+        private String issueId;
+        
+        @JsonProperty("self")
+        private String self;
+        
+        @JsonProperty("browseUrl")
+        private String browseUrl;
+        
+        @JsonProperty("errorMessage")
+        private String errorMessage;
+        
+        @JsonProperty("attachmentCount")
+        private Integer attachmentCount;
+        
+        @JsonProperty("attachmentErrorMessage")
+        private String attachmentErrorMessage;
+    }
+
+    // JIRA 이슈 유형 DTO
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class IssueTypeDto {
+        private String id;
+        private String name;
+        private String description;
+        private String iconUrl;
+        private Boolean subtask;
     }
 }

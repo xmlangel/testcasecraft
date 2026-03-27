@@ -43,11 +43,30 @@ const BulkResultDialog = ({
 
     const handleJiraPaste = (e) => {
         const pastedText = e.clipboardData.getData('text');
-        const extractedKey = jiraService.extractIssueKeyFromUrl(pastedText);
-
-        if (extractedKey) {
+        
+        // Check if it's a URL first
+        const extractedFromUrl = jiraService.extractIssueKeyFromUrl(pastedText);
+        if (extractedFromUrl) {
             e.preventDefault();
-            setCommonJiraId(extractedKey);
+            // Append if there's already something, otherwise set
+            setCommonJiraId(prev => {
+                if (!prev) return extractedFromUrl;
+                const existingKeys = prev.split(/[, \s]+/).filter(k => k.trim() !== '');
+                if (existingKeys.includes(extractedFromUrl)) return prev;
+                return [...existingKeys, extractedFromUrl].join(',');
+            });
+            return;
+        }
+
+        // If not a URL, extract all keys from text
+        const extractedKeys = jiraService.extractIssueKeys(pastedText);
+        if (extractedKeys.length > 0) {
+            e.preventDefault();
+            setCommonJiraId(prev => {
+                const existingKeys = prev ? prev.split(/[, \s]+/).filter(k => k.trim() !== '') : [];
+                const mergedKeys = [...new Set([...existingKeys, ...extractedKeys])];
+                return mergedKeys.join(',');
+            });
         }
     };
 
@@ -206,7 +225,8 @@ const BulkResultDialog = ({
                         onChange={(e) => setCommonJiraId(e.target.value.toUpperCase())}
                         onPaste={handleJiraPaste}
                         fullWidth
-                        placeholder="PROJ-123"
+                        placeholder="PROJ-123, PROJ-124"
+                        helperText={t('testExecution.bulk.dialog.jiraHelp', '여러 개의 이슈 키는 콤마(,)로 구분하여 입력하세요.')}
                         disabled={processing}
                         inputProps={{ 'data-testid': 'bulk-jira-input' }}
                     />

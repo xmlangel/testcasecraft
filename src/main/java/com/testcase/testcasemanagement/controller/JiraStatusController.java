@@ -96,7 +96,7 @@ public class JiraStatusController {
             JiraStatusSummaryDto detail = jiraStatusAggregationService.getJiraStatusDetail(userId, jiraId);
 
             if (detail == null) {
-                log.warn("JIRA 이슈를 찾을 수 없음: {}", jiraId);
+                log.info("로컬 통합 정보에서 JIRA 이슈를 찾을 수 없음 (정상: 신규 이슈): {}", jiraId);
                 return ResponseEntity.notFound().build();
             }
 
