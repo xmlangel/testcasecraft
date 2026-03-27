@@ -83,7 +83,8 @@ const TestCaseSpreadsheet = ({
   onRefresh,
   readOnly = false,
   projectId,
-  isLoading: externalLoading = false
+  isLoading: externalLoading = false,
+  activeFolderName = ''
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
@@ -318,21 +319,21 @@ const TestCaseSpreadsheet = ({
 
     setSpreadsheetData(prevData => {
       const baseFields = [
-        { value: '' },
-        { value: '', readOnly: true },
-        { value: '', readOnly: true },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
-        { value: '' },
+        { value: '' }, // 0: ID
+        { value: '', readOnly: true }, // 1: 작성자
+        { value: '', readOnly: true }, // 2: 수정자
+        { value: '' }, // 3: 순서
+        { value: '' }, // 4: 타입
+        { value: activeFolderName || '' }, // 5: 상위폴더 (ICT-UserReq: 자동 입력)
+        { value: '' }, // 6: 이름
+        { value: '' }, // 7: 설명
+        { value: '' }, // 8: 사전조건
+        { value: '' }, // 9: 사후조건
+        { value: '' }, // 10: 예상결과
+        { value: '' }, // 11: 우선순위
+        { value: '' }, // 12: 수행유형
+        { value: '' }, // 13: 테스트기법
+        { value: '' }, // 14: 태그
       ];
 
       const stepFields = [];
@@ -510,8 +511,8 @@ const TestCaseSpreadsheet = ({
         { value: '', readOnly: true },
         { value: '', readOnly: true },
         { value: '', readOnly: true }, // displayOrder - readOnly (ICT-414)
-        { value: '' },
-        { value: '' },
+        { value: '' }, // 4: 타입
+        { value: activeFolderName || '' }, // 5: 상위폴더 (ICT-UserReq: 자동 입력)
         { value: '' },
         { value: '' },
         { value: '' },
@@ -571,8 +572,8 @@ const TestCaseSpreadsheet = ({
         { value: '', readOnly: true },
         { value: '', readOnly: true },
         { value: '', readOnly: true }, // displayOrder - readOnly (ICT-414)
-        { value: '' },
-        { value: '' },
+        { value: '' }, // 4: 타입
+        { value: activeFolderName || '' }, // 5: 상위폴더 (ICT-UserReq: 자동 입력)
         { value: '' },
         { value: '' },
         { value: '' },

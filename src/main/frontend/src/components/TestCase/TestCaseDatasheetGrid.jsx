@@ -77,7 +77,8 @@ const TestCaseDatasheetGrid = ({
   onSave,
   onRefresh,
   readOnly = false,
-  projectId
+  projectId,
+  activeFolderName = ''
 }) => {
   const { t } = useI18n();
   const apiRef = useGridApiRef();
@@ -278,7 +279,7 @@ const TestCaseDatasheetGrid = ({
       displayId: '',
       displayOrder: gridRows.length > 0 ? Math.max(...gridRows.map(r => r.displayOrder || 0)) + 10 : 10,
       type: 'testcase',
-      parentFolder: '',
+      parentFolder: activeFolderName || '',
       name: '',
       description: '',
       preCondition: '',
