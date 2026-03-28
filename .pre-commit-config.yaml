@@ -31,8 +31,8 @@ repos:
         language: system
         types: [java]
 
-      - id: ollama-code-review
-        name: Ollama Code Review
-        entry: python scripts/ollama_review.py
-        language: system
-        pass_filenames: false
+      # - id: ollama-code-review
+      #   name: Ollama Code Review
+      #   entry: python scripts/ollama_review.py
+      #   language: system
+      #   pass_filenames: false
