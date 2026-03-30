@@ -19,9 +19,12 @@ test.describe("로그아웃 회귀 테스트", () => {
     // 1. 로그인
     await loginPage.goto();
     await loginPage.clearStorage();
-    await loginPage.waitForBackend();
-    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await projectListPage.waitForLoad();
+    await loginPage.performLoginAndNavigate({
+      username: ADMIN_USERNAME,
+      password: ADMIN_PASSWORD,
+      loginPage,
+      projectListPage,
+    });
     await projectListPage.screen("06-redirected-to-projects");
 
     // 2. 로그아웃

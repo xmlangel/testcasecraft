@@ -18,14 +18,12 @@ test.describe("테스트실행", () => {
   test.setTimeout(120000); // 전체 테스트 타임아웃 증가
 
   test.beforeEach(async ({ loginPage, projectListPage }) => {
-    await loginPage.goto();
-    await loginPage.clearStorage();
-    await loginPage.waitForBackend();
-
-    // 백엔드 준비 후 다시 로드 (안정성 확보)
-    await loginPage.goto();
-    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await projectListPage.waitForLoad();
+    await loginPage.performLoginAndNavigate({
+      username: ADMIN_USERNAME,
+      password: ADMIN_PASSWORD,
+      loginPage,
+      projectListPage,
+    });
   });
 
   test("테스트 실행에서 첨부파일이 정상적으로 표시되는지 확인한다", async ({

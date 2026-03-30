@@ -18,13 +18,12 @@ test.describe("로그인 회귀 테스트", () => {
   }) => {
     await loginPage.goto();
     await loginPage.clearStorage();
-    await loginPage.screen("01-initial-page");
-
-    await loginPage.waitForBackend();
-    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await loginPage.screen("04-after-login-click");
-
-    await projectListPage.waitForLoad();
+    await loginPage.performLoginAndNavigate({
+      username: ADMIN_USERNAME,
+      password: ADMIN_PASSWORD,
+      loginPage,
+      projectListPage,
+    });
     await projectListPage.screen("05-redirected-to-projects");
 
     await expect(loginPage.loginTitle).not.toBeVisible();

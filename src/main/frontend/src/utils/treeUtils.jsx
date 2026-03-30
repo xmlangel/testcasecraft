@@ -139,9 +139,9 @@ export const getAllChildIds = (items, parentId) => {
 
     const children = childrenMap.get(current);
     if (children) {
-      children.forEach((childId) => {
-        result.push(childId);
-        stack.push(childId);
+      children.forEach((childNode) => {
+        result.push(childNode.id);
+        stack.push(childNode.id);
       });
     }
   }

@@ -559,23 +559,49 @@ const TestCaseTree = ({
     });
   }, []);
 
+  const updateCheckedState = useCallback(
+    (nodeId, isChecked) => {
+      // O(N) 최적화된 getAllChildIds 사용 (treeUtils.jsx에서 버그 수정 완료)
+      const childIds = getAllChildIds(filteredTestCases, nodeId);
+
+      let newCheckedIds;
+      if (isChecked) {
+        // 자신과 모든 하위 항목(폴더 포함)을 추가하여 시각적 체크 표시 확보
+        const idsToAdd = [nodeId, ...childIds];
+        newCheckedIds = Array.from(new Set([...checkedIds, ...idsToAdd]));
+      } else {
+        // 자신과 모든 하위 항목(폴더 포함)을 제거
+        const idsToRemove = new Set([nodeId, ...childIds]);
+        newCheckedIds = checkedIds.filter((id) => !idsToRemove.has(id));
+      }
+
+      setCheckedIds(newCheckedIds);
+      if (selectable && onSelectionChange) {
+        onSelectionChange(newCheckedIds);
+      }
+      return newCheckedIds;
+    },
+    [filteredTestCases, checkedIds, selectable, onSelectionChange],
+  );
+
   const handleSelect = useCallback(
     (event, nodeId) => {
       // 즉각적인 UI 피드백 (하이라이트 등)
       setSelected(nodeId);
+
+      if (selectable) {
+        // 이미 체크되어 있는지 확인 (현재 로컬 상태 기준)
+        const isCurrentlyChecked = checkedIds.includes(nodeId);
+        // 토글 수행 및 로컬 상태 즉시 업데이트
+        updateCheckedState(nodeId, !isCurrentlyChecked);
+      }
 
       // 무거운 후속 작업은 Transition으로 분리하여 INP 개선
       startTransition(() => {
         const selectedTestCase = filteredTestCases.find(
           (tc) => tc.id === nodeId,
         );
-        if (selectable) {
-          if (selectedIds.includes(nodeId)) {
-            onSelectionChange(selectedIds.filter((id) => id !== nodeId));
-          } else {
-            onSelectionChange([...selectedIds, nodeId]);
-          }
-        } else {
+        if (!selectable) {
           setActiveTestCase(nodeId);
         }
 
@@ -591,8 +617,8 @@ const TestCaseTree = ({
     [
       filteredTestCases,
       selectable,
-      selectedIds,
-      onSelectionChange,
+      checkedIds,
+      updateCheckedState,
       setActiveTestCase,
       onSelectTestCase,
     ],
@@ -782,36 +808,9 @@ const TestCaseTree = ({
 
   const handleCheck = useCallback(
     (event, nodeId) => {
-      const isChecked = event.target.checked;
-
-      // O(N) 최적화된 getAllChildIds 사용
-      const childIds = getAllChildIds(filteredTestCases, nodeId);
-
-      // 필터링 최적화: Map을 사용하여 한 번만 순회
-      const testCaseMap = new Map();
-      filteredTestCases.forEach((tc) => {
-        if (tc.type === "testcase") testCaseMap.set(tc.id, tc);
-      });
-
-      const testcaseChildIds = childIds.filter((id) => testCaseMap.has(id));
-      const currentNode = testCaseMap.get(nodeId);
-      const isCurrentTestCase = !!currentNode;
-
-      let newCheckedIds;
-      if (isChecked) {
-        const idsToAdd = isCurrentTestCase
-          ? [nodeId, ...testcaseChildIds]
-          : testcaseChildIds;
-        newCheckedIds = Array.from(new Set([...checkedIds, ...idsToAdd]));
-      } else {
-        const idsToRemove = new Set([nodeId, ...childIds]);
-        newCheckedIds = checkedIds.filter((id) => !idsToRemove.has(id));
-      }
-
-      setCheckedIds(newCheckedIds);
-      if (selectable && onSelectionChange) onSelectionChange(newCheckedIds);
+      updateCheckedState(nodeId, event.target.checked);
     },
-    [filteredTestCases, checkedIds, selectable, onSelectionChange],
+    [updateCheckedState],
   );
 
   const isNodeChecked = (nodeId) => checkedIds.includes(nodeId);
