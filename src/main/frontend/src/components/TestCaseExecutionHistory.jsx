@@ -15,8 +15,10 @@ import {
   Alert,
 } from "@mui/material";
 import { useI18n } from "../context/I18nContext";
+import { useAppContext } from "../context/AppContext";
 
 const TestCaseExecutionHistory = ({ testCaseId }) => {
+  const { api } = useAppContext();
   const { t } = useI18n();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,13 +33,8 @@ const TestCaseExecutionHistory = ({ testCaseId }) => {
 
       setLoading(true);
       try {
-        const response = await fetch(
+        const response = await api(
           `/api/test-executions/by-testcase/${testCaseId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          },
         );
 
         if (!response.ok) {
