@@ -18,6 +18,8 @@ import {
   AccordionDetails,
   FormControlLabel,
   Checkbox,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import {
   Save as SaveVersionIcon,
@@ -47,6 +49,23 @@ import MarkdownFieldEditor from "./TestCase/MarkdownFieldEditor.jsx";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import VersionDialog from "./TestCase/VersionDialog.jsx";
 import FolderForm from "./TestCase/FolderForm.jsx";
+import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
+
+const TabPanel = (props) => {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`testcase-tabpanel-${index}`}
+      aria-labelledby={`testcase-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 0, pt: 2 }}>{children}</Box>}
+    </div>
+  );
+};
 
 const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const {
@@ -83,6 +102,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [availableTags, setAvailableTags] = useState([]);
   const [isStepMarkdownMode, setIsStepMarkdownMode] = useState(true);
   const [linkedDocuments, setLinkedDocuments] = useState([]);
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
 
   // Accordion 상태 관리 (localStorage 연동)
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
@@ -1034,20 +1058,46 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </Alert>
         )}
 
-        <Accordion
-          expanded={accordionExpanded.basicInfo}
-          onChange={handleAccordionChange("basicInfo")}
-          sx={{ mb: 2 }}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            data-testid="accordion-basic-info"
-          >
-            <Typography variant="subtitle1" fontWeight="bold">
-              {t("testcase.sections.basicInfo", "기본 정보")}
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
+        <Box sx={{ width: "100%", mt: 2 }}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              aria-label="testcase detail tabs"
+              variant="scrollable"
+              scrollButtons="auto"
+            >
+              <Tab
+                label={t("testcase.tabs.details", "상세 정보")}
+                id="testcase-tab-0"
+                aria-controls="testcase-tabpanel-0"
+              />
+              {testCaseId && (
+                <Tab
+                  label={t("testcase.tabs.attachments", "첨부 파일")}
+                  id="testcase-tab-1"
+                  aria-controls="testcase-tabpanel-1"
+                />
+              )}
+              {testCaseId && !isFolder && (
+                <Tab
+                  label={t("testcase.tabs.execution", "실행 이력")}
+                  id="testcase-tab-2"
+                  aria-controls="testcase-tabpanel-2"
+                />
+              )}
+              {testCaseId && !isFolder && (
+                <Tab
+                  label={t("testcase.tabs.history", "기록")}
+                  id="testcase-tab-3"
+                  aria-controls="testcase-tabpanel-3"
+                />
+              )}
+            </Tabs>
+          </Box>
+
+          {/* 상세 정보 탭 */}
+          <TabPanel value={tabValue} index={0}>
             <TestCaseFormMetadata
               testCase={testCase}
               projectId={projectId}
@@ -1083,23 +1133,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onLinkedDocumentsChange={setLinkedDocuments}
               onMarkdownPaste={handleMarkdownPaste}
             />
-          </AccordionDetails>
-        </Accordion>
 
-        <Accordion
-          expanded={accordionExpanded.steps}
-          onChange={handleAccordionChange("steps")}
-          sx={{ mb: 2 }}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            data-testid="accordion-steps"
-          >
-            <Typography variant="subtitle1" fontWeight="bold">
-              {t("testcase.sections.steps", "테스트 단계")}
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
+            <Box sx={{ mt: 4, mb: 1 }}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t("testcase.sections.steps", "테스트 단계")}
+              </Typography>
+            </Box>
             <TestStepsTable
               steps={testCase.steps}
               errors={errors}
@@ -1112,23 +1151,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onStepMarkdownChange={handleStepMarkdownChange}
               onMarkdownPaste={handleMarkdownPaste}
             />
-          </AccordionDetails>
-        </Accordion>
 
-        <Accordion
-          expanded={accordionExpanded.expectedResults}
-          onChange={handleAccordionChange("expectedResults")}
-          sx={{ mb: 2 }}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            data-testid="accordion-expected-results"
-          >
-            <Typography variant="subtitle1" fontWeight="bold">
-              {t("testcase.sections.expectedResults", "기대 결과")}
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
+            <Box sx={{ mt: 4, mb: 1 }}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t("testcase.sections.expectedResults", "기대 결과")}
+              </Typography>
+            </Box>
             <MarkdownFieldEditor
               label={t("testcase.form.expectedResults", "Expected Results")}
               value={testCase.expectedResults || ""}
@@ -1151,24 +1179,38 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               }
               testid="testcase-overall-expected-input"
             />
-          </AccordionDetails>
-        </Accordion>
+          </TabPanel>
 
-        {testCaseId && (
-          <Accordion
-            expanded={accordionExpanded.attachments}
-            onChange={handleAccordionChange("attachments")}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                {t("testcase.sections.attachments", "첨부 파일")}
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
+          {/* 첨부 파일 탭 */}
+          {testCaseId && (
+            <TabPanel value={tabValue} index={1}>
               <TestCaseAttachments testCaseId={testCaseId} />
-            </AccordionDetails>
-          </Accordion>
-        )}
+            </TabPanel>
+          )}
+
+          {/* 실행 이력 탭 */}
+          {testCaseId && !isFolder && (
+            <TabPanel value={tabValue} index={2}>
+              <TestCaseExecutionHistory testCaseId={testCaseId} />
+            </TabPanel>
+          )}
+
+          {/* 기록 탭 */}
+          {testCaseId && !isFolder && (
+            <TabPanel value={tabValue} index={3}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                {t("testcase.tree.action.versionHistory", "버전 관리")}
+              </Typography>
+              <TestCaseVersionHistory
+                testCaseId={testCaseId}
+                open={true}
+                inline={true}
+                onClose={() => {}}
+                onRestore={handleVersionRestore}
+              />
+            </TabPanel>
+          )}
+        </Box>
       </CardContent>
 
       <CardActions sx={{ justifyContent: "flex-end", p: 2 }}>

@@ -70,6 +70,24 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.sections.attachments", "testcase", "첨부 파일 섹션", "첨부 파일");
 
+    // 탭 레이블
+    createTranslationKeyIfNotExists("testcase.tabs.details", "testcase", "상세 정보 탭", "상세 정보");
+    createTranslationKeyIfNotExists("testcase.tabs.attachments", "testcase", "첨부 파일 탭", "첨부 파일");
+    createTranslationKeyIfNotExists("testcase.tabs.execution", "testcase", "실행 이력 탭", "실행 이력");
+    createTranslationKeyIfNotExists("testcase.tabs.history", "testcase", "기록 탭", "기록");
+
+    // 실행 이력 테이블
+    createTranslationKeyIfNotExists(
+        "testcase.execution.column.date", "testcase", "실행일시 컬럼", "실행일시");
+    createTranslationKeyIfNotExists(
+        "testcase.execution.column.executionName", "testcase", "테스트 실행 컬럼", "테스트 실행");
+    createTranslationKeyIfNotExists("testcase.execution.column.result", "testcase", "결과 컬럼", "결과");
+    createTranslationKeyIfNotExists(
+        "testcase.execution.column.executor", "testcase", "실행자 컬럼", "실행자");
+    createTranslationKeyIfNotExists("testcase.execution.column.notes", "testcase", "노트 컬럼", "노트");
+    createTranslationKeyIfNotExists(
+        "testcase.execution.noData", "testcase", "실행 이력 없음 메시지", "실행 이력이 없습니다.");
+
     createTranslationKeyIfNotExists("testcase.form.order", "testcase", "테스트케이스 순서 필드", "순서");
     createTranslationKeyIfNotExists(
         "testcase.form.preCondition", "testcase", "테스트 사전 조건 필드", "사전 조건");

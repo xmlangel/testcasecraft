@@ -33,6 +33,23 @@ public class KoreanTestCaseAndAutomationTranslations {
         "testcase.sections.expectedResults", languageCode, "기대 결과", createdBy);
     createTranslationIfNotExists("testcase.sections.attachments", languageCode, "첨부 파일", createdBy);
 
+    // 탭 레이블
+    createTranslationIfNotExists("testcase.tabs.details", languageCode, "상세 정보", createdBy);
+    createTranslationIfNotExists("testcase.tabs.attachments", languageCode, "첨부 파일", createdBy);
+    createTranslationIfNotExists("testcase.tabs.execution", languageCode, "실행 이력", createdBy);
+    createTranslationIfNotExists("testcase.tabs.history", languageCode, "기록", createdBy);
+
+    // 실행 이력 테이블
+    createTranslationIfNotExists("testcase.execution.column.date", languageCode, "실행일시", createdBy);
+    createTranslationIfNotExists(
+        "testcase.execution.column.executionName", languageCode, "테스트 실행", createdBy);
+    createTranslationIfNotExists("testcase.execution.column.result", languageCode, "결과", createdBy);
+    createTranslationIfNotExists(
+        "testcase.execution.column.executor", languageCode, "실행자", createdBy);
+    createTranslationIfNotExists("testcase.execution.column.notes", languageCode, "노트", createdBy);
+    createTranslationIfNotExists(
+        "testcase.execution.noData", languageCode, "실행 이력이 없습니다.", createdBy);
+
     createTranslationIfNotExists(
         "testcase.spreadsheet.button.addFolder", languageCode, "폴더 추가", createdBy);
     createTranslationIfNotExists(
