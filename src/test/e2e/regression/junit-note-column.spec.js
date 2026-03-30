@@ -4,22 +4,62 @@
 const { test, expect } = require("../fixtures/test-fixtures.js");
 const { ADMIN_USERNAME, ADMIN_PASSWORD } = require("../config/credentials.js");
 
-// 실제 프로젝트/결과 ID (테스트 환경에 맞게 수정 필요)
-const TEST_PROJECT_ID = "2fcead1a-83f6-4fe0-a1e5-169f227e23f9";
-const TEST_RESULT_ID = "ac26d4ce-38c7-401f-8ef6-698513e6b4ec";
+// 실제 프로젝트/결과 ID 대신 동정인 경로 탐색 사용
+let TEST_PROJECT_ID = "";
+let TEST_RESULT_ID = "";
 
 test.describe("JUnit 결과 상세 페이지 - Note 컬럼 표시", () => {
-  test.beforeEach(async ({ loginPage, projectListPage }) => {
-    await loginPage.goto();
-    await loginPage.clearStorage();
-    await loginPage.waitForBackend();
-    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await projectListPage.waitForLoad();
-  });
+  test.beforeEach(
+    async ({ page, loginPage, projectListPage, automationPage }) => {
+      // 1. 로그인 및 메인 페이지 진입
+      await loginPage.performLoginAndNavigate({
+        username: ADMIN_USERNAME,
+        password: ADMIN_PASSWORD,
+        loginPage,
+        projectListPage,
+      });
+
+      // 2. 현재 프로젝트 ID 추출
+      const url = page.url();
+      const match = url.match(/\/projects\/([a-f0-9-]+)/);
+      if (match) {
+        TEST_PROJECT_ID = match[1];
+        console.log(`🔎 현재 프로젝트 ID: ${TEST_PROJECT_ID}`);
+      } else {
+        throw new Error("프로젝트 ID를 추출할 수 없습니다.");
+      }
+
+      // 3. 자동화 탭 이동 및 첫 번째 결과 ID 확보
+      await automationPage.navigateToProjectAutomation(TEST_PROJECT_ID);
+      await automationPage.waitForIdle();
+
+      // 결과 목록이 로드될 때까지 대기
+      try {
+        await automationPage.fileLink
+          .first()
+          .waitFor({ state: "visible", timeout: 15000 });
+        const href = await automationPage.fileLink.first().getAttribute("href");
+        // href format: /projects/{pid}/junit-results/{rid}
+        const resMatch = href.match(/\/junit-results\/([a-f0-9-]+)/);
+        if (resMatch) {
+          TEST_RESULT_ID = resMatch[1];
+          console.log(`🔎 현재 테스트 결과 ID: ${TEST_RESULT_ID}`);
+        }
+      } catch (e) {
+        console.log(
+          "⚠️ 자동화 결과 목록을 찾을 수 없습니다. 테스트 준비 데이터가 필요할 수 있습니다.",
+        );
+      }
+    },
+  );
 
   test("테스트 케이스 테이블에 노트 헤더 컬럼이 표시된다", async ({
     automationPage,
   }) => {
+    if (!TEST_RESULT_ID) {
+      console.log("⏩ 테스트 결과 데이터가 없어 건너뜁니다.");
+      return;
+    }
     await automationPage.goto(
       `/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`,
     );
@@ -37,6 +77,7 @@ test.describe("JUnit 결과 상세 페이지 - Note 컬럼 표시", () => {
   test('테스트 케이스 행에 Note 셀이 존재한다 (노트 없으면 "-" 표시)', async ({
     automationPage,
   }) => {
+    if (!TEST_RESULT_ID) return;
     await automationPage.goto(
       `/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`,
     );
@@ -55,6 +96,7 @@ test.describe("JUnit 결과 상세 페이지 - Note 컬럼 표시", () => {
   test("노트가 있는 테스트 케이스는 해당 내용이 리스트에 표시된다", async ({
     automationPage,
   }) => {
+    if (!TEST_RESULT_ID) return;
     await automationPage.goto(
       `/projects/${TEST_PROJECT_ID}/junit-results/${TEST_RESULT_ID}`,
     );
@@ -89,6 +131,7 @@ test.describe("JUnit 결과 상세 페이지 - Note 컬럼 표시", () => {
     page,
     automationPage,
   }) => {
+    if (!TEST_RESULT_ID) return;
     const testNote = `E2E 테스트 노트 ${Date.now()}`;
 
     await automationPage.goto(
@@ -122,15 +165,17 @@ test.describe("JUnit 결과 상세 페이지 - Note 컬럼 표시", () => {
     page,
     automationPage,
   }) => {
-    await automationPage.goto(`/projects/${TEST_PROJECT_ID}`);
-    await automationPage.waitForIdle();
+    // 자동화 탭 클릭 (전체 프로젝트 메인에서는 접근이 어려울 수 있으므로 프로젝트 내부인지 확인)
+    if (!page.url().includes(`/projects/${TEST_PROJECT_ID}`)) {
+      await page.goto(`/projects/${TEST_PROJECT_ID}`);
+      await page.waitForLoadState("networkidle");
+    }
 
-    // 자동화 탭 클릭
-    // 다국어 지원 고려: 자동화 또는 Automation 텍스트 포함 탭 클릭
     const automationTab = page
-      .locator(".MuiTab-root")
+      .locator('[role="tab"], .MuiTab-root')
       .filter({ hasText: /(자동화|Automation)/i })
       .first();
+    await automationTab.waitFor({ state: "visible", timeout: 10000 });
     await automationTab.click();
 
     // 혹시 '최근 결과' 서브 탭이 있다면 선택

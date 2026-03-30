@@ -30,17 +30,14 @@ test.describe("포괄적 사용자 시나리오 E2E 테스트", () => {
   }) => {
     console.log("🎬 포괄적 사용자 시나리오 테스트 시작...");
 
-    // === 1단계: 로그인 ===
-    console.log("1️⃣ 사용자 로그인...");
-    await loginPage.goto();
-    await loginPage.clearStorage();
-    await loginPage.waitForBackend();
-    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await projectListPage.waitForLoad();
-
-    // === 2단계: 프로젝트 분석 및 선택 ===
-    console.log("2️⃣ 프로젝트 선택 및 진입...");
-    await projectListPage.openFirstProject();
+    // === 1-2단계: 로그인 및 프로젝트 진입 ===
+    console.log("1️⃣ 사용자 로그인 및 프로젝트 진입...");
+    await loginPage.performLoginAndNavigate({
+      username: ADMIN_USERNAME,
+      password: ADMIN_PASSWORD,
+      loginPage,
+      projectListPage,
+    });
 
     // 프로젝트 상세 페이지 로드 대기
     await page.waitForURL(/\/projects\/[a-f0-9-]+/);
@@ -92,11 +89,12 @@ test.describe("포괄적 사용자 시나리오 E2E 테스트", () => {
   }) => {
     console.log("🔍 프로젝트 유형별 접근성 테스트 시작...");
 
-    await loginPage.goto();
-    await loginPage.clearStorage();
-    await loginPage.waitForBackend();
-    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await projectListPage.waitForLoad();
+    await loginPage.performLoginAndNavigate({
+      username: ADMIN_USERNAME,
+      password: ADMIN_PASSWORD,
+      loginPage,
+      projectListPage,
+    });
 
     const projectCount = await projectListPage.getProjectCount();
     console.log(`📊 총 ${projectCount}개 프로젝트 발견`);

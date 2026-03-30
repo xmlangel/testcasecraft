@@ -59,7 +59,8 @@ class ProjectListPage extends BasePage {
   }
 
   async openFirstProject() {
-    await this.openProjectButtons.first().click();
+    await this.handleSessionPopup();
+    await this.openProjectButtons.first().click({ force: true });
   }
 
   async openProjectByName(name) {
@@ -74,7 +75,8 @@ class ProjectListPage extends BasePage {
   }
 
   async clickNewProject() {
-    await this.newProjectButton.click();
+    await this.handleSessionPopup();
+    await this.newProjectButton.click({ force: true });
   }
 
   async selectTab(index) {

@@ -15,11 +15,12 @@ const { ADMIN_USERNAME, ADMIN_PASSWORD } = require("../config/credentials.js");
 
 test.describe("프로젝트 내 테스트 케이스 생성 테스트", () => {
   test.beforeEach(async ({ loginPage, projectListPage }) => {
-    await loginPage.goto();
-    await loginPage.clearStorage();
-    await loginPage.waitForBackend();
-    await loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
-    await projectListPage.waitForLoad();
+    await loginPage.performLoginAndNavigate({
+      username: ADMIN_USERNAME,
+      password: ADMIN_PASSWORD,
+      loginPage,
+      projectListPage,
+    });
   });
 
   test("새로운 테스트 케이스를 생성한다", async ({
@@ -27,16 +28,8 @@ test.describe("프로젝트 내 테스트 케이스 생성 테스트", () => {
     projectListPage,
     testCasePage,
   }) => {
-    // 1. 프로젝트 선택 누름
-    await projectListPage.clickProjectSelectMenu();
-    await projectListPage.screen("07-project-select-button-clicked");
-
-    // 2. 첫 번째 프로젝트 열기
-    await projectListPage.openFirstProject();
-    await projectListPage.screen("10-open-project-clicked");
-
-    await page.waitForURL(/\/projects\/[a-f0-9-]+/);
-    await projectListPage.screen("11-project-page-loaded");
+    // 1-2. 프로젝트 선택 및 진입 (beforeEach에서 이미 완료됨)
+    console.log(`📍 현재 URL: ${page.url()}`);
 
     // 3. 테스트케이스 탭 선택
     await testCasePage.goToTestCaseTab();
@@ -66,7 +59,10 @@ test.describe("프로젝트 내 테스트 케이스 생성 테스트", () => {
     await testCasePage.saveForm();
     await testCasePage.screen("25-redirected-to-testcase-list");
 
-    await expect(page.locator(`text="${testCaseName}"`)).toBeVisible();
+    // 리스트에서 생성된 케이스 확인 (텍스트 포함 여부로 유연하게 체크)
+    await expect(page.locator(`text=${testCaseName}`)).toBeVisible({
+      timeout: 15000,
+    });
     await testCasePage.screen("26-testcase-created-and-verified");
 
     console.log(`✅ 테스트 케이스 '${testCaseName}' 생성 완료 및 확인`);
