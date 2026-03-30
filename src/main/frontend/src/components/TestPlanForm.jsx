@@ -103,8 +103,16 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
 
     try {
       setLoading(true);
+
+      // 백엔드 전송 전 테스트케이스 타입이 아닌 것(폴더 등) 필터링 (UX를 위해 UI에서는 유지하되 DB에는 테스트케이스만 저장)
+      const filteredTestCaseIds = formData.testCaseIds.filter((id) => {
+        const tc = testCases.find((t) => t.id === id);
+        return tc && tc.type === "testcase";
+      });
+
       const payload = {
         ...formData,
+        testCaseIds: filteredTestCaseIds,
         projectId: activeProject.id,
       };
 

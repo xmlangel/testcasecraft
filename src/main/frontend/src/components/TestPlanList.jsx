@@ -138,22 +138,18 @@ const TestPlanList = ({
       try {
         setExecutionsLoading(true);
         const response = await api(
-          `/api/test-executions/by-project/${activeProject.id}`,
+          `/api/test-executions?testPlanId=${testPlanId}`,
         );
         if (!response.ok) throw new Error("Failed to fetch executions");
         const data = await response.json();
-        // Filter executions for the specific test plan
-        const planExecutions = data.filter(
-          (execution) => execution.testPlanId === testPlanId,
-        );
-        setTestExecutions(planExecutions);
+        setTestExecutions(data);
       } catch (err) {
         setError(err.message);
       } finally {
         setExecutionsLoading(false);
       }
     },
-    [activeProject?.id, api],
+    [api],
   );
 
   // Fetch linked automated tests for a plan
