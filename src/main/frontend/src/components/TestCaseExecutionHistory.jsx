@@ -1,5 +1,6 @@
 // src/main/frontend/src/components/TestCaseExecutionHistory.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -18,8 +19,9 @@ import { useI18n } from "../context/I18nContext";
 import { useAppContext } from "../context/AppContext";
 
 const TestCaseExecutionHistory = ({ testCaseId }) => {
-  const { api } = useAppContext();
+  const { api, activeProject } = useAppContext();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -121,10 +123,13 @@ const TestCaseExecutionHistory = ({ testCaseId }) => {
       <TableContainer
         component={Paper}
         elevation={0}
-        sx={{ border: "1px solid #efefef" }}
+        sx={{
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          backgroundColor: "transparent",
+        }}
       >
         <Table size="small">
-          <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+          <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: "bold" }}>
                 {t("testcase.execution.column.date", "실행일시")}
@@ -145,10 +150,26 @@ const TestCaseExecutionHistory = ({ testCaseId }) => {
           </TableHead>
           <TableBody>
             {history.map((item) => (
-              <TableRow key={item.id} hover>
+              <TableRow
+                key={item.id}
+                hover
+                onClick={() => {
+                  if (activeProject?.id && item.testExecutionId) {
+                    navigate(
+                      `/projects/${activeProject.id}/executions/${item.testExecutionId}/testcases/${testCaseId}/result`,
+                    );
+                  }
+                }}
+                sx={{
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                }}
+              >
                 <TableCell>
-                  {item.executionDate
-                    ? new Date(item.executionDate).toLocaleString()
+                  {item.executedAt
+                    ? new Date(item.executedAt).toLocaleString()
                     : "N/A"}
                 </TableCell>
                 <TableCell>{item.testExecutionName || "N/A"}</TableCell>
