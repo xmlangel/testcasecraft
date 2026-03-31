@@ -1,6 +1,6 @@
 // src/components/TestCase/TestCaseVersionHistory.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Dialog,
@@ -29,9 +29,9 @@ import {
   Compare as CompareIcon,
 } from "@mui/icons-material";
 import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale";
 import { useAppContext } from "../../context/AppContext";
-import { useTranslation } from "../../context/I18nContext";
+import { useI18n } from "../../context/I18nContext";
 import VersionComparison from "./VersionComparison";
 
 const TestCaseVersionHistory = ({
@@ -42,13 +42,16 @@ const TestCaseVersionHistory = ({
   inline = false,
 }) => {
   const { api } = useAppContext();
-  const { t } = useTranslation();
+  const { t, language } = useI18n();
   const [versions, setVersions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedVersion, setSelectedVersion] = useState(null);
   const [compareDialogOpen, setCompareDialogOpen] = useState(false);
   const [compareVersions, setCompareVersions] = useState([]);
+
+  // 현재 언어에 따른 date-fns 로케일 설정
+  const dateLocale = useMemo(() => (language === "ko" ? ko : enUS), [language]);
 
   // 버전 히스토리 조회
   const fetchVersionHistory = async () => {
@@ -62,13 +65,24 @@ const TestCaseVersionHistory = ({
         `/api/testcase-versions/testcase/${testCaseId}/history`,
       );
       if (!response.ok) {
-        throw new Error(t("testcase.versionHistory.error.fetchFailed"));
+        throw new Error(
+          t(
+            "testcase.versionHistory.error.fetchFailed",
+            "버전 히스토리를 불러오지 못했습니다.",
+          ),
+        );
       }
       const data = await response.json();
       setVersions(data.data || []);
     } catch (err) {
       setError(err.message);
-      console.error(t("testcase.versionHistory.error.fetchError"), err);
+      console.error(
+        t(
+          "testcase.versionHistory.error.fetchError",
+          "버전 히스토리 조회 오류",
+        ),
+        err,
+      );
     } finally {
       setLoading(false);
     }
@@ -90,7 +104,12 @@ const TestCaseVersionHistory = ({
       );
 
       if (!response.ok) {
-        throw new Error(t("testcase.versionHistory.error.restoreFailed"));
+        throw new Error(
+          t(
+            "testcase.versionHistory.error.restoreFailed",
+            "버전 복원에 실패했습니다.",
+          ),
+        );
       }
 
       const data = await response.json();
@@ -100,7 +119,10 @@ const TestCaseVersionHistory = ({
       onClose();
     } catch (err) {
       setError(err.message);
-      console.error(t("testcase.versionHistory.error.restoreError"), err);
+      console.error(
+        t("testcase.versionHistory.error.restoreError", "버전 복원 오류"),
+        err,
+      );
     } finally {
       setLoading(false);
     }
@@ -111,13 +133,26 @@ const TestCaseVersionHistory = ({
     try {
       const response = await api(`/api/testcase-versions/${versionId}`);
       if (!response.ok) {
-        throw new Error(t("testcase.versionHistory.error.viewFailed"));
+        throw new Error(
+          t(
+            "testcase.versionHistory.error.viewFailed",
+            "버전 상세 정보를 불러오지 못했습니다.",
+          ),
+        );
       }
       const data = await response.json();
       setSelectedVersion(data.data);
     } catch (err) {
-      console.error(t("testcase.versionHistory.error.viewError"), err);
-      setError(t("testcase.versionHistory.error.viewFailed"));
+      console.error(
+        t("testcase.versionHistory.error.viewError", "버전 상세 조회 오류"),
+        err,
+      );
+      setError(
+        t(
+          "testcase.versionHistory.error.viewFailed",
+          "버전 상세 정보를 불러오지 못했습니다.",
+        ),
+      );
     }
   };
 
@@ -147,19 +182,169 @@ const TestCaseVersionHistory = ({
   const getChangeTypeLabel = (changeType) => {
     switch (changeType) {
       case "CREATE":
-        return t("testcase.versionHistory.changeType.create");
+        return t("testcase.versionHistory.changeType.create", "생성");
       case "UPDATE":
-        return t("testcase.versionHistory.changeType.update");
+        return t("testcase.versionHistory.changeType.update", "수정");
       case "MANUAL_SAVE":
-        return t("testcase.versionHistory.changeType.manualSave");
+        return t("testcase.versionHistory.changeType.manualSave", "수동 저장");
       case "RESTORE":
-        return t("testcase.versionHistory.changeType.restore");
+        return t("testcase.versionHistory.changeType.restore", "복원");
       default:
-        return t("testcase.versionHistory.changeType.unknown");
+        return t("testcase.versionHistory.changeType.unknown", "알 수 없음");
     }
   };
 
-  const content = (
+  // 버전 상세 다이얼로그 컴포넌트 (중복 제거를 위해 분리)
+  const VersionDetailDialog = ({ version, open, onClose }) => {
+    if (!version) return null;
+
+    return (
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {t("testcase.versionDetail.title", "버전 상세 보기")} -{" "}
+          {version.versionLabel}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12 }}>
+              <Paper sx={{ p: 2, mb: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  {t("testcase.versionDetail.section.basic", "기본 정보")}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t("testcase.versionDetail.field.name", "이름")}
+                  </strong>{" "}
+                  {version.name}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t("testcase.versionDetail.field.description", "설명")}
+                  </strong>{" "}
+                  {version.description ||
+                    t("testcase.versionDetail.field.none", "없음")}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t(
+                      "testcase.versionDetail.field.preCondition",
+                      "사전 조건",
+                    )}
+                  </strong>{" "}
+                  {version.preCondition ||
+                    t("testcase.versionDetail.field.none", "없음")}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t(
+                      "testcase.versionDetail.field.expectedResults",
+                      "기대 결과",
+                    )}
+                  </strong>{" "}
+                  {version.expectedResults ||
+                    t("testcase.versionDetail.field.none", "없음")}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t("testcase.versionDetail.field.priority", "우선순위")}
+                  </strong>{" "}
+                  {version.priority ||
+                    t("testcase.versionDetail.field.none", "없음")}
+                </Typography>
+              </Paper>
+            </Grid>
+
+            {version.steps && version.steps.length > 0 && (
+              <Grid size={{ xs: 12 }}>
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t("testcase.versionDetail.section.steps", "테스트 단계")}
+                  </Typography>
+                  {version.steps.map((step, index) => (
+                    <Box
+                      key={index}
+                      sx={{ mb: 1, p: 1, bgcolor: "grey.50", borderRadius: 1 }}
+                    >
+                      <Typography variant="body2">
+                        <strong>
+                          {t("testcase.versionDetail.step.number", "단계")}{" "}
+                          {step.stepNumber}:
+                        </strong>{" "}
+                        {step.action}
+                      </Typography>
+                      {step.expectedResult && (
+                        <Typography variant="body2" color="text.secondary">
+                          {t(
+                            "testcase.versionDetail.step.expectedResult",
+                            "기대 결과:",
+                          )}{" "}
+                          {step.expectedResult}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Paper>
+              </Grid>
+            )}
+
+            <Grid size={{ xs: 12 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  {t("testcase.versionDetail.section.version", "버전 정보")}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t(
+                      "testcase.versionDetail.field.versionNumber",
+                      "버전 번호",
+                    )}
+                  </strong>{" "}
+                  v{version.versionNumber}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t("testcase.versionDetail.field.changeType", "변경 유형")}
+                  </strong>{" "}
+                  {getChangeTypeLabel(version.changeType)}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t(
+                      "testcase.versionDetail.field.changeSummary",
+                      "변경 요약",
+                    )}
+                  </strong>{" "}
+                  {version.changeSummary ||
+                    t("testcase.versionDetail.field.none", "없음")}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t("testcase.versionDetail.field.creator", "작성자")}
+                  </strong>{" "}
+                  {version.createdByName}
+                </Typography>
+                <Typography>
+                  <strong>
+                    {t("testcase.versionDetail.field.createdAt", "작성일시")}
+                  </strong>{" "}
+                  {new Date(version.createdAt).toLocaleString(
+                    language === "ko" ? "ko-KR" : "en-US",
+                  )}
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>
+            {t("testcase.versionDetail.button.close", "닫기")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+
+  const historyContent = (
     <Box>
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
@@ -203,7 +388,10 @@ const TestCaseVersionHistory = ({
                       </Typography>
                       {version.isCurrentVersion && (
                         <Chip
-                          label={t("testcase.versionHistory.current")}
+                          label={t(
+                            "testcase.versionHistory.current",
+                            "현재 버전",
+                          )}
                           size="small"
                           color="success"
                           variant="outlined"
@@ -225,18 +413,27 @@ const TestCaseVersionHistory = ({
                         gutterBottom
                       >
                         {version.changeSummary ||
-                          t("testcase.versionHistory.changeSummary.empty")}
+                          t(
+                            "testcase.versionHistory.changeSummary.empty",
+                            "변경 요약이 없습니다.",
+                          )}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {version.createdByName ||
-                          t("testcase.versionHistory.creator.unknown")}{" "}
+                          t(
+                            "testcase.versionHistory.creator.unknown",
+                            "알 수 없음",
+                          )}{" "}
                         •{" "}
                         {version.createdAt
                           ? formatDistanceToNow(new Date(version.createdAt), {
                               addSuffix: true,
-                              locale: ko,
+                              locale: dateLocale,
                             })
-                          : t("testcase.versionHistory.time.unknown")}
+                          : t(
+                              "testcase.versionHistory.time.unknown",
+                              "알 수 없음",
+                            )}
                       </Typography>
                     </Box>
                   }
@@ -247,7 +444,10 @@ const TestCaseVersionHistory = ({
                     <IconButton
                       size="small"
                       onClick={() => handleViewVersion(version.id)}
-                      title={t("testcase.versionHistory.action.view")}
+                      title={t(
+                        "testcase.versionHistory.action.view",
+                        "상세 보기",
+                      )}
                     >
                       <ViewIcon />
                     </IconButton>
@@ -256,7 +456,10 @@ const TestCaseVersionHistory = ({
                       <IconButton
                         size="small"
                         onClick={() => handleRestore(version.id)}
-                        title={t("testcase.versionHistory.action.restore")}
+                        title={t(
+                          "testcase.versionHistory.action.restore",
+                          "복원",
+                        )}
                         color="primary"
                       >
                         <RestoreIcon />
@@ -272,7 +475,10 @@ const TestCaseVersionHistory = ({
                             versions[index + 1].id,
                           )
                         }
-                        title={t("testcase.versionHistory.action.compare")}
+                        title={t(
+                          "testcase.versionHistory.action.compare",
+                          "이전 버전과 비교",
+                        )}
                       >
                         <CompareIcon />
                       </IconButton>
@@ -288,7 +494,10 @@ const TestCaseVersionHistory = ({
           {versions.length === 0 && !loading && (
             <Box sx={{ p: 3, textAlign: "center" }}>
               <Typography color="text.secondary">
-                {t("testcase.versionHistory.empty")}
+                {t(
+                  "testcase.versionHistory.empty",
+                  "버전 히스토리가 없습니다.",
+                )}
               </Typography>
             </Box>
           )}
@@ -297,321 +506,44 @@ const TestCaseVersionHistory = ({
     </Box>
   );
 
-  if (inline) {
-    return (
-      <>
-        {content}
-        {/* 버전 상세 보기 다이얼로그 */}
-        <Dialog
-          open={!!selectedVersion}
-          onClose={() => setSelectedVersion(null)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {t("testcase.versionDetail.title")} -{" "}
-            {selectedVersion?.versionLabel}
-          </DialogTitle>
-          <DialogContent dividers>
-            {selectedVersion && (
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
-                  <Paper sx={{ p: 2, mb: 2 }}>
-                    <Typography variant="h6" gutterBottom>
-                      {t("testcase.versionDetail.section.basic")}
-                    </Typography>
-                    <Typography>
-                      <strong>{t("testcase.versionDetail.field.name")}</strong>{" "}
-                      {selectedVersion.name}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.description")}
-                      </strong>{" "}
-                      {selectedVersion.description ||
-                        t("testcase.versionDetail.field.none")}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.preCondition")}
-                      </strong>{" "}
-                      {selectedVersion.preCondition ||
-                        t("testcase.versionDetail.field.none")}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.expectedResults")}
-                      </strong>{" "}
-                      {selectedVersion.expectedResults ||
-                        t("testcase.versionDetail.field.none")}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.priority")}
-                      </strong>{" "}
-                      {selectedVersion.priority ||
-                        t("testcase.versionDetail.field.none")}
-                    </Typography>
-                  </Paper>
-                </Grid>
-
-                {selectedVersion.steps && selectedVersion.steps.length > 0 && (
-                  <Grid size={{ xs: 12 }}>
-                    <Paper sx={{ p: 2 }}>
-                      <Typography variant="h6" gutterBottom>
-                        {t("testcase.versionDetail.section.steps")}
-                      </Typography>
-                      {selectedVersion.steps.map((step, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            mb: 1,
-                            p: 1,
-                            bgcolor: "grey.50",
-                            borderRadius: 1,
-                          }}
-                        >
-                          <Typography variant="body2">
-                            <strong>
-                              {t("testcase.versionDetail.step.number")}{" "}
-                              {step.stepNumber}:
-                            </strong>{" "}
-                            {step.action}
-                          </Typography>
-                          {step.expectedResult && (
-                            <Typography variant="body2" color="text.secondary">
-                              {t("testcase.versionDetail.step.expectedResult")}{" "}
-                              {step.expectedResult}
-                            </Typography>
-                          )}
-                        </Box>
-                      ))}
-                    </Paper>
-                  </Grid>
-                )}
-
-                <Grid size={{ xs: 12 }}>
-                  <Paper sx={{ p: 2 }}>
-                    <Typography variant="h6" gutterBottom>
-                      {t("testcase.versionDetail.section.version")}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.versionNumber")}
-                      </strong>{" "}
-                      v{selectedVersion.versionNumber}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.changeType")}
-                      </strong>{" "}
-                      {getChangeTypeLabel(selectedVersion.changeType)}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.changeSummary")}
-                      </strong>{" "}
-                      {selectedVersion.changeSummary}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.creator")}
-                      </strong>{" "}
-                      {selectedVersion.createdByName}
-                    </Typography>
-                    <Typography>
-                      <strong>
-                        {t("testcase.versionDetail.field.createdAt")}
-                      </strong>{" "}
-                      {new Date(selectedVersion.createdAt).toLocaleString(
-                        "ko-KR",
-                      )}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setSelectedVersion(null)}>
-              {t("testcase.versionDetail.button.close")}
-            </Button>
-          </DialogActions>
-        </Dialog>
-        {/* 버전 비교 다이얼로그 */}
-        <VersionComparison
-          open={compareDialogOpen}
-          onClose={() => setCompareDialogOpen(false)}
-          version1Id={compareVersions[1]}
-          version2Id={compareVersions[0]}
-        />
-      </>
-    );
-  }
-
   return (
     <>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        maxWidth="md"
-        fullWidth
-        slotProps={{
-          paper: {
-            sx: { height: "80vh" },
-          },
-        }}
-      >
-        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <HistoryIcon />
-          {t("testcase.versionHistory.title")}
-          <IconButton
-            onClick={onClose}
-            sx={{ marginLeft: "auto" }}
-            size="small"
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
+      {inline ? (
+        <Box>{historyContent}</Box>
+      ) : (
+        <Dialog
+          open={open}
+          onClose={onClose}
+          maxWidth="md"
+          fullWidth
+          slotProps={{
+            paper: { sx: { height: "80vh" } },
+          }}
+        >
+          <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <HistoryIcon />
+            {t("testcase.versionHistory.title", "버전 히스토리")}
+            <IconButton
+              onClick={onClose}
+              sx={{ marginLeft: "auto" }}
+              size="small"
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ p: 0 }}>
+            {historyContent}
+          </DialogContent>
+        </Dialog>
+      )}
 
-        <DialogContent dividers sx={{ p: 0 }}>
-          {content}
-        </DialogContent>
-      </Dialog>
-      {/* 버전 상세 보기 다이얼로그 */}
-      <Dialog
+      {/* 공용 상세 다이얼로그 (중복 제거됨) */}
+      <VersionDetailDialog
+        version={selectedVersion}
         open={!!selectedVersion}
         onClose={() => setSelectedVersion(null)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {t("testcase.versionDetail.title")} - {selectedVersion?.versionLabel}
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedVersion && (
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12 }}>
-                <Paper sx={{ p: 2, mb: 2 }}>
-                  <Typography variant="h6" gutterBottom>
-                    {t("testcase.versionDetail.section.basic")}
-                  </Typography>
-                  <Typography>
-                    <strong>{t("testcase.versionDetail.field.name")}</strong>{" "}
-                    {selectedVersion.name}
-                  </Typography>
-                  <Typography>
-                    <strong>
-                      {t("testcase.versionDetail.field.description")}
-                    </strong>{" "}
-                    {selectedVersion.description ||
-                      t("testcase.versionDetail.field.none")}
-                  </Typography>
-                  <Typography>
-                    <strong>
-                      {t("testcase.versionDetail.field.preCondition")}
-                    </strong>{" "}
-                    {selectedVersion.preCondition ||
-                      t("testcase.versionDetail.field.none")}
-                  </Typography>
-                  <Typography>
-                    <strong>
-                      {t("testcase.versionDetail.field.expectedResults")}
-                    </strong>{" "}
-                    {selectedVersion.expectedResults ||
-                      t("testcase.versionDetail.field.none")}
-                  </Typography>
-                  <Typography>
-                    <strong>
-                      {t("testcase.versionDetail.field.priority")}
-                    </strong>{" "}
-                    {selectedVersion.priority ||
-                      t("testcase.versionDetail.field.none")}
-                  </Typography>
-                </Paper>
-              </Grid>
+      />
 
-              {selectedVersion.steps && selectedVersion.steps.length > 0 && (
-                <Grid size={{ xs: 12 }}>
-                  <Paper sx={{ p: 2 }}>
-                    <Typography variant="h6" gutterBottom>
-                      {t("testcase.versionDetail.section.steps")}
-                    </Typography>
-                    {selectedVersion.steps.map((step, index) => (
-                      <Box
-                        key={index}
-                        sx={{
-                          mb: 1,
-                          p: 1,
-                          bgcolor: "grey.50",
-                          borderRadius: 1,
-                        }}
-                      >
-                        <Typography variant="body2">
-                          <strong>
-                            {t("testcase.versionDetail.step.number")}{" "}
-                            {step.stepNumber}:
-                          </strong>{" "}
-                          {step.action}
-                        </Typography>
-                        {step.expectedResult && (
-                          <Typography variant="body2" color="text.secondary">
-                            {t("testcase.versionDetail.step.expectedResult")}{" "}
-                            {step.expectedResult}
-                          </Typography>
-                        )}
-                      </Box>
-                    ))}
-                  </Paper>
-                </Grid>
-              )}
-
-              <Grid size={{ xs: 12 }}>
-                <Paper sx={{ p: 2 }}>
-                  <Typography variant="h6" gutterBottom>
-                    {t("testcase.versionDetail.section.version")}
-                  </Typography>
-                  <Typography>
-                    <strong>
-                      {t("testcase.versionDetail.field.versionNumber")}
-                    </strong>{" "}
-                    v{selectedVersion.versionNumber}
-                  </Typography>
-                  <Typography>
-                    <strong>
-                      {t("testcase.versionDetail.field.changeType")}
-                    </strong>{" "}
-                    {getChangeTypeLabel(selectedVersion.changeType)}
-                  </Typography>
-                  <Typography>
-                    <strong>
-                      {t("testcase.versionDetail.field.changeSummary")}
-                    </strong>{" "}
-                    {selectedVersion.changeSummary}
-                  </Typography>
-                  <Typography>
-                    <strong>{t("testcase.versionDetail.field.creator")}</strong>{" "}
-                    {selectedVersion.createdByName}
-                  </Typography>
-                  <Typography>
-                    <strong>
-                      {t("testcase.versionDetail.field.createdAt")}
-                    </strong>{" "}
-                    {new Date(selectedVersion.createdAt).toLocaleString(
-                      "ko-KR",
-                    )}
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSelectedVersion(null)}>
-            {t("testcase.versionDetail.button.close")}
-          </Button>
-        </DialogActions>
-      </Dialog>
       {/* 버전 비교 다이얼로그 */}
       <VersionComparison
         open={compareDialogOpen}
