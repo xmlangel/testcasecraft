@@ -1,13 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import {
-  Box,
-  Typography,
-  Paper,
-  Chip,
-  LinearProgress,
-  Button,
-} from "@mui/material";
+import { Box, Typography, Paper, Chip, Button } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import {
   PlayArrow as PlayArrowIcon,
@@ -22,6 +15,10 @@ import StatusInfoItem from "../StatusInfoItem.jsx";
 import { formatDateSafe } from "../../utils/dateUtils";
 import { RESULT_COLORS } from "../../constants/statusColors";
 
+/**
+ * 테스트 실행 상태 컴포넌트
+ * 디자인 우수성을 강조한 결과 요약 UI
+ */
 const TestExecutionStatus = ({
   execution,
   statusCounts,
@@ -36,18 +33,71 @@ const TestExecutionStatus = ({
 }) => {
   const { t } = useTranslation();
 
+  const StyledStatusChip = ({ icon, label, count, color }) => (
+    <Chip
+      icon={icon}
+      label={
+        <Box component="span" sx={{ display: "flex", alignItems: "center" }}>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 600, mr: 0.5, opacity: 0.8 }}
+          >
+            {label}:
+          </Typography>
+          <Typography variant="caption" sx={{ fontWeight: 800 }}>
+            {count}
+          </Typography>
+        </Box>
+      }
+      size="small"
+      sx={{
+        bgcolor: alpha(color, 0.1),
+        borderColor: alpha(color, 0.2),
+        borderWidth: 1,
+        borderStyle: "solid",
+        color: color,
+        height: 28,
+        px: 0.5,
+        fontSize: "0.75rem",
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+          bgcolor: alpha(color, 0.15),
+          borderColor: alpha(color, 0.4),
+          transform: "translateY(-1px)",
+          boxShadow: `0 2px 8px ${alpha(color, 0.1)}`,
+        },
+        "& .MuiChip-icon": {
+          color: color,
+          fontSize: 14,
+          ml: 0.5,
+        },
+        "& .MuiChip-label": {
+          pl: 1,
+          pr: 1,
+        },
+      }}
+    />
+  );
+
   return (
     <Paper
-      variant="outlined"
+      elevation={0}
       sx={{
-        p: 1,
+        p: 2,
         height: "100%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
+        bgcolor: (theme) =>
+          theme.palette.mode === "dark"
+            ? "rgba(0,0,0,0.2)"
+            : "rgba(0,0,0,0.02)",
+        borderRadius: 3,
+        border: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
-      <Box sx={{ display: "flex", gap: 3, mb: 1, alignItems: "center" }}>
+      {/* 기본 정보 행 */}
+      <Box sx={{ display: "flex", gap: 4, mb: 1.5, alignItems: "center" }}>
         <StatusInfoItem
           label={t("testExecution.form.status")}
           value={execution?.status || "-"}
@@ -64,88 +114,104 @@ const TestExecutionStatus = ({
           compact
         />
       </Box>
+
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: 1,
+          gap: 2,
         }}
       >
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <Chip
-            icon={
-              <CheckCircleIcon
-                sx={{ color: RESULT_COLORS.PASS, fontSize: "1rem" }}
-              />
-            }
-            label={`Pass: ${statusCounts.PASS}`}
-            size="small"
-            sx={{ bgcolor: alpha(RESULT_COLORS.PASS, 0.1), height: 24 }}
+        {/* 통계 칩 영역 */}
+        <Box sx={{ display: "flex", gap: 1.2, alignItems: "center" }}>
+          <StyledStatusChip
+            icon={<CheckCircleIcon />}
+            label={t("testResult.status.pass", "Pass")}
+            count={statusCounts.PASS}
+            color={RESULT_COLORS.PASS}
           />
-          <Chip
-            icon={
-              <CancelIcon
-                sx={{ color: RESULT_COLORS.FAIL, fontSize: "1rem" }}
-              />
-            }
-            label={`Fail: ${statusCounts.FAIL}`}
-            size="small"
-            sx={{ bgcolor: alpha(RESULT_COLORS.FAIL, 0.1), height: 24 }}
+          <StyledStatusChip
+            icon={<CancelIcon />}
+            label={t("testResult.status.fail", "Fail")}
+            count={statusCounts.FAIL}
+            color={RESULT_COLORS.FAIL}
           />
-          <Chip
-            icon={
-              <HourglassEmptyIcon
-                sx={{ color: RESULT_COLORS.NOTRUN, fontSize: "1rem" }}
-              />
-            }
-            label={`NotRun: ${statusCounts.NOTRUN}`}
-            size="small"
-            sx={{ bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.1), height: 24 }}
+          <StyledStatusChip
+            icon={<BlockIcon />}
+            label={t("testResult.status.blocked", "Blocked")}
+            count={statusCounts.BLOCKED}
+            color={RESULT_COLORS.BLOCKED}
           />
-          <Chip
-            icon={
-              <BlockIcon
-                sx={{ color: RESULT_COLORS.BLOCKED, fontSize: "1rem" }}
-              />
-            }
-            label={`Blocked: ${statusCounts.BLOCKED}`}
-            size="small"
-            sx={{ bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.1), height: 24 }}
+          <StyledStatusChip
+            icon={<HourglassEmptyIcon />}
+            label={t("testResult.status.notRun", "Not Run")}
+            count={statusCounts.NOTRUN}
+            color={RESULT_COLORS.NOTRUN}
           />
-          <Typography variant="caption" sx={{ ml: 1 }}>
-            {t("testExecution.form.totalCount", { count: statusCounts.total })}
+          <Typography
+            variant="caption"
+            sx={{ ml: 1.5, fontWeight: 700, opacity: 0.7 }}
+          >
+            {t("testExecution.summary.total", "총")} {statusCounts.total}
+            {t("testExecution.summary.cases", "건")}
           </Typography>
         </Box>
 
+        {/* 진행률 영역 */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1,
-            flex: 1,
-            minWidth: 200,
-            maxWidth: 400,
+            gap: 2.5,
+            flex: { xs: 1, md: "none" },
+            minWidth: 250,
           }}
         >
-          <Typography variant="caption" sx={{ minWidth: 50 }}>
-            {t("testExecution.form.progress")}
-          </Typography>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{ flex: 1, height: 8, borderRadius: 4 }}
-          />
-          <Typography
-            variant="caption"
-            sx={{ minWidth: 35, textAlign: "right" }}
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}
           >
-            {progress}%
-          </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 800,
+                color: "primary.main",
+                minWidth: 40,
+                textAlign: "right",
+              }}
+            >
+              {progress}%
+            </Typography>
+            <Box
+              sx={{
+                width: { xs: "100%", md: 150 },
+                height: 6,
+                bgcolor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.06)",
+                borderRadius: 3,
+                overflow: "hidden",
+                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
+              }}
+            >
+              <Box
+                sx={{
+                  width: `${progress}%`,
+                  height: "100%",
+                  background: (theme) =>
+                    `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                  borderRadius: 3,
+                  transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+              />
+            </Box>
+          </Box>
         </Box>
 
-        <Box>
+        {/* 버튼 영역 */}
+        <Box sx={{ display: "flex", gap: 1 }}>
           {canStartExecution && (
             <Button
               variant="contained"

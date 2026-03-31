@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import {
   Box,
-  Button,
   Typography,
   Chip,
   Tooltip as MuiTooltip,
@@ -15,11 +14,15 @@ import {
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
   Block as BlockIcon,
-  PlayArrow as PlayArrowIcon,
   ArrowBack as ArrowBackIcon,
+  HourglassEmpty as HourglassEmptyIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 
+/**
+ * 테스트 결과 상세 헤더 컴포넌트
+ * 데이터 집계 로직 및 프리미엄 디자인 적용
+ */
 const TestResultHeader = ({
   onPrevious,
   onNext,
@@ -28,19 +31,17 @@ const TestResultHeader = ({
   totalCount,
   testCase,
   isViewer,
-  hideButtons = false,
   execution = null,
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
-  // 결과 통계 계산
+  // 결과 통계 계산 (최신 결과 기준)
   const stats = useMemo(() => {
     if (!execution || !execution.results) return null;
 
     const allResults = execution.results || [];
-    // 각 테스트케이스별 최신 결과만 추출 (Map을 사용하여 동일 ID의 뒷부분 결과를 유지)
     const latestResultsMap = new Map();
     allResults.forEach((r) => {
       if (r.testCaseId) {
@@ -53,21 +54,13 @@ const TestResultHeader = ({
     const fail = latestResults.filter((r) => r.result === "FAIL").length;
     const blocked = latestResults.filter((r) => r.result === "BLOCKED").length;
 
-    // 완료된 건수 (Pass/Fail/Blocked)
     const completedCount = latestResults.filter(
       (r) => r.result && r.result !== "NOT_RUN" && r.result !== "NOTRUN",
     ).length;
 
-    // Not Run은 전체 건수에서 완료 건수를 뺀 값
     const notRun = Math.max(0, totalCount - completedCount);
 
-    return {
-      pass,
-      fail,
-      blocked,
-      notRun,
-      completedCount,
-    };
+    return { pass, fail, blocked, notRun, completedCount };
   }, [execution, totalCount]);
 
   const progressPercent = useMemo(() => {
@@ -82,24 +75,45 @@ const TestResultHeader = ({
     <MuiTooltip title={tooltip} arrow>
       <Chip
         icon={icon}
-        label={`${label}: ${count}`}
+        label={
+          <Box component="span" sx={{ display: "flex", alignItems: "center" }}>
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 600, mr: 0.5, opacity: 0.8 }}
+            >
+              {label}:
+            </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 800 }}>
+              {count}
+            </Typography>
+          </Box>
+        }
         size="small"
         sx={{
-          bgcolor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-          borderColor: alpha(color, 0.4),
+          bgcolor: alpha(color, 0.1),
+          borderColor: alpha(color, 0.2),
           borderWidth: 1,
           borderStyle: "solid",
           color: color,
-          height: 24,
+          height: 28,
+          px: 0.5,
           fontSize: "0.75rem",
-          fontWeight: 600,
-          transition: "all 0.2s",
+          transition: "all 0.2s ease-in-out",
           "&:hover": {
-            bgcolor: alpha(color, 0.08),
-            borderColor: color,
+            bgcolor: alpha(color, 0.15),
+            borderColor: alpha(color, 0.4),
             transform: "translateY(-1px)",
+            boxShadow: `0 2px 8px ${alpha(color, 0.2)}`,
           },
-          "& .MuiChip-icon": { color: color, fontSize: 14 },
+          "& .MuiChip-icon": {
+            color: color,
+            fontSize: 14,
+            ml: 0.5,
+          },
+          "& .MuiChip-label": {
+            pl: 1,
+            pr: 1,
+          },
         }}
       />
     </MuiTooltip>
@@ -112,8 +126,8 @@ const TestResultHeader = ({
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        bgcolor: isDark ? alpha(theme.palette.background.paper, 0.8) : "#fff",
-        backdropFilter: "blur(10px)",
+        bgcolor: isDark ? alpha(theme.palette.background.paper, 0.9) : "#fff",
+        backdropFilter: "blur(12px)",
         borderBottom: `1px solid ${theme.palette.divider}`,
         position: "sticky",
         top: 0,
@@ -143,7 +157,9 @@ const TestResultHeader = ({
                 bgcolor: isDark ? alpha("#fff", 0.05) : alpha("#000", 0.03),
                 "&:hover": {
                   bgcolor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.06),
+                  transform: "translateX(-2px)",
                 },
+                transition: "all 0.2s",
               }}
             >
               <ArrowBackIcon />
@@ -183,7 +199,12 @@ const TestResultHeader = ({
               size="small"
               onClick={onPrevious}
               disabled={currentIndex <= 0 || isViewer || totalCount <= 1}
-              sx={{ border: `1px solid ${theme.palette.divider}` }}
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                "&:hover:not(:disabled)": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05),
+                },
+              }}
             >
               <NavigateBeforeIcon />
             </IconButton>
@@ -213,7 +234,12 @@ const TestResultHeader = ({
               disabled={
                 currentIndex >= totalCount - 1 || isViewer || totalCount <= 1
               }
-              sx={{ border: `1px solid ${theme.palette.divider}` }}
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                "&:hover:not(:disabled)": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05),
+                },
+              }}
             >
               <NavigateNextIcon />
             </IconButton>
@@ -245,11 +271,12 @@ const TestResultHeader = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            bgcolor: isDark ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.01)",
-            borderTop: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+            bgcolor: isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.02)",
+            borderTop: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+          {/* 순서 통일: Pass, Fail, Blocked, Not Run */}
+          <Box sx={{ display: "flex", gap: 1.2, alignItems: "center" }}>
             <StatusChip
               icon={<CheckCircleIcon />}
               label="Pass"
@@ -272,7 +299,7 @@ const TestResultHeader = ({
               tooltip={t("testResult.status.blocked", "차단됨")}
             />
             <StatusChip
-              icon={<PlayArrowIcon />}
+              icon={<HourglassEmptyIcon />}
               label="Not Run"
               count={stats.notRun}
               color={theme.palette.text.disabled}
@@ -280,32 +307,49 @@ const TestResultHeader = ({
             />
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
             <Typography
               variant="caption"
-              sx={{ fontWeight: 700, opacity: 0.7 }}
+              sx={{ fontWeight: 700, opacity: 0.8 }}
             >
-              {progressPercent}% COMPLETE
+              {t("testExecution.summary.total", "총")} {totalCount}
+              {t("testExecution.summary.cases", "건")}
             </Typography>
-            <Box
-              sx={{
-                width: 120,
-                height: 6,
-                bgcolor: alpha(theme.palette.divider, 0.5),
-                borderRadius: 3,
-                overflow: "hidden",
-                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
-              }}
-            >
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 800,
+                  color: "primary.main",
+                  minWidth: 40,
+                  textAlign: "right",
+                }}
+              >
+                {progressPercent}%
+              </Typography>
               <Box
                 sx={{
-                  width: `${progressPercent}%`,
-                  height: "100%",
-                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                  width: 120,
+                  height: 6,
+                  bgcolor: isDark
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.06)",
                   borderRadius: 3,
-                  transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+                  overflow: "hidden",
+                  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
                 }}
-              />
+              >
+                <Box
+                  sx={{
+                    width: `${progressPercent}%`,
+                    height: "100%",
+                    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                    borderRadius: 3,
+                    transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                />
+              </Box>
             </Box>
           </Box>
         </Box>
