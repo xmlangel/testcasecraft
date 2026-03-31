@@ -426,11 +426,24 @@ const TestResultForm = ({
           tags: tags || [],
         };
 
-        const trimmedJiraKey = jiraIssueKey
-          ? jiraIssueKey.trim().toUpperCase()
-          : "";
-        if (trimmedJiraKey && trimmedJiraKey.length > 0) {
-          requestData.jiraIssueKey = trimmedJiraKey;
+        // ICT-178: JIRA 이슈 키 추출 (URL인 경우 ID 추출)
+        let processedJiraKey = "";
+        if (jiraIssueKey && jiraIssueKey.trim()) {
+          const keys = jiraIssueKey.split(",").map((k) => k.trim());
+          const cleanedKeys = keys.map((k) => {
+            // URL 패턴인 경우 ID 추출
+            if (k.includes("/") || k.includes("atlassian.net")) {
+              return jiraService.extractIssueKeyFromUrl(k) || k;
+            }
+            return k.toUpperCase();
+          });
+          // 중복 제거 및 빈 값 필터링
+          processedJiraKey = [...new Set(cleanedKeys)]
+            .filter((k) => k && k.length > 0)
+            .join(",");
+        }
+        if (processedJiraKey) {
+          requestData.jiraIssueKey = processedJiraKey;
         }
 
         if (isPreviousResultEdit && stableCurrentResult?.id) {

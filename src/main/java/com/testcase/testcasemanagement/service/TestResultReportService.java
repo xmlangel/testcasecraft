@@ -431,6 +431,22 @@ public class TestResultReportService {
         System.out.println("ICT-263 Debug - TestExecution 필터 적용 후 개수: " + filteredResults.size());
       }
 
+      // ICT-178: JIRA 이슈 키 필터링
+      if (filter.getJiraIssueKeys() != null && !filter.getJiraIssueKeys().isEmpty()) {
+        filteredResults =
+            filteredResults.stream()
+                .filter(
+                    result -> {
+                      if (result.getJiraIssueKey() != null) {
+                        List<String> keys = Arrays.asList(result.getJiraIssueKey().split(","));
+                        return keys.stream()
+                            .anyMatch(k -> filter.getJiraIssueKeys().contains(k.trim()));
+                      }
+                      return false;
+                    })
+                .collect(Collectors.toList());
+      }
+
       // ICT-263 추가: 동일한 executionId + testCaseId 조합에서 최신 결과만 유지 (중복 제거)
       System.out.println("ICT-263 Debug - 중복 제거 전 개수: " + filteredResults.size());
 

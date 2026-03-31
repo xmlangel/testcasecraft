@@ -9,6 +9,7 @@ import com.testcase.testcasemanagement.service.TestExecutionService;
 import com.testcase.testcasemanagement.service.TestPlanService;
 import com.testcase.testcasemanagement.service.TestResultReportService;
 import com.testcase.testcasemanagement.service.TestResultStatisticsService;
+import com.testcase.testcasemanagement.util.JiraKeyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -278,6 +279,14 @@ public class TestResultApiController {
             .page(query.getPage())
             .size(query.getSize())
             .build();
+
+    // ICT-178: JIRA 이슈 키 필터 처리 (URL인 경우 ID 추출)
+    if (query.getJiraIssueKey() != null && !query.getJiraIssueKey().trim().isEmpty()) {
+      String cleanedKeys = JiraKeyUtils.extractJiraKeys(query.getJiraIssueKey());
+      if (!cleanedKeys.isEmpty()) {
+        filter.setJiraIssueKeys(List.of(cleanedKeys.split(",")));
+      }
+    }
 
     // 정렬 설정
     if (query.getSortBy() != null && query.getSortDirection() != null) {
