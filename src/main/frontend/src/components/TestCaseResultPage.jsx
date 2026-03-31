@@ -187,7 +187,7 @@ const TestCaseResultPage = () => {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#fafbfc" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <AppBar position="static">
         <Toolbar>
           <IconButton edge="start" color="inherit" onClick={handleBack}>
@@ -227,6 +227,7 @@ const TestCaseResultPage = () => {
             currentIndex={currentIndex}
             totalCount={testCasesList.length || 1}
             fullPage={true}
+            execution={execution}
           />
         ) : (
           <Box

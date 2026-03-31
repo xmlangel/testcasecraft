@@ -50,6 +50,7 @@ const TestResultForm = ({
   fullPage = false,
   onOpenFullPage = null,
   isPreviousResultEdit = false, // 새로운 prop: 이전 결과 수정 모드
+  execution = null, // 새로운 prop: 전체 실행 정보
 }) => {
   const { user, api } = useAppContext();
   const { t } = useI18n();
@@ -742,6 +743,7 @@ const TestResultForm = ({
           isViewer={isViewer}
           t={t}
           hideButtons={true}
+          execution={execution}
         />
 
         {renderContent()}
