@@ -41,6 +41,7 @@ const JiraIssueLinker = ({
   projectId = null,
   onIssueLinked = null,
   onIssueUnlinked = null,
+  onQueryChange = null,
   linkedIssues = [],
   disabled = false,
   initialSearchQuery = "",
@@ -75,7 +76,13 @@ const JiraIssueLinker = ({
   // ICT-184: 검색어 변경 시 실시간 검증
   useEffect(() => {
     const validateIssueKey = async () => {
-      const query = searchQuery.trim();
+      let query = searchQuery.trim();
+
+      // URL인 경우 키만 추출
+      const extractedKey = jiraService.extractIssueKeyFromUrl(query);
+      if (extractedKey) {
+        query = extractedKey;
+      }
 
       // 빈 입력이거나 JIRA 이슈 키 패턴이 아니면 검증 안함
       if (!query || !jiraService.isValidIssueKey(query)) {
@@ -113,9 +120,14 @@ const JiraIssueLinker = ({
     };
 
     // 300ms 디바운스
-    const debounceTimer = setTimeout(validateIssueKey, 300);
+    const debounceTimer = setTimeout(() => {
+      validateIssueKey();
+      if (onQueryChange) {
+        onQueryChange(searchQuery);
+      }
+    }, 300);
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, onQueryChange]);
 
   const checkJiraStatus = async () => {
     try {
@@ -169,14 +181,22 @@ const JiraIssueLinker = ({
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) {
+    let query = searchQuery.trim();
+
+    // URL인 경우 키만 추출
+    const extractedKey = jiraService.extractIssueKeyFromUrl(query);
+    if (extractedKey) {
+      query = extractedKey;
+    }
+
+    if (!query) {
       setError(t("jira.linker.enterSearchQuery", "검색어를 입력하세요."));
       return;
     }
 
     if (
       issueValidation.status === "error" &&
-      jiraService.isValidIssueKey(searchQuery.trim())
+      jiraService.isValidIssueKey(query)
     ) {
       setError(
         t(
@@ -191,7 +211,7 @@ const JiraIssueLinker = ({
     setError(null);
 
     try {
-      const results = await jiraService.searchIssues(searchQuery.trim());
+      const results = await jiraService.searchIssues(query);
       setSearchResults(results || []);
 
       if (!results || results.length === 0) {

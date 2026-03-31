@@ -9,6 +9,7 @@ const TestResultJira = ({
   notes,
   handleIssueLinked,
   handleIssueUnlinked,
+  onJiraIssueKeyChange,
   linkedIssues,
   isViewer,
   t,
@@ -51,6 +52,7 @@ const TestResultJira = ({
             linkedIssues={linkedIssues}
             disabled={isViewer}
             initialSearchQuery={jiraIssueKey}
+            onQueryChange={onJiraIssueKeyChange}
           />
         </Box>
       )}

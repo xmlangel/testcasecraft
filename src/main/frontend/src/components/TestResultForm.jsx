@@ -137,12 +137,21 @@ const TestResultForm = ({
         .split(",")
         .map((k) => k.trim())
         .filter(Boolean);
-      const initialIssues = keys.map((key) => ({
-        key,
-        summary: "Loading...",
-        status: { name: "..." },
-      }));
-      setLinkedIssues(initialIssues);
+
+      setLinkedIssues((prev) => {
+        // 이미 정보를 가지고 있는 이슈는 유지
+        return keys.map((key) => {
+          const existing = prev.find((issue) => issue.key === key);
+          if (existing && existing.summary !== "Loading...") {
+            return existing;
+          }
+          return {
+            key,
+            summary: "Loading...",
+            status: { name: "..." },
+          };
+        });
+      });
     } else {
       setLinkedIssues([]);
     }
@@ -740,6 +749,7 @@ const TestResultForm = ({
               notes={notes}
               handleIssueLinked={handleIssueLinked}
               handleIssueUnlinked={handleIssueUnlinked}
+              onJiraIssueKeyChange={setJiraIssueKey}
               linkedIssues={linkedIssues}
               isViewer={isViewer}
               t={t}
