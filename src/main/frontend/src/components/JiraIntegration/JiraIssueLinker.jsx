@@ -241,7 +241,12 @@ const JiraIssueLinker = ({
   };
 
   const getIssueTypeIcon = (issueType) => {
-    const type = issueType?.toLowerCase() || "";
+    const type = (
+      typeof issueType === "string"
+        ? issueType
+        : issueType?.name || String(issueType || "")
+    ).toLowerCase();
+
     if (type.includes("bug")) return <BugReportIcon color="error" />;
     if (type.includes("task")) return <CheckCircleIcon color="primary" />;
     if (type.includes("story")) return <CheckCircleIcon color="success" />;
@@ -249,7 +254,12 @@ const JiraIssueLinker = ({
   };
 
   const getPriorityColor = (priority) => {
-    const p = priority?.toLowerCase() || "";
+    const p = (
+      typeof priority === "string"
+        ? priority
+        : priority?.name || String(priority || "")
+    ).toLowerCase();
+
     if (p.includes("highest") || p.includes("critical")) return "error";
     if (p.includes("high")) return "warning";
     if (p.includes("medium")) return "info";
@@ -257,7 +267,10 @@ const JiraIssueLinker = ({
   };
 
   const getStatusColor = (status) => {
-    const s = status?.toLowerCase() || "";
+    const s = (
+      typeof status === "string" ? status : status?.name || String(status || "")
+    ).toLowerCase();
+
     if (s.includes("done") || s.includes("완료")) return "success";
     if (s.includes("progress") || s.includes("진행")) return "warning";
     if (s.includes("todo") || s.includes("해야")) return "default";
@@ -304,14 +317,23 @@ const JiraIssueLinker = ({
                       </Typography>
                       <Chip
                         size="small"
-                        label={issue.status}
+                        label={
+                          typeof issue.status === "string"
+                            ? issue.status
+                            : issue.status?.name || String(issue.status || "")
+                        }
                         color={getStatusColor(issue.status)}
                         variant="outlined"
                       />
                       {issue.priority && (
                         <Chip
                           size="small"
-                          label={issue.priority}
+                          label={
+                            typeof issue.priority === "string"
+                              ? issue.priority
+                              : issue.priority?.name ||
+                                String(issue.priority || "")
+                          }
                           color={getPriorityColor(issue.priority)}
                           variant="outlined"
                         />
@@ -478,7 +500,12 @@ const JiraIssueLinker = ({
                           </Typography>
                           <Chip
                             size="small"
-                            label={issue.status}
+                            label={
+                              typeof issue.status === "string"
+                                ? issue.status
+                                : issue.status?.name ||
+                                  String(issue.status || "")
+                            }
                             color={getStatusColor(issue.status)}
                             variant="outlined"
                           />
@@ -509,13 +536,23 @@ const JiraIssueLinker = ({
                   <Typography variant="h6">{selectedIssue.key}</Typography>
                   <Chip
                     size="small"
-                    label={selectedIssue.status}
+                    label={
+                      typeof selectedIssue.status === "string"
+                        ? selectedIssue.status
+                        : selectedIssue.status?.name ||
+                          String(selectedIssue.status || "")
+                    }
                     color={getStatusColor(selectedIssue.status)}
                   />
                   {selectedIssue.priority && (
                     <Chip
                       size="small"
-                      label={selectedIssue.priority}
+                      label={
+                        typeof selectedIssue.priority === "string"
+                          ? selectedIssue.priority
+                          : selectedIssue.priority?.name ||
+                            String(selectedIssue.priority || "")
+                      }
                       color={getPriorityColor(selectedIssue.priority)}
                     />
                   )}
