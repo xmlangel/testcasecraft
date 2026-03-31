@@ -18,6 +18,10 @@ import {
   HourglassEmpty as HourglassEmptyIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
+import {
+  TEST_RESULT_TYPES,
+  calculateExecutionSummary,
+} from "../../utils/testResultConstants.js";
 
 /**
  * 테스트 결과 상세 헤더 컴포넌트
@@ -37,39 +41,11 @@ const TestResultHeader = ({
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
-  // 결과 통계 계산 (최신 결과 기준)
-  const stats = useMemo(() => {
-    if (!execution || !execution.results) return null;
-
-    const allResults = execution.results || [];
-    const latestResultsMap = new Map();
-    allResults.forEach((r) => {
-      if (r.testCaseId) {
-        latestResultsMap.set(r.testCaseId, r);
-      }
-    });
-
-    const latestResults = Array.from(latestResultsMap.values());
-    const pass = latestResults.filter((r) => r.result === "PASS").length;
-    const fail = latestResults.filter((r) => r.result === "FAIL").length;
-    const blocked = latestResults.filter((r) => r.result === "BLOCKED").length;
-
-    const completedCount = latestResults.filter(
-      (r) => r.result && r.result !== "NOT_RUN" && r.result !== "NOTRUN",
-    ).length;
-
-    const notRun = Math.max(0, totalCount - completedCount);
-
-    return { pass, fail, blocked, notRun, completedCount };
-  }, [execution, totalCount]);
-
-  const progressPercent = useMemo(() => {
-    if (!totalCount || totalCount <= 0) return 0;
-    return Math.min(
-      100,
-      Math.round(((stats?.completedCount || 0) / totalCount) * 100),
-    );
-  }, [stats?.completedCount, totalCount]);
+  // 결과 통계 및 진행률 계산
+  const { stats, progressPercent } = useMemo(
+    () => calculateExecutionSummary(execution?.results || [], totalCount),
+    [execution, totalCount],
+  );
 
   const StatusChip = ({ icon, label, count, color, tooltip }) => (
     <MuiTooltip title={tooltip} arrow>

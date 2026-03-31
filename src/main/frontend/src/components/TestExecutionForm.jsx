@@ -38,6 +38,10 @@ import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX } from "../styles/layoutConstants";
 import TestResultAttachmentsView from "./TestCase/TestResultAttachmentsView.jsx";
 import { debugLog } from "../utils/logger";
+import {
+  calculateExecutionSummary,
+  TEST_RESULT_TYPES,
+} from "../utils/testResultConstants.js";
 
 // New Components
 import TestExecutionHeader from "./TestExecution/TestExecutionHeader.jsx";
@@ -969,31 +973,23 @@ const TestExecutionForm = ({
         matchingTestCaseIds.has(node.id) || folderIdsToShow.has(node.id),
     );
   }, [flattenedData, filters, resultsMap]);
-  const statusCounts = useMemo(() => {
-    const counts = {
-      PASS: 0,
-      FAIL: 0,
-      NOTRUN: 0,
-      BLOCKED: 0,
-      total: testCaseIds.length,
+  const { stats: statusCounts, progressPercent: progress } = useMemo(() => {
+    const summary = calculateExecutionSummary(
+      Array.from(resultsMap.values()),
+      testCaseIds.length,
+    );
+    // UI 호환성을 위해 대문자 키를 가진 객체로 변환 (PASS, FAIL 등)
+    return {
+      stats: {
+        PASS: summary.stats.pass,
+        FAIL: summary.stats.fail,
+        BLOCKED: summary.stats.blocked,
+        NOTRUN: summary.stats.notRun,
+        total: testCaseIds.length,
+      },
+      progressPercent: summary.progressPercent,
     };
-    testCaseIds.forEach((id) => {
-      const resObj = resultsMap.get(id);
-      const res = resObj?.result || TestResult.NOTRUN;
-      if (res === TestResult.PASS) counts.PASS += 1;
-      else if (res === TestResult.FAIL) counts.FAIL += 1;
-      else if (res === TestResult.BLOCKED) counts.BLOCKED += 1;
-      else counts.NOTRUN += 1;
-    });
-    return counts;
   }, [resultsMap, testCaseIds]);
-
-  const progress = useMemo(() => {
-    if (statusCounts.total === 0) return 0;
-    const completed =
-      statusCounts.PASS + statusCounts.FAIL + statusCounts.BLOCKED;
-    return Math.round((completed / statusCounts.total) * 100);
-  }, [statusCounts]);
 
   // 인피니티 스크롤을 위한 데이터 추출
   const visibleData = useMemo(() => {
