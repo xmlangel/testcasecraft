@@ -145,7 +145,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.56-SNAPSHOT'
+version = '1.0.58-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
