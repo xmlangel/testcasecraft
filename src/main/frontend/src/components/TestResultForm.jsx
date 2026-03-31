@@ -45,6 +45,7 @@ const TestResultForm = ({
   onSave,
   onNext = null,
   onPrevious = null,
+  onBack = null,
   currentIndex = 0,
   totalCount = 0,
   fullPage = false,
@@ -737,12 +738,13 @@ const TestResultForm = ({
         <TestResultHeader
           onPrevious={onPrevious}
           onNext={onNext}
+          onBack={onBack}
           currentIndex={currentIndex}
           totalCount={totalCount}
           testCase={testCase}
           isViewer={isViewer}
           t={t}
-          hideButtons={true}
+          hideButtons={false}
           execution={execution}
         />
 

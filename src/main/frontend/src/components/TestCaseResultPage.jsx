@@ -159,6 +159,7 @@ const TestCaseResultPage = () => {
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
+          bgcolor: "background.default",
         }}
       >
         <CircularProgress />
@@ -168,19 +169,18 @@ const TestCaseResultPage = () => {
 
   if (error) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#fafbfc" }}>
-        <AppBar position="static">
-          <Toolbar>
-            <IconButton edge="start" color="inherit" onClick={handleBack}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              {t("testCaseResult.page.title")}
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <Container maxWidth="md" sx={{ mt: 4 }}>
-          <Alert severity="error">{error}</Alert>
+      <Box sx={{ minHeight: "100vh", bgcolor: "background.default", p: 4 }}>
+        <Container maxWidth="md">
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={handleBack}>
+                {t("common.button.back", "뒤로가기")}
+              </Button>
+            }
+          >
+            {error}
+          </Alert>
         </Container>
       </Box>
     );
@@ -188,28 +188,13 @@ const TestCaseResultPage = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={handleBack}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {t("testCaseResult.page.title")}
-          </Typography>
-          {testCase && (
-            <Typography variant="body1" sx={{ mr: 2 }}>
-              {testCase.name}
-            </Typography>
-          )}
-        </Toolbar>
-      </AppBar>
-
       <Box
         sx={{
           width: "100%",
-          height: "calc(100vh - 64px)",
-          overflow: "auto",
-          p: 2,
+          height: "100vh",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         {execution && testCase ? (
@@ -224,6 +209,7 @@ const TestCaseResultPage = () => {
             onSave={handleSave}
             onNext={handleNext}
             onPrevious={handlePrevious}
+            onBack={handleBack}
             currentIndex={currentIndex}
             totalCount={testCasesList.length || 1}
             fullPage={true}
@@ -235,10 +221,10 @@ const TestCaseResultPage = () => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              minHeight: "50vh",
+              flex: 1,
             }}
           >
-            <Alert severity="info">
+            <Alert severity="info" variant="outlined">
               {t(
                 "testCaseResult.page.loadingData",
                 "테스트 케이스 정보를 불러오는 중입니다...",
