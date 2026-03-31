@@ -256,19 +256,35 @@ const TestResultForm = ({
   useEffect(() => {
     const fetchInitialIssueDetails = async () => {
       if (
-        jiraConnectionStatus?.hasConfig &&
-        jiraConnectionStatus?.isConnected &&
-        jiraIssueKey &&
-        linkedIssues.length === 0
+        !jiraConnectionStatus?.hasConfig ||
+        !jiraConnectionStatus?.isConnected ||
+        !jiraIssueKey
       ) {
-        try {
-          const details = await jiraService.getIssueDetails(jiraIssueKey);
-          if (details) {
-            setLinkedIssues([details]);
-          }
-        } catch (err) {
-          console.warn("기존 JIRA 이슈 상세 정보 로드 실패:", err);
+        return;
+      }
+
+      // 콤마로 구분된 모든 키 추출
+      const keys = jiraIssueKey
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean);
+
+      if (keys.length === 0) return;
+
+      try {
+        // 모든 이슈 정보를 병렬로 조회
+        const fetchPromises = keys.map((key) =>
+          jiraService.getIssueDetails(key),
+        );
+        const results = await Promise.all(fetchPromises);
+
+        // 유효한 결과만 필터링하여 상태 업데이트
+        const validResults = results.filter(Boolean);
+        if (validResults.length > 0) {
+          setLinkedIssues(validResults);
         }
+      } catch (err) {
+        console.warn("기존 JIRA 이슈 상세 정보 로드 실패:", err);
       }
     };
 

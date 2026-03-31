@@ -413,15 +413,15 @@ class JiraService {
       const existsResult = await this.checkIssueExists(issueKey);
 
       if (existsResult && existsResult.exists) {
-        // UI 컴포넌트들이 기대하는 필드명(key, status)과 DTO 필드명(jiraIssueKey, currentStatus)을 모두 포함하여 반환
+        // UI 컴포넌트들이 기대하는 필드명(key, status, summary, issueType, priority)으로 정규화하여 반환
         return {
           key: existsResult.issueKey,
           jiraIssueKey: existsResult.issueKey,
-          summary: existsResult.summary,
-          status: existsResult.status,
-          currentStatus: existsResult.status,
-          priority: existsResult.priority,
-          issueType: existsResult.issueType,
+          summary: existsResult.summary || "No Summary",
+          status: existsResult.status || { name: "Unknown" },
+          currentStatus: existsResult.status || { name: "Unknown" },
+          priority: existsResult.priority || { name: "Medium" },
+          issueType: existsResult.issueType || { name: "Task" },
           _isNewLink: true, // 신규 연동임을 표시
         };
       }

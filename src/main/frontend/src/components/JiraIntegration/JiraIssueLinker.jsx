@@ -241,15 +241,19 @@ const JiraIssueLinker = ({
   };
 
   const getIssueTypeIcon = (issueType) => {
+    if (!issueType) return <LinkIcon />;
+
     const type = (
       typeof issueType === "string"
         ? issueType
-        : issueType?.name || String(issueType || "")
+        : issueType?.name ||
+          (typeof issueType === "object" ? "" : String(issueType))
     ).toLowerCase();
 
     if (type.includes("bug")) return <BugReportIcon color="error" />;
     if (type.includes("task")) return <CheckCircleIcon color="primary" />;
     if (type.includes("story")) return <CheckCircleIcon color="success" />;
+    if (type.includes("epic")) return <BugReportIcon color="secondary" />; // 에픽 아이콘 추가
     return <LinkIcon />;
   };
 
@@ -267,13 +271,30 @@ const JiraIssueLinker = ({
   };
 
   const getStatusColor = (status) => {
+    if (!status) return "info";
+
     const s = (
-      typeof status === "string" ? status : status?.name || String(status || "")
+      typeof status === "string"
+        ? status
+        : status?.name || (typeof status === "object" ? "" : String(status))
     ).toLowerCase();
 
-    if (s.includes("done") || s.includes("완료")) return "success";
-    if (s.includes("progress") || s.includes("진행")) return "warning";
-    if (s.includes("todo") || s.includes("해야")) return "default";
+    if (
+      s.includes("done") ||
+      s.includes("완료") ||
+      s.includes("closed") ||
+      s.includes("resolved")
+    )
+      return "success";
+    if (s.includes("progress") || s.includes("진행") || s.includes("active"))
+      return "warning";
+    if (
+      s.includes("todo") ||
+      s.includes("해야") ||
+      s.includes("open") ||
+      s.includes("new")
+    )
+      return "default";
     return "info";
   };
 
@@ -302,7 +323,7 @@ const JiraIssueLinker = ({
       {/* 연결된 이슈 목록 */}
       {linkedIssues.length > 0 && (
         <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle2" gutterBottom>
+          <Typography variant="subtitle2" color="text.primary" gutterBottom>
             {t("jira.linker.linkedIssues", "연결된 JIRA 이슈")}:
           </Typography>
           <List dense>
@@ -312,7 +333,11 @@ const JiraIssueLinker = ({
                 <ListItemText
                   primary={
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="body2" fontWeight="bold">
+                      <Typography
+                        variant="body2"
+                        fontWeight="bold"
+                        color="text.primary"
+                      >
                         {issue.key}
                       </Typography>
                       <Chip
@@ -320,7 +345,10 @@ const JiraIssueLinker = ({
                         label={
                           typeof issue.status === "string"
                             ? issue.status
-                            : issue.status?.name || String(issue.status || "")
+                            : issue.status?.name ||
+                              (typeof issue.status === "object"
+                                ? "Unknown"
+                                : String(issue.status || "Unknown"))
                         }
                         color={getStatusColor(issue.status)}
                         variant="outlined"
@@ -332,7 +360,9 @@ const JiraIssueLinker = ({
                             typeof issue.priority === "string"
                               ? issue.priority
                               : issue.priority?.name ||
-                                String(issue.priority || "")
+                                (typeof issue.priority === "object"
+                                  ? "Medium"
+                                  : String(issue.priority || "Medium"))
                           }
                           color={getPriorityColor(issue.priority)}
                           variant="outlined"
@@ -340,13 +370,18 @@ const JiraIssueLinker = ({
                       )}
                     </Box>
                   }
-                  secondary={issue.summary}
+                  secondary={
+                    <Typography variant="body2" color="text.secondary">
+                      {issue.summary}
+                    </Typography>
+                  }
                 />
                 <ListItemSecondaryAction>
                   <IconButton
                     size="small"
                     onClick={() => openJiraIssue(issue.key)}
                     title={t("jira.linker.openInJira", "JIRA에서 열기")}
+                    sx={{ color: "text.secondary" }}
                   >
                     <LaunchIcon />
                   </IconButton>
@@ -355,6 +390,7 @@ const JiraIssueLinker = ({
                       size="small"
                       onClick={() => handleUnlinkIssue(issue.key)}
                       title={t("jira.linker.unlink", "연결 해제")}
+                      sx={{ color: "error.main" }}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -369,7 +405,7 @@ const JiraIssueLinker = ({
         <>
           {/* 이슈 검색 */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant="subtitle2" color="text.primary" gutterBottom>
               {t("jira.linker.searchAndLink", "JIRA 이슈 검색 및 연결")}:
             </Typography>
             <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
@@ -495,7 +531,11 @@ const JiraIssueLinker = ({
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          <Typography variant="body2" fontWeight="bold">
+                          <Typography
+                            variant="body2"
+                            fontWeight="bold"
+                            color="text.primary"
+                          >
                             {issue.key}
                           </Typography>
                           <Chip
@@ -504,7 +544,9 @@ const JiraIssueLinker = ({
                               typeof issue.status === "string"
                                 ? issue.status
                                 : issue.status?.name ||
-                                  String(issue.status || "")
+                                  (typeof issue.status === "object"
+                                    ? "Unknown"
+                                    : String(issue.status || "Unknown"))
                             }
                             color={getStatusColor(issue.status)}
                             variant="outlined"

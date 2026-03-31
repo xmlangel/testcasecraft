@@ -27,6 +27,7 @@ const TestResultJira = ({
             variant="subtitle1"
             gutterBottom
             sx={{ display: "flex", alignItems: "center", gap: 1 }}
+            color="text.primary"
           >
             <BugReportIcon />
             {t("testResult.form.jiraIntegration")}
