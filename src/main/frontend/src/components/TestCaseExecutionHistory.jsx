@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { useI18n } from "../context/I18nContext";
 import { useAppContext } from "../context/AppContext";
+import { formatDateSafe } from "../utils/dateUtils";
 
 const TestCaseExecutionHistory = ({ testCaseId }) => {
   const { api, activeProject } = useAppContext();
@@ -167,13 +168,11 @@ const TestCaseExecutionHistory = ({ testCaseId }) => {
                   },
                 }}
               >
-                <TableCell>
-                  {item.executedAt
-                    ? new Date(item.executedAt).toLocaleString()
-                    : "N/A"}
-                </TableCell>
+                <TableCell>{formatDateSafe(item.executedAt) || "-"}</TableCell>
                 <TableCell>{item.testExecutionName || "N/A"}</TableCell>
-                <TableCell>{getResultChip(item.status)}</TableCell>
+                <TableCell>
+                  {getResultChip(item.result || item.status)}
+                </TableCell>
                 <TableCell>{item.executedBy || "N/A"}</TableCell>
                 <TableCell>{item.notes || "-"}</TableCell>
               </TableRow>

@@ -203,18 +203,19 @@ public class TestCaseFileStorageService {
 
   /** 공개 토큰으로 첨부파일 조회 (비인증 다운로드용) */
   @Transactional(readOnly = true)
-  public TestCaseAttachment getAttachmentByPublicToken(String attachmentId, String token) {
-    if (token == null || token.isBlank()) {
+  public TestCaseAttachment getAttachmentByPublicToken(String id, String publicAccessToken) {
+    if (publicAccessToken == null || publicAccessToken.isBlank()) {
       throw new IllegalArgumentException("다운로드 토큰이 필요합니다.");
     }
 
     TestCaseAttachment attachment =
         attachmentRepository
-            .findByIdAndPublicAccessToken(attachmentId, token)
-            .orElseThrow(() -> new IllegalArgumentException("잘못된 다운로드 토큰입니다."));
+            .findByIdAndPublicAccessToken(id, publicAccessToken)
+            .orElseThrow(
+                () -> new IllegalStateException("유효하지 않은 공개 토큰이거나 첨부파일을 찾을 수 없습니다: id=" + id));
 
     if (attachment.getStatus() != TestCaseAttachment.AttachmentStatus.ACTIVE) {
-      throw new IllegalStateException("비활성화된 첨부파일입니다.");
+      throw new IllegalStateException("비활성화된 첨부파일입니다. 현재 상태: " + attachment.getStatus());
     }
 
     return attachment;
