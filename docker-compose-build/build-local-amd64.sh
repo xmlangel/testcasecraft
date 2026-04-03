@@ -24,7 +24,7 @@ DOCKER_USERNAME="xmlangel"
 APP_IMAGE="${DOCKER_USERNAME}/testcasecraft"
 RAG_IMAGE="${DOCKER_USERNAME}/testcasecraft-rag-service"
 PLATFORM="linux/amd64"
-VERSION="1.0.59" # 기본 버전
+VERSION="1.0.61" # 기본 버전
 TAG=""             # main 함수에서 설정됨
 
 # Load common utilities
