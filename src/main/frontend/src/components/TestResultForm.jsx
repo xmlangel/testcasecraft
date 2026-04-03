@@ -45,11 +45,13 @@ const TestResultForm = ({
   onSave,
   onNext = null,
   onPrevious = null,
+  onBack = null,
   currentIndex = 0,
   totalCount = 0,
   fullPage = false,
   onOpenFullPage = null,
   isPreviousResultEdit = false, // 새로운 prop: 이전 결과 수정 모드
+  execution = null, // 새로운 prop: 전체 실행 정보
 }) => {
   const { user, api } = useAppContext();
   const { t } = useI18n();
@@ -135,12 +137,21 @@ const TestResultForm = ({
         .split(",")
         .map((k) => k.trim())
         .filter(Boolean);
-      const initialIssues = keys.map((key) => ({
-        key,
-        summary: "Loading...",
-        status: { name: "..." },
-      }));
-      setLinkedIssues(initialIssues);
+
+      setLinkedIssues((prev) => {
+        // 이미 정보를 가지고 있는 이슈는 유지
+        return keys.map((key) => {
+          const existing = prev.find((issue) => issue.key === key);
+          if (existing && existing.summary !== "Loading...") {
+            return existing;
+          }
+          return {
+            key,
+            summary: "Loading...",
+            status: { name: "..." },
+          };
+        });
+      });
     } else {
       setLinkedIssues([]);
     }
@@ -254,19 +265,35 @@ const TestResultForm = ({
   useEffect(() => {
     const fetchInitialIssueDetails = async () => {
       if (
-        jiraConnectionStatus?.hasConfig &&
-        jiraConnectionStatus?.isConnected &&
-        jiraIssueKey &&
-        linkedIssues.length === 0
+        !jiraConnectionStatus?.hasConfig ||
+        !jiraConnectionStatus?.isConnected ||
+        !jiraIssueKey
       ) {
-        try {
-          const details = await jiraService.getIssueDetails(jiraIssueKey);
-          if (details) {
-            setLinkedIssues([details]);
-          }
-        } catch (err) {
-          console.warn("기존 JIRA 이슈 상세 정보 로드 실패:", err);
+        return;
+      }
+
+      // 콤마로 구분된 모든 키 추출
+      const keys = jiraIssueKey
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean);
+
+      if (keys.length === 0) return;
+
+      try {
+        // 모든 이슈 정보를 병렬로 조회
+        const fetchPromises = keys.map((key) =>
+          jiraService.getIssueDetails(key),
+        );
+        const results = await Promise.all(fetchPromises);
+
+        // 유효한 결과만 필터링하여 상태 업데이트
+        const validResults = results.filter(Boolean);
+        if (validResults.length > 0) {
+          setLinkedIssues(validResults);
         }
+      } catch (err) {
+        console.warn("기존 JIRA 이슈 상세 정보 로드 실패:", err);
       }
     };
 
@@ -408,11 +435,24 @@ const TestResultForm = ({
           tags: tags || [],
         };
 
-        const trimmedJiraKey = jiraIssueKey
-          ? jiraIssueKey.trim().toUpperCase()
-          : "";
-        if (trimmedJiraKey && trimmedJiraKey.length > 0) {
-          requestData.jiraIssueKey = trimmedJiraKey;
+        // ICT-178: JIRA 이슈 키 추출 (URL인 경우 ID 추출)
+        let processedJiraKey = "";
+        if (jiraIssueKey && jiraIssueKey.trim()) {
+          const keys = jiraIssueKey.split(",").map((k) => k.trim());
+          const cleanedKeys = keys.map((k) => {
+            // URL 패턴인 경우 ID 추출
+            if (k.includes("/") || k.includes("atlassian.net")) {
+              return jiraService.extractIssueKeyFromUrl(k) || k;
+            }
+            return k.toUpperCase();
+          });
+          // 중복 제거 및 빈 값 필터링
+          processedJiraKey = [...new Set(cleanedKeys)]
+            .filter((k) => k && k.length > 0)
+            .join(",");
+        }
+        if (processedJiraKey) {
+          requestData.jiraIssueKey = processedJiraKey;
         }
 
         if (isPreviousResultEdit && stableCurrentResult?.id) {
@@ -709,6 +749,7 @@ const TestResultForm = ({
               notes={notes}
               handleIssueLinked={handleIssueLinked}
               handleIssueUnlinked={handleIssueUnlinked}
+              onJiraIssueKeyChange={setJiraIssueKey}
               linkedIssues={linkedIssues}
               isViewer={isViewer}
               t={t}
@@ -736,12 +777,14 @@ const TestResultForm = ({
         <TestResultHeader
           onPrevious={onPrevious}
           onNext={onNext}
+          onBack={onBack}
           currentIndex={currentIndex}
           totalCount={totalCount}
           testCase={testCase}
           isViewer={isViewer}
           t={t}
-          hideButtons={true}
+          hideButtons={false}
+          execution={execution}
         />
 
         {renderContent()}

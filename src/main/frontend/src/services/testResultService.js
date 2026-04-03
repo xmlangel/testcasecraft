@@ -360,12 +360,12 @@ export async function getJiraStatusSummary(params = {}) {
 }
 
 /**
- * 비교용 통계 데이터 생성 (테스트 플랜별 또는 실행자별)
- * @param {string} type - 'by-plan' 또는 'by-executor'
- * @param {object} params - { projectId, source }
+ * 비교용 통계 데이터 생성 (테스트 플랜별, 실행별, 또는 실행자별)
+ * @param {string} type - 'by-plan', 'by-executor', 또는 'by-execution'
+ * @param {object} params - { projectId, source, testPlanIds }
  */
 export async function getComparisonStatistics(type = "by-plan", params = {}) {
-  const { projectId, source = "manual" } = params;
+  const { projectId, source = "manual", testPlanIds } = params;
 
   if (!projectId) {
     console.warn("프로젝트 ID가 없습니다. 빈 배열 반환");
@@ -373,8 +373,24 @@ export async function getComparisonStatistics(type = "by-plan", params = {}) {
   }
 
   try {
-    const endpoint = type === "by-plan" ? "by-plan" : "by-executor";
     const baseUrl = await getDynamicApiUrl();
+
+    // by-execution은 수동 테스트 API만 지원 (자동화 테스트는 execution 개념 없음)
+    if (type === "by-execution") {
+      const searchParams = new URLSearchParams();
+      searchParams.append("projectId", projectId);
+
+      if (testPlanIds && Array.isArray(testPlanIds) && testPlanIds.length > 0) {
+        testPlanIds.forEach((id) => searchParams.append("testPlanId", id));
+      }
+
+      const response = await fetchWithAuth(
+        `${baseUrl}/api/test-results-v2/comparison/by-execution?${searchParams.toString()}`,
+      );
+      return await response.json();
+    }
+
+    const endpoint = type === "by-plan" ? "by-plan" : "by-executor";
 
     // Source에 따라 다른 API 호출
     const apiPath =

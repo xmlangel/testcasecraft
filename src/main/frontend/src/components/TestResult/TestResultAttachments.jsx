@@ -45,6 +45,7 @@ const TestResultAttachments = ({
         variant="subtitle1"
         gutterBottom
         sx={{ display: "flex", alignItems: "center", gap: 1 }}
+        color="text.primary"
       >
         <AttachFileIcon />
         {t("testResult.form.fileAttachment")}
@@ -95,7 +96,7 @@ const TestResultAttachments = ({
       {/* 새로 첨부될 파일 목록 */}
       {attachedFiles.length > 0 && (
         <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle2" gutterBottom color="primary">
+          <Typography variant="subtitle2" gutterBottom color="primary.light">
             새로 첨부할 파일 ({attachedFiles.length}개)
           </Typography>
           <List dense>
@@ -142,7 +143,7 @@ const TestResultAttachments = ({
         currentResult.id &&
         currentResult.attachmentCount > 0 && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant="subtitle2" color="text.primary" gutterBottom>
               첨부파일
               {currentResult && currentResult.id && (
                 <Typography

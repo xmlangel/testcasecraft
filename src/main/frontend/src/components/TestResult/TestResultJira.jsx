@@ -9,6 +9,7 @@ const TestResultJira = ({
   notes,
   handleIssueLinked,
   handleIssueUnlinked,
+  onJiraIssueKeyChange,
   linkedIssues,
   isViewer,
   t,
@@ -27,6 +28,7 @@ const TestResultJira = ({
             variant="subtitle1"
             gutterBottom
             sx={{ display: "flex", alignItems: "center", gap: 1 }}
+            color="text.primary"
           >
             <BugReportIcon />
             {t("testResult.form.jiraIntegration")}
@@ -50,6 +52,7 @@ const TestResultJira = ({
             linkedIssues={linkedIssues}
             disabled={isViewer}
             initialSearchQuery={jiraIssueKey}
+            onQueryChange={onJiraIssueKeyChange}
           />
         </Box>
       )}

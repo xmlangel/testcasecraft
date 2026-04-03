@@ -313,8 +313,12 @@ const AppContent = () => {
   };
 
   // URL이 테스트실행 섹션인지 확인
+  // /executions 경로더라도 viewType 쿼리 파라미터가 있으면 결과 대시보드 섹션으로 처리
   const isTestExecutionsSection = () => {
     const path = location.pathname;
+    const searchParams = new URLSearchParams(location.search);
+    const hasViewType = searchParams.has("viewType");
+    if (hasViewType) return false; // viewType이 있으면 결과 탭에서 렌더링
     return path.match(/^\/projects\/[^\/]+\/executions/);
   };
 
@@ -332,8 +336,13 @@ const AppContent = () => {
   };
 
   // URL이 테스트결과 섹션인지 확인
+  // /results 경로 외에도 /executions에 viewType 쿼리 파라미터가 있는 경우도 포함
   const isTestResultsSection = () => {
     const path = location.pathname;
+    const searchParams = new URLSearchParams(location.search);
+    const hasViewType = searchParams.has("viewType");
+    if (path.match(/^\/projects\/[^\/]+\/executions/) && hasViewType)
+      return true;
     return path.match(/^\/projects\/[^\/]+\/results/);
   };
 

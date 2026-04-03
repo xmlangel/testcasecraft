@@ -8,6 +8,7 @@ import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
+import com.testcase.testcasemanagement.util.JiraKeyUtils;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -183,9 +184,10 @@ public class TestExecutionService {
         entity.getResults() != null ? entity.getResults() : new ArrayList<>();
     User currentUser = getCurrentUser();
 
-    // ICT-184: JIRA 이슈 키 존재 여부 검증 (JIRA 설정이 있을 때만)
-    if (resultDto.getJiraIssueKey() != null && !resultDto.getJiraIssueKey().trim().isEmpty()) {
-      String[] jiraIssueKeys = resultDto.getJiraIssueKey().split(",");
+    // ICT-184: JIRA 이슈 키 존재 여부 검증 (JIRA 설정이 있을 때만) 및 키 정제
+    String cleanedJiraKeys = JiraKeyUtils.extractJiraKeys(resultDto.getJiraIssueKey());
+    if (!cleanedJiraKeys.isEmpty()) {
+      String[] jiraIssueKeys = cleanedJiraKeys.split(",");
       for (String rawKey : jiraIssueKeys) {
         String jiraIssueKey = rawKey.trim();
         if (jiraIssueKey.isEmpty()) continue;
@@ -242,7 +244,7 @@ public class TestExecutionService {
     r.setResult(resultDto.getResult());
     r.setNotes(resultDto.getNotes());
 
-    r.setJiraIssueKey(resultDto.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
+    r.setJiraIssueKey(cleanedJiraKeys); // ICT-178: 정제된 JIRA 이슈 키 설정
     if (resultDto.getTags() != null) {
       r.setTags(new java.util.LinkedHashSet<>(resultDto.getTags()));
     }
@@ -275,9 +277,10 @@ public class TestExecutionService {
     User currentUser = getCurrentUser();
     LocalDateTime now = LocalDateTime.now();
 
-    // JIRA 이슈 키 검증 (한 번만)
-    if (bulkDto.getJiraIssueKey() != null && !bulkDto.getJiraIssueKey().trim().isEmpty()) {
-      String[] jiraIssueKeys = bulkDto.getJiraIssueKey().split(",");
+    // JIRA 이슈 키 검증 및 정제
+    String cleanedBulkJiraKeys = JiraKeyUtils.extractJiraKeys(bulkDto.getJiraIssueKey());
+    if (!cleanedBulkJiraKeys.isEmpty()) {
+      String[] jiraIssueKeys = cleanedBulkJiraKeys.split(",");
       for (String rawKey : jiraIssueKeys) {
         String jiraIssueKey = rawKey.trim();
         if (jiraIssueKey.isEmpty()) continue;
@@ -340,7 +343,7 @@ public class TestExecutionService {
       r.setTestCaseId(testCaseId);
       r.setResult(bulkDto.getResult());
       r.setNotes(bulkDto.getNotes());
-      r.setJiraIssueKey(bulkDto.getJiraIssueKey());
+      r.setJiraIssueKey(cleanedBulkJiraKeys);
       if (bulkDto.getTags() != null) {
         r.setTags(new java.util.LinkedHashSet<>(bulkDto.getTags()));
       }
@@ -700,9 +703,10 @@ public class TestExecutionService {
                   : "unknown"));
     }
 
-    // 4. JIRA 이슈 키 검증 (변경된 경우에만)
-    if (resultDto.getJiraIssueKey() != null && !resultDto.getJiraIssueKey().trim().isEmpty()) {
-      String[] jiraIssueKeys = resultDto.getJiraIssueKey().split(",");
+    // 4. JIRA 이슈 키 검증 및 정제 (변경된 경우에만)
+    String cleanedPreviousJiraKeys = JiraKeyUtils.extractJiraKeys(resultDto.getJiraIssueKey());
+    if (!cleanedPreviousJiraKeys.isEmpty()) {
+      String[] jiraIssueKeys = cleanedPreviousJiraKeys.split(",");
       for (String rawKey : jiraIssueKeys) {
         String jiraIssueKey = rawKey.trim();
         if (jiraIssueKey.isEmpty()) continue;
@@ -746,7 +750,7 @@ public class TestExecutionService {
     // 5. TestResult 업데이트
     existingResult.setResult(resultDto.getResult());
     existingResult.setNotes(resultDto.getNotes());
-    existingResult.setJiraIssueKey(resultDto.getJiraIssueKey());
+    existingResult.setJiraIssueKey(cleanedPreviousJiraKeys);
 
     if (resultDto.getTags() != null) {
       existingResult.setTags(new java.util.LinkedHashSet<>(resultDto.getTags()));

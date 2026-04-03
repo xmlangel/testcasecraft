@@ -126,7 +126,7 @@ const TestResultNotes = ({
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="subtitle2">
+          <Typography variant="subtitle2" color="text.primary">
             {t("testResult.form.notes", "비고")}
           </Typography>
           {notes && (
@@ -153,6 +153,7 @@ const TestResultNotes = ({
           <Typography
             variant="caption"
             color={notes.length >= 9500 ? "error" : "text.secondary"}
+            sx={{ fontWeight: 500 }}
           >
             {notes.length}/10,000
           </Typography>

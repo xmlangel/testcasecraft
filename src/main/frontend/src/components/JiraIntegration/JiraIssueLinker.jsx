@@ -41,6 +41,7 @@ const JiraIssueLinker = ({
   projectId = null,
   onIssueLinked = null,
   onIssueUnlinked = null,
+  onQueryChange = null,
   linkedIssues = [],
   disabled = false,
   initialSearchQuery = "",
@@ -75,7 +76,13 @@ const JiraIssueLinker = ({
   // ICT-184: 검색어 변경 시 실시간 검증
   useEffect(() => {
     const validateIssueKey = async () => {
-      const query = searchQuery.trim();
+      let query = searchQuery.trim();
+
+      // URL인 경우 키만 추출
+      const extractedKey = jiraService.extractIssueKeyFromUrl(query);
+      if (extractedKey) {
+        query = extractedKey;
+      }
 
       // 빈 입력이거나 JIRA 이슈 키 패턴이 아니면 검증 안함
       if (!query || !jiraService.isValidIssueKey(query)) {
@@ -113,9 +120,14 @@ const JiraIssueLinker = ({
     };
 
     // 300ms 디바운스
-    const debounceTimer = setTimeout(validateIssueKey, 300);
+    const debounceTimer = setTimeout(() => {
+      validateIssueKey();
+      if (onQueryChange) {
+        onQueryChange(searchQuery);
+      }
+    }, 300);
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, onQueryChange]);
 
   const checkJiraStatus = async () => {
     try {
@@ -169,14 +181,22 @@ const JiraIssueLinker = ({
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) {
+    let query = searchQuery.trim();
+
+    // URL인 경우 키만 추출
+    const extractedKey = jiraService.extractIssueKeyFromUrl(query);
+    if (extractedKey) {
+      query = extractedKey;
+    }
+
+    if (!query) {
       setError(t("jira.linker.enterSearchQuery", "검색어를 입력하세요."));
       return;
     }
 
     if (
       issueValidation.status === "error" &&
-      jiraService.isValidIssueKey(searchQuery.trim())
+      jiraService.isValidIssueKey(query)
     ) {
       setError(
         t(
@@ -191,7 +211,7 @@ const JiraIssueLinker = ({
     setError(null);
 
     try {
-      const results = await jiraService.searchIssues(searchQuery.trim());
+      const results = await jiraService.searchIssues(query);
       setSearchResults(results || []);
 
       if (!results || results.length === 0) {
@@ -241,15 +261,29 @@ const JiraIssueLinker = ({
   };
 
   const getIssueTypeIcon = (issueType) => {
-    const type = issueType?.toLowerCase() || "";
+    if (!issueType) return <LinkIcon />;
+
+    const type = (
+      typeof issueType === "string"
+        ? issueType
+        : issueType?.name ||
+          (typeof issueType === "object" ? "" : String(issueType))
+    ).toLowerCase();
+
     if (type.includes("bug")) return <BugReportIcon color="error" />;
     if (type.includes("task")) return <CheckCircleIcon color="primary" />;
     if (type.includes("story")) return <CheckCircleIcon color="success" />;
+    if (type.includes("epic")) return <BugReportIcon color="secondary" />; // 에픽 아이콘 추가
     return <LinkIcon />;
   };
 
   const getPriorityColor = (priority) => {
-    const p = priority?.toLowerCase() || "";
+    const p = (
+      typeof priority === "string"
+        ? priority
+        : priority?.name || String(priority || "")
+    ).toLowerCase();
+
     if (p.includes("highest") || p.includes("critical")) return "error";
     if (p.includes("high")) return "warning";
     if (p.includes("medium")) return "info";
@@ -257,10 +291,30 @@ const JiraIssueLinker = ({
   };
 
   const getStatusColor = (status) => {
-    const s = status?.toLowerCase() || "";
-    if (s.includes("done") || s.includes("완료")) return "success";
-    if (s.includes("progress") || s.includes("진행")) return "warning";
-    if (s.includes("todo") || s.includes("해야")) return "default";
+    if (!status) return "info";
+
+    const s = (
+      typeof status === "string"
+        ? status
+        : status?.name || (typeof status === "object" ? "" : String(status))
+    ).toLowerCase();
+
+    if (
+      s.includes("done") ||
+      s.includes("완료") ||
+      s.includes("closed") ||
+      s.includes("resolved")
+    )
+      return "success";
+    if (s.includes("progress") || s.includes("진행") || s.includes("active"))
+      return "warning";
+    if (
+      s.includes("todo") ||
+      s.includes("해야") ||
+      s.includes("open") ||
+      s.includes("new")
+    )
+      return "default";
     return "info";
   };
 
@@ -289,7 +343,7 @@ const JiraIssueLinker = ({
       {/* 연결된 이슈 목록 */}
       {linkedIssues.length > 0 && (
         <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle2" gutterBottom>
+          <Typography variant="subtitle2" color="text.primary" gutterBottom>
             {t("jira.linker.linkedIssues", "연결된 JIRA 이슈")}:
           </Typography>
           <List dense>
@@ -299,32 +353,55 @@ const JiraIssueLinker = ({
                 <ListItemText
                   primary={
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="body2" fontWeight="bold">
+                      <Typography
+                        variant="body2"
+                        fontWeight="bold"
+                        color="text.primary"
+                      >
                         {issue.key}
                       </Typography>
                       <Chip
                         size="small"
-                        label={issue.status}
+                        label={
+                          typeof issue.status === "string"
+                            ? issue.status
+                            : issue.status?.name ||
+                              (typeof issue.status === "object"
+                                ? "Unknown"
+                                : String(issue.status || "Unknown"))
+                        }
                         color={getStatusColor(issue.status)}
                         variant="outlined"
                       />
                       {issue.priority && (
                         <Chip
                           size="small"
-                          label={issue.priority}
+                          label={
+                            typeof issue.priority === "string"
+                              ? issue.priority
+                              : issue.priority?.name ||
+                                (typeof issue.priority === "object"
+                                  ? "Medium"
+                                  : String(issue.priority || "Medium"))
+                          }
                           color={getPriorityColor(issue.priority)}
                           variant="outlined"
                         />
                       )}
                     </Box>
                   }
-                  secondary={issue.summary}
+                  secondary={
+                    <Typography variant="body2" color="text.secondary">
+                      {issue.summary}
+                    </Typography>
+                  }
                 />
                 <ListItemSecondaryAction>
                   <IconButton
                     size="small"
                     onClick={() => openJiraIssue(issue.key)}
                     title={t("jira.linker.openInJira", "JIRA에서 열기")}
+                    sx={{ color: "text.secondary" }}
                   >
                     <LaunchIcon />
                   </IconButton>
@@ -333,6 +410,7 @@ const JiraIssueLinker = ({
                       size="small"
                       onClick={() => handleUnlinkIssue(issue.key)}
                       title={t("jira.linker.unlink", "연결 해제")}
+                      sx={{ color: "error.main" }}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -347,7 +425,7 @@ const JiraIssueLinker = ({
         <>
           {/* 이슈 검색 */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant="subtitle2" color="text.primary" gutterBottom>
               {t("jira.linker.searchAndLink", "JIRA 이슈 검색 및 연결")}:
             </Typography>
             <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
@@ -473,12 +551,23 @@ const JiraIssueLinker = ({
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          <Typography variant="body2" fontWeight="bold">
+                          <Typography
+                            variant="body2"
+                            fontWeight="bold"
+                            color="text.primary"
+                          >
                             {issue.key}
                           </Typography>
                           <Chip
                             size="small"
-                            label={issue.status}
+                            label={
+                              typeof issue.status === "string"
+                                ? issue.status
+                                : issue.status?.name ||
+                                  (typeof issue.status === "object"
+                                    ? "Unknown"
+                                    : String(issue.status || "Unknown"))
+                            }
                             color={getStatusColor(issue.status)}
                             variant="outlined"
                           />
@@ -509,13 +598,23 @@ const JiraIssueLinker = ({
                   <Typography variant="h6">{selectedIssue.key}</Typography>
                   <Chip
                     size="small"
-                    label={selectedIssue.status}
+                    label={
+                      typeof selectedIssue.status === "string"
+                        ? selectedIssue.status
+                        : selectedIssue.status?.name ||
+                          String(selectedIssue.status || "")
+                    }
                     color={getStatusColor(selectedIssue.status)}
                   />
                   {selectedIssue.priority && (
                     <Chip
                       size="small"
-                      label={selectedIssue.priority}
+                      label={
+                        typeof selectedIssue.priority === "string"
+                          ? selectedIssue.priority
+                          : selectedIssue.priority?.name ||
+                            String(selectedIssue.priority || "")
+                      }
                       color={getPriorityColor(selectedIssue.priority)}
                     />
                   )}

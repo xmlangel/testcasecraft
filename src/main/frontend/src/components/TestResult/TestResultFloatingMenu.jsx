@@ -38,6 +38,7 @@ const TestResultFloatingMenu = ({
   isNotesFullscreen = false,
 }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
 
   // Navigation disabled logic
   const prevDisabled =
@@ -76,31 +77,49 @@ const TestResultFloatingMenu = ({
     <Box
       sx={{
         position: "fixed",
-        bottom: 24,
+        bottom: 32,
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: isNotesFullscreen ? 11000 : 1300,
         width: "auto",
         maxWidth: "95vw",
+        animation: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        "@keyframes slideUp": {
+          "0%": { transform: "translateX(-50%) translateY(100px)", opacity: 0 },
+          "100%": { transform: "translateX(-50%) translateY(0)", opacity: 1 },
+        },
       }}
     >
       <Paper
-        elevation={6}
+        elevation={0}
         sx={{
-          p: 0.8,
-          px: 1.5,
-          borderRadius: 10,
+          p: 1,
+          px: 2,
+          borderRadius: "999px",
           display: "flex",
           alignItems: "center",
-          gap: 0.5,
-          bgcolor: alpha(theme.palette.background.paper, 0.9),
-          backdropFilter: "blur(12px)",
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-          boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.2)",
+          gap: 1,
+          bgcolor: isDark
+            ? "rgba(28, 28, 30, 0.85)"
+            : "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          border: `1px solid ${
+            isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)"
+          }`,
+          boxShadow: isDark
+            ? "0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1)"
+            : "0 12px 40px rgba(0, 0, 0, 0.15)",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: isDark
+              ? "0 16px 48px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.15)"
+              : "0 16px 48px rgba(0, 0, 0, 0.2)",
+            transform: "translateY(-2px)",
+          },
         }}
       >
         {/* Navigation Section */}
-        <Stack direction="row" alignItems="center" spacing={0}>
+        <Stack direction="row" alignItems="center" spacing={0.5}>
           <Tooltip title={t("common.button.previous", "이전")}>
             <span>
               <IconButton
@@ -108,22 +127,38 @@ const TestResultFloatingMenu = ({
                 disabled={prevDisabled}
                 color="primary"
                 size="small"
+                sx={{
+                  transition: "transform 0.2s",
+                  "&:active": { transform: "translateX(-4px)" },
+                }}
               >
                 <NavigateBeforeIcon fontSize="small" />
               </IconButton>
             </span>
           </Tooltip>
 
-          <Box sx={{ minWidth: 45, textAlign: "center" }}>
+          <Box sx={{ minWidth: 50, textAlign: "center" }}>
             <Typography
               variant="caption"
               sx={{
-                fontWeight: 700,
-                color: "text.secondary",
-                fontSize: "0.75rem",
+                fontWeight: 800,
+                color: "text.primary",
+                fontSize: "0.8rem",
+                fontVariantNumeric: "tabular-nums",
+                opacity: 0.9,
               }}
             >
-              {totalCount > 0 ? `${currentIndex + 1}/${totalCount}` : "-/-"}
+              {totalCount > 0 ? (
+                <>
+                  <span style={{ color: theme.palette.primary.main }}>
+                    {currentIndex + 1}
+                  </span>
+                  <span style={{ opacity: 0.3, margin: "0 2px" }}>/</span>
+                  <span>{totalCount}</span>
+                </>
+              ) : (
+                "-/-"
+              )}
             </Typography>
           </Box>
 
@@ -134,6 +169,10 @@ const TestResultFloatingMenu = ({
                 disabled={nextDisabled}
                 color="primary"
                 size="small"
+                sx={{
+                  transition: "transform 0.2s",
+                  "&:active": { transform: "translateX(4px)" },
+                }}
               >
                 <NavigateNextIcon fontSize="small" />
               </IconButton>
@@ -141,46 +180,61 @@ const TestResultFloatingMenu = ({
           </Tooltip>
         </Stack>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{ mx: 0.5, my: 1, opacity: 0.5 }}
+        />
 
         {/* Result Selection Section */}
-        <Stack direction="row" spacing={0.5} sx={{ px: 0.5 }}>
-          {resultOptions.map((opt) => (
-            <Tooltip key={opt.value} title={opt.tooltip}>
-              <span>
-                <IconButton
-                  size="small"
-                  onClick={() => !isViewer && onResultChange(opt.value)}
-                  disabled={isViewer}
-                  sx={{
-                    width: 28,
-                    height: 28,
-                    fontSize: "0.7rem",
-                    fontWeight: 800,
-                    bgcolor: result === opt.value ? opt.color : "transparent",
-                    color: result === opt.value ? "#fff" : opt.color,
-                    border: `1px solid ${opt.color}`,
-                    "&:hover": {
-                      bgcolor:
-                        result === opt.value
-                          ? opt.color
-                          : alpha(opt.color, 0.1),
-                    },
-                    transition: "all 0.2s",
-                    transform: result === opt.value ? "scale(1.1)" : "scale(1)",
-                  }}
-                >
-                  {opt.label}
-                </IconButton>
-              </span>
-            </Tooltip>
-          ))}
+        <Stack direction="row" spacing={1} sx={{ px: 0.5 }}>
+          {resultOptions.map((opt) => {
+            const isSelected = result === opt.value;
+            return (
+              <Tooltip key={opt.value} title={opt.tooltip}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => !isViewer && onResultChange(opt.value)}
+                    disabled={isViewer}
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      fontSize: "0.75rem",
+                      fontWeight: 900,
+                      bgcolor: isSelected ? opt.color : "transparent",
+                      color: isSelected ? "#fff" : opt.color,
+                      border: `1.5px solid ${
+                        isSelected ? opt.color : alpha(opt.color, 0.3)
+                      }`,
+                      boxShadow: isSelected
+                        ? `0 4px 12px ${alpha(opt.color, 0.4)}`
+                        : "none",
+                      "&:hover": {
+                        bgcolor: isSelected ? opt.color : alpha(opt.color, 0.1),
+                        borderColor: opt.color,
+                        transform: "translateY(-2px)",
+                      },
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                      transform: isSelected ? "scale(1.15)" : "scale(1)",
+                    }}
+                  >
+                    {opt.label}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            );
+          })}
         </Stack>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{ mx: 0.5, my: 1, opacity: 0.5 }}
+        />
 
         {/* Action Section */}
-        <Stack direction="row" spacing={0.5} alignItems="center">
+        <Stack direction="row" spacing={1} alignItems="center">
           {shouldShowJiraButton && shouldShowJiraButton() && !isViewer && (
             <Tooltip title={t("testResult.form.jiraComment", "JIRA 코멘트")}>
               <span>
@@ -188,7 +242,13 @@ const TestResultFloatingMenu = ({
                   color="warning"
                   onClick={handleOpenJiraDialog}
                   disabled={loading}
-                  size="small"
+                  size="medium"
+                  sx={{
+                    bgcolor: alpha(theme.palette.warning.main, 0.1),
+                    "&:hover": {
+                      bgcolor: alpha(theme.palette.warning.main, 0.2),
+                    },
+                  }}
                 >
                   <BugReportIcon fontSize="small" />
                 </IconButton>
@@ -202,10 +262,13 @@ const TestResultFloatingMenu = ({
             color="inherit"
             size="small"
             sx={{
-              borderRadius: 8,
-              px: 1.5,
-              fontSize: "0.8rem",
+              borderRadius: "50px",
+              px: 2,
+              fontWeight: 600,
+              fontSize: "0.85rem",
               display: { xs: "none", md: "inline-flex" },
+              opacity: 0.7,
+              "&:hover": { opacity: 1, bgcolor: "rgba(0,0,0,0.05)" },
             }}
           >
             {t("common.button.cancel", "취소")}
@@ -229,13 +292,23 @@ const TestResultFloatingMenu = ({
               startIcon={<SaveIcon fontSize="small" />}
               disabled={loading || !testCase}
               sx={{
-                borderRadius: 8,
-                px: 2,
-                fontSize: "0.8rem",
-                minWidth: "70px",
-                boxShadow: theme.shadows[2],
+                borderRadius: "50px",
+                px: 3,
+                py: 0.8,
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                minWidth: "90px",
+                boxShadow: `0 4px 14px 0 ${alpha(
+                  theme.palette.primary.main,
+                  0.39,
+                )}`,
+                transition: "all 0.2s",
                 "&:hover": {
-                  boxShadow: theme.shadows[4],
+                  boxShadow: `0 6px 20px rgba(0, 0, 0, 0.23)`,
+                  transform: "scale(1.02)",
+                },
+                "&:active": {
+                  transform: "scale(0.98)",
                 },
               }}
               data-testid="floating-save-button"

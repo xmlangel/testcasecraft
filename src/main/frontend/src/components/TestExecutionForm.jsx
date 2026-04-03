@@ -38,6 +38,7 @@ import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX } from "../styles/layoutConstants";
 import TestResultAttachmentsView from "./TestCase/TestResultAttachmentsView.jsx";
 import { debugLog } from "../utils/logger";
+import { TEST_RESULT_TYPES } from "../utils/testResultConstants.js";
 
 // New Components
 import TestExecutionHeader from "./TestExecution/TestExecutionHeader.jsx";
@@ -969,31 +970,46 @@ const TestExecutionForm = ({
         matchingTestCaseIds.has(node.id) || folderIdsToShow.has(node.id),
     );
   }, [flattenedData, filters, resultsMap]);
-  const statusCounts = useMemo(() => {
-    const counts = {
-      PASS: 0,
-      FAIL: 0,
-      NOTRUN: 0,
-      BLOCKED: 0,
-      total: testCaseIds.length,
-    };
-    testCaseIds.forEach((id) => {
-      const resObj = resultsMap.get(id);
-      const res = resObj?.result || TestResult.NOTRUN;
-      if (res === TestResult.PASS) counts.PASS += 1;
-      else if (res === TestResult.FAIL) counts.FAIL += 1;
-      else if (res === TestResult.BLOCKED) counts.BLOCKED += 1;
-      else counts.NOTRUN += 1;
-    });
-    return counts;
-  }, [resultsMap, testCaseIds]);
+  const { stats: statusCounts, progressPercent: progress } = useMemo(() => {
+    // testCaseIds(플랜의 실제 케이스 목록)를 기준으로 각 상태를 카운팅
+    // resultsMap.values() 기반 계산은 재실행 이력이 많을 때 카운트가 부풀려지는 버그가 있었음
+    const total = testCaseIds.length;
+    let pass = 0;
+    let fail = 0;
+    let blocked = 0;
+    let completedCount = 0;
 
-  const progress = useMemo(() => {
-    if (statusCounts.total === 0) return 0;
-    const completed =
-      statusCounts.PASS + statusCounts.FAIL + statusCounts.BLOCKED;
-    return Math.round((completed / statusCounts.total) * 100);
-  }, [statusCounts]);
+    testCaseIds.forEach((id) => {
+      const result = resultsMap.get(id);
+      const resultValue = result?.result;
+      if (resultValue === "PASS") {
+        pass++;
+        completedCount++;
+      } else if (resultValue === "FAIL") {
+        fail++;
+        completedCount++;
+      } else if (resultValue === "BLOCKED") {
+        blocked++;
+        completedCount++;
+      }
+      // NOTRUN이거나 결과가 없는 경우 미실행으로 처리 (별도 카운팅 불필요)
+    });
+
+    const notRun = Math.max(0, total - completedCount);
+    const progressPercent =
+      total > 0 ? Math.min(100, Math.round((completedCount / total) * 100)) : 0;
+
+    return {
+      stats: {
+        PASS: pass,
+        FAIL: fail,
+        BLOCKED: blocked,
+        NOTRUN: notRun,
+        total,
+      },
+      progressPercent,
+    };
+  }, [resultsMap, testCaseIds]);
 
   // 인피니티 스크롤을 위한 데이터 추출
   const visibleData = useMemo(() => {

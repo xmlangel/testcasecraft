@@ -230,8 +230,13 @@ public class TestCaseAttachmentController {
       @PathVariable String attachmentId, @RequestParam("token") String token) {
 
     try {
+      log.debug("공개 토큰을 이용한 파일 다운로드 시도: attachmentId={}, token={}", attachmentId, token);
       TestCaseAttachment attachment =
           fileStorageService.getAttachmentByPublicToken(attachmentId, token);
+      log.debug(
+          "첨부파일 정보 조회 성공: fileName={}, mimeType={}",
+          attachment.getOriginalFileName(),
+          attachment.getMimeType());
       Resource resource = fileStorageService.loadFileAsResource(attachment);
 
       HttpHeaders headers = new HttpHeaders();
@@ -254,7 +259,7 @@ public class TestCaseAttachmentController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
     } catch (IllegalStateException e) {
-      log.warn("공개 다운로드 실패 (비활성화 파일): {}", e.getMessage());
+      log.error("파일 다운로드 권한 오류 (403 Forbidden): {}", e.getMessage());
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
     } catch (IOException e) {

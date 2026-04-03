@@ -331,6 +331,64 @@ export const getLocalizedResultConfig = (resultType, t) => {
 };
 
 /**
+ * 테스트 실행 결과 배열에서 각 테스트케이스별 최신 결과만 추출
+ * @param {Array} results - 실행 결과 배열 (최신순 정렬 가정)
+ * @returns {Array} 최신 결과 배열
+ */
+export const getLatestExecutionResults = (results) => {
+  if (!Array.isArray(results)) return [];
+  const map = new Map();
+  results.forEach((r) => {
+    const key = r.testCaseId;
+    if (key && !map.has(key)) {
+      map.set(key, r);
+    }
+  });
+  return Array.from(map.values());
+};
+
+/**
+ * 테스트 실행의 종합 요약 정보 계산 (최신 결과 기준)
+ * @param {Array} results - 실행 결과 배열
+ * @param {number} totalCount - 전체 테스트케이스 수
+ * @returns {Object} { stats, progressPercent }
+ */
+export const calculateExecutionSummary = (results, totalCount) => {
+  const latestResults = getLatestExecutionResults(results);
+
+  const stats = {
+    pass: 0,
+    fail: 0,
+    blocked: 0,
+    notRun: 0,
+    completedCount: 0,
+  };
+
+  latestResults.forEach((r) => {
+    const res = r.result;
+    if (res === TEST_RESULT_TYPES.PASS) {
+      stats.pass++;
+      stats.completedCount++;
+    } else if (res === TEST_RESULT_TYPES.FAIL) {
+      stats.fail++;
+      stats.completedCount++;
+    } else if (res === TEST_RESULT_TYPES.BLOCKED) {
+      stats.blocked++;
+      stats.completedCount++;
+    }
+  });
+
+  stats.notRun = Math.max(0, totalCount - stats.completedCount);
+
+  const progressPercent =
+    totalCount > 0
+      ? Math.min(100, Math.round((stats.completedCount / totalCount) * 100))
+      : 0;
+
+  return { stats, progressPercent };
+};
+
+/**
  * 기본 내보내기: 호환성을 위한 메인 설정
  */
 export default {
@@ -342,7 +400,8 @@ export default {
   getResultLabel,
   getResultColor,
   getResultIcon,
-  calculateTestStatistics,
   convertToChartData,
   getLocalizedResultConfig,
+  getLatestExecutionResults,
+  calculateExecutionSummary,
 };

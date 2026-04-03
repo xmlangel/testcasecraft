@@ -384,4 +384,69 @@ public class TestResultStatisticsService {
       return new ArrayList<>();
     }
   }
+
+  /** 실행별 비교 통계 조회 (View Type: By Execution) */
+  public List<Map<String, Object>> getComparisonStatisticsByExecution(
+      String projectId, List<String> testPlanIds) {
+    log.info("실행별 비교 통계 조회 - 프로젝트: {}, 플랜: {}", projectId, testPlanIds);
+
+    try {
+      List<Map<String, Object>> executionStats;
+
+      if (testPlanIds != null && !testPlanIds.isEmpty()) {
+        // 특정 플랜의 실행들만 조회
+        executionStats =
+            testResultRepository.findStatisticsByExecutionAndTestPlan(projectId, testPlanIds);
+      } else {
+        // 프로젝트 전체 실행 통계
+        executionStats = testResultRepository.findStatisticsByExecution(projectId);
+      }
+
+      return executionStats.stream()
+          .map(
+              stat -> {
+                Map<String, Object> result = new HashMap<>();
+
+                // 실행 이름 + 플랜 이름 조합으로 표시
+                String executionName = (String) stat.get("execution_name");
+                String planName = (String) stat.get("test_plan_name");
+                result.put(
+                    "name",
+                    (planName != null && !planName.isEmpty())
+                        ? planName + " / " + executionName
+                        : executionName);
+                result.put("executionId", stat.get("test_execution_id"));
+                result.put("planName", planName);
+                result.put("executionName", executionName);
+
+                result.put("passCount", stat.get("pass_count"));
+                result.put("failCount", stat.get("fail_count"));
+                result.put("blockedCount", stat.get("blocked_count"));
+                result.put("notRunCount", stat.get("not_run_count"));
+
+                // 전체 테스트 수 계산
+                long totalTests =
+                    ((Number) stat.get("pass_count")).longValue()
+                        + ((Number) stat.get("fail_count")).longValue()
+                        + ((Number) stat.get("blocked_count")).longValue()
+                        + ((Number) stat.get("not_run_count")).longValue();
+                result.put("totalTests", totalTests);
+
+                // 성공률 계산
+                long executed = totalTests - ((Number) stat.get("not_run_count")).longValue();
+                double successRate =
+                    executed > 0
+                        ? (((Number) stat.get("pass_count")).doubleValue() / executed) * 100.0
+                        : 0.0;
+                result.put("successRate", Math.round(successRate * 100.0) / 100.0);
+
+                return result;
+              })
+          .collect(Collectors.toList());
+
+    } catch (Exception e) {
+      log.error("실행별 통계 조회 실패: {}", e.getMessage(), e);
+      return new ArrayList<>();
+    }
+  }
 }

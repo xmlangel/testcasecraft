@@ -214,6 +214,26 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.sections.attachments", languageCode, "Attachments", createdBy);
 
+    // Tab labels
+    createTranslationIfNotExists("testcase.tabs.details", languageCode, "Details", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tabs.attachments", languageCode, "Attachments", createdBy);
+    createTranslationIfNotExists("testcase.tabs.execution", languageCode, "Executions", createdBy);
+    createTranslationIfNotExists("testcase.tabs.history", languageCode, "History", createdBy);
+
+    // Execution history table
+    createTranslationIfNotExists("testcase.execution.column.date", languageCode, "Date", createdBy);
+    createTranslationIfNotExists(
+        "testcase.execution.column.executionName", languageCode, "Execution", createdBy);
+    createTranslationIfNotExists(
+        "testcase.execution.column.result", languageCode, "Result", createdBy);
+    createTranslationIfNotExists(
+        "testcase.execution.column.executor", languageCode, "Executor", createdBy);
+    createTranslationIfNotExists(
+        "testcase.execution.column.notes", languageCode, "Notes", createdBy);
+    createTranslationIfNotExists(
+        "testcase.execution.noData", languageCode, "No execution history.", createdBy);
+
     createTranslationIfNotExists(
         "testcase.helper.description", languageCode, "Enter description.", createdBy);
     createTranslationIfNotExists(
