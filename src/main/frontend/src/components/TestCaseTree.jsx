@@ -182,23 +182,57 @@ const MemoizedTreeItem = React.memo(
 
     const labelContent = (
       <Box
-        sx={{ display: "flex", alignItems: "center", width: "100%" }}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          width: "100%",
+          height: "100%",
+        }}
         onContextMenu={(e) => onContextMenu(e, node.id)}
       >
-        {!isViewerRole && (
-          <Checkbox
-            size="small"
-            checked={isChecked}
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => onCheck(e, node.id)}
-            sx={{ mr: 0.5, p: 0.5 }}
-          />
-        )}
-        {isFolder(node) ? (
-          <FolderIcon color="primary" sx={{ mr: 1 }} />
-        ) : (
-          <DescriptionIcon sx={{ mr: 1 }} />
-        )}
+        {/* 체크박스 영역: 고정 너비 40px */}
+        <Box
+          sx={{
+            width: 40,
+            display: "flex",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {!isViewerRole && (
+            <Checkbox
+              size="small"
+              checked={isChecked}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => onCheck(e, node.id)}
+              sx={{ p: 0.5 }}
+            />
+          )}
+        </Box>
+
+        {/* 아이콘 영역: 고정 너비 32px */}
+        <Box
+          sx={{
+            width: 32,
+            display: "flex",
+            justifyContent: "center",
+            flexShrink: 0,
+            mr: 1,
+          }}
+        >
+          {isFolder(node) ? (
+            <FolderIcon color="primary" fontSize="small" />
+          ) : (
+            <DescriptionIcon
+              fontSize="small"
+              sx={{
+                color: node.ragVectorized ? "primary.main" : "action.active",
+              }}
+            />
+          )}
+        </Box>
+
+        {/* 이름 영역: 가변 너비 */}
         <Typography
           variant="body2"
           sx={{
@@ -207,81 +241,110 @@ const MemoizedTreeItem = React.memo(
             overflow: "hidden",
             textOverflow: "ellipsis",
             flexGrow: 1,
+            textAlign: "left",
+            lineHeight: 1.5,
           }}
         >
           {node.name}
         </Typography>
-        <Typography
-          variant="caption"
+
+        {/* 메타 정보 및 버튼 영역: 우측 정렬 */}
+        <Box
           sx={{
-            ml: 1,
-            color: "primary.dark",
-            fontWeight: "bold",
-            whiteSpace: "nowrap",
+            display: "flex",
+            alignItems: "center",
+            ml: "auto",
+            flexShrink: 0,
           }}
         >
-          #{nodeOrder}
-        </Typography>
-        {orderEditMode && !isViewerRole && (
-          <Box sx={{ display: "flex", ml: 1 }}>
-            <IconButton
-              size="small"
-              disabled={idx === 0 || !siblings}
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveOrder(node.id, "up");
-              }}
-            >
-              <ArrowUpwardIcon fontSize="inherit" />
-            </IconButton>
-            <IconButton
-              size="small"
-              disabled={idx === (siblings?.length || 0) - 1}
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveOrder(node.id, "down");
-              }}
-            >
-              <ArrowDownwardIcon fontSize="inherit" />
-            </IconButton>
-          </Box>
-        )}
-        {isFolder(node) && (
+          {/* 번호 영역: 고정 너비 50px */}
           <Typography
-            variant="body2"
-            sx={{ ml: 1, color: "success.light", fontWeight: "bold" }}
+            variant="caption"
+            sx={{
+              width: 50,
+              textAlign: "right",
+              color: "primary.dark",
+              opacity: 0.8,
+              fontWeight: "bold",
+              mr: 1,
+            }}
           >
-            {testCaseCount}
+            #{nodeOrder}
           </Typography>
-        )}
-        {!selectable && !isViewerRole && (
-          <Box sx={{ marginLeft: "auto", display: "flex" }}>
-            {node.type === "testcase" && (
+
+          {orderEditMode && !isViewerRole && (
+            <Box sx={{ display: "flex", mr: 0.5 }}>
+              <IconButton
+                size="small"
+                disabled={idx === 0 || !siblings}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveOrder(node.id, "up");
+                }}
+                sx={{ p: 0.25 }}
+              >
+                <ArrowUpwardIcon fontSize="inherit" />
+              </IconButton>
+              <IconButton
+                size="small"
+                disabled={idx === (siblings?.length || 0) - 1}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveOrder(node.id, "down");
+                }}
+                sx={{ p: 0.25 }}
+              >
+                <ArrowDownwardIcon fontSize="inherit" />
+              </IconButton>
+            </Box>
+          )}
+
+          {isFolder(node) && (
+            <Typography
+              variant="body2"
+              sx={{
+                width: 30,
+                textAlign: "center",
+                color: "success.main",
+                fontWeight: "bold",
+                mx: 0.5,
+              }}
+            >
+              {testCaseCount}
+            </Typography>
+          )}
+
+          {!selectable && !isViewerRole && (
+            <Box sx={{ display: "flex", alignItems: "center", minWidth: 60 }}>
+              {node.type === "testcase" && (
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenVersionHistory(node.id);
+                  }}
+                  title={t(
+                    "testcase.tree.action.versionHistory",
+                    "버전 히스토리",
+                  )}
+                  sx={{ p: 0.25, ml: 0.5 }}
+                >
+                  <HistoryIcon fontSize="small" />
+                </IconButton>
+              )}
               <IconButton
                 size="small"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onOpenVersionHistory(node.id);
+                  onContextMenu(e, node.id);
                 }}
-                title={t(
-                  "testcase.tree.action.versionHistory",
-                  "버전 히스토리",
-                )}
+                sx={{ p: 0.25, ml: 0.5 }}
               >
-                <HistoryIcon fontSize="small" />
+                <MoreVertIcon fontSize="small" />
               </IconButton>
-            )}
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                onContextMenu(e, node.id);
-              }}
-            >
-              <MoreVertIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        )}
+            </Box>
+          )}
+        </Box>
       </Box>
     );
 
@@ -312,20 +375,25 @@ const MemoizedTreeItem = React.memo(
             mr: 1,
           }}
         >
-          {isFolder(node) && (
-            <IconButton
-              size="small"
-              onClick={onToggle}
-              sx={{ p: 0.5, mr: 0.5 }}
-            >
-              {isExpanded ? (
-                <ExpandMoreIcon fontSize="small" />
-              ) : (
-                <ChevronRightIcon fontSize="small" />
-              )}
-            </IconButton>
-          )}
-          {!isFolder(node) && <Box sx={{ width: 34 }} />}
+          {/* Chevron 영역: 고정 너비 40px */}
+          <Box
+            sx={{
+              width: 40,
+              display: "flex",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            {isFolder(node) && (
+              <IconButton size="small" onClick={onToggle} sx={{ p: 0.5 }}>
+                {isExpanded ? (
+                  <ExpandMoreIcon fontSize="small" />
+                ) : (
+                  <ChevronRightIcon fontSize="small" />
+                )}
+              </IconButton>
+            )}
+          </Box>
           {labelContent}
         </Box>
       </Box>

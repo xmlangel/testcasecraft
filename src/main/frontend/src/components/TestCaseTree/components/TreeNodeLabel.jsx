@@ -76,6 +76,7 @@ const TreeNodeLabel = ({
             : "transparent",
         fontWeight: isSelected ? "bold" : "normal",
         color: isSelected ? theme.palette.primary.main : "inherit",
+        width: "100%", // 전체 너비 사용
         "&:hover": {
           backgroundColor: isSelected
             ? alpha(
@@ -87,105 +88,165 @@ const TreeNodeLabel = ({
       }}
       onContextMenu={onContextMenu}
     >
-      {/* 체크박스: Viewer는 숨김 */}
-      {!isViewer && (
-        <Checkbox
-          checked={isChecked}
-          onChange={onCheck}
-          onClick={(e) => e.stopPropagation()}
-          size="small"
-          sx={{ mr: 1 }}
-        />
-      )}
-      {isFolder(node) ? (
-        <FolderIcon color="primary" sx={{ mr: 1 }} />
-      ) : (
-        <DescriptionIcon
-          sx={{
-            mr: 1,
-            color: node.ragVectorized ? "primary.main" : "action.active",
-          }}
-        />
-      )}
+      {/* 체크박스 영역: 고정 너비 40px */}
+      <Box
+        sx={{
+          width: 40,
+          display: "flex",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        {!isViewer && (
+          <Checkbox
+            checked={isChecked}
+            onChange={onCheck}
+            onClick={(e) => e.stopPropagation()}
+            size="small"
+            sx={{ p: 0.5 }}
+          />
+        )}
+      </Box>
+
+      {/* 아이콘 영역: 고정 너비 32px */}
+      <Box
+        sx={{
+          width: 32,
+          display: "flex",
+          justifyContent: "center",
+          flexShrink: 0,
+          mr: 1,
+        }}
+      >
+        {isFolder(node) ? (
+          <FolderIcon color="primary" fontSize="small" />
+        ) : (
+          <DescriptionIcon
+            fontSize="small"
+            sx={{
+              color: node.ragVectorized ? "primary.main" : "action.active",
+            }}
+          />
+        )}
+      </Box>
+
+      {/* 이름 영역: 가변 너비 */}
       <Typography
         variant="body2"
-        sx={{ fontWeight: isSelected ? "bold" : "normal" }}
+        sx={{
+          fontWeight: isSelected ? "bold" : "normal",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          flexGrow: 1,
+          textAlign: "left",
+          lineHeight: 1.5,
+        }}
       >
         {node.name}
       </Typography>
-      <Typography
-        variant="caption"
+
+      {/* 메타 정보 및 버튼 영역: 우측 정렬 */}
+      <Box
         sx={{
-          ml: 1,
-          color: theme.palette.mode === "dark" ? "info.light" : "info.main",
-          fontWeight: "bold",
+          display: "flex",
+          alignItems: "center",
+          ml: "auto",
+          flexShrink: 0,
         }}
       >
-        #{nodeOrder}
-      </Typography>
-      {orderEditMode && !isViewer && (
-        <Box sx={{ display: "flex", ml: 1 }}>
-          <IconButton
-            size="small"
-            disabled={isFirstSibling}
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveUp();
-            }}
-          >
-            <ArrowUpwardIcon fontSize="inherit" />
-          </IconButton>
-          <IconButton
-            size="small"
-            disabled={isLastSibling}
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveDown();
-            }}
-          >
-            <ArrowDownwardIcon fontSize="inherit" />
-          </IconButton>
-        </Box>
-      )}
-      {isFolder(node) && (
+        {/* 번호 영역: 고정 너비 50px */}
         <Typography
-          variant="body2"
+          variant="caption"
           sx={{
-            ml: 1,
-            color:
-              theme.palette.mode === "dark" ? "success.light" : "success.main",
+            width: 50,
+            textAlign: "right",
+            color: theme.palette.mode === "dark" ? "info.light" : "info.main",
+            opacity: 0.8,
             fontWeight: "bold",
+            mr: 1,
           }}
         >
-          {testCaseCount}
+          #{nodeOrder}
         </Typography>
-      )}
-      {!selectable && !isViewer && (
-        <Box sx={{ marginLeft: "auto", display: "flex" }}>
-          {/* 테스트케이스에만 버전 히스토리 버튼 표시 */}
-          {node.type === "testcase" && (
+
+        {orderEditMode && !isViewer && (
+          <Box sx={{ display: "flex", mr: 0.5 }}>
+            <IconButton
+              size="small"
+              disabled={isFirstSibling}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveUp();
+              }}
+              sx={{ p: 0.25 }}
+            >
+              <ArrowUpwardIcon fontSize="inherit" />
+            </IconButton>
+            <IconButton
+              size="small"
+              disabled={isLastSibling}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveDown();
+              }}
+              sx={{ p: 0.25 }}
+            >
+              <ArrowDownwardIcon fontSize="inherit" />
+            </IconButton>
+          </Box>
+        )}
+
+        {isFolder(node) && (
+          <Typography
+            variant="body2"
+            sx={{
+              width: 30,
+              textAlign: "center",
+              color:
+                theme.palette.mode === "dark"
+                  ? "success.light"
+                  : "success.main",
+              fontWeight: "bold",
+              mx: 0.5,
+            }}
+          >
+            {testCaseCount}
+          </Typography>
+        )}
+
+        {!selectable && !isViewer && (
+          <Box sx={{ display: "flex", alignItems: "center", minWidth: 60 }}>
+            {/* 테스트케이스에만 버전 히스토리 버튼 표시 */}
+            {node.type === "testcase" && (
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenVersionHistory();
+                }}
+                title={t(
+                  "testcase.tree.action.versionHistory",
+                  "버전 히스토리",
+                )}
+                sx={{ p: 0.25, ml: 0.5 }}
+              >
+                <HistoryIcon fontSize="small" />
+              </IconButton>
+            )}
             <IconButton
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
-                onOpenVersionHistory();
+                onContextMenu(e);
               }}
-              title={t("testcase.tree.action.versionHistory", "버전 히스토리")}
+              sx={{ p: 0.25, ml: 0.5 }}
             >
-              <HistoryIcon fontSize="small" />
+              <MoreVertIcon fontSize="small" />
             </IconButton>
-          )}
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onContextMenu(e);
-            }}
-          >
-            <MoreVertIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      )}
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };
