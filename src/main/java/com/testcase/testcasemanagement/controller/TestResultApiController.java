@@ -535,4 +535,26 @@ public class TestResultApiController {
       return ResponseEntity.status(500).build();
     }
   }
+
+  /** 실행별 비교 통계 조회 (View Type: By Execution) */
+  @GetMapping("/comparison/by-execution")
+  @Operation(
+      summary = "실행별 비교 통계",
+      description = "프로젝트의 테스트 실행별 테스트 결과 통계를 비교합니다. 테스트 플랜 ID로 필터링 가능합니다.")
+  public ResponseEntity<List<Map<String, Object>>> getComparisonStatisticsByExecution(
+      @Parameter(description = "프로젝트 ID") @RequestParam String projectId,
+      @Parameter(description = "테스트 플랜 ID 목록 (선택, 없으면 전체)") @RequestParam(required = false)
+          List<String> testPlanId) {
+
+    log.info("실행별 비교 통계 조회 요청 - 프로젝트: {}, 플랜: {}", projectId, testPlanId);
+
+    try {
+      List<Map<String, Object>> statistics =
+          statisticsService.getComparisonStatisticsByExecution(projectId, testPlanId);
+      return ResponseEntity.ok(statistics);
+    } catch (Exception e) {
+      log.error("실행별 비교 통계 조회 실패: {}", e.getMessage(), e);
+      return ResponseEntity.status(500).build();
+    }
+  }
 }

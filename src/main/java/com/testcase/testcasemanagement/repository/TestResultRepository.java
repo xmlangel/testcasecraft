@@ -654,4 +654,62 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
       nativeQuery = true)
   List<Map<String, Object>> findSummaryByExecutionIds(
       @Param("executionIds") List<String> executionIds);
+
+  /**
+   * 실행별 테스트 결과 통계 조회 (View Type: By Execution) 테스트 플랜에 할당된 모든 테스트케이스를 기준으로, 각 실행의 최신 결과(1건)를 집계합니다.
+   * 결과가 없는 케이스는 'NOT_RUN'으로 처리되어 전체 합계가 할당된 테스트케이스 수와 일치하게 됩니다.
+   *
+   * @param projectId 프로젝트 ID
+   * @return 실행별 통계 맵 (execution_name, test_execution_id, test_plan_name, pass_count, fail_count,
+   *     blocked_count, not_run_count)
+   */
+  @Query(
+      value =
+          "WITH latest_results AS (   SELECT test_execution_id, test_case_id, result,    "
+              + " ROW_NUMBER() OVER (PARTITION BY test_execution_id, test_case_id ORDER BY"
+              + " executed_at DESC) as rn   FROM test_results ), target_cases AS (   SELECT te.id"
+              + " as test_execution_id, te.name as execution_name,          tp.id as test_plan_id,"
+              + " tp.name as test_plan_name,          tpc.test_case_id   FROM test_executions te  "
+              + " JOIN test_plans tp ON te.test_plan_id = tp.id   JOIN test_plan_cases tpc ON tp.id"
+              + " = tpc.test_plan_id   WHERE tp.project_id = :projectId ) SELECT tc.execution_name,"
+              + " tc.test_execution_id, tc.test_plan_name, COUNT(CASE WHEN lr.result = 'PASS' THEN"
+              + " 1 END) as pass_count, COUNT(CASE WHEN lr.result = 'FAIL' THEN 1 END) as"
+              + " fail_count, COUNT(CASE WHEN lr.result = 'BLOCKED' THEN 1 END) as blocked_count,"
+              + " COUNT(CASE WHEN lr.result IS NULL OR lr.result = 'NOT_RUN' OR lr.result ="
+              + " 'NOTRUN' THEN 1 END) as not_run_count FROM target_cases tc LEFT JOIN"
+              + " latest_results lr ON lr.test_execution_id = tc.test_execution_id   AND"
+              + " lr.test_case_id = tc.test_case_id AND lr.rn = 1 GROUP BY tc.test_execution_id,"
+              + " tc.execution_name, tc.test_plan_id, tc.test_plan_name ORDER BY tc.test_plan_name,"
+              + " tc.execution_name",
+      nativeQuery = true)
+  List<Map<String, Object>> findStatisticsByExecution(@Param("projectId") String projectId);
+
+  /**
+   * 특정 테스트 플랜 필터링된 실행별 통계 조회 할당된 테스트케이스 목록을 기준으로 최신 결과를 집계하여 전체 건수를 보장합니다.
+   *
+   * @param projectId 프로젝트 ID
+   * @param testPlanIds 테스트 플랜 ID 목록
+   * @return 실행별 통계 맵
+   */
+  @Query(
+      value =
+          "WITH latest_results AS (   SELECT test_execution_id, test_case_id, result,    "
+              + " ROW_NUMBER() OVER (PARTITION BY test_execution_id, test_case_id ORDER BY"
+              + " executed_at DESC) as rn   FROM test_results ), target_cases AS (   SELECT te.id"
+              + " as test_execution_id, te.name as execution_name,          tp.id as test_plan_id,"
+              + " tp.name as test_plan_name,          tpc.test_case_id   FROM test_executions te  "
+              + " JOIN test_plans tp ON te.test_plan_id = tp.id   JOIN test_plan_cases tpc ON tp.id"
+              + " = tpc.test_plan_id   WHERE tp.project_id = :projectId   AND tp.id IN :testPlanIds"
+              + " ) SELECT tc.execution_name, tc.test_execution_id, tc.test_plan_name, COUNT(CASE"
+              + " WHEN lr.result = 'PASS' THEN 1 END) as pass_count, COUNT(CASE WHEN lr.result ="
+              + " 'FAIL' THEN 1 END) as fail_count, COUNT(CASE WHEN lr.result = 'BLOCKED' THEN 1"
+              + " END) as blocked_count, COUNT(CASE WHEN lr.result IS NULL OR lr.result = 'NOT_RUN'"
+              + " OR lr.result = 'NOTRUN' THEN 1 END) as not_run_count FROM target_cases tc LEFT"
+              + " JOIN latest_results lr ON lr.test_execution_id = tc.test_execution_id   AND"
+              + " lr.test_case_id = tc.test_case_id AND lr.rn = 1 GROUP BY tc.test_execution_id,"
+              + " tc.execution_name, tc.test_plan_id, tc.test_plan_name ORDER BY tc.test_plan_name,"
+              + " tc.execution_name",
+      nativeQuery = true)
+  List<Map<String, Object>> findStatisticsByExecutionAndTestPlan(
+      @Param("projectId") String projectId, @Param("testPlanIds") List<String> testPlanIds);
 }

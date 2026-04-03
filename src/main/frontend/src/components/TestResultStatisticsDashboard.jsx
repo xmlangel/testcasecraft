@@ -27,6 +27,7 @@ import { useSearchParams } from "react-router-dom";
 import TestResultStatisticsCard from "./TestResultStatisticsCard";
 import TestResultPieChart from "./TestResultPieChart";
 import TestResultBarChart from "./TestResultBarChart";
+import TestResultExecutionPieCharts from "./TestResultExecutionPieCharts";
 import StatisticsFilterPanel from "./StatisticsFilterPanel";
 import TestResultFolderStatsView from "./TestResultFolderStatsView";
 import FilteredCasesDialog from "./FilteredCasesDialog";
@@ -443,6 +444,22 @@ function TestResultStatisticsDashboard() {
         // Depth는 고정 20 사용
         const folderStats = calculateFolderStatistics(reportData, 20);
         setComparisonData(folderStats);
+      } else if (filters.viewType === "by-execution") {
+        // 실행별 비교: 선택된 플랜 내 실행들의 개별 통계 조회
+        const testPlanIds =
+          filters.testPlanId && filters.testPlanId.length > 0
+            ? Array.isArray(filters.testPlanId)
+              ? filters.testPlanId
+              : [filters.testPlanId]
+            : undefined;
+        const data = await testResultService.getComparisonStatistics(
+          "by-execution",
+          {
+            projectId: activeProject?.id,
+            testPlanIds,
+          },
+        );
+        setComparisonData(data);
       } else {
         const comparisonType =
           filters.viewType === "by-plan" ? "by-plan" : "by-executor";
@@ -532,6 +549,12 @@ function TestResultStatisticsDashboard() {
       return t(
         "testResultDashboard.chart.folderComparison",
         "폴더별 결과 비교",
+      );
+    }
+    if (filters.viewType === "by-execution") {
+      return t(
+        "testResultDashboard.chart.executionComparison",
+        "실행별 결과 비교",
       );
     }
     return filters.viewType === "by-plan"
@@ -637,18 +660,19 @@ function TestResultStatisticsDashboard() {
         {/* 비교 모드 - 반응형 개선 */}
         {filters.viewType !== "overview" && (
           <>
-            {/* 모바일: 전체 폭, 태블릿+: 1/3 폭 */}
-            {filters.viewType !== "by-folder" && (
-              <Grid size={{ xs: 12, md: 12, lg: 4 }}>
-                <TestResultStatisticsCard
-                  statistics={statistics}
-                  loading={loading}
-                  onResultClick={handleResultClick}
-                />
-              </Grid>
-            )}
+            {/* 모바일: 전체 폭, 태블릿+: 1/3 폭 (실행별/폴더별 뷰에서는 통계 카드 숨김) */}
+            {filters.viewType !== "by-folder" &&
+              filters.viewType !== "by-execution" && (
+                <Grid size={{ xs: 12, md: 12, lg: 4 }}>
+                  <TestResultStatisticsCard
+                    statistics={statistics}
+                    loading={loading}
+                    onResultClick={handleResultClick}
+                  />
+                </Grid>
+              )}
 
-            {/* 비교 차트 - 데이터가 있을 때만 표시 */}
+            {/* 비교 차트 - 플랜별/실행자별: 바차트, 실행별: 파이차트 */}
             {!loading &&
               (filters.viewType === "by-plan" ||
                 filters.viewType === "by-executor") &&
@@ -663,6 +687,21 @@ function TestResultStatisticsDashboard() {
                     showPercentage={showPercentage}
                     onTogglePercentage={setShowPercentage}
                     isMobile={isMobile}
+                  />
+                </Grid>
+              )}
+
+            {/* 실행별 파이차트 비교 */}
+            {!loading &&
+              filters.viewType === "by-execution" &&
+              comparisonData &&
+              Array.isArray(comparisonData) &&
+              comparisonData.length > 0 && (
+                <Grid size={{ xs: 12 }}>
+                  <TestResultExecutionPieCharts
+                    data={comparisonData}
+                    loading={false}
+                    title={comparisonChartTitle}
                   />
                 </Grid>
               )}

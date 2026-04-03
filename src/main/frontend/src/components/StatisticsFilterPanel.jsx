@@ -195,6 +195,22 @@ function StatisticsFilterPanel({
                   {plan.name}
                 </MenuItem>
               ))}
+              {/* MUI Select 경고 방지: 로딩 중 또는 데이터 부재 시 선택된 값의 MenuItem 보장 */}
+              {(Array.isArray(filters.testPlanId)
+                ? filters.testPlanId
+                : filters.testPlanId
+                  ? [filters.testPlanId]
+                  : []
+              ).map((id) => {
+                if (id && !availableTestPlans.some((p) => p.id === id)) {
+                  return (
+                    <MenuItem key={id} value={id} sx={{ display: "none" }}>
+                      {id}
+                    </MenuItem>
+                  );
+                }
+                return null;
+              })}
             </Select>
           </FormControl>
 
@@ -221,6 +237,18 @@ function StatisticsFilterPanel({
                     {execution.name}
                   </MenuItem>
                 ))}
+              {/* MUI Select 경고 방지: 로딩 중 또는 데이터 부재 시 선택된 값의 MenuItem 보장 */}
+              {filters.testExecutionId &&
+                !availableTestExecutions.some(
+                  (e) => e.id === filters.testExecutionId,
+                ) && (
+                  <MenuItem
+                    value={filters.testExecutionId}
+                    sx={{ display: "none" }}
+                  >
+                    {filters.testExecutionId}
+                  </MenuItem>
+                )}
             </Select>
           </FormControl>
 
@@ -241,6 +269,9 @@ function StatisticsFilterPanel({
               </MenuItem>
               <MenuItem value="by-plan">
                 {t("testResult.filter.planView")}
+              </MenuItem>
+              <MenuItem value="by-execution">
+                {t("testResult.filter.executionView", "실행별")}
               </MenuItem>
               <MenuItem value="by-executor">
                 {t("testResult.filter.executorView")}

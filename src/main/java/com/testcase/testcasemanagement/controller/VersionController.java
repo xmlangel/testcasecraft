@@ -29,18 +29,18 @@ import reactor.core.publisher.Mono;
 @Tag(name = "System - Version", description = "시스템 버전 정보 API")
 public class VersionController {
 
-  private final BuildProperties buildProperties;
+  @org.springframework.beans.factory.annotation.Autowired(required = false)
+  private BuildProperties buildProperties;
+
   private final WebClient webClient;
   private final ObjectMapper objectMapper;
   private final String ragApiUrl;
 
   public VersionController(
-      BuildProperties buildProperties,
       WebClient.Builder webClientBuilder,
       ObjectMapper objectMapper,
       @org.springframework.beans.factory.annotation.Value("${rag.api.url:http://localhost:8001}")
           String ragApiUrl) {
-    this.buildProperties = buildProperties;
     this.webClient = webClientBuilder.build();
     this.objectMapper = objectMapper;
     this.ragApiUrl = ragApiUrl;
@@ -59,7 +59,7 @@ public class VersionController {
     log.debug("버전 정보 조회 요청");
 
     // Backend 버전: BuildProperties에서 자동으로 가져옴 (build.gradle의 version)
-    String backendVersion = buildProperties.getVersion();
+    String backendVersion = (buildProperties != null) ? buildProperties.getVersion() : "N/A";
 
     // Frontend 버전: package.json에서 읽어옴 (빌드 시점에 복사된 파일)
     String frontendVersion = readFrontendVersion();

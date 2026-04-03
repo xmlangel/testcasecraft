@@ -23,7 +23,8 @@ public class OpenApiConfig {
   @Value("${server.servlet.context-path:/}")
   private String contextPath;
 
-  @Autowired private BuildProperties buildProperties;
+  @Autowired(required = false) // DevTools 핫리로드 재시작 시 BuildProperties 빈이 없을 수 있음
+  private BuildProperties buildProperties;
 
   @Bean
   public OpenAPI openAPI() {
@@ -31,7 +32,7 @@ public class OpenApiConfig {
         new Info()
             .title("TestCaseCraft API")
             .description("TestCaseCraft 테스트케이스 관리 시스템 REST API 문서")
-            .version(buildProperties.getVersion())
+            .version(buildProperties != null ? buildProperties.getVersion() : "unknown")
             .contact(
                 new Contact()
                     .name("TestcaseCraft - Website")
