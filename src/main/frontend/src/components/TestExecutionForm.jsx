@@ -38,10 +38,7 @@ import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX } from "../styles/layoutConstants";
 import TestResultAttachmentsView from "./TestCase/TestResultAttachmentsView.jsx";
 import { debugLog } from "../utils/logger";
-import {
-  calculateExecutionSummary,
-  TEST_RESULT_TYPES,
-} from "../utils/testResultConstants.js";
+import { TEST_RESULT_TYPES } from "../utils/testResultConstants.js";
 
 // New Components
 import TestExecutionHeader from "./TestExecution/TestExecutionHeader.jsx";
@@ -974,20 +971,43 @@ const TestExecutionForm = ({
     );
   }, [flattenedData, filters, resultsMap]);
   const { stats: statusCounts, progressPercent: progress } = useMemo(() => {
-    const summary = calculateExecutionSummary(
-      Array.from(resultsMap.values()),
-      testCaseIds.length,
-    );
-    // UI 호환성을 위해 대문자 키를 가진 객체로 변환 (PASS, FAIL 등)
+    // testCaseIds(플랜의 실제 케이스 목록)를 기준으로 각 상태를 카운팅
+    // resultsMap.values() 기반 계산은 재실행 이력이 많을 때 카운트가 부풀려지는 버그가 있었음
+    const total = testCaseIds.length;
+    let pass = 0;
+    let fail = 0;
+    let blocked = 0;
+    let completedCount = 0;
+
+    testCaseIds.forEach((id) => {
+      const result = resultsMap.get(id);
+      const resultValue = result?.result;
+      if (resultValue === "PASS") {
+        pass++;
+        completedCount++;
+      } else if (resultValue === "FAIL") {
+        fail++;
+        completedCount++;
+      } else if (resultValue === "BLOCKED") {
+        blocked++;
+        completedCount++;
+      }
+      // NOTRUN이거나 결과가 없는 경우 미실행으로 처리 (별도 카운팅 불필요)
+    });
+
+    const notRun = Math.max(0, total - completedCount);
+    const progressPercent =
+      total > 0 ? Math.min(100, Math.round((completedCount / total) * 100)) : 0;
+
     return {
       stats: {
-        PASS: summary.stats.pass,
-        FAIL: summary.stats.fail,
-        BLOCKED: summary.stats.blocked,
-        NOTRUN: summary.stats.notRun,
-        total: testCaseIds.length,
+        PASS: pass,
+        FAIL: fail,
+        BLOCKED: blocked,
+        NOTRUN: notRun,
+        total,
       },
-      progressPercent: summary.progressPercent,
+      progressPercent,
     };
   }, [resultsMap, testCaseIds]);
 
