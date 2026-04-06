@@ -301,12 +301,19 @@ public class GlobalExceptionHandler {
             .collect(
                 Collectors.toMap(
                     FieldError::getField,
-                    error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : ""));
+                    error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : "",
+                    (existing, replacement) -> existing + ", " + replacement));
+
+    String errorMessage =
+        "유효하지 않은 요청 데이터: "
+            + errors.entrySet().stream()
+                .map(e -> String.format("[%s] %s", e.getKey(), e.getValue()))
+                .collect(Collectors.joining(", "));
 
     logger.warn("Method argument validation failed: {}", errors);
 
     ErrorResponse response =
-        new ErrorResponse("INVALID_REQUEST", "유효하지 않은 요청 데이터", LocalDateTime.now(), errors);
+        new ErrorResponse("INVALID_REQUEST", errorMessage, LocalDateTime.now(), errors);
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
   }
 

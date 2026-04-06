@@ -34,13 +34,25 @@ public class DatabaseConstraintFixer {
 
     System.out.println("🔧 Checking and fixing test_sessions_status_check constraint...");
 
-    // 1. 기존 제약 조건 삭제 (존재하는 경우)
+    // 1. 컬럼 추가 (PostgreSQL 9.6+ 문법 사용)
+    // ddl-auto: update가 놓칠 수 있는 컬럼 추가를 보장함
+    entityManager
+        .createNativeQuery(
+            "ALTER TABLE test_sessions ADD COLUMN IF NOT EXISTS title VARCHAR(255) DEFAULT ''")
+        .executeUpdate();
+
+    // 2. NOT NULL 제약 조건 보장
+    entityManager
+        .createNativeQuery("ALTER TABLE test_sessions ALTER COLUMN title SET NOT NULL")
+        .executeUpdate();
+
+    // 3. 기존 제약 조건 삭제 (존재하는 경우)
     entityManager
         .createNativeQuery(
             "ALTER TABLE test_sessions DROP CONSTRAINT IF EXISTS test_sessions_status_check")
         .executeUpdate();
 
-    // 2. 새로운 Enum 값을 포함한 제약 조건 생성
+    // 4. 새로운 Enum 값을 포함한 제약 조건 생성
     // SessionStatus: DRAFT, RUNNING, PAUSED, COMPLETED, SUBMITTED, NEEDS_UPDATE, APPROVED, ARCHIVED
     entityManager
         .createNativeQuery(
@@ -48,6 +60,6 @@ public class DatabaseConstraintFixer {
                 + "CHECK (status >= 0 AND status <= 7)")
         .executeUpdate();
 
-    System.out.println("✅ Successfully updated test_sessions_status_check constraint.");
+    System.out.println("✅ Successfully updated test_sessions schema and constraints.");
   }
 }
