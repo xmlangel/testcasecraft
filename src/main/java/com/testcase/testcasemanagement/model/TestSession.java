@@ -121,6 +121,39 @@ public class TestSession {
   @Column(nullable = false, length = 30)
   private SessionStatus status;
 
+  @Column(name = "flow_notes", columnDefinition = "TEXT")
+  private String flowNotes;
+
+  @Column(name = "coverage_notes", columnDefinition = "TEXT")
+  private String coverageNotes;
+
+  @Column(name = "oracle_notes", columnDefinition = "TEXT")
+  private String oracleNotes;
+
+  @Column(name = "activity_notes", columnDefinition = "TEXT")
+  private String activityNotes;
+
+  @Column(name = "bug_headline", length = 500)
+  private String bugHeadline;
+
+  @Column(name = "blockers", columnDefinition = "TEXT")
+  private String blockers;
+
+  @Column(name = "remaining_questions", columnDefinition = "TEXT")
+  private String remainingQuestions;
+
+  @Column(name = "test_data", columnDefinition = "TEXT")
+  private String testData;
+
+  @Column(name = "evaluation", columnDefinition = "TEXT")
+  private String evaluation;
+
+  @Column(name = "next_charter", columnDefinition = "TEXT")
+  private String nextCharter;
+
+  @Column(name = "achievement")
+  private Integer achievement;
+
   @Column(name = "review_comment", columnDefinition = "TEXT")
   private String reviewComment;
 

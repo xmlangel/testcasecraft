@@ -30,6 +30,17 @@ public class TestSessionResponseDto {
   private String productVersion;
   private List<String> strategyTags = new ArrayList<>();
   private List<String> areaTags = new ArrayList<>();
+  private String flowNotes;
+  private String coverageNotes;
+  private String oracleNotes;
+  private String activityNotes;
+  private String bugHeadline;
+  private String blockers;
+  private String remainingQuestions;
+  private String testData;
+  private String evaluation;
+  private String nextCharter;
+  private Integer achievement;
   private String status;
   private String reviewComment;
   private LocalDateTime startedAt;

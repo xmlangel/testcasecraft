@@ -2,20 +2,12 @@
 
 ## 작업한 내용
 
-- [x] 탐색 세션(Exploratory Session) 임시 비노출 적용
-  - `ProjectHeader`에서 `탐색 세션` 탭 조건부 렌더링 적용
-  - `App`에 `SHOW_EXPLORATORY_SESSION_TAB = false` 플래그 추가
-  - `/projects/{projectId}/exploratory` 직접 접근 시 프로젝트 대시보드로 리다이렉트 처리
-  - 숨김 상태에서 탭 인덱스 보정 로직 추가(저장된 이전 인덱스 안정화)
-  - 탭 숨김 적용: src/main/frontend/src/components/ProjectHeader.jsx:23, src/main/frontend/src/components/ProjectHeader.jsx:107
-  - 기능 플래그 추가: src/main/frontend/src/App.jsx:84 (SHOW_EXPLORATORY_SESSION_TAB = false)
-  - 직접 URL 접근 차단(/projects/{id}/exploratory 접근 시 대시보드로 리다이렉트): src/main/frontend/src/App.jsx:419
-  - 숨김 상태에서 탭 인덱스 안전화(기존 저장된 인덱스 보정): src/main/frontend/src/App.jsx:450
-  - 탐색 세션 화면 렌더 자체 비활성화: src/main/frontend/src/App.jsx:1021
-
-## 백로그
-
-- [ ] 탐색 세션(Exploratory Session) 임시 비노출 유지
-  - 배경: 개발 진행 중 기능 노출 방지 필요
-  - 현재 반영: 프로젝트 탭에서 `탐색 세션` 숨김 + `/projects/{projectId}/exploratory` 직접 접근 시 대시보드 리다이렉트
-  - 재오픈 조건: 기능 안정화/검증 완료 후 `SHOW_EXPLORATORY_SESSION_TAB` 플래그 활성화 및 회귀 점검
+- [x] 탐색 세션(Exploratory Session) 정식 노출 및 UI 고도화 (2026-04-06)
+  - `App.jsx`에서 `SHOW_EXPLORATORY_SESSION_TAB = true` 플래그 활성화 및 관리
+  - **Premium UI 적용**: Glassmorphism 테마, Backdrop filter, 애니메이션 배경 구현
+  - **에디터 탭 개편**: 2단 패널(3:9) 레이아웃 및 실시간 시간 배분 시각화 차트(Stacked Bar) 적용
+  - **상세 탭 개편**: 세션 데이터 대시보드화 및 구조화된 노트 카드 레이아웃 적용
+  - **안정성 확보**: `ReferenceError` 해결 및 MUI/React 임포트 최적화 완료
+- [x] 차터 및 세션 목록 실데이터 연동 (2026-02-20)
+  - 차터 관리(T1) 및 세션 목록(T2) 백엔드 API 연동 완료
+  - 필터링, 정렬, 페이징 기능 UI 반영

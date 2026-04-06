@@ -278,6 +278,17 @@ public class TestSessionService {
     session.setStrategyTags(
         request.getStrategyTags() == null ? List.of() : request.getStrategyTags());
     session.setAreaTags(request.getAreaTags() == null ? List.of() : request.getAreaTags());
+    session.setFlowNotes(request.getFlowNotes());
+    session.setCoverageNotes(request.getCoverageNotes());
+    session.setOracleNotes(request.getOracleNotes());
+    session.setActivityNotes(request.getActivityNotes());
+    session.setBugHeadline(request.getBugHeadline());
+    session.setBlockers(request.getBlockers());
+    session.setRemainingQuestions(request.getRemainingQuestions());
+    session.setTestData(request.getTestData());
+    session.setEvaluation(request.getEvaluation());
+    session.setNextCharter(request.getNextCharter());
+    session.setAchievement(request.getAchievement());
   }
 
   private TestSession findById(String id) {
@@ -331,33 +342,51 @@ public class TestSessionService {
     return Sort.by(direction, field);
   }
 
+  public void deleteSession(String id) {
+    TestSession session = findById(id);
+    // 연관된 승인 기록 및 중단 기록은 JPA Cascade 등에 의해 처리되거나 수동 삭제
+    testSessionRepository.delete(session);
+  }
+
   private TestSessionResponseDto toDto(TestSession session) {
-    return new TestSessionResponseDto(
-        session.getId(),
-        session.getProject().getId(),
-        session.getCharter().getId(),
-        session.getCharterSnapshotTitle(),
-        session.getCharterSnapshotMission(),
-        session.getTesterId(),
-        session.getLeadId(),
-        session.getTesterName(),
-        session.getLeadName(),
-        session.getNetDurationMinutes(),
-        session.getTestExecutionPct(),
-        session.getBugInvestigationPct(),
-        session.getSetupAdminPct(),
-        session.getEnvironmentSummary(),
-        session.getProductVersion(),
-        session.getStrategyTags(),
-        session.getAreaTags(),
-        session.getStatus().name(),
-        session.getReviewComment(),
-        session.getStartedAt(),
-        session.getEndedAt(),
-        session.getInterruptedMinutes(),
-        session.getSubmittedAt(),
-        session.getReviewedAt(),
-        session.getCreatedAt(),
-        session.getUpdatedAt());
+    TestSessionResponseDto dto = new TestSessionResponseDto();
+    dto.setId(session.getId());
+    dto.setProjectId(session.getProject().getId());
+    dto.setCharterId(session.getCharter().getId());
+    dto.setCharterSnapshotTitle(session.getCharterSnapshotTitle());
+    dto.setCharterSnapshotMission(session.getCharterSnapshotMission());
+    dto.setTesterId(session.getTesterId());
+    dto.setLeadId(session.getLeadId());
+    dto.setTesterName(session.getTesterName());
+    dto.setLeadName(session.getLeadName());
+    dto.setNetDurationMinutes(session.getNetDurationMinutes());
+    dto.setTestExecutionPct(session.getTestExecutionPct());
+    dto.setBugInvestigationPct(session.getBugInvestigationPct());
+    dto.setSetupAdminPct(session.getSetupAdminPct());
+    dto.setEnvironmentSummary(session.getEnvironmentSummary());
+    dto.setProductVersion(session.getProductVersion());
+    dto.setStrategyTags(session.getStrategyTags());
+    dto.setAreaTags(session.getAreaTags());
+    dto.setFlowNotes(session.getFlowNotes());
+    dto.setCoverageNotes(session.getCoverageNotes());
+    dto.setOracleNotes(session.getOracleNotes());
+    dto.setActivityNotes(session.getActivityNotes());
+    dto.setBugHeadline(session.getBugHeadline());
+    dto.setBlockers(session.getBlockers());
+    dto.setRemainingQuestions(session.getRemainingQuestions());
+    dto.setTestData(session.getTestData());
+    dto.setEvaluation(session.getEvaluation());
+    dto.setNextCharter(session.getNextCharter());
+    dto.setAchievement(session.getAchievement());
+    dto.setStatus(session.getStatus().name());
+    dto.setReviewComment(session.getReviewComment());
+    dto.setStartedAt(session.getStartedAt());
+    dto.setEndedAt(session.getEndedAt());
+    dto.setInterruptedMinutes(session.getInterruptedMinutes());
+    dto.setSubmittedAt(session.getSubmittedAt());
+    dto.setReviewedAt(session.getReviewedAt());
+    dto.setCreatedAt(session.getCreatedAt());
+    dto.setUpdatedAt(session.getUpdatedAt());
+    return dto;
   }
 }
