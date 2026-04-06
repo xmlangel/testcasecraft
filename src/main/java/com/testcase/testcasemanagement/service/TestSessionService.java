@@ -127,18 +127,32 @@ public class TestSessionService {
 
   public TestSessionResponseDto resumeSession(String id) {
     TestSession session = findById(id);
-    ensureStatus(session, List.of(TestSession.SessionStatus.PAUSED), "재개는 PAUSED 상태에서만 가능합니다.");
+    ensureStatus(
+        session,
+        List.of(
+            TestSession.SessionStatus.DRAFT,
+            TestSession.SessionStatus.PAUSED,
+            TestSession.SessionStatus.COMPLETED,
+            TestSession.SessionStatus.NEEDS_UPDATE),
+        "재개는 DRAFT, PAUSED, COMPLETED 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
 
-    TestSessionInterruption open =
-        testSessionInterruptionRepository
-            .findFirstBySessionIdAndEndedAtIsNullOrderByStartedAtDesc(id)
-            .orElseThrow(
-                () -> new ResourceNotValidException("진행 중인 중단 기록이 없습니다.", Map.of("sessionId", id)));
+    if (session.getStartedAt() == null) {
+      throw new ResourceNotValidException(
+          "시작 기록이 없는 세션은 재개할 수 없습니다. 대신 시작을 눌러주세요.", java.util.Collections.emptyMap());
+    }
 
-    open.setEndedAt(LocalDateTime.now());
-    testSessionInterruptionRepository.save(open);
+    if (session.getStatus() == TestSession.SessionStatus.PAUSED) {
+      testSessionInterruptionRepository
+          .findFirstBySessionIdAndEndedAtIsNullOrderByStartedAtDesc(id)
+          .ifPresent(
+              open -> {
+                open.setEndedAt(LocalDateTime.now());
+                testSessionInterruptionRepository.save(open);
+              });
+    }
 
     session.setStatus(TestSession.SessionStatus.RUNNING);
+    session.setEndedAt(null); // 재개 시 종료 시각 초기화
     session.setInterruptedMinutes(calculateInterruptedMinutes(id));
     return toDto(testSessionRepository.save(session));
   }
@@ -147,8 +161,17 @@ public class TestSessionService {
     TestSession session = findById(id);
     ensureStatus(
         session,
-        List.of(TestSession.SessionStatus.RUNNING, TestSession.SessionStatus.PAUSED),
-        "종료는 RUNNING 또는 PAUSED 상태에서만 가능합니다.");
+        List.of(
+            TestSession.SessionStatus.DRAFT,
+            TestSession.SessionStatus.RUNNING,
+            TestSession.SessionStatus.PAUSED),
+        "종료는 DRAFT, RUNNING 또는 PAUSED 상태에서만 가능합니다.");
+
+    if (session.getStatus() == TestSession.SessionStatus.DRAFT) {
+      if (session.getStartedAt() == null) {
+        session.setStartedAt(LocalDateTime.now());
+      }
+    }
 
     if (session.getStatus() == TestSession.SessionStatus.PAUSED) {
       testSessionInterruptionRepository
@@ -160,7 +183,7 @@ public class TestSessionService {
               });
     }
 
-    session.setStatus(TestSession.SessionStatus.DRAFT);
+    session.setStatus(TestSession.SessionStatus.COMPLETED);
     session.setEndedAt(LocalDateTime.now());
     session.setInterruptedMinutes(calculateInterruptedMinutes(id));
 
@@ -171,8 +194,11 @@ public class TestSessionService {
     TestSession session = findById(id);
     ensureStatus(
         session,
-        List.of(TestSession.SessionStatus.DRAFT, TestSession.SessionStatus.NEEDS_UPDATE),
-        "제출은 DRAFT 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
+        List.of(
+            TestSession.SessionStatus.DRAFT,
+            TestSession.SessionStatus.COMPLETED,
+            TestSession.SessionStatus.NEEDS_UPDATE),
+        "제출은 DRAFT, COMPLETED 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
 
     session.setStatus(TestSession.SessionStatus.SUBMITTED);
     session.setSubmittedAt(LocalDateTime.now());
@@ -263,6 +289,7 @@ public class TestSessionService {
       TestSession session, TestSessionRequestDto request, Project project, TestCharter charter) {
     session.setProject(project);
     session.setCharter(charter);
+    session.setTitle(request.getTitle());
     session.setCharterSnapshotTitle(charter.getTitle());
     session.setCharterSnapshotMission(charter.getMission());
     session.setTesterId(request.getTesterId());
@@ -354,6 +381,7 @@ public class TestSessionService {
     dto.setId(session.getId());
     dto.setProjectId(session.getProject().getId());
     dto.setCharterId(session.getCharter().getId());
+    dto.setTitle(session.getTitle());
     dto.setCharterSnapshotTitle(session.getCharterSnapshotTitle());
     dto.setCharterSnapshotMission(session.getCharterSnapshotMission());
     dto.setTesterId(session.getTesterId());

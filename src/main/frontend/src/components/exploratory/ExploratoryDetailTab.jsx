@@ -42,6 +42,7 @@ function ExploratoryDetailTab({
   sessions,
   charters,
   statusColor,
+  onBackToList,
 }) {
   const session = sessions.find((s) => s.id === sessionId);
 
@@ -108,7 +109,14 @@ function ExploratoryDetailTab({
                       sx={{ mt: 0.5 }}
                     >
                       <Chip
-                        label={session.status}
+                        label={t(
+                          `exploratory.session.status.${
+                            session.status === "NEEDS_UPDATE"
+                              ? "needsUpdate"
+                              : session.status.toLowerCase()
+                          }`,
+                          session.status,
+                        )}
                         color={color}
                         size="small"
                         sx={{
@@ -123,6 +131,23 @@ function ExploratoryDetailTab({
                       </Typography>
                     </Stack>
                   </Box>
+                  <Button
+                    variant="outlined"
+                    onClick={onBackToList}
+                    sx={{
+                      ml: "auto",
+                      borderRadius: 2,
+                      borderColor: "rgba(255,255,255,0.2)",
+                      color: "rgba(255,255,255,0.7)",
+                      "&:hover": {
+                        borderColor: "white",
+                        color: "white",
+                        bgcolor: "rgba(255,255,255,0.05)",
+                      },
+                    }}
+                  >
+                    {t("exploratory.editor.btn.backToList", "목록보기")}
+                  </Button>
                 </Box>
 
                 <Grid container spacing={3}>

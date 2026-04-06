@@ -21,6 +21,9 @@ public class TestSessionRequestDto {
   @NotBlank(message = "charterId는 필수입니다.")
   private String charterId;
 
+  @NotBlank(message = "title은 필수입니다.")
+  private String title;
+
   private String testerId;
   private String leadId;
 

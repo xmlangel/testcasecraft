@@ -33,12 +33,13 @@ const formatSeconds = (seconds) => {
 const statusColor = {
   ACTIVE: "success",
   ARCHIVED: "default",
-  RUNNING: "warning",
+  RUNNING: "success",
   PAUSED: "warning",
-  SUBMITTED: "info",
-  APPROVED: "success",
+  COMPLETED: "secondary",
+  SUBMITTED: "default",
+  APPROVED: "default",
   NEEDS_UPDATE: "error",
-  DRAFT: "default",
+  DRAFT: "info",
 };
 
 const CHARTER_TEMPLATE = `# 🎯 목적 (Objective)
@@ -152,46 +153,14 @@ function ExploratorySessionWorkspace({ projectId }) {
   React.useEffect(() => {
     const interval = setInterval(() => {
       if (timerStatus === "running") {
-        setElapsedSec((prev) => {
-          const next = prev + 1;
-          // 자동 종료 체크 (설정된 시간이 있고 그 시간을 넘었을 때)
-          if (
-            sessionDraft.id &&
-            sessionDraft.netDurationMinutes > 0 &&
-            next >= sessionDraft.netDurationMinutes * 60
-          ) {
-            // handleTimerAction("end")을 직접 호출하면 상태 업데이트 도중 호출 문제가 발생할 수 있으므로
-            // 다음 틱에서 실행하거나 플래그를 사용. 여기서는 클로저 때문에 handleTimerAction을 직접 부르기보다
-            // 신호를 주는 방식으로 처리 (또는 useEffect 밖에서 상태 감시)
-            return next;
-          }
-          return next;
-        });
+        setElapsedSec((prev) => prev + 1);
       }
       if (timerStatus === "paused") {
         setPausedSec((prev) => prev + 1);
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [timerStatus, sessionDraft.id, sessionDraft.netDurationMinutes]);
-
-  // 자동 종료 감시용 별도 useEffect
-  React.useEffect(() => {
-    if (
-      timerStatus === "running" &&
-      sessionDraft.id &&
-      sessionDraft.netDurationMinutes > 0 &&
-      elapsedSec >= sessionDraft.netDurationMinutes * 60
-    ) {
-      console.log("Session time reached. Auto-ending...");
-      handleTimerAction("end");
-    }
-  }, [
-    elapsedSec,
-    timerStatus,
-    sessionDraft.id,
-    sessionDraft.netDurationMinutes,
-  ]);
+  }, [timerStatus]);
 
   const parseApiError = React.useCallback(async (response, fallbackMessage) => {
     try {
@@ -420,6 +389,11 @@ function ExploratorySessionWorkspace({ projectId }) {
   }, [loadSessions]);
 
   const filteredSessions = sessions.filter((item) => {
+    // 1. 상태 필터가 'ALL'인 경우 ARCHIVED 세션은 숨김 (사용자 요청)
+    if (sessionFilters.status === "ALL" && item.status === "ARCHIVED") {
+      return false;
+    }
+    // 2. 테스터 필터
     if (sessionFilters.tester) {
       const keyword = sessionFilters.tester.toLowerCase();
       if (!`${item.tester}`.toLowerCase().includes(keyword)) {
@@ -477,7 +451,13 @@ function ExploratorySessionWorkspace({ projectId }) {
         // 타이머 상태 복구 (최소한의 로직)
         if (data.status === "RUNNING") setTimerStatus("running");
         else if (data.status === "PAUSED") setTimerStatus("paused");
-        else if (data.status === "DRAFT" && data.startedAt)
+        else if (
+          data.status === "COMPLETED" ||
+          data.status === "SUBMITTED" ||
+          data.status === "APPROVED" ||
+          data.status === "NEEDS_UPDATE" ||
+          (data.status === "DRAFT" && data.startedAt)
+        )
           setTimerStatus("ended");
         else setTimerStatus("idle");
 
@@ -527,6 +507,36 @@ function ExploratorySessionWorkspace({ projectId }) {
       setSessionDraft((prev) => ({ ...prev, id: saved.id }));
       await loadSessions();
       alert(t("exploratory.session.saveSuccess", "세션이 저장되었습니다."));
+    } catch (err) {
+      setSessionError(err.message);
+    } finally {
+      setSavingSession(false);
+    }
+  };
+
+  const submitSession = async () => {
+    if (!sessionDraft.id) {
+      setSessionError("세션을 먼저 저장해야 합니다.");
+      return;
+    }
+
+    setSavingSession(true);
+    setSessionError("");
+    try {
+      const response = await api(`/api/sessions/${sessionDraft.id}/submit`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await parseApiError(response, "세션 제출에 실패했습니다."),
+        );
+      }
+
+      const updated = await response.json();
+      setSessionDraft((prev) => ({ ...prev, status: updated.status }));
+      await loadSessions();
+      alert(t("exploratory.session.submitSuccess", "세션이 제출되었습니다."));
     } catch (err) {
       setSessionError(err.message);
     } finally {
@@ -631,6 +641,15 @@ function ExploratorySessionWorkspace({ projectId }) {
     }
   };
 
+  const handleBackToList = () => {
+    setSelectedSessionId(null);
+    setSessionDraft(INITIAL_SESSION_DRAFT);
+    setTimerStatus("idle");
+    setElapsedSec(0);
+    setPausedSec(0);
+    setView(1); // 세션 목록 탭으로 복귀
+  };
+
   const selectedCharter = charters.find(
     (item) => item.id === sessionDraft.charterId,
   );
@@ -724,9 +743,20 @@ function ExploratorySessionWorkspace({ projectId }) {
         >
           <Tab label={t("exploratory.view.charterManagement", "관리")} />
           <Tab label={t("exploratory.view.sessionList", "목록")} />
-          <Tab label={t("exploratory.view.sessionEditor", "작성/편집")} />
-          <Tab label={t("exploratory.view.debriefApproval", "디브리프")} />
-          <Tab label={t("exploratory.view.sessionDetail", "상세")} />
+          {(selectedSessionId || view >= 2) && [
+            <Tab
+              key="editor"
+              label={t("exploratory.view.sessionEditor", "작성/편집")}
+            />,
+            <Tab
+              key="debrief"
+              label={t("exploratory.view.debriefApproval", "디브리프")}
+            />,
+            <Tab
+              key="detail"
+              label={t("exploratory.view.sessionDetail", "상세")}
+            />,
+          ]}
         </Tabs>
       </Box>
 
@@ -786,8 +816,10 @@ function ExploratorySessionWorkspace({ projectId }) {
             artifacts={artifacts}
             statusColor={statusColor}
             saveSession={saveSession}
+            submitSession={submitSession}
             savingSession={savingSession}
             sessionError={sessionError}
+            onBackToList={handleBackToList}
           />
         )}
 
@@ -796,6 +828,7 @@ function ExploratorySessionWorkspace({ projectId }) {
             t={t}
             sessionDraft={sessionDraft}
             setSessionDraft={setSessionDraft}
+            onBackToList={handleBackToList}
           />
         )}
 
@@ -806,6 +839,7 @@ function ExploratorySessionWorkspace({ projectId }) {
             sessions={sessions}
             charters={charters}
             statusColor={statusColor}
+            onBackToList={handleBackToList}
           />
         )}
       </Box>

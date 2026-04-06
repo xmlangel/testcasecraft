@@ -58,15 +58,24 @@ function ExploratorySessionEditorTab({
   artifacts,
   statusColor,
   saveSession,
+  submitSession,
   savingSession,
   sessionError,
+  onBackToList,
 }) {
   const [editorTab, setEditorTab] = React.useState(0);
   const charterSections = parseMarkdownSections(selectedCharter?.mission);
 
   const sessionStatusChip = (
     <Chip
-      label={sessionDraft.status}
+      label={t(
+        `exploratory.session.status.${
+          sessionDraft.status === "NEEDS_UPDATE"
+            ? "needsUpdate"
+            : sessionDraft.status.toLowerCase()
+        }`,
+        sessionDraft.status,
+      )}
       color={statusColor[sessionDraft.status] || "default"}
       size="small"
     />
@@ -144,9 +153,7 @@ function ExploratorySessionEditorTab({
                     variant="outlined"
                     startIcon={<PlayCircleIcon />}
                     onClick={() => onTimerAction("start")}
-                    disabled={
-                      timerStatus === "running" || timerStatus === "ended"
-                    }
+                    disabled={timerStatus === "running"}
                     sx={{
                       borderRadius: 2,
                       borderColor: "rgba(255,255,255,0.2)",
@@ -172,7 +179,11 @@ function ExploratorySessionEditorTab({
                     variant="outlined"
                     startIcon={<PlayCircleIcon />}
                     onClick={() => onTimerAction("resume")}
-                    disabled={timerStatus !== "paused"}
+                    disabled={
+                      timerStatus !== "paused" &&
+                      timerStatus !== "ended" &&
+                      sessionDraft.status !== "COMPLETED"
+                    }
                     sx={{
                       borderRadius: 2,
                       borderColor: "rgba(255,255,255,0.2)",
@@ -186,7 +197,13 @@ function ExploratorySessionEditorTab({
                     color="error"
                     startIcon={<StopCircleIcon />}
                     onClick={() => onTimerAction("end")}
-                    disabled={timerStatus === "idle" || timerStatus === "ended"}
+                    disabled={
+                      (timerStatus !== "running" &&
+                        timerStatus !== "paused" &&
+                        sessionDraft.status !== "DRAFT" &&
+                        sessionDraft.status !== "RUNNING") ||
+                      timerStatus === "ended"
+                    }
                     sx={{ borderRadius: 2 }}
                   >
                     {t("exploratory.editor.timer.end", "End")}
@@ -206,6 +223,41 @@ function ExploratorySessionEditorTab({
                     {savingSession
                       ? t("common.saving", "Saving...")
                       : t("common.save", "저장")}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={submitSession}
+                    disabled={
+                      savingSession ||
+                      (sessionDraft.status !== "DRAFT" &&
+                        sessionDraft.status !== "COMPLETED" &&
+                        sessionDraft.status !== "NEEDS_UPDATE")
+                    }
+                    sx={{
+                      borderRadius: 2,
+                      px: 3,
+                      fontWeight: 700,
+                      boxShadow: "0 4px 14px 0 rgba(76, 175, 80, 0.39)",
+                    }}
+                  >
+                    {t("exploratory.editor.btn.submit", "제출")}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={onBackToList}
+                    sx={{
+                      borderRadius: 2,
+                      borderColor: "rgba(255,255,255,0.2)",
+                      color: "rgba(255,255,255,0.7)",
+                      "&:hover": {
+                        borderColor: "white",
+                        color: "white",
+                        bgcolor: "rgba(255,255,255,0.05)",
+                      },
+                    }}
+                  >
+                    {t("exploratory.editor.btn.backToList", "목록보기")}
                   </Button>
                 </Stack>
 
@@ -251,18 +303,27 @@ function ExploratorySessionEditorTab({
                           100,
                       )}
                       sx={{
-                        height: 8,
-                        borderRadius: 4,
-                        bgcolor: "rgba(255,255,255,0.1)",
+                        height: 10,
+                        borderRadius: 5,
+                        bgcolor: "rgba(255,255,255,0.05)",
                         "& .MuiLinearProgress-bar": {
-                          borderRadius: 4,
+                          borderRadius: 5,
                           background:
                             elapsedSec /
-                              (sessionDraft.netDurationMinutes * 60) >
-                            0.9
-                              ? "linear-gradient(90deg, #f44336 0%, #ff5252 100%)"
-                              : "linear-gradient(90deg, #ed6c02 0%, #ff9800 100%)",
-                          boxShadow: "0 0 10px rgba(237, 108, 2, 0.5)",
+                              (sessionDraft.netDurationMinutes * 60) >=
+                            1
+                              ? "linear-gradient(90deg, #ff5252 0%, #f44336 100%)"
+                              : elapsedSec /
+                                    (sessionDraft.netDurationMinutes * 60) >=
+                                  0.8
+                                ? "linear-gradient(90deg, #ffa726 0%, #f57c00 100%)"
+                                : "linear-gradient(90deg, #4caf50 0%, #66bb6a 100%)",
+                          boxShadow:
+                            elapsedSec /
+                              (sessionDraft.netDurationMinutes * 60) >=
+                            1
+                              ? "0 0 10px rgba(244, 67, 54, 0.5)"
+                              : "none",
                         },
                       }}
                     />
@@ -365,12 +426,58 @@ function ExploratorySessionEditorTab({
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         fullWidth
+                        label={t(
+                          "exploratory.editor.field.netDuration",
+                          "Target Duration (min)",
+                        )}
+                        type="number"
+                        value={sessionDraft.netDurationMinutes || ""}
+                        onChange={(e) =>
+                          setSessionDraft((prev) => ({
+                            ...prev,
+                            netDurationMinutes: parseInt(e.target.value) || 0,
+                          }))
+                        }
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            bgcolor: "rgba(255,255,255,0.02)",
+                            borderRadius: 2,
+                          },
+                        }}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField
+                        fullWidth
                         label="Product Version"
                         value={sessionDraft.productVersion || ""}
                         onChange={(e) =>
                           setSessionDraft((prev) => ({
                             ...prev,
                             productVersion: e.target.value,
+                          }))
+                        }
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            bgcolor: "rgba(255,255,255,0.02)",
+                            borderRadius: 2,
+                          },
+                        }}
+                      />
+                    </Grid>
+                    <Grid size={12}>
+                      <TextField
+                        fullWidth
+                        required
+                        label={t(
+                          "exploratory.editor.field.title",
+                          "Session Title",
+                        )}
+                        value={sessionDraft.title || ""}
+                        onChange={(e) =>
+                          setSessionDraft((prev) => ({
+                            ...prev,
+                            title: e.target.value,
                           }))
                         }
                         sx={{

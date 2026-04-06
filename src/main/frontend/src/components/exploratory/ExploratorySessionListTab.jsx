@@ -98,12 +98,30 @@ function ExploratorySessionListTab({
                 }
               >
                 <MenuItem value="ALL">{t("common.all", "전체")}</MenuItem>
-                <MenuItem value="DRAFT">DRAFT</MenuItem>
-                <MenuItem value="RUNNING">RUNNING</MenuItem>
-                <MenuItem value="PAUSED">PAUSED</MenuItem>
-                <MenuItem value="SUBMITTED">SUBMITTED</MenuItem>
-                <MenuItem value="APPROVED">APPROVED</MenuItem>
-                <MenuItem value="NEEDS_UPDATE">NEEDS_UPDATE</MenuItem>
+                <MenuItem value="DRAFT">
+                  {t("exploratory.session.status.draft", "DRAFT")}
+                </MenuItem>
+                <MenuItem value="RUNNING">
+                  {t("exploratory.session.status.running", "RUNNING")}
+                </MenuItem>
+                <MenuItem value="PAUSED">
+                  {t("exploratory.session.status.paused", "PAUSED")}
+                </MenuItem>
+                <MenuItem value="COMPLETED">
+                  {t("exploratory.session.status.completed", "COMPLETED")}
+                </MenuItem>
+                <MenuItem value="SUBMITTED">
+                  {t("exploratory.session.status.submitted", "SUBMITTED")}
+                </MenuItem>
+                <MenuItem value="APPROVED">
+                  {t("exploratory.session.status.approved", "APPROVED")}
+                </MenuItem>
+                <MenuItem value="ARCHIVED">
+                  {t("exploratory.session.status.archived", "ARCHIVED")}
+                </MenuItem>
+                <MenuItem value="NEEDS_UPDATE">
+                  {t("exploratory.session.status.needsUpdate", "NEEDS_UPDATE")}
+                </MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -243,7 +261,14 @@ function ExploratorySessionListTab({
                         }}
                       >
                         <Chip
-                          label={item.status}
+                          label={t(
+                            `exploratory.session.status.${
+                              item.status === "NEEDS_UPDATE"
+                                ? "needsUpdate"
+                                : item.status.toLowerCase()
+                            }`,
+                            item.status,
+                          )}
                           size="small"
                           color={color}
                           variant="filled"

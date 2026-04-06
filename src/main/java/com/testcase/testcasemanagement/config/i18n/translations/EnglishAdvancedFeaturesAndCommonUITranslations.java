@@ -260,6 +260,8 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("navigation.breadcrumb.separator", languageCode, "/", createdBy);
     createTranslationIfNotExists("navigation.back.button", languageCode, "Back", createdBy);
     createTranslationIfNotExists(
+        "exploratory.editor.field.title", languageCode, "Session Title", createdBy);
+    createTranslationIfNotExists(
         "action.permission.view", languageCode, "View Permission", createdBy);
     createTranslationIfNotExists(
         "action.permission.edit", languageCode, "Edit Permission", createdBy);
@@ -2002,6 +2004,8 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "exploratory.editor.field.environment", languageCode, "Environment", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.field.version", languageCode, "Version", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.editor.field.netDuration", languageCode, "Target Duration (min)", createdBy);
     createTranslationIfNotExists("exploratory.editor.field.tags", languageCode, "Tags", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.charterSection.title", languageCode, "Charter Section", createdBy);
@@ -2223,6 +2227,24 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         languageCode,
         "Session has been saved successfully.",
         createdBy);
+
+    // Session Status Translations
+    createTranslationIfNotExists(
+        "exploratory.session.status.draft", languageCode, "Draft", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.running", languageCode, "Running", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.paused", languageCode, "Paused", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.completed", languageCode, "Completed", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.submitted", languageCode, "Submitted", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.approved", languageCode, "Approved", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.archived", languageCode, "Archived", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.needsUpdate", languageCode, "Needs Update", createdBy);
   }
 
   private void createTranslationIfNotExists(

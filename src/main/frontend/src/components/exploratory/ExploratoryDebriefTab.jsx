@@ -13,21 +13,42 @@ import {
   Typography,
 } from "@mui/material";
 
-function ExploratoryDebriefTab({ t, sessionDraft, setSessionDraft }) {
+function ExploratoryDebriefTab({
+  t,
+  sessionDraft,
+  setSessionDraft,
+  onBackToList,
+}) {
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12, md: 8 }}>
         <Card variant="outlined">
           <CardContent>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-              {t("exploratory.debrief.report.title", "디브리프 리포트")}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t(
-                "exploratory.debrief.report.meta",
-                "세션: Sprint 22 결제 탐색 | 테스터: Kim QA | 상태: DONE",
-              )}
-            </Typography>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="flex-start"
+            >
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                  {t("exploratory.debrief.report.title", "디브리프 리포트")}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t(
+                    "exploratory.debrief.report.meta",
+                    "세션: Sprint 22 결제 탐색 | 테스터: Kim QA | 상태: DONE",
+                  )}
+                </Typography>
+              </Box>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={onBackToList}
+                sx={{ borderRadius: 2 }}
+              >
+                {t("exploratory.editor.btn.backToList", "목록보기")}
+              </Button>
+            </Stack>
             <Divider sx={{ my: 1.5 }} />
             <Typography variant="body2" sx={{ mb: 1 }}>
               {t(

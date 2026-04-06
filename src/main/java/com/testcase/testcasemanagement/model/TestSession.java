@@ -43,9 +43,11 @@ public class TestSession {
     DRAFT,
     RUNNING,
     PAUSED,
+    COMPLETED,
     SUBMITTED,
     NEEDS_UPDATE,
-    APPROVED
+    APPROVED,
+    ARCHIVED
   }
 
   @Id
@@ -60,6 +62,9 @@ public class TestSession {
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "charter_id", nullable = false)
   private TestCharter charter;
+
+  @Column(name = "title", nullable = false, length = 255)
+  private String title;
 
   @Column(name = "charter_snapshot_title", nullable = false, length = 200)
   private String charterSnapshotTitle;

@@ -16,6 +16,7 @@ public class TestSessionResponseDto {
   private String id;
   private String projectId;
   private String charterId;
+  private String title;
   private String charterSnapshotTitle;
   private String charterSnapshotMission;
   private String testerId;
