@@ -305,16 +305,17 @@ public class TestSessionService {
   }
 
   private Integer calculateInterruptedMinutes(String sessionId) {
+    return (int) (calculateInterruptedSeconds(sessionId) / 60);
+  }
+
+  private Long calculateInterruptedSeconds(String sessionId) {
     List<TestSessionInterruption> interruptions =
         testSessionInterruptionRepository.findBySessionIdOrderByStartedAtAsc(sessionId);
 
-    long totalMinutes =
-        interruptions.stream()
-            .filter(it -> it.getEndedAt() != null)
-            .mapToLong(it -> Duration.between(it.getStartedAt(), it.getEndedAt()).toMinutes())
-            .sum();
-
-    return (int) totalMinutes;
+    return interruptions.stream()
+        .filter(it -> it.getEndedAt() != null)
+        .mapToLong(it -> Duration.between(it.getStartedAt(), it.getEndedAt()).toSeconds())
+        .sum();
   }
 
   private void appendApprovalHistory(
@@ -387,6 +388,33 @@ public class TestSessionService {
     dto.setReviewedAt(session.getReviewedAt());
     dto.setCreatedAt(session.getCreatedAt());
     dto.setUpdatedAt(session.getUpdatedAt());
+
+    // 실시간 세션 진행 시간 계산 (초 단위)
+    Long totalInterruptedSec = calculateInterruptedSeconds(session.getId());
+    dto.setInterruptedSeconds(totalInterruptedSec);
+
+    if (session.getStatus() == TestSession.SessionStatus.RUNNING
+        && session.getStartedAt() != null) {
+      long elapsed = Duration.between(session.getStartedAt(), LocalDateTime.now()).toSeconds();
+      dto.setCurrentElapsedSeconds(Math.max(0, elapsed - totalInterruptedSec));
+    } else if (session.getStatus() == TestSession.SessionStatus.PAUSED
+        && session.getStartedAt() != null) {
+      // 마지막 중단 시작 시간 기준으로 이전에 진행되었던 시간 계산
+      testSessionInterruptionRepository
+          .findFirstBySessionIdAndEndedAtIsNullOrderByStartedAtDesc(session.getId())
+          .ifPresent(
+              ongoing -> {
+                long totalSinceStart =
+                    Duration.between(session.getStartedAt(), ongoing.getStartedAt()).toSeconds();
+                dto.setCurrentElapsedSeconds(Math.max(0, totalSinceStart - totalInterruptedSec));
+              });
+    } else if (session.getEndedAt() != null && session.getStartedAt() != null) {
+      long total = Duration.between(session.getStartedAt(), session.getEndedAt()).toSeconds();
+      dto.setCurrentElapsedSeconds(Math.max(0, total - totalInterruptedSec));
+    } else {
+      dto.setCurrentElapsedSeconds(0L);
+    }
+
     return dto;
   }
 }

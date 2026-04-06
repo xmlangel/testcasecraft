@@ -133,79 +133,141 @@ function ExploratorySessionEditorTab({
               </Stack>
             </Grid>
             <Grid size={{ xs: 12, md: 8 }}>
-              <Stack
-                direction="row"
-                spacing={1}
-                justifyContent={{ xs: "center", md: "flex-end" }}
-                sx={{ gap: 1 }}
-              >
-                <Button
-                  variant="outlined"
-                  startIcon={<PlayCircleIcon />}
-                  onClick={() => onTimerAction("start")}
-                  disabled={
-                    timerStatus === "running" || timerStatus === "ended"
-                  }
-                  sx={{
-                    borderRadius: 2,
-                    borderColor: "rgba(255,255,255,0.2)",
-                    color: "white",
-                  }}
+              <Stack spacing={2}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  justifyContent={{ xs: "center", md: "flex-end" }}
+                  sx={{ gap: 1 }}
                 >
-                  {t("exploratory.editor.timer.start", "Start")}
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<PauseCircleIcon />}
-                  onClick={() => onTimerAction("pause")}
-                  disabled={timerStatus !== "running"}
-                  sx={{
-                    borderRadius: 2,
-                    borderColor: "rgba(255,255,255,0.2)",
-                    color: "white",
-                  }}
-                >
-                  {t("exploratory.editor.timer.pause", "Pause")}
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<PlayCircleIcon />}
-                  onClick={() => onTimerAction("resume")}
-                  disabled={timerStatus !== "paused"}
-                  sx={{
-                    borderRadius: 2,
-                    borderColor: "rgba(255,255,255,0.2)",
-                    color: "white",
-                  }}
-                >
-                  {t("exploratory.editor.timer.resume", "Resume")}
-                </Button>
-                <Button
-                  variant="contained"
-                  color="error"
-                  startIcon={<StopCircleIcon />}
-                  onClick={() => onTimerAction("end")}
-                  disabled={timerStatus === "idle" || timerStatus === "ended"}
-                  sx={{ borderRadius: 2 }}
-                >
-                  {t("exploratory.editor.timer.end", "End")}
-                </Button>
-                <Divider
-                  orientation="vertical"
-                  flexItem
-                  sx={{ mx: 1, borderColor: "rgba(255,255,255,0.1)" }}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={saveSession}
-                  disabled={savingSession}
-                  sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
-                >
-                  {savingSession
-                    ? t("common.saving", "Saving...")
-                    : t("common.save", "저장")}
-                </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<PlayCircleIcon />}
+                    onClick={() => onTimerAction("start")}
+                    disabled={
+                      timerStatus === "running" || timerStatus === "ended"
+                    }
+                    sx={{
+                      borderRadius: 2,
+                      borderColor: "rgba(255,255,255,0.2)",
+                      color: "white",
+                    }}
+                  >
+                    {t("exploratory.editor.timer.start", "Start")}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<PauseCircleIcon />}
+                    onClick={() => onTimerAction("pause")}
+                    disabled={timerStatus !== "running"}
+                    sx={{
+                      borderRadius: 2,
+                      borderColor: "rgba(255,255,255,0.2)",
+                      color: "white",
+                    }}
+                  >
+                    {t("exploratory.editor.timer.pause", "Pause")}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<PlayCircleIcon />}
+                    onClick={() => onTimerAction("resume")}
+                    disabled={timerStatus !== "paused"}
+                    sx={{
+                      borderRadius: 2,
+                      borderColor: "rgba(255,255,255,0.2)",
+                      color: "white",
+                    }}
+                  >
+                    {t("exploratory.editor.timer.resume", "Resume")}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    startIcon={<StopCircleIcon />}
+                    onClick={() => onTimerAction("end")}
+                    disabled={timerStatus === "idle" || timerStatus === "ended"}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    {t("exploratory.editor.timer.end", "End")}
+                  </Button>
+                  <Divider
+                    orientation="vertical"
+                    flexItem
+                    sx={{ mx: 1, borderColor: "rgba(255,255,255,0.1)" }}
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={saveSession}
+                    disabled={savingSession}
+                    sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
+                  >
+                    {savingSession
+                      ? t("common.saving", "Saving...")
+                      : t("common.save", "저장")}
+                  </Button>
+                </Stack>
+
+                {/* New Session Progress Visualizer */}
+                {sessionDraft.id && sessionDraft.netDurationMinutes > 0 && (
+                  <Box sx={{ px: 1 }}>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      sx={{ mb: 1 }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 800,
+                          color: "warning.light",
+                          letterSpacing: 1,
+                        }}
+                      >
+                        {t(
+                          "exploratory.editor.timer.progress",
+                          "TIME ALLOCATION VISUALIZER",
+                        )}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ fontWeight: 800, opacity: 0.8 }}
+                      >
+                        {Math.round(
+                          (elapsedSec /
+                            (sessionDraft.netDurationMinutes * 60)) *
+                            100,
+                        )}
+                        % (Target: {sessionDraft.netDurationMinutes}m)
+                      </Typography>
+                    </Stack>
+                    <LinearProgress
+                      variant="determinate"
+                      value={Math.min(
+                        100,
+                        (elapsedSec / (sessionDraft.netDurationMinutes * 60)) *
+                          100,
+                      )}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        bgcolor: "rgba(255,255,255,0.1)",
+                        "& .MuiLinearProgress-bar": {
+                          borderRadius: 4,
+                          background:
+                            elapsedSec /
+                              (sessionDraft.netDurationMinutes * 60) >
+                            0.9
+                              ? "linear-gradient(90deg, #f44336 0%, #ff5252 100%)"
+                              : "linear-gradient(90deg, #ed6c02 0%, #ff9800 100%)",
+                          boxShadow: "0 0 10px rgba(237, 108, 2, 0.5)",
+                        },
+                      }}
+                    />
+                  </Box>
+                )}
               </Stack>
             </Grid>
           </Grid>
@@ -390,7 +452,7 @@ function ExploratorySessionEditorTab({
                   >
                     {t(
                       "exploratory.editor.section.timeAllocation",
-                      "TIME ALLOCATION VISUALIZER",
+                      "TEST TASK DISTRIBUTION",
                     )}
                   </Typography>
 

@@ -2212,6 +2212,17 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         languageCode,
         "Failed to reject the request.",
         createdBy);
+
+    createTranslationIfNotExists(
+        "exploratory.session.confirmDelete",
+        languageCode,
+        "Are you sure you want to delete this session?",
+        createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.saveSuccess",
+        languageCode,
+        "Session has been saved successfully.",
+        createdBy);
   }
 
   private void createTranslationIfNotExists(

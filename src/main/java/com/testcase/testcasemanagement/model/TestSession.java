@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -183,4 +184,16 @@ public class TestSession {
   protected void onUpdate() {
     this.updatedAt = LocalDateTime.now();
   }
+
+  @OneToMany(
+      mappedBy = "session",
+      cascade = jakarta.persistence.CascadeType.ALL,
+      orphanRemoval = true)
+  private List<TestSessionApproval> approvals = new ArrayList<>();
+
+  @OneToMany(
+      mappedBy = "session",
+      cascade = jakarta.persistence.CascadeType.ALL,
+      orphanRemoval = true)
+  private List<TestSessionInterruption> interruptions = new ArrayList<>();
 }

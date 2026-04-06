@@ -272,15 +272,21 @@ function ExploratorySessionListTab({
                           <Tooltip title={t("common.delete", "삭제")}>
                             <IconButton
                               size="small"
-                              color="error"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onDeleteSession && onDeleteSession(item.id);
                               }}
                               sx={{
-                                opacity: 0,
-                                transition: "opacity 0.2s",
-                                ".MuiCard-root:hover &": { opacity: 0.7 },
+                                opacity: 0.3,
+                                transition: "all 0.2s ease-in-out",
+                                color: "rgba(255,255,255,0.4)",
+                                "&:hover": {
+                                  opacity: 1,
+                                  color: "error.main",
+                                  bgcolor: "rgba(211, 47, 47, 0.1)",
+                                  transform: "scale(1.1)",
+                                },
+                                ".MuiCard-root:hover &": { opacity: 0.8 },
                               }}
                             >
                               <DeleteIcon fontSize="small" />

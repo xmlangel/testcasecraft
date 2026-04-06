@@ -46,6 +46,8 @@ public class TestSessionResponseDto {
   private LocalDateTime startedAt;
   private LocalDateTime endedAt;
   private Integer interruptedMinutes;
+  private Long interruptedSeconds;
+  private Long currentElapsedSeconds;
   private LocalDateTime submittedAt;
   private LocalDateTime reviewedAt;
   private LocalDateTime createdAt;

@@ -1566,6 +1566,11 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "admin.globalDoc.requests.rejected", languageCode, "요청을 거절했습니다.", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.requests.rejectFailed", languageCode, "요청 거절에 실패했습니다.", createdBy);
+
+    createTranslationIfNotExists(
+        "exploratory.session.confirmDelete", languageCode, "정말로 이 세션을 삭제하시겠습니까?", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.saveSuccess", languageCode, "세션이 저장되었습니다.", createdBy);
   }
 
   private void createTranslationIfNotExists(

@@ -152,14 +152,46 @@ function ExploratorySessionWorkspace({ projectId }) {
   React.useEffect(() => {
     const interval = setInterval(() => {
       if (timerStatus === "running") {
-        setElapsedSec((prev) => prev + 1);
+        setElapsedSec((prev) => {
+          const next = prev + 1;
+          // 자동 종료 체크 (설정된 시간이 있고 그 시간을 넘었을 때)
+          if (
+            sessionDraft.id &&
+            sessionDraft.netDurationMinutes > 0 &&
+            next >= sessionDraft.netDurationMinutes * 60
+          ) {
+            // handleTimerAction("end")을 직접 호출하면 상태 업데이트 도중 호출 문제가 발생할 수 있으므로
+            // 다음 틱에서 실행하거나 플래그를 사용. 여기서는 클로저 때문에 handleTimerAction을 직접 부르기보다
+            // 신호를 주는 방식으로 처리 (또는 useEffect 밖에서 상태 감시)
+            return next;
+          }
+          return next;
+        });
       }
       if (timerStatus === "paused") {
         setPausedSec((prev) => prev + 1);
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [timerStatus]);
+  }, [timerStatus, sessionDraft.id, sessionDraft.netDurationMinutes]);
+
+  // 자동 종료 감시용 별도 useEffect
+  React.useEffect(() => {
+    if (
+      timerStatus === "running" &&
+      sessionDraft.id &&
+      sessionDraft.netDurationMinutes > 0 &&
+      elapsedSec >= sessionDraft.netDurationMinutes * 60
+    ) {
+      console.log("Session time reached. Auto-ending...");
+      handleTimerAction("end");
+    }
+  }, [
+    elapsedSec,
+    timerStatus,
+    sessionDraft.id,
+    sessionDraft.netDurationMinutes,
+  ]);
 
   const parseApiError = React.useCallback(async (response, fallbackMessage) => {
     try {
@@ -445,13 +477,20 @@ function ExploratorySessionWorkspace({ projectId }) {
         // 타이머 상태 복구 (최소한의 로직)
         if (data.status === "RUNNING") setTimerStatus("running");
         else if (data.status === "PAUSED") setTimerStatus("paused");
+        else if (data.status === "DRAFT" && data.startedAt)
+          setTimerStatus("ended");
         else setTimerStatus("idle");
 
-        // 경과 시간 계산 (백엔드 데이터 기반으로 개선 가능)
-        if (data.netDurationMinutes) {
+        // 경과 시간 계산 (백엔드 데이터 기반으로 개선)
+        if (data.currentElapsedSeconds !== undefined) {
+          setElapsedSec(data.currentElapsedSeconds);
+        } else if (data.netDurationMinutes) {
           setElapsedSec(data.netDurationMinutes * 60);
         }
-        if (data.interruptedMinutes) {
+
+        if (data.interruptedSeconds !== undefined) {
+          setPausedSec(data.interruptedSeconds);
+        } else if (data.interruptedMinutes) {
           setPausedSec(data.interruptedMinutes * 60);
         }
 
