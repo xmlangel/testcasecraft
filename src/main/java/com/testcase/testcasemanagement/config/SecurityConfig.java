@@ -159,7 +159,8 @@ public class SecurityConfig {
                         "/jira-redirect",
                         "/jira-redirect/**",
                         "/verify-email",
-                        "/verify-email/**")
+                        "/verify-email/**",
+                        "/api/system-settings/rag/status")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

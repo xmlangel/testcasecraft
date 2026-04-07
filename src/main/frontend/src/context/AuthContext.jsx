@@ -181,7 +181,9 @@ export const AuthProvider = ({ children }) => {
       const fetchOptions = {
         ...options,
         headers: {
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          ...(accessToken && !options.skipAuth
+            ? { Authorization: `Bearer ${accessToken}` }
+            : {}),
           ...options.headers,
         },
       };
