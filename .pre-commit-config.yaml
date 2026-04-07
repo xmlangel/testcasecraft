@@ -1,3 +1,4 @@
+exclude: ^docs/
 repos:
   # Python
   - repo: https://github.com/psf/black

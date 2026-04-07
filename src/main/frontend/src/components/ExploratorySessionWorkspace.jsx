@@ -1,4 +1,5 @@
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   AppBar,
   Box,
@@ -86,7 +87,81 @@ const CHARTER_TEMPLATE = `# 🎯 목적 (Objective)
 function ExploratorySessionWorkspace({ projectId }) {
   const { t } = useI18n();
   const { api, user } = useAppContext();
-  const [view, setView] = React.useState(0);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") || "charters";
+  const sessionIdParam = searchParams.get("sessionId");
+
+  const viewMap = React.useMemo(
+    () => ({
+      charters: 0,
+      sessions: 1,
+      editor: 2,
+      debrief: 3,
+      detail: 4,
+    }),
+    [],
+  );
+
+  const reverseViewMap = React.useMemo(
+    () => ({
+      0: "charters",
+      1: "sessions",
+      2: "editor",
+      3: "debrief",
+      4: "detail",
+    }),
+    [],
+  );
+
+  const [view, setView] = React.useState(viewMap[tabParam] ?? 0);
+  const [selectedSessionId, setSelectedSessionId] = React.useState(
+    sessionIdParam || null,
+  );
+
+  React.useEffect(() => {
+    const v = viewMap[tabParam] ?? 0;
+    if (v !== view) setView(v);
+
+    if (sessionIdParam !== selectedSessionId) {
+      setSelectedSessionId(sessionIdParam || null);
+    }
+  }, [tabParam, sessionIdParam, view, selectedSessionId, viewMap]);
+
+  // 세션 ID가 변경되었으나 데이터가 로드되지 않은 경우 자동 로딩
+  React.useEffect(() => {
+    if (selectedSessionId && sessionDraft.id !== selectedSessionId) {
+      loadSessionForEdit(selectedSessionId);
+    }
+  }, [selectedSessionId, sessionDraft.id, loadSessionForEdit]);
+
+  // 내부 상태가 변경될 때 URL 파라미터 동기화
+  const updateUrl = React.useCallback(
+    (newView, newSessionId) => {
+      const nextParams = new URLSearchParams(searchParams);
+      const tabName = reverseViewMap[newView] || "charters";
+      nextParams.set("tab", tabName);
+
+      if (newSessionId) {
+        nextParams.set("sessionId", newSessionId);
+      } else {
+        nextParams.delete("sessionId");
+      }
+
+      setSearchParams(nextParams, { replace: true });
+    },
+    [searchParams, setSearchParams, reverseViewMap],
+  );
+
+  const handleSetView = (newView) => {
+    setView(newView);
+    updateUrl(newView, selectedSessionId);
+  };
+
+  const handleSetSelectedSessionId = (newId) => {
+    setSelectedSessionId(newId);
+    updateUrl(view, newId);
+  };
   const [charters, setCharters] = React.useState([]);
   const [chartersLoading, setChartersLoading] = React.useState(false);
   const [charterError, setCharterError] = React.useState("");
@@ -102,7 +177,6 @@ function ExploratorySessionWorkspace({ projectId }) {
     periodFrom: "",
     periodTo: "",
   });
-  const [selectedSessionId, setSelectedSessionId] = React.useState(null);
   const [charterDialogOpen, setCharterDialogOpen] = React.useState(false);
   const [editingCharter, setEditingCharter] = React.useState(null);
   const [charterForm, setCharterForm] = React.useState({
@@ -448,7 +522,7 @@ function ExploratorySessionWorkspace({ projectId }) {
           status: data.status,
         });
 
-        // 타이머 상태 복구 (최소한의 로직)
+        // 타이머 상태 복구
         if (data.status === "RUNNING") setTimerStatus("running");
         else if (data.status === "PAUSED") setTimerStatus("paused");
         else if (
@@ -461,7 +535,6 @@ function ExploratorySessionWorkspace({ projectId }) {
           setTimerStatus("ended");
         else setTimerStatus("idle");
 
-        // 경과 시간 계산 (백엔드 데이터 기반으로 개선)
         if (data.currentElapsedSeconds !== undefined) {
           setElapsedSec(data.currentElapsedSeconds);
         } else if (data.netDurationMinutes) {
@@ -474,7 +547,8 @@ function ExploratorySessionWorkspace({ projectId }) {
           setPausedSec(data.interruptedMinutes * 60);
         }
 
-        setView(2); // 편집 탭으로 이동
+        // data loading 완료 후 view 동기화
+        if (view !== 2) handleSetView(2);
       } catch (err) {
         setSessionError(err.message);
       } finally {
@@ -591,18 +665,18 @@ function ExploratorySessionWorkspace({ projectId }) {
   };
 
   const handleSelectSession = (sessionId) => {
-    setSelectedSessionId(sessionId);
+    handleSetSelectedSessionId(sessionId);
     // 편집 모드로 바로 진입하도록 변경
     loadSessionForEdit(sessionId);
   };
 
   const handleCreateSession = () => {
-    setSelectedSessionId(null);
+    handleSetSelectedSessionId(null);
     setSessionDraft(INITIAL_SESSION_DRAFT);
     setTimerStatus("idle");
     setElapsedSec(0);
     setPausedSec(0);
-    setView(2);
+    handleSetView(2);
   };
 
   const handleDeleteSession = async (sessionId) => {
@@ -633,7 +707,7 @@ function ExploratorySessionWorkspace({ projectId }) {
 
       await loadSessions();
       if (selectedSessionId === sessionId) {
-        setSelectedSessionId(null);
+        handleSetSelectedSessionId(null);
         setSessionDraft(INITIAL_SESSION_DRAFT);
       }
     } catch (error) {
@@ -642,12 +716,12 @@ function ExploratorySessionWorkspace({ projectId }) {
   };
 
   const handleBackToList = () => {
-    setSelectedSessionId(null);
+    handleSetSelectedSessionId(null);
     setSessionDraft(INITIAL_SESSION_DRAFT);
     setTimerStatus("idle");
     setElapsedSec(0);
     setPausedSec(0);
-    setView(1); // 세션 목록 탭으로 복귀
+    handleSetView(1); // 세션 목록 탭으로 복귀
   };
 
   const selectedCharter = charters.find(
@@ -719,7 +793,7 @@ function ExploratorySessionWorkspace({ projectId }) {
       <Box sx={{ px: 3, pt: 1 }}>
         <Tabs
           value={view}
-          onChange={(_, value) => setView(value)}
+          onChange={(_, value) => handleSetView(value)}
           variant="scrollable"
           scrollButtons="auto"
           sx={{
