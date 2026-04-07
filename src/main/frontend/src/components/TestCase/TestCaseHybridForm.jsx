@@ -27,6 +27,7 @@ import InputModeToggle from "./InputModeToggle.jsx";
 import TestCaseForm from "../TestCaseForm.jsx";
 import TestCaseSpreadsheet from "./TestCaseSpreadsheet.jsx";
 import TestCaseDatasheetGrid from "./TestCaseDatasheetGrid.jsx";
+import { getAllDescendants, getAllChildIds } from "../../utils/treeUtils.jsx";
 import NoSelectionPlaceholder from "../common/NoSelectionPlaceholder.jsx";
 
 const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
@@ -91,15 +92,15 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           ? selectedItem.parentId
           : effectiveTestCaseId;
 
-      const hierarchicalFiltered = baseFiltered.filter((tc) => {
-        // 부모 ID가 일치하거나 (선택된 폴더의 자식)
-        // 선택된 폴더 자체를 포함 (이름 수정 등을 위해)
-        const isChild =
-          String(tc.parentId) === String(targetParentId) ||
-          (tc.parentId === null && !targetParentId);
-        const isSelf = String(tc.id) === String(targetParentId);
+      const descendantIds = getAllChildIds(baseFiltered, targetParentId);
+      const descendantIdSet = new Set(descendantIds.map(String));
 
-        return isChild || isSelf;
+      const hierarchicalFiltered = baseFiltered.filter((tc) => {
+        const tcIdStr = String(tc.id);
+        const isDescendant = descendantIdSet.has(tcIdStr);
+        const isSelf = tcIdStr === String(targetParentId);
+
+        return isDescendant || isSelf;
       });
 
       debugLog(
