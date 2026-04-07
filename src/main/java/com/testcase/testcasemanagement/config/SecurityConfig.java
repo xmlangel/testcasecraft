@@ -87,6 +87,8 @@ public class SecurityConfig {
                     .permitAll() // 로그인, 회원가입 등
                     .requestMatchers("/api/config/**")
                     .permitAll() // 설정 API 허용
+                    .requestMatchers("/api/system-settings/rag/status")
+                    .permitAll() // RAG 서비스 상태 확인 허용
                     .requestMatchers("/api/monitoring/**")
                     .permitAll() // 모니터링 API 허용
                     .requestMatchers("/api/i18n/**")
@@ -159,8 +161,7 @@ public class SecurityConfig {
                         "/jira-redirect",
                         "/jira-redirect/**",
                         "/verify-email",
-                        "/verify-email/**",
-                        "/api/system-settings/rag/status")
+                        "/verify-email/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

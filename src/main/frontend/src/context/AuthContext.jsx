@@ -220,7 +220,7 @@ export const AuthProvider = ({ children }) => {
         return response;
       }
 
-      if (response.status === 401) {
+      if (response.status === 401 && !options.skipAuth) {
         const refreshToken = localStorage.getItem("refreshToken");
         if (!refreshToken) {
           handleSessionExpiry();

@@ -184,6 +184,8 @@ const VersionIndicator = ({
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
+            disableEnforceFocus // 접근성 경고 방지
+            disableRestoreFocus // 접근성 경고 방지
             PaperProps={{
               sx: { minWidth: 200 },
             }}

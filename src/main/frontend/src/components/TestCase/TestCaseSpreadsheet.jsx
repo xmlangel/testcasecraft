@@ -1903,6 +1903,8 @@ const TestCaseSpreadsheet = ({
           anchorEl={exportMenuAnchor}
           open={Boolean(exportMenuAnchor)}
           onClose={handleExportMenuClose}
+          disableEnforceFocus // 접근성 경고 방지
+          disableRestoreFocus // 접근성 경고 방지
           anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
           transformOrigin={{ vertical: "top", horizontal: "left" }}
         >
