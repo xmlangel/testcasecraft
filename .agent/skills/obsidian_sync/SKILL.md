@@ -1,12 +1,12 @@
 # Obsidian Sync Skill (obsidian_sync)
 
-이 스킬은 현재 프로젝트의 주요 작업 산출물을 작업 단위별 전용 폴더(`Docs/Obsidian/[날짜]-[작업명]`)로 모아 Obsidian Vault에서 체계적으로 관리합니다.
+이 스킬은 현재 프로젝트의 주요 작업 산출물을 작업 단위별 전용 폴더(`docs/obsidian/[날짜]-[작업명]`)로 모아 Obsidian Vault에서 체계적으로 관리합니다.
 
 ## Metadata
 
 - **Name**: obsidian_sync
 - **Description**: 작업 단위 전용 폴더 내에 YAML 메타데이터를 포함한 아티팩트들을 동기화합니다.
-- **Target Directory**: `/Users/dicky/kmdata/git/trading/auto_trading/Docs/Obsidian`
+- **Target Directory**: `docs/obsidian`
 
 ## 사용 방법 (Usage)
 
@@ -21,7 +21,7 @@
     - **원천 연결 (Context Linking)**: 지식 노트 하단 혹은 YAML 메타데이터에 해당 지식이 도출된 원천 작업 폴더(`Docs/Obsidian/[날짜]-[작업명]/`)에 대한 링크를 명시하여 맥락을 파악할 수 있게 합니다.
     - 기본 파일명: `implementation_plan.md`, `task.md`, `walkthrough.md`
     - **지식 노트(`knowledge_note.md`)**: 검색 편의성을 위해 별도 디렉토리에 관리합니다.
-      - **저장 경로**: `Docs/Obsidian/Knowladge/[한글제목].md`
+      - **저장 경로**: `docs/obsidian/Knowladge/[한글제목].md`
       - **파일명 추출**: YAML 상단의 `title` 필드에 작성된 한글 제목을 파일명으로 사용합니다.
     - **다중 파일 규칙**: 동일 유형의 파일이 여러 개일 경우 접미사(`_v2`, `_특정 주제`)를 붙여 구분합니다.
       - 예: `implementation_plan_api_design.md`
