@@ -405,7 +405,6 @@ export const useBatchJiraIssueStatus = (items = [], options = {}) => {
     }
 
     setLoading(true);
-    console.log("🟢 JIRA 상태 조회 시작 - 로딩 상태 활성화");
     setInfo(null);
     setError(null);
 
@@ -431,11 +430,6 @@ export const useBatchJiraIssueStatus = (items = [], options = {}) => {
         return acc;
       }, {});
 
-      console.log(
-        "✅ JIRA 상태 맵 생성 완료:",
-        Object.keys(newStatusMap).length,
-        "건",
-      );
       setStatusMap(newStatusMap);
       setInfo({
         type: "success",
@@ -463,8 +457,7 @@ export const useBatchJiraIssueStatus = (items = [], options = {}) => {
         );
 
         if (syncResponse.ok) {
-          const syncResult = await syncResponse.json();
-          console.log("JIRA 상태 데이터베이스 동기화 완료:", syncResult);
+          await syncResponse.json();
         } else {
           // 에러 응답 처리
           const errorText = await syncResponse.text();
@@ -507,11 +500,6 @@ export const useBatchJiraIssueStatus = (items = [], options = {}) => {
         }
       }
     } finally {
-      console.log(
-        "🔵 JIRA 상태 조회 완료 - 로딩 상태 해제 (mountedRef:",
-        mountedRef.current,
-        ")",
-      );
       setLoading(false);
     }
   }, [items]);

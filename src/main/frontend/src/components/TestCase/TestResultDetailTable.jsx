@@ -9,6 +9,7 @@ import React, {
 // ICT-263: URL 쿼리 파라미터 연동을 위한 import
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  Alert,
   Box,
   Paper,
   Typography,
