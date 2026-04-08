@@ -15,6 +15,8 @@ import {
   Alert,
   Chip,
   Divider,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -44,6 +46,9 @@ const TestResultFilterPanel = ({
   );
   const [selectedTestExecution, setSelectedTestExecution] = useState(
     initialFilters.testExecutionId || "",
+  );
+  const [showLatestOnly, setShowLatestOnly] = useState(
+    initialFilters.showLatestOnly || false,
   );
 
   // 초기 데이터 로드
@@ -111,6 +116,7 @@ const TestResultFilterPanel = ({
     const filters = {
       testPlanId: selectedTestPlan || null,
       testExecutionId: selectedTestExecution || null,
+      showLatestOnly: showLatestOnly,
     };
 
     onFilterChange(filters);
@@ -120,9 +126,11 @@ const TestResultFilterPanel = ({
   const handleClearFilter = () => {
     setSelectedTestPlan("");
     setSelectedTestExecution("");
+    setShowLatestOnly(false);
     onFilterChange({
       testPlanId: null,
       testExecutionId: null,
+      showLatestOnly: false,
     });
   };
 
@@ -239,6 +247,27 @@ const TestResultFilterPanel = ({
             ))}
           </Select>
         </FormControl>
+
+        {/* 최신 결과만 보기 토글 */}
+        <Box
+          sx={{ display: "flex", alignItems: "center", height: "40px", ml: 1 }}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showLatestOnly}
+                onChange={(e) => setShowLatestOnly(e.target.checked)}
+                size="small"
+                color="primary"
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("testResult.filter.showLatestOnly", "최신 결과만 보기")}
+              </Typography>
+            }
+          />
+        </Box>
 
         {/* 액션 버튼들 */}
         <Box sx={{ display: "flex", gap: 1 }}>

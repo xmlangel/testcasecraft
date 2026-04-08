@@ -362,6 +362,8 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.filter.executionPrefix", languageCode, "실행:", createdBy);
     createTranslationIfNotExists("testResult.filter.periodPrefix", languageCode, "기간:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.filter.showLatestOnly", languageCode, "최신 결과만 보기", createdBy);
     createTranslationIfNotExists("testResult.column.folder", languageCode, "폴더", createdBy);
     createTranslationIfNotExists("testResult.column.testCase", languageCode, "테스트케이스", createdBy);
     createTranslationIfNotExists("testResult.column.result", languageCode, "결과", createdBy);

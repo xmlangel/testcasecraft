@@ -26,6 +26,7 @@ import {
   CircularProgress,
   useTheme,
   alpha,
+  Divider,
 } from "@mui/material";
 import {
   DataGrid,
@@ -264,6 +265,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-209: 테스트 결과 편집 기능 상태
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTestResult, setSelectedTestResult] = useState(null);
+  const [selectedTestExecution, setSelectedTestExecution] = useState("");
   const [selectedTestCase, setSelectedTestCase] = useState(null);
   const [activeEdits, setActiveEdits] = useState({});
 
@@ -273,6 +275,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     return {
       testPlanId: searchParams.get("testPlanId") || null,
       testExecutionId: searchParams.get("testExecutionId") || null,
+      showLatestOnly: searchParams.get("showLatestOnly") === "true",
     };
   };
 
@@ -282,7 +285,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   );
   const [isFiltered, setIsFiltered] = useState(() => {
     const initialFilters = getInitialFiltersFromURL();
-    return Boolean(initialFilters.testPlanId || initialFilters.testExecutionId);
+    return Boolean(
+      initialFilters.testPlanId ||
+        initialFilters.testExecutionId ||
+        initialFilters.showLatestOnly,
+    );
   });
 
   // ICT-194 Phase 2: 통합된 테스트 결과 색상 사용
@@ -304,7 +311,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
         // 필터가 적용된 경우 (조건문 개선)
         const hasFilters =
-          filters && (filters.testPlanId || filters.testExecutionId);
+          filters &&
+          (filters.testPlanId ||
+            filters.testExecutionId ||
+            filters.showLatestOnly);
 
         if (hasFilters) {
           // 새로운 필터링 API 사용
@@ -428,10 +438,22 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         });
 
         // 최신 결과인 행에 isLatest 플래그 설정
-        const tableDataWithLatest = tableData.map((row) => ({
+        let tableDataWithLatest = tableData.map((row) => ({
           ...row,
           isLatest: latestMap.get(row.testCaseId)?.id === row.id,
         }));
+
+        // 최신 결과만 보기 필터 적용
+        if (filters?.showLatestOnly) {
+          tableDataWithLatest = tableDataWithLatest.filter((row) => {
+            // 1. 최신 결과여야 함
+            if (!row.isLatest) return false;
+
+            // 2. 현재 선택된 플랜/실행이 있다면 그 범위 내에 있어야 함
+            // (서버 API가 이미 필터링된 데이터를 주므로, 원본 데이터에 존재하는 것만 남기면 됨)
+            return true;
+          });
+        }
 
         setRawRows(tableDataWithLatest);
 
@@ -528,6 +550,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       searchParams.delete("testExecutionId");
     }
 
+    if (filters.showLatestOnly) {
+      searchParams.set("showLatestOnly", "true");
+    } else {
+      searchParams.delete("showLatestOnly");
+    }
+
     // URL 업데이트 (히스토리에 추가하지 않고 교체)
     const newURL = `${location.pathname}?${searchParams.toString()}`;
     navigate(newURL, { replace: true });
@@ -536,7 +564,13 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-263: 필터 변경 핸들러
   const handleFilterChange = async (newFilters) => {
     setCurrentFilters(newFilters);
-    setIsFiltered(Boolean(newFilters.testPlanId || newFilters.testExecutionId));
+    setIsFiltered(
+      Boolean(
+        newFilters.testPlanId ||
+          newFilters.testExecutionId ||
+          newFilters.showLatestOnly,
+      ),
+    );
 
     // URL 업데이트
     updateURLWithFilters(newFilters);

@@ -454,6 +454,8 @@ public class EnglishTestResultTranslations {
         "testResult.filter.executionPrefix", languageCode, "Execution:", createdBy);
     createTranslationIfNotExists(
         "testResult.filter.periodPrefix", languageCode, "Period:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.filter.showLatestOnly", languageCode, "Show Latest Only", createdBy);
     createTranslationIfNotExists("testResult.column.folder", languageCode, "Folder", createdBy);
     createTranslationIfNotExists(
         "testResult.column.testCase", languageCode, "Test Case", createdBy);

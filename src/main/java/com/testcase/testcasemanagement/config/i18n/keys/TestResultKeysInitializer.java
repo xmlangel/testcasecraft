@@ -606,6 +606,9 @@ public class TestResultKeysInitializer {
         "jira.error.authentication", "jira", "JIRA 인증 오류", "인증에 실패했습니다");
     createTranslationKeyIfNotExists("jira.error.encryption", "jira", "JIRA 암호화 오류", "암호화 처리 오류");
 
+    createTranslationKeyIfNotExists(
+        "testResult.filter.showLatestOnly", "testResult", "최신 결과만 보기 필터", "최신 결과만 보기");
+
     log.info("테스트 결과 번역 키 초기화 완료");
     createTranslationKeyIfNotExists(
         "testResult.message.exportSuccess",
