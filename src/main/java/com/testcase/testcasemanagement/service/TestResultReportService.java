@@ -16,6 +16,7 @@ import com.testcase.testcasemanagement.repository.TestPlanRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -388,129 +389,117 @@ public class TestResultReportService {
     }
 
     // 프로젝트 ID 필터링이 있는 경우 해당 프로젝트의 테스트 결과만 조회
-    Page<TestResult> resultPage;
     if (filter.getProjectId() != null) {
-      // 기존 메서드 사용: findRecentTestResultsByProject는 페이징을 지원하지 않으므로
-      // 우선 모든 결과를 가져온 후 수동으로 페이징 처리
-      List<TestResult> allResults =
-          testResultRepository.findRecentTestResultsByProject(
-              filter.getProjectId(), PageRequest.of(0, Integer.MAX_VALUE));
 
-      // ICT-263: 테스트 플랜 및 테스트 실행 필터 적용
-      List<TestResult> filteredResults = allResults;
-
-      // 테스트 플랜 ID 필터링
-      if (filter.getTestPlanIds() != null && !filter.getTestPlanIds().isEmpty()) {
-        System.out.println(
-            "ICT-263 Debug - TestPlan 필터 적용: "
-                + filter.getTestPlanIds()
-                + " → 필터 전 개수: "
-                + filteredResults.size());
-        filteredResults =
-            filteredResults.stream()
-                .filter(
-                    result -> {
-                      if (result.getTestExecution() != null
-                          && result.getTestExecution().getTestPlanId() != null) {
-                        String testPlanId = result.getTestExecution().getTestPlanId();
-                        return filter.getTestPlanIds().contains(testPlanId);
-                      }
-                      return false;
-                    })
-                .collect(Collectors.toList());
-        System.out.println("ICT-263 Debug - TestPlan 필터 적용 후 개수: " + filteredResults.size());
-      }
-
-      // 테스트 실행 ID 필터링
-      if (filter.getTestExecutionIds() != null && !filter.getTestExecutionIds().isEmpty()) {
-        System.out.println(
-            "ICT-263 Debug - TestExecution 필터 적용: "
-                + filter.getTestExecutionIds()
-                + " → 필터 전 개수: "
-                + filteredResults.size());
-        filteredResults =
-            filteredResults.stream()
-                .filter(
-                    result -> {
-                      if (result.getTestExecution() != null) {
-                        String testExecutionId = result.getTestExecution().getId();
-                        return filter.getTestExecutionIds().contains(testExecutionId);
-                      }
-                      return false;
-                    })
-                .collect(Collectors.toList());
-        System.out.println("ICT-263 Debug - TestExecution 필터 적용 후 개수: " + filteredResults.size());
-      }
-
-      // ICT-178: JIRA 이슈 키 필터링
+      // ICT-178: JIRA 이슈 키 필터는 DB 레벨 지원이 없으므로 기존 방식 유지
       if (filter.getJiraIssueKeys() != null && !filter.getJiraIssueKeys().isEmpty()) {
-        filteredResults =
-            filteredResults.stream()
-                .filter(
-                    result -> {
-                      if (result.getJiraIssueKey() != null) {
-                        List<String> keys = Arrays.asList(result.getJiraIssueKey().split(","));
-                        return keys.stream()
-                            .anyMatch(k -> filter.getJiraIssueKeys().contains(k.trim()));
-                      }
-                      return false;
-                    })
-                .collect(Collectors.toList());
+        return getDetailedTestResultReportWithJiraFilter(filter, pageable);
       }
 
-      // ICT-263 추가: 동일한 executionId + testCaseId 조합에서 최신 결과만 유지 (중복 제거)
-      System.out.println("ICT-263 Debug - 중복 제거 전 개수: " + filteredResults.size());
+      // 최적화: DB 레벨 DISTINCT ON 중복 제거 → ID만 가져온 후 JOIN FETCH 로 엔티티 로드
+      // (extra column 매핑 오류 방지 + testExecution/executedBy N+1 방지)
+      Pageable idPageable = PageRequest.of(filter.getPage(), filter.getSize()); // unsorted
+      List<String> ids;
+      long total;
 
-      Map<String, TestResult> latestResultsMap =
-          filteredResults.stream()
-              .collect(
-                  Collectors.toMap(
-                      result -> result.getTestExecution().getId() + "|" + result.getTestCaseId(),
-                      result -> result,
-                      (existing, replacement) -> {
-                        // executedAt 시간을 비교하여 더 최근 것을 선택
-                        if (replacement.getExecutedAt() != null
-                            && existing.getExecutedAt() != null) {
-                          return replacement.getExecutedAt().isAfter(existing.getExecutedAt())
-                              ? replacement
-                              : existing;
-                        } else if (replacement.getExecutedAt() != null) {
-                          return replacement;
-                        } else {
-                          return existing;
-                        }
-                      }));
-
-      filteredResults = new ArrayList<>(latestResultsMap.values());
-      System.out.println("ICT-263 Debug - 중복 제거 후 개수: " + filteredResults.size());
-
-      // 수동 페이징 처리
-      int start = (int) pageable.getOffset();
-      int end = Math.min((start + pageable.getPageSize()), filteredResults.size());
-
-      System.out.println(
-          "DEBUG PAGINATION: start=" + start + ", end=" + end + ", size=" + filteredResults.size());
-
-      List<TestResult> pageContent;
-      if (start >= filteredResults.size() || start > end) {
-        System.out.println("DEBUG PAGINATION: Returning empty list due to invalid range");
-        pageContent = new ArrayList<>();
+      if (filter.getTestExecutionIds() != null && !filter.getTestExecutionIds().isEmpty()) {
+        ids =
+            testResultRepository.findDedupedIdsByExecutions(
+                filter.getTestExecutionIds(), idPageable);
+        total = testResultRepository.countDedupedByExecutions(filter.getTestExecutionIds());
+      } else if (filter.getTestPlanIds() != null && !filter.getTestPlanIds().isEmpty()) {
+        ids =
+            testResultRepository.findDedupedIdsByProjectAndPlans(
+                filter.getProjectId(), filter.getTestPlanIds(), idPageable);
+        total =
+            testResultRepository.countDedupedByProjectAndPlans(
+                filter.getProjectId(), filter.getTestPlanIds());
       } else {
-        try {
-          pageContent = filteredResults.subList(start, end);
-        } catch (IndexOutOfBoundsException e) {
-          System.out.println("ERROR PAGINATION: " + e.getMessage());
-          e.printStackTrace();
-          pageContent = new ArrayList<>();
-        }
+        ids = testResultRepository.findDedupedIdsByProject(filter.getProjectId(), idPageable);
+        total = testResultRepository.countDedupedByProject(filter.getProjectId());
       }
-      resultPage = new PageImpl<>(pageContent, pageable, filteredResults.size());
-    } else {
-      // 전체 조회
-      resultPage = testResultRepository.findAll(pageable);
+
+      List<TestResult> results =
+          ids.isEmpty() ? new ArrayList<>() : testResultRepository.findByIdsWithFetch(ids);
+
+      // 쿼리 반환 순서(executed_at DESC)를 보존
+      Map<String, TestResult> resultMap =
+          results.stream().collect(Collectors.toMap(TestResult::getId, r -> r));
+      List<TestResult> orderedResults =
+          ids.stream().map(resultMap::get).filter(Objects::nonNull).collect(Collectors.toList());
+
+      List<TestResultReportDto> dtos = batchConvertToReportDtos(orderedResults);
+      return new PageImpl<>(dtos, pageable, total);
     }
 
-    return resultPage.map(this::convertToReportDto);
+    // 전체 조회
+    Page<TestResult> resultPage = testResultRepository.findAll(pageable);
+    List<TestResultReportDto> dtos = batchConvertToReportDtos(resultPage.getContent());
+    return new PageImpl<>(dtos, pageable, resultPage.getTotalElements());
+  }
+
+  /** JIRA 이슈 키 필터가 있는 경우 기존 방식으로 처리 (전체 로드 후 Java 필터링) */
+  private Page<TestResultReportDto> getDetailedTestResultReportWithJiraFilter(
+      TestResultFilterDto filter, Pageable pageable) {
+    List<TestResult> allResults =
+        testResultRepository.findRecentTestResultsByProject(
+            filter.getProjectId(), PageRequest.of(0, Integer.MAX_VALUE));
+
+    List<TestResult> filteredResults = allResults;
+
+    if (filter.getTestPlanIds() != null && !filter.getTestPlanIds().isEmpty()) {
+      filteredResults =
+          filteredResults.stream()
+              .filter(
+                  result ->
+                      result.getTestExecution() != null
+                          && filter
+                              .getTestPlanIds()
+                              .contains(result.getTestExecution().getTestPlanId()))
+              .collect(Collectors.toList());
+    }
+    if (filter.getTestExecutionIds() != null && !filter.getTestExecutionIds().isEmpty()) {
+      filteredResults =
+          filteredResults.stream()
+              .filter(
+                  result ->
+                      result.getTestExecution() != null
+                          && filter
+                              .getTestExecutionIds()
+                              .contains(result.getTestExecution().getId()))
+              .collect(Collectors.toList());
+    }
+    filteredResults =
+        filteredResults.stream()
+            .filter(
+                result -> {
+                  if (result.getJiraIssueKey() == null) return false;
+                  List<String> keys = Arrays.asList(result.getJiraIssueKey().split(","));
+                  return keys.stream().anyMatch(k -> filter.getJiraIssueKeys().contains(k.trim()));
+                })
+            .collect(Collectors.toList());
+
+    // 중복 제거 (execution+testCase 기준 최신)
+    Map<String, TestResult> latestMap =
+        filteredResults.stream()
+            .collect(
+                Collectors.toMap(
+                    r -> r.getTestExecution().getId() + "|" + r.getTestCaseId(),
+                    r -> r,
+                    (a, b) -> {
+                      if (b.getExecutedAt() != null && a.getExecutedAt() != null)
+                        return b.getExecutedAt().isAfter(a.getExecutedAt()) ? b : a;
+                      return b.getExecutedAt() != null ? b : a;
+                    }));
+    filteredResults = new ArrayList<>(latestMap.values());
+
+    int start = (int) pageable.getOffset();
+    int end = Math.min(start + pageable.getPageSize(), filteredResults.size());
+    List<TestResult> pageContent =
+        (start >= filteredResults.size()) ? new ArrayList<>() : filteredResults.subList(start, end);
+
+    List<TestResultReportDto> dtos = batchConvertToReportDtos(pageContent);
+    return new PageImpl<>(dtos, pageable, filteredResults.size());
   }
 
   /** ICT-185: JIRA 상태 통합 리스트 조회 (다중 플랜 지원) */
@@ -1252,6 +1241,121 @@ public class TestResultReportService {
   }
 
   // ========== Helper Methods ==========
+
+  /**
+   * 배치로 TestResult 목록을 TestResultReportDto 목록으로 변환 (N+1 방지) testCase, testPlan을 한 번에 로딩하고 폴더 경로를
+   * 캐싱하여 DB 왕복을 최소화
+   */
+  private List<TestResultReportDto> batchConvertToReportDtos(List<TestResult> results) {
+    if (results.isEmpty()) return new ArrayList<>();
+
+    // 1. 고유 testCaseId 수집
+    Set<String> testCaseIds =
+        results.stream()
+            .map(TestResult::getTestCaseId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+    // 2. testCase 계층 전체 배치 로딩 (폴더 경로 재귀에 필요한 조상 포함)
+    Map<String, TestCase> testCaseMap = new HashMap<>();
+    Set<String> toLoad = new HashSet<>(testCaseIds);
+    while (!toLoad.isEmpty()) {
+      List<TestCase> loaded = testCaseRepository.findAllById(toLoad);
+      toLoad = new HashSet<>();
+      for (TestCase tc : loaded) {
+        testCaseMap.put(tc.getId(), tc);
+        if (tc.getParentId() != null && !testCaseMap.containsKey(tc.getParentId())) {
+          toLoad.add(tc.getParentId());
+        }
+      }
+    }
+
+    // 3. 고유 testPlanId 배치 로딩
+    Set<String> testPlanIds =
+        results.stream()
+            .filter(r -> r.getTestExecution() != null)
+            .map(r -> r.getTestExecution().getTestPlanId())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    Map<String, String> testPlanNameMap =
+        testPlanRepository.findAllById(testPlanIds).stream()
+            .collect(
+                Collectors.toMap(
+                    com.testcase.testcasemanagement.model.TestPlan::getId,
+                    com.testcase.testcasemanagement.model.TestPlan::getName));
+
+    // 4. 폴더 경로 캐시
+    Map<String, String> folderPathCache = new HashMap<>();
+
+    return results.stream()
+        .map(r -> convertToReportDtoWithCache(r, testCaseMap, testPlanNameMap, folderPathCache))
+        .collect(Collectors.toList());
+  }
+
+  /** 캐시를 활용한 단건 변환 */
+  private TestResultReportDto convertToReportDtoWithCache(
+      TestResult result,
+      Map<String, TestCase> testCaseMap,
+      Map<String, String> testPlanNameMap,
+      Map<String, String> folderPathCache) {
+
+    TestCase testCase =
+        result.getTestCaseId() != null ? testCaseMap.get(result.getTestCaseId()) : null;
+    String testCaseName = testCase != null ? testCase.getName() : "알 수 없는 테스트케이스";
+    String folderPath =
+        testCase != null ? buildFolderPathFromCache(testCase, testCaseMap, folderPathCache) : "루트";
+
+    String testPlanId =
+        result.getTestExecution() != null ? result.getTestExecution().getTestPlanId() : null;
+    String testPlanName = testPlanId != null ? testPlanNameMap.get(testPlanId) : null;
+
+    return TestResultReportDto.builder()
+        .testCaseId(result.getTestCaseId())
+        .testCaseName(testCaseName)
+        .folderPath(folderPath)
+        .testPlanName(testPlanName)
+        .result(result.getResult())
+        .executedAt(result.getExecutedAt())
+        .executedBy(result.getExecutedBy() != null ? result.getExecutedBy().getId() : null)
+        .executorName(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null)
+        .notes(result.getNotes())
+        .jiraIssueKey(result.getJiraIssueKey())
+        .jiraIssueUrl(result.getJiraIssueUrl())
+        .jiraStatus(result.getJiraStatus())
+        .jiraSyncStatus(
+            result.getJiraSyncStatus() != null ? result.getJiraSyncStatus().toString() : null)
+        .testExecutionId(
+            result.getTestExecution() != null ? result.getTestExecution().getId() : null)
+        .testExecutionName(
+            result.getTestExecution() != null ? result.getTestExecution().getName() : null)
+        .testPlanId(testPlanId)
+        .preCondition(testCase != null ? testCase.getPreCondition() : null)
+        .expectedResults(testCase != null ? testCase.getExpectedResults() : null)
+        .steps(testCase != null ? testCase.getSteps() : null)
+        .attachmentCount(result.getActiveAttachmentCount())
+        .build();
+  }
+
+  /** 폴더 경로 캐시를 사용한 재귀 경로 생성 (DB 왕복 없음) */
+  private String buildFolderPathFromCache(
+      TestCase testCase, Map<String, TestCase> allCases, Map<String, String> cache) {
+    String cached = cache.get(testCase.getId());
+    if (cached != null) return cached;
+
+    if (testCase.getParentId() == null) {
+      cache.put(testCase.getId(), "루트");
+      return "루트";
+    }
+    TestCase parent = allCases.get(testCase.getParentId());
+    if (parent == null) {
+      cache.put(testCase.getId(), "루트");
+      return "루트";
+    }
+    String parentPath = buildFolderPathFromCache(parent, allCases, cache);
+    String path = "루트".equals(parentPath) ? parent.getName() : parentPath + "/" + parent.getName();
+    cache.put(testCase.getId(), path);
+    return path;
+  }
 
   /** TestResult를 TestResultReportDto로 변환 */
   private TestResultReportDto convertToReportDto(TestResult result) {
