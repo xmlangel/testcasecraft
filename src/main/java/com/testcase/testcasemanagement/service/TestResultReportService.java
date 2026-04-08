@@ -339,9 +339,20 @@ public class TestResultReportService {
             filter.getSortBy());
     Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
 
-    if (Boolean.TRUE.equals(filter.getIncludeNotExecuted())) {
-      // ICT-283: 미실행 케이스 포함 로직 수행
+    // ICT-263: '최신 결과만 보기' 또는 '미실행 케이스 포함' 옵션이 켜진 경우
+    if (Boolean.TRUE.equals(filter.getLatestOnly())
+        || Boolean.TRUE.equals(filter.getIncludeNotExecuted())) {
+      // 모든 케이스(또는 실존 케이스)에 대한 최신 결과 목록 추출 (246 -> 208 달성의 근본 해결)
       List<TestResultReportDto> allCases = getCompletePopulationResults(filter);
+
+      // 최신 결과만 보기인 경우: 미실행(NOT_RUN) 상태는 제외하고 결과가 존재하는 것 중 최신만 남김
+      if (Boolean.TRUE.equals(filter.getLatestOnly())) {
+        allCases =
+            allCases.stream()
+                .filter(
+                    dto -> dto.getResult() != null && !"NOT_RUN".equalsIgnoreCase(dto.getResult()))
+                .collect(Collectors.toList());
+      }
 
       // ICT-JIRA-LATEST: 결과 필터가 있는 경우 모집단의 최신 결과 기준으로 필터링 (통계와의 일관성 유지)
       if (filter.getResults() != null && !filter.getResults().isEmpty()) {

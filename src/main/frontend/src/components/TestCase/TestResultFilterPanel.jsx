@@ -256,7 +256,16 @@ const TestResultFilterPanel = ({
             control={
               <Switch
                 checked={showLatestOnly}
-                onChange={(e) => setShowLatestOnly(e.target.checked)}
+                onChange={(e) => {
+                  const newVal = e.target.checked;
+                  setShowLatestOnly(newVal);
+                  // ICT-263: 스위치 조작 시 즉시 필터 적용
+                  onFilterChange({
+                    testPlanId: selectedTestPlan || null,
+                    testExecutionId: selectedTestExecution || null,
+                    showLatestOnly: newVal,
+                  });
+                }}
                 size="small"
                 color="primary"
               />

@@ -322,6 +322,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             projectId,
             testPlanId: filters.testPlanId,
             testExecutionId: filters.testExecutionId,
+            latestOnly: filters.showLatestOnly || false,
             page: 0,
             size: 1000,
           });
@@ -383,7 +384,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             description: testCase?.description || "",
             result: result.result,
             executedDate: result.executedAt
-              ? new Date(result.executedAt)
+              ? new Date(String(result.executedAt).replace(" ", "T")) // ICT-263: 브라우저 호환성을 위해 공백을 T로 치환
               : null,
             isServerUTC: isServerUTC(), // 렌더링 시 참조할 수 있도록 데이터에 포함
             executor:
@@ -396,6 +397,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             jiraStatus: result.jiraStatus || null, // ICT-185에서 제공되는 JIRA 상태
             jiraStatusFromApi: result.jiraStatus || null,
             executionId: result.testExecutionId,
+            testPlanId: result.testPlanId,
             testPlanName: result.testPlanName || "",
             // ICT-275: 테스트케이스의 추가 정보들
             preCondition: testCase?.preCondition || "",
@@ -419,43 +421,14 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           };
         });
 
+        // 7. 결과 설정 (서버 사이드 필터링 결과 그대로 사용)
         setRawRows(tableData);
 
-        // ICT-247/283: 최신 결과 표시를 위한 로직 추가
-        // 각 테스트케이스별로 가장 최근의 실행일자를 찾음
-        const latestMap = new Map();
-        tableData.forEach((row) => {
-          if (!row.testCaseId) return;
-          const currentLatest = latestMap.get(row.testCaseId);
-          if (
-            !currentLatest ||
-            (row.executedDate &&
-              (!currentLatest.executedDate ||
-                row.executedDate > currentLatest.executedDate))
-          ) {
-            latestMap.set(row.testCaseId, row);
-          }
+        debugLog("TestResultDetailTable", ">>> [결과 로드 리포트] <<<", {
+          서버응답수: testResults.length,
+          표시행수: tableData.length,
+          필터설정: filters,
         });
-
-        // 최신 결과인 행에 isLatest 플래그 설정
-        let tableDataWithLatest = tableData.map((row) => ({
-          ...row,
-          isLatest: latestMap.get(row.testCaseId)?.id === row.id,
-        }));
-
-        // 최신 결과만 보기 필터 적용
-        if (filters?.showLatestOnly) {
-          tableDataWithLatest = tableDataWithLatest.filter((row) => {
-            // 1. 최신 결과여야 함
-            if (!row.isLatest) return false;
-
-            // 2. 현재 선택된 플랜/실행이 있다면 그 범위 내에 있어야 함
-            // (서버 API가 이미 필터링된 데이터를 주므로, 원본 데이터에 존재하는 것만 남기면 됨)
-            return true;
-          });
-        }
-
-        setRawRows(tableDataWithLatest);
 
         // ICT-209: 활성 편집본 정보 로드 (비활성화 - 404 에러 방지)
         // await loadActiveEdits(tableData);
