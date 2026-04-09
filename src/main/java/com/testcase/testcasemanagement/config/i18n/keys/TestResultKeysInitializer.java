@@ -718,6 +718,18 @@ public class TestResultKeysInitializer {
         "testResult.export.info.columnsValue", "testResult", "표시 컬럼 수 값", "{count}개");
     createTranslationKeyIfNotExists(
         "testResult.export.info.columnsList", "testResult", "내보낼 컬럼 리스트 라벨", "📂 내보낼 컬럼:");
+    createTranslationKeyIfNotExists(
+        "testResult.export.footer.prefix.label", "testResult", "푸터 브랜딩 문구", "푸터 브랜딩 문구 (선택사항)");
+    createTranslationKeyIfNotExists(
+        "testResult.export.footer.prefix.placeholder",
+        "testResult",
+        "푸터 브랜딩 문구 입력란",
+        "회사명 등을 입력하세요 (예: TestCaseCraft)");
+    createTranslationKeyIfNotExists(
+        "testResult.export.footer.prefix.description",
+        "testResult",
+        "푸터 브랜딩 문구 설명",
+        "리포트 하단에 표시될 브랜딩 문구를 입력하세요.");
 
     // 내보내기 진행 및 버튼
     createTranslationKeyIfNotExists(
@@ -738,6 +750,14 @@ public class TestResultKeysInitializer {
         "testResult.export.pdf.orientation.portrait", "testResult", "PDF 세로 방향", "세로 (Portrait)");
     createTranslationKeyIfNotExists(
         "testResult.export.pdf.orientation.landscape", "testResult", "PDF 가로 방향", "가로 (Landscape)");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.title", "testResult", "PDF 리포트 메인 타이틀", "테스트 결과 리포트");
+
+    // 내보내기 PDF 정보 라벨 (ICT-Plan/Execution)
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.summary.plan", "testResult", "PDF 리포트 Plan 라벨", "Plan");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.summary.execution", "testResult", "PDF 리포트 실행명 라벨", "실행명");
 
     // 내보내기 오류 메시지
     createTranslationKeyIfNotExists(

@@ -516,6 +516,18 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.export.info.columnsList", languageCode, "📂 내보낼 컬럼:", createdBy);
     createTranslationIfNotExists(
+        "testResult.export.footer.prefix.label", languageCode, "푸터 브랜딩 문구 (선택사항)", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.placeholder",
+        languageCode,
+        "회사명 등을 입력하세요 (예: TestCaseCraft)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.description",
+        languageCode,
+        "리포트 하단에 표시될 브랜딩 문구를 입력하세요.",
+        createdBy);
+    createTranslationIfNotExists(
         "testResult.export.progress.message",
         languageCode,
         "파일을 생성하고 있습니다... 잠시만 기다려주세요",

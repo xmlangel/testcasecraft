@@ -806,6 +806,12 @@ public class EnglishTestCaseAndAutomationTranslations {
         "Line Break Support",
         createdBy);
     createTranslationIfNotExists(
+        "testResult.export.pdf.title", languageCode, "Test Result Report", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.summary.plan", languageCode, "Plan", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.summary.execution", languageCode, "Execution Name", createdBy);
+    createTranslationIfNotExists(
         "testcase.advancedGrid.title", languageCode, "Advanced Spreadsheet", createdBy);
     createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title",

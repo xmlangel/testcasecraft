@@ -604,6 +604,21 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.export.info.columnsList", languageCode, "📂 Columns to Export:", createdBy);
     createTranslationIfNotExists(
+        "testResult.export.footer.prefix.label",
+        languageCode,
+        "Footer Branding (Optional)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.placeholder",
+        languageCode,
+        "Enter company name, etc. (e.g., TestCaseCraft)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.description",
+        languageCode,
+        "Enter the branding text to be displayed at the bottom of the report.",
+        createdBy);
+    createTranslationIfNotExists(
         "testResult.export.progress.message",
         languageCode,
         "Generating file... Please wait",

@@ -524,6 +524,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             executionId: result.testExecutionId,
             testPlanId: result.testPlanId,
             testPlanName: result.testPlanName || "",
+            testExecutionName: result.testExecutionName || "",
             // ICT-275: 테스트케이스의 추가 정보들
             preCondition: testCase?.preCondition || "",
             postCondition: testCase?.postCondition || "",

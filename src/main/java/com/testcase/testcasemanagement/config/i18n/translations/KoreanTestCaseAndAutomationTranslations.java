@@ -1048,7 +1048,11 @@ public class KoreanTestCaseAndAutomationTranslations {
 
     // 대량 작업 관련 한글 번역
     createTranslationIfNotExists(
-        "testcase.bulkOps.dialog.title", languageCode, "테스트케이스 일괄 작업", createdBy);
+        "testResult.export.pdf.title", languageCode, "테스트 결과 리포트", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.summary.plan", languageCode, "Plan", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.summary.execution", languageCode, "실행명", createdBy);
     createTranslationIfNotExists(
         "testcase.bulkOps.dialog.selectedCount", languageCode, "선택된 항목: {count}개", createdBy);
     createTranslationIfNotExists(
