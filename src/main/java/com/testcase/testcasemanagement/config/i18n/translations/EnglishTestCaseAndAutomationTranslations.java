@@ -1795,6 +1795,14 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.notes.copy", languageCode, "Copy Notes", createdBy);
     createTranslationIfNotExists(
         "testcase.notes.copy_message", languageCode, "Notes copied to clipboard.", createdBy);
+
+    // Export PDF orientation options English
+    createTranslationIfNotExists(
+        "testResult.export.pdf.orientation.label", languageCode, "Orientation", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.orientation.portrait", languageCode, "Portrait", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.orientation.landscape", languageCode, "Landscape", createdBy);
   }
 
   private void createTranslationIfNotExists(

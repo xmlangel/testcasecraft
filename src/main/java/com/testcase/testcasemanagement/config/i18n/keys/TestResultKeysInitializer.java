@@ -731,6 +731,14 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.export.button.exporting", "testResult", "내보내는 중 버튼", "생성 중...");
 
+    // 내보내기 PDF 방향 옵션
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.orientation.label", "testResult", "PDF 출력 방향 라벨", "출력 방향");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.orientation.portrait", "testResult", "PDF 세로 방향", "세로 (Portrait)");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.orientation.landscape", "testResult", "PDF 가로 방향", "가로 (Landscape)");
+
     // 내보내기 오류 메시지
     createTranslationKeyIfNotExists(
         "testResult.export.error.noProject", "testResult", "프로젝트 미선택 오류", "프로젝트가 선택되지 않았습니다.");
