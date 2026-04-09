@@ -189,6 +189,12 @@ const TestResultFilterPanel = ({
             <MenuItem value="">
               <em>{t("testResult.filter.allView", "전체 보기")}</em>
             </MenuItem>
+            {selectedTestPlan &&
+              !testPlans.some((p) => p.id === selectedTestPlan) && (
+                <MenuItem value={selectedTestPlan} sx={{ display: "none" }}>
+                  {selectedTestPlan}
+                </MenuItem>
+              )}
             {testPlans.map((plan) => (
               <MenuItem key={plan.id} value={plan.id}>
                 <Box>
@@ -218,6 +224,15 @@ const TestResultFilterPanel = ({
             <MenuItem value="">
               <em>{t("testResult.filter.allView", "전체 보기")}</em>
             </MenuItem>
+            {selectedTestExecution &&
+              !testExecutions.some((e) => e.id === selectedTestExecution) && (
+                <MenuItem
+                  value={selectedTestExecution}
+                  sx={{ display: "none" }}
+                >
+                  {selectedTestExecution}
+                </MenuItem>
+              )}
             {testExecutions.map((execution) => (
               <MenuItem key={execution.id} value={execution.id}>
                 <Box>

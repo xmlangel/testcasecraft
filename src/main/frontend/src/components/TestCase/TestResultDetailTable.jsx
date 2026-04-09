@@ -20,6 +20,8 @@ import {
   Button,
   Menu,
   MenuItem,
+  Card,
+  CardContent,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -100,6 +102,176 @@ const GRID_PRINT_PAGE_STYLE = `
   }
 `;
 
+// ICT-275: 기본 컬럼 표시 설정 정의 (컴포넌트 외부로 이동)
+const getDefaultColumnVisibility = () => ({
+  folder: true,
+  displayId: false,
+  testCase: true,
+  description: false,
+  result: true,
+  executedDate: true,
+  executor: true,
+  notes: true,
+  attachments: true, // ICT-362: 첨부파일 컬럼 (기본 표시)
+  jiraId: true,
+  jiraStatus: true, // JIRA 상태 체크 후 결과 확인을 위해 기본 표시
+  preCondition: false, // ICT-275: 사전설정 컬럼 (기본 숨김)
+  postCondition: false,
+  expectedResults: false, // ICT-275: 전체 예상결과 컬럼 (기본 숨김)
+  steps: false, // ICT-275: 스텝 컬럼 (기본 숨김)
+  isAutomated: false,
+  executionType: false,
+  testTechnique: false,
+  priority: false,
+  tags: false,
+  linkedDocuments: false,
+});
+
+// ICT-275: 기본 컬럼 순서 정의 (컴포넌트 외부로 이동)
+const getDefaultColumnOrder = () => [
+  "folder",
+  "displayId",
+  "testCase",
+  "description",
+  "result",
+  "preCondition",
+  "postCondition",
+  "steps",
+  "expectedResults",
+  "isAutomated",
+  "executionType",
+  "testTechnique",
+  "priority",
+  "tags",
+  "executor",
+  "notes",
+  "attachments", // ICT-362: 첨부파일 컬럼
+  "linkedDocuments",
+  "jiraId",
+  "executedDate",
+  "jiraStatus",
+];
+
+/**
+ * 커스텀 툴바 컴포넌트 (ICT-194 Phase 2: 외부 분리)
+ * 컴포넌트 외부에서 정의하여 매 렌더링마다 다시 생성되는 것을 방지 (anchorEl 오류 해결)
+ */
+const TestResultDetailTableToolbar = ({
+  onColumnSettingsClick,
+  onColumnOrderChangeClick,
+  onResetClick,
+  onJiraStatusCheck,
+  onExportClick,
+  jiraConfig,
+  jiraStatusLoading,
+  hasJiraTargets,
+  activeProject,
+  t,
+}) => (
+  <GridToolbarContainer sx={{ justifyContent: "space-between", p: 1 }}>
+    <Box sx={{ display: "flex", gap: 1 }}>
+      <GridToolbarColumnsButton />
+      <GridToolbarFilterButton />
+      <GridToolbarDensitySelector />
+
+      {/* 컬럼 표시/숨김 설정 */}
+      <Button
+        size="small"
+        startIcon={<SettingsIcon />}
+        onClick={onColumnSettingsClick}
+      >
+        {t("testResult.button.columnSettings", "컬럼 설정")}
+      </Button>
+
+      {/* ICT-275: 컬럼 순서 변경 버튼 */}
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={onColumnOrderChangeClick}
+        sx={{ ml: 1 }}
+      >
+        {t("testResult.button.changeOrder", "순서 변경")}
+      </Button>
+
+      {/* ICT-275: 컬럼 설정 초기화 버튼 */}
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={onResetClick}
+        sx={{ ml: 1 }}
+      >
+        {t("testResult.button.reset", "기본값")}
+      </Button>
+
+      <Tooltip
+        title={
+          !jiraConfig
+            ? t(
+                "testResult.tooltip.jiraNotConfigured",
+                "JIRA 설정이 필요합니다",
+              )
+            : !hasJiraTargets
+              ? t(
+                  "testResult.tooltip.noJiraTargets",
+                  "연결된 JIRA ID가 없습니다",
+                )
+              : ""
+        }
+      >
+        <span>
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            startIcon={<AutorenewIcon />}
+            onClick={onJiraStatusCheck}
+            disabled={!jiraConfig || !hasJiraTargets || jiraStatusLoading}
+            sx={{ ml: 1 }}
+          >
+            {jiraStatusLoading
+              ? t("testResult.button.jiraStatusLoading", "JIRA 상태 확인 중...")
+              : t("testResult.button.jiraStatusCheck", "JIRA 상태 체크")}
+          </Button>
+        </span>
+      </Tooltip>
+    </Box>
+
+    <Box sx={{ display: "flex", gap: 1 }}>
+      {/* ICT-190: 고급 내보내기 버튼 */}
+      <Button
+        size="small"
+        startIcon={<FileDownloadIcon />}
+        onClick={onExportClick}
+        variant="outlined"
+        color="primary"
+      >
+        {t("testResult.button.advancedExport", "고급 내보내기")}
+      </Button>
+
+      <GridToolbarExport
+        printOptions={{
+          fileName: `테스트결과_${activeProject?.name || "export"}_${format(
+            new Date(),
+            "yyyyMMdd",
+            { locale: ko },
+          )}`,
+          pageStyle: GRID_PRINT_PAGE_STYLE,
+        }}
+        csvOptions={{
+          fileName: `테스트결과_${activeProject?.name || "export"}_${format(
+            new Date(),
+            "yyyyMMdd",
+            { locale: ko },
+          )}`,
+          utf8WithBom: true,
+        }}
+        startIcon={<GetAppIcon />}
+        sx={{ ml: 1 }}
+      />
+    </Box>
+  </GridToolbarContainer>
+);
+
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, api } = useAppContext();
   const { t } = useI18n();
@@ -153,54 +325,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     return hasChanges ? enrichedRows : rawRows;
   }, [rawRows, jiraStatusMap]);
   // ICT-275: 컬럼 설정 localStorage 기본값
-  const getDefaultColumnVisibility = () => ({
-    folder: true,
-    displayId: false,
-    testCase: true,
-    description: false,
-    result: true,
-    executedDate: true,
-    executor: true,
-    notes: true,
-    attachments: true, // ICT-362: 첨부파일 컬럼 (기본 표시)
-    jiraId: true,
-    jiraStatus: true, // JIRA 상태 체크 후 결과 확인을 위해 기본 표시
-    preCondition: false, // ICT-275: 사전설정 컬럼 (기본 숨김)
-    postCondition: false,
-    expectedResults: false, // ICT-275: 전체 예상결과 컬럼 (기본 숨김)
-    steps: false, // ICT-275: 스텝 컬럼 (기본 숨김)
-    isAutomated: false,
-    executionType: false,
-    testTechnique: false,
-    priority: false,
-    tags: false,
-    linkedDocuments: false,
-  });
-
-  // ICT-275: 기본 컬럼 순서 정의
-  const getDefaultColumnOrder = () => [
-    "folder",
-    "displayId",
-    "testCase",
-    "description",
-    "result",
-    "preCondition",
-    "postCondition",
-    "steps",
-    "expectedResults",
-    "isAutomated",
-    "executionType",
-    "testTechnique",
-    "priority",
-    "tags",
-    "executor",
-    "notes",
-    "attachments", // ICT-362: 첨부파일 컬럼
-    "linkedDocuments",
-    "jiraId",
-    "executedDate",
-    "jiraStatus",
-  ];
 
   // ICT-275: localStorage에서 컬럼 설정 로드
   const loadColumnVisibilityFromStorage = () => {
@@ -1581,115 +1705,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     setExportDialogOpen(true);
   };
 
-  // 커스텀 툴바 컴포넌트
-  const CustomToolbar = () => (
-    <GridToolbarContainer sx={{ justifyContent: "space-between", p: 1 }}>
-      <Box sx={{ display: "flex", gap: 1 }}>
-        <GridToolbarColumnsButton />
-        <GridToolbarFilterButton />
-        <GridToolbarDensitySelector />
-
-        {/* 컬럼 표시/숨김 설정 */}
-        <Button
-          size="small"
-          startIcon={<SettingsIcon />}
-          onClick={(event) =>
-            setColumnVisibilityMenuAnchor(event.currentTarget)
-          }
-        >
-          {t("testResult.button.columnSettings", "컬럼 설정")}
-        </Button>
-
-        {/* ICT-275: 컬럼 순서 변경 버튼 */}
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={() => setColumnOrderDialogOpen(true)}
-          sx={{ ml: 1 }}
-        >
-          {t("testResult.button.changeOrder", "순서 변경")}
-        </Button>
-
-        {/* ICT-275: 컬럼 설정 초기화 버튼 */}
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={() => {
-            const defaultVisibility = getDefaultColumnVisibility();
-            const defaultOrder = getDefaultColumnOrder();
-            setColumnVisibility(defaultVisibility);
-            setColumnOrder(defaultOrder);
-            saveColumnVisibilityToStorage(defaultVisibility);
-            saveColumnOrderToStorage(defaultOrder);
-          }}
-          sx={{ ml: 1 }}
-        >
-          {t("testResult.button.reset", "기본값")}
-        </Button>
-
-        <Tooltip
-          title={
-            !jiraConfig
-              ? t(
-                  "testResult.tooltip.jiraNotConfigured",
-                  "JIRA 설정이 필요합니다",
-                )
-              : !hasJiraTargets
-                ? t(
-                    "testResult.tooltip.noJiraTargets",
-                    "연결된 JIRA ID가 없습니다",
-                  )
-                : ""
-          }
-        >
-          <span>
-            <Button
-              size="small"
-              variant="contained"
-              color="primary"
-              startIcon={<AutorenewIcon />}
-              onClick={handleJiraStatusCheck}
-              disabled={!jiraConfig || !hasJiraTargets || jiraStatusLoading}
-              sx={{ ml: 1 }}
-            >
-              {jiraStatusLoading
-                ? t(
-                    "testResult.button.jiraStatusLoading",
-                    "JIRA 상태 확인 중...",
-                  )
-                : t("testResult.button.jiraStatusCheck", "JIRA 상태 체크")}
-            </Button>
-          </span>
-        </Tooltip>
-      </Box>
-
-      <Box sx={{ display: "flex", gap: 1 }}>
-        {/* ICT-190: 고급 내보내기 버튼 */}
-        <Button
-          size="small"
-          startIcon={<FileDownloadIcon />}
-          onClick={handleExportClick}
-          variant="outlined"
-          color="primary"
-        >
-          {t("testResult.button.advancedExport", "고급 내보내기")}
-        </Button>
-
-        <GridToolbarExport
-          printOptions={{
-            fileName: `테스트결과_${activeProject?.name || "export"}_${format(
-              new Date(),
-              "yyyyMMdd_HHmm",
-            )}`,
-            hideFooter: true,
-            hideToolbar: true,
-            pageStyle: GRID_PRINT_PAGE_STYLE,
-          }}
-        />
-      </Box>
-    </GridToolbarContainer>
-  );
-
   // ICT-194: 개선된 에러 상태 UI
   if (error) {
     return (
@@ -1887,7 +1902,29 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             // ICT-276: 동적 행 높이 적용
             getRowHeight={getRowHeight}
             slots={{
-              toolbar: CustomToolbar,
+              toolbar: TestResultDetailTableToolbar,
+            }}
+            slotProps={{
+              toolbar: {
+                onColumnSettingsClick: (event) =>
+                  setColumnVisibilityMenuAnchor(event.currentTarget),
+                onColumnOrderChangeClick: () => setColumnOrderDialogOpen(true),
+                onResetClick: () => {
+                  const defaultVisibility = getDefaultColumnVisibility();
+                  const defaultOrder = getDefaultColumnOrder();
+                  setColumnVisibility(defaultVisibility);
+                  setColumnOrder(defaultOrder);
+                  saveColumnVisibilityToStorage(defaultVisibility);
+                  saveColumnOrderToStorage(defaultOrder);
+                },
+                onJiraStatusCheck: handleJiraStatusCheck,
+                onExportClick: handleExportClick,
+                jiraConfig,
+                jiraStatusLoading,
+                hasJiraTargets,
+                activeProject,
+                t,
+              },
             }}
             initialState={{
               sorting: {
