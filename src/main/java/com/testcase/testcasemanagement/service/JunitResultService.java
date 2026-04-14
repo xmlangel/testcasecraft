@@ -233,9 +233,14 @@ public class JunitResultService {
     return suites;
   }
 
-  /** 테스트 케이스 목록 조회 (페이징) */
+  /** 테스트 케이스 목록 조회 (페이징 + 상태 필터) */
   @Transactional(readOnly = true)
-  public Page<JunitTestCase> getTestCasesBySuite(String testSuiteId, Pageable pageable) {
+  public Page<JunitTestCase> getTestCasesBySuite(
+      String testSuiteId, JunitTestStatus status, Pageable pageable) {
+    if (status != null) {
+      return testCaseRepository.findByJunitTestSuite_IdAndStatusOrderByName(
+          testSuiteId, status, pageable);
+    }
     return testCaseRepository.findByJunitTestSuite_IdOrderByName(testSuiteId, pageable);
   }
 

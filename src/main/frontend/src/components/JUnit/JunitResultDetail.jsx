@@ -1,6 +1,6 @@
 // src/main/frontend/src/components/JUnit/JunitResultDetail.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import junitResultService from "../../services/junitResultService";
 import {
   Box,
@@ -32,13 +32,13 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Pagination,
+  TextField,
+  InputAdornment,
+  CircularProgress,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  TextField,
-  InputAdornment,
 } from "@mui/material";
 import { useTheme, alpha } from "@mui/material/styles";
 import {
@@ -111,9 +111,12 @@ const JunitResultDetail = () => {
     return Math.max(10, Math.min(calculated, 100)); // Ensure between 10 and 100
   };
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [pageSize, setPageSize] = useState(calculateDynamicPageSize());
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observer = useRef();
 
   const [statusFilter, setStatusFilter] = useState("ALL");
   const location = useLocation();
@@ -233,21 +236,29 @@ const JunitResultDetail = () => {
   };
 
   // 전체 테스트 케이스 로드 (모든 스윗) - Lazy Loading 방식
-  const loadAllTestCases = async (suites, pageNum = 0) => {
+  const loadAllTestCases = async (
+    suites,
+    pageNum = 0,
+    currentStatus = statusFilter,
+  ) => {
     try {
+      if (pageNum === 0) {
+        setLoading(true);
+        setTestCases([]);
+      } else {
+        setIsLoadingMore(true);
+      }
+
       // 각 스윗의 테스트 케이스 개수로 전체 개수 계산 (초기값)
+      // 주의: 서버 사이드 필터링 시에는 이 개수가 정확하지 않을 수 있음
       let totalTestCases = suites.reduce(
         (sum, suite) => sum + (suite.tests || 0),
         0,
       );
-      const initialTotalPages = Math.ceil(totalTestCases / pageSize);
-      setTotalPages(initialTotalPages);
 
-      // 현재 페이지의 시작/끝 인덱스 계산
       const pageStartIndex = pageNum * pageSize;
       const pageEndIndex = pageStartIndex + pageSize;
 
-      // 현재 페이지에 필요한 스윗과 범위 계산
       const pageCases = [];
       let currentIndex = 0;
 
@@ -257,33 +268,27 @@ const JunitResultDetail = () => {
         const suiteStartIndex = currentIndex;
         const suiteEndIndex = currentIndex + suiteTestCount;
 
-        // 이 스윗이 현재 페이지 범위와 겹치는지 확인
         if (suiteEndIndex > pageStartIndex && suiteStartIndex < pageEndIndex) {
-          // 스윗 내에서 어느 부분을 가져와야 하는지 계산
           const suitePageStart = Math.max(0, pageStartIndex - suiteStartIndex);
           const suitePageEnd = Math.min(
             suiteTestCount,
             pageEndIndex - suiteStartIndex,
           );
           const suitePage = Math.floor(suitePageStart / pageSize);
-          const suitePageSize = suitePageEnd - suitePageStart;
 
           try {
-            // 해당 스윗의 필요한 부분만 로드
             const response = await junitResultService.getTestCasesBySuite(
               suite.id,
               suitePage,
-              Math.min(pageSize, suiteTestCount),
+              pageSize,
+              currentStatus === "ALL" ? null : currentStatus,
             );
 
             const cases = response.content || [];
-
-            // 필요한 범위만 추출
             const localStart = suitePageStart % pageSize;
-            const localEnd = localStart + suitePageSize;
+            const localEnd = localStart + (suitePageEnd - suitePageStart);
             const selectedCases = cases.slice(localStart, localEnd);
 
-            // 각 테스트 케이스에 스윗 정보 추가
             const casesWithSuite = selectedCases.map((tc) => ({
               ...tc,
               suiteName: suite.name,
@@ -291,6 +296,11 @@ const JunitResultDetail = () => {
             }));
 
             pageCases.push(...casesWithSuite);
+
+            // 전체 페이지 정보 업데이트 (첫 로딩 시에만 대략적 계산)
+            if (pageNum === 0 && i === 0) {
+              setTotalPages(response.totalPages || 0);
+            }
           } catch (error) {
             console.warn(
               `스윗 ${suite.name}의 테스트 케이스 로드 실패:`,
@@ -300,35 +310,63 @@ const JunitResultDetail = () => {
         }
 
         currentIndex += suiteTestCount;
-
-        // 현재 페이지 범위를 벗어났으면 더 이상 로드하지 않음
-        if (currentIndex >= pageEndIndex) {
-          break;
-        }
+        if (currentIndex >= pageEndIndex) break;
       }
 
-      setTestCases(pageCases);
+      if (pageNum === 0) {
+        setTestCases(pageCases);
+      } else {
+        setTestCases((prev) => [...prev, ...pageCases]);
+      }
+
+      setHasMore(pageCases.length >= pageSize || currentIndex < totalTestCases);
     } catch (err) {
       console.error("전체 테스트 케이스 로드 실패:", err);
       setError(t("junit.detail.loadTestCasesFailed"));
+    } finally {
+      setLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
   // 단일 스윗의 테스트 케이스 로드
-  const loadTestCases = async (suiteId, pageNum = 0) => {
+  const loadTestCases = async (
+    suiteId,
+    pageNum = 0,
+    currentStatus = statusFilter,
+  ) => {
     if (!suiteId) return;
 
     try {
+      if (pageNum === 0) {
+        setLoading(true);
+        setTestCases([]);
+      } else {
+        setIsLoadingMore(true);
+      }
+
       const response = await junitResultService.getTestCasesBySuite(
         suiteId,
         pageNum,
         pageSize,
+        currentStatus === "ALL" ? null : currentStatus,
       );
-      setTestCases(response.content || []);
+
+      const newCases = response.content || [];
+      if (pageNum === 0) {
+        setTestCases(newCases);
+      } else {
+        setTestCases((prev) => [...prev, ...newCases]);
+      }
+
       setTotalPages(response.totalPages || 0);
+      setHasMore(pageNum < (response.totalPages || 0) - 1);
     } catch (err) {
       console.error("테스트 케이스 로드 실패:", err);
       setError(t("junit.detail.loadTestCasesFailed"));
+    } finally {
+      setLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -365,12 +403,12 @@ const JunitResultDetail = () => {
       return;
     }
     if (selectedSuite && testSuites.length > 0) {
+      setPage(0);
       if (selectedSuite.id === ALL_SUITES_ID) {
         loadAllTestCases(testSuites, 0);
       } else {
         loadTestCases(selectedSuite.id, 0);
       }
-      setPage(1);
     }
   }, [pageSize]);
 
@@ -388,18 +426,36 @@ const JunitResultDetail = () => {
     }
   };
 
-  // 페이지 변경
-  const handlePageChange = async (event, newPage) => {
-    setPage(newPage);
+  // 페이지 변경 (인피니티 스크롤 로드 모어)
+  const lastElementRef = useCallback(
+    (node) => {
+      if (loading || isLoadingMore) return;
+      if (observer.current) observer.current.disconnect();
 
-    if (selectedSuite && selectedSuite.id === ALL_SUITES_ID) {
-      // 전체 보기에서 페이징 - Lazy Loading
-      await loadAllTestCases(testSuites, newPage - 1);
-    } else if (selectedSuite) {
-      // 특정 스윗에서 페이징
-      await loadTestCases(selectedSuite.id, newPage - 1);
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [loading, isLoadingMore, hasMore],
+  );
+
+  // 페이지 번호 변경 감지하여 추가 로드
+  useEffect(() => {
+    if (page > 0) {
+      if (selectedSuite && selectedSuite.id === ALL_SUITES_ID) {
+        loadAllTestCases(testSuites, page);
+      } else if (selectedSuite) {
+        loadTestCases(selectedSuite.id, page);
+      }
     }
-  };
+  }, [page]);
+
+  // 스택오버플로우 방지를 위해 handlePageChange는 제거하거나 빈 함수로 유지
+  const handlePageChange = () => {};
 
   // 테스트 케이스 편집
   const handleEditTestCase = (testCase) => {
@@ -426,9 +482,9 @@ const JunitResultDetail = () => {
     // 선택된 스위트 데이터 새로고침 (페이지 유지)
     if (selectedSuite) {
       if (selectedSuite.id === ALL_SUITES_ID) {
-        await loadAllTestCases(testSuites, page - 1);
+        await loadAllTestCases(testSuites, page);
       } else {
-        await loadTestCases(selectedSuite.id, page - 1);
+        await loadTestCases(selectedSuite.id, page);
       }
     }
   };
@@ -714,18 +770,24 @@ const JunitResultDetail = () => {
     }
   };
 
-  // 필터링된 테스트 케이스
-  const filteredTestCases = testCases.filter((testCase) => {
-    const matchesStatus =
-      statusFilter === "ALL" || testCase.status === statusFilter;
-    const matchesSearch =
-      !searchText ||
-      testCase.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      testCase.className.toLowerCase().includes(searchText.toLowerCase()) ||
-      (testCase.userTitle &&
-        testCase.userTitle.toLowerCase().includes(searchText.toLowerCase()));
-    return matchesStatus && matchesSearch;
-  });
+  // 서버 사이드 필터링 적용을 위한 useEffect
+  useEffect(() => {
+    if (isFirstRender.current || !selectedSuite) return;
+
+    const delayDebounceFn = setTimeout(() => {
+      setPage(0);
+      if (selectedSuite.id === ALL_SUITES_ID) {
+        loadAllTestCases(testSuites, 0, statusFilter);
+      } else {
+        loadTestCases(selectedSuite.id, 0, statusFilter);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [statusFilter, searchText]);
+
+  // 렌더링용 테스트 케이스 (필터링 로직 제거)
+  const filteredTestCases = testCases;
 
   if (loading) {
     return (
@@ -1473,30 +1535,62 @@ const JunitResultDetail = () => {
                               </TableRow>
                             );
                           })}
+                          {/* 인피니티 스크롤 Sentinel 및 로딩 인디케이터 */}
+                          <TableRow ref={lastElementRef}>
+                            <TableCell
+                              colSpan={
+                                selectedSuite?.id === ALL_SUITES_ID ? 5 : 4
+                              }
+                              sx={{ p: 0, border: "none" }}
+                            >
+                              {isLoadingMore && (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    py: 2,
+                                    width: "100%",
+                                  }}
+                                >
+                                  <CircularProgress size={24} />
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ ml: 1, color: "text.secondary" }}
+                                  >
+                                    {t(
+                                      "common.loadingMore",
+                                      "더 불러오는 중...",
+                                    )}
+                                  </Typography>
+                                </Box>
+                              )}
+                              {!hasMore && testCases.length > 0 && (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    py: 2,
+                                    width: "100%",
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    color="text.disabled"
+                                  >
+                                    {t(
+                                      "common.noMoreData",
+                                      "모든 데이터를 불러왔습니다.",
+                                    )}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </TableCell>
+                          </TableRow>
                         </TableBody>
                       </Table>
                     </TableContainer>
 
-                    {/* 페이지네이션 */}
-                    {totalPages > 1 && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          py: 2,
-                          borderTop: 1,
-                          borderColor: "divider",
-                        }}
-                      >
-                        <Pagination
-                          count={totalPages}
-                          page={page}
-                          onChange={handlePageChange}
-                          color="primary"
-                          size="small"
-                        />
-                      </Box>
-                    )}
+                    {/* 페이지네이션 제거됨 (인피니티 스크롤로 대체) */}
                   </CardContent>
                 </Card>
               )}

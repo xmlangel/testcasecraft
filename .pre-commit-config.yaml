@@ -13,7 +13,7 @@ repos:
 
   # JS / Vite
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.2.0
+    rev: v8.56.0
     hooks:
       - id: eslint
         files: \.(js|ts|jsx|tsx)$
