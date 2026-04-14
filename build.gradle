@@ -65,28 +65,31 @@ task buildDev {
 
 //  개발용 실행 태스크
 task bootRunDev(type: org.springframework.boot.gradle.tasks.run.BootRun) {
-	dependsOn processResources
+	dependsOn classes
 	description = '개발용 애플리케이션 실행 (dev 프로파일)'
 	group = 'application'
 	mainClass = 'com.testcase.testcasemanagement.TestcasemanagementApplication'
+	classpath = sourceSets.main.runtimeClasspath
 	args = ["--spring.profiles.active=dev"]
 }
 
 // 로컬 DB용 실행 태스크 (application-local.yml 사용)
 task bootRunLocal(type: org.springframework.boot.gradle.tasks.run.BootRun) {
-	dependsOn processResources
+	dependsOn classes
 	description = '로컬 DB 환경용 애플리케이션 실행 (local 프로파일)'
 	group = 'application'
 	mainClass = 'com.testcase.testcasemanagement.TestcasemanagementApplication'
+	classpath = sourceSets.main.runtimeClasspath
 	args = ["--spring.profiles.active=local"]
 }
 
 // ICT-216: 원격 DB용 실행 태스크 (application-remote.yml 사용)
 task bootRunRemote(type: org.springframework.boot.gradle.tasks.run.BootRun) {
-	dependsOn processResources
+	dependsOn classes
 	description = '원격 DB 환경용 애플리케이션 실행 (remote 프로파일)'
 	group = 'application'
 	mainClass = 'com.testcase.testcasemanagement.TestcasemanagementApplication'
+	classpath = sourceSets.main.runtimeClasspath
 	args = ["--spring.profiles.active=remote"]
 }
 
