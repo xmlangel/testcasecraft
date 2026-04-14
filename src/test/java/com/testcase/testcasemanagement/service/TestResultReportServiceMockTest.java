@@ -191,7 +191,9 @@ public class TestResultReportServiceMockTest {
     when(testResultRepository.findRecentTestResultsByProject(anyString(), any(PageRequest.class)))
         .thenReturn(mockResults);
     when(testCaseRepository.findById("testcase-1")).thenReturn(Optional.of(mockTestCase));
+    when(testCaseRepository.findAllById(any())).thenReturn(Arrays.asList(mockTestCase));
     when(testPlanRepository.findById("testplan-1")).thenReturn(Optional.of(mockTestPlan));
+    when(testPlanRepository.findAllById(any())).thenReturn(Arrays.asList(mockTestPlan));
 
     // When
     Page<TestResultReportDto> result = testResultReportService.getDetailedTestResultReport(filter);
@@ -361,16 +363,25 @@ public class TestResultReportServiceMockTest {
 
     when(testResultRepository.findRecentTestResultsByProject(eq(projectId), any(PageRequest.class)))
         .thenReturn(mockResults);
+    when(testResultRepository.findDedupedIdsByProject(eq(projectId), any(Pageable.class)))
+        .thenReturn(Arrays.asList(mockTestResult.getId()));
+    when(testResultRepository.countDedupedByProject(eq(projectId))).thenReturn(1L);
+    when(testResultRepository.findByIdsWithFetch(anyList())).thenReturn(mockResults);
+
     when(testCaseRepository.findById(anyString())).thenReturn(Optional.of(mockTestCase));
+    when(testCaseRepository.findAllById(any())).thenReturn(Arrays.asList(mockTestCase));
     when(testPlanRepository.findById(anyString())).thenReturn(Optional.of(mockTestPlan));
+    when(testPlanRepository.findAllById(any())).thenReturn(Arrays.asList(mockTestPlan));
 
     // When
     Page<TestResultReportDto> result = testResultReportService.getDetailedTestResultReport(filter);
 
     // Then
     assertNotNull(result);
-    verify(testResultRepository)
-        .findRecentTestResultsByProject(eq(projectId), any(PageRequest.class));
+    // 서비스 구현에 따라 둘 중 하나가 호출됨 (일반 조회 vs JIRA 필터링 조회)
+    // 현재 구현은 findDedupedIdsByProject를 우선적으로 사용함
+    verify(testResultRepository, atLeastOnce())
+        .findDedupedIdsByProject(eq(projectId), any(Pageable.class));
 
     System.out.println("✅ 프로젝트 필터링 성공");
   }
@@ -398,6 +409,18 @@ public class TestResultReportServiceMockTest {
     when(testCaseRepository.findById("testcase")).thenReturn(Optional.of(testCase));
     when(testCaseRepository.findById("sub")).thenReturn(Optional.of(subFolder));
     when(testCaseRepository.findById("root")).thenReturn(Optional.of(rootFolder));
+
+    // batchConvertToReportDtos 대응
+    when(testCaseRepository.findAllById(any()))
+        .thenAnswer(
+            invocation -> {
+              Collection<String> ids = invocation.getArgument(0);
+              List<TestCase> found = new ArrayList<>();
+              if (ids.contains("testcase")) found.add(testCase);
+              if (ids.contains("sub")) found.add(subFolder);
+              if (ids.contains("root")) found.add(rootFolder);
+              return found;
+            });
 
     TestResultFilterDto filter = TestResultFilterDto.builder().page(0).size(1).build();
     filter.setDefaultDisplayColumns();
@@ -477,6 +500,20 @@ public class TestResultReportServiceMockTest {
 
     when(testResultRepository.findRecentTestResultsByProject(eq(projectId), any(PageRequest.class)))
         .thenReturn(mockResults);
+    when(testResultRepository.findDedupedIdsByProject(eq(projectId), any(Pageable.class)))
+        .thenReturn(new ArrayList<>());
+    when(testResultRepository.countDedupedByProject(eq(projectId))).thenReturn(5L);
+
+    // ICT-283/ICT-418 대응: 모집단 조회를 위한 Mock 추가
+    List<TestCase> allCases = new ArrayList<>();
+    for (int i = 1; i <= 5; i++) {
+      TestCase tc = new TestCase();
+      tc.setId("tc-" + i);
+      tc.setName("테스트케이스" + i);
+      allCases.add(tc);
+    }
+    when(testCaseRepository.findByProjectId(projectId)).thenReturn(allCases);
+    when(testCaseRepository.findAllById(any())).thenReturn(allCases);
 
     // When
     Page<TestResultReportDto> result = testResultReportService.getDetailedTestResultReport(filter);
