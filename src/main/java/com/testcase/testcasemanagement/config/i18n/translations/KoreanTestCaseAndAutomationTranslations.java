@@ -1048,7 +1048,11 @@ public class KoreanTestCaseAndAutomationTranslations {
 
     // 대량 작업 관련 한글 번역
     createTranslationIfNotExists(
-        "testcase.bulkOps.dialog.title", languageCode, "테스트케이스 일괄 작업", createdBy);
+        "testResult.export.pdf.title", languageCode, "테스트 결과 리포트", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.summary.plan", languageCode, "Plan", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.summary.execution", languageCode, "실행명", createdBy);
     createTranslationIfNotExists(
         "testcase.bulkOps.dialog.selectedCount", languageCode, "선택된 항목: {count}개", createdBy);
     createTranslationIfNotExists(
@@ -1295,6 +1299,14 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.notes.copy", languageCode, "노트 복사", createdBy);
     createTranslationIfNotExists(
         "testcase.notes.copy_message", languageCode, "노트가 클립보드에 복사되었습니다.", createdBy);
+
+    // 내보내기 PDF 방향 옵션 한글
+    createTranslationIfNotExists(
+        "testResult.export.pdf.orientation.label", languageCode, "출력 방향", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.orientation.portrait", languageCode, "세로 (Portrait)", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.pdf.orientation.landscape", languageCode, "가로 (Landscape)", createdBy);
   }
 
   private void createTranslationIfNotExists(

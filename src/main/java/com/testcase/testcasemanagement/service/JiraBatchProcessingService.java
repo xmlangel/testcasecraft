@@ -123,7 +123,7 @@ public class JiraBatchProcessingService {
 
       stats.completeOperation();
 
-      int successCount = (int) allResults.stream().mapToInt(r -> r.isSuccess() ? 1 : 0).sum();
+      int successCount = allResults.stream().mapToInt(r -> r.isSuccess() ? 1 : 0).sum();
       int failureCount = allResults.size() - successCount;
 
       log.info(
@@ -175,7 +175,7 @@ public class JiraBatchProcessingService {
 
       stats.completeOperation();
 
-      int successCount = (int) allResults.stream().mapToInt(r -> r.isSuccess() ? 1 : 0).sum();
+      int successCount = allResults.stream().mapToInt(r -> r.isSuccess() ? 1 : 0).sum();
       int failureCount = allResults.size() - successCount;
 
       return BatchOperationResult.success(operationId, allResults, successCount, failureCount);
@@ -225,7 +225,7 @@ public class JiraBatchProcessingService {
 
       stats.completeOperation();
 
-      int successCount = (int) allResults.stream().mapToInt(r -> r.isSuccess() ? 1 : 0).sum();
+      int successCount = allResults.stream().mapToInt(r -> r.isSuccess() ? 1 : 0).sum();
       int failureCount = allResults.size() - successCount;
 
       return BatchOperationResult.success(operationId, allResults, successCount, failureCount);

@@ -454,6 +454,8 @@ public class EnglishTestResultTranslations {
         "testResult.filter.executionPrefix", languageCode, "Execution:", createdBy);
     createTranslationIfNotExists(
         "testResult.filter.periodPrefix", languageCode, "Period:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.filter.showLatestOnly", languageCode, "Show Latest Only", createdBy);
     createTranslationIfNotExists("testResult.column.folder", languageCode, "Folder", createdBy);
     createTranslationIfNotExists(
         "testResult.column.testCase", languageCode, "Test Case", createdBy);
@@ -601,6 +603,21 @@ public class EnglishTestResultTranslations {
         "testResult.export.info.columnsValue", languageCode, "{count} columns", createdBy);
     createTranslationIfNotExists(
         "testResult.export.info.columnsList", languageCode, "📂 Columns to Export:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.label",
+        languageCode,
+        "Footer Branding (Optional)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.placeholder",
+        languageCode,
+        "Enter company name, etc. (e.g., TestCaseCraft)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.description",
+        languageCode,
+        "Enter the branding text to be displayed at the bottom of the report.",
+        createdBy);
     createTranslationIfNotExists(
         "testResult.export.progress.message",
         languageCode,

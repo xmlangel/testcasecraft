@@ -218,7 +218,9 @@ export function RAGProvider({ children }) {
       try {
         if (RAG_DISABLED_MESSAGE_ENV) return; // 이미 환경변수로 비활성화된 경우 패스
 
-        const response = await api("/api/system-settings/rag/status");
+        const response = await api("/api/system-settings/rag/status", {
+          skipAuth: true,
+        });
         if (!response.ok) return; // 오류 응답 시 무시
         const data = await response.json();
         const isEnabled = data?.data?.enabled ?? data?.enabled;

@@ -89,6 +89,8 @@ public interface LlmClient {
 
   /** LLM 클라이언트 예외 */
   class LlmClientException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     public LlmClientException(String message) {
       super(message);
     }

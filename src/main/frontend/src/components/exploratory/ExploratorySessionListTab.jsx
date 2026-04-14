@@ -2,19 +2,30 @@ import React from "react";
 import {
   Alert,
   Box,
+  Card,
+  CardActionArea,
+  CardContent,
   Chip,
+  Divider,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
-  List,
-  ListItem,
-  ListItemText,
   MenuItem,
   Select,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import {
+  AccessTime as TimeIcon,
+  Person as PersonIcon,
+  Description as CharterIcon,
+  CalendarMonth as DateIcon,
+  DeleteOutline as DeleteIcon,
+  Add as AddIcon,
+} from "@mui/icons-material";
 
 function ExploratorySessionListTab({
   t,
@@ -25,165 +36,361 @@ function ExploratorySessionListTab({
   statusColor,
   sessionsLoading,
   sessionError,
+  onSelectSession,
+  onCreateSession,
+  onDeleteSession,
 }) {
   return (
-    <Stack spacing={2}>
+    <Stack spacing={3}>
       {sessionError && <Alert severity="error">{sessionError}</Alert>}
       {sessionsLoading && (
         <Alert severity="info">{t("common.loading", "로딩 중...")}</Alert>
       )}
-      <Grid container spacing={1.5}>
-        <Grid size={{ xs: 12, md: 2 }}>
-          <FormControl size="small" fullWidth>
-            <InputLabel>{t("common.status", "상태")}</InputLabel>
-            <Select
-              value={sessionFilters.status}
-              label={t("common.status", "상태")}
-              onChange={(e) =>
-                setSessionFilters((prev) => ({
-                  ...prev,
-                  status: e.target.value,
-                }))
-              }
-            >
-              <MenuItem value="ALL">{t("common.all", "전체")}</MenuItem>
-              <MenuItem value="DRAFT">DRAFT</MenuItem>
-              <MenuItem value="RUNNING">RUNNING</MenuItem>
-              <MenuItem value="PAUSED">PAUSED</MenuItem>
-              <MenuItem value="SUBMITTED">SUBMITTED</MenuItem>
-              <MenuItem value="APPROVED">APPROVED</MenuItem>
-              <MenuItem value="NEEDS_UPDATE">NEEDS_UPDATE</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid size={{ xs: 12, md: 2 }}>
-          <TextField
-            fullWidth
-            size="small"
-            label={t("exploratory.session.filter.tester", "테스터")}
-            value={sessionFilters.tester}
-            onChange={(e) =>
-              setSessionFilters((prev) => ({ ...prev, tester: e.target.value }))
-            }
-          />
-        </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
-          <FormControl size="small" fullWidth>
-            <InputLabel>
-              {t("exploratory.session.filter.linkedCharter", "연결 차터")}
-            </InputLabel>
-            <Select
-              value={sessionFilters.charterId}
-              label={t("exploratory.session.filter.linkedCharter", "연결 차터")}
-              onChange={(e) =>
-                setSessionFilters((prev) => ({
-                  ...prev,
-                  charterId: e.target.value,
-                }))
-              }
-            >
-              <MenuItem value="ALL">{t("common.all", "전체")}</MenuItem>
-              {charters.map((item) => (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.title}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid size={{ xs: 12, md: 2.5 }}>
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            label={t("exploratory.session.filter.periodFrom", "기간 시작")}
-            InputLabelProps={{ shrink: true }}
-            value={sessionFilters.periodFrom}
-            onChange={(e) =>
-              setSessionFilters((prev) => ({
-                ...prev,
-                periodFrom: e.target.value,
-              }))
-            }
-          />
-        </Grid>
-        <Grid size={{ xs: 12, md: 2.5 }}>
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            label={t("exploratory.session.filter.periodTo", "기간 종료")}
-            InputLabelProps={{ shrink: true }}
-            value={sessionFilters.periodTo}
-            onChange={(e) =>
-              setSessionFilters((prev) => ({
-                ...prev,
-                periodTo: e.target.value,
-              }))
-            }
-          />
-        </Grid>
-      </Grid>
 
-      <List sx={{ bgcolor: "background.paper", borderRadius: 1 }}>
-        {!sessionsLoading && filteredSessions.length === 0 && (
-          <ListItem>
-            <ListItemText
-              primary={t(
-                "exploratory.session.empty",
-                "조건에 맞는 세션이 없습니다.",
-              )}
+      {/* Tab Header with Create Button */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          {filteredSessions.length}{" "}
+          {t("exploratory.session.countUnit", "개의 세션이 있습니다.")}
+        </Typography>
+        <Stack direction="row" spacing={1}>
+          <Chip
+            icon={<AddIcon />}
+            label={t("exploratory.session.btn.createNew", "새 세션 시작")}
+            onClick={onCreateSession}
+            color="primary"
+            variant="filled"
+            clickable
+            sx={{ fontWeight: "bold", px: 1 }}
+          />
+        </Stack>
+      </Box>
+
+      {/* Filter Section with Glassmorphism touch */}
+      <Card
+        variant="outlined"
+        sx={{
+          p: 2,
+          bgcolor: "rgba(255, 255, 255, 0.4)",
+          backdropFilter: "blur(8px)",
+          borderRadius: 2,
+          border: "1px solid rgba(0, 0, 0, 0.08)",
+        }}
+      >
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
+            <FormControl size="small" fullWidth>
+              <InputLabel>{t("common.status", "상태")}</InputLabel>
+              <Select
+                value={sessionFilters.status}
+                label={t("common.status", "상태")}
+                onChange={(e) =>
+                  setSessionFilters((prev) => ({
+                    ...prev,
+                    status: e.target.value,
+                  }))
+                }
+              >
+                <MenuItem value="ALL">{t("common.all", "전체")}</MenuItem>
+                <MenuItem value="DRAFT">
+                  {t("exploratory.session.status.draft", "DRAFT")}
+                </MenuItem>
+                <MenuItem value="RUNNING">
+                  {t("exploratory.session.status.running", "RUNNING")}
+                </MenuItem>
+                <MenuItem value="PAUSED">
+                  {t("exploratory.session.status.paused", "PAUSED")}
+                </MenuItem>
+                <MenuItem value="COMPLETED">
+                  {t("exploratory.session.status.completed", "COMPLETED")}
+                </MenuItem>
+                <MenuItem value="SUBMITTED">
+                  {t("exploratory.session.status.submitted", "SUBMITTED")}
+                </MenuItem>
+                <MenuItem value="APPROVED">
+                  {t("exploratory.session.status.approved", "APPROVED")}
+                </MenuItem>
+                <MenuItem value="ARCHIVED">
+                  {t("exploratory.session.status.archived", "ARCHIVED")}
+                </MenuItem>
+                <MenuItem value="NEEDS_UPDATE">
+                  {t("exploratory.session.status.needsUpdate", "NEEDS_UPDATE")}
+                </MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, md: 2 }}>
+            <TextField
+              fullWidth
+              size="small"
+              label={t("exploratory.session.filter.tester", "테스터")}
+              value={sessionFilters.tester}
+              onChange={(e) =>
+                setSessionFilters((prev) => ({
+                  ...prev,
+                  tester: e.target.value,
+                }))
+              }
             />
-          </ListItem>
+          </Grid>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <FormControl size="small" fullWidth>
+              <InputLabel>
+                {t("exploratory.session.filter.linkedCharter", "연결 차터")}
+              </InputLabel>
+              <Select
+                value={sessionFilters.charterId}
+                label={t(
+                  "exploratory.session.filter.linkedCharter",
+                  "연결 차터",
+                )}
+                onChange={(e) =>
+                  setSessionFilters((prev) => ({
+                    ...prev,
+                    charterId: e.target.value,
+                  }))
+                }
+              >
+                <MenuItem value="ALL">{t("common.all", "전체")}</MenuItem>
+                {charters.map((item) => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.title}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, md: 2.5 }}>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              label={t("exploratory.session.filter.periodFrom", "기간 시작")}
+              InputLabelProps={{ shrink: true }}
+              value={sessionFilters.periodFrom}
+              onChange={(e) =>
+                setSessionFilters((prev) => ({
+                  ...prev,
+                  periodFrom: e.target.value,
+                }))
+              }
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 2.5 }}>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              label={t("exploratory.session.filter.periodTo", "기간 종료")}
+              InputLabelProps={{ shrink: true }}
+              value={sessionFilters.periodTo}
+              onChange={(e) =>
+                setSessionFilters((prev) => ({
+                  ...prev,
+                  periodTo: e.target.value,
+                }))
+              }
+            />
+          </Grid>
+        </Grid>
+      </Card>
+
+      {/* Sessions Grid */}
+      <Grid container spacing={2}>
+        {!sessionsLoading && filteredSessions.length === 0 && (
+          <Grid size={12}>
+            <Box sx={{ py: 8, textAlign: "center", opacity: 0.6 }}>
+              <Typography variant="body1">
+                {t("exploratory.session.empty", "조건에 맞는 세션이 없습니다.")}
+              </Typography>
+            </Box>
+          </Grid>
         )}
         {filteredSessions.map((item) => {
           const charter = charters.find((c) => c.id === item.charterId);
+          const color = statusColor[item.status] || "default";
+
           return (
-            <ListItem key={item.id} divider>
-              <ListItemText
-                primary={
+            <Grid key={item.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+              <Card
+                variant="outlined"
+                sx={{
+                  height: "100%",
+                  transition: "all 0.2s ease-in-out",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                    borderColor: "primary.main",
+                  },
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                <CardActionArea
+                  onClick={() => onSelectSession && onSelectSession(item.id)}
+                  sx={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                  }}
+                >
                   <Box
                     sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      flexWrap: "wrap",
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: 4,
+                      bgcolor: `${color}.main`,
                     }}
-                  >
-                    <Typography sx={{ fontWeight: 700 }}>
-                      {item.title}
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={item.status}
-                      color={statusColor[item.status] || "default"}
-                    />
-                    {item.durationMin != null && (
-                      <Chip
-                        size="small"
-                        label={t(
-                          "exploratory.session.label.duration",
-                          "순수 실행 {minutes}분",
-                          { minutes: item.durationMin },
-                        )}
-                      />
-                    )}
-                  </Box>
-                }
-                secondary={t(
-                  "exploratory.session.label.meta",
-                  "기간 {date} | 테스터 {tester} | 차터 {charter}",
-                  {
-                    date: item.date,
-                    tester: item.tester,
-                    charter: charter?.title || "-",
-                  },
-                )}
-              />
-            </ListItem>
+                  />
+                  <CardContent sx={{ width: "100%", p: 2.5 }}>
+                    <Stack spacing={2}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <Chip
+                          label={t(
+                            `exploratory.session.status.${
+                              item.status === "NEEDS_UPDATE"
+                                ? "needsUpdate"
+                                : item.status.toLowerCase()
+                            }`,
+                            item.status,
+                          )}
+                          size="small"
+                          color={color}
+                          variant="filled"
+                          sx={{ fontWeight: 700, borderRadius: 1 }}
+                        />
+                        <Box
+                          sx={{ display: "flex", gap: 1, alignItems: "center" }}
+                        >
+                          {item.durationMin != null && (
+                            <Stack
+                              direction="row"
+                              spacing={0.5}
+                              alignItems="center"
+                            >
+                              <TimeIcon
+                                sx={{ fontSize: 16, color: "text.secondary" }}
+                              />
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {item.durationMin}min
+                              </Typography>
+                            </Stack>
+                          )}
+                          <Tooltip title={t("common.delete", "삭제")}>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteSession && onDeleteSession(item.id);
+                              }}
+                              sx={{
+                                opacity: 0.3,
+                                transition: "all 0.2s ease-in-out",
+                                color: "rgba(255,255,255,0.4)",
+                                "&:hover": {
+                                  opacity: 1,
+                                  color: "error.main",
+                                  bgcolor: "rgba(211, 47, 47, 0.1)",
+                                  transform: "scale(1.1)",
+                                },
+                                ".MuiCard-root:hover &": { opacity: 0.8 },
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
+
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 800,
+                          lineHeight: 1.3,
+                          minHeight: "2.6em",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {item.title}
+                      </Typography>
+
+                      <Divider sx={{ opacity: 0.6 }} />
+
+                      <Stack spacing={1}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <PersonIcon
+                            sx={{ fontSize: 18, color: "action.active" }}
+                          />
+                          <Typography variant="body2" noWrap>
+                            {item.tester}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <DateIcon
+                            sx={{ fontSize: 18, color: "action.active" }}
+                          />
+                          <Typography variant="body2">{item.date}</Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <CharterIcon
+                            sx={{ fontSize: 18, color: "action.active" }}
+                          />
+                          <Typography
+                            variant="body2"
+                            noWrap
+                            color="text.secondary"
+                          >
+                            {charter?.title || "-"}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
           );
         })}
-      </List>
+      </Grid>
     </Stack>
   );
 }

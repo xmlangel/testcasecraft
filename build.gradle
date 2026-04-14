@@ -145,14 +145,22 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.61-SNAPSHOT'
-archivesBaseName = 'TestCaseCraft'
-sourceCompatibility = '21'
+version = '1.0.65-SNAPSHOT'
+base {
+    archivesName = 'TestCaseCraft'
+}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
 // Java 컴파일 옵션 설정 - deprecation 및 unchecked 경고 활성화
 tasks.withType(JavaCompile) {
 	options.compilerArgs << '-Xlint:deprecation'
 	options.compilerArgs << '-Xlint:unchecked'
+	options.compilerArgs << '-Xlint:all'
+	options.compilerArgs << '-Xlint:-processing' // 가공 경고(Lombok 등) 제외
 }
 
 task incrementVersion {

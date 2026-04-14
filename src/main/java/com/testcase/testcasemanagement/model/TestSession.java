@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -42,9 +43,11 @@ public class TestSession {
     DRAFT,
     RUNNING,
     PAUSED,
+    COMPLETED,
     SUBMITTED,
     NEEDS_UPDATE,
-    APPROVED
+    APPROVED,
+    ARCHIVED
   }
 
   @Id
@@ -59,6 +62,9 @@ public class TestSession {
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "charter_id", nullable = false)
   private TestCharter charter;
+
+  @Column(name = "title", nullable = false, length = 255)
+  private String title;
 
   @Column(name = "charter_snapshot_title", nullable = false, length = 200)
   private String charterSnapshotTitle;
@@ -121,6 +127,39 @@ public class TestSession {
   @Column(nullable = false, length = 30)
   private SessionStatus status;
 
+  @Column(name = "flow_notes", columnDefinition = "TEXT")
+  private String flowNotes;
+
+  @Column(name = "coverage_notes", columnDefinition = "TEXT")
+  private String coverageNotes;
+
+  @Column(name = "oracle_notes", columnDefinition = "TEXT")
+  private String oracleNotes;
+
+  @Column(name = "activity_notes", columnDefinition = "TEXT")
+  private String activityNotes;
+
+  @Column(name = "bug_headline", length = 500)
+  private String bugHeadline;
+
+  @Column(name = "blockers", columnDefinition = "TEXT")
+  private String blockers;
+
+  @Column(name = "remaining_questions", columnDefinition = "TEXT")
+  private String remainingQuestions;
+
+  @Column(name = "test_data", columnDefinition = "TEXT")
+  private String testData;
+
+  @Column(name = "evaluation", columnDefinition = "TEXT")
+  private String evaluation;
+
+  @Column(name = "next_charter", columnDefinition = "TEXT")
+  private String nextCharter;
+
+  @Column(name = "achievement")
+  private Integer achievement;
+
   @Column(name = "review_comment", columnDefinition = "TEXT")
   private String reviewComment;
 
@@ -150,4 +189,16 @@ public class TestSession {
   protected void onUpdate() {
     this.updatedAt = LocalDateTime.now();
   }
+
+  @OneToMany(
+      mappedBy = "session",
+      cascade = jakarta.persistence.CascadeType.ALL,
+      orphanRemoval = true)
+  private List<TestSessionApproval> approvals = new ArrayList<>();
+
+  @OneToMany(
+      mappedBy = "session",
+      cascade = jakarta.persistence.CascadeType.ALL,
+      orphanRemoval = true)
+  private List<TestSessionInterruption> interruptions = new ArrayList<>();
 }

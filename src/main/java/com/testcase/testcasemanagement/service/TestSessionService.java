@@ -127,18 +127,32 @@ public class TestSessionService {
 
   public TestSessionResponseDto resumeSession(String id) {
     TestSession session = findById(id);
-    ensureStatus(session, List.of(TestSession.SessionStatus.PAUSED), "재개는 PAUSED 상태에서만 가능합니다.");
+    ensureStatus(
+        session,
+        List.of(
+            TestSession.SessionStatus.DRAFT,
+            TestSession.SessionStatus.PAUSED,
+            TestSession.SessionStatus.COMPLETED,
+            TestSession.SessionStatus.NEEDS_UPDATE),
+        "재개는 DRAFT, PAUSED, COMPLETED 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
 
-    TestSessionInterruption open =
-        testSessionInterruptionRepository
-            .findFirstBySessionIdAndEndedAtIsNullOrderByStartedAtDesc(id)
-            .orElseThrow(
-                () -> new ResourceNotValidException("진행 중인 중단 기록이 없습니다.", Map.of("sessionId", id)));
+    if (session.getStartedAt() == null) {
+      throw new ResourceNotValidException(
+          "시작 기록이 없는 세션은 재개할 수 없습니다. 대신 시작을 눌러주세요.", java.util.Collections.emptyMap());
+    }
 
-    open.setEndedAt(LocalDateTime.now());
-    testSessionInterruptionRepository.save(open);
+    if (session.getStatus() == TestSession.SessionStatus.PAUSED) {
+      testSessionInterruptionRepository
+          .findFirstBySessionIdAndEndedAtIsNullOrderByStartedAtDesc(id)
+          .ifPresent(
+              open -> {
+                open.setEndedAt(LocalDateTime.now());
+                testSessionInterruptionRepository.save(open);
+              });
+    }
 
     session.setStatus(TestSession.SessionStatus.RUNNING);
+    session.setEndedAt(null); // 재개 시 종료 시각 초기화
     session.setInterruptedMinutes(calculateInterruptedMinutes(id));
     return toDto(testSessionRepository.save(session));
   }
@@ -147,8 +161,17 @@ public class TestSessionService {
     TestSession session = findById(id);
     ensureStatus(
         session,
-        List.of(TestSession.SessionStatus.RUNNING, TestSession.SessionStatus.PAUSED),
-        "종료는 RUNNING 또는 PAUSED 상태에서만 가능합니다.");
+        List.of(
+            TestSession.SessionStatus.DRAFT,
+            TestSession.SessionStatus.RUNNING,
+            TestSession.SessionStatus.PAUSED),
+        "종료는 DRAFT, RUNNING 또는 PAUSED 상태에서만 가능합니다.");
+
+    if (session.getStatus() == TestSession.SessionStatus.DRAFT) {
+      if (session.getStartedAt() == null) {
+        session.setStartedAt(LocalDateTime.now());
+      }
+    }
 
     if (session.getStatus() == TestSession.SessionStatus.PAUSED) {
       testSessionInterruptionRepository
@@ -160,7 +183,7 @@ public class TestSessionService {
               });
     }
 
-    session.setStatus(TestSession.SessionStatus.DRAFT);
+    session.setStatus(TestSession.SessionStatus.COMPLETED);
     session.setEndedAt(LocalDateTime.now());
     session.setInterruptedMinutes(calculateInterruptedMinutes(id));
 
@@ -171,8 +194,11 @@ public class TestSessionService {
     TestSession session = findById(id);
     ensureStatus(
         session,
-        List.of(TestSession.SessionStatus.DRAFT, TestSession.SessionStatus.NEEDS_UPDATE),
-        "제출은 DRAFT 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
+        List.of(
+            TestSession.SessionStatus.DRAFT,
+            TestSession.SessionStatus.COMPLETED,
+            TestSession.SessionStatus.NEEDS_UPDATE),
+        "제출은 DRAFT, COMPLETED 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
 
     session.setStatus(TestSession.SessionStatus.SUBMITTED);
     session.setSubmittedAt(LocalDateTime.now());
@@ -263,6 +289,7 @@ public class TestSessionService {
       TestSession session, TestSessionRequestDto request, Project project, TestCharter charter) {
     session.setProject(project);
     session.setCharter(charter);
+    session.setTitle(request.getTitle());
     session.setCharterSnapshotTitle(charter.getTitle());
     session.setCharterSnapshotMission(charter.getMission());
     session.setTesterId(request.getTesterId());
@@ -278,6 +305,17 @@ public class TestSessionService {
     session.setStrategyTags(
         request.getStrategyTags() == null ? List.of() : request.getStrategyTags());
     session.setAreaTags(request.getAreaTags() == null ? List.of() : request.getAreaTags());
+    session.setFlowNotes(request.getFlowNotes());
+    session.setCoverageNotes(request.getCoverageNotes());
+    session.setOracleNotes(request.getOracleNotes());
+    session.setActivityNotes(request.getActivityNotes());
+    session.setBugHeadline(request.getBugHeadline());
+    session.setBlockers(request.getBlockers());
+    session.setRemainingQuestions(request.getRemainingQuestions());
+    session.setTestData(request.getTestData());
+    session.setEvaluation(request.getEvaluation());
+    session.setNextCharter(request.getNextCharter());
+    session.setAchievement(request.getAchievement());
   }
 
   private TestSession findById(String id) {
@@ -294,16 +332,17 @@ public class TestSessionService {
   }
 
   private Integer calculateInterruptedMinutes(String sessionId) {
+    return (int) (calculateInterruptedSeconds(sessionId) / 60);
+  }
+
+  private Long calculateInterruptedSeconds(String sessionId) {
     List<TestSessionInterruption> interruptions =
         testSessionInterruptionRepository.findBySessionIdOrderByStartedAtAsc(sessionId);
 
-    long totalMinutes =
-        interruptions.stream()
-            .filter(it -> it.getEndedAt() != null)
-            .mapToLong(it -> Duration.between(it.getStartedAt(), it.getEndedAt()).toMinutes())
-            .sum();
-
-    return (int) totalMinutes;
+    return interruptions.stream()
+        .filter(it -> it.getEndedAt() != null)
+        .mapToLong(it -> Duration.between(it.getStartedAt(), it.getEndedAt()).toSeconds())
+        .sum();
   }
 
   private void appendApprovalHistory(
@@ -331,33 +370,79 @@ public class TestSessionService {
     return Sort.by(direction, field);
   }
 
+  public void deleteSession(String id) {
+    TestSession session = findById(id);
+    // 연관된 승인 기록 및 중단 기록은 JPA Cascade 등에 의해 처리되거나 수동 삭제
+    testSessionRepository.delete(session);
+  }
+
   private TestSessionResponseDto toDto(TestSession session) {
-    return new TestSessionResponseDto(
-        session.getId(),
-        session.getProject().getId(),
-        session.getCharter().getId(),
-        session.getCharterSnapshotTitle(),
-        session.getCharterSnapshotMission(),
-        session.getTesterId(),
-        session.getLeadId(),
-        session.getTesterName(),
-        session.getLeadName(),
-        session.getNetDurationMinutes(),
-        session.getTestExecutionPct(),
-        session.getBugInvestigationPct(),
-        session.getSetupAdminPct(),
-        session.getEnvironmentSummary(),
-        session.getProductVersion(),
-        session.getStrategyTags(),
-        session.getAreaTags(),
-        session.getStatus().name(),
-        session.getReviewComment(),
-        session.getStartedAt(),
-        session.getEndedAt(),
-        session.getInterruptedMinutes(),
-        session.getSubmittedAt(),
-        session.getReviewedAt(),
-        session.getCreatedAt(),
-        session.getUpdatedAt());
+    TestSessionResponseDto dto = new TestSessionResponseDto();
+    dto.setId(session.getId());
+    dto.setProjectId(session.getProject().getId());
+    dto.setCharterId(session.getCharter().getId());
+    dto.setTitle(session.getTitle());
+    dto.setCharterSnapshotTitle(session.getCharterSnapshotTitle());
+    dto.setCharterSnapshotMission(session.getCharterSnapshotMission());
+    dto.setTesterId(session.getTesterId());
+    dto.setLeadId(session.getLeadId());
+    dto.setTesterName(session.getTesterName());
+    dto.setLeadName(session.getLeadName());
+    dto.setNetDurationMinutes(session.getNetDurationMinutes());
+    dto.setTestExecutionPct(session.getTestExecutionPct());
+    dto.setBugInvestigationPct(session.getBugInvestigationPct());
+    dto.setSetupAdminPct(session.getSetupAdminPct());
+    dto.setEnvironmentSummary(session.getEnvironmentSummary());
+    dto.setProductVersion(session.getProductVersion());
+    dto.setStrategyTags(session.getStrategyTags());
+    dto.setAreaTags(session.getAreaTags());
+    dto.setFlowNotes(session.getFlowNotes());
+    dto.setCoverageNotes(session.getCoverageNotes());
+    dto.setOracleNotes(session.getOracleNotes());
+    dto.setActivityNotes(session.getActivityNotes());
+    dto.setBugHeadline(session.getBugHeadline());
+    dto.setBlockers(session.getBlockers());
+    dto.setRemainingQuestions(session.getRemainingQuestions());
+    dto.setTestData(session.getTestData());
+    dto.setEvaluation(session.getEvaluation());
+    dto.setNextCharter(session.getNextCharter());
+    dto.setAchievement(session.getAchievement());
+    dto.setStatus(session.getStatus().name());
+    dto.setReviewComment(session.getReviewComment());
+    dto.setStartedAt(session.getStartedAt());
+    dto.setEndedAt(session.getEndedAt());
+    dto.setInterruptedMinutes(session.getInterruptedMinutes());
+    dto.setSubmittedAt(session.getSubmittedAt());
+    dto.setReviewedAt(session.getReviewedAt());
+    dto.setCreatedAt(session.getCreatedAt());
+    dto.setUpdatedAt(session.getUpdatedAt());
+
+    // 실시간 세션 진행 시간 계산 (초 단위)
+    Long totalInterruptedSec = calculateInterruptedSeconds(session.getId());
+    dto.setInterruptedSeconds(totalInterruptedSec);
+
+    if (session.getStatus() == TestSession.SessionStatus.RUNNING
+        && session.getStartedAt() != null) {
+      long elapsed = Duration.between(session.getStartedAt(), LocalDateTime.now()).toSeconds();
+      dto.setCurrentElapsedSeconds(Math.max(0, elapsed - totalInterruptedSec));
+    } else if (session.getStatus() == TestSession.SessionStatus.PAUSED
+        && session.getStartedAt() != null) {
+      // 마지막 중단 시작 시간 기준으로 이전에 진행되었던 시간 계산
+      testSessionInterruptionRepository
+          .findFirstBySessionIdAndEndedAtIsNullOrderByStartedAtDesc(session.getId())
+          .ifPresent(
+              ongoing -> {
+                long totalSinceStart =
+                    Duration.between(session.getStartedAt(), ongoing.getStartedAt()).toSeconds();
+                dto.setCurrentElapsedSeconds(Math.max(0, totalSinceStart - totalInterruptedSec));
+              });
+    } else if (session.getEndedAt() != null && session.getStartedAt() != null) {
+      long total = Duration.between(session.getStartedAt(), session.getEndedAt()).toSeconds();
+      dto.setCurrentElapsedSeconds(Math.max(0, total - totalInterruptedSec));
+    } else {
+      dto.setCurrentElapsedSeconds(0L);
+    }
+
+    return dto;
   }
 }

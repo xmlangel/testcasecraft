@@ -817,6 +817,8 @@ public class JunitXmlParserService {
 
   /** XML 파싱 예외 클래스 */
   public static class JunitXmlParsingException extends Exception {
+    private static final long serialVersionUID = 1L;
+
     public JunitXmlParsingException(String message) {
       super(message);
     }

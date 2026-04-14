@@ -30,8 +30,6 @@ public class JiraSyncSchedulerService {
 
   private final TestResultRepository testResultRepository;
   private final JiraIntegrationService jiraIntegrationService;
-  private final JiraConfigService jiraConfigService;
-  private final DashboardService dashboardService;
 
   @Value("${app.jira.scheduler.batch-size:20}")
   private int batchSize;
@@ -75,7 +73,7 @@ public class JiraSyncSchedulerService {
           pendingResults.stream().map(this::processSingleSyncAsync).toList();
 
       // 모든 비동기 작업 완료 대기
-      CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+      CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join();
 
       log.info("JIRA 동기화 처리 완료: {} 건", pendingResults.size());
 

@@ -83,6 +83,8 @@ const TestResultColumnMenu = ({
       }}
       transformOrigin={{ horizontal: "left", vertical: "top" }}
       anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
+      disableScrollLock
+      autoFocus
     >
       {/* 메뉴 헤더 */}
       <Box
@@ -189,10 +191,11 @@ const TestResultColumnMenu = ({
                 {/* 체크박스 */}
                 <Checkbox
                   checked={isVisible}
-                  onChange={() => onColumnVisibilityToggle(col.field)}
                   size="small"
                   disabled={isEssential}
                   color="primary"
+                  tabIndex={-1}
+                  disableRipple
                 />
 
                 {/* 컬럼 정보 */}

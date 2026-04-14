@@ -12,6 +12,7 @@ import org.springframework.context.ApplicationEvent;
  */
 @Getter
 public class TestCaseVersionEvent extends ApplicationEvent {
+  private static final long serialVersionUID = 1L;
 
   private final String testCaseId;
   private final String changeType;

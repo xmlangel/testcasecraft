@@ -164,7 +164,7 @@ export const I18nProvider = ({ children }) => {
     // 2. Promise 생성 및 저장
     const loadingPromise = (async () => {
       try {
-        const response = await api("/api/i18n/languages");
+        const response = await api("/api/i18n/languages", { skipAuth: true });
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const languages = await response.json();
@@ -211,7 +211,9 @@ export const I18nProvider = ({ children }) => {
     // 3. 새로운 로딩 Promise 생성 및 저장
     const loadingPromise = (async () => {
       try {
-        const fetchRes = await api(`/api/i18n/translations/${languageCode}`);
+        const fetchRes = await api(`/api/i18n/translations/${languageCode}`, {
+          skipAuth: true,
+        });
         if (!fetchRes.ok)
           throw new Error(`HTTP error! status: ${fetchRes.status}`);
         const response = await fetchRes.json();

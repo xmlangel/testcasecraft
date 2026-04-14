@@ -119,6 +119,8 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("navigation.user.logout", languageCode, "로그아웃", createdBy);
     createTranslationIfNotExists("navigation.breadcrumb.home", languageCode, "홈", createdBy);
     createTranslationIfNotExists("navigation.breadcrumb.back", languageCode, "뒤로", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.editor.field.title", languageCode, "세션 제목", createdBy);
     createTranslationIfNotExists("validation.required", languageCode, "필수 입력 항목입니다", createdBy);
     createTranslationIfNotExists(
         "validation.email.invalid", languageCode, "올바른 이메일 형식이 아닙니다", createdBy);
@@ -1566,6 +1568,31 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "admin.globalDoc.requests.rejected", languageCode, "요청을 거절했습니다.", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.requests.rejectFailed", languageCode, "요청 거절에 실패했습니다.", createdBy);
+
+    createTranslationIfNotExists(
+        "exploratory.session.confirmDelete", languageCode, "정말로 이 세션을 삭제하시겠습니까?", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.saveSuccess", languageCode, "세션이 저장되었습니다.", createdBy);
+
+    // 세션 상태 번역
+    createTranslationIfNotExists(
+        "exploratory.session.status.draft", languageCode, "작성 중", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.running", languageCode, "수행 중", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.paused", languageCode, "일시 정지", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.editor.field.netDuration", languageCode, "목표 수행 시간 (분)", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.completed", languageCode, "수행 완료", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.submitted", languageCode, "제출됨", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.approved", languageCode, "승인됨", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.archived", languageCode, "보관됨", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.status.needsUpdate", languageCode, "보완 필요", createdBy);
   }
 
   private void createTranslationIfNotExists(

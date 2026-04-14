@@ -17,6 +17,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -118,6 +119,13 @@ public class TestSessionController {
     return ResponseEntity.ok(
         testSessionService.listByProject(
             projectId, parseStatus(status), from, to, testerId, charterId, page, size, sort));
+  }
+
+  @DeleteMapping("/sessions/{id}")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER')")
+  public ResponseEntity<Void> deleteSession(@PathVariable String id) {
+    testSessionService.deleteSession(id);
+    return ResponseEntity.noContent().build();
   }
 
   private TestSession.SessionStatus parseStatus(String status) {

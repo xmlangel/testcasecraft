@@ -338,6 +338,8 @@ public class TestCaseController {
   }
 
   public class InvalidMappingException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     public InvalidMappingException(String message) {
       super(message);
     }

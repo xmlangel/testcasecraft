@@ -610,6 +610,7 @@ export async function getFilteredTestResults(filters = {}, useCache = false) {
 
     if (testExecutionId)
       searchParams.append("testExecutionId", testExecutionId);
+    if (filters.latestOnly) searchParams.append("latestOnly", "true");
     searchParams.append("page", page.toString());
     searchParams.append("size", size.toString());
 

@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/controller/UserActivityController.java
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.audit.AuditSeverity;
 import com.testcase.testcasemanagement.dto.UserActivityDto;
 import com.testcase.testcasemanagement.model.UserActivity;
 import com.testcase.testcasemanagement.service.UserActivityService;
@@ -557,11 +558,11 @@ public class UserActivityController {
   }
 
   /** 위험도 레벨 반환 */
-  private String getRiskLevel(Integer riskScore) {
-    if (riskScore == null) return "UNKNOWN";
-    if (riskScore >= 80) return "CRITICAL";
-    if (riskScore >= 60) return "HIGH";
-    if (riskScore >= 30) return "MEDIUM";
-    return "LOW";
+  private AuditSeverity getRiskLevel(Integer riskScore) {
+    if (riskScore == null) return AuditSeverity.LOW;
+    if (riskScore >= 80) return AuditSeverity.CRITICAL;
+    if (riskScore >= 60) return AuditSeverity.HIGH;
+    if (riskScore >= 30) return AuditSeverity.MEDIUM;
+    return AuditSeverity.LOW;
   }
 }

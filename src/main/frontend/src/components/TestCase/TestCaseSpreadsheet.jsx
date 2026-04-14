@@ -73,6 +73,7 @@ import {
 import {
   exportToCSV,
   exportToExcel,
+  exportToPDF,
 } from "./Spreadsheet/handlers/SpreadsheetExport.js";
 import {
   StepSettingsDialog,
@@ -1301,13 +1302,56 @@ const TestCaseSpreadsheet = ({
     handleExportMenuClose();
   }, [spreadsheetData, memoizedColumnLabels]);
 
-  const handleExportExcel = useCallback(() => {
-    const result = exportToExcel(spreadsheetData, memoizedColumnLabels);
-    setSnackbarMessage(result.message);
-    setSnackbarSeverity(result.severity);
-    setSnackbarOpen(true);
+  const handleExportExcel = useCallback(async () => {
     handleExportMenuClose();
+    setLocalLoading(true);
+    try {
+      const result = await exportToExcel(spreadsheetData, memoizedColumnLabels);
+      setSnackbarMessage(result.message);
+      setSnackbarSeverity(result.severity);
+      setSnackbarOpen(true);
+    } catch (error) {
+      setSnackbarMessage("Excel 내보내기 중 오류가 발생했습니다.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    } finally {
+      setLocalLoading(false);
+    }
   }, [spreadsheetData, memoizedColumnLabels]);
+
+  const handleExportPDF = useCallback(async () => {
+    handleExportMenuClose();
+    setLocalLoading(true);
+    try {
+      // 선택된 행이 있으면 해당 행만, 없으면 전체 행 내보내기
+      let dataToExport = spreadsheetData;
+
+      const currentRange = selectedRangeRef.current;
+      if (currentRange) {
+        const startRow = Math.min(currentRange.start.row, currentRange.end.row);
+        const endRow = Math.max(currentRange.start.row, currentRange.end.row);
+        dataToExport = spreadsheetData.slice(startRow, endRow + 1);
+        debugLog(
+          "Spreadsheet",
+          `선택된 범위(${startRow + 1}~${endRow + 1}) PDF 내보내기 실행`,
+        );
+      }
+
+      const result = await exportToPDF(dataToExport, memoizedColumnLabels, t, {
+        id: projectId || "export",
+      });
+      setSnackbarMessage(result.message);
+      setSnackbarSeverity(result.severity);
+      setSnackbarOpen(true);
+    } catch (error) {
+      logError("PDF 내보내기 오류:", error);
+      setSnackbarMessage("PDF 내보내기 중 오류가 발생했습니다.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    } finally {
+      setLocalLoading(false);
+    }
+  }, [spreadsheetData, memoizedColumnLabels, t, projectId]);
 
   // 에러 발생 시 에러 메시지 표시
   if (renderError) {
@@ -1859,6 +1903,8 @@ const TestCaseSpreadsheet = ({
           anchorEl={exportMenuAnchor}
           open={Boolean(exportMenuAnchor)}
           onClose={handleExportMenuClose}
+          disableEnforceFocus // 접근성 경고 방지
+          disableRestoreFocus // 접근성 경고 방지
           anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
           transformOrigin={{ vertical: "top", horizontal: "left" }}
         >
@@ -1889,6 +1935,21 @@ const TestCaseSpreadsheet = ({
               secondary={t(
                 "testcase.spreadsheet.export.excel.description",
                 "Microsoft Excel 형식 (.xlsx)",
+              )}
+            />
+          </MenuItem>
+          <MenuItem onClick={handleExportPDF}>
+            <ListItemIcon>
+              <DownloadIcon fontSize="small" color="primary" />
+            </ListItemIcon>
+            <ListItemText
+              primary={t(
+                "testcase.spreadsheet.export.pdf.title",
+                "PDF로 내보내기 (상세)",
+              )}
+              secondary={t(
+                "testcase.spreadsheet.export.pdf.description",
+                "테스트 결과 입력 화면 형식 (.pdf)",
               )}
             />
           </MenuItem>

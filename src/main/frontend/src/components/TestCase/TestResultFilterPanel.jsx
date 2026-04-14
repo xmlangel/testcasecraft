@@ -15,6 +15,8 @@ import {
   Alert,
   Chip,
   Divider,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -44,6 +46,9 @@ const TestResultFilterPanel = ({
   );
   const [selectedTestExecution, setSelectedTestExecution] = useState(
     initialFilters.testExecutionId || "",
+  );
+  const [showLatestOnly, setShowLatestOnly] = useState(
+    initialFilters.showLatestOnly || false,
   );
 
   // 초기 데이터 로드
@@ -111,6 +116,7 @@ const TestResultFilterPanel = ({
     const filters = {
       testPlanId: selectedTestPlan || null,
       testExecutionId: selectedTestExecution || null,
+      showLatestOnly: showLatestOnly,
     };
 
     onFilterChange(filters);
@@ -120,9 +126,11 @@ const TestResultFilterPanel = ({
   const handleClearFilter = () => {
     setSelectedTestPlan("");
     setSelectedTestExecution("");
+    setShowLatestOnly(false);
     onFilterChange({
       testPlanId: null,
       testExecutionId: null,
+      showLatestOnly: false,
     });
   };
 
@@ -181,6 +189,12 @@ const TestResultFilterPanel = ({
             <MenuItem value="">
               <em>{t("testResult.filter.allView", "전체 보기")}</em>
             </MenuItem>
+            {selectedTestPlan &&
+              !testPlans.some((p) => p.id === selectedTestPlan) && (
+                <MenuItem value={selectedTestPlan} sx={{ display: "none" }}>
+                  {selectedTestPlan}
+                </MenuItem>
+              )}
             {testPlans.map((plan) => (
               <MenuItem key={plan.id} value={plan.id}>
                 <Box>
@@ -210,6 +224,15 @@ const TestResultFilterPanel = ({
             <MenuItem value="">
               <em>{t("testResult.filter.allView", "전체 보기")}</em>
             </MenuItem>
+            {selectedTestExecution &&
+              !testExecutions.some((e) => e.id === selectedTestExecution) && (
+                <MenuItem
+                  value={selectedTestExecution}
+                  sx={{ display: "none" }}
+                >
+                  {selectedTestExecution}
+                </MenuItem>
+              )}
             {testExecutions.map((execution) => (
               <MenuItem key={execution.id} value={execution.id}>
                 <Box>
@@ -239,6 +262,36 @@ const TestResultFilterPanel = ({
             ))}
           </Select>
         </FormControl>
+
+        {/* 최신 결과만 보기 토글 */}
+        <Box
+          sx={{ display: "flex", alignItems: "center", height: "40px", ml: 1 }}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showLatestOnly}
+                onChange={(e) => {
+                  const newVal = e.target.checked;
+                  setShowLatestOnly(newVal);
+                  // ICT-263: 스위치 조작 시 즉시 필터 적용
+                  onFilterChange({
+                    testPlanId: selectedTestPlan || null,
+                    testExecutionId: selectedTestExecution || null,
+                    showLatestOnly: newVal,
+                  });
+                }}
+                size="small"
+                color="primary"
+              />
+            }
+            label={
+              <Typography variant="body2">
+                {t("testResult.filter.showLatestOnly", "최신 결과만 보기")}
+              </Typography>
+            }
+          />
+        </Box>
 
         {/* 액션 버튼들 */}
         <Box sx={{ display: "flex", gap: 1 }}>

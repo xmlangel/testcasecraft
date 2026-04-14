@@ -362,6 +362,8 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.filter.executionPrefix", languageCode, "실행:", createdBy);
     createTranslationIfNotExists("testResult.filter.periodPrefix", languageCode, "기간:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.filter.showLatestOnly", languageCode, "최신 결과만 보기", createdBy);
     createTranslationIfNotExists("testResult.column.folder", languageCode, "폴더", createdBy);
     createTranslationIfNotExists("testResult.column.testCase", languageCode, "테스트케이스", createdBy);
     createTranslationIfNotExists("testResult.column.result", languageCode, "결과", createdBy);
@@ -513,6 +515,18 @@ public class KoreanTestResultTranslations {
         "testResult.export.info.columnsValue", languageCode, "{count}개", createdBy);
     createTranslationIfNotExists(
         "testResult.export.info.columnsList", languageCode, "📂 내보낼 컬럼:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.label", languageCode, "푸터 브랜딩 문구 (선택사항)", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.placeholder",
+        languageCode,
+        "회사명 등을 입력하세요 (예: TestCaseCraft)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.footer.prefix.description",
+        languageCode,
+        "리포트 하단에 표시될 브랜딩 문구를 입력하세요.",
+        createdBy);
     createTranslationIfNotExists(
         "testResult.export.progress.message",
         languageCode,

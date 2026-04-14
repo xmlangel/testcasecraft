@@ -76,6 +76,7 @@ public class TestResultFilterDto {
   private Boolean hierarchicalStructure; // 계층적 구조로 반환 여부
   private Boolean includeTestPlanInfo; // 테스트 플랜 정보 포함
   private Boolean includeTestExecutionInfo; // 테스트 실행 정보 포함
+  private Boolean latestOnly; // 최신 결과만 포함 여부 (ICT-263)
 
   // 헬퍼 메서드들
 

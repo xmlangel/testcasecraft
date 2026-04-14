@@ -518,6 +518,100 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
    */
   List<TestResult> findByJiraIssueKeyIn(List<String> jiraIssueKeys);
 
+  // ========== 성능 최적화: DB 레벨 중복 제거 + 페이징 (ID 기반 2단계 방식) ==========
+
+  /** 프로젝트별 중복 제거된 테스트 결과 ID 조회 (최신 결과 기준) */
+  @Query(
+      value =
+          "SELECT deduped.id FROM ("
+              + "  SELECT DISTINCT ON (sub.test_execution_id, sub.test_case_id)"
+              + "    sub.id, sub.executed_at"
+              + "  FROM test_results sub"
+              + "  JOIN test_executions te ON sub.test_execution_id = te.id"
+              + "  WHERE te.project_id = :projectId"
+              + "  ORDER BY sub.test_execution_id, sub.test_case_id,"
+              + "    COALESCE(sub.executed_at, '1970-01-01'::timestamp) DESC"
+              + ") deduped"
+              + " ORDER BY deduped.executed_at DESC NULLS LAST",
+      nativeQuery = true)
+  List<String> findDedupedIdsByProject(@Param("projectId") String projectId, Pageable pageable);
+
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM ("
+              + "  SELECT DISTINCT sub.test_execution_id, sub.test_case_id"
+              + "  FROM test_results sub"
+              + "  JOIN test_executions te ON sub.test_execution_id = te.id"
+              + "  WHERE te.project_id = :projectId"
+              + ") cnt",
+      nativeQuery = true)
+  long countDedupedByProject(@Param("projectId") String projectId);
+
+  /** 프로젝트 + 테스트플랜 필터 중복 제거된 테스트 결과 ID 조회 */
+  @Query(
+      value =
+          "SELECT deduped.id FROM ("
+              + "  SELECT DISTINCT ON (sub.test_execution_id, sub.test_case_id)"
+              + "    sub.id, sub.executed_at"
+              + "  FROM test_results sub"
+              + "  JOIN test_executions te ON sub.test_execution_id = te.id"
+              + "  WHERE te.project_id = :projectId AND te.test_plan_id IN (:testPlanIds)"
+              + "  ORDER BY sub.test_execution_id, sub.test_case_id,"
+              + "    COALESCE(sub.executed_at, '1970-01-01'::timestamp) DESC"
+              + ") deduped"
+              + " ORDER BY deduped.executed_at DESC NULLS LAST",
+      nativeQuery = true)
+  List<String> findDedupedIdsByProjectAndPlans(
+      @Param("projectId") String projectId,
+      @Param("testPlanIds") List<String> testPlanIds,
+      Pageable pageable);
+
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM ("
+              + "  SELECT DISTINCT sub.test_execution_id, sub.test_case_id"
+              + "  FROM test_results sub"
+              + "  JOIN test_executions te ON sub.test_execution_id = te.id"
+              + "  WHERE te.project_id = :projectId AND te.test_plan_id IN (:testPlanIds)"
+              + ") cnt",
+      nativeQuery = true)
+  long countDedupedByProjectAndPlans(
+      @Param("projectId") String projectId, @Param("testPlanIds") List<String> testPlanIds);
+
+  /** 테스트 실행 ID 필터 중복 제거된 테스트 결과 ID 조회 */
+  @Query(
+      value =
+          "SELECT deduped.id FROM ("
+              + "  SELECT DISTINCT ON (sub.test_execution_id, sub.test_case_id)"
+              + "    sub.id, sub.executed_at"
+              + "  FROM test_results sub"
+              + "  WHERE sub.test_execution_id IN (:executionIds)"
+              + "  ORDER BY sub.test_execution_id, sub.test_case_id,"
+              + "    COALESCE(sub.executed_at, '1970-01-01'::timestamp) DESC"
+              + ") deduped"
+              + " ORDER BY deduped.executed_at DESC NULLS LAST",
+      nativeQuery = true)
+  List<String> findDedupedIdsByExecutions(
+      @Param("executionIds") List<String> executionIds, Pageable pageable);
+
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM ("
+              + "  SELECT DISTINCT sub.test_execution_id, sub.test_case_id"
+              + "  FROM test_results sub"
+              + "  WHERE sub.test_execution_id IN (:executionIds)"
+              + ") cnt",
+      nativeQuery = true)
+  long countDedupedByExecutions(@Param("executionIds") List<String> executionIds);
+
+  /** ID 목록으로 TestResult 엔티티 페치 (testExecution, executedBy JOIN FETCH) */
+  @Query(
+      "SELECT tr FROM TestResult tr"
+          + " LEFT JOIN FETCH tr.testExecution"
+          + " LEFT JOIN FETCH tr.executedBy"
+          + " WHERE tr.id IN :ids")
+  List<TestResult> findByIdsWithFetch(@Param("ids") List<String> ids);
+
   // ICT-208: 테스트 결과 조회 및 통계 API를 위한 추가 쿼리 메서드들
 
   /**

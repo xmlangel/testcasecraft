@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Box, Typography, Chip } from "@mui/material";
 import { AccessTime as TimeIcon } from "@mui/icons-material";
+import packageJson from "../../package.json";
+const APP_VERSION = packageJson.version;
 import { useAppContext } from "../context/AppContext";
 import { formatDateTime, getTimezoneOffset } from "../utils/timezoneUtils";
 
@@ -177,6 +179,30 @@ const ServerTimeDisplay = () => {
           ({timezoneOffset})
         </Typography>
       )}
+
+      {/* 앱 버전 표시 추가 */}
+      <Box
+        sx={{
+          borderLeft: "1px solid",
+          borderColor: "divider",
+          pl: 1,
+          ml: 0.5,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            fontFamily: "monospace",
+            fontWeight: "bold",
+            color: "text.secondary",
+            fontSize: "0.7rem",
+          }}
+        >
+          v{APP_VERSION}
+        </Typography>
+      </Box>
     </Box>
   );
 };

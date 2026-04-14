@@ -9,6 +9,8 @@ import {
   useLocation,
 } from "react-router-dom";
 import React, { useState, useRef } from "react";
+import packageJson from "../package.json";
+const APP_VERSION = packageJson.version;
 import {
   Container,
   Paper,
@@ -778,6 +780,19 @@ const AppContent = () => {
                 objectFit: "contain",
               }}
             />
+            <Typography
+              variant="caption"
+              sx={{
+                ml: 1,
+                mt: "22px",
+                fontWeight: "bold",
+                color: "rgba(255, 255, 255, 0.7)",
+                letterSpacing: "0.05em",
+                fontFamily: "monospace",
+              }}
+            >
+              v{APP_VERSION}
+            </Typography>
           </Box>
           {hasSystemAdminAccess(user) && (
             <Button color="inherit" onClick={() => navigate("/dashboard")}>

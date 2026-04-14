@@ -91,6 +91,8 @@ public class ExploratorySessionKeysInitializer {
     createTranslationKeyIfNotExists(
         "exploratory.editor.field.version", "exploratory", "버전 필드", "버전");
     createTranslationKeyIfNotExists("exploratory.editor.field.tags", "exploratory", "태그 필드", "태그");
+    createTranslationKeyIfNotExists(
+        "exploratory.editor.field.title", "exploratory", "세션 제목 필드", "제목");
 
     createTranslationKeyIfNotExists(
         "exploratory.editor.charterSection.title", "exploratory", "차터 섹션 제목", "차터 섹션");
@@ -98,6 +100,9 @@ public class ExploratorySessionKeysInitializer {
         "exploratory.editor.charterSection.assigned", "exploratory", "할당 차터", "할당 차터");
     createTranslationKeyIfNotExists(
         "exploratory.editor.charterSection.autoMission", "exploratory", "자동 바인딩 미션", "자동 바인딩된 미션");
+
+    createTranslationKeyIfNotExists(
+        "exploratory.editor.field.netDuration", "exploratory", "목표 수행 시간 (분)", "목표 수행 시간 (분)");
 
     createTranslationKeyIfNotExists(
         "exploratory.editor.timeSection.title", "exploratory", "시간 배분 제목", "시간 배분");
@@ -239,6 +244,26 @@ public class ExploratorySessionKeysInitializer {
         "리드 승인자: Choi Lead (2026-02-10)");
     createTranslationKeyIfNotExists(
         "exploratory.detail.archive.title", "exploratory", "리포트 아카이브 제목", "최종 승인 리포트 아카이브");
+
+    createTranslationKeyIfNotExists(
+        "exploratory.editor.field.netDuration", "exploratory", "목표 수행 시간 (분)", "목표 수행 시간 (분)");
+
+    createTranslationKeyIfNotExists(
+        "exploratory.session.status.draft", "exploratory", "세션 상태: 작성 중", "작성 중");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.status.running", "exploratory", "세션 상태: 수행 중", "수행 중");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.status.paused", "exploratory", "세션 상태: 일시 정지", "일시 정지");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.status.completed", "exploratory", "세션 상태: 수행 완료", "수행 완료");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.status.submitted", "exploratory", "세션 상태: 제출됨", "제출됨");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.status.approved", "exploratory", "세션 상태: 승인됨", "승인됨");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.status.archived", "exploratory", "세션 상태: 보관됨", "보관됨");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.status.needsUpdate", "exploratory", "세션 상태: 보완 필요", "보완 필요");
 
     log.info("탐색 세션 번역 키 초기화 완료");
   }

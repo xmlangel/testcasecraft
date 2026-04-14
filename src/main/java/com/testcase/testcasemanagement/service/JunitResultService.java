@@ -699,6 +699,8 @@ public class JunitResultService {
 
   /** JUnit 처리 예외 클래스 */
   public static class JunitProcessingException extends Exception {
+    private static final long serialVersionUID = 1L;
+
     public JunitProcessingException(String message) {
       super(message);
     }

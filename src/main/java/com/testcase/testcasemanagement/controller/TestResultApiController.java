@@ -441,14 +441,17 @@ public class TestResultApiController {
       @Parameter(description = "프로젝트 ID") @RequestParam String projectId,
       @Parameter(description = "테스트 플랜 ID") @RequestParam(required = false) String testPlanId,
       @Parameter(description = "테스트 실행 ID") @RequestParam(required = false) String testExecutionId,
+      @Parameter(description = "최신 결과만 보기") @RequestParam(required = false, defaultValue = "false")
+          boolean latestOnly,
       @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
       @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "1000") int size) {
 
     log.info(
-        "필터링된 테스트 결과 조회 요청 - 프로젝트: {}, 테스트 플랜: {}, 테스트 실행: {}",
+        "필터링된 테스트 결과 조회 요청 - 프로젝트: {}, 테스트 플랜: {}, 테스트 실행: {}, 최신만: {}",
         projectId,
         testPlanId,
-        testExecutionId);
+        testExecutionId,
+        latestOnly);
 
     try {
       // 필터 생성
@@ -463,6 +466,11 @@ public class TestResultApiController {
       // 테스트 실행 필터 적용
       if (testExecutionId != null && !testExecutionId.isEmpty()) {
         filter.setTestExecutionIds(List.of(testExecutionId));
+      }
+
+      // 최신 결과만 보기 옵션 적용
+      if (latestOnly) {
+        filter.setLatestOnly(true);
       }
 
       // 기본 컬럼 설정

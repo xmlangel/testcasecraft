@@ -606,6 +606,9 @@ public class TestResultKeysInitializer {
         "jira.error.authentication", "jira", "JIRA 인증 오류", "인증에 실패했습니다");
     createTranslationKeyIfNotExists("jira.error.encryption", "jira", "JIRA 암호화 오류", "암호화 처리 오류");
 
+    createTranslationKeyIfNotExists(
+        "testResult.filter.showLatestOnly", "testResult", "최신 결과만 보기 필터", "최신 결과만 보기");
+
     log.info("테스트 결과 번역 키 초기화 완료");
     createTranslationKeyIfNotExists(
         "testResult.message.exportSuccess",
@@ -715,6 +718,18 @@ public class TestResultKeysInitializer {
         "testResult.export.info.columnsValue", "testResult", "표시 컬럼 수 값", "{count}개");
     createTranslationKeyIfNotExists(
         "testResult.export.info.columnsList", "testResult", "내보낼 컬럼 리스트 라벨", "📂 내보낼 컬럼:");
+    createTranslationKeyIfNotExists(
+        "testResult.export.footer.prefix.label", "testResult", "푸터 브랜딩 문구", "푸터 브랜딩 문구 (선택사항)");
+    createTranslationKeyIfNotExists(
+        "testResult.export.footer.prefix.placeholder",
+        "testResult",
+        "푸터 브랜딩 문구 입력란",
+        "회사명 등을 입력하세요 (예: TestCaseCraft)");
+    createTranslationKeyIfNotExists(
+        "testResult.export.footer.prefix.description",
+        "testResult",
+        "푸터 브랜딩 문구 설명",
+        "리포트 하단에 표시될 브랜딩 문구를 입력하세요.");
 
     // 내보내기 진행 및 버튼
     createTranslationKeyIfNotExists(
@@ -727,6 +742,22 @@ public class TestResultKeysInitializer {
         "testResult.export.button.export", "testResult", "내보내기 버튼", "{format} 내보내기");
     createTranslationKeyIfNotExists(
         "testResult.export.button.exporting", "testResult", "내보내는 중 버튼", "생성 중...");
+
+    // 내보내기 PDF 방향 옵션
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.orientation.label", "testResult", "PDF 출력 방향 라벨", "출력 방향");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.orientation.portrait", "testResult", "PDF 세로 방향", "세로 (Portrait)");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.orientation.landscape", "testResult", "PDF 가로 방향", "가로 (Landscape)");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.title", "testResult", "PDF 리포트 메인 타이틀", "테스트 결과 리포트");
+
+    // 내보내기 PDF 정보 라벨 (ICT-Plan/Execution)
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.summary.plan", "testResult", "PDF 리포트 Plan 라벨", "Plan");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.summary.execution", "testResult", "PDF 리포트 실행명 라벨", "실행명");
 
     // 내보내기 오류 메시지
     createTranslationKeyIfNotExists(

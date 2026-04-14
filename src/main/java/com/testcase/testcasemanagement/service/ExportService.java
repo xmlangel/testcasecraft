@@ -15,46 +15,87 @@ import com.testcase.testcasemanagement.dto.TestResultReportDto;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-/** ICT-190: 테스트 결과 내보내기 서비스 Excel, PDF, CSV 형식으로 테스트 결과 데이터를 내보내는 기능 제공 */
+/** 테스트 결과 내보내기 서비스 Excel, PDF, CSV 형식으로 테스트 결과 데이터를 내보내는 기능 제공 */
+@Slf4j
 @Service
 public class ExportService {
 
   private static final DateTimeFormatter DATE_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-  /** ICT-234: 폰트 캐싱 메커니즘 추가 (수정) 성능 향상을 위한 폰트 정보 캐싱 (PdfFont 객체는 문서별로 새로 생성) */
-  private static String cachedFontName = null;
+  private static final long FONT_CACHE_TTL_MS = 300000; // 5분 TTL
+  private static final int EXCEL_MAX_COLUMN_WIDTH = 20000;
+  private static final String DEFAULT_FONT_NAME = StandardFonts.HELVETICA;
 
+  private static final List<String> DEFAULT_COLUMNS =
+      List.of(
+          "folderPath",
+          "testCaseName",
+          "result",
+          "executedAt",
+          "executorName",
+          "notes",
+          "jiraIssueKey");
+
+  private static final Map<String, String> COLUMN_DISPLAY_NAMES;
+
+  static {
+    Map<String, String> map = new HashMap<>();
+    map.put("testPlanName", "테스트플랜명");
+    map.put("testExecutionName", "테스트실행명");
+    map.put("folderPath", "폴더 경로");
+    map.put("testCaseName", "테스트케이스명");
+    map.put("result", "결과");
+    map.put("executedAt", "실행일시");
+    map.put("executorName", "실행자");
+    map.put("notes", "비고");
+    map.put("jiraIssueKey", "JIRA ID");
+    map.put("jiraStatus", "JIRA 상태");
+    map.put("jiraSyncStatus", "JIRA 동기화");
+    map.put("priority", "우선순위");
+    map.put("category", "카테고리");
+    map.put("preCondition", "사전설정");
+    map.put("expectedResults", "전체 예상결과");
+    map.put("steps", "스텝 정보");
+    COLUMN_DISPLAY_NAMES = Collections.unmodifiableMap(map);
+  }
+
+  private static final Map<String, String> RESULT_DISPLAY_NAMES =
+      Map.of(
+          "PASS", "성공",
+          "FAIL", "실패",
+          "BLOCKED", "차단됨",
+          "NOT_RUN", "미실행");
+
+  private static String cachedFontName = null;
   private static String cachedFontPath = null;
   private static long fontCacheTimestamp = 0;
-  private static final long FONT_CACHE_TTL_MS = 300000; // 5분 TTL
 
-  /**
-   * ICT-233 + ICT-234: 개선된 한글 지원 PDF 폰트 생성 (캐싱 메커니즘 포함) 번들 폰트, 시스템 폰트 경로, 검증 로직을 통한 강화된 한글 폰트 지원
-   * ICT-234: 폰트 캐싱으로 성능 최적화
-   */
+  /** 개선된 한글 지원 PDF 폰트 생성 (캐싱 메커니즘 포함) 번들 폰트, 시스템 폰트 경로, 검증 로직을 통한 강화된 한글 폰트 지원 */
   private PdfFont createKoreanFont() {
-    // ICT-234: 캐시된 폰트 정보가 유효한지 확인
+    // 캐시된 폰트 정보가 유효한지 확인
     long currentTime = System.currentTimeMillis();
     if (cachedFontName != null && (currentTime - fontCacheTimestamp) < FONT_CACHE_TTL_MS) {
 
       try {
-        System.out.println(
-            "✅ ICT-234: 캐시된 폰트 정보 사용 - "
-                + cachedFontName
-                + " (캐시 유효시간: "
-                + ((FONT_CACHE_TTL_MS - (currentTime - fontCacheTimestamp)) / 1000)
-                + "초 남음)");
+        log.info(
+            "✅ 캐시된 폰트 정보 사용 - {} (캐시 유효시간: {}초 남음)",
+            cachedFontName,
+            ((FONT_CACHE_TTL_MS - (currentTime - fontCacheTimestamp)) / 1000));
 
         // 캐시된 정보로 새로운 PdfFont 객체 생성 (문서별로 독립적)
         if (cachedFontPath != null) {
-          // ICT-238: 프로젝트 번들 폰트인 경우 리소스에서 로드
+          // 프로젝트 번들 폰트인 경우 리소스에서 로드
           if (cachedFontPath.startsWith("/fonts/")) {
             java.io.InputStream fontStream = this.getClass().getResourceAsStream(cachedFontPath);
             byte[] fontBytes = fontStream.readAllBytes();
@@ -69,21 +110,21 @@ public class ExportService {
           return PdfFontFactory.createFont(cachedFontName, PdfEncodings.IDENTITY_H);
         }
       } catch (Exception e) {
-        System.out.println("⚠️ ICT-234: 캐시된 폰트 정보로 폰트 생성 실패, 재탐색 진행");
+        log.warn("⚠️ 캐시된 폰트 정보로 폰트 생성 실패, 재탐색 진행");
         // 캐시 무효화
         cachedFontName = null;
         cachedFontPath = null;
       }
     }
 
-    System.out.println("🔄 ICT-234: 폰트 캐시 만료/없음/실패, 새로 탐색 중...");
+    log.info("🔄 폰트 캐시 만료/없음/실패, 새로 탐색 중...");
     String selectedFont = "알 수 없음";
 
     try {
-      // 1단계: ICT-238: 프로젝트 번들 폰트 (최우선)
+      // 1단계: 프로젝트 번들 폰트 (최우선)
       selectedFont = tryProjectBundleFonts();
       if (selectedFont != null) {
-        System.out.println("✅ ICT-238: 프로젝트 번들 폰트 사용 - " + selectedFont);
+        log.info("✅ 프로젝트 번들 폰트 사용 - {}", selectedFont);
 
         // 리소스에서 폰트 바이트 배열 로드하여 PdfFont 생성
         java.io.InputStream fontStream = this.getClass().getResourceAsStream(selectedFont);
@@ -91,11 +132,11 @@ public class ExportService {
         fontStream.close();
         PdfFont font = PdfFontFactory.createFont(fontBytes, PdfEncodings.IDENTITY_H);
 
-        // ICT-234: 폰트 정보 캐싱 (프로젝트 번들 폰트 경로)
+        // 폰트 정보 캐싱 (프로젝트 번들 폰트 경로)
         cachedFontName = selectedFont;
         cachedFontPath = selectedFont; // 리소스 경로가 식별자 역할
         fontCacheTimestamp = System.currentTimeMillis();
-        System.out.println("💾 ICT-238: 프로젝트 번들 폰트 정보 캐시 저장 완료 - " + selectedFont);
+        log.info("💾 프로젝트 번들 폰트 정보 캐시 저장 완료 - {}", selectedFont);
 
         return font;
       }
@@ -103,14 +144,14 @@ public class ExportService {
       // 2단계: font-asian 라이브러리 번들 폰트
       selectedFont = tryLibraryBundleFonts();
       if (selectedFont != null) {
-        System.out.println("✅ ICT-233: 라이브러리 번들 폰트 사용 - " + selectedFont);
+        log.info("✅ 라이브러리 번들 폰트 사용 - {}", selectedFont);
         PdfFont font = PdfFontFactory.createFont(selectedFont, PdfEncodings.IDENTITY_H);
 
-        // ICT-234: 폰트 정보 캐싱 (경로 없음, 이름만)
+        // 폰트 정보 캐싱 (경로 없음, 이름만)
         cachedFontName = selectedFont;
         cachedFontPath = null;
         fontCacheTimestamp = System.currentTimeMillis();
-        System.out.println("💾 ICT-234: 라이브러리 번들 폰트 정보 캐시 저장 완료 - " + selectedFont);
+        log.info("💾 라이브러리 번들 폰트 정보 캐시 저장 완료 - {}", selectedFont);
 
         return font;
       }
@@ -118,14 +159,14 @@ public class ExportService {
       // 3단계: 시스템 폰트 경로 기반 접근
       selectedFont = trySystemFontPaths();
       if (selectedFont != null) {
-        System.out.println("✅ ICT-233: 시스템 폰트 사용 - " + selectedFont);
+        log.info("✅ 시스템 폰트 사용 - {}", selectedFont);
         PdfFont font = PdfFontFactory.createFont(selectedFont, PdfEncodings.IDENTITY_H);
 
-        // ICT-234: 폰트 정보 캐싱 (경로 포함)
+        // 폰트 정보 캐싱 (경로 포함)
         cachedFontName = selectedFont;
         cachedFontPath = selectedFont; // 경로가 폰트명 역할
         fontCacheTimestamp = System.currentTimeMillis();
-        System.out.println("💾 ICT-234: 시스템 폰트 정보 캐시 저장 완료 - " + selectedFont);
+        log.info("💾 시스템 폰트 정보 캐시 저장 완료 - {}", selectedFont);
 
         return font;
       }
@@ -133,26 +174,24 @@ public class ExportService {
       // 4단계: 시스템 폰트명 기반 접근 (기존 방식)
       selectedFont = trySystemFontNames();
       if (selectedFont != null) {
-        System.out.println("✅ ICT-233: 시스템 폰트명 사용 - " + selectedFont);
+        log.info("✅ 시스템 폰트명 사용 - {}", selectedFont);
         PdfFont font = PdfFontFactory.createFont(selectedFont, PdfEncodings.IDENTITY_H);
 
-        // ICT-234: 폰트 정보 캐싱 (경로 없음, 이름만)
+        // 폰트 정보 캐싱 (경로 없음, 이름만)
         cachedFontName = selectedFont;
         cachedFontPath = null;
         fontCacheTimestamp = System.currentTimeMillis();
-        System.out.println("💾 ICT-234: 시스템 폰트명 정보 캐시 저장 완료 - " + selectedFont);
+        log.info("💾 시스템 폰트명 정보 캐시 저장 완료 - {}", selectedFont);
 
         return font;
       }
 
       // 4단계: UTF-8 지원 기본 폰트 (캐싱하지 않음 - 폴백이므로)
-      System.out.println("⚠️ ICT-233: UTF-8 Helvetica 폴백 사용 (한글 지원 제한적, 캐싱 안함)");
-      return PdfFontFactory.createFont(StandardFonts.HELVETICA, PdfEncodings.UTF8);
+      log.warn("⚠️ UTF-8 Helvetica 폴백 사용 (한글 지원 제한적, 캐싱 안함)");
+      return PdfFontFactory.createFont(DEFAULT_FONT_NAME, PdfEncodings.UTF8);
 
     } catch (Exception e) {
-      System.err.println("❌ ICT-233: 모든 폰트 로드 실패, 기본 폰트 사용");
-      System.err.println("  - 최종 시도 폰트: " + selectedFont);
-      System.err.println("  - 오류: " + e.getMessage());
+      log.error("❌ 모든 폰트 로드 실패, 기본 폰트 사용. 최종 시도 폰트: {}, 오류: {}", selectedFont, e.getMessage());
 
       // 최후 수단: 기본 폰트
       try {
@@ -164,18 +203,18 @@ public class ExportService {
   }
 
   /**
-   * ICT-238: 프로젝트 번들 폰트 시도 (1순위)
+   * 프로젝트 번들 폰트 시도 (1순위)
    *
    * @return 성공한 폰트 경로 또는 null
    */
   private String tryProjectBundleFonts() {
-    // ICT-238: 프로젝트에 번들된 한글 폰트들 (src/main/resources/fonts/)
+    // 프로젝트에 번들된 한글 폰트들 (src/main/resources/fonts/)
     String[] projectFonts = {
       "/fonts/NanumGothicCoding.ttf", // 나눔고딕코딩 Regular
       "/fonts/NanumGothicCoding-Bold.ttf", // 나눔고딕코딩 Bold
     };
 
-    System.out.println("  📦 ICT-238: 프로젝트 번들 폰트 시도");
+    log.info("  📦 프로젝트 번들 폰트 시도");
     for (String fontPath : projectFonts) {
       try {
         // 클래스패스에서 폰트 리소스 로드
@@ -186,22 +225,21 @@ public class ExportService {
           fontStream.close();
 
           // iText에서 바이트 배열로 폰트 생성
-          PdfFont font = PdfFontFactory.createFont(fontBytes, PdfEncodings.IDENTITY_H);
-          System.out.println("  ✅ ICT-238: 프로젝트 번들 폰트 로드 성공: " + fontPath);
+          PdfFontFactory.createFont(fontBytes, PdfEncodings.IDENTITY_H);
+          log.info("  ✅ 프로젝트 번들 폰트 로드 성공: {}", fontPath);
           return fontPath; // 경로를 식별자로 반환
         } else {
-          System.out.println("  ❌ ICT-238: 프로젝트 번들 폰트 리소스 없음: " + fontPath);
+          log.debug("  ❌ 프로젝트 번들 폰트 리소스 없음: {}", fontPath);
         }
       } catch (Exception e) {
-        System.out.println(
-            "  ❌ ICT-238: 프로젝트 번들 폰트 로드 실패: " + fontPath + " - " + e.getClass().getSimpleName());
+        log.debug("  ❌ 프로젝트 번들 폰트 로드 실패: {} - {}", fontPath, e.getClass().getSimpleName());
       }
     }
     return null;
   }
 
   /**
-   * ICT-233: font-asian 번들 폰트 시도 (2순위)
+   * font-asian 번들 폰트 시도 (2순위)
    *
    * @return 성공한 폰트명 또는 null
    */
@@ -217,22 +255,21 @@ public class ExportService {
       "HeiseiMin-W3" // 일본어 명조
     };
 
-    System.out.println("  📚 font-asian 라이브러리 번들 폰트 시도");
+    log.info("  📚 font-asian 라이브러리 번들 폰트 시도");
     for (String fontName : bundleFonts) {
       try {
         PdfFontFactory.createFont(fontName, PdfEncodings.IDENTITY_H);
-        System.out.println("  ✅ 라이브러리 번들 폰트 로드 성공: " + fontName);
+        log.info("  ✅ 라이브러리 번들 폰트 로드 성공: {}", fontName);
         return fontName;
       } catch (Exception e) {
-        System.out.println(
-            "  ❌ 라이브러리 번들 폰트 로드 실패: " + fontName + " - " + e.getClass().getSimpleName());
+        log.debug("  ❌ 라이브러리 번들 폰트 로드 실패: {} - {}", fontName, e.getClass().getSimpleName());
       }
     }
     return null;
   }
 
   /**
-   * ICT-233: OS별 시스템 폰트 경로 시도
+   * OS별 시스템 폰트 경로 시도
    *
    * @return 성공한 폰트 경로 또는 null
    */
@@ -248,7 +285,7 @@ public class ExportService {
             "/Library/Fonts/NanumGothic.ttc",
             "/System/Library/Fonts/Helvetica.ttc"
           };
-      System.out.println("  🖥️ macOS 폰트 경로 시도");
+      log.info("  🖥️ macOS 폰트 경로 시도");
     } else if (os.contains("win")) {
       fontPaths =
           new String[] {
@@ -257,7 +294,7 @@ public class ExportService {
             "C:/Windows/Fonts/batang.ttc",
             "C:/Windows/Fonts/arial.ttf"
           };
-      System.out.println("  🖥️ Windows 폰트 경로 시도");
+      log.info("  🖥️ Windows 폰트 경로 시도");
     } else {
       // Linux 및 기타 Unix 계열
       fontPaths =
@@ -267,25 +304,25 @@ public class ExportService {
             "/usr/share/fonts/TTF/DejaVuSans.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
           };
-      System.out.println("  🖥️ Linux 폰트 경로 시도");
+      log.info("  🖥️ Linux 폰트 경로 시도");
     }
 
     for (String fontPath : fontPaths) {
       try {
         if (java.nio.file.Files.exists(java.nio.file.Paths.get(fontPath))) {
           PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
-          System.out.println("  ✅ 시스템 폰트 로드 성공: " + fontPath);
+          log.info("  ✅ 시스템 폰트 로드 성공: {}", fontPath);
           return fontPath;
         }
       } catch (Exception e) {
-        System.out.println("  ❌ 시스템 폰트 로드 실패: " + fontPath + " - " + e.getClass().getSimpleName());
+        log.debug("  ❌ 시스템 폰트 로드 실패: {} - {}", fontPath, e.getClass().getSimpleName());
       }
     }
     return null;
   }
 
   /**
-   * ICT-233: 시스템 폰트명 기반 시도 (기존 방식 개선)
+   * 시스템 폰트명 기반 시도 (기존 방식 개선)
    *
    * @return 성공한 폰트명 또는 null
    */
@@ -300,14 +337,14 @@ public class ExportService {
       "Liberation Sans"
     };
 
-    System.out.println("  🔤 시스템 폰트명 시도");
+    log.info("  🔤 시스템 폰트명 시도");
     for (String fontName : systemFonts) {
       try {
         PdfFontFactory.createFont(fontName, PdfEncodings.IDENTITY_H);
-        System.out.println("  ✅ 시스템 폰트명 로드 성공: " + fontName);
+        log.info("  ✅ 시스템 폰트명 로드 성공: {}", fontName);
         return fontName;
       } catch (Exception e) {
-        System.out.println("  ❌ 시스템 폰트명 로드 실패: " + fontName + " - " + e.getClass().getSimpleName());
+        log.debug("  ❌ 시스템 폰트명 로드 실패: {} - {}", fontName, e.getClass().getSimpleName());
       }
     }
     return null;
@@ -354,8 +391,8 @@ public class ExportService {
       for (int i = 0; i < headers.length; i++) {
         sheet.autoSizeColumn(i);
         // 최대 너비 제한
-        if (sheet.getColumnWidth(i) > 20000) {
-          sheet.setColumnWidth(i, 20000);
+        if (sheet.getColumnWidth(i) > EXCEL_MAX_COLUMN_WIDTH) {
+          sheet.setColumnWidth(i, EXCEL_MAX_COLUMN_WIDTH);
         }
       }
 
@@ -372,7 +409,7 @@ public class ExportService {
     }
   }
 
-  /** 테스트 결과를 PDF 형식으로 내보내기 ICT-197: 한글 폰트 지원 추가 */
+  /** 테스트 결과를 PDF 형식으로 내보내기: 한글 폰트 지원 추가 */
   public byte[] exportToPdf(Page<TestResultReportDto> reportData, TestResultFilterDto filter) {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
@@ -380,7 +417,7 @@ public class ExportService {
       PdfDocument pdf = new PdfDocument(writer);
       Document document = new Document(pdf);
 
-      // ICT-197: 한글 지원 폰트 설정
+      // 한글 지원 폰트 설정
       PdfFont koreanFont = createKoreanFont();
 
       // 제목 추가
@@ -454,72 +491,30 @@ public class ExportService {
     }
   }
 
+  /** 필터 설정에 따른 내보내기 대상 컬럼 리스트 반환 */
+  private List<String> getDisplayColumns(TestResultFilterDto filter) {
+    List<String> columns = filter.getDisplayColumns();
+    if (columns == null || columns.isEmpty()) {
+      return DEFAULT_COLUMNS;
+    }
+    return columns;
+  }
+
   /** 필터 설정에 따른 컬럼 헤더 반환 */
   private String[] getColumnHeaders(TestResultFilterDto filter) {
-    List<String> displayColumns = filter.getDisplayColumns();
-    if (displayColumns == null || displayColumns.isEmpty()) {
-      return new String[] {"폴더 경로", "테스트케이스명", "결과", "실행일시", "실행자", "비고", "JIRA ID"};
-    }
-
-    return displayColumns.stream().map(this::getColumnDisplayName).toArray(String[]::new);
+    return getDisplayColumns(filter).stream()
+        .map(this::getColumnDisplayName)
+        .toArray(String[]::new);
   }
 
   /** 컬럼 필드명을 표시명으로 변환 */
   private String getColumnDisplayName(String fieldName) {
-    switch (fieldName) {
-      case "testPlanName":
-        return "테스트플랜명";
-      case "testExecutionName":
-        return "테스트실행명";
-      case "folderPath":
-        return "폴더 경로";
-      case "testCaseName":
-        return "테스트케이스명";
-      case "result":
-        return "결과";
-      case "executedAt":
-        return "실행일시";
-      case "executorName":
-        return "실행자";
-      case "notes":
-        return "비고";
-      case "jiraIssueKey":
-        return "JIRA ID";
-      case "jiraStatus":
-        return "JIRA 상태";
-      case "jiraSyncStatus":
-        return "JIRA 동기화";
-      case "priority":
-        return "우선순위";
-      case "category":
-        return "카테고리";
-        // ICT-277: 새로 추가된 컬럼들의 표시명 추가
-      case "preCondition":
-        return "사전설정";
-      case "expectedResults":
-        return "전체 예상결과";
-      case "steps":
-        return "스텝 정보";
-      default:
-        return fieldName;
-    }
+    return COLUMN_DISPLAY_NAMES.getOrDefault(fieldName, fieldName);
   }
 
-  /** Excel 행에 데이터 입력 */
   private void populateExcelRow(
       Row row, TestResultReportDto result, TestResultFilterDto filter, CellStyle style) {
-    List<String> displayColumns = filter.getDisplayColumns();
-    if (displayColumns == null || displayColumns.isEmpty()) {
-      displayColumns =
-          List.of(
-              "folderPath",
-              "testCaseName",
-              "result",
-              "executedAt",
-              "executorName",
-              "notes",
-              "jiraIssueKey");
-    }
+    List<String> displayColumns = getDisplayColumns(filter);
 
     int cellIndex = 0;
     for (String column : displayColumns) {
@@ -531,21 +526,9 @@ public class ExportService {
     }
   }
 
-  /** PDF 테이블에 행 추가 ICT-197: 한글 폰트 지원 추가 */
   private void populatePdfRow(
       Table table, TestResultReportDto result, TestResultFilterDto filter, PdfFont font) {
-    List<String> displayColumns = filter.getDisplayColumns();
-    if (displayColumns == null || displayColumns.isEmpty()) {
-      displayColumns =
-          List.of(
-              "folderPath",
-              "testCaseName",
-              "result",
-              "executedAt",
-              "executorName",
-              "notes",
-              "jiraIssueKey");
-    }
+    List<String> displayColumns = getDisplayColumns(filter);
 
     for (String column : displayColumns) {
       String value = getFieldValue(result, column);
@@ -555,20 +538,8 @@ public class ExportService {
     }
   }
 
-  /** CSV 행 데이터 생성 */
   private String[] populateCsvRow(TestResultReportDto result, TestResultFilterDto filter) {
-    List<String> displayColumns = filter.getDisplayColumns();
-    if (displayColumns == null || displayColumns.isEmpty()) {
-      displayColumns =
-          List.of(
-              "folderPath",
-              "testCaseName",
-              "result",
-              "executedAt",
-              "executorName",
-              "notes",
-              "jiraIssueKey");
-    }
+    List<String> displayColumns = getDisplayColumns(filter);
 
     return displayColumns.stream()
         .map(column -> getFieldValue(result, column))
@@ -607,7 +578,7 @@ public class ExportService {
         return result.getPriority();
       case "category":
         return result.getCategory();
-        // ICT-277: 새로 추가된 컬럼들의 필드 값 처리 추가
+        // 새로 추가된 컬럼들의 필드 값 처리 추가
       case "preCondition":
         return result.getPreCondition();
       case "expectedResults":
@@ -622,21 +593,10 @@ public class ExportService {
   /** 결과 코드를 한글 표시명으로 변환 */
   private String getResultDisplayName(String result) {
     if (result == null) return "미실행";
-    switch (result.toUpperCase()) {
-      case "PASS":
-        return "성공";
-      case "FAIL":
-        return "실패";
-      case "BLOCKED":
-        return "차단됨";
-      case "NOT_RUN":
-        return "미실행";
-      default:
-        return result;
-    }
+    return RESULT_DISPLAY_NAMES.getOrDefault(result.toUpperCase(), result);
   }
 
-  /** ICT-277: 스텝 정보를 내보내기용으로 포맷팅 스텝 배열을 문자열로 변환하여 내보내기에 포함 */
+  /** 스텝 정보를 내보내기용으로 포맷팅 스텝 배열을 문자열로 변환하여 내보내기에 포함 */
   private String formatStepsForExport(Object steps) {
     if (steps == null) return "";
 
@@ -654,7 +614,7 @@ public class ExportService {
       for (int i = 0; i < stepList.size(); i++) {
         Object step = stepList.get(i);
 
-        // ICT-277: TestStep 객체 처리 추가
+        // TestStep 객체 처리 추가
         if (step instanceof com.testcase.testcasemanagement.model.TestStep) {
           com.testcase.testcasemanagement.model.TestStep testStep =
               (com.testcase.testcasemanagement.model.TestStep) step;
