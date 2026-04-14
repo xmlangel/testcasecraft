@@ -623,12 +623,16 @@ class JunitResultService {
   /**
    * 테스트 스위트별 케이스 목록 조회
    */
-  async getTestCasesBySuite(testSuiteId, page = 0, size = 50) {
+  async getTestCasesBySuite(testSuiteId, page = 0, size = 50, status = null) {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         size: size.toString(),
       });
+
+      if (status && status !== "ALL") {
+        params.append("status", status);
+      }
 
       const response = await fetch(
         `${await this.getBaseUrl()}/suites/${testSuiteId}/cases?${params}`,

@@ -19,6 +19,10 @@ public interface JunitTestCaseRepository extends JpaRepository<JunitTestCase, St
   /** 테스트 스위트별 케이스 조회 */
   Page<JunitTestCase> findByJunitTestSuite_IdOrderByName(String testSuiteId, Pageable pageable);
 
+  /** 테스트 스위트별 특정 상태의 케이스 페이징 조회 */
+  Page<JunitTestCase> findByJunitTestSuite_IdAndStatusOrderByName(
+      String testSuiteId, JunitTestStatus status, Pageable pageable);
+
   /** 테스트 스위트별 특정 상태의 케이스 조회 */
   List<JunitTestCase> findByJunitTestSuite_IdAndStatus(String testSuiteId, JunitTestStatus status);
 

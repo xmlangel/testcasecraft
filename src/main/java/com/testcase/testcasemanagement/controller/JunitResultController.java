@@ -270,11 +270,22 @@ public class JunitResultController {
   public ResponseEntity<Map<String, Object>> getTestCases(
       @PathVariable String testSuiteId,
       @RequestParam(value = "page", defaultValue = "0") int page,
-      @RequestParam(value = "size", defaultValue = "50") int size) {
+      @RequestParam(value = "size", defaultValue = "50") int size,
+      @RequestParam(value = "status", required = false) String status) {
 
     try {
+      JunitTestStatus testStatus = null;
+      if (status != null && !status.isEmpty() && !"ALL".equalsIgnoreCase(status)) {
+        try {
+          testStatus = JunitTestStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+          logger.warn("잘못된 상태 값 무시됨: {}", status);
+        }
+      }
+
       Pageable pageable = PageRequest.of(page, size);
-      Page<JunitTestCase> testCases = junitResultService.getTestCasesBySuite(testSuiteId, pageable);
+      Page<JunitTestCase> testCases =
+          junitResultService.getTestCasesBySuite(testSuiteId, testStatus, pageable);
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", true);
@@ -285,7 +296,6 @@ public class JunitResultController {
       response.put("size", size);
 
       return ResponseEntity.ok(response);
-
     } catch (Exception e) {
       logger.error("테스트 케이스 목록 조회 실패: {}", e.getMessage(), e);
 
