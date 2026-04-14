@@ -95,7 +95,12 @@ public class PageVisitMetricsService {
     this.meterRegistry = meterRegistry;
     this.pageVisitMetricRepository = pageVisitMetricRepository;
     this.dailyVisitSummaryRepository = dailyVisitSummaryRepository;
+  }
 
+  /** 애플리케이션 시작 시 데이터베이스에서 최근 데이터를 복원합니다. */
+  @PostConstruct
+  public void loadFromDatabase() {
+    // 메트릭 등록 (생성자에서 이동 - this escape 방지)
     Gauge.builder("page.visits.daily.total", totalDailyVisits, AtomicLong::get)
         .description("Total page visits for the current day")
         .register(meterRegistry);
@@ -107,11 +112,7 @@ public class PageVisitMetricsService {
     Gauge.builder("page.visitors.active", this, service -> service.getActiveVisitorsCount())
         .description("Visitors active within the last window")
         .register(meterRegistry);
-  }
 
-  /** 애플리케이션 시작 시 데이터베이스에서 최근 데이터를 복원합니다. */
-  @PostConstruct
-  public void loadFromDatabase() {
     try {
       log.info("서버 시작: 데이터베이스에서 페이지 방문 메트릭 복원 시작...");
 

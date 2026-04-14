@@ -495,6 +495,7 @@ public class JunitVersionControlService {
   // 내부 클래스들
 
   public static class FileVersion implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String versionId;
     private String testResultId;
     private int versionNumber;
@@ -598,6 +599,7 @@ public class JunitVersionControlService {
   }
 
   public static class FileVersionHistory implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String testResultId;
     private List<FileVersion> versions;
     private LocalDateTime createdAt;
@@ -745,6 +747,7 @@ public class JunitVersionControlService {
   }
 
   public static class BackupData implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String testResultId;
     private FileVersion version;
     private String backupId;
@@ -902,6 +905,8 @@ public class JunitVersionControlService {
 
   /** 버전 제어 예외 클래스 */
   public static class VersionControlException extends Exception {
+    private static final long serialVersionUID = 1L;
+
     public VersionControlException(String message) {
       super(message);
     }

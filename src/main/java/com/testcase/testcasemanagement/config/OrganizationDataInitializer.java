@@ -47,7 +47,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
     User finalAdminUser = userRepository.findByUsername("admin").orElse(null);
     if (finalAdminUser != null) {
       System.out.println("최종 admin 사용자 ID: " + finalAdminUser.getId());
-      List<Organization> allOrgs = (List<Organization>) organizationRepository.findAll();
+      List<Organization> allOrgs = organizationRepository.findAll();
       allOrgs.forEach(
           org -> {
             boolean isMember =
@@ -184,7 +184,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
     if (adminUser != null) {
       System.out.println("admin 사용자 발견: ID = " + adminUser.getId());
 
-      List<Organization> allOrgs = (List<Organization>) organizationRepository.findAll();
+      List<Organization> allOrgs = organizationRepository.findAll();
       System.out.println("총 조직 수: " + allOrgs.size());
 
       for (Organization org : allOrgs) {

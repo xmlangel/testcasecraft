@@ -368,7 +368,7 @@ public class DataInitializer {
       System.out.println("   📁 프로젝트: " + projectRepository.count() + "개 (QA팀 모바일 앱 테스트)");
       long totalTestCases = testCaseRepository.count();
       System.out.println("   📂 폴더: 5개 (5개 카테고리)");
-      System.out.println("   📝 테스트케이스: 100개 (폴더별 20개씩)");
+      System.out.println("   📝 테스트케이스: " + totalTestCases + "개 (폴더별 20개씩)");
       System.out.println("   📋 테스트 플랜: " + testPlanRepository.count() + "개 (전체 100개, 핵심 50개)");
       System.out.println("   ▶️ 테스트 실행: " + testExecutionRepository.count() + "개");
       System.out.println("   📊 테스트 결과: " + testResultRepository.count() + "개 (총 350개)");
