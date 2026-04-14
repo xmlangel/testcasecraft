@@ -4,6 +4,7 @@ FROM eclipse-temurin:21-jdk-alpine
 # Install curl for health checks, dumb-init for proper signal handling and create a non-root user
 # Alpine uses apk instead of apt-get
 RUN apk update && \
+    apk upgrade --no-cache && \
     apk add --no-cache curl dumb-init && \
     addgroup -S appgroup -g 1001 && \
     adduser -S appuser -u 1001 -G appgroup

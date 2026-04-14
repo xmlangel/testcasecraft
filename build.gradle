@@ -308,12 +308,12 @@ repositories {
 
 // 보안 취약점 수정을 위한 버전 명시적 설정
 ext {
-	springSecurityVersion = '6.2.9'
+	springSecurityVersion = '6.4.15'
 	springFrameworkVersion = '6.1.21'
-	tomcatVersion = '10.1.45'
+	tomcatVersion = '10.1.54'
 	commonsBeanutilsVersion = '1.11.0'
 	nimbusJoseJwtVersion = '9.48'
-	nettyVersion = '4.1.124.Final'
+	nettyVersion = '4.1.132.Final'
 	googleOAuthClientVersion = '1.36.0'
 }
 
