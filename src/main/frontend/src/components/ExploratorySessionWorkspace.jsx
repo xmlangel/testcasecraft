@@ -155,6 +155,98 @@ function ExploratorySessionWorkspace({ projectId }) {
 
   const [sessionDraft, setSessionDraft] = React.useState(INITIAL_SESSION_DRAFT);
 
+  // Parse API errors early (before use in useEffects)
+  const parseApiError = React.useCallback(async (response, fallbackMessage) => {
+    try {
+      const data = await response.json();
+      return data?.message || fallbackMessage;
+    } catch (e) {
+      return fallbackMessage;
+    }
+  }, []);
+
+  // Load session for editing (must be before useEffect that calls it)
+  const loadSessionForEdit = React.useCallback(
+    async (sessionId) => {
+      if (!sessionId) return;
+
+      setSessionsLoading(true);
+      setSessionError("");
+      try {
+        const response = await api(`/api/sessions/${sessionId}`);
+        if (!response.ok) {
+          throw new Error(
+            await parseApiError(response, "세션 정보를 불러오지 못했습니다."),
+          );
+        }
+        const data = await response.json();
+
+        setSessionDraft({
+          id: data.id,
+          projectId: data.projectId,
+          charterId: data.charterId,
+          testerId: data.testerId,
+          testerName: data.testerName,
+          leadId: data.leadId,
+          leadName: data.leadName,
+          netDurationMinutes: data.netDurationMinutes,
+          testExecutionPct: data.testExecutionPct,
+          bugInvestigationPct: data.bugInvestigationPct,
+          setupAdminPct: data.setupAdminPct,
+          environmentSummary: data.environmentSummary || "",
+          productVersion: data.productVersion || "",
+          strategyTags: data.strategyTags || [],
+          areaTags: data.areaTags || [],
+          flowNotes: data.flowNotes || "",
+          coverageNotes: data.coverageNotes || "",
+          oracleNotes: data.oracleNotes || "",
+          activityNotes: data.activityNotes || "",
+          bugHeadline: data.bugHeadline || "",
+          blockers: data.blockers || "",
+          remainingQuestions: data.remainingQuestions || "",
+          testData: data.testData || "",
+          evaluation: data.evaluation || "",
+          nextCharter: data.nextCharter || "",
+          achievement: data.achievement || 0,
+          status: data.status,
+        });
+
+        // 타이머 상태 복구
+        if (data.status === "RUNNING") setTimerStatus("running");
+        else if (data.status === "PAUSED") setTimerStatus("paused");
+        else if (
+          data.status === "COMPLETED" ||
+          data.status === "SUBMITTED" ||
+          data.status === "APPROVED" ||
+          data.status === "NEEDS_UPDATE" ||
+          (data.status === "DRAFT" && data.startedAt)
+        )
+          setTimerStatus("ended");
+        else setTimerStatus("idle");
+
+        if (data.currentElapsedSeconds !== undefined) {
+          setElapsedSec(data.currentElapsedSeconds);
+        } else if (data.netDurationMinutes) {
+          setElapsedSec(data.netDurationMinutes * 60);
+        }
+
+        if (data.interruptedSeconds !== undefined) {
+          setPausedSec(data.interruptedSeconds);
+        } else if (data.interruptedMinutes) {
+          setPausedSec(data.interruptedMinutes * 60);
+        }
+
+        // data loading 완료 후 view 동기화
+        if (view !== 2) handleSetView(2);
+      } catch (err) {
+        setSessionError(err.message);
+      } finally {
+        setSessionsLoading(false);
+      }
+    },
+    [api, parseApiError, view],
+  );
+
   React.useEffect(() => {
     const v = viewMap[tabParam] ?? 0;
     if (v !== view) setView(v);
@@ -238,15 +330,6 @@ function ExploratorySessionWorkspace({ projectId }) {
     }, 1000);
     return () => clearInterval(interval);
   }, [timerStatus]);
-
-  const parseApiError = React.useCallback(async (response, fallbackMessage) => {
-    try {
-      const data = await response.json();
-      return data?.message || fallbackMessage;
-    } catch (e) {
-      return fallbackMessage;
-    }
-  }, []);
 
   const loadCharters = React.useCallback(async () => {
     if (!projectId) {
@@ -479,87 +562,6 @@ function ExploratorySessionWorkspace({ projectId }) {
     }
     return true;
   });
-
-  const loadSessionForEdit = React.useCallback(
-    async (sessionId) => {
-      if (!sessionId) return;
-
-      setSessionsLoading(true);
-      setSessionError("");
-      try {
-        const response = await api(`/api/sessions/${sessionId}`);
-        if (!response.ok) {
-          throw new Error(
-            await parseApiError(response, "세션 정보를 불러오지 못했습니다."),
-          );
-        }
-        const data = await response.json();
-
-        setSessionDraft({
-          id: data.id,
-          projectId: data.projectId,
-          charterId: data.charterId,
-          testerId: data.testerId,
-          testerName: data.testerName,
-          leadId: data.leadId,
-          leadName: data.leadName,
-          netDurationMinutes: data.netDurationMinutes,
-          testExecutionPct: data.testExecutionPct,
-          bugInvestigationPct: data.bugInvestigationPct,
-          setupAdminPct: data.setupAdminPct,
-          environmentSummary: data.environmentSummary || "",
-          productVersion: data.productVersion || "",
-          strategyTags: data.strategyTags || [],
-          areaTags: data.areaTags || [],
-          flowNotes: data.flowNotes || "",
-          coverageNotes: data.coverageNotes || "",
-          oracleNotes: data.oracleNotes || "",
-          activityNotes: data.activityNotes || "",
-          bugHeadline: data.bugHeadline || "",
-          blockers: data.blockers || "",
-          remainingQuestions: data.remainingQuestions || "",
-          testData: data.testData || "",
-          evaluation: data.evaluation || "",
-          nextCharter: data.nextCharter || "",
-          achievement: data.achievement || 0,
-          status: data.status,
-        });
-
-        // 타이머 상태 복구
-        if (data.status === "RUNNING") setTimerStatus("running");
-        else if (data.status === "PAUSED") setTimerStatus("paused");
-        else if (
-          data.status === "COMPLETED" ||
-          data.status === "SUBMITTED" ||
-          data.status === "APPROVED" ||
-          data.status === "NEEDS_UPDATE" ||
-          (data.status === "DRAFT" && data.startedAt)
-        )
-          setTimerStatus("ended");
-        else setTimerStatus("idle");
-
-        if (data.currentElapsedSeconds !== undefined) {
-          setElapsedSec(data.currentElapsedSeconds);
-        } else if (data.netDurationMinutes) {
-          setElapsedSec(data.netDurationMinutes * 60);
-        }
-
-        if (data.interruptedSeconds !== undefined) {
-          setPausedSec(data.interruptedSeconds);
-        } else if (data.interruptedMinutes) {
-          setPausedSec(data.interruptedMinutes * 60);
-        }
-
-        // data loading 완료 후 view 동기화
-        if (view !== 2) handleSetView(2);
-      } catch (err) {
-        setSessionError(err.message);
-      } finally {
-        setSessionsLoading(false);
-      }
-    },
-    [api, parseApiError],
-  );
 
   const saveSession = async () => {
     setSavingSession(true);
