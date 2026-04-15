@@ -5,6 +5,7 @@ import {
   Chip,
   Tooltip as MuiTooltip,
   IconButton,
+  CircularProgress,
   alpha,
   useTheme,
 } from "@mui/material";
@@ -16,6 +17,8 @@ import {
   Block as BlockIcon,
   ArrowBack as ArrowBackIcon,
   HourglassEmpty as HourglassEmptyIcon,
+  CheckCircleOutline as CheckCircleOutlineIcon,
+  ErrorOutline as ErrorOutlineIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import {
@@ -36,6 +39,8 @@ const TestResultHeader = ({
   testCase,
   isViewer,
   execution = null,
+  autoSaveStatus,
+  autoSaveError,
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
@@ -167,6 +172,44 @@ const TestResultHeader = ({
             )}
           </Box>
         </Box>
+
+        {/* 자동 저장 인디케이터 */}
+        {!isViewer && autoSaveStatus === "saving" && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <CircularProgress size={12} color="inherit" />
+            <Typography variant="caption" color="text.secondary">
+              저장 중...
+            </Typography>
+          </Box>
+        )}
+        {!isViewer && autoSaveStatus === "saved" && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <CheckCircleOutlineIcon sx={{ fontSize: 14 }} color="success" />
+            <Typography variant="caption" color="success.main">
+              저장됨
+            </Typography>
+          </Box>
+        )}
+        {!isViewer && autoSaveStatus === "error" && (
+          <MuiTooltip
+            title={autoSaveError || "자동 저장 실패"}
+            placement="bottom"
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                cursor: "help",
+              }}
+            >
+              <ErrorOutlineIcon sx={{ fontSize: 14 }} color="error" />
+              <Typography variant="caption" color="error">
+                자동 저장 실패
+              </Typography>
+            </Box>
+          </MuiTooltip>
+        )}
 
         {/* Current Info & Navigator */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>

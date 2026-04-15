@@ -7,13 +7,14 @@ import {
   Button,
   Typography,
   CircularProgress,
-  FormControlLabel,
-  Checkbox,
+  Tooltip,
 } from "@mui/material";
 import {
   Save as SaveIcon,
   Add as AddIcon,
   SaveAs as SaveVersionIcon,
+  CheckCircleOutline as CheckCircleOutlineIcon,
+  ErrorOutline as ErrorOutlineIcon,
 } from "@mui/icons-material";
 import VersionIndicator from "./VersionIndicator.jsx";
 
@@ -33,9 +34,59 @@ const TestCaseFormHeader = ({
   onVersionHistory,
   onCreateVersion,
   onAddNew,
+  autoSaveStatus,
+  autoSaveError,
   // continueAdding, // Removed
   // onContinueAddingChange, // Removed
 }) => {
+  const renderAutoSaveIndicator = () => {
+    if (!testCaseId || isViewer) return null;
+    if (autoSaveStatus === "saving") {
+      return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <CircularProgress size={12} color="inherit" />
+          <Typography variant="caption" color="text.secondary">
+            {t("testcase.autoSave.saving", "저장 중...")}
+          </Typography>
+        </Box>
+      );
+    }
+    if (autoSaveStatus === "saved") {
+      return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <CheckCircleOutlineIcon sx={{ fontSize: 14 }} color="success" />
+          <Typography variant="caption" color="success.main">
+            {t("testcase.autoSave.saved", "저장됨")}
+          </Typography>
+        </Box>
+      );
+    }
+    if (autoSaveStatus === "error") {
+      return (
+        <Tooltip
+          title={
+            autoSaveError || t("testcase.autoSave.error", "자동 저장 실패")
+          }
+          placement="bottom"
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              cursor: "help",
+            }}
+          >
+            <ErrorOutlineIcon sx={{ fontSize: 14 }} color="error" />
+            <Typography variant="caption" color="error">
+              {t("testcase.autoSave.error", "자동 저장 실패")}
+            </Typography>
+          </Box>
+        </Tooltip>
+      );
+    }
+    return null;
+  };
   return (
     <>
       <Box
@@ -112,15 +163,16 @@ const TestCaseFormHeader = ({
             justifyContent: "flex-end",
             mb: 1,
             alignItems: "center",
+            gap: 1,
           }}
         >
-          {/* 테스트 케이스 추가 버튼 (신규 생성 모드에서 유용) */}
-          {/* Removed: onAddNew button moved to top */}
+          {/* 자동 저장 상태 인디케이터 */}
+          {renderAutoSaveIndicator()}
+
           <Button
             onClick={onCancel}
             color="inherit"
             variant="outlined"
-            sx={{ mr: 1 }}
             data-testid="testcase-header-cancel-button"
           >
             {t("testcase.form.button.cancel", "취소")}
@@ -131,7 +183,6 @@ const TestCaseFormHeader = ({
             color="primary"
             disabled={isSaving}
             startIcon={isSaving ? <CircularProgress size={20} /> : <SaveIcon />}
-            sx={{ mr: 1 }}
             data-testid="testcase-header-save-button"
           >
             {isSaving
@@ -169,6 +220,8 @@ TestCaseFormHeader.propTypes = {
   onVersionHistory: PropTypes.func,
   onCreateVersion: PropTypes.func,
   onAddNew: PropTypes.func,
+  autoSaveStatus: PropTypes.oneOf(["idle", "saving", "saved", "error"]),
+  autoSaveError: PropTypes.string,
   continueAdding: PropTypes.bool,
   onContinueAddingChange: PropTypes.func,
 };

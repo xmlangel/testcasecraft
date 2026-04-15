@@ -1,6 +1,6 @@
 // src/components/TestCaseForm.jsx
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import {
@@ -34,6 +34,7 @@ import { useI18n } from "../context/I18nContext.jsx";
 import TestCaseAttachments from "./TestCase/TestCaseAttachments.jsx";
 import { useRAG } from "../context/RAGContext.jsx";
 import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
+import useAutoSave from "../hooks/useAutoSave.js";
 import {
   resolveFieldValue,
   applyFieldValueToState,
@@ -107,6 +108,46 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
+  // 자동 저장용 formData: testCase + linkedDocumentIds 합산 (변경 감지 단위)
+  const autoSaveData = useMemo(() => {
+    if (!testCase) return null;
+    return {
+      ...testCase,
+      _linkedDocIds: linkedDocuments.map((d) => d.id),
+    };
+  }, [testCase, linkedDocuments]);
+
+  // 자동 저장 함수 (useAutoSave 훅에 전달)
+  const autoSaveFn = useCallback(
+    async (data) => {
+      if (!data?.name?.trim()) return;
+      const { _linkedDocIds, ...tcData } = data;
+      const payload = {
+        ...tcData,
+        projectId,
+        steps: tcData.steps?.map((step) => ({
+          stepNumber: step.stepNumber,
+          description: step.description,
+          expectedResult: step.expectedResult,
+        })),
+        linkedDocumentIds: _linkedDocIds,
+      };
+      await updateTestCase(payload);
+    },
+    [projectId, updateTestCase],
+  );
+
+  const isViewerForAutoSave = user?.role === "VIEWER";
+
+  const { autoSaveStatus, autoSaveError, markSaved } = useAutoSave({
+    id: testCaseId,
+    data: autoSaveData,
+    saveFn: autoSaveFn,
+    disabled: isViewerForAutoSave || !testCaseId,
+    debounceMs: 1500,
+    t,
+  });
 
   // Accordion 상태 관리 (localStorage 연동)
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
@@ -210,7 +251,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           }
         }
 
-        setTestCase({
+        const loadedTestCase = {
           ...tc,
           steps: tc.steps,
           parentName,
@@ -225,7 +266,16 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               ? "Automation"
               : "Manual"),
           testTechnique: tc.testTechnique || "",
-        });
+        };
+        setTestCase(loadedTestCase);
+        // 자동 저장: 로드 완료 시 기준점 설정 (표시 중인 "저장됨" 상태 유지)
+        markSaved(
+          {
+            ...loadedTestCase,
+            _linkedDocIds: tc.linkedDocumentIds || [],
+          },
+          { skipStatusReset: true },
+        );
         setMaxStepNumber(
           tc.steps?.length > 0
             ? Math.max(...tc.steps.map((step) => step.stepNumber))
@@ -686,6 +736,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
 
       setSnackbarOpen(true);
 
+      // 수동 저장 성공 시 자동 저장 기준점 동기화
+      markSaved({
+        ...testCase,
+        _linkedDocIds: linkedDocuments.map((d) => d.id),
+      });
+
       // 기존 동작: 수정 모드이거나 체크 안됨 -> 저장 후 보통 머무름
       if (onSave) onSave();
 
@@ -1047,6 +1103,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           onVersionHistory={handleVersionHistory}
           onCreateVersion={handleCreateVersion}
           onAddNew={handleAddNew}
+          autoSaveStatus={autoSaveStatus}
+          autoSaveError={autoSaveError}
         />
 
         {inlineImageUploading && (

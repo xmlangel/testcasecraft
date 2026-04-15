@@ -4,7 +4,7 @@
  * - 전역 문서 등록/승인/거부
  */
 import { useCallback } from "react";
-import { useAppContext } from "../../context/AppContext.jsx";
+import { useAuth } from "../../context/AuthContext";
 
 export function useRagGlobalDocs(
   state,
@@ -12,7 +12,7 @@ export function useRagGlobalDocs(
   ActionTypes,
   ensureRagAvailable,
 ) {
-  const { api } = useAppContext();
+  const { api } = useAuth();
 
   // ============ 전역 문서 목록 조회 ============
   const listGlobalDocuments = useCallback(

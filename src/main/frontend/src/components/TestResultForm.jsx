@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
+import useAutoSave from "../hooks/useAutoSave.js";
 import {
   Dialog,
   DialogTitle,
@@ -112,6 +113,75 @@ const TestResultForm = ({
     JSON.stringify(currentResult?.tags || []),
   ]);
 
+  // 자동 저장용 데이터 (fullPage 모드에서만 활성화)
+  const autoSaveData = useMemo(() => {
+    if (!fullPage) return null;
+    return {
+      result,
+      notes,
+      tags,
+      jiraIssueKey,
+      _resultId: stableCurrentResult?.id,
+    };
+  }, [fullPage, result, notes, tags, jiraIssueKey, stableCurrentResult?.id]);
+
+  // 자동 저장 함수
+  // - 기존 결과(_resultId 있음): PUT
+  // - 신규 결과(_resultId 없음): POST (result 미설정 시 "NOT_RUN" 사용)
+  const autoSaveFn = useCallback(
+    async (data) => {
+      const requestData = {
+        testCaseId,
+        result: data.result || "NOT_RUN", // undefined 방지
+        notes: data.notes,
+        tags: data.tags || [],
+      };
+      if (data.jiraIssueKey?.trim()) {
+        requestData.jiraIssueKey = data.jiraIssueKey;
+      }
+
+      if (data._resultId) {
+        // 기존 결과 수정: PUT, onSave 호출 안함 (stableCurrentResult 변경 → "저장됨" 상태 덮어씌움 방지)
+        const response = await api(
+          `/api/test-executions/results/${data._resultId}`,
+          { method: "PUT", body: JSON.stringify(requestData) },
+        );
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(
+            errData.message ||
+              t("testResult.error.saveFailed", "저장에 실패했습니다."),
+          );
+        }
+      } else {
+        // 신규 결과 생성: POST, onSave 호출해야 결과 ID가 stableCurrentResult에 반영됨
+        const response = await api(
+          `/api/test-executions/${executionId}/results`,
+          { method: "POST", body: JSON.stringify(requestData) },
+        );
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(
+            errData.message ||
+              t("testResult.error.saveFailed", "저장에 실패했습니다."),
+          );
+        }
+        const updatedExecution = await response.json();
+        onSave(updatedExecution, { keepDialogOpen: true });
+      }
+    },
+    [api, executionId, testCaseId, onSave, t],
+  );
+
+  const { autoSaveStatus, autoSaveError, markSaved } = useAutoSave({
+    id: executionId, // 신규/기존 모두 활성화 (실제 저장 여부는 autoSaveFn 내부에서 결정)
+    data: autoSaveData,
+    saveFn: autoSaveFn,
+    disabled: isViewer || !fullPage,
+    debounceMs: 1500,
+    t,
+  });
+
   useEffect(() => {
     if (!stableCurrentResult) {
       // 새로운 결과 입력 시
@@ -121,6 +191,16 @@ const TestResultForm = ({
       setJiraIssueKey("");
       setLinkedIssues([]);
       setDetectedJiraIssues([]);
+      markSaved(
+        {
+          result: "NOT_RUN",
+          notes: "",
+          tags: [],
+          jiraIssueKey: "",
+          _resultId: null,
+        },
+        { skipStatusReset: true },
+      );
       return;
     }
 
@@ -163,7 +243,19 @@ const TestResultForm = ({
     } else {
       setDetectedJiraIssues([]);
     }
-  }, [stableCurrentResult]);
+
+    // 자동 저장 기준점 갱신 — "저장됨" 표시 중이면 상태 초기화 건너뜀
+    markSaved(
+      {
+        result: stableCurrentResult.result || "NOT_RUN",
+        notes: stableCurrentResult.notes || "",
+        tags: stableCurrentResult.tags || [],
+        jiraIssueKey: stableCurrentResult.jiraIssueKey || "",
+        _resultId: stableCurrentResult.id,
+      },
+      { skipStatusReset: true },
+    );
+  }, [stableCurrentResult, markSaved]);
 
   // JIRA 연결 상태 확인
   useEffect(() => {
@@ -785,6 +877,8 @@ const TestResultForm = ({
           t={t}
           hideButtons={false}
           execution={execution}
+          autoSaveStatus={autoSaveStatus}
+          autoSaveError={autoSaveError}
         />
 
         {renderContent()}

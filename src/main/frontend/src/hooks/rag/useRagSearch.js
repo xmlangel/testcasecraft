@@ -4,10 +4,10 @@
  * - 유사도 검색, 고급 검색
  */
 import { useCallback } from "react";
-import { useAppContext } from "../../context/AppContext.jsx";
+import { useAuth } from "../../context/AuthContext";
 
 export function useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable) {
-  const { api } = useAppContext();
+  const { api } = useAuth();
 
   // ============ 유사도 검색 ============
   const searchSimilar = useCallback(

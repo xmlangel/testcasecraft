@@ -4,7 +4,7 @@
  * - 채팅, 스트리밍, 스레드 및 카테고리 관리
  */
 import { useCallback } from "react";
-import { useAppContext } from "../../context/AppContext.jsx";
+import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 import { debugLog } from "../../utils/logger.js";
 
@@ -19,7 +19,7 @@ export function useRagChat(
   ensureRagAvailable,
   requestCache,
 ) {
-  const { api, ensureValidToken } = useAppContext(); // ensureValidToken 추가
+  const { api, ensureValidToken } = useAuth();
 
   // ============ 채팅 스레드 목록 조회 ============
   const listChatThreads = useCallback(
@@ -436,10 +436,12 @@ export function useRagChat(
         let buffer = "";
         let currentEvent = null;
 
-        while (true) {
+        let reading = true;
+        while (reading) {
           const { done, value } = await reader.read();
 
           if (done) {
+            reading = false;
             dispatch({ type: ActionTypes.SET_LOADING, payload: false });
             if (onComplete) onComplete();
             break;
