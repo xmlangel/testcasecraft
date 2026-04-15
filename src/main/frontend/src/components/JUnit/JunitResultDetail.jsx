@@ -886,7 +886,7 @@ const JunitResultDetail = () => {
             {t("junit.detail.backToAutomation")}
           </Button>
           <Box>
-            <Typography variant="h4" component="h1">
+            <Typography variant="h4" component="h1" color="text.primary">
               {testResult.testExecutionName || testResult.fileName}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
