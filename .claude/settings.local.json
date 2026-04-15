@@ -15,7 +15,8 @@
       "Bash(docker-compose restart:*)",
       "Bash(PYTHONPATH=\"./d_mcpsvr_jira\" python3:*)",
       "Bash(python3:*)",
-      "Bash(npx madge:*)"
+      "Bash(npx madge:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []
