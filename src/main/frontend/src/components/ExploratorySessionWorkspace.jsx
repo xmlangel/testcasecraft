@@ -119,6 +119,42 @@ function ExploratorySessionWorkspace({ projectId }) {
     sessionIdParam || null,
   );
 
+  // sessionDraft 초기값 선언
+  const INITIAL_SESSION_DRAFT = React.useMemo(
+    () => ({
+      projectId: projectId || "",
+      charterId: "",
+      testerId: user?.id || "",
+      testerName: user?.username || user?.id || "Tester",
+      leadId: "admin",
+      leadName: "Admin",
+      netDurationMinutes: 60,
+      testExecutionPct: 60,
+      bugInvestigationPct: 25,
+      setupAdminPct: 15,
+      environmentSummary: "Staging",
+      productVersion: "v1.0.0",
+      strategyTags: [],
+      areaTags: [],
+      flowNotes: "",
+      coverageNotes: "",
+      oracleNotes: "",
+      activityNotes: "",
+      bugHeadline: "",
+      blockers: "",
+      remainingQuestions: "",
+      testData: "",
+      evaluation: "",
+      nextCharter: "",
+      achievement: 0,
+      status: "DRAFT",
+      id: null,
+    }),
+    [projectId, user],
+  );
+
+  const [sessionDraft, setSessionDraft] = React.useState(INITIAL_SESSION_DRAFT);
+
   React.useEffect(() => {
     const v = viewMap[tabParam] ?? 0;
     if (v !== view) setView(v);
@@ -188,39 +224,6 @@ function ExploratorySessionWorkspace({ projectId }) {
   const [timerStatus, setTimerStatus] = React.useState("idle");
   const [elapsedSec, setElapsedSec] = React.useState(0);
   const [pausedSec, setPausedSec] = React.useState(0);
-  const INITIAL_SESSION_DRAFT = React.useMemo(
-    () => ({
-      projectId: projectId || "",
-      charterId: "",
-      testerId: user?.id || "",
-      testerName: user?.username || user?.id || "Tester",
-      leadId: "admin",
-      leadName: "Admin",
-      netDurationMinutes: 60,
-      testExecutionPct: 60,
-      bugInvestigationPct: 25,
-      setupAdminPct: 15,
-      environmentSummary: "Staging",
-      productVersion: "v1.0.0",
-      strategyTags: [],
-      areaTags: [],
-      flowNotes: "",
-      coverageNotes: "",
-      oracleNotes: "",
-      activityNotes: "",
-      bugHeadline: "",
-      blockers: "",
-      remainingQuestions: "",
-      testData: "",
-      evaluation: "",
-      nextCharter: "",
-      achievement: 0,
-      status: "DRAFT",
-    }),
-    [projectId, user],
-  );
-
-  const [sessionDraft, setSessionDraft] = React.useState(INITIAL_SESSION_DRAFT);
   const [savingSession, setSavingSession] = React.useState(false);
   const [artifacts, setArtifacts] = React.useState([]);
 
