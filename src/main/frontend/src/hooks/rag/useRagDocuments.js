@@ -4,7 +4,7 @@
  * - 문서 업로드, 분석, 삭제, 조회 등 문서 관련 모든 기능
  */
 import { useCallback } from "react";
-import { useAppContext } from "../../context/AppContext.jsx";
+import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 
 import { debugLog } from "../../utils/logger.js";
@@ -20,7 +20,7 @@ export function useRagDocuments(
   ensureRagAvailable,
   requestCache,
 ) {
-  const { api } = useAppContext();
+  const { api } = useAuth();
 
   // ============ 문서 업로드 ============
   const uploadDocument = useCallback(

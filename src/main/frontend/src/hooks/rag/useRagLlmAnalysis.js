@@ -5,7 +5,7 @@
  * - 원래 버그 수정: checkLlmAvailability에서 getAuthHeaders is not defined 에러 해결
  */
 import { useCallback } from "react";
-import { useAppContext } from "../../context/AppContext.jsx";
+import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 
 import { debugLog } from "../../utils/logger.js";
@@ -21,7 +21,7 @@ export function useRagLlmAnalysis(
   ensureRagAvailable,
   requestCache,
 ) {
-  const { api } = useAppContext();
+  const { api } = useAuth();
 
   // ============ LLM 가용성 확인 ⭐ (원래 버그 수정!) ============
   const checkLlmAvailability = useCallback(async () => {
