@@ -469,6 +469,7 @@ const TestCaseTree = ({
   const [contextMenu, setContextMenu] = useState(null);
   const [newItemData, setNewItemData] = useState(null);
   const [renameData, setRenameData] = useState(null);
+  const [pendingRename, setPendingRename] = useState(null);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState(null);
   const [highlightedItemId, setHighlightedItemId] = useState(null);
@@ -810,11 +811,9 @@ const TestCaseTree = ({
     const node = filteredTestCases.find((tc) => tc.id === contextMenu.nodeId);
     if (!node) return;
 
-    // 메뉴를 먼저 닫고, 포커스가 돌아간 후 다이얼로그를 띄워 aria-hidden 오류 방지 (ICT-브라우저경고 해결)
+    // 메뉴가 완전히 닫힌 후 다이얼로그를 띄우기 위해 보류 상태로 설정
+    setPendingRename({ id: node.id, name: node.name });
     handleCloseContextMenu();
-    setTimeout(() => {
-      setRenameData({ id: node.id, name: node.name });
-    }, 100);
   }, [user?.role, filteredTestCases, contextMenu, handleCloseContextMenu]);
 
   const handleCancelRename = useCallback(() => setRenameData(null), []);
@@ -1446,6 +1445,18 @@ const TestCaseTree = ({
               ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
               : undefined
           }
+          TransitionProps={{
+            onExited: () => {
+              if (pendingRename) {
+                // 이전 포커스(메뉴 등)를 명시적으로 해제하여 aria-hidden 경고 방지
+                if (document.activeElement instanceof HTMLElement) {
+                  document.activeElement.blur();
+                }
+                setRenameData(pendingRename);
+                setPendingRename(null);
+              }
+            },
+          }}
         >
           {contextMenu?.nodeId == null ? (
             canAdd(user?.role) && (
@@ -1596,6 +1607,7 @@ const TestCaseTree = ({
       <Dialog
         open={!!renameData}
         onClose={handleCancelRename}
+        disableRestoreFocus // 다이얼로그 닫힐 때 포커스 충돌 방지
         PaperProps={{
           sx: { borderRadius: 2, minWidth: 400 },
         }}

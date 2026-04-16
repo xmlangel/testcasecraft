@@ -1975,6 +1975,7 @@ public class TestCaseService {
 
     // folder
     ObjectNode folder = mapper.createObjectNode();
+    folder.put("displayId", "");
     folder.put("type", "folder");
     folder.put("name", "로그인 테스트");
     folder.putNull("parentPath");
@@ -1988,6 +1989,7 @@ public class TestCaseService {
 
     // testcase 1
     ObjectNode tc1 = mapper.createObjectNode();
+    tc1.put("displayId", "");
     tc1.put("type", "testcase");
     tc1.put("name", "정상 로그인");
     tc1.put("parentPath", "로그인 테스트");
@@ -2017,6 +2019,7 @@ public class TestCaseService {
 
     // testcase 2
     ObjectNode tc2 = mapper.createObjectNode();
+    tc2.put("displayId", "");
     tc2.put("type", "testcase");
     tc2.put("name", "잘못된 비밀번호");
     tc2.put("parentPath", "로그인 테스트");
@@ -2055,9 +2058,10 @@ public class TestCaseService {
   private List<String[]> buildSampleDataRows() {
     return Arrays.asList(
         new String[] {
-          "folder", "로그인 테스트", "", "", "", "", "MEDIUM", "Manual", "false", "", "", "", "", ""
+          "", "folder", "로그인 테스트", "", "", "", "", "MEDIUM", "Manual", "false", "", "", "", "", ""
         },
         new String[] {
+          "",
           "testcase",
           "정상 로그인",
           "로그인 테스트",
@@ -2074,6 +2078,7 @@ public class TestCaseService {
           "대시보드 이동"
         },
         new String[] {
+          "",
           "testcase",
           "잘못된 비밀번호",
           "로그인 테스트",
