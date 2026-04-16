@@ -1834,6 +1834,16 @@ public class EnglishTestCaseAndAutomationTranslations {
             + " Cloud Console.",
         createdBy);
     createTranslationIfNotExists(
+        "google.config.fetchError",
+        languageCode,
+        "An error occurred while loading Google settings.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.saveError",
+        languageCode,
+        "An error occurred while saving settings. Please check the format.",
+        createdBy);
+    createTranslationIfNotExists(
         "google.config.placeholder",
         languageCode,
         "{ \"type\": \"service_account\", ... }",

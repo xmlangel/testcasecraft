@@ -54,7 +54,12 @@ const GoogleConfigManager = () => {
       }
     } catch (err) {
       console.error("설정 로딩 실패:", err);
-      setError("구글 설정을 불러오는 중 오류가 발생했습니다.");
+      setError(
+        t(
+          "google.config.fetchError",
+          "구글 설정을 불러오는 중 오류가 발생했습니다.",
+        ),
+      );
     } finally {
       setLoading(false);
     }
@@ -79,7 +84,10 @@ const GoogleConfigManager = () => {
     } catch (err) {
       console.error("설정 저장 실패:", err);
       // 백엔드로부터 온 구체적인 에러 메시지 우선 표시
-      let msg = "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.";
+      let msg = t(
+        "google.config.saveError",
+        "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.",
+      );
       if (err.response?.data?.message) {
         msg = err.response.data.message;
       } else if (err.message) {

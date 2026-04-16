@@ -44,7 +44,7 @@ public class GoogleConfigController {
         .orElseGet(
             () -> {
               log.info("'{}' 사용자에 대한 설정이 존재하지 않습니다.", userId);
-              return ResponseEntity.noContent().build();
+              return ResponseEntity.notFound().build();
             });
   }
 

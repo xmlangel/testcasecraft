@@ -42,6 +42,10 @@ public class GoogleKeysInitializer {
         "google.config.placeholder", "google", "입력창 가이드", "{ \"type\": \"service_account\", ... }");
     createTranslationKeyIfNotExists("google.config.save", "google", "저장 버튼", "연동 설정 저장");
     createTranslationKeyIfNotExists("google.config.update", "google", "수정 버튼", "설정 업데이트");
+    createTranslationKeyIfNotExists(
+        "google.config.fetchError", "google", "설정 로딩 오류 메시지", "구글 설정을 불러오는 중 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists(
+        "google.config.saveError", "google", "설정 저장 오류 메시지", "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.");
 
     // Guide
     createTranslationKeyIfNotExists(

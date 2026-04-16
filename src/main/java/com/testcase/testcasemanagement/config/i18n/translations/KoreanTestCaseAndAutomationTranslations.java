@@ -1329,6 +1329,10 @@ public class KoreanTestCaseAndAutomationTranslations {
         "Google Cloud Console에서 다운로드한 서비스 계정 키(JSON) 파일의 전체 내용을 아래에 붙여넣으세요.",
         createdBy);
     createTranslationIfNotExists(
+        "google.config.fetchError", languageCode, "구글 설정을 불러오는 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.saveError", languageCode, "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.", createdBy);
+    createTranslationIfNotExists(
         "google.config.placeholder",
         languageCode,
         "{ \"type\": \"service_account\", ... }",
