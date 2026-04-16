@@ -900,6 +900,7 @@ public class TestCaseService {
     String importFolderId = getOrCreateImportFolder(project);
 
     Map<String, Integer> parentMaxOrderMap = new HashMap<>();
+    List<TestCase> preparedTestCases = new ArrayList<>();
     for (int i = 0; i < rows.size(); i++) {
       Map<String, String> row = rows.get(i);
       try {
@@ -913,24 +914,100 @@ public class TestCaseService {
         int nextOrder = parentMaxOrderMap.get(parentId) + 1;
         parentMaxOrderMap.put(parentId, nextOrder);
 
-        TestCase tc = buildTestCase(row, project, config);
-        tc.setParentId(parentId);
-        tc.setCreatedAt(LocalDateTime.now());
-        tc.setUpdatedAt(LocalDateTime.now());
-        tc.setDisplayOrder(nextOrder);
+        // 1. DisplayID 기반 기존 데이터 조회 (중복 방지 및 업데이트)
+        String displayIdValue = null;
+        for (Map.Entry<String, String> entry : config.getFieldMappings().entrySet()) {
+          if ("displayId".equals(entry.getValue())) {
+            displayIdValue = row.get(entry.getKey());
+            break;
+          }
+        }
+        if (displayIdValue == null || displayIdValue.isEmpty()) {
+          displayIdValue = row.getOrDefault("DisplayID", row.getOrDefault("displayId", null));
+        }
 
-        testCaseRepository.save(tc);
-        testCases.add(tc);
+        TestCase existingTc = null;
+        if (displayIdValue != null && !displayIdValue.trim().isEmpty()) {
+          existingTc =
+              testCaseRepository
+                  .findByProjectIdAndDisplayId(projectId, displayIdValue.trim())
+                  .orElse(null);
+        }
+
+        // 2. 기존 엔티티가 있으면 업데이트, 없으면 신규 생성 시 중복 체크
+        TestCase tc = buildTestCase(row, project, config, existingTc);
+
+        // 신규 항목인 경우 이름 중복 체크 로직 추가
+        if (tc.getId() == null) {
+          Long nameDuplicateCount =
+              testCaseRepository.countByProjectIdAndNameAndParentIdAndTypeAndIdNot(
+                  projectId, tc.getName(), parentId, tc.getType(), "NEW_ID");
+
+          if (nameDuplicateCount > 0) {
+            String msg =
+                String.format("행 %d: '%s' 항목은 해당 폴더에 이미 존재합니다. (이름 중복)", i + 1, tc.getName());
+            errors.add(
+                Map.of(
+                    "row",
+                    i + 1,
+                    "type",
+                    "DUPLICATE_NAME",
+                    "message",
+                    msg,
+                    "guide",
+                    "기존 항목을 수정하시려면 'DisplayID'를 입력하거나, 시트의 이름을 변경해 주세요."));
+            continue; // 중복 시 해당 행 스킵
+          }
+
+          tc.setParentId(parentId);
+          tc.setCreatedAt(LocalDateTime.now());
+          tc.setDisplayOrder(nextOrder);
+          String currentUser = getCurrentUsername();
+          if (tc.getCreatedBy() == null) tc.setCreatedBy(currentUser);
+        }
+
+        tc.setUpdatedAt(LocalDateTime.now());
+        tc.setUpdatedBy(getCurrentUsername());
+
+        preparedTestCases.add(tc);
       } catch (Exception e) {
-        errors.add(Map.of("row", i + 1, "data", row, "message", e.getMessage()));
+        errors.add(
+            Map.of(
+                "row",
+                i + 1,
+                "type",
+                "SYSTEM_ERROR",
+                "message",
+                e.getMessage(),
+                "data",
+                row.toString()));
       }
     }
 
+    // [중간 단계: 오류 발생 시 즉시 중단 및 롤백]
+    // 하나라도 오류가 발견되면 전체 저장을 수행하지 않습니다.
     if (!errors.isEmpty()) {
+      StringBuilder fullMessage = new StringBuilder("구글 시트 가져오기 중 오류가 발견되어 전체 작업을 중단했습니다.\n");
+      fullMessage.append("- 하나라도 오류가 있는 경우 데이터가 저장되지 않습니다.\n");
+      fullMessage.append("- 중복된 이름은 허용되지 않습니다.\n");
+      fullMessage.append("- 업데이트를 원하시면 'DisplayID' 컬럼 값을 유지해 주세요.\n\n");
+      fullMessage.append("상세 오류 내역:\n");
+      for (Map<String, Object> err : errors) {
+        fullMessage.append(String.format("[%s번 행] %s\n", err.get("row"), err.get("message")));
+      }
+
       throw new ResourceNotValidException(
-          "Google Sheet import failed", Map.of("errors", errors.toString()));
+          fullMessage.toString(),
+          Map.of("errors", errors.toString(), "count", String.valueOf(errors.size())));
     }
-    return testCases;
+
+    // [2단계: 일괄 저장 루프] - 모든 검증이 완료된 후에만 실제 DB 저장 수행
+    List<TestCase> savedTestCases = new ArrayList<>();
+    for (TestCase tc : preparedTestCases) {
+      savedTestCases.add(testCaseRepository.save(tc));
+    }
+
+    return savedTestCases;
   }
 
   /** Import 또는 미할당 테스트케이스 보관용 폴더를 조회하거나 새로 생성합니다. */
@@ -1045,6 +1122,7 @@ public class TestCaseService {
         List.of(
             "ProjectID",
             "ID",
+            "DisplayID",
             "프로젝트이름",
             "Type",
             "Displayorder",
@@ -1076,6 +1154,7 @@ public class TestCaseService {
               List.of(
                   projectId,
                   tc.getId(),
+                  tc.getDisplayId() != null ? tc.getDisplayId() : "",
                   projectName,
                   tc.getType(),
                   tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "",
@@ -1093,6 +1172,7 @@ public class TestCaseService {
             List.of(
                 projectId,
                 tc.getId(),
+                tc.getDisplayId() != null ? tc.getDisplayId() : "",
                 projectName,
                 tc.getType(),
                 tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "",
@@ -1126,9 +1206,15 @@ public class TestCaseService {
 
   @Transactional
   private TestCase buildTestCase(
-      Map<String, String> row, Project project, CsvMappingConfig config) {
-    TestCase testCase = new TestCase();
+      Map<String, String> row, Project project, CsvMappingConfig config, TestCase existingTc) {
+    TestCase testCase = existingTc != null ? existingTc : new TestCase();
     testCase.setProject(project);
+
+    // 업데이트 시 기존 스텝 초기화 (시트의 데이터로 덮어쓰기 위함)
+    if (existingTc != null && testCase.getSteps() != null) {
+      testCase.getSteps().clear();
+    }
+
     for (Map.Entry<String, String> entry : config.getFieldMappings().entrySet()) {
       String csvColumn = entry.getKey();
       String modelField = entry.getValue();
@@ -1151,6 +1237,12 @@ public class TestCaseService {
     }
 
     return testCase;
+  }
+
+  /** 하위 호환성을 위한 오버로딩 */
+  private TestCase buildTestCase(
+      Map<String, String> row, Project project, CsvMappingConfig config) {
+    return buildTestCase(row, project, config, null);
   }
 
   @Transactional
@@ -1812,6 +1904,7 @@ public class TestCaseService {
   // ==================== STANDARD FORMAT IMPORT / EXPORT ====================
 
   private static final String[] STANDARD_EXPORT_HEADERS = {
+    "displayId",
     "type",
     "name",
     "parentPath",
@@ -2573,6 +2666,7 @@ public class TestCaseService {
 
   private String[] buildExportRow(TestCase tc, Map<String, String> idToName, int maxSteps) {
     List<String> row = new ArrayList<>();
+    row.add(tc.getDisplayId() != null ? tc.getDisplayId() : "");
     row.add(tc.getType() != null ? tc.getType() : "testcase");
     row.add(tc.getName() != null ? tc.getName() : "");
     row.add(tc.getParentId() != null ? idToName.getOrDefault(tc.getParentId(), "") : "");

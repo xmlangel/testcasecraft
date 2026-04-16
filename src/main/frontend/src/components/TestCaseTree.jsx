@@ -245,6 +245,19 @@ const MemoizedTreeItem = React.memo(
             lineHeight: 1.5,
           }}
         >
+          {node.displayId && (
+            <Box
+              component="span"
+              sx={{
+                color: "primary.main",
+                fontWeight: "bold",
+                mr: 0.5,
+                opacity: 0.9,
+              }}
+            >
+              [{node.displayId}]
+            </Box>
+          )}
           {node.name}
         </Typography>
 
@@ -793,16 +806,16 @@ const TestCaseTree = ({
   ]);
 
   const handleRename = useCallback(() => {
-    if (isViewer(user?.role)) return;
+    if (isViewer(user?.role) || !contextMenu?.nodeId) return;
     const node = filteredTestCases.find((tc) => tc.id === contextMenu.nodeId);
-    setRenameData({ id: node.id, name: node.name });
+    if (!node) return;
+
+    // 메뉴를 먼저 닫고, 포커스가 돌아간 후 다이얼로그를 띄워 aria-hidden 오류 방지 (ICT-브라우저경고 해결)
     handleCloseContextMenu();
-  }, [
-    user?.role,
-    filteredTestCases,
-    contextMenu?.nodeId,
-    handleCloseContextMenu,
-  ]);
+    setTimeout(() => {
+      setRenameData({ id: node.id, name: node.name });
+    }, 100);
+  }, [user?.role, filteredTestCases, contextMenu, handleCloseContextMenu]);
 
   const handleCancelRename = useCallback(() => setRenameData(null), []);
 
@@ -1578,6 +1591,56 @@ const TestCaseTree = ({
           return items;
         })()}
       />
+
+      {/* 이름 변경 다이얼로그 (누락된 UI 복구) */}
+      <Dialog
+        open={!!renameData}
+        onClose={handleCancelRename}
+        PaperProps={{
+          sx: { borderRadius: 2, minWidth: 400 },
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          {t("testcase.tree.dialog.rename.title", "이름 변경")}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <TextField
+            autoFocus
+            margin="dense"
+            label={t("testcase.tree.dialog.rename.label", "새 이름")}
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={renameData?.name || ""}
+            onChange={(e) =>
+              setRenameData((prev) =>
+                prev ? { ...prev, name: e.target.value } : null,
+              )
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleConfirmRename();
+              }
+            }}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleCancelRename} color="inherit">
+            {t("common.button.cancel", "취소")}
+          </Button>
+          <Button
+            onClick={handleConfirmRename}
+            color="primary"
+            variant="contained"
+          >
+            {t("common.button.save", "저장")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 에러 메시지 다이얼로그 (복구) */}
       <Dialog open={!!errorMessage} onClose={() => setErrorMessage("")}>
         <DialogTitle>
           {t("testcase.tree.dialog.error.title", "오류")}

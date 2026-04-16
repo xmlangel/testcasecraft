@@ -33,11 +33,20 @@ public class TestCaseGoogleSheetExporter {
 
     List<List<Object>> values = new ArrayList<>();
     values.add(
-        List.of("ID", "Name", "Type", "DisplayOrder", "Description", "ProjectId", "CreatedAt"));
+        List.of(
+            "ID",
+            "DisplayID",
+            "Name",
+            "Type",
+            "DisplayOrder",
+            "Description",
+            "ProjectId",
+            "CreatedAt"));
 
     for (TestCase tc : testCases) {
       List<Object> row = new ArrayList<>();
       row.add(tc.getId());
+      row.add(tc.getDisplayId() != null ? tc.getDisplayId() : "");
       row.add(tc.getName());
       row.add(tc.getType());
       row.add(tc.getDisplayOrder());

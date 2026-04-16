@@ -223,7 +223,12 @@ const TestCaseDatasheetGrid = ({
   // 컬럼 정의
   const columns = useMemo(() => {
     const baseColumns = [
-      { field: "displayId", headerName: "ID", width: 90, editable: false },
+      {
+        field: "displayId",
+        headerName: "Display ID",
+        width: 100,
+        editable: false,
+      },
       {
         field: "displayOrder",
         headerName: t("testcase.spreadsheet.column.order", "순서"),
