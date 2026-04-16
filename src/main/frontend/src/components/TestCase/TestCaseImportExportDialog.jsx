@@ -54,29 +54,6 @@ import {
 import { useI18n } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 
-const IMPORT_FORMATS = [
-  { value: "csv", label: "CSV", accept: ".csv", sampleExt: "csv" },
-  {
-    value: "excel",
-    label: "Excel (.xlsx)",
-    accept: ".xlsx,.xls",
-    sampleExt: "xlsx",
-  },
-  {
-    value: "google-sheets",
-    label: "Google Sheets",
-    accept: null,
-    sampleExt: null,
-  },
-];
-
-const EXPORT_FORMATS = [
-  { value: "csv", label: "CSV (importable)" },
-  { value: "excel", label: "Excel (importable)" },
-  { value: "json", label: "JSON (importable)" },
-  { value: "google-sheets", label: "Google Sheets" },
-];
-
 /** Google Sheets URL에서 Spreadsheet ID 추출 */
 const extractSpreadsheetId = (input) => {
   if (!input) return "";
@@ -98,6 +75,33 @@ export default function TestCaseImportExportDialog({
   const [activeTab, setActiveTab] = useState(0);
   const { t } = useI18n();
   const { openUserProfile } = useAppContext();
+
+  // 상수 정의 (다국어 지원을 위해 컴포넌트 내부로 이동)
+  const IMPORT_FORMATS = [
+    { value: "csv", label: "CSV", accept: ".csv", sampleExt: "csv" },
+    {
+      value: "excel",
+      label: t("common.excel", "Excel (.xlsx)"),
+      accept: ".xlsx,.xls",
+      sampleExt: "xlsx",
+    },
+    {
+      value: "google-sheets",
+      label: t("common.googleSheets", "Google Sheets"),
+      accept: null,
+      sampleExt: null,
+    },
+  ];
+
+  const EXPORT_FORMATS = [
+    { value: "csv", label: "CSV (importable)" },
+    { value: "excel", label: "Excel (importable)" },
+    { value: "json", label: "JSON (importable)" },
+    {
+      value: "google-sheets",
+      label: t("common.googleSheets", "Google Sheets"),
+    },
+  ];
 
   // Google 설정 상태
   const [googleConfig, setGoogleConfig] = useState(null);
@@ -287,14 +291,20 @@ export default function TestCaseImportExportDialog({
         if (!exportSheetUrl) {
           setExportMessage({
             type: "error",
-            text: "Google Sheets URL을 입력하세요",
+            text: t(
+              "testcase.io.google.url.required",
+              "Google Sheets URL을 입력하세요",
+            ),
           });
           return;
         }
         await exportToGoogleSheet(projectId, exportSheetUrl, exportSheetName);
         setExportMessage({
           type: "success",
-          text: "Google Sheets에 내보내기 완료!",
+          text: t(
+            "testcase.io.export.success.google",
+            "Google Sheets에 내보내기 완료!",
+          ),
         });
 
         // 마지막 사용 정보 저장 (Export 타입) - ID만 추출하여 저장
@@ -305,7 +315,10 @@ export default function TestCaseImportExportDialog({
         if (result.success) {
           setExportMessage({
             type: "success",
-            text: "파일 다운로드가 시작되었습니다.",
+            text: t(
+              "testcase.io.export.success.file",
+              "파일 다운로드가 시작되었습니다.",
+            ),
           });
         } else {
           setExportMessage({ type: "error", text: result.message });
@@ -338,7 +351,7 @@ export default function TestCaseImportExportDialog({
         }}
       >
         <Typography variant="h6" fontWeight={600} component="span">
-          테스트케이스 Import / Export
+          {t("testcase.io.title", "테스트케이스 Import / Export")}
         </Typography>
         <IconButton size="small" onClick={handleClose}>
           <CloseIcon />
@@ -347,8 +360,8 @@ export default function TestCaseImportExportDialog({
 
       <Box sx={{ borderBottom: 1, borderColor: "divider", px: 3 }}>
         <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}>
-          <Tab label="📥 가져오기 (Import)" />
-          <Tab label="📤 내보내기 (Export)" />
+          <Tab label={t("testcase.io.tab.import", "📥 가져오기 (Import)")} />
+          <Tab label={t("testcase.io.tab.export", "📤 내보내기 (Export)")} />
         </Tabs>
       </Box>
 
@@ -359,7 +372,7 @@ export default function TestCaseImportExportDialog({
             {/* 1. 형식 선택 */}
             <FormControl component="fieldset" sx={{ mb: 3 }}>
               <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>
-                1. 형식 선택
+                {t("testcase.io.import.format.label", "1. 형식 선택")}
               </FormLabel>
               <RadioGroup
                 row
@@ -381,7 +394,7 @@ export default function TestCaseImportExportDialog({
             {importFormat !== "google-sheets" && (
               <Box sx={{ mb: 3 }}>
                 <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
-                  2. 샘플 파일
+                  {t("testcase.io.import.sample.label", "2. 샘플 파일")}
                 </Typography>
                 <Button
                   size="small"
@@ -389,14 +402,23 @@ export default function TestCaseImportExportDialog({
                   startIcon={<CloudDownloadIcon />}
                   onClick={handleSampleDownload}
                 >
-                  sample_testcases.{currentFormat?.sampleExt} 다운로드
+                  {t(
+                    "testcase.io.import.sample.download",
+                    `sample_testcases.${currentFormat?.sampleExt} 다운로드`,
+                    {
+                      filename: `sample_testcases.${currentFormat?.sampleExt}`,
+                    },
+                  )}
                 </Button>
                 <Typography
                   variant="caption"
                   color="text.secondary"
                   sx={{ ml: 2 }}
                 >
-                  샘플을 참고하여 데이터를 입력한 후 업로드하세요
+                  {t(
+                    "testcase.io.import.sample.desc",
+                    "샘플을 참고하여 데이터를 입력한 후 업로드하세요",
+                  )}
                 </Typography>
               </Box>
             )}
@@ -405,8 +427,11 @@ export default function TestCaseImportExportDialog({
             <Box sx={{ mb: 3 }}>
               <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
                 {importFormat !== "google-sheets"
-                  ? "3. 파일 업로드"
-                  : "2. Google Sheets 연결"}
+                  ? t("testcase.io.import.upload.label", "3. 파일 업로드")
+                  : t(
+                      "testcase.io.google.connect.label",
+                      "2. Google Sheets 연결",
+                    )}
               </Typography>
 
               {importFormat === "google-sheets" &&
@@ -437,8 +462,14 @@ export default function TestCaseImportExportDialog({
                   <TextField
                     fullWidth
                     size="small"
-                    label="Google Sheets URL 또는 ID"
-                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    label={t(
+                      "testcase.io.google.url.label",
+                      "Google Sheets URL 또는 ID",
+                    )}
+                    placeholder={t(
+                      "testcase.io.google.url.placeholder",
+                      "https://docs.google.com/spreadsheets/d/...",
+                    )}
                     value={googleSheetUrl}
                     onChange={(e) => setGoogleSheetUrl(e.target.value)}
                     InputProps={{
@@ -450,7 +481,7 @@ export default function TestCaseImportExportDialog({
                   />
                   <TextField
                     size="small"
-                    label="시트 이름"
+                    label={t("testcase.io.google.sheet.label", "시트 이름")}
                     value={googleSheetName}
                     onChange={(e) => setGoogleSheetName(e.target.value)}
                     sx={{ width: 200 }}
@@ -513,10 +544,17 @@ export default function TestCaseImportExportDialog({
                         sx={{ fontSize: 40, mb: 1 }}
                       />
                       <Typography variant="body2">
-                        파일을 여기에 드래그하거나 클릭하여 선택
+                        {t(
+                          "testcase.io.import.dropzone.prompt",
+                          "파일을 여기에 드래그하거나 클릭하여 선택",
+                        )}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        지원 형식: {currentFormat?.accept}
+                        {t(
+                          "testcase.io.import.dropzone.accept",
+                          `지원 형식: ${currentFormat?.accept}`,
+                          { formats: currentFormat?.accept },
+                        )}
                       </Typography>
                     </Box>
                   )}
@@ -538,7 +576,10 @@ export default function TestCaseImportExportDialog({
                     }}
                   >
                     <Typography variant="body2" fontWeight={600}>
-                      4. 데이터 검증
+                      {t(
+                        "testcase.io.import.validation.label",
+                        "4. 데이터 검증",
+                      )}
                     </Typography>
                     <Button
                       size="small"
@@ -546,7 +587,15 @@ export default function TestCaseImportExportDialog({
                       onClick={handleValidate}
                       disabled={isValidating}
                     >
-                      {isValidating ? "검증 중..." : "🔍 검증하기"}
+                      {isValidating
+                        ? t(
+                            "testcase.io.import.validation.status",
+                            "검증 중...",
+                          )
+                        : t(
+                            "testcase.io.import.validation.button",
+                            "🔍 검증하기",
+                          )}
                     </Button>
                   </Box>
                   {isValidating && <LinearProgress sx={{ mb: 1 }} />}
@@ -571,8 +620,11 @@ export default function TestCaseImportExportDialog({
             {importResult && (
               <Alert severity="success" sx={{ mb: 2 }}>
                 <Typography variant="body2" fontWeight={600}>
-                  ✅ Import 완료: {importResult.importedCount}개 테스트케이스가
-                  추가되었습니다.
+                  {t(
+                    "testcase.io.import.success",
+                    `✅ Import 완료: ${importResult.importedCount}개 테스트케이스가 추가되었습니다.`,
+                    { count: importResult.importedCount },
+                  )}
                 </Typography>
               </Alert>
             )}
@@ -584,7 +636,7 @@ export default function TestCaseImportExportDialog({
           <Box>
             <FormControl component="fieldset" sx={{ mb: 3 }}>
               <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>
-                1. 내보내기 형식 선택
+                {t("testcase.io.export.format.label", "1. 내보내기 형식 선택")}
               </FormLabel>
               <RadioGroup
                 row
@@ -608,13 +660,22 @@ export default function TestCaseImportExportDialog({
             {exportFormat === "google-sheets" && (
               <Box sx={{ mb: 3 }}>
                 <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
-                  2. Google Sheets 설정
+                  {t(
+                    "testcase.io.export.google.label",
+                    "2. Google Sheets 설정",
+                  )}
                 </Typography>
                 <TextField
                   fullWidth
                   size="small"
-                  label="Google Sheets URL 또는 ID"
-                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  label={t(
+                    "testcase.io.google.url.label",
+                    "Google Sheets URL 또는 ID",
+                  )}
+                  placeholder={t(
+                    "testcase.io.google.url.placeholder",
+                    "https://docs.google.com/spreadsheets/d/...",
+                  )}
                   value={exportSheetUrl}
                   onChange={(e) => setExportSheetUrl(e.target.value)}
                   InputProps={{
@@ -626,7 +687,7 @@ export default function TestCaseImportExportDialog({
                 />
                 <TextField
                   size="small"
-                  label="시트 이름"
+                  label={t("testcase.io.google.sheet.label", "시트 이름")}
                   value={exportSheetName}
                   onChange={(e) => setExportSheetName(e.target.value)}
                   sx={{ width: 200 }}
@@ -668,8 +729,10 @@ export default function TestCaseImportExportDialog({
               }}
             >
               <Typography variant="body2" color="info.dark">
-                💡 내보낸 파일은 다시 Import 가능한 형식으로 생성됩니다.
-                (라운드트립 호환)
+                {t(
+                  "testcase.io.export.tip",
+                  "💡 내보낸 파일은 다시 Import 가능한 형식으로 생성됩니다. (라운드트립 호환)",
+                )}
               </Typography>
             </Box>
 
@@ -689,7 +752,7 @@ export default function TestCaseImportExportDialog({
       <Divider />
       <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
         <Button onClick={handleClose} color="inherit">
-          닫기
+          {t("common.close", "닫기")}
         </Button>
         {activeTab === 0 && !importResult && (
           <Button
@@ -699,15 +762,19 @@ export default function TestCaseImportExportDialog({
             disabled={!canImport || isImporting}
           >
             {isImporting
-              ? "가져오는 중..."
+              ? t("testcase.io.status.importing", "가져오는 중...")
               : validRows > 0
-                ? `가져오기 실행 (${validRows}개)`
-                : "가져오기 실행"}
+                ? t(
+                    "testcase.io.button.import.count",
+                    `가져오기 실행 (${validRows}개)`,
+                    { count: validRows },
+                  )
+                : t("testcase.io.button.import", "가져오기 실행")}
           </Button>
         )}
         {activeTab === 0 && importResult && (
           <Button variant="outlined" onClick={resetImport}>
-            다시 가져오기
+            {t("testcase.io.button.reimport", "다시 가져오기")}
           </Button>
         )}
         {activeTab === 1 && (
@@ -717,7 +784,9 @@ export default function TestCaseImportExportDialog({
             onClick={handleExport}
             disabled={isExporting}
           >
-            {isExporting ? "내보내는 중..." : "내보내기"}
+            {isExporting
+              ? t("testcase.io.status.exporting", "내보내는 중...")
+              : t("testcase.io.button.export", "내보내기")}
           </Button>
         )}
       </DialogActions>
@@ -728,15 +797,37 @@ export default function TestCaseImportExportDialog({
 /** 검증 결과 패널 */
 function ValidationResultPanel({ result }) {
   const { totalRows, validRows, invalidRows, errors, previewData } = result;
+  const { t } = useI18n();
 
   return (
     <Box>
       {/* 요약 칩 */}
       <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-        <Chip label={`총 ${totalRows}행`} size="small" />
-        <Chip label={`✅ 유효 ${validRows}행`} color="success" size="small" />
+        <Chip
+          label={t("testcase.io.validation.totalRows", `총 ${totalRows}행`, {
+            count: totalRows,
+          })}
+          size="small"
+        />
+        <Chip
+          label={t(
+            "testcase.io.validation.validRows",
+            `✅ 유효 ${validRows}행`,
+            { count: validRows },
+          )}
+          color="success"
+          size="small"
+        />
         {invalidRows > 0 && (
-          <Chip label={`❌ 오류 ${invalidRows}행`} color="error" size="small" />
+          <Chip
+            label={t(
+              "testcase.io.validation.invalidRows",
+              `❌ 오류 ${invalidRows}행`,
+              { count: invalidRows },
+            )}
+            color="error"
+            size="small"
+          />
         )}
       </Box>
 
@@ -749,7 +840,7 @@ function ValidationResultPanel({ result }) {
             color="error"
             sx={{ mb: 1, display: "block" }}
           >
-            오류 목록
+            {t("testcase.io.validation.errorList", "오류 목록")}
           </Typography>
           <TableContainer
             component={Paper}
@@ -759,10 +850,16 @@ function ValidationResultPanel({ result }) {
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ width: 60 }}>행</TableCell>
-                  <TableCell sx={{ width: 80 }}>필드</TableCell>
-                  <TableCell>오류 메시지</TableCell>
-                  <TableCell>값</TableCell>
+                  <TableCell sx={{ width: 60 }}>
+                    {t("common.spreadsheet.row", "행")}
+                  </TableCell>
+                  <TableCell sx={{ width: 80 }}>
+                    {t("common.field", "필드")}
+                  </TableCell>
+                  <TableCell>
+                    {t("testcase.io.validation.errorMessage", "오류 메시지")}
+                  </TableCell>
+                  <TableCell>{t("common.value", "값")}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -777,7 +874,7 @@ function ValidationResultPanel({ result }) {
                     </TableCell>
                     <TableCell>
                       <Typography variant="caption" color="text.secondary">
-                        {err.value || "(빈 값)"}
+                        {err.value || `(${t("common.emptyValue", "빈 값")})`}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -796,7 +893,7 @@ function ValidationResultPanel({ result }) {
             fontWeight={600}
             sx={{ mb: 1, display: "block" }}
           >
-            미리보기 (최대 20행)
+            {t("testcase.io.validation.preview", "미리보기 (최대 20행)")}
           </Typography>
           <TableContainer
             component={Paper}
@@ -807,11 +904,19 @@ function ValidationResultPanel({ result }) {
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ width: 30 }}></TableCell>
-                  <TableCell>이름</TableCell>
-                  <TableCell sx={{ width: 80 }}>유형</TableCell>
-                  <TableCell>상위 폴더</TableCell>
-                  <TableCell sx={{ width: 80 }}>우선순위</TableCell>
-                  <TableCell sx={{ width: 60 }}>스텝</TableCell>
+                  <TableCell>{t("common.name", "이름")}</TableCell>
+                  <TableCell sx={{ width: 80 }}>
+                    {t("common.type", "유형")}
+                  </TableCell>
+                  <TableCell>
+                    {t("testcase.tree.parentFolder", "상위 폴더")}
+                  </TableCell>
+                  <TableCell sx={{ width: 80 }}>
+                    {t("testcase.spreadsheet.column.priority", "우선순위")}
+                  </TableCell>
+                  <TableCell sx={{ width: 60 }}>
+                    {t("testcase.io.validation.steps", "스텝")}
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

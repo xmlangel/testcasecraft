@@ -1332,6 +1332,38 @@ public class KoreanTestCaseAndAutomationTranslations {
         "google.config.fetchError", languageCode, "구글 설정을 불러오는 중 오류가 발생했습니다.", createdBy);
     createTranslationIfNotExists(
         "google.config.saveError", languageCode, "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.", createdBy);
+
+    createTranslationIfNotExists(
+        "google.config.error.jsonRequired", languageCode, "JSON 키 내용을 입력해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.success.save", languageCode, "Google Sheets 설정이 성공적으로 저장되었습니다.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.confirm.delete",
+        languageCode,
+        "구글 연동 설정을 완전히 삭제하시겠습니까? 관련 기능 사용이 제한될 수 있습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.success.delete", languageCode, "Google 연동이 해제되었습니다.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.error.deleteFailed", languageCode, "연동 해제 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists("google.config.status.inactive", languageCode, "비활성", createdBy);
+    createTranslationIfNotExists(
+        "google.config.noConfigDesc",
+        languageCode,
+        "테스트케이스 내보내기 기능을 사용하려면 아래에 Google 서비스 계정 키 내용을 입력해주세요.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.form.updateTitle", languageCode, "인증 정보 업데이트", createdBy);
+    createTranslationIfNotExists(
+        "google.config.form.registerTitle", languageCode, "새 인증 정보 등록", createdBy);
+    createTranslationIfNotExists("google.config.button.saving", languageCode, "저장 중...", createdBy);
+    createTranslationIfNotExists(
+        "google.config.guide.footer",
+        languageCode,
+        "* 상세 가이드는 프로젝트 루트의 docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.guide.openButton", languageCode, "상세 가이드 새 창으로 보기", createdBy);
     createTranslationIfNotExists(
         "google.config.placeholder",
         languageCode,
@@ -1359,12 +1391,107 @@ public class KoreanTestCaseAndAutomationTranslations {
         "3. 다운로드한 JSON 파일의 내용을 복사하여 위의 입력란에 붙여넣고 저장합니다.",
         createdBy);
     createTranslationIfNotExists(
-        "google.guide.step4", languageCode, "4. (중요) 내보낼 대상 구글 시트 파일에서 '공유' 버튼을 클릭합니다.", createdBy);
-    createTranslationIfNotExists(
         "google.guide.step5",
         languageCode,
         "5. 서비스 계정의 이메일 주소(JSON 내 client_email)를 '편집자' 권한으로 추가하여 저장합니다.",
         createdBy);
+
+    // Import / Export
+    createTranslationIfNotExists(
+        "testcase.io.title", languageCode, "테스트케이스 Import / Export", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.tab.import", languageCode, "📥 가져오기 (Import)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.tab.export", languageCode, "📤 내보내기 (Export)", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.import.format.label", languageCode, "1. 형식 선택", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.label", languageCode, "2. 샘플 파일", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.download", languageCode, "{filename} 다운로드", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.desc", languageCode, "샘플을 참고하여 데이터를 입력한 후 업로드하세요", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.upload.label", languageCode, "3. 파일 업로드", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.dropzone.prompt", languageCode, "파일을 여기에 드래그하거나 클릭하여 선택", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.dropzone.accept", languageCode, "지원 형식: {formats}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.validation.label", languageCode, "4. 데이터 검증", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.validation.button", languageCode, "🔍 검증하기", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.validation.status", languageCode, "검증 중...", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.success",
+        languageCode,
+        "✅ Import 완료: {count}개 테스트케이스가 추가되었습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.status.importing", languageCode, "가져오는 중...", createdBy);
+    createTranslationIfNotExists("testcase.io.button.import", languageCode, "가져오기 실행", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.button.import.count", languageCode, "가져오기 실행 ({count}개)", createdBy);
+    createTranslationIfNotExists("testcase.io.button.reimport", languageCode, "다시 가져오기", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.export.format.label", languageCode, "1. 내보내기 형식 선택", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.success.google", languageCode, "Google Sheets에 내보내기 완료!", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.success.file", languageCode, "파일 다운로드가 시작되었습니다.", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.tip",
+        languageCode,
+        "💡 내보낸 파일은 다시 Import 가능한 형식으로 생성됩니다. (라운드트립 호환)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.status.exporting", languageCode, "내보내는 중...", createdBy);
+    createTranslationIfNotExists("testcase.io.button.export", languageCode, "내보내기", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.google.connect.label", languageCode, "2. Google Sheets 연결", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.config.label", languageCode, "2. Google Sheets 설정", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.label", languageCode, "Google Sheets URL 또는 ID", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.placeholder",
+        languageCode,
+        "https://docs.google.com/spreadsheets/d/...",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.sheet.label", languageCode, "시트 이름", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.required", languageCode, "Google Sheets URL을 입력하세요", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.validation.summary", languageCode, "검증 요약", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.totalRows", languageCode, "총 {count}행", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.validRows", languageCode, "✅ 유효 {count}행", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.invalidRows", languageCode, "❌ 오류 {count}행", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.errorList", languageCode, "오류 목록", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.preview", languageCode, "미리보기 (최대 20행)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.errorMessage", languageCode, "오류 메시지", createdBy);
+    createTranslationIfNotExists("testcase.io.validation.steps", languageCode, "스텝", createdBy);
+    createTranslationIfNotExists("testcase.tree.parentFolder", languageCode, "상위 폴더", createdBy);
+
+    // Common
+    createTranslationIfNotExists("common.excel", languageCode, "Excel (.xlsx)", createdBy);
+    createTranslationIfNotExists("common.googleSheets", languageCode, "Google Sheets", createdBy);
+    createTranslationIfNotExists("common.field", languageCode, "필드", createdBy);
+    createTranslationIfNotExists("common.value", languageCode, "값", createdBy);
+    createTranslationIfNotExists("common.emptyValue", languageCode, "빈 값", createdBy);
+    createTranslationIfNotExists("common.spreadsheet.row", languageCode, "행", createdBy);
+    createTranslationIfNotExists("common.settings", languageCode, "설정으로 이동", createdBy);
   }
 
   private void createTranslationIfNotExists(

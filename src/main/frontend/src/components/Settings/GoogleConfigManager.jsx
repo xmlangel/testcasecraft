@@ -68,7 +68,9 @@ const GoogleConfigManager = () => {
   const handleSave = async () => {
     const trimmedKey = jsonKey.trim();
     if (!trimmedKey) {
-      setError("JSON 키 내용을 입력해주세요.");
+      setError(
+        t("google.config.error.jsonRequired", "JSON 키 내용을 입력해주세요."),
+      );
       return;
     }
 
@@ -78,7 +80,12 @@ const GoogleConfigManager = () => {
 
     try {
       await googleConfigApi.saveConfig(trimmedKey);
-      setSuccess("Google Sheets 설정이 성공적으로 저장되었습니다.");
+      setSuccess(
+        t(
+          "google.config.success.save",
+          "Google Sheets 설정이 성공적으로 저장되었습니다.",
+        ),
+      );
       setJsonKey("");
       await fetchConfig();
     } catch (err) {
@@ -102,7 +109,10 @@ const GoogleConfigManager = () => {
   const handleDelete = async () => {
     if (
       !window.confirm(
-        "구글 연동 설정을 완전히 삭제하시겠습니까? 관련 기능 사용이 제한될 수 있습니다.",
+        t(
+          "google.config.confirm.delete",
+          "구글 연동 설정을 완전히 삭제하시겠습니까? 관련 기능 사용이 제한될 수 있습니다.",
+        ),
       )
     ) {
       return;
@@ -111,12 +121,19 @@ const GoogleConfigManager = () => {
     setLoading(true);
     try {
       await googleConfigApi.deleteMyConfig();
-      setSuccess("Google 연동이 해제되었습니다.");
+      setSuccess(
+        t("google.config.success.delete", "Google 연동이 해제되었습니다."),
+      );
       setConfig(null);
       setJsonKey("");
     } catch (err) {
       console.error("삭제 실패:", err);
-      setError("연동 해제 중 오류가 발생했습니다.");
+      setError(
+        t(
+          "google.config.error.deleteFailed",
+          "연동 해제 중 오류가 발생했습니다.",
+        ),
+      );
     } finally {
       setLoading(false);
     }
@@ -159,7 +176,7 @@ const GoogleConfigManager = () => {
             }}
           >
             <Typography variant="h6" display="flex" alignItems="center">
-              연동 상태
+              {t("google.config.status", "연동 상태")}
               {config ? (
                 <CheckCircleIcon
                   sx={{ ml: 1, color: "success.main", fontSize: 20 }}
@@ -176,7 +193,7 @@ const GoogleConfigManager = () => {
                 size="small"
                 onClick={handleDelete}
               >
-                연동 해제
+                {t("google.config.disconnect", "연동 해제")}
               </Button>
             )}
           </Box>
@@ -187,7 +204,7 @@ const GoogleConfigManager = () => {
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary">
-                  연결된 서비스 계정 (Email)
+                  {t("google.config.email", "연결된 서비스 계정 (Email)")}
                 </Typography>
                 <Typography variant="body1" fontWeight="medium">
                   {config.clientEmail}
@@ -195,7 +212,7 @@ const GoogleConfigManager = () => {
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary">
-                  프로젝트 ID
+                  {t("google.config.projectId", "프로젝트 ID")}
                 </Typography>
                 <Typography variant="body1" fontWeight="medium">
                   {config.projectId}
@@ -203,7 +220,7 @@ const GoogleConfigManager = () => {
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary">
-                  최종 업데이트
+                  {t("google.config.lastUpdated", "최종 업데이트")}
                 </Typography>
                 <Typography variant="body2">
                   {(() => {
@@ -219,7 +236,7 @@ const GoogleConfigManager = () => {
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary">
-                  상태
+                  {t("google.config.status", "상태")}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -227,18 +244,25 @@ const GoogleConfigManager = () => {
                     color: config.isActive ? "success.main" : "text.disabled",
                   }}
                 >
-                  {config.isActive ? "활성화됨" : "비활성"}
+                  {config.isActive
+                    ? t("google.config.active", "활성화됨")
+                    : t("google.config.status.inactive", "비활성")}
                 </Typography>
               </Grid>
             </Grid>
           ) : (
             <Box sx={{ textAlign: "center", py: 2 }}>
               <Typography color="text.secondary">
-                현재 등록된 구글 인증 정보가 없습니다.
+                {t(
+                  "google.config.noConfig",
+                  "현재 등록된 구글 인증 정보가 없습니다.",
+                )}
               </Typography>
               <Typography variant="body2" sx={{ mt: 1 }}>
-                테스트케이스 내보내기 기능을 사용하려면 아래에 Google 서비스
-                계정 키 내용을 입력해주세요.
+                {t(
+                  "google.config.noConfigDesc",
+                  "테스트케이스 내보내기 기능을 사용하려면 아래에 Google 서비스 계정 키 내용을 입력해주세요.",
+                )}
               </Typography>
             </Box>
           )}
@@ -254,11 +278,15 @@ const GoogleConfigManager = () => {
           alignItems="center"
         >
           <CloudUploadIcon sx={{ mr: 1, fontSize: 20 }} />
-          {config ? "인증 정보 업데이트" : "새 인증 정보 등록"}
+          {config
+            ? t("google.config.form.updateTitle", "인증 정보 업데이트")
+            : t("google.config.form.registerTitle", "새 인증 정보 등록")}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Google Cloud Console에서 다운로드한 서비스 계정 키(JSON) 파일의{" "}
-          <strong>전체 내용</strong>을 아래에 붙여넣으세요.
+          {t(
+            "google.config.inputDesc",
+            "Google Cloud Console에서 다운로드한 서비스 계정 키(JSON) 파일의 전체 내용을 아래에 붙여넣으세요.",
+          )}
         </Typography>
 
         <TextField
@@ -297,10 +325,10 @@ const GoogleConfigManager = () => {
             sx={{ px: 4 }}
           >
             {saving
-              ? "저장 중..."
+              ? t("google.config.button.saving", "저장 중...")
               : config
-                ? "설정 업데이트"
-                : "연동 설정 저장"}
+                ? t("google.config.update", "설정 업데이트")
+                : t("google.config.save", "연동 설정 저장")}
           </Button>
         </Box>
       </Paper>
@@ -377,8 +405,10 @@ const GoogleConfigManager = () => {
               </p>
               <Divider sx={{ my: 2 }} />
               <Typography variant="caption" color="text.secondary">
-                * 상세 가이드는 프로젝트 루트의
-                docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.
+                {t(
+                  "google.config.guide.footer",
+                  "* 상세 가이드는 프로젝트 루트의 docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.",
+                )}
               </Typography>
               <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
                 <Button
@@ -392,7 +422,10 @@ const GoogleConfigManager = () => {
                     )
                   }
                 >
-                  상세 가이드 새 창으로 보기
+                  {t(
+                    "google.config.guide.openButton",
+                    "상세 가이드 새 창으로 보기",
+                  )}
                 </Button>
               </Box>
             </Typography>

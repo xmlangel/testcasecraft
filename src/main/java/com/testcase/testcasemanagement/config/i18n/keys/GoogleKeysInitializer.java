@@ -47,6 +47,39 @@ public class GoogleKeysInitializer {
     createTranslationKeyIfNotExists(
         "google.config.saveError", "google", "설정 저장 오류 메시지", "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.");
 
+    createTranslationKeyIfNotExists(
+        "google.config.error.jsonRequired", "google", "JSON 키 필수 메시지", "JSON 키 내용을 입력해주세요.");
+    createTranslationKeyIfNotExists(
+        "google.config.success.save", "google", "저장 성공 메시지", "Google Sheets 설정이 성공적으로 저장되었습니다.");
+    createTranslationKeyIfNotExists(
+        "google.config.confirm.delete",
+        "google",
+        "삭제 확인 메시지",
+        "구글 연동 설정을 완전히 삭제하시겠습니까? 관련 기능 사용이 제한될 수 있습니다.");
+    createTranslationKeyIfNotExists(
+        "google.config.success.delete", "google", "삭제 성공 메시지", "Google 연동이 해제되었습니다.");
+    createTranslationKeyIfNotExists(
+        "google.config.error.deleteFailed", "google", "삭제 실패 메시지", "연동 해제 중 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists("google.config.status.inactive", "google", "비활성 상태 라벨", "비활성");
+    createTranslationKeyIfNotExists(
+        "google.config.noConfigDesc",
+        "google",
+        "설정 없음 추가 설명",
+        "테스트케이스 내보내기 기능을 사용하려면 아래에 Google 서비스 계정 키 내용을 입력해주세요.");
+    createTranslationKeyIfNotExists(
+        "google.config.form.updateTitle", "google", "수정 폼 제목", "인증 정보 업데이트");
+    createTranslationKeyIfNotExists(
+        "google.config.form.registerTitle", "google", "등록 폼 제목", "새 인증 정보 등록");
+    createTranslationKeyIfNotExists(
+        "google.config.button.saving", "google", "저장 중 버튼 텍스트", "저장 중...");
+    createTranslationKeyIfNotExists(
+        "google.config.guide.footer",
+        "google",
+        "가이드 하단 설명",
+        "* 상세 가이드는 프로젝트 루트의 docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.");
+    createTranslationKeyIfNotExists(
+        "google.config.guide.openButton", "google", "가이드 열기 버튼", "상세 가이드 새 창으로 보기");
+
     // Guide
     createTranslationKeyIfNotExists(
         "google.guide.title", "google", "연동 가이드 제목", "Google 서비스 계정 생성 및 설정 방법");

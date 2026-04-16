@@ -131,6 +131,14 @@ public class CommonKeysInitializer {
         "common.validation.required", "common", "필수 입력 검증", "필수 입력 항목입니다");
     createTranslationKeyIfNotExists("common.expand", "common", "펼치기", "펼치기");
     createTranslationKeyIfNotExists("common.collapse", "common", "접기", "접기");
+    createTranslationKeyIfNotExists("common.excel", "common", "Excel", "Excel (.xlsx)");
+    createTranslationKeyIfNotExists(
+        "common.googleSheets", "common", "Google Sheets", "Google Sheets");
+    createTranslationKeyIfNotExists("common.field", "common", "필드 라벨", "필드");
+    createTranslationKeyIfNotExists("common.value", "common", "값 라벨", "값");
+    createTranslationKeyIfNotExists("common.emptyValue", "common", "빈 값 표시", "빈 값");
+    createTranslationKeyIfNotExists("common.spreadsheet.row", "common", "행(Row) 라벨", "행");
+    createTranslationKeyIfNotExists("common.settings", "common", "설정 이동 버튼", "설정으로 이동");
 
     // 설정 관련 키
     createTranslationKeyIfNotExists("config.database.title", "config", "데이터베이스 설정", "데이터베이스 설정");

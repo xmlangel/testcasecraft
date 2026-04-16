@@ -1762,6 +1762,109 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("testcase.notes.copy", "testcase", "노트 복사 버튼 툴팁", "노트 복사");
     createTranslationKeyIfNotExists(
         "testcase.notes.copy_message", "testcase", "노트 복사 성공 메시지", "노트가 클립보드에 복사되었습니다.");
+
+    // Import / Export 관련 키들
+    createTranslationKeyIfNotExists(
+        "testcase.io.title", "testcase", "Import/Export 다이얼로그 제목", "테스트케이스 Import / Export");
+    createTranslationKeyIfNotExists(
+        "testcase.io.tab.import", "testcase", "가져오기 탭", "📥 가져오기 (Import)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.tab.export", "testcase", "내보내기 탭", "📤 내보내기 (Export)");
+
+    // Import 관련
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.format.label", "testcase", "가져오기 형식 선택 안내", "1. 형식 선택");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.sample.label", "testcase", "샘플 파일 안내", "2. 샘플 파일");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.sample.download", "testcase", "샘플 다운로드 버튼", "{filename} 다운로드");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.sample.desc", "testcase", "샘플 다운로드 설명", "샘플을 참고하여 데이터를 입력한 후 업로드하세요");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.upload.label", "testcase", "파일 업로드 안내", "3. 파일 업로드");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.dropzone.prompt",
+        "testcase",
+        "파일 업로드 드롭존 안내",
+        "파일을 여기에 드래그하거나 클릭하여 선택");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.dropzone.accept", "testcase", "지원 형식 안내", "지원 형식: {formats}");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.validation.label", "testcase", "데이터 검증 안내", "4. 데이터 검증");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.validation.button", "testcase", "검증 버튼", "🔍 검증하기");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.validation.status", "testcase", "검증 중 상태", "검증 중...");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.success",
+        "testcase",
+        "가져오기 성공 메시지",
+        "✅ Import 완료: {count}개 테스트케이스가 추가되었습니다.");
+    createTranslationKeyIfNotExists(
+        "testcase.io.status.importing", "testcase", "가져오는 중 상태", "가져오는 중...");
+    createTranslationKeyIfNotExists(
+        "testcase.io.button.import", "testcase", "가져오기 실행 버튼", "가져오기 실행");
+    createTranslationKeyIfNotExists(
+        "testcase.io.button.import.count", "testcase", "행 개수 포함 가져오기 버튼", "가져오기 실행 ({count}개)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.button.reimport", "testcase", "다시 가져오기 버튼", "다시 가져오기");
+
+    // Export 관련
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.format.label", "testcase", "내보내기 형식 선택 안내", "1. 내보내기 형식 선택");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.success.google",
+        "testcase",
+        "구글 시트 내보내기 성공",
+        "Google Sheets에 내보내기 완료!");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.success.file", "testcase", "파일 내보내기 성공", "파일 다운로드가 시작되었습니다.");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.tip",
+        "testcase",
+        "내보내기 팁",
+        "💡 내보낸 파일은 다시 Import 가능한 형식으로 생성됩니다. (라운드트립 호환)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.status.exporting", "testcase", "내보내는 중 상태", "내보내는 중...");
+    createTranslationKeyIfNotExists("testcase.io.button.export", "testcase", "내보내기 실행 버튼", "내보내기");
+
+    // Google Sheets 관련 (Import/Export 공통)
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.connect.label", "testcase", "구글 시트 연결 안내", "2. Google Sheets 연결");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.config.label", "testcase", "구글 시트 설정 안내", "2. Google Sheets 설정");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.url.label", "testcase", "구글 시트 URL 라벨", "Google Sheets URL 또는 ID");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.url.placeholder",
+        "testcase",
+        "구글 시트 URL 플레이스홀더",
+        "https://docs.google.com/spreadsheets/d/...");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.sheet.label", "testcase", "시트 이름 라벨", "시트 이름");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.url.required",
+        "testcase",
+        "구글 시트 URL 필수 오류",
+        "Google Sheets URL을 입력하세요");
+
+    // 검증 결과 패널 관련
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.summary", "testcase", "검증 결과 요약 제목", "검증 요약");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.totalRows", "testcase", "총 행 수 표시", "총 {count}행");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.validRows", "testcase", "유효 행 수 표시", "✅ 유효 {count}행");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.invalidRows", "testcase", "오류 행 수 표시", "❌ 오류 {count}행");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.errorList", "testcase", "오류 목록 제목", "오류 목록");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.preview", "testcase", "미리보기 제목", "미리보기 (최대 20행)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.errorMessage", "testcase", "오류 메시지 컬럼명", "오류 메시지");
+    createTranslationKeyIfNotExists("testcase.io.validation.steps", "testcase", "스텝 수 컬럼명", "스텝");
+    createTranslationKeyIfNotExists("testcase.tree.parentFolder", "testcase", "상위 폴더 라벨", "상위 폴더");
   }
 
   private void createTranslationKeyIfNotExists(

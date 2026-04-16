@@ -1843,6 +1843,59 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "An error occurred while saving settings. Please check the format.",
         createdBy);
+
+    createTranslationIfNotExists(
+        "google.config.error.jsonRequired",
+        languageCode,
+        "Please enter the JSON key content.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.success.save",
+        languageCode,
+        "Google Sheets settings have been saved successfully.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.confirm.delete",
+        languageCode,
+        "Are you sure you want to completely delete the Google integration settings? Related"
+            + " functions may be limited.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.success.delete",
+        languageCode,
+        "Google integration has been disconnected.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.error.deleteFailed",
+        languageCode,
+        "An error occurred while disconnecting.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.status.inactive", languageCode, "Inactive", createdBy);
+    createTranslationIfNotExists(
+        "google.config.noConfigDesc",
+        languageCode,
+        "To use the test case export feature, please enter the Google service account key content"
+            + " below.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.form.updateTitle", languageCode, "Update Credentials", createdBy);
+    createTranslationIfNotExists(
+        "google.config.form.registerTitle", languageCode, "Register New Credentials", createdBy);
+    createTranslationIfNotExists(
+        "google.config.button.saving", languageCode, "Saving...", createdBy);
+    createTranslationIfNotExists(
+        "google.config.guide.footer",
+        languageCode,
+        "* For a detailed guide, please refer to the docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md file"
+            + " in the project root.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.guide.openButton",
+        languageCode,
+        "Open Detailed Guide in New Window",
+        createdBy);
+
     createTranslationIfNotExists(
         "google.config.placeholder",
         languageCode,
@@ -1875,16 +1928,126 @@ public class EnglishTestCaseAndAutomationTranslations {
         "3. Copy the contents of the downloaded JSON file and paste it into the field above.",
         createdBy);
     createTranslationIfNotExists(
-        "google.guide.step4",
-        languageCode,
-        "4. (Important) Click the 'Share' button in binary Google Sheets file you want to export"
-            + " to.",
-        createdBy);
-    createTranslationIfNotExists(
         "google.guide.step5",
         languageCode,
         "5. Add the Service Account email address (client_email in JSON) with 'Editor' permission.",
         createdBy);
+
+    // Import / Export
+    createTranslationIfNotExists(
+        "testcase.io.title", languageCode, "TestCase Import / Export", createdBy);
+    createTranslationIfNotExists("testcase.io.tab.import", languageCode, "📥 Import", createdBy);
+    createTranslationIfNotExists("testcase.io.tab.export", languageCode, "📤 Export", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.import.format.label", languageCode, "1. Select Format", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.label", languageCode, "2. Sample File", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.download", languageCode, "Download {filename}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.desc",
+        languageCode,
+        "Please refer to the sample and upload after entering data",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.upload.label", languageCode, "3. File Upload", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.dropzone.prompt",
+        languageCode,
+        "Drag and drop a file here or click to select",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.dropzone.accept",
+        languageCode,
+        "Supported formats: {formats}",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.validation.label", languageCode, "4. Data Validation", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.validation.button", languageCode, "🔍 Validate", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.validation.status", languageCode, "Validating...", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.success",
+        languageCode,
+        "✅ Import Complete: {count} test cases have been added.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.status.importing", languageCode, "Importing...", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.button.import", languageCode, "Execute Import", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.button.import.count", languageCode, "Execute Import ({count})", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.button.reimport", languageCode, "Import Again", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.export.format.label", languageCode, "1. Select Export Format", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.success.google",
+        languageCode,
+        "Export to Google Sheets Complete!",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.success.file", languageCode, "File download has started.", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.tip",
+        languageCode,
+        "💡 Exported files are created in an importable format. (Round-trip compatibility)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.status.exporting", languageCode, "Exporting...", createdBy);
+    createTranslationIfNotExists("testcase.io.button.export", languageCode, "Export", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.google.connect.label", languageCode, "2. Google Sheets Connection", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.config.label",
+        languageCode,
+        "2. Google Sheets Configuration",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.label", languageCode, "Google Sheets URL or ID", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.placeholder",
+        languageCode,
+        "https://docs.google.com/spreadsheets/d/...",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.sheet.label", languageCode, "Sheet Name", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.required",
+        languageCode,
+        "Please enter Google Sheets URL",
+        createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.validation.summary", languageCode, "Validation Summary", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.totalRows", languageCode, "Total {count} rows", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.validRows", languageCode, "✅ Valid {count} rows", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.invalidRows", languageCode, "❌ Invalid {count} rows", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.errorList", languageCode, "Error List", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.preview", languageCode, "Preview (max 20 rows)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.errorMessage", languageCode, "Error Message", createdBy);
+    createTranslationIfNotExists("testcase.io.validation.steps", languageCode, "Steps", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.parentFolder", languageCode, "Parent Folder", createdBy);
+
+    // Common
+    createTranslationIfNotExists("common.excel", languageCode, "Excel (.xlsx)", createdBy);
+    createTranslationIfNotExists("common.googleSheets", languageCode, "Google Sheets", createdBy);
+    createTranslationIfNotExists("common.field", languageCode, "Field", createdBy);
+    createTranslationIfNotExists("common.value", languageCode, "Value", createdBy);
+    createTranslationIfNotExists("common.emptyValue", languageCode, "Empty", createdBy);
+    createTranslationIfNotExists("common.spreadsheet.row", languageCode, "Row", createdBy);
+    createTranslationIfNotExists("common.settings", languageCode, "Go to Settings", createdBy);
   }
 
   private void createTranslationIfNotExists(
