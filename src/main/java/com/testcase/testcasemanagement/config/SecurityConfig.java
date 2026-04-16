@@ -104,6 +104,8 @@ public class SecurityConfig {
                     .permitAll() // 임시 토큰 → JWT 교환 (1회성)
                     .requestMatchers("/api/email-verification/**")
                     .permitAll() // 이메일 인증 API 허용
+                    .requestMatchers("/api/guides/**")
+                    .permitAll() // 가이드 API 허용
                     .requestMatchers("/h2-console/**")
                     .permitAll() // H2 콘솔 허용
                     // 액추에이터 엔드포인트 허용 (루트, 헬스, 스케줄러)
@@ -161,7 +163,9 @@ public class SecurityConfig {
                         "/jira-redirect",
                         "/jira-redirect/**",
                         "/verify-email",
-                        "/verify-email/**")
+                        "/verify-email/**",
+                        "/guides",
+                        "/guides/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

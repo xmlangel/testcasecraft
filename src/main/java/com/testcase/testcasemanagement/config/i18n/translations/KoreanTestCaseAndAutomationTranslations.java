@@ -1307,6 +1307,60 @@ public class KoreanTestCaseAndAutomationTranslations {
         "testResult.export.pdf.orientation.portrait", languageCode, "세로 (Portrait)", createdBy);
     createTranslationIfNotExists(
         "testResult.export.pdf.orientation.landscape", languageCode, "가로 (Landscape)", createdBy);
+
+    // Google Config
+    createTranslationIfNotExists(
+        "header.userMenu.googleConfig", languageCode, "Google Sheets 설정", createdBy);
+    createTranslationIfNotExists(
+        "google.config.title", languageCode, "Google Sheets 연동 관리", createdBy);
+    createTranslationIfNotExists("google.config.status", languageCode, "연동 상태", createdBy);
+    createTranslationIfNotExists("google.config.disconnect", languageCode, "연동 해제", createdBy);
+    createTranslationIfNotExists(
+        "google.config.email", languageCode, "연결된 서비스 계정 (Email)", createdBy);
+    createTranslationIfNotExists("google.config.projectId", languageCode, "프로젝트 ID", createdBy);
+    createTranslationIfNotExists("google.config.lastUpdated", languageCode, "최종 업데이트", createdBy);
+    createTranslationIfNotExists("google.config.active", languageCode, "활성화됨", createdBy);
+    createTranslationIfNotExists(
+        "google.config.noConfig", languageCode, "현재 등록된 구글 인증 정보가 없습니다.", createdBy);
+    createTranslationIfNotExists("google.config.inputTitle", languageCode, "새 인증 정보 등록", createdBy);
+    createTranslationIfNotExists(
+        "google.config.inputDesc",
+        languageCode,
+        "Google Cloud Console에서 다운로드한 서비스 계정 키(JSON) 파일의 전체 내용을 아래에 붙여넣으세요.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.placeholder",
+        languageCode,
+        "{ \"type\": \"service_account\", ... }",
+        createdBy);
+    createTranslationIfNotExists("google.config.save", languageCode, "연동 설정 저장", createdBy);
+    createTranslationIfNotExists("google.config.update", languageCode, "설정 업데이트", createdBy);
+
+    // Google Guide
+    createTranslationIfNotExists(
+        "google.guide.title", languageCode, "Google 서비스 계정 생성 및 설정 방법", createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step1",
+        languageCode,
+        "1. Google Cloud Console에서 프로젝트를 생성하고 'Google Sheets API'를 활성화합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step2",
+        languageCode,
+        "2. '서비스 계정'을 생성하고 JSON 형식의 키를 발급받아 다운로드합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step3",
+        languageCode,
+        "3. 다운로드한 JSON 파일의 내용을 복사하여 위의 입력란에 붙여넣고 저장합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step4", languageCode, "4. (중요) 내보낼 대상 구글 시트 파일에서 '공유' 버튼을 클릭합니다.", createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step5",
+        languageCode,
+        "5. 서비스 계정의 이메일 주소(JSON 내 client_email)를 '편집자' 권한으로 추가하여 저장합니다.",
+        createdBy);
   }
 
   private void createTranslationIfNotExists(

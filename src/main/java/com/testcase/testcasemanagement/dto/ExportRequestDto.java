@@ -10,18 +10,43 @@ public class ExportRequestDto {
 
   public ExportRequestDto() {}
 
-  public String getProjectId() { return projectId; }
-  public void setProjectId(String projectId) { this.projectId = projectId; }
+  public String getProjectId() {
+    return projectId;
+  }
 
-  public String getFormat() { return format; }
-  public void setFormat(String format) { this.format = format; }
+  public void setProjectId(String projectId) {
+    this.projectId = projectId;
+  }
 
-  public boolean isIncludeHierarchy() { return includeHierarchy; }
-  public void setIncludeHierarchy(boolean includeHierarchy) { this.includeHierarchy = includeHierarchy; }
+  public String getFormat() {
+    return format;
+  }
 
-  public String getGoogleSheetId() { return googleSheetId; }
-  public void setGoogleSheetId(String googleSheetId) { this.googleSheetId = googleSheetId; }
+  public void setFormat(String format) {
+    this.format = format;
+  }
 
-  public String getSheetName() { return sheetName; }
-  public void setSheetName(String sheetName) { this.sheetName = sheetName; }
+  public boolean isIncludeHierarchy() {
+    return includeHierarchy;
+  }
+
+  public void setIncludeHierarchy(boolean includeHierarchy) {
+    this.includeHierarchy = includeHierarchy;
+  }
+
+  public String getGoogleSheetId() {
+    return googleSheetId;
+  }
+
+  public void setGoogleSheetId(String googleSheetId) {
+    this.googleSheetId = googleSheetId;
+  }
+
+  public String getSheetName() {
+    return sheetName;
+  }
+
+  public void setSheetName(String sheetName) {
+    this.sheetName = sheetName;
+  }
 }

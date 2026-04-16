@@ -70,6 +70,8 @@ import SchedulerManagement from "./components/admin/SchedulerManagement.jsx";
 import EmailVerification from "./components/EmailVerification.jsx";
 import SessionExpiryDialog from "./components/common/SessionExpiryDialog.jsx";
 import JiraIssueRedirect from "./components/JiraIntegration/JiraIssueRedirect.jsx";
+import GoogleConfigManager from "./components/Settings/GoogleConfigManager.jsx";
+import GuideViewer from "./components/Settings/GuideViewer.jsx";
 
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -916,6 +918,14 @@ const AppContent = () => {
               >
                 {t("header.userMenu.profile")}
               </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  navigate("/google-config");
+                  handleUserMenuClose();
+                }}
+              >
+                {t("header.userMenu.googleConfig", "Google Sheets 설정")}
+              </MenuItem>
               <MenuItem onClick={handleLogout} data-testid="logout-menu-item">
                 {t("header.userMenu.logout")}
               </MenuItem>
@@ -1400,6 +1410,19 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/google-config"
+          element={
+            <ProtectedRoute>
+              <Paper
+                sx={{ p: 4, minHeight: "calc(100vh - 64px)", borderRadius: 0 }}
+              >
+                <GoogleConfigManager />
+              </Paper>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/guides/:guideName" element={<GuideViewer />} />
       </Routes>
 
       {/* 서버 시간 표시 */}

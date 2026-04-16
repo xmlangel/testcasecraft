@@ -25,20 +25,45 @@ public class ImportValidationResultDto {
     this.previewData = previewData;
   }
 
-  public int getTotalRows() { return totalRows; }
-  public void setTotalRows(int totalRows) { this.totalRows = totalRows; }
+  public int getTotalRows() {
+    return totalRows;
+  }
 
-  public int getValidRows() { return validRows; }
-  public void setValidRows(int validRows) { this.validRows = validRows; }
+  public void setTotalRows(int totalRows) {
+    this.totalRows = totalRows;
+  }
 
-  public int getInvalidRows() { return invalidRows; }
-  public void setInvalidRows(int invalidRows) { this.invalidRows = invalidRows; }
+  public int getValidRows() {
+    return validRows;
+  }
 
-  public List<ValidationError> getErrors() { return errors; }
-  public void setErrors(List<ValidationError> errors) { this.errors = errors; }
+  public void setValidRows(int validRows) {
+    this.validRows = validRows;
+  }
 
-  public List<PreviewRow> getPreviewData() { return previewData; }
-  public void setPreviewData(List<PreviewRow> previewData) { this.previewData = previewData; }
+  public int getInvalidRows() {
+    return invalidRows;
+  }
+
+  public void setInvalidRows(int invalidRows) {
+    this.invalidRows = invalidRows;
+  }
+
+  public List<ValidationError> getErrors() {
+    return errors;
+  }
+
+  public void setErrors(List<ValidationError> errors) {
+    this.errors = errors;
+  }
+
+  public List<PreviewRow> getPreviewData() {
+    return previewData;
+  }
+
+  public void setPreviewData(List<PreviewRow> previewData) {
+    this.previewData = previewData;
+  }
 
   public static class ValidationError {
     private int row;
@@ -55,17 +80,37 @@ public class ImportValidationResultDto {
       this.value = value;
     }
 
-    public int getRow() { return row; }
-    public void setRow(int row) { this.row = row; }
+    public int getRow() {
+      return row;
+    }
 
-    public String getField() { return field; }
-    public void setField(String field) { this.field = field; }
+    public void setRow(int row) {
+      this.row = row;
+    }
 
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
+    public String getField() {
+      return field;
+    }
 
-    public String getValue() { return value; }
-    public void setValue(String value) { this.value = value; }
+    public void setField(String field) {
+      this.field = field;
+    }
+
+    public String getMessage() {
+      return message;
+    }
+
+    public void setMessage(String message) {
+      this.message = message;
+    }
+
+    public String getValue() {
+      return value;
+    }
+
+    public void setValue(String value) {
+      this.value = value;
+    }
   }
 
   public static class PreviewRow {
@@ -79,25 +124,60 @@ public class ImportValidationResultDto {
 
     public PreviewRow() {}
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public String getType() {
+      return type;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setType(String type) {
+      this.type = type;
+    }
 
-    public String getParentPath() { return parentPath; }
-    public void setParentPath(String parentPath) { this.parentPath = parentPath; }
+    public String getName() {
+      return name;
+    }
 
-    public String getPriority() { return priority; }
-    public void setPriority(String priority) { this.priority = priority; }
+    public void setName(String name) {
+      this.name = name;
+    }
 
-    public String getTags() { return tags; }
-    public void setTags(String tags) { this.tags = tags; }
+    public String getParentPath() {
+      return parentPath;
+    }
 
-    public int getStepsCount() { return stepsCount; }
-    public void setStepsCount(int stepsCount) { this.stepsCount = stepsCount; }
+    public void setParentPath(String parentPath) {
+      this.parentPath = parentPath;
+    }
 
-    public boolean isValid() { return valid; }
-    public void setValid(boolean valid) { this.valid = valid; }
+    public String getPriority() {
+      return priority;
+    }
+
+    public void setPriority(String priority) {
+      this.priority = priority;
+    }
+
+    public String getTags() {
+      return tags;
+    }
+
+    public void setTags(String tags) {
+      this.tags = tags;
+    }
+
+    public int getStepsCount() {
+      return stepsCount;
+    }
+
+    public void setStepsCount(int stepsCount) {
+      this.stepsCount = stepsCount;
+    }
+
+    public boolean isValid() {
+      return valid;
+    }
+
+    public void setValid(boolean valid) {
+      this.valid = valid;
+    }
   }
 }

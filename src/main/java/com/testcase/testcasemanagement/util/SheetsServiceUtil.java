@@ -18,8 +18,18 @@ public class SheetsServiceUtil {
   private static final String CREDENTIALS_FILE_PATH = "src/main/resources/google.json";
 
   public static Sheets getSheetsService() throws IOException, GeneralSecurityException {
+    return getSheetsServiceFromStream(new FileInputStream(CREDENTIALS_FILE_PATH));
+  }
+
+  public static Sheets getSheetsServiceFromContent(String jsonKeyContent)
+      throws IOException, GeneralSecurityException {
+    return getSheetsServiceFromStream(new java.io.ByteArrayInputStream(jsonKeyContent.getBytes()));
+  }
+
+  private static Sheets getSheetsServiceFromStream(java.io.InputStream stream)
+      throws IOException, GeneralSecurityException {
     GoogleCredentials credentials =
-        GoogleCredentials.fromStream(new FileInputStream(CREDENTIALS_FILE_PATH))
+        GoogleCredentials.fromStream(stream)
             .createScoped(Collections.singleton(SheetsScopes.SPREADSHEETS));
     return new Sheets.Builder(
             GoogleNetHttpTransport.newTrustedTransport(),

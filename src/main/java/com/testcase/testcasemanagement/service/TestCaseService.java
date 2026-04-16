@@ -11,6 +11,8 @@ import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ClearValuesRequest;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import com.testcase.testcasemanagement.dto.ImportValidationResultDto;
 import com.testcase.testcasemanagement.dto.TestCaseDto;
 import com.testcase.testcasemanagement.event.TestCaseVersionEvent;
@@ -28,14 +30,11 @@ import com.testcase.testcasemanagement.util.CsvUtils;
 import com.testcase.testcasemanagement.util.SheetsServiceUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
@@ -66,6 +65,7 @@ public class TestCaseService {
   private final com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository
       displayIdHistoryRepository;
   private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
+  private final GoogleConfigService googleConfigService;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -79,7 +79,8 @@ public class TestCaseService {
       TestCaseAttachmentRepository testCaseAttachmentRepository,
       com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository
           displayIdHistoryRepository,
-      TestCaseFileStorageService fileStorageService) {
+      TestCaseFileStorageService fileStorageService,
+      GoogleConfigService googleConfigService) {
     this.testCaseRepository = testCaseRepository;
     this.displayIdService = displayIdService;
     this.eventPublisher = eventPublisher;
@@ -87,6 +88,7 @@ public class TestCaseService {
     this.testCaseAttachmentRepository = testCaseAttachmentRepository;
     this.displayIdHistoryRepository = displayIdHistoryRepository;
     this.fileStorageService = fileStorageService;
+    this.googleConfigService = googleConfigService;
   }
 
   public List<TestCase> getAllTestCases() {
@@ -1790,8 +1792,16 @@ public class TestCaseService {
   // ==================== STANDARD FORMAT IMPORT / EXPORT ====================
 
   private static final String[] STANDARD_EXPORT_HEADERS = {
-    "type", "name", "parentPath", "description", "preCondition", "postCondition",
-    "priority", "executionType", "isAutomated", "tags"
+    "type",
+    "name",
+    "parentPath",
+    "description",
+    "preCondition",
+    "postCondition",
+    "priority",
+    "executionType",
+    "isAutomated",
+    "tags"
   };
   private static final Set<String> VALID_TYPES = Set.of("testcase", "folder");
   private static final Set<String> VALID_PRIORITIES = Set.of("HIGH", "MEDIUM", "LOW");
@@ -1800,12 +1810,12 @@ public class TestCaseService {
   public byte[] generateSampleCsv() throws IOException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     // UTF-8 BOM
-    bos.write(new byte[]{(byte)0xEF, (byte)0xBB, (byte)0xBF});
+    bos.write(new byte[] {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});
     try (OutputStreamWriter osw = new OutputStreamWriter(bos, StandardCharsets.UTF_8);
-         CSVWriter writer = new CSVWriter(osw)) {
+        CSVWriter writer = new CSVWriter(osw)) {
       // header
       List<String> headers = new ArrayList<>(Arrays.asList(STANDARD_EXPORT_HEADERS));
-      headers.addAll(List.of("step1_action","step1_expected","step2_action","step2_expected"));
+      headers.addAll(List.of("step1_action", "step1_expected", "step2_action", "step2_expected"));
       writer.writeNext(headers.toArray(new String[0]));
       // sample rows
       for (String[] row : buildSampleDataRows()) {
@@ -1820,7 +1830,7 @@ public class TestCaseService {
     try (Workbook wb = new XSSFWorkbook()) {
       Sheet sheet = wb.createSheet("TestCases");
       List<String> headers = new ArrayList<>(Arrays.asList(STANDARD_EXPORT_HEADERS));
-      headers.addAll(List.of("step1_action","step1_expected","step2_action","step2_expected"));
+      headers.addAll(List.of("step1_action", "step1_expected", "step2_action", "step2_expected"));
       Row headerRow = sheet.createRow(0);
       for (int i = 0; i < headers.size(); i++) {
         Cell cell = headerRow.createCell(i);
@@ -1875,12 +1885,20 @@ public class TestCaseService {
     tc1.put("executionType", "Manual");
     tc1.put("isAutomated", false);
     ArrayNode tags1 = mapper.createArrayNode();
-    tags1.add("smoke"); tags1.add("login");
+    tags1.add("smoke");
+    tags1.add("login");
     tc1.set("tags", tags1);
     ArrayNode steps1 = mapper.createArrayNode();
-    ObjectNode s1a = mapper.createObjectNode(); s1a.put("stepNumber",1); s1a.put("description","ID/PW 입력"); s1a.put("expectedResult","입력 완료");
-    ObjectNode s1b = mapper.createObjectNode(); s1b.put("stepNumber",2); s1b.put("description","로그인 버튼 클릭"); s1b.put("expectedResult","대시보드 이동");
-    steps1.add(s1a); steps1.add(s1b);
+    ObjectNode s1a = mapper.createObjectNode();
+    s1a.put("stepNumber", 1);
+    s1a.put("description", "ID/PW 입력");
+    s1a.put("expectedResult", "입력 완료");
+    ObjectNode s1b = mapper.createObjectNode();
+    s1b.put("stepNumber", 2);
+    s1b.put("description", "로그인 버튼 클릭");
+    s1b.put("expectedResult", "대시보드 이동");
+    steps1.add(s1a);
+    steps1.add(s1b);
     tc1.set("steps", steps1);
     testCases.add(tc1);
 
@@ -1896,12 +1914,20 @@ public class TestCaseService {
     tc2.put("executionType", "Manual");
     tc2.put("isAutomated", false);
     ArrayNode tags2 = mapper.createArrayNode();
-    tags2.add("login"); tags2.add("negative");
+    tags2.add("login");
+    tags2.add("negative");
     tc2.set("tags", tags2);
     ArrayNode steps2 = mapper.createArrayNode();
-    ObjectNode s2a = mapper.createObjectNode(); s2a.put("stepNumber",1); s2a.put("description","ID 입력 후 잘못된 PW 입력"); s2a.put("expectedResult","입력 완료");
-    ObjectNode s2b = mapper.createObjectNode(); s2b.put("stepNumber",2); s2b.put("description","로그인 버튼 클릭"); s2b.put("expectedResult","오류 메시지 출력");
-    steps2.add(s2a); steps2.add(s2b);
+    ObjectNode s2a = mapper.createObjectNode();
+    s2a.put("stepNumber", 1);
+    s2a.put("description", "ID 입력 후 잘못된 PW 입력");
+    s2a.put("expectedResult", "입력 완료");
+    ObjectNode s2b = mapper.createObjectNode();
+    s2b.put("stepNumber", 2);
+    s2b.put("description", "로그인 버튼 클릭");
+    s2b.put("expectedResult", "오류 메시지 출력");
+    steps2.add(s2a);
+    steps2.add(s2b);
     tc2.set("steps", steps2);
     testCases.add(tc2);
 
@@ -1915,18 +1941,51 @@ public class TestCaseService {
 
   private List<String[]> buildSampleDataRows() {
     return Arrays.asList(
-      new String[]{"folder","로그인 테스트","","","","","MEDIUM","Manual","false","","","","",""},
-      new String[]{"testcase","정상 로그인","로그인 테스트","유효한 자격증명으로 로그인","계정이 존재함","대시보드 표시","HIGH","Manual","false","smoke;login","ID/PW 입력","입력 완료","로그인 버튼 클릭","대시보드 이동"},
-      new String[]{"testcase","잘못된 비밀번호","로그인 테스트","잘못된 PW로 로그인 시도","계정이 존재함","오류 메시지 표시","MEDIUM","Manual","false","login;negative","ID 입력 후 잘못된 PW 입력","입력 완료","로그인 버튼 클릭","오류 메시지 출력"}
-    );
+        new String[] {
+          "folder", "로그인 테스트", "", "", "", "", "MEDIUM", "Manual", "false", "", "", "", "", ""
+        },
+        new String[] {
+          "testcase",
+          "정상 로그인",
+          "로그인 테스트",
+          "유효한 자격증명으로 로그인",
+          "계정이 존재함",
+          "대시보드 표시",
+          "HIGH",
+          "Manual",
+          "false",
+          "smoke;login",
+          "ID/PW 입력",
+          "입력 완료",
+          "로그인 버튼 클릭",
+          "대시보드 이동"
+        },
+        new String[] {
+          "testcase",
+          "잘못된 비밀번호",
+          "로그인 테스트",
+          "잘못된 PW로 로그인 시도",
+          "계정이 존재함",
+          "오류 메시지 표시",
+          "MEDIUM",
+          "Manual",
+          "false",
+          "login;negative",
+          "ID 입력 후 잘못된 PW 입력",
+          "입력 완료",
+          "로그인 버튼 클릭",
+          "오류 메시지 출력"
+        });
   }
 
   // -------- 표준 형식 CSV Import --------
 
   @Transactional
   public List<TestCase> importFromStandardCsv(InputStream is, String projectId) {
-    Project project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid project ID: " + projectId));
+    Project project =
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid project ID: " + projectId));
     List<Map<String, String>> rows = parseStandardCsv(is);
     return processStandardRows(rows, project);
   }
@@ -1949,7 +2008,8 @@ public class TestCaseService {
         rows.add(row);
       }
     } catch (Exception e) {
-      throw new CsvImportException("CSV 파싱 오류: " + e.getMessage(),
+      throw new CsvImportException(
+          "CSV 파싱 오류: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
     return rows;
@@ -1959,8 +2019,10 @@ public class TestCaseService {
 
   @Transactional
   public List<TestCase> importFromStandardExcel(InputStream is, String projectId) {
-    Project project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid project ID: " + projectId));
+    Project project =
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid project ID: " + projectId));
     // 기존 parseExcel 재사용 (빈 CsvMappingConfig 사용)
     CsvMappingConfig dummyConfig = new CsvMappingConfig();
     List<Map<String, String>> rows = parseExcelRaw(is);
@@ -1989,7 +2051,8 @@ public class TestCaseService {
         rows.add(rowMap);
       }
     } catch (Exception e) {
-      throw new CsvImportException("Excel 파싱 오류: " + e.getMessage(),
+      throw new CsvImportException(
+          "Excel 파싱 오류: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
     return rows;
@@ -1999,14 +2062,17 @@ public class TestCaseService {
 
   @Transactional
   public List<TestCase> importFromJson(InputStream is, String projectId) {
-    Project project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid project ID: " + projectId));
+    Project project =
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid project ID: " + projectId));
     try {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode root = mapper.readTree(is);
       JsonNode testCasesNode = root.get("testCases");
       if (testCasesNode == null || !testCasesNode.isArray()) {
-        throw new CsvImportException("JSON 형식 오류: testCases 배열이 없습니다",
+        throw new CsvImportException(
+            "JSON 형식 오류: testCases 배열이 없습니다",
             Collections.singletonList(Map.of("error", "testCases array missing")));
       }
       // JSON → List<Map<String,String>> 변환
@@ -2045,7 +2111,8 @@ public class TestCaseService {
     } catch (CsvImportException e) {
       throw e;
     } catch (Exception e) {
-      throw new CsvImportException("JSON 처리 오류: " + e.getMessage(),
+      throw new CsvImportException(
+          "JSON 처리 오류: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
   }
@@ -2066,7 +2133,8 @@ public class TestCaseService {
 
     // 1단계: 프로젝트 내 기존 폴더 목록 조회 (name → id 맵)
     Map<String, String> folderNameToId = new LinkedHashMap<>();
-    testCaseRepository.findByProjectIdAndType(projectId, "folder")
+    testCaseRepository
+        .findByProjectIdAndType(projectId, "folder")
         .forEach(f -> folderNameToId.put(f.getName(), f.getId()));
 
     // 2단계: 파일 내 folder 항목 먼저 처리
@@ -2077,7 +2145,10 @@ public class TestCaseService {
       if (!"folder".equals(type)) continue;
       try {
         String name = row.getOrDefault("name", "").trim();
-        if (name.isEmpty()) { errors.add(Map.of("row", i+2, "message", "폴더명이 비어있습니다")); continue; }
+        if (name.isEmpty()) {
+          errors.add(Map.of("row", i + 2, "message", "폴더명이 비어있습니다"));
+          continue;
+        }
         if (folderNameToId.containsKey(name)) continue; // 이미 존재
 
         TestCase folder = new TestCase();
@@ -2097,7 +2168,7 @@ public class TestCaseService {
         folderNameToId.put(name, folder.getId());
         saved.add(folder);
       } catch (Exception e) {
-        errors.add(Map.of("row", i+2, "message", "폴더 생성 실패: " + e.getMessage()));
+        errors.add(Map.of("row", i + 2, "message", "폴더 생성 실패: " + e.getMessage()));
       }
     }
 
@@ -2109,7 +2180,10 @@ public class TestCaseService {
       if ("folder".equals(type)) continue;
       try {
         String name = row.getOrDefault("name", "").trim();
-        if (name.isEmpty()) { errors.add(Map.of("row", i+2, "message", "이름이 비어있습니다")); continue; }
+        if (name.isEmpty()) {
+          errors.add(Map.of("row", i + 2, "message", "이름이 비어있습니다"));
+          continue;
+        }
 
         String parentPath = row.getOrDefault("parentPath", "").trim();
         String parentId = null;
@@ -2156,7 +2230,7 @@ public class TestCaseService {
         testCaseRepository.save(tc);
         saved.add(tc);
       } catch (Exception e) {
-        errors.add(Map.of("row", i+2, "message", "테스트케이스 생성 실패: " + e.getMessage()));
+        errors.add(Map.of("row", i + 2, "message", "테스트케이스 생성 실패: " + e.getMessage()));
       }
     }
 
@@ -2198,16 +2272,26 @@ public class TestCaseService {
     List<Map<String, String>> rows;
     try {
       switch (format.toLowerCase()) {
-        case "csv":   rows = parseStandardCsv(is); break;
-        case "excel": rows = parseExcelRaw(is); break;
-        case "json":  rows = parseJsonToRowMaps(is); break;
-        default: throw new IllegalArgumentException("지원하지 않는 형식: " + format);
+        case "csv":
+          rows = parseStandardCsv(is);
+          break;
+        case "excel":
+          rows = parseExcelRaw(is);
+          break;
+        case "json":
+          rows = parseJsonToRowMaps(is);
+          break;
+        default:
+          throw new IllegalArgumentException("지원하지 않는 형식: " + format);
       }
     } catch (CsvImportException e) {
       ImportValidationResultDto result = new ImportValidationResultDto();
-      result.setTotalRows(0); result.setValidRows(0); result.setInvalidRows(0);
-      result.setErrors(Collections.singletonList(
-          new ImportValidationResultDto.ValidationError(0, "file", e.getMessage(), "")));
+      result.setTotalRows(0);
+      result.setValidRows(0);
+      result.setInvalidRows(0);
+      result.setErrors(
+          Collections.singletonList(
+              new ImportValidationResultDto.ValidationError(0, "file", e.getMessage(), "")));
       result.setPreviewData(Collections.emptyList());
       return result;
     }
@@ -2226,15 +2310,20 @@ public class TestCaseService {
       String priority = row.getOrDefault("priority", "").trim().toUpperCase();
 
       if (name.isEmpty()) {
-        errors.add(new ImportValidationResultDto.ValidationError(rowNum, "name", "이름은 필수 항목입니다", name));
+        errors.add(
+            new ImportValidationResultDto.ValidationError(rowNum, "name", "이름은 필수 항목입니다", name));
         rowValid = false;
       }
       if (!type.isEmpty() && !VALID_TYPES.contains(type)) {
-        errors.add(new ImportValidationResultDto.ValidationError(rowNum, "type", "유효하지 않은 타입 (folder 또는 testcase)", type));
+        errors.add(
+            new ImportValidationResultDto.ValidationError(
+                rowNum, "type", "유효하지 않은 타입 (folder 또는 testcase)", type));
         rowValid = false;
       }
       if (!priority.isEmpty() && !VALID_PRIORITIES.contains(priority)) {
-        errors.add(new ImportValidationResultDto.ValidationError(rowNum, "priority", "유효하지 않은 우선순위 (HIGH, MEDIUM, LOW)", priority));
+        errors.add(
+            new ImportValidationResultDto.ValidationError(
+                rowNum, "priority", "유효하지 않은 우선순위 (HIGH, MEDIUM, LOW)", priority));
         rowValid = false;
       }
 
@@ -2302,7 +2391,8 @@ public class TestCaseService {
         rows.add(row);
       }
     } catch (Exception e) {
-      throw new CsvImportException("JSON 파싱 오류: " + e.getMessage(),
+      throw new CsvImportException(
+          "JSON 파싱 오류: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
     return rows;
@@ -2314,12 +2404,16 @@ public class TestCaseService {
   public byte[] exportToCsvBytes(String projectId) throws IOException {
     List<TestCase> testCases = getTestCasesByProjectId(projectId);
     Map<String, String> idToName = buildIdToNameMap(testCases);
-    int maxSteps = testCases.stream().mapToInt(tc -> tc.getSteps() == null ? 0 : tc.getSteps().size()).max().orElse(0);
+    int maxSteps =
+        testCases.stream()
+            .mapToInt(tc -> tc.getSteps() == null ? 0 : tc.getSteps().size())
+            .max()
+            .orElse(0);
 
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    bos.write(new byte[]{(byte)0xEF, (byte)0xBB, (byte)0xBF});
+    bos.write(new byte[] {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});
     try (OutputStreamWriter osw = new OutputStreamWriter(bos, StandardCharsets.UTF_8);
-         CSVWriter writer = new CSVWriter(osw)) {
+        CSVWriter writer = new CSVWriter(osw)) {
       List<String> headers = buildExportHeaders(maxSteps);
       writer.writeNext(headers.toArray(new String[0]));
       for (TestCase tc : testCases) {
@@ -2333,7 +2427,11 @@ public class TestCaseService {
   public byte[] exportToExcelBytes(String projectId) throws IOException {
     List<TestCase> testCases = getTestCasesByProjectId(projectId);
     Map<String, String> idToName = buildIdToNameMap(testCases);
-    int maxSteps = testCases.stream().mapToInt(tc -> tc.getSteps() == null ? 0 : tc.getSteps().size()).max().orElse(0);
+    int maxSteps =
+        testCases.stream()
+            .mapToInt(tc -> tc.getSteps() == null ? 0 : tc.getSteps().size())
+            .max()
+            .orElse(0);
 
     try (Workbook wb = new XSSFWorkbook()) {
       Sheet sheet = wb.createSheet("TestCases");
@@ -2366,15 +2464,19 @@ public class TestCaseService {
     ObjectNode root = mapper.createObjectNode();
     root.put("version", "1.0");
     root.put("exportedAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-    root.put("projectCode", projectOpt.map(p -> p.getCode() != null ? p.getCode() : p.getName()).orElse("EXPORT"));
+    root.put(
+        "projectCode",
+        projectOpt.map(p -> p.getCode() != null ? p.getCode() : p.getName()).orElse("EXPORT"));
 
     ArrayNode arr = mapper.createArrayNode();
     for (TestCase tc : testCases) {
       ObjectNode node = mapper.createObjectNode();
       node.put("type", tc.getType() != null ? tc.getType() : "testcase");
       node.put("name", tc.getName());
-      String parentPath = tc.getParentId() != null ? idToName.getOrDefault(tc.getParentId(), "") : "";
-      if (parentPath.isEmpty()) node.putNull("parentPath"); else node.put("parentPath", parentPath);
+      String parentPath =
+          tc.getParentId() != null ? idToName.getOrDefault(tc.getParentId(), "") : "";
+      if (parentPath.isEmpty()) node.putNull("parentPath");
+      else node.put("parentPath", parentPath);
       node.put("description", tc.getDescription() != null ? tc.getDescription() : "");
       node.put("preCondition", tc.getPreCondition() != null ? tc.getPreCondition() : "");
       node.put("postCondition", tc.getPostCondition() != null ? tc.getPostCondition() : "");
@@ -2407,11 +2509,15 @@ public class TestCaseService {
 
   /** 프로젝트 테스트케이스 → Google Sheets export (표준 헤더) */
   @Transactional
-  public void exportToGoogleSheetByProject(String projectId, String spreadsheetId, String sheetName)
-      throws IOException, GeneralSecurityException {
+  public void exportToGoogleSheetByProject(
+      String projectId, String spreadsheetId, String sheetName, String userId) throws Exception {
     List<TestCase> testCases = getTestCasesByProjectId(projectId);
     Map<String, String> idToName = buildIdToNameMap(testCases);
-    int maxSteps = testCases.stream().mapToInt(tc -> tc.getSteps() == null ? 0 : tc.getSteps().size()).max().orElse(2);
+    int maxSteps =
+        testCases.stream()
+            .mapToInt(tc -> tc.getSteps() == null ? 0 : tc.getSteps().size())
+            .max()
+            .orElse(2);
 
     List<List<Object>> values = new ArrayList<>();
     values.add(new ArrayList<>(buildExportHeaders(maxSteps)));
@@ -2419,13 +2525,29 @@ public class TestCaseService {
       values.add(new ArrayList<>(Arrays.asList(buildExportRow(tc, idToName, maxSteps))));
     }
 
-    Sheets sheetsService = SheetsServiceUtil.getSheetsService();
-    sheetsService.spreadsheets().values()
-        .clear(spreadsheetId, sheetName, new ClearValuesRequest()).execute();
+    Sheets sheetsService;
+    Optional<com.testcase.testcasemanagement.model.GoogleConfig> configOpt =
+        googleConfigService.getConfigByUserId(userId);
+    if (configOpt.isPresent() && configOpt.get().getIsActive()) {
+      String decryptedKey = googleConfigService.getDecryptedKey(configOpt.get());
+      sheetsService = SheetsServiceUtil.getSheetsServiceFromContent(decryptedKey);
+    } else {
+      // 사용자 개별 설정이 없으면 기본 파일 시스템 설정 사용 시도
+      sheetsService = SheetsServiceUtil.getSheetsService();
+    }
+
+    sheetsService
+        .spreadsheets()
+        .values()
+        .clear(spreadsheetId, sheetName, new ClearValuesRequest())
+        .execute();
     ValueRange body = new ValueRange().setValues(values);
-    sheetsService.spreadsheets().values()
+    sheetsService
+        .spreadsheets()
+        .values()
         .update(spreadsheetId, sheetName + "!A1", body)
-        .setValueInputOption("RAW").execute();
+        .setValueInputOption("RAW")
+        .execute();
   }
 
   // Export 헬퍼
@@ -2456,7 +2578,8 @@ public class TestCaseService {
         row.add(steps.get(i).getDescription() != null ? steps.get(i).getDescription() : "");
         row.add(steps.get(i).getExpectedResult() != null ? steps.get(i).getExpectedResult() : "");
       } else {
-        row.add(""); row.add("");
+        row.add("");
+        row.add("");
       }
     }
     return row.toArray(new String[0]);
