@@ -123,14 +123,7 @@ const GoogleConfigManager = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: 900, mx: "auto", p: 3 }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <SettingsIcon sx={{ mr: 1, color: "primary.main" }} />
-        <Typography variant="h5" fontWeight="bold">
-          Google Sheets 연동 관리
-        </Typography>
-      </Box>
-
+    <Box sx={{ p: 1 }}>
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}

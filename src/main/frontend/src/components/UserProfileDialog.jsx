@@ -24,6 +24,7 @@ import JiraStatusIndicator from "./JiraIntegration/JiraStatusIndicator.jsx";
 import JiraConfigDialog from "./JiraSettings/JiraConfigDialog.jsx";
 import PasswordChangeForm from "./UserProfile/PasswordChangeForm.jsx";
 import ServiceApiKeyTab from "./UserProfile/ServiceApiKeyTab.jsx";
+import GoogleConfigManager from "./Settings/GoogleConfigManager.jsx";
 import { jiraService } from "../services/jiraService.js";
 import { LanguageSelector } from "./common/LanguageSelector.jsx";
 import { TimezoneSelector } from "./common/TimezoneSelector.jsx";
@@ -91,9 +92,8 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
     setVersionLoading(true);
     setVersionError(false);
     try {
-      const { default: authService } = await import(
-        "../services/authService.js"
-      );
+      const { default: authService } =
+        await import("../services/authService.js");
       const info = await authService.getVersionInfo();
       setVersionInfo(info);
     } catch (error) {
@@ -346,6 +346,9 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               <Tab label={t("profile.tabs.password", "비밀번호")} />
               <Tab label={t("profile.tabs.language", "언어 설정")} />
               <Tab label={t("profile.tabs.jira", "JIRA 설정")} />
+              <Tab
+                label={t("profile.tabs.googleConfig", "Google Sheets 설정")}
+              />
               <Tab label={t("profile.tabs.apiToken", "API 토큰")} />
             </Tabs>
           </Box>
@@ -706,8 +709,11 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               </Box>
             )}
 
+            {/* Google Sheets 설정 탭 */}
+            {tabValue === 4 && <GoogleConfigManager />}
+
             {/* API 토큰 탭 */}
-            {tabValue === 4 && <ServiceApiKeyTab />}
+            {tabValue === 5 && <ServiceApiKeyTab />}
 
             {/* 공통 에러/성공 메시지 */}
             {error && (
@@ -730,7 +736,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               {t("button.save", "저장")}
             </Button>
           )}
-          {tabValue === 4 && null}
+          {(tabValue === 4 || tabValue === 5) && null}
         </DialogActions>
       </Dialog>
       {/* JIRA 설정 다이얼로그 */}

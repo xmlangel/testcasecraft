@@ -1,5 +1,4 @@
-// src/main/frontend/src/api/guidesApi.js
-import axios from "axios";
+import apiService from "../services/apiService";
 
 const guidesApi = {
   /**
@@ -9,8 +8,8 @@ const guidesApi = {
    */
   getGuide: async (fileName) => {
     try {
-      const response = await axios.get(`/api/guides/${fileName}`);
-      return response.data;
+      const response = await apiService.get(`/api/guides/${fileName}`);
+      return await response.text();
     } catch (error) {
       console.error(`가이드 로딩 실패 (${fileName}):`, error);
       throw error;

@@ -23,8 +23,8 @@ public class GuideController {
   private static final String GUIDE_DIR = "docs/guide/";
 
   @Operation(summary = "가이드 문서 조회", description = "지정된 마크다운 가이드 파일의 내용을 읽어옵니다.")
-  @GetMapping(value = "/{fileName}", produces = MediaType.TEXT_MARKDOWN_VALUE + ";charset=UTF-8")
-  public ResponseEntity<String> getGuideContent(@PathVariable String fileName) {
+  @GetMapping(value = "/{fileName:.+}", produces = MediaType.TEXT_MARKDOWN_VALUE + ";charset=UTF-8")
+  public ResponseEntity<String> getGuideContent(@PathVariable(name = "fileName") String fileName) {
     try {
       // 보안 검증: 확장자 확인 및 경로 조작 방지
       if (!fileName.endsWith(".md")

@@ -503,6 +503,8 @@ public class EnglishOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists("profile.tabs.password", languageCode, "Password", createdBy);
     createTranslationIfNotExists(
         "profile.tabs.language", languageCode, "Language Settings", createdBy);
+    createTranslationIfNotExists(
+        "profile.tabs.googleConfig", languageCode, "Google Sheets Settings", createdBy);
     createTranslationIfNotExists("profile.tabs.appearance", languageCode, "Appearance", createdBy);
     createTranslationIfNotExists("profile.tabs.jira", languageCode, "JIRA Settings", createdBy);
     createTranslationIfNotExists("profile.form.username", languageCode, "Username", createdBy);
