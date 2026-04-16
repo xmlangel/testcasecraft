@@ -1465,7 +1465,15 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.io.google.sheet.label", languageCode, "시트 이름", createdBy);
     createTranslationIfNotExists(
-        "testcase.io.google.url.required", languageCode, "Google Sheets URL을 입력하세요", createdBy);
+        "testcase.io.import.url.required", languageCode, "Google Sheets URL을 입력하세요", createdBy);
+
+    // Export Formats labels
+    createTranslationIfNotExists(
+        "testcase.io.export.format.csv", languageCode, "CSV (가져오기 가능)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.format.excel", languageCode, "Excel (가져오기 가능)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.format.json", languageCode, "JSON (가져오기 가능)", createdBy);
 
     createTranslationIfNotExists(
         "testcase.io.validation.summary", languageCode, "검증 요약", createdBy);
