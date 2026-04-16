@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.testcase.testcasemanagement.dto.ExportRequestDto;
+import com.testcase.testcasemanagement.dto.ImportValidationResultDto;
 import com.testcase.testcasemanagement.dto.TestCaseDto;
 import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
@@ -22,8 +24,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -406,5 +411,201 @@ public class TestCaseController {
     }
 
     return ResponseEntity.notFound().build();
+  }
+
+  // ==================== 샘플 파일 다운로드 ====================
+
+  @Operation(summary = "샘플 CSV 다운로드", description = "테스트케이스 import용 샘플 CSV 파일을 다운로드합니다.")
+  @GetMapping("/sample/csv")
+  public ResponseEntity<byte[]> downloadSampleCsv() {
+    try {
+      byte[] data = testCaseService.generateSampleCsv();
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
+      headers.setContentDispositionFormData("attachment", "sample_testcases.csv");
+      return ResponseEntity.ok().headers(headers).body(data);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  @Operation(summary = "샘플 Excel 다운로드", description = "테스트케이스 import용 샘플 Excel 파일을 다운로드합니다.")
+  @GetMapping("/sample/excel")
+  public ResponseEntity<byte[]> downloadSampleExcel() {
+    try {
+      byte[] data = testCaseService.generateSampleExcel();
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(
+          MediaType.parseMediaType(
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+      headers.setContentDispositionFormData("attachment", "sample_testcases.xlsx");
+      return ResponseEntity.ok().headers(headers).body(data);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  @Operation(summary = "샘플 JSON 다운로드", description = "테스트케이스 import용 샘플 JSON 파일을 다운로드합니다.")
+  @GetMapping("/sample/json")
+  public ResponseEntity<byte[]> downloadSampleJson() {
+    try {
+      String json = testCaseService.generateSampleJson();
+      byte[] data = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_JSON);
+      headers.setContentDispositionFormData("attachment", "sample_testcases.json");
+      return ResponseEntity.ok().headers(headers).body(data);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  // ==================== 표준 형식 Import ====================
+
+  @Operation(summary = "CSV 표준 가져오기", description = "표준 형식 CSV 파일에서 테스트케이스를 가져옵니다 (샘플 파일과 동일 형식).")
+  @PostMapping("/import/csv-standard")
+  public ResponseEntity<?> importTestCasesStandardCsv(
+      @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
+    if (file.getSize() > 5 * 1024 * 1024) {
+      return ResponseEntity.badRequest().body(Map.of("error", "파일 크기가 5MB를 초과합니다"));
+    }
+    try {
+      List<TestCase> imported =
+          testCaseService.importFromStandardCsv(file.getInputStream(), projectId);
+      List<TestCaseDto> dtos =
+          imported.stream().map(TestCaseMapper::toDto).collect(Collectors.toList());
+      return ResponseEntity.ok(Map.of("importedCount", dtos.size(), "items", dtos));
+    } catch (TestCaseService.CsvImportException e) {
+      return ResponseEntity.badRequest()
+          .body(Map.of("error", e.getMessage(), "details", e.getErrors()));
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "처리 실패", "message", e.getMessage()));
+    }
+  }
+
+  @Operation(
+      summary = "Excel 표준 가져오기",
+      description = "표준 형식 Excel 파일에서 테스트케이스를 가져옵니다 (샘플 파일과 동일 형식).")
+  @PostMapping("/import/excel-standard")
+  public ResponseEntity<?> importTestCasesStandardExcel(
+      @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
+    if (file.getSize() > 10 * 1024 * 1024) {
+      return ResponseEntity.badRequest().body(Map.of("error", "파일 크기가 10MB를 초과합니다"));
+    }
+    try {
+      List<TestCase> imported =
+          testCaseService.importFromStandardExcel(file.getInputStream(), projectId);
+      List<TestCaseDto> dtos =
+          imported.stream().map(TestCaseMapper::toDto).collect(Collectors.toList());
+      return ResponseEntity.ok(Map.of("importedCount", dtos.size(), "items", dtos));
+    } catch (TestCaseService.CsvImportException e) {
+      return ResponseEntity.badRequest()
+          .body(Map.of("error", e.getMessage(), "details", e.getErrors()));
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "처리 실패", "message", e.getMessage()));
+    }
+  }
+
+  @Operation(summary = "JSON 가져오기", description = "표준 형식 JSON 파일에서 테스트케이스를 가져옵니다.")
+  @PostMapping("/import/json")
+  public ResponseEntity<?> importTestCasesJson(
+      @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
+    if (file.getSize() > 5 * 1024 * 1024) {
+      return ResponseEntity.badRequest().body(Map.of("error", "파일 크기가 5MB를 초과합니다"));
+    }
+    try {
+      List<TestCase> imported = testCaseService.importFromJson(file.getInputStream(), projectId);
+      List<TestCaseDto> dtos =
+          imported.stream().map(TestCaseMapper::toDto).collect(Collectors.toList());
+      return ResponseEntity.ok(Map.of("importedCount", dtos.size(), "items", dtos));
+    } catch (TestCaseService.CsvImportException e) {
+      return ResponseEntity.badRequest()
+          .body(Map.of("error", e.getMessage(), "details", e.getErrors()));
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "처리 실패", "message", e.getMessage()));
+    }
+  }
+
+  @Operation(summary = "Import 사전 검증", description = "파일을 저장하지 않고 데이터 유효성만 검사합니다.")
+  @PostMapping("/import/validate")
+  public ResponseEntity<?> validateImportFile(
+      @RequestParam("file") MultipartFile file,
+      @RequestParam("format") String format,
+      @RequestParam("projectId") String projectId) {
+    try {
+      ImportValidationResultDto result =
+          testCaseService.validateImport(file.getInputStream(), format, projectId);
+      return ResponseEntity.ok(result);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "검증 실패", "message", e.getMessage()));
+    }
+  }
+
+  // ==================== Export (importable 표준 형식) ====================
+
+  @Operation(summary = "CSV 내보내기", description = "프로젝트 테스트케이스를 importable CSV 형식으로 내보냅니다.")
+  @GetMapping("/export/csv")
+  public ResponseEntity<byte[]> exportTestCasesCsv(@RequestParam String projectId) {
+    try {
+      byte[] data = testCaseService.exportToCsvBytes(projectId);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
+      headers.setContentDispositionFormData("attachment", "testcases_export.csv");
+      return ResponseEntity.ok().headers(headers).body(data);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  @Operation(summary = "Excel 내보내기", description = "프로젝트 테스트케이스를 importable Excel 형식으로 내보냅니다.")
+  @GetMapping("/export/excel")
+  public ResponseEntity<byte[]> exportTestCasesExcel(@RequestParam String projectId) {
+    try {
+      byte[] data = testCaseService.exportToExcelBytes(projectId);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(
+          MediaType.parseMediaType(
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+      headers.setContentDispositionFormData("attachment", "testcases_export.xlsx");
+      return ResponseEntity.ok().headers(headers).body(data);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  @Operation(summary = "JSON 내보내기", description = "프로젝트 테스트케이스를 importable JSON 형식으로 내보냅니다.")
+  @GetMapping("/export/json")
+  public ResponseEntity<byte[]> exportTestCasesJson(@RequestParam String projectId) {
+    try {
+      String json = testCaseService.exportToJsonString(projectId);
+      byte[] data = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_JSON);
+      headers.setContentDispositionFormData("attachment", "testcases_export.json");
+      return ResponseEntity.ok().headers(headers).body(data);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  @Operation(summary = "Google Sheets 내보내기", description = "프로젝트 테스트케이스를 Google Sheets로 내보냅니다.")
+  @PostMapping("/export/google-sheet")
+  public ResponseEntity<?> exportTestCasesToGoogleSheet(
+      @RequestBody ExportRequestDto request, Authentication authentication) {
+    try {
+      String userId = authentication.getName();
+      testCaseService.exportToGoogleSheetByProject(
+          request.getProjectId(), request.getGoogleSheetId(), request.getSheetName(), userId);
+      return ResponseEntity.ok(
+          Map.of(
+              "message", "Google Sheets export 완료", "spreadsheetId", request.getGoogleSheetId()));
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "Google Sheets export 실패", "message", e.getMessage()));
+    }
   }
 }

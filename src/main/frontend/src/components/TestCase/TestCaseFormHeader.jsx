@@ -8,6 +8,7 @@ import {
   Typography,
   CircularProgress,
   Tooltip,
+  Chip,
 } from "@mui/material";
 import {
   Save as SaveIcon,
@@ -97,15 +98,26 @@ const TestCaseFormHeader = ({
           mb: 2,
         }}
       >
-        <Typography variant="h6" sx={{ mb: 0 }}>
-          {isFolder
-            ? testCaseId
-              ? t("testcase.form.folder.edit", "테스트 폴더 수정")
-              : t("testcase.form.folder.create", "테스트 폴더 생성")
-            : testCaseId
-              ? t("testcase.form.title.edit", "테스트케이스 수정")
-              : t("testcase.form.title.create", "테스트케이스 생성")}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="h6" sx={{ mb: 0 }}>
+            {isFolder
+              ? testCaseId
+                ? t("testcase.form.folder.edit", "테스트 폴더 수정")
+                : t("testcase.form.folder.create", "테스트 폴더 생성")
+              : testCaseId
+                ? t("testcase.form.title.edit", "테스트케이스 수정")
+                : t("testcase.form.title.create", "테스트케이스 생성")}
+          </Typography>
+          {testCase?.displayId && (
+            <Chip
+              label={testCase.displayId}
+              size="small"
+              color="primary"
+              variant="outlined"
+              sx={{ fontWeight: "bold" }}
+            />
+          )}
+        </Box>
         {/* 테스트 케이스 추가 버튼 (상단으로 이동하여 저장 버튼과 구분) */}
         {!isFolder && onAddNew && (
           <Button
@@ -125,19 +137,11 @@ const TestCaseFormHeader = ({
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             alignItems: "center",
             mb: 1,
           }}
         >
-          <Box>
-            {testCase?.displayId && (
-              <Typography variant="body2" color="text.secondary">
-                {t("testcase.form.displayId", "Display ID")}:{" "}
-                <strong>{testCase.displayId}</strong>
-              </Typography>
-            )}
-          </Box>
           {testCaseId && testCase?.type === "testcase" && (
             <VersionIndicator
               testCaseId={testCaseId}
@@ -148,12 +152,6 @@ const TestCaseFormHeader = ({
             />
           )}
         </Box>
-      )}
-
-      {isFolder && testCase?.displayId && (
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Display ID: <strong>{testCase.displayId}</strong>
-        </Typography>
       )}
 
       {!isViewer && (

@@ -32,6 +32,7 @@ public class TranslationKeyDataInitializer {
   private final TranslationManagementKeysInitializer translationManagementKeysInitializer;
   private final JiraIntegrationKeysInitializer jiraIntegrationKeysInitializer;
   private final ExtendedUIKeysInitializer extendedUIKeysInitializer;
+  private final GoogleKeysInitializer googleKeysInitializer;
 
   @Transactional
   public void initialize() {
@@ -57,6 +58,7 @@ public class TranslationKeyDataInitializer {
     translationManagementKeysInitializer.initialize();
     jiraIntegrationKeysInitializer.initialize();
     extendedUIKeysInitializer.initialize();
+    googleKeysInitializer.initialize();
 
     log.info("번역 키 데이터 초기화 완료");
   }

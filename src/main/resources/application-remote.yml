@@ -19,7 +19,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update # Flyway 사용 시 validate로 변경 (스키마는 Flyway가 관리)
-    show-sql: true # SQL 로그 출력 (개발용)
+    show-sql: false # SQL 로그 출력 비활성화
     properties:
       hibernate:
         format_sql: true
@@ -42,10 +42,10 @@ spring:
 # 로깅 설정 (개발 환경)
 logging:
   level:
-    com.testcase: DEBUG
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.testcase: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
     root: INFO
 
 # JWT 설정 (개발용)

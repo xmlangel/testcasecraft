@@ -1809,6 +1809,72 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testResult.export.pdf.orientation.portrait", languageCode, "Portrait", createdBy);
     createTranslationIfNotExists(
         "testResult.export.pdf.orientation.landscape", languageCode, "Landscape", createdBy);
+
+    // Google Config
+    createTranslationIfNotExists(
+        "header.userMenu.googleConfig", languageCode, "Google Sheets Settings", createdBy);
+    createTranslationIfNotExists(
+        "google.config.title", languageCode, "Google Sheets Integration", createdBy);
+    createTranslationIfNotExists("google.config.status", languageCode, "Status", createdBy);
+    createTranslationIfNotExists("google.config.disconnect", languageCode, "Disconnect", createdBy);
+    createTranslationIfNotExists(
+        "google.config.email", languageCode, "Connected Service Account (Email)", createdBy);
+    createTranslationIfNotExists("google.config.projectId", languageCode, "Project ID", createdBy);
+    createTranslationIfNotExists(
+        "google.config.lastUpdated", languageCode, "Last Updated", createdBy);
+    createTranslationIfNotExists("google.config.active", languageCode, "Active", createdBy);
+    createTranslationIfNotExists(
+        "google.config.noConfig", languageCode, "No Google credentials registered.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.inputTitle", languageCode, "Register New Credentials", createdBy);
+    createTranslationIfNotExists(
+        "google.config.inputDesc",
+        languageCode,
+        "Paste the entire content of your Service Account Key (JSON) file downloaded from Google"
+            + " Cloud Console.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.placeholder",
+        languageCode,
+        "{ \"type\": \"service_account\", ... }",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.save", languageCode, "Save Integration Settings", createdBy);
+    createTranslationIfNotExists(
+        "google.config.update", languageCode, "Update Settings", createdBy);
+
+    // Google Guide
+    createTranslationIfNotExists(
+        "google.guide.title",
+        languageCode,
+        "How to Create and Configure Google Service Account",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step1",
+        languageCode,
+        "1. Create a project in Google Cloud Console and enable 'Google Sheets API'.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step2",
+        languageCode,
+        "2. Create a 'Service Account' and issue/download a JSON key.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step3",
+        languageCode,
+        "3. Copy the contents of the downloaded JSON file and paste it into the field above.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step4",
+        languageCode,
+        "4. (Important) Click the 'Share' button in binary Google Sheets file you want to export"
+            + " to.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step5",
+        languageCode,
+        "5. Add the Service Account email address (client_email in JSON) with 'Editor' permission.",
+        createdBy);
   }
 
   private void createTranslationIfNotExists(

@@ -300,6 +300,8 @@ public class KoreanOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists("profile.tabs.basicInfo", languageCode, "기본 정보", createdBy);
     createTranslationIfNotExists("profile.tabs.password", languageCode, "비밀번호", createdBy);
     createTranslationIfNotExists("profile.tabs.language", languageCode, "언어 설정", createdBy);
+    createTranslationIfNotExists(
+        "profile.tabs.googleConfig", languageCode, "Google Sheets 설정", createdBy);
     createTranslationIfNotExists("profile.tabs.appearance", languageCode, "화면 설정", createdBy);
     createTranslationIfNotExists("profile.tabs.jira", languageCode, "JIRA 설정", createdBy);
     createTranslationIfNotExists("profile.form.username", languageCode, "사용자명", createdBy);

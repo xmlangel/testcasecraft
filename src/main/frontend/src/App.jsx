@@ -70,6 +70,7 @@ import SchedulerManagement from "./components/admin/SchedulerManagement.jsx";
 import EmailVerification from "./components/EmailVerification.jsx";
 import SessionExpiryDialog from "./components/common/SessionExpiryDialog.jsx";
 import JiraIssueRedirect from "./components/JiraIntegration/JiraIssueRedirect.jsx";
+import GuideViewer from "./components/Settings/GuideViewer.jsx";
 
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -1400,6 +1401,7 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/guides/:guideName" element={<GuideViewer />} />
       </Routes>
 
       {/* 서버 시간 표시 */}

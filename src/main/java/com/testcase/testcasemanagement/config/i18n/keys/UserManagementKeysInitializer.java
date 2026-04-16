@@ -322,6 +322,8 @@ public class UserManagementKeysInitializer {
     createTranslationKeyIfNotExists("profile.tabs.basicInfo", "profile", "기본 정보 탭", "기본 정보");
     createTranslationKeyIfNotExists("profile.tabs.password", "profile", "비밀번호 탭", "비밀번호");
     createTranslationKeyIfNotExists("profile.tabs.language", "profile", "언어 설정 탭", "언어 설정");
+    createTranslationKeyIfNotExists(
+        "profile.tabs.googleConfig", "profile", "구글 시트 설정 탭", "Google Sheets 설정");
     createTranslationKeyIfNotExists("profile.tabs.appearance", "profile", "화면 설정 탭", "화면 설정");
     createTranslationKeyIfNotExists("profile.tabs.jira", "profile", "JIRA 설정 탭", "JIRA 설정");
     createTranslationKeyIfNotExists("profile.tabs.apiToken", "profile", "API 토큰 탭", "API 토큰");

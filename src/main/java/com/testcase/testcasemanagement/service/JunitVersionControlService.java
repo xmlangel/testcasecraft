@@ -601,7 +601,10 @@ public class JunitVersionControlService {
   public static class FileVersionHistory implements Serializable {
     private static final long serialVersionUID = 1L;
     private String testResultId;
+
+    @SuppressWarnings("serial")
     private List<FileVersion> versions;
+
     private LocalDateTime createdAt;
     private LocalDateTime lastUpdated;
 

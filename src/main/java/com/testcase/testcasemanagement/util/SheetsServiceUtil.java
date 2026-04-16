@@ -18,8 +18,25 @@ public class SheetsServiceUtil {
   private static final String CREDENTIALS_FILE_PATH = "src/main/resources/google.json";
 
   public static Sheets getSheetsService() throws IOException, GeneralSecurityException {
+    java.io.File file = new java.io.File(CREDENTIALS_FILE_PATH);
+    if (!file.exists()) {
+      throw new IOException(
+          "기본 구글 서비스 계정 키 파일("
+              + CREDENTIALS_FILE_PATH
+              + ")이 존재하지 않습니다. 설정 메뉴에서 Google Sheets 설정을 먼저 완료하여 DB 설정을 사용하도록 하세요.");
+    }
+    return getSheetsServiceFromStream(new FileInputStream(CREDENTIALS_FILE_PATH));
+  }
+
+  public static Sheets getSheetsServiceFromContent(String jsonKeyContent)
+      throws IOException, GeneralSecurityException {
+    return getSheetsServiceFromStream(new java.io.ByteArrayInputStream(jsonKeyContent.getBytes()));
+  }
+
+  private static Sheets getSheetsServiceFromStream(java.io.InputStream stream)
+      throws IOException, GeneralSecurityException {
     GoogleCredentials credentials =
-        GoogleCredentials.fromStream(new FileInputStream(CREDENTIALS_FILE_PATH))
+        GoogleCredentials.fromStream(stream)
             .createScoped(Collections.singleton(SheetsScopes.SPREADSHEETS));
     return new Sheets.Builder(
             GoogleNetHttpTransport.newTrustedTransport(),
