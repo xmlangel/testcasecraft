@@ -42,10 +42,10 @@ spring:
 # 로깅 설정 (개발 환경)
 logging:
   level:
-    com.testcase: DEBUG
-    org.springframework.web: DEBUG
+    com.testcase: INFO
+    org.springframework.web: INFO
     org.hibernate.SQL: INFO
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
     root: INFO
 
 # JWT 설정 (개발용)
