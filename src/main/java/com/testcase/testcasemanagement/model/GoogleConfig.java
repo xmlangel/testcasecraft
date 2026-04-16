@@ -49,6 +49,18 @@ public class GoogleConfig {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
+  @Column(name = "last_import_spreadsheet_id", length = 512)
+  private String lastImportSpreadsheetId;
+
+  @Column(name = "last_import_sheet_name", length = 200)
+  private String lastImportSheetName;
+
+  @Column(name = "last_export_spreadsheet_id", length = 512)
+  private String lastExportSpreadsheetId;
+
+  @Column(name = "last_export_sheet_name", length = 200)
+  private String lastExportSheetName;
+
   @PrePersist
   protected void onCreate() {
     createdAt = LocalDateTime.now();

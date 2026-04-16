@@ -77,4 +77,26 @@ public class GoogleConfigController {
     googleConfigService.deleteConfig(userId);
     return ResponseEntity.ok(Map.of("message", "Google 설정이 삭제되었습니다."));
   }
+
+  @Operation(summary = "마지막 사용 Google Sheets 정보 업데이트")
+  @PatchMapping("/last-used")
+  public ResponseEntity<?> updateLastUsedSheet(
+      Authentication authentication, @RequestBody Map<String, String> request) {
+    String userId = authentication.getName();
+    String type = request.get("type");
+    String spreadsheetId = request.get("spreadsheetId");
+    String sheetName = request.get("sheetName");
+
+    if (spreadsheetId == null || spreadsheetId.trim().isEmpty()) {
+      return ResponseEntity.badRequest().body(Map.of("message", "Spreadsheet ID는 필수입니다."));
+    }
+
+    if (type == null || (!type.equals("import") && !type.equals("export"))) {
+      return ResponseEntity.badRequest()
+          .body(Map.of("message", "올바른 Type(import/export)을 지정해야 합니다."));
+    }
+
+    googleConfigService.updateLastUsedSheet(userId, type, spreadsheetId, sheetName);
+    return ResponseEntity.ok(Map.of("message", "마지막 사용 정보가 업데이트되었습니다."));
+  }
 }

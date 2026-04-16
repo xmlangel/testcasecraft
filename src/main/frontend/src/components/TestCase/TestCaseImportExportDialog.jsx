@@ -48,7 +48,10 @@ import {
   importFromGoogleSheet,
   exportTestCasesAs,
   exportToGoogleSheet,
+  getMyGoogleConfig,
+  updateLastUsedGoogleSheet,
 } from "../../services/importExportApi.js";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 const IMPORT_FORMATS = [
   { value: "csv", label: "CSV", accept: ".csv", sampleExt: "csv" },
@@ -73,6 +76,18 @@ const EXPORT_FORMATS = [
   { value: "google-sheets", label: "Google Sheets" },
 ];
 
+/** Google Sheets URL에서 Spreadsheet ID 추출 */
+const extractSpreadsheetId = (input) => {
+  if (!input) return "";
+  // 1. 이미 ID 형태인 경우 (알파벳, 숫자, _, - 조합)
+  if (/^[a-zA-Z0-9-_]+$/.test(input) && input.length > 20) {
+    return input;
+  }
+  // 2. URL 형태인 경우
+  const match = input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  return match ? match[1] : input;
+};
+
 export default function TestCaseImportExportDialog({
   open,
   onClose,
@@ -80,6 +95,11 @@ export default function TestCaseImportExportDialog({
   onImportComplete,
 }) {
   const [activeTab, setActiveTab] = useState(0);
+  const { t } = useI18n();
+
+  // Google 설정 상태
+  const [googleConfig, setGoogleConfig] = useState(null);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(false);
 
   // Import 상태
   const [importFormat, setImportFormat] = useState("csv");
@@ -106,13 +126,54 @@ export default function TestCaseImportExportDialog({
     setValidationResult(null);
     setImportResult(null);
     setImportError(null);
-    setGoogleSheetUrl("");
+    // last-used 정보를 유지하기 위해 googleSheetUrl은 초기화하지 않음
   };
 
   const handleClose = () => {
     resetImport();
     setExportMessage(null);
     onClose();
+  };
+
+  // Google 설정 로드
+  React.useEffect(() => {
+    if (open) {
+      loadGoogleConfig();
+    }
+  }, [open]);
+
+  const loadGoogleConfig = async () => {
+    setIsLoadingConfig(true);
+    try {
+      const config = await getMyGoogleConfig();
+      setGoogleConfig(config);
+      if (config) {
+        if (config.lastImportSpreadsheetId) {
+          setGoogleSheetUrl(config.lastImportSpreadsheetId);
+        }
+        if (config.lastImportSheetName) {
+          setGoogleSheetName(config.lastImportSheetName);
+        }
+        if (config.lastExportSpreadsheetId) {
+          setExportSheetUrl(config.lastExportSpreadsheetId);
+        }
+        if (config.lastExportSheetName) {
+          setExportSheetName(config.lastExportSheetName);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load Google config:", error);
+    } finally {
+      setIsLoadingConfig(false);
+    }
+  };
+
+  const handleGoToSettings = () => {
+    // 사용자 프로필 다이얼로그가 전역적으로 관리되는 경우 해당 상태를 트리거하거나
+    // 현재는 설명 메시지만 보여주는 수준으로 처리 (필요시 URL 이동 등)
+    window.location.hash = "#profile-google"; // 예시 URL 해시
+    onClose();
+    // 실제로는 AppContext나 전역 상태를 통해 Profile Dialog를 열어야 함
   };
 
   // ---- Import 핸들러 ----
@@ -178,6 +239,10 @@ export default function TestCaseImportExportDialog({
           : result.importedCount || 0;
         setImportResult({ importedCount: count });
         if (onImportComplete) onImportComplete();
+
+        // 마지막 사용 정보 저장 (Import 타입) - ID만 추출하여 저장
+        const spreadsheetId = extractSpreadsheetId(googleSheetUrl);
+        updateLastUsedGoogleSheet("import", spreadsheetId, googleSheetName);
       } catch (err) {
         setImportError(err.message);
       } finally {
@@ -231,6 +296,10 @@ export default function TestCaseImportExportDialog({
           type: "success",
           text: "Google Sheets에 내보내기 완료!",
         });
+
+        // 마지막 사용 정보 저장 (Export 타입) - ID만 추출하여 저장
+        const spreadsheetId = extractSpreadsheetId(exportSheetUrl);
+        updateLastUsedGoogleSheet("export", spreadsheetId, exportSheetName);
       } else {
         const result = await exportTestCasesAs(projectId, exportFormat);
         if (result.success) {
@@ -267,7 +336,7 @@ export default function TestCaseImportExportDialog({
           pb: 1,
         }}
       >
-        <Typography variant="h6" fontWeight={600}>
+        <Typography variant="h6" fontWeight={600} component="span">
           테스트케이스 Import / Export
         </Typography>
         <IconButton size="small" onClick={handleClose}>
@@ -338,6 +407,29 @@ export default function TestCaseImportExportDialog({
                   ? "3. 파일 업로드"
                   : "2. Google Sheets 연결"}
               </Typography>
+
+              {importFormat === "google-sheets" &&
+                !isLoadingConfig &&
+                !googleConfig && (
+                  <Alert
+                    severity="warning"
+                    sx={{ mb: 2 }}
+                    action={
+                      <Button
+                        color="inherit"
+                        size="small"
+                        onClick={handleGoToSettings}
+                      >
+                        {t("common.settings", "설정으로 이동")}
+                      </Button>
+                    }
+                  >
+                    {t(
+                      "google.import.connection_required",
+                      "Google Sheets 연동 설정이 필요합니다. 서비스 계정 JSON 키를 먼저 등록해 주세요.",
+                    )}
+                  </Alert>
+                )}
 
               {importFormat === "google-sheets" ? (
                 <Box>
@@ -540,6 +632,29 @@ export default function TestCaseImportExportDialog({
                 />
               </Box>
             )}
+
+            {exportFormat === "google-sheets" &&
+              !isLoadingConfig &&
+              !googleConfig && (
+                <Alert
+                  severity="warning"
+                  sx={{ mb: 2 }}
+                  action={
+                    <Button
+                      color="inherit"
+                      size="small"
+                      onClick={handleGoToSettings}
+                    >
+                      {t("common.settings", "설정으로 이동")}
+                    </Button>
+                  }
+                >
+                  {t(
+                    "google.export.connection_required",
+                    "Google Sheets 연동 설정이 필요합니다. 서비스 계정 JSON 키를 먼저 등록해 주세요.",
+                  )}
+                </Alert>
+              )}
 
             <Box
               sx={{

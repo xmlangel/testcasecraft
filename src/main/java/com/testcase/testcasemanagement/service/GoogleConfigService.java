@@ -124,4 +124,28 @@ public class GoogleConfigService {
     // 최후의 수단으로 admin 유저 설정 시도 (백그라운드 작업 등 대비)
     return getConfigByUserId("admin");
   }
+
+  @Transactional
+  public void updateLastUsedSheet(
+      String usernameOrId, String type, String spreadsheetId, String sheetName) {
+    findUserByIdentifier(usernameOrId)
+        .flatMap(googleConfigRepository::findByUser)
+        .ifPresent(
+            config -> {
+              if ("import".equalsIgnoreCase(type)) {
+                config.setLastImportSpreadsheetId(spreadsheetId);
+                config.setLastImportSheetName(sheetName);
+              } else if ("export".equalsIgnoreCase(type)) {
+                config.setLastExportSpreadsheetId(spreadsheetId);
+                config.setLastExportSheetName(sheetName);
+              }
+              googleConfigRepository.save(config);
+              log.info(
+                  "마지막 사용 Google Sheets 정보 업데이트 완료 ({}): userId={}, spreadsheetId={}, sheetName={}",
+                  type,
+                  usernameOrId,
+                  spreadsheetId,
+                  sheetName);
+            });
+  }
 }

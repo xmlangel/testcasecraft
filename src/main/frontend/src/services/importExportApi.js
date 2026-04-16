@@ -47,15 +47,20 @@ export const validateImportFile = async (file, format, projectId) => {
   formData.append("format", format);
   formData.append("projectId", projectId);
 
-  const response = await fetch(`${getBaseUrl()}/api/testcases/import/validate`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: formData,
-  });
+  const response = await fetch(
+    `${getBaseUrl()}/api/testcases/import/validate`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: formData,
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.error || `검증 요청 실패 (${response.status})`);
+    throw new Error(
+      error.message || error.error || `검증 요청 실패 (${response.status})`,
+    );
   }
   return response.json();
 };
@@ -88,7 +93,9 @@ export const importTestCases = async (file, format, projectId) => {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.error || `Import 실패 (${response.status})`);
+    throw new Error(
+      error.message || error.error || `Import 실패 (${response.status})`,
+    );
   }
   return response.json();
 };
@@ -99,7 +106,11 @@ export const importTestCases = async (file, format, projectId) => {
  * @param {string} sheetName - 시트명
  * @param {string} projectId
  */
-export const importFromGoogleSheet = async (spreadsheetUrl, sheetName, projectId) => {
+export const importFromGoogleSheet = async (
+  spreadsheetUrl,
+  sheetName,
+  projectId,
+) => {
   const spreadsheetId = extractSpreadsheetId(spreadsheetUrl);
   const mapping = {
     fieldMappings: {
@@ -123,12 +134,14 @@ export const importFromGoogleSheet = async (spreadsheetUrl, sheetName, projectId
       method: "POST",
       headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(mapping),
-    }
+    },
   );
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.error || "Google Sheets Import 실패");
+    throw new Error(
+      error.message || error.error || "Google Sheets Import 실패",
+    );
   }
   return response.json();
 };
@@ -141,13 +154,16 @@ export const importFromGoogleSheet = async (spreadsheetUrl, sheetName, projectId
 export const exportTestCasesAs = async (projectId, format) => {
   try {
     const response = await apiService.get(
-      `/api/testcases/export/${format}?projectId=${encodeURIComponent(projectId)}`
+      `/api/testcases/export/${format}?projectId=${encodeURIComponent(projectId)}`,
     );
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const blob = await response.blob();
     const extMap = { csv: "csv", excel: "xlsx", json: "json" };
     const ext = extMap[format] || format;
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, "");
+    const timestamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:-]/g, "");
     triggerDownload(blob, `testcases_export_${timestamp}.${ext}`);
     return { success: true };
   } catch (error) {
@@ -161,24 +177,60 @@ export const exportTestCasesAs = async (projectId, format) => {
  * @param {string} spreadsheetUrl - Google Sheets URL 또는 ID
  * @param {string} sheetName
  */
-export const exportToGoogleSheet = async (projectId, spreadsheetUrl, sheetName) => {
+export const exportToGoogleSheet = async (
+  projectId,
+  spreadsheetUrl,
+  sheetName,
+) => {
   const googleSheetId = extractSpreadsheetId(spreadsheetUrl);
-  const response = await fetch(`${getBaseUrl()}/api/testcases/export/google-sheet`, {
-    method: "POST",
-    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
-    body: JSON.stringify({
-      projectId,
-      googleSheetId,
-      sheetName: sheetName || "TestCases",
-      format: "google-sheet",
-    }),
-  });
+  const response = await fetch(
+    `${getBaseUrl()}/api/testcases/export/google-sheet`,
+    {
+      method: "POST",
+      headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId,
+        googleSheetId,
+        sheetName: sheetName || "TestCases",
+        format: "google-sheet",
+      }),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.error || "Google Sheets Export 실패");
+    throw new Error(
+      error.message || error.error || "Google Sheets Export 실패",
+    );
   }
   return response.json();
+};
+
+/** 내 Google 설정 조회 */
+export const getMyGoogleConfig = async () => {
+  const response = await fetch(`${getBaseUrl()}/api/google-configs/my`, {
+    headers: getAuthHeaders(),
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error("Google 설정을 가져오는데 실패했습니다.");
+  return response.json();
+};
+
+/** 마지막 사용 Google Sheets 정보 업데이트 */
+export const updateLastUsedGoogleSheet = async (
+  type,
+  spreadsheetId,
+  sheetName,
+) => {
+  const response = await fetch(`${getBaseUrl()}/api/google-configs/last-used`, {
+    method: "PATCH",
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ type, spreadsheetId, sheetName }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    console.warn("마지막 사용 정보 업데이트 실패:", error.message);
+  }
 };
 
 // ---- 헬퍼 함수 ----
