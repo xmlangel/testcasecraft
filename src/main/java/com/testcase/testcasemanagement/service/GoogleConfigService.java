@@ -11,6 +11,8 @@ import com.testcase.testcasemanagement.security.EncryptionUtil;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,5 +106,22 @@ public class GoogleConfigService {
 
   public String getDecryptedKey(GoogleConfig config) throws Exception {
     return encryptionUtil.decrypt(config.getEncryptedJsonKey());
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<GoogleConfig> getCurrentUserConfig() {
+    try {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      if (authentication != null
+          && authentication.isAuthenticated()
+          && !"anonymousUser".equals(authentication.getPrincipal())) {
+        String username = authentication.getName();
+        return getConfigByUserId(username);
+      }
+    } catch (Exception e) {
+      log.warn("현재 사용자 정보를 가져오는데 실패했습니다: {}", e.getMessage());
+    }
+    // 최후의 수단으로 admin 유저 설정 시도 (백그라운드 작업 등 대비)
+    return getConfigByUserId("admin");
   }
 }

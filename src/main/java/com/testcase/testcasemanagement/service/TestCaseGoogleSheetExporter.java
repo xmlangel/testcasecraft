@@ -23,6 +23,7 @@ public class TestCaseGoogleSheetExporter {
   private static final String RANGE = SHEET_NAME + "!A1";
 
   @Autowired private TestCaseService testCaseService;
+  @Autowired private GoogleConfigService googleConfigService;
 
   public void exportTestCasesToGoogleSheet() throws IOException, GeneralSecurityException {
     List<TestCase> testCases = testCaseService.getAllTestCases();
@@ -46,7 +47,18 @@ public class TestCaseGoogleSheetExporter {
       values.add(row);
     }
 
-    Sheets sheetsService = SheetsServiceUtil.getSheetsService();
+    Sheets sheetsService;
+    try {
+      var configOpt = googleConfigService.getCurrentUserConfig();
+      if (configOpt.isPresent() && configOpt.get().getIsActive()) {
+        String decryptedKey = googleConfigService.getDecryptedKey(configOpt.get());
+        sheetsService = SheetsServiceUtil.getSheetsServiceFromContent(decryptedKey);
+      } else {
+        sheetsService = SheetsServiceUtil.getSheetsService();
+      }
+    } catch (Exception e) {
+      sheetsService = SheetsServiceUtil.getSheetsService();
+    }
 
     // 1. 시트 데이터 전체 클리어 (헤더 포함)
     sheetsService

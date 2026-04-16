@@ -834,7 +834,7 @@ public class TestCaseService {
           "No field mappings", Map.of("fieldMappings", "No field mappings"));
     }
 
-    Sheets sheetsService = SheetsServiceUtil.getSheetsService();
+    Sheets sheetsService = getSheetsServiceForCurrentUser();
 
     // 1. Spreadsheet(문서) 존재 확인
     Spreadsheet spreadsheet;
@@ -1106,7 +1106,7 @@ public class TestCaseService {
       }
     }
 
-    Sheets sheetsService = SheetsServiceUtil.getSheetsService();
+    Sheets sheetsService = getSheetsServiceForCurrentUser();
     // 기존 데이터 클리어
     sheetsService
         .spreadsheets()
@@ -1546,6 +1546,24 @@ public class TestCaseService {
       log.warn("현재 사용자 정보를 가져오는데 실패했습니다: {}", e.getMessage());
     }
     return "system";
+  }
+
+  /** ICT-GoogleSheets: 현재 로그인한 사용자의 구글 설정을 기반으로 Sheets 서비스를 생성함 */
+  private Sheets getSheetsServiceForCurrentUser() throws IOException, GeneralSecurityException {
+    try {
+      Optional<com.testcase.testcasemanagement.model.GoogleConfig> configOpt =
+          googleConfigService.getCurrentUserConfig();
+
+      if (configOpt.isPresent() && configOpt.get().getIsActive()) {
+        String decryptedKey = googleConfigService.getDecryptedKey(configOpt.get());
+        return SheetsServiceUtil.getSheetsServiceFromContent(decryptedKey);
+      }
+    } catch (Exception e) {
+      log.warn("DB에서 구글 설정을 가져오는데 실패했습니다. 기본 설정을 시도합니다: {}", e.getMessage());
+    }
+
+    // DB 설정이 없거나 실패하면 기존 파일 시스템 방식(google.json) 시도
+    return SheetsServiceUtil.getSheetsService();
   }
 
   /**
@@ -2527,16 +2545,7 @@ public class TestCaseService {
       values.add(new ArrayList<>(Arrays.asList(buildExportRow(tc, idToName, maxSteps))));
     }
 
-    Sheets sheetsService;
-    Optional<com.testcase.testcasemanagement.model.GoogleConfig> configOpt =
-        googleConfigService.getConfigByUserId(userId);
-    if (configOpt.isPresent() && configOpt.get().getIsActive()) {
-      String decryptedKey = googleConfigService.getDecryptedKey(configOpt.get());
-      sheetsService = SheetsServiceUtil.getSheetsServiceFromContent(decryptedKey);
-    } else {
-      // 사용자 개별 설정이 없으면 기본 파일 시스템 설정 사용 시도
-      sheetsService = SheetsServiceUtil.getSheetsService();
-    }
+    Sheets sheetsService = getSheetsServiceForCurrentUser();
 
     sheetsService
         .spreadsheets()
