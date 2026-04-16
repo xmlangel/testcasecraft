@@ -2395,6 +2395,19 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         languageCode,
         "5. Add the Service Account email address as an 'Editor'.",
         createdBy);
+
+    // Guide Viewer Translations
+    createTranslationIfNotExists("guide.viewer.title", languageCode, "Guide", createdBy);
+    createTranslationIfNotExists(
+        "guide.viewer.loading", languageCode, "Loading guide...", createdBy);
+    createTranslationIfNotExists(
+        "guide.viewer.error",
+        languageCode,
+        "The requested guide document could not be found or an error occurred while loading.",
+        createdBy);
+    createTranslationIfNotExists("guide.viewer.retry", languageCode, "Retry", createdBy);
+    createTranslationIfNotExists("guide.viewer.print", languageCode, "Print", createdBy);
+    createTranslationIfNotExists("guide.viewer.close", languageCode, "Close", createdBy);
   }
 
   private void createTranslationIfNotExists(

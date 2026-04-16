@@ -1900,6 +1900,20 @@ public class EnglishTestCaseAndAutomationTranslations {
         createdBy);
 
     createTranslationIfNotExists(
+        "testcase.io.google.url.required",
+        languageCode,
+        "Please enter Google Sheets URL",
+        createdBy);
+
+    // Export Formats labels
+    createTranslationIfNotExists(
+        "testcase.io.export.format.csv", languageCode, "CSV (Importable)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.format.excel", languageCode, "Excel (Importable)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.format.json", languageCode, "JSON (Importable)", createdBy);
+
+    createTranslationIfNotExists(
         "testcase.io.validation.summary", languageCode, "Validation Summary", createdBy);
     createTranslationIfNotExists(
         "testcase.io.validation.totalRows", languageCode, "Total {count} rows", createdBy);

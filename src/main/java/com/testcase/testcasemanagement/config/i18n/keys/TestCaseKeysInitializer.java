@@ -1865,6 +1865,14 @@ public class TestCaseKeysInitializer {
         "testcase.io.validation.errorMessage", "testcase", "오류 메시지 컬럼명", "오류 메시지");
     createTranslationKeyIfNotExists("testcase.io.validation.steps", "testcase", "스텝 수 컬럼명", "스텝");
     createTranslationKeyIfNotExists("testcase.tree.parentFolder", "testcase", "상위 폴더 라벨", "상위 폴더");
+
+    // Export Formats detailed labels
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.format.csv", "testcase", "CSV 내보내기 포맷 라벨", "CSV (가져오기 가능)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.format.excel", "testcase", "Excel 내보내기 포맷 라벨", "Excel (가져오기 가능)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.format.json", "testcase", "JSON 내보내기 포맷 라벨", "JSON (가져오기 가능)");
   }
 
   private void createTranslationKeyIfNotExists(

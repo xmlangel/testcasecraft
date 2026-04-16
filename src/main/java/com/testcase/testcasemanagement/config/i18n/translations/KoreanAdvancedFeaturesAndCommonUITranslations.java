@@ -1691,6 +1691,15 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "google.guide.step4", languageCode, "4. (중요) 내보낼 대상 구글 시트 파일에서 '공유' 버튼을 클릭합니다.", createdBy);
     createTranslationIfNotExists(
         "google.guide.step5", languageCode, "5. 서비스 계정의 이메일 주소를 '편집자' 권한으로 추가하여 저장합니다.", createdBy);
+
+    // 가이드 뷰어 번역
+    createTranslationIfNotExists("guide.viewer.title", languageCode, "가이드", createdBy);
+    createTranslationIfNotExists("guide.viewer.loading", languageCode, "가이드 로딩 중...", createdBy);
+    createTranslationIfNotExists(
+        "guide.viewer.error", languageCode, "요청하신 가이드 문서를 찾을 수 없거나 불러오는 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists("guide.viewer.retry", languageCode, "다시 시도", createdBy);
+    createTranslationIfNotExists("guide.viewer.print", languageCode, "인쇄", createdBy);
+    createTranslationIfNotExists("guide.viewer.close", languageCode, "닫기", createdBy);
   }
 
   private void createTranslationIfNotExists(

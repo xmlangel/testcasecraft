@@ -99,6 +99,18 @@ public class GoogleKeysInitializer {
         "google.guide.step4", "google", "가이드 4단계", "4. (중요) 내보낼 대상 구글 시트 파일에서 '공유' 버튼을 클릭합니다.");
     createTranslationKeyIfNotExists(
         "google.guide.step5", "google", "가이드 5단계", "5. 서비스 계정의 이메일 주소를 '편집자' 권한으로 추가하여 저장합니다.");
+
+    // Connection Warnings
+    createTranslationKeyIfNotExists(
+        "google.import.connection_required",
+        "google",
+        "가져오기 연동 필요 경고",
+        "Google Sheets 연동 설정이 필요합니다. 서비스 계정 JSON 키를 먼저 등록해 주세요.");
+    createTranslationKeyIfNotExists(
+        "google.export.connection_required",
+        "google",
+        "내보내기 연동 필요 경고",
+        "Google Sheets 연동 설정이 필요합니다. 서비스 계정 JSON 키를 먼저 등록해 주세요.");
   }
 
   private void createTranslationKeyIfNotExists(

@@ -78,7 +78,12 @@ export default function TestCaseImportExportDialog({
 
   // 상수 정의 (다국어 지원을 위해 컴포넌트 내부로 이동)
   const IMPORT_FORMATS = [
-    { value: "csv", label: "CSV", accept: ".csv", sampleExt: "csv" },
+    {
+      value: "csv",
+      label: "CSV",
+      accept: ".csv",
+      sampleExt: "csv",
+    },
     {
       value: "excel",
       label: t("common.excel", "Excel (.xlsx)"),
@@ -94,9 +99,18 @@ export default function TestCaseImportExportDialog({
   ];
 
   const EXPORT_FORMATS = [
-    { value: "csv", label: "CSV (importable)" },
-    { value: "excel", label: "Excel (importable)" },
-    { value: "json", label: "JSON (importable)" },
+    {
+      value: "csv",
+      label: t("testcase.io.export.format.csv", "CSV (Importable)"),
+    },
+    {
+      value: "excel",
+      label: t("testcase.io.export.format.excel", "Excel (Importable)"),
+    },
+    {
+      value: "json",
+      label: t("testcase.io.export.format.json", "JSON (Importable)"),
+    },
     {
       value: "google-sheets",
       label: t("common.googleSheets", "Google Sheets"),

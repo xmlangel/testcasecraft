@@ -399,6 +399,15 @@ public class CommonKeysInitializer {
         "admin.globalDoc.preview.title", "admin", "PDF 미리보기 제목", "PDF 미리보기");
     createTranslationKeyIfNotExists(
         "admin.globalDoc.preview.loading", "admin", "미리보기 로딩", "미리보기를 불러올 수 없습니다.");
+
+    // 가이드 뷰어 관련 키들
+    createTranslationKeyIfNotExists("guide.viewer.title", "guide", "가이드 뷰어 제목", "가이드");
+    createTranslationKeyIfNotExists("guide.viewer.loading", "guide", "가이드 로딩 중 메시지", "가이드 로딩 중...");
+    createTranslationKeyIfNotExists(
+        "guide.viewer.error", "guide", "가이드 로딩 오류 메시지", "요청하신 가이드 문서를 찾을 수 없거나 불러오는 중 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists("guide.viewer.retry", "guide", "가이드 재시도 버튼", "다시 시도");
+    createTranslationKeyIfNotExists("guide.viewer.print", "guide", "가이드 인쇄 버튼", "인쇄");
+    createTranslationKeyIfNotExists("guide.viewer.close", "guide", "가이드 닫기 버튼", "닫기");
   }
 
   private void createTranslationKeyIfNotExists(
