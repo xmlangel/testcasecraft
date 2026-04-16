@@ -173,6 +173,9 @@ const AppContent = () => {
     sessionExpired,
     handleDialogRefresh,
     handleDialogLogin,
+    profileDialogOpen,
+    setProfileDialogOpen,
+    initialProfileTab,
   } = useAppContext();
 
   const [showExploratorySessionTab, setShowExploratorySessionTab] = useState(
@@ -228,7 +231,6 @@ const AppContent = () => {
     }
   }, [user, loadingUser, initialLoad]);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   // 전역 에러 스낵바 상태 (ICT-373 403 디버깅)
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
@@ -1195,6 +1197,7 @@ const AppContent = () => {
         onClose={handleProfileClose}
         user={user}
         onUserUpdated={handleUserUpdated}
+        initialTab={initialProfileTab}
       />
       {/* Rate Limit 다이얼로그 */}
       <RateLimitDialog />

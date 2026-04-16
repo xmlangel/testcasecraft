@@ -52,6 +52,7 @@ import {
   updateLastUsedGoogleSheet,
 } from "../../services/importExportApi.js";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { useAppContext } from "../../context/AppContext.jsx";
 
 const IMPORT_FORMATS = [
   { value: "csv", label: "CSV", accept: ".csv", sampleExt: "csv" },
@@ -96,6 +97,7 @@ export default function TestCaseImportExportDialog({
 }) {
   const [activeTab, setActiveTab] = useState(0);
   const { t } = useI18n();
+  const { openUserProfile } = useAppContext();
 
   // Google 설정 상태
   const [googleConfig, setGoogleConfig] = useState(null);
@@ -169,11 +171,9 @@ export default function TestCaseImportExportDialog({
   };
 
   const handleGoToSettings = () => {
-    // 사용자 프로필 다이얼로그가 전역적으로 관리되는 경우 해당 상태를 트리거하거나
-    // 현재는 설명 메시지만 보여주는 수준으로 처리 (필요시 URL 이동 등)
-    window.location.hash = "#profile-google"; // 예시 URL 해시
     onClose();
-    // 실제로는 AppContext나 전역 상태를 통해 Profile Dialog를 열어야 함
+    // 사용자 프로필의 Google Sheets 설정 탭(index 4) 열기
+    openUserProfile(4);
   };
 
   // ---- Import 핸들러 ----
@@ -329,6 +329,7 @@ export default function TestCaseImportExportDialog({
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle
+        component="div"
         sx={{
           display: "flex",
           alignItems: "center",

@@ -62,6 +62,8 @@ export const AuthProvider = ({ children }) => {
   const [rateLimitError, setRateLimitError] = useState(null);
   const [retryAfter, setRetryAfter] = useState(0);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [initialProfileTab, setInitialProfileTab] = useState(0);
 
   const handleLogout = useCallback(() => {
     setUser(null);
@@ -82,6 +84,11 @@ export const AuthProvider = ({ children }) => {
     handleLogout();
     // 로그아웃 후 리다이렉트는 App.jsx나 라우터에서 처리됨
   }, [handleLogout]);
+
+  const openUserProfile = useCallback((tabIndex = 0) => {
+    setInitialProfileTab(tabIndex);
+    setProfileDialogOpen(true);
+  }, []);
 
   // 토큰 검증 및 갱신 유틸리티 함수 (RAG 스트리밍 등 외부에서 사용)
   const ensureValidToken = useCallback(async () => {
