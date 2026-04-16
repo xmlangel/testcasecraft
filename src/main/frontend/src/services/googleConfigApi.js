@@ -11,7 +11,7 @@ const googleConfigApi = {
   getMyConfig: async () => {
     try {
       const response = await apiService.get("/api/google-configs/my");
-      return response.data;
+      return await response.json();
     } catch (error) {
       if (error.response && error.response.status === 404) {
         return null; // 설정 없음
@@ -28,7 +28,7 @@ const googleConfigApi = {
     const response = await apiService.post("/api/google-configs", {
       jsonKeyContent,
     });
-    return response.data;
+    return await response.json();
   },
 
   /**
@@ -36,7 +36,7 @@ const googleConfigApi = {
    */
   deleteMyConfig: async () => {
     const response = await apiService.delete("/api/google-configs/my");
-    return response.data;
+    return await response.json();
   },
 };
 

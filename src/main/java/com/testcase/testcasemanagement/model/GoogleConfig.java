@@ -20,13 +20,15 @@ public class GoogleConfig {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  @Column(name = "user_id", nullable = false, unique = true)
-  private String userId;
-
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", insertable = false, updatable = false)
+  @JoinColumn(name = "user_id", nullable = false, unique = true)
   @JsonIgnore
   private User user;
+
+  // 하위 호환성을 위해 userId 게터 추가
+  public String getUserId() {
+    return user != null ? user.getId() : null;
+  }
 
   @Column(nullable = false, length = 200)
   private String clientEmail;

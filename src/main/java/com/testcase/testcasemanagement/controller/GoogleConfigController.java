@@ -23,11 +23,29 @@ public class GoogleConfigController {
   @Operation(summary = "내 Google 설정 조회")
   @GetMapping("/my")
   public ResponseEntity<?> getMyConfig(Authentication authentication) {
+    if (authentication == null) {
+      log.warn("인증 정보가 없습니다.");
+      return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
+    }
+
     String userId = authentication.getName();
+    log.info("내 Google 설정 조회 요청: username/id='{}'", userId);
+
     return googleConfigService
         .getConfigByUserId(userId)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+        .map(
+            config -> {
+              log.info(
+                  "설정을 찾았습니다: userId={}, clientEmail={}",
+                  config.getUserId(),
+                  config.getClientEmail());
+              return ResponseEntity.ok(config);
+            })
+        .orElseGet(
+            () -> {
+              log.info("'{}' 사용자에 대한 설정이 존재하지 않습니다.", userId);
+              return ResponseEntity.notFound().build();
+            });
   }
 
   @Operation(summary = "Google 설정 저장/업데이트")

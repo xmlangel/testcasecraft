@@ -184,7 +184,7 @@ const GoogleConfigManager = () => {
 
           {config ? (
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary">
                   연결된 서비스 계정 (Email)
                 </Typography>
@@ -192,7 +192,7 @@ const GoogleConfigManager = () => {
                   {config.clientEmail}
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary">
                   프로젝트 ID
                 </Typography>
@@ -200,15 +200,23 @@ const GoogleConfigManager = () => {
                   {config.projectId}
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary">
                   최종 업데이트
                 </Typography>
                 <Typography variant="body2">
-                  {new Date(config.updatedAt).toLocaleString()}
+                  {(() => {
+                    if (!config.updatedAt) return "-";
+                    if (Array.isArray(config.updatedAt)) {
+                      const [y, m, d, h = 0, min = 0, s = 0] = config.updatedAt;
+                      return new Date(y, m - 1, d, h, min, s).toLocaleString();
+                    }
+                    const date = new Date(config.updatedAt);
+                    return isNaN(date.getTime()) ? "-" : date.toLocaleString();
+                  })()}
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary">
                   상태
                 </Typography>

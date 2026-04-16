@@ -989,6 +989,8 @@ public class TestCaseService {
 
   public static class CsvImportException extends RuntimeException {
     private static final long serialVersionUID = 1L;
+
+    @SuppressWarnings("serial")
     private final List<Map<String, Object>> errors;
 
     public CsvImportException(String message, List<Map<String, Object>> errors) {

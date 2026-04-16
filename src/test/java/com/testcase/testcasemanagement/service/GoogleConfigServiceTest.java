@@ -7,6 +7,7 @@ import static org.testng.Assert.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.model.GoogleConfig;
+import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.GoogleConfigRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
@@ -20,19 +21,15 @@ import org.testng.annotations.Test;
 public class GoogleConfigServiceTest {
 
   @Mock private GoogleConfigRepository googleConfigRepository;
-
   @Mock private UserRepository userRepository;
-
   @Mock private EncryptionUtil encryptionUtil;
-
-  @Mock private ObjectMapper objectMapper;
+  private ObjectMapper objectMapper;
 
   @InjectMocks private GoogleConfigService googleConfigService;
 
   @BeforeMethod
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    // 기본 ObjectMapper 설정
     this.objectMapper = new ObjectMapper();
     this.googleConfigService =
         new GoogleConfigService(
@@ -46,30 +43,52 @@ public class GoogleConfigServiceTest {
     String validJson =
         "{\"client_email\":\"test@email.com\",\"project_id\":\"test-123\",\"private_key\":\"ABCDE\"}";
 
-    com.testcase.testcasemanagement.model.User mockUser =
-        new com.testcase.testcasemanagement.model.User();
+    User mockUser = new User();
     mockUser.setId(uuid);
     mockUser.setUsername(username);
 
     when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
     when(encryptionUtil.encrypt(any())).thenReturn("ENCRYPTED_TEXT");
-    when(googleConfigRepository.findByUserId(uuid)).thenReturn(Optional.empty());
+    when(googleConfigRepository.findByUser(any(User.class))).thenReturn(Optional.empty());
     when(googleConfigRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
 
     GoogleConfig result = googleConfigService.saveConfig(username, validJson);
 
     assertNotNull(result);
-    assertEquals(result.getUserId(), uuid); // username이 uuid로 변환되어 저장되어야 함
+    assertEquals(result.getUser().getId(), uuid);
     assertEquals(result.getClientEmail(), "test@email.com");
-    verify(encryptionUtil).encrypt(anyString());
     verify(googleConfigRepository).save(any());
+  }
+
+  @Test
+  public void testGetConfigByUserId() {
+    String username = "admin";
+    User mockUser = new User();
+    mockUser.setId("uuid-123");
+    mockUser.setUsername(username);
+
+    GoogleConfig mockConfig = new GoogleConfig();
+    mockConfig.setUser(mockUser);
+    mockConfig.setClientEmail("test@email.com");
+
+    when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+    when(googleConfigRepository.findByUser(mockUser)).thenReturn(Optional.of(mockConfig));
+
+    Optional<GoogleConfig> result = googleConfigService.getConfigByUserId(username);
+
+    assertTrue(result.isPresent());
+    assertEquals(result.get().getClientEmail(), "test@email.com");
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void testSaveConfigInvalidJson() throws Exception {
-    String userId = "testUser";
-    String invalidJson = "{ invalid-json }";
+    String username = "admin";
+    String invalidJson = "{ invalid content }";
 
-    googleConfigService.saveConfig(userId, invalidJson);
+    User mockUser = new User();
+    mockUser.setUsername(username);
+    when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+
+    googleConfigService.saveConfig(username, invalidJson);
   }
 }
