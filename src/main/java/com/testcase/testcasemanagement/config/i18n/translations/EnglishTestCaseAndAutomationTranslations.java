@@ -800,6 +800,129 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "⚠️ Changes will be lost if not saved.",
         createdBy);
+
+    // Test Plan related
+    createTranslationIfNotExists("testPlan.tab.label", languageCode, "Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.list.title", languageCode, "Test Plan List", createdBy);
+    createTranslationIfNotExists("testPlan.list.add", languageCode, "Add Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.list.table.name", languageCode, "Name", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.testcaseCount", languageCode, "Test Case Count", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.automationCount", languageCode, "Automated Tests", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.createdAt", languageCode, "Created At", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.execute", languageCode, "Execute & Results", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.linkAutomated", languageCode, "Link Automated Tests", createdBy);
+    createTranslationIfNotExists("testPlan.list.table.edit", languageCode, "Edit", createdBy);
+    createTranslationIfNotExists("testPlan.list.table.delete", languageCode, "Delete", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.empty.message", languageCode, "No test plans found.", createdBy);
+
+    // Test Plan Form
+    createTranslationIfNotExists(
+        "testPlan.form.title.create", languageCode, "Create New Test Plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.title.edit", languageCode, "Edit Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.form.planName", languageCode, "Plan Name", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.testcaseSelection", languageCode, "Select Test Cases", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.selectedCount", languageCode, "{count} Selected", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.projectSelectFirst",
+        languageCode,
+        "Please select a project first",
+        createdBy);
+    createTranslationIfNotExists("testPlan.form.button.cancel", languageCode, "Cancel", createdBy);
+    createTranslationIfNotExists("testPlan.form.button.save", languageCode, "Save", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.button.processing", languageCode, "Processing...", createdBy);
+
+    // Validation
+    createTranslationIfNotExists(
+        "testPlan.validation.nameRequired", languageCode, "Test plan name is required", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.validation.testcaseRequired",
+        languageCode,
+        "At least one test case must be selected",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.error.saveFailed", languageCode, "Error occurred while saving: ", createdBy);
+
+    // Execution
+    createTranslationIfNotExists(
+        "testPlan.execution.dialog.title", languageCode, "Test Execution - {planName}", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.button.newExecution", languageCode, "Create New Execution", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.empty.message",
+        languageCode,
+        "No execution history for this test plan.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.progress", languageCode, "Progress:", createdBy);
+    createTranslationIfNotExists("testPlan.execution.action.edit", languageCode, "Edit", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.action.view", languageCode, "View Fullscreen", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.dialog.close", languageCode, "Close", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.list.copyLink", languageCode, "Copy Execution Link", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.list.createdAt", languageCode, "Created: {date}", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.list.progress", languageCode, "Progress", createdBy);
+
+    // Delete
+    createTranslationIfNotExists(
+        "testPlan.delete.dialog.title", languageCode, "Delete Test Plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.delete.dialog.message",
+        languageCode,
+        "Are you sure you want to delete this test plan? This action cannot be undone.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.delete.button.cancel", languageCode, "Cancel", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.delete.button.delete", languageCode, "Delete", createdBy);
+
+    // Selector
+    createTranslationIfNotExists(
+        "testPlan.selector.label", languageCode, "Select Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.selector.all", languageCode, "All", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.selector.caseCount", languageCode, "{count} cases", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.selector.selected", languageCode, "Selected Plan: {planName}", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.selector.testcaseCount", languageCode, "({count} test cases)", createdBy);
+
+    // Status
+    createTranslationIfNotExists(
+        "testPlan.status.notStarted", languageCode, "Not Started", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.status.inProgress", languageCode, "In Progress", createdBy);
+    createTranslationIfNotExists("testPlan.status.completed", languageCode, "Completed", createdBy);
+
+    // Automation
+    createTranslationIfNotExists(
+        "testPlan.list.table.automationCount", languageCode, "Automated Tests", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.linkAutomated", languageCode, "Link Automated Tests", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.automated.title", languageCode, "Linked Automated Tests", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.automated.empty",
+        languageCode,
+        "No linked automated tests.",
+        createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.status.lineBreakSupport",
         languageCode,

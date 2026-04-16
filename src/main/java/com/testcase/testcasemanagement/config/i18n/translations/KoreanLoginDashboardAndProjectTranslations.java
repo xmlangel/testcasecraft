@@ -146,74 +146,12 @@ public class KoreanLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists("userList.title", languageCode, "사용자 관리", createdBy);
     createTranslationIfNotExists(
         "testcase.form.title.create", languageCode, "테스트케이스 생성", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.form.title.create", languageCode, "새 테스트 플랜 생성", createdBy);
-    createTranslationIfNotExists("testPlan.form.title.edit", languageCode, "테스트 플랜 수정", createdBy);
-    createTranslationIfNotExists("testPlan.form.planName", languageCode, "플랜 이름", createdBy);
-    createTranslationIfNotExists("testPlan.form.description", languageCode, "설명", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.form.testcaseSelection", languageCode, "테스트케이스 선택", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.form.selectedCount", languageCode, "{count}개 선택됨", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.form.projectSelectFirst", languageCode, "프로젝트를 먼저 선택해주세요", createdBy);
-    createTranslationIfNotExists("testPlan.form.button.cancel", languageCode, "취소", createdBy);
-    createTranslationIfNotExists("testPlan.form.button.save", languageCode, "저장", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.form.button.processing", languageCode, "처리 중...", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.validation.nameRequired", languageCode, "테스트 플랜 이름은 필수 입력 항목입니다", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.validation.testcaseRequired",
-        languageCode,
-        "최소 한 개 이상의 테스트케이스를 선택해야 합니다",
-        createdBy);
-    createTranslationIfNotExists(
-        "testPlan.error.saveFailed", languageCode, "저장 처리 중 오류가 발생했습니다: ", createdBy);
-    createTranslationIfNotExists("testPlan.list.add", languageCode, "테스트 플랜 추가", createdBy);
-    createTranslationIfNotExists("testPlan.list.table.id", languageCode, "ID", createdBy);
-    createTranslationIfNotExists("testPlan.list.table.name", languageCode, "이름", createdBy);
-    createTranslationIfNotExists("testPlan.list.table.description", languageCode, "설명", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.list.table.testcaseCount", languageCode, "테스트케이스 수", createdBy);
-    createTranslationIfNotExists("testPlan.list.table.createdAt", languageCode, "생성일", createdBy);
-    createTranslationIfNotExists("testPlan.list.table.execute", languageCode, "실행", createdBy);
-    createTranslationIfNotExists("testPlan.list.table.edit", languageCode, "수정", createdBy);
-    createTranslationIfNotExists("testPlan.list.table.delete", languageCode, "삭제", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.list.empty.message", languageCode, "등록된 테스트 플랜이 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.execution.dialog.title", languageCode, "테스트 실행 - {planName}", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.execution.button.newExecution", languageCode, "새 실행 생성", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.execution.empty.message", languageCode, "이 테스트 플랜의 실행 이력이 없습니다.", createdBy);
-    createTranslationIfNotExists("testPlan.execution.progress", languageCode, "진행률:", createdBy);
-    createTranslationIfNotExists("testPlan.execution.action.edit", languageCode, "편집", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.execution.action.view", languageCode, "전체화면 보기", createdBy);
-    createTranslationIfNotExists("testPlan.execution.dialog.close", languageCode, "닫기", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.delete.dialog.title", languageCode, "테스트 플랜 삭제", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.delete.dialog.message",
-        languageCode,
-        "정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.",
-        createdBy);
-    createTranslationIfNotExists("testPlan.delete.button.cancel", languageCode, "취소", createdBy);
-    createTranslationIfNotExists("testPlan.delete.button.delete", languageCode, "삭제", createdBy);
-    createTranslationIfNotExists("testPlan.selector.label", languageCode, "테스트 플랜 선택", createdBy);
-    createTranslationIfNotExists("testPlan.selector.all", languageCode, "전체", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.selector.caseCount", languageCode, "{count}개 케이스", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.selector.selected", languageCode, "선택된 플랜: {planName}", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.selector.testcaseCount", languageCode, "({count}개 테스트케이스)", createdBy);
-    createTranslationIfNotExists("testPlan.status.notStarted", languageCode, "시작 안됨", createdBy);
-    createTranslationIfNotExists("testPlan.status.inProgress", languageCode, "진행 중", createdBy);
-    createTranslationIfNotExists("testPlan.status.completed", languageCode, "완료됨", createdBy);
-    createTranslationIfNotExists("testPlan.tab.label", languageCode, "테스트플랜", createdBy);
+    createTranslationIfNotExists("common.list", languageCode, "목록", createdBy);
+    createTranslationIfNotExists("common.cancel", languageCode, "취소", createdBy);
+    createTranslationIfNotExists("common.save", languageCode, "저장", createdBy);
+    createTranslationIfNotExists("common.link", languageCode, "연결", createdBy);
+    createTranslationIfNotExists("common.unlink", languageCode, "연결 해제", createdBy);
+    createTranslationIfNotExists("common.noResults", languageCode, "검색 결과가 없습니다.", createdBy);
     createTranslationIfNotExists("common.list", languageCode, "목록", createdBy);
     createTranslationIfNotExists("common.cancel", languageCode, "취소", createdBy);
     createTranslationIfNotExists("common.save", languageCode, "저장", createdBy);

@@ -309,6 +309,15 @@ const TestPlanList = ({
   }, [planToDelete, deleteTestPlan]);
 
   // Project selection check
+  // 브라우저 탭 제목 설정 (ICT-Localized-Title)
+  useEffect(() => {
+    if (activeProject) {
+      document.title = `${t("testPlan.tab.label", "테스트플랜")} | ${activeProject.name} - TestCaseCraft`;
+    } else {
+      document.title = `${t("testPlan.tab.label", "테스트플랜")} - TestCaseCraft`;
+    }
+  }, [activeProject, t]);
+
   if (!projectId) {
     return (
       <Card sx={{ height: "100%" }}>
@@ -325,31 +334,45 @@ const TestPlanList = ({
   }
 
   return (
-    <>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 1,
-        }}
-      >
-        <Typography variant="h6" component="h2">
-          {activeProject?.name}
-        </Typography>
-        {canManage && (
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<Add />}
-            onClick={() => onNewTestPlan(projectId)}
-            disabled={globalLoading}
-            data-testid="testplan-add-button"
-          >
-            {t("testPlan.list.add", "테스트 플랜 추가")}
-          </Button>
-        )}
+    <Box sx={{ p: 1 }}>
+      {/* 상단 헤더 영역 개선 (ICT-Localized-Header) */}
+      <Box sx={{ mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 2,
+          }}
+        >
+          <Box>
+            <Typography
+              variant="h4"
+              component="h1"
+              gutterBottom
+              sx={{ fontWeight: "bold" }}
+            >
+              {t("testPlan.list.title", "테스트 플랜 목록")}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              {activeProject?.name}
+            </Typography>
+          </Box>
+          {canManage && (
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => onNewTestPlan(projectId)}
+              disabled={globalLoading}
+              data-testid="testplan-add-button"
+              sx={{ mt: 1 }}
+            >
+              {t("testPlan.list.add", "테스트 플랜 추가")}
+            </Button>
+          )}
+        </Box>
       </Box>
+
       <Accordion
         expanded={expanded}
         onChange={handleAccordionChange}
@@ -866,7 +889,7 @@ const TestPlanList = ({
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </Box>
   );
 };
 

@@ -92,9 +92,32 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
           >
             {t("projectHeader.breadcrumb.projects", "프로젝트")}
           </Link>
-          <Typography color="text.primary" fontWeight="bold">
+          <Typography
+            color={tabIndex === undefined ? "text.primary" : "inherit"}
+            fontWeight={tabIndex === undefined ? "bold" : "normal"}
+          >
             {activeProject.name}
           </Typography>
+          {tabIndex !== undefined && (
+            <Typography color="text.primary" fontWeight="bold">
+              {tabIndex === 0 && t("projectHeader.tabs.dashboard", "대시보드")}
+              {tabIndex === 1 &&
+                t("projectHeader.tabs.testCases", "테스트케이스")}
+              {tabIndex === 2 && t("testPlan.tab.label", "테스트플랜")}
+              {tabIndex === 3 &&
+                t("projectHeader.tabs.testExecution", "테스트실행")}
+              {tabIndex === 4 &&
+                t("projectHeader.tabs.testResults", "테스트결과")}
+              {tabIndex === 5 &&
+                t("projectHeader.tabs.automation", "자동화 테스트")}
+              {tabIndex === 6 &&
+                (isRagEnabled
+                  ? t("projectHeader.tabs.ragDocuments", "RAG 문서")
+                  : t("projectHeader.tabs.exploratorySessions", "탐색 세션"))}
+              {tabIndex === 7 &&
+                t("projectHeader.tabs.exploratorySessions", "탐색 세션")}
+            </Typography>
+          )}
         </Breadcrumbs>
 
         <IconButton

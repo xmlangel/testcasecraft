@@ -139,6 +139,10 @@ public class CommonKeysInitializer {
     createTranslationKeyIfNotExists("common.emptyValue", "common", "빈 값 표시", "빈 값");
     createTranslationKeyIfNotExists("common.spreadsheet.row", "common", "행(Row) 라벨", "행");
     createTranslationKeyIfNotExists("common.settings", "common", "설정 이동 버튼", "설정으로 이동");
+    createTranslationKeyIfNotExists("common.link", "common", "연결", "연결");
+    createTranslationKeyIfNotExists("common.unlink", "common", "연결 해제", "연결 해제");
+    createTranslationKeyIfNotExists("common.noResults", "common", "검색 결과 없음", "검색 결과가 없습니다.");
+    createTranslationKeyIfNotExists("common.search", "common", "검색", "검색");
 
     // 설정 관련 키
     createTranslationKeyIfNotExists("config.database.title", "config", "데이터베이스 설정", "데이터베이스 설정");
