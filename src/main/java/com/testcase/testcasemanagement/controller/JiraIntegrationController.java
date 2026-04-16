@@ -393,7 +393,7 @@ public class JiraIntegrationController {
           testResultRepository.findRecentResultsByJiraIssue(issueKey, pageable);
 
       if (results.isEmpty()) {
-        return org.springframework.http.ResponseEntity.notFound().build();
+        return org.springframework.http.ResponseEntity.noContent().build();
       }
 
       // 실행 ID 기준으로 중복을 제거하면서 정보 추출

@@ -11,6 +11,9 @@ const googleConfigApi = {
   getMyConfig: async () => {
     try {
       const response = await apiService.get("/api/google-configs/my");
+      if (response.status === 204) {
+        return null;
+      }
       return await response.json();
     } catch (error) {
       if (error.status === 404) {

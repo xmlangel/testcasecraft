@@ -62,20 +62,12 @@ public class JiraConfigController {
       Optional<JiraConfigDto> jiraConfig = jiraConfigService.getActiveConfigByUserId(userId);
 
       if (jiraConfig.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(
-                Map.of(
-                    "error", "JIRA_CONFIG_NOT_FOUND",
-                    "message", "JIRA 설정이 없습니다. JIRA 설정을 먼저 등록해주세요."));
+        return ResponseEntity.noContent().build();
       }
 
       String serverUrl = jiraConfig.get().getServerUrl();
       if (serverUrl == null || serverUrl.trim().isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(
-                Map.of(
-                    "error", "JIRA_URL_NOT_CONFIGURED",
-                    "message", "JIRA 서버 URL이 설정되지 않았습니다. JIRA 설정을 확인해주세요."));
+        return ResponseEntity.noContent().build();
       }
 
       return ResponseEntity.ok(Map.of("serverUrl", serverUrl));
@@ -107,7 +99,7 @@ public class JiraConfigController {
         return ResponseEntity.ok(config.get());
       } else {
         log.info("활성화된 JIRA 설정 없음: userId={}", userId);
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
       }
 
     } catch (Exception e) {
