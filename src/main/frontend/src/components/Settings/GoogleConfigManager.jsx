@@ -1,4 +1,3 @@
-// src/main/frontend/src/components/Settings/GoogleConfigManager.jsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -15,21 +14,28 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Tooltip,
+  IconButton,
+  Chip,
+  List,
+  ListItem,
+  Zoom,
 } from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
   Settings as SettingsIcon,
   Info as InfoIcon,
   ExpandMore as ExpandMoreIcon,
+  ContentCopy as ContentCopyIcon,
+  AutoAwesome as AutoAwesomeIcon,
 } from "@mui/icons-material";
 import googleConfigApi from "../../services/googleConfigApi";
 import { useI18n } from "../../context/I18nContext";
 
 /**
- * 사용자별 Google Sheets 설정을 관리하는 컴포넌트 (CRUD)
+ * 사용자별 Google Sheets 설정을 관리하는 컴포넌트 (Premium UI)
  */
 const GoogleConfigManager = () => {
   const { t } = useI18n();
@@ -39,10 +45,18 @@ const GoogleConfigManager = () => {
   const [jsonKey, setJsonKey] = useState("");
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     fetchConfig();
   }, []);
+
+  const handleCopy = (text) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
 
   const fetchConfig = async () => {
     setLoading(true);
@@ -50,7 +64,7 @@ const GoogleConfigManager = () => {
       const data = await googleConfigApi.getMyConfig();
       setConfig(data);
       if (data) {
-        setJsonKey(""); // 이미 설정이 있으면 입력창은 비움 (텍스트박스는 신규 입력용)
+        setJsonKey("");
       }
     } catch (err) {
       console.error("설정 로딩 실패:", err);
@@ -90,7 +104,6 @@ const GoogleConfigManager = () => {
       await fetchConfig();
     } catch (err) {
       console.error("설정 저장 실패:", err);
-      // 백엔드로부터 온 구체적인 에러 메시지 우선 표시
       let msg = t(
         "google.config.saveError",
         "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.",
@@ -148,41 +161,76 @@ const GoogleConfigManager = () => {
   }
 
   return (
-    <Box sx={{ p: 1 }}>
+    <Box sx={{ p: 0.5 }}>
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
+        <Zoom in={!!error}>
+          <Alert
+            severity="error"
+            sx={{ mb: 3, borderRadius: 2 }}
+            onClose={() => setError(null)}
+          >
+            {error}
+          </Alert>
+        </Zoom>
       )}
       {success && (
-        <Alert
-          severity="success"
-          sx={{ mb: 3 }}
-          onClose={() => setSuccess(null)}
-        >
-          {success}
-        </Alert>
+        <Zoom in={!!success}>
+          <Alert
+            severity="success"
+            sx={{ mb: 3, borderRadius: 2 }}
+            onClose={() => setSuccess(null)}
+          >
+            {success}
+          </Alert>
+        </Zoom>
       )}
 
-      {/* 현재 설정 상태 */}
-      <Card variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
-        <CardContent>
+      {/* 현재 설정 상태 카드 */}
+      <Card
+        elevation={0}
+        sx={{
+          mb: 4,
+          borderRadius: 4,
+          border: "1px solid",
+          borderColor: "divider",
+          overflow: "hidden",
+          background: (theme) =>
+            theme.palette.mode === "dark"
+              ? `linear-gradient(135deg, ${theme.palette.background.paper} 0%, #1e1e1e 100%)`
+              : `linear-gradient(135deg, #ffffff 0%, #f8faff 100%)`,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+        }}
+      >
+        <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
           <Box
             sx={{
+              p: 2.5,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 2,
+              borderBottom: "1px solid",
+              borderColor: "divider",
+              bgcolor: "background.paper",
             }}
           >
-            <Typography variant="h6" display="flex" alignItems="center">
+            <Typography
+              variant="subtitle1"
+              fontWeight="800"
+              display="flex"
+              alignItems="center"
+              color="primary.main"
+              sx={{ letterSpacing: -0.5 }}
+            >
+              <AutoAwesomeIcon sx={{ mr: 1, fontSize: 20 }} />
               {t("google.config.status", "연동 상태")}
-              {config ? (
-                <CheckCircleIcon
-                  sx={{ ml: 1, color: "success.main", fontSize: 20 }}
+              {config && (
+                <Chip
+                  label={t("google.config.active", "활성화됨")}
+                  size="small"
+                  color="success"
+                  icon={<CheckCircleIcon />}
+                  sx={{ ml: 2, fontWeight: "bold", borderRadius: 1.5 }}
                 />
-              ) : (
-                <InfoIcon sx={{ ml: 1, color: "warning.main", fontSize: 20 }} />
               )}
             </Typography>
             {config && (
@@ -192,97 +240,231 @@ const GoogleConfigManager = () => {
                 variant="outlined"
                 size="small"
                 onClick={handleDelete}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  transition: "all 0.2s",
+                  "&:hover": { bgcolor: "error.lighter" },
+                }}
               >
                 {t("google.config.disconnect", "연동 해제")}
               </Button>
             )}
           </Box>
 
-          <Divider sx={{ mb: 2 }} />
-
-          {config ? (
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t("google.config.email", "연결된 서비스 계정 (Email)")}
-                </Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {config.clientEmail}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t("google.config.projectId", "프로젝트 ID")}
-                </Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {config.projectId}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t("google.config.lastUpdated", "최종 업데이트")}
-                </Typography>
-                <Typography variant="body2">
-                  {(() => {
-                    if (!config.updatedAt) return "-";
-                    if (Array.isArray(config.updatedAt)) {
-                      const [y, m, d, h = 0, min = 0, s = 0] = config.updatedAt;
-                      return new Date(y, m - 1, d, h, min, s).toLocaleString();
-                    }
-                    const date = new Date(config.updatedAt);
-                    return isNaN(date.getTime()) ? "-" : date.toLocaleString();
-                  })()}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t("google.config.status", "상태")}
-                </Typography>
-                <Typography
-                  variant="body2"
+          <Box sx={{ p: 1 }}>
+            {config ? (
+              <List disablePadding>
+                <ListItem
                   sx={{
-                    color: config.isActive ? "success.main" : "text.disabled",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    py: 2,
+                    px: 2,
                   }}
                 >
-                  {config.isActive
-                    ? t("google.config.active", "활성화됨")
-                    : t("google.config.status.inactive", "비활성")}
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      mb: 1,
+                      fontWeight: "700",
+                      textTransform: "uppercase",
+                      fontSize: "0.7rem",
+                    }}
+                  >
+                    {t("google.config.email", "연결된 서비스 계정 (Email)")}
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      width: "100%",
+                      justifyContent: "space-between",
+                      gap: 2,
+                      p: 1.5,
+                      bgcolor: "action.hover",
+                      borderRadius: 2,
+                      border: "1px dashed",
+                      borderColor: "divider",
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      fontWeight="600"
+                      sx={{
+                        wordBreak: "break-all",
+                        fontFamily: "'Roboto Mono', monospace",
+                        color: "primary.dark",
+                      }}
+                    >
+                      {config.clientEmail}
+                    </Typography>
+                    <Tooltip
+                      title={
+                        copySuccess
+                          ? t("common.copied", "복사됨!")
+                          : t("common.copy", "복사")
+                      }
+                      arrow
+                      TransitionComponent={Zoom}
+                    >
+                      <IconButton
+                        size="small"
+                        onClick={() => handleCopy(config.clientEmail)}
+                        sx={{
+                          bgcolor: "background.paper",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          "&:hover": {
+                            bgcolor: "primary.main",
+                            color: "white",
+                            transform: "scale(1.1)",
+                          },
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <ContentCopyIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </ListItem>
+
+                <Divider sx={{ mx: 2 }} />
+
+                <Grid container>
+                  <Grid item xs={12} sm={6}>
+                    <ListItem
+                      sx={{
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        py: 2,
+                        px: 2,
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          mb: 0.5,
+                          fontWeight: "700",
+                          textTransform: "uppercase",
+                          fontSize: "0.7rem",
+                        }}
+                      >
+                        {t("google.config.projectId", "프로젝트 ID")}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        fontWeight="600"
+                        sx={{ wordBreak: "break-all", color: "text.primary" }}
+                      >
+                        {config.projectId}
+                      </Typography>
+                    </ListItem>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <ListItem
+                      sx={{
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        py: 2,
+                        px: 2,
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          mb: 0.5,
+                          fontWeight: "700",
+                          textTransform: "uppercase",
+                          fontSize: "0.7rem",
+                        }}
+                      >
+                        {t("google.config.lastUpdated", "최종 업데이트")}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        fontWeight="500"
+                        color="text.primary"
+                      >
+                        {(() => {
+                          if (!config.updatedAt) return "-";
+                          if (Array.isArray(config.updatedAt)) {
+                            const [y, m, d, h = 0, min = 0, s = 0] =
+                              config.updatedAt;
+                            return new Date(
+                              y,
+                              m - 1,
+                              d,
+                              h,
+                              min,
+                              s,
+                            ).toLocaleString();
+                          }
+                          const date = new Date(config.updatedAt);
+                          return isNaN(date.getTime())
+                            ? "-"
+                            : date.toLocaleString();
+                        })()}
+                      </Typography>
+                    </ListItem>
+                  </Grid>
+                </Grid>
+              </List>
+            ) : (
+              <Box sx={{ textAlign: "center", py: 5, px: 3 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontStyle: "italic" }}
+                >
+                  {t(
+                    "google.config.noConfigDesc",
+                    "테스트케이스 내보내기 기능을 사용하려면 아래에 Google 서비스 계정 키 내용을 입력해주세요.",
+                  )}
                 </Typography>
-              </Grid>
-            </Grid>
-          ) : (
-            <Box sx={{ textAlign: "center", py: 2 }}>
-              <Typography color="text.secondary">
-                {t(
-                  "google.config.noConfig",
-                  "현재 등록된 구글 인증 정보가 없습니다.",
-                )}
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                {t(
-                  "google.config.noConfigDesc",
-                  "테스트케이스 내보내기 기능을 사용하려면 아래에 Google 서비스 계정 키 내용을 입력해주세요.",
-                )}
-              </Typography>
-            </Box>
-          )}
+              </Box>
+            )}
+          </Box>
         </CardContent>
       </Card>
 
       {/* 설정/수정 폼 */}
-      <Paper elevation={0} variant="outlined" sx={{ p: 4, borderRadius: 2 }}>
+      <Paper
+        elevation={0}
+        variant="outlined"
+        sx={{
+          p: 3,
+          borderRadius: 4,
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
         <Typography
-          variant="h6"
+          variant="subtitle1"
+          fontWeight="800"
           gutterBottom
           display="flex"
           alignItems="center"
+          sx={{ mb: 2, color: "text.primary" }}
         >
-          <CloudUploadIcon sx={{ mr: 1, fontSize: 20 }} />
+          <CloudUploadIcon
+            sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
+          />
           {config
             ? t("google.config.form.updateTitle", "인증 정보 업데이트")
             : t("google.config.form.registerTitle", "새 인증 정보 등록")}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 3, lineHeight: 1.6 }}
+        >
           {t(
             "google.config.inputDesc",
             "Google Cloud Console에서 다운로드한 서비스 계정 키(JSON) 파일의 전체 내용을 아래에 붙여넣으세요.",
@@ -292,18 +474,25 @@ const GoogleConfigManager = () => {
         <TextField
           fullWidth
           multiline
-          rows={10}
-          variant="filled"
-          label="Google Service Account JSON"
-          placeholder='{ "type": "service_account", "project_id": "...", ... }'
+          rows={8}
+          variant="outlined"
+          placeholder={t(
+            "google.config.placeholder",
+            '{ "type": "service_account", ... }',
+          )}
           value={jsonKey}
           onChange={(e) => setJsonKey(e.target.value)}
           disabled={saving}
           sx={{
             mb: 3,
-            "& .MuiFilledInput-root": {
-              fontFamily: "monospace",
-              fontSize: "0.875rem",
+            "& .MuiOutlinedInput-root": {
+              fontFamily: "'Roboto Mono', monospace",
+              fontSize: "0.825rem",
+              bgcolor: (theme) =>
+                theme.palette.mode === "dark"
+                  ? "rgba(255,255,255,0.03)"
+                  : "rgba(0,0,0,0.01)",
+              borderRadius: 2,
             },
           }}
         />
@@ -311,18 +500,25 @@ const GoogleConfigManager = () => {
         <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
           <Button
             variant="contained"
-            color="primary"
+            disableElevation
             size="large"
             startIcon={
               saving ? (
-                <CircularProgress size={20} color="inherit" />
+                <CircularProgress size={18} color="inherit" />
               ) : (
                 <CheckCircleIcon />
               )
             }
             onClick={handleSave}
             disabled={saving || !jsonKey.trim()}
-            sx={{ px: 4 }}
+            sx={{
+              px: 4,
+              borderRadius: 2,
+              fontWeight: "bold",
+              textTransform: "none",
+              boxShadow: (theme) =>
+                `0 4px 14px ${theme.palette.primary.main}40`,
+            }}
           >
             {saving
               ? t("google.config.button.saving", "저장 중...")
@@ -333,15 +529,31 @@ const GoogleConfigManager = () => {
         </Box>
       </Paper>
 
-      <Box sx={{ mt: 4 }}>
+      {/* 도움말 섹션 */}
+      <Box sx={{ mt: 3 }}>
         <Accordion
+          elevation={0}
           variant="outlined"
-          sx={{ borderRadius: 2, overflow: "hidden" }}
+          sx={{
+            borderRadius: "16px !important",
+            overflow: "hidden",
+            borderColor: "divider",
+            "&:before": { display: "none" },
+          }}
         >
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              bgcolor: "action.hover",
+              "&.Mui-expanded": {
+                borderBottom: "1px solid",
+                borderColor: "divider",
+              },
+            }}
+          >
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <InfoIcon sx={{ mr: 1, color: "info.main", fontSize: 20 }} />
-              <Typography variant="subtitle1" fontWeight="bold">
+              <InfoIcon sx={{ mr: 1, color: "info.main", fontSize: 18 }} />
+              <Typography variant="body2" fontWeight="700">
                 {t(
                   "google.guide.title",
                   "Google 서비스 계정 생성 및 설정 방법",
@@ -349,86 +561,106 @@ const GoogleConfigManager = () => {
               </Typography>
             </Box>
           </AccordionSummary>
-          <AccordionDetails sx={{ bgcolor: "background.default", p: 3 }}>
-            <Typography
-              variant="body2"
-              component="div"
-              sx={{ "& p": { mb: 1.5 } }}
+          <AccordionDetails sx={{ bgcolor: "background.paper", p: 3 }}>
+            <Box
+              sx={{
+                "& p": { mb: 2, fontSize: "0.875rem", color: "text.primary" },
+              }}
             >
-              <p>
-                {t(
-                  "google.guide.step1",
-                  "1. Google Cloud Console에서 프로젝트를 생성하고 'Google Sheets API'를 활성화합니다.",
-                )}
-              </p>
-              <p>
-                {t(
-                  "google.guide.step2",
-                  "2. '서비스 계정'을 생성하고 JSON 형식의 키를 발급받아 다운로드합니다.",
-                )}
-              </p>
-              <p>
-                {t(
-                  "google.guide.step3",
-                  "3. 다운로드한 JSON 파일의 내용을 복사하여 위의 입력란에 붙여넣고 저장합니다.",
-                )}
-              </p>
-              <p>
-                <strong>
-                  {t(
-                    "google.guide.step4",
-                    "4. (중요) 내보낼 대상 구글 시트 파일에서 '공유' 버튼을 클릭합니다.",
-                  )}
-                </strong>
-              </p>
-              <p>
-                {t(
-                  "google.guide.step5",
-                  "5. 서비스 계정의 이메일 주소(JSON 내 client_email)를 '편집자' 권한으로 추가하여 저장합니다.",
-                )}
-                {config?.clientEmail && (
+              {[1, 2, 3, 4, 5].map((step) => (
+                <Typography
+                  key={step}
+                  variant="body2"
+                  sx={{
+                    mb: 1.5,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    fontWeight: step === 4 ? "bold" : "normal",
+                    color: step === 4 ? "primary.main" : "text.secondary",
+                  }}
+                >
                   <Box
                     component="span"
                     sx={{
-                      display: "block",
-                      mt: 1,
-                      p: 1,
-                      bgcolor: "action.hover",
-                      borderRadius: 1,
-                      fontWeight: "bold",
-                      color: "primary.main",
+                      minWidth: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      bgcolor: step === 4 ? "primary.main" : "divider",
+                      color: step === 4 ? "white" : "text.primary",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.7rem",
+                      mr: 1.5,
+                      mt: 0.2,
                     }}
                   >
-                    {config.clientEmail}
+                    {step}
                   </Box>
-                )}
-              </p>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="caption" color="text.secondary">
-                {t(
-                  "google.config.guide.footer",
-                  "* 상세 가이드는 프로젝트 루트의 docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.",
-                )}
-              </Typography>
-              <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+                  {t(`google.guide.step${step}`, `Step ${step}`)}
+                </Typography>
+              ))}
+
+              {config?.clientEmail && (
+                <Box
+                  sx={{
+                    mt: 2,
+                    p: 2,
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "rgba(25, 118, 210, 0.1)"
+                        : "primary.lighter",
+                    borderRadius: 2,
+                    borderLeft: "4px solid",
+                    borderColor: "primary.main",
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{ display: "block", mb: 0.5, opacity: 0.8 }}
+                  >
+                    {t("google.config.email.hint", "공유 추가할 이메일:")}
+                  </Typography>
+                  <Typography variant="body2" fontWeight="bold">
+                    {config.clientEmail}
+                  </Typography>
+                </Box>
+              )}
+
+              <Divider sx={{ my: 3 }} />
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 2,
+                }}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  {t(
+                    "google.config.guide.footer",
+                    "* 상세 가이드는 프로젝트 루트의 docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.",
+                  )}
+                </Typography>
                 <Button
-                  variant="outlined"
+                  variant="text"
                   color="info"
                   size="small"
+                  startIcon={<InfoIcon />}
                   onClick={() =>
                     window.open(
                       "/guides/GOOGLE_SHEETS_SETUP_GUIDE.md",
                       "_blank",
                     )
                   }
+                  sx={{ textTransform: "none", fontWeight: "bold" }}
                 >
-                  {t(
-                    "google.config.guide.openButton",
-                    "상세 가이드 새 창으로 보기",
-                  )}
+                  {t("google.config.guide.openButton", "상세 가이드 보기")}
                 </Button>
               </Box>
-            </Typography>
+            </Box>
           </AccordionDetails>
         </Accordion>
       </Box>
