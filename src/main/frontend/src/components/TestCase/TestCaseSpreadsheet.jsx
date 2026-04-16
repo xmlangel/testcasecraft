@@ -43,6 +43,7 @@ import {
   Warning as WarningIcon,
   Download as DownloadIcon,
   GetApp as GetAppIcon,
+  Upload as UploadIcon,
   ArrowUpward as ArrowUpwardIcon,
   ArrowDownward as ArrowDownwardIcon,
   Delete as DeleteIcon,
@@ -52,6 +53,7 @@ import {
   FullscreenExit as FullscreenExitIcon,
 } from "@mui/icons-material";
 import Spreadsheet from "react-spreadsheet";
+import TestCaseImportExportDialog from "./TestCaseImportExportDialog.jsx";
 
 // 분리된 모듈 imports
 import {
@@ -132,6 +134,9 @@ const TestCaseSpreadsheet = ({
 
   // Export 관련 상태
   const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
+
+  // Import/Export 다이얼로그 상태
+  const [importExportOpen, setImportExportOpen] = useState(false);
 
   // 행 선택 관련 상태 (ICT-414)
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
@@ -1720,6 +1725,17 @@ const TestCaseSpreadsheet = ({
 
                 <Button
                   size="small"
+                  startIcon={<UploadIcon />}
+                  onClick={() => setImportExportOpen(true)}
+                  disabled={isLoading}
+                  color="secondary"
+                  variant="outlined"
+                >
+                  Import/Export
+                </Button>
+
+                <Button
+                  size="small"
                   startIcon={<GetAppIcon />}
                   onClick={handleExportMenuOpen}
                   disabled={isLoading}
@@ -2175,6 +2191,19 @@ const TestCaseSpreadsheet = ({
           {renderSpreadsheetContent()}
         </DialogContent>
       </Dialog>
+
+      {/* Import / Export 다이얼로그 */}
+      {importExportOpen && (
+        <TestCaseImportExportDialog
+          open={importExportOpen}
+          onClose={() => setImportExportOpen(false)}
+          projectId={projectId}
+          onImportComplete={() => {
+            setImportExportOpen(false);
+            if (onRefresh) onRefresh();
+          }}
+        />
+      )}
     </>
   );
 };
