@@ -791,6 +791,12 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.tree.ragVectorized", "testcase", "RAG 벡터화 상태 표시", "RAG 벡터화됨");
 
+    // 이름 변경 다이얼로그
+    createTranslationKeyIfNotExists(
+        "testcase.tree.dialog.rename.title", "testcase", "이름 변경 다이얼로그 제목", "이름 변경");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.dialog.rename.label", "testcase", "새 이름 입력 필드 라벨", "새 이름");
+
     // 삭제 확인 다이얼로그
     createTranslationKeyIfNotExists(
         "testcase.delete.confirm.title", "testcase", "삭제 확인 제목", "삭제 확인");

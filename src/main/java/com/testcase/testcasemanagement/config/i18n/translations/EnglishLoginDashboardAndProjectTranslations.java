@@ -174,6 +174,15 @@ public class EnglishLoginDashboardAndProjectTranslations {
         languageCode,
         "{completed}/{total} completed",
         createdBy);
+
+    // Dashboard Section Titles
+    createTranslationIfNotExists(
+        "dashboard.sections.summary", languageCode, "Project Summary", createdBy);
+    createTranslationIfNotExists(
+        "dashboard.sections.charts", languageCode, "Test Status & Trends", createdBy);
+    createTranslationIfNotExists(
+        "dashboard.sections.details", languageCode, "Detailed Analysis", createdBy);
+
     createTranslationIfNotExists(
         "dashboard.messages.selectProject",
         languageCode,

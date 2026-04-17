@@ -136,6 +136,10 @@ public class EnglishTestCaseAndAutomationTranslations {
         "Are you sure you want to delete? (including children)",
         createdBy);
     createTranslationIfNotExists(
+        "testcase.tree.dialog.rename.title", languageCode, "Rename", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.dialog.rename.label", languageCode, "New Name", createdBy);
+    createTranslationIfNotExists(
         "testcase.tree.dialog.error.title", languageCode, "Error", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.tooltip.open", languageCode, "Open Test Case Tree", createdBy);

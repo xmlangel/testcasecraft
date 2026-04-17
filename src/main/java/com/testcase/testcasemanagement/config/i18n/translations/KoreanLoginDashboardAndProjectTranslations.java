@@ -121,6 +121,13 @@ public class KoreanLoginDashboardAndProjectTranslations {
         "dashboard.status.failureRate", languageCode, "실패율 {rate}%", createdBy);
     createTranslationIfNotExists(
         "dashboard.status.completedCount", languageCode, "{completed}/{total} 완료", createdBy);
+
+    // 대시보드 섹션 타이틀
+    createTranslationIfNotExists("dashboard.sections.summary", languageCode, "프로젝트 요약", createdBy);
+    createTranslationIfNotExists(
+        "dashboard.sections.charts", languageCode, "테스트 현황 및 트렌드", createdBy);
+    createTranslationIfNotExists("dashboard.sections.details", languageCode, "상세 분석", createdBy);
+
     createTranslationIfNotExists(
         "dashboard.messages.selectProject",
         languageCode,
@@ -402,6 +409,10 @@ public class KoreanLoginDashboardAndProjectTranslations {
         languageCode,
         "{count}개 항목(하위 포함)을 삭제하시겠습니까?",
         createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.dialog.rename.title", languageCode, "이름 변경", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.dialog.rename.label", languageCode, "새 이름", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.dialog.deleteConfirm.title", languageCode, "삭제 확인", createdBy);
     createTranslationIfNotExists(
