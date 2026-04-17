@@ -7,7 +7,6 @@ import React, {
   useRef,
 } from "react";
 import { API_CONFIG, getDynamicApiUrl } from "../utils/apiConstants.js";
-import { useAuth } from "./AuthContext";
 
 // 초기 상태
 const initialState = {
@@ -92,21 +91,32 @@ const getApiBaseUrl = async () => {
 // I18n Provider 컴포넌트
 export const I18nProvider = ({ children }) => {
   const [state, dispatch] = useReducer(i18nReducer, initialState);
-  const { user, loadingUser, api } = useAuth(); // AuthContext에서 user, loadingUser, api 가져오기
 
-  // AppContext의 user 상태가 변경될 때 언어 설정 동기화
-  useEffect(() => {
-    // 로딩이 끝나고, user 객체가 존재하며, user.preferredLanguage 값이 있을 경우
-    if (!loadingUser && user && user.preferredLanguage) {
-      // 현재 언어와 다를 경우에만 변경 실행
-      if (state.currentLanguage !== user.preferredLanguage) {
-        dispatch({
-          type: I18N_ACTIONS.SET_CURRENT_LANGUAGE,
-          payload: user.preferredLanguage,
-        });
+  // 내부 API 호출 함수 (AuthContext 의존성 제거)
+  const internalApi = async (path, options = {}) => {
+    const baseUrl = await getApiBaseUrl();
+    const url = `${baseUrl}${path}`;
+
+    const headers = {
+      "Content-Type": "application/json",
+      ...options.headers,
+    };
+
+    // 토큰이 필요한 경우 (skipAuth가 아닐 때만)
+    if (!options.skipAuth) {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
       }
     }
-  }, [user, loadingUser]); // user 또는 loadingUser가 변경될 때마다 실행
+
+    const fetchOptions = {
+      ...options,
+      headers,
+    };
+
+    return fetch(url, fetchOptions);
+  };
 
   // 사용자 선호 언어 우선순위에 따른 결정
   const getUserPreferredLanguage = () => {
@@ -164,7 +174,9 @@ export const I18nProvider = ({ children }) => {
     // 2. Promise 생성 및 저장
     const loadingPromise = (async () => {
       try {
-        const response = await api("/api/i18n/languages", { skipAuth: true });
+        const response = await internalApi("/api/i18n/languages", {
+          skipAuth: true,
+        });
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const languages = await response.json();
@@ -211,9 +223,12 @@ export const I18nProvider = ({ children }) => {
     // 3. 새로운 로딩 Promise 생성 및 저장
     const loadingPromise = (async () => {
       try {
-        const fetchRes = await api(`/api/i18n/translations/${languageCode}`, {
-          skipAuth: true,
-        });
+        const fetchRes = await internalApi(
+          `/api/i18n/translations/${languageCode}`,
+          {
+            skipAuth: true,
+          },
+        );
         if (!fetchRes.ok)
           throw new Error(`HTTP error! status: ${fetchRes.status}`);
         const response = await fetchRes.json();
@@ -279,7 +294,7 @@ export const I18nProvider = ({ children }) => {
       if (token) {
         try {
           // 서버에 언어 설정 저장
-          await api(`/api/auth/preferred-language`, {
+          await internalApi(`/api/auth/preferred-language`, {
             method: "PUT",
             body: JSON.stringify({ languageCode }),
           });

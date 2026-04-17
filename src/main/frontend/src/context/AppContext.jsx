@@ -1,5 +1,6 @@
 // src/context/AppContext.jsx
 import React, { createContext, useContext } from "react";
+import { I18nProvider } from "./I18nContext";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { ProjectProvider, useProject } from "./ProjectContext";
 import { TestProvider, useTest } from "./TestContext";
@@ -73,23 +74,25 @@ import { RAGProvider } from "./RAGContext";
 
 export const AppProvider = ({ children }) => {
   return (
-    <AuthProvider>
-      <ProjectProvider>
-        <TestProvider>
-          <JiraProvider>
-            <InputModeProvider>
-              <AppConsumerProvider>
-                <SchedulerProvider>
-                  <LlmConfigProvider>
-                    <RAGProvider>{children}</RAGProvider>
-                  </LlmConfigProvider>
-                </SchedulerProvider>
-              </AppConsumerProvider>
-            </InputModeProvider>
-          </JiraProvider>
-        </TestProvider>
-      </ProjectProvider>
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <ProjectProvider>
+          <TestProvider>
+            <JiraProvider>
+              <InputModeProvider>
+                <AppConsumerProvider>
+                  <SchedulerProvider>
+                    <LlmConfigProvider>
+                      <RAGProvider>{children}</RAGProvider>
+                    </LlmConfigProvider>
+                  </SchedulerProvider>
+                </AppConsumerProvider>
+              </InputModeProvider>
+            </JiraProvider>
+          </TestProvider>
+        </ProjectProvider>
+      </AuthProvider>
+    </I18nProvider>
   );
 };
 

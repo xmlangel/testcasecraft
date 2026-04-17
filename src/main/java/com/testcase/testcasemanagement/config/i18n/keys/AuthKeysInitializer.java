@@ -122,6 +122,25 @@ public class AuthKeysInitializer {
         "auth.session.button.refresh", "session", "새로고침 버튼", "페이지 새로고침");
     createTranslationKeyIfNotExists(
         "auth.session.button.login", "session", "로그인 이동 버튼", "로그인 페이지로 이동");
+
+    // 리팩토링 중 추가된 신규 인증 키들
+    createTranslationKeyIfNotExists(
+        "auth.session_expired", "auth", "세션 만료 메시지 (신규)", "세션이 만료되었습니다. 다시 로그인해주세요.");
+    createTranslationKeyIfNotExists("auth.refresh_failed", "auth", "토큰 갱신 실패", "토큰 갱신에 실패했습니다.");
+    createTranslationKeyIfNotExists("auth.no_token", "auth", "토큰 없음", "인증 토큰이 없습니다.");
+    createTranslationKeyIfNotExists("auth.validation_failed", "auth", "토큰 검증 실패", "토큰 검증에 실패했습니다.");
+    createTranslationKeyIfNotExists(
+        "auth.login_invalid", "auth", "로그인 입력 정보 무효", "아이디 또는 비밀번호가 올바르지 않습니다.");
+    createTranslationKeyIfNotExists("auth.login_failed", "auth", "로그인 실패 일반", "로그인에 실패했습니다.");
+    createTranslationKeyIfNotExists("auth.register_failed", "auth", "회원가입 실패", "회원가입에 실패했습니다.");
+    createTranslationKeyIfNotExists(
+        "auth.fetch_user_failed", "auth", "사용자 정보 조회 실패", "사용자 정보를 불러오는데 실패했습니다.");
+    createTranslationKeyIfNotExists(
+        "profile.update_failed", "profile", "정보 업데이트 실패 (신규)", "정보 변경에 실패했습니다.");
+    createTranslationKeyIfNotExists(
+        "error.rate_limit", "common", "요청 속도 제한", "너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.");
+    createTranslationKeyIfNotExists("demo.admin_name", "auth", "데모 관리자 이름", "관리자");
+    createTranslationKeyIfNotExists("demo.tester_name", "auth", "데모 테스터 이름", "테스터");
   }
 
   private void createTranslationKeyIfNotExists(

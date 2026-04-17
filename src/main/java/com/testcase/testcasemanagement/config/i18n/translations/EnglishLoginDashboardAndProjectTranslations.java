@@ -66,7 +66,37 @@ public class EnglishLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists(
         "auth.session.button.refresh", languageCode, "Refresh Page", createdBy);
     createTranslationIfNotExists(
-        "auth.session.button.login", languageCode, "Go to Login", createdBy);
+        "auth.session.button.login", languageCode, "Go to Login Page", createdBy);
+
+    // New authentication-related translations
+    createTranslationIfNotExists(
+        "auth.session_expired",
+        languageCode,
+        "Session has expired. Please log in again.",
+        createdBy);
+    createTranslationIfNotExists(
+        "auth.refresh_failed", languageCode, "Failed to refresh token.", createdBy);
+    createTranslationIfNotExists(
+        "auth.no_token", languageCode, "Authentication token is missing.", createdBy);
+    createTranslationIfNotExists(
+        "auth.validation_failed", languageCode, "Token validation failed.", createdBy);
+    createTranslationIfNotExists(
+        "auth.login_invalid", languageCode, "Invalid username or password.", createdBy);
+    createTranslationIfNotExists(
+        "auth.login_failed", languageCode, "Invalid username or password.", createdBy);
+    createTranslationIfNotExists(
+        "auth.register_failed", languageCode, "Failed to register account.", createdBy);
+    createTranslationIfNotExists(
+        "auth.fetch_user_failed", languageCode, "Failed to fetch user information.", createdBy);
+    createTranslationIfNotExists(
+        "profile.update_failed", languageCode, "Failed to update profile information.", createdBy);
+    createTranslationIfNotExists(
+        "error.rate_limit",
+        languageCode,
+        "Too many requests. Please try again in a moment.",
+        createdBy);
+    createTranslationIfNotExists("demo.admin_name", languageCode, "Admin", createdBy);
+    createTranslationIfNotExists("demo.tester_name", languageCode, "Tester", createdBy);
 
     createTranslationIfNotExists("dashboard.title", languageCode, "Dashboard", createdBy);
     createTranslationIfNotExists(

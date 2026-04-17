@@ -57,6 +57,27 @@ public class KoreanLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists(
         "auth.session.button.login", languageCode, "로그인 페이지로 이동", createdBy);
 
+    // 신규 인증 관련 번역
+    createTranslationIfNotExists(
+        "auth.session_expired", languageCode, "세션이 만료되었습니다. 다시 로그인해주세요.", createdBy);
+    createTranslationIfNotExists("auth.refresh_failed", languageCode, "토큰 갱신에 실패했습니다.", createdBy);
+    createTranslationIfNotExists("auth.no_token", languageCode, "인증 토큰이 없습니다.", createdBy);
+    createTranslationIfNotExists(
+        "auth.validation_failed", languageCode, "토큰 검증에 실패했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "auth.login_invalid", languageCode, "아이디 또는 비밀번호가 올바르지 않습니다.", createdBy);
+    createTranslationIfNotExists(
+        "auth.login_failed", languageCode, "아이디 또는 비밀번호가 올바르지 않습니다.", createdBy);
+    createTranslationIfNotExists("auth.register_failed", languageCode, "회원가입에 실패했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "auth.fetch_user_failed", languageCode, "사용자 정보를 불러오는데 실패했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "profile.update_failed", languageCode, "정보 변경에 실패했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "error.rate_limit", languageCode, "너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.", createdBy);
+    createTranslationIfNotExists("demo.admin_name", languageCode, "관리자", createdBy);
+    createTranslationIfNotExists("demo.tester_name", languageCode, "테스터", createdBy);
+
     createTranslationIfNotExists("dashboard.title", languageCode, "대시보드", createdBy);
     createTranslationIfNotExists(
         "project.dialog.createTitle", languageCode, "새 프로젝트 생성", createdBy);
