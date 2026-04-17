@@ -616,18 +616,13 @@ const GoogleConfigManager = () => {
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "space-between",
+                  justifyContent: "flex-end",
                   alignItems: "center",
                   flexWrap: "wrap",
                   gap: 2,
+                  mt: 1,
                 }}
               >
-                <Typography variant="caption" color="text.secondary">
-                  {t(
-                    "google.config.guide.footer",
-                    "* 상세 가이드는 프로젝트 루트의 docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.",
-                  )}
-                </Typography>
                 <Button
                   variant="text"
                   color="info"

@@ -1213,6 +1213,9 @@ public class EnglishTestCaseAndAutomationTranslations {
         "junit.detail.title", languageCode, "JUnit Test Result Details", createdBy);
     createTranslationIfNotExists(
         "junit.detail.uploadInfo", languageCode, "Upload: {date} | {uploader}", createdBy);
+    createTranslationIfNotExists("junit.detail.upload", languageCode, "Upload", createdBy);
+    createTranslationIfNotExists(
+        "junit.detail.unknownUploader", languageCode, "Unknown", createdBy);
     createTranslationIfNotExists(
         "junit.detail.loadingDetail", languageCode, "Loading test result details...", createdBy);
     createTranslationIfNotExists(
@@ -1501,6 +1504,55 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.versionHistory.time.unknown", languageCode, "No time information", createdBy);
 
+    // 버전 히스토리 요약 영어 번역
+    createTranslationIfNotExists(
+        "testcase.version.summary.initial", languageCode, "Initial test case created", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.restored_to",
+        languageCode,
+        "Restored to version v{version}",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.updated", languageCode, "{field} updated", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.steps_updated",
+        languageCode,
+        "Test steps updated ({count})",
+        createdBy);
+
+    // 필드명 영어 번역
+    createTranslationIfNotExists("testcase.version.field.name", languageCode, "Name", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.preCondition", languageCode, "Pre-condition", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.postCondition", languageCode, "Post-condition", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.expectedResults", languageCode, "Expected Results", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.priority", languageCode, "Priority", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.isAutomated", languageCode, "Automated", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.executionType", languageCode, "Execution Type", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.testTechnique", languageCode, "Test Technique", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.testSteps", languageCode, "Test Steps", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.folder", languageCode, "Folder", createdBy);
+
+    // 버전 레이블 영어 번역
+    createTranslationIfNotExists(
+        "testcase.version.label.initial", languageCode, "Initial Version", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.modified", languageCode, "Modified v{version}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.manual", languageCode, "Manual Save v{version}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.restored", languageCode, "Restored v{version}", createdBy);
+
     // Version Action Tooltips
     createTranslationIfNotExists(
         "testcase.versionHistory.action.view", languageCode, "View Details", createdBy);
@@ -1600,6 +1652,33 @@ public class EnglishTestCaseAndAutomationTranslations {
     // Version Indicator - Misc
     createTranslationIfNotExists(
         "testcase.version.noChanges", languageCode, "No changes", createdBy);
+
+    // Version Detail Fields
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.name", languageCode, "Name", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.preCondition", languageCode, "Pre-condition", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.expectedResults",
+        languageCode,
+        "Expected Results",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.priority", languageCode, "Priority", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.versionNumber", languageCode, "Version Number", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.changeType", languageCode, "Change Type", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.changeSummary", languageCode, "Change Summary", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.creator", languageCode, "Creator", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.createdAt", languageCode, "Created At", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.none", languageCode, "None", createdBy);
 
     // Bulk Operations English Translations
     createTranslationIfNotExists(
@@ -1762,6 +1841,23 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testcase.spreadsheet.usage.stepManagement",
         languageCode,
         "Step management: Click ⚙️ button to adjust step count (max 10).",
+        createdBy);
+
+    // Spreadsheet Footer & Export
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.footer.stepInfo",
+        languageCode,
+        "* Currently configured with {maxSteps} steps. Expandable up to 10 steps.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.pdf.title",
+        languageCode,
+        "Export to PDF (Detailed)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.pdf.description",
+        languageCode,
+        "Test result entry screen format (.pdf)",
         createdBy);
 
     // User Profile - Service API Token English

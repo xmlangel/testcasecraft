@@ -175,7 +175,7 @@ public class TestCaseVersionService {
     createVersionFromTestCase(
         targetVersion.getTestCaseId(),
         "RESTORE",
-        "버전 v" + targetVersion.getVersionNumber() + "로 복원됨");
+        "testcase.version.summary.restored_to|version:" + targetVersion.getVersionNumber());
 
     log.info(
         "버전 복원 완료: 테스트케이스={}, 복원된 버전={}",
@@ -302,10 +302,10 @@ public class TestCaseVersionService {
   /** 버전 라벨 자동 생성 */
   private String generateVersionLabel(String changeType, Integer versionNumber) {
     return switch (changeType) {
-      case "CREATE" -> "초기 버전";
-      case "UPDATE" -> "수정 v" + versionNumber;
-      case "MANUAL_SAVE" -> "수동 저장 v" + versionNumber;
-      case "RESTORE" -> "복원 v" + versionNumber;
+      case "CREATE" -> "testcase.version.label.initial";
+      case "UPDATE" -> "testcase.version.label.modified|version:" + versionNumber;
+      case "MANUAL_SAVE" -> "testcase.version.label.manual|version:" + versionNumber;
+      case "RESTORE" -> "testcase.version.label.restored|version:" + versionNumber;
       default -> "v" + versionNumber;
     };
   }

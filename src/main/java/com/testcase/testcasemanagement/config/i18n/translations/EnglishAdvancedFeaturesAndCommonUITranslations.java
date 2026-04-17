@@ -2339,12 +2339,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "google.config.button.saving", languageCode, "Saving...", createdBy);
     createTranslationIfNotExists(
-        "google.config.guide.footer",
-        languageCode,
-        "* For detailed guide, please refer to the docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md file in"
-            + " the project root.",
-        createdBy);
-    createTranslationIfNotExists(
         "google.config.guide.openButton",
         languageCode,
         "View Detailed Guide in New Window",

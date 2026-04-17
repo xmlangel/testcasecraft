@@ -1546,8 +1546,7 @@ const TestCaseSpreadsheet = ({
         }}
       >
         <Typography variant="caption" color="text.secondary">
-          * 현재 {maxSteps}개 스텝으로 설정되어 있습니다. 최대 10개 스텝까지
-          확장 가능합니다.
+          {t("testcase.spreadsheet.footer.stepInfo", { maxSteps })}
         </Typography>
 
         {hasChanges && !readOnly && (
@@ -1961,11 +1960,11 @@ const TestCaseSpreadsheet = ({
             <ListItemText
               primary={t(
                 "testcase.spreadsheet.export.pdf.title",
-                "PDF로 내보내기 (상세)",
+                "PDF 내보내기(상세)",
               )}
               secondary={t(
                 "testcase.spreadsheet.export.pdf.description",
-                "테스트 결과 입력 화면 형식 (.pdf)",
+                "테스트결과 입력 화면 형식 (.pdf)",
               )}
             />
           </MenuItem>

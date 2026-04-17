@@ -797,7 +797,7 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists("junit.upload.max", "testResult", "최대 라벨", "최대");
 
     // JUnit 상세 페이지 번역 키들
-    createTranslationKeyIfNotExists("junit.detail.upload", "testResult", "업로드 라벨", "Upload");
+    createTranslationKeyIfNotExists("junit.detail.upload", "testResult", "업로드 라벨", "업로드");
     createTranslationKeyIfNotExists(
         "junit.detail.unknownUploader", "testResult", "알 수 없는 업로더", "알 수 없음");
 

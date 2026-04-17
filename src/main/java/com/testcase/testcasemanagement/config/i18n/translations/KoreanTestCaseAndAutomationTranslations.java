@@ -781,6 +781,8 @@ public class KoreanTestCaseAndAutomationTranslations {
         "junit.detail.dateProcessingError", languageCode, "날짜 처리 오류", createdBy);
     createTranslationIfNotExists(
         "junit.detail.loadTestCasesFailed", languageCode, "테스트 케이스를 불러오는데 실패했습니다.", createdBy);
+    createTranslationIfNotExists("junit.detail.upload", languageCode, "업로드", createdBy);
+    createTranslationIfNotExists("junit.detail.unknownUploader", languageCode, "알 수 없음", createdBy);
     createTranslationIfNotExists("junit.detail.testSuite", languageCode, "테스트 스위트", createdBy);
     createTranslationIfNotExists(
         "junit.detail.testCaseSearch", languageCode, "테스트 케이스 검색...", createdBy);
@@ -1064,6 +1066,49 @@ public class KoreanTestCaseAndAutomationTranslations {
         "testcase.versionHistory.creator.unknown", languageCode, "알 수 없음", createdBy);
     createTranslationIfNotExists(
         "testcase.versionHistory.time.unknown", languageCode, "시간 정보 없음", createdBy);
+
+    // 버전 히스토리 요약 한글 번역
+    createTranslationIfNotExists(
+        "testcase.version.summary.initial", languageCode, "초기 테스트케이스 생성", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.restored_to", languageCode, "버전 v{version}로 복원됨", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.updated", languageCode, "{field} 수정", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.steps_updated", languageCode, "테스트 스텝 수정 ({count}개)", createdBy);
+
+    // 필드명 한글 번역
+    createTranslationIfNotExists(
+        "testcase.version.field.name", languageCode, "테스트케이스 이름", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.description", languageCode, "설명", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.preCondition", languageCode, "사전 조건", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.postCondition", languageCode, "사후 조건", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.expectedResults", languageCode, "예상 결과", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.priority", languageCode, "우선순위", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.isAutomated", languageCode, "자동화 여부", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.executionType", languageCode, "수행 유형", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.testTechnique", languageCode, "테스트 기법", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.testSteps", languageCode, "테스트 스텝", createdBy);
+    createTranslationIfNotExists("testcase.version.field.folder", languageCode, "폴더", createdBy);
+
+    // 버전 레이블 한글 번역
+    createTranslationIfNotExists(
+        "testcase.version.label.initial", languageCode, "초기 버전", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.modified", languageCode, "수정 v{version}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.manual", languageCode, "수동 저장 v{version}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.restored", languageCode, "복원 v{version}", createdBy);
 
     // 버전 액션 버튼 툴팁 한글
     createTranslationIfNotExists(
@@ -1360,9 +1405,21 @@ public class KoreanTestCaseAndAutomationTranslations {
         "profile.apiToken.dialog.revealed.close", languageCode, "확인 (닫기)", createdBy);
 
     createTranslationIfNotExists(
-        "profile.apiToken.dialog.delete.title", languageCode, "API 토큰 삭제", createdBy);
-    createTranslationIfNotExists(
         "profile.apiToken.dialog.delete.warning", languageCode, "삭제한 토큰은 즉시 사용이 중단됩니다.", createdBy);
+
+    // Spreadsheet Footer & Export
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.footer.stepInfo",
+        languageCode,
+        "* 현재 {maxSteps}개 스텝으로 설정되어 있습니다. 최대 10개 스텝까지 확장 가능합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.pdf.title", languageCode, "PDF 내보내기(상세)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.pdf.description",
+        languageCode,
+        "테스트결과 입력 화면 형식 (.pdf)",
+        createdBy);
     createTranslationIfNotExists(
         "profile.apiToken.dialog.delete.confirm",
         languageCode,

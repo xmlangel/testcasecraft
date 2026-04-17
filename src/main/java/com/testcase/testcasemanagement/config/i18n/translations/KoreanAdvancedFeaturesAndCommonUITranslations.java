@@ -1650,11 +1650,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "google.config.form.registerTitle", languageCode, "새 인증 정보 등록", createdBy);
     createTranslationIfNotExists("google.config.button.saving", languageCode, "저장 중...", createdBy);
     createTranslationIfNotExists(
-        "google.config.guide.footer",
-        languageCode,
-        "* 상세 가이드는 프로젝트 루트의 docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.",
-        createdBy);
-    createTranslationIfNotExists(
         "google.config.guide.openButton", languageCode, "상세 가이드 새 창으로 보기", createdBy);
 
     // Google Import/Export Warnings

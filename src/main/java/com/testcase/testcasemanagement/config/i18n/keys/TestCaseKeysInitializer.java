@@ -445,12 +445,17 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.spreadsheet.export.csv.description", "testcase", "CSV 내보내기 설명", "스프레드시트 호환 형식");
     createTranslationKeyIfNotExists(
-        "testcase.spreadsheet.export.excel.title", "testcase", "Excel 내보내기 제목", "Excel로 내보내기");
-    createTranslationKeyIfNotExists(
         "testcase.spreadsheet.export.excel.description",
         "testcase",
         "Excel 내보내기 설명",
         "Microsoft Excel 형식 (.xlsx)");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.pdf.title", "testcase", "PDF 내보내기 상세 제목", "PDF 내보내기(상세)");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.pdf.description",
+        "testcase",
+        "PDF 내보내기 상세 설명",
+        "테스트결과 입력 화면 형식 (.pdf)");
 
     // 검증 시스템 관련
     createTranslationKeyIfNotExists(
@@ -1277,6 +1282,55 @@ public class TestCaseKeysInitializer {
         "junit.detail.noExecutionTimeData", "junit", "실행 시간 데이터 없음", "실행 시간 데이터가 없습니다.");
     createTranslationKeyIfNotExists(
         "junit.detail.exportPDFAlert", "junit", "PDF 내보내기 알림", "테스트 결과를 찾을 수 없습니다.");
+    createTranslationKeyIfNotExists(
+        "testcase.versionDetail.label.version", "testcase", "버전 번호 라벨", "버전");
+    createTranslationKeyIfNotExists(
+        "testcase.versionDetail.label.date", "testcase", "작성일 라벨", "작성일");
+    createTranslationKeyIfNotExists(
+        "testcase.versionDetail.label.creator", "testcase", "작성자 라벨", "작성자");
+
+    // 버전 히스토리 요약 및 필드 관련 키
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.initial", "testcase", "초기 테스트케이스 생성 요약", "초기 테스트케이스 생성");
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.restored_to", "testcase", "버전 복원 요약", "버전 v{version}로 복원됨");
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.updated", "testcase", "필드 수정 요약", "{field} 수정");
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.steps_updated", "testcase", "스텝 수정 요약", "테스트 스텝 수정 ({count}개)");
+
+    // 버전 히스토리 필드명 표준 키
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.name", "testcase", "이름 필드명", "테스트케이스 이름");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.description", "testcase", "설명 필드명", "설명");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.preCondition", "testcase", "사전 조건 필드명", "사전 조건");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.postCondition", "testcase", "사후 조건 필드명", "사후 조건");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.expectedResults", "testcase", "예상 결과 필드명", "예상 결과");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.priority", "testcase", "우선순위 필드명", "우선순위");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.isAutomated", "testcase", "자동화 여부 필드명", "자동화 여부");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.executionType", "testcase", "수행 유형 필드명", "수행 유형");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.testTechnique", "testcase", "테스트 기법 필드명", "테스트 기법");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.testSteps", "testcase", "테스트 스텝 필드명", "테스트 스텝");
+    createTranslationKeyIfNotExists("testcase.version.field.folder", "testcase", "폴더 필드명", "폴더");
+
+    // 버전 레이블 표시 형식 키
+    createTranslationKeyIfNotExists(
+        "testcase.version.label.initial", "testcase", "초기 버전 레이블", "초기 버전");
+    createTranslationKeyIfNotExists(
+        "testcase.version.label.modified", "testcase", "수정 버전 레이블", "수정 v{version}");
+    createTranslationKeyIfNotExists(
+        "testcase.version.label.manual", "testcase", "수동 저장 버전 레이블", "수동 저장 v{version}");
+    createTranslationKeyIfNotExists(
+        "testcase.version.label.restored", "testcase", "복원 버전 레이블", "복원 v{version}");
     createTranslationKeyIfNotExists(
         "junit.detail.exportPDFComplete", "junit", "PDF 내보내기 완료", "PDF 내보내기 완료");
     createTranslationKeyIfNotExists(

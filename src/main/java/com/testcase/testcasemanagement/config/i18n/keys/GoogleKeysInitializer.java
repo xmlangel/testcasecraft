@@ -73,11 +73,6 @@ public class GoogleKeysInitializer {
     createTranslationKeyIfNotExists(
         "google.config.button.saving", "google", "저장 중 버튼 텍스트", "저장 중...");
     createTranslationKeyIfNotExists(
-        "google.config.guide.footer",
-        "google",
-        "가이드 하단 설명",
-        "* 상세 가이드는 프로젝트 루트의 docs/guide/GOOGLE_SHEETS_SETUP_GUIDE.md 파일을 참고하세요.");
-    createTranslationKeyIfNotExists(
         "google.config.guide.openButton", "google", "가이드 열기 버튼", "상세 가이드 새 창으로 보기");
 
     // Guide

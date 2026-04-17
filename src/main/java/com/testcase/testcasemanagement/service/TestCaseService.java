@@ -1279,31 +1279,39 @@ public class TestCaseService {
 
   /** ICT-349: 테스트케이스 변경 사항 요약 생성 */
   private String generateChangeSummary(TestCaseDto dto) {
-    StringBuilder summary = new StringBuilder();
+    List<String> changes = new ArrayList<>();
 
     if (dto.getName() != null) {
-      summary.append("테스트케이스명 수정; ");
+      changes.add("testcase.version.summary.updated|field:testcase.version.field.name");
     }
     if (dto.getDescription() != null) {
-      summary.append("설명 수정; ");
+      changes.add("testcase.version.summary.updated|field:testcase.version.field.description");
     }
     if (dto.getSteps() != null && !dto.getSteps().isEmpty()) {
-      summary.append("테스트 스텝 수정(").append(dto.getSteps().size()).append("개); ");
+      changes.add("testcase.version.summary.steps_updated|count:" + dto.getSteps().size());
     }
     if (dto.getExpectedResults() != null) {
-      summary.append("예상 결과 수정; ");
+      changes.add("testcase.version.summary.updated|field:testcase.version.field.expectedResults");
     }
-    // Priority field is not available in TestCaseDto, skip this check
+    if (dto.getPreCondition() != null) {
+      changes.add("testcase.version.summary.updated|field:testcase.version.field.preCondition");
+    }
+    if (dto.getPostCondition() != null) {
+      changes.add("testcase.version.summary.updated|field:testcase.version.field.postCondition");
+    }
+    // Priority field is not available in TestCaseDto directly, but if it were:
+    // if (dto.getPriority() != null) {
+    // changes.add("testcase.version.summary.updated|field:testcase.version.field.priority"); }
+
     if (dto.getParentId() != null) {
-      summary.append("폴더 이동; ");
+      changes.add("testcase.version.field.folder");
     }
 
-    String result = summary.toString();
-    if (result.endsWith("; ")) {
-      result = result.substring(0, result.length() - 2);
+    if (changes.isEmpty()) {
+      return "testcase.versionHistory.changeType.update";
     }
 
-    return result.isEmpty() ? "테스트케이스 수정" : result;
+    return String.join("; ", changes);
   }
 
   /**
@@ -1531,7 +1539,8 @@ public class TestCaseService {
                     && (originalDto.getId() == null || originalDto.getId().startsWith("temp-")));
 
             String versionType = isNew ? "CREATE" : "UPDATE";
-            String changeSummary = isNew ? "초기 테스트케이스 생성" : generateChangeSummary(originalDto);
+            String changeSummary =
+                isNew ? "testcase.version.summary.initial" : generateChangeSummary(originalDto);
 
             TestCaseVersionEvent event =
                 new TestCaseVersionEvent(this, savedEntity.getId(), versionType, changeSummary);
