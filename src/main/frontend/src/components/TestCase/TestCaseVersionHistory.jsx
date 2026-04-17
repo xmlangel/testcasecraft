@@ -53,6 +53,42 @@ const TestCaseVersionHistory = ({
   // 현재 언어에 따른 date-fns 로케일 설정
   const dateLocale = useMemo(() => (language === "ko" ? ko : enUS), [language]);
 
+  // 구조화된 다국어 키 문자열 번역 (형식: key|param1:val1,param2:val2;key2|...)
+  const translateStructuredString = (str) => {
+    if (!str)
+      return t("testcase.versionHistory.changeSummary.empty", "변경 내용 없음");
+
+    // 단순 번역 키인 경우 (구분자 없는 경우) 바로 번역 시도
+    if (!str.includes("|") && !str.includes(":") && !str.includes(";")) {
+      // 키가 영어/숫자/마침표 조합인 경우 키로 간주
+      if (/^[a-zA-Z0-9.]+$/.test(str)) {
+        return t(str, str);
+      }
+      return str; // 이미 번역된 문자열이거나 알 수 없는 형식
+    }
+
+    const segments = str
+      .split(";")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const translatedSegments = segments.map((segment) => {
+      const [key, paramsStr] = segment.split("|");
+      if (!paramsStr) return t(key, key);
+
+      const params = {};
+      paramsStr.split(",").forEach((p) => {
+        const [k, v] = p.split(":");
+        if (k && v) {
+          // 값(v) 자체가 번역 키인 경우 번역하여 전달
+          params[k] = /^[a-zA-Z0-9.]+$/.test(v) ? t(v, v) : v;
+        }
+      });
+      return t(segment.includes("|") ? key : segment, params);
+    });
+
+    return translatedSegments.join("; ");
+  };
+
   // 버전 히스토리 조회
   const fetchVersionHistory = async () => {
     if (!testCaseId || (!open && !inline)) return;
@@ -202,7 +238,7 @@ const TestCaseVersionHistory = ({
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
         <DialogTitle>
           {t("testcase.versionDetail.title", "버전 상세 보기")} -{" "}
-          {version.versionLabel}
+          {translateStructuredString(version.versionLabel)}
         </DialogTitle>
         <DialogContent dividers>
           <Grid container spacing={2}>
@@ -314,7 +350,7 @@ const TestCaseVersionHistory = ({
                       "변경 요약",
                     )}
                   </strong>{" "}
-                  {version.changeSummary ||
+                  {translateStructuredString(version.changeSummary) ||
                     t("testcase.versionDetail.field.none", "없음")}
                 </Typography>
                 <Typography>
@@ -384,7 +420,7 @@ const TestCaseVersionHistory = ({
                       }}
                     >
                       <Typography variant="subtitle1" fontWeight="bold">
-                        {version.versionLabel}
+                        {translateStructuredString(version.versionLabel)}
                       </Typography>
                       {version.isCurrentVersion && (
                         <Chip
@@ -412,11 +448,7 @@ const TestCaseVersionHistory = ({
                         color="text.secondary"
                         gutterBottom
                       >
-                        {version.changeSummary ||
-                          t(
-                            "testcase.versionHistory.changeSummary.empty",
-                            "변경 요약이 없습니다.",
-                          )}
+                        {translateStructuredString(version.changeSummary)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {version.createdByName ||

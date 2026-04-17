@@ -119,6 +119,14 @@ public class DashboardKeysInitializer {
     createTranslationKeyIfNotExists(
         "dashboard.status.completedCount", "dashboard", "완료 건수", "{completed} / {total} 완료");
 
+    // 대시보드 섹션 타이틀
+    createTranslationKeyIfNotExists(
+        "dashboard.sections.summary", "dashboard", "프로젝트 요약 섹션 제목", "프로젝트 요약");
+    createTranslationKeyIfNotExists(
+        "dashboard.sections.charts", "dashboard", "테스트 현황 섹션 제목", "테스트 현황 및 트렌드");
+    createTranslationKeyIfNotExists(
+        "dashboard.sections.details", "dashboard", "상세 분석 섹션 제목", "상세 분석");
+
     // 대시보드 메시지들
     createTranslationKeyIfNotExists(
         "dashboard.messages.selectProject", "dashboard", "프로젝트 선택 요청", "프로젝트를 선택해주세요.");

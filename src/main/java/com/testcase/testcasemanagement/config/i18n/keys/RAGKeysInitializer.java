@@ -613,6 +613,57 @@ public class RAGKeysInitializer {
         "rag",
         "임베딩 생성 확인 메시지",
         "문서 \"{fileName}\"의 임베딩을 생성하시겠습니까?");
+
+    // 공통 문서 관리 관련 키들
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.title", "rag", "공통 문서 관리 제목", "🌐 공통 RAG 문서 관리");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.description",
+        "rag",
+        "공통 문서 관리 설명",
+        "모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스를 관리합니다. (관리자 전용)");
+    createTranslationKeyIfNotExists("admin.globalDoc.uploadFile", "rag", "파일 업로드 버튼", "파일 업로드");
+    createTranslationKeyIfNotExists("admin.globalDoc.fileName", "rag", "파일명 컬럼", "파일명");
+    createTranslationKeyIfNotExists("admin.globalDoc.fileSize", "rag", "파일 크기 컬럼", "파일 크기");
+    createTranslationKeyIfNotExists("admin.globalDoc.analysisStatus", "rag", "분석 상태 컬럼", "분석 상태");
+    createTranslationKeyIfNotExists("admin.globalDoc.parser", "rag", "파서 컬럼", "파서");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.embeddingStatus", "rag", "임베딩 상태 컬럼", "임베딩 상태");
+    createTranslationKeyIfNotExists("admin.globalDoc.chunkCount", "rag", "청크 수 컬럼", "청크 수");
+    createTranslationKeyIfNotExists("admin.globalDoc.uploader", "rag", "업로더 컬럼", "업로더");
+    createTranslationKeyIfNotExists("admin.globalDoc.uploadDate", "rag", "업로드 날짜 컬럼", "업로드 날짜");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.noDocuments", "rag", "문서 없음 메시지", "아직 공통 문서가 없습니다. 첫 번째 문서를 업로드해보세요!");
+
+    // 공통 문서 메시지 관련 키들
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.message.uploaded", "rag", "공통 문서 업로드 성공 메시지", "공통 문서 \"{0}\"이 업로드되었습니다");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.message.deleted", "rag", "공통 문서 삭제 성공 메시지", "공통 문서 \"{0}\"이 삭제되었습니다");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.message.confirmDelete",
+        "rag",
+        "공통 문서 삭제 확인 메시지",
+        "공통 문서 \"{0}\"을 삭제하시겠습니까?");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.message.confirmEmbedding",
+        "rag",
+        "공통 문서 임베딩 생성 확인 메시지",
+        "문서 \"{0}\"의 임베딩을 생성하시겠습니까?");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.message.embeddingStarted",
+        "rag",
+        "공통 문서 임베딩 시작 메시지",
+        "문서 \"{0}\" 임베딩 생성 시작됨");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.message.downloaded", "rag", "공통 문서 다운로드 완료 메시지", "문서 \"{0}\" 다운로드 완료");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.message.maxSize", "rag", "파일 크기 초과 메시지", "파일 크기는 50MB를 초과할 수 없습니다");
+
+    // 공통 문서 청크 관련 키들
+    createTranslationKeyIfNotExists("admin.globalDoc.chunks.title", "rag", "문서 청크 제목", "문서 청크");
+    createTranslationKeyIfNotExists(
+        "admin.globalDoc.chunks.noChunks", "rag", "청크 없음 메시지", "청크가 없습니다.");
   }
 
   private void createTranslationKeyIfNotExists(

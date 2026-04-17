@@ -2245,6 +2245,163 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "exploratory.session.status.archived", languageCode, "Archived", createdBy);
     createTranslationIfNotExists(
         "exploratory.session.status.needsUpdate", languageCode, "Needs Update", createdBy);
+
+    // Google Sheets Integration
+    createTranslationIfNotExists(
+        "header.userMenu.googleConfig", languageCode, "Google Sheets Settings", createdBy);
+    createTranslationIfNotExists(
+        "google.config.title", languageCode, "Google Sheets Integration Management", createdBy);
+    createTranslationIfNotExists(
+        "google.config.status", languageCode, "Integration Status", createdBy);
+    createTranslationIfNotExists("google.config.disconnect", languageCode, "Disconnect", createdBy);
+    createTranslationIfNotExists(
+        "google.config.email", languageCode, "Connected Service Account (Email)", createdBy);
+    createTranslationIfNotExists("google.config.projectId", languageCode, "Project ID", createdBy);
+    createTranslationIfNotExists(
+        "google.config.lastUpdated", languageCode, "Last Updated", createdBy);
+    createTranslationIfNotExists("google.config.active", languageCode, "Active", createdBy);
+    createTranslationIfNotExists(
+        "google.config.noConfig",
+        languageCode,
+        "No Google authentication info is currently registered.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.inputTitle",
+        languageCode,
+        "New Authentication Info Registration",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.inputDesc",
+        languageCode,
+        "Paste the entire contents of the service account key (JSON) file downloaded from Google"
+            + " Cloud Console below.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.placeholder",
+        languageCode,
+        "{ \"type\": \"service_account\", ... }",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.save", languageCode, "Save Integration Settings", createdBy);
+    createTranslationIfNotExists(
+        "google.config.update", languageCode, "Update Settings", createdBy);
+    createTranslationIfNotExists(
+        "google.config.fetchError",
+        languageCode,
+        "An error occurred while loading Google settings.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.saveError",
+        languageCode,
+        "An error occurred while saving settings. Please check the format.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.error.jsonRequired",
+        languageCode,
+        "Please enter the JSON key content.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.success.save",
+        languageCode,
+        "Google Sheets settings have been successfully saved.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.confirm.delete",
+        languageCode,
+        "Are you sure you want to completely delete the Google integration settings? Access to"
+            + " related functions may be restricted.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.success.delete",
+        languageCode,
+        "Google integration has been disconnected.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.error.deleteFailed",
+        languageCode,
+        "An error occurred while disconnecting the integration.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.status.inactive", languageCode, "Inactive", createdBy);
+    createTranslationIfNotExists(
+        "google.config.noConfigDesc",
+        languageCode,
+        "To use the test case export function, please enter the Google service account key content"
+            + " below.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.form.updateTitle", languageCode, "Update Authentication Info", createdBy);
+    createTranslationIfNotExists(
+        "google.config.form.registerTitle",
+        languageCode,
+        "Register New Authentication Info",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.button.saving", languageCode, "Saving...", createdBy);
+    createTranslationIfNotExists(
+        "google.config.guide.openButton",
+        languageCode,
+        "View Detailed Guide in New Window",
+        createdBy);
+
+    // Google Import/Export Warnings
+    createTranslationIfNotExists(
+        "google.import.connection_required",
+        languageCode,
+        "Google Sheets integration is required. Please register your service account JSON key"
+            + " first.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.export.connection_required",
+        languageCode,
+        "Google Sheets integration is required. Please register your service account JSON key"
+            + " first.",
+        createdBy);
+
+    // Google Guide
+    createTranslationIfNotExists(
+        "google.guide.title",
+        languageCode,
+        "How to Create and Configure Google Service Account",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step1",
+        languageCode,
+        "1. Create a project in Google Cloud Console and enable 'Google Sheets API'.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step2",
+        languageCode,
+        "2. Create a 'Service Account' and issue/download a JSON key.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step3",
+        languageCode,
+        "3. Copy the contents of the downloaded JSON file and paste it into the input field above.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step4",
+        languageCode,
+        "4. (Important) Click the 'Share' button in the target Google Sheet file.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step5",
+        languageCode,
+        "5. Add the Service Account email address as an 'Editor'.",
+        createdBy);
+
+    // Guide Viewer Translations
+    createTranslationIfNotExists("guide.viewer.title", languageCode, "Guide", createdBy);
+    createTranslationIfNotExists(
+        "guide.viewer.loading", languageCode, "Loading guide...", createdBy);
+    createTranslationIfNotExists(
+        "guide.viewer.error",
+        languageCode,
+        "The requested guide document could not be found or an error occurred while loading.",
+        createdBy);
+    createTranslationIfNotExists("guide.viewer.retry", languageCode, "Retry", createdBy);
+    createTranslationIfNotExists("guide.viewer.print", languageCode, "Print", createdBy);
+    createTranslationIfNotExists("guide.viewer.close", languageCode, "Close", createdBy);
   }
 
   private void createTranslationIfNotExists(

@@ -265,6 +265,11 @@ public class ExploratorySessionKeysInitializer {
     createTranslationKeyIfNotExists(
         "exploratory.session.status.needsUpdate", "exploratory", "세션 상태: 보완 필요", "보완 필요");
 
+    createTranslationKeyIfNotExists(
+        "exploratory.session.confirmDelete", "exploratory", "세션 삭제 확인 메시지", "정말로 이 세션을 삭제하시겠습니까?");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.saveSuccess", "exploratory", "세션 저장 성공 메시지", "세션이 저장되었습니다.");
+
     log.info("탐색 세션 번역 키 초기화 완료");
   }
 

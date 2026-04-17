@@ -49,18 +49,28 @@ public class TestPlanKeysInitializer {
         "testPlan.error.saveFailed", "testPlan", "저장 처리 중 오류가 발생했습니다: ", "저장 처리 중 오류가 발생했습니다: ");
 
     // 테스트 플랜 목록
+    createTranslationKeyIfNotExists("testPlan.list.title", "testPlan", "테스트 플랜 목록", "테스트 플랜 목록");
     createTranslationKeyIfNotExists("testPlan.list.add", "testPlan", "테스트 플랜 추가", "테스트 플랜 추가");
-    createTranslationKeyIfNotExists("testPlan.list.table.id", "testPlan", "ID", "ID");
-    createTranslationKeyIfNotExists("testPlan.list.table.name", "testPlan", "이름", "이름");
-    createTranslationKeyIfNotExists("testPlan.list.table.description", "testPlan", "설명", "설명");
+    createTranslationKeyIfNotExists("testPlan.list.table.name", "testPlan", "헤더: 이름", "이름");
+    createTranslationKeyIfNotExists("testPlan.list.table.description", "testPlan", "헤더: 설명", "설명");
     createTranslationKeyIfNotExists(
-        "testPlan.list.table.testcaseCount", "testPlan", "테스트케이스 수", "테스트케이스 수");
-    createTranslationKeyIfNotExists("testPlan.list.table.createdAt", "testPlan", "생성일", "생성일");
-    createTranslationKeyIfNotExists("testPlan.list.table.execute", "testPlan", "실행", "실행");
-    createTranslationKeyIfNotExists("testPlan.list.table.edit", "testPlan", "수정", "수정");
-    createTranslationKeyIfNotExists("testPlan.list.table.delete", "testPlan", "삭제", "삭제");
+        "testPlan.list.table.testcaseCount", "testPlan", "헤더: 테스트케이스 수", "테스트케이스 수");
+    createTranslationKeyIfNotExists(
+        "testPlan.list.table.automationCount", "testPlan", "헤더: 자동화 테스트", "자동화 테스트");
+    createTranslationKeyIfNotExists("testPlan.list.table.createdAt", "testPlan", "헤더: 생성일", "생성일");
+    createTranslationKeyIfNotExists("testPlan.list.table.execute", "testPlan", "헤더: 실행", "실행");
+    createTranslationKeyIfNotExists(
+        "testPlan.list.table.linkAutomated", "testPlan", "헤더: 자동화 테스트 연결", "자동화 테스트 연결");
+    createTranslationKeyIfNotExists("testPlan.list.table.edit", "testPlan", "헤더: 수정", "수정");
+    createTranslationKeyIfNotExists("testPlan.list.table.delete", "testPlan", "헤더: 삭제", "삭제");
     createTranslationKeyIfNotExists(
         "testPlan.list.empty.message", "testPlan", "등록된 테스트 플랜이 없습니다.", "등록된 테스트 플랜이 없습니다.");
+
+    // 테스트 실행 목록 및 액션
+    createTranslationKeyIfNotExists(
+        "testPlan.execution.list.copyLink", "testPlan", "실행 링크 복사", "실행 링크 복사");
+    createTranslationKeyIfNotExists("testPlan.execution.list.createdAt", "testPlan", "생성일", "생성일");
+    createTranslationKeyIfNotExists("testPlan.execution.list.progress", "testPlan", "진행률", "진행률");
 
     // 테스트 실행 다이얼로그
     createTranslationKeyIfNotExists(
@@ -116,16 +126,21 @@ public class TestPlanKeysInitializer {
 
     // 자동화 테스트 연동
     createTranslationKeyIfNotExists(
-        "testPlan.list.table.automationCount", "testPlan", "자동화 테스트 컬럼", "자동화 테스트");
-    createTranslationKeyIfNotExists(
-        "testPlan.list.table.linkAutomated", "testPlan", "자동화 테스트 연결 버튼", "자동화 테스트 연결");
-    createTranslationKeyIfNotExists(
         "testPlan.execution.automated.title", "testPlan", "연결된 자동화 테스트 제목", "연결된 자동화 테스트");
     createTranslationKeyIfNotExists(
         "testPlan.execution.automated.empty",
         "testPlan",
         "연결된 자동화 테스트 없음 메시지",
         "연결된 자동화 테스트가 없습니다.");
+
+    // 자동화 테스트 연결 다이얼로그
+    createTranslationKeyIfNotExists(
+        "testPlan.linkAutomated.title", "testPlan", "자동화 테스트 연결 다이얼로그 제목", "자동화 테스트 연결");
+    createTranslationKeyIfNotExists(
+        "testPlan.linkAutomated.searchPlaceholder",
+        "testPlan",
+        "자동화 테스트 검색 필드 안내문",
+        "실행 이름 또는 파일명으로 검색");
   }
 
   private void createTranslationKeyIfNotExists(

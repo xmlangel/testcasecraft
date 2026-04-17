@@ -445,12 +445,17 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.spreadsheet.export.csv.description", "testcase", "CSV 내보내기 설명", "스프레드시트 호환 형식");
     createTranslationKeyIfNotExists(
-        "testcase.spreadsheet.export.excel.title", "testcase", "Excel 내보내기 제목", "Excel로 내보내기");
-    createTranslationKeyIfNotExists(
         "testcase.spreadsheet.export.excel.description",
         "testcase",
         "Excel 내보내기 설명",
         "Microsoft Excel 형식 (.xlsx)");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.pdf.title", "testcase", "PDF 내보내기 상세 제목", "PDF 내보내기(상세)");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.pdf.description",
+        "testcase",
+        "PDF 내보내기 상세 설명",
+        "테스트결과 입력 화면 형식 (.pdf)");
 
     // 검증 시스템 관련
     createTranslationKeyIfNotExists(
@@ -785,6 +790,12 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("testcase.tree.history", "testcase", "버전 히스토리", "히스토리");
     createTranslationKeyIfNotExists(
         "testcase.tree.ragVectorized", "testcase", "RAG 벡터화 상태 표시", "RAG 벡터화됨");
+
+    // 이름 변경 다이얼로그
+    createTranslationKeyIfNotExists(
+        "testcase.tree.dialog.rename.title", "testcase", "이름 변경 다이얼로그 제목", "이름 변경");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.dialog.rename.label", "testcase", "새 이름 입력 필드 라벨", "새 이름");
 
     // 삭제 확인 다이얼로그
     createTranslationKeyIfNotExists(
@@ -1278,6 +1289,55 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "junit.detail.exportPDFAlert", "junit", "PDF 내보내기 알림", "테스트 결과를 찾을 수 없습니다.");
     createTranslationKeyIfNotExists(
+        "testcase.versionDetail.label.version", "testcase", "버전 번호 라벨", "버전");
+    createTranslationKeyIfNotExists(
+        "testcase.versionDetail.label.date", "testcase", "작성일 라벨", "작성일");
+    createTranslationKeyIfNotExists(
+        "testcase.versionDetail.label.creator", "testcase", "작성자 라벨", "작성자");
+
+    // 버전 히스토리 요약 및 필드 관련 키
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.initial", "testcase", "초기 테스트케이스 생성 요약", "초기 테스트케이스 생성");
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.restored_to", "testcase", "버전 복원 요약", "버전 v{version}로 복원됨");
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.updated", "testcase", "필드 수정 요약", "{field} 수정");
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.steps_updated", "testcase", "스텝 수정 요약", "테스트 스텝 수정 ({count}개)");
+
+    // 버전 히스토리 필드명 표준 키
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.name", "testcase", "이름 필드명", "테스트케이스 이름");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.description", "testcase", "설명 필드명", "설명");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.preCondition", "testcase", "사전 조건 필드명", "사전 조건");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.postCondition", "testcase", "사후 조건 필드명", "사후 조건");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.expectedResults", "testcase", "예상 결과 필드명", "예상 결과");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.priority", "testcase", "우선순위 필드명", "우선순위");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.isAutomated", "testcase", "자동화 여부 필드명", "자동화 여부");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.executionType", "testcase", "수행 유형 필드명", "수행 유형");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.testTechnique", "testcase", "테스트 기법 필드명", "테스트 기법");
+    createTranslationKeyIfNotExists(
+        "testcase.version.field.testSteps", "testcase", "테스트 스텝 필드명", "테스트 스텝");
+    createTranslationKeyIfNotExists("testcase.version.field.folder", "testcase", "폴더 필드명", "폴더");
+
+    // 버전 레이블 표시 형식 키
+    createTranslationKeyIfNotExists(
+        "testcase.version.label.initial", "testcase", "초기 버전 레이블", "초기 버전");
+    createTranslationKeyIfNotExists(
+        "testcase.version.label.modified", "testcase", "수정 버전 레이블", "수정 v{version}");
+    createTranslationKeyIfNotExists(
+        "testcase.version.label.manual", "testcase", "수동 저장 버전 레이블", "수동 저장 v{version}");
+    createTranslationKeyIfNotExists(
+        "testcase.version.label.restored", "testcase", "복원 버전 레이블", "복원 v{version}");
+    createTranslationKeyIfNotExists(
         "junit.detail.exportPDFComplete", "junit", "PDF 내보내기 완료", "PDF 내보내기 완료");
     createTranslationKeyIfNotExists(
         "junit.detail.exportPDFFailed", "junit", "PDF 내보내기 실패", "PDF 내보내기 실패");
@@ -1762,6 +1822,119 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("testcase.notes.copy", "testcase", "노트 복사 버튼 툴팁", "노트 복사");
     createTranslationKeyIfNotExists(
         "testcase.notes.copy_message", "testcase", "노트 복사 성공 메시지", "노트가 클립보드에 복사되었습니다.");
+
+    // Import / Export 관련 키들
+    createTranslationKeyIfNotExists(
+        "testcase.io.title", "testcase", "Import/Export 다이얼로그 제목", "테스트케이스 Import / Export");
+    createTranslationKeyIfNotExists(
+        "testcase.io.tab.import", "testcase", "가져오기 탭", "📥 가져오기 (Import)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.tab.export", "testcase", "내보내기 탭", "📤 내보내기 (Export)");
+
+    // Import 관련
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.format.label", "testcase", "가져오기 형식 선택 안내", "1. 형식 선택");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.sample.label", "testcase", "샘플 파일 안내", "2. 샘플 파일");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.sample.download", "testcase", "샘플 다운로드 버튼", "{filename} 다운로드");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.sample.desc", "testcase", "샘플 다운로드 설명", "샘플을 참고하여 데이터를 입력한 후 업로드하세요");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.upload.label", "testcase", "파일 업로드 안내", "3. 파일 업로드");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.dropzone.prompt",
+        "testcase",
+        "파일 업로드 드롭존 안내",
+        "파일을 여기에 드래그하거나 클릭하여 선택");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.dropzone.accept", "testcase", "지원 형식 안내", "지원 형식: {formats}");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.validation.label", "testcase", "데이터 검증 안내", "4. 데이터 검증");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.validation.button", "testcase", "검증 버튼", "🔍 검증하기");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.validation.status", "testcase", "검증 중 상태", "검증 중...");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.success",
+        "testcase",
+        "가져오기 성공 메시지",
+        "✅ Import 완료: {count}개 테스트케이스가 추가되었습니다.");
+    createTranslationKeyIfNotExists(
+        "testcase.io.import.url.required", "testcase", "URL 필수 입력", "가져올 URL을 입력해주세요.");
+    createTranslationKeyIfNotExists(
+        "testcase.io.status.importing", "testcase", "가져오는 중 상태", "가져오는 중...");
+    createTranslationKeyIfNotExists(
+        "testcase.io.button.import", "testcase", "가져오기 실행 버튼", "가져오기 실행");
+    createTranslationKeyIfNotExists(
+        "testcase.io.button.import.count", "testcase", "행 개수 포함 가져오기 버튼", "가져오기 실행 ({count}개)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.button.reimport", "testcase", "다시 가져오기 버튼", "다시 가져오기");
+
+    // Export 관련
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.format.label", "testcase", "내보내기 형식 선택 안내", "1. 내보내기 형식 선택");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.success.google",
+        "testcase",
+        "구글 시트 내보내기 성공",
+        "Google Sheets에 내보내기 완료!");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.success.file", "testcase", "파일 내보내기 성공", "파일 다운로드가 시작되었습니다.");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.tip",
+        "testcase",
+        "내보내기 팁",
+        "💡 내보낸 파일은 다시 Import 가능한 형식으로 생성됩니다. (라운드트립 호환)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.status.exporting", "testcase", "내보내는 중 상태", "내보내는 중...");
+    createTranslationKeyIfNotExists("testcase.io.button.export", "testcase", "내보내기 실행 버튼", "내보내기");
+
+    // Google Sheets 관련 (Import/Export 공통)
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.connect.label", "testcase", "구글 시트 연결 안내", "2. Google Sheets 연결");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.config.label", "testcase", "구글 시트 설정 안내", "2. Google Sheets 설정");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.url.label", "testcase", "구글 시트 URL 라벨", "Google Sheets URL 또는 ID");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.url.placeholder",
+        "testcase",
+        "구글 시트 URL 플레이스홀더",
+        "https://docs.google.com/spreadsheets/d/...");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.sheet.label", "testcase", "시트 이름 라벨", "시트 이름");
+    createTranslationKeyIfNotExists(
+        "testcase.io.google.url.required",
+        "testcase",
+        "구글 시트 URL 필수 오류",
+        "Google Sheets URL을 입력하세요");
+
+    // 검증 결과 패널 관련
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.summary", "testcase", "검증 결과 요약 제목", "검증 요약");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.totalRows", "testcase", "총 행 수 표시", "총 {count}행");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.validRows", "testcase", "유효 행 수 표시", "✅ 유효 {count}행");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.invalidRows", "testcase", "오류 행 수 표시", "❌ 오류 {count}행");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.errorList", "testcase", "오류 목록 제목", "오류 목록");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.preview", "testcase", "미리보기 제목", "미리보기 (최대 20행)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.validation.errorMessage", "testcase", "오류 메시지 컬럼명", "오류 메시지");
+    createTranslationKeyIfNotExists("testcase.io.validation.steps", "testcase", "스텝 수 컬럼명", "스텝");
+    createTranslationKeyIfNotExists("testcase.tree.parentFolder", "testcase", "상위 폴더 라벨", "상위 폴더");
+
+    // Export Formats detailed labels
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.format.csv", "testcase", "CSV 내보내기 포맷 라벨", "CSV (가져오기 가능)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.format.excel", "testcase", "Excel 내보내기 포맷 라벨", "Excel (가져오기 가능)");
+    createTranslationKeyIfNotExists(
+        "testcase.io.export.format.json", "testcase", "JSON 내보내기 포맷 라벨", "JSON (가져오기 가능)");
   }
 
   private void createTranslationKeyIfNotExists(

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "../../context/I18nContext";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 import {
   Card,
   CardContent,
@@ -51,6 +52,7 @@ const JiraStatusSummaryCard = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
   const { t } = useTranslation();
+  const { formatDate } = useDateFormatter();
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -118,21 +120,6 @@ const JiraStatusSummaryCard = ({
         return <SyncIcon color="info" fontSize="small" />;
       default:
         return <PendingIcon color="action" fontSize="small" />;
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    try {
-      return new Date(dateString).toLocaleString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateString;
     }
   };
 

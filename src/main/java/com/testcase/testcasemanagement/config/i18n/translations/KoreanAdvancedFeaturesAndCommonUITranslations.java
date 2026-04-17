@@ -1593,6 +1593,108 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "exploratory.session.status.archived", languageCode, "보관됨", createdBy);
     createTranslationIfNotExists(
         "exploratory.session.status.needsUpdate", languageCode, "보완 필요", createdBy);
+
+    // Google Sheets Integration
+    createTranslationIfNotExists(
+        "header.userMenu.googleConfig", languageCode, "Google Sheets 설정", createdBy);
+    createTranslationIfNotExists(
+        "google.config.title", languageCode, "Google Sheets 연동 관리", createdBy);
+    createTranslationIfNotExists("google.config.status", languageCode, "연동 상태", createdBy);
+    createTranslationIfNotExists("google.config.disconnect", languageCode, "연동 해제", createdBy);
+    createTranslationIfNotExists(
+        "google.config.email", languageCode, "연결된 서비스 계정 (Email)", createdBy);
+    createTranslationIfNotExists("google.config.projectId", languageCode, "프로젝트 ID", createdBy);
+    createTranslationIfNotExists("google.config.lastUpdated", languageCode, "최종 업데이트", createdBy);
+    createTranslationIfNotExists("google.config.active", languageCode, "활성화됨", createdBy);
+    createTranslationIfNotExists(
+        "google.config.noConfig", languageCode, "현재 등록된 구글 인증 정보가 없습니다.", createdBy);
+    createTranslationIfNotExists("google.config.inputTitle", languageCode, "새 인증 정보 등록", createdBy);
+    createTranslationIfNotExists(
+        "google.config.inputDesc",
+        languageCode,
+        "Google Cloud Console에서 다운로드한 서비스 계정 키(JSON) 파일의 전체 내용을 아래에 붙여넣으세요.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.placeholder",
+        languageCode,
+        "{ \"type\": \"service_account\", ... }",
+        createdBy);
+    createTranslationIfNotExists("google.config.save", languageCode, "연동 설정 저장", createdBy);
+    createTranslationIfNotExists("google.config.update", languageCode, "설정 업데이트", createdBy);
+    createTranslationIfNotExists(
+        "google.config.fetchError", languageCode, "구글 설정을 불러오는 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.saveError", languageCode, "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.error.jsonRequired", languageCode, "JSON 키 내용을 입력해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.success.save", languageCode, "Google Sheets 설정이 성공적으로 저장되었습니다.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.confirm.delete",
+        languageCode,
+        "구글 연동 설정을 완전히 삭제하시겠습니까? 관련 기능 사용이 제한될 수 있습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.success.delete", languageCode, "Google 연동이 해제되었습니다.", createdBy);
+    createTranslationIfNotExists(
+        "google.config.error.deleteFailed", languageCode, "연동 해제 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists("google.config.status.inactive", languageCode, "비활성", createdBy);
+    createTranslationIfNotExists(
+        "google.config.noConfigDesc",
+        languageCode,
+        "테스트케이스 내보내기 기능을 사용하려면 아래에 Google 서비스 계정 키 내용을 입력해주세요.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.config.form.updateTitle", languageCode, "인증 정보 업데이트", createdBy);
+    createTranslationIfNotExists(
+        "google.config.form.registerTitle", languageCode, "새 인증 정보 등록", createdBy);
+    createTranslationIfNotExists("google.config.button.saving", languageCode, "저장 중...", createdBy);
+    createTranslationIfNotExists(
+        "google.config.guide.openButton", languageCode, "상세 가이드 새 창으로 보기", createdBy);
+
+    // Google Import/Export Warnings
+    createTranslationIfNotExists(
+        "google.import.connection_required",
+        languageCode,
+        "Google Sheets 연동 설정이 필요합니다. 서비스 계정 JSON 키를 먼저 등록해 주세요.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.export.connection_required",
+        languageCode,
+        "Google Sheets 연동 설정이 필요합니다. 서비스 계정 JSON 키를 먼저 등록해 주세요.",
+        createdBy);
+
+    // Google Guide
+    createTranslationIfNotExists(
+        "google.guide.title", languageCode, "Google 서비스 계정 생성 및 설정 방법", createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step1",
+        languageCode,
+        "1. Google Cloud Console에서 프로젝트를 생성하고 'Google Sheets API'를 활성화합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step2",
+        languageCode,
+        "2. '서비스 계정'을 생성하고 JSON 형식의 키를 발급받아 다운로드합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step3",
+        languageCode,
+        "3. 다운로드한 JSON 파일의 내용을 복사하여 위의 입력란에 붙여넣고 저장합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step4", languageCode, "4. (중요) 내보낼 대상 구글 시트 파일에서 '공유' 버튼을 클릭합니다.", createdBy);
+    createTranslationIfNotExists(
+        "google.guide.step5", languageCode, "5. 서비스 계정의 이메일 주소를 '편집자' 권한으로 추가하여 저장합니다.", createdBy);
+
+    // 가이드 뷰어 번역
+    createTranslationIfNotExists("guide.viewer.title", languageCode, "가이드", createdBy);
+    createTranslationIfNotExists("guide.viewer.loading", languageCode, "가이드 로딩 중...", createdBy);
+    createTranslationIfNotExists(
+        "guide.viewer.error", languageCode, "요청하신 가이드 문서를 찾을 수 없거나 불러오는 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists("guide.viewer.retry", languageCode, "다시 시도", createdBy);
+    createTranslationIfNotExists("guide.viewer.print", languageCode, "인쇄", createdBy);
+    createTranslationIfNotExists("guide.viewer.close", languageCode, "닫기", createdBy);
   }
 
   private void createTranslationIfNotExists(

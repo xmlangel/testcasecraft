@@ -211,7 +211,7 @@ export const getMyGoogleConfig = async () => {
   const response = await fetch(`${getBaseUrl()}/api/google-configs/my`, {
     headers: getAuthHeaders(),
   });
-  if (response.status === 404) return null;
+  if (response.status === 204 || response.status === 404) return null;
   if (!response.ok) throw new Error("Google 설정을 가져오는데 실패했습니다.");
   return response.json();
 };

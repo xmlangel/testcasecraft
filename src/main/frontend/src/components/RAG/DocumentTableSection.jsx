@@ -454,17 +454,19 @@ function DocumentTableSection({
                               "LLM 분석 요약 보기",
                             )}
                           >
-                            <IconButton
-                              size="small"
-                              color="secondary"
-                              onClick={() => actionHandler("summary")(doc)}
-                              disabled={
-                                !llmState.analyzedChunks ||
-                                llmState.analyzedChunks === 0
-                              }
-                            >
-                              <SummarizeIcon fontSize="small" />
-                            </IconButton>
+                            <span>
+                              <IconButton
+                                size="small"
+                                color="secondary"
+                                onClick={() => actionHandler("summary")(doc)}
+                                disabled={
+                                  !llmState.analyzedChunks ||
+                                  llmState.analyzedChunks === 0
+                                }
+                              >
+                                <SummarizeIcon fontSize="small" />
+                              </IconButton>
+                            </span>
                           </Tooltip>
                         )}
                       {actionHandler("jobHistory") && (

@@ -12,56 +12,31 @@ import {
   getDynamicApiUrl,
   resetRuntimeConfig,
 } from "../utils/apiConstants.js";
-// 동적 API URL 가져오기 (캐싱 포함)
-let API_BASE_URL = API_CONFIG.BASE_URL;
-let dynamicApiUrlPromise = null;
-let refreshTokenPromise = null; // 토큰 갱신 중복 호출 방지용 Promise 캐싱
-let userInfoPromise = null; // 사용자 정보 조회 중복 호출 방지용 Promise 캐싱
+import { useTranslation, useI18n } from "./I18nContext";
 
-// 동적 API URL 가져오기 (캐싱 포함)
-const getApiBaseUrl = async () => {
-  if (!dynamicApiUrlPromise) {
-    dynamicApiUrlPromise = getDynamicApiUrl().catch((error) => {
-      console.warn("동적 API URL 로드 실패, 현재 origin 사용:", error);
-      const fallbackUrl = window.location.origin;
-      return fallbackUrl;
-    });
-  }
-
-  let url = await dynamicApiUrlPromise;
-
-  // 빈 문자열이나 undefined인 경우 현재 origin 우선 사용
-  if (!url || url.trim() === "") {
-    url = window.location.origin;
-  }
-
-  // localhost가 포함되어 있고 현재 페이지가 다른 도메인인 경우 강제로 현재 origin 사용
-  // apiConstants.js에서 이미 처리하므로 경고 제거
-  if (
-    url.includes("localhost") &&
-    !window.location.origin.includes("localhost")
-  ) {
-    url = window.location.origin;
-  }
-
-  if (url !== API_BASE_URL) {
-    API_BASE_URL = url;
-  }
-  return url;
-};
+// 토큰 갱신 및 사용자 정보 조회를 위한 상수 (데모 연동용)
 const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === "true";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const { t } = useTranslation();
+  const { changeLanguage } = useI18n();
+
   // --- 인증 및 사용자 상태 관리 ---
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // --- Rate Limit 상태 관리 ---
+  // --- UI 및 세션 상태 관리 ---
   const [rateLimitError, setRateLimitError] = useState(null);
   const [retryAfter, setRetryAfter] = useState(0);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [initialProfileTab, setInitialProfileTab] = useState(0);
+
+  // --- 중복 요청 방지를 위한 Ref 관리 ---
+  const refreshTokenPromiseRef = useRef(null);
+  const userInfoPromiseRef = useRef(null);
 
   const handleLogout = useCallback(() => {
     setUser(null);
@@ -77,26 +52,67 @@ export const AuthProvider = ({ children }) => {
     window.location.reload();
   }, []);
 
-  const handleDialogLogin = useCallback(() => {
-    setSessionExpired(false);
-    handleLogout();
-    // 로그아웃 후 리다이렉트는 App.jsx나 라우터에서 처리됨
-  }, [handleLogout]);
+  // 내부 토큰 갱신 로직 (중복 호출 방지 포함)
+  const refreshTokenInternal = useCallback(async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken) {
+      handleSessionExpiry();
+      // 로그인을 아예 안 한 상태이거나 토큰이 없는 경우, 에러를 던지는 대신 조용히 실패를 알림
+      console.warn(
+        "[AuthContext] Refresh token missing. Session marked as expired.",
+      );
+      return null;
+    }
+
+    // 이미 진행 중인 갱신 요청이 있으면 해당 Promise 반환
+    if (refreshTokenPromiseRef.current) {
+      return refreshTokenPromiseRef.current;
+    }
+
+    const baseUrl = await getDynamicApiUrl();
+    console.log("[AuthContext] Refreshing token...");
+
+    refreshTokenPromiseRef.current = fetch(`${baseUrl}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(
+            t("auth.refresh_failed", "토큰 갱신에 실패했습니다."),
+          );
+        }
+        const { accessToken } = await res.json();
+        localStorage.setItem("accessToken", accessToken);
+        console.log("[AuthContext] Token refreshed successfully");
+        return accessToken;
+      })
+      .catch((error) => {
+        console.error("[AuthContext] Token refresh error:", error);
+        handleSessionExpiry();
+        throw error;
+      })
+      .finally(() => {
+        refreshTokenPromiseRef.current = null;
+      });
+
+    return refreshTokenPromiseRef.current;
+  }, [handleSessionExpiry, t]);
 
   // 토큰 검증 및 갱신 유틸리티 함수 (RAG 스트리밍 등 외부에서 사용)
   const ensureValidToken = useCallback(async () => {
     const accessToken = localStorage.getItem("accessToken");
     const refreshToken = localStorage.getItem("refreshToken");
 
-    // 토큰이 없으면 에러
     if (!accessToken && !refreshToken) {
-      throw new Error("No authentication token available");
+      handleSessionExpiry();
+      throw new Error(t("auth.no_token", "인증 토큰이 없습니다."));
     }
 
-    // accessToken이 있으면 검증 시도
     if (accessToken) {
       try {
-        const baseUrl = await getApiBaseUrl();
+        const baseUrl = await getDynamicApiUrl();
         const response = await fetch(`${baseUrl}/api/auth/me`, {
           method: "GET",
           headers: {
@@ -105,75 +121,32 @@ export const AuthProvider = ({ children }) => {
           },
         });
 
-        // 토큰이 유효하면 그대로 반환
-        if (response.ok) {
-          return accessToken;
-        }
+        if (response.ok) return accessToken;
 
-        // 401이면 refresh 시도
         if (response.status === 401) {
           console.log(
-            "ensureValidToken: Access token expired, attempting refresh...",
+            "[AuthContext] Access token expired, attempting refresh...",
           );
           localStorage.removeItem("accessToken");
         } else {
-          // 다른 에러는 그대로 throw
-          throw new Error(`Token validation failed: ${response.status}`);
+          throw new Error(
+            `${t("auth.validation_failed", "토큰 검증 실패")}: ${response.status}`,
+          );
         }
       } catch (error) {
         console.warn(
-          "ensureValidToken: Token validation error:",
+          "[AuthContext] Token validation check failed:",
           error.message,
         );
-        // fetch 에러는 refresh로 진행
       }
     }
 
-    // refresh token으로 갱신 시도
-    if (refreshToken) {
-      try {
-        const baseUrl = await getApiBaseUrl();
-        console.log("ensureValidToken: Attempting to refresh token...");
-
-        // Promise 캐싱 사용
-        if (!refreshTokenPromise) {
-          refreshTokenPromise = fetch(`${baseUrl}/api/auth/refresh`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refreshToken }),
-          })
-            .then(async (refreshResponse) => {
-              if (!refreshResponse.ok) {
-                throw new Error("Failed to refresh token.");
-              }
-              const { accessToken: newAccessToken } =
-                await refreshResponse.json();
-              localStorage.setItem("accessToken", newAccessToken);
-              console.log("ensureValidToken: Token refresh successful");
-              return newAccessToken;
-            })
-            .finally(() => {
-              refreshTokenPromise = null;
-            });
-        }
-
-        return await refreshTokenPromise;
-      } catch (error) {
-        console.error("ensureValidToken: Token refresh failed:", error);
-        handleSessionExpiry();
-        throw new Error("Session expired. Please login again.");
-      }
-    }
-
-    // 여기까지 왔다면 토큰이 없음
-    handleSessionExpiry();
-    throw new Error("Session expired. Please login again.");
-  }, [handleLogout]);
+    return await refreshTokenInternal();
+  }, [handleSessionExpiry, refreshTokenInternal, t]);
 
   const api = useCallback(
     async (url, options = {}) => {
-      // 동적 API URL을 사용하여 완전한 URL 생성
-      const baseUrl = await getApiBaseUrl();
+      const baseUrl = await getDynamicApiUrl();
       const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
 
       let accessToken = localStorage.getItem("accessToken");
@@ -184,17 +157,13 @@ export const AuthProvider = ({ children }) => {
           ...(accessToken && !options.skipAuth
             ? { Authorization: `Bearer ${accessToken}` }
             : {}),
+          "Content-Type": "application/json", // 기본값
           ...options.headers,
         },
       };
 
-      // Content-Type이 명시적으로 설정되지 않은 경우에만 기본값 적용
-      if (!options.headers || !("Content-Type" in options.headers)) {
-        fetchOptions.headers["Content-Type"] = "application/json";
-      }
-
-      // Content-Type이 undefined로 설정된 경우 완전히 제거
-      if (fetchOptions.headers["Content-Type"] === undefined) {
+      // Content-Type이 undefined로 명시된 경우 제거 (FormData 등)
+      if (options.headers && options.headers["Content-Type"] === undefined) {
         delete fetchOptions.headers["Content-Type"];
       }
 
@@ -210,269 +179,193 @@ export const AuthProvider = ({ children }) => {
         setRateLimitError({
           message:
             errorData.message ||
-            "동일 IP에서 1초에 60번 이상 요청이 발생했습니다. 1초 후 다시 시도해주세요.",
+            t(
+              "error.rate_limit",
+              "너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.",
+            ),
           retryAfter: retryAfterSeconds,
           originalRequest: { url: fullUrl, options: fetchOptions },
         });
         setRetryAfter(retryAfterSeconds);
-
-        // throw하지 말고 다이얼로그만 표시
         return response;
       }
 
+      // 401 Unauthorized 처리 (세션 만료 및 재시도)
       if (response.status === 401 && !options.skipAuth) {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) {
-          handleSessionExpiry();
-          throw new Error("Session expired. Please login again.");
-        }
-
         try {
-          // Promise 캐싱: 이미 토큰 갱신 중이면 동일한 Promise 재사용
-          if (!refreshTokenPromise) {
-            refreshTokenPromise = fetch(`${baseUrl}/api/auth/refresh`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ refreshToken }),
-            })
-              .then(async (refreshResponse) => {
-                if (!refreshResponse.ok) {
-                  throw new Error("Failed to refresh token.");
-                }
-                const { accessToken: newAccessToken } =
-                  await refreshResponse.json();
-                localStorage.setItem("accessToken", newAccessToken);
-                return newAccessToken;
-              })
-              .finally(() => {
-                refreshTokenPromise = null;
-              });
+          const newAccessToken = await refreshTokenInternal();
+          if (!newAccessToken) {
+            // 토큰 갱신 결과가 없으면(로그인 안된 상태 등) 더 이상 진행하지 않음
+            return response;
           }
-
-          // 모든 동시 요청이 동일한 Promise를 기다림
-          const newAccessToken = await refreshTokenPromise;
-
-          // 새 토큰으로 원래 요청 재시도
           fetchOptions.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          response = await fetch(fullUrl, fetchOptions);
+          return await fetch(fullUrl, fetchOptions);
         } catch (error) {
-          handleSessionExpiry();
-          throw new Error("Session expired. Please login again.");
+          // 갱신 과정에서 발생한 에러는 상위로 전파
+          throw error;
         }
       }
 
-      // 403 Forbidden 처리 (권한 없음)
+      // 403 Forbidden 처리
       if (response.status === 403) {
-        // 403은 세션 만료(401)가 아닌 권한 접근 거부이므로, 세션 만료 팝업을 띄우지 않고
-        // 컴포넌트 측에서 에러를 처리하도록 응답을 그대로 반환합니다.
-        console.warn(
-          "[AuthContext] 403 Forbidden response. User might lack permissions.",
-        );
+        console.warn("[AuthContext] 403 Forbidden: User lack permissions.");
       }
 
       return response;
     },
-    [handleLogout],
+    [refreshTokenInternal, t],
   );
 
   const fetchUserInfo = useCallback(async () => {
-    // 1. 이미 진행 중인 요청이 있다면 해당 Promise 반환 (중복 호출 방지)
-    if (userInfoPromise) {
-      return userInfoPromise;
+    if (userInfoPromiseRef.current) {
+      return userInfoPromiseRef.current;
     }
 
-    // 2. 새로운 Promise 생성 및 저장
-    userInfoPromise = (async () => {
+    userInfoPromiseRef.current = (async () => {
       try {
-        const baseUrl = await getApiBaseUrl();
-        const res = await api(`${baseUrl}/api/auth/me`);
-        if (!res.ok) throw new Error("Failed to fetch user info");
-        const data = await res.json();
-        return data;
-      } catch (error) {
-        throw error;
+        const res = await api("/api/auth/me");
+        if (!res.ok) {
+          throw new Error(
+            t(
+              "auth.fetch_user_failed",
+              "사용자 정보를 불러오는데 실패했습니다.",
+            ),
+          );
+        }
+        return await res.json();
       } finally {
-        // 3. 완료 시 (성공/실패) Promise 초기화
-        userInfoPromise = null;
+        userInfoPromiseRef.current = null;
       }
     })();
 
-    return userInfoPromise;
-  }, [api]);
+    return userInfoPromiseRef.current;
+  }, [api, t]);
 
   const handleLoginSuccess = useCallback(
     async (loginResult) => {
       localStorage.setItem("accessToken", loginResult.accessToken);
       localStorage.setItem("refreshToken", loginResult.refreshToken);
 
-      // 로그인 응답에 사용자 정보가 포함되어 있으므로 추가 API 호출 불필요
       if (loginResult.user) {
         setUser({ ...loginResult.user, token: loginResult.accessToken });
       } else {
-        // 만약 로그인 응답에 사용자 정보가 없다면 API로 조회
         try {
           const userInfo = await fetchUserInfo();
           setUser({ ...userInfo, token: loginResult.accessToken });
+
+          // 사용자 언어 설정 동기화
+          if (userInfo.preferredLanguage) {
+            changeLanguage(userInfo.preferredLanguage);
+          }
         } catch (error) {
-          console.error("Failed to fetch user info after login:", error);
+          console.error(
+            "[AuthContext] Failed to fetch user info after login:",
+            error,
+          );
           handleLogout();
         }
       }
+
+      // 전달된 user 객체에 언어 정보가 있는 경우
+      if (loginResult.user?.preferredLanguage) {
+        changeLanguage(loginResult.user.preferredLanguage);
+      }
+
       setLoadingUser(false);
     },
-    [fetchUserInfo, handleLogout],
+    [fetchUserInfo, handleLogout, changeLanguage],
   );
 
   const handleUserUpdated = useCallback((updated) => {
     setUser((prev) => ({ ...prev, ...updated }));
   }, []);
 
-  // 자동 로그인 로직
-  useEffect(() => {
-    const oldToken = localStorage.getItem("jwtToken");
-    if (oldToken) {
-      localStorage.removeItem("jwtToken");
-    }
+  // 세션 검증 및 자동 로그인 함수
+  const verifySession = useCallback(async () => {
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
 
-    const autoLogin = async () => {
-      try {
-        const accessToken = localStorage.getItem("accessToken");
-        const refreshToken = localStorage.getItem("refreshToken");
+      if (!accessToken && !refreshToken) {
+        setLoadingUser(false);
+        return;
+      }
 
-        // 토큰이 없으면 바로 로딩 종료
-        if (!accessToken && !refreshToken) {
+      // 데모 토큰 정리
+      if (
+        accessToken === "demo-access-token" ||
+        refreshToken === "demo-refresh-token"
+      ) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        setLoadingUser(false);
+        return;
+      }
+
+      // 1. Access Token으로 시도
+      if (accessToken) {
+        try {
+          const userInfo = await fetchUserInfo();
+          setUser({ ...userInfo, token: accessToken });
           setLoadingUser(false);
           return;
-        }
-
-        // 데모 토큰 체크 및 제거
-        if (
-          accessToken === "demo-access-token" ||
-          refreshToken === "demo-refresh-token"
-        ) {
+        } catch (error) {
+          console.log("[AuthContext] Access token invalid, trying refresh...");
           localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          setLoadingUser(false);
-          return;
         }
+      }
 
-        // Access Token으로 먼저 시도
-        if (accessToken) {
-          try {
-            const userInfo = await fetchUserInfo();
-            setUser({ ...userInfo, token: accessToken });
-            setLoadingUser(false);
-            return;
-          } catch (error) {
-            console.log(
-              "AutoLogin: Access token validation failed, will try refresh token:",
-              error.message,
-            );
-            // Access token이 만료되었을 수 있음, refresh token으로 재시도
-            localStorage.removeItem("accessToken");
+      // 2. Refresh Token으로 시도
+      if (refreshToken) {
+        try {
+          const newAccessToken = await refreshTokenInternal();
+          const userInfo = await fetchUserInfo();
+          setUser({ ...userInfo, token: newAccessToken });
+
+          // 사용자 언어 설정 동기화
+          if (userInfo.preferredLanguage) {
+            changeLanguage(userInfo.preferredLanguage);
           }
-        }
-
-        // Refresh Token으로 시도 (access token이 없거나 실패한 경우)
-        if (refreshToken) {
-          try {
-            const baseUrl = await getApiBaseUrl();
-            console.log("AutoLogin: Attempting token refresh...");
-            const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ refreshToken }),
-            });
-
-            if (refreshResponse.ok) {
-              const { accessToken: newAccessToken } =
-                await refreshResponse.json();
-              localStorage.setItem("accessToken", newAccessToken);
-              console.log("AutoLogin: Token refresh successful");
-
-              try {
-                const userInfo = await fetchUserInfo();
-                setUser({ ...userInfo, token: newAccessToken });
-                setLoadingUser(false);
-                return; // 성공 시 early return
-              } catch (fetchError) {
-                console.error(
-                  "AutoLogin: Failed to fetch user info after refresh:",
-                  fetchError,
-                );
-                handleLogout();
-              }
-            } else {
-              const errorText = await refreshResponse.text();
-              console.error("AutoLogin: Token refresh failed:", errorText);
-              handleLogout();
-            }
-          } catch (e) {
-            console.error("AutoLogin: Refresh token request failed:", e);
-            handleLogout();
-          }
-        } else {
-          console.warn(
-            "AutoLogin: No refresh token available after access token failure",
-          );
+        } catch (error) {
+          console.error("[AuthContext] AutoLogin failed:", error);
           handleLogout();
         }
-      } catch (error) {
-        console.error("AutoLogin: Unexpected error:", error);
+      } else {
         handleLogout();
-      } finally {
-        setLoadingUser(false);
       }
-    };
+    } catch (error) {
+      console.error("[AuthContext] Unexpected verifySession error:", error);
+      handleLogout();
+    } finally {
+      setLoadingUser(false);
+    }
+  }, [fetchUserInfo, handleLogout, refreshTokenInternal, changeLanguage]);
 
-    autoLogin();
-  }, [fetchUserInfo, handleLogout]);
+  // 초기 자동 로그인
+  useEffect(() => {
+    // 레거시 토큰 정리
+    if (localStorage.getItem("jwtToken")) {
+      localStorage.removeItem("jwtToken");
+    }
+    verifySession();
+  }, [verifySession]);
 
   // 백그라운드 토큰 자동 갱신 (5분마다)
   useEffect(() => {
     if (!user) return;
 
-    const REFRESH_INTERVAL = 5 * 60 * 1000; // 5분
+    const REFRESH_INTERVAL = 5 * 60 * 1000;
 
     const checkAndRefreshToken = async () => {
-      // 페이지가 보이지 않으면 스킵
       if (document.hidden) return;
-
-      const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) return;
-
       try {
-        const baseUrl = await getApiBaseUrl();
-        const response = await fetch(`${baseUrl}/api/auth/me`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        // 401이면 자동으로 토큰 갱신 시도
-        if (!response.ok && response.status === 401) {
-          console.log(
-            "[AuthContext] Background token refresh: Access token expired, attempting refresh...",
-          );
-          await ensureValidToken();
-          console.log("[AuthContext] Background token refresh: Success");
-        }
+        await ensureValidToken();
       } catch (error) {
-        console.warn(
-          "[AuthContext] Background token refresh failed:",
-          error.message,
-        );
+        console.warn("[AuthContext] Background refresh failed:", error.message);
       }
     };
 
-    // 초기 체크 제거 (autoLogin에서 이미 수행됨)
-    // checkAndRefreshToken();
-
-    // 5분마다 주기적으로 체크
     const intervalId = setInterval(checkAndRefreshToken, REFRESH_INTERVAL);
-
     return () => clearInterval(intervalId);
   }, [user, ensureValidToken]);
 
@@ -486,7 +379,7 @@ export const AuthProvider = ({ children }) => {
           user: {
             id: "user1",
             username: "admin",
-            name: "관리자",
+            name: t("demo.admin_name", "관리자"),
             email: "admin@demo.com",
             role: "ADMIN",
           },
@@ -498,14 +391,17 @@ export const AuthProvider = ({ children }) => {
           user: {
             id: "user2",
             username: "tester",
-            name: "테스터",
+            name: t("demo.tester_name", "테스터"),
             email: "tester@demo.com",
             role: "TESTER",
           },
         };
       } else {
         throw new Error(
-          "아이디 또는 비밀번호가 올바르지 않습니다. (admin/admin 또는 tester/tester 사용)",
+          t(
+            "auth.login_invalid",
+            "아이디 또는 비밀번호가 올바르지 않습니다. (admin/admin 또는 tester/tester 사용)",
+          ),
         );
       }
     }
@@ -522,14 +418,17 @@ export const AuthProvider = ({ children }) => {
 
     if (!res.ok) {
       const msg = await res.text();
-      throw new Error(msg || "아이디 또는 비밀번호가 올바르지 않습니다.");
+      throw new Error(
+        msg ||
+          t("auth.login_failed", "아이디 또는 비밀번호가 올바르지 않습니다."),
+      );
     }
 
     return await res.json();
   };
 
   const register = async ({ username, password, name, email }) => {
-    const baseUrl = await getApiBaseUrl();
+    const baseUrl = await getDynamicApiUrl();
     const res = await fetch(`${baseUrl}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -537,20 +436,23 @@ export const AuthProvider = ({ children }) => {
     });
     if (!res.ok) {
       const msg = await res.text();
-      throw new Error(msg || "회원가입에 실패했습니다.");
+      throw new Error(
+        msg || t("auth.register_failed", "회원가입에 실패했습니다."),
+      );
     }
     return res.json();
   };
 
   const updateUserProfile = async ({ name, email, timezone }) => {
-    const baseUrl = await getApiBaseUrl();
-    const res = await api(`${baseUrl}/api/auth/me`, {
+    const res = await api("/api/auth/me", {
       method: "PUT",
       body: JSON.stringify({ name, email, timezone }),
     });
     if (!res.ok) {
       const msg = await res.text();
-      throw new Error(msg || "정보 변경에 실패했습니다.");
+      throw new Error(
+        msg || t("profile.update_failed", "정보 변경에 실패했습니다."),
+      );
     }
     return res.json();
   };
@@ -558,6 +460,17 @@ export const AuthProvider = ({ children }) => {
   const clearRateLimitError = useCallback(() => {
     setRateLimitError(null);
     setRetryAfter(0);
+  }, []);
+
+  const openUserProfile = useCallback((tabIndex = 0) => {
+    setInitialProfileTab(tabIndex);
+    setProfileDialogOpen(true);
+  }, []);
+
+  const handleDialogLogin = useCallback(() => {
+    setSessionExpired(false);
+    // 로그인 페이지로 이동하거나 모달을 띄울 수 있음
+    window.location.href = "/login";
   }, []);
 
   const value = {
@@ -575,7 +488,11 @@ export const AuthProvider = ({ children }) => {
     rateLimitError,
     retryAfter,
     clearRateLimitError,
-    getApiBaseUrl,
+    profileDialogOpen,
+    setProfileDialogOpen,
+    initialProfileTab,
+    openUserProfile,
+    getApiBaseUrl: () => getDynamicApiUrl(),
     sessionExpired,
     handleDialogRefresh,
     handleDialogLogin,

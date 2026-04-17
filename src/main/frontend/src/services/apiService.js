@@ -230,16 +230,23 @@ class ApiService {
 // 싱글톤 인스턴스 생성
 const apiService = new ApiService();
 
-// 기본 요청 인터셉터: 인증 토큰 자동 추가
+// 기본 요청 인터셉터: 인증 토큰 및 언어 설정 자동 추가
 apiService.addRequestInterceptor(async (options) => {
+  // 1. 인증 토큰 추가
   const accessToken = localStorage.getItem("accessToken");
   if (accessToken) {
-    // headers 객체가 이미 존재하는지 확인하고 안전하게 추가
     if (!options.headers) {
       options.headers = {};
     }
     options.headers["Authorization"] = `Bearer ${accessToken}`;
   }
+
+  // 2. 언어 설정 추가 (Accept-Language 헤더)
+  const language = localStorage.getItem("preferred-language") || "ko";
+  if (!options.headers) {
+    options.headers = {};
+  }
+  options.headers["Accept-Language"] = language;
 });
 
 // 기본 응답 인터셉터: 로깅

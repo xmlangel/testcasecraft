@@ -136,6 +136,10 @@ public class EnglishTestCaseAndAutomationTranslations {
         "Are you sure you want to delete? (including children)",
         createdBy);
     createTranslationIfNotExists(
+        "testcase.tree.dialog.rename.title", languageCode, "Rename", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.dialog.rename.label", languageCode, "New Name", createdBy);
+    createTranslationIfNotExists(
         "testcase.tree.dialog.error.title", languageCode, "Error", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.tooltip.open", languageCode, "Open Test Case Tree", createdBy);
@@ -800,6 +804,129 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "⚠️ Changes will be lost if not saved.",
         createdBy);
+
+    // Test Plan related
+    createTranslationIfNotExists("testPlan.tab.label", languageCode, "Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.list.title", languageCode, "Test Plan List", createdBy);
+    createTranslationIfNotExists("testPlan.list.add", languageCode, "Add Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.list.table.name", languageCode, "Name", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.testcaseCount", languageCode, "Test Case Count", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.automationCount", languageCode, "Automated Tests", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.createdAt", languageCode, "Created At", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.execute", languageCode, "Execute & Results", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.linkAutomated", languageCode, "Link Automated Tests", createdBy);
+    createTranslationIfNotExists("testPlan.list.table.edit", languageCode, "Edit", createdBy);
+    createTranslationIfNotExists("testPlan.list.table.delete", languageCode, "Delete", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.empty.message", languageCode, "No test plans found.", createdBy);
+
+    // Test Plan Form
+    createTranslationIfNotExists(
+        "testPlan.form.title.create", languageCode, "Create New Test Plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.title.edit", languageCode, "Edit Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.form.planName", languageCode, "Plan Name", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.testcaseSelection", languageCode, "Select Test Cases", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.selectedCount", languageCode, "{count} Selected", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.projectSelectFirst",
+        languageCode,
+        "Please select a project first",
+        createdBy);
+    createTranslationIfNotExists("testPlan.form.button.cancel", languageCode, "Cancel", createdBy);
+    createTranslationIfNotExists("testPlan.form.button.save", languageCode, "Save", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.form.button.processing", languageCode, "Processing...", createdBy);
+
+    // Validation
+    createTranslationIfNotExists(
+        "testPlan.validation.nameRequired", languageCode, "Test plan name is required", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.validation.testcaseRequired",
+        languageCode,
+        "At least one test case must be selected",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.error.saveFailed", languageCode, "Error occurred while saving: ", createdBy);
+
+    // Execution
+    createTranslationIfNotExists(
+        "testPlan.execution.dialog.title", languageCode, "Test Execution - {planName}", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.button.newExecution", languageCode, "Create New Execution", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.empty.message",
+        languageCode,
+        "No execution history for this test plan.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.progress", languageCode, "Progress:", createdBy);
+    createTranslationIfNotExists("testPlan.execution.action.edit", languageCode, "Edit", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.action.view", languageCode, "View Fullscreen", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.dialog.close", languageCode, "Close", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.list.copyLink", languageCode, "Copy Execution Link", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.list.createdAt", languageCode, "Created: {date}", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.list.progress", languageCode, "Progress", createdBy);
+
+    // Delete
+    createTranslationIfNotExists(
+        "testPlan.delete.dialog.title", languageCode, "Delete Test Plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.delete.dialog.message",
+        languageCode,
+        "Are you sure you want to delete this test plan? This action cannot be undone.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.delete.button.cancel", languageCode, "Cancel", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.delete.button.delete", languageCode, "Delete", createdBy);
+
+    // Selector
+    createTranslationIfNotExists(
+        "testPlan.selector.label", languageCode, "Select Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.selector.all", languageCode, "All", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.selector.caseCount", languageCode, "{count} cases", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.selector.selected", languageCode, "Selected Plan: {planName}", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.selector.testcaseCount", languageCode, "({count} test cases)", createdBy);
+
+    // Status
+    createTranslationIfNotExists(
+        "testPlan.status.notStarted", languageCode, "Not Started", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.status.inProgress", languageCode, "In Progress", createdBy);
+    createTranslationIfNotExists("testPlan.status.completed", languageCode, "Completed", createdBy);
+
+    // Automation
+    createTranslationIfNotExists(
+        "testPlan.list.table.automationCount", languageCode, "Automated Tests", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.list.table.linkAutomated", languageCode, "Link Automated Tests", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.automated.title", languageCode, "Linked Automated Tests", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.execution.automated.empty",
+        languageCode,
+        "No linked automated tests.",
+        createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.status.lineBreakSupport",
         languageCode,
@@ -1090,6 +1217,9 @@ public class EnglishTestCaseAndAutomationTranslations {
         "junit.detail.title", languageCode, "JUnit Test Result Details", createdBy);
     createTranslationIfNotExists(
         "junit.detail.uploadInfo", languageCode, "Upload: {date} | {uploader}", createdBy);
+    createTranslationIfNotExists("junit.detail.upload", languageCode, "Upload", createdBy);
+    createTranslationIfNotExists(
+        "junit.detail.unknownUploader", languageCode, "Unknown", createdBy);
     createTranslationIfNotExists(
         "junit.detail.loadingDetail", languageCode, "Loading test result details...", createdBy);
     createTranslationIfNotExists(
@@ -1378,6 +1508,55 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.versionHistory.time.unknown", languageCode, "No time information", createdBy);
 
+    // 버전 히스토리 요약 영어 번역
+    createTranslationIfNotExists(
+        "testcase.version.summary.initial", languageCode, "Initial test case created", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.restored_to",
+        languageCode,
+        "Restored to version v{version}",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.updated", languageCode, "{field} updated", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.steps_updated",
+        languageCode,
+        "Test steps updated ({count})",
+        createdBy);
+
+    // 필드명 영어 번역
+    createTranslationIfNotExists("testcase.version.field.name", languageCode, "Name", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.preCondition", languageCode, "Pre-condition", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.postCondition", languageCode, "Post-condition", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.expectedResults", languageCode, "Expected Results", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.priority", languageCode, "Priority", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.isAutomated", languageCode, "Automated", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.executionType", languageCode, "Execution Type", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.testTechnique", languageCode, "Test Technique", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.testSteps", languageCode, "Test Steps", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.field.folder", languageCode, "Folder", createdBy);
+
+    // 버전 레이블 영어 번역
+    createTranslationIfNotExists(
+        "testcase.version.label.initial", languageCode, "Initial Version", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.modified", languageCode, "Modified v{version}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.manual", languageCode, "Manual Save v{version}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.label.restored", languageCode, "Restored v{version}", createdBy);
+
     // Version Action Tooltips
     createTranslationIfNotExists(
         "testcase.versionHistory.action.view", languageCode, "View Details", createdBy);
@@ -1477,6 +1656,33 @@ public class EnglishTestCaseAndAutomationTranslations {
     // Version Indicator - Misc
     createTranslationIfNotExists(
         "testcase.version.noChanges", languageCode, "No changes", createdBy);
+
+    // Version Detail Fields
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.name", languageCode, "Name", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.preCondition", languageCode, "Pre-condition", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.expectedResults",
+        languageCode,
+        "Expected Results",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.priority", languageCode, "Priority", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.versionNumber", languageCode, "Version Number", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.changeType", languageCode, "Change Type", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.changeSummary", languageCode, "Change Summary", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.creator", languageCode, "Creator", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.createdAt", languageCode, "Created At", createdBy);
+    createTranslationIfNotExists(
+        "testcase.versionDetail.field.none", languageCode, "None", createdBy);
 
     // Bulk Operations English Translations
     createTranslationIfNotExists(
@@ -1639,6 +1845,23 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testcase.spreadsheet.usage.stepManagement",
         languageCode,
         "Step management: Click ⚙️ button to adjust step count (max 10).",
+        createdBy);
+
+    // Spreadsheet Footer & Export
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.footer.stepInfo",
+        languageCode,
+        "* Currently configured with {maxSteps} steps. Expandable up to 10 steps.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.pdf.title",
+        languageCode,
+        "Export to PDF (Detailed)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.pdf.description",
+        languageCode,
+        "Test result entry screen format (.pdf)",
         createdBy);
 
     // User Profile - Service API Token English
@@ -1810,71 +2033,135 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testResult.export.pdf.orientation.landscape", languageCode, "Landscape", createdBy);
 
-    // Google Config
+    // Import / Export
     createTranslationIfNotExists(
-        "header.userMenu.googleConfig", languageCode, "Google Sheets Settings", createdBy);
-    createTranslationIfNotExists(
-        "google.config.title", languageCode, "Google Sheets Integration", createdBy);
-    createTranslationIfNotExists("google.config.status", languageCode, "Status", createdBy);
-    createTranslationIfNotExists("google.config.disconnect", languageCode, "Disconnect", createdBy);
-    createTranslationIfNotExists(
-        "google.config.email", languageCode, "Connected Service Account (Email)", createdBy);
-    createTranslationIfNotExists("google.config.projectId", languageCode, "Project ID", createdBy);
-    createTranslationIfNotExists(
-        "google.config.lastUpdated", languageCode, "Last Updated", createdBy);
-    createTranslationIfNotExists("google.config.active", languageCode, "Active", createdBy);
-    createTranslationIfNotExists(
-        "google.config.noConfig", languageCode, "No Google credentials registered.", createdBy);
-    createTranslationIfNotExists(
-        "google.config.inputTitle", languageCode, "Register New Credentials", createdBy);
-    createTranslationIfNotExists(
-        "google.config.inputDesc",
-        languageCode,
-        "Paste the entire content of your Service Account Key (JSON) file downloaded from Google"
-            + " Cloud Console.",
-        createdBy);
-    createTranslationIfNotExists(
-        "google.config.placeholder",
-        languageCode,
-        "{ \"type\": \"service_account\", ... }",
-        createdBy);
-    createTranslationIfNotExists(
-        "google.config.save", languageCode, "Save Integration Settings", createdBy);
-    createTranslationIfNotExists(
-        "google.config.update", languageCode, "Update Settings", createdBy);
+        "testcase.io.title", languageCode, "TestCase Import / Export", createdBy);
+    createTranslationIfNotExists("testcase.io.tab.import", languageCode, "📥 Import", createdBy);
+    createTranslationIfNotExists("testcase.io.tab.export", languageCode, "📤 Export", createdBy);
 
-    // Google Guide
     createTranslationIfNotExists(
-        "google.guide.title",
+        "testcase.io.import.format.label", languageCode, "1. Select Format", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.label", languageCode, "2. Sample File", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.download", languageCode, "Download {filename}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.sample.desc",
         languageCode,
-        "How to Create and Configure Google Service Account",
+        "Please refer to the sample and upload after entering data",
         createdBy);
     createTranslationIfNotExists(
-        "google.guide.step1",
+        "testcase.io.import.upload.label", languageCode, "3. File Upload", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.dropzone.prompt",
         languageCode,
-        "1. Create a project in Google Cloud Console and enable 'Google Sheets API'.",
+        "Drag and drop a file here or click to select",
         createdBy);
     createTranslationIfNotExists(
-        "google.guide.step2",
+        "testcase.io.import.dropzone.accept",
         languageCode,
-        "2. Create a 'Service Account' and issue/download a JSON key.",
+        "Supported formats: {formats}",
         createdBy);
     createTranslationIfNotExists(
-        "google.guide.step3",
+        "testcase.io.import.validation.label", languageCode, "4. Data Validation", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.validation.button", languageCode, "🔍 Validate", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.validation.status", languageCode, "Validating...", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.import.success",
         languageCode,
-        "3. Copy the contents of the downloaded JSON file and paste it into the field above.",
+        "✅ Import Complete: {count} test cases have been added.",
         createdBy);
     createTranslationIfNotExists(
-        "google.guide.step4",
+        "testcase.io.status.importing", languageCode, "Importing...", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.button.import", languageCode, "Execute Import", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.button.import.count", languageCode, "Execute Import ({count})", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.button.reimport", languageCode, "Import Again", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.export.format.label", languageCode, "1. Select Export Format", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.success.google",
         languageCode,
-        "4. (Important) Click the 'Share' button in binary Google Sheets file you want to export"
-            + " to.",
+        "Export to Google Sheets Complete!",
         createdBy);
     createTranslationIfNotExists(
-        "google.guide.step5",
+        "testcase.io.export.success.file", languageCode, "File download has started.", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.tip",
         languageCode,
-        "5. Add the Service Account email address (client_email in JSON) with 'Editor' permission.",
+        "💡 Exported files are created in an importable format. (Round-trip compatibility)",
         createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.status.exporting", languageCode, "Exporting...", createdBy);
+    createTranslationIfNotExists("testcase.io.button.export", languageCode, "Export", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.google.connect.label", languageCode, "2. Google Sheets Connection", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.config.label",
+        languageCode,
+        "2. Google Sheets Configuration",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.label", languageCode, "Google Sheets URL or ID", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.placeholder",
+        languageCode,
+        "https://docs.google.com/spreadsheets/d/...",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.sheet.label", languageCode, "Sheet Name", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.google.url.required",
+        languageCode,
+        "Please enter Google Sheets URL",
+        createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.google.url.required",
+        languageCode,
+        "Please enter Google Sheets URL",
+        createdBy);
+
+    // Export Formats labels
+    createTranslationIfNotExists(
+        "testcase.io.export.format.csv", languageCode, "CSV (Importable)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.format.excel", languageCode, "Excel (Importable)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.export.format.json", languageCode, "JSON (Importable)", createdBy);
+
+    createTranslationIfNotExists(
+        "testcase.io.validation.summary", languageCode, "Validation Summary", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.totalRows", languageCode, "Total {count} rows", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.validRows", languageCode, "✅ Valid {count} rows", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.invalidRows", languageCode, "❌ Invalid {count} rows", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.errorList", languageCode, "Error List", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.preview", languageCode, "Preview (max 20 rows)", createdBy);
+    createTranslationIfNotExists(
+        "testcase.io.validation.errorMessage", languageCode, "Error Message", createdBy);
+    createTranslationIfNotExists("testcase.io.validation.steps", languageCode, "Steps", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.parentFolder", languageCode, "Parent Folder", createdBy);
+
+    // Common
+    createTranslationIfNotExists("common.excel", languageCode, "Excel (.xlsx)", createdBy);
+    createTranslationIfNotExists("common.googleSheets", languageCode, "Google Sheets", createdBy);
+    createTranslationIfNotExists("common.field", languageCode, "Field", createdBy);
+    createTranslationIfNotExists("common.value", languageCode, "Value", createdBy);
+    createTranslationIfNotExists("common.emptyValue", languageCode, "Empty", createdBy);
+    createTranslationIfNotExists("common.spreadsheet.row", languageCode, "Row", createdBy);
+    createTranslationIfNotExists("common.settings", languageCode, "Go to Settings", createdBy);
   }
 
   private void createTranslationIfNotExists(

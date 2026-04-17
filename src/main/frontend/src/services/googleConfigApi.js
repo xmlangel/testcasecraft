@@ -11,9 +11,12 @@ const googleConfigApi = {
   getMyConfig: async () => {
     try {
       const response = await apiService.get("/api/google-configs/my");
+      if (response.status === 204) {
+        return null;
+      }
       return await response.json();
     } catch (error) {
-      if (error.response && error.response.status === 404) {
+      if (error.status === 404) {
         return null; // 설정 없음
       }
       throw error;

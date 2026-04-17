@@ -36,8 +36,10 @@ import {
 import { green, red, orange, grey } from "@mui/material/colors";
 import JiraConfigDialog from "./JiraConfigDialog";
 import { jiraService } from "../../services/jiraService";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 
 const JiraSettingsManager = () => {
+  const { formatDate } = useDateFormatter();
   const [configs, setConfigs] = useState([]);
   const [activeConfig, setActiveConfig] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -194,11 +196,6 @@ const JiraSettingsManager = () => {
     if (!connectionStatus.hasConfig) return "JIRA 설정이 없습니다";
     if (connectionStatus.isConnected) return "연결됨";
     return "연결 실패";
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "없음";
-    return new Date(dateString).toLocaleString("ko-KR");
   };
 
   if (loading) {

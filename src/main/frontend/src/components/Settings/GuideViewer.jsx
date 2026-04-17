@@ -20,6 +20,7 @@ import {
 import MDEditor from "@uiw/react-md-editor";
 import { useNavigate, useParams } from "react-router-dom";
 import guidesApi from "../../api/guidesApi";
+import { useI18n } from "../../context/I18nContext";
 
 /**
  * 범용 마크다운 가이드 뷰어 컴포넌트
@@ -28,8 +29,9 @@ import guidesApi from "../../api/guidesApi";
 const GuideViewer = () => {
   const { guideName } = useParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [content, setContent] = useState("");
-  const [title, setTitle] = useState("가이드");
+  const [title, setTitle] = useState(t("guide.viewer.title", "가이드"));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -58,7 +60,10 @@ const GuideViewer = () => {
     } catch (err) {
       console.error("가이드 로딩 실패:", err);
       setError(
-        "요청하신 가이드 문서를 찾을 수 없거나 불러오는 중 오류가 발생했습니다.",
+        t(
+          "guide.viewer.error",
+          "요청하신 가이드 문서를 찾을 수 없거나 불러오는 중 오류가 발생했습니다.",
+        ),
       );
     } finally {
       setLoading(false);
@@ -102,7 +107,11 @@ const GuideViewer = () => {
               </Typography>
             </Box>
             <Box>
-              <IconButton color="inherit" onClick={handlePrint} title="인쇄">
+              <IconButton
+                color="inherit"
+                onClick={handlePrint}
+                title={t("guide.viewer.print", "인쇄")}
+              >
                 <PrintIcon />
               </IconButton>
               <IconButton color="inherit" onClick={handleClose}>
@@ -132,7 +141,7 @@ const GuideViewer = () => {
               >
                 <CircularProgress size={40} sx={{ mb: 2 }} />
                 <Typography color="text.secondary">
-                  가이드 로딩 중...
+                  {t("guide.viewer.loading", "가이드 로딩 중...")}
                 </Typography>
               </Box>
             ) : error ? (
@@ -146,7 +155,7 @@ const GuideViewer = () => {
                       startIcon={<ReplayIcon />}
                       onClick={() => fetchGuide(guideName)}
                     >
-                      다시 시도
+                      {t("guide.viewer.retry", "다시 시도")}
                     </Button>
                   }
                 >
@@ -163,7 +172,6 @@ const GuideViewer = () => {
             )}
           </Box>
 
-          {/* Footer */}
           <Box
             sx={{
               p: 3,
@@ -173,7 +181,7 @@ const GuideViewer = () => {
             }}
           >
             <Button variant="contained" onClick={handleClose} sx={{ px: 4 }}>
-              닫기
+              {t("guide.viewer.close", "닫기")}
             </Button>
           </Box>
         </Paper>

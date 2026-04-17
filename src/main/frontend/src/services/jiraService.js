@@ -40,6 +40,11 @@ class JiraService {
         throw new Error("인증이 필요합니다");
       }
 
+      // 204 No Content
+      if (response.status === 204) {
+        return null;
+      }
+
       // 404 Not Found
       if (response.status === 404) {
         return null;

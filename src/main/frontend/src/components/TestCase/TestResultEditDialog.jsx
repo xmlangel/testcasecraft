@@ -44,7 +44,7 @@ import { useAppContext } from "../../context/AppContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
 import testResultEditService from "../../services/testResultEditService.js";
 import { getResultLabel } from "../../utils/testResultConstants.js";
-import { formatDateSafe } from "../../utils/dateUtils";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { jiraService } from "../../services/jiraService.js";
 // ICT-361: 테스트 결과 첨부파일 보기
 import TestResultAttachmentsView from "./TestResultAttachmentsView.jsx";
@@ -64,6 +64,7 @@ const TestResultEditDialog = ({
 }) => {
   const { user } = useAppContext();
   const { t } = useI18n();
+  const { formatDate } = useDateFormatter();
 
   // 편집 상태
   const [editData, setEditData] = useState({
@@ -465,7 +466,7 @@ const TestResultEditDialog = ({
                           {edit.editReason}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {formatDateSafe(edit.createdAt)}
+                          {formatDate(edit.createdAt)}
                         </Typography>
                       </Box>
                     }

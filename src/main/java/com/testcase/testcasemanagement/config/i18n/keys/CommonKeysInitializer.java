@@ -131,6 +131,18 @@ public class CommonKeysInitializer {
         "common.validation.required", "common", "필수 입력 검증", "필수 입력 항목입니다");
     createTranslationKeyIfNotExists("common.expand", "common", "펼치기", "펼치기");
     createTranslationKeyIfNotExists("common.collapse", "common", "접기", "접기");
+    createTranslationKeyIfNotExists("common.excel", "common", "Excel", "Excel (.xlsx)");
+    createTranslationKeyIfNotExists(
+        "common.googleSheets", "common", "Google Sheets", "Google Sheets");
+    createTranslationKeyIfNotExists("common.field", "common", "필드 라벨", "필드");
+    createTranslationKeyIfNotExists("common.value", "common", "값 라벨", "값");
+    createTranslationKeyIfNotExists("common.emptyValue", "common", "빈 값 표시", "빈 값");
+    createTranslationKeyIfNotExists("common.spreadsheet.row", "common", "행(Row) 라벨", "행");
+    createTranslationKeyIfNotExists("common.settings", "common", "설정 이동 버튼", "설정으로 이동");
+    createTranslationKeyIfNotExists("common.link", "common", "연결", "연결");
+    createTranslationKeyIfNotExists("common.unlink", "common", "연결 해제", "연결 해제");
+    createTranslationKeyIfNotExists("common.noResults", "common", "검색 결과 없음", "검색 결과가 없습니다.");
+    createTranslationKeyIfNotExists("common.search", "common", "검색", "검색");
 
     // 설정 관련 키
     createTranslationKeyIfNotExists("config.database.title", "config", "데이터베이스 설정", "데이터베이스 설정");
@@ -391,6 +403,15 @@ public class CommonKeysInitializer {
         "admin.globalDoc.preview.title", "admin", "PDF 미리보기 제목", "PDF 미리보기");
     createTranslationKeyIfNotExists(
         "admin.globalDoc.preview.loading", "admin", "미리보기 로딩", "미리보기를 불러올 수 없습니다.");
+
+    // 가이드 뷰어 관련 키들
+    createTranslationKeyIfNotExists("guide.viewer.title", "guide", "가이드 뷰어 제목", "가이드");
+    createTranslationKeyIfNotExists("guide.viewer.loading", "guide", "가이드 로딩 중 메시지", "가이드 로딩 중...");
+    createTranslationKeyIfNotExists(
+        "guide.viewer.error", "guide", "가이드 로딩 오류 메시지", "요청하신 가이드 문서를 찾을 수 없거나 불러오는 중 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists("guide.viewer.retry", "guide", "가이드 재시도 버튼", "다시 시도");
+    createTranslationKeyIfNotExists("guide.viewer.print", "guide", "가이드 인쇄 버튼", "인쇄");
+    createTranslationKeyIfNotExists("guide.viewer.close", "guide", "가이드 닫기 버튼", "닫기");
   }
 
   private void createTranslationKeyIfNotExists(

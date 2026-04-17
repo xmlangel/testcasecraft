@@ -67,7 +67,7 @@ import {
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "../../context/I18nContext";
 import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale";
 
 import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
@@ -85,7 +85,7 @@ const JunitResultDetail = () => {
   const { testResultId, projectId } = useParams();
   const navigate = useNavigate();
   const { currentProject } = useAppContext();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const theme = useTheme();
 
   // 전체 스윗을 나타내는 특별한 ID
@@ -758,7 +758,7 @@ const JunitResultDetail = () => {
 
       return formatDistanceToNow(date, {
         addSuffix: true,
-        locale: ko,
+        locale: currentLanguage === "en" ? enUS : ko,
       });
     } catch (error) {
       console.error("날짜 포맷팅 오류:", error, "Input:", dateValue);

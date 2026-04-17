@@ -36,7 +36,7 @@ import {
 } from "@mui/icons-material";
 import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
-import { formatDateSafe } from "../../utils/dateUtils";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 
 /**
  * ICT-361: 테스트 결과 첨부파일 보기 컴포넌트
@@ -50,6 +50,7 @@ const TestResultAttachmentsView = ({
 }) => {
   const { api, user } = useAppContext();
   const { t } = useI18n();
+  const { formatDate } = useDateFormatter();
 
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -368,7 +369,7 @@ const TestResultAttachmentsView = ({
                   <Typography variant="caption" color="text.secondary">
                     {formatFileSize(attachment.fileSize)} •
                     {attachment.uploadedByName} •
-                    {formatDateSafe(attachment.createdAt, "PPp")}
+                    {formatDate(attachment.createdAt)}
                   </Typography>
                   {attachment.description && (
                     <Typography

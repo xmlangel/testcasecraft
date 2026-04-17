@@ -655,6 +655,28 @@ public class KoreanOrganizationAndUserManagementTranslations {
         "profile.version.loading", languageCode, "버전 정보 로딩 중...", createdBy);
     createTranslationIfNotExists(
         "profile.version.error", languageCode, "버전 정보를 불러올 수 없습니다.", createdBy);
+
+    // 이메일 인증 관련
+    createTranslationIfNotExists(
+        "profile.form.emailVerification", languageCode, "이메일 인증 상태", createdBy);
+    createTranslationIfNotExists("profile.email.verified", languageCode, "인증 완료", createdBy);
+    createTranslationIfNotExists("profile.email.notVerified", languageCode, "미인증", createdBy);
+    createTranslationIfNotExists("profile.email.sendButton", languageCode, "인증 이메일 발송", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.sent", languageCode, "인증 이메일이 발송되었습니다. 이메일을 확인하세요.", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.failed", languageCode, "이메일 발송에 실패했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.error", languageCode, "이메일 발송 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.helper", languageCode, "이메일을 인증하면 알림 및 비밀번호 재설정 기능을 사용할 수 있습니다.", createdBy);
+
+    // 사용자 정보 새로고침 관련
+    createTranslationIfNotExists("profile.refresh.button", languageCode, "상태 새로고침", createdBy);
+    createTranslationIfNotExists(
+        "profile.refresh.success", languageCode, "사용자 정보를 새로고침했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "profile.refresh.error", languageCode, "사용자 정보 새로고침에 실패했습니다.", createdBy);
   }
 
   private void createTranslationIfNotExists(

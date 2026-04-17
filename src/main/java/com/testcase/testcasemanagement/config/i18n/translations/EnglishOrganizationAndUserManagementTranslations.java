@@ -1113,6 +1113,43 @@ public class EnglishOrganizationAndUserManagementTranslations {
         "profile.version.loading", languageCode, "Loading version information...", createdBy);
     createTranslationIfNotExists(
         "profile.version.error", languageCode, "Unable to load version information.", createdBy);
+
+    // Email Verification Related
+    createTranslationIfNotExists(
+        "profile.form.emailVerification", languageCode, "Email Verification Status", createdBy);
+    createTranslationIfNotExists("profile.email.verified", languageCode, "Verified", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.notVerified", languageCode, "Unverified", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.sendButton", languageCode, "Send Verification Email", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.sent",
+        languageCode,
+        "Verification email sent. Please check your inbox.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.email.failed", languageCode, "Failed to send verification email.", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.error",
+        languageCode,
+        "An error occurred while sending the email.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.email.helper",
+        languageCode,
+        "Verify your email to enable notifications and password reset features.",
+        createdBy);
+
+    // Refresh User Info Related
+    createTranslationIfNotExists(
+        "profile.refresh.button", languageCode, "Refresh Status", createdBy);
+    createTranslationIfNotExists(
+        "profile.refresh.success",
+        languageCode,
+        "User information refreshed successfully.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.refresh.error", languageCode, "Failed to refresh user information.", createdBy);
   }
 
   private void createTranslationIfNotExists(

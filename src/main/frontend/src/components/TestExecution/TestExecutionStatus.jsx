@@ -12,7 +12,7 @@ import {
 } from "@mui/icons-material";
 import { useTranslation } from "../../context/I18nContext.jsx";
 import StatusInfoItem from "../StatusInfoItem.jsx";
-import { formatDateSafe } from "../../utils/dateUtils";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { RESULT_COLORS } from "../../constants/statusColors";
 
 /**
@@ -32,6 +32,7 @@ const TestExecutionStatus = ({
   saving,
 }) => {
   const { t } = useTranslation();
+  const { formatDate } = useDateFormatter();
 
   const StyledStatusChip = ({ icon, label, count, color }) => (
     <Chip
@@ -105,12 +106,12 @@ const TestExecutionStatus = ({
         />
         <StatusInfoItem
           label={t("testExecution.form.startDate")}
-          value={formatDateSafe(execution?.startDate)}
+          value={formatDate(execution?.startDate)}
           compact
         />
         <StatusInfoItem
           label={t("testExecution.form.endDate")}
-          value={formatDateSafe(execution?.endDate)}
+          value={formatDate(execution?.endDate)}
           compact
         />
       </Box>

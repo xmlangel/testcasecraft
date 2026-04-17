@@ -40,7 +40,13 @@ import {
  * 사용자 정보 변경 다이얼로그
  * 서버 호출 로직은 AppContext.js로 분리함
  */
-function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
+function UserProfileDialog({
+  open,
+  onClose,
+  user,
+  onUserUpdated,
+  initialTab = 0,
+}) {
   const { updateUserProfile, fetchUserInfo } = useAppContext();
   const { currentLanguage, changeLanguage, t, forceReloadTranslations } =
     useI18n();
@@ -78,6 +84,13 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
     setError("");
     setSuccess("");
   }, [user, open]);
+
+  // 다이얼로그가 열릴 때 initialTab이 지정되어 있으면 해당 탭으로 이동
+  useEffect(() => {
+    if (open && typeof initialTab === "number") {
+      setTabValue(initialTab);
+    }
+  }, [open, initialTab]);
 
   // JIRA 설정 로드
   useEffect(() => {
@@ -755,6 +768,7 @@ UserProfileDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   user: PropTypes.object,
   onUserUpdated: PropTypes.func,
+  initialTab: PropTypes.number,
 };
 
 export default UserProfileDialog;

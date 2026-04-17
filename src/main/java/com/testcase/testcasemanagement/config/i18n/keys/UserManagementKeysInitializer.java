@@ -504,6 +504,32 @@ public class UserManagementKeysInitializer {
         "profile.apiToken.message.deleteFailed", "profile", "삭제 실패 메시지", "삭제에 실패했습니다.");
     createTranslationKeyIfNotExists(
         "profile.apiToken.message.deleteError", "profile", "삭제 오류 메시지", "API 키 삭제 중 오류가 발생했습니다.");
+
+    // 이메일 인증 관련
+    createTranslationKeyIfNotExists(
+        "profile.form.emailVerification", "profile", "이메일 인증 상태 레이블", "이메일 인증 상태");
+    createTranslationKeyIfNotExists("profile.email.verified", "profile", "이메일 인증 완료 상태", "인증 완료");
+    createTranslationKeyIfNotExists("profile.email.notVerified", "profile", "이메일 미인증 상태", "미인증");
+    createTranslationKeyIfNotExists(
+        "profile.email.sendButton", "profile", "인증 이메일 발송 버튼", "인증 이메일 발송");
+    createTranslationKeyIfNotExists(
+        "profile.email.sent", "profile", "이메일 발송 성공 메시지", "인증 이메일이 발송되었습니다. 이메일을 확인하세요.");
+    createTranslationKeyIfNotExists(
+        "profile.email.failed", "profile", "이메일 발송 실패 메시지", "이메일 발송에 실패했습니다.");
+    createTranslationKeyIfNotExists(
+        "profile.email.error", "profile", "이메일 발송 오류 메시지", "이메일 발송 중 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists(
+        "profile.email.helper",
+        "profile",
+        "이메일 인증 안내 도움말",
+        "이메일을 인증하면 알림 및 비밀번호 재설정 기능을 사용할 수 있습니다.");
+
+    // 사용자 정보 새로고침 관련
+    createTranslationKeyIfNotExists("profile.refresh.button", "profile", "상태 새로고침 버튼", "상태 새로고침");
+    createTranslationKeyIfNotExists(
+        "profile.refresh.success", "profile", "새로고침 성공 메시지", "사용자 정보를 새로고침했습니다.");
+    createTranslationKeyIfNotExists(
+        "profile.refresh.error", "profile", "새로고침 실패 메시지", "사용자 정보 새로고침에 실패했습니다.");
   }
 
   private void createTranslationKeyIfNotExists(
