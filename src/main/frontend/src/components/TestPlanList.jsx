@@ -47,7 +47,8 @@ import {
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { ExecutionStatus } from "../models/testExecution.jsx";
-import { formatDateSafe, safeParseDate } from "../utils/dateUtils";
+import { useDateFormatter } from "../hooks/useDateFormatter";
+import { safeParseDate } from "../utils/dateUtils";
 import TestPlanAutomatedLinkDialog from "./TestPlanAutomatedLinkDialog";
 import { Link as LinkIcon } from "@mui/icons-material";
 import { countRealTestCases } from "../utils/treeUtils";
@@ -75,6 +76,7 @@ const TestPlanList = ({
   } = useAppContext();
 
   const { t } = useI18n();
+  const { formatDate } = useDateFormatter();
 
   // Local state
   const [localLoading, setLocalLoading] = useState(false);
@@ -505,7 +507,7 @@ const TestPlanList = ({
                           />
                         </TableCell>
                         <TableCell align="center">
-                          {formatDateSafe(plan.createdAt)}
+                          {formatDate(plan.createdAt)}
                         </TableCell>
                         <TableCell align="center">
                           <IconButton
@@ -674,7 +676,7 @@ const TestPlanList = ({
                                     "testPlan.execution.list.createdAt",
                                     "생성일: {date}",
                                     {
-                                      date: formatDateSafe(execution.createdAt),
+                                      date: formatDate(execution.createdAt),
                                     },
                                   )}
                                 </Typography>
@@ -793,7 +795,9 @@ const TestPlanList = ({
                                 {t(
                                   "testPlan.execution.list.createdAt",
                                   "업로드: {date}",
-                                  { date: formatDateSafe(result.uploadedAt) },
+                                  {
+                                    date: formatDate(result.uploadedAt),
+                                  },
                                 )}
                               </Typography>
                               <Box sx={{ mt: 1 }}>

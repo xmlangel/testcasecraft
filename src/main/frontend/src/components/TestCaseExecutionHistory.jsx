@@ -17,11 +17,12 @@ import {
 } from "@mui/material";
 import { useI18n } from "../context/I18nContext";
 import { useAppContext } from "../context/AppContext";
-import { formatDateSafe } from "../utils/dateUtils";
+import { useDateFormatter } from "../hooks/useDateFormatter";
 
 const TestCaseExecutionHistory = ({ testCaseId }) => {
   const { api, activeProject } = useAppContext();
   const { t } = useI18n();
+  const { formatDate } = useDateFormatter();
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -168,7 +169,7 @@ const TestCaseExecutionHistory = ({ testCaseId }) => {
                   },
                 }}
               >
-                <TableCell>{formatDateSafe(item.executedAt) || "-"}</TableCell>
+                <TableCell>{formatDate(item.executedAt) || "-"}</TableCell>
                 <TableCell>{item.testExecutionName || "N/A"}</TableCell>
                 <TableCell>
                   {getResultChip(item.result || item.status)}

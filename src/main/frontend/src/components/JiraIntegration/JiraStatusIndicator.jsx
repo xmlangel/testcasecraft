@@ -27,6 +27,7 @@ import {
 import { green, red, orange, grey } from "@mui/material/colors";
 import { jiraService } from "../../services/jiraService";
 import { useTranslation } from "../../context/I18nContext";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 
 const JiraStatusIndicator = ({
   compact = false,
@@ -36,6 +37,7 @@ const JiraStatusIndicator = ({
   refreshInterval = 30000, // 30초
 }) => {
   const { t } = useTranslation();
+  const { formatDate } = useDateFormatter();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -146,51 +148,6 @@ const JiraStatusIndicator = ({
       "jira.indicator.connectionFailedMessage",
       "JIRA 서버 연결에 실패했습니다.",
     )} ${status.lastError || ""}`;
-  };
-
-  const formatDate = (date) => {
-    if (!date) return "-";
-
-    try {
-      let dateObj;
-
-      // Java LocalDateTime 배열 형식 처리: [year, month, day, hour, minute, second, nanosecond]
-      if (Array.isArray(date)) {
-        const [
-          year,
-          month,
-          day,
-          hour = 0,
-          minute = 0,
-          second = 0,
-          nanosecond = 0,
-        ] = date;
-        // JavaScript Date의 month는 0-based (0 = January)이므로 1을 빼줌
-        dateObj = new Date(
-          year,
-          month - 1,
-          day,
-          hour,
-          minute,
-          second,
-          Math.floor(nanosecond / 1000000),
-        );
-      } else {
-        // 일반적인 날짜 문자열 또는 타임스탬프
-        dateObj = new Date(date);
-      }
-
-      // Invalid Date 체크
-      if (isNaN(dateObj.getTime())) {
-        console.warn("유효하지 않은 날짜 형식:", date);
-        return "-";
-      }
-
-      return dateObj.toLocaleString("ko-KR");
-    } catch (error) {
-      console.error("날짜 변환 실패:", date, error);
-      return "-";
-    }
   };
 
   if (compact) {

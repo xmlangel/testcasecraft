@@ -28,13 +28,12 @@ import JiraIssueLink from "./JiraIssueLink.jsx";
 import {
   wrapName,
   getResultIcon,
-  formatDateTimeFull,
-  formatDateTimeShort,
   getDisplayValue,
   priorityColor,
   responsiveColumnSx,
   gridTemplateColumns,
 } from "./utils.jsx";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { copyToClipboard } from "../../utils";
 
 // 개별 행 컴포넌트 - 메모이제이션 적용
@@ -52,6 +51,8 @@ const ExecutionRow = memo(
     handleCopyLink,
     handleCopyNotes,
     t,
+    formatDate,
+    formatDateOnly,
     theme,
   }) => {
     const isFolder = node.type === "folder";
@@ -221,11 +222,7 @@ const ExecutionRow = memo(
         >
           {!isFolder ? (
             executedAt ? (
-              <Tooltip
-                title={formatDateTimeFull(executedAt)}
-                placement="top"
-                arrow
-              >
+              <Tooltip title={formatDate(executedAt)} placement="top" arrow>
                 <Typography
                   variant="body2"
                   sx={{
@@ -239,7 +236,7 @@ const ExecutionRow = memo(
                     fontWeight: "500",
                   }}
                 >
-                  {formatDateTimeShort(executedAt)}
+                  {formatDateOnly(executedAt)}
                 </Typography>
               </Tooltip>
             ) : (
@@ -510,6 +507,7 @@ const TestExecutionTable = ({
   onSelectionChange,
 }) => {
   const { t } = useI18n();
+  const { formatDate, formatDateOnly } = useDateFormatter();
   const theme = useTheme();
   const sentinelRef = React.useRef(null);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -555,6 +553,8 @@ const TestExecutionTable = ({
         handleCopyLink={handleCopyLink}
         handleCopyNotes={handleCopyNotes}
         t={t}
+        formatDate={formatDate}
+        formatDateOnly={formatDateOnly}
         theme={theme}
       />
     ));

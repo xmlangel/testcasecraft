@@ -26,16 +26,29 @@ export function formatDate(date, locale = "ko-KR", options = {}) {
   const dateObj = typeof date === "string" ? new Date(date) : date;
   if (isNaN(dateObj.getTime())) return "-";
 
+  // 짧은 로케일 코드 (ko, en)를 전체 코드로 변환
+  const fullLocale =
+    locale === "ko" ? "ko-KR" : locale === "en" ? "en-US" : locale;
+
+  // 서버 설정이 UTC이거나 옵션에서 명시한 경우 UTC 사용
+  const useUTC = options.timeZone === "UTC" || isServerUTC();
+
   const defaultOptions = {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false, // 24시간 형식 사용
+    ...(useUTC ? { timeZone: "UTC" } : {}),
     ...options,
   };
 
-  return dateObj.toLocaleString(locale, defaultOptions);
+  const formattedDate = dateObj.toLocaleString(fullLocale, defaultOptions);
+  // UTC인 경우 명시적으로 (UTC) 접미사를 붙여줌 (서버 설정 또는 옵션에 따름)
+  return useUTC && !formattedDate.includes("UTC")
+    ? `${formattedDate} (UTC)`
+    : formattedDate;
 }
 
 /**
@@ -246,17 +259,7 @@ export function formatDateSafe(date, locale = "ko-KR", options = {}) {
   const dateObj = safeParseDate(date);
   if (!dateObj) return "-";
 
-  const defaultOptions = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    ...options,
-  };
-
-  const formattedDate = dateObj.toLocaleString(locale, defaultOptions);
-  return isServerUTC() ? `${formattedDate} (UTC)` : formattedDate;
+  return formatDate(dateObj, locale, options);
 }
 
 /**

@@ -33,12 +33,14 @@ import {
 } from "@mui/icons-material";
 import googleConfigApi from "../../services/googleConfigApi";
 import { useI18n } from "../../context/I18nContext";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 
 /**
  * 사용자별 Google Sheets 설정을 관리하는 컴포넌트 (Premium UI)
  */
 const GoogleConfigManager = () => {
   const { t } = useI18n();
+  const { formatDate } = useDateFormatter();
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -389,25 +391,7 @@ const GoogleConfigManager = () => {
                         fontWeight="500"
                         color="text.primary"
                       >
-                        {(() => {
-                          if (!config.updatedAt) return "-";
-                          if (Array.isArray(config.updatedAt)) {
-                            const [y, m, d, h = 0, min = 0, s = 0] =
-                              config.updatedAt;
-                            return new Date(
-                              y,
-                              m - 1,
-                              d,
-                              h,
-                              min,
-                              s,
-                            ).toLocaleString();
-                          }
-                          const date = new Date(config.updatedAt);
-                          return isNaN(date.getTime())
-                            ? "-"
-                            : date.toLocaleString();
-                        })()}
+                        {formatDate(config.updatedAt)}
                       </Typography>
                     </ListItem>
                   </Grid>

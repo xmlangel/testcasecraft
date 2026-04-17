@@ -61,7 +61,7 @@ import LoadingSpinner from "../atoms/LoadingSpinner/LoadingSpinner.jsx";
 import ErrorMessage from "../atoms/ErrorMessage/ErrorMessage.jsx";
 import ConfirmDialog from "../molecules/ConfirmDialog/ConfirmDialog.jsx";
 import AdminPasswordChangeDialog from "./AdminPasswordChangeDialog.jsx";
-import { formatDateSafe } from "../../utils/dateUtils";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
@@ -96,6 +96,7 @@ const UserDetailDialog = ({
   ...dialogProps
 }) => {
   const { t } = useI18n();
+  const { formatDate } = useDateFormatter();
 
   // 사용자 상세 정보 훅
   const { user, activity, loading, error, updateUser, refresh } =
@@ -657,7 +658,7 @@ const UserDetailDialog = ({
                       </ListItemIcon>
                       <ListItemText
                         primary={t("userDetail.time.createdAt", "가입일")}
-                        secondary={formatDateSafe(user.createdAt)}
+                        secondary={formatDate(user.createdAt)}
                       />
                     </ListItem>
 
@@ -669,7 +670,7 @@ const UserDetailDialog = ({
                         primary={t("userDetail.time.updatedAt", "최종 수정일")}
                         secondary={
                           user.updatedAt
-                            ? formatDateSafe(user.updatedAt)
+                            ? formatDate(user.updatedAt)
                             : t("userDetail.time.none", "없음")
                         }
                       />
@@ -683,7 +684,7 @@ const UserDetailDialog = ({
                         primary={t("userDetail.time.lastLogin", "최종 로그인")}
                         secondary={
                           user.lastLoginAt
-                            ? new Date(user.lastLoginAt).toLocaleString("ko-KR")
+                            ? formatDate(user.lastLoginAt)
                             : t("userDetail.time.none", "없음")
                         }
                       />

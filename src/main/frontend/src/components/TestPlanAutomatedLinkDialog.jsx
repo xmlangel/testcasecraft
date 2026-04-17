@@ -27,7 +27,7 @@ import {
 } from "@mui/icons-material";
 import { useI18n } from "../context/I18nContext";
 import { useAppContext } from "../context/AppContext";
-import { formatDateSafe } from "../utils/dateUtils";
+import { useDateFormatter } from "../hooks/useDateFormatter";
 
 const TestPlanAutomatedLinkDialog = ({
   open,
@@ -36,6 +36,7 @@ const TestPlanAutomatedLinkDialog = ({
   onLinkComplete,
 }) => {
   const { t } = useI18n();
+  const { formatDate } = useDateFormatter();
   const { api, activeProject } = useAppContext();
 
   const [loading, setLoading] = useState(false);
@@ -266,7 +267,7 @@ const TestPlanAutomatedLinkDialog = ({
                           component="span"
                           display="block"
                         >
-                          {formatDateSafe(result.uploadedAt)} | Tests:{" "}
+                          {formatDate(result.uploadedAt)} | Tests:{" "}
                           {result.totalTests} (Pass:{" "}
                           {result.totalTests -
                             result.failures -

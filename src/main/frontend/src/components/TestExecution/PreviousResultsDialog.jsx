@@ -31,7 +31,8 @@ import { useTranslation } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import TestResultAttachmentsView from "../TestCase/TestResultAttachmentsView.jsx";
 import JiraIssueLink from "./JiraIssueLink.jsx";
-import { getResultIcon, formatDateTimeFull } from "./utils.jsx";
+import { getResultIcon } from "./utils.jsx";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 import TestResultForm from "../TestResultForm.jsx";
 
 function PreviousResultsDialog({
@@ -44,6 +45,7 @@ function PreviousResultsDialog({
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
   const { t } = useTranslation();
+  const { formatDate } = useDateFormatter();
   const { user, api } = useAppContext();
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedTestResultId, setSelectedTestResultId] = useState(null);
@@ -179,7 +181,7 @@ function PreviousResultsDialog({
                   {sortedResults.map((r, idx) => (
                     <TableRow key={idx}>
                       <TableCell>
-                        {r.executedAt ? formatDateTimeFull(r.executedAt) : "-"}
+                        {r.executedAt ? formatDate(r.executedAt) : "-"}
                       </TableCell>
                       <TableCell>
                         {getResultIcon(r.result)}
@@ -385,7 +387,7 @@ function PreviousResultsDialog({
             <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
               {t("testExecution.previousResults.delete.info", {
                 result: resultToDelete.result,
-                executedAt: formatDateTimeFull(resultToDelete.executedAt),
+                executedAt: formatDate(resultToDelete.executedAt),
               })}
             </Typography>
           )}

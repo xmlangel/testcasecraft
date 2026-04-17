@@ -30,7 +30,8 @@ import { useTranslation } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { jiraService } from "../../services/jiraService";
 import TestResultAttachmentsView from "../TestCase/TestResultAttachmentsView.jsx";
-import { getResultIcon, formatDateTimeFull } from "./utils.jsx";
+import { getResultIcon } from "./utils.jsx";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 
 /**
  * JIRA 이슈별 테스트 히스토리 다이얼로그 (ICT-188)
@@ -39,6 +40,7 @@ function JiraHistoryDialog({ open, onClose, jiraIssueKey }) {
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
   const { t } = useTranslation();
+  const { formatDate } = useDateFormatter();
   const { jiraServerUrl } = useAppContext();
 
   const [results, setResults] = useState([]);
@@ -158,7 +160,7 @@ function JiraHistoryDialog({ open, onClose, jiraIssueKey }) {
                   {sortedResults.map((r, idx) => (
                     <TableRow key={r.id || idx} hover>
                       <TableCell sx={{ whiteSpace: "nowrap" }}>
-                        {r.executedAt ? formatDateTimeFull(r.executedAt) : "-"}
+                        {r.executedAt ? formatDate(r.executedAt) : "-"}
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: "flex", alignItems: "center" }}>

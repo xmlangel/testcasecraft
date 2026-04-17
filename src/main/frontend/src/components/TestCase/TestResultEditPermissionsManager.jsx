@@ -38,14 +38,16 @@ import {
 } from "@mui/icons-material";
 import { useAppContext } from "../../context/AppContext.jsx";
 import testResultEditService from "../../services/testResultEditService.js";
-import { formatDateSafe } from "../../utils/dateUtils";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
- * ICT-209: 테스트 결과 편집 권한 관리 컴포넌트
+ * 테스트 결과 편집 권한 관리 컴포넌트
  * 편집본 승인 대기 목록과 권한 관리 기능을 제공
  */
 const TestResultEditPermissionsManager = ({ open, onClose }) => {
   const { user } = useAppContext();
+  const { formatDate } = useDateFormatter();
 
   // 상태 관리
   const [loading, setLoading] = useState(false);
@@ -187,7 +189,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                         편집 이유: {edit.editReason}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        요청일: {formatDateSafe(edit.createdAt)}
+                        요청일: {formatDate(edit.createdAt)}
                       </Typography>
                     </Box>
                   }
@@ -290,9 +292,9 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                           편집 이유: {edit.editReason}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          생성일: {formatDateSafe(edit.createdAt)}
+                          생성일: {formatDate(edit.createdAt)}
                           {edit.appliedAt && (
-                            <> | 적용일: {formatDateSafe(edit.appliedAt)}</>
+                            <> | 적용일: {formatDate(edit.appliedAt)}</>
                           )}
                         </Typography>
                       </Box>
