@@ -1861,6 +1861,8 @@ public class TestCaseKeysInitializer {
         "가져오기 성공 메시지",
         "✅ Import 완료: {count}개 테스트케이스가 추가되었습니다.");
     createTranslationKeyIfNotExists(
+        "testcase.io.import.url.required", "testcase", "URL 필수 입력", "가져올 URL을 입력해주세요.");
+    createTranslationKeyIfNotExists(
         "testcase.io.status.importing", "testcase", "가져오는 중 상태", "가져오는 중...");
     createTranslationKeyIfNotExists(
         "testcase.io.button.import", "testcase", "가져오기 실행 버튼", "가져오기 실행");
