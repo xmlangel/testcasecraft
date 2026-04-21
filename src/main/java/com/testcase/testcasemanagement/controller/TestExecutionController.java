@@ -27,10 +27,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class TestExecutionController {
 
   private final TestExecutionService testExecutionService;
+  private final com.testcase.testcasemanagement.service.I18nService i18nService;
 
   @Autowired
-  public TestExecutionController(TestExecutionService testExecutionService) {
+  public TestExecutionController(
+      TestExecutionService testExecutionService,
+      com.testcase.testcasemanagement.service.I18nService i18nService) {
     this.testExecutionService = testExecutionService;
+    this.i18nService = i18nService;
   }
 
   // 테스트 실행 생성
@@ -104,6 +108,14 @@ public class TestExecutionController {
     try {
       TestExecutionDto updated = testExecutionService.updateTestResult(executionId, resultDto);
       return ResponseEntity.ok(updated);
+    } catch (IllegalStateException e) {
+      if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
+        String message =
+            i18nService.getTranslation(
+                "testExecution.error.alreadyCompleted", "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+      }
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
@@ -118,6 +130,14 @@ public class TestExecutionController {
       TestExecutionDto updated =
           testExecutionService.updateTestResultsBulk(executionId, bulkResultDto);
       return ResponseEntity.ok(updated);
+    } catch (IllegalStateException e) {
+      if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
+        String message =
+            i18nService.getTranslation(
+                "testExecution.error.alreadyCompleted", "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+      }
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
@@ -171,6 +191,14 @@ public class TestExecutionController {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
     } catch (IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (IllegalStateException e) {
+      if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
+        String message =
+            i18nService.getTranslation(
+                "testExecution.error.alreadyCompleted", "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+      }
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
@@ -192,6 +220,14 @@ public class TestExecutionController {
     } catch (SecurityException e) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
     } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (IllegalStateException e) {
+      if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
+        String message =
+            i18nService.getTranslation(
+                "testExecution.error.alreadyCompleted", "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+      }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

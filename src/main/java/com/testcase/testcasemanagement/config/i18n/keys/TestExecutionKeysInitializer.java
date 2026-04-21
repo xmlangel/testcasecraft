@@ -611,6 +611,12 @@ public class TestExecutionKeysInitializer {
     // 작업 컬럼 헤더 (통합)
     createTranslationKeyIfNotExists(
         "testExecution.table.actions", "testExecution", "작업 컬럼 헤더", "작업");
+
+    createTranslationKeyIfNotExists(
+        "testExecution.error.alreadyCompleted",
+        "testExecution",
+        "완료된 실행 결과 업데이트 차단 오류",
+        "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
   }
 
   private void createTranslationKeyIfNotExists(

@@ -1572,6 +1572,12 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("common.emptyValue", languageCode, "빈 값", createdBy);
     createTranslationIfNotExists("common.spreadsheet.row", languageCode, "행", createdBy);
     createTranslationIfNotExists("common.settings", languageCode, "설정으로 이동", createdBy);
+
+    createTranslationIfNotExists(
+        "testExecution.error.alreadyCompleted",
+        languageCode,
+        "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.",
+        createdBy);
   }
 
   private void createTranslationIfNotExists(

@@ -180,6 +180,10 @@ public class TestExecutionService {
             .findByIdWithResults(executionId)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
 
+    if ("COMPLETED".equals(entity.getStatus())) {
+      throw new IllegalStateException("COMPLETED_EXECUTION");
+    }
+
     List<TestResult> results =
         entity.getResults() != null ? entity.getResults() : new ArrayList<>();
     User currentUser = getCurrentUser();
@@ -271,6 +275,10 @@ public class TestExecutionService {
         testExecutionRepository
             .findByIdWithResults(executionId)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+    if ("COMPLETED".equals(entity.getStatus())) {
+      throw new IllegalStateException("COMPLETED_EXECUTION");
+    }
 
     List<TestResult> results =
         entity.getResults() != null ? entity.getResults() : new ArrayList<>();
@@ -679,6 +687,11 @@ public class TestExecutionService {
             .findById(resultId)
             .orElseThrow(() -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + resultId));
 
+    if (existingResult.getTestExecution() != null
+        && "COMPLETED".equals(existingResult.getTestExecution().getStatus())) {
+      throw new IllegalStateException("COMPLETED_EXECUTION");
+    }
+
     // 2. 현재 사용자 조회
     User currentUser =
         userRepository
@@ -800,6 +813,11 @@ public class TestExecutionService {
         testResultRepository
             .findById(resultId)
             .orElseThrow(() -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + resultId));
+
+    if (existingResult.getTestExecution() != null
+        && "COMPLETED".equals(existingResult.getTestExecution().getStatus())) {
+      throw new IllegalStateException("COMPLETED_EXECUTION");
+    }
 
     // 2. 현재 사용자 조회
     User currentUser =

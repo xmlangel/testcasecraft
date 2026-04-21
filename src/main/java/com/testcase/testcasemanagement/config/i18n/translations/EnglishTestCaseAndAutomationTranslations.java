@@ -2162,6 +2162,12 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("common.emptyValue", languageCode, "Empty", createdBy);
     createTranslationIfNotExists("common.spreadsheet.row", languageCode, "Row", createdBy);
     createTranslationIfNotExists("common.settings", languageCode, "Go to Settings", createdBy);
+
+    createTranslationIfNotExists(
+        "testExecution.error.alreadyCompleted",
+        languageCode,
+        "This test execution is already completed. Result input or modification is not allowed.",
+        createdBy);
   }
 
   private void createTranslationIfNotExists(
