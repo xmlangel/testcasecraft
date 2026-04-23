@@ -247,3 +247,6 @@ data/minio-test/.minio.sys/format.json
 # markdown generated docs files
 docs/*/libs
 docs/*.html
+graphify-out/*
+.graphify*
+src/main/graphify-out/
