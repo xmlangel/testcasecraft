@@ -1,5 +1,4 @@
 // src/components/TestCaseTree/components/TreeContextMenu.jsx
-
 import React from "react";
 import { Menu, MenuItem } from "@mui/material";
 import {
@@ -11,19 +10,12 @@ import {
 } from "@mui/icons-material";
 import { useI18n } from "../../../context/I18nContext.jsx";
 import { isFolder } from "../../../utils/treeUtils.jsx";
+import { canAdd, canDelete } from "../utils/permissionUtils.js";
 
 /**
  * 트리 노드 컨텍스트 메뉴 컴포넌트
- * @param {Object} contextMenu - { mouseX, mouseY, nodeId }
- * @param {function} onClose - 닫기 핸들러
- * @param {function} onAddFolder - 폴더 추가 핸들러
- * @param {function} onAddTestCase - 테스트케이스 추가 핸들러
- * @param {function} onRename - 이름 변경 핸들러
- * @param {function} onDelete - 삭제 핸들러
- * @param {function} onOpenVersionHistory - 버전 히스토리 열기 핸들러
- * @param {Object} selectedNode - 선택된 노드 객체
- * @param {boolean} canAdd - 추가 권한 여부
- * @param {boolean} canDelete - 삭제 권한 여부
+ * TransitionProps.onExited를 통해 pendingRename을 처리하여
+ * 메뉴가 완전히 닫힌 후 이름 변경 다이얼로그를 열도록 함 (aria-hidden 경고 방지)
  */
 const TreeContextMenu = ({
   contextMenu,
@@ -34,8 +26,10 @@ const TreeContextMenu = ({
   onDelete,
   onOpenVersionHistory,
   selectedNode,
-  canAdd,
-  canDelete,
+  userRole,
+  pendingRename,
+  setPendingRename,
+  setRenameData,
 }) => {
   const { t } = useI18n();
 
@@ -49,9 +43,21 @@ const TreeContextMenu = ({
           ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
           : undefined
       }
+      TransitionProps={{
+        onExited: () => {
+          if (pendingRename) {
+            // 포커스 해제 후 다이얼로그 열기 (aria-hidden 경고 방지)
+            if (document.activeElement instanceof HTMLElement) {
+              document.activeElement.blur();
+            }
+            setRenameData(pendingRename);
+            setPendingRename(null);
+          }
+        },
+      }}
     >
       {contextMenu?.nodeId == null ? (
-        canAdd && (
+        canAdd(userRole) && (
           <>
             <MenuItem onClick={onAddFolder}>
               <FolderIcon fontSize="small" sx={{ mr: 1 }} />
@@ -65,7 +71,7 @@ const TreeContextMenu = ({
         )
       ) : (
         <>
-          {isFolder(selectedNode) && canAdd && (
+          {isFolder(selectedNode) && canAdd(userRole) && (
             <>
               <MenuItem onClick={onAddFolder}>
                 <FolderIcon fontSize="small" sx={{ mr: 1 }} />
@@ -85,14 +91,13 @@ const TreeContextMenu = ({
             <EditIcon fontSize="small" sx={{ mr: 1 }} />
             {t("testcase.tree.action.rename", "이름 변경")}
           </MenuItem>
-          {/* 테스트케이스에만 버전 히스토리 메뉴 표시 */}
           {selectedNode?.type === "testcase" && (
             <MenuItem onClick={onOpenVersionHistory}>
               <HistoryIcon fontSize="small" sx={{ mr: 1 }} />
               {t("testcase.tree.action.versionHistory", "버전 히스토리")}
             </MenuItem>
           )}
-          {canDelete && (
+          {canDelete(userRole) && (
             <MenuItem onClick={onDelete}>
               <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
               {t("testcase.tree.action.delete", "삭제")}

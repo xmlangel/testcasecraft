@@ -1,11 +1,13 @@
 // src/components/TestCaseTree/hooks/useTestCaseTree.jsx
-
-import { useState, useMemo, useEffect } from "react";
-import { listToTree } from "../../../utils/treeUtils.jsx";
-import { getAllChildIds } from "../utils/treeOperations.js";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { getAncestorIds, getAllChildIds } from "../../../utils/treeUtils.jsx";
+import { isViewer } from "../utils/permissionUtils.js";
 
 /**
- * 테스트케이스 트리 상태 관리 및 핵심 로직을 담당하는 커스텀 훅
+ * 테스트케이스 트리 UI 상태 관리 훅
+ * - 확장(expanded) / 선택(selected) / 체크(checkedIds) / 컨텍스트 메뉴 상태
+ * - filteredTestCases 계산
+ * - 트리 상호작용 핸들러 (토글, 선택, 체크, 컨텍스트 메뉴)
  */
 export const useTestCaseTree = ({
   projectId,
@@ -17,19 +19,21 @@ export const useTestCaseTree = ({
   selectedTestCaseId,
   setActiveTestCase,
   onSelectTestCase,
-  orderEditMode,
+  userRole,
 }) => {
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [checkedIds, setCheckedIds] = useState([]);
 
+  const selectTimeout = useRef(null);
+
   // 프로젝트 변경 시 데이터 로드
   useEffect(() => {
     if (projectId) {
       fetchProjectTestCases(projectId);
     }
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
   // 필터링된 테스트케이스
@@ -41,133 +45,160 @@ export const useTestCaseTree = ({
     [projectId, testCases],
   );
 
-  // 트리 데이터
-  const treeData = useMemo(
-    () => listToTree(filteredTestCases, null),
+  // 전체 테스트케이스 수 (폴더 제외)
+  const totalTestCaseCount = useMemo(
+    () => filteredTestCases.filter((tc) => tc.type === "testcase").length,
     [filteredTestCases],
   );
 
-  // 전체 테스트케이스 수 계산 (폴더 제외)
-  const totalTestCaseCount = useMemo(() => {
-    return filteredTestCases.filter((tc) => tc.type === "testcase").length;
-  }, [filteredTestCases]);
+  // 전체 폴더 수
+  const totalFolderCount = useMemo(
+    () => filteredTestCases.filter((tc) => tc.type === "folder").length,
+    [filteredTestCases],
+  );
 
-  // 전체 폴더 수 계산
-  const totalFolderCount = useMemo(() => {
-    return filteredTestCases.filter((tc) => tc.type === "folder").length;
-  }, [filteredTestCases]);
-
-  // 전체 선택 상태
-  const allIds = filteredTestCases.map((tc) => tc.id);
+  // 전체 선택 상태 (testcase 타입만)
+  const allIds = useMemo(
+    () =>
+      filteredTestCases
+        .filter((tc) => tc.type === "testcase")
+        .map((tc) => tc.id),
+    [filteredTestCases],
+  );
   const isAllChecked =
     allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));
   const isIndeterminate = checkedIds.length > 0 && !isAllChecked;
 
-  // 전체 선택 핸들러
-  const handleCheckAll = (event) => {
-    if (event.target.checked) {
-      setCheckedIds(allIds);
-      if (selectable && onSelectionChange) onSelectionChange(allIds);
-    } else {
-      setCheckedIds([]);
-      if (selectable && onSelectionChange) onSelectionChange([]);
-    }
-  };
-
-  // 트리 토글 핸들러
-  const handleToggle = (event, nodeIds) => setExpanded(nodeIds);
-
-  // 노드 선택 핸들러
-  const handleSelect = (event, nodeId) => {
-    setSelected(nodeId);
-    const selectedTestCase = filteredTestCases.find((tc) => tc.id === nodeId);
-    if (selectable) {
-      if (selectedIds.includes(nodeId)) {
-        onSelectionChange(selectedIds.filter((id) => id !== nodeId));
-      } else {
-        onSelectionChange([...selectedIds, nodeId]);
-      }
-    } else {
-      setActiveTestCase(nodeId);
-    }
-    if (onSelectTestCase) onSelectTestCase(selectedTestCase);
-  };
-
-  // 컨텍스트 메뉴 핸들러
-  const handleContextMenu = (event, nodeId) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setSelected(nodeId);
-    setContextMenu({
-      mouseX: event.clientX,
-      mouseY: event.clientY,
-      nodeId,
-    });
-  };
-
-  const handleCloseContextMenu = () => setContextMenu(null);
-
-  // 체크 핸들러
-  const handleCheck = (event, nodeId) => {
-    const isChecked = event.target.checked;
-    let newCheckedIds = [...checkedIds];
-    const childIds = getAllChildIds(filteredTestCases, nodeId);
-    if (isChecked) {
-      newCheckedIds = Array.from(
-        new Set([...newCheckedIds, nodeId, ...childIds]),
-      );
-    } else {
-      newCheckedIds = newCheckedIds.filter(
-        (id) => id !== nodeId && !childIds.includes(id),
-      );
-    }
-    setCheckedIds(newCheckedIds);
-    if (selectable && onSelectionChange) onSelectionChange(newCheckedIds);
-  };
-
-  const isNodeChecked = (nodeId) => checkedIds.includes(nodeId);
-
-  // selectable 모드일 때 외부 selectedIds 동기화
+  // selectable 모드: 외부 selectedIds 동기화
   useEffect(() => {
     if (selectable && Array.isArray(selectedIds)) {
       setCheckedIds(selectedIds);
     }
   }, [selectedIds, selectable]);
 
-  // selectedTestCaseId가 변경될 때 해당 노드 선택 및 확장
+  // selectedTestCaseId 변경 시 노드 선택 및 조상 펼치기
   useEffect(() => {
     if (selectedTestCaseId && filteredTestCases.length > 0) {
       setSelected(selectedTestCaseId);
-
-      const selectedTestCase = filteredTestCases.find(
-        (tc) => tc.id === selectedTestCaseId,
-      );
-      if (selectedTestCase) {
-        const getAncestorIds = (items, id) => {
-          const ancestors = [];
-          let current = items.find((item) => item.id === id);
-          while (current && current.parentId) {
-            ancestors.push(current.parentId);
-            current = items.find((item) => item.id === current.parentId);
-          }
-          return ancestors;
-        };
-
-        const ancestorIds = getAncestorIds(
-          filteredTestCases,
-          selectedTestCaseId,
-        );
+      const ancestorIds = getAncestorIds(filteredTestCases, selectedTestCaseId);
+      if (ancestorIds.length > 0) {
         setExpanded((prev) => {
-          const expandedSet = new Set(prev);
-          ancestorIds.forEach((id) => expandedSet.add(id));
-          return Array.from(expandedSet);
+          const newSet = new Set([...prev, ...ancestorIds]);
+          return Array.from(newSet);
         });
       }
     }
   }, [selectedTestCaseId, filteredTestCases]);
 
+  // ── 핸들러 ────────────────────────────────────────────────────────────────
+
+  const handleCheckAll = useCallback(
+    (event) => {
+      if (event.target.checked) {
+        setCheckedIds(allIds);
+        if (selectable && onSelectionChange) onSelectionChange(allIds);
+      } else {
+        setCheckedIds([]);
+        if (selectable && onSelectionChange) onSelectionChange([]);
+      }
+    },
+    [allIds, selectable, onSelectionChange],
+  );
+
+  const handleToggleNode = useCallback((e, nodeId) => {
+    e.stopPropagation();
+    setExpanded((prev) => {
+      const isExp = prev.includes(nodeId);
+      return isExp ? prev.filter((id) => id !== nodeId) : [...prev, nodeId];
+    });
+  }, []);
+
+  const updateCheckedState = useCallback(
+    (nodeId, isChecked) => {
+      const childIds = getAllChildIds(filteredTestCases, nodeId);
+      let newCheckedIds;
+      if (isChecked) {
+        const idsToAdd = [nodeId, ...childIds];
+        newCheckedIds = Array.from(new Set([...checkedIds, ...idsToAdd]));
+      } else {
+        const idsToRemove = new Set([nodeId, ...childIds]);
+        newCheckedIds = checkedIds.filter((id) => !idsToRemove.has(id));
+      }
+      setCheckedIds(newCheckedIds);
+      if (selectable && onSelectionChange) {
+        onSelectionChange(newCheckedIds);
+      }
+      return newCheckedIds;
+    },
+    [filteredTestCases, checkedIds, selectable, onSelectionChange],
+  );
+
+  const handleSelect = useCallback(
+    (event, nodeId) => {
+      setSelected(nodeId);
+
+      if (selectable) {
+        const isCurrentlyChecked = checkedIds.includes(nodeId);
+        updateCheckedState(nodeId, !isCurrentlyChecked);
+      }
+
+      // 무거운 후속 작업은 비동기 처리 (INP 개선)
+      setTimeout(() => {
+        const selectedTestCase = filteredTestCases.find(
+          (tc) => tc.id === nodeId,
+        );
+        if (!selectable) {
+          setActiveTestCase(nodeId);
+        }
+        if (onSelectTestCase) {
+          if (selectTimeout.current) clearTimeout(selectTimeout.current);
+          selectTimeout.current = setTimeout(() => {
+            onSelectTestCase(selectedTestCase);
+          }, 50);
+        }
+      }, 0);
+    },
+    [
+      filteredTestCases,
+      selectable,
+      checkedIds,
+      updateCheckedState,
+      setActiveTestCase,
+      onSelectTestCase,
+    ],
+  );
+
+  const handleContextMenu = useCallback(
+    (event, nodeId) => {
+      if (isViewer(userRole) || selectable) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setSelected(nodeId);
+      setContextMenu({
+        mouseX: event.clientX,
+        mouseY: event.clientY,
+        nodeId,
+      });
+    },
+    [userRole, selectable],
+  );
+
+  const handleCloseContextMenu = useCallback(() => setContextMenu(null), []);
+
+  const handleCheck = useCallback(
+    (event, nodeId) => {
+      updateCheckedState(nodeId, event.target.checked);
+    },
+    [updateCheckedState],
+  );
+
+  const isNodeChecked = useCallback(
+    (nodeId) => checkedIds.includes(nodeId),
+    [checkedIds],
+  );
+
   return {
-    // States
+    // 상태
     expanded,
     setExpanded,
     selected,
@@ -177,17 +208,17 @@ export const useTestCaseTree = ({
     checkedIds,
     setCheckedIds,
 
-    // Computed values
+    // 계산된 값
     filteredTestCases,
-    treeData,
     totalTestCaseCount,
     totalFolderCount,
     isAllChecked,
     isIndeterminate,
 
-    // Handlers
+    // 핸들러
     handleCheckAll,
-    handleToggle,
+    handleToggleNode,
+    updateCheckedState,
     handleSelect,
     handleContextMenu,
     handleCloseContextMenu,

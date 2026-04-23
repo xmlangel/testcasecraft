@@ -216,9 +216,12 @@ public class TestCaseService {
         .orElseThrow(() -> new RuntimeException("테스트케이스를 찾을 수 없습니다: " + id));
   }
 
+  /**
+   * 테스트케이스 삭제 (하위 항목 포함) 재귀 호출을 사용하지 않고 후손 ID를 먼저 수집하여 역순으로 삭제합니다. 각 삭제는 독립된 트랜잭션에서 실행되므로
+   * TransientObjectException이 발생하지 않습니다.
+   */
   @Transactional
   public void deleteTestCase(String id) {
-    // 존재 여부 먼저 확인 (이미 삭제된 경우 스킵)
     if (!testCaseRepository.existsById(id)) {
       log.warn("테스트케이스가 이미 삭제되었거나 존재하지 않습니다: testCaseId={}", id);
       return;
@@ -234,23 +237,57 @@ public class TestCaseService {
       throw new RuntimeException("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다.");
     }
 
-    // 자식 테스트케이스 재귀 삭제
-    List<TestCase> children = testCaseRepository.findByParentId(id);
-    if (!children.isEmpty()) {
-      log.info("자식 테스트케이스 삭제 시작: parentId={}, 자식 개수={}", id, children.size());
-      children.forEach(
-          child -> {
-            try {
-              deleteTestCase(child.getId());
-            } catch (Exception e) {
-              log.error(
-                  "자식 테스트케이스 삭제 실패 (계속 진행): childId={}, error={}", child.getId(), e.getMessage());
-            }
-          });
+    // 1. 모든 후손 ID를 DB에서 미리 수집 (재귀 없이)
+    List<String> allIds = new ArrayList<>();
+    collectDescendantIds(id, allIds);
+    allIds.add(id); // 자신을 마지막에 추가 (자식 먼저 삭제)
+
+    log.info("삭제 대상 테스트케이스 총 {}개: {}", allIds.size(), allIds);
+
+    // 2. 각 ID를 단일 트랜잭션 내에서 순차 삭제 (자식 → 부모 순서)
+    for (String targetId : allIds) {
+      try {
+        deleteSingleTestCase(targetId);
+      } catch (Exception e) {
+        log.error("테스트케이스 삭제 실패 (계속 진행): targetId={}, error={}", targetId, e.getMessage());
+      }
+    }
+  }
+
+  /** 후손 ID를 BFS 방식으로 수집합니다 (재귀 없음). 자식이 먼저 삭제되도록 BFS 역순으로 반환합니다. */
+  private void collectDescendantIds(String parentId, List<String> result) {
+    List<String> queue = new ArrayList<>();
+    queue.add(parentId);
+    List<String> levelOrder = new ArrayList<>();
+
+    int i = 0;
+    while (i < queue.size()) {
+      String current = queue.get(i++);
+      List<String> childIds =
+          testCaseRepository.findByParentId(current).stream()
+              .map(TestCase::getId)
+              .collect(Collectors.toList());
+      levelOrder.addAll(childIds);
+      queue.addAll(childIds);
     }
 
-    // ICT-388: RAG 시스템에서 TestCase 삭제 (비동기 처리)
-    // 실패해도 메인 트랜잭션에 영향을 주지 않으며, 응답 시간을 단축함
+    // 역순으로 추가 (leaf 먼저 삭제)
+    Collections.reverse(levelOrder);
+    result.addAll(levelOrder);
+  }
+
+  /** 단일 테스트케이스를 삭제합니다 (자식 처리 없음). 첨부파일 및 RAG 데이터 정리 포함. */
+  @Transactional
+  public void deleteSingleTestCase(String id) {
+    if (!testCaseRepository.existsById(id)) {
+      log.warn("이미 삭제된 테스트케이스: testCaseId={}", id);
+      return;
+    }
+
+    TestCase testCase = testCaseRepository.findById(id).orElse(null);
+    if (testCase == null) return;
+
+    // RAG 삭제 (비동기)
     java.util.concurrent.CompletableFuture.runAsync(
         () -> {
           try {
@@ -260,17 +297,12 @@ public class TestCaseService {
           }
         });
 
-    // ICT-386 & ICT-InlineImage: 첨부파일 삭제 (물리적 삭제 포함)
+    // 첨부파일 삭제
     try {
-      // 1. 본문(description)의 인라인 이미지 삭제
       deleteInlineImagesFromDescription(testCase.getDescription());
 
-      // 2. 일반 첨부파일 삭제 (MinIO 실제 삭제 보장)
       List<TestCaseAttachment> attachments = testCaseAttachmentRepository.findByTestCase_Id(id);
       if (!attachments.isEmpty()) {
-        log.info("테스트케이스 삭제 전 첨부파일 실제 삭제 시작: testCaseId={}, 첨부파일 개수={}", id, attachments.size());
-
-        // 현재 사용자 정보 가져오기
         com.testcase.testcasemanagement.model.User currentUser = null;
         try {
           String username = getCurrentUsername();
@@ -284,9 +316,8 @@ public class TestCaseService {
                     .getSingleResult();
           }
         } catch (Exception e) {
-          log.warn("사용자 정보 조회 실패 (삭제 로직 계속 진행): {}", e.getMessage());
+          log.warn("사용자 정보 조회 실패: {}", e.getMessage());
         }
-
         for (TestCaseAttachment attachment : attachments) {
           try {
             fileStorageService.deleteAttachment(attachment.getId(), currentUser);
@@ -295,25 +326,44 @@ public class TestCaseService {
                 "첨부파일 물리 삭제 실패: attachmentId={}, error={}", attachment.getId(), e.getMessage());
           }
         }
-        log.info("테스트케이스 첨부파일 물리 삭제 완료: testCaseId={}", id);
       }
     } catch (Exception e) {
-      log.error("첨부파일 처리 중 오류 발생 (계속 진행): testCaseId={}", id, e);
+      log.error("첨부파일 처리 중 오류: testCaseId={}", id, e);
     }
 
-    // 테스트케이스 삭제 (다시 한 번 존재 확인)
-    if (testCaseRepository.existsById(id)) {
-      log.info("테스트케이스 삭제 실행: testCaseId={}, name={}", id, testCase.getName());
-      testCaseRepository.delete(testCase); // deleteById 대신 delete 사용
-      log.info("테스트케이스 삭제 완료: testCaseId={}", id);
-    } else {
-      log.warn("테스트케이스가 이미 삭제되었습니다 (재귀 삭제 중): testCaseId={}", id);
-    }
-
-    // 즉시 플러시하여 데이터베이스에 삭제 반영
-    entityManager.flush();
-    // JPA 1차 캐시 클리어하여 삭제된 데이터가 조회되지 않도록 보장
-    entityManager.clear();
+    // 엔티티 삭제: 네이티브 쿼리로 직접 삭제 (JPA 세션 캐시/cascade 문제 완전 회피)
+    // FK 제약 순서: 자식 테이블 → 본 테이블 순으로 삭제
+    entityManager
+        .createNativeQuery("DELETE FROM testcasesteps WHERE testcase_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
+    entityManager
+        .createNativeQuery("DELETE FROM testcase_tags WHERE testcase_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
+    entityManager
+        .createNativeQuery("DELETE FROM testcase_linked_documents WHERE testcase_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
+    // test_case_attachments: fileStorageService.deleteAttachment()는 소프트 딜리트(status=DELETED)만 수행
+    entityManager
+        .createNativeQuery("DELETE FROM test_case_attachments WHERE test_case_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
+    // display_id_history, testcase_versions 도 FK 참조
+    entityManager
+        .createNativeQuery("DELETE FROM display_id_history WHERE test_case_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
+    entityManager
+        .createNativeQuery("DELETE FROM testcase_versions WHERE testcase_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
+    entityManager
+        .createNativeQuery("DELETE FROM testcases WHERE id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
+    log.info("테스트케이스 삭제 완료: testCaseId={}", id);
   }
 
   /**
