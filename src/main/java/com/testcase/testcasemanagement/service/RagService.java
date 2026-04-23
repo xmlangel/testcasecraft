@@ -132,6 +132,13 @@ public interface RagService {
   boolean isTestCaseVectorized(String testCaseId);
 
   /**
+   * 문서 목록 캐시를 강제 무효화합니다.
+   *
+   * <p>RAG 등록/삭제 후 isTestCaseVectorized() 결과를 즉시 갱신해야 할 때 호출합니다.
+   */
+  void invalidateDocumentListCache();
+
+  /**
    * LLM 대화 응답을 RAG 벡터스토어에 저장
    *
    * @param request 대화 메시지 인덱싱 요청

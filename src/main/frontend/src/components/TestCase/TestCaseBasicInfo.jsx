@@ -56,11 +56,11 @@ const TestCaseBasicInfo = ({
   onTagChange,
   onLinkedDocumentsChange,
   onMarkdownPaste,
-  onAiGenerate,
-  isAiGenerating,
-  isLlmAvailable,
-  autoAiMode,
-  onAutoAiModeChange,
+  onAiGenerate = () => {},
+  isAiGenerating = false,
+  isLlmAvailable = false,
+  autoAiMode = false,
+  onAutoAiModeChange = () => {},
 }) => {
   return (
     <Accordion
@@ -427,14 +427,6 @@ TestCaseBasicInfo.propTypes = {
   isLlmAvailable: PropTypes.bool,
   autoAiMode: PropTypes.bool,
   onAutoAiModeChange: PropTypes.func,
-};
-
-TestCaseBasicInfo.defaultProps = {
-  isAiGenerating: false,
-  isLlmAvailable: false,
-  autoAiMode: false,
-  onAiGenerate: () => {},
-  onAutoAiModeChange: () => {},
 };
 
 export default TestCaseBasicInfo;

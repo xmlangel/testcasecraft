@@ -1855,6 +1855,52 @@ public class TestCaseService {
   }
 
   /**
+   * 단일 TestCase를 수동으로 RAG 시스템에 벡터화 등록합니다.
+   *
+   * <p>사용자가 TestCase 폼에서 "RAG 등록" 버튼을 눌렀을 때 호출됩니다.
+   *
+   * @param testCaseId 벡터화할 TestCase ID
+   * @return 벡터화 결과 맵 (success, message, ragVectorized)
+   */
+  @Transactional(readOnly = true)
+  public Map<String, Object> vectorizeSingleTestCase(String testCaseId) {
+    log.info("단일 TestCase RAG 수동 벡터화 시작: testCaseId={}", testCaseId);
+
+    TestCase testCase =
+        testCaseRepository
+            .findById(testCaseId)
+            .orElseThrow(() -> new RuntimeException("TestCase not found: " + testCaseId));
+
+    if ("folder".equals(testCase.getType())) {
+      return Map.of(
+          "success", false,
+          "message", "폴더는 RAG 등록 대상이 아닙니다.",
+          "ragVectorized", false);
+    }
+
+    try {
+      vectorizeTestCaseToRAG(testCase);
+
+      // 비동기 벡터화 요청 후 캐시를 즉시 무효화
+      // (실제 완료는 비동기이지만, 다음 isTestCaseVectorized 호출 시 최신 목록 재조회)
+      ragService.invalidateDocumentListCache();
+
+      log.info("단일 TestCase RAG 수동 벡터화 시작 (비동기 처리 중): testCaseId={}", testCaseId);
+      return Map.of(
+          "success", true,
+          "message", "RAG 등록 요청이 완료되었습니다. 백그라운드에서 처리됩니다.",
+          "ragVectorized", true);
+    } catch (Exception e) {
+      log.error(
+          "단일 TestCase RAG 수동 벡터화 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
+      return Map.of(
+          "success", false,
+          "message", "RAG 등록 중 오류가 발생했습니다: " + e.getMessage(),
+          "ragVectorized", false);
+    }
+  }
+
+  /**
    * ICT-388: 기존 TestCase 일괄 벡터화 전체 또는 특정 프로젝트의 모든 TestCase를 RAG 시스템에 벡터화하여 등록
    *
    * @param projectId 프로젝트 ID (null이면 전체 TestCase)

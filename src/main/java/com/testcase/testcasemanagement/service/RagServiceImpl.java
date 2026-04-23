@@ -771,6 +771,11 @@ public class RagServiceImpl implements RagService {
         }
 
         log.info("TestCase embeddings generated successfully: documentId={}", documentId);
+
+        // ✅ 임베딩 완료 후 문서 목록 캐시 무효화 → isTestCaseVectorized()가 즉시 최신 상태 반영
+        invalidateDocumentListCache();
+        log.info("RAG 문서 목록 캐시 무효화 완료 (벡터화 성공): testCaseId={}", testCaseId);
+
       } catch (Exception e) {
         // If it was our superseded check above, we shouldn't log error again if we
         // handled it.
@@ -865,6 +870,15 @@ public class RagServiceImpl implements RagService {
     } catch (Exception e) {
       log.warn("Failed to check TestCase vectorization status: testCaseId={}", testCaseId, e);
       return false; // RAG 시스템 장애 시 false 반환
+    }
+  }
+
+  @Override
+  public void invalidateDocumentListCache() {
+    synchronized (this) {
+      documentListCache = null;
+      lastCacheUpdate = 0;
+      log.debug("RAG 문서 목록 캐시 무효화 완료");
     }
   }
 

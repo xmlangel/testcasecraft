@@ -57,6 +57,7 @@ import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import VersionDialog from "./TestCase/VersionDialog.jsx";
 import FolderForm from "./TestCase/FolderForm.jsx";
 import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
+import RagStatusBadge from "./TestCase/RagStatusBadge.jsx";
 
 const TabPanel = (props) => {
   const { children, value, index, ...other } = props;
@@ -1256,6 +1257,33 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           autoSaveStatus={autoSaveStatus}
           autoSaveError={autoSaveError}
         />
+
+        {/* RAG 벡터화 상태 뱃지 - LLM 활성화 + 기존 테스트케이스일 때만 표시 */}
+        {testCaseId && !isFolder && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-start",
+              mb: 1,
+              ml: 0.5,
+            }}
+          >
+            <RagStatusBadge
+              testCaseId={testCaseId}
+              ragVectorized={testCase?.ragVectorized}
+              isLlmAvailable={isLlmAvailable}
+              isFolder={isFolder}
+              api={api}
+              onVectorized={(success) => {
+                if (success) {
+                  setTestCase((prev) =>
+                    prev ? { ...prev, ragVectorized: true } : prev,
+                  );
+                }
+              }}
+            />
+          </Box>
+        )}
 
         {inlineImageUploading && (
           <Alert severity="info" sx={{ mb: 2 }}>
