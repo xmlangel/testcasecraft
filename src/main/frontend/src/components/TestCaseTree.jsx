@@ -1118,7 +1118,10 @@ const TestCaseTree = ({
         </Typography>
       </Box>
     );
-  } else if (!filteredTestCases || filteredTestCases.length === 0) {
+  } else if (
+    (!filteredTestCases || filteredTestCases.length === 0) &&
+    !newItemData
+  ) {
     content = (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" color="text.secondary">
@@ -1205,103 +1208,6 @@ const TestCaseTree = ({
       </Box>
     );
   }
-
-  // 전체선택 체크박스: Viewer는 숨김
-  const rootCheckAll = !isViewer(user?.role) && (
-    <Box sx={{ px: 2, pb: 1 }}>
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={isAllChecked}
-            indeterminate={isIndeterminate}
-            onChange={handleCheckAll}
-            size="small"
-          />
-        }
-        label={
-          <Box component="span" sx={{ fontSize: 14 }}>
-            {t("testcase.tree.selectAll", "전체 선택")}
-          </Box>
-        }
-      />
-    </Box>
-  );
-
-  // 루트 추가 입력: USER, VIEWER는 노출 금지
-  const rootAddInput = newItemData &&
-    newItemData.parentId === null &&
-    canAdd(user?.role) && (
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-        }}
-      >
-        <Typography variant="caption" color="text.secondary">
-          {t("testcase.tree.root", "루트")}
-        </Typography>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          {newItemData.type === "folder" ? (
-            <FolderIcon color="primary" sx={{ mr: 1 }} />
-          ) : (
-            <DescriptionIcon sx={{ mr: 1 }} />
-          )}
-          <TextField
-            size="small"
-            placeholder={newItemData.type}
-            value={newItemData.name}
-            onChange={(e) =>
-              setNewItemData({ ...newItemData, name: e.target.value })
-            }
-            onKeyDown={(e) => {
-              // TreeView 검색 기능 방지
-              e.stopPropagation();
-            }}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") handleConfirmAdd();
-            }}
-            onBlur={(e) => {
-              // 입력 필드 외부 클릭 시 포커스 다시 가져오기 (추가/취소 버튼 제외)
-              const relatedTarget = e.relatedTarget;
-              if (
-                !relatedTarget ||
-                (!relatedTarget.closest("[data-add-confirm]") &&
-                  !relatedTarget.closest("[data-add-cancel]"))
-              ) {
-                setTimeout(() => {
-                  e.target.focus();
-                }, 0);
-              }
-            }}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            autoFocus
-            fullWidth
-          />
-          <IconButton
-            size="small"
-            onClick={handleConfirmAdd}
-            data-testid="confirm-add-button"
-            data-add-confirm="true"
-          >
-            <AddIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={handleCancelAdd}
-            data-add-cancel="true"
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      </Box>
-    );
 
   return (
     <Box
