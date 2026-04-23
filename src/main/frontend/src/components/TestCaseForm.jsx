@@ -249,7 +249,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     loadDocuments();
   }, [projectId, listDocuments, isRagEnabled]);
 
-  // LLM 가용성 확인 (마운트 시 1회)
+  // LLM 가용성 확인 (마운트 시 및 testCaseId 변경 시 재확인)
+  // testCaseId 변경 시 재조회하여 LLM 설정 비활성화가 즉시 반영되도록 함
   useEffect(() => {
     let cancelled = false;
     const checkLlm = async () => {
@@ -270,7 +271,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     return () => {
       cancelled = true;
     };
-  }, [api]);
+  }, [api, testCaseId]);
 
   // 테스트케이스 데이터 로드
   useEffect(() => {
@@ -1370,7 +1371,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onMarkdownPaste={handleMarkdownPaste}
               onAiGenerate={handleAiGenerateMeta}
               isAiGenerating={isAiGenerating}
-              isLlmAvailable={isLlmAvailable}
+              isLlmAvailable={isLlmAvailable && isRagEnabled}
               autoAiMode={autoAiMode}
               onAutoAiModeChange={handleAutoAiModeChange}
             />

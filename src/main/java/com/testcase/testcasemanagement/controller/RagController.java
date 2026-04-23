@@ -400,6 +400,28 @@ public class RagController {
   }
 
   /**
+   * 단일 TestCase RAG 벡터화 상태 조회 엔드포인트
+   *
+   * <p>GET /api/rag/testcases/{testCaseId}/status
+   */
+  @Operation(summary = "테스트케이스 RAG 등록 상태 조회", description = "단일 테스트케이스의 RAG 벡터화 여부를 조회합니다.")
+  @GetMapping("/testcases/{testCaseId}/status")
+  public ResponseEntity<Map<String, Object>> getTestCaseVectorizationStatus(
+      @PathVariable String testCaseId) {
+
+    log.debug("REST API: TestCase RAG 상태 조회 - testCaseId={}", testCaseId);
+
+    try {
+      boolean vectorized = ragService.isTestCaseVectorized(testCaseId);
+      return ResponseEntity.ok(Map.of("testCaseId", testCaseId, "vectorized", vectorized));
+    } catch (Exception e) {
+      log.warn(
+          "REST API: TestCase RAG 상태 조회 실패 - testCaseId={}, error={}", testCaseId, e.getMessage());
+      return ResponseEntity.ok(Map.of("testCaseId", testCaseId, "vectorized", false));
+    }
+  }
+
+  /**
    * 공통 문서 업로드 엔드포인트 (모든 프로젝트에서 접근 가능) 관리자만 업로드 가능
    *
    * <p>POST /api/rag/global-documents/upload

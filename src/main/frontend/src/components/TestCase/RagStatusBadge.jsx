@@ -1,6 +1,6 @@
 // src/components/TestCase/RagStatusBadge.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { Box, Chip, Button, Tooltip, CircularProgress } from "@mui/material";
 import {
@@ -19,6 +19,8 @@ import { useRAG } from "../../context/RAGContext.jsx";
  * - RAG 기능이 활성화되어 있을 때 (isRagEnabled === true)
  * - 기존 테스트케이스일 때 (testCaseId 존재)
  * - 폴더가 아닐 때 (!isFolder)
+ *
+ * ragVectorized prop이 null이면 API를 직접 호출해 상태를 확인합니다.
  */
 const RagStatusBadge = ({
   testCaseId,
@@ -32,12 +34,67 @@ const RagStatusBadge = ({
   const { t } = useI18n();
   const { isRagEnabled } = useRAG();
   const [isRegistering, setIsRegistering] = useState(false);
+  // null = 상태 확인 전(로딩 중), true = 벡터화됨, false = 미벡터화
   const [localVectorized, setLocalVectorized] = useState(ragVectorized);
+  const [isChecking, setIsChecking] = useState(false);
+  const fetchedRef = useRef(false);
 
-  // ragVectorized prop이 변경될 때 로컬 상태 동기화 (Hook은 return null 이전에 위치)
+  // ragVectorized prop이 변경될 때 로컬 상태 동기화 (null 포함)
   useEffect(() => {
     setLocalVectorized(ragVectorized);
+    // prop이 명확한 값(true/false)으로 바뀌면 재조회 불필요
+    if (ragVectorized !== null) {
+      fetchedRef.current = true;
+    } else {
+      fetchedRef.current = false;
+    }
   }, [ragVectorized]);
+
+  // ragVectorized prop이 null이고 조건이 충족되면 API로 직접 상태 확인
+  useEffect(() => {
+    if (
+      !testCaseId ||
+      isFolder ||
+      !isLlmAvailable ||
+      !isRagEnabled ||
+      fetchedRef.current
+    ) {
+      return;
+    }
+
+    // prop 값이 명확하면 API 호출 불필요
+    if (ragVectorized !== null) {
+      fetchedRef.current = true;
+      return;
+    }
+
+    let cancelled = false;
+    fetchedRef.current = true;
+    setIsChecking(true);
+
+    const checkStatus = async () => {
+      try {
+        const response = await api(`/api/rag/testcases/${testCaseId}/status`);
+        if (cancelled) return;
+        if (response.ok) {
+          const data = await response.json();
+          setLocalVectorized(data.vectorized === true);
+        } else {
+          // API 호출 실패 시 미등록으로 표시
+          setLocalVectorized(false);
+        }
+      } catch {
+        if (!cancelled) setLocalVectorized(false);
+      } finally {
+        if (!cancelled) setIsChecking(false);
+      }
+    };
+
+    checkStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, [testCaseId, isFolder, isLlmAvailable, isRagEnabled, ragVectorized, api]);
 
   // ✅ 노출 조건 체크 - 반드시 모든 Hook 호출 이후에 위치해야 함 (Rules of Hooks)
   if (!testCaseId || isFolder || !isLlmAvailable || !isRagEnabled) {
@@ -69,6 +126,33 @@ const RagStatusBadge = ({
     }
   };
 
+  // 상태 확인 중 (null이고 API 호출 중)
+  if (isChecking) {
+    return (
+      <Tooltip
+        title={t(
+          "testcase.rag.checking.tooltip",
+          "RAG 등록 상태를 확인하는 중입니다...",
+        )}
+        placement="bottom"
+      >
+        <Chip
+          icon={<CircularProgress size={12} color="inherit" />}
+          label={t("testcase.rag.checking.label", "상태 확인 중...")}
+          size="small"
+          color="default"
+          variant="outlined"
+          sx={{
+            fontWeight: 600,
+            fontSize: "0.75rem",
+            borderRadius: "6px",
+            "& .MuiChip-icon": { fontSize: "1rem" },
+          }}
+        />
+      </Tooltip>
+    );
+  }
+
   if (localVectorized === true) {
     // RAG 등록 완료 상태
     return (
@@ -96,7 +180,13 @@ const RagStatusBadge = ({
     );
   }
 
-  // RAG 미등록 상태
+  // null이지만 isChecking이 false인 경우: API 호출 자체를 건너뛴 경우(조건 미충족)
+  // 또는 false인 경우: RAG 미등록 상태
+  if (localVectorized === null) {
+    return null;
+  }
+
+  // RAG 미등록 상태 (localVectorized === false)
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
       <Tooltip
