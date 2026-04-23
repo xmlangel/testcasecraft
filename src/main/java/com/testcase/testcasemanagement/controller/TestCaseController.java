@@ -13,6 +13,7 @@ import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.service.TestCaseAiGenerationService;
 import com.testcase.testcasemanagement.service.TestCaseService;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,10 +43,15 @@ public class TestCaseController {
 
   private final TestCaseService testCaseService;
   private final ObjectMapper objectMapper;
+  private final TestCaseAiGenerationService testCaseAiGenerationService;
 
-  public TestCaseController(TestCaseService testCaseService, ObjectMapper objectMapper) {
+  public TestCaseController(
+      TestCaseService testCaseService,
+      ObjectMapper objectMapper,
+      TestCaseAiGenerationService testCaseAiGenerationService) {
     this.testCaseService = testCaseService;
     this.objectMapper = objectMapper;
+    this.testCaseAiGenerationService = testCaseAiGenerationService;
   }
 
   @Operation(summary = "모든 테스트케이스 조회", description = "시스템의 모든 테스트케이스를 조회합니다.")
@@ -606,6 +612,51 @@ public class TestCaseController {
     } catch (Exception e) {
       return ResponseEntity.internalServerError()
           .body(Map.of("error", "Google Sheets export 실패", "message", e.getMessage()));
+    }
+  }
+
+  // ==================== AI 메타 생성 ====================
+
+  /**
+   * AI를 이용한 테스트케이스 Name/Description 자동 생성
+   *
+   * <p>Step, ExpectedResult, PreCondition 정보를 받아 LLM으로 적절한 이름과 설명을 생성합니다.
+   *
+   * @param requestBody { steps: [{description, expectedResult}], preCondition, description }
+   * @return { name, description }
+   */
+  @Operation(
+      summary = "AI 메타 자동 생성",
+      description = "Step/Expected/PreCondition 정보로 테스트케이스 Name과 Description을 AI가 자동 생성합니다.")
+  @PostMapping("/ai/generate-meta")
+  public ResponseEntity<?> generateMetaWithAi(@RequestBody Map<String, Object> requestBody) {
+    try {
+      @SuppressWarnings("unchecked")
+      List<Map<String, String>> steps =
+          (List<Map<String, String>>) requestBody.getOrDefault("steps", List.of());
+      String preCondition = (String) requestBody.getOrDefault("preCondition", "");
+      String existingDescription = (String) requestBody.getOrDefault("description", "");
+
+      if (steps.isEmpty()) {
+        return ResponseEntity.badRequest()
+            .body(Map.of("error", "스텝 정보가 없습니다. 최소 1개 이상의 스텝을 입력해주세요."));
+      }
+
+      Map<String, String> result =
+          testCaseAiGenerationService.generateMeta(steps, preCondition, existingDescription);
+
+      log.info("✅ AI 메타 생성 성공: name='{}'", result.get("name"));
+      return ResponseEntity.ok(result);
+
+    } catch (IllegalStateException e) {
+      // LLM 설정 없음
+      log.warn("⚠️ AI 메타 생성 실패 - LLM 설정 없음: {}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+          .body(Map.of("error", e.getMessage()));
+    } catch (Exception e) {
+      log.error("❌ AI 메타 생성 중 오류 발생", e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "AI 생성 중 오류가 발생했습니다.", "message", e.getMessage()));
     }
   }
 }
