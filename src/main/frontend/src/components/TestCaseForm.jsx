@@ -1,6 +1,12 @@
 // src/components/TestCaseForm.jsx
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import {
@@ -51,6 +57,7 @@ import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import VersionDialog from "./TestCase/VersionDialog.jsx";
 import FolderForm from "./TestCase/FolderForm.jsx";
 import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
+import RagStatusBadge from "./TestCase/RagStatusBadge.jsx";
 
 const TabPanel = (props) => {
   const { children, value, index, ...other } = props;
@@ -104,6 +111,16 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [isStepMarkdownMode, setIsStepMarkdownMode] = useState(true);
   const [linkedDocuments, setLinkedDocuments] = useState([]);
   const [tabValue, setTabValue] = useState(0);
+
+  // AI 메타 생성 상태
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const [isLlmAvailable, setIsLlmAvailable] = useState(false);
+  const [autoAiMode, setAutoAiMode] = useState(() => {
+    return localStorage.getItem("testcase-ai-auto-mode") === "true";
+  });
+  const autoAiDebounceRef = useRef(null);
+  const prevStepsLengthRef = useRef(0);
+  const isAiGeneratingRef = useRef(false);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -231,6 +248,30 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     };
     loadDocuments();
   }, [projectId, listDocuments, isRagEnabled]);
+
+  // LLM 가용성 확인 (마운트 시 및 testCaseId 변경 시 재확인)
+  // testCaseId 변경 시 재조회하여 LLM 설정 비활성화가 즉시 반영되도록 함
+  useEffect(() => {
+    let cancelled = false;
+    const checkLlm = async () => {
+      try {
+        const response = await api("/api/llm-configs/check-availability");
+        if (cancelled) return;
+        if (response.ok) {
+          const result = await response.json();
+          setIsLlmAvailable(result.data === true);
+        } else {
+          setIsLlmAvailable(false);
+        }
+      } catch {
+        if (!cancelled) setIsLlmAvailable(false);
+      }
+    };
+    checkLlm();
+    return () => {
+      cancelled = true;
+    };
+  }, [api, testCaseId]);
 
   // 테스트케이스 데이터 로드
   useEffect(() => {
@@ -575,6 +616,117 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     if (!testCase.name || !testCase.name.trim()) return true;
     return false;
   };
+
+  // ======================== AI 메타 생성 ========================
+
+  /** 자동/수동 모드 토글 - localStorage에 저장 */
+  const handleAutoAiModeChange = useCallback((enabled) => {
+    setAutoAiMode(enabled);
+    localStorage.setItem("testcase-ai-auto-mode", String(enabled));
+  }, []);
+
+  /** AI 메타 생성 API 호출 */
+  const handleAiGenerateMeta = useCallback(async () => {
+    if (!testCase) return;
+    if (isAiGeneratingRef.current) return;
+
+    const validSteps = (testCase.steps || []).filter(
+      (s) => s.description?.trim() || s.expectedResult?.trim(),
+    );
+
+    if (validSteps.length === 0) {
+      setSnackbarError(
+        t(
+          "testcase.ai.error.noSteps",
+          "AI 생성을 위해 최소 1개 이상의 스텝을 입력해주세요.",
+        ),
+      );
+      return;
+    }
+
+    setIsAiGenerating(true);
+    isAiGeneratingRef.current = true;
+
+    try {
+      const response = await api("/api/testcases/ai/generate-meta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          steps: validSteps.map((s) => ({
+            description: s.description || "",
+            expectedResult: s.expectedResult || "",
+          })),
+          preCondition: testCase.preCondition || "",
+          description: testCase.description || "",
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(
+          err.error || t("testcase.ai.error.failed", "AI 생성에 실패했습니다."),
+        );
+      }
+
+      const result = await response.json();
+
+      setTestCase((prev) => ({
+        ...prev,
+        ...(result.name?.trim() ? { name: result.name.trim() } : {}),
+        ...(result.description?.trim()
+          ? { description: result.description.trim() }
+          : {}),
+      }));
+
+      setSnackbarOpen(true);
+    } catch (err) {
+      setSnackbarError(
+        err.message || t("testcase.ai.error.failed", "AI 생성에 실패했습니다."),
+      );
+    } finally {
+      setIsAiGenerating(false);
+      isAiGeneratingRef.current = false;
+    }
+  }, [testCase, api, t]);
+
+  // 자동 모드: steps 변경 감지 시 AI 생성 (Name이 비어 있을 때만)
+  useEffect(() => {
+    if (!autoAiMode || !testCase || isViewer) return;
+
+    const steps = testCase.steps || [];
+    const validSteps = steps.filter(
+      (s) => s.description?.trim() || s.expectedResult?.trim(),
+    );
+    const currentLen = validSteps.length;
+
+    // Name이 이미 재워져 있으면 자동 생성 스킵
+    if (testCase.name?.trim()) {
+      prevStepsLengthRef.current = currentLen;
+      return;
+    }
+
+    // 스텝이 없으면 스킵
+    if (currentLen === 0) {
+      prevStepsLengthRef.current = 0;
+      return;
+    }
+
+    // 디바운스 후 생성
+    if (autoAiDebounceRef.current) {
+      clearTimeout(autoAiDebounceRef.current);
+    }
+    autoAiDebounceRef.current = setTimeout(() => {
+      prevStepsLengthRef.current = currentLen;
+      handleAiGenerateMeta();
+    }, 2000);
+
+    return () => {
+      if (autoAiDebounceRef.current) {
+        clearTimeout(autoAiDebounceRef.current);
+      }
+    };
+  }, [testCase?.steps, autoAiMode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // 새 테스트 케이스 추가 핸들러 (초기화)
   const handleAddNew = () => {
@@ -1107,6 +1259,33 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           autoSaveError={autoSaveError}
         />
 
+        {/* RAG 벡터화 상태 뱃지 - LLM 활성화 + 기존 테스트케이스일 때만 표시 */}
+        {testCaseId && !isFolder && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-start",
+              mb: 1,
+              ml: 0.5,
+            }}
+          >
+            <RagStatusBadge
+              testCaseId={testCaseId}
+              ragVectorized={testCase?.ragVectorized}
+              isLlmAvailable={isLlmAvailable}
+              isFolder={isFolder}
+              api={api}
+              onVectorized={(success) => {
+                if (success) {
+                  setTestCase((prev) =>
+                    prev ? { ...prev, ragVectorized: true } : prev,
+                  );
+                }
+              }}
+            />
+          </Box>
+        )}
+
         {inlineImageUploading && (
           <Alert severity="info" sx={{ mb: 2 }}>
             {t(
@@ -1190,6 +1369,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               }
               onLinkedDocumentsChange={setLinkedDocuments}
               onMarkdownPaste={handleMarkdownPaste}
+              onAiGenerate={handleAiGenerateMeta}
+              isAiGenerating={isAiGenerating}
+              isLlmAvailable={isLlmAvailable && isRagEnabled}
+              autoAiMode={autoAiMode}
+              onAutoAiModeChange={handleAutoAiModeChange}
             />
 
             <Box sx={{ mt: 4, mb: 1 }}>

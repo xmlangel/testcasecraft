@@ -184,24 +184,41 @@ cd ..
 
 #### i18n (다국어) 시스템 파일
 
-**⚠️ 중요**: 새로운 번역을 추가할 때는 **반드시 3개 파일을 모두 수정**해야 합니다.
+**⚠️ 중요**: 새로운 번역을 추가할 때는 **반드시 모든 관련 파일을 수정**해야 합니다.
 
 **번역 키 정의 (Translation Keys)**:
-
 - `src/main/java/com/testcase/testcasemanagement/config/i18n/keys/` - 번역 키 초기화 클래스들
-  - `TestCaseKeysInitializer.java` - 테스트케이스 관련 번역 키
-  - `DashboardKeysInitializer.java` - 대시보드 관련 번역 키
-  - `ProjectKeysInitializer.java` - 프로젝트 관련 번역 키
-  - `UserManagementKeysInitializer.java` - 사용자 관리 관련 번역 키
-  - 기타: `AuthKeysInitializer`, `CommonKeysInitializer`, `MailKeysInitializer`, `OrganizationKeysInitializer`, `TestExecutionKeysInitializer`, `TestPlanKeysInitializer`, `TestResultKeysInitializer`, `TranslationKeysInitializer`
+  - `TestCaseKeysInitializer.java` - 테스트케이스 관련
+  - `DashboardKeysInitializer.java` - 대시보드 관련
+  - `ProjectKeysInitializer.java` - 프로젝트 관련
+  - `UserManagementKeysInitializer.java` - 사용자 관리 관련
+  - `AuthKeysInitializer.java` - 인증 관련
+  - `CommonKeysInitializer.java` - 공통 UI 요소
+  - `OrganizationKeysInitializer.java` - 조직 관련
+  - `TestPlanKeysInitializer.java` - 테스트 플랜 관련
+  - `TestExecutionKeysInitializer.java` - 테스트 실행 관련
+  - `TestResultKeysInitializer.java` - 테스트 결과 관련
+  - `MailKeysInitializer.java` - 메일 관련
+  - `RAGKeysInitializer.java` - RAG 시스템 관련
+  - `AttachmentKeysInitializer.java` - 첨부파일 관련
+  - `SchedulerKeysInitializer.java` - 스케줄러 관련
+  - `ExploratorySessionKeysInitializer.java` - 탐색적 세션 관련
+  - `JiraIntegrationKeysInitializer.java` - JIRA 연동 관련
+  - `ExtendedUIKeysInitializer.java` - 확장 UI 요소 관련
+  - `TranslationManagementKeysInitializer.java` - 번역 관리 관련
 
 **번역 데이터 (Translations)**:
-
-- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/KoreanTestCaseAndAutomationTranslations.java` - 한글 번역
-- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/EnglishTestCaseAndAutomationTranslations.java` - 영어 번역
+- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/` - 언어별 번역 구현체
+  - `KoreanTestCaseAndAutomationTranslations.java` / `EnglishTestCaseAndAutomationTranslations.java`
+  - `KoreanLoginDashboardAndProjectTranslations.java` / `EnglishLoginDashboardAndProjectTranslations.java`
+  - `KoreanOrganizationAndUserManagementTranslations.java` / `EnglishOrganizationAndUserManagementTranslations.java`
+  - `KoreanAdvancedFeaturesAndCommonUITranslations.java` / `EnglishAdvancedFeaturesAndCommonUITranslations.java`
+  - `KoreanJiraIntegrationTranslations.java` / `EnglishJiraIntegrationTranslations.java`
+  - `KoreanTestExecutionTranslations.java` / `EnglishTestExecutionTranslations.java`
+  - `KoreanTestResultTranslations.java` / `EnglishTestResultTranslations.java`
+  - `KoreanTranslationManagementTranslations.java` / `EnglishTranslationManagementTranslations.java`
 
 **프론트엔드 사용**:
-
 - `src/main/frontend/src/context/I18nContext.jsx` - i18n Context 및 Hook
 - React 컴포넌트에서 `useI18n()` hook으로 `t()` 함수 사용
 
@@ -248,7 +265,7 @@ createTranslationIfNotExists(
 ```java
 // src/main/java/.../config/i18n/TranslationKeyDataInitializer.java
 
-// 1. 필드 추가
+// 1. 필드 추가 (새로운 KeysInitializer를 만든 경우)
 private final YourNewKeysInitializer yourNewKeysInitializer;
 
 // 2. initialize() 메서드에 호출 추가

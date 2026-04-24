@@ -48,11 +48,11 @@ public class Project {
   @Column(name = "updatedat")
   private LocalDateTime updatedAt;
 
-  @OneToMany(
-      mappedBy = "project",
-      cascade = CascadeType.ALL,
-      orphanRemoval = true,
-      fetch = FetchType.LAZY)
+  // cascade/orphanRemoval 제거:
+  // TestCaseService.deleteTestCase()가 재귀 삭제를 명시적으로 처리하므로
+  // cascade=ALL, orphanRemoval=true 설정이 불필요하며,
+  // 재귀 삭제 시 TransientObjectException의 근본 원인이 됩니다.
+  @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
   @JsonManagedReference("project-testcases")
   @JsonIgnore // StackOverflowError 방지: 배치 저장 시 순환 참조 방지
   private List<TestCase> testCases;

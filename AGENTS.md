@@ -160,14 +160,14 @@ cd ..
 
 #### i18n (다국어) 시스템 파일
 
-**⚠️ 중요**: 새로운 번역을 추가할 때는 **반드시 3개 파일을 모두 수정**해야 합니다.
+**⚠️ 중요**: 새로운 번역을 추가할 때는 **반드시 모든 관련 파일을 수정**해야 합니다.
 
 **🔧 번역 추가 4단계 프로세스**:
 
-**1단계: 번역 키 추가** (Keys Initializer)
-**2단계: 한글 번역 추가** (Korean Translations)
-**3단계: 영어 번역 추가** (English Translations)
-**🔴 4단계: Initializer 등록 (CRITICAL)**: `TranslationKeyDataInitializer.java` 에 필드 추가 및 `initialize()` 호출 필수
+1. **번역 키 추가**: `src/main/java/.../keys/` 하위의 적절한 `KeysInitializer` 클래스에 키 추가
+2. **한글 번역 추가**: `src/main/java/.../translations/` 하위의 관련 `Korean...Translations` 클래스에 번역 추가
+3. **영어 번역 추가**: `src/main/java/.../translations/` 하위의 관련 `English...Translations` 클래스에 번역 추가
+4. **🔴 Initializer 등록 (CRITICAL)**: 새로운 `KeysInitializer`를 만든 경우 `TranslationKeyDataInitializer.java`에 필드 추가 및 `initialize()` 메서드 호출 필수
 
 ---
 

@@ -369,6 +369,59 @@ public class RagController {
   }
 
   /**
+   * 단일 TestCase RAG 등록 엔드포인트 (사용자가 폼에서 수동 등록)
+   *
+   * <p>POST /api/rag/testcases/{testCaseId}/vectorize
+   *
+   * <p>프로젝트 멤버 이상 접근 가능. LLM 설정이 활성화된 경우에만 사용자에게 노출됩니다.
+   */
+  @Operation(summary = "테스트케이스 RAG 등록", description = "단일 테스트케이스를 RAG 시스템에 등록합니다. (프로젝트 멤버 이상)")
+  @PostMapping("/testcases/{testCaseId}/vectorize")
+  public ResponseEntity<Map<String, Object>> vectorizeSingleTestCase(
+      @PathVariable String testCaseId) {
+
+    log.info("REST API: 단일 TestCase RAG 등록 요청 - testCaseId={}", testCaseId);
+
+    try {
+      Map<String, Object> result = testCaseService.vectorizeSingleTestCase(testCaseId);
+      boolean success = Boolean.TRUE.equals(result.get("success"));
+      if (success) {
+        return ResponseEntity.ok(result);
+      } else {
+        return ResponseEntity.badRequest().body(result);
+      }
+    } catch (RuntimeException e) {
+      log.error("REST API: TestCase not found - testCaseId={}", testCaseId, e);
+      return ResponseEntity.notFound().build();
+    } catch (Exception e) {
+      log.error("REST API: 단일 TestCase RAG 등록 실패 - testCaseId={}", testCaseId, e);
+      return ResponseEntity.internalServerError().build();
+    }
+  }
+
+  /**
+   * 단일 TestCase RAG 벡터화 상태 조회 엔드포인트
+   *
+   * <p>GET /api/rag/testcases/{testCaseId}/status
+   */
+  @Operation(summary = "테스트케이스 RAG 등록 상태 조회", description = "단일 테스트케이스의 RAG 벡터화 여부를 조회합니다.")
+  @GetMapping("/testcases/{testCaseId}/status")
+  public ResponseEntity<Map<String, Object>> getTestCaseVectorizationStatus(
+      @PathVariable String testCaseId) {
+
+    log.debug("REST API: TestCase RAG 상태 조회 - testCaseId={}", testCaseId);
+
+    try {
+      boolean vectorized = ragService.isTestCaseVectorized(testCaseId);
+      return ResponseEntity.ok(Map.of("testCaseId", testCaseId, "vectorized", vectorized));
+    } catch (Exception e) {
+      log.warn(
+          "REST API: TestCase RAG 상태 조회 실패 - testCaseId={}, error={}", testCaseId, e.getMessage());
+      return ResponseEntity.ok(Map.of("testCaseId", testCaseId, "vectorized", false));
+    }
+  }
+
+  /**
    * 공통 문서 업로드 엔드포인트 (모든 프로젝트에서 접근 가능) 관리자만 업로드 가능
    *
    * <p>POST /api/rag/global-documents/upload
