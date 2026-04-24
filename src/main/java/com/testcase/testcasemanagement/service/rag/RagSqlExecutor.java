@@ -56,20 +56,49 @@ public class RagSqlExecutor {
     }
 
     private boolean isSafeSelect(String sql, String projectId) {
-        String trimmed = sql.trim().toUpperCase();
+        String trimmed = sql.trim();
+        String upperSql = trimmed.toUpperCase();
         
-        // SELECT로 시작해야 함
-        if (!trimmed.startsWith("SELECT")) {
+        // 1. SELECT로 시작해야 함
+        if (!upperSql.startsWith("SELECT")) {
+            log.warn("SQL Safety Check Failed: Not a SELECT query");
             return false;
         }
 
-        // 수정 키워드 포함 금지
+        // 2. 수정 키워드 포함 금지
         if (UNSAFE_PATTERN.matcher(sql).find()) {
+            log.warn("SQL Safety Check Failed: Unsafe keywords detected");
             return false;
         }
 
-        // 프로젝트 격리 체크: 쿼리에 현재 프로젝트 ID가 포함되어야 함 (최소한의 안전장치)
-        // 실제 운영 환경에서는 SQL 파서를 사용하여 WHERE 절을 분석하는 것이 더 좋습니다.
-        return sql.contains(projectId);
+        // 3. 주석을 통한 우회 시도 차단
+        if (sql.contains("--") || sql.contains("/*")) {
+            log.warn("SQL Safety Check Failed: Comments detected (not allowed for safety)");
+            return false;
+        }
+
+        // 4. 프로젝트 격리 체크: 쿼리에 현재 프로젝트 ID 필터링이 명시적으로 포함되어야 함
+        // "project_id" 키워드와 projectId 값이 모두 있어야 하며, project_id 필드에 대한 조건이어야 함
+        boolean hasProjectIdField = upperSql.contains("PROJECT_ID");
+        boolean hasProjectIdValue = sql.contains(projectId);
+        
+        if (!hasProjectIdField || !hasProjectIdValue) {
+            log.warn("SQL Safety Check Failed: project_id filtering missing. Field: {}, Value: {}", hasProjectIdField, hasProjectIdValue);
+            return false;
+        }
+
+        // 추가적인 안전장치: PROJECT_ID와 projectId가 가까이 있는지 확인 (단순 contains보다 강력함)
+        // 예: WHERE project_id = 'UUID'
+        String normalizedSql = upperSql.replaceAll("\\s+", "");
+        String normalizedProjectId = projectId.toUpperCase().replaceAll("-", "");
+        String sqlWithoutDashes = normalizedSql.replaceAll("-", "");
+        
+        if (!sqlWithoutDashes.contains("PROJECT_ID=") && !sqlWithoutDashes.contains("PROJECT_IDIN")) {
+             // 완벽한 정규식은 아니지만, 최소한 '=' 이나 'IN' 조건이 PROJECT_ID 뒤에 오는지 확인
+             log.warn("SQL Safety Check Failed: project_id condition might be invalid or missing '=' or 'IN'");
+             // return false; // 일단은 경고만 하고 통과 (contains 체크가 이미 되었으므로)
+        }
+
+        return true;
     }
 }

@@ -112,6 +112,10 @@ async def search_similar_chunks(request: SearchRequest, db: Session = Depends(ge
                     RAGDocument.project_id == COMMON_PROJECT_ID,
                 )
             )
+        else:
+            # If no project_id is provided, only allow common documents
+            # 프로젝트 ID가 없는 경우 공통 문서만 허용
+            query = query.filter(RAGDocument.project_id == COMMON_PROJECT_ID)
 
         # Get all embeddings
         embeddings_with_docs = query.all()
@@ -121,15 +125,16 @@ async def search_similar_chunks(request: SearchRequest, db: Session = Depends(ge
             RAGConversationMessage.embedding.isnot(None)
         )
 
-        # Include both the requested project and common project conversations
-        # 요청한 프로젝트와 공통 프로젝트 대화 모두 포함
+        # Include only the requested project conversations
+        # 대화 내용은 공통 프로젝트를 제외하고 요청한 프로젝트만 포함 (격리 강화)
         if request.project_id:
             conversation_query = conversation_query.filter(
-                or_(
-                    RAGConversationMessage.project_id == request.project_id,
-                    RAGConversationMessage.project_id == COMMON_PROJECT_ID,
-                )
+                RAGConversationMessage.project_id == request.project_id
             )
+        else:
+            # If no project_id is provided, conversations should not be searched
+            # 프로젝트 ID가 없는 경우 대화 내용은 검색하지 않음
+            conversation_query = conversation_query.filter(func.false())
 
         conversation_messages = conversation_query.all()
 
@@ -273,6 +278,9 @@ async def advanced_search(
 
         if request.project_id:
             query = query.filter(RAGDocument.project_id == request.project_id)
+        else:
+            # If no project_id is provided, only allow common documents
+            query = query.filter(RAGDocument.project_id == COMMON_PROJECT_ID)
 
         embeddings_with_docs = query.all()
 
@@ -285,6 +293,9 @@ async def advanced_search(
             conversation_query = conversation_query.filter(
                 RAGConversationMessage.project_id == request.project_id
             )
+        else:
+            # If no project_id is provided, conversations should not be searched
+            conversation_query = conversation_query.filter(func.false())
 
         conversation_messages = conversation_query.all()
 
