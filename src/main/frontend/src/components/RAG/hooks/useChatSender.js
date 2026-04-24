@@ -77,19 +77,14 @@ export function useChatSender({
     [projectId, listDocuments, createMessageId],
   );
 
-  // 테스트 케이스 템플릿 적용
+  // 테스트 케이스 템플릿 적용 (백엔드에서 지능적으로 처리하도록 변경됨)
   const applyTestCaseTemplate = useCallback(
     (trimmedInput) => {
-      if (
-        checkTestCaseRequest(trimmedInput) &&
-        currentLlmConfig?.testCaseTemplate
-      ) {
-        return `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
-      }
-
+      // 이제 백엔드(RagQueryAnalyzer)에서 테스트케이스 생성 의도를 감지하여 
+      // 시스템 프롬프트에 자동으로 템플릿을 포함하므로 프론트엔드에서는 추가하지 않습니다.
       return trimmedInput;
     },
-    [currentLlmConfig],
+    [],
   );
 
   // 스트리밍 채팅 처리

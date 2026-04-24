@@ -35,12 +35,13 @@ public class RagQueryAnalyzer {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class QueryIntent {
-        private boolean needsStatistics;      // 통계 정보(개수, 통과율 등) 필요 여부
-        private boolean needsTestCaseSearch;   // 특정 테스트케이스 검색 필요 여부
-        private boolean needsRecentResults;    // 최근 실행 결과 필요 여부
-        private List<String> searchKeywords;   // 검색 키워드 목록
-        private String generatedSql;           // 생성된 SQL 쿼리
-        private String justification;          // 판단 근거
+        private boolean needsStatistics;         // 통계 정보(개수, 통과율 등) 필요 여부
+        private boolean needsTestCaseSearch;      // 특정 테스트케이스 검색 필요 여부
+        private boolean needsRecentResults;       // 최근 실행 결과 필요 여부
+        private boolean needsTestCaseGeneration;  // 테스트케이스 생성 요청 여부
+        private List<String> searchKeywords;      // 검색 키워드 목록
+        private String generatedSql;              // 생성된 SQL 쿼리
+        private String justification;             // 판단 근거
     }
 
     /**
@@ -82,8 +83,9 @@ public class RagQueryAnalyzer {
                 1. needsStatistics: 전체 개수, 통계, 성공률, 현황 등을 묻는 경우 true
                 2. needsTestCaseSearch: 특정 기능(예: '로그인', '결제')에 대한 테스트케이스 목록이나 내용을 찾는 경우 true
                 3. needsRecentResults: 최근에 실행된 결과나 히스토리를 묻는 경우 true
-                4. searchKeywords: 검색이 필요한 경우 사용할 핵심 키워드 목록
-                5. generatedSql: 통계나 특정 조건의 검색이 필요한 경우, 위 스키마를 바탕으로 프로젝트 ID(%s)에 해당하는 SELECT 쿼리를 작성하세요.
+                4. needsTestCaseGeneration: 테스트케이스를 새로 만들어달라거나, '테스트케이스'라는 문구가 포함된 생성형 질문인 경우 true
+                5. searchKeywords: 검색이 필요한 경우 사용할 핵심 키워드 목록
+                6. generatedSql: 통계나 특정 조건의 검색이 필요한 경우, 위 스키마를 바탕으로 프로젝트 ID(%s)에 해당하는 SELECT 쿼리를 작성하세요.
                 
                 [보안 규칙 - 필독]
                 - 반드시 SELECT 쿼리여야 합니다.
@@ -95,6 +97,7 @@ public class RagQueryAnalyzer {
                   "needsStatistics": boolean,
                   "needsTestCaseSearch": boolean,
                   "needsRecentResults": boolean,
+                  "needsTestCaseGeneration": boolean,
                   "searchKeywords": ["keyword1", "keyword2"],
                   "generatedSql": "SELECT ... FROM ... WHERE project_id = '%s' ...",
                   "justification": "판단 근거 요약"
