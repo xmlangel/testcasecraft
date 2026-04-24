@@ -480,7 +480,7 @@ public class RagChatServiceImpl implements RagChatService {
       if (intent.getGeneratedSql() != null && !intent.getGeneratedSql().isBlank()) {
         try {
           List<Map<String, Object>> sqlResults = sqlExecutor.executeSelect(intent.getGeneratedSql(), projectId);
-          String summary = dataSummarizer.summarize(sqlResults, intent.getJustification());
+          String summary = dataSummarizer.summarize(sqlResults, intent.getJustification(), intent.isNeedsFullList());
           context.put("sqlData", summary);
         } catch (Exception e) {
           log.warn("SQL 실행 또는 요약 실패: {}", e.getMessage());

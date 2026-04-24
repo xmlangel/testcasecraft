@@ -28,16 +28,17 @@ public class RagDataSummarizer {
     private final ObjectMapper objectMapper;
 
     /**
-     * 리스트 데이터를 요약합니다.
+     * 리스트 데이터를 요약하거나 전체 목록을 반환합니다.
      */
-    public String summarize(List<Map<String, Object>> data, String originalQuery) {
+    public String summarize(List<Map<String, Object>> data, String originalQuery, boolean forceFullList) {
         if (data == null || data.isEmpty()) {
             return "조회된 데이터가 없습니다.";
         }
 
-        if (data.size() <= 10) {
+        // 전체 목록 나열 요청이거나 데이터가 적은 경우 (10건 이하) 요약하지 않고 그대로 반환
+        if (forceFullList || data.size() <= 10) {
             try {
-                return objectMapper.writeValueAsString(data);
+                return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(data);
             } catch (Exception e) {
                 return data.toString();
             }

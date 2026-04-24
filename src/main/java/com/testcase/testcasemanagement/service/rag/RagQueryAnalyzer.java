@@ -39,6 +39,7 @@ public class RagQueryAnalyzer {
         private boolean needsTestCaseSearch;      // 특정 테스트케이스 검색 필요 여부
         private boolean needsRecentResults;       // 최근 실행 결과 필요 여부
         private boolean needsTestCaseGeneration;  // 테스트케이스 생성 요청 여부
+        private boolean needsFullList;            // 전체 목록 나열 요청 여부 (예: '모두 나열해줘', '전체 다 보여줘')
         private List<String> searchKeywords;      // 검색 키워드 목록
         private String generatedSql;              // 생성된 SQL 쿼리
         private String justification;             // 판단 근거
@@ -84,8 +85,9 @@ public class RagQueryAnalyzer {
                 2. needsTestCaseSearch: 특정 기능(예: '로그인', '결제')에 대한 테스트케이스 목록이나 내용을 찾는 경우 true
                 3. needsRecentResults: 최근에 실행된 결과나 히스토리를 묻는 경우 true
                 4. needsTestCaseGeneration: 테스트케이스를 새로 만들어달라거나, '테스트케이스'라는 문구가 포함된 생성형 질문인 경우 true
-                5. searchKeywords: 검색이 필요한 경우 사용할 핵심 키워드 목록
-                6. generatedSql: 통계나 특정 조건의 검색이 필요한 경우, 위 스키마를 바탕으로 프로젝트 ID(%s)에 해당하는 SELECT 쿼리를 작성하세요.
+                5. needsFullList: 사용자가 '모두', '전체', '나열', '목록 다', '36개 다'와 같이 수집된 데이터를 요약하지 말고 모두 보여달라고 명시적으로 요청하는 경우 true
+                6. searchKeywords: 검색이 필요한 경우 사용할 핵심 키워드 목록
+                7. generatedSql: 통계나 특정 조건의 검색이 필요한 경우, 위 스키마를 바탕으로 프로젝트 ID(%s)에 해당하는 SELECT 쿼리를 작성하세요.
                 
                 [보안 규칙 - 필독]
                 - 반드시 SELECT 쿼리여야 합니다.
@@ -98,6 +100,7 @@ public class RagQueryAnalyzer {
                   "needsTestCaseSearch": boolean,
                   "needsRecentResults": boolean,
                   "needsTestCaseGeneration": boolean,
+                  "needsFullList": boolean,
                   "searchKeywords": ["keyword1", "keyword2"],
                   "generatedSql": "SELECT ... FROM ... WHERE project_id = '%s' ...",
                   "justification": "판단 근거 요약"
