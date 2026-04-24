@@ -89,8 +89,9 @@ public class RagChatServiceImpl implements RagChatService {
           llmConfig.getId());
 
       // 2. 질의 의도 분석 및 DB 데이터 가져오기 (지능형 컨텍스트)
-      QueryIntent intent = queryAnalyzer.analyzeIntent(request.getMessage(), request.getProjectId());
-      Map<String, Object> dbContext = fetchDbContext(request.getProjectId(), intent);
+      String projectIdStr = request.getProjectId().toString();
+      QueryIntent intent = queryAnalyzer.analyzeIntent(request.getMessage(), projectIdStr);
+      Map<String, Object> dbContext = fetchDbContext(projectIdStr, intent);
 
       // 3. RAG 문서 검색으로 관련 컨텍스트 가져오기 (useRagSearch 옵션 확인)
       boolean useRagSearch =
@@ -193,8 +194,9 @@ public class RagChatServiceImpl implements RagChatService {
                 LlmConfig llmConfig = getLlmConfig(request.getLlmConfigId());
 
                 // 2. 질의 의도 분석 및 DB 데이터 가져오기
-                QueryIntent intent = queryAnalyzer.analyzeIntent(request.getMessage(), request.getProjectId());
-                Map<String, Object> dbContext = fetchDbContext(request.getProjectId(), intent);
+                String projectIdStr = request.getProjectId().toString();
+                QueryIntent intent = queryAnalyzer.analyzeIntent(request.getMessage(), projectIdStr);
+                Map<String, Object> dbContext = fetchDbContext(projectIdStr, intent);
 
                 // 3. RAG 문서 검색 (useRagSearch 옵션 확인)
                 boolean useRagSearch =
