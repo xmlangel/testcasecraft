@@ -71,11 +71,11 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
   @Query("DELETE FROM TestCase t WHERE t.project.id = :projectId")
   void deleteByProjectId(@Param("projectId") String projectId);
 
-  // ICT-339: 프로젝트별 최대 순차 ID 조회 (자동 생성용)
+  //  프로젝트별 최대 순차 ID 조회 (자동 생성용)
   @Query("SELECT MAX(t.sequentialId) FROM TestCase t WHERE t.project.id = :projectId")
   Integer findMaxSequentialIdByProjectId(@Param("projectId") String projectId);
 
-  // ICT-341: Display ID 마이그레이션을 위한 메소드들
+  //  Display ID 마이그레이션을 위한 메소드들
   List<TestCase> findByDisplayIdIsNull();
 
   List<TestCase> findByProjectIdAndDisplayIdIsNull(String projectId);
@@ -99,7 +99,7 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
       @Param("type") String type,
       @Param("excludeId") String excludeId);
 
-  // ICT-373: 버전이 없는 레코드 초기화 (네이티브 쿼리 사용)
+  // 버전이 없는 레코드 초기화 (네이티브 쿼리 사용)
   @Modifying
   @Query(
       value = "UPDATE testcases SET version = 0 WHERE id = :id AND version IS NULL",
@@ -110,4 +110,12 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
   @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId AND t.displayId = :displayId")
   Optional<TestCase> findByProjectIdAndDisplayId(
       @Param("projectId") String projectId, @Param("displayId") String displayId);
+
+  // 키워드 검색 메서드 추가 (이름 및 설명 검색)
+  @Query(
+      "SELECT t FROM TestCase t WHERE t.project.id = :projectId "
+          + "AND (LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+          + "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+  List<TestCase> searchByKeyword(
+      @Param("projectId") String projectId, @Param("keyword") String keyword);
 }
