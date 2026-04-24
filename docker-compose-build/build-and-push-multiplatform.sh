@@ -41,9 +41,9 @@ show_usage() {
     print_msg "$BLUE" "Usage: $0 [TARGET] [OPTIONS]"
     echo ""
     print_msg "$YELLOW" "Available targets:"
-    echo "  all                        Build both images (default)"
+    echo "  all                        Build both images"
     echo "  app                        Build testcasecraft only"
-    echo "  rag                        Build RAG service only"
+    echo "  rag                        Build RAG service only (default)"
     echo ""
     print_msg "$YELLOW" "Options:"
     echo "  --push                     Build and push to Docker Hub (multi-platform)"
@@ -269,8 +269,8 @@ main() {
     if [[ $# -eq 0 ]]; then
         print_msg "$BLUE" "--------------------------------------------------------"
         print_msg "$GREEN" "💡 Quick Guide Commands:"
-        echo "   Local Build: $0 app --build-only"
-        echo "   Push Hub:    $0 all --push"
+        echo "   Local Build: $0 rag --build-only"
+        echo "   Push Hub:    $0 rag --push"
         echo "   Increment:   $0 -i"
         print_msg "$BLUE" "--------------------------------------------------------"
     fi
@@ -286,9 +286,9 @@ main() {
         echo "3) RAG Service only"
         read -r -p "Enter choice [1-3]: " tc
         case "$tc" in
+            1) BUILD_TARGET="all" ;;
             2) BUILD_TARGET="app" ;;
-            3) BUILD_TARGET="rag" ;;
-            *) BUILD_TARGET="all" ;;
+            *) BUILD_TARGET="rag" ;;
         esac
 
         echo ""
@@ -301,7 +301,7 @@ main() {
             *) PUSH_MODE=false ;;
         esac
     fi
-    BUILD_TARGET=${BUILD_TARGET:-"all"}
+    BUILD_TARGET=${BUILD_TARGET:-"rag"}
 
     # Version Increment
     if [[ "$INCREMENT_VERSION" == "true" ]]; then
