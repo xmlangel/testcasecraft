@@ -1,11 +1,13 @@
 package com.testcase.testcasemanagement.service;
 
+import com.testcase.testcasemanagement.dto.ProjectStatisticsDto;
+import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.rag.*;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.model.Project;
-import com.testcase.testcasemanagement.model.rag.RagChatThread;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.TestResult;
+import com.testcase.testcasemanagement.model.rag.RagChatThread;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
@@ -16,15 +18,12 @@ import com.testcase.testcasemanagement.service.rag.RagDataSummarizer;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer.QueryIntent;
 import com.testcase.testcasemanagement.service.rag.RagSqlExecutor;
-import com.testcase.testcasemanagement.dto.ProjectStatisticsDto;
-import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -107,7 +106,8 @@ public class RagChatServiceImpl implements RagChatService {
       }
 
       // 4. 시스템 프롬프트 + 컨텍스트 + 대화 히스토리 구성
-      List<RagChatMessage> messages = buildMessages(request, contextSources, dbContext, intent, llmConfig);
+      List<RagChatMessage> messages =
+          buildMessages(request, contextSources, dbContext, intent, llmConfig);
 
       if (persistConversation) {
         thread = conversationService.ensureThread(project, request, username);
@@ -196,7 +196,8 @@ public class RagChatServiceImpl implements RagChatService {
 
                 // 2. 질의 의도 분석 및 DB 데이터 가져오기
                 String projectIdStr = request.getProjectId().toString();
-                QueryIntent intent = queryAnalyzer.analyzeIntent(request.getMessage(), projectIdStr);
+                QueryIntent intent =
+                    queryAnalyzer.analyzeIntent(request.getMessage(), projectIdStr);
                 Map<String, Object> dbContext = fetchDbContext(projectIdStr, intent);
 
                 // 3. RAG 문서 검색 (useRagSearch 옵션 확인)
@@ -216,7 +217,8 @@ public class RagChatServiceImpl implements RagChatService {
                 emitter.send(SseEmitter.event().name("context").data(contextSources));
 
                 // 4. 메시지 구성
-                List<RagChatMessage> messages = buildMessages(request, contextSources, dbContext, intent, llmConfig);
+                List<RagChatMessage> messages =
+                    buildMessages(request, contextSources, dbContext, intent, llmConfig);
 
                 // 4. LLM 스트리밍 호출
                 LlmClient llmClient = llmClientFactory.getClient(llmConfig);
@@ -338,9 +340,13 @@ public class RagChatServiceImpl implements RagChatService {
 
   /** LLM에게 전달할 메시지 리스트 구성 */
   private List<RagChatMessage> buildMessages(
-      RagChatRequest request, List<RagChatContext> contextSources, Map<String, Object> dbContext, QueryIntent intent, LlmConfig llmConfig) {
+      RagChatRequest request,
+      List<RagChatContext> contextSources,
+      Map<String, Object> dbContext,
+      QueryIntent intent,
+      LlmConfig llmConfig) {
     List<RagChatMessage> messages = new ArrayList<>();
- 
+
     // 1. 시스템 프롬프트 (RAG 컨텍스트 및 DB 데이터 포함)
     String systemPrompt = buildSystemPrompt(contextSources, dbContext, intent, llmConfig);
     messages.add(RagChatMessage.system(systemPrompt));
@@ -357,39 +363,56 @@ public class RagChatServiceImpl implements RagChatService {
   }
 
   /** RAG 컨텍스트 및 DB 데이터를 포함한 시스템 프롬프트 생성 */
-  private String buildSystemPrompt(List<RagChatContext> contextSources, Map<String, Object> dbContext, QueryIntent intent, LlmConfig llmConfig) {
+  private String buildSystemPrompt(
+      List<RagChatContext> contextSources,
+      Map<String, Object> dbContext,
+      QueryIntent intent,
+      LlmConfig llmConfig) {
     StringBuilder prompt = new StringBuilder();
- 
+
     prompt.append("당신은 테스트 케이스 관리 시스템의 AI 어시스턴트입니다.\n");
     prompt.append("사용자의 질문에 답변할 때, 제공된 시스템 통계(DB)와 참고 문서(RAG)를 바탕으로 가장 정확한 정보를 제공하세요.\n\n");
 
     // 0. 테스트케이스 생성 요청 처리
     if (intent != null && intent.isNeedsTestCaseGeneration()) {
-        String template = (llmConfig != null && llmConfig.getTestCaseTemplate() != null && !llmConfig.getTestCaseTemplate().isBlank())
-            ? llmConfig.getTestCaseTemplate()
-            : LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE;
+      String template =
+          (llmConfig != null
+                  && llmConfig.getTestCaseTemplate() != null
+                  && !llmConfig.getTestCaseTemplate().isBlank())
+              ? llmConfig.getTestCaseTemplate()
+              : LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE;
 
-        prompt.append("=== 테스트케이스 생성 가이드 ===\n");
-        prompt.append("사용자가 테스트케이스 생성을 요청하거나 관련 질문을 하는 경우, 다음 지침을 따르세요:\n");
-        prompt.append("1. 정보가 충분한 경우: 아래 JSON 형식을 참고하여 테스트케이스를 생성하고 응답에 JSON 블록을 포함하세요.\n");
-        prompt.append("2. 정보가 부족하거나 모호한 경우: 바로 생성하지 말고, 어떤 기능을 테스트하고 싶은지, 특별한 조건이 있는지 등 필요한 정보를 사용자에게 추가로 질문하여 의도를 명확히 파악하세요.\n\n");
-        prompt.append("```json\n");
-        prompt.append(template.trim());
-        prompt.append("\n```\n\n");
-        prompt.append("==============================\n\n");
+      prompt.append("=== 테스트케이스 생성 가이드 ===\n");
+      prompt.append("사용자가 테스트케이스 생성을 요청하거나 관련 질문을 하는 경우, 다음 지침을 따르세요:\n");
+      prompt.append("1. 정보가 충분한 경우: 아래 JSON 형식을 참고하여 테스트케이스를 생성하고 응답에 JSON 블록을 포함하세요.\n");
+      prompt.append(
+          "2. 정보가 부족하거나 모호한 경우: 바로 생성하지 말고, 어떤 기능을 테스트하고 싶은지, 특별한 조건이 있는지 등 필요한 정보를 사용자에게 추가로 질문하여"
+              + " 의도를 명확히 파악하세요.\n\n");
+      prompt.append("```json\n");
+      prompt.append(template.trim());
+      prompt.append("\n```\n\n");
+      prompt.append("==============================\n\n");
     }
 
     // 1. DB 컨텍스트 추가 (통계, 검색 결과 등)
     if (dbContext != null && !dbContext.isEmpty()) {
       prompt.append("=== 시스템 실시간 데이터 (DB) ===\n");
-      
+
       if (dbContext.containsKey("statistics")) {
         ProjectStatisticsDto stats = (ProjectStatisticsDto) dbContext.get("statistics");
         prompt.append(String.format("- 프로젝트: %s\n", stats.getProjectName()));
         prompt.append(String.format("- 총 테스트 케이스: %d개\n", stats.getTotalTestCases()));
-        prompt.append(String.format("- 실행된 케이스: %d개 (실행률: %.1f%%)\n", stats.getExecutedTestCases(), stats.getExecutionRate()));
-        prompt.append(String.format("- 결과 현황: Pass(%d), Fail(%d), Blocked(%d), NotRun(%d)\n", 
-            stats.getPassedTestCases(), stats.getFailedTestCases(), stats.getBlockedTestCases(), stats.getNotRunTestCases()));
+        prompt.append(
+            String.format(
+                "- 실행된 케이스: %d개 (실행률: %.1f%%)\n",
+                stats.getExecutedTestCases(), stats.getExecutionRate()));
+        prompt.append(
+            String.format(
+                "- 결과 현황: Pass(%d), Fail(%d), Blocked(%d), NotRun(%d)\n",
+                stats.getPassedTestCases(),
+                stats.getFailedTestCases(),
+                stats.getBlockedTestCases(),
+                stats.getNotRunTestCases()));
         if (stats.getLastExecutionDate() != null) {
           prompt.append(String.format("- 마지막 실행: %s\n", stats.getLastExecutionDate()));
         }
@@ -400,7 +423,9 @@ public class RagChatServiceImpl implements RagChatService {
         prompt.append("\n[관련 테스트케이스 검색 결과]\n");
         for (Object obj : results) {
           TestCase tc = (TestCase) obj;
-          prompt.append(String.format("- [%s] %s (우선순위: %s)\n", tc.getDisplayId(), tc.getName(), tc.getPriority()));
+          prompt.append(
+              String.format(
+                  "- [%s] %s (우선순위: %s)\n", tc.getDisplayId(), tc.getName(), tc.getPriority()));
         }
       }
 
@@ -409,7 +434,12 @@ public class RagChatServiceImpl implements RagChatService {
         prompt.append("\n[최근 실행 이력]\n");
         for (Object obj : results) {
           TestResult tr = (TestResult) obj;
-          prompt.append(String.format("- %s: %s (실행자: %s)\n", tr.getExecutedAt(), tr.getResult(), tr.getExecutedBy() != null ? tr.getExecutedBy().getUsername() : "Unknown"));
+          prompt.append(
+              String.format(
+                  "- %s: %s (실행자: %s)\n",
+                  tr.getExecutedAt(),
+                  tr.getResult(),
+                  tr.getExecutedBy() != null ? tr.getExecutedBy().getUsername() : "Unknown"));
         }
       }
 
@@ -418,7 +448,7 @@ public class RagChatServiceImpl implements RagChatService {
         prompt.append(dbContext.get("sqlData"));
         prompt.append("\n");
       }
-      
+
       prompt.append("==============================\n\n");
     }
 
@@ -453,7 +483,7 @@ public class RagChatServiceImpl implements RagChatService {
   /** 의도에 따른 DB 데이터 조회 */
   private Map<String, Object> fetchDbContext(String projectId, QueryIntent intent) {
     Map<String, Object> context = new HashMap<>();
-    
+
     try {
       // 1. 통계 정보
       if (intent.isNeedsStatistics()) {
@@ -461,26 +491,34 @@ public class RagChatServiceImpl implements RagChatService {
       }
 
       // 2. 테스트케이스 검색
-      if (intent.isNeedsTestCaseSearch() && intent.getSearchKeywords() != null && !intent.getSearchKeywords().isEmpty()) {
+      if (intent.isNeedsTestCaseSearch()
+          && intent.getSearchKeywords() != null
+          && !intent.getSearchKeywords().isEmpty()) {
         List<TestCase> allResults = new ArrayList<>();
         for (String keyword : intent.getSearchKeywords()) {
           allResults.addAll(testCaseRepository.searchByKeyword(projectId, keyword));
         }
         // 중복 제거 및 상위 5개 제한
-        context.put("searchResults", allResults.stream().distinct().limit(5).collect(Collectors.toList()));
+        context.put(
+            "searchResults", allResults.stream().distinct().limit(5).collect(Collectors.toList()));
       }
 
       // 3. 최근 실행 결과
       if (intent.isNeedsRecentResults()) {
         Pageable pageable = PageRequest.of(0, 5);
-        context.put("recentResults", testResultRepository.findRecentTestResultsByProject(projectId, pageable));
+        context.put(
+            "recentResults",
+            testResultRepository.findRecentTestResultsByProject(projectId, pageable));
       }
 
       // 4. SQL 기반 정밀 데이터 조회 및 요약
       if (intent.getGeneratedSql() != null && !intent.getGeneratedSql().isBlank()) {
         try {
-          List<Map<String, Object>> sqlResults = sqlExecutor.executeSelect(intent.getGeneratedSql(), projectId);
-          String summary = dataSummarizer.summarize(sqlResults, intent.getJustification(), intent.isNeedsFullList());
+          List<Map<String, Object>> sqlResults =
+              sqlExecutor.executeSelect(intent.getGeneratedSql(), projectId);
+          String summary =
+              dataSummarizer.summarize(
+                  sqlResults, intent.getJustification(), intent.isNeedsFullList());
           context.put("sqlData", summary);
         } catch (Exception e) {
           log.warn("SQL 실행 또는 요약 실패: {}", e.getMessage());
@@ -489,7 +527,7 @@ public class RagChatServiceImpl implements RagChatService {
     } catch (Exception e) {
       log.error("DB 컨텍스트 조회 실패: {}", e.getMessage());
     }
-    
+
     return context;
   }
 

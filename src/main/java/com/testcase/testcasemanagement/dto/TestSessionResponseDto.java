@@ -41,6 +41,11 @@ public class TestSessionResponseDto {
   private String testData;
   private String evaluation;
   private String nextCharter;
+  private String jiraIssueKey;
+  private List<TestSessionNoteDto> notes = new ArrayList<>();
+  private List<TestSessionTestDto> tests = new ArrayList<>();
+  private List<TestSessionBugDto> bugs = new ArrayList<>();
+  private List<TestSessionAttachmentDto> attachments = new ArrayList<>();
   private Integer achievement;
   private String status;
   private String reviewComment;

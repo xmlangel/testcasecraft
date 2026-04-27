@@ -12,6 +12,8 @@ import {
   LinearProgress,
   Avatar,
   Tooltip,
+  useTheme,
+  Button,
 } from "@mui/material";
 import {
   AccessTime as TimeIcon,
@@ -30,6 +32,7 @@ import {
   History as HistoryIcon,
   Layers as LayersIcon,
   Visibility as OracleIcon,
+  Link as LinkIcon,
 } from "@mui/icons-material";
 import {
   parseMarkdownSections,
@@ -44,6 +47,8 @@ function ExploratoryDetailTab({
   statusColor,
   onBackToList,
 }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const session = sessions.find((s) => s.id === sessionId);
 
   if (!sessionId || !session) {
@@ -72,11 +77,16 @@ function ExploratoryDetailTab({
       {/* Premium Header Summary Card */}
       <Card
         sx={{
-          background: "rgba(255, 255, 255, 0.05)",
+          background: isDark
+            ? "rgba(255, 255, 255, 0.05)"
+            : "rgba(0, 0, 0, 0.02)",
           backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
+          border: "1px solid",
+          borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
           borderRadius: 4,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+          boxShadow: isDark
+            ? "0 8px 32px rgba(0,0,0,0.2)"
+            : "0 4px 12px rgba(0,0,0,0.05)",
           overflow: "visible",
         }}
       >
@@ -137,12 +147,16 @@ function ExploratoryDetailTab({
                     sx={{
                       ml: "auto",
                       borderRadius: 2,
-                      borderColor: "rgba(255,255,255,0.2)",
-                      color: "rgba(255,255,255,0.7)",
+                      borderColor: isDark ? "rgba(255,255,255,0.2)" : "divider",
+                      color: isDark
+                        ? "rgba(255,255,255,0.7)"
+                        : "text.secondary",
                       "&:hover": {
-                        borderColor: "white",
-                        color: "white",
-                        bgcolor: "rgba(255,255,255,0.05)",
+                        borderColor: isDark ? "white" : "primary.main",
+                        color: isDark ? "white" : "primary.main",
+                        bgcolor: isDark
+                          ? "rgba(255,255,255,0.05)"
+                          : "action.hover",
                       },
                     }}
                   >
@@ -224,8 +238,9 @@ function ExploratoryDetailTab({
                 sx={{
                   p: 3,
                   borderRadius: 3,
-                  bgcolor: "rgba(0,0,0,0.2)",
-                  border: "1px solid rgba(255,255,255,0.05)",
+                  bgcolor: isDark ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.03)",
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
                   position: "relative",
                 }}
               >
@@ -248,8 +263,11 @@ function ExploratoryDetailTab({
                     display: "flex",
                     borderRadius: 2,
                     overflow: "hidden",
-                    bgcolor: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    bgcolor: isDark
+                      ? "rgba(255,255,255,0.05)"
+                      : "rgba(0,0,0,0.05)",
+                    border: "1px solid",
+                    borderColor: isDark ? "rgba(255,255,255,0.1)" : "divider",
                     mb: 2,
                   }}
                 >
@@ -324,9 +342,12 @@ function ExploratoryDetailTab({
             {/* Notes Section */}
             <Card
               sx={{
-                background: "rgba(255,255,255,0.03)",
+                background: isDark
+                  ? "rgba(255,255,255,0.03)"
+                  : "background.paper",
                 borderRadius: 3,
-                border: "1px solid rgba(255,255,255,0.05)",
+                border: "1px solid",
+                borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -346,66 +367,387 @@ function ExploratoryDetailTab({
                 </Typography>
 
                 <Grid container spacing={3}>
-                  {[
-                    {
-                      label: "Flow / Scenarios",
-                      value: raw.flowNotes,
-                      icon: <HistoryIcon fontSize="small" />,
-                    },
-                    {
-                      label: "Coverage Area",
-                      value: raw.coverageNotes,
-                      icon: <LayersIcon fontSize="small" />,
-                    },
-                    {
-                      label: "Test Oracle",
-                      value: raw.oracleNotes,
-                      icon: <OracleIcon fontSize="small" />,
-                    },
-                    {
-                      label: "Activity Details",
-                      value: raw.activityNotes,
-                      icon: <SetupIcon fontSize="small" />,
-                    },
-                  ].map((note, idx) => (
-                    <Grid size={{ xs: 12, sm: 6 }} key={idx}>
+                  {(raw.notes || []).length > 0 ? (
+                    (raw.notes || []).map((note, idx) => (
+                      <Grid size={{ xs: 12, sm: 6 }} key={idx}>
+                        <Box
+                          sx={{
+                            p: 2.5,
+                            borderRadius: 2,
+                            bgcolor: isDark
+                              ? "rgba(255,255,255,0.02)"
+                              : "rgba(0,0,0,0.02)",
+                            border: "1px solid",
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.05)"
+                              : "divider",
+                            height: "100%",
+                          }}
+                        >
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                            sx={{ mb: 1.5, opacity: 0.6 }}
+                          >
+                            <NoteIcon fontSize="small" />
+                            <Typography
+                              variant="caption"
+                              sx={{ fontWeight: 800, letterSpacing: 0.5 }}
+                            >
+                              {note.title.toUpperCase()}
+                            </Typography>
+                          </Stack>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              whiteSpace: "pre-wrap",
+                              color: isDark
+                                ? "rgba(255,255,255,0.8)"
+                                : "text.primary",
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            {note.content || "-"}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    ))
+                  ) : (
+                    <Grid size={12}>
+                      <Box sx={{ py: 4, textAlign: "center", opacity: 0.3 }}>
+                        <Typography variant="body2">
+                          기록된 세션 노트가 없습니다.
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  )}
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Tests Performed Section */}
+            <Card
+              sx={{
+                background: isDark
+                  ? "rgba(255,255,255,0.03)"
+                  : "background.paper",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 800,
+                    mb: 3,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    color: "success.light",
+                  }}
+                >
+                  <ExitIcon />
+                  STRUCTURED TESTS PERFORMED
+                </Typography>
+                <Stack spacing={2}>
+                  {(raw.tests || []).length > 0 ? (
+                    (raw.tests || []).map((test, idx) => (
                       <Box
+                        key={idx}
                         sx={{
-                          p: 2.5,
+                          p: 2,
                           borderRadius: 2,
-                          bgcolor: "rgba(255,255,255,0.02)",
-                          border: "1px solid rgba(255,255,255,0.05)",
-                          height: "100%",
+                          bgcolor: isDark
+                            ? "rgba(255,255,255,0.02)"
+                            : "rgba(0,0,0,0.02)",
+                          border: "1px solid",
+                          borderColor: isDark
+                            ? "rgba(255,255,255,0.05)"
+                            : "divider",
                         }}
                       >
                         <Stack
                           direction="row"
-                          spacing={1}
+                          justifyContent="space-between"
                           alignItems="center"
-                          sx={{ mb: 1.5, opacity: 0.6 }}
+                          sx={{ mb: 1 }}
                         >
-                          {note.icon}
                           <Typography
-                            variant="caption"
-                            sx={{ fontWeight: 800, letterSpacing: 0.5 }}
+                            variant="subtitle2"
+                            sx={{ fontWeight: 800, color: "success.light" }}
                           >
-                            {note.label.toUpperCase()}
+                            {test.title || `Test ${idx + 1}`}
                           </Typography>
+                          <Chip
+                            label={test.status}
+                            size="small"
+                            color={
+                              test.status === "PASS"
+                                ? "success"
+                                : test.status === "FAIL"
+                                  ? "error"
+                                  : "default"
+                            }
+                          />
+                        </Stack>
+                        <Grid container spacing={1}>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <Typography
+                              variant="caption"
+                              display="block"
+                              sx={{ opacity: 0.5 }}
+                            >
+                              Steps:
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ whiteSpace: "pre-wrap" }}
+                            >
+                              {test.steps || "-"}
+                            </Typography>
+                          </Grid>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <Typography
+                              variant="caption"
+                              display="block"
+                              sx={{ opacity: 0.5 }}
+                            >
+                              Expected Result:
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ whiteSpace: "pre-wrap" }}
+                            >
+                              {test.expectedResult || "-"}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      sx={{ opacity: 0.3, textAlign: "center", py: 2 }}
+                    >
+                      수행된 구조화된 테스트가 없습니다.
+                    </Typography>
+                  )}
+                </Stack>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Bugs Section */}
+            <Card
+              sx={{
+                background: isDark
+                  ? "rgba(255,255,255,0.03)"
+                  : "background.paper",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 800,
+                    mb: 3,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    color: "error.light",
+                  }}
+                >
+                  <BugIcon />
+                  DETAILED BUGS & DEFECTS
+                </Typography>
+                <Stack spacing={2}>
+                  {(raw.bugs || []).length > 0 ? (
+                    (raw.bugs || []).map((bug, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: isDark
+                            ? "rgba(255,255,255,0.02)"
+                            : "rgba(0,0,0,0.02)",
+                          border: "1px solid",
+                          borderColor: isDark
+                            ? "rgba(255,255,255,0.05)"
+                            : "divider",
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          sx={{ mb: 1 }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 800, color: "error.light" }}
+                          >
+                            {bug.title || `Bug ${idx + 1}`}
+                          </Typography>
+                          <Chip
+                            label={bug.severity}
+                            size="small"
+                            color={
+                              bug.severity === "Critical" ||
+                              bug.severity === "High"
+                                ? "error"
+                                : "warning"
+                            }
+                          />
                         </Stack>
                         <Typography
                           variant="body2"
-                          sx={{
-                            whiteSpace: "pre-wrap",
-                            color: "rgba(255,255,255,0.8)",
-                            lineHeight: 1.6,
-                          }}
+                          sx={{ mb: 1, whiteSpace: "pre-wrap" }}
                         >
-                          {note.value || "-"}
+                          {bug.description}
                         </Typography>
+                        {bug.jiraIssueKey && (
+                          <Chip
+                            label={bug.jiraIssueKey}
+                            size="small"
+                            icon={<LinkIcon />}
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontWeight: 800 }}
+                          />
+                        )}
                       </Box>
-                    </Grid>
-                  ))}
-                </Grid>
+                    ))
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      sx={{ opacity: 0.3, textAlign: "center", py: 2 }}
+                    >
+                      발견된 상세 버그가 없습니다.
+                    </Typography>
+                  )}
+                </Stack>
+              </CardContent>
+            </Card>
+
+            {/* Data Outputs & Artifacts Section */}
+            <Card
+              sx={{
+                background: isDark
+                  ? "rgba(255,255,255,0.03)"
+                  : "background.paper",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 800,
+                    mb: 3,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                  }}
+                >
+                  <CharterIcon />
+                  DATA OUTPUTS & ARTIFACTS
+                </Typography>
+                <Stack spacing={3}>
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 800,
+                        opacity: 0.5,
+                        display: "block",
+                        mb: 1,
+                      }}
+                    >
+                      TEST DATA USED
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: isDark
+                          ? "rgba(255,255,255,0.02)"
+                          : "rgba(0,0,0,0.02)",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {raw.testData || "기록된 테스트 데이터가 없습니다."}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 800,
+                        opacity: 0.5,
+                        display: "block",
+                        mb: 1,
+                      }}
+                    >
+                      ATTACHED FILES
+                    </Typography>
+                    {(raw.attachments || []).length > 0 ? (
+                      <Grid container spacing={2}>
+                        {(raw.attachments || []).map((file) => (
+                          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={file.id}>
+                            <Box
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                border: "1px solid",
+                                borderColor: "divider",
+                                bgcolor: isDark
+                                  ? "rgba(255,255,255,0.02)"
+                                  : "background.paper",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 1,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                noWrap
+                                sx={{ fontWeight: 700 }}
+                              >
+                                {file.originalFileName}
+                              </Typography>
+                              {file.mimeType &&
+                                file.mimeType.startsWith("image/") && (
+                                  <Box
+                                    component="img"
+                                    src={`/api/session-attachments/${file.id}/download`}
+                                    sx={{
+                                      width: "100%",
+                                      height: 100,
+                                      objectFit: "cover",
+                                      borderRadius: 1,
+                                    }}
+                                  />
+                                )}
+                            </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    ) : (
+                      <Typography variant="body2" sx={{ opacity: 0.3 }}>
+                        업로드된 산출물이 없습니다.
+                      </Typography>
+                    )}
+                  </Box>
+                </Stack>
               </CardContent>
             </Card>
 
@@ -415,9 +757,12 @@ function ExploratoryDetailTab({
                 <Card
                   sx={{
                     height: "100%",
-                    background: "rgba(255,255,255,0.03)",
+                    background: isDark
+                      ? "rgba(255,255,255,0.03)"
+                      : "background.paper",
                     borderRadius: 3,
-                    border: "1px solid rgba(255,255,255,0.05)",
+                    border: "1px solid",
+                    borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
                   }}
                 >
                   <CardContent>
@@ -432,66 +777,43 @@ function ExploratoryDetailTab({
                         gap: 1,
                       }}
                     >
-                      <BugIcon /> DEFECTS & BLOCKERS
+                      <BugIcon /> LINKED JIRA ISSUES
                     </Typography>
                     <Stack spacing={2.5}>
-                      <Box>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontWeight: 800,
-                            opacity: 0.5,
-                            display: "block",
-                            mb: 1,
-                          }}
-                        >
-                          BUG HEADLINE
+                      {raw.jiraIssueKey ? (
+                        <Box sx={{ mt: 1 }}>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            flexWrap="wrap"
+                            useFlexGap
+                          >
+                            {raw.jiraIssueKey.split(",").map((key) => (
+                              <Chip
+                                key={key}
+                                icon={
+                                  <LinkIcon
+                                    sx={{ fontSize: "1rem !important" }}
+                                  />
+                                }
+                                label={key.trim()}
+                                size="small"
+                                variant="outlined"
+                                color="error"
+                                sx={{ fontWeight: 800, mb: 1 }}
+                                component="a"
+                                href={`https://xmlangel.atlassian.net/browse/${key.trim()}`}
+                                target="_blank"
+                                clickable
+                              />
+                            ))}
+                          </Stack>
+                        </Box>
+                      ) : (
+                        <Typography variant="body2" sx={{ opacity: 0.3 }}>
+                          연결된 JIRA 이슈가 없습니다.
                         </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: 700,
-                            p: 1.5,
-                            borderRadius: 1.5,
-                            bgcolor: "rgba(211, 47, 47, 0.1)",
-                            border: "1px solid rgba(211, 47, 47, 0.2)",
-                          }}
-                        >
-                          {raw.bugHeadline || "No major bugs reported"}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontWeight: 800,
-                            opacity: 0.5,
-                            display: "block",
-                            mb: 0.5,
-                          }}
-                        >
-                          BLOCKERS
-                        </Typography>
-                        <Typography variant="body2">
-                          {raw.blockers || "None"}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontWeight: 800,
-                            opacity: 0.5,
-                            display: "block",
-                            mb: 0.5,
-                          }}
-                        >
-                          REMAINING QUESTIONS
-                        </Typography>
-                        <Typography variant="body2">
-                          {raw.remainingQuestions || "None"}
-                        </Typography>
-                      </Box>
+                      )}
                     </Stack>
                   </CardContent>
                 </Card>
@@ -500,9 +822,12 @@ function ExploratoryDetailTab({
                 <Card
                   sx={{
                     height: "100%",
-                    background: "rgba(255,255,255,0.03)",
+                    background: isDark
+                      ? "rgba(255,255,255,0.03)"
+                      : "background.paper",
                     borderRadius: 3,
-                    border: "1px solid rgba(255,255,255,0.05)",
+                    border: "1px solid",
+                    borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
                   }}
                 >
                   <CardContent>
@@ -540,7 +865,9 @@ function ExploratoryDetailTab({
                               flexGrow: 1,
                               height: 10,
                               borderRadius: 5,
-                              bgcolor: "rgba(255,255,255,0.05)",
+                              bgcolor: isDark
+                                ? "rgba(255,255,255,0.05)"
+                                : "rgba(0,0,0,0.05)",
                               "& .MuiLinearProgress-bar": {
                                 borderRadius: 5,
                                 background:
@@ -585,9 +912,12 @@ function ExploratoryDetailTab({
           <Card
             sx={{
               height: "100%",
-              background: "rgba(255,255,255,0.02)",
+              background: isDark
+                ? "rgba(255,255,255,0.02)"
+                : "background.paper",
               borderRadius: 3,
-              border: "1px solid rgba(255,255,255,0.05)",
+              border: "1px solid",
+              borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -626,8 +956,13 @@ function ExploratoryDetailTab({
                         sx={{
                           p: 2,
                           borderRadius: 2,
-                          bgcolor: "rgba(255,255,255,0.01)",
-                          border: "1px solid rgba(255,255,255,0.03)",
+                          bgcolor: isDark
+                            ? "rgba(255,255,255,0.01)"
+                            : "rgba(0,0,0,0.01)",
+                          border: "1px solid",
+                          borderColor: isDark
+                            ? "rgba(255,255,255,0.03)"
+                            : "divider",
                         }}
                       >
                         <Stack
@@ -656,7 +991,9 @@ function ExploratoryDetailTab({
                         </Stack>
                         <Typography
                           variant="body2"
-                          color="rgba(255,255,255,0.6)"
+                          color={
+                            isDark ? "rgba(255,255,255,0.6)" : "text.secondary"
+                          }
                           sx={{
                             pl: 0.5,
                             fontSize: "0.8125rem",

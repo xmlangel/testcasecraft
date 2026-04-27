@@ -163,6 +163,22 @@ public class TestSession {
   @Column(name = "review_comment", columnDefinition = "TEXT")
   private String reviewComment;
 
+  /** 연결된 JIRA 이슈 키 (예: PRJ-123) */
+  @Column(name = "jira_issue_key", length = 500)
+  private String jiraIssueKey;
+
+  @ElementCollection
+  @CollectionTable(name = "test_session_notes", joinColumns = @JoinColumn(name = "session_id"))
+  private List<TestSessionNote> notes = new ArrayList<>();
+
+  @ElementCollection
+  @CollectionTable(name = "test_session_tests", joinColumns = @JoinColumn(name = "session_id"))
+  private List<TestSessionTest> tests = new ArrayList<>();
+
+  @ElementCollection
+  @CollectionTable(name = "test_session_bugs", joinColumns = @JoinColumn(name = "session_id"))
+  private List<TestSessionBug> bugs = new ArrayList<>();
+
   @Column(name = "submitted_at")
   private LocalDateTime submittedAt;
 
