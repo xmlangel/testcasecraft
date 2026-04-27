@@ -312,7 +312,7 @@ main() {
     if [[ -z "$VERSION" ]]; then
         local interactive_flag="true"
         [[ "$NON_INTERACTIVE" == "true" ]] && interactive_flag="false"
-        detect_version_interactive "$interactive_flag" "$RECENT_VERSION"
+        detect_version_interactive "$BUILD_TARGET" "$interactive_flag" "$RECENT_VERSION"
     else
         if [[ "$SKIP_TAG_VERIFY" == "true" ]]; then
             print_msg "$YELLOW" "⚠️ Skipping Git tag verification for version: $VERSION"
@@ -320,6 +320,9 @@ main() {
             verify_tag_exists "$VERSION" "$BUILD_TARGET" || exit 1
         fi
     fi
+
+    # 최종 버전 정규화 (접두사 제거: rag-service1.0.13 -> 1.0.13)
+    VERSION=$(echo "$VERSION" | sed -E 's/^(v|rag-service|app)+//')
 
     # Prerequisites & Setup
     check_prerequisites

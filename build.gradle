@@ -227,7 +227,7 @@ task incrementVersion {
                 }
                 
                 // RAG Service 이미지 업데이트 (명시적으로 지정된 경우만)
-                if (target == 'rag-service') {
+                if (target == 'rag' || target == 'rag-service') {
                     scriptContent = scriptContent.replaceAll(
                         /(testcasecraft-rag-service):(\d+)\.(\d+)\.(\d+)/,
                         "\$1:${newVersion}"
@@ -253,7 +253,7 @@ task incrementVersion {
             }
 
             // RAG Service 이미지 업데이트 (명시적으로 지정된 경우만)
-            if (target == 'rag-service') {
+            if (target == 'rag' || target == 'rag-service') {
                 dockerComposeContent = dockerComposeContent.replaceAll(
                     /(xmlangel\/testcasecraft-rag-service):(\d+)\.(\d+)\.(\d+)/,
                     "\$1:${newVersion}"
@@ -266,7 +266,7 @@ task incrementVersion {
 
 
         // 6. RAG Service config.py 업데이트 (명시적으로 지정된 경우만)
-        if (target == 'rag-service') {
+        if (target == 'rag' || target == 'rag-service') {
             def ragConfigFile = file('rag-service/app/core/config.py')
             if (ragConfigFile.exists()) {
                 def ragConfigContent = ragConfigFile.text

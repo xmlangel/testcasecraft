@@ -20,17 +20,19 @@ print_sep() {
 }
 
 # Git 태그 감지 및 대화형 생성 함수
-# Usage: detect_version_interactive [interactive_flag] [fallback_version]
+# Usage: detect_version_interactive [target] [interactive_flag] [fallback_version]
 # Result: Sets GLOBAL variable 'VERSION'
 detect_version_interactive() {
-    local is_interactive=${1:-"true"}
-    local fallback_version=$2
+    local target=${1:-"all"}
+    local is_interactive=${2:-"true"}
+    local fallback_version=$3
     
     # 1. 현재 커밋에 태그가 있는지 확인
     local current_tag=$(git tag --points-at HEAD | grep '^v' | head -1)
     
     if [[ -n "$current_tag" ]]; then
-        VERSION=$(echo "$current_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?).*/\1/')
+        # v1.2.3, rag-service1.2.3, app1.2.3 등에서 숫자 부분만 추출
+        VERSION=$(echo "$current_tag" | sed -E 's/^(v|rag-service|app)+([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?).*/\2/')
         print_msg "$GREEN" "✅ Detected version $VERSION from current tag: $current_tag"
         return 0
     fi
@@ -44,8 +46,14 @@ detect_version_interactive() {
         read -r -p "Do you want to create a new tag for the current commit? (y/n): " create_tag
         if [[ "$create_tag" =~ ^[Yy]$ ]]; then
             read -r -p "Enter version (e.g., 1.0.40 or 1.0.40-dev): " input_version
-            if [[ "$input_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
-                local new_tag="v${input_version}-app"
+            if [[ "$input_version" =~ ^(v|rag-service|app)*[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+                # 입력값에서 접두사 제거 (예: rag-service1.0.13 -> 1.0.13)
+                input_version=$(echo "$input_version" | sed -E 's/^(v|rag-service|app)+//')
+                
+                local tag_suffix="app"
+                [[ "$target" == "rag" ]] && tag_suffix="rag"
+                local new_tag="v${input_version}-${tag_suffix}"
+                
                 git tag -a "$new_tag" -m "Release version $input_version"
                 VERSION="$input_version"
                 print_msg "$GREEN" "✅ Created and using tag: $new_tag"
@@ -59,7 +67,8 @@ detect_version_interactive() {
     # 3. 차선책: 가장 최근 태그 사용
     local latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
     if [[ -n "$latest_tag" ]]; then
-        VERSION=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?).*/\1/')
+        # 접두사 제거 로직 동일 적용
+        VERSION=$(echo "$latest_tag" | sed -E 's/^(v|rag-service|app)+([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?).*/\2/')
         print_msg "$YELLOW" "⚠️ Not on a tag. Using version $VERSION from latest tag: $latest_tag"
     else
         VERSION="$fallback_version"
