@@ -816,6 +816,6 @@ public void testAuthenticationPerformance() {
 
 ## 📚 관련 문서
 
-- **[메인 가이드](../CLAUDE.md)** - 프로젝트 전체 개요
+- **[메인 가이드](../AGENTS.md)** - 프로젝트 전체 개요
 - **[API 가이드](./API_GUIDE.md)** - API 개발 가이드라인
 - **[개발 가이드](./DEVELOPMENT_GUIDE.md)** - 개발 환경 설정
