@@ -69,6 +69,11 @@ public class TestSessionRequestDto {
   private String evaluation;
   private String nextCharter;
 
+  private String jiraIssueKey;
+  private List<TestSessionNoteDto> notes = new ArrayList<>();
+  private List<TestSessionTestDto> tests = new ArrayList<>();
+  private List<TestSessionBugDto> bugs = new ArrayList<>();
+
   @Min(value = 0)
   @Max(value = 100)
   private Integer achievement;

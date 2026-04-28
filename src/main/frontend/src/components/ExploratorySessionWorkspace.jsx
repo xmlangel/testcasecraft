@@ -15,6 +15,7 @@ import {
   Tooltip,
   Typography,
   Avatar,
+  useTheme,
 } from "@mui/material";
 import { useI18n } from "../context/I18nContext.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
@@ -85,6 +86,8 @@ const CHARTER_TEMPLATE = `# 🎯 목적 (Objective)
 `;
 
 function ExploratorySessionWorkspace({ projectId }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const { t } = useI18n();
   const { api, user } = useAppContext();
 
@@ -124,6 +127,7 @@ function ExploratorySessionWorkspace({ projectId }) {
     () => ({
       projectId: projectId || "",
       charterId: "",
+      title: "",
       testerId: user?.id || "",
       testerName: user?.username || user?.id || "Tester",
       leadId: "admin",
@@ -136,19 +140,16 @@ function ExploratorySessionWorkspace({ projectId }) {
       productVersion: "v1.0.0",
       strategyTags: [],
       areaTags: [],
-      flowNotes: "",
-      coverageNotes: "",
-      oracleNotes: "",
-      activityNotes: "",
-      bugHeadline: "",
-      blockers: "",
-      remainingQuestions: "",
-      testData: "",
-      evaluation: "",
-      nextCharter: "",
       achievement: 0,
       status: "DRAFT",
+      jiraIssueKey: "",
+      notes: [],
+      tests: [],
+      bugs: [],
+      attachments: [],
       id: null,
+      evaluation: "",
+      nextCharter: "",
     }),
     [projectId, user],
   );
@@ -185,18 +186,28 @@ function ExploratorySessionWorkspace({ projectId }) {
           id: data.id,
           projectId: data.projectId,
           charterId: data.charterId,
+          title: data.title || "",
           testerId: data.testerId,
           testerName: data.testerName,
           leadId: data.leadId,
           leadName: data.leadName,
           netDurationMinutes: data.netDurationMinutes,
-          testExecutionPct: data.testExecutionPct,
-          bugInvestigationPct: data.bugInvestigationPct,
-          setupAdminPct: data.setupAdminPct,
+          testExecutionPct: data.testExecutionPct ?? 60,
+          bugInvestigationPct: data.bugInvestigationPct ?? 25,
+          setupAdminPct: data.setupAdminPct ?? 15,
           environmentSummary: data.environmentSummary || "",
           productVersion: data.productVersion || "",
           strategyTags: data.strategyTags || [],
           areaTags: data.areaTags || [],
+          achievement: data.achievement || 0,
+          status: data.status,
+          jiraIssueKey: data.jiraIssueKey || "",
+          notes: data.notes || [],
+          tests: data.tests || [],
+          bugs: data.bugs || [],
+          attachments: data.attachments || [],
+          evaluation: data.evaluation || "",
+          nextCharter: data.nextCharter || "",
           flowNotes: data.flowNotes || "",
           coverageNotes: data.coverageNotes || "",
           oracleNotes: data.oracleNotes || "",
@@ -205,10 +216,6 @@ function ExploratorySessionWorkspace({ projectId }) {
           blockers: data.blockers || "",
           remainingQuestions: data.remainingQuestions || "",
           testData: data.testData || "",
-          evaluation: data.evaluation || "",
-          nextCharter: data.nextCharter || "",
-          achievement: data.achievement || 0,
-          status: data.status,
         });
 
         // 타이머 상태 복구
@@ -237,7 +244,18 @@ function ExploratorySessionWorkspace({ projectId }) {
         }
 
         // data loading 완료 후 view 동기화
-        if (view !== 2) handleSetView(2);
+        let targetView = 2; // 기본: 작성/편집
+        if (data.status === "APPROVED" || data.status === "ARCHIVED") {
+          targetView = 4; // 상세
+        } else if (
+          data.status === "COMPLETED" ||
+          data.status === "SUBMITTED" ||
+          data.status === "NEEDS_UPDATE"
+        ) {
+          targetView = 3; // 디브리프
+        }
+
+        if (view !== targetView) handleSetView(targetView);
       } catch (err) {
         setSessionError(err.message);
       } finally {
@@ -317,7 +335,6 @@ function ExploratorySessionWorkspace({ projectId }) {
   const [elapsedSec, setElapsedSec] = React.useState(0);
   const [pausedSec, setPausedSec] = React.useState(0);
   const [savingSession, setSavingSession] = React.useState(false);
-  const [artifacts, setArtifacts] = React.useState([]);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -375,7 +392,13 @@ function ExploratorySessionWorkspace({ projectId }) {
       ) {
         return prev;
       }
-      return { ...prev, charterId: charters[0].id };
+      const firstCharter = charters[0];
+      return {
+        ...prev,
+        charterId: firstCharter.id,
+        title:
+          prev.title || (firstCharter ? `${firstCharter.title} - Session` : ""),
+      };
     });
   }, [charters]);
 
@@ -737,17 +760,88 @@ function ExploratorySessionWorkspace({ projectId }) {
     Number(sessionDraft.bugInvestigationPct || 0) +
     Number(sessionDraft.setupAdminPct || 0);
 
-  const onUploadArtifacts = (event) => {
+  const onUploadArtifacts = async (event) => {
     const files = Array.from(event.target.files || []);
-    const mapped = files.map((file) => ({
-      id: `${file.name}-${file.size}-${Date.now()}`,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      url: URL.createObjectURL(file),
-    }));
-    setArtifacts((prev) => [...mapped, ...prev]);
-    event.target.value = "";
+    if (files.length === 0) return;
+
+    if (!sessionDraft.id) {
+      alert(
+        t(
+          "exploratory.session.saveFirst",
+          "파일을 업로드하려면 먼저 세션을 저장해야 합니다.",
+        ),
+      );
+      event.target.value = "";
+      return;
+    }
+
+    setSavingSession(true);
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await api(
+          `/api/session-attachments/upload/${sessionDraft.id}`,
+          {
+            method: "POST",
+            body: formData,
+            // api 헬퍼가 multipart/form-data인 경우 Content-Type을 자동으로 처리하지 않을 수 있으므로 확인 필요
+            // 보통 Fetch API는 FormData를 넘기면 Content-Type을 자동으로 boundary와 함께 설정함
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            await parseApiError(response, "파일 업로드에 실패했습니다."),
+          );
+        }
+
+        const data = await response.json();
+        if (data.success && data.attachment) {
+          setSessionDraft((prev) => ({
+            ...prev,
+            attachments: [data.attachment, ...(prev.attachments || [])],
+          }));
+        }
+      }
+    } catch (err) {
+      setSessionError(err.message);
+    } finally {
+      setSavingSession(false);
+      event.target.value = "";
+    }
+  };
+
+  const onDeleteArtifact = async (attachmentId) => {
+    if (!window.confirm(t("common.confirmDelete", "삭제하시겠습니까?"))) return;
+
+    setSavingSession(true);
+    try {
+      const response = await api(`/api/session-attachments/${attachmentId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await parseApiError(response, "파일 삭제에 실패했습니다."),
+        );
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setSessionDraft((prev) => ({
+          ...prev,
+          attachments: (prev.attachments || []).filter(
+            (a) => a.id !== attachmentId,
+          ),
+        }));
+      }
+    } catch (err) {
+      setSessionError(err.message);
+    } finally {
+      setSavingSession(false);
+    }
   };
 
   return (
@@ -755,12 +849,17 @@ function ExploratorySessionWorkspace({ projectId }) {
       sx={{
         p: 0,
         minHeight: "calc(100vh - 160px)",
-        background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)",
-        color: "white",
+        background: isDark
+          ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)"
+          : "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+        color: isDark ? "white" : "text.primary",
         borderRadius: 4,
         overflow: "hidden",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
-        border: "1px solid rgba(255,255,255,0.05)",
+        boxShadow: isDark
+          ? "0 20px 50px rgba(0,0,0,0.5)"
+          : "0 10px 30px rgba(0,0,0,0.05)",
+        border: "1px solid",
+        borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
       }}
     >
       <Box
@@ -770,8 +869,9 @@ function ExploratorySessionWorkspace({ projectId }) {
           justifyContent: "space-between",
           px: 3,
           py: 2,
-          background: "rgba(255,255,255,0.02)",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
+          background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
+          borderBottom: "1px solid",
+          borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center">
@@ -809,13 +909,13 @@ function ExploratorySessionWorkspace({ projectId }) {
               bgcolor: "primary.light",
             },
             "& .MuiTab-root": {
-              color: "rgba(255,255,255,0.4)",
+              color: isDark ? "rgba(255,255,255,0.4)" : "text.secondary",
               fontWeight: 600,
               fontSize: "0.875rem",
               textTransform: "none",
               minHeight: 48,
               "&.Mui-selected": {
-                color: "white",
+                color: isDark ? "white" : "primary.main",
               },
             },
           }}
@@ -892,7 +992,7 @@ function ExploratorySessionWorkspace({ projectId }) {
             selectedCharter={selectedCharter}
             totalRatio={totalRatio}
             onUploadArtifacts={onUploadArtifacts}
-            artifacts={artifacts}
+            onDeleteArtifact={onDeleteArtifact}
             statusColor={statusColor}
             saveSession={saveSession}
             submitSession={submitSession}
@@ -908,6 +1008,11 @@ function ExploratorySessionWorkspace({ projectId }) {
             sessionDraft={sessionDraft}
             setSessionDraft={setSessionDraft}
             onBackToList={handleBackToList}
+            saveSession={saveSession}
+            submitSession={submitSession}
+            savingSession={savingSession}
+            artifacts={sessionDraft.attachments || []}
+            onDeleteArtifact={onDeleteArtifact}
           />
         )}
 

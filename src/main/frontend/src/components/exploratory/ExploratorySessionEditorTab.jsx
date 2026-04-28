@@ -19,12 +19,19 @@ import {
   TextField,
   Typography,
   Divider,
+  IconButton,
+  Tooltip,
+  useTheme,
 } from "@mui/material";
 import {
   PauseCircle as PauseCircleIcon,
   PlayCircle as PlayCircleIcon,
   StopCircle as StopCircleIcon,
   UploadFile as UploadFileIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Link as LinkIcon,
+  BugReport as BugIcon,
 } from "@mui/icons-material";
 
 import {
@@ -41,6 +48,7 @@ import {
   parseMarkdownSections,
   getSectionIcon,
 } from "../../utils/exploratoryUtils";
+import JiraIssueLinker from "../JiraIntegration/JiraIssueLinker.jsx";
 
 function ExploratorySessionEditorTab({
   t,
@@ -55,7 +63,7 @@ function ExploratorySessionEditorTab({
   selectedCharter,
   totalRatio,
   onUploadArtifacts,
-  artifacts,
+  onDeleteArtifact,
   statusColor,
   saveSession,
   submitSession,
@@ -63,8 +71,119 @@ function ExploratorySessionEditorTab({
   sessionError,
   onBackToList,
 }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const [editorTab, setEditorTab] = React.useState(0);
   const charterSections = parseMarkdownSections(selectedCharter?.mission);
+
+  // Initialize notes if empty and we have legacy notes
+  React.useEffect(() => {
+    if (
+      (!sessionDraft.notes || sessionDraft.notes.length === 0) &&
+      (sessionDraft.flowNotes ||
+        sessionDraft.coverageNotes ||
+        sessionDraft.oracleNotes ||
+        sessionDraft.activityNotes)
+    ) {
+      const initialNotes = [];
+      if (sessionDraft.flowNotes)
+        initialNotes.push({
+          title: "수행 흐름 / 시나리오",
+          content: sessionDraft.flowNotes,
+        });
+      if (sessionDraft.coverageNotes)
+        initialNotes.push({
+          title: "커버리지 범위",
+          content: sessionDraft.coverageNotes,
+        });
+      if (sessionDraft.oracleNotes)
+        initialNotes.push({
+          title: "테스트 오라클 / 기대 결과",
+          content: sessionDraft.oracleNotes,
+        });
+      if (sessionDraft.activityNotes)
+        initialNotes.push({
+          title: "환경/설정/활동 상세",
+          content: sessionDraft.activityNotes,
+        });
+
+      if (initialNotes.length > 0) {
+        setSessionDraft((prev) => ({ ...prev, notes: initialNotes }));
+      }
+    }
+  }, []);
+
+  const handleAddNote = () => {
+    setSessionDraft((prev) => ({
+      ...prev,
+      notes: [...(prev.notes || []), { title: "", content: "" }],
+    }));
+  };
+
+  const handleUpdateNote = (index, field, value) => {
+    setSessionDraft((prev) => {
+      const newNotes = [...(prev.notes || [])];
+      newNotes[index] = { ...newNotes[index], [field]: value };
+      return { ...prev, notes: newNotes };
+    });
+  };
+
+  const handleDeleteNote = (index) => {
+    setSessionDraft((prev) => ({
+      ...prev,
+      notes: (prev.notes || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleAddTest = () => {
+    setSessionDraft((prev) => ({
+      ...prev,
+      tests: [
+        ...(prev.tests || []),
+        { title: "", steps: "", expectedResult: "", status: "UNTESTED" },
+      ],
+    }));
+  };
+
+  const handleUpdateTest = (index, field, value) => {
+    setSessionDraft((prev) => {
+      const newTests = [...(prev.tests || [])];
+      newTests[index] = { ...newTests[index], [field]: value };
+      return { ...prev, tests: newTests };
+    });
+  };
+
+  const handleDeleteTest = (index) => {
+    setSessionDraft((prev) => ({
+      ...prev,
+      tests: (prev.tests || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleAddBug = () => {
+    setSessionDraft((prev) => ({
+      ...prev,
+      bugs: [
+        ...(prev.bugs || []),
+        { title: "", description: "", severity: "Medium", jiraIssueKey: "" },
+      ],
+    }));
+  };
+
+  const handleUpdateBug = (index, field, value) => {
+    setSessionDraft((prev) => {
+      const newBugs = [...(prev.bugs || [])];
+      newBugs[index] = { ...newBugs[index], [field]: value };
+      return { ...prev, bugs: newBugs };
+    });
+  };
+
+  const handleDeleteBug = (index) => {
+    setSessionDraft((prev) => ({
+      ...prev,
+      bugs: (prev.bugs || []).filter((_, i) => i !== index),
+    }));
+  };
 
   const sessionStatusChip = (
     <Chip
@@ -86,11 +205,16 @@ function ExploratorySessionEditorTab({
       {/* Premium Timer / Control Bar */}
       <Card
         sx={{
-          background: "rgba(255, 255, 255, 0.05)",
+          background: isDark
+            ? "rgba(255, 255, 255, 0.05)"
+            : "rgba(0, 0, 0, 0.02)",
           backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
+          border: "1px solid",
+          borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
           borderRadius: 4,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+          boxShadow: isDark
+            ? "0 8px 32px rgba(0,0,0,0.2)"
+            : "0 4px 12px rgba(0,0,0,0.05)",
         }}
       >
         <CardContent sx={{ p: 2 }}>
@@ -125,7 +249,12 @@ function ExploratorySessionEditorTab({
                 <Box>
                   <Typography
                     variant="overline"
-                    sx={{ color: "rgba(255,255,255,0.5)", fontWeight: 700 }}
+                    sx={{
+                      color: isDark
+                        ? "rgba(255,255,255,0.5)"
+                        : "text.secondary",
+                      fontWeight: 700,
+                    }}
                   >
                     {t(
                       "exploratory.editor.timer.currentStatus",
@@ -156,8 +285,8 @@ function ExploratorySessionEditorTab({
                     disabled={timerStatus === "running"}
                     sx={{
                       borderRadius: 2,
-                      borderColor: "rgba(255,255,255,0.2)",
-                      color: "white",
+                      borderColor: isDark ? "rgba(255,255,255,0.2)" : "divider",
+                      color: isDark ? "white" : "text.primary",
                     }}
                   >
                     {t("exploratory.editor.timer.start", "Start")}
@@ -169,8 +298,8 @@ function ExploratorySessionEditorTab({
                     disabled={timerStatus !== "running"}
                     sx={{
                       borderRadius: 2,
-                      borderColor: "rgba(255,255,255,0.2)",
-                      color: "white",
+                      borderColor: isDark ? "rgba(255,255,255,0.2)" : "divider",
+                      color: isDark ? "white" : "text.primary",
                     }}
                   >
                     {t("exploratory.editor.timer.pause", "Pause")}
@@ -186,8 +315,8 @@ function ExploratorySessionEditorTab({
                     }
                     sx={{
                       borderRadius: 2,
-                      borderColor: "rgba(255,255,255,0.2)",
-                      color: "white",
+                      borderColor: isDark ? "rgba(255,255,255,0.2)" : "divider",
+                      color: isDark ? "white" : "text.primary",
                     }}
                   >
                     {t("exploratory.editor.timer.resume", "Resume")}
@@ -211,7 +340,10 @@ function ExploratorySessionEditorTab({
                   <Divider
                     orientation="vertical"
                     flexItem
-                    sx={{ mx: 1, borderColor: "rgba(255,255,255,0.1)" }}
+                    sx={{
+                      mx: 1,
+                      borderColor: isDark ? "rgba(255,255,255,0.1)" : "divider",
+                    }}
                   />
                   <Button
                     variant="contained"
@@ -248,12 +380,16 @@ function ExploratorySessionEditorTab({
                     onClick={onBackToList}
                     sx={{
                       borderRadius: 2,
-                      borderColor: "rgba(255,255,255,0.2)",
-                      color: "rgba(255,255,255,0.7)",
+                      borderColor: isDark ? "rgba(255,255,255,0.2)" : "divider",
+                      color: isDark
+                        ? "rgba(255,255,255,0.7)"
+                        : "text.secondary",
                       "&:hover": {
-                        borderColor: "white",
-                        color: "white",
-                        bgcolor: "rgba(255,255,255,0.05)",
+                        borderColor: isDark ? "white" : "primary.main",
+                        color: isDark ? "white" : "primary.main",
+                        bgcolor: isDark
+                          ? "rgba(255,255,255,0.05)"
+                          : "action.hover",
                       },
                     }}
                   >
@@ -305,7 +441,9 @@ function ExploratorySessionEditorTab({
                       sx={{
                         height: 10,
                         borderRadius: 5,
-                        bgcolor: "rgba(255,255,255,0.05)",
+                        bgcolor: isDark
+                          ? "rgba(255,255,255,0.05)"
+                          : "rgba(0,0,0,0.05)",
                         "& .MuiLinearProgress-bar": {
                           borderRadius: 5,
                           background:
@@ -338,8 +476,8 @@ function ExploratorySessionEditorTab({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                bgcolor: "rgba(211, 47, 47, 0.1)",
-                color: "#ffcdd2",
+                bgcolor: isDark ? "rgba(211, 47, 47, 0.1)" : "error.light",
+                color: isDark ? "#ffcdd2" : "error.contrastText",
               }}
             >
               {sessionError}
@@ -356,9 +494,9 @@ function ExploratorySessionEditorTab({
           px: 2,
           "& .MuiTabs-indicator": { height: 4, borderRadius: "2px 2px 0 0" },
           "& .MuiTab-root": {
-            color: "rgba(255,255,255,0.4)",
+            color: isDark ? "rgba(255,255,255,0.4)" : "text.secondary",
             fontWeight: 700,
-            "&.Mui-selected": { color: "white" },
+            "&.Mui-selected": { color: isDark ? "white" : "primary.main" },
           },
         }}
       >
@@ -367,12 +505,8 @@ function ExploratorySessionEditorTab({
           label={t("exploratory.editor.tab.basic", "기본 정보")}
         />
         <Tab
-          data-testid="exploratory-editor-tab-notes-issues"
-          label={t("exploratory.editor.tab.notesIssues", "노트/이슈")}
-        />
-        <Tab
-          data-testid="exploratory-editor-tab-artifacts-evaluation"
-          label={t("exploratory.editor.tab.artifactsEvaluation", "평가/산출물")}
+          data-testid="exploratory-editor-tab-recording"
+          label={t("exploratory.editor.tab.recording", "세션 기록")}
         />
       </Tabs>
 
@@ -494,14 +628,23 @@ function ExploratorySessionEditorTab({
                         <Select
                           value={sessionDraft.charterId}
                           label="Assigned Test Charter"
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            const charterId = e.target.value;
+                            const charter = charters.find(
+                              (c) => c.id === charterId,
+                            );
                             setSessionDraft((prev) => ({
                               ...prev,
-                              charterId: e.target.value,
-                            }))
-                          }
+                              charterId,
+                              title:
+                                prev.title ||
+                                (charter ? `${charter.title} - Session` : ""),
+                            }));
+                          }}
                           sx={{
-                            bgcolor: "rgba(255,255,255,0.02)",
+                            bgcolor: isDark
+                              ? "rgba(255,255,255,0.02)"
+                              : "rgba(0,0,0,0.02)",
                             borderRadius: 2,
                           }}
                         >
@@ -572,9 +715,16 @@ function ExploratorySessionEditorTab({
                         display: "flex",
                         borderRadius: 3,
                         overflow: "hidden",
-                        bgcolor: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        boxShadow: "inset 0 2px 10px rgba(0,0,0,0.2)",
+                        bgcolor: isDark
+                          ? "rgba(255,255,255,0.05)"
+                          : "rgba(0,0,0,0.05)",
+                        border: "1px solid",
+                        borderColor: isDark
+                          ? "rgba(255,255,255,0.1)"
+                          : "divider",
+                        boxShadow: isDark
+                          ? "inset 0 2px 10px rgba(0,0,0,0.2)"
+                          : "none",
                       }}
                     >
                       <Box
@@ -737,9 +887,14 @@ function ExploratorySessionEditorTab({
                       sx={{
                         mt: 2,
                         borderRadius: 2,
-                        bgcolor: "rgba(255, 167, 38, 0.1)",
-                        color: "#ffcc80",
-                        border: "1px solid rgba(255, 167, 38, 0.2)",
+                        bgcolor: isDark
+                          ? "rgba(255, 167, 38, 0.1)"
+                          : "warning.light",
+                        color: isDark ? "#ffcc80" : "warning.contrastText",
+                        border: "1px solid",
+                        borderColor: isDark
+                          ? "rgba(255, 167, 38, 0.2)"
+                          : "divider",
                       }}
                     >
                       Total coverage is {totalRatio}%. It should ideally be
@@ -800,12 +955,21 @@ function ExploratorySessionEditorTab({
                           sx={{
                             p: 2.5,
                             borderRadius: 3,
-                            bgcolor: "rgba(255,255,255,0.02)",
-                            border: "1px solid rgba(255,255,255,0.05)",
+                            bgcolor: isDark
+                              ? "rgba(255,255,255,0.02)"
+                              : "rgba(0,0,0,0.02)",
+                            border: "1px solid",
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.05)"
+                              : "divider",
                             transition: "all 0.2s",
                             "&:hover": {
-                              bgcolor: "rgba(255,255,255,0.04)",
-                              borderColor: "rgba(255,255,255,0.1)",
+                              bgcolor: isDark
+                                ? "rgba(255,255,255,0.04)"
+                                : "rgba(0,0,0,0.04)",
+                              borderColor: isDark
+                                ? "rgba(255,255,255,0.1)"
+                                : "primary.main",
                             },
                           }}
                         >
@@ -837,7 +1001,9 @@ function ExploratorySessionEditorTab({
                           </Stack>
                           <Typography
                             variant="body2"
-                            color="rgba(255,255,255,0.7)"
+                            color={
+                              isDark ? "rgba(255,255,255,0.7)" : "text.primary"
+                            }
                             sx={{
                               pl: 1,
                               whiteSpace: "pre-wrap",
@@ -868,403 +1034,662 @@ function ExploratorySessionEditorTab({
       )}
 
       {editorTab === 1 && (
-        <Stack spacing={3}>
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 8 }}>
+        <Grid container spacing={3}>
+          {/* Left Column: Notes & Issues */}
+          <Grid size={12}>
+            <Stack spacing={3}>
+              {/* Dynamic Notes Section */}
               <Card
                 sx={{
-                  background: "rgba(255,255,255,0.03)",
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "background.paper",
                   borderRadius: 3,
-                  border: "1px solid rgba(255,255,255,0.05)",
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
                 }}
               >
                 <CardContent>
-                  <Typography
-                    variant="subtitle2"
+                  <Box
                     sx={{
-                      fontWeight: 800,
-                      mb: 4,
-                      color: "primary.light",
-                      opacity: 0.8,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3,
                     }}
                   >
-                    {t(
-                      "exploratory.editor.notes.title",
-                      "TEST EXECUTION LOGS (NOTES)",
-                    )}
-                  </Typography>
-                  <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        minRows={6}
-                        label="수행 흐름 / 시나리오"
-                        placeholder="테스트를 수행한 주요 절차를 기록하세요."
-                        value={sessionDraft.flowNotes}
-                        onChange={(e) =>
-                          setSessionDraft((prev) => ({
-                            ...prev,
-                            flowNotes: e.target.value,
-                          }))
-                        }
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            bgcolor: "rgba(255,255,255,0.01)",
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        minRows={6}
-                        label="커버리지 범위"
-                        placeholder="테스트된 기능, 컴포넌트, 인터페이스 목록"
-                        value={sessionDraft.coverageNotes}
-                        onChange={(e) =>
-                          setSessionDraft((prev) => ({
-                            ...prev,
-                            coverageNotes: e.target.value,
-                          }))
-                        }
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            bgcolor: "rgba(255,255,255,0.01)",
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        minRows={6}
-                        label="테스트 오라클 / 기대 결과"
-                        placeholder="비교 기준 및 판단 근거 (문서, 정책, 경험 등)"
-                        value={sessionDraft.oracleNotes}
-                        onChange={(e) =>
-                          setSessionDraft((prev) => ({
-                            ...prev,
-                            oracleNotes: e.target.value,
-                          }))
-                        }
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            bgcolor: "rgba(255,255,255,0.01)",
-                          },
-                        }}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        minRows={6}
-                        label="환경/설정/활동 상세"
-                        placeholder="특이사항, 데이터 셋업, 네트워크 조건 등"
-                        value={sessionDraft.activityNotes}
-                        onChange={(e) =>
-                          setSessionDraft((prev) => ({
-                            ...prev,
-                            activityNotes: e.target.value,
-                          }))
-                        }
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            bgcolor: "rgba(255,255,255,0.01)",
-                          },
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Card
-                sx={{
-                  height: "100%",
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: 3,
-                  border: "1px solid rgba(255,255,255,0.05)",
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      fontWeight: 800,
-                      mb: 4,
-                      color: "error.light",
-                      opacity: 0.8,
-                    }}
-                  >
-                    {t(
-                      "exploratory.editor.issue.title",
-                      "DEFECTS & BLOCKERS (BUGS)",
-                    )}
-                  </Typography>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        fontWeight: 800,
+                        color: "primary.light",
+                        opacity: 0.8,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <NoteIcon />
+                      {t(
+                        "exploratory.editor.notes.title",
+                        "TEST EXECUTION LOGS (NOTES)",
+                      )}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={handleAddNote}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      {t("common.add", "추가")}
+                    </Button>
+                  </Box>
+
                   <Stack spacing={3}>
-                    <TextField
-                      fullWidth
-                      label="버그 헤드라인 (대표 이슈)"
-                      placeholder="예: 결제 모듈에서 간헐적 타임아웃 발생"
-                      value={sessionDraft.bugHeadline}
-                      onChange={(e) =>
-                        setSessionDraft((prev) => ({
-                          ...prev,
-                          bugHeadline: e.target.value,
-                        }))
-                      }
-                    />
-                    <TextField
-                      fullWidth
-                      label="테스트 방해 요소 (Blockers)"
-                      placeholder="테스트 수행을 어렵게 한 리스크나 장애"
-                      value={sessionDraft.blockers}
-                      onChange={(e) =>
-                        setSessionDraft((prev) => ({
-                          ...prev,
-                          blockers: e.target.value,
-                        }))
-                      }
-                    />
-                    <TextField
-                      fullWidth
-                      label="남은 질문 / 추가 조사 필요"
-                      placeholder="추후 확인이 필요한 모호한 동작이나 질문"
-                      value={sessionDraft.remainingQuestions}
-                      onChange={(e) =>
-                        setSessionDraft((prev) => ({
-                          ...prev,
-                          remainingQuestions: e.target.value,
-                        }))
-                      }
-                    />
+                    {(sessionDraft.notes || []).map((note, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: isDark
+                            ? "rgba(255,255,255,0.02)"
+                            : "rgba(0,0,0,0.02)",
+                          border: "1px solid",
+                          borderColor: isDark
+                            ? "rgba(255,255,255,0.05)"
+                            : "divider",
+                        }}
+                      >
+                        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label={t("common.title", "제목")}
+                            value={note.title}
+                            onChange={(e) =>
+                              handleUpdateNote(index, "title", e.target.value)
+                            }
+                            sx={{ flexGrow: 1 }}
+                          />
+                          <IconButton
+                            color="error"
+                            size="small"
+                            onClick={() => handleDeleteNote(index)}
+                            sx={{ mt: 0.5 }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Stack>
+                        <TextField
+                          fullWidth
+                          multiline
+                          minRows={3}
+                          label={t("common.content", "내용")}
+                          value={note.content}
+                          onChange={(e) =>
+                            handleUpdateNote(index, "content", e.target.value)
+                          }
+                        />
+                      </Box>
+                    ))}
+                    {(sessionDraft.notes || []).length === 0 && (
+                      <Box
+                        sx={{
+                          py: 4,
+                          textAlign: "center",
+                          opacity: 0.5,
+                          border: "1px dashed",
+                          borderColor: "divider",
+                          borderRadius: 2,
+                        }}
+                      >
+                        <Typography variant="body2">
+                          {t(
+                            "exploratory.editor.notes.empty",
+                            "노트가 없습니다. 추가 버튼을 눌러 기록을 시작하세요.",
+                          )}
+                        </Typography>
+                      </Box>
+                    )}
                   </Stack>
                 </CardContent>
               </Card>
-            </Grid>
-          </Grid>
-        </Stack>
-      )}
 
-      {editorTab === 2 && (
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Card
-              sx={{
-                background: "rgba(255,255,255,0.03)",
-                borderRadius: 3,
-                border: "1px solid rgba(255,255,255,0.05)",
-              }}
-            >
-              <CardContent>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 3 }}>
-                  {t(
-                    "exploratory.editor.artifact.title",
-                    "데이터 및 증적 (Artifacts)",
-                  )}
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  label="테스트 데이터"
-                  value={sessionDraft.testData}
-                  onChange={(e) =>
-                    setSessionDraft((prev) => ({
-                      ...prev,
-                      testData: e.target.value,
-                    }))
-                  }
-                  sx={{ mb: 3 }}
-                />
-
-                <Box
-                  sx={{
-                    p: 4,
-                    border: "2px dashed rgba(255,255,255,0.1)",
-                    borderRadius: 3,
-                    textAlign: "center",
-                    bgcolor: "rgba(255,255,255,0.02)",
-                    mb: 3,
-                  }}
-                >
-                  <Button
-                    component="label"
-                    variant="contained"
-                    startIcon={<UploadFileIcon />}
-                    sx={{ borderRadius: 2 }}
+              {/* Dynamic Tests Section */}
+              <Card
+                sx={{
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "background.paper",
+                  borderRadius: 3,
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+                }}
+              >
+                <CardContent>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3,
+                    }}
                   >
-                    {t("exploratory.editor.artifact.upload", "증적 파일 선택")}
-                    <input
-                      hidden
-                      type="file"
-                      multiple
-                      onChange={onUploadArtifacts}
-                    />
-                  </Button>
-                  <Typography
-                    variant="caption"
-                    display="block"
-                    sx={{ mt: 1, opacity: 0.5 }}
-                  >
-                    이미지, 로그 파일 등을 드래그하거나 선택하여 업로드하세요.
-                  </Typography>
-                </Box>
-
-                <Grid container spacing={2}>
-                  {(artifacts || []).length > 0 ? (
-                    (artifacts || []).map((file) => (
-                      <Grid size={{ xs: 12, sm: 6, md: 4 }} key={file.id}>
-                        <Card
-                          sx={{
-                            bgcolor: "rgba(255,255,255,0.05)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            borderRadius: 2,
-                          }}
-                        >
-                          <CardContent sx={{ p: 1.5 }}>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mb: 1,
-                              }}
-                            >
-                              <NoteIcon fontSize="small" color="primary" />
-                              <Typography
-                                variant="caption"
-                                noWrap
-                                sx={{ fontWeight: 700, flexGrow: 1 }}
-                              >
-                                {file.name}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                sx={{ opacity: 0.5 }}
-                              >
-                                {Math.ceil(file.size / 1024)}KB
-                              </Typography>
-                            </Box>
-                            {file.type && file.type.startsWith("image/") && (
-                              <Box
-                                component="img"
-                                src={file.url}
-                                sx={{
-                                  width: "100%",
-                                  borderRadius: 1,
-                                  border: "1px solid rgba(255,255,255,0.1)",
-                                }}
-                              />
-                            )}
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    ))
-                  ) : (
-                    <Grid size={12}>
-                      <Box sx={{ py: 6, textAlign: "center", opacity: 0.2 }}>
-                        <Typography variant="body2">
-                          No artifacts uploaded yet.
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  )}
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card
-              sx={{
-                height: "100%",
-                background: "rgba(255,255,255,0.03)",
-                borderRadius: 3,
-                border: "1px solid rgba(255,255,255,0.05)",
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: 800,
-                    mb: 4,
-                    color: "success.light",
-                    opacity: 0.8,
-                  }}
-                >
-                  {t(
-                    "exploratory.editor.evaluation.title",
-                    "SESSION EVALUATION",
-                  )}
-                </Typography>
-                <Stack spacing={4}>
-                  <Box>
                     <Typography
                       variant="subtitle2"
-                      display="block"
                       sx={{
-                        mb: 2,
                         fontWeight: 800,
+                        color: "success.light",
+                        opacity: 0.8,
                         display: "flex",
-                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 1,
                       }}
                     >
-                      <span>Charter Achievement</span>
-                      <span style={{ color: "#4caf50" }}>
-                        {sessionDraft.achievement}%
-                      </span>
+                      <ExitIcon />
+                      {t("exploratory.editor.tests.title", "STRUCTURED TESTS")}
                     </Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={sessionDraft.achievement}
-                      sx={{
-                        height: 12,
-                        borderRadius: 6,
-                        bgcolor: "rgba(255,255,255,0.05)",
-                        "& .MuiLinearProgress-bar": {
-                          borderRadius: 6,
-                          background:
-                            "linear-gradient(90deg, #2e7d32 0%, #4caf50 100%)",
-                        },
-                      }}
-                    />
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={handleAddTest}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      {t("common.add", "추가")}
+                    </Button>
                   </Box>
+
+                  <Stack spacing={3}>
+                    {(sessionDraft.tests || []).map((test, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: isDark
+                            ? "rgba(255,255,255,0.02)"
+                            : "rgba(0,0,0,0.02)",
+                          border: "1px solid",
+                          borderColor: isDark
+                            ? "rgba(255,255,255,0.05)"
+                            : "divider",
+                        }}
+                      >
+                        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label={t("common.title", "테스트 제목")}
+                            value={test.title}
+                            onChange={(e) =>
+                              handleUpdateTest(index, "title", e.target.value)
+                            }
+                            sx={{ flexGrow: 1 }}
+                          />
+                          <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <Select
+                              value={test.status}
+                              onChange={(e) =>
+                                handleUpdateTest(
+                                  index,
+                                  "status",
+                                  e.target.value,
+                                )
+                              }
+                            >
+                              <MenuItem value="UNTESTED">Untested</MenuItem>
+                              <MenuItem value="PASS">Pass</MenuItem>
+                              <MenuItem value="FAIL">Fail</MenuItem>
+                              <MenuItem value="BLOCK">Block</MenuItem>
+                            </Select>
+                          </FormControl>
+                          <IconButton
+                            color="error"
+                            size="small"
+                            onClick={() => handleDeleteTest(index)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Stack>
+                        <Grid container spacing={2}>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField
+                              fullWidth
+                              multiline
+                              minRows={2}
+                              label={t("common.steps", "테스트 절차")}
+                              value={test.steps}
+                              onChange={(e) =>
+                                handleUpdateTest(index, "steps", e.target.value)
+                              }
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField
+                              fullWidth
+                              multiline
+                              minRows={2}
+                              label={t("common.expectedResult", "기대 결과")}
+                              value={test.expectedResult}
+                              onChange={(e) =>
+                                handleUpdateTest(
+                                  index,
+                                  "expectedResult",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    ))}
+                    {(sessionDraft.tests || []).length === 0 && (
+                      <Box
+                        sx={{
+                          py: 4,
+                          textAlign: "center",
+                          opacity: 0.5,
+                          border: "1px dashed",
+                          borderColor: "divider",
+                          borderRadius: 2,
+                        }}
+                      >
+                        <Typography variant="body2">
+                          {t(
+                            "exploratory.editor.tests.empty",
+                            "등록된 테스트가 없습니다.",
+                          )}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+
+              {/* Dynamic Bugs Section */}
+              <Card
+                sx={{
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "background.paper",
+                  borderRadius: 3,
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+                }}
+              >
+                <CardContent>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3,
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        fontWeight: 800,
+                        color: "error.light",
+                        opacity: 0.8,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <BugIcon />
+                      {t(
+                        "exploratory.editor.bugs.title",
+                        "FOUND BUGS / DEFECTS",
+                      )}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={handleAddBug}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      {t("common.add", "추가")}
+                    </Button>
+                  </Box>
+
+                  <Stack spacing={3}>
+                    {(sessionDraft.bugs || []).map((bug, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: isDark
+                            ? "rgba(255,255,255,0.02)"
+                            : "rgba(0,0,0,0.02)",
+                          border: "1px solid",
+                          borderColor: isDark
+                            ? "rgba(255,255,255,0.05)"
+                            : "divider",
+                        }}
+                      >
+                        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label={t("common.title", "버그 제목")}
+                            value={bug.title}
+                            onChange={(e) =>
+                              handleUpdateBug(index, "title", e.target.value)
+                            }
+                            sx={{ flexGrow: 1 }}
+                          />
+                          <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <Select
+                              value={bug.severity}
+                              onChange={(e) =>
+                                handleUpdateBug(
+                                  index,
+                                  "severity",
+                                  e.target.value,
+                                )
+                              }
+                            >
+                              <MenuItem value="Low">Low</MenuItem>
+                              <MenuItem value="Medium">Medium</MenuItem>
+                              <MenuItem value="High">High</MenuItem>
+                              <MenuItem value="Critical">Critical</MenuItem>
+                            </Select>
+                          </FormControl>
+                          <IconButton
+                            color="error"
+                            size="small"
+                            onClick={() => handleDeleteBug(index)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Stack>
+                        <TextField
+                          fullWidth
+                          multiline
+                          minRows={2}
+                          label={t("common.description", "버그 설명")}
+                          value={bug.description}
+                          onChange={(e) =>
+                            handleUpdateBug(
+                              index,
+                              "description",
+                              e.target.value,
+                            )
+                          }
+                          sx={{ mb: 2 }}
+                        />
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="JIRA Issue Key (Optional)"
+                          value={bug.jiraIssueKey}
+                          onChange={(e) =>
+                            handleUpdateBug(
+                              index,
+                              "jiraIssueKey",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </Box>
+                    ))}
+                    {(sessionDraft.bugs || []).length === 0 && (
+                      <Box
+                        sx={{
+                          py: 4,
+                          textAlign: "center",
+                          opacity: 0.5,
+                          border: "1px dashed",
+                          borderColor: "divider",
+                          borderRadius: 2,
+                        }}
+                      >
+                        <Typography variant="body2">
+                          {t(
+                            "exploratory.editor.bugs.empty",
+                            "발견된 버그가 없습니다.",
+                          )}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+
+              {/* JIRA Issue Linker Section */}
+              <Card
+                sx={{
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "background.paper",
+                  borderRadius: 3,
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 800,
+                      mb: 3,
+                      color: "error.light",
+                      opacity: 0.8,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <BugIcon />
+                    {t(
+                      "exploratory.editor.issue.title",
+                      "DEFECTS & JIRA INTEGRATION",
+                    )}
+                  </Typography>
+
+                  <JiraIssueLinker
+                    projectId={sessionDraft.projectId}
+                    issueKey={sessionDraft.jiraIssueKey}
+                    onLinkIssue={(key) =>
+                      setSessionDraft((prev) => ({
+                        ...prev,
+                        jiraIssueKey: key,
+                      }))
+                    }
+                    onUnlinkIssue={() =>
+                      setSessionDraft((prev) => ({ ...prev, jiraIssueKey: "" }))
+                    }
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Artifacts Section */}
+              <Card
+                sx={{
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "background.paper",
+                  borderRadius: 3,
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 800,
+                      mb: 3,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <UploadFileIcon sx={{ opacity: 0.7 }} />
+                    {t(
+                      "exploratory.editor.artifact.title",
+                      "데이터 및 증적 (Artifacts)",
+                    )}
+                  </Typography>
+
                   <TextField
                     fullWidth
                     multiline
-                    minRows={5}
-                    label="Overall Session Evaluation"
-                    placeholder="차터 달성 여부 및 테스팅 총평..."
-                    value={sessionDraft.evaluation}
+                    minRows={2}
+                    label="테스트 데이터"
+                    placeholder="사용한 테스트 데이터 정보..."
+                    value={sessionDraft.testData}
                     onChange={(e) =>
                       setSessionDraft((prev) => ({
                         ...prev,
-                        evaluation: e.target.value,
+                        testData: e.target.value,
                       }))
                     }
+                    sx={{ mb: 3 }}
                   />
-                  <TextField
-                    fullWidth
-                    label="Proposed Next Charter"
-                    placeholder="다음 단계에서 탐색이 필요한 영역..."
-                    value={sessionDraft.nextCharter}
-                    onChange={(e) =>
-                      setSessionDraft((prev) => ({
-                        ...prev,
-                        nextCharter: e.target.value,
-                      }))
-                    }
-                  />
-                </Stack>
-              </CardContent>
-            </Card>
+
+                  <Box
+                    sx={{
+                      p: 3,
+                      border: "2px dashed",
+                      borderColor: isDark ? "rgba(255,255,255,0.1)" : "divider",
+                      borderRadius: 3,
+                      textAlign: "center",
+                      bgcolor: isDark
+                        ? "rgba(255,255,255,0.02)"
+                        : "rgba(0,0,0,0.02)",
+                      mb: 3,
+                    }}
+                  >
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      startIcon={<UploadFileIcon />}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      {t(
+                        "exploratory.editor.artifact.upload",
+                        "증적 파일 선택",
+                      )}
+                      <input
+                        hidden
+                        type="file"
+                        multiple
+                        onChange={onUploadArtifacts}
+                      />
+                    </Button>
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      sx={{ mt: 1, opacity: 0.5 }}
+                    >
+                      이미지, 로그 파일 등을 업로드하세요.
+                    </Typography>
+                  </Box>
+
+                  <Grid container spacing={2}>
+                    {(sessionDraft.attachments || []).length > 0 ? (
+                      (sessionDraft.attachments || []).map((file) => (
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={file.id}>
+                          <Card
+                            sx={{
+                              bgcolor: isDark
+                                ? "rgba(255,255,255,0.05)"
+                                : "background.paper",
+                              border: "1px solid",
+                              borderColor: isDark
+                                ? "rgba(255,255,255,0.1)"
+                                : "divider",
+                              borderRadius: 2,
+                              position: "relative",
+                            }}
+                          >
+                            <IconButton
+                              size="small"
+                              onClick={() => onDeleteArtifact(file.id)}
+                              sx={{
+                                position: "absolute",
+                                top: 5,
+                                right: 5,
+                                bgcolor: "rgba(0,0,0,0.5)",
+                                color: "white",
+                                "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
+                                zIndex: 1,
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                            <CardContent sx={{ p: 1.5 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                  mb: 1,
+                                }}
+                              >
+                                <NoteIcon fontSize="small" color="primary" />
+                                <Typography
+                                  variant="caption"
+                                  noWrap
+                                  sx={{ fontWeight: 700, flexGrow: 1 }}
+                                >
+                                  {file.originalFileName}
+                                </Typography>
+                              </Box>
+                              {file.mimeType &&
+                                file.mimeType.startsWith("image/") && (
+                                  <Box
+                                    component="img"
+                                    src={`/api/session-attachments/${file.id}/download`}
+                                    sx={{
+                                      width: "100%",
+                                      height: 120,
+                                      objectFit: "cover",
+                                      borderRadius: 1,
+                                      border: "1px solid rgba(255,255,255,0.1)",
+                                    }}
+                                  />
+                                )}
+                              {!file.mimeType?.startsWith("image/") && (
+                                <Box
+                                  sx={{
+                                    height: 120,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    bgcolor: "rgba(0,0,0,0.1)",
+                                    borderRadius: 1,
+                                  }}
+                                >
+                                  <UploadFileIcon
+                                    sx={{ fontSize: 48, opacity: 0.3 }}
+                                  />
+                                </Box>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))
+                    ) : (
+                      <Grid size={12}>
+                        <Box sx={{ py: 2, textAlign: "center", opacity: 0.3 }}>
+                          <Typography variant="caption">
+                            업로드된 파일이 없습니다.
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Stack>
           </Grid>
         </Grid>
       )}

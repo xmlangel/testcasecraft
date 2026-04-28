@@ -17,6 +17,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import {
   AccessTime as TimeIcon,
@@ -40,6 +41,8 @@ function ExploratorySessionListTab({
   onCreateSession,
   onDeleteSession,
 }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   return (
     <Stack spacing={3}>
       {sessionError && <Alert severity="error">{sessionError}</Alert>}
@@ -77,10 +80,11 @@ function ExploratorySessionListTab({
         variant="outlined"
         sx={{
           p: 2,
-          bgcolor: "rgba(255, 255, 255, 0.4)",
+          bgcolor: isDark ? "rgba(255, 255, 255, 0.05)" : "background.paper",
           backdropFilter: "blur(8px)",
           borderRadius: 2,
-          border: "1px solid rgba(0, 0, 0, 0.08)",
+          border: "1px solid",
+          borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
         }}
       >
         <Grid container spacing={2}>
@@ -304,11 +308,15 @@ function ExploratorySessionListTab({
                               sx={{
                                 opacity: 0.3,
                                 transition: "all 0.2s ease-in-out",
-                                color: "rgba(255,255,255,0.4)",
+                                color: isDark
+                                  ? "rgba(255,255,255,0.4)"
+                                  : "text.secondary",
                                 "&:hover": {
                                   opacity: 1,
                                   color: "error.main",
-                                  bgcolor: "rgba(211, 47, 47, 0.1)",
+                                  bgcolor: isDark
+                                    ? "rgba(211, 47, 47, 0.1)"
+                                    : "rgba(211, 47, 47, 0.05)",
                                   transform: "scale(1.1)",
                                 },
                                 ".MuiCard-root:hover &": { opacity: 0.8 },

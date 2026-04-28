@@ -39,14 +39,14 @@ public class LlmConfigController {
       summary = "LLM 설정 가용성 확인",
       description =
           """
-                        시스템에 기본값으로 설정된 활성 LLM이 있는지 확인합니다.
+          시스템에 기본값으로 설정된 활성 LLM이 있는지 확인합니다.
 
-                        **권한**: 모든 인증된 사용자
+          **권한**: 모든 인증된 사용자
 
-                        **사용 목적**: AI 질의응답 기능 사용 전 기본 LLM 설정 존재 여부 확인
+          **사용 목적**: AI 질의응답 기능 사용 전 기본 LLM 설정 존재 여부 확인
 
-                        **참고**: AI 질의응답을 사용하려면 최소 1개의 LLM이 **기본값(default)**으로 설정되어 있어야 합니다.
-                        """)
+          **참고**: AI 질의응답을 사용하려면 최소 1개의 LLM이 **기본값(default)**으로 설정되어 있어야 합니다.
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -72,11 +72,11 @@ public class LlmConfigController {
       summary = "모든 LLM 설정 조회",
       description =
           """
-                        시스템에 등록된 모든 LLM 설정을 조회합니다 (활성화 여부 무관).
-                        비활성화된 설정도 포함하여 관리자가 재활성화할 수 있도록 합니다.
+          시스템에 등록된 모든 LLM 설정을 조회합니다 (활성화 여부 무관).
+          비활성화된 설정도 포함하여 관리자가 재활성화할 수 있도록 합니다.
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -100,14 +100,14 @@ public class LlmConfigController {
       summary = "활성 LLM 설정 조회",
       description =
           """
-                        현재 활성화되어 있는 LLM 설정만 조회합니다.
+          현재 활성화되어 있는 LLM 설정만 조회합니다.
 
-                        **권한**: ADMIN, MANAGER, TESTER, USER
+          **권한**: ADMIN, MANAGER, TESTER, USER
 
-                        일반 사용자도 RAG 기능을 사용할 때 필요한 최소 정보를 확인할 수 있도록
-                        암호화된 API Key 대신 마스킹된 값만 반환합니다.
-                        기본값(default)으로 지정된 설정만 전달됩니다.
-                        """)
+          일반 사용자도 RAG 기능을 사용할 때 필요한 최소 정보를 확인할 수 있도록
+          암호화된 API Key 대신 마스킹된 값만 반환합니다.
+          기본값(default)으로 지정된 설정만 전달됩니다.
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -131,10 +131,10 @@ public class LlmConfigController {
       summary = "특정 LLM 설정 조회",
       description =
           """
-                        ID로 특정 LLM 설정을 조회합니다.
+          ID로 특정 LLM 설정을 조회합니다.
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -166,10 +166,10 @@ public class LlmConfigController {
       summary = "기본 LLM 설정 조회",
       description =
           """
-                        시스템에서 기본으로 사용하는 LLM 설정을 조회합니다.
+          시스템에서 기본으로 사용하는 LLM 설정을 조회합니다.
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -199,10 +199,10 @@ public class LlmConfigController {
       summary = "제공자별 LLM 설정 조회",
       description =
           """
-                        특정 제공자(OPENWEBUI 또는 OPENAI)의 활성화된 설정들을 조회합니다.
+          특정 제공자(OPENWEBUI 또는 OPENAI)의 활성화된 설정들을 조회합니다.
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -228,17 +228,17 @@ public class LlmConfigController {
       summary = "LLM 설정 생성",
       description =
           """
-                        새로운 LLM 설정을 생성합니다.
+          새로운 LLM 설정을 생성합니다.
 
-                        **필수 필드**:
-                        - name: 설정 이름
-                        - provider: LLM 제공자 (OPENWEBUI, OPENAI)
-                        - apiUrl: API URL
-                        - apiKey: API Key (평문으로 전송, AES-256으로 암호화되어 저장)
-                        - modelName: 모델 이름 (예: llama3.1, gpt-4)
+          **필수 필드**:
+          - name: 설정 이름
+          - provider: LLM 제공자 (OPENWEBUI, OPENAI)
+          - apiUrl: API URL
+          - apiKey: API Key (평문으로 전송, AES-256으로 암호화되어 저장)
+          - modelName: 모델 이름 (예: llama3.1, gpt-4)
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "201",
@@ -274,14 +274,14 @@ public class LlmConfigController {
       summary = "LLM 설정 수정",
       description =
           """
-                        기존 LLM 설정을 수정합니다.
+          기존 LLM 설정을 수정합니다.
 
-                        **수정 가능 필드**:
-                        - name, provider, apiUrl, modelName, apiKey
-                        - apiKey는 변경 시에만 전송 (생략 시 기존 값 유지)
+          **수정 가능 필드**:
+          - name, provider, apiUrl, modelName, apiKey
+          - apiKey는 변경 시에만 전송 (생략 시 기존 값 유지)
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -321,12 +321,12 @@ public class LlmConfigController {
       summary = "LLM 설정 삭제",
       description =
           """
-                        LLM 설정을 삭제합니다.
+          LLM 설정을 삭제합니다.
 
-                        **주의**: 기본 설정이면서 유일한 설정인 경우 삭제할 수 없습니다.
+          **주의**: 기본 설정이면서 유일한 설정인 경우 삭제할 수 없습니다.
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -365,11 +365,11 @@ public class LlmConfigController {
       summary = "기본 설정으로 지정",
       description =
           """
-                        특정 LLM 설정을 기본 설정으로 지정합니다.
-                        기존 기본 설정은 자동으로 해제됩니다.
+          특정 LLM 설정을 기본 설정으로 지정합니다.
+          기존 기본 설정은 자동으로 해제됩니다.
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -408,14 +408,14 @@ public class LlmConfigController {
       summary = "LLM 연결 테스트",
       description =
           """
-                        LLM API에 실제 연결하여 설정이 정상인지 테스트합니다.
+          LLM API에 실제 연결하여 설정이 정상인지 테스트합니다.
 
-                        **테스트 방법**:
-                        - 간단한 "Hello" 메시지로 API 호출
-                        - max_tokens 10으로 제한하여 비용 최소화
+          **테스트 방법**:
+          - 간단한 "Hello" 메시지로 API 호출
+          - max_tokens 10으로 제한하여 비용 최소화
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -453,24 +453,24 @@ public class LlmConfigController {
       summary = "저장하지 않고 LLM 설정 테스트",
       description =
           """
-                        다이얼로그에서 설정을 입력 중일 때, 저장하기 전에 설정이 올바른지 테스트합니다.
+          다이얼로그에서 설정을 입력 중일 때, 저장하기 전에 설정이 올바른지 테스트합니다.
 
-                        **사용 시나리오**:
-                        - 설정 생성/수정 다이얼로그에서 "테스트 연결" 버튼 클릭
-                        - DB에 저장하지 않고 입력된 설정으로 바로 연결 테스트
+          **사용 시나리오**:
+          - 설정 생성/수정 다이얼로그에서 "테스트 연결" 버튼 클릭
+          - DB에 저장하지 않고 입력된 설정으로 바로 연결 테스트
 
-                        **테스트 방법**:
-                        - 간단한 "Hello" 메시지로 API 호출
-                        - max_tokens 16으로 제한하여 비용 최소화
+          **테스트 방법**:
+          - 간단한 "Hello" 메시지로 API 호출
+          - max_tokens 16으로 제한하여 비용 최소화
 
-                        **필수 필드**:
-                        - provider: LLM 제공자
-                        - apiUrl: API URL
-                        - apiKey: API Key (평문)
-                        - modelName: 모델 이름
+          **필수 필드**:
+          - provider: LLM 제공자
+          - apiUrl: API URL
+          - apiKey: API Key (평문)
+          - modelName: 모델 이름
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -508,12 +508,12 @@ public class LlmConfigController {
       summary = "활성/비활성 토글",
       description =
           """
-                        LLM 설정을 활성화 또는 비활성화합니다.
+          LLM 설정을 활성화 또는 비활성화합니다.
 
-                        **주의**: 기본 설정이면서 유일한 설정인 경우 비활성화할 수 없습니다.
+          **주의**: 기본 설정이면서 유일한 설정인 경우 비활성화할 수 없습니다.
 
-                        **권한**: ADMIN
-                        """)
+          **권한**: ADMIN
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -552,11 +552,11 @@ public class LlmConfigController {
       summary = "기본 테스트 케이스 템플릿 조회",
       description =
           """
-                        시스템에 정의된 기본 테스트 케이스 생성 템플릿(JSON)을 조회합니다.
-                         Frontend에서 하드코딩된 값 대신 이 API를 사용하여 항상 최신 형식을 유지할 수 있습니다.
+          시스템에 정의된 기본 테스트 케이스 생성 템플릿(JSON)을 조회합니다.
+           Frontend에서 하드코딩된 값 대신 이 API를 사용하여 항상 최신 형식을 유지할 수 있습니다.
 
-                        **권한**: 모든 인증된 사용자
-                        """)
+          **권한**: 모든 인증된 사용자
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",

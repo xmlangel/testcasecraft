@@ -22,7 +22,7 @@ public class DatabaseConstraintFixer {
       } catch (Exception e) {
         System.err.println(
             "Failed to fix test_sessions_status_check constraint: " + e.getMessage());
-        // 제약 조건이 이미 올바르거나 테이블이 없을 수 있음 (H2 등)
+        // 제약 조건이 이미 올바르거나 테이블이 없을 수 있음
       }
     };
   }

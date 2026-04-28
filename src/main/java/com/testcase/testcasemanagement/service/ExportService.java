@@ -578,7 +578,7 @@ public class ExportService {
         return result.getPriority();
       case "category":
         return result.getCategory();
-        // 새로 추가된 컬럼들의 필드 값 처리 추가
+      // 새로 추가된 컬럼들의 필드 값 처리 추가
       case "preCondition":
         return result.getPreCondition();
       case "expectedResults":

@@ -1,7 +1,11 @@
 package com.testcase.testcasemanagement.service;
 
+import com.testcase.testcasemanagement.dto.TestSessionAttachmentDto;
+import com.testcase.testcasemanagement.dto.TestSessionBugDto;
+import com.testcase.testcasemanagement.dto.TestSessionNoteDto;
 import com.testcase.testcasemanagement.dto.TestSessionRequestDto;
 import com.testcase.testcasemanagement.dto.TestSessionResponseDto;
+import com.testcase.testcasemanagement.dto.TestSessionTestDto;
 import com.testcase.testcasemanagement.exception.ResourceNotFoundException;
 import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.model.Project;
@@ -11,6 +15,7 @@ import com.testcase.testcasemanagement.model.TestSessionApproval;
 import com.testcase.testcasemanagement.model.TestSessionInterruption;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestSessionApprovalRepository;
+import com.testcase.testcasemanagement.repository.TestSessionAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestSessionInterruptionRepository;
 import com.testcase.testcasemanagement.repository.TestSessionRepository;
 import java.time.Duration;
@@ -39,6 +44,7 @@ public class TestSessionService {
   @Autowired private TestSessionApprovalRepository testSessionApprovalRepository;
 
   @Autowired private TestSessionInterruptionRepository testSessionInterruptionRepository;
+  @Autowired private TestSessionAttachmentRepository testSessionAttachmentRepository;
 
   public TestSessionResponseDto createSession(TestSessionRequestDto request) {
     validateTimeDistribution(request);
@@ -316,6 +322,49 @@ public class TestSessionService {
     session.setEvaluation(request.getEvaluation());
     session.setNextCharter(request.getNextCharter());
     session.setAchievement(request.getAchievement());
+    session.setJiraIssueKey(request.getJiraIssueKey());
+
+    if (request.getNotes() != null) {
+      session.getNotes().clear();
+      request
+          .getNotes()
+          .forEach(
+              n ->
+                  session
+                      .getNotes()
+                      .add(
+                          new com.testcase.testcasemanagement.model.TestSessionNote(
+                              n.getTitle(), n.getContent())));
+    }
+
+    if (request.getTests() != null) {
+      session.getTests().clear();
+      request
+          .getTests()
+          .forEach(
+              t ->
+                  session
+                      .getTests()
+                      .add(
+                          new com.testcase.testcasemanagement.model.TestSessionTest(
+                              t.getTitle(), t.getSteps(), t.getExpectedResult(), t.getStatus())));
+    }
+
+    if (request.getBugs() != null) {
+      session.getBugs().clear();
+      request
+          .getBugs()
+          .forEach(
+              b ->
+                  session
+                      .getBugs()
+                      .add(
+                          new com.testcase.testcasemanagement.model.TestSessionBug(
+                              b.getTitle(),
+                              b.getDescription(),
+                              b.getSeverity(),
+                              b.getJiraIssueKey())));
+    }
   }
 
   private TestSession findById(String id) {
@@ -407,6 +456,44 @@ public class TestSessionService {
     dto.setEvaluation(session.getEvaluation());
     dto.setNextCharter(session.getNextCharter());
     dto.setAchievement(session.getAchievement());
+    dto.setJiraIssueKey(session.getJiraIssueKey());
+
+    if (session.getNotes() != null) {
+      dto.setNotes(
+          session.getNotes().stream()
+              .map(n -> new TestSessionNoteDto(n.getTitle(), n.getContent()))
+              .collect(java.util.stream.Collectors.toList()));
+    }
+
+    if (session.getTests() != null) {
+      dto.setTests(
+          session.getTests().stream()
+              .map(
+                  t ->
+                      new TestSessionTestDto(
+                          t.getTitle(), t.getSteps(), t.getExpectedResult(), t.getStatus()))
+              .collect(java.util.stream.Collectors.toList()));
+    }
+
+    if (session.getBugs() != null) {
+      dto.setBugs(
+          session.getBugs().stream()
+              .map(
+                  b ->
+                      new TestSessionBugDto(
+                          b.getTitle(), b.getDescription(), b.getSeverity(), b.getJiraIssueKey()))
+              .collect(java.util.stream.Collectors.toList()));
+    }
+
+    List<com.testcase.testcasemanagement.model.TestSessionAttachment> attachments =
+        testSessionAttachmentRepository.findActiveBySessionId(session.getId());
+    if (attachments != null) {
+      dto.setAttachments(
+          attachments.stream()
+              .map(TestSessionAttachmentDto::fromEntity)
+              .collect(java.util.stream.Collectors.toList()));
+    }
+
     dto.setStatus(session.getStatus().name());
     dto.setReviewComment(session.getReviewComment());
     dto.setStartedAt(session.getStartedAt());

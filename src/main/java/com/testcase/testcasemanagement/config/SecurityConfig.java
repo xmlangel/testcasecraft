@@ -52,8 +52,6 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(csrf -> csrf.disable())
-        .headers(
-            headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // H2 콘솔을 위한 설정
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider()) // AuthenticationProvider 명시적 등록
@@ -106,8 +104,6 @@ public class SecurityConfig {
                     .permitAll() // 이메일 인증 API 허용
                     .requestMatchers("/api/guides/**")
                     .permitAll() // 가이드 API 허용
-                    .requestMatchers("/h2-console/**")
-                    .permitAll() // H2 콘솔 허용
                     // 액추에이터 엔드포인트 허용 (루트, 헬스, 스케줄러)
                     .requestMatchers(
                         "/actuator",
