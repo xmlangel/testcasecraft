@@ -135,3 +135,12 @@ GitHub Release 생성을 위해 기본 `GITHUB_TOKEN`을 사용합니다.
 - `build_release` 성공 후 Release 내용 확인
 - 문제 없으면 동일 버전으로 `push_only` 실행
 - `target`을 빌드 단계와 동일하게 유지
+
+---
+
+## 📚 관련 문서
+
+- **[메인 가이드](../../AGENTS.md)** - 프로젝트 전체 개요
+- **[개발 가이드](./DEVELOPMENT_GUIDE.md)** - 개발 환경 및 워크플로우 가이드
+- **[API 가이드](./API_GUIDE.md)** - API 개발 가이드라인
+- **[E2E 테스트 가이드](./E2E_TESTING_GUIDE.md)** - E2E 테스트 작성 및 실행 가이드

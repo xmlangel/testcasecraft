@@ -1,249 +1,165 @@
-# AGENTS.md (Unified Guidelines)
+# AGENTS.md (Unified AI Guidelines)
 
-This file provides comprehensive guidance for AI Agents when working with code in this repository.
-**This is the SINGLE SOURCE OF TRUTH for all agent instructions.**
+SINGLE SOURCE OF TRUTH for all agent instructions.
 
----
+## 1. Core Policies & Constraints
 
-## 1. 🚀 Project Overview
+### 1.1. Operational Constraints
 
-### 1.1. General
+- File Deletion: DO NOT delete files (rm) without explicit user approval. Explain reasons first.
+- Process Control: DO NOT terminate processes (pkill, kill) or run build commands (./gradlew clean/bootRun) directly. Guide the user to perform these actions.
+- Language: ALWAYS respond in Korean (한국어) for all outputs (responses, plans, walkthroughs, commit messages).
+- **Documentation Sync**: When modifying this file (`AGENTS.md`), you MUST also update the Korean translation file (`AGENTS_KO.md`) to keep them synchronized for the user.
 
-This is a full-stack test case management application built with:
+### 1.2. Backend Modification Workflow
 
-- **Frontend**: React 18 with Material-UI and React Router for SPA navigation
-- **Backend**: Spring Boot 3.4.12 with Java 21, PostgreSQL database
-- **Authentication**: JWT-based authentication with access/refresh token system
-- **Build System**: Gradle with integrated Node.js frontend build
-  - **⚠️ IMPORTANT**: `./gradlew bootRun` builds **both frontend and backend** and runs them together
-  - Frontend is automatically built (Vite build to `src/main/frontend/build`) and served from `src/main/resources/static/`
-  - **DO NOT** run frontend dev server separately unless specifically needed for hot-reload development
-  - Application runs on **port 8080** (backend serves frontend static files)
-  - **개발 환경 전제조건**: Docker Compose로 PostgreSQL, MinIO, RAG 서비스 실행 필요
-- **Testing**: TestNG with Allure reporting, Playwright MCP for automated browser testing and UI validation
-- **Unit Testing Framework**: TestNG (NOT JUnit) - 모든 단위 테스트는 TestNG로 작성
+1. Restart Application: Request user to pkill bootRun and restart.
+2. Session Verification: Recommend re-login for stable testing.
+3. Database State: Check ddl-auto: update for schema changes.
 
-### 1.2. Architecture
+### 1.3. AI Behavioral Guidelines (Karpathy Principles)
 
-상세한 시스템 아키텍처 정보는 **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** 문서를 참고하세요.
+#### 1.3.1. Think Before Coding
 
-### 1.3. Key Components
+- **Don't assume**: State assumptions explicitly. If uncertain, stop and ask.
+- **Surface tradeoffs**: If multiple interpretations or approaches exist, present them instead of picking silently.
+- **Push back**: If a simpler approach exists, suggest it.
+- **Stop on confusion**: If something is unclear, name exactly what is confusing and ask for clarification.
 
-- **Test Case Management**: Hierarchical tree structure with parent-child relationships
-- **Test Plan Management**: Collections of test cases for execution planning
-- **Test Execution**: Running test plans and recording results
-- **Project Management**: Multi-project support with user authentication
-- **Dashboard**: Progress tracking and reporting with charts
+#### 1.3.2. Simplicity First
 
-### 1.4. Key Files and Locations
+- **Minimum code**: Solve the problem with the least amount of code. No speculative abstractions.
+- **No unrequested features**: Do not add "flexibility" or "configurability" that wasn't asked for.
+- **Avoid single-use abstractions**: Do not create generic components or functions for one-time use cases.
+- **Rewrite if needed**: If a long solution can be simplified significantly, rewrite it for simplicity.
 
-#### Frontend Key Files
+#### 1.3.3. Surgical Changes
 
-- `src/main/frontend/src/App.jsx` - Main application component with routing
-- `src/main/frontend/src/context/AppContext.jsx` - Global state management
-- `src/main/frontend/src/components/` - All React components
-- `src/main/frontend/src/models/` - Data models and demo data
-- `src/main/frontend/src/utils/` - Utility functions for tree operations and progress calculation
+- **Targeted edits**: Touch only what you must. Do not "improve" adjacent code, comments, or formatting.
+- **Match existing style**: Adhere to the current codebase style, even if you prefer a different approach.
+- **Cleanup your own mess**: Remove imports, variables, or functions that YOUR changes made unused. Do not remove pre-existing dead code unless asked.
+- **Traceability**: Every changed line should trace directly back to the user's request.
 
-#### Backend Key Files
+#### 1.3.4. Goal-Driven Execution
 
-- `src/main/java/com/testcase/testcasemanagement/` - Main application package
-- `src/main/resources/application.yml` - Spring configuration
-- `src/test/java/` - Java test files with JSON schema validation
-- `src/test/resources/schemas/` - JSON schemas for API testing
+- **Define success criteria**: Transform tasks into verifiable goals (e.g., "Fix the bug" → "Write a reproduction test, then make it pass").
+- **Step → Verify loop**: For multi-step tasks, follow a "Plan → Execute Step → Verify" cycle.
+- **Strong criteria**: Use clear, verifiable metrics for completion rather than vague "make it work" goals.
 
-#### E2E Testing Files
+## 2. Architecture & Design Patterns
 
-- `src/test/e2e/e2e-testcase-app.js` - 메인 E2E 테스트 스크립트 (UI 검증, 성능 측정)
-- `src/test/e2e/playwright-test.js` - 기본 Playwright 기능 테스트
-- `src/test/e2e/authentication/` - 인증 관련 E2E 테스트
-- `src/test/e2e/dashboard/` - 대시보드 관련 E2E 테스트
-- `src/test/e2e/playwright.config.js` - Playwright 설정 파일
-- `playwright-report/` - Playwright 테스트 리포트
-- `.claude-mcp.json` - Playwright MCP 서버 설정
+For detailed system architecture and data models, refer to [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-#### Configuration
+### 2.1. Backend Layered Architecture
 
-- `build.gradle` - Main build configuration with frontend integration
-- `src/main/frontend/package.json` - Frontend dependencies and scripts
-- `src/test/resources/allure.properties` - Allure reporting configuration
+- **Controller**: Request validation, DTO mapping, endpoint definition. No business logic.
+- **Service**: Transaction management, business logic, external system calls (MinIO, RAG).
+- **Repository**: Spring Data JPA for database access.
+- **Model**: JPA Entities. Use Audit fields where applicable.
 
-#### i18n (다국어) 시스템 파일
+### 2.2. Frontend Patterns
 
-**⚠️ 중요**: 새로운 번역을 추가할 때는 **반드시 모든 관련 파일을 수정**해야 합니다.
+- **State Management**: React Context API (`AppContext`, `AuthContext`, `ProjectContext`).
+- **Data Fetching**: Axios services in `src/main/frontend/src/services/`.
+- **Component Structure**: Keep components focused. Extract heavy logic to `hooks/` or `utils/`.
 
-**번역 키 정의 (Translation Keys)**:
+### 2.3. System Components
 
-- `src/main/java/com/testcase/testcasemanagement/config/i18n/keys/` - 번역 키 초기화 클래스들
-- `src/main/java/com/testcase/testcasemanagement/config/i18n/TranslationKeyDataInitializer.java` - **반드시 여기에 등록 필수**
+- **Spring Boot (8080)**: Main API + Serves Frontend Static Files.
+- **FastAPI RAG (8001)**: Document processing and vector search.
+- **PostgreSQL (5434)**: Main relational data.
+- **MinIO (9000)**: Object storage for attachments and RAG documents.
 
-**🔧 번역 추가 4단계 프로세스**:
+## 3. Project Overview & Tech Stack
 
-1. **번역 키 추가**: `keys/` 하위의 적절한 `KeysInitializer` 클래스에 키 추가
-2. **한글 번역 추가**: `translations/` 하위의 관련 `Korean...Translations` 클래스에 번역 추가
-3. **영어 번역 추가**: `translations/` 하위의 관련 `English...Translations` 클래스에 번역 추가
-4. **🔴 Initializer 등록 (CRITICAL)**: 새로운 `KeysInitializer`를 만든 경우 `TranslationKeyDataInitializer.java`에 필드 추가 및 `initialize()` 메서드 호출 필수
+### 3.1. Core Stack
 
----
+- Frontend: React 18, Material-UI, React Router, Recharts.
+- Backend: Spring Boot 3.4.12, Java 21, PostgreSQL.
+- Auth: JWT (Access/Refresh tokens) + Spring Security 6.
+- Build: Gradle with Node.js integration (Vite build).
+- Testing: TestNG (Unit), Playwright (E2E), Allure (Reporting).
 
-## 2. 💻 Development Environment & Workflow
+### 3.2. Key Components
 
-### 2.1. Prerequisites
+- Test Case Management: Hierarchical tree structure.
+- Test Plan/Execution: Collections and result recording.
+- Project Management: Multi-project support.
+- Dashboard: Progress charts and system metrics.
 
-**⚠️ Java Version Requirement**: This project requires **Java 21**.
+## 4. File Structure & Key Locations
 
-### 2.2. Development Commands
+### 4.1. Frontend
 
-#### Frontend Development
+- `src/main/frontend/src/App.jsx`: Main routing.
+- `src/main/frontend/src/context/`: Global state management.
+- `src/main/frontend/src/components/`: UI components.
+- `src/main/frontend/src/services/`: API client services.
+- `src/main/frontend/src/utils/`: Tree/progress logic.
 
-```bash
-cd src/main/frontend
-npm install          # Install dependencies
-npm start           # Start development server (port 3000)
-npm run build       # Build for production
-```
+### 4.2. Backend
 
-#### Backend Development
+- `src/main/java/com/testcase/testcasemanagement/`: Main package.
+- `controller/`, `service/`, `repository/`, `model/`: Standard layered packages.
+- `src/main/resources/application.yml`: Configuration.
 
-```bash
-# 기본 개발 명령어
-./gradlew bootRun                    # Start Spring Boot application (includes frontend)
-./gradlew build                      # Build entire project
-./gradlew test                       # Run Java tests
-./gradlew allureReport              # Generate Allure test reports
-```
+### 4.3. E2E Testing (Playwright)
 
-#### ⚠️ Backend Modification Workflow (Required Steps)
+- `src/test/e2e/e2e-testcase-app.js`: Main E2E script.
+- `src/test/e2e/playwright.config.js`: Configuration.
+- `src/test/e2e/authentication/`, `src/test/e2e/dashboard/`: Module tests.
 
-백엔드 코드 수정 후에는 **반드시** 다음 절차를 수행해야 합니다:
+## 5. Development & Testing Commands
 
-1. **Restart Application**: `pkill -f "bootRun"` 후 재시작 (또는 IDE의 재시작 버튼 활용)
-2. **Session Verification**: 서버 재시작 시 기존 JWT 토큰은 데이터베이스에 유지되나, 안정적인 테스트를 위해 재로그인 권장
-3. **Database State**: PostgreSQL 데이터는 유지되므로, 스키마 변경 시 `ddl-auto: update` 설정 확인 필수
+### 5.1. Development
 
----
+- Frontend: `cd src/main/frontend && npm install && npm start`
+- Backend/Full: `./gradlew bootRun` (builds frontend to `src/main/resources/static/`)
+- Backend port: 8080
 
-## 3. 🧪 Testing Guidelines
+### 5.2. Testing
 
-### 3.1. Overall Testing Strategy
+- Backend Unit: `./gradlew test` (Use TestNG, NOT JUnit).
+- Specific Test: `./gradlew test --tests "*ControllerTest*"`.
+- E2E Execution: `npm run test:ict-138 --prefix src/test/e2e` (Requires backend on 8080).
+- Allure Report: `./gradlew allureReport`.
 
-- **Backend Unit & Integration Tests**: TestNG
-- **API Schema Validation**: JSON Schema
-- **E2E Tests**: Playwright
-- **Reporting**: Allure (Backend), Playwright Reporter (E2E)
+## 6. i18n System (Translation)
 
-### 3.2. Backend Testing (TestNG)
+### 6.1. Key Locations
 
-```bash
-# 로컬 데이터베이스로 테스트
-SPRING_PROFILES_ACTIVE=local ./gradlew test
+- Definitions: `src/main/java/com/testcase/testcasemanagement/config/i18n/keys/`.
+- Initializer: `src/main/java/com/testcase/testcasemanagement/config/i18n/TranslationKeyDataInitializer.java`.
 
-# 특정 테스트 실행
-./gradlew test --tests "*ControllerTest*"
-```
+### 6.2. Addition Process
 
-### 3.3. E2E Testing (Playwright)
+1. Keys: Add to appropriate `KeysInitializer` in `keys/`.
+2. Korean: Add to `Korean...Translations` in `translations/`.
+3. English: Add to `English...Translations` in `translations/`.
+4. Register: **CRITICAL** - Register new `KeysInitializer` in `TranslationKeyDataInitializer.java`.
 
-#### Overview
+## 7. Infrastructure & Startup
 
-Playwright is the primary E2E testing tool. See `docs/E2E_TESTING_GUIDE.md` for full details.
+### 7.1. Prerequisites
 
-#### Prerequisites
+- Java 21, Docker, Docker Compose.
+- Infrastructure: `cd docker-compose-build && docker-compose up -d`.
+- Credentials: admin / admin123.
+- URL: http://localhost:8080.
 
-1. **Docker services running**: PostgreSQL, MinIO, RAG service
-2. **Backend is running**: `./gradlew bootRun`
-3. **Application is accessible**: `curl http://localhost:8080`
-4. **Database has test data**: Admin user and test projects exist
+## 8. Coding Guidelines
 
-#### How to Run E2E Tests
+Adhere to the following specialized guidelines for different technical areas:
 
-**⚠️ Important**: Run from **project root directory**.
-
-```bash
-# 1. Restart Backend (Required for clean state)
-pkill -f "bootRun"
-SPRING_PROFILES_ACTIVE=local ./gradlew bootRun > app.log 2>&1 &
-sleep 25
-
-# 2. Run Tests
-npm run test:ict-138 --prefix src/test/e2e
-```
-
-#### E2E Navigation Structure & Selectors
-
-- **Flow**: 로그인(/) → 프로젝트 선택(/projects) → 개별 프로젝트(/projects/{id}) → 탭 선택
-- **Selectors**:
-  - `data-testid` 사용 권장 (예: `login-submit-button`, `testcase-tree-item-${id}`)
-  - Text selector: `text=대시보드`, `button:has-text("저장")`
-
-#### Test Rules
-
-- **환경 설정**: `baseURL: 'http://localhost:8080'` 사용 (원격 서버 접속 금지)
-- **완료 판정**: API 응답 확인만으로는 부족하며, 실제 UI 동작 검증 필요.
-
----
-
----
-
-## 4. 🤖 MCP & AI Integration
-
-- **Context7**: Documentation & Patterns
-- **Playwright**: E2E Testing
-
----
-
-## 5. 📝 Project-Specific Notes
-
-- **Communication Language**: **ALWAYS use Korean (한국어)** for all responses, comments, and artifacts.
-- **Artifacts**: `walkthrough.md`, `implementation_plan.md` must be in **Korean**.
-
----
-
-## 6. 🚀 Application Startup Guide
-
-### 6.1. Prerequisites
-
-- **Java 21** installed and configured
-- **Docker & Docker Compose** installed
-- **Docker services running**: PostgreSQL, MinIO, RAG service
-
-### 6.2. Starting Infrastructure (Docker)
-
-```bash
-cd docker-compose-build
-docker-compose -f docker-compose.yml up -d postgres postgres-rag minio rag-service
-```
-
-### 6.3. Starting Application (Spring Boot + Frontend)
-
-```bash
-cd .. # Project Root
-./gradlew bootRun
-```
-
-- Runs on **http://localhost:8080**
-- Basic login: admin / admin123
-
-### 6.4. Troubleshooting Startup Issues
-
-- **Database Connection Issues**: `docker-compose -f docker-compose.yml ps` 로 상태 확인 및 로그 점검
-- **Memory Issues**: `export JAVA_OPTS="-Xmx2g -Xms1g"` 로 힙 메모리 증설
-
----
-
-## 7. 🚨 File Deletion Policy
-
-**⛔ Agent 파일 삭제 금지 (사용자 승인 필수)**
-
-- **원칙**: Agent는 파일을 직접 삭제(`rm`)하지 않습니다.
-- **절차**: 삭제가 필요한 경우 사용자에게 이유를 설명하고 승인을 요청합니다.
-
----
-
-## 8. 🚨 프로세스 종료 및 빌드 정책
-
-**⛔ Agent는 프로세스 종료 및 빌드 명령을 직접 실행하지 않음**
-
-- **프로세스 종료**: 사용자가 직접 Java 프로세스 종료 (`pkill`, `kill` 등)
-- **애플리케이션 빌드**: 사용자가 직접 `./gradlew clean` 및 `./gradlew bootRun` 실행
-- **Agent 역할**: 문제 진단, 명령어 가이드 제공, 코드 수정 및 검증
+- **General Development**: [DEVELOPMENT_GUIDE.md](docs/code-guide-line/DEVELOPMENT_GUIDE.md)
+- **Backend (Java)**: [JAVA_CODING_GUIDELINES.md](docs/code-guide-line/JAVA_CODING_GUIDELINES.md)
+- **Backend (FastAPI)**: [FASTAPI_CODING_GUIDELINES.md](docs/code-guide-line/FASTAPI_CODING_GUIDELINES.md)
+- **Frontend (React)**: [REACT_CODING_GUIDELINES.md](docs/code-guide-line/REACT_CODING_GUIDELINES.md)
+- **API Design**: [API_GUIDE.md](docs/code-guide-line/API_GUIDE.md)
+- **Testing**:
+  - [TEST_ARCHITECTURE_GUIDE.md](docs/code-guide-line/TEST_ARCHITECTURE_GUIDE.md)
+  - [API_TESTING_GUIDE_SUMMARY.md](docs/code-guide-line/API_TESTING_GUIDE_SUMMARY.md)
+  - [E2E_TESTING_GUIDE.md](docs/code-guide-line/E2E_TESTING_GUIDE.md)
+- **Security & DevOps**:
+  - [SECURITY_GUIDE.md](docs/code-guide-line/SECURITY_GUIDE.md)
+  - [GITHUB_ACTION_GUIDE.md](docs/code-guide-line/GITHUB_ACTION_GUIDE.md)

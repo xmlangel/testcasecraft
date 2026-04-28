@@ -289,6 +289,7 @@ sequenceDiagram
 
 ## 📚 관련 문서
 
-- **[README.md](../README.md)** - 프로젝트 전체 개요
+- **[README.md](../../README.md)** - 프로젝트 전체 개요
 - **[DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)** - 개발 환경 설정
-- **[JIRA_INTEGRATION.md](./JIRA_INTEGRATION.md)** - JIRA 연동 가이드
+- **[API 가이드](./API_GUIDE.md)** - API 개발 가이드라인
+- **[GitHub Actions 가이드](./GITHUB_ACTION_GUIDE.md)** - Docker 빌드 및 배포 자동화

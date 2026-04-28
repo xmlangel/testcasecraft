@@ -546,4 +546,4 @@ docker-compose up
 ---
 
 > 본 문서는 코드베이스 스냅샷 기반이며, 구조 변경 시 함께 갱신해야 한다.
-> 관련 문서: `docs/PROJECT_OVERVIEW.md`, `docs/RAG_SERVICE_STRUCTURE.md`, `docs/SECURITY_GUIDE.md`, `docs/E2E_TESTING_GUIDE.md`, `docs/DEVELOPMENT_GUIDE.md`
+> 관련 문서: `docs/PROJECT_OVERVIEW.md`, `docs/RAG_SERVICE_STRUCTURE.md`, `docs/SECURITY_GUIDE.md`, `docs/E2E_TESTING_GUIDE.md`, `docs/code-guide-line/DEVELOPMENT_GUIDE.md`
