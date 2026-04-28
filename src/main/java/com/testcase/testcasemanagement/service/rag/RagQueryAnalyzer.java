@@ -49,60 +49,60 @@ public class RagQueryAnalyzer {
 
       String dbSchema =
           """
-                === 데이터베이스 스키마 정보 ===
-                1. Table: testcases (테스트 케이스 정보)
-                   - id (UUID), project_id (Project 외래키)
-                   - name (제목), type ('testcase', 'folder'), description (설명)
-                   - priority ('HIGH', 'MEDIUM', 'LOW'), is_automated (boolean)
-                   - execution_type ('Manual', 'Automated'), display_id (예: PRJ-1)
-                   - created_at, updated_at, created_by, updated_by
+          === 데이터베이스 스키마 정보 ===
+          1. Table: testcases (테스트 케이스 정보)
+             - id (UUID), project_id (Project 외래키)
+             - name (제목), type ('testcase', 'folder'), description (설명)
+             - priority ('HIGH', 'MEDIUM', 'LOW'), is_automated (boolean)
+             - execution_type ('Manual', 'Automated'), display_id (예: PRJ-1)
+             - created_at, updated_at, created_by, updated_by
 
-                2. Table: test_results (테스트 실행 결과)
-                   - id (UUID), test_execution_id (TestExecution 외래키)
-                   - test_case_id (TestCase ID), result ('PASS', 'FAIL', 'BLOCKED', 'NOT_RUN')
-                   - notes (비고), executed_at, executed_by (User 외래키)
+          2. Table: test_results (테스트 실행 결과)
+             - id (UUID), test_execution_id (TestExecution 외래키)
+             - test_case_id (TestCase ID), result ('PASS', 'FAIL', 'BLOCKED', 'NOT_RUN')
+             - notes (비고), executed_at, executed_by (User 외래키)
 
-                3. Table: projects (프로젝트 정보)
-                   - id (UUID), name (이름), code (코드), description (설명)
+          3. Table: projects (프로젝트 정보)
+             - id (UUID), name (이름), code (코드), description (설명)
 
-                4. Table: users (사용자 정보)
-                   - id (Long), username (아이디), nickname (닉네임)
-                """;
+          4. Table: users (사용자 정보)
+             - id (Long), username (아이디), nickname (닉네임)
+          """;
 
       String systemPrompt =
           String.format(
               """
-                당신은 테스트 케이스 관리 시스템의 질의 의도 분석기입니다.
-                사용자의 질문을 분석하여 시스템 데이터베이스에서 어떤 추가 정보가 필요한지 판단하세요.
+당신은 테스트 케이스 관리 시스템의 질의 의도 분석기입니다.
+사용자의 질문을 분석하여 시스템 데이터베이스에서 어떤 추가 정보가 필요한지 판단하세요.
 
-                %s
+%s
 
-                다음 정보를 판단해야 합니다:
-                1. needsStatistics: 전체 개수, 통계, 성공률, 현황 등을 묻는 경우 true
-                2. needsTestCaseSearch: 특정 기능(예: '로그인', '결제')에 대한 테스트케이스 목록이나 내용을 찾는 경우 true
-                3. needsRecentResults: 최근에 실행된 결과나 히스토리를 묻는 경우 true
-                4. needsTestCaseGeneration: 테스트케이스를 새로 만들어달라거나, '테스트케이스'라는 문구가 포함된 생성형 질문인 경우 true
-                5. needsFullList: 사용자가 '모두', '전체', '나열', '목록 다', '36개 다'와 같이 수집된 데이터를 요약하지 말고 모두 보여달라고 명시적으로 요청하는 경우 true
-                6. searchKeywords: 검색이 필요한 경우 사용할 핵심 키워드 목록
-                7. generatedSql: 통계나 특정 조건의 검색이 필요한 경우, 위 스키마를 바탕으로 프로젝트 ID(%s)에 해당하는 SELECT 쿼리를 작성하세요.
+다음 정보를 판단해야 합니다:
+1. needsStatistics: 전체 개수, 통계, 성공률, 현황 등을 묻는 경우 true
+2. needsTestCaseSearch: 특정 기능(예: '로그인', '결제')에 대한 테스트케이스 목록이나 내용을 찾는 경우 true
+3. needsRecentResults: 최근에 실행된 결과나 히스토리를 묻는 경우 true
+4. needsTestCaseGeneration: 테스트케이스를 새로 만들어달라거나, '테스트케이스'라는 문구가 포함된 생성형 질문인 경우 true
+5. needsFullList: 사용자가 '모두', '전체', '나열', '목록 다', '36개 다'와 같이 수집된 데이터를 요약하지 말고 모두 보여달라고 명시적으로 요청하는 경우 true
+6. searchKeywords: 검색이 필요한 경우 사용할 핵심 키워드 목록
+7. generatedSql: 통계나 특정 조건의 검색이 필요한 경우, 위 스키마를 바탕으로 프로젝트 ID(%s)에 해당하는 SELECT 쿼리를 작성하세요.
 
-                [보안 규칙 - 필독]
-                - 반드시 SELECT 쿼리여야 합니다.
-                - 반드시 WHERE 절에 project_id = '%s' 조건이 포함되어야 합니다.
-                - 다른 프로젝트의 데이터를 조회하는 것은 심각한 보안 위반입니다. 오직 지정된 프로젝트 ID(%s)만 조회하세요.
+[보안 규칙 - 필독]
+- 반드시 SELECT 쿼리여야 합니다.
+- 반드시 WHERE 절에 project_id = '%s' 조건이 포함되어야 합니다.
+- 다른 프로젝트의 데이터를 조회하는 것은 심각한 보안 위반입니다. 오직 지정된 프로젝트 ID(%s)만 조회하세요.
 
-                응답은 반드시 아래 형식의 JSON이어야 합니다:
-                {
-                  "needsStatistics": boolean,
-                  "needsTestCaseSearch": boolean,
-                  "needsRecentResults": boolean,
-                  "needsTestCaseGeneration": boolean,
-                  "needsFullList": boolean,
-                  "searchKeywords": ["keyword1", "keyword2"],
-                  "generatedSql": "SELECT ... FROM ... WHERE project_id = '%s' ...",
-                  "justification": "판단 근거 요약"
-                }
-                """,
+응답은 반드시 아래 형식의 JSON이어야 합니다:
+{
+  "needsStatistics": boolean,
+  "needsTestCaseSearch": boolean,
+  "needsRecentResults": boolean,
+  "needsTestCaseGeneration": boolean,
+  "needsFullList": boolean,
+  "searchKeywords": ["keyword1", "keyword2"],
+  "generatedSql": "SELECT ... FROM ... WHERE project_id = '%s' ...",
+  "justification": "판단 근거 요약"
+}
+""",
               dbSchema, projectId, projectId, projectId, projectId);
 
       List<RagChatMessage> messages = new ArrayList<>();

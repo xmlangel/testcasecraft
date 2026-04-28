@@ -304,17 +304,17 @@ public class JiraApiService {
 
     return String.format(
         """
-            {
-                "fields": {
-                    "project": {
-                        "key": "%s"
-                    },
-                    "summary": "%s",
-                    "description": %s,
-                    "issuetype": %s
-                }
+        {
+            "fields": {
+                "project": {
+                    "key": "%s"
+                },
+                "summary": "%s",
+                "description": %s,
+                "issuetype": %s
             }
-            """,
+        }
+        """,
         request.getProjectKey().replace("\"", "\\\""),
         request.getSummary().replace("\"", "\\\""),
         descriptionJson,

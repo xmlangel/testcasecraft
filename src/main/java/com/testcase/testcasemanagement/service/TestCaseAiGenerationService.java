@@ -69,21 +69,21 @@ public class TestCaseAiGenerationService {
   /** 시스템 프롬프트 구성 */
   private String buildSystemPrompt() {
     return """
-        당신은 소프트웨어 테스팅 전문가입니다.
-        주어진 테스트 스텝(Step)과 기대 결과(Expected Result)를 분석하여,
-        해당 테스트케이스의 이름(Name)과 설명(Description)을 한국어로 생성합니다.
+    당신은 소프트웨어 테스팅 전문가입니다.
+    주어진 테스트 스텝(Step)과 기대 결과(Expected Result)를 분석하여,
+    해당 테스트케이스의 이름(Name)과 설명(Description)을 한국어로 생성합니다.
 
-        반드시 다음 형식으로만 응답하세요 (다른 내용 없이):
+    반드시 다음 형식으로만 응답하세요 (다른 내용 없이):
 
-        NAME: [테스트케이스 이름 - 간결하고 명확하게 무엇을 테스트하는지 표현]
-        DESCRIPTION: [테스트케이스 설명 - 이 테스트의 목적과 검증 내용을 2~4문장으로 설명]
+    NAME: [테스트케이스 이름 - 간결하고 명확하게 무엇을 테스트하는지 표현]
+    DESCRIPTION: [테스트케이스 설명 - 이 테스트의 목적과 검증 내용을 2~4문장으로 설명]
 
-        규칙:
-        - NAME은 50자 이내로 간결하게 작성
-        - DESCRIPTION은 테스트 목적, 검증 대상, 기대 결과를 포함
-        - 전문적이고 명확한 한국어 사용
-        - NAME: 과 DESCRIPTION: 접두어를 반드시 포함할 것
-        """;
+    규칙:
+    - NAME은 50자 이내로 간결하게 작성
+    - DESCRIPTION은 테스트 목적, 검증 대상, 기대 결과를 포함
+    - 전문적이고 명확한 한국어 사용
+    - NAME: 과 DESCRIPTION: 접두어를 반드시 포함할 것
+    """;
   }
 
   /** 사용자 메시지 구성 */

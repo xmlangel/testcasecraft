@@ -150,7 +150,6 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Stri
   List<String> findActiveSessionIds(@Param("userId") String userId);
 
   // 평균 세션 지속 시간 계산 (분 단위) - 임시로 주석 처리
-  // H2 데이터베이스에서 날짜 함수 호환성 문제로 인해 임시 비활성화
   @Query("SELECT 0.0 FROM UserActivity WHERE 1 = 0")
   Double getAverageSessionDuration(
       @Param("userId") String userId,

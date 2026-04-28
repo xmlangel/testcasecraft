@@ -286,22 +286,22 @@ public class JiraStatusAggregationServiceTest {
   private JsonNode createMockJiraIssueInfo() throws Exception {
     String jsonString =
         """
-                                {
-                                    "key": "TEST-123",
-                                    "fields": {
-                                        "summary": "Test issue summary",
-                                        "status": {
-                                            "name": "In Progress"
-                                        },
-                                        "issuetype": {
-                                            "name": "Bug"
-                                        },
-                                        "priority": {
-                                            "name": "High"
-                                        }
-                                    }
-                                }
-                                """;
+        {
+            "key": "TEST-123",
+            "fields": {
+                "summary": "Test issue summary",
+                "status": {
+                    "name": "In Progress"
+                },
+                "issuetype": {
+                    "name": "Bug"
+                },
+                "priority": {
+                    "name": "High"
+                }
+            }
+        }
+        """;
 
     return objectMapper.readTree(jsonString);
   }

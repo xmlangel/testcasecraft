@@ -442,22 +442,22 @@ public class TestCaseAttachmentController {
       summary = "미사용 첨부파일 정리",
       description =
           """
-            생성일 기준으로 사용되지 않은 첨부파일을 삭제합니다.
+          생성일 기준으로 사용되지 않은 첨부파일을 삭제합니다.
 
-            **사용 예시:**
-            - daysOld=0: 생성일과 관계없이 모든 미사용 파일 삭제
-            - daysOld=7: 7일 이상 지난 미사용 파일 삭제 (기본값)
-            - daysOld=30: 30일 이상 지난 미사용 파일 삭제
+          **사용 예시:**
+          - daysOld=0: 생성일과 관계없이 모든 미사용 파일 삭제
+          - daysOld=7: 7일 이상 지난 미사용 파일 삭제 (기본값)
+          - daysOld=30: 30일 이상 지난 미사용 파일 삭제
 
-            **미사용 파일 기준:**
-            - isUsedInContent = false 또는 null
-            - status = ACTIVE
+          **미사용 파일 기준:**
+          - isUsedInContent = false 또는 null
+          - status = ACTIVE
 
-            **주의사항:**
-            - 삭제된 파일은 논리적 삭제(status=DELETED)로 처리됩니다
-            - MinIO 스토리지에서도 실제 파일이 삭제됩니다
-            - 관리자 권한이 필요합니다
-            """)
+          **주의사항:**
+          - 삭제된 파일은 논리적 삭제(status=DELETED)로 처리됩니다
+          - MinIO 스토리지에서도 실제 파일이 삭제됩니다
+          - 관리자 권한이 필요합니다
+          """)
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "정리 완료"),

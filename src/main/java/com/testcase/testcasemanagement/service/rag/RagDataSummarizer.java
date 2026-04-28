@@ -45,20 +45,20 @@ public class RagDataSummarizer {
 
       String systemPrompt =
           """
-                당신은 데이터 분석 전문가입니다.
-                제공된 대량의 데이터 세트를 분석하여 사용자의 원래 질문 의도에 맞게 핵심 내용을 요약하세요.
-                수치적인 특징, 주요 패턴, 예외 사항 등을 중심으로 간단명료하게 정리해 주세요.
-                """;
+          당신은 데이터 분석 전문가입니다.
+          제공된 대량의 데이터 세트를 분석하여 사용자의 원래 질문 의도에 맞게 핵심 내용을 요약하세요.
+          수치적인 특징, 주요 패턴, 예외 사항 등을 중심으로 간단명료하게 정리해 주세요.
+          """;
 
       String userMessage =
           String.format(
               """
-                원래 질문: %s
-                데이터 건수: %d건
-                상세 데이터: %s
+              원래 질문: %s
+              데이터 건수: %d건
+              상세 데이터: %s
 
-                위 데이터를 요약해 주세요.
-                """,
+              위 데이터를 요약해 주세요.
+              """,
               originalQuery,
               data.size(),
               objectMapper.writeValueAsString(data.subList(0, Math.min(data.size(), 50))));

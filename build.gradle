@@ -428,8 +428,6 @@ dependencies {
 	testImplementation 'org.hamcrest:hamcrest:2.2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.testng:testng:7.10.2'
-	testImplementation 'com.h2database:h2:2.2.224'
-	runtimeOnly 'com.h2database:h2:2.2.224'  // 런타임에도 H2 사용 가능하도록 추가
 	testImplementation 'io.qameta.allure:allure-testng:2.19.0'
 	testImplementation 'io.qameta.allure:allure-rest-assured:2.19.0'
 	// AspectJ weaver 제거 - Oracle/C3P0 클래스 감지 오류 방지

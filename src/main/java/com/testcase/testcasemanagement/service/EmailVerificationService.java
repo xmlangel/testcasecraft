@@ -229,101 +229,101 @@ public class EmailVerificationService {
   /** HTML 이메일 템플릿 생성 */
   private String buildEmailTemplate(String userName, String verificationLink) {
     return """
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        body {
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                            line-height: 1.6;
-                            color: #333;
-                            max-width: 600px;
-                            margin: 0 auto;
-                            padding: 20px;
-                        }
-                        .container {
-                            background-color: #f9f9f9;
-                            border-radius: 8px;
-                            padding: 30px;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        }
-                        .header {
-                            text-align: center;
-                            margin-bottom: 30px;
-                        }
-                        .header h1 {
-                            color: #1976d2;
-                            margin: 0;
-                        }
-                        .content {
-                            background-color: white;
-                            padding: 25px;
-                            border-radius: 6px;
-                            margin-bottom: 20px;
-                        }
-                        .button {
-                            display: inline-block;
-                            padding: 12px 30px;
-                            background-color: #1976d2;
-                            color: white !important;
-                            text-decoration: none;
-                            border-radius: 4px;
-                            font-weight: 500;
-                            text-align: center;
-                            margin: 20px 0;
-                        }
-                        .button:hover {
-                            background-color: #1565c0;
-                        }
-                        .footer {
-                            text-align: center;
-                            color: #666;
-                            font-size: 0.9em;
-                            margin-top: 20px;
-                        }
-                        .warning {
-                            background-color: #fff3cd;
-                            border-left: 4px solid #ffc107;
-                            padding: 15px;
-                            margin-top: 20px;
-                            border-radius: 4px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>TestCaseCraft</h1>
-                            <p>이메일 인증</p>
-                        </div>
-                        <div class="content">
-                            <p>안녕하세요, <strong>%s</strong>님!</p>
-                            <p>TestCaseCraft의 이메일 인증을 완료하기 위해 아래 버튼을 클릭해주세요.</p>
-                            <div style="text-align: center;">
-                                <a href="%s" class="button">이메일 인증하기</a>
-                            </div>
-                            <p>버튼이 작동하지 않는 경우, 아래 링크를 복사하여 브라우저에 붙여넣어주세요:</p>
-                            <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 0.9em;">
-                                %s
-                            </p>
-                            <div class="warning">
-                                <strong>⚠️ 중요 안내</strong>
-                                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
-                                    <li>이 인증 링크는 <strong>24시간 동안만</strong> 유효합니다.</li>
-                                    <li>인증 링크는 <strong>1회만</strong> 사용 가능합니다.</li>
-                                    <li>본인이 요청하지 않은 경우, 이 이메일을 무시해주세요.</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="footer">
-                            <p>본 메일은 발신 전용이므로 회신되지 않습니다.</p>
-                            <p>&copy; 2025 TestCaseCraft. All rights reserved.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #1976d2;
+            margin: 0;
+        }
+        .content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #1976d2;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #1565c0;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TestCaseCraft</h1>
+            <p>이메일 인증</p>
+        </div>
+        <div class="content">
+            <p>안녕하세요, <strong>%s</strong>님!</p>
+            <p>TestCaseCraft의 이메일 인증을 완료하기 위해 아래 버튼을 클릭해주세요.</p>
+            <div style="text-align: center;">
+                <a href="%s" class="button">이메일 인증하기</a>
+            </div>
+            <p>버튼이 작동하지 않는 경우, 아래 링크를 복사하여 브라우저에 붙여넣어주세요:</p>
+            <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 0.9em;">
+                %s
+            </p>
+            <div class="warning">
+                <strong>⚠️ 중요 안내</strong>
+                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                    <li>이 인증 링크는 <strong>24시간 동안만</strong> 유효합니다.</li>
+                    <li>인증 링크는 <strong>1회만</strong> 사용 가능합니다.</li>
+                    <li>본인이 요청하지 않은 경우, 이 이메일을 무시해주세요.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer">
+            <p>본 메일은 발신 전용이므로 회신되지 않습니다.</p>
+            <p>&copy; 2025 TestCaseCraft. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
         .formatted(userName, verificationLink, verificationLink);
   }
 }
