@@ -16,6 +16,7 @@ import {
   useTheme,
   Chip,
 } from "@mui/material";
+import { useTheme as useAppTheme } from "../../context/ThemeContext.jsx";
 import {
   CheckCircleOutline as ExitIcon,
   AssignmentTurnedIn as DebriefIcon,
@@ -38,7 +39,9 @@ function ExploratoryDebriefTab({
   artifacts,
 }) {
   const theme = useTheme();
+  const { designSystem } = useAppTheme();
   const isDark = theme.palette.mode === "dark";
+  const isGlass = designSystem === "glass";
 
   return (
     <Grid container spacing={4}>
@@ -47,12 +50,20 @@ function ExploratoryDebriefTab({
         <Stack spacing={4}>
           <Card
             sx={{
-              background: isDark
-                ? "rgba(255, 255, 255, 0.05)"
+              bgcolor: isGlass
+                ? isDark
+                  ? "rgba(255, 255, 255, 0.05)"
+                  : "rgba(255, 255, 255, 0.5)"
                 : "background.paper",
-              borderRadius: 4,
+              backdropFilter: isGlass ? "blur(20px)" : "none",
+              borderRadius: isGlass ? 4 : 2,
               border: "1px solid",
-              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
+              borderColor: "divider",
+              boxShadow: isGlass
+                ? isDark
+                  ? "0 8px 32px rgba(0,0,0,0.2)"
+                  : "0 8px 32px rgba(6, 182, 212, 0.1)"
+                : theme.shadows[1],
             }}
           >
             <CardContent sx={{ p: 4 }}>

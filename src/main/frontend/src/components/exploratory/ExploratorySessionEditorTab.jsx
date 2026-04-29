@@ -34,6 +34,7 @@ import {
   BugReport as BugIcon,
 } from "@mui/icons-material";
 
+import { useTheme as useAppTheme } from "../../context/ThemeContext.jsx";
 import {
   AssignmentTurnedIn as CharterIcon,
   PlayArrow as ExecutionIcon,
@@ -72,7 +73,9 @@ function ExploratorySessionEditorTab({
   onBackToList,
 }) {
   const theme = useTheme();
+  const { designSystem } = useAppTheme();
   const isDark = theme.palette.mode === "dark";
+  const isGlass = designSystem === "glass";
   const [editorTab, setEditorTab] = React.useState(0);
   const charterSections = parseMarkdownSections(selectedCharter?.mission);
 
@@ -205,16 +208,20 @@ function ExploratorySessionEditorTab({
       {/* Premium Timer / Control Bar */}
       <Card
         sx={{
-          background: isDark
-            ? "rgba(255, 255, 255, 0.05)"
-            : "rgba(0, 0, 0, 0.02)",
-          backdropFilter: "blur(20px)",
+          bgcolor: isGlass
+            ? isDark
+              ? "rgba(255, 255, 255, 0.05)"
+              : "rgba(255, 255, 255, 0.5)"
+            : "background.paper",
+          backdropFilter: isGlass ? "blur(20px)" : "none",
           border: "1px solid",
-          borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
-          borderRadius: 4,
-          boxShadow: isDark
-            ? "0 8px 32px rgba(0,0,0,0.2)"
-            : "0 4px 12px rgba(0,0,0,0.05)",
+          borderColor: "divider",
+          borderRadius: isGlass ? 4 : 2,
+          boxShadow: isGlass
+            ? isDark
+              ? "0 8px 32px rgba(0,0,0,0.2)"
+              : "0 8px 32px rgba(6, 182, 212, 0.1)"
+            : theme.shadows[1],
         }}
       >
         <CardContent sx={{ p: 2 }}>

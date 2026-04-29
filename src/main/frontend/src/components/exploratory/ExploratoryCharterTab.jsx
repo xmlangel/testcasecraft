@@ -22,6 +22,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import { useTheme as useAppTheme } from "../../context/ThemeContext.jsx";
 import {
   Add as AddIcon,
   Archive as ArchiveIcon,
@@ -50,6 +51,9 @@ function ExploratoryCharterTab({
   charterErrors = {},
 }) {
   const theme = useTheme();
+  const { designSystem } = useAppTheme();
+  const isDark = theme.palette.mode === "dark";
+  const isGlass = designSystem === "glass";
   const [showExamples, setShowExamples] = React.useState(false);
 
   return (
@@ -105,10 +109,22 @@ function ExploratoryCharterTab({
                 onClick={() => openEditCharterDialog(item)}
                 sx={{
                   cursor: "pointer",
+                  bgcolor: isGlass
+                    ? isDark
+                      ? "rgba(255, 255, 255, 0.03)"
+                      : "rgba(255, 255, 255, 0.4)"
+                    : "background.paper",
+                  backdropFilter: isGlass ? "blur(4px)" : "none",
                   "&:hover": {
                     borderColor: theme.palette.primary.main,
-                    bgcolor: "action.hover",
+                    bgcolor: isGlass
+                      ? isDark
+                        ? "rgba(255, 255, 255, 0.08)"
+                        : "rgba(255, 255, 255, 0.6)"
+                      : "action.hover",
+                    transform: isGlass ? "translateY(-2px)" : "none",
                   },
+                  transition: "all 0.2s ease-in-out",
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",

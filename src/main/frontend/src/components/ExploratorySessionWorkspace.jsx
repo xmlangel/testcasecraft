@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import { useI18n } from "../context/I18nContext.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
+import { useTheme as useAppTheme } from "../context/ThemeContext.jsx";
 import ExploratoryCharterTab from "./exploratory/ExploratoryCharterTab.jsx";
 import ExploratorySessionListTab from "./exploratory/ExploratorySessionListTab.jsx";
 import ExploratorySessionEditorTab from "./exploratory/ExploratorySessionEditorTab.jsx";
@@ -87,7 +88,9 @@ const CHARTER_TEMPLATE = `# 🎯 목적 (Objective)
 
 function ExploratorySessionWorkspace({ projectId }) {
   const theme = useTheme();
+  const { designSystem } = useAppTheme();
   const isDark = theme.palette.mode === "dark";
+  const isGlass = designSystem === "glass";
   const { t } = useI18n();
   const { api, user } = useAppContext();
 
@@ -849,17 +852,27 @@ function ExploratorySessionWorkspace({ projectId }) {
       sx={{
         p: 0,
         minHeight: "calc(100vh - 160px)",
-        background: isDark
-          ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)"
-          : "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
-        color: isDark ? "white" : "text.primary",
-        borderRadius: 4,
+        background: isGlass
+          ? isDark
+            ? "rgba(15, 23, 42, 0.7)"
+            : "rgba(255, 255, 255, 0.7)"
+          : "background.paper",
+        backdropFilter: isGlass ? "blur(20px) saturate(180%)" : "none",
+        WebkitBackdropFilter: isGlass ? "blur(20px) saturate(180%)" : "none",
+        color: "text.primary",
+        borderRadius: isGlass ? 4 : 3,
         overflow: "hidden",
-        boxShadow: isDark
-          ? "0 20px 50px rgba(0,0,0,0.5)"
-          : "0 10px 30px rgba(0,0,0,0.05)",
-        border: "1px solid",
-        borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+        boxShadow: isGlass
+          ? isDark
+            ? "0 8px 32px 0 rgba(0, 0, 0, 0.3)"
+            : "0 8px 32px 0 rgba(6, 182, 212, 0.1)"
+          : "none",
+        border: isGlass ? "1px solid" : "1px solid",
+        borderColor: isGlass
+          ? isDark
+            ? "rgba(255, 255, 255, 0.1)"
+            : "rgba(255, 255, 255, 0.3)"
+          : "divider",
       }}
     >
       <Box
@@ -869,9 +882,13 @@ function ExploratorySessionWorkspace({ projectId }) {
           justifyContent: "space-between",
           px: 3,
           py: 2,
-          background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
+          background: isGlass
+            ? isDark
+              ? "rgba(255, 255, 255, 0.02)"
+              : "rgba(0, 0, 0, 0.02)"
+            : "transparent",
           borderBottom: "1px solid",
-          borderColor: isDark ? "rgba(255,255,255,0.05)" : "divider",
+          borderColor: "divider",
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center">
@@ -906,16 +923,16 @@ function ExploratorySessionWorkspace({ projectId }) {
             "& .MuiTabs-indicator": {
               height: 4,
               borderRadius: "4px 4px 0 0",
-              bgcolor: "primary.light",
+              bgcolor: "primary.main",
             },
             "& .MuiTab-root": {
-              color: isDark ? "rgba(255,255,255,0.4)" : "text.secondary",
+              color: "text.secondary",
               fontWeight: 600,
               fontSize: "0.875rem",
               textTransform: "none",
               minHeight: 48,
               "&.Mui-selected": {
-                color: isDark ? "white" : "primary.main",
+                color: "primary.main",
               },
             },
           }}

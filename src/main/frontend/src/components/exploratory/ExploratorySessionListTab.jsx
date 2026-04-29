@@ -19,6 +19,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import { useTheme as useAppTheme } from "../../context/ThemeContext.jsx";
 import {
   AccessTime as TimeIcon,
   Person as PersonIcon,
@@ -42,7 +43,10 @@ function ExploratorySessionListTab({
   onDeleteSession,
 }) {
   const theme = useTheme();
+  const { designSystem } = useAppTheme();
   const isDark = theme.palette.mode === "dark";
+  const isGlass = designSystem === "glass";
+
   return (
     <Stack spacing={3}>
       {sessionError && <Alert severity="error">{sessionError}</Alert>}
@@ -75,19 +79,24 @@ function ExploratorySessionListTab({
         </Stack>
       </Box>
 
-      {/* Filter Section with Glassmorphism touch */}
+      {/* Filter Section */}
       <Card
         variant="outlined"
         sx={{
           p: 2,
-          bgcolor: isDark ? "rgba(255, 255, 255, 0.05)" : "background.paper",
-          backdropFilter: "blur(8px)",
-          borderRadius: 2,
+          bgcolor: isGlass
+            ? isDark
+              ? "rgba(255, 255, 255, 0.05)"
+              : "rgba(255, 255, 255, 0.5)"
+            : "background.paper",
+          backdropFilter: isGlass ? "blur(8px)" : "none",
+          borderRadius: isGlass ? 2 : 1,
           border: "1px solid",
-          borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
+          borderColor: "divider",
         }}
       >
         <Grid container spacing={2}>
+          {/* ... 필터 내용 동일 ... */}
           <Grid size={{ xs: 12, md: 2 }}>
             <FormControl size="small" fullWidth>
               <InputLabel>{t("common.status", "상태")}</InputLabel>
@@ -227,9 +236,17 @@ function ExploratorySessionListTab({
                 sx={{
                   height: "100%",
                   transition: "all 0.2s ease-in-out",
+                  bgcolor: isGlass
+                    ? isDark
+                      ? "rgba(255, 255, 255, 0.03)"
+                      : "rgba(255, 255, 255, 0.4)"
+                    : "background.paper",
+                  backdropFilter: isGlass ? "blur(4px)" : "none",
                   "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                    transform: isGlass ? "translateY(-4px)" : "none",
+                    boxShadow: isGlass
+                      ? "0 8px 24px rgba(0,0,0,0.12)"
+                      : theme.shadows[2],
                     borderColor: "primary.main",
                   },
                   position: "relative",
