@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Roboto", sans-serif; background: #F5F5F5; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .card {
+    background: #fff;
+    border-radius: 4px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .label { font-size: 9px; color: rgba(0,0,0,0.4); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="label" style="margin-bottom:8px">elevation 1</div>
+    <div class="card" style="box-shadow:0px 2px 1px -1px rgba(0,0,0,.20),0px 1px 1px 0px rgba(0,0,0,.14),0px 1px 3px 0px rgba(0,0,0,.12); width:120px; height:64px; justify-content:center; align-items:center">
+      <span style="font-size:11px;color:rgba(0,0,0,0.6)">Card / Paper</span>
+    </div>
+  </div>
+  <div>
+    <div class="label" style="margin-bottom:8px">elevation 2</div>
+    <div class="card" style="box-shadow:0px 3px 1px -2px rgba(0,0,0,.20),0px 2px 2px 0px rgba(0,0,0,.14),0px 1px 5px 0px rgba(0,0,0,.12); width:120px; height:64px; justify-content:center; align-items:center">
+      <span style="font-size:11px;color:rgba(0,0,0,0.6)">Raised</span>
+    </div>
+  </div>
+  <div>
+    <div class="label" style="margin-bottom:8px">elevation 4</div>
+    <div class="card" style="box-shadow:0px 2px 4px -1px rgba(0,0,0,.20),0px 4px 5px 0px rgba(0,0,0,.14),0px 1px 10px 0px rgba(0,0,0,.12); width:120px; height:64px; justify-content:center; align-items:center">
+      <span style="font-size:11px;color:rgba(0,0,0,0.6)">App Bar</span>
+    </div>
+  </div>
+  <div>
+    <div class="label" style="margin-bottom:8px">elevation 8</div>
+    <div class="card" style="box-shadow:0px 5px 5px -3px rgba(0,0,0,.20),0px 8px 10px 1px rgba(0,0,0,.14),0px 3px 14px 2px rgba(0,0,0,.12); width:120px; height:64px; justify-content:center; align-items:center">
+      <span style="font-size:11px;color:rgba(0,0,0,0.6)">Menu / Drawer</span>
+    </div>
+  </div>
+  <div>
+    <div class="label" style="margin-bottom:8px">elevation 24</div>
+    <div class="card" style="box-shadow:0px 11px 15px -7px rgba(0,0,0,.20),0px 24px 38px 3px rgba(0,0,0,.14),0px 9px 46px 8px rgba(0,0,0,.12); width:120px; height:64px; justify-content:center; align-items:center">
+      <span style="font-size:11px;color:rgba(0,0,0,0.6)">Dialog / Modal</span>
+    </div>
+  </div>
+</body>
+</html>

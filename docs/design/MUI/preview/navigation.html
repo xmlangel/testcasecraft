@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Roboto", sans-serif; background: #F5F5F5; padding: 0; }
+  .section { font-size: 9px; font-weight: 500; color: rgba(0,0,0,0.4); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 16px 6px; }
+
+  /* AppBar */
+  .appbar { background: #9747FF; color: #fff; height: 56px; display: flex; align-items: center; padding: 0 16px; gap: 8px; box-shadow: 0px 2px 4px -1px rgba(0,0,0,.20),0px 4px 5px 0px rgba(0,0,0,.14),0px 1px 10px 0px rgba(0,0,0,.12); }
+  .appbar-title { font-size: 20px; font-weight: 500; letter-spacing: 0.15px; flex: 1; }
+
+  /* Tabs */
+  .tabs { background: #fff; border-bottom: 1px solid rgba(0,0,0,0.12); display: flex; }
+  .tab { padding: 12px 16px; font-size: 14px; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; color: rgba(0,0,0,0.6); cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: #9747FF; border-bottom-color: #9747FF; }
+
+  /* Breadcrumb */
+  .breadcrumb { display: flex; align-items: center; gap: 4px; font-size: 14px; padding: 10px 16px; }
+  .breadcrumb a { color: rgba(0,0,0,0.6); text-decoration: none; }
+  .breadcrumb span { color: rgba(0,0,0,0.87); }
+
+  /* Pagination */
+  .pagination { display: flex; gap: 2px; align-items: center; padding: 8px 16px; }
+  .page { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 16px; font-size: 14px; color: rgba(0,0,0,0.87); cursor: pointer; }
+  .page.active { background: #9747FF; color: #fff; }
+  .page:hover { background: rgba(0,0,0,0.04); }
+</style>
+</head>
+<body>
+  <div class="appbar">
+    <span class="material-icons" style="font-size:24px">menu</span>
+    <span class="appbar-title">App Title</span>
+    <span class="material-icons" style="font-size:24px">search</span>
+    <span class="material-icons" style="font-size:24px">account_circle</span>
+  </div>
+
+  <div class="section">Tabs</div>
+  <div class="tabs">
+    <div class="tab active">Dashboard</div>
+    <div class="tab">Reports</div>
+    <div class="tab">Settings</div>
+    <div class="tab">Help</div>
+  </div>
+
+  <div class="section">Breadcrumbs</div>
+  <div class="breadcrumb">
+    <a href="#">Home</a>
+    <span class="material-icons" style="font-size:16px;color:rgba(0,0,0,0.38)">chevron_right</span>
+    <a href="#">Jobs</a>
+    <span class="material-icons" style="font-size:16px;color:rgba(0,0,0,0.38)">chevron_right</span>
+    <span>Senior Designer</span>
+  </div>
+
+  <div class="section">Pagination</div>
+  <div class="pagination">
+    <span class="material-icons page" style="font-size:20px;color:rgba(0,0,0,0.38)">chevron_left</span>
+    <div class="page">1</div>
+    <div class="page active">2</div>
+    <div class="page">3</div>
+    <div class="page">4</div>
+    <div class="page" style="color:rgba(0,0,0,0.38)">...</div>
+    <div class="page">10</div>
+    <span class="material-icons page" style="font-size:20px">chevron_right</span>
+  </div>
+</body>
+</html>

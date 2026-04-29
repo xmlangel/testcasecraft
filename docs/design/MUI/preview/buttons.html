@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Roboto", sans-serif; background: #fff; padding: 20px 24px; }
+  .section { font-size: 9px; font-weight: 500; color: rgba(0,0,0,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; margin-top: 14px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+
+  /* Contained */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: 4px; cursor: pointer; font-family: "Roboto", sans-serif; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; transition: box-shadow 250ms cubic-bezier(0.4,0,0.2,1); }
+  .btn-contained { background: #9747FF; color: #fff; padding: 6px 16px; font-size: 14px; box-shadow: 0px 3px 1px -2px rgba(0,0,0,.20),0px 2px 2px 0px rgba(0,0,0,.14),0px 1px 5px 0px rgba(0,0,0,.12); }
+  .btn-contained:hover { background: #8123F5; box-shadow: 0px 2px 4px -1px rgba(0,0,0,.20),0px 4px 5px 0px rgba(0,0,0,.14),0px 1px 10px 0px rgba(0,0,0,.12); }
+  .btn-outlined { background: transparent; color: #9747FF; border: 1px solid rgba(151,71,255,0.5); padding: 5px 15px; font-size: 14px; }
+  .btn-text { background: transparent; color: #9747FF; border: none; padding: 6px 8px; font-size: 14px; }
+  .btn-sm { padding: 4px 10px; font-size: 13px; }
+  .btn-lg { padding: 8px 22px; font-size: 15px; }
+  .btn-disabled { opacity: 0.38; pointer-events: none; }
+  .btn-error { background: #D32F2F; color: #fff; }
+  .btn-success { background: #2E7D32; color: #fff; }
+  .btn-inherit { background: rgba(0,0,0,0.08); color: rgba(0,0,0,0.87); }
+  .icon { font-size: 18px !important; }
+</style>
+</head>
+<body>
+  <div class="section">Contained</div>
+  <div class="row">
+    <button class="btn btn-contained btn-sm">Small</button>
+    <button class="btn btn-contained">Medium</button>
+    <button class="btn btn-contained btn-lg">Large</button>
+    <button class="btn btn-contained btn-disabled">Disabled</button>
+  </div>
+
+  <div class="section">Outlined</div>
+  <div class="row">
+    <button class="btn btn-outlined btn-sm">Small</button>
+    <button class="btn btn-outlined">Medium</button>
+    <button class="btn btn-outlined btn-lg">Large</button>
+    <button class="btn btn-outlined btn-disabled">Disabled</button>
+  </div>
+
+  <div class="section">Text</div>
+  <div class="row">
+    <button class="btn btn-text btn-sm">Small</button>
+    <button class="btn btn-text">Medium</button>
+    <button class="btn btn-text btn-lg">Large</button>
+    <button class="btn btn-text btn-disabled">Disabled</button>
+  </div>
+
+  <div class="section">Colors — Contained</div>
+  <div class="row">
+    <button class="btn btn-contained">Primary</button>
+    <button class="btn btn-contained" style="background:#9C27B0">Secondary</button>
+    <button class="btn btn-contained btn-error">Error</button>
+    <button class="btn btn-contained btn-success">Success</button>
+    <button class="btn btn-contained" style="background:#EF6C00">Warning</button>
+    <button class="btn btn-contained" style="background:#0288D1">Info</button>
+    <button class="btn btn-contained btn-inherit">Inherit</button>
+  </div>
+
+  <div class="section">With Icons</div>
+  <div class="row">
+    <button class="btn btn-contained">
+      <span class="material-icons icon">send</span> Send
+    </button>
+    <button class="btn btn-outlined">
+      <span class="material-icons icon">add</span> Create
+    </button>
+    <button class="btn btn-text">
+      <span class="material-icons icon">delete</span> Delete
+    </button>
+    <button class="btn btn-contained" style="border-radius:50%;width:40px;height:40px;min-width:40px;padding:0;box-shadow:0px 3px 5px -1px rgba(0,0,0,.20),0px 6px 10px 0px rgba(0,0,0,.14),0px 1px 18px 0px rgba(0,0,0,.12)">
+      <span class="material-icons">add</span>
+    </button>
+  </div>
+</body>
+</html>

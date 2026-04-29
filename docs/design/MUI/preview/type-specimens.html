@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Roboto", sans-serif; background: #fff; padding: 20px 24px; }
+  .spec { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .chip { font-size: 9px; background: rgba(151,71,255,0.1); color: #6B21C7; padding: 2px 6px; border-radius: 10px; font-weight: 500; }
+  p { color: rgba(0,0,0,0.87); font-size: 14px; line-height: 1.5; letter-spacing: 0.15px; max-width: 520px; margin-bottom: 12px; }
+  .mono { font-family: "Roboto Mono", monospace; font-size: 13px; background: #f5f5f5; padding: 8px 12px; border-radius: 4px; color: rgba(0,0,0,0.87); margin-bottom: 12px; }
+  .divider { border: none; border-top: 1px solid rgba(0,0,0,0.12); margin: 12px 0; }
+</style>
+</head>
+<body>
+  <div class="spec"><span class="chip">Roboto</span><span style="font-size:9px;color:rgba(0,0,0,0.4)">Primary typeface — all UI text</span></div>
+  <p>The quick brown fox jumps over the lazy dog. Use typography to present your design and content as clearly and efficiently as possible.</p>
+  <hr class="divider">
+  <div class="spec"><span class="chip">Roboto Medium</span><span style="font-size:9px;color:rgba(0,0,0,0.4)">Emphasis — buttons, labels, subtitles</span></div>
+  <p style="font-weight:500">Buttons allow users to take actions, and make choices, with a single tap.</p>
+  <hr class="divider">
+  <div class="spec"><span class="chip">Roboto Light</span><span style="font-size:9px;color:rgba(0,0,0,0.4)">Display headings h1–h2</span></div>
+  <p style="font-weight:300;font-size:22px;line-height:1.2;letter-spacing:-0.5px">Material Design</p>
+  <hr class="divider">
+  <div class="spec"><span class="chip">Roboto Mono</span><span style="font-size:9px;color:rgba(0,0,0,0.4)">Code, tokens</span></div>
+  <div class="mono">--mui-primary: #9747FF;</div>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUI Web UI Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="AppBar.jsx"></script>
+<script type="text/babel" src="Button.jsx"></script>
+<script type="text/babel" src="TextField.jsx"></script>
+<script type="text/babel" src="Card.jsx"></script>
+<script type="text/babel" src="Chip.jsx"></script>
+<script type="text/babel" src="DataTable.jsx"></script>
+<script type="text/babel" src="Dialog.jsx"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body, #root { height: 100%; }
+  body { font-family: "Roboto", sans-serif; background: #F5F5F5; }
+  #root { display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const JOBS = [
+  { id: 1, title: "Senior Product Designer", company: "Figma Inc.", location: "San Francisco, CA", type: "Full-time", posted: "2d ago", salary: "$140k–$180k", tags: ["Design Systems", "Figma", "React"] },
+  { id: 2, title: "UI Engineer", company: "MUI", location: "Remote", type: "Full-time", posted: "3d ago", salary: "$120k–$160k", tags: ["React", "TypeScript", "CSS"] },
+  { id: 3, title: "Product Designer II", company: "Vercel", location: "New York, NY", type: "Full-time", posted: "5d ago", salary: "$110k–$140k", tags: ["Figma", "Prototyping"] },
+  { id: 4, title: "Design Technologist", company: "Google", location: "Mountain View, CA", type: "Full-time", posted: "1w ago", salary: "$150k–$200k", tags: ["Design Systems", "Web Components"] },
+  { id: 5, title: "Interaction Designer", company: "Spotify", location: "New York, NY", type: "Contract", posted: "1w ago", salary: "$90k–$120k", tags: ["Motion", "Figma"] },
+];
+
+const USERS = [
+  { id: 1, name: "Jane Smith", email: "jane@example.com", role: "Admin", status: "active", joined: "Jan 12, 2025" },
+  { id: 2, name: "Bob Chen", email: "bob@example.com", role: "Editor", status: "active", joined: "Feb 3, 2025" },
+  { id: 3, name: "Alice Park", email: "alice@example.com", role: "Viewer", status: "inactive", joined: "Mar 7, 2025" },
+  { id: 4, name: "David Kim", email: "david@example.com", role: "Editor", status: "pending", joined: "Apr 1, 2025" },
+  { id: 5, name: "Sara Okafor", email: "sara@example.com", role: "Admin", status: "active", joined: "Apr 20, 2025" },
+];
+
+const STATUS_COLORS = {
+  active:   { bg: "#EDF7ED", color: "#2E7D32" },
+  inactive: { bg: "#FDEDED", color: "#D32F2F" },
+  pending:  { bg: "#FFF4E5", color: "#EF6C00" },
+};
+
+// ── JOB CARD ─────────────────────────────────────────────────────────────────
+function JobCard({ job }) {
+  const initials = job.company.split(" ").map(w => w[0]).join("").slice(0,2);
+  const colors = ["#9747FF","#9C27B0","#1976D2","#2E7D32","#EF6C00","#0288D1"];
+  const color = colors[job.id % colors.length];
+  return (
+    <MuiCard elevation={1} style={{ marginBottom: 16 }}>
+      <div style={{ padding: "16px 16px 0" }}>
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <MuiAvatar color={color} size={48}>{initials}</MuiAvatar>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 16, fontWeight: 500, color: "rgba(0,0,0,0.87)", marginBottom: 2 }}>{job.title}</div>
+            <div style={{ fontSize: 14, color: "rgba(0,0,0,0.6)" }}>{job.company} · {job.location}</div>
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(0,0,0,0.38)" }}>{job.posted}</div>
+        </div>
+        <div style={{ marginTop: 12, fontSize: 14, color: "rgba(0,0,0,0.6)" }}>{job.salary} · {job.type}</div>
+      </div>
+      <div style={{ padding: "12px 16px", display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {job.tags.map(t => <MuiChip key={t} label={t} size="small" />)}
+      </div>
+      <div style={{ padding: "8px 8px", display: "flex", gap: 4, borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+        <MuiButton variant="text" size="small">Save</MuiButton>
+        <MuiButton variant="text" size="small">Apply</MuiButton>
+      </div>
+    </MuiCard>
+  );
+}
+
+// ── JOB DIRECTORY SCREEN ─────────────────────────────────────────────────────
+function JobDirectoryScreen() {
+  const [search, setSearch] = React.useState("Senior");
+  const [location, setLocation] = React.useState("19904");
+  const [page, setPage] = React.useState(2);
+  const [types, setTypes] = React.useState({ fulltime: true, contract: false, parttime: false });
+  const [snackOpen, setSnackOpen] = React.useState(false);
+
+  const toggleType = (k) => setTypes(t => ({ ...t, [k]: !t[k] }));
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto" }}>
+      <div style={{ maxWidth: 1152, margin: "0 auto", padding: "32px 24px" }}>
+        {/* Title row */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <h2 style={{ fontFamily: "Roboto", fontSize: 24, fontWeight: 400, color: "rgba(0,0,0,0.87)" }}>Latest Jobs</h2>
+          <MuiSelect label="Sort" value="latest" options={[{ value: "latest", label: "Latest" }, { value: "salary", label: "Salary" }, { value: "relevance", label: "Relevance" }]} />
+        </div>
+        <MuiDivider />
+
+        <div style={{ display: "flex", gap: 24, marginTop: 24 }}>
+          {/* Filters */}
+          <div style={{ width: 280, flexShrink: 0 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 16 }}>
+              <MuiTextField label="Search by title" value={search} onChange={e => setSearch(e.target.value)} startAdornment="search" fullWidth />
+              <MuiTextField label="Location" value={location} onChange={e => setLocation(e.target.value)} fullWidth />
+              <MuiButton variant="contained" fullWidth onClick={() => setSnackOpen(true)}>Search</MuiButton>
+            </div>
+            <MuiDivider />
+            <MuiList subheader="Job Type">
+              <div style={{ padding: "4px 16px 8px", display: "flex", flexDirection: "column", gap: 4 }}>
+                <MuiCheckbox checked={types.fulltime} onChange={() => toggleType("fulltime")} label="Full-time" />
+                <MuiCheckbox checked={types.contract} onChange={() => toggleType("contract")} label="Contract" />
+                <MuiCheckbox checked={types.parttime} onChange={() => toggleType("parttime")} label="Part-time" />
+              </div>
+            </MuiList>
+            <MuiDivider />
+            <MuiList subheader="Experience">
+              <div style={{ padding: "4px 16px 8px", display: "flex", flexDirection: "column", gap: 4 }}>
+                <MuiCheckbox checked={true} onChange={() => {}} label="Entry level" />
+                <MuiCheckbox checked={true} onChange={() => {}} label="Mid level" />
+                <MuiCheckbox checked={false} onChange={() => {}} label="Senior" />
+                <MuiCheckbox checked={false} onChange={() => {}} label="Lead / Staff" />
+              </div>
+            </MuiList>
+            <div style={{ padding: "8px 16px" }}>
+              <a style={{ color: "#9747FF", fontSize: 14, cursor: "pointer", textDecoration: "none", fontWeight: 500 }}>Show more</a>
+            </div>
+          </div>
+
+          {/* Job cards */}
+          <div style={{ flex: 1 }}>
+            {JOBS.map(job => <JobCard key={job.id} job={job} />)}
+            <MuiPagination count={10} page={page} onChange={setPage} />
+          </div>
+        </div>
+      </div>
+
+      <MuiSnackbar open={snackOpen} message="Searching for matching jobs..." action={{ label: "Dismiss", onClick: () => setSnackOpen(false) }} onClose={() => setSnackOpen(false)} />
+    </div>
+  );
+}
+
+// ── LOGIN SCREEN ─────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [accepted, setAccepted] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const handleLogin = () => {
+    if (!email || !password) { setError("Please fill in all fields."); return; }
+    if (!accepted) { setError("You must accept the Terms and Conditions."); return; }
+    onLogin();
+  };
+
+  return (
+    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "#F5F5F5" }}>
+      <MuiCard elevation={1} style={{ width: 440, padding: 0 }}>
+        <div style={{ padding: "20px 16px 4px", borderBottom: "1px solid rgba(0,0,0,0.12)" }}>
+          <div style={{ fontSize: 20, fontWeight: 500, color: "rgba(0,0,0,0.87)", fontFamily: "Roboto" }}>Log In</div>
+          <div style={{ fontSize: 14, color: "rgba(0,0,0,0.6)", marginTop: 4, marginBottom: 12, fontFamily: "Roboto" }}>Get started for free</div>
+        </div>
+        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+          <MuiTextField label="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" fullWidth error={!!error && !email} />
+          <MuiTextField label="Password" value={password} onChange={e => setPassword(e.target.value)} type="password" fullWidth error={!!error && !password} />
+          <MuiCheckbox checked={accepted} onChange={e => { setAccepted(e.target.checked); setError(""); }} label="I accept the Terms and Conditions" />
+          {error && <div style={{ fontSize: 12, color: "#D32F2F", fontFamily: "Roboto" }}>{error}</div>}
+          <MuiButton variant="contained" size="large" fullWidth onClick={handleLogin}>Sign In</MuiButton>
+          <div style={{ display: "flex", gap: 16 }}>
+            <a style={{ color: "#9747FF", fontSize: 14, cursor: "pointer", textDecoration: "none" }}>Create account</a>
+            <a style={{ color: "#9747FF", fontSize: 14, cursor: "pointer", textDecoration: "none" }}>Forgot password?</a>
+          </div>
+        </div>
+      </MuiCard>
+    </div>
+  );
+}
+
+// ── USER MANAGEMENT SCREEN ────────────────────────────────────────────────────
+function UserManagementScreen() {
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [selectedUser, setSelectedUser] = React.useState(null);
+
+  const columns = [
+    { key: "name", label: "Name" },
+    { key: "email", label: "Email" },
+    { key: "role", label: "Role" },
+    { key: "status", label: "Status", render: (v) => {
+      const s = STATUS_COLORS[v] || STATUS_COLORS.pending;
+      return <span style={{ background: s.bg, color: s.color, padding: "2px 10px", borderRadius: 12, fontSize: 12, fontWeight: 500, fontFamily: "Roboto" }}>{v.charAt(0).toUpperCase() + v.slice(1)}</span>;
+    }},
+    { key: "joined", label: "Joined", sortable: false },
+  ];
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto", padding: 32 }}>
+      <div style={{ maxWidth: 960, margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <h2 style={{ fontFamily: "Roboto", fontSize: 24, fontWeight: 400, color: "rgba(0,0,0,0.87)" }}>User Management</h2>
+          <MuiButton variant="contained" startIcon="add" onClick={() => { setSelectedUser(null); setDialogOpen(true); }}>Add User</MuiButton>
+        </div>
+        <MuiDataTable
+          columns={columns}
+          rows={USERS}
+          onRowClick={(row) => { setSelectedUser(row); setDialogOpen(true); }}
+        />
+      </div>
+
+      <MuiDialog
+        open={dialogOpen}
+        title={selectedUser ? `Edit User: ${selectedUser.name}` : "Add New User"}
+        onClose={() => setDialogOpen(false)}
+        actions={<>
+          <MuiButton variant="text" onClick={() => setDialogOpen(false)}>Cancel</MuiButton>
+          <MuiButton variant="contained" onClick={() => setDialogOpen(false)}>
+            {selectedUser ? "Save Changes" : "Create User"}
+          </MuiButton>
+        </>}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 20, marginTop: 8 }}>
+          <MuiTextField label="Full Name" value={selectedUser?.name || ""} onChange={() => {}} fullWidth />
+          <MuiTextField label="Email" value={selectedUser?.email || ""} onChange={() => {}} type="email" fullWidth />
+          <MuiSelect label="Role" value={selectedUser?.role?.toLowerCase() || "viewer"}
+            options={[{ value: "admin", label: "Admin" }, { value: "editor", label: "Editor" }, { value: "viewer", label: "Viewer" }]}
+            fullWidth />
+        </div>
+      </MuiDialog>
+    </div>
+  );
+}
+
+// ── APP ROOT ──────────────────────────────────────────────────────────────────
+function App() {
+  const [loggedIn, setLoggedIn] = React.useState(false);
+  const [screen, setScreen] = React.useState("jobs");
+
+  if (!loggedIn) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <MuiAppBar title="MUI Jobs" color="primary" />
+        <LoginScreen onLogin={() => setLoggedIn(true)} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <MuiAppBar
+        title={screen === "jobs" ? "Job Directory" : "User Management"}
+        color="primary"
+        actions={[
+          { icon: "work", onClick: () => setScreen("jobs") },
+          { icon: "people", onClick: () => setScreen("users") },
+          { icon: "account_circle", onClick: () => setLoggedIn(false) },
+        ]}
+      />
+      {screen === "jobs" ? <JobDirectoryScreen /> : <UserManagementScreen />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

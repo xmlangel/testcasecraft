@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Roboto", sans-serif; background: #fff; padding: 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+  .card { border-radius: 4px; overflow: hidden; }
+  .main-swatch { height: 48px; display: flex; align-items: flex-end; padding: 6px 8px; }
+  .main-swatch span { font-size: 10px; font-weight: 500; color: #fff; }
+  .sub { display: flex; }
+  .sub-swatch { flex: 1; height: 24px; }
+  .name { font-size: 9px; font-weight: 500; color: rgba(0,0,0,0.5); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 2px; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="card">
+      <div class="main-swatch" style="background:#D32F2F"><span>Error</span></div>
+      <div class="sub">
+        <div class="sub-swatch" style="background:#C62828"></div>
+        <div class="sub-swatch" style="background:#EF9A9A"></div>
+        <div class="sub-swatch" style="background:#FDEDED"></div>
+      </div>
+      <div class="name">D32F2F / C62828 / EF9A9A / bg</div>
+    </div>
+    <div class="card">
+      <div class="main-swatch" style="background:#EF6C00"><span>Warning</span></div>
+      <div class="sub">
+        <div class="sub-swatch" style="background:#E65100"></div>
+        <div class="sub-swatch" style="background:#FFCC80"></div>
+        <div class="sub-swatch" style="background:#FFF4E5"></div>
+      </div>
+      <div class="name">EF6C00 / E65100 / FFCC80 / bg</div>
+    </div>
+    <div class="card">
+      <div class="main-swatch" style="background:#0288D1"><span>Info</span></div>
+      <div class="sub">
+        <div class="sub-swatch" style="background:#01579B"></div>
+        <div class="sub-swatch" style="background:#81D4FA"></div>
+        <div class="sub-swatch" style="background:#E5F6FD"></div>
+      </div>
+      <div class="name">0288D1 / 01579B / 81D4FA / bg</div>
+    </div>
+    <div class="card">
+      <div class="main-swatch" style="background:#2E7D32"><span>Success</span></div>
+      <div class="sub">
+        <div class="sub-swatch" style="background:#1B5E20"></div>
+        <div class="sub-swatch" style="background:#A5D6A7"></div>
+        <div class="sub-swatch" style="background:#EDF7ED"></div>
+      </div>
+      <div class="name">2E7D32 / 1B5E20 / A5D6A7 / bg</div>
+    </div>
+  </div>
+</body>
+</html>

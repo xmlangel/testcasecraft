@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Roboto", sans-serif; background: #F5F5F5; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* Card */
+  .card { background: #fff; border-radius: 4px; box-shadow: 0px 2px 1px -1px rgba(0,0,0,.20),0px 1px 1px 0px rgba(0,0,0,.14),0px 1px 3px 0px rgba(0,0,0,.12); overflow: hidden; }
+  .card-header { padding: 16px; display: flex; align-items: center; gap: 16px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #9747FF; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 500; flex-shrink: 0; }
+  .card-title { font-size: 16px; font-weight: 500; color: rgba(0,0,0,0.87); }
+  .card-subtitle { font-size: 14px; color: rgba(0,0,0,0.6); }
+  .card-content { padding: 0 16px 8px; font-size: 14px; color: rgba(0,0,0,0.87); line-height: 1.5; }
+  .card-actions { padding: 8px; display: flex; gap: 4px; }
+  .btn-text { background: transparent; color: #9747FF; border: none; border-radius: 4px; padding: 6px 8px; font-size: 14px; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; font-family: "Roboto",sans-serif; cursor: pointer; }
+
+  /* Table */
+  .table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 4px; overflow: hidden; box-shadow: 0px 2px 1px -1px rgba(0,0,0,.20),0px 1px 1px 0px rgba(0,0,0,.14),0px 1px 3px 0px rgba(0,0,0,.12); }
+  .table th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 500; color: rgba(0,0,0,0.6); border-bottom: 1px solid rgba(0,0,0,0.12); white-space: nowrap; }
+  .table td { padding: 12px 16px; font-size: 14px; color: rgba(0,0,0,0.87); border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: rgba(0,0,0,0.04); }
+  .status { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+</style>
+</head>
+<body>
+  <div style="display:flex;gap:12px">
+    <div class="card" style="flex:1">
+      <div class="card-header">
+        <div class="avatar">JD</div>
+        <div>
+          <div class="card-title">John Doe</div>
+          <div class="card-subtitle">Senior Designer</div>
+        </div>
+      </div>
+      <div class="card-content">
+        Experienced product designer with 8+ years working on complex UI systems and design tokens.
+      </div>
+      <div class="card-actions">
+        <button class="btn-text">Share</button>
+        <button class="btn-text">Learn More</button>
+      </div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="card-header">
+        <div class="avatar" style="background:#2E7D32">MX</div>
+        <div>
+          <div class="card-title">MUI Component</div>
+          <div class="card-subtitle">Elevation 1</div>
+        </div>
+      </div>
+      <div class="card-content">
+        Cards contain content and actions about a single subject, using subtle elevation.
+      </div>
+      <div class="card-actions">
+        <button class="btn-text">Action</button>
+      </div>
+    </div>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Jane Smith</td>
+        <td>Product Designer</td>
+        <td><span class="status" style="background:#EDF7ED;color:#2E7D32">Active</span></td>
+        <td>Apr 29, 2026</td>
+      </tr>
+      <tr>
+        <td>Bob Chen</td>
+        <td>Engineer</td>
+        <td><span class="status" style="background:#FFF4E5;color:#EF6C00">Pending</span></td>
+        <td>Apr 28, 2026</td>
+      </tr>
+      <tr>
+        <td>Alice Park</td>
+        <td>Manager</td>
+        <td><span class="status" style="background:#FDEDED;color:#D32F2F">Inactive</span></td>
+        <td>Apr 15, 2026</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

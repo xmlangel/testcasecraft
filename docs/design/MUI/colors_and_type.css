@@ -1,0 +1,362 @@
+/**
+ * Material UI Design System — CSS Custom Properties
+ * Based on MUI v5 default theme + Figma community file
+ * Fonts: Roboto (primary), Roboto Mono (code), Material Icons (icons)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+/* ─── COLOR TOKENS ─────────────────────────────────────────────────────────── */
+
+:root {
+  /* Primary (Purple) */
+  --mui-primary:           #9747FF;
+  --mui-primary-dark:      #6B21C7;
+  --mui-primary-light:     #C19EFF;
+  --mui-primary-contrast:  #FFFFFF;
+  --mui-primary-8:         rgba(151, 71, 255, 0.08);
+  --mui-primary-12:        rgba(151, 71, 255, 0.12);
+  --mui-primary-30:        rgba(151, 71, 255, 0.30);
+
+  /* Secondary (Deep Purple) */
+  --mui-secondary:         #9C27B0;
+  --mui-secondary-dark:    #7B1FA2;
+  --mui-secondary-light:   #CE93D8;
+  --mui-secondary-contrast:#FFFFFF;
+
+  /* Semantic: Error */
+  --mui-error:             #D32F2F;
+  --mui-error-dark:        #C62828;
+  --mui-error-light:       #EF9A9A;
+  --mui-error-bg:          #FDEDED;
+  --mui-error-contrast:    #FFFFFF;
+
+  /* Semantic: Warning */
+  --mui-warning:           #EF6C00;
+  --mui-warning-dark:      #E65100;
+  --mui-warning-light:     #FFCC80;
+  --mui-warning-bg:        #FFF4E5;
+  --mui-warning-contrast:  #FFFFFF;
+
+  /* Semantic: Info */
+  --mui-info:              #0288D1;
+  --mui-info-dark:         #01579B;
+  --mui-info-light:        #81D4FA;
+  --mui-info-bg:           #E5F6FD;
+  --mui-info-contrast:     #FFFFFF;
+
+  /* Semantic: Success */
+  --mui-success:           #2E7D32;
+  --mui-success-dark:      #1B5E20;
+  --mui-success-light:     #A5D6A7;
+  --mui-success-bg:        #EDF7ED;
+  --mui-success-contrast:  #FFFFFF;
+
+  /* Action Blue (MUI default link/action blue) */
+  --mui-action-blue:       #1976D2;
+  --mui-action-blue-dark:  #1565C0;
+  --mui-action-blue-light: #BBDEFB;
+
+  /* Text */
+  --mui-text-primary:      rgba(0, 0, 0, 0.87);
+  --mui-text-secondary:    rgba(0, 0, 0, 0.60);
+  --mui-text-disabled:     rgba(0, 0, 0, 0.38);
+  --mui-text-hint:         rgba(0, 0, 0, 0.38);
+
+  /* Text on dark */
+  --mui-text-primary-dark:   rgba(255, 255, 255, 1.00);
+  --mui-text-secondary-dark: rgba(255, 255, 255, 0.70);
+  --mui-text-disabled-dark:  rgba(255, 255, 255, 0.50);
+
+  /* Backgrounds */
+  --mui-bg-default:        #F5F5F5;
+  --mui-bg-paper:          #FFFFFF;
+  --mui-bg-dark:           #121212;
+  --mui-bg-dark-paper:     #1E1E1E;
+
+  /* Neutral grays */
+  --mui-grey-50:           #FAFAFA;
+  --mui-grey-100:          #F5F5F5;
+  --mui-grey-200:          #EEEEEE;
+  --mui-grey-300:          #E0E0E0;
+  --mui-grey-400:          #BDBDBD;
+  --mui-grey-500:          #9E9E9E;
+  --mui-grey-600:          #757575;
+  --mui-grey-700:          #616161;
+  --mui-grey-800:          #424242;
+  --mui-grey-900:          #212121;
+
+  /* Divider */
+  --mui-divider:           rgba(0, 0, 0, 0.12);
+  --mui-divider-dark:      rgba(255, 255, 255, 0.12);
+
+  /* Outlined border */
+  --mui-outline:           rgba(0, 0, 0, 0.23);
+  --mui-outline-hover:     rgba(0, 0, 0, 0.87);
+  --mui-outline-focus:     var(--mui-primary);
+
+  /* Action states */
+  --mui-action-hover:      rgba(0, 0, 0, 0.04);
+  --mui-action-selected:   rgba(0, 0, 0, 0.08);
+  --mui-action-disabled:   rgba(0, 0, 0, 0.26);
+  --mui-action-disabled-bg:rgba(0, 0, 0, 0.12);
+  --mui-action-focus:      rgba(0, 0, 0, 0.12);
+
+
+/* ─── TYPOGRAPHY TOKENS ─────────────────────────────────────────────────────── */
+
+  /* Font families */
+  --mui-font-sans:   "Roboto", "Helvetica", "Arial", sans-serif;
+  --mui-font-mono:   "Roboto Mono", "Courier New", monospace;
+  --mui-font-icons:  "Material Icons";
+
+  /* Font weights */
+  --mui-weight-light:   300;
+  --mui-weight-regular: 400;
+  --mui-weight-medium:  500;
+  --mui-weight-bold:    700;
+  --mui-weight-black:   900;
+
+  /* Type scale — font sizes */
+  --mui-fs-h1:        6rem;      /* 96px */
+  --mui-fs-h2:        3.75rem;   /* 60px */
+  --mui-fs-h3:        3rem;      /* 48px */
+  --mui-fs-h4:        2.125rem;  /* 34px */
+  --mui-fs-h5:        1.5rem;    /* 24px */
+  --mui-fs-h6:        1.25rem;   /* 20px */
+  --mui-fs-subtitle1: 1rem;      /* 16px */
+  --mui-fs-subtitle2: 0.875rem;  /* 14px */
+  --mui-fs-body1:     1rem;      /* 16px */
+  --mui-fs-body2:     0.875rem;  /* 14px */
+  --mui-fs-button:    0.875rem;  /* 14px */
+  --mui-fs-caption:   0.75rem;   /* 12px */
+  --mui-fs-overline:  0.75rem;   /* 12px */
+
+  /* Line heights */
+  --mui-lh-h1:        1.167;
+  --mui-lh-h2:        1.2;
+  --mui-lh-h3:        1.167;
+  --mui-lh-h4:        1.235;
+  --mui-lh-h5:        1.334;
+  --mui-lh-h6:        1.6;
+  --mui-lh-subtitle1: 1.75;
+  --mui-lh-subtitle2: 1.57;
+  --mui-lh-body1:     1.5;
+  --mui-lh-body2:     1.43;
+  --mui-lh-button:    1.75;
+  --mui-lh-caption:   1.66;
+  --mui-lh-overline:  2.66;
+
+  /* Letter spacings */
+  --mui-ls-h1:        -0.094rem;  /* -1.5px */
+  --mui-ls-h2:        -0.031rem;  /* -0.5px */
+  --mui-ls-h3:        0;
+  --mui-ls-h4:        0.016rem;   /* 0.25px */
+  --mui-ls-h5:        0;
+  --mui-ls-h6:        0.009rem;   /* 0.15px */
+  --mui-ls-subtitle1: 0.009rem;
+  --mui-ls-subtitle2: 0.006rem;   /* 0.1px */
+  --mui-ls-body1:     0.009rem;
+  --mui-ls-body2:     0.011rem;   /* 0.17px */
+  --mui-ls-button:    0.025rem;   /* 0.4px */
+  --mui-ls-caption:   0.025rem;
+  --mui-ls-overline:  0.063rem;   /* 1px */
+
+
+/* ─── SPACING TOKENS ─────────────────────────────────────────────────────────── */
+
+  --mui-space-0:   0px;
+  --mui-space-1:   4px;
+  --mui-space-2:   8px;
+  --mui-space-3:   12px;
+  --mui-space-4:   16px;
+  --mui-space-5:   20px;
+  --mui-space-6:   24px;
+  --mui-space-7:   28px;
+  --mui-space-8:   32px;
+  --mui-space-10:  40px;
+  --mui-space-12:  48px;
+  --mui-space-16:  64px;
+
+/* ─── BORDER RADIUS ──────────────────────────────────────────────────────────── */
+
+  --mui-radius-sm:     2px;
+  --mui-radius:        4px;     /* default — cards, buttons, inputs */
+  --mui-radius-md:     8px;
+  --mui-radius-lg:     12px;
+  --mui-radius-xl:     16px;
+  --mui-radius-round:  100px;   /* pill */
+  --mui-radius-circle: 50%;
+
+/* ─── ELEVATION / SHADOWS ────────────────────────────────────────────────────── */
+
+  --mui-shadow-0:  none;
+  --mui-shadow-1:  0px 2px 1px -1px rgba(0,0,0,.20),
+                   0px 1px 1px  0px rgba(0,0,0,.14),
+                   0px 1px 3px  0px rgba(0,0,0,.12);
+  --mui-shadow-2:  0px 3px 1px -2px rgba(0,0,0,.20),
+                   0px 2px 2px  0px rgba(0,0,0,.14),
+                   0px 1px 5px  0px rgba(0,0,0,.12);
+  --mui-shadow-3:  0px 3px 3px -2px rgba(0,0,0,.20),
+                   0px 3px 4px  0px rgba(0,0,0,.14),
+                   0px 1px 8px  0px rgba(0,0,0,.12);
+  --mui-shadow-4:  0px 2px 4px -1px rgba(0,0,0,.20),
+                   0px 4px 5px  0px rgba(0,0,0,.14),
+                   0px 1px 10px 0px rgba(0,0,0,.12);
+  --mui-shadow-6:  0px 3px 5px -1px rgba(0,0,0,.20),
+                   0px 6px 10px 0px rgba(0,0,0,.14),
+                   0px 1px 18px 0px rgba(0,0,0,.12);
+  --mui-shadow-8:  0px 5px 5px -3px rgba(0,0,0,.20),
+                   0px 8px 10px  1px rgba(0,0,0,.14),
+                   0px 3px 14px  2px rgba(0,0,0,.12);
+  --mui-shadow-12: 0px 7px 8px -4px rgba(0,0,0,.20),
+                   0px 12px 17px 2px rgba(0,0,0,.14),
+                   0px 5px 22px  4px rgba(0,0,0,.12);
+  --mui-shadow-16: 0px 8px 10px -5px rgba(0,0,0,.20),
+                   0px 16px 24px  2px rgba(0,0,0,.14),
+                   0px 6px 30px   5px rgba(0,0,0,.12);
+  --mui-shadow-24: 0px 11px 15px -7px rgba(0,0,0,.20),
+                   0px 24px 38px  3px rgba(0,0,0,.14),
+                   0px  9px 46px  8px rgba(0,0,0,.12);
+
+/* ─── TRANSITIONS ────────────────────────────────────────────────────────────── */
+
+  --mui-easing-standard:    cubic-bezier(0.4, 0, 0.2, 1);
+  --mui-easing-decelerate:  cubic-bezier(0.0, 0, 0.2, 1);
+  --mui-easing-accelerate:  cubic-bezier(0.4, 0, 1,   1);
+  --mui-duration-shortest:  150ms;
+  --mui-duration-shorter:   200ms;
+  --mui-duration-short:     250ms;
+  --mui-duration-standard:  300ms;
+  --mui-duration-complex:   375ms;
+  --mui-duration-enter:     225ms;
+  --mui-duration-leave:     195ms;
+  --mui-transition:         var(--mui-duration-short) var(--mui-easing-standard);
+}
+
+/* ─── SEMANTIC ELEMENT STYLES ────────────────────────────────────────────────── */
+
+.mui-h1, h1.mui {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-h1);
+  font-weight: var(--mui-weight-light);
+  line-height: var(--mui-lh-h1);
+  letter-spacing: var(--mui-ls-h1);
+  color: var(--mui-text-primary);
+}
+
+.mui-h2, h2.mui {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-h2);
+  font-weight: var(--mui-weight-light);
+  line-height: var(--mui-lh-h2);
+  letter-spacing: var(--mui-ls-h2);
+  color: var(--mui-text-primary);
+}
+
+.mui-h3, h3.mui {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-h3);
+  font-weight: var(--mui-weight-regular);
+  line-height: var(--mui-lh-h3);
+  letter-spacing: var(--mui-ls-h3);
+  color: var(--mui-text-primary);
+}
+
+.mui-h4, h4.mui {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-h4);
+  font-weight: var(--mui-weight-regular);
+  line-height: var(--mui-lh-h4);
+  letter-spacing: var(--mui-ls-h4);
+  color: var(--mui-text-primary);
+}
+
+.mui-h5, h5.mui {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-h5);
+  font-weight: var(--mui-weight-regular);
+  line-height: var(--mui-lh-h5);
+  letter-spacing: var(--mui-ls-h5);
+  color: var(--mui-text-primary);
+}
+
+.mui-h6, h6.mui {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-h6);
+  font-weight: var(--mui-weight-medium);
+  line-height: var(--mui-lh-h6);
+  letter-spacing: var(--mui-ls-h6);
+  color: var(--mui-text-primary);
+}
+
+.mui-subtitle1 {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-subtitle1);
+  font-weight: var(--mui-weight-regular);
+  line-height: var(--mui-lh-subtitle1);
+  letter-spacing: var(--mui-ls-subtitle1);
+  color: var(--mui-text-primary);
+}
+
+.mui-subtitle2 {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-subtitle2);
+  font-weight: var(--mui-weight-medium);
+  line-height: var(--mui-lh-subtitle2);
+  letter-spacing: var(--mui-ls-subtitle2);
+  color: var(--mui-text-primary);
+}
+
+.mui-body1 {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-body1);
+  font-weight: var(--mui-weight-regular);
+  line-height: var(--mui-lh-body1);
+  letter-spacing: var(--mui-ls-body1);
+  color: var(--mui-text-primary);
+}
+
+.mui-body2 {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-body2);
+  font-weight: var(--mui-weight-regular);
+  line-height: var(--mui-lh-body2);
+  letter-spacing: var(--mui-ls-body2);
+  color: var(--mui-text-primary);
+}
+
+.mui-button-text {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-button);
+  font-weight: var(--mui-weight-medium);
+  line-height: var(--mui-lh-button);
+  letter-spacing: var(--mui-ls-button);
+  text-transform: uppercase;
+}
+
+.mui-caption {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-caption);
+  font-weight: var(--mui-weight-regular);
+  line-height: var(--mui-lh-caption);
+  letter-spacing: var(--mui-ls-caption);
+  color: var(--mui-text-secondary);
+}
+
+.mui-overline {
+  font-family: var(--mui-font-sans);
+  font-size: var(--mui-fs-overline);
+  font-weight: var(--mui-weight-regular);
+  line-height: var(--mui-lh-overline);
+  letter-spacing: var(--mui-ls-overline);
+  text-transform: uppercase;
+  color: var(--mui-text-secondary);
+}
+
+.mui-code {
+  font-family: var(--mui-font-mono);
+  font-size: 0.875rem;
+  font-weight: var(--mui-weight-medium);
+}
