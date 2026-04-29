@@ -2227,6 +2227,11 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         languageCode,
         "Session has been saved successfully.",
         createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.error.charterRequired",
+        languageCode,
+        "Please select an assigned test charter.",
+        createdBy);
 
     // Session Status Translations
     createTranslationIfNotExists(

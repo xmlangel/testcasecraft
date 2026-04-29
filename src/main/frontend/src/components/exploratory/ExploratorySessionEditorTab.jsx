@@ -402,7 +402,7 @@ function ExploratorySessionEditorTab({
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={saveSession}
+                    onClick={() => saveSession()}
                     disabled={savingSession}
                     sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
                   >
@@ -413,7 +413,7 @@ function ExploratorySessionEditorTab({
                   <Button
                     variant="contained"
                     color="success"
-                    onClick={submitSession}
+                    onClick={() => submitSession()}
                     disabled={
                       savingSession ||
                       (sessionDraft.status !== "DRAFT" &&

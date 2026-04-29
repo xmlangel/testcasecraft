@@ -1573,6 +1573,11 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "exploratory.session.confirmDelete", languageCode, "정말로 이 세션을 삭제하시겠습니까?", createdBy);
     createTranslationIfNotExists(
         "exploratory.session.saveSuccess", languageCode, "세션이 저장되었습니다.", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.session.error.charterRequired",
+        languageCode,
+        "할당된 테스트 차터를 선택해야 합니다.",
+        createdBy);
 
     // 세션 상태 번역
     createTranslationIfNotExists(

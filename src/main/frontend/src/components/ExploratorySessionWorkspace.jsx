@@ -590,6 +590,18 @@ function ExploratorySessionWorkspace({ projectId }) {
   });
 
   const saveSession = async (draftOverride = null, silent = false) => {
+    // 유효성 검사: 차터 필수 선택
+    const targetDraft = draftOverride || sessionDraft;
+    if (!targetDraft.charterId) {
+      setSessionError(
+        t(
+          "exploratory.session.error.charterRequired",
+          "할당된 테스트 차터를 선택해야 합니다.",
+        ),
+      );
+      return null;
+    }
+
     setSavingSession(true);
     setSessionError("");
     try {

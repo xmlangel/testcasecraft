@@ -269,6 +269,11 @@ public class ExploratorySessionKeysInitializer {
         "exploratory.session.confirmDelete", "exploratory", "세션 삭제 확인 메시지", "정말로 이 세션을 삭제하시겠습니까?");
     createTranslationKeyIfNotExists(
         "exploratory.session.saveSuccess", "exploratory", "세션 저장 성공 메시지", "세션이 저장되었습니다.");
+    createTranslationKeyIfNotExists(
+        "exploratory.session.error.charterRequired",
+        "exploratory",
+        "차터 필수 선택 에러",
+        "할당된 테스트 차터를 선택해야 합니다.");
 
     log.info("탐색 세션 번역 키 초기화 완료");
   }
