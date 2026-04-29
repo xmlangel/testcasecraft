@@ -87,10 +87,7 @@ function ExploratoryDebriefTab({
                     }}
                   >
                     <DebriefIcon color="primary" />
-                    {t(
-                      "exploratory.debrief.report.title",
-                      "DEBRIEF & EVALUATION",
-                    )}
+                    {t("exploratory.debrief.report.title", "디브리프 및 평가")}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -136,7 +133,7 @@ function ExploratoryDebriefTab({
                     <span>
                       {t(
                         "exploratory.debrief.evaluation.achievement",
-                        "Charter Achievement",
+                        "차터 달성도",
                       )}
                     </span>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -196,7 +193,7 @@ function ExploratoryDebriefTab({
                   minRows={6}
                   label={t(
                     "exploratory.debrief.evaluation.summary",
-                    "Overall Session Evaluation",
+                    "세션 전체 평가",
                   )}
                   placeholder="차터 달성 여부, 발견된 품질 위험 및 테스팅 총평을 요약해 주세요."
                   value={sessionDraft.evaluation || ""}
@@ -216,7 +213,7 @@ function ExploratoryDebriefTab({
                   fullWidth
                   label={t(
                     "exploratory.debrief.evaluation.nextCharter",
-                    "Proposed Next Actions / Charters",
+                    "후속 액션 / 다음 차터 제안",
                   )}
                   placeholder="추가 조사가 필요한 영역이나 다음 테스팅 목표를 제안해 주세요."
                   value={sessionDraft.nextCharter || ""}
@@ -257,7 +254,7 @@ function ExploratoryDebriefTab({
                 }}
               >
                 <NoteIcon color="primary" />
-                {t("exploratory.debrief.section.notes", "TEST EXECUTION NOTES")}
+                {t("exploratory.debrief.section.notes", "테스트 수행 노트")}
               </Typography>
               <Stack spacing={2}>
                 {(sessionDraft.notes || []).length > 0 ? (
@@ -327,7 +324,7 @@ function ExploratoryDebriefTab({
                 <AttachmentIcon color="primary" />
                 {t(
                   "exploratory.debrief.section.artifacts",
-                  "DATA OUTPUTS & ARTIFACTS",
+                  "데이터 산출물 및 증적",
                 )}
               </Typography>
 
@@ -472,7 +469,7 @@ function ExploratoryDebriefTab({
                 <ExitIcon color="primary" />
                 {t(
                   "exploratory.debrief.section.tests",
-                  "STRUCTURED TESTS PERFORMED",
+                  "수행된 구조화된 테스트",
                 )}
               </Typography>
               <Stack spacing={2}>
@@ -571,7 +568,7 @@ function ExploratoryDebriefTab({
                 }}
               >
                 <BugIcon color="error" />
-                {t("exploratory.debrief.section.bugs", "DETAILED BUGS FOUND")}
+                {t("exploratory.debrief.section.bugs", "발견된 상세 버그")}
               </Typography>
               <Stack spacing={2}>
                 {(sessionDraft.bugs || []).length > 0 ? (
@@ -772,7 +769,7 @@ function ExploratoryDebriefTab({
                   fullWidth
                   multiline
                   minRows={4}
-                  label={t("exploratory.debrief.leadComment", "Lead Feedback")}
+                  label={t("exploratory.debrief.leadComment", "리드 피드백")}
                   placeholder="리뷰 의견을 입력해 주세요..."
                   value={sessionDraft.reviewComment || ""}
                   onChange={(e) =>
@@ -792,7 +789,7 @@ function ExploratoryDebriefTab({
                     startIcon={<ExitIcon />}
                     sx={{ py: 1.5, borderRadius: 3, fontWeight: 800 }}
                   >
-                    {t("exploratory.debrief.action.approve", "APPROVE")}
+                    {t("exploratory.debrief.action.approve", "최종 승인")}
                   </Button>
                   <Button
                     fullWidth

@@ -196,7 +196,23 @@ function ExploratorySessionEditorTab({
             ? "needsUpdate"
             : sessionDraft.status.toLowerCase()
         }`,
-        sessionDraft.status,
+        sessionDraft.status === "DRAFT"
+          ? "작성 중"
+          : sessionDraft.status === "RUNNING"
+            ? "수행 중"
+            : sessionDraft.status === "PAUSED"
+              ? "일시 정지"
+              : sessionDraft.status === "COMPLETED"
+                ? "수행 완료"
+                : sessionDraft.status === "SUBMITTED"
+                  ? "제출됨"
+                  : sessionDraft.status === "APPROVED"
+                    ? "승인됨"
+                    : sessionDraft.status === "ARCHIVED"
+                      ? "보관됨"
+                      : sessionDraft.status === "NEEDS_UPDATE"
+                        ? "보완 필요"
+                        : sessionDraft.status,
       )}
       color={statusColor[sessionDraft.status] || "default"}
       size="small"
@@ -263,10 +279,7 @@ function ExploratorySessionEditorTab({
                       fontWeight: 700,
                     }}
                   >
-                    {t(
-                      "exploratory.editor.timer.currentStatus",
-                      "SESSION STATUS",
-                    )}
+                    {t("exploratory.editor.timer.currentStatus", "세션 상태")}
                   </Typography>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography variant="h5" sx={{ fontWeight: 800 }}>
@@ -296,7 +309,7 @@ function ExploratorySessionEditorTab({
                       color: isDark ? "white" : "text.primary",
                     }}
                   >
-                    {t("exploratory.editor.timer.start", "Start")}
+                    {t("exploratory.editor.timer.start", "시작")}
                   </Button>
                   <Button
                     variant="outlined"
@@ -309,7 +322,7 @@ function ExploratorySessionEditorTab({
                       color: isDark ? "white" : "text.primary",
                     }}
                   >
-                    {t("exploratory.editor.timer.pause", "Pause")}
+                    {t("exploratory.editor.timer.pause", "일시정지")}
                   </Button>
                   <Button
                     variant="outlined"
@@ -326,7 +339,7 @@ function ExploratorySessionEditorTab({
                       color: isDark ? "white" : "text.primary",
                     }}
                   >
-                    {t("exploratory.editor.timer.resume", "Resume")}
+                    {t("exploratory.editor.timer.resume", "재개")}
                   </Button>
                   <Button
                     variant="contained"
@@ -342,7 +355,7 @@ function ExploratorySessionEditorTab({
                     }
                     sx={{ borderRadius: 2 }}
                   >
-                    {t("exploratory.editor.timer.end", "End")}
+                    {t("exploratory.editor.timer.end", "종료")}
                   </Button>
                   <Divider
                     orientation="vertical"
@@ -569,7 +582,7 @@ function ExploratorySessionEditorTab({
                         fullWidth
                         label={t(
                           "exploratory.editor.field.netDuration",
-                          "Target Duration (min)",
+                          "목표 수행 시간 (분)",
                         )}
                         type="number"
                         value={sessionDraft.netDurationMinutes || ""}
@@ -708,8 +721,8 @@ function ExploratorySessionEditorTab({
                     }}
                   >
                     {t(
-                      "exploratory.editor.section.timeAllocation",
-                      "TEST TASK DISTRIBUTION",
+                      "exploratory.editor.section.timeDistribution",
+                      "테스트 활동 배분",
                     )}
                   </Typography>
 

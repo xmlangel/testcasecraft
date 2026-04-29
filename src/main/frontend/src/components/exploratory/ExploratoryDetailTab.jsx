@@ -132,7 +132,23 @@ function ExploratoryDetailTab({
                               ? "needsUpdate"
                               : session.status.toLowerCase()
                           }`,
-                          session.status,
+                          session.status === "DRAFT"
+                            ? "작성 중"
+                            : session.status === "RUNNING"
+                              ? "수행 중"
+                              : session.status === "PAUSED"
+                                ? "일시 정지"
+                                : session.status === "COMPLETED"
+                                  ? "수행 완료"
+                                  : session.status === "SUBMITTED"
+                                    ? "제출됨"
+                                    : session.status === "APPROVED"
+                                      ? "승인됨"
+                                      : session.status === "ARCHIVED"
+                                        ? "보관됨"
+                                        : session.status === "NEEDS_UPDATE"
+                                          ? "보완 필요"
+                                          : session.status,
                         )}
                         color={color}
                         size="small"
@@ -178,7 +194,7 @@ function ExploratoryDetailTab({
                         variant="overline"
                         sx={{ opacity: 0.5, fontWeight: 700, lineHeight: 1 }}
                       >
-                        Tester
+                        {t("exploratory.session.filter.tester", "테스터")}
                       </Typography>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <PersonIcon
@@ -196,7 +212,7 @@ function ExploratoryDetailTab({
                         variant="overline"
                         sx={{ opacity: 0.5, fontWeight: 700, lineHeight: 1 }}
                       >
-                        Duration
+                        {t("common.duration", "수행 시간")}
                       </Typography>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <TimeIcon
@@ -214,7 +230,7 @@ function ExploratoryDetailTab({
                         variant="overline"
                         sx={{ opacity: 0.5, fontWeight: 700, lineHeight: 1 }}
                       >
-                        Version
+                        {t("exploratory.editor.field.version", "버전")}
                       </Typography>
                       <Typography variant="body1" sx={{ fontWeight: 700 }}>
                         {raw.productVersion || "N/A"}
@@ -227,7 +243,7 @@ function ExploratoryDetailTab({
                         variant="overline"
                         sx={{ opacity: 0.5, fontWeight: 700, lineHeight: 1 }}
                       >
-                        Environment
+                        {t("exploratory.editor.field.environment", "환경")}
                       </Typography>
                       <Typography
                         variant="body1"
@@ -261,7 +277,10 @@ function ExploratoryDetailTab({
                     textAlign: "center",
                   }}
                 >
-                  ACTUAL TIME DISTRIBUTION
+                  {t(
+                    "exploratory.editor.section.timeDistribution",
+                    "실제 테스트 활동 배분",
+                  )}
                 </Typography>
                 <Paper
                   elevation={0}
@@ -370,7 +389,7 @@ function ExploratoryDetailTab({
                   }}
                 >
                   <NoteIcon />
-                  SESSION EXECUTION LOGS
+                  {t("exploratory.debrief.section.notes", "세션 수행 로그")}
                 </Typography>
 
                 <Grid container spacing={3}>
@@ -457,7 +476,10 @@ function ExploratoryDetailTab({
                   }}
                 >
                   <ExitIcon />
-                  STRUCTURED TESTS PERFORMED
+                  {t(
+                    "exploratory.debrief.section.tests",
+                    "수행된 구조화된 테스트",
+                  )}
                 </Typography>
                 <Stack spacing={2}>
                   {(raw.tests || []).length > 0 ? (
@@ -570,7 +592,7 @@ function ExploratoryDetailTab({
                   }}
                 >
                   <BugIcon />
-                  DETAILED BUGS & DEFECTS
+                  {t("exploratory.debrief.section.bugs", "상세 버그 및 결함")}
                 </Typography>
                 <Stack spacing={2}>
                   {(raw.bugs || []).length > 0 ? (
@@ -665,7 +687,10 @@ function ExploratoryDetailTab({
                   }}
                 >
                   <CharterIcon />
-                  DATA OUTPUTS & ARTIFACTS
+                  {t(
+                    "exploratory.debrief.section.artifacts",
+                    "데이터 산출물 및 증적",
+                  )}
                 </Typography>
                 <Stack spacing={3}>
                   <Box>

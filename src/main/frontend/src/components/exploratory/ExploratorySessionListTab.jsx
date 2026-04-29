@@ -112,28 +112,28 @@ function ExploratorySessionListTab({
               >
                 <MenuItem value="ALL">{t("common.all", "전체")}</MenuItem>
                 <MenuItem value="DRAFT">
-                  {t("exploratory.session.status.draft", "DRAFT")}
+                  {t("exploratory.session.status.draft", "작성 중")}
                 </MenuItem>
                 <MenuItem value="RUNNING">
-                  {t("exploratory.session.status.running", "RUNNING")}
+                  {t("exploratory.session.status.running", "수행 중")}
                 </MenuItem>
                 <MenuItem value="PAUSED">
-                  {t("exploratory.session.status.paused", "PAUSED")}
+                  {t("exploratory.session.status.paused", "일시 정지")}
                 </MenuItem>
                 <MenuItem value="COMPLETED">
-                  {t("exploratory.session.status.completed", "COMPLETED")}
+                  {t("exploratory.session.status.completed", "수행 완료")}
                 </MenuItem>
                 <MenuItem value="SUBMITTED">
-                  {t("exploratory.session.status.submitted", "SUBMITTED")}
+                  {t("exploratory.session.status.submitted", "제출됨")}
                 </MenuItem>
                 <MenuItem value="APPROVED">
-                  {t("exploratory.session.status.approved", "APPROVED")}
+                  {t("exploratory.session.status.approved", "승인됨")}
                 </MenuItem>
                 <MenuItem value="ARCHIVED">
-                  {t("exploratory.session.status.archived", "ARCHIVED")}
+                  {t("exploratory.session.status.archived", "보관됨")}
                 </MenuItem>
                 <MenuItem value="NEEDS_UPDATE">
-                  {t("exploratory.session.status.needsUpdate", "NEEDS_UPDATE")}
+                  {t("exploratory.session.status.needsUpdate", "보완 필요")}
                 </MenuItem>
               </Select>
             </FormControl>
@@ -288,7 +288,23 @@ function ExploratorySessionListTab({
                                 ? "needsUpdate"
                                 : item.status.toLowerCase()
                             }`,
-                            item.status,
+                            item.status === "DRAFT"
+                              ? "작성 중"
+                              : item.status === "RUNNING"
+                                ? "수행 중"
+                                : item.status === "PAUSED"
+                                  ? "일시 정지"
+                                  : item.status === "COMPLETED"
+                                    ? "수행 완료"
+                                    : item.status === "SUBMITTED"
+                                      ? "제출됨"
+                                      : item.status === "APPROVED"
+                                        ? "승인됨"
+                                        : item.status === "ARCHIVED"
+                                          ? "보관됨"
+                                          : item.status === "NEEDS_UPDATE"
+                                            ? "보완 필요"
+                                            : item.status,
                           )}
                           size="small"
                           color={color}
