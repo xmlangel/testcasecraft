@@ -91,6 +91,11 @@ public class TestCharterService {
     return charter;
   }
 
+  @Transactional(readOnly = true)
+  public TestCharter getCharterById(String id) {
+    return findCharter(id);
+  }
+
   private TestCharter findCharter(String id) {
     return testCharterRepository
         .findById(id)

@@ -637,8 +637,10 @@ function ExploratorySessionWorkspace({ projectId }) {
   };
 
   const submitSession = async () => {
-    if (!sessionDraft.id) {
-      setSessionError("세션을 먼저 저장해야 합니다.");
+    // 제출 전 현재 변경사항 자동 저장
+    const saved = await saveSession(sessionDraft, true);
+    if (!saved) {
+      // 저장 실패 시 중단 (에러 메시지는 saveSession 내부에서 setSessionError로 처리됨)
       return;
     }
 
@@ -1138,11 +1140,12 @@ function ExploratorySessionWorkspace({ projectId }) {
             sessionDraft={sessionDraft}
             setSessionDraft={setSessionDraft}
             onBackToList={handleBackToList}
-            saveSession={saveSession}
+            saveSession={() => saveSession()}
             submitSession={submitSession}
             approveSession={approveSession}
             rejectSession={rejectSession}
             savingSession={savingSession}
+            sessionError={sessionError}
             artifacts={sessionDraft.attachments || []}
             onDeleteArtifact={onDeleteArtifact}
           />

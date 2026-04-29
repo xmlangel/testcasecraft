@@ -15,6 +15,7 @@ import {
   LinearProgress,
   useTheme,
   Chip,
+  Alert,
 } from "@mui/material";
 import { useTheme as useAppTheme } from "../../context/ThemeContext.jsx";
 import {
@@ -38,6 +39,7 @@ function ExploratoryDebriefTab({
   approveSession,
   rejectSession,
   savingSession,
+  sessionError,
   artifacts,
 }) {
   const theme = useTheme();
@@ -47,6 +49,20 @@ function ExploratoryDebriefTab({
 
   return (
     <Grid container spacing={4}>
+      {sessionError && (
+        <Grid size={12}>
+          <Alert
+            severity="error"
+            sx={{
+              borderRadius: 3,
+              bgcolor: isDark ? "rgba(211, 47, 47, 0.1)" : "error.light",
+              color: isDark ? "#ffcdd2" : "error.contrastText",
+            }}
+          >
+            {sessionError}
+          </Alert>
+        </Grid>
+      )}
       {/* Left Column: Session Summary & Evaluation */}
       <Grid size={{ xs: 12, lg: 8 }}>
         <Stack spacing={4}>

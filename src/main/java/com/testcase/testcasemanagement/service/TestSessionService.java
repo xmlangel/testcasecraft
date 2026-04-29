@@ -83,8 +83,12 @@ public class TestSessionService {
     TestSession session = findById(id);
     ensureStatus(
         session,
-        List.of(TestSession.SessionStatus.DRAFT, TestSession.SessionStatus.NEEDS_UPDATE),
-        "세션 수정은 DRAFT 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
+        List.of(
+            TestSession.SessionStatus.DRAFT,
+            TestSession.SessionStatus.COMPLETED,
+            TestSession.SessionStatus.SUBMITTED,
+            TestSession.SessionStatus.NEEDS_UPDATE),
+        "세션 수정은 DRAFT, COMPLETED, SUBMITTED 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
 
     Project project =
         projectRepository
@@ -92,7 +96,8 @@ public class TestSessionService {
             .orElseThrow(
                 () -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다: " + request.getProjectId()));
 
-    TestCharter charter = testCharterService.findActiveCharter(request.getCharterId());
+    TestCharter charter =
+        testCharterService.getCharterById(request.getCharterId()); // findActiveCharter 대신 일반 조회 사용
     if (!charter.getProject().getId().equals(project.getId())) {
       throw new ResourceNotValidException(
           "세션 프로젝트와 차터 프로젝트가 일치하지 않습니다.",
