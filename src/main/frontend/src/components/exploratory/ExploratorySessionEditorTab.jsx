@@ -408,7 +408,9 @@ function ExploratorySessionEditorTab({
                   >
                     {savingSession
                       ? t("common.saving", "Saving...")
-                      : t("common.save", "저장")}
+                      : sessionDraft.id
+                        ? t("common.update", "수정")
+                        : t("common.save", "저장")}
                   </Button>
                   <Button
                     variant="contained"
@@ -682,6 +684,7 @@ function ExploratorySessionEditorTab({
                         <Select
                           value={sessionDraft.charterId}
                           label="Assigned Test Charter"
+                          disabled={!!sessionDraft.id}
                           onChange={(e) => {
                             const charterId = e.target.value;
                             const charter = charters.find(
