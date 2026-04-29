@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Material 3 UI Kit</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../material3/tokens.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body, #root { height:100%; }
+  body { font-family: 'Roboto', sans-serif; background:#F3EDF7; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; user-select:none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel">
+// ── Sample data ────────────────────────────────────────────────────
+const NOTES = [
+  { id: 1, title: 'Meeting notes', body: 'Discuss Q3 goals, team updates, and roadmap priorities for next quarter.', tag: 'Work', date: 'Today' },
+  { id: 2, title: 'Grocery list', body: 'Milk, eggs, bread, coffee, fresh vegetables, olive oil, pasta.', tag: 'Personal', date: 'Yesterday' },
+  { id: 3, title: 'Book recommendations', body: 'Thinking Fast and Slow, The Design of Everyday Things, Atomic Habits.', tag: 'Reading', date: 'Mon' },
+  { id: 4, title: 'App ideas', body: 'A habit tracker with beautiful data viz, a local event discovery app.', tag: 'Ideas', date: 'Sun' },
+  { id: 5, title: 'Travel checklist', body: 'Passport, chargers, headphones, travel adapter, medication.', tag: 'Travel', date: 'Sat' },
+];
+
+const TAG_COLORS = {
+  Work:     { bg: '#E8DEF8', fg: '#1D192B' },
+  Personal: { bg: '#FFD8E4', fg: '#31111D' },
+  Reading:  { bg: '#EADDFF', fg: '#21005D' },
+  Ideas:    { bg: '#F9DEDC', fg: '#8C1D18' },
+  Travel:   { bg: '#E8DEF8', fg: '#1D192B' },
+};
+
+const NAV_ITEMS = [
+  { icon: 'home',     label: 'Home' },
+  { icon: 'search',   label: 'Search' },
+  { icon: 'edit_note',label: 'Notes' },
+  { icon: 'person',   label: 'Profile' },
+];
+
+const ALL_TAGS = ['All', 'Work', 'Personal', 'Reading', 'Ideas', 'Travel'];
+
+// ── Screens ────────────────────────────────────────────────────────
+function HomeScreen({ colors: C, onNote, onNew }) {
+  const [activeTag, setActiveTag] = React.useState('All');
+  const [scrolled, setScrolled] = React.useState(false);
+  const filtered = activeTag === 'All' ? NOTES : NOTES.filter(n => n.tag === activeTag);
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.background }}>
+      <TopAppBar title="My Notes" elevated={scrolled} colors={C}
+        actions={[{ icon: 'more_vert', onClick: () => {} }]} />
+      <div style={{ padding: '12px 16px 8px', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0 }}
+        className="hide-scrollbar">
+        {ALL_TAGS.map(tag => (
+          <Chip key={tag} label={tag} selected={activeTag === tag}
+            onClick={() => setActiveTag(tag)} colors={C} />
+        ))}
+      </div>
+      <div onScroll={e => setScrolled(e.target.scrollTop > 4)}
+        style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {filtered.map(note => (
+          <Card key={note.id} variant="elevated" onClick={() => onNote(note)} colors={C}>
+            <div style={{ padding: '16px 16px 12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                <div style={{ fontFamily: 'Roboto', fontSize: 16, fontWeight: 500, color: C.onSurface }}>{note.title}</div>
+                <div style={{ fontSize: 12, color: C.onSurfaceVariant, flexShrink: 0, marginLeft: 8 }}>{note.date}</div>
+              </div>
+              <div style={{ fontFamily: 'Roboto', fontSize: 14, color: C.onSurfaceVariant, lineHeight: '20px',
+                overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                {note.body}
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <span style={{
+                  background: TAG_COLORS[note.tag]?.bg || C.secondaryContainer,
+                  color: TAG_COLORS[note.tag]?.fg || C.onSecondaryContainer,
+                  borderRadius: M3Shape.xs, padding: '2px 8px',
+                  fontSize: 11, fontWeight: 500,
+                }}>{note.tag}</span>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+      <div style={{ position: 'absolute', bottom: 92, right: 16 }}>
+        <FAB icon="add" label="New note" onClick={onNew} colors={C} />
+      </div>
+    </div>
+  );
+}
+
+function NoteDetail({ note, colors: C, onBack, onDelete }) {
+  const [showDialog, setShowDialog] = React.useState(false);
+  const [showSnack, setShowSnack] = React.useState(false);
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.background }}>
+      <TopAppBar title={note.title} onBack={onBack} colors={C}
+        actions={[
+          { icon: 'edit', onClick: () => {} },
+          { icon: 'delete', onClick: () => setShowDialog(true) },
+        ]} />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px' }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <span style={{
+            background: TAG_COLORS[note.tag]?.bg || C.secondaryContainer,
+            color: TAG_COLORS[note.tag]?.fg || C.onSecondaryContainer,
+            borderRadius: M3Shape.xs, padding: '4px 10px', fontSize: 12, fontWeight: 500,
+          }}>{note.tag}</span>
+          <span style={{ fontSize: 12, color: C.onSurfaceVariant, alignSelf: 'center' }}>{note.date}</span>
+        </div>
+        <div style={{ fontFamily: 'Roboto', fontSize: 16, color: C.onSurface, lineHeight: '28px' }}>
+          {note.body}
+        </div>
+      </div>
+      <Dialog open={showDialog} icon="delete" title="Delete note?"
+        body="This note will be permanently deleted and cannot be recovered."
+        colors={C}
+        actions={[
+          { label: 'Cancel', variant: 'text', onClick: () => setShowDialog(false) },
+          { label: 'Delete', variant: 'filled', onClick: () => { setShowDialog(false); setShowSnack(true); setTimeout(() => { setShowSnack(false); onBack(); }, 2000); } },
+        ]}
+        onClose={() => setShowDialog(false)} />
+      <Snackbar open={showSnack} message="Note deleted" action="Undo" onAction={() => setShowSnack(false)} colors={C} />
+    </div>
+  );
+}
+
+function SearchScreen({ colors: C }) {
+  const [query, setQuery] = React.useState('');
+  const results = query.length > 0
+    ? NOTES.filter(n => n.title.toLowerCase().includes(query.toLowerCase()) || n.body.toLowerCase().includes(query.toLowerCase()))
+    : [];
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.background }}>
+      <div style={{ padding: '12px 16px' }}>
+        <div style={{
+          background: C.surfaceContainerHigh, borderRadius: M3Shape.full,
+          display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', height: 56,
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 24, color: C.onSurfaceVariant, margin: '0 4px' }}>search</span>
+          <input value={query} onChange={e => setQuery(e.target.value)}
+            placeholder="Search notes…" autoFocus
+            style={{
+              flex: 1, background: 'transparent', border: 'none', outline: 'none',
+              fontFamily: 'Roboto', fontSize: 16, color: C.onSurface,
+            }} />
+          {query && <IconButton icon="close" onClick={() => setQuery('')} colors={C} />}
+        </div>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
+        {query.length === 0 && (
+          <div style={{ textAlign: 'center', marginTop: 48, color: C.onSurfaceVariant }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 48, display: 'block', marginBottom: 12 }}>search</span>
+            <div style={{ fontFamily: 'Roboto', fontSize: 16 }}>Search your notes</div>
+          </div>
+        )}
+        {query.length > 0 && results.length === 0 && (
+          <div style={{ textAlign: 'center', marginTop: 48, color: C.onSurfaceVariant }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 48, display: 'block', marginBottom: 12 }}>search_off</span>
+            <div style={{ fontFamily: 'Roboto', fontSize: 16 }}>No results for "{query}"</div>
+          </div>
+        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {results.map(note => (
+            <Card key={note.id} variant="outlined" colors={C}>
+              <div style={{ padding: '12px 16px' }}>
+                <div style={{ fontFamily: 'Roboto', fontSize: 16, fontWeight: 500, color: C.onSurface }}>{note.title}</div>
+                <div style={{ fontFamily: 'Roboto', fontSize: 14, color: C.onSurfaceVariant, lineHeight: '20px', marginTop: 2 }}>
+                  {note.body.substring(0, 80)}…
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileScreen({ colors: C, darkMode, onToggleDark }) {
+  const [notifs, setNotifs] = React.useState(true);
+  const [sync, setSync] = React.useState(false);
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.background }}>
+      <TopAppBar title="Profile" colors={C} />
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <Avatar name="Alex Morgan" size={72} colors={C} />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: 'Roboto', fontSize: 22, color: C.onSurface }}>Alex Morgan</div>
+            <div style={{ fontFamily: 'Roboto', fontSize: 14, color: C.onSurfaceVariant, marginTop: 2 }}>alex@example.com</div>
+          </div>
+          <Button label="Edit profile" variant="outlined" icon="edit" colors={C} onClick={() => {}} />
+        </div>
+        <Divider colors={C} />
+        <div style={{ padding: '8px 0' }}>
+          <ListItem headline="Notifications" leading="notifications" trailing={<Switch checked={notifs} onChange={setNotifs} colors={C} />} colors={C} />
+          <Divider colors={C} />
+          <ListItem headline="Dark mode" leading="dark_mode" trailing={<Switch checked={darkMode} onChange={onToggleDark} colors={C} />} colors={C} />
+          <Divider colors={C} />
+          <ListItem headline="Sync notes" supportText="Sync across all devices" leading="sync" trailing={<Switch checked={sync} onChange={setSync} colors={C} />} colors={C} />
+          <Divider colors={C} />
+          <ListItem headline="Privacy policy" leading="privacy_tip" trailing={<span className="material-symbols-outlined" style={{ fontSize: 20, color: C.onSurfaceVariant }}>chevron_right</span>} onClick={() => {}} colors={C} />
+          <ListItem headline="Help & feedback" leading="help" trailing={<span className="material-symbols-outlined" style={{ fontSize: 20, color: C.onSurfaceVariant }}>chevron_right</span>} onClick={() => {}} colors={C} />
+        </div>
+        <Divider colors={C} />
+        <div style={{ padding: '8px 16px 24px' }}>
+          <Button label="Sign out" variant="outlined" icon="logout" colors={C} onClick={() => {}} />
+        </div>
+        <div style={{ textAlign: 'center', padding: '0 16px 24px' }}>
+          <div style={{ fontFamily: 'Roboto Mono, monospace', fontSize: 11, color: C.outlineVariant }}>
+            Material 3 Design Kit · v1.0
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewNoteScreen({ colors: C, onBack }) {
+  const [title, setTitle] = React.useState('');
+  const [body, setBody] = React.useState('');
+  const [tag, setTag] = React.useState('Personal');
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.background }}>
+      <TopAppBar title="New note" onBack={onBack} colors={C}
+        actions={[{ icon: 'check', onClick: onBack }]} />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <TextField label="Title" value={title} onChange={setTitle} variant="filled" colors={C} />
+        <TextField label="Note" value={body} onChange={setBody} variant="outlined" colors={C} supportText="Write anything…" />
+        <div>
+          <div style={{ fontFamily: 'Roboto', fontSize: 12, color: C.onSurfaceVariant, marginBottom: 8, paddingLeft: 4 }}>Tag</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {['Work', 'Personal', 'Reading', 'Ideas', 'Travel'].map(t => (
+              <Chip key={t} label={t} selected={tag === t} onClick={() => setTag(t)} colors={C} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Root App ───────────────────────────────────────────────────────
+function App() {
+  const [darkMode, setDarkMode] = React.useState(false);
+  const [navIndex, setNavIndex] = React.useState(0);
+  const [activeNote, setActiveNote] = React.useState(null);
+  const [newNote, setNewNote] = React.useState(false);
+
+  const C = darkMode ? M3Dark : M3Colors;
+
+  const screens = [
+    <HomeScreen colors={C} onNote={n => { setActiveNote(n); }} onNew={() => setNewNote(true)} />,
+    <SearchScreen colors={C} />,
+    <div style={{ flex: 1, background: C.background, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+      <span className="material-symbols-outlined" style={{ fontSize: 64, color: C.outlineVariant }}>edit_note</span>
+      <div style={{ fontFamily: 'Roboto', fontSize: 22, color: C.onSurfaceVariant }}>Notes</div>
+      <Button label="New note" variant="filled" icon="add" colors={C} onClick={() => setNewNote(true)} />
+    </div>,
+    <ProfileScreen colors={C} darkMode={darkMode} onToggleDark={v => setDarkMode(v)} />,
+  ];
+
+  return (
+    <div style={{
+      width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: darkMode ? '#0F0D13' : '#E8DEF8',
+    }}>
+      <div style={{
+        width: 390, height: 700, maxHeight: '100vh',
+        display: 'flex', flexDirection: 'column',
+        background: C.background, overflow: 'hidden', position: 'relative',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
+        borderRadius: 24,
+      }}>
+        {activeNote && !newNote ? (
+          <NoteDetail note={activeNote} colors={C} onBack={() => setActiveNote(null)} />
+        ) : newNote ? (
+          <NewNoteScreen colors={C} onBack={() => setNewNote(false)} />
+        ) : (
+          <>
+            {screens[navIndex]}
+            <NavigationBar items={NAV_ITEMS} activeIndex={navIndex} onSelect={i => { setNavIndex(i); setActiveNote(null); }} colors={C} />
+          </>
+        )}
+      </div>
+      <style>{`.hide-scrollbar::-webkit-scrollbar { display:none; } .hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }`}</style>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

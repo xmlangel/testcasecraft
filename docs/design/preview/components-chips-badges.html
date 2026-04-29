@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Roboto',sans-serif; background:#FFFBFE; padding:16px; }
+.label { font-size:11px; font-weight:500; color:#49454F; margin-bottom:8px; letter-spacing:0.5px; text-transform:uppercase; }
+.row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+.chip {
+  display:inline-flex; align-items:center; gap:6px;
+  height:32px; padding:0 16px; border-radius:8px;
+  font-size:14px; font-weight:500; letter-spacing:0.1px; cursor:pointer;
+}
+.chip-assist { background:#FFFBFE; border:1px solid #79747E; color:#1C1B1F; }
+.chip-filter { background:#FFFBFE; border:1px solid #79747E; color:#1C1B1F; }
+.chip-filter.selected { background:#E8DEF8; border-color:#E8DEF8; color:#1D192B; }
+.chip-input { background:#FFFBFE; border:1px solid #79747E; color:#1C1B1F; }
+.chip-suggest { background:#FFFBFE; border:1px solid #79747E; color:#1C1B1F; }
+.badge { display:inline-flex; align-items:center; justify-content:center; border-radius:9999px; font-size:11px; font-weight:500; }
+.badge-dot { width:6px; height:6px; background:#B3261E; }
+.badge-num { background:#B3261E; color:#fff; min-width:16px; height:16px; padding:0 4px; font-size:11px; }
+.badge-large { background:#B3261E; color:#fff; min-width:24px; height:24px; padding:0 6px; font-size:12px; }
+</style>
+</head><body>
+<div class="label">Chips</div>
+<div class="row">
+  <div class="chip chip-assist">Assist chip</div>
+  <div class="chip chip-filter">Filter chip</div>
+  <div class="chip chip-filter selected">✓ Selected</div>
+  <div class="chip chip-input">Input chip ×</div>
+  <div class="chip chip-suggest">Suggestion</div>
+</div>
+<div class="label">Badges</div>
+<div class="row">
+  <span style="position:relative;display:inline-block;width:32px;height:32px;background:#E8DEF8;border-radius:8px;">
+    <span class="badge badge-dot" style="position:absolute;top:4px;right:4px"></span>
+  </span>
+  <span style="position:relative;display:inline-block;width:32px;height:32px;background:#E8DEF8;border-radius:8px;">
+    <span class="badge badge-num" style="position:absolute;top:-4px;right:-4px">3</span>
+  </span>
+  <span style="position:relative;display:inline-block;width:32px;height:32px;background:#E8DEF8;border-radius:8px;">
+    <span class="badge badge-large" style="position:absolute;top:-8px;right:-8px">99+</span>
+  </span>
+</div>
+</body></html>

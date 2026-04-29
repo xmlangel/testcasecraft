@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Roboto',sans-serif; background:#F3EDF7; padding:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; }
+.card { border-radius:12px; overflow:hidden; width:180px; }
+.card-body { padding:12px 16px 16px; }
+.card-title { font-size:16px; font-weight:500; color:#1C1B1F; line-height:24px; }
+.card-sub { font-size:12px; color:#49454F; line-height:16px; margin-top:2px; }
+.card-text { font-size:14px; color:#49454F; line-height:20px; margin-top:8px; }
+.card-img { width:100%; height:80px; object-fit:cover; }
+.img-placeholder { width:100%; height:80px; background:linear-gradient(135deg,#E8DEF8,#D0BCFF); }
+.card-actions { padding:8px 8px 8px; display:flex; gap:4px; }
+.action-btn { font-family:'Roboto',sans-serif; font-size:14px; font-weight:500; color:#6750A4; background:none; border:none; padding:8px 12px; border-radius:9999px; cursor:pointer; }
+</style>
+</head><body>
+<!-- Elevated card -->
+<div class="card" style="background:#FFFBFE;box-shadow:0 1px 2px rgba(0,0,0,0.3),0 1px 3px rgba(0,0,0,0.15)">
+  <div class="img-placeholder"></div>
+  <div class="card-body">
+    <div class="card-title">Elevated card</div>
+    <div class="card-sub">Subhead</div>
+    <div class="card-text">Supporting text goes here in body medium style.</div>
+  </div>
+  <div class="card-actions">
+    <button class="action-btn">Action</button>
+    <button class="action-btn">Action</button>
+  </div>
+</div>
+<!-- Filled card -->
+<div class="card" style="background:#E6E0E9">
+  <div class="img-placeholder" style="background:linear-gradient(135deg,#CCC2DC,#9A82DB)"></div>
+  <div class="card-body">
+    <div class="card-title">Filled card</div>
+    <div class="card-sub">Subhead</div>
+    <div class="card-text">Supporting text for this filled card variant.</div>
+  </div>
+  <div class="card-actions">
+    <button class="action-btn">Action</button>
+  </div>
+</div>
+<!-- Outlined card -->
+<div class="card" style="background:#FFFBFE;border:1px solid #CAC4D0">
+  <div class="img-placeholder" style="background:linear-gradient(135deg,#F7F2FA,#ECE6F0)"></div>
+  <div class="card-body">
+    <div class="card-title">Outlined card</div>
+    <div class="card-sub">Subhead</div>
+    <div class="card-text">Supporting text for the outlined card variant.</div>
+  </div>
+  <div class="card-actions">
+    <button class="action-btn">Action</button>
+  </div>
+</div>
+</body></html>

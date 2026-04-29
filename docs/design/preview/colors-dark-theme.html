@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Roboto',sans-serif; background:#1C1B1F; padding:16px; }
+.row { display:flex; gap:0; border-radius:12px; overflow:hidden; margin-bottom:8px; }
+.swatch { flex:1; padding:10px 8px 6px; min-height:56px; display:flex; flex-direction:column; justify-content:space-between; }
+.role { font-size:10px; font-weight:500; letter-spacing:0.1px; }
+.token { font-size:9px; opacity:0.7; margin-top:2px; }
+.label { font-size:11px; font-weight:500; color:#938F99; margin-bottom:5px; letter-spacing:0.5px; text-transform:uppercase; }
+</style>
+</head><body>
+<div class="label">Primary (Dark)</div>
+<div class="row">
+  <div class="swatch" style="background:#D0BCFF;color:#381E72"><div class="role">Primary</div><div class="token">P-80</div></div>
+  <div class="swatch" style="background:#381E72;color:#D0BCFF"><div class="role">On Primary</div><div class="token">P-20</div></div>
+  <div class="swatch" style="background:#4F378B;color:#EADDFF"><div class="role">Primary Container</div><div class="token">P-30</div></div>
+  <div class="swatch" style="background:#EADDFF;color:#21005D"><div class="role">On Primary Cont.</div><div class="token">P-90</div></div>
+</div>
+<div class="label">Surface (Dark)</div>
+<div class="row">
+  <div class="swatch" style="background:#0F0D13;color:#E6E1E5"><div class="role">Surf. Lowest</div></div>
+  <div class="swatch" style="background:#1D1B20;color:#E6E1E5"><div class="role">Surf. Low</div></div>
+  <div class="swatch" style="background:#211F26;color:#E6E1E5"><div class="role">Surface</div></div>
+  <div class="swatch" style="background:#2B2930;color:#E6E1E5"><div class="role">Surf. High</div></div>
+  <div class="swatch" style="background:#36343B;color:#E6E1E5"><div class="role">Surf. Highest</div></div>
+</div>
+<div class="label">Secondary &amp; Tertiary (Dark)</div>
+<div class="row">
+  <div class="swatch" style="background:#CCC2DC;color:#332D41"><div class="role">Secondary</div></div>
+  <div class="swatch" style="background:#4A4458;color:#E8DEF8"><div class="role">Sec. Container</div></div>
+  <div class="swatch" style="background:#EFB8C8;color:#492532"><div class="role">Tertiary</div></div>
+  <div class="swatch" style="background:#633B48;color:#FFD8E4"><div class="role">Ter. Container</div></div>
+</div>
+</body></html>

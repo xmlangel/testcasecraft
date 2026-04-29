@@ -150,6 +150,7 @@
 다음 각 기술 영역별 세부 가이드라인을 준수하여 개발을 진행하세요:
 
 - **일반 개발 원칙**: [DEVELOPMENT_GUIDE.md](docs/code-guide-line/DEVELOPMENT_GUIDE.md)
+- **디자인 가이드라인**: [README.md](docs/design/README.md)
 - **백엔드 (Java)**: [JAVA_CODING_GUIDELINES.md](docs/code-guide-line/JAVA_CODING_GUIDELINES.md)
 - **백엔드 (FastAPI)**: [FASTAPI_CODING_GUIDELINES.md](docs/code-guide-line/FASTAPI_CODING_GUIDELINES.md)
 - **프론트엔드 (React)**: [REACT_CODING_GUIDELINES.md](docs/code-guide-line/REACT_CODING_GUIDELINES.md)

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Roboto',sans-serif; background:#FFFBFE; padding:16px; display:flex; flex-direction:column; gap:14px; }
+.label { font-size:11px; font-weight:500; color:#49454F; letter-spacing:0.5px; text-transform:uppercase; }
+.field-wrap { display:flex; flex-direction:column; gap:4px; }
+.field-label { font-size:12px; color:#49454F; font-weight:400; }
+/* Filled text field */
+.tf-filled {
+  background:#E6E0E9; border:none; border-bottom:1px solid #49454F;
+  border-radius:4px 4px 0 0; padding:20px 16px 4px;
+  font-family:'Roboto',sans-serif; font-size:16px; color:#1C1B1F;
+  outline:none; width:260px; height:56px;
+  transition:border-color 0.2s;
+}
+.tf-filled:focus { border-bottom:2px solid #6750A4; }
+/* Outlined text field */
+.tf-outlined-wrap { position:relative; width:260px; }
+.tf-outlined {
+  background:transparent; border:1px solid #79747E; border-radius:4px;
+  padding:16px 16px 16px; font-family:'Roboto',sans-serif; font-size:16px;
+  color:#1C1B1F; outline:none; width:100%; height:56px;
+  transition:border-color 0.2s;
+}
+.tf-outlined:focus { border:2px solid #6750A4; }
+.tf-float { position:absolute; top:16px; left:16px; font-size:16px; color:#49454F; pointer-events:none; transition:all 0.15s; }
+.tf-outlined:focus ~ .tf-float, .tf-outlined:not(:placeholder-shown) ~ .tf-float {
+  top:-10px; font-size:12px; background:#FFFBFE; padding:0 4px; color:#6750A4;
+}
+.support { font-size:12px; color:#49454F; padding-left:16px; }
+.error .tf-filled { border-bottom-color:#B3261E; }
+.error .tf-outlined { border-color:#B3261E; }
+.error .support { color:#B3261E; }
+</style>
+</head><body>
+<div class="label">Text Fields</div>
+<div class="field-wrap">
+  <input class="tf-filled" type="text" placeholder="Label" value="Input text">
+  <div class="support">Supporting text</div>
+</div>
+<div class="field-wrap">
+  <div class="tf-outlined-wrap">
+    <input class="tf-outlined" type="text" placeholder=" " id="tf1">
+    <label class="tf-float" for="tf1">Label</label>
+  </div>
+  <div class="support">Supporting text</div>
+</div>
+<div class="field-wrap error">
+  <input class="tf-filled" type="text" placeholder="Label" value="Wrong value">
+  <div class="support">Error message</div>
+</div>
+</body></html>

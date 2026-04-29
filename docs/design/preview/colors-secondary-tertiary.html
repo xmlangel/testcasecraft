@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Roboto', sans-serif; background: #F7F2FA; padding: 16px; }
+.row { display:flex; gap:0; border-radius: 12px; overflow:hidden; margin-bottom: 10px; }
+.swatch { flex:1; padding: 10px 10px 8px; display:flex; flex-direction:column; justify-content:space-between; min-height: 64px; }
+.swatch .role { font-size: 10px; font-weight: 500; letter-spacing: 0.1px; }
+.swatch .token { font-size: 9px; opacity:0.8; margin-top:3px; }
+.label { font-size: 11px; font-weight: 500; color: #49454F; margin-bottom: 5px; letter-spacing: 0.5px; text-transform: uppercase; }
+</style>
+</head><body>
+<div class="label">Secondary</div>
+<div class="row">
+  <div class="swatch" style="background:#625B71;color:#fff"><div class="role">Secondary</div><div class="token">S-40</div></div>
+  <div class="swatch" style="background:#fff;color:#625B71"><div class="role">On Secondary</div><div class="token">S-100</div></div>
+  <div class="swatch" style="background:#E8DEF8;color:#1D192B"><div class="role">Secondary Container</div><div class="token">S-90</div></div>
+  <div class="swatch" style="background:#1D192B;color:#E8DEF8"><div class="role">On Secondary Cont.</div><div class="token">S-10</div></div>
+</div>
+<div class="label">Tertiary</div>
+<div class="row">
+  <div class="swatch" style="background:#7D5260;color:#fff"><div class="role">Tertiary</div><div class="token">T-40</div></div>
+  <div class="swatch" style="background:#fff;color:#7D5260"><div class="role">On Tertiary</div><div class="token">T-100</div></div>
+  <div class="swatch" style="background:#FFD8E4;color:#31111D"><div class="role">Tertiary Container</div><div class="token">T-90</div></div>
+  <div class="swatch" style="background:#31111D;color:#FFD8E4"><div class="role">On Tertiary Cont.</div><div class="token">T-10</div></div>
+</div>
+<div class="label">Error</div>
+<div class="row">
+  <div class="swatch" style="background:#B3261E;color:#fff"><div class="role">Error</div><div class="token">E-40</div></div>
+  <div class="swatch" style="background:#fff;color:#B3261E"><div class="role">On Error</div><div class="token">E-100</div></div>
+  <div class="swatch" style="background:#F9DEDC;color:#8C1D18"><div class="role">Error Container</div><div class="token">E-90</div></div>
+  <div class="swatch" style="background:#8C1D18;color:#F9DEDC"><div class="role">On Error Cont.</div><div class="token">E-30</div></div>
+</div>
+</body></html>

@@ -152,6 +152,7 @@ For detailed system architecture and data models, refer to [docs/ARCHITECTURE.md
 Adhere to the following specialized guidelines for different technical areas:
 
 - **General Development**: [DEVELOPMENT_GUIDE.md](docs/code-guide-line/DEVELOPMENT_GUIDE.md)
+- **Design Guidelines**: [README.md](docs/design/README.md)
 - **Backend (Java)**: [JAVA_CODING_GUIDELINES.md](docs/code-guide-line/JAVA_CODING_GUIDELINES.md)
 - **Backend (FastAPI)**: [FASTAPI_CODING_GUIDELINES.md](docs/code-guide-line/FASTAPI_CODING_GUIDELINES.md)
 - **Frontend (React)**: [REACT_CODING_GUIDELINES.md](docs/code-guide-line/REACT_CODING_GUIDELINES.md)

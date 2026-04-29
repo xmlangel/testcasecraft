@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Roboto', sans-serif; background: #F7F2FA; padding: 16px; }
+.row { display:flex; gap:0; border-radius: 12px; overflow:hidden; margin-bottom: 8px; }
+.swatch { flex:1; padding: 10px 8px 6px; min-height: 56px; display:flex; flex-direction:column; justify-content:space-between; }
+.role { font-size: 10px; font-weight: 500; letter-spacing: 0.1px; }
+.token { font-size: 9px; opacity: 0.7; margin-top: 2px; }
+.label { font-size: 11px; font-weight: 500; color: #49454F; margin-bottom: 5px; letter-spacing: 0.5px; text-transform: uppercase; }
+</style>
+</head><body>
+<div class="label">Surfaces (light)</div>
+<div class="row">
+  <div class="swatch" style="background:#FFFFFF;color:#1C1B1F;border:1px solid #E7E0EC"><div class="role">Surf. Lowest</div><div class="token">N-100</div></div>
+  <div class="swatch" style="background:#F7F2FA;color:#1C1B1F"><div class="role">Surf. Low</div><div class="token">N-96</div></div>
+  <div class="swatch" style="background:#F3EDF7;color:#1C1B1F"><div class="role">Surface</div><div class="token">N-94</div></div>
+  <div class="swatch" style="background:#ECE6F0;color:#1C1B1F"><div class="role">Surf. High</div><div class="token">N-92</div></div>
+  <div class="swatch" style="background:#E6E0E9;color:#1C1B1F"><div class="role">Surf. Highest</div><div class="token">N-90</div></div>
+</div>
+<div class="label">On Surface &amp; Outline</div>
+<div class="row">
+  <div class="swatch" style="background:#1C1B1F;color:#FFFBFE"><div class="role">On Surface</div><div class="token">N-10</div></div>
+  <div class="swatch" style="background:#49454F;color:#fff"><div class="role">On Surf. Variant</div><div class="token">NV-30</div></div>
+  <div class="swatch" style="background:#79747E;color:#fff"><div class="role">Outline</div><div class="token">NV-50</div></div>
+  <div class="swatch" style="background:#CAC4D0;color:#322F35"><div class="role">Outline Variant</div><div class="token">NV-80</div></div>
+</div>
+<div class="label">Inverse</div>
+<div class="row">
+  <div class="swatch" style="background:#322F35;color:#F5EFF7"><div class="role">Inverse Surface</div><div class="token">N-20</div></div>
+  <div class="swatch" style="background:#F5EFF7;color:#322F35"><div class="role">Inverse On Surf.</div><div class="token">N-95</div></div>
+  <div class="swatch" style="background:#D0BCFF;color:#381E72"><div class="role">Inverse Primary</div><div class="token">P-80</div></div>
+</div>
+</body></html>

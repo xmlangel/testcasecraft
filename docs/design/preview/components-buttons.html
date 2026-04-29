@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Roboto',sans-serif; background:#FFFBFE; padding:16px; }
+.row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+.label { font-size:11px; font-weight:500; color:#49454F; margin-bottom:6px; letter-spacing:0.5px; text-transform:uppercase; }
+button {
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:8px; border:none; cursor:pointer;
+  font-family:'Roboto',sans-serif; font-size:14px; font-weight:500; letter-spacing:0.1px;
+  height:40px; padding:0 24px; border-radius:9999px; transition: box-shadow 0.2s;
+}
+button:hover { opacity:0.92; }
+.filled { background:#6750A4; color:#fff; }
+.tonal  { background:#E8DEF8; color:#1D192B; }
+.outlined { background:transparent; color:#6750A4; border:1px solid #79747E; }
+.text-btn { background:transparent; color:#6750A4; padding:0 12px; }
+.elevated { background:#FFFBFE; color:#6750A4; box-shadow:0 1px 2px rgba(0,0,0,0.3),0 1px 3px rgba(0,0,0,0.15); }
+.icon-btn { width:40px; height:40px; padding:0; border-radius:9999px; background:transparent; color:#49454F; font-size:20px; }
+.fab { width:56px; height:56px; padding:0; border-radius:16px; background:#E8DEF8; color:#1D192B; font-size:24px; box-shadow:0 1px 2px rgba(0,0,0,0.3),0 2px 6px rgba(0,0,0,0.15); }
+.fab-large { width:96px; height:96px; border-radius:28px; font-size:36px; }
+</style>
+</head><body>
+<div class="label">Button variants</div>
+<div class="row">
+  <button class="filled">Filled</button>
+  <button class="tonal">Tonal</button>
+  <button class="outlined">Outlined</button>
+  <button class="text-btn">Text</button>
+  <button class="elevated">Elevated</button>
+</div>
+<div class="label">FAB &amp; Icon Button</div>
+<div class="row">
+  <button class="icon-btn">♡</button>
+  <button class="icon-btn" style="background:#E8DEF8;color:#1D192B">♡</button>
+  <button class="fab">+</button>
+  <button class="fab fab-large">+</button>
+</div>
+<div class="label">Disabled states</div>
+<div class="row">
+  <button class="filled" disabled style="background:rgba(28,27,31,0.12);color:rgba(28,27,31,0.38);cursor:default">Filled</button>
+  <button class="outlined" disabled style="border-color:rgba(28,27,31,0.12);color:rgba(28,27,31,0.38);cursor:default">Outlined</button>
+</div>
+</body></html>

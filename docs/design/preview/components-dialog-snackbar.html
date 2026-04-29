@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Roboto',sans-serif; background:#F3EDF7; padding:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; }
+.label { font-size:11px; font-weight:500; color:#49454F; letter-spacing:0.5px; text-transform:uppercase; margin-bottom:8px; }
+
+/* App Bar Top */
+.top-bar { background:#ECE6F0; border-radius:0 0 0 0; display:flex; align-items:center; gap:8px; padding:0 4px 0 4px; height:64px; width:300px; border-radius:12px; }
+.top-bar-title { font-size:22px; font-weight:400; color:#1C1B1F; flex:1; padding:0 4px; }
+.icon-btn-bar { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; color:#1C1B1F; cursor:pointer; }
+
+/* Dialog */
+.dialog { background:#ECE6F0; border-radius:28px; padding:24px; width:280px; }
+.dialog-icon { font-size:24px; text-align:center; margin-bottom:16px; color:#6750A4; }
+.dialog-title { font-size:24px; font-weight:400; color:#1C1B1F; text-align:center; margin-bottom:16px; }
+.dialog-body { font-size:14px; color:#49454F; line-height:20px; margin-bottom:24px; }
+.dialog-actions { display:flex; justify-content:flex-end; gap:8px; }
+.dialog-btn { font-family:'Roboto',sans-serif; font-size:14px; font-weight:500; color:#6750A4; background:none; border:none; padding:10px 12px; border-radius:9999px; cursor:pointer; }
+.dialog-btn.confirm { background:#6750A4; color:#fff; padding:10px 20px; }
+
+/* Snackbar */
+.snackbar { background:#322F35; color:#E6E1E5; border-radius:4px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; width:300px; }
+.snack-text { font-size:14px; }
+.snack-action { font-size:14px; font-weight:500; color:#D0BCFF; background:none; border:none; cursor:pointer; font-family:'Roboto',sans-serif; }
+</style>
+</head><body>
+<div>
+  <div class="label">Top App Bar</div>
+  <div class="top-bar">
+    <div class="icon-btn-bar">←</div>
+    <div class="top-bar-title">Page title</div>
+    <div class="icon-btn-bar">♡</div>
+    <div class="icon-btn-bar">⋮</div>
+  </div>
+</div>
+<div>
+  <div class="label">Dialog</div>
+  <div class="dialog">
+    <div class="dialog-icon">⚠</div>
+    <div class="dialog-title">Discard changes?</div>
+    <div class="dialog-body">Changes you have made so far will not be saved.</div>
+    <div class="dialog-actions">
+      <button class="dialog-btn">Cancel</button>
+      <button class="dialog-btn confirm">Discard</button>
+    </div>
+  </div>
+</div>
+<div>
+  <div class="label">Snackbar</div>
+  <div class="snackbar">
+    <span class="snack-text">Message sent</span>
+    <button class="snack-action">Undo</button>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Roboto', sans-serif; background: #F7F2FA; padding: 16px; }
+.row { display:flex; gap:0; border-radius: 12px; overflow:hidden; }
+.swatch { flex:1; padding: 12px 10px 8px; display:flex; flex-direction:column; justify-content:space-between; min-height: 72px; }
+.swatch .role { font-size: 11px; font-weight: 500; letter-spacing: 0.1px; }
+.swatch .token { font-size: 10px; font-weight: 400; opacity: 0.8; margin-top: 4px; }
+.label { font-size: 11px; font-weight: 500; color: #49454F; margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+.group { margin-bottom: 10px; }
+</style>
+</head><body>
+<div class="group">
+  <div class="label">Primary</div>
+  <div class="row">
+    <div class="swatch" style="background:#6750A4;color:#fff"><div class="role">Primary</div><div class="token">P-40</div></div>
+    <div class="swatch" style="background:#fff;color:#6750A4"><div class="role">On Primary</div><div class="token">P-100</div></div>
+    <div class="swatch" style="background:#EADDFF;color:#21005D"><div class="role">Primary Container</div><div class="token">P-90</div></div>
+    <div class="swatch" style="background:#21005D;color:#EADDFF"><div class="role">On Primary Cont.</div><div class="token">P-10</div></div>
+  </div>
+</div>
+<div class="group">
+  <div class="label">Primary Tonal Palette</div>
+  <div class="row">
+    <div class="swatch" style="background:#21005D;color:#fff;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">10</div></div>
+    <div class="swatch" style="background:#381E72;color:#fff;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">20</div></div>
+    <div class="swatch" style="background:#4F378B;color:#fff;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">30</div></div>
+    <div class="swatch" style="background:#6750A4;color:#fff;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">40</div></div>
+    <div class="swatch" style="background:#7F67BE;color:#fff;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">50</div></div>
+    <div class="swatch" style="background:#9A82DB;color:#fff;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">60</div></div>
+    <div class="swatch" style="background:#B69DF8;color:#21005D;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">70</div></div>
+    <div class="swatch" style="background:#D0BCFF;color:#21005D;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">80</div></div>
+    <div class="swatch" style="background:#EADDFF;color:#21005D;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">90</div></div>
+    <div class="swatch" style="background:#F6EDFF;color:#21005D;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">95</div></div>
+    <div class="swatch" style="background:#FFFBFE;color:#21005D;flex:none;width:36px"><div class="token" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px">99</div></div>
+  </div>
+</div>
+</body></html>

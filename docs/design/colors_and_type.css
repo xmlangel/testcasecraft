@@ -1,0 +1,412 @@
+/*
+ * Material 3 Design System — Color & Typography Tokens
+ * Source: Google Material Design 3 (Material You) baseline theme
+ * Figma: Material 3 Design Kit (Community)
+ */
+
+/* ─────────────────────────────────────────────
+   GOOGLE FONTS IMPORTS
+   Note: Google Sans is served via fonts.gstatic.com
+   Roboto is available via Google Fonts CDN.
+   ───────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;700&display=swap');
+
+/* ─────────────────────────────────────────────
+   LIGHT THEME — COLOR TOKENS
+   ───────────────────────────────────────────── */
+:root {
+  /* Primary */
+  --md-primary:               #6750A4;
+  --md-on-primary:            #FFFFFF;
+  --md-primary-container:     #EADDFF;
+  --md-on-primary-container:  #21005D;
+
+  /* Secondary */
+  --md-secondary:             #625B71;
+  --md-on-secondary:          #FFFFFF;
+  --md-secondary-container:   #E8DEF8;
+  --md-on-secondary-container:#1D192B;
+
+  /* Tertiary */
+  --md-tertiary:              #7D5260;
+  --md-on-tertiary:           #FFFFFF;
+  --md-tertiary-container:    #FFD8E4;
+  --md-on-tertiary-container: #31111D;
+
+  /* Error */
+  --md-error:                 #B3261E;
+  --md-on-error:              #FFFFFF;
+  --md-error-container:       #F9DEDC;
+  --md-on-error-container:    #8C1D18;
+
+  /* Background */
+  --md-background:            #FFFBFE;
+  --md-on-background:         #1C1B1F;
+
+  /* Surface */
+  --md-surface:               #FFFBFE;
+  --md-on-surface:            #1C1B1F;
+  --md-surface-variant:       #E7E0EC;
+  --md-on-surface-variant:    #49454F;
+
+  /* Surface Containers */
+  --md-surface-container-lowest:  #FFFFFF;
+  --md-surface-container-low:     #F7F2FA;
+  --md-surface-container:         #F3EDF7;
+  --md-surface-container-high:    #ECE6F0;
+  --md-surface-container-highest: #E6E0E9;
+
+  /* Outline */
+  --md-outline:               #79747E;
+  --md-outline-variant:       #CAC4D0;
+
+  /* Inverse */
+  --md-inverse-surface:       #322F35;
+  --md-inverse-on-surface:    #F5EFF7;
+  --md-inverse-primary:       #D0BCFF;
+
+  /* Shadow / Scrim */
+  --md-shadow:                #000000;
+  --md-scrim:                 #000000;
+  --md-surface-tint:          #6750A4;
+
+  /* ─────────────────────────────────────────────
+     TONAL PALETTE — Primary (P)
+     ───────────────────────────────────────────── */
+  --md-p-0:   #000000;
+  --md-p-10:  #21005D;
+  --md-p-20:  #381E72;
+  --md-p-30:  #4F378B;
+  --md-p-40:  #6750A4;
+  --md-p-50:  #7F67BE;
+  --md-p-60:  #9A82DB;
+  --md-p-70:  #B69DF8;
+  --md-p-80:  #D0BCFF;
+  --md-p-90:  #EADDFF;
+  --md-p-95:  #F6EDFF;
+  --md-p-99:  #FFFBFE;
+  --md-p-100: #FFFFFF;
+
+  /* Secondary (S) */
+  --md-s-0:   #000000;
+  --md-s-10:  #1D192B;
+  --md-s-20:  #332D41;
+  --md-s-30:  #4A4458;
+  --md-s-40:  #625B71;
+  --md-s-50:  #7A7289;
+  --md-s-60:  #958DA5;
+  --md-s-70:  #B0A7C0;
+  --md-s-80:  #CCC2DC;
+  --md-s-90:  #E8DEF8;
+  --md-s-95:  #F6EDFF;
+  --md-s-99:  #FFFBFE;
+  --md-s-100: #FFFFFF;
+
+  /* Tertiary (T) */
+  --md-t-0:   #000000;
+  --md-t-10:  #31111D;
+  --md-t-20:  #492532;
+  --md-t-30:  #633B48;
+  --md-t-40:  #7D5260;
+  --md-t-50:  #986977;
+  --md-t-60:  #B58392;
+  --md-t-70:  #D29DAC;
+  --md-t-80:  #EFB8C8;
+  --md-t-90:  #FFD8E4;
+  --md-t-95:  #FFECF1;
+  --md-t-99:  #FFFBFA;
+  --md-t-100: #FFFFFF;
+
+  /* Neutral (N) */
+  --md-n-0:   #000000;
+  --md-n-10:  #1C1B1F;
+  --md-n-20:  #313033;
+  --md-n-30:  #484649;
+  --md-n-40:  #605D62;
+  --md-n-50:  #787579;
+  --md-n-60:  #939094;
+  --md-n-70:  #AEAAAE;
+  --md-n-80:  #C9C5CA;
+  --md-n-90:  #E6E1E5;
+  --md-n-95:  #F4EFF4;
+  --md-n-99:  #FFFBFE;
+  --md-n-100: #FFFFFF;
+
+  /* Neutral Variant (NV) */
+  --md-nv-0:   #000000;
+  --md-nv-10:  #1D192B;
+  --md-nv-20:  #322F35;
+  --md-nv-30:  #49454F;
+  --md-nv-40:  #605D66;
+  --md-nv-50:  #79747E;
+  --md-nv-60:  #938F99;
+  --md-nv-70:  #AEA9B4;
+  --md-nv-80:  #CAC4D0;
+  --md-nv-90:  #E7E0EC;
+  --md-nv-95:  #F5EEFA;
+  --md-nv-99:  #FFFBFE;
+  --md-nv-100: #FFFFFF;
+
+  /* Error (E) */
+  --md-e-0:   #000000;
+  --md-e-10:  #410E0B;
+  --md-e-20:  #601410;
+  --md-e-30:  #8C1D18;
+  --md-e-40:  #B3261E;
+  --md-e-50:  #DC362E;
+  --md-e-60:  #E46962;
+  --md-e-70:  #EC928E;
+  --md-e-80:  #F2B8B5;
+  --md-e-90:  #F9DEDC;
+  --md-e-95:  #FCEEEE;
+  --md-e-99:  #FFFBF9;
+  --md-e-100: #FFFFFF;
+
+  /* ─────────────────────────────────────────────
+     SHAPE TOKENS
+     ───────────────────────────────────────────── */
+  --md-shape-xs:   4px;
+  --md-shape-sm:   8px;
+  --md-shape-md:   12px;
+  --md-shape-lg:   16px;
+  --md-shape-xl:   28px;
+  --md-shape-full: 9999px;
+
+  /* ─────────────────────────────────────────────
+     ELEVATION — Box Shadows
+     ───────────────────────────────────────────── */
+  --md-elevation-0: none;
+  --md-elevation-1: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.15);
+  --md-elevation-2: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15);
+  --md-elevation-3: 0 4px 8px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.15);
+  --md-elevation-4: 0 6px 10px rgba(0,0,0,0.3), 0 2px 3px rgba(0,0,0,0.15);
+  --md-elevation-5: 0 8px 12px rgba(0,0,0,0.3), 0 4px 4px rgba(0,0,0,0.15);
+
+  /* ─────────────────────────────────────────────
+     STATE LAYERS
+     ───────────────────────────────────────────── */
+  --md-state-hover:   0.08;
+  --md-state-press:   0.12;
+  --md-state-focus:   0.12;
+  --md-state-drag:    0.16;
+  --md-state-disabled-content: 0.38;
+  --md-state-disabled-container: 0.12;
+
+  /* ─────────────────────────────────────────────
+     SPACING TOKENS
+     ───────────────────────────────────────────── */
+  --md-space-1: 4px;
+  --md-space-2: 8px;
+  --md-space-3: 12px;
+  --md-space-4: 16px;
+  --md-space-5: 20px;
+  --md-space-6: 24px;
+  --md-space-8: 32px;
+  --md-space-10: 40px;
+  --md-space-12: 48px;
+  --md-space-16: 64px;
+}
+
+/* ─────────────────────────────────────────────
+   DARK THEME — COLOR TOKENS
+   ───────────────────────────────────────────── */
+[data-theme="dark"], .dark {
+  --md-primary:               #D0BCFF;
+  --md-on-primary:            #381E72;
+  --md-primary-container:     #4F378B;
+  --md-on-primary-container:  #EADDFF;
+
+  --md-secondary:             #CCC2DC;
+  --md-on-secondary:          #332D41;
+  --md-secondary-container:   #4A4458;
+  --md-on-secondary-container:#E8DEF8;
+
+  --md-tertiary:              #EFB8C8;
+  --md-on-tertiary:           #492532;
+  --md-tertiary-container:    #633B48;
+  --md-on-tertiary-container: #FFD8E4;
+
+  --md-error:                 #F2B8B5;
+  --md-on-error:              #601410;
+  --md-error-container:       #8C1D18;
+  --md-on-error-container:    #F9DEDC;
+
+  --md-background:            #1C1B1F;
+  --md-on-background:         #E6E1E5;
+
+  --md-surface:               #1C1B1F;
+  --md-on-surface:            #E6E1E5;
+  --md-surface-variant:       #49454F;
+  --md-on-surface-variant:    #CAC4D0;
+
+  --md-surface-container-lowest:  #0F0D13;
+  --md-surface-container-low:     #1D1B20;
+  --md-surface-container:         #211F26;
+  --md-surface-container-high:    #2B2930;
+  --md-surface-container-highest: #36343B;
+
+  --md-outline:               #938F99;
+  --md-outline-variant:       #49454F;
+
+  --md-inverse-surface:       #E6E1E5;
+  --md-inverse-on-surface:    #313033;
+  --md-inverse-primary:       #6750A4;
+
+  --md-surface-tint:          #D0BCFF;
+}
+
+/* ─────────────────────────────────────────────
+   TYPOGRAPHY — FONT STACKS
+   Note: Google Sans is not available on Google Fonts.
+   We substitute with "DM Sans" which closely matches.
+   Flag: If you have Google Sans TTFs, place them in fonts/
+   and replace the font-family values below.
+   ───────────────────────────────────────────── */
+:root {
+  --md-font-display:  'Google Sans', 'DM Sans', 'Roboto', sans-serif;
+  --md-font-headline: 'Google Sans', 'DM Sans', 'Roboto', sans-serif;
+  --md-font-title:    'Roboto', sans-serif;
+  --md-font-body:     'Roboto', sans-serif;
+  --md-font-label:    'Google Sans Text', 'Roboto', sans-serif;
+  --md-font-mono:     'Roboto Mono', monospace;
+}
+
+/* ─────────────────────────────────────────────
+   TYPE SCALE — SEMANTIC CLASSES
+   ───────────────────────────────────────────── */
+
+/* Display */
+.md-display-large {
+  font-family: var(--md-font-display);
+  font-size: 57px;
+  line-height: 64px;
+  letter-spacing: -0.25px;
+  font-weight: 400;
+}
+.md-display-medium {
+  font-family: var(--md-font-display);
+  font-size: 45px;
+  line-height: 52px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.md-display-small {
+  font-family: var(--md-font-display);
+  font-size: 36px;
+  line-height: 44px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+/* Headline */
+.md-headline-large {
+  font-family: var(--md-font-headline);
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.md-headline-medium {
+  font-family: var(--md-font-headline);
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.md-headline-small {
+  font-family: var(--md-font-headline);
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+/* Title */
+.md-title-large {
+  font-family: var(--md-font-title);
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.md-title-medium {
+  font-family: var(--md-font-title);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+  font-weight: 500;
+}
+.md-title-small {
+  font-family: var(--md-font-title);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.1px;
+  font-weight: 500;
+}
+
+/* Body */
+.md-body-large {
+  font-family: var(--md-font-body);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+  font-weight: 400;
+}
+.md-body-medium {
+  font-family: var(--md-font-body);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+  font-weight: 400;
+}
+.md-body-small {
+  font-family: var(--md-font-body);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  font-weight: 400;
+}
+
+/* Label */
+.md-label-large {
+  font-family: var(--md-font-label);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.1px;
+  font-weight: 500;
+}
+.md-label-medium {
+  font-family: var(--md-font-label);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+.md-label-small {
+  font-family: var(--md-font-label);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* ─────────────────────────────────────────────
+   SEMANTIC ELEMENT DEFAULTS
+   ───────────────────────────────────────────── */
+body {
+  font-family: var(--md-font-body);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--md-on-surface);
+  background-color: var(--md-background);
+  -webkit-font-smoothing: antialiased;
+}
+h1 { composes: md-display-large; font-family: var(--md-font-display); font-size: 57px; line-height: 64px; font-weight: 400; letter-spacing: -0.25px; }
+h2 { font-family: var(--md-font-headline); font-size: 32px; line-height: 40px; font-weight: 400; }
+h3 { font-family: var(--md-font-headline); font-size: 28px; line-height: 36px; font-weight: 400; }
+h4 { font-family: var(--md-font-headline); font-size: 24px; line-height: 32px; font-weight: 400; }
+h5 { font-family: var(--md-font-title); font-size: 22px; line-height: 28px; font-weight: 400; }
+h6 { font-family: var(--md-font-title); font-size: 16px; line-height: 24px; font-weight: 500; }
+p  { font-family: var(--md-font-body); font-size: 14px; line-height: 20px; font-weight: 400; color: var(--md-on-surface); }
+code, pre { font-family: var(--md-font-mono); font-size: 12px; }
+small { font-family: var(--md-font-label); font-size: 11px; line-height: 16px; font-weight: 500; }

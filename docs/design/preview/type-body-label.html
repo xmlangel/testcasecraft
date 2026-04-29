@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Roboto', sans-serif; background: #FFFBFE; padding: 16px 20px; color: #1C1B1F; }
+.row { display:flex; align-items:center; gap: 16px; padding: 6px 0; border-bottom: 1px solid #E7E0EC; }
+.row:last-child { border-bottom: none; }
+.meta { width: 120px; flex-shrink:0; }
+.name { font-size: 10px; font-weight: 500; color: #6750A4; letter-spacing: 0.5px; }
+.spec { font-size: 9px; color: #79747E; }
+.sample { flex:1; }
+</style>
+</head><body>
+<div class="row">
+  <div class="meta"><div class="name">Title L</div><div class="spec">22 / 28 / 0 · Regular</div></div>
+  <div class="sample" style="font-size:22px;line-height:28px;font-weight:400">Title Large</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Title M</div><div class="spec">16 / 24 / +0.15 · Medium</div></div>
+  <div class="sample" style="font-size:16px;line-height:24px;font-weight:500;letter-spacing:0.15px">Title Medium</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Title S</div><div class="spec">14 / 20 / +0.1 · Medium</div></div>
+  <div class="sample" style="font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.1px">Title Small</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Body L</div><div class="spec">16 / 24 / +0.5 · Regular</div></div>
+  <div class="sample" style="font-size:16px;line-height:24px;font-weight:400;letter-spacing:0.5px">Body Large — main content text</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Body M</div><div class="spec">14 / 20 / +0.25 · Regular</div></div>
+  <div class="sample" style="font-size:14px;line-height:20px;font-weight:400;letter-spacing:0.25px">Body Medium — default body text</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Body S</div><div class="spec">12 / 16 / +0.4 · Regular</div></div>
+  <div class="sample" style="font-size:12px;line-height:16px;font-weight:400;letter-spacing:0.4px">Body Small — compact supporting text</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Label L</div><div class="spec">14 / 20 / +0.1 · Medium</div></div>
+  <div class="sample" style="font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.1px">Label Large</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Label M</div><div class="spec">12 / 16 / +0.5 · Medium</div></div>
+  <div class="sample" style="font-size:12px;line-height:16px;font-weight:500;letter-spacing:0.5px">Label Medium</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Label S</div><div class="spec">11 / 16 / +0.5 · Medium</div></div>
+  <div class="sample" style="font-size:11px;line-height:16px;font-weight:500;letter-spacing:0.5px">Label Small</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="name">Mono</div><div class="spec">Roboto Mono</div></div>
+  <div class="sample" style="font-family:'Roboto Mono',monospace;font-size:12px;line-height:16px;color:#625B71">const token = "md-sys-color";</div>
+</div>
+</body></html>

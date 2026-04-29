@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Roboto',sans-serif; background:#FFFBFE; padding:16px; display:flex; flex-direction:column; gap:14px; }
+.label { font-size:11px; font-weight:500; color:#49454F; letter-spacing:0.5px; text-transform:uppercase; margin-bottom:4px; }
+.row { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+.item { display:flex; align-items:center; gap:10px; font-size:14px; color:#1C1B1F; }
+
+/* Switch */
+.switch { position:relative; width:52px; height:32px; cursor:pointer; }
+.switch-track { width:52px; height:32px; border-radius:16px; background:#E8DEF8; border:2px solid #79747E; transition:background 0.2s; }
+.switch.on .switch-track { background:#6750A4; border-color:#6750A4; }
+.switch-thumb { position:absolute; top:50%; transform:translateY(-50%); left:6px; width:16px; height:16px; border-radius:50%; background:#49454F; transition:all 0.2s; }
+.switch.on .switch-thumb { left:28px; width:24px; height:24px; top:4px; transform:none; background:#FFFFFF; }
+
+/* Checkbox */
+.cb { width:18px; height:18px; border-radius:2px; border:2px solid #49454F; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.cb.checked { background:#6750A4; border-color:#6750A4; color:#fff; font-size:12px; }
+.cb.indeterminate { background:#6750A4; border-color:#6750A4; color:#fff; font-size:14px; }
+.cb.err { border-color:#B3261E; }
+
+/* Radio */
+.radio { width:20px; height:20px; border-radius:50%; border:2px solid #49454F; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.radio.selected { border-color:#6750A4; }
+.radio.selected::after { content:''; width:10px; height:10px; border-radius:50%; background:#6750A4; }
+</style>
+</head><body>
+<div>
+  <div class="label">Switch</div>
+  <div class="row">
+    <div class="switch"><div class="switch-track"></div><div class="switch-thumb"></div></div>
+    <div class="switch on"><div class="switch-track"></div><div class="switch-thumb"></div></div>
+    <span style="font-size:14px;color:#1C1B1F">Off / On</span>
+  </div>
+</div>
+<div>
+  <div class="label">Checkbox</div>
+  <div class="row">
+    <div class="cb"></div>
+    <div class="cb checked">✓</div>
+    <div class="cb indeterminate">−</div>
+    <div class="cb err"></div>
+    <span style="font-size:14px;color:#1C1B1F">Unchecked / Checked / Indeterminate / Error</span>
+  </div>
+</div>
+<div>
+  <div class="label">Radio</div>
+  <div class="row">
+    <div class="radio"></div>
+    <div class="radio selected"></div>
+    <span style="font-size:14px;color:#1C1B1F">Unselected / Selected</span>
+  </div>
+</div>
+</body></html>
