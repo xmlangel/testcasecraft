@@ -22,6 +22,146 @@ export const useTheme = () => {
   return context;
 };
 
+// Material 3 Tokens (from docs/design/ui_kits/material3/tokens.js)
+const M3Tokens = {
+  light: {
+    primary: "#6750A4",
+    onPrimary: "#FFFFFF",
+    primaryContainer: "#EADDFF",
+    onPrimaryContainer: "#21005D",
+    secondary: "#625B71",
+    onSecondary: "#FFFFFF",
+    secondaryContainer: "#E8DEF8",
+    onSecondaryContainer: "#1D192B",
+    tertiary: "#7D5260",
+    onTertiary: "#FFFFFF",
+    tertiaryContainer: "#FFD8E4",
+    onTertiaryContainer: "#31111D",
+    error: "#B3261E",
+    onError: "#FFFFFF",
+    errorContainer: "#F9DEDC",
+    onErrorContainer: "#8C1D18",
+    background: "#FFFBFE",
+    onBackground: "#1C1B1F",
+    surface: "#FFFBFE",
+    onSurface: "#1C1B1F",
+    surfaceVariant: "#E7E0EC",
+    onSurfaceVariant: "#49454F",
+    outline: "#79747E",
+    outlineVariant: "#CAC4D0",
+  },
+  dark: {
+    primary: "#D0BCFF",
+    onPrimary: "#381E72",
+    primaryContainer: "#4F378B",
+    onPrimaryContainer: "#EADDFF",
+    secondary: "#CCC2DC",
+    onSecondary: "#332D41",
+    secondaryContainer: "#4A4458",
+    onSecondaryContainer: "#E8DEF8",
+    tertiary: "#EFB8C8",
+    onTertiary: "#492532",
+    tertiaryContainer: "#633B48",
+    onTertiaryContainer: "#FFD8E4",
+    error: "#F2B8B5",
+    onError: "#601410",
+    errorContainer: "#8C1D18",
+    onErrorContainer: "#F9DEDC",
+    background: "#1C1B1F",
+    onBackground: "#E6E1E5",
+    surface: "#1C1B1F",
+    onSurface: "#E6E1E5",
+    surfaceVariant: "#49454F",
+    onSurfaceVariant: "#CAC4D0",
+    outline: "#938F99",
+    outlineVariant: "#49454F",
+  },
+};
+
+const createMaterial3Theme = (mode) => {
+  const colors = M3Tokens[mode];
+
+  return createTheme({
+    palette: {
+      mode,
+      primary: {
+        main: colors.primary,
+        contrastText: colors.onPrimary,
+      },
+      secondary: {
+        main: colors.secondary,
+        contrastText: colors.onSecondary,
+      },
+      error: {
+        main: colors.error,
+        contrastText: colors.onError,
+      },
+      background: {
+        default: colors.background,
+        paper: colors.surface,
+      },
+      text: {
+        primary: colors.onBackground,
+        secondary: colors.onSurfaceVariant,
+      },
+      divider: colors.outlineVariant,
+    },
+    typography: {
+      fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
+      h1: { fontSize: "3.5rem", fontWeight: 400 },
+      h2: { fontSize: "3rem", fontWeight: 400 },
+      h3: { fontSize: "2.5rem", fontWeight: 400 },
+      h4: { fontSize: "2rem", fontWeight: 400 },
+      h5: { fontSize: "1.5rem", fontWeight: 400 },
+      h6: { fontSize: "1.25rem", fontWeight: 500 },
+    },
+    shape: {
+      borderRadius: 12,
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 100, // Pill shaped buttons for M3
+            textTransform: "none",
+            fontWeight: 500,
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === "light" ? "#F3EDF7" : "#211F26", // surfaceContainer
+            borderRadius: 16,
+            boxShadow: "none",
+            border: "none",
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: "none",
+            boxShadow: "none",
+            backgroundColor: colors.surface,
+            border: `1px solid ${colors.outlineVariant}`,
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: colors.surface,
+            color: colors.onSurface,
+            boxShadow: "none",
+            borderBottom: `1px solid ${colors.outlineVariant}`,
+          },
+        },
+      },
+    },
+  });
+};
+
 const createAppTheme = (mode) => {
   const isLight = mode === "light";
 
@@ -372,14 +512,8 @@ const createAppTheme = (mode) => {
 
       MuiDialog: {
         defaultProps: {
-          // 접근성 개선: aria-hidden 경고 방지
-          // Dialog가 열릴 때 root 요소에 aria-hidden을 설정하지 않도록 함
-          // 마크다운 에디터 등 포커스 가능한 요소와의 충돌 방지
           slotProps: {
             root: {
-              // root 요소에 aria-hidden이 설정되는 것을 방지
-              // Material-UI는 기본적으로 Modal이 열릴 때 다른 요소들을 숨기기 위해
-              // root에 aria-hidden="true"를 설정하는데, 이것이 포커스된 요소와 충돌
               "aria-hidden": undefined,
             },
           },
@@ -410,21 +544,38 @@ export function ThemeProvider({ children }) {
     return savedMode || "light";
   });
 
+  const [designSystem, setDesignSystem] = useState(() => {
+    const savedSystem = localStorage.getItem("designSystem");
+    return savedSystem || "glass";
+  });
+
   useEffect(() => {
     localStorage.setItem("themeMode", mode);
     document.documentElement.setAttribute("data-theme", mode);
   }, [mode]);
 
+  useEffect(() => {
+    localStorage.setItem("designSystem", designSystem);
+    document.documentElement.setAttribute("data-design-system", designSystem);
+  }, [designSystem]);
+
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
   };
 
-  const theme = useMemo(() => createAppTheme(mode), [mode]);
+  const theme = useMemo(() => {
+    if (designSystem === "material3") {
+      return createMaterial3Theme(mode);
+    }
+    return createAppTheme(mode);
+  }, [mode, designSystem]);
 
   const value = {
     mode,
     setMode,
     toggleTheme,
+    designSystem,
+    setDesignSystem,
   };
 
   return (

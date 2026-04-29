@@ -34,7 +34,17 @@ import {
   Warning as WarningIcon,
   Email as EmailIcon,
   Refresh as RefreshIcon,
+  Palette as PaletteIcon,
 } from "@mui/icons-material";
+import { useTheme as useAppTheme } from "../context/ThemeContext.jsx";
+import {
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Switch as MuiSwitch,
+} from "@mui/material";
 
 /**
  * 사용자 정보 변경 다이얼로그
@@ -50,6 +60,7 @@ function UserProfileDialog({
   const { updateUserProfile, fetchUserInfo } = useAppContext();
   const { currentLanguage, changeLanguage, t, forceReloadTranslations } =
     useI18n();
+  const { designSystem, setDesignSystem, mode, toggleTheme } = useAppTheme();
 
   const [tabValue, setTabValue] = useState(0);
   const [form, setForm] = useState({
@@ -363,6 +374,11 @@ function UserProfileDialog({
                 label={t("profile.tabs.googleConfig", "Google Sheets 설정")}
               />
               <Tab label={t("profile.tabs.apiToken", "API 토큰")} />
+              <Tab
+                label={t("profile.tabs.theme", "테마 설정")}
+                icon={<PaletteIcon />}
+                iconPosition="start"
+              />
             </Tabs>
           </Box>
 
@@ -727,6 +743,159 @@ function UserProfileDialog({
 
             {/* API 토큰 탭 */}
             {tabValue === 5 && <ServiceApiKeyTab />}
+
+            {/* 테마 설정 탭 */}
+            {tabValue === 6 && (
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  {t("profile.theme.title", "디자인 시스템 설정")}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 3 }}
+                >
+                  {t(
+                    "profile.theme.description",
+                    "애플리케이션의 전반적인 디자인 스타일을 선택합니다.",
+                  )}
+                </Typography>
+
+                <FormControl component="fieldset" sx={{ mb: 4, width: "100%" }}>
+                  <FormLabel component="legend" sx={{ mb: 2 }}>
+                    {t("profile.theme.systemLabel", "디자인 시스템")}
+                  </FormLabel>
+                  <RadioGroup
+                    value={designSystem}
+                    onChange={(e) => setDesignSystem(e.target.value)}
+                  >
+                    <Card
+                      variant="outlined"
+                      sx={{
+                        mb: 2,
+                        borderColor:
+                          designSystem === "glass" ? "primary.main" : "divider",
+                        bgcolor:
+                          designSystem === "glass"
+                            ? "action.hover"
+                            : "background.paper",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setDesignSystem("glass")}
+                    >
+                      <CardContent sx={{ py: "12px !important" }}>
+                        <FormControlLabel
+                          value="glass"
+                          control={<Radio />}
+                          label={
+                            <Box>
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {t(
+                                  "profile.theme.glass.title",
+                                  "Modern Glass (현재)",
+                                )}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {t(
+                                  "profile.theme.glass.desc",
+                                  "화려한 그라데이션과 블러 효과가 적용된 현대적인 스타일입니다.",
+                                )}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ m: 0, width: "100%" }}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card
+                      variant="outlined"
+                      sx={{
+                        borderColor:
+                          designSystem === "material3"
+                            ? "primary.main"
+                            : "divider",
+                        bgcolor:
+                          designSystem === "material3"
+                            ? "action.hover"
+                            : "background.paper",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setDesignSystem("material3")}
+                    >
+                      <CardContent sx={{ py: "12px !important" }}>
+                        <FormControlLabel
+                          value="material3"
+                          control={<Radio />}
+                          label={
+                            <Box>
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {t(
+                                  "profile.theme.m3.title",
+                                  "Material 3 (Design System)",
+                                )}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {t(
+                                  "profile.theme.m3.desc",
+                                  "구글의 최신 가이드라인을 따른 정갈하고 체계적인 스타일입니다.",
+                                )}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ m: 0, width: "100%" }}
+                        />
+                      </CardContent>
+                    </Card>
+                  </RadioGroup>
+                </FormControl>
+
+                <Divider sx={{ my: 3 }} />
+
+                <Typography variant="h6" gutterBottom>
+                  {t("profile.theme.mode.title", "화면 모드")}
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mt: 2,
+                  }}
+                >
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      {mode === "light"
+                        ? t("theme.light", "라이트 모드")
+                        : t("theme.dark", "다크 모드")}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t(
+                        "profile.theme.mode.desc",
+                        "전체 화면의 밝기를 조절합니다.",
+                      )}
+                    </Typography>
+                  </Box>
+                  <MuiSwitch
+                    checked={mode === "dark"}
+                    onChange={toggleTheme}
+                    color="primary"
+                  />
+                </Box>
+              </Box>
+            )}
 
             {/* 공통 에러/성공 메시지 */}
             {error && (
