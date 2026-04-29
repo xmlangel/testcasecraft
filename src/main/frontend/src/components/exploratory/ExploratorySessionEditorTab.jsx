@@ -67,6 +67,7 @@ function ExploratorySessionEditorTab({
   selectedCharter,
   totalRatio,
   onUploadArtifacts,
+  onUpdateArtifactDescription,
   onDeleteArtifact,
   statusColor,
   saveSession,
@@ -117,8 +118,15 @@ function ExploratorySessionEditorTab({
         setSessionDraft((prev) => ({ ...prev, notes: initialNotes }));
       }
     }
+  }, [sessionDraft.id]);
 
-    // 기존에 저장된 노트들은 기본적으로 접힌 상태로 시작 (요청 사항: 저장된 세션은 닫힘처리)
+  const debounceTimerRef = React.useRef(null);
+  const [collapsedIndices, setCollapsedIndices] = React.useState({});
+  const [collapsedTestIndices, setCollapsedTestIndices] = React.useState({});
+  const [collapsedBugIndices, setCollapsedBugIndices] = React.useState({});
+
+  // 초기화 로직에 테스트와 버그 상태 추가
+  React.useEffect(() => {
     if (sessionDraft.notes && sessionDraft.notes.length > 0) {
       const initialCollapsed = {};
       sessionDraft.notes.forEach((_, idx) => {
@@ -126,13 +134,38 @@ function ExploratorySessionEditorTab({
       });
       setCollapsedIndices(initialCollapsed);
     }
-  }, [sessionDraft.id]); // 세션 ID가 바뀔 때(즉 다른 세션을 열 때) 초기화
-
-  const debounceTimerRef = React.useRef(null);
-  const [collapsedIndices, setCollapsedIndices] = React.useState({});
+    if (sessionDraft.tests && sessionDraft.tests.length > 0) {
+      const initialCollapsed = {};
+      sessionDraft.tests.forEach((_, idx) => {
+        initialCollapsed[idx] = true;
+      });
+      setCollapsedTestIndices(initialCollapsed);
+    }
+    if (sessionDraft.bugs && sessionDraft.bugs.length > 0) {
+      const initialCollapsed = {};
+      sessionDraft.bugs.forEach((_, idx) => {
+        initialCollapsed[idx] = true;
+      });
+      setCollapsedBugIndices(initialCollapsed);
+    }
+  }, [sessionDraft.id]);
 
   const toggleNoteCollapse = (index) => {
     setCollapsedIndices((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const toggleTestCollapse = (index) => {
+    setCollapsedTestIndices((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const toggleBugCollapse = (index) => {
+    setCollapsedBugIndices((prev) => ({
       ...prev,
       [index]: !prev[index],
     }));
@@ -173,53 +206,73 @@ function ExploratorySessionEditorTab({
   };
 
   const handleAddTest = () => {
-    setSessionDraft((prev) => ({
+    const newTests = [
+      ...(sessionDraft.tests || []),
+      { title: "", steps: "", expectedResult: "", status: "UNTESTED" },
+    ];
+    const newDraft = { ...sessionDraft, tests: newTests };
+    setSessionDraft(newDraft);
+    saveSession(newDraft, true);
+    setCollapsedTestIndices((prev) => ({
       ...prev,
-      tests: [
-        ...(prev.tests || []),
-        { title: "", steps: "", expectedResult: "", status: "UNTESTED" },
-      ],
+      [newTests.length - 1]: false,
     }));
   };
 
   const handleUpdateTest = (index, field, value) => {
-    setSessionDraft((prev) => {
-      const newTests = [...(prev.tests || [])];
-      newTests[index] = { ...newTests[index], [field]: value };
-      return { ...prev, tests: newTests };
-    });
+    const newTests = [...(sessionDraft.tests || [])];
+    newTests[index] = { ...newTests[index], [field]: value };
+    const newDraft = { ...sessionDraft, tests: newTests };
+    setSessionDraft(newDraft);
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      saveSession(newDraft, true);
+    }, 1500);
   };
 
   const handleDeleteTest = (index) => {
-    setSessionDraft((prev) => ({
-      ...prev,
-      tests: (prev.tests || []).filter((_, i) => i !== index),
-    }));
+    const newTests = (sessionDraft.tests || []).filter((_, i) => i !== index);
+    const newDraft = { ...sessionDraft, tests: newTests };
+    setSessionDraft(newDraft);
+    saveSession(newDraft, true);
   };
 
   const handleAddBug = () => {
-    setSessionDraft((prev) => ({
+    const newBugs = [
+      ...(sessionDraft.bugs || []),
+      { title: "", description: "", severity: "Medium", jiraIssueKey: "" },
+    ];
+    const newDraft = { ...sessionDraft, bugs: newBugs };
+    setSessionDraft(newDraft);
+    saveSession(newDraft, true);
+    setCollapsedBugIndices((prev) => ({
       ...prev,
-      bugs: [
-        ...(prev.bugs || []),
-        { title: "", description: "", severity: "Medium", jiraIssueKey: "" },
-      ],
+      [newBugs.length - 1]: false,
     }));
   };
 
   const handleUpdateBug = (index, field, value) => {
-    setSessionDraft((prev) => {
-      const newBugs = [...(prev.bugs || [])];
-      newBugs[index] = { ...newBugs[index], [field]: value };
-      return { ...prev, bugs: newBugs };
-    });
+    const newBugs = [...(sessionDraft.bugs || [])];
+    newBugs[index] = { ...newBugs[index], [field]: value };
+    const newDraft = { ...sessionDraft, bugs: newBugs };
+    setSessionDraft(newDraft);
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      saveSession(newDraft, true);
+    }, 1500);
   };
 
   const handleDeleteBug = (index) => {
-    setSessionDraft((prev) => ({
-      ...prev,
-      bugs: (prev.bugs || []).filter((_, i) => i !== index),
-    }));
+    const newBugs = (sessionDraft.bugs || []).filter((_, i) => i !== index);
+    const newDraft = { ...sessionDraft, bugs: newBugs };
+    setSessionDraft(newDraft);
+    saveSession(newDraft, true);
   };
 
   const sessionStatusChip = (
@@ -1091,10 +1144,10 @@ function ExploratorySessionEditorTab({
       )}
 
       {editorTab === 1 && (
-        <Grid container spacing={3}>
-          {/* Left Column: Notes & Issues */}
-          <Grid size={12}>
-            <Stack spacing={3}>
+        <Grid container spacing={3} alignItems="stretch">
+          {/* Left Panel: Notes & Tests */}
+          <Grid size={{ xs: 12, lg: 8 }}>
+            <Stack spacing={3} sx={{ height: "100%" }}>
               {/* Dynamic Notes Section */}
               <Card
                 sx={{
@@ -1325,6 +1378,21 @@ function ExploratorySessionEditorTab({
                             </Select>
                           </FormControl>
                           <IconButton
+                            size="small"
+                            onClick={() => toggleTestCollapse(index)}
+                            sx={{
+                              bgcolor: isDark
+                                ? "rgba(255,255,255,0.05)"
+                                : "rgba(0,0,0,0.05)",
+                            }}
+                          >
+                            {collapsedTestIndices[index] ? (
+                              <ExpandMoreIcon />
+                            ) : (
+                              <ExpandLessIcon />
+                            )}
+                          </IconButton>
+                          <IconButton
                             color="error"
                             size="small"
                             onClick={() => handleDeleteTest(index)}
@@ -1332,36 +1400,42 @@ function ExploratorySessionEditorTab({
                             <DeleteIcon />
                           </IconButton>
                         </Stack>
-                        <Grid container spacing={2}>
-                          <Grid size={{ xs: 12, md: 6 }}>
-                            <TextField
-                              fullWidth
-                              multiline
-                              minRows={2}
-                              label={t("common.steps", "테스트 절차")}
-                              value={test.steps}
-                              onChange={(e) =>
-                                handleUpdateTest(index, "steps", e.target.value)
-                              }
-                            />
+                        <Collapse in={!collapsedTestIndices[index]}>
+                          <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                              <TextField
+                                fullWidth
+                                multiline
+                                minRows={2}
+                                label={t("common.steps", "테스트 절차")}
+                                value={test.steps}
+                                onChange={(e) =>
+                                  handleUpdateTest(
+                                    index,
+                                    "steps",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                              <TextField
+                                fullWidth
+                                multiline
+                                minRows={2}
+                                label={t("common.expectedResult", "기대 결과")}
+                                value={test.expectedResult}
+                                onChange={(e) =>
+                                  handleUpdateTest(
+                                    index,
+                                    "expectedResult",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </Grid>
                           </Grid>
-                          <Grid size={{ xs: 12, md: 6 }}>
-                            <TextField
-                              fullWidth
-                              multiline
-                              minRows={2}
-                              label={t("common.expectedResult", "기대 결과")}
-                              value={test.expectedResult}
-                              onChange={(e) =>
-                                handleUpdateTest(
-                                  index,
-                                  "expectedResult",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </Grid>
-                        </Grid>
+                        </Collapse>
                       </Box>
                     ))}
                     {(sessionDraft.tests || []).length === 0 && (
@@ -1386,7 +1460,12 @@ function ExploratorySessionEditorTab({
                   </Stack>
                 </CardContent>
               </Card>
+            </Stack>
+          </Grid>
 
+          {/* Right Panel: Bugs, JIRA & Artifacts */}
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <Stack spacing={3} sx={{ height: "100%" }}>
               {/* Dynamic Bugs Section */}
               <Card
                 sx={{
@@ -1480,6 +1559,21 @@ function ExploratorySessionEditorTab({
                             </Select>
                           </FormControl>
                           <IconButton
+                            size="small"
+                            onClick={() => toggleBugCollapse(index)}
+                            sx={{
+                              bgcolor: isDark
+                                ? "rgba(255,255,255,0.05)"
+                                : "rgba(0,0,0,0.05)",
+                            }}
+                          >
+                            {collapsedBugIndices[index] ? (
+                              <ExpandMoreIcon />
+                            ) : (
+                              <ExpandLessIcon />
+                            )}
+                          </IconButton>
+                          <IconButton
                             color="error"
                             size="small"
                             onClick={() => handleDeleteBug(index)}
@@ -1487,34 +1581,36 @@ function ExploratorySessionEditorTab({
                             <DeleteIcon />
                           </IconButton>
                         </Stack>
-                        <TextField
-                          fullWidth
-                          multiline
-                          minRows={2}
-                          label={t("common.description", "버그 설명")}
-                          value={bug.description}
-                          onChange={(e) =>
-                            handleUpdateBug(
-                              index,
-                              "description",
-                              e.target.value,
-                            )
-                          }
-                          sx={{ mb: 2 }}
-                        />
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="JIRA Issue Key (Optional)"
-                          value={bug.jiraIssueKey}
-                          onChange={(e) =>
-                            handleUpdateBug(
-                              index,
-                              "jiraIssueKey",
-                              e.target.value,
-                            )
-                          }
-                        />
+                        <Collapse in={!collapsedBugIndices[index]}>
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={2}
+                            label={t("common.description", "버그 설명")}
+                            value={bug.description}
+                            onChange={(e) =>
+                              handleUpdateBug(
+                                index,
+                                "description",
+                                e.target.value,
+                              )
+                            }
+                            sx={{ mb: 2 }}
+                          />
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="JIRA Issue Key (Optional)"
+                            value={bug.jiraIssueKey}
+                            onChange={(e) =>
+                              handleUpdateBug(
+                                index,
+                                "jiraIssueKey",
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </Collapse>
                       </Box>
                     ))}
                     {(sessionDraft.bugs || []).length === 0 && (
@@ -1751,6 +1847,41 @@ function ExploratorySessionEditorTab({
                                   />
                                 </Box>
                               )}
+                              <TextField
+                                fullWidth
+                                size="small"
+                                placeholder="설명 추가..."
+                                value={file.description || ""}
+                                onChange={(e) => {
+                                  // 로컬 상태 즉시 반영 (낙관적 업데이트)
+                                  const newDesc = e.target.value;
+                                  setSessionDraft((prev) => ({
+                                    ...prev,
+                                    attachments: (prev.attachments || []).map(
+                                      (a) =>
+                                        a.id === file.id
+                                          ? { ...a, description: newDesc }
+                                          : a,
+                                    ),
+                                  }));
+                                }}
+                                onBlur={(e) =>
+                                  onUpdateArtifactDescription(
+                                    file.id,
+                                    e.target.value,
+                                  )
+                                }
+                                sx={{
+                                  mt: 1.5,
+                                  "& .MuiInputBase-root": {
+                                    fontSize: "0.75rem",
+                                    borderRadius: 1.5,
+                                    bgcolor: isDark
+                                      ? "rgba(255,255,255,0.02)"
+                                      : "rgba(0,0,0,0.02)",
+                                  },
+                                }}
+                              />
                             </CardContent>
                           </Card>
                         </Grid>

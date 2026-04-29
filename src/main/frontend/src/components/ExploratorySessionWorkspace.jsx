@@ -805,6 +805,7 @@ function ExploratorySessionWorkspace({ projectId }) {
           `/api/session-attachments/upload/${sessionDraft.id}`,
           {
             method: "POST",
+            headers: { "Content-Type": undefined },
             body: formData,
             // api 헬퍼가 multipart/form-data인 경우 Content-Type을 자동으로 처리하지 않을 수 있으므로 확인 필요
             // 보통 Fetch API는 FormData를 넘기면 Content-Type을 자동으로 boundary와 함께 설정함
@@ -830,6 +831,33 @@ function ExploratorySessionWorkspace({ projectId }) {
     } finally {
       setSavingSession(false);
       event.target.value = "";
+    }
+  };
+
+  const onUpdateArtifactDescription = async (attachmentId, description) => {
+    try {
+      const response = await api(`/api/session-attachments/${attachmentId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ description }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await parseApiError(response, "파일 설명 수정에 실패했습니다."),
+        );
+      }
+
+      const data = await response.json();
+      if (data.success && data.attachment) {
+        setSessionDraft((prev) => ({
+          ...prev,
+          attachments: (prev.attachments || []).map((a) =>
+            a.id === attachmentId ? data.attachment : a,
+          ),
+        }));
+      }
+    } catch (err) {
+      setSessionError(err.message);
     }
   };
 
@@ -1026,6 +1054,7 @@ function ExploratorySessionWorkspace({ projectId }) {
             selectedCharter={selectedCharter}
             totalRatio={totalRatio}
             onUploadArtifacts={onUploadArtifacts}
+            onUpdateArtifactDescription={onUpdateArtifactDescription}
             onDeleteArtifact={onDeleteArtifact}
             statusColor={statusColor}
             saveSession={saveSession}

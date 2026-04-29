@@ -96,6 +96,24 @@ public class TestSessionAttachmentController {
     }
   }
 
+  @PatchMapping("/{attachmentId}")
+  @Operation(summary = "첨부파일 정보 수정")
+  public ResponseEntity<?> updateAttachment(
+      @PathVariable String attachmentId,
+      @RequestBody Map<String, String> body,
+      @AuthenticationPrincipal UserDetails userDetails) {
+    try {
+      String description = body.get("description");
+      TestSessionAttachmentDto updated =
+          fileStorageService.updateAttachmentDescription(attachmentId, description);
+      return ResponseEntity.ok(Map.of("success", true, "attachment", updated));
+    } catch (Exception e) {
+      log.error("파일 정보 수정 오류: {}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(Map.of("success", false, "message", e.getMessage()));
+    }
+  }
+
   @DeleteMapping("/{attachmentId}")
   @Operation(summary = "첨부파일 삭제")
   public ResponseEntity<?> deleteAttachment(

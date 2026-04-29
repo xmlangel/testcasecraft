@@ -115,6 +115,18 @@ public class TestSessionFileStorageService {
     return toDto(attachment);
   }
 
+  public TestSessionAttachmentDto updateAttachmentDescription(
+      String attachmentId, String description) {
+    TestSessionAttachment attachment =
+        attachmentRepository
+            .findById(attachmentId)
+            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+
+    attachment.setDescription(description);
+    TestSessionAttachment updated = attachmentRepository.save(attachment);
+    return toDto(updated);
+  }
+
   public void deleteAttachment(String attachmentId, User deletedBy) {
     TestSessionAttachment attachment =
         attachmentRepository
