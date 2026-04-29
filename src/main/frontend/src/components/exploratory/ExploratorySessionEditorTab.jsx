@@ -22,6 +22,7 @@ import {
   IconButton,
   Tooltip,
   useTheme,
+  Collapse,
 } from "@mui/material";
 import {
   PauseCircle as PauseCircleIcon,
@@ -32,6 +33,8 @@ import {
   Delete as DeleteIcon,
   Link as LinkIcon,
   BugReport as BugIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from "@mui/icons-material";
 
 import { useTheme as useAppTheme } from "../../context/ThemeContext.jsx";
@@ -114,28 +117,59 @@ function ExploratorySessionEditorTab({
         setSessionDraft((prev) => ({ ...prev, notes: initialNotes }));
       }
     }
-  }, []);
+
+    // 기존에 저장된 노트들은 기본적으로 접힌 상태로 시작 (요청 사항: 저장된 세션은 닫힘처리)
+    if (sessionDraft.notes && sessionDraft.notes.length > 0) {
+      const initialCollapsed = {};
+      sessionDraft.notes.forEach((_, idx) => {
+        initialCollapsed[idx] = true;
+      });
+      setCollapsedIndices(initialCollapsed);
+    }
+  }, [sessionDraft.id]); // 세션 ID가 바뀔 때(즉 다른 세션을 열 때) 초기화
+
+  const debounceTimerRef = React.useRef(null);
+  const [collapsedIndices, setCollapsedIndices] = React.useState({});
+
+  const toggleNoteCollapse = (index) => {
+    setCollapsedIndices((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
 
   const handleAddNote = () => {
-    setSessionDraft((prev) => ({
-      ...prev,
-      notes: [...(prev.notes || []), { title: "", content: "" }],
-    }));
+    const newNotes = [
+      ...(sessionDraft.notes || []),
+      { title: "", content: "" },
+    ];
+    const newDraft = { ...sessionDraft, notes: newNotes };
+    setSessionDraft(newDraft);
+    saveSession(newDraft, true);
+    // 새 노트는 펼쳐진 상태로 추가
+    setCollapsedIndices((prev) => ({ ...prev, [newNotes.length - 1]: false }));
   };
 
   const handleUpdateNote = (index, field, value) => {
-    setSessionDraft((prev) => {
-      const newNotes = [...(prev.notes || [])];
-      newNotes[index] = { ...newNotes[index], [field]: value };
-      return { ...prev, notes: newNotes };
-    });
+    const newNotes = [...(sessionDraft.notes || [])];
+    newNotes[index] = { ...newNotes[index], [field]: value };
+    const newDraft = { ...sessionDraft, notes: newNotes };
+    setSessionDraft(newDraft);
+
+    // Debounce Save
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      saveSession(newDraft, true);
+    }, 1500);
   };
 
   const handleDeleteNote = (index) => {
-    setSessionDraft((prev) => ({
-      ...prev,
-      notes: (prev.notes || []).filter((_, i) => i !== index),
-    }));
+    const newNotes = (sessionDraft.notes || []).filter((_, i) => i !== index);
+    const newDraft = { ...sessionDraft, notes: newNotes };
+    setSessionDraft(newDraft);
+    saveSession(newDraft, true);
   };
 
   const handleAddTest = () => {
@@ -1122,7 +1156,12 @@ function ExploratorySessionEditorTab({
                             : "divider",
                         }}
                       >
-                        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{ mb: 2 }}
+                          alignItems="center"
+                        >
                           <TextField
                             fullWidth
                             size="small"
@@ -1134,24 +1173,40 @@ function ExploratorySessionEditorTab({
                             sx={{ flexGrow: 1 }}
                           />
                           <IconButton
+                            size="small"
+                            onClick={() => toggleNoteCollapse(index)}
+                            sx={{
+                              bgcolor: isDark
+                                ? "rgba(255,255,255,0.05)"
+                                : "rgba(0,0,0,0.05)",
+                            }}
+                          >
+                            {collapsedIndices[index] ? (
+                              <ExpandMoreIcon />
+                            ) : (
+                              <ExpandLessIcon />
+                            )}
+                          </IconButton>
+                          <IconButton
                             color="error"
                             size="small"
                             onClick={() => handleDeleteNote(index)}
-                            sx={{ mt: 0.5 }}
                           >
                             <DeleteIcon />
                           </IconButton>
                         </Stack>
-                        <TextField
-                          fullWidth
-                          multiline
-                          minRows={3}
-                          label={t("common.content", "내용")}
-                          value={note.content}
-                          onChange={(e) =>
-                            handleUpdateNote(index, "content", e.target.value)
-                          }
-                        />
+                        <Collapse in={!collapsedIndices[index]}>
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={3}
+                            label={t("common.content", "내용")}
+                            value={note.content}
+                            onChange={(e) =>
+                              handleUpdateNote(index, "content", e.target.value)
+                            }
+                          />
+                        </Collapse>
                       </Box>
                     ))}
                     {(sessionDraft.notes || []).length === 0 && (

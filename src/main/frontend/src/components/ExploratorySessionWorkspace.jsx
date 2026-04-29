@@ -589,17 +589,18 @@ function ExploratorySessionWorkspace({ projectId }) {
     return true;
   });
 
-  const saveSession = async () => {
+  const saveSession = async (draftOverride = null, silent = false) => {
     setSavingSession(true);
     setSessionError("");
     try {
-      const isEdit = !!sessionDraft.id;
-      const url = isEdit ? `/api/sessions/${sessionDraft.id}` : "/api/sessions";
+      const targetDraft = draftOverride || sessionDraft;
+      const isEdit = !!targetDraft.id;
+      const url = isEdit ? `/api/sessions/${targetDraft.id}` : "/api/sessions";
       const method = isEdit ? "PUT" : "POST";
 
       const response = await api(url, {
         method,
-        body: JSON.stringify(sessionDraft),
+        body: JSON.stringify(targetDraft),
       });
 
       if (!response.ok) {
@@ -609,11 +610,15 @@ function ExploratorySessionWorkspace({ projectId }) {
       }
 
       const saved = await response.json();
-      setSessionDraft((prev) => ({ ...prev, id: saved.id }));
+      setSessionDraft((prev) => ({ ...prev, ...saved }));
       await loadSessions();
-      alert(t("exploratory.session.saveSuccess", "세션이 저장되었습니다."));
+      if (!silent) {
+        alert(t("exploratory.session.saveSuccess", "세션이 저장되었습니다."));
+      }
+      return saved;
     } catch (err) {
       setSessionError(err.message);
+      return null;
     } finally {
       setSavingSession(false);
     }
