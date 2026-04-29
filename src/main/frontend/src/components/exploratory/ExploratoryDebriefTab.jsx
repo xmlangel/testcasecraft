@@ -35,6 +35,8 @@ function ExploratoryDebriefTab({
   onBackToList,
   saveSession,
   submitSession,
+  approveSession,
+  rejectSession,
   savingSession,
   artifacts,
 }) {
@@ -227,414 +229,511 @@ function ExploratoryDebriefTab({
                     "& .MuiOutlinedInput-root": { borderRadius: 3 },
                   }}
                 />
+
+                <Divider sx={{ my: 2, borderStyle: "dashed" }} />
+
+                {/* Lead Review Section (Moved to align with report) */}
+                <Box
+                  sx={{
+                    p: 3,
+                    borderRadius: 4,
+                    background: isDark
+                      ? "rgba(25, 118, 210, 0.08)"
+                      : "rgba(25, 118, 210, 0.03)",
+                    border: "1px solid",
+                    borderColor: isDark
+                      ? "rgba(25, 118, 210, 0.2)"
+                      : "rgba(25, 118, 210, 0.1)",
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 900,
+                      mb: 2,
+                      color: "primary.main",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <DebriefIcon fontSize="small" /> LEAD REVIEW & APPROVAL
+                  </Typography>
+
+                  <Stack spacing={2.5}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      label={t(
+                        "exploratory.debrief.leadComment",
+                        "리드 피드백",
+                      )}
+                      placeholder="리뷰 의견을 입력해 주세요..."
+                      value={sessionDraft.reviewComment || ""}
+                      onChange={(e) =>
+                        setSessionDraft((prev) => ({
+                          ...prev,
+                          reviewComment: e.target.value,
+                        }))
+                      }
+                      sx={{ bgcolor: "background.paper", borderRadius: 2 }}
+                    />
+
+                    <Stack direction="row" spacing={2}>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="success"
+                        startIcon={<ExitIcon />}
+                        onClick={approveSession}
+                        disabled={
+                          savingSession || sessionDraft.status === "APPROVED"
+                        }
+                        sx={{ py: 1.5, borderRadius: 3, fontWeight: 800 }}
+                      >
+                        {t("exploratory.debrief.action.approve", "최종 승인")}
+                      </Button>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        color="warning"
+                        onClick={rejectSession}
+                        disabled={
+                          savingSession ||
+                          sessionDraft.status === "NEEDS_UPDATE"
+                        }
+                        sx={{ py: 1.5, borderRadius: 3, fontWeight: 800 }}
+                      >
+                        {t(
+                          "exploratory.debrief.action.requestChanges",
+                          "RE-WORK",
+                        )}
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
               </Stack>
             </CardContent>
           </Card>
 
-          {/* 4. Session Execution Notes */}
-          <Card
-            sx={{
-              background: isDark
-                ? "rgba(255, 255, 255, 0.05)"
-                : "background.paper",
-              borderRadius: 4,
-              border: "1px solid",
-              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Typography
-                variant="subtitle1"
+          {/* Details Grid Layout */}
+          <Grid container spacing={2}>
+            {/* 4. Session Execution Notes */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card
                 sx={{
-                  fontWeight: 800,
-                  mb: 3,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
+                  height: "100%",
+                  background: isDark
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "background.paper",
+                  borderRadius: 4,
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
                 }}
               >
-                <NoteIcon color="primary" />
-                {t("exploratory.debrief.section.notes", "테스트 수행 노트")}
-              </Typography>
-              <Stack spacing={2}>
-                {(sessionDraft.notes || []).length > 0 ? (
-                  (sessionDraft.notes || []).map((note, idx) => (
-                    <Box
-                      key={idx}
-                      sx={{
-                        p: 2,
-                        borderRadius: 3,
-                        bgcolor: isDark
-                          ? "rgba(255,255,255,0.02)"
-                          : "rgba(0,0,0,0.02)",
-                        border: "1px solid",
-                        borderColor: isDark
-                          ? "rgba(255,255,255,0.05)"
-                          : "divider",
-                      }}
-                    >
+                <CardContent sx={{ p: 3 }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 800,
+                      mb: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      color: "primary.main",
+                    }}
+                  >
+                    <NoteIcon fontSize="small" />
+                    {t("exploratory.debrief.section.notes", "테스트 수행 노트")}
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {(sessionDraft.notes || []).length > 0 ? (
+                      (sessionDraft.notes || []).map((note, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            bgcolor: isDark
+                              ? "rgba(255,255,255,0.02)"
+                              : "rgba(0,0,0,0.02)",
+                            border: "1px solid",
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.05)"
+                              : "divider",
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 800,
+                              mb: 0.5,
+                              display: "block",
+                              color: "primary.light",
+                            }}
+                          >
+                            {note.title || `Note ${idx + 1}`}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              whiteSpace: "pre-wrap",
+                              opacity: 0.9,
+                              fontSize: "0.8rem",
+                            }}
+                          >
+                            {note.content}
+                          </Typography>
+                        </Box>
+                      ))
+                    ) : (
                       <Typography
-                        variant="subtitle2"
-                        sx={{ fontWeight: 800, mb: 1, color: "primary.light" }}
+                        variant="body2"
+                        sx={{
+                          opacity: 0.5,
+                          fontStyle: "italic",
+                          fontSize: "0.8rem",
+                        }}
                       >
-                        {note.title || `Note ${idx + 1}`}
+                        기록된 세션 노트가 없습니다.
+                      </Typography>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* 5. Data Outputs & Artifacts */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card
+                sx={{
+                  height: "100%",
+                  background: isDark
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "background.paper",
+                  borderRadius: 4,
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 800,
+                      mb: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      color: "primary.main",
+                    }}
+                  >
+                    <AttachmentIcon fontSize="small" />
+                    {t(
+                      "exploratory.debrief.section.artifacts",
+                      "산출물 및 증적",
+                    )}
+                  </Typography>
+
+                  <Stack spacing={2}>
+                    {/* Test Data */}
+                    <Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 800,
+                          opacity: 0.5,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          mb: 0.5,
+                        }}
+                      >
+                        <DataIcon fontSize="inherit" /> TEST DATA
                       </Typography>
                       <Typography
                         variant="body2"
-                        sx={{ whiteSpace: "pre-wrap", opacity: 0.9 }}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          bgcolor: isDark
+                            ? "rgba(255,255,255,0.02)"
+                            : "rgba(0,0,0,0.02)",
+                          whiteSpace: "pre-wrap",
+                          fontSize: "0.8rem",
+                        }}
                       >
-                        {note.content}
+                        {sessionDraft.testData || "기록된 데이터 없음"}
                       </Typography>
                     </Box>
-                  ))
-                ) : (
-                  <Typography
-                    variant="body2"
-                    sx={{ opacity: 0.5, fontStyle: "italic" }}
-                  >
-                    기록된 세션 노트가 없습니다.
-                  </Typography>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
 
-          {/* 5. Data Outputs & Artifacts */}
-          <Card
-            sx={{
-              background: isDark
-                ? "rgba(255, 255, 255, 0.05)"
-                : "background.paper",
-              borderRadius: 4,
-              border: "1px solid",
-              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Typography
-                variant="subtitle1"
+                    {/* Artifact Files */}
+                    <Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 800,
+                          opacity: 0.5,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          mb: 0.5,
+                        }}
+                      >
+                        <AttachmentIcon fontSize="inherit" /> UPLOADED FILES
+                      </Typography>
+                      {(sessionDraft.attachments || []).length > 0 ? (
+                        <Grid container spacing={1}>
+                          {(sessionDraft.attachments || []).map((file) => (
+                            <Grid size={{ xs: 6 }} key={file.id}>
+                              <Box
+                                sx={{
+                                  p: 1,
+                                  borderRadius: 2,
+                                  border: "1px solid",
+                                  borderColor: "divider",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 0.5,
+                                  bgcolor: isDark
+                                    ? "rgba(255,255,255,0.02)"
+                                    : "background.paper",
+                                }}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  noWrap
+                                  sx={{ fontWeight: 700, fontSize: "0.7rem" }}
+                                >
+                                  {file.originalFileName}
+                                </Typography>
+                                {file.mimeType?.startsWith("image/") && (
+                                  <Box
+                                    component="img"
+                                    src={`/api/session-attachments/${file.id}/download`}
+                                    sx={{
+                                      width: "100%",
+                                      height: 60,
+                                      objectFit: "cover",
+                                      borderRadius: 1,
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            opacity: 0.5,
+                            fontStyle: "italic",
+                            fontSize: "0.8rem",
+                          }}
+                        >
+                          업로드된 파일 없음
+                        </Typography>
+                      )}
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* 6. Structured Tests */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card
                 sx={{
-                  fontWeight: 800,
-                  mb: 3,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
+                  height: "100%",
+                  background: isDark
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "background.paper",
+                  borderRadius: 4,
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
                 }}
               >
-                <AttachmentIcon color="primary" />
-                {t(
-                  "exploratory.debrief.section.artifacts",
-                  "데이터 산출물 및 증적",
-                )}
-              </Typography>
-
-              <Stack spacing={3}>
-                {/* Test Data */}
-                <Box>
+                <CardContent sx={{ p: 3 }}>
                   <Typography
-                    variant="caption"
+                    variant="subtitle2"
                     sx={{
                       fontWeight: 800,
-                      opacity: 0.5,
+                      mb: 2,
                       display: "flex",
                       alignItems: "center",
-                      gap: 0.5,
-                      mb: 1,
+                      gap: 1,
+                      color: "primary.main",
                     }}
                   >
-                    <DataIcon fontSize="inherit" /> TEST DATA
+                    <ExitIcon fontSize="small" />
+                    {t("exploratory.debrief.section.tests", "구조화된 테스트")}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      bgcolor: isDark
-                        ? "rgba(255,255,255,0.02)"
-                        : "rgba(0,0,0,0.02)",
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {sessionDraft.testData ||
-                      "기록된 테스트 데이터가 없습니다."}
-                  </Typography>
-                </Box>
-
-                {/* Artifact Files */}
-                <Box>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 800,
-                      opacity: 0.5,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                      mb: 1,
-                    }}
-                  >
-                    <AttachmentIcon fontSize="inherit" /> UPLOADED FILES
-                  </Typography>
-                  {(sessionDraft.attachments || []).length > 0 ? (
-                    <Grid container spacing={2}>
-                      {(sessionDraft.attachments || []).map((file) => (
-                        <Grid size={{ xs: 12, sm: 4 }} key={file.id}>
-                          <Box
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 2,
-                              border: "1px solid",
-                              borderColor: "divider",
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: 1,
-                              bgcolor: isDark
-                                ? "rgba(255,255,255,0.02)"
-                                : "background.paper",
-                            }}
+                  <Stack spacing={1.5}>
+                    {(sessionDraft.tests || []).length > 0 ? (
+                      (sessionDraft.tests || []).map((test, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            bgcolor: isDark
+                              ? "rgba(255,255,255,0.02)"
+                              : "rgba(0,0,0,0.02)",
+                            border: "1px solid",
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.05)"
+                              : "divider",
+                          }}
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            sx={{ mb: 0.5 }}
                           >
                             <Typography
                               variant="caption"
-                              noWrap
-                              sx={{ fontWeight: 700 }}
+                              sx={{ fontWeight: 800, color: "success.light" }}
                             >
-                              {file.originalFileName}
+                              {test.title || `Test ${idx + 1}`}
                             </Typography>
-                            {file.mimeType &&
-                              file.mimeType.startsWith("image/") && (
-                                <Box
-                                  component="img"
-                                  src={`/api/session-attachments/${file.id}/download`}
-                                  sx={{
-                                    width: "100%",
-                                    height: 100,
-                                    objectFit: "cover",
-                                    borderRadius: 1,
-                                  }}
-                                />
-                              )}
-                            {!file.mimeType?.startsWith("image/") && (
-                              <Box
-                                sx={{
-                                  height: 100,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  bgcolor: "rgba(0,0,0,0.05)",
-                                  borderRadius: 1,
-                                }}
-                              >
-                                <AttachmentIcon sx={{ opacity: 0.2 }} />
-                              </Box>
-                            )}
-                          </Box>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  ) : (
-                    <Typography
-                      variant="body2"
-                      sx={{ opacity: 0.5, fontStyle: "italic" }}
-                    >
-                      업로드된 산출물이 없습니다.
-                    </Typography>
-                  )}
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          {/* 6. Structured Tests */}
-          <Card
-            sx={{
-              background: isDark
-                ? "rgba(255, 255, 255, 0.05)"
-                : "background.paper",
-              borderRadius: 4,
-              border: "1px solid",
-              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  mb: 3,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <ExitIcon color="primary" />
-                {t(
-                  "exploratory.debrief.section.tests",
-                  "수행된 구조화된 테스트",
-                )}
-              </Typography>
-              <Stack spacing={2}>
-                {(sessionDraft.tests || []).length > 0 ? (
-                  (sessionDraft.tests || []).map((test, idx) => (
-                    <Box
-                      key={idx}
-                      sx={{
-                        p: 2,
-                        borderRadius: 3,
-                        bgcolor: isDark
-                          ? "rgba(255,255,255,0.02)"
-                          : "rgba(0,0,0,0.02)",
-                        border: "1px solid",
-                        borderColor: isDark
-                          ? "rgba(255,255,255,0.05)"
-                          : "divider",
-                      }}
-                    >
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        sx={{ mb: 1 }}
+                            <Chip
+                              label={test.status}
+                              size="small"
+                              sx={{ height: 16, fontSize: "0.6rem" }}
+                              color={
+                                test.status === "PASS"
+                                  ? "success"
+                                  : test.status === "FAIL"
+                                    ? "error"
+                                    : "default"
+                              }
+                            />
+                          </Stack>
+                          {test.steps && (
+                            <Typography
+                              variant="caption"
+                              display="block"
+                              sx={{ opacity: 0.7, fontSize: "0.7rem" }}
+                            >
+                              <strong>Steps:</strong> {test.steps}
+                            </Typography>
+                          )}
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          opacity: 0.5,
+                          fontStyle: "italic",
+                          fontSize: "0.8rem",
+                        }}
                       >
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ fontWeight: 800, color: "success.light" }}
-                        >
-                          {test.title || `Test ${idx + 1}`}
-                        </Typography>
-                        <Chip
-                          label={test.status}
-                          size="small"
-                          color={
-                            test.status === "PASS"
-                              ? "success"
-                              : test.status === "FAIL"
-                                ? "error"
-                                : "default"
-                          }
-                        />
-                      </Stack>
-                      {test.steps && (
-                        <Typography
-                          variant="caption"
-                          display="block"
-                          sx={{ opacity: 0.7, mb: 0.5 }}
-                        >
-                          <strong>Steps:</strong> {test.steps}
-                        </Typography>
-                      )}
-                      {test.expectedResult && (
-                        <Typography
-                          variant="caption"
-                          display="block"
-                          sx={{ opacity: 0.7 }}
-                        >
-                          <strong>Expected:</strong> {test.expectedResult}
-                        </Typography>
-                      )}
-                    </Box>
-                  ))
-                ) : (
-                  <Typography
-                    variant="body2"
-                    sx={{ opacity: 0.5, fontStyle: "italic" }}
-                  >
-                    수행된 구조화된 테스트가 없습니다.
-                  </Typography>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
-
-          {/* 7. Detailed Bugs */}
-          <Card
-            sx={{
-              background: isDark
-                ? "rgba(255, 255, 255, 0.05)"
-                : "background.paper",
-              borderRadius: 4,
-              border: "1px solid",
-              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  mb: 3,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <BugIcon color="error" />
-                {t("exploratory.debrief.section.bugs", "발견된 상세 버그")}
-              </Typography>
-              <Stack spacing={2}>
-                {(sessionDraft.bugs || []).length > 0 ? (
-                  (sessionDraft.bugs || []).map((bug, idx) => (
-                    <Box
-                      key={idx}
-                      sx={{
-                        p: 2,
-                        borderRadius: 3,
-                        bgcolor: isDark
-                          ? "rgba(255,255,255,0.02)"
-                          : "rgba(0,0,0,0.02)",
-                        border: "1px solid",
-                        borderColor: isDark
-                          ? "rgba(255,255,255,0.05)"
-                          : "divider",
-                      }}
-                    >
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        sx={{ mb: 1 }}
-                      >
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ fontWeight: 800, color: "error.light" }}
-                        >
-                          {bug.title || `Bug ${idx + 1}`}
-                        </Typography>
-                        <Chip
-                          label={bug.severity}
-                          size="small"
-                          color={
-                            bug.severity === "Critical" ||
-                            bug.severity === "High"
-                              ? "error"
-                              : "warning"
-                          }
-                        />
-                      </Stack>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        {bug.description}
+                        수행된 테스트가 없습니다.
                       </Typography>
-                      {bug.jiraIssueKey && (
-                        <Chip
-                          label={bug.jiraIssueKey}
-                          size="small"
-                          icon={<LinkIcon />}
-                          color="primary"
-                          variant="outlined"
-                        />
-                      )}
-                    </Box>
-                  ))
-                ) : (
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* 7. Detailed Bugs */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card
+                sx={{
+                  height: "100%",
+                  background: isDark
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "background.paper",
+                  borderRadius: 4,
+                  border: "1px solid",
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
                   <Typography
-                    variant="body2"
-                    sx={{ opacity: 0.5, fontStyle: "italic" }}
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 800,
+                      mb: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      color: "error.main",
+                    }}
                   >
-                    세션 중 발견된 상세 버그 정보가 없습니다.
+                    <BugIcon fontSize="small" />
+                    {t("exploratory.debrief.section.bugs", "발견된 버그")}
                   </Typography>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
+                  <Stack spacing={1.5}>
+                    {(sessionDraft.bugs || []).length > 0 ? (
+                      (sessionDraft.bugs || []).map((bug, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            bgcolor: isDark
+                              ? "rgba(255,255,255,0.02)"
+                              : "rgba(0,0,0,0.02)",
+                            border: "1px solid",
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.05)"
+                              : "divider",
+                          }}
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            sx={{ mb: 0.5 }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{ fontWeight: 800, color: "error.light" }}
+                            >
+                              {bug.title || `Bug ${idx + 1}`}
+                            </Typography>
+                            <Chip
+                              label={bug.severity}
+                              size="small"
+                              sx={{ height: 16, fontSize: "0.6rem" }}
+                              color={
+                                bug.severity === "Critical" ||
+                                bug.severity === "High"
+                                  ? "error"
+                                  : "warning"
+                              }
+                            />
+                          </Stack>
+                          <Typography
+                            variant="body2"
+                            sx={{ mb: 0.5, fontSize: "0.8rem" }}
+                          >
+                            {bug.description}
+                          </Typography>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          opacity: 0.5,
+                          fontStyle: "italic",
+                          fontSize: "0.8rem",
+                        }}
+                      >
+                        발견된 버그가 없습니다.
+                      </Typography>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
 
           {/* Quick Recap of Key Findings */}
           <Card
@@ -643,9 +742,11 @@ function ExploratoryDebriefTab({
               background: isDark
                 ? "rgba(255,255,255,0.02)"
                 : "rgba(0,0,0,0.01)",
+              border: "1px solid",
+              borderColor: "divider",
             }}
           >
-            <CardContent>
+            <CardContent sx={{ p: 2 }}>
               <Typography
                 variant="subtitle2"
                 sx={{
@@ -654,6 +755,8 @@ function ExploratoryDebriefTab({
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
+                  fontSize: "0.75rem",
+                  opacity: 0.8,
                 }}
               >
                 <BugIcon fontSize="small" /> QUICK RECAP: LINKED ISSUES
@@ -661,18 +764,7 @@ function ExploratoryDebriefTab({
               <Stack spacing={2}>
                 {sessionDraft.jiraIssueKey ? (
                   <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 800,
-                        opacity: 0.5,
-                        display: "block",
-                        mb: 0.5,
-                      }}
-                    >
-                      LINKED JIRA
-                    </Typography>
-                    <Stack direction="row" spacing={1}>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
                       {sessionDraft.jiraIssueKey.split(",").map((key) => (
                         <Chip
                           key={key}
@@ -681,13 +773,16 @@ function ExploratoryDebriefTab({
                           icon={<LinkIcon />}
                           color="error"
                           variant="outlined"
-                          sx={{ fontWeight: 800 }}
+                          sx={{ fontWeight: 800, mb: 0.5 }}
                         />
                       ))}
                     </Stack>
                   </Box>
                 ) : (
-                  <Typography variant="body2" sx={{ opacity: 0.5 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ opacity: 0.5, fontSize: "0.8rem" }}
+                  >
                     연결된 JIRA 이슈가 없습니다.
                   </Typography>
                 )}
@@ -700,34 +795,45 @@ function ExploratoryDebriefTab({
       {/* Right Column: Debrief Controls */}
       <Grid size={{ xs: 12, lg: 4 }}>
         <Stack spacing={3} sx={{ position: "sticky", top: 24 }}>
-          {/* Debrief Checklist */}
+          {/* Debrief Checklist (Compacted) */}
           <Card
             sx={{
-              borderRadius: 4,
+              borderRadius: 3,
               border: "1px solid",
               borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "divider",
+              bgcolor: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)",
             }}
           >
-            <CardContent>
+            <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
               <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 800, mb: 2, color: "primary.light" }}
+                variant="caption"
+                sx={{
+                  fontWeight: 900,
+                  mb: 1.5,
+                  display: "block",
+                  color: "primary.light",
+                  letterSpacing: 1,
+                }}
               >
                 DEBRIEF CHECKLIST
               </Typography>
-              <List dense>
+              <List dense sx={{ py: 0 }}>
                 {[
                   "차터 범위 내에서 탐색이 이루어졌는가?",
                   "수행 중 발견된 모든 리스크가 기록되었는가?",
                   "버그 재현을 위한 정보 및 증적이 충분한가?",
                   "다음 단계에 대한 제안이 포함되었는가?",
                 ].map((text, i) => (
-                  <ListItem key={i} sx={{ px: 0 }}>
+                  <ListItem key={i} sx={{ px: 0, py: 0.25 }}>
                     <ListItemText
                       primary={text}
                       primaryTypographyProps={{
-                        variant: "body2",
-                        sx: { fontWeight: 500, opacity: 0.8 },
+                        variant: "caption",
+                        sx: {
+                          fontWeight: 600,
+                          opacity: 0.7,
+                          fontSize: "0.7rem",
+                        },
                       }}
                     />
                   </ListItem>
@@ -736,97 +842,22 @@ function ExploratoryDebriefTab({
             </CardContent>
           </Card>
 
-          {/* Lead Review Section */}
-          <Card
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={submitSession}
+            disabled={savingSession || sessionDraft.status === "SUBMITTED"}
             sx={{
-              borderRadius: 4,
-              background: isDark
-                ? "rgba(25, 118, 210, 0.05)"
-                : "rgba(25, 118, 210, 0.02)",
-              border: "1px solid",
-              borderColor: isDark
-                ? "rgba(25, 118, 210, 0.2)"
-                : "rgba(25, 118, 210, 0.1)",
+              py: 1.5,
+              borderRadius: 3,
+              fontWeight: 900,
+              fontSize: "0.9rem",
+              boxShadow: "0 6px 15px rgba(25, 118, 210, 0.2)",
             }}
           >
-            <CardContent sx={{ p: 3 }}>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 800,
-                  mb: 2,
-                  color: "primary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <ExitIcon /> LEAD REVIEW & APPROVAL
-              </Typography>
-
-              <Stack spacing={3}>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={4}
-                  label={t("exploratory.debrief.leadComment", "리드 피드백")}
-                  placeholder="리뷰 의견을 입력해 주세요..."
-                  value={sessionDraft.reviewComment || ""}
-                  onChange={(e) =>
-                    setSessionDraft((prev) => ({
-                      ...prev,
-                      reviewComment: e.target.value,
-                    }))
-                  }
-                  sx={{ bgcolor: "background.paper", borderRadius: 2 }}
-                />
-
-                <Stack direction="row" spacing={2}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    color="success"
-                    startIcon={<ExitIcon />}
-                    sx={{ py: 1.5, borderRadius: 3, fontWeight: 800 }}
-                  >
-                    {t("exploratory.debrief.action.approve", "최종 승인")}
-                  </Button>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    color="warning"
-                    sx={{ py: 1.5, borderRadius: 3, fontWeight: 800 }}
-                  >
-                    {t("exploratory.debrief.action.requestChanges", "RE-WORK")}
-                  </Button>
-                </Stack>
-
-                <Divider />
-
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  onClick={submitSession}
-                  disabled={
-                    savingSession || sessionDraft.status === "SUBMITTED"
-                  }
-                  sx={{
-                    py: 2,
-                    borderRadius: 3,
-                    fontWeight: 900,
-                    fontSize: "1rem",
-                    boxShadow: "0 8px 20px rgba(25, 118, 210, 0.3)",
-                  }}
-                >
-                  {t(
-                    "exploratory.debrief.action.finalSubmit",
-                    "SUBMIT FOR REVIEW",
-                  )}
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
+            {t("exploratory.debrief.action.finalSubmit", "SUBMIT FOR REVIEW")}
+          </Button>
         </Stack>
       </Grid>
     </Grid>

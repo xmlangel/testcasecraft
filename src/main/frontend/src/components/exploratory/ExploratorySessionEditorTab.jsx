@@ -1145,8 +1145,8 @@ function ExploratorySessionEditorTab({
 
       {editorTab === 1 && (
         <Grid container spacing={3} alignItems="stretch">
-          {/* Left Panel: Notes & Tests */}
-          <Grid size={{ xs: 12, lg: 8 }}>
+          {/* Column 1: Notes (Execution Logs) */}
+          <Grid size={{ xs: 12, lg: 4 }}>
             <Stack spacing={3} sx={{ height: "100%" }}>
               {/* Dynamic Notes Section */}
               <Card
@@ -1287,7 +1287,12 @@ function ExploratorySessionEditorTab({
                   </Stack>
                 </CardContent>
               </Card>
+            </Stack>
+          </Grid>
 
+          {/* Column 2: Structured Tests */}
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <Stack spacing={3} sx={{ height: "100%" }}>
               {/* Dynamic Tests Section */}
               <Card
                 sx={{
@@ -1463,7 +1468,7 @@ function ExploratorySessionEditorTab({
             </Stack>
           </Grid>
 
-          {/* Right Panel: Bugs, JIRA & Artifacts */}
+          {/* Column 3: Bugs, JIRA & Artifacts */}
           <Grid size={{ xs: 12, lg: 4 }}>
             <Stack spacing={3} sx={{ height: "100%" }}>
               {/* Dynamic Bugs Section */}

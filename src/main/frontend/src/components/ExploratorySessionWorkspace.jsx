@@ -666,6 +666,73 @@ function ExploratorySessionWorkspace({ projectId }) {
     }
   };
 
+  const approveSession = async () => {
+    if (!sessionDraft.id) {
+      setSessionError("세션 ID가 없습니다.");
+      return;
+    }
+
+    setSavingSession(true);
+    setSessionError("");
+    try {
+      const response = await api(`/api/sessions/${sessionDraft.id}/approve`, {
+        method: "POST",
+        body: JSON.stringify({ comment: sessionDraft.reviewComment || "" }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await parseApiError(response, "세션 승인에 실패했습니다."),
+        );
+      }
+
+      const updated = await response.json();
+      setSessionDraft((prev) => ({ ...prev, status: updated.status }));
+      await loadSessions();
+      alert(t("exploratory.session.approveSuccess", "세션이 승인되었습니다."));
+    } catch (err) {
+      setSessionError(err.message);
+    } finally {
+      setSavingSession(false);
+    }
+  };
+
+  const rejectSession = async () => {
+    if (!sessionDraft.id) {
+      setSessionError("세션 ID가 없습니다.");
+      return;
+    }
+
+    setSavingSession(true);
+    setSessionError("");
+    try {
+      const response = await api(
+        `/api/sessions/${sessionDraft.id}/request-update`,
+        {
+          method: "POST",
+          body: JSON.stringify({ comment: sessionDraft.reviewComment || "" }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          await parseApiError(response, "보완 요청에 실패했습니다."),
+        );
+      }
+
+      const updated = await response.json();
+      setSessionDraft((prev) => ({ ...prev, status: updated.status }));
+      await loadSessions();
+      alert(
+        t("exploratory.session.rejectSuccess", "보완 요청이 완료되었습니다."),
+      );
+    } catch (err) {
+      setSessionError(err.message);
+    } finally {
+      setSavingSession(false);
+    }
+  };
+
   const handleTimerAction = async (action) => {
     if (!sessionDraft.id && action !== "start") {
       setSessionError("세션을 먼저 저장해야 합니다.");
@@ -1073,6 +1140,8 @@ function ExploratorySessionWorkspace({ projectId }) {
             onBackToList={handleBackToList}
             saveSession={saveSession}
             submitSession={submitSession}
+            approveSession={approveSession}
+            rejectSession={rejectSession}
             savingSession={savingSession}
             artifacts={sessionDraft.attachments || []}
             onDeleteArtifact={onDeleteArtifact}
