@@ -161,7 +161,9 @@ public class SecurityConfig {
                         "/verify-email",
                         "/verify-email/**",
                         "/guides",
-                        "/guides/**")
+                        "/guides/**",
+                        "/login",
+                        "/login/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

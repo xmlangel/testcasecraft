@@ -483,8 +483,8 @@ const AppContent = () => {
       } else if (projects.length > 0) {
         navigate("/");
       }
-    } else if (location.pathname === "/") {
-      // 홈페이지 접근 시 프로젝트 선택 페이지로 이동
+    } else if (location.pathname === "/" || location.pathname === "/login") {
+      // 홈페이지나 로그인 접근 시 프로젝트 선택 페이지로 이동
       navigate("/projects");
     }
   }, [
