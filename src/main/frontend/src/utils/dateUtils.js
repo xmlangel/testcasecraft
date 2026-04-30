@@ -23,15 +23,16 @@ export function isServerUTC() {
 export function formatDate(date, locale = "ko-KR", options = {}) {
   if (!date) return "-";
 
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  if (isNaN(dateObj.getTime())) return "-";
+  const dateObj = typeof date === "string" ? safeParseDate(date) : date;
+  if (!dateObj || isNaN(dateObj.getTime())) return "-";
 
   // 짧은 로케일 코드 (ko, en)를 전체 코드로 변환
   const fullLocale =
     locale === "ko" ? "ko-KR" : locale === "en" ? "en-US" : locale;
 
-  // 서버 설정이 UTC이거나 옵션에서 명시한 경우 UTC 사용
-  const useUTC = options.timeZone === "UTC" || isServerUTC();
+  // 사용자가 명시적으로 타임존을 설정하지 않았고 서버가 UTC인 경우에만 UTC 사용
+  const useUTC =
+    options.timeZone === "UTC" || (!options.timeZone && isServerUTC());
 
   const defaultOptions = {
     year: "numeric",
@@ -88,11 +89,17 @@ export function formatTimeOnly(date, locale = "ko-KR") {
 export function formatRelativeTime(date, baseDate = new Date()) {
   if (!date) return "-";
 
-  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const dateObj = typeof date === "string" ? safeParseDate(date) : date;
   const baseDateObj =
-    typeof baseDate === "string" ? new Date(baseDate) : baseDate;
+    typeof baseDate === "string" ? safeParseDate(baseDate) : baseDate;
 
-  if (isNaN(dateObj.getTime()) || isNaN(baseDateObj.getTime())) return "-";
+  if (
+    !dateObj ||
+    !baseDateObj ||
+    isNaN(dateObj.getTime()) ||
+    isNaN(baseDateObj.getTime())
+  )
+    return "-";
 
   const diffMs = baseDateObj.getTime() - dateObj.getTime();
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
@@ -117,10 +124,12 @@ export function formatRelativeTime(date, baseDate = new Date()) {
 export function formatDuration(startDate, endDate) {
   if (!startDate || !endDate) return "-";
 
-  const start = typeof startDate === "string" ? new Date(startDate) : startDate;
-  const end = typeof endDate === "string" ? new Date(endDate) : endDate;
+  const start =
+    typeof startDate === "string" ? safeParseDate(startDate) : startDate;
+  const end = typeof endDate === "string" ? safeParseDate(endDate) : endDate;
 
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return "-";
+  if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime()))
+    return "-";
 
   const diffMs = end.getTime() - start.getTime();
 
@@ -160,7 +169,7 @@ export function formatDuration(startDate, endDate) {
  */
 export function isValidDate(date) {
   if (!date) return false;
-  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const dateObj = typeof date === "string" ? safeParseDate(date) : date;
   return dateObj instanceof Date && !isNaN(dateObj.getTime());
 }
 
@@ -171,8 +180,8 @@ export function isValidDate(date) {
  */
 export function isoToLocalDateString(isoString) {
   if (!isoString) return "";
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return "";
+  const date = safeParseDate(isoString);
+  if (!date || isNaN(date.getTime())) return "";
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -188,8 +197,8 @@ export function isoToLocalDateString(isoString) {
  */
 export function localDateStringToISO(localDateString) {
   if (!localDateString) return "";
-  const date = new Date(localDateString);
-  if (isNaN(date.getTime())) return "";
+  const date = safeParseDate(localDateString);
+  if (!date || isNaN(date.getTime())) return "";
 
   return date.toISOString();
 }
@@ -208,7 +217,13 @@ export function convertLocalDateTimeArrayToDate(dateArray) {
   try {
     const [year, month, day, hour = 0, minute = 0, second = 0] = dateArray;
     // JavaScript Date의 월은 0-based (0 = 1월)이므로 1을 빼야 함
-    const date = new Date(year, month - 1, day, hour, minute, second);
+
+    let date;
+    if (isServerUTC()) {
+      date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+    } else {
+      date = new Date(year, month - 1, day, hour, minute, second);
+    }
 
     if (isNaN(date.getTime())) {
       return null;
@@ -241,7 +256,17 @@ export function safeParseDate(date) {
 
   // 문자열인 경우
   if (typeof date === "string") {
-    const parsedDate = new Date(date);
+    let dateStr = date;
+    // 서버가 UTC이고, 시간대 정보가 없는 ISO 형태의 문자열인 경우 UTC로 파싱하기 위해 'Z' 추가
+    if (
+      isServerUTC() &&
+      date.includes("T") &&
+      !date.endsWith("Z") &&
+      !date.match(/[+-]\d{2}:?\d{2}$/)
+    ) {
+      dateStr = date + "Z";
+    }
+    const parsedDate = new Date(dateStr);
     return isNaN(parsedDate.getTime()) ? null : parsedDate;
   }
 
