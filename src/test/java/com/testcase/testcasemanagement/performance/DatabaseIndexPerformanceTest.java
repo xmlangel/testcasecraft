@@ -62,12 +62,12 @@ public class DatabaseIndexPerformanceTest extends AbstractTransactionalTestNGSpr
   public void verifyIndexesExist() {
     logger.info("=== 인덱스 존재 여부 검증 시작 ===");
 
-    // H2 2.x 데이터베이스에서 인덱스 정보 조회 (COLUMN_NAME 대신 INDEX_NAME과 TABLE_NAME 확인)
+    // PostgreSQL 데이터베이스에서 인덱스 정보 조회
     String indexQuery =
-        "SELECT INDEX_NAME, TABLE_NAME FROM INFORMATION_SCHEMA.INDEXES "
-            + "WHERE TABLE_NAME IN ('TEST_RESULTS', 'TEST_EXECUTIONS') "
-            + "AND INDEX_NAME LIKE 'IDX_%' "
-            + "ORDER BY TABLE_NAME, INDEX_NAME";
+        "SELECT indexname, tablename FROM pg_indexes "
+            + "WHERE tablename IN ('test_results', 'test_executions') "
+            + "AND indexname LIKE 'idx_%' "
+            + "ORDER BY tablename, indexname";
 
     @SuppressWarnings("unchecked")
     List<Object[]> indexes = entityManager.createNativeQuery(indexQuery).getResultList();
@@ -83,7 +83,7 @@ public class DatabaseIndexPerformanceTest extends AbstractTransactionalTestNGSpr
     boolean hasTestExecutionStatusUpdatedAt = false;
 
     for (Object[] index : indexes) {
-      String indexName = (String) index[0];
+      String indexName = ((String) index[0]).toUpperCase();
       if ("IDX_TEST_RESULT_EXECUTION_RESULT".equals(indexName)) {
         hasTestResultExecutionResult = true;
       } else if ("IDX_TEST_EXECUTION_PROJECT_STATUS_UPDATED".equals(indexName)) {

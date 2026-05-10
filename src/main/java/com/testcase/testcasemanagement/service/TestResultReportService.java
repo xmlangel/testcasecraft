@@ -125,6 +125,7 @@ public class TestResultReportService {
   // ========== ICT-185: 새로운 테스트 결과 리포트 메서드들 ==========
 
   /** ICT-185: 테스트 결과 통계 조회 */
+  @org.springframework.transaction.annotation.Transactional(readOnly = true)
   public TestResultStatisticsDto getTestResultStatistics(
       String projectId, List<String> testPlanIds, String testExecutionId) {
     TestResultStatisticsDto.TestResultStatisticsDtoBuilder builder =

@@ -14,6 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,9 @@ import org.testng.annotations.Test;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@WithMockUser(
+    username = "test_admin",
+    roles = {"USER", "ADMIN"})
 public class TestResultReportPerformanceTest extends AbstractTestNGSpringContextTests {
 
   @Autowired private TestResultReportService testResultReportService;
@@ -217,11 +223,16 @@ public class TestResultReportPerformanceTest extends AbstractTestNGSpringContext
     AtomicInteger successCount = new AtomicInteger(0);
     AtomicInteger errorCount = new AtomicInteger(0);
 
-    ExecutorService executor = Executors.newFixedThreadPool(20);
+    ExecutorService executor = Executors.newFixedThreadPool(CONCURRENT_USERS);
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
     for (int i = 0; i < totalRequests; i++) {
       executor.submit(
           () -> {
+            if (auth != null) {
+              SecurityContextHolder.getContext().setAuthentication(auth);
+            }
             try {
               TestResultStatisticsDto stats =
                   testResultReportService.getTestResultStatistics(null, null, null);
@@ -231,6 +242,9 @@ public class TestResultReportPerformanceTest extends AbstractTestNGSpringContext
             } catch (Exception e) {
               errorCount.incrementAndGet();
               System.err.println("스트레스 테스트 오류: " + e.getMessage());
+              e.printStackTrace();
+            } finally {
+              SecurityContextHolder.clearContext();
             }
           });
     }
