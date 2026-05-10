@@ -109,7 +109,7 @@ export const findItemInTree = (tree, id) => {
 };
 
 // 폴더 아이템인지 체크
-export const isFolder = (item) => item.type === "folder";
+export const isFolder = (item) => item && item.type === "folder";
 
 // O(N) 효율성을 위한 인덱스 생성용 유틸리티
 export const buildChildrenMap = (items) => {
