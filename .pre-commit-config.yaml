@@ -40,6 +40,13 @@ repos:
         files: \.java$
         pass_filenames: false
 
+      - id: java-test
+        name: Java Tests
+        entry: ./gradlew test
+        language: system
+        pass_filenames: false
+        stages: [push]
+
       # - id: ollama-code-review
       #   name: Ollama Code Review
       #   entry: python scripts/ollama_review.py

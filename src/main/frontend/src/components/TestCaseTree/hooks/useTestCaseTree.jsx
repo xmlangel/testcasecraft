@@ -47,13 +47,13 @@ export const useTestCaseTree = ({
 
   // 전체 테스트케이스 수 (폴더 제외)
   const totalTestCaseCount = useMemo(
-    () => filteredTestCases.filter((tc) => tc.type === "testcase").length,
+    () => filteredTestCases.filter((tc) => tc && tc.type === "testcase").length,
     [filteredTestCases],
   );
 
   // 전체 폴더 수
   const totalFolderCount = useMemo(
-    () => filteredTestCases.filter((tc) => tc.type === "folder").length,
+    () => filteredTestCases.filter((tc) => tc && tc.type === "folder").length,
     [filteredTestCases],
   );
 
@@ -61,7 +61,7 @@ export const useTestCaseTree = ({
   const allIds = useMemo(
     () =>
       filteredTestCases
-        .filter((tc) => tc.type === "testcase")
+        .filter((tc) => tc && tc.type === "testcase")
         .map((tc) => tc.id),
     [filteredTestCases],
   );

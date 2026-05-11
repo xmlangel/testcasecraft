@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.TestResultFilterDto;
 import com.testcase.testcasemanagement.dto.TestResultReportDto;
 import com.testcase.testcasemanagement.dto.TestResultStatisticsDto;
+import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.TestResultReportService;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +18,11 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.springframework.transaction.annotation.Transactional;
-import org.testng.annotations.BeforeClass;
+import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -31,8 +33,7 @@ import org.testng.annotations.Test;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
-@Transactional
-public class TestResultReportIntegrationTest extends AbstractTestNGSpringContextTests {
+public class TestResultReportIntegrationTest extends AbstractTransactionalTestNGSpringContextTests {
 
   @LocalServerPort private int port;
 
@@ -42,17 +43,27 @@ public class TestResultReportIntegrationTest extends AbstractTestNGSpringContext
 
   @Autowired private ObjectMapper objectMapper;
 
+  @Autowired private UserRepository userRepository;
+
+  @Autowired private PasswordEncoder passwordEncoder;
+
   private String baseUrl;
   private String authToken;
 
-  @BeforeClass
+  @BeforeMethod
   public void setUp() {
     baseUrl = "http://localhost:" + port + "/api";
 
-    // 테스트용 인증 토큰 획득
+    // 시드된 admin 사용자 사용 (비밀번호는 admin123으로 추정)
     authToken = getAuthToken();
+    System.out.println("🔑 획득한 토큰: " + authToken);
 
     System.out.println("=== ICT-191 테스트 결과 리포트 통합 테스트 시작 ===");
+  }
+
+  @AfterMethod
+  public void tearDown() {
+    System.out.println("=== ICT-191 테스트 결과 리포트 통합 테스트 종료 ===");
   }
 
   @Test(priority = 1)
@@ -233,6 +244,7 @@ public class TestResultReportIntegrationTest extends AbstractTestNGSpringContext
     long endTime = System.currentTimeMillis();
 
     // Then
+    System.out.println("📊 성능 테스트 API 응답 상태: " + response.getStatusCode());
     assertEquals(response.getStatusCode(), HttpStatus.OK);
 
     long responseTime = endTime - startTime;
@@ -326,16 +338,19 @@ public class TestResultReportIntegrationTest extends AbstractTestNGSpringContext
   private String getAuthToken() {
     try {
       String loginUrl = baseUrl + "/auth/login";
-      Map<String, String> loginRequest = Map.of("username", "test_admin", "password", "admin123");
+      Map<String, String> loginRequest = Map.of("username", "admin", "password", "admin123");
 
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
       HttpEntity<Map<String, String>> entity = new HttpEntity<>(loginRequest, headers);
 
       ResponseEntity<Map> response = restTemplate.postForEntity(loginUrl, entity, Map.class);
+      System.out.println("🔑 로그인 시도 결과: " + response.getStatusCode());
 
       if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
         return (String) response.getBody().get("accessToken");
+      } else {
+        System.err.println("❌ 로그인 실패: " + response.getStatusCode() + ", 바디: " + response.getBody());
       }
     } catch (Exception e) {
       System.err.println("인증 토큰 획득 실패: " + e.getMessage());

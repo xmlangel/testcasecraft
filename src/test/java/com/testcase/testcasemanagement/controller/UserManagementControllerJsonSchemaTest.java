@@ -191,7 +191,8 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
         getClass().getResourceAsStream("/schemas/user-detail-response-schema.json");
 
     Map<String, String> updateRequest = new HashMap<>();
-    updateRequest.put("email", "updated@test.com");
+    String uniqueEmail = "updated_" + UUID.randomUUID().toString().substring(0, 8) + "@test.com";
+    updateRequest.put("email", uniqueEmail);
     updateRequest.put("name", "Updated Name");
 
     given()
@@ -204,7 +205,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
         .statusCode(200)
         .contentType(ContentType.JSON)
         .body(JsonSchemaValidator.matchesJsonSchema(schemaStream))
-        .body("email", equalTo("updated@test.com"))
+        .body("email", equalTo(uniqueEmail))
         .body("name", equalTo("Updated Name"));
   }
 

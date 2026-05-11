@@ -173,6 +173,10 @@ const TestCaseTree = ({
         >
           {virtualizer.getVirtualItems().map((virtualItem) => {
             const node = flatData[virtualItem.index];
+
+            // 방어 코드: 가상화 인덱스가 현재 데이터 범위를 벗어난 경우 (삭제 작업 등)
+            if (!node) return null;
+
             const isSelected = treeState.selected === node.id;
             const isChecked = treeState.checkedIds.includes(node.id);
             const isExpanded = treeState.expanded.includes(node.id);

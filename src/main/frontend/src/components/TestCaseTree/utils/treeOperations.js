@@ -85,8 +85,9 @@ export function countTestCasesRecursive(node) {
   if (!node.children || node.children.length === 0) return 0;
   let count = 0;
   node.children.forEach((child) => {
-    if (child.type === "testcase") count += 1;
-    else if (child.type === "folder") count += countTestCasesRecursive(child);
+    if (child && child.type === "testcase") count += 1;
+    else if (child && child.type === "folder")
+      count += countTestCasesRecursive(child);
   });
   return count;
 }
