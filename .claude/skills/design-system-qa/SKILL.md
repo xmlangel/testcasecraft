@@ -52,7 +52,17 @@ grep -r "profile.theme.{slug}" src/main/java/.../translations/English*
 - `create{PascalSlug}Theme(mode)` 함수가 존재
 - `useMemo` 내부 if 분기에 `designSystem === "{slug}"` 케이스 존재
 - `useState` 초기값 함수가 `migrationMode`에 맞게 작성됨
-- light/dark 분기가 mode 파라미터로 처리됨 (dark 누락 시 light fallback)
+- **light/dark 토큰이 객체로 완전 분리되어 있음** — `XxxTokens = { light: {...}, dark: {...} }` 패턴 (Material3 / ModernGlass의 패턴 차용). `mode === "dark"`일 때 실제로 다른 색상이 나오는지 확인. **하드코딩 색상(#XXXXXX, rgba(...))이 components 블록에 나타나면 FAIL**.
+- **기본값 또는 향후 기본값이 될 시스템은 다크 토큰 누락 시 FAIL** (단순 fallback 허용 X — 사용자가 다크 토글했을 때 라이트와 동일하게 보이면 UX 결함)
+
+#### 자동 검증 스크립트
+
+```bash
+# components 블록에서 하드코딩 색상이 나오면 (토큰 미사용 의심)
+awk "/create${PascalSlug}Theme.*=.*\(mode\)/,/^};/" src/main/frontend/src/context/ThemeContext.jsx | \
+  grep -nE '#[0-9A-Fa-f]{6}|rgba\([0-9]+,'
+# 출력이 비어있어야 통과 (토큰 객체 정의는 변수 선언이므로 grep 범위 밖)
+```
 
 ### 4. CSS 스코프 검증
 
@@ -61,17 +71,57 @@ grep -r "profile.theme.{slug}" src/main/java/.../translations/English*
 - `:root` 단독 셀렉터 없음 (있으면 누수)
 - `body`, `html` 단독 셀렉터 없음
 - `@import`로 폰트만 로드 (다른 글로벌 규칙 X)
+- **`[data-design-system="{slug}"][data-theme="dark"]` 블록이 실제 토큰을 오버라이드** — 빈 블록("intentionally empty") 또는 주석만 있는 경우 FAIL
 
 위반 시 자동 수정으로 셀렉터 prefix 추가.
 
-### 5. 회귀 검증
+### 5. 레이아웃 안전성 검증 (CRITICAL)
+
+`ThemeContext.jsx`의 새 `create{PascalSlug}Theme` 함수 body 내부에서 다음 위험 패턴을 검출:
+
+```bash
+# 위험 패턴 1: MuiCard에 padding (CardContent와 누적되어 컨텐츠 밀림)
+grep -A 20 "MuiCard:" ThemeContext.jsx | grep -E "padding:\s*[0-9]"
+
+# 위험 패턴 2: MuiCard hover transform (전역 호버 확대)
+grep -A 20 "MuiCard:" ThemeContext.jsx | grep -E "transform:\s*\"scale"
+
+# 위험 패턴 3: MuiOutlinedInput height 고정 (multiline 잘림)
+grep -A 10 "MuiOutlinedInput:" ThemeContext.jsx | grep -E "^\s*height:\s*[0-9]"
+
+# 위험 패턴 4: MuiListItem height 고정 (멀티라인 잘림)
+grep -A 10 "MuiListItem:" ThemeContext.jsx | grep -E "^\s*height:\s*[0-9]"
+
+# 위험 패턴 5: Checkbox/Radio root에 width/height (클릭 영역 축소)
+grep -A 10 -E "MuiCheckbox:|MuiRadio:" ThemeContext.jsx | grep -E "^\s*(width|height):\s*[0-9]"
+
+# 위험 패턴 6: paper와 default가 다크에서 동일 (Dialog/Menu invisible)
+# 토큰에서 background와 surface가 다른 색인지 시각적 확인
+
+# 위험 패턴 7: MuiButton.outlined/text 에 color 직접 지정 (color="inherit" 동작 깨짐)
+# AppBar 안의 <Button color="inherit"> 가 primary 색으로 렌더되어 invisible
+# → color 는 outlinedPrimary/textPrimary 슬롯으로 옮겨야 함
+awk '/MuiButton:/,/^      },$/' ThemeContext.jsx | \
+  grep -E "^\s*(outlined|text):\s*\{" -A 5 | grep -E "^\s*color:"
+```
+
+위 grep이 하나라도 매칭되면 보고서에 ⚠️ 또는 ❌ 로 기록.
+
+**자동 수정 가능:**
+- `MuiCard.padding: N` → 제거하고 `MuiCardContent.root.padding: N` 추가
+- `MuiCard` hover transform 제거
+- `height` → `minHeight` 치환 (OutlinedInput, ListItem)
+- `MuiCheckbox/Radio.root.width/height` → `& .MuiSvgIcon-root { fontSize }`로 변환
+- `MuiButton.outlined.color` / `MuiButton.text.color` → `outlinedPrimary` / `textPrimary` 슬롯으로 이동 (`color="inherit"` 보존)
+
+### 6. 회귀 검증
 
 기존 디자인 시스템(`glass`, `material3`)이 영향받지 않았는지:
 - `createMaterial3Theme`, `createAppTheme` 함수가 그대로 (signature, 본문)
 - UserProfileDialog의 기존 Card(glass, material3) 두 개가 여전히 존재
 - `useMemo` 분기에서 fallback이 `createAppTheme(mode)` (glass)인지
 
-### 6. 보고서 작성
+### 7. 보고서 작성
 
 `_workspace/04_qa_report_{slug}.md`:
 ```markdown
@@ -106,6 +156,12 @@ grep -r "profile.theme.{slug}" src/main/java/.../translations/English*
 | CSS 셀렉터 스코프 누락 | `[data-design-system="{slug}"]` prefix 추가 |
 | UserProfileDialog의 fallback 텍스트 누락 | i18n call에 두 번째 인자 추가 |
 | ThemeContext의 useMemo 분기 누락 | if 블록 추가 |
+| MuiCard.padding 직접 지정 | 제거 후 MuiCardContent에 옮김 |
+| MuiCard hover transform | 제거 (boxShadow 변화만 유지) |
+| MuiOutlinedInput.height | minHeight로 치환 + multiline 분기 추가 |
+| MuiListItem.height | minHeight로 치환 |
+| MuiCheckbox/Radio root width/height | `& .MuiSvgIcon-root { fontSize }`로 변환 |
+| 다크 모드 CSS 빈 블록 | 다크 토큰 누락 보고 (수동 결정) |
 
 | 이슈 | 수동 (보고만) |
 |------|------------|

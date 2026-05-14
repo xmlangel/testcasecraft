@@ -539,52 +539,163 @@ const createAppTheme = (mode) => {
   });
 };
 
-// CreateSpace Design System
-// NOTE: dark mode spec is missing in tokens; light tokens are reused for dark
-// (mode is accepted only for palette.mode consistency).
+// CreateSpace Design System Tokens
+// Light/dark token sets follow the Material 3 pattern: brand colors are
+// lightened in dark mode for contrast, and on-primary becomes dark.
+const CSTokens = {
+  light: {
+    primary: "#E11D48",
+    onPrimary: "#FFFFFF",
+    secondary: "#2563EB",
+    onSecondary: "#FFFFFF",
+    success: "#16A34A",
+    warning: "#D97706",
+    error: "#DC2626",
+    onError: "#FFFFFF",
+    info: "#2563EB",
+    background: "#FFFFFF",
+    surface: "#FFFFFF",
+    textPrimary: "#1F2937",
+    textSecondary: "#6B7280",
+    textDisabled: "#9CA3AF",
+    divider: "#E5E7EB",
+    borderDefault: "#D1D5DB",
+    borderHover: "#9CA3AF",
+    actionHover: "#F3F4F6",
+    actionSelected: "#FFF1F2",
+    actionDisabledBg: "#F3F4F6",
+    inputBackground: "#FFFFFF",
+    inputDisabledBg: "#F3F4F6",
+    inputErrorBg: "#FEF2F2",
+    chipDefaultBg: "#F3F4F6",
+    chipDefaultText: "#1F2937",
+    chipDefaultBorder: "#E5E7EB",
+    chipHoverBg: "#E5E7EB",
+    chipHoverBorder: "#D1D5DB",
+    chipInfoBg: "#DBEAFE",
+    chipInfoText: "#1E40AF",
+    chipSuccessBg: "#DCFCE7",
+    chipSuccessText: "#166534",
+    chipWarningBg: "#FEF3C7",
+    chipWarningText: "#92400E",
+    chipNeutralBg: "#F3F4F6",
+    chipNeutralText: "#6B7280",
+    cardBorder: "#E5E7EB",
+    tooltipBg: "#1F2937",
+    tooltipText: "#FFFFFF",
+    checkboxDefault: "#D1D5DB",
+    checkboxDisabled: "#E5E7EB",
+    cardShadow: "0px 8px 32px rgba(0, 0, 0, 0.08)",
+    cardHoverShadow: "0px 4px 16px rgba(0, 0, 0, 0.1)",
+    popoverShadow: "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    primaryShadow: "0px 8px 24px rgba(225, 29, 72, 0.25)",
+    primaryHoverBg: "rgba(225, 29, 72, 0.04)",
+    focusRing: "0 0 0 3px rgba(37, 99, 235, 0.35)",
+    errorRing: "0 0 0 3px rgba(220, 38, 38, 0.2)",
+    tooltipShadow: "0px 4px 16px rgba(0, 0, 0, 0.1)",
+    glassBg: "rgba(255, 255, 255, 0.65)",
+    glassBorder: "1px solid rgba(255, 255, 255, 0.3)",
+  },
+  dark: {
+    primary: "#FB7185",
+    onPrimary: "#4C0519",
+    secondary: "#60A5FA",
+    onSecondary: "#172554",
+    success: "#4ADE80",
+    warning: "#FBBF24",
+    error: "#F87171",
+    onError: "#450A0A",
+    info: "#60A5FA",
+    background: "#0F0F11",
+    surface: "#1A1A1C",
+    textPrimary: "#F9FAFB",
+    textSecondary: "#9CA3AF",
+    textDisabled: "#6B7280",
+    divider: "#27272A",
+    borderDefault: "#3F3F46",
+    borderHover: "#52525B",
+    actionHover: "#27272A",
+    actionSelected: "#4C1D24",
+    actionDisabledBg: "#1A1A1C",
+    inputBackground: "#1A1A1C",
+    inputDisabledBg: "#27272A",
+    inputErrorBg: "#450A0A",
+    chipDefaultBg: "#27272A",
+    chipDefaultText: "#F9FAFB",
+    chipDefaultBorder: "#3F3F46",
+    chipHoverBg: "#3F3F46",
+    chipHoverBorder: "#52525B",
+    chipInfoBg: "#1E3A8A",
+    chipInfoText: "#BFDBFE",
+    chipSuccessBg: "#14532D",
+    chipSuccessText: "#BBF7D0",
+    chipWarningBg: "#78350F",
+    chipWarningText: "#FDE68A",
+    chipNeutralBg: "#27272A",
+    chipNeutralText: "#9CA3AF",
+    cardBorder: "#27272A",
+    tooltipBg: "#F9FAFB",
+    tooltipText: "#1F2937",
+    checkboxDefault: "#52525B",
+    checkboxDisabled: "#27272A",
+    cardShadow: "0px 8px 32px rgba(0, 0, 0, 0.5)",
+    cardHoverShadow: "0px 4px 16px rgba(0, 0, 0, 0.6)",
+    popoverShadow: "0px 12px 40px rgba(0, 0, 0, 0.6)",
+    primaryShadow: "0px 8px 24px rgba(251, 113, 133, 0.35)",
+    primaryHoverBg: "rgba(251, 113, 133, 0.08)",
+    focusRing: "0 0 0 3px rgba(96, 165, 250, 0.45)",
+    errorRing: "0 0 0 3px rgba(248, 113, 113, 0.3)",
+    tooltipShadow: "0px 4px 16px rgba(0, 0, 0, 0.5)",
+    glassBg: "rgba(26, 26, 28, 0.55)",
+    glassBorder: "1px solid rgba(63, 63, 70, 0.5)",
+  },
+};
+
 const createCreateSpaceTheme = (mode) => {
+  const c = CSTokens[mode];
+
   return createTheme({
     palette: {
       mode,
       primary: {
-        main: "#E11D48",
-        contrastText: "#FFFFFF",
+        main: c.primary,
+        contrastText: c.onPrimary,
       },
       secondary: {
-        main: "#2563EB",
-        contrastText: "#FFFFFF",
+        main: c.secondary,
+        contrastText: c.onSecondary,
       },
       success: {
-        main: "#16A34A",
-        contrastText: "#FFFFFF",
+        main: c.success,
+        contrastText: c.onPrimary,
       },
       warning: {
-        main: "#D97706",
-        contrastText: "#FFFFFF",
+        main: c.warning,
+        contrastText: c.onPrimary,
       },
       error: {
-        main: "#DC2626",
-        contrastText: "#FFFFFF",
+        main: c.error,
+        contrastText: c.onError,
       },
       info: {
-        main: "#2563EB",
-        contrastText: "#FFFFFF",
+        main: c.info,
+        contrastText: c.onSecondary,
       },
       background: {
-        default: "#FFFFFF",
-        paper: "#FFFFFF",
+        default: c.background,
+        paper: c.surface,
       },
       text: {
-        primary: "#1F2937",
-        secondary: "#6B7280",
-        disabled: "#9CA3AF",
+        primary: c.textPrimary,
+        secondary: c.textSecondary,
+        disabled: c.textDisabled,
       },
-      divider: "#E5E7EB",
+      divider: c.divider,
       action: {
-        hover: "#F3F4F6",
-        selected: "#FFF1F2",
-        disabled: "#9CA3AF",
-        disabledBackground: "#F3F4F6",
+        hover: c.actionHover,
+        selected: c.actionSelected,
+        disabled: c.textDisabled,
+        disabledBackground: c.actionDisabledBg,
       },
     },
     typography: {
@@ -665,37 +776,37 @@ const createCreateSpaceTheme = (mode) => {
     },
     shadows: [
       "none",
-      "0px 4px 16px rgba(0, 0, 0, 0.1)",
-      "0px 4px 16px rgba(0, 0, 0, 0.1)",
-      "0px 4px 16px rgba(0, 0, 0, 0.1)",
-      "0px 8px 32px rgba(0, 0, 0, 0.08)",
-      "0px 8px 32px rgba(0, 0, 0, 0.08)",
-      "0px 8px 32px rgba(0, 0, 0, 0.08)",
-      "0px 8px 32px rgba(0, 0, 0, 0.08)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
-      "0px 12px 40px rgba(0, 0, 0, 0.15)",
+      c.cardHoverShadow,
+      c.cardHoverShadow,
+      c.cardHoverShadow,
+      c.cardShadow,
+      c.cardShadow,
+      c.cardShadow,
+      c.cardShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
+      c.popoverShadow,
     ],
     components: {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            backgroundColor: "#FFFFFF",
-            color: "#1F2937",
+            backgroundColor: c.background,
+            color: c.textPrimary,
             fontFamily: "'DM Sans', sans-serif",
           },
         },
@@ -715,38 +826,42 @@ const createCreateSpaceTheme = (mode) => {
             },
           },
           contained: {
-            backgroundColor: "#E11D48",
-            color: "#FFFFFF",
+            backgroundColor: c.primary,
+            color: c.onPrimary,
             border: "none",
             "&:hover": {
-              backgroundColor: "#E11D48",
-              boxShadow: "0px 8px 24px rgba(225, 29, 72, 0.25)",
+              backgroundColor: c.primary,
+              boxShadow: c.primaryShadow,
             },
           },
           containedPrimary: {
-            backgroundColor: "#E11D48",
-            color: "#FFFFFF",
+            backgroundColor: c.primary,
+            color: c.onPrimary,
           },
           containedSecondary: {
-            backgroundColor: "#2563EB",
-            color: "#FFFFFF",
+            backgroundColor: c.secondary,
+            color: c.onSecondary,
           },
           containedError: {
-            backgroundColor: "#DC2626",
-            color: "#FFFFFF",
+            backgroundColor: c.error,
+            color: c.onError,
           },
           outlined: {
             backgroundColor: "transparent",
-            color: "#E11D48",
-            border: "1.5px solid #E11D48",
+          },
+          outlinedPrimary: {
+            color: c.primary,
+            border: `1.5px solid ${c.primary}`,
             "&:hover": {
-              backgroundColor: "rgba(225, 29, 72, 0.04)",
-              border: "1.5px solid #E11D48",
+              backgroundColor: c.primaryHoverBg,
+              border: `1.5px solid ${c.primary}`,
             },
           },
           text: {
             backgroundColor: "transparent",
-            color: "#E11D48",
+          },
+          textPrimary: {
+            color: c.primary,
           },
           sizeSmall: {
             height: 32,
@@ -771,15 +886,23 @@ const createCreateSpaceTheme = (mode) => {
       MuiCard: {
         styleOverrides: {
           root: {
-            backgroundColor: "#FFFFFF",
-            border: "1px solid #E5E7EB",
+            backgroundColor: c.surface,
+            border: `1px solid ${c.cardBorder}`,
             borderRadius: 16,
-            padding: 24,
-            boxShadow: "0px 8px 32px rgba(0, 0, 0, 0.08)",
-            transition: "transform 200ms ease, box-shadow 200ms ease",
+            boxShadow: c.cardShadow,
+            transition: "box-shadow 200ms ease",
             "&:hover": {
-              transform: "scale(1.02)",
-              boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.1)",
+              boxShadow: c.cardHoverShadow,
+            },
+          },
+        },
+      },
+      MuiCardContent: {
+        styleOverrides: {
+          root: {
+            padding: 24,
+            "&:last-child": {
+              paddingBottom: 24,
             },
           },
         },
@@ -787,7 +910,7 @@ const createCreateSpaceTheme = (mode) => {
       MuiPaper: {
         styleOverrides: {
           root: {
-            backgroundColor: "#FFFFFF",
+            backgroundColor: c.surface,
             backgroundImage: "none",
           },
         },
@@ -795,11 +918,11 @@ const createCreateSpaceTheme = (mode) => {
           {
             props: { variant: "glass" },
             style: {
-              background: "rgba(255, 255, 255, 0.65)",
+              background: c.glassBg,
               backdropFilter: "blur(16px)",
               WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid rgba(255, 255, 255, 0.3)",
-              boxShadow: "0px 8px 32px rgba(0, 0, 0, 0.08)",
+              border: c.glassBorder,
+              boxShadow: c.cardShadow,
             },
           },
         ],
@@ -814,33 +937,38 @@ const createCreateSpaceTheme = (mode) => {
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
-            height: 40,
+            minHeight: 40,
             borderRadius: 8,
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 14,
-            backgroundColor: "#FFFFFF",
+            backgroundColor: c.inputBackground,
+            color: c.textPrimary,
+            "&.MuiInputBase-multiline": {
+              height: "auto",
+              padding: "8px 14px",
+            },
             "& .MuiOutlinedInput-notchedOutline": {
               borderWidth: "1.5px",
-              borderColor: "#D1D5DB",
+              borderColor: c.borderDefault,
             },
             "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#9CA3AF",
+              borderColor: c.borderHover,
             },
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#2563EB",
-              boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.35)",
+              borderColor: c.secondary,
+              boxShadow: c.focusRing,
             },
             "&.Mui-error": {
-              backgroundColor: "#FEF2F2",
+              backgroundColor: c.inputErrorBg,
               "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#DC2626",
-                boxShadow: "0 0 0 3px rgba(220, 38, 38, 0.2)",
+                borderColor: c.error,
+                boxShadow: c.errorRing,
               },
             },
             "&.Mui-disabled": {
-              backgroundColor: "#F3F4F6",
+              backgroundColor: c.inputDisabledBg,
               "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#E5E7EB",
+                borderColor: c.divider,
               },
             },
           },
@@ -856,52 +984,52 @@ const createCreateSpaceTheme = (mode) => {
             fontWeight: 500,
           },
           filled: {
-            backgroundColor: "#F3F4F6",
-            color: "#1F2937",
-            border: "1px solid #E5E7EB",
+            backgroundColor: c.chipDefaultBg,
+            color: c.chipDefaultText,
+            border: `1px solid ${c.chipDefaultBorder}`,
             "&:hover": {
-              backgroundColor: "#E5E7EB",
-              border: "1px solid #D1D5DB",
+              backgroundColor: c.chipHoverBg,
+              border: `1px solid ${c.chipHoverBorder}`,
             },
           },
           filledPrimary: {
-            backgroundColor: "#E11D48",
-            color: "#FFFFFF",
-            border: "1px solid #E11D48",
+            backgroundColor: c.primary,
+            color: c.onPrimary,
+            border: `1px solid ${c.primary}`,
           },
           outlined: {
             backgroundColor: "transparent",
-            border: "1px solid #E5E7EB",
-            color: "#1F2937",
+            border: `1px solid ${c.chipDefaultBorder}`,
+            color: c.chipDefaultText,
           },
         },
         variants: [
           {
             props: { color: "info" },
             style: {
-              backgroundColor: "#DBEAFE",
-              color: "#1E40AF",
+              backgroundColor: c.chipInfoBg,
+              color: c.chipInfoText,
             },
           },
           {
             props: { color: "success" },
             style: {
-              backgroundColor: "#DCFCE7",
-              color: "#166534",
+              backgroundColor: c.chipSuccessBg,
+              color: c.chipSuccessText,
             },
           },
           {
             props: { color: "warning" },
             style: {
-              backgroundColor: "#FEF3C7",
-              color: "#92400E",
+              backgroundColor: c.chipWarningBg,
+              color: c.chipWarningText,
             },
           },
           {
             props: { color: "default" },
             style: {
-              backgroundColor: "#F3F4F6",
-              color: "#6B7280",
+              backgroundColor: c.chipNeutralBg,
+              color: c.chipNeutralText,
             },
           },
         ],
@@ -917,16 +1045,16 @@ const createCreateSpaceTheme = (mode) => {
       MuiListItem: {
         styleOverrides: {
           root: {
-            height: 48,
+            minHeight: 48,
             padding: "0 16px",
-            borderBottom: "1px solid #E5E7EB",
+            borderBottom: `1px solid ${c.divider}`,
             "&:hover": {
-              backgroundColor: "#F3F4F6",
+              backgroundColor: c.actionHover,
             },
             "&.Mui-selected": {
-              backgroundColor: "#FFF1F2",
+              backgroundColor: c.actionSelected,
               "&:hover": {
-                backgroundColor: "#FFF1F2",
+                backgroundColor: c.actionSelected,
               },
             },
           },
@@ -946,16 +1074,16 @@ const createCreateSpaceTheme = (mode) => {
       MuiCheckbox: {
         styleOverrides: {
           root: {
-            width: 20,
-            height: 20,
-            borderRadius: 4,
             transition: "all 150ms ease",
-            color: "#D1D5DB",
+            color: c.checkboxDefault,
+            "& .MuiSvgIcon-root": {
+              fontSize: 20,
+            },
             "&.Mui-checked": {
-              color: "#E11D48",
+              color: c.primary,
             },
             "&.Mui-disabled": {
-              color: "#E5E7EB",
+              color: c.checkboxDisabled,
             },
           },
         },
@@ -963,17 +1091,18 @@ const createCreateSpaceTheme = (mode) => {
       MuiRadio: {
         styleOverrides: {
           root: {
-            width: 20,
-            height: 20,
-            color: "#D1D5DB",
+            color: c.checkboxDefault,
+            "& .MuiSvgIcon-root": {
+              fontSize: 20,
+            },
             "&.Mui-checked": {
-              color: "#2563EB",
+              color: c.secondary,
             },
             "&.Mui-disabled": {
-              color: "#E5E7EB",
+              color: c.checkboxDisabled,
             },
             "&.Mui-focusVisible": {
-              boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.35)",
+              boxShadow: c.focusRing,
             },
           },
         },
@@ -981,17 +1110,17 @@ const createCreateSpaceTheme = (mode) => {
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
-            backgroundColor: "#1F2937",
-            color: "#FFFFFF",
+            backgroundColor: c.tooltipBg,
+            color: c.tooltipText,
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 13,
             padding: "8px 14px",
             borderRadius: 8,
             maxWidth: 240,
-            boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.1)",
+            boxShadow: c.tooltipShadow,
           },
           arrow: {
-            color: "#1F2937",
+            color: c.tooltipBg,
             fontSize: 6,
           },
         },

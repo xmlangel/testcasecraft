@@ -763,7 +763,10 @@ const AppContent = () => {
               alignItems: "center",
               flexGrow: 1,
               cursor: "pointer",
-              "&:hover": {
+              "& .app-logo-img, & .app-logo-version": {
+                transition: "opacity 150ms ease",
+              },
+              "&:hover .app-logo-img, &:hover .app-logo-version": {
                 opacity: 0.8,
               },
             }}
@@ -771,6 +774,7 @@ const AppContent = () => {
           >
             <Box
               component="img"
+              className="app-logo-img"
               src={
                 theme.palette.mode === "dark"
                   ? "/testcasecraft_dark.jpg"
@@ -781,9 +785,12 @@ const AppContent = () => {
                 height: 60,
                 width: "auto",
                 objectFit: "contain",
+                mixBlendMode:
+                  theme.palette.mode === "dark" ? "screen" : "multiply",
               }}
             />
             <Typography
+              className="app-logo-version"
               variant="caption"
               sx={{
                 ml: 1,

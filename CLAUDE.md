@@ -52,6 +52,9 @@ All detailed project overview, architecture, development workflow, and testing g
 | 2026-05-14 | i18n 키 관리 하네스 구축 (3 에이전트 + 4 스킬) | i18n | 20개 KeysInitializer + 8쌍 번역 파일의 4-way 매칭 자동화. CRITICAL 등록 누락 방지 |
 | 2026-05-14 | E2E 테스트 추가 하네스 구축 (4 에이전트 + 5 스킬) | e2e | Playwright + Page Object + fixture 패턴 자동화. 셀렉터 안정성 사전 검증 |
 | 2026-05-14 | 백엔드 API 추가 하네스 구축 (5 에이전트 + 6 스킬) | backend-api | 4-layer 아키텍처 자동화. 권한 표현식/Swagger/TestNG 스켈레톤 통합 |
+| 2026-05-14 | CreateSpace 다크 토큰 추가 + 레이아웃 안전성 패치 | ThemeContext.jsx, createspace.css, Design.md | 기본 테마인 CreateSpace가 다크 모드 미지원, MuiCard.padding/hover transform/Input.height 고정으로 레이아웃 깨짐. Material3 패턴(`CSTokens = {light, dark}`)으로 토큰 분리하고, padding은 CardContent로 이동, height는 minHeight로, Checkbox/Radio는 svg fontSize로 전환 |
+| 2026-05-14 | design-system-qa 강화 (다크 토큰 + 레이아웃 안전성) | agents/design-system-qa.md, skills/design-system-qa/SKILL.md | "dark 누락 시 light fallback 허용" 룰을 제거하고 기본값(또는 기본값이 될) 시스템은 다크 토큰 필수. 7개 위험 레이아웃 패턴(MuiCard.padding, hover transform, OutlinedInput.height, ListItem.height, Checkbox/Radio width/height, paper=default, 전역 body 셀렉터) 자동 검출 추가 |
+| 2026-05-14 | CreateSpace 라이트 모드 메뉴 가시성 패치 | ThemeContext.jsx, design-system-qa | `MuiButton.outlined/text` 슬롯에 `color: primary` 가 글로벌로 적용되어 AppBar 안의 `<Button color="inherit">` (대시보드/관리/프로젝트 선택) 가 rose-on-rose로 invisible. 색상을 `outlinedPrimary/textPrimary` 슬롯으로 이전하여 inherit 동작 복원. design-system-qa 에 8번째 위험 패턴(MuiButton outlined/text에 color 키)으로 등록 |
 
 ## 하네스 트리거 모호 영역 (주의)
 

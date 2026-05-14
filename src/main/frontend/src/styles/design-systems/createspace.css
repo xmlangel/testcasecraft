@@ -84,9 +84,42 @@
   --cs-transition-default: all 150ms ease;
 }
 
-/* Dark mode fallback: tokens are inherited from light (dark spec missing) */
+/* Dark mode overrides — follows Material 3 pattern: lightened brand colors,
+   dark surfaces, dark on-primary text for legibility on lightened primary. */
 [data-design-system="createspace"][data-theme="dark"] {
-  /* Intentionally empty: dark theme falls back to light tokens above. */
+  /* Colors - Brand (lightened for dark surface contrast) */
+  --cs-color-primary: #FB7185;
+  --cs-color-secondary: #60A5FA;
+  --cs-color-tertiary: #FDE047;
+  --cs-color-success: #4ADE80;
+  --cs-color-warning: #FBBF24;
+  --cs-color-error: #F87171;
+  --cs-color-info: #60A5FA;
+
+  /* Surfaces */
+  --cs-surface-base: #0F0F11;
+  --cs-surface-glass: rgba(26, 26, 28, 0.55);
+
+  /* Text */
+  --cs-text-primary: #F9FAFB;
+  --cs-text-secondary: #9CA3AF;
+  --cs-text-disabled: #6B7280;
+  --cs-text-on-primary: #4C0519;
+
+  /* Borders */
+  --cs-border-default: #27272A;
+  --cs-border-hover: #3F3F46;
+  --cs-border-strong: #52525B;
+
+  /* Shadows (deeper on dark) */
+  --cs-shadow-md: 0px 4px 16px rgba(0, 0, 0, 0.6);
+  --cs-shadow-glass: 0px 8px 32px rgba(0, 0, 0, 0.5);
+  --cs-shadow-lg: 0px 12px 40px rgba(0, 0, 0, 0.6);
+  --cs-shadow-color: 0px 8px 24px rgba(251, 113, 133, 0.35);
+  --cs-shadow-focus: 0 0 0 3px rgba(96, 165, 250, 0.45);
+
+  /* Glass border tinted for dark */
+  --cs-glass-border: 1px solid rgba(63, 63, 70, 0.5);
 }
 
 /* Global element styles - applied only when CreateSpace is the active design system */

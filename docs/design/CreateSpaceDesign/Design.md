@@ -8,15 +8,51 @@ CreateSpace is a colorful, expressive, and grid-heavy design system designed for
 
 ## Colors
 
+### Light Mode (default)
+
 - **Color Primary** (#E11D48): Primary actions, hero accents
 - **Color Secondary** (#2563EB): Secondary actions, links
 - **Color Tertiary** (#FACC15): Highlights, badges, callouts
 - **Surface Base** (#FFFFFF): Page background
+- **Surface Raised** (#FFFFFF): Cards, paper surfaces
 - **Surface Glass** (#FFFFFF at 65%): Frosted glass panels
 - **Color Success** (#16A34A): Form success
 - **Color Warning** (#D97706): Deadline warnings
 - **Color Error** (#DC2626): Validation errors
 - **Color Info** (#2563EB): Informational callouts
+- **Text Primary** (#1F2937)
+- **Text Secondary** (#6B7280)
+- **Text Disabled** (#9CA3AF)
+- **Text on Primary** (#FFFFFF)
+- **Border Default** (#E5E7EB)
+- **Border Hover** (#D1D5DB)
+- **Border Strong** (#9CA3AF)
+
+### Dark Mode
+
+Tones follow the Material 3 pattern: brand colors are lightened for sufficient contrast on dark surfaces, while text on the lightened primary becomes dark to preserve legibility.
+
+- **Color Primary** (#FB7185): Lightened rose for dark surfaces (Rose-400)
+- **Color Secondary** (#60A5FA): Lightened blue (Blue-400)
+- **Color Tertiary** (#FDE047): Lightened yellow (Yellow-300)
+- **Surface Base** (#0F0F11): Page background (near-black)
+- **Surface Raised** (#1A1A1C): Cards, paper surfaces
+- **Surface Glass** (#1A1A1C at 55%): Frosted glass panels on dark
+- **Color Success** (#4ADE80): Lightened green (Green-400)
+- **Color Warning** (#FBBF24): Lightened amber (Amber-400)
+- **Color Error** (#F87171): Lightened red (Red-400)
+- **Color Info** (#60A5FA): Informational callouts
+- **Text Primary** (#F9FAFB)
+- **Text Secondary** (#9CA3AF)
+- **Text Disabled** (#6B7280)
+- **Text on Primary** (#4C0519): Dark rose for legibility on lightened primary
+- **Border Default** (#27272A)
+- **Border Hover** (#3F3F46)
+- **Border Strong** (#52525B)
+- **Input Background** (#1A1A1C)
+- **Error Background** (#450A0A)
+- **Hover Background** (#27272A)
+- **Selected Background** (#4C1D24): Rose-tinted dark selection state
 
 ## Typography
 
