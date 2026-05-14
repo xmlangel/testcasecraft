@@ -1,0 +1,583 @@
+{
+  "slug": "createspace",
+  "displayName": "CreateSpace",
+  "description": {
+    "ko": "다채로운 색상과 글래스모피즘이 어우러진 크리에이티브 디자인",
+    "en": "Colorful, expressive design with glassmorphism panels"
+  },
+  "makeDefault": true,
+  "migrationMode": "new-users-only",
+  "palette": {
+    "mode": "light",
+    "primary": {
+      "main": "#E11D48",
+      "contrastText": "#FFFFFF"
+    },
+    "secondary": {
+      "main": "#2563EB",
+      "contrastText": "#FFFFFF"
+    },
+    "tertiary": {
+      "main": "#FACC15",
+      "contrastText": "#1F2937"
+    },
+    "success": {
+      "main": "#16A34A",
+      "contrastText": "#FFFFFF"
+    },
+    "warning": {
+      "main": "#D97706",
+      "contrastText": "#FFFFFF"
+    },
+    "error": {
+      "main": "#DC2626",
+      "contrastText": "#FFFFFF"
+    },
+    "info": {
+      "main": "#2563EB",
+      "contrastText": "#FFFFFF"
+    },
+    "background": {
+      "default": "#FFFFFF",
+      "paper": "#FFFFFF",
+      "glass": "rgba(255, 255, 255, 0.65)"
+    },
+    "text": {
+      "primary": "#1F2937",
+      "secondary": "#6B7280",
+      "disabled": "#9CA3AF"
+    },
+    "divider": "#E5E7EB",
+    "action": {
+      "hover": "#F3F4F6",
+      "selected": "#FFF1F2",
+      "disabled": "#9CA3AF",
+      "disabledBackground": "#F3F4F6"
+    }
+  },
+  "typography": {
+    "fontFamily": "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    "headlineFontFamily": "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "monoFontFamily": "'Fira Code', 'Courier New', monospace",
+    "hero": {
+      "fontFamily": "'Poppins', sans-serif",
+      "fontSize": "72px",
+      "fontWeight": 800,
+      "lineHeight": 1.05
+    },
+    "h1": {
+      "fontFamily": "'Poppins', sans-serif",
+      "fontSize": "48px",
+      "fontWeight": 700,
+      "lineHeight": 1.1
+    },
+    "h2": {
+      "fontFamily": "'Poppins', sans-serif",
+      "fontSize": "32px",
+      "fontWeight": 600,
+      "lineHeight": 1.2
+    },
+    "h3": {
+      "fontFamily": "'Poppins', sans-serif",
+      "fontSize": "24px",
+      "fontWeight": 600,
+      "lineHeight": 1.3
+    },
+    "h4": {
+      "fontFamily": "'Poppins', sans-serif",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": 1.3
+    },
+    "h5": {
+      "fontFamily": "'Poppins', sans-serif",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": 1.4
+    },
+    "h6": {
+      "fontFamily": "'Poppins', sans-serif",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": 1.4
+    },
+    "body1": {
+      "fontFamily": "'DM Sans', sans-serif",
+      "fontSize": "18px",
+      "fontWeight": 400,
+      "lineHeight": 1.6
+    },
+    "body2": {
+      "fontFamily": "'DM Sans', sans-serif",
+      "fontSize": "16px",
+      "fontWeight": 400,
+      "lineHeight": 1.6
+    },
+    "caption": {
+      "fontFamily": "'DM Sans', sans-serif",
+      "fontSize": "13px",
+      "fontWeight": 500,
+      "lineHeight": 1.5
+    },
+    "button": {
+      "fontFamily": "'DM Sans', sans-serif",
+      "fontSize": "14px",
+      "fontWeight": 500,
+      "lineHeight": 1.5,
+      "textTransform": "none"
+    },
+    "overline": {
+      "fontFamily": "'DM Sans', sans-serif",
+      "fontSize": "13px",
+      "fontWeight": 500,
+      "lineHeight": 1.5,
+      "textTransform": "uppercase"
+    },
+    "mono": {
+      "fontFamily": "'Fira Code', monospace",
+      "fontSize": "14px",
+      "fontWeight": 400,
+      "lineHeight": 1.5
+    }
+  },
+  "shape": {
+    "borderRadius": 16,
+    "borderRadiusSm": 4,
+    "borderRadiusMd": 8,
+    "borderRadiusLg": 16,
+    "borderRadiusXl": 24,
+    "borderRadiusPill": 9999
+  },
+  "spacing": 8,
+  "spacingScale": {
+    "space1": 4,
+    "space2": 8,
+    "space3": 16,
+    "space4": 24,
+    "space5": 32,
+    "space6": 48,
+    "space8": 64,
+    "space10": 80
+  },
+  "shadows": [
+    "none",
+    "0px 4px 16px rgba(0, 0, 0, 0.1)",
+    "0px 4px 16px rgba(0, 0, 0, 0.1)",
+    "0px 4px 16px rgba(0, 0, 0, 0.1)",
+    "0px 8px 32px rgba(0, 0, 0, 0.08)",
+    "0px 8px 32px rgba(0, 0, 0, 0.08)",
+    "0px 8px 32px rgba(0, 0, 0, 0.08)",
+    "0px 8px 32px rgba(0, 0, 0, 0.08)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "0px 12px 40px rgba(0, 0, 0, 0.15)"
+  ],
+  "customShadows": {
+    "glass": "0px 8px 32px rgba(0, 0, 0, 0.08)",
+    "md": "0px 4px 16px rgba(0, 0, 0, 0.1)",
+    "lg": "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "color": "0px 8px 24px rgba(225, 29, 72, 0.25)",
+    "focus": "0 0 0 3px rgba(37, 99, 235, 0.35)"
+  },
+  "components": {
+    "MuiCssBaseline": {
+      "styleOverrides": {
+        "body": {
+          "backgroundColor": "#FFFFFF",
+          "color": "#1F2937",
+          "fontFamily": "'DM Sans', sans-serif"
+        }
+      }
+    },
+    "MuiButton": {
+      "styleOverrides": {
+        "root": {
+          "borderRadius": 8,
+          "textTransform": "none",
+          "fontFamily": "'DM Sans', sans-serif",
+          "fontWeight": 500,
+          "transition": "all 150ms ease",
+          "boxShadow": "none",
+          "&.Mui-disabled": {
+            "opacity": 0.4,
+            "cursor": "not-allowed"
+          }
+        },
+        "contained": {
+          "backgroundColor": "#E11D48",
+          "color": "#FFFFFF",
+          "border": "none",
+          "&:hover": {
+            "backgroundColor": "#E11D48",
+            "boxShadow": "0px 8px 24px rgba(225, 29, 72, 0.25)"
+          }
+        },
+        "containedPrimary": {
+          "backgroundColor": "#E11D48",
+          "color": "#FFFFFF"
+        },
+        "containedSecondary": {
+          "backgroundColor": "#2563EB",
+          "color": "#FFFFFF"
+        },
+        "containedError": {
+          "backgroundColor": "#DC2626",
+          "color": "#FFFFFF"
+        },
+        "outlined": {
+          "backgroundColor": "transparent",
+          "color": "#E11D48",
+          "border": "1.5px solid #E11D48",
+          "&:hover": {
+            "backgroundColor": "rgba(225, 29, 72, 0.04)",
+            "border": "1.5px solid #E11D48"
+          }
+        },
+        "text": {
+          "backgroundColor": "transparent",
+          "color": "#E11D48"
+        },
+        "sizeSmall": {
+          "height": 32,
+          "padding": "0 14px",
+          "fontSize": 13,
+          "minWidth": 72
+        },
+        "sizeMedium": {
+          "height": 40,
+          "padding": "0 20px",
+          "fontSize": 14,
+          "minWidth": 100
+        },
+        "sizeLarge": {
+          "height": 48,
+          "padding": "0 28px",
+          "fontSize": 16,
+          "minWidth": 140
+        }
+      }
+    },
+    "MuiCard": {
+      "styleOverrides": {
+        "root": {
+          "backgroundColor": "#FFFFFF",
+          "border": "1px solid #E5E7EB",
+          "borderRadius": 16,
+          "padding": 24,
+          "boxShadow": "0px 8px 32px rgba(0, 0, 0, 0.08)",
+          "transition": "transform 200ms ease, box-shadow 200ms ease",
+          "&:hover": {
+            "transform": "scale(1.02)",
+            "boxShadow": "0px 4px 16px rgba(0, 0, 0, 0.1)"
+          }
+        }
+      }
+    },
+    "MuiPaper": {
+      "styleOverrides": {
+        "root": {
+          "backgroundColor": "#FFFFFF",
+          "backgroundImage": "none"
+        }
+      },
+      "variants": [
+        {
+          "props": { "variant": "glass" },
+          "style": {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "backdropFilter": "blur(16px)",
+            "WebkitBackdropFilter": "blur(16px)",
+            "border": "1px solid rgba(255, 255, 255, 0.3)",
+            "boxShadow": "0px 8px 32px rgba(0, 0, 0, 0.08)"
+          }
+        }
+      ]
+    },
+    "MuiTextField": {
+      "styleOverrides": {
+        "root": {
+          "fontFamily": "'DM Sans', sans-serif"
+        }
+      }
+    },
+    "MuiOutlinedInput": {
+      "styleOverrides": {
+        "root": {
+          "height": 40,
+          "borderRadius": 8,
+          "fontFamily": "'DM Sans', sans-serif",
+          "fontSize": 14,
+          "backgroundColor": "#FFFFFF",
+          "& .MuiOutlinedInput-notchedOutline": {
+            "borderWidth": "1.5px",
+            "borderColor": "#D1D5DB"
+          },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            "borderColor": "#9CA3AF"
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            "borderColor": "#2563EB",
+            "boxShadow": "0 0 0 3px rgba(37, 99, 235, 0.35)"
+          },
+          "&.Mui-error": {
+            "backgroundColor": "#FEF2F2",
+            "& .MuiOutlinedInput-notchedOutline": {
+              "borderColor": "#DC2626",
+              "boxShadow": "0 0 0 3px rgba(220, 38, 38, 0.2)"
+            }
+          },
+          "&.Mui-disabled": {
+            "backgroundColor": "#F3F4F6",
+            "& .MuiOutlinedInput-notchedOutline": {
+              "borderColor": "#E5E7EB"
+            }
+          }
+        }
+      }
+    },
+    "MuiChip": {
+      "styleOverrides": {
+        "root": {
+          "height": 30,
+          "borderRadius": 9999,
+          "fontFamily": "'DM Sans', sans-serif",
+          "fontSize": 13,
+          "fontWeight": 500
+        },
+        "filled": {
+          "backgroundColor": "#F3F4F6",
+          "color": "#1F2937",
+          "border": "1px solid #E5E7EB",
+          "&:hover": {
+            "backgroundColor": "#E5E7EB",
+            "border": "1px solid #D1D5DB"
+          }
+        },
+        "filledPrimary": {
+          "backgroundColor": "#E11D48",
+          "color": "#FFFFFF",
+          "border": "1px solid #E11D48"
+        },
+        "outlined": {
+          "backgroundColor": "transparent",
+          "border": "1px solid #E5E7EB",
+          "color": "#1F2937"
+        }
+      },
+      "variants": [
+        {
+          "props": { "color": "info" },
+          "style": {
+            "backgroundColor": "#DBEAFE",
+            "color": "#1E40AF"
+          }
+        },
+        {
+          "props": { "color": "success" },
+          "style": {
+            "backgroundColor": "#DCFCE7",
+            "color": "#166534"
+          }
+        },
+        {
+          "props": { "color": "warning" },
+          "style": {
+            "backgroundColor": "#FEF3C7",
+            "color": "#92400E"
+          }
+        },
+        {
+          "props": { "color": "default" },
+          "style": {
+            "backgroundColor": "#F3F4F6",
+            "color": "#6B7280"
+          }
+        }
+      ]
+    },
+    "MuiList": {
+      "styleOverrides": {
+        "root": {
+          "borderRadius": 8,
+          "padding": 0
+        }
+      }
+    },
+    "MuiListItem": {
+      "styleOverrides": {
+        "root": {
+          "height": 48,
+          "padding": "0 16px",
+          "borderBottom": "1px solid #E5E7EB",
+          "&:hover": {
+            "backgroundColor": "#F3F4F6"
+          },
+          "&.Mui-selected": {
+            "backgroundColor": "#FFF1F2",
+            "&:hover": {
+              "backgroundColor": "#FFF1F2"
+            }
+          }
+        }
+      }
+    },
+    "MuiListItemIcon": {
+      "styleOverrides": {
+        "root": {
+          "minWidth": 32,
+          "marginRight": 12,
+          "& svg": {
+            "fontSize": 20
+          }
+        }
+      }
+    },
+    "MuiCheckbox": {
+      "styleOverrides": {
+        "root": {
+          "width": 20,
+          "height": 20,
+          "borderRadius": 4,
+          "transition": "all 150ms ease",
+          "color": "#D1D5DB",
+          "&.Mui-checked": {
+            "color": "#E11D48"
+          },
+          "&.Mui-disabled": {
+            "color": "#E5E7EB"
+          }
+        }
+      }
+    },
+    "MuiRadio": {
+      "styleOverrides": {
+        "root": {
+          "width": 20,
+          "height": 20,
+          "color": "#D1D5DB",
+          "&.Mui-checked": {
+            "color": "#2563EB"
+          },
+          "&.Mui-disabled": {
+            "color": "#E5E7EB"
+          },
+          "&.Mui-focusVisible": {
+            "boxShadow": "0 0 0 3px rgba(37, 99, 235, 0.35)"
+          }
+        }
+      }
+    },
+    "MuiTooltip": {
+      "styleOverrides": {
+        "tooltip": {
+          "backgroundColor": "#1F2937",
+          "color": "#FFFFFF",
+          "fontFamily": "'DM Sans', sans-serif",
+          "fontSize": 13,
+          "padding": "8px 14px",
+          "borderRadius": 8,
+          "maxWidth": 240,
+          "boxShadow": "0px 4px 16px rgba(0, 0, 0, 0.1)"
+        },
+        "arrow": {
+          "color": "#1F2937",
+          "fontSize": 6
+        }
+      },
+      "defaultProps": {
+        "enterDelay": 200,
+        "leaveDelay": 50
+      }
+    }
+  },
+  "cssVariables": {
+    "--cs-color-primary": "#E11D48",
+    "--cs-color-secondary": "#2563EB",
+    "--cs-color-tertiary": "#FACC15",
+    "--cs-color-success": "#16A34A",
+    "--cs-color-warning": "#D97706",
+    "--cs-color-error": "#DC2626",
+    "--cs-color-info": "#2563EB",
+    "--cs-surface-base": "#FFFFFF",
+    "--cs-surface-glass": "rgba(255, 255, 255, 0.65)",
+    "--cs-text-primary": "#1F2937",
+    "--cs-text-secondary": "#6B7280",
+    "--cs-text-disabled": "#9CA3AF",
+    "--cs-text-on-primary": "#FFFFFF",
+    "--cs-border-default": "#E5E7EB",
+    "--cs-border-hover": "#D1D5DB",
+    "--cs-border-strong": "#9CA3AF",
+    "--cs-font-headline": "'Poppins', sans-serif",
+    "--cs-font-body": "'DM Sans', sans-serif",
+    "--cs-font-mono": "'Fira Code', monospace",
+    "--cs-text-hero-size": "72px",
+    "--cs-text-hero-weight": "800",
+    "--cs-text-hero-line-height": "1.05",
+    "--cs-text-h1-size": "48px",
+    "--cs-text-h1-weight": "700",
+    "--cs-text-h1-line-height": "1.1",
+    "--cs-text-h2-size": "32px",
+    "--cs-text-h2-weight": "600",
+    "--cs-text-h2-line-height": "1.2",
+    "--cs-text-h3-size": "24px",
+    "--cs-text-h3-weight": "600",
+    "--cs-text-h3-line-height": "1.3",
+    "--cs-text-body-lg-size": "18px",
+    "--cs-text-body-size": "16px",
+    "--cs-text-caption-size": "13px",
+    "--cs-text-mono-size": "14px",
+    "--cs-space-1": "4px",
+    "--cs-space-2": "8px",
+    "--cs-space-3": "16px",
+    "--cs-space-4": "24px",
+    "--cs-space-5": "32px",
+    "--cs-space-6": "48px",
+    "--cs-space-8": "64px",
+    "--cs-space-10": "80px",
+    "--cs-radius-sm": "4px",
+    "--cs-radius-md": "8px",
+    "--cs-radius-lg": "16px",
+    "--cs-radius-xl": "24px",
+    "--cs-radius-pill": "9999px",
+    "--cs-shadow-md": "0px 4px 16px rgba(0, 0, 0, 0.1)",
+    "--cs-shadow-glass": "0px 8px 32px rgba(0, 0, 0, 0.08)",
+    "--cs-shadow-lg": "0px 12px 40px rgba(0, 0, 0, 0.15)",
+    "--cs-shadow-color": "0px 8px 24px rgba(225, 29, 72, 0.25)",
+    "--cs-shadow-focus": "0 0 0 3px rgba(37, 99, 235, 0.35)",
+    "--cs-glass-blur": "blur(16px)",
+    "--cs-glass-border": "1px solid rgba(255, 255, 255, 0.3)",
+    "--cs-transition-default": "all 150ms ease"
+  },
+  "fontImports": [
+    "https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap",
+    "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap",
+    "https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap"
+  ],
+  "missing": ["dark"],
+  "notes": [
+    "Surface Glass는 rgba(255,255,255,0.65)로 hex가 아니므로 그대로 보존",
+    "shadow-focus는 ring(아웃라인) 형태로 box-shadow에 적용",
+    "shadow-color는 primary 색상 글로우, hover 효과 등에 사용",
+    "Tertiary(#FACC15)는 MUI 기본 palette에 없어 별도 키로 보존",
+    "Status chip variants(Active/Complete/In Review/Archived)는 MuiChip variants로 매핑",
+    "Hero typography는 MUI 표준 키에 없어 typography.hero 별도 키로 추가",
+    "Mono typography는 MUI 표준 키에 없어 typography.mono 별도 키로 추가",
+    "shadows 배열은 MUI 규약대로 25개로 채움: 0=none, 1-3=shadow-md, 4-7=shadow-glass, 8-24=shadow-lg",
+    "dark 모드 명세 누락 - integrator는 light 토큰을 dark에도 동일하게 적용"
+  ],
+  "conflicts": []
+}

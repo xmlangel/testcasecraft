@@ -334,6 +334,13 @@ public class KoreanOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists("profile.appearance.switch.light", languageCode, "라이트", createdBy);
     createTranslationIfNotExists(
         "profile.appearance.info", languageCode, "테마 변경은 즉시 적용되며 브라우저에 자동으로 저장됩니다.", createdBy);
+    createTranslationIfNotExists(
+        "profile.theme.createspace.title", languageCode, "CreateSpace", createdBy);
+    createTranslationIfNotExists(
+        "profile.theme.createspace.desc",
+        languageCode,
+        "다채로운 색상과 글래스모피즘이 어우러진 크리에이티브 디자인",
+        createdBy);
     createTranslationIfNotExists("button.close", languageCode, "닫기", createdBy);
     createTranslationIfNotExists("button.save", languageCode, "저장", createdBy);
     createTranslationIfNotExists(

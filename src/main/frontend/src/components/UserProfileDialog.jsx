@@ -774,6 +774,53 @@ function UserProfileDialog({
                       sx={{
                         mb: 2,
                         borderColor:
+                          designSystem === "createspace"
+                            ? "primary.main"
+                            : "divider",
+                        bgcolor:
+                          designSystem === "createspace"
+                            ? "action.hover"
+                            : "background.paper",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setDesignSystem("createspace")}
+                    >
+                      <CardContent sx={{ py: "12px !important" }}>
+                        <FormControlLabel
+                          value="createspace"
+                          control={<Radio />}
+                          label={
+                            <Box>
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {t(
+                                  "profile.theme.createspace.title",
+                                  "CreateSpace (현재)",
+                                )}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {t(
+                                  "profile.theme.createspace.desc",
+                                  "다채로운 색상과 글래스모피즘이 어우러진 크리에이티브 디자인",
+                                )}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ m: 0, width: "100%" }}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card
+                      variant="outlined"
+                      sx={{
+                        mb: 2,
+                        borderColor:
                           designSystem === "glass" ? "primary.main" : "divider",
                         bgcolor:
                           designSystem === "glass"
@@ -795,7 +842,7 @@ function UserProfileDialog({
                               >
                                 {t(
                                   "profile.theme.glass.title",
-                                  "Modern Glass (현재)",
+                                  "Modern Glass",
                                 )}
                               </Typography>
                               <Typography

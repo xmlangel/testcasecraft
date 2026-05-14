@@ -368,6 +368,15 @@ public class UserManagementKeysInitializer {
     createTranslationKeyIfNotExists(
         "profile.appearance.info", "profile", "테마 변경 안내", "테마 변경은 즉시 적용되며 브라우저에 자동으로 저장됩니다.");
 
+    // 사용자 프로필 - 디자인 시스템(CreateSpace) 관련
+    createTranslationKeyIfNotExists(
+        "profile.theme.createspace.title", "profile", "CreateSpace 디자인 시스템 제목", "CreateSpace");
+    createTranslationKeyIfNotExists(
+        "profile.theme.createspace.desc",
+        "profile",
+        "CreateSpace 디자인 시스템 설명",
+        "다채로운 색상과 글래스모피즘이 어우러진 크리에이티브 디자인");
+
     // 공통 버튼
     createTranslationKeyIfNotExists("button.close", "common", "닫기 버튼", "닫기");
     createTranslationKeyIfNotExists("button.save", "common", "저장 버튼", "저장");

@@ -559,6 +559,13 @@ public class EnglishOrganizationAndUserManagementTranslations {
         "Theme changes are applied immediately and saved automatically to your browser.",
         createdBy);
     createTranslationIfNotExists(
+        "profile.theme.createspace.title", languageCode, "CreateSpace", createdBy);
+    createTranslationIfNotExists(
+        "profile.theme.createspace.desc",
+        languageCode,
+        "Colorful, expressive design with glassmorphism panels",
+        createdBy);
+    createTranslationIfNotExists(
         "language.settings.title", languageCode, "Language Settings", createdBy);
     createTranslationIfNotExists(
         "language.settings.description",
