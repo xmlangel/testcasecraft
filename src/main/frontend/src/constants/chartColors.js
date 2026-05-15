@@ -1,8 +1,14 @@
+// CreateSpace categorical palette (rose / blue / yellow / green / amber + accents)
+// Matches jira_dashboard charts.js PALETTE order for cross-product consistency.
 export const TREND_CHART_COLORS = [
-  "#8884d8",
-  "#82ca9d",
-  "#ffc658",
-  "#ff7c7c",
-  "#8dd1e1",
-  "#d084d0",
+  "#E11D48",
+  "#2563EB",
+  "#FACC15",
+  "#16A34A",
+  "#D97706",
+  "#9333EA",
+  "#0EA5E9",
+  "#EC4899",
+  "#14B8A6",
+  "#F97316",
 ];

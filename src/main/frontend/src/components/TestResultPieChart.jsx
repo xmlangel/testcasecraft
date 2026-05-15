@@ -205,7 +205,7 @@ function TestResultPieChart({ statistics, loading = false }) {
                 labelLine={false}
                 label={renderCustomizedLabel}
                 outerRadius={80}
-                fill="#8884d8"
+                fill="#2563EB"
                 dataKey="value"
               >
                 {pieData.map((entry, index) => (

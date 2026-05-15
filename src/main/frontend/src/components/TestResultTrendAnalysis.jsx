@@ -44,6 +44,8 @@ import {
 import { useAppContext } from "../context/AppContext";
 import { useI18n } from "../context/I18nContext";
 import { TEST_RESULT_CONFIG } from "../utils/testResultConstants";
+import { TREND_CHART_COLORS } from "../constants/chartColors";
+import { RESULT_COLORS } from "../constants/statusColors";
 import ComparisonFilterPanel from "./ComparisonFilterPanel";
 
 /**
@@ -654,7 +656,7 @@ function TestResultTrendAnalysis() {
                     <Line
                       type="monotone"
                       dataKey="passRate"
-                      stroke="#cccccc"
+                      stroke="#9CA3AF"
                       strokeWidth={1}
                       strokeDasharray="5 5"
                       dot={false}
@@ -665,14 +667,7 @@ function TestResultTrendAnalysis() {
                     />
                     {/* 선택된 항목들의 비교 라인 */}
                     {selectedItems.map((itemId, index) => {
-                      const colors = [
-                        "#8884d8",
-                        "#82ca9d",
-                        "#ffc658",
-                        "#ff7300",
-                        "#8dd1e1",
-                        "#d084d0",
-                      ];
+                      const colors = TREND_CHART_COLORS;
                       const dataKey =
                         comparisonMode === "testplan"
                           ? `plan_${itemId}_passRate`
@@ -769,17 +764,17 @@ function TestResultTrendAnalysis() {
                 <Line
                   type="monotone"
                   dataKey="passRate"
-                  stroke="#00C49F"
+                  stroke={RESULT_COLORS.PASS}
                   strokeWidth={3}
-                  dot={{ fill: "#00C49F", strokeWidth: 0, r: 4 }}
+                  dot={{ fill: RESULT_COLORS.PASS, strokeWidth: 0, r: 4 }}
                   name={t("testTrendAnalysis.chart.successRate", "성공률")}
                 />
                 <Line
                   type="monotone"
                   dataKey="completeRate"
-                  stroke="#FF8042"
+                  stroke={TREND_CHART_COLORS[4]}
                   strokeWidth={3}
-                  dot={{ fill: "#FF8042", strokeWidth: 0, r: 4 }}
+                  dot={{ fill: TREND_CHART_COLORS[4], strokeWidth: 0, r: 4 }}
                   name={t("testTrendAnalysis.chart.completionRate", "완료율")}
                 />
               </LineChart>

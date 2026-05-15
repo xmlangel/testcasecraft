@@ -62,6 +62,7 @@ import {
 } from "date-fns";
 import { ko } from "date-fns/locale";
 import { TREND_CHART_COLORS } from "../../constants/chartColors";
+import { RESULT_COLORS } from "../../constants/statusColors";
 
 /**
  * 테스트 결과 트렌드 분석 컴포넌트
@@ -418,9 +419,9 @@ const TestResultTrendSection = ({
                 <Line
                   type="monotone"
                   dataKey="passRate"
-                  stroke="#8884d8"
+                  stroke={TREND_CHART_COLORS[1]}
                   strokeWidth={2}
-                  dot={{ fill: "#8884d8" }}
+                  dot={{ fill: TREND_CHART_COLORS[1] }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -442,29 +443,29 @@ const TestResultTrendSection = ({
                   type="monotone"
                   dataKey="PASS"
                   stackId="1"
-                  stroke="#82ca9d"
-                  fill="#82ca9d"
+                  stroke={RESULT_COLORS.PASS}
+                  fill={RESULT_COLORS.PASS}
                 />
                 <Area
                   type="monotone"
                   dataKey="FAIL"
                   stackId="1"
-                  stroke="#ff7c7c"
-                  fill="#ff7c7c"
+                  stroke={RESULT_COLORS.FAIL}
+                  fill={RESULT_COLORS.FAIL}
                 />
                 <Area
                   type="monotone"
                   dataKey="BLOCKED"
                   stackId="1"
-                  stroke="#ffc658"
-                  fill="#ffc658"
+                  stroke={RESULT_COLORS.BLOCKED}
+                  fill={RESULT_COLORS.BLOCKED}
                 />
                 <Area
                   type="monotone"
                   dataKey="NOT_RUN"
                   stackId="1"
-                  stroke="#d084d0"
-                  fill="#d084d0"
+                  stroke={RESULT_COLORS.NOTRUN}
+                  fill={RESULT_COLORS.NOTRUN}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -494,10 +495,10 @@ const TestResultTrendSection = ({
                 <YAxis />
                 <RechartsTooltip />
                 <Legend />
-                <Bar dataKey="PASS" fill="#82ca9d" name="Pass" />
-                <Bar dataKey="FAIL" fill="#ff7c7c" name="Fail" />
-                <Bar dataKey="BLOCKED" fill="#ffc658" name="Blocked" />
-                <Bar dataKey="NOT_RUN" fill="#d084d0" name="Not Run" />
+                <Bar dataKey="PASS" fill={RESULT_COLORS.PASS} name="Pass" />
+                <Bar dataKey="FAIL" fill={RESULT_COLORS.FAIL} name="Fail" />
+                <Bar dataKey="BLOCKED" fill={RESULT_COLORS.BLOCKED} name="Blocked" />
+                <Bar dataKey="NOT_RUN" fill={RESULT_COLORS.NOTRUN} name="Not Run" />
               </BarChart>
             </ResponsiveContainer>
           </Paper>
@@ -596,7 +597,7 @@ const TestResultTrendSection = ({
                 <RechartsTooltip
                   formatter={(value) => [`${value}%`, "Pass Rate"]}
                 />
-                <Bar dataKey="passRate" fill="#8884d8" />
+                <Bar dataKey="passRate" fill={TREND_CHART_COLORS[1]} />
               </BarChart>
             </ResponsiveContainer>
           </Paper>
