@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class TestResultReportService {
 
@@ -328,6 +330,7 @@ public class TestResultReportService {
   }
 
   /** ICT-185: 상세 테스트 결과 리포트 조회 (페이징 지원) */
+  @org.springframework.transaction.annotation.Transactional(readOnly = true)
   public Page<TestResultReportDto> getDetailedTestResultReport(TestResultFilterDto filter) {
     // 기본값 설정
     if (filter.getPage() == null) filter.setDefaultPaging();
@@ -504,6 +507,7 @@ public class TestResultReportService {
   }
 
   /** ICT-185: JIRA 상태 통합 리스트 조회 (다중 플랜 지원) */
+  @org.springframework.transaction.annotation.Transactional(readOnly = true)
   public List<JiraStatusSummaryDto> getJiraStatusSummary(
       String projectId, List<String> testPlanIds, Boolean activeOnly, boolean refreshCache) {
     // JIRA 이슈가 연결된 테스트 결과들 조회
@@ -562,6 +566,7 @@ public class TestResultReportService {
   }
 
   /** ICT-190: 테스트 결과 내보내기 (Excel/PDF/CSV) 실제 라이브러리를 사용한 구현 */
+  @org.springframework.transaction.annotation.Transactional(readOnly = true)
   public byte[] exportTestResultReport(TestResultFilterDto filter) {
     // 기본값 설정
     if (filter.getDisplayColumns() == null) {
@@ -623,6 +628,7 @@ public class TestResultReportService {
   // ========== ICT-283: 계층적 상세 리포트 메서드들 ==========
 
   /** ICT-283: 계층적 테스트 결과 상세 리포트 조회 테스트플랜 > 실행 > 케이스 3단계 계층 구조로 반환 */
+  @org.springframework.transaction.annotation.Transactional(readOnly = true)
   public Map<String, Object> getHierarchicalTestResultReport(TestResultFilterDto filter) {
     // 필터 검증
     if (filter.getProjectId() == null) {
@@ -726,13 +732,11 @@ public class TestResultReportService {
       int start = page * size;
       int end = Math.min(start + size, completeCases.size());
 
-      System.out.println(
-          "DEBUG COMPLETE CASES: start="
-              + start
-              + ", end="
-              + end
-              + ", size="
-              + completeCases.size());
+      log.debug(
+          "Complete cases paging: start={}, end={}, size={}",
+          start,
+          end,
+          completeCases.size());
 
       List<TestResultReportDto> pagedCases;
       if (start >= completeCases.size() || start > end) {
@@ -741,7 +745,7 @@ public class TestResultReportService {
         try {
           pagedCases = completeCases.subList(start, end);
         } catch (IndexOutOfBoundsException e) {
-          System.out.println("ERROR COMPLETE CASES: " + e.getMessage());
+          log.warn("Failed to slice complete cases: {}", e.getMessage());
           pagedCases = new ArrayList<>();
         }
       }
