@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -34,6 +35,8 @@ public class JunitVersionControlService {
   private static final Logger logger = LoggerFactory.getLogger(JunitVersionControlService.class);
 
   @Autowired private ObjectMapper objectMapper;
+
+  @Autowired private Clock clock;
 
   @Value("${junit.version.storage.dir:versions}")
   private String versionStorageDir;
@@ -101,7 +104,7 @@ public class JunitVersionControlService {
       version.setChecksum(checksum);
       version.setFileSize(Files.size(originalFile));
       version.setCompressed(compressionEnabled);
-      version.setCreatedAt(LocalDateTime.now());
+      version.setCreatedAt(LocalDateTime.now(clock));
       version.setCreatedBy(editorUsername);
       version.setDescription(editDescription);
 
@@ -172,7 +175,7 @@ public class JunitVersionControlService {
       FileRestoreResult result = new FileRestoreResult();
       result.setRestoredVersion(targetVersion);
       result.setTargetPath(targetPath);
-      result.setRestoredAt(LocalDateTime.now());
+      result.setRestoredAt(LocalDateTime.now(clock));
       result.setChecksumValid(targetVersion.getChecksum().equals(restoredChecksum));
 
       logger.info("파일 버전 복원 완료 - 테스트 ID: {}, 버전: {} → {}", testResultId, versionNumber, targetPath);
@@ -204,7 +207,7 @@ public class JunitVersionControlService {
         history = new FileVersionHistory();
         history.setTestResultId(testResultId);
         history.setVersions(new ArrayList<>());
-        history.setCreatedAt(LocalDateTime.now());
+        history.setCreatedAt(LocalDateTime.now(clock));
       }
 
       // 캐시 저장
@@ -270,7 +273,7 @@ public class JunitVersionControlService {
       backupData.setTestResultId(testResultId);
       backupData.setVersion(version);
       backupData.setBackupId(backupId);
-      backupData.setCreatedAt(LocalDateTime.now());
+      backupData.setCreatedAt(LocalDateTime.now(clock));
 
       // 원본 파일 내용 포함
       Path originalFile = Paths.get(version.getOriginalFilePath());
@@ -290,7 +293,7 @@ public class JunitVersionControlService {
       result.setBackupId(backupId);
       result.setBackupFilePath(backupFile.toString());
       result.setBackupSize(Files.size(backupFile));
-      result.setCreatedAt(LocalDateTime.now());
+      result.setCreatedAt(LocalDateTime.now(clock));
 
       logger.info("백업 생성 완료 - 테스트 ID: {}, 백업 ID: {}", testResultId, backupId);
 
@@ -360,13 +363,13 @@ public class JunitVersionControlService {
   }
 
   private String generateVersionId(String testResultId, int versionNumber) {
-    String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+    String timestamp = LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
     return String.format("%s_v%d_%s", testResultId, versionNumber, timestamp);
   }
 
   private String generateBackupId(String testResultId) {
     String timestamp =
-        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"));
+        LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"));
     return String.format("backup_%s_%s", testResultId, timestamp);
   }
 
@@ -374,7 +377,7 @@ public class JunitVersionControlService {
       throws IOException, VersionControlException {
     FileVersionHistory history = getVersionHistory(testResultId);
     history.getVersions().add(version);
-    history.setLastUpdated(LocalDateTime.now());
+    history.setLastUpdated(LocalDateTime.now(clock));
 
     Path versionDir = Paths.get(versionStorageDir, testResultId);
     Path historyFile = versionDir.resolve("history.json");
