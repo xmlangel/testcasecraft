@@ -16,7 +16,7 @@ import org.testng.annotations.Test;
 
 /** ICT-247: 개선된 테스트 결과 통계 쿼리 테스트 테스트 플랜-실행별 독립적인 통계 산정 로직을 검증합니다. */
 @SpringBootTest
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @Transactional
 public class TestResultRepositoryImprovedTest extends AbstractTestNGSpringContextTests {
 
