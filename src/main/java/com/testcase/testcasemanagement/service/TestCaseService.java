@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,10 +65,9 @@ public class TestCaseService {
       displayIdHistoryRepository;
   private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
   private final GoogleConfigService googleConfigService;
+  private final ProjectRepository projectRepository;
 
   @PersistenceContext private EntityManager entityManager;
-
-  @Autowired private ProjectRepository projectRepository;
 
   public TestCaseService(
       TestCaseRepository testCaseRepository,
@@ -80,7 +78,8 @@ public class TestCaseService {
       com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository
           displayIdHistoryRepository,
       TestCaseFileStorageService fileStorageService,
-      GoogleConfigService googleConfigService) {
+      GoogleConfigService googleConfigService,
+      ProjectRepository projectRepository) {
     this.testCaseRepository = testCaseRepository;
     this.displayIdService = displayIdService;
     this.eventPublisher = eventPublisher;
@@ -89,6 +88,7 @@ public class TestCaseService {
     this.displayIdHistoryRepository = displayIdHistoryRepository;
     this.fileStorageService = fileStorageService;
     this.googleConfigService = googleConfigService;
+    this.projectRepository = projectRepository;
   }
 
   public List<TestCase> getAllTestCases() {
@@ -129,7 +129,7 @@ public class TestCaseService {
             .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
 
     // 프론트엔드의 가상 폴더 ID(고아 노드)인 경우 Import폴더로 매핑
-    if ("orphaned-items-folder".equals(testCaseDto.getParentId())) {
+    if (TestCaseConstants.ORPHANED_ITEMS_FOLDER_ID.equals(testCaseDto.getParentId())) {
       testCaseDto.setParentId(getOrCreateImportFolder(project));
     }
 
@@ -232,8 +232,8 @@ public class TestCaseService {
             .findById(id)
             .orElseThrow(() -> new RuntimeException("TestCase not found"));
 
-    if ("folder".equals(testCase.getType())
-        && "[SYSTEM] 기본 폴더 - 삭제불가".equals(testCase.getDescription())) {
+    if (TestCaseConstants.TYPE_FOLDER.equals(testCase.getType())
+        && TestCaseConstants.SYSTEM_DEFAULT_FOLDER_DESCRIPTION.equals(testCase.getDescription())) {
       throw new RuntimeException("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다.");
     }
 
@@ -429,7 +429,7 @@ public class TestCaseService {
             .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
 
     // 프론트엔드의 가상 폴더 ID(고아 노드)인 경우 Import폴더로 매핑
-    if ("orphaned-items-folder".equals(testCaseDto.getParentId())) {
+    if (TestCaseConstants.ORPHANED_ITEMS_FOLDER_ID.equals(testCaseDto.getParentId())) {
       testCaseDto.setParentId(getOrCreateImportFolder(project));
     }
 
@@ -548,9 +548,9 @@ public class TestCaseService {
       // 예외 메시지 전체를 문자열로 변환하여 검사 (중첩된 예외 포함)
       String fullErrorMessage =
           e.toString() + (e.getCause() != null ? e.getCause().toString() : "");
-      if (fullErrorMessage.contains("UKL7WIR8HGJNYHVRMU717NSRTYY")
+      if (fullErrorMessage.contains(TestCaseConstants.DISPLAY_ORDER_UNIQUE_CONSTRAINT)
           || fullErrorMessage.contains("DISPLAY_ORDER")
-          || fullErrorMessage.contains("23505")) {
+          || fullErrorMessage.contains(TestCaseConstants.PG_UNIQUE_VIOLATION_SQLSTATE)) {
         log.warn(
             "displayOrder 충돌 발생, 자동 재조정: parentId={}, displayOrder={}, error={}",
             entity.getParentId(),
