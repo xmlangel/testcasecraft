@@ -1,0 +1,3122 @@
+{
+  "metadata": {
+    "timestamp": "2026-05-21T22:30:59.426451",
+    "projectName": "TestCaseCraft",
+    "totalControllers": 49,
+    "totalEndpoints": 433,
+    "authRequiredEndpoints": 401,
+    "authNotRequiredEndpoints": 32,
+    "authRequiredPercentage": 92.6
+  },
+  "riskDistribution": {
+    "low": 347,
+    "medium": 0,
+    "high": 86,
+    "admin_only": 0
+  },
+  "controllerGrouping": {
+    "settings": [
+      "ConfigController",
+      "SystemSettingController",
+      "AdminMailSettingsController"
+    ],
+    "other": [
+      "ServiceApiKeyController",
+      "DashboardController",
+      "AuditLogController",
+      "MailController",
+      "TranslationManagementController",
+      "MonitoringController",
+      "GoogleConfigController",
+      "I18nController"
+    ],
+    "auth": ["AuthController", "EmailVerificationController"],
+    "organization": [
+      "OrganizationController",
+      "ProjectController",
+      "GroupController"
+    ],
+    "jira": [
+      "JiraIntegrationController",
+      "JiraConfigController",
+      "JiraBatchController",
+      "JiraMonitoringController",
+      "JiraStatusController"
+    ],
+    "junit": ["JunitVersionController", "JunitResultController"],
+    "llm": ["LlmConfigController"],
+    "rag": [
+      "RagController",
+      "RagChatConversationController",
+      "RagAdminController"
+    ],
+    "scheduler": ["SchedulerConfigController", "SchedulerInfoController"],
+    "testcase": [
+      "TestCaseAttachmentController",
+      "TestCaseController",
+      "TestCaseVersionController"
+    ],
+    "testplan": ["TestCharterController", "TestPlanController"],
+    "testexecution": [
+      "TestExecutionController",
+      "TestExecutionIndividualController"
+    ],
+    "testresult": [
+      "TestResultApiController",
+      "TestResultReportController",
+      "TestResultEditController",
+      "TestResultAttachmentController"
+    ],
+    "testsession": ["TestSessionController", "TestSessionAttachmentController"],
+    "user": [
+      "UserManagementController",
+      "UserActivityController",
+      "UserPermissionController"
+    ]
+  },
+  "topControllers": {
+    "RagController": 32,
+    "TestCaseController": 24,
+    "TranslationManagementController": 22,
+    "UserPermissionController": 21,
+    "JunitResultController": 20,
+    "TestResultReportController": 15,
+    "DashboardController": 14,
+    "JiraIntegrationController": 13,
+    "TestResultApiController": 13,
+    "AuditLogController": 12
+  },
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/admin/mail-settings/guide",
+      "controller": "AdminMailSettingsController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/mail-settings/test",
+      "controller": "AdminMailSettingsController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/mail-settings/disable",
+      "controller": "AdminMailSettingsController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/recent",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/entity/{entityType}/{entityId}",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/organization/{organizationId}",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/project/{projectId}",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/group/{groupId}",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/my-activities",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/user/{userId}",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/statistics/actions",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/statistics/entity-types",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/statistics/user-activities",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/search",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit-logs/period",
+      "controller": "AuditLogController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me",
+      "controller": "AuthController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "controller": "AuthController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "controller": "AuthController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/refresh",
+      "controller": "AuthController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "controller": "AuthController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout-all",
+      "controller": "AuthController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/validate",
+      "controller": "AuthController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/me/send-verification-email",
+      "controller": "AuthController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/auth/me",
+      "controller": "AuthController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/auth/change-password",
+      "controller": "AuthController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/auth/preferred-language",
+      "controller": "AuthController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/config/api-url",
+      "controller": "ConfigController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/config/environment",
+      "controller": "ConfigController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/config/upload-limits",
+      "controller": "ConfigController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/test-results-summary",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/open-testrun-results",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/overview",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/test-plans",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/recent-test-results",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/recent-test-results",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/test-plans/{testPlanId}/recent-test-results",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/open-test-runs/assignee-results",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/open-test-runs/assignee-results",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/test-results-trend",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/test-case-statistics",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/in-progress-test-executions",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/in-progress-test-executions",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/projects/{projectId}/statistics",
+      "controller": "DashboardController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/email-verification/verify",
+      "controller": "EmailVerificationController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/email-verification/send",
+      "controller": "EmailVerificationController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/email-verification/resend",
+      "controller": "EmailVerificationController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/google-configs/my",
+      "controller": "GoogleConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/google-configs/my",
+      "controller": "GoogleConfigController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/google-configs/last-used",
+      "controller": "GoogleConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/groups/organization/{organizationId}",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/groups/project/{projectId}",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/groups/{groupId}",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/groups/{groupId}/members",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/groups/organization/{organizationId}",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/groups/project/{projectId}",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/groups/{groupId}/members",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/groups/{groupId}",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/groups/{groupId}/members/{userId}/role",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/groups/{groupId}",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/groups/{groupId}/members/{userId}",
+      "controller": "GroupController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/languages",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/languages/default",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/translations/{languageCode}",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/translations/{languageCode}/category/{category}",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/translation/{languageCode}/{keyName}",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/statistics/completion",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/missing-keys/{languageCode}",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/categories",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/validate/{languageCode}",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/i18n/translations/{languageCode}/login",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/i18n/translations/{languageCode}/bulk",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/i18n/cache/clear",
+      "controller": "I18nController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/batch/stats",
+      "controller": "JiraBatchController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira/batch/comments",
+      "controller": "JiraBatchController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira/batch/projects",
+      "controller": "JiraBatchController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira/batch/connection-test",
+      "controller": "JiraBatchController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/jira/batch/stats/cleanup",
+      "controller": "JiraBatchController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/server-url",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/config",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/configs",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/projects",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/connection-status",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira/config",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira/test-connection",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira/config/{configId}/activate",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira/add-comment",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira/search",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/jira/config/{configId}",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/jira/config/{configId}",
+      "controller": "JiraConfigController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/extract-issues",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/validate-issue-key",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/check-issue-exists",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/issue-types",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/test-results-by-issue",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/all-test-results-by-issue",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/pending-sync-results",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/sync-status-statistics",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-integration/latest-execution-context",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira-integration/create-issue",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira-integration/add-test-result-comment",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira-integration/retry-failed-syncs",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira-integration/cleanup-timed-out-syncs",
+      "controller": "JiraIntegrationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/monitoring/health",
+      "controller": "JiraMonitoringController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/monitoring/metrics",
+      "controller": "JiraMonitoringController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/monitoring/metrics/hourly",
+      "controller": "JiraMonitoringController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/monitoring/report/json",
+      "controller": "JiraMonitoringController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/monitoring/summary",
+      "controller": "JiraMonitoringController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira/monitoring/ping",
+      "controller": "JiraMonitoringController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/jira/monitoring/metrics",
+      "controller": "JiraMonitoringController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-status/projects/{projectId}/summary",
+      "controller": "JiraStatusController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-status/issues/{jiraId}",
+      "controller": "JiraStatusController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jira-status/statistics",
+      "controller": "JiraStatusController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira-status/projects/{projectId}/refresh",
+      "controller": "JiraStatusController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira-status/projects/batch-summary",
+      "controller": "JiraStatusController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira-status/issues/batch-summary",
+      "controller": "JiraStatusController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jira-status/issues/sync-to-database",
+      "controller": "JiraStatusController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/projects/{projectId}",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/{testResultId}",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/{testResultId}/suites",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/suites/{testSuiteId}/cases",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/{testResultId}/failed-cases",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/{testResultId}/slowest-cases",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/{testResultId}/processing-progress",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/active-processing",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/projects/{projectId}/summary",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/statistics",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/testcases/{testCaseId}/previous-notes",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/testcases/{testCaseId}/details",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/by-plan/{testPlanId}",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/comparison/by-plan",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-results/comparison/by-executor",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/junit-results/upload",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/junit-results/projects/batch-summary",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/junit-results/cases/{testCaseId}",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/junit-results/{testResultId}/link-plan",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/junit-results/{testResultId}",
+      "controller": "JunitResultController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-versions/{testResultId}/history",
+      "controller": "JunitVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-versions/{testResultId}/compare",
+      "controller": "JunitVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/junit-versions/storage/statistics",
+      "controller": "JunitVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/junit-versions/{testResultId}/versions",
+      "controller": "JunitVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/junit-versions/{testResultId}/restore/{versionNumber}",
+      "controller": "JunitVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/junit-versions/{testResultId}/backup",
+      "controller": "JunitVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/llm-configs/check-availability",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/llm-configs/active",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/llm-configs/{id}",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/llm-configs/default",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/llm-configs/provider/{provider}",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/llm-configs/default-template",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/llm-configs/{id}/test-connection",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/llm-configs/test-settings",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/llm-configs/{id}",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/llm-configs/{id}/set-default",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/llm-configs/{id}/toggle-active",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/llm-configs/{id}",
+      "controller": "LlmConfigController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/mail/send",
+      "controller": "MailController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/monitoring/health/dashboard",
+      "controller": "MonitoringController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/monitoring/metrics/dashboard",
+      "controller": "MonitoringController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/monitoring/system/resources",
+      "controller": "MonitoringController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/monitoring/health/resources",
+      "controller": "MonitoringController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/monitoring/server-time",
+      "controller": "MonitoringController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/monitoring/server-time-iso",
+      "controller": "MonitoringController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/monitoring/usage/page-visits",
+      "controller": "MonitoringController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/monitoring/usage/page-visits",
+      "controller": "MonitoringController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/organizations/{organizationId}",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/organizations/{organizationId}/members",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/organizations/{organizationId}/projects",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/organizations/{organizationId}/groups",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/organizations/{organizationId}/members",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/organizations/{organizationId}/transfer-ownership",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/organizations/{organizationId}",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/organizations/{organizationId}/members/{userId}/role",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/organizations/{organizationId}",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/organizations/{organizationId}/members/{userId}",
+      "controller": "OrganizationController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/{id}",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/organization/{organizationId}",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/{projectId}/members",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/organization/{organizationId}",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/{projectId}/members",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/projects/{id}",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/projects/{projectId}/members/{userId}/role",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/projects/{projectId}/transfer",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/projects/{id}",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/projects/{projectId}/members/{userId}",
+      "controller": "ProjectController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/rag/cleanup-orphaned-documents",
+      "controller": "RagAdminController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/chat/conversations/threads",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/chat/conversations/threads/{threadId}",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/chat/conversations/threads/{threadId}/messages",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/chat/conversations/categories",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/chat/conversations/threads",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/chat/conversations/categories",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/rag/chat/conversations/threads/{threadId}",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/rag/chat/conversations/messages/{messageId}",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/rag/chat/conversations/categories/{categoryId}",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/rag/chat/conversations/threads/{threadId}",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/rag/chat/conversations/messages/{messageId}",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/rag/chat/conversations/categories/{categoryId}",
+      "controller": "RagChatConversationController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/documents/{documentId}",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/documents",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/documents/{documentId}/download",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/documents/{documentId}/chunks",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/testcases/{testCaseId}/status",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/global-documents",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/global-document-requests",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/documents/{documentId}/llm-analysis-status",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/documents/{documentId}/llm-analysis-results",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/llm-analysis/jobs",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/analysis-summaries",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/rag/analysis-summaries/{summaryId}",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/documents/{documentId}/analyze",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/embeddings/generate",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/search/similar",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/search/advanced",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/testcases/vectorize-all",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/testcases/{testCaseId}/vectorize",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/documents/{documentId}/promote-to-global",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/documents/{documentId}/global-request",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/global-document-requests/{requestId}/approve",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/global-document-requests/{requestId}/reject",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/documents/{documentId}/estimate-cost",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/documents/{documentId}/analyze-with-llm",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/documents/{documentId}/pause-analysis",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/documents/{documentId}/resume-analysis",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/documents/{documentId}/cancel-analysis",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/rag/analysis-summaries",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/rag/analysis-summaries/{summaryId}",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/rag/documents/{documentId}",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/rag/global-documents/{documentId}",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/rag/analysis-summaries/{summaryId}",
+      "controller": "RagController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/scheduler/configs",
+      "controller": "SchedulerConfigController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/scheduler/configs/{taskKey}",
+      "controller": "SchedulerConfigController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/scheduler/configs/{taskKey}/toggle",
+      "controller": "SchedulerConfigController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/scheduler/configs/{taskKey}/execute",
+      "controller": "SchedulerConfigController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/scheduler/configs/{taskKey}",
+      "controller": "SchedulerConfigController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/scheduler/tasks",
+      "controller": "SchedulerInfoController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/service-api-keys",
+      "controller": "ServiceApiKeyController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/users/me/service-api-keys",
+      "controller": "ServiceApiKeyController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/service-api-keys/generate",
+      "controller": "ServiceApiKeyController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/users/me/service-api-keys/generate",
+      "controller": "ServiceApiKeyController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/service-api-keys/redirect-token",
+      "controller": "ServiceApiKeyController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/service-api-keys/exchange-token",
+      "controller": "ServiceApiKeyController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/service-api-keys/{id}",
+      "controller": "ServiceApiKeyController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/users/me/service-api-keys/{id}",
+      "controller": "ServiceApiKeyController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system-settings/{key}",
+      "controller": "SystemSettingController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system-settings/rag/status",
+      "controller": "SystemSettingController",
+      "authRequired": false,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/system-settings/{key}",
+      "controller": "SystemSettingController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-attachments/admin/all",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-attachments/testcase/{testCaseId}",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-attachments/{attachmentId}/download",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-attachments/public/{attachmentId}",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-attachments/{attachmentId}",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-attachments/user/my",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-attachments/admin/storage-info",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcase-attachments/upload/{testCaseId}",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/testcase-attachments/{attachmentId}",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/testcase-attachments/admin/cleanup-unused",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/testcase-attachments/{attachmentId}/mark-used",
+      "controller": "TestCaseAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/tree",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/{id}",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/project/{projectId}",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/projects/{projectId}/tags",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/projects/{projectId}/by-display-id/{displayId}",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/sample/csv",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/sample/excel",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/sample/json",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/export/csv",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/export/excel",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcases/export/json",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/batch/delete",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/batch",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/import/csv",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/import/excel",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/import/google-sheet",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/import/csv-standard",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/import/excel-standard",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/import/json",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/import/validate",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/export/google-sheet",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcases/ai/generate-meta",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/testcases/{id}",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/testcases/{id}",
+      "controller": "TestCaseController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-versions/testcase/{testCaseId}/history",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-versions/testcase/{testCaseId}/current",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-versions/{versionId}",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-versions/project/{projectId}/current",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-versions/{versionId1}/compare/{versionId2}",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/testcase-versions/health",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcase-versions/{testCaseId}/manual",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/testcase-versions/{versionId}/restore",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/testcase-versions/testcase/{testCaseId}/cleanup",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/testcase-versions/draft/cleanup",
+      "controller": "TestCaseVersionController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/{projectId}/charters",
+      "controller": "TestCharterController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/charters/{id}",
+      "controller": "TestCharterController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/charters",
+      "controller": "TestCharterController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/charters/{id}",
+      "controller": "TestCharterController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-executions/{id}",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-executions/by-project/{projectId}",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-executions/by-testcase/{testCaseId}",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-executions/{id}/start",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-executions/{id}/complete",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-executions/{id}/restart",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-executions/{executionId}/results",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-executions/{executionId}/results/bulk",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/test-executions/{id}",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/test-executions/results/{resultId}",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/test-executions/{id}",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/test-executions/results/{resultId}",
+      "controller": "TestExecutionController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/executions/{executionId}",
+      "controller": "TestExecutionIndividualController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-plans/{id}",
+      "controller": "TestPlanController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-plans/project/{projectId}",
+      "controller": "TestPlanController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/test-plans/{id}",
+      "controller": "TestPlanController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/test-plans/{id}",
+      "controller": "TestPlanController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/{resultId}",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/statistics/basic",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/dashboard/charts",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/health",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/filter/test-plans",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/filter/test-executions",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/filter/results",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/comparison/by-plan",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/comparison/by-executor",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results-v2/comparison/by-execution",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results-v2/search",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results-v2/statistics/comprehensive",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results-v2/export",
+      "controller": "TestResultApiController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/attachments/testresult/{testResultId}",
+      "controller": "TestResultAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/attachments/{attachmentId}/download",
+      "controller": "TestResultAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/attachments/{attachmentId}",
+      "controller": "TestResultAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/attachments/user/my",
+      "controller": "TestResultAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/attachments/{attachmentId}/preview",
+      "controller": "TestResultAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/attachments/admin/storage-info",
+      "controller": "TestResultAttachmentController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/attachments/upload/{testResultId}",
+      "controller": "TestResultAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/attachments/{attachmentId}",
+      "controller": "TestResultAttachmentController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/edits/test-result/{testResultId}/history",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/edits/test-result/{testResultId}/active",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/edits/statistics",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/edits/pending-approvals",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/edits/my-edits",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/edits/status-info",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results/edits/{editId}/approval",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results/edits/{editId}/apply",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results/edits/{editId}/revert",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/test-results/edits/{editId}",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/test-results/edits/{editId}",
+      "controller": "TestResultEditController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/by-project/{projectId}",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/by-project/{projectId}/by-assignee",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/by-testplan/{testPlanId}",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/by-testplan/{testPlanId}/by-assignee",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/statistics",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/report",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/jira-status",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/filter-presets",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/detailed-report/{projectId}",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test-results/complete-cases/{projectId}",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results/report",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results/export",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results/filter-presets",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results/detailed-report",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test-results/export-hierarchical",
+      "controller": "TestResultReportController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/session-attachments/session/{sessionId}",
+      "controller": "TestSessionAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/session-attachments/{attachmentId}/download",
+      "controller": "TestSessionAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/session-attachments/upload/{sessionId}",
+      "controller": "TestSessionAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/session-attachments/{attachmentId}",
+      "controller": "TestSessionAttachmentController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/session-attachments/{attachmentId}",
+      "controller": "TestSessionAttachmentController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sessions/{id}",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/{projectId}/sessions",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/start",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/pause",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/resume",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/end",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/submit",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/approve",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sessions/{id}/request-update",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/sessions/{id}",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/sessions/{id}",
+      "controller": "TestSessionController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/languages",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/keys",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/keys/categories",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/keys/categories/stats",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/stats/category-completion",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/stats/category-completion/{languageCode}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/stats/language-completion/{category}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/paginated",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/language/{languageCode}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/key/{keyName}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/progress/{languageCode}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/translations/export/csv",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/translations/languages",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/translations/keys",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/translations/bulk",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/translations/import/csv",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/translations/languages/{languageId}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/translations/keys/{keyId}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/translations/{translationId}/status",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/translations/languages/{languageId}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/translations/keys/{keyId}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/translations/{translationId}",
+      "controller": "TranslationManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activities/users/{userId}",
+      "controller": "UserActivityController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activities/users/{userId}/statistics",
+      "controller": "UserActivityController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activities/search",
+      "controller": "UserActivityController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activities/anomalies",
+      "controller": "UserActivityController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activities/{activityId}",
+      "controller": "UserActivityController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/activities/manual",
+      "controller": "UserActivityController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/activities/cleanup",
+      "controller": "UserActivityController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/users/{userId}",
+      "controller": "UserManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/users/statistics",
+      "controller": "UserManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/users/{userId}/activate",
+      "controller": "UserManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/users/{userId}/deactivate",
+      "controller": "UserManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/users/{userId}/send-verification-email",
+      "controller": "UserManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/{userId}",
+      "controller": "UserManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/{userId}/role",
+      "controller": "UserManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/{userId}/password",
+      "controller": "UserManagementController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/{userId}",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/my-permissions",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/organizations/{organizationId}/members",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/projects/{projectId}/members",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/{userId}/history",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/organization-roles",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/project-roles",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/statistics",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "GET",
+      "path": "/api/user-permissions/csv-template",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user-permissions/organizations/{organizationId}/members",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user-permissions/projects/{projectId}/members",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user-permissions/bulk-changes",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user-permissions/validate-changes",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user-permissions/comprehensive-validate",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user-permissions/auto-resolve-conflicts",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user-permissions/csv-upload",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "POST",
+      "path": "/api/user-permissions/csv-execute",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/user-permissions/organizations/{organizationId}/members/{userId}/role",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/user-permissions/projects/{projectId}/members/{userId}/role",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "low"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/user-permissions/organizations/{organizationId}/members/{userId}",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "high"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/user-permissions/projects/{projectId}/members/{userId}",
+      "controller": "UserPermissionController",
+      "authRequired": true,
+      "risk": "high"
+    }
+  ]
+}

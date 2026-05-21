@@ -1,0 +1,31 @@
+{
+  "name": "testcasecraft-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for testcasecraft REST API",
+  "type": "module",
+  "bin": {
+    "testcasecraft-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "mcp",
+    "testcasecraft"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.7.0",
+    "zod": "^3.23.0",
+    "zod-to-json-schema": "^3.23.0",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0"
+  }
+}
