@@ -320,13 +320,70 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
       DataIntegrityViolationException ex) {
+    String rawMessage = ex.getMostSpecificCause().getMessage();
+    logger.warn("Data integrity violation: {}", rawMessage);
+
+    String friendlyMessage = translateDataIntegrityMessage(rawMessage);
+    Map<String, String> details = extractDataIntegrityDetails(rawMessage);
+
     ErrorResponse response =
         new ErrorResponse(
-            "DATA_CONFLICT",
-            "데이터 무결성 위반: " + ex.getMostSpecificCause().getMessage(),
-            LocalDateTime.now(),
-            null);
+            "DATA_CONFLICT", friendlyMessage, LocalDateTime.now(), details.isEmpty() ? null : details);
     return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+  }
+
+  // PG/H2 unique violation 메시지에서 컬럼·값을 추출해 사용자 친화적 메시지로 변환한다.
+  // 예: ERROR: duplicate key value violates unique constraint "uk_xxx"
+  //     Detail: Key (email)=(user@example.com) already exists.
+  private static final java.util.regex.Pattern PG_DUPLICATE_KEY_DETAIL =
+      java.util.regex.Pattern.compile("Key \\(([^)]+)\\)=\\(([^)]*)\\) already exists");
+
+  private static final Map<String, String> FIELD_LABELS =
+      Map.of(
+          "email", "이메일",
+          "username", "사용자 이름",
+          "name", "이름",
+          "project_key", "프로젝트 키",
+          "project_name", "프로젝트 이름");
+
+  private String translateDataIntegrityMessage(String rawMessage) {
+    if (rawMessage == null) {
+      return "이미 존재하는 데이터입니다. 입력값을 확인해주세요.";
+    }
+
+    java.util.regex.Matcher m = PG_DUPLICATE_KEY_DETAIL.matcher(rawMessage);
+    if (m.find()) {
+      String column = m.group(1);
+      String label = FIELD_LABELS.getOrDefault(column, column);
+      return String.format("이미 등록된 %s입니다.", label);
+    }
+
+    String lower = rawMessage.toLowerCase();
+    if (lower.contains("duplicate") || lower.contains("unique constraint")) {
+      return "이미 등록된 값입니다. 입력값을 확인해주세요.";
+    }
+    if (lower.contains("foreign key") || lower.contains("violates foreign key constraint")) {
+      return "참조 중인 데이터가 있어 작업을 완료할 수 없습니다.";
+    }
+    if (lower.contains("not-null") || lower.contains("null value")) {
+      return "필수 입력 항목이 누락되었습니다.";
+    }
+
+    return "데이터 무결성 위반이 발생했습니다. 입력값을 확인해주세요.";
+  }
+
+  private Map<String, String> extractDataIntegrityDetails(String rawMessage) {
+    if (rawMessage == null) {
+      return Map.of();
+    }
+    java.util.regex.Matcher m = PG_DUPLICATE_KEY_DETAIL.matcher(rawMessage);
+    if (m.find()) {
+      Map<String, String> details = new HashMap<>();
+      details.put("field", m.group(1));
+      details.put("value", m.group(2));
+      return details;
+    }
+    return Map.of();
   }
 
   // [추가] 파일 업로드 용량 초과 예외 처리
