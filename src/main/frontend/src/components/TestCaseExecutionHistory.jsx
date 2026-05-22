@@ -128,24 +128,59 @@ const TestCaseExecutionHistory = ({ testCaseId }) => {
         sx={{
           border: (theme) => `1px solid ${theme.palette.divider}`,
           backgroundColor: "transparent",
+          width: "100%",
+          overflowX: "auto",
         }}
       >
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: "bold" }}>
+              <TableCell
+                sx={{
+                  fontWeight: "bold",
+                  minWidth: "120px",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {t("testcase.execution.column.date", "실행일시")}
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
+              <TableCell
+                sx={{
+                  fontWeight: "bold",
+                  minWidth: "150px",
+                  wordBreak: "break-all",
+                  whiteSpace: "normal",
+                }}
+              >
                 {t("testcase.execution.column.executionName", "테스트 실행")}
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
+              <TableCell
+                sx={{
+                  fontWeight: "bold",
+                  minWidth: "80px",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {t("testcase.execution.column.result", "결과")}
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
+              <TableCell
+                sx={{
+                  fontWeight: "bold",
+                  minWidth: "100px",
+                  wordBreak: "break-all",
+                  whiteSpace: "normal",
+                }}
+              >
                 {t("testcase.execution.column.executor", "실행자")}
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
+              <TableCell
+                sx={{
+                  fontWeight: "bold",
+                  minWidth: "200px",
+                  wordBreak: "break-all",
+                  whiteSpace: "normal",
+                }}
+              >
                 {t("testcase.execution.column.notes", "노트")}
               </TableCell>
             </TableRow>
@@ -169,13 +204,39 @@ const TestCaseExecutionHistory = ({ testCaseId }) => {
                   },
                 }}
               >
-                <TableCell>{formatDate(item.executedAt) || "-"}</TableCell>
-                <TableCell>{item.testExecutionName || "N/A"}</TableCell>
-                <TableCell>
+                <TableCell sx={{ minWidth: "120px", whiteSpace: "nowrap" }}>
+                  {formatDate(item.executedAt) || "-"}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    minWidth: "150px",
+                    wordBreak: "break-all",
+                    whiteSpace: "normal",
+                  }}
+                >
+                  {item.testExecutionName || "N/A"}
+                </TableCell>
+                <TableCell sx={{ minWidth: "80px", whiteSpace: "nowrap" }}>
                   {getResultChip(item.result || item.status)}
                 </TableCell>
-                <TableCell>{item.executedBy || "N/A"}</TableCell>
-                <TableCell>{item.notes || "-"}</TableCell>
+                <TableCell
+                  sx={{
+                    minWidth: "100px",
+                    wordBreak: "break-all",
+                    whiteSpace: "normal",
+                  }}
+                >
+                  {item.executedBy || "N/A"}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    minWidth: "200px",
+                    wordBreak: "break-all",
+                    whiteSpace: "normal",
+                  }}
+                >
+                  {item.notes || "-"}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

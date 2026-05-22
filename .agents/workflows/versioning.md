@@ -22,6 +22,7 @@ description: 애플리케이션 버전 관리 및 태깅 프로세스
 2.  **Frontend**: `src/main/frontend/package.json` (`"version": "X.Y.Z"`)
 3.  **Docker 빌드 스크립트**: `docker-compose-build/` 내의 `.sh` 파일들 (`VERSION="X.Y.Z"`)
 4.  **Docker Compose**: `docker-compose-build/docker-compose.yml` (이미지 태그)
+5.  **릴리즈 노트 (Release Notes)**: `docs/release_note/RELEASE_NOTE_X.Y.Z_KO.md` 및 `RELEASE_NOTE_X.Y.Z_EN.md` (한글/영문 문서 쌍으로 필수 구성)
 
 ## 버전 업데이트 가이드
 
@@ -43,9 +44,21 @@ Major(X) 또는 Minor(Y) 버전을 변경(예: 1.0.35 -> 1.1.0)해야 할 경우
     - **주의**: 이때 태스크 로직상 Patch 번호가 다시 1 증가하여 최종적으로 `1.1.1`이 각 파일에 전파됩니다.
     - 만약 정확히 `1.1.0`을 맞추고 싶다면 `build.gradle`에 `1.0.99`와 같이 이전 상태의 패치 번호를 입력한 후 실행하거나, 태스크 로직을 참고하십시오.
 
-### 3. 배포 및 태깅
+### 3. 릴리즈 노트 작성
 
-버전 업데이트가 완료되면 Git 태그를 생성하여 릴리스 시점을 기록합니다.
+새 버전을 배포하기 전, 반드시 다음 규칙에 따라 릴리즈 노트를 작성해야 합니다.
+
+- **저장 위치**: `docs/release_note/` 디렉토리
+- **파일명 규칙**:
+  - 한국어: `RELEASE_NOTE_X.Y.Z_KO.md` (예: `RELEASE_NOTE_1.0.77_KO.md`)
+  - 영어: `RELEASE_NOTE_X.Y.Z_EN.md` (예: `RELEASE_NOTE_1.0.77_EN.md`)
+- **작성 원칙**:
+  - 한국어 버전과 영어 버전이 쌍으로 존재해야 합니다.
+  - 해당 버전의 핵심 변경 사항(기능 추가, 버그 수정, 예외 처리 개선 등)과 필요시 사용자의 조치 사항(예: API Key 갱신 방법)을 친절하게 서술합니다.
+
+### 4. 배포 및 태깅
+
+버전 업데이트 및 릴리즈 노트 작성이 완료되면 Git 태그를 생성하여 릴리스 시점을 기록합니다.
 
 ```bash
 # 현재 버전 확인 (예: 1.0.35)

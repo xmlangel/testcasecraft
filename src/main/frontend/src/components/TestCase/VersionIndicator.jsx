@@ -155,11 +155,19 @@ const VersionIndicator = ({
       {/* 버전 정보 텍스트 */}
       {currentVersion && !compact && (
         <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-          <Typography variant="caption" color="text.secondary" noWrap>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ wordBreak: "break-all", whiteSpace: "normal" }}
+          >
             {currentVersion.changeSummary ||
               t("testcase.version.noChanges", "변경 내용 없음")}
           </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ wordBreak: "break-all", whiteSpace: "normal" }}
+          >
             {currentVersion.createdByName} •{" "}
             {formatDistanceToNow(new Date(currentVersion.createdAt), {
               addSuffix: true,
