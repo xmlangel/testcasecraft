@@ -61,3 +61,41 @@ All detailed project overview, architecture, development workflow, and testing g
 | 2026-05-22 | testcasecraft-mcp-test 스킬에 Step 7.5 첨부 멀티파트 라운드트립 추가                | .claude/skills/testcasecraft-mcp-test/SKILL.md                                                                           | 새로 추가된 attachment 도구의 QA 절차 부재 → 허용 확장자 검증·정상/거부/대용량/권한 시나리오를 별도 Step으로 분리                                                                                                                                                                                                                                          |
 | 2026-05-22 | 프로젝트 스킬 7개 `testcasecraft-` prefix로 일괄 rename                             | .claude/skills/, .claude/agents/, CLAUDE.md, \_workspace/                                                                | 글로벌·다른 프로젝트 스킬과 네임스페이스 충돌 방지 + testcasecraft 도메인 식별성 향상. 일반 이름(`mcp-tool-generator` 등)에서 `testcasecraft-mcp-tools` 형식으로 통일. markdown-table-parsing은 글로벌에서 프로젝트로 이동하여 `testcasecraft-markdown-table-parsing`으로 편입 (이 시트 파싱 로직은 testcasecraft 시트 import 사례에서 학습된 도메인 자산) |
 | 2026-05-22 | testcasecraft-mcp-tools 보일러플레이트를 references/server-boilerplate.md로 분리    | .claude/skills/testcasecraft-mcp-tools/{SKILL.md, references/server-boilerplate.md}                                      | SKILL.md가 516줄로 500줄 한도 초과 → package.json·tsconfig.json·src/index.ts·src/http-client.ts·src/errors.ts 등 코드 템플릿 5개를 references로 이동, SKILL.md는 워크플로우/결정 가이드만 유지 (319줄로 축소). 본문 상단에 references 포인터 추가                                                                                                          |
+| 2026-05-22 | testcasecraft-mcp-tools에 stdio 클라이언트 보일러플레이트 추가 | .claude/skills/testcasecraft-mcp-tools/references/stdio-client-boilerplate.md | 199-case 임포트에서 만든 mcp-cli.mjs(단발 호출)·withMcpServer(일괄 호출)·두 인스턴스 동시 운영(TESTCASECRAFT_TOKEN_PATH) 패턴을 영구 자산화. CLI/스크립트에서 MCP를 직접 호출하는 새 사용 경로 명시. |
+
+---
+
+## 하네스: testcasecraft Sheet → 케이스 임포트
+
+**목표:** Google Sheets/Excel 한 탭에서 테스트 케이스를 추출해 testcasecraft 프로젝트에 폴더 트리 + 케이스를 한 줄 명령으로 일괄 생성하고, xmlangel 스타일(```sql/```plsql fence, Expected/Actual 두 섹션, markdown list 메타, priority/isAutomated/tags, 멱등 태그)로 표준화한다. 199-case AgensSQL Extensions 임포트(2026-05-22)의 학습된 절차를 재사용 가능한 영구 자산으로 코드화.
+
+**트리거:** 다음 요청 시 `testcasecraft-sheet-import-orchestrator` 스킬을 사용하라.
+
+- "Google Sheets로 케이스 임포트해줘", "시트 ID와 프로젝트로 임포트", "엑셀 탭 통째로 임포트"
+- "시트 임포트 다시 실행", "임포트 업데이트", "재실행 시트 임포트"
+- "199개 케이스 임포트", "AgensSQL Extensions 탭 임포트"
+- "시트에서 폴더 트리 만들고 케이스 채워줘"
+
+단순 시트 파싱만 필요하면 `testcasecraft-sheet-import` 직접. 시트 없이 plan.json만 가지고 일괄 작업하면 `testcasecraft-bulk-operations` 직접.
+
+**구성 (스킬 3개 + 기존 1개 보강):**
+
+| 스킬 | 역할 |
+|------|------|
+| `testcasecraft-sheet-import-orchestrator` | 얇은 6-Phase 오케스트레이터 (Phase 0 컨텍스트 확인 포함) |
+| `testcasecraft-sheet-import` | xlsx fetch + 컬럼 매핑(forward-fill) + DTO 빌드(fence/Expected/list) |
+| `testcasecraft-bulk-operations` | 폴더+케이스 일괄 생성/업데이트, 멱등 태그(`bulk-vN`) 기반 재실행 |
+| `testcasecraft-mcp-tools` (보강) | stdio JSON-RPC 클라이언트 보일러플레이트 (단발/일괄/두 인스턴스) |
+
+**실행 모드:** 서브 에이전트 없음, 메인 LLM이 6단계를 순서대로 직접 실행. 단일 작업·병렬 이득 없음·팀 통신 오버헤드가 의미 없는 작업 특성.
+
+**산출물 컨벤션:** `tmp/{YYYY-MM-DD}-{slug}/` 안에 `import-config.json` → `source.xlsx` → `extracted_cases.json` → `plan.json` → `import_result.json` → `README.md` 순으로 파일 기반 데이터 전달. 모든 단계 디버그·재실행 가능.
+
+**변경 이력:**
+
+| 날짜       | 변경 내용                                                                  | 대상                                                                                                                                                | 사유                                                                                                                                                                                                                                                                            |
+| ---------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-22 | 초기 구성 (스킬 3개 신설 + 기존 1개 보강)                                  | `.claude/skills/testcasecraft-{sheet-import-orchestrator,sheet-import,bulk-operations}/`, `.claude/skills/testcasecraft-mcp-tools/references/`      | 199-case AgensSQL Extensions 임포트 작업에서 만든 임시 스크립트(mcp-cli.mjs, bulk_create.mjs, xmlangel_reformat_v5.mjs, extract_tcs.py)와 시행착오(v1→v5)에서 학습된 포맷 규칙을 영구 자산화. 시트 파싱·DTO 빌드·일괄 작업·멱등 태그 정책을 책임 단위로 분리한 스킬 3개로 추출. |
+| 2026-05-22 | testcase DTO 빌드 패턴 정형화 (fence 자동 감지, Expected/Actual 두 섹션)   | `.claude/skills/testcasecraft-sheet-import/references/dto-builder-patterns.md`                                                                      | PL/SQL(BEGIN/DECLARE)는 ```plsql, 일반 SQL은 ```sql 자동 fence. expected==actual이면 한 섹션 통합. description은 markdown list로 단일 \n GFM 줄바꿈 한계 회피. expectedResults(top)는 평문 ``` 코드블록으로 줄바꿈 보존.                                                       |
+| 2026-05-22 | 멱등 태그 정책 표준화 (`{op}-vN`)                                          | `.claude/skills/testcasecraft-bulk-operations/references/idempotent-tag-policy.md`                                                                  | 199-case 작업의 v1→v5 진화 경험에서 도출. transform 적용 후 새 태그 추가하고 이전 버전 태그를 제거하는 cleanup 룰. 부분 실패 후 재실행이 "중간부터" 자동 재개되도록 skip 검사 자동화.                                                                                          |
+| 2026-05-22 | tmp/2026-05-22-extensions-mcp-import/ 보존 결정                            | tmp/                                                                                                                                                | 새 스킬들의 live 예제로 보존. xlsx/extracted_cases.json/plan-equivalent/import_result.json/스크립트 v1~v5 모두 git-ignore된 디렉터리에 남겨 다음 임포트 시 빠른 참조 가능.                                                                                                      |
