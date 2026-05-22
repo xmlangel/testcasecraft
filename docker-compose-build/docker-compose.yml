@@ -1,7 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:1.0.75
+    image: xmlangel/testcasecraft:1.0.76
     container_name: testcasecraft
     environment:
       # Spring Profile
