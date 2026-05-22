@@ -40,6 +40,7 @@
     - **source**: "Docs/Obsidian/[날짜]-[작업명]/" (원천 작업 경로)
     ---
     ```
+
     - **태그 범주 가이드 (4대 핵심 축)**:
       - **Project**: `#project/[프로젝트명]` - 검색 시 프로젝트별 필터링 용이성 확보 (예: `#project/auto_trading`)
       - **Topic**: 기술적/기능적 주제 - 슬래시(`/`)를 활용한 계층 구조(Hierarchy) 반영 (예: `#topic/api/binance`, `#topic/obsidian/sync`)
