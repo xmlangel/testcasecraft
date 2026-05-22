@@ -100,6 +100,14 @@ public class OllamaClient implements LlmClient {
 
       return new LlmResponse(content, tokensUsed, config.getModelName());
 
+    } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+      log.error("❌ Ollama API 응답 에러 (상태코드: {})", e.getStatusCode(), e);
+      if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
+        throw new LlmClientException(
+            "Ollama API 인증에 실패했습니다 (401/403). 등록된 API Key가 올바르고 만료되지 않았는지 확인해 주세요.", e);
+      }
+      throw new LlmClientException(
+          "Ollama API 호출 실패 (상태코드: " + e.getStatusCode() + "): " + e.getResponseBodyAsString(), e);
     } catch (Exception e) {
       log.error("❌ Ollama API 호출 실패", e);
       throw new LlmClientException("Failed to call Ollama API: " + e.getMessage(), e);
@@ -246,6 +254,18 @@ public class OllamaClient implements LlmClient {
               })
           .blockLast(); // 스트리밍 완료까지 대기
 
+    } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+      log.error("❌ Ollama API 스트리밍 응답 에러 (상태코드: {})", e.getStatusCode(), e);
+      if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
+        throw new LlmClientException(
+            "Ollama API 스트리밍 인증에 실패했습니다 (401/403). 등록된 API Key가 올바르고 만료되지 않았는지 확인해 주세요.", e);
+      }
+      throw new LlmClientException(
+          "Failed to call Ollama API stream (상태코드: "
+              + e.getStatusCode()
+              + "): "
+              + e.getResponseBodyAsString(),
+          e);
     } catch (Exception e) {
       log.error("❌ Ollama API 스트리밍 호출 실패", e);
       throw new LlmClientException("Failed to call Ollama API stream: " + e.getMessage(), e);
