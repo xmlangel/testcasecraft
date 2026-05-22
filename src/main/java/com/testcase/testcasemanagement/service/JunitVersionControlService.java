@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -35,6 +36,8 @@ public class JunitVersionControlService {
 
   @Autowired private ObjectMapper objectMapper;
 
+  @Autowired private Clock clock;
+
   @Value("${junit.version.storage.dir:versions}")
   private String versionStorageDir;
 
@@ -54,6 +57,16 @@ public class JunitVersionControlService {
   private final Map<String, FileVersionHistory> versionCache = new ConcurrentHashMap<>();
 
   /**
+   * 테스트결과별 임계구역 락. getNextVersionNumber + updateVersionHistory 의 read-modify-write 윈도우를 보호하여
+   * 동시에 같은 testResultId 로 버전을 생성해도 번호가 중복 발급되지 않도록 한다. 서로 다른 testResultId 호출은 락이 분리되어 병렬성을 유지한다.
+   */
+  private final Map<String, Object> versionLocks = new ConcurrentHashMap<>();
+
+  private Object lockFor(String testResultId) {
+    return versionLocks.computeIfAbsent(testResultId, k -> new Object());
+  }
+
+  /**
    * 파일 버전 생성 및 저장
    *
    * @param testResultId 테스트 결과 ID
@@ -65,65 +78,71 @@ public class JunitVersionControlService {
   public FileVersion createVersion(
       String testResultId, String originalFilePath, String editDescription, String editorUsername)
       throws VersionControlException {
-    try {
-      // 버전 저장 디렉터리 생성
-      Path versionDir = createVersionDirectory(testResultId);
+    // 동시 호출 시 버전 번호 중복 발급 방지를 위해 testResultId 별 락으로 직렬화
+    synchronized (lockFor(testResultId)) {
+      try {
+        // 버전 저장 디렉터리 생성
+        Path versionDir = createVersionDirectory(testResultId);
 
-      // 버전 번호 생성
-      int versionNumber = getNextVersionNumber(testResultId);
-      String versionId = generateVersionId(testResultId, versionNumber);
+        // 버전 번호 생성 (락 내부에서 read-modify-write 보장)
+        int versionNumber = getNextVersionNumber(testResultId);
+        String versionId = generateVersionId(testResultId, versionNumber);
 
-      // 원본 파일 읽기 및 압축 저장
-      Path originalFile = Paths.get(originalFilePath);
-      if (!Files.exists(originalFile)) {
-        throw new VersionControlException("Original file not found: " + originalFilePath);
+        // 원본 파일 읽기 및 압축 저장
+        Path originalFile = Paths.get(originalFilePath);
+        if (!Files.exists(originalFile)) {
+          throw new VersionControlException("Original file not found: " + originalFilePath);
+        }
+
+        Path versionFile = versionDir.resolve(versionId + (compressionEnabled ? ".gz" : ".xml"));
+
+        // 파일 복사 (압축 옵션)
+        if (compressionEnabled) {
+          compressAndCopyFile(originalFile, versionFile);
+        } else {
+          Files.copy(originalFile, versionFile, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        // 파일 체크섬 계산
+        String checksum = calculateFileChecksum(originalFile);
+
+        // 버전 메타데이터 생성
+        FileVersion version = new FileVersion();
+        version.setVersionId(versionId);
+        version.setTestResultId(testResultId);
+        version.setVersionNumber(versionNumber);
+        version.setOriginalFilePath(originalFilePath);
+        version.setVersionFilePath(versionFile.toString());
+        version.setChecksum(checksum);
+        version.setFileSize(Files.size(originalFile));
+        version.setCompressed(compressionEnabled);
+        version.setCreatedAt(LocalDateTime.now(clock));
+        version.setCreatedBy(editorUsername);
+        version.setDescription(editDescription);
+
+        // 버전 히스토리 업데이트
+        updateVersionHistory(testResultId, version);
+
+        // 자동 백업
+        if (autoBackupEnabled) {
+          createBackup(testResultId, version);
+        }
+
+        // 오래된 버전 정리
+        cleanupOldVersions(testResultId);
+
+        logger.info(
+            "파일 버전 생성 완료 - 테스트 ID: {}, 버전: {}, 편집자: {}",
+            testResultId,
+            versionNumber,
+            editorUsername);
+
+        return version;
+
+      } catch (IOException e) {
+        logger.error("파일 버전 생성 실패: {}", e.getMessage(), e);
+        throw new VersionControlException("Failed to create version: " + e.getMessage(), e);
       }
-
-      Path versionFile = versionDir.resolve(versionId + (compressionEnabled ? ".gz" : ".xml"));
-
-      // 파일 복사 (압축 옵션)
-      if (compressionEnabled) {
-        compressAndCopyFile(originalFile, versionFile);
-      } else {
-        Files.copy(originalFile, versionFile, StandardCopyOption.REPLACE_EXISTING);
-      }
-
-      // 파일 체크섬 계산
-      String checksum = calculateFileChecksum(originalFile);
-
-      // 버전 메타데이터 생성
-      FileVersion version = new FileVersion();
-      version.setVersionId(versionId);
-      version.setTestResultId(testResultId);
-      version.setVersionNumber(versionNumber);
-      version.setOriginalFilePath(originalFilePath);
-      version.setVersionFilePath(versionFile.toString());
-      version.setChecksum(checksum);
-      version.setFileSize(Files.size(originalFile));
-      version.setCompressed(compressionEnabled);
-      version.setCreatedAt(LocalDateTime.now());
-      version.setCreatedBy(editorUsername);
-      version.setDescription(editDescription);
-
-      // 버전 히스토리 업데이트
-      updateVersionHistory(testResultId, version);
-
-      // 자동 백업
-      if (autoBackupEnabled) {
-        createBackup(testResultId, version);
-      }
-
-      // 오래된 버전 정리
-      cleanupOldVersions(testResultId);
-
-      logger.info(
-          "파일 버전 생성 완료 - 테스트 ID: {}, 버전: {}, 편집자: {}", testResultId, versionNumber, editorUsername);
-
-      return version;
-
-    } catch (IOException e) {
-      logger.error("파일 버전 생성 실패: {}", e.getMessage(), e);
-      throw new VersionControlException("Failed to create version: " + e.getMessage(), e);
     }
   }
 
@@ -172,7 +191,7 @@ public class JunitVersionControlService {
       FileRestoreResult result = new FileRestoreResult();
       result.setRestoredVersion(targetVersion);
       result.setTargetPath(targetPath);
-      result.setRestoredAt(LocalDateTime.now());
+      result.setRestoredAt(LocalDateTime.now(clock));
       result.setChecksumValid(targetVersion.getChecksum().equals(restoredChecksum));
 
       logger.info("파일 버전 복원 완료 - 테스트 ID: {}, 버전: {} → {}", testResultId, versionNumber, targetPath);
@@ -204,7 +223,7 @@ public class JunitVersionControlService {
         history = new FileVersionHistory();
         history.setTestResultId(testResultId);
         history.setVersions(new ArrayList<>());
-        history.setCreatedAt(LocalDateTime.now());
+        history.setCreatedAt(LocalDateTime.now(clock));
       }
 
       // 캐시 저장
@@ -270,7 +289,7 @@ public class JunitVersionControlService {
       backupData.setTestResultId(testResultId);
       backupData.setVersion(version);
       backupData.setBackupId(backupId);
-      backupData.setCreatedAt(LocalDateTime.now());
+      backupData.setCreatedAt(LocalDateTime.now(clock));
 
       // 원본 파일 내용 포함
       Path originalFile = Paths.get(version.getOriginalFilePath());
@@ -290,7 +309,7 @@ public class JunitVersionControlService {
       result.setBackupId(backupId);
       result.setBackupFilePath(backupFile.toString());
       result.setBackupSize(Files.size(backupFile));
-      result.setCreatedAt(LocalDateTime.now());
+      result.setCreatedAt(LocalDateTime.now(clock));
 
       logger.info("백업 생성 완료 - 테스트 ID: {}, 백업 ID: {}", testResultId, backupId);
 
@@ -360,13 +379,13 @@ public class JunitVersionControlService {
   }
 
   private String generateVersionId(String testResultId, int versionNumber) {
-    String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+    String timestamp = LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
     return String.format("%s_v%d_%s", testResultId, versionNumber, timestamp);
   }
 
   private String generateBackupId(String testResultId) {
     String timestamp =
-        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"));
+        LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"));
     return String.format("backup_%s_%s", testResultId, timestamp);
   }
 
@@ -374,7 +393,7 @@ public class JunitVersionControlService {
       throws IOException, VersionControlException {
     FileVersionHistory history = getVersionHistory(testResultId);
     history.getVersions().add(version);
-    history.setLastUpdated(LocalDateTime.now());
+    history.setLastUpdated(LocalDateTime.now(clock));
 
     Path versionDir = Paths.get(versionStorageDir, testResultId);
     Path historyFile = versionDir.resolve("history.json");

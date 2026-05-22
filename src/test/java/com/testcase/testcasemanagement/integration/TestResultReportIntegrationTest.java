@@ -338,7 +338,8 @@ public class TestResultReportIntegrationTest extends AbstractTransactionalTestNG
   private String getAuthToken() {
     try {
       String loginUrl = baseUrl + "/auth/login";
-      Map<String, String> loginRequest = Map.of("username", "admin", "password", "admin123");
+      // data-test.sql 의 시드 admin 사용자 (BCrypt 해시는 비밀번호 "admin123" 에 매칭)
+      Map<String, String> loginRequest = Map.of("username", "test_admin", "password", "admin123");
 
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);

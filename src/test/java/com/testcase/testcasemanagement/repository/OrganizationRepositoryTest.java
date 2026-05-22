@@ -9,6 +9,7 @@ import com.testcase.testcasemanagement.model.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,6 +20,7 @@ import org.testng.annotations.Test;
 
 /** OrganizationRepository 단위 테스트 Task 17: Repository 레이어 데이터 접근 로직 테스트 */
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Transactional
 public class OrganizationRepositoryTest extends AbstractTestNGSpringContextTests {

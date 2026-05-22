@@ -35,6 +35,15 @@ public class RagServiceImpl implements RagService {
   public static final UUID GLOBAL_PROJECT_ID =
       UUID.fromString("00000000-0000-0000-0000-000000000000");
 
+  /** WebClient block 호출의 기본 타임아웃. 무한 대기를 막아 응답 없는 RAG API로부터 시스템 보호. */
+  static final Duration DEFAULT_BLOCK_TIMEOUT = Duration.ofSeconds(30);
+
+  /** 기본 PDF 파서 식별자. RAG API에서 인식하는 파서명. */
+  static final String DEFAULT_PDF_PARSER = "pymupdf4llm";
+
+  /** RAG API의 'Document not found' 에러 메시지 식별자. statusCode 404와 함께 의미적 매칭에 사용. */
+  static final String RAG_DOCUMENT_NOT_FOUND_MESSAGE = "Document not found";
+
   private final WebClient ragWebClient;
   private final String ragApiUrl;
   private final LlmConfigRepository llmConfigRepository;
@@ -101,7 +110,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagDocumentResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Document uploaded successfully: documentId={}",
@@ -128,7 +137,7 @@ public class RagServiceImpl implements RagService {
                   uriBuilder ->
                       uriBuilder
                           .path("/api/v1/documents/{documentId}/analyze")
-                          .queryParam("parser", parser != null ? parser : "pymupdf4llm")
+                          .queryParam("parser", parser != null ? parser : DEFAULT_PDF_PARSER)
                           .build(documentId))
               .retrieve()
               .onStatus(
@@ -144,7 +153,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagDocumentResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       if (response != null) {
         log.info(
@@ -191,7 +200,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagEmbeddingResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       // RagEmbeddingResponse를 RagDocumentResponse로 변환
       RagDocumentResponse response =
@@ -242,7 +251,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagSearchResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Search completed successfully: totalResults={}",
@@ -284,7 +293,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagSearchResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Advanced search completed successfully: totalResults={}, method={}",
@@ -338,7 +347,7 @@ public class RagServiceImpl implements RagService {
                     .bodyToMono(String.class)
                     .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
         .bodyToMono(RagDocumentResponse.class)
-        .block();
+        .block(DEFAULT_BLOCK_TIMEOUT);
   }
 
   @Override
@@ -380,7 +389,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagDocumentListResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Documents retrieved successfully: total={}, page={}, size={}",
@@ -419,7 +428,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(String.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info("Document deleted successfully: documentId={}", documentId);
       return response != null ? response : "Document deleted successfully";
@@ -454,7 +463,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(byte[].class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Document downloaded successfully: documentId={}, size={} bytes",
@@ -502,7 +511,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagChunkListResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Document chunks retrieved successfully: documentId={}, total={}, returned={}",
@@ -543,7 +552,7 @@ public class RagServiceImpl implements RagService {
         }
       } catch (RuntimeException e) {
         // 문서가 삭제된 경우 (404) 즉시 대기 중단
-        if (e.getMessage() != null && e.getMessage().contains("Document not found")) {
+        if (e.getMessage() != null && e.getMessage().contains(RAG_DOCUMENT_NOT_FOUND_MESSAGE)) {
           log.info(
               "Document not found while waiting for analysis (likely superseded): documentId={}",
               documentId);
@@ -603,7 +612,7 @@ public class RagServiceImpl implements RagService {
         }
       } catch (RuntimeException e) {
         // 문서가 삭제된 경우 (404) 즉시 대기 중단
-        if (e.getMessage() != null && e.getMessage().contains("Document not found")) {
+        if (e.getMessage() != null && e.getMessage().contains(RAG_DOCUMENT_NOT_FOUND_MESSAGE)) {
           log.info(
               "Document not found while waiting for embedding (likely superseded): documentId={}",
               documentId);
@@ -725,7 +734,7 @@ public class RagServiceImpl implements RagService {
       // 2. 문서 분석 (pymupdf4llm 파서 사용 - LLM 최적화 마크다운 추출)
       boolean analysisCompleted = false;
       try {
-        RagDocumentResponse analyzeResponse = analyzeDocument(documentId, "pymupdf4llm");
+        RagDocumentResponse analyzeResponse = analyzeDocument(documentId, DEFAULT_PDF_PARSER);
         log.info(
             "TestCase analysis started: status={}",
             analyzeResponse != null ? analyzeResponse.getAnalysisStatus() : "unknown");
@@ -760,7 +769,7 @@ public class RagServiceImpl implements RagService {
             // If we are here, document exists, so it was a real timeout or failure
             throw new RuntimeException("TestCase 임베딩 생성이 제한 시간 내에 완료되지 않았습니다 (Timeout/Failure).");
           } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().contains("Document not found")) {
+            if (e.getMessage() != null && e.getMessage().contains(RAG_DOCUMENT_NOT_FOUND_MESSAGE)) {
               log.info(
                   "TestCase vectorization process was superseded (Document deleted): testCaseId={}",
                   testCaseId);
@@ -908,7 +917,7 @@ public class RagServiceImpl implements RagService {
                       .bodyToMono(String.class)
                       .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
           .bodyToMono(RagConversationMessageIndexResponse.class)
-          .block();
+          .block(DEFAULT_BLOCK_TIMEOUT);
     } catch (Exception e) {
       log.error("Failed to index conversation message in RAG", e);
       throw new RuntimeException("대화 메시지 임베딩 저장 실패: " + e.getMessage(), e);
@@ -940,7 +949,7 @@ public class RagServiceImpl implements RagService {
                       .bodyToMono(String.class)
                       .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
           .toBodilessEntity()
-          .block();
+          .block(DEFAULT_BLOCK_TIMEOUT);
     } catch (Exception e) {
       log.error("Failed to delete conversation message in RAG", e);
       throw new RuntimeException("대화 메시지 임베딩 삭제 실패: " + e.getMessage(), e);
@@ -991,7 +1000,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagDocumentResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Global document uploaded successfully: documentId={}",
@@ -1051,7 +1060,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagDocumentListResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       // FastAPI가 이미 project_id로 필터링하여 반환하므로 추가 필터링 불필요
       if (response != null) {
@@ -1155,7 +1164,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagCostEstimateResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Cost estimation completed: documentId={}, estimatedTotalCost=${}",
@@ -1251,7 +1260,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagLlmAnalysisResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "LLM analysis started successfully: documentId={}, jobId={}, status={}",
@@ -1344,7 +1353,7 @@ public class RagServiceImpl implements RagService {
 
                     return clientResponse.bodyToMono(RagLlmAnalysisStatusResponse.class);
                   })
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       // llmConfigId를 사용하여 llmProvider와 llmModel 정보 보강
       if (response != null
@@ -1424,7 +1433,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagLlmAnalysisResultsResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "LLM analysis results retrieved: documentId={}, totalResults={}",
@@ -1460,7 +1469,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagLlmAnalysisStatusResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "LLM analysis paused: documentId={}, processedChunks={}",
@@ -1537,7 +1546,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagLlmAnalysisStatusResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "LLM analysis resumed: documentId={}, status={}",
@@ -1573,7 +1582,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagLlmAnalysisStatusResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "LLM analysis cancelled: documentId={}, processedChunks={}, totalCost=${}",
@@ -1637,7 +1646,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagLlmAnalysisJobListResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "LLM analysis jobs retrieved: totalCount={}",
@@ -1676,7 +1685,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagAnalysisSummaryResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Analysis summary created successfully: summaryId={}",
@@ -1711,7 +1720,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagAnalysisSummaryResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info(
           "Analysis summary retrieved: summaryId={}, title={}",
@@ -1765,7 +1774,7 @@ public class RagServiceImpl implements RagService {
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToFlux(RagAnalysisSummaryResponse.class)
               .collectList()
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info("Analysis summaries retrieved: count={}", response != null ? response.size() : 0);
       return response;
@@ -1801,7 +1810,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(RagAnalysisSummaryResponse.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info("Analysis summary updated successfully: summaryId={}", summaryId);
       return response;
@@ -1834,7 +1843,7 @@ public class RagServiceImpl implements RagService {
                           .bodyToMono(String.class)
                           .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
               .bodyToMono(String.class)
-              .block();
+              .block(DEFAULT_BLOCK_TIMEOUT);
 
       log.info("Analysis summary deleted successfully: summaryId={}", summaryId);
       return response != null ? response : "요약이 성공적으로 삭제되었습니다.";

@@ -434,6 +434,12 @@ dependencies {
 	// AspectJ weaver 제거 - Oracle/C3P0 클래스 감지 오류 방지
 	// testRuntimeOnly 'org.aspectj:aspectjweaver:1.9.22'
 
+	// Testcontainers — 통합/리포지토리 테스트용 PostgreSQL 컨테이너 자동 기동
+	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
+	testImplementation 'org.testcontainers:testcontainers'
+	testImplementation 'org.testcontainers:postgresql'
+	testImplementation 'org.testcontainers:junit-jupiter'
+
 	//google
 	implementation 'com.google.apis:google-api-services-sheets:v4-rev20240416-2.0.0'
 	implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
