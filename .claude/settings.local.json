@@ -16,7 +16,12 @@
       "Bash(PYTHONPATH=\"./d_mcpsvr_jira\" python3:*)",
       "Bash(python3:*)",
       "Bash(npx madge:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(node *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git pull)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

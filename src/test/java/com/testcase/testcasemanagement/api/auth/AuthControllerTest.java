@@ -142,15 +142,17 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
   @Test(priority = 1)
   @Story("회원가입")
   @Severity(SeverityLevel.CRITICAL)
-  @Description("중복된 사용자명으로 회원가입 시도 시 400 에러 반환")
-  public void testRegister_DuplicateUsername_ShouldReturn400() {
+  @Description("중복된 사용자명으로 회원가입 시도 시 409 + 친화적 메시지 반환")
+  public void testRegister_DuplicateUsername_ShouldReturn409() {
     String duplicateUsername = "duplicate_" + System.currentTimeMillis();
+    String firstEmail = "first_" + System.currentTimeMillis() + "@example.com";
+    String secondEmail = "second_" + System.currentTimeMillis() + "@example.com";
 
     Map<String, Object> firstUser = new HashMap<>();
     firstUser.put("username", duplicateUsername);
     firstUser.put("password", "Test1234!");
     firstUser.put("name", "First User");
-    firstUser.put("email", "first@example.com");
+    firstUser.put("email", firstEmail);
 
     // 1. 첫 번째 사용자 등록 (성공)
     given()
@@ -165,7 +167,7 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
     duplicateUser.put("username", duplicateUsername);
     duplicateUser.put("password", "Test5678!");
     duplicateUser.put("name", "Duplicate User");
-    duplicateUser.put("email", "duplicate@example.com");
+    duplicateUser.put("email", secondEmail);
 
     given()
         .filter(new AllureRestAssured())
@@ -174,9 +176,54 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
         .when()
         .post("/api/auth/register")
         .then()
-        .statusCode(400)
-        .body("message", equalTo("Username already exists"))
+        .statusCode(409)
+        .body("field", equalTo("username"))
+        .body("message", equalTo("이미 사용 중인 사용자 이름입니다."))
         .body("username", equalTo(duplicateUsername));
+  }
+
+  @Test(priority = 1)
+  @Story("회원가입")
+  @Severity(SeverityLevel.CRITICAL)
+  @Description("중복된 이메일로 회원가입 시도 시 409 + 친화적 메시지 반환 (PG raw 메시지 노출 금지)")
+  public void testRegister_DuplicateEmail_ShouldReturn409() {
+    String sharedEmail = "dup_email_" + System.currentTimeMillis() + "@example.com";
+
+    Map<String, Object> firstUser = new HashMap<>();
+    firstUser.put("username", "first_" + System.currentTimeMillis());
+    firstUser.put("password", "Test1234!");
+    firstUser.put("name", "First User");
+    firstUser.put("email", sharedEmail);
+
+    // 1. 첫 번째 사용자 등록 (성공)
+    given()
+        .contentType(ContentType.JSON)
+        .body(firstUser)
+        .post("/api/auth/register")
+        .then()
+        .statusCode(200);
+
+    // 2. 동일한 이메일·다른 사용자명으로 재등록 시도 (실패)
+    Map<String, Object> duplicateEmailUser = new HashMap<>();
+    duplicateEmailUser.put("username", "second_" + System.currentTimeMillis());
+    duplicateEmailUser.put("password", "Test5678!");
+    duplicateEmailUser.put("name", "Second User");
+    duplicateEmailUser.put("email", sharedEmail);
+
+    given()
+        .filter(new AllureRestAssured())
+        .contentType(ContentType.JSON)
+        .body(duplicateEmailUser)
+        .when()
+        .post("/api/auth/register")
+        .then()
+        .statusCode(409)
+        .body("field", equalTo("email"))
+        .body("message", equalTo("이미 등록된 이메일입니다."))
+        .body("email", equalTo(sharedEmail))
+        // PG raw 메시지가 노출되지 않아야 한다 (regression guard)
+        .body("message", not(containsString("duplicate key")))
+        .body("message", not(containsString("uk_")));
   }
 
   @Test(priority = 1)
