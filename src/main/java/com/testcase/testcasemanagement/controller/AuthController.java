@@ -76,8 +76,22 @@ public class AuthController {
       if (user.getRole() != null) {
         errorResponse.put("role", user.getRole());
       }
-      errorResponse.put("message", "Username already exists");
-      return ResponseEntity.badRequest().body(errorResponse);
+      errorResponse.put("field", "username");
+      errorResponse.put("message", "이미 사용 중인 사용자 이름입니다.");
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    if (user.getEmail() != null && userRepository.existsByEmail(user.getEmail())) {
+      Map<String, Object> errorResponse = new HashMap<>();
+      errorResponse.put("username", user.getUsername());
+      errorResponse.put("name", user.getName());
+      errorResponse.put("email", user.getEmail());
+      if (user.getRole() != null) {
+        errorResponse.put("role", user.getRole());
+      }
+      errorResponse.put("field", "email");
+      errorResponse.put("message", "이미 등록된 이메일입니다.");
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     User newUser = new User();

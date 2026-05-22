@@ -16,9 +16,11 @@ const GroupListInput = z.object({
 });
 
 const UserListInput = z.object({
-  limit: z.number().int().min(1).max(200).default(50),
+  limit: z.number().int().min(1).max(100).default(20),
   page: z.number().int().min(0).default(0),
   search: z.string().optional(),
+  role: z.enum(["ADMIN", "MANAGER", "TESTER", "USER"]).optional(),
+  isActive: z.boolean().optional(),
 });
 
 // --- Tool Definitions ---
@@ -75,11 +77,13 @@ export const organizationHandlers: Record<
 
   org_list_users: async (args: unknown) => {
     const input = UserListInput.parse(args);
-    const res = await httpClient.get("/api/users", {
+    const res = await httpClient.get("/api/admin/users", {
       params: {
-        limit: input.limit,
+        size: input.limit,
         page: input.page,
-        search: input.search,
+        keyword: input.search,
+        role: input.role,
+        isActive: input.isActive,
       },
     });
     return res.data;
