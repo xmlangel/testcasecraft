@@ -57,8 +57,8 @@ public class JunitVersionControlService {
   private final Map<String, FileVersionHistory> versionCache = new ConcurrentHashMap<>();
 
   /**
-   * 테스트결과별 임계구역 락. getNextVersionNumber + updateVersionHistory 의 read-modify-write 윈도우를 보호하여
-   * 동시에 같은 testResultId 로 버전을 생성해도 번호가 중복 발급되지 않도록 한다. 서로 다른 testResultId 호출은 락이 분리되어 병렬성을 유지한다.
+   * 테스트결과별 임계구역 락. getNextVersionNumber + updateVersionHistory 의 read-modify-write 윈도우를 보호하여 동시에 같은
+   * testResultId 로 버전을 생성해도 번호가 중복 발급되지 않도록 한다. 서로 다른 testResultId 호출은 락이 분리되어 병렬성을 유지한다.
    */
   private final Map<String, Object> versionLocks = new ConcurrentHashMap<>();
 
@@ -379,7 +379,8 @@ public class JunitVersionControlService {
   }
 
   private String generateVersionId(String testResultId, int versionNumber) {
-    String timestamp = LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+    String timestamp =
+        LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
     return String.format("%s_v%d_%s", testResultId, versionNumber, timestamp);
   }
 

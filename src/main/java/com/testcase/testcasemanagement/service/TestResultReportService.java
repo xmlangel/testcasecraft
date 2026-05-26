@@ -733,10 +733,7 @@ public class TestResultReportService {
       int end = Math.min(start + size, completeCases.size());
 
       log.debug(
-          "Complete cases paging: start={}, end={}, size={}",
-          start,
-          end,
-          completeCases.size());
+          "Complete cases paging: start={}, end={}, size={}", start, end, completeCases.size());
 
       List<TestResultReportDto> pagedCases;
       if (start >= completeCases.size() || start > end) {
