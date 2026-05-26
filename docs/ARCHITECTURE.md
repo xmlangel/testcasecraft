@@ -220,7 +220,7 @@ PageVisitMetric, DailyVisitSummary, UserActivity (분석/감사)
 ### 4.4. 주요 도메인 모듈
 
 - **인증/인가**: `AuthController`, `JwtAuthenticationFilter`, `RefreshToken`, `ApiKeyAuthenticationFilter`
-- **테스트케이스**: 트리 구조(부모-자식), 버전 관리, 첨부, 스프레드시트 모드
+- **테스트케이스**: 트리 구조(부모-자식, `parentId`+`displayOrder`), 버전 관리, 첨부, 스프레드시트 모드, **드래그앤드롭 재구성** (`POST /api/testcases/{id}/move`, `POST /api/testcases/move-batch` — 이동 시 `tc_move_audit_log` 동기 기록. 상세 설계: `docs/plan/TREE_DND_REORGANIZE_PLAN.md`. 기존 우클릭 메뉴/순서 편집 모드와 공존)
 - **테스트플랜/실행/결과**: 실행 계획 → 실행 → 결과 기록 + 통계
 - **탐색적 테스트(SBTM)**: `TestSession`, `TestCharter` 기반 세션 추적
 - **JUnit 결과**: XML 파싱, 비동기 처리, 버전 관리

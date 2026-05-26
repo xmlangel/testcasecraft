@@ -179,6 +179,10 @@ src/test/e2e/screenshots/
 src/test/e2e/test-screenshots/
 src/test/e2e/regression/screenshots/
 *.png
+# 사용자 매뉴얼/가이드용 캡처 PNG는 추적
+!docs/manual/**/*.png
+!docs/guide/**/*.png
+!docs/plan/**/*.png
 
 # 로그 파일들
 *.log

@@ -18,8 +18,10 @@ import {
   ArrowDownward as ArrowDownwardIcon,
   History as HistoryIcon,
   MoreVert as MoreVertIcon,
+  DragIndicator as DragIndicatorIcon,
 } from "@mui/icons-material";
 import { isFolder } from "../../../utils/treeUtils.jsx";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 
 /**
  * 트리 아이템 단일 컴포넌트 (React.memo로 성능 최적화)
@@ -54,6 +56,40 @@ const MemoizedTreeItem = React.memo(
     onSelect,
   }) => {
     const isViewerRole = userRole === "VIEWER";
+
+    // ── DnD: draggable + 3-zone droppable (before / into / after) ────────────
+    const dndDisabled =
+      isViewerRole || node.type === "placeholder" || selectable;
+
+    const draggable = useDraggable({
+      id: `tc-${node.id}`,
+      data: { kind: "node", nodeId: node.id, isFolder: isFolder(node) },
+      disabled: dndDisabled,
+    });
+
+    const dropBefore = useDroppable({
+      id: `before-${node.id}`,
+      data: {
+        kind: "before",
+        nodeId: node.id,
+        parentId: node.parentId ?? null,
+      },
+      disabled: dndDisabled,
+    });
+    const dropInto = useDroppable({
+      id: `into-${node.id}`,
+      data: { kind: "into", nodeId: node.id },
+      disabled: dndDisabled || !isFolder(node),
+    });
+    const dropAfter = useDroppable({
+      id: `after-${node.id}`,
+      data: { kind: "after", nodeId: node.id, parentId: node.parentId ?? null },
+      disabled: dndDisabled,
+    });
+
+    const isOverInto = dropInto.isOver;
+    const isOverBefore = dropBefore.isOver;
+    const isOverAfter = dropAfter.isOver;
 
     // placeholder 타입인 경우 (신규 항목 추가 중)
     if (node.type === "placeholder") {
@@ -300,9 +336,12 @@ const MemoizedTreeItem = React.memo(
 
     return (
       <Box
+        ref={draggable.setNodeRef}
         sx={{
           pl: `${(depth || 0) * 16}px`,
           width: "100%",
+          position: "relative",
+          opacity: draggable.isDragging ? 0.4 : 1,
           "& .MuiTreeItem-content.Mui-selected": {
             backgroundColor: "rgba(0, 123, 255, 0.15)",
           },
@@ -311,16 +350,75 @@ const MemoizedTreeItem = React.memo(
           },
         }}
       >
+        {/* DnD: before-갭 droppable (행 상단 6px) */}
         <Box
+          ref={dropBefore.setNodeRef}
+          aria-label="drop-before"
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 6,
+            zIndex: 2,
+            pointerEvents: dndDisabled ? "none" : "auto",
+            "&::after": isOverBefore
+              ? {
+                  content: '""',
+                  position: "absolute",
+                  left: 8,
+                  right: 8,
+                  top: 2,
+                  height: 2,
+                  backgroundColor: "primary.main",
+                  borderRadius: 1,
+                }
+              : undefined,
+          }}
+        />
+        {/* DnD: after-갭 droppable (행 하단 6px) */}
+        <Box
+          ref={dropAfter.setNodeRef}
+          aria-label="drop-after"
+          sx={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 6,
+            zIndex: 2,
+            pointerEvents: dndDisabled ? "none" : "auto",
+            "&::after": isOverAfter
+              ? {
+                  content: '""',
+                  position: "absolute",
+                  left: 8,
+                  right: 8,
+                  bottom: 2,
+                  height: 2,
+                  backgroundColor: "primary.main",
+                  borderRadius: 1,
+                }
+              : undefined,
+          }}
+        />
+        <Box
+          ref={dropInto.setNodeRef}
           onClick={(e) => onSelect(e, node.id)}
           sx={{
             display: "flex",
             alignItems: "center",
-            cursor: "pointer",
+            cursor: dndDisabled ? "pointer" : "grab",
             py: 0.25,
             minHeight: 32,
             "&:hover": { bgcolor: "action.hover" },
-            bgcolor: isSelected ? "rgba(0, 123, 255, 0.1)" : "transparent",
+            bgcolor: isOverInto
+              ? "rgba(0, 123, 255, 0.18)"
+              : isSelected
+                ? "rgba(0, 123, 255, 0.1)"
+                : "transparent",
+            outline: isOverInto ? "1px dashed" : "none",
+            outlineColor: "primary.main",
             borderRadius: 1,
             mr: 1,
           }}
@@ -344,6 +442,27 @@ const MemoizedTreeItem = React.memo(
               </IconButton>
             )}
           </Box>
+          {/* DnD: 드래그 핸들 (체크박스 옆) */}
+          {!dndDisabled && (
+            <Box
+              {...draggable.attributes}
+              {...draggable.listeners}
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                width: 18,
+                color: "action.disabled",
+                cursor: "grab",
+                "&:active": { cursor: "grabbing" },
+                "&:hover": { color: "action.active" },
+              }}
+              aria-label="drag-handle"
+              title="드래그해서 위치 이동"
+            >
+              <DragIndicatorIcon sx={{ fontSize: 16 }} />
+            </Box>
+          )}
           {labelContent}
         </Box>
       </Box>
@@ -358,6 +477,7 @@ const MemoizedTreeItem = React.memo(
       prevProps.testCaseCount === nextProps.testCaseCount &&
       prevProps.orderEditMode === nextProps.orderEditMode &&
       prevProps.userRole === nextProps.userRole &&
+      prevProps.selectable === nextProps.selectable &&
       prevProps.node === nextProps.node &&
       prevProps.newItemData === nextProps.newItemData &&
       prevProps.depth === nextProps.depth &&
