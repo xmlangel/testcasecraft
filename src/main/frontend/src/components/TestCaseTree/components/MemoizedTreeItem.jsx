@@ -1,11 +1,12 @@
 // src/components/TestCaseTree/components/MemoizedTreeItem.jsx
-import React from "react";
+import React, { useRef, useState, useCallback } from "react";
 import {
   Box,
   Checkbox,
   Typography,
   TextField,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -90,6 +91,18 @@ const MemoizedTreeItem = React.memo(
     const isOverInto = dropInto.isOver;
     const isOverBefore = dropBefore.isOver;
     const isOverAfter = dropAfter.isOver;
+
+    // 이름 잘림(ellipsis) 감지 시에만 Tooltip 표시
+    const nameRef = useRef(null);
+    const [nameTooltip, setNameTooltip] = useState("");
+    const checkNameTruncated = useCallback(() => {
+      const el = nameRef.current;
+      if (el && el.scrollWidth > el.clientWidth) {
+        if (nameTooltip !== node.name) setNameTooltip(node.name);
+      } else if (nameTooltip) {
+        setNameTooltip("");
+      }
+    }, [node.name, nameTooltip]);
 
     // placeholder 타입인 경우 (신규 항목 추가 중)
     if (node.type === "placeholder") {
@@ -205,34 +218,63 @@ const MemoizedTreeItem = React.memo(
           )}
         </Box>
 
-        {/* 이름 영역: 가변 너비 */}
-        <Typography
-          variant="body2"
-          sx={{
-            fontWeight: isSelected ? "bold" : "normal",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            flexGrow: 1,
-            textAlign: "left",
-            lineHeight: 1.5,
-          }}
-        >
-          {node.displayId && (
+        {/* displayId 칩: 마지막 세그먼트(번호)만 표시, 호버 시 전체 ID 툴팁 */}
+        {node.displayId && (
+          <Tooltip
+            title={node.displayId}
+            arrow
+            placement="top"
+            enterDelay={300}
+          >
             <Box
               component="span"
               sx={{
+                flexShrink: 0,
+                mr: 0.75,
+                px: 0.6,
+                py: 0.1,
+                fontSize: "0.7rem",
+                fontFamily: "monospace",
+                fontWeight: 600,
                 color: "primary.main",
-                fontWeight: "bold",
-                mr: 0.5,
-                opacity: 0.9,
+                bgcolor: "action.hover",
+                borderRadius: 0.5,
+                lineHeight: 1.4,
+                whiteSpace: "nowrap",
+                cursor: "default",
               }}
             >
-              [{node.displayId}]
+              {String(node.displayId).split("-").pop() || node.displayId}
             </Box>
-          )}
-          {node.name}
-        </Typography>
+          </Tooltip>
+        )}
+
+        {/* 이름 영역: 가변 너비 + 잘림 감지 시에만 Tooltip 활성 */}
+        <Tooltip
+          title={nameTooltip}
+          arrow
+          placement="top"
+          enterDelay={300}
+          disableHoverListener={!nameTooltip}
+        >
+          <Typography
+            ref={nameRef}
+            onMouseEnter={checkNameTruncated}
+            variant="body2"
+            sx={{
+              fontWeight: isSelected ? "bold" : "normal",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flexGrow: 1,
+              minWidth: 0,
+              textAlign: "left",
+              lineHeight: 1.5,
+            }}
+          >
+            {node.name}
+          </Typography>
+        </Tooltip>
 
         {/* 메타 정보 및 버튼 영역: 우측 정렬 */}
         <Box

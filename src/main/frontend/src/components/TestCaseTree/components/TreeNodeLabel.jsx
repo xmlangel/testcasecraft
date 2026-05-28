@@ -1,11 +1,12 @@
 // src/components/TestCaseTree/components/TreeNodeLabel.jsx
 
-import React from "react";
+import React, { useRef, useState, useCallback } from "react";
 import {
   Box,
   IconButton,
   Checkbox,
   Typography,
+  Tooltip,
   useTheme,
   alpha,
 } from "@mui/material";
@@ -59,6 +60,18 @@ const TreeNodeLabel = ({
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
+
+  // 이름 잘림(ellipsis) 감지 시에만 Tooltip 표시
+  const nameRef = useRef(null);
+  const [nameTooltip, setNameTooltip] = useState("");
+  const checkNameTruncated = useCallback(() => {
+    const el = nameRef.current;
+    if (el && el.scrollWidth > el.clientWidth) {
+      if (nameTooltip !== node.name) setNameTooltip(node.name);
+    } else if (nameTooltip) {
+      setNameTooltip("");
+    }
+  }, [node.name, nameTooltip]);
 
   return (
     <Box
@@ -130,21 +143,32 @@ const TreeNodeLabel = ({
         )}
       </Box>
 
-      {/* 이름 영역: 가변 너비 */}
-      <Typography
-        variant="body2"
-        sx={{
-          fontWeight: isSelected ? "bold" : "normal",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          flexGrow: 1,
-          textAlign: "left",
-          lineHeight: 1.5,
-        }}
+      {/* 이름 영역: 잘림 감지 시에만 Tooltip 활성 */}
+      <Tooltip
+        title={nameTooltip}
+        arrow
+        placement="top"
+        enterDelay={300}
+        disableHoverListener={!nameTooltip}
       >
-        {node.name}
-      </Typography>
+        <Typography
+          ref={nameRef}
+          onMouseEnter={checkNameTruncated}
+          variant="body2"
+          sx={{
+            fontWeight: isSelected ? "bold" : "normal",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            flexGrow: 1,
+            minWidth: 0,
+            textAlign: "left",
+            lineHeight: 1.5,
+          }}
+        >
+          {node.name}
+        </Typography>
+      </Tooltip>
 
       {/* 메타 정보 및 버튼 영역: 우측 정렬 */}
       <Box
