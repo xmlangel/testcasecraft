@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Playwright E2E - Catalog &amp; Search" tests="10" failures="0" errors="0" skipped="1" time="92.118">
+  <testsuite name="catalog.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="48.221" timestamp="2026-05-28T23:02:11">
+    <properties>
+      <property name="browser" value="webkit"/>
+      <property name="playwright.version" value="1.42.1"/>
+      <property name="env" value="staging"/>
+    </properties>
+    <testcase classname="catalog" name="Render category tree up to 4 depths" time="7.443"/>
+    <testcase classname="catalog" name="Product detail LCP &lt; 2.5s" time="11.220"/>
+    <testcase classname="catalog" name="SKU price/stock updates on option change" time="9.882"/>
+    <testcase classname="catalog" name="Sold-out badge + block Add when stock=0" time="8.881"/>
+    <testcase classname="catalog" name="Mobile pinch-zoom on image gallery" time="10.795"/>
+  </testsuite>
+  <testsuite name="search.spec.ts" tests="5" failures="0" errors="0" skipped="1" time="43.897" timestamp="2026-05-28T23:03:01">
+    <testcase classname="search" name="Keyword search - normal match" time="5.220"/>
+    <testcase classname="search" name="Autocomplete trigger at 3 chars" time="6.882"/>
+    <testcase classname="search" name="Price filter slider behavior" time="9.443"/>
+    <testcase classname="search" name="Block XSS input (script escape)" time="7.992"/>
+    <testcase classname="search" name="Typo correction - 'did you mean' suggestion" time="14.360">
+      <skipped message="Suggestion engine API disabled in this env - deferred to next run"/>
+    </testcase>
+  </testsuite>
+</testsuites>

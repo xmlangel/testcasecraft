@@ -1,0 +1,170 @@
+{
+  "F04 Search & Filter": [
+    [
+      "Keyword search - normal match",
+      "HIGH",
+      true,
+      "Searching 'nike' matches brand/product name/tag and lists results ordered by relevance."
+    ],
+    [
+      "Autocomplete - trigger at 3+ chars",
+      "MEDIUM",
+      true,
+      "Three-character input triggers up to 10 autocomplete suggestions within 300ms; arrow keys navigate."
+    ],
+    [
+      "Price filter - slider",
+      "MEDIUM",
+      false,
+      "Adjusting the min/max slider refreshes results immediately and reflects in the URL query."
+    ],
+    [
+      "Multi-category filter",
+      "MEDIUM",
+      false,
+      "Multiple categories combine with OR logic; deselecting recomputes results instantly."
+    ],
+    [
+      "Sort - newest/popular/price",
+      "LOW",
+      true,
+      "Changing the sort dropdown keeps the same search filters but resets to page 1."
+    ],
+    [
+      "Pagination - 20 per page",
+      "LOW",
+      true,
+      "Pages render 20 items; the Next button disables on the last page."
+    ],
+    [
+      "Empty results - empty-state guidance",
+      "LOW",
+      false,
+      "When 0 results, show 5 recommended keywords and 6 popular categories to reduce bounce."
+    ],
+    [
+      "Search typo correction - did you mean",
+      "MEDIUM",
+      true,
+      "Typing 'shooo' surfaces 'shoes' suggestion with an auto-search option."
+    ],
+    [
+      "Security - block XSS input",
+      "HIGH",
+      true,
+      "Input like '<script>alert(1)</script>' is HTML-escaped and never executes on the results page."
+    ]
+  ],
+  "F05 Shopping Cart": [
+    [
+      "Cart - add item",
+      "HIGH",
+      true,
+      "Selecting options on product detail and clicking Add increments the cart badge and shows a toast."
+    ],
+    [
+      "Cart - increment/decrement quantity",
+      "MEDIUM",
+      true,
+      "Qty buttons recalc price immediately; negative or zero values are rejected."
+    ],
+    [
+      "Cart - remove item",
+      "LOW",
+      false,
+      "Delete shows a confirm dialog, then an 'Undo' toast for 5 seconds."
+    ],
+    [
+      "Cart - block add when stock insufficient",
+      "HIGH",
+      true,
+      "If current stock < requested qty, show 'out of stock'; backend also returns HTTP 400."
+    ],
+    [
+      "Cart - merge guest→user on login",
+      "HIGH",
+      false,
+      "On login, the guest cart is auto-merged into the user's cart; same-SKU items have quantities summed."
+    ],
+    [
+      "Cart - notify on price change",
+      "MEDIUM",
+      true,
+      "If a price differs at checkout vs. add-time, show a 'price changed' banner requiring user acknowledgement."
+    ],
+    [
+      "Cart - auto-clear after 30d inactivity",
+      "LOW",
+      true,
+      "If last modified >30 days, a batch clears the cart and the user receives a single email notice."
+    ],
+    [
+      "Cart - cap at 50 SKUs",
+      "LOW",
+      false,
+      "The 51st distinct SKU shows a 'max 50 SKUs' notice."
+    ],
+    [
+      "Cart - multi-tab sync",
+      "MEDIUM",
+      false,
+      "Adding in Tab A reflects in Tab B on focus or via 30s polling."
+    ]
+  ],
+  "F06 Checkout & Payment": [
+    [
+      "Payment - credit card normal approval",
+      "HIGH",
+      true,
+      "Mock card (4242…) approves successfully → order transitions to PAID → receipt mailed."
+    ],
+    [
+      "Payment - Kakao Pay easy checkout",
+      "HIGH",
+      false,
+      "Selecting Kakao Pay redirects externally; callback success transitions order to PAID."
+    ],
+    [
+      "Payment - rollback order on failure",
+      "HIGH",
+      true,
+      "On PG auth fail/decline, the transaction rolls back, stock reservation reverts, and the user is prompted to retry."
+    ],
+    [
+      "Payment - 12-month installment selection",
+      "MEDIUM",
+      false,
+      "For orders ≥50K KRW the installment option appears; selecting passes installment=12 to PG."
+    ],
+    [
+      "Refund - full refund",
+      "HIGH",
+      false,
+      "Admin clicks Refund → PG cancel call → order REFUNDED → refund email sent."
+    ],
+    [
+      "Refund - partial refund",
+      "MEDIUM",
+      false,
+      "Per-item refund is supported; total cannot exceed paid amount; refund reason is mandatory."
+    ],
+    [
+      "Payment - receipt PDF download",
+      "LOW",
+      true,
+      "From order detail, download a PDF receipt containing business info and VAT split."
+    ],
+    [
+      "Payment - prevent duplicate clicks",
+      "HIGH",
+      true,
+      "Idempotency-key ensures double-clicking the Pay button results in a single processed payment."
+    ],
+    [
+      "Payment - PG webhook retry",
+      "MEDIUM",
+      true,
+      "On 5xx, PG retries 5 times at 1/5/30/60/360 minute intervals; handler must be idempotent."
+    ]
+  ]
+}

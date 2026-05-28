@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Jest Unit - 결제·쿠폰·재고 도메인" tests="25" failures="3" errors="0" skipped="1" time="32.451">
+  <testsuite name="payment.service.spec.ts" tests="10" failures="2" errors="0" skipped="0" time="14.220" timestamp="2026-05-28T20:32:11">
+    <properties>
+      <property name="jest.version" value="29.7.0"/>
+      <property name="node" value="20.11.1"/>
+      <property name="suite" value="unit"/>
+    </properties>
+    <testcase classname="PaymentService" name="신용카드 토큰화 성공" time="1.221"/>
+    <testcase classname="PaymentService" name="카드 만료일 검증 - 과거 거부" time="0.812"/>
+    <testcase classname="PaymentService" name="할부 12개월 옵션 전달" time="1.502"/>
+    <testcase classname="PaymentService" name="결제 실패 시 트랜잭션 롤백" time="2.330"/>
+    <testcase classname="PaymentService" name="idempotency-key 중복 요청 무시" time="0.992"/>
+    <testcase classname="PaymentService" name="환불 전액 처리" time="1.442"/>
+    <testcase classname="PaymentService" name="부분 환불 - 합계 초과 거부" time="1.108">
+      <failure type="AssertionError" message="0.01원 초과 환불이 통과됨 - 부동소수점 비교 오류">
+Expected to throw "REFUND_EXCEEDS_PAID", but resolved with success=true.
+  at PaymentService.partialRefund (payment.service.ts:218)
+  at Object.&lt;anonymous&gt; (payment.service.spec.ts:189)
+      </failure>
+    </testcase>
+    <testcase classname="PaymentService" name="webhook 서명 검증" time="1.103"/>
+    <testcase classname="PaymentService" name="webhook 재시도 멱등 처리" time="1.882">
+      <failure type="TypeError" message="동시 webhook 도착 시 race condition">
+Cannot read properties of undefined (reading 'orderId')
+  at WebhookHandler.process (webhook.handler.ts:74)
+      </failure>
+    </testcase>
+    <testcase classname="PaymentService" name="영수증 PDF 메타데이터 (VAT 분리)" time="1.828"/>
+  </testsuite>
+  <testsuite name="coupon.service.spec.ts" tests="8" failures="1" errors="0" skipped="1" time="9.108" timestamp="2026-05-28T20:32:25">
+    <testcase classname="CouponService" name="만료 쿠폰 적용 거부" time="0.882"/>
+    <testcase classname="CouponService" name="최소 주문금액 미달 거부" time="0.992"/>
+    <testcase classname="CouponService" name="중복 적용 룰 (1쿠폰/주문)" time="1.220"/>
+    <testcase classname="CouponService" name="퍼센트 할인 정수 절사 정책" time="1.108"/>
+    <testcase classname="CouponService" name="신규가입 자동 발급" time="1.330"/>
+    <testcase classname="CouponService" name="환불 시 쿠폰 복원 정책" time="0.992">
+      <failure type="AssertionError" message="쿠폰 복원 여부가 정책과 불일치">
+Expected coupon.status === 'EXPIRED' (one-time used), but got 'ACTIVE'.
+  at CouponService.handleRefund (coupon.service.ts:142)
+      </failure>
+    </testcase>
+    <testcase classname="CouponService" name="타임세일 카운트다운 종료 시 정가 복원" time="1.220"/>
+    <testcase classname="CouponService" name="1+1 프로모션 자동 추가" time="1.364">
+      <skipped message="1+1 SKU 매핑 테이블 미시드 - integration 환경에서만 실행"/>
+    </testcase>
+  </testsuite>
+  <testsuite name="inventory.service.spec.ts" tests="7" failures="0" errors="0" skipped="0" time="9.123" timestamp="2026-05-28T20:32:35">
+    <testcase classname="InventoryService" name="재고 차감 - 정상 흐름" time="1.108"/>
+    <testcase classname="InventoryService" name="재고 부족 시 ORDER 거부" time="1.221"/>
+    <testcase classname="InventoryService" name="동시 주문 - 낙관적 락 (OptimisticLock)" time="2.442"/>
+    <testcase classname="InventoryService" name="주문 취소 시 재고 복원" time="1.502"/>
+    <testcase classname="InventoryService" name="재고 임계치 알림 트리거" time="1.108"/>
+    <testcase classname="InventoryService" name="CSV 일괄 업로드 검증" time="1.221"/>
+    <testcase classname="InventoryService" name="비공개 SKU는 차감 대상 제외" time="1.521"/>
+  </testsuite>
+</testsuites>

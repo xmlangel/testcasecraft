@@ -1,0 +1,170 @@
+{
+  "F10 Coupons & Promotions": [
+    [
+      "Coupon - admin issuance",
+      "HIGH",
+      false,
+      "Admin sets code/amount/period/condition and issues a coupon; visible to members immediately."
+    ],
+    [
+      "Coupon - apply at checkout",
+      "HIGH",
+      true,
+      "Selecting a coupon at checkout instantly reduces the order total."
+    ],
+    [
+      "Coupon - reject expired",
+      "MEDIUM",
+      true,
+      "Coupons with expiresAt < now return HTTP 400; user sees an 'expired' notice."
+    ],
+    [
+      "Coupon - single-stack rule",
+      "HIGH",
+      true,
+      "Only 1 coupon per order; selecting another while one is applied prompts a replacement."
+    ],
+    [
+      "Coupon - minimum order amount rule",
+      "MEDIUM",
+      true,
+      "Application is blocked below the coupon's min-order threshold; the gap is shown."
+    ],
+    [
+      "Coupon - auto issue on signup",
+      "MEDIUM",
+      true,
+      "Right after account activation, a welcome coupon is issued and an in-app notice is shown."
+    ],
+    [
+      "Promotion - flash sale countdown",
+      "LOW",
+      false,
+      "Product detail shows hh:mm:ss countdown to end; at 0s the regular price restores automatically."
+    ],
+    [
+      "Promotion - 1+1",
+      "MEDIUM",
+      false,
+      "Adding a 1+1 SKU auto-adds another of the same SKU; discount is computed at checkout."
+    ],
+    [
+      "Coupon - restore policy on refund",
+      "LOW",
+      false,
+      "Whether to restore a used coupon on refund depends on policy; default is one-time use then consumed."
+    ]
+  ],
+  "F11 Notifications": [
+    [
+      "Notification - order completion email",
+      "HIGH",
+      true,
+      "After PAID transition, an email is sent within 30s and the messageId is logged."
+    ],
+    [
+      "Notification - shipment SMS",
+      "HIGH",
+      true,
+      "Issuing a waybill triggers SMS; if the user opted out of SMS, sending is skipped."
+    ],
+    [
+      "Notification - push consent toggle",
+      "MEDIUM",
+      false,
+      "App requests push permission; if granted, device token is registered server-side; if denied, fall back to in-app."
+    ],
+    [
+      "Notification - in-app badge count",
+      "LOW",
+      true,
+      "Unread count appears in the header badge; clicking a notification decrements it immediately."
+    ],
+    [
+      "Notification - opt-out",
+      "MEDIUM",
+      false,
+      "Per-channel toggles (email/SMS/push); opted-out users are excluded from marketing but still receive transactional."
+    ],
+    [
+      "Notification - retry on failure (3x)",
+      "MEDIUM",
+      true,
+      "SMTP 5xx/timeouts retry with exponential backoff 3 times, then move to DLQ."
+    ],
+    [
+      "Notification - separate marketing consent",
+      "HIGH",
+      false,
+      "Telecommunications law compliance: marketing consent is opt-in (default unchecked); consent timestamp is logged."
+    ],
+    [
+      "Notification - history view",
+      "LOW",
+      false,
+      "Users view the last 90 days of notifications by category in My Page."
+    ],
+    [
+      "Notification - i18n templates",
+      "MEDIUM",
+      true,
+      "Template selection uses preferredLanguage (ko/en); missing keys fall back to ko."
+    ]
+  ],
+  "F12 Admin Console": [
+    [
+      "Admin - login (separate domain)",
+      "HIGH",
+      true,
+      "Login is allowed only on admin.shopflow.io; users without ROLE_ADMIN get 403."
+    ],
+    [
+      "Admin - role-based menu visibility",
+      "HIGH",
+      false,
+      "Sidebar menu is filtered dynamically by role (MANAGER/TESTER/etc.)."
+    ],
+    [
+      "Admin - register product",
+      "HIGH",
+      false,
+      "Required fields (name/price/stock/category, ≥1 image) are validated; draft save is supported."
+    ],
+    [
+      "Admin - bulk inventory CSV upload",
+      "MEDIUM",
+      false,
+      "After mapping SKU/stock columns, preview shows; error rows are exported as a separate report."
+    ],
+    [
+      "Admin - daily/monthly sales report",
+      "HIGH",
+      true,
+      "Selecting a period aggregates payments/refunds/net sales; chart + CSV are provided."
+    ],
+    [
+      "Admin - audit log view",
+      "MEDIUM",
+      false,
+      "Search/filter who/when/what changed; retained 1 year, then archived."
+    ],
+    [
+      "Admin - force user logout",
+      "LOW",
+      false,
+      "Invalidate active tokens for a specific user or all users; immediate re-login required."
+    ],
+    [
+      "Admin - enforce 2FA in back office",
+      "HIGH",
+      false,
+      "Admin accounts without 2FA are routed into a mandatory 2FA enrollment flow after login."
+    ],
+    [
+      "Admin - maintenance mode",
+      "LOW",
+      false,
+      "When enabled, regular users see a notice page while admins retain access."
+    ]
+  ]
+}

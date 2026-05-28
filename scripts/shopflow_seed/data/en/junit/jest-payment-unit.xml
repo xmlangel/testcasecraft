@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Jest Unit - Payment, Coupon &amp; Inventory" tests="25" failures="3" errors="0" skipped="1" time="32.451">
+  <testsuite name="payment.service.spec.ts" tests="10" failures="2" errors="0" skipped="0" time="14.220" timestamp="2026-05-28T20:32:11">
+    <properties>
+      <property name="jest.version" value="29.7.0"/>
+      <property name="node" value="20.11.1"/>
+      <property name="suite" value="unit"/>
+    </properties>
+    <testcase classname="PaymentService" name="Card tokenization success" time="1.221"/>
+    <testcase classname="PaymentService" name="Reject expired card date" time="0.812"/>
+    <testcase classname="PaymentService" name="Pass installment=12 option" time="1.502"/>
+    <testcase classname="PaymentService" name="Rollback transaction on payment failure" time="2.330"/>
+    <testcase classname="PaymentService" name="Ignore duplicate idempotency-key request" time="0.992"/>
+    <testcase classname="PaymentService" name="Full refund processing" time="1.442"/>
+    <testcase classname="PaymentService" name="Partial refund - reject if sum exceeds paid" time="1.108">
+      <failure type="AssertionError" message="0.01 over-refund passes - float comparison bug">
+Expected to throw "REFUND_EXCEEDS_PAID", but resolved with success=true.
+  at PaymentService.partialRefund (payment.service.ts:218)
+  at Object.&lt;anonymous&gt; (payment.service.spec.ts:189)
+      </failure>
+    </testcase>
+    <testcase classname="PaymentService" name="Webhook signature verification" time="1.103"/>
+    <testcase classname="PaymentService" name="Webhook retry idempotent handling" time="1.882">
+      <failure type="TypeError" message="Race condition when concurrent webhooks arrive">
+Cannot read properties of undefined (reading 'orderId')
+  at WebhookHandler.process (webhook.handler.ts:74)
+      </failure>
+    </testcase>
+    <testcase classname="PaymentService" name="Receipt PDF metadata (VAT split)" time="1.828"/>
+  </testsuite>
+  <testsuite name="coupon.service.spec.ts" tests="8" failures="1" errors="0" skipped="1" time="9.108" timestamp="2026-05-28T20:32:25">
+    <testcase classname="CouponService" name="Reject expired coupon" time="0.882"/>
+    <testcase classname="CouponService" name="Reject below minimum order amount" time="0.992"/>
+    <testcase classname="CouponService" name="Single-coupon-per-order rule" time="1.220"/>
+    <testcase classname="CouponService" name="Percent discount integer-truncation policy" time="1.108"/>
+    <testcase classname="CouponService" name="Auto issue on signup" time="1.330"/>
+    <testcase classname="CouponService" name="Restore policy on refund" time="0.992">
+      <failure type="AssertionError" message="Coupon restore status diverges from policy">
+Expected coupon.status === 'EXPIRED' (one-time used), but got 'ACTIVE'.
+  at CouponService.handleRefund (coupon.service.ts:142)
+      </failure>
+    </testcase>
+    <testcase classname="CouponService" name="Restore regular price after flash-sale ends" time="1.220"/>
+    <testcase classname="CouponService" name="1+1 promotion - auto add SKU" time="1.364">
+      <skipped message="1+1 SKU mapping not seeded - runs only in integration env"/>
+    </testcase>
+  </testsuite>
+  <testsuite name="inventory.service.spec.ts" tests="7" failures="0" errors="0" skipped="0" time="9.123" timestamp="2026-05-28T20:32:35">
+    <testcase classname="InventoryService" name="Stock decrement - happy path" time="1.108"/>
+    <testcase classname="InventoryService" name="Reject ORDER when stock is insufficient" time="1.221"/>
+    <testcase classname="InventoryService" name="Concurrent orders - optimistic lock" time="2.442"/>
+    <testcase classname="InventoryService" name="Restore stock on order cancellation" time="1.502"/>
+    <testcase classname="InventoryService" name="Trigger low-stock alert at threshold" time="1.108"/>
+    <testcase classname="InventoryService" name="Validate CSV bulk upload" time="1.221"/>
+    <testcase classname="InventoryService" name="Exclude private SKUs from decrement" time="1.521"/>
+  </testsuite>
+</testsuites>

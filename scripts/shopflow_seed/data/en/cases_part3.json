@@ -1,0 +1,170 @@
+{
+  "F07 Order Management": [
+    [
+      "Order - happy path creation",
+      "HIGH",
+      true,
+      "Cart→address→payment→approve creates the order, issues an order number, decrements stock, and sends notifications."
+    ],
+    [
+      "Order - list with pagination",
+      "HIGH",
+      true,
+      "Orders from the last year list 10 per page; status/period filters work as expected."
+    ],
+    [
+      "Order status - PENDING→PAID→SHIPPED transitions",
+      "HIGH",
+      true,
+      "Only allowed transitions succeed; disallowed transitions (e.g., SHIPPED→PENDING) return HTTP 400."
+    ],
+    [
+      "Order - cancel (PAID)",
+      "HIGH",
+      false,
+      "PAID orders prior to shipping can be cancelled immediately; refund is wired to the PG cancel call."
+    ],
+    [
+      "Order - partial cancel",
+      "LOW",
+      false,
+      "Cancel some items while letting the rest ship normally."
+    ],
+    [
+      "Order - exchange request",
+      "MEDIUM",
+      false,
+      "Exchanges allowed within 7 days of receipt; reason and photo upload are required; admin approval is needed."
+    ],
+    [
+      "Order - return request",
+      "MEDIUM",
+      false,
+      "Returns allowed within 7 days of receipt; buyer-remorse deducts shipping; defects are free."
+    ],
+    [
+      "Order - search by order number",
+      "LOW",
+      true,
+      "Partial order-number search; orders the user lacks permission for are excluded from results."
+    ],
+    [
+      "Order - CSV download (admin)",
+      "LOW",
+      false,
+      "Admin can filter by period/status and download CSV (UTF-8 with BOM)."
+    ]
+  ],
+  "F08 Shipping & Logistics": [
+    [
+      "Shipping - auto-issue waybill",
+      "HIGH",
+      true,
+      "Within 24h of PAID, dispatching issues a waybill mapped to the order."
+    ],
+    [
+      "Shipping - CJ Logistics tracking integration",
+      "HIGH",
+      false,
+      "Querying the carrier API by waybill shows 5 states (accept→hub→linehaul→delivery→complete)."
+    ],
+    [
+      "Shipping - show estimated delivery date",
+      "MEDIUM",
+      true,
+      "Region-average lead time is computed and shown on order detail and notifications."
+    ],
+    [
+      "Address - change before shipping starts",
+      "MEDIUM",
+      false,
+      "Address can be changed only before 'preparing to ship'; once waybill is issued, change is blocked."
+    ],
+    [
+      "Shipping - international fee auto-calc",
+      "MEDIUM",
+      true,
+      "Calculated from country/weight/EMS rate table; tariff/VAT shown separately."
+    ],
+    [
+      "Shipping - record failure reason",
+      "LOW",
+      false,
+      "Absent recipient / wrong address / unreachable codes can be selected; redelivery date is proposed automatically."
+    ],
+    [
+      "Shipping - remote-area surcharge",
+      "LOW",
+      true,
+      "Postcode whitelist match auto-charges an additional 3,000 KRW."
+    ],
+    [
+      "Shipping - free-shipping threshold",
+      "LOW",
+      true,
+      "Free shipping applies automatically at ≥50,000 KRW; below shows the gap-to-threshold notice."
+    ],
+    [
+      "Shipping - store pickup option",
+      "LOW",
+      false,
+      "After choosing an offline store, shipping fee is 0; the store receives an SMS notice."
+    ]
+  ],
+  "F09 Reviews & Ratings": [
+    [
+      "Review - only buyers can write",
+      "HIGH",
+      true,
+      "Reviews are allowed only for DELIVERED orders; others return 403 from the backend."
+    ],
+    [
+      "Review - rating 1–5",
+      "MEDIUM",
+      false,
+      "Missing rating rejects submission; only integers 1–5 are accepted."
+    ],
+    [
+      "Review - up to 5 images",
+      "MEDIUM",
+      false,
+      "JPG/PNG up to 5MB each; a 6th image is rejected."
+    ],
+    [
+      "Review - profanity filter",
+      "MEDIUM",
+      true,
+      "A banned-word dictionary plus variant matching auto-masks or routes to admin moderation."
+    ],
+    [
+      "Review - helpful vote",
+      "LOW",
+      false,
+      "Each user toggles 'helpful' once per review; counter updates immediately."
+    ],
+    [
+      "Review - report",
+      "LOW",
+      false,
+      "After 3 reports, the review enters admin review and is hidden temporarily."
+    ],
+    [
+      "Review - admin HIDE/SHOW moderation",
+      "MEDIUM",
+      false,
+      "Hiding a review enqueues a recalculation of the product's average rating."
+    ],
+    [
+      "Review - average rating auto-calc",
+      "HIGH",
+      true,
+      "On write/delete/hide, average rating is recomputed asynchronously on a 1-minute cadence."
+    ],
+    [
+      "Review - sort (newest/highest/helpful)",
+      "LOW",
+      true,
+      "Sort selection reflects in URL query and is stable within the same option."
+    ]
+  ]
+}

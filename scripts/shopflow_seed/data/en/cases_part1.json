@@ -1,0 +1,170 @@
+{
+  "F01 Authentication & Account": [
+    [
+      "Email signup - happy path",
+      "HIGH",
+      true,
+      "After agreeing to terms and signing up with a new email, a verification mail is sent and the account becomes active after email confirmation."
+    ],
+    [
+      "Signup - reject invalid email format",
+      "MEDIUM",
+      true,
+      "Emails violating RFC 5322 (missing @, missing domain, etc.) must be rejected on both client and server."
+    ],
+    [
+      "Signup - reject weak password",
+      "MEDIUM",
+      true,
+      "Passwords shorter than 8 chars or missing any of the 4 char classes (upper/lower/digit/symbol) are rejected with a clear message."
+    ],
+    [
+      "Signup - resend verification email",
+      "LOW",
+      false,
+      "Before activation, clicking 'resend' issues a new token and invalidates the previous one."
+    ],
+    [
+      "Login - Google OAuth SSO",
+      "HIGH",
+      false,
+      "OAuth with Google links/creates the account and issues a ShopFlow session token."
+    ],
+    [
+      "Password - send reset link",
+      "MEDIUM",
+      true,
+      "Reset request emails a 24h-valid token; accessing an expired link returns HTTP 410."
+    ],
+    [
+      "Login - 2FA OTP verification",
+      "HIGH",
+      false,
+      "After first-factor success, a 6-digit TOTP within a 30s window must match before session is issued."
+    ],
+    [
+      "Login - lock account after 5 failed attempts",
+      "HIGH",
+      true,
+      "Five consecutive password failures on the same account trigger a 15-minute lock; further attempts from the same IP are blocked immediately."
+    ],
+    [
+      "Session - auto logout on expired token",
+      "MEDIUM",
+      true,
+      "Calls with an expired access token return 401; if refresh fails, the user is forced back to the login page."
+    ]
+  ],
+  "F02 User Profile": [
+    [
+      "Profile photo - upload happy path",
+      "LOW",
+      false,
+      "JPG/PNG files up to 5MB upload successfully and immediately reflect in the profile (with thumbnail cache invalidation)."
+    ],
+    [
+      "Profile photo - reject >5MB",
+      "MEDIUM",
+      true,
+      "Files over 5MB or with disallowed types (SVG, EXE) are rejected with 413/400 while the existing photo is preserved."
+    ],
+    [
+      "Address - add new",
+      "HIGH",
+      false,
+      "After road-name/postal-code validation (Daum postal API), the address is added and sorted as the most recently used."
+    ],
+    [
+      "Address - cap at 10 addresses",
+      "LOW",
+      true,
+      "An 11th address attempt shows a 'max 10 addresses' notice; user must remove one to add another."
+    ],
+    [
+      "Address - change default",
+      "MEDIUM",
+      false,
+      "Toggling default unsets the previous default and is reflected immediately at checkout."
+    ],
+    [
+      "Payment method - register card",
+      "HIGH",
+      false,
+      "Card numbers are tokenized by the PG and only last-4 is stored (PCI-DSS); expiry validation runs before saving."
+    ],
+    [
+      "Payment method - notify 30 days before expiry",
+      "LOW",
+      true,
+      "An automatic email + in-app notification fires once, 30 days before card expiry; user can dismiss."
+    ],
+    [
+      "Member tier - auto upgrade by spend",
+      "MEDIUM",
+      true,
+      "When cumulative spend crosses tier thresholds (e.g., SILVER 300K KRW), a nightly batch upgrades the tier and notifies the user."
+    ],
+    [
+      "Account deletion - 30-day PII retention",
+      "HIGH",
+      false,
+      "On deletion PII is masked and permanently removed after 30 days (GDPR); user can request restoration within that window."
+    ]
+  ],
+  "F03 Product Catalog": [
+    [
+      "Category tree - normal fetch",
+      "HIGH",
+      true,
+      "Root→4-depth categories return within 200ms; private categories are excluded."
+    ],
+    [
+      "Product detail - normal load",
+      "HIGH",
+      true,
+      "Image, price, options, stock, and shipping info render together; LCP < 2.5s."
+    ],
+    [
+      "Product options - update price/stock on combo change",
+      "HIGH",
+      false,
+      "Changing color+size recomputes price/stock per SKU instantly; out-of-stock SKUs become unselectable."
+    ],
+    [
+      "Stock 0 - show sold-out and block purchase",
+      "HIGH",
+      true,
+      "SKUs with 0 stock show a 'sold out' badge, the Add button disables, and direct API calls are rejected by the backend."
+    ],
+    [
+      "Image gallery - slider/zoom",
+      "LOW",
+      false,
+      "Thumbnail click switches main image; hover zoom on desktop and pinch zoom on mobile both work."
+    ],
+    [
+      "Related products - collaborative filtering",
+      "MEDIUM",
+      true,
+      "Six recommendations are shown based on category/purchase patterns; CTR events fire on click."
+    ],
+    [
+      "Wishlist - add/remove",
+      "MEDIUM",
+      false,
+      "Heart toggle adds/removes from wishlist immediately; guests are routed to a login modal."
+    ],
+    [
+      "Private product - hidden from catalog",
+      "HIGH",
+      true,
+      "Making a product private removes it from catalog/search/SEO sitemap immediately (cache invalidation included)."
+    ],
+    [
+      "i18n - show ko/en product name",
+      "MEDIUM",
+      false,
+      "Product name/description switches to ko or en based on Accept-Language / user setting; missing translations fall back to ko."
+    ]
+  ]
+}
