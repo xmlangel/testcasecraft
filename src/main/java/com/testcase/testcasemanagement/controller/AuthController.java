@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/controller/AuthController.java
 package com.testcase.testcasemanagement.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.EmailVerificationDto;
 import com.testcase.testcasemanagement.dto.UserDto;
 import com.testcase.testcasemanagement.model.RefreshToken;
@@ -305,6 +306,90 @@ public class AuthController {
             "preferredLanguage",
                 user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "ko",
             "timezone", user.getTimezone() != null ? user.getTimezone() : "UTC"));
+  }
+
+  /** 현재 사용자의 UI 환경설정(JSON 텍스트) 조회. 비어 있으면 빈 객체 문자열 "{}" 반환. */
+  @Operation(summary = "UI 환경설정 조회", description = "사용자별 UI 환경설정(JSON 텍스트)을 조회합니다.")
+  @GetMapping("/me/preferences")
+  public ResponseEntity<?> getMyPreferences(Authentication authentication) {
+    if (authentication == null) {
+      return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
+    }
+    String username = authentication.getName();
+    Optional<User> userOpt = userRepository.findByUsername(username);
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.status(404).body(Map.of("message", "User not found"));
+    }
+    String json = userOpt.get().getUiPreferences();
+    return ResponseEntity.ok(Map.of("uiPreferences", json != null ? json : "{}"));
+  }
+
+  /** 현재 사용자의 UI 환경설정을 저장. body 의 uiPreferences (JSON 문자열) 그대로 보관. */
+  @Operation(summary = "UI 환경설정 저장", description = "사용자별 UI 환경설정(JSON 텍스트)을 저장합니다.")
+  @PutMapping("/me/preferences")
+  public ResponseEntity<?> updateMyPreferences(
+      Authentication authentication, @RequestBody Map<String, Object> body) {
+    if (authentication == null) {
+      return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
+    }
+    String username = authentication.getName();
+    Optional<User> userOpt = userRepository.findByUsername(username);
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.status(404).body(Map.of("message", "User not found"));
+    }
+    Object raw = body == null ? null : body.get("uiPreferences");
+    String json = raw == null ? "{}" : raw.toString();
+    if (json.length() > 32_000) {
+      return ResponseEntity.badRequest().body(Map.of("message", "uiPreferences too large"));
+    }
+    User user = userOpt.get();
+    user.setUiPreferences(json);
+    userRepository.save(user);
+    return ResponseEntity.ok(Map.of("uiPreferences", json));
+  }
+
+  /**
+   * 부분 갱신(PATCH) — body 의 단일 key 만 기존 JSON 에 merge 후 저장. race condition 회피. body: {"key":
+   * "fieldVisibility", "value": {...}}
+   */
+  @Operation(summary = "UI 환경설정 일부 갱신", description = "사용자별 UI 환경설정의 단일 키만 patch 저장합니다.")
+  @org.springframework.web.bind.annotation.PatchMapping("/me/preferences")
+  public ResponseEntity<?> patchMyPreferences(
+      Authentication authentication, @RequestBody Map<String, Object> body) {
+    if (authentication == null) {
+      return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
+    }
+    String username = authentication.getName();
+    Optional<User> userOpt = userRepository.findByUsername(username);
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.status(404).body(Map.of("message", "User not found"));
+    }
+    Object key = body == null ? null : body.get("key");
+    if (!(key instanceof String) || ((String) key).isBlank()) {
+      return ResponseEntity.badRequest().body(Map.of("message", "key required"));
+    }
+    Object value = body.get("value");
+    try {
+      ObjectMapper om = new ObjectMapper();
+      User user = userOpt.get();
+      String existing = user.getUiPreferences();
+      Map<String, Object> prefs;
+      if (existing == null || existing.isBlank()) {
+        prefs = new HashMap<>();
+      } else {
+        prefs = om.readValue(existing, Map.class);
+      }
+      prefs.put((String) key, value);
+      String json = om.writeValueAsString(prefs);
+      if (json.length() > 32_000) {
+        return ResponseEntity.badRequest().body(Map.of("message", "uiPreferences too large"));
+      }
+      user.setUiPreferences(json);
+      userRepository.save(user);
+      return ResponseEntity.ok(Map.of("uiPreferences", json));
+    } catch (Exception e) {
+      return ResponseEntity.status(500).body(Map.of("message", "merge failed: " + e.getMessage()));
+    }
   }
 
   /** Refresh Token을 사용하여 새로운 Access Token 발급 */

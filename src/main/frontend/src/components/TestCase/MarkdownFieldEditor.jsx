@@ -35,20 +35,27 @@ const MarkdownFieldEditor = ({
           "Markdown 문법을 사용할 수 있습니다.",
         ));
 
+  // 컨텐츠 줄 수에 따라 자동 확장 (min=height, max=400px)
+  const minH = typeof height === "number" ? height : parseInt(height, 10) || 90;
+  const lineCount = Math.max(2, (value || "").split("\n").length + 1);
+  const dynamicHeight = Math.max(minH, Math.min(lineCount * 22 + 60, 400));
+
   return (
-    <Box sx={{ mt: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 1,
-        }}
-      >
-        <Typography variant="subtitle2" color={error ? "error" : "inherit"}>
-          {label}
-        </Typography>
-      </Box>
+    <Box sx={{ mt: label ? 2 : 0 }}>
+      {label && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
+          }}
+        >
+          <Typography variant="subtitle2" color={error ? "error" : "inherit"}>
+            {label}
+          </Typography>
+        </Box>
+      )}
       <Box
         data-color-mode={theme.palette.mode}
         sx={{
@@ -62,7 +69,8 @@ const MarkdownFieldEditor = ({
           value={value}
           onChange={(val) => onChange(val || "")}
           preview={preview || "live"}
-          height={height}
+          height={dynamicHeight}
+          visibleDragbar
           textareaProps={{
             placeholder,
             onPaste,

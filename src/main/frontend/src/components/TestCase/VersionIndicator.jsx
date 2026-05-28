@@ -135,10 +135,50 @@ const VersionIndicator = ({
     );
   }
 
+  // 버전 칩 호버 시 보여줄 상세 툴팁 (상태 + 변경 요약 + 작성자/시간)
+  const tooltipContent = currentVersion ? (
+    <Box sx={{ py: 0.5 }}>
+      <Typography variant="caption" sx={{ display: "block", fontWeight: 700 }}>
+        {statusConfig.tooltip}
+      </Typography>
+      <Typography variant="caption" sx={{ display: "block", mt: 0.5 }}>
+        {currentVersion.changeSummary ||
+          t("testcase.version.noChanges", "변경 내용 없음")}
+      </Typography>
+      <Typography
+        variant="caption"
+        sx={{ display: "block", opacity: 0.8, mt: 0.25 }}
+      >
+        {currentVersion.createdByName} •{" "}
+        {formatDistanceToNow(new Date(currentVersion.createdAt), {
+          addSuffix: true,
+          locale: ko,
+        })}
+      </Typography>
+    </Box>
+  ) : (
+    statusConfig.tooltip
+  );
+
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-      {/* 버전 상태 칩 */}
-      <Tooltip title={statusConfig.tooltip}>
+      {/* 작성자·시간 — 칩 왼쪽에 인라인 표시 */}
+      {currentVersion && !compact && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ whiteSpace: "nowrap" }}
+        >
+          {currentVersion.createdByName} •{" "}
+          {formatDistanceToNow(new Date(currentVersion.createdAt), {
+            addSuffix: true,
+            locale: ko,
+          })}
+        </Typography>
+      )}
+
+      {/* 버전 상태 칩 — 호버 시 변경 요약 등을 툴팁으로 표시 */}
+      <Tooltip title={tooltipContent} arrow placement="top" enterDelay={200}>
         <Chip
           icon={statusConfig.icon}
           label={
@@ -151,31 +191,6 @@ const VersionIndicator = ({
           variant={versionStatus === "current" ? "filled" : "outlined"}
         />
       </Tooltip>
-
-      {/* 버전 정보 텍스트 */}
-      {currentVersion && !compact && (
-        <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ wordBreak: "break-all", whiteSpace: "normal" }}
-          >
-            {currentVersion.changeSummary ||
-              t("testcase.version.noChanges", "변경 내용 없음")}
-          </Typography>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ wordBreak: "break-all", whiteSpace: "normal" }}
-          >
-            {currentVersion.createdByName} •{" "}
-            {formatDistanceToNow(new Date(currentVersion.createdAt), {
-              addSuffix: true,
-              locale: ko,
-            })}
-          </Typography>
-        </Box>
-      )}
 
       {/* 버전 관리 메뉴 */}
       {showMenu && (

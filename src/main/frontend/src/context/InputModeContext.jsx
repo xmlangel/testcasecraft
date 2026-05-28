@@ -1,30 +1,22 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext } from "react";
+import { useUiPreference } from "../components/TestCase/useUiPreference.jsx";
 
 const InputModeContext = createContext();
 
+/**
+ * 입력 모드(개별 폼 / 스프레드시트) 컨텍스트.
+ * useUiPreference 로 서버에 사용자별 저장 — 다른 PC 에서도 동일 모드 유지.
+ * 기본값은 "spreadsheet" (기존 동작과 동일).
+ */
 export const InputModeProvider = ({ children }) => {
-  // 초기값은 로컬 스토리지에서 가져오거나 기본값 'spreadsheet' 사용
-  const [inputMode, setInputMode] = useState(() => {
-    try {
-      return localStorage.getItem("testCaseInputMode") || "spreadsheet";
-    } catch (error) {
-      return "spreadsheet";
-    }
-  });
-
-  // 모드 변경 시 로컬 스토리지 업데이트
-  const handleSetInputMode = (mode) => {
-    setInputMode(mode);
-    try {
-      localStorage.setItem("testCaseInputMode", mode);
-    } catch (error) {
-      console.warn("Failed to save input mode to localStorage", error);
-    }
-  };
+  const [inputMode, setInputMode] = useUiPreference(
+    "testCaseInputMode",
+    "spreadsheet",
+  );
 
   const value = {
-    inputMode,
-    setInputMode: handleSetInputMode,
+    inputMode: inputMode || "spreadsheet",
+    setInputMode,
   };
 
   return (

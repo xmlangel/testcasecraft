@@ -12,18 +12,18 @@ import {
   Box,
   CircularProgress,
   Backdrop,
-  Button,
-  Collapse,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
 } from "@mui/material";
 import {
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
+  ViewList as FormIcon,
+  TableChart as SpreadsheetIcon,
 } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { debugLog, debugWarn } from "../../utils/logger.js";
-import InputModeToggle from "./InputModeToggle.jsx";
 import TestCaseForm from "../TestCaseForm.jsx";
 import TestCaseSpreadsheet from "./TestCaseSpreadsheet.jsx";
 import TestCaseDatasheetGrid from "./TestCaseDatasheetGrid.jsx";
@@ -56,7 +56,6 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const isUserEditingRef = useRef(false); // 사용자 입력 중 플래그
-  const [modeToggleExpanded, setModeToggleExpanded] = useState(false); // 입력 모드 토글 펼침 상태
 
   // 프로젝트의 테스트케이스 및 폴더 개수 계산 (ICT-343: 폴더도 스프레드시트에 표시)
   // 유령 데이터 필터링: 이름이 없거나 빈 문자열인 경우 제외
@@ -249,27 +248,71 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
   return (
     <Box>
-      {/* 입력 모드 선택 - 접기/펼치기 */}
-      <Box sx={{ mb: 2 }}>
-        <Button
+      {/* 입력 모드 선택 — 좌측에 작은 토글 버튼 두 개만 노출 */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-start",
+          mb: 1.5,
+        }}
+      >
+        <ToggleButtonGroup
+          value={inputMode}
+          exclusive
+          onChange={(_, newMode) => {
+            if (newMode !== null) handleModeChange(newMode);
+          }}
+          aria-label={t("testcase.inputMode.title", "입력 모드 선택")}
           size="small"
-          onClick={() => setModeToggleExpanded(!modeToggleExpanded)}
-          endIcon={modeToggleExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          sx={{ mb: 1 }}
-          data-testid="input-mode-expand-button"
+          sx={{
+            "& .MuiToggleButton-root": {
+              px: 1.5,
+              fontWeight: 500,
+              borderColor: "divider",
+            },
+            "& .MuiToggleButton-root.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              fontWeight: 700,
+              boxShadow: 1,
+              "&:hover": { bgcolor: "primary.dark" },
+            },
+          }}
         >
-          {t("testcase.inputMode.title", "입력 모드 선택")}{" "}
-          {modeToggleExpanded
-            ? t("testcase.inputMode.collapse", "접기")
-            : t("testcase.inputMode.expand", "펼치기")}
-        </Button>
-        <Collapse in={modeToggleExpanded}>
-          <InputModeToggle
-            mode={inputMode}
-            onChange={handleModeChange}
-            testCaseCount={projectTestCases.length}
-          />
-        </Collapse>
+          <Tooltip
+            title={t(
+              "testcase.inputMode.form.tooltip",
+              "개별 폼으로 상세 입력",
+            )}
+          >
+            <ToggleButton
+              value="form"
+              aria-label={t("testcase.inputMode.form.ariaLabel", "폼 모드")}
+              data-testid="mode-individual-button"
+            >
+              <FormIcon fontSize="small" sx={{ mr: 0.75 }} />
+              {t("testcase.inputMode.form.title", "개별 폼")}
+            </ToggleButton>
+          </Tooltip>
+          <Tooltip
+            title={t(
+              "testcase.inputMode.spreadsheet.tooltip",
+              "스프레드시트로 일괄 입력",
+            )}
+          >
+            <ToggleButton
+              value="spreadsheet"
+              aria-label={t(
+                "testcase.inputMode.spreadsheet.ariaLabel",
+                "스프레드시트 모드",
+              )}
+              data-testid="mode-spreadsheet-button"
+            >
+              <SpreadsheetIcon fontSize="small" sx={{ mr: 0.75 }} />
+              {t("testcase.inputMode.spreadsheet.title", "스프레드시트")}
+            </ToggleButton>
+          </Tooltip>
+        </ToggleButtonGroup>
       </Box>
 
       {/* 로딩 인디케이터 (스프레드시트 모드에서만 표시) */}

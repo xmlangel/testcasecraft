@@ -45,6 +45,11 @@ public class User {
   @Column(length = 50)
   private String timezone = "UTC"; // 사용자 시간대 (기본값: UTC)
 
+  // UI 환경설정 (JSON 텍스트) — 테스트케이스 폼 필드 표시 토글 등.
+  // JPA ddl-auto=update 로 컬럼 자동 추가됨.
+  @Column(name = "ui_preferences", columnDefinition = "TEXT")
+  private String uiPreferences;
+
   @Column(nullable = false)
   private Boolean isActive = true; // 기본값은 활성화
 

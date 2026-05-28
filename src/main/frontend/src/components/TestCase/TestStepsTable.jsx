@@ -40,78 +40,36 @@ const TestStepsTable = ({
   onStepMarkdownChange,
   onMarkdownPaste,
 }) => {
+  // 일관된 헤더 셀 스타일 (MD: bgcolor + fontWeight 통일)
+  const headSx = {
+    fontWeight: 600,
+    bgcolor: "action.hover",
+    py: 1,
+    whiteSpace: "nowrap",
+  };
+  const headCenter = { ...headSx, textAlign: "center" };
+
   return (
-    <Box sx={{ mt: 3, mb: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 1,
-        }}
-      >
-        <Typography variant="subtitle1">
-          {t("testcase.form.testSteps", "테스트 스텝")}
-        </Typography>
-      </Box>
+    <Box>
       <TableContainer component={Paper} variant="outlined">
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell
-                width={10}
-                sx={{
-                  width: 10,
-                  minWidth: 10,
-                  maxWidth: 15,
-                  textAlign: "center",
-                  p: 0.5,
-                }}
-              >
+              <TableCell sx={{ ...headCenter, width: 44, minWidth: 36 }}>
                 {t("testcase.form.stepNumber", "No.")}
               </TableCell>
-              <TableCell
-                sx={{
-                  width: "50%",
-                  minWidth: 120,
-                  maxWidth: "none",
-                }}
-              >
+              <TableCell sx={{ ...headSx, width: "45%", minWidth: 160 }}>
                 {t("testcase.form.step", "Step")}
               </TableCell>
-              <TableCell
-                sx={{
-                  width: "50%",
-                  minWidth: 120,
-                  maxWidth: "none",
-                }}
-              >
+              <TableCell sx={{ ...headSx, width: "45%", minWidth: 160 }}>
                 {t("testcase.form.expected", "Expected")}
               </TableCell>
               {!isViewer && (
-                <TableCell
-                  width={50}
-                  sx={{
-                    width: 50,
-                    minWidth: 45,
-                    maxWidth: 60,
-                    textAlign: "center",
-                    p: 0.5,
-                  }}
-                >
+                <TableCell sx={{ ...headCenter, width: 52, minWidth: 48 }}>
                   {t("testcase.form.reorder", "순서")}
                 </TableCell>
               )}
-              <TableCell
-                width={10}
-                sx={{
-                  width: 10,
-                  minWidth: 10,
-                  maxWidth: 15,
-                  textAlign: "center",
-                  p: 0.5,
-                }}
-              />
+              <TableCell sx={{ ...headCenter, width: 44, minWidth: 36 }} />
             </TableRow>
           </TableHead>
           <TableBody>
@@ -139,7 +97,7 @@ const TestStepsTable = ({
                     >
                       {step.stepNumber}
                     </TableCell>
-                    <TableCell sx={{ width: "44%", minWidth: 120 }}>
+                    <TableCell sx={{ width: "45%", minWidth: 160 }}>
                       <Box data-color-mode={theme.palette.mode}>
                         <MDEditor
                           value={step.description || ""}
@@ -151,7 +109,7 @@ const TestStepsTable = ({
                             )
                           }
                           preview="live"
-                          height={200}
+                          height={100}
                           textareaProps={{
                             placeholder: t(
                               "testcase.form.stepDescription",
@@ -169,7 +127,7 @@ const TestStepsTable = ({
                         />
                       </Box>
                     </TableCell>
-                    <TableCell sx={{ width: "44%", minWidth: 120 }}>
+                    <TableCell sx={{ width: "45%", minWidth: 160 }}>
                       <Box data-color-mode={theme.palette.mode}>
                         <MDEditor
                           value={step.expectedResult || ""}
@@ -181,7 +139,7 @@ const TestStepsTable = ({
                             )
                           }
                           preview="live"
-                          height={200}
+                          height={100}
                           textareaProps={{
                             placeholder: t(
                               "testcase.form.expectedResult",
