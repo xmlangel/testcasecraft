@@ -6,6 +6,7 @@ import {
   getAllDescendants,
 } from "../../../utils/treeUtils.jsx";
 import { isViewer, canAdd as checkCanAdd } from "../utils/permissionUtils.js";
+import apiService from "../../../services/apiService.js";
 
 /**
  * 테스트케이스 CRUD, 순서, 버전 히스토리 액션을 처리하는 커스텀 훅
@@ -361,6 +362,66 @@ export const useTestCaseActions = ({
     await fetchProjectTestCases(projectId);
   }, [fetchProjectTestCases, projectId]);
 
+  // ── DnD 이동 (단건/배치) ──────────────────────────────────────────────────
+  // 설계: docs/plan/TREE_DND_REORGANIZE_PLAN.md
+  // 백엔드: POST /api/testcases/{id}/move 또는 POST /api/testcases/move-batch
+
+  const moveNodes = useCallback(
+    async ({ ids, targetParentId, beforeId, afterId }) => {
+      if (isViewer(user?.role)) return;
+      if (!ids || ids.length === 0) return;
+      if (beforeId && afterId) {
+        setErrorMessage("beforeId와 afterId는 동시에 지정할 수 없습니다.");
+        return;
+      }
+
+      try {
+        if (ids.length === 1) {
+          const id = ids[0];
+          const body = { targetParentId: targetParentId ?? null };
+          if (beforeId) body.beforeId = beforeId;
+          if (afterId) body.afterId = afterId;
+          const res = await apiService.post(`/api/testcases/${id}/move`, body);
+          // Response 객체 - 본문 소비는 선택. 새로고침으로 정합성 확보.
+          if (res && typeof res.json === "function") {
+            try {
+              await res.json();
+            } catch {
+              // 본문이 없어도 무시
+            }
+          }
+        } else {
+          const body = {
+            ids,
+            targetParentId: targetParentId ?? null,
+          };
+          if (beforeId) body.beforeId = beforeId;
+          if (afterId) body.afterId = afterId;
+          const res = await apiService.post("/api/testcases/move-batch", body);
+          if (res && typeof res.json === "function") {
+            try {
+              await res.json();
+            } catch {
+              // ignore
+            }
+          }
+        }
+        // 서버 상태로 트리 재동기화 (낙관적 업데이트는 호출자가 미리 적용)
+        await fetchProjectTestCases(projectId);
+      } catch (err) {
+        // apiService.ApiError는 message에 백엔드 에러 메시지를 담는다
+        const msg =
+          err?.message ||
+          t("testcase.tree.error.moveFailed", "이동에 실패했습니다.");
+        setErrorMessage(msg);
+        // 실패 시 서버 상태로 강제 복원
+        await fetchProjectTestCases(projectId);
+        throw err;
+      }
+    },
+    [user?.role, projectId, fetchProjectTestCases, t],
+  );
+
   // ── 버전 히스토리 ─────────────────────────────────────────────────────────
 
   const handleOpenVersionHistory = useCallback(
@@ -491,6 +552,7 @@ export const useTestCaseActions = ({
     handleRefresh,
     handleOpenVersionHistory,
     handleVersionRestore,
+    moveNodes,
 
     // 헬퍼
     getBatchDeleteItems,

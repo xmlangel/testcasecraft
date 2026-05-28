@@ -328,7 +328,10 @@ public class GlobalExceptionHandler {
 
     ErrorResponse response =
         new ErrorResponse(
-            "DATA_CONFLICT", friendlyMessage, LocalDateTime.now(), details.isEmpty() ? null : details);
+            "DATA_CONFLICT",
+            friendlyMessage,
+            LocalDateTime.now(),
+            details.isEmpty() ? null : details);
     return new ResponseEntity<>(response, HttpStatus.CONFLICT);
   }
 

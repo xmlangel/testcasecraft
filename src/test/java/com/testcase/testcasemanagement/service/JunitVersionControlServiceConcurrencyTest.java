@@ -47,7 +47,10 @@ public class JunitVersionControlServiceConcurrencyTest {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
     inject(service, "objectMapper", objectMapper);
-    inject(service, "clock", Clock.fixed(java.time.Instant.parse("2026-05-16T00:00:00Z"), ZoneOffset.UTC));
+    inject(
+        service,
+        "clock",
+        Clock.fixed(java.time.Instant.parse("2026-05-16T00:00:00Z"), ZoneOffset.UTC));
 
     tempVersionDir = Files.createTempDirectory("junit-version-test-");
     tempBackupDir = Files.createTempDirectory("junit-backup-test-");
@@ -71,16 +74,15 @@ public class JunitVersionControlServiceConcurrencyTest {
     Files.deleteIfExists(tempOriginalFile);
   }
 
-  /**
-   * 동일 testResultId 에 10개 스레드가 동시 createVersion 호출 시, 모든 버전 번호가 1~10으로 중복 없이 발급되어야 한다.
-   */
+  /** 동일 testResultId 에 10개 스레드가 동시 createVersion 호출 시, 모든 버전 번호가 1~10으로 중복 없이 발급되어야 한다. */
   @Test
   public void createVersion_concurrentCalls_yieldsUniqueVersionNumbers() throws Exception {
     final int threadCount = 10;
     final String testResultId = "concurrent-test-result-1";
     Set<Integer> assignedNumbers = java.util.Collections.synchronizedSet(new HashSet<>());
     AtomicInteger failureCount = new AtomicInteger();
-    java.util.List<Throwable> failures = java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+    java.util.List<Throwable> failures =
+        java.util.Collections.synchronizedList(new java.util.ArrayList<>());
 
     ExecutorService pool = Executors.newFixedThreadPool(threadCount);
     CountDownLatch ready = new CountDownLatch(threadCount);
@@ -126,9 +128,7 @@ public class JunitVersionControlServiceConcurrencyTest {
             + " getNextVersionNumber race is still present");
   }
 
-  /**
-   * 서로 다른 testResultId 호출은 락이 분리되어 병렬 처리되어야 한다 (락 분리 검증).
-   */
+  /** 서로 다른 testResultId 호출은 락이 분리되어 병렬 처리되어야 한다 (락 분리 검증). */
   @Test
   public void createVersion_differentIds_areIndependent() throws Exception {
     final int idCount = 5;
@@ -142,8 +142,7 @@ public class JunitVersionControlServiceConcurrencyTest {
         pool.submit(
             () -> {
               try {
-                service.createVersion(
-                    testResultId, tempOriginalFile.toString(), "edit", "user");
+                service.createVersion(testResultId, tempOriginalFile.toString(), "edit", "user");
               } catch (Exception ignored) {
                 // 실패는 다음 assertion 에서 잡힌다
               } finally {

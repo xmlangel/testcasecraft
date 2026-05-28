@@ -91,7 +91,8 @@ public class GlobalExceptionHandlerTest {
 
   @Test
   public void handleDataIntegrityViolation_notNull_returnsRequiredFieldMessage() {
-    String pgMessage = "null value in column \"email\" of relation \"users\" violates not-null constraint";
+    String pgMessage =
+        "null value in column \"email\" of relation \"users\" violates not-null constraint";
     ResponseEntity<ErrorResponse> resp =
         handler.handleDataIntegrityViolation(new DataIntegrityViolationException(pgMessage));
 
@@ -101,7 +102,8 @@ public class GlobalExceptionHandlerTest {
   @Test
   public void handleDataIntegrityViolation_unknownReason_returnsGenericMessage() {
     ResponseEntity<ErrorResponse> resp =
-        handler.handleDataIntegrityViolation(new DataIntegrityViolationException("some opaque DB error"));
+        handler.handleDataIntegrityViolation(
+            new DataIntegrityViolationException("some opaque DB error"));
 
     assertEquals(resp.getBody().getMessage(), "데이터 무결성 위반이 발생했습니다. 입력값을 확인해주세요.");
   }

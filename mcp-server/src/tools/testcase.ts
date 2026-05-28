@@ -48,6 +48,20 @@ const CreateOrUpdateInput = z.object({
 const MoveInput = z.object({
   id: z.string().min(1, "테스트케이스 ID 필수"),
   parentId: z.string().min(1, "상위 항목 ID 필수"),
+  // Phase 1 DnD: 같은 부모 내 순서 변경에 사용. beforeId/afterId는 둘 중 하나만 지정 가능.
+  beforeId: z.string().min(1).optional(),
+  afterId: z.string().min(1).optional(),
+});
+
+const MoveBatchInput = z.object({
+  ids: z
+    .array(z.string().min(1))
+    .min(1, "ids는 최소 1개 필요")
+    .max(500, "한 번에 최대 500개까지 이동"),
+  // null이면 루트로 이동
+  targetParentId: z.string().min(1).nullable().optional(),
+  beforeId: z.string().min(1).optional(),
+  afterId: z.string().min(1).optional(),
 });
 
 const VersionsInput = z.object({
@@ -88,8 +102,17 @@ export const testcaseTools: Tool[] = [
   {
     name: "testcase_move",
     description:
-      "테스트 케이스를 다른 계층 위치로 이동한다. '테스트케이스 이동', 'TC를 폴더로 이동' 같은 요청 시 사용.",
+      "테스트 케이스를 다른 계층 위치로 이동한다. '테스트케이스 이동', 'TC를 폴더로 이동' 같은 요청 시 사용. " +
+      "beforeId 또는 afterId로 같은 부모 내 형제 사이 삽입 위치 지정 가능 (둘 중 하나만).",
     inputSchema: zodToJsonSchema(MoveInput) as any,
+  },
+  {
+    name: "testcase_move_batch",
+    description:
+      "여러 테스트 케이스를 한 번에 같은 부모로 이동한다 (DnD 다중 선택). ids 배열 순서대로 같은 부모에 displayOrder가 부여되며, " +
+      "하나라도 실패하면 전체 롤백된다. targetParentId가 null이면 루트로 이동. " +
+      "beforeId 또는 afterId로 형제 사이 삽입 위치 지정 가능.",
+    inputSchema: zodToJsonSchema(MoveBatchInput) as any,
   },
   {
     name: "testcase_versions",
@@ -150,9 +173,32 @@ export const testcaseHandlers: Record<
 
   testcase_move: async (args: unknown) => {
     const input = MoveInput.parse(args);
-    const res = await httpClient.post(`/api/testcases/${input.id}/move`, {
+    if (input.beforeId && input.afterId) {
+      throw new Error("beforeId와 afterId는 동시에 지정할 수 없습니다");
+    }
+    const body: Record<string, unknown> = {
+      // 백엔드는 새 엔드포인트에서 targetParentId를 기대하며, 옛 호출자 호환을 위해 parentId도 함께 전송
+      targetParentId: input.parentId,
       parentId: input.parentId,
-    });
+    };
+    if (input.beforeId) body.beforeId = input.beforeId;
+    if (input.afterId) body.afterId = input.afterId;
+    const res = await httpClient.post(`/api/testcases/${input.id}/move`, body);
+    return res.data;
+  },
+
+  testcase_move_batch: async (args: unknown) => {
+    const input = MoveBatchInput.parse(args);
+    if (input.beforeId && input.afterId) {
+      throw new Error("beforeId와 afterId는 동시에 지정할 수 없습니다");
+    }
+    const body: Record<string, unknown> = {
+      ids: input.ids,
+      targetParentId: input.targetParentId ?? null,
+    };
+    if (input.beforeId) body.beforeId = input.beforeId;
+    if (input.afterId) body.afterId = input.afterId;
+    const res = await httpClient.post(`/api/testcases/move-batch`, body);
     return res.data;
   },
 

@@ -1,5 +1,14 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  pointerWithin,
+} from "@dnd-kit/core";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useProject } from "../context/ProjectContext.jsx";
 import { useTest } from "../context/TestContext.jsx";
@@ -7,7 +16,11 @@ import { useInputMode } from "../context/InputModeContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { isViewer } from "./TestCaseTree/utils/permissionUtils.js";
 import { countTestCasesRecursive } from "./TestCaseTree/utils/treeOperations.js";
-import { isFolder, listToTree } from "../utils/treeUtils.jsx";
+import {
+  isFolder,
+  listToTree,
+  getAllDescendants,
+} from "../utils/treeUtils.jsx";
 
 // 훅
 import { useTestCaseTree } from "./TestCaseTree/hooks/useTestCaseTree.jsx";
@@ -104,6 +117,90 @@ const TestCaseTree = ({
     expanded: treeState.expanded,
     newItemData: actions.newItemData,
   });
+
+  // ── 4.5. DnD 센서 + 핸들러 ─────────────────────────────────────────────────
+  // 설계: docs/plan/TREE_DND_REORGANIZE_PLAN.md
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  const [activeDragId, setActiveDragId] = useState(null);
+
+  const activeDragNode = useMemo(() => {
+    if (!activeDragId) return null;
+    return (
+      treeState.filteredTestCases.find((tc) => tc.id === activeDragId) || null
+    );
+  }, [activeDragId, treeState.filteredTestCases]);
+
+  const handleDragStart = useCallback((event) => {
+    const id = event?.active?.data?.current?.nodeId;
+    if (id) setActiveDragId(id);
+  }, []);
+
+  const handleDragCancel = useCallback(() => setActiveDragId(null), []);
+
+  const handleDragEnd = useCallback(
+    async (event) => {
+      setActiveDragId(null);
+      const { active, over } = event || {};
+      if (!active || !over) return;
+      const sourceId = active.data?.current?.nodeId;
+      const drop = over.data?.current;
+      if (!sourceId || !drop) return;
+
+      // 다중 선택 묶음 결정: 활성 노드가 checkedIds에 포함되면 묶음 전체, 아니면 단일
+      let ids = [sourceId];
+      if (
+        treeState.checkedIds &&
+        treeState.checkedIds.length > 0 &&
+        treeState.checkedIds.includes(sourceId)
+      ) {
+        ids = [...treeState.checkedIds];
+      }
+
+      // 자기 자신/후손 차단 (프론트 사전 가드, 백엔드도 동일 검증)
+      const allBlocked = new Set();
+      ids.forEach((id) => {
+        allBlocked.add(id);
+        const descendants = getAllDescendants(treeState.filteredTestCases, id);
+        descendants.forEach((d) => allBlocked.add(d.id));
+      });
+
+      let targetParentId = null;
+      let beforeId;
+      let afterId;
+      if (drop.kind === "into") {
+        targetParentId = drop.nodeId;
+      } else if (drop.kind === "before") {
+        targetParentId = drop.parentId ?? null;
+        beforeId = drop.nodeId;
+      } else if (drop.kind === "after") {
+        targetParentId = drop.parentId ?? null;
+        afterId = drop.nodeId;
+      } else {
+        return;
+      }
+
+      // 자기/후손 위 드롭 거부
+      if (targetParentId && allBlocked.has(targetParentId)) return;
+      if (beforeId && allBlocked.has(beforeId)) return;
+      if (afterId && allBlocked.has(afterId)) return;
+
+      try {
+        await actions.moveNodes({
+          ids,
+          targetParentId,
+          beforeId,
+          afterId,
+        });
+      } catch {
+        // moveNodes에서 errorMessage 세팅 + 서버 재동기화
+      }
+    },
+    [actions, treeState.checkedIds, treeState.filteredTestCases],
+  );
 
   // ── 5. 핸들러 래퍼 ────────────────────────────────────────────────────────
   const handleOpenAddMenu = useCallback(
@@ -270,7 +367,41 @@ const TestCaseTree = ({
       {/* 구분선 */}
       <Box sx={{ borderBottom: 1, borderColor: "divider", mx: 2 }} />
 
-      {content}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={pointerWithin}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        {content}
+        <DragOverlay dropAnimation={null}>
+          {activeDragNode ? (
+            <Box
+              sx={{
+                px: 1,
+                py: 0.5,
+                bgcolor: "background.paper",
+                border: 1,
+                borderColor: "primary.main",
+                borderRadius: 1,
+                boxShadow: 3,
+                fontSize: 14,
+                fontWeight: 600,
+                maxWidth: 320,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {treeState.checkedIds?.length > 1 &&
+              treeState.checkedIds.includes(activeDragNode.id)
+                ? `${activeDragNode.name} 외 ${treeState.checkedIds.length - 1}개`
+                : activeDragNode.name}
+            </Box>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* 컨텍스트 메뉴 */}
       {!selectable && !isViewer(user?.role) && (

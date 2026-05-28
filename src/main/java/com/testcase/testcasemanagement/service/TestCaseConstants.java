@@ -5,8 +5,8 @@ package com.testcase.testcasemanagement.service;
 /**
  * TestCase 도메인 전용 상수.
  *
- * <p>{@link TestCaseService} 전반에서 반복되던 매직 스트링/넘버를 중앙화한다. 의미가 같은 문자열이 코드 곳곳에 흩어져 있던 문제를 해소하고, 값 변경
- * 시 영향 범위를 한 파일로 제한한다.
+ * <p>{@link TestCaseService} 전반에서 반복되던 매직 스트링/넘버를 중앙화한다. 의미가 같은 문자열이 코드 곳곳에 흩어져 있던 문제를 해소하고, 값 변경 시
+ * 영향 범위를 한 파일로 제한한다.
  */
 public final class TestCaseConstants {
 
@@ -32,8 +32,7 @@ public final class TestCaseConstants {
   public static final String PG_UNIQUE_VIOLATION_SQLSTATE = "23505";
 
   /** TestCase displayOrder 유니크 제약 이름. */
-  public static final String DISPLAY_ORDER_UNIQUE_CONSTRAINT =
-      "UKL7WIR8HGJNYHVRMU717NSRTYY";
+  public static final String DISPLAY_ORDER_UNIQUE_CONSTRAINT = "UKL7WIR8HGJNYHVRMU717NSRTYY";
 
   private TestCaseConstants() {
     // utility class

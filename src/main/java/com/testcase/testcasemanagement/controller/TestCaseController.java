@@ -9,12 +9,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.ExportRequestDto;
 import com.testcase.testcasemanagement.dto.ImportValidationResultDto;
 import com.testcase.testcasemanagement.dto.TestCaseDto;
+import com.testcase.testcasemanagement.dto.TestCaseMoveBatchRequest;
+import com.testcase.testcasemanagement.dto.TestCaseMoveRequest;
+import com.testcase.testcasemanagement.dto.TestCaseMoveResultDto;
 import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.service.TestCaseAiGenerationService;
 import com.testcase.testcasemanagement.service.TestCaseService;
+import com.testcase.testcasemanagement.service.TestCaseTreeMoveService;
+import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.CrossProjectMoveException;
+import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.MoveForbiddenException;
+import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.MoveNotFoundException;
+import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.MoveValidationException;
+import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.SystemFolderProtectedException;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,14 +53,80 @@ public class TestCaseController {
   private final TestCaseService testCaseService;
   private final ObjectMapper objectMapper;
   private final TestCaseAiGenerationService testCaseAiGenerationService;
+  private final TestCaseTreeMoveService testCaseTreeMoveService;
 
   public TestCaseController(
       TestCaseService testCaseService,
       ObjectMapper objectMapper,
-      TestCaseAiGenerationService testCaseAiGenerationService) {
+      TestCaseAiGenerationService testCaseAiGenerationService,
+      TestCaseTreeMoveService testCaseTreeMoveService) {
     this.testCaseService = testCaseService;
     this.objectMapper = objectMapper;
     this.testCaseAiGenerationService = testCaseAiGenerationService;
+    this.testCaseTreeMoveService = testCaseTreeMoveService;
+  }
+
+  // ==================== Tree Drag-and-Drop Move APIs ====================
+  // 설계: docs/plan/TREE_DND_REORGANIZE_PLAN.md
+  // 기존 PUT /api/testcases/{id} 의 parentId 변경 경로는 그대로 유지되며,
+  // 이 두 엔드포인트는 트리 DnD 전용 진입점으로 audit log를 남긴다.
+
+  @Operation(
+      summary = "테스트케이스 단건 이동 (DnD)",
+      description =
+          "트리 드래그앤드롭으로 폴더/케이스를 다른 부모로 이동하거나 같은 부모 내 순서를 변경합니다. beforeId/afterId 중 하나만 지정 가능. 모두"
+              + " null이면 자식 끝에 추가.")
+  @PostMapping("/{id}/move")
+  public ResponseEntity<?> moveTestCase(
+      @PathVariable String id, @RequestBody TestCaseMoveRequest request) {
+    try {
+      TestCaseMoveResultDto result = testCaseTreeMoveService.move(id, request);
+      return ResponseEntity.ok(result);
+    } catch (MoveValidationException e) {
+      log.warn("move 검증 실패: id={}, msg={}", id, e.getMessage());
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    } catch (MoveNotFoundException e) {
+      log.warn("move 대상 없음: id={}, msg={}", id, e.getMessage());
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    } catch (MoveForbiddenException e) {
+      log.warn("move 권한 없음: id={}, msg={}", id, e.getMessage());
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+    } catch (CrossProjectMoveException | SystemFolderProtectedException e) {
+      log.warn("move 충돌: id={}, msg={}", id, e.getMessage());
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    } catch (Exception e) {
+      log.error("move 실패: id={}", id, e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "서버 오류", "message", e.getMessage()));
+    }
+  }
+
+  @Operation(
+      summary = "테스트케이스 배치 이동 (DnD)",
+      description =
+          "다중 선택한 노드를 한 번의 트랜잭션으로 같은 부모로 이동합니다. ids 순서대로 displayOrder를 부여하며, 하나라도 실패하면 전체 롤백됩니다.")
+  @PostMapping("/move-batch")
+  public ResponseEntity<?> moveBatchTestCases(@RequestBody TestCaseMoveBatchRequest request) {
+    try {
+      TestCaseMoveResultDto result = testCaseTreeMoveService.moveBatch(request);
+      return ResponseEntity.ok(result);
+    } catch (MoveValidationException e) {
+      log.warn("move-batch 검증 실패: msg={}", e.getMessage());
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    } catch (MoveNotFoundException e) {
+      log.warn("move-batch 대상 없음: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    } catch (MoveForbiddenException e) {
+      log.warn("move-batch 권한 없음: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+    } catch (CrossProjectMoveException | SystemFolderProtectedException e) {
+      log.warn("move-batch 충돌: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    } catch (Exception e) {
+      log.error("move-batch 실패", e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "서버 오류", "message", e.getMessage()));
+    }
   }
 
   @Operation(summary = "모든 테스트케이스 조회", description = "시스템의 모든 테스트케이스를 조회합니다.")
