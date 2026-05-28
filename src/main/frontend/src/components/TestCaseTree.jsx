@@ -116,6 +116,7 @@ const TestCaseTree = ({
     treeData,
     expanded: treeState.expanded,
     newItemData: actions.newItemData,
+    orderMap: actions.orderMap,
   });
 
   // ── 4.5. DnD 센서 + 핸들러 ─────────────────────────────────────────────────

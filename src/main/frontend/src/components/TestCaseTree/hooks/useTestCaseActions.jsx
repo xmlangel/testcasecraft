@@ -347,6 +347,8 @@ export const useTestCaseActions = ({
     if (updates.length > 0) {
       try {
         await Promise.all(updates);
+        // 서버의 최종 displayOrder 로 트리 재동기화 (모든 sibling 반영 보장)
+        await fetchProjectTestCases(projectId);
       } catch (error) {
         // 에러는 updateTestCase 내부에서 처리
       }
@@ -354,7 +356,14 @@ export const useTestCaseActions = ({
 
     setOrderEditMode(false);
     setOrderChanged(false);
-  }, [user?.role, filteredTestCases, orderMap, updateTestCase]);
+  }, [
+    user?.role,
+    filteredTestCases,
+    orderMap,
+    updateTestCase,
+    fetchProjectTestCases,
+    projectId,
+  ]);
 
   // ── 새로고침 ──────────────────────────────────────────────────────────────
 
