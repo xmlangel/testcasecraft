@@ -100,15 +100,8 @@ const TestCaseFormHeader = ({
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="h6" sx={{ mb: 0 }}>
-            {isFolder
-              ? testCaseId
-                ? t("testcase.form.folder.edit", "테스트 폴더 수정")
-                : t("testcase.form.folder.create", "테스트 폴더 생성")
-              : testCaseId
-                ? t("testcase.form.title.edit", "테스트케이스 수정")
-                : t("testcase.form.title.create", "테스트케이스 생성")}
-          </Typography>
+          {/* 컨텍스트 타이틀(H6) 제거 — 폼이 열린 자체가 모드 표시,
+              displayId Chip 으로 어떤 항목 편집 중인지 식별 가능. */}
           {testCase?.displayId && (
             <Chip
               label={testCase.displayId}
