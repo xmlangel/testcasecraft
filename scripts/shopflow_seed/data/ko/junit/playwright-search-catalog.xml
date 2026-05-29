@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Playwright E2E - 카탈로그·검색" tests="10" failures="0" errors="0" skipped="1" time="92.118">
+  <testsuite name="catalog.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="48.221" timestamp="2026-05-28T23:02:11">
+    <properties>
+      <property name="browser" value="webkit"/>
+      <property name="playwright.version" value="1.42.1"/>
+      <property name="env" value="staging"/>
+    </properties>
+    <testcase classname="catalog" name="카테고리 트리 4depth 표시" time="7.443"/>
+    <testcase classname="catalog" name="상품 상세 LCP &lt; 2.5s 목표" time="11.220"/>
+    <testcase classname="catalog" name="옵션 변경 시 SKU 가격/재고 갱신" time="9.882"/>
+    <testcase classname="catalog" name="재고 0 SKU 품절 표시 + 담기 차단" time="8.881"/>
+    <testcase classname="catalog" name="이미지 갤러리 핀치 줌 (모바일)" time="10.795"/>
+  </testsuite>
+  <testsuite name="search.spec.ts" tests="5" failures="0" errors="0" skipped="1" time="43.897" timestamp="2026-05-28T23:03:01">
+    <testcase classname="search" name="키워드 검색 정상 매칭" time="5.220"/>
+    <testcase classname="search" name="자동완성 3글자 트리거" time="6.882"/>
+    <testcase classname="search" name="가격대 필터 슬라이더 동작" time="9.443"/>
+    <testcase classname="search" name="XSS 입력 차단 (스크립트 이스케이프)" time="7.992"/>
+    <testcase classname="search" name="검색 오타 보정 - did you mean 추천" time="14.360">
+      <skipped message="추천 엔진 API 비활성 환경 - 다음 회차에서 재실행"/>
+    </testcase>
+  </testsuite>
+</testsuites>

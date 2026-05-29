@@ -99,3 +99,29 @@ All detailed project overview, architecture, development workflow, and testing g
 | 2026-05-22 | testcase DTO 빌드 패턴 정형화 (fence 자동 감지, Expected/Actual 두 섹션)   | `.claude/skills/testcasecraft-sheet-import/references/dto-builder-patterns.md`                                                                      | PL/SQL(BEGIN/DECLARE)는 ```plsql, 일반 SQL은 ```sql 자동 fence. expected==actual이면 한 섹션 통합. description은 markdown list로 단일 \n GFM 줄바꿈 한계 회피. expectedResults(top)는 평문 ``` 코드블록으로 줄바꿈 보존.                                                       |
 | 2026-05-22 | 멱등 태그 정책 표준화 (`{op}-vN`)                                          | `.claude/skills/testcasecraft-bulk-operations/references/idempotent-tag-policy.md`                                                                  | 199-case 작업의 v1→v5 진화 경험에서 도출. transform 적용 후 새 태그 추가하고 이전 버전 태그를 제거하는 cleanup 룰. 부분 실패 후 재실행이 "중간부터" 자동 재개되도록 skip 검사 자동화.                                                                                          |
 | 2026-05-22 | tmp/2026-05-22-extensions-mcp-import/ 보존 결정                            | tmp/                                                                                                                                                | 새 스킬들의 live 예제로 보존. xlsx/extracted_cases.json/plan-equivalent/import_result.json/스크립트 v1~v5 모두 git-ignore된 디렉터리에 남겨 다음 임포트 시 빠른 참조 가능.                                                                                                      |
+
+---
+
+## 하네스: 매뉴얼 캡처 & 동기화
+
+**목표:** testcasecraft 사용자 매뉴얼(`docs/manual/new/USER_MANUAL.md` + `docs/manual/*.md`)을 코드·UI 변경에 맞춰 지속 동기화한다. Playwright Python으로 스크린샷을 재캡처하고, 앱의 실제 라우트 vs 매뉴얼이 언급한 경로 커버리지를 감사하며, manual-writer-agent가 본문을 부분 패치한다. **매뉴얼은 73장 고정이 아니라 점진적으로 성장하는 자산** — 새 페이지/기능 추가 시 STEPS 와 §X-N 섹션을 함께 신설하여 시스템이 매뉴얼과 같이 진화한다.
+
+**트리거:** "매뉴얼 갱신", "사용자 매뉴얼 업데이트", "매뉴얼 캡처 + 동기화", "스크린샷 + 본문 같이", "릴리즈 전 매뉴얼 점검", "이미지 다시 찍고 본문도", "새 페이지 매뉴얼에 추가", "manual 워크플로우 다시" 등 캡처+동기화 통합 의도 시 `manual-capture-orchestrator` 스킬을 사용하라. 캡처만 단독은 `manual-capture`, 본문만 단독은 `manual-sync`, 단순 페이지 캡처(매뉴얼 무관)는 직접 Playwright.
+
+**구성:**
+- 오케스트레이터: `.claude/skills/manual-capture-orchestrator/SKILL.md` — 5-Phase 흐름(컨텍스트→환경→캡처+감사→STEPS확장→본문동기화→검증)
+- 캡처 스킬: `.claude/skills/manual-capture/SKILL.md` (+ `references/steps-extension.md`)
+- 동기화 스킬: `.claude/skills/manual-sync/SKILL.md`
+- 본문 패치 에이전트: `.claude/agents/manual-writer-agent.md` (general-purpose, opus)
+- 실제 캡처 엔진: `scripts/manual_capture.py` (Playwright Python, 검증된 530줄)
+- 산출물 컨벤션: `_workspace/manual-capture/run-{YYYY-MM-DD}/{capture_and_audit.log, audit_report.txt, steps_added.md, manual_diff.md, verification.md}`
+
+**실행 모드:** 메인 LLM 단독(Phase 0~2, 4~5) + manual-writer-agent 서브 에이전트(Phase 3, 선택). 결정론적 스크립트가 중심이라 팀 통신 오버헤드 없는 가벼운 구조.
+
+**감사 매처 규약:** 매뉴얼이 백틱 안에 명시한 경로(`/projects`, `/dashboard`)만 추출 → 앱 크롤 결과와 diff. 본문이 다루더라도 백틱 없으면 누락으로 보고됨 — manual-sync 가 URL 한 줄 보강으로 해소.
+
+**변경 이력:**
+
+| 날짜 | 변경 내용 | 대상 | 사유 |
+|------|----------|------|------|
+| 2026-05-28 | 초기 구성 (스킬 3개 + 에이전트 1명 + scripts/manual_capture.py 자산화) | `.claude/skills/manual-{capture-orchestrator,capture,sync}/`, `.claude/agents/manual-writer-agent.md`, `scripts/manual_capture.py` | 2026-05-27 매뉴얼 v1 캡처 시 사용한 일회성 Playwright Python 스크립트를 영구 자산화. 73 STEPS 정의 + JWT(localStorage) Bearer 첨부 + storage_state 재사용 + SPA networkidle 회피 + 감사 모드(매뉴얼 백틱 경로 vs 앱 크롤 diff)를 검증 완료. 매뉴얼이 점진적으로 성장하도록 Phase 3 에서 신규 페이지 발견 시 STEPS 확장 + §X-N 섹션 신설을 함께 제안하는 흐름 포함. 실행 검증: 캡처 8장 OK + 감사 17 경로 추출 OK. |

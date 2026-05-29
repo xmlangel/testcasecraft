@@ -26,6 +26,7 @@ import {
   Checkbox,
   Tabs,
   Tab,
+  Grid,
 } from "@mui/material";
 import {
   Save as SaveVersionIcon,
@@ -37,6 +38,9 @@ import { useAppContext } from "../context/AppContext.jsx";
 import { createTestStep } from "../models/testCase.jsx";
 import TestCaseVersionHistory from "./TestCase/TestCaseVersionHistory.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import FieldVisibilityMenu from "./TestCase/FieldVisibilityMenu.jsx";
+import { useFieldVisibility } from "./TestCase/useFieldVisibility.jsx";
+import { useUiPreference } from "./TestCase/useUiPreference.jsx";
 import TestCaseAttachments from "./TestCase/TestCaseAttachments.jsx";
 import { useRAG } from "../context/RAGContext.jsx";
 import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
@@ -112,12 +116,19 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [linkedDocuments, setLinkedDocuments] = useState([]);
   const [tabValue, setTabValue] = useState(0);
 
+  // 필드 표시 여부 (localStorage 영속화)
+  const {
+    visibility: fieldVisibility,
+    toggle: toggleFieldVisibility,
+    setAll: setAllFieldVisibility,
+    reset: resetFieldVisibility,
+  } = useFieldVisibility();
+
   // AI 메타 생성 상태
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [isLlmAvailable, setIsLlmAvailable] = useState(false);
-  const [autoAiMode, setAutoAiMode] = useState(() => {
-    return localStorage.getItem("testcase-ai-auto-mode") === "true";
-  });
+  // AI 입력 모드 — 사용자별 서버 저장 (useUiPreference 가 localStorage 캐시 + PATCH 동기화)
+  const [autoAiMode, setAutoAiMode] = useUiPreference("autoAiMode", false);
   const autoAiDebounceRef = useRef(null);
   const prevStepsLengthRef = useRef(0);
   const isAiGeneratingRef = useRef(false);
@@ -619,11 +630,13 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
 
   // ======================== AI 메타 생성 ========================
 
-  /** 자동/수동 모드 토글 - localStorage에 저장 */
-  const handleAutoAiModeChange = useCallback((enabled) => {
-    setAutoAiMode(enabled);
-    localStorage.setItem("testcase-ai-auto-mode", String(enabled));
-  }, []);
+  /** 자동/수동 모드 토글 - useUiPreference 가 서버·캐시 동기화 처리 */
+  const handleAutoAiModeChange = useCallback(
+    (enabled) => {
+      setAutoAiMode(Boolean(enabled));
+    },
+    [setAutoAiMode],
+  );
 
   /** AI 메타 생성 API 호출 */
   const handleAiGenerateMeta = useCallback(async () => {
@@ -1257,34 +1270,26 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           onAddNew={handleAddNew}
           autoSaveStatus={autoSaveStatus}
           autoSaveError={autoSaveError}
+          /* RAG 등록 뱃지를 헤더 액션 행에 인라인 배치 — 별도 행 제거로 본문 영역 확보 */
+          ragSlot={
+            testCaseId && !isFolder ? (
+              <RagStatusBadge
+                testCaseId={testCaseId}
+                ragVectorized={testCase?.ragVectorized}
+                isLlmAvailable={isLlmAvailable}
+                isFolder={isFolder}
+                api={api}
+                onVectorized={(success) => {
+                  if (success) {
+                    setTestCase((prev) =>
+                      prev ? { ...prev, ragVectorized: true } : prev,
+                    );
+                  }
+                }}
+              />
+            ) : null
+          }
         />
-
-        {/* RAG 벡터화 상태 뱃지 - LLM 활성화 + 기존 테스트케이스일 때만 표시 */}
-        {testCaseId && !isFolder && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-start",
-              mb: 1,
-              ml: 0.5,
-            }}
-          >
-            <RagStatusBadge
-              testCaseId={testCaseId}
-              ragVectorized={testCase?.ragVectorized}
-              isLlmAvailable={isLlmAvailable}
-              isFolder={isFolder}
-              api={api}
-              onVectorized={(success) => {
-                if (success) {
-                  setTestCase((prev) =>
-                    prev ? { ...prev, ragVectorized: true } : prev,
-                  );
-                }
-              }}
-            />
-          </Box>
-        )}
 
         {inlineImageUploading && (
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -1296,13 +1301,22 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         )}
 
         <Box sx={{ width: "100%", mt: 2 }}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Box
+            sx={{
+              borderBottom: 1,
+              borderColor: "divider",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <Tabs
               value={tabValue}
               onChange={handleTabChange}
               aria-label="testcase detail tabs"
               variant="scrollable"
               scrollButtons="auto"
+              sx={{ flex: 1, minWidth: 0 }}
             >
               <Tab
                 label={t("testcase.tabs.details", "상세 정보")}
@@ -1331,96 +1345,126 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                 />
               )}
             </Tabs>
+            {/* 필드 표시 토글 메뉴 (상세 정보 탭에서만 의미 있음) */}
+            {tabValue === 0 && (
+              <Box sx={{ pr: 1, flexShrink: 0 }}>
+                <FieldVisibilityMenu
+                  visibility={fieldVisibility}
+                  toggle={toggleFieldVisibility}
+                  setAll={setAllFieldVisibility}
+                  reset={resetFieldVisibility}
+                  t={t}
+                />
+              </Box>
+            )}
           </Box>
 
           {/* 상세 정보 탭 */}
           <TabPanel value={tabValue} index={0}>
-            <TestCaseFormMetadata
-              testCase={testCase}
-              projectId={projectId}
-              infoOpen={infoOpen}
-              setInfoOpen={setInfoOpen}
-              isViewer={isViewer}
-              t={t}
-              onChange={handleChange}
-            />
+            {/* 2단 그리드 — 좌: 메타+조건 / 우: 스텝+기대결과 (md 이상에서 분할, 작은 화면은 자동 세로) */}
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TestCaseFormMetadata
+                  testCase={testCase}
+                  projectId={projectId}
+                  infoOpen={infoOpen}
+                  setInfoOpen={setInfoOpen}
+                  isViewer={isViewer}
+                  t={t}
+                  onChange={handleChange}
+                />
 
-            <TestCaseBasicInfo
-              testCase={testCase}
-              errors={errors}
-              availableTags={availableTags}
-              linkedDocuments={linkedDocuments}
-              ragDocuments={
-                isRagEnabled
-                  ? (ragState.documents || []).filter(
-                      (doc) => !doc.fileName?.startsWith("testcase_"),
-                    )
-                  : []
-              }
-              testCaseInfoOpen={testCaseInfoOpen}
-              setTestCaseInfoOpen={setTestCaseInfoOpen}
-              isViewer={isViewer}
-              t={t}
-              theme={theme}
-              onChange={handleChange}
-              onTestCaseChange={handleTestCaseChange}
-              onTagChange={(newValue) =>
-                setTestCase((prev) => ({ ...prev, tags: newValue }))
-              }
-              onLinkedDocumentsChange={setLinkedDocuments}
-              onMarkdownPaste={handleMarkdownPaste}
-              onAiGenerate={handleAiGenerateMeta}
-              isAiGenerating={isAiGenerating}
-              isLlmAvailable={isLlmAvailable && isRagEnabled}
-              autoAiMode={autoAiMode}
-              onAutoAiModeChange={handleAutoAiModeChange}
-            />
+                <TestCaseBasicInfo
+                  testCase={testCase}
+                  errors={errors}
+                  availableTags={availableTags}
+                  linkedDocuments={linkedDocuments}
+                  ragDocuments={
+                    isRagEnabled
+                      ? (ragState.documents || []).filter(
+                          (doc) => !doc.fileName?.startsWith("testcase_"),
+                        )
+                      : []
+                  }
+                  testCaseInfoOpen={testCaseInfoOpen}
+                  setTestCaseInfoOpen={setTestCaseInfoOpen}
+                  isViewer={isViewer}
+                  t={t}
+                  theme={theme}
+                  onChange={handleChange}
+                  onTestCaseChange={handleTestCaseChange}
+                  onTagChange={(newValue) =>
+                    setTestCase((prev) => ({ ...prev, tags: newValue }))
+                  }
+                  onLinkedDocumentsChange={setLinkedDocuments}
+                  onMarkdownPaste={handleMarkdownPaste}
+                  onAiGenerate={handleAiGenerateMeta}
+                  isAiGenerating={isAiGenerating}
+                  isLlmAvailable={isLlmAvailable && isRagEnabled}
+                  autoAiMode={autoAiMode}
+                  onAutoAiModeChange={handleAutoAiModeChange}
+                  visibility={fieldVisibility}
+                />
+              </Grid>
 
-            <Box sx={{ mt: 4, mb: 1 }}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                {t("testcase.sections.steps", "테스트 단계")}
-              </Typography>
-            </Box>
-            <TestStepsTable
-              steps={testCase.steps}
-              errors={errors}
-              isViewer={isViewer}
-              t={t}
-              theme={theme}
-              onAddStep={handleAddStep}
-              onDeleteStep={handleDeleteStep}
-              onMoveStep={handleMoveStep}
-              onStepMarkdownChange={handleStepMarkdownChange}
-              onMarkdownPaste={handleMarkdownPaste}
-            />
+              <Grid item xs={12} md={6}>
+                {/* 테스트 단계 — 좌측 Accordion 들과 시각 정합 (MD: subtitle2 헤더) */}
+                <Accordion defaultExpanded>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="subtitle2">
+                      {t("testcase.sections.steps", "테스트 단계")}
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <TestStepsTable
+                      steps={testCase.steps}
+                      errors={errors}
+                      isViewer={isViewer}
+                      t={t}
+                      theme={theme}
+                      onAddStep={handleAddStep}
+                      onDeleteStep={handleDeleteStep}
+                      onMoveStep={handleMoveStep}
+                      onStepMarkdownChange={handleStepMarkdownChange}
+                      onMarkdownPaste={handleMarkdownPaste}
+                    />
+                  </AccordionDetails>
+                </Accordion>
 
-            <Box sx={{ mt: 4, mb: 1 }}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                {t("testcase.sections.expectedResults", "기대 결과")}
-              </Typography>
-            </Box>
-            <MarkdownFieldEditor
-              label={t("testcase.form.expectedResults", "Expected Results")}
-              value={testCase.expectedResults || ""}
-              placeholder={t(
-                "testcase.form.overallExpectedResults",
-                "전체 예상 결과",
-              )}
-              height={250}
-              isViewer={isViewer}
-              theme={theme}
-              t={t}
-              onChange={(value) =>
-                handleTestCaseChange("expectedResults", value)
-              }
-              onPaste={(event) =>
-                handleMarkdownPaste(event, {
-                  type: "field",
-                  field: "expectedResults",
-                })
-              }
-              testid="testcase-overall-expected-input"
-            />
+                {/* 기대 결과 — 동일 Accordion 패턴으로 통일 */}
+                <Accordion defaultExpanded>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="subtitle2">
+                      {t("testcase.sections.expectedResults", "기대 결과")}
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <MarkdownFieldEditor
+                      label=""
+                      value={testCase.expectedResults || ""}
+                      placeholder={t(
+                        "testcase.form.overallExpectedResults",
+                        "전체 예상 결과",
+                      )}
+                      height={120}
+                      isViewer={isViewer}
+                      theme={theme}
+                      t={t}
+                      onChange={(value) =>
+                        handleTestCaseChange("expectedResults", value)
+                      }
+                      onPaste={(event) =>
+                        handleMarkdownPaste(event, {
+                          type: "field",
+                          field: "expectedResults",
+                        })
+                      }
+                      testid="testcase-overall-expected-input"
+                    />
+                  </AccordionDetails>
+                </Accordion>
+              </Grid>
+            </Grid>
           </TabPanel>
 
           {/* 첨부 파일 탭 */}

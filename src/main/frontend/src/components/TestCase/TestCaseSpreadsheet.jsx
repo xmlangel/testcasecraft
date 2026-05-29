@@ -1480,6 +1480,11 @@ const TestCaseSpreadsheet = ({
                 : "#fff",
             color: theme.palette.text.primary,
             borderColor: theme.palette.divider,
+            maxWidth: "30em",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            overflowWrap: "anywhere",
+            verticalAlign: "top",
           },
           "& .Spreadsheet__cell--readonly": {
             backgroundColor:

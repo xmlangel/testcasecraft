@@ -820,14 +820,18 @@ const TestCaseDatasheetGrid = ({
               },
             }}
             pageSizeOptions={[25, 50, 100]}
+            getRowHeight={() => "auto"}
             sx={{
               "& .MuiDataGrid-cell": {
                 whiteSpace: "pre-wrap",
-                wordWrap: "break-word",
+                wordBreak: "break-word",
+                overflowWrap: "anywhere",
                 lineHeight: "1.5",
                 padding: "8px",
                 display: "flex",
-                alignItems: "center",
+                alignItems: "flex-start",
+                maxWidth: "30em",
+                minHeight: "40px",
               },
               "& .MuiDataGrid-columnHeader": {
                 backgroundColor: (theme) =>

@@ -8,12 +8,17 @@ import { flattenTree } from "../../../utils/treeUtils.jsx";
  * - flatData 계산 (placeholder 포함)
  * - useVirtualizer 설정
  */
-export const useTreeVirtualizer = ({ treeData, expanded, newItemData }) => {
+export const useTreeVirtualizer = ({
+  treeData,
+  expanded,
+  newItemData,
+  orderMap,
+}) => {
   const parentRef = useRef(null);
 
   // 가상화를 위한 평탄화 데이터 (placeholder 노드 포함)
   const flatData = useMemo(() => {
-    const flat = flattenTree(treeData, expanded);
+    const flat = flattenTree(treeData, expanded, orderMap);
 
     if (newItemData) {
       const parentId = newItemData.parentId;
@@ -49,7 +54,7 @@ export const useTreeVirtualizer = ({ treeData, expanded, newItemData }) => {
     }
 
     return flat;
-  }, [treeData, expanded, newItemData]);
+  }, [treeData, expanded, newItemData, orderMap]);
 
   const virtualizer = useVirtualizer({
     count: flatData.length,

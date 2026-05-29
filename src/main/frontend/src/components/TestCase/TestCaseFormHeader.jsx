@@ -37,6 +37,7 @@ const TestCaseFormHeader = ({
   onAddNew,
   autoSaveStatus,
   autoSaveError,
+  ragSlot,
   // continueAdding, // Removed
   // onContinueAddingChange, // Removed
 }) => {
@@ -99,15 +100,8 @@ const TestCaseFormHeader = ({
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="h6" sx={{ mb: 0 }}>
-            {isFolder
-              ? testCaseId
-                ? t("testcase.form.folder.edit", "테스트 폴더 수정")
-                : t("testcase.form.folder.create", "테스트 폴더 생성")
-              : testCaseId
-                ? t("testcase.form.title.edit", "테스트케이스 수정")
-                : t("testcase.form.title.create", "테스트케이스 생성")}
-          </Typography>
+          {/* 컨텍스트 타이틀(H6) 제거 — 폼이 열린 자체가 모드 표시,
+              displayId Chip 으로 어떤 항목 편집 중인지 식별 가능. */}
           {testCase?.displayId && (
             <Chip
               label={testCase.displayId}
@@ -133,16 +127,24 @@ const TestCaseFormHeader = ({
         )}
       </Box>
 
-      {!isFolder && (
+      {/* 단일 액션 행: 버전·RAG·저장 버튼을 한 줄로 묶어 헤더 높이 절약 */}
+      {(!isViewer ||
+        (!isFolder && testCaseId && testCase?.type === "testcase")) && (
         <Box
           sx={{
             display: "flex",
             justifyContent: "flex-end",
-            alignItems: "center",
             mb: 1,
+            alignItems: "center",
+            gap: 1,
+            flexWrap: "wrap",
           }}
         >
-          {testCaseId && testCase?.type === "testcase" && (
+          {/* 자동 저장 상태 인디케이터 */}
+          {!isViewer && renderAutoSaveIndicator()}
+
+          {/* 버전 인디케이터 + 히스토리 메뉴 */}
+          {!isFolder && testCaseId && testCase?.type === "testcase" && (
             <VersionIndicator
               testCaseId={testCaseId}
               currentVersion={currentVersion}
@@ -151,53 +153,47 @@ const TestCaseFormHeader = ({
               showMenu={!isViewer}
             />
           )}
-        </Box>
-      )}
 
-      {!isViewer && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            mb: 1,
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          {/* 자동 저장 상태 인디케이터 */}
-          {renderAutoSaveIndicator()}
+          {/* RAG 등록 상태 뱃지 (외부 주입) */}
+          {ragSlot}
 
-          <Button
-            onClick={onCancel}
-            color="inherit"
-            variant="outlined"
-            data-testid="testcase-header-cancel-button"
-          >
-            {t("testcase.form.button.cancel", "취소")}
-          </Button>
-          <Button
-            onClick={onSave}
-            variant="contained"
-            color="primary"
-            disabled={isSaving}
-            startIcon={isSaving ? <CircularProgress size={20} /> : <SaveIcon />}
-            data-testid="testcase-header-save-button"
-          >
-            {isSaving
-              ? t("testcase.form.button.saving", "저장 중...")
-              : testCaseId
-                ? t("testcase.form.button.update", "수정")
-                : t("testcase.form.button.save", "저장")}
-          </Button>
-          {testCaseId && testCase?.type === "testcase" && (
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={onCreateVersion}
-              startIcon={<SaveVersionIcon />}
-            >
-              {t("testcase.version.button.create", "버전 생성")}
-            </Button>
+          {!isViewer && (
+            <>
+              <Button
+                onClick={onCancel}
+                color="inherit"
+                variant="outlined"
+                data-testid="testcase-header-cancel-button"
+              >
+                {t("testcase.form.button.cancel", "취소")}
+              </Button>
+              <Button
+                onClick={onSave}
+                variant="contained"
+                color="primary"
+                disabled={isSaving}
+                startIcon={
+                  isSaving ? <CircularProgress size={20} /> : <SaveIcon />
+                }
+                data-testid="testcase-header-save-button"
+              >
+                {isSaving
+                  ? t("testcase.form.button.saving", "저장 중...")
+                  : testCaseId
+                    ? t("testcase.form.button.update", "수정")
+                    : t("testcase.form.button.save", "저장")}
+              </Button>
+              {testCaseId && testCase?.type === "testcase" && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={onCreateVersion}
+                  startIcon={<SaveVersionIcon />}
+                >
+                  {t("testcase.version.button.create", "버전 생성")}
+                </Button>
+              )}
+            </>
           )}
         </Box>
       )}
@@ -217,6 +213,7 @@ TestCaseFormHeader.propTypes = {
   onCancel: PropTypes.func.isRequired,
   onVersionHistory: PropTypes.func,
   onCreateVersion: PropTypes.func,
+  ragSlot: PropTypes.node,
   onAddNew: PropTypes.func,
   autoSaveStatus: PropTypes.oneOf(["idle", "saving", "saved", "error"]),
   autoSaveError: PropTypes.string,
