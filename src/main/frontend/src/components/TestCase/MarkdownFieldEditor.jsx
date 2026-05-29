@@ -6,6 +6,7 @@ import { Box, Typography } from "@mui/material";
 import MDEditor from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
+import { computeMarkdownEditorHeight } from "../../utils/markdownEditorHeight.js";
 
 /**
  * 텍스트/마크다운 모드를 지원하는 필드 에디터 컴포넌트
@@ -14,7 +15,8 @@ const MarkdownFieldEditor = ({
   label,
   value,
   placeholder,
-  height = 250,
+  height,
+  maxLines = 10,
   isViewer = false,
   error = false,
   helperText,
@@ -35,10 +37,14 @@ const MarkdownFieldEditor = ({
           "Markdown 문법을 사용할 수 있습니다.",
         ));
 
-  // 컨텐츠 줄 수에 따라 자동 확장 (min=height, max=400px)
-  const minH = typeof height === "number" ? height : parseInt(height, 10) || 90;
-  const lineCount = Math.max(2, (value || "").split("\n").length + 1);
-  const dynamicHeight = Math.max(minH, Math.min(lineCount * 22 + 60, 400));
+  // 내용이 없으면 최소 높이, 있으면 maxLines(기본 10줄)까지 자동 확장 후 스크롤.
+  // height 를 넘기면 그 값을 최소 높이(floor)로 사용한다(기존 호출부 호환).
+  const floor =
+    typeof height === "number" ? height : parseInt(height, 10) || 0;
+  const dynamicHeight = Math.max(
+    floor,
+    computeMarkdownEditorHeight(value, { maxLines }),
+  );
 
   return (
     <Box sx={{ mt: label ? 2 : 0 }}>
@@ -97,6 +103,7 @@ MarkdownFieldEditor.propTypes = {
   value: PropTypes.string,
   placeholder: PropTypes.string,
   height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  maxLines: PropTypes.number,
   isViewer: PropTypes.bool,
   helperText: PropTypes.string,
   theme: PropTypes.object.isRequired,
