@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/controller/AuthController.java
 package com.testcase.testcasemanagement.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.EmailVerificationDto;
 import com.testcase.testcasemanagement.dto.UserDto;
@@ -384,7 +385,7 @@ public class AuthController {
       if (existing == null || existing.isBlank()) {
         prefs = new HashMap<>();
       } else {
-        prefs = objectMapper.readValue(existing, Map.class);
+        prefs = objectMapper.readValue(existing, new TypeReference<Map<String, Object>>() {});
       }
       prefs.put((String) key, value);
       String json = objectMapper.writeValueAsString(prefs);
