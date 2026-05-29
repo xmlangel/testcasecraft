@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "System - Authentication", description = "사용자 인증 및 토큰 관리 API")
@@ -39,6 +40,7 @@ public class AuthController {
   private final RefreshTokenService refreshTokenService;
   private final UserManagementService userManagementService;
   private final EmailVerificationService emailVerificationService;
+  private final ObjectMapper objectMapper;
 
   public AuthController(
       AuthenticationManager authenticationManager,
@@ -48,7 +50,8 @@ public class AuthController {
       PasswordEncoder passwordEncoder,
       RefreshTokenService refreshTokenService,
       UserManagementService userManagementService,
-      EmailVerificationService emailVerificationService) {
+      EmailVerificationService emailVerificationService,
+      ObjectMapper objectMapper) {
     this.authenticationManager = authenticationManager;
     this.jwtTokenUtil = jwtTokenUtil;
     this.userDetailsService = userDetailsService;
@@ -57,6 +60,7 @@ public class AuthController {
     this.refreshTokenService = refreshTokenService;
     this.userManagementService = userManagementService;
     this.emailVerificationService = emailVerificationService;
+    this.objectMapper = objectMapper;
   }
 
   @Operation(summary = "사용자 등록", description = "새로운 사용자를 등록합니다.")
@@ -349,38 +353,41 @@ public class AuthController {
   }
 
   /**
-   * 부분 갱신(PATCH) — body 의 단일 key 만 기존 JSON 에 merge 후 저장. race condition 회피. body: {"key":
-   * "fieldVisibility", "value": {...}}
+   * 부분 갱신(PATCH) — body 의 단일 key 만 기존 JSON 에 merge 후 저장. body: {"key": "fieldVisibility",
+   * "value": {...}}.
+   *
+   * <p>두 PATCH 가 동시에 들어와도 한쪽 변경이 손실되지 않도록 PESSIMISTIC_WRITE 락으로 read-modify-write 를 직렬화한다.
+   * {@code @Transactional} 이 락 획득~커밋까지의 범위를 보장한다.
    */
   @Operation(summary = "UI 환경설정 일부 갱신", description = "사용자별 UI 환경설정의 단일 키만 patch 저장합니다.")
   @org.springframework.web.bind.annotation.PatchMapping("/me/preferences")
+  @Transactional
   public ResponseEntity<?> patchMyPreferences(
       Authentication authentication, @RequestBody Map<String, Object> body) {
     if (authentication == null) {
       return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
     }
-    String username = authentication.getName();
-    Optional<User> userOpt = userRepository.findByUsername(username);
-    if (userOpt.isEmpty()) {
-      return ResponseEntity.status(404).body(Map.of("message", "User not found"));
-    }
     Object key = body == null ? null : body.get("key");
     if (!(key instanceof String) || ((String) key).isBlank()) {
       return ResponseEntity.badRequest().body(Map.of("message", "key required"));
     }
+    String username = authentication.getName();
+    Optional<User> userOpt = userRepository.findByUsernameForUpdate(username);
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.status(404).body(Map.of("message", "User not found"));
+    }
     Object value = body.get("value");
     try {
-      ObjectMapper om = new ObjectMapper();
       User user = userOpt.get();
       String existing = user.getUiPreferences();
       Map<String, Object> prefs;
       if (existing == null || existing.isBlank()) {
         prefs = new HashMap<>();
       } else {
-        prefs = om.readValue(existing, Map.class);
+        prefs = objectMapper.readValue(existing, Map.class);
       }
       prefs.put((String) key, value);
-      String json = om.writeValueAsString(prefs);
+      String json = objectMapper.writeValueAsString(prefs);
       if (json.length() > 32_000) {
         return ResponseEntity.badRequest().body(Map.of("message", "uiPreferences too large"));
       }

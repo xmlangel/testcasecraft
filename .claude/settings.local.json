@@ -21,7 +21,13 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git pull)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "mcp__testcasecraft__auth_status",
+      "mcp__testcasecraft__testcase_list",
+      "Bash(awk '{for\\(i=11;i<=NF;i++\\) printf \"%s \", $i; print \"\"}')",
+      "Bash(ps -o command= -p 76200)",
+      "Bash(docker exec testcasecraft_postgres_spring psql -U testcase_user -d testcase_management -t -c ' *)",
+      "Bash(docker exec *)"
     ],
     "deny": [],
     "ask": []
