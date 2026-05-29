@@ -1446,7 +1446,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                         "testcase.form.overallExpectedResults",
                         "전체 예상 결과",
                       )}
-                      height={120}
                       isViewer={isViewer}
                       theme={theme}
                       t={t}

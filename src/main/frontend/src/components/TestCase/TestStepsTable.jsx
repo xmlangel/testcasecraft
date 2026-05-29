@@ -24,6 +24,7 @@ import {
 import MDEditor from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
+import { computeMarkdownEditorHeight } from "../../utils/markdownEditorHeight.js";
 
 /**
  * 테스트 스텝 테이블 컴포넌트
@@ -84,7 +85,14 @@ const TestStepsTable = ({
             ) : (
               steps
                 .sort((a, b) => a.stepNumber - b.stepNumber)
-                .map((step) => (
+                .map((step) => {
+                  // Step/Expected 가 같은 행에서 높이를 맞추도록 둘 중 큰 값을 사용.
+                  // 내용 없으면 최소, 있으면 10줄까지 늘고 그 이상은 스크롤.
+                  const stepEditorHeight = Math.max(
+                    computeMarkdownEditorHeight(step.description),
+                    computeMarkdownEditorHeight(step.expectedResult),
+                  );
+                  return (
                   <TableRow key={step.stepNumber}>
                     <TableCell
                       sx={{
@@ -109,7 +117,7 @@ const TestStepsTable = ({
                             )
                           }
                           preview="live"
-                          height={100}
+                          height={stepEditorHeight}
                           textareaProps={{
                             placeholder: t(
                               "testcase.form.stepDescription",
@@ -139,7 +147,7 @@ const TestStepsTable = ({
                             )
                           }
                           preview="live"
-                          height={100}
+                          height={stepEditorHeight}
                           textareaProps={{
                             placeholder: t(
                               "testcase.form.expectedResult",
@@ -203,7 +211,8 @@ const TestStepsTable = ({
                       )}
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
             )}
           </TableBody>
         </Table>
