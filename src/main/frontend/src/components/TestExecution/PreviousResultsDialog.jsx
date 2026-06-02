@@ -20,7 +20,7 @@ import {
   CircularProgress,
   IconButton,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { useTheme, alpha } from "@mui/material/styles";
 import {
   AttachFile as AttachFileIcon,
   Edit as EditIcon,
@@ -41,6 +41,7 @@ function PreviousResultsDialog({
   results,
   loading,
   onAttachmentDeleted,
+  currentExecutionId = null,
 }) {
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
@@ -178,8 +179,33 @@ function PreviousResultsDialog({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {sortedResults.map((r, idx) => (
-                    <TableRow key={idx}>
+                  {sortedResults.map((r, idx) => {
+                    const isCurrent =
+                      currentExecutionId &&
+                      r.testExecutionId === currentExecutionId;
+                    return (
+                    <TableRow
+                      key={idx}
+                      sx={
+                        isCurrent
+                          ? {
+                              backgroundColor: alpha(
+                                theme.palette.primary.main,
+                                darkMode ? 0.18 : 0.08,
+                              ),
+                              "& > td:first-of-type": {
+                                borderLeft: `3px solid ${theme.palette.primary.main}`,
+                              },
+                              "&:hover": {
+                                backgroundColor: alpha(
+                                  theme.palette.primary.main,
+                                  darkMode ? 0.24 : 0.12,
+                                ),
+                              },
+                            }
+                          : { opacity: 0.92 }
+                      }
+                    >
                       <TableCell>
                         {r.executedAt ? formatDate(r.executedAt) : "-"}
                       </TableCell>
@@ -188,7 +214,33 @@ function PreviousResultsDialog({
                         <span style={{ marginLeft: 6 }}>{r.result}</span>
                       </TableCell>
                       <TableCell>{r.testExecutionId}</TableCell>
-                      <TableCell>{r.testExecutionName}</TableCell>
+                      <TableCell>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          {r.testExecutionName}
+                          {isCurrent && (
+                            <Chip
+                              label={t(
+                                "testExecution.prevResults.currentExecution",
+                                "현재 실행",
+                              )}
+                              size="small"
+                              color="primary"
+                              sx={{
+                                height: 18,
+                                fontSize: "0.65rem",
+                                fontWeight: 700,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </TableCell>
                       <TableCell>{r.executedBy}</TableCell>
                       <TableCell>
                         {r.notes ? (
@@ -294,7 +346,8 @@ function PreviousResultsDialog({
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -423,6 +476,7 @@ PreviousResultsDialog.propTypes = {
   results: PropTypes.array,
   loading: PropTypes.bool,
   onAttachmentDeleted: PropTypes.func,
+  currentExecutionId: PropTypes.string,
 };
 
 export default PreviousResultsDialog;

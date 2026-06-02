@@ -1447,6 +1447,7 @@ const TestExecutionForm = ({
         results={prevResults}
         loading={prevResultsLoading}
         onAttachmentDeleted={handleAttachmentChange}
+        currentExecutionId={execution?.id}
       />
 
       {/* ICT-362: 첨부파일 다이얼로그 */}
