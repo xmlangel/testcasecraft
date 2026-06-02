@@ -70,6 +70,8 @@ const TestResultForm = ({
   const [error, setError] = useState();
   const [saveError, setSaveError] = useState();
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  // 변경 사항이 없어 저장을 건너뛴 경우 안내 메시지
+  const [showNoChangeInfo, setShowNoChangeInfo] = useState(false);
   const saveButtonRef = useRef();
   // 태그 자동완성을 위한 기존 태그 목록
   const [availableTags, setAvailableTags] = useState([]);
@@ -547,6 +549,29 @@ const TestResultForm = ({
           requestData.jiraIssueKey = processedJiraKey;
         }
 
+        // 변경 사항 비교: 기존 결과가 있고, 결과/노트/태그/JIRA가 모두 동일하며
+        // 새로 첨부한 파일이 없으면 저장하지 않고 이전 결과를 그대로 유지한다.
+        const areTagsEqual = (a = [], b = []) => {
+          if (a.length !== b.length) return false;
+          const sortedA = [...a].sort();
+          const sortedB = [...b].sort();
+          return sortedA.every((value, idx) => value === sortedB[idx]);
+        };
+        const isUnchanged =
+          !!stableCurrentResult?.id &&
+          (stableCurrentResult.result || TestResult.NOTRUN) === actualResult &&
+          (stableCurrentResult.notes || "") === (notes || "") &&
+          (stableCurrentResult.jiraIssueKey || "") === (processedJiraKey || "") &&
+          areTagsEqual(stableCurrentResult.tags || [], tags || []) &&
+          attachedFiles.length === 0;
+
+        if (isUnchanged) {
+          // 변경 없음: 새 결과 레코드를 만들지 않고 이전 결과를 유지
+          if (showSuccess) setShowNoChangeInfo(true);
+          if (advanceToNext && onNext) onNext();
+          return;
+        }
+
         if (isPreviousResultEdit && stableCurrentResult?.id) {
           const response = await api(
             `/api/test-executions/results/${stableCurrentResult.id}`,
@@ -614,7 +639,7 @@ const TestResultForm = ({
       attachedFiles,
       t,
       isPreviousResultEdit,
-      stableCurrentResult?.id,
+      stableCurrentResult,
     ],
   );
 
@@ -934,6 +959,19 @@ const TestResultForm = ({
             {t("testcase.message.saved", "저장되었습니다.")}
           </Alert>
         </Snackbar>
+        <Snackbar
+          open={showNoChangeInfo}
+          autoHideDuration={3000}
+          onClose={() => setShowNoChangeInfo(false)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert severity="info" onClose={() => setShowNoChangeInfo(false)}>
+            {t(
+              "testResult.message.noChange",
+              "변경 사항이 없어 저장하지 않았습니다.",
+            )}
+          </Alert>
+        </Snackbar>
 
         <Dialog
           open={previewOpen}
@@ -1037,6 +1075,19 @@ const TestResultForm = ({
       >
         <Alert severity="success" onClose={() => setShowSaveSuccess(false)}>
           {t("testcase.message.saved", "저장되었습니다.")}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={showNoChangeInfo}
+        autoHideDuration={3000}
+        onClose={() => setShowNoChangeInfo(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="info" onClose={() => setShowNoChangeInfo(false)}>
+          {t(
+            "testResult.message.noChange",
+            "변경 사항이 없어 저장하지 않았습니다.",
+          )}
         </Alert>
       </Snackbar>
 
