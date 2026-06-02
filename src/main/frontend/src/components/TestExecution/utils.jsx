@@ -93,7 +93,9 @@ export function getLatestResults(results) {
     grouped.get(key).push(r);
   });
 
-  const isRealResult = (result) => result && result !== TestResult.NOT_RUN;
+  // "NOT_RUN"과 레거시 "NOTRUN" 표기 모두 미실행으로 간주
+  const isRealResult = (result) =>
+    result && result !== TestResult.NOT_RUN && result !== "NOTRUN";
   const hasNote = (notes) => typeof notes === "string" && notes.trim() !== "";
   const toTime = (r) => {
     const d = parseDateTime(r?.executedAt);

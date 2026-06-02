@@ -161,7 +161,9 @@ const TestResultForm = ({
         // 신규 결과인데 결과/노트/태그/JIRA가 모두 비어있으면(빈 NOT_RUN)
         // 입력 없이 자동으로 NOT_RUN 레코드가 생성되지 않도록 저장을 건너뛴다.
         const isEmptyNew =
-          (!data.result || data.result === "NOT_RUN") &&
+          (!data.result ||
+            data.result === "NOT_RUN" ||
+            data.result === "NOTRUN") &&
           !(data.notes && data.notes.trim()) &&
           !(data.tags && data.tags.length) &&
           !(data.jiraIssueKey && data.jiraIssueKey.trim());
