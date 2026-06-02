@@ -501,6 +501,20 @@ const TestResultExportDialog = ({
       return false;
     };
 
+    // 여러 줄 텍스트를 줄 단위로 렌더링하여, 내용이 한 페이지 높이를 넘으면
+    // 자동으로 페이지를 넘기며 이어 출력한다. (Steps 등 긴 섹션 잘림 방지)
+    // applyStyle: 페이지가 새로 추가됐을 때 본문 폰트/색상을 복원하기 위한 콜백
+    const drawTextLines = (lines, x, lineH, applyStyle) => {
+      lines.forEach((line) => {
+        const pageAdded = ensureSpace(lineH);
+        if (pageAdded && typeof applyStyle === "function") {
+          applyStyle();
+        }
+        pdf.text(line, x, cursorY);
+        cursorY += lineH;
+      });
+    };
+
     const drawPageHeader = (isFirstPage = false) => {
       if (isFirstPage) {
         // --- 첫 페이지: 대형 헤더 바 ---
@@ -900,17 +914,20 @@ const TestResultExportDialog = ({
             pdf.text(section.title, margin + 12, cursorY);
             cursorY += 12;
 
-            // 섹션 본문
-            pdf.setTextColor(...colors.greyDark);
-            pdf.setFontSize(9);
+            // 섹션 본문 - 페이지 경계를 넘어가면 줄 단위로 분할 렌더링하여 잘림 방지
+            const applyBodyStyle = () => {
+              pdf.setFont("NanumGothic", "normal");
+              pdf.setTextColor(...colors.greyDark);
+              pdf.setFontSize(9);
+            };
+            applyBodyStyle();
             const splitContent = pdf.splitTextToSize(
               String(content),
               cardWidth - 30,
             );
 
-            ensureSpace(splitContent.length * 13 + 10);
-            pdf.text(splitContent, margin + 14, cursorY);
-            cursorY += splitContent.length * 13 + 12;
+            drawTextLines(splitContent, margin + 14, 13, applyBodyStyle);
+            cursorY += 12;
           }
         });
 
