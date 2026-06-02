@@ -16,6 +16,7 @@ import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
 import { invalidateDashboardCache } from "../services/dashboardService";
 import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
+import { getLatestResults } from "./TestExecution/utils.jsx";
 
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
@@ -202,9 +203,11 @@ const TestCaseResultPage = () => {
             open={true}
             testCaseId={testCaseId}
             executionId={executionId}
-            currentResult={execution.results?.find(
-              (r) => r.testCaseId === testCaseId,
-            )}
+            currentResult={getLatestResults(
+              (execution.results || []).filter(
+                (r) => r.testCaseId === testCaseId,
+              ),
+            )[0]}
             onClose={handleClose}
             onSave={handleSave}
             onNext={handleNext}
