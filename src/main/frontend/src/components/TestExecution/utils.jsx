@@ -44,7 +44,7 @@ export function getResultIcon(result) {
           titleAccess="SKIPPED"
         />
       );
-    case TestResult.NOTRUN:
+    case TestResult.NOT_RUN:
     default:
       return (
         <HourglassEmptyIcon

@@ -31,7 +31,7 @@ import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 
 const KEY_RESULT_MAP = {
-  N: TestResult.NOTRUN,
+  N: TestResult.NOT_RUN,
   P: TestResult.PASS,
   F: TestResult.FAIL,
   B: TestResult.BLOCKED,
@@ -41,7 +41,7 @@ const TestResultForm = ({
   open,
   testCaseId,
   executionId,
-  currentResult = { result: TestResult.NOTRUN, notes: "" },
+  currentResult = { result: TestResult.NOT_RUN, notes: "" },
   onClose,
   onSave,
   onNext = null,
@@ -62,7 +62,7 @@ const TestResultForm = ({
   const isViewer = user?.role === "VIEWER";
 
   const [testCase, setTestCase] = useState(null);
-  const [result, setResult] = useState(TestResult.NOTRUN);
+  const [result, setResult] = useState(TestResult.NOT_RUN);
   const [notes, setNotes] = useState("");
   const [tags, setTags] = useState([]);
   const [jiraIssueKey, setJiraIssueKey] = useState("");
@@ -123,7 +123,9 @@ const TestResultForm = ({
       notes,
       tags,
       jiraIssueKey,
-      _resultId: stableCurrentResult?.id,
+      // baseline(markSaved)은 신규 결과에서 _resultId를 null로 설정하므로
+      // undefined가 아닌 null로 정규화해야 dirty 오탐(입력 없이 저장)을 막는다.
+      _resultId: stableCurrentResult?.id ?? null,
     };
   }, [fullPage, result, notes, tags, jiraIssueKey, stableCurrentResult?.id]);
 
@@ -187,7 +189,7 @@ const TestResultForm = ({
   useEffect(() => {
     if (!stableCurrentResult) {
       // 새로운 결과 입력 시
-      setResult(TestResult.NOTRUN);
+      setResult(TestResult.NOT_RUN);
       setNotes("");
       setTags([]);
       setJiraIssueKey("");
@@ -207,7 +209,7 @@ const TestResultForm = ({
     }
 
     // 기존 결과 수정 시
-    setResult(stableCurrentResult.result || TestResult.NOTRUN);
+    setResult(stableCurrentResult.result || TestResult.NOT_RUN);
     setNotes(stableCurrentResult.notes || "");
     setTags(stableCurrentResult.tags || []);
     const initialJiraKey = stableCurrentResult.jiraIssueKey || "";
@@ -559,7 +561,7 @@ const TestResultForm = ({
         };
         const isUnchanged =
           !!stableCurrentResult?.id &&
-          (stableCurrentResult.result || TestResult.NOTRUN) === actualResult &&
+          (stableCurrentResult.result || TestResult.NOT_RUN) === actualResult &&
           (stableCurrentResult.notes || "") === (notes || "") &&
           (stableCurrentResult.jiraIssueKey || "") === (processedJiraKey || "") &&
           areTagsEqual(stableCurrentResult.tags || [], tags || []) &&
