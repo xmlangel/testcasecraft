@@ -85,7 +85,10 @@ export function formatDateTimeShort(dateInput) {
 }
 
 export function getLatestResults(results) {
-  // testCaseId별로 모든 결과 기록을 그룹화
+  // testCaseId별로 executedAt이 가장 최근인 레코드를 그대로 사용한다.
+  // 백엔드 통계(TestResultRepository: MAX(executed_at) 기준 latest_results)와
+  // 동일한 의미라 프론트/백엔드 집계가 일치한다. 명시적으로 입력한 NOT_RUN도
+  // 그대로 표시된다. (조회만으로 생기던 빈 NOT_RUN은 저장 단계에서 차단됨)
   const grouped = new Map();
   results?.forEach((r) => {
     const key = r.testCaseId;
@@ -93,34 +96,17 @@ export function getLatestResults(results) {
     grouped.get(key).push(r);
   });
 
-  // "NOT_RUN"과 레거시 "NOTRUN" 표기 모두 미실행으로 간주
-  const isRealResult = (result) =>
-    result && result !== TestResult.NOT_RUN && result !== "NOTRUN";
-  const hasNote = (notes) => typeof notes === "string" && notes.trim() !== "";
   const toTime = (r) => {
     const d = parseDateTime(r?.executedAt);
     return d ? d.getTime() : 0;
   };
 
-  const merged = [];
+  const latest = [];
   grouped.forEach((records) => {
-    // 최신순(executedAt 내림차순) 정렬
     const sorted = [...records].sort((a, b) => toTime(b) - toTime(a));
-    const latest = sorted[0];
-    // 결과가 있는 가장 최근 기록 (NOT_RUN/미입력 기록은 skip)
-    const latestWithResult = sorted.find((r) => isRealResult(r.result));
-    // 노트가 입력된 가장 최근 기록
-    const latestWithNote = sorted.find((r) => hasNote(r.notes));
-
-    // 표시 기준: 결과가 있으면 그 기록을, 없으면 최신 기록을 사용하고
-    // 노트는 가장 최근에 입력된 노트를 우선 표시한다.
-    const base = latestWithResult || latest;
-    merged.push({
-      ...base,
-      notes: latestWithNote ? latestWithNote.notes : base.notes,
-    });
+    latest.push(sorted[0]);
   });
-  return merged;
+  return latest;
 }
 
 // 배열 형태의 날짜를 Date 객체로 변환하는 헬퍼 함수
