@@ -179,7 +179,7 @@ const ExampleComponent = ({ projectId }) => {
       // 서비스 레이어 활용 (권장)
       const result = await testCaseService.createTestCase({
         ...formData,
-        projectId
+        projectId,
       });
       setData(result);
     } catch (error) {
@@ -191,9 +191,15 @@ const ExampleComponent = ({ projectId }) => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h6">{t("example.title", "예제 컴포넌트")}</Typography>
+      <Typography variant="h6">
+        {t("example.title", "예제 컴포넌트")}
+      </Typography>
       {/* MUI 컴포넌트 사용 */}
-      <Button variant="contained" onClick={() => handleSubmit({ name: "New TestCase" })} disabled={loading}>
+      <Button
+        variant="contained"
+        onClick={() => handleSubmit({ name: "New TestCase" })}
+        disabled={loading}
+      >
         {t("common.save", "저장")}
       </Button>
     </Box>
@@ -207,8 +213,8 @@ export default ExampleComponent;
 import apiService from "./services/apiService";
 
 const fetchData = async () => {
-  const response = await apiService.get("/api/some-endpoint");
-  return await response.json();
+const response = await apiService.get("/api/some-endpoint");
+return await response.json();
 };
 
 ### 스타일링 가이드라인
@@ -304,7 +310,7 @@ npx playwright test
 npx playwright test regression/login.spec.js
 ```
 
- 상세 내용은 **[docs/E2E_TESTING_GUIDE.md](../E2E_TESTING_GUIDE.md)**를 참조하세요.
+상세 내용은 **[docs/E2E_TESTING_GUIDE.md](../E2E_TESTING_GUIDE.md)**를 참조하세요.
 
 ## 🎯 테스트 주도 개발 (TDD) 가이드라인
 
@@ -613,15 +619,24 @@ const OptimizedComponent = memo(({ data, onUpdate }) => {
 
 #### Prettier 설정
 
-```json
-// .prettierrc
+이 레포는 **별도 `.prettierrc` 파일을 두지 않고 Prettier 기본값을 그대로 사용**한다.
+`pre-commit`의 prettier 훅도 동일하게 기본값으로 동작하므로, 커스텀 설정을 추가하면
+전체 코드베이스가 reflow되어 대량 churn이 발생한다. 아래는 현재 강제되는(=기본값) 스타일이다.
+
+```jsonc
+// (실제 파일 없음 — Prettier 3.x 기본값과 동일)
 {
   "semi": true,
-  "trailingComma": "es5",
-  "singleQuote": true,
-  "tabWidth": 2
+  "singleQuote": false, // 이중 따옴표 (코드베이스 실측 1295:14)
+  "trailingComma": "all", // Prettier 3 기본값
+  "tabWidth": 2,
+  "printWidth": 80,
 }
 ```
+
+**커밋 전 자동 정렬:** VS Code는 `.vscode/settings.json`의 `editor.formatOnSave`로
+저장 시 자동 정렬된다. 수동 정렬은 프론트엔드에서 `npm run format`(검사만 `npm run format:check`).
+이렇게 스테이지 전에 미리 정렬해 두면 `pre-commit` prettier 훅에 걸려 재커밋하는 일이 없다.
 
 ### 환경별 설정 관리
 
@@ -645,7 +660,7 @@ spring:
 
 ## 📚 관련 문서
 
- - **[메인 가이드](../../AGENTS.md)** - 프로젝트 전체 개요
+- **[메인 가이드](../../AGENTS.md)** - 프로젝트 전체 개요
 - **[API 가이드](./API_GUIDE.md)** - API 개발 가이드라인
 - **[E2E 테스트 가이드](./E2E_TESTING_GUIDE.md)** - E2E 테스트 작성 및 실행
 - **[GitHub Actions 가이드](./GITHUB_ACTION_GUIDE.md)** - Docker 빌드 및 배포 자동화
