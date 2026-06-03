@@ -576,12 +576,25 @@ const TestResultForm = ({
           !!stableCurrentResult?.id &&
           (stableCurrentResult.result || TestResult.NOT_RUN) === actualResult &&
           (stableCurrentResult.notes || "") === (notes || "") &&
-          (stableCurrentResult.jiraIssueKey || "") === (processedJiraKey || "") &&
+          (stableCurrentResult.jiraIssueKey || "") ===
+            (processedJiraKey || "") &&
           areTagsEqual(stableCurrentResult.tags || [], tags || []) &&
           attachedFiles.length === 0;
 
-        if (isUnchanged) {
-          // 변경 없음: 새 결과 레코드를 만들지 않고 이전 결과를 유지
+        // 신규(기존 결과 없음)인데 결과가 NOT_RUN이고 노트/태그/JIRA/첨부가
+        // 모두 비어 있으면 빈 레코드를 만들지 않는다. 리스트에서 열어 보기만 하고
+        // 저장/다음/N 을 눌러도 빈 NOT_RUN 레코드가 쌓이지 않도록 한다.
+        // (autoSaveFn 의 동일 가드를 수동 저장 경로에도 적용)
+        const isEmptyNew =
+          !stableCurrentResult?.id &&
+          (!actualResult || actualResult === TestResult.NOT_RUN) &&
+          !(notes && notes.trim()) &&
+          (!tags || tags.length === 0) &&
+          !(processedJiraKey && processedJiraKey.trim()) &&
+          attachedFiles.length === 0;
+
+        if (isUnchanged || isEmptyNew) {
+          // 변경 없음 또는 빈 신규: 새 결과 레코드를 만들지 않고 이전 상태를 유지
           if (showSuccess) setShowNoChangeInfo(true);
           if (advanceToNext && onNext) onNext();
           return;
