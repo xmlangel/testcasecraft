@@ -5,7 +5,7 @@
 > **Audience:** QA engineers, developers, and project managers using testcasecraft for the first time
 > **Environment:** This manual was captured in a local Docker environment (`http://localhost:8080`)
 > **Standards Basis:** This manual follows the principles of international standards on information design (IEC/IEEE 82079-1, ISO/IEC/IEEE 26514) — information type classification, audience-based structure, and procedure documentation.
-> **Note:** Most screenshots were captured with the UI language set to English. A few dialog screenshots still show the Korean UI and will be recaptured in a future update.
+> **Note:** All screenshots were captured with the UI language set to English. Sample data (project and test case names) may appear in Korean.
 > **한국어판:** [USER_MANUAL.md](USER_MANUAL.md)
 
 ### How to Read This Manual
