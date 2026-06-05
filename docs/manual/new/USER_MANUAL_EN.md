@@ -226,8 +226,8 @@ What you can do from the right-click menu:
 
 | Menu | Action |
 |---|---|
-| **Add Subfolder** | Create a new folder inside the selected folder |
-| **Add Test Case** | Create a new case inside the selected folder |
+| **Add Sub Folder** | Create a new folder inside the selected folder |
+| **Add Sub Test Case** | Create a new case inside the selected folder |
 | **Rename** | Edit folder/case name inline |
 | **Delete** | Delete folder/case (folders delete with all contents inside — use caution) |
 
