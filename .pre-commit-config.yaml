@@ -1,4 +1,6 @@
-exclude: ^docs/|^d_mcpsvr_jira/|^\.agent/
+# CLAUDE(.local).md 는 .gitignore 에 등록돼 prettier 가 무시 → 단독 스테이징 시
+# "No files matching" 로 prettier 훅이 실패해 커밋이 막힘. pre-commit 대상에서 제외.
+exclude: ^docs/|^d_mcpsvr_jira/|^\.agent/|(^|/)CLAUDE(\.local)?\.md$
 repos:
   # Python
   - repo: https://github.com/psf/black

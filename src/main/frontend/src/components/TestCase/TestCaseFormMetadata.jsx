@@ -117,23 +117,23 @@ const TestCaseFormMetadata = ({
           </Typography>
           <Grid container spacing={1}>
             {/* UUID 풀 길이 표시: 단독 행 */}
-            <Grid item xs={12}>
+            <Grid size={12}>
               <ReadOnlyField label="Project ID" value={projectId} mono />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <ReadOnlyField label="ID" value={testCase?.id || ""} mono />
             </Grid>
             {/* Parent / 작성자 / 수정자 — 한 줄 3분할, 동일 스타일 */}
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <ReadOnlyField label="Parent" value={testCase?.parentName} />
             </Grid>
-            <Grid item xs={6} sm={4}>
+            <Grid size={{ xs: 6, sm: 4 }}>
               <ReadOnlyField
                 label={t("testcase.form.createdBy", "작성자")}
                 value={testCase?.createdBy}
               />
             </Grid>
-            <Grid item xs={6} sm={4}>
+            <Grid size={{ xs: 6, sm: 4 }}>
               <ReadOnlyField
                 label={t("testcase.form.updatedBy", "수정자")}
                 value={testCase?.updatedBy}

@@ -1361,9 +1361,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
 
           {/* 상세 정보 탭 */}
           <TabPanel value={tabValue} index={0}>
-            {/* 2단 그리드 — 좌: 메타+조건 / 우: 스텝+기대결과 (md 이상에서 분할, 작은 화면은 자동 세로) */}
+            {/* 1단 풀폭 레이아웃 — ID/Parent → 테스트케이스 정보 → 테스트 단계 → 기대결과 순서로 세로 배치 */}
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid size={12}>
                 <TestCaseFormMetadata
                   testCase={testCase}
                   projectId={projectId}
@@ -1407,7 +1407,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={12}>
                 {/* 테스트 단계 — 좌측 Accordion 들과 시각 정합 (MD: subtitle2 헤더) */}
                 <Accordion defaultExpanded>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>

@@ -48,7 +48,9 @@ const TestResultFloatingMenu = ({
 
   const resultOptions = [
     {
-      value: "NOTRUN",
+      // 백엔드 enum과 일치시켜야 함 ("NOTRUN" 표기는 baseline 불일치로
+      // 조회만 해도 저장되는 버그를 재유발함)
+      value: "NOT_RUN",
       label: "N",
       color: theme.palette.grey[500],
       tooltip: t("testResult.status.notRun", "실행 안 함"),

@@ -31,7 +31,7 @@ import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 
 const KEY_RESULT_MAP = {
-  N: TestResult.NOTRUN,
+  N: TestResult.NOT_RUN,
   P: TestResult.PASS,
   F: TestResult.FAIL,
   B: TestResult.BLOCKED,
@@ -41,7 +41,7 @@ const TestResultForm = ({
   open,
   testCaseId,
   executionId,
-  currentResult = { result: TestResult.NOTRUN, notes: "" },
+  currentResult = { result: TestResult.NOT_RUN, notes: "" },
   onClose,
   onSave,
   onNext = null,
@@ -62,7 +62,7 @@ const TestResultForm = ({
   const isViewer = user?.role === "VIEWER";
 
   const [testCase, setTestCase] = useState(null);
-  const [result, setResult] = useState(TestResult.NOTRUN);
+  const [result, setResult] = useState(TestResult.NOT_RUN);
   const [notes, setNotes] = useState("");
   const [tags, setTags] = useState([]);
   const [jiraIssueKey, setJiraIssueKey] = useState("");
@@ -70,6 +70,8 @@ const TestResultForm = ({
   const [error, setError] = useState();
   const [saveError, setSaveError] = useState();
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  // 변경 사항이 없어 저장을 건너뛴 경우 안내 메시지
+  const [showNoChangeInfo, setShowNoChangeInfo] = useState(false);
   const saveButtonRef = useRef();
   // 태그 자동완성을 위한 기존 태그 목록
   const [availableTags, setAvailableTags] = useState([]);
@@ -94,6 +96,31 @@ const TestResultForm = ({
   // 노트 전체화면 상태 관리
   const [isNotesFullscreen, setIsNotesFullscreen] = useState(false);
 
+  // 사용자가 실제로 결과/노트/태그/JIRA를 수정했는지 여부.
+  // false인 동안은 자동저장(디바운스·언마운트 모두)을 전면 차단한다.
+  // — 보기만 해도 빈 초기 상태가 기존 결과 위에 PUT 되던 버그 방지
+  //   (StrictMode 이중 마운트 cleanup / 케이스 전환 시 혼합 스냅샷)
+  const [userEdited, setUserEdited] = useState(false);
+
+  // 사용자 입력 경로 전용 setter — 자동저장 활성화 플래그를 함께 올린다.
+  // (초기화/서버 동기화 경로는 원본 setter를 직접 사용해 자동저장을 유발하지 않음)
+  const setResultByUser = useCallback((value) => {
+    setUserEdited(true);
+    setResult(value);
+  }, []);
+  const setNotesByUser = useCallback((value) => {
+    setUserEdited(true);
+    setNotes(value);
+  }, []);
+  const setTagsByUser = useCallback((value) => {
+    setUserEdited(true);
+    setTags(value);
+  }, []);
+  const setJiraIssueKeyByUser = useCallback((value) => {
+    setUserEdited(true);
+    setJiraIssueKey(value);
+  }, []);
+
   // useMemo를 사용하여 currentResult의 안정적인 참조 생성
   const stableCurrentResult = useMemo(() => {
     if (!currentResult) return null;
@@ -113,17 +140,29 @@ const TestResultForm = ({
     JSON.stringify(currentResult?.tags || []),
   ]);
 
-  // 자동 저장용 데이터 (fullPage 모드에서만 활성화)
+  // 자동 저장용 데이터 (fullPage 모드 + 사용자가 실제 수정한 경우에만 활성화)
+  // userEdited=false면 null을 반환해 useAutoSave의 디바운스 저장과
+  // 언마운트 저장을 모두 비활성화한다 — 보기만 할 때는 절대 저장하지 않는다.
   const autoSaveData = useMemo(() => {
-    if (!fullPage) return null;
+    if (!fullPage || !userEdited) return null;
     return {
       result,
       notes,
       tags,
       jiraIssueKey,
-      _resultId: stableCurrentResult?.id,
+      // baseline(markSaved)은 신규 결과에서 _resultId를 null로 설정하므로
+      // undefined가 아닌 null로 정규화해야 dirty 오탐(입력 없이 저장)을 막는다.
+      _resultId: stableCurrentResult?.id ?? null,
     };
-  }, [fullPage, result, notes, tags, jiraIssueKey, stableCurrentResult?.id]);
+  }, [
+    fullPage,
+    userEdited,
+    result,
+    notes,
+    tags,
+    jiraIssueKey,
+    stableCurrentResult?.id,
+  ]);
 
   // 자동 저장 함수
   // - 기존 결과(_resultId 있음): PUT
@@ -154,6 +193,19 @@ const TestResultForm = ({
           );
         }
       } else {
+        // 신규 결과인데 결과/노트/태그/JIRA가 모두 비어있으면(빈 NOT_RUN)
+        // 입력 없이 자동으로 NOT_RUN 레코드가 생성되지 않도록 저장을 건너뛴다.
+        const isEmptyNew =
+          (!data.result ||
+            data.result === "NOT_RUN" ||
+            data.result === "NOTRUN") &&
+          !(data.notes && data.notes.trim()) &&
+          !(data.tags && data.tags.length) &&
+          !(data.jiraIssueKey && data.jiraIssueKey.trim());
+        if (isEmptyNew) {
+          return;
+        }
+
         // 신규 결과 생성: POST, onSave 호출해야 결과 ID가 stableCurrentResult에 반영됨
         const response = await api(
           `/api/test-executions/${executionId}/results`,
@@ -185,7 +237,8 @@ const TestResultForm = ({
   useEffect(() => {
     if (!stableCurrentResult) {
       // 새로운 결과 입력 시
-      setResult(TestResult.NOTRUN);
+      setUserEdited(false);
+      setResult(TestResult.NOT_RUN);
       setNotes("");
       setTags([]);
       setJiraIssueKey("");
@@ -204,8 +257,9 @@ const TestResultForm = ({
       return;
     }
 
-    // 기존 결과 수정 시
-    setResult(stableCurrentResult.result || TestResult.NOTRUN);
+    // 기존 결과 수정 시 — 서버 데이터로 초기화이므로 사용자 수정 아님
+    setUserEdited(false);
+    setResult(stableCurrentResult.result || TestResult.NOT_RUN);
     setNotes(stableCurrentResult.notes || "");
     setTags(stableCurrentResult.tags || []);
     const initialJiraKey = stableCurrentResult.jiraIssueKey || "";
@@ -251,7 +305,8 @@ const TestResultForm = ({
         notes: stableCurrentResult.notes || "",
         tags: stableCurrentResult.tags || [],
         jiraIssueKey: stableCurrentResult.jiraIssueKey || "",
-        _resultId: stableCurrentResult.id,
+        // autoSaveData와 동일하게 null로 정규화 (undefined는 JSON에서 탈락해 dirty 오탐)
+        _resultId: stableCurrentResult.id ?? null,
       },
       { skipStatusReset: true },
     );
@@ -273,15 +328,19 @@ const TestResultForm = ({
     [notes],
   );
 
-  const updateInlineImageValue = useCallback((fieldConfig, updater) => {
-    if (fieldConfig?.field === "notes") {
-      setNotes((prev) => {
-        const nextValue =
-          typeof updater === "function" ? updater(prev) : updater;
-        return nextValue;
-      });
-    }
-  }, []);
+  const updateInlineImageValue = useCallback(
+    (fieldConfig, updater) => {
+      if (fieldConfig?.field === "notes") {
+        // 이미지 붙여넣기/삽입은 사용자 수정 행위
+        setNotesByUser((prev) => {
+          const nextValue =
+            typeof updater === "function" ? updater(prev) : updater;
+          return nextValue;
+        });
+      }
+    },
+    [setNotesByUser],
+  );
 
   const showInlineImageError = useCallback((message) => {
     if (!message) return;
@@ -547,6 +606,42 @@ const TestResultForm = ({
           requestData.jiraIssueKey = processedJiraKey;
         }
 
+        // 변경 사항 비교: 기존 결과가 있고, 결과/노트/태그/JIRA가 모두 동일하며
+        // 새로 첨부한 파일이 없으면 저장하지 않고 이전 결과를 그대로 유지한다.
+        const areTagsEqual = (a = [], b = []) => {
+          if (a.length !== b.length) return false;
+          const sortedA = [...a].sort();
+          const sortedB = [...b].sort();
+          return sortedA.every((value, idx) => value === sortedB[idx]);
+        };
+        const isUnchanged =
+          !!stableCurrentResult?.id &&
+          (stableCurrentResult.result || TestResult.NOT_RUN) === actualResult &&
+          (stableCurrentResult.notes || "") === (notes || "") &&
+          (stableCurrentResult.jiraIssueKey || "") ===
+            (processedJiraKey || "") &&
+          areTagsEqual(stableCurrentResult.tags || [], tags || []) &&
+          attachedFiles.length === 0;
+
+        // 신규(기존 결과 없음)인데 결과가 NOT_RUN이고 노트/태그/JIRA/첨부가
+        // 모두 비어 있으면 빈 레코드를 만들지 않는다. 리스트에서 열어 보기만 하고
+        // 저장/다음/N 을 눌러도 빈 NOT_RUN 레코드가 쌓이지 않도록 한다.
+        // (autoSaveFn 의 동일 가드를 수동 저장 경로에도 적용)
+        const isEmptyNew =
+          !stableCurrentResult?.id &&
+          (!actualResult || actualResult === TestResult.NOT_RUN) &&
+          !(notes && notes.trim()) &&
+          (!tags || tags.length === 0) &&
+          !(processedJiraKey && processedJiraKey.trim()) &&
+          attachedFiles.length === 0;
+
+        if (isUnchanged || isEmptyNew) {
+          // 변경 없음 또는 빈 신규: 새 결과 레코드를 만들지 않고 이전 상태를 유지
+          if (showSuccess) setShowNoChangeInfo(true);
+          if (advanceToNext && onNext) onNext();
+          return;
+        }
+
         if (isPreviousResultEdit && stableCurrentResult?.id) {
           const response = await api(
             `/api/test-executions/results/${stableCurrentResult.id}`,
@@ -614,7 +709,7 @@ const TestResultForm = ({
       attachedFiles,
       t,
       isPreviousResultEdit,
-      stableCurrentResult?.id,
+      stableCurrentResult,
     ],
   );
 
@@ -682,7 +777,7 @@ const TestResultForm = ({
     setLinkedIssues((prev) => [...prev, issue]);
 
     // 콤마로 구분된 문자열에 추가
-    setJiraIssueKey((prev) => {
+    setJiraIssueKeyByUser((prev) => {
       const keys = prev
         ? prev
             .split(",")
@@ -700,7 +795,7 @@ const TestResultForm = ({
     setLinkedIssues((prev) => prev.filter((issue) => issue.key !== issueKey));
 
     // 콤마로 구분된 문자열에서 제거
-    setJiraIssueKey((prev) => {
+    setJiraIssueKeyByUser((prev) => {
       const keys = prev
         ? prev
             .split(",")
@@ -732,7 +827,7 @@ const TestResultForm = ({
       const key = e.key.toUpperCase();
       if (KEY_RESULT_MAP[key]) {
         const newResult = KEY_RESULT_MAP[key];
-        setResult(newResult);
+        setResultByUser(newResult);
         setTimeout(
           () =>
             handleSaveAndNext(newResult, {
@@ -778,7 +873,7 @@ const TestResultForm = ({
           <Box sx={{ mt: 3, width: "100%", boxSizing: "border-box" }}>
             <TestResultNotes
               notes={notes}
-              setNotes={setNotes}
+              setNotes={setNotesByUser}
               isViewer={isViewer}
               t={t}
               darkMode={darkMode}
@@ -794,7 +889,7 @@ const TestResultForm = ({
               inlineImageUploading={inlineImageUploading}
               result={result}
               onResultChange={(newResult) => {
-                setResult(newResult);
+                setResultByUser(newResult);
                 setTimeout(
                   () =>
                     handleSaveAndNext(newResult, {
@@ -816,7 +911,7 @@ const TestResultForm = ({
 
             <TestResultTags
               tags={tags}
-              setTags={setTags}
+              setTags={setTagsByUser}
               availableTags={availableTags}
               isViewer={isViewer}
               t={t}
@@ -841,7 +936,7 @@ const TestResultForm = ({
               notes={notes}
               handleIssueLinked={handleIssueLinked}
               handleIssueUnlinked={handleIssueUnlinked}
-              onJiraIssueKeyChange={setJiraIssueKey}
+              onJiraIssueKeyChange={setJiraIssueKeyByUser}
               linkedIssues={linkedIssues}
               isViewer={isViewer}
               t={t}
@@ -887,7 +982,7 @@ const TestResultForm = ({
           <TestResultFloatingMenu
             result={result}
             onResultChange={(newResult) => {
-              setResult(newResult);
+              setResultByUser(newResult);
               setTimeout(
                 () =>
                   handleSaveAndNext(newResult, {
@@ -932,6 +1027,19 @@ const TestResultForm = ({
         >
           <Alert severity="success" onClose={() => setShowSaveSuccess(false)}>
             {t("testcase.message.saved", "저장되었습니다.")}
+          </Alert>
+        </Snackbar>
+        <Snackbar
+          open={showNoChangeInfo}
+          autoHideDuration={3000}
+          onClose={() => setShowNoChangeInfo(false)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert severity="info" onClose={() => setShowNoChangeInfo(false)}>
+            {t(
+              "testResult.message.noChange",
+              "변경 사항이 없어 저장하지 않았습니다.",
+            )}
           </Alert>
         </Snackbar>
 
@@ -991,7 +1099,7 @@ const TestResultForm = ({
           <TestResultFloatingMenu
             result={result}
             onResultChange={(newResult) => {
-              setResult(newResult);
+              setResultByUser(newResult);
               setTimeout(
                 () =>
                   handleSaveAndNext(newResult, {
@@ -1037,6 +1145,19 @@ const TestResultForm = ({
       >
         <Alert severity="success" onClose={() => setShowSaveSuccess(false)}>
           {t("testcase.message.saved", "저장되었습니다.")}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={showNoChangeInfo}
+        autoHideDuration={3000}
+        onClose={() => setShowNoChangeInfo(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="info" onClose={() => setShowNoChangeInfo(false)}>
+          {t(
+            "testResult.message.noChange",
+            "변경 사항이 없어 저장하지 않았습니다.",
+          )}
         </Alert>
       </Snackbar>
 

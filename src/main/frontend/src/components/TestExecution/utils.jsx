@@ -44,7 +44,7 @@ export function getResultIcon(result) {
           titleAccess="SKIPPED"
         />
       );
-    case TestResult.NOTRUN:
+    case TestResult.NOT_RUN:
     default:
       return (
         <HourglassEmptyIcon
@@ -85,16 +85,28 @@ export function formatDateTimeShort(dateInput) {
 }
 
 export function getLatestResults(results) {
-  const map = new Map();
+  // testCaseId별로 executedAt이 가장 최근인 레코드를 그대로 사용한다.
+  // 백엔드 통계(TestResultRepository: MAX(executed_at) 기준 latest_results)와
+  // 동일한 의미라 프론트/백엔드 집계가 일치한다. 명시적으로 입력한 NOT_RUN도
+  // 그대로 표시된다. (조회만으로 생기던 빈 NOT_RUN은 저장 단계에서 차단됨)
+  const grouped = new Map();
   results?.forEach((r) => {
     const key = r.testCaseId;
-    // 백엔드에서 이미 최신순으로 정렬되어 있으므로
-    // 같은 testCaseId의 첫 번째 결과만 사용
-    if (!map.has(key)) {
-      map.set(key, r);
-    }
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(r);
   });
-  return Array.from(map.values());
+
+  const toTime = (r) => {
+    const d = parseDateTime(r?.executedAt);
+    return d ? d.getTime() : 0;
+  };
+
+  const latest = [];
+  grouped.forEach((records) => {
+    const sorted = [...records].sort((a, b) => toTime(b) - toTime(a));
+    latest.push(sorted[0]);
+  });
+  return latest;
 }
 
 // 배열 형태의 날짜를 Date 객체로 변환하는 헬퍼 함수

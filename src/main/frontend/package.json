@@ -1,6 +1,6 @@
 {
   "name": "testcasecraft",
-  "version": "1.0.79",
+  "version": "1.0.80",
   "private": true,
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.7",
@@ -36,7 +36,9 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,html,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,html,md}\""
   },
   "browserslist": {
     "production": [
@@ -53,6 +55,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.1",
     "cypress": "^15.6.0",
+    "prettier": "^3.3.3",
     "vite": "^7.2.2"
   },
   "overrides": {

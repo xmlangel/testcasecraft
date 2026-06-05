@@ -171,6 +171,9 @@ hs_err_pid*
 playwright-report/*
 playwright-report/
 **/playwright-report/
+# Playwright MCP 캡처 산출물 (스냅샷/스크린샷/콘솔 로그)
+.playwright-mcp/
+**/.playwright-mcp/
 test-results/
 test-output/
 **/screenshots/
@@ -264,3 +267,4 @@ CLAUDE.md
 ~$*
 
 .mcp.json
+.workspace/

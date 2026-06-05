@@ -16,6 +16,7 @@ import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
 import { invalidateDashboardCache } from "../services/dashboardService";
 import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
+import { getLatestResults } from "./TestExecution/utils.jsx";
 
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
@@ -199,12 +200,19 @@ const TestCaseResultPage = () => {
       >
         {execution && testCase ? (
           <TestResultForm
+            // 케이스 전환 시 리마운트 강제 — 이전 케이스의 입력 상태와
+            // 다음 케이스의 resultId가 섞인 스냅샷이 자동저장으로 흘러가는 것을 방지
+            key={testCaseId}
             open={true}
             testCaseId={testCaseId}
             executionId={executionId}
-            currentResult={execution.results?.find(
-              (r) => r.testCaseId === testCaseId,
-            )}
+            currentResult={
+              getLatestResults(
+                (execution.results || []).filter(
+                  (r) => r.testCaseId === testCaseId,
+                ),
+              )[0]
+            }
             onClose={handleClose}
             onSave={handleSave}
             onNext={handleNext}

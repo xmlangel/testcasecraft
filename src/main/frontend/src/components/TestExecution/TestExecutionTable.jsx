@@ -56,7 +56,7 @@ const ExecutionRow = memo(
     theme,
   }) => {
     const isFolder = node.type === "folder";
-    const result = resultObj?.result || TestResult.NOTRUN;
+    const result = resultObj?.result || TestResult.NOT_RUN;
     const notes = resultObj?.notes;
     const tags = resultObj?.tags || [];
     const jiraIssueKey = resultObj?.jiraIssueKey;
