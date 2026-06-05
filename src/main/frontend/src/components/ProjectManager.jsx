@@ -159,13 +159,13 @@ const ProjectManager = ({ onSelectProject }) => {
       }
 
       if (!response.ok) {
-        throw new Error("멤버 목록 조회 실패");
+        throw new Error(t("projectManager.memberLoadError", "Failed to load members"));
       }
 
       const members = await response.json();
       setProjectMembers((prev) => ({ ...prev, [projectId]: members }));
     } catch (err) {
-      console.error("프로젝트 멤버 로드 오류:", err);
+      console.error("Project member load error:", err);
       setProjectMembers((prev) => ({ ...prev, [projectId]: [] }));
     } finally {
       setLoadingMembers((prev) => ({ ...prev, [projectId]: false }));

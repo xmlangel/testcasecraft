@@ -117,10 +117,10 @@ const RagStatusBadge = ({
         }
       } else {
         const errData = await response.json().catch(() => ({}));
-        console.error("RAG 등록 실패:", errData.message || response.status);
+        console.error("RAG registration failed:", errData.message || response.status);
       }
     } catch (error) {
-      console.error("RAG 등록 오류:", error);
+      console.error("RAG registration error:", error);
     } finally {
       setIsRegistering(false);
     }

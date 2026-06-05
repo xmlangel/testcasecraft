@@ -30,6 +30,7 @@ import {
   getProjectTestPlans,
   getProjectAssigneeResults,
 } from "../services/dashboardService";
+import { useI18n } from "../context/I18nContext.jsx";
 
 /**
  * ICT-202: 테스트 결과 비교 필터 패널 컴포넌트
@@ -43,6 +44,7 @@ function ComparisonFilterPanel({
   onSelectedItemsChange,
   onApplyFilter,
 }) {
+  const { t } = useI18n();
   const [testPlans, setTestPlans] = useState([]);
   const [assignees, setAssignees] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -52,7 +54,7 @@ function ComparisonFilterPanel({
   useEffect(() => {
     if (!projectId) {
       console.warn("ComparisonFilterPanel: No projectId provided");
-      setError("프로젝트가 선택되지 않았습니다.");
+      setError(t("comparisonFilterPanel.noProject", "프로젝트가 선택되지 않았습니다."));
       return;
     }
 
@@ -115,19 +117,19 @@ function ComparisonFilterPanel({
       });
 
       // 더 구체적인 에러 메시지 제공
-      let errorMessage = "필터 데이터를 불러오는데 실패했습니다.";
+      let errorMessage = t("comparisonFilterPanel.loadError", "필터 데이터를 불러오는데 실패했습니다.");
       if (
         err.message.includes("401") ||
         err.message.includes("Authentication")
       ) {
-        errorMessage = "인증이 필요합니다. 다시 로그인해주세요.";
+        errorMessage = t("comparisonFilterPanel.authError", "인증이 필요합니다. 다시 로그인해주세요.");
       } else if (err.message.includes("404")) {
-        errorMessage = "프로젝트 데이터를 찾을 수 없습니다.";
+        errorMessage = t("comparisonFilterPanel.notFoundError", "프로젝트 데이터를 찾을 수 없습니다.");
       } else if (
         err.message.includes("Network") ||
         err.message.includes("fetch")
       ) {
-        errorMessage = "네트워크 연결을 확인해주세요.";
+        errorMessage = t("comparisonFilterPanel.networkError", "네트워크 연결을 확인해주세요.");
       }
 
       setError(errorMessage);
@@ -169,7 +171,7 @@ function ComparisonFilterPanel({
         return assignees.map((assignee) => ({
           id: assignee.id,
           name: assignee.name,
-          description: `${assignee.totalCases}건 (완료율 ${assignee.completionRate}%)`,
+          description: t("comparisonFilterPanel.assigneeStats", "{cases}건 (완료율 {rate}%)", { cases: assignee.totalCases, rate: assignee.completionRate }),
         }));
       default:
         return [];
@@ -192,7 +194,7 @@ function ComparisonFilterPanel({
         <CardContent>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <CircularProgress size={20} />
-            <Typography variant="body2">필터 옵션을 불러오는 중...</Typography>
+            <Typography variant="body2">{t("comparisonFilterPanel.loadingOptions", "필터 옵션을 불러오는 중...")}</Typography>
           </Box>
         </CardContent>
       </Card>
@@ -212,13 +214,13 @@ function ComparisonFilterPanel({
       <CardContent>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
           <CompareArrowsIcon color="primary" />
-          <Typography variant="h6">비교 분석 필터</Typography>
+          <Typography variant="h6">{t("comparisonFilterPanel.title", "비교 분석 필터")}</Typography>
         </Box>
 
         {/* 비교 모드 선택 */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            비교 기준
+            {t("comparisonFilterPanel.criterion", "비교 기준")}
           </Typography>
           <ToggleButtonGroup
             value={comparisonMode}
@@ -229,15 +231,15 @@ function ComparisonFilterPanel({
           >
             <ToggleButton value="overall">
               <AssessmentIcon sx={{ mr: 1 }} />
-              전체 추이
+              {t("comparisonFilterPanel.overallTrend", "전체 추이")}
             </ToggleButton>
             <ToggleButton value="testplan">
               <TimelineIcon sx={{ mr: 1 }} />
-              플랜별 비교
+              {t("comparisonFilterPanel.planComparison", "플랜별 비교")}
             </ToggleButton>
             <ToggleButton value="assignee">
               <GroupIcon sx={{ mr: 1 }} />
-              실행자별 비교
+              {t("comparisonFilterPanel.assigneeComparison", "실행자별 비교")}
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
@@ -250,8 +252,8 @@ function ComparisonFilterPanel({
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel>
                 {comparisonMode === "testplan"
-                  ? "비교할 테스트 플랜"
-                  : "비교할 실행자"}
+                  ? t("comparisonFilterPanel.selectTestPlan", "비교할 테스트 플랜")
+                  : t("comparisonFilterPanel.selectAssignee", "비교할 실행자")}
               </InputLabel>
               <Select
                 multiple
@@ -261,8 +263,8 @@ function ComparisonFilterPanel({
                   <OutlinedInput
                     label={
                       comparisonMode === "testplan"
-                        ? "비교할 테스트 플랜"
-                        : "비교할 실행자"
+                        ? t("comparisonFilterPanel.selectTestPlan", "비교할 테스트 플랜")
+                        : t("comparisonFilterPanel.selectAssignee", "비교할 실행자")
                     }
                   />
                 }
@@ -303,18 +305,18 @@ function ComparisonFilterPanel({
               {selectedItems.length === 0 ? (
                 <Alert severity="info" variant="outlined">
                   {comparisonMode === "testplan"
-                    ? "비교할 테스트 플랜을 선택해주세요 (최대 5개)"
-                    : "비교할 실행자를 선택해주세요 (최대 10개)"}
+                    ? t("comparisonFilterPanel.selectPlanPrompt", "비교할 테스트 플랜을 선택해주세요 (최대 5개)")
+                    : t("comparisonFilterPanel.selectAssigneePrompt", "비교할 실행자를 선택해주세요 (최대 10개)")}
                 </Alert>
               ) : (
                 <Typography variant="body2" color="text.secondary">
-                  {selectedItems.length}개 항목이 선택됨
+                  {t("comparisonFilterPanel.itemsSelected", "{count}개 항목이 선택됨", { count: selectedItems.length })}
                   {comparisonMode === "testplan" &&
                     selectedItems.length > 5 &&
-                    " (최대 5개까지 선택 가능)"}
+                    t("comparisonFilterPanel.planLimitWarning", " (최대 5개까지 선택 가능)")}
                   {comparisonMode === "assignee" &&
                     selectedItems.length > 10 &&
-                    " (최대 10개까지 선택 가능)"}
+                    t("comparisonFilterPanel.assigneeLimitWarning", " (최대 10개까지 선택 가능)")}
                 </Typography>
               )}
             </Box>
@@ -324,7 +326,7 @@ function ComparisonFilterPanel({
         {/* 적용 안내 */}
         <Box sx={{ textAlign: "center" }}>
           <Typography variant="caption" color="text.secondary">
-            필터 설정이 자동으로 차트에 적용됩니다.
+            {t("comparisonFilterPanel.autoApplyNote", "필터 설정이 자동으로 차트에 적용됩니다.")}
           </Typography>
         </Box>
       </CardContent>

@@ -53,6 +53,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { JIRA_STATUS_COLORS, CHART_COLORS } from "../../constants/statusColors";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
  * JIRA 연동 리포트 섹션 컴포넌트
@@ -67,6 +68,8 @@ const JiraIntegrationReportSection = ({
   onRefresh,
   loading = false,
 }) => {
+  const { t } = useI18n();
+
   // 상태 관리
   const [jiraData, setJiraData] = useState({
     statusSummary: [],
@@ -178,7 +181,7 @@ const JiraIntegrationReportSection = ({
         await onRefresh();
       }
     } catch (error) {
-      console.error("JIRA 데이터 새로고침 실패:", error);
+      console.error(t("jira.data.refreshError", "JIRA 데이터 새로고침 실패:"), error);
     } finally {
       setRefreshing(false);
     }
@@ -389,7 +392,7 @@ const JiraIntegrationReportSection = ({
                   />
                 </TableCell>
                 <TableCell align="center">
-                  <Tooltip title="JIRA에서 열기">
+                  <Tooltip title={t("jira.action.openInJira", "JIRA에서 열기")}>
                     <IconButton
                       size="small"
                       onClick={() => openJiraIssue(issue.issueKey)}

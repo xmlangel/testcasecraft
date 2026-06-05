@@ -69,7 +69,7 @@ const GoogleConfigManager = () => {
         setJsonKey("");
       }
     } catch (err) {
-      console.error("설정 로딩 실패:", err);
+      console.error(t("google.settings.loadError", "설정 로딩 실패:"), err);
       setError(
         t(
           "google.config.fetchError",
@@ -105,7 +105,7 @@ const GoogleConfigManager = () => {
       setJsonKey("");
       await fetchConfig();
     } catch (err) {
-      console.error("설정 저장 실패:", err);
+      console.error(t("google.settings.saveError", "설정 저장 실패:"), err);
       let msg = t(
         "google.config.saveError",
         "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.",
@@ -142,7 +142,7 @@ const GoogleConfigManager = () => {
       setConfig(null);
       setJsonKey("");
     } catch (err) {
-      console.error("삭제 실패:", err);
+      console.error(t("google.delete.error", "삭제 실패:"), err);
       setError(
         t(
           "google.config.error.deleteFailed",

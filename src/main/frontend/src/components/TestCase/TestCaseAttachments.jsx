@@ -75,7 +75,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
         const data = await response.json();
         setAttachments(data.attachments || []);
       } else {
-        throw new Error("첨부파일 목록을 불러오는데 실패했습니다.");
+        throw new Error(t("testcaseAttachments.fetchError", "첨부파일 목록을 불러오는데 실패했습니다."));
       }
     } catch (err) {
       console.error("첨부파일 조회 오류:", err);
@@ -138,7 +138,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
           try {
             data = JSON.parse(text);
           } catch (jsonError) {
-            console.warn("JSON 파싱 실패, 텍스트 응답:", text);
+            console.warn("JSON parsing failed:", text);
           }
         }
 
@@ -153,7 +153,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
       } else {
         // 에러 응답 처리
         const contentType = response.headers.get("content-type");
-        let errorMessage = "파일 업로드에 실패했습니다.";
+        let errorMessage = t("testcaseAttachments.uploadError", "파일 업로드에 실패했습니다.");
 
         try {
           const text = await response.text();
@@ -166,13 +166,13 @@ const TestCaseAttachments = ({ testCaseId }) => {
             }
           }
         } catch (parseError) {
-          console.error("에러 응답 파싱 실패:", parseError);
+          console.error("Error response parsing failed:", parseError);
         }
 
         throw new Error(errorMessage);
       }
     } catch (err) {
-      console.error("파일 업로드 오류:", err);
+      console.error("File upload error:", err);
       setError(err.message);
     } finally {
       setUploading(false);
@@ -201,17 +201,17 @@ const TestCaseAttachments = ({ testCaseId }) => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        throw new Error("파일 다운로드에 실패했습니다.");
+        throw new Error(t("testcaseAttachments.downloadError", "파일 다운로드에 실패했습니다."));
       }
     } catch (err) {
-      console.error("파일 다운로드 오류:", err);
+      console.error("File download error:", err);
       setError(err.message);
     }
   };
 
   // 파일 삭제
   const handleDelete = async (attachmentId) => {
-    if (!window.confirm("이 파일을 삭제하시겠습니까?")) return;
+    if (!window.confirm(t("testcaseAttachments.deleteConfirm", "이 파일을 삭제하시겠습니까?"))) return;
 
     try {
       const response = await api(`/api/testcase-attachments/${attachmentId}`, {
@@ -222,10 +222,10 @@ const TestCaseAttachments = ({ testCaseId }) => {
         // 목록 새로고침
         await fetchAttachments();
       } else {
-        throw new Error("파일 삭제에 실패했습니다.");
+        throw new Error(t("testcaseAttachments.deleteError", "파일 삭제에 실패했습니다."));
       }
     } catch (err) {
-      console.error("파일 삭제 오류:", err);
+      console.error("File delete error:", err);
       setError(err.message);
     }
   };
@@ -252,7 +252,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
           const url = window.URL.createObjectURL(blob);
           setPreviewContent({ type: "image", url });
         } else {
-          throw new Error("이미지를 불러올 수 없습니다.");
+          throw new Error(t("testcaseAttachments.imageLoadError", "이미지를 불러올 수 없습니다."));
         }
       }
       // PDF 파일 미리보기
@@ -269,7 +269,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
           const url = window.URL.createObjectURL(blob);
           setPreviewContent({ type: "pdf", url });
         } else {
-          throw new Error("PDF를 불러올 수 없습니다.");
+          throw new Error(t("testcaseAttachments.pdfLoadError", "PDF를 불러올 수 없습니다."));
         }
       }
       // 텍스트 파일 미리보기
@@ -285,7 +285,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
           const text = await response.text();
           setPreviewContent({ type: "text", content: text });
         } else {
-          throw new Error("텍스트 파일을 불러올 수 없습니다.");
+          throw new Error(t("testcaseAttachments.textFileLoadError", "텍스트 파일을 불러올 수 없습니다."));
         }
       }
       // 기타 파일은 미리보기 지원하지 않음
@@ -293,7 +293,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
         setPreviewContent({ type: "unsupported" });
       }
     } catch (err) {
-      console.error("파일 미리보기 오류:", err);
+      console.error("File preview error:", err);
       setPreviewContent({ type: "error", message: err.message });
     } finally {
       setLoadingPreview(false);
@@ -362,7 +362,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
           sx={{ display: "flex", alignItems: "center", gap: 1 }}
         >
           <AttachFileIcon />
-          첨부파일
+          {t("testcaseAttachments.title", "첨부파일")}
           {attachments.length > 0 && (
             <Chip label={attachments.length} size="small" color="primary" />
           )}
@@ -374,7 +374,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
           size="small"
           disabled={!testCaseId}
         >
-          파일 업로드
+          {t("testcaseAttachments.uploadButton", "파일 업로드")}
           <input
             type="file"
             hidden
@@ -393,19 +393,19 @@ const TestCaseAttachments = ({ testCaseId }) => {
           <CircularProgress />
         </Box>
       ) : attachments.length === 0 ? (
-        <Alert severity="info">첨부된 파일이 없습니다.</Alert>
+        <Alert severity="info">{t("testcaseAttachments.noFiles", "첨부된 파일이 없습니다.")}</Alert>
       ) : (
         <TableContainer>
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell width="50px">종류</TableCell>
-                <TableCell>파일명</TableCell>
-                <TableCell width="100px">크기</TableCell>
-                <TableCell width="150px">업로드 일시</TableCell>
-                <TableCell width="100px">업로드자</TableCell>
+                <TableCell width="50px">{t("testcaseAttachments.tableType", "종류")}</TableCell>
+                <TableCell>{t("testcaseAttachments.tableFileName", "파일명")}</TableCell>
+                <TableCell width="100px">{t("testcaseAttachments.tableSize", "크기")}</TableCell>
+                <TableCell width="150px">{t("testcaseAttachments.tableUploadTime", "업로드 일시")}</TableCell>
+                <TableCell width="100px">{t("testcaseAttachments.tableUploadedBy", "업로드자")}</TableCell>
                 <TableCell width="150px" align="center">
-                  작업
+                  {t("testcaseAttachments.tableAction", "작업")}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -447,7 +447,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Tooltip title="미리보기">
+                    <Tooltip title={t("testcaseAttachments.previewTooltip", "미리보기")}>
                       <IconButton
                         size="small"
                         color="info"
@@ -461,7 +461,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                         <PreviewIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="다운로드">
+                    <Tooltip title={t("testcaseAttachments.downloadTooltip", "다운로드")}>
                       <IconButton
                         size="small"
                         color="primary"
@@ -475,7 +475,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                         <DownloadIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="삭제">
+                    <Tooltip title={t("testcaseAttachments.deleteTooltip", "삭제")}>
                       <IconButton
                         size="small"
                         color="error"
@@ -498,12 +498,12 @@ const TestCaseAttachments = ({ testCaseId }) => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>파일 업로드</DialogTitle>
+        <DialogTitle>{t("testcaseAttachments.uploadDialogTitle", "파일 업로드")}</DialogTitle>
         <DialogContent>
           {selectedFile && (
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                선택한 파일
+                {t("testcaseAttachments.selectedFile", "선택한 파일")}
               </Typography>
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
@@ -521,12 +521,12 @@ const TestCaseAttachments = ({ testCaseId }) => {
 
           <TextField
             fullWidth
-            label="파일 설명 (선택사항)"
+            label={t("testcaseAttachments.descriptionLabel", "파일 설명 (선택사항)")}
             multiline
             rows={3}
             value={fileDescription}
             onChange={(e) => setFileDescription(e.target.value)}
-            placeholder="이 파일에 대한 간단한 설명을 입력하세요"
+            placeholder={t("testcaseAttachments.descriptionPlaceholder", "이 파일에 대한 간단한 설명을 입력하세요")}
             disabled={uploading}
             sx={{ mt: 2 }}
           />
@@ -541,7 +541,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                 display="block"
                 sx={{ mt: 1 }}
               >
-                업로드 중...
+                {t("testcaseAttachments.uploading", "업로드 중...")}
               </Typography>
             </Box>
           )}
@@ -561,7 +561,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
               uploading ? <CircularProgress size={16} /> : <UploadIcon />
             }
           >
-            {uploading ? "업로드 중..." : "업로드"}
+            {uploading ? t("testcaseAttachments.uploadingButton", "업로드 중...") : t("testcaseAttachments.uploadButton", "업로드")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -620,7 +620,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
             >
               <CircularProgress />
               <Typography variant="body2" color="text.secondary">
-                파일을 불러오는 중...
+                {t("testcaseAttachments.loadingFile", "파일을 불러오는 중...")}
               </Typography>
             </Box>
           ) : previewContent?.type === "image" ? (
@@ -674,10 +674,10 @@ const TestCaseAttachments = ({ testCaseId }) => {
             <Box sx={{ textAlign: "center", p: 3 }}>
               <FileIcon sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>
-                미리보기를 지원하지 않는 파일 형식입니다
+                {t("testcaseAttachments.unsupportedFormat", "미리보기를 지원하지 않는 파일 형식입니다")}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                파일을 다운로드하여 확인해주세요.
+                {t("testcaseAttachments.downloadToPreview", "파일을 다운로드하여 확인해주세요.")}
               </Typography>
             </Box>
           ) : previewContent?.type === "error" ? (
@@ -697,10 +697,10 @@ const TestCaseAttachments = ({ testCaseId }) => {
                 )
               }
             >
-              다운로드
+              {t("testcaseAttachments.previewDownloadButton", "다운로드")}
             </Button>
           )}
-          <Button onClick={handleClosePreview}>닫기</Button>
+          <Button onClick={handleClosePreview}>{t("testcaseAttachments.closeButton", "닫기")}</Button>
         </DialogActions>
       </Dialog>
     </Paper>

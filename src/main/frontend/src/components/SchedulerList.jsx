@@ -27,9 +27,11 @@ import {
   CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import StyledDashboardPaper from "./common/StyledDashboardPaper";
+import { useI18n } from "../context/I18nContext";
 
 const SchedulerList = () => {
   const theme = useTheme();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [schedulerData, setSchedulerData] = useState(null);
@@ -49,7 +51,7 @@ const SchedulerList = () => {
       setSchedulerData(data);
       setLastUpdated(new Date());
     } catch (err) {
-      setError(err.message || "스케줄러 정보를 불러오는데 실패했습니다.");
+      setError(err.message || t("scheduler.loadFailed", "스케줄러 정보를 불러오는데 실패했습니다."));
     } finally {
       setLoading(false);
     }
@@ -77,7 +79,7 @@ const SchedulerList = () => {
       <Alert severity="error" sx={{ mt: 2 }}>
         {error}
         <Chip
-          label="다시 시도"
+          label={t("common.retry", "다시 시도")}
           size="small"
           onClick={loadSchedulerInfo}
           sx={{ ml: 2, cursor: "pointer" }}
@@ -109,21 +111,19 @@ const SchedulerList = () => {
         mb={3}
       >
         <Typography variant="h6" fontWeight={600}>
-          스케줄된 작업 목록
+          {t("scheduler.title", "스케줄된 작업 목록")}
         </Typography>
         <Box display="flex" alignItems="center" gap={1}>
           {lastUpdated && (
             <Chip
-              label={`최근 업데이트: ${lastUpdated.toLocaleTimeString(
-                "ko-KR",
-              )}`}
+              label={t("scheduler.lastUpdated", "최근 업데이트: {time}", { time: lastUpdated.toLocaleTimeString("ko-KR") })}
               size="small"
               variant="outlined"
             />
           )}
           <Chip
             icon={<RefreshIcon />}
-            label="새로고침"
+            label={t("common.refresh", "새로고침")}
             size="small"
             color="primary"
             onClick={loadSchedulerInfo}
@@ -152,7 +152,7 @@ const SchedulerList = () => {
                 </Box>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    총 스케줄 작업
+                    {t("scheduler.totalTasks", "총 스케줄 작업")}
                   </Typography>
                   <Typography variant="h4">
                     {schedulerData?.totalTasks || 0}
@@ -182,10 +182,10 @@ const SchedulerList = () => {
                 </Box>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    활성 상태
+                    {t("scheduler.activeStatus", "활성 상태")}
                   </Typography>
                   <Typography variant="h5" color="success.main">
-                    정상 동작
+                    {t("scheduler.normalOperation", "정상 동작")}
                   </Typography>
                 </Box>
               </Box>
@@ -210,7 +210,7 @@ const SchedulerList = () => {
                 </Box>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    서버 시간대
+                    {t("scheduler.timezone", "서버 시간대")}
                   </Typography>
                   <Typography variant="body1">
                     {Intl.DateTimeFormat().resolvedOptions().timeZone}
@@ -225,7 +225,7 @@ const SchedulerList = () => {
       {/* 스케줄러 테이블 */}
       <StyledDashboardPaper>
         <Typography variant="h6" gutterBottom>
-          스케줄 상세 정보
+          {t("scheduler.detailsTitle", "스케줄 상세 정보")}
         </Typography>
         {schedulerData?.note && (
           <Alert severity="info" sx={{ mb: 2 }}>

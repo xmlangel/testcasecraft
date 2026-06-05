@@ -186,7 +186,7 @@ export const I18nProvider = ({ children }) => {
         console.error("언어 목록 로드 실패:", error);
         dispatch({
           type: I18N_ACTIONS.SET_ERROR,
-          payload: "언어 목록을 로드할 수 없습니다",
+          payload: "Failed to load language list",
         });
         throw error;
       } finally {
@@ -259,7 +259,7 @@ export const I18nProvider = ({ children }) => {
         console.error(`번역 데이터 로드 실패 (${languageCode}):`, error);
         dispatch({
           type: I18N_ACTIONS.SET_ERROR,
-          payload: "번역 데이터를 로드할 수 없습니다",
+          payload: "Failed to load translation data",
         });
         throw error;
       } finally {
@@ -308,7 +308,7 @@ export const I18nProvider = ({ children }) => {
           }
         } catch (error) {
           console.warn(
-            "서버 언어 설정 업데이트 실패 (로컬 설정은 유지):",
+            "Failed to update language on server (local setting preserved):",
             error,
           );
           // 서버 실패해도 로컬 설정은 유지하여 사용자 경험 보장
@@ -318,7 +318,7 @@ export const I18nProvider = ({ children }) => {
       console.error("언어 변경 실패:", error);
       dispatch({
         type: I18N_ACTIONS.SET_ERROR,
-        payload: "언어 변경에 실패했습니다",
+        payload: "Failed to change language",
       });
     }
   };
@@ -460,7 +460,7 @@ export const I18nProvider = ({ children }) => {
 export const useI18n = () => {
   const context = useContext(I18nContext);
   if (!context) {
-    throw new Error("useI18n은 I18nProvider 내에서 사용되어야 합니다");
+    throw new Error("useI18n must be used within I18nProvider");
   }
   return context;
 };

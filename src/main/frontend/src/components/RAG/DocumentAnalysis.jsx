@@ -68,7 +68,7 @@ function DocumentAnalysis({ document }) {
     llmModel: "",
     llmApiKey: "",
     llmBaseUrl: "",
-    promptTemplate: "다음 텍스트를 요약하세요:\n\n{chunk_text}",
+    promptTemplate: t("rag.analysis.defaultPrompt", "다음 텍스트를 요약하세요:\n\n{chunk_text}"),
     chunkBatchSize: 10,
     pauseAfterBatch: false, // 기본값: 중단 없이 계속 진행
     maxTokens: 500,
@@ -172,7 +172,7 @@ function DocumentAnalysis({ document }) {
 
     // 유효성 검사
     if (!config.llmProvider || !config.llmModel || !config.promptTemplate) {
-      setError("LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요.");
+      setError(t("rag.analysis.error.selectConfig", "LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요."));
       return;
     }
 
@@ -232,7 +232,7 @@ function DocumentAnalysis({ document }) {
 
     // 유효성 검사
     if (!config.llmProvider || !config.llmModel || !config.promptTemplate) {
-      setError("LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요.");
+      setError(t("rag.analysis.error.selectConfig", "LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요."));
       return;
     }
 

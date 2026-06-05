@@ -203,7 +203,7 @@ const SystemDashboard = () => {
       // 조직별 프로젝트 통계 (실제 데이터 기반)
       const organizationGroups = {};
       projects.forEach((project) => {
-        const orgName = project.organization?.name || "독립 프로젝트";
+        const orgName = project.organization?.name || t("systemDashboard.independentProject", "독립 프로젝트");
         if (!organizationGroups[orgName]) {
           organizationGroups[orgName] = {
             name: orgName,

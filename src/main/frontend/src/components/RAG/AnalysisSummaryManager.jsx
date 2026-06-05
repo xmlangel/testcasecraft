@@ -31,6 +31,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { useRAG } from "../../context/RAGContext.jsx";
+import { useTranslation } from "../../context/I18nContext.jsx";
 import MDEditor from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
@@ -52,6 +53,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
     getLlmAnalysisResults,
     getLlmAnalysisStatus,
   } = useRAG();
+  const { t } = useTranslation();
   const theme = useTheme();
   const colorMode = theme.palette.mode === "dark" ? "dark" : "light";
 
@@ -324,7 +326,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                   totalChunks,
                   analyzedChunks: processedChunks,
                   status: "completed",
-                  combinedResponse: "분석이 완료되었지만 결과가 없습니다.",
+                  combinedResponse: t("rag.analysisSummaryManager.noResults", "분석이 완료되었지만 결과가 없습니다."),
                   uploadDate: doc.uploadDate,
                 };
               }
@@ -341,7 +343,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                 analyzedChunks: processedChunks,
                 status: "completed",
                 combinedResponse:
-                  "분석이 완료되었지만 결과 조회에 실패했습니다.",
+                  t("rag.analysisSummaryManager.noResultsError", "분석이 완료되었지만 결과 조회에 실패했습니다."),
                 uploadDate: doc.uploadDate,
               };
             }
@@ -391,7 +393,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
     } catch (err) {
       console.error("[AnalysisSummaryManager] 요약 로드 실패:", err);
       setError(
-        err.response?.data?.message || "요약 목록을 불러오는데 실패했습니다.",
+        err.response?.data?.message || t("rag.analysisSummaryManager.loadError", "요약 목록을 불러오는데 실패했습니다."),
       );
     } finally {
       setLoading(false);
@@ -442,19 +444,47 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
   const getStatusInfo = (status) => {
     switch (status) {
       case "not_started":
-        return { label: "미분석", color: "default", icon: "⏸️" };
+        return {
+          label: t("rag.summary.status.notStarted", "미분석"),
+          color: "default",
+          icon: "⏸️",
+        };
       case "processing":
-        return { label: "진행 중", color: "primary", icon: "⏳" };
+        return {
+          label: t("rag.summary.status.processing", "진행 중"),
+          color: "primary",
+          icon: "⏳",
+        };
       case "paused":
-        return { label: "일시정지", color: "warning", icon: "⏸️" };
+        return {
+          label: t("rag.summary.status.paused", "일시정지"),
+          color: "warning",
+          icon: "⏸️",
+        };
       case "completed":
-        return { label: "완료", color: "success", icon: "✅" };
+        return {
+          label: t("rag.summary.status.completed", "완료"),
+          color: "success",
+          icon: "✅",
+        };
       case "cancelled":
-        return { label: "취소됨", color: "default", icon: "🚫" };
+        return {
+          label: t("rag.summary.status.cancelled", "취소됨"),
+          color: "default",
+          icon: "🚫",
+        };
       case "error":
-        return { label: "실패", color: "error", icon: "❌" };
+        return {
+          label: t("rag.summary.status.error", "실패"),
+          color: "error",
+          icon: "❌",
+        };
       default:
-        return { label: "알 수 없음", color: "default", icon: "❓" };
+        return {
+          label: t("rag.summary.status.unknown", "알 수 없음"),
+          color: "default",
+          icon: "❓",
+        };
     }
   };
 
@@ -476,7 +506,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
       <Paper elevation={2} sx={{ p: 3, textAlign: "center" }}>
         <CircularProgress />
         <Typography variant="body2" sx={{ mt: 2 }}>
-          요약 목록을 불러오는 중...
+          {t("rag.summary.loading", "요약 목록을 불러오는 중...")}
         </Typography>
       </Paper>
     );
@@ -498,17 +528,22 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
           className="gradient-heading text-grotesque"
           sx={{ mb: 3 }}
         >
-          분석 요약 관리 ({documentSummaries.length}개 문서)
+          {t("rag.summary.title", "분석 요약 관리 ({count}개 문서)", {
+            count: documentSummaries.length,
+          })}
         </Typography>
 
         {/* 요약 목록 테이블 */}
         {documentSummaries.length === 0 ? (
           <Box sx={{ textAlign: "center", py: 4 }}>
             <Typography variant="body1" color="text.secondary">
-              LLM 분석이 완료된 문서가 없습니다.
+              {t("rag.summary.empty", "LLM 분석이 완료된 문서가 없습니다.")}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              문서를 업로드하고 LLM 분석을 실행해주세요.
+              {t(
+                "rag.summary.emptyDescription",
+                "문서를 업로드하고 LLM 분석을 실행해주세요.",
+              )}
             </Typography>
           </Box>
         ) : (
@@ -517,19 +552,19 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell width="30%">문서명</TableCell>
+                    <TableCell width="30%">{t("rag.summary.table.fileName", "문서명")}</TableCell>
                     <TableCell width="12%" align="center">
-                      청크 수
+                      {t("rag.summary.table.chunks", "청크 수")}
                     </TableCell>
                     <TableCell width="12%" align="center">
-                      진행률
+                      {t("rag.summary.table.progress", "진행률")}
                     </TableCell>
                     <TableCell width="12%" align="center">
-                      상태
+                      {t("rag.summary.table.status", "상태")}
                     </TableCell>
-                    <TableCell width="17%">업로드 일시</TableCell>
+                    <TableCell width="17%">{t("rag.summary.table.uploadDate", "업로드 일시")}</TableCell>
                     <TableCell width="17%" align="center">
-                      작업
+                      {t("rag.summary.table.actions", "작업")}
                     </TableCell>
                   </TableRow>
                 </TableHead>
@@ -615,7 +650,12 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                             }}
                           >
                             {summary.status === "not_started" && (
-                              <Tooltip title="LLM 분석 시작">
+                              <Tooltip
+                                title={t(
+                                  "rag.summary.tooltip.startAnalysis",
+                                  "LLM 분석 시작",
+                                )}
+                              >
                                 <IconButton
                                   size="small"
                                   color="primary"
@@ -628,7 +668,12 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                             {(summary.status === "completed" ||
                               summary.status === "processing" ||
                               summary.status === "paused") && (
-                              <Tooltip title="요약 보기">
+                              <Tooltip
+                                title={t(
+                                  "rag.summary.tooltip.viewSummary",
+                                  "요약 보기",
+                                )}
+                              >
                                 <IconButton
                                   size="small"
                                   color="primary"
@@ -660,7 +705,10 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
               rowsPerPage={rowsPerPage}
               onRowsPerPageChange={handleChangeRowsPerPage}
               rowsPerPageOptions={[10, 20, 50]}
-              labelRowsPerPage="페이지당 행 수:"
+              labelRowsPerPage={t(
+                "rag.summary.pagination.rowsPerPage",
+                "페이지당 행 수:",
+              )}
             />
           </>
         )}
@@ -694,10 +742,18 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
           }}
         >
           <Typography variant="h4" className="gradient-heading text-grotesque">
-            LLM 분석 요약 - {selectedSummary?.documentName}
+            {t("rag.summary.dialog.title", "LLM 분석 요약 - {name}", {
+              name: selectedSummary?.documentName,
+            })}
           </Typography>
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Tooltip title={isFullScreen ? "전체화면 종료" : "전체화면"}>
+            <Tooltip
+              title={
+                isFullScreen
+                  ? t("rag.summary.tooltip.exitFullscreen", "전체화면 종료")
+                  : t("rag.summary.tooltip.fullscreen", "전체화면")
+              }
+            >
               <IconButton
                 onClick={() => setIsFullScreen(!isFullScreen)}
                 size="small"
@@ -724,12 +780,20 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
               {/* 메타 정보 */}
               <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
                 <Chip
-                  label={`총 ${selectedSummary.totalChunks}개 청크`}
+                  label={t(
+                    "rag.summary.dialog.totalChunks",
+                    "총 {count}개 청크",
+                    { count: selectedSummary.totalChunks },
+                  )}
                   size="small"
                   color="primary"
                 />
                 <Chip
-                  label={`분석 완료: ${selectedSummary.analyzedChunks}개`}
+                  label={t(
+                    "rag.summary.dialog.analyzedChunks",
+                    "분석 완료: {count}개",
+                    { count: selectedSummary.analyzedChunks },
+                  )}
                   size="small"
                   color="success"
                 />
@@ -738,28 +802,44 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                   color="text.secondary"
                   sx={{ ml: "auto" }}
                 >
-                  업로드: {formatDate(selectedSummary.uploadDate)}
+                  {t("rag.summary.dialog.uploadDate", "업로드: {date}", {
+                    date: formatDate(selectedSummary.uploadDate),
+                  })}
                 </Typography>
               </Box>
 
               {/* 통합 요약 내용 */}
               <Box>
                 <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-                  LLM 분석 결과 요약
+                  {t(
+                    "rag.summary.dialog.analysisResults",
+                    "LLM 분석 결과 요약",
+                  )}
                 </Typography>
                 {selectedSummary.status === "not_started" ? (
                   <Alert severity="info" sx={{ mt: 2 }}>
-                    아직 LLM 분석이 실행되지 않았습니다. 문서 목록에서 LLM
-                    분석을 시작해주세요.
+                    {t(
+                      "rag.summary.dialog.notStartedMessage",
+                      "아직 LLM 분석이 실행되지 않았습니다. 문서 목록에서 LLM 분석을 시작해주세요.",
+                    )}
                   </Alert>
                 ) : selectedSummary.status === "error" ? (
                   <Alert severity="error" sx={{ mt: 2 }}>
-                    분석 중 오류가 발생했습니다:{" "}
-                    {selectedSummary.errorMessage || "알 수 없는 오류"}
+                    {t(
+                      "rag.summary.dialog.errorMessage",
+                      "분석 중 오류가 발생했습니다: {error}",
+                      {
+                        error:
+                          selectedSummary.errorMessage || t("common.unknown", "알 수 없는 오류"),
+                      },
+                    )}
                   </Alert>
                 ) : selectedSummary.status === "processing" ? (
                   <Alert severity="warning" sx={{ mt: 2 }}>
-                    LLM 분석이 진행 중입니다. 잠시 후 다시 확인해주세요.
+                    {t(
+                      "rag.summary.dialog.processingMessage",
+                      "LLM 분석이 진행 중입니다. 잠시 후 다시 확인해주세요.",
+                    )}
                   </Alert>
                 ) : (
                   <Box
@@ -774,7 +854,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                     <MDEditor.Markdown
                       source={
                         selectedSummary.combinedResponse ||
-                        "분석 결과가 없습니다."
+                        t("rag.analysisSummaryManager.noAnalysisResults", "분석 결과가 없습니다.")
                       }
                       style={{ whiteSpace: "pre-wrap" }}
                     />
@@ -794,7 +874,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
               setIsFullScreen(false);
             }}
           >
-            닫기
+            {t("common.close", "닫기")}
           </Button>
         </DialogActions>
       </Dialog>

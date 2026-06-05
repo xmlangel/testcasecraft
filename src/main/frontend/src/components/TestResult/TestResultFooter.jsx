@@ -22,7 +22,12 @@ const TestResultFooter = ({
       {/* JIRA 버튼 (좌측) */}
       <Box>
         {shouldShowJiraButton() && !isViewer && (
-          <Tooltip title="JIRA 이슈에 테스트 결과 코멘트 추가">
+          <Tooltip
+            title={t(
+              "testResult.form.jiraCommentTooltip",
+              "JIRA 이슈에 테스트 결과 코멘트 추가",
+            )}
+          >
             <span>
               <Button
                 variant="outlined"
@@ -32,14 +37,15 @@ const TestResultFooter = ({
                 disabled={loading}
                 data-testid="result-jira-button"
               >
-                {t("testResult.form.jiraComment")}
+                {t("testResult.form.jiraComment", "JIRA 코멘트")}
               </Button>
             </span>
           </Tooltip>
         )}
         {detectedJiraIssues.length > 0 && (
           <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-            감지된 이슈: {detectedJiraIssues.join(", ")}
+            {t("testResult.form.detectedIssues", "감지된 이슈:")}{" "}
+            {detectedJiraIssues.join(", ")}
           </Typography>
         )}
       </Box>
@@ -52,7 +58,7 @@ const TestResultFooter = ({
             variant="outlined"
             data-testid="result-cancel-button"
           >
-            {t("common.button.cancel")}
+            {t("common.button.cancel", "취소")}
           </Button>
           {!isViewer && (
             <Button
@@ -63,7 +69,7 @@ const TestResultFooter = ({
               disabled={loading || isViewer || !testCase}
               data-testid="result-save-button"
             >
-              {t("common.button.save")}
+              {t("common.button.save", "저장")}
             </Button>
           )}
         </Box>

@@ -1,6 +1,7 @@
 // src/components/RAG/BatchConfirmDialog.jsx
 import React from "react";
 import PropTypes from "prop-types";
+import { useI18n } from "../../context/I18nContext";
 import {
   Dialog,
   DialogTitle,
@@ -31,6 +32,8 @@ function BatchConfirmDialog({
   status = null,
   loading = false,
 }) {
+  const { t } = useI18n();
+
   if (!status) {
     return null;
   }
@@ -52,7 +55,7 @@ function BatchConfirmDialog({
     <Dialog open={open} onClose={onPause} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <PauseCircleIcon color="primary" />
-        배치 처리 완료 - 계속하시겠습니까?
+        {t("rag.batch.title", "배치 처리 완료 - 계속하시겠습니까?")}
       </DialogTitle>
 
       <DialogContent dividers>
@@ -60,7 +63,7 @@ function BatchConfirmDialog({
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="subtitle2" color="textSecondary">
-              진행 상황
+              {t("rag.batch.progress", "진행 상황")}
             </Typography>
             <Typography variant="body2" color="primary" fontWeight="bold">
               {progressPercentage?.toFixed(1)}%
@@ -76,7 +79,7 @@ function BatchConfirmDialog({
             color="textSecondary"
             sx={{ mt: 0.5, display: "block" }}
           >
-            {processedChunks} / {totalChunks} 청크 처리 완료
+            {t("rag.batch.processed", "{processedChunks} / {totalChunks} 청크 처리 완료", { processedChunks, totalChunks })}
           </Typography>
         </Box>
 
@@ -88,15 +91,15 @@ function BatchConfirmDialog({
             <AttachMoneyIcon
               sx={{ fontSize: 16, verticalAlign: "text-bottom", mr: 0.5 }}
             />
-            실제 사용 비용
+            {t("rag.batch.actualCost", "실제 사용 비용")}
           </Typography>
           <Box sx={{ pl: 2 }}>
             <Typography variant="body2">
-              • 사용된 토큰:{" "}
+              • {t("rag.batch.tokensUsed", "사용된 토큰")}:{" "}
               <strong>{totalTokensUsed?.toLocaleString()}</strong>
             </Typography>
             <Typography variant="h6" color="primary.main" sx={{ mt: 1 }}>
-              누적 비용: <strong>${currentCost.toFixed(4)}</strong>
+              {t("rag.batch.totalCost", "누적 비용")}: <strong>${currentCost.toFixed(4)}</strong>
             </Typography>
           </Box>
         </Box>
@@ -106,10 +109,10 @@ function BatchConfirmDialog({
         {/* 남은 작업 */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-            남은 작업
+            {t("rag.batch.remainingWork", "남은 작업")}
           </Typography>
           <Chip
-            label={`${remainingChunks} 개 청크 남음`}
+            label={t("rag.batch.chunksRemaining", "{remainingChunks} 개 청크 남음", { remainingChunks })}
             color="secondary"
             size="small"
           />
@@ -118,17 +121,16 @@ function BatchConfirmDialog({
         {/* 안내 메시지 */}
         <Alert severity="info" sx={{ mt: 2 }}>
           <Typography variant="body2">
-            배치 단위 처리가 완료되었습니다. 계속 진행하면 다음 배치가
-            처리됩니다.
+            {t("rag.batch.info", "배치 단위 처리가 완료되었습니다. 계속 진행하면 다음 배치가 처리됩니다.")}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            • <strong>계속</strong>: 다음 배치 처리
+            • <strong>{t("rag.batch.continue", "계속")}</strong>: {t("rag.batch.continueDesc", "다음 배치 처리")}
           </Typography>
           <Typography variant="body2">
-            • <strong>일시정지</strong>: 나중에 재개 가능
+            • <strong>{t("rag.batch.pause", "일시정지")}</strong>: {t("rag.batch.pauseDesc", "나중에 재개 가능")}
           </Typography>
           <Typography variant="body2">
-            • <strong>중단</strong>: 분석 완전 종료 (지금까지 결과는 보존)
+            • <strong>{t("rag.batch.stop", "중단")}</strong>: {t("rag.batch.stopDesc", "분석 완전 종료 (지금까지 결과는 보존)")}
           </Typography>
         </Alert>
       </DialogContent>
@@ -140,7 +142,7 @@ function BatchConfirmDialog({
           color="error"
           disabled={loading}
         >
-          중단
+          {t("rag.batch.buttonStop", "중단")}
         </Button>
         <Box>
           <Button
@@ -149,7 +151,7 @@ function BatchConfirmDialog({
             disabled={loading}
             sx={{ mr: 1 }}
           >
-            일시정지
+            {t("rag.batch.buttonPause", "일시정지")}
           </Button>
           <Button
             onClick={onContinue}
@@ -158,7 +160,7 @@ function BatchConfirmDialog({
             color="primary"
             disabled={loading}
           >
-            {loading ? "처리 중..." : "계속"}
+            {loading ? t("rag.batch.processing", "처리 중...") : t("rag.batch.buttonContinue", "계속")}
           </Button>
         </Box>
       </DialogActions>

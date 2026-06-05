@@ -237,7 +237,10 @@ const TestExecutionForm = ({
       setError(null);
       try {
         const res = await api(`/api/test-executions/${executionId}`);
-        if (!res.ok) throw new Error("실행 정보를 불러오지 못했습니다.");
+        if (!res.ok)
+          throw new Error(
+            t("testExecution.error.loadFailed", "실행 정보를 불러오지 못했습니다.")
+          );
         const data = await res.json();
 
         setExecution(data);
@@ -257,8 +260,10 @@ const TestExecutionForm = ({
                 const planData = await planRes.json();
                 setSelectedPlan(planData);
               } else {
+                // Note: This is a console log, not UI-visible
+                // The actual test plan not found is handled gracefully by setting to null
                 console.warn(
-                  `테스트 플랜을 찾을 수 없습니다: ${data.testPlanId}`,
+                  `${t("testExecution.error.testPlanNotFound", "테스트 플랜을 찾을 수 없습니다")}: ${data.testPlanId}`,
                 );
                 setSelectedPlan(null);
               }
@@ -420,8 +425,9 @@ const TestExecutionForm = ({
                     setSelectedPlan(planData);
                     // execution 상태는 이미 설정했으므로 추가 설정 불필요
                   } else {
+                    // Note: This is a console error, not UI-visible
                     console.error(
-                      "❌ API에서 테스트플랜 조회 실패 - 상태:",
+                      `❌ ${t("testExecution.error.testPlanFetchFailed", "API에서 테스트플랜 조회 실패")} - ${t("testExecution.error.status", "상태")}:`,
                       planRes.status,
                     );
                   }
@@ -443,7 +449,10 @@ const TestExecutionForm = ({
 
           // 즉시 실행 완료 표시 및 성공 메시지
           setSuccessMessage(
-            `테스트 실행 '${started.name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.`,
+            t(
+              "testExecution.success.immediateStart",
+              "테스트 실행 '{name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다."
+            ).replace("{name}", started.name),
           );
 
           // 즉시실행 완료 표시
@@ -467,7 +476,7 @@ const TestExecutionForm = ({
         } catch (startErr) {
           setIsImmediateExecuting(false); // 에러 시에도 상태 초기화
           setSaveError(
-            `저장은 성공했으나 실행 시작 중 오류: ${startErr.message}`,
+            `${t("testExecution.error.saveSuccessBut", "저장은 성공했으나")} ${t("testExecution.error.startFailed", "실행 시작 중 오류")}: ${startErr.message}`,
           );
         }
       }
@@ -718,7 +727,9 @@ const TestExecutionForm = ({
         } else {
           const errorData = await response
             .json()
-            .catch(() => ({ message: "알 수 없는 오류" }));
+            .catch(() => ({
+              message: t("testExecution.error.unknown", "알 수 없는 오류"),
+            }));
           setSaveError(
             t(
               "testExecution.bulk.error",
@@ -1414,7 +1425,6 @@ const TestExecutionForm = ({
           currentIndex={testCaseIds.indexOf(selectedTestCaseId)}
           totalCount={testCaseIds.length}
           onOpenFullPage={() => {
-            // prop으로 받은 projectId를 우선 사용, 없으면 execution.projectId 또는 testPlan.projectId 사용
             const projectId =
               propProjectId ||
               execution?.projectId ||
@@ -1427,15 +1437,10 @@ const TestExecutionForm = ({
               handleCloseResultForm();
             } else {
               console.error(
-                "전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다",
-                {
-                  propProjectId,
-                  executionProjectId: execution?.projectId,
-                  testPlanProjectId: execution?.testPlan?.projectId,
-                  activeProjectId: activeProject?.id,
-                  executionId: execution?.id,
-                  selectedTestCaseId,
-                },
+                t(
+                  "testExecution.form.fullPageNavError",
+                  "전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다",
+                ),
               );
             }
           }}
@@ -1460,7 +1465,9 @@ const TestExecutionForm = ({
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>{t("testExecution.attachments.title")}</DialogTitle>
+        <DialogTitle>
+          {t("testExecution.attachments.title", "첨부파일")}
+        </DialogTitle>
         <DialogContent>
           {selectedTestResultId && (
             <TestResultAttachmentsView
@@ -1476,7 +1483,7 @@ const TestExecutionForm = ({
               setSelectedTestResultId(null);
             }}
           >
-            {t("common.close")}
+            {t("common.close", "닫기")}
           </Button>
         </DialogActions>
       </Dialog>

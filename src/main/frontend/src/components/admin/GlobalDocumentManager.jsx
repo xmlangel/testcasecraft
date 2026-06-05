@@ -151,7 +151,7 @@ const GlobalDocumentManager = ({ onSuccess }) => {
         const cleanedResponse = (result.llmResponse || "")
           .replace(/\n{2,}/g, "\n")
           .trim();
-        return `### 📄 청크 ${chunkNumber}\n${cleanedResponse}`;
+        return `### 📄 ${t("globalDocumentManager.chunk", "청크")} ${chunkNumber}\n${cleanedResponse}`;
       })
       .join("\n\n---\n\n");
   }, []);
@@ -514,7 +514,7 @@ const GlobalDocumentManager = ({ onSuccess }) => {
             );
         } catch (autoProcessError) {
           console.warn(
-            "자동 분석/임베딩 실패 (문서는 업로드됨):",
+            "Automatic analysis/embedding failed (document uploaded):",
             autoProcessError,
           );
           if (onSuccess)
@@ -870,7 +870,7 @@ const GlobalDocumentManager = ({ onSuccess }) => {
           </Typography>
           <Typography variant="body2">
             {ragDisabledMessage ||
-              "시스템 관리자에 의해 RAG 기능이 임시 비활성화되어 있습니다."}
+              t("globalDocumentManager.ragDisabled", "시스템 관리자에 의해 RAG 기능이 임시 비활성화되어 있습니다.")}
             <br />
             LLM 설정 관리 페이지의 &quot;시스템 설정&quot; 탭에서 RAG를 활성화한
             후 문서를 업로드해주세요.

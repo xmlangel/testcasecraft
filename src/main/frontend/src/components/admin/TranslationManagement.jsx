@@ -170,7 +170,7 @@ const TranslationManagement = () => {
       const data = await apiCall("/api/admin/translations/languages");
       setLanguages(data);
     } catch (err) {
-      setError("언어 목록을 로드할 수 없습니다: " + err.message);
+      setError(t("translation.languageLoadError", "언어 목록을 로드할 수 없습니다: ") + err.message);
     } finally {
       setLoading(false);
     }
@@ -199,7 +199,7 @@ const TranslationManagement = () => {
         totalPages: data.totalPages,
       }));
     } catch (err) {
-      setError("번역 키 목록을 로드할 수 없습니다: " + err.message);
+      setError(t("translation.keyLoadError", "번역 키 목록을 로드할 수 없습니다: ") + err.message);
     } finally {
       setLoading(false);
     }
@@ -210,7 +210,7 @@ const TranslationManagement = () => {
       const data = await apiCall("/api/admin/translations/keys/categories");
       setAvailableCategories(data);
     } catch (err) {
-      console.warn("카테고리 목록 로드 실패:", err.message);
+      console.warn(t("translation.categoryLoadError", "카테고리 목록 로드 실패:"), err.message);
     }
   };
 
@@ -244,7 +244,7 @@ const TranslationManagement = () => {
         totalPages: data.totalPages,
       });
     } catch (err) {
-      setError("번역 목록을 로드할 수 없습니다: " + err.message);
+      setError(t("translation.translationLoadError", "번역 목록을 로드할 수 없습니다: ") + err.message);
     } finally {
       setLoading(false);
     }
@@ -256,7 +256,7 @@ const TranslationManagement = () => {
       const data = await apiCall("/api/i18n/statistics/completion");
       setStats(data);
     } catch (err) {
-      setError("통계를 로드할 수 없습니다: " + err.message);
+      setError(t("translation.statisticsLoadError", "통계를 로드할 수 없습니다: ") + err.message);
     } finally {
       setLoading(false);
     }
@@ -294,12 +294,12 @@ const TranslationManagement = () => {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      setSuccess("언어가 성공적으로 생성되었습니다");
+      setSuccess(t("translation.languageCreateSuccess", "언어가 성공적으로 생성되었습니다"));
       setLanguageDialog({ open: false, mode: "create", data: null });
       loadLanguages();
       clearAllCache();
     } catch (err) {
-      setError("언어 생성 실패: " + err.message);
+      setError(t("translation.languageCreateError", "언어 생성 실패: ") + err.message);
     }
   };
 
@@ -309,27 +309,27 @@ const TranslationManagement = () => {
         method: "PUT",
         body: JSON.stringify(formData),
       });
-      setSuccess("언어가 성공적으로 업데이트되었습니다");
+      setSuccess(t("translation.languageUpdateSuccess", "언어가 성공적으로 업데이트되었습니다"));
       setLanguageDialog({ open: false, mode: "create", data: null });
       loadLanguages();
       clearAllCache();
     } catch (err) {
-      setError("언어 업데이트 실패: " + err.message);
+      setError(t("translation.languageUpdateError", "언어 업데이트 실패: ") + err.message);
     }
   };
 
   const handleDeleteLanguage = async (id) => {
-    if (!window.confirm("정말로 이 언어를 삭제하시겠습니까?")) return;
+    if (!window.confirm(t("translation.languageDeleteConfirm", "정말로 이 언어를 삭제하시겠습니까?"))) return;
 
     try {
       await apiCall(`/api/admin/translations/languages/${id}`, {
         method: "DELETE",
       });
-      setSuccess("언어가 성공적으로 삭제되었습니다");
+      setSuccess(t("translation.languageDeleteSuccess", "언어가 성공적으로 삭제되었습니다"));
       loadLanguages();
       clearAllCache();
     } catch (err) {
-      setError("언어 삭제 실패: " + err.message);
+      setError(t("translation.languageDeleteError", "언어 삭제 실패: ") + err.message);
     }
   };
 
@@ -340,12 +340,12 @@ const TranslationManagement = () => {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      setSuccess("번역 키가 성공적으로 생성되었습니다");
+      setSuccess(t("translation.keyCreateSuccess", "번역 키가 성공적으로 생성되었습니다"));
       setKeyDialog({ open: false, mode: "create", data: null });
       loadTranslationKeys();
       clearAllCache();
     } catch (err) {
-      setError("번역 키 생성 실패: " + err.message);
+      setError(t("translation.keyCreateError", "번역 키 생성 실패: ") + err.message);
     }
   };
 
@@ -355,27 +355,27 @@ const TranslationManagement = () => {
         method: "PUT",
         body: JSON.stringify(formData),
       });
-      setSuccess("번역 키가 성공적으로 업데이트되었습니다");
+      setSuccess(t("translation.keyUpdateSuccess", "번역 키가 성공적으로 업데이트되었습니다"));
       setKeyDialog({ open: false, mode: "create", data: null });
       loadTranslationKeys();
       clearAllCache();
     } catch (err) {
-      setError("번역 키 업데이트 실패: " + err.message);
+      setError(t("translation.keyUpdateError", "번역 키 업데이트 실패: ") + err.message);
     }
   };
 
   const handleDeleteTranslationKey = async (id) => {
-    if (!window.confirm("정말로 이 번역 키를 삭제하시겠습니까?")) return;
+    if (!window.confirm(t("translation.keyDeleteConfirm", "정말로 이 번역 키를 삭제하시겠습니까?"))) return;
 
     try {
       await apiCall(`/api/admin/translations/keys/${id}`, {
         method: "DELETE",
       });
-      setSuccess("번역 키가 성공적으로 삭제되었습니다");
+      setSuccess(t("translation.keyDeleteSuccess", "번역 키가 성공적으로 삭제되었습니다"));
       loadTranslationKeys();
       clearAllCache();
     } catch (err) {
-      setError("번역 키 삭제 실패: " + err.message);
+      setError(t("translation.keyDeleteError", "번역 키 삭제 실패: ") + err.message);
     }
   };
 
@@ -386,27 +386,27 @@ const TranslationManagement = () => {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      setSuccess("번역이 성공적으로 저장되었습니다");
+      setSuccess(t("translation.translationSaveSuccess", "번역이 성공적으로 저장되었습니다"));
       setTranslationDialog({ open: false, mode: "create", data: null });
       loadTranslations();
       clearAllCache();
     } catch (err) {
-      setError("번역 저장 실패: " + err.message);
+      setError(t("translation.translationSaveError", "번역 저장 실패: ") + err.message);
     }
   };
 
   const handleDeleteTranslation = async (id) => {
-    if (!window.confirm("정말로 이 번역을 삭제하시겠습니까?")) return;
+    if (!window.confirm(t("translation.translationDeleteConfirm", "정말로 이 번역을 삭제하시겠습니까?"))) return;
 
     try {
       await apiCall(`/api/admin/translations/${id}`, {
         method: "DELETE",
       });
-      setSuccess("번역이 성공적으로 삭제되었습니다");
+      setSuccess(t("translation.translationDeleteSuccess", "번역이 성공적으로 삭제되었습니다"));
       loadTranslations();
       clearAllCache();
     } catch (err) {
-      setError("번역 삭제 실패: " + err.message);
+      setError(t("translation.translationDeleteError", "번역 삭제 실패: ") + err.message);
     }
   };
 
@@ -415,9 +415,9 @@ const TranslationManagement = () => {
     try {
       await apiCall("/api/i18n/cache/clear", { method: "POST" });
       clearAllCache();
-      setSuccess("캐시가 성공적으로 초기화되었습니다");
+      setSuccess(t("translation.cacheRefreshSuccess", "캐시가 성공적으로 초기화되었습니다"));
     } catch (err) {
-      setError("캐시 초기화 실패: " + err.message);
+      setError(t("translation.cacheRefreshError", "캐시 초기화 실패: ") + err.message);
     }
   };
 
@@ -455,16 +455,16 @@ const TranslationManagement = () => {
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
 
-      setSuccess("CSV 파일이 성공적으로 다운로드되었습니다");
+      setSuccess(t("translation.csvExportSuccess", "CSV 파일이 성공적으로 다운로드되었습니다"));
     } catch (err) {
-      setError("CSV 내보내기 실패: " + err.message);
+      setError(t("translation.csvExportError", "CSV 내보내기 실패: ") + err.message);
     }
   };
 
   // CSV 가져오기
   const handleImportCsv = async () => {
     if (!csvFile) {
-      setError("CSV 파일을 선택해주세요");
+      setError(t("translation.csvFileRequired", "CSV 파일을 선택해주세요"));
       return;
     }
 
@@ -500,15 +500,15 @@ const TranslationManagement = () => {
         let errorMessage = result.message;
         if (result.errors && result.errors.length > 0) {
           errorMessage +=
-            "\n오류 세부사항:\n" + result.errors.slice(0, 5).join("\n");
+            "\n" + t("translation.csvImportErrorDetails", "오류 세부사항:") + "\n" + result.errors.slice(0, 5).join("\n");
           if (result.errors.length > 5) {
-            errorMessage += `\n... 그 외 ${result.errors.length - 5}개 오류`;
+            errorMessage += `\n... ` + t("translation.csvImportMoreErrors", "그 외 {count}개 오류", { count: result.errors.length - 5 });
           }
         }
         setError(errorMessage);
       }
     } catch (err) {
-      setError("CSV 가져오기 실패: " + err.message);
+      setError(t("translation.csvImportError", "CSV 가져오기 실패: ") + err.message);
     }
   };
 

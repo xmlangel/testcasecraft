@@ -27,6 +27,7 @@ import {
 } from "@mui/icons-material";
 
 import { AppContext } from "../../context/AppContext";
+import { useI18n } from "../../context/I18nContext.jsx";
 import {
   useJiraStatusSummary,
   useJiraStatusStatistics,
@@ -38,6 +39,7 @@ import JiraStatusSummaryCard from "./JiraStatusSummaryCard";
  * 프로젝트의 모든 JIRA 연동 상태를 종합적으로 표시하는 대시보드 컴포넌트
  */
 const JiraStatusDashboard = () => {
+  const { t } = useI18n();
   const { selectedProject } = useContext(AppContext);
   const [tabValue, setTabValue] = useState(0);
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
@@ -422,7 +424,7 @@ const JiraStatusDashboard = () => {
                   onChange={handleAutoRefreshToggle}
                 />
               }
-              label="자동 새로고침"
+              label={t("jira.autoRefresh", "자동 새로고침")}
             />
             {statusLastUpdated && (
               <Typography
@@ -439,7 +441,7 @@ const JiraStatusDashboard = () => {
           <Box>
             <Chip
               icon={<RefreshIcon />}
-              label="전체 새로고침"
+              label={t("jira.refreshAll", "전체 새로고침")}
               onClick={handleRefreshAll}
               clickable
               color="primary"
@@ -456,8 +458,8 @@ const JiraStatusDashboard = () => {
           indicatorColor="primary"
           textColor="primary"
         >
-          <Tab label="JIRA 이슈 목록" />
-          <Tab label="통계 및 분석" />
+          <Tab label={t("jira.issueList", "JIRA 이슈 목록")} />
+          <Tab label={t("jira.statistics", "통계 및 분석")} />
         </Tabs>
       </Paper>
       {/* 탭 내용 */}

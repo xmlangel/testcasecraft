@@ -37,9 +37,11 @@ import { green, red, orange, grey } from "@mui/material/colors";
 import JiraConfigDialog from "./JiraConfigDialog";
 import { jiraService } from "../../services/jiraService";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 const JiraSettingsManager = () => {
   const { formatDate } = useDateFormatter();
+  const { t } = useI18n();
   const [configs, setConfigs] = useState([]);
   const [activeConfig, setActiveConfig] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ const JiraSettingsManager = () => {
       setError(null);
     } catch (error) {
       console.error("JIRA 설정 로드 실패:", error);
-      setError("JIRA 설정을 불러오는데 실패했습니다.");
+      setError(t("jira.configLoadError", "JIRA 설정을 불러오는데 실패했습니다."));
       // 에러 발생 시에도 빈 배열로 설정
       setConfigs([]);
     } finally {
@@ -122,7 +124,7 @@ const JiraSettingsManager = () => {
   };
 
   const handleDeleteConfig = async (configId) => {
-    if (!window.confirm("이 JIRA 설정을 삭제하시겠습니까?")) {
+    if (!window.confirm(t("jira.configDeleteConfirm", "이 JIRA 설정을 삭제하시겠습니까?"))) {
       return;
     }
 
@@ -138,14 +140,14 @@ const JiraSettingsManager = () => {
       // 오류가 있으면 로그 출력하지만 중단하지 않음
       if (configsResult.status === "rejected") {
         console.warn("⚠️ 설정 로드 실패:", configsResult.reason);
-        setError("설정 목록 새로고침에 실패했습니다.");
+        setError(t("jira.configRefreshError", "설정 목록 새로고침에 실패했습니다."));
       }
       if (statusResult.status === "rejected") {
         console.warn("⚠️ 연결 상태 로드 실패:", statusResult.reason);
       }
     } catch (error) {
       console.error("JIRA 설정 삭제 실패:", error);
-      setError("설정 삭제에 실패했습니다.");
+      setError(t("jira.configDeleteError", "설정 삭제에 실패했습니다."));
     }
   };
 
@@ -168,7 +170,7 @@ const JiraSettingsManager = () => {
       const statusResult = await loadConnectionStatus();
     } catch (error) {
       console.error("❌ 연결 상태 갱신 실패:", error);
-      setError("연결 상태 새로고침에 실패했습니다.");
+      setError(t("jira.connectionRefreshError", "연결 상태 새로고침에 실패했습니다."));
     } finally {
       setRefreshing(false);
     }
@@ -192,10 +194,10 @@ const JiraSettingsManager = () => {
   };
 
   const getConnectionStatusText = () => {
-    if (!connectionStatus) return "상태 확인 중...";
-    if (!connectionStatus.hasConfig) return "JIRA 설정이 없습니다";
-    if (connectionStatus.isConnected) return "연결됨";
-    return "연결 실패";
+    if (!connectionStatus) return t("jira.statusChecking", "상태 확인 중...");
+    if (!connectionStatus.hasConfig) return t("jira.noConfig", "JIRA 설정이 없습니다");
+    if (connectionStatus.isConnected) return t("jira.connected", "연결됨");
+    return t("jira.connectionFailed", "연결 실패");
   };
 
   if (loading) {
@@ -230,7 +232,7 @@ const JiraSettingsManager = () => {
           sx={{ display: "flex", alignItems: "center", gap: 1 }}
         >
           <SettingsIcon />
-          JIRA 설정 관리
+          {t("jira.management.title", "JIRA 설정 관리")}
         </Typography>
 
         <Button
@@ -239,7 +241,7 @@ const JiraSettingsManager = () => {
           onClick={handleAddConfig}
           sx={{ minWidth: 120 }}
         >
-          새 설정 추가
+          {t("jira.addNewConfig", "새 설정 추가")}
         </Button>
       </Box>
       {/* 에러 메시지 */}
@@ -252,9 +254,9 @@ const JiraSettingsManager = () => {
       <Card sx={{ mb: 3 }}>
         <CardHeader
           avatar={getConnectionStatusIcon()}
-          title="현재 JIRA 연결 상태"
+          title={t("jira.connectionStatus.title", "현재 JIRA 연결 상태")}
           action={
-            <Tooltip title="연결 상태 새로고침">
+            <Tooltip title={t("jira.refreshStatus", "연결 상태 새로고침")}>
               <span>
                 <IconButton
                   onClick={handleRefreshConnection}
@@ -314,8 +316,8 @@ const JiraSettingsManager = () => {
       {/* 설정 목록 */}
       <Card>
         <CardHeader
-          title={`JIRA 설정 목록 (${configs.length}개)`}
-          subheader="모든 JIRA 설정을 관리할 수 있습니다"
+          title={t("jira.configList", "JIRA 설정 목록 ({count}개)", { count: configs.length })}
+          subheader={t("jira.configListDescription", "모든 JIRA 설정을 관리할 수 있습니다")}
         />
         <CardContent sx={{ pt: 0 }}>
           {configs.length === 0 ? (
@@ -373,7 +375,7 @@ const JiraSettingsManager = () => {
                           </Typography>
                           {config.isActive && (
                             <Chip
-                              label="활성"
+                              label={t("jira.active", "활성")}
                               size="small"
                               color="success"
                               variant="outlined"
@@ -408,7 +410,7 @@ const JiraSettingsManager = () => {
                             {config.connectionVerified ? (
                               <Chip
                                 icon={<CheckCircleIcon />}
-                                label="연결 확인됨"
+                                label={t("jira.connectionVerified", "연결 확인됨")}
                                 size="small"
                                 color="success"
                                 variant="outlined"
@@ -416,7 +418,7 @@ const JiraSettingsManager = () => {
                             ) : (
                               <Chip
                                 icon={<ErrorIcon />}
-                                label="연결 실패"
+                                label={t("jira.connectionFailed", "연결 실패")}
                                 size="small"
                                 color="error"
                                 variant="outlined"
@@ -437,7 +439,7 @@ const JiraSettingsManager = () => {
 
                     <ListItemSecondaryAction>
                       <Box sx={{ display: "flex", gap: 1 }}>
-                        <Tooltip title="설정 수정">
+                        <Tooltip title={t("jira.editConfig", "설정 수정")}>
                           <IconButton
                             onClick={() => handleEditConfig(config)}
                             size="small"
@@ -446,7 +448,7 @@ const JiraSettingsManager = () => {
                           </IconButton>
                         </Tooltip>
 
-                        <Tooltip title="설정 삭제">
+                        <Tooltip title={t("jira.deleteConfig", "설정 삭제")}>
                           <IconButton
                             onClick={() => handleDeleteConfig(config.id)}
                             size="small"

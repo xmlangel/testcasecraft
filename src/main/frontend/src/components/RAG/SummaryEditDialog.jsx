@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import { useTranslation } from "../../context/I18nContext";
 
 /**
  * 분석 요약 작성/편집 다이얼로그
@@ -29,6 +30,7 @@ import CloseIcon from "@mui/icons-material/Close";
  * - 공개/비공개 토글
  */
 function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
+  const { t } = useTranslation();
   // 폼 상태
   const [title, setTitle] = useState("");
   const [summaryContent, setSummaryContent] = useState("");
@@ -72,7 +74,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
     if (!trimmedTag) return;
 
     if (tags.includes(trimmedTag)) {
-      setError("이미 추가된 태그입니다.");
+      setError(t("rag.summaryEdit.tagExists", "이미 추가된 태그입니다."));
       return;
     }
 
@@ -92,14 +94,14 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
     let hasError = false;
 
     if (!title.trim()) {
-      setTitleError("제목을 입력해주세요.");
+      setTitleError(t("rag.summaryEdit.titleRequired", "제목을 입력해주세요."));
       hasError = true;
     } else {
       setTitleError("");
     }
 
     if (!summaryContent.trim()) {
-      setContentError("요약 내용을 입력해주세요.");
+      setContentError(t("rag.summaryEdit.contentRequired", "요약 내용을 입력해주세요."));
       hasError = true;
     } else {
       setContentError("");
@@ -122,7 +124,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
       // 성공 시 다이얼로그 닫기 (부모 컴포넌트에서 처리)
     } catch (err) {
       console.error("요약 저장 실패:", err);
-      setError(err.response?.data?.message || "요약 저장에 실패했습니다.");
+      setError(err.response?.data?.message || t("rag.summaryEdit.saveFailed", "요약 저장에 실패했습니다."));
     } finally {
       setSaving(false);
     }
@@ -139,7 +141,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {summary ? "요약 편집" : "새 요약 작성"}
+        {summary ? t("rag.summaryEdit.editTitle", "요약 편집") : t("rag.summaryEdit.newTitle", "새 요약 작성")}
         <IconButton
           onClick={onClose}
           sx={{ position: "absolute", right: 8, top: 8 }}
@@ -158,7 +160,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
 
         {/* 제목 입력 */}
         <TextField
-          label="제목"
+          label={t("rag.summaryEdit.titleField", "제목")}
           fullWidth
           required
           value={title}
@@ -171,7 +173,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
 
         {/* 요약 내용 입력 */}
         <TextField
-          label="요약 내용"
+          label={t("rag.summaryEdit.contentField", "요약 내용")}
           fullWidth
           required
           multiline
@@ -180,7 +182,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
           onChange={(e) => setSummaryContent(e.target.value)}
           error={!!contentError}
           helperText={contentError}
-          placeholder="분석 결과를 요약하여 작성해주세요..."
+          placeholder={t("rag.summaryEdit.contentPlaceholder", "분석 결과를 요약하여 작성해주세요...")}
           sx={{ mb: 2 }}
           disabled={saving}
         />
@@ -188,7 +190,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
         {/* 태그 관리 */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle2" gutterBottom>
-            태그
+            {t("rag.summaryEdit.tagsLabel", "태그")}
           </Typography>
 
           {/* 태그 표시 */}
@@ -205,7 +207,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
               ))
             ) : (
               <Typography variant="caption" color="text.secondary">
-                태그가 없습니다
+                {t("rag.summaryEdit.noTags", "태그가 없습니다")}
               </Typography>
             )}
           </Box>
@@ -213,13 +215,13 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
           {/* 태그 추가 입력 */}
           <Box sx={{ display: "flex", gap: 1 }}>
             <TextField
-              label="새 태그"
+              label={t("rag.summaryEdit.newTagField", "새 태그")}
               size="small"
               fullWidth
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
               onKeyPress={handleTagKeyPress}
-              placeholder="태그 입력 후 Enter 또는 추가 버튼"
+              placeholder={t("rag.summaryEdit.tagPlaceholder", "태그 입력 후 Enter 또는 추가 버튼")}
               disabled={saving}
             />
             <Button
@@ -228,7 +230,7 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
               onClick={handleAddTag}
               disabled={!newTag.trim() || saving}
             >
-              추가
+              {t("rag.summaryEdit.addBtn", "추가")}
             </Button>
           </Box>
         </Box>
@@ -246,12 +248,12 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
             label={
               <Box>
                 <Typography variant="body2">
-                  {isPublic ? "공개" : "비공개"}
+                  {isPublic ? t("rag.summaryEdit.public", "공개") : t("rag.summaryEdit.private", "비공개")}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {isPublic
-                    ? "모든 사용자가 이 요약을 볼 수 있습니다"
-                    : "나만 이 요약을 볼 수 있습니다"}
+                    ? t("rag.summaryEdit.publicDesc", "모든 사용자가 이 요약을 볼 수 있습니다")
+                    : t("rag.summaryEdit.privateDesc", "나만 이 요약을 볼 수 있습니다")}
                 </Typography>
               </Box>
             }
@@ -261,14 +263,14 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
 
       <DialogActions>
         <Button onClick={onClose} disabled={saving}>
-          취소
+          {t("rag.summaryEdit.cancelBtn", "취소")}
         </Button>
         <Button
           onClick={handleSave}
           variant="contained"
           disabled={saving || !title.trim() || !summaryContent.trim()}
         >
-          {saving ? "저장 중..." : "저장"}
+          {saving ? t("rag.summaryEdit.saving", "저장 중...") : t("rag.summaryEdit.saveBtn", "저장")}
         </Button>
       </DialogActions>
     </Dialog>

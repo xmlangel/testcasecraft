@@ -213,7 +213,7 @@ function PasswordChangeForm({ onSuccess, onError }) {
         );
       }
     } catch (error) {
-      console.error("비밀번호 변경 실패:", error);
+      console.error("Password change failed:", error);
 
       if (onError) {
         onError(

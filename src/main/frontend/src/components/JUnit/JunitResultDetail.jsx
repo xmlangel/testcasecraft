@@ -228,7 +228,7 @@ const JunitResultDetail = () => {
         await loadAllTestCases(suitesResponse.testSuites, 0);
       }
     } catch (err) {
-      console.error("JUnit 결과 상세 로드 실패:", err);
+      console.error("Failed to load JUnit result details:", err);
       setError(t("junit.detail.loadFailedDetail"));
     } finally {
       setLoading(false);
@@ -303,7 +303,7 @@ const JunitResultDetail = () => {
             }
           } catch (error) {
             console.warn(
-              `스윗 ${suite.name}의 테스트 케이스 로드 실패:`,
+              `Failed to load test cases for suite ${suite.name}:`,
               error,
             );
           }
@@ -321,7 +321,7 @@ const JunitResultDetail = () => {
 
       setHasMore(pageCases.length >= pageSize || currentIndex < totalTestCases);
     } catch (err) {
-      console.error("전체 테스트 케이스 로드 실패:", err);
+      console.error("Failed to load all test cases:", err);
       setError(t("junit.detail.loadTestCasesFailed"));
     } finally {
       setLoading(false);
@@ -362,7 +362,7 @@ const JunitResultDetail = () => {
       setTotalPages(response.totalPages || 0);
       setHasMore(pageNum < (response.totalPages || 0) - 1);
     } catch (err) {
-      console.error("테스트 케이스 로드 실패:", err);
+      console.error("Failed to load test cases:", err);
       setError(t("junit.detail.loadTestCasesFailed"));
     } finally {
       setLoading(false);
@@ -617,7 +617,7 @@ const JunitResultDetail = () => {
           allTestCases = [...allTestCases, ...(response.content || [])];
         } catch (error) {
           console.warn(
-            `Failed to load test cases for suite ${suite.id}:`,
+            `Failed to load test cases for suite ${suite.name}:`,
             error,
           );
         }
@@ -636,7 +636,7 @@ const JunitResultDetail = () => {
         alert(`${t("junit.detail.exportPDFFailed")}: ${result.message}`);
       }
     } catch (error) {
-      console.error("PDF 내보내기 오류:", error);
+      console.error("PDF export error:", error);
       alert(t("junit.detail.exportPDFError") + ": " + error.message);
     } finally {
       setExportingPDF(false);
@@ -665,7 +665,7 @@ const JunitResultDetail = () => {
           allTestCases.push(...(response.content || []));
         } catch (error) {
           console.warn(
-            `스위트 ${suite.name}의 테스트 케이스 로드 실패:`,
+            `Failed to load test cases for suite ${suite.name}:`,
             error,
           );
         }
@@ -684,7 +684,7 @@ const JunitResultDetail = () => {
         alert(`${t("junit.detail.exportCSVFailed")}: ${result.message}`);
       }
     } catch (error) {
-      console.error("CSV 내보내기 오류:", error);
+      console.error("CSV export error:", error);
       alert(t("junit.detail.exportCSVError") + ": " + error.message);
     } finally {
       setExportingCSV(false);
@@ -742,13 +742,13 @@ const JunitResultDetail = () => {
           Math.floor((nanosecond || 0) / 1000000),
         );
       } else {
-        console.warn("지원하지 않는 날짜 형식:", typeof dateValue, dateValue);
+        console.warn("Unsupported date format:", typeof dateValue, dateValue);
         return t("junit.detail.unknownDateFormat");
       }
 
       // 유효한 날짜인지 확인
       if (isNaN(date.getTime())) {
-        console.warn("유효하지 않은 날짜 값:", dateValue);
+        console.warn("Invalid date value:", dateValue);
         // 원본 값이 문자열이면 그대로 표시
         if (typeof dateValue === "string" && dateValue.trim()) {
           return dateValue.trim();
@@ -761,7 +761,7 @@ const JunitResultDetail = () => {
         locale: currentLanguage === "en" ? enUS : ko,
       });
     } catch (error) {
-      console.error("날짜 포맷팅 오류:", error, "Input:", dateValue);
+      console.error("Date formatting error:", error, "Input:", dateValue);
       // 에러 발생 시 원본 값 표시 (문자열인 경우)
       if (typeof dateValue === "string" && dateValue.trim()) {
         return dateValue.trim();
@@ -1800,7 +1800,7 @@ const FailedTestsTab = ({
           await junitResultService.getFailedTestCases(testResultId);
         setFailedTests(response.failedCases || []);
       } catch (err) {
-        console.error("실패한 테스트 로드 실패:", err);
+        console.error("Failed to load failed tests:", err);
       } finally {
         setLoading(false);
       }
@@ -2122,7 +2122,7 @@ const SlowestTestsTab = ({
         );
         setSlowestTests(response.slowestCases || []);
       } catch (err) {
-        console.error("느린 테스트 로드 실패:", err);
+        console.error("Failed to load slow tests:", err);
       } finally {
         setLoading(false);
       }

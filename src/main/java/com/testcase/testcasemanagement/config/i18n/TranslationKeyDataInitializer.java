@@ -34,6 +34,11 @@ public class TranslationKeyDataInitializer {
   private final ExtendedUIKeysInitializer extendedUIKeysInitializer;
   private final GoogleKeysInitializer googleKeysInitializer;
 
+  // 2026-06-06 i18n 전수 감사 누락분
+  private final I18nGapKeysInitializer i18nGapKeysInitializer;
+  // 2026-06-06 하드코딩 한국어 t() 래핑 신설 키
+  private final I18nHardcodedKeysInitializer i18nHardcodedKeysInitializer;
+
   @Transactional
   public void initialize() {
     log.info("번역 키 데이터 초기화 중...");
@@ -59,6 +64,11 @@ public class TranslationKeyDataInitializer {
     jiraIntegrationKeysInitializer.initialize();
     extendedUIKeysInitializer.initialize();
     googleKeysInitializer.initialize();
+
+    // 2026-06-06 i18n 전수 감사 누락분 (481건)
+    i18nGapKeysInitializer.initialize();
+    // 2026-06-06 하드코딩 래핑 신설 키 (712건)
+    i18nHardcodedKeysInitializer.initialize();
 
     log.info("번역 키 데이터 초기화 완료");
   }

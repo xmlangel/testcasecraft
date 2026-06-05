@@ -9,13 +9,13 @@ import { Alert, AlertTitle, Box, Button } from "@mui/material";
 import { Refresh } from "@mui/icons-material";
 
 const ErrorMessage = ({
-  title = "오류가 발생했습니다",
+  title = "An error occurred",
   message,
   severity = "error",
   variant = "filled",
   showRetry = false,
   onRetry,
-  retryText = "다시 시도",
+  retryText = "Retry",
   onClose,
   ...props
 }) => {

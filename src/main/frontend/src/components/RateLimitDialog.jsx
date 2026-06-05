@@ -12,8 +12,10 @@ import {
 } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useAppContext } from "../context/AppContext";
+import { useTranslation } from "../context/I18nContext";
 
 const RateLimitDialog = () => {
+  const { t } = useTranslation();
   const { rateLimitError, retryAfter, clearRateLimitError } = useAppContext();
   const [countdown, setCountdown] = useState(retryAfter);
 
@@ -88,7 +90,7 @@ const RateLimitDialog = () => {
         />
         <Box>
           <Typography variant="h6" component="div" fontWeight="bold">
-            🚨 요청 제한 초과 / Request Limit Exceeded
+            {t("rateLimitDialog.title", "🚨 요청 제한 초과 / Request Limit Exceeded")}
           </Typography>
         </Box>
       </DialogTitle>
@@ -96,7 +98,7 @@ const RateLimitDialog = () => {
         <Box sx={{ mb: 3 }}>
           <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
             {rateLimitError?.message ||
-              "동일 IP에서 1초에 60번 이상 요청이 발생했습니다."}
+              t("rateLimitDialog.tooManyRequests", "동일 IP에서 1초에 60번 이상 요청이 발생했습니다.")}
           </Typography>
           <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
             Multiple requests were detected from the same IP within one second.
@@ -171,7 +173,7 @@ const RateLimitDialog = () => {
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
         <Button onClick={handleClose} variant="outlined" color="inherit">
-          닫기 Close
+          {t("common.close", "닫기")}
         </Button>
         <Button
           onClick={handleRetryNow}
@@ -186,8 +188,8 @@ const RateLimitDialog = () => {
           }}
         >
           {countdown > 0
-            ? `재시도 (${countdown}초) / Retry (${countdown}s)`
-            : "지금 재시도 / Retry now"}
+            ? t("rateLimitDialog.retryCountdown", "재시도 ({countdown}초) / Retry ({countdown}s)", { countdown })
+            : t("rateLimitDialog.retryNow", "지금 재시도 / Retry now")}
         </Button>
       </DialogActions>
     </Dialog>

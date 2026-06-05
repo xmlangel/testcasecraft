@@ -235,7 +235,10 @@ function TestResultPieChart({ statistics, loading = false }) {
                   >
                     <Typography variant="body2">{item.label}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {item.value}건 ({item.percentage.toFixed(1)}%)
+                      {t("testResult.chart.countWithPct", "{count}건 ({pct}%)", {
+                        count: item.value,
+                        pct: item.percentage.toFixed(1),
+                      })}
                     </Typography>
                   </Box>
                 }
@@ -248,10 +251,10 @@ function TestResultPieChart({ statistics, loading = false }) {
         <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: "divider" }}>
           <Typography variant="body2" color="text.secondary" align="center">
             {isLatestMode
-              ? `${t(
-                  "testResult.pieChart.totalCaseCount",
-                  "전체 테스트케이스",
-                )}: ${statistics.totalCaseCount || 0}건`
+              ? t("testResult.pieChart.totalCaseCountWithCount", "{label}: {count}건", {
+                  label: t("testResult.pieChart.totalCaseCount", "전체 테스트케이스"),
+                  count: statistics.totalCaseCount || 0,
+                })
               : t("testResult.pieChart.totalTestCases", {
                   total: statistics.totalTests,
                 })}
@@ -264,7 +267,10 @@ function TestResultPieChart({ statistics, loading = false }) {
               component="div"
             >
               ({t("testResult.pieChart.totalExecutionCount", "누적 수행 횟수")}:{" "}
-              {statistics.totalTests || 0}건)
+              {t("testResult.chart.countOnly", "{count}건", {
+                count: statistics.totalTests || 0,
+              })}
+              )
             </Typography>
           )}
         </Box>

@@ -39,7 +39,7 @@ import {
 import { useAppContext } from "../../context/AppContext.jsx";
 import testResultEditService from "../../services/testResultEditService.js";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
-import { useI18n } from "../../context/I18nContext.jsx";
+import { useTranslation } from "../../context/I18nContext.jsx";
 
 /**
  * 테스트 결과 편집 권한 관리 컴포넌트
@@ -48,6 +48,7 @@ import { useI18n } from "../../context/I18nContext.jsx";
 const TestResultEditPermissionsManager = ({ open, onClose }) => {
   const { user } = useAppContext();
   const { formatDate } = useDateFormatter();
+  const { t } = useTranslation();
 
   // 상태 관리
   const [loading, setLoading] = useState(false);
@@ -79,7 +80,11 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
       setMyEdits(myEditsData.content || []);
       setStatistics(statsData);
     } catch (err) {
-      console.error("권한 데이터 로드 실패:", err);
+      const errorMsg = t(
+        "testResultEdit.permissions.loadFailed",
+        "권한 데이터 로드 실패"
+      );
+      console.error(`${errorMsg}:`, err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -100,7 +105,11 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
       // 데이터 새로고침
       await loadPermissionsData();
     } catch (err) {
-      console.error("편집본 승인 처리 실패:", err);
+      const errorMsg = t(
+        "testResultEdit.permissions.approveFailed",
+        "편집본 승인 처리 실패"
+      );
+      console.error(`${errorMsg}:`, err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -120,7 +129,11 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
         setError(result.message);
       }
     } catch (err) {
-      console.error("편집본 적용 실패:", err);
+      const errorMsg = t(
+        "testResultEdit.permissions.applyFailed",
+        "편집본 적용 실패"
+      );
+      console.error(`${errorMsg}:`, err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -132,7 +145,12 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
       <CardContent>
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <ScheduleIcon sx={{ mr: 1 }} />
-          <Typography variant="h6">승인 대기 중인 편집본</Typography>
+          <Typography variant="h6">
+            {t(
+              "testResultEdit.permissions.pendingApprovals",
+              "승인 대기 중인 편집본",
+            )}
+          </Typography>
           <Chip
             label={pendingEdits.length}
             size="small"
@@ -142,7 +160,12 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
         </Box>
 
         {pendingEdits.length === 0 ? (
-          <Alert severity="info">승인 대기 중인 편집본이 없습니다.</Alert>
+          <Alert severity="info">
+            {t(
+              "testResultEdit.permissions.noPendingEdits",
+              "승인 대기 중인 편집본이 없습니다.",
+            )}
+          </Alert>
         ) : (
           <List>
             {pendingEdits.map((edit, index) => (
@@ -160,7 +183,8 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="subtitle2">
                         v{edit.editVersion} -{" "}
-                        {edit.originalData?.testCaseName || "테스트케이스"}
+                        {edit.originalData?.testCaseName ||
+                          t("testResultEdit.permissions.testCase", "테스트케이스")}
                       </Typography>
                       <Chip
                         label={
@@ -203,7 +227,9 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                       flexDirection: { xs: "column", sm: "row" },
                     }}
                   >
-                    <Tooltip title="승인">
+                    <Tooltip
+                      title={t("testResultEdit.permissions.approve", "승인")}
+                    >
                       <Button
                         size="small"
                         color="success"
@@ -212,10 +238,12 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                         disabled={loading}
                         startIcon={<CheckIcon />}
                       >
-                        승인
+                        {t("testResultEdit.permissions.approve", "승인")}
                       </Button>
                     </Tooltip>
-                    <Tooltip title="거부">
+                    <Tooltip
+                      title={t("testResultEdit.permissions.reject", "거부")}
+                    >
                       <Button
                         size="small"
                         color="error"
@@ -224,7 +252,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                         disabled={loading}
                         startIcon={<CloseIcon />}
                       >
-                        거부
+                        {t("testResultEdit.permissions.reject", "거부")}
                       </Button>
                     </Tooltip>
                   </Box>
@@ -242,7 +270,9 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
       <CardContent>
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <PersonIcon sx={{ mr: 1 }} />
-          <Typography variant="h6">내 편집본</Typography>
+          <Typography variant="h6">
+            {t("testResultEdit.permissions.myEdits", "내 편집본")}
+          </Typography>
           <Chip
             label={myEdits.length}
             size="small"
@@ -252,7 +282,12 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
         </Box>
 
         {myEdits.length === 0 ? (
-          <Alert severity="info">생성한 편집본이 없습니다.</Alert>
+          <Alert severity="info">
+            {t(
+              "testResultEdit.permissions.noMyEdits",
+              "생성한 편집본이 없습니다.",
+            )}
+          </Alert>
         ) : (
           <List>
             {myEdits.map((edit, index) => {
@@ -277,7 +312,8 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                       >
                         <Typography variant="subtitle2">
                           v{edit.editVersion} -{" "}
-                          {edit.originalData?.testCaseName || "테스트케이스"}
+                          {edit.originalData?.testCaseName ||
+                            t("testResultEdit.permissions.testCase", "테스트케이스")}
                         </Typography>
                         <Chip
                           label={statusInfo.label}
@@ -303,7 +339,9 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
 
                   <ListItemSecondaryAction>
                     {edit.editStatus === "APPROVED" && (
-                      <Tooltip title="적용">
+                      <Tooltip
+                        title={t("testResultEdit.permissions.apply", "적용")}
+                      >
                         <Button
                           size="small"
                           color="primary"
@@ -312,13 +350,13 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                           disabled={loading}
                           startIcon={<ApproveIcon />}
                         >
-                          적용
+                          {t("testResultEdit.permissions.apply", "적용")}
                         </Button>
                       </Tooltip>
                     )}
                     {edit.editStatus === "APPLIED" && (
                       <Chip
-                        label="활성"
+                        label={t("testResultEdit.permissions.active", "활성")}
                         size="small"
                         color="success"
                         variant="filled"
@@ -339,7 +377,9 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
       <CardContent>
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <AdminIcon sx={{ mr: 1 }} />
-          <Typography variant="h6">편집 통계</Typography>
+          <Typography variant="h6">
+            {t("testResultEdit.permissions.statistics", "편집 통계")}
+          </Typography>
         </Box>
 
         <Grid container spacing={2}>
@@ -349,7 +389,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                 {statistics.totalEdits || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                전체 편집본
+                {t("testResultEdit.statistics.totalEdits", "전체 편집본")}
               </Typography>
             </Card>
           </Grid>
@@ -360,7 +400,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                 {statistics.pendingEdits || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                승인 대기
+                {t("testResultEdit.statistics.pending", "승인 대기")}
               </Typography>
             </Card>
           </Grid>
@@ -371,7 +411,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                 {statistics.appliedEdits || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                적용됨
+                {t("testResultEdit.statistics.applied", "적용됨")}
               </Typography>
             </Card>
           </Grid>
@@ -382,7 +422,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                 {statistics.approvalRate?.toFixed(1) || 0}%
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                승인율
+                {t("testResultEdit.statistics.approvalRate", "승인율")}
               </Typography>
             </Card>
           </Grid>
@@ -390,25 +430,41 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
           <Grid size={{ xs: 12 }}>
             <Divider sx={{ my: 2 }} />
             <Typography variant="h6" gutterBottom>
-              상세 통계
+              {t("testResultEdit.statistics.detailed", "상세 통계")}
             </Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
               <Chip
-                label={`임시저장: ${statistics.draftEdits || 0}`}
+                label={t(
+                  "testResultEdit.statistics.draft",
+                  "임시저장: {count}",
+                  { count: statistics.draftEdits || 0 },
+                )}
                 variant="outlined"
               />
               <Chip
-                label={`승인됨: ${statistics.approvedEdits || 0}`}
+                label={t(
+                  "testResultEdit.statistics.approved",
+                  "승인됨: {count}",
+                  { count: statistics.approvedEdits || 0 },
+                )}
                 color="success"
                 variant="outlined"
               />
               <Chip
-                label={`거부됨: ${statistics.rejectedEdits || 0}`}
+                label={t(
+                  "testResultEdit.statistics.rejected",
+                  "거부됨: {count}",
+                  { count: statistics.rejectedEdits || 0 },
+                )}
                 color="error"
                 variant="outlined"
               />
               <Chip
-                label={`되돌림: ${statistics.revertedEdits || 0}`}
+                label={t(
+                  "testResultEdit.statistics.reverted",
+                  "되돌림: {count}",
+                  { count: statistics.revertedEdits || 0 },
+                )}
                 color="secondary"
                 variant="outlined"
               />
@@ -434,7 +490,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <SecurityIcon />
-          편집 권한 관리
+          {t("testResultEdit.permissions.title", "편집 권한 관리")}
         </Box>
       </DialogTitle>
       <DialogContent dividers>
@@ -455,7 +511,8 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
               startIcon={<ScheduleIcon />}
               size="small"
             >
-              승인 대기 ({pendingEdits.length})
+              {t("testResultEdit.permissions.pendingTab", "승인 대기")} (
+              {pendingEdits.length})
             </Button>
             <Button
               variant={activeTab === "my-edits" ? "contained" : "outlined"}
@@ -463,7 +520,8 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
               startIcon={<PersonIcon />}
               size="small"
             >
-              내 편집본 ({myEdits.length})
+              {t("testResultEdit.permissions.myEditsTab", "내 편집본")} (
+              {myEdits.length})
             </Button>
             <Button
               variant={activeTab === "statistics" ? "contained" : "outlined"}
@@ -471,7 +529,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
               startIcon={<AdminIcon />}
               size="small"
             >
-              통계
+              {t("testResultEdit.permissions.statisticsTab", "통계")}
             </Button>
           </Box>
         </Box>
@@ -487,9 +545,9 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
           disabled={loading}
           startIcon={<ViewIcon />}
         >
-          새로고침
+          {t("common.refresh", "새로고침")}
         </Button>
-        <Button onClick={onClose}>닫기</Button>
+        <Button onClick={onClose}>{t("common.close", "닫기")}</Button>
       </DialogActions>
     </Dialog>
   );

@@ -282,7 +282,7 @@ export default function JunitResultDashboard() {
   // 파일 업로드 처리
   const handleFileUpload = async (uploadData) => {
     if (!activeProject?.id) {
-      setError("프로젝트가 선택되지 않았습니다.");
+      setError(t("junit.error.noProjectSelected", "프로젝트가 선택되지 않았습니다."));
       return;
     }
 
@@ -312,7 +312,7 @@ export default function JunitResultDashboard() {
       await loadData(false);
     } catch (err) {
       console.error("파일 업로드 실패:", err);
-      setError(`파일 업로드 실패: ${err.message}`);
+      setError(t("junit.error.uploadFailed", `파일 업로드 실패: ${err.message}`));
     } finally {
       setLoading(false);
       setUploadProgress(0);
@@ -331,7 +331,7 @@ export default function JunitResultDashboard() {
       await loadData(false);
     } catch (err) {
       console.error("삭제 실패:", err);
-      setError(`삭제 실패: ${err.message}`);
+      setError(t("junit.error.deleteFailed", `삭제 실패: ${err.message}`));
     } finally {
       setLoading(false);
     }
@@ -933,7 +933,7 @@ export default function JunitResultDashboard() {
                                     )}
                                     {latestResult.notesCount > 0 && (
                                       <Tooltip
-                                        title={`노트 ${latestResult.notesCount}개`}
+                                        title={t("junit.notes.label", `노트 ${latestResult.notesCount}개`, { count: latestResult.notesCount })}
                                       >
                                         <Chip
                                           icon={
@@ -1193,7 +1193,7 @@ export default function JunitResultDashboard() {
                                           </Typography>
                                           {result.notesCount > 0 && (
                                             <Tooltip
-                                              title={`노트 ${result.notesCount}개`}
+                                              title={t("junit.notes.label", `노트 ${result.notesCount}개`, { count: result.notesCount })}
                                             >
                                               <Chip
                                                 icon={
@@ -1455,7 +1455,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
       if (file.size > maxSizeBytes) {
         const fileSizeFormatted = formatFileSize(file.size);
         setValidationError(
-          `파일 크기가 너무 큽니다. (${fileSizeFormatted} / 최대 ${uploadLimits.junitMaxSizeFormatted})`,
+          t("junit.error.fileTooLarge", `파일 크기가 너무 큽니다. (${fileSizeFormatted} / 최대 ${uploadLimits.junitMaxSizeFormatted})`, { current: fileSizeFormatted, max: uploadLimits.junitMaxSizeFormatted }),
         );
         setSelectedFile(null);
         return;

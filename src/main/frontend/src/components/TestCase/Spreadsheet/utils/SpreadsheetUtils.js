@@ -5,14 +5,25 @@ import { listToTree } from "../../../../utils/treeUtils.jsx";
 /**
  * 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
  * @param {Array} data - 테스트케이스 데이터 배열
+ * @param {Object} options - { allKnownIds?, t? } 옵션
  * @returns {Array} - 평면화된 데이터 배열
  */
-export const flattenTreeInOrder = (data, allKnownIds = null) => {
+export const flattenTreeInOrder = (data, options = {}) => {
   if (!data || data.length === 0) return [];
+
+  const { allKnownIds, t } = options;
 
   // 트리 구조로 변환 (TestCaseTree와 동일: filteredTestCases -> listToTree)
   // allKnownIds가 있으면 고아 노드 판별에 사용
-  const treeData = listToTree(data, null, { allKnownIds });
+  const listToTreeOptions = { allKnownIds };
+  if (t) {
+    listToTreeOptions.orphanFolderName = t("tree.orphan.name", "[미할당 항목]");
+    listToTreeOptions.orphanFolderDescription = t(
+      "tree.orphan.description",
+      "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다."
+    );
+  }
+  const treeData = listToTree(data, null, listToTreeOptions);
 
   // renderTree와 완전히 동일한 방식으로 평면화 및 정렬
   const flattenWithRenderTreeLogic = (nodes, result = []) => {

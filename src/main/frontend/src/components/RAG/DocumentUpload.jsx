@@ -189,7 +189,7 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "문서 업로드에 실패했습니다.";
+        t("rag.upload.error.uploadFailed", "문서 업로드에 실패했습니다.");
       setLocalError(errorMessage);
 
       // 5초 후 자동으로 오류 메시지 제거

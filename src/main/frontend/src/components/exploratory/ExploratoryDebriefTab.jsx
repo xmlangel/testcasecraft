@@ -213,7 +213,7 @@ function ExploratoryDebriefTab({
                     "exploratory.debrief.evaluation.summary",
                     "세션 전체 평가",
                   )}
-                  placeholder="차터 달성 여부, 발견된 품질 위험 및 테스팅 총평을 요약해 주세요."
+                  placeholder={t("exploratory.debrief.evaluation.summaryPlaceholder", "차터 달성 여부, 발견된 품질 위험 및 테스팅 총평을 요약해 주세요.")}
                   value={sessionDraft.evaluation || ""}
                   onChange={(e) =>
                     setSessionDraft((prev) => ({
@@ -233,7 +233,7 @@ function ExploratoryDebriefTab({
                     "exploratory.debrief.evaluation.nextCharter",
                     "후속 액션 / 다음 차터 제안",
                   )}
-                  placeholder="추가 조사가 필요한 영역이나 다음 테스팅 목표를 제안해 주세요."
+                  placeholder={t("exploratory.debrief.evaluation.nextCharterPlaceholder", "추가 조사가 필요한 영역이나 다음 테스팅 목표를 제안해 주세요.")}
                   value={sessionDraft.nextCharter || ""}
                   onChange={(e) =>
                     setSessionDraft((prev) => ({
@@ -285,7 +285,7 @@ function ExploratoryDebriefTab({
                         "exploratory.debrief.leadComment",
                         "리드 피드백",
                       )}
-                      placeholder="리뷰 의견을 입력해 주세요..."
+                      placeholder={t("exploratory.debrief.leadCommentPlaceholder", "리뷰 의견을 입력해 주세요...")}
                       value={sessionDraft.reviewComment || ""}
                       onChange={(e) =>
                         setSessionDraft((prev) => ({
@@ -480,7 +480,7 @@ function ExploratoryDebriefTab({
                           fontSize: "0.8rem",
                         }}
                       >
-                        {sessionDraft.testData || "기록된 데이터 없음"}
+                        {sessionDraft.testData || t("exploratory.noData", "기록된 데이터 없음")}
                       </Typography>
                     </Box>
 
@@ -835,10 +835,10 @@ function ExploratoryDebriefTab({
               </Typography>
               <List dense sx={{ py: 0 }}>
                 {[
-                  "차터 범위 내에서 탐색이 이루어졌는가?",
-                  "수행 중 발견된 모든 리스크가 기록되었는가?",
-                  "버그 재현을 위한 정보 및 증적이 충분한가?",
-                  "다음 단계에 대한 제안이 포함되었는가?",
+                  t("exploratory.checklist.q1", "차터 범위 내에서 탐색이 이루어졌는가?"),
+                  t("exploratory.checklist.q2", "수행 중 발견된 모든 리스크가 기록되었는가?"),
+                  t("exploratory.checklist.q3", "버그 재현을 위한 정보 및 증적이 충분한가?"),
+                  t("exploratory.checklist.q4", "다음 단계에 대한 제안이 포함되었는가?"),
                 ].map((text, i) => (
                   <ListItem key={i} sx={{ px: 0, py: 0.25 }}>
                     <ListItemText

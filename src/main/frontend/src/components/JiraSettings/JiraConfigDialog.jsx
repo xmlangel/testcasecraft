@@ -80,7 +80,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
       setFormData({
         serverUrl: existingConfig.serverUrl || "",
         username: existingConfig.username || "",
-        apiToken: "", // 보안상 기존 토큰은 표시하지 않음
+        apiToken: "",
         testProjectKey: "",
       });
     } else {
@@ -193,7 +193,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
         await loadProjects();
       }
     } catch (error) {
-      console.error("연결 테스트 실패:", error);
+      console.error("[Jira Config] Connection test failed:", error);
       setConnectionStatus({
         isConnected: false,
         status: "ERROR",
@@ -212,7 +212,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
       const projectList = await jiraService.getProjects();
       setProjects(projectList || []);
     } catch (error) {
-      console.error("프로젝트 목록 로드 실패:", error);
+      console.error("[Jira Config] Failed to load projects:", error);
     }
   };
 
@@ -252,7 +252,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
 
       const result = await onSave(configData);
     } catch (error) {
-      console.error("❌ JIRA 설정 저장 실패:", error);
+      console.error("[Jira Config] Failed to save configuration:", error);
 
       // 백엔드 응답의 상세 정보 확인
       let errorMessage = t(
@@ -267,12 +267,20 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
         const errorData = error.response.data;
 
         if (errorData.code === "ENCRYPTION_KEY_NOT_SET") {
-          errorMessage = "🔐 JIRA 암호화 설정 오류";
+          errorMessage = t(
+            "jira.config.error.encryptionError",
+            "🔐 JIRA 암호화 설정 오류"
+          );
           errorDetail =
             errorData.detail ||
-            "서버에서 JIRA 암호화 키가 설정되지 않았습니다.";
-          solution =
-            "관리자에게 JIRA_ENCRYPTION_KEY 환경변수 설정을 요청하세요.";
+            t(
+              "jira.config.error.encryptionNotSet",
+              "서버에서 JIRA 암호화 키가 설정되지 않았습니다."
+            );
+          solution = t(
+            "jira.config.error.encryptionSetupRequired",
+            "관리자에게 JIRA_ENCRYPTION_KEY 환경변수 설정을 요청하세요."
+          );
         } else if (errorData.error) {
           errorMessage = errorData.error;
           errorDetail = errorData.detail || "";
@@ -284,35 +292,69 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
           error.message.includes("암호화") ||
           error.message.includes("encryption")
         ) {
-          errorMessage = "🔐 암호화 키 설정 문제";
-          errorDetail =
-            "서버에서 JIRA 암호화 키가 올바르게 설정되지 않았습니다.";
-          solution =
-            "관리자에게 문의하여 JIRA_ENCRYPTION_KEY 환경변수를 설정하도록 요청하세요.";
+          errorMessage = t(
+            "jira.config.error.encryptionConfigIssue",
+            "🔐 암호화 키 설정 문제"
+          );
+          errorDetail = t(
+            "jira.config.error.encryptionConfigInvalid",
+            "서버에서 JIRA 암호화 키가 올바르게 설정되지 않았습니다."
+          );
+          solution = t(
+            "jira.config.error.encryptionConfigContact",
+            "관리자에게 문의하여 JIRA_ENCRYPTION_KEY 환경변수를 설정하도록 요청하세요."
+          );
         } else if (error.message.includes("401")) {
-          errorMessage = "🔑 인증 만료";
-          errorDetail = "로그인 세션이 만료되었습니다.";
-          solution = "다시 로그인해주세요.";
+          errorMessage = t(
+            "jira.config.error.authExpired",
+            "🔑 인증 만료"
+          );
+          errorDetail = t(
+            "jira.config.error.sessionExpired",
+            "로그인 세션이 만료되었습니다."
+          );
+          solution = t(
+            "jira.config.error.loginAgain",
+            "다시 로그인해주세요."
+          );
         } else if (error.message.includes("400")) {
-          errorMessage = "📝 입력 데이터 오류";
-          errorDetail = "입력한 정보에 문제가 있습니다.";
-          solution = "모든 필드를 올바르게 입력했는지 확인해주세요.";
+          errorMessage = t(
+            "jira.config.error.invalidInput",
+            "📝 입력 데이터 오류"
+          );
+          errorDetail = t(
+            "jira.config.error.invalidInputDetail",
+            "입력한 정보에 문제가 있습니다."
+          );
+          solution = t(
+            "jira.config.error.checkFields",
+            "모든 필드를 올바르게 입력했는지 확인해주세요."
+          );
         } else if (error.message.includes("500")) {
-          errorMessage = "🚨 서버 오류";
-          errorDetail = "서버에서 오류가 발생했습니다.";
-          solution = "잠시 후 다시 시도하거나 관리자에게 문의하세요.";
+          errorMessage = t(
+            "jira.config.error.serverError",
+            "🚨 서버 오류"
+          );
+          errorDetail = t(
+            "jira.config.error.serverErrorOccurred",
+            "서버에서 오류가 발생했습니다."
+          );
+          solution = t(
+            "jira.config.error.retryOrContact",
+            "잠시 후 다시 시도하거나 관리자에게 문의하세요."
+          );
         } else {
-          errorMessage = `저장 실패: ${error.message}`;
+          errorMessage = `${t("jira.config.error.saveFailed", "저장 실패")}: ${error.message}`;
         }
       }
 
       // 복합 에러 메시지 구성
       let fullErrorMessage = errorMessage;
       if (errorDetail) {
-        fullErrorMessage += `\n\n📋 상세 정보: ${errorDetail}`;
+        fullErrorMessage += `\n\n${t("jira.config.error.detailLabel", "📋 상세 정보: ")}${errorDetail}`;
       }
       if (solution) {
-        fullErrorMessage += `\n\n💡 해결 방법: ${solution}`;
+        fullErrorMessage += `\n\n${t("jira.config.error.solutionLabel", "💡 해결 방법: ")}${solution}`;
       }
 
       setErrors({ general: fullErrorMessage });
@@ -324,6 +366,8 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
   const getStatusIcon = () => {
     if (!connectionStatus) return null;
 
+    // Note: "실패" is a backend response value, not translatable here
+    // It will be translated in getApiMessageTranslation() when displayed
     switch (connectionStatus.status) {
       case "SUCCESS":
         return <CheckCircleIcon color="success" />;

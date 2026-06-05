@@ -107,8 +107,15 @@ const TestCaseTree = ({
   }, [treeState.filteredTestCases, actions.orderMap]);
 
   const treeData = useMemo(
-    () => listToTree(sortedTestCases, null),
-    [sortedTestCases],
+    () =>
+      listToTree(sortedTestCases, null, {
+        orphanFolderName: t("tree.orphan.name", "[미할당 항목]"),
+        orphanFolderDescription: t(
+          "tree.orphan.description",
+          "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다."
+        ),
+      }),
+    [sortedTestCases, t],
   );
 
   // ── 4. 가상화 ──────────────────────────────────────────────────────────────
@@ -397,7 +404,7 @@ const TestCaseTree = ({
             >
               {treeState.checkedIds?.length > 1 &&
               treeState.checkedIds.includes(activeDragNode.id)
-                ? `${activeDragNode.name} 외 ${treeState.checkedIds.length - 1}개`
+                ? t("testcase.dragMultiple", "{name} 외 {count}개", { name: activeDragNode.name, count: treeState.checkedIds.length - 1 })
                 : activeDragNode.name}
             </Box>
           ) : null}

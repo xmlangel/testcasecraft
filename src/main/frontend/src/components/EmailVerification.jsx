@@ -19,8 +19,10 @@ import {
   Info as InfoIcon,
 } from "@mui/icons-material";
 import axios from "axios";
+import { useI18n } from "../context/I18nContext";
 
 const EmailVerification = () => {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
@@ -32,7 +34,7 @@ const EmailVerification = () => {
     if (!token) {
       setVerificationResult({
         success: false,
-        message: "유효하지 않은 인증 링크입니다.",
+        message: t("emailVerification.message.invalidLink", "유효하지 않은 인증 링크입니다."),
         error: "INVALID",
       });
       setLoading(false);
@@ -50,7 +52,7 @@ const EmailVerification = () => {
         console.error("Email verification error:", error);
         setVerificationResult({
           success: false,
-          message: "인증 처리 중 오류가 발생했습니다.",
+          message: t("emailVerification.message.processingError", "인증 처리 중 오류가 발생했습니다."),
           error: "ERROR",
         });
       } finally {
@@ -67,7 +69,7 @@ const EmailVerification = () => {
 
   const handleResend = async () => {
     // 재발송 로직 - userId가 필요하므로 여기서는 안내 메시지만 표시
-    alert("재발송 기능은 로그인 후 프로필 설정에서 이용 가능합니다.");
+    alert(t("emailVerification.message.resendInfo", "재발송 기능은 로그인 후 프로필 설정에서 이용 가능합니다."));
   };
 
   // 로딩 중
@@ -77,7 +79,7 @@ const EmailVerification = () => {
         <Paper elevation={3} sx={{ p: 4 }}>
           <CircularProgress size={60} />
           <Typography variant="h6" sx={{ mt: 3 }}>
-            이메일 인증 처리 중...
+            {t("emailVerification.status.processing", "이메일 인증 처리 중...")}
           </Typography>
         </Paper>
       </Container>
@@ -90,7 +92,7 @@ const EmailVerification = () => {
       return {
         icon: <CheckCircleIcon sx={{ fontSize: 80, color: "success.main" }} />,
         severity: "success",
-        title: "인증 완료!",
+        title: t("emailVerification.status.completed", "인증 완료!"),
       };
     }
 
@@ -99,13 +101,13 @@ const EmailVerification = () => {
         return {
           icon: <WarningIcon sx={{ fontSize: 80, color: "warning.main" }} />,
           severity: "warning",
-          title: "링크 만료",
+          title: t("emailVerification.status.linkExpired", "링크 만료"),
         };
       case "USED":
         return {
           icon: <InfoIcon sx={{ fontSize: 80, color: "info.main" }} />,
           severity: "info",
-          title: "이미 사용됨",
+          title: t("emailVerification.status.alreadyUsed", "이미 사용됨"),
         };
       case "INVALID":
       case "ERROR":
@@ -113,7 +115,7 @@ const EmailVerification = () => {
         return {
           icon: <ErrorIcon sx={{ fontSize: 80, color: "error.main" }} />,
           severity: "error",
-          title: "인증 실패",
+          title: t("emailVerification.status.verificationFailed", "인증 실패"),
         };
     }
   };

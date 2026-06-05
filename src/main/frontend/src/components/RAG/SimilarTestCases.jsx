@@ -38,12 +38,12 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import TuneIcon from "@mui/icons-material/Tune";
 import { useRAG } from "../../context/RAGContext.jsx";
-import { useI18n } from "../../context/I18nContext.jsx";
+import { useTranslation } from "../../context/I18nContext.jsx";
 
 const SIMILARITY_THRESHOLD = 0.81; // 81% 이상인 경우만 바로 표시
 
 function SimilarTestCases({ projectId, onAddTestCase }) {
-  const { t } = useI18n();
+  const { t } = useTranslation();
   const {
     searchSimilar,
     searchAdvanced,
@@ -92,7 +92,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "검색에 실패했습니다.";
+        t("rag.similar.searchFailed", "검색에 실패했습니다.");
       setLocalError(errorMessage);
 
       // 5초 후 자동으로 오류 메시지 제거
@@ -184,7 +184,10 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
       {!isRagEnabled && (
         <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
           {ragDisabledMessage ||
-            "RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다."}
+            t(
+              "rag.similar.disabled",
+              "RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다."
+            )}
         </Alert>
       )}
 

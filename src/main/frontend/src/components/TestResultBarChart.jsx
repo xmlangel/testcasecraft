@@ -151,8 +151,8 @@ function TestResultBarChart({
                 <Typography variant="body2" sx={{ color: entry.color }}>
                   {getDataKeyLabel(entry.dataKey)}:{" "}
                   {showPercentage
-                    ? `${entry.value}% (${originalValue}건)`
-                    : `${entry.value}건`}
+                    ? `${entry.value}% (${originalValue} ${t("testResult.chart.cases", "cases")})`
+                    : `${entry.value} ${t("testResult.chart.cases", "cases")}`}
                 </Typography>
               </Box>
             );
@@ -160,12 +160,12 @@ function TestResultBarChart({
           {originalItem && (
             <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: "divider" }}>
               <Typography variant="caption" color="text.secondary">
-                총{" "}
+                {t("testResult.chart.total", "Total")} {" "}
                 {originalItem.passCount +
                   originalItem.failCount +
                   originalItem.blockedCount +
                   originalItem.notRunCount}
-                건
+                {" "}{t("testResult.chart.cases", "cases")}
               </Typography>
             </Box>
           )}

@@ -380,7 +380,7 @@ export const useTestCaseActions = ({
       if (isViewer(user?.role)) return;
       if (!ids || ids.length === 0) return;
       if (beforeId && afterId) {
-        setErrorMessage("beforeId와 afterId는 동시에 지정할 수 없습니다.");
+        setErrorMessage(t("testcase.tree.error.conflictingPositions", "beforeId와 afterId는 동시에 지정할 수 없습니다."));
         return;
       }
 

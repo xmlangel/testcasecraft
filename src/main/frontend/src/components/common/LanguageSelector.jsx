@@ -30,7 +30,7 @@ const LANGUAGE_EMOJIS = {
 
 // 컴팩트 언어 선택기 (헤더용)
 export const CompactLanguageSelector = () => {
-  const { currentLanguage, availableLanguages, changeLanguage, loading } =
+  const { currentLanguage, availableLanguages, changeLanguage, loading, t } =
     useI18n();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -56,7 +56,7 @@ export const CompactLanguageSelector = () => {
 
   return (
     <>
-      <Tooltip title="언어 선택">
+      <Tooltip title={t("common.selectLanguage", "언어 선택")}>
         <IconButton
           onClick={handleClick}
           size="small"
@@ -142,7 +142,7 @@ export const CompactLanguageSelector = () => {
 
 // 풀사이즈 언어 선택기 (설정 페이지용)
 export const LanguageSelector = ({
-  label = "언어 선택",
+  label,
   helperText,
   variant = "outlined",
   size = "medium",
@@ -152,6 +152,9 @@ export const LanguageSelector = ({
 }) => {
   const { currentLanguage, availableLanguages, changeLanguage, loading, t } =
     useI18n();
+
+  // label이 전달되지 않으면 기본값 사용 (t() 래핑)
+  const displayLabel = label !== undefined ? label : t("common.selectLanguage", "언어 선택");
 
   const handleChange = (event) => {
     const languageCode = event.target.value;
@@ -178,9 +181,9 @@ export const LanguageSelector = ({
 
   return (
     <FormControl variant={variant} size={size} fullWidth={fullWidth}>
-      {label && (
+      {displayLabel && (
         <Typography variant="body2" component="label" sx={{ mb: 1 }}>
-          {label}
+          {displayLabel}
         </Typography>
       )}
       <Select
@@ -230,7 +233,7 @@ export const LanguageSelector = ({
                       fontSize: "0.65rem",
                     }}
                   >
-                    기본
+                    {t("common.default", "기본")}
                   </Typography>
                 )}
               </Box>
