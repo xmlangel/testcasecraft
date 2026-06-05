@@ -771,11 +771,7 @@ const AppContent = () => {
           >
             <Box
               component="img"
-              src={
-                theme.palette.mode === "dark"
-                  ? "/testcasecraft_dark.jpg"
-                  : "/testcasecraft_light.jpg"
-              }
+              src="/testcasecraft_transparent.png"
               alt="TestCaseCraft"
               sx={{
                 height: 60,

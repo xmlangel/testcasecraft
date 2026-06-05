@@ -73,7 +73,8 @@ public class SecurityConfig {
                         "/manifest.json",
                         "/asset-manifest.json",
                         "/robots.txt",
-                        "/testcasecraft_*.jpg" // 로고 이미지 파일
+                        "/testcasecraft_*.jpg", // 로고 이미지 파일
+                        "/testcasecraft_*.png" // 투명 로고 이미지 파일
                         )
                     .permitAll()
                     // ⚠️ API 경로를 SPA 라우팅보다 먼저 매칭 (우선순위 확보)
