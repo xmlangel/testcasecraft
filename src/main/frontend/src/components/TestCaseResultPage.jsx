@@ -200,14 +200,19 @@ const TestCaseResultPage = () => {
       >
         {execution && testCase ? (
           <TestResultForm
+            // 케이스 전환 시 리마운트 강제 — 이전 케이스의 입력 상태와
+            // 다음 케이스의 resultId가 섞인 스냅샷이 자동저장으로 흘러가는 것을 방지
+            key={testCaseId}
             open={true}
             testCaseId={testCaseId}
             executionId={executionId}
-            currentResult={getLatestResults(
-              (execution.results || []).filter(
-                (r) => r.testCaseId === testCaseId,
-              ),
-            )[0]}
+            currentResult={
+              getLatestResults(
+                (execution.results || []).filter(
+                  (r) => r.testCaseId === testCaseId,
+                ),
+              )[0]
+            }
             onClose={handleClose}
             onSave={handleSave}
             onNext={handleNext}
