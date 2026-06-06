@@ -105,6 +105,20 @@ processResources {
 		into 'static'
 		include '*.jpg', '*.png', '*.ico', '*.json', '*.txt', '*.svg', '*.webp'
 	}
+	// 인앱 매뉴얼/가이드 문서를 jar 에 동봉 — 도커 배포에서 docs/ 디렉토리가 없어도
+	// ManualController/GuideController 가 classpath 폴백으로 서빙 가능
+	from("$projectDir/docs/manual/new") {
+		into 'docs/manual/new'
+		include '*.md', 'images/**', 'images_en/**'
+	}
+	from("$projectDir/docs/guide") {
+		into 'docs/guide'
+		include '*.md'
+	}
+	from("$projectDir/docs/deployment") {
+		into 'docs/deployment'
+		include '*.md'
+	}
 }
 
 // bootRun 실행 시 Vite 빌드 자동 실행 및 결과물 복사
