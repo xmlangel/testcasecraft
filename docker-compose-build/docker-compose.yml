@@ -1,7 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:1.0.81
+    image: xmlangel/testcasecraft:1.0.84
     container_name: testcasecraft
     environment:
       # Spring Profile
@@ -20,7 +20,8 @@ services:
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
 
       # JWT Configuration
-      - JWT_SECRET=${JWT_SECRET}
+      # JWT_SECRET 미설정 시 컨테이너가 자동 생성 후 /app/data/jwt-secret 에 영속화
+      - JWT_SECRET=${JWT_SECRET:-}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
 
@@ -52,6 +53,9 @@ services:
     ports:
       - "${HTTP_PORT}:${SERVER_PORT}"
       - "${HTTPS_PORT}:${SERVER_PORT}"
+    volumes:
+      # 자동 생성된 JWT_SECRET 영속화 (컨테이너 재생성에도 세션 유지)
+      - ./data/app:/app/data
     networks:
       - testcasecraft-network
     depends_on:
@@ -60,10 +64,11 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
+      # busybox wget 사용 (1.0.84+ 이미지는 보안상 curl 미포함)
       test:
         [
           "CMD-SHELL",
-          "curl -f -k ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1",
+          "wget -q --no-check-certificate -O /dev/null ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1",
         ]
       interval: 30s
       timeout: 10s

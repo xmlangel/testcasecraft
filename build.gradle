@@ -1,5 +1,6 @@
 plugins {
-	id 'org.springframework.boot' version '3.4.12'
+	// 보안: CVE-2026-40973(spring-boot, 3.4 전체 취약)·CVE-2026-22732(spring-security 6.4 전체 취약) → 3.5.x 라인으로 업그레이드
+	id 'org.springframework.boot' version '3.5.14'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'java'
 	id 'com.github.node-gradle.node' version '7.0.2'
@@ -150,7 +151,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.83-SNAPSHOT'
+version = '1.0.84-SNAPSHOT'
 base {
     archivesName = 'TestCaseCraft'
 }
@@ -313,12 +314,13 @@ repositories {
 
 // 보안 취약점 수정을 위한 버전 명시적 설정
 ext {
-	springSecurityVersion = '6.4.15'
-	springFrameworkVersion = '6.1.21'
-	tomcatVersion = '10.1.54'
+	// CVE-2026-43512/41293/43515(CRITICAL) 외 3건 HIGH — 10.1.55 에서 수정
+	tomcatVersion = '10.1.55'
 	commonsBeanutilsVersion = '1.11.0'
-	nimbusJoseJwtVersion = '9.48'
-	nettyVersion = '4.1.132.Final'
+	// CVE-2025-53864(MEDIUM, Uncontrolled Recursion) — 10.0.2+ 에서 수정
+	nimbusJoseJwtVersion = '10.9.1'
+	// CVE-2026-42587/33870/42584/42583/42579(HIGH) — 4.1.133+ 에서 수정. BOM 으로 전 모듈 통일
+	nettyVersion = '4.1.135.Final'
 	googleOAuthClientVersion = '1.36.0'
 }
 
@@ -335,8 +337,8 @@ configurations {
 // 보안 취약점 수정을 위한 버전 오버라이드
 dependencyManagement {
 	imports {
-		// mavenBom "org.springframework.security:spring-security-bom:${springSecurityVersion}"
-		// mavenBom "org.springframework:spring-framework-bom:${springFrameworkVersion}"
+		// netty 전 모듈(codec-http/codec/codec-dns 등 전이 의존성 포함)을 한 버전으로 정렬
+		mavenBom "io.netty:netty-bom:${nettyVersion}"
 	}
 	dependencies {
 		dependency "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
@@ -344,8 +346,6 @@ dependencyManagement {
 		dependency "org.apache.tomcat.embed:tomcat-embed-el:${tomcatVersion}"
 		dependency "commons-beanutils:commons-beanutils:${commonsBeanutilsVersion}"
 		dependency "com.nimbusds:nimbus-jose-jwt:${nimbusJoseJwtVersion}"
-		dependency "io.netty:netty-codec-http2:${nettyVersion}"
-		dependency "io.netty:netty-handler:${nettyVersion}"
 		dependency "com.google.oauth-client:google-oauth-client:${googleOAuthClientVersion}"
 		dependency "com.google.oauth-client:google-oauth-client-jetty:${googleOAuthClientVersion}"
 	}
@@ -360,9 +360,9 @@ configurations {
 }
 
 dependencies {
-	// Vulnerability Fix: Use secure Bouncy Castle jdk18on version 1.79
-	implementation 'org.bouncycastle:bcpkix-jdk18on:1.79'
-	implementation 'org.bouncycastle:bcprov-jdk18on:1.79'
+	// Vulnerability Fix: CVE-2026-5598(HIGH, Covert Timing Channel) — 1.84 에서 수정
+	implementation 'org.bouncycastle:bcpkix-jdk18on:1.84'
+	implementation 'org.bouncycastle:bcprov-jdk18on:1.84'
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools' // Hot Reloading
 
@@ -370,15 +370,17 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.postgresql:postgresql:42.7.3'
+	// 보안: CVE-2026-42198(HIGH) — 42.7.11 에서 수정
+	implementation 'org.postgresql:postgresql:42.7.11'
 
 	// Flyway Database Migration
 	implementation 'org.flywaydb:flyway-core:9.22.3'
 	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
 	implementation 'org.apache.commons:commons-csv:1.14.0'
-	implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
-	implementation 'com.fasterxml.jackson.core:jackson-core:2.17.0'
-	implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.0'
+	// 보안: GHSA-72hv-8253-57qq(jackson-core 2.17.0) — 버전 핀 제거, Boot BOM 관리 버전(2.19.x) 사용
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'com.fasterxml.jackson.core:jackson-core'
+	implementation 'com.fasterxml.jackson.core:jackson-annotations'
 
 	// Excel Processing
 	implementation 'org.apache.poi:poi:5.5.1'
