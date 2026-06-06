@@ -189,9 +189,10 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
                       <Typography
                         variant="body2"
                         color="text.secondary"
-                        noWrap
-                        sx={{ maxWidth: 320 }}
-                        title={item.description || ""}
+                        sx={{
+                          whiteSpace: "pre-line", // 원본 줄바꿈 보존
+                          wordBreak: "break-word",
+                        }}
                       >
                         {item.description || ""}
                       </Typography>
