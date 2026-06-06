@@ -17,7 +17,7 @@ Hello! The 1.0.82 update focuses on **information density in the Test Cases scre
 
 #### 📋 Folder Case List (New)
 
-* Selecting a folder displays its subfolders and cases as a table with **Name → Description → Expected Result → Priority** columns.
+* Selecting a folder displays its direct subfolders and **all cases including nested subfolders** as a table with **Name → Description → Expected Result → Priority** columns. Cases in subfolders get a **Folder** column with the path relative to the selected folder.
   - The "All Test Cases" / "Unfiled Test Cases" lists add a **Folder** (path) column at the front; click the path to jump to that folder.
   - Text longer than 100 characters is truncated with an ellipsis (…); hover to see the full content in a tooltip.
   - Expected Result shows the case's consolidated expected result first, falling back to numbered per-step expected results.

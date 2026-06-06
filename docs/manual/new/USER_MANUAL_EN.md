@@ -190,11 +190,12 @@ Navigate to the **[Test Cases]** tab at the top (`/projects/{projectId}/testcase
 
 #### Folder Case List
 
-Select a folder in the tree to display its subfolders and cases as a table on the right.
+Select a folder in the tree to display its direct subfolders and **all test cases including those in nested subfolders** as a table on the right.
 
 ![Case list with path display when a folder is selected](images_en/88_folder_case_list.png)
 
 - **Columns** — Name → Description → Expected Result → Priority.
+- **Nested cases included** — Even in `Folder > Folder > Case` structures, selecting the parent folder shows every case underneath. Cases in subfolders get a **Folder** column showing the path relative to the selected folder; click the path to jump to that folder.
 - **Long text** — Text longer than 100 characters is truncated with an ellipsis (…); hover to see the full content in a tooltip.
 - **Expected Result** — Shows the case's consolidated expected result first; if absent, shows numbered per-step expected results.
 - **Row click** — Click a case to open its detail form; click a subfolder to navigate into that folder's list.
