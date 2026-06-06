@@ -1190,9 +1190,15 @@ function ChatMessage({
                         // 청크 번호가 있으면 표시 (같은 문서의 다른 청크임을 알 수 있도록)
                         const chunkInfo =
                           typeof doc.chunkIndex === "number"
-                            ? ` - 청크 #${doc.chunkIndex + 1}`
+                            ? t("chat.source.chunk", " - 청크 #{number}", {
+                                number: doc.chunkIndex + 1,
+                              })
                             : "";
-                        const label = `[출처${sourceNumber}] ${baseName}${chunkInfo}`;
+                        const label = t("chat.source.citation", "[출처{sourceNum}] {baseName}{chunkInfo}", {
+                          sourceNum: sourceNumber,
+                          baseName,
+                          chunkInfo,
+                        });
 
                         const icon = isTestCaseDoc ? (
                           <AssignmentIcon />

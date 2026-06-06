@@ -111,7 +111,7 @@ function PreviousResultsDialog({
       );
 
       if (response.ok) {
-        alert("테스트 결과가 삭제되었습니다.");
+        alert(t("testExecution.prevResults.deleteSuccess", "테스트 결과가 삭제되었습니다."));
         setDeleteConfirmOpen(false);
         setResultToDelete(null);
         // 부모 컴포넌트 리로드 트리거
@@ -121,12 +121,12 @@ function PreviousResultsDialog({
       } else {
         const errorData = await response
           .json()
-          .catch(() => ({ message: "알 수 없는 오류" }));
-        alert(`삭제 실패: ${errorData.message || response.statusText}`);
+          .catch(() => ({ message: t("testExecution.prevResults.unknownError", "알 수 없는 오류") }));
+        alert(t("testExecution.prevResults.deleteError", "삭제 실패") + `: ${errorData.message || response.statusText}`);
       }
     } catch (error) {
       console.error("삭제 중 오류:", error);
-      alert("삭제 중 오류가 발생했습니다.");
+      alert(t("testExecution.prevResults.deleteErrorOccurred", "삭제 중 오류가 발생했습니다."));
     } finally {
       setDeleting(false);
     }

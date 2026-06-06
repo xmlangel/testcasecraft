@@ -73,7 +73,8 @@ public class SecurityConfig {
                         "/manifest.json",
                         "/asset-manifest.json",
                         "/robots.txt",
-                        "/testcasecraft_*.jpg" // 로고 이미지 파일
+                        "/testcasecraft_*.jpg", // 로고 이미지 파일
+                        "/testcasecraft_*.png" // 투명 로고 이미지 파일
                         )
                     .permitAll()
                     // ⚠️ API 경로를 SPA 라우팅보다 먼저 매칭 (우선순위 확보)
@@ -104,6 +105,8 @@ public class SecurityConfig {
                     .permitAll() // 이메일 인증 API 허용
                     .requestMatchers("/api/guides/**")
                     .permitAll() // 가이드 API 허용
+                    .requestMatchers("/api/manual/**")
+                    .permitAll() // 사용자 매뉴얼 API 허용 (로그인 화면 링크 지원)
                     // 액추에이터 엔드포인트 허용 (루트, 헬스, 스케줄러)
                     .requestMatchers(
                         "/actuator",
@@ -162,6 +165,8 @@ public class SecurityConfig {
                         "/verify-email/**",
                         "/guides",
                         "/guides/**",
+                        "/manual",
+                        "/manual/**",
                         "/login",
                         "/login/**")
                     .permitAll()

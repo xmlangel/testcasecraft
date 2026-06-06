@@ -17,7 +17,7 @@ import SendIcon from "@mui/icons-material/Send";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useRAG } from "../../context/RAGContext.jsx";
-import { useI18n } from "../../context/I18nContext.jsx";
+import { useTranslation } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import DocumentTableSection from "./DocumentTableSection.jsx";
 import DocumentListHeader from "./DocumentListHeader.jsx";
@@ -42,7 +42,7 @@ import { useJobHistory } from "./hooks/useJobHistory.js";
  * RAG 문서 목록을 표시하고 관리합니다.
  */
 function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
-  const { t } = useI18n();
+  const { t } = useTranslation();
   const theme = useTheme();
   const colorMode = theme.palette.mode === "dark" ? "dark" : "light";
 
@@ -267,7 +267,8 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       await loadLlmAnalysisStates();
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || "공통 문서 이동에 실패했습니다.";
+        err.response?.data?.message ||
+        t("rag.document.global.promoteFailed", "공통 문서 이동에 실패했습니다.");
       setLocalError(errorMessage);
       setTimeout(
         () => setLocalError(null),
@@ -304,7 +305,11 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       );
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || "공통 문서 등록 요청에 실패했습니다.";
+        err.response?.data?.message ||
+        t(
+          "rag.document.global.requestFailed",
+          "공통 문서 등록 요청에 실패했습니다."
+        );
       setLocalError(errorMessage);
       setTimeout(
         () => setLocalError(null),

@@ -7,6 +7,7 @@
 import React, { forwardRef } from "react";
 import PropTypes from "prop-types";
 import { Button as MuiButton, CircularProgress } from "@mui/material";
+import { useTranslation } from "../../../context/I18nContext";
 
 const Button = forwardRef(
   (
@@ -14,7 +15,7 @@ const Button = forwardRef(
       children,
       loading = false,
       disabled = false,
-      loadingText = "처리중...",
+      loadingText,
       startIcon,
       endIcon,
       variant = "contained",
@@ -26,6 +27,9 @@ const Button = forwardRef(
     },
     ref,
   ) => {
+    const { t } = useTranslation();
+    const defaultLoadingText = t("common.processing", "처리중...");
+    const finalLoadingText = loadingText !== undefined ? loadingText : defaultLoadingText;
     const handleClick = (event) => {
       if (loading || disabled) {
         event.preventDefault();
@@ -49,7 +53,7 @@ const Button = forwardRef(
         endIcon={!loading ? endIcon : undefined}
         {...props}
       >
-        {loading ? loadingText : children}
+        {loading ? finalLoadingText : children}
       </MuiButton>
     );
   },

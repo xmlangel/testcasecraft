@@ -342,7 +342,7 @@ const MailSettingsManager = () => {
                 </>
               )}
 
-              <Tooltip title="설정 새로고침">
+              <Tooltip title={t("mail.button.refreshSettings", "설정 새로고침")}>
                 <IconButton onClick={loadSettings} color="default">
                   <RefreshIcon />
                 </IconButton>

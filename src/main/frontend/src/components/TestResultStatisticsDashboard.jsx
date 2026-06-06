@@ -54,6 +54,7 @@ function TestResultStatisticsDashboard() {
   } = useAppContext();
 
   const { t } = useI18n();
+  const ROOT_LABEL = t("testResult.folder.root", "루트");
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -348,7 +349,7 @@ function TestResultStatisticsDashboard() {
       reportData.forEach((item) => {
         // 백엔드에서 '루트' 또는 null로 올 수 있음
         const folderPath =
-          item.folderPath === "루트" || !item.folderPath ? "" : item.folderPath;
+          item.folderPath === ROOT_LABEL || !item.folderPath ? "" : item.folderPath;
         const parts = folderPath
           .split(/[\/>]/)
           .map((p) => p.trim())

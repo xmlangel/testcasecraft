@@ -354,8 +354,8 @@ public class AuthController {
   }
 
   /**
-   * 부분 갱신(PATCH) — body 의 단일 key 만 기존 JSON 에 merge 후 저장. body: {"key": "fieldVisibility",
-   * "value": {...}}.
+   * 부분 갱신(PATCH) — body 의 단일 key 만 기존 JSON 에 merge 후 저장. body: {"key": "fieldVisibility", "value":
+   * {...}}.
    *
    * <p>두 PATCH 가 동시에 들어와도 한쪽 변경이 손실되지 않도록 PESSIMISTIC_WRITE 락으로 read-modify-write 를 직렬화한다.
    * {@code @Transactional} 이 락 획득~커밋까지의 범위를 보장한다.

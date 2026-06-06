@@ -28,6 +28,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useAppContext } from "../../context/AppContext.jsx";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
  * JUnit 대용량 파일 처리 진행률 추적 컴포넌트
@@ -40,20 +41,22 @@ const JunitProcessingProgress = ({
   initialData = null,
 }) => {
   const { api } = useAppContext();
+  const { t } = useI18n();
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pollInterval, setPollInterval] = useState(null);
 
   // 진행률 단계 레이블
-  const stepLabels = {
-    0: "준비 중...",
-    1: "파일 로딩",
-    2: "XML 파싱",
-    3: "데이터 검증",
-    4: "데이터 저장",
-    5: "처리 완료",
-  };
+  const getStepLabels = () => ({
+    0: t("junit.processing.step.preparing"),
+    1: t("junit.processing.step.loading"),
+    2: t("junit.processing.step.parsing"),
+    3: t("junit.processing.step.validating"),
+    4: t("junit.processing.step.saving"),
+    5: t("junit.processing.step.completed"),
+  });
+  const stepLabels = getStepLabels();
 
   // API 호출 함수
   const fetchProgress = async () => {
@@ -87,11 +90,11 @@ const JunitProcessingProgress = ({
           }
         }
       } else {
-        setError(data.error || "진행률을 가져올 수 없습니다.");
+        setError(data.error || t("junit.processing.errorFetchingProgress"));
       }
     } catch (err) {
       console.error("진행률 조회 오류:", err);
-      setError(err.message);
+      setError(err.message || t("junit.processing.errorFetchingProgress"));
     } finally {
       setLoading(false);
     }
@@ -157,7 +160,7 @@ const JunitProcessingProgress = ({
           <ScheduleIcon
             sx={{ fontSize: 16, mr: 0.5, verticalAlign: "text-bottom" }}
           />
-          예상 처리 시간: {progress.estimatedProcessingTime || "계산 중..."}
+          {t("junit.processing.estimatedTime")}: {progress.estimatedProcessingTime || t("junit.processing.calculating")}
         </Typography>
       </Box>
     );
@@ -173,7 +176,7 @@ const JunitProcessingProgress = ({
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          테스트 스위트 파싱: {current}/{total}
+          {t("junit.processing.parsingProgress", "테스트 스위트 파싱: {current}/{total}", { current, total })}
         </Typography>
         <LinearProgress
           variant="determinate"
@@ -228,7 +231,7 @@ const JunitProcessingProgress = ({
       <Card variant="outlined" sx={{ mt: 2 }}>
         <CardContent sx={{ py: 1 }}>
           <Typography variant="subtitle2" gutterBottom>
-            처리 단계
+            {t("junit.processing.steps")}
           </Typography>
           <List dense disablePadding>
             {steps}
@@ -251,14 +254,14 @@ const JunitProcessingProgress = ({
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>
           {renderStatusIcon()}
-          대용량 파일 처리 진행 상황
+          {t("junit.processing.title")}
           <Chip
             label={
               progress?.isCompleted
-                ? "완료"
+                ? t("junit.processing.status.completed")
                 : progress?.isFailed
-                  ? "실패"
-                  : "처리 중"
+                  ? t("junit.processing.status.failed")
+                  : t("junit.processing.status.processing")
             }
             color={getChipColor()}
             size="small"
@@ -284,7 +287,7 @@ const JunitProcessingProgress = ({
                 mb={1}
               >
                 <Typography variant="body2" color="text.secondary">
-                  전체 진행률
+                  {t("junit.processing.overallProgress")}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {Math.round(progress.progressPercentage)}%
@@ -300,18 +303,18 @@ const JunitProcessingProgress = ({
 
             {/* 현재 상태 메시지 */}
             <Typography variant="body1" gutterBottom>
-              <strong>상태:</strong> {progress.statusMessage}
+              <strong>{t("junit.processing.status")}:</strong> {progress.statusMessage}
             </Typography>
 
             {/* 파일 정보 */}
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              파일 ID: {progress.testResultId}
+              {t("junit.processing.fileId")}: {progress.testResultId}
             </Typography>
 
             {/* 마지막 업데이트 시간 */}
             {progress.lastUpdated && (
               <Typography variant="caption" color="text.secondary">
-                마지막 업데이트:{" "}
+                {t("junit.processing.lastUpdated")}: {" "}
                 {formatDistanceToNow(new Date(progress.lastUpdated), {
                   addSuffix: true,
                   locale: ko,
@@ -331,16 +334,14 @@ const JunitProcessingProgress = ({
             {/* 완료 메시지 */}
             {progress.isCompleted && (
               <Alert severity="success" sx={{ mt: 2 }}>
-                파일 처리가 성공적으로 완료되었습니다. 테스트 결과를 확인할 수
-                있습니다.
+                {t("junit.processing.completionMessage")}
               </Alert>
             )}
 
             {/* 실패 메시지 */}
             {progress.isFailed && (
               <Alert severity="error" sx={{ mt: 2 }}>
-                파일 처리 중 오류가 발생했습니다. 관리자에게 문의하시기
-                바랍니다.
+                {t("junit.processing.failureMessage")}
               </Alert>
             )}
           </Box>
@@ -354,7 +355,7 @@ const JunitProcessingProgress = ({
             py={4}
           >
             <CircularProgress />
-            <Typography sx={{ ml: 2 }}>진행률 정보를 불러오는 중...</Typography>
+            <Typography sx={{ ml: 2 }}>{t("junit.processing.loadingProgress")}</Typography>
           </Box>
         )}
       </DialogContent>
@@ -365,8 +366,8 @@ const JunitProcessingProgress = ({
           disabled={!progress?.isCompleted && !progress?.isFailed && !error}
         >
           {progress?.isCompleted || progress?.isFailed || error
-            ? "닫기"
-            : "백그라운드에서 계속"}
+            ? t("common.close")
+            : t("junit.processing.continueBackground")}
         </Button>
       </DialogActions>
     </Dialog>

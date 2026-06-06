@@ -183,9 +183,9 @@ export const EnhancedStatisticsTab = ({
                       <Tooltip
                         formatter={(value) => [
                           `${value.toFixed(1)}%`,
-                          "완성도",
+                          t("translation.completeness", "완성도"),
                         ]}
-                        labelFormatter={(label) => `카테고리: ${label}`}
+                        labelFormatter={(label) => t("translation.categoryLabel", "카테고리: {category}", { category: label })}
                       />
                       {languageStats.map((lang, index) => (
                         <Bar

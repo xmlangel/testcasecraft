@@ -24,7 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Guide", description = "시스템 가이드 문서 조회 API")
 public class GuideController {
 
-  private static final String GUIDE_DIR = "docs/guide/";
+  // 가이드 검색 디렉토리 — 순서대로 탐색 (운영 문서 DOCKER_SETUP.md 는 deployment 에 위치)
+  private static final String[] GUIDE_DIRS = {"docs/guide/", "docs/deployment/"};
 
   @Operation(summary = "가이드 문서 조회", description = "지정된 마크다운 가이드 파일의 내용을 읽어옵니다.")
   @GetMapping(value = "/{fileName:.+}", produces = MediaType.TEXT_MARKDOWN_VALUE + ";charset=UTF-8")
@@ -48,14 +49,24 @@ public class GuideController {
         localizedFileName = fileName.replace(".md", "_" + language.toLowerCase() + ".md");
       }
 
-      // 파일 경로 설정 (프로젝트 루트 기준)
-      Path filePath =
-          Paths.get(System.getProperty("user.dir"), GUIDE_DIR, localizedFileName).normalize();
-
-      // 요청된 언어 버전 파일이 없으면 기본 파일로 폴백
-      if (!Files.exists(filePath) && !localizedFileName.equals(fileName)) {
-        log.debug("언어별 가이드 파일 없음({}), 기본 파일 사용 시도: {}", localizedFileName, fileName);
-        filePath = Paths.get(System.getProperty("user.dir"), GUIDE_DIR, fileName).normalize();
+      // 파일 경로 설정 (프로젝트 루트 기준) — 디렉토리 순서대로, 언어판 우선 탐색
+      Path filePath = null;
+      for (String dir : GUIDE_DIRS) {
+        Path localized =
+            Paths.get(System.getProperty("user.dir"), dir, localizedFileName).normalize();
+        if (Files.exists(localized)) {
+          filePath = localized;
+          break;
+        }
+        Path fallback = Paths.get(System.getProperty("user.dir"), dir, fileName).normalize();
+        if (Files.exists(fallback)) {
+          filePath = fallback;
+          break;
+        }
+      }
+      if (filePath == null) {
+        filePath =
+            Paths.get(System.getProperty("user.dir"), GUIDE_DIRS[0], fileName).normalize();
       }
 
       log.debug("가이드 파일 조회 시도: {}", filePath.toAbsolutePath());
@@ -70,6 +81,14 @@ public class GuideController {
 
       // 파일 읽기
       String content = Files.readString(filePath, StandardCharsets.UTF_8);
+      // 저장소 상대 md 링크 → 인앱 뷰어 경로로 재작성 (ManualController 와 동일 정책)
+      content =
+          content
+              .replace("](../manual/new/USER_MANUAL_EN.md)", "](/manual?l=en)")
+              .replace("](../manual/new/USER_MANUAL.md)", "](/manual?l=ko)")
+              .replace("](../guide/", "](/guides/")
+              .replace("](../deployment/", "](/guides/")
+              .replace("](./", "](/guides/");
       return ResponseEntity.ok(content);
 
     } catch (IOException e) {

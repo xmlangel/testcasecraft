@@ -31,9 +31,11 @@ docs/manual/new/USER_MANUAL.md 가 참조하는 73장의 PNG를 재현/갱신한
     --manual      기본 docs/manual/new/USER_MANUAL.md (감사 대상)
     --audit-depth 크롤 깊이 (기본 2)
 """
+
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 import time
@@ -57,6 +59,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # Login & storage_state
 # ---------------------------------------------------------------------------
 
+
 def do_login(page: Page, base_url: str, user: str, password: str) -> None:
     """admin/admin123 로 로그인하고 메인 페이지가 뜨는 것까지 대기."""
     page.goto(f"{base_url}/")
@@ -76,15 +79,16 @@ def do_login(page: Page, base_url: str, user: str, password: str) -> None:
 # Step definitions
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class Step:
-    slug: str                                       # 파일명 prefix (확장자 제외)
-    url: Optional[str] = None                       # base_url 기준 상대 경로
-    auth: bool = True                               # False 면 로그아웃 상태에서 캡처
-    full_page: bool = False                         # _full 변종은 True
+    slug: str  # 파일명 prefix (확장자 제외)
+    url: Optional[str] = None  # base_url 기준 상대 경로
+    auth: bool = True  # False 면 로그아웃 상태에서 캡처
+    full_page: bool = False  # _full 변종은 True
     prepare: Optional[Callable[[Page], None]] = None  # 캡처 직전 UI 조작
-    wait_ms: int = 500                              # 캡처 전 안정화 대기
-    todo: bool = False                              # True 면 자동 캡처 스킵 + 콘솔에 안내
+    wait_ms: int = 500  # 캡처 전 안정화 대기
+    todo: bool = False  # True 면 자동 캡처 스킵 + 콘솔에 안내
 
 
 def _wait_settled(page: Page, wait_ms: int) -> None:
@@ -103,6 +107,7 @@ def _take(page: Page, out_path: Path, full_page: bool) -> None:
 
 # 인터랙션 헬퍼 ---------------------------------------------------------------
 
+
 def open_user_menu(page: Page) -> None:
     """헤더 우측 아바타 클릭 → 사용자 메뉴 열기."""
     # ProjectHeader 의 아바타에는 별도 testid 가 없어 role 로 찾음
@@ -118,6 +123,64 @@ def open_admin_menu(page: Page) -> None:
     page.wait_for_timeout(300)
 
 
+def tree_right_click(page: Page) -> None:
+    """트리의 첫 폴더 노드에서 우클릭 → 컨텍스트 메뉴 노출.
+
+    트리 패널 안의 첫 번째 폴더 행을 찾아 우클릭한다. ShopFlow 시드
+    환경에서는 'F01 회원 인증' 같은 폴더가 존재한다.
+    """
+    node = page.get_by_text(re.compile(r"^F\d{2} ")).first
+    node.wait_for(timeout=10_000)
+    node.click(button="right")
+    page.wait_for_timeout(600)
+
+
+def _first_case_id(page: Page) -> tuple[str, str]:
+    """현재 URL 의 프로젝트에서 첫 테스트 케이스 (projectId, caseId) 반환."""
+    m = re.search(r"/projects/([0-9a-f-]{36})", page.url)
+    if not m:
+        raise RuntimeError(f"프로젝트 URL 이 아닙니다: {page.url}")
+    pid = m.group(1)
+    origin = re.match(r"https?://[^/]+", page.url).group(0)
+    token = page.evaluate("() => localStorage.getItem('accessToken')")
+    resp = page.context.request.get(
+        f"{origin}/api/testcases/project/{pid}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    items = resp.json()
+    if isinstance(items, dict):
+        items = items.get("content") or items.get("data") or []
+    case = next(x for x in items if (x.get("type") or "").upper() != "FOLDER")
+    return pid, case["id"]
+
+
+def open_case_in_form_mode(page: Page) -> None:
+    """첫 케이스를 선택해 개별 폼 모드로 연다 (§4-5/§4-6 캡처용)."""
+    pid, cid = _first_case_id(page)
+    origin = re.match(r"https?://[^/]+", page.url).group(0)
+    page.goto(f"{origin}/projects/{pid}/testcases/{cid}")
+    _wait_settled(page, 1500)
+    # 입력 모드가 스프레드시트로 저장되어 있으면 개별 폼으로 전환
+    try:
+        page.get_by_text("입력 모드", exact=False).first.click(timeout=3_000)
+        page.wait_for_timeout(400)
+        page.locator('[data-testid="mode-individual-button"]').first.click(
+            timeout=3_000
+        )
+        page.wait_for_timeout(1_200)
+    except PWTimeout:
+        pass  # 이미 폼 모드
+
+
+def open_field_visibility(page: Page) -> None:
+    """폼 모드에서 '필드 표시' 팝오버 열기 (§4-5 캡처용)."""
+    open_case_in_form_mode(page)
+    page.locator('button:has([data-testid="ViewColumnIcon"])').first.click(
+        timeout=5_000
+    )
+    page.wait_for_timeout(600)
+
+
 # ---------------------------------------------------------------------------
 # 73개 캡처 스텝 — USER_MANUAL.md 참조 순서
 # ---------------------------------------------------------------------------
@@ -131,7 +194,6 @@ def open_admin_menu(page: Page) -> None:
 #   PROJECT_ID = "9c1ae80f-..."  (env)
 # 미지정 시 첫 번째 프로젝트의 ID 를 자동 사용한다 (resolve_project_id 참고).
 
-import os
 PROJECT_ID_PLACEHOLDER = "{PROJECT_ID}"
 
 
@@ -141,53 +203,84 @@ def _project_path(suffix: str) -> str:
 
 STEPS: list[Step] = [
     # ── 1. 회원가입/로그인 ─────────────────────────────────────────────
-    Step("01_login_empty", url="/", auth=False),                    # ●
-    Step("02_signup_empty", url="/", auth=False,                    # △
-         prepare=lambda p: p.locator('[data-testid="login-switch-to-register-button"]').click()),
-    Step("03_signup_filled", url="/", auth=False, todo=True),       # ✕ (가입 폼 입력값 필요)
-    Step("04_signup_complete", url="/", auth=False, todo=True),     # ✕ (가입 직후 화면)
-    Step("05_login_filled", url="/", auth=False,                    # △
-         prepare=lambda p: (
-             p.fill('[data-testid="login-username-input"]', "admin"),
-             p.fill('[data-testid="login-password-input"]', "admin123"),
-         )),
-
+    Step("01_login_empty", url="/", auth=False),  # ●
+    Step(
+        "02_signup_empty",
+        url="/",
+        auth=False,  # △
+        prepare=lambda p: p.locator(
+            '[data-testid="login-switch-to-register-button"]'
+        ).click(),
+    ),
+    Step("03_signup_filled", url="/", auth=False, todo=True),  # ✕ (가입 폼 입력값 필요)
+    Step("04_signup_complete", url="/", auth=False, todo=True),  # ✕ (가입 직후 화면)
+    Step(
+        "05_login_filled",
+        url="/",
+        auth=False,  # △
+        prepare=lambda p: (
+            p.fill('[data-testid="login-username-input"]', "admin"),
+            p.fill('[data-testid="login-password-input"]', "admin123"),
+        ),
+    ),
     # ── 2. 로그인 직후 ─────────────────────────────────────────────
-    Step("06_main_after_login", url="/projects"),                   # ●
+    Step("06_main_after_login", url="/projects"),  # ●
     Step("06_main_after_login_full", url="/projects", full_page=True),
-
     # ── 3. 프로젝트 만들기 ─────────────────────────────────────────────
-    Step("10_projects_empty", url="/projects"),                     # ●
-    Step("11_project_create_dialog", url="/projects", todo=True),   # ✕ '새 프로젝트' 다이얼로그 오픈
-    Step("12_project_create_filled", url="/projects", todo=True),   # ✕ 입력 후
-    Step("13_project_created", url="/projects", todo=True),         # ✕ 생성 완료
-
+    Step("10_projects_empty", url="/projects"),  # ●
+    Step(
+        "11_project_create_dialog", url="/projects", todo=True
+    ),  # ✕ '새 프로젝트' 다이얼로그 오픈
+    Step("12_project_create_filled", url="/projects", todo=True),  # ✕ 입력 후
+    Step("13_project_created", url="/projects", todo=True),  # ✕ 생성 완료
     # ── 4. 헤더 / 메뉴 ─────────────────────────────────────────────
-    Step("15_user_menu", url="/projects", prepare=open_user_menu),   # △
-    Step("17_header_jira", url=_project_path(""), todo=True),        # ✕ JIRA 배지 클릭
-    Step("18_user_menu_logout", url="/projects", prepare=open_user_menu),  # △ (동일 메뉴, 로그아웃 강조)
-
+    Step("15_user_menu", url="/projects", prepare=open_user_menu),  # △
+    Step("17_header_jira", url=_project_path(""), todo=True),  # ✕ JIRA 배지 클릭
+    Step(
+        "18_user_menu_logout", url="/projects", prepare=open_user_menu
+    ),  # △ (동일 메뉴, 로그아웃 강조)
     # ── 5. 프로젝트 대시보드 ─────────────────────────────────────────────
-    Step("20_project_overview", url=_project_path("")),              # ●
+    Step("20_project_overview", url=_project_path("")),  # ●
     Step("20_project_overview_full", url=_project_path(""), full_page=True),
-
     # ── 6. 테스트케이스 ─────────────────────────────────────────────
-    Step("21_testcase_page", url=_project_path("/testcases")),       # ●
+    Step("21_testcase_page", url=_project_path("/testcases")),  # ●
     Step("21_testcase_page_full", url=_project_path("/testcases"), full_page=True),
-    Step("22_tree_add_menu", url=_project_path("/testcases"), todo=True),   # ✕ '+' 메뉴
-    Step("23_tree_right_click_menu", url=_project_path("/testcases"), todo=True),
+    Step("22_tree_add_menu", url=_project_path("/testcases"), todo=True),  # ✕ '+' 메뉴
+    Step(
+        "23_tree_right_click_menu",
+        url=_project_path("/testcases"),  # △ 폴더 우클릭
+        prepare=tree_right_click,
+        wait_ms=800,
+    ),
+    Step(
+        "24_tree_populated", url=_project_path("/testcases"), wait_ms=1500
+    ),  # ● 폴더·케이스 트리
     Step("25_folder_created", url=_project_path("/testcases"), todo=True),
     Step("27_testcase_created", url=_project_path("/testcases"), todo=True),
     Step("28_two_folders", url=_project_path("/testcases"), todo=True),
     Step("32_tree_final", url=_project_path("/testcases"), todo=True),
-    Step("32_tree_final_full", url=_project_path("/testcases"), full_page=True, todo=True),
-
+    Step(
+        "32_tree_final_full", url=_project_path("/testcases"), full_page=True, todo=True
+    ),
     # ── 7. 입력 모드 ─────────────────────────────────────────────
     Step("42_testcase_page_landing", url=_project_path("/testcases")),  # ●
     Step("43_full_layout", url=_project_path("/testcases"), full_page=True),
-    Step("44_input_mode_open", url=_project_path("/testcases"), todo=True),  # ✕ '입력 모드' 펼치기
+    Step(
+        "44_input_mode_open", url=_project_path("/testcases"), todo=True
+    ),  # ✕ '입력 모드' 펼치기
+    Step(
+        "44b_field_visibility",
+        url=_project_path("/testcases"),  # △ 필드 표시 팝오버
+        prepare=open_field_visibility,
+        wait_ms=800,
+    ),
+    Step(
+        "44c_form_metadata",
+        url=_project_path("/testcases"),  # △ 폼 모드 메타데이터
+        prepare=open_case_in_form_mode,
+        wait_ms=1000,
+    ),
     Step("45_jira_panel", url=_project_path("/testcases"), todo=True),
-
     # ── 8. 탭별 캡처 ─────────────────────────────────────────────
     Step("46_dashboard", url=_project_path("")),
     Step("50_dashboard_v2", url="/dashboard"),
@@ -206,13 +299,15 @@ STEPS: list[Step] = [
     Step("55_rag_full", url=_project_path("/rag"), full_page=True),
     Step("56_exploratory", url=_project_path("/exploratory")),
     Step("56_exploratory_full", url=_project_path("/exploratory"), full_page=True),
-
     # ── 9. UI 변형 ─────────────────────────────────────────────
     Step("60_dark_mode", url="/dashboard", todo=True),  # ✕ 다크모드 토글 후
-    Step("63_project_selector", url="/projects", todo=True),  # ✕ 프로젝트 선택 드롭다운 오픈
+    Step(
+        "63_project_selector", url="/projects", todo=True
+    ),  # ✕ 프로젝트 선택 드롭다운 오픈
     Step("64_user_menu_v2", url="/projects", prepare=open_user_menu),
-    Step("66_tree_panel_crop", url=_project_path("/testcases"), todo=True),  # ✕ 트리 패널만 crop
-
+    Step(
+        "66_tree_panel_crop", url=_project_path("/testcases"), todo=True
+    ),  # ✕ 트리 패널만 crop
     # ── 10. 프로필 다이얼로그 (탭별) ─────────────────────────────────────────────
     Step("65_profile_page", url="/projects", todo=True),  # ✕ 프로필 다이얼로그 오픈
     Step("67_profile_password", url="/projects", todo=True),
@@ -221,7 +316,6 @@ STEPS: list[Step] = [
     Step("70_profile_gsheets", url="/projects", todo=True),
     Step("71_profile_apitoken", url="/projects", todo=True),
     Step("72_profile_theme", url="/projects", todo=True),
-
     # ── 11. 시스템 관리자 (ADMIN 전용) ─────────────────────────────────────────────
     Step("78_admin_menu_dropdown", url="/dashboard", prepare=open_admin_menu),  # △
     Step("79_admin_landing", url="/dashboard"),
@@ -246,6 +340,7 @@ STEPS: list[Step] = [
 # Project ID resolution
 # ---------------------------------------------------------------------------
 
+
 def resolve_project_id(page: Page, base_url: str, override: Optional[str]) -> str:
     """캡처에 사용할 프로젝트 ID 결정. CLI/env override → 자동탐지."""
     if override:
@@ -255,7 +350,9 @@ def resolve_project_id(page: Page, base_url: str, override: Optional[str]) -> st
     page.wait_for_load_state("domcontentloaded")
     token = page.evaluate("() => localStorage.getItem('accessToken')")
     if not token:
-        raise RuntimeError("accessToken 을 localStorage 에서 찾지 못했습니다. 로그인 실패 가능.")
+        raise RuntimeError(
+            "accessToken 을 localStorage 에서 찾지 못했습니다. 로그인 실패 가능."
+        )
     resp = page.context.request.get(
         f"{base_url}/api/projects",
         headers={"Authorization": f"Bearer {token}"},
@@ -263,7 +360,9 @@ def resolve_project_id(page: Page, base_url: str, override: Optional[str]) -> st
     if resp.ok:
         items = resp.json()
         if isinstance(items, dict):  # Page<T> 또는 wrapper 응답
-            items = items.get("content") or items.get("data") or items.get("projects") or []
+            items = (
+                items.get("content") or items.get("data") or items.get("projects") or []
+            )
         if items:
             pid = items[0].get("id") or items[0].get("projectId")
             if pid:
@@ -279,7 +378,9 @@ def resolve_project_id(page: Page, base_url: str, override: Optional[str]) -> st
 # ---------------------------------------------------------------------------
 
 # UUID 또는 숫자 ID 를 ":id" 로 일반화 — 매뉴얼/크롤 결과 정규화에 공통 사용
-_UUID_RE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
+_UUID_RE = re.compile(
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I
+)
 _NUMID_RE = re.compile(r"/\d{2,}(?=/|$)")
 # 매뉴얼 본문의 `/path/like-this` 또는 `{id}` 토큰 추출용
 _MANUAL_PATH_RE = re.compile(r"`(/[A-Za-z0-9_\-/:{}]+?)`")
@@ -393,37 +494,61 @@ def audit_coverage(crawled: set[str], manual: set[str]) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
+
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
     p.add_argument("--base-url", default="http://localhost:8080")
     p.add_argument("--user", default="admin")
     p.add_argument("--password", default="admin123")
     p.add_argument("--out-dir", default=str(REPO_ROOT / "docs/manual/new/images"))
-    p.add_argument("--state", default=str(REPO_ROOT / ".manual_capture_state.json"),
-                   help="storage_state JSON 경로")
-    p.add_argument("--project-id", default=os.environ.get("MANUAL_PROJECT_ID"),
-                   help="프로젝트 ID (미지정 시 첫 프로젝트 자동 사용)")
-    p.add_argument("--only", default="",
-                   help="콤마로 구분된 슬러그 prefix 만 캡처 (예: '01,02,80')")
-    p.add_argument("--skip-todo", action="store_true",
-                   help="todo=True 인 단계는 건너뜀")
-    p.add_argument("--include-todo", action="store_true",
-                   help="todo=True 단계도 자동 시도 (검토용)")
-    p.add_argument("--skip-login", action="store_true",
-                   help="기존 storage_state 재사용")
+    p.add_argument(
+        "--state",
+        default=str(REPO_ROOT / ".manual_capture_state.json"),
+        help="storage_state JSON 경로",
+    )
+    p.add_argument(
+        "--project-id",
+        default=os.environ.get("MANUAL_PROJECT_ID"),
+        help="프로젝트 ID (미지정 시 첫 프로젝트 자동 사용)",
+    )
+    p.add_argument(
+        "--only",
+        default="",
+        help="콤마로 구분된 슬러그 prefix 만 캡처 (예: '01,02,80')",
+    )
+    p.add_argument(
+        "--skip-todo", action="store_true", help="todo=True 인 단계는 건너뜀"
+    )
+    p.add_argument(
+        "--include-todo",
+        action="store_true",
+        help="todo=True 단계도 자동 시도 (검토용)",
+    )
+    p.add_argument(
+        "--skip-login", action="store_true", help="기존 storage_state 재사용"
+    )
     p.add_argument("--headed", action="store_true", help="브라우저 띄우기")
     p.add_argument("--slow-mo", type=int, default=0, help="동작 사이 지연 ms")
     p.add_argument("--viewport", default="1280x800", help="WxH")
-    p.add_argument("--audit", action="store_true",
-                   help="캡처 후 매뉴얼 커버리지 감사 실행")
-    p.add_argument("--audit-only", action="store_true",
-                   help="캡처를 건너뛰고 감사만 실행")
-    p.add_argument("--manual", default=str(REPO_ROOT / "docs/manual/new/USER_MANUAL.md"),
-                   help="감사 대상 매뉴얼 경로")
+    p.add_argument(
+        "--audit", action="store_true", help="캡처 후 매뉴얼 커버리지 감사 실행"
+    )
+    p.add_argument(
+        "--audit-only", action="store_true", help="캡처를 건너뛰고 감사만 실행"
+    )
+    p.add_argument(
+        "--manual",
+        default=str(REPO_ROOT / "docs/manual/new/USER_MANUAL.md"),
+        help="감사 대상 매뉴얼 경로",
+    )
     return p.parse_args()
 
 
-def filter_steps(steps: list[Step], only: str, skip_todo: bool, include_todo: bool) -> list[Step]:
+def filter_steps(
+    steps: list[Step], only: str, skip_todo: bool, include_todo: bool
+) -> list[Step]:
     if only:
         prefixes = [s.strip() for s in only.split(",") if s.strip()]
         steps = [s for s in steps if any(s.slug.startswith(pre) for pre in prefixes)]
@@ -434,7 +559,9 @@ def filter_steps(steps: list[Step], only: str, skip_todo: bool, include_todo: bo
         steps_kept = [s for s in steps if not s.todo]
         todo_count = len(steps) - len(steps_kept)
         if todo_count:
-            print(f"ℹ️  todo=True 단계 {todo_count}개 건너뜀 (--include-todo 로 강제 시도)")
+            print(
+                f"ℹ️  todo=True 단계 {todo_count}개 건너뜀 (--include-todo 로 강제 시도)"
+            )
         steps = steps_kept
     return steps
 
@@ -504,10 +631,13 @@ def run(args: argparse.Namespace, pw: Playwright) -> int:
     # ── 매뉴얼 커버리지 감사 ──────────────────────────────────────────────
     if args.audit or args.audit_only:
         # STEPS 에 정의된 모든 URL 을 seed 로 사용 (auth=True 단계만)
-        seeds = sorted({
-            (s.url or "") for s in STEPS
-            if s.auth and s.url and not s.url.startswith(("javascript", "#"))
-        })
+        seeds = sorted(
+            {
+                (s.url or "")
+                for s in STEPS
+                if s.auth and s.url and not s.url.startswith(("javascript", "#"))
+            }
+        )
         crawled = crawl_routes(page_auth, args.base_url, seeds, project_id)
         manual_routes = extract_manual_routes(Path(args.manual))
         audit_coverage(crawled, manual_routes)

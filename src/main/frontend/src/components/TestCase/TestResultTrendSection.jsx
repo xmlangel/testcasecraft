@@ -62,6 +62,7 @@ import {
 } from "date-fns";
 import { ko } from "date-fns/locale";
 import { TREND_CHART_COLORS } from "../../constants/chartColors";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
  * 테스트 결과 트렌드 분석 컴포넌트
@@ -76,6 +77,8 @@ const TestResultTrendSection = ({
   onRefresh,
   loading = false,
 }) => {
+  const { t } = useI18n();
+
   // 상태 관리
   const [expanded, setExpanded] = useState(true);
   const [timeRange, setTimeRange] = useState("7d"); // 7d, 30d, 90d
@@ -85,23 +88,23 @@ const TestResultTrendSection = ({
 
   // 시간 범위 옵션
   const timeRangeOptions = [
-    { value: "7d", label: "최근 7일" },
-    { value: "30d", label: "최근 30일" },
-    { value: "90d", label: "최근 90일" },
+    { value: "7d", label: t("trend.period.last7days", "최근 7일") },
+    { value: "30d", label: t("trend.period.last30days", "최근 30일") },
+    { value: "90d", label: t("trend.period.last90days", "최근 90일") },
   ];
 
   // 보기 모드 옵션
   const viewModeOptions = [
-    { value: "daily", label: "일별" },
-    { value: "weekly", label: "주별" },
-    { value: "monthly", label: "월별" },
+    { value: "daily", label: t("trend.grouping.daily", "일별") },
+    { value: "weekly", label: t("trend.grouping.weekly", "주별") },
+    { value: "monthly", label: t("trend.grouping.monthly", "월별") },
   ];
 
   // 분석 유형 옵션
   const analysisTypeOptions = [
-    { value: "timeline", label: "시간별 추이", icon: <TimelineIcon /> },
-    { value: "executor", label: "실행자별", icon: <BarChartIcon /> },
-    { value: "testplan", label: "테스트플랜별", icon: <PieChartIcon /> },
+    { value: "timeline", label: t("trend.analysisType.timeline", "시간별 추이"), icon: <TimelineIcon /> },
+    { value: "executor", label: t("trend.analysisType.byExecutor", "실행자별"), icon: <BarChartIcon /> },
+    { value: "testplan", label: t("trend.analysisType.byTestPlan", "테스트플랜별"), icon: <PieChartIcon /> },
   ];
 
   // 필터링된 테스트 결과
@@ -165,6 +168,7 @@ const TestResultTrendSection = ({
     });
 
     // 날짜순 정렬 및 Pass Rate 계산
+    const monthFormat = t("trend.dateFormat.yearMonth", "yyyy년 MM월");
     return Object.values(groupedData)
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .map((item) => ({
@@ -173,7 +177,7 @@ const TestResultTrendSection = ({
           item.total > 0 ? Math.round((item.PASS / item.total) * 100) : 0,
         displayDate:
           viewMode === "monthly"
-            ? format(new Date(item.date + "-01"), "yyyy년 MM월")
+            ? format(new Date(item.date + "-01"), monthFormat)
             : format(new Date(item.date), "MM/dd", { locale: ko }),
       }));
   }, [filteredResults, viewMode]);
@@ -185,7 +189,7 @@ const TestResultTrendSection = ({
     const groupedData = {};
 
     filteredResults.forEach((result) => {
-      const executor = result.executorName || "미지정";
+      const executor = result.executorName || t("trend.common.notSpecified", "미지정");
 
       if (!groupedData[executor]) {
         groupedData[executor] = {
@@ -219,7 +223,7 @@ const TestResultTrendSection = ({
     const groupedData = {};
 
     filteredResults.forEach((result) => {
-      const testPlan = result.testPlanName || "기본 플랜";
+      const testPlan = result.testPlanName || t("trend.plan.default", "기본 플랜");
 
       if (!groupedData[testPlan]) {
         groupedData[testPlan] = {
@@ -286,7 +290,7 @@ const TestResultTrendSection = ({
         await onRefresh();
       }
     } catch (error) {
-      console.error("트렌드 데이터 새로고침 실패:", error);
+      console.error(t("trend.trendData.refreshError", "트렌드 데이터 새로고침 실패:"), error);
     } finally {
       setRefreshing(false);
     }
@@ -654,11 +658,11 @@ const TestResultTrendSection = ({
               }}
             >
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>기간</InputLabel>
+                <InputLabel>{t("trend.filter.period", "기간")}</InputLabel>
                 <Select
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
-                  label="기간"
+                  label={t("trend.filter.period", "기간")}
                 >
                   {timeRangeOptions.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
@@ -669,11 +673,11 @@ const TestResultTrendSection = ({
               </FormControl>
 
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>단위</InputLabel>
+                <InputLabel>{t("trend.filter.unit", "단위")}</InputLabel>
                 <Select
                   value={viewMode}
                   onChange={(e) => setViewMode(e.target.value)}
-                  label="단위"
+                  label={t("trend.filter.unit", "단위")}
                 >
                   {viewModeOptions.map((option) => (
                     <MenuItem key={option.value} value={option.value}>

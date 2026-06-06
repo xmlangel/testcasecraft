@@ -99,7 +99,7 @@ const TestCaseDetails = ({ testCase, t }) => {
             sx={{ mb: 0 }}
             data-testid="result-case-title"
           >
-            {testCase.parentName && testCase.parentName !== "상위없음"
+            {testCase.parentName && testCase.parentName !== t("testcase.noParent", "상위없음")
               ? `${testCase.parentName} >> ${testCase.name}`
               : testCase.name}
           </Subtitle>

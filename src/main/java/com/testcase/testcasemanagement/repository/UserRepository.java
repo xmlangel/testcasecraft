@@ -18,8 +18,8 @@ public interface UserRepository extends JpaRepository<User, String> {
   Optional<User> findByUsername(String username);
 
   /**
-   * PESSIMISTIC_WRITE 락으로 username 조회. ui_preferences PATCH 처럼 read-modify-write 가 동시
-   * 발생할 수 있는 경계에서 사용한다. 호출 메서드는 반드시 트랜잭션 안에서 실행되어야 한다.
+   * PESSIMISTIC_WRITE 락으로 username 조회. ui_preferences PATCH 처럼 read-modify-write 가 동시 발생할 수 있는 경계에서
+   * 사용한다. 호출 메서드는 반드시 트랜잭션 안에서 실행되어야 한다.
    */
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT u FROM User u WHERE u.username = :username")

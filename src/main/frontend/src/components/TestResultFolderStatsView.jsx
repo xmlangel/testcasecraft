@@ -161,6 +161,7 @@ const TestResultFolderStatsView = ({
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
+  const ROOT_LABEL = t("testResult.folder.root", "루트");
 
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [expanded, setExpanded] = useState({ Root: true });
@@ -189,7 +190,7 @@ const TestResultFolderStatsView = ({
 
     data.forEach((item) => {
       const folderPath =
-        item.folderPath === "루트" || !item.folderPath ? "" : item.folderPath;
+        item.folderPath === ROOT_LABEL || !item.folderPath ? "" : item.folderPath;
       const parts = folderPath
         .split(/[\/>]/)
         .map((p) => p.trim())

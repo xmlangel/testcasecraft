@@ -28,6 +28,7 @@ import {
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ko } from "date-fns/locale";
+import { useTranslation } from "../../../context/I18nContext";
 
 const TestCaseAdvancedFilter = ({
   onFilterChange,
@@ -36,6 +37,7 @@ const TestCaseAdvancedFilter = ({
   availableTags = [],
   projects = [],
 }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
@@ -133,22 +135,22 @@ const TestCaseAdvancedFilter = ({
   };
 
   const priorityOptions = [
-    { value: "HIGH", label: "높음", color: "error" },
-    { value: "MEDIUM", label: "보통", color: "warning" },
-    { value: "LOW", label: "낮음", color: "info" },
+    { value: "HIGH", label: t("testcase.filter.priority.high", "높음"), color: "error" },
+    { value: "MEDIUM", label: t("testcase.filter.priority.medium", "보통"), color: "warning" },
+    { value: "LOW", label: t("testcase.filter.priority.low", "낮음"), color: "info" },
   ];
 
   const typeOptions = [
-    { value: "testcase", label: "테스트케이스" },
-    { value: "folder", label: "폴더" },
-    { value: "systemFolder", label: "시스템 폴더" },
+    { value: "testcase", label: t("testcase.filter.type.testcase", "테스트케이스") },
+    { value: "folder", label: t("testcase.filter.type.folder", "폴더") },
+    { value: "systemFolder", label: t("testcase.filter.type.systemFolder", "시스템 폴더") },
   ];
 
   const statusOptions = [
-    { value: "PASS", label: "통과", color: "success" },
-    { value: "FAIL", label: "실패", color: "error" },
-    { value: "PENDING", label: "대기", color: "warning" },
-    { value: "SKIP", label: "건너뜀", color: "default" },
+    { value: "PASS", label: t("testcase.filter.status.pass", "통과"), color: "success" },
+    { value: "FAIL", label: t("testcase.filter.status.fail", "실패"), color: "error" },
+    { value: "PENDING", label: t("testcase.filter.status.pending", "대기"), color: "warning" },
+    { value: "SKIP", label: t("testcase.filter.status.skip", "건너뜀"), color: "default" },
   ];
 
   return (
@@ -214,13 +216,13 @@ const TestCaseAdvancedFilter = ({
             }}
           >
             <FormControl size="small">
-              <InputLabel>우선순위</InputLabel>
+              <InputLabel>{t("testcase.filter.priorityLabel", "우선순위")}</InputLabel>
               <Select
                 value={filters.priority}
                 onChange={(e) => handleFilterChange("priority", e.target.value)}
-                label="우선순위"
+                label={t("testcase.filter.priorityLabel", "우선순위")}
               >
-                <MenuItem value="">전체</MenuItem>
+                <MenuItem value="">{t("testcase.filter.allOption", "전체")}</MenuItem>
                 {priorityOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -236,13 +238,13 @@ const TestCaseAdvancedFilter = ({
             </FormControl>
 
             <FormControl size="small">
-              <InputLabel>유형</InputLabel>
+              <InputLabel>{t("testcase.filter.typeLabel", "유형")}</InputLabel>
               <Select
                 value={filters.type}
                 onChange={(e) => handleFilterChange("type", e.target.value)}
-                label="유형"
+                label={t("testcase.filter.typeLabel", "유형")}
               >
-                <MenuItem value="">전체</MenuItem>
+                <MenuItem value="">{t("testcase.filter.allOption", "전체")}</MenuItem>
                 {typeOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
@@ -252,13 +254,13 @@ const TestCaseAdvancedFilter = ({
             </FormControl>
 
             <FormControl size="small">
-              <InputLabel>실행 상태</InputLabel>
+              <InputLabel>{t("testcase.filter.statusLabel", "실행 상태")}</InputLabel>
               <Select
                 value={filters.status}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
-                label="실행 상태"
+                label={t("testcase.filter.statusLabel", "실행 상태")}
               >
-                <MenuItem value="">전체</MenuItem>
+                <MenuItem value="">{t("testcase.filter.allOption", "전체")}</MenuItem>
                 {statusOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -286,7 +288,7 @@ const TestCaseAdvancedFilter = ({
                 );
               }}
               renderInput={(params) => (
-                <TextField {...params} label="프로젝트" />
+                <TextField {...params} label={t("testcase.filter.projectLabel", "프로젝트")} />
               )}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => {
@@ -314,28 +316,28 @@ const TestCaseAdvancedFilter = ({
             }}
           >
             <DatePicker
-              label="생성일 시작"
+              label={t("testcase.filter.createdDateFrom", "생성일 시작")}
               value={filters.createdDateFrom}
               onChange={(date) => handleFilterChange("createdDateFrom", date)}
               renderInput={(params) => <TextField {...params} size="small" />}
             />
 
             <DatePicker
-              label="생성일 종료"
+              label={t("testcase.filter.createdDateTo", "생성일 종료")}
               value={filters.createdDateTo}
               onChange={(date) => handleFilterChange("createdDateTo", date)}
               renderInput={(params) => <TextField {...params} size="small" />}
             />
 
             <DatePicker
-              label="수정일 시작"
+              label={t("testcase.filter.updatedDateFrom", "수정일 시작")}
               value={filters.updatedDateFrom}
               onChange={(date) => handleFilterChange("updatedDateFrom", date)}
               renderInput={(params) => <TextField {...params} size="small" />}
             />
 
             <DatePicker
-              label="수정일 종료"
+              label={t("testcase.filter.updatedDateTo", "수정일 종료")}
               value={filters.updatedDateTo}
               onChange={(date) => handleFilterChange("updatedDateTo", date)}
               renderInput={(params) => <TextField {...params} size="small" />}
@@ -359,7 +361,7 @@ const TestCaseAdvancedFilter = ({
                   }}
                 />
               }
-              label="테스트 단계 있음"
+              label={t("testcase.filter.hasSteps", "테스트 단계 있음")}
             />
 
             <FormControlLabel
@@ -378,7 +380,7 @@ const TestCaseAdvancedFilter = ({
                   }}
                 />
               }
-              label="실행 결과 있음"
+              label={t("testcase.filter.hasResults", "실행 결과 있음")}
             />
           </Box>
 
@@ -391,8 +393,8 @@ const TestCaseAdvancedFilter = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="태그"
-                placeholder="태그를 선택하세요..."
+                label={t("testcase.filter.tagLabel", "태그")}
+                placeholder={t("testcase.filter.tagPlaceholder", "태그를 선택하세요...")}
               />
             )}
             renderTags={(value, getTagProps) =>
@@ -415,7 +417,7 @@ const TestCaseAdvancedFilter = ({
             sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 1 }}
           >
             <Button variant="outlined" onClick={clearAllFilters} size="small">
-              필터 초기화
+              {t("testcase.filter.resetButton", "필터 초기화")}
             </Button>
           </Box>
         </Collapse>
@@ -424,38 +426,41 @@ const TestCaseAdvancedFilter = ({
         {getActiveFilterCount() > 0 && !expanded && (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
             <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-              활성 필터:
+              {t("testcase.filter.activeFilters", "활성 필터:")}
             </Typography>
             {filters.priority && (
               <Chip
                 size="small"
-                label={`우선순위: ${
-                  priorityOptions.find((p) => p.value === filters.priority)
-                    ?.label
-                }`}
+                label={t("testcase.filter.priorityChip", "우선순위: {label}", {
+                  label: priorityOptions.find((p) => p.value === filters.priority)?.label
+                })}
                 onDelete={() => handleFilterChange("priority", "")}
               />
             )}
             {filters.type && (
               <Chip
                 size="small"
-                label={`유형: ${
-                  typeOptions.find((t) => t.value === filters.type)?.label
-                }`}
+                label={t("testcase.filter.typeChip", "유형: {label}", {
+                  label: typeOptions.find((ty) => ty.value === filters.type)?.label
+                })}
                 onDelete={() => handleFilterChange("type", "")}
               />
             )}
             {filters.tags.length > 0 && (
               <Chip
                 size="small"
-                label={`태그: ${filters.tags.length}개`}
+                label={t("testcase.filter.tagsChip", "태그: {count}개", {
+                  count: filters.tags.length
+                })}
                 onDelete={() => handleFilterChange("tags", [])}
               />
             )}
             {filters.projectIds.length > 0 && (
               <Chip
                 size="small"
-                label={`프로젝트: ${filters.projectIds.length}개`}
+                label={t("testcase.filter.projectsChip", "프로젝트: {count}개", {
+                  count: filters.projectIds.length
+                })}
                 onDelete={() => handleFilterChange("projectIds", [])}
               />
             )}

@@ -272,6 +272,18 @@ const Login = ({ onLoginSuccess }) => {
               </>
             )}
           </Box>
+          {/* 사용자 매뉴얼 링크 — 로그인 전에도 열람 가능 */}
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <Button
+              size="small"
+              color="inherit"
+              sx={{ color: "text.secondary" }}
+              onClick={() => window.open("/manual", "_blank")}
+              data-testid="login-manual-link"
+            >
+              {t("login.manualLink", "사용자 매뉴얼")} · User Manual
+            </Button>
+          </Box>
         </Box>
       </Paper>
     </Box>

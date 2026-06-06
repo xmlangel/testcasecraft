@@ -95,22 +95,22 @@ function ExploratorySessionEditorTab({
       const initialNotes = [];
       if (sessionDraft.flowNotes)
         initialNotes.push({
-          title: "수행 흐름 / 시나리오",
+          title: t("exploratorySessionEditorTab.flowScenario", "수행 흐름 / 시나리오"),
           content: sessionDraft.flowNotes,
         });
       if (sessionDraft.coverageNotes)
         initialNotes.push({
-          title: "커버리지 범위",
+          title: t("exploratorySessionEditorTab.coverageScope", "커버리지 범위"),
           content: sessionDraft.coverageNotes,
         });
       if (sessionDraft.oracleNotes)
         initialNotes.push({
-          title: "테스트 오라클 / 기대 결과",
+          title: t("exploratorySessionEditorTab.testOracleExpectedResult", "테스트 오라클 / 기대 결과"),
           content: sessionDraft.oracleNotes,
         });
       if (sessionDraft.activityNotes)
         initialNotes.push({
-          title: "환경/설정/활동 상세",
+          title: t("exploratorySessionEditorTab.environmentActivityDetails", "환경/설정/활동 상세"),
           content: sessionDraft.activityNotes,
         });
 
@@ -1721,8 +1721,8 @@ function ExploratorySessionEditorTab({
                     fullWidth
                     multiline
                     minRows={2}
-                    label="테스트 데이터"
-                    placeholder="사용한 테스트 데이터 정보..."
+                    label={t("exploratorySessionEditorTab.testDataLabel", "테스트 데이터")}
+                    placeholder={t("exploratorySessionEditorTab.testDataPlaceholder", "사용한 테스트 데이터 정보...")}
                     value={sessionDraft.testData}
                     onChange={(e) =>
                       setSessionDraft((prev) => ({
@@ -1855,7 +1855,7 @@ function ExploratorySessionEditorTab({
                               <TextField
                                 fullWidth
                                 size="small"
-                                placeholder="설명 추가..."
+                                placeholder={t("exploratorySessionEditorTab.addDescription", "설명 추가...")}
                                 value={file.description || ""}
                                 onChange={(e) => {
                                   // 로컬 상태 즉시 반영 (낙관적 업데이트)

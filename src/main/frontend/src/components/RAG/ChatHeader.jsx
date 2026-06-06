@@ -94,7 +94,7 @@ function ChatHeader({
                       color="text.secondary"
                       sx={{ ml: 1 }}
                     >
-                      (기본)
+                      {t("rag.chat.defaultConfigSuffix", "(기본)")}
                     </Typography>
                   )}
                 </MenuItem>

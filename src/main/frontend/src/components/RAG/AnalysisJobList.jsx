@@ -29,12 +29,14 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import StopIcon from "@mui/icons-material/Stop";
 import { useRAG } from "../../context/RAGContext";
+import { useI18n } from "../../context/I18nContext";
 
 /**
  * LLM 분석 작업 목록 컴포넌트
  * 프로젝트별 LLM 분석 작업 목록을 표시하고 관리
  */
 function AnalysisJobList({ projectId, onViewDetails }) {
+  const { t } = useI18n();
   const { listLlmAnalysisJobs, pauseAnalysis, resumeAnalysis, cancelAnalysis } =
     useRAG();
 
@@ -63,7 +65,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
       setTotalCount(response.totalCount || 0);
     } catch (err) {
       console.error("작업 목록 조회 실패:", err);
-      setError("작업 목록을 불러오는데 실패했습니다.");
+      setError(t("rag.analysisJobList.loadFailed", "작업 목록을 불러오는데 실패했습니다."));
     } finally {
       setLoading(false);
     }
@@ -113,15 +115,15 @@ function AnalysisJobList({ projectId, onViewDetails }) {
   const getStatusLabel = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
-        return "완료";
+        return t("rag.analysisJobList.status.completed", "완료");
       case "processing":
-        return "진행중";
+        return t("rag.analysisJobList.status.processing", "진행중");
       case "paused":
-        return "일시정지";
+        return t("rag.analysisJobList.status.paused", "일시정지");
       case "failed":
-        return "실패";
+        return t("rag.analysisJobList.status.failed", "실패");
       case "cancelled":
-        return "취소됨";
+        return t("rag.analysisJobList.status.cancelled", "취소됨");
       default:
         return status;
     }
@@ -148,7 +150,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
 
   const handleCancel = async (jobId, documentId) => {
     if (
-      !window.confirm("분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.")
+      !window.confirm(t("rag.analysisJobList.cancelConfirm", "분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다."))
     ) {
       return;
     }
@@ -190,27 +192,27 @@ function AnalysisJobList({ projectId, onViewDetails }) {
           mb: 2,
         }}
       >
-        <Typography variant="h6">LLM 분석 작업 목록</Typography>
+        <Typography variant="h6">{t("rag.analysisJobList.title", "LLM 분석 작업 목록")}</Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           {/* 상태 필터 */}
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>상태 필터</InputLabel>
+            <InputLabel>{t("rag.analysisJobList.statusFilter", "상태 필터")}</InputLabel>
             <Select
               value={statusFilter}
-              label="상태 필터"
+              label={t("rag.analysisJobList.statusFilter", "상태 필터")}
               onChange={handleStatusFilterChange}
             >
-              <MenuItem value="">전체</MenuItem>
-              <MenuItem value="processing">진행중</MenuItem>
-              <MenuItem value="paused">일시정지</MenuItem>
-              <MenuItem value="completed">완료</MenuItem>
-              <MenuItem value="failed">실패</MenuItem>
-              <MenuItem value="cancelled">취소됨</MenuItem>
+              <MenuItem value="">{t("rag.analysisJobList.filter.all", "전체")}</MenuItem>
+              <MenuItem value="processing">{t("rag.analysisJobList.status.processing", "진행중")}</MenuItem>
+              <MenuItem value="paused">{t("rag.analysisJobList.status.paused", "일시정지")}</MenuItem>
+              <MenuItem value="completed">{t("rag.analysisJobList.status.completed", "완료")}</MenuItem>
+              <MenuItem value="failed">{t("rag.analysisJobList.status.failed", "실패")}</MenuItem>
+              <MenuItem value="cancelled">{t("rag.analysisJobList.status.cancelled", "취소됨")}</MenuItem>
             </Select>
           </FormControl>
 
           {/* 새로고침 버튼 */}
-          <Tooltip title="새로고침">
+          <Tooltip title={t("rag.analysisJobList.refresh", "새로고침")}>
             <IconButton onClick={fetchJobs} disabled={loading}>
               <RefreshIcon />
             </IconButton>
@@ -259,7 +261,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
                       color="textSecondary"
                       sx={{ py: 3 }}
                     >
-                      분석 작업이 없습니다.
+                      {t("rag.analysisJobList.noJobs", "분석 작업이 없습니다.")}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -326,7 +328,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
                     <TableCell align="center">
                       <Box sx={{ display: "flex", gap: 0.5 }}>
                         {/* 상세보기 */}
-                        <Tooltip title="상세보기">
+                        <Tooltip title={t("rag.analysisJobList.viewDetails", "상세보기")}>
                           <IconButton
                             size="small"
                             onClick={() =>
@@ -339,7 +341,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
 
                         {/* 재개 버튼 (일시정지 상태) */}
                         {job.status === "paused" && (
-                          <Tooltip title="재개">
+                          <Tooltip title={t("rag.analysisJobList.resume", "재개")}>
                             <IconButton
                               size="small"
                               color="primary"
@@ -354,7 +356,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
 
                         {/* 일시정지 버튼 (진행중 상태) */}
                         {job.status === "processing" && (
-                          <Tooltip title="일시정지">
+                          <Tooltip title={t("rag.analysisJobList.pause", "일시정지")}>
                             <IconButton
                               size="small"
                               color="warning"
@@ -370,7 +372,7 @@ function AnalysisJobList({ projectId, onViewDetails }) {
                         {/* 취소 버튼 (진행중/일시정지 상태) */}
                         {(job.status === "processing" ||
                           job.status === "paused") && (
-                          <Tooltip title="취소">
+                          <Tooltip title={t("rag.analysisJobList.cancel", "취소")}>
                             <IconButton
                               size="small"
                               color="error"
@@ -399,9 +401,9 @@ function AnalysisJobList({ projectId, onViewDetails }) {
             page={page}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="페이지당 행 수:"
+            labelRowsPerPage={t("rag.analysisJobList.rowsPerPage", "페이지당 행 수:")}
             labelDisplayedRows={({ from, to, count }) =>
-              `${from}-${to} / 전체 ${count}개`
+              t("rag.analysisJobList.displayedRows", "${from}-${to} / 전체 ${count}개", { from, to, count })
             }
           />
         </TableContainer>

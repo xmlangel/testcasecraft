@@ -178,7 +178,7 @@ const TestResultHeader = ({
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <CircularProgress size={12} color="inherit" />
             <Typography variant="caption" color="text.secondary">
-              저장 중...
+              {t("testResult.header.saving", "Saving...")}
             </Typography>
           </Box>
         )}
@@ -186,13 +186,13 @@ const TestResultHeader = ({
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <CheckCircleOutlineIcon sx={{ fontSize: 14 }} color="success" />
             <Typography variant="caption" color="success.main">
-              저장됨
+              {t("testResult.header.saved", "Saved")}
             </Typography>
           </Box>
         )}
         {!isViewer && autoSaveStatus === "error" && (
           <MuiTooltip
-            title={autoSaveError || "자동 저장 실패"}
+            title={autoSaveError || t("testResult.header.saveError", "Auto-save failed")}
             placement="bottom"
           >
             <Box
@@ -205,7 +205,7 @@ const TestResultHeader = ({
             >
               <ErrorOutlineIcon sx={{ fontSize: 14 }} color="error" />
               <Typography variant="caption" color="error">
-                자동 저장 실패
+                {t("testResult.header.saveFailed", "Auto-save failed")}
               </Typography>
             </Box>
           </MuiTooltip>

@@ -387,7 +387,7 @@ const TestResultExportDialog = ({
         setupKoreanFontFallback(doc);
       }
     } catch (error) {
-      console.warn("⚠️ 나눔고딕 폰트 설정 중 오류가 발생했습니다.", error);
+      console.warn(t("export.font.setupError", "⚠️ 나눔고딕 폰트 설정 중 오류가 발생했습니다."), error);
       setupKoreanFontFallback(doc);
     }
   };
@@ -628,7 +628,7 @@ const TestResultExportDialog = ({
       const kpiCards = [
         {
           label: t("testResult.export.pdf.summary.total", "총 테스트"),
-          value: `${formatCountValue(summary.total)}건`,
+          value: t("testResult.export.pdf.summary.totalValue", "{count}건", { count: formatCountValue(summary.total) }),
           sub: periodText,
           color: colors.info,
           bgColor: colors.infoLight,
@@ -637,7 +637,7 @@ const TestResultExportDialog = ({
         {
           label: t("testResult.export.pdf.summary.executionRate", "실행률"),
           value: formatPercentageValue(summary.executionRate),
-          sub: `${summary.executedCount}건 실행됨`,
+          sub: t("testResult.export.pdf.summary.executedValue", "{count}건 실행됨", { count: summary.executedCount }),
           color: colors.success,
           bgColor: colors.successLight,
           icon: "⚡",
@@ -645,15 +645,15 @@ const TestResultExportDialog = ({
         {
           label: t("testResult.export.pdf.summary.successRate", "성공률"),
           value: formatPercentageValue(summary.successRate),
-          sub: `${summary.pass}건 통과됨`,
+          sub: t("testResult.export.pdf.summary.passValue", "{count}건 통과됨", { count: summary.pass }),
           color: colors.warning,
           bgColor: colors.warningLight,
           icon: "🎯",
         },
         {
           label: t("testResult.export.pdf.summary.jiraLinked", "JIRA 연동"),
-          value: `${formatCountValue(summary.jiraLinked)}건`,
-          sub: "결함 및 티켓 링크",
+          value: t("testResult.export.pdf.summary.jiraLinkedValue", "{count}건", { count: formatCountValue(summary.jiraLinked) }),
+          sub: t("export.column.defectsAndTickets", "결함 및 티켓 링크"),
           color: colors.error,
           bgColor: colors.errorLight,
           icon: "🔗",
@@ -1097,7 +1097,7 @@ const TestResultExportDialog = ({
 
       onClose();
     } catch (error) {
-      console.error("내보내기 오류:", error);
+      console.error(t("export.export.error", "내보내기 오류:"), error);
       alert(
         t(
           "testResult.export.error.failed",

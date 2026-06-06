@@ -97,7 +97,10 @@ function TestResultExecutionPieCharts({ data = [], loading = false, title }) {
             {d.label}
           </Typography>
           <Typography variant="body2">
-            {d.value}건 ({d.pct.toFixed(1)}%)
+            {t("testResult.chart.countWithPct", "{count}건 ({pct}%)", {
+              count: d.value,
+              pct: d.pct.toFixed(1),
+            })}
           </Typography>
         </Box>
       );
@@ -185,7 +188,7 @@ function TestResultExecutionPieCharts({ data = [], loading = false, title }) {
               )}
           </Typography>
           <Chip
-            label={`${data.length}개 실행`}
+            label={t("testResultDashboard.chart.executionCount", `${data.length}개 실행`, { count: data.length })}
             size="small"
             variant="outlined"
           />
@@ -347,7 +350,10 @@ function TestResultExecutionPieCharts({ data = [], loading = false, title }) {
                           {seg.label}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {seg.value}건 ({seg.pct.toFixed(1)}%)
+                          {t("testResult.chart.countWithPct", "{count}건 ({pct}%)", {
+                            count: seg.value,
+                            pct: seg.pct.toFixed(1),
+                          })}
                         </Typography>
                       </Box>
                     ))}
@@ -356,7 +362,9 @@ function TestResultExecutionPieCharts({ data = [], loading = false, title }) {
                       color="text.disabled"
                       sx={{ display: "block", mt: 0.5, textAlign: "center" }}
                     >
-                      총 {total}건
+                      {t("testResult.chart.totalCount", "총 {count}건", {
+                        count: total,
+                      })}
                     </Typography>
                   </Box>
                 </Box>

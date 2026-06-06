@@ -424,7 +424,7 @@ const LlmConfigList = ({ onSuccess }) => {
                         />
                         {config.connectionVerified !== null && (
                           <Tooltip
-                            title={config.lastConnectionError || "연결 성공"}
+                            title={config.lastConnectionError || t("admin.llmConfig.status.connected", "연결 성공")}
                           >
                             <Chip
                               icon={
@@ -436,8 +436,8 @@ const LlmConfigList = ({ onSuccess }) => {
                               }
                               label={
                                 config.connectionVerified
-                                  ? "연결됨"
-                                  : "연결 실패"
+                                  ? t("admin.llmConfig.connected", "연결됨")
+                                  : t("admin.llmConfig.connectionFailed", "연결 실패")
                               }
                               size="small"
                               color={
@@ -452,8 +452,8 @@ const LlmConfigList = ({ onSuccess }) => {
                       <Tooltip
                         title={
                           config.isDefault
-                            ? "현재 기본 설정"
-                            : "기본 설정으로 지정"
+                            ? t("admin.llmConfig.defaultConfigCurrent", "현재 기본 설정")
+                            : t("admin.llmConfig.setAsDefaultTooltip", "기본 설정으로 지정")
                         }
                       >
                         <span>
@@ -618,15 +618,15 @@ const LlmConfigList = ({ onSuccess }) => {
               }
               helperText={
                 formData.provider === "OLLAMA"
-                  ? "Docker 환경: http://host.docker.internal:11434 | 로컬: http://localhost:11434"
+                  ? t("admin.llmConfig.apiUrlHelperOllama", "Docker 환경: http://host.docker.internal:11434 | 로컬: http://localhost:11434")
                   : formData.provider === "PERPLEXITY"
-                    ? "기본 URL: https://api.perplexity.ai"
+                    ? t("admin.llmConfig.apiUrlHelperPerplexity", "기본 URL: https://api.perplexity.ai")
                     : formData.provider === "OPENAI"
-                      ? "기본 URL: https://api.openai.com"
+                      ? t("admin.llmConfig.apiUrlHelperOpenai", "기본 URL: https://api.openai.com")
                       : formData.provider === "OPENROUTER"
-                        ? "기본 URL: https://openrouter.ai"
+                        ? t("admin.llmConfig.apiUrlHelperOpenrouter", "기본 URL: https://openrouter.ai")
                         : formData.provider === "OPENWEBUI"
-                          ? "Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000"
+                          ? t("admin.llmConfig.apiUrlHelperOpenwebui", "Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000")
                           : ""
               }
             />
@@ -641,7 +641,7 @@ const LlmConfigList = ({ onSuccess }) => {
               fullWidth
               required={!editingConfig}
               placeholder={
-                editingConfig ? "(변경하지 않으려면 비워두세요)" : ""
+                editingConfig ? t("admin.llmConfig.apiKeyPlaceholder", "(변경하지 않으려면 비워두세요)") : ""
               }
               slotProps={{
                 input: {
@@ -678,14 +678,14 @@ const LlmConfigList = ({ onSuccess }) => {
               }
               helperText={
                 formData.provider === "OLLAMA"
-                  ? "예시: qwen2.5-coder:7b, llama3.1:8b, mistral:7b, deepseek-coder:6.7b"
+                  ? t("admin.llmConfig.modelHelperOllama", "예시: qwen2.5-coder:7b, llama3.1:8b, mistral:7b, deepseek-coder:6.7b")
                   : formData.provider === "OPENAI"
-                    ? "예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo"
+                    ? t("admin.llmConfig.modelHelperOpenai", "예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo")
                     : formData.provider === "PERPLEXITY"
-                      ? "예시: llama-3.1-sonar-large-128k-online, llama-3.1-sonar-small-128k-online"
+                      ? t("admin.llmConfig.modelHelperPerplexity", "예시: llama-3.1-sonar-large-128k-online, llama-3.1-sonar-small-128k-online")
                       : formData.provider === "OPENROUTER"
-                        ? "예시: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro"
-                        : "예시: llama3.1, granite3.1-dense:8b"
+                        ? t("admin.llmConfig.modelHelperOpenrouter", "예시: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro")
+                        : t("admin.llmConfig.modelHelperOpenwebui", "예시: llama3.1, granite3.1-dense:8b")
               }
             />
 
@@ -708,8 +708,8 @@ const LlmConfigList = ({ onSuccess }) => {
                 gutterBottom
                 sx={{ display: "flex", alignItems: "center", gap: 1 }}
               >
-                테스트 케이스 생성 템플릿 (JSON)
-                <Tooltip title="AI에게 테스트 케이스 생성을 요청할 때 이 템플릿을 참고합니다">
+                {t("admin.llmConfig.template.title", "테스트 케이스 생성 템플릿 (JSON)")}
+                <Tooltip title={t("admin.llmConfig.template.description", "AI에게 테스트 케이스 생성을 요청할 때 이 템플릿을 참고합니다")}>
                   <Typography variant="caption" color="text.secondary">
                     ⓘ
                   </Typography>
@@ -740,7 +740,7 @@ const LlmConfigList = ({ onSuccess }) => {
                   startIcon={<RefreshIcon />}
                   onClick={handleResetTemplate}
                 >
-                  초기화
+                  {t("admin.llmConfig.template.reset", "초기화")}
                 </Button>
                 <Button
                   size="small"

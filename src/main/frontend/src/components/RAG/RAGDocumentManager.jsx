@@ -139,7 +139,7 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
       <Box sx={PAGE_CONTAINER_SX.main}>
         <Alert severity="info">
           {ragDisabledMessage ||
-            "RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다."}
+            t("rag.manager.disabled", "RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다.")}
         </Alert>
       </Box>
     );

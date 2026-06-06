@@ -111,7 +111,14 @@ const TestCaseDatasheetGrid = ({
 
     // allKnownIds는 Set 형태로 전달
     const allKnownIds = new Set(allData.map((tc) => tc.id));
-    const treeData = listToTree(data, null, { allKnownIds });
+    const treeData = listToTree(data, null, {
+      allKnownIds,
+      orphanFolderName: t("tree.orphan.name", "[미할당 항목]"),
+      orphanFolderDescription: t(
+        "tree.orphan.description",
+        "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다."
+      ),
+    });
 
     const flattenWithRenderTreeLogic = (nodes, result = []) => {
       let sortedNodes = nodes.slice();
@@ -128,7 +135,7 @@ const TestCaseDatasheetGrid = ({
     };
 
     return flattenWithRenderTreeLogic(treeData);
-  }, []);
+  }, [t]);
 
   // 데이터 기반으로 최대 스텝 수 감지
   useEffect(() => {

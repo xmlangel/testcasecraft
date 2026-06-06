@@ -36,9 +36,10 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useAppContext } from "../../context/AppContext";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 // Helper component to display version details
-const VersionDetail = ({ version }) => {
+const VersionDetail = ({ version, t }) => {
   if (!version) return null;
 
   return (
@@ -52,19 +53,19 @@ const VersionDetail = ({ version }) => {
       }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="body2">상세 내용 보기</Typography>
+        <Typography variant="body2">{t("versionComparison.showDetails", "상세 내용 보기")}</Typography>
       </AccordionSummary>
       <AccordionDetails sx={{ bgcolor: "background.paper", p: 2 }}>
         <Box>
           <Typography variant="subtitle2" gutterBottom>
-            이름:
+            {t("versionComparison.name", "이름:")}
           </Typography>
           <Paper variant="outlined" sx={{ p: 1, mb: 1 }}>
             <Typography variant="body2">{version.name}</Typography>
           </Paper>
 
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-            설명:
+            {t("versionComparison.description", "설명:")}
           </Typography>
           <Paper variant="outlined" sx={{ p: 1, mb: 1 }}>
             <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
@@ -73,7 +74,7 @@ const VersionDetail = ({ version }) => {
           </Paper>
 
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-            사전 조건:
+            {t("versionComparison.preCondition", "사전 조건:")}
           </Typography>
           <Paper variant="outlined" sx={{ p: 1, mb: 1 }}>
             <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
@@ -82,7 +83,7 @@ const VersionDetail = ({ version }) => {
           </Paper>
 
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-            예상 결과:
+            {t("versionComparison.expectedResults", "예상 결과:")}
           </Typography>
           <Paper variant="outlined" sx={{ p: 1, mb: 1 }}>
             <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
@@ -91,14 +92,14 @@ const VersionDetail = ({ version }) => {
           </Paper>
 
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-            우선순위:
+            {t("versionComparison.priority", "우선순위:")}
           </Typography>
           <Paper variant="outlined" sx={{ p: 1, mb: 1 }}>
             <Typography variant="body2">{version.priority || "-"}</Typography>
           </Paper>
 
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-            테스트 스텝:
+            {t("versionComparison.testSteps", "테스트 스텝:")}
           </Typography>
           {version.steps && version.steps.length > 0 ? (
             <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
@@ -147,6 +148,7 @@ const VersionDetail = ({ version }) => {
 };
 
 const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
+  const { t } = useI18n();
   const { api } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -167,7 +169,7 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
         `/api/testcase-versions/${version1Id}/compare/${version2Id}`,
       );
       if (!comparisonResponse.ok) {
-        throw new Error("버전 비교 데이터 조회에 실패했습니다.");
+        throw new Error(t("versionComparison.fetchError", "버전 비교 데이터 조회에 실패했습니다."));
       }
       const comparisonResult = await comparisonResponse.json();
       setComparisonData(comparisonResult.data);
@@ -186,7 +188,7 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
       }
     } catch (err) {
       setError(err.message);
-      console.error("버전 비교 실패:", err);
+      console.error("Version comparison failed:", err);
     } finally {
       setLoading(false);
     }
@@ -224,7 +226,7 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
             {fieldLabel}
             <Chip
               size="small"
-              label={`${changes.length}개 변경`}
+              label={t("versionComparison.changesCount", "{count}개 변경", { count: changes.length })}
               color="primary"
             />
           </Typography>
@@ -234,7 +236,7 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>변경 유형</TableCell>
+                  <TableCell>{t("versionComparison.changeType", "변경 유형")}</TableCell>
                   <TableCell>{version2?.versionLabel || "Version 2"}</TableCell>
                   <TableCell>{version1?.versionLabel || "Version 1"}</TableCell>
                 </TableRow>
@@ -331,10 +333,10 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
             variant="h6"
             sx={{ display: "flex", alignItems: "center", gap: 1 }}
           >
-            테스트 스텝
+            {t("versionComparison.testStepsChanges", "테스트 스텝")}
             <Chip
               size="small"
-              label={`${stepChanges.length}개 변경`}
+              label={t("versionComparison.changesCount", "{count}개 변경", { count: stepChanges.length })}
               color="primary"
             />
           </Typography>
@@ -497,7 +499,7 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
     >
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <CompareIcon />
-        버전 비교
+        {t("versionComparison.title", "버전 비교")}
         {version1 && version2 && (
           <Typography variant="subtitle2" color="text.secondary">
             ({version2.versionLabel} ↔ {version1.versionLabel})
@@ -509,14 +511,14 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
           size="small"
           startIcon={<CloseIcon />}
         >
-          닫기
+          {t("versionComparison.closeButton", "닫기")}
         </Button>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 0 }}>
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
             <CircularProgress />
-            <Typography sx={{ ml: 2 }}>버전을 비교하고 있습니다...</Typography>
+            <Typography sx={{ ml: 2 }}>{t("versionComparison.comparing", "버전을 비교하고 있습니다...")}</Typography>
           </Box>
         )}
 
@@ -547,7 +549,7 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
                         })
                       : ""}
                   </Typography>
-                  <VersionDetail version={version2} />
+                  <VersionDetail version={version2} t={t} />
                 </Paper>
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -567,7 +569,7 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
                         })
                       : ""}
                   </Typography>
-                  <VersionDetail version={version1} />
+                  <VersionDetail version={version1} t={t} />
                 </Paper>
               </Grid>
             </Grid>
@@ -577,24 +579,24 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
             {/* 비교 결과 */}
             <Box sx={{ mb: 2 }}>
               <Typography variant="h6" gutterBottom>
-                변경 사항 요약
+                {t("versionComparison.summary", "변경 사항 요약")}
               </Typography>
               <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
                 {comparisonData.totalChanges > 0 ? (
                   <>
                     <Chip
-                      label={`총 ${comparisonData.totalChanges}개 변경`}
+                      label={t("versionComparison.totalChanges", "총 {count}개 변경", { count: comparisonData.totalChanges })}
                       color="info"
                     />
                     {comparisonData.hasStepChanges && (
-                      <Chip label="스텝 변경" color="warning" />
+                      <Chip label={t("versionComparison.stepChanges", "스텝 변경")} color="warning" />
                     )}
                     {comparisonData.hasFieldChanges && (
-                      <Chip label="필드 변경" color="primary" />
+                      <Chip label={t("versionComparison.fieldChanges", "필드 변경")} color="primary" />
                     )}
                   </>
                 ) : (
-                  <Chip label="변경 사항 없음" color="success" />
+                  <Chip label={t("versionComparison.noChanges", "변경 사항 없음")} color="success" />
                 )}
               </Box>
             </Box>
@@ -605,35 +607,35 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
                 {comparisonData.fieldChanges?.name &&
                   renderFieldComparison(
                     "name",
-                    "테스트 이름",
+                    t("versionComparison.fieldName", "테스트 이름"),
                     comparisonData.fieldChanges.name,
                   )}
 
                 {comparisonData.fieldChanges?.description &&
                   renderFieldComparison(
                     "description",
-                    "설명",
+                    t("versionComparison.fieldDescription", "설명"),
                     comparisonData.fieldChanges.description,
                   )}
 
                 {comparisonData.fieldChanges?.preCondition &&
                   renderFieldComparison(
                     "preCondition",
-                    "사전 조건",
+                    t("versionComparison.fieldPreCondition", "사전 조건"),
                     comparisonData.fieldChanges.preCondition,
                   )}
 
                 {comparisonData.fieldChanges?.expectedResults &&
                   renderFieldComparison(
                     "expectedResults",
-                    "예상 결과",
+                    t("versionComparison.fieldExpectedResults", "예상 결과"),
                     comparisonData.fieldChanges.expectedResults,
                   )}
 
                 {comparisonData.fieldChanges?.priority &&
                   renderFieldComparison(
                     "priority",
-                    "우선순위",
+                    t("versionComparison.fieldPriority", "우선순위"),
                     comparisonData.fieldChanges.priority,
                   )}
 
@@ -646,10 +648,10 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
             {comparisonData.totalChanges === 0 && (
               <Box sx={{ textAlign: "center", p: 4 }}>
                 <Typography variant="h6" color="text.secondary" gutterBottom>
-                  두 버전이 동일합니다
+                  {t("versionComparison.identicalVersions", "두 버전이 동일합니다")}
                 </Typography>
                 <Typography color="text.secondary">
-                  선택한 버전들 간에 차이점이 없습니다.
+                  {t("versionComparison.noDifferences", "선택한 버전들 간에 차이점이 없습니다.")}
                 </Typography>
               </Box>
             )}
@@ -658,7 +660,7 @@ const VersionComparison = ({ open, onClose, version1Id, version2Id }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} variant="contained">
-          닫기
+          {t("versionComparison.closeButton", "닫기")}
         </Button>
       </DialogActions>
     </Dialog>

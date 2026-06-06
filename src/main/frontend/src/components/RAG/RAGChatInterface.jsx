@@ -503,7 +503,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     const resolvedCategoryIds =
       shouldPersist && !resolvedThreadId ? selectedCategoryIds : undefined;
 
-    debugLog("RAGChatInterface", "📤 [RAG Chat] 메시지 전송:", {
+    debugLog("RAGChatInterface", "📤 [RAG Chat] Sending message:", {
       persistConversation,
       shouldPersist,
       selectedThreadId,
@@ -630,7 +630,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
       setIsStreaming(false);
       setIsLoading(false);
-      setError(error.message || "메시지 전송에 실패했습니다.");
+      setError(error.message || t("ragChatInterface.sendError", "Failed to send message"));
     }
   }, [
     inputText,

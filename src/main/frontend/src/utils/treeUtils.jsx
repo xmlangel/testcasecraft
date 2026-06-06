@@ -5,7 +5,11 @@
 export const listToTree = (items, parentId = null, options = {}) => {
   if (!Array.isArray(items) || items.length === 0) return [];
 
-  const { allKnownIds } = options;
+  const {
+    allKnownIds,
+    orphanFolderName = "[미할당 항목]",
+    orphanFolderDescription = "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.",
+  } = options;
   const allKnownIdsSet = allKnownIds
     ? allKnownIds instanceof Set
       ? allKnownIds
@@ -49,11 +53,10 @@ export const listToTree = (items, parentId = null, options = {}) => {
   if (hasRealOrphans && !itemMap.has(orphanFolderId)) {
     const orphanFolder = {
       id: orphanFolderId,
-      name: "[미할당 항목]",
+      name: orphanFolderName,
       type: "folder",
       parentId: null,
-      description:
-        "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.",
+      description: orphanFolderDescription,
       children: [],
     };
     itemMap.set(orphanFolderId, orphanFolder);

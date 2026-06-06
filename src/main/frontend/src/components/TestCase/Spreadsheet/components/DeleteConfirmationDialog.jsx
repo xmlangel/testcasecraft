@@ -36,10 +36,12 @@ export const DeleteConfirmationDialog = ({
   onClose,
   onConfirm,
   items = [], // { id, displayId, name, type } 배열
-  title = "삭제 확인",
-  description = "다음 항목들을 삭제하시겠습니까?",
+  title,
+  description,
 }) => {
   const { t } = useI18n();
+  const defaultTitle = title || t("deleteConfirmationDialog.title", "삭제 확인");
+  const defaultDescription = description || t("deleteConfirmationDialog.description", "다음 항목들을 삭제하시겠습니까?");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -76,11 +78,11 @@ export const DeleteConfirmationDialog = ({
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningIcon color="error" />
-          <Typography variant="h6">{title}</Typography>
+          <Typography variant="h6">{defaultTitle}</Typography>
         </Box>
       </DialogTitle>
       <DialogContent dividers>
-        <DialogContentText sx={{ mb: 2 }}>{description}</DialogContentText>
+        <DialogContentText sx={{ mb: 2 }}>{defaultDescription}</DialogContentText>
 
         {hasFolder && (
           <Alert severity="warning" sx={{ mb: 2 }}>
@@ -173,7 +175,7 @@ export const DeleteConfirmationDialog = ({
             />
           </Box>
         ) : (
-          <Alert severity="info">선택된 항목이 없습니다.</Alert>
+          <Alert severity="info">{t("deleteConfirmationDialog.noItems", "선택된 항목이 없습니다.")}</Alert>
         )}
       </DialogContent>
       <DialogActions>

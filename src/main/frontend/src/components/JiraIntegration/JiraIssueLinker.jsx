@@ -99,20 +99,20 @@ const JiraIssueLinker = ({
           setIssueValidation({
             status: "success",
             message: `✅ ${result.issueKey}: ${
-              result.summary || "이슈가 존재합니다"
+              result.summary || t("jira.linker.issueExists", "이슈가 존재합니다")
             }`,
           });
         } else {
           setIssueValidation({
             status: "error",
-            message: result.errorMessage || "이슈를 찾을 수 없습니다",
+            message: result.errorMessage || t("jira.linker.issueNotFound", "이슈를 찾을 수 없습니다"),
           });
         }
       } catch (error) {
         console.error("이슈 검증 실패:", error);
         setIssueValidation({
           status: "error",
-          message: "이슈 검증 중 오류가 발생했습니다",
+          message: t("jira.linker.validationError", "이슈 검증 중 오류가 발생했습니다"),
         });
       } finally {
         setValidationLoading(false);

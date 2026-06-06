@@ -258,7 +258,7 @@ graphify-out/*
 .graphify*
 src/main/graphify-out/.workspace/
 _workspace/
-.manual_capture_state.json
+.manual_capture_state*.json
 Thumbs.db
 CLAUDE.local.md
 CLAUDE.md

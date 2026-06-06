@@ -421,7 +421,7 @@ function DocumentChunks({
       const errorMessage =
         err.response?.data?.message ||
         err.message ||
-        "청크 조회에 실패했습니다.";
+        t("rag.document.chunk.loadError", "청크 조회에 실패했습니다.");
       setError(errorMessage);
       // console.error('[DocumentChunks] 설정된 에러 메시지:', errorMessage);
     } finally {
@@ -459,7 +459,7 @@ function DocumentChunks({
       }
     } catch (err) {
       // console.error('추가 청크 조회 실패:', err);
-      setError(err.response?.data?.message || "추가 청크 조회에 실패했습니다.");
+      setError(err.response?.data?.message || t("rag.document.chunk.loadMoreError", "추가 청크 조회에 실패했습니다."));
     } finally {
       setLoadingMore(false);
     }
@@ -631,7 +631,7 @@ function DocumentChunks({
         const url = window.URL.createObjectURL(blob);
         setPreviewContent({ type: "pdf", url });
       } else {
-        throw new Error("PDF를 불러올 수 없습니다.");
+        throw new Error(t("rag.document.pdf.loadError", "PDF를 불러올 수 없습니다."));
       }
     } catch (err) {
       // console.error('PDF 미리보기 오류:', err);
@@ -672,7 +672,7 @@ function DocumentChunks({
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        throw new Error("파일 다운로드에 실패했습니다.");
+        throw new Error(t("rag.document.file.downloadError", "파일 다운로드에 실패했습니다."));
       }
     } catch (err) {
       // console.error('파일 다운로드 오류:', err);
@@ -806,7 +806,7 @@ function DocumentChunks({
                     color="primary"
                     onClick={handlePreviewPDF}
                     aria-label="preview pdf"
-                    title="미리보기"
+                    title={t("rag.document.action.preview", "미리보기")}
                   >
                     <VisibilityIcon />
                   </IconButton>
@@ -814,7 +814,7 @@ function DocumentChunks({
                     color="success"
                     onClick={handleDownloadPDF}
                     aria-label="download pdf"
-                    title="다운로드"
+                    title={t("rag.document.action.download", "다운로드")}
                   >
                     <DownloadIcon />
                   </IconButton>
@@ -1334,7 +1334,9 @@ function DocumentChunks({
             <AutoAwesomeIcon color="secondary" />
             <Typography variant="h6">
               {t("rag.chunks.llmSummaryTitle", "LLM 분석 요약")}
-              {selectedSummary && ` - 청크 #${selectedSummary.chunkIndex + 1}`}
+              {selectedSummary && t("rag.chunks.chunkLabel", " - 청크 #{number}", {
+                number: selectedSummary.chunkIndex + 1,
+              })}
             </Typography>
           </Box>
           <IconButton onClick={handleCloseSummary} size="small">

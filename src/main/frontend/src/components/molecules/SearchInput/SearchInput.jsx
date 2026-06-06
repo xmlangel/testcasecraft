@@ -13,7 +13,7 @@ const SearchInput = ({
   value = "",
   onChange,
   onSearch,
-  placeholder = "검색어를 입력하세요",
+  placeholder = "Enter search term",
   debounceMs = 300,
   clearable = true,
   autoSearch = true,

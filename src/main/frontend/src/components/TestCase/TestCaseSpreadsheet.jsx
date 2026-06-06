@@ -245,7 +245,7 @@ const TestCaseSpreadsheet = ({
     // 트리 구조를 평면화하면서 트리 순서를 유지
     // allKnownIds는 Set 형태로 전달
     const allKnownIds = new Set(allData.map((tc) => tc.id));
-    const flattenedData = flattenTreeInOrder(data, allKnownIds);
+    const flattenedData = flattenTreeInOrder(data, { allKnownIds, t });
 
     const convertedData = flattenedData.map((testCase) => {
       // 안전한 상위폴더명 추출 (전체 데이터셋 allData에서 조회)
@@ -451,7 +451,7 @@ const TestCaseSpreadsheet = ({
       });
       setHasChanges(true);
       if (count > 0) {
-        setSnackbarMessage(`${count}개 행이 맨 아래에 추가되었습니다.`);
+        setSnackbarMessage(t("testcase.spreadsheet.rowsAddedBottom", `${count}개 행이 맨 아래에 추가되었습니다.`, { count }));
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
       }
@@ -463,7 +463,7 @@ const TestCaseSpreadsheet = ({
   const handleDeleteRows = useCallback(() => {
     const currentRange = selectedRangeRef.current;
     if (!currentRange) {
-      setSnackbarMessage("삭제할 행을 선택해주세요.");
+      setSnackbarMessage(t("testcase.spreadsheet.selectRowToDelete", "삭제할 행을 선택해주세요."));
       setSnackbarSeverity("warning");
       setSnackbarOpen(true);
       return;
@@ -521,7 +521,7 @@ const TestCaseSpreadsheet = ({
     const deleteItems = Array.from(allDeleteItems.values());
 
     if (deleteItems.length === 0) {
-      setSnackbarMessage("삭제할 유효한 항목이 없습니다.");
+      setSnackbarMessage(t("testcase.spreadsheet.noValidItemsToDelete", "삭제할 유효한 항목이 없습니다."));
       setSnackbarSeverity("warning");
       setSnackbarOpen(true);
       return;
@@ -569,7 +569,7 @@ const TestCaseSpreadsheet = ({
       });
 
       setHasChanges(true); // 순서 변경 등으로 인한 저장 필요 상태 유지
-      setSnackbarMessage(`${count}개 행이 삭제되었습니다.`);
+      setSnackbarMessage(t("testcase.spreadsheet.rowsDeleted", `${count}개 행이 삭제되었습니다.`, { count }));
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
 
@@ -590,8 +590,7 @@ const TestCaseSpreadsheet = ({
     } catch (error) {
       logError("삭제 중 오류 발생:", error);
       setSnackbarMessage(
-        "항목 삭제 중 오류가 발생했습니다: " +
-          (error.message || "알 수 없는 오류"),
+        t("testcase.spreadsheet.deleteError", "항목 삭제 중 오류가 발생했습니다: {error}", { error: error.message || t("common.unknownError", "알 수 없는 오류") }),
       );
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
@@ -611,7 +610,7 @@ const TestCaseSpreadsheet = ({
         : selectedRowIndexRef.current;
 
       if (currentSelectedRow === null || currentSelectedRow < 0) {
-        setSnackbarMessage("행을 먼저 선택해주세요.");
+        setSnackbarMessage(t("testcase.spreadsheet.selectRowFirst", "행을 먼저 선택해주세요."));
         setSnackbarSeverity("warning");
         setSnackbarOpen(true);
         return;
@@ -661,9 +660,7 @@ const TestCaseSpreadsheet = ({
       });
       setHasChanges(true);
       setSnackbarMessage(
-        `${
-          currentSelectedRow + 1
-        }번 행 위에 ${safeCount}개 새 행이 추가되었습니다.`,
+        t("testcase.spreadsheet.rowsAddedAbove", `${currentSelectedRow + 1}번 행 위에 {count}개 새 행이 추가되었습니다.`, { count: safeCount }),
       );
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
@@ -681,7 +678,7 @@ const TestCaseSpreadsheet = ({
         : selectedRowIndexRef.current;
 
       if (currentSelectedRow === null || currentSelectedRow < 0) {
-        setSnackbarMessage("행을 먼저 선택해주세요.");
+        setSnackbarMessage(t("testcase.spreadsheet.selectRowFirst", "행을 먼저 선택해주세요."));
         setSnackbarSeverity("warning");
         setSnackbarOpen(true);
         return;
@@ -731,14 +728,12 @@ const TestCaseSpreadsheet = ({
       });
       setHasChanges(true);
       setSnackbarMessage(
-        `${
-          currentSelectedRow + 1
-        }번 행 아래에 ${safeCount}개 새 행이 추가되었습니다.`,
+        t("testcase.spreadsheet.rowsAddedBelow", `${currentSelectedRow + 1}번 행 아래에 {count}개 새 행이 추가되었습니다.`, { count: safeCount }),
       );
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
     },
-    [maxSteps, activeFolderName],
+    [maxSteps, activeFolderName, t],
   );
 
   // 행 추가 확정 핸들러
@@ -798,7 +793,7 @@ const TestCaseSpreadsheet = ({
       { value: t("testcase.type.folder", "폴더") },
       { value: "" },
       { value: folderName },
-      { value: `${folderName} 폴더` },
+      { value: t("testcase.spreadsheet.folderNameFormat", "{name} 폴더", { name: folderName }) },
       { value: "", readOnly: true },
       { value: "", readOnly: true },
       { value: "", readOnly: true },
@@ -815,7 +810,7 @@ const TestCaseSpreadsheet = ({
 
     setSpreadsheetData((prevData) => [folderRow, ...prevData]);
     setHasChanges(true);
-    setSnackbarMessage(`폴더 "${folderName}"이 추가되었습니다.`);
+    setSnackbarMessage(t("testcase.spreadsheet.folderAdded", `폴더 "{folderName}"이 추가되었습니다.`, { folderName }));
     setSnackbarSeverity("info");
     setSnackbarOpen(true);
 
@@ -845,9 +840,9 @@ const TestCaseSpreadsheet = ({
 
       let message = "";
       if (result.isValid) {
-        message = `검증 완료: 모든 데이터가 유효합니다 (${result.summary.totalRows}개 행)`;
+        message = t("testcase.spreadsheet.validationSuccess", `검증 완료: 모든 데이터가 유효합니다 ({rows}개 행)`, { rows: result.summary.totalRows });
       } else {
-        message = `검증 완료: ${result.summary.errorCount}개 오류, ${result.summary.warningCount}개 경고 발견`;
+        message = t("testcase.spreadsheet.validationFailure", `검증 완료: {errors}개 오류, {warnings}개 경고 발견`, { errors: result.summary.errorCount, warnings: result.summary.warningCount });
       }
 
       setSnackbarMessage(message);
@@ -855,7 +850,7 @@ const TestCaseSpreadsheet = ({
       setSnackbarOpen(true);
     } catch (error) {
       logError("검증 중 오류:", error);
-      setSnackbarMessage("검증 중 오류가 발생했습니다: " + error.message);
+      setSnackbarMessage(t("testcase.spreadsheet.validationError", "검증 중 오류가 발생했습니다: {error}", { error: error.message }));
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     }
@@ -883,10 +878,11 @@ const TestCaseSpreadsheet = ({
         const errorMessages = validationResult.errors.map(
           (error) => error.message,
         );
-        let detailedMessage = "⚠️ 데이터 검증 실패\n\n";
+        const baseMessage = t("testcase.spreadsheet.validationFailedTitle", "⚠️ 데이터 검증 실패");
+        let detailedMessage = baseMessage + "\n\n";
 
         if (errorMessages.length > 0) {
-          detailedMessage += "🚨 해결이 필요한 오류:\n";
+          detailedMessage += t("testcase.spreadsheet.errorsTitle", "🚨 해결이 필요한 오류") + ":\n";
           errorMessages.forEach((msg, index) => {
             detailedMessage += `${index + 1}. ${msg}\n`;
           });
@@ -1148,7 +1144,7 @@ const TestCaseSpreadsheet = ({
           (tc) => tc.type === "testcase",
         ).length;
         setSnackbarMessage(
-          `✅ 배치 저장 완료: 폴더 ${folderCount}개, 테스트케이스 ${testCaseCount}개`,
+          t("testcase.spreadsheet.batchSaveSuccess", `✅ 배치 저장 완료: 폴더 {folders}개, 테스트케이스 {testcases}개`, { folders: folderCount, testcases: testCaseCount }),
         );
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
@@ -1163,7 +1159,7 @@ const TestCaseSpreadsheet = ({
         }
       } else {
         setHasChanges(false);
-        let errorMessage = `⚠️ 배치 저장 부분 실패:\n✅ 성공: ${batchResult.successCount}개\n❌ 실패: ${batchResult.failureCount}개`;
+        let errorMessage = t("testcase.spreadsheet.batchSavePartialFailure", `⚠️ 배치 저장 부분 실패:\n✅ 성공: {success}개\n❌ 실패: {failure}개`, { success: batchResult.successCount, failure: batchResult.failureCount });
         setSnackbarMessage(errorMessage);
         setSnackbarSeverity("warning");
         setSnackbarOpen(true);
@@ -1182,7 +1178,7 @@ const TestCaseSpreadsheet = ({
       }
     } catch (error) {
       logError("일괄 저장 실패:", error);
-      setSnackbarMessage("저장 중 오류가 발생했습니다: " + error.message);
+      setSnackbarMessage(t("testcase.spreadsheet.saveError", "저장 중 오류가 발생했습니다: {error}", { error: error.message }));
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     } finally {
@@ -1206,12 +1202,12 @@ const TestCaseSpreadsheet = ({
       try {
         await onRefresh();
         setHasChanges(false);
-        setSnackbarMessage("최신 데이터로 새로고침되었습니다.");
+        setSnackbarMessage(t("testcase.spreadsheet.refreshSuccess", "최신 데이터로 새로고침되었습니다."));
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
       } catch (error) {
         logError("새로고침 실패:", error);
-        setSnackbarMessage("새로고침 중 오류가 발생했습니다: " + error.message);
+        setSnackbarMessage(t("testcase.spreadsheet.refreshError", "새로고침 중 오류가 발생했습니다: {error}", { error: error.message }));
         setSnackbarSeverity("error");
         setSnackbarOpen(true);
       } finally {
@@ -1271,7 +1267,7 @@ const TestCaseSpreadsheet = ({
       setTempMaxSteps(newStepCount);
       setSpreadsheetKey((prev) => prev + 1);
       setHasChanges(true);
-      setSnackbarMessage(`스텝 수가 ${newStepCount}개로 변경되었습니다.`);
+      setSnackbarMessage(t("testcase.spreadsheet.stepCountChanged", `스텝 수가 {count}개로 변경되었습니다.`, { count: newStepCount }));
       setSnackbarSeverity("info");
       setSnackbarOpen(true);
     }
@@ -1316,13 +1312,13 @@ const TestCaseSpreadsheet = ({
       setSnackbarSeverity(result.severity);
       setSnackbarOpen(true);
     } catch (error) {
-      setSnackbarMessage("Excel 내보내기 중 오류가 발생했습니다.");
+      setSnackbarMessage(t("testcase.spreadsheet.excelExportError", "Excel 내보내기 중 오류가 발생했습니다."));
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     } finally {
       setLocalLoading(false);
     }
-  }, [spreadsheetData, memoizedColumnLabels]);
+  }, [spreadsheetData, memoizedColumnLabels, t]);
 
   const handleExportPDF = useCallback(async () => {
     handleExportMenuClose();
@@ -1350,7 +1346,7 @@ const TestCaseSpreadsheet = ({
       setSnackbarOpen(true);
     } catch (error) {
       logError("PDF 내보내기 오류:", error);
-      setSnackbarMessage("PDF 내보내기 중 오류가 발생했습니다.");
+      setSnackbarMessage(t("testcase.spreadsheet.pdfExportError", "PDF 내보내기 중 오류가 발생했습니다."));
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     } finally {
@@ -1364,14 +1360,14 @@ const TestCaseSpreadsheet = ({
       <Card sx={{ minHeight: 400 }}>
         <CardContent>
           <Alert severity="error" sx={{ mb: 2 }}>
-            <Typography variant="h6">스프레드시트 렌더링 오류</Typography>
+            <Typography variant="h6">{t("testcase.spreadsheet.renderError", "스프레드시트 렌더링 오류")}</Typography>
             <Typography variant="body2">{renderError.message}</Typography>
             <Button
               variant="contained"
               onClick={() => setRenderError(null)}
               sx={{ mt: 1 }}
             >
-              다시 시도
+              {t("common.retry", "다시 시도")}
             </Button>
           </Alert>
         </CardContent>
@@ -1385,9 +1381,9 @@ const TestCaseSpreadsheet = ({
       <Card sx={{ minHeight: 400 }}>
         <CardContent>
           <Alert severity="warning" sx={{ mb: 2 }}>
-            <Typography variant="h6">데이터 로딩 중...</Typography>
+            <Typography variant="h6">{t("common.loading", "데이터 로딩 중...")}</Typography>
             <Typography variant="body2">
-              테스트케이스 데이터를 불러오고 있습니다.
+              {t("testcase.spreadsheet.loadingData", "테스트케이스 데이터를 불러오고 있습니다.")}
             </Typography>
             <CircularProgress sx={{ mt: 1 }} />
           </Alert>
@@ -1664,8 +1660,8 @@ const TestCaseSpreadsheet = ({
                   variant="outlined"
                   title={
                     selectedRowIndex !== null
-                      ? `${selectedRowIndex + 1}번 행 위에 추가`
-                      : "행을 먼저 선택하세요"
+                      ? t("testcase.spreadsheet.insertAboveTitle", `${selectedRowIndex + 1}번 행 위에 추가`)
+                      : t("testcase.spreadsheet.selectRowFirst", "행을 먼저 선택하세요")
                   }
                 >
                   {t("testcase.spreadsheet.button.insertAbove", "위에 추가")}
@@ -1679,8 +1675,8 @@ const TestCaseSpreadsheet = ({
                   variant="outlined"
                   title={
                     selectedRowIndex !== null
-                      ? `${selectedRowIndex + 1}번 행 아래에 추가`
-                      : "행을 먼저 선택하세요"
+                      ? t("testcase.spreadsheet.insertBelowTitle", `${selectedRowIndex + 1}번 행 아래에 추가`)
+                      : t("testcase.spreadsheet.selectRowFirst", "행을 먼저 선택하세요")
                   }
                 >
                   {t("testcase.spreadsheet.button.insertBelow", "아래에 추가")}
@@ -1705,12 +1701,8 @@ const TestCaseSpreadsheet = ({
                   variant="outlined"
                   title={
                     selectedRange
-                      ? `${
-                          Math.abs(
-                            selectedRange.end.row - selectedRange.start.row,
-                          ) + 1
-                        }개 행 삭제`
-                      : "행을 먼저 선택하세요"
+                      ? t("testcase.spreadsheet.deleteTitle", `${Math.abs(selectedRange.end.row - selectedRange.start.row) + 1}개 행 삭제`)
+                      : t("testcase.spreadsheet.selectRowFirst", "행을 먼저 선택하세요")
                   }
                 >
                   {t("testcase.spreadsheet.button.delete", "삭제")}
@@ -2088,8 +2080,8 @@ const TestCaseSpreadsheet = ({
                 variant="outlined"
                 title={
                   selectedRowIndex !== null
-                    ? `${selectedRowIndex + 1}번 행 위에 추가`
-                    : "행을 먼저 선택하세요"
+                    ? t("testcase.spreadsheet.insertAboveTooltip", "{row}번 행 위에 추가", { row: selectedRowIndex + 1 })
+                    : t("testcase.spreadsheet.selectRowFirstTooltip", "행을 먼저 선택하세요")
                 }
               >
                 {t("testcase.spreadsheet.button.insertAbove", "위에 추가")}
@@ -2103,8 +2095,8 @@ const TestCaseSpreadsheet = ({
                 variant="outlined"
                 title={
                   selectedRowIndex !== null
-                    ? `${selectedRowIndex + 1}번 행 아래에 추가`
-                    : "행을 먼저 선택하세요"
+                    ? t("testcase.spreadsheet.insertBelowTooltip", "{row}번 행 아래에 추가", { row: selectedRowIndex + 1 })
+                    : t("testcase.spreadsheet.selectRowFirstTooltip", "행을 먼저 선택하세요")
                 }
               >
                 {t("testcase.spreadsheet.button.insertBelow", "아래에 추가")}
@@ -2129,12 +2121,8 @@ const TestCaseSpreadsheet = ({
                 variant="outlined"
                 title={
                   selectedRange
-                    ? `${
-                        Math.abs(
-                          selectedRange.end.row - selectedRange.start.row,
-                        ) + 1
-                      }개 행 삭제`
-                    : "행을 먼저 선택하세요"
+                    ? t("testcase.spreadsheet.deleteRowsTooltip", "{count}개 행 삭제", { count: Math.abs(selectedRange.end.row - selectedRange.start.row) + 1 })
+                    : t("testcase.spreadsheet.selectRowFirstTooltip", "행을 먼저 선택하세요")
                 }
               >
                 {t("testcase.spreadsheet.button.delete", "삭제")}

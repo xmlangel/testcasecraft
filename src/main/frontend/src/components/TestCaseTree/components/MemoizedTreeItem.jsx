@@ -8,6 +8,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
+import { useI18n } from "../../../context/I18nContext.jsx";
 import {
   ExpandMore as ExpandMoreIcon,
   ChevronRight as ChevronRightIcon,
@@ -500,7 +501,7 @@ const MemoizedTreeItem = React.memo(
                 "&:hover": { color: "action.active" },
               }}
               aria-label="drag-handle"
-              title="드래그해서 위치 이동"
+              title={t("testcase.dragToMove", "드래그해서 위치 이동")}
             >
               <DragIndicatorIcon sx={{ fontSize: 16 }} />
             </Box>

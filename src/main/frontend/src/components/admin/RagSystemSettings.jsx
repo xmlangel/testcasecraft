@@ -75,7 +75,7 @@ const RagSystemSettings = ({ onSuccess }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           value: isRagEnabled.toString(),
-          description: "RAG(AI) 기능 활성화 토글",
+          description: t("admin.systemSettings.ragToggleDescription", "RAG(AI) 기능 활성화 토글"),
         }),
       });
 

@@ -48,6 +48,7 @@ import { ko } from "date-fns/locale";
 
 // 서비스 및 컨텍스트 임포트
 import { useAppContext } from "../../context/AppContext.jsx";
+import { useI18n } from "../../context/I18nContext.jsx";
 import {
   getHierarchicalTestResultReportSimple,
   exportHierarchicalTestResultReport,
@@ -64,6 +65,7 @@ const HierarchicalTestResultTreeView = ({
   activeProject,
   onError,
 }) => {
+  const { t } = useI18n();
   // 상태 관리
   const [loading, setLoading] = useState(false);
   const [hierarchicalData, setHierarchicalData] = useState(null);
@@ -380,13 +382,15 @@ const HierarchicalTestResultTreeView = ({
                   ? format(parseISO(execution.executedAt), "yyyy-MM-dd HH:mm", {
                       locale: ko,
                     })
-                  : "미실행"}
+                  : t("testresult.notExecuted", "미실행")}
                 {execution.executedBy && ` · ${execution.executedBy}`}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 0.5 }}>
               <Chip
-                label={`${stats.totalCases || 0}건`}
+                label={t("hierarchical.status.caseCount", "{count}건", {
+                  count: stats.totalCases || 0,
+                })}
                 size="small"
                 variant="outlined"
               />
@@ -453,11 +457,13 @@ const HierarchicalTestResultTreeView = ({
             </Box>
             <Box sx={{ display: "flex", gap: 0.5 }}>
               <Badge badgeContent={plan.totalExecutions} color="primary">
-                <Chip label="실행" size="small" variant="outlined" />
+                <Chip label={t("hierarchical.status.executing", "실행")} size="small" variant="outlined" />
               </Badge>
               {stats.totalCases > 0 && (
                 <Chip
-                  label={`${stats.passRate || 0}% 통과`}
+                  label={t("hierarchical.status.passRate", "{passRate}% 통과", {
+                    passRate: stats.passRate || 0,
+                  })}
                   color={
                     stats.passRate >= 80
                       ? "success"
@@ -498,7 +504,7 @@ const HierarchicalTestResultTreeView = ({
         fullWidth
       >
         <DialogTitle>
-          {type === "testCase" ? "테스트 케이스 상세 정보" : "상세 정보"}
+          {type === "testCase" ? t("testcase.details.title", "테스트 케이스 상세 정보") : t("common.details", "상세 정보")}
         </DialogTitle>
         <DialogContent>
           {type === "testCase" && (
@@ -509,21 +515,21 @@ const HierarchicalTestResultTreeView = ({
 
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  폴더 경로: {data.folderPath || "미지정"}
+                  {t("testcase.details.folderPath", "폴더 경로")}: {data.folderPath || t("common.unspecified", "미지정")}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  실행 결과: {data.result || "NOT_RUN"}
+                  {t("testcase.details.result", "실행 결과")}: {data.result || "NOT_RUN"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  실행자: {data.executorName || "미지정"}
+                  {t("testcase.details.executor", "실행자")}: {data.executorName || t("common.unspecified", "미지정")}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  실행 일시:{" "}
+                  {t("testcase.details.executedAt", "실행 일시")}:{" "}
                   {data.executedAt
                     ? format(parseISO(data.executedAt), "yyyy-MM-dd HH:mm:ss", {
                         locale: ko,
                       })
-                    : "미실행"}
+                    : t("testresult.notExecuted", "미실행")}
                 </Typography>
               </Box>
 

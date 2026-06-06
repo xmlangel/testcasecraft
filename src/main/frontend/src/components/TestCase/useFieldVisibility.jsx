@@ -12,43 +12,43 @@ export const FIELD_DEFINITIONS = [
   {
     key: "description",
     labelKey: "testcase.form.description",
-    labelDefault: "설명",
+    labelDefault: "Description",
   },
   {
     key: "preCondition",
     labelKey: "testcase.form.preCondition",
-    labelDefault: "사전 조건",
+    labelDefault: "Pre-condition",
   },
   {
     key: "postCondition",
     labelKey: "testcase.form.postCondition",
-    labelDefault: "사후 조건",
+    labelDefault: "Post-condition",
   },
   {
     key: "isAutomated",
     labelKey: "testcase.form.isAutomated",
-    labelDefault: "자동화 여부",
+    labelDefault: "Automated",
   },
   {
     key: "executionType",
     labelKey: "testcase.form.executionType",
-    labelDefault: "Manual/Automation",
+    labelDefault: "Execution Type",
   },
   {
     key: "testTechnique",
     labelKey: "testcase.form.testTechnique",
-    labelDefault: "테스트 기법",
+    labelDefault: "Test Technique",
   },
   {
     key: "priority",
     labelKey: "testcase.form.priority",
-    labelDefault: "우선순위",
+    labelDefault: "Priority",
   },
-  { key: "tags", labelKey: "testcase.form.tags", labelDefault: "태그" },
+  { key: "tags", labelKey: "testcase.form.tags", labelDefault: "Tags" },
   {
     key: "linkedDocuments",
     labelKey: "testcase.form.linkedDocuments",
-    labelDefault: "연결된 RAG 문서",
+    labelDefault: "Linked RAG Documents",
   },
 ];
 

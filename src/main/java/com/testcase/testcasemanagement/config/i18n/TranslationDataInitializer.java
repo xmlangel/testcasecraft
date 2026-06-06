@@ -38,6 +38,13 @@ public class TranslationDataInitializer {
   private final EnglishAdvancedFeaturesAndCommonUITranslations
       englishAdvancedFeaturesAndCommonUITranslations;
 
+  // 2026-06-06 i18n 전수 감사 누락분
+  private final KoreanI18nGapTranslations koreanI18nGapTranslations;
+  private final EnglishI18nGapTranslations englishI18nGapTranslations;
+  // 2026-06-06 하드코딩 래핑 신설 키
+  private final KoreanI18nHardcodedTranslations koreanI18nHardcodedTranslations;
+  private final EnglishI18nHardcodedTranslations englishI18nHardcodedTranslations;
+
   @Transactional
   public void initialize() {
     log.info("기본 번역 데이터 초기화 중...");
@@ -65,6 +72,14 @@ public class TranslationDataInitializer {
     englishOrganizationAndUserManagementTranslations.initialize();
     englishAdvancedFeaturesAndCommonUITranslations.initialize();
     log.info("영어 번역 초기화 완료");
+
+    // 2026-06-06 i18n 전수 감사 누락분 (481건 × ko/en)
+    koreanI18nGapTranslations.initialize();
+    englishI18nGapTranslations.initialize();
+
+    // 2026-06-06 하드코딩 래핑 신설 키 (712건 × ko/en)
+    koreanI18nHardcodedTranslations.initialize();
+    englishI18nHardcodedTranslations.initialize();
 
     log.info("번역 데이터 초기화 완료");
   }

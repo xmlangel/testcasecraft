@@ -843,9 +843,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           if (commonTags.length > 0) {
             const confirmMsg = t(
               "testcase.message.confirmTagCleanup",
-              `이전 폴더의 태그 [${commonTags.join(
-                ", ",
-              )}]를 삭제하시겠습니까?\n'예'를 선택하면 해당 태그가 삭제되고, '아니오'를 선택하면 유지됩니다.`,
+              "이전 폴더의 태그 [{tags}]를 삭제하시겠습니까?\n'예'를 선택하면 해당 태그가 삭제되고, '아니오'를 선택하면 유지됩니다.",
+              { tags: commonTags.join(", ") },
             );
             if (window.confirm(confirmMsg)) {
               // 교집합 태그 제거

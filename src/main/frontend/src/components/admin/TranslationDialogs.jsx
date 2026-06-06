@@ -64,15 +64,15 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.code.trim()) newErrors.code = "언어 코드는 필수입니다";
+    if (!form.code.trim()) newErrors.code = t("translation.languageDialog.codeRequired");
     else if (!/^[a-z]{2,3}$/.test(form.code))
-      newErrors.code = "언어 코드는 2-3자의 소문자여야 합니다";
+      newErrors.code = t("translation.languageDialog.codeFormat");
 
-    if (!form.name.trim()) newErrors.name = "언어명은 필수입니다";
-    if (!form.nativeName.trim()) newErrors.nativeName = "원어명은 필수입니다";
+    if (!form.name.trim()) newErrors.name = t("translation.languageDialog.nameRequired");
+    if (!form.nativeName.trim()) newErrors.nativeName = t("translation.languageDialog.nativeNameRequired");
 
     if (form.sortOrder < 0)
-      newErrors.sortOrder = "정렬 순서는 0 이상이어야 합니다";
+      newErrors.sortOrder = t("translation.languageDialog.sortOrderMin");
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -199,18 +199,19 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
   });
   const [errors, setErrors] = useState({});
 
-  const categories = [
-    { value: "login", label: "로그인" },
-    { value: "register", label: "회원가입" },
-    { value: "button", label: "버튼" },
-    { value: "message", label: "메시지" },
-    { value: "validation", label: "검증" },
-    { value: "navigation", label: "네비게이션" },
-    { value: "form", label: "폼" },
-    { value: "error", label: "오류" },
-    { value: "success", label: "성공" },
-    { value: "common", label: "공통" },
+  const getCategoryOptions = () => [
+    { value: "login", label: t("translation.keyDialog.category.login") },
+    { value: "register", label: t("translation.keyDialog.category.register") },
+    { value: "button", label: t("translation.keyDialog.category.button") },
+    { value: "message", label: t("translation.keyDialog.category.message") },
+    { value: "validation", label: t("translation.keyDialog.category.validation") },
+    { value: "navigation", label: t("translation.keyDialog.category.navigation") },
+    { value: "form", label: t("translation.keyDialog.category.form") },
+    { value: "error", label: t("translation.keyDialog.category.error") },
+    { value: "success", label: t("translation.keyDialog.category.success") },
+    { value: "common", label: t("translation.keyDialog.category.common") },
   ];
+  const categories = getCategoryOptions();
 
   useEffect(() => {
     if (open) {
@@ -243,16 +244,15 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.keyName.trim()) newErrors.keyName = "키 이름은 필수입니다";
+    if (!form.keyName.trim()) newErrors.keyName = t("translation.keyDialog.keyNameRequired");
     else if (!/^[a-zA-Z][a-zA-Z0-9._]*$/.test(form.keyName)) {
-      newErrors.keyName =
-        "키 이름은 영문자로 시작하며 영문자, 숫자, 점, 언더스코어만 사용 가능합니다";
+      newErrors.keyName = t("translation.keyDialog.keyNameFormat");
     }
 
-    if (!form.category) newErrors.category = "카테고리를 선택해주세요";
-    if (!form.description.trim()) newErrors.description = "설명은 필수입니다";
+    if (!form.category) newErrors.category = t("translation.keyDialog.categoryRequired");
+    if (!form.description.trim()) newErrors.description = t("translation.keyDialog.descriptionRequired");
     if (!form.defaultValue.trim())
-      newErrors.defaultValue = "기본값은 필수입니다";
+      newErrors.defaultValue = t("translation.keyDialog.defaultValueRequired");
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -451,9 +451,9 @@ export const TranslationDialog = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.keyName) newErrors.keyName = "번역 키를 선택해주세요";
-    if (!form.languageCode) newErrors.languageCode = "언어를 선택해주세요";
-    if (!form.value.trim()) newErrors.value = "번역값은 필수입니다";
+    if (!form.keyName) newErrors.keyName = t("translation.translationDialog.keyRequired");
+    if (!form.languageCode) newErrors.languageCode = t("translation.translationDialog.languageRequired");
+    if (!form.value.trim()) newErrors.value = t("translation.translationDialog.valueRequired");
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

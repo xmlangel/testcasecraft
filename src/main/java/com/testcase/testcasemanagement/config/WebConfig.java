@@ -61,6 +61,10 @@ public class WebConfig implements WebMvcConfigurer {
     registry.addViewController("/verify-email/**").setViewName("forward:/index.html");
     registry.addViewController("/login").setViewName("forward:/index.html");
     registry.addViewController("/login/**").setViewName("forward:/index.html");
+    registry.addViewController("/guides").setViewName("forward:/index.html");
+    registry.addViewController("/guides/**").setViewName("forward:/index.html");
+    registry.addViewController("/manual").setViewName("forward:/index.html");
+    registry.addViewController("/manual/**").setViewName("forward:/index.html");
 
     // ⚠️ 일반 패턴 주석 처리 - /api/** 경로와 충돌 방지
     // 명시적으로 정의된 SPA 경로만 사용하여 API 경로가 올바르게 처리되도록 함

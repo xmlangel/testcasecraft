@@ -511,7 +511,7 @@ const TestResultForm = ({
       setAttachedFiles((prev) => [...prev, ...newFiles]);
       event.target.value = "";
     } catch (error) {
-      setFileUploadError("파일 업로드 중 오류가 발생했습니다.");
+      setFileUploadError(t("testResult.error.fileUploadError", "파일 업로드 중 오류가 발생했습니다."));
     } finally {
       setIsFileUploading(false);
     }
@@ -746,10 +746,10 @@ const TestResultForm = ({
         });
 
         if (!response.ok)
-          throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
+          throw new Error(t("testResult.error.uploadFailed", `파일 업로드 실패: ${fileInfo.file.name}`, { filename: fileInfo.file.name }));
         const data = await response.json();
         if (!data.success)
-          throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
+          throw new Error(t("testResult.error.uploadFailed", `파일 업로드 실패: ${fileInfo.file.name}`, { filename: fileInfo.file.name }));
         return data.attachment;
       });
 
@@ -757,7 +757,7 @@ const TestResultForm = ({
       setAttachedFiles([]);
     } catch (error) {
       console.error("파일 업로드 오류:", error);
-      throw new Error("파일 업로드 중 오류가 발생했습니다: " + error.message);
+      throw new Error(t("testResult.error.uploadErrorDetail", "파일 업로드 중 오류가 발생했습니다: " + error.message));
     } finally {
       setUploadingFiles(false);
     }
