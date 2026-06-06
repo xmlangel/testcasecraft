@@ -181,6 +181,30 @@ def open_field_visibility(page: Page) -> None:
     page.wait_for_timeout(600)
 
 
+def tree_select_first_folder(page: Page) -> None:
+    """폴더 전용 트리의 첫 폴더 클릭 → 우측 폴더 케이스 목록 + 브레드크럼 (§4-1 캡처용).
+
+    ShopFlow 시드 환경에서는 'F01 회원 인증' 같은 폴더가 존재한다.
+    """
+    node = page.get_by_text(re.compile(r"^F\d{2} ")).first
+    node.wait_for(timeout=10_000)
+    node.click()
+    page.wait_for_timeout(1_200)
+
+
+def tree_select_all_cases(page: Page) -> None:
+    """트리 상단 '모든 테스트케이스' 가상 노드 클릭 → 폴더 컬럼 포함 전체 목록 (§4-4 캡처용)."""
+    page.locator('[data-testid="virtual-node-all-cases"]').click(timeout=10_000)
+    page.wait_for_timeout(1_200)
+
+
+def open_folder_edit_form(page: Page) -> None:
+    """폴더 케이스 목록 헤더의 연필 아이콘 클릭 → 폴더 정보 편집 폼 (§4-1 캡처용)."""
+    tree_select_first_folder(page)
+    page.locator('[data-testid="folder-edit-button"]').click(timeout=10_000)
+    page.wait_for_timeout(1_200)
+
+
 # ---------------------------------------------------------------------------
 # 73개 캡처 스텝 — USER_MANUAL.md 참조 순서
 # ---------------------------------------------------------------------------
@@ -261,6 +285,28 @@ STEPS: list[Step] = [
     Step("32_tree_final", url=_project_path("/testcases"), todo=True),
     Step(
         "32_tree_final_full", url=_project_path("/testcases"), full_page=True, todo=True
+    ),
+    # ── 6b. 폴더 전용 트리 + 케이스 목록 (2026-06-06 feat/style-folder-tree) ──
+    Step(
+        "87_tree_folder_only", url=_project_path("/testcases"), wait_ms=1500
+    ),  # ● 폴더 전용 트리 + 가상 노드 + 폴더 필터 + 탭 배지
+    Step(
+        "88_folder_case_list",
+        url=_project_path("/testcases"),  # △ 폴더 클릭 → 우측 케이스 목록 + 브레드크럼
+        prepare=tree_select_first_folder,
+        wait_ms=800,
+    ),
+    Step(
+        "89_all_cases_list",
+        url=_project_path("/testcases"),  # △ '모든 테스트케이스' 가상 노드 (폴더 컬럼)
+        prepare=tree_select_all_cases,
+        wait_ms=800,
+    ),
+    Step(
+        "90_folder_edit_form",
+        url=_project_path("/testcases"),  # △ 연필 아이콘 → 폴더 정보 편집 폼
+        prepare=open_folder_edit_form,
+        wait_ms=800,
     ),
     # ── 7. 입력 모드 ─────────────────────────────────────────────
     Step("42_testcase_page_landing", url=_project_path("/testcases")),  # ●

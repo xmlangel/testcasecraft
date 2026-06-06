@@ -111,7 +111,7 @@ sed -n '/매뉴얼 커버리지 감사/,$p' "$RUN_DIR/capture_and_audit.log" \
 ```
 
 사용자 승인 시:
-1. `scripts/manual_capture.py` 의 STEPS 리스트에 `Step()` 항목 추가 (90+ prefix 권장 — `references/steps-extension.md`)
+1. `scripts/manual_capture.py` 의 STEPS 리스트에 `Step()` 항목 추가 (90+ prefix 권장 — `../manual-capture/references/steps-extension.md`)
 2. `--only <new-slug>` 로 즉시 캡처 시도
 3. Phase 4 에서 매뉴얼 본문에 새 섹션 추가하도록 manual-writer 에게 요청
 

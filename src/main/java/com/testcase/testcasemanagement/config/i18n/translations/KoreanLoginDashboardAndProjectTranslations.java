@@ -408,6 +408,38 @@ public class KoreanLoginDashboardAndProjectTranslations {
         "testcase.tree.button.saveOrder", languageCode, "순서 저장", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.button.editOrder", languageCode, "순서 편집", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.button.showFullTree", languageCode, "트리에 케이스도 표시", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.button.folderOnly", languageCode, "폴더만 표시", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.caseCount", languageCode, "케이스 {count}개", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.empty", languageCode, "이 폴더에 항목이 없습니다.", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.name", languageCode, "이름", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.priority", languageCode, "우선순위", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.cases", languageCode, "케이스", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.folder", languageCode, "폴더", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.description", languageCode, "설명", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.expectedResult", languageCode, "기대결과", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.editFolder", languageCode, "폴더 정보 편집", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.backToList", languageCode, "케이스 목록으로 돌아가기", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.virtual.allCases", languageCode, "모든 테스트케이스", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.virtual.unfiled", languageCode, "폴더에 없는 테스트케이스", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.filter.placeholder", languageCode, "폴더 필터", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.filter.clear", languageCode, "필터 지우기", createdBy);
     createTranslationIfNotExists("testcase.tree.button.cancel", languageCode, "취소", createdBy);
     createTranslationIfNotExists("testcase.tree.button.delete", languageCode, "삭제", createdBy);
     createTranslationIfNotExists("testcase.tree.button.close", languageCode, "닫기", createdBy);

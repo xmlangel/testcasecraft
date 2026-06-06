@@ -35,9 +35,11 @@
 
 | 날짜 | 변경 내용 | 대상 | 사유 |
 |------|----------|------|------|
-| 2026-05 | MCP 하네스 구성 (에이전트 5 + 스킬 6) | agents/, skills/testcasecraft-mcp-* | API→MCP 변환 자동화 |
+| 2026-05 | MCP 하네스 구성 (MCP 에이전트 5 + MCP 스킬 5 + api-inventory 스킬) | agents/, skills/testcasecraft-mcp-* | API→MCP 변환 자동화 |
 | 2026-05-29 | 매뉴얼 하네스 구성 (capture/orchestrator/sync + manual-writer-agent) | skills/manual-* | 매뉴얼·캡처 동기화 자동화 |
 | 2026-06-06 | manual-sync 에 작성 표준 참조 + 2단계 Agent 검증 절차 | skills/manual-sync | 사용자 요청 — 누락·용어 검증 의무화 |
 | 2026-06-06 | 매뉴얼 하네스 EN 확장 (USER_MANUAL_EN·images_en·ShopFlow EN) + capture_interactions.py 번들 | skills/manual-* | 영문판 신설로 drift 방지 필요 |
 | 2026-06-06 | i18n 감사 스킬 신설 | skills/testcasecraft-i18n-audit | 1,196건 보강 절차의 재실행 가능화 |
 | 2026-06-06 | CLAUDE.md 하네스 포인터 최초 등록 | CLAUDE.md | 포인터 부재 drift 해소 (/harness 감사) |
+| 2026-06-06 | 매뉴얼 캡처 도구 강제 규칙 — manual_capture.py 필수, Playwright MCP 금지 | skills/manual-capture | 사용자 피드백 — MCP 브라우저 캡처 패턴 반복 발생 |
+| 2026-06-06 | 하네스 감사 권장 조치 — integration-tester 후속작업 지침, manual-writer 섹션명 통일, dead pointer 2건 수정, i18n 스캐너 실행 경로 명시 | agents/, skills/ | /harness 전체 점검 (높음 2·중간 3 해소) |

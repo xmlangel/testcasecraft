@@ -946,6 +946,38 @@ public class EnglishOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists(
         "testcase.tree.button.editOrder", languageCode, "Edit Order", createdBy);
     createTranslationIfNotExists(
+        "testcase.tree.button.showFullTree", languageCode, "Show cases in tree", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.button.folderOnly", languageCode, "Folders only", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.caseCount", languageCode, "{count} cases", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.empty", languageCode, "This folder is empty.", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.name", languageCode, "Name", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.priority", languageCode, "Priority", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.cases", languageCode, "Cases", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.folder", languageCode, "Folder", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.description", languageCode, "Description", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.column.expectedResult", languageCode, "Expected Result", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.editFolder", languageCode, "Edit Folder Info", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.backToList", languageCode, "Back to case list", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.virtual.allCases", languageCode, "All Test Cases", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.virtual.unfiled", languageCode, "Unfiled Test Cases", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.filter.placeholder", languageCode, "Filter folders", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.filter.clear", languageCode, "Clear filter", createdBy);
+    createTranslationIfNotExists(
         "project.tooltips.testCaseCount", languageCode, "Test Case Count", createdBy);
     createTranslationIfNotExists(
         "project.tooltips.memberCount", languageCode, "Member Count", createdBy);

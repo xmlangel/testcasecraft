@@ -10,11 +10,14 @@ import React, {
 import PropTypes from "prop-types";
 import {
   Box,
+  Breadcrumbs,
   CircularProgress,
   Backdrop,
+  Link,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import {
   ViewList as FormIcon,
@@ -27,10 +30,23 @@ import { debugLog, debugWarn } from "../../utils/logger.js";
 import TestCaseForm from "../TestCaseForm.jsx";
 import TestCaseSpreadsheet from "./TestCaseSpreadsheet.jsx";
 import TestCaseDatasheetGrid from "./TestCaseDatasheetGrid.jsx";
-import { getAllDescendants, getAllChildIds } from "../../utils/treeUtils.jsx";
+import FolderCaseList from "./FolderCaseList.jsx";
+import {
+  getAllDescendants,
+  getAllChildIds,
+  getAncestorIds,
+  isUnfiledTestCase,
+  VIRTUAL_ALL_CASES_ID,
+  VIRTUAL_UNFILED_ID,
+} from "../../utils/treeUtils.jsx";
 import NoSelectionPlaceholder from "../common/NoSelectionPlaceholder.jsx";
 
-const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
+const TestCaseHybridForm = ({
+  testCaseId,
+  projectId,
+  onSave,
+  onSelectTestCase,
+}) => {
   const params = useParams();
 
   // Props가 없으면 URL Params 사용
@@ -57,6 +73,12 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const isUserEditingRef = useRef(false); // 사용자 입력 중 플래그
 
+  // 폴더 정보 편집 모드 (폴더 선택 시 기본은 케이스 목록, 편집 버튼으로 폼 전환)
+  const [isFolderEditMode, setIsFolderEditMode] = useState(false);
+  useEffect(() => {
+    setIsFolderEditMode(false);
+  }, [effectiveTestCaseId]);
+
   // 프로젝트의 테스트케이스 및 폴더 개수 계산 (ICT-343: 폴더도 스프레드시트에 표시)
   // 유령 데이터 필터링: 이름이 없거나 빈 문자열인 경우 제외
   // useMemo로 불필요한 재계산 방지
@@ -82,6 +104,14 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
     // 2. 선택된 폴더 기준 계층 필터링 (스프레드시트/데이터시트 모드용)
     if (inputMode === "spreadsheet" || inputMode === "advanced-spreadsheet") {
+      // 가상 노드: 전체 / 폴더 미지정
+      if (effectiveTestCaseId === VIRTUAL_ALL_CASES_ID) {
+        return baseFiltered;
+      }
+      if (effectiveTestCaseId === VIRTUAL_UNFILED_ID) {
+        return baseFiltered.filter((tc) => isUnfiledTestCase(tc));
+      }
+
       // 선택된 항목이 테스트케이스인 경우, 그 부모 폴더의 내용을 보여줌
       const selectedItem = baseFiltered.find(
         (tc) => String(tc.id) === String(effectiveTestCaseId),
@@ -163,6 +193,62 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       setSpreadsheetData(projectTestCases);
     }
   };
+
+  // 현재 선택 항목 (폴더 여부 판별용 — 폴더면 폼 대신 폴더 케이스 목록 표시)
+  const selectedItem = useMemo(
+    () => testCases.find((tc) => String(tc.id) === String(effectiveTestCaseId)),
+    [testCases, effectiveTestCaseId],
+  );
+  const isFolderSelected = selectedItem?.type === "folder";
+
+  // 폴더 케이스 목록에서 사용할 프로젝트 전체 항목 (유효성 필터만 적용)
+  const folderListItems = useMemo(
+    () =>
+      testCases.filter(
+        (tc) =>
+          String(tc.projectId) === String(effectiveProjectId) &&
+          tc.name &&
+          tc.name.trim().length > 0,
+      ),
+    [testCases, effectiveProjectId],
+  );
+
+  // 가상 노드 (전체 / 폴더 미지정) 목록 데이터
+  const virtualListData = useMemo(() => {
+    if (effectiveTestCaseId === VIRTUAL_ALL_CASES_ID) {
+      return {
+        folder: {
+          id: VIRTUAL_ALL_CASES_ID,
+          name: t("testcase.tree.virtual.allCases", "모든 테스트케이스"),
+        },
+        rows: folderListItems
+          .filter((tc) => tc.type === "testcase")
+          .slice()
+          .sort((a, b) => (a.name || "").localeCompare(b.name || "")),
+      };
+    }
+    if (effectiveTestCaseId === VIRTUAL_UNFILED_ID) {
+      return {
+        folder: {
+          id: VIRTUAL_UNFILED_ID,
+          name: t("testcase.tree.virtual.unfiled", "폴더에 없는 테스트케이스"),
+        },
+        rows: folderListItems.filter((tc) => isUnfiledTestCase(tc)),
+      };
+    }
+    return null;
+  }, [effectiveTestCaseId, folderListItems, t]);
+
+  // 선택 항목의 경로 브레드크럼 (조상 폴더 → 현재 항목)
+  const breadcrumbItems = useMemo(() => {
+    if (!selectedItem) return [];
+    const itemMap = new Map(folderListItems.map((item) => [item.id, item]));
+    const ancestorIds = getAncestorIds(folderListItems, selectedItem.id);
+    return [
+      ...ancestorIds.map((id) => itemMap.get(id)).filter(Boolean),
+      selectedItem,
+    ];
+  }, [selectedItem, folderListItems]);
 
   // 현재 선택된 폴더 이름 추출 (새 행 생성 시 기본값으로 사용)
   const activeFolderName = useMemo(() => {
@@ -248,6 +334,41 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
   return (
     <Box>
+      {/* 선택 항목 경로 브레드크럼 (조상 폴더 클릭 시 해당 폴더로 이동) */}
+      {breadcrumbItems.length > 0 && (
+        <Breadcrumbs
+          separator="›"
+          aria-label="testcase-path"
+          sx={{ mb: 1 }}
+          data-testid="testcase-breadcrumb"
+        >
+          {breadcrumbItems.map((item, idx) =>
+            idx < breadcrumbItems.length - 1 ? (
+              <Link
+                key={item.id}
+                component="button"
+                type="button"
+                underline="hover"
+                color="inherit"
+                variant="body2"
+                onClick={() => onSelectTestCase && onSelectTestCase(item)}
+              >
+                {item.name}
+              </Link>
+            ) : (
+              <Typography
+                key={item.id}
+                variant="body2"
+                color="text.primary"
+                fontWeight={600}
+              >
+                {item.name}
+              </Typography>
+            ),
+          )}
+        </Breadcrumbs>
+      )}
+
       {/* 입력 모드 선택 — 좌측에 작은 토글 버튼 두 개만 노출 */}
       <Box
         sx={{
@@ -334,6 +455,58 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       {inputMode === "form" ? (
         effectiveTestCaseId === undefined ? (
           <NoSelectionPlaceholder />
+        ) : virtualListData ? (
+          <FolderCaseList
+            folder={virtualListData.folder}
+            items={folderListItems}
+            rows={virtualListData.rows}
+            onSelectItem={onSelectTestCase}
+          />
+        ) : isFolderSelected ? (
+          isFolderEditMode ? (
+            <Box>
+              {/* 폴더 편집 모드: 목록 복귀 버튼 + 폴더 정보 폼 */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 1,
+                }}
+              >
+                <Link
+                  component="button"
+                  type="button"
+                  underline="hover"
+                  variant="body2"
+                  onClick={() => setIsFolderEditMode(false)}
+                  data-testid="folder-edit-back-button"
+                >
+                  ←{" "}
+                  {t(
+                    "testcase.folderList.backToList",
+                    "케이스 목록으로 돌아가기",
+                  )}
+                </Link>
+              </Box>
+              <TestCaseForm
+                key={`folder-edit-${effectiveTestCaseId}`}
+                testCaseId={effectiveTestCaseId}
+                projectId={effectiveProjectId}
+                onSave={() => {
+                  setIsFolderEditMode(false);
+                  handleFormSave();
+                }}
+              />
+            </Box>
+          ) : (
+            <FolderCaseList
+              folder={selectedItem}
+              items={folderListItems}
+              onSelectItem={onSelectTestCase}
+              onEditFolder={() => setIsFolderEditMode(true)}
+            />
+          )
         ) : (
           <TestCaseForm
             key={effectiveTestCaseId || "new"}
@@ -372,6 +545,7 @@ TestCaseHybridForm.propTypes = {
   testCaseId: PropTypes.string,
   projectId: PropTypes.string.isRequired,
   onSave: PropTypes.func,
+  onSelectTestCase: PropTypes.func,
 };
 
 export default TestCaseHybridForm;

@@ -147,7 +147,7 @@ Upon entering a project (`/projects/{projectId}`), the screen displays a three-s
 |---|---|
 | Left logo `TESTCASE CRAFT` | Click to navigate to project list (`/projects`) |
 | Breadcrumb `Project / Sample Project / Dashboard` | Shows current location |
-| Tab bar `Dashboard / Test Cases / Test Plans / Test Execution / Test Results / Automated Tests / RAG Documents / Exploratory Sessions` | Navigate between project sections |
+| Tab bar `Dashboard / Test Cases / Test Plans / Test Execution / Test Results / Automated Tests / RAG Documents / Exploratory Sessions` | Navigate between project sections. **Test Cases / Test Plans / Test Execution tabs display item count badges** beside the label |
 | Upper right `Project Selector` | Switch to other projects quickly |
 | `⚠ JIRA` badge | Yellow warning when JIRA is not configured — click for setup instructions |
 | **?** (circled question-mark icon) | Opens the **User Manual** (Korean/English) in a new tab |
@@ -178,10 +178,43 @@ Navigate to the **[Test Cases]** tab at the top (`/projects/{projectId}/testcase
 
 | Area | Description |
 |---|---|
-| Left panel | **Test Case Tree** — displays folders and cases in a folder structure |
-| Tool bar above left panel | ☑ Select All / 📁 Folder Count / 📄 Case Count / 🔄 Refresh / ↕ Sort / `<` Collapse Panel |
-| Right main content | **Spreadsheet (Table)** — write multiple cases in table format at once |
+| Left panel | **Test Case Tree** — displays folders only by default, with an icon button to toggle to full tree mode (cases included) |
+| Tool bar above left panel | ☑ Select All / 📁 Folder Count / 📄 Case Count / 🔄 Refresh / 🌳 Tree Mode Toggle / ↕ Order Edit |
+| Left filter box | **Folder Filter** — search folders by name and clear with X button |
+| Right main content | **Folder Case List** or **Spreadsheet (Table)** — case list when folder selected, spreadsheet when input mode selected |
 | Tool bar above main content | `+ Add Row`, `Add Above`, `Add Below`, `Add Folder`, `Delete`, `Validate`, `Import/Export`, `Settings`, `Full Screen`, `Bulk Save` |
+
+> **Changed on 2026-06-06**: The tree default display mode changed to "Folders only". The right panel displays a **folder case list table** based on the selected item (folder/case), and you can switch to spreadsheet mode using the input mode button. Click the tree icon button (🌳) in the tree header to switch back to the previous mixed mode (cases included in tree). A folder filter search box is added below the tree header to filter the tree.
+
+![Folders-only tree with virtual nodes and folder filter](images_en/87_tree_folder_only.png)
+
+#### Folder Case List
+
+Select a folder in the tree to display its subfolders and cases as a table on the right.
+
+![Case list with path display when a folder is selected](images_en/88_folder_case_list.png)
+
+- **Columns** — Name → Description → Expected Result → Priority.
+- **Long text** — Text longer than 100 characters is truncated with an ellipsis (…); hover to see the full content in a tooltip.
+- **Expected Result** — Shows the case's consolidated expected result first; if absent, shows numbered per-step expected results.
+- **Row click** — Click a case to open its detail form; click a subfolder to navigate into that folder's list.
+- **Path display** — The current location appears at the top as `Parent Folder › Subfolder › Case Name`. Click an ancestor folder to jump to it.
+
+#### Edit Folder Info
+
+Click the **pencil icon** next to the folder name at the top of the folder case list to switch to the folder info edit form.
+
+![Folder info edit form](images_en/90_folder_edit_form.png)
+
+| Field | Description |
+|---|---|
+| **Name** | Rename the folder. Same result as right-click → "Rename" in the tree. |
+| **Description** | Describe the folder's purpose and scope with the markdown editor. |
+| **Tags** | Add tags for folder categorization. |
+
+- Click **[Update]** to save and return to the case list automatically.
+- To return without saving, click the **"← Back to case list"** link at the top.
+- Selecting another folder or case exits edit mode automatically.
 
 ### 4-2. Input Mode Selection
 
@@ -217,6 +250,28 @@ TestcaseCraft manages folders and cases as **a single tree**.
 - **System Default Folders** — Protected folders automatically created when a project is created. They cannot be moved or deleted to prevent accidents.
 
 The tree header displays the current **folder count (📁) and case count (📄)**, allowing you to gauge project size at a glance.
+
+#### Tree View Modes
+
+By default, the tree displays **folders only**. Click the **tree icon** (🌳) in the tree header to toggle between "Folders only" and "Show cases in tree". The setting is saved in your browser and persists on your next visit.
+
+> **Changed on 2026-06-06**: On the case selection screen in test plans (selection mode), the full tree with cases always displays.
+
+#### Virtual Nodes (All Test Cases / Unfiled Test Cases)
+
+Two fixed rows appear at the top of the tree:
+- **All Test Cases** — total count of all cases
+- **Unfiled Test Cases** — count of cases with no folder assigned
+
+Click these rows to display the corresponding case list on the right. These lists include a **Folder** (path) column at the front so you can see each case's parent folder; click the path to jump to that folder.
+
+![All Test Cases list with the Folder path column](images_en/89_all_cases_list.png)
+
+#### Folder Filter
+
+Use the **Folder Filter** search box below the tree header to search folders by name. The tree filters on partial match, preserving parent paths of matched items and auto-expanding them. Clear the filter with the X button.
+
+#### Add Folders or Cases
 
 There are two ways to add folders or cases.
 
@@ -304,7 +359,9 @@ The existing **right-click menu** (add/rename/delete) and **sort edit mode** (�
 
 ![Drag handle on each row (the ⋮⋮ icon on the left)](images_en/24_tree_populated.png)
 
-The **six-dot icon (⋮⋮)** on the left of each row is the drag handle. Dragging must start from this handle, not from other parts of the row. Before dropping, a **faint guide line** shows where the item will land.
+The **six-dot icon (⋮⋮)** on the left of each row is the drag handle. The handle is **hidden by default and appears when you hover over the row**. Dragging must start from this handle, not from other parts of the row. Before dropping, a **faint guide line** shows where the item will land.
+
+> **Changed on 2026-06-06**: The drag handle is hidden by default and only appears on hover. Checkboxes, version history, and more (⋮) buttons also appear on hover only.
 
 ### 5-2. Multi-Select Move
 
@@ -768,6 +825,10 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | **Context Menu** | A menu that appears when **right-clicking** an item (add / rename / delete / version history, etc.) |
 | **Order Edit Mode** | The ↕ icon in the tree header. After entering this mode, use the ↑/↓ buttons on each row to change order one position at a time, then save |
 | **Move History (Audit Log)** | All successful drag-and-drop moves are automatically recorded in the system, allowing administrators to track who moved what, when, and where |
+| **Folder Case List** | A table-format list displayed on the right when a folder is selected in the tree. Shows subfolders and cases with Name, Description, Expected Result, and Priority columns |
+| **Virtual Nodes** | Two fixed rows at the top of the tree — "All Test Cases" and "Unfiled Test Cases". Click to display the corresponding case list; managed automatically by the system |
+| **Folder Filter** | A search box below the tree header. Filters the tree by folder name; clear with the X button |
+| **Path Display (Breadcrumb)** | A navigation element showing the current location as a hierarchy, e.g. `Parent Folder › Subfolder › Case Name`. Click an ancestor item to jump to it |
 | **Dark Mode / Light Mode** | Overall screen color tone. Switch instantly using the ◐ (half-moon) icon in the header |
 | **Multi-Language (i18n)** | Screen language selection (Korean, English, etc.). Change in Profile → Language Settings |
 
@@ -816,3 +877,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-05-29 | Enhanced route URLs with backticks in Sections 3 and 6–12 (`/dashboard`, `/projects/{projectId}/...`). Updated Section 4 form header (removed H6 title, 2-column grid, single action row); added Section 4-2 input mode toggle button group + spreadsheet cell auto word-wrap for 30+ Korean characters; added Section 4-5 field visibility toggle (9 metadata fields, permanent per-user storage) and Section 4-6 metadata area (full UUID display). Reflected display ID chip and name tooltip on truncation in Section 5 |
 | 2026-06-06 | Comprehensive review and enhancement based on v1.0.80. Added "How to Read This Manual" to preamble (reader-specific guidance, notation rules per IEC/IEEE 82079-1). Updated Section 2-1 description field; Section 4 single-column full-width form layout (v1.0.80) and editor auto-height (v1.0.79); reflected hidden Advanced Spreadsheet in Section 4-2; added right-click context menu table and 2 tree screenshots in Section 4-4; added field visibility screenshot in Section 4-5; added 4-tab form mode with header composition and screenshot in Section 4-6; added drag handle screenshot in Section 5-1; introduced new result input screen (P/F/B/N) in Section 8-1 and auto-save safeguards (v1.0.80) in Section 8-2; corrected export formats in Section 9 (Excel / PDF / CSV); clarified detail screen path in Section 10; added guide document link in Section 13-5; added design system option in Section 13-7; corrected language change path in Section 14-2; updated troubleshooting rows in Section 16-2; corrected 6-role structure (CONTRIBUTOR) in Sections 17-9 and 18-4; refined glossary entries in Section 18. Added 4 new screenshots (23, 24, 44b, 44c) |
 | 2026-06-06 | English edition created from the Korean v1.0.80 manual |
+| 2026-06-06 | Reflected feat/style-folder-tree branch: Section 3-1 tab badges added, Section 4-1 screen layout table updated (folders-only tree display, folder filter added) plus new "Folder Case List" and "Edit Folder Info" subsections, Section 4-4 added three subsections (Tree View Modes, Virtual Nodes, Folder Filter), Section 5-1 drag handle hover visibility added. 4 new screenshots (87–90, ShopFlow EN). Synchronized same sections in Korean edition. |

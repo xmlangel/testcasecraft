@@ -1140,6 +1140,7 @@ const AppContent = () => {
                             : activeProject
                         }
                         testCaseId={activeTestCaseId}
+                        onSelectTestCase={handleSelectTestCase}
                       />
                     </Box>
                   </Box>

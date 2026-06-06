@@ -857,6 +857,35 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("testcase.tree.button.refresh", "testcase", "리프레시", "리프레시");
     createTranslationKeyIfNotExists("testcase.tree.button.saveOrder", "testcase", "순서 저장", "순서 저장");
     createTranslationKeyIfNotExists("testcase.tree.button.editOrder", "testcase", "순서 편집", "순서 편집");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.button.showFullTree", "testcase", "트리에 케이스도 표시", "트리에 케이스도 표시");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.button.folderOnly", "testcase", "폴더만 표시", "폴더만 표시");
+    createTranslationKeyIfNotExists(
+        "testcase.folderList.caseCount", "testcase", "케이스 {count}개", "케이스 {count}개");
+    createTranslationKeyIfNotExists(
+        "testcase.folderList.empty", "testcase", "이 폴더에 항목이 없습니다.", "이 폴더에 항목이 없습니다.");
+    createTranslationKeyIfNotExists("testcase.folderList.column.name", "testcase", "이름", "이름");
+    createTranslationKeyIfNotExists(
+        "testcase.folderList.column.priority", "testcase", "우선순위", "우선순위");
+    createTranslationKeyIfNotExists("testcase.folderList.column.cases", "testcase", "케이스", "케이스");
+    createTranslationKeyIfNotExists("testcase.folderList.column.folder", "testcase", "폴더", "폴더");
+    createTranslationKeyIfNotExists(
+        "testcase.folderList.column.description", "testcase", "설명", "설명");
+    createTranslationKeyIfNotExists(
+        "testcase.folderList.column.expectedResult", "testcase", "기대결과", "기대결과");
+    createTranslationKeyIfNotExists(
+        "testcase.folderList.editFolder", "testcase", "폴더 정보 편집", "폴더 정보 편집");
+    createTranslationKeyIfNotExists(
+        "testcase.folderList.backToList", "testcase", "케이스 목록으로 돌아가기", "케이스 목록으로 돌아가기");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.virtual.allCases", "testcase", "모든 테스트케이스", "모든 테스트케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.virtual.unfiled", "testcase", "폴더에 없는 테스트케이스", "폴더에 없는 테스트케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.filter.placeholder", "testcase", "폴더 필터", "폴더 필터");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.filter.clear", "testcase", "필터 지우기", "필터 지우기");
     createTranslationKeyIfNotExists("testcase.tree.button.cancel", "testcase", "취소", "취소");
     createTranslationKeyIfNotExists("testcase.tree.button.delete", "testcase", "삭제", "삭제");
     createTranslationKeyIfNotExists("testcase.tree.button.close", "testcase", "닫기", "닫기");
