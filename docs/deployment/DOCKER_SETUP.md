@@ -1,4 +1,4 @@
-# testcasecraft 도커 설치·운영 가이드
+# TestcaseCraft 도커 설치·운영 가이드
 
 > **대상:** 시스템 운영자 / DevOps / 자체 호스팅을 검토하는 개발자
 > **참고:** 사용자 매뉴얼은 [`../manual/new/USER_MANUAL.md`](../manual/new/USER_MANUAL.md) 입니다. 일반 사용자는 매뉴얼만 읽으면 됩니다.
@@ -191,7 +191,7 @@ cd docker-compose-build
 docker ps --filter "name=testcasecraft" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 ```
 
-`testcasecraft` 가 `Up X seconds (healthy)` 로 표시되어야 합니다.
+`testcasecraft` 컨테이너가 `Up X seconds (healthy)` 로 표시되어야 합니다.
 
 ### 5-2. 애플리케이션 헬스
 

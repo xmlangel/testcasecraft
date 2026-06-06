@@ -150,8 +150,8 @@ Upon entering a project (`/projects/{projectId}`), the screen displays a three-s
 | Tab bar `Dashboard / Test Cases / Test Plans / Test Execution / Test Results / Automated Tests / RAG Documents / Exploratory Sessions` | Navigate between project sections |
 | Upper right `Project Selector` | Switch to other projects quickly |
 | `⚠ JIRA` badge | Yellow warning when JIRA is not configured — click for setup instructions |
-| ❓ (Help icon) | Opens the **User Manual** (Korean/English) in a new tab |
-| 🌓 (Theme icon) | Toggle dark/light mode |
+| **?** (circled question-mark icon) | Opens the **User Manual** (Korean/English) in a new tab |
+| ◐ (half-moon icon) | Toggle dark/light mode |
 | User avatar (initials) | Click for profile/logout menu |
 
 ### 3-2. JIRA Panel
@@ -527,7 +527,7 @@ Generate a **connection key (token)** for use when connecting from other systems
 
 ![Profile — Theme Settings](images_en/72_profile_theme.png)
 
-- **Screen Mode** — Choose Light or Dark mode (synchronized with the 🌓 icon in the header)
+- **Screen Mode** — Choose Light or Dark mode (synchronized with the ◐ icon in the header)
 - **Design System** — Choose from two design styles: Glass (glass texture) or Material 3. Changes apply to the entire screen immediately.
 
 ---
@@ -536,7 +536,7 @@ Generate a **connection key (token)** for use when connecting from other systems
 
 ### 14-1. Dark Mode Toggle
 
-Click the **🌓** icon in the top-right corner of the header to instantly switch between light and dark mode.
+Click the **◐** (half-moon) icon in the top-right corner of the header to instantly switch between light and dark mode.
 
 ![Dark mode full screen](images_en/60_dark_mode.png)
 
@@ -768,7 +768,7 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | **Context Menu** | A menu that appears when **right-clicking** an item (add / rename / delete / version history, etc.) |
 | **Order Edit Mode** | The ↕ icon in the tree header. After entering this mode, use the ↑/↓ buttons on each row to change order one position at a time, then save |
 | **Move History (Audit Log)** | All successful drag-and-drop moves are automatically recorded in the system, allowing administrators to track who moved what, when, and where |
-| **Dark Mode / Light Mode** | Overall screen color tone. Switch instantly using the 🌓 icon in the header |
+| **Dark Mode / Light Mode** | Overall screen color tone. Switch instantly using the ◐ (half-moon) icon in the header |
 | **Multi-Language (i18n)** | Screen language selection (Korean, English, etc.). Change in Profile → Language Settings |
 
 ### 18-6. External Integrations and Tools
