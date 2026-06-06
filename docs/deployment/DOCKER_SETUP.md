@@ -2,7 +2,7 @@
 
 > **대상:** 시스템 운영자 / DevOps / 자체 호스팅을 검토하는 개발자
 > **참고:** 사용자 매뉴얼은 [`../manual/new/USER_MANUAL.md`](../manual/new/USER_MANUAL.md) 입니다. 일반 사용자는 매뉴얼만 읽으면 됩니다.
-> **버전:** v1.0.81 기준 (`xmlangel/testcasecraft:1.0.81`)
+> **버전:** v1.0.82 기준 (`xmlangel/testcasecraft:1.0.82`)
 
 ---
 
@@ -45,7 +45,7 @@ lsof -nP -iTCP:8080 -sTCP:LISTEN
 
 | 서비스 | 컨테이너 이름 | 이미지 | 호스트 포트 |
 |---|---|---|---|
-| Spring Boot 앱 | `testcasecraft` | `xmlangel/testcasecraft:1.0.81` | `${HTTP_PORT}` / `${HTTPS_PORT}` |
+| Spring Boot 앱 | `testcasecraft` | `xmlangel/testcasecraft:1.0.82` | `${HTTP_PORT}` / `${HTTPS_PORT}` |
 | PostgreSQL (메인 도메인) | `testcasecraft_postgres_spring` | `postgres:18` | `5434:5432` |
 | PostgreSQL + pgvector (RAG 벡터 DB) | `testcasecraft-postgres-rag` | `pgvector/pgvector:pg18` | `5433:5432` |
 | MinIO (S3 호환 첨부 저장소) | `testcasecraft-minio-rag` | `minio/minio:latest` | `9000`/`9001` |
