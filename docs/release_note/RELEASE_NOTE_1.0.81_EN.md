@@ -2,7 +2,7 @@
 
 ## [1.0.81] - 2026-06-06
 
-Hello! Release 1.0.81 is all about **completing the bilingual (Korean/English) experience**. We audited the entire frontend for Korean text leaking into English mode and **backfilled 1,196 missing translations** in one sweep, then built a brand-new **English user manual** on top of it. The Korean manual was also fully verified and updated against v1.0.80.
+Hello! Release 1.0.81 is all about **completing the bilingual (Korean/English) experience**. We audited the entire frontend for Korean text leaking into English mode and **backfilled 1,196 missing translations** in one sweep, then built a brand-new **English user manual** on top of it — both manuals are now readable **inside the app, section by section**, via the new Manual Viewer. The Korean manual was also fully verified and updated against v1.0.80.
 
 ### Highlights
 
@@ -14,6 +14,15 @@ Hello! Release 1.0.81 is all about **completing the bilingual (Korean/English) e
 * Filters, the test execution list, "Total N" counters, tag input hints, JIRA integration labels, tooltips, and chart formats now all switch to English correctly.
 * New seed classes (`I18nGapKeysInitializer`, `I18nHardcodedKeysInitializer`, and 4 companions) ship the translations to fresh installations — idempotent seeding at application startup.
 * Added `scripts/i18n_scan.py`, a scanner that detects Korean strings outside t() calls (CI-friendly exit codes) so regressions are caught early.
+
+#### 📖 In-App User Manual (New Screen)
+
+* A new **Manual Viewer** (`/manual`) lets you read the manual without leaving the app. Three entry points: the **?** icon in the header, **[User Manual]** in the avatar menu, and a **link at the bottom of the login screen** (readable even before logging in).
+* **Section-by-section navigation**: pick any part from the left-hand section list (Intro, 18 sections, Revision History), move with Prev/Next buttons, and share deep links to specific sections (`/manual?s=s4`).
+* **Korean/English toggle** switches between the two manuals instantly while keeping your current section.
+* **Integrated related guides**: the Tree Drag-and-Drop, Google Sheets Setup, and Docker Operations guides open right inside the viewer — guide links in the manual body no longer jump to a separate page.
+* **Working links & anchors**: cross-section anchors (e.g., §16 → §8-2) switch to the target section and scroll to the heading; repository-relative document links are rewritten to in-app routes at serve time.
+* Full dark-mode support; on narrow screens the sidebar becomes a section dropdown.
 
 #### 📘 New English User Manual
 
@@ -42,7 +51,7 @@ Hello! Release 1.0.81 is all about **completing the bilingual (Korean/English) e
 #### Switching to the English UI
 1. Click your **avatar → Profile → Language** tab in the header and select English.
 2. The entire UI switches immediately. Strings that previously remained in Korean are now fully translated.
-3. The English manual is available at `docs/manual/new/USER_MANUAL_EN.md`.
+3. Open the manual right inside the app via the **?** icon in the header (or the link on the login screen); use the toggle in the viewer to switch between Korean and English.
 
 #### Items that may still appear in Korean
 * User-entered data (project and test case names) is not translated.
