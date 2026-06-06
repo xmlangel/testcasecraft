@@ -1,6 +1,6 @@
 ---
 name: manual-sync
-description: testcasecraft 사용자 매뉴얼(`docs/manual/new/USER_MANUAL.md` + `docs/manual/*.md`) 본문을 코드·UI 변경 또는 manual-capture 의 감사 결과에 맞춰 동기화한다. 17 섹션 + 부록 + 관리자 섹션 구조를 보존하며, 누락된 라우트·기능에 신규 섹션을 삽입하고, 변경된 컴포넌트에 대한 캡션·이미지 참조를 갱신한다. 트리거 — "매뉴얼 동기화", "USER_MANUAL.md 갱신", "매뉴얼 본문 수정", "이미지 변경에 맞춰 캡션 수정", "누락 섹션 추가", "manual sync", "매뉴얼 톤 다듬기", "user_management_manual 코드와 맞추기". 캡처/감사 자체는 `manual-capture` 사용. 신규 매뉴얼 작성(0 → 1)은 본 스킬보다 사람이 직접.
+description: testcasecraft 사용자 매뉴얼(`docs/manual/new/USER_MANUAL.md` + 영문판 `USER_MANUAL_EN.md` + `docs/manual/*.md`) 본문을 코드·UI 변경 또는 manual-capture 의 감사 결과에 맞춰 동기화한다. 17 섹션 + 부록 + 관리자 섹션 구조를 보존하며, 누락된 라우트·기능에 신규 섹션을 삽입하고, 변경된 컴포넌트에 대한 캡션·이미지 참조를 갱신한다. 트리거 — "매뉴얼 동기화", "USER_MANUAL.md 갱신", "매뉴얼 본문 수정", "이미지 변경에 맞춰 캡션 수정", "누락 섹션 추가", "manual sync", "매뉴얼 톤 다듬기", "user_management_manual 코드와 맞추기", "영문 매뉴얼 동기화", "USER_MANUAL_EN 갱신", "영어판도 맞춰줘". 캡처/감사 자체는 `manual-capture` 사용. 신규 매뉴얼 작성(0 → 1)은 본 스킬보다 사람이 직접.
 ---
 
 # manual-sync
@@ -20,10 +20,13 @@ description: testcasecraft 사용자 매뉴얼(`docs/manual/new/USER_MANUAL.md` 
 5. **개정 이력 갱신** — 변경 시 문서 말미 "변경 이력" 표에 한 행 추가.
 
 대상 파일:
-1. **메인**: `docs/manual/new/USER_MANUAL.md` (583줄, 17 섹션) — 한 페이지 완전판
-2. **챕터별**: `docs/manual/*.md` (14개) — 항목별 분리본
+1. **메인(한국어)**: `docs/manual/new/USER_MANUAL.md` (18 섹션) — 한 페이지 완전판
+2. **영문판**: `docs/manual/new/USER_MANUAL_EN.md` — 한국어판과 섹션·소제목 1:1 대응 (이미지는 `images_en/`)
+3. **챕터별**: `docs/manual/*.md` (14개) — 항목별 분리본
 
-같은 변경이 두 곳에 영향을 주면 둘 다 갱신한다.
+같은 변경이 여러 곳에 영향을 주면 전부 갱신한다. **특히 한국어판 본문을 수정하면 영문판의 같은 섹션도 반드시 같이 수정한다** — 영문판만 뒤처지는 drift 가 가장 흔한 사고다. 영문판 수정 시: 간결·명령형 영어(ISO/IEC/IEEE 26514 톤), 이미지 경로는 `images_en/`, 내부 상호 참조는 앵커 링크 대신 "see Section N-N" 일반 텍스트, UI 라벨은 실제 영어 UI 문구와 1:1(예: "Add Sub Folder").
+
+동기화 검증: `python3 -c` 로 양쪽의 `### N-N.` 소제목 목록을 추출해 diff 하면 누락 섹션을 기계적으로 잡을 수 있다.
 
 ## 17 섹션 구조 (불변)
 

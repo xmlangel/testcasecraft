@@ -1,6 +1,6 @@
 ---
 name: manual-capture-orchestrator
-description: testcasecraft 사용자 매뉴얼(`docs/manual/new/USER_MANUAL.md` + `docs/manual/*.md`)의 캡처·감사·본문 동기화를 한 번의 명령으로 처리하는 얇은 오케스트레이터. Phase 0(컨텍스트) → 1(환경) → 2(캡처+감사) → 3(STEPS 확장 안내) → 4(본문 동기화) → 5(검증) 흐름. 매뉴얼은 **고정 73장이 아니라 점진적으로 성장하는 자산**으로 다룬다 — 새 페이지/기능 추가 시 감사가 누락을 검출 → 신규 Step 정의 + 매뉴얼 섹션을 함께 추가하여 시스템이 매뉴얼과 같이 진화한다. 트리거 — 한국어 "매뉴얼 갱신", "사용자 매뉴얼 업데이트", "매뉴얼 캡처 + 동기화", "스크린샷 + 본문 같이", "릴리즈 전 매뉴얼 점검", "매뉴얼 재실행", "이미지 다시 찍고 본문도 맞춰", "manual 워크플로우 다시", "새 페이지 매뉴얼에 추가". 캡처만 단독은 `manual-capture`, 본문만 단독은 `manual-sync` 사용.
+description: testcasecraft 사용자 매뉴얼(한국어 `docs/manual/new/USER_MANUAL.md` + 영문판 `USER_MANUAL_EN.md` + `docs/manual/*.md`)의 캡처·감사·본문 동기화를 한 번의 명령으로 처리하는 얇은 오케스트레이터. Phase 0(컨텍스트) → 1(환경) → 2(캡처+감사) → 3(STEPS 확장 안내) → 4(본문 동기화) → 5(검증) 흐름. 매뉴얼은 **고정 73장이 아니라 점진적으로 성장하는 자산**으로 다룬다 — 새 페이지/기능 추가 시 감사가 누락을 검출 → 신규 Step 정의 + 매뉴얼 섹션을 함께 추가하여 시스템이 매뉴얼과 같이 진화한다. 트리거 — 한국어 "매뉴얼 갱신", "사용자 매뉴얼 업데이트", "매뉴얼 캡처 + 동기화", "스크린샷 + 본문 같이", "릴리즈 전 매뉴얼 점검", "매뉴얼 재실행", "이미지 다시 찍고 본문도 맞춰", "manual 워크플로우 다시", "새 페이지 매뉴얼에 추가", "영문판 포함 매뉴얼 갱신", "한/영 매뉴얼 같이". 캡처만 단독은 `manual-capture`, 본문만 단독은 `manual-sync` 사용.
 ---
 
 # manual-capture-orchestrator
@@ -61,6 +61,10 @@ python3 -c "from playwright.sync_api import sync_playwright" 2>&1
 ```
 
 ## Phase 2: 캡처 + 감사 (manual-capture 스킬 위임)
+
+> **영문판 트랙**: 한국어 캡처가 영문판에서도 쓰이는 화면이면 EN 캡처도 같이 갱신해야 한다.
+> EN 은 ①admin 언어 en 전환 ②`--out-dir docs/manual/new/images_en` ③데이터 화면은 **ShopFlow EN** PID 사용 — 절차는 manual-capture 스킬의 "영문판(EN) 캡처 트랙" 절 참조.
+> Phase 4(본문 동기화)에서도 한국어판 수정분을 `USER_MANUAL_EN.md` 같은 섹션에 반영한다 (manual-sync 의 EN 원칙 참조).
 
 `scripts/manual_capture.py` 를 호출하고 결과를 `_workspace` 에 저장:
 

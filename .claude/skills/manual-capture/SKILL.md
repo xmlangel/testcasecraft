@@ -1,6 +1,6 @@
 ---
 name: manual-capture
-description: testcasecraft 사용자 매뉴얼이 참조하는 화면 스크린샷을 Playwright Python(`scripts/manual_capture.py`)로 재캡처하고, 매뉴얼이 언급한 경로 vs 앱의 실제 라우트 커버리지를 감사한다. STEPS 리스트(현재 N장 정의됨)를 확장하면 신규 페이지/기능도 자동 캡처 대상이 된다 — 매뉴얼 성장에 따라 함께 진화. JWT(localStorage) 인증·storage_state 재사용·SPA 폴링 회피 패턴이 이미 검증됨. 트리거 — "매뉴얼 이미지 재캡처", "매뉴얼 스크린샷 갱신", "manual capture 다시", "USER_MANUAL 이미지 다시", "매뉴얼 커버리지 감사", "누락된 페이지 찾아줘(매뉴얼 기준)", "스크린샷만 다시 찍어줘", "매뉴얼 감사만", "새 페이지 캡처 추가", "STEPS 추가". 매뉴얼 본문 동기화는 `manual-sync` 사용. 단순 페이지 캡처(매뉴얼 무관)는 직접 Playwright 호출.
+description: testcasecraft 사용자 매뉴얼이 참조하는 화면 스크린샷을 Playwright Python(`scripts/manual_capture.py`)로 재캡처하고, 매뉴얼이 언급한 경로 vs 앱의 실제 라우트 커버리지를 감사한다. STEPS 리스트(현재 N장 정의됨)를 확장하면 신규 페이지/기능도 자동 캡처 대상이 된다 — 매뉴얼 성장에 따라 함께 진화. JWT(localStorage) 인증·storage_state 재사용·SPA 폴링 회피 패턴이 이미 검증됨. 트리거 — "매뉴얼 이미지 재캡처", "매뉴얼 스크린샷 갱신", "manual capture 다시", "USER_MANUAL 이미지 다시", "매뉴얼 커버리지 감사", "누락된 페이지 찾아줘(매뉴얼 기준)", "스크린샷만 다시 찍어줘", "매뉴얼 감사만", "새 페이지 캡처 추가", "STEPS 추가", "영문 매뉴얼 이미지", "영어 캡처", "images_en 갱신", "ShopFlow EN 으로 캡처". 매뉴얼 본문 동기화는 `manual-sync` 사용. 단순 페이지 캡처(매뉴얼 무관)는 직접 Playwright 호출.
 ---
 
 # manual-capture
@@ -153,3 +153,32 @@ Step("92_complex_state", url="/projects", todo=True),        # 데이터 셋업 
 - `_full` 접미사는 full-page 스크린샷 변종
 
 상세 STEPS 가이드: `references/steps-extension.md`
+
+## 영문판(EN) 캡처 트랙
+
+영문 매뉴얼(`docs/manual/new/USER_MANUAL_EN.md`)의 이미지는 `docs/manual/new/images_en/` 에 별도 보관한다. 한국어판 캡처와 절차가 같되 세 가지가 다르다 — 이를 빠뜨리면 한국어 UI/데이터가 영문 매뉴얼에 들어간다.
+
+1. **UI 언어**: 캡처 전 admin 의 서버 언어를 영어로 전환하고, 끝나면 반드시 원복한다.
+   ```bash
+   # 전환 (캡처 전)        PUT /api/auth/preferred-language {"languageCode":"en"}
+   # 원복 (캡처 후)        PUT /api/auth/preferred-language {"languageCode":"ko"}
+   ```
+2. **데이터 프로젝트**: 케이스·플랜·실행 데이터가 보이는 화면은 **ShopFlow EN** (code `SHOPEN`, 영문 시드)으로 캡처한다. 한국어판은 ShopFlow(`SHOP`). PID 는 `/api/projects` 에서 code 로 찾는다.
+3. **출력·상태 분리**: `--out-dir docs/manual/new/images_en --state .manual_capture_state_en.json`
+
+```bash
+# URL 기반 스텝 일괄 (49장)
+python3 scripts/manual_capture.py --skip-todo \
+  --out-dir docs/manual/new/images_en \
+  --state .manual_capture_state_en.json \
+  --project-id <ShopFlow EN PID>
+
+# 인터랙션 필요 스텝 (다이얼로그·드롭다운·프로필 탭 등 20장)
+python3 .claude/skills/manual-capture/scripts/capture_interactions.py \
+  --out-dir docs/manual/new/images_en \
+  --project-id <ShopFlow EN PID> --case-id <SHOPEN 케이스 UUID> --signup
+```
+
+캡처 후 표본 검수(Read 로 3~4장 열람)에서 ①UI 라벨이 영어인지 ②브레드크럼 프로젝트가 ShopFlow EN 인지 확인한다. 한국어판 갱신 시에도 같은 화면을 영문판에서 쓰고 있으면 **양쪽 모두** 재캡처해야 drift 가 없다.
+
+> 주의: Playwright 로그인 직후 곧바로 navigate 하면 토큰 저장 전에 이동해 비인증 화면을 찍는 레이스가 있다. `wait_for_function("() => !!localStorage.getItem('accessToken')")` 으로 반드시 대기 (capture_interactions.py 에 반영됨).
