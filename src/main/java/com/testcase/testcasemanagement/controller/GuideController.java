@@ -81,6 +81,14 @@ public class GuideController {
 
       // 파일 읽기
       String content = Files.readString(filePath, StandardCharsets.UTF_8);
+      // 저장소 상대 md 링크 → 인앱 뷰어 경로로 재작성 (ManualController 와 동일 정책)
+      content =
+          content
+              .replace("](../manual/new/USER_MANUAL_EN.md)", "](/manual?l=en)")
+              .replace("](../manual/new/USER_MANUAL.md)", "](/manual?l=ko)")
+              .replace("](../guide/", "](/guides/")
+              .replace("](../deployment/", "](/guides/")
+              .replace("](./", "](/guides/");
       return ResponseEntity.ok(content);
 
     } catch (IOException e) {
