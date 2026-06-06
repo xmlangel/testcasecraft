@@ -875,6 +875,10 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.folderList.column.expectedResult", "testcase", "기대결과", "기대결과");
     createTranslationKeyIfNotExists(
+        "testcase.folderList.editFolder", "testcase", "폴더 정보 편집", "폴더 정보 편집");
+    createTranslationKeyIfNotExists(
+        "testcase.folderList.backToList", "testcase", "케이스 목록으로 돌아가기", "케이스 목록으로 돌아가기");
+    createTranslationKeyIfNotExists(
         "testcase.tree.virtual.allCases", "testcase", "모든 테스트케이스", "모든 테스트케이스");
     createTranslationKeyIfNotExists(
         "testcase.tree.virtual.unfiled", "testcase", "폴더에 없는 테스트케이스", "폴더에 없는 테스트케이스");

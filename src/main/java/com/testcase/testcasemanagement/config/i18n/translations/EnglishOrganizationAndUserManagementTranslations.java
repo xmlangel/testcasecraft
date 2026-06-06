@@ -966,6 +966,10 @@ public class EnglishOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists(
         "testcase.folderList.column.expectedResult", languageCode, "Expected Result", createdBy);
     createTranslationIfNotExists(
+        "testcase.folderList.editFolder", languageCode, "Edit Folder Info", createdBy);
+    createTranslationIfNotExists(
+        "testcase.folderList.backToList", languageCode, "Back to case list", createdBy);
+    createTranslationIfNotExists(
         "testcase.tree.virtual.allCases", languageCode, "All Test Cases", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.virtual.unfiled", languageCode, "Unfiled Test Cases", createdBy);

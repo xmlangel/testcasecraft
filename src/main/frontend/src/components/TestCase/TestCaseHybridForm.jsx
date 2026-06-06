@@ -73,6 +73,12 @@ const TestCaseHybridForm = ({
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const isUserEditingRef = useRef(false); // 사용자 입력 중 플래그
 
+  // 폴더 정보 편집 모드 (폴더 선택 시 기본은 케이스 목록, 편집 버튼으로 폼 전환)
+  const [isFolderEditMode, setIsFolderEditMode] = useState(false);
+  useEffect(() => {
+    setIsFolderEditMode(false);
+  }, [effectiveTestCaseId]);
+
   // 프로젝트의 테스트케이스 및 폴더 개수 계산 (ICT-343: 폴더도 스프레드시트에 표시)
   // 유령 데이터 필터링: 이름이 없거나 빈 문자열인 경우 제외
   // useMemo로 불필요한 재계산 방지
@@ -457,11 +463,50 @@ const TestCaseHybridForm = ({
             onSelectItem={onSelectTestCase}
           />
         ) : isFolderSelected ? (
-          <FolderCaseList
-            folder={selectedItem}
-            items={folderListItems}
-            onSelectItem={onSelectTestCase}
-          />
+          isFolderEditMode ? (
+            <Box>
+              {/* 폴더 편집 모드: 목록 복귀 버튼 + 폴더 정보 폼 */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 1,
+                }}
+              >
+                <Link
+                  component="button"
+                  type="button"
+                  underline="hover"
+                  variant="body2"
+                  onClick={() => setIsFolderEditMode(false)}
+                  data-testid="folder-edit-back-button"
+                >
+                  ←{" "}
+                  {t(
+                    "testcase.folderList.backToList",
+                    "케이스 목록으로 돌아가기",
+                  )}
+                </Link>
+              </Box>
+              <TestCaseForm
+                key={`folder-edit-${effectiveTestCaseId}`}
+                testCaseId={effectiveTestCaseId}
+                projectId={effectiveProjectId}
+                onSave={() => {
+                  setIsFolderEditMode(false);
+                  handleFormSave();
+                }}
+              />
+            </Box>
+          ) : (
+            <FolderCaseList
+              folder={selectedItem}
+              items={folderListItems}
+              onSelectItem={onSelectTestCase}
+              onEditFolder={() => setIsFolderEditMode(true)}
+            />
+          )
         ) : (
           <TestCaseForm
             key={effectiveTestCaseId || "new"}

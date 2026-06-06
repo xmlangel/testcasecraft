@@ -513,7 +513,9 @@ const TestCaseTree = ({
           <TreeVirtualNodes
             allCount={treeState.totalTestCaseCount}
             unfiledCount={unfiledCount}
-            selectedId={treeState.selected}
+            selectedId={
+              typeof treeState.selected === "string" ? treeState.selected : null
+            }
             onSelect={handleSelectVirtualNode}
           />
           <Box sx={{ borderBottom: 1, borderColor: "divider", mx: 2 }} />
