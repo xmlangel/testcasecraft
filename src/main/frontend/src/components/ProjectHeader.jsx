@@ -29,11 +29,50 @@ import { useI18n } from "../context/I18nContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { useRAG } from "../context/RAGContext.jsx";
 
+// 탭 라벨 우측 개수 배지 (Testiny 스타일 "테스트 케이스 | 20")
+const TabCountBadge = ({ count }) => (
+  <Typography
+    component="span"
+    variant="caption"
+    sx={{
+      ml: 0.75,
+      px: 0.75,
+      py: 0.125,
+      borderRadius: 1,
+      bgcolor: "action.selected",
+      color: "text.secondary",
+      fontWeight: 600,
+      lineHeight: 1.4,
+    }}
+  >
+    {count}
+  </Typography>
+);
+
+TabCountBadge.propTypes = {
+  count: PropTypes.number.isRequired,
+};
+
 function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
-  const { activeProject } = useAppContext();
+  const { activeProject, testCases, testPlans, testExecutions } =
+    useAppContext();
   const { t } = useI18n();
   const navigate = useNavigate();
   const { isRagEnabled } = useRAG();
+
+  const projectId = activeProject?.id;
+
+  // 탭 개수 배지 (프로젝트 진입 시 TestContext가 세 데이터셋을 모두 로드함)
+  const testCaseCount = (testCases || []).filter(
+    (tc) =>
+      tc?.type === "testcase" && String(tc.projectId) === String(projectId),
+  ).length;
+  const testPlanCount = (testPlans || []).filter(
+    (plan) => !plan?.projectId || String(plan.projectId) === String(projectId),
+  ).length;
+  const testExecutionCount = (testExecutions || []).filter(
+    (exec) => !exec?.projectId || String(exec.projectId) === String(projectId),
+  ).length;
 
   // ICT-PROJECT-HEADER-COLLAPSE: Initialize state from localStorage
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(() => {
@@ -162,21 +201,45 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
         <Tab
           icon={<FormatListBulletedIcon />}
           iconPosition="start"
-          label={t("projectHeader.tabs.testCases", "테스트케이스")}
+          label={
+            <Box
+              component="span"
+              sx={{ display: "flex", alignItems: "center" }}
+            >
+              {t("projectHeader.tabs.testCases", "테스트케이스")}
+              <TabCountBadge count={testCaseCount} />
+            </Box>
+          }
           sx={tabStyle}
           data-testid="tab-testcases"
         />
         <Tab
           icon={<AssignmentIcon />}
           iconPosition="start"
-          label={t("testPlan.tab.label", "테스트플랜")}
+          label={
+            <Box
+              component="span"
+              sx={{ display: "flex", alignItems: "center" }}
+            >
+              {t("testPlan.tab.label", "테스트플랜")}
+              <TabCountBadge count={testPlanCount} />
+            </Box>
+          }
           sx={tabStyle}
           data-testid="tab-testplans"
         />
         <Tab
           icon={<PlayCircleIcon />}
           iconPosition="start"
-          label={t("projectHeader.tabs.testExecution", "테스트실행")}
+          label={
+            <Box
+              component="span"
+              sx={{ display: "flex", alignItems: "center" }}
+            >
+              {t("projectHeader.tabs.testExecution", "테스트실행")}
+              <TabCountBadge count={testExecutionCount} />
+            </Box>
+          }
           sx={tabStyle}
           data-testid="tab-executions"
         />

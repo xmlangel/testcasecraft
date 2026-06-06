@@ -2,6 +2,19 @@
  * 트리 구조 처리를 위한 유틸리티 함수들
  */
 
+// 가상 노드 ID (트리 상단 고정 행 — 실제 데이터가 아닌 뷰 전용)
+export const VIRTUAL_ALL_CASES_ID = "__all-testcases__";
+export const VIRTUAL_UNFILED_ID = "__unfiled-testcases__";
+
+export const isVirtualNodeId = (id) =>
+  id === VIRTUAL_ALL_CASES_ID || id === VIRTUAL_UNFILED_ID;
+
+// 폴더에 속하지 않은 테스트케이스인지 확인
+export const isUnfiledTestCase = (item) =>
+  item &&
+  item.type === "testcase" &&
+  (!item.parentId || item.parentId === "null" || item.parentId === "undefined");
+
 export const listToTree = (items, parentId = null, options = {}) => {
   if (!Array.isArray(items) || items.length === 0) return [];
 
@@ -113,6 +126,28 @@ export const findItemInTree = (tree, id) => {
 
 // 폴더 아이템인지 체크
 export const isFolder = (item) => item && item.type === "folder";
+
+// 폴더별 하위(재귀) 테스트케이스 개수 맵 생성
+// 폴더 전용 트리 모드에서도 정확한 개수를 표시하기 위해 평면 리스트 기준으로 계산
+export const buildFolderCaseCountMap = (items) => {
+  const countMap = new Map();
+  if (!Array.isArray(items)) return countMap;
+
+  const itemMap = new Map(items.map((item) => [item.id, item]));
+
+  items.forEach((item) => {
+    if (!item || item.type !== "testcase") return;
+    let currentId = item.parentId;
+    const visited = new Set(); // 순환 참조 방지
+    while (currentId && !visited.has(currentId)) {
+      visited.add(currentId);
+      countMap.set(currentId, (countMap.get(currentId) || 0) + 1);
+      const parent = itemMap.get(currentId);
+      currentId = parent ? parent.parentId : null;
+    }
+  });
+  return countMap;
+};
 
 // O(N) 효율성을 위한 인덱스 생성용 유틸리티
 export const buildChildrenMap = (items) => {

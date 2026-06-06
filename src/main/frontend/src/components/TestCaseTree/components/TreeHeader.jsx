@@ -1,6 +1,14 @@
 // src/components/TestCaseTree/components/TreeHeader.jsx
 import React from "react";
-import { Box, Checkbox, Typography, Button, IconButton } from "@mui/material";
+import {
+  Box,
+  Checkbox,
+  Typography,
+  Button,
+  IconButton,
+  TextField,
+  InputAdornment,
+} from "@mui/material";
 import {
   Folder as FolderIcon,
   Description as DescriptionIcon,
@@ -10,6 +18,9 @@ import {
   Close as CloseIcon,
   Refresh as RefreshIcon,
   SwapVert as SwapVertIcon,
+  AccountTree as AccountTreeIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../../context/I18nContext.jsx";
 import { isViewer, canAdd } from "../utils/permissionUtils.js";
@@ -29,6 +40,10 @@ const TreeHeader = ({
   checkedIds,
   orderEditMode,
   orderChanged,
+  folderOnlyView,
+  onToggleViewMode,
+  filterText,
+  onFilterChange,
   onCheckAll,
   onRefresh,
   onOpenAddMenu,
@@ -92,6 +107,26 @@ const TreeHeader = ({
                 </Button>
               )}
 
+            {/* 트리 뷰 모드 토글 (폴더 전용 ↔ 전체) */}
+            {onToggleViewMode && (
+              <IconButton
+                size="small"
+                onClick={onToggleViewMode}
+                color={folderOnlyView ? "default" : "primary"}
+                title={
+                  folderOnlyView
+                    ? t(
+                        "testcase.tree.button.showFullTree",
+                        "트리에 케이스도 표시",
+                      )
+                    : t("testcase.tree.button.folderOnly", "폴더만 표시")
+                }
+                data-testid="tree-view-mode-toggle"
+              >
+                <AccountTreeIcon />
+              </IconButton>
+            )}
+
             {/* 새로고침 버튼 */}
             <IconButton
               size="small"
@@ -145,6 +180,37 @@ const TreeHeader = ({
           </Box>
         )}
       </Box>
+
+      {/* 트리 필터 (이름 부분 일치) */}
+      {onFilterChange && (
+        <TextField
+          fullWidth
+          size="small"
+          value={filterText || ""}
+          onChange={(e) => onFilterChange(e.target.value)}
+          placeholder={t("testcase.tree.filter.placeholder", "폴더 필터")}
+          sx={{ mt: 1 }}
+          inputProps={{ "data-testid": "tree-filter-input" }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" color="action" />
+              </InputAdornment>
+            ),
+            endAdornment: filterText ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={() => onFilterChange("")}
+                  title={t("testcase.tree.filter.clear", "필터 지우기")}
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          }}
+        />
+      )}
     </Box>
   );
 };

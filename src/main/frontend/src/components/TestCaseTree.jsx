@@ -15,11 +15,14 @@ import { useTest } from "../context/TestContext.jsx";
 import { useInputMode } from "../context/InputModeContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { isViewer } from "./TestCaseTree/utils/permissionUtils.js";
-import { countTestCasesRecursive } from "./TestCaseTree/utils/treeOperations.js";
 import {
   isFolder,
   listToTree,
   getAllDescendants,
+  buildFolderCaseCountMap,
+  isUnfiledTestCase,
+  VIRTUAL_ALL_CASES_ID,
+  VIRTUAL_UNFILED_ID,
 } from "../utils/treeUtils.jsx";
 
 // 훅
@@ -32,6 +35,10 @@ import MemoizedTreeItem from "./TestCaseTree/components/MemoizedTreeItem.jsx";
 import TreeHeader from "./TestCaseTree/components/TreeHeader.jsx";
 import TreeContextMenu from "./TestCaseTree/components/TreeContextMenu.jsx";
 import TreeDialogs from "./TestCaseTree/components/TreeDialogs.jsx";
+import TreeVirtualNodes from "./TestCaseTree/components/TreeVirtualNodes.jsx";
+
+// 트리 뷰 모드 저장 키 ("folders" = 폴더 전용, "all" = 폴더+케이스 혼합)
+const TREE_VIEW_MODE_KEY = "testcase-tree-view-mode";
 
 /**
  * TestCaseTree - 테스트케이스 트리 조합(Orchestration) 컴포넌트
@@ -63,6 +70,32 @@ const TestCaseTree = ({
   } = useTest();
   const { inputMode, setInputMode } = useInputMode();
   const { t } = useI18n();
+
+  // ── 0. 트리 뷰 모드 (폴더 전용 / 전체) ────────────────────────────────────
+  // selectable 모드(테스트플랜 케이스 선택 등)에서는 케이스 체크가 필요하므로 항상 전체 모드
+  const [folderOnlyView, setFolderOnlyView] = useState(() => {
+    if (selectable) return false;
+    try {
+      return localStorage.getItem(TREE_VIEW_MODE_KEY) !== "all";
+    } catch {
+      return true;
+    }
+  });
+
+  const handleToggleViewMode = useCallback(() => {
+    setFolderOnlyView((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(TREE_VIEW_MODE_KEY, next ? "folders" : "all");
+      } catch {
+        // localStorage 접근 불가 시 세션 상태만 유지
+      }
+      return next;
+    });
+  }, []);
+
+  // ── 0.5. 트리 필터 (이름 부분 일치, 조상/하위 경로 유지) ──────────────────
+  const [filterText, setFilterText] = useState("");
 
   // ── 1. 트리 상태 (초기 orderMap은 빈 객체; actions에서 sync됨) ──────────────
   const treeState = useTestCaseTree({
@@ -106,22 +139,117 @@ const TestCaseTree = ({
     });
   }, [treeState.filteredTestCases, actions.orderMap]);
 
+  // 폴더 전용 모드에서는 테스트케이스 노드를 트리에서 제외 (케이스는 우측 목록에서 열람)
+  const baseTreeSource = useMemo(
+    () =>
+      folderOnlyView
+        ? sortedTestCases.filter((tc) => tc && tc.type === "folder")
+        : sortedTestCases,
+    [sortedTestCases, folderOnlyView],
+  );
+
+  // 필터 적용: 일치 노드 + 조상 경로 + 하위 항목 유지
+  const { treeSourceData, filterMatchedFolderIds } = useMemo(() => {
+    const query = filterText.trim().toLowerCase();
+    if (!query) {
+      return { treeSourceData: baseTreeSource, filterMatchedFolderIds: null };
+    }
+
+    const itemMap = new Map(baseTreeSource.map((item) => [item.id, item]));
+    const matched = new Set();
+    baseTreeSource.forEach((item) => {
+      if ((item.name || "").toLowerCase().includes(query)) {
+        matched.add(item.id);
+      }
+    });
+
+    const keep = new Set();
+    baseTreeSource.forEach((item) => {
+      // 자신 또는 조상 중 일치 항목이 있으면 유지
+      let cur = item;
+      const visited = new Set();
+      let shouldKeep = false;
+      while (cur && !visited.has(cur.id)) {
+        visited.add(cur.id);
+        if (matched.has(cur.id)) {
+          shouldKeep = true;
+          break;
+        }
+        cur = itemMap.get(cur.parentId);
+      }
+      if (!shouldKeep) return;
+
+      // 자신 + 조상 경로 전체 유지
+      let pathCur = item;
+      const pathVisited = new Set();
+      while (pathCur && !pathVisited.has(pathCur.id)) {
+        pathVisited.add(pathCur.id);
+        keep.add(pathCur.id);
+        pathCur = itemMap.get(pathCur.parentId);
+      }
+    });
+
+    const filtered = baseTreeSource.filter((item) => keep.has(item.id));
+    const folderIds = filtered
+      .filter((item) => item.type === "folder")
+      .map((item) => item.id);
+    return {
+      treeSourceData: filtered,
+      filterMatchedFolderIds: folderIds,
+    };
+  }, [baseTreeSource, filterText]);
+
   const treeData = useMemo(
     () =>
-      listToTree(sortedTestCases, null, {
+      listToTree(treeSourceData, null, {
         orphanFolderName: t("tree.orphan.name", "[미할당 항목]"),
         orphanFolderDescription: t(
           "tree.orphan.description",
-          "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다."
+          "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.",
         ),
       }),
-    [sortedTestCases, t],
+    [treeSourceData, t],
+  );
+
+  // 폴더별 재귀 케이스 개수 (폴더 전용 모드에서도 정확한 수치 유지)
+  const folderCaseCountMap = useMemo(
+    () => buildFolderCaseCountMap(treeState.filteredTestCases),
+    [treeState.filteredTestCases],
+  );
+
+  // 폴더 미지정 케이스 수 (가상 노드 배지)
+  const unfiledCount = useMemo(
+    () => treeState.filteredTestCases.filter(isUnfiledTestCase).length,
+    [treeState.filteredTestCases],
+  );
+
+  // 가상 노드 선택 → 우측 패널에 해당 목록 표시
+  const handleSelectVirtualNode = useCallback(
+    (virtualId) => {
+      treeState.setSelected(virtualId);
+      if (onSelectTestCase) {
+        onSelectTestCase({ id: virtualId, type: "virtual" });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [treeState.setSelected, onSelectTestCase],
   );
 
   // ── 4. 가상화 ──────────────────────────────────────────────────────────────
+  // 필터 활성 시 일치 경로의 폴더를 모두 펼침 (사용자 expanded 상태는 보존)
+  const effectiveExpanded = useMemo(
+    () =>
+      filterMatchedFolderIds
+        ? Array.from(
+            new Set([...treeState.expanded, ...filterMatchedFolderIds]),
+          )
+        : treeState.expanded,
+    [filterMatchedFolderIds, treeState.expanded],
+  );
+
   const { flatData, virtualizer, parentRef } = useTreeVirtualizer({
     treeData,
-    expanded: treeState.expanded,
+    expanded: effectiveExpanded,
     newItemData: actions.newItemData,
     orderMap: actions.orderMap,
   });
@@ -288,7 +416,7 @@ const TestCaseTree = ({
             const nodeOrder =
               actions.orderMap[node.id] ?? node.displayOrder ?? 0;
             const testCaseCount = isFolder(node)
-              ? countTestCasesRecursive(node)
+              ? folderCaseCountMap.get(node.id) || 0
               : 0;
 
             return (
@@ -363,6 +491,10 @@ const TestCaseTree = ({
         checkedIds={treeState.checkedIds}
         orderEditMode={actions.orderEditMode}
         orderChanged={actions.orderChanged}
+        folderOnlyView={folderOnlyView}
+        onToggleViewMode={handleToggleViewMode}
+        filterText={filterText}
+        onFilterChange={setFilterText}
         onCheckAll={treeState.handleCheckAll}
         onRefresh={actions.handleRefresh}
         onOpenAddMenu={handleOpenAddMenu}
@@ -374,6 +506,19 @@ const TestCaseTree = ({
 
       {/* 구분선 */}
       <Box sx={{ borderBottom: 1, borderColor: "divider", mx: 2 }} />
+
+      {/* 가상 노드 (전체 / 폴더 미지정) */}
+      {!selectable && projectId && (
+        <>
+          <TreeVirtualNodes
+            allCount={treeState.totalTestCaseCount}
+            unfiledCount={unfiledCount}
+            selectedId={treeState.selected}
+            onSelect={handleSelectVirtualNode}
+          />
+          <Box sx={{ borderBottom: 1, borderColor: "divider", mx: 2 }} />
+        </>
+      )}
 
       <DndContext
         sensors={sensors}
@@ -404,7 +549,10 @@ const TestCaseTree = ({
             >
               {treeState.checkedIds?.length > 1 &&
               treeState.checkedIds.includes(activeDragNode.id)
-                ? t("testcase.dragMultiple", "{name} 외 {count}개", { name: activeDragNode.name, count: treeState.checkedIds.length - 1 })
+                ? t("testcase.dragMultiple", "{name} 외 {count}개", {
+                    name: activeDragNode.name,
+                    count: treeState.checkedIds.length - 1,
+                  })
                 : activeDragNode.name}
             </Box>
           ) : null}
