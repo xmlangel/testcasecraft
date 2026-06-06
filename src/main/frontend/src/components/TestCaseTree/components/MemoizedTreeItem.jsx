@@ -177,13 +177,16 @@ const MemoizedTreeItem = React.memo(
         }}
         onContextMenu={(e) => onContextMenu(e, node.id)}
       >
-        {/* 체크박스 영역: 고정 너비 40px */}
+        {/* 체크박스 영역: 평소 숨김, 체크됨/호버/selectable 모드 시 표시 (정보 밀도 개선) */}
         <Box
+          className={isChecked || selectable ? undefined : "tree-hover-reveal"}
           sx={{
-            width: 40,
+            width: 32,
             display: "flex",
             justifyContent: "center",
             flexShrink: 0,
+            opacity: isChecked || selectable ? 1 : 0,
+            transition: "opacity 0.15s",
           }}
         >
           {!isViewerRole && (
@@ -219,44 +222,19 @@ const MemoizedTreeItem = React.memo(
           )}
         </Box>
 
-        {/* displayId 칩: 마지막 세그먼트(번호)만 표시, 호버 시 전체 ID 툴팁 */}
-        {node.displayId && (
-          <Tooltip
-            title={node.displayId}
-            arrow
-            placement="top"
-            enterDelay={300}
-          >
-            <Box
-              component="span"
-              sx={{
-                flexShrink: 0,
-                mr: 0.75,
-                px: 0.6,
-                py: 0.1,
-                fontSize: "0.7rem",
-                fontFamily: "monospace",
-                fontWeight: 600,
-                color: "primary.main",
-                bgcolor: "action.hover",
-                borderRadius: 0.5,
-                lineHeight: 1.4,
-                whiteSpace: "nowrap",
-                cursor: "default",
-              }}
-            >
-              {String(node.displayId).split("-").pop() || node.displayId}
-            </Box>
-          </Tooltip>
-        )}
-
-        {/* 이름 영역: 가변 너비 + 잘림 감지 시에만 Tooltip 활성 */}
+        {/* 이름 영역: 가변 너비. 툴팁에 ID + 전체 이름 표시 (칩 제거로 행 단순화) */}
         <Tooltip
-          title={nameTooltip}
+          title={
+            node.displayId
+              ? nameTooltip
+                ? `${node.displayId} · ${node.name}`
+                : node.displayId
+              : nameTooltip
+          }
           arrow
           placement="top"
-          enterDelay={300}
-          disableHoverListener={!nameTooltip}
+          enterDelay={400}
+          disableHoverListener={!nameTooltip && !node.displayId}
         >
           <Typography
             ref={nameRef}
@@ -286,20 +264,22 @@ const MemoizedTreeItem = React.memo(
             flexShrink: 0,
           }}
         >
-          {/* 번호 영역: 고정 너비 50px */}
-          <Typography
-            variant="caption"
-            sx={{
-              width: 50,
-              textAlign: "right",
-              color: "primary.dark",
-              opacity: 0.8,
-              fontWeight: "bold",
-              mr: 1,
-            }}
-          >
-            #{nodeOrder}
-          </Typography>
+          {/* 번호: 순서 편집 모드에서만 표시 (평소에는 숨겨 행 단순화) */}
+          {orderEditMode && (
+            <Typography
+              variant="caption"
+              sx={{
+                width: 50,
+                textAlign: "right",
+                color: "primary.dark",
+                opacity: 0.8,
+                fontWeight: "bold",
+                mr: 1,
+              }}
+            >
+              #{nodeOrder}
+            </Typography>
+          )}
 
           {orderEditMode && !isViewerRole && (
             <Box sx={{ display: "flex", mr: 0.5 }}>
@@ -332,10 +312,9 @@ const MemoizedTreeItem = React.memo(
             <Typography
               variant="body2"
               sx={{
-                width: 30,
-                textAlign: "center",
-                color: "success.main",
-                fontWeight: "bold",
+                minWidth: 24,
+                textAlign: "right",
+                color: "text.secondary",
                 mx: 0.5,
               }}
             >
@@ -344,7 +323,16 @@ const MemoizedTreeItem = React.memo(
           )}
 
           {!selectable && !isViewerRole && (
-            <Box sx={{ display: "flex", alignItems: "center", minWidth: 60 }}>
+            <Box
+              className="tree-hover-reveal"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                minWidth: 60,
+                opacity: 0,
+                transition: "opacity 0.15s",
+              }}
+            >
               {node.type === "testcase" && (
                 <IconButton
                   size="small"
@@ -455,6 +443,8 @@ const MemoizedTreeItem = React.memo(
             py: 0.25,
             minHeight: 32,
             "&:hover": { bgcolor: "action.hover" },
+            // 행 호버 시 숨겨둔 보조 요소(체크박스/드래그 핸들/액션 버튼) 표시
+            "&:hover .tree-hover-reveal": { opacity: 1 },
             bgcolor: isOverInto
               ? "rgba(0, 123, 255, 0.18)"
               : isSelected
@@ -485,18 +475,21 @@ const MemoizedTreeItem = React.memo(
               </IconButton>
             )}
           </Box>
-          {/* DnD: 드래그 핸들 (체크박스 옆) */}
+          {/* DnD: 드래그 핸들 (호버 시에만 표시) */}
           {!dndDisabled && (
             <Box
               {...draggable.attributes}
               {...draggable.listeners}
               onClick={(e) => e.stopPropagation()}
+              className="tree-hover-reveal"
               sx={{
                 display: "flex",
                 alignItems: "center",
                 width: 18,
                 color: "action.disabled",
                 cursor: "grab",
+                opacity: 0,
+                transition: "opacity 0.15s",
                 "&:active": { cursor: "grabbing" },
                 "&:hover": { color: "action.active" },
               }}
