@@ -1,8 +1,8 @@
-# testcasecraft User Manual
+# TestcaseCraft User Manual
 
 > **Version:** v1.0.80 reference
 > **Created:** 2026-05-27 (Last updated 2026-06-06)
-> **Audience:** QA engineers, developers, and project managers using testcasecraft for the first time
+> **Audience:** QA engineers, developers, and project managers using TestcaseCraft for the first time
 > **Environment:** This manual was captured in a local Docker environment (`http://localhost:8080`)
 > **Standards Basis:** This manual follows the principles of international standards on information design (IEC/IEEE 82079-1, ISO/IEC/IEEE 26514) — information type classification, audience-based structure, and procedure documentation.
 > **Note:** All screenshots were captured with the UI language set to English. Sample data (project and test case names) may appear in Korean.
@@ -208,7 +208,7 @@ The default is 5 rows, with a range of 1–100 rows addable at once. Click **[Ad
 
 ### 4-4. Folder and Case Tree Structure
 
-testcasecraft manages folders and cases as **a single tree**.
+TestcaseCraft manages folders and cases as **a single tree**.
 
 ![Tree with organized folders and cases](images_en/24_tree_populated.png)
 
@@ -427,7 +427,7 @@ Click the **[Test Results]** tab at the top (`/projects/{projectId}/results`) to
 
 ## 10. Automated Tests
 
-Click the **[Automated Tests]** tab at the top (`/projects/{projectId}/automation`) to upload result files from automated test tools (JUnit, Playwright, Pytest, etc.) and view them consolidated in testcasecraft.
+Click the **[Automated Tests]** tab at the top (`/projects/{projectId}/automation`) to upload result files from automated test tools (JUnit, Playwright, Pytest, etc.) and view them consolidated in TestcaseCraft.
 
 ![Automated Tests](images_en/54b_automation.png)
 
@@ -517,7 +517,7 @@ To import or export test cases to Google Sheets, you need to connect your Google
 
 ![Profile — API Token](images_en/71_profile_apitoken.png)
 
-Generate a **connection key (token)** for use when connecting from other systems (e.g., JIRA plugins, automation scripts) to testcasecraft.
+Generate a **connection key (token)** for use when connecting from other systems (e.g., JIRA plugins, automation scripts) to TestcaseCraft.
 
 - Up to **10 tokens** can be issued per person
 - **The full key displays only once immediately after issuance; copy it to a safe place.** You cannot view it again.
@@ -714,7 +714,7 @@ Frequently used terms in the manual are compiled here for reference when first u
 | **Test Plan** | A bundle of test cases grouped for execution in a single testing activity, including schedule and assignee information |
 | **Test Execution / Run** | An operational instance of running a test plan. Results are recorded for each test case |
 | **Test Result** | A collection of completed test execution results, visualized as statistics and trends |
-| **Automated Test** | A feature that uploads result files from automation tools (JUnit, Playwright, Pytest, etc.) to testcasecraft for unified tracking |
+| **Automated Test** | A feature that uploads result files from automation tools (JUnit, Playwright, Pytest, etc.) to TestcaseCraft for unified tracking |
 | **Exploratory Session (SBTM)** | Session-Based Test Management. A method where exploratory testing is conducted in 60–120 minute sessions with findings, notes, and evidence documented |
 | **RAG (Search Assistance)** | A supplementary feature that indexes documents and answers natural language queries with source citations |
 
@@ -775,13 +775,13 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 
 | Term | Definition |
 |------|-----------|
-| **JIRA** | An issue tracking tool. testcasecraft connects test cases with JIRA issues and synchronizes their status bidirectionally |
+| **JIRA** | An issue tracking tool. TestcaseCraft connects test cases with JIRA issues and synchronizes their status bidirectionally |
 | **JIRA API Token** | A connection key issued by JIRA. Used for secure authentication instead of a password |
 | **Google Sheets** | Google Spreadsheets. Used to import and export test cases |
 | **JUnit** | A standard XML format for Java automated test results. Compatible with other tools (Playwright, Pytest, etc.) |
-| **API Token (Connection Key)** | A secret string used by external systems (automation scripts, JIRA plugins, etc.) to authenticate themselves to testcasecraft. Visible only once immediately after issuance; if lost, it must be revoked and reissued |
+| **API Token (Connection Key)** | A secret string used by external systems (automation scripts, JIRA plugins, etc.) to authenticate themselves to TestcaseCraft. Visible only once immediately after issuance; if lost, it must be revoked and reissued |
 | **LLM** | Large Language Model — AI for natural language generation and summarization. Used for auto-generating test case names/descriptions and providing RAG chat answers |
-| **MCP** | Model Context Protocol — a standard communication protocol that enables AI clients (such as Claude and Cline) to interact with testcasecraft through natural language commands |
+| **MCP** | Model Context Protocol — a standard communication protocol that enables AI clients (such as Claude and Cline) to interact with TestcaseCraft through natural language commands |
 
 ### 18-7. Time and Identifiers
 
