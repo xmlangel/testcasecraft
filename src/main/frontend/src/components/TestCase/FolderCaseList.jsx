@@ -89,9 +89,6 @@ const FolderCaseList = ({
   // 폴더별 재귀 케이스 개수 (하위 폴더 행의 개수 배지용)
   const caseCountMap = useMemo(() => buildFolderCaseCountMap(items), [items]);
 
-  // 가상 노드 목록(rows 제공)에서는 각 케이스의 소속 폴더 경로를 함께 표시
-  const showFolderColumn = Boolean(rows);
-
   // 기대결과: 통합 expectedResults 필드 우선, 없으면 스텝별 기대결과를 줄바꿈으로 합침
   const getExpectedResults = (item) => {
     if (item.expectedResults && String(item.expectedResults).trim()) {
@@ -110,12 +107,14 @@ const FolderCaseList = ({
     [items],
   );
 
-  // 케이스의 조상 폴더 경로 (루트 → 직속 부모 순)
-  const getFolderPath = (item) => {
+  // 케이스의 조상 폴더 경로 (루트 → 직속 부모 순).
+  // baseId 가 주어지면 그 폴더까지(미포함)만 — 선택 폴더 기준의 상대 경로 표시용.
+  const getFolderPath = (item, baseId = null) => {
     const path = [];
     const visited = new Set();
     let cur = itemMap.get(item.parentId);
     while (cur && !visited.has(cur.id)) {
+      if (baseId != null && String(cur.id) === String(baseId)) break;
       visited.add(cur.id);
       path.unshift(cur);
       cur = itemMap.get(cur.parentId);
@@ -123,14 +122,55 @@ const FolderCaseList = ({
     return path;
   };
 
-  // rows가 주어지면 그대로 사용(가상 노드 목록), 없으면 직속 자식 계산
+  // rows가 주어지면 그대로 사용(가상 노드 목록).
+  // 폴더 선택 시: 직속 하위 폴더(탐색용) + 모든 하위 케이스(재귀, DFS 순서) —
+  // 폴더>폴더>케이스 구조에서도 상위 폴더만 선택하면 케이스 전체를 볼 수 있게 한다.
   const children = useMemo(() => {
     if (rows) return rows;
-    return items
-      .filter((item) => item && String(item.parentId) === String(folder.id))
+
+    const byParent = new Map();
+    items.forEach((item) => {
+      if (!item) return;
+      const key = String(item.parentId);
+      if (!byParent.has(key)) byParent.set(key, []);
+      byParent.get(key).push(item);
+    });
+    const sortByOrder = (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0);
+
+    const directFolders = (byParent.get(String(folder.id)) || [])
+      .filter((item) => item.type === "folder")
       .slice()
-      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+      .sort(sortByOrder);
+
+    // DFS 로 하위 전체 케이스 수집 — 폴더 단위로 묶이고 displayOrder 유지
+    const descendantCases = [];
+    const visited = new Set(); // 순환 참조 방지
+    const visit = (parentId) => {
+      if (visited.has(String(parentId))) return;
+      visited.add(String(parentId));
+      const kids = (byParent.get(String(parentId)) || [])
+        .slice()
+        .sort(sortByOrder);
+      kids.forEach((kid) => {
+        if (kid.type === "testcase") descendantCases.push(kid);
+        else if (kid.type === "folder") visit(kid.id);
+      });
+    };
+    visit(folder.id);
+
+    return [...directFolders, ...descendantCases];
   }, [rows, items, folder.id]);
+
+  // 폴더 경로 컬럼: 가상 노드 목록이거나, 하위 폴더의 케이스가 포함된 경우 표시
+  const hasNestedCases =
+    !rows &&
+    children.some(
+      (item) =>
+        item.type === "testcase" && String(item.parentId) !== String(folder.id),
+    );
+  const showFolderColumn = Boolean(rows) || hasNestedCases;
+  // 경로 기준: 가상 목록은 전체 경로, 폴더 선택 시 선택 폴더 기준 상대 경로
+  const pathBaseId = rows ? null : folder.id;
 
   const totalCaseCount = rows
     ? rows.filter((item) => item.type === "testcase").length
@@ -217,7 +257,7 @@ const FolderCaseList = ({
                     {showFolderColumn && (
                       <TableCell>
                         {(() => {
-                          const path = getFolderPath(item);
+                          const path = getFolderPath(item, pathBaseId);
                           if (path.length === 0) return null;
                           const parentFolder = path[path.length - 1];
                           return (
