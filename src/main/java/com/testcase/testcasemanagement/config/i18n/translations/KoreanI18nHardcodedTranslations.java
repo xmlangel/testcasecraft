@@ -751,6 +751,9 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("manual.viewer.retry", languageCode, "다시 시도", createdBy);
     createTranslationIfNotExists("manual.viewer.print", languageCode, "인쇄", createdBy);
     createTranslationIfNotExists("manual.viewer.close", languageCode, "닫기", createdBy);
+    createTranslationIfNotExists("manual.viewer.relatedGuides", languageCode, "관련 가이드", createdBy);
+    createTranslationIfNotExists("manual.viewer.backToManual", languageCode, "매뉴얼로 돌아가기", createdBy);
+    createTranslationIfNotExists("manual.viewer.guideError", languageCode, "가이드 문서를 불러오지 못했습니다.", createdBy);
 
     log.info("i18n 하드코딩 보강 ko 번역 초기화 완료");
   }

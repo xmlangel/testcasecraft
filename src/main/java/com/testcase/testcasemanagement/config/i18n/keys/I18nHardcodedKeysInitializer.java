@@ -1473,6 +1473,12 @@ public class I18nHardcodedKeysInitializer {
         "manual.viewer.print", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "인쇄");
     createTranslationKeyIfNotExists(
         "manual.viewer.close", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "닫기");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.relatedGuides", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "관련 가이드");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.backToManual", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "매뉴얼로 돌아가기");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.guideError", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "가이드 문서를 불러오지 못했습니다.");
 
     log.info("i18n 하드코딩 보강 번역 키 초기화 완료");
   }

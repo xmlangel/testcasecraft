@@ -751,6 +751,9 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists("manual.viewer.retry", languageCode, "Retry", createdBy);
     createTranslationIfNotExists("manual.viewer.print", languageCode, "Print", createdBy);
     createTranslationIfNotExists("manual.viewer.close", languageCode, "Close", createdBy);
+    createTranslationIfNotExists("manual.viewer.relatedGuides", languageCode, "Related Guides", createdBy);
+    createTranslationIfNotExists("manual.viewer.backToManual", languageCode, "Back to Manual", createdBy);
+    createTranslationIfNotExists("manual.viewer.guideError", languageCode, "Failed to load the guide document.", createdBy);
 
     log.info("i18n 하드코딩 보강 en 번역 초기화 완료");
   }
