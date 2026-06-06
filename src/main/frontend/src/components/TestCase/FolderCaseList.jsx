@@ -39,6 +39,29 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
   // 폴더별 재귀 케이스 개수 (하위 폴더 행의 개수 배지용)
   const caseCountMap = useMemo(() => buildFolderCaseCountMap(items), [items]);
 
+  // 가상 노드 목록(rows 제공)에서는 각 케이스의 소속 폴더 경로를 함께 표시
+  const showFolderColumn = Boolean(rows);
+  // 케이스 개수 컬럼은 폴더 행이 존재할 때만 의미가 있음 (가상 목록은 케이스만 포함)
+  const showCasesColumn = !rows;
+
+  const itemMap = useMemo(
+    () => new Map(items.map((item) => [item.id, item])),
+    [items],
+  );
+
+  // 케이스의 조상 폴더 경로 (루트 → 직속 부모 순)
+  const getFolderPath = (item) => {
+    const path = [];
+    const visited = new Set();
+    let cur = itemMap.get(item.parentId);
+    while (cur && !visited.has(cur.id)) {
+      visited.add(cur.id);
+      path.unshift(cur);
+      cur = itemMap.get(cur.parentId);
+    }
+    return path;
+  };
+
   // rows가 주어지면 그대로 사용(가상 노드 목록), 없으면 직속 자식 계산
   const children = useMemo(() => {
     if (rows) return rows;
@@ -79,15 +102,25 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ width: 56 }} />
+                {showFolderColumn && (
+                  <TableCell sx={{ width: "22%" }}>
+                    {t("testcase.folderList.column.folder", "폴더")}
+                  </TableCell>
+                )}
                 <TableCell>
                   {t("testcase.folderList.column.name", "이름")}
+                </TableCell>
+                <TableCell sx={{ width: "30%" }}>
+                  {t("testcase.folderList.column.description", "설명")}
                 </TableCell>
                 <TableCell sx={{ width: 120 }}>
                   {t("testcase.folderList.column.priority", "우선순위")}
                 </TableCell>
-                <TableCell sx={{ width: 100 }} align="right">
-                  {t("testcase.folderList.column.cases", "케이스")}
-                </TableCell>
+                {showCasesColumn && (
+                  <TableCell sx={{ width: 100 }} align="right">
+                    {t("testcase.folderList.column.cases", "케이스")}
+                  </TableCell>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -108,8 +141,60 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
                         <DescriptionIcon fontSize="small" color="action" />
                       )}
                     </TableCell>
+                    {showFolderColumn && (
+                      <TableCell>
+                        {(() => {
+                          const path = getFolderPath(item);
+                          if (path.length === 0) return null;
+                          const parentFolder = path[path.length - 1];
+                          return (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                                cursor: "pointer",
+                                "&:hover .folder-path-text": {
+                                  textDecoration: "underline",
+                                  color: "primary.main",
+                                },
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onSelectItem) onSelectItem(parentFolder);
+                              }}
+                              title={path.map((p) => p.name).join(" › ")}
+                            >
+                              <FolderIcon
+                                sx={{ fontSize: 16 }}
+                                color="action"
+                              />
+                              <Typography
+                                className="folder-path-text"
+                                variant="body2"
+                                color="text.secondary"
+                                noWrap
+                              >
+                                {path.map((p) => p.name).join(" › ")}
+                              </Typography>
+                            </Box>
+                          );
+                        })()}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Typography variant="body2">{item.name}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        noWrap
+                        sx={{ maxWidth: 320 }}
+                        title={item.description || ""}
+                      >
+                        {item.description || ""}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       {!isChildFolder && item.priority && (
@@ -121,13 +206,15 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
                         />
                       )}
                     </TableCell>
-                    <TableCell align="right">
-                      {isChildFolder && (
-                        <Typography variant="body2" color="text.secondary">
-                          {caseCountMap.get(item.id) || 0}
-                        </Typography>
-                      )}
-                    </TableCell>
+                    {showCasesColumn && (
+                      <TableCell align="right">
+                        {isChildFolder && (
+                          <Typography variant="body2" color="text.secondary">
+                            {caseCountMap.get(item.id) || 0}
+                          </Typography>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
