@@ -53,6 +53,15 @@ public class ManualController {
           content
               .replace("](images_en/", "](/api/manual/images/en/")
               .replace("](images/", "](/api/manual/images/ko/");
+      // 저장소 상대 md 링크 → 인앱 뷰어 경로로 재작성
+      //  - 한↔영 상호 링크 → /manual?l={lang}
+      //  - docs/guide, docs/deployment 문서 → /guides/{file} (GuideViewer 가 렌더)
+      content =
+          content
+              .replace("](USER_MANUAL_EN.md)", "](/manual?l=en)")
+              .replace("](USER_MANUAL.md)", "](/manual?l=ko)")
+              .replace("](../../guide/", "](/guides/")
+              .replace("](../../deployment/", "](/guides/");
       return ResponseEntity.ok(content);
     } catch (IOException e) {
       log.error("매뉴얼 읽기 실패: {}", fileName, e);

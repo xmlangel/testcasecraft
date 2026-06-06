@@ -42,11 +42,20 @@ import { getDynamicApiUrl } from "../../utils/apiConstants.js";
  * /api/manual/images/{lang}/ 로 서빙된다 (본문에서 자동 재작성됨).
  */
 
+/** GitHub 스타일 헤딩 앵커 슬러그 (한글 유지, 구두점 제거, 공백→하이픈) */
+function slugify(text) {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/\s/g, "-");
+}
+
 /** 마크다운을 머리말 + 번호 섹션 + 말미(변경 이력)로 분할 */
 function splitSections(markdown, introLabel) {
   const lines = markdown.split("\n");
   const sections = [];
-  let current = { id: "intro", label: introLabel, lines: [] };
+  let current = { id: "intro", label: introLabel, lines: [], anchors: [] };
   for (const line of lines) {
     const m = line.match(/^## (.+)$/);
     if (m) {
@@ -59,8 +68,11 @@ function splitSections(markdown, introLabel) {
           : heading.toLowerCase().replace(/[^a-z0-9가-힣]+/g, "-"),
         label: heading,
         lines: [line],
+        anchors: [slugify(heading)],
       };
     } else {
+      const h = line.match(/^#{1,4} (.+)$/);
+      if (h) current.anchors.push(slugify(h[1]));
       current.lines.push(line);
     }
   }
@@ -78,7 +90,14 @@ const ManualViewer = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const isWide = useMediaQuery("(min-width:900px)");
-  const [lang, setLang] = useState(currentLanguage === "en" ? "en" : "ko");
+  const langParam = searchParams.get("l");
+  const [lang, setLang] = useState(
+    langParam === "en" || langParam === "ko"
+      ? langParam
+      : currentLanguage === "en"
+        ? "en"
+        : "ko",
+  );
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -96,6 +115,9 @@ const ManualViewer = () => {
   );
   const currentSection = sections[currentIndex];
 
+  const [pendingAnchor, setPendingAnchor] = useState(null);
+  const contentRef = React.useRef(null);
+
   const selectSection = useCallback(
     (id) => {
       setSearchParams(id === "intro" ? {} : { s: id }, { replace: false });
@@ -103,6 +125,47 @@ const ManualViewer = () => {
     },
     [setSearchParams],
   );
+
+  /** 본문 내 해시 링크(#앵커) 클릭 → 앵커가 속한 섹션으로 전환 후 스크롤 */
+  const handleContentClick = useCallback(
+    (e) => {
+      const a = e.target.closest && e.target.closest("a");
+      if (!a) return;
+      const href = a.getAttribute("href") || "";
+      if (!href.startsWith("#")) return;
+      e.preventDefault();
+      const slug = decodeURIComponent(href.slice(1));
+      const target = sections.find((s) => s.anchors.includes(slug));
+      if (target && target.id !== currentSection?.id) {
+        selectSection(target.id);
+      }
+      setPendingAnchor(slug);
+    },
+    [sections, currentSection, selectSection],
+  );
+
+  // 렌더된 헤딩에 GitHub 스타일 id 부여 + 대기 중 앵커로 스크롤
+  useEffect(() => {
+    const root = contentRef.current;
+    if (!root) return;
+    root.querySelectorAll("h1, h2, h3, h4").forEach((el) => {
+      if (!el.id) el.id = slugify(el.textContent || "");
+    });
+    if (pendingAnchor) {
+      // 레이아웃 확정 후 절대 좌표로 스크롤 (smooth scrollIntoView 는
+      // 섹션 전환 직후 window.scrollTo(0) 와 경합해 무시될 수 있음)
+      requestAnimationFrame(() => {
+        const el = root.querySelector(`#${CSS.escape(pendingAnchor)}`);
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 12;
+          window.scrollTo({ top: y });
+          setPendingAnchor(null);
+        }
+        // el 이 없으면 대상 섹션 렌더 전 — 보류했다가 섹션 전환 후
+        // effect 재실행 시 처리한다 (소진 금지)
+      });
+    }
+  }, [currentSection, pendingAnchor, loading]);
 
   const fetchManual = useCallback(
     async (targetLang) => {
@@ -297,7 +360,11 @@ const ManualViewer = () => {
                   </Select>
                 )}
 
-                <div data-color-mode={isDark ? "dark" : "light"}>
+                <div
+                  ref={contentRef}
+                  onClick={handleContentClick}
+                  data-color-mode={isDark ? "dark" : "light"}
+                >
                   <MDEditor.Markdown
                     source={
                       currentSection ? currentSection.lines.join("\n") : ""
