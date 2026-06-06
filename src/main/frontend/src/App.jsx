@@ -8,7 +8,7 @@ import {
   useParams,
   useLocation,
 } from "react-router-dom";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import packageJson from "../package.json";
 const APP_VERSION = packageJson.version;
 import {
@@ -225,6 +225,32 @@ const AppContent = () => {
     selectedTestPlanIdForNewExecution,
     setSelectedTestPlanIdForNewExecution,
   ] = useState(null);
+
+  // 테스트케이스 탭 프레임의 실제 시작 위치(top)를 측정해 화면 바닥까지 채움.
+  // 고정 calc(100vh - 180px)는 헤더/설명 영역 높이 변화(설명 접기, 줄바꿈)에 따라
+  // 아래쪽이 비거나 넘치는 문제가 있어 동적으로 계산한다.
+  const testcaseFrameRef = useRef(null);
+  const [testcaseFrameTop, setTestcaseFrameTop] = useState(180);
+  useEffect(() => {
+    if (tabIndex !== 1) return undefined;
+    const el = testcaseFrameRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const top = Math.round(el.getBoundingClientRect().top);
+      // 동일 값이면 React 가 리렌더를 생략하므로 루프 위험 없음
+      if (top > 0) setTestcaseFrameTop(top);
+    };
+    update();
+    window.addEventListener("resize", update);
+    // 프로젝트 설명 접기/펼치기 등 상단 영역 변화 감지
+    const container = el.closest(".MuiContainer-root");
+    const observer = container ? new ResizeObserver(update) : null;
+    if (observer && container) observer.observe(container);
+    return () => {
+      window.removeEventListener("resize", update);
+      if (observer) observer.disconnect();
+    };
+  }, [tabIndex]);
 
   // 사용자 로그인 완료 시 initialLoad 설정 (프로젝트가 없어도 로딩 완료로 처리)
   React.useEffect(() => {
@@ -946,7 +972,11 @@ const AppContent = () => {
           </Box>
         </Toolbar>
       </AppBar>
-      <Container maxWidth={false} sx={{ mt: 1, mb: 4, px: 2 }}>
+      {/* 테스트케이스 탭(고정 높이 프레임)은 하단 마진 없이 화면을 꽉 채움 */}
+      <Container
+        maxWidth={false}
+        sx={{ mt: 1, mb: tabIndex === 1 ? 0 : 4, px: 2 }}
+      >
         {loadingUser || !initialLoad || !i18nInitialized ? (
           <Box
             sx={{
@@ -1039,7 +1069,14 @@ const AppContent = () => {
                   </Paper>
                 )}
                 {tabIndex === 1 && (
-                  <Box sx={{ display: "flex", height: "calc(100vh - 180px)" }}>
+                  <Box
+                    ref={testcaseFrameRef}
+                    sx={{
+                      display: "flex",
+                      // 측정된 시작 위치부터 화면 바닥까지(하단 여백 12px) 채움
+                      height: `calc(100vh - ${testcaseFrameTop + 12}px)`,
+                    }}
+                  >
                     {/* 트리 토글 버튼 - ICT-315 */}
                     {!treeVisible && (
                       <Box
@@ -1124,13 +1161,15 @@ const AppContent = () => {
                       </>
                     )}
 
-                    {/* 입력폼/스프레드시트 영역 */}
+                    {/* 입력폼/스프레드시트 영역 — 페이지 프레임(100vh-180px) 안에서 내부 스크롤 */}
                     <Box
                       sx={{
                         flex: 1,
                         minWidth: 0,
                         ml: treeVisible ? 1 : 0,
                         transition: "margin-left 0.3s ease-in-out",
+                        height: "100%",
+                        overflowY: "auto",
                       }}
                     >
                       <TestCaseHybridForm
