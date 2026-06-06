@@ -1,9 +1,32 @@
 ---
 name: manual-capture
-description: testcasecraft 사용자 매뉴얼이 참조하는 화면 스크린샷을 Playwright Python(`scripts/manual_capture.py`)로 재캡처하고, 매뉴얼이 언급한 경로 vs 앱의 실제 라우트 커버리지를 감사한다. STEPS 리스트(현재 N장 정의됨)를 확장하면 신규 페이지/기능도 자동 캡처 대상이 된다 — 매뉴얼 성장에 따라 함께 진화. JWT(localStorage) 인증·storage_state 재사용·SPA 폴링 회피 패턴이 이미 검증됨. 트리거 — "매뉴얼 이미지 재캡처", "매뉴얼 스크린샷 갱신", "manual capture 다시", "USER_MANUAL 이미지 다시", "매뉴얼 커버리지 감사", "누락된 페이지 찾아줘(매뉴얼 기준)", "스크린샷만 다시 찍어줘", "매뉴얼 감사만", "새 페이지 캡처 추가", "STEPS 추가", "영문 매뉴얼 이미지", "영어 캡처", "images_en 갱신", "ShopFlow EN 으로 캡처". 매뉴얼 본문 동기화는 `manual-sync` 사용. 단순 페이지 캡처(매뉴얼 무관)는 직접 Playwright 호출.
+description: testcasecraft 사용자 매뉴얼이 참조하는 화면 스크린샷을 Playwright Python(`scripts/manual_capture.py`)로 재캡처하고, 매뉴얼이 언급한 경로 vs 앱의 실제 라우트 커버리지를 감사한다. **매뉴얼용 캡처는 반드시 manual_capture.py 사용 — Playwright MCP 브라우저 도구 금지.** STEPS 리스트를 확장하면 신규 페이지/기능도 자동 캡처 대상이 된다 — 매뉴얼 성장에 따라 함께 진화. JWT(localStorage) 인증·storage_state 재사용·SPA 폴링 회피 패턴이 이미 검증됨. 트리거 — "매뉴얼 이미지 재캡처", "매뉴얼 스크린샷 갱신", "manual capture 다시", "USER_MANUAL 이미지 다시", "매뉴얼 커버리지 감사", "누락된 페이지 찾아줘(매뉴얼 기준)", "스크린샷만 다시 찍어줘", "매뉴얼 감사만", "새 페이지 캡처 추가", "STEPS 추가", "영문 매뉴얼 이미지", "영어 캡처", "images_en 갱신", "ShopFlow EN 으로 캡처", "매뉴얼에 새 기능 캡처 반영". 매뉴얼 본문 동기화는 `manual-sync` 사용. 단순 페이지 캡처(매뉴얼 무관)만 직접 Playwright 호출 허용.
 ---
 
 # manual-capture
+
+## ⚠️ 캡처 도구 강제 규칙 (2026-06-06 사용자 피드백)
+
+**매뉴얼용 캡처는 반드시 `scripts/manual_capture.py` 로 수행한다. Playwright MCP 브라우저 도구(`browser_navigate`/`browser_take_screenshot` 등) 사용 금지.**
+
+이유:
+- MCP 브라우저는 세션이 자주 끊기고(`Target page closed`), 뷰포트·storage_state·언어 설정이 표준화되어 있지 않아 캡처 품질이 들쭉날쭉하다.
+- `manual_capture.py` 는 뷰포트 1280x800·로그인 storage_state·STEPS 슬러그 체계가 검증되어 있고, 재실행 가능성(reproducibility)을 보장한다.
+- 새 화면이 생기면 **STEPS 에 Step 을 추가**하고 `--only <슬러그>` 로 그 단계만 찍는다. 인터랙션이 필요하면 prepare 헬퍼 함수를 함께 추가한다.
+
+자주 쓰는 호출 형태:
+```bash
+# 특정 슬러그만 (dev 서버 UI 가 최신일 때는 --base-url 로 3000 지정)
+python3 scripts/manual_capture.py --only 87,88 --base-url http://localhost:3000 \
+  --project-id <ShopFlow PID>
+
+# 영문 캡처: 서버 언어 전환 → images_en 출력 → 원복 (storage_state 에 언어가 남으므로
+# 언어 전환 직후 캡처는 --skip-login 없이 새 로그인으로 실행)
+curl -X PUT .../api/auth/preferred-language -d '{"languageCode":"en"}'
+python3 scripts/manual_capture.py --only 87 --base-url http://localhost:3000 \
+  --project-id <ShopFlow EN PID> --out-dir docs/manual/new/images_en
+curl -X PUT .../api/auth/preferred-language -d '{"languageCode":"ko"}'
+```
 
 ## 무엇을 하는가
 

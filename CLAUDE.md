@@ -41,3 +41,4 @@
 | 2026-06-06 | 매뉴얼 하네스 EN 확장 (USER_MANUAL_EN·images_en·ShopFlow EN) + capture_interactions.py 번들 | skills/manual-* | 영문판 신설로 drift 방지 필요 |
 | 2026-06-06 | i18n 감사 스킬 신설 | skills/testcasecraft-i18n-audit | 1,196건 보강 절차의 재실행 가능화 |
 | 2026-06-06 | CLAUDE.md 하네스 포인터 최초 등록 | CLAUDE.md | 포인터 부재 drift 해소 (/harness 감사) |
+| 2026-06-06 | 매뉴얼 캡처 도구 강제 규칙 — manual_capture.py 필수, Playwright MCP 금지 | skills/manual-capture | 사용자 피드백 — MCP 브라우저 캡처 패턴 반복 발생 |
