@@ -12,6 +12,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import {
@@ -25,6 +26,47 @@ const PRIORITY_COLOR = {
   HIGH: "error",
   MEDIUM: "warning",
   LOW: "default",
+};
+
+// 텍스트 셀 공통: 최대 길이 초과 시 말줄임(…) + 전체 내용 툴팁
+const MAX_CELL_TEXT_LENGTH = 100;
+
+const TruncatedText = ({ text, color = "text.primary" }) => {
+  const fullText = text || "";
+  const isTruncated = fullText.length > MAX_CELL_TEXT_LENGTH;
+  const displayText = isTruncated
+    ? `${fullText.slice(0, MAX_CELL_TEXT_LENGTH)}…`
+    : fullText;
+
+  const typography = (
+    <Typography
+      variant="body2"
+      color={color}
+      sx={{
+        whiteSpace: "pre-line", // 원본 줄바꿈 보존
+        wordBreak: "break-word",
+      }}
+    >
+      {displayText}
+    </Typography>
+  );
+
+  if (!isTruncated) return typography;
+  return (
+    <Tooltip
+      title={
+        <Box sx={{ whiteSpace: "pre-line", maxWidth: 480 }}>{fullText}</Box>
+      }
+      arrow
+    >
+      {typography}
+    </Tooltip>
+  );
+};
+
+TruncatedText.propTypes = {
+  text: PropTypes.string,
+  color: PropTypes.string,
 };
 
 /**
@@ -192,32 +234,20 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
                       </TableCell>
                     )}
                     <TableCell>
-                      <Typography variant="body2">{item.name}</Typography>
+                      <TruncatedText text={item.name} />
                     </TableCell>
                     <TableCell>
-                      <Typography
-                        variant="body2"
+                      <TruncatedText
+                        text={item.description}
                         color="text.secondary"
-                        sx={{
-                          whiteSpace: "pre-line", // 원본 줄바꿈 보존
-                          wordBreak: "break-word",
-                        }}
-                      >
-                        {item.description || ""}
-                      </Typography>
+                      />
                     </TableCell>
                     <TableCell>
                       {!isChildFolder && (
-                        <Typography
-                          variant="body2"
+                        <TruncatedText
+                          text={getExpectedResults(item)}
                           color="text.secondary"
-                          sx={{
-                            whiteSpace: "pre-line", // 스텝별 줄바꿈 유지
-                            wordBreak: "break-word",
-                          }}
-                        >
-                          {getExpectedResults(item)}
-                        </Typography>
+                        />
                       )}
                     </TableCell>
                     <TableCell>
