@@ -27,6 +27,7 @@ import {
   NavigateBefore as NavigateBeforeIcon,
   NavigateNext as NavigateNextIcon,
 } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 import MDEditor from "@uiw/react-md-editor";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "../../context/I18nContext";
@@ -74,6 +75,8 @@ const ManualViewer = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, currentLanguage } = useI18n();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const isWide = useMediaQuery("(min-width:900px)");
   const [lang, setLang] = useState(currentLanguage === "en" ? "en" : "ko");
   const [content, setContent] = useState("");
@@ -160,7 +163,7 @@ const ManualViewer = () => {
   );
 
   return (
-    <Box sx={{ bgcolor: "#f5f7fa", minHeight: "100vh", py: 3 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 3 }}>
       <Box sx={{ maxWidth: 1280, mx: "auto", px: 2 }}>
         <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
           {/* Header */}
@@ -226,7 +229,7 @@ const ManualViewer = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 py: 12,
-                bgcolor: "white",
+                bgcolor: "background.paper",
               }}
             >
               <CircularProgress size={40} sx={{ mb: 2 }} />
@@ -235,7 +238,7 @@ const ManualViewer = () => {
               </Typography>
             </Box>
           ) : error ? (
-            <Box sx={{ p: 5, bgcolor: "white" }}>
+            <Box sx={{ p: 5, bgcolor: "background.paper" }}>
               <Alert
                 severity="error"
                 action={
@@ -253,14 +256,16 @@ const ManualViewer = () => {
               </Alert>
             </Box>
           ) : (
-            <Box sx={{ display: "flex", bgcolor: "white" }}>
+            <Box sx={{ display: "flex", bgcolor: "background.paper" }}>
               {/* 섹션 사이드바 (넓은 화면) */}
               {isWide && (
                 <Box
                   sx={{
                     width: 300,
                     flexShrink: 0,
-                    borderRight: "1px solid #eee",
+                    bgcolor: isDark ? "rgba(255,255,255,0.05)" : "grey.100",
+                    borderRight: 1,
+                    borderColor: "divider",
                     p: 1.5,
                     position: "sticky",
                     top: 0,
@@ -292,12 +297,15 @@ const ManualViewer = () => {
                   </Select>
                 )}
 
-                <div data-color-mode="light">
+                <div data-color-mode={isDark ? "dark" : "light"}>
                   <MDEditor.Markdown
                     source={
                       currentSection ? currentSection.lines.join("\n") : ""
                     }
-                    style={{ backgroundColor: "white", color: "#24292e" }}
+                    style={{
+                      backgroundColor: "transparent",
+                      color: theme.palette.text.primary,
+                    }}
                   />
                 </div>
 
