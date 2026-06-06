@@ -1,8 +1,8 @@
-# Release Note - v1.0.82
+# Release Note - v1.0.83
 
-## [1.0.82] - 2026-06-06
+## [1.0.83] - 2026-06-06
 
-Hello! The 1.0.82 update focuses on **information density in the Test Cases screen**. The tree now focuses on folder structure navigation while the right-side list handles case browsing, so you can grasp the overall structure at a glance even in projects with many cases.
+Hello! The 1.0.83 update focuses on **information density in the Test Cases screen**. The tree now focuses on folder structure navigation while the right-side list handles case browsing, so you can grasp the overall structure at a glance even in projects with many cases.
 
 ### Key Changes
 
@@ -31,6 +31,7 @@ Hello! The 1.0.82 update focuses on **information density in the Test Cases scre
 #### 🐛 Bug Fixes
 
 * Fixed an issue where clicking **[Rename] in the tree context menu did nothing** — the menu was not closing on item click, which blocked the rename dialog from opening.
+* Fixed the **in-app manual/guide viewer returning 404 in Docker deployments** — manual/guide documents and screenshots are now bundled into the deployment jar, while development still reads repository docs directly.
 * Fixed the **header logo not displaying in Docker deployments** (a global `*.png` rule in `.gitignore` excluded the logo file from build artifacts).
 
 #### ⚡ Performance & Assets
