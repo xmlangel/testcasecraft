@@ -41,8 +41,19 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
 
   // 가상 노드 목록(rows 제공)에서는 각 케이스의 소속 폴더 경로를 함께 표시
   const showFolderColumn = Boolean(rows);
-  // 케이스 개수 컬럼은 폴더 행이 존재할 때만 의미가 있음 (가상 목록은 케이스만 포함)
-  const showCasesColumn = !rows;
+
+  // 기대결과: 통합 expectedResults 필드 우선, 없으면 스텝별 기대결과를 줄바꿈으로 합침
+  const getExpectedResults = (item) => {
+    if (item.expectedResults && String(item.expectedResults).trim()) {
+      return String(item.expectedResults).trim();
+    }
+    if (!Array.isArray(item.steps)) return "";
+    const results = item.steps
+      .map((step) => step?.expectedResult)
+      .filter((text) => text && String(text).trim().length > 0);
+    if (results.length <= 1) return results[0] || "";
+    return results.map((text, idx) => `${idx + 1}. ${text}`).join("\n");
+  };
 
   const itemMap = useMemo(
     () => new Map(items.map((item) => [item.id, item])),
@@ -110,17 +121,15 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
                 <TableCell>
                   {t("testcase.folderList.column.name", "이름")}
                 </TableCell>
-                <TableCell sx={{ width: "30%" }}>
+                <TableCell sx={{ width: "25%" }}>
                   {t("testcase.folderList.column.description", "설명")}
+                </TableCell>
+                <TableCell sx={{ width: "25%" }}>
+                  {t("testcase.folderList.column.expectedResult", "기대결과")}
                 </TableCell>
                 <TableCell sx={{ width: 120 }}>
                   {t("testcase.folderList.column.priority", "우선순위")}
                 </TableCell>
-                {showCasesColumn && (
-                  <TableCell sx={{ width: 100 }} align="right">
-                    {t("testcase.folderList.column.cases", "케이스")}
-                  </TableCell>
-                )}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -198,6 +207,20 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
                       </Typography>
                     </TableCell>
                     <TableCell>
+                      {!isChildFolder && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            whiteSpace: "pre-line", // 스텝별 줄바꿈 유지
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {getExpectedResults(item)}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       {!isChildFolder && item.priority && (
                         <Chip
                           label={item.priority}
@@ -207,15 +230,6 @@ const FolderCaseList = ({ folder, items, onSelectItem, rows }) => {
                         />
                       )}
                     </TableCell>
-                    {showCasesColumn && (
-                      <TableCell align="right">
-                        {isChildFolder && (
-                          <Typography variant="body2" color="text.secondary">
-                            {caseCountMap.get(item.id) || 0}
-                          </Typography>
-                        )}
-                      </TableCell>
-                    )}
                   </TableRow>
                 );
               })}
