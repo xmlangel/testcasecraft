@@ -3,7 +3,9 @@ package com.testcase.testcasemanagement.util;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.DecodingException;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,6 +27,41 @@ public class JwtTokenUtil {
   @Value("${jwt.refresh-token-expiration}")
   private Long refreshTokenExpiration;
 
+  /**
+   * 앱 시작 시 JWT_SECRET 을 즉시 검증한다.
+   *
+   * <p>시크릿이 잘못되면(비 Base64 문자 포함, 길이 부족) 기존에는 첫 로그인 시점에야 "Illegal base64
+   * character" 같은 모호한 에러로 실패해 원인 파악이 어려웠다. 시작 시점에 명확한 메시지로 즉시 실패시켜 배포
+   * 설정 오류를 바로 드러낸다.
+   */
+  @PostConstruct
+  void validateSecretOnStartup() {
+    final String hint =
+        " JWT_SECRET 은 Base64 문자열(A-Z a-z 0-9 + / =)이어야 하며, 디코딩 후 64바이트(512비트) 이상이어야 합니다."
+            + " / JWT_SECRET must be a Base64 string (A-Z a-z 0-9 + / =) that decodes to at least"
+            + " 64 bytes (512 bits)."
+            + " 생성 예 (How to generate): openssl rand -base64 64 | tr -d '\\n'";
+    try {
+      getSigningKey();
+    } catch (DecodingException e) {
+      throw new IllegalStateException(
+          "JWT_SECRET 이 유효한 Base64 문자열이 아닙니다 (하이픈/언더스코어 등 사용 불가)."
+              + " / JWT_SECRET is not a valid Base64 string (characters like '-' or '_' are not"
+              + " allowed)."
+              + hint
+              + " — 원인 (Cause): "
+              + e.getMessage(),
+          e);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalStateException(
+          "JWT_SECRET 길이가 부족합니다. / JWT_SECRET is too short."
+              + hint
+              + " — 원인 (Cause): "
+              + e.getMessage(),
+          e);
+    }
+  }
+
   private Key getSigningKey() {
     byte[] keyBytes = Decoders.BASE64.decode(secret);
     validateKeyLength(keyBytes);
@@ -34,7 +71,10 @@ public class JwtTokenUtil {
   private void validateKeyLength(byte[] keyBytes) {
     if (keyBytes.length * 8 < 512) {
       throw new IllegalArgumentException(
-          "HS512 알고리즘은 512비트(64바이트) 이상의 키가 필요합니다. 현재 키 길이: " + (keyBytes.length * 8) + "비트");
+          "HS512 알고리즘은 512비트(64바이트) 이상의 키가 필요합니다. / HS512 requires a key of at least 512 bits"
+              + " (64 bytes). 현재 키 길이 (Current key length): "
+              + (keyBytes.length * 8)
+              + "비트 (bits)");
     }
   }
 
