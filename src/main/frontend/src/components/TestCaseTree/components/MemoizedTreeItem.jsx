@@ -177,16 +177,17 @@ const MemoizedTreeItem = React.memo(
         }}
         onContextMenu={(e) => onContextMenu(e, node.id)}
       >
-        {/* 체크박스 영역: 평소 숨김, 체크됨/호버/selectable 모드 시 표시 (정보 밀도 개선) */}
+        {/* 체크박스 영역: 평소 폭 0으로 접힘, 체크됨/호버/selectable 모드 시 펼침 */}
         <Box
-          className={isChecked || selectable ? undefined : "tree-hover-reveal"}
+          className="tree-cb-area"
           sx={{
-            width: 32,
+            width: isChecked || selectable ? 32 : 0,
             display: "flex",
             justifyContent: "center",
             flexShrink: 0,
+            overflow: "hidden",
             opacity: isChecked || selectable ? 1 : 0,
-            transition: "opacity 0.15s",
+            transition: "width 0.15s, opacity 0.15s",
           }}
         >
           {!isViewerRole && (
@@ -200,14 +201,14 @@ const MemoizedTreeItem = React.memo(
           )}
         </Box>
 
-        {/* 아이콘 영역: 고정 너비 32px */}
+        {/* 아이콘 영역 */}
         <Box
           sx={{
-            width: 32,
+            width: 24,
             display: "flex",
             justifyContent: "center",
             flexShrink: 0,
-            mr: 1,
+            mr: 0.75,
           }}
         >
           {isFolder(node) ? (
@@ -445,6 +446,8 @@ const MemoizedTreeItem = React.memo(
             "&:hover": { bgcolor: "action.hover" },
             // 행 호버 시 숨겨둔 보조 요소(체크박스/드래그 핸들/액션 버튼) 표시
             "&:hover .tree-hover-reveal": { opacity: 1 },
+            "&:hover .tree-cb-area": { width: 32, opacity: 1 },
+            "&:hover .tree-drag-area": { width: 18, opacity: 1 },
             bgcolor: isOverInto
               ? "rgba(0, 123, 255, 0.18)"
               : isSelected
@@ -456,10 +459,10 @@ const MemoizedTreeItem = React.memo(
             mr: 1,
           }}
         >
-          {/* Chevron 영역: 고정 너비 40px */}
+          {/* Chevron 영역 */}
           <Box
             sx={{
-              width: 40,
+              width: 28,
               display: "flex",
               justifyContent: "center",
               flexShrink: 0,
@@ -475,21 +478,22 @@ const MemoizedTreeItem = React.memo(
               </IconButton>
             )}
           </Box>
-          {/* DnD: 드래그 핸들 (호버 시에만 표시) */}
+          {/* DnD: 드래그 핸들 (평소 폭 0, 호버 시 펼침) */}
           {!dndDisabled && (
             <Box
               {...draggable.attributes}
               {...draggable.listeners}
               onClick={(e) => e.stopPropagation()}
-              className="tree-hover-reveal"
+              className="tree-drag-area"
               sx={{
                 display: "flex",
                 alignItems: "center",
-                width: 18,
+                width: 0,
+                overflow: "hidden",
                 color: "action.disabled",
                 cursor: "grab",
                 opacity: 0,
-                transition: "opacity 0.15s",
+                transition: "width 0.15s, opacity 0.15s",
                 "&:active": { cursor: "grabbing" },
                 "&:hover": { color: "action.active" },
               }}
