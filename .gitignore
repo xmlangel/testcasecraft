@@ -186,6 +186,8 @@ src/test/e2e/regression/screenshots/
 !docs/manual/**/*.png
 !docs/guide/**/*.png
 !docs/plan/**/*.png
+# 프런트엔드 정적 에셋(로고 등)은 추적 — 빌드 산출물에 포함되어야 함
+!src/main/frontend/public/**/*.png
 
 # 로그 파일들
 *.log
