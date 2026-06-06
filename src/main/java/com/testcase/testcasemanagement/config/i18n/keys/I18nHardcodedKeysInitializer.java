@@ -1457,6 +1457,22 @@ public class I18nHardcodedKeysInitializer {
         "testResult.chart.countOnly", "testResult", "i18n 하드코딩 보강 (2026-06-06)", "{count}건");
     createTranslationKeyIfNotExists(
         "rag.chat.defaultConfigSuffix", "rag", "i18n 하드코딩 보강 (2026-06-06)", "(기본)");
+    createTranslationKeyIfNotExists(
+        "header.userMenu.manual", "header", "사용자 매뉴얼 뷰어 (2026-06-06)", "사용자 매뉴얼");
+    createTranslationKeyIfNotExists(
+        "login.manualLink", "login", "사용자 매뉴얼 뷰어 (2026-06-06)", "사용자 매뉴얼");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.title", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "사용자 매뉴얼");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.loading", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "매뉴얼 로딩 중...");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.error", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "매뉴얼을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.retry", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "다시 시도");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.print", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "인쇄");
+    createTranslationKeyIfNotExists(
+        "manual.viewer.close", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "닫기");
 
     log.info("i18n 하드코딩 보강 번역 키 초기화 완료");
   }

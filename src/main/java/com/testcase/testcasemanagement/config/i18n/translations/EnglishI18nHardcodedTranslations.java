@@ -743,6 +743,14 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists("testResult.chart.totalCount", languageCode, "Total {count}", createdBy);
     createTranslationIfNotExists("testResult.chart.countOnly", languageCode, "{count}", createdBy);
     createTranslationIfNotExists("rag.chat.defaultConfigSuffix", languageCode, "(default)", createdBy);
+    createTranslationIfNotExists("header.userMenu.manual", languageCode, "User Manual", createdBy);
+    createTranslationIfNotExists("login.manualLink", languageCode, "User Manual", createdBy);
+    createTranslationIfNotExists("manual.viewer.title", languageCode, "User Manual", createdBy);
+    createTranslationIfNotExists("manual.viewer.loading", languageCode, "Loading manual...", createdBy);
+    createTranslationIfNotExists("manual.viewer.error", languageCode, "An error occurred while loading the manual. Please try again later.", createdBy);
+    createTranslationIfNotExists("manual.viewer.retry", languageCode, "Retry", createdBy);
+    createTranslationIfNotExists("manual.viewer.print", languageCode, "Print", createdBy);
+    createTranslationIfNotExists("manual.viewer.close", languageCode, "Close", createdBy);
 
     log.info("i18n 하드코딩 보강 en 번역 초기화 완료");
   }

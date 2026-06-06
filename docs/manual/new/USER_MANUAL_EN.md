@@ -63,6 +63,8 @@ Navigate to `http://localhost:8080/` or `/login` to display the login screen.
 
 If you already have an account, enter your **username and password** and click the **[Log In]** button. For first-time users, click the **[Sign Up]** button at the bottom to create an account.
 
+> 💡 The **User Manual** link at the bottom of the login screen opens this manual (Korean/English) even before you log in (`/manual`).
+
 ### 1-2. Sign-Up Form
 
 Switching to sign-up mode displays the following five fields.
@@ -148,6 +150,7 @@ Upon entering a project (`/projects/{projectId}`), the screen displays a three-s
 | Tab bar `Dashboard / Test Cases / Test Plans / Test Execution / Test Results / Automated Tests / RAG Documents / Exploratory Sessions` | Navigate between project sections |
 | Upper right `Project Selector` | Switch to other projects quickly |
 | `⚠ JIRA` badge | Yellow warning when JIRA is not configured — click for setup instructions |
+| ❓ (Help icon) | Opens the **User Manual** (Korean/English) in a new tab |
 | 🌓 (Theme icon) | Toggle dark/light mode |
 | User avatar (initials) | Click for profile/logout menu |
 

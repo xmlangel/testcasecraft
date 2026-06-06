@@ -743,6 +743,14 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("testResult.chart.totalCount", languageCode, "총 {count}건", createdBy);
     createTranslationIfNotExists("testResult.chart.countOnly", languageCode, "{count}건", createdBy);
     createTranslationIfNotExists("rag.chat.defaultConfigSuffix", languageCode, "(기본)", createdBy);
+    createTranslationIfNotExists("header.userMenu.manual", languageCode, "사용자 매뉴얼", createdBy);
+    createTranslationIfNotExists("login.manualLink", languageCode, "사용자 매뉴얼", createdBy);
+    createTranslationIfNotExists("manual.viewer.title", languageCode, "사용자 매뉴얼", createdBy);
+    createTranslationIfNotExists("manual.viewer.loading", languageCode, "매뉴얼 로딩 중...", createdBy);
+    createTranslationIfNotExists("manual.viewer.error", languageCode, "매뉴얼을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", createdBy);
+    createTranslationIfNotExists("manual.viewer.retry", languageCode, "다시 시도", createdBy);
+    createTranslationIfNotExists("manual.viewer.print", languageCode, "인쇄", createdBy);
+    createTranslationIfNotExists("manual.viewer.close", languageCode, "닫기", createdBy);
 
     log.info("i18n 하드코딩 보강 ko 번역 초기화 완료");
   }

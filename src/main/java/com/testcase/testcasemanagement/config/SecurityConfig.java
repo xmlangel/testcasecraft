@@ -105,6 +105,8 @@ public class SecurityConfig {
                     .permitAll() // 이메일 인증 API 허용
                     .requestMatchers("/api/guides/**")
                     .permitAll() // 가이드 API 허용
+                    .requestMatchers("/api/manual/**")
+                    .permitAll() // 사용자 매뉴얼 API 허용 (로그인 화면 링크 지원)
                     // 액추에이터 엔드포인트 허용 (루트, 헬스, 스케줄러)
                     .requestMatchers(
                         "/actuator",
@@ -163,6 +165,8 @@ public class SecurityConfig {
                         "/verify-email/**",
                         "/guides",
                         "/guides/**",
+                        "/manual",
+                        "/manual/**",
                         "/login",
                         "/login/**")
                     .permitAll()

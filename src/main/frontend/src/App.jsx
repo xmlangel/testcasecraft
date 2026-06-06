@@ -71,6 +71,7 @@ import EmailVerification from "./components/EmailVerification.jsx";
 import SessionExpiryDialog from "./components/common/SessionExpiryDialog.jsx";
 import JiraIssueRedirect from "./components/JiraIntegration/JiraIssueRedirect.jsx";
 import GuideViewer from "./components/Settings/GuideViewer.jsx";
+import ManualViewer from "./components/Settings/ManualViewer.jsx";
 
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -78,6 +79,7 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   Brightness4 as Brightness4Icon,
   Brightness7 as Brightness7Icon,
+  HelpOutline as HelpOutlineIcon,
 } from "@mui/icons-material";
 
 const STORAGEKEY = "testcase-manager-ui-state";
@@ -879,6 +881,19 @@ const AppContent = () => {
             <JiraStatusIndicator compact={true} />
           </Box>
 
+          {/* 사용자 매뉴얼 (한/영) — 새 탭으로 열기 */}
+          <Box sx={{ ml: 1 }}>
+            <IconButton
+              color="inherit"
+              onClick={() => window.open("/manual", "_blank")}
+              aria-label="user manual"
+              data-testid="manual-help-button"
+              title={t("header.userMenu.manual", "사용자 매뉴얼")}
+            >
+              <HelpOutlineIcon />
+            </IconButton>
+          </Box>
+
           {/* Dark/Light 모드 토글 버튼 */}
           <Box sx={{ ml: 1 }}>
             <IconButton
@@ -914,6 +929,15 @@ const AppContent = () => {
                 data-testid="profile-menu-item"
               >
                 {t("header.userMenu.profile")}
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleUserMenuClose();
+                  window.open("/manual", "_blank");
+                }}
+                data-testid="manual-menu-item"
+              >
+                {t("header.userMenu.manual", "사용자 매뉴얼")}
               </MenuItem>
               <MenuItem onClick={handleLogout} data-testid="logout-menu-item">
                 {t("header.userMenu.logout")}
@@ -1401,6 +1425,7 @@ const AppWrapper = () => {
           }
         />
         <Route path="/guides/:guideName" element={<GuideViewer />} />
+        <Route path="/manual" element={<ManualViewer />} />
       </Routes>
 
       {/* 서버 시간 표시 */}
