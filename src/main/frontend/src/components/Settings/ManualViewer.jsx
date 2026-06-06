@@ -42,6 +42,25 @@ import { getDynamicApiUrl } from "../../utils/apiConstants.js";
  * /api/manual/images/{lang}/ 로 서빙된다 (본문에서 자동 재작성됨).
  */
 
+/** 매뉴얼과 함께 노출하는 관련 가이드 문서 (GuideController 가 서빙) */
+const RELATED_GUIDES = [
+  {
+    file: "TREE_DND_USER_GUIDE.md",
+    ko: "트리 드래그앤드롭 가이드",
+    en: "Tree Drag-and-Drop Guide",
+  },
+  {
+    file: "GOOGLE_SHEETS_SETUP_GUIDE.md",
+    ko: "Google Sheets 연동 가이드",
+    en: "Google Sheets Setup Guide",
+  },
+  {
+    file: "DOCKER_SETUP.md",
+    ko: "도커 설치·운영 가이드",
+    en: "Docker Installation & Operations",
+  },
+];
+
 /** GitHub 스타일 헤딩 앵커 슬러그 (한글 유지, 구두점 제거, 공백→하이픈) */
 function slugify(text) {
   return text
@@ -108,6 +127,10 @@ const ManualViewer = () => {
     [content, introLabel],
   );
 
+  const guideParam = searchParams.get("g");
+  const [guideContent, setGuideContent] = useState("");
+  const [guideLoading, setGuideLoading] = useState(false);
+
   const sectionParam = searchParams.get("s") || "intro";
   const currentIndex = Math.max(
     0,
@@ -126,12 +149,62 @@ const ManualViewer = () => {
     [setSearchParams],
   );
 
+  const selectGuide = useCallback(
+    (file) => {
+      setSearchParams({ g: file }, { replace: false });
+      window.scrollTo({ top: 0 });
+    },
+    [setSearchParams],
+  );
+
+  // 가이드 본문 로드 (?g= 지정 시) — 언어 토글에 맞춰 Accept-Language 전달
+  useEffect(() => {
+    if (!guideParam) {
+      setGuideContent("");
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setGuideLoading(true);
+      try {
+        const baseUrl = (await getDynamicApiUrl()) || window.location.origin;
+        const res = await fetch(`${baseUrl}/api/guides/${guideParam}`, {
+          headers: { "Accept-Language": lang },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (!cancelled) setGuideContent(text);
+      } catch (err) {
+        console.error("Guide loading failed:", err);
+        if (!cancelled)
+          setGuideContent(
+            t(
+              "manual.viewer.guideError",
+              "가이드 문서를 불러오지 못했습니다.",
+            ),
+          );
+      } finally {
+        if (!cancelled) setGuideLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [guideParam, lang, t]);
+
   /** 본문 내 해시 링크(#앵커) 클릭 → 앵커가 속한 섹션으로 전환 후 스크롤 */
   const handleContentClick = useCallback(
     (e) => {
       const a = e.target.closest && e.target.closest("a");
       if (!a) return;
       const href = a.getAttribute("href") || "";
+      // 가이드 링크는 별도 화면 대신 같은 뷰어 안에서 표시 (사이드바 유지)
+      const guideMatch = href.match(/^\/guides\/([A-Za-z0-9_\-]+\.md)$/);
+      if (guideMatch) {
+        e.preventDefault();
+        selectGuide(guideMatch[1]);
+        return;
+      }
       if (!href.startsWith("#")) return;
       e.preventDefault();
       const slug = decodeURIComponent(href.slice(1));
@@ -141,7 +214,7 @@ const ManualViewer = () => {
       }
       setPendingAnchor(slug);
     },
-    [sections, currentSection, selectSection],
+    [sections, currentSection, selectSection, selectGuide],
   );
 
   // 렌더된 헤딩에 GitHub 스타일 id 부여 + 대기 중 앵커로 스크롤
@@ -208,7 +281,7 @@ const ManualViewer = () => {
       {sections.map((s, i) => (
         <ListItemButton
           key={s.id}
-          selected={i === currentIndex}
+          selected={!guideParam && i === currentIndex}
           onClick={() => selectSection(s.id)}
           sx={{ borderRadius: 1, mb: 0.25 }}
         >
@@ -216,7 +289,33 @@ const ManualViewer = () => {
             primary={s.label}
             primaryTypographyProps={{
               fontSize: 13.5,
-              fontWeight: i === currentIndex ? 700 : 400,
+              fontWeight: !guideParam && i === currentIndex ? 700 : 400,
+              noWrap: true,
+            }}
+          />
+        </ListItemButton>
+      ))}
+      <Divider sx={{ my: 1 }} />
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ px: 2, fontWeight: 700, letterSpacing: 0.5 }}
+      >
+        {t("manual.viewer.relatedGuides", "관련 가이드")}
+      </Typography>
+      {RELATED_GUIDES.map((g) => (
+        <ListItemButton
+          key={g.file}
+          selected={guideParam === g.file}
+          onClick={() => selectGuide(g.file)}
+          data-testid={`manual-guide-${g.file}`}
+          sx={{ borderRadius: 1, mb: 0.25 }}
+        >
+          <ListItemText
+            primary={lang === "en" ? g.en : g.ko}
+            primaryTypographyProps={{
+              fontSize: 13.5,
+              fontWeight: guideParam === g.file ? 700 : 400,
               noWrap: true,
             }}
           />
@@ -365,19 +464,40 @@ const ManualViewer = () => {
                   onClick={handleContentClick}
                   data-color-mode={isDark ? "dark" : "light"}
                 >
-                  <MDEditor.Markdown
-                    source={
-                      currentSection ? currentSection.lines.join("\n") : ""
-                    }
-                    style={{
-                      backgroundColor: "transparent",
-                      color: theme.palette.text.primary,
-                    }}
-                  />
+                  {guideLoading ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                      <CircularProgress size={32} />
+                    </Box>
+                  ) : (
+                    <MDEditor.Markdown
+                      source={
+                        guideParam
+                          ? guideContent
+                          : currentSection
+                            ? currentSection.lines.join("\n")
+                            : ""
+                      }
+                      style={{
+                        backgroundColor: "transparent",
+                        color: theme.palette.text.primary,
+                      }}
+                    />
+                  )}
                 </div>
 
-                {/* 이전/다음 섹션 내비게이션 */}
+                {/* 이전/다음 섹션 내비게이션 (가이드 모드에서는 복귀 버튼) */}
                 <Divider sx={{ mt: 4, mb: 2 }} />
+                {guideParam ? (
+                  <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <Button
+                      startIcon={<NavigateBeforeIcon />}
+                      onClick={() => selectSection(sections[0]?.id || "intro")}
+                      data-testid="manual-back-to-sections"
+                    >
+                      {t("manual.viewer.backToManual", "매뉴얼로 돌아가기")}
+                    </Button>
+                  </Box>
+                ) : (
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Button
                     startIcon={<NavigateBeforeIcon />}
@@ -404,6 +524,7 @@ const ManualViewer = () => {
                     </Typography>
                   </Button>
                 </Box>
+                )}
               </Box>
             </Box>
           )}
