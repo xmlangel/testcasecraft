@@ -44,6 +44,7 @@ import TestPlanList from "./components/TestPlanList.jsx";
 import TestExecutionList from "./components/TestExecutionList.jsx";
 import TestExecutionForm from "./components/TestExecutionForm.jsx";
 import TestCaseResultPage from "./components/TestCaseResultPage.jsx";
+import BookmarkPage from "./components/Bookmark/BookmarkPage.jsx";
 import TestResultMainPage from "./components/TestResultMainPage.jsx";
 import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
@@ -1461,6 +1462,14 @@ const AppWrapper = () => {
           element={
             <ProtectedRoute>
               <JiraIssueRedirect />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:projectId/bookmarks"
+          element={
+            <ProtectedRoute>
+              <BookmarkPage />
             </ProtectedRoute>
           }
         />

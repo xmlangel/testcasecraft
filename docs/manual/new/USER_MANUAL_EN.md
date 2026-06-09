@@ -150,6 +150,7 @@ Upon entering a project (`/projects/{projectId}`), the screen displays a three-s
 | Tab bar `Dashboard / Test Cases / Test Plans / Test Execution / Test Results / Automated Tests / RAG Documents / Exploratory Sessions` | Navigate between project sections. **Test Cases / Test Plans / Test Execution tabs display item count badges** beside the label |
 | Upper right `Project Selector` | Switch to other projects quickly |
 | `⚠ JIRA` badge | Yellow warning when JIRA is not configured — click for setup instructions |
+| **☆** (star icon) | Navigates to this project's **Bookmarks** (favorites) screen (`/projects/{projectId}/bookmarks`) — see Section 4-7 |
 | **?** (circled question-mark icon) | Opens the **User Manual** (Korean/English) in a new tab |
 | ◐ (half-moon icon) | Toggle dark/light mode |
 | User avatar (initials) | Click for profile/logout menu |
@@ -339,6 +340,30 @@ Opening a case in form mode displays the following screen.
 - **Editable fields** — Name, Display ID, description, priority, tags, etc. (exposed per §4-5 toggles)
 - **Read-only fields** — Created date, modified date, author, UUID, etc. (system-populated). UUID displays as the full string without truncation, allowing easy copy-paste for external system integration and debugging.
 
+### 4-7. Bookmarks & Favorites
+
+> **Changed on 2026-06-09**: You can now collect frequently viewed test cases into personal **bookmarks**. Bookmarks are **private to you** and do not affect other users' screens.
+
+**Add/Remove a favorite**
+
+Each row in the case list has a star icon on the left.
+
+- Click **☆ (empty star)** → adds the case to your favorites.
+- Click **★ (filled star)** → removes the case from your favorites.
+
+Favorited cases go into the default **Favorites** collection.
+
+**Bookmarks screen**
+
+Click the **☆** icon in the header to open the Bookmarks screen (`/projects/{projectId}/bookmarks`). The screen is split into two areas:
+
+- **Left — Collection list**: **collections** that group cases by topic. The default **Favorites** collection always exists and cannot be deleted. Use **[Create Collection]** to add a new one; each collection can be **renamed** and **deleted**.
+- **Right — Case list**: cases in the selected collection are shown in a table with **Case Name · Priority · Note · Actions** columns.
+
+You can attach a **personal note** to each case — for example, "always check during regression."
+
+> ⚠️ The Bookmarks screen is **read-only**. To edit case content (name, steps, expected results, etc.), go to the **Test Cases** screen. Bookmarks only handle collection organization and personal notes.
+
 ---
 
 ## 5. Test Case Tree — Drag-and-Drop Reorganization
@@ -425,11 +450,13 @@ Click the **[Test Plans]** tab at the top (`/projects/{projectId}/testplans`) to
 
 Click the **[Test Execution]** tab at the top (`/projects/{projectId}/executions`) to manage execution instances of cases bundled in test plans.
 
-![Test Execution list — empty](images_en/52_executions.png)
+![Test Execution list](images_en/52_executions.png)
 
-- Search by title using the filter box
+- Search by title using the filter box (the search term is remembered per project)
 - Click a row to enter that execution and record each case's result (Pass/Fail/Skipped/Blocked)
 - The "Test Results" tab shows consolidated statistics from completed executions
+
+> **Changed on 2026-06-09**: The test execution list **auto-refreshes about every 20 seconds**, so progress recorded by other team members appears without a manual reload. Auto-refresh pauses while you are on another tab to avoid unnecessary requests, and resumes when you return to the screen. You can also refresh instantly at any time using the **[Refresh]** button at the top of the list.
 
 The manual execution flow is as follows:
 
@@ -437,6 +464,10 @@ The manual execution flow is as follows:
 2. Step through cases one by one — enter expected result (expected) and actual result (actual) per step, then mark the result
 3. Upload attachment files (screenshots, logs, etc.) — supports TXT, CSV, JSON, MD, PDF, LOG, PNG, JPG, GIF formats; up to 10 MB per file
 4. On completion, results automatically reflect in **Test Results** and **dashboard statistics**
+
+> **Changed on 2026-06-09**: A **filter panel** was added above the case list inside an execution, letting you narrow cases by **result** (PASS/FAIL/BLOCKED/NOT RUN), **priority**, **executor**, **execution date**, **JIRA issue key**, and **notes**. When a filter is active, an **Active** indicator appears, and **[Clear]** removes all conditions at once.
+
+![Execution detail — filter panel expanded](images_en/52b_execution_filter_panel.png)
 
 ### 8-1. Result Entry Screen
 
@@ -879,3 +910,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-06-06 | Comprehensive review and enhancement based on v1.0.80. Added "How to Read This Manual" to preamble (reader-specific guidance, notation rules per IEC/IEEE 82079-1). Updated Section 2-1 description field; Section 4 single-column full-width form layout (v1.0.80) and editor auto-height (v1.0.79); reflected hidden Advanced Spreadsheet in Section 4-2; added right-click context menu table and 2 tree screenshots in Section 4-4; added field visibility screenshot in Section 4-5; added 4-tab form mode with header composition and screenshot in Section 4-6; added drag handle screenshot in Section 5-1; introduced new result input screen (P/F/B/N) in Section 8-1 and auto-save safeguards (v1.0.80) in Section 8-2; corrected export formats in Section 9 (Excel / PDF / CSV); clarified detail screen path in Section 10; added guide document link in Section 13-5; added design system option in Section 13-7; corrected language change path in Section 14-2; updated troubleshooting rows in Section 16-2; corrected 6-role structure (CONTRIBUTOR) in Sections 17-9 and 18-4; refined glossary entries in Section 18. Added 4 new screenshots (23, 24, 44b, 44c) |
 | 2026-06-06 | English edition created from the Korean v1.0.80 manual |
 | 2026-06-06 | Reflected feat/style-folder-tree branch: Section 3-1 tab badges added, Section 4-1 screen layout table updated (folders-only tree display, folder filter added) plus new "Folder Case List" and "Edit Folder Info" subsections, Section 4-4 added three subsections (Tree View Modes, Virtual Nodes, Folder Filter), Section 5-1 drag handle hover visibility added. 4 new screenshots (87–90, ShopFlow EN). Synchronized same sections in Korean edition. |
+| 2026-06-09 | Reflected favorites/bookmarks feature: added ☆ Bookmarks button row in Section 3-1 header, new "Bookmarks & Favorites" subsection in Section 4-7 (case star toggle, collection management, personal notes, read-only). Section 8 test execution list: added 20-second auto-refresh, pause while tab inactive, [Refresh] button, and filter panel note. Section 8 screenshots refreshed: `52_executions` (real data, 12 executions) and new `52b_execution_filter_panel` (filter panel expanded), captured from ShopFlow EN with English UI. Synchronized same sections in Korean edition. |

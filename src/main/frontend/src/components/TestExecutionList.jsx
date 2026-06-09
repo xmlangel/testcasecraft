@@ -25,6 +25,7 @@ import {
   Alert,
   TextField,
   InputAdornment,
+  Tooltip,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -34,6 +35,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
   Search as SearchIcon,
+  Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext.jsx";
@@ -41,7 +43,30 @@ import { useTranslation } from "../context/I18nContext.jsx";
 import { ExecutionStatus } from "../models/testExecution.jsx";
 
 const EXECUTIONS_PER_PAGE = 5;
+// 리스트를 보고 있는 동안 진행률/상태를 자동 갱신하는 폴링 주기(ms)
+const REFRESH_INTERVAL_MS = 20000;
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
+
+// 제목 검색 필터를 프로젝트별로 보존하기 위한 sessionStorage 키 접두사.
+// 상세(실행) 화면을 다녀오면 컴포넌트가 언마운트→재마운트되어 로컬 state가
+// 초기화되므로, 마지막으로 적용한 필터를 sessionStorage에 남겨 복원한다.
+const SEARCH_STORAGE_PREFIX = "testExecutionList.search.";
+const readSavedSearch = (projectId) => {
+  if (!projectId) return "";
+  try {
+    return sessionStorage.getItem(`${SEARCH_STORAGE_PREFIX}${projectId}`) || "";
+  } catch {
+    return "";
+  }
+};
+const writeSavedSearch = (projectId, value) => {
+  if (!projectId) return;
+  try {
+    sessionStorage.setItem(`${SEARCH_STORAGE_PREFIX}${projectId}`, value || "");
+  } catch {
+    // sessionStorage 미지원/차단 환경에서는 무시(필터 미보존)
+  }
+};
 
 const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const { getTestPlan, activeProject, user, api } = useAppContext();
@@ -55,15 +80,25 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const [page, setPage] = useState(0); // 서버는 0-based
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const loaderRef = useRef(null);
   const navigate = useNavigate();
+
+  // 폴링 갱신용 ref — stale closure 없이 최신 값을 읽기 위해 사용
+  const isRefreshingRef = useRef(false);
+  const loadedCountRef = useRef(0);
+  const searchQueryRef = useRef("");
 
   const isAdminOrManager = user?.role === "ADMIN" || user?.role === "MANAGER";
   const isUser = user?.role === "USER";
 
-  // 검색 상태 관리
-  const [searchQuery, setSearchQuery] = useState("");
+  // 검색 상태 관리 — 마운트 시 현재 프로젝트에 저장된 필터를 복원
+  const [searchQuery, setSearchQuery] = useState(() =>
+    readSavedSearch(activeProject?.id),
+  );
   const [triggerSearch, setTriggerSearch] = useState(0); // 검색 실행 트리거
+  // 현재 searchQuery 가 어느 프로젝트의 것인지 추적(프로젝트 전환 감지용)
+  const searchProjectIdRef = useRef(activeProject?.id);
 
   const fetchTestExecutions = useCallback(
     async (projectId, name, pageNum = 0, isInitial = false) => {
@@ -117,11 +152,101 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
     [api],
   );
 
+  // 최신 값을 폴링 콜백에서 stale 없이 읽기 위해 ref 동기화
+  useEffect(() => {
+    loadedCountRef.current = testExecutions.length;
+  }, [testExecutions]);
+
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
+
+  // 이미 로드된 윈도우 전체를 한 번에 재조회하여 진행률/상태를 in-place 머지.
+  // createdAt DESC(안정 정렬)라 결과 기록으로 순서가 바뀌지 않으므로,
+  // 스크롤로 올린 이전 항목도 변경되면 함께 갱신된다. 신규 항목은 상단에 prepend.
+  const refreshExecutions = useCallback(async () => {
+    const projectId = activeProject?.id;
+    if (!projectId) return;
+    if (isRefreshingRef.current) return; // 진행 중 요청과 중복 방지
+    isRefreshingRef.current = true;
+    setIsRefreshing(true);
+    try {
+      const size = Math.max(loadedCountRef.current, EXECUTIONS_PER_PAGE);
+      let url = `/api/test-executions/by-project/${projectId}?page=0&size=${size}`;
+      const name = searchQueryRef.current;
+      if (name) {
+        url += `&name=${encodeURIComponent(name)}`;
+      }
+      const response = await api(url);
+      if (!response.ok) return; // 폴링 실패는 조용히 무시(다음 주기에 재시도)
+      const data = await response.json();
+      const newContent = data.content || (Array.isArray(data) ? data : []);
+
+      setTestExecutions((prev) => {
+        const respById = new Map(newContent.map((it) => [it.id, it]));
+        const prevIds = new Set(prev.map((it) => it.id));
+        // 기존 순서를 보존하며, 응답에 온 항목은 최신 데이터로 교체(in-place 갱신)
+        const updated = prev.map((it) =>
+          respById.has(it.id) ? respById.get(it.id) : it,
+        );
+        // 보던 중 새로 생성된 실행은 응답 순서(createdAt DESC) 그대로 상단 prepend
+        const newcomers = newContent.filter((it) => !prevIds.has(it.id));
+        return newcomers.length ? [...newcomers, ...updated] : updated;
+      });
+    } catch {
+      // 자동 갱신 실패는 사용자에게 노출하지 않음
+    } finally {
+      isRefreshingRef.current = false;
+      setIsRefreshing(false);
+    }
+  }, [activeProject?.id, api]);
+
+  // 리스트가 보일 때만 주기적 폴링. 탭이 백그라운드면 정지, 복귀 시 즉시 1회 갱신.
+  useEffect(() => {
+    if (!activeProject?.id) return undefined;
+    let intervalId = null;
+    const start = () => {
+      if (intervalId) return;
+      intervalId = setInterval(() => {
+        if (!document.hidden) refreshExecutions();
+      }, REFRESH_INTERVAL_MS);
+    };
+    const stop = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        refreshExecutions();
+        start();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    if (!document.hidden) start();
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [activeProject?.id, refreshExecutions]);
+
   useEffect(() => {
     if (activeProject?.id) {
+      // 프로젝트가 바뀌면 해당 프로젝트에 저장된 필터를 복원해 그 값으로 조회한다.
+      // (state 갱신은 다음 렌더에 반영되므로 조회에는 effectiveQuery 를 직접 사용)
+      let effectiveQuery = searchQuery;
+      if (searchProjectIdRef.current !== activeProject.id) {
+        searchProjectIdRef.current = activeProject.id;
+        effectiveQuery = readSavedSearch(activeProject.id);
+        setSearchQuery(effectiveQuery);
+        searchQueryRef.current = effectiveQuery;
+      }
       setPage(0);
       setHasMore(true);
-      fetchTestExecutions(activeProject.id, searchQuery, 0, true);
+      fetchTestExecutions(activeProject.id, effectiveQuery, 0, true);
     } else {
       setTestExecutions([]);
     }
@@ -167,6 +292,8 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   ]);
 
   const handleSearch = () => {
+    // 적용된 필터를 프로젝트별로 보존 — 상세 화면 왕복/프로젝트 전환 후 복원
+    writeSavedSearch(activeProject?.id, searchQuery);
     setTriggerSearch((prev) => prev + 1);
   };
 
@@ -283,6 +410,22 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
               }}
               sx={{ width: 250 }}
             />
+            <Tooltip title={t("testExecution.list.refresh", "새로고침")}>
+              <span>
+                <IconButton
+                  onClick={refreshExecutions}
+                  disabled={isRefreshing}
+                  data-testid="execution-refresh-button"
+                  aria-label={t("testExecution.list.refresh", "새로고침")}
+                >
+                  {isRefreshing ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <RefreshIcon />
+                  )}
+                </IconButton>
+              </span>
+            </Tooltip>
             {isAdminOrManager && (
               <Button
                 variant="contained"

@@ -359,6 +359,11 @@ public class TestCaseService {
         .createNativeQuery("DELETE FROM testcase_versions WHERE testcase_id = :id")
         .setParameter("id", id)
         .executeUpdate();
+    // bookmark_items: 케이스 삭제 시 북마크 항목 정리 (FR-6.1, 고아 항목 금지)
+    entityManager
+        .createNativeQuery("DELETE FROM bookmark_items WHERE testcase_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
     entityManager
         .createNativeQuery("DELETE FROM testcases WHERE id = :id")
         .setParameter("id", id)

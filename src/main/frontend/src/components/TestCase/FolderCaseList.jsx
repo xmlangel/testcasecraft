@@ -20,6 +20,8 @@ import {
   Folder as FolderIcon,
   Description as DescriptionIcon,
   Edit as EditIcon,
+  Star as StarIcon,
+  StarBorder as StarBorderIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { buildFolderCaseCountMap } from "../../utils/treeUtils.jsx";
@@ -83,8 +85,11 @@ const FolderCaseList = ({
   onSelectItem,
   rows,
   onEditFolder,
+  favoriteIds,
+  onToggleFavorite,
 }) => {
   const { t } = useI18n();
+  const showFavorite = typeof onToggleFavorite === "function";
 
   // 폴더별 재귀 케이스 개수 (하위 폴더 행의 개수 배지용)
   const caseCountMap = useMemo(() => buildFolderCaseCountMap(items), [items]);
@@ -213,25 +218,29 @@ const FolderCaseList = ({
         </Paper>
       ) : (
         <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
+          {/* table-layout: fixed — 이름 등 컬럼이 내용(특히 공백 없는 한글)에
+              따라 0폭으로 짜부라져 한 글자씩 줄바꿈되는 현상 방지.
+              모든 컬럼에 명시적 너비를 부여한다. */}
+          <Table size="small" sx={{ tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: 56 }} />
+                <TableCell sx={{ width: 48 }} />
+                {showFavorite && <TableCell sx={{ width: 48 }} />}
                 {showFolderColumn && (
-                  <TableCell sx={{ width: "22%" }}>
+                  <TableCell sx={{ width: "20%" }}>
                     {t("testcase.folderList.column.folder", "폴더")}
                   </TableCell>
                 )}
-                <TableCell>
+                <TableCell sx={{ width: showFolderColumn ? "28%" : "34%" }}>
                   {t("testcase.folderList.column.name", "이름")}
                 </TableCell>
-                <TableCell sx={{ width: "25%" }}>
+                <TableCell sx={{ width: showFolderColumn ? "22%" : "28%" }}>
                   {t("testcase.folderList.column.description", "설명")}
                 </TableCell>
-                <TableCell sx={{ width: "25%" }}>
+                <TableCell sx={{ width: showFolderColumn ? "22%" : "28%" }}>
                   {t("testcase.folderList.column.expectedResult", "기대결과")}
                 </TableCell>
-                <TableCell sx={{ width: 120 }}>
+                <TableCell sx={{ width: 110 }}>
                   {t("testcase.folderList.column.priority", "우선순위")}
                 </TableCell>
               </TableRow>
@@ -254,6 +263,46 @@ const FolderCaseList = ({
                         <DescriptionIcon fontSize="small" color="action" />
                       )}
                     </TableCell>
+                    {showFavorite && (
+                      <TableCell>
+                        {!isChildFolder &&
+                          (() => {
+                            const active =
+                              favoriteIds && favoriteIds.has(item.id);
+                            return (
+                              <Tooltip
+                                title={
+                                  active
+                                    ? t("bookmark.favorite.remove", "즐겨찾기 제거")
+                                    : t("bookmark.favorite.add", "즐겨찾기 추가")
+                                }
+                                arrow
+                              >
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleFavorite(item);
+                                  }}
+                                  data-testid={`favorite-toggle-${item.id}`}
+                                >
+                                  {active ? (
+                                    <StarIcon
+                                      fontSize="small"
+                                      sx={{ color: "warning.main" }}
+                                    />
+                                  ) : (
+                                    <StarBorderIcon
+                                      fontSize="small"
+                                      color="action"
+                                    />
+                                  )}
+                                </IconButton>
+                              </Tooltip>
+                            );
+                          })()}
+                      </TableCell>
+                    )}
                     {showFolderColumn && (
                       <TableCell>
                         {(() => {
@@ -339,6 +388,8 @@ FolderCaseList.propTypes = {
   onSelectItem: PropTypes.func,
   rows: PropTypes.array,
   onEditFolder: PropTypes.func,
+  favoriteIds: PropTypes.instanceOf(Set),
+  onToggleFavorite: PropTypes.func,
 };
 
 export default FolderCaseList;

@@ -38,6 +38,8 @@ public class TranslationKeyDataInitializer {
   private final I18nGapKeysInitializer i18nGapKeysInitializer;
   // 2026-06-06 하드코딩 한국어 t() 래핑 신설 키
   private final I18nHardcodedKeysInitializer i18nHardcodedKeysInitializer;
+  // 2026-06-09 즐겨찾기/개인 북마크 기능
+  private final BookmarkKeysInitializer bookmarkKeysInitializer;
 
   @Transactional
   public void initialize() {
@@ -69,6 +71,9 @@ public class TranslationKeyDataInitializer {
     i18nGapKeysInitializer.initialize();
     // 2026-06-06 하드코딩 래핑 신설 키 (712건)
     i18nHardcodedKeysInitializer.initialize();
+
+    // 2026-06-09 즐겨찾기/개인 북마크 기능
+    bookmarkKeysInitializer.initialize();
 
     log.info("번역 키 데이터 초기화 완료");
   }
