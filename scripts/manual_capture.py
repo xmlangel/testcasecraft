@@ -135,6 +135,47 @@ def tree_right_click(page: Page) -> None:
     page.wait_for_timeout(600)
 
 
+def open_execution_filter_panel(page: Page) -> None:
+    """실행 목록의 첫 실행을 열고 '필터' 패널을 펼친다 (§8 필터 패널 캡처용).
+
+    ShopFlow 시드 환경에는 실행 12건이 있으므로 첫 행을 클릭해 실행 상세로
+    진입한 뒤, 상단의 '필터' 아코디언을 펼쳐 결과·우선순위·실행자 등
+    필터 옵션이 보이게 한다.
+    """
+    row = page.locator('[data-testid^="execution-item-"]').first
+    row.wait_for(timeout=10_000)
+    row.click()
+    page.wait_for_timeout(1500)
+    # 1) 바깥 '필터' 아코디언은 기본 펼침(filters:true)이지만, localStorage 에
+    #    접힘 상태가 저장돼 있을 수 있어 펼침을 보장한다 (이미 열려 있으면 건드리지 않음).
+    summary = page.get_by_role(
+        "button", name=re.compile(r"^\s*(필터|Filters?)\s*$", re.I)
+    ).first
+    summary.wait_for(timeout=10_000)
+    if summary.get_attribute("aria-expanded") == "false":
+        summary.click(timeout=5_000)
+        page.wait_for_timeout(500)
+    # 2) 안쪽 필터 패널의 토글(FilterListIcon 옆 chevron) 을 DOM 기준으로 클릭해 펼친다 — 2단 구조.
+    page.evaluate(
+        """() => {
+          const icon = document.querySelector("svg[data-testid='FilterListIcon']");
+          if (!icon) return false;
+          const header = icon.closest('div')?.parentElement;
+          const btn = header && header.querySelector('button');
+          if (btn) { btn.click(); return true; }
+          return false;
+        }"""
+    )
+    # 결과·우선순위 등 필터 컨트롤이 보일 때까지 대기
+    try:
+        page.get_by_role(
+            "button", name=re.compile(r"초기화|적용|Clear|Apply", re.I)
+        ).first.wait_for(timeout=4_000)
+    except PWTimeout:
+        pass
+    page.wait_for_timeout(700)
+
+
 def _first_case_id(page: Page) -> tuple[str, str]:
     """현재 URL 의 프로젝트에서 첫 테스트 케이스 (projectId, caseId) 반환."""
     m = re.search(r"/projects/([0-9a-f-]{36})", page.url)
@@ -335,6 +376,12 @@ STEPS: list[Step] = [
     Step("51_testplans_full", url=_project_path("/testplans"), full_page=True),
     Step("52_executions", url=_project_path("/executions")),
     Step("52_executions_full", url=_project_path("/executions"), full_page=True),
+    Step(
+        "52b_execution_filter_panel",
+        url=_project_path("/executions"),
+        prepare=open_execution_filter_panel,
+        wait_ms=800,
+    ),
     Step("53_results", url=_project_path("/results")),
     Step("53_results_full", url=_project_path("/results"), full_page=True),
     Step("54_junit", url=_project_path("/junit"), todo=True),  # 라우트 확인 필요
