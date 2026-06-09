@@ -50,6 +50,72 @@ import PreviousResultsDialog from "./TestExecution/PreviousResultsDialog.jsx";
 import BulkResultDialog from "./TestExecution/BulkResultDialog.jsx";
 import { getLatestResults, parseDateTime } from "./TestExecution/utils.jsx";
 
+// 테스트케이스 필터를 실행(executionId)별로 보존하기 위한 sessionStorage 키 접두사.
+// 테스트케이스 결과 화면(.../testcases/:id/result)은 별도 라우트라 본 폼이
+// 언마운트→재마운트되어 로컬 state가 초기화된다. 마지막 필터를 저장해 복원한다.
+const FILTERS_STORAGE_PREFIX = "testExecutionForm.filters.";
+// priority·result 는 다중 선택(배열), 나머지는 단일 텍스트.
+const EMPTY_FILTERS = {
+  name: "",
+  priority: [],
+  result: [],
+  executedBy: "",
+  executionDate: "",
+  jiraIssueKey: "",
+  notes: "",
+};
+// 배열(다중선택)/문자열 모두를 일관되게 "값이 있는가"로 판정
+const filterHasValue = (v) =>
+  Array.isArray(v) ? v.length > 0 : !!(v && v !== "");
+// 콤마로 구분된 다중 검색어 — 트림 후 빈 항목 제외, 소문자화
+const splitTerms = (value) =>
+  String(value || "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+// 대상 문자열이 검색어 중 하나라도 포함하면 true (필드 내 OR). 검색어 없으면 통과.
+const matchesAnyTerm = (haystack, value) => {
+  const terms = splitTerms(value);
+  if (!terms.length) return true;
+  const h = String(haystack || "").toLowerCase();
+  return terms.some((term) => h.includes(term));
+};
+const readSavedFilters = (executionId) => {
+  if (!executionId || executionId === "new") return { ...EMPTY_FILTERS };
+  try {
+    const raw = sessionStorage.getItem(
+      `${FILTERS_STORAGE_PREFIX}${executionId}`,
+    );
+    if (!raw) return { ...EMPTY_FILTERS };
+    const parsed = JSON.parse(raw);
+    // 구버전(문자열) 저장값 호환 — priority·result 를 배열로 정규화
+    const toArray = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+    return {
+      ...EMPTY_FILTERS,
+      ...parsed,
+      priority: toArray(parsed.priority),
+      result: toArray(parsed.result),
+    };
+  } catch {
+    return { ...EMPTY_FILTERS };
+  }
+};
+const writeSavedFilters = (executionId, filters) => {
+  if (!executionId || executionId === "new") return;
+  try {
+    const key = `${FILTERS_STORAGE_PREFIX}${executionId}`;
+    const hasActive = Object.values(filters).some(filterHasValue);
+    if (hasActive) {
+      sessionStorage.setItem(key, JSON.stringify(filters));
+    } else {
+      // 초기화 시에는 저장 항목을 제거(다음 진입을 빈 필터로)
+      sessionStorage.removeItem(key);
+    }
+  } catch {
+    // sessionStorage 미지원/차단 환경에서는 무시(필터 미보존)
+  }
+};
+
 const TestExecutionForm = ({
   executionId,
   projectId: propProjectId,
@@ -133,16 +199,13 @@ const TestExecutionForm = ({
     }
   }, [executionId, onCancel, originalExecution]);
 
-  // 필터 관련 상태
-  const [filters, setFilters] = useState({
-    name: "",
-    priority: "",
-    result: "",
-    executedBy: "",
-    executionDate: "",
-    jiraIssueKey: "",
-    notes: "",
-  });
+  // 필터 관련 상태 — 마운트 시 이 실행에 저장해 둔 필터를 복원
+  const [filters, setFilters] = useState(() => readSavedFilters(executionId));
+
+  // 필터가 바뀔 때마다 실행별로 보존 — 결과 화면 왕복 후에도 복원되도록
+  useEffect(() => {
+    writeSavedFilters(executionId, filters);
+  }, [executionId, filters]);
 
   // Accordion state
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
@@ -239,7 +302,10 @@ const TestExecutionForm = ({
         const res = await api(`/api/test-executions/${executionId}`);
         if (!res.ok)
           throw new Error(
-            t("testExecution.error.loadFailed", "실행 정보를 불러오지 못했습니다.")
+            t(
+              "testExecution.error.loadFailed",
+              "실행 정보를 불러오지 못했습니다.",
+            ),
           );
         const data = await res.json();
 
@@ -451,7 +517,7 @@ const TestExecutionForm = ({
           setSuccessMessage(
             t(
               "testExecution.success.immediateStart",
-              "테스트 실행 '{name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다."
+              "테스트 실행 '{name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.",
             ).replace("{name}", started.name),
           );
 
@@ -725,11 +791,9 @@ const TestExecutionForm = ({
           setSelectedTestCases(new Set());
           setIsBulkDialogOpen(false);
         } else {
-          const errorData = await response
-            .json()
-            .catch(() => ({
-              message: t("testExecution.error.unknown", "알 수 없는 오류"),
-            }));
+          const errorData = await response.json().catch(() => ({
+            message: t("testExecution.error.unknown", "알 수 없는 오류"),
+          }));
           setSaveError(
             t(
               "testExecution.bulk.error",
@@ -823,15 +887,7 @@ const TestExecutionForm = ({
   // 필터링된 데이터
   const filteredData = useMemo(() => {
     // 1. 필터가 활성화되어 있는지 확인
-    const hasActiveFilters = !!(
-      filters.name ||
-      filters.priority ||
-      filters.result ||
-      filters.executedBy ||
-      filters.executionDate ||
-      filters.jiraIssueKey ||
-      filters.notes
-    );
+    const hasActiveFilters = Object.values(filters).some(filterHasValue);
 
     if (!hasActiveFilters) {
       return flattenedData;
@@ -844,25 +900,25 @@ const TestExecutionForm = ({
 
       let matches = true;
 
-      // 이름 필터
-      if (filters.name) {
-        if (
-          !node.name.toLowerCase().includes(filters.name.trim().toLowerCase())
-        ) {
-          matches = false;
-        }
-      }
-
-      // 우선순위 필터
-      if (matches && filters.priority && node.priority !== filters.priority) {
+      // 이름 필터 (콤마로 여러 개 — 하나라도 포함되면 통과)
+      if (filters.name && !matchesAnyTerm(node.name, filters.name)) {
         matches = false;
       }
 
-      // 결과 필터 - resultsMap에서 확인
-      if (matches && filters.result) {
+      // 우선순위 필터 (다중 선택 — 선택된 것 중 하나라도 일치하면 통과)
+      if (
+        matches &&
+        filters.priority.length &&
+        !filters.priority.includes(node.priority)
+      ) {
+        matches = false;
+      }
+
+      // 결과 필터 (다중 선택) - resultsMap에서 확인
+      if (matches && filters.result.length) {
         const resultObj = resultsMap.get(node.id);
         const result = resultObj?.result || "NOTRUN";
-        if (result !== filters.result) {
+        if (!filters.result.includes(result)) {
           matches = false;
         }
       }
@@ -880,7 +936,7 @@ const TestExecutionForm = ({
         if (!resultObj) {
           matches = false;
         } else {
-          // 실행자 필터
+          // 실행자 필터 (콤마로 여러 명 — 하나라도 일치하면 통과)
           if (filters.executedBy) {
             const executedBy = resultObj.executedBy;
             let executedByStr = "";
@@ -891,11 +947,7 @@ const TestExecutionForm = ({
               executedByStr = String(executedBy);
             }
 
-            if (
-              !executedByStr
-                .toLowerCase()
-                .includes(filters.executedBy.trim().toLowerCase())
-            ) {
+            if (!matchesAnyTerm(executedByStr, filters.executedBy)) {
               matches = false;
             }
           }
@@ -919,28 +971,27 @@ const TestExecutionForm = ({
             }
           }
 
-          // JIRA 아이디 필터
+          // JIRA 아이디 필터 (콤마로 여러 개 — 두 키 중 하나라도 어느 검색어를 포함하면 통과)
           if (matches && filters.jiraIssueKey) {
             const jiraKey = resultObj.jiraIssueKey || "";
             const effectiveJiraKey = resultObj.effectiveJiraIssueKey || "";
-            const searchStr = filters.jiraIssueKey.trim().toLowerCase();
-
             if (
-              !jiraKey.toLowerCase().includes(searchStr) &&
-              !effectiveJiraKey.toLowerCase().includes(searchStr)
+              !matchesAnyTerm(
+                `${jiraKey} ${effectiveJiraKey}`,
+                filters.jiraIssueKey,
+              )
             ) {
               matches = false;
             }
           }
 
-          // 노트 필터
-          if (matches && filters.notes) {
-            const notes = resultObj.notes || "";
-            if (
-              !notes.toLowerCase().includes(filters.notes.trim().toLowerCase())
-            ) {
-              matches = false;
-            }
+          // 노트 필터 (콤마로 여러 개 — 하나라도 포함되면 통과)
+          if (
+            matches &&
+            filters.notes &&
+            !matchesAnyTerm(resultObj.notes || "", filters.notes)
+          ) {
+            matches = false;
           }
         }
       }
@@ -1103,15 +1154,7 @@ const TestExecutionForm = ({
   }, []);
 
   const handleFilterClear = useCallback(() => {
-    setFilters({
-      name: "",
-      priority: "",
-      result: "",
-      executedBy: "",
-      executionDate: "",
-      jiraIssueKey: "",
-      notes: "",
-    });
+    setFilters({ ...EMPTY_FILTERS });
     setVisibleCount(50);
   }, []);
 

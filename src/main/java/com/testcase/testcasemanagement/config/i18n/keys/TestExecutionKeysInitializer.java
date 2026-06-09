@@ -208,6 +208,8 @@ public class TestExecutionKeysInitializer {
         "testExecution.list.delete.delete", "testExecution", "삭제", "삭제");
     createTranslationKeyIfNotExists(
         "testExecution.list.searchPlaceholder", "testExecution", "검색 플레이스홀더", "제목 검색");
+    createTranslationKeyIfNotExists(
+        "testExecution.list.refresh", "testExecution", "목록 새로고침 버튼", "새로고침");
 
     createTranslationKeyIfNotExists(
         "testExecution.form.title.create", "testExecution", "테스트 실행 등록 제목", "테스트 실행 등록");
