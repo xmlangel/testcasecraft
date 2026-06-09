@@ -40,6 +40,7 @@ import {
   VIRTUAL_UNFILED_ID,
 } from "../../utils/treeUtils.jsx";
 import NoSelectionPlaceholder from "../common/NoSelectionPlaceholder.jsx";
+import useBookmarks from "../../hooks/useBookmarks.js";
 
 const TestCaseHybridForm = ({
   testCaseId,
@@ -67,6 +68,8 @@ const TestCaseHybridForm = ({
     setInputMode,
   } = useAppContext();
   const { t } = useI18n();
+  // 개인 북마크(즐겨찾기) 상태 — 케이스 리스트 별 버튼용
+  const { favoriteIds, toggleFavorite } = useBookmarks(effectiveProjectId);
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
 
@@ -461,6 +464,8 @@ const TestCaseHybridForm = ({
             items={folderListItems}
             rows={virtualListData.rows}
             onSelectItem={onSelectTestCase}
+            favoriteIds={favoriteIds}
+            onToggleFavorite={(item) => toggleFavorite(item.id)}
           />
         ) : isFolderSelected ? (
           isFolderEditMode ? (
@@ -505,6 +510,8 @@ const TestCaseHybridForm = ({
               items={folderListItems}
               onSelectItem={onSelectTestCase}
               onEditFolder={() => setIsFolderEditMode(true)}
+              favoriteIds={favoriteIds}
+              onToggleFavorite={(item) => toggleFavorite(item.id)}
             />
           )
         ) : (

@@ -23,6 +23,7 @@ import {
   TravelExplore as TravelExploreIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
+  StarBorder as StarBorderIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
@@ -159,17 +160,27 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
           )}
         </Breadcrumbs>
 
-        <IconButton
-          size="small"
-          onClick={toggleHeader}
-          title={isHeaderCollapsed ? "Show details" : "Hide details"}
-        >
-          {isHeaderCollapsed ? (
-            <KeyboardArrowDownIcon />
-          ) : (
-            <KeyboardArrowUpIcon />
-          )}
-        </IconButton>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton
+            size="small"
+            onClick={() => navigate(`/projects/${projectId}/bookmarks`)}
+            title={t("bookmark.nav", "북마크")}
+            data-testid="open-bookmarks-button"
+          >
+            <StarBorderIcon />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={toggleHeader}
+            title={isHeaderCollapsed ? "Show details" : "Hide details"}
+          >
+            {isHeaderCollapsed ? (
+              <KeyboardArrowDownIcon />
+            ) : (
+              <KeyboardArrowUpIcon />
+            )}
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Collapsible description area */}
