@@ -597,6 +597,12 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testExecution.prevResults.currentExecution", "testExecution", "i18n gap 보강 (2026-06-06)", "현재 실행");
     createTranslationKeyIfNotExists(
+        "testExecution.prevResults.notesView.label", "testExecution", "이전 결과 노트 보기 형식 토글 (2026-06-10)", "노트 보기 형식");
+    createTranslationKeyIfNotExists(
+        "testExecution.prevResults.notesView.markdown", "testExecution", "이전 결과 노트 보기 형식 토글 (2026-06-10)", "마크다운");
+    createTranslationKeyIfNotExists(
+        "testExecution.prevResults.notesView.text", "testExecution", "이전 결과 노트 보기 형식 토글 (2026-06-10)", "텍스트");
+    createTranslationKeyIfNotExists(
         "testExecution.scroll.hint", "testExecution", "i18n gap 보강 (2026-06-06)", "스크롤하여 더 보기");
     createTranslationKeyIfNotExists(
         "testExecution.sections.filters", "testExecution", "i18n gap 보강 (2026-06-06)", "필터");
