@@ -110,6 +110,21 @@ public class TestExecutionService {
     return toDto(saved);
   }
 
+  // QA 총평 저장 (실행 단위 마크다운 코멘트)
+  @Transactional
+  public TestExecutionDto updateQaSummary(String id, String qaSummary, String username) {
+    TestExecution entity =
+        testExecutionRepository
+            .findById(id)
+            .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+    entity.setQaSummary(qaSummary);
+    entity.setQaSummaryUpdatedBy(username);
+    entity.setQaSummaryUpdatedAt(LocalDateTime.now());
+    entity.setUpdatedAt(LocalDateTime.now());
+    TestExecution saved = testExecutionRepository.save(entity);
+    return toDto(saved);
+  }
+
   @Transactional
   public void deleteTestExecution(String id) {
     // ICT-InlineImage: 실행 삭제 전 모든 결과의 인라인 이미지 정리
@@ -393,6 +408,9 @@ public class TestExecutionService {
     if (entity.getTags() != null) {
       dto.setTags(new ArrayList<>(entity.getTags()));
     }
+    dto.setQaSummary(entity.getQaSummary());
+    dto.setQaSummaryUpdatedBy(entity.getQaSummaryUpdatedBy());
+    dto.setQaSummaryUpdatedAt(entity.getQaSummaryUpdatedAt());
 
     // 요약 통계 계산 및 결과 정렬
     List<TestResult> entityResults = entity.getResults();

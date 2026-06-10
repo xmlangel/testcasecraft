@@ -26,6 +26,9 @@ public class TestExecutionDto {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private List<String> tags;
+  private String qaSummary;
+  private String qaSummaryUpdatedBy;
+  private LocalDateTime qaSummaryUpdatedAt;
   private Integer totalCount;
   private Integer passedCount;
   private Integer failedCount;

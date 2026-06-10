@@ -70,6 +70,13 @@ public class TestExecution {
   @Column(name = "tag", length = 100)
   private java.util.Set<String> tags;
 
+  // QA 총평 — 실행 단위 마크다운 코멘트 (고급 내보내기 상단에 표시)
+  @Column(columnDefinition = "TEXT")
+  private String qaSummary;
+
+  private String qaSummaryUpdatedBy;
+  private LocalDateTime qaSummaryUpdatedAt;
+
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }

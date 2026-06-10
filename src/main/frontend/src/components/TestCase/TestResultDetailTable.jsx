@@ -74,6 +74,7 @@ import TestResultEditDialog from "./TestResultEditDialog.jsx";
 import testResultEditService from "../../services/testResultEditService.js";
 // ICT-263: 테스트결과 필터링 패널 및 서비스
 import TestResultFilterPanel from "./TestResultFilterPanel.jsx";
+import ExecutionQaSummaryPanel from "./ExecutionQaSummaryPanel.jsx";
 import testResultService from "../../services/testResultService.js";
 // ICT-275: 컬럼 순서 변경 다이얼로그
 import ColumnOrderDialog from "./ColumnOrderDialog.jsx";
@@ -416,6 +417,62 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         initialFilters.showLatestOnly,
     );
   });
+
+  // QA 총평 — 실행 필터 선택 시 실행 정보(qaSummary 포함) 로드
+  const [executionInfo, setExecutionInfo] = useState(null);
+  const [qaSummarySaving, setQaSummarySaving] = useState(false);
+
+  useEffect(() => {
+    const executionId = currentFilters?.testExecutionId;
+    if (!executionId) {
+      setExecutionInfo(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await api(
+          buildUrl(API_ENDPOINTS.EXECUTION_BY_ID(executionId)),
+        );
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const dto = await response.json();
+        if (!cancelled) setExecutionInfo(dto);
+      } catch (e) {
+        debugWarn("QA 총평용 실행 정보 로드 실패:", e);
+        if (!cancelled) setExecutionInfo(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentFilters?.testExecutionId, api]);
+
+  const handleQaSummarySave = async (text) => {
+    if (!executionInfo?.id) return false;
+    try {
+      setQaSummarySaving(true);
+      const response = await api(
+        buildUrl(`${API_ENDPOINTS.EXECUTION_BY_ID(executionInfo.id)}/qa-summary`),
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ qaSummary: text }),
+        },
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const updated = await response.json();
+      setExecutionInfo(updated);
+      return true;
+    } catch (e) {
+      debugError("QA 총평 저장 실패:", e);
+      alert(
+        t("testResult.qaSummary.saveError", "QA 총평 저장에 실패했습니다."),
+      );
+      return false;
+    } finally {
+      setQaSummarySaving(false);
+    }
+  };
 
   // ICT-194 Phase 2: 통합된 테스트 결과 색상 사용
   const resultColors = LEGACY_RESULT_COLORS;
@@ -1764,6 +1821,15 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         disabled={loading}
       />
 
+      {/* QA 총평 — 실행 필터가 선택된 경우에만 표시 */}
+      {executionInfo && (
+        <ExecutionQaSummaryPanel
+          execution={executionInfo}
+          onSave={handleQaSummarySave}
+          saving={qaSummarySaving}
+        />
+      )}
+
       <Paper sx={{ width: "100%" }}>
         {jiraStatusInfo && (
           <Alert
@@ -1982,6 +2048,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           rows={rows}
           totalRows={rows.length}
           activeProject={activeProject}
+          qaSummary={executionInfo?.qaSummary || ""}
+          qaSummaryUpdatedBy={executionInfo?.qaSummaryUpdatedBy || ""}
         />
 
         {/* ICT-209: 테스트 결과 편집 다이얼로그 */}

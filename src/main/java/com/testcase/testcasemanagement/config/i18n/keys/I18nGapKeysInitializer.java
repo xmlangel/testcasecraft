@@ -633,6 +633,22 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.default.noExecutor", "testResult", "i18n gap 보강 (2026-06-06)", "실행자 없음");
     createTranslationKeyIfNotExists(
+        "testResult.qaSummary.title", "testResult", "실행 QA 총평 (2026-06-10)", "QA 총평");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.write", "testResult", "실행 QA 총평 (2026-06-10)", "총평 작성");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.placeholder", "testResult", "실행 QA 총평 (2026-06-10)", "이 실행에 대한 QA 총평을 마크다운으로 작성하세요.");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.empty", "testResult", "실행 QA 총평 (2026-06-10)", "아직 작성된 QA 총평이 없습니다. 고급 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.updatedBy", "testResult", "실행 QA 총평 (2026-06-10)", "{user} · {date} 수정");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.saveError", "testResult", "실행 QA 총평 (2026-06-10)", "QA 총평 저장에 실패했습니다.");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.qaSummaryTitle", "testResult", "실행 QA 총평 (2026-06-10)", "💬 QA 총평");
+    createTranslationKeyIfNotExists(
+        "testResult.export.pdf.qaSummaryBy", "testResult", "실행 QA 총평 (2026-06-10)", "작성");
+    createTranslationKeyIfNotExists(
         "testResult.default.noExpectedResult", "testResult", "i18n gap 보강 (2026-06-06)", "기대 결과 없음");
     createTranslationKeyIfNotExists(
         "testResult.default.noFolder", "testResult", "i18n gap 보강 (2026-06-06)", "폴더 없음");

@@ -330,6 +330,14 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testResult.button.view", languageCode, "보기", createdBy);
     createTranslationIfNotExists("testResult.default.noData", languageCode, "데이터 없음", createdBy);
     createTranslationIfNotExists("testResult.default.noExecutor", languageCode, "실행자 없음", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.title", languageCode, "QA 총평", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.write", languageCode, "총평 작성", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.placeholder", languageCode, "이 실행에 대한 QA 총평을 마크다운으로 작성하세요.", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.empty", languageCode, "아직 작성된 QA 총평이 없습니다. 고급 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.updatedBy", languageCode, "{user} · {date} 수정", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.saveError", languageCode, "QA 총평 저장에 실패했습니다.", createdBy);
+    createTranslationIfNotExists("testResult.export.pdf.qaSummaryTitle", languageCode, "💬 QA 총평", createdBy);
+    createTranslationIfNotExists("testResult.export.pdf.qaSummaryBy", languageCode, "작성", createdBy);
     createTranslationIfNotExists("testResult.default.noExpectedResult", languageCode, "기대 결과 없음", createdBy);
     createTranslationIfNotExists("testResult.default.noFolder", languageCode, "폴더 없음", createdBy);
     createTranslationIfNotExists("testResult.default.noNotes", languageCode, "노트 없음", createdBy);

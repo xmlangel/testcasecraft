@@ -3,6 +3,7 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.BulkTestResultDto;
+import com.testcase.testcasemanagement.dto.QaSummaryUpdateRequest;
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.service.TestExecutionService;
@@ -65,6 +66,19 @@ public class TestExecutionController {
   public ResponseEntity<TestExecutionDto> updateTestExecution(
       @PathVariable String id, @Valid @RequestBody TestExecutionDto dto) {
     TestExecutionDto updated = testExecutionService.updateTestExecution(id, dto);
+    return ResponseEntity.ok(updated);
+  }
+
+  // QA 총평 저장 (실행 단위 마크다운, 고급 내보내기 PDF 상단에 표시)
+  @PutMapping("/{id}/qa-summary")
+  @Operation(summary = "QA 총평 저장", description = "테스트 실행에 대한 QA 총평(마크다운)을 저장합니다.")
+  public ResponseEntity<TestExecutionDto> updateQaSummary(
+      @Parameter(description = "테스트 실행 ID") @PathVariable String id,
+      @Valid @RequestBody QaSummaryUpdateRequest request,
+      Authentication authentication) {
+    String currentUsername = authentication.getName();
+    TestExecutionDto updated =
+        testExecutionService.updateQaSummary(id, request.getQaSummary(), currentUsername);
     return ResponseEntity.ok(updated);
   }
 

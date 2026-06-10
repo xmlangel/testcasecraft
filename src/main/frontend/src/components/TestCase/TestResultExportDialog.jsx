@@ -153,6 +153,21 @@ const computeStatisticsSummary = (rows = []) => {
  * 테스트 결과 내보내기 다이얼로그 컴포넌트
  * ICT-190 기능을 별도 컴포넌트로 분리하여 재사용성 향상
  */
+// QA 총평(마크다운)을 PDF 텍스트 출력용 일반 텍스트로 변환
+const markdownToPlainText = (md = "") =>
+  md
+    .replace(/```[a-zA-Z0-9]*\n?/g, "") // 코드 펜스
+    .replace(/^#{1,6}\s+/gm, "") // 제목
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1") // 이미지
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // 링크
+    .replace(/^>\s?/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "• ")
+    .trim();
+
 const TestResultExportDialog = ({
   open,
   onClose,
@@ -161,6 +176,8 @@ const TestResultExportDialog = ({
   rows = [],
   totalRows = 0,
   activeProject = null,
+  qaSummary = "",
+  qaSummaryUpdatedBy = "",
 }) => {
   const { api } = useAppContext();
   const { t } = useI18n();
@@ -768,6 +785,45 @@ const TestResultExportDialog = ({
       cursorY += breakdownHeight + 24;
     };
 
+    // QA 총평 — 상세 테스트 결과 리스트 바로 위에 출력
+    const drawQaSummarySection = () => {
+      if (!qaSummary || !qaSummary.trim()) return;
+
+      ensureSpace(60);
+      pdf.setTextColor(...colors.black);
+      pdf.setFontSize(12);
+      pdf.text(
+        t("testResult.export.pdf.qaSummaryTitle", "💬 QA 총평"),
+        margin,
+        cursorY,
+      );
+      cursorY += 16;
+
+      if (qaSummaryUpdatedBy) {
+        pdf.setTextColor(...colors.grey);
+        pdf.setFontSize(8);
+        pdf.text(
+          `${t("testResult.export.pdf.qaSummaryBy", "작성")}: ${qaSummaryUpdatedBy}`,
+          margin,
+          cursorY,
+        );
+        cursorY += 14;
+      }
+
+      const applyBodyStyle = () => {
+        pdf.setFont("NanumGothic", "normal");
+        pdf.setTextColor(...colors.greyDark);
+        pdf.setFontSize(9);
+      };
+      applyBodyStyle();
+      const summaryLines = pdf.splitTextToSize(
+        markdownToPlainText(qaSummary),
+        usableWidth - 8,
+      );
+      drawTextLines(summaryLines, margin + 4, 13, applyBodyStyle);
+      cursorY += 16;
+    };
+
     const drawListEntries = () => {
       pdf.setTextColor(...colors.black);
       pdf.setFontSize(12);
@@ -942,6 +998,9 @@ const TestResultExportDialog = ({
     // --- 실행 ---
     drawPageHeader(true); // 첫 페이지 메인 헤더
     drawSummarySection();
+
+    // QA 총평 — 상세 리스트 바로 위
+    drawQaSummarySection();
 
     // 상세 결과가 다음 페이지로 밀릴 수 있으므로 공간 체크 후 타이틀 출력
     ensureSpace(40);

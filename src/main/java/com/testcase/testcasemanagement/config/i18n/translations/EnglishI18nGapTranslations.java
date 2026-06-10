@@ -330,6 +330,14 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists("testResult.button.view", languageCode, "View", createdBy);
     createTranslationIfNotExists("testResult.default.noData", languageCode, "No data", createdBy);
     createTranslationIfNotExists("testResult.default.noExecutor", languageCode, "No executor", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.title", languageCode, "QA Summary", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.write", languageCode, "Write Summary", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.placeholder", languageCode, "Write the QA summary for this execution in Markdown.", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.empty", languageCode, "No QA summary yet. It will be printed above the detailed list in the advanced PDF export.", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.updatedBy", languageCode, "Updated by {user} on {date}", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.saveError", languageCode, "Failed to save the QA summary.", createdBy);
+    createTranslationIfNotExists("testResult.export.pdf.qaSummaryTitle", languageCode, "💬 QA Summary", createdBy);
+    createTranslationIfNotExists("testResult.export.pdf.qaSummaryBy", languageCode, "By", createdBy);
     createTranslationIfNotExists("testResult.default.noExpectedResult", languageCode, "No expected result", createdBy);
     createTranslationIfNotExists("testResult.default.noFolder", languageCode, "No folder", createdBy);
     createTranslationIfNotExists("testResult.default.noNotes", languageCode, "No notes", createdBy);
