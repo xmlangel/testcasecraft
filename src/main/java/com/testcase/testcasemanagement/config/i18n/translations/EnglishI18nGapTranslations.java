@@ -312,6 +312,9 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists("testExecution.filter.notes.placeholder", languageCode, "Search notes", createdBy);
     createTranslationIfNotExists("testExecution.list.noMoreExecutions", languageCode, "All data has been loaded.", createdBy);
     createTranslationIfNotExists("testExecution.prevResults.currentExecution", languageCode, "Current Execution", createdBy);
+    createTranslationIfNotExists("testExecution.prevResults.notesView.label", languageCode, "Notes view format", createdBy);
+    createTranslationIfNotExists("testExecution.prevResults.notesView.markdown", languageCode, "Markdown", createdBy);
+    createTranslationIfNotExists("testExecution.prevResults.notesView.text", languageCode, "Text", createdBy);
     createTranslationIfNotExists("testExecution.scroll.hint", languageCode, "Scroll for more", createdBy);
     createTranslationIfNotExists("testExecution.sections.filters", languageCode, "Filters", createdBy);
     createTranslationIfNotExists("testExecution.sections.list", languageCode, "Test Execution List", createdBy);

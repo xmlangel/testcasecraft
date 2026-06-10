@@ -19,6 +19,8 @@ import {
   Chip,
   CircularProgress,
   IconButton,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import { useTheme, alpha } from "@mui/material/styles";
 import {
@@ -34,6 +36,25 @@ import JiraIssueLink from "./JiraIssueLink.jsx";
 import { getResultIcon } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import TestResultForm from "../TestResultForm.jsx";
+
+// 노트 보기 형식(markdown | text) — 사용자 선택을 브라우저에 유지
+const NOTES_VIEW_MODE_KEY = "testExecution.prevResults.notesViewMode";
+const readNotesViewMode = () => {
+  try {
+    return localStorage.getItem(NOTES_VIEW_MODE_KEY) === "text"
+      ? "text"
+      : "markdown";
+  } catch {
+    return "markdown";
+  }
+};
+const writeNotesViewMode = (mode) => {
+  try {
+    localStorage.setItem(NOTES_VIEW_MODE_KEY, mode);
+  } catch {
+    // localStorage 미지원/차단 환경에서는 무시
+  }
+};
 
 function PreviousResultsDialog({
   open,
@@ -55,6 +76,13 @@ function PreviousResultsDialog({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [resultToDelete, setResultToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [notesViewMode, setNotesViewMode] = useState(readNotesViewMode);
+
+  const handleNotesViewModeChange = (_event, newMode) => {
+    if (!newMode) return; // 같은 버튼 재클릭 시 null — 무시
+    setNotesViewMode(newMode);
+    writeNotesViewMode(newMode);
+  };
 
   const sortedResults = useMemo(() => {
     if (!results) return [];
@@ -141,7 +169,43 @@ function PreviousResultsDialog({
         fullWidth
         disableRestoreFocus
       >
-        <DialogTitle>{t("testExecution.prevResults.title")}</DialogTitle>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
+            flexWrap: "wrap",
+          }}
+        >
+          {t("testExecution.prevResults.title")}
+          <Tooltip
+            title={t(
+              "testExecution.prevResults.notesView.label",
+              "노트 보기 형식",
+            )}
+          >
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={notesViewMode}
+              onChange={handleNotesViewModeChange}
+            >
+              <ToggleButton
+                value="markdown"
+                data-testid="prev-result-notes-view-markdown"
+              >
+                {t("testExecution.prevResults.notesView.markdown", "마크다운")}
+              </ToggleButton>
+              <ToggleButton
+                value="text"
+                data-testid="prev-result-notes-view-text"
+              >
+                {t("testExecution.prevResults.notesView.text", "텍스트")}
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Tooltip>
+        </DialogTitle>
         <DialogContent dividers>
           {loading ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -244,17 +308,32 @@ function PreviousResultsDialog({
                       <TableCell>{r.executedBy}</TableCell>
                       <TableCell>
                         {r.notes ? (
-                          <Box data-color-mode={darkMode ? "dark" : "light"}>
-                            <MDEditor.Markdown
-                              source={r.notes}
-                              style={{
+                          notesViewMode === "text" ? (
+                            <Typography
+                              component="pre"
+                              sx={{
                                 whiteSpace: "pre-wrap",
-                                backgroundColor: "transparent",
-                                color: theme.palette.text.primary,
+                                wordBreak: "break-word",
+                                fontFamily: "inherit",
                                 fontSize: "0.875rem",
+                                m: 0,
                               }}
-                            />
-                          </Box>
+                            >
+                              {r.notes}
+                            </Typography>
+                          ) : (
+                            <Box data-color-mode={darkMode ? "dark" : "light"}>
+                              <MDEditor.Markdown
+                                source={r.notes}
+                                style={{
+                                  whiteSpace: "pre-wrap",
+                                  backgroundColor: "transparent",
+                                  color: theme.palette.text.primary,
+                                  fontSize: "0.875rem",
+                                }}
+                              />
+                            </Box>
+                          )
                         ) : (
                           "-"
                         )}

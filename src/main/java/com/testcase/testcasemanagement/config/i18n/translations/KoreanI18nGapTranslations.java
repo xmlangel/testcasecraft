@@ -312,6 +312,9 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testExecution.filter.notes.placeholder", languageCode, "search notes", createdBy);
     createTranslationIfNotExists("testExecution.list.noMoreExecutions", languageCode, "모든 데이터를 불러왔습니다.", createdBy);
     createTranslationIfNotExists("testExecution.prevResults.currentExecution", languageCode, "현재 실행", createdBy);
+    createTranslationIfNotExists("testExecution.prevResults.notesView.label", languageCode, "노트 보기 형식", createdBy);
+    createTranslationIfNotExists("testExecution.prevResults.notesView.markdown", languageCode, "마크다운", createdBy);
+    createTranslationIfNotExists("testExecution.prevResults.notesView.text", languageCode, "텍스트", createdBy);
     createTranslationIfNotExists("testExecution.scroll.hint", languageCode, "스크롤하여 더 보기", createdBy);
     createTranslationIfNotExists("testExecution.sections.filters", languageCode, "필터", createdBy);
     createTranslationIfNotExists("testExecution.sections.list", languageCode, "테스트 실행 목록", createdBy);
