@@ -122,6 +122,35 @@ def open_admin_menu(page: Page) -> None:
     page.wait_for_timeout(300)
 
 
+def open_qa_summary_panel(page: Page) -> None:
+    """테스트 결과 → 첫 실행 필터 적용 → 상세 테이블 탭 → QA 총평 패널."""
+    m = re.search(r"/projects/([^/]+)/results", page.url)
+    project_id = m.group(1)
+    exec_id = page.evaluate(
+        """async (pid) => {
+            const token = localStorage.getItem('accessToken');
+            const res = await fetch(`/api/test-executions?projectId=${pid}`,
+                {headers: {Authorization: `Bearer ${token}`}});
+            const list = await res.json();
+            if (!list.length) return null;
+            // QA 총평이 작성된 실행 우선 (매뉴얼 캡처에 내용이 보이도록)
+            const withSummary = list.find((e) => e.qaSummary);
+            return (withSummary || list[0]).id;
+        }""",
+        project_id,
+    )
+    page.goto(f"{page.url.split('?')[0]}?testExecutionId={exec_id}")
+    page.wait_for_timeout(1_500)
+    # 상세 테이블 보기 탭 — 프로젝트 헤더 탭들 뒤, 페이지의 마지막 tab.
+    # 라벨은 언어에 따라 다르므로 role + 위치로 선택
+    page.locator("button[role='tab']").last.click()
+    page.wait_for_selector('[data-testid="qa-summary-edit-button"]', timeout=10_000)
+    # 패널 본문이 뷰포트에 들어오도록 스크롤
+    page.locator('[data-testid="qa-summary-edit-button"]').scroll_into_view_if_needed()
+    page.mouse.wheel(0, 200)
+    page.wait_for_timeout(800)
+
+
 def open_prev_results_dialog(page: Page) -> None:
     """실행 목록 → 첫 실행 상세 → 첫 케이스의 '이전 결과' 다이얼로그 오픈."""
     page.locator('[data-testid^="execution-item-"]').first.click()
@@ -446,6 +475,12 @@ STEPS: list[Step] = [
         "91_prev_results_dialog",
         url=_project_path("/executions"),
         prepare=open_prev_results_dialog,
+        wait_ms=800,
+    ),
+    Step(
+        "92_qa_summary_panel",
+        url=_project_path("/results"),
+        prepare=open_qa_summary_panel,
         wait_ms=800,
     ),
 ]

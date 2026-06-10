@@ -527,6 +527,16 @@ Click the **[Test Results]** tab at the top (`/projects/{projectId}/results`) to
 
 > **Changed on 2026-06-05 (v1.0.80)**: PDF export no longer cuts off long test steps (step/expected result) at page boundaries; they now print in full across multiple pages.
 
+### 9-1. QA Summary
+
+On the **Detail Table** tab of the Test Results screen, **selecting a single test execution filter** displays a **"QA Summary"** panel above the results table. This is a free-form space for recording your evaluation, observations, and follow-up actions after completing that execution.
+
+![QA Summary panel](images_en/92_qa_summary_panel.png)
+
+- Click the panel's **[WRITE SUMMARY]** button (or **[EDIT]** if a summary already exists) to open a **Markdown editor**. A **live preview** appears alongside as you type, so you can see the rendered result while writing. Up to 10,000 characters are allowed.
+- The summary is saved **per test execution**. Switching the execution filter shows the summary written for each execution separately, and the panel header displays the **author and last-modified time**.
+- In the **Advanced Export PDF**, the **"💬 QA Summary"** (including the author) is printed right after the statistics summary, just above the **"Detailed Test Result List"** heading. Markdown formatting is converted to plain text. Note that it is **not included in Excel or CSV exports.**
+
 ---
 
 ## 10. Automated Tests
@@ -927,3 +937,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-06-06 | Reflected feat/style-folder-tree branch: Section 3-1 tab badges added, Section 4-1 screen layout table updated (folders-only tree display, folder filter added) plus new "Folder Case List" and "Edit Folder Info" subsections, Section 4-4 added three subsections (Tree View Modes, Virtual Nodes, Folder Filter), Section 5-1 drag handle hover visibility added. 4 new screenshots (87–90, ShopFlow EN). Synchronized same sections in Korean edition. |
 | 2026-06-09 | Reflected favorites/bookmarks feature: added ☆ Bookmarks button row in Section 3-1 header, new "Bookmarks & Favorites" subsection in Section 4-7 (case star toggle, collection management, personal notes, read-only). Section 8 test execution list: added 20-second auto-refresh, pause while tab inactive, [Refresh] button, and filter panel note. Section 8 screenshots refreshed: `52_executions` (real data, 12 executions) and new `52b_execution_filter_panel` (filter panel expanded), captured from ShopFlow EN with English UI. Synchronized same sections in Korean edition. |
 | 2026-06-10 | Added Bookmarks screen screenshot in Section 4-7 (`90_bookmarks`). Added "Previous Execution Results dialog — note view format toggle" feature in Section 8-1 (MARKDOWN/TEXT toggle, TEXT shows raw note as-is, selection persisted in browser) with screenshot `91_prev_results_dialog`. Synchronized same sections and screenshots (images_en) in Korean edition. |
+| 2026-06-10 | Added new "QA Summary" subsection (Section 9-1) — panel shown above the Detail Table when an execution filter is selected, Markdown editor with live preview, saved per execution with author/last-modified time, printed above the "Detailed Test Result List" in Advanced Export PDF (not in Excel/CSV, up to 10,000 characters) with screenshot `92_qa_summary_panel`. Synchronized same section and screenshot (images_en) in Korean edition. |
