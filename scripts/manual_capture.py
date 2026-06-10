@@ -110,10 +110,9 @@ def _take(page: Page, out_path: Path, full_page: bool) -> None:
 
 def open_user_menu(page: Page) -> None:
     """헤더 우측 아바타 클릭 → 사용자 메뉴 열기."""
-    # ProjectHeader 의 아바타에는 별도 testid 가 없어 role 로 찾음
-    page.get_by_role("button", name="account").or_(
-        page.locator("header [aria-label*='user' i], header [aria-label*='계정']")
-    ).first.click()
+    # 헤더에 aria-label="user manual" 버튼이 추가되어 부분 매칭(*='user')은
+    # 매뉴얼 버튼을 먼저 잡는다 — 정확 매칭만 사용
+    page.locator("header [aria-label='user menu']").first.click()
     page.wait_for_selector('[data-testid="profile-menu-item"]', timeout=5_000)
 
 
@@ -121,6 +120,20 @@ def open_admin_menu(page: Page) -> None:
     """헤더 '관리 메뉴' 드롭다운 열기."""
     page.get_by_text("관리 메뉴", exact=False).first.click()
     page.wait_for_timeout(300)
+
+
+def open_prev_results_dialog(page: Page) -> None:
+    """실행 목록 → 첫 실행 상세 → 첫 케이스의 '이전 결과' 다이얼로그 오픈."""
+    page.locator('[data-testid^="execution-item-"]').first.click()
+    page.wait_for_selector(
+        '[data-testid^="execution-table-prev-results-button-"]', timeout=10_000
+    )
+    page.locator(
+        '[data-testid^="execution-table-prev-results-button-"]'
+    ).first.click()
+    # 다이얼로그 + 이전 결과 테이블 로딩 대기
+    page.wait_for_selector('[data-testid="prev-result-close-button"]', timeout=10_000)
+    page.wait_for_timeout(800)
 
 
 def tree_right_click(page: Page) -> None:
@@ -426,6 +439,15 @@ STEPS: list[Step] = [
     Step("85_scheduler_full", url="/scheduler", full_page=True),
     Step("86_translation", url="/translation-management"),
     Step("86_translation_full", url="/translation-management", full_page=True),
+    # ── 19. 신규 화면 (2026-06-10) ─────────────────────────────────────
+    Step("90_bookmarks", url=_project_path("/bookmarks")),
+    Step("90_bookmarks_full", url=_project_path("/bookmarks"), full_page=True),
+    Step(
+        "91_prev_results_dialog",
+        url=_project_path("/executions"),
+        prepare=open_prev_results_dialog,
+        wait_ms=800,
+    ),
 ]
 
 

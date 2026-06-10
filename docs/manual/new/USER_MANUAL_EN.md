@@ -362,6 +362,10 @@ Click the **☆** icon in the header to open the Bookmarks screen (`/projects/{p
 
 You can attach a **personal note** to each case — for example, "always check during regression."
 
+![My Bookmarks screen](images_en/90_bookmarks.png)
+
+The read-only Bookmarks screen, split into the collection list on the left and the case list on the right.
+
 > ⚠️ The Bookmarks screen is **read-only**. To edit case content (name, steps, expected results, etc.), go to the **Test Cases** screen. Bookmarks only handle collection organization and personal notes.
 
 ---
@@ -481,6 +485,17 @@ Click a case within an execution to open the result entry screen (`/projects/{pr
 | **N** | Not Run | Not yet executed (default) |
 
 In addition to the result, you can record **notes** (free-form comments), **tags**, and **JIRA issue key**. At the bottom, the **previous result list** shows execution history for this case at a glance. Rows from this execution in the previous result list are visually distinguished, so you always know which results belong to the current run.
+
+**Previous Execution Results dialog — note view format toggle**
+
+> **Added on 2026-06-10**: In the test execution list, clicking a case's **[Previous Results]** button opens the **Previous Execution Results** dialog. A **MARKDOWN / TEXT** view format toggle sits at the top right of this dialog.
+
+- **MARKDOWN** (default): renders notes with Markdown formatting, so tables, lists, code blocks, and the like are displayed nicely.
+- **TEXT**: shows notes **as-is** without any formatting conversion. Use this mode to read the raw text when a note that is not in Markdown format appears broken.
+
+The selected view format is saved in your browser, so it is preserved the next time you reopen the dialog.
+
+![Previous Execution Results dialog — note view format toggle](images_en/91_prev_results_dialog.png)
 
 ### 8-2. Auto-Save — Viewing Never Saves
 
@@ -911,3 +926,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-06-06 | English edition created from the Korean v1.0.80 manual |
 | 2026-06-06 | Reflected feat/style-folder-tree branch: Section 3-1 tab badges added, Section 4-1 screen layout table updated (folders-only tree display, folder filter added) plus new "Folder Case List" and "Edit Folder Info" subsections, Section 4-4 added three subsections (Tree View Modes, Virtual Nodes, Folder Filter), Section 5-1 drag handle hover visibility added. 4 new screenshots (87–90, ShopFlow EN). Synchronized same sections in Korean edition. |
 | 2026-06-09 | Reflected favorites/bookmarks feature: added ☆ Bookmarks button row in Section 3-1 header, new "Bookmarks & Favorites" subsection in Section 4-7 (case star toggle, collection management, personal notes, read-only). Section 8 test execution list: added 20-second auto-refresh, pause while tab inactive, [Refresh] button, and filter panel note. Section 8 screenshots refreshed: `52_executions` (real data, 12 executions) and new `52b_execution_filter_panel` (filter panel expanded), captured from ShopFlow EN with English UI. Synchronized same sections in Korean edition. |
+| 2026-06-10 | Added Bookmarks screen screenshot in Section 4-7 (`90_bookmarks`). Added "Previous Execution Results dialog — note view format toggle" feature in Section 8-1 (MARKDOWN/TEXT toggle, TEXT shows raw note as-is, selection persisted in browser) with screenshot `91_prev_results_dialog`. Synchronized same sections and screenshots (images_en) in Korean edition. |
