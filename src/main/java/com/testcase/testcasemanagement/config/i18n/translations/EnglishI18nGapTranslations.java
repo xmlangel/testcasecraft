@@ -330,6 +330,10 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists("testResult.button.view", languageCode, "View", createdBy);
     createTranslationIfNotExists("testResult.default.noData", languageCode, "No data", createdBy);
     createTranslationIfNotExists("testResult.default.noExecutor", languageCode, "No executor", createdBy);
+    createTranslationIfNotExists("testResult.caseDetails.expandAll", languageCode, "Expand All", createdBy);
+    createTranslationIfNotExists("testResult.caseDetails.expandAllTooltip", languageCode, "Show full step content without vertical scrolling.", createdBy);
+    createTranslationIfNotExists("testResult.caseDetails.wrap", languageCode, "Wrap Lines", createdBy);
+    createTranslationIfNotExists("testResult.caseDetails.wrapTooltip", languageCode, "Auto word wrap — view without horizontal scrolling on small screens.", createdBy);
     createTranslationIfNotExists("testResult.qaSummary.title", languageCode, "QA Summary", createdBy);
     createTranslationIfNotExists("testResult.qaSummary.write", languageCode, "Write Summary", createdBy);
     createTranslationIfNotExists("testResult.qaSummary.placeholder", languageCode, "Write the QA summary for this execution in Markdown.", createdBy);

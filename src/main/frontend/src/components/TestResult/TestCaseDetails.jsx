@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -11,7 +11,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  ToggleButton,
+  Tooltip,
 } from "@mui/material";
+import {
+  UnfoldMore as UnfoldMoreIcon,
+  WrapText as WrapTextIcon,
+} from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import MDEditor from "@uiw/react-md-editor";
 
@@ -19,16 +25,68 @@ const Subtitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-const MULTILINE_SCROLLS_SX = {
-  whiteSpace: "pre-line",
-  maxHeight: "20em",
-  overflowY: "auto",
-  display: "block",
+// 케이스 본문 보기 옵션 — 사용자 선택을 브라우저에 유지
+// expandAll: true 면 단계 셀의 상하 스크롤(20em 제한)을 해제하고 모두 표시 (기본: 스크롤)
+// wrap:      true 면 자동 줄바꿈(워드랩) — 코드블록·긴 문자열까지 줄바꿈하여
+//            작은 화면에서 가로 스크롤 없이 모두 보이게 함 (기본: 현행 = 코드 가로 스크롤)
+const VIEW_OPTIONS_KEY = "testResult.caseDetails.viewOptions";
+const readViewOptions = () => {
+  try {
+    const v = JSON.parse(localStorage.getItem(VIEW_OPTIONS_KEY) || "{}");
+    return { expandAll: v.expandAll === true, wrap: v.wrap === true };
+  } catch {
+    return { expandAll: false, wrap: false };
+  }
 };
+const writeViewOptions = (options) => {
+  try {
+    localStorage.setItem(VIEW_OPTIONS_KEY, JSON.stringify(options));
+  } catch {
+    // localStorage 미지원/차단 환경에서는 무시
+  }
+};
+
+const buildStepCellSx = ({ expandAll }) => ({
+  whiteSpace: "pre-line",
+  display: "block",
+  ...(expandAll ? {} : { maxHeight: "20em", overflowY: "auto" }),
+});
+
+// 자동 워드랩 — 케이스 본문 전체(설명·사전조건·단계·기대결과 등)의
+// 마크다운 코드블록과 긴 문자열을 줄바꿈해 작은 화면에서 가로 스크롤 제거
+const buildWrapSx = ({ wrap }) =>
+  wrap
+    ? {
+        // 마크다운 본문에만 적용 — 표 헤더("No." 등) 글자 단위 쪼개짐 방지
+        "& .wmde-markdown": {
+          wordBreak: "break-word",
+          overflowWrap: "anywhere",
+        },
+        "& .wmde-markdown pre, & .wmde-markdown pre > code": {
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-all",
+        },
+        "& .wmde-markdown code": {
+          wordBreak: "break-all",
+        },
+      }
+    : {};
 
 const TestCaseDetails = ({ testCase, t }) => {
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
+  const [viewOptions, setViewOptions] = useState(readViewOptions);
+
+  const toggleViewOption = (key) => {
+    setViewOptions((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      writeViewOptions(next);
+      return next;
+    });
+  };
+
+  const stepCellSx = buildStepCellSx(viewOptions);
+  const wrapSx = buildWrapSx(viewOptions);
 
   if (!testCase) return null;
 
@@ -72,7 +130,7 @@ const TestCaseDetails = ({ testCase, t }) => {
   }, [testCase]);
 
   return (
-    <>
+    <Box sx={wrapSx}>
       <Paper
         elevation={0}
         sx={{
@@ -83,7 +141,7 @@ const TestCaseDetails = ({ testCase, t }) => {
           boxShadow: 1,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5, mb: 2 }}>
           {testCase.displayId && (
             <Chip
               label={testCase.displayId}
@@ -117,6 +175,44 @@ const TestCaseDetails = ({ testCase, t }) => {
               sx={{ ml: 1 }}
             />
           )}
+          <Box sx={{ ml: "auto", display: "flex", gap: 0.5 }}>
+            <Tooltip
+              title={t(
+                "testResult.caseDetails.expandAllTooltip",
+                "단계 내용을 상하 스크롤 없이 모두 표시합니다.",
+              )}
+            >
+              <ToggleButton
+                value="expandAll"
+                size="small"
+                selected={viewOptions.expandAll}
+                onChange={() => toggleViewOption("expandAll")}
+                sx={{ py: 0.25, px: 1, fontSize: "0.72rem" }}
+                data-testid="case-details-expand-toggle"
+              >
+                <UnfoldMoreIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                {t("testResult.caseDetails.expandAll", "모두 펼치기")}
+              </ToggleButton>
+            </Tooltip>
+            <Tooltip
+              title={t(
+                "testResult.caseDetails.wrapTooltip",
+                "자동 줄바꿈(워드랩) — 작은 화면에서 가로 스크롤 없이 표시합니다.",
+              )}
+            >
+              <ToggleButton
+                value="wrap"
+                size="small"
+                selected={viewOptions.wrap}
+                onChange={() => toggleViewOption("wrap")}
+                sx={{ py: 0.25, px: 1, fontSize: "0.72rem" }}
+                data-testid="case-details-wrap-toggle"
+              >
+                <WrapTextIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                {t("testResult.caseDetails.wrap", "줄바꿈")}
+              </ToggleButton>
+            </Tooltip>
+          </Box>
         </Box>
         {testCase.description && (
           <Box data-color-mode={darkMode ? "dark" : "light"}>
@@ -191,7 +287,7 @@ const TestCaseDetails = ({ testCase, t }) => {
                         <TableCell>
                           <Box
                             data-color-mode={darkMode ? "dark" : "light"}
-                            sx={MULTILINE_SCROLLS_SX}
+                            sx={stepCellSx}
                           >
                             <MDEditor.Markdown
                               source={step.description || ""}
@@ -206,7 +302,7 @@ const TestCaseDetails = ({ testCase, t }) => {
                         <TableCell>
                           <Box
                             data-color-mode={darkMode ? "dark" : "light"}
-                            sx={MULTILINE_SCROLLS_SX}
+                            sx={stepCellSx}
                           >
                             <MDEditor.Markdown
                               source={step.expectedResult || ""}
@@ -362,7 +458,7 @@ const TestCaseDetails = ({ testCase, t }) => {
 
         <Divider sx={{ my: 2 }} />
       </Paper>
-    </>
+    </Box>
   );
 };
 

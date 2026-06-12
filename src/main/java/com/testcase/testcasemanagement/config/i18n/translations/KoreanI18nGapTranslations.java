@@ -330,6 +330,10 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testResult.button.view", languageCode, "보기", createdBy);
     createTranslationIfNotExists("testResult.default.noData", languageCode, "데이터 없음", createdBy);
     createTranslationIfNotExists("testResult.default.noExecutor", languageCode, "실행자 없음", createdBy);
+    createTranslationIfNotExists("testResult.caseDetails.expandAll", languageCode, "모두 펼치기", createdBy);
+    createTranslationIfNotExists("testResult.caseDetails.expandAllTooltip", languageCode, "단계 내용을 상하 스크롤 없이 모두 표시합니다.", createdBy);
+    createTranslationIfNotExists("testResult.caseDetails.wrap", languageCode, "줄바꿈", createdBy);
+    createTranslationIfNotExists("testResult.caseDetails.wrapTooltip", languageCode, "자동 줄바꿈(워드랩) — 작은 화면에서 가로 스크롤 없이 표시합니다.", createdBy);
     createTranslationIfNotExists("testResult.qaSummary.title", languageCode, "QA 총평", createdBy);
     createTranslationIfNotExists("testResult.qaSummary.write", languageCode, "총평 작성", createdBy);
     createTranslationIfNotExists("testResult.qaSummary.placeholder", languageCode, "이 실행에 대한 QA 총평을 마크다운으로 작성하세요.", createdBy);

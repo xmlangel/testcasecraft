@@ -633,6 +633,14 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.default.noExecutor", "testResult", "i18n gap 보강 (2026-06-06)", "실행자 없음");
     createTranslationKeyIfNotExists(
+        "testResult.caseDetails.expandAll", "testResult", "단계 표 보기 옵션 (2026-06-12)", "모두 펼치기");
+    createTranslationKeyIfNotExists(
+        "testResult.caseDetails.expandAllTooltip", "testResult", "단계 표 보기 옵션 (2026-06-12)", "단계 내용을 상하 스크롤 없이 모두 표시합니다.");
+    createTranslationKeyIfNotExists(
+        "testResult.caseDetails.wrap", "testResult", "단계 표 보기 옵션 (2026-06-12)", "줄바꿈");
+    createTranslationKeyIfNotExists(
+        "testResult.caseDetails.wrapTooltip", "testResult", "단계 표 보기 옵션 (2026-06-12)", "자동 줄바꿈(워드랩) — 작은 화면에서 가로 스크롤 없이 표시합니다.");
+    createTranslationKeyIfNotExists(
         "testResult.qaSummary.title", "testResult", "실행 QA 총평 (2026-06-10)", "QA 총평");
     createTranslationKeyIfNotExists(
         "testResult.qaSummary.write", "testResult", "실행 QA 총평 (2026-06-10)", "총평 작성");
