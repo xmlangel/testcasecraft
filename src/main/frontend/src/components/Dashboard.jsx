@@ -619,8 +619,8 @@ function Dashboard() {
                     </Select>
                   </FormControl>
                 </Box>
-                <ResponsiveContainer width="100%" height={180}>
-                  {testResultsHistory.length > 0 ? (
+                {testResultsHistory.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
                     <LineChart data={testResultsHistory} isAnimationActive>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
@@ -664,23 +664,27 @@ function Dashboard() {
                         isAnimationActive
                       />
                     </LineChart>
-                  ) : (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                      }}
+                  </ResponsiveContainer>
+                ) : (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 180,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textAlign: "center", wordBreak: "keep-all" }}
                     >
-                      <Typography variant="body2" color="text.secondary">
-                        {dashboardLoading
-                          ? t("dashboard.loading.chart")
-                          : t("dashboard.noData.chart")}
-                      </Typography>
-                    </Box>
-                  )}
-                </ResponsiveContainer>
+                      {dashboardLoading
+                        ? t("dashboard.loading.chart")
+                        : t("dashboard.noData.chart")}
+                    </Typography>
+                  </Box>
+                )}
               </StyledPaper>
             </Grid>
             {/* Test case results in open test runs (bar) */}
@@ -689,8 +693,8 @@ function Dashboard() {
                 <Typography variant="subtitle1" gutterBottom>
                   {t("dashboard.charts.openTestRunResults")}
                 </Typography>
-                <ResponsiveContainer width="100%" height={180}>
-                  {openTestRunResults.length > 0 ? (
+                {openTestRunResults.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
                     <BarChart
                       data={openTestRunResults}
                       layout="vertical"
@@ -729,23 +733,27 @@ function Dashboard() {
                         isAnimationActive
                       />
                     </BarChart>
-                  ) : (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                      }}
+                  </ResponsiveContainer>
+                ) : (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 180,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textAlign: "center", wordBreak: "keep-all" }}
                     >
-                      <Typography variant="body2" color="text.secondary">
-                        {dashboardLoading
-                          ? t("dashboard.loading.chart")
-                          : t("dashboard.noData.noActiveTestRuns")}
-                      </Typography>
-                    </Box>
-                  )}
-                </ResponsiveContainer>
+                      {dashboardLoading
+                        ? t("dashboard.loading.chart")
+                        : t("dashboard.noData.noActiveTestRuns")}
+                    </Typography>
+                  </Box>
+                )}
               </StyledPaper>
             </Grid>
           </Grid>
@@ -770,8 +778,8 @@ function Dashboard() {
                 <Typography variant="subtitle1" gutterBottom>
                   {t("dashboard.charts.assigneeResults")}
                 </Typography>
-                <ResponsiveContainer width="100%" height={180}>
-                  {openTestRunStacked.length > 0 ? (
+                {openTestRunStacked.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
                     <BarChart
                       data={openTestRunStacked}
                       layout="vertical"
@@ -810,23 +818,27 @@ function Dashboard() {
                         isAnimationActive
                       />
                     </BarChart>
-                  ) : (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                      }}
+                  </ResponsiveContainer>
+                ) : (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 180,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textAlign: "center", wordBreak: "keep-all" }}
                     >
-                      <Typography variant="body2" color="text.secondary">
-                        {dashboardLoading
-                          ? t("dashboard.loading.chart")
-                          : t("dashboard.noData.noActiveTestRuns")}
-                      </Typography>
-                    </Box>
-                  )}
-                </ResponsiveContainer>
+                      {dashboardLoading
+                        ? t("dashboard.loading.chart")
+                        : t("dashboard.noData.noActiveTestRuns")}
+                    </Typography>
+                  </Box>
+                )}
               </StyledPaper>
             </Grid>
             {/* Recent Test Results by Test Plan */}
