@@ -103,6 +103,22 @@ const GRID_PRINT_PAGE_STYLE = `
   }
 `;
 
+// 다크 배경 툴팁 안에서 마크다운 코드블록이 라이트 테마(흰 배경)로 렌더링되어
+// 글자가 보이지 않는 문제 보정 — 코드 영역을 어두운 배경 + 밝은 글자로 강제
+const TOOLTIP_MARKDOWN_SX = {
+  "& .wmde-markdown pre": {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  "& .wmde-markdown pre code, & .wmde-markdown pre tt": {
+    color: "#e6edf3",
+    backgroundColor: "transparent",
+  },
+  "& .wmde-markdown code, & .wmde-markdown tt": {
+    color: "#e6edf3",
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+  },
+};
+
 // ICT-275: 기본 컬럼 표시 설정 정의 (컴포넌트 외부로 이동)
 const getDefaultColumnVisibility = () => ({
   folder: true,
@@ -827,9 +843,20 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                 width: "100%",
               }}
             >
-              <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
                 <Tooltip title={params.value}>
-                  <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontSize: "0.875rem",
+                      whiteSpace: "normal",
+                      wordBreak: "break-word",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
                     {params.value}
                   </Typography>
                 </Tooltip>
@@ -907,7 +934,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
           const tooltipContent = (
             <Box sx={{ maxWidth: 400, maxHeight: 300, overflow: "auto" }}>
-              <MarkdownViewer content={description} />
+              <MarkdownViewer content={description} sx={TOOLTIP_MARKDOWN_SX} />
             </Box>
           );
 
@@ -1399,7 +1426,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           // Tooltip 내용: Markdown 렌더링
           const tooltipContent = (
             <Box sx={{ maxWidth: 400, maxHeight: 300, overflow: "auto" }}>
-              <MarkdownViewer content={notesContent} />
+              <MarkdownViewer
+                content={notesContent}
+                sx={TOOLTIP_MARKDOWN_SX}
+              />
             </Box>
           );
 
