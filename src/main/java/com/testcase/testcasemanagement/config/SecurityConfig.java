@@ -73,6 +73,7 @@ public class SecurityConfig {
                         "/manifest.json",
                         "/asset-manifest.json",
                         "/robots.txt",
+                        "/logo*.png", // PWA 아이콘 (manifest.json·apple-touch-icon 참조)
                         "/testcasecraft_*.jpg", // 로고 이미지 파일
                         "/testcasecraft_*.png" // 투명 로고 이미지 파일
                         )
