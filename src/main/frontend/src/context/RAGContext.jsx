@@ -31,6 +31,27 @@ export const GLOBAL_RAG_PROJECT_ID = "00000000-0000-0000-0000-000000000000";
 
 const RAGContext = createContext();
 
+// rag/status 단일 fetch 보장 — StrictMode 이중 마운트나 Provider 재마운트가 동시
+// 발생해도 진행 중인 요청을 공유해 중복 호출을 막는다. (완료 후 해제되어 추후 재조회 가능)
+// Response 는 body 를 한 번만 읽을 수 있으므로, 공유 대상은 파싱된 결과 객체로 둔다.
+let ragStatusInFlight = null;
+const fetchRagStatusOnce = (api) => {
+  if (ragStatusInFlight) return ragStatusInFlight;
+  ragStatusInFlight = (async () => {
+    try {
+      const response = await api("/api/system-settings/rag/status", {
+        skipAuth: true,
+      });
+      if (!response.ok) return { ok: false };
+      const data = await response.json();
+      return { ok: true, isEnabled: data?.data?.enabled ?? data?.enabled };
+    } finally {
+      ragStatusInFlight = null;
+    }
+  })();
+  return ragStatusInFlight;
+};
+
 const initialState = {
   documents: [],
   activeDocument: null,
@@ -218,12 +239,9 @@ export function RAGProvider({ children }) {
       try {
         if (RAG_DISABLED_MESSAGE_ENV) return; // 이미 환경변수로 비활성화된 경우 패스
 
-        const response = await api("/api/system-settings/rag/status", {
-          skipAuth: true,
-        });
-        if (!response.ok) return; // 오류 응답 시 무시
-        const data = await response.json();
-        const isEnabled = data?.data?.enabled ?? data?.enabled;
+        const result = await fetchRagStatusOnce(api);
+        if (!result.ok) return; // 오류 응답 시 무시
+        const isEnabled = result.isEnabled;
 
         if (isEnabled === false) {
           dispatch({

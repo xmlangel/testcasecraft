@@ -23,6 +23,15 @@ export const AuthProvider = ({ children }) => {
   const { t } = useTranslation();
   const { changeLanguage } = useI18n();
 
+  // t(번역 함수) / changeLanguage 를 ref 로 고정해 api·verifySession 등
+  // useCallback 의 의존성에서 제거한다. 둘 다 I18nContext 에서 매 렌더 새 참조로
+  // 내려오므로, 의존성에 두면 i18n 상태 변화마다 인증 함수들이 재생성되고
+  // 이를 의존하는 전 Context 의 fetch effect 가 반복 실행된다. (성능 핵심)
+  const tRef = useRef(t);
+  tRef.current = t;
+  const changeLanguageRef = useRef(changeLanguage);
+  changeLanguageRef.current = changeLanguage;
+
   // --- 인증 및 사용자 상태 관리 ---
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -80,7 +89,7 @@ export const AuthProvider = ({ children }) => {
       .then(async (res) => {
         if (!res.ok) {
           throw new Error(
-            t("auth.refresh_failed", "토큰 갱신에 실패했습니다."),
+            tRef.current("auth.refresh_failed", "토큰 갱신에 실패했습니다."),
           );
         }
         const { accessToken } = await res.json();
@@ -98,7 +107,7 @@ export const AuthProvider = ({ children }) => {
       });
 
     return refreshTokenPromiseRef.current;
-  }, [handleSessionExpiry, t]);
+  }, [handleSessionExpiry]);
 
   // 토큰 검증 및 갱신 유틸리티 함수 (RAG 스트리밍 등 외부에서 사용)
   const ensureValidToken = useCallback(async () => {
@@ -107,7 +116,7 @@ export const AuthProvider = ({ children }) => {
 
     if (!accessToken && !refreshToken) {
       handleSessionExpiry();
-      throw new Error(t("auth.no_token", "인증 토큰이 없습니다."));
+      throw new Error(tRef.current("auth.no_token", "인증 토큰이 없습니다."));
     }
 
     if (accessToken) {
@@ -130,7 +139,7 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem("accessToken");
         } else {
           throw new Error(
-            `${t("auth.validation_failed", "토큰 검증 실패")}: ${response.status}`,
+            `${tRef.current("auth.validation_failed", "토큰 검증 실패")}: ${response.status}`,
           );
         }
       } catch (error) {
@@ -142,7 +151,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     return await refreshTokenInternal();
-  }, [handleSessionExpiry, refreshTokenInternal, t]);
+  }, [handleSessionExpiry, refreshTokenInternal]);
 
   const api = useCallback(
     async (url, options = {}) => {
@@ -179,7 +188,7 @@ export const AuthProvider = ({ children }) => {
         setRateLimitError({
           message:
             errorData.message ||
-            t(
+            tRef.current(
               "error.rate_limit",
               "너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.",
             ),
@@ -213,7 +222,7 @@ export const AuthProvider = ({ children }) => {
 
       return response;
     },
-    [refreshTokenInternal, t],
+    [refreshTokenInternal],
   );
 
   const fetchUserInfo = useCallback(async () => {
@@ -226,7 +235,7 @@ export const AuthProvider = ({ children }) => {
         const res = await api("/api/auth/me");
         if (!res.ok) {
           throw new Error(
-            t(
+            tRef.current(
               "auth.fetch_user_failed",
               "사용자 정보를 불러오는데 실패했습니다.",
             ),
@@ -239,7 +248,7 @@ export const AuthProvider = ({ children }) => {
     })();
 
     return userInfoPromiseRef.current;
-  }, [api, t]);
+  }, [api]);
 
   const handleLoginSuccess = useCallback(
     async (loginResult) => {
@@ -255,7 +264,7 @@ export const AuthProvider = ({ children }) => {
 
           // 사용자 언어 설정 동기화
           if (userInfo.preferredLanguage) {
-            changeLanguage(userInfo.preferredLanguage);
+            changeLanguageRef.current(userInfo.preferredLanguage);
           }
         } catch (error) {
           console.error(
@@ -268,12 +277,12 @@ export const AuthProvider = ({ children }) => {
 
       // 전달된 user 객체에 언어 정보가 있는 경우
       if (loginResult.user?.preferredLanguage) {
-        changeLanguage(loginResult.user.preferredLanguage);
+        changeLanguageRef.current(loginResult.user.preferredLanguage);
       }
 
       setLoadingUser(false);
     },
-    [fetchUserInfo, handleLogout, changeLanguage],
+    [fetchUserInfo, handleLogout],
   );
 
   const handleUserUpdated = useCallback((updated) => {
@@ -324,7 +333,7 @@ export const AuthProvider = ({ children }) => {
 
           // 사용자 언어 설정 동기화
           if (userInfo.preferredLanguage) {
-            changeLanguage(userInfo.preferredLanguage);
+            changeLanguageRef.current(userInfo.preferredLanguage);
           }
         } catch (error) {
           console.error("[AuthContext] AutoLogin failed:", error);
@@ -339,7 +348,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoadingUser(false);
     }
-  }, [fetchUserInfo, handleLogout, refreshTokenInternal, changeLanguage]);
+  }, [fetchUserInfo, handleLogout, refreshTokenInternal]);
 
   // 초기 자동 로그인
   useEffect(() => {
@@ -473,6 +482,12 @@ export const AuthProvider = ({ children }) => {
     window.location.href = "/login";
   }, []);
 
+  // API base URL 조회. useCallback 으로 참조를 고정한다.
+  // 인라인 화살표 함수로 두면 매 렌더마다 새 참조가 되어,
+  // 이를 의존성으로 갖는 Project/Jira/Test Context 의 fetch effect 가
+  // 반복 실행되며 동일 API 가 중복 호출된다. (성능 핵심)
+  const getApiBaseUrl = useCallback(() => getDynamicApiUrl(), []);
+
   const value = {
     user,
     loadingUser,
@@ -492,7 +507,7 @@ export const AuthProvider = ({ children }) => {
     setProfileDialogOpen,
     initialProfileTab,
     openUserProfile,
-    getApiBaseUrl: () => getDynamicApiUrl(),
+    getApiBaseUrl,
     sessionExpired,
     handleDialogRefresh,
     handleDialogLogin,

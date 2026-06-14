@@ -5,6 +5,7 @@ import React, {
   useReducer,
   useEffect,
   useRef,
+  useCallback,
 } from "react";
 import { API_CONFIG, getDynamicApiUrl } from "../utils/apiConstants.js";
 
@@ -324,7 +325,10 @@ export const I18nProvider = ({ children }) => {
   };
 
   // 번역 함수 (fallback 지원)
-  const t = (key, defaultValue = null, params = {}) => {
+  // useCallback 으로 참조를 안정화한다. 이 함수가 매 렌더마다 새로 생성되면
+  // 이를 의존성으로 갖는 AuthContext.api → 모든 Context 의 fetch effect 가
+  // 연쇄적으로 재실행되어 동일 API 가 반복 호출된다. (성능 핵심)
+  const t = useCallback((key, defaultValue = null, params = {}) => {
     // 두 번째 매개변수가 문자열이면 기본값으로, 객체면 params로 처리
     let actualDefault = defaultValue;
     let actualParams = params;
@@ -375,7 +379,12 @@ export const I18nProvider = ({ children }) => {
     }
 
     return translation;
-  };
+  }, [
+    state.translations,
+    state.currentLanguage,
+    state.availableLanguages,
+    state.loading,
+  ]);
 
   // 초기화
   useEffect(() => {

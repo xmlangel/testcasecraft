@@ -27,6 +27,50 @@ const getCurrentUserId = () => {
  */
 const cacheKey = (userId, key) => `ui-pref:${userId}:${key}`;
 
+// ── 공유 서버 캐시 ──────────────────────────────────────────────
+// useUiPreference 는 키마다 인스턴스가 생기지만 서버 엔드포인트는 전체 uiPreferences
+// 블롭 하나(GET /api/auth/me/preferences)다. 인스턴스마다 fetch 하면 동일 API 가
+// 키 개수만큼 중복 호출되므로(또 StrictMode 이중 마운트까지), 모듈 레벨에서 단일
+// fetch 를 공유한다.
+let prefsCache = null; // 해석된 uiPreferences 객체 (공유)
+let prefsInFlight = null; // 진행 중 Promise<object> (in-flight dedupe)
+let prefsUserId = null; // 캐시가 속한 사용자 — 전환 시 무효화
+
+const loadAllPreferences = (userId) => {
+  if (prefsUserId !== userId) {
+    prefsUserId = userId;
+    prefsCache = null;
+    prefsInFlight = null;
+  }
+  if (prefsCache) return Promise.resolve(prefsCache);
+  if (prefsInFlight) return prefsInFlight;
+  prefsInFlight = (async () => {
+    try {
+      const res = await apiService.get("/api/auth/me/preferences");
+      const data = await res.json();
+      const raw = data?.uiPreferences || "{}";
+      const parsed = JSON.parse(raw) || {};
+      prefsCache = parsed;
+      return parsed;
+    } finally {
+      prefsInFlight = null;
+    }
+  })();
+  return prefsInFlight;
+};
+
+/** PATCH 성공 후 공유 캐시를 갱신해 이후 마운트가 stale 값을 읽지 않도록 한다. */
+const syncSharedPreference = (key, value) => {
+  if (prefsCache) prefsCache = { ...prefsCache, [key]: value };
+};
+
+/** 로그아웃 시 공유 캐시 무효화 (다음 사용자 누수 방지). */
+const resetSharedPreferences = () => {
+  prefsCache = null;
+  prefsInFlight = null;
+  prefsUserId = null;
+};
+
 /**
  * 사용자별 UI 환경설정 단일 키를 서버(uiPreferences JSON 안의 해당 key)에 동기화한다.
  *
@@ -62,15 +106,12 @@ export const useUiPreference = (key, defaultValue) => {
   const lastSavedRef = useRef(JSON.stringify(value));
   const pendingValueRef = useRef(null); // beforeunload flush 용 — 현재 debounce 중인 값
 
-  // 1) 서버 fetch — 다른 키 값은 무시, 해당 key 만 읽음
+  // 1) 서버 fetch — 모듈 레벨 공유 캐시를 통해 단일 요청만 발생. 해당 key 만 읽음
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await apiService.get("/api/auth/me/preferences");
-        const data = await res.json();
-        const raw = data?.uiPreferences || "{}";
-        const parsed = JSON.parse(raw);
+        const parsed = await loadAllPreferences(userIdRef.current);
         if (
           !cancelled &&
           parsed &&
@@ -119,6 +160,7 @@ export const useUiPreference = (key, defaultValue) => {
         });
         lastSavedRef.current = serialized;
         pendingValueRef.current = null;
+        syncSharedPreference(key, value); // 공유 캐시도 최신화
       } catch {
         /* keep retrying on next change */
       }
@@ -169,6 +211,7 @@ export const useUiPreference = (key, defaultValue) => {
       } catch {
         /* ignore */
       }
+      resetSharedPreferences(); // 공유 서버 캐시 무효화
     };
     window.addEventListener("auth:logout", onLogout);
     return () => window.removeEventListener("auth:logout", onLogout);

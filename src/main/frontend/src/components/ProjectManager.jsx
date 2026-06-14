@@ -1,5 +1,5 @@
 // src/components/ProjectManager.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -50,6 +50,13 @@ import { useAppContext } from "../context/AppContext";
 import { useI18n } from "../context/I18nContext";
 import { OrganizationService } from "../services/organizationService";
 import junitResultService from "../services/junitResultService.js";
+
+// 멤버 캐시 키: 조직 프로젝트는 조직 멤버 API 를 공유하므로 조직 단위로 캐싱한다.
+// (projectId 로 캐싱하면 같은 조직의 프로젝트 수만큼 동일 API 가 중복 호출됨)
+const membersCacheKeyFor = (project) =>
+  project?.organization?.id
+    ? `org:${project.organization.id}`
+    : `proj:${project?.id}`;
 
 const TabPanel = ({ children, value, index, ...other }) => (
   <div
@@ -111,9 +118,11 @@ const ProjectManager = ({ onSelectProject }) => {
   // JUnit 요약 통계 (ICT-211)
   const [junitSummaries, setJunitSummaries] = useState({});
 
-  // 프로젝트 멤버 정보
+  // 프로젝트 멤버 정보 (조직 프로젝트는 조직 단위로 캐싱)
   const [projectMembers, setProjectMembers] = useState({});
   const [loadingMembers, setLoadingMembers] = useState({});
+  // 진행 중인 멤버 요청 (동기적 in-flight dedupe — 동시 마운트/StrictMode 중복 호출 차단)
+  const membersRequestsRef = useRef({});
 
   const organizationService = new OrganizationService(api);
 
@@ -133,43 +142,58 @@ const ProjectManager = ({ onSelectProject }) => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 프로젝트 멤버 로드 (조직 프로젝트는 조직 멤버를 가져옴)
+  // 조직 단위 cacheKey + in-flight 참조로, 같은 조직의 여러 프로젝트가 동일 API 를
+  // 중복 호출하는 문제를 차단한다.
   const loadProjectMembers = async (projectId) => {
-    if (loadingMembers[projectId] || projectMembers[projectId]) {
-      return; // 이미 로드 중이거나 로드된 경우 스킵
+    const project = projects.find((p) => p.id === projectId);
+    const cacheKey = membersCacheKeyFor(project ?? { id: projectId });
+
+    // 이미 로드된 경우 캐시 재사용
+    if (projectMembers[cacheKey]) {
+      return projectMembers[cacheKey];
     }
 
-    try {
-      setLoadingMembers((prev) => ({ ...prev, [projectId]: true }));
-      const baseUrl = (await api.getApiBaseUrl)
-        ? await api.getApiBaseUrl()
-        : "http://localhost:8080";
-
-      // 해당 프로젝트 정보 가져오기
-      const project = projects.find((p) => p.id === projectId);
-
-      let response;
-      if (project?.organization?.id) {
-        // 조직 프로젝트인 경우: 조직 멤버 API 호출
-        response = await api(
-          `${baseUrl}/api/organizations/${project.organization.id}/members`,
-        );
-      } else {
-        // 독립 프로젝트인 경우: 프로젝트 멤버 API 호출
-        response = await api(`${baseUrl}/api/projects/${projectId}/members`);
-      }
-
-      if (!response.ok) {
-        throw new Error(t("projectManager.memberLoadError", "Failed to load members"));
-      }
-
-      const members = await response.json();
-      setProjectMembers((prev) => ({ ...prev, [projectId]: members }));
-    } catch (err) {
-      console.error("Project member load error:", err);
-      setProjectMembers((prev) => ({ ...prev, [projectId]: [] }));
-    } finally {
-      setLoadingMembers((prev) => ({ ...prev, [projectId]: false }));
+    // 진행 중인 동일 요청이 있으면 그 Promise 를 공유 (race-free)
+    if (membersRequestsRef.current[cacheKey]) {
+      return membersRequestsRef.current[cacheKey];
     }
+
+    const fetchPromise = (async () => {
+      try {
+        setLoadingMembers((prev) => ({ ...prev, [cacheKey]: true }));
+        const baseUrl = (await api.getApiBaseUrl)
+          ? await api.getApiBaseUrl()
+          : "http://localhost:8080";
+
+        const response = project?.organization?.id
+          ? // 조직 프로젝트: 조직 멤버 API
+            await api(
+              `${baseUrl}/api/organizations/${project.organization.id}/members`,
+            )
+          : // 독립 프로젝트: 프로젝트 멤버 API
+            await api(`${baseUrl}/api/projects/${projectId}/members`);
+
+        if (!response.ok) {
+          throw new Error(
+            t("projectManager.memberLoadError", "Failed to load members"),
+          );
+        }
+
+        const members = await response.json();
+        setProjectMembers((prev) => ({ ...prev, [cacheKey]: members }));
+        return members;
+      } catch (err) {
+        console.error("Project member load error:", err);
+        setProjectMembers((prev) => ({ ...prev, [cacheKey]: [] }));
+        return [];
+      } finally {
+        setLoadingMembers((prev) => ({ ...prev, [cacheKey]: false }));
+        delete membersRequestsRef.current[cacheKey];
+      }
+    })();
+
+    membersRequestsRef.current[cacheKey] = fetchPromise;
+    return fetchPromise;
   };
 
   const loadData = async () => {
@@ -466,14 +490,15 @@ const ProjectManager = ({ onSelectProject }) => {
 
   const ProjectCard = ({ project }) => {
     const [showMembers, setShowMembers] = useState(false);
-    const members = projectMembers[project.id] || [];
-    const isLoadingMembers = loadingMembers[project.id];
+    const membersKey = membersCacheKeyFor(project);
+    const members = projectMembers[membersKey] || [];
+    const isLoadingMembers = loadingMembers[membersKey];
 
     useEffect(() => {
       // 조직 프로젝트인 경우에만 자동으로 멤버 로드
       if (
         project.organization &&
-        !projectMembers[project.id] &&
+        !projectMembers[membersKey] &&
         !isLoadingMembers
       ) {
         loadProjectMembers(project.id);
@@ -481,7 +506,7 @@ const ProjectManager = ({ onSelectProject }) => {
     }, [project.id, project.organization]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleToggleMembers = () => {
-      if (!projectMembers[project.id] && !isLoadingMembers) {
+      if (!projectMembers[membersKey] && !isLoadingMembers) {
         loadProjectMembers(project.id);
       }
       setShowMembers(!showMembers);
