@@ -34,7 +34,7 @@ import {
   ThemeProvider,
   useTheme as useCustomTheme,
 } from "./context/ThemeContext.jsx";
-import { I18nProvider, useTranslation } from "./context/I18nContext.jsx";
+import { useTranslation } from "./context/I18nContext.jsx";
 import ProjectManager from "./components/ProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
@@ -1484,12 +1484,12 @@ const AppWrapper = () => {
 };
 
 const App = () => (
+  // AppProvider 가 이미 I18nProvider 를 포함하므로 여기서 다시 감싸지 않는다.
+  // (중복 중첩 시 Context 트리가 2중 마운트되어 초기 API 가 중복 호출됨)
   <AppProvider>
-    <I18nProvider>
-      <ThemeProvider>
-        <AppWrapper />
-      </ThemeProvider>
-    </I18nProvider>
+    <ThemeProvider>
+      <AppWrapper />
+    </ThemeProvider>
   </AppProvider>
 );
 
