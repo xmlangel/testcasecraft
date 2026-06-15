@@ -9,8 +9,8 @@ plugins {
 def frontendDir = "$projectDir/src/main/frontend"
 
 node {
-	version = '20.19.0'
-	npmVersion = '10.5.0'
+	version = '24.15.0'
+	npmVersion = '11.12.1'
 	download = true
 	workDir = file("${project.buildDir}/nodejs")
 	npmWorkDir = file("${project.buildDir}/npm")
