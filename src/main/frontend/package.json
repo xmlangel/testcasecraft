@@ -1,6 +1,6 @@
 {
   "name": "testcasecraft",
-  "version": "1.0.89",
+  "version": "1.0.90",
   "private": true,
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.7",
@@ -37,6 +37,8 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
+    "test": "vitest run --config vitest.config.mjs",
+    "test:watch": "vitest --config vitest.config.mjs",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,html,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,html,md}\""
   },
@@ -53,10 +55,15 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "^5.1.1",
     "cypress": "^15.6.0",
+    "jsdom": "^25.0.1",
     "prettier": "^3.3.3",
-    "vite": "^7.2.2"
+    "vite": "^7.2.2",
+    "vitest": "^2.1.9"
   },
   "overrides": {
     "nth-check": "^2.1.1",

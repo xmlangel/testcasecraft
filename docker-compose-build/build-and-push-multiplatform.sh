@@ -13,7 +13,7 @@ set -e  # 오류 발생 시 즉시 종료
 
 # Configuration
 VERSION=""
-RECENT_VERSION="1.0.89"
+RECENT_VERSION="1.0.90"
 DOCKER_USERNAME="xmlangel"
 APP_IMAGE="${DOCKER_USERNAME}/testcasecraft"
 RAG_IMAGE="${DOCKER_USERNAME}/testcasecraft-rag-service"

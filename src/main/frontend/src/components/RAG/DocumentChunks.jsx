@@ -41,6 +41,7 @@ import { useRAG } from "../../context/RAGContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import MDEditor from "@uiw/react-md-editor";
+import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 
@@ -137,6 +138,8 @@ function DocumentChunks({
       : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`;
 
     return {
+      // 마크다운 공백 처리 공용 규칙 (pre-wrap 을 p/li 로만 한정)
+      ...MARKDOWN_PREWRAP_SX,
       border: "1px solid",
       borderColor: isDarkMode
         ? theme.palette.divider
@@ -1000,7 +1003,6 @@ function DocumentChunks({
                               >
                                 <MDEditor.Markdown
                                   source={displayText || ""}
-                                  style={{ whiteSpace: "pre-wrap" }}
                                 />
                               </Box>
                               {chunk.chunkText.length > 200 && (
@@ -1270,7 +1272,6 @@ function DocumentChunks({
                       <Box data-color-mode={colorMode} sx={chunkMarkdownStyles}>
                         <MDEditor.Markdown
                           source={(entry.llmResponse || "").trim()}
-                          style={{ whiteSpace: "pre-wrap" }}
                         />
                       </Box>
                     </Box>
@@ -1368,7 +1369,6 @@ function DocumentChunks({
                 >
                   <MDEditor.Markdown
                     source={selectedSummary.chunkText || ""}
-                    style={{ whiteSpace: "pre-wrap" }}
                   />
                 </Box>
               </Box>
@@ -1409,7 +1409,6 @@ function DocumentChunks({
                           "아직 요약을 확인할 수 없습니다.",
                         )
                       }
-                      style={{ whiteSpace: "pre-wrap" }}
                     />
                   )}
                 </Box>

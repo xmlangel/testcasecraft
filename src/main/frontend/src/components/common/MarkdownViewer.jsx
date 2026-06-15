@@ -25,6 +25,13 @@ const MarkdownViewer = ({ content, sx = {} }) => {
         "& .wmde-markdown-var": {
           display: "none",
         },
+        // 문단 내 단일 줄바꿈은 보존하되(QA 가 Enter 로 입력한 줄),
+        // pre-wrap 을 루트가 아닌 블록 텍스트 요소에만 한정한다.
+        // 루트에 걸면 react-markdown 이 블록 사이에 넣는 개행 텍스트 노드까지
+        // 빈 줄로 렌더링되어 거대한 공백이 생긴다.
+        "& .wmde-markdown p, & .wmde-markdown li": {
+          whiteSpace: "pre-wrap",
+        },
         ...sx,
       }}
       data-color-mode="light"
@@ -32,7 +39,6 @@ const MarkdownViewer = ({ content, sx = {} }) => {
       <MDEditor.Markdown
         source={content}
         style={{
-          whiteSpace: "pre-wrap",
           backgroundColor: "transparent",
           padding: 0,
         }}

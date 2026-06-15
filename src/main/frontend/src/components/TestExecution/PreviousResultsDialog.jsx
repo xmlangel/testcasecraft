@@ -36,6 +36,7 @@ import JiraIssueLink from "./JiraIssueLink.jsx";
 import { getResultIcon } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import TestResultForm from "../TestResultForm.jsx";
+import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 
 // 노트 보기 형식(markdown | text) — 사용자 선택을 브라우저에 유지
 const NOTES_VIEW_MODE_KEY = "testExecution.prevResults.notesViewMode";
@@ -322,11 +323,13 @@ function PreviousResultsDialog({
                               {r.notes}
                             </Typography>
                           ) : (
-                            <Box data-color-mode={darkMode ? "dark" : "light"}>
+                            <Box
+                              data-color-mode={darkMode ? "dark" : "light"}
+                              sx={MARKDOWN_PREWRAP_SX}
+                            >
                               <MDEditor.Markdown
                                 source={r.notes}
                                 style={{
-                                  whiteSpace: "pre-wrap",
                                   backgroundColor: "transparent",
                                   color: theme.palette.text.primary,
                                   fontSize: "0.875rem",

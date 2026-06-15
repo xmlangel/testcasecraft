@@ -11,6 +11,7 @@ import { ContentCopy as CopyIcon } from "@mui/icons-material";
 import MDEditor from "@uiw/react-md-editor";
 import { copyToClipboard } from "../../utils";
 import TestResultFloatingMenu from "./TestResultFloatingMenu.jsx";
+import { buildNotesAutoHeightSx } from "./notesView.js";
 
 const TestResultNotes = ({
   notes,
@@ -107,6 +108,13 @@ const TestResultNotes = ({
     localStorage.setItem(STORAGE_KEY, mode);
   };
 
+  // 미리보기 모드에서 노트에 값이 있으면 테스트 스텝처럼 내용 전체를 스크롤 없이 표시한다.
+  const autoHeightSx = buildNotesAutoHeightSx({
+    previewMode,
+    isFullscreen,
+    notes,
+  });
+
   // 노트 복사 핸들러
   const handleCopyNotes = async () => {
     const success = await copyToClipboard(notes);
@@ -160,7 +168,10 @@ const TestResultNotes = ({
         </Box>
       </Box>
 
-      <Box sx={{ mt: 1 }} data-color-mode={darkMode ? "dark" : "light"}>
+      <Box
+        sx={{ mt: 1, ...autoHeightSx }}
+        data-color-mode={darkMode ? "dark" : "light"}
+      >
         <MDEditor
           value={notes}
           onChange={(value) => {

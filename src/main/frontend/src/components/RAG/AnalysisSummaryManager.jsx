@@ -32,6 +32,7 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { useTranslation } from "../../context/I18nContext.jsx";
+import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 import MDEditor from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
@@ -78,6 +79,8 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
       : "linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)";
 
     return {
+      // 마크다운 공백 처리 공용 규칙 (pre-wrap 을 p/li 로만 한정)
+      ...MARKDOWN_PREWRAP_SX,
       border: "2px solid",
       borderColor: isDarkMode
         ? "rgba(148, 163, 184, 0.5)"
@@ -856,7 +859,6 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                         selectedSummary.combinedResponse ||
                         t("rag.analysisSummaryManager.noAnalysisResults", "분석 결과가 없습니다.")
                       }
-                      style={{ whiteSpace: "pre-wrap" }}
                     />
                   </Box>
                 )}

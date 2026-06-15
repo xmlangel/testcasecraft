@@ -47,6 +47,7 @@ import DocumentAnalysis from "../RAG/DocumentAnalysis.jsx";
 import axiosInstance from "../../utils/axiosInstance.js";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 import MDEditor from "@uiw/react-md-editor";
+import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 import { isDebugEnabled } from "../../utils/logger.js";
 
 const SUMMARY_PAGE_SIZE = 10;
@@ -230,6 +231,8 @@ const GlobalDocumentManager = ({ onSuccess }) => {
       : "linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)";
 
     return {
+      // 마크다운 공백 처리 공용 규칙 (pre-wrap 을 p/li 로만 한정)
+      ...MARKDOWN_PREWRAP_SX,
       mt: 2,
       border: "2px solid",
       borderColor: isDarkMode
@@ -1315,7 +1318,6 @@ const GlobalDocumentManager = ({ onSuccess }) => {
                   >
                     <MDEditor.Markdown
                       source={summaryContent}
-                      style={{ whiteSpace: "pre-wrap" }}
                     />
                   </Box>
                 )}
