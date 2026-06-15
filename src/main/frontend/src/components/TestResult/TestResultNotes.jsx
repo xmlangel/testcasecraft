@@ -11,6 +11,7 @@ import { ContentCopy as CopyIcon } from "@mui/icons-material";
 import MDEditor from "@uiw/react-md-editor";
 import { copyToClipboard } from "../../utils";
 import TestResultFloatingMenu from "./TestResultFloatingMenu.jsx";
+import { buildNotesAutoHeightSx } from "./notesView.js";
 
 const TestResultNotes = ({
   notes,
@@ -108,23 +109,11 @@ const TestResultNotes = ({
   };
 
   // 미리보기 모드에서 노트에 값이 있으면 테스트 스텝처럼 내용 전체를 스크롤 없이 표시한다.
-  // (편집/라이브 모드는 입력 중 무한정 늘어나지 않도록 고정 높이를 유지)
-  const expandPreview =
-    previewMode === "preview" && !isFullscreen && notes && notes.length > 0;
-  const autoHeightSx = expandPreview
-    ? {
-        "& .w-md-editor": { height: "auto !important" },
-        "& .w-md-editor-content": { height: "auto !important" },
-        "& .w-md-editor-area": { height: "auto !important" },
-        "& .w-md-editor-preview": {
-          position: "static !important",
-          overflow: "visible !important",
-          height: "auto !important",
-          width: "100% !important",
-          boxShadow: "none",
-        },
-      }
-    : {};
+  const autoHeightSx = buildNotesAutoHeightSx({
+    previewMode,
+    isFullscreen,
+    notes,
+  });
 
   // 노트 복사 핸들러
   const handleCopyNotes = async () => {
