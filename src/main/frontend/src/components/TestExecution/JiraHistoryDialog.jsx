@@ -32,6 +32,7 @@ import { jiraService } from "../../services/jiraService";
 import TestResultAttachmentsView from "../TestCase/TestResultAttachmentsView.jsx";
 import { getResultIcon } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
+import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 
 /**
  * JIRA 이슈별 테스트 히스토리 다이얼로그 (ICT-188)
@@ -200,11 +201,7 @@ function JiraHistoryDialog({ open, onClose, jiraIssueKey }) {
                         {r.notes ? (
                           <Box
                             data-color-mode={darkMode ? "dark" : "light"}
-                            sx={{
-                              "& .wmde-markdown p, & .wmde-markdown li": {
-                                whiteSpace: "pre-wrap",
-                              },
-                            }}
+                            sx={MARKDOWN_PREWRAP_SX}
                           >
                             <MDEditor.Markdown
                               source={r.notes}

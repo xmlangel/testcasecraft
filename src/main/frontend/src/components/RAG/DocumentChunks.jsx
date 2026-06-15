@@ -41,6 +41,7 @@ import { useRAG } from "../../context/RAGContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import MDEditor from "@uiw/react-md-editor";
+import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 
@@ -137,9 +138,8 @@ function DocumentChunks({
       : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`;
 
     return {
-      // 문단 내 단일 줄바꿈만 보존 — 루트에 pre-wrap 을 걸면 블록 사이 개행까지
-      // 빈 줄로 렌더링되어 과도한 공백이 생긴다.
-      "& .wmde-markdown p, & .wmde-markdown li": { whiteSpace: "pre-wrap" },
+      // 마크다운 공백 처리 공용 규칙 (pre-wrap 을 p/li 로만 한정)
+      ...MARKDOWN_PREWRAP_SX,
       border: "1px solid",
       borderColor: isDarkMode
         ? theme.palette.divider
