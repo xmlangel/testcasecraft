@@ -1049,8 +1049,12 @@ const AppContent = () => {
             <UnauthorizedPage />
           )
         ) : projectSelectionOpen ? (
-          <Box sx={{ mt: 3, mb: 3 }}>
-            <Typography variant="h5" gutterBottom>
+          <Box sx={{ mt: 0.5, mb: 0.5 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", lineHeight: 1.2 }}
+            >
               {t("header.nav.projectSelection")}
             </Typography>
             <ProjectManager onSelectProject={handleProjectSelect} />
