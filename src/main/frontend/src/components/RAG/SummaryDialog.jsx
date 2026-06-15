@@ -155,7 +155,6 @@ function SummaryDialog({
                 >
                   <MDEditor.Markdown
                     source={summaryContent}
-                    style={{ whiteSpace: "pre-wrap" }}
                   />
                 </Box>
               )}

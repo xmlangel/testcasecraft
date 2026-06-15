@@ -56,6 +56,9 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
     : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`;
 
   return {
+    // 문단 내 단일 줄바꿈만 보존 — 루트에 pre-wrap 을 걸면 블록 사이 개행까지
+    // 빈 줄로 렌더링되어 과도한 공백이 생긴다.
+    "& .wmde-markdown p, & .wmde-markdown li": { whiteSpace: "pre-wrap" },
     mt: 2,
     border: "2px solid",
     borderColor: isDarkMode ? theme.palette.divider : "rgba(6, 182, 212, 0.3)",

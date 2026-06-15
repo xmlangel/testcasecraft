@@ -230,6 +230,9 @@ const GlobalDocumentManager = ({ onSuccess }) => {
       : "linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)";
 
     return {
+      // 문단 내 단일 줄바꿈만 보존 — 루트에 pre-wrap 을 걸면 블록 사이 개행까지
+      // 빈 줄로 렌더링되어 과도한 공백이 생긴다.
+      "& .wmde-markdown p, & .wmde-markdown li": { whiteSpace: "pre-wrap" },
       mt: 2,
       border: "2px solid",
       borderColor: isDarkMode
@@ -1315,7 +1318,6 @@ const GlobalDocumentManager = ({ onSuccess }) => {
                   >
                     <MDEditor.Markdown
                       source={summaryContent}
-                      style={{ whiteSpace: "pre-wrap" }}
                     />
                   </Box>
                 )}

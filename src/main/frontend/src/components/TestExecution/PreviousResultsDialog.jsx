@@ -322,11 +322,17 @@ function PreviousResultsDialog({
                               {r.notes}
                             </Typography>
                           ) : (
-                            <Box data-color-mode={darkMode ? "dark" : "light"}>
+                            <Box
+                              data-color-mode={darkMode ? "dark" : "light"}
+                              sx={{
+                                "& .wmde-markdown p, & .wmde-markdown li": {
+                                  whiteSpace: "pre-wrap",
+                                },
+                              }}
+                            >
                               <MDEditor.Markdown
                                 source={r.notes}
                                 style={{
-                                  whiteSpace: "pre-wrap",
                                   backgroundColor: "transparent",
                                   color: theme.palette.text.primary,
                                   fontSize: "0.875rem",

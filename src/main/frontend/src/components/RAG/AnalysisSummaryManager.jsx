@@ -78,6 +78,9 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
       : "linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)";
 
     return {
+      // 문단 내 단일 줄바꿈만 보존 — 루트에 pre-wrap 을 걸면 블록 사이 개행까지
+      // 빈 줄로 렌더링되어 과도한 공백이 생긴다.
+      "& .wmde-markdown p, & .wmde-markdown li": { whiteSpace: "pre-wrap" },
       border: "2px solid",
       borderColor: isDarkMode
         ? "rgba(148, 163, 184, 0.5)"
@@ -856,7 +859,6 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                         selectedSummary.combinedResponse ||
                         t("rag.analysisSummaryManager.noAnalysisResults", "분석 결과가 없습니다.")
                       }
-                      style={{ whiteSpace: "pre-wrap" }}
                     />
                   </Box>
                 )}

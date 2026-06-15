@@ -137,6 +137,9 @@ function DocumentChunks({
       : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`;
 
     return {
+      // 문단 내 단일 줄바꿈만 보존 — 루트에 pre-wrap 을 걸면 블록 사이 개행까지
+      // 빈 줄로 렌더링되어 과도한 공백이 생긴다.
+      "& .wmde-markdown p, & .wmde-markdown li": { whiteSpace: "pre-wrap" },
       border: "1px solid",
       borderColor: isDarkMode
         ? theme.palette.divider
@@ -1000,7 +1003,6 @@ function DocumentChunks({
                               >
                                 <MDEditor.Markdown
                                   source={displayText || ""}
-                                  style={{ whiteSpace: "pre-wrap" }}
                                 />
                               </Box>
                               {chunk.chunkText.length > 200 && (
@@ -1270,7 +1272,6 @@ function DocumentChunks({
                       <Box data-color-mode={colorMode} sx={chunkMarkdownStyles}>
                         <MDEditor.Markdown
                           source={(entry.llmResponse || "").trim()}
-                          style={{ whiteSpace: "pre-wrap" }}
                         />
                       </Box>
                     </Box>
@@ -1368,7 +1369,6 @@ function DocumentChunks({
                 >
                   <MDEditor.Markdown
                     source={selectedSummary.chunkText || ""}
-                    style={{ whiteSpace: "pre-wrap" }}
                   />
                 </Box>
               </Box>
@@ -1409,7 +1409,6 @@ function DocumentChunks({
                           "아직 요약을 확인할 수 없습니다.",
                         )
                       }
-                      style={{ whiteSpace: "pre-wrap" }}
                     />
                   )}
                 </Box>
