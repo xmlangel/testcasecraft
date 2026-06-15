@@ -813,15 +813,16 @@ const ProjectManager = ({ onSelectProject }) => {
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        mb={3}
+        mb={1}
       >
-        <Typography variant="h4" component="h1">
+        <Typography variant="subtitle1" component="h1" sx={{ fontWeight: 600 }}>
           {t("project.title", "프로젝트 관리")}
         </Typography>
         <Box display="flex" alignItems="center" gap={2}>
           {hasProjectCreationAccess(user) && (
             <Button
               variant="contained"
+              size="small"
               startIcon={<AddIcon />}
               onClick={() => handleNewProject()}
               data-testid="new-project-button"
