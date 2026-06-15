@@ -47,7 +47,15 @@ repos:
         entry: ./gradlew test
         language: system
         pass_filenames: false
-        stages: [push]
+        stages: [pre-push]
+
+      # 프런트엔드 단위 테스트 — frontend js/jsx 가 스테이징될 때만 실행
+      - id: vitest
+        name: Frontend Unit Tests (vitest)
+        entry: bash -c 'cd src/main/frontend && npm test'
+        language: system
+        files: ^src/main/frontend/.*\.(js|jsx)$
+        pass_filenames: false
 
       # - id: ollama-code-review
       #   name: Ollama Code Review
