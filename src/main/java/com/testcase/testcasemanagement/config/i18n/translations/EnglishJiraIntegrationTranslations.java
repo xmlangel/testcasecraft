@@ -478,6 +478,10 @@ public class EnglishJiraIntegrationTranslations {
         "jira.create.template.actualResult", languageCode, "### Actual Results", createdBy);
     createTranslationIfNotExists(
         "jira.create.template.testCase", languageCode, "**Test Case**: {name}", createdBy);
+    createTranslationIfNotExists(
+        "jira.create.template.steps", languageCode, "### Test Steps", createdBy);
+    createTranslationIfNotExists(
+        "jira.create.template.stepExpected", languageCode, "Expected", createdBy);
 
     // Attachment related
     createTranslationIfNotExists(

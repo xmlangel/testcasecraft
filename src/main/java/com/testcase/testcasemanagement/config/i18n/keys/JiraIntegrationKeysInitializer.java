@@ -313,6 +313,10 @@ public class JiraIntegrationKeysInitializer {
         "jira.create.template.actualResult", "jira", "실제 결과 템플릿 헤더", "### 실제 결과");
     createTranslationKeyIfNotExists(
         "jira.create.template.testCase", "jira", "테스트 케이스 정보 템플릿", "**테스트 케이스**: {name}");
+    createTranslationKeyIfNotExists(
+        "jira.create.template.steps", "jira", "테스트 단계 템플릿 헤더", "### 테스트 단계");
+    createTranslationKeyIfNotExists(
+        "jira.create.template.stepExpected", "jira", "단계별 예상 결과 레이블", "예상 결과");
 
     // 첨부파일 관련
     createTranslationKeyIfNotExists(

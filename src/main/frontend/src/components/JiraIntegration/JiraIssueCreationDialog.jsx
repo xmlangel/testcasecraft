@@ -183,6 +183,23 @@ const JiraIssueCreationDialog = ({
       )}\n${testCase.preCondition}\n\n`;
     }
 
+    // 테스트 단계
+    if (Array.isArray(testCase.steps) && testCase.steps.length > 0) {
+      description += `${t("jira.create.template.steps", "### 테스트 단계")}\n`;
+      testCase.steps.forEach((step, index) => {
+        const stepNumber = step.stepNumber || index + 1;
+        const action = step.description || "";
+        description += `${stepNumber}. ${action}\n`;
+        if (step.expectedResult) {
+          description += `   - ${t(
+            "jira.create.template.stepExpected",
+            "예상 결과",
+          )}: ${step.expectedResult}\n`;
+        }
+      });
+      description += "\n";
+    }
+
     // 예상 결과
     if (testCase.expectedResults) {
       description += `${t(
