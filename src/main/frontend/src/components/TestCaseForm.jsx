@@ -132,6 +132,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const autoAiDebounceRef = useRef(null);
   const prevStepsLengthRef = useRef(0);
   const isAiGeneratingRef = useRef(false);
+  const isSavingRef = useRef(false);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -806,7 +807,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
 
   const handleSave = async () => {
     if (isViewer) return;
+    // 더블 클릭 등으로 인한 중복 제출 방지 — setIsSaving(비동기)만으로는
+    // 같은 틱의 두 번째 호출을 막지 못하므로 ref로 동기 가드 (isAiGeneratingRef와 동일 패턴)
+    if (isSavingRef.current) return;
     if (!validate()) return;
+    isSavingRef.current = true;
     setIsSaving(true);
     setSnackbarError(undefined);
 
@@ -916,6 +921,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           t("testcase.error.saveError", "저장 중 오류가 발생했습니다."),
       );
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
     }
   };

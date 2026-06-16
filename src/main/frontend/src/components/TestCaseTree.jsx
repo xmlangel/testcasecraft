@@ -421,7 +421,7 @@ const TestCaseTree = ({
 
             return (
               <Box
-                key={`${node.id}-${nodeOrder}`}
+                key={node.id}
                 sx={{
                   position: "absolute",
                   top: 0,
