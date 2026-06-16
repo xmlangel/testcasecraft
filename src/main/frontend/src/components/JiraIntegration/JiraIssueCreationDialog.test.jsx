@@ -100,4 +100,26 @@ describe("JiraIssueCreationDialog generateTemplate 본문", () => {
     await waitFor(() => expect(description.value).toContain("### 실제 결과"));
     expect(description.value).not.toContain("### 테스트 단계");
   });
+
+  it("동작·예상 결과가 모두 빈 단계는 번호만 남기지 않고 건너뛴다", async () => {
+    const steps = [
+      { stepNumber: 1, description: "파일 추가", expectedResult: "개수 반영" },
+      { stepNumber: 2, description: "", expectedResult: "" }, // 빈 단계 → 건너뜀
+    ];
+    render(
+      <JiraIssueCreationDialog
+        open
+        onClose={vi.fn()}
+        testCase={{ ...baseTestCase, steps }}
+        testResult={testResult}
+        projectId="p1"
+      />,
+    );
+
+    const description = getDescription();
+    await waitFor(() => expect(description.value).toContain("### 테스트 단계"));
+    expect(description.value).toContain("1. 파일 추가");
+    // 빈 2번 단계는 "2. " 빈 줄로 출력되지 않아야 한다
+    expect(description.value).not.toMatch(/^2\.\s*$/m);
+  });
 });

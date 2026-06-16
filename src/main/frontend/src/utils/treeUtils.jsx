@@ -339,14 +339,18 @@ export const countRealTestCases = (testCaseIds, allTestCases) => {
  * @param {string} selectedTestCaseId 현재 선택된 테스트케이스 ID
  * @returns {Array<string>} 네비게이션 기준 테스트케이스 ID 배열
  */
+// 플래튼 노드 배열에서 테스트케이스 ID만 순서대로 추출 (폴더 제외)
+export const extractTestCaseIds = (nodes) =>
+  (nodes || [])
+    .filter((node) => node && node.type === "testcase")
+    .map((node) => node.id);
+
 export const getFilteredNavTestCaseIds = (
   filteredData,
   allTestCaseIds,
   selectedTestCaseId,
 ) => {
-  const filteredIds = (filteredData || [])
-    .filter((node) => node && node.type === "testcase")
-    .map((node) => node.id);
+  const filteredIds = extractTestCaseIds(filteredData);
   return filteredIds.includes(selectedTestCaseId)
     ? filteredIds
     : allTestCaseIds || [];

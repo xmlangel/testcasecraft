@@ -3,6 +3,7 @@ import {
   NAV_IDS_STORAGE_PREFIX,
   saveFilteredNavIds,
   readFilteredNavIds,
+  clearFilteredNavIds,
 } from "./utils.jsx";
 
 // 전체화면 결과 뷰가 목록 화면의 필터 순서를 그대로 따르도록 하는
@@ -48,5 +49,21 @@ describe("filtered nav id persistence", () => {
   it("배열이 아닌 값이 저장돼 있으면 null 을 반환한다", () => {
     sessionStorage.setItem(`${NAV_IDS_STORAGE_PREFIX}exec-y`, '{"a":1}');
     expect(readFilteredNavIds("exec-y")).toBeNull();
+  });
+
+  // 필터 해제 시 키 제거 — stale 필터 순서가 전체화면 뷰로 새는 것을 방지 (코드리뷰 M1)
+  it("clearFilteredNavIds 는 저장된 목록을 제거한다", () => {
+    saveFilteredNavIds("exec-1", ["a", "b"]);
+    expect(readFilteredNavIds("exec-1")).toEqual(["a", "b"]);
+    clearFilteredNavIds("exec-1");
+    expect(readFilteredNavIds("exec-1")).toBeNull();
+  });
+
+  it("clearFilteredNavIds 는 executionId 가 없거나 'new' 면 아무것도 하지 않는다", () => {
+    saveFilteredNavIds("exec-2", ["x"]);
+    clearFilteredNavIds("new");
+    clearFilteredNavIds(undefined);
+    // 다른 실행 키는 영향 없음
+    expect(readFilteredNavIds("exec-2")).toEqual(["x"]);
   });
 });

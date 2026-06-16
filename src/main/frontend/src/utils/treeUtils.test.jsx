@@ -1,5 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { getFilteredNavTestCaseIds } from "./treeUtils.jsx";
+import { getFilteredNavTestCaseIds, extractTestCaseIds } from "./treeUtils.jsx";
+
+describe("extractTestCaseIds", () => {
+  it("테스트케이스 노드의 ID만 순서대로 추출하고 폴더는 제외한다", () => {
+    const nodes = [
+      { id: "f1", type: "folder" },
+      { id: "tc1", type: "testcase" },
+      { id: "tc2", type: "testcase" },
+    ];
+    expect(extractTestCaseIds(nodes)).toEqual(["tc1", "tc2"]);
+  });
+
+  it("null/undefined 입력은 빈 배열을 반환한다", () => {
+    expect(extractTestCaseIds(null)).toEqual([]);
+    expect(extractTestCaseIds(undefined)).toEqual([]);
+  });
+});
 
 // 필터된 실행 목록 상세화면에서 "이전/다음"이 필터 목록 안에서 이동하는지 검증
 describe("getFilteredNavTestCaseIds", () => {
