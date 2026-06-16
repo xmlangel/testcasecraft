@@ -491,10 +491,18 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
   /**
    * ICT-189: JIRA 이슈 키로 테스트 결과 조회 (실행 시간 기준 내림차순)
    *
-   * @param jiraIssueKey JIRA 이슈 키
+   * <p>jiraIssueKey 컬럼은 여러 키를 쉼표로 연결해 저장하므로(예: "ONT-1086,ONT-904"), 정확 일치(=)가 아니라 콤마 멤버 매칭으로 조회한다.
+   * 양끝에 콤마를 덧붙여 부분 키(ONT-10 vs ONT-1086) 오매칭을 방지한다.
+   *
+   * @param jiraIssueKey 단일 JIRA 이슈 키 (예: "ONT-1086")
    * @return JIRA 이슈와 연결된 테스트 결과 목록 (최신순)
    */
-  List<TestResult> findByJiraIssueKeyOrderByExecutedAtDesc(String jiraIssueKey);
+  @Query(
+      "SELECT tr FROM TestResult tr "
+          + "WHERE CONCAT(',', tr.jiraIssueKey, ',') LIKE CONCAT('%,', :jiraIssueKey, ',%') "
+          + "ORDER BY tr.executedAt DESC")
+  List<TestResult> findByJiraIssueKeyOrderByExecutedAtDesc(
+      @Param("jiraIssueKey") String jiraIssueKey);
 
   /**
    * ICT-189: 프로젝트의 JIRA 이슈 키가 있는 테스트 결과 조회
