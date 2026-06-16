@@ -326,6 +326,32 @@ export const countRealTestCases = (testCaseIds, allTestCases) => {
   }).length;
 };
 
+/**
+ * 필터가 적용된 목록 기준 이전/다음 네비게이션용 테스트케이스 ID 배열을 계산한다.
+ *
+ * 필터가 걸린 상태에서 상세화면의 "이전/다음"은 전체 목록이 아니라 필터링된 목록 안에서
+ * 이동해야 한다. filteredData(폴더+케이스 노드 배열)에서 테스트케이스만 순서대로 추출하고,
+ * 현재 선택된 케이스가 그 목록에 있으면 필터 목록을, 없으면(예: 상세를 연 뒤 필터 변경)
+ * 전체 목록으로 폴백한다.
+ *
+ * @param {Array<{type?: string, id?: string}>} filteredData 필터링된 플래튼 노드 배열
+ * @param {Array<string>} allTestCaseIds 전체 순서 테스트케이스 ID 배열 (폴백)
+ * @param {string} selectedTestCaseId 현재 선택된 테스트케이스 ID
+ * @returns {Array<string>} 네비게이션 기준 테스트케이스 ID 배열
+ */
+export const getFilteredNavTestCaseIds = (
+  filteredData,
+  allTestCaseIds,
+  selectedTestCaseId,
+) => {
+  const filteredIds = (filteredData || [])
+    .filter((node) => node && node.type === "testcase")
+    .map((node) => node.id);
+  return filteredIds.includes(selectedTestCaseId)
+    ? filteredIds
+    : allTestCaseIds || [];
+};
+
 export const getOrderedTestCaseIds = (
   allTestCases,
   planTestCaseIds,

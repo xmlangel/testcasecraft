@@ -32,7 +32,10 @@ import { useTranslation } from "../context/I18nContext.jsx";
 import { RESULT_COLORS } from "../constants/statusColors";
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
-import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
+import {
+  getOrderedTestCaseIds,
+  getFilteredNavTestCaseIds,
+} from "../utils/treeUtils.jsx";
 
 import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX } from "../styles/layoutConstants";
@@ -1032,6 +1035,14 @@ const TestExecutionForm = ({
         matchingTestCaseIds.has(node.id) || folderIdsToShow.has(node.id),
     );
   }, [flattenedData, filters, resultsMap]);
+
+  // 필터가 적용된 목록 기준 이전/다음 네비게이션을 위한 테스트케이스 ID 배열
+  // (선택 케이스가 필터 목록에 없으면 전체 목록으로 폴백)
+  const navTestCaseIds = useMemo(
+    () =>
+      getFilteredNavTestCaseIds(filteredData, testCaseIds, selectedTestCaseId),
+    [filteredData, testCaseIds, selectedTestCaseId],
+  );
   const { stats: statusCounts, progressPercent: progress } = useMemo(() => {
     // testCaseIds(플랜의 실제 케이스 목록)를 기준으로 각 상태를 카운팅
     // resultsMap.values() 기반 계산은 재실행 이력이 많을 때 카운트가 부풀려지는 버그가 있었음
@@ -1452,21 +1463,21 @@ const TestExecutionForm = ({
           onClose={handleCloseResultForm}
           onSave={handleSaveResult}
           onNext={() => {
-            const currentIndex = testCaseIds.indexOf(selectedTestCaseId);
-            if (currentIndex >= 0 && currentIndex < testCaseIds.length - 1) {
-              const nextTestCaseId = testCaseIds[currentIndex + 1];
+            const currentIndex = navTestCaseIds.indexOf(selectedTestCaseId);
+            if (currentIndex >= 0 && currentIndex < navTestCaseIds.length - 1) {
+              const nextTestCaseId = navTestCaseIds[currentIndex + 1];
               setSelectedTestCaseId(nextTestCaseId);
             }
           }}
           onPrevious={() => {
-            const currentIndex = testCaseIds.indexOf(selectedTestCaseId);
+            const currentIndex = navTestCaseIds.indexOf(selectedTestCaseId);
             if (currentIndex > 0) {
-              const prevTestCaseId = testCaseIds[currentIndex - 1];
+              const prevTestCaseId = navTestCaseIds[currentIndex - 1];
               setSelectedTestCaseId(prevTestCaseId);
             }
           }}
-          currentIndex={testCaseIds.indexOf(selectedTestCaseId)}
-          totalCount={testCaseIds.length}
+          currentIndex={navTestCaseIds.indexOf(selectedTestCaseId)}
+          totalCount={navTestCaseIds.length}
           onOpenFullPage={() => {
             const projectId =
               propProjectId ||
