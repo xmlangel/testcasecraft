@@ -46,8 +46,7 @@ public class EnglishTestExecutionTranslations {
         "testExecution.list.delete.delete", languageCode, "Delete", createdBy);
     createTranslationIfNotExists(
         "testExecution.list.searchPlaceholder", languageCode, "Title Search", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.list.refresh", languageCode, "Refresh", createdBy);
+    createTranslationIfNotExists("testExecution.list.refresh", languageCode, "Refresh", createdBy);
     createTranslationIfNotExists(
         "testExecution.status.notStarted", languageCode, "Not Started", createdBy);
     createTranslationIfNotExists(

@@ -30,9 +30,8 @@ public class JwtTokenUtil {
   /**
    * 앱 시작 시 JWT_SECRET 을 즉시 검증한다.
    *
-   * <p>시크릿이 잘못되면(비 Base64 문자 포함, 길이 부족) 기존에는 첫 로그인 시점에야 "Illegal base64
-   * character" 같은 모호한 에러로 실패해 원인 파악이 어려웠다. 시작 시점에 명확한 메시지로 즉시 실패시켜 배포
-   * 설정 오류를 바로 드러낸다.
+   * <p>시크릿이 잘못되면(비 Base64 문자 포함, 길이 부족) 기존에는 첫 로그인 시점에야 "Illegal base64 character" 같은 모호한 에러로 실패해
+   * 원인 파악이 어려웠다. 시작 시점에 명확한 메시지로 즉시 실패시켜 배포 설정 오류를 바로 드러낸다.
    */
   @PostConstruct
   void validateSecretOnStartup() {

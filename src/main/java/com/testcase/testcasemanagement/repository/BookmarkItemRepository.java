@@ -26,9 +26,7 @@ public interface BookmarkItemRepository extends JpaRepository<BookmarkItem, Stri
   /** 모음 항목 수. */
   long countByCollection_Id(String collectionId);
 
-  /**
-   * 사용자가 특정 프로젝트에서 (어느 모음에든) 북마크한 케이스 ID 집합. 별 버튼 상태 표시용(NFR-1: 단일 조회로 N+1 회피).
-   */
+  /** 사용자가 특정 프로젝트에서 (어느 모음에든) 북마크한 케이스 ID 집합. 별 버튼 상태 표시용(NFR-1: 단일 조회로 N+1 회피). */
   @Query(
       "SELECT DISTINCT i.testCase.id FROM BookmarkItem i "
           + "WHERE i.collection.user.id = :userId AND i.collection.project.id = :projectId")

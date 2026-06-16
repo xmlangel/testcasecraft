@@ -179,10 +179,7 @@ public class BookmarkService {
         .orElseGet(
             () -> {
               itemRepository.save(
-                  BookmarkItem.builder()
-                      .collection(defaultCollection)
-                      .testCase(testCase)
-                      .build());
+                  BookmarkItem.builder().collection(defaultCollection).testCase(testCase).build());
               return BookmarkDto.ToggleResponse.builder()
                   .testCaseId(testCaseId)
                   .bookmarked(true)
@@ -264,10 +261,10 @@ public class BookmarkService {
   }
 
   private void validateSameProject(BookmarkCollection collection, TestCase testCase) {
-    String collectionProjectId = collection.getProject() != null ? collection.getProject().getId() : null;
+    String collectionProjectId =
+        collection.getProject() != null ? collection.getProject().getId() : null;
     if (collectionProjectId != null && !collectionProjectId.equals(projectIdOf(testCase))) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "케이스가 모음의 프로젝트에 속하지 않습니다.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "케이스가 모음의 프로젝트에 속하지 않습니다.");
     }
   }
 

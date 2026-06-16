@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 사용자 매뉴얼(한국어/영어) 조회 API.
  *
- * <p>GuideController 와 달리 매뉴얼은 스크린샷 이미지(images/, images_en/)를 함께 서빙해야 하므로 별도
- * 컨트롤러로 분리한다. 마크다운 서빙 시 상대 이미지 경로를 본 API 의 이미지 엔드포인트로 재작성한다.
+ * <p>GuideController 와 달리 매뉴얼은 스크린샷 이미지(images/, images_en/)를 함께 서빙해야 하므로 별도 컨트롤러로 분리한다. 마크다운 서빙 시
+ * 상대 이미지 경로를 본 API 의 이미지 엔드포인트로 재작성한다.
  *
  * <p>문서는 {@link DocsResourceLoader} 를 통해 파일시스템(개발) → 클래스패스(jar/도커) 순으로 읽는다.
  */
@@ -81,8 +81,7 @@ public class ManualController {
       return ResponseEntity.badRequest().build();
     }
     String imageDir = isEn ? "images_en" : "images";
-    Optional<byte[]> bytes =
-        docsResourceLoader.readBytes(MANUAL_DIR + imageDir + "/" + fileName);
+    Optional<byte[]> bytes = docsResourceLoader.readBytes(MANUAL_DIR + imageDir + "/" + fileName);
     if (bytes.isEmpty()) {
       return ResponseEntity.notFound().build();
     }
