@@ -155,4 +155,40 @@ public class TestResultRepositoryImprovedTest extends AbstractTestNGSpringContex
 
     logger.info("✅ 멀티키 멤버 매칭 및 경계 오매칭 방지 검증 완료");
   }
+
+  @Test(
+      description = "findByAnyJiraIssueKey: 키 목록 중 하나라도 멤버로 가진 멀티키 행을 배열 overlap 으로 조회 (배치 집계 회귀)")
+  public void testFindByAnyJiraIssueKeyMatchesCommaJoinedMembers() {
+    logger.info("=== findByAnyJiraIssueKey 배열 overlap 회귀 검증 ===");
+
+    LocalDateTime base = LocalDateTime.of(2026, 6, 16, 11, 0);
+
+    // Given
+    testResultRepository.save(newResult("ONT-1086", base.plusMinutes(1))); // 단일 (ONT-1086)
+    testResultRepository.save(
+        newResult("ONT-1086,ONT-904", base.plusMinutes(2))); // 멀티 (ONT-1086 포함)
+    testResultRepository.save(
+        newResult("ONT-904,ONT-1086", base.plusMinutes(3))); // 멀티 (ONT-1086 포함)
+    testResultRepository.save(newResult("ONT-905", base.plusMinutes(4))); // 단일 (ONT-905)
+    testResultRepository.save(newResult("ONT-700", base.plusMinutes(5))); // 무관
+    testResultRepository.save(newResult("ONT-10861", base.plusMinutes(6))); // 부분겹침 (오매칭 금지)
+    testResultRepository.flush();
+
+    // When: 키 목록 ["ONT-1086", "ONT-905"] 로 배치 조회
+    List<TestResult> found = testResultRepository.findByAnyJiraIssueKey("ONT-1086,ONT-905");
+
+    // Then: ONT-1086 또는 ONT-905 를 멤버로 가진 4건만
+    Set<String> keys = found.stream().map(TestResult::getJiraIssueKey).collect(Collectors.toSet());
+    logger.info("조회 결과 키: {}", keys);
+
+    Assert.assertEquals(found.size(), 4, "ONT-1086/ONT-905 를 멤버로 가진 4건이 조회되어야 함");
+    Assert.assertTrue(keys.contains("ONT-1086"), "단일키(ONT-1086) 포함");
+    Assert.assertTrue(keys.contains("ONT-1086,ONT-904"), "멀티키(ONT-1086) 포함");
+    Assert.assertTrue(keys.contains("ONT-904,ONT-1086"), "멀티키(ONT-1086) 포함");
+    Assert.assertTrue(keys.contains("ONT-905"), "단일키(ONT-905) 포함");
+    Assert.assertFalse(keys.contains("ONT-700"), "무관 키는 제외");
+    Assert.assertFalse(keys.contains("ONT-10861"), "부분 겹침 키(ONT-10861)는 오매칭되면 안 됨");
+
+    logger.info("✅ findByAnyJiraIssueKey 배열 overlap 매칭 검증 완료");
+  }
 }

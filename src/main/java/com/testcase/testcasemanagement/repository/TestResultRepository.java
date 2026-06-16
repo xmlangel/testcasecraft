@@ -519,12 +519,23 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
   List<TestResult> findByProjectIdAndJiraIssueKeyIsNotNull(@Param("projectId") String projectId);
 
   /**
-   * 지정된 JIRA 이슈 키 목록과 연결된 테스트 결과 조회
+   * 지정된 JIRA 이슈 키 목록 중 하나라도 연결된 테스트 결과 조회.
    *
-   * @param jiraIssueKeys JIRA 이슈 키 목록
-   * @return 매칭되는 테스트 결과 목록
+   * <p>jira_issue_key 컬럼은 여러 키를 쉼표로 연결해 저장하므로(예: "ONT-1086,ONT-904") 단순 IN 비교로는 멀티키 행을 찾지 못한다.
+   * PostgreSQL의 string_to_array + 배열 overlap(&&) 연산자로 콤마 멤버 단위 교집합을 판정한다. 콤마로 분리한 요소 단위 비교라 부분 키
+   * 오매칭(ONT-1086 vs ONT-10861)도 발생하지 않는다.
+   *
+   * @param jiraIssueKeysCsv 쉼표로 연결된 JIRA 이슈 키 목록 (대문자 정규화, 예: "ONT-1086,ONT-904")
+   * @return 키 중 하나라도 멤버로 가진 테스트 결과 목록
    */
-  List<TestResult> findByJiraIssueKeyIn(List<String> jiraIssueKeys);
+  @Query(
+      value =
+          "SELECT * FROM test_results tr "
+              + "WHERE tr.jira_issue_key IS NOT NULL "
+              + "AND string_to_array(tr.jira_issue_key, ',') "
+              + "    && string_to_array(:jiraIssueKeysCsv, ',')",
+      nativeQuery = true)
+  List<TestResult> findByAnyJiraIssueKey(@Param("jiraIssueKeysCsv") String jiraIssueKeysCsv);
 
   // ========== 성능 최적화: DB 레벨 중복 제거 + 페이징 (ID 기반 2단계 방식) ==========
 

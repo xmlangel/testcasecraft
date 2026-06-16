@@ -371,15 +371,22 @@ public class JiraStatusAggregationService {
     // 사용자 ID 전달
     Map<String, JsonNode> issueInfoMap = batchGetJiraIssueInfo(userId, normalizedKeys);
 
-    List<TestResult> relatedResults = testResultRepository.findByJiraIssueKeyIn(sanitizedKeys);
-    Map<String, List<TestResult>> resultsByIssueKey =
-        relatedResults.stream()
-            .filter(tr -> tr.getJiraIssueKey() != null)
-            .collect(
-                Collectors.groupingBy(
-                    tr -> tr.getJiraIssueKey().trim().toUpperCase(),
-                    LinkedHashMap::new,
-                    Collectors.toList()));
+    // jira_issue_key 는 멀티키("ONT-1086,ONT-904")로 저장될 수 있으므로 콤마 멤버 매칭으로 조회하고,
+    // 각 결과를 요청된 키 각각에 매핑해 키별로 그룹핑한다.
+    List<TestResult> relatedResults =
+        testResultRepository.findByAnyJiraIssueKey(String.join(",", normalizedKeys));
+    Map<String, List<TestResult>> resultsByIssueKey = new LinkedHashMap<>();
+    for (TestResult tr : relatedResults) {
+      if (tr.getJiraIssueKey() == null) {
+        continue;
+      }
+      for (String member : tr.getJiraIssueKey().split(",")) {
+        String normalizedMember = member.trim().toUpperCase();
+        if (normalizedKeys.contains(normalizedMember)) {
+          resultsByIssueKey.computeIfAbsent(normalizedMember, k -> new ArrayList<>()).add(tr);
+        }
+      }
+    }
 
     // 활성 설정 조회 (URL 생성용)
     String jiraBaseUrl =
@@ -464,8 +471,9 @@ public class JiraStatusAggregationService {
       Map<String, JsonNode> issueInfoMap = batchGetJiraIssueInfo(userId, normalizedKeys);
       log.info("JIRA API에서 조회된 이슈: {}개", issueInfoMap.size());
 
-      // 2. 각 JIRA ID에 연결된 테스트 결과 조회 및 업데이트
-      List<TestResult> relatedResults = testResultRepository.findByJiraIssueKeyIn(sanitizedKeys);
+      // 2. 각 JIRA ID에 연결된 테스트 결과 조회 및 업데이트 (멀티키 콤마 멤버 매칭)
+      List<TestResult> relatedResults =
+          testResultRepository.findByAnyJiraIssueKey(String.join(",", normalizedKeys));
       log.info("데이터베이스에서 찾은 테스트 결과: {}개", relatedResults.size());
 
       if (relatedResults.isEmpty()) {
@@ -481,14 +489,28 @@ public class JiraStatusAggregationService {
           continue;
         }
 
-        String normalizedKey = result.getJiraIssueKey().trim().toUpperCase();
-        JsonNode issueInfo = issueInfoMap.get(normalizedKey);
+        // 멀티키("ONT-1086,ONT-904") 행은 멤버 중 동기화 대상이며 API 정보가 있는 첫 키의 상태를 사용한다.
+        String matchedKey = null;
+        JsonNode issueInfo = null;
+        for (String member : result.getJiraIssueKey().split(",")) {
+          String normalizedMember = member.trim().toUpperCase();
+          if (!normalizedKeys.contains(normalizedMember)) {
+            continue;
+          }
+          JsonNode info = issueInfoMap.get(normalizedMember);
+          if (info != null) {
+            matchedKey = normalizedMember;
+            issueInfo = info;
+            break;
+          }
+        }
 
         if (issueInfo == null) {
-          log.warn("JIRA 이슈 {}의 정보를 API에서 찾을 수 없습니다", normalizedKey);
+          log.warn("JIRA 이슈 {}의 정보를 API에서 찾을 수 없습니다", result.getJiraIssueKey());
           continue;
         }
 
+        String normalizedKey = matchedKey;
         String currentStatus = issueInfo.path("fields").path("status").path("name").asText();
 
         if (currentStatus != null && !currentStatus.isEmpty()) {
