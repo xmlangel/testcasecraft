@@ -62,6 +62,7 @@ import {
   extractFolderName,
   extractParentFolder,
   generateColumnLabels,
+  filterRowsAfterDelete,
 } from "./Spreadsheet/utils/SpreadsheetUtils.js";
 import { getAllDescendants } from "../../utils/treeUtils.jsx";
 import {
@@ -574,12 +575,17 @@ const TestCaseSpreadsheet = ({
 
       // 2. 프론트엔드 상태 업데이트
       const { startRow, count } = deleteTargetRange;
+      // 선택 범위뿐 아니라 백엔드에서 함께 삭제된 하위 항목 행도 id 로 제거해
+      // 화면-백엔드 불일치(유령 행)를 막는다 (onRefresh 전에도 일관).
+      const deletedIdSet = new Set(realIdsToDelete);
 
       setSpreadsheetData((prevData) => {
-        const newData = [...prevData];
-
-        // 선택된 행 삭제
-        newData.splice(startRow, count);
+        const newData = filterRowsAfterDelete(
+          prevData,
+          startRow,
+          count,
+          deletedIdSet,
+        );
 
         // ICT-414: displayOrder 재계산 로직 제거 (필터링된 뷰에서의 부작용 방지)
         return newData;

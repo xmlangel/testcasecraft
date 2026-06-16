@@ -20,7 +20,7 @@ export const flattenTreeInOrder = (data, options = {}) => {
     listToTreeOptions.orphanFolderName = t("tree.orphan.name", "[미할당 항목]");
     listToTreeOptions.orphanFolderDescription = t(
       "tree.orphan.description",
-      "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다."
+      "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.",
     );
   }
   const treeData = listToTree(data, null, listToTreeOptions);
@@ -163,4 +163,28 @@ export const convertDataForExport = (spreadsheetData, columnLabels) => {
     headers: columnLabels,
     rows: exportData,
   };
+};
+
+/**
+ * 삭제 확정 후 화면에 남길 행을 계산한다.
+ *
+ * 폴더 삭제 시 하위 항목은 백엔드에서 함께 삭제되지만, 화면상으로는 선택 범위
+ * 밖(다른 위치)에 있을 수 있다. 선택 범위(splice)만 제거하면 백엔드에선 지워졌는데
+ * 화면엔 남는 유령 행이 생긴다. 따라서 ① 선택 범위 + ② 백엔드 삭제된 id 를 가진
+ * 모든 행을 함께 제거한다.
+ *
+ * @param {Array} rows 현재 시트 행 (각 행은 셀 배열, row[0].testCaseId 에 id)
+ * @param {number} startRow 선택 시작 인덱스
+ * @param {number} count 선택 행 수
+ * @param {Set<string>} deletedIdSet 백엔드에서 삭제된 testCaseId 집합 (하위 포함)
+ * @returns {Array} 남길 행
+ */
+export const filterRowsAfterDelete = (rows, startRow, count, deletedIdSet) => {
+  const ids = deletedIdSet || new Set();
+  return (rows || []).filter((row, idx) => {
+    const inRange = idx >= startRow && idx < startRow + count;
+    const rowId = row?.[0]?.testCaseId;
+    const isDeletedId = rowId != null && ids.has(rowId);
+    return !inRange && !isDeletedId;
+  });
 };

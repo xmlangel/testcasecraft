@@ -49,6 +49,7 @@ import {
   resolveFieldValue,
   applyFieldValueToState,
   extractAttachmentIds,
+  removeStepAndRenumber,
 } from "../utils/testCaseFormUtils.js";
 
 // 분리된 컴포넌트 import
@@ -547,25 +548,18 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
 
   const handleDeleteStep = (stepNumber) => {
     if (isViewer) return;
-    const updatedSteps = testCase.steps.filter(
-      (step) => step.stepNumber !== stepNumber,
+    // 삭제 후 1..N 으로 재번호 + 에러 키 재매핑 (번호 구멍 방지 → 이동 버튼 로직 정합)
+    const { steps: renumberedSteps, stepErrors } = removeStepAndRenumber(
+      testCase.steps,
+      stepNumber,
+      errors.steps || {},
     );
     setTestCase({
       ...testCase,
-      steps: updatedSteps,
+      steps: renumberedSteps,
     });
-    if (stepNumber === maxStepNumber) {
-      setMaxStepNumber(
-        updatedSteps.length > 0
-          ? Math.max(...updatedSteps.map((step) => step.stepNumber))
-          : 0,
-      );
-    }
-    setErrors((prev) => {
-      const newSteps = { ...prev.steps };
-      delete newSteps?.[stepNumber];
-      return { ...prev, steps: newSteps };
-    });
+    setMaxStepNumber(renumberedSteps.length);
+    setErrors((prev) => ({ ...prev, steps: stepErrors }));
   };
 
   const handleMoveStep = (stepNumber, direction) => {

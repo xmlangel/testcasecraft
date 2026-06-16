@@ -62,3 +62,36 @@ export const extractAttachmentIds = (htmlContent) => {
   }
   return Array.from(ids);
 };
+
+/**
+ * 테스트 단계 삭제 후 stepNumber 를 1..N 으로 재번호하고, stepNumber 로 키잉된
+ * 검증 에러도 새 번호로 재매핑한다.
+ *
+ * 단순 filter 만 하면 번호에 구멍이 생겨(1,3,4) 단계 이동 버튼 비활성화 로직
+ * (stepNumber===1 / ===steps.length)이 오작동하므로, 삭제·추가·이동이 모두
+ * 1..N 연속 번호 규약을 따르도록 한다.
+ *
+ * @param {Array<{stepNumber:number}>} steps 현재 단계 목록
+ * @param {number} stepNumberToRemove 삭제할 단계 번호
+ * @param {Object} stepErrors stepNumber→에러 맵 (errors.steps)
+ * @returns {{steps: Array, stepErrors: Object}} 재번호된 단계와 재매핑된 에러
+ */
+export const removeStepAndRenumber = (
+  steps,
+  stepNumberToRemove,
+  stepErrors = {},
+) => {
+  const remaining = (steps || [])
+    .filter((s) => s.stepNumber !== stepNumberToRemove)
+    .sort((a, b) => a.stepNumber - b.stepNumber);
+  const newSteps = [];
+  const newErrors = {};
+  remaining.forEach((s, i) => {
+    const newNumber = i + 1;
+    newSteps.push({ ...s, stepNumber: newNumber });
+    if (stepErrors && stepErrors[s.stepNumber] !== undefined) {
+      newErrors[newNumber] = stepErrors[s.stepNumber];
+    }
+  });
+  return { steps: newSteps, stepErrors: newErrors };
+};
