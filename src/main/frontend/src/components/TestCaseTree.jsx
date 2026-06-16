@@ -598,11 +598,15 @@ const TestCaseTree = ({
         deleteConfirmationOpen={actions.deleteConfirmationOpen}
         onCancelDelete={actions.handleCancelDelete}
         onConfirmDelete={actions.handleConfirmDelete}
-        singleDeleteItems={actions.getSingleDeleteItems()}
+        singleDeleteItems={
+          actions.deleteConfirmationOpen ? actions.getSingleDeleteItems() : []
+        }
         batchDeleteDialogOpen={actions.batchDeleteDialogOpen}
         onCloseBatchDelete={() => actions.setBatchDeleteDialogOpen(false)}
         onConfirmBatchDelete={actions.handleConfirmBatchDelete}
-        batchDeleteItems={actions.getBatchDeleteItems()}
+        batchDeleteItems={
+          actions.batchDeleteDialogOpen ? actions.getBatchDeleteItems() : []
+        }
         checkedIds={treeState.checkedIds}
         versionHistoryOpen={actions.versionHistoryOpen}
         selectedVersionTestCaseId={actions.selectedVersionTestCaseId}

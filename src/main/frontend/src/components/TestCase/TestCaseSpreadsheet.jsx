@@ -69,10 +69,7 @@ import {
   findFolderIdByName,
   sortFoldersByHierarchy,
 } from "./Spreadsheet/utils/FolderManagement.js";
-import {
-  validateSpreadsheetData,
-  applyValidationStyling,
-} from "./Spreadsheet/utils/SpreadsheetValidation.js";
+import { validateSpreadsheetData } from "./Spreadsheet/utils/SpreadsheetValidation.js";
 import {
   exportToCSV,
   exportToExcel,
@@ -114,7 +111,6 @@ const TestCaseSpreadsheet = ({
   // 검증 관련 상태
   const [validationResult, setValidationResult] = useState(null);
   const [validationPanelOpen, setValidationPanelOpen] = useState(false);
-  const [styledSpreadsheetData, setStyledSpreadsheetData] = useState([]);
 
   // 스텝 관리 상태
   const [maxSteps, setMaxSteps] = useState(3);
@@ -885,15 +881,6 @@ const TestCaseSpreadsheet = ({
 
       setValidationResult(result);
       setValidationPanelOpen(true);
-
-      // 검증 결과를 스프레드시트에 시각적으로 표시
-      const styledData = applyValidationStyling(
-        spreadsheetData,
-        result,
-        memoizedColumnLabels,
-        theme,
-      );
-      setStyledSpreadsheetData(styledData);
 
       let message = "";
       if (result.isValid) {
