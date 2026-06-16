@@ -22,10 +22,6 @@ import {
   CircularProgress,
   Snackbar,
   IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   useTheme,
   Collapse,
   Dialog,
@@ -33,11 +29,6 @@ import {
   DialogTitle,
 } from "@mui/material";
 import {
-  RemoveCircle as RemoveStepIcon,
-  AddCircle as AddStepIcon,
-  Settings as SettingsIcon,
-  Download as DownloadIcon,
-  GetApp as GetAppIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   FullscreenExit as FullscreenExitIcon,
@@ -79,6 +70,10 @@ import {
 import { DeleteConfirmationDialog } from "./Spreadsheet/components/DeleteConfirmationDialog.jsx";
 import KoreanAwareDataEditor from "./Spreadsheet/components/KoreanAwareDataEditor.jsx";
 import SpreadsheetToolbar from "./Spreadsheet/components/SpreadsheetToolbar.jsx";
+import {
+  StepMenu,
+  ExportMenu,
+} from "./Spreadsheet/components/SpreadsheetMenus.jsx";
 
 const TestCaseSpreadsheet = ({
   data,
@@ -1382,55 +1377,14 @@ const TestCaseSpreadsheet = ({
         </Snackbar>
 
         {/* 스텝 관리 메뉴 */}
-        <Menu
+        <StepMenu
           anchorEl={stepMenuAnchor}
-          open={Boolean(stepMenuAnchor)}
           onClose={handleStepMenuClose}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-        >
-          <MenuItem
-            onClick={() => handleQuickStepChange(1)}
-            disabled={maxSteps >= 10}
-          >
-            <ListItemIcon>
-              <AddStepIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>
-              {t(
-                "testcase.spreadsheet.stepMenu.addStep",
-                "스텝 추가 ({count}개)",
-                { count: maxSteps + 1 },
-              )}
-            </ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => handleQuickStepChange(-1)}
-            disabled={maxSteps <= 1}
-          >
-            <ListItemIcon>
-              <RemoveStepIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>
-              {t(
-                "testcase.spreadsheet.stepMenu.removeStep",
-                "스텝 제거 ({count}개)",
-                { count: maxSteps - 1 },
-              )}
-            </ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleStepSettingsOpen}>
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>
-              {t(
-                "testcase.spreadsheet.stepMenu.settings",
-                "스텝 수 직접 설정...",
-              )}
-            </ListItemText>
-          </MenuItem>
-        </Menu>
+          maxSteps={maxSteps}
+          onQuickStepChange={handleQuickStepChange}
+          onOpenSettings={handleStepSettingsOpen}
+          t={t}
+        />
 
         {/* 스텝 설정 다이얼로그 */}
         <StepSettingsDialog
@@ -1485,61 +1439,14 @@ const TestCaseSpreadsheet = ({
         />
 
         {/* Export 메뉴 */}
-        <Menu
+        <ExportMenu
           anchorEl={exportMenuAnchor}
-          open={Boolean(exportMenuAnchor)}
           onClose={handleExportMenuClose}
-          disableEnforceFocus // 접근성 경고 방지
-          disableRestoreFocus // 접근성 경고 방지
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-        >
-          <MenuItem onClick={handleExportCSV}>
-            <ListItemIcon>
-              <DownloadIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary={t(
-                "testcase.spreadsheet.export.csv.title",
-                "CSV로 내보내기",
-              )}
-              secondary={t(
-                "testcase.spreadsheet.export.csv.description",
-                "스프레드시트 호환 형식",
-              )}
-            />
-          </MenuItem>
-          <MenuItem onClick={handleExportExcel}>
-            <ListItemIcon>
-              <GetAppIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary={t(
-                "testcase.spreadsheet.export.excel.title",
-                "Excel로 내보내기",
-              )}
-              secondary={t(
-                "testcase.spreadsheet.export.excel.description",
-                "Microsoft Excel 형식 (.xlsx)",
-              )}
-            />
-          </MenuItem>
-          <MenuItem onClick={handleExportPDF}>
-            <ListItemIcon>
-              <DownloadIcon fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText
-              primary={t(
-                "testcase.spreadsheet.export.pdf.title",
-                "PDF 내보내기(상세)",
-              )}
-              secondary={t(
-                "testcase.spreadsheet.export.pdf.description",
-                "테스트결과 입력 화면 형식 (.pdf)",
-              )}
-            />
-          </MenuItem>
-        </Menu>
+          onExportCsv={handleExportCSV}
+          onExportExcel={handleExportExcel}
+          onExportPdf={handleExportPDF}
+          t={t}
+        />
       </Card>
 
       {/* 전체화면 Dialog */}
