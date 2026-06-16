@@ -64,7 +64,12 @@ import {
   createEditableEmptyRow,
 } from "./Spreadsheet/utils/SpreadsheetUtils.js";
 import { getAllDescendants } from "../../utils/treeUtils.jsx";
-import { sortFoldersByHierarchy } from "./Spreadsheet/utils/FolderManagement.js";
+import {
+  createEmptyBatchResult,
+  mergeBatchResult,
+  saveFoldersLayered,
+  resolveTestCaseParentIds,
+} from "./Spreadsheet/handlers/spreadsheetSave.js";
 import { validateSpreadsheetData } from "./Spreadsheet/utils/SpreadsheetValidation.js";
 import {
   exportToCSV,
@@ -807,163 +812,36 @@ const TestCaseSpreadsheet = ({
       });
 
       // 2. 분리: 폴더 vs 테스트케이스
-      let folders = convertedTestCases.filter((tc) => tc.type === "folder");
+      const folders = convertedTestCases.filter((tc) => tc.type === "folder");
       const testCasesOnly = convertedTestCases.filter(
         (tc) => tc.type === "testcase",
       );
 
-      let batchResult = {
-        savedTestCases: [],
-        successCount: 0,
-        failureCount: 0,
-        errors: [],
-        isSuccess: true,
-      };
+      const batchResult = createEmptyBatchResult();
 
-      // 3. 폴더 저장 (Layered Save)
-      // 부모-자식 의존성 해결을 위해, "부모 ID를 아는 폴더"부터 순차적으로 저장
+      // 3. 폴더 레이어드 저장 (부모-자식 의존성 순서로). 실제 저장은 콜백 주입.
       if (folders.length > 0) {
-        debugLog(
-          "Spreadsheet",
-          "📂 폴더 레이어드 저장 시작:",
-          folders.length,
-          "개",
+        const folderResult = await saveFoldersLayered(
+          folders,
+          data || [],
+          (b) => testCaseService.batchSaveTestCases(b),
         );
-
-        // 3-1. 폴더 정렬 (부모가 먼저 오도록)
-        // sortFoldersByHierarchy는 이미 존재하는 함수를 활용
-        folders = sortFoldersByHierarchy(folders, data || []);
-
-        // 3-2. 기존 ID 맵 (이름 -> ID 매핑용)
-        // 기존 DB 데이터의 폴더 명과 ID를 미리 맵핑
-        const knownFolders = new Map();
-        (data || []).forEach((item) => {
-          if (item.type === "folder") {
-            knownFolders.set(item.name, item.id);
-          }
-        });
-
-        // 처리된 폴더 추적
-        const processedFolders = new Set();
-        let remainingFolders = [...folders];
-        let loopCount = 0;
-        const maxLoops = 10; // 무한루프 방지
-
-        while (remainingFolders.length > 0 && loopCount < maxLoops) {
-          loopCount++;
-          const currentBatch = [];
-          const nextRemaining = [];
-
-          for (const folder of remainingFolders) {
-            // 부모가 없거나(루트), 부모가 이미 알려진(저장된/기존) 폴더인 경우
-            const parentName = folder.parentFolderName;
-            const hasParentName = parentName && parentName.trim() !== "";
-
-            // 부모 ID 해결 시도
-            let resolvedParentId = folder.parentId;
-
-            if (hasParentName && !resolvedParentId) {
-              // 기존 parentId가 없다면 맵에서 검색
-              resolvedParentId = knownFolders.get(parentName);
-            }
-
-            // 저장 가능 여부 판단
-            const isRoot = !hasParentName;
-            const isParentKnown = hasParentName && resolvedParentId;
-
-            if (isRoot || isParentKnown) {
-              // 저장 가능한 상태
-              // parentId 업데이트
-              if (resolvedParentId) {
-                folder.parentId = resolvedParentId;
-              }
-              currentBatch.push(folder);
-            } else {
-              // 아직 부모가 저장되지 않음 (다음 라운드로)
-              nextRemaining.push(folder);
-            }
-          }
-
-          if (currentBatch.length === 0) {
-            // 더 이상 진행 불가 (순환 참조나 부모 이름 오타 등)
-            // 남은 폴더들은 그냥 저장 시도 (백엔드 에러 처리 또는 null parent)
-            debugLog(
-              "Spreadsheet",
-              "⚠️ 더 이상 의존성 해결 불가, 남은 폴더 일괄 처리:",
-              nextRemaining.length,
-            );
-            currentBatch.push(...nextRemaining);
-            nextRemaining.length = 0; // 루프 종료
-          }
-
-          // 배치 저장 실행
-          if (currentBatch.length > 0) {
-            debugLog(
-              "Spreadsheet",
-              `📦 폴더 배치 ${loopCount} 저장:`,
-              currentBatch.length,
-              "개",
-            );
-            const folderBatchResult =
-              await testCaseService.batchSaveTestCases(currentBatch);
-
-            // 결과 처리 및 ID 맵 업데이트
-            folderBatchResult.savedTestCases.forEach((savedFolder) => {
-              knownFolders.set(savedFolder.name, savedFolder.id);
-              processedFolders.add(savedFolder.name);
-            });
-
-            // 결과 합치기
-            batchResult.savedTestCases.push(
-              ...folderBatchResult.savedTestCases,
-            );
-            batchResult.successCount += folderBatchResult.successCount;
-            batchResult.failureCount += folderBatchResult.failureCount;
-            batchResult.errors.push(...folderBatchResult.errors);
-            batchResult.isSuccess =
-              batchResult.isSuccess && folderBatchResult.isSuccess;
-          }
-
-          remainingFolders = nextRemaining;
-        }
+        mergeBatchResult(batchResult, folderResult);
       }
 
-      // 4. 테스트케이스 저장 (최신 폴더 ID 반영)
+      // 4. 테스트케이스 저장 (방금 저장된 폴더 ID 로 parentId 해소)
       if (testCasesOnly.length > 0) {
-        // 기존 데이터 + 방금 저장된 폴더들
         const savedFolders = batchResult.savedTestCases.filter(
           (item) => item.type === "folder",
         );
-        const updatedAllData = [...(data || []), ...savedFolders];
-
-        // 편의를 위해 Map 다시 구성 (최신 상태)
-        const finalFolderMap = new Map();
-        updatedAllData.forEach((item) => {
-          if (item.type === "folder") {
-            finalFolderMap.set(item.name, item.id);
-          }
-        });
-
-        const updatedTestCases = testCasesOnly.map((tc) => {
-          // parentFolderName이 있으면 최신 ID로 갱신
-          if (tc.parentFolderName) {
-            const newParentId = finalFolderMap.get(tc.parentFolderName);
-            if (newParentId) {
-              return { ...tc, parentId: newParentId };
-            }
-          }
-          // 이미 parentId가 있거나 찾지 못한 경우 그대로 유지
-          return tc;
-        });
-
+        const updatedTestCases = resolveTestCaseParentIds(
+          testCasesOnly,
+          data || [],
+          savedFolders,
+        );
         const testCaseBatchResult =
           await testCaseService.batchSaveTestCases(updatedTestCases);
-        batchResult.savedTestCases.push(...testCaseBatchResult.savedTestCases);
-        batchResult.successCount += testCaseBatchResult.successCount;
-        batchResult.failureCount += testCaseBatchResult.failureCount;
-        batchResult.errors.push(...testCaseBatchResult.errors);
-        batchResult.isSuccess =
-          batchResult.isSuccess && testCaseBatchResult.isSuccess;
+        mergeBatchResult(batchResult, testCaseBatchResult);
       }
 
       // 5. 결과 처리 (기존 로직)
