@@ -884,8 +884,7 @@ public class TestCaseKeysInitializer {
         "testcase.tree.virtual.unfiled", "testcase", "폴더에 없는 테스트케이스", "폴더에 없는 테스트케이스");
     createTranslationKeyIfNotExists(
         "testcase.tree.filter.placeholder", "testcase", "폴더 필터", "폴더 필터");
-    createTranslationKeyIfNotExists(
-        "testcase.tree.filter.clear", "testcase", "필터 지우기", "필터 지우기");
+    createTranslationKeyIfNotExists("testcase.tree.filter.clear", "testcase", "필터 지우기", "필터 지우기");
     createTranslationKeyIfNotExists("testcase.tree.button.cancel", "testcase", "취소", "취소");
     createTranslationKeyIfNotExists("testcase.tree.button.delete", "testcase", "삭제", "삭제");
     createTranslationKeyIfNotExists("testcase.tree.button.close", "testcase", "닫기", "닫기");

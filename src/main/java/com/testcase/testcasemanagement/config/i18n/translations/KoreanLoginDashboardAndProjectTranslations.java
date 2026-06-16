@@ -416,8 +416,7 @@ public class KoreanLoginDashboardAndProjectTranslations {
         "testcase.folderList.caseCount", languageCode, "케이스 {count}개", createdBy);
     createTranslationIfNotExists(
         "testcase.folderList.empty", languageCode, "이 폴더에 항목이 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testcase.folderList.column.name", languageCode, "이름", createdBy);
+    createTranslationIfNotExists("testcase.folderList.column.name", languageCode, "이름", createdBy);
     createTranslationIfNotExists(
         "testcase.folderList.column.priority", languageCode, "우선순위", createdBy);
     createTranslationIfNotExists(
@@ -438,8 +437,7 @@ public class KoreanLoginDashboardAndProjectTranslations {
         "testcase.tree.virtual.unfiled", languageCode, "폴더에 없는 테스트케이스", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.filter.placeholder", languageCode, "폴더 필터", createdBy);
-    createTranslationIfNotExists(
-        "testcase.tree.filter.clear", languageCode, "필터 지우기", createdBy);
+    createTranslationIfNotExists("testcase.tree.filter.clear", languageCode, "필터 지우기", createdBy);
     createTranslationIfNotExists("testcase.tree.button.cancel", languageCode, "취소", createdBy);
     createTranslationIfNotExists("testcase.tree.button.delete", languageCode, "삭제", createdBy);
     createTranslationIfNotExists("testcase.tree.button.close", languageCode, "닫기", createdBy);

@@ -129,8 +129,7 @@ public class LlmConfigController {
 
   @Operation(
       summary = "특정 LLM 설정 조회",
-      description =
-          """
+      description = """
           ID로 특정 LLM 설정을 조회합니다.
 
           **권한**: ADMIN

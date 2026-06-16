@@ -214,9 +214,9 @@ public class SecurityConfig {
 
   @Bean
   public AuthenticationProvider authenticationProvider() {
-    // Spring Security 6.4+: UserDetailsService 는 생성자로 주입(무인자 생성자·setUserDetailsService 는 deprecated)
-    DaoAuthenticationProvider authProvider =
-        new DaoAuthenticationProvider(userDetailsService);
+    // Spring Security 6.4+: UserDetailsService 는 생성자로 주입(무인자 생성자·setUserDetailsService 는
+    // deprecated)
+    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
     authProvider.setPasswordEncoder(passwordEncoder());
     return authProvider;
   }

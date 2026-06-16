@@ -15,9 +15,8 @@ import org.springframework.stereotype.Component;
 /**
  * 저장소 docs/ 문서 로더 — 파일시스템 우선, 클래스패스 폴백.
  *
- * <p>개발 환경(bootRun)에서는 작업 디렉토리의 docs/ 를 직접 읽어 문서 수정이 즉시 반영되고, 도커/jar 배포에서는
- * processResources 가 jar 에 동봉한 classpath:docs/** 를 읽는다. 경로 검증(파일명 화이트리스트 등)은 호출
- * 측(컨트롤러)의 책임이다.
+ * <p>개발 환경(bootRun)에서는 작업 디렉토리의 docs/ 를 직접 읽어 문서 수정이 즉시 반영되고, 도커/jar 배포에서는 processResources 가 jar 에
+ * 동봉한 classpath:docs/** 를 읽는다. 경로 검증(파일명 화이트리스트 등)은 호출 측(컨트롤러)의 책임이다.
  */
 @Slf4j
 @Component

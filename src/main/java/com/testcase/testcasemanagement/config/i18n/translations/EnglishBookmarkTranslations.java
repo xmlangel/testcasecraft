@@ -58,7 +58,10 @@ public class EnglishBookmarkTranslations {
         "The default favorites collection cannot be deleted.",
         by);
     create(
-        "bookmark.collection.duplicateName", lang, "A bookmark collection with this name already exists.", by);
+        "bookmark.collection.duplicateName",
+        lang,
+        "A bookmark collection with this name already exists.",
+        by);
 
     create("bookmark.item.addToCollection", lang, "Add to collection", by);
     create("bookmark.item.remove", lang, "Remove from collection", by);

@@ -67,8 +67,7 @@ public class BookmarkController {
   @Operation(summary = "모음에 케이스 추가")
   @PostMapping("/collections/{collectionId}/items")
   public ResponseEntity<BookmarkDto.ItemResponse> addItem(
-      @PathVariable String collectionId,
-      @Valid @RequestBody BookmarkDto.AddItemRequest request) {
+      @PathVariable String collectionId, @Valid @RequestBody BookmarkDto.AddItemRequest request) {
     return ResponseEntity.ok(bookmarkService.addItem(collectionId, request));
   }
 
