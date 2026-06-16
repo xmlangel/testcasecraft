@@ -223,6 +223,41 @@ const buildEmptyRow = (safeMaxSteps) => {
   return [...baseFields, ...stepFields];
 };
 
+/**
+ * 사용자가 추가/삽입하는 편집 가능한 빈 행을 만든다.
+ * (데이터 없을 때의 buildEmptyRow 와 달리 순서 컬럼이 편집 가능하고 상위폴더가 자동 입력)
+ *
+ * @param {number} maxSteps 스텝 컬럼 수
+ * @param {string} [parentFolderName] 상위폴더 자동 입력값(현재 활성 폴더)
+ * @returns {Array} 빈 행
+ */
+export const createEditableEmptyRow = (maxSteps, parentFolderName = "") => {
+  const safeMaxSteps = clampMaxSteps(maxSteps);
+  const baseFields = [
+    { value: "" }, // 0: ID
+    { value: "", readOnly: true }, // 1: 작성자
+    { value: "", readOnly: true }, // 2: 수정자
+    { value: "" }, // 3: 순서
+    { value: "" }, // 4: 타입
+    { value: parentFolderName || "" }, // 5: 상위폴더 (자동 입력)
+    { value: "" }, // 6: 이름
+    { value: "" }, // 7: 설명
+    { value: "" }, // 8: 사전조건
+    { value: "" }, // 9: 사후조건
+    { value: "" }, // 10: 예상결과
+    { value: "" }, // 11: 우선순위
+    { value: "" }, // 12: 수행유형
+    { value: "" }, // 13: 테스트기법
+    { value: "" }, // 14: 태그
+  ];
+  const stepFields = [];
+  for (let i = 0; i < safeMaxSteps; i++) {
+    stepFields.push({ value: "" });
+    stepFields.push({ value: "" });
+  }
+  return [...baseFields, ...stepFields];
+};
+
 // 단일 테스트케이스/폴더 노드를 스프레드시트 행으로 변환.
 const buildTestCaseRow = (testCase, parentFolderName, safeMaxSteps, t) => {
   const isFolder = testCase.type === "folder";

@@ -10,6 +10,7 @@ import {
   clampMaxSteps,
   buildSpreadsheetRows,
   convertRowsToEntities,
+  createEditableEmptyRow,
 } from "./SpreadsheetUtils.js";
 
 // i18n 더블 — {number} 치환까지 흉내
@@ -329,5 +330,21 @@ describe("convertRowsToEntities", () => {
     });
     expect(out[0].parentId).toBe("f-parent");
     expect(out[0].parentFolderName).toBe("부모폴더");
+  });
+});
+
+describe("createEditableEmptyRow", () => {
+  it("열 수 = 15 + maxSteps*2, 상위폴더(idx5) 자동 입력, 순서(idx3) 편집 가능", () => {
+    const row = createEditableEmptyRow(2, "내폴더");
+    expect(row).toHaveLength(15 + 2 * 2);
+    expect(row[5].value).toBe("내폴더");
+    expect(row[3].readOnly).toBeUndefined(); // 순서 편집 가능 (no-data 변형과 차이)
+    expect(row[1].readOnly).toBe(true); // 작성자 readOnly
+  });
+
+  it("maxSteps 비정상값은 3으로 보정, parentFolderName 기본 빈 문자열", () => {
+    const row = createEditableEmptyRow(NaN);
+    expect(row).toHaveLength(15 + 3 * 2);
+    expect(row[5].value).toBe("");
   });
 });
