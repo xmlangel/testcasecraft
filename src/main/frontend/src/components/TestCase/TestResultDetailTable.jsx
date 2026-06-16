@@ -50,6 +50,7 @@ import {
   getDefaultColumnVisibility,
   getDefaultColumnOrder,
 } from "./tableColumnDefaults.js";
+import useColumnPreferences from "./hooks/useColumnPreferences.js";
 // JIRA 상태 조회를 위한 공통 훅
 import { useBatchJiraIssueStatus } from "../../hooks/useJiraStatus.js";
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
@@ -172,51 +173,17 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   }, [rawRows, jiraStatusMap]);
   // ICT-275: 컬럼 설정 localStorage 기본값
 
-  // ICT-275: localStorage에서 컬럼 설정 로드
-  const loadColumnVisibilityFromStorage = () => {
-    try {
-      const storageKey = `testResultTable_columnVisibility_${
-        projectId || "default"
-      }`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // 기본값과 병합하여 새로운 필드 처리
-        return { ...getDefaultColumnVisibility(), ...parsed };
-      }
-    } catch (error) {
-      debugWarn("TestResultDetailTable", "컬럼 설정 로드 실패:", error);
-    }
-    return getDefaultColumnVisibility();
-  };
-
-  // ICT-275: localStorage에서 컬럼 순서 로드
-  const loadColumnOrderFromStorage = () => {
-    try {
-      const storageKey = `testResultTable_columnOrder_${
-        projectId || "default"
-      }`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // 기본값과 병합하여 새로운 필드 처리
-        const defaultOrder = getDefaultColumnOrder();
-        const savedFields = new Set(parsed);
-        const newFields = defaultOrder.filter(
-          (field) => !savedFields.has(field),
-        );
-        return [...parsed, ...newFields];
-      }
-    } catch (error) {
-      debugWarn("TestResultDetailTable", "컬럼 순서 로드 실패:", error);
-    }
-    return getDefaultColumnOrder();
-  };
-
-  const [columnVisibility, setColumnVisibility] = useState(
-    loadColumnVisibilityFromStorage,
-  );
-  const [columnOrder, setColumnOrder] = useState(loadColumnOrderFromStorage);
+  // 컬럼 표시/순서 설정 + localStorage 영속화 (useColumnPreferences 훅)
+  const {
+    columnVisibility,
+    setColumnVisibility,
+    columnOrder,
+    setColumnOrder,
+    saveColumnVisibilityToStorage,
+    saveColumnOrderToStorage,
+    handleColumnVisibilityToggle,
+    handleColumnOrderChange,
+  } = useColumnPreferences(projectId);
 
   // ICT-275: 컬럼 순서 변경 다이얼로그 상태
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
@@ -488,14 +455,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     };
     loadJiraConfig();
   }, []);
-
-  // ICT-275: 프로젝트 변경 시 컬럼 설정 다시 로드
-  useEffect(() => {
-    if (projectId) {
-      setColumnVisibility(loadColumnVisibilityFromStorage());
-      setColumnOrder(loadColumnOrderFromStorage());
-    }
-  }, [projectId]);
 
   // 테스트 결과 데이터 로드
   useEffect(() => {
@@ -1510,59 +1469,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   );
 
   // ICT-275: 컬럼 설정을 localStorage에 저장
-  const saveColumnVisibilityToStorage = useCallback(
-    (newVisibility) => {
-      try {
-        const storageKey = `testResultTable_columnVisibility_${
-          projectId || "default"
-        }`;
-        localStorage.setItem(storageKey, JSON.stringify(newVisibility));
-      } catch (error) {
-        debugWarn("TestResultDetailTable", "컬럼 설정 저장 실패:", error);
-      }
-    },
-    [projectId],
-  );
-
-  // ICT-275: 컬럼 순서를 localStorage에 저장
-  const saveColumnOrderToStorage = useCallback(
-    (newOrder) => {
-      try {
-        const storageKey = `testResultTable_columnOrder_${
-          projectId || "default"
-        }`;
-        localStorage.setItem(storageKey, JSON.stringify(newOrder));
-      } catch (error) {
-        debugWarn("TestResultDetailTable", "컬럼 순서 저장 실패:", error);
-      }
-    },
-    [projectId],
-  );
-
-  // 컬럼 표시/숨김 토글
-  const handleColumnVisibilityToggle = useCallback(
-    (field) => {
-      setColumnVisibility((prev) => {
-        const newVisibility = {
-          ...prev,
-          [field]: !prev[field],
-        };
-        // 즘시 저장
-        saveColumnVisibilityToStorage(newVisibility);
-        return newVisibility;
-      });
-    },
-    [saveColumnVisibilityToStorage],
-  );
-
-  // ICT-275: 컬럼 순서 변경 핸들러
-  const handleColumnOrderChange = useCallback(
-    (newOrder) => {
-      setColumnOrder(newOrder);
-      saveColumnOrderToStorage(newOrder);
-    },
-    [saveColumnOrderToStorage],
-  );
 
   // ICT-276: 동적 행 높이 계산 - 스텝 개수와 내용에 따라 조정
   const getRowHeight = useCallback(
