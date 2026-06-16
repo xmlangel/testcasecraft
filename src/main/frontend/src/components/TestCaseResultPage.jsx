@@ -16,7 +16,10 @@ import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
 import { invalidateDashboardCache } from "../services/dashboardService";
 import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
-import { getLatestResults } from "./TestExecution/utils.jsx";
+import {
+  getLatestResults,
+  readFilteredNavIds,
+} from "./TestExecution/utils.jsx";
 
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
@@ -74,8 +77,16 @@ const TestCaseResultPage = () => {
               testPlanData.testCaseIds || [],
             );
 
-            // orderedTestCaseIds가 비어있거나 현재 testCaseId가 없으면 현재 testCaseId를 추가
-            let finalTestCaseIds = orderedTestCaseIds;
+            // 목록 화면(TestExecutionForm)에서 필터가 걸린 상태로 진입했다면,
+            // 필터된 ID 목록을 우선 사용해 이전/다음이 필터 순서를 따르도록 한다.
+            // 필터 정보가 없거나(딥링크 등) 현재 케이스가 그 목록에 없으면 전체 목록으로 폴백.
+            const savedNavIds = readFilteredNavIds(executionId);
+            let finalTestCaseIds =
+              savedNavIds && savedNavIds.includes(testCaseId)
+                ? savedNavIds
+                : orderedTestCaseIds;
+
+            // 목록이 비어있거나 현재 testCaseId가 없으면 현재 testCaseId를 추가
             if (
               finalTestCaseIds.length === 0 ||
               !finalTestCaseIds.includes(testCaseId)
