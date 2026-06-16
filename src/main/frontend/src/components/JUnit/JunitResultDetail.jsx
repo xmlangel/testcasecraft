@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import junitResultService from "../../services/junitResultService";
 import SlowestTestsTab from "./SlowestTestsTab.jsx";
 import FailedTestsTab from "./FailedTestsTab.jsx";
+import useAccordionState from "./hooks/useAccordionState.js";
 import {
   Box,
   Container,
@@ -136,36 +137,8 @@ const JunitResultDetail = () => {
   // CSV 내보내기 관련 상태
   const [exportingCSV, setExportingCSV] = useState(false);
 
-  // Accordion state - 섹션별 확장 상태 관리
-  const [expandedSections, setExpandedSections] = useState(() => {
-    const saved = localStorage.getItem(
-      "testcase-manager-junit-detail-expanded-sections",
-    );
-    if (saved !== null) return JSON.parse(saved);
-
-    // 기존 stats 상태 마이그레이션 확인
-    const oldStatsSaved = localStorage.getItem(
-      "testcase-manager-junit-detail-stats-accordion",
-    );
-    const statsInitial =
-      oldStatsSaved !== null ? JSON.parse(oldStatsSaved) : true;
-
-    return {
-      stats: statsInitial,
-      testCases: true,
-      failedTests: false,
-      slowTests: false,
-    };
-  });
-
-  const handleAccordionChange = (section) => (event, isExpanded) => {
-    const newExpanded = { ...expandedSections, [section]: isExpanded };
-    setExpandedSections(newExpanded);
-    localStorage.setItem(
-      "testcase-manager-junit-detail-expanded-sections",
-      JSON.stringify(newExpanded),
-    );
-  };
+  // Accordion 섹션 확장 상태 + localStorage (useAccordionState 훅)
+  const { expandedSections, handleAccordionChange } = useAccordionState();
 
   // 상태별 설정
   const statusConfig = {
