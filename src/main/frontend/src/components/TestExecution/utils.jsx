@@ -121,6 +121,39 @@ export function parseDateTime(dateInput) {
   }
 }
 
+// 필터가 적용된 이전/다음 네비게이션 ID 목록을 실행(executionId)별로 보존하는 sessionStorage 키 접두사.
+// 필터 매칭 로직은 TestExecutionForm 한 곳에만 두고(단일 진실 출처), 별도 라우트인
+// 전체화면 결과 뷰(TestCaseResultPage)는 그 결과 목록을 읽어 동일 순서로 이동한다.
+export const NAV_IDS_STORAGE_PREFIX = "testExecutionForm.navIds.";
+
+// 필터된 테스트케이스 ID 목록을 실행별로 저장한다.
+export const saveFilteredNavIds = (executionId, ids) => {
+  if (!executionId || executionId === "new") return;
+  try {
+    sessionStorage.setItem(
+      `${NAV_IDS_STORAGE_PREFIX}${executionId}`,
+      JSON.stringify(Array.isArray(ids) ? ids : []),
+    );
+  } catch {
+    // sessionStorage 미지원/차단 환경에서는 무시 (전체화면 뷰가 전체 목록으로 폴백)
+  }
+};
+
+// 저장된 필터 네비게이션 ID 목록을 읽는다. 없거나 깨졌으면 null.
+export const readFilteredNavIds = (executionId) => {
+  if (!executionId || executionId === "new") return null;
+  try {
+    const raw = sessionStorage.getItem(
+      `${NAV_IDS_STORAGE_PREFIX}${executionId}`,
+    );
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
 export const HEADER_HEIGHT = 40;
 
 // Grid 템플릿 정의 - 모든 행에서 동일한 컬럼 너비 보장
