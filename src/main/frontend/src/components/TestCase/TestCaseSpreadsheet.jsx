@@ -33,23 +33,13 @@ import {
   DialogTitle,
 } from "@mui/material";
 import {
-  Save as SaveIcon,
-  Add as AddIcon,
-  Refresh as RefreshIcon,
   RemoveCircle as RemoveStepIcon,
   AddCircle as AddStepIcon,
   Settings as SettingsIcon,
-  CreateNewFolder as CreateNewFolderIcon,
-  Warning as WarningIcon,
   Download as DownloadIcon,
   GetApp as GetAppIcon,
-  Upload as UploadIcon,
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  Fullscreen as FullscreenIcon,
   FullscreenExit as FullscreenExitIcon,
 } from "@mui/icons-material";
 import Spreadsheet from "react-spreadsheet";
@@ -88,6 +78,7 @@ import {
 } from "./Spreadsheet/components/SpreadsheetDialogs.jsx";
 import { DeleteConfirmationDialog } from "./Spreadsheet/components/DeleteConfirmationDialog.jsx";
 import KoreanAwareDataEditor from "./Spreadsheet/components/KoreanAwareDataEditor.jsx";
+import SpreadsheetToolbar from "./Spreadsheet/components/SpreadsheetToolbar.jsx";
 
 const TestCaseSpreadsheet = ({
   data,
@@ -1330,7 +1321,8 @@ const TestCaseSpreadsheet = ({
 
             {/* 액션 버튼들 - 플로팅 메뉴 */}
             {!readOnly && (
-              <Box
+              <SpreadsheetToolbar
+                t={t}
                 sx={{
                   display: "flex",
                   gap: 1,
@@ -1347,176 +1339,25 @@ const TestCaseSpreadsheet = ({
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                   borderBottom: `2px solid ${theme.palette.divider}`,
                 }}
-              >
-                <Button
-                  size="small"
-                  startIcon={<RefreshIcon />}
-                  onClick={handleRefresh}
-                  disabled={isLoading}
-                >
-                  {t("testcase.spreadsheet.button.refresh", "새로고침")}
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={() => handleOpenRowCountDialog("append")}
-                  disabled={isLoading}
-                >
-                  {t("testcase.spreadsheet.button.addRows", "행 추가")}
-                </Button>
-
-                {/* ICT-414: 중간 행 삽입 버튼 */}
-                <Button
-                  size="small"
-                  startIcon={<ArrowUpwardIcon />}
-                  onClick={() => handleOpenRowCountDialog("above")}
-                  disabled={isLoading || selectedRowIndex === null}
-                  color="primary"
-                  variant="outlined"
-                  title={
-                    selectedRowIndex !== null
-                      ? t(
-                          "testcase.spreadsheet.insertAboveTitle",
-                          `${selectedRowIndex + 1}번 행 위에 추가`,
-                        )
-                      : t(
-                          "testcase.spreadsheet.selectRowFirst",
-                          "행을 먼저 선택하세요",
-                        )
-                  }
-                >
-                  {t("testcase.spreadsheet.button.insertAbove", "위에 추가")}
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<ArrowDownwardIcon />}
-                  onClick={() => handleOpenRowCountDialog("below")}
-                  disabled={isLoading || selectedRowIndex === null}
-                  color="primary"
-                  variant="outlined"
-                  title={
-                    selectedRowIndex !== null
-                      ? t(
-                          "testcase.spreadsheet.insertBelowTitle",
-                          `${selectedRowIndex + 1}번 행 아래에 추가`,
-                        )
-                      : t(
-                          "testcase.spreadsheet.selectRowFirst",
-                          "행을 먼저 선택하세요",
-                        )
-                  }
-                >
-                  {t("testcase.spreadsheet.button.insertBelow", "아래에 추가")}
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<CreateNewFolderIcon />}
-                  onClick={handleAddFolder}
-                  disabled={isLoading}
-                  color="secondary"
-                >
-                  {t("testcase.spreadsheet.button.addFolder", "폴더 추가")}
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<DeleteIcon />}
-                  onClick={handleDeleteRows}
-                  disabled={isLoading || selectedRowIndex === null}
-                  color="error"
-                  variant="outlined"
-                  title={
-                    selectedRange
-                      ? t(
-                          "testcase.spreadsheet.deleteTitle",
-                          `${Math.abs(selectedRange.end.row - selectedRange.start.row) + 1}개 행 삭제`,
-                        )
-                      : t(
-                          "testcase.spreadsheet.selectRowFirst",
-                          "행을 먼저 선택하세요",
-                        )
-                  }
-                >
-                  {t("testcase.spreadsheet.button.delete", "삭제")}
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<WarningIcon />}
-                  onClick={handleValidateData}
-                  disabled={isLoading}
-                  color="warning"
-                  variant="outlined"
-                >
-                  {t("testcase.spreadsheet.button.validate", "검증")}
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<UploadIcon />}
-                  onClick={() => setImportExportOpen(true)}
-                  disabled={isLoading}
-                  color="secondary"
-                  variant="outlined"
-                >
-                  Import/Export
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<GetAppIcon />}
-                  onClick={handleExportMenuOpen}
-                  disabled={isLoading}
-                  color="info"
-                  variant="outlined"
-                >
-                  {t("testcase.spreadsheet.button.export", "Export")}
-                </Button>
-
-                <IconButton
-                  size="small"
-                  onClick={handleStepMenuOpen}
-                  disabled={isLoading}
-                  aria-label={t(
-                    "testcase.spreadsheet.button.stepManagement",
-                    "스텝 관리",
-                  )}
-                >
-                  <SettingsIcon />
-                </IconButton>
-
-                <IconButton
-                  size="small"
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  aria-label={
-                    isFullscreen
-                      ? t(
-                          "testcase.spreadsheet.button.exitFullscreen",
-                          "전체화면 종료",
-                        )
-                      : t("testcase.spreadsheet.button.fullscreen", "전체화면")
-                  }
-                  color="primary"
-                >
-                  {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-                </IconButton>
-
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={
-                    isLoading ? <CircularProgress size={16} /> : <SaveIcon />
-                  }
-                  onClick={handleBulkSave}
-                  disabled={!hasChanges || isLoading || !onSave}
-                  color="primary"
-                >
-                  {isLoading
-                    ? t("testcase.spreadsheet.button.saving", "저장 중...")
-                    : t("testcase.spreadsheet.button.save", "일괄 저장")}
-                </Button>
-              </Box>
+                isLoading={isLoading}
+                selectedRowIndex={selectedRowIndex}
+                selectedRange={selectedRange}
+                hasChanges={hasChanges}
+                canSave={!!onSave}
+                isFullscreen={isFullscreen}
+                showImportExport
+                showFullscreenToggle
+                onRefresh={handleRefresh}
+                onAddRows={handleOpenRowCountDialog}
+                onAddFolder={handleAddFolder}
+                onDeleteRows={handleDeleteRows}
+                onValidate={handleValidateData}
+                onImportExport={() => setImportExportOpen(true)}
+                onExportMenu={handleExportMenuOpen}
+                onStepMenu={handleStepMenuOpen}
+                onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+                onSave={handleBulkSave}
+              />
             )}
           </Box>
 
@@ -1775,9 +1616,10 @@ const TestCaseSpreadsheet = ({
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
-          {/* 액션 버튼들 */}
+          {/* 액션 버튼들 (전체화면 — Import/Export·전체화면 토글 제외) */}
           {!readOnly && (
-            <Box
+            <SpreadsheetToolbar
+              t={t}
               sx={{
                 display: "flex",
                 gap: 1,
@@ -1786,156 +1628,20 @@ const TestCaseSpreadsheet = ({
                 pb: 2,
                 borderBottom: `1px solid ${theme.palette.divider}`,
               }}
-            >
-              <Button
-                size="small"
-                startIcon={<RefreshIcon />}
-                onClick={handleRefresh}
-                disabled={isLoading}
-              >
-                {t("testcase.spreadsheet.button.refresh", "새로고침")}
-              </Button>
-              <Button
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenRowCountDialog("append")}
-                disabled={isLoading}
-              >
-                {t("testcase.spreadsheet.button.addRows", "행 추가")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<ArrowUpwardIcon />}
-                onClick={() => handleOpenRowCountDialog("above")}
-                disabled={isLoading || selectedRowIndex === null}
-                color="primary"
-                variant="outlined"
-                title={
-                  selectedRowIndex !== null
-                    ? t(
-                        "testcase.spreadsheet.insertAboveTooltip",
-                        "{row}번 행 위에 추가",
-                        { row: selectedRowIndex + 1 },
-                      )
-                    : t(
-                        "testcase.spreadsheet.selectRowFirstTooltip",
-                        "행을 먼저 선택하세요",
-                      )
-                }
-              >
-                {t("testcase.spreadsheet.button.insertAbove", "위에 추가")}
-              </Button>
-              <Button
-                size="small"
-                startIcon={<ArrowDownwardIcon />}
-                onClick={() => handleOpenRowCountDialog("below")}
-                disabled={isLoading || selectedRowIndex === null}
-                color="primary"
-                variant="outlined"
-                title={
-                  selectedRowIndex !== null
-                    ? t(
-                        "testcase.spreadsheet.insertBelowTooltip",
-                        "{row}번 행 아래에 추가",
-                        { row: selectedRowIndex + 1 },
-                      )
-                    : t(
-                        "testcase.spreadsheet.selectRowFirstTooltip",
-                        "행을 먼저 선택하세요",
-                      )
-                }
-              >
-                {t("testcase.spreadsheet.button.insertBelow", "아래에 추가")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<CreateNewFolderIcon />}
-                onClick={handleAddFolder}
-                disabled={isLoading}
-                color="secondary"
-              >
-                {t("testcase.spreadsheet.button.addFolder", "폴더 추가")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<DeleteIcon />}
-                onClick={handleDeleteRows}
-                disabled={isLoading || selectedRowIndex === null}
-                color="error"
-                variant="outlined"
-                title={
-                  selectedRange
-                    ? t(
-                        "testcase.spreadsheet.deleteRowsTooltip",
-                        "{count}개 행 삭제",
-                        {
-                          count:
-                            Math.abs(
-                              selectedRange.end.row - selectedRange.start.row,
-                            ) + 1,
-                        },
-                      )
-                    : t(
-                        "testcase.spreadsheet.selectRowFirstTooltip",
-                        "행을 먼저 선택하세요",
-                      )
-                }
-              >
-                {t("testcase.spreadsheet.button.delete", "삭제")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<WarningIcon />}
-                onClick={handleValidateData}
-                disabled={isLoading}
-                color="warning"
-                variant="outlined"
-              >
-                {t("testcase.spreadsheet.button.validate", "검증")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<GetAppIcon />}
-                onClick={handleExportMenuOpen}
-                disabled={isLoading}
-                color="info"
-                variant="outlined"
-              >
-                {t("testcase.spreadsheet.button.export", "Export")}
-              </Button>
-
-              <IconButton
-                size="small"
-                onClick={handleStepMenuOpen}
-                disabled={isLoading}
-                aria-label={t(
-                  "testcase.spreadsheet.button.stepManagement",
-                  "스텝 관리",
-                )}
-              >
-                <SettingsIcon />
-              </IconButton>
-
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={
-                  isLoading ? <CircularProgress size={16} /> : <SaveIcon />
-                }
-                onClick={handleBulkSave}
-                disabled={!hasChanges || isLoading || !onSave}
-                color="primary"
-              >
-                {isLoading
-                  ? t("testcase.spreadsheet.button.saving", "저장 중...")
-                  : t("testcase.spreadsheet.button.save", "일괄 저장")}
-              </Button>
-            </Box>
+              isLoading={isLoading}
+              selectedRowIndex={selectedRowIndex}
+              selectedRange={selectedRange}
+              hasChanges={hasChanges}
+              canSave={!!onSave}
+              onRefresh={handleRefresh}
+              onAddRows={handleOpenRowCountDialog}
+              onAddFolder={handleAddFolder}
+              onDeleteRows={handleDeleteRows}
+              onValidate={handleValidateData}
+              onExportMenu={handleExportMenuOpen}
+              onStepMenu={handleStepMenuOpen}
+              onSave={handleBulkSave}
+            />
           )}
 
           {/* 스프레드시트 컨텐츠 */}
