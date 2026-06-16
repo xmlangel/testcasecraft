@@ -77,8 +77,7 @@ import { useI18n } from "../../context/I18nContext";
 import JunitTestCaseEditor from "./JunitTestCaseEditor";
 import TestCaseDetailPanel from "./TestCaseDetailPanel";
 import { STATUS_COLORS, RESULT_COLORS } from "../../constants/statusColors";
-import { exportTestResultToPDF } from "../../utils/pdfExportUtils";
-import { exportTestResultToCSV } from "../../utils/csvExportUtils";
+import useJunitExport from "./hooks/useJunitExport.js";
 import { PAGE_CONTAINER_SX } from "../../styles/layoutConstants";
 
 /**
@@ -131,11 +130,9 @@ const JunitResultDetail = () => {
   const [editRefreshTrigger, setEditRefreshTrigger] = useState(0);
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
-  // PDF 내보내기 관련 상태
-  const [exportingPDF, setExportingPDF] = useState(false);
-
-  // CSV 내보내기 관련 상태
-  const [exportingCSV, setExportingCSV] = useState(false);
+  // PDF/CSV 내보내기 (useJunitExport 훅)
+  const { exportingPDF, exportingCSV, handleExportToPDF, handleExportToCSV } =
+    useJunitExport({ testResult, testSuites, t });
 
   // Accordion 섹션 확장 상태 + localStorage (useAccordionState 훅)
   const { expandedSections, handleAccordionChange } = useAccordionState();
@@ -567,102 +564,6 @@ const JunitResultDetail = () => {
           setSelectedTestCaseId(newFilteredCases[0].id);
         }
       }, 100);
-    }
-  };
-
-  // PDF 내보내기 핸들러
-  const handleExportToPDF = async () => {
-    if (!testResult) {
-      alert(t("junit.detail.exportPDFAlert"));
-      return;
-    }
-
-    try {
-      setExportingPDF(true);
-
-      // 모든 테스트 케이스를 가져오기 (페이징 없이)
-      let allTestCases = [];
-      for (const suite of testSuites) {
-        try {
-          const response = await junitResultService.getTestCasesBySuite(
-            suite.id,
-            0,
-            1000,
-          );
-          allTestCases = [...allTestCases, ...(response.content || [])];
-        } catch (error) {
-          console.warn(
-            `Failed to load test cases for suite ${suite.name}:`,
-            error,
-          );
-        }
-      }
-
-      // PDF 내보내기 실행
-      const result = await exportTestResultToPDF(
-        testResult,
-        testSuites,
-        allTestCases,
-      );
-
-      if (result.success) {
-        alert(`${t("junit.detail.exportPDFComplete")}: ${result.fileName}`);
-      } else {
-        alert(`${t("junit.detail.exportPDFFailed")}: ${result.message}`);
-      }
-    } catch (error) {
-      console.error("PDF export error:", error);
-      alert(t("junit.detail.exportPDFError") + ": " + error.message);
-    } finally {
-      setExportingPDF(false);
-    }
-  };
-
-  // CSV 내보내기 핸들러
-  const handleExportToCSV = async () => {
-    if (!testResult) {
-      alert(t("junit.detail.exportCSVAlert"));
-      return;
-    }
-
-    try {
-      setExportingCSV(true);
-
-      // 모든 테스트 케이스 수집
-      const allTestCases = [];
-      for (const suite of testSuites) {
-        try {
-          const response = await junitResultService.getTestCasesBySuite(
-            suite.id,
-            0,
-            1000,
-          );
-          allTestCases.push(...(response.content || []));
-        } catch (error) {
-          console.warn(
-            `Failed to load test cases for suite ${suite.name}:`,
-            error,
-          );
-        }
-      }
-
-      // CSV 내보내기 실행
-      const result = await exportTestResultToCSV(
-        testResult,
-        testSuites,
-        allTestCases,
-      );
-
-      if (result.success) {
-        alert(`${t("junit.detail.exportCSVComplete")}: ${result.fileName}`);
-      } else {
-        alert(`${t("junit.detail.exportCSVFailed")}: ${result.message}`);
-      }
-    } catch (error) {
-      console.error("CSV export error:", error);
-      alert(t("junit.detail.exportCSVError") + ": " + error.message);
-    } finally {
-      setExportingCSV(false);
     }
   };
 
