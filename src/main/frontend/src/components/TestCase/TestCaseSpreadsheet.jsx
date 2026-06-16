@@ -70,7 +70,10 @@ import {
   saveFoldersLayered,
   resolveTestCaseParentIds,
 } from "./Spreadsheet/handlers/spreadsheetSave.js";
-import { validateSpreadsheetData } from "./Spreadsheet/utils/SpreadsheetValidation.js";
+import {
+  validateSpreadsheetData,
+  buildValidationErrorMessage,
+} from "./Spreadsheet/utils/SpreadsheetValidation.js";
 import {
   exportToCSV,
   exportToExcel,
@@ -777,25 +780,9 @@ const TestCaseSpreadsheet = ({
       });
 
       if (!validationResult.isValid) {
-        const errorMessages = validationResult.errors.map(
-          (error) => error.message,
+        setSnackbarMessage(
+          buildValidationErrorMessage(validationResult.errors, t),
         );
-        const baseMessage = t(
-          "testcase.spreadsheet.validationFailedTitle",
-          "⚠️ 데이터 검증 실패",
-        );
-        let detailedMessage = baseMessage + "\n\n";
-
-        if (errorMessages.length > 0) {
-          detailedMessage +=
-            t("testcase.spreadsheet.errorsTitle", "🚨 해결이 필요한 오류") +
-            ":\n";
-          errorMessages.forEach((msg, index) => {
-            detailedMessage += `${index + 1}. ${msg}\n`;
-          });
-        }
-
-        setSnackbarMessage(detailedMessage);
         setSnackbarSeverity("error");
         setSnackbarOpen(true);
         setLocalLoading(false);

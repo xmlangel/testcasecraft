@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { validateSpreadsheetData } from "./SpreadsheetValidation.js";
+import {
+  validateSpreadsheetData,
+  buildValidationErrorMessage,
+} from "./SpreadsheetValidation.js";
 
 const t = (key, fallback, vars) => {
   let s = fallback || key;
@@ -34,7 +37,12 @@ describe("validateSpreadsheetData", () => {
   it("폴더 + 하위 테스트케이스가 정상이면 통과한다", () => {
     const rows = [
       makeRow({ type: "폴더", name: "로그인" }),
-      makeRow({ type: "테스트케이스", name: "성공 케이스", parent: "로그인", id: "tc1" }),
+      makeRow({
+        type: "테스트케이스",
+        name: "성공 케이스",
+        parent: "로그인",
+        id: "tc1",
+      }),
     ];
     const res = run(rows);
     expect(res.isValid).toBe(true);
@@ -78,11 +86,36 @@ describe("validateSpreadsheetData", () => {
 
   it("존재하지 않는 상위폴더를 지정하면 missing_parent_folder 에러", () => {
     const rows = [
-      makeRow({ type: "테스트케이스", name: "tc", parent: "없는폴더", id: "tc1" }),
+      makeRow({
+        type: "테스트케이스",
+        name: "tc",
+        parent: "없는폴더",
+        id: "tc1",
+      }),
     ];
     const res = run(rows, []);
     expect(res.errors.some((e) => e.type === "missing_parent_folder")).toBe(
       true,
     );
+  });
+});
+
+describe("buildValidationErrorMessage", () => {
+  const t = (key, fallback) => fallback || key;
+
+  it("오류 목록을 번호 매긴 멀티라인 메시지로 만든다", () => {
+    const msg = buildValidationErrorMessage(
+      [{ message: "이름 누락" }, { message: "중복 폴더" }],
+      t,
+    );
+    expect(msg).toContain("⚠️ 데이터 검증 실패");
+    expect(msg).toContain("1. 이름 누락");
+    expect(msg).toContain("2. 중복 폴더");
+  });
+
+  it("오류가 없으면 제목만 포함한다", () => {
+    const msg = buildValidationErrorMessage([], t);
+    expect(msg).toContain("⚠️ 데이터 검증 실패");
+    expect(msg).not.toContain("1.");
   });
 });
