@@ -74,6 +74,7 @@ import {
   StepMenu,
   ExportMenu,
 } from "./Spreadsheet/components/SpreadsheetMenus.jsx";
+import useRowSelection from "./Spreadsheet/hooks/useRowSelection.js";
 
 const TestCaseSpreadsheet = ({
   data,
@@ -126,11 +127,16 @@ const TestCaseSpreadsheet = ({
   // Import/Export 다이얼로그 상태
   const [importExportOpen, setImportExportOpen] = useState(false);
 
-  // 행 선택 관련 상태 (ICT-414)
-  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
-  const selectedRowIndexRef = useRef(null); // ref로도 관리하여 불필요한 재렌더링 방지
-  const [selectedRange, setSelectedRange] = useState(null);
-  const selectedRangeRef = useRef(null);
+  // 행/범위 선택 상태 (ICT-414) — useRowSelection 훅
+  const {
+    selectedRowIndex,
+    setSelectedRowIndex,
+    selectedRowIndexRef,
+    selectedRange,
+    setSelectedRange,
+    selectedRangeRef,
+    handleCellSelect,
+  } = useRowSelection();
 
   // 삭제 다이얼로그 상태
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -216,44 +222,6 @@ const TestCaseSpreadsheet = ({
     setSpreadsheetData(newData);
     setHasChanges(true);
   }, []);
-
-  // 셀 선택 핸들러 - 행 인덱스 추적 (ICT-414)
-  const handleCellSelect = useCallback((selected) => {
-    if (!selected || !selected.range) {
-      return;
-    }
-
-    const range = selected.range;
-
-    // Deep comparison to prevent infinite loops
-    const prevRange = selectedRangeRef.current;
-    if (
-      prevRange &&
-      prevRange.start.row === range.start.row &&
-      prevRange.start.column === range.start.column &&
-      prevRange.end.row === range.end.row &&
-      prevRange.end.column === range.end.column
-    ) {
-      // 범위가 동일하면 상태 업데이트 및 리프레시 로직 건너뜀
-      return;
-    }
-
-    // 범위 상태 업데이트
-    selectedRangeRef.current = range;
-    setSelectedRange(range);
-
-    const rowIndex = range.start.row;
-
-    // ref 값과 비교하여 실제로 변경된 경우에만 state 업데이트 (불필요한 재렌더링 방지)
-    if (
-      typeof rowIndex === "number" &&
-      rowIndex !== selectedRowIndexRef.current
-    ) {
-      selectedRowIndexRef.current = rowIndex;
-      setSelectedRowIndex(rowIndex);
-      debugLog("Spreadsheet", `행 ${rowIndex + 1} 선택됨 (index: ${rowIndex})`);
-    }
-  }, []); // 의존성 배열 비우기 - 콜백 재생성 방지
 
   // 행 추가 다이얼로그 열기 핸들러
   const handleOpenRowCountDialog = useCallback((mode = "append") => {
