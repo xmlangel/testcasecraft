@@ -1,6 +1,7 @@
 // src/components/TestCase/Spreadsheet/utils/SpreadsheetUtils.js
 
 import { listToTree } from "../../../../utils/treeUtils.jsx";
+import { findFolderIdByName } from "./FolderManagement.js";
 
 /**
  * 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
@@ -307,5 +308,93 @@ export const buildSpreadsheetRows = ({ data, allData = [], maxSteps, t }) => {
       parentFolderName = parentFolder?.name || "";
     }
     return buildTestCaseRow(testCase, parentFolderName, safeMaxSteps, t);
+  });
+};
+
+// 행이 내용이 있는(비어있지 않은) 행인지 — 셀 중 trim 후 비지 않은 문자열이 하나라도 있으면 true
+const isNonEmptyRow = (row) =>
+  Array.isArray(row) &&
+  row.some((cell) => typeof cell?.value === "string" && cell.value.trim());
+
+/**
+ * 스프레드시트 행 배열을 저장용 테스트케이스/폴더 엔티티 배열로 변환한다.
+ * (buildSpreadsheetRows 의 역변환) 신규 폴더 간 부모 참조는 호출 측의 레이어드
+ * 저장에서 해결하므로 여기서는 기존 data 기준으로만 parentId 를 해소하고
+ * parentFolderName 을 함께 실어 보낸다.
+ *
+ * @param {Array} rows 스프레드시트 행
+ * @param {object} params
+ * @param {number} params.maxSteps 스텝 컬럼 수
+ * @param {Array} params.data 부모 폴더 ID 해소용 기존 데이터
+ * @param {string} params.projectId 프로젝트 ID
+ * @param {Function} params.t i18n 함수 (폴더 타입 판정)
+ * @param {number} [params.now] temp id 생성용 타임스탬프(테스트 주입용)
+ * @returns {Array} 엔티티 배열
+ */
+export const convertRowsToEntities = (
+  rows,
+  { maxSteps, data = [], projectId, t, now = Date.now() },
+) => {
+  const safeMaxSteps = clampMaxSteps(maxSteps);
+  return (rows || []).filter(isNonEmptyRow).map((row, index) => {
+    const isFolder = isFolderRow(row, t);
+    const name = extractFolderName(row);
+    const parentFolderName = extractParentFolder(row);
+
+    const steps = [];
+    if (!isFolder) {
+      for (let i = 0; i < safeMaxSteps; i++) {
+        const stepDescIndex = 15 + i * 2;
+        const stepExpectedIndex = 15 + i * 2 + 1;
+        if (stepDescIndex < row.length && stepExpectedIndex < row.length) {
+          const stepDesc = row[stepDescIndex]?.value || "";
+          const stepExpected = row[stepExpectedIndex]?.value || "";
+          if (stepDesc.trim()) {
+            steps.push({
+              stepNumber: i + 1,
+              description: stepDesc,
+              expectedResult: stepExpected,
+            });
+          }
+        }
+      }
+    }
+
+    const parentId = parentFolderName
+      ? findFolderIdByName(parentFolderName, data || [])
+      : null;
+
+    return {
+      id:
+        row[0]?.testCaseId ||
+        (String(row[0]?.value || "").startsWith("temp-")
+          ? row[0]?.value
+          : `temp-${now}-${index}`),
+      name,
+      description: row[7]?.value || "",
+      preCondition: isFolder ? "" : row[8]?.value || "",
+      postCondition: isFolder ? "" : row[9]?.value || "",
+      expectedResults: isFolder ? "" : row[10]?.value || "",
+      priority: isFolder ? "" : row[11]?.value || "MEDIUM",
+      executionType: isFolder ? "" : row[12]?.value || "Manual",
+      testTechnique: isFolder ? "" : row[13]?.value || "",
+      tags: isFolder
+        ? []
+        : row[14]?.value
+          ? String(row[14].value)
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter(Boolean)
+          : [],
+      steps,
+      type: isFolder ? "folder" : "testcase",
+      displayOrder:
+        row[3] && row[3].value !== "" && row[3].value !== null
+          ? Number(row[3].value)
+          : null,
+      projectId,
+      parentId,
+      parentFolderName,
+    };
   });
 };

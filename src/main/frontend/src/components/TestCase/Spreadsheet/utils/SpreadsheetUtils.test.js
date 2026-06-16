@@ -9,6 +9,7 @@ import {
   filterRowsAfterDelete,
   clampMaxSteps,
   buildSpreadsheetRows,
+  convertRowsToEntities,
 } from "./SpreadsheetUtils.js";
 
 // i18n 더블 — {number} 치환까지 흉내
@@ -232,5 +233,101 @@ describe("buildSpreadsheetRows", () => {
     expect(row[11].value).toBe(""); // 우선순위 빈칸
     expect(row[11].readOnly).toBe(true);
     expect(row[15].readOnly).toBe(true); // 스텝 readOnly
+  });
+});
+
+describe("convertRowsToEntities", () => {
+  const t = (key, fallback) => fallback || key;
+  // 15 base + 2 step cols. 인덱스: 4=타입,5=상위폴더,6=이름,7=설명,11=우선순위,14=태그,15/16=step1
+  const makeRow = (vals) => {
+    const r = Array.from({ length: 17 }, () => ({ value: "" }));
+    Object.entries(vals).forEach(([i, v]) => {
+      r[i] = typeof v === "object" ? v : { value: v };
+    });
+    return r;
+  };
+
+  it("빈 행은 제외하고 테스트케이스를 변환한다", () => {
+    const rows = [
+      makeRow({}), // 빈 행 → 제외
+      makeRow({
+        4: "테스트케이스",
+        6: "케이스1",
+        7: "설명",
+        11: "HIGH",
+        14: "a, b",
+        15: "동작1",
+        16: "예상1",
+      }),
+    ];
+    const out = convertRowsToEntities(rows, {
+      maxSteps: 1,
+      data: [],
+      projectId: "p1",
+      t,
+      now: 123,
+    });
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({
+      name: "케이스1",
+      description: "설명",
+      priority: "HIGH",
+      type: "testcase",
+      projectId: "p1",
+      tags: ["a", "b"],
+      steps: [{ stepNumber: 1, description: "동작1", expectedResult: "예상1" }],
+    });
+  });
+
+  it("폴더 행은 type=folder 이고 스텝/태그/우선순위가 비어 있다", () => {
+    const rows = [makeRow({ 4: "폴더", 6: "폴더1" })];
+    const out = convertRowsToEntities(rows, {
+      maxSteps: 2,
+      data: [],
+      projectId: "p1",
+      t,
+      now: 1,
+    });
+    expect(out[0]).toMatchObject({
+      name: "폴더1",
+      type: "folder",
+      priority: "",
+      tags: [],
+      steps: [],
+    });
+  });
+
+  it("기존 testCaseId 가 있으면 유지, 없으면 temp- id 를 생성한다", () => {
+    const rows = [
+      makeRow({
+        0: { value: "TC-1", testCaseId: "id1" },
+        6: "기존",
+        4: "테스트케이스",
+      }),
+      makeRow({ 6: "신규", 4: "테스트케이스" }),
+    ];
+    const out = convertRowsToEntities(rows, {
+      maxSteps: 1,
+      data: [],
+      projectId: "p1",
+      t,
+      now: 999,
+    });
+    expect(out[0].id).toBe("id1");
+    expect(out[1].id).toBe("temp-999-1");
+  });
+
+  it("상위폴더명으로 기존 data 에서 parentId 를 해소한다", () => {
+    const rows = [makeRow({ 4: "테스트케이스", 6: "자식", 5: "부모폴더" })];
+    const data = [{ id: "f-parent", type: "folder", name: "부모폴더" }];
+    const out = convertRowsToEntities(rows, {
+      maxSteps: 1,
+      data,
+      projectId: "p1",
+      t,
+      now: 1,
+    });
+    expect(out[0].parentId).toBe("f-parent");
+    expect(out[0].parentFolderName).toBe("부모폴더");
   });
 });

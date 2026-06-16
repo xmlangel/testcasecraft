@@ -57,18 +57,13 @@ import TestCaseImportExportDialog from "./TestCaseImportExportDialog.jsx";
 
 // 분리된 모듈 imports
 import {
-  isFolderRow,
-  extractFolderName,
-  extractParentFolder,
   generateColumnLabels,
   filterRowsAfterDelete,
   buildSpreadsheetRows,
+  convertRowsToEntities,
 } from "./Spreadsheet/utils/SpreadsheetUtils.js";
 import { getAllDescendants } from "../../utils/treeUtils.jsx";
-import {
-  findFolderIdByName,
-  sortFoldersByHierarchy,
-} from "./Spreadsheet/utils/FolderManagement.js";
+import { sortFoldersByHierarchy } from "./Spreadsheet/utils/FolderManagement.js";
 import { validateSpreadsheetData } from "./Spreadsheet/utils/SpreadsheetValidation.js";
 import {
   exportToCSV,
@@ -825,87 +820,14 @@ const TestCaseSpreadsheet = ({
         return;
       }
 
-      // 1. 변환: 스프레드시트 데이터 -> 테스트케이스/폴더 객체
+      // 1. 변환: 스프레드시트 행 -> 테스트케이스/폴더 엔티티
       // spreadsheetData 가 단일 진실 소스(셀 편집·행 추가/삭제·폴더 추가 모두 반영).
-      // prevDataRef 는 셀 편집(handleSpreadsheetChange)에서만 갱신돼, 셀 편집 후
-      // 행을 추가/삭제하고 저장하면 추가분이 누락되던 문제가 있었다.
-      const currentData = spreadsheetData;
-      const convertedTestCases = currentData
-        .filter(
-          (row) =>
-            Array.isArray(row) &&
-            row.some(
-              (cell) => typeof cell?.value === "string" && cell.value.trim(),
-            ),
-        )
-        .map((row, index) => {
-          const isFolder = isFolderRow(row, t);
-          const name = extractFolderName(row);
-          const parentFolderName = extractParentFolder(row);
-
-          const steps = [];
-          if (!isFolder) {
-            for (let i = 0; i < safeMaxSteps; i++) {
-              const stepDescIndex = 15 + i * 2;
-              const stepExpectedIndex = 15 + i * 2 + 1;
-
-              if (
-                stepDescIndex < row.length &&
-                stepExpectedIndex < row.length
-              ) {
-                const stepDesc = row[stepDescIndex]?.value || "";
-                const stepExpected = row[stepExpectedIndex]?.value || "";
-
-                if (stepDesc.trim()) {
-                  steps.push({
-                    stepNumber: i + 1,
-                    description: stepDesc,
-                    expectedResult: stepExpected,
-                  });
-                }
-              }
-            }
-          }
-
-          // 초기 변환 시에는 기존 데이터(data)에서만 부모를 찾음
-          // 신규 폴더 간의 참조는 아래 레이어드 저장 로직에서 해결
-          const parentId = parentFolderName
-            ? findFolderIdByName(parentFolderName, data || [])
-            : null;
-
-          return {
-            id:
-              row[0]?.testCaseId ||
-              (String(row[0]?.value || "").startsWith("temp-")
-                ? row[0]?.value
-                : `temp-${Date.now()}-${index}`),
-            name,
-            description: row[7]?.value || "",
-            preCondition: isFolder ? "" : row[8]?.value || "",
-            postCondition: isFolder ? "" : row[9]?.value || "",
-            expectedResults: isFolder ? "" : row[10]?.value || "",
-            priority: isFolder ? "" : row[11]?.value || "MEDIUM",
-            executionType: isFolder ? "" : row[12]?.value || "Manual",
-            testTechnique: isFolder ? "" : row[13]?.value || "",
-            tags: isFolder
-              ? []
-              : row[14]?.value
-                ? String(row[14].value)
-                    .split(",")
-                    .map((t) => t.trim())
-                    .filter(Boolean)
-                : [],
-            steps,
-            type: isFolder ? "folder" : "testcase",
-            displayOrder:
-              row[3] && row[3].value !== "" && row[3].value !== null
-                ? Number(row[3].value)
-                : null,
-            projectId,
-            parentId,
-            parentFolderName, // 추후 참조 해결을 위해 임시 저장
-          };
-        });
+      const convertedTestCases = convertRowsToEntities(spreadsheetData, {
+        maxSteps: safeMaxSteps,
+        data: data || [],
+        projectId,
+        t,
+      });
 
       // 2. 분리: 폴더 vs 테스트케이스
       let folders = convertedTestCases.filter((tc) => tc.type === "folder");
