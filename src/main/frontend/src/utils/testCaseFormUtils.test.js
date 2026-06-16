@@ -1,5 +1,27 @@
 import { describe, it, expect } from "vitest";
-import { removeStepAndRenumber } from "./testCaseFormUtils.js";
+import {
+  removeStepAndRenumber,
+  getCommonInheritedTags,
+} from "./testCaseFormUtils.js";
+
+describe("getCommonInheritedTags", () => {
+  it("현재 태그와 옛 부모 태그의 교집합을 반환한다", () => {
+    expect(getCommonInheritedTags(["a", "b", "c"], ["b", "c", "d"])).toEqual([
+      "b",
+      "c",
+    ]);
+  });
+
+  it("교집합이 없으면 빈 배열", () => {
+    expect(getCommonInheritedTags(["a"], ["x", "y"])).toEqual([]);
+  });
+
+  it("null/undefined 입력은 안전하게 빈 배열로 처리", () => {
+    expect(getCommonInheritedTags(null, ["a"])).toEqual([]);
+    expect(getCommonInheritedTags(["a"], null)).toEqual([]);
+    expect(getCommonInheritedTags(undefined, undefined)).toEqual([]);
+  });
+});
 
 describe("removeStepAndRenumber", () => {
   const steps = [

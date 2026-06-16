@@ -975,7 +975,10 @@ const TestCaseSpreadsheet = ({
       }
 
       // 1. 변환: 스프레드시트 데이터 -> 테스트케이스/폴더 객체
-      const currentData = prevDataRef.current || spreadsheetData;
+      // spreadsheetData 가 단일 진실 소스(셀 편집·행 추가/삭제·폴더 추가 모두 반영).
+      // prevDataRef 는 셀 편집(handleSpreadsheetChange)에서만 갱신돼, 셀 편집 후
+      // 행을 추가/삭제하고 저장하면 추가분이 누락되던 문제가 있었다.
+      const currentData = spreadsheetData;
       const convertedTestCases = currentData
         .filter(
           (row) =>

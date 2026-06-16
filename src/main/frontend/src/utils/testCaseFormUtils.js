@@ -76,6 +76,20 @@ export const extractAttachmentIds = (htmlContent) => {
  * @param {Object} stepErrors stepNumber→에러 맵 (errors.steps)
  * @returns {{steps: Array, stepErrors: Object}} 재번호된 단계와 재매핑된 에러
  */
+/**
+ * 부모 폴더 이동 시 "옛 부모에서 상속된 태그"(현재 태그 ∩ 옛 부모 태그)를 구한다.
+ * 이동 후 정리 대상 후보가 되는 태그 목록.
+ *
+ * @param {string[]} currentTags 현재 테스트케이스 태그
+ * @param {string[]} oldParentTags 이동 전 부모 폴더의 태그
+ * @returns {string[]} 교집합(상속된) 태그
+ */
+export const getCommonInheritedTags = (currentTags, oldParentTags) => {
+  const current = currentTags || [];
+  const parent = oldParentTags || [];
+  return current.filter((tag) => parent.includes(tag));
+};
+
 export const removeStepAndRenumber = (
   steps,
   stepNumberToRemove,

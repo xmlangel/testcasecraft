@@ -104,7 +104,8 @@ vi.mock("./TestCase/TestCaseVersionHistory.jsx", mockNull);
 vi.mock("./TestCase/FieldVisibilityMenu.jsx", mockNull);
 vi.mock("./TestCase/TestCaseAttachments.jsx", mockNull);
 vi.mock("./TestCase/TestCaseFormHeader.jsx", mockNull);
-vi.mock("./TestCase/TestCaseFormMetadata.jsx", mockNull);
+// TestCaseFormMetadata 는 H1(부모 이동 태그정리) 테스트에서 Parent ID 편집이
+// 필요해 모킹하지 않는다(MUI 만 의존해 가볍다).
 vi.mock("./TestCase/TestCaseBasicInfo.jsx", mockNull);
 vi.mock("./TestCase/TestStepsTable.jsx", mockNull);
 vi.mock("./TestCase/MarkdownFieldEditor.jsx", mockNull);
@@ -121,6 +122,7 @@ describe("TestCaseForm 저장 흐름 (생성 모드)", () => {
     addTestCase.mockReset().mockResolvedValue({ id: "new-1", name: "신규 TC" });
     updateTestCase.mockReset().mockResolvedValue({ id: "x" });
     updateTestCaseLocal.mockReset();
+    appCtx.testCases = []; // 싱글톤 컨텍스트의 testCases 초기화 (테스트 간 격리)
     api.mockReset().mockResolvedValue({
       ok: false,
       status: 404,
@@ -182,5 +184,82 @@ describe("TestCaseForm 저장 흐름 (생성 모드)", () => {
     fireEvent.click(saveBtn);
 
     await waitFor(() => expect(addTestCase).toHaveBeenCalledTimes(1));
+  });
+});
+
+describe("TestCaseForm 부모 이동 시 태그 정리 (H1)", () => {
+  beforeEach(() => {
+    addTestCase.mockReset().mockResolvedValue({ id: "new-1" });
+    updateTestCase.mockReset().mockResolvedValue({ id: "tc1" });
+    updateTestCaseLocal.mockReset();
+    api.mockReset().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    });
+    // 수정 대상 케이스 + 옛 부모 폴더(태그 보유)
+    appCtx.testCases = [
+      {
+        id: "tc1",
+        parentId: "folderOld",
+        tags: ["t1", "t2"],
+        type: "testcase",
+        name: "케이스",
+        steps: [],
+      },
+      {
+        id: "folderOld",
+        parentId: null,
+        tags: ["t1", "x"],
+        type: "folder",
+        name: "옛폴더",
+        steps: [],
+      },
+    ];
+  });
+
+  it("부모를 옮기면 옛 부모에서 상속된 공통 태그를 확인 후 payload 에서 제거한다", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
+
+    // 원본 parentId(folderOld) 로드 후 Parent ID 를 새 폴더로 변경
+    const parentField = await screen.findByLabelText("Parent ID");
+    fireEvent.change(parentField, { target: { value: "folderNew" } });
+
+    const saveBtn = await screen.findByTestId("testcase-save-button");
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => expect(updateTestCase).toHaveBeenCalledTimes(1));
+    expect(confirmSpy).toHaveBeenCalled();
+    const payload = updateTestCase.mock.calls[0][0];
+    // 공통 태그 t1 제거, t2 유지
+    expect(payload.tags).toEqual(["t2"]);
+    confirmSpy.mockRestore();
+  });
+
+  it("확인을 거부하면 태그를 유지한다", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
+
+    const parentField = await screen.findByLabelText("Parent ID");
+    fireEvent.change(parentField, { target: { value: "folderNew" } });
+    fireEvent.click(await screen.findByTestId("testcase-save-button"));
+
+    await waitFor(() => expect(updateTestCase).toHaveBeenCalledTimes(1));
+    const payload = updateTestCase.mock.calls[0][0];
+    expect(payload.tags).toEqual(["t1", "t2"]);
+    confirmSpy.mockRestore();
+  });
+
+  it("부모를 옮기지 않으면 태그 정리를 묻지 않는다", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
+
+    // Parent ID 변경 없이 저장
+    fireEvent.click(await screen.findByTestId("testcase-save-button"));
+
+    await waitFor(() => expect(updateTestCase).toHaveBeenCalledTimes(1));
+    expect(confirmSpy).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
   });
 });

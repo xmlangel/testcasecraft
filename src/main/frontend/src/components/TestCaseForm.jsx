@@ -50,6 +50,7 @@ import {
   applyFieldValueToState,
   extractAttachmentIds,
   removeStepAndRenumber,
+  getCommonInheritedTags,
 } from "../utils/testCaseFormUtils.js";
 
 // 분리된 컴포넌트 import
@@ -134,6 +135,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const prevStepsLengthRef = useRef(0);
   const isAiGeneratingRef = useRef(false);
   const isSavingRef = useRef(false);
+  // 폼 로드 시점의 원본 parentId — 저장 시 "부모 이동" 여부 판정 기준 (H1: 태그 정리)
+  const originalParentIdRef = useRef(null);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -322,6 +325,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           testTechnique: tc.testTechnique || "",
         };
         setTestCase(loadedTestCase);
+        // 부모 이동 판정 기준점(원본 parentId) 캡처
+        originalParentIdRef.current = tc.parentId ?? null;
         // 자동 저장: 로드 완료 시 기준점 설정 (표시 중인 "저장됨" 상태 유지)
         markSaved(
           {
@@ -809,8 +814,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     setIsSaving(true);
     setSnackbarError(undefined);
 
-    // 저장 전 컨텍스트 캡처
-    const savedParentId = testCase.parentId;
+    // 저장 전 컨텍스트 캡처 — 부모 이동 판정은 폼 로드 시점의 원본 parentId 기준
+    const savedParentId = originalParentIdRef.current;
     const savedParentName = testCase.parentName;
     const savedProjectId = projectId;
 
@@ -835,8 +840,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         if (oldParent && oldParent.tags && oldParent.tags.length > 0) {
           const currentTags = testCase.tags || [];
           // 이전 부모의 태그 중 현재 테스트케이스가 가지고 있는 태그(교집합) 찾기
-          const commonTags = currentTags.filter((tag) =>
-            oldParent.tags.includes(tag),
+          const commonTags = getCommonInheritedTags(
+            currentTags,
+            oldParent.tags,
           );
 
           if (commonTags.length > 0) {
@@ -861,6 +867,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       } else {
         result = await addTestCase(payload);
       }
+      // 저장 성공 후 원본 parentId 기준점 갱신 — 같은 세션에서 재이동 시 정확히 비교
+      originalParentIdRef.current = payload.parentId ?? null;
 
       // 저장 성공 후, 본문에서 사용된 이미지 ID 추출 및 mark-used API 호출
       try {
