@@ -97,6 +97,43 @@ export const saveFoldersLayered = async (folders, existingData, saveFn) => {
 };
 
 /**
+ * 배치 저장 결과로 스낵바 메시지/심각도를 만든다.
+ *
+ * @param {object} batchResult 누적 저장 결과
+ * @param {Function} t i18n 함수
+ * @returns {{message:string, severity:('success'|'warning')}}
+ */
+export const buildBatchSaveSummary = (batchResult, t) => {
+  const saved = batchResult?.savedTestCases || [];
+  const isOk = batchResult?.isSuccess || (batchResult?.failureCount || 0) === 0;
+
+  if (isOk) {
+    const folderCount = saved.filter((tc) => tc.type === "folder").length;
+    const testCaseCount = saved.filter((tc) => tc.type === "testcase").length;
+    return {
+      severity: "success",
+      message: t(
+        "testcase.spreadsheet.batchSaveSuccess",
+        `✅ 배치 저장 완료: 폴더 {folders}개, 테스트케이스 {testcases}개`,
+        { folders: folderCount, testcases: testCaseCount },
+      ),
+    };
+  }
+
+  return {
+    severity: "warning",
+    message: t(
+      "testcase.spreadsheet.batchSavePartialFailure",
+      `⚠️ 배치 저장 부분 실패:\n✅ 성공: {success}개\n❌ 실패: {failure}개`,
+      {
+        success: batchResult?.successCount || 0,
+        failure: batchResult?.failureCount || 0,
+      },
+    ),
+  };
+};
+
+/**
  * 테스트케이스의 parentFolderName 을 최신 폴더 ID(기존 + 방금 저장된 폴더)로 해소한다.
  *
  * @param {Array} testCases 테스트케이스 엔티티

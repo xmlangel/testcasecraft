@@ -4,6 +4,7 @@ import {
   mergeBatchResult,
   saveFoldersLayered,
   resolveTestCaseParentIds,
+  buildBatchSaveSummary,
 } from "./spreadsheetSave.js";
 
 // 저장 콜백 더블 — 입력 폴더에 결정적 id(saved-<name>)를 붙여 성공 결과로 반환
@@ -99,5 +100,44 @@ describe("resolveTestCaseParentIds", () => {
     expect(out[0].parentId).toBe("s1");
     expect(out[1].parentId).toBe("e1");
     expect(out[2].parentId).toBeUndefined();
+  });
+});
+
+describe("buildBatchSaveSummary", () => {
+  const t = (key, fallback, vars) => {
+    let s = fallback || key;
+    if (vars)
+      Object.entries(vars).forEach(([k, v]) => (s = s.replace(`{${k}}`, v)));
+    return s;
+  };
+
+  it("성공 시 폴더/테스트케이스 개수를 담은 success 메시지", () => {
+    const r = {
+      savedTestCases: [
+        { type: "folder" },
+        { type: "testcase" },
+        { type: "testcase" },
+      ],
+      successCount: 3,
+      failureCount: 0,
+      isSuccess: true,
+    };
+    const { message, severity } = buildBatchSaveSummary(r, t);
+    expect(severity).toBe("success");
+    expect(message).toContain("폴더 1개");
+    expect(message).toContain("테스트케이스 2개");
+  });
+
+  it("부분 실패 시 warning + 성공/실패 개수", () => {
+    const r = {
+      savedTestCases: [{ type: "testcase" }],
+      successCount: 1,
+      failureCount: 2,
+      isSuccess: false,
+    };
+    const { message, severity } = buildBatchSaveSummary(r, t);
+    expect(severity).toBe("warning");
+    expect(message).toContain("성공: 1개");
+    expect(message).toContain("실패: 2개");
   });
 });

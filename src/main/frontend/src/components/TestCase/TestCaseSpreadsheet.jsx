@@ -69,6 +69,7 @@ import {
   mergeBatchResult,
   saveFoldersLayered,
   resolveTestCaseParentIds,
+  buildBatchSaveSummary,
 } from "./Spreadsheet/handlers/spreadsheetSave.js";
 import {
   validateSpreadsheetData,
@@ -832,57 +833,20 @@ const TestCaseSpreadsheet = ({
       }
 
       // 5. 결과 처리 (기존 로직)
-      if (batchResult.isSuccess || batchResult.failureCount === 0) {
-        setHasChanges(false);
-        const folderCount = batchResult.savedTestCases.filter(
-          (tc) => tc.type === "folder",
-        ).length;
-        const testCaseCount = batchResult.savedTestCases.filter(
-          (tc) => tc.type === "testcase",
-        ).length;
-        setSnackbarMessage(
-          t(
-            "testcase.spreadsheet.batchSaveSuccess",
-            `✅ 배치 저장 완료: 폴더 {folders}개, 테스트케이스 {testcases}개`,
-            { folders: folderCount, testcases: testCaseCount },
-          ),
-        );
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
+      setHasChanges(false);
+      const { message: summaryMessage, severity: summarySeverity } =
+        buildBatchSaveSummary(batchResult, t);
+      setSnackbarMessage(summaryMessage);
+      setSnackbarSeverity(summarySeverity);
+      setSnackbarOpen(true);
 
-        if (onSave) {
-          await onSave(batchResult.savedTestCases);
-        }
-
-        if (onRefresh) {
-          debugLog("Spreadsheet", "✅ 배치 저장 완료 - 리프레시 모니터링 시작");
-          await onRefresh();
-        }
-      } else {
-        setHasChanges(false);
-        let errorMessage = t(
-          "testcase.spreadsheet.batchSavePartialFailure",
-          `⚠️ 배치 저장 부분 실패:\n✅ 성공: {success}개\n❌ 실패: {failure}개`,
-          {
-            success: batchResult.successCount,
-            failure: batchResult.failureCount,
-          },
-        );
-        setSnackbarMessage(errorMessage);
-        setSnackbarSeverity("warning");
-        setSnackbarOpen(true);
-
-        if (onSave && batchResult.savedTestCases.length > 0) {
-          await onSave(batchResult.savedTestCases);
-        }
-
-        if (onRefresh) {
-          debugLog(
-            "Spreadsheet",
-            "⚠️ 배치 저장 부분 실패 - 리프레시 모니터링 시작",
-          );
-          await onRefresh();
-        }
+      // 성공 시 항상, 부분 실패 시 저장된 것이 있을 때만 onSave 호출
+      const isOk = batchResult.isSuccess || batchResult.failureCount === 0;
+      if (onSave && (isOk || batchResult.savedTestCases.length > 0)) {
+        await onSave(batchResult.savedTestCases);
+      }
+      if (onRefresh) {
+        await onRefresh();
       }
     } catch (error) {
       logError("일괄 저장 실패:", error);
