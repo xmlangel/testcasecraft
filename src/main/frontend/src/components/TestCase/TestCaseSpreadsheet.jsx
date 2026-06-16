@@ -57,12 +57,12 @@ import TestCaseImportExportDialog from "./TestCaseImportExportDialog.jsx";
 
 // 분리된 모듈 imports
 import {
-  flattenTreeInOrder,
   isFolderRow,
   extractFolderName,
   extractParentFolder,
   generateColumnLabels,
   filterRowsAfterDelete,
+  buildSpreadsheetRows,
 } from "./Spreadsheet/utils/SpreadsheetUtils.js";
 import { getAllDescendants } from "../../utils/treeUtils.jsx";
 import {
@@ -191,148 +191,12 @@ const TestCaseSpreadsheet = ({
   }, [data, maxSteps]);
 
   // 테스트케이스 데이터를 스프레드시트 형태로 변환 (useMemo로 메모이제이션)
-  const memoizedSpreadsheetData = useMemo(() => {
-    debugLog(
-      "Spreadsheet",
-      "🔄 데이터 변환 시작:",
-      data?.length,
-      "개 테스트케이스, maxSteps:",
-      maxSteps,
-      "dataId:",
-      dataIdString,
-    );
-
-    const safeMaxSteps =
-      Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20
-        ? maxSteps
-        : 3;
-
-    if (!data || data.length === 0) {
-      // 기본 빈 행들 생성
-      const baseFields = [
-        { value: "" }, // ID
-        { value: "", readOnly: true }, // 작성자
-        { value: "", readOnly: true }, // 수정자
-        { value: "", readOnly: true }, // 순서 (ICT-414: readOnly로 변경 - 백엔드에서만 관리)
-        { value: "" }, // 타입
-        { value: "" }, // 상위폴더
-        { value: "" }, // 이름
-        { value: "" }, // 설명
-        { value: "" }, // 사전조건
-        { value: "" }, // 사후조건
-        { value: "" }, // 예상결과
-        { value: "" }, // 우선순위
-        { value: "" }, // 수행유형
-        { value: "" }, // 테스트기법
-        { value: "" }, // 태그
-      ];
-
-      const stepFields = [];
-      for (let i = 0; i < safeMaxSteps; i++) {
-        stepFields.push({ value: "" });
-        stepFields.push({ value: "" });
-      }
-
-      const emptyRow = [...baseFields, ...stepFields];
-      const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
-      debugLog("Spreadsheet", "✅ 빈 데이터 생성");
-      return emptyRows;
-    }
-
-    // 트리 구조를 평면화하면서 트리 순서를 유지
-    // allKnownIds는 Set 형태로 전달
-    const allKnownIds = new Set(allData.map((tc) => tc.id));
-    const flattenedData = flattenTreeInOrder(data, { allKnownIds, t });
-
-    const convertedData = flattenedData.map((testCase) => {
-      // 안전한 상위폴더명 추출 (전체 데이터셋 allData에서 조회)
-      let parentFolderName = "";
-      if (testCase.parentId) {
-        const parentFolder = allData.find(
-          (item) => item.id === testCase.parentId,
-        );
-        parentFolderName = parentFolder?.name || "";
-      }
-
-      // ICT-414: displayOrder를 readOnly로 설정 - 백엔드에서만 관리
-      const row = [
-        {
-          value: testCase.displayId || testCase.sequentialId || "",
-          readOnly: true,
-          testCaseId: testCase.id,
-        },
-        { value: testCase.createdBy || "", readOnly: true },
-        { value: testCase.updatedBy || "", readOnly: true },
-        { value: testCase.displayOrder || "", readOnly: true }, // readOnly 추가
-        {
-          value:
-            testCase.type === "folder"
-              ? t("testcase.type.folder", "폴더")
-              : t("testcase.type.testcase", "테스트케이스"),
-          readOnly: true,
-        },
-        { value: parentFolderName || "" },
-        { value: testCase.name || "" },
-        { value: testCase.description || "" },
-        {
-          value: testCase.preCondition || "",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value: testCase.postCondition || "",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value: testCase.expectedResults || "",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value:
-            testCase.type === "folder" ? "" : testCase.priority || "MEDIUM",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value:
-            testCase.type === "folder"
-              ? ""
-              : testCase.executionType || "Manual",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value: testCase.testTechnique || "",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value: Array.isArray(testCase.tags)
-            ? testCase.tags.join(", ")
-            : testCase.tags || "",
-          readOnly: testCase.type === "folder",
-        },
-      ];
-
-      // Steps 추가
-      for (let i = 0; i < safeMaxSteps; i++) {
-        if (testCase.type === "folder") {
-          row.push({ value: "", readOnly: true });
-          row.push({ value: "", readOnly: true });
-        } else {
-          const step = testCase.steps?.[i];
-          row.push({ value: step?.description || "" });
-          row.push({ value: step?.expectedResult || "" });
-        }
-      }
-
-      return row;
-    });
-
-    debugLog(
-      "Spreadsheet",
-      "✅ 데이터 변환 완료 (메모이제이션):",
-      convertedData.length,
-      "행",
-    );
-    return convertedData;
-  }, [dataIdString, maxSteps, t]); // dataIdString을 의존성으로 사용하여 실제 내용이 변경되었을 때만 재계산
+  const memoizedSpreadsheetData = useMemo(
+    () => buildSpreadsheetRows({ data, allData, maxSteps, t }),
+    // dataIdString 으로 실제 내용 변경 시에만 재계산 (data/allData 는 closure 로 참조)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dataIdString, maxSteps, t],
+  );
 
   // 메모이제이션된 데이터를 state에 동기화
   useEffect(() => {

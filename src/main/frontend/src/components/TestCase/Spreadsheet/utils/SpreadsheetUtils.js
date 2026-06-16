@@ -188,3 +188,124 @@ export const filterRowsAfterDelete = (rows, startRow, count, deletedIdSet) => {
     return !inRange && !isDeletedId;
   });
 };
+
+/**
+ * maxSteps 를 유효 범위(1~20)로 보정. 그 외에는 기본 3.
+ */
+export const clampMaxSteps = (maxSteps) =>
+  Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
+
+// 데이터가 없을 때 보여줄 빈 행(컬럼 구조). 순서/작성자/수정자는 readOnly.
+const buildEmptyRow = (safeMaxSteps) => {
+  const baseFields = [
+    { value: "" }, // ID
+    { value: "", readOnly: true }, // 작성자
+    { value: "", readOnly: true }, // 수정자
+    { value: "", readOnly: true }, // 순서 (백엔드 관리)
+    { value: "" }, // 타입
+    { value: "" }, // 상위폴더
+    { value: "" }, // 이름
+    { value: "" }, // 설명
+    { value: "" }, // 사전조건
+    { value: "" }, // 사후조건
+    { value: "" }, // 예상결과
+    { value: "" }, // 우선순위
+    { value: "" }, // 수행유형
+    { value: "" }, // 테스트기법
+    { value: "" }, // 태그
+  ];
+  const stepFields = [];
+  for (let i = 0; i < safeMaxSteps; i++) {
+    stepFields.push({ value: "" });
+    stepFields.push({ value: "" });
+  }
+  return [...baseFields, ...stepFields];
+};
+
+// 단일 테스트케이스/폴더 노드를 스프레드시트 행으로 변환.
+const buildTestCaseRow = (testCase, parentFolderName, safeMaxSteps, t) => {
+  const isFolder = testCase.type === "folder";
+  const row = [
+    {
+      value: testCase.displayId || testCase.sequentialId || "",
+      readOnly: true,
+      testCaseId: testCase.id,
+    },
+    { value: testCase.createdBy || "", readOnly: true },
+    { value: testCase.updatedBy || "", readOnly: true },
+    { value: testCase.displayOrder || "", readOnly: true },
+    {
+      value: isFolder
+        ? t("testcase.type.folder", "폴더")
+        : t("testcase.type.testcase", "테스트케이스"),
+      readOnly: true,
+    },
+    { value: parentFolderName || "" },
+    { value: testCase.name || "" },
+    { value: testCase.description || "" },
+    { value: testCase.preCondition || "", readOnly: isFolder },
+    { value: testCase.postCondition || "", readOnly: isFolder },
+    { value: testCase.expectedResults || "", readOnly: isFolder },
+    {
+      value: isFolder ? "" : testCase.priority || "MEDIUM",
+      readOnly: isFolder,
+    },
+    {
+      value: isFolder ? "" : testCase.executionType || "Manual",
+      readOnly: isFolder,
+    },
+    { value: testCase.testTechnique || "", readOnly: isFolder },
+    {
+      value: Array.isArray(testCase.tags)
+        ? testCase.tags.join(", ")
+        : testCase.tags || "",
+      readOnly: isFolder,
+    },
+  ];
+
+  for (let i = 0; i < safeMaxSteps; i++) {
+    if (isFolder) {
+      row.push({ value: "", readOnly: true });
+      row.push({ value: "", readOnly: true });
+    } else {
+      const step = testCase.steps?.[i];
+      row.push({ value: step?.description || "" });
+      row.push({ value: step?.expectedResult || "" });
+    }
+  }
+  return row;
+};
+
+/**
+ * 테스트케이스 트리 데이터를 스프레드시트 행 배열로 변환한다.
+ * 데이터가 없으면 빈 행 10개를 반환한다.
+ *
+ * @param {object} params
+ * @param {Array} params.data 표시할(필터된) 테스트케이스/폴더 목록
+ * @param {Array} params.allData 상위폴더명 조회용 전체 데이터셋
+ * @param {number} params.maxSteps 스텝 컬럼 수
+ * @param {Function} params.t i18n 함수
+ * @returns {Array} 스프레드시트 행 배열
+ */
+export const buildSpreadsheetRows = ({ data, allData = [], maxSteps, t }) => {
+  const safeMaxSteps = clampMaxSteps(maxSteps);
+
+  if (!data || data.length === 0) {
+    const emptyRow = buildEmptyRow(safeMaxSteps);
+    return Array.from({ length: 10 }, () => [...emptyRow]);
+  }
+
+  const allKnownIds = new Set(allData.map((tc) => tc.id));
+  const flattenedData = flattenTreeInOrder(data, { allKnownIds, t });
+
+  return flattenedData.map((testCase) => {
+    let parentFolderName = "";
+    if (testCase.parentId) {
+      const parentFolder = allData.find(
+        (item) => item.id === testCase.parentId,
+      );
+      parentFolderName = parentFolder?.name || "";
+    }
+    return buildTestCaseRow(testCase, parentFolderName, safeMaxSteps, t);
+  });
+};

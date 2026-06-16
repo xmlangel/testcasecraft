@@ -7,6 +7,8 @@ import {
   generateColumnLabels,
   convertDataForExport,
   filterRowsAfterDelete,
+  clampMaxSteps,
+  buildSpreadsheetRows,
 } from "./SpreadsheetUtils.js";
 
 // i18n 더블 — {number} 치환까지 흉내
@@ -153,5 +155,82 @@ describe("filterRowsAfterDelete", () => {
       "other",
       "childB",
     ]);
+  });
+});
+
+describe("clampMaxSteps", () => {
+  it("1~20 범위는 그대로, 그 외는 3", () => {
+    expect(clampMaxSteps(5)).toBe(5);
+    expect(clampMaxSteps(1)).toBe(1);
+    expect(clampMaxSteps(20)).toBe(20);
+    expect(clampMaxSteps(0)).toBe(3);
+    expect(clampMaxSteps(21)).toBe(3);
+    expect(clampMaxSteps(NaN)).toBe(3);
+    expect(clampMaxSteps(undefined)).toBe(3);
+  });
+});
+
+describe("buildSpreadsheetRows", () => {
+  const t = (key, fallback) => fallback || key;
+
+  it("데이터가 없으면 빈 행 10개를 반환한다 (열 수 = 15 + maxSteps*2)", () => {
+    const rows = buildSpreadsheetRows({
+      data: [],
+      allData: [],
+      maxSteps: 3,
+      t,
+    });
+    expect(rows).toHaveLength(10);
+    expect(rows[0]).toHaveLength(15 + 3 * 2);
+    // 각 행은 독립 배열 (참조 공유 금지)
+    expect(rows[0]).not.toBe(rows[1]);
+  });
+
+  it("maxSteps 비정상값은 3으로 보정된다", () => {
+    const rows = buildSpreadsheetRows({
+      data: [],
+      allData: [],
+      maxSteps: 999,
+      t,
+    });
+    expect(rows[0]).toHaveLength(15 + 3 * 2);
+  });
+
+  it("테스트케이스 행을 변환한다 — id/이름/타입/스텝 매핑", () => {
+    const data = [
+      {
+        id: "tc1",
+        type: "testcase",
+        name: "케이스1",
+        displayId: "TC-1",
+        priority: "HIGH",
+        tags: ["a", "b"],
+        steps: [{ description: "s1", expectedResult: "e1" }],
+        parentId: "f1",
+      },
+    ];
+    const allData = [...data, { id: "f1", type: "folder", name: "폴더1" }];
+    const rows = buildSpreadsheetRows({ data, allData, maxSteps: 2, t });
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+    expect(row[0]).toMatchObject({ value: "TC-1", testCaseId: "tc1" });
+    expect(row[4].value).toBe("테스트케이스"); // 타입
+    expect(row[5].value).toBe("폴더1"); // 상위폴더명 (allData 조회)
+    expect(row[6].value).toBe("케이스1"); // 이름
+    expect(row[14].value).toBe("a, b"); // 태그 join
+    // 스텝1 설명/예상, 스텝2 빈칸 (총 4개 스텝 셀)
+    expect(row[15].value).toBe("s1");
+    expect(row[16].value).toBe("e1");
+    expect(row[17].value).toBe("");
+  });
+
+  it("폴더 행은 스텝/우선순위 등이 readOnly 이고 비어 있다", () => {
+    const data = [{ id: "f1", type: "folder", name: "폴더1" }];
+    const rows = buildSpreadsheetRows({ data, allData: data, maxSteps: 1, t });
+    const row = rows[0];
+    expect(row[4].value).toBe("폴더"); // 타입
+    expect(row[11].value).toBe(""); // 우선순위 빈칸
+    expect(row[11].readOnly).toBe(true);
+    expect(row[15].readOnly).toBe(true); // 스텝 readOnly
   });
 });
