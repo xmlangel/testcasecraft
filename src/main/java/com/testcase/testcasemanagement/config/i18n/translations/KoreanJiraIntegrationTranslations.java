@@ -346,6 +346,10 @@ public class KoreanJiraIntegrationTranslations {
         "jira.create.template.actualResult", languageCode, "### 실제 결과", createdBy);
     createTranslationIfNotExists(
         "jira.create.template.testCase", languageCode, "**테스트 케이스**: {name}", createdBy);
+    createTranslationIfNotExists(
+        "jira.create.template.steps", languageCode, "### 테스트 단계", createdBy);
+    createTranslationIfNotExists(
+        "jira.create.template.stepExpected", languageCode, "예상 결과", createdBy);
 
     // 첨부파일 관련
     createTranslationIfNotExists(
