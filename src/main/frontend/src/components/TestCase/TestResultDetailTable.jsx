@@ -76,26 +76,6 @@ import ColumnOrderDialog from "./ColumnOrderDialog.jsx";
 // Markdown 뷰어
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
-const PRINT_SCALE_PERCENT = 30;
-const PRINT_SCALE_FACTOR = PRINT_SCALE_PERCENT / 100;
-const GRID_PRINT_PAGE_STYLE = `
-  @page {
-    size: landscape;
-    margin: 10mm;
-  }
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    transform: scale(${PRINT_SCALE_FACTOR});
-    transform-origin: top left;
-  }
-  #root, body, html {
-    width: ${100 / PRINT_SCALE_FACTOR}%;
-  }
-`;
-
 // 다크 배경 툴팁 안에서 마크다운 코드블록이 라이트 테마(흰 배경)로 렌더링되어
 // 글자가 보이지 않는 문제 보정 — 코드 영역을 어두운 배경 + 밝은 글자로 강제
 const TOOLTIP_MARKDOWN_SX = {

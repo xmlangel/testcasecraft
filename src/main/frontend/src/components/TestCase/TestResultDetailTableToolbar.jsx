@@ -13,6 +13,29 @@ import {
   FileDownload as FileDownloadIcon,
   Autorenew as AutorenewIcon,
 } from "@mui/icons-material";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+
+// 인쇄 시 그리드를 축소해 한 페이지에 더 많이 담기 위한 페이지 스타일
+const PRINT_SCALE_PERCENT = 30;
+const PRINT_SCALE_FACTOR = PRINT_SCALE_PERCENT / 100;
+const GRID_PRINT_PAGE_STYLE = `
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    transform: scale(${PRINT_SCALE_FACTOR});
+    transform-origin: top left;
+  }
+  #root, body, html {
+    width: ${100 / PRINT_SCALE_FACTOR}%;
+  }
+`;
 
 const TestResultDetailTableToolbar = ({
   onColumnSettingsClick,
