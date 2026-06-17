@@ -51,6 +51,7 @@ import {
   getDefaultColumnOrder,
 } from "./tableColumnDefaults.js";
 import useColumnPreferences from "./hooks/useColumnPreferences.js";
+import TestResultErrorState from "./TestResultErrorState.jsx";
 // JIRA 상태 조회를 위한 공통 훅
 import { useBatchJiraIssueStatus } from "../../hooks/useJiraStatus.js";
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
@@ -1530,48 +1531,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-194: 개선된 에러 상태 UI
   if (error) {
     return (
-      <Paper sx={{ width: "100%", p: 3 }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: 300,
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="h1" sx={{ fontSize: "4rem", mb: 2 }}>
-            ⚠️
-          </Typography>
-          <Typography variant="h6" color="error.main" gutterBottom>
-            {t(
-              "testResult.error.loadFailure",
-              "테스트 결과를 불러올 수 없습니다",
-            )}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: 3, maxWidth: 400 }}
-          >
-            {error}
-          </Typography>
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => window.location.reload()}
-              startIcon={<VisibilityIcon />}
-            >
-              {t("common.button.refresh", "새로고침")}
-            </Button>
-            <Button variant="outlined" onClick={() => setError(null)}>
-              {t("common.button.retry", "다시 시도")}
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
+      <TestResultErrorState
+        error={error}
+        onRetry={() => setError(null)}
+        t={t}
+      />
     );
   }
 
