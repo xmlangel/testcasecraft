@@ -18,8 +18,10 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
+import { alpha } from "@mui/material/styles";
 import { useI18n } from "../../context/I18nContext.jsx";
 import junitResultService from "../../services/junitResultService";
+import { STATUS_COLORS, RESULT_COLORS } from "../../constants/statusColors";
 import TestCaseDetailPanel from "./TestCaseDetailPanel";
 
 /**
