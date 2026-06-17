@@ -29,7 +29,7 @@ export const createTestExecution = (
   name,
   testPlanId,
   description,
-  status: ExecutionStatus.NOT_STARTED,
+  status: ExecutionStatus.NOTSTARTED,
   startDate: null,
   endDate: null,
   results: {}, // { testCaseId: { result, notes } }
