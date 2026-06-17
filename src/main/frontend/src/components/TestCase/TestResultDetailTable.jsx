@@ -22,10 +22,6 @@ import {
   MenuItem,
   Card,
   CardContent,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   CircularProgress,
   useTheme,
   alpha,
@@ -52,6 +48,7 @@ import {
 } from "./tableColumnDefaults.js";
 import useColumnPreferences from "./hooks/useColumnPreferences.js";
 import TestResultErrorState from "./TestResultErrorState.jsx";
+import TestResultAttachmentDialog from "./TestResultAttachmentDialog.jsx";
 // JIRA 상태 조회를 위한 공통 훅
 import { useBatchJiraIssueStatus } from "../../hooks/useJiraStatus.js";
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
@@ -76,7 +73,6 @@ import testResultService from "../../services/testResultService.js";
 // ICT-275: 컬럼 순서 변경 다이얼로그
 import ColumnOrderDialog from "./ColumnOrderDialog.jsx";
 // ICT-362: 첨부파일 표시 컴포넌트
-import TestResultAttachmentsView from "./TestResultAttachmentsView.jsx";
 // Markdown 뷰어
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
@@ -1804,37 +1800,15 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         />
 
         {/* ICT-362: 첨부파일 다이얼로그 */}
-        <Dialog
+        <TestResultAttachmentDialog
           open={attachmentDialogOpen}
+          testResultId={selectedTestResultId}
           onClose={() => {
             setAttachmentDialogOpen(false);
             setSelectedTestResultId(null);
           }}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {t("testResult.dialog.attachmentsTitle", "테스트 결과 첨부파일")}
-          </DialogTitle>
-          <DialogContent>
-            {selectedTestResultId && (
-              <TestResultAttachmentsView
-                testResultId={selectedTestResultId}
-                showUpload={false}
-              />
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setAttachmentDialogOpen(false);
-                setSelectedTestResultId(null);
-              }}
-            >
-              {t("common.button.close", "닫기")}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          t={t}
+        />
       </Paper>
     </Box>
   );
