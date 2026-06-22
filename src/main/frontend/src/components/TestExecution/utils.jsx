@@ -139,6 +139,16 @@ export const saveFilteredNavIds = (executionId, ids) => {
   }
 };
 
+// 필터 네비게이션 ID 목록을 제거한다 (필터 미적용 상태로 전환 시 stale 목록 방지).
+export const clearFilteredNavIds = (executionId) => {
+  if (!executionId || executionId === "new") return;
+  try {
+    sessionStorage.removeItem(`${NAV_IDS_STORAGE_PREFIX}${executionId}`);
+  } catch {
+    // sessionStorage 미지원/차단 환경에서는 무시
+  }
+};
+
 // 저장된 필터 네비게이션 ID 목록을 읽는다. 없거나 깨졌으면 null.
 export const readFilteredNavIds = (executionId) => {
   if (!executionId || executionId === "new") return null;

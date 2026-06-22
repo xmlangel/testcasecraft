@@ -6,6 +6,7 @@ import {
   extractParentFolder,
   generateColumnLabels,
   convertDataForExport,
+  filterRowsAfterDelete,
 } from "./SpreadsheetUtils.js";
 
 // i18n 더블 — {number} 치환까지 흉내
@@ -30,7 +31,7 @@ const rowWith = (overrides = {}) => {
 };
 
 describe("isFolderRow", () => {
-  it('타입 컬럼(idx 4)이 폴더/folder/📁 면 true', () => {
+  it("타입 컬럼(idx 4)이 폴더/folder/📁 면 true", () => {
     expect(isFolderRow(rowWith({ 4: "폴더" }), t)).toBe(true);
     expect(isFolderRow(rowWith({ 4: "folder" }), t)).toBe(true);
     expect(isFolderRow(rowWith({ 4: "📁" }), t)).toBe(true);
@@ -45,7 +46,9 @@ describe("isFolderRow", () => {
 
 describe("extractFolderName", () => {
   it("이름 컬럼(idx 6)을 trim 하여 반환한다", () => {
-    expect(extractFolderName(rowWith({ 6: "  로그인 폴더 " }))).toBe("로그인 폴더");
+    expect(extractFolderName(rowWith({ 6: "  로그인 폴더 " }))).toBe(
+      "로그인 폴더",
+    );
   });
   it("값이 없으면 빈 문자열", () => {
     expect(extractFolderName(rowWith({}))).toBe("");
@@ -116,5 +119,39 @@ describe("flattenTreeInOrder", () => {
     ];
     const flat = flattenTreeInOrder(data);
     expect(flat.map((n) => n.id)).toEqual([2, 1]);
+  });
+});
+
+describe("filterRowsAfterDelete", () => {
+  // 행: [ {value, testCaseId}, ... ] 형태. 여기선 row[0] 만 쓰므로 단순화.
+  const mkRow = (id) => [{ value: id || "", testCaseId: id }];
+  const rows = [
+    mkRow("folder1"), // 0: 선택된 폴더
+    mkRow("childA"), // 1: 폴더 하위 (선택 범위 밖)
+    mkRow("other"), // 2: 무관
+    mkRow("childB"), // 3: 폴더 하위 (선택 범위 밖)
+  ];
+
+  it("선택 범위 + 백엔드 삭제된 하위 id 를 모두 제거한다 (유령 행 방지)", () => {
+    // 폴더(0)만 선택했지만 하위 childA/childB 가 백엔드에서 함께 삭제됨
+    const deleted = new Set(["folder1", "childA", "childB"]);
+    const result = filterRowsAfterDelete(rows, 0, 1, deleted);
+    expect(result.map((r) => r[0].testCaseId)).toEqual(["other"]);
+  });
+
+  it("선택 범위 안의 신규(id 없는) 행도 제거한다", () => {
+    const withNew = [mkRow("a"), [{ value: "신규" }], mkRow("b")];
+    // 1~2 범위 삭제 (신규행 + b), 삭제 id 없음
+    const result = filterRowsAfterDelete(withNew, 1, 2, new Set());
+    expect(result.map((r) => r[0].testCaseId)).toEqual(["a"]);
+  });
+
+  it("삭제 id 집합이 비면 선택 범위만 제거한다", () => {
+    const result = filterRowsAfterDelete(rows, 0, 1, new Set());
+    expect(result.map((r) => r[0].testCaseId)).toEqual([
+      "childA",
+      "other",
+      "childB",
+    ]);
   });
 });

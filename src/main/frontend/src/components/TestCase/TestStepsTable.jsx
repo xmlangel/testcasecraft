@@ -87,130 +87,137 @@ const TestStepsTable = ({
                 .sort((a, b) => a.stepNumber - b.stepNumber)
                 .map((step) => {
                   // Step/Expected 가 같은 행에서 높이를 맞추도록 둘 중 큰 값을 사용.
-                  // 내용 없으면 최소, 있으면 10줄까지 늘고 그 이상은 스크롤.
+                  // 단계 입력은 최소 5줄 보장, 내용이 많으면 10줄까지 늘고 그 이상은 스크롤.
+                  const STEP_MIN_LINES = 5;
                   const stepEditorHeight = Math.max(
-                    computeMarkdownEditorHeight(step.description),
-                    computeMarkdownEditorHeight(step.expectedResult),
+                    computeMarkdownEditorHeight(step.description, {
+                      minLines: STEP_MIN_LINES,
+                    }),
+                    computeMarkdownEditorHeight(step.expectedResult, {
+                      minLines: STEP_MIN_LINES,
+                    }),
                   );
                   return (
-                  <TableRow key={step.stepNumber}>
-                    <TableCell
-                      sx={{
-                        width: 28,
-                        minWidth: 24,
-                        maxWidth: 32,
-                        textAlign: "center",
-                        p: 0.5,
-                      }}
-                    >
-                      {step.stepNumber}
-                    </TableCell>
-                    <TableCell sx={{ width: "45%", minWidth: 160 }}>
-                      <Box data-color-mode={theme.palette.mode}>
-                        <MDEditor
-                          value={step.description || ""}
-                          onChange={(value) =>
-                            onStepMarkdownChange(
-                              step.stepNumber,
-                              "description",
-                              value || "",
-                            )
-                          }
-                          preview="live"
-                          height={stepEditorHeight}
-                          textareaProps={{
-                            placeholder: t(
-                              "testcase.form.stepDescription",
-                              "Step 설명",
-                            ),
-                            onPaste: (event) =>
-                              onMarkdownPaste(event, {
-                                type: "step",
-                                field: "description",
-                                stepNumber: step.stepNumber,
-                              }),
-                            "data-testid": `step-description-${step.stepNumber}`,
-                          }}
-                          disabled={isViewer}
-                        />
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ width: "45%", minWidth: 160 }}>
-                      <Box data-color-mode={theme.palette.mode}>
-                        <MDEditor
-                          value={step.expectedResult || ""}
-                          onChange={(value) =>
-                            onStepMarkdownChange(
-                              step.stepNumber,
-                              "expectedResult",
-                              value || "",
-                            )
-                          }
-                          preview="live"
-                          height={stepEditorHeight}
-                          textareaProps={{
-                            placeholder: t(
-                              "testcase.form.expectedResult",
-                              "예상 결과",
-                            ),
-                            onPaste: (event) =>
-                              onMarkdownPaste(event, {
-                                type: "step",
-                                field: "expectedResult",
-                                stepNumber: step.stepNumber,
-                              }),
-                            "data-testid": `step-expected-${step.stepNumber}`,
-                          }}
-                          disabled={isViewer}
-                        />
-                      </Box>
-                    </TableCell>
-                    {!isViewer && (
+                    <TableRow key={step.stepNumber}>
                       <TableCell
-                        align="center"
-                        sx={{ width: 50, minWidth: 45, maxWidth: 60, p: 0.5 }}
+                        sx={{
+                          width: 28,
+                          minWidth: 24,
+                          maxWidth: 32,
+                          textAlign: "center",
+                          p: 0.5,
+                        }}
                       >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 0.5,
-                          }}
-                        >
-                          <IconButton
-                            size="small"
-                            onClick={() => onMoveStep(step.stepNumber, "up")}
-                            disabled={step.stepNumber === 1}
-                            sx={{ p: 0.25 }}
-                          >
-                            <ArrowUpIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => onMoveStep(step.stepNumber, "down")}
-                            disabled={step.stepNumber === steps.length}
-                            sx={{ p: 0.25 }}
-                          >
-                            <ArrowDownIcon fontSize="small" />
-                          </IconButton>
+                        {step.stepNumber}
+                      </TableCell>
+                      <TableCell sx={{ width: "45%", minWidth: 160 }}>
+                        <Box data-color-mode={theme.palette.mode}>
+                          <MDEditor
+                            value={step.description || ""}
+                            onChange={(value) =>
+                              onStepMarkdownChange(
+                                step.stepNumber,
+                                "description",
+                                value || "",
+                              )
+                            }
+                            preview="live"
+                            height={stepEditorHeight}
+                            textareaProps={{
+                              placeholder: t(
+                                "testcase.form.stepDescription",
+                                "Step 설명",
+                              ),
+                              onPaste: (event) =>
+                                onMarkdownPaste(event, {
+                                  type: "step",
+                                  field: "description",
+                                  stepNumber: step.stepNumber,
+                                }),
+                              "data-testid": `step-description-${step.stepNumber}`,
+                            }}
+                            disabled={isViewer}
+                          />
                         </Box>
                       </TableCell>
-                    )}
-                    <TableCell
-                      align="center"
-                      sx={{ width: 36, minWidth: 26, maxWidth: 40, p: 0.5 }}
-                    >
+                      <TableCell sx={{ width: "45%", minWidth: 160 }}>
+                        <Box data-color-mode={theme.palette.mode}>
+                          <MDEditor
+                            value={step.expectedResult || ""}
+                            onChange={(value) =>
+                              onStepMarkdownChange(
+                                step.stepNumber,
+                                "expectedResult",
+                                value || "",
+                              )
+                            }
+                            preview="live"
+                            height={stepEditorHeight}
+                            textareaProps={{
+                              placeholder: t(
+                                "testcase.form.expectedResult",
+                                "예상 결과",
+                              ),
+                              onPaste: (event) =>
+                                onMarkdownPaste(event, {
+                                  type: "step",
+                                  field: "expectedResult",
+                                  stepNumber: step.stepNumber,
+                                }),
+                              "data-testid": `step-expected-${step.stepNumber}`,
+                            }}
+                            disabled={isViewer}
+                          />
+                        </Box>
+                      </TableCell>
                       {!isViewer && (
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => onDeleteStep(step.stepNumber)}
+                        <TableCell
+                          align="center"
+                          sx={{ width: 50, minWidth: 45, maxWidth: 60, p: 0.5 }}
                         >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 0.5,
+                            }}
+                          >
+                            <IconButton
+                              size="small"
+                              onClick={() => onMoveStep(step.stepNumber, "up")}
+                              disabled={step.stepNumber === 1}
+                              sx={{ p: 0.25 }}
+                            >
+                              <ArrowUpIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                onMoveStep(step.stepNumber, "down")
+                              }
+                              disabled={step.stepNumber === steps.length}
+                              sx={{ p: 0.25 }}
+                            >
+                              <ArrowDownIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
                       )}
-                    </TableCell>
-                  </TableRow>
+                      <TableCell
+                        align="center"
+                        sx={{ width: 36, minWidth: 26, maxWidth: 40, p: 0.5 }}
+                      >
+                        {!isViewer && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => onDeleteStep(step.stepNumber)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                    </TableRow>
                   );
                 })
             )}

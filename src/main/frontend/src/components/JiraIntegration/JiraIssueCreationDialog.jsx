@@ -187,8 +187,10 @@ const JiraIssueCreationDialog = ({
     if (Array.isArray(testCase.steps) && testCase.steps.length > 0) {
       description += `${t("jira.create.template.steps", "### 테스트 단계")}\n`;
       testCase.steps.forEach((step, index) => {
-        const stepNumber = step.stepNumber || index + 1;
         const action = step.description || "";
+        // 동작·예상 결과가 모두 비어 있으면 번호만 남는 빈 줄이 되므로 건너뛴다
+        if (!action && !step.expectedResult) return;
+        const stepNumber = step.stepNumber || index + 1;
         description += `${stepNumber}. ${action}\n`;
         if (step.expectedResult) {
           description += `   - ${t(

@@ -13,7 +13,8 @@ const CHROME_PX = 56;
  *
  * @param {string} value         에디터 내용
  * @param {object} [opts]
- * @param {number} [opts.minLines=1]  내용이 없을 때 보여줄 최소 줄 수
+ * @param {number} [opts.minLines=1]  최소 줄 수 하한 (내용 없을 때의 높이이자,
+ *                                     내용이 있을 때도 이 줄 수 미만으로는 줄지 않음)
  * @param {number} [opts.maxLines=10] 내용이 있을 때 늘어날 최대 줄 수(이후 스크롤)
  * @returns {number} 높이(px)
  */
@@ -28,9 +29,10 @@ export const computeMarkdownEditorHeight = (
     return CHROME_PX + minLines * LINE_PX;
   }
 
-  // 내용 있음 → 최소 2줄, 최대 maxLines 줄까지 (그 이상은 스크롤)
+  // 내용 있음 → 최소 max(minLines, 2)줄, 최대 maxLines 줄까지 (그 이상은 스크롤)
+  // minLines 를 함께 적용해 호출 측이 더 큰 하한(예: 단계 5줄)을 줄 수 있게 한다.
   const lines = text.split("\n").length;
-  const visibleLines = Math.min(Math.max(lines, 2), maxLines);
+  const visibleLines = Math.min(Math.max(lines, minLines, 2), maxLines);
   return CHROME_PX + visibleLines * LINE_PX;
 };
 

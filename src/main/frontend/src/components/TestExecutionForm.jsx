@@ -35,6 +35,7 @@ import TestResultForm from "./TestResultForm.jsx";
 import {
   getOrderedTestCaseIds,
   getFilteredNavTestCaseIds,
+  extractTestCaseIds,
 } from "../utils/treeUtils.jsx";
 
 import { invalidateDashboardCache } from "../services/dashboardService";
@@ -55,6 +56,7 @@ import {
   getLatestResults,
   parseDateTime,
   saveFilteredNavIds,
+  clearFilteredNavIds,
 } from "./TestExecution/utils.jsx";
 
 // 테스트케이스 필터를 실행(executionId)별로 보존하기 위한 sessionStorage 키 접두사.
@@ -1040,6 +1042,12 @@ const TestExecutionForm = ({
     );
   }, [flattenedData, filters, resultsMap]);
 
+  // filteredData(폴더+케이스 노드)에서 테스트케이스 ID만 추출 (네비게이션·보존 공용)
+  const filteredTestCaseIds = useMemo(
+    () => extractTestCaseIds(filteredData),
+    [filteredData],
+  );
+
   // 필터가 적용된 목록 기준 이전/다음 네비게이션을 위한 테스트케이스 ID 배열
   // (선택 케이스가 필터 목록에 없으면 전체 목록으로 폴백)
   const navTestCaseIds = useMemo(
@@ -1049,13 +1057,17 @@ const TestExecutionForm = ({
   );
 
   // 전체화면 결과 뷰(TestCaseResultPage)가 동일한 필터 순서로 이동하도록,
-  // 필터된 테스트케이스 ID 목록을 실행별 sessionStorage에 보존한다.
+  // 필터가 활성일 때만 필터된 ID 목록을 실행별 sessionStorage에 보존한다.
+  // 필터가 없으면 키를 제거해(=filters 키와 동일한 생명주기) 전체화면 뷰가
+  // 과거 필터 순서로 잘못 이동하는 것을 막는다.
   useEffect(() => {
-    const filteredIds = filteredData
-      .filter((node) => node.type === "testcase")
-      .map((node) => node.id);
-    saveFilteredNavIds(executionId, filteredIds);
-  }, [executionId, filteredData]);
+    const hasActiveFilters = Object.values(filters).some(filterHasValue);
+    if (hasActiveFilters) {
+      saveFilteredNavIds(executionId, filteredTestCaseIds);
+    } else {
+      clearFilteredNavIds(executionId);
+    }
+  }, [executionId, filters, filteredTestCaseIds]);
   const { stats: statusCounts, progressPercent: progress } = useMemo(() => {
     // testCaseIds(플랜의 실제 케이스 목록)를 기준으로 각 상태를 카운팅
     // resultsMap.values() 기반 계산은 재실행 이력이 많을 때 카운트가 부풀려지는 버그가 있었음
