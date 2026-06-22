@@ -492,3 +492,25 @@ export const validateSpreadsheetData = (rows, options) => {
     };
   }
 };
+
+/**
+ * 검증 실패 결과를 사용자에게 보여줄 멀티라인 메시지로 조립한다.
+ *
+ * @param {Array<{message:string}>} errors 검증 오류 목록
+ * @param {Function} t i18n 함수
+ * @returns {string} 스낵바용 상세 메시지
+ */
+export const buildValidationErrorMessage = (errors, t) => {
+  const messages = (errors || []).map((e) => e.message);
+  let detailed =
+    t("testcase.spreadsheet.validationFailedTitle", "⚠️ 데이터 검증 실패") +
+    "\n\n";
+  if (messages.length > 0) {
+    detailed +=
+      t("testcase.spreadsheet.errorsTitle", "🚨 해결이 필요한 오류") + ":\n";
+    messages.forEach((msg, index) => {
+      detailed += `${index + 1}. ${msg}\n`;
+    });
+  }
+  return detailed;
+};

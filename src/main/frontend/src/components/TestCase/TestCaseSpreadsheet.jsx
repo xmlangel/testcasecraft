@@ -22,10 +22,6 @@ import {
   CircularProgress,
   Snackbar,
   IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   useTheme,
   Collapse,
   Dialog,
@@ -33,23 +29,8 @@ import {
   DialogTitle,
 } from "@mui/material";
 import {
-  Save as SaveIcon,
-  Add as AddIcon,
-  Refresh as RefreshIcon,
-  RemoveCircle as RemoveStepIcon,
-  AddCircle as AddStepIcon,
-  Settings as SettingsIcon,
-  CreateNewFolder as CreateNewFolderIcon,
-  Warning as WarningIcon,
-  Download as DownloadIcon,
-  GetApp as GetAppIcon,
-  Upload as UploadIcon,
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  Fullscreen as FullscreenIcon,
   FullscreenExit as FullscreenExitIcon,
 } from "@mui/icons-material";
 import Spreadsheet from "react-spreadsheet";
@@ -57,19 +38,24 @@ import TestCaseImportExportDialog from "./TestCaseImportExportDialog.jsx";
 
 // 분리된 모듈 imports
 import {
-  flattenTreeInOrder,
-  isFolderRow,
-  extractFolderName,
-  extractParentFolder,
   generateColumnLabels,
   filterRowsAfterDelete,
+  buildSpreadsheetRows,
+  convertRowsToEntities,
+  createEditableEmptyRow,
 } from "./Spreadsheet/utils/SpreadsheetUtils.js";
 import { getAllDescendants } from "../../utils/treeUtils.jsx";
 import {
-  findFolderIdByName,
-  sortFoldersByHierarchy,
-} from "./Spreadsheet/utils/FolderManagement.js";
-import { validateSpreadsheetData } from "./Spreadsheet/utils/SpreadsheetValidation.js";
+  createEmptyBatchResult,
+  mergeBatchResult,
+  saveFoldersLayered,
+  resolveTestCaseParentIds,
+  buildBatchSaveSummary,
+} from "./Spreadsheet/handlers/spreadsheetSave.js";
+import {
+  validateSpreadsheetData,
+  buildValidationErrorMessage,
+} from "./Spreadsheet/utils/SpreadsheetValidation.js";
 import {
   exportToCSV,
   exportToExcel,
@@ -83,6 +69,12 @@ import {
 } from "./Spreadsheet/components/SpreadsheetDialogs.jsx";
 import { DeleteConfirmationDialog } from "./Spreadsheet/components/DeleteConfirmationDialog.jsx";
 import KoreanAwareDataEditor from "./Spreadsheet/components/KoreanAwareDataEditor.jsx";
+import SpreadsheetToolbar from "./Spreadsheet/components/SpreadsheetToolbar.jsx";
+import {
+  StepMenu,
+  ExportMenu,
+} from "./Spreadsheet/components/SpreadsheetMenus.jsx";
+import useRowSelection from "./Spreadsheet/hooks/useRowSelection.js";
 
 const TestCaseSpreadsheet = ({
   data,
@@ -135,11 +127,16 @@ const TestCaseSpreadsheet = ({
   // Import/Export 다이얼로그 상태
   const [importExportOpen, setImportExportOpen] = useState(false);
 
-  // 행 선택 관련 상태 (ICT-414)
-  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
-  const selectedRowIndexRef = useRef(null); // ref로도 관리하여 불필요한 재렌더링 방지
-  const [selectedRange, setSelectedRange] = useState(null);
-  const selectedRangeRef = useRef(null);
+  // 행/범위 선택 상태 (ICT-414) — useRowSelection 훅
+  const {
+    selectedRowIndex,
+    setSelectedRowIndex,
+    selectedRowIndexRef,
+    selectedRange,
+    setSelectedRange,
+    selectedRangeRef,
+    handleCellSelect,
+  } = useRowSelection();
 
   // 삭제 다이얼로그 상태
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -191,148 +188,12 @@ const TestCaseSpreadsheet = ({
   }, [data, maxSteps]);
 
   // 테스트케이스 데이터를 스프레드시트 형태로 변환 (useMemo로 메모이제이션)
-  const memoizedSpreadsheetData = useMemo(() => {
-    debugLog(
-      "Spreadsheet",
-      "🔄 데이터 변환 시작:",
-      data?.length,
-      "개 테스트케이스, maxSteps:",
-      maxSteps,
-      "dataId:",
-      dataIdString,
-    );
-
-    const safeMaxSteps =
-      Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20
-        ? maxSteps
-        : 3;
-
-    if (!data || data.length === 0) {
-      // 기본 빈 행들 생성
-      const baseFields = [
-        { value: "" }, // ID
-        { value: "", readOnly: true }, // 작성자
-        { value: "", readOnly: true }, // 수정자
-        { value: "", readOnly: true }, // 순서 (ICT-414: readOnly로 변경 - 백엔드에서만 관리)
-        { value: "" }, // 타입
-        { value: "" }, // 상위폴더
-        { value: "" }, // 이름
-        { value: "" }, // 설명
-        { value: "" }, // 사전조건
-        { value: "" }, // 사후조건
-        { value: "" }, // 예상결과
-        { value: "" }, // 우선순위
-        { value: "" }, // 수행유형
-        { value: "" }, // 테스트기법
-        { value: "" }, // 태그
-      ];
-
-      const stepFields = [];
-      for (let i = 0; i < safeMaxSteps; i++) {
-        stepFields.push({ value: "" });
-        stepFields.push({ value: "" });
-      }
-
-      const emptyRow = [...baseFields, ...stepFields];
-      const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
-      debugLog("Spreadsheet", "✅ 빈 데이터 생성");
-      return emptyRows;
-    }
-
-    // 트리 구조를 평면화하면서 트리 순서를 유지
-    // allKnownIds는 Set 형태로 전달
-    const allKnownIds = new Set(allData.map((tc) => tc.id));
-    const flattenedData = flattenTreeInOrder(data, { allKnownIds, t });
-
-    const convertedData = flattenedData.map((testCase) => {
-      // 안전한 상위폴더명 추출 (전체 데이터셋 allData에서 조회)
-      let parentFolderName = "";
-      if (testCase.parentId) {
-        const parentFolder = allData.find(
-          (item) => item.id === testCase.parentId,
-        );
-        parentFolderName = parentFolder?.name || "";
-      }
-
-      // ICT-414: displayOrder를 readOnly로 설정 - 백엔드에서만 관리
-      const row = [
-        {
-          value: testCase.displayId || testCase.sequentialId || "",
-          readOnly: true,
-          testCaseId: testCase.id,
-        },
-        { value: testCase.createdBy || "", readOnly: true },
-        { value: testCase.updatedBy || "", readOnly: true },
-        { value: testCase.displayOrder || "", readOnly: true }, // readOnly 추가
-        {
-          value:
-            testCase.type === "folder"
-              ? t("testcase.type.folder", "폴더")
-              : t("testcase.type.testcase", "테스트케이스"),
-          readOnly: true,
-        },
-        { value: parentFolderName || "" },
-        { value: testCase.name || "" },
-        { value: testCase.description || "" },
-        {
-          value: testCase.preCondition || "",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value: testCase.postCondition || "",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value: testCase.expectedResults || "",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value:
-            testCase.type === "folder" ? "" : testCase.priority || "MEDIUM",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value:
-            testCase.type === "folder"
-              ? ""
-              : testCase.executionType || "Manual",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value: testCase.testTechnique || "",
-          readOnly: testCase.type === "folder",
-        },
-        {
-          value: Array.isArray(testCase.tags)
-            ? testCase.tags.join(", ")
-            : testCase.tags || "",
-          readOnly: testCase.type === "folder",
-        },
-      ];
-
-      // Steps 추가
-      for (let i = 0; i < safeMaxSteps; i++) {
-        if (testCase.type === "folder") {
-          row.push({ value: "", readOnly: true });
-          row.push({ value: "", readOnly: true });
-        } else {
-          const step = testCase.steps?.[i];
-          row.push({ value: step?.description || "" });
-          row.push({ value: step?.expectedResult || "" });
-        }
-      }
-
-      return row;
-    });
-
-    debugLog(
-      "Spreadsheet",
-      "✅ 데이터 변환 완료 (메모이제이션):",
-      convertedData.length,
-      "행",
-    );
-    return convertedData;
-  }, [dataIdString, maxSteps, t]); // dataIdString을 의존성으로 사용하여 실제 내용이 변경되었을 때만 재계산
+  const memoizedSpreadsheetData = useMemo(
+    () => buildSpreadsheetRows({ data, allData, maxSteps, t }),
+    // dataIdString 으로 실제 내용 변경 시에만 재계산 (data/allData 는 closure 로 참조)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dataIdString, maxSteps, t],
+  );
 
   // 메모이제이션된 데이터를 state에 동기화
   useEffect(() => {
@@ -362,44 +223,6 @@ const TestCaseSpreadsheet = ({
     setHasChanges(true);
   }, []);
 
-  // 셀 선택 핸들러 - 행 인덱스 추적 (ICT-414)
-  const handleCellSelect = useCallback((selected) => {
-    if (!selected || !selected.range) {
-      return;
-    }
-
-    const range = selected.range;
-
-    // Deep comparison to prevent infinite loops
-    const prevRange = selectedRangeRef.current;
-    if (
-      prevRange &&
-      prevRange.start.row === range.start.row &&
-      prevRange.start.column === range.start.column &&
-      prevRange.end.row === range.end.row &&
-      prevRange.end.column === range.end.column
-    ) {
-      // 범위가 동일하면 상태 업데이트 및 리프레시 로직 건너뜀
-      return;
-    }
-
-    // 범위 상태 업데이트
-    selectedRangeRef.current = range;
-    setSelectedRange(range);
-
-    const rowIndex = range.start.row;
-
-    // ref 값과 비교하여 실제로 변경된 경우에만 state 업데이트 (불필요한 재렌더링 방지)
-    if (
-      typeof rowIndex === "number" &&
-      rowIndex !== selectedRowIndexRef.current
-    ) {
-      selectedRowIndexRef.current = rowIndex;
-      setSelectedRowIndex(rowIndex);
-      debugLog("Spreadsheet", `행 ${rowIndex + 1} 선택됨 (index: ${rowIndex})`);
-    }
-  }, []); // 의존성 배열 비우기 - 콜백 재생성 방지
-
   // 행 추가 다이얼로그 열기 핸들러
   const handleOpenRowCountDialog = useCallback((mode = "append") => {
     setRowAddMode(mode);
@@ -418,31 +241,7 @@ const TestCaseSpreadsheet = ({
         Number.isFinite(count) && count >= 1 && count <= 100 ? count : 5;
 
       setSpreadsheetData((prevData) => {
-        const baseFields = [
-          { value: "" }, // 0: ID
-          { value: "", readOnly: true }, // 1: 작성자
-          { value: "", readOnly: true }, // 2: 수정자
-          { value: "" }, // 3: 순서
-          { value: "" }, // 4: 타입
-          { value: activeFolderName || "" }, // 5: 상위폴더 (ICT-UserReq: 자동 입력)
-          { value: "" }, // 6: 이름
-          { value: "" }, // 7: 설명
-          { value: "" }, // 8: 사전조건
-          { value: "" }, // 9: 사후조건
-          { value: "" }, // 10: 예상결과
-          { value: "" }, // 11: 우선순위
-          { value: "" }, // 12: 수행유형
-          { value: "" }, // 13: 테스트기법
-          { value: "" }, // 14: 태그
-        ];
-
-        const stepFields = [];
-        for (let i = 0; i < safeMaxSteps; i++) {
-          stepFields.push({ value: "" });
-          stepFields.push({ value: "" });
-        }
-
-        const emptyRow = [...baseFields, ...stepFields];
+        const emptyRow = createEditableEmptyRow(safeMaxSteps, activeFolderName);
         const newRows = Array.from({ length: safeCount }, () => [...emptyRow]);
         return [...prevData, ...newRows];
       });
@@ -936,325 +735,72 @@ const TestCaseSpreadsheet = ({
       });
 
       if (!validationResult.isValid) {
-        const errorMessages = validationResult.errors.map(
-          (error) => error.message,
+        setSnackbarMessage(
+          buildValidationErrorMessage(validationResult.errors, t),
         );
-        const baseMessage = t(
-          "testcase.spreadsheet.validationFailedTitle",
-          "⚠️ 데이터 검증 실패",
-        );
-        let detailedMessage = baseMessage + "\n\n";
-
-        if (errorMessages.length > 0) {
-          detailedMessage +=
-            t("testcase.spreadsheet.errorsTitle", "🚨 해결이 필요한 오류") +
-            ":\n";
-          errorMessages.forEach((msg, index) => {
-            detailedMessage += `${index + 1}. ${msg}\n`;
-          });
-        }
-
-        setSnackbarMessage(detailedMessage);
         setSnackbarSeverity("error");
         setSnackbarOpen(true);
         setLocalLoading(false);
         return;
       }
 
-      // 1. 변환: 스프레드시트 데이터 -> 테스트케이스/폴더 객체
+      // 1. 변환: 스프레드시트 행 -> 테스트케이스/폴더 엔티티
       // spreadsheetData 가 단일 진실 소스(셀 편집·행 추가/삭제·폴더 추가 모두 반영).
-      // prevDataRef 는 셀 편집(handleSpreadsheetChange)에서만 갱신돼, 셀 편집 후
-      // 행을 추가/삭제하고 저장하면 추가분이 누락되던 문제가 있었다.
-      const currentData = spreadsheetData;
-      const convertedTestCases = currentData
-        .filter(
-          (row) =>
-            Array.isArray(row) &&
-            row.some(
-              (cell) => typeof cell?.value === "string" && cell.value.trim(),
-            ),
-        )
-        .map((row, index) => {
-          const isFolder = isFolderRow(row, t);
-          const name = extractFolderName(row);
-          const parentFolderName = extractParentFolder(row);
-
-          const steps = [];
-          if (!isFolder) {
-            for (let i = 0; i < safeMaxSteps; i++) {
-              const stepDescIndex = 15 + i * 2;
-              const stepExpectedIndex = 15 + i * 2 + 1;
-
-              if (
-                stepDescIndex < row.length &&
-                stepExpectedIndex < row.length
-              ) {
-                const stepDesc = row[stepDescIndex]?.value || "";
-                const stepExpected = row[stepExpectedIndex]?.value || "";
-
-                if (stepDesc.trim()) {
-                  steps.push({
-                    stepNumber: i + 1,
-                    description: stepDesc,
-                    expectedResult: stepExpected,
-                  });
-                }
-              }
-            }
-          }
-
-          // 초기 변환 시에는 기존 데이터(data)에서만 부모를 찾음
-          // 신규 폴더 간의 참조는 아래 레이어드 저장 로직에서 해결
-          const parentId = parentFolderName
-            ? findFolderIdByName(parentFolderName, data || [])
-            : null;
-
-          return {
-            id:
-              row[0]?.testCaseId ||
-              (String(row[0]?.value || "").startsWith("temp-")
-                ? row[0]?.value
-                : `temp-${Date.now()}-${index}`),
-            name,
-            description: row[7]?.value || "",
-            preCondition: isFolder ? "" : row[8]?.value || "",
-            postCondition: isFolder ? "" : row[9]?.value || "",
-            expectedResults: isFolder ? "" : row[10]?.value || "",
-            priority: isFolder ? "" : row[11]?.value || "MEDIUM",
-            executionType: isFolder ? "" : row[12]?.value || "Manual",
-            testTechnique: isFolder ? "" : row[13]?.value || "",
-            tags: isFolder
-              ? []
-              : row[14]?.value
-                ? String(row[14].value)
-                    .split(",")
-                    .map((t) => t.trim())
-                    .filter(Boolean)
-                : [],
-            steps,
-            type: isFolder ? "folder" : "testcase",
-            displayOrder:
-              row[3] && row[3].value !== "" && row[3].value !== null
-                ? Number(row[3].value)
-                : null,
-            projectId,
-            parentId,
-            parentFolderName, // 추후 참조 해결을 위해 임시 저장
-          };
-        });
+      const convertedTestCases = convertRowsToEntities(spreadsheetData, {
+        maxSteps: safeMaxSteps,
+        data: data || [],
+        projectId,
+        t,
+      });
 
       // 2. 분리: 폴더 vs 테스트케이스
-      let folders = convertedTestCases.filter((tc) => tc.type === "folder");
+      const folders = convertedTestCases.filter((tc) => tc.type === "folder");
       const testCasesOnly = convertedTestCases.filter(
         (tc) => tc.type === "testcase",
       );
 
-      let batchResult = {
-        savedTestCases: [],
-        successCount: 0,
-        failureCount: 0,
-        errors: [],
-        isSuccess: true,
-      };
+      const batchResult = createEmptyBatchResult();
 
-      // 3. 폴더 저장 (Layered Save)
-      // 부모-자식 의존성 해결을 위해, "부모 ID를 아는 폴더"부터 순차적으로 저장
+      // 3. 폴더 레이어드 저장 (부모-자식 의존성 순서로). 실제 저장은 콜백 주입.
       if (folders.length > 0) {
-        debugLog(
-          "Spreadsheet",
-          "📂 폴더 레이어드 저장 시작:",
-          folders.length,
-          "개",
+        const folderResult = await saveFoldersLayered(
+          folders,
+          data || [],
+          (b) => testCaseService.batchSaveTestCases(b),
         );
-
-        // 3-1. 폴더 정렬 (부모가 먼저 오도록)
-        // sortFoldersByHierarchy는 이미 존재하는 함수를 활용
-        folders = sortFoldersByHierarchy(folders, data || []);
-
-        // 3-2. 기존 ID 맵 (이름 -> ID 매핑용)
-        // 기존 DB 데이터의 폴더 명과 ID를 미리 맵핑
-        const knownFolders = new Map();
-        (data || []).forEach((item) => {
-          if (item.type === "folder") {
-            knownFolders.set(item.name, item.id);
-          }
-        });
-
-        // 처리된 폴더 추적
-        const processedFolders = new Set();
-        let remainingFolders = [...folders];
-        let loopCount = 0;
-        const maxLoops = 10; // 무한루프 방지
-
-        while (remainingFolders.length > 0 && loopCount < maxLoops) {
-          loopCount++;
-          const currentBatch = [];
-          const nextRemaining = [];
-
-          for (const folder of remainingFolders) {
-            // 부모가 없거나(루트), 부모가 이미 알려진(저장된/기존) 폴더인 경우
-            const parentName = folder.parentFolderName;
-            const hasParentName = parentName && parentName.trim() !== "";
-
-            // 부모 ID 해결 시도
-            let resolvedParentId = folder.parentId;
-
-            if (hasParentName && !resolvedParentId) {
-              // 기존 parentId가 없다면 맵에서 검색
-              resolvedParentId = knownFolders.get(parentName);
-            }
-
-            // 저장 가능 여부 판단
-            const isRoot = !hasParentName;
-            const isParentKnown = hasParentName && resolvedParentId;
-
-            if (isRoot || isParentKnown) {
-              // 저장 가능한 상태
-              // parentId 업데이트
-              if (resolvedParentId) {
-                folder.parentId = resolvedParentId;
-              }
-              currentBatch.push(folder);
-            } else {
-              // 아직 부모가 저장되지 않음 (다음 라운드로)
-              nextRemaining.push(folder);
-            }
-          }
-
-          if (currentBatch.length === 0) {
-            // 더 이상 진행 불가 (순환 참조나 부모 이름 오타 등)
-            // 남은 폴더들은 그냥 저장 시도 (백엔드 에러 처리 또는 null parent)
-            debugLog(
-              "Spreadsheet",
-              "⚠️ 더 이상 의존성 해결 불가, 남은 폴더 일괄 처리:",
-              nextRemaining.length,
-            );
-            currentBatch.push(...nextRemaining);
-            nextRemaining.length = 0; // 루프 종료
-          }
-
-          // 배치 저장 실행
-          if (currentBatch.length > 0) {
-            debugLog(
-              "Spreadsheet",
-              `📦 폴더 배치 ${loopCount} 저장:`,
-              currentBatch.length,
-              "개",
-            );
-            const folderBatchResult =
-              await testCaseService.batchSaveTestCases(currentBatch);
-
-            // 결과 처리 및 ID 맵 업데이트
-            folderBatchResult.savedTestCases.forEach((savedFolder) => {
-              knownFolders.set(savedFolder.name, savedFolder.id);
-              processedFolders.add(savedFolder.name);
-            });
-
-            // 결과 합치기
-            batchResult.savedTestCases.push(
-              ...folderBatchResult.savedTestCases,
-            );
-            batchResult.successCount += folderBatchResult.successCount;
-            batchResult.failureCount += folderBatchResult.failureCount;
-            batchResult.errors.push(...folderBatchResult.errors);
-            batchResult.isSuccess =
-              batchResult.isSuccess && folderBatchResult.isSuccess;
-          }
-
-          remainingFolders = nextRemaining;
-        }
+        mergeBatchResult(batchResult, folderResult);
       }
 
-      // 4. 테스트케이스 저장 (최신 폴더 ID 반영)
+      // 4. 테스트케이스 저장 (방금 저장된 폴더 ID 로 parentId 해소)
       if (testCasesOnly.length > 0) {
-        // 기존 데이터 + 방금 저장된 폴더들
         const savedFolders = batchResult.savedTestCases.filter(
           (item) => item.type === "folder",
         );
-        const updatedAllData = [...(data || []), ...savedFolders];
-
-        // 편의를 위해 Map 다시 구성 (최신 상태)
-        const finalFolderMap = new Map();
-        updatedAllData.forEach((item) => {
-          if (item.type === "folder") {
-            finalFolderMap.set(item.name, item.id);
-          }
-        });
-
-        const updatedTestCases = testCasesOnly.map((tc) => {
-          // parentFolderName이 있으면 최신 ID로 갱신
-          if (tc.parentFolderName) {
-            const newParentId = finalFolderMap.get(tc.parentFolderName);
-            if (newParentId) {
-              return { ...tc, parentId: newParentId };
-            }
-          }
-          // 이미 parentId가 있거나 찾지 못한 경우 그대로 유지
-          return tc;
-        });
-
+        const updatedTestCases = resolveTestCaseParentIds(
+          testCasesOnly,
+          data || [],
+          savedFolders,
+        );
         const testCaseBatchResult =
           await testCaseService.batchSaveTestCases(updatedTestCases);
-        batchResult.savedTestCases.push(...testCaseBatchResult.savedTestCases);
-        batchResult.successCount += testCaseBatchResult.successCount;
-        batchResult.failureCount += testCaseBatchResult.failureCount;
-        batchResult.errors.push(...testCaseBatchResult.errors);
-        batchResult.isSuccess =
-          batchResult.isSuccess && testCaseBatchResult.isSuccess;
+        mergeBatchResult(batchResult, testCaseBatchResult);
       }
 
       // 5. 결과 처리 (기존 로직)
-      if (batchResult.isSuccess || batchResult.failureCount === 0) {
-        setHasChanges(false);
-        const folderCount = batchResult.savedTestCases.filter(
-          (tc) => tc.type === "folder",
-        ).length;
-        const testCaseCount = batchResult.savedTestCases.filter(
-          (tc) => tc.type === "testcase",
-        ).length;
-        setSnackbarMessage(
-          t(
-            "testcase.spreadsheet.batchSaveSuccess",
-            `✅ 배치 저장 완료: 폴더 {folders}개, 테스트케이스 {testcases}개`,
-            { folders: folderCount, testcases: testCaseCount },
-          ),
-        );
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
+      setHasChanges(false);
+      const { message: summaryMessage, severity: summarySeverity } =
+        buildBatchSaveSummary(batchResult, t);
+      setSnackbarMessage(summaryMessage);
+      setSnackbarSeverity(summarySeverity);
+      setSnackbarOpen(true);
 
-        if (onSave) {
-          await onSave(batchResult.savedTestCases);
-        }
-
-        if (onRefresh) {
-          debugLog("Spreadsheet", "✅ 배치 저장 완료 - 리프레시 모니터링 시작");
-          await onRefresh();
-        }
-      } else {
-        setHasChanges(false);
-        let errorMessage = t(
-          "testcase.spreadsheet.batchSavePartialFailure",
-          `⚠️ 배치 저장 부분 실패:\n✅ 성공: {success}개\n❌ 실패: {failure}개`,
-          {
-            success: batchResult.successCount,
-            failure: batchResult.failureCount,
-          },
-        );
-        setSnackbarMessage(errorMessage);
-        setSnackbarSeverity("warning");
-        setSnackbarOpen(true);
-
-        if (onSave && batchResult.savedTestCases.length > 0) {
-          await onSave(batchResult.savedTestCases);
-        }
-
-        if (onRefresh) {
-          debugLog(
-            "Spreadsheet",
-            "⚠️ 배치 저장 부분 실패 - 리프레시 모니터링 시작",
-          );
-          await onRefresh();
-        }
+      // 성공 시 항상, 부분 실패 시 저장된 것이 있을 때만 onSave 호출
+      const isOk = batchResult.isSuccess || batchResult.failureCount === 0;
+      if (onSave && (isOk || batchResult.savedTestCases.length > 0)) {
+        await onSave(batchResult.savedTestCases);
+      }
+      if (onRefresh) {
+        await onRefresh();
       }
     } catch (error) {
       logError("일괄 저장 실패:", error);
@@ -1738,7 +1284,8 @@ const TestCaseSpreadsheet = ({
 
             {/* 액션 버튼들 - 플로팅 메뉴 */}
             {!readOnly && (
-              <Box
+              <SpreadsheetToolbar
+                t={t}
                 sx={{
                   display: "flex",
                   gap: 1,
@@ -1755,176 +1302,25 @@ const TestCaseSpreadsheet = ({
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                   borderBottom: `2px solid ${theme.palette.divider}`,
                 }}
-              >
-                <Button
-                  size="small"
-                  startIcon={<RefreshIcon />}
-                  onClick={handleRefresh}
-                  disabled={isLoading}
-                >
-                  {t("testcase.spreadsheet.button.refresh", "새로고침")}
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={() => handleOpenRowCountDialog("append")}
-                  disabled={isLoading}
-                >
-                  {t("testcase.spreadsheet.button.addRows", "행 추가")}
-                </Button>
-
-                {/* ICT-414: 중간 행 삽입 버튼 */}
-                <Button
-                  size="small"
-                  startIcon={<ArrowUpwardIcon />}
-                  onClick={() => handleOpenRowCountDialog("above")}
-                  disabled={isLoading || selectedRowIndex === null}
-                  color="primary"
-                  variant="outlined"
-                  title={
-                    selectedRowIndex !== null
-                      ? t(
-                          "testcase.spreadsheet.insertAboveTitle",
-                          `${selectedRowIndex + 1}번 행 위에 추가`,
-                        )
-                      : t(
-                          "testcase.spreadsheet.selectRowFirst",
-                          "행을 먼저 선택하세요",
-                        )
-                  }
-                >
-                  {t("testcase.spreadsheet.button.insertAbove", "위에 추가")}
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<ArrowDownwardIcon />}
-                  onClick={() => handleOpenRowCountDialog("below")}
-                  disabled={isLoading || selectedRowIndex === null}
-                  color="primary"
-                  variant="outlined"
-                  title={
-                    selectedRowIndex !== null
-                      ? t(
-                          "testcase.spreadsheet.insertBelowTitle",
-                          `${selectedRowIndex + 1}번 행 아래에 추가`,
-                        )
-                      : t(
-                          "testcase.spreadsheet.selectRowFirst",
-                          "행을 먼저 선택하세요",
-                        )
-                  }
-                >
-                  {t("testcase.spreadsheet.button.insertBelow", "아래에 추가")}
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<CreateNewFolderIcon />}
-                  onClick={handleAddFolder}
-                  disabled={isLoading}
-                  color="secondary"
-                >
-                  {t("testcase.spreadsheet.button.addFolder", "폴더 추가")}
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<DeleteIcon />}
-                  onClick={handleDeleteRows}
-                  disabled={isLoading || selectedRowIndex === null}
-                  color="error"
-                  variant="outlined"
-                  title={
-                    selectedRange
-                      ? t(
-                          "testcase.spreadsheet.deleteTitle",
-                          `${Math.abs(selectedRange.end.row - selectedRange.start.row) + 1}개 행 삭제`,
-                        )
-                      : t(
-                          "testcase.spreadsheet.selectRowFirst",
-                          "행을 먼저 선택하세요",
-                        )
-                  }
-                >
-                  {t("testcase.spreadsheet.button.delete", "삭제")}
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<WarningIcon />}
-                  onClick={handleValidateData}
-                  disabled={isLoading}
-                  color="warning"
-                  variant="outlined"
-                >
-                  {t("testcase.spreadsheet.button.validate", "검증")}
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<UploadIcon />}
-                  onClick={() => setImportExportOpen(true)}
-                  disabled={isLoading}
-                  color="secondary"
-                  variant="outlined"
-                >
-                  Import/Export
-                </Button>
-
-                <Button
-                  size="small"
-                  startIcon={<GetAppIcon />}
-                  onClick={handleExportMenuOpen}
-                  disabled={isLoading}
-                  color="info"
-                  variant="outlined"
-                >
-                  {t("testcase.spreadsheet.button.export", "Export")}
-                </Button>
-
-                <IconButton
-                  size="small"
-                  onClick={handleStepMenuOpen}
-                  disabled={isLoading}
-                  aria-label={t(
-                    "testcase.spreadsheet.button.stepManagement",
-                    "스텝 관리",
-                  )}
-                >
-                  <SettingsIcon />
-                </IconButton>
-
-                <IconButton
-                  size="small"
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  aria-label={
-                    isFullscreen
-                      ? t(
-                          "testcase.spreadsheet.button.exitFullscreen",
-                          "전체화면 종료",
-                        )
-                      : t("testcase.spreadsheet.button.fullscreen", "전체화면")
-                  }
-                  color="primary"
-                >
-                  {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-                </IconButton>
-
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={
-                    isLoading ? <CircularProgress size={16} /> : <SaveIcon />
-                  }
-                  onClick={handleBulkSave}
-                  disabled={!hasChanges || isLoading || !onSave}
-                  color="primary"
-                >
-                  {isLoading
-                    ? t("testcase.spreadsheet.button.saving", "저장 중...")
-                    : t("testcase.spreadsheet.button.save", "일괄 저장")}
-                </Button>
-              </Box>
+                isLoading={isLoading}
+                selectedRowIndex={selectedRowIndex}
+                selectedRange={selectedRange}
+                hasChanges={hasChanges}
+                canSave={!!onSave}
+                isFullscreen={isFullscreen}
+                showImportExport
+                showFullscreenToggle
+                onRefresh={handleRefresh}
+                onAddRows={handleOpenRowCountDialog}
+                onAddFolder={handleAddFolder}
+                onDeleteRows={handleDeleteRows}
+                onValidate={handleValidateData}
+                onImportExport={() => setImportExportOpen(true)}
+                onExportMenu={handleExportMenuOpen}
+                onStepMenu={handleStepMenuOpen}
+                onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+                onSave={handleBulkSave}
+              />
             )}
           </Box>
 
@@ -1949,55 +1345,14 @@ const TestCaseSpreadsheet = ({
         </Snackbar>
 
         {/* 스텝 관리 메뉴 */}
-        <Menu
+        <StepMenu
           anchorEl={stepMenuAnchor}
-          open={Boolean(stepMenuAnchor)}
           onClose={handleStepMenuClose}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-        >
-          <MenuItem
-            onClick={() => handleQuickStepChange(1)}
-            disabled={maxSteps >= 10}
-          >
-            <ListItemIcon>
-              <AddStepIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>
-              {t(
-                "testcase.spreadsheet.stepMenu.addStep",
-                "스텝 추가 ({count}개)",
-                { count: maxSteps + 1 },
-              )}
-            </ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => handleQuickStepChange(-1)}
-            disabled={maxSteps <= 1}
-          >
-            <ListItemIcon>
-              <RemoveStepIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>
-              {t(
-                "testcase.spreadsheet.stepMenu.removeStep",
-                "스텝 제거 ({count}개)",
-                { count: maxSteps - 1 },
-              )}
-            </ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleStepSettingsOpen}>
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>
-              {t(
-                "testcase.spreadsheet.stepMenu.settings",
-                "스텝 수 직접 설정...",
-              )}
-            </ListItemText>
-          </MenuItem>
-        </Menu>
+          maxSteps={maxSteps}
+          onQuickStepChange={handleQuickStepChange}
+          onOpenSettings={handleStepSettingsOpen}
+          t={t}
+        />
 
         {/* 스텝 설정 다이얼로그 */}
         <StepSettingsDialog
@@ -2052,61 +1407,14 @@ const TestCaseSpreadsheet = ({
         />
 
         {/* Export 메뉴 */}
-        <Menu
+        <ExportMenu
           anchorEl={exportMenuAnchor}
-          open={Boolean(exportMenuAnchor)}
           onClose={handleExportMenuClose}
-          disableEnforceFocus // 접근성 경고 방지
-          disableRestoreFocus // 접근성 경고 방지
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-        >
-          <MenuItem onClick={handleExportCSV}>
-            <ListItemIcon>
-              <DownloadIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary={t(
-                "testcase.spreadsheet.export.csv.title",
-                "CSV로 내보내기",
-              )}
-              secondary={t(
-                "testcase.spreadsheet.export.csv.description",
-                "스프레드시트 호환 형식",
-              )}
-            />
-          </MenuItem>
-          <MenuItem onClick={handleExportExcel}>
-            <ListItemIcon>
-              <GetAppIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary={t(
-                "testcase.spreadsheet.export.excel.title",
-                "Excel로 내보내기",
-              )}
-              secondary={t(
-                "testcase.spreadsheet.export.excel.description",
-                "Microsoft Excel 형식 (.xlsx)",
-              )}
-            />
-          </MenuItem>
-          <MenuItem onClick={handleExportPDF}>
-            <ListItemIcon>
-              <DownloadIcon fontSize="small" color="primary" />
-            </ListItemIcon>
-            <ListItemText
-              primary={t(
-                "testcase.spreadsheet.export.pdf.title",
-                "PDF 내보내기(상세)",
-              )}
-              secondary={t(
-                "testcase.spreadsheet.export.pdf.description",
-                "테스트결과 입력 화면 형식 (.pdf)",
-              )}
-            />
-          </MenuItem>
-        </Menu>
+          onExportCsv={handleExportCSV}
+          onExportExcel={handleExportExcel}
+          onExportPdf={handleExportPDF}
+          t={t}
+        />
       </Card>
 
       {/* 전체화면 Dialog */}
@@ -2183,9 +1491,10 @@ const TestCaseSpreadsheet = ({
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
-          {/* 액션 버튼들 */}
+          {/* 액션 버튼들 (전체화면 — Import/Export·전체화면 토글 제외) */}
           {!readOnly && (
-            <Box
+            <SpreadsheetToolbar
+              t={t}
               sx={{
                 display: "flex",
                 gap: 1,
@@ -2194,156 +1503,20 @@ const TestCaseSpreadsheet = ({
                 pb: 2,
                 borderBottom: `1px solid ${theme.palette.divider}`,
               }}
-            >
-              <Button
-                size="small"
-                startIcon={<RefreshIcon />}
-                onClick={handleRefresh}
-                disabled={isLoading}
-              >
-                {t("testcase.spreadsheet.button.refresh", "새로고침")}
-              </Button>
-              <Button
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenRowCountDialog("append")}
-                disabled={isLoading}
-              >
-                {t("testcase.spreadsheet.button.addRows", "행 추가")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<ArrowUpwardIcon />}
-                onClick={() => handleOpenRowCountDialog("above")}
-                disabled={isLoading || selectedRowIndex === null}
-                color="primary"
-                variant="outlined"
-                title={
-                  selectedRowIndex !== null
-                    ? t(
-                        "testcase.spreadsheet.insertAboveTooltip",
-                        "{row}번 행 위에 추가",
-                        { row: selectedRowIndex + 1 },
-                      )
-                    : t(
-                        "testcase.spreadsheet.selectRowFirstTooltip",
-                        "행을 먼저 선택하세요",
-                      )
-                }
-              >
-                {t("testcase.spreadsheet.button.insertAbove", "위에 추가")}
-              </Button>
-              <Button
-                size="small"
-                startIcon={<ArrowDownwardIcon />}
-                onClick={() => handleOpenRowCountDialog("below")}
-                disabled={isLoading || selectedRowIndex === null}
-                color="primary"
-                variant="outlined"
-                title={
-                  selectedRowIndex !== null
-                    ? t(
-                        "testcase.spreadsheet.insertBelowTooltip",
-                        "{row}번 행 아래에 추가",
-                        { row: selectedRowIndex + 1 },
-                      )
-                    : t(
-                        "testcase.spreadsheet.selectRowFirstTooltip",
-                        "행을 먼저 선택하세요",
-                      )
-                }
-              >
-                {t("testcase.spreadsheet.button.insertBelow", "아래에 추가")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<CreateNewFolderIcon />}
-                onClick={handleAddFolder}
-                disabled={isLoading}
-                color="secondary"
-              >
-                {t("testcase.spreadsheet.button.addFolder", "폴더 추가")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<DeleteIcon />}
-                onClick={handleDeleteRows}
-                disabled={isLoading || selectedRowIndex === null}
-                color="error"
-                variant="outlined"
-                title={
-                  selectedRange
-                    ? t(
-                        "testcase.spreadsheet.deleteRowsTooltip",
-                        "{count}개 행 삭제",
-                        {
-                          count:
-                            Math.abs(
-                              selectedRange.end.row - selectedRange.start.row,
-                            ) + 1,
-                        },
-                      )
-                    : t(
-                        "testcase.spreadsheet.selectRowFirstTooltip",
-                        "행을 먼저 선택하세요",
-                      )
-                }
-              >
-                {t("testcase.spreadsheet.button.delete", "삭제")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<WarningIcon />}
-                onClick={handleValidateData}
-                disabled={isLoading}
-                color="warning"
-                variant="outlined"
-              >
-                {t("testcase.spreadsheet.button.validate", "검증")}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<GetAppIcon />}
-                onClick={handleExportMenuOpen}
-                disabled={isLoading}
-                color="info"
-                variant="outlined"
-              >
-                {t("testcase.spreadsheet.button.export", "Export")}
-              </Button>
-
-              <IconButton
-                size="small"
-                onClick={handleStepMenuOpen}
-                disabled={isLoading}
-                aria-label={t(
-                  "testcase.spreadsheet.button.stepManagement",
-                  "스텝 관리",
-                )}
-              >
-                <SettingsIcon />
-              </IconButton>
-
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={
-                  isLoading ? <CircularProgress size={16} /> : <SaveIcon />
-                }
-                onClick={handleBulkSave}
-                disabled={!hasChanges || isLoading || !onSave}
-                color="primary"
-              >
-                {isLoading
-                  ? t("testcase.spreadsheet.button.saving", "저장 중...")
-                  : t("testcase.spreadsheet.button.save", "일괄 저장")}
-              </Button>
-            </Box>
+              isLoading={isLoading}
+              selectedRowIndex={selectedRowIndex}
+              selectedRange={selectedRange}
+              hasChanges={hasChanges}
+              canSave={!!onSave}
+              onRefresh={handleRefresh}
+              onAddRows={handleOpenRowCountDialog}
+              onAddFolder={handleAddFolder}
+              onDeleteRows={handleDeleteRows}
+              onValidate={handleValidateData}
+              onExportMenu={handleExportMenuOpen}
+              onStepMenu={handleStepMenuOpen}
+              onSave={handleBulkSave}
+            />
           )}
 
           {/* 스프레드시트 컨텐츠 */}

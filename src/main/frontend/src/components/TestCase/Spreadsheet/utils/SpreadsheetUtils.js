@@ -1,6 +1,7 @@
 // src/components/TestCase/Spreadsheet/utils/SpreadsheetUtils.js
 
 import { listToTree } from "../../../../utils/treeUtils.jsx";
+import { findFolderIdByName } from "./FolderManagement.js";
 
 /**
  * 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
@@ -186,5 +187,249 @@ export const filterRowsAfterDelete = (rows, startRow, count, deletedIdSet) => {
     const rowId = row?.[0]?.testCaseId;
     const isDeletedId = rowId != null && ids.has(rowId);
     return !inRange && !isDeletedId;
+  });
+};
+
+/**
+ * maxSteps 를 유효 범위(1~20)로 보정. 그 외에는 기본 3.
+ */
+export const clampMaxSteps = (maxSteps) =>
+  Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
+
+// 데이터가 없을 때 보여줄 빈 행(컬럼 구조). 순서/작성자/수정자는 readOnly.
+const buildEmptyRow = (safeMaxSteps) => {
+  const baseFields = [
+    { value: "" }, // ID
+    { value: "", readOnly: true }, // 작성자
+    { value: "", readOnly: true }, // 수정자
+    { value: "", readOnly: true }, // 순서 (백엔드 관리)
+    { value: "" }, // 타입
+    { value: "" }, // 상위폴더
+    { value: "" }, // 이름
+    { value: "" }, // 설명
+    { value: "" }, // 사전조건
+    { value: "" }, // 사후조건
+    { value: "" }, // 예상결과
+    { value: "" }, // 우선순위
+    { value: "" }, // 수행유형
+    { value: "" }, // 테스트기법
+    { value: "" }, // 태그
+  ];
+  const stepFields = [];
+  for (let i = 0; i < safeMaxSteps; i++) {
+    stepFields.push({ value: "" });
+    stepFields.push({ value: "" });
+  }
+  return [...baseFields, ...stepFields];
+};
+
+/**
+ * 사용자가 추가/삽입하는 편집 가능한 빈 행을 만든다.
+ * (데이터 없을 때의 buildEmptyRow 와 달리 순서 컬럼이 편집 가능하고 상위폴더가 자동 입력)
+ *
+ * @param {number} maxSteps 스텝 컬럼 수
+ * @param {string} [parentFolderName] 상위폴더 자동 입력값(현재 활성 폴더)
+ * @returns {Array} 빈 행
+ */
+export const createEditableEmptyRow = (maxSteps, parentFolderName = "") => {
+  const safeMaxSteps = clampMaxSteps(maxSteps);
+  const baseFields = [
+    { value: "" }, // 0: ID
+    { value: "", readOnly: true }, // 1: 작성자
+    { value: "", readOnly: true }, // 2: 수정자
+    { value: "" }, // 3: 순서
+    { value: "" }, // 4: 타입
+    { value: parentFolderName || "" }, // 5: 상위폴더 (자동 입력)
+    { value: "" }, // 6: 이름
+    { value: "" }, // 7: 설명
+    { value: "" }, // 8: 사전조건
+    { value: "" }, // 9: 사후조건
+    { value: "" }, // 10: 예상결과
+    { value: "" }, // 11: 우선순위
+    { value: "" }, // 12: 수행유형
+    { value: "" }, // 13: 테스트기법
+    { value: "" }, // 14: 태그
+  ];
+  const stepFields = [];
+  for (let i = 0; i < safeMaxSteps; i++) {
+    stepFields.push({ value: "" });
+    stepFields.push({ value: "" });
+  }
+  return [...baseFields, ...stepFields];
+};
+
+// 단일 테스트케이스/폴더 노드를 스프레드시트 행으로 변환.
+const buildTestCaseRow = (testCase, parentFolderName, safeMaxSteps, t) => {
+  const isFolder = testCase.type === "folder";
+  const row = [
+    {
+      value: testCase.displayId || testCase.sequentialId || "",
+      readOnly: true,
+      testCaseId: testCase.id,
+    },
+    { value: testCase.createdBy || "", readOnly: true },
+    { value: testCase.updatedBy || "", readOnly: true },
+    { value: testCase.displayOrder || "", readOnly: true },
+    {
+      value: isFolder
+        ? t("testcase.type.folder", "폴더")
+        : t("testcase.type.testcase", "테스트케이스"),
+      readOnly: true,
+    },
+    { value: parentFolderName || "" },
+    { value: testCase.name || "" },
+    { value: testCase.description || "" },
+    { value: testCase.preCondition || "", readOnly: isFolder },
+    { value: testCase.postCondition || "", readOnly: isFolder },
+    { value: testCase.expectedResults || "", readOnly: isFolder },
+    {
+      value: isFolder ? "" : testCase.priority || "MEDIUM",
+      readOnly: isFolder,
+    },
+    {
+      value: isFolder ? "" : testCase.executionType || "Manual",
+      readOnly: isFolder,
+    },
+    { value: testCase.testTechnique || "", readOnly: isFolder },
+    {
+      value: Array.isArray(testCase.tags)
+        ? testCase.tags.join(", ")
+        : testCase.tags || "",
+      readOnly: isFolder,
+    },
+  ];
+
+  for (let i = 0; i < safeMaxSteps; i++) {
+    if (isFolder) {
+      row.push({ value: "", readOnly: true });
+      row.push({ value: "", readOnly: true });
+    } else {
+      const step = testCase.steps?.[i];
+      row.push({ value: step?.description || "" });
+      row.push({ value: step?.expectedResult || "" });
+    }
+  }
+  return row;
+};
+
+/**
+ * 테스트케이스 트리 데이터를 스프레드시트 행 배열로 변환한다.
+ * 데이터가 없으면 빈 행 10개를 반환한다.
+ *
+ * @param {object} params
+ * @param {Array} params.data 표시할(필터된) 테스트케이스/폴더 목록
+ * @param {Array} params.allData 상위폴더명 조회용 전체 데이터셋
+ * @param {number} params.maxSteps 스텝 컬럼 수
+ * @param {Function} params.t i18n 함수
+ * @returns {Array} 스프레드시트 행 배열
+ */
+export const buildSpreadsheetRows = ({ data, allData = [], maxSteps, t }) => {
+  const safeMaxSteps = clampMaxSteps(maxSteps);
+
+  if (!data || data.length === 0) {
+    const emptyRow = buildEmptyRow(safeMaxSteps);
+    return Array.from({ length: 10 }, () => [...emptyRow]);
+  }
+
+  const allKnownIds = new Set(allData.map((tc) => tc.id));
+  const flattenedData = flattenTreeInOrder(data, { allKnownIds, t });
+
+  return flattenedData.map((testCase) => {
+    let parentFolderName = "";
+    if (testCase.parentId) {
+      const parentFolder = allData.find(
+        (item) => item.id === testCase.parentId,
+      );
+      parentFolderName = parentFolder?.name || "";
+    }
+    return buildTestCaseRow(testCase, parentFolderName, safeMaxSteps, t);
+  });
+};
+
+// 행이 내용이 있는(비어있지 않은) 행인지 — 셀 중 trim 후 비지 않은 문자열이 하나라도 있으면 true
+const isNonEmptyRow = (row) =>
+  Array.isArray(row) &&
+  row.some((cell) => typeof cell?.value === "string" && cell.value.trim());
+
+/**
+ * 스프레드시트 행 배열을 저장용 테스트케이스/폴더 엔티티 배열로 변환한다.
+ * (buildSpreadsheetRows 의 역변환) 신규 폴더 간 부모 참조는 호출 측의 레이어드
+ * 저장에서 해결하므로 여기서는 기존 data 기준으로만 parentId 를 해소하고
+ * parentFolderName 을 함께 실어 보낸다.
+ *
+ * @param {Array} rows 스프레드시트 행
+ * @param {object} params
+ * @param {number} params.maxSteps 스텝 컬럼 수
+ * @param {Array} params.data 부모 폴더 ID 해소용 기존 데이터
+ * @param {string} params.projectId 프로젝트 ID
+ * @param {Function} params.t i18n 함수 (폴더 타입 판정)
+ * @param {number} [params.now] temp id 생성용 타임스탬프(테스트 주입용)
+ * @returns {Array} 엔티티 배열
+ */
+export const convertRowsToEntities = (
+  rows,
+  { maxSteps, data = [], projectId, t, now = Date.now() },
+) => {
+  const safeMaxSteps = clampMaxSteps(maxSteps);
+  return (rows || []).filter(isNonEmptyRow).map((row, index) => {
+    const isFolder = isFolderRow(row, t);
+    const name = extractFolderName(row);
+    const parentFolderName = extractParentFolder(row);
+
+    const steps = [];
+    if (!isFolder) {
+      for (let i = 0; i < safeMaxSteps; i++) {
+        const stepDescIndex = 15 + i * 2;
+        const stepExpectedIndex = 15 + i * 2 + 1;
+        if (stepDescIndex < row.length && stepExpectedIndex < row.length) {
+          const stepDesc = row[stepDescIndex]?.value || "";
+          const stepExpected = row[stepExpectedIndex]?.value || "";
+          if (stepDesc.trim()) {
+            steps.push({
+              stepNumber: i + 1,
+              description: stepDesc,
+              expectedResult: stepExpected,
+            });
+          }
+        }
+      }
+    }
+
+    const parentId = parentFolderName
+      ? findFolderIdByName(parentFolderName, data || [])
+      : null;
+
+    return {
+      id:
+        row[0]?.testCaseId ||
+        (String(row[0]?.value || "").startsWith("temp-")
+          ? row[0]?.value
+          : `temp-${now}-${index}`),
+      name,
+      description: row[7]?.value || "",
+      preCondition: isFolder ? "" : row[8]?.value || "",
+      postCondition: isFolder ? "" : row[9]?.value || "",
+      expectedResults: isFolder ? "" : row[10]?.value || "",
+      priority: isFolder ? "" : row[11]?.value || "MEDIUM",
+      executionType: isFolder ? "" : row[12]?.value || "Manual",
+      testTechnique: isFolder ? "" : row[13]?.value || "",
+      tags: isFolder
+        ? []
+        : row[14]?.value
+          ? String(row[14].value)
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter(Boolean)
+          : [],
+      steps,
+      type: isFolder ? "folder" : "testcase",
+      displayOrder:
+        row[3] && row[3].value !== "" && row[3].value !== null
+          ? Number(row[3].value)
+          : null,
+      projectId,
+      parentId,
+      parentFolderName,
+    };
   });
 };

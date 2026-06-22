@@ -22,39 +22,33 @@ import {
   MenuItem,
   Card,
   CardContent,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   CircularProgress,
   useTheme,
   alpha,
   Divider,
 } from "@mui/material";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-  GridToolbarFilterButton,
-  GridToolbarExport,
-  GridToolbarDensitySelector,
-  gridClasses,
-} from "@mui/x-data-grid";
+import { DataGrid, gridClasses } from "@mui/x-data-grid";
 import {
   Launch as LaunchIcon,
   Visibility as VisibilityIcon,
   Settings as SettingsIcon,
-  GetApp as GetAppIcon,
   FileDownload as FileDownloadIcon,
   Edit as EditIcon,
   AttachFile as AttachFileIcon,
-  Autorenew as AutorenewIcon,
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
 import jiraService from "../../services/jiraService.js";
+import TestResultDetailTableToolbar from "./TestResultDetailTableToolbar.jsx";
+import {
+  getDefaultColumnVisibility,
+  getDefaultColumnOrder,
+} from "./tableColumnDefaults.js";
+import useColumnPreferences from "./hooks/useColumnPreferences.js";
+import TestResultErrorState from "./TestResultErrorState.jsx";
+import TestResultAttachmentDialog from "./TestResultAttachmentDialog.jsx";
 // JIRA 상태 조회를 위한 공통 훅
 import { useBatchJiraIssueStatus } from "../../hooks/useJiraStatus.js";
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
@@ -79,29 +73,8 @@ import testResultService from "../../services/testResultService.js";
 // ICT-275: 컬럼 순서 변경 다이얼로그
 import ColumnOrderDialog from "./ColumnOrderDialog.jsx";
 // ICT-362: 첨부파일 표시 컴포넌트
-import TestResultAttachmentsView from "./TestResultAttachmentsView.jsx";
 // Markdown 뷰어
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
-
-const PRINT_SCALE_PERCENT = 30;
-const PRINT_SCALE_FACTOR = PRINT_SCALE_PERCENT / 100;
-const GRID_PRINT_PAGE_STYLE = `
-  @page {
-    size: landscape;
-    margin: 10mm;
-  }
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    transform: scale(${PRINT_SCALE_FACTOR});
-    transform-origin: top left;
-  }
-  #root, body, html {
-    width: ${100 / PRINT_SCALE_FACTOR}%;
-  }
-`;
 
 // 다크 배경 툴팁 안에서 마크다운 코드블록이 라이트 테마(흰 배경)로 렌더링되어
 // 글자가 보이지 않는 문제 보정 — 코드 영역을 어두운 배경 + 밝은 글자로 강제
@@ -119,176 +92,10 @@ const TOOLTIP_MARKDOWN_SX = {
   },
 };
 
-// ICT-275: 기본 컬럼 표시 설정 정의 (컴포넌트 외부로 이동)
-const getDefaultColumnVisibility = () => ({
-  folder: true,
-  displayId: false,
-  testCase: true,
-  description: false,
-  result: true,
-  executedDate: true,
-  executor: true,
-  notes: true,
-  attachments: true, // ICT-362: 첨부파일 컬럼 (기본 표시)
-  jiraId: true,
-  jiraStatus: true, // JIRA 상태 체크 후 결과 확인을 위해 기본 표시
-  preCondition: false, // ICT-275: 사전설정 컬럼 (기본 숨김)
-  postCondition: false,
-  expectedResults: false, // ICT-275: 전체 예상결과 컬럼 (기본 숨김)
-  steps: false, // ICT-275: 스텝 컬럼 (기본 숨김)
-  isAutomated: false,
-  executionType: false,
-  testTechnique: false,
-  priority: false,
-  tags: false,
-  linkedDocuments: false,
-});
-
-// ICT-275: 기본 컬럼 순서 정의 (컴포넌트 외부로 이동)
-const getDefaultColumnOrder = () => [
-  "folder",
-  "displayId",
-  "testCase",
-  "description",
-  "result",
-  "preCondition",
-  "postCondition",
-  "steps",
-  "expectedResults",
-  "isAutomated",
-  "executionType",
-  "testTechnique",
-  "priority",
-  "tags",
-  "executor",
-  "notes",
-  "attachments", // ICT-362: 첨부파일 컬럼
-  "linkedDocuments",
-  "jiraId",
-  "executedDate",
-  "jiraStatus",
-];
-
 /**
  * 커스텀 툴바 컴포넌트 (ICT-194 Phase 2: 외부 분리)
  * 컴포넌트 외부에서 정의하여 매 렌더링마다 다시 생성되는 것을 방지 (anchorEl 오류 해결)
  */
-const TestResultDetailTableToolbar = ({
-  onColumnSettingsClick,
-  onColumnOrderChangeClick,
-  onResetClick,
-  onJiraStatusCheck,
-  onExportClick,
-  jiraConfig,
-  jiraStatusLoading,
-  hasJiraTargets,
-  activeProject,
-  t,
-}) => (
-  <GridToolbarContainer sx={{ justifyContent: "space-between", p: 1 }}>
-    <Box sx={{ display: "flex", gap: 1 }}>
-      <GridToolbarColumnsButton />
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector />
-
-      {/* 컬럼 표시/숨김 설정 */}
-      <Button
-        size="small"
-        startIcon={<SettingsIcon />}
-        onClick={onColumnSettingsClick}
-      >
-        {t("testResult.button.columnSettings", "컬럼 설정")}
-      </Button>
-
-      {/* ICT-275: 컬럼 순서 변경 버튼 */}
-      <Button
-        size="small"
-        variant="outlined"
-        onClick={onColumnOrderChangeClick}
-        sx={{ ml: 1 }}
-      >
-        {t("testResult.button.changeOrder", "순서 변경")}
-      </Button>
-
-      {/* ICT-275: 컬럼 설정 초기화 버튼 */}
-      <Button
-        size="small"
-        variant="outlined"
-        onClick={onResetClick}
-        sx={{ ml: 1 }}
-      >
-        {t("testResult.button.reset", "기본값")}
-      </Button>
-
-      <Tooltip
-        title={
-          !jiraConfig
-            ? t(
-                "testResult.tooltip.jiraNotConfigured",
-                "JIRA 설정이 필요합니다",
-              )
-            : !hasJiraTargets
-              ? t(
-                  "testResult.tooltip.noJiraTargets",
-                  "연결된 JIRA ID가 없습니다",
-                )
-              : ""
-        }
-      >
-        <span>
-          <Button
-            size="small"
-            variant="contained"
-            color="primary"
-            startIcon={<AutorenewIcon />}
-            onClick={onJiraStatusCheck}
-            disabled={!jiraConfig || !hasJiraTargets || jiraStatusLoading}
-            sx={{ ml: 1 }}
-          >
-            {jiraStatusLoading
-              ? t("testResult.button.jiraStatusLoading", "JIRA 상태 확인 중...")
-              : t("testResult.button.jiraStatusCheck", "JIRA 상태 체크")}
-          </Button>
-        </span>
-      </Tooltip>
-    </Box>
-
-    <Box sx={{ display: "flex", gap: 1 }}>
-      {/* ICT-190: 고급 내보내기 버튼 */}
-      <Button
-        size="small"
-        startIcon={<FileDownloadIcon />}
-        onClick={onExportClick}
-        variant="outlined"
-        color="primary"
-      >
-        {t("testResult.button.advancedExport", "고급 내보내기")}
-      </Button>
-
-      <GridToolbarExport
-        printOptions={{
-          fileName: `테스트결과_${activeProject?.name || "export"}_${format(
-            new Date(),
-            "yyyyMMdd",
-            { locale: ko },
-          )}`,
-          pageStyle: GRID_PRINT_PAGE_STYLE,
-        }}
-        csvOptions={{
-          fileName: `테스트결과_${activeProject?.name || "export"}_${format(
-            new Date(),
-            "yyyyMMdd",
-            { locale: ko },
-          )}`,
-          utf8WithBom: true,
-        }}
-        startIcon={<GetAppIcon />}
-        sx={{ ml: 1 }}
-      />
-    </Box>
-  </GridToolbarContainer>
-);
-
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, api } = useAppContext();
   const { t } = useI18n();
@@ -343,51 +150,17 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   }, [rawRows, jiraStatusMap]);
   // ICT-275: 컬럼 설정 localStorage 기본값
 
-  // ICT-275: localStorage에서 컬럼 설정 로드
-  const loadColumnVisibilityFromStorage = () => {
-    try {
-      const storageKey = `testResultTable_columnVisibility_${
-        projectId || "default"
-      }`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // 기본값과 병합하여 새로운 필드 처리
-        return { ...getDefaultColumnVisibility(), ...parsed };
-      }
-    } catch (error) {
-      debugWarn("TestResultDetailTable", "컬럼 설정 로드 실패:", error);
-    }
-    return getDefaultColumnVisibility();
-  };
-
-  // ICT-275: localStorage에서 컬럼 순서 로드
-  const loadColumnOrderFromStorage = () => {
-    try {
-      const storageKey = `testResultTable_columnOrder_${
-        projectId || "default"
-      }`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // 기본값과 병합하여 새로운 필드 처리
-        const defaultOrder = getDefaultColumnOrder();
-        const savedFields = new Set(parsed);
-        const newFields = defaultOrder.filter(
-          (field) => !savedFields.has(field),
-        );
-        return [...parsed, ...newFields];
-      }
-    } catch (error) {
-      debugWarn("TestResultDetailTable", "컬럼 순서 로드 실패:", error);
-    }
-    return getDefaultColumnOrder();
-  };
-
-  const [columnVisibility, setColumnVisibility] = useState(
-    loadColumnVisibilityFromStorage,
-  );
-  const [columnOrder, setColumnOrder] = useState(loadColumnOrderFromStorage);
+  // 컬럼 표시/순서 설정 + localStorage 영속화 (useColumnPreferences 훅)
+  const {
+    columnVisibility,
+    setColumnVisibility,
+    columnOrder,
+    setColumnOrder,
+    saveColumnVisibilityToStorage,
+    saveColumnOrderToStorage,
+    handleColumnVisibilityToggle,
+    handleColumnOrderChange,
+  } = useColumnPreferences(projectId);
 
   // ICT-275: 컬럼 순서 변경 다이얼로그 상태
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
@@ -429,8 +202,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     const initialFilters = getInitialFiltersFromURL();
     return Boolean(
       initialFilters.testPlanId ||
-        initialFilters.testExecutionId ||
-        initialFilters.showLatestOnly,
+      initialFilters.testExecutionId ||
+      initialFilters.showLatestOnly,
     );
   });
 
@@ -468,7 +241,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     try {
       setQaSummarySaving(true);
       const response = await api(
-        buildUrl(`${API_ENDPOINTS.EXECUTION_BY_ID(executionInfo.id)}/qa-summary`),
+        buildUrl(
+          `${API_ENDPOINTS.EXECUTION_BY_ID(executionInfo.id)}/qa-summary`,
+        ),
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -658,14 +433,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     loadJiraConfig();
   }, []);
 
-  // ICT-275: 프로젝트 변경 시 컬럼 설정 다시 로드
-  useEffect(() => {
-    if (projectId) {
-      setColumnVisibility(loadColumnVisibilityFromStorage());
-      setColumnOrder(loadColumnOrderFromStorage());
-    }
-  }, [projectId]);
-
   // 테스트 결과 데이터 로드
   useEffect(() => {
     fetchTestResults(currentFilters);
@@ -739,8 +506,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     setIsFiltered(
       Boolean(
         newFilters.testPlanId ||
-          newFilters.testExecutionId ||
-          newFilters.showLatestOnly,
+        newFilters.testExecutionId ||
+        newFilters.showLatestOnly,
       ),
     );
 
@@ -1426,10 +1193,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           // Tooltip 내용: Markdown 렌더링
           const tooltipContent = (
             <Box sx={{ maxWidth: 400, maxHeight: 300, overflow: "auto" }}>
-              <MarkdownViewer
-                content={notesContent}
-                sx={TOOLTIP_MARKDOWN_SX}
-              />
+              <MarkdownViewer content={notesContent} sx={TOOLTIP_MARKDOWN_SX} />
             </Box>
           );
 
@@ -1682,59 +1446,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   );
 
   // ICT-275: 컬럼 설정을 localStorage에 저장
-  const saveColumnVisibilityToStorage = useCallback(
-    (newVisibility) => {
-      try {
-        const storageKey = `testResultTable_columnVisibility_${
-          projectId || "default"
-        }`;
-        localStorage.setItem(storageKey, JSON.stringify(newVisibility));
-      } catch (error) {
-        debugWarn("TestResultDetailTable", "컬럼 설정 저장 실패:", error);
-      }
-    },
-    [projectId],
-  );
-
-  // ICT-275: 컬럼 순서를 localStorage에 저장
-  const saveColumnOrderToStorage = useCallback(
-    (newOrder) => {
-      try {
-        const storageKey = `testResultTable_columnOrder_${
-          projectId || "default"
-        }`;
-        localStorage.setItem(storageKey, JSON.stringify(newOrder));
-      } catch (error) {
-        debugWarn("TestResultDetailTable", "컬럼 순서 저장 실패:", error);
-      }
-    },
-    [projectId],
-  );
-
-  // 컬럼 표시/숨김 토글
-  const handleColumnVisibilityToggle = useCallback(
-    (field) => {
-      setColumnVisibility((prev) => {
-        const newVisibility = {
-          ...prev,
-          [field]: !prev[field],
-        };
-        // 즘시 저장
-        saveColumnVisibilityToStorage(newVisibility);
-        return newVisibility;
-      });
-    },
-    [saveColumnVisibilityToStorage],
-  );
-
-  // ICT-275: 컬럼 순서 변경 핸들러
-  const handleColumnOrderChange = useCallback(
-    (newOrder) => {
-      setColumnOrder(newOrder);
-      saveColumnOrderToStorage(newOrder);
-    },
-    [saveColumnOrderToStorage],
-  );
 
   // ICT-276: 동적 행 높이 계산 - 스텝 개수와 내용에 따라 조정
   const getRowHeight = useCallback(
@@ -1796,48 +1507,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-194: 개선된 에러 상태 UI
   if (error) {
     return (
-      <Paper sx={{ width: "100%", p: 3 }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: 300,
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="h1" sx={{ fontSize: "4rem", mb: 2 }}>
-            ⚠️
-          </Typography>
-          <Typography variant="h6" color="error.main" gutterBottom>
-            {t(
-              "testResult.error.loadFailure",
-              "테스트 결과를 불러올 수 없습니다",
-            )}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: 3, maxWidth: 400 }}
-          >
-            {error}
-          </Typography>
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => window.location.reload()}
-              startIcon={<VisibilityIcon />}
-            >
-              {t("common.button.refresh", "새로고침")}
-            </Button>
-            <Button variant="outlined" onClick={() => setError(null)}>
-              {t("common.button.retry", "다시 시도")}
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
+      <TestResultErrorState
+        error={error}
+        onRetry={() => setError(null)}
+        t={t}
+      />
     );
   }
 
@@ -2106,37 +1780,15 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         />
 
         {/* ICT-362: 첨부파일 다이얼로그 */}
-        <Dialog
+        <TestResultAttachmentDialog
           open={attachmentDialogOpen}
+          testResultId={selectedTestResultId}
           onClose={() => {
             setAttachmentDialogOpen(false);
             setSelectedTestResultId(null);
           }}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {t("testResult.dialog.attachmentsTitle", "테스트 결과 첨부파일")}
-          </DialogTitle>
-          <DialogContent>
-            {selectedTestResultId && (
-              <TestResultAttachmentsView
-                testResultId={selectedTestResultId}
-                showUpload={false}
-              />
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setAttachmentDialogOpen(false);
-                setSelectedTestResultId(null);
-              }}
-            >
-              {t("common.button.close", "닫기")}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          t={t}
+        />
       </Paper>
     </Box>
   );
