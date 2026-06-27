@@ -1,6 +1,8 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 // useI18n 을 단순 패스스루로 모킹 (fallback 텍스트 반환)
 vi.mock("../../../../context/I18nContext", () => ({
@@ -8,6 +10,16 @@ vi.mock("../../../../context/I18nContext", () => ({
 }));
 
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog.jsx";
+
+const testTheme = createTheme({
+  components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+  },
+});
 
 const setup = (overrides = {}) => {
   const props = {
@@ -19,7 +31,11 @@ const setup = (overrides = {}) => {
     ],
     ...overrides,
   };
-  render(<DeleteConfirmationDialog {...props} />);
+  render(
+    <ThemeProvider theme={testTheme}>
+      <DeleteConfirmationDialog {...props} />
+    </ThemeProvider>,
+  );
   return props;
 };
 
@@ -31,11 +47,12 @@ describe("DeleteConfirmationDialog", () => {
     expect(screen.getByText("케이스1")).toBeInTheDocument();
   });
 
-  it("삭제·취소 버튼 클릭 시 콜백을 호출한다", () => {
+  it("삭제·취소 버튼 클릭 시 콜백을 호출한다", async () => {
+    const user = userEvent.setup();
     const p = setup();
-    fireEvent.click(screen.getByRole("button", { name: "삭제" }));
+    await user.click(screen.getByRole("button", { name: "삭제" }));
     expect(p.onConfirm).toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "취소" }));
+    await user.click(screen.getByRole("button", { name: "취소" }));
     expect(p.onClose).toHaveBeenCalled();
   });
 
