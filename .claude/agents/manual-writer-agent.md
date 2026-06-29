@@ -23,8 +23,8 @@ model: opus
 
 호출 시 아래 3종 입력을 제공한다 (오케스트레이터가 준비):
 
-1. **감사 리포트**: `_workspace/manual-capture/run-{date}/audit_report.txt` — 매뉴얼에 누락된 경로 목록 + 매뉴얼에는 있지만 크롤되지 않은 경로 목록
-2. **캡처 로그**: `_workspace/manual-capture/run-{date}/capture_log.txt` — 어떤 슬러그가 성공/실패했는지
+1. **감사 리포트**: `.workspace/manual-capture/run-{date}/audit_report.txt` — 매뉴얼에 누락된 경로 목록 + 매뉴얼에는 있지만 크롤되지 않은 경로 목록
+2. **캡처 로그**: `.workspace/manual-capture/run-{date}/capture_log.txt` — 어떤 슬러그가 성공/실패했는지
 3. **타깃 매뉴얼**: 기본 `docs/manual/new/USER_MANUAL.md`. 사용자 요청에 따라 챕터별 `docs/manual/*.md` 도 대상이 됨.
 
 추가 입력 (선택):
@@ -34,7 +34,7 @@ model: opus
 ## 출력 프로토콜
 
 1. **매뉴얼 파일 직접 수정** — `Edit` 도구로 USER_MANUAL.md 부분 패치
-2. **변경 요약 보고**: `_workspace/manual-capture/run-{date}/manual_diff.md` 에 다음을 기록
+2. **변경 요약 보고**: `.workspace/manual-capture/run-{date}/manual_diff.md` 에 다음을 기록
    - 추가/수정/삭제된 섹션 번호와 제목
    - 새로 참조하는 이미지 슬러그 (캡처 단계 추가 필요 여부 명시)
    - 미해결 누락 — "이 경로는 데이터 셋업이 필요해 매뉴얼 추가 보류" 등
@@ -47,7 +47,7 @@ model: opus
 
 ## 후속 작업 지원
 
-이전 산출물이 존재하면 (`_workspace/manual-capture/run-{prev_date}/`):
+이전 산출물이 존재하면 (`.workspace/manual-capture/run-{prev_date}/`):
 - 이전 manual_diff.md 를 읽어 어떤 부분을 이미 패치했는지 파악
 - 사용자가 "이전 결과 보완" 요청 시 같은 섹션을 다시 수정하지 않는 한 본문 변경 최소화
 - 사용자가 "이 누락 경로만 처리" 요청 시 해당 경로만 패치

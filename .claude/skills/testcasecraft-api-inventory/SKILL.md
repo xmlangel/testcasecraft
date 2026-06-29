@@ -61,11 +61,11 @@ grep -rl "@RestController" src/main/java
 
 ### Step 6: JSON 작성
 
-`_workspace/01_api_inventory.json`에 저장. 표준 스키마는 `references/inventory-schema.md` 참조.
+`.workspace/01_api_inventory.json`에 저장. 표준 스키마는 `references/inventory-schema.md` 참조.
 
 ### Step 7: 요약 문서
 
-`_workspace/01_api_inventory_summary.md`에 사람이 읽을 요약 작성:
+`.workspace/01_api_inventory_summary.md`에 사람이 읽을 요약 작성:
 
 - 컨트롤러 수, 메서드 수
 - 인증 필요 비율

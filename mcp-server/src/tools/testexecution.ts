@@ -20,6 +20,7 @@ const RecordResultInput = z.object({
   testcaseId: z.string().min(1, "테스트케이스 ID 필수"),
   result: z.enum(["PASS", "FAIL", "SKIP", "BLOCKED"]),
   comment: z.string().optional(),
+  executedBy: z.string().optional(),
   executionTime: z.number().optional(),
 });
 
@@ -54,7 +55,7 @@ export const testexecutionHandlers: Record<
 > = {
   testexecution_list: async (args: unknown) => {
     const input = ListInput.parse(args);
-    const res = await httpClient.get("/api/testexecutions", {
+    const res = await httpClient.get("/api/test-executions", {
       params: {
         limit: input.limit,
         page: input.page,
@@ -67,19 +68,20 @@ export const testexecutionHandlers: Record<
 
   testexecution_get: async (args: unknown) => {
     const input = GetInput.parse(args);
-    const res = await httpClient.get(`/api/testexecutions/${input.id}`);
+    const res = await httpClient.get(`/api/test-executions/${input.id}`);
     return res.data;
   },
 
   testexecution_record_result: async (args: unknown) => {
     const input = RecordResultInput.parse(args);
+    // 백엔드 TestResultDto 필드명: testCaseId / result / notes / executedBy
     const res = await httpClient.post(
-      `/api/testexecutions/${input.id}/results`,
+      `/api/test-executions/${input.id}/results`,
       {
-        testcaseId: input.testcaseId,
+        testCaseId: input.testcaseId,
         result: input.result,
-        comment: input.comment,
-        executionTime: input.executionTime,
+        notes: input.comment,
+        executedBy: input.executedBy,
       },
     );
     return res.data;

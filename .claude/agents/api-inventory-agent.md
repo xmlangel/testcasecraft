@@ -25,7 +25,7 @@ Spring Boot 프로젝트의 모든 REST API를 결정적으로 스캔하여, MCP
 
 ## 출력 프로토콜
 
-`_workspace/01_api_inventory.json` 파일을 생성한다. 표준 스키마는 `testcasecraft-api-inventory` 스킬의 references에 정의되어 있다.
+`.workspace/01_api_inventory.json` 파일을 생성한다. 표준 스키마는 `testcasecraft-api-inventory` 스킬의 references에 정의되어 있다.
 
 핵심 구조:
 
@@ -60,7 +60,7 @@ Spring Boot 프로젝트의 모든 REST API를 결정적으로 스캔하여, MCP
 }
 ```
 
-또한 `_workspace/01_api_inventory_summary.md`에 사람이 읽을 수 있는 요약을 작성한다:
+또한 `.workspace/01_api_inventory_summary.md`에 사람이 읽을 수 있는 요약을 작성한다:
 
 - 컨트롤러 수, 총 엔드포인트 수
 - 인증 필요/불필요 비율

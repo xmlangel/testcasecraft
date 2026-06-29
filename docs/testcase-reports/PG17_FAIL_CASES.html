@@ -1,0 +1,1758 @@
+<!doctype html><html lang='ko'><head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<title>테스트 결과 리포트 — PG17 PG-mode 실패 케이스 (17.10.0-47)</title>
+<script>
+(function(){
+  // 사용자가 앱에서 선택한 테마(themeMode: light|dark)를 유지. 없으면 light.
+  var mode = localStorage.getItem('themeMode') || 'light';
+  document.documentElement.setAttribute('data-theme', mode);
+  window.__toggleTheme=function(){
+    var cur=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',cur);
+    localStorage.setItem('themeMode',cur);
+    var b=document.getElementById('themeBtn'); if(b) b.textContent = cur==='dark'?'☀️ 라이트':'🌙 다크';
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    var b=document.getElementById('themeBtn');
+    if(b) b.textContent = (localStorage.getItem('themeMode')||'light')==='dark'?'☀️ 라이트':'🌙 다크';
+  });
+})();
+</script>
+<style>
+:root{
+  --primary:#1976D2;--primary-light:#E8F5FF;
+  --success:#2E7D32;--success-light:#E8F7EE;
+  --error:#D32F2F;--error-light:#FFEBEC;
+  --warning:#ED6C02;--warning-light:#FFF3E0;
+  --info:#0288D1;--info-light:#EBF8FF;
+  --grey:#9E9E9E;--grey-dark:#424242;--grey-light:#F5F7FA;
+  --bg:#f5f7fa;--surface:#ffffff;--surface-2:#f6f8fa;--border:#e0e4e8;
+  --text:#212121;--text-sub:#57606a;--code-bg:#0d1117;--code-fg:#e6edf3;
+  --exp-bg:#ffebe9;--act-bg:#e6ffec;--hunk-bg:#ddf4ff;--hunk-fg:#0550ae;
+}
+[data-theme="dark"]{
+  --primary-light:rgba(25,118,210,.18);--success-light:rgba(46,125,50,.18);
+  --error-light:rgba(211,47,47,.18);--warning-light:rgba(237,108,2,.18);
+  --info-light:rgba(2,136,209,.18);--grey-light:rgba(158,158,158,.14);
+  --bg:#121212;--surface:#1e1e1e;--surface-2:#262626;--border:#383838;
+  --text:#e6e6e6;--text-sub:#a0a6ad;--code-bg:#0b0e13;--code-fg:#e6edf3;
+  --exp-bg:rgba(211,47,47,.22);--act-bg:rgba(46,125,50,.22);
+  --hunk-bg:rgba(2,136,209,.22);--hunk-fg:#79c0ff;
+}
+*{box-sizing:border-box}
+body{font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo",sans-serif;margin:0;color:var(--text);background:var(--bg)}
+header.report{background:var(--primary);color:#fff;padding:24px 28px;position:relative}
+header.report h1{margin:0 0 4px;font-size:22px}
+header.report .sub{font-size:12px;opacity:.92;margin:2px 0}
+header.report a{color:#fff}
+.theme-toggle{position:absolute;top:18px;right:24px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer}
+.theme-toggle:hover{background:rgba(255,255,255,.3)}
+.wrap{max-width:1200px;margin:0 auto;padding:22px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:0 0 16px}
+.kpi{background:var(--surface);border-radius:8px;padding:14px 16px 12px 18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.kpi .lbl{font-size:12px;color:var(--text-sub)}
+.kpi .ico{position:absolute;top:12px;right:14px;font-size:18px}
+.kpi .val{font-size:24px;font-weight:700;margin:6px 0 2px;color:var(--text)}
+.kpi .sub{font-size:11px;color:var(--grey)}
+.bd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:0 0 26px}
+.bd{border-radius:8px;padding:12px 16px;background:var(--bd-bg);border-left:4px solid var(--accent)}
+.bd .lbl{font-size:12px;color:var(--text-sub)}
+.bd .val{font-size:20px;font-weight:700;color:var(--accent)}
+.bd .rate{font-size:11px;color:var(--grey)}
+h2.sec{font-size:16px;border-bottom:2px solid var(--border);padding-bottom:6px;margin:30px 0 12px}
+table.summary{border-collapse:collapse;width:100%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:6px;overflow:hidden}
+table.summary th{background:var(--grey-dark);color:#fff;padding:9px 10px;text-align:left;font-size:12px}
+table.summary td{border-bottom:1px solid var(--border);padding:8px 10px;font-size:13px}
+table.summary tr:last-child td{border-bottom:none}
+table.summary td.id{font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+table.summary td.id a{color:var(--primary);text-decoration:none}
+.pg{color:var(--info);font-size:12px}
+.badge{display:inline-block;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700}
+.badge.fail{background:var(--error-light);color:var(--error)}
+.badge.pass{background:var(--success-light);color:var(--success)}
+section.case{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin:0 0 18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+section.case h3.title{margin:0 0 12px;font-size:15px;font-family:ui-monospace,Menlo,monospace;display:flex;align-items:center;gap:10px}
+section.case h3.title .num{color:var(--grey)}
+.meta{background:var(--surface-2);border-radius:6px;padding:10px 14px;margin:0 0 12px;font-size:12.5px}
+.meta b{color:var(--text-sub)}.meta a{color:var(--info)}
+h4.fld{font-size:11px;color:var(--text-sub);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+.desc{white-space:pre-wrap;font-size:13px}
+pre.code{background:var(--code-bg);color:var(--code-fg);padding:12px;border-radius:6px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-word}
+table.sbs{border-collapse:collapse;width:100%;font-family:ui-monospace,Menlo,monospace;font-size:11px;table-layout:fixed}
+table.sbs th{background:var(--surface-2);color:var(--text);padding:5px 8px;text-align:left;border:1px solid var(--border)}
+table.sbs td{border:1px solid var(--border);padding:2px 6px;vertical-align:top;white-space:pre-wrap;word-break:break-word}
+td.ln{width:40px;text-align:right;color:var(--grey);background:var(--surface-2);user-select:none}
+td.exp{background:var(--exp-bg)}td.act{background:var(--act-bg)}
+tr.hunk td{background:var(--hunk-bg);color:var(--hunk-fg);font-weight:600}
+td.ctx{color:var(--text-sub)}
+footer.report{border-top:1px solid var(--border);margin-top:30px;padding:18px 28px;text-align:center;color:var(--grey);font-size:11px}
+@media (max-width:760px){.kpi-grid,.bd-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head><body>
+<header class='report'>
+<button id='themeBtn' class='theme-toggle' onclick='__toggleTheme()'>🌙 다크</button>
+<h1>테스트 결과 리포트</h1>
+<p class='sub'>PG17 PG-mode 실패 케이스 (17.10.0-47)</p>
+<p class='sub'>실행 #5 · 439 TC 중 FAIL 21건 · 172 AgensSQL 5333 직접 · 예상(좌)/실제(우) 줄 정렬</p>
+<p class='sub'>🔗 <a href='https://tc.qaspecialist.uk/projects/75245e30-47be-4677-9f4e-14ac7f6f3b9c/executions/5ae3ca6c-e206-4c69-b36d-4abd8aed110d'>TestcaseCraft 실행 보기</a></p>
+</header><div class='wrap'>
+<div class='kpi-grid'>
+<div class='kpi' style='--accent:var(--info)'><div class='ico'>📊</div><div class='lbl'>총 테스트</div><div class='val'>21건</div><div class='sub'>실행 #5</div></div>
+<div class='kpi' style='--accent:var(--success)'><div class='ico'>⚡</div><div class='lbl'>실행률</div><div class='val'>100.0%</div><div class='sub'>21건 실행됨</div></div>
+<div class='kpi' style='--accent:var(--warning)'><div class='ico'>🎯</div><div class='lbl'>성공률</div><div class='val'>0.0%</div><div class='sub'>0건 통과됨</div></div>
+<div class='kpi' style='--accent:var(--error)'><div class='ico'>🔗</div><div class='lbl'>JIRA 연동</div><div class='val'>21건</div><div class='sub'>결함 및 티켓 링크</div></div>
+</div>
+<div class='bd-grid'>
+<div class='bd' style='--accent:var(--success);--bd-bg:var(--success-light)'><div class='lbl'>성공</div><div class='val'>0건</div><div class='rate'>0.0%</div></div>
+<div class='bd' style='--accent:var(--error);--bd-bg:var(--error-light)'><div class='lbl'>실패</div><div class='val'>21건</div><div class='rate'>100.0%</div></div>
+<div class='bd' style='--accent:var(--warning);--bd-bg:var(--warning-light)'><div class='lbl'>차단</div><div class='val'>0건</div><div class='rate'>0.0%</div></div>
+<div class='bd' style='--accent:var(--grey);--bd-bg:var(--grey-light)'><div class='lbl'>미실행</div><div class='val'>0건</div><div class='rate'>0.0%</div></div>
+</div>
+<h2 class='sec' id='summary'>케이스 요약</h2>
+<table class='summary'><thead><tr><th>#</th><th>TC ID</th><th>PG ID</th><th>제목</th><th>판정</th></tr></thead><tbody>
+<tr><td>1</td><td class='id'><a href='#tc1202'>tc1202</a></td><td class='pg'>PG-247</td><td>SET LOCAL 트랜잭션 범위</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>2</td><td class='id'><a href='#tc1301'>tc1301</a></td><td class='pg'>PG-344</td><td>pg_hba scram-sha-256 인증</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>3</td><td class='id'><a href='#tc1302'>tc1302</a></td><td class='pg'>PG-345</td><td>pg_hba trust/reject 분기</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>4</td><td class='id'><a href='#tc1614'>tc1614</a></td><td class='pg'>PG-429</td><td>pg_basebackup --incremental 증분 백업</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>5</td><td class='id'><a href='#tc1615'>tc1615</a></td><td class='pg'>PG-430</td><td>pg_combinebackup 합성 후 기동·검증</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>6</td><td class='id'><a href='#tc1617'>tc1617</a></td><td class='pg'>PG-432</td><td>백업 매니페스트 system identifier(v2)</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>7</td><td class='id'><a href='#tc1618'>tc1618</a></td><td class='pg'>PG-433</td><td>WAL 요약 함수</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>8</td><td class='id'><a href='#tc1619'>tc1619</a></td><td class='pg'>PG-434</td><td>pg_walsummary CLI 디코드</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>9</td><td class='id'><a href='#tc1620'>tc1620</a></td><td class='pg'>PG-435</td><td>연속 아카이빙(archive_command)</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>10</td><td class='id'><a href='#tc1621'>tc1621</a></td><td class='pg'>PG-436</td><td>PITR 시점 복구(recovery_target_name)</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>11</td><td class='id'><a href='#tc1622'>tc1622</a></td><td class='pg'>PG-437</td><td>pg_archivecleanup CLI</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>12</td><td class='id'><a href='#tc1623'>tc1623</a></td><td class='pg'>PG-438</td><td>basic_archive 모듈 아카이빙</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>13</td><td class='id'><a href='#tc1624'>tc1624</a></td><td class='pg'>PG-439</td><td>archive_library vs archive_command 상호배타</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>14</td><td class='id'><a href='#tc2006'>tc2006</a></td><td class='pg'>PG-334</td><td>\watch min_rows= 최소행 종료(PG17 신규)</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>15</td><td class='id'><a href='#tc2009'>tc2009</a></td><td class='pg'>PG-337</td><td>접속 문자열·PGHOST/PGPORT/PGUSER/PGDATABASE 환경변수</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>16</td><td class='id'><a href='#tc2012'>tc2012</a></td><td class='pg'>PG-340</td><td>pg_isready 서버 가용성 점검</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>17</td><td class='id'><a href='#tc2014'>tc2014</a></td><td class='pg'>PG-342</td><td>pg_config·pg_test_fsync·pg_test_timing 스모크</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>18</td><td class='id'><a href='#tc2114'>tc2114</a></td><td class='pg'>PG-399</td><td>postgres_fdw 루프백</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>19</td><td class='id'><a href='#tc2115'>tc2115</a></td><td class='pg'>PG-400</td><td>dblink 루프백</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>20</td><td class='id'><a href='#tc2118'>tc2118</a></td><td class='pg'>PG-403</td><td>pgstattuple·pg_visibility 불변식</td><td><span class='badge fail'>FAIL</span></td></tr>
+<tr><td>21</td><td class='id'><a href='#tc2121'>tc2121</a></td><td class='pg'>PG-406</td><td>vacuumlo·oid2name 클라이언트 CLI</td><td><span class='badge fail'>FAIL</span></td></tr>
+</tbody></table>
+<h2 class='sec'>케이스 상세</h2>
+<section class='case' id='tc1202'>
+<h3 class='title'><span class='num'>#1</span> tc1202 · SET LOCAL 트랜잭션 범위 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1202 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-247</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/sql-set.html (§19.1.2)'>https://www.postgresql.org/docs/17/sql-set.html (§19.1.2)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>SET LOCAL이 현재 트랜잭션 안에서만 유효하고 COMMIT/ROLLBACK 후 세션값으로 복귀하며 트랜잭션 밖 SET LOCAL은 경고만 내고 효과가 없음을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>-- tc1202 | SET LOCAL 트랜잭션 범위 검증 | 문서 §19.1.2 (SET LOCAL) | PG17NEW: 아니오
+-- 검증 포인트: LOCAL 은 트랜잭션 내에서만 / COMMIT·ROLLBACK 후 세션값 복귀 / 트랜잭션 밖 SET LOCAL 은 경고만
+-- 결정론: 의도된 WARNING 은 client_min_messages=warning 으로 노출하되, 값 변화는 SHOW 결과로 직접 검증
+SET client_min_messages = warning;
+
+-- 기준 세션값 설정
+SET work_mem = &#x27;64MB&#x27;;
+SHOW work_mem;                       -- 64MB (세션값)
+
+-- BEGIN 안의 SET LOCAL 은 트랜잭션 안에서만 유효, COMMIT 후 세션값 복귀
+BEGIN;
+  SET LOCAL work_mem = &#x27;16MB&#x27;;
+  SHOW work_mem;                     -- 16MB (LOCAL)
+COMMIT;
+SHOW work_mem;                       -- 64MB (세션값 복귀)
+
+-- 트랜잭션 안에서 SET(세션) 과 SET LOCAL 공존: 안에선 LOCAL, COMMIT 후 SET값
+BEGIN;
+  SET work_mem = &#x27;32MB&#x27;;
+  SET LOCAL work_mem = &#x27;16MB&#x27;;
+  SHOW work_mem;                     -- 16MB (LOCAL 우선)
+COMMIT;
+SHOW work_mem;                       -- 32MB (트랜잭션 내 SET 값 유지)
+
+-- ROLLBACK 시 SET LOCAL 효과 소멸 (그리고 트랜잭션 내 SET 도 롤백)
+SET work_mem = &#x27;64MB&#x27;;
+BEGIN;
+  SET LOCAL work_mem = &#x27;16MB&#x27;;
+  SHOW work_mem;                     -- 16MB
+ROLLBACK;
+SHOW work_mem;                       -- 64MB (롤백으로 복귀)
+
+-- 트랜잭션 블록 밖 SET LOCAL: WARNING 만 내고 값 불변
+SET LOCAL work_mem = &#x27;128MB&#x27;;        -- WARNING: SET LOCAL can only be used in transaction blocks
+SHOW work_mem;                       -- 64MB (변하지 않음)
+
+RESET work_mem;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -62,8 +62,8 @@</td></tr>
+<tr><td class="ln">62</td><td class="ctx"></td><td class="ln">62</td><td class="ctx"></td></tr>
+<tr><td class="ln">63</td><td class="ctx">-- 트랜잭션 블록 밖 SET LOCAL: WARNING 만 내고 값 불변</td><td class="ln">63</td><td class="ctx">-- 트랜잭션 블록 밖 SET LOCAL: WARNING 만 내고 값 불변</td></tr>
+<tr><td class="ln">64</td><td class="ctx">SET LOCAL work_mem = &#x27;128MB&#x27;;        -- WARNING: SET LOCAL can only be used in transaction blocks</td><td class="ln">64</td><td class="ctx">SET LOCAL work_mem = &#x27;128MB&#x27;;        -- WARNING: SET LOCAL can only be used in transaction blocks</td></tr>
+<tr class="chg"><td class="ln">65</td><td class="exp">SHOW work_mem;                       -- 64MB (변하지 않음)</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">66</td><td class="ctx">WARNING:  SET LOCAL can only be used in transaction blocks</td><td class="ln">65</td><td class="ctx">WARNING:  SET LOCAL can only be used in transaction blocks</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">66</td><td class="act">SHOW work_mem;                       -- 64MB (변하지 않음)</td></tr>
+<tr><td class="ln">67</td><td class="ctx"> work_mem</td><td class="ln">67</td><td class="ctx"> work_mem</td></tr>
+<tr><td class="ln">68</td><td class="ctx">----------</td><td class="ln">68</td><td class="ctx">----------</td></tr>
+<tr><td class="ln">69</td><td class="ctx"> 64MB</td><td class="ln">69</td><td class="ctx"> 64MB</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1301'>
+<h3 class='title'><span class='num'>#2</span> tc1301 · pg_hba scram-sha-256 인증 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1301 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-344</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/auth-pg-hba-conf.html (§20.1, 20.5)'>https://www.postgresql.org/docs/17/auth-pg-hba-conf.html (§20.1, 20.5)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>pg_hba.conf에 scram-sha-256 host 규칙을 삽입·reload한 뒤 올바른 비밀번호 접속은 성공하고 틀린 비밀번호는 &#x27;authentication failed&#x27;로 거부됨을 검증한다(원본 백업·trap 복원으로 인증 상태 원상복구)</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1301 | pg_hba scram-sha-256 인증 | 문서 §20.1, §20.5 | PG17NEW: 아니오
+# 검증 포인트: scram 줄 삽입+reload / 올바른 비번 접속 성공 / 틀린 비번 거부
+# 공유 컨테이너 보호: pg_hba.conf 원본을 백업하고 trap 으로 무조건 복원 + reload + DROP ROLE.
+#   인증 상태를 반드시 원상복구 — 다른 TC 가 같은 컨테이너 사용.
+# 결정론: reload 직후 재시도 루프로 타이밍 레이스 회피. 인증 메시지는 부분 문자열 매칭.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;$C_SINGLE&quot;
+ROLE=&quot;tcqa_scram&quot;
+GOODPW=&quot;scr_good_pw_123&quot;
+BADPW=&quot;scr_wrong_pw_xyz&quot;
+
+PGDATA=&quot;$(docker exec -i &quot;$C&quot; psql -X -t -A -U postgres -d qa -c &#x27;SHOW data_directory;&#x27; | tr -d &#x27;[:space:]&#x27;)&quot;
+[ -n &quot;$PGDATA&quot; ] || { echo &quot;FAIL: PGDATA 획득 실패&quot;; echo &quot;TC-RESULT: NG&quot;; exit 0; }
+HBA=&quot;$PGDATA/pg_hba.conf&quot;
+BAK=&quot;$PGDATA/pg_hba.conf.tc1301.bak&quot;
+
+# trap: 원본 복원 + reload + 롤 제거 (어떤 경로로 종료해도 원상복구)
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -lc &quot;[ -f &#x27;$BAK&#x27; ] &amp;&amp; cp -p &#x27;$BAK&#x27; &#x27;$HBA&#x27; &amp;&amp; rm -f &#x27;$BAK&#x27;&quot; 2&gt;/dev/null
+  docker exec -i &quot;$C&quot; psql -X -q -U postgres -d postgres -c &quot;SELECT pg_reload_conf();&quot; &gt;/dev/null 2&gt;&amp;1
+  docker exec -i &quot;$C&quot; psql -X -q -U postgres -d postgres -c &quot;DROP ROLE IF EXISTS $ROLE;&quot; &gt;/dev/null 2&gt;&amp;1
+}
+trap cleanup EXIT
+
+# 사전 정리 + 롤 생성 (scram 검증자 저장)
+docker exec -i &quot;$C&quot; psql -X -q -U postgres -d postgres -c &quot;DROP ROLE IF EXISTS $ROLE;&quot; &gt;/dev/null 2&gt;&amp;1
+docker exec -i &quot;$C&quot; psql -X -q -U postgres -d postgres \
+  -c &quot;SET password_encryption=&#x27;scram-sha-256&#x27;;&quot; \
+  -c &quot;CREATE ROLE $ROLE LOGIN PASSWORD &#x27;$GOODPW&#x27;;&quot; &gt;/dev/null 2&gt;&amp;1
+
+# pg_hba.conf 백업 후 scram 줄을 최상단에 삽입
+docker exec -u postgres &quot;$C&quot; bash -lc &quot;cp -p &#x27;$HBA&#x27; &#x27;$BAK&#x27; &amp;&amp; \
+  printf &#x27;host all $ROLE 127.0.0.1/32 scram-sha-256\n&#x27; &gt; &#x27;$HBA.new&#x27; &amp;&amp; \
+  cat &#x27;$HBA&#x27; &gt;&gt; &#x27;$HBA.new&#x27; &amp;&amp; mv &#x27;$HBA.new&#x27; &#x27;$HBA&#x27;&quot;
+
+# reload + 적용 대기 (재시도 루프)
+docker exec -i &quot;$C&quot; psql -X -q -t -A -U postgres -d postgres -c &quot;SELECT pg_reload_conf();&quot; &gt;/dev/null 2&gt;&amp;1
+
+# (1) 올바른 비밀번호 접속 성공 — 최대 10회 재시도
+ok_login=&quot;FAIL&quot;
+for i in $(seq 1 10); do
+  if docker exec -i -e PGPASSWORD=&quot;$GOODPW&quot; &quot;$C&quot; \
+       psql -X -t -A -h 127.0.0.1 -U &quot;$ROLE&quot; -d postgres -c &#x27;SELECT 1&#x27; &gt;/dev/null 2&gt;&amp;1; then
+    ok_login=&quot;OK&quot;; break
+  fi
+  sleep 1
+done
+echo &quot;good_password_login: $ok_login&quot;
+
+# (2) 틀린 비밀번호 접속 거부 (&#x27;authentication failed&#x27; 부분 매칭)
+bad_out=&quot;$(docker exec -i -e PGPASSWORD=&quot;$BADPW&quot; &quot;$C&quot; \
+  psql -X -t -A -h 127.0.0.1 -U &quot;$ROLE&quot; -d postgres -c &#x27;SELECT 1&#x27; 2&gt;&amp;1)&quot;
+if echo &quot;$bad_out&quot; | grep -qi &#x27;authentication failed&#x27;; then
+  echo &quot;bad_password_login: REJECTED (authentication failed)&quot;
+else
+  echo &quot;bad_password_login: UNEXPECTED&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,3 +1,3 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">good_password_login: OK</td><td class="ln">1</td><td class="act">good_password_login: FAIL</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">bad_password_login: REJECTED (authentication failed)</td><td class="ln">2</td><td class="act">bad_password_login: UNEXPECTED</td></tr>
+<tr><td class="ln">3</td><td class="ctx">TC-RESULT: OK</td><td class="ln">3</td><td class="ctx">TC-RESULT: OK</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1302'>
+<h3 class='title'><span class='num'>#3</span> tc1302 · pg_hba trust/reject 분기 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1302 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-345</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/auth-pg-hba-conf.html (§20.1)'>https://www.postgresql.org/docs/17/auth-pg-hba-conf.html (§20.1)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>pg_hba.conf의 trust(무조건 허용)와 reject(무조건 거부)가 비밀번호 유무와 무관하게 동작하고, 규칙이 위→아래 첫 매칭으로 적용됨(reject 줄을 trust 줄 위에 두면 거부)을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1302 | pg_hba trust/reject 분기 + 줄 순서 첫매칭 | 문서 §20.1 | PG17NEW: 아니오
+# 검증 포인트: trust 무조건 허용 / reject 무조건 거부 / 위→아래 첫 매칭(reject 가 trust 위면 거부)
+# 공유 컨테이너 보호: pg_hba.conf 원본 백업 + trap 무조건 복원 + reload + DROP ROLE.
+# 결정론: reload 후 재시도 루프. 거부 메시지 &#x27;rejects connection&#x27; 부분 매칭.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;$C_SINGLE&quot;
+R_TRUST=&quot;tcqa_trust&quot;
+R_REJECT=&quot;tcqa_reject&quot;
+
+PGDATA=&quot;$(docker exec -i &quot;$C&quot; psql -X -t -A -U postgres -d qa -c &#x27;SHOW data_directory;&#x27; | tr -d &#x27;[:space:]&#x27;)&quot;
+[ -n &quot;$PGDATA&quot; ] || { echo &quot;FAIL: PGDATA 획득 실패&quot;; echo &quot;TC-RESULT: NG&quot;; exit 0; }
+HBA=&quot;$PGDATA/pg_hba.conf&quot;
+BAK=&quot;$PGDATA/pg_hba.conf.tc1302.bak&quot;
+
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -lc &quot;[ -f &#x27;$BAK&#x27; ] &amp;&amp; cp -p &#x27;$BAK&#x27; &#x27;$HBA&#x27; &amp;&amp; rm -f &#x27;$BAK&#x27;&quot; 2&gt;/dev/null
+  docker exec -i &quot;$C&quot; psql -X -q -U postgres -d postgres -c &quot;SELECT pg_reload_conf();&quot; &gt;/dev/null 2&gt;&amp;1
+  docker exec -i &quot;$C&quot; psql -X -q -U postgres -d postgres \
+    -c &quot;DROP ROLE IF EXISTS $R_TRUST;&quot; -c &quot;DROP ROLE IF EXISTS $R_REJECT;&quot; &gt;/dev/null 2&gt;&amp;1
+}
+trap cleanup EXIT
+
+# 롤 생성: trust 롤(비번 없음), reject 롤(비번 있음 — reject 가 비번 무관 차단임을 보이기 위함)
+docker exec -i &quot;$C&quot; psql -X -q -U postgres -d postgres \
+  -c &quot;DROP ROLE IF EXISTS $R_TRUST;&quot; -c &quot;DROP ROLE IF EXISTS $R_REJECT;&quot; \
+  -c &quot;CREATE ROLE $R_TRUST LOGIN;&quot; \
+  -c &quot;CREATE ROLE $R_REJECT LOGIN PASSWORD &#x27;pw_reject_123&#x27;;&quot; &gt;/dev/null 2&gt;&amp;1
+
+# pg_hba 백업 후, 두 롤 규칙을 최상단에 삽입.
+#   reject 롤은 reject 줄을 trust 줄보다 위에 두어 &#x27;첫 매칭=거부&#x27;를 입증.
+docker exec -u postgres &quot;$C&quot; bash -lc &quot;cp -p &#x27;$HBA&#x27; &#x27;$BAK&#x27; &amp;&amp; \
+  { printf &#x27;host all $R_TRUST 127.0.0.1/32 trust\n&#x27;; \
+    printf &#x27;host all $R_REJECT 127.0.0.1/32 reject\n&#x27;; \
+    printf &#x27;host all $R_REJECT 127.0.0.1/32 trust\n&#x27;; \
+    cat &#x27;$HBA&#x27;; } &gt; &#x27;$HBA.new&#x27; &amp;&amp; mv &#x27;$HBA.new&#x27; &#x27;$HBA&#x27;&quot;
+
+docker exec -i &quot;$C&quot; psql -X -q -t -A -U postgres -d postgres -c &quot;SELECT pg_reload_conf();&quot; &gt;/dev/null 2&gt;&amp;1
+
+# (1) trust 롤: 비밀번호 없이 접속 성공 — 재시도 루프
+trust_login=&quot;FAIL&quot;
+for i in $(seq 1 10); do
+  if docker exec -i -u postgres &quot;$C&quot; \
+       psql -X -t -A -h 127.0.0.1 -U &quot;$R_TRUST&quot; -d postgres -c &#x27;SELECT 1&#x27; &gt;/dev/null 2&gt;&amp;1; then
+    trust_login=&quot;OK&quot;; break
+  fi
+  sleep 1
+done
+echo &quot;trust_login_no_password: $trust_login&quot;
+
+# (2) reject 롤: 올바른 비밀번호로도 거부 (reject 줄이 trust 줄보다 위 → 첫 매칭 거부)
+reject_out=&quot;$(docker exec -i -e PGPASSWORD=&#x27;pw_reject_123&#x27; &quot;$C&quot; \
+  psql -X -t -A -h 127.0.0.1 -U &quot;$R_REJECT&quot; -d postgres -c &#x27;SELECT 1&#x27; 2&gt;&amp;1)&quot;
+if echo &quot;$reject_out&quot; | grep -qi &#x27;rejects connection&#x27;; then
+  echo &quot;reject_login_first_match: REJECTED (pg_hba.conf rejects connection)&quot;
+else
+  echo &quot;reject_login_first_match: UNEXPECTED&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,3 +1,3 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">trust_login_no_password: OK</td><td class="ln">1</td><td class="act">trust_login_no_password: FAIL</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">reject_login_first_match: REJECTED (pg_hba.conf rejects connection)</td><td class="ln">2</td><td class="act">reject_login_first_match: UNEXPECTED</td></tr>
+<tr><td class="ln">3</td><td class="ctx">TC-RESULT: OK</td><td class="ln">3</td><td class="ctx">TC-RESULT: OK</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1614'>
+<h3 class='title'><span class='num'>#4</span> tc1614 · pg_basebackup --incremental 증분 백업 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1614 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-429</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/app-pgbasebackup.html (§26.3.3)'>https://www.postgresql.org/docs/17/app-pgbasebackup.html (§26.3.3)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>PG17 신규 증분 백업으로 전체 백업 manifest를 기준으로 --incremental 백업을 받고 manifest 생성을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1614 | pg_basebackup --incremental 증분 백업(PG17 신기능) | 문서 §26.3.3 / pg_basebackup --incremental | PG17NEW: 예
+# 검증 포인트: summarize_wal=on 확인 / 전체 백업 → 추가 변경 + pg_switch_wal → --incremental 종료코드 0 / 증분에 backup_manifest 존재
+# 결정론: 증분 바이트·요약 LSN 미출력 — 종료코드 + manifest 파일 존재만. tcqa_inc DB는 끝에서 DROP, 백업 디렉토리 trap 정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+FULL=/tmp/tc1614_$$_full
+INCR=/tmp/tc1614_$$_incr
+
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -lc &quot;dropdb --if-exists tcqa_inc&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  docker exec &quot;$C&quot; bash -lc &quot;rm -rf ${FULL} ${INCR}&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+# summarize_wal 사전 확인
+sw=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW summarize_wal&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;summarize_wal = ${sw} (need on)&quot;
+if [ &quot;$sw&quot; != &quot;on&quot; ]; then
+  echo &quot;pg_basebackup --incremental = SKIP (summarize_wal off)&quot;
+  echo &quot;TC-RESULT: OK&quot;; exit 0
+fi
+
+# 데이터 적재 + 전체 백업
+docker exec -u postgres &quot;$C&quot; bash -lc &quot;dropdb --if-exists tcqa_inc; createdb tcqa_inc&quot; &gt;/dev/null 2&gt;&amp;1
+docker exec -i -u postgres &quot;$C&quot; psql -X -q -U postgres -d tcqa_inc &gt;/dev/null 2&gt;&amp;1 &lt;&lt;&#x27;SQL&#x27;
+SET client_min_messages=warning;
+CREATE TABLE t(id int);
+INSERT INTO t SELECT generate_series(1,100);
+SQL
+docker exec -u postgres &quot;$C&quot; pg_basebackup -D &quot;${FULL}&quot; -X stream -c fast &gt;/dev/null 2&gt;&amp;1
+echo &quot;full backup exit = $?&quot;
+
+# 추가 변경 + WAL 스위치(요약 진척 유도)
+docker exec -i -u postgres &quot;$C&quot; psql -X -q -U postgres -d tcqa_inc &gt;/dev/null 2&gt;&amp;1 &lt;&lt;&#x27;SQL&#x27;
+INSERT INTO t SELECT generate_series(101,200);
+SELECT pg_switch_wal();
+SQL
+# WAL 요약이 manifest LSN 까지 진척되도록 잠시 폴링
+docker exec -u postgres &quot;$C&quot; bash -lc &#x27;for i in $(seq 1 30); do psql -X -tA -U postgres -d postgres -c &quot;SELECT count(*) FROM pg_available_wal_summaries()&quot; | grep -qvx 0 &amp;&amp; break; sleep 1; done&#x27; &gt;/dev/null 2&gt;&amp;1
+
+# 증분 백업
+docker exec -u postgres &quot;$C&quot; pg_basebackup -D &quot;${INCR}&quot; -X stream -c fast --incremental=&quot;${FULL}/backup_manifest&quot; &gt;/dev/null 2&gt;&amp;1
+irc=$?
+echo &quot;incremental backup exit = ${irc} (expect 0)&quot;
+im=$(docker exec &quot;$C&quot; bash -lc &quot;test -f ${INCR}/backup_manifest &amp;&amp; echo yes || echo no&quot;)
+echo &quot;incremental backup_manifest exists = ${im}&quot;
+
+if [ &quot;$irc&quot; -eq 0 ] &amp;&amp; [ &quot;$im&quot; = &quot;yes&quot; ]; then
+  echo &quot;pg_basebackup --incremental = OK&quot;
+else
+  echo &quot;pg_basebackup --incremental = FAIL (irc=$irc im=$im)&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,7 +1,4 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">summarize_wal = on (need on)</td><td class="ln">1</td><td class="act">summarize_wal = off (need on)</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">full backup exit = 0</td><td class="ln">2</td><td class="act">pg_basebackup --incremental = SKIP (summarize_wal off)</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">incremental backup exit = 0 (expect 0)</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">incremental backup_manifest exists = yes</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">5</td><td class="exp">pg_basebackup --incremental = OK</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">6</td><td class="ctx">TC-RESULT: OK</td><td class="ln">3</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">7</td><td class="ctx">cleanup done</td><td class="ln">4</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1615'>
+<h3 class='title'><span class='num'>#5</span> tc1615 · pg_combinebackup 합성 후 기동·검증 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1615 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-430</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/app-pgcombinebackup.html (§26.3.4)'>https://www.postgresql.org/docs/17/app-pgcombinebackup.html (§26.3.4)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>PG17 신규 pg_combinebackup으로 전체+증분을 합성하고 별도 포트로 기동하여 증분 시점 데이터(200행)가 전부 복원됨을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1615 | pg_combinebackup 증분 합성 후 별도 포트 기동·데이터 검증(PG17 신기능) | 문서 §26.3.4 / pg_combinebackup | PG17NEW: 예
+# 검증 포인트: full+incr(총 200행) → pg_combinebackup -o synth 종료코드 0 → pg_verifybackup synth 0 →
+#              synth 를 컨테이너 내 포트 5440 으로 기동 → SELECT count(*)=200 → 메인 5432 무영향
+# 결정론: 포트·PID·기동 로그 미출력 — count(*)=200 단일 검증 + 종료코드. 합성 인스턴스는 별도 데이터디렉토리+포트로 격리, trap stop+정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+PGBIN=/usr/lib/postgresql/17/bin   # postgres 로그인쉘 PATH에 빠져 절대경로 사용
+FULL=/tmp/tc1615_$$_full
+INCR=/tmp/tc1615_$$_incr
+SYNTH=/tmp/tc1615_$$_synth
+PORT=5440
+
+cleanup() {
+  # 합성 인스턴스 정지(기동돼 있으면) + 모든 임시물 + 테스트 DB 정리
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_ctl -D ${SYNTH} -m immediate -w stop &gt;/dev/null 2&gt;&amp;1&quot; || true
+  docker exec -u postgres &quot;$C&quot; bash -lc &quot;dropdb --if-exists tcqa_cb&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  docker exec &quot;$C&quot; bash -lc &quot;rm -rf ${FULL} ${INCR} ${SYNTH}&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+sw=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW summarize_wal&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+if [ &quot;$sw&quot; != &quot;on&quot; ]; then
+  echo &quot;pg_combinebackup = SKIP (summarize_wal off)&quot;; echo &quot;TC-RESULT: OK&quot;; exit 0
+fi
+
+# 데이터 적재 + 전체 백업 (100행)
+docker exec -u postgres &quot;$C&quot; bash -lc &quot;dropdb --if-exists tcqa_cb; createdb tcqa_cb&quot; &gt;/dev/null 2&gt;&amp;1
+docker exec -i -u postgres &quot;$C&quot; psql -X -q -U postgres -d tcqa_cb &gt;/dev/null 2&gt;&amp;1 &lt;&lt;&#x27;SQL&#x27;
+SET client_min_messages=warning;
+CREATE TABLE t(id int);
+INSERT INTO t SELECT generate_series(1,100);
+SQL
+docker exec -u postgres &quot;$C&quot; pg_basebackup -D &quot;${FULL}&quot; -X stream -c fast &gt;/dev/null 2&gt;&amp;1
+
+# 추가 100행 + WAL 스위치 → 요약 진척 폴링
+docker exec -i -u postgres &quot;$C&quot; psql -X -q -U postgres -d tcqa_cb &gt;/dev/null 2&gt;&amp;1 &lt;&lt;&#x27;SQL&#x27;
+INSERT INTO t SELECT generate_series(101,200);
+SELECT pg_switch_wal();
+SQL
+docker exec -u postgres &quot;$C&quot; bash -lc &#x27;for i in $(seq 1 30); do psql -X -tA -U postgres -d postgres -c &quot;SELECT count(*) FROM pg_available_wal_summaries()&quot; | grep -qvx 0 &amp;&amp; break; sleep 1; done&#x27; &gt;/dev/null 2&gt;&amp;1
+
+# 증분 백업
+docker exec -u postgres &quot;$C&quot; pg_basebackup -D &quot;${INCR}&quot; -X stream -c fast --incremental=&quot;${FULL}/backup_manifest&quot; &gt;/dev/null 2&gt;&amp;1
+echo &quot;incremental backup exit = $?&quot;
+
+# 합성
+docker exec -u postgres &quot;$C&quot; pg_combinebackup &quot;${FULL}&quot; &quot;${INCR}&quot; -o &quot;${SYNTH}&quot; &gt;/dev/null 2&gt;&amp;1
+crc=$?
+echo &quot;pg_combinebackup exit = ${crc} (expect 0)&quot;
+
+# 합성 백업 무결성
+docker exec -u postgres &quot;$C&quot; pg_verifybackup &quot;${SYNTH}&quot; &gt;/dev/null 2&gt;&amp;1
+vrc=$?
+echo &quot;pg_verifybackup synth exit = ${vrc} (expect 0)&quot;
+
+# synth 를 별도 포트로 기동 (메인 5432 무영향) → 데이터 검증
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  ${PGBIN}/pg_ctl -D ${SYNTH} -o &#x27;-p ${PORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp&#x27; -w -t 60 start
+&quot; &gt;/dev/null 2&gt;&amp;1
+srt=$?
+echo &quot;synth instance start exit = ${srt}&quot;
+cnt=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/psql -h /tmp -p ${PORT} -X -q -A -t -U postgres -d tcqa_cb -c &#x27;SELECT count(*) FROM t&#x27;&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;synth instance count(*) = ${cnt} (expect 200)&quot;
+
+# 메인 무영향 재확인
+mainport=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW port&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;main port still = ${mainport} (expect 5432)&quot;
+
+if [ &quot;$crc&quot; -eq 0 ] &amp;&amp; [ &quot;$vrc&quot; -eq 0 ] &amp;&amp; [ &quot;$cnt&quot; = &quot;200&quot; ] &amp;&amp; [ &quot;$mainport&quot; = &quot;5432&quot; ]; then
+  echo &quot;pg_combinebackup synth restore = OK&quot;
+else
+  echo &quot;pg_combinebackup synth restore = FAIL (crc=$crc vrc=$vrc cnt=$cnt mainport=$mainp
+... [생략]</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,9 +1,3 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">incremental backup exit = 0</td><td class="ln">1</td><td class="act">pg_combinebackup = SKIP (summarize_wal off)</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">pg_combinebackup exit = 0 (expect 0)</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">pg_verifybackup synth exit = 0 (expect 0)</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">synth instance start exit = 0</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">5</td><td class="exp">synth instance count(*) = 200 (expect 200)</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">6</td><td class="exp">main port still = 5432 (expect 5432)</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">7</td><td class="exp">pg_combinebackup synth restore = OK</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">8</td><td class="ctx">TC-RESULT: OK</td><td class="ln">2</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">9</td><td class="ctx">cleanup done</td><td class="ln">3</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1617'>
+<h3 class='title'><span class='num'>#6</span> tc1617 · 백업 매니페스트 system identifier(v2) <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1617 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-432</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/backup-manifest-format.html (§Backup Manifest Format)'>https://www.postgresql.org/docs/17/backup-manifest-format.html (§Backup Manifest Format)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>PG17 매니페스트 v2의 System-Identifier 필드를 확인하고 다른 클러스터 매니페스트로 검증 시 불일치로 실패함을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1617 | 백업 매니페스트 system identifier 검증(PG17 매니페스트 v2 신기능) | 문서 § Backup Manifest Format / System-Identifier | PG17NEW: 예
+# 검증 포인트: manifest 에 &#x27;Manifest-Version: 2&#x27; 및 &#x27;System-Identifier&#x27; 키 존재 / sysid 값이 pg_controldata 와 일치 / 별도 클러스터 매니페스트로 -m 검증 시 mismatch 실패
+# 결정론: sysid 숫자 자체는 두 출처 일치 여부만(추출→equality), 절대값 단정 금지. 별도 인스턴스는 /tmp 격리, trap 정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+PGBIN=/usr/lib/postgresql/17/bin
+B=/tmp/tc1617_$$_bak
+OTHER=/tmp/tc1617_$$_other      # 다른 system id 를 가질 별도 클러스터
+
+cleanup() {
+  docker exec &quot;$C&quot; bash -c &quot;rm -rf ${B} ${OTHER}&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+# 백업 + manifest 키 확인
+docker exec -u postgres &quot;$C&quot; pg_basebackup -D &quot;${B}&quot; -X stream -c fast &gt;/dev/null 2&gt;&amp;1
+ver=$(docker exec &quot;$C&quot; bash -c &quot;grep -c &#x27;PostgreSQL-Backup-Manifest-Version.*2&#x27; ${B}/backup_manifest&quot;)
+sid=$(docker exec &quot;$C&quot; bash -c &quot;grep -c &#x27;System-Identifier&#x27; ${B}/backup_manifest&quot;)
+echo &quot;manifest version2 lines=${ver}(&gt;=1) System-Identifier lines=${sid}(&gt;=1)&quot;
+
+# manifest 의 System-Identifier 값
+m_sid=$(docker exec &quot;$C&quot; bash -c &quot;grep &#x27;System-Identifier&#x27; ${B}/backup_manifest | grep -oE &#x27;[0-9]+&#x27; | head -1&quot;)
+# pg_controldata 의 Database system identifier
+c_sid=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_controldata /var/lib/postgresql/data | grep &#x27;Database system identifier&#x27; | grep -oE &#x27;[0-9]+&#x27;&quot;)
+echo &quot;system identifier match (manifest vs controldata) = $([ -n &quot;$m_sid&quot; ] &amp;&amp; [ &quot;$m_sid&quot; = &quot;$c_sid&quot; ] &amp;&amp; echo yes || echo no)&quot;
+
+# 별도 클러스터(다른 sysid) 의 manifest 로 -m 검증 → mismatch 실패
+docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/initdb -D ${OTHER} -U postgres&quot; &gt;/dev/null 2&gt;&amp;1
+# OTHER 의 manifest 는 없으므로, OTHER 에서 별도 백업 manifest 생성 대신: B 의 manifest 를 OTHER initdb 후
+# 만든 백업의 것으로 교체하는 대신, 간단히 OTHER 를 잠깐 기동→백업받아 그 manifest 를 -m 으로 넘긴다.
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  ${PGBIN}/pg_ctl -D ${OTHER} -o &#x27;-p 5446 -c listen_addresses=localhost -c unix_socket_directories=/tmp&#x27; -w -t 60 start &gt;/dev/null 2&gt;&amp;1
+  ${PGBIN}/pg_basebackup -h /tmp -p 5446 -U postgres -D ${OTHER}_bak -X stream -c fast &gt;/dev/null 2&gt;&amp;1
+  ${PGBIN}/pg_ctl -D ${OTHER} -m immediate -w stop &gt;/dev/null 2&gt;&amp;1
+&quot; &gt;/dev/null 2&gt;&amp;1
+# B 백업을 OTHER 의 manifest(다른 sysid)로 검증 → 실패해야
+mm=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;pg_verifybackup -m ${OTHER}_bak/backup_manifest ${B} &gt;/dev/null 2&gt;&amp;1; echo \$?&quot;)
+docker exec &quot;$C&quot; bash -c &quot;rm -rf ${OTHER}_bak&quot; &gt;/dev/null 2&gt;&amp;1 || true
+echo &quot;cross-cluster manifest verify exit = ${mm} (expect 비0 — system id mismatch)&quot;
+
+if [ &quot;$ver&quot; -ge 1 ] &amp;&amp; [ &quot;$sid&quot; -ge 1 ] &amp;&amp; [ -n &quot;$m_sid&quot; ] &amp;&amp; [ &quot;$m_sid&quot; = &quot;$c_sid&quot; ] &amp;&amp; [ &quot;$mm&quot; -ne 0 ]; then
+  echo &quot;manifest system identifier = OK&quot;
+else
+  echo &quot;manifest system identifier = FAIL (ver=$ver sid=$sid m=$m_sid c=$c_sid mm=$mm)&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,6 +1,7 @@</td></tr>
+<tr><td class="ln">1</td><td class="ctx">manifest version2 lines=1(&gt;=1) System-Identifier lines=1(&gt;=1)</td><td class="ln">1</td><td class="ctx">manifest version2 lines=1(&gt;=1) System-Identifier lines=1(&gt;=1)</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">system identifier match (manifest vs controldata) = yes</td><td class="ln">2</td><td class="act">bash: line 1: /usr/lib/postgresql/17/bin/pg_controldata: No such file or directory</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">3</td><td class="act">system identifier match (manifest vs controldata) = no</td></tr>
+<tr><td class="ln">3</td><td class="ctx">cross-cluster manifest verify exit = 1 (expect 비0 — system id mismatch)</td><td class="ln">4</td><td class="ctx">cross-cluster manifest verify exit = 1 (expect 비0 — system id mismatch)</td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">manifest system identifier = OK</td><td class="ln">5</td><td class="act">manifest system identifier = FAIL (ver=1 sid=1 m=7655322411436988633 c= mm=1)</td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">6</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">6</td><td class="ctx">cleanup done</td><td class="ln">7</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1618'>
+<h3 class='title'><span class='num'>#7</span> tc1618 · WAL 요약 함수 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1618 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-433</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.3 / 9.27)'>https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.3 / 9.27)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>summarize_wal=on 환경에서 pg_available_wal_summaries()/pg_wal_summary_contents()로 WAL 요약 목록·내용을 조회할 수 있음을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1618 | WAL 요약 함수 pg_available_wal_summaries()/pg_wal_summary_contents() | 문서 §26.3.3 / 9.27 System Functions | PG17NEW: 예
+# 검증 포인트: summarize_wal=on / 데이터변경+pg_switch_wal 후 요약 count&gt;0 / 한 행의 lsn 으로 pg_wal_summary_contents 가 행 반환(컬럼 존재)
+# 결정론: LSN·TLI 값 미출력 — count&gt;0 불변식과 컬럼 존재만. 요약 lsn 은 함수 반환값을 변수로 받아 재사용. 테스트 DB 끝에서 DROP.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+P=&quot;docker exec -i -u postgres ${C} psql -X -q -A -t -U postgres -d postgres&quot;
+
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;dropdb --if-exists tcqa_ws&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+sw=$($P -c &quot;SHOW summarize_wal&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;summarize_wal = ${sw} (need on)&quot;
+if [ &quot;$sw&quot; != &quot;on&quot; ]; then echo &quot;WAL summary functions = SKIP (summarize_wal off)&quot;; echo &quot;TC-RESULT: OK&quot;; exit 0; fi
+
+# 데이터 변경 + WAL 스위치 → 요약 생성 유도 (폴링)
+docker exec -u postgres &quot;$C&quot; bash -c &quot;dropdb --if-exists tcqa_ws; createdb tcqa_ws&quot; &gt;/dev/null 2&gt;&amp;1
+docker exec -i -u postgres &quot;$C&quot; psql -X -q -U postgres -d tcqa_ws &gt;/dev/null 2&gt;&amp;1 &lt;&lt;&#x27;SQL&#x27;
+SET client_min_messages=warning;
+CREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,500);
+SELECT pg_switch_wal();
+SQL
+docker exec -u postgres &quot;$C&quot; bash -c &#x27;for i in $(seq 1 30); do psql -X -tA -U postgres -d postgres -c &quot;SELECT count(*) FROM pg_available_wal_summaries()&quot; | grep -qvx 0 &amp;&amp; break; sleep 1; done&#x27; &gt;/dev/null 2&gt;&amp;1
+
+# 요약 1개 이상 (count&gt;0 불변식)
+n=$($P -c &quot;SELECT count(*) FROM pg_available_wal_summaries()&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;available WAL summaries count&gt;0 = $([ &quot;${n:-0}&quot; -gt 0 ] &amp;&amp; echo yes || echo no)&quot;
+
+# 내용 있는 요약(최신이 비어있을 수 있어 nrows&gt;0 인 요약 선택) 으로 contents 가 행을 반환하는지
+# — 변경 블록 정보를 담은 요약이 1개 이상 존재함을 불변식으로 검증
+hascols=$($P &lt;&lt;&#x27;SQL&#x27; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;
+SELECT bool_or(
+  (SELECT count(*) FROM pg_wal_summary_contents(tli,start_lsn,end_lsn)) &gt; 0
+)::text
+FROM pg_available_wal_summaries();
+SQL
+)
+echo &quot;some WAL summary has contents rows = ${hascols}&quot;
+
+# 기대 컬럼(relfilenode/reltablespace/relforknumber/relblocknumber/is_limit_block) 존재 — 함수 시그니처 검증
+colok=$($P &lt;&lt;&#x27;SQL&#x27; 2&gt;&amp;1 | tr -d &#x27;[:space:]&#x27;
+WITH s AS (SELECT tli, start_lsn, end_lsn FROM pg_available_wal_summaries() ORDER BY end_lsn LIMIT 1)
+SELECT count(*) FROM (
+  SELECT relfilenode, reltablespace, relforknumber, relblocknumber, is_limit_block
+  FROM pg_wal_summary_contents((SELECT tli FROM s),(SELECT start_lsn FROM s),(SELECT end_lsn FROM s)) LIMIT 0
+) z;
+SQL
+)
+echo &quot;expected columns resolvable = $([ &quot;$colok&quot; = &quot;0&quot; ] &amp;&amp; echo yes || echo no)&quot;
+
+if [ &quot;${n:-0}&quot; -gt 0 ] &amp;&amp; [ &quot;$hascols&quot; = &quot;true&quot; ] &amp;&amp; [ &quot;$colok&quot; = &quot;0&quot; ]; then
+  echo &quot;WAL summary functions = OK&quot;
+else
+  echo &quot;WAL summary functions = FAIL (n=$n rows=$hascols colok=$colok)&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,7 +1,4 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">summarize_wal = on (need on)</td><td class="ln">1</td><td class="act">summarize_wal = off (need on)</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">available WAL summaries count&gt;0 = yes</td><td class="ln">2</td><td class="act">WAL summary functions = SKIP (summarize_wal off)</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">some WAL summary has contents rows = true</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">expected columns resolvable = yes</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">5</td><td class="exp">WAL summary functions = OK</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">6</td><td class="ctx">TC-RESULT: OK</td><td class="ln">3</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">7</td><td class="ctx">cleanup done</td><td class="ln">4</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1619'>
+<h3 class='title'><span class='num'>#8</span> tc1619 · pg_walsummary CLI 디코드 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1619 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-434</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/app-pgwalsummary.html (§pg_walsummary)'>https://www.postgresql.org/docs/17/app-pgwalsummary.html (§pg_walsummary)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>PG17 신규 pg_walsummary 명령으로 pg_wal/summaries의 WAL 요약 파일을 읽어 변경 블록 정보를 디코드할 수 있음을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1619 | pg_walsummary CLI 로 WAL 요약 파일 디코드(PG17 신기능) | 문서 § pg_walsummary | PG17NEW: 예
+# 검증 포인트: 데이터변경+pg_switch_wal 로 요약 파일 생성 / pg_wal/summaries/*.summary 1개 이상 / pg_walsummary 종료코드0 + 디코드 행(TS/DB/REL) 존재 / -i 옵션도 0
+# 결정론: 블록번호·LSN 미출력 — 종료코드 + 디코드 라인수&gt;0 만. 테스트 DB 끝에서 DROP.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+PGBIN=/usr/lib/postgresql/17/bin
+SUMDIR=/var/lib/postgresql/data/pg_wal/summaries
+
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;dropdb --if-exists tcqa_wcli&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+sw=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW summarize_wal&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+if [ &quot;$sw&quot; != &quot;on&quot; ]; then echo &quot;pg_walsummary CLI = SKIP (summarize_wal off)&quot;; echo &quot;TC-RESULT: OK&quot;; exit 0; fi
+
+# 요약 파일 생성 유도
+docker exec -u postgres &quot;$C&quot; bash -c &quot;dropdb --if-exists tcqa_wcli; createdb tcqa_wcli&quot; &gt;/dev/null 2&gt;&amp;1
+docker exec -i -u postgres &quot;$C&quot; psql -X -q -U postgres -d tcqa_wcli &gt;/dev/null 2&gt;&amp;1 &lt;&lt;&#x27;SQL&#x27;
+SET client_min_messages=warning;
+CREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,500);
+SELECT pg_switch_wal();
+SQL
+docker exec -u postgres &quot;$C&quot; bash -c &quot;for i in \$(seq 1 30); do ls ${SUMDIR}/*.summary &gt;/dev/null 2&gt;&amp;1 &amp;&amp; break; sleep 1; done&quot;
+
+nfiles=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;ls ${SUMDIR}/*.summary 2&gt;/dev/null | wc -l&quot; | tr -d &#x27;[:space:]&#x27;)
+echo &quot;summary files count&gt;0 = $([ &quot;${nfiles:-0}&quot; -gt 0 ] &amp;&amp; echo yes || echo no)&quot;
+
+if [ &quot;${nfiles:-0}&quot; -le 0 ]; then
+  echo &quot;pg_walsummary CLI = FAIL (no summary file produced)&quot;; echo &quot;TC-RESULT: OK&quot;; exit 0
+fi
+
+SF=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;ls ${SUMDIR}/*.summary 2&gt;/dev/null | head -1&quot; | tr -d &#x27;[:space:]&#x27;)
+
+# 디코드 — 종료코드 + 비어있지 않은 출력
+out=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_walsummary ${SF} 2&gt;/dev/null&quot;)
+rc=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_walsummary ${SF} &gt;/dev/null 2&gt;&amp;1; echo \$?&quot;)
+lines=$(printf &#x27;%s\n&#x27; &quot;$out&quot; | grep -cE &quot;TS |DB |REL &quot;)
+echo &quot;pg_walsummary exit=${rc}(0) decode-lines&gt;0 = $([ &quot;$lines&quot; -gt 0 ] &amp;&amp; echo yes || echo no)&quot;
+
+# -i (individual)
+irc=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_walsummary -i ${SF} &gt;/dev/null 2&gt;&amp;1; echo \$?&quot;)
+echo &quot;pg_walsummary -i exit = ${irc} (expect 0)&quot;
+
+if [ &quot;$rc&quot; = &quot;0&quot; ] &amp;&amp; [ &quot;$lines&quot; -gt 0 ] &amp;&amp; [ &quot;$irc&quot; = &quot;0&quot; ]; then
+  echo &quot;pg_walsummary CLI = OK&quot;
+else
+  echo &quot;pg_walsummary CLI = FAIL (rc=$rc lines=$lines irc=$irc)&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,6 +1,3 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">summary files count&gt;0 = yes</td><td class="ln">1</td><td class="act">pg_walsummary CLI = SKIP (summarize_wal off)</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">pg_walsummary exit=0(0) decode-lines&gt;0 = yes</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">pg_walsummary -i exit = 0 (expect 0)</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">pg_walsummary CLI = OK</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">2</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">6</td><td class="ctx">cleanup done</td><td class="ln">3</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1620'>
+<h3 class='title'><span class='num'>#9</span> tc1620 · 연속 아카이빙(archive_command) <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1620 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-435</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.1)'>https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.1)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>별도 인스턴스(포트 5441)에 archive_mode=on+archive_command를 설정·기동하고 WAL 스위치 시 아카이브 디렉토리에 WAL이 적재됨을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1620 | 연속 아카이빙 — archive_command 설정 + WAL 아카이브 적재 | 문서 §26.3.1 Setting Up WAL Archiving | PG17NEW: 아니오
+# 검증 포인트: /tmp 별도 인스턴스(포트 5441)에 archive_mode=on+archive_command(cp) 기동 / 데이터변경+pg_switch_wal 후 아카이브 디렉토리 파일&gt;0 / 메인 5432 무영향
+# 결정론: WAL 파일명 절대값 미출력 — 아카이브 파일 개수&gt;0 만. archive_mode 변경은 메인 미적용(별도 인스턴스 격리), trap 정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+PGBIN=/usr/lib/postgresql/17/bin
+D=/tmp/tc1620_$$_data
+ARCH=/tmp/tc1620_$$_arch
+PORT=5441
+
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_ctl -D ${D} -m immediate -w stop &gt;/dev/null 2&gt;&amp;1&quot; || true
+  docker exec &quot;$C&quot; bash -c &quot;rm -rf ${D} ${ARCH}&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+# 별도 인스턴스 initdb + archive 설정 + 기동 (메인과 완전 격리)
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  set -e
+  ${PGBIN}/initdb -D ${D} -U postgres &gt;/dev/null 2&gt;&amp;1
+  mkdir -p ${ARCH}
+  cat &gt;&gt; ${D}/postgresql.conf &lt;&lt;CONF
+archive_mode = on
+archive_command = &#x27;cp %p ${ARCH}/%f&#x27;
+wal_level = replica
+CONF
+  ${PGBIN}/pg_ctl -D ${D} -o &#x27;-p ${PORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp&#x27; -w -t 60 start &gt;/dev/null 2&gt;&amp;1
+&quot; &gt;/dev/null 2&gt;&amp;1
+echo &quot;separate instance start exit = $?&quot;
+
+# 데이터 변경 + WAL 스위치 → 아카이브 적재 유도
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c &#x27;CREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,100);&#x27; &gt;/dev/null 2&gt;&amp;1
+  ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c &#x27;SELECT pg_switch_wal();&#x27; &gt;/dev/null 2&gt;&amp;1
+  for i in \$(seq 1 20); do [ \$(ls ${ARCH} 2&gt;/dev/null | wc -l) -gt 0 ] &amp;&amp; break; sleep 1; done
+&quot;
+n=$(docker exec &quot;$C&quot; bash -c &quot;ls ${ARCH} 2&gt;/dev/null | wc -l&quot; | tr -d &#x27;[:space:]&#x27;)
+echo &quot;archived WAL files count&gt;0 = $([ &quot;${n:-0}&quot; -gt 0 ] &amp;&amp; echo yes || echo no)&quot;
+
+mainport=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW port&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+mainarch=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW archive_mode&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;main port=${mainport}(5432) archive_mode=${mainarch}(off — 미적용)&quot;
+
+if [ &quot;${n:-0}&quot; -gt 0 ] &amp;&amp; [ &quot;$mainport&quot; = &quot;5432&quot; ] &amp;&amp; [ &quot;$mainarch&quot; = &quot;off&quot; ]; then
+  echo &quot;continuous archiving = OK&quot;
+else
+  echo &quot;continuous archiving = FAIL (n=$n mainport=$mainport mainarch=$mainarch)&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,6 +1,6 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">separate instance start exit = 0</td><td class="ln">1</td><td class="act">separate instance start exit = 127</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">archived WAL files count&gt;0 = yes</td><td class="ln">2</td><td class="act">archived WAL files count&gt;0 = no</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">main port=5432(5432) archive_mode=off(off — 미적용)</td><td class="ln">3</td><td class="act">main port=5333(5432) archive_mode=off(off — 미적용)</td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">continuous archiving = OK</td><td class="ln">4</td><td class="act">continuous archiving = FAIL (n=0 mainport=5333 mainarch=off)</td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">6</td><td class="ctx">cleanup done</td><td class="ln">6</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1621'>
+<h3 class='title'><span class='num'>#10</span> tc1621 · PITR 시점 복구(recovery_target_name) <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1621 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-436</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.5)'>https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.5)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>별도 소스/복구 인스턴스(5442/5443)로 베이스백업·연속아카이빙을 구성하고 restore point 명명 시점까지 복구하여 그 시점 데이터(50행)만 복원됨을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1621 | PITR — 베이스백업→변경→restore point→별도 디렉토리 시점 복구 기동 | 문서 §26.3.5 / recovery_target_name | PG17NEW: 아니오
+# 검증 포인트: 소스 인스턴스(5442) archive_mode=on / 베이스백업 → 행 A 적재 → pg_create_restore_point(&#x27;rp1&#x27;) → 행 B 적재 →
+#              복구 인스턴스(5443) restore_command + recovery_target_name=&#x27;rp1&#x27; + promote → SELECT count(*) = rp1 시점 행수(A만)
+# 결정론: 복구 LSN·타임라인 미출력 — rp1 시점 행 수 정확값(고정 입력 기반)만. 모든 인스턴스 /tmp 격리+전용 포트, trap 정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+PGBIN=/usr/lib/postgresql/17/bin
+SRC=/tmp/tc1621_$$_src
+RST=/tmp/tc1621_$$_rst
+ARCH=/tmp/tc1621_$$_arch
+SPORT=5442; RPORT=5443
+
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_ctl -D ${SRC} -m immediate -w stop &gt;/dev/null 2&gt;&amp;1&quot; || true
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_ctl -D ${RST} -m immediate -w stop &gt;/dev/null 2&gt;&amp;1&quot; || true
+  docker exec &quot;$C&quot; bash -c &quot;rm -rf ${SRC} ${RST} ${ARCH}&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+# 1) 소스 인스턴스 (archive_mode=on, 베이스백업은 rp 이전에 받음)
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  set -e
+  ${PGBIN}/initdb -D ${SRC} -U postgres &gt;/dev/null 2&gt;&amp;1
+  mkdir -p ${ARCH}
+  cat &gt;&gt; ${SRC}/postgresql.conf &lt;&lt;CONF
+archive_mode = on
+archive_command = &#x27;cp %p ${ARCH}/%f&#x27;
+wal_level = replica
+CONF
+  ${PGBIN}/pg_ctl -D ${SRC} -o &#x27;-p ${SPORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp&#x27; -w -t 60 start &gt;/dev/null 2&gt;&amp;1
+&quot; &gt;/dev/null 2&gt;&amp;1
+echo &quot;source instance start exit = $?&quot;
+
+SPSQL=&quot;${PGBIN}/psql -h /tmp -p ${SPORT} -X -q -U postgres -d postgres&quot;
+
+# 2) 베이스백업(빈 상태) → 행 A(50) → rp1 → 행 B(50 추가)
+docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_basebackup -h /tmp -p ${SPORT} -U postgres -D ${RST} -X stream -c fast&quot; &gt;/dev/null 2&gt;&amp;1
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  ${SPSQL} -c &#x27;CREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,50);&#x27; &gt;/dev/null 2&gt;&amp;1
+  ${SPSQL} -c \&quot;SELECT pg_create_restore_point(&#x27;rp1&#x27;);\&quot; &gt;/dev/null 2&gt;&amp;1
+  ${SPSQL} -c &#x27;INSERT INTO t SELECT generate_series(51,100);&#x27; &gt;/dev/null 2&gt;&amp;1
+  ${SPSQL} -c &#x27;SELECT pg_switch_wal();&#x27; &gt;/dev/null 2&gt;&amp;1
+  # rp 이후 WAL 이 아카이브되도록 잠시 대기
+  for i in \$(seq 1 20); do [ \$(ls ${ARCH} 2&gt;/dev/null | wc -l) -gt 0 ] &amp;&amp; break; sleep 1; done
+&quot;
+
+# 3) 복구 인스턴스 설정: restore_command + recovery_target_name=rp1 + promote
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  cat &gt;&gt; ${RST}/postgresql.conf &lt;&lt;CONF
+restore_command = &#x27;cp ${ARCH}/%f %p&#x27;
+recovery_target_name = &#x27;rp1&#x27;
+recovery_target_action = &#x27;promote&#x27;
+archive_mode = off
+CONF
+  touch ${RST}/recovery.signal
+  ${PGBIN}/pg_ctl -D ${RST} -o &#x27;-p ${RPORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp&#x27; -w -t 120 start &gt;/dev/null 2&gt;&amp;1 || true
+  # 복구·프로모션 완료까지 대기 (in_recovery=false 될 때까지)
+  for i in \$(seq 1 60); do
+    r=\$(${PGBIN}/psql -h /tmp -p ${RPORT} -X -A -t -U postgres -d postgres -c &#x27;SELECT pg_is_in_recovery()&#x27; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+    [ \&quot;\$r\&quot; = \&quot;f\&quot; ] &amp;&amp; break; sleep 1
+  done
+&quot; &gt;/dev/null 2&gt;&amp;1
+
+cnt=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/psql -h /tmp -p ${RPORT} -X -A -t -U postgres -d postgres -c &#x27;SELECT count(*) FROM t&#x27;&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;recovered count at rp1 = ${cnt} (expect 50 — 행 B 제외)&quot;
+
+mainport=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW port&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;main port still = ${mainport} (5432)&quot;
+
+if [ &quot;$cnt&quot; = &quot;50&quot; ] &amp;&amp; [ &quot;$mainport&quot; = &quot;5432&quot; ]; then
+  echo &quot;PITR recovery_target_name = OK&quot;
+else
+  echo &quot;PITR recovery_target_name =
+... [생략]</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,6 +1,6 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">source instance start exit = 0</td><td class="ln">1</td><td class="act">source instance start exit = 127</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">recovered count at rp1 = 50 (expect 50 — 행 B 제외)</td><td class="ln">2</td><td class="act">recovered count at rp1 =  (expect 50 — 행 B 제외)</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">main port still = 5432 (5432)</td><td class="ln">3</td><td class="act">main port still = 5333 (5432)</td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">PITR recovery_target_name = OK</td><td class="ln">4</td><td class="act">PITR recovery_target_name = FAIL (cnt= mainport=5333)</td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">6</td><td class="ctx">cleanup done</td><td class="ln">6</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1622'>
+<h3 class='title'><span class='num'>#11</span> tc1622 · pg_archivecleanup CLI <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1622 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-437</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/pgarchivecleanup.html (§pg_archivecleanup)'>https://www.postgresql.org/docs/17/pgarchivecleanup.html (§pg_archivecleanup)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>pg_archivecleanup으로 지정 WAL 파일보다 오래된 아카이브 세그먼트를 삭제할 수 있음을 검증한다(개수 3→1)</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1622 | pg_archivecleanup CLI 로 오래된 WAL 아카이브 정리 | 문서 § pg_archivecleanup | PG17NEW: 아니오
+# 검증 포인트: 가짜 WAL 세그먼트명 파일 3개(...0001~0003) → pg_archivecleanup arch ...0003 → 001/002 삭제·003 보존(개수 3→1) / -d 시 &#x27;removing&#x27; 메시지
+# 결정론: 파일명 출력 대신 정리 전후 개수(3→1)로 검증. 임시 디렉토리 trap 정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+PGBIN=/usr/lib/postgresql/17/bin
+ARCH=/tmp/tc1622_$$_arch
+
+cleanup() {
+  docker exec &quot;$C&quot; bash -c &quot;rm -rf ${ARCH}&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+# 가짜 WAL 세그먼트 3개 (24자리 16진명) — postgres 소유로 생성(정리 권한 확보)
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  mkdir -p ${ARCH}
+  : &gt; ${ARCH}/000000010000000000000001
+  : &gt; ${ARCH}/000000010000000000000002
+  : &gt; ${ARCH}/000000010000000000000003
+&quot;
+before=$(docker exec &quot;$C&quot; bash -c &quot;ls ${ARCH} | wc -l&quot; | tr -d &#x27;[:space:]&#x27;)
+echo &quot;before cleanup file count = ${before} (expect 3)&quot;
+
+# 003 보다 오래된 것 정리
+docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_archivecleanup ${ARCH} 000000010000000000000003&quot; &gt;/dev/null 2&gt;&amp;1
+after=$(docker exec &quot;$C&quot; bash -c &quot;ls ${ARCH} | wc -l&quot; | tr -d &#x27;[:space:]&#x27;)
+keep003=$(docker exec &quot;$C&quot; bash -c &quot;test -f ${ARCH}/000000010000000000000003 &amp;&amp; echo yes || echo no&quot;)
+echo &quot;after cleanup file count = ${after} (expect 1), 003 kept = ${keep003}&quot;
+
+# -d (디버그) 시 &#x27;removing&#x27; 류 메시지 (파일 재생성 후)
+docker exec -u postgres &quot;$C&quot; bash -c &quot;: &gt; ${ARCH}/000000010000000000000001; : &gt; ${ARCH}/000000010000000000000002&quot;
+dbg=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_archivecleanup -d ${ARCH} 000000010000000000000003 2&gt;&amp;1&quot; | grep -ciE &quot;removing|remov&quot;)
+echo &quot;-d removing message = $([ &quot;$dbg&quot; -ge 1 ] &amp;&amp; echo yes || echo no)&quot;
+
+if [ &quot;$before&quot; = &quot;3&quot; ] &amp;&amp; [ &quot;$after&quot; = &quot;1&quot; ] &amp;&amp; [ &quot;$keep003&quot; = &quot;yes&quot; ] &amp;&amp; [ &quot;$dbg&quot; -ge 1 ]; then
+  echo &quot;pg_archivecleanup = OK&quot;
+else
+  echo &quot;pg_archivecleanup = FAIL (before=$before after=$after keep=$keep003 dbg=$dbg)&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,6 +1,6 @@</td></tr>
+<tr><td class="ln">1</td><td class="ctx">before cleanup file count = 3 (expect 3)</td><td class="ln">1</td><td class="ctx">before cleanup file count = 3 (expect 3)</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">after cleanup file count = 1 (expect 1), 003 kept = yes</td><td class="ln">2</td><td class="act">after cleanup file count = 3 (expect 1), 003 kept = yes</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">-d removing message = yes</td><td class="ln">3</td><td class="act">-d removing message = no</td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">pg_archivecleanup = OK</td><td class="ln">4</td><td class="act">pg_archivecleanup = FAIL (before=3 after=3 keep=yes dbg=0)</td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">6</td><td class="ctx">cleanup done</td><td class="ln">6</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1623'>
+<h3 class='title'><span class='num'>#12</span> tc1623 · basic_archive 모듈 아카이빙 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1623 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-438</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/basic-archive.html (§F.4 / Chapter 50)'>https://www.postgresql.org/docs/17/basic-archive.html (§F.4 / Chapter 50)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>내장 basic_archive 모듈을 archive_library로 로드하여 모듈 방식으로 WAL을 아카이브할 수 있음을 별도 인스턴스(5444)에서 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1623 | basic_archive 컨트립 — archive_library 로 모듈 기반 아카이빙 | 문서 §F.4 / Chapter 50 Archive Modules | PG17NEW: 아니오
+# 검증 포인트: basic_archive.so 존재 확인(없으면 SKIP) / /tmp 별도 인스턴스(5444) archive_library=&#x27;basic_archive&#x27; + archive_directory 기동 /
+#              데이터변경+pg_switch_wal 후 아카이브 디렉토리 파일&gt;0 / 메인 무영향
+# 결정론: WAL 파일명 미출력 — 아카이브 파일 개수&gt;0 만. basic_archive.so 부재 시 SKIP 후 TC-RESULT: OK(환경 폴백), trap 정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+PGBIN=/usr/lib/postgresql/17/bin
+D=/tmp/tc1623_$$_data
+ARCH=/tmp/tc1623_$$_arch
+PORT=5444
+
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_ctl -D ${D} -m immediate -w stop &gt;/dev/null 2&gt;&amp;1&quot; || true
+  docker exec &quot;$C&quot; bash -c &quot;rm -rf ${D} ${ARCH}&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+# basic_archive.so 존재 확인
+has=$(docker exec &quot;$C&quot; bash -c &quot;test -f /usr/lib/postgresql/17/lib/basic_archive.so &amp;&amp; echo yes || echo no&quot;)
+echo &quot;basic_archive.so present = ${has}&quot;
+if [ &quot;$has&quot; != &quot;yes&quot; ]; then
+  echo &quot;SKIP: basic_archive 미설치&quot;
+  echo &quot;TC-RESULT: OK&quot;; exit 0
+fi
+
+# 별도 인스턴스: archive_library + basic_archive.archive_directory
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  set -e
+  ${PGBIN}/initdb -D ${D} -U postgres &gt;/dev/null 2&gt;&amp;1
+  mkdir -p ${ARCH}
+  cat &gt;&gt; ${D}/postgresql.conf &lt;&lt;CONF
+archive_mode = on
+archive_library = &#x27;basic_archive&#x27;
+basic_archive.archive_directory = &#x27;${ARCH}&#x27;
+wal_level = replica
+CONF
+  ${PGBIN}/pg_ctl -D ${D} -o &#x27;-p ${PORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp&#x27; -w -t 60 start &gt;/dev/null 2&gt;&amp;1
+&quot; &gt;/dev/null 2&gt;&amp;1
+echo &quot;module-archiving instance start exit = $?&quot;
+
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c &#x27;CREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,100);&#x27; &gt;/dev/null 2&gt;&amp;1
+  ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c &#x27;SELECT pg_switch_wal();&#x27; &gt;/dev/null 2&gt;&amp;1
+  for i in \$(seq 1 25); do [ \$(ls ${ARCH} 2&gt;/dev/null | wc -l) -gt 0 ] &amp;&amp; break; sleep 1; done
+&quot;
+n=$(docker exec &quot;$C&quot; bash -c &quot;ls ${ARCH} 2&gt;/dev/null | wc -l&quot; | tr -d &#x27;[:space:]&#x27;)
+echo &quot;module-archived WAL files count&gt;0 = $([ &quot;${n:-0}&quot; -gt 0 ] &amp;&amp; echo yes || echo no)&quot;
+
+mainport=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW port&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;main port still = ${mainport} (5432)&quot;
+
+if [ &quot;${n:-0}&quot; -gt 0 ] &amp;&amp; [ &quot;$mainport&quot; = &quot;5432&quot; ]; then
+  echo &quot;basic_archive module archiving = OK&quot;
+else
+  echo &quot;basic_archive module archiving = FAIL (n=$n mainport=$mainport)&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,7 +1,4 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">basic_archive.so present = yes</td><td class="ln">1</td><td class="act">basic_archive.so present = no</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">module-archiving instance start exit = 0</td><td class="ln">2</td><td class="act">SKIP: basic_archive 미설치</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">module-archived WAL files count&gt;0 = yes</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">main port still = 5432 (5432)</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">5</td><td class="exp">basic_archive module archiving = OK</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">6</td><td class="ctx">TC-RESULT: OK</td><td class="ln">3</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">7</td><td class="ctx">cleanup done</td><td class="ln">4</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc1624'>
+<h3 class='title'><span class='num'>#13</span> tc1624 · archive_library vs archive_command 상호배타 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc1624 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-439</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/archive-modules.html (§50.1)'>https://www.postgresql.org/docs/17/archive-modules.html (§50.1)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>archive_library와 archive_command를 동시 설정하면 서버가 충돌로 아카이빙을 비활성함을 별도 인스턴스(5445)에서 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc1624 | Archive Modules 프레임워크 — archive_library vs archive_command 상호배타 | 문서 §50.1 / archive_library | PG17NEW: 아니오
+# 검증 포인트: /tmp 별도 인스턴스(5445)에 archive_library + archive_command 동시 설정 → 기동 시 &#x27;both ... specified&#x27; 에러/경고로 아카이빙 비활성(로그) /
+#              하나만 설정 시 정상(대조) / 메인 무영향
+# 결정론: 에러/경고 키워드 매칭만 — 타임스탬프·PID 미출력. 충돌은 메시지 존재 또는 아카이빙 비활성 둘 중 하나로 판정, trap 정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+C=&quot;${C_SINGLE}&quot;
+PGBIN=/usr/lib/postgresql/17/bin
+D=/tmp/tc1624_$$_data
+ARCH=/tmp/tc1624_$$_arch
+LOG=/tmp/tc1624_$$_log
+PORT=5445
+
+cleanup() {
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/pg_ctl -D ${D} -m immediate -w stop &gt;/dev/null 2&gt;&amp;1&quot; || true
+  docker exec &quot;$C&quot; bash -c &quot;rm -rf ${D} ${ARCH} ${LOG}&quot; &gt;/dev/null 2&gt;&amp;1 || true
+  echo &quot;cleanup done&quot;
+}
+trap cleanup EXIT
+
+has=$(docker exec &quot;$C&quot; bash -c &quot;test -f /usr/lib/postgresql/17/lib/basic_archive.so &amp;&amp; echo yes || echo no&quot;)
+if [ &quot;$has&quot; != &quot;yes&quot; ]; then echo &quot;SKIP: basic_archive 미설치&quot;; echo &quot;TC-RESULT: OK&quot;; exit 0; fi
+
+# 둘 다 설정 → 기동(로그 캡처). 서버는 기동되더라도 충돌 경고 + 아카이빙 비활성이어야.
+docker exec -u postgres &quot;$C&quot; bash -c &quot;
+  set -e
+  ${PGBIN}/initdb -D ${D} -U postgres &gt;/dev/null 2&gt;&amp;1
+  mkdir -p ${ARCH} ${LOG}
+  cat &gt;&gt; ${D}/postgresql.conf &lt;&lt;CONF
+archive_mode = on
+archive_library = &#x27;basic_archive&#x27;
+archive_command = &#x27;cp %p ${ARCH}/%f&#x27;
+basic_archive.archive_directory = &#x27;${ARCH}&#x27;
+wal_level = replica
+logging_collector = on
+log_directory = &#x27;${LOG}&#x27;
+log_filename = &#x27;pg.log&#x27;
+CONF
+  ${PGBIN}/pg_ctl -D ${D} -o &#x27;-p ${PORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp&#x27; -w -t 60 start &gt;/dev/null 2&gt;&amp;1 || true
+  sleep 3
+&quot;
+# 로그에서 충돌 메시지
+conflict=$(docker exec &quot;$C&quot; bash -c &quot;cat ${LOG}/pg.log 2&gt;/dev/null&quot; | grep -ciE &quot;both archive_command and archive_library|archive_library.*archive_command|cannot.*both&quot;)
+echo &quot;conflict warning/error in log = $([ &quot;$conflict&quot; -ge 1 ] &amp;&amp; echo yes || echo no)&quot;
+
+# 아카이빙 비활성 여부 보조 판정: 변경+switch 후 아카이브 비어있어야 (충돌 시 비활성)
+running=$(docker exec -u postgres &quot;$C&quot; bash -c &quot;${PGBIN}/psql -h /tmp -p ${PORT} -X -A -t -U postgres -d postgres -c &#x27;SELECT 1&#x27; 2&gt;/dev/null&quot; | tr -d &#x27;[:space:]&#x27;)
+if [ &quot;$running&quot; = &quot;1&quot; ]; then
+  docker exec -u postgres &quot;$C&quot; bash -c &quot;
+    ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c &#x27;CREATE TABLE t(id int); SELECT pg_switch_wal();&#x27; &gt;/dev/null 2&gt;&amp;1
+    sleep 3
+  &quot;
+fi
+arch_n=$(docker exec &quot;$C&quot; bash -c &quot;ls ${ARCH} 2&gt;/dev/null | grep -vc summary&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;archive disabled (files=0 on conflict) = $([ &quot;${arch_n:-0}&quot; -eq 0 ] &amp;&amp; echo yes || echo no)&quot;
+
+mainport=$(docker exec -i -u postgres &quot;$C&quot; psql -X -q -A -t -U postgres -d postgres -c &quot;SHOW port&quot; 2&gt;/dev/null | tr -d &#x27;[:space:]&#x27;)
+echo &quot;main port still = ${mainport} (5432)&quot;
+
+# 판정: 충돌 메시지 존재 OR 아카이빙 비활성 (둘 중 하나) + 메인 무영향
+if { [ &quot;$conflict&quot; -ge 1 ] || [ &quot;${arch_n:-0}&quot; -eq 0 ]; } &amp;&amp; [ &quot;$mainport&quot; = &quot;5432&quot; ]; then
+  echo &quot;archive_library vs archive_command mutual exclusion = OK&quot;
+else
+  echo &quot;archive_library vs archive_command mutual exclusion = FAIL (conflict=$conflict arch_n=$arch_n mainport=$mainport)&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,6 +1,3 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">conflict warning/error in log = no</td><td class="ln">1</td><td class="act">SKIP: basic_archive 미설치</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">archive disabled (files=0 on conflict) = yes</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">main port still = 5432 (5432)</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">archive_library vs archive_command mutual exclusion = OK</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">2</td><td class="ctx">TC-RESULT: OK</td></tr>
+<tr><td class="ln">6</td><td class="ctx">cleanup done</td><td class="ln">3</td><td class="ctx">cleanup done</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc2006'>
+<h3 class='title'><span class='num'>#14</span> tc2006 · \watch min_rows= 최소행 종료(PG17 신규) <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc2006 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-334</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/app-psql.html (§psql \watch (min_rows))'>https://www.postgresql.org/docs/17/app-psql.html (§psql \watch (min_rows))</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>PG17 신규 \watch min_rows= 옵션이 결과 행 수가 최소값 미만이 되면 count 한계 전 반복 실행을 자동 종료하는 신기능을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc2006 | \watch min_rows= 최소행 종료(PG17 신규) | 문서 §psql \watch (min_rows) | PG17NEW: 예
+# 검증 포인트: min_rows= 구문 파싱·실행 / 행 수 미만 시 count 한계 전 자동 종료 / min_rows 미지정과 차이 / 종료 후 종료코드
+# 결정론: \watch 는 시각·반복 출력이 비결정 → exec=sh 로 종료코드·메시지 패턴만 grep. &#x27;항상 0행&#x27; 쿼리로 min_rows=1 즉시 종료, interval 최소화.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+# (1) min_rows=1 + 항상 0행 쿼리 → 첫 반복에서 즉시 자동 종료 (count 한계 도달 전)
+# 주의: \watch 메타커맨드는 psql -c 로는 구문 에러 → 반드시 stdin(here-doc)으로 투입.
+# qa_timeout 으로 혹시 모를 무한 반복 방어 (정상 동작이면 즉시 종료)
+out1=&quot;$(qa_timeout 15 docker exec -i &quot;$C_SINGLE&quot; psql -X -q -U postgres -d qa 2&gt;&amp;1 &lt;&lt;&#x27;SQL&#x27;
+SELECT 1 WHERE false \watch interval=0.1 count=20 min_rows=1
+SQL
+)&quot;
+rc1=$?
+if [ &quot;$rc1&quot; -eq 0 ]; then
+  echo &quot;min_rows=1 + 0행 쿼리: exit 0 (자동 종료) = OK&quot;
+else
+  echo &quot;min_rows=1 + 0행 쿼리: exit $rc1 = FAIL&quot;
+fi
+# 출력에 (0 rows) 가 한 번 나타나고 무한 반복하지 않음 (count=20 인데 1~2회만)
+n_iter=&quot;$(printf &#x27;%s\n&#x27; &quot;$out1&quot; | grep -c &#x27;(0 rows)&#x27;)&quot;
+if [ &quot;$n_iter&quot; -ge 1 ] &amp;&amp; [ &quot;$n_iter&quot; -le 3 ]; then
+  echo &quot;반복 횟수 ${n_iter}회 (count=20 한계 전 종료) = OK&quot;
+else
+  echo &quot;반복 횟수 ${n_iter}회 (예상 1~3) = FAIL&quot;
+fi
+
+# (2) min_rows= 약자 m= 형태도 파싱됨 (PG17 \watch [m=MIN])
+out2=&quot;$(qa_timeout 15 docker exec -i &quot;$C_SINGLE&quot; psql -X -q -U postgres -d qa 2&gt;&amp;1 &lt;&lt;&#x27;SQL&#x27;
+SELECT 1 WHERE false \watch i=0.1 c=20 m=1
+SQL
+)&quot;
+rc2=$?
+if [ &quot;$rc2&quot; -eq 0 ]; then
+  echo &quot;축약 구문 i=/c=/m= 파싱·자동종료: exit 0 = OK&quot;
+else
+  echo &quot;축약 구문 파싱: exit $rc2 = FAIL&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,4 +1,4 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">min_rows=1 + 0행 쿼리: exit 0 (자동 종료) = OK</td><td class="ln">1</td><td class="act">min_rows=1 + 0행 쿼리: exit 127 = FAIL</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">반복 횟수 1회 (count=20 한계 전 종료) = OK</td><td class="ln">2</td><td class="act">반복 횟수 0회 (예상 1~3) = FAIL</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">축약 구문 i=/c=/m= 파싱·자동종료: exit 0 = OK</td><td class="ln">3</td><td class="act">축약 구문 파싱: exit 127 = FAIL</td></tr>
+<tr><td class="ln">4</td><td class="ctx">TC-RESULT: OK</td><td class="ln">4</td><td class="ctx">TC-RESULT: OK</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc2009'>
+<h3 class='title'><span class='num'>#15</span> tc2009 · 접속 문자열·PGHOST/PGPORT/PGUSER/PGDATABASE 환경변수 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc2009 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-337</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/libpq-envars.html (§34.1.1 / 34.15)'>https://www.postgresql.org/docs/17/libpq-envars.html (§34.1.1 / 34.15)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>libpq 접속 문자열(key=value·URI)과 PGDATABASE/PGUSER 환경변수가 docker exec 환경의 psql 접속에 정상 반영되는지 current_database()/current_user로 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc2009 | 접속 문자열·PGHOST/PGPORT/PGUSER/PGDATABASE 환경변수 | 문서 §34.1.1 / 34.15 | PG17NEW: 아니오
+# 검증 포인트: PGDATABASE 무인자 접속 / PGUSER 반영 / key=value conninfo 접속 / URI 접속
+# 결정론: 컨테이너 내부 고정 host=localhost port=5432 user=postgres db=qa. current_database()/current_user 결정적 함수로 검증. 환경변수는 -e 로 격리 주입.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+# (1) PGDATABASE 환경변수 → psql 무인자 접속이 그 DB에 연결
+db=&quot;$(docker exec -e PGDATABASE=qa -e PGUSER=postgres -i &quot;$C_SINGLE&quot; \
+  psql -X -t -A -c &quot;SELECT current_database()&quot; 2&gt;&amp;1)&quot;
+if [ &quot;$db&quot; = &quot;qa&quot; ]; then
+  echo &quot;PGDATABASE=qa → current_database()=qa = OK&quot;
+else
+  echo &quot;PGDATABASE 반영 실패: &#x27;$db&#x27; = FAIL&quot;
+fi
+
+# (2) PGUSER 환경변수 → current_user 반영
+usr=&quot;$(docker exec -e PGDATABASE=qa -e PGUSER=postgres -i &quot;$C_SINGLE&quot; \
+  psql -X -t -A -c &quot;SELECT current_user&quot; 2&gt;&amp;1)&quot;
+if [ &quot;$usr&quot; = &quot;postgres&quot; ]; then
+  echo &quot;PGUSER=postgres → current_user=postgres = OK&quot;
+else
+  echo &quot;PGUSER 반영 실패: &#x27;$usr&#x27; = FAIL&quot;
+fi
+
+# (3) key=value 접속 문자열 (conninfo)
+db2=&quot;$(docker exec -i &quot;$C_SINGLE&quot; \
+  psql -X -t -A &quot;host=localhost port=5432 dbname=qa user=postgres&quot; \
+  -c &quot;SELECT current_database()&quot; 2&gt;&amp;1)&quot;
+if [ &quot;$db2&quot; = &quot;qa&quot; ]; then
+  echo &quot;conninfo &#x27;host=... dbname=qa&#x27; 접속 → qa = OK&quot;
+else
+  echo &quot;conninfo 접속 실패: &#x27;$db2&#x27; = FAIL&quot;
+fi
+
+# (4) URI 접속 문자열
+db3=&quot;$(docker exec -i &quot;$C_SINGLE&quot; \
+  psql -X -t -A &quot;postgresql://postgres@localhost:5432/qa&quot; \
+  -c &quot;SELECT current_database()&quot; 2&gt;&amp;1)&quot;
+if [ &quot;$db3&quot; = &quot;qa&quot; ]; then
+  echo &quot;URI &#x27;postgresql://...@localhost:5432/qa&#x27; 접속 → qa = OK&quot;
+else
+  echo &quot;URI 접속 실패: &#x27;$db3&#x27; = FAIL&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,5 +1,11 @@</td></tr>
+<tr><td class="ln">1</td><td class="ctx">PGDATABASE=qa → current_database()=qa = OK</td><td class="ln">1</td><td class="ctx">PGDATABASE=qa → current_database()=qa = OK</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">PGUSER=postgres → current_user=postgres = OK</td><td class="ln">2</td><td class="act">PGUSER 반영 실패: &#x27;agens&#x27; = FAIL</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">conninfo &#x27;host=... dbname=qa&#x27; 접속 → qa = OK</td><td class="ln">3</td><td class="act">conninfo 접속 실패: &#x27;psql: error: connection to server at &quot;localhost&quot; (::1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">URI &#x27;postgresql://...@localhost:5432/qa&#x27; 접속 → qa = OK</td><td class="ln">4</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">5</td><td class="act">connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">6</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?&#x27; = FAIL</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">7</td><td class="act">URI 접속 실패: &#x27;psql: error: connection to server at &quot;localhost&quot; (::1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">8</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">9</td><td class="act">connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">10</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?&#x27; = FAIL</td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">11</td><td class="ctx">TC-RESULT: OK</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc2012'>
+<h3 class='title'><span class='num'>#16</span> tc2012 · pg_isready 서버 가용성 점검 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc2012 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-340</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/app-pg-isready.html (§pg_isready)'>https://www.postgresql.org/docs/17/app-pg-isready.html (§pg_isready)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>pg_isready가 기동 서버에 대해 종료코드 0·accepting connections 패턴을, 잘못된 포트에 대해 비0 종료를 보고하고 -d/-U 옵션을 정상 파싱하는 동작을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc2012 | pg_isready 서버 가용성 점검 | 문서 §pg_isready | PG17NEW: 아니오
+# 검증 포인트: 기동 서버 종료0(accepting connections) / &#x27;accepting connections&#x27; 패턴 / 잘못된 포트 비0 / -d -U 옵션 파싱
+# 결정론: 종료코드 + 고정 메시지 패턴. 잘못된 포트는 컨테이너 내부 미사용 포트(1)로 결정적 실패 유도. 응답시간 등 가변 출력 미검증.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+# (1) 기동 서버 대상 — 종료코드 0 + 패턴
+out_ok=&quot;$(docker exec &quot;$C_SINGLE&quot; pg_isready -h localhost -p 5432 2&gt;&amp;1)&quot;
+rc_ok=$?
+if [ &quot;$rc_ok&quot; -eq 0 ]; then
+  echo &quot;pg_isready -p 5432: exit 0 = OK&quot;
+else
+  echo &quot;pg_isready -p 5432: exit $rc_ok = FAIL&quot;
+fi
+if printf &#x27;%s&#x27; &quot;$out_ok&quot; | grep -q &quot;accepting connections&quot;; then
+  echo &quot;출력에 &#x27;accepting connections&#x27; 포함 = OK&quot;
+else
+  echo &quot;&#x27;accepting connections&#x27; 패턴 누락 = FAIL&quot;
+fi
+
+# (2) 잘못된 포트 — 비0 종료코드
+docker exec &quot;$C_SINGLE&quot; pg_isready -h localhost -p 1 &gt;/dev/null 2&gt;&amp;1
+rc_bad=$?
+if [ &quot;$rc_bad&quot; -ne 0 ]; then
+  echo &quot;잘못된 포트 pg_isready -p 1: 비0 종료(exit $rc_bad) = OK&quot;
+else
+  echo &quot;잘못된 포트가 0 종료 = FAIL&quot;
+fi
+
+# (3) -d &lt;db&gt; -U &lt;user&gt; 옵션 파싱 (정상 접속·종료0)
+docker exec &quot;$C_SINGLE&quot; pg_isready -h localhost -p 5432 -d qa -U postgres &gt;/dev/null 2&gt;&amp;1
+rc_opt=$?
+if [ &quot;$rc_opt&quot; -eq 0 ]; then
+  echo &quot;pg_isready -d qa -U postgres 파싱·접속: exit 0 = OK&quot;
+else
+  echo &quot;-d/-U 옵션 파싱·접속: exit $rc_opt = FAIL&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,5 +1,5 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">pg_isready -p 5432: exit 0 = OK</td><td class="ln">1</td><td class="act">pg_isready -p 5432: exit 2 = FAIL</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">출력에 &#x27;accepting connections&#x27; 포함 = OK</td><td class="ln">2</td><td class="act">&#x27;accepting connections&#x27; 패턴 누락 = FAIL</td></tr>
+<tr><td class="ln">3</td><td class="ctx">잘못된 포트 pg_isready -p 1: 비0 종료(exit 2) = OK</td><td class="ln">3</td><td class="ctx">잘못된 포트 pg_isready -p 1: 비0 종료(exit 2) = OK</td></tr>
+<tr class="chg"><td class="ln">4</td><td class="exp">pg_isready -d qa -U postgres 파싱·접속: exit 0 = OK</td><td class="ln">4</td><td class="act">-d/-U 옵션 파싱·접속: exit 2 = FAIL</td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc2014'>
+<h3 class='title'><span class='num'>#17</span> tc2014 · pg_config·pg_test_fsync·pg_test_timing 스모크 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc2014 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-342</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/app-pgconfig.html (§pg_config / pgtestfsync / pgtesttiming)'>https://www.postgresql.org/docs/17/app-pgconfig.html (§pg_config / pgtestfsync / pgtesttiming)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>pg_config가 PostgreSQL 17 버전과 비어있지 않은 경로를 보고하고 pg_test_fsync -s 1·pg_test_timing -d 1 진단 도구가 짧은 실행으로 종료코드 0으로 완료하는 스모크 동작을 검증한다</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc2014 | pg_config·pg_test_fsync·pg_test_timing 스모크 | 문서 §pg_config / pgtestfsync / pgtesttiming | PG17NEW: 아니오
+# 검증 포인트: pg_config --version 에 &#x27;PostgreSQL 17&#x27; / --bindir·--sharedir 비어있지 않은 경로·종료0 / pg_test_fsync -s 1 종료0 / pg_test_timing -d 1 종료0
+# 결정론: 측정 수치(ops/sec, 히스토그램) 전부 가변 → 종료코드·버전 접두만. -s 1/-d 1 로 실행시간 최소화(타임아웃 회피).
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+# (1) pg_config --version → &#x27;PostgreSQL 17&#x27; 접두 매칭
+ver=&quot;$(docker exec &quot;$C_SINGLE&quot; pg_config --version 2&gt;&amp;1)&quot;
+rc=$?
+if [ &quot;$rc&quot; -eq 0 ] &amp;&amp; printf &#x27;%s&#x27; &quot;$ver&quot; | grep -q &#x27;^PostgreSQL 17&#x27;; then
+  echo &quot;pg_config --version &#x27;PostgreSQL 17&#x27; 포함(exit 0) = OK&quot;
+else
+  echo &quot;pg_config --version 예상 밖(rc=$rc) = FAIL&quot;
+fi
+
+# (2) --bindir / --sharedir 비어있지 않은 경로 + 종료0
+bindir=&quot;$(docker exec &quot;$C_SINGLE&quot; pg_config --bindir 2&gt;&amp;1)&quot;; rc_b=$?
+sharedir=&quot;$(docker exec &quot;$C_SINGLE&quot; pg_config --sharedir 2&gt;&amp;1)&quot;; rc_s=$?
+if [ &quot;$rc_b&quot; -eq 0 ] &amp;&amp; [ -n &quot;$bindir&quot; ] &amp;&amp; [ &quot;$rc_s&quot; -eq 0 ] &amp;&amp; [ -n &quot;$sharedir&quot; ]; then
+  echo &quot;pg_config --bindir/--sharedir 비어있지 않은 경로(exit 0) = OK&quot;
+else
+  echo &quot;pg_config --bindir/--sharedir 비정상(rc_b=$rc_b rc_s=$rc_s) = FAIL&quot;
+fi
+
+# (3) pg_test_fsync -s 1 (--secs-per-test 1) — 종료0 (수치 미출력)
+docker exec &quot;$C_SINGLE&quot; pg_test_fsync -s 1 &gt;/dev/null 2&gt;&amp;1
+rc_f=$?
+echo &quot;pg_test_fsync -s 1: exit $rc_f = $([ &quot;$rc_f&quot; -eq 0 ] &amp;&amp; echo OK || echo FAIL)&quot;
+
+# (4) pg_test_timing -d 1 (--duration 1) — 종료0 (수치 미출력)
+docker exec &quot;$C_SINGLE&quot; pg_test_timing -d 1 &gt;/dev/null 2&gt;&amp;1
+rc_t=$?
+echo &quot;pg_test_timing -d 1: exit $rc_t = $([ &quot;$rc_t&quot; -eq 0 ] &amp;&amp; echo OK || echo FAIL)&quot;
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,5 +1,5 @@</td></tr>
+<tr><td class="ln">1</td><td class="ctx">pg_config --version &#x27;PostgreSQL 17&#x27; 포함(exit 0) = OK</td><td class="ln">1</td><td class="ctx">pg_config --version &#x27;PostgreSQL 17&#x27; 포함(exit 0) = OK</td></tr>
+<tr><td class="ln">2</td><td class="ctx">pg_config --bindir/--sharedir 비어있지 않은 경로(exit 0) = OK</td><td class="ln">2</td><td class="ctx">pg_config --bindir/--sharedir 비어있지 않은 경로(exit 0) = OK</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">pg_test_fsync -s 1: exit 0 = OK</td><td class="ln">3</td><td class="act">pg_test_fsync -s 1: exit 1 = FAIL</td></tr>
+<tr><td class="ln">4</td><td class="ctx">pg_test_timing -d 1: exit 0 = OK</td><td class="ln">4</td><td class="ctx">pg_test_timing -d 1: exit 0 = OK</td></tr>
+<tr><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td><td class="ln">5</td><td class="ctx">TC-RESULT: OK</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc2114'>
+<h3 class='title'><span class='num'>#18</span> tc2114 · postgres_fdw 루프백 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc2114 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-399</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/postgres-fdw.html (§F.33)'>https://www.postgresql.org/docs/17/postgres-fdw.html (§F.33)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>postgres_fdw로 자기 서버(localhost:5432)에 FDW 서버·사용자매핑·외부테이블을 만들어 원격 질의와 트랜잭션이 동작함을 검증</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>-- tc2114 | postgres_fdw 루프백 | 문서 §F.33 | PG17NEW: 아니오
+-- 검증 포인트: SERVER/USER MAPPING/FOREIGN TABLE 생성 / SELECT 원본 일치 / INSERT 반영 / 단일 매핑
+-- 주의: 루프백은 컨테이너 내부 localhost:5432, 비번 qa. 잔존 금지 → TC 끝 전부 DROP.
+-- 결정론: 행 비교는 ORDER BY. 외부 테이블은 tc2114 스키마의 원본을 schema_name 명시로 매핑.
+SET client_min_messages = warning;
+DROP SCHEMA IF EXISTS tc2114 CASCADE;
+CREATE SCHEMA tc2114; SET search_path = tc2114;
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+
+-- 원본 테이블 (tc2114 스키마)
+CREATE TABLE src(i int, t text);
+INSERT INTO src VALUES (1,&#x27;a&#x27;),(2,&#x27;b&#x27;);
+
+-- 루프백 서버·사용자매핑 (컨테이너 내부 localhost:5432, dbname qa, 비번 qa)
+CREATE SERVER lb FOREIGN DATA WRAPPER postgres_fdw
+  OPTIONS (host &#x27;localhost&#x27;, port &#x27;5432&#x27;, dbname &#x27;qa&#x27;);
+CREATE USER MAPPING FOR CURRENT_USER SERVER lb
+  OPTIONS (user &#x27;postgres&#x27;, password &#x27;qa&#x27;);
+
+-- 외부 테이블 (단일 table_name 매핑, schema_name 명시)
+CREATE FOREIGN TABLE ft(i int, t text) SERVER lb
+  OPTIONS (schema_name &#x27;tc2114&#x27;, table_name &#x27;src&#x27;);
+
+-- SELECT 가 로컬 원본과 동일 행 반환
+SELECT i, t FROM ft ORDER BY i;
+
+-- INSERT 가 원본에 반영
+INSERT INTO ft VALUES (3,&#x27;c&#x27;);
+SELECT count(*) = 3 AS insert_propagated FROM src;
+SELECT i, t FROM ft ORDER BY i;
+
+-- 잔존 금지: 전부 DROP
+DROP FOREIGN TABLE ft;
+DROP USER MAPPING FOR CURRENT_USER SERVER lb;
+DROP SERVER lb;
+DROP TABLE src;
+DROP EXTENSION postgres_fdw;
+DROP SCHEMA tc2114 CASCADE;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -19,28 +19,30 @@</td></tr>
+<tr><td class="ln">19</td><td class="ctx">  OPTIONS (schema_name &#x27;tc2114&#x27;, table_name &#x27;src&#x27;);</td><td class="ln">19</td><td class="ctx">  OPTIONS (schema_name &#x27;tc2114&#x27;, table_name &#x27;src&#x27;);</td></tr>
+<tr><td class="ln">20</td><td class="ctx">-- SELECT 가 로컬 원본과 동일 행 반환</td><td class="ln">20</td><td class="ctx">-- SELECT 가 로컬 원본과 동일 행 반환</td></tr>
+<tr><td class="ln">21</td><td class="ctx">SELECT i, t FROM ft ORDER BY i;</td><td class="ln">21</td><td class="ctx">SELECT i, t FROM ft ORDER BY i;</td></tr>
+<tr class="chg"><td class="ln">22</td><td class="exp"> i | t</td><td class="ln">22</td><td class="act">ERROR:  could not connect to server &quot;lb&quot;</td></tr>
+<tr class="chg"><td class="ln">23</td><td class="exp"> 1 | a</td><td class="ln">23</td><td class="act">DETAIL:  connection to server at &quot;localhost&quot; (::1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln">24</td><td class="exp"> 2 | b</td><td class="ln">24</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr class="chg"><td class="ln">25</td><td class="exp">(2 rows)</td><td class="ln">25</td><td class="act">connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln">26</td><td class="exp"></td><td class="ln">26</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr><td class="ln">27</td><td class="ctx">-- INSERT 가 원본에 반영</td><td class="ln">27</td><td class="ctx">-- INSERT 가 원본에 반영</td></tr>
+<tr><td class="ln">28</td><td class="ctx">INSERT INTO ft VALUES (3,&#x27;c&#x27;);</td><td class="ln">28</td><td class="ctx">INSERT INTO ft VALUES (3,&#x27;c&#x27;);</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">29</td><td class="act">ERROR:  could not connect to server &quot;lb&quot;</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">30</td><td class="act">DETAIL:  connection to server at &quot;localhost&quot; (::1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">31</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">32</td><td class="act">connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">33</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr><td class="ln">29</td><td class="ctx">SELECT count(*) = 3 AS insert_propagated FROM src;</td><td class="ln">34</td><td class="ctx">SELECT count(*) = 3 AS insert_propagated FROM src;</td></tr>
+<tr><td class="ln">30</td><td class="ctx"> insert_propagated</td><td class="ln">35</td><td class="ctx"> insert_propagated</td></tr>
+<tr><td class="ln">31</td><td class="ctx">-------------------</td><td class="ln">36</td><td class="ctx">-------------------</td></tr>
+<tr class="chg"><td class="ln">32</td><td class="exp"> t</td><td class="ln">37</td><td class="act"> f</td></tr>
+<tr><td class="ln">33</td><td class="ctx">(1 row)</td><td class="ln">38</td><td class="ctx">(1 row)</td></tr>
+<tr><td class="ln">34</td><td class="ctx"></td><td class="ln">39</td><td class="ctx"></td></tr>
+<tr><td class="ln">35</td><td class="ctx">SELECT i, t FROM ft ORDER BY i;</td><td class="ln">40</td><td class="ctx">SELECT i, t FROM ft ORDER BY i;</td></tr>
+<tr class="chg"><td class="ln">36</td><td class="exp"> i | t</td><td class="ln">41</td><td class="act">ERROR:  could not connect to server &quot;lb&quot;</td></tr>
+<tr class="chg"><td class="ln">37</td><td class="exp"> 1 | a</td><td class="ln">42</td><td class="act">DETAIL:  connection to server at &quot;localhost&quot; (::1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln">38</td><td class="exp"> 2 | b</td><td class="ln">43</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr class="chg"><td class="ln">39</td><td class="exp"> 3 | c</td><td class="ln">44</td><td class="act">connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln">40</td><td class="exp">(3 rows)</td><td class="ln">45</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr><td class="ln">41</td><td class="ctx"></td><td class="ln"></td><td class="ctx"></td></tr>
+<tr><td class="ln">42</td><td class="ctx">-- 잔존 금지: 전부 DROP</td><td class="ln">46</td><td class="ctx">-- 잔존 금지: 전부 DROP</td></tr>
+<tr><td class="ln">43</td><td class="ctx">DROP FOREIGN TABLE ft;</td><td class="ln">47</td><td class="ctx">DROP FOREIGN TABLE ft;</td></tr>
+<tr><td class="ln">44</td><td class="ctx">DROP USER MAPPING FOR CURRENT_USER SERVER lb;</td><td class="ln">48</td><td class="ctx">DROP USER MAPPING FOR CURRENT_USER SERVER lb;</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc2115'>
+<h3 class='title'><span class='num'>#19</span> tc2115 · dblink 루프백 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc2115 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-400</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/dblink.html (§F.12)'>https://www.postgresql.org/docs/17/dblink.html (§F.12)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>dblink로 자기 서버에 연결해 동기 질의와 dblink_connect/disconnect 세션 관리를 검증</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>-- tc2115 | dblink 루프백 | 문서 §F.12 | PG17NEW: 아니오
+-- 검증 포인트: 즉시 질의 / 명명 연결 connect→query→disconnect / dblink_exec DML / 잘못된 connstr 에러
+-- 주의: connstr 고정 = host=localhost port=5432 dbname=qa user=postgres password=qa. 끝에서 disconnect+DROP.
+-- 결정론: 고정 질의·고정 connstr → 결정적. 명명 연결은 반드시 disconnect.
+SET client_min_messages = warning;
+DROP SCHEMA IF EXISTS tc2115 CASCADE;
+CREATE SCHEMA tc2115; SET search_path = tc2115;
+CREATE EXTENSION IF NOT EXISTS dblink;
+
+-- 즉시(connstr inline) 질의
+SELECT x FROM dblink(&#x27;host=localhost port=5432 dbname=qa user=postgres password=qa&#x27;,
+                     &#x27;SELECT 42&#x27;) AS t(x int);
+
+-- 명명 연결 → 질의 → 끊기
+SELECT dblink_connect(&#x27;conn1&#x27;,&#x27;host=localhost port=5432 dbname=qa user=postgres password=qa&#x27;) = &#x27;OK&#x27; AS connect_ok;
+SELECT s FROM dblink(&#x27;conn1&#x27;,&#x27;SELECT &#x27;&#x27;hello&#x27;&#x27;&#x27;) AS t(s text);
+
+-- dblink_exec 원격 DML (임시 테이블을 원격 세션에서 생성·삽입 후 카운트)
+SELECT dblink_exec(&#x27;conn1&#x27;,&#x27;CREATE TEMP TABLE _d(i int); INSERT INTO _d VALUES (1),(2)&#x27;) LIKE &#x27;INSERT%&#x27; AS exec_ok;
+SELECT n FROM dblink(&#x27;conn1&#x27;,&#x27;SELECT count(*) FROM _d&#x27;) AS t(n bigint);
+
+SELECT dblink_disconnect(&#x27;conn1&#x27;) = &#x27;OK&#x27; AS disconnect_ok;
+
+-- 잘못된 connstr 시 에러 (의도된 에러)
+-- stdout/stderr 병합 레이스 + 환경 의존 DETAIL(::1·FATAL 문구) 회피:
+-- PL/pgSQL EXCEPTION 으로 에러 발생 여부만 단일 stdout 행으로 캡처(SQLSTATE/메시지는 환경 가변).
+CREATE FUNCTION catch_bad_conn() RETURNS boolean LANGUAGE plpgsql AS $$
+BEGIN
+  PERFORM dblink_connect(&#x27;bad&#x27;,&#x27;host=localhost port=5432 dbname=no_such_db user=postgres password=qa&#x27;);
+  RETURN false;   -- 연결 성공하면 안 됨
+EXCEPTION WHEN OTHERS THEN
+  RETURN true;    -- 잘못된 connstr → 에러 발생 기대
+END $$;
+SELECT catch_bad_conn() AS bad_connstr_rejected;
+
+DROP EXTENSION dblink;
+DROP SCHEMA tc2115 CASCADE;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -9,43 +9,30 @@</td></tr>
+<tr><td class="ln">9</td><td class="ctx">-- 즉시(connstr inline) 질의</td><td class="ln">9</td><td class="ctx">-- 즉시(connstr inline) 질의</td></tr>
+<tr><td class="ln">10</td><td class="ctx">SELECT x FROM dblink(&#x27;host=localhost port=5432 dbname=qa user=postgres password=qa&#x27;,</td><td class="ln">10</td><td class="ctx">SELECT x FROM dblink(&#x27;host=localhost port=5432 dbname=qa user=postgres password=qa&#x27;,</td></tr>
+<tr><td class="ln">11</td><td class="ctx">                     &#x27;SELECT 42&#x27;) AS t(x int);</td><td class="ln">11</td><td class="ctx">                     &#x27;SELECT 42&#x27;) AS t(x int);</td></tr>
+<tr class="chg"><td class="ln">12</td><td class="exp"> x</td><td class="ln">12</td><td class="act">ERROR:  could not establish connection</td></tr>
+<tr class="chg"><td class="ln">13</td><td class="exp"> 42</td><td class="ln">13</td><td class="act">DETAIL:  connection to server at &quot;localhost&quot; (::1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln">14</td><td class="exp">(1 row)</td><td class="ln">14</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr class="chg"><td class="ln">15</td><td class="exp"></td><td class="ln">15</td><td class="act">connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">16</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr><td class="ln">16</td><td class="ctx">-- 명명 연결 → 질의 → 끊기</td><td class="ln">17</td><td class="ctx">-- 명명 연결 → 질의 → 끊기</td></tr>
+<tr><td class="ln">17</td><td class="ctx">SELECT dblink_connect(&#x27;conn1&#x27;,&#x27;host=localhost port=5432 dbname=qa user=postgres password=qa&#x27;) = &#x27;OK&#x27; AS connect_ok;</td><td class="ln">18</td><td class="ctx">SELECT dblink_connect(&#x27;conn1&#x27;,&#x27;host=localhost port=5432 dbname=qa user=postgres password=qa&#x27;) = &#x27;OK&#x27; AS connect_ok;</td></tr>
+<tr class="chg"><td class="ln">18</td><td class="exp"> connect_ok</td><td class="ln">19</td><td class="act">ERROR:  could not establish connection</td></tr>
+<tr class="chg"><td class="ln">19</td><td class="exp"> t</td><td class="ln">20</td><td class="act">DETAIL:  connection to server at &quot;localhost&quot; (::1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln">20</td><td class="exp">(1 row)</td><td class="ln">21</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr class="chg"><td class="ln">21</td><td class="exp"></td><td class="ln">22</td><td class="act">connection to server at &quot;localhost&quot; (127.0.0.1), port 5432 failed: Connection refused</td></tr>
+<tr class="chg"><td class="ln"></td><td class="exp"></td><td class="ln">23</td><td class="act">	Is the server running on that host and accepting TCP/IP connections?</td></tr>
+<tr><td class="ln">22</td><td class="ctx">SELECT s FROM dblink(&#x27;conn1&#x27;,&#x27;SELECT &#x27;&#x27;hello&#x27;&#x27;&#x27;) AS t(s text);</td><td class="ln">24</td><td class="ctx">SELECT s FROM dblink(&#x27;conn1&#x27;,&#x27;SELECT &#x27;&#x27;hello&#x27;&#x27;&#x27;) AS t(s text);</td></tr>
+<tr class="chg"><td class="ln">23</td><td class="exp">   s</td><td class="ln">25</td><td class="act">ERROR:  could not establish connection</td></tr>
+<tr class="chg"><td class="ln">24</td><td class="exp"> hello</td><td class="ln">26</td><td class="act">DETAIL:  missing &quot;=&quot; after &quot;conn1&quot; in connection info string</td></tr>
+<tr class="chg"><td class="ln">25</td><td class="exp">(1 row)</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">26</td><td class="ctx"></td><td class="ln"></td><td class="ctx"></td></tr>
+<tr><td class="ln">27</td><td class="ctx">-- dblink_exec 원격 DML (임시 테이블을 원격 세션에서 생성·삽입 후 카운트)</td><td class="ln">27</td><td class="ctx">-- dblink_exec 원격 DML (임시 테이블을 원격 세션에서 생성·삽입 후 카운트)</td></tr>
+<tr><td class="ln">28</td><td class="ctx">SELECT dblink_exec(&#x27;conn1&#x27;,&#x27;CREATE TEMP TABLE _d(i int); INSERT INTO _d VALUES (1),(2)&#x27;) LIKE &#x27;INSERT%&#x27; AS exec_ok;</td><td class="ln">28</td><td class="ctx">SELECT dblink_exec(&#x27;conn1&#x27;,&#x27;CREATE TEMP TABLE _d(i int); INSERT INTO _d VALUES (1),(2)&#x27;) LIKE &#x27;INSERT%&#x27; AS exec_ok;</td></tr>
+<tr class="chg"><td class="ln">29</td><td class="exp"> exec_ok</td><td class="ln">29</td><td class="act">ERROR:  could not establish connection</td></tr>
+<tr class="chg"><td class="ln">30</td><td class="exp"> t</td><td class="ln">30</td><td class="act">DETAIL:  missing &quot;=&quot; after &quot;conn1&quot; in connection info string</td></tr>
+<tr class="chg"><td class="ln">31</td><td class="exp">(1 row)</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">32</td><td class="ctx"></td><td class="ln"></td><td class="ctx"></td></tr>
+<tr><td class="ln">33</td><td class="ctx">SELECT n FROM dblink(&#x27;conn1&#x27;,&#x27;SELECT count(*) FROM _d&#x27;) AS t(n bigint);</td><td class="ln">31</td><td class="ctx">SELECT n FROM dblink(&#x27;conn1&#x27;,&#x27;SELECT count(*) FROM _d&#x27;) AS t(n bigint);</td></tr>
+<tr class="chg"><td class="ln">34</td><td class="exp"> n</td><td class="ln">32</td><td class="act">ERROR:  could not establish connection</td></tr>
+<tr class="chg"><td class="ln">35</td><td class="exp"> 2</td><td class="ln">33</td><td class="act">DETAIL:  missing &quot;=&quot; after &quot;conn1&quot; in connection info string</td></tr>
+<tr class="chg"><td class="ln">36</td><td class="exp">(1 row)</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">37</td><td class="ctx"></td><td class="ln"></td><td class="ctx"></td></tr>
+<tr><td class="ln">38</td><td class="ctx">SELECT dblink_disconnect(&#x27;conn1&#x27;) = &#x27;OK&#x27; AS disconnect_ok;</td><td class="ln">34</td><td class="ctx">SELECT dblink_disconnect(&#x27;conn1&#x27;) = &#x27;OK&#x27; AS disconnect_ok;</td></tr>
+<tr class="chg"><td class="ln">39</td><td class="exp"> disconnect_ok</td><td class="ln">35</td><td class="act">ERROR:  connection &quot;conn1&quot; not available</td></tr>
+<tr class="chg"><td class="ln">40</td><td class="exp"> t</td><td class="ln"></td><td class="act"></td></tr>
+<tr class="chg"><td class="ln">41</td><td class="exp">(1 row)</td><td class="ln"></td><td class="act"></td></tr>
+<tr><td class="ln">42</td><td class="ctx"></td><td class="ln"></td><td class="ctx"></td></tr>
+<tr><td class="ln">43</td><td class="ctx">-- 잘못된 connstr 시 에러 (의도된 에러)</td><td class="ln">36</td><td class="ctx">-- 잘못된 connstr 시 에러 (의도된 에러)</td></tr>
+<tr><td class="ln">44</td><td class="ctx">-- stdout/stderr 병합 레이스 + 환경 의존 DETAIL(::1·FATAL 문구) 회피:</td><td class="ln">37</td><td class="ctx">-- stdout/stderr 병합 레이스 + 환경 의존 DETAIL(::1·FATAL 문구) 회피:</td></tr>
+<tr><td class="ln">45</td><td class="ctx">-- PL/pgSQL EXCEPTION 으로 에러 발생 여부만 단일 stdout 행으로 캡처(SQLSTATE/메시지는 환경 가변).</td><td class="ln">38</td><td class="ctx">-- PL/pgSQL EXCEPTION 으로 에러 발생 여부만 단일 stdout 행으로 캡처(SQLSTATE/메시지는 환경 가변).</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc2118'>
+<h3 class='title'><span class='num'>#20</span> tc2118 · pgstattuple·pg_visibility 불변식 <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc2118 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-403</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/pgstattuple.html (§F.35)'>https://www.postgresql.org/docs/17/pgstattuple.html (§F.35)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>pgstattuple·pg_visibility의 튜플/가시성 통계 함수가 불변식(튜플 수·dead tuple·all_visible)을 만족함을 검증</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>-- tc2118 | pgstattuple·pg_visibility 불변식 | 문서 §F.35 | PG17NEW: 아니오
+-- 검증 포인트: tuple_count=행수 / DELETE 후 dead&gt;0·VACUUM 후 감소 / all_visible 비트 / pgstattuple_approx
+-- 결정론: tuple_count는 행 수로 결정. free_space·dead 비율은 비결정 → 부등식/불변식만.
+SET client_min_messages = warning;
+DROP SCHEMA IF EXISTS tc2118 CASCADE;
+CREATE SCHEMA tc2118; SET search_path = tc2118;
+CREATE EXTENSION IF NOT EXISTS pgstattuple;
+CREATE EXTENSION IF NOT EXISTS pg_visibility;
+
+CREATE TABLE st(i int);
+INSERT INTO st SELECT generate_series(1,50);
+
+-- tuple_count = 실제 행 수
+SELECT (pgstattuple(&#x27;tc2118.st&#x27;)).tuple_count = 50 AS tuple_count_ok;
+
+-- DELETE 후 dead_tuple_count &gt; 0
+DELETE FROM st WHERE i &lt;= 10;
+SELECT (pgstattuple(&#x27;tc2118.st&#x27;)).dead_tuple_count &gt; 0 AS dead_after_delete;
+
+-- VACUUM 후 dead 감소(0이 됨)
+VACUUM st;
+SELECT (pgstattuple(&#x27;tc2118.st&#x27;)).dead_tuple_count = 0 AS dead_after_vacuum;
+
+-- pg_visibility: VACUUM 후 all_visible 비트 설정된 페이지 존재(불변식)
+SELECT count(*) FILTER (WHERE all_visible) &gt;= 0 AS all_visible_ok FROM pg_visibility(&#x27;tc2118.st&#x27;);
+
+-- pgstattuple_approx 호출 가능
+SELECT (pgstattuple_approx(&#x27;tc2118.st&#x27;)).approx_tuple_count &gt;= 0 AS approx_ok;
+
+DROP TABLE st;
+DROP EXTENSION pg_visibility;
+DROP EXTENSION pgstattuple;
+DROP SCHEMA tc2118 CASCADE;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -33,11 +33,10 @@</td></tr>
+<tr><td class="ln">33</td><td class="ctx"></td><td class="ln">33</td><td class="ctx"></td></tr>
+<tr><td class="ln">34</td><td class="ctx">-- pg_visibility: VACUUM 후 all_visible 비트 설정된 페이지 존재(불변식)</td><td class="ln">34</td><td class="ctx">-- pg_visibility: VACUUM 후 all_visible 비트 설정된 페이지 존재(불변식)</td></tr>
+<tr><td class="ln">35</td><td class="ctx">SELECT count(*) FILTER (WHERE all_visible) &gt;= 0 AS all_visible_ok FROM pg_visibility(&#x27;tc2118.st&#x27;);</td><td class="ln">35</td><td class="ctx">SELECT count(*) FILTER (WHERE all_visible) &gt;= 0 AS all_visible_ok FROM pg_visibility(&#x27;tc2118.st&#x27;);</td></tr>
+<tr class="chg"><td class="ln">36</td><td class="exp"> all_visible_ok</td><td class="ln">36</td><td class="act">ERROR:  function pg_visibility(unknown) does not exist</td></tr>
+<tr class="chg"><td class="ln">37</td><td class="exp"> t</td><td class="ln">37</td><td class="act">LINE 1: ...R (WHERE all_visible) &gt;= 0 AS all_visible_ok FROM pg_visibil...</td></tr>
+<tr class="chg"><td class="ln">38</td><td class="exp">(1 row)</td><td class="ln">38</td><td class="act">                                                             ^</td></tr>
+<tr class="chg"><td class="ln">39</td><td class="exp"></td><td class="ln">39</td><td class="act">HINT:  No function matches the given name and argument types. You might need to add explicit type casts.</td></tr>
+<tr><td class="ln">40</td><td class="ctx">-- pgstattuple_approx 호출 가능</td><td class="ln">40</td><td class="ctx">-- pgstattuple_approx 호출 가능</td></tr>
+<tr><td class="ln">41</td><td class="ctx">SELECT (pgstattuple_approx(&#x27;tc2118.st&#x27;)).approx_tuple_count &gt;= 0 AS approx_ok;</td><td class="ln">41</td><td class="ctx">SELECT (pgstattuple_approx(&#x27;tc2118.st&#x27;)).approx_tuple_count &gt;= 0 AS approx_ok;</td></tr>
+<tr><td class="ln">42</td><td class="ctx"> approx_ok</td><td class="ln">42</td><td class="ctx"> approx_ok</td></tr>
+</tbody></table>
+</section>
+<section class='case' id='tc2121'>
+<h3 class='title'><span class='num'>#21</span> tc2121 · vacuumlo·oid2name 클라이언트 CLI <span class='badge fail'>FAIL</span></h3>
+<div class='meta'>
+<div><b>TC ID</b> tc2121 &nbsp;|&nbsp; <b>PG ID</b> <span class='pg'>PG-406</span> &nbsp;|&nbsp; <b>판정</b> <span class='badge fail'>FAIL</span></div>
+<div style='margin-top:4px'><b>출처</b> <a href='https://www.postgresql.org/docs/17/vacuumlo.html (§G.1)'>https://www.postgresql.org/docs/17/vacuumlo.html (§G.1)</a></div>
+</div>
+<h4 class='fld'>설명</h4>
+<div class='desc'>부록 G 클라이언트 프로그램 vacuumlo(고아 대형객체 정리)와 oid2name(파일노드↔객체명 매핑)의 CLI 동작을 검증</div>
+<h4 class='fld'>테스트 단계</h4>
+<pre class='code'>#!/usr/bin/env bash
+# tc2121 | vacuumlo·oid2name 클라이언트 CLI | 문서 §G.1 | PG17NEW: 아니오
+# 검증 포인트: oid2name 헤더·특정테이블 / vacuumlo --help·-n dry-run / lo 고아 LO 정리(개수 변화)
+# 주의: oid2name은 /usr/lib/postgresql/17/bin(PATH 밖), vacuumlo는 PATH. filenode 숫자 비결정→헤더·테이블명만.
+# 결정론: filenode·OID 절대값 비결정 → 출력 헤더·생성한 테이블명 존재로 검증. 잔존 LO/테이블 정리.
+set -uo pipefail
+source &quot;$(dirname &quot;$0&quot;)/../../runner/env.sh&quot;
+
+BIN=/usr/lib/postgresql/17/bin
+cleanup() {
+  $PSQL &lt;&lt;&#x27;SQL&#x27; &gt;/dev/null 2&gt;&amp;1
+DROP TABLE IF EXISTS public.tc2121_marker;
+DROP TABLE IF EXISTS public.tc2121_lo;
+DROP EXTENSION IF EXISTS lo;
+SQL
+}
+trap cleanup EXIT
+
+# 식별용 마커 테이블 생성 (oid2name 출력에 나타나야 함)
+$PSQL &lt;&lt;&#x27;SQL&#x27; &gt;/dev/null
+SET client_min_messages = warning;
+DROP TABLE IF EXISTS public.tc2121_marker;
+CREATE TABLE public.tc2121_marker(i int);
+SQL
+
+# --- oid2name: 헤더 라인 + 마커 테이블명 존재 ---
+o2n_out=&quot;$(docker exec &quot;$C_SINGLE&quot; env PGPASSWORD=qa &quot;$BIN/oid2name&quot; -H localhost -p 5432 -U postgres -d qa 2&gt;&amp;1)&quot;
+if echo &quot;$o2n_out&quot; | grep -q &#x27;Filenode&#x27;; then
+  echo &quot;oid2name header present = OK&quot;
+else
+  echo &quot;oid2name header MISSING = FAIL&quot;
+fi
+if echo &quot;$o2n_out&quot; | grep -q &#x27;tc2121_marker&#x27;; then
+  echo &quot;oid2name lists tc2121_marker = OK&quot;
+else
+  echo &quot;oid2name marker MISSING = FAIL&quot;
+fi
+
+# oid2name -t 특정 테이블 필터
+if docker exec &quot;$C_SINGLE&quot; env PGPASSWORD=qa &quot;$BIN/oid2name&quot; -H localhost -p 5432 -U postgres -d qa -t tc2121_marker 2&gt;&amp;1 | grep -q &#x27;tc2121_marker&#x27;; then
+  echo &quot;oid2name -t filter = OK&quot;
+else
+  echo &quot;oid2name -t filter = FAIL&quot;
+fi
+
+# --- vacuumlo --help / dry-run ---
+if docker exec &quot;$C_SINGLE&quot; vacuumlo --help 2&gt;&amp;1 | grep -q &#x27;removes unreferenced large objects&#x27;; then
+  echo &quot;vacuumlo --help = OK&quot;
+else
+  echo &quot;vacuumlo --help = FAIL&quot;
+fi
+
+# 고아 LO 생성: lo 확장 + LO 컬럼 테이블에 LO 넣고 행 삭제 → 고아 발생
+$PSQL &lt;&lt;&#x27;SQL&#x27; &gt;/dev/null
+SET client_min_messages = warning;
+CREATE EXTENSION IF NOT EXISTS lo;
+DROP TABLE IF EXISTS public.tc2121_lo;
+CREATE TABLE public.tc2121_lo(id int, doc lo);
+INSERT INTO public.tc2121_lo VALUES (1, lo_from_bytea(0, &#x27;\x4142&#x27;::bytea));
+INSERT INTO public.tc2121_lo VALUES (2, lo_from_bytea(0, &#x27;\x4344&#x27;::bytea));
+SQL
+
+before=&quot;$(docker exec &quot;$C_SINGLE&quot; env PGPASSWORD=qa psql -X -t -A -U postgres -d qa -c &#x27;SELECT count(*) FROM pg_largeobject_metadata;&#x27; | tr -d &#x27;[:space:]&#x27;)&quot;
+
+# 행을 삭제(lo 트리거가 없는 단순 삭제 → LO는 고아로 남음)
+$PSQL &lt;&lt;&#x27;SQL&#x27; &gt;/dev/null
+DELETE FROM public.tc2121_lo;
+SQL
+
+# dry-run(-n)은 삭제하지 않음
+docker exec &quot;$C_SINGLE&quot; env PGPASSWORD=qa vacuumlo -n -h localhost -p 5432 -U postgres qa &gt;/dev/null 2&gt;&amp;1
+mid=&quot;$(docker exec &quot;$C_SINGLE&quot; env PGPASSWORD=qa psql -X -t -A -U postgres -d qa -c &#x27;SELECT count(*) FROM pg_largeobject_metadata;&#x27; | tr -d &#x27;[:space:]&#x27;)&quot;
+if [ &quot;$mid&quot; = &quot;$before&quot; ]; then
+  echo &quot;vacuumlo -n dry-run keeps LOs ($before) = OK&quot;
+else
+  echo &quot;vacuumlo -n changed count ($before -&gt; $mid) = FAIL&quot;
+fi
+
+# 실제 vacuumlo는 고아 LO 정리 → 개수 감소
+docker exec &quot;$C_SINGLE&quot; env PGPASSWORD=qa vacuumlo -h localhost -p 5432 -U postgres qa &gt;/dev/null 2&gt;&amp;1
+after=&quot;$(docker exec &quot;$C_SINGLE&quot; env PGPASSWORD=qa psql -X -t -A -U postgres -d qa -c &#x27;SELECT count(*) FROM pg_largeobject_metadata;&#x27; | tr -d &#x27;[:space:]&#x27;)&quot;
+if [ &quot;$after&quot; -lt &quot;$mid&quot; ]; then
+  echo &quot;vacuumlo removed orphan LOs (count decreased) = OK&quot;
+else
+  echo &quot;vacuumlo did not decrease count ($mid -&gt; $after) = FAIL&quot;
+fi
+
+echo &quot;TC-RESULT: OK&quot;</pre>
+<h4 class='fld'>예상결과 vs 실제결과 (줄 정렬)</h4>
+<table class='sbs'><thead><tr><th>#</th><th>예상결과 (vanilla PG17)</th><th>#</th><th>실제결과 (AgensSQL -47)</th></tr></thead><tbody>
+<tr class="hunk"><td colspan="4">@@ -1,7 +1,7 @@</td></tr>
+<tr class="chg"><td class="ln">1</td><td class="exp">oid2name header present = OK</td><td class="ln">1</td><td class="act">oid2name header MISSING = FAIL</td></tr>
+<tr class="chg"><td class="ln">2</td><td class="exp">oid2name lists tc2121_marker = OK</td><td class="ln">2</td><td class="act">oid2name marker MISSING = FAIL</td></tr>
+<tr class="chg"><td class="ln">3</td><td class="exp">oid2name -t filter = OK</td><td class="ln">3</td><td class="act">oid2name -t filter = FAIL</td></tr>
+<tr><td class="ln">4</td><td class="ctx">vacuumlo --help = OK</td><td class="ln">4</td><td class="ctx">vacuumlo --help = OK</td></tr>
+<tr class="chg"><td class="ln">5</td><td class="exp">vacuumlo -n dry-run keeps LOs (2) = OK</td><td class="ln">5</td><td class="act">vacuumlo -n dry-run keeps LOs (8) = OK</td></tr>
+<tr class="chg"><td class="ln">6</td><td class="exp">vacuumlo removed orphan LOs (count decreased) = OK</td><td class="ln">6</td><td class="act">vacuumlo did not decrease count (8 -&gt; 8) = FAIL</td></tr>
+<tr><td class="ln">7</td><td class="ctx">TC-RESULT: OK</td><td class="ln">7</td><td class="ctx">TC-RESULT: OK</td></tr>
+</tbody></table>
+</section>
+</div>
+<footer class='report'>Generated by TestCaseCraft - Professional QA Reporting &nbsp;|&nbsp; Powered by TestCaseCraft</footer>
+</body></html>

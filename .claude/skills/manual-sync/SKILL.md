@@ -144,7 +144,7 @@ PR 커밋 메시지나 사용자 보고에서 "UI 변경" 단서가 있으면:
 
 ## 종료 보고
 
-패치 완료 후 `_workspace/manual-capture/run-{date}/manual_diff.md` 에 다음을 기록:
+패치 완료 후 `.workspace/manual-capture/run-{date}/manual_diff.md` 에 다음을 기록:
 
 ```markdown
 # manual-sync 패치 보고

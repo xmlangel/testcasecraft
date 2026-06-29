@@ -35,8 +35,15 @@ import {
 } from "../../assets/fonts/nanumGothicFont.js";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
 import { API_ENDPOINTS, buildUrl } from "../../utils/apiConstants.js";
-import { getResultLabel } from "../../utils/testResultConstants.js";
+import {
+  getResultLabel,
+  getResultConfig,
+  getLocalizedResultConfig,
+  TEST_RESULT_CONFIG,
+  TEST_RESULT_TYPES,
+} from "../../utils/testResultConstants.js";
 
 // 숫자 포맷터 (천단위 구분)
 const numberFormatter = new Intl.NumberFormat("ko-KR");
@@ -168,6 +175,36 @@ const markdownToPlainText = (md = "") =>
     .replace(/^\s*[-*+]\s+/gm, "• ")
     .trim();
 
+// 내보내기 매트릭스의 Result 값(현지화/원문 라벨 또는 코드)을 표준 결과 타입으로 복원.
+// HTML·PDF 칩 색상 분류에 공통 사용.
+const resolveResultType = (value) => {
+  const s = String(value || "")
+    .trim()
+    .toUpperCase();
+  if (TEST_RESULT_CONFIG[s]) return s;
+  const matched = Object.entries(TEST_RESULT_CONFIG).find(
+    ([, cfg]) =>
+      s === String(cfg.label).toUpperCase() ||
+      s === String(cfg.shortLabel).toUpperCase(),
+  );
+  if (matched) return matched[0];
+  if (s.includes("PASS") || s.includes("성공")) return TEST_RESULT_TYPES.PASS;
+  if (s.includes("FAIL") || s.includes("실패")) return TEST_RESULT_TYPES.FAIL;
+  if (s.includes("BLOCK") || s.includes("차단"))
+    return TEST_RESULT_TYPES.BLOCKED;
+  if (s.includes("SKIP") || s.includes("건너"))
+    return TEST_RESULT_TYPES.SKIPPED;
+  return TEST_RESULT_TYPES.NOT_RUN;
+};
+
+// #RRGGBB → [r,g,b] (jsPDF setFillColor 등에 사용)
+const hexToRgb = (hex) => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim());
+  if (!m) return [158, 158, 158];
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
 const TestResultExportDialog = ({
   open,
   onClose,
@@ -181,6 +218,7 @@ const TestResultExportDialog = ({
 }) => {
   const { api } = useAppContext();
   const { t } = useI18n();
+  const { mode: themeMode } = useTheme();
   const [exportFormat, setExportFormat] = useState("EXCEL");
   const [pdfOrientation, setPdfOrientation] = useState("landscape");
   const [footerPrefix, setFooterPrefix] = useState("");
@@ -236,6 +274,20 @@ const TestResultExportDialog = ({
         t("testResult.export.format.csv.feature1", "데이터 분석 최적"),
         t("testResult.export.format.csv.feature2", "가벼운 용량"),
         t("testResult.export.format.csv.feature3", "호환성 우수"),
+      ],
+    },
+    {
+      value: "HTML",
+      title: t("testResult.export.format.html.title", "HTML (.html)"),
+      description: t(
+        "testResult.export.format.html.description",
+        "웹 리포트, 현재 테마 유지 · 브라우저에서 바로 열람",
+      ),
+      icon: "🌐",
+      features: [
+        t("testResult.export.format.html.feature1", "리포트 레이아웃"),
+        t("testResult.export.format.html.feature2", "라이트/다크 테마"),
+        t("testResult.export.format.html.feature3", "단일 파일 공유"),
       ],
     },
   ];
@@ -404,7 +456,13 @@ const TestResultExportDialog = ({
         setupKoreanFontFallback(doc);
       }
     } catch (error) {
-      console.warn(t("export.font.setupError", "⚠️ 나눔고딕 폰트 설정 중 오류가 발생했습니다."), error);
+      console.warn(
+        t(
+          "export.font.setupError",
+          "⚠️ 나눔고딕 폰트 설정 중 오류가 발생했습니다.",
+        ),
+        error,
+      );
       setupKoreanFontFallback(doc);
     }
   };
@@ -571,32 +629,59 @@ const TestResultExportDialog = ({
         pdf.setFillColor(...colors.primaryLight);
         pdf.rect(0, 0, pageWidth, 40, "F");
 
+        // 현재 폰트 기준으로 maxWidth 를 넘으면 말줄임(…) 처리
+        const truncateToWidth = (text, maxWidth) => {
+          if (maxWidth <= 0) return "";
+          if (pdf.getTextWidth(text) <= maxWidth) return text;
+          const ellipsis = "…";
+          let s = text;
+          while (s.length > 1 && pdf.getTextWidth(s + ellipsis) > maxWidth) {
+            s = s.slice(0, -1);
+          }
+          return s + ellipsis;
+        };
+
+        const gap = 12;
+
         // 좌측: 리포트 타이틀
         pdf.setTextColor(...colors.primary);
         pdf.setFontSize(9);
         pdf.setFont("NanumGothic", "normal");
-        pdf.text(
-          t("testResult.export.pdf.title", "테스트 결과 리포트"),
-          margin,
-          25,
+        const headerTitle = t(
+          "testResult.export.pdf.title",
+          "테스트 결과 리포트",
         );
+        pdf.text(headerTitle, margin, 25);
+        const titleEnd = margin + pdf.getTextWidth(headerTitle);
 
-        // 중앙: Plan / 실행명 정보 (사용자 요청사항)
+        // 우측: 프로젝트명 (폭 제한 + 말줄임)
+        pdf.setTextColor(...colors.greyDark);
+        pdf.setFontSize(8);
+        const pName = truncateToWidth(
+          activeProject?.name || "",
+          pageWidth * 0.28,
+        );
+        const pNameWidth = pdf.getTextWidth(pName);
+        const rightStart = pageWidth - margin - pNameWidth;
+        pdf.text(pName, rightStart, 25);
+
+        // 중앙: Plan / 실행명 — 타이틀과 프로젝트명 사이 여백에 말줄임으로 배치(겹침 방지)
         const planInfo = `${t("testResult.export.pdf.summary.plan", "Plan")}: ${
           summary?.testPlanName || "-"
         } / ${t("testResult.export.pdf.summary.execution", "실행명")}: ${
           summary?.testExecutionName || "-"
         }`;
-        pdf.setTextColor(...colors.black);
-        pdf.setFontSize(8);
-        const planInfoWidth = pdf.getTextWidth(planInfo);
-        pdf.text(planInfo, (pageWidth - planInfoWidth) / 2, 25);
-
-        // 우측: 프로젝트명
-        pdf.setTextColor(...colors.greyDark);
-        const pName = activeProject?.name || "";
-        const pNameWidth = pdf.getTextWidth(pName);
-        pdf.text(pName, pageWidth - margin - pNameWidth, 25);
+        const bandStart = titleEnd + gap;
+        const bandEnd = rightStart - gap;
+        const bandWidth = bandEnd - bandStart;
+        if (bandWidth > 30) {
+          pdf.setTextColor(...colors.black);
+          pdf.setFontSize(8);
+          const planText = truncateToWidth(planInfo, bandWidth);
+          const planWidth = pdf.getTextWidth(planText);
+          const planX = bandStart + Math.max(0, (bandWidth - planWidth) / 2);
+          pdf.text(planText, planX, 25);
+        }
 
         pdf.setDrawColor(...colors.primary);
         pdf.setLineWidth(1);
@@ -618,7 +703,7 @@ const TestResultExportDialog = ({
       );
       cursorY += 18;
 
-      // Plan / 실행명 텍스트 추가 (ICT-Plan/Execution)
+      // Plan / 실행명 텍스트 추가 (ICT-Plan/Execution) — 긴 이름은 폭에 맞춰 줄바꿈
       pdf.setTextColor(...colors.greyDark);
       pdf.setFontSize(9);
       const infoText = `${t("testResult.export.pdf.summary.plan", "Plan")}: ${
@@ -626,8 +711,12 @@ const TestResultExportDialog = ({
       }   |   ${t("testResult.export.pdf.summary.execution", "실행명")}: ${
         summary?.testExecutionName || "-"
       }`;
-      pdf.text(infoText, margin, cursorY);
-      cursorY += 18;
+      const infoLines = pdf.splitTextToSize(infoText, usableWidth);
+      infoLines.forEach((line) => {
+        pdf.text(line, margin, cursorY);
+        cursorY += 14;
+      });
+      cursorY += 4;
 
       const isPortrait = orientation === "portrait";
       const cardWidth = (usableWidth - (isPortrait ? 24 : 36)) / 4;
@@ -645,7 +734,9 @@ const TestResultExportDialog = ({
       const kpiCards = [
         {
           label: t("testResult.export.pdf.summary.total", "총 테스트"),
-          value: t("testResult.export.pdf.summary.totalValue", "{count}건", { count: formatCountValue(summary.total) }),
+          value: t("testResult.export.pdf.summary.totalValue", "{count}건", {
+            count: formatCountValue(summary.total),
+          }),
           sub: periodText,
           color: colors.info,
           bgColor: colors.infoLight,
@@ -654,7 +745,11 @@ const TestResultExportDialog = ({
         {
           label: t("testResult.export.pdf.summary.executionRate", "실행률"),
           value: formatPercentageValue(summary.executionRate),
-          sub: t("testResult.export.pdf.summary.executedValue", "{count}건 실행됨", { count: summary.executedCount }),
+          sub: t(
+            "testResult.export.pdf.summary.executedValue",
+            "{count}건 실행됨",
+            { count: summary.executedCount },
+          ),
           color: colors.success,
           bgColor: colors.successLight,
           icon: "⚡",
@@ -662,14 +757,22 @@ const TestResultExportDialog = ({
         {
           label: t("testResult.export.pdf.summary.successRate", "성공률"),
           value: formatPercentageValue(summary.successRate),
-          sub: t("testResult.export.pdf.summary.passValue", "{count}건 통과됨", { count: summary.pass }),
+          sub: t(
+            "testResult.export.pdf.summary.passValue",
+            "{count}건 통과됨",
+            { count: summary.pass },
+          ),
           color: colors.warning,
           bgColor: colors.warningLight,
           icon: "🎯",
         },
         {
           label: t("testResult.export.pdf.summary.jiraLinked", "JIRA 연동"),
-          value: t("testResult.export.pdf.summary.jiraLinkedValue", "{count}건", { count: formatCountValue(summary.jiraLinked) }),
+          value: t(
+            "testResult.export.pdf.summary.jiraLinkedValue",
+            "{count}건",
+            { count: formatCountValue(summary.jiraLinked) },
+          ),
           sub: t("export.column.defectsAndTickets", "결함 및 티켓 링크"),
           color: colors.error,
           bgColor: colors.errorLight,
@@ -845,25 +948,21 @@ const TestResultExportDialog = ({
           rowData[header] = rowValues[hIdx] || "-";
         });
 
-        // 결과 상태에 따른 컬러 선택
-        const resultIdx = headers.indexOf("Result");
-        const statusStr =
-          resultIdx !== -1 ? String(rowValues[resultIdx]).toUpperCase() : "";
-        let statusConfig = { color: colors.grey, light: colors.greyLight };
-        if (statusStr.includes("PASS"))
-          statusConfig = { color: colors.success, light: colors.successLight };
-        else if (statusStr.includes("FAIL"))
-          statusConfig = { color: colors.error, light: colors.errorLight };
-        else if (statusStr.includes("BLOCK"))
-          statusConfig = { color: colors.warning, light: colors.warningLight };
+        // 결과 분류별 공식 색상/라벨 (testResultConstants 와 동일) — HTML 칩과 통일
+        const resultType = resolveResultType(rowData["Result"]);
+        const resultCfg = getResultConfig(resultType);
+        const cfgColor = hexToRgb(resultCfg.color);
+        const cfgBg = hexToRgb(resultCfg.backgroundColor);
+        const cfgBorder = hexToRgb(resultCfg.borderColor);
+        const statusLabel = getLocalizedResultConfig(resultType, t).label;
 
         // --- 항목 렌더링 시작 ---
 
-        // 1. 개별 테스트 결과 헤더 (카드 배경색 처리)
+        // 1. 개별 테스트 결과 헤더 (분류 연한 배경)
         const summaryHeight = 28;
         ensureSpace(summaryHeight + 100); // 최소 높이 확보
 
-        pdf.setFillColor(...statusConfig.light);
+        pdf.setFillColor(...cfgBg);
         drawRoundedRect(margin, cursorY, cardWidth, summaryHeight, 4, "F");
 
         pdf.setTextColor(...colors.black);
@@ -873,25 +972,17 @@ const TestResultExportDialog = ({
         }`;
         pdf.text(titleText, margin + 12, cursorY + 18);
 
-        // 결과 배지 (우측)
-        const statusLabel = statusStr || "N/A";
+        // 결과 칩 (우측) — 연한 배경 + 분류색 테두리 + 분류색 글자
         const statusWidth = pdf.getTextWidth(statusLabel);
-        pdf.setFillColor(...statusConfig.color);
-        drawRoundedRect(
-          margin + cardWidth - statusWidth - 20,
-          cursorY + 6,
-          statusWidth + 8,
-          16,
-          3,
-          "F",
-        );
-        pdf.setTextColor(...colors.white);
+        const chipW = statusWidth + 14;
+        const chipX = margin + cardWidth - chipW - 12;
+        pdf.setFillColor(...cfgBg);
+        pdf.setDrawColor(...cfgBorder);
+        pdf.setLineWidth(0.8);
+        drawRoundedRect(chipX, cursorY + 5, chipW, 18, 4, "FD");
+        pdf.setTextColor(...cfgColor);
         pdf.setFontSize(9);
-        pdf.text(
-          statusLabel,
-          margin + cardWidth - statusWidth - 16,
-          cursorY + 17,
-        );
+        pdf.text(statusLabel, chipX + 7, cursorY + 17);
 
         cursorY += summaryHeight + 12;
 
@@ -1012,6 +1103,305 @@ const TestResultExportDialog = ({
     pdf.save(fileName);
   };
 
+  // HTML 특수문자 escape
+  const escapeHtml = (value) =>
+    String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  /**
+   * HTML 리포트 내보내기.
+   * PDF(exportAsPdf)와 동일한 섹션 구성(헤더 → 요약 → KPI 카드 → 상태 브레이크다운
+   * → QA 총평 → 상세 리스트 → 푸터)을 단일 HTML 파일로 생성한다.
+   * 색상 토큰은 PDF와 동일한 MUI 표준값을 사용하고, 사용자가 선택한 테마(themeMode)를
+   * data-theme 속성에 고정해 라이트/다크를 유지한다(우상단 토글로 전환 가능).
+   */
+  const exportAsHtml = (
+    headers,
+    data,
+    fileName,
+    summaryData = null,
+    mode = "light",
+  ) => {
+    const summary = summaryData || computeStatisticsSummary(rows);
+    const generatedAt = formatDate(new Date(), "yyyy-MM-dd HH:mm");
+    const safeMode = mode === "dark" ? "dark" : "light";
+
+    const kpiCards = [
+      {
+        label: t("testResult.export.pdf.summary.total", "총 테스트"),
+        value: t("testResult.export.pdf.summary.totalValue", "{count}건", {
+          count: formatCountValue(summary.total),
+        }),
+        sub:
+          summary.periodStart && summary.periodEnd
+            ? `${formatDate(summary.periodStart, "yyyy-MM-dd")} ~ ${formatDate(summary.periodEnd, "yyyy-MM-dd")}`
+            : t("testResult.export.pdf.summary.noPeriod", "기간 정보 없음"),
+        accent: "info",
+        icon: "📊",
+      },
+      {
+        label: t("testResult.export.pdf.summary.executionRate", "실행률"),
+        value: formatPercentageValue(summary.executionRate),
+        sub: t(
+          "testResult.export.pdf.summary.executedValue",
+          "{count}건 실행됨",
+          {
+            count: summary.executedCount,
+          },
+        ),
+        accent: "success",
+        icon: "⚡",
+      },
+      {
+        label: t("testResult.export.pdf.summary.successRate", "성공률"),
+        value: formatPercentageValue(summary.successRate),
+        sub: t("testResult.export.pdf.summary.passValue", "{count}건 통과됨", {
+          count: summary.pass,
+        }),
+        accent: "warning",
+        icon: "🎯",
+      },
+      {
+        label: t("testResult.export.pdf.summary.jiraLinked", "JIRA 연동"),
+        value: t("testResult.export.pdf.summary.jiraLinkedValue", "{count}건", {
+          count: formatCountValue(summary.jiraLinked),
+        }),
+        accent: "error",
+        icon: "🔗",
+      },
+    ];
+
+    // 분류 색상 칩 마크업 (MUI Chip 과 동일: 연한 배경 + 분류색 글자 + 테두리)
+    const resultChipHtml = (type) => {
+      const cfg = getResultConfig(type);
+      const label = getLocalizedResultConfig(type, t).label;
+      return (
+        `<span class="chip" style="background:${cfg.backgroundColor};` +
+        `color:${cfg.color};border:1px solid ${cfg.borderColor}">` +
+        `${escapeHtml(label)}</span>`
+      );
+    };
+
+    const breakdowns = [
+      {
+        type: TEST_RESULT_TYPES.PASS,
+        count: summary.pass,
+        rate: summary.passRate,
+      },
+      {
+        type: TEST_RESULT_TYPES.FAIL,
+        count: summary.fail,
+        rate: summary.failRate,
+      },
+      {
+        type: TEST_RESULT_TYPES.BLOCKED,
+        count: summary.blocked,
+        rate: summary.blockedRate,
+      },
+      {
+        type: TEST_RESULT_TYPES.NOT_RUN,
+        count: summary.notRun,
+        rate: summary.notRunRate,
+      },
+    ];
+
+    const kpiHtml = kpiCards
+      .map(
+        (c) =>
+          `<div class="kpi" style="--accent:var(--${c.accent})"><div class="ico">${c.icon}</div>` +
+          `<div class="lbl">${escapeHtml(c.label)}</div><div class="val">${escapeHtml(c.value)}</div>` +
+          `<div class="sub">${escapeHtml(c.sub)}</div></div>`,
+      )
+      .join("");
+
+    const bdHtml = breakdowns
+      .map((b) => {
+        const cfg = getResultConfig(b.type);
+        const label = getLocalizedResultConfig(b.type, t).label;
+        return (
+          `<div class="bd" style="background:${cfg.backgroundColor};border-left:4px solid ${cfg.color}">` +
+          `<div class="lbl">${escapeHtml(label)}</div>` +
+          `<div class="val" style="color:${cfg.color}">${escapeHtml(
+            t("testResult.export.pdf.summary.totalValue", "{count}건", {
+              count: b.count,
+            }),
+          )}</div>` +
+          `<div class="rate">${formatPercentageValue(b.rate)}</div></div>`
+        );
+      })
+      .join("");
+
+    // 상세 리스트 (PDF drawListEntries 와 동일 매핑)
+    const detailSections = [
+      { title: t("testcase.column.description", "설명"), field: "Description" },
+      {
+        title: t("testResult.form.preCondition", "사전조건"),
+        field: "Pre-condition",
+      },
+      { title: t("testResult.form.testSteps", "테스트 단계"), field: "Steps" },
+      {
+        title: t("testResult.form.expectedResult", "예상결과"),
+        field: "Expected Results",
+      },
+      { title: t("testcase.column.notes", "비고"), field: "Notes" },
+    ];
+
+    const entriesHtml = data
+      .map((rowValues, index) => {
+        const rowData = {};
+        headers.forEach((header, hIdx) => {
+          rowData[header] = rowValues[hIdx] || "-";
+        });
+
+        const resultType = resolveResultType(rowData["Result"]);
+        const resultCfg = getResultConfig(resultType);
+        const title = rowData["Test Case"] || "N/A";
+        const infoPairs = [
+          { label: "ID", value: rowData["Display ID"] || "-" },
+          {
+            label: t("testCase.priority.label", "우선순위"),
+            value: rowData["Priority"] || "-",
+          },
+          {
+            label: t("testResult.column.executor", "수행자"),
+            value: rowData["Executor"] || "-",
+          },
+          {
+            label: t("testResult.column.executedDate", "수행일시"),
+            value: rowData["Executed Date"] || "-",
+          },
+          { label: "JIRA ID", value: rowData["JIRA ID"] || "-" },
+        ];
+
+        const infoHtml = infoPairs
+          .map(
+            (p) =>
+              `<div class="info"><span class="ik">${escapeHtml(p.label)}</span>` +
+              `<span class="iv">${escapeHtml(p.value)}</span></div>`,
+          )
+          .join("");
+
+        const sectionsHtml = detailSections
+          .map((sec) => {
+            const content = rowData[sec.field];
+            if (!content || content === "-") return "";
+            return (
+              `<div class="fld"><div class="fld-h">${escapeHtml(sec.title)}</div>` +
+              `<pre class="fld-b">${escapeHtml(content)}</pre></div>`
+            );
+          })
+          .join("");
+
+        return (
+          `<section class="case"><div class="case-h" style="background:${resultCfg.backgroundColor};border-left:4px solid ${resultCfg.color}">` +
+          `<span class="num">#${index + 1}</span><span class="ttl">${escapeHtml(title)}</span>` +
+          `${resultChipHtml(resultType)}</div>` +
+          `<div class="info-grid">${infoHtml}</div>${sectionsHtml}</section>`
+        );
+      })
+      .join("");
+
+    const qaHtml =
+      qaSummary && qaSummary.trim()
+        ? `<h2 class="sec">${escapeHtml(t("testResult.export.pdf.qaSummaryTitle", "💬 QA 총평"))}</h2>` +
+          (qaSummaryUpdatedBy
+            ? `<div class="qa-by">${escapeHtml(t("testResult.export.pdf.qaSummaryBy", "작성"))}: ${escapeHtml(qaSummaryUpdatedBy)}</div>`
+            : "") +
+          `<pre class="qa-body">${escapeHtml(markdownToPlainText(qaSummary))}</pre>`
+        : "";
+
+    const footerText =
+      footerPrefix && footerPrefix.trim()
+        ? `${escapeHtml(footerPrefix.trim())} | Powered by TestCaseCraft`
+        : t(
+            "testResult.export.html.footer",
+            "Generated by TestCaseCraft - Professional QA Reporting | Powered by TestCaseCraft",
+          );
+
+    const planLabel = t("testResult.export.pdf.summary.plan", "Plan");
+    const execLabel = t("testResult.export.pdf.summary.execution", "실행명");
+    const reportTitle = t("testResult.export.pdf.title", "테스트 결과 리포트");
+    const projectLabel = t("testResult.export.pdf.project", "프로젝트");
+    const generatedLabel = t("testResult.export.pdf.generatedAt", "생성일시");
+
+    const css = `
+:root{
+  --primary:#1976D2;--primary-light:#E8F5FF;--success:#2E7D32;--success-light:#E8F7EE;
+  --error:#D32F2F;--error-light:#FFEBEC;--warning:#ED6C02;--warning-light:#FFF3E0;
+  --info:#0288D1;--info-light:#EBF8FF;--grey:#9E9E9E;--grey-light:#F5F7FA;--grey-dark:#424242;
+  --bg:#f5f7fa;--surface:#fff;--surface-2:#f6f8fa;--border:#e0e4e8;--text:#212121;--text-sub:#57606a;--code-bg:#0d1117;--code-fg:#e6edf3;
+}
+[data-theme="dark"]{
+  --primary-light:rgba(25,118,210,.18);--success-light:rgba(46,125,50,.18);--error-light:rgba(211,47,47,.18);
+  --warning-light:rgba(237,108,2,.18);--info-light:rgba(2,136,209,.18);--grey-light:rgba(158,158,158,.14);
+  --bg:#121212;--surface:#1e1e1e;--surface-2:#262626;--border:#383838;--text:#e6e6e6;--text-sub:#a0a6ad;--code-bg:#0b0e13;--code-fg:#e6edf3;
+}
+*{box-sizing:border-box}
+body{font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo",sans-serif;margin:0;color:var(--text);background:var(--bg)}
+header.report{background:var(--primary);color:#fff;padding:22px 28px;position:relative}
+header.report h1{margin:0 0 4px;font-size:21px}header.report .meta{font-size:12px;opacity:.92}
+.theme-toggle{position:absolute;top:18px;right:24px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer}
+.theme-toggle:hover{background:rgba(255,255,255,.3)}
+.wrap{max-width:1180px;margin:0 auto;padding:22px}
+.planline{color:var(--text-sub);font-size:13px;margin:0 0 18px}
+.kpi-grid,.bd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:0 0 16px}
+.bd-grid{margin-bottom:26px}
+.kpi{background:var(--surface);border-radius:8px;padding:14px 16px 12px 18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.kpi .lbl{font-size:12px;color:var(--text-sub)}.kpi .ico{position:absolute;top:12px;right:14px;font-size:18px}
+.kpi .val{font-size:24px;font-weight:700;margin:6px 0 2px}.kpi .sub{font-size:11px;color:var(--grey)}
+.bd{border-radius:8px;padding:12px 16px}
+.bd .lbl{font-size:12px;color:var(--text-sub)}.bd .val{font-size:20px;font-weight:700}.bd .rate{font-size:11px;color:var(--grey)}
+h2.sec{font-size:16px;border-bottom:2px solid var(--border);padding-bottom:6px;margin:30px 0 12px}
+.qa-by{font-size:11px;color:var(--grey);margin-bottom:6px}
+.qa-body,.fld-b{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font:12px/1.55 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;margin:0;color:var(--text)}
+section.case{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0 0 14px;margin:0 0 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.case-h{display:flex;align-items:center;gap:10px;padding:10px 16px}
+.case-h .num{color:var(--grey);font-family:ui-monospace,Menlo,monospace}.case-h .ttl{font-weight:600;flex:1}
+.chip{border-radius:12px;padding:2px 12px;font-size:11px;font-weight:700;white-space:nowrap;line-height:1.7}
+.info-grid{display:flex;flex-wrap:wrap;gap:6px 22px;padding:12px 16px}
+.info{font-size:12.5px}.info .ik{color:var(--grey);margin-right:6px}.info .iv{color:var(--text)}
+.fld{padding:4px 16px 0}.fld-h{font-size:11px;color:var(--primary);font-weight:600;margin:10px 0 5px;text-transform:uppercase;letter-spacing:.04em}
+footer.report{border-top:1px solid var(--border);margin-top:30px;padding:18px 28px;text-align:center;color:var(--grey);font-size:11px}
+@media(max-width:760px){.kpi-grid,.bd-grid{grid-template-columns:repeat(2,1fr)}}
+`;
+
+    const themeScript =
+      `<script>(function(){document.documentElement.setAttribute('data-theme','${safeMode}');` +
+      `window.__t=function(){var c=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';` +
+      `document.documentElement.setAttribute('data-theme',c);var b=document.getElementById('tb');` +
+      `if(b)b.textContent=c==='dark'?'\\u2600\\uFE0F Light':'\\uD83C\\uDF19 Dark';};` +
+      `document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('tb');` +
+      `if(b)b.textContent='${safeMode}'==='dark'?'\\u2600\\uFE0F Light':'\\uD83C\\uDF19 Dark';});})();</script>`;
+
+    const html =
+      `<!doctype html><html lang="ko"><head><meta charset="utf-8">` +
+      `<meta name="viewport" content="width=device-width,initial-scale=1">` +
+      `<title>${escapeHtml(reportTitle)} - ${escapeHtml(activeProject?.name || "")}</title>` +
+      themeScript +
+      `<style>${css}</style></head><body>` +
+      `<header class="report"><button id="tb" class="theme-toggle" onclick="__t()"></button>` +
+      `<h1>${escapeHtml(reportTitle)}</h1>` +
+      `<div class="meta">${escapeHtml(projectLabel)}: ${escapeHtml(activeProject?.name || "N/A")} &nbsp;|&nbsp; ` +
+      `${escapeHtml(generatedLabel)}: ${escapeHtml(generatedAt)}</div></header>` +
+      `<div class="wrap">` +
+      `<div class="planline">${escapeHtml(planLabel)}: ${escapeHtml(summary.testPlanName || "-")} &nbsp;|&nbsp; ` +
+      `${escapeHtml(execLabel)}: ${escapeHtml(summary.testExecutionName || "-")}</div>` +
+      `<div class="kpi-grid">${kpiHtml}</div>` +
+      `<div class="bd-grid">${bdHtml}</div>` +
+      qaHtml +
+      `<h2 class="sec">${escapeHtml(t("testResult.export.pdf.detailTitle", "🔍 상세 테스트 결과 리스트"))}</h2>` +
+      entriesHtml +
+      `</div><footer class="report">${footerText}</footer></body></html>`;
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+    downloadBlob(blob, fileName);
+  };
+
   const handleClientSideExport = async () => {
     const { headers, data } = buildExportMatrix();
 
@@ -1043,6 +1433,15 @@ const TestResultExportDialog = ({
           `${baseFileName}.pdf`,
           summaryForExport,
           pdfOrientation,
+        );
+        break;
+      case "HTML":
+        exportAsHtml(
+          headers,
+          data,
+          `${baseFileName}.html`,
+          summaryForExport,
+          themeMode,
         );
         break;
       default:
@@ -1206,7 +1605,7 @@ const TestResultExportDialog = ({
           </Typography>
           <Grid container spacing={2}>
             {exportFormats.map((format) => (
-              <Grid size={{ xs: 12, md: 4 }} key={format.value}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={format.value}>
                 <Card
                   variant={
                     exportFormat === format.value ? "outlined" : "elevation"
@@ -1283,7 +1682,7 @@ const TestResultExportDialog = ({
           </Grid>
         </Box>
 
-        {/* PDF 전용 옵션 영역 */}
+        {/* PDF 전용 옵션 영역 (출력 방향) */}
         {exportFormat === "PDF" && (
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" gutterBottom color="primary">
@@ -1331,12 +1730,15 @@ const TestResultExportDialog = ({
                 )}
               </ToggleButton>
             </ToggleButtonGroup>
+          </Box>
+        )}
 
-            {/* 푸터 브랜딩 문구 입력 필드 */}
+        {/* 푸터 브랜딩 문구 — PDF·HTML 공통 */}
+        {(exportFormat === "PDF" || exportFormat === "HTML") && (
+          <Box sx={{ mb: 3 }}>
             <Typography
               variant="subtitle2"
               sx={{
-                mt: 3,
                 mb: 1,
                 display: "flex",
                 alignItems: "center",

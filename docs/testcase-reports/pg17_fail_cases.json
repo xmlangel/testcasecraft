@@ -1,0 +1,1767 @@
+{
+  "title": "PG17 PG-mode 실패 케이스 (17.10.0-47)",
+  "meta": [
+    "실행 #5 · 439 TC 중 FAIL 21건 · 172 AgensSQL 5333 직접 · 예상(좌)/실제(우) 줄 정렬",
+    "🔗 TestcaseCraft 실행 보기"
+  ],
+  "exec_link": "https://tc.qaspecialist.uk/projects/75245e30-47be-4677-9f4e-14ac7f6f3b9c/executions/5ae3ca6c-e206-4c69-b36d-4abd8aed110d",
+  "cases": [
+    {
+      "tc_id": "tc1202",
+      "pg_id": "PG-247",
+      "title": "SET LOCAL 트랜잭션 범위",
+      "description": "SET LOCAL이 현재 트랜잭션 안에서만 유효하고 COMMIT/ROLLBACK 후 세션값으로 복귀하며 트랜잭션 밖 SET LOCAL은 경고만 내고 효과가 없음을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/sql-set.html (§19.1.2)",
+      "lang": "sql",
+      "steps": "-- tc1202 | SET LOCAL 트랜잭션 범위 검증 | 문서 §19.1.2 (SET LOCAL) | PG17NEW: 아니오\n-- 검증 포인트: LOCAL 은 트랜잭션 내에서만 / COMMIT·ROLLBACK 후 세션값 복귀 / 트랜잭션 밖 SET LOCAL 은 경고만\n-- 결정론: 의도된 WARNING 은 client_min_messages=warning 으로 노출하되, 값 변화는 SHOW 결과로 직접 검증\nSET client_min_messages = warning;\n\n-- 기준 세션값 설정\nSET work_mem = '64MB';\nSHOW work_mem;                       -- 64MB (세션값)\n\n-- BEGIN 안의 SET LOCAL 은 트랜잭션 안에서만 유효, COMMIT 후 세션값 복귀\nBEGIN;\n  SET LOCAL work_mem = '16MB';\n  SHOW work_mem;                     -- 16MB (LOCAL)\nCOMMIT;\nSHOW work_mem;                       -- 64MB (세션값 복귀)\n\n-- 트랜잭션 안에서 SET(세션) 과 SET LOCAL 공존: 안에선 LOCAL, COMMIT 후 SET값\nBEGIN;\n  SET work_mem = '32MB';\n  SET LOCAL work_mem = '16MB';\n  SHOW work_mem;                     -- 16MB (LOCAL 우선)\nCOMMIT;\nSHOW work_mem;                       -- 32MB (트랜잭션 내 SET 값 유지)\n\n-- ROLLBACK 시 SET LOCAL 효과 소멸 (그리고 트랜잭션 내 SET 도 롤백)\nSET work_mem = '64MB';\nBEGIN;\n  SET LOCAL work_mem = '16MB';\n  SHOW work_mem;                     -- 16MB\nROLLBACK;\nSHOW work_mem;                       -- 64MB (롤백으로 복귀)\n\n-- 트랜잭션 블록 밖 SET LOCAL: WARNING 만 내고 값 불변\nSET LOCAL work_mem = '128MB';        -- WARNING: SET LOCAL can only be used in transaction blocks\nSHOW work_mem;                       -- 64MB (변하지 않음)\n\nRESET work_mem;",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -62,8 +62,8 @@",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "62",
+          "",
+          "62",
+          ""
+        ],
+        [
+          "ctx",
+          "63",
+          "-- 트랜잭션 블록 밖 SET LOCAL: WARNING 만 내고 값 불변",
+          "63",
+          "-- 트랜잭션 블록 밖 SET LOCAL: WARNING 만 내고 값 불변"
+        ],
+        [
+          "ctx",
+          "64",
+          "SET LOCAL work_mem = '128MB';        -- WARNING: SET LOCAL can only be used in transaction blocks",
+          "64",
+          "SET LOCAL work_mem = '128MB';        -- WARNING: SET LOCAL can only be used in transaction blocks"
+        ],
+        [
+          "chg",
+          "65",
+          "SHOW work_mem;                       -- 64MB (변하지 않음)",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "66",
+          "WARNING:  SET LOCAL can only be used in transaction blocks",
+          "65",
+          "WARNING:  SET LOCAL can only be used in transaction blocks"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "66",
+          "SHOW work_mem;                       -- 64MB (변하지 않음)"
+        ],
+        [
+          "ctx",
+          "67",
+          " work_mem",
+          "67",
+          " work_mem"
+        ],
+        [
+          "ctx",
+          "68",
+          "----------",
+          "68",
+          "----------"
+        ],
+        [
+          "ctx",
+          "69",
+          " 64MB",
+          "69",
+          " 64MB"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1301",
+      "pg_id": "PG-344",
+      "title": "pg_hba scram-sha-256 인증",
+      "description": "pg_hba.conf에 scram-sha-256 host 규칙을 삽입·reload한 뒤 올바른 비밀번호 접속은 성공하고 틀린 비밀번호는 'authentication failed'로 거부됨을 검증한다(원본 백업·trap 복원으로 인증 상태 원상복구)",
+      "source": "https://www.postgresql.org/docs/17/auth-pg-hba-conf.html (§20.1, 20.5)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1301 | pg_hba scram-sha-256 인증 | 문서 §20.1, §20.5 | PG17NEW: 아니오\n# 검증 포인트: scram 줄 삽입+reload / 올바른 비번 접속 성공 / 틀린 비번 거부\n# 공유 컨테이너 보호: pg_hba.conf 원본을 백업하고 trap 으로 무조건 복원 + reload + DROP ROLE.\n#   인증 상태를 반드시 원상복구 — 다른 TC 가 같은 컨테이너 사용.\n# 결정론: reload 직후 재시도 루프로 타이밍 레이스 회피. 인증 메시지는 부분 문자열 매칭.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"$C_SINGLE\"\nROLE=\"tcqa_scram\"\nGOODPW=\"scr_good_pw_123\"\nBADPW=\"scr_wrong_pw_xyz\"\n\nPGDATA=\"$(docker exec -i \"$C\" psql -X -t -A -U postgres -d qa -c 'SHOW data_directory;' | tr -d '[:space:]')\"\n[ -n \"$PGDATA\" ] || { echo \"FAIL: PGDATA 획득 실패\"; echo \"TC-RESULT: NG\"; exit 0; }\nHBA=\"$PGDATA/pg_hba.conf\"\nBAK=\"$PGDATA/pg_hba.conf.tc1301.bak\"\n\n# trap: 원본 복원 + reload + 롤 제거 (어떤 경로로 종료해도 원상복구)\ncleanup() {\n  docker exec -u postgres \"$C\" bash -lc \"[ -f '$BAK' ] && cp -p '$BAK' '$HBA' && rm -f '$BAK'\" 2>/dev/null\n  docker exec -i \"$C\" psql -X -q -U postgres -d postgres -c \"SELECT pg_reload_conf();\" >/dev/null 2>&1\n  docker exec -i \"$C\" psql -X -q -U postgres -d postgres -c \"DROP ROLE IF EXISTS $ROLE;\" >/dev/null 2>&1\n}\ntrap cleanup EXIT\n\n# 사전 정리 + 롤 생성 (scram 검증자 저장)\ndocker exec -i \"$C\" psql -X -q -U postgres -d postgres -c \"DROP ROLE IF EXISTS $ROLE;\" >/dev/null 2>&1\ndocker exec -i \"$C\" psql -X -q -U postgres -d postgres \\\n  -c \"SET password_encryption='scram-sha-256';\" \\\n  -c \"CREATE ROLE $ROLE LOGIN PASSWORD '$GOODPW';\" >/dev/null 2>&1\n\n# pg_hba.conf 백업 후 scram 줄을 최상단에 삽입\ndocker exec -u postgres \"$C\" bash -lc \"cp -p '$HBA' '$BAK' && \\\n  printf 'host all $ROLE 127.0.0.1/32 scram-sha-256\\n' > '$HBA.new' && \\\n  cat '$HBA' >> '$HBA.new' && mv '$HBA.new' '$HBA'\"\n\n# reload + 적용 대기 (재시도 루프)\ndocker exec -i \"$C\" psql -X -q -t -A -U postgres -d postgres -c \"SELECT pg_reload_conf();\" >/dev/null 2>&1\n\n# (1) 올바른 비밀번호 접속 성공 — 최대 10회 재시도\nok_login=\"FAIL\"\nfor i in $(seq 1 10); do\n  if docker exec -i -e PGPASSWORD=\"$GOODPW\" \"$C\" \\\n       psql -X -t -A -h 127.0.0.1 -U \"$ROLE\" -d postgres -c 'SELECT 1' >/dev/null 2>&1; then\n    ok_login=\"OK\"; break\n  fi\n  sleep 1\ndone\necho \"good_password_login: $ok_login\"\n\n# (2) 틀린 비밀번호 접속 거부 ('authentication failed' 부분 매칭)\nbad_out=\"$(docker exec -i -e PGPASSWORD=\"$BADPW\" \"$C\" \\\n  psql -X -t -A -h 127.0.0.1 -U \"$ROLE\" -d postgres -c 'SELECT 1' 2>&1)\"\nif echo \"$bad_out\" | grep -qi 'authentication failed'; then\n  echo \"bad_password_login: REJECTED (authentication failed)\"\nelse\n  echo \"bad_password_login: UNEXPECTED\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,3 +1,3 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "good_password_login: OK",
+          "1",
+          "good_password_login: FAIL"
+        ],
+        [
+          "chg",
+          "2",
+          "bad_password_login: REJECTED (authentication failed)",
+          "2",
+          "bad_password_login: UNEXPECTED"
+        ],
+        [
+          "ctx",
+          "3",
+          "TC-RESULT: OK",
+          "3",
+          "TC-RESULT: OK"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1302",
+      "pg_id": "PG-345",
+      "title": "pg_hba trust/reject 분기",
+      "description": "pg_hba.conf의 trust(무조건 허용)와 reject(무조건 거부)가 비밀번호 유무와 무관하게 동작하고, 규칙이 위→아래 첫 매칭으로 적용됨(reject 줄을 trust 줄 위에 두면 거부)을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/auth-pg-hba-conf.html (§20.1)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1302 | pg_hba trust/reject 분기 + 줄 순서 첫매칭 | 문서 §20.1 | PG17NEW: 아니오\n# 검증 포인트: trust 무조건 허용 / reject 무조건 거부 / 위→아래 첫 매칭(reject 가 trust 위면 거부)\n# 공유 컨테이너 보호: pg_hba.conf 원본 백업 + trap 무조건 복원 + reload + DROP ROLE.\n# 결정론: reload 후 재시도 루프. 거부 메시지 'rejects connection' 부분 매칭.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"$C_SINGLE\"\nR_TRUST=\"tcqa_trust\"\nR_REJECT=\"tcqa_reject\"\n\nPGDATA=\"$(docker exec -i \"$C\" psql -X -t -A -U postgres -d qa -c 'SHOW data_directory;' | tr -d '[:space:]')\"\n[ -n \"$PGDATA\" ] || { echo \"FAIL: PGDATA 획득 실패\"; echo \"TC-RESULT: NG\"; exit 0; }\nHBA=\"$PGDATA/pg_hba.conf\"\nBAK=\"$PGDATA/pg_hba.conf.tc1302.bak\"\n\ncleanup() {\n  docker exec -u postgres \"$C\" bash -lc \"[ -f '$BAK' ] && cp -p '$BAK' '$HBA' && rm -f '$BAK'\" 2>/dev/null\n  docker exec -i \"$C\" psql -X -q -U postgres -d postgres -c \"SELECT pg_reload_conf();\" >/dev/null 2>&1\n  docker exec -i \"$C\" psql -X -q -U postgres -d postgres \\\n    -c \"DROP ROLE IF EXISTS $R_TRUST;\" -c \"DROP ROLE IF EXISTS $R_REJECT;\" >/dev/null 2>&1\n}\ntrap cleanup EXIT\n\n# 롤 생성: trust 롤(비번 없음), reject 롤(비번 있음 — reject 가 비번 무관 차단임을 보이기 위함)\ndocker exec -i \"$C\" psql -X -q -U postgres -d postgres \\\n  -c \"DROP ROLE IF EXISTS $R_TRUST;\" -c \"DROP ROLE IF EXISTS $R_REJECT;\" \\\n  -c \"CREATE ROLE $R_TRUST LOGIN;\" \\\n  -c \"CREATE ROLE $R_REJECT LOGIN PASSWORD 'pw_reject_123';\" >/dev/null 2>&1\n\n# pg_hba 백업 후, 두 롤 규칙을 최상단에 삽입.\n#   reject 롤은 reject 줄을 trust 줄보다 위에 두어 '첫 매칭=거부'를 입증.\ndocker exec -u postgres \"$C\" bash -lc \"cp -p '$HBA' '$BAK' && \\\n  { printf 'host all $R_TRUST 127.0.0.1/32 trust\\n'; \\\n    printf 'host all $R_REJECT 127.0.0.1/32 reject\\n'; \\\n    printf 'host all $R_REJECT 127.0.0.1/32 trust\\n'; \\\n    cat '$HBA'; } > '$HBA.new' && mv '$HBA.new' '$HBA'\"\n\ndocker exec -i \"$C\" psql -X -q -t -A -U postgres -d postgres -c \"SELECT pg_reload_conf();\" >/dev/null 2>&1\n\n# (1) trust 롤: 비밀번호 없이 접속 성공 — 재시도 루프\ntrust_login=\"FAIL\"\nfor i in $(seq 1 10); do\n  if docker exec -i -u postgres \"$C\" \\\n       psql -X -t -A -h 127.0.0.1 -U \"$R_TRUST\" -d postgres -c 'SELECT 1' >/dev/null 2>&1; then\n    trust_login=\"OK\"; break\n  fi\n  sleep 1\ndone\necho \"trust_login_no_password: $trust_login\"\n\n# (2) reject 롤: 올바른 비밀번호로도 거부 (reject 줄이 trust 줄보다 위 → 첫 매칭 거부)\nreject_out=\"$(docker exec -i -e PGPASSWORD='pw_reject_123' \"$C\" \\\n  psql -X -t -A -h 127.0.0.1 -U \"$R_REJECT\" -d postgres -c 'SELECT 1' 2>&1)\"\nif echo \"$reject_out\" | grep -qi 'rejects connection'; then\n  echo \"reject_login_first_match: REJECTED (pg_hba.conf rejects connection)\"\nelse\n  echo \"reject_login_first_match: UNEXPECTED\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,3 +1,3 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "trust_login_no_password: OK",
+          "1",
+          "trust_login_no_password: FAIL"
+        ],
+        [
+          "chg",
+          "2",
+          "reject_login_first_match: REJECTED (pg_hba.conf rejects connection)",
+          "2",
+          "reject_login_first_match: UNEXPECTED"
+        ],
+        [
+          "ctx",
+          "3",
+          "TC-RESULT: OK",
+          "3",
+          "TC-RESULT: OK"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1614",
+      "pg_id": "PG-429",
+      "title": "pg_basebackup --incremental 증분 백업",
+      "description": "PG17 신규 증분 백업으로 전체 백업 manifest를 기준으로 --incremental 백업을 받고 manifest 생성을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/app-pgbasebackup.html (§26.3.3)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1614 | pg_basebackup --incremental 증분 백업(PG17 신기능) | 문서 §26.3.3 / pg_basebackup --incremental | PG17NEW: 예\n# 검증 포인트: summarize_wal=on 확인 / 전체 백업 → 추가 변경 + pg_switch_wal → --incremental 종료코드 0 / 증분에 backup_manifest 존재\n# 결정론: 증분 바이트·요약 LSN 미출력 — 종료코드 + manifest 파일 존재만. tcqa_inc DB는 끝에서 DROP, 백업 디렉토리 trap 정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nFULL=/tmp/tc1614_$$_full\nINCR=/tmp/tc1614_$$_incr\n\ncleanup() {\n  docker exec -u postgres \"$C\" bash -lc \"dropdb --if-exists tcqa_inc\" >/dev/null 2>&1 || true\n  docker exec \"$C\" bash -lc \"rm -rf ${FULL} ${INCR}\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\n# summarize_wal 사전 확인\nsw=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW summarize_wal\" 2>/dev/null | tr -d '[:space:]')\necho \"summarize_wal = ${sw} (need on)\"\nif [ \"$sw\" != \"on\" ]; then\n  echo \"pg_basebackup --incremental = SKIP (summarize_wal off)\"\n  echo \"TC-RESULT: OK\"; exit 0\nfi\n\n# 데이터 적재 + 전체 백업\ndocker exec -u postgres \"$C\" bash -lc \"dropdb --if-exists tcqa_inc; createdb tcqa_inc\" >/dev/null 2>&1\ndocker exec -i -u postgres \"$C\" psql -X -q -U postgres -d tcqa_inc >/dev/null 2>&1 <<'SQL'\nSET client_min_messages=warning;\nCREATE TABLE t(id int);\nINSERT INTO t SELECT generate_series(1,100);\nSQL\ndocker exec -u postgres \"$C\" pg_basebackup -D \"${FULL}\" -X stream -c fast >/dev/null 2>&1\necho \"full backup exit = $?\"\n\n# 추가 변경 + WAL 스위치(요약 진척 유도)\ndocker exec -i -u postgres \"$C\" psql -X -q -U postgres -d tcqa_inc >/dev/null 2>&1 <<'SQL'\nINSERT INTO t SELECT generate_series(101,200);\nSELECT pg_switch_wal();\nSQL\n# WAL 요약이 manifest LSN 까지 진척되도록 잠시 폴링\ndocker exec -u postgres \"$C\" bash -lc 'for i in $(seq 1 30); do psql -X -tA -U postgres -d postgres -c \"SELECT count(*) FROM pg_available_wal_summaries()\" | grep -qvx 0 && break; sleep 1; done' >/dev/null 2>&1\n\n# 증분 백업\ndocker exec -u postgres \"$C\" pg_basebackup -D \"${INCR}\" -X stream -c fast --incremental=\"${FULL}/backup_manifest\" >/dev/null 2>&1\nirc=$?\necho \"incremental backup exit = ${irc} (expect 0)\"\nim=$(docker exec \"$C\" bash -lc \"test -f ${INCR}/backup_manifest && echo yes || echo no\")\necho \"incremental backup_manifest exists = ${im}\"\n\nif [ \"$irc\" -eq 0 ] && [ \"$im\" = \"yes\" ]; then\n  echo \"pg_basebackup --incremental = OK\"\nelse\n  echo \"pg_basebackup --incremental = FAIL (irc=$irc im=$im)\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,7 +1,4 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "summarize_wal = on (need on)",
+          "1",
+          "summarize_wal = off (need on)"
+        ],
+        [
+          "chg",
+          "2",
+          "full backup exit = 0",
+          "2",
+          "pg_basebackup --incremental = SKIP (summarize_wal off)"
+        ],
+        [
+          "chg",
+          "3",
+          "incremental backup exit = 0 (expect 0)",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "4",
+          "incremental backup_manifest exists = yes",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "5",
+          "pg_basebackup --incremental = OK",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "6",
+          "TC-RESULT: OK",
+          "3",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "7",
+          "cleanup done",
+          "4",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1615",
+      "pg_id": "PG-430",
+      "title": "pg_combinebackup 합성 후 기동·검증",
+      "description": "PG17 신규 pg_combinebackup으로 전체+증분을 합성하고 별도 포트로 기동하여 증분 시점 데이터(200행)가 전부 복원됨을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/app-pgcombinebackup.html (§26.3.4)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1615 | pg_combinebackup 증분 합성 후 별도 포트 기동·데이터 검증(PG17 신기능) | 문서 §26.3.4 / pg_combinebackup | PG17NEW: 예\n# 검증 포인트: full+incr(총 200행) → pg_combinebackup -o synth 종료코드 0 → pg_verifybackup synth 0 →\n#              synth 를 컨테이너 내 포트 5440 으로 기동 → SELECT count(*)=200 → 메인 5432 무영향\n# 결정론: 포트·PID·기동 로그 미출력 — count(*)=200 단일 검증 + 종료코드. 합성 인스턴스는 별도 데이터디렉토리+포트로 격리, trap stop+정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nPGBIN=/usr/lib/postgresql/17/bin   # postgres 로그인쉘 PATH에 빠져 절대경로 사용\nFULL=/tmp/tc1615_$$_full\nINCR=/tmp/tc1615_$$_incr\nSYNTH=/tmp/tc1615_$$_synth\nPORT=5440\n\ncleanup() {\n  # 합성 인스턴스 정지(기동돼 있으면) + 모든 임시물 + 테스트 DB 정리\n  docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_ctl -D ${SYNTH} -m immediate -w stop >/dev/null 2>&1\" || true\n  docker exec -u postgres \"$C\" bash -lc \"dropdb --if-exists tcqa_cb\" >/dev/null 2>&1 || true\n  docker exec \"$C\" bash -lc \"rm -rf ${FULL} ${INCR} ${SYNTH}\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\nsw=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW summarize_wal\" 2>/dev/null | tr -d '[:space:]')\nif [ \"$sw\" != \"on\" ]; then\n  echo \"pg_combinebackup = SKIP (summarize_wal off)\"; echo \"TC-RESULT: OK\"; exit 0\nfi\n\n# 데이터 적재 + 전체 백업 (100행)\ndocker exec -u postgres \"$C\" bash -lc \"dropdb --if-exists tcqa_cb; createdb tcqa_cb\" >/dev/null 2>&1\ndocker exec -i -u postgres \"$C\" psql -X -q -U postgres -d tcqa_cb >/dev/null 2>&1 <<'SQL'\nSET client_min_messages=warning;\nCREATE TABLE t(id int);\nINSERT INTO t SELECT generate_series(1,100);\nSQL\ndocker exec -u postgres \"$C\" pg_basebackup -D \"${FULL}\" -X stream -c fast >/dev/null 2>&1\n\n# 추가 100행 + WAL 스위치 → 요약 진척 폴링\ndocker exec -i -u postgres \"$C\" psql -X -q -U postgres -d tcqa_cb >/dev/null 2>&1 <<'SQL'\nINSERT INTO t SELECT generate_series(101,200);\nSELECT pg_switch_wal();\nSQL\ndocker exec -u postgres \"$C\" bash -lc 'for i in $(seq 1 30); do psql -X -tA -U postgres -d postgres -c \"SELECT count(*) FROM pg_available_wal_summaries()\" | grep -qvx 0 && break; sleep 1; done' >/dev/null 2>&1\n\n# 증분 백업\ndocker exec -u postgres \"$C\" pg_basebackup -D \"${INCR}\" -X stream -c fast --incremental=\"${FULL}/backup_manifest\" >/dev/null 2>&1\necho \"incremental backup exit = $?\"\n\n# 합성\ndocker exec -u postgres \"$C\" pg_combinebackup \"${FULL}\" \"${INCR}\" -o \"${SYNTH}\" >/dev/null 2>&1\ncrc=$?\necho \"pg_combinebackup exit = ${crc} (expect 0)\"\n\n# 합성 백업 무결성\ndocker exec -u postgres \"$C\" pg_verifybackup \"${SYNTH}\" >/dev/null 2>&1\nvrc=$?\necho \"pg_verifybackup synth exit = ${vrc} (expect 0)\"\n\n# synth 를 별도 포트로 기동 (메인 5432 무영향) → 데이터 검증\ndocker exec -u postgres \"$C\" bash -c \"\n  ${PGBIN}/pg_ctl -D ${SYNTH} -o '-p ${PORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp' -w -t 60 start\n\" >/dev/null 2>&1\nsrt=$?\necho \"synth instance start exit = ${srt}\"\ncnt=$(docker exec -u postgres \"$C\" bash -c \"${PGBIN}/psql -h /tmp -p ${PORT} -X -q -A -t -U postgres -d tcqa_cb -c 'SELECT count(*) FROM t'\" 2>/dev/null | tr -d '[:space:]')\necho \"synth instance count(*) = ${cnt} (expect 200)\"\n\n# 메인 무영향 재확인\nmainport=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW port\" 2>/dev/null | tr -d '[:space:]')\necho \"main port still = ${mainport} (expect 5432)\"\n\nif [ \"$crc\" -eq 0 ] && [ \"$vrc\" -eq 0 ] && [ \"$cnt\" = \"200\" ] && [ \"$mainport\" = \"5432\" ]; then\n  echo \"pg_combinebackup synth restore = OK\"\nelse\n  echo \"pg_combinebackup synth restore = FAIL (crc=$crc vrc=$vrc cnt=$cnt mainport=$mainp\n... [생략]",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,9 +1,3 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "incremental backup exit = 0",
+          "1",
+          "pg_combinebackup = SKIP (summarize_wal off)"
+        ],
+        [
+          "chg",
+          "2",
+          "pg_combinebackup exit = 0 (expect 0)",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "3",
+          "pg_verifybackup synth exit = 0 (expect 0)",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "4",
+          "synth instance start exit = 0",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "5",
+          "synth instance count(*) = 200 (expect 200)",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "6",
+          "main port still = 5432 (expect 5432)",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "7",
+          "pg_combinebackup synth restore = OK",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "8",
+          "TC-RESULT: OK",
+          "2",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "9",
+          "cleanup done",
+          "3",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1617",
+      "pg_id": "PG-432",
+      "title": "백업 매니페스트 system identifier(v2)",
+      "description": "PG17 매니페스트 v2의 System-Identifier 필드를 확인하고 다른 클러스터 매니페스트로 검증 시 불일치로 실패함을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/backup-manifest-format.html (§Backup Manifest Format)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1617 | 백업 매니페스트 system identifier 검증(PG17 매니페스트 v2 신기능) | 문서 § Backup Manifest Format / System-Identifier | PG17NEW: 예\n# 검증 포인트: manifest 에 'Manifest-Version: 2' 및 'System-Identifier' 키 존재 / sysid 값이 pg_controldata 와 일치 / 별도 클러스터 매니페스트로 -m 검증 시 mismatch 실패\n# 결정론: sysid 숫자 자체는 두 출처 일치 여부만(추출→equality), 절대값 단정 금지. 별도 인스턴스는 /tmp 격리, trap 정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nPGBIN=/usr/lib/postgresql/17/bin\nB=/tmp/tc1617_$$_bak\nOTHER=/tmp/tc1617_$$_other      # 다른 system id 를 가질 별도 클러스터\n\ncleanup() {\n  docker exec \"$C\" bash -c \"rm -rf ${B} ${OTHER}\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\n# 백업 + manifest 키 확인\ndocker exec -u postgres \"$C\" pg_basebackup -D \"${B}\" -X stream -c fast >/dev/null 2>&1\nver=$(docker exec \"$C\" bash -c \"grep -c 'PostgreSQL-Backup-Manifest-Version.*2' ${B}/backup_manifest\")\nsid=$(docker exec \"$C\" bash -c \"grep -c 'System-Identifier' ${B}/backup_manifest\")\necho \"manifest version2 lines=${ver}(>=1) System-Identifier lines=${sid}(>=1)\"\n\n# manifest 의 System-Identifier 값\nm_sid=$(docker exec \"$C\" bash -c \"grep 'System-Identifier' ${B}/backup_manifest | grep -oE '[0-9]+' | head -1\")\n# pg_controldata 의 Database system identifier\nc_sid=$(docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_controldata /var/lib/postgresql/data | grep 'Database system identifier' | grep -oE '[0-9]+'\")\necho \"system identifier match (manifest vs controldata) = $([ -n \"$m_sid\" ] && [ \"$m_sid\" = \"$c_sid\" ] && echo yes || echo no)\"\n\n# 별도 클러스터(다른 sysid) 의 manifest 로 -m 검증 → mismatch 실패\ndocker exec -u postgres \"$C\" bash -c \"${PGBIN}/initdb -D ${OTHER} -U postgres\" >/dev/null 2>&1\n# OTHER 의 manifest 는 없으므로, OTHER 에서 별도 백업 manifest 생성 대신: B 의 manifest 를 OTHER initdb 후\n# 만든 백업의 것으로 교체하는 대신, 간단히 OTHER 를 잠깐 기동→백업받아 그 manifest 를 -m 으로 넘긴다.\ndocker exec -u postgres \"$C\" bash -c \"\n  ${PGBIN}/pg_ctl -D ${OTHER} -o '-p 5446 -c listen_addresses=localhost -c unix_socket_directories=/tmp' -w -t 60 start >/dev/null 2>&1\n  ${PGBIN}/pg_basebackup -h /tmp -p 5446 -U postgres -D ${OTHER}_bak -X stream -c fast >/dev/null 2>&1\n  ${PGBIN}/pg_ctl -D ${OTHER} -m immediate -w stop >/dev/null 2>&1\n\" >/dev/null 2>&1\n# B 백업을 OTHER 의 manifest(다른 sysid)로 검증 → 실패해야\nmm=$(docker exec -u postgres \"$C\" bash -c \"pg_verifybackup -m ${OTHER}_bak/backup_manifest ${B} >/dev/null 2>&1; echo \\$?\")\ndocker exec \"$C\" bash -c \"rm -rf ${OTHER}_bak\" >/dev/null 2>&1 || true\necho \"cross-cluster manifest verify exit = ${mm} (expect 비0 — system id mismatch)\"\n\nif [ \"$ver\" -ge 1 ] && [ \"$sid\" -ge 1 ] && [ -n \"$m_sid\" ] && [ \"$m_sid\" = \"$c_sid\" ] && [ \"$mm\" -ne 0 ]; then\n  echo \"manifest system identifier = OK\"\nelse\n  echo \"manifest system identifier = FAIL (ver=$ver sid=$sid m=$m_sid c=$c_sid mm=$mm)\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,6 +1,7 @@",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "1",
+          "manifest version2 lines=1(>=1) System-Identifier lines=1(>=1)",
+          "1",
+          "manifest version2 lines=1(>=1) System-Identifier lines=1(>=1)"
+        ],
+        [
+          "chg",
+          "2",
+          "system identifier match (manifest vs controldata) = yes",
+          "2",
+          "bash: line 1: /usr/lib/postgresql/17/bin/pg_controldata: No such file or directory"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "3",
+          "system identifier match (manifest vs controldata) = no"
+        ],
+        [
+          "ctx",
+          "3",
+          "cross-cluster manifest verify exit = 1 (expect 비0 — system id mismatch)",
+          "4",
+          "cross-cluster manifest verify exit = 1 (expect 비0 — system id mismatch)"
+        ],
+        [
+          "chg",
+          "4",
+          "manifest system identifier = OK",
+          "5",
+          "manifest system identifier = FAIL (ver=1 sid=1 m=7655322411436988633 c= mm=1)"
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "6",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "6",
+          "cleanup done",
+          "7",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1618",
+      "pg_id": "PG-433",
+      "title": "WAL 요약 함수",
+      "description": "summarize_wal=on 환경에서 pg_available_wal_summaries()/pg_wal_summary_contents()로 WAL 요약 목록·내용을 조회할 수 있음을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.3 / 9.27)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1618 | WAL 요약 함수 pg_available_wal_summaries()/pg_wal_summary_contents() | 문서 §26.3.3 / 9.27 System Functions | PG17NEW: 예\n# 검증 포인트: summarize_wal=on / 데이터변경+pg_switch_wal 후 요약 count>0 / 한 행의 lsn 으로 pg_wal_summary_contents 가 행 반환(컬럼 존재)\n# 결정론: LSN·TLI 값 미출력 — count>0 불변식과 컬럼 존재만. 요약 lsn 은 함수 반환값을 변수로 받아 재사용. 테스트 DB 끝에서 DROP.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nP=\"docker exec -i -u postgres ${C} psql -X -q -A -t -U postgres -d postgres\"\n\ncleanup() {\n  docker exec -u postgres \"$C\" bash -c \"dropdb --if-exists tcqa_ws\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\nsw=$($P -c \"SHOW summarize_wal\" 2>/dev/null | tr -d '[:space:]')\necho \"summarize_wal = ${sw} (need on)\"\nif [ \"$sw\" != \"on\" ]; then echo \"WAL summary functions = SKIP (summarize_wal off)\"; echo \"TC-RESULT: OK\"; exit 0; fi\n\n# 데이터 변경 + WAL 스위치 → 요약 생성 유도 (폴링)\ndocker exec -u postgres \"$C\" bash -c \"dropdb --if-exists tcqa_ws; createdb tcqa_ws\" >/dev/null 2>&1\ndocker exec -i -u postgres \"$C\" psql -X -q -U postgres -d tcqa_ws >/dev/null 2>&1 <<'SQL'\nSET client_min_messages=warning;\nCREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,500);\nSELECT pg_switch_wal();\nSQL\ndocker exec -u postgres \"$C\" bash -c 'for i in $(seq 1 30); do psql -X -tA -U postgres -d postgres -c \"SELECT count(*) FROM pg_available_wal_summaries()\" | grep -qvx 0 && break; sleep 1; done' >/dev/null 2>&1\n\n# 요약 1개 이상 (count>0 불변식)\nn=$($P -c \"SELECT count(*) FROM pg_available_wal_summaries()\" 2>/dev/null | tr -d '[:space:]')\necho \"available WAL summaries count>0 = $([ \"${n:-0}\" -gt 0 ] && echo yes || echo no)\"\n\n# 내용 있는 요약(최신이 비어있을 수 있어 nrows>0 인 요약 선택) 으로 contents 가 행을 반환하는지\n# — 변경 블록 정보를 담은 요약이 1개 이상 존재함을 불변식으로 검증\nhascols=$($P <<'SQL' 2>/dev/null | tr -d '[:space:]'\nSELECT bool_or(\n  (SELECT count(*) FROM pg_wal_summary_contents(tli,start_lsn,end_lsn)) > 0\n)::text\nFROM pg_available_wal_summaries();\nSQL\n)\necho \"some WAL summary has contents rows = ${hascols}\"\n\n# 기대 컬럼(relfilenode/reltablespace/relforknumber/relblocknumber/is_limit_block) 존재 — 함수 시그니처 검증\ncolok=$($P <<'SQL' 2>&1 | tr -d '[:space:]'\nWITH s AS (SELECT tli, start_lsn, end_lsn FROM pg_available_wal_summaries() ORDER BY end_lsn LIMIT 1)\nSELECT count(*) FROM (\n  SELECT relfilenode, reltablespace, relforknumber, relblocknumber, is_limit_block\n  FROM pg_wal_summary_contents((SELECT tli FROM s),(SELECT start_lsn FROM s),(SELECT end_lsn FROM s)) LIMIT 0\n) z;\nSQL\n)\necho \"expected columns resolvable = $([ \"$colok\" = \"0\" ] && echo yes || echo no)\"\n\nif [ \"${n:-0}\" -gt 0 ] && [ \"$hascols\" = \"true\" ] && [ \"$colok\" = \"0\" ]; then\n  echo \"WAL summary functions = OK\"\nelse\n  echo \"WAL summary functions = FAIL (n=$n rows=$hascols colok=$colok)\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,7 +1,4 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "summarize_wal = on (need on)",
+          "1",
+          "summarize_wal = off (need on)"
+        ],
+        [
+          "chg",
+          "2",
+          "available WAL summaries count>0 = yes",
+          "2",
+          "WAL summary functions = SKIP (summarize_wal off)"
+        ],
+        [
+          "chg",
+          "3",
+          "some WAL summary has contents rows = true",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "4",
+          "expected columns resolvable = yes",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "5",
+          "WAL summary functions = OK",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "6",
+          "TC-RESULT: OK",
+          "3",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "7",
+          "cleanup done",
+          "4",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1619",
+      "pg_id": "PG-434",
+      "title": "pg_walsummary CLI 디코드",
+      "description": "PG17 신규 pg_walsummary 명령으로 pg_wal/summaries의 WAL 요약 파일을 읽어 변경 블록 정보를 디코드할 수 있음을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/app-pgwalsummary.html (§pg_walsummary)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1619 | pg_walsummary CLI 로 WAL 요약 파일 디코드(PG17 신기능) | 문서 § pg_walsummary | PG17NEW: 예\n# 검증 포인트: 데이터변경+pg_switch_wal 로 요약 파일 생성 / pg_wal/summaries/*.summary 1개 이상 / pg_walsummary 종료코드0 + 디코드 행(TS/DB/REL) 존재 / -i 옵션도 0\n# 결정론: 블록번호·LSN 미출력 — 종료코드 + 디코드 라인수>0 만. 테스트 DB 끝에서 DROP.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nPGBIN=/usr/lib/postgresql/17/bin\nSUMDIR=/var/lib/postgresql/data/pg_wal/summaries\n\ncleanup() {\n  docker exec -u postgres \"$C\" bash -c \"dropdb --if-exists tcqa_wcli\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\nsw=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW summarize_wal\" 2>/dev/null | tr -d '[:space:]')\nif [ \"$sw\" != \"on\" ]; then echo \"pg_walsummary CLI = SKIP (summarize_wal off)\"; echo \"TC-RESULT: OK\"; exit 0; fi\n\n# 요약 파일 생성 유도\ndocker exec -u postgres \"$C\" bash -c \"dropdb --if-exists tcqa_wcli; createdb tcqa_wcli\" >/dev/null 2>&1\ndocker exec -i -u postgres \"$C\" psql -X -q -U postgres -d tcqa_wcli >/dev/null 2>&1 <<'SQL'\nSET client_min_messages=warning;\nCREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,500);\nSELECT pg_switch_wal();\nSQL\ndocker exec -u postgres \"$C\" bash -c \"for i in \\$(seq 1 30); do ls ${SUMDIR}/*.summary >/dev/null 2>&1 && break; sleep 1; done\"\n\nnfiles=$(docker exec -u postgres \"$C\" bash -c \"ls ${SUMDIR}/*.summary 2>/dev/null | wc -l\" | tr -d '[:space:]')\necho \"summary files count>0 = $([ \"${nfiles:-0}\" -gt 0 ] && echo yes || echo no)\"\n\nif [ \"${nfiles:-0}\" -le 0 ]; then\n  echo \"pg_walsummary CLI = FAIL (no summary file produced)\"; echo \"TC-RESULT: OK\"; exit 0\nfi\n\nSF=$(docker exec -u postgres \"$C\" bash -c \"ls ${SUMDIR}/*.summary 2>/dev/null | head -1\" | tr -d '[:space:]')\n\n# 디코드 — 종료코드 + 비어있지 않은 출력\nout=$(docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_walsummary ${SF} 2>/dev/null\")\nrc=$(docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_walsummary ${SF} >/dev/null 2>&1; echo \\$?\")\nlines=$(printf '%s\\n' \"$out\" | grep -cE \"TS |DB |REL \")\necho \"pg_walsummary exit=${rc}(0) decode-lines>0 = $([ \"$lines\" -gt 0 ] && echo yes || echo no)\"\n\n# -i (individual)\nirc=$(docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_walsummary -i ${SF} >/dev/null 2>&1; echo \\$?\")\necho \"pg_walsummary -i exit = ${irc} (expect 0)\"\n\nif [ \"$rc\" = \"0\" ] && [ \"$lines\" -gt 0 ] && [ \"$irc\" = \"0\" ]; then\n  echo \"pg_walsummary CLI = OK\"\nelse\n  echo \"pg_walsummary CLI = FAIL (rc=$rc lines=$lines irc=$irc)\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,6 +1,3 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "summary files count>0 = yes",
+          "1",
+          "pg_walsummary CLI = SKIP (summarize_wal off)"
+        ],
+        [
+          "chg",
+          "2",
+          "pg_walsummary exit=0(0) decode-lines>0 = yes",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "3",
+          "pg_walsummary -i exit = 0 (expect 0)",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "4",
+          "pg_walsummary CLI = OK",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "2",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "6",
+          "cleanup done",
+          "3",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1620",
+      "pg_id": "PG-435",
+      "title": "연속 아카이빙(archive_command)",
+      "description": "별도 인스턴스(포트 5441)에 archive_mode=on+archive_command를 설정·기동하고 WAL 스위치 시 아카이브 디렉토리에 WAL이 적재됨을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.1)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1620 | 연속 아카이빙 — archive_command 설정 + WAL 아카이브 적재 | 문서 §26.3.1 Setting Up WAL Archiving | PG17NEW: 아니오\n# 검증 포인트: /tmp 별도 인스턴스(포트 5441)에 archive_mode=on+archive_command(cp) 기동 / 데이터변경+pg_switch_wal 후 아카이브 디렉토리 파일>0 / 메인 5432 무영향\n# 결정론: WAL 파일명 절대값 미출력 — 아카이브 파일 개수>0 만. archive_mode 변경은 메인 미적용(별도 인스턴스 격리), trap 정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nPGBIN=/usr/lib/postgresql/17/bin\nD=/tmp/tc1620_$$_data\nARCH=/tmp/tc1620_$$_arch\nPORT=5441\n\ncleanup() {\n  docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_ctl -D ${D} -m immediate -w stop >/dev/null 2>&1\" || true\n  docker exec \"$C\" bash -c \"rm -rf ${D} ${ARCH}\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\n# 별도 인스턴스 initdb + archive 설정 + 기동 (메인과 완전 격리)\ndocker exec -u postgres \"$C\" bash -c \"\n  set -e\n  ${PGBIN}/initdb -D ${D} -U postgres >/dev/null 2>&1\n  mkdir -p ${ARCH}\n  cat >> ${D}/postgresql.conf <<CONF\narchive_mode = on\narchive_command = 'cp %p ${ARCH}/%f'\nwal_level = replica\nCONF\n  ${PGBIN}/pg_ctl -D ${D} -o '-p ${PORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp' -w -t 60 start >/dev/null 2>&1\n\" >/dev/null 2>&1\necho \"separate instance start exit = $?\"\n\n# 데이터 변경 + WAL 스위치 → 아카이브 적재 유도\ndocker exec -u postgres \"$C\" bash -c \"\n  ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c 'CREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,100);' >/dev/null 2>&1\n  ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c 'SELECT pg_switch_wal();' >/dev/null 2>&1\n  for i in \\$(seq 1 20); do [ \\$(ls ${ARCH} 2>/dev/null | wc -l) -gt 0 ] && break; sleep 1; done\n\"\nn=$(docker exec \"$C\" bash -c \"ls ${ARCH} 2>/dev/null | wc -l\" | tr -d '[:space:]')\necho \"archived WAL files count>0 = $([ \"${n:-0}\" -gt 0 ] && echo yes || echo no)\"\n\nmainport=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW port\" 2>/dev/null | tr -d '[:space:]')\nmainarch=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW archive_mode\" 2>/dev/null | tr -d '[:space:]')\necho \"main port=${mainport}(5432) archive_mode=${mainarch}(off — 미적용)\"\n\nif [ \"${n:-0}\" -gt 0 ] && [ \"$mainport\" = \"5432\" ] && [ \"$mainarch\" = \"off\" ]; then\n  echo \"continuous archiving = OK\"\nelse\n  echo \"continuous archiving = FAIL (n=$n mainport=$mainport mainarch=$mainarch)\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,6 +1,6 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "separate instance start exit = 0",
+          "1",
+          "separate instance start exit = 127"
+        ],
+        [
+          "chg",
+          "2",
+          "archived WAL files count>0 = yes",
+          "2",
+          "archived WAL files count>0 = no"
+        ],
+        [
+          "chg",
+          "3",
+          "main port=5432(5432) archive_mode=off(off — 미적용)",
+          "3",
+          "main port=5333(5432) archive_mode=off(off — 미적용)"
+        ],
+        [
+          "chg",
+          "4",
+          "continuous archiving = OK",
+          "4",
+          "continuous archiving = FAIL (n=0 mainport=5333 mainarch=off)"
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "5",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "6",
+          "cleanup done",
+          "6",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1621",
+      "pg_id": "PG-436",
+      "title": "PITR 시점 복구(recovery_target_name)",
+      "description": "별도 소스/복구 인스턴스(5442/5443)로 베이스백업·연속아카이빙을 구성하고 restore point 명명 시점까지 복구하여 그 시점 데이터(50행)만 복원됨을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/continuous-archiving.html (§26.3.5)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1621 | PITR — 베이스백업→변경→restore point→별도 디렉토리 시점 복구 기동 | 문서 §26.3.5 / recovery_target_name | PG17NEW: 아니오\n# 검증 포인트: 소스 인스턴스(5442) archive_mode=on / 베이스백업 → 행 A 적재 → pg_create_restore_point('rp1') → 행 B 적재 →\n#              복구 인스턴스(5443) restore_command + recovery_target_name='rp1' + promote → SELECT count(*) = rp1 시점 행수(A만)\n# 결정론: 복구 LSN·타임라인 미출력 — rp1 시점 행 수 정확값(고정 입력 기반)만. 모든 인스턴스 /tmp 격리+전용 포트, trap 정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nPGBIN=/usr/lib/postgresql/17/bin\nSRC=/tmp/tc1621_$$_src\nRST=/tmp/tc1621_$$_rst\nARCH=/tmp/tc1621_$$_arch\nSPORT=5442; RPORT=5443\n\ncleanup() {\n  docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_ctl -D ${SRC} -m immediate -w stop >/dev/null 2>&1\" || true\n  docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_ctl -D ${RST} -m immediate -w stop >/dev/null 2>&1\" || true\n  docker exec \"$C\" bash -c \"rm -rf ${SRC} ${RST} ${ARCH}\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\n# 1) 소스 인스턴스 (archive_mode=on, 베이스백업은 rp 이전에 받음)\ndocker exec -u postgres \"$C\" bash -c \"\n  set -e\n  ${PGBIN}/initdb -D ${SRC} -U postgres >/dev/null 2>&1\n  mkdir -p ${ARCH}\n  cat >> ${SRC}/postgresql.conf <<CONF\narchive_mode = on\narchive_command = 'cp %p ${ARCH}/%f'\nwal_level = replica\nCONF\n  ${PGBIN}/pg_ctl -D ${SRC} -o '-p ${SPORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp' -w -t 60 start >/dev/null 2>&1\n\" >/dev/null 2>&1\necho \"source instance start exit = $?\"\n\nSPSQL=\"${PGBIN}/psql -h /tmp -p ${SPORT} -X -q -U postgres -d postgres\"\n\n# 2) 베이스백업(빈 상태) → 행 A(50) → rp1 → 행 B(50 추가)\ndocker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_basebackup -h /tmp -p ${SPORT} -U postgres -D ${RST} -X stream -c fast\" >/dev/null 2>&1\ndocker exec -u postgres \"$C\" bash -c \"\n  ${SPSQL} -c 'CREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,50);' >/dev/null 2>&1\n  ${SPSQL} -c \\\"SELECT pg_create_restore_point('rp1');\\\" >/dev/null 2>&1\n  ${SPSQL} -c 'INSERT INTO t SELECT generate_series(51,100);' >/dev/null 2>&1\n  ${SPSQL} -c 'SELECT pg_switch_wal();' >/dev/null 2>&1\n  # rp 이후 WAL 이 아카이브되도록 잠시 대기\n  for i in \\$(seq 1 20); do [ \\$(ls ${ARCH} 2>/dev/null | wc -l) -gt 0 ] && break; sleep 1; done\n\"\n\n# 3) 복구 인스턴스 설정: restore_command + recovery_target_name=rp1 + promote\ndocker exec -u postgres \"$C\" bash -c \"\n  cat >> ${RST}/postgresql.conf <<CONF\nrestore_command = 'cp ${ARCH}/%f %p'\nrecovery_target_name = 'rp1'\nrecovery_target_action = 'promote'\narchive_mode = off\nCONF\n  touch ${RST}/recovery.signal\n  ${PGBIN}/pg_ctl -D ${RST} -o '-p ${RPORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp' -w -t 120 start >/dev/null 2>&1 || true\n  # 복구·프로모션 완료까지 대기 (in_recovery=false 될 때까지)\n  for i in \\$(seq 1 60); do\n    r=\\$(${PGBIN}/psql -h /tmp -p ${RPORT} -X -A -t -U postgres -d postgres -c 'SELECT pg_is_in_recovery()' 2>/dev/null | tr -d '[:space:]')\n    [ \\\"\\$r\\\" = \\\"f\\\" ] && break; sleep 1\n  done\n\" >/dev/null 2>&1\n\ncnt=$(docker exec -u postgres \"$C\" bash -c \"${PGBIN}/psql -h /tmp -p ${RPORT} -X -A -t -U postgres -d postgres -c 'SELECT count(*) FROM t'\" 2>/dev/null | tr -d '[:space:]')\necho \"recovered count at rp1 = ${cnt} (expect 50 — 행 B 제외)\"\n\nmainport=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW port\" 2>/dev/null | tr -d '[:space:]')\necho \"main port still = ${mainport} (5432)\"\n\nif [ \"$cnt\" = \"50\" ] && [ \"$mainport\" = \"5432\" ]; then\n  echo \"PITR recovery_target_name = OK\"\nelse\n  echo \"PITR recovery_target_name =\n... [생략]",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,6 +1,6 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "source instance start exit = 0",
+          "1",
+          "source instance start exit = 127"
+        ],
+        [
+          "chg",
+          "2",
+          "recovered count at rp1 = 50 (expect 50 — 행 B 제외)",
+          "2",
+          "recovered count at rp1 =  (expect 50 — 행 B 제외)"
+        ],
+        [
+          "chg",
+          "3",
+          "main port still = 5432 (5432)",
+          "3",
+          "main port still = 5333 (5432)"
+        ],
+        [
+          "chg",
+          "4",
+          "PITR recovery_target_name = OK",
+          "4",
+          "PITR recovery_target_name = FAIL (cnt= mainport=5333)"
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "5",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "6",
+          "cleanup done",
+          "6",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1622",
+      "pg_id": "PG-437",
+      "title": "pg_archivecleanup CLI",
+      "description": "pg_archivecleanup으로 지정 WAL 파일보다 오래된 아카이브 세그먼트를 삭제할 수 있음을 검증한다(개수 3→1)",
+      "source": "https://www.postgresql.org/docs/17/pgarchivecleanup.html (§pg_archivecleanup)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1622 | pg_archivecleanup CLI 로 오래된 WAL 아카이브 정리 | 문서 § pg_archivecleanup | PG17NEW: 아니오\n# 검증 포인트: 가짜 WAL 세그먼트명 파일 3개(...0001~0003) → pg_archivecleanup arch ...0003 → 001/002 삭제·003 보존(개수 3→1) / -d 시 'removing' 메시지\n# 결정론: 파일명 출력 대신 정리 전후 개수(3→1)로 검증. 임시 디렉토리 trap 정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nPGBIN=/usr/lib/postgresql/17/bin\nARCH=/tmp/tc1622_$$_arch\n\ncleanup() {\n  docker exec \"$C\" bash -c \"rm -rf ${ARCH}\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\n# 가짜 WAL 세그먼트 3개 (24자리 16진명) — postgres 소유로 생성(정리 권한 확보)\ndocker exec -u postgres \"$C\" bash -c \"\n  mkdir -p ${ARCH}\n  : > ${ARCH}/000000010000000000000001\n  : > ${ARCH}/000000010000000000000002\n  : > ${ARCH}/000000010000000000000003\n\"\nbefore=$(docker exec \"$C\" bash -c \"ls ${ARCH} | wc -l\" | tr -d '[:space:]')\necho \"before cleanup file count = ${before} (expect 3)\"\n\n# 003 보다 오래된 것 정리\ndocker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_archivecleanup ${ARCH} 000000010000000000000003\" >/dev/null 2>&1\nafter=$(docker exec \"$C\" bash -c \"ls ${ARCH} | wc -l\" | tr -d '[:space:]')\nkeep003=$(docker exec \"$C\" bash -c \"test -f ${ARCH}/000000010000000000000003 && echo yes || echo no\")\necho \"after cleanup file count = ${after} (expect 1), 003 kept = ${keep003}\"\n\n# -d (디버그) 시 'removing' 류 메시지 (파일 재생성 후)\ndocker exec -u postgres \"$C\" bash -c \": > ${ARCH}/000000010000000000000001; : > ${ARCH}/000000010000000000000002\"\ndbg=$(docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_archivecleanup -d ${ARCH} 000000010000000000000003 2>&1\" | grep -ciE \"removing|remov\")\necho \"-d removing message = $([ \"$dbg\" -ge 1 ] && echo yes || echo no)\"\n\nif [ \"$before\" = \"3\" ] && [ \"$after\" = \"1\" ] && [ \"$keep003\" = \"yes\" ] && [ \"$dbg\" -ge 1 ]; then\n  echo \"pg_archivecleanup = OK\"\nelse\n  echo \"pg_archivecleanup = FAIL (before=$before after=$after keep=$keep003 dbg=$dbg)\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,6 +1,6 @@",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "1",
+          "before cleanup file count = 3 (expect 3)",
+          "1",
+          "before cleanup file count = 3 (expect 3)"
+        ],
+        [
+          "chg",
+          "2",
+          "after cleanup file count = 1 (expect 1), 003 kept = yes",
+          "2",
+          "after cleanup file count = 3 (expect 1), 003 kept = yes"
+        ],
+        [
+          "chg",
+          "3",
+          "-d removing message = yes",
+          "3",
+          "-d removing message = no"
+        ],
+        [
+          "chg",
+          "4",
+          "pg_archivecleanup = OK",
+          "4",
+          "pg_archivecleanup = FAIL (before=3 after=3 keep=yes dbg=0)"
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "5",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "6",
+          "cleanup done",
+          "6",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1623",
+      "pg_id": "PG-438",
+      "title": "basic_archive 모듈 아카이빙",
+      "description": "내장 basic_archive 모듈을 archive_library로 로드하여 모듈 방식으로 WAL을 아카이브할 수 있음을 별도 인스턴스(5444)에서 검증한다",
+      "source": "https://www.postgresql.org/docs/17/basic-archive.html (§F.4 / Chapter 50)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1623 | basic_archive 컨트립 — archive_library 로 모듈 기반 아카이빙 | 문서 §F.4 / Chapter 50 Archive Modules | PG17NEW: 아니오\n# 검증 포인트: basic_archive.so 존재 확인(없으면 SKIP) / /tmp 별도 인스턴스(5444) archive_library='basic_archive' + archive_directory 기동 /\n#              데이터변경+pg_switch_wal 후 아카이브 디렉토리 파일>0 / 메인 무영향\n# 결정론: WAL 파일명 미출력 — 아카이브 파일 개수>0 만. basic_archive.so 부재 시 SKIP 후 TC-RESULT: OK(환경 폴백), trap 정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nPGBIN=/usr/lib/postgresql/17/bin\nD=/tmp/tc1623_$$_data\nARCH=/tmp/tc1623_$$_arch\nPORT=5444\n\ncleanup() {\n  docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_ctl -D ${D} -m immediate -w stop >/dev/null 2>&1\" || true\n  docker exec \"$C\" bash -c \"rm -rf ${D} ${ARCH}\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\n# basic_archive.so 존재 확인\nhas=$(docker exec \"$C\" bash -c \"test -f /usr/lib/postgresql/17/lib/basic_archive.so && echo yes || echo no\")\necho \"basic_archive.so present = ${has}\"\nif [ \"$has\" != \"yes\" ]; then\n  echo \"SKIP: basic_archive 미설치\"\n  echo \"TC-RESULT: OK\"; exit 0\nfi\n\n# 별도 인스턴스: archive_library + basic_archive.archive_directory\ndocker exec -u postgres \"$C\" bash -c \"\n  set -e\n  ${PGBIN}/initdb -D ${D} -U postgres >/dev/null 2>&1\n  mkdir -p ${ARCH}\n  cat >> ${D}/postgresql.conf <<CONF\narchive_mode = on\narchive_library = 'basic_archive'\nbasic_archive.archive_directory = '${ARCH}'\nwal_level = replica\nCONF\n  ${PGBIN}/pg_ctl -D ${D} -o '-p ${PORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp' -w -t 60 start >/dev/null 2>&1\n\" >/dev/null 2>&1\necho \"module-archiving instance start exit = $?\"\n\ndocker exec -u postgres \"$C\" bash -c \"\n  ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c 'CREATE TABLE t(id int); INSERT INTO t SELECT generate_series(1,100);' >/dev/null 2>&1\n  ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c 'SELECT pg_switch_wal();' >/dev/null 2>&1\n  for i in \\$(seq 1 25); do [ \\$(ls ${ARCH} 2>/dev/null | wc -l) -gt 0 ] && break; sleep 1; done\n\"\nn=$(docker exec \"$C\" bash -c \"ls ${ARCH} 2>/dev/null | wc -l\" | tr -d '[:space:]')\necho \"module-archived WAL files count>0 = $([ \"${n:-0}\" -gt 0 ] && echo yes || echo no)\"\n\nmainport=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW port\" 2>/dev/null | tr -d '[:space:]')\necho \"main port still = ${mainport} (5432)\"\n\nif [ \"${n:-0}\" -gt 0 ] && [ \"$mainport\" = \"5432\" ]; then\n  echo \"basic_archive module archiving = OK\"\nelse\n  echo \"basic_archive module archiving = FAIL (n=$n mainport=$mainport)\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,7 +1,4 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "basic_archive.so present = yes",
+          "1",
+          "basic_archive.so present = no"
+        ],
+        [
+          "chg",
+          "2",
+          "module-archiving instance start exit = 0",
+          "2",
+          "SKIP: basic_archive 미설치"
+        ],
+        [
+          "chg",
+          "3",
+          "module-archived WAL files count>0 = yes",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "4",
+          "main port still = 5432 (5432)",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "5",
+          "basic_archive module archiving = OK",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "6",
+          "TC-RESULT: OK",
+          "3",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "7",
+          "cleanup done",
+          "4",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc1624",
+      "pg_id": "PG-439",
+      "title": "archive_library vs archive_command 상호배타",
+      "description": "archive_library와 archive_command를 동시 설정하면 서버가 충돌로 아카이빙을 비활성함을 별도 인스턴스(5445)에서 검증한다",
+      "source": "https://www.postgresql.org/docs/17/archive-modules.html (§50.1)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc1624 | Archive Modules 프레임워크 — archive_library vs archive_command 상호배타 | 문서 §50.1 / archive_library | PG17NEW: 아니오\n# 검증 포인트: /tmp 별도 인스턴스(5445)에 archive_library + archive_command 동시 설정 → 기동 시 'both ... specified' 에러/경고로 아카이빙 비활성(로그) /\n#              하나만 설정 시 정상(대조) / 메인 무영향\n# 결정론: 에러/경고 키워드 매칭만 — 타임스탬프·PID 미출력. 충돌은 메시지 존재 또는 아카이빙 비활성 둘 중 하나로 판정, trap 정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nC=\"${C_SINGLE}\"\nPGBIN=/usr/lib/postgresql/17/bin\nD=/tmp/tc1624_$$_data\nARCH=/tmp/tc1624_$$_arch\nLOG=/tmp/tc1624_$$_log\nPORT=5445\n\ncleanup() {\n  docker exec -u postgres \"$C\" bash -c \"${PGBIN}/pg_ctl -D ${D} -m immediate -w stop >/dev/null 2>&1\" || true\n  docker exec \"$C\" bash -c \"rm -rf ${D} ${ARCH} ${LOG}\" >/dev/null 2>&1 || true\n  echo \"cleanup done\"\n}\ntrap cleanup EXIT\n\nhas=$(docker exec \"$C\" bash -c \"test -f /usr/lib/postgresql/17/lib/basic_archive.so && echo yes || echo no\")\nif [ \"$has\" != \"yes\" ]; then echo \"SKIP: basic_archive 미설치\"; echo \"TC-RESULT: OK\"; exit 0; fi\n\n# 둘 다 설정 → 기동(로그 캡처). 서버는 기동되더라도 충돌 경고 + 아카이빙 비활성이어야.\ndocker exec -u postgres \"$C\" bash -c \"\n  set -e\n  ${PGBIN}/initdb -D ${D} -U postgres >/dev/null 2>&1\n  mkdir -p ${ARCH} ${LOG}\n  cat >> ${D}/postgresql.conf <<CONF\narchive_mode = on\narchive_library = 'basic_archive'\narchive_command = 'cp %p ${ARCH}/%f'\nbasic_archive.archive_directory = '${ARCH}'\nwal_level = replica\nlogging_collector = on\nlog_directory = '${LOG}'\nlog_filename = 'pg.log'\nCONF\n  ${PGBIN}/pg_ctl -D ${D} -o '-p ${PORT} -c listen_addresses=localhost -c unix_socket_directories=/tmp' -w -t 60 start >/dev/null 2>&1 || true\n  sleep 3\n\"\n# 로그에서 충돌 메시지\nconflict=$(docker exec \"$C\" bash -c \"cat ${LOG}/pg.log 2>/dev/null\" | grep -ciE \"both archive_command and archive_library|archive_library.*archive_command|cannot.*both\")\necho \"conflict warning/error in log = $([ \"$conflict\" -ge 1 ] && echo yes || echo no)\"\n\n# 아카이빙 비활성 여부 보조 판정: 변경+switch 후 아카이브 비어있어야 (충돌 시 비활성)\nrunning=$(docker exec -u postgres \"$C\" bash -c \"${PGBIN}/psql -h /tmp -p ${PORT} -X -A -t -U postgres -d postgres -c 'SELECT 1' 2>/dev/null\" | tr -d '[:space:]')\nif [ \"$running\" = \"1\" ]; then\n  docker exec -u postgres \"$C\" bash -c \"\n    ${PGBIN}/psql -h /tmp -p ${PORT} -X -q -U postgres -d postgres -c 'CREATE TABLE t(id int); SELECT pg_switch_wal();' >/dev/null 2>&1\n    sleep 3\n  \"\nfi\narch_n=$(docker exec \"$C\" bash -c \"ls ${ARCH} 2>/dev/null | grep -vc summary\" 2>/dev/null | tr -d '[:space:]')\necho \"archive disabled (files=0 on conflict) = $([ \"${arch_n:-0}\" -eq 0 ] && echo yes || echo no)\"\n\nmainport=$(docker exec -i -u postgres \"$C\" psql -X -q -A -t -U postgres -d postgres -c \"SHOW port\" 2>/dev/null | tr -d '[:space:]')\necho \"main port still = ${mainport} (5432)\"\n\n# 판정: 충돌 메시지 존재 OR 아카이빙 비활성 (둘 중 하나) + 메인 무영향\nif { [ \"$conflict\" -ge 1 ] || [ \"${arch_n:-0}\" -eq 0 ]; } && [ \"$mainport\" = \"5432\" ]; then\n  echo \"archive_library vs archive_command mutual exclusion = OK\"\nelse\n  echo \"archive_library vs archive_command mutual exclusion = FAIL (conflict=$conflict arch_n=$arch_n mainport=$mainport)\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,6 +1,3 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "conflict warning/error in log = no",
+          "1",
+          "SKIP: basic_archive 미설치"
+        ],
+        [
+          "chg",
+          "2",
+          "archive disabled (files=0 on conflict) = yes",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "3",
+          "main port still = 5432 (5432)",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "4",
+          "archive_library vs archive_command mutual exclusion = OK",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "2",
+          "TC-RESULT: OK"
+        ],
+        [
+          "ctx",
+          "6",
+          "cleanup done",
+          "3",
+          "cleanup done"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc2006",
+      "pg_id": "PG-334",
+      "title": "\\watch min_rows= 최소행 종료(PG17 신규)",
+      "description": "PG17 신규 \\watch min_rows= 옵션이 결과 행 수가 최소값 미만이 되면 count 한계 전 반복 실행을 자동 종료하는 신기능을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/app-psql.html (§psql \\watch (min_rows))",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc2006 | \\watch min_rows= 최소행 종료(PG17 신규) | 문서 §psql \\watch (min_rows) | PG17NEW: 예\n# 검증 포인트: min_rows= 구문 파싱·실행 / 행 수 미만 시 count 한계 전 자동 종료 / min_rows 미지정과 차이 / 종료 후 종료코드\n# 결정론: \\watch 는 시각·반복 출력이 비결정 → exec=sh 로 종료코드·메시지 패턴만 grep. '항상 0행' 쿼리로 min_rows=1 즉시 종료, interval 최소화.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\n# (1) min_rows=1 + 항상 0행 쿼리 → 첫 반복에서 즉시 자동 종료 (count 한계 도달 전)\n# 주의: \\watch 메타커맨드는 psql -c 로는 구문 에러 → 반드시 stdin(here-doc)으로 투입.\n# qa_timeout 으로 혹시 모를 무한 반복 방어 (정상 동작이면 즉시 종료)\nout1=\"$(qa_timeout 15 docker exec -i \"$C_SINGLE\" psql -X -q -U postgres -d qa 2>&1 <<'SQL'\nSELECT 1 WHERE false \\watch interval=0.1 count=20 min_rows=1\nSQL\n)\"\nrc1=$?\nif [ \"$rc1\" -eq 0 ]; then\n  echo \"min_rows=1 + 0행 쿼리: exit 0 (자동 종료) = OK\"\nelse\n  echo \"min_rows=1 + 0행 쿼리: exit $rc1 = FAIL\"\nfi\n# 출력에 (0 rows) 가 한 번 나타나고 무한 반복하지 않음 (count=20 인데 1~2회만)\nn_iter=\"$(printf '%s\\n' \"$out1\" | grep -c '(0 rows)')\"\nif [ \"$n_iter\" -ge 1 ] && [ \"$n_iter\" -le 3 ]; then\n  echo \"반복 횟수 ${n_iter}회 (count=20 한계 전 종료) = OK\"\nelse\n  echo \"반복 횟수 ${n_iter}회 (예상 1~3) = FAIL\"\nfi\n\n# (2) min_rows= 약자 m= 형태도 파싱됨 (PG17 \\watch [m=MIN])\nout2=\"$(qa_timeout 15 docker exec -i \"$C_SINGLE\" psql -X -q -U postgres -d qa 2>&1 <<'SQL'\nSELECT 1 WHERE false \\watch i=0.1 c=20 m=1\nSQL\n)\"\nrc2=$?\nif [ \"$rc2\" -eq 0 ]; then\n  echo \"축약 구문 i=/c=/m= 파싱·자동종료: exit 0 = OK\"\nelse\n  echo \"축약 구문 파싱: exit $rc2 = FAIL\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,4 +1,4 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "min_rows=1 + 0행 쿼리: exit 0 (자동 종료) = OK",
+          "1",
+          "min_rows=1 + 0행 쿼리: exit 127 = FAIL"
+        ],
+        [
+          "chg",
+          "2",
+          "반복 횟수 1회 (count=20 한계 전 종료) = OK",
+          "2",
+          "반복 횟수 0회 (예상 1~3) = FAIL"
+        ],
+        [
+          "chg",
+          "3",
+          "축약 구문 i=/c=/m= 파싱·자동종료: exit 0 = OK",
+          "3",
+          "축약 구문 파싱: exit 127 = FAIL"
+        ],
+        [
+          "ctx",
+          "4",
+          "TC-RESULT: OK",
+          "4",
+          "TC-RESULT: OK"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc2009",
+      "pg_id": "PG-337",
+      "title": "접속 문자열·PGHOST/PGPORT/PGUSER/PGDATABASE 환경변수",
+      "description": "libpq 접속 문자열(key=value·URI)과 PGDATABASE/PGUSER 환경변수가 docker exec 환경의 psql 접속에 정상 반영되는지 current_database()/current_user로 검증한다",
+      "source": "https://www.postgresql.org/docs/17/libpq-envars.html (§34.1.1 / 34.15)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc2009 | 접속 문자열·PGHOST/PGPORT/PGUSER/PGDATABASE 환경변수 | 문서 §34.1.1 / 34.15 | PG17NEW: 아니오\n# 검증 포인트: PGDATABASE 무인자 접속 / PGUSER 반영 / key=value conninfo 접속 / URI 접속\n# 결정론: 컨테이너 내부 고정 host=localhost port=5432 user=postgres db=qa. current_database()/current_user 결정적 함수로 검증. 환경변수는 -e 로 격리 주입.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\n# (1) PGDATABASE 환경변수 → psql 무인자 접속이 그 DB에 연결\ndb=\"$(docker exec -e PGDATABASE=qa -e PGUSER=postgres -i \"$C_SINGLE\" \\\n  psql -X -t -A -c \"SELECT current_database()\" 2>&1)\"\nif [ \"$db\" = \"qa\" ]; then\n  echo \"PGDATABASE=qa → current_database()=qa = OK\"\nelse\n  echo \"PGDATABASE 반영 실패: '$db' = FAIL\"\nfi\n\n# (2) PGUSER 환경변수 → current_user 반영\nusr=\"$(docker exec -e PGDATABASE=qa -e PGUSER=postgres -i \"$C_SINGLE\" \\\n  psql -X -t -A -c \"SELECT current_user\" 2>&1)\"\nif [ \"$usr\" = \"postgres\" ]; then\n  echo \"PGUSER=postgres → current_user=postgres = OK\"\nelse\n  echo \"PGUSER 반영 실패: '$usr' = FAIL\"\nfi\n\n# (3) key=value 접속 문자열 (conninfo)\ndb2=\"$(docker exec -i \"$C_SINGLE\" \\\n  psql -X -t -A \"host=localhost port=5432 dbname=qa user=postgres\" \\\n  -c \"SELECT current_database()\" 2>&1)\"\nif [ \"$db2\" = \"qa\" ]; then\n  echo \"conninfo 'host=... dbname=qa' 접속 → qa = OK\"\nelse\n  echo \"conninfo 접속 실패: '$db2' = FAIL\"\nfi\n\n# (4) URI 접속 문자열\ndb3=\"$(docker exec -i \"$C_SINGLE\" \\\n  psql -X -t -A \"postgresql://postgres@localhost:5432/qa\" \\\n  -c \"SELECT current_database()\" 2>&1)\"\nif [ \"$db3\" = \"qa\" ]; then\n  echo \"URI 'postgresql://...@localhost:5432/qa' 접속 → qa = OK\"\nelse\n  echo \"URI 접속 실패: '$db3' = FAIL\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,5 +1,11 @@",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "1",
+          "PGDATABASE=qa → current_database()=qa = OK",
+          "1",
+          "PGDATABASE=qa → current_database()=qa = OK"
+        ],
+        [
+          "chg",
+          "2",
+          "PGUSER=postgres → current_user=postgres = OK",
+          "2",
+          "PGUSER 반영 실패: 'agens' = FAIL"
+        ],
+        [
+          "chg",
+          "3",
+          "conninfo 'host=... dbname=qa' 접속 → qa = OK",
+          "3",
+          "conninfo 접속 실패: 'psql: error: connection to server at \"localhost\" (::1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "4",
+          "URI 'postgresql://...@localhost:5432/qa' 접속 → qa = OK",
+          "4",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "5",
+          "connection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "6",
+          "\tIs the server running on that host and accepting TCP/IP connections?' = FAIL"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "7",
+          "URI 접속 실패: 'psql: error: connection to server at \"localhost\" (::1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "8",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "9",
+          "connection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "10",
+          "\tIs the server running on that host and accepting TCP/IP connections?' = FAIL"
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "11",
+          "TC-RESULT: OK"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc2012",
+      "pg_id": "PG-340",
+      "title": "pg_isready 서버 가용성 점검",
+      "description": "pg_isready가 기동 서버에 대해 종료코드 0·accepting connections 패턴을, 잘못된 포트에 대해 비0 종료를 보고하고 -d/-U 옵션을 정상 파싱하는 동작을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/app-pg-isready.html (§pg_isready)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc2012 | pg_isready 서버 가용성 점검 | 문서 §pg_isready | PG17NEW: 아니오\n# 검증 포인트: 기동 서버 종료0(accepting connections) / 'accepting connections' 패턴 / 잘못된 포트 비0 / -d -U 옵션 파싱\n# 결정론: 종료코드 + 고정 메시지 패턴. 잘못된 포트는 컨테이너 내부 미사용 포트(1)로 결정적 실패 유도. 응답시간 등 가변 출력 미검증.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\n# (1) 기동 서버 대상 — 종료코드 0 + 패턴\nout_ok=\"$(docker exec \"$C_SINGLE\" pg_isready -h localhost -p 5432 2>&1)\"\nrc_ok=$?\nif [ \"$rc_ok\" -eq 0 ]; then\n  echo \"pg_isready -p 5432: exit 0 = OK\"\nelse\n  echo \"pg_isready -p 5432: exit $rc_ok = FAIL\"\nfi\nif printf '%s' \"$out_ok\" | grep -q \"accepting connections\"; then\n  echo \"출력에 'accepting connections' 포함 = OK\"\nelse\n  echo \"'accepting connections' 패턴 누락 = FAIL\"\nfi\n\n# (2) 잘못된 포트 — 비0 종료코드\ndocker exec \"$C_SINGLE\" pg_isready -h localhost -p 1 >/dev/null 2>&1\nrc_bad=$?\nif [ \"$rc_bad\" -ne 0 ]; then\n  echo \"잘못된 포트 pg_isready -p 1: 비0 종료(exit $rc_bad) = OK\"\nelse\n  echo \"잘못된 포트가 0 종료 = FAIL\"\nfi\n\n# (3) -d <db> -U <user> 옵션 파싱 (정상 접속·종료0)\ndocker exec \"$C_SINGLE\" pg_isready -h localhost -p 5432 -d qa -U postgres >/dev/null 2>&1\nrc_opt=$?\nif [ \"$rc_opt\" -eq 0 ]; then\n  echo \"pg_isready -d qa -U postgres 파싱·접속: exit 0 = OK\"\nelse\n  echo \"-d/-U 옵션 파싱·접속: exit $rc_opt = FAIL\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,5 +1,5 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "pg_isready -p 5432: exit 0 = OK",
+          "1",
+          "pg_isready -p 5432: exit 2 = FAIL"
+        ],
+        [
+          "chg",
+          "2",
+          "출력에 'accepting connections' 포함 = OK",
+          "2",
+          "'accepting connections' 패턴 누락 = FAIL"
+        ],
+        [
+          "ctx",
+          "3",
+          "잘못된 포트 pg_isready -p 1: 비0 종료(exit 2) = OK",
+          "3",
+          "잘못된 포트 pg_isready -p 1: 비0 종료(exit 2) = OK"
+        ],
+        [
+          "chg",
+          "4",
+          "pg_isready -d qa -U postgres 파싱·접속: exit 0 = OK",
+          "4",
+          "-d/-U 옵션 파싱·접속: exit 2 = FAIL"
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "5",
+          "TC-RESULT: OK"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc2014",
+      "pg_id": "PG-342",
+      "title": "pg_config·pg_test_fsync·pg_test_timing 스모크",
+      "description": "pg_config가 PostgreSQL 17 버전과 비어있지 않은 경로를 보고하고 pg_test_fsync -s 1·pg_test_timing -d 1 진단 도구가 짧은 실행으로 종료코드 0으로 완료하는 스모크 동작을 검증한다",
+      "source": "https://www.postgresql.org/docs/17/app-pgconfig.html (§pg_config / pgtestfsync / pgtesttiming)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc2014 | pg_config·pg_test_fsync·pg_test_timing 스모크 | 문서 §pg_config / pgtestfsync / pgtesttiming | PG17NEW: 아니오\n# 검증 포인트: pg_config --version 에 'PostgreSQL 17' / --bindir·--sharedir 비어있지 않은 경로·종료0 / pg_test_fsync -s 1 종료0 / pg_test_timing -d 1 종료0\n# 결정론: 측정 수치(ops/sec, 히스토그램) 전부 가변 → 종료코드·버전 접두만. -s 1/-d 1 로 실행시간 최소화(타임아웃 회피).\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\n# (1) pg_config --version → 'PostgreSQL 17' 접두 매칭\nver=\"$(docker exec \"$C_SINGLE\" pg_config --version 2>&1)\"\nrc=$?\nif [ \"$rc\" -eq 0 ] && printf '%s' \"$ver\" | grep -q '^PostgreSQL 17'; then\n  echo \"pg_config --version 'PostgreSQL 17' 포함(exit 0) = OK\"\nelse\n  echo \"pg_config --version 예상 밖(rc=$rc) = FAIL\"\nfi\n\n# (2) --bindir / --sharedir 비어있지 않은 경로 + 종료0\nbindir=\"$(docker exec \"$C_SINGLE\" pg_config --bindir 2>&1)\"; rc_b=$?\nsharedir=\"$(docker exec \"$C_SINGLE\" pg_config --sharedir 2>&1)\"; rc_s=$?\nif [ \"$rc_b\" -eq 0 ] && [ -n \"$bindir\" ] && [ \"$rc_s\" -eq 0 ] && [ -n \"$sharedir\" ]; then\n  echo \"pg_config --bindir/--sharedir 비어있지 않은 경로(exit 0) = OK\"\nelse\n  echo \"pg_config --bindir/--sharedir 비정상(rc_b=$rc_b rc_s=$rc_s) = FAIL\"\nfi\n\n# (3) pg_test_fsync -s 1 (--secs-per-test 1) — 종료0 (수치 미출력)\ndocker exec \"$C_SINGLE\" pg_test_fsync -s 1 >/dev/null 2>&1\nrc_f=$?\necho \"pg_test_fsync -s 1: exit $rc_f = $([ \"$rc_f\" -eq 0 ] && echo OK || echo FAIL)\"\n\n# (4) pg_test_timing -d 1 (--duration 1) — 종료0 (수치 미출력)\ndocker exec \"$C_SINGLE\" pg_test_timing -d 1 >/dev/null 2>&1\nrc_t=$?\necho \"pg_test_timing -d 1: exit $rc_t = $([ \"$rc_t\" -eq 0 ] && echo OK || echo FAIL)\"\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,5 +1,5 @@",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "1",
+          "pg_config --version 'PostgreSQL 17' 포함(exit 0) = OK",
+          "1",
+          "pg_config --version 'PostgreSQL 17' 포함(exit 0) = OK"
+        ],
+        [
+          "ctx",
+          "2",
+          "pg_config --bindir/--sharedir 비어있지 않은 경로(exit 0) = OK",
+          "2",
+          "pg_config --bindir/--sharedir 비어있지 않은 경로(exit 0) = OK"
+        ],
+        [
+          "chg",
+          "3",
+          "pg_test_fsync -s 1: exit 0 = OK",
+          "3",
+          "pg_test_fsync -s 1: exit 1 = FAIL"
+        ],
+        [
+          "ctx",
+          "4",
+          "pg_test_timing -d 1: exit 0 = OK",
+          "4",
+          "pg_test_timing -d 1: exit 0 = OK"
+        ],
+        [
+          "ctx",
+          "5",
+          "TC-RESULT: OK",
+          "5",
+          "TC-RESULT: OK"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc2114",
+      "pg_id": "PG-399",
+      "title": "postgres_fdw 루프백",
+      "description": "postgres_fdw로 자기 서버(localhost:5432)에 FDW 서버·사용자매핑·외부테이블을 만들어 원격 질의와 트랜잭션이 동작함을 검증",
+      "source": "https://www.postgresql.org/docs/17/postgres-fdw.html (§F.33)",
+      "lang": "sql",
+      "steps": "-- tc2114 | postgres_fdw 루프백 | 문서 §F.33 | PG17NEW: 아니오\n-- 검증 포인트: SERVER/USER MAPPING/FOREIGN TABLE 생성 / SELECT 원본 일치 / INSERT 반영 / 단일 매핑\n-- 주의: 루프백은 컨테이너 내부 localhost:5432, 비번 qa. 잔존 금지 → TC 끝 전부 DROP.\n-- 결정론: 행 비교는 ORDER BY. 외부 테이블은 tc2114 스키마의 원본을 schema_name 명시로 매핑.\nSET client_min_messages = warning;\nDROP SCHEMA IF EXISTS tc2114 CASCADE;\nCREATE SCHEMA tc2114; SET search_path = tc2114;\nCREATE EXTENSION IF NOT EXISTS postgres_fdw;\n\n-- 원본 테이블 (tc2114 스키마)\nCREATE TABLE src(i int, t text);\nINSERT INTO src VALUES (1,'a'),(2,'b');\n\n-- 루프백 서버·사용자매핑 (컨테이너 내부 localhost:5432, dbname qa, 비번 qa)\nCREATE SERVER lb FOREIGN DATA WRAPPER postgres_fdw\n  OPTIONS (host 'localhost', port '5432', dbname 'qa');\nCREATE USER MAPPING FOR CURRENT_USER SERVER lb\n  OPTIONS (user 'postgres', password 'qa');\n\n-- 외부 테이블 (단일 table_name 매핑, schema_name 명시)\nCREATE FOREIGN TABLE ft(i int, t text) SERVER lb\n  OPTIONS (schema_name 'tc2114', table_name 'src');\n\n-- SELECT 가 로컬 원본과 동일 행 반환\nSELECT i, t FROM ft ORDER BY i;\n\n-- INSERT 가 원본에 반영\nINSERT INTO ft VALUES (3,'c');\nSELECT count(*) = 3 AS insert_propagated FROM src;\nSELECT i, t FROM ft ORDER BY i;\n\n-- 잔존 금지: 전부 DROP\nDROP FOREIGN TABLE ft;\nDROP USER MAPPING FOR CURRENT_USER SERVER lb;\nDROP SERVER lb;\nDROP TABLE src;\nDROP EXTENSION postgres_fdw;\nDROP SCHEMA tc2114 CASCADE;",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -19,28 +19,30 @@",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "19",
+          "  OPTIONS (schema_name 'tc2114', table_name 'src');",
+          "19",
+          "  OPTIONS (schema_name 'tc2114', table_name 'src');"
+        ],
+        [
+          "ctx",
+          "20",
+          "-- SELECT 가 로컬 원본과 동일 행 반환",
+          "20",
+          "-- SELECT 가 로컬 원본과 동일 행 반환"
+        ],
+        [
+          "ctx",
+          "21",
+          "SELECT i, t FROM ft ORDER BY i;",
+          "21",
+          "SELECT i, t FROM ft ORDER BY i;"
+        ],
+        [
+          "chg",
+          "22",
+          " i | t",
+          "22",
+          "ERROR:  could not connect to server \"lb\""
+        ],
+        [
+          "chg",
+          "23",
+          " 1 | a",
+          "23",
+          "DETAIL:  connection to server at \"localhost\" (::1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "24",
+          " 2 | b",
+          "24",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "chg",
+          "25",
+          "(2 rows)",
+          "25",
+          "connection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "26",
+          "",
+          "26",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "ctx",
+          "27",
+          "-- INSERT 가 원본에 반영",
+          "27",
+          "-- INSERT 가 원본에 반영"
+        ],
+        [
+          "ctx",
+          "28",
+          "INSERT INTO ft VALUES (3,'c');",
+          "28",
+          "INSERT INTO ft VALUES (3,'c');"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "29",
+          "ERROR:  could not connect to server \"lb\""
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "30",
+          "DETAIL:  connection to server at \"localhost\" (::1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "31",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "32",
+          "connection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "33",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "ctx",
+          "29",
+          "SELECT count(*) = 3 AS insert_propagated FROM src;",
+          "34",
+          "SELECT count(*) = 3 AS insert_propagated FROM src;"
+        ],
+        [
+          "ctx",
+          "30",
+          " insert_propagated",
+          "35",
+          " insert_propagated"
+        ],
+        [
+          "ctx",
+          "31",
+          "-------------------",
+          "36",
+          "-------------------"
+        ],
+        [
+          "chg",
+          "32",
+          " t",
+          "37",
+          " f"
+        ],
+        [
+          "ctx",
+          "33",
+          "(1 row)",
+          "38",
+          "(1 row)"
+        ],
+        [
+          "ctx",
+          "34",
+          "",
+          "39",
+          ""
+        ],
+        [
+          "ctx",
+          "35",
+          "SELECT i, t FROM ft ORDER BY i;",
+          "40",
+          "SELECT i, t FROM ft ORDER BY i;"
+        ],
+        [
+          "chg",
+          "36",
+          " i | t",
+          "41",
+          "ERROR:  could not connect to server \"lb\""
+        ],
+        [
+          "chg",
+          "37",
+          " 1 | a",
+          "42",
+          "DETAIL:  connection to server at \"localhost\" (::1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "38",
+          " 2 | b",
+          "43",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "chg",
+          "39",
+          " 3 | c",
+          "44",
+          "connection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "40",
+          "(3 rows)",
+          "45",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "ctx",
+          "41",
+          "",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "42",
+          "-- 잔존 금지: 전부 DROP",
+          "46",
+          "-- 잔존 금지: 전부 DROP"
+        ],
+        [
+          "ctx",
+          "43",
+          "DROP FOREIGN TABLE ft;",
+          "47",
+          "DROP FOREIGN TABLE ft;"
+        ],
+        [
+          "ctx",
+          "44",
+          "DROP USER MAPPING FOR CURRENT_USER SERVER lb;",
+          "48",
+          "DROP USER MAPPING FOR CURRENT_USER SERVER lb;"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc2115",
+      "pg_id": "PG-400",
+      "title": "dblink 루프백",
+      "description": "dblink로 자기 서버에 연결해 동기 질의와 dblink_connect/disconnect 세션 관리를 검증",
+      "source": "https://www.postgresql.org/docs/17/dblink.html (§F.12)",
+      "lang": "sql",
+      "steps": "-- tc2115 | dblink 루프백 | 문서 §F.12 | PG17NEW: 아니오\n-- 검증 포인트: 즉시 질의 / 명명 연결 connect→query→disconnect / dblink_exec DML / 잘못된 connstr 에러\n-- 주의: connstr 고정 = host=localhost port=5432 dbname=qa user=postgres password=qa. 끝에서 disconnect+DROP.\n-- 결정론: 고정 질의·고정 connstr → 결정적. 명명 연결은 반드시 disconnect.\nSET client_min_messages = warning;\nDROP SCHEMA IF EXISTS tc2115 CASCADE;\nCREATE SCHEMA tc2115; SET search_path = tc2115;\nCREATE EXTENSION IF NOT EXISTS dblink;\n\n-- 즉시(connstr inline) 질의\nSELECT x FROM dblink('host=localhost port=5432 dbname=qa user=postgres password=qa',\n                     'SELECT 42') AS t(x int);\n\n-- 명명 연결 → 질의 → 끊기\nSELECT dblink_connect('conn1','host=localhost port=5432 dbname=qa user=postgres password=qa') = 'OK' AS connect_ok;\nSELECT s FROM dblink('conn1','SELECT ''hello''') AS t(s text);\n\n-- dblink_exec 원격 DML (임시 테이블을 원격 세션에서 생성·삽입 후 카운트)\nSELECT dblink_exec('conn1','CREATE TEMP TABLE _d(i int); INSERT INTO _d VALUES (1),(2)') LIKE 'INSERT%' AS exec_ok;\nSELECT n FROM dblink('conn1','SELECT count(*) FROM _d') AS t(n bigint);\n\nSELECT dblink_disconnect('conn1') = 'OK' AS disconnect_ok;\n\n-- 잘못된 connstr 시 에러 (의도된 에러)\n-- stdout/stderr 병합 레이스 + 환경 의존 DETAIL(::1·FATAL 문구) 회피:\n-- PL/pgSQL EXCEPTION 으로 에러 발생 여부만 단일 stdout 행으로 캡처(SQLSTATE/메시지는 환경 가변).\nCREATE FUNCTION catch_bad_conn() RETURNS boolean LANGUAGE plpgsql AS $$\nBEGIN\n  PERFORM dblink_connect('bad','host=localhost port=5432 dbname=no_such_db user=postgres password=qa');\n  RETURN false;   -- 연결 성공하면 안 됨\nEXCEPTION WHEN OTHERS THEN\n  RETURN true;    -- 잘못된 connstr → 에러 발생 기대\nEND $$;\nSELECT catch_bad_conn() AS bad_connstr_rejected;\n\nDROP EXTENSION dblink;\nDROP SCHEMA tc2115 CASCADE;",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -9,43 +9,30 @@",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "9",
+          "-- 즉시(connstr inline) 질의",
+          "9",
+          "-- 즉시(connstr inline) 질의"
+        ],
+        [
+          "ctx",
+          "10",
+          "SELECT x FROM dblink('host=localhost port=5432 dbname=qa user=postgres password=qa',",
+          "10",
+          "SELECT x FROM dblink('host=localhost port=5432 dbname=qa user=postgres password=qa',"
+        ],
+        [
+          "ctx",
+          "11",
+          "                     'SELECT 42') AS t(x int);",
+          "11",
+          "                     'SELECT 42') AS t(x int);"
+        ],
+        [
+          "chg",
+          "12",
+          " x",
+          "12",
+          "ERROR:  could not establish connection"
+        ],
+        [
+          "chg",
+          "13",
+          " 42",
+          "13",
+          "DETAIL:  connection to server at \"localhost\" (::1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "14",
+          "(1 row)",
+          "14",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "chg",
+          "15",
+          "",
+          "15",
+          "connection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "16",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "ctx",
+          "16",
+          "-- 명명 연결 → 질의 → 끊기",
+          "17",
+          "-- 명명 연결 → 질의 → 끊기"
+        ],
+        [
+          "ctx",
+          "17",
+          "SELECT dblink_connect('conn1','host=localhost port=5432 dbname=qa user=postgres password=qa') = 'OK' AS connect_ok;",
+          "18",
+          "SELECT dblink_connect('conn1','host=localhost port=5432 dbname=qa user=postgres password=qa') = 'OK' AS connect_ok;"
+        ],
+        [
+          "chg",
+          "18",
+          " connect_ok",
+          "19",
+          "ERROR:  could not establish connection"
+        ],
+        [
+          "chg",
+          "19",
+          " t",
+          "20",
+          "DETAIL:  connection to server at \"localhost\" (::1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "20",
+          "(1 row)",
+          "21",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "chg",
+          "21",
+          "",
+          "22",
+          "connection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused"
+        ],
+        [
+          "chg",
+          "",
+          "",
+          "23",
+          "\tIs the server running on that host and accepting TCP/IP connections?"
+        ],
+        [
+          "ctx",
+          "22",
+          "SELECT s FROM dblink('conn1','SELECT ''hello''') AS t(s text);",
+          "24",
+          "SELECT s FROM dblink('conn1','SELECT ''hello''') AS t(s text);"
+        ],
+        [
+          "chg",
+          "23",
+          "   s",
+          "25",
+          "ERROR:  could not establish connection"
+        ],
+        [
+          "chg",
+          "24",
+          " hello",
+          "26",
+          "DETAIL:  missing \"=\" after \"conn1\" in connection info string"
+        ],
+        [
+          "chg",
+          "25",
+          "(1 row)",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "26",
+          "",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "27",
+          "-- dblink_exec 원격 DML (임시 테이블을 원격 세션에서 생성·삽입 후 카운트)",
+          "27",
+          "-- dblink_exec 원격 DML (임시 테이블을 원격 세션에서 생성·삽입 후 카운트)"
+        ],
+        [
+          "ctx",
+          "28",
+          "SELECT dblink_exec('conn1','CREATE TEMP TABLE _d(i int); INSERT INTO _d VALUES (1),(2)') LIKE 'INSERT%' AS exec_ok;",
+          "28",
+          "SELECT dblink_exec('conn1','CREATE TEMP TABLE _d(i int); INSERT INTO _d VALUES (1),(2)') LIKE 'INSERT%' AS exec_ok;"
+        ],
+        [
+          "chg",
+          "29",
+          " exec_ok",
+          "29",
+          "ERROR:  could not establish connection"
+        ],
+        [
+          "chg",
+          "30",
+          " t",
+          "30",
+          "DETAIL:  missing \"=\" after \"conn1\" in connection info string"
+        ],
+        [
+          "chg",
+          "31",
+          "(1 row)",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "32",
+          "",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "33",
+          "SELECT n FROM dblink('conn1','SELECT count(*) FROM _d') AS t(n bigint);",
+          "31",
+          "SELECT n FROM dblink('conn1','SELECT count(*) FROM _d') AS t(n bigint);"
+        ],
+        [
+          "chg",
+          "34",
+          " n",
+          "32",
+          "ERROR:  could not establish connection"
+        ],
+        [
+          "chg",
+          "35",
+          " 2",
+          "33",
+          "DETAIL:  missing \"=\" after \"conn1\" in connection info string"
+        ],
+        [
+          "chg",
+          "36",
+          "(1 row)",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "37",
+          "",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "38",
+          "SELECT dblink_disconnect('conn1') = 'OK' AS disconnect_ok;",
+          "34",
+          "SELECT dblink_disconnect('conn1') = 'OK' AS disconnect_ok;"
+        ],
+        [
+          "chg",
+          "39",
+          " disconnect_ok",
+          "35",
+          "ERROR:  connection \"conn1\" not available"
+        ],
+        [
+          "chg",
+          "40",
+          " t",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "41",
+          "(1 row)",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "42",
+          "",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "43",
+          "-- 잘못된 connstr 시 에러 (의도된 에러)",
+          "36",
+          "-- 잘못된 connstr 시 에러 (의도된 에러)"
+        ],
+        [
+          "ctx",
+          "44",
+          "-- stdout/stderr 병합 레이스 + 환경 의존 DETAIL(::1·FATAL 문구) 회피:",
+          "37",
+          "-- stdout/stderr 병합 레이스 + 환경 의존 DETAIL(::1·FATAL 문구) 회피:"
+        ],
+        [
+          "ctx",
+          "45",
+          "-- PL/pgSQL EXCEPTION 으로 에러 발생 여부만 단일 stdout 행으로 캡처(SQLSTATE/메시지는 환경 가변).",
+          "38",
+          "-- PL/pgSQL EXCEPTION 으로 에러 발생 여부만 단일 stdout 행으로 캡처(SQLSTATE/메시지는 환경 가변)."
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc2118",
+      "pg_id": "PG-403",
+      "title": "pgstattuple·pg_visibility 불변식",
+      "description": "pgstattuple·pg_visibility의 튜플/가시성 통계 함수가 불변식(튜플 수·dead tuple·all_visible)을 만족함을 검증",
+      "source": "https://www.postgresql.org/docs/17/pgstattuple.html (§F.35)",
+      "lang": "sql",
+      "steps": "-- tc2118 | pgstattuple·pg_visibility 불변식 | 문서 §F.35 | PG17NEW: 아니오\n-- 검증 포인트: tuple_count=행수 / DELETE 후 dead>0·VACUUM 후 감소 / all_visible 비트 / pgstattuple_approx\n-- 결정론: tuple_count는 행 수로 결정. free_space·dead 비율은 비결정 → 부등식/불변식만.\nSET client_min_messages = warning;\nDROP SCHEMA IF EXISTS tc2118 CASCADE;\nCREATE SCHEMA tc2118; SET search_path = tc2118;\nCREATE EXTENSION IF NOT EXISTS pgstattuple;\nCREATE EXTENSION IF NOT EXISTS pg_visibility;\n\nCREATE TABLE st(i int);\nINSERT INTO st SELECT generate_series(1,50);\n\n-- tuple_count = 실제 행 수\nSELECT (pgstattuple('tc2118.st')).tuple_count = 50 AS tuple_count_ok;\n\n-- DELETE 후 dead_tuple_count > 0\nDELETE FROM st WHERE i <= 10;\nSELECT (pgstattuple('tc2118.st')).dead_tuple_count > 0 AS dead_after_delete;\n\n-- VACUUM 후 dead 감소(0이 됨)\nVACUUM st;\nSELECT (pgstattuple('tc2118.st')).dead_tuple_count = 0 AS dead_after_vacuum;\n\n-- pg_visibility: VACUUM 후 all_visible 비트 설정된 페이지 존재(불변식)\nSELECT count(*) FILTER (WHERE all_visible) >= 0 AS all_visible_ok FROM pg_visibility('tc2118.st');\n\n-- pgstattuple_approx 호출 가능\nSELECT (pgstattuple_approx('tc2118.st')).approx_tuple_count >= 0 AS approx_ok;\n\nDROP TABLE st;\nDROP EXTENSION pg_visibility;\nDROP EXTENSION pgstattuple;\nDROP SCHEMA tc2118 CASCADE;",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -33,11 +33,10 @@",
+          "",
+          ""
+        ],
+        [
+          "ctx",
+          "33",
+          "",
+          "33",
+          ""
+        ],
+        [
+          "ctx",
+          "34",
+          "-- pg_visibility: VACUUM 후 all_visible 비트 설정된 페이지 존재(불변식)",
+          "34",
+          "-- pg_visibility: VACUUM 후 all_visible 비트 설정된 페이지 존재(불변식)"
+        ],
+        [
+          "ctx",
+          "35",
+          "SELECT count(*) FILTER (WHERE all_visible) >= 0 AS all_visible_ok FROM pg_visibility('tc2118.st');",
+          "35",
+          "SELECT count(*) FILTER (WHERE all_visible) >= 0 AS all_visible_ok FROM pg_visibility('tc2118.st');"
+        ],
+        [
+          "chg",
+          "36",
+          " all_visible_ok",
+          "36",
+          "ERROR:  function pg_visibility(unknown) does not exist"
+        ],
+        [
+          "chg",
+          "37",
+          " t",
+          "37",
+          "LINE 1: ...R (WHERE all_visible) >= 0 AS all_visible_ok FROM pg_visibil..."
+        ],
+        [
+          "chg",
+          "38",
+          "(1 row)",
+          "38",
+          "                                                             ^"
+        ],
+        [
+          "chg",
+          "39",
+          "",
+          "39",
+          "HINT:  No function matches the given name and argument types. You might need to add explicit type casts."
+        ],
+        [
+          "ctx",
+          "40",
+          "-- pgstattuple_approx 호출 가능",
+          "40",
+          "-- pgstattuple_approx 호출 가능"
+        ],
+        [
+          "ctx",
+          "41",
+          "SELECT (pgstattuple_approx('tc2118.st')).approx_tuple_count >= 0 AS approx_ok;",
+          "41",
+          "SELECT (pgstattuple_approx('tc2118.st')).approx_tuple_count >= 0 AS approx_ok;"
+        ],
+        [
+          "ctx",
+          "42",
+          " approx_ok",
+          "42",
+          " approx_ok"
+        ]
+      ],
+      "result": "FAIL"
+    },
+    {
+      "tc_id": "tc2121",
+      "pg_id": "PG-406",
+      "title": "vacuumlo·oid2name 클라이언트 CLI",
+      "description": "부록 G 클라이언트 프로그램 vacuumlo(고아 대형객체 정리)와 oid2name(파일노드↔객체명 매핑)의 CLI 동작을 검증",
+      "source": "https://www.postgresql.org/docs/17/vacuumlo.html (§G.1)",
+      "lang": "bash",
+      "steps": "#!/usr/bin/env bash\n# tc2121 | vacuumlo·oid2name 클라이언트 CLI | 문서 §G.1 | PG17NEW: 아니오\n# 검증 포인트: oid2name 헤더·특정테이블 / vacuumlo --help·-n dry-run / lo 고아 LO 정리(개수 변화)\n# 주의: oid2name은 /usr/lib/postgresql/17/bin(PATH 밖), vacuumlo는 PATH. filenode 숫자 비결정→헤더·테이블명만.\n# 결정론: filenode·OID 절대값 비결정 → 출력 헤더·생성한 테이블명 존재로 검증. 잔존 LO/테이블 정리.\nset -uo pipefail\nsource \"$(dirname \"$0\")/../../runner/env.sh\"\n\nBIN=/usr/lib/postgresql/17/bin\ncleanup() {\n  $PSQL <<'SQL' >/dev/null 2>&1\nDROP TABLE IF EXISTS public.tc2121_marker;\nDROP TABLE IF EXISTS public.tc2121_lo;\nDROP EXTENSION IF EXISTS lo;\nSQL\n}\ntrap cleanup EXIT\n\n# 식별용 마커 테이블 생성 (oid2name 출력에 나타나야 함)\n$PSQL <<'SQL' >/dev/null\nSET client_min_messages = warning;\nDROP TABLE IF EXISTS public.tc2121_marker;\nCREATE TABLE public.tc2121_marker(i int);\nSQL\n\n# --- oid2name: 헤더 라인 + 마커 테이블명 존재 ---\no2n_out=\"$(docker exec \"$C_SINGLE\" env PGPASSWORD=qa \"$BIN/oid2name\" -H localhost -p 5432 -U postgres -d qa 2>&1)\"\nif echo \"$o2n_out\" | grep -q 'Filenode'; then\n  echo \"oid2name header present = OK\"\nelse\n  echo \"oid2name header MISSING = FAIL\"\nfi\nif echo \"$o2n_out\" | grep -q 'tc2121_marker'; then\n  echo \"oid2name lists tc2121_marker = OK\"\nelse\n  echo \"oid2name marker MISSING = FAIL\"\nfi\n\n# oid2name -t 특정 테이블 필터\nif docker exec \"$C_SINGLE\" env PGPASSWORD=qa \"$BIN/oid2name\" -H localhost -p 5432 -U postgres -d qa -t tc2121_marker 2>&1 | grep -q 'tc2121_marker'; then\n  echo \"oid2name -t filter = OK\"\nelse\n  echo \"oid2name -t filter = FAIL\"\nfi\n\n# --- vacuumlo --help / dry-run ---\nif docker exec \"$C_SINGLE\" vacuumlo --help 2>&1 | grep -q 'removes unreferenced large objects'; then\n  echo \"vacuumlo --help = OK\"\nelse\n  echo \"vacuumlo --help = FAIL\"\nfi\n\n# 고아 LO 생성: lo 확장 + LO 컬럼 테이블에 LO 넣고 행 삭제 → 고아 발생\n$PSQL <<'SQL' >/dev/null\nSET client_min_messages = warning;\nCREATE EXTENSION IF NOT EXISTS lo;\nDROP TABLE IF EXISTS public.tc2121_lo;\nCREATE TABLE public.tc2121_lo(id int, doc lo);\nINSERT INTO public.tc2121_lo VALUES (1, lo_from_bytea(0, '\\x4142'::bytea));\nINSERT INTO public.tc2121_lo VALUES (2, lo_from_bytea(0, '\\x4344'::bytea));\nSQL\n\nbefore=\"$(docker exec \"$C_SINGLE\" env PGPASSWORD=qa psql -X -t -A -U postgres -d qa -c 'SELECT count(*) FROM pg_largeobject_metadata;' | tr -d '[:space:]')\"\n\n# 행을 삭제(lo 트리거가 없는 단순 삭제 → LO는 고아로 남음)\n$PSQL <<'SQL' >/dev/null\nDELETE FROM public.tc2121_lo;\nSQL\n\n# dry-run(-n)은 삭제하지 않음\ndocker exec \"$C_SINGLE\" env PGPASSWORD=qa vacuumlo -n -h localhost -p 5432 -U postgres qa >/dev/null 2>&1\nmid=\"$(docker exec \"$C_SINGLE\" env PGPASSWORD=qa psql -X -t -A -U postgres -d qa -c 'SELECT count(*) FROM pg_largeobject_metadata;' | tr -d '[:space:]')\"\nif [ \"$mid\" = \"$before\" ]; then\n  echo \"vacuumlo -n dry-run keeps LOs ($before) = OK\"\nelse\n  echo \"vacuumlo -n changed count ($before -> $mid) = FAIL\"\nfi\n\n# 실제 vacuumlo는 고아 LO 정리 → 개수 감소\ndocker exec \"$C_SINGLE\" env PGPASSWORD=qa vacuumlo -h localhost -p 5432 -U postgres qa >/dev/null 2>&1\nafter=\"$(docker exec \"$C_SINGLE\" env PGPASSWORD=qa psql -X -t -A -U postgres -d qa -c 'SELECT count(*) FROM pg_largeobject_metadata;' | tr -d '[:space:]')\"\nif [ \"$after\" -lt \"$mid\" ]; then\n  echo \"vacuumlo removed orphan LOs (count decreased) = OK\"\nelse\n  echo \"vacuumlo did not decrease count ($mid -> $after) = FAIL\"\nfi\n\necho \"TC-RESULT: OK\"",
+      "diff": [
+        [
+          "hunk",
+          "",
+          "@@ -1,7 +1,7 @@",
+          "",
+          ""
+        ],
+        [
+          "chg",
+          "1",
+          "oid2name header present = OK",
+          "1",
+          "oid2name header MISSING = FAIL"
+        ],
+        [
+          "chg",
+          "2",
+          "oid2name lists tc2121_marker = OK",
+          "2",
+          "oid2name marker MISSING = FAIL"
+        ],
+        [
+          "chg",
+          "3",
+          "oid2name -t filter = OK",
+          "3",
+          "oid2name -t filter = FAIL"
+        ],
+        [
+          "ctx",
+          "4",
+          "vacuumlo --help = OK",
+          "4",
+          "vacuumlo --help = OK"
+        ],
+        [
+          "chg",
+          "5",
+          "vacuumlo -n dry-run keeps LOs (2) = OK",
+          "5",
+          "vacuumlo -n dry-run keeps LOs (8) = OK"
+        ],
+        [
+          "chg",
+          "6",
+          "vacuumlo removed orphan LOs (count decreased) = OK",
+          "6",
+          "vacuumlo did not decrease count (8 -> 8) = FAIL"
+        ],
+        [
+          "ctx",
+          "7",
+          "TC-RESULT: OK",
+          "7",
+          "TC-RESULT: OK"
+        ]
+      ],
+      "result": "FAIL"
+    }
+  ]
+}

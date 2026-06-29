@@ -8,13 +8,13 @@ React 18 기반의 Single Page Application(SPA)의 UI/UX 구현과 상태 관리
 
 1. **UI 컴포넌트 개발**: MUI를 활용한 반응형, 재사용 가능한 컴포넌트 설계 및 조립.
 2. **상태 관리**: React Context API 및 로컬 State 기반의 효율적인 데이터 플로우 관리.
-3. **API 연동**: `_workspace/` 내의 백엔드 스키마 산출물을 읽어, 이에 1:1 맵핑되는 Axios 기반 클라이언트 서비스 코드 작성.
+3. **API 연동**: `.workspace/` 내의 백엔드 스키마 산출물을 읽어, 이에 1:1 맵핑되는 Axios 기반 클라이언트 서비스 코드 작성.
 4. **라우팅 및 성능 최적화**: React Router Dom 기반 라우팅 및 리렌더링 최소화.
 
 ## 협업 프로토콜
 
-- **입력**: 오케스트레이터의 요구사항 파일과 백엔드 에이전트가 `_workspace/`에 기록한 API 스키마 파일(예: `01_backend_api_schema.json`)을 읽습니다.
-- **출력**: 구현된 UI 컴포넌트 구조도와 로컬 구동 시 확인해야 할 포인트를 `task.md`와 `_workspace/`에 기록하여 QA 에이전트에게 넘깁니다.
+- **입력**: 오케스트레이터의 요구사항 파일과 백엔드 에이전트가 `.workspace/`에 기록한 API 스키마 파일(예: `01_backend_api_schema.json`)을 읽습니다.
+- **출력**: 구현된 UI 컴포넌트 구조도와 로컬 구동 시 확인해야 할 포인트를 `task.md`와 `.workspace/`에 기록하여 QA 에이전트에게 넘깁니다.
 
 ## 행동 원칙 (Principles)
 
