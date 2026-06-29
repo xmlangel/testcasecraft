@@ -1,10 +1,8 @@
 import { z } from "zod";
-import axios from "axios";
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { saveToken, loadTokenSet, clearToken } from "../token-store.js";
-
-const BASE_URL = process.env.TESTCASECRAFT_BASE_URL ?? "http://localhost:8080";
+import { httpClient } from "../http-client.js";
 
 // --- Input Schemas ---
 const LoginInput = z.object({
@@ -55,7 +53,7 @@ export const authHandlers: Record<
 > = {
   auth_login: async (args: unknown) => {
     const { username, password } = LoginInput.parse(args);
-    const res = await axios.post(`${BASE_URL}/api/auth/login`, {
+    const res = await httpClient.post("/api/auth/login", {
       username,
       password,
     });
@@ -124,7 +122,7 @@ export const authHandlers: Record<
     }
 
     try {
-      const r = await axios.post(`${BASE_URL}/api/auth/refresh`, {
+      const r = await httpClient.post("/api/auth/refresh", {
         refreshToken: tokens.refreshToken,
       });
 

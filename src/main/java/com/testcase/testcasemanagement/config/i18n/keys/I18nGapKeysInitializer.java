@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 2026-06-06 i18n 전수 감사에서 발견된 누락 번역 키 일괄 등록.
  *
- * <p>프런트엔드 t() 호출 키 중 DB에 없던 키 + ko만 있고 en이 없던 키 481건. 산출 근거: _workspace/i18n-audit (코드 t() 키 추출 vs
+ * <p>프런트엔드 t() 호출 키 중 DB에 없던 키 + ko만 있고 en이 없던 키 481건. 산출 근거: .workspace/i18n-audit (코드 t() 키 추출 vs
  * /api/i18n/translations 비교).
  */
 @Slf4j

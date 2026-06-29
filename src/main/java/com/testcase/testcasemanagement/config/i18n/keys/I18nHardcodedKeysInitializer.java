@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 2026-06-06 프런트엔드 하드코딩 한국어 전수 래핑(t() 적용)에서 신설된 번역 키 712건.
  *
- * <p>산출 근거: _workspace/i18n-audit (에이전트 래핑 + 코드 t() 키 기준 검증 병합).
+ * <p>산출 근거: .workspace/i18n-audit (에이전트 래핑 + 코드 t() 키 기준 검증 병합).
  */
 @Slf4j
 @Component

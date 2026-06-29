@@ -7,11 +7,20 @@ import {
 } from "./token-store.js";
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 
-const BASE_URL = process.env.TESTCASECRAFT_BASE_URL ?? "http://localhost:8080";
+const BASE_URL =
+  process.env.TESTCASECRAFT_BASE_URL ??
+  process.env.TESTCASECRAFT_URL ??
+  "http://localhost:8080";
 const TIMEOUT_MS = parseInt(
   process.env.TESTCASECRAFT_TIMEOUT_MS ?? "30000",
   10,
 );
+
+// Cloudflare 등 WAF 가 브라우저 시그니처를 요구하는 호스트(tc.qaspecialist.uk)를
+// 통과하기 위해 브라우저 User-Agent 를 기본 헤더로 설정한다.
+const BROWSER_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
+  "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
 let isRefreshing = false;
 let waiters: Array<() => void> = [];
@@ -19,6 +28,10 @@ let waiters: Array<() => void> = [];
 export const httpClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: TIMEOUT_MS,
+  headers: {
+    "User-Agent": BROWSER_UA,
+    Accept: "application/json, text/plain, */*",
+  },
 });
 
 // Request interceptor: automatically inject token
@@ -57,9 +70,11 @@ httpClient.interceptors.response.use(
       if (!isRefreshing) {
         isRefreshing = true;
         try {
-          const r = await axios.post(`${BASE_URL}/api/auth/refresh`, {
-            refreshToken: tokens.refreshToken,
-          });
+          const r = await axios.post(
+            `${BASE_URL}/api/auth/refresh`,
+            { refreshToken: tokens.refreshToken },
+            { headers: { "User-Agent": BROWSER_UA } },
+          );
 
           const newAccessToken =
             r.data.accessToken ?? r.data.token ?? r.data.access_token;
