@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useI18n } from "../../context/I18nContext.jsx";
 import {
   Box,
@@ -35,11 +35,15 @@ const TestCaseBulkOperations = ({
   onClose,
   projects = [],
   folders = [],
+  // 대상 프로젝트의 폴더를 온디맨드로 불러오는 함수 (다른 프로젝트로 이동/복사 시 필요).
+  // 제공되면 targetProject 변경 시 호출하여 폴더 목록을 채운다. 미제공 시 folders prop을 사용.
+  loadProjectFolders = null,
 }) => {
   const { t } = useI18n();
   const [operation, setOperation] = useState("");
   const [targetProject, setTargetProject] = useState("");
   const [targetFolder, setTargetFolder] = useState("");
+  const [loadedFolders, setLoadedFolders] = useState(null);
   const [updateFields, setUpdateFields] = useState({
     priority: "",
     type: "",
@@ -48,6 +52,32 @@ const TestCaseBulkOperations = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // 대상 프로젝트 변경 시 해당 프로젝트의 폴더를 불러온다.
+  useEffect(() => {
+    if (!targetProject || typeof loadProjectFolders !== "function") {
+      setLoadedFolders(null);
+      return;
+    }
+    let cancelled = false;
+    setTargetFolder("");
+    Promise.resolve(loadProjectFolders(targetProject))
+      .then((result) => {
+        if (!cancelled) setLoadedFolders(Array.isArray(result) ? result : []);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadedFolders([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [targetProject, loadProjectFolders]);
+
+  // 폴더 드롭다운에 표시할 목록: 온디맨드 로드분 우선, 없으면 folders prop 필터.
+  const folderOptions =
+    loadedFolders !== null
+      ? loadedFolders
+      : folders.filter((folder) => folder.projectId === targetProject);
 
   const handleOperationChange = (event) => {
     setOperation(event.target.value);
@@ -359,13 +389,11 @@ const TestCaseBulkOperations = ({
                 <MenuItem value="">
                   {t("testcase.bulkOps.field.rootFolder", "루트 폴더")}
                 </MenuItem>
-                {folders
-                  .filter((folder) => folder.projectId === targetProject)
-                  .map((folder) => (
-                    <MenuItem key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </MenuItem>
-                  ))}
+                {folderOptions.map((folder) => (
+                  <MenuItem key={folder.id} value={folder.id}>
+                    {folder.name}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Box>
