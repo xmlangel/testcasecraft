@@ -196,7 +196,7 @@ testcase_attachment_upload(testcaseId, filePath, description?)
 
 ## 산출물
 
-`_workspace/02_mcp_architecture.md`로 모든 결정사항을 문서화. 다음 섹션 필수:
+`.workspace/02_mcp_architecture.md`로 모든 결정사항을 문서화. 다음 섹션 필수:
 
 1. 트랜스포트 결정 + 사유
 2. 도구 그룹화 매트릭스 (전체 도구 명단)

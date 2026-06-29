@@ -17,8 +17,8 @@ description: "Use when you need to coordinate full-stack development, execute mu
 
 ## 2. 작업 공간(Workspace) 및 상태 공유
 
-- 에이전트 스폰 전, 현재 프로젝트 작업 위치(예: `_workspace/`)에 요구사항 명세(JSON 또는 MD)를 미리 작성해 두어 서브 에이전트들이 읽을 수 있도록 합니다.
-- 백엔드가 작업을 마치면 그 API 명세를 `_workspace/`에 쓰게 하고, 프론트엔드는 이를 읽도록 조율합니다.
+- 에이전트 스폰 전, 현재 프로젝트 작업 위치(예: `.workspace/`)에 요구사항 명세(JSON 또는 MD)를 미리 작성해 두어 서브 에이전트들이 읽을 수 있도록 합니다.
+- 백엔드가 작업을 마치면 그 API 명세를 `.workspace/`에 쓰게 하고, 프론트엔드는 이를 읽도록 조율합니다.
 - 작업의 상태는 반드시 `task.md`(체크리스트) 아티팩트에 기록하고 지속적으로 갱신합니다.
 
 ## 3. 에러 발생 시 처리

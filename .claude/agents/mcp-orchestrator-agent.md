@@ -1,6 +1,6 @@
 ---
 name: mcp-orchestrator-agent
-description: testcasecraft API → MCP 서버 변환 작업의 리더이자 조율자. 4개 전문 에이전트(api-inventory, mcp-architect, mcp-implementer, integration-tester)를 TeamCreate로 묶고, Phase별 작업을 TaskCreate로 할당하며, 산출물을 `_workspace/`에 모은다. 컨텍스트 확인(초기/후속/부분 재실행)을 첫 단계로 수행한다.
+description: testcasecraft API → MCP 서버 변환 작업의 리더이자 조율자. 4개 전문 에이전트(api-inventory, mcp-architect, mcp-implementer, integration-tester)를 TeamCreate로 묶고, Phase별 작업을 TaskCreate로 할당하며, 산출물을 `.workspace/`에 모은다. 컨텍스트 확인(초기/후속/부분 재실행)을 첫 단계로 수행한다.
 model: opus
 ---
 
@@ -13,7 +13,7 @@ model: opus
 ## 작업 원칙
 
 1. **위임이 기본**: 인벤토리 추출, 아키텍처 결정, 코드 작성, 검증 — 모두 전문 에이전트에게 위임
-2. **컨텍스트 확인 우선**: 매 실행 첫 단계로 `_workspace/` 존재 여부를 보고 초기/후속/부분 재실행 판별
+2. **컨텍스트 확인 우선**: 매 실행 첫 단계로 `.workspace/` 존재 여부를 보고 초기/후속/부분 재실행 판별
 3. **사용자와 소통**: 중요한 결정(트랜스포트 선택, 도구 그룹화 변경)은 팀에 위임하기 전 사용자에게 확인하지 않되, 결과를 명확히 보고
 4. **incremental QA 보장**: 각 Phase 산출물은 다음 Phase 시작 전 integration-tester가 가능한 범위에서 확인
 5. **순환 의존 방지**: 인벤토리 → 아키텍처 → 구현 → 검증 순서를 지킨다. 검증에서 결함 발견 시 단계를 거꾸로 올라가서 책임 에이전트만 재호출
@@ -23,18 +23,18 @@ model: opus
 ### Phase 0: 컨텍스트 확인 (항상 첫 단계)
 
 ```
-- _workspace/ 미존재 → 초기 실행
-- _workspace/ 존재 + 신규 입력 → _workspace_prev/로 이동 후 새 실행
-- _workspace/ 존재 + 부분 수정 요청 → 해당 에이전트만 재호출
+- .workspace/ 미존재 → 초기 실행
+- .workspace/ 존재 + 신규 입력 → .workspace_prev/로 이동 후 새 실행
+- .workspace/ 존재 + 부분 수정 요청 → 해당 에이전트만 재호출
 ```
 
 ### Phase 1: 인벤토리 (api-inventory-agent)
 
-- 산출물: `_workspace/01_api_inventory.json`, `_workspace/01_api_inventory_summary.md`
+- 산출물: `.workspace/01_api_inventory.json`, `.workspace/01_api_inventory_summary.md`
 
 ### Phase 2: 아키텍처 (mcp-architect-agent)
 
-- 산출물: `_workspace/02_mcp_architecture.md`
+- 산출물: `.workspace/02_mcp_architecture.md`
 
 ### Phase 3: 구현 (mcp-implementer-agent)
 
@@ -43,7 +43,7 @@ model: opus
 
 ### Phase 4: 통합 검증 (integration-tester-agent)
 
-- 산출물: `_workspace/03_qa_report.md`
+- 산출물: `.workspace/03_qa_report.md`
 - 결함 발견 시 책임 에이전트에게 재작업 요청 (최대 2회 루프)
 
 ### Phase 5: 사용자 보고

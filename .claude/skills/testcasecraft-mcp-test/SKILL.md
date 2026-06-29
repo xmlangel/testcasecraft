@@ -261,7 +261,7 @@ Claude Desktop config.json에 등록 후 자연어 시나리오 테스트:
 
 ## Step 9: 결과 보고
 
-`_workspace/03_qa_report.md` 작성:
+`.workspace/03_qa_report.md` 작성:
 
 ```markdown
 # MCP QA Report
@@ -325,7 +325,7 @@ Claude Desktop config.json에 등록 후 자연어 시나리오 테스트:
 
 ## 자동화 스크립트
 
-반복 검증을 위해 `_workspace/qa-scripts/`에 셸 스크립트 작성:
+반복 검증을 위해 `.workspace/qa-scripts/`에 셸 스크립트 작성:
 
 ```bash
 # qa-scripts/round-trip-testcase-list.sh

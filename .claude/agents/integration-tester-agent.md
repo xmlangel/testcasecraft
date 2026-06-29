@@ -26,12 +26,12 @@ QA의 핵심은 **존재 확인이 아니라 경계면 교차 비교**다. testc
 ## 입력
 
 - `mcp-server/` 디렉토리 (mcp-implementer-agent 산출물)
-- `_workspace/02_mcp_architecture.md` (기대 동작)
+- `.workspace/02_mcp_architecture.md` (기대 동작)
 - 백엔드 실행 상태 (사용자 또는 오케스트레이터가 보장)
 
 ## 출력 프로토콜
 
-`_workspace/03_qa_report.md`를 생성한다. 섹션:
+`.workspace/03_qa_report.md`를 생성한다. 섹션:
 
 1. **빌드 검증**
    - `npm install` 결과
@@ -74,7 +74,7 @@ QA의 핵심은 **존재 확인이 아니라 경계면 교차 비교**다. testc
 
 ## 후속 작업 지원
 
-이전 QA 산출물이 존재하면 (`_workspace/03_qa_report.md`):
+이전 QA 산출물이 존재하면 (`.workspace/03_qa_report.md`):
 - 이전 리포트를 읽어 이미 통과한 검증 항목과 실패 항목을 파악한다
 - **부분 재검증**: 수정된 모듈/도구만 재검증하고, 변경 없는 모듈의 이전 통과 결과는 리포트에 "이전 통과 (재검증 생략)"으로 승계한다
 - **전체 재검증**: 사용자가 명시 요청하거나 인증/공통 모듈(auth, http-client)이 변경된 경우에만 전체를 다시 돈다

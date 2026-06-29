@@ -134,13 +134,13 @@ python3 scripts/manual_capture.py --include-todo --headed --slow-mo 300
 오케스트레이터에서 호출될 때는 콘솔 출력을 다음 경로에 저장:
 
 ```
-_workspace/manual-capture/run-{YYYY-MM-DD}/
+.workspace/manual-capture/run-{YYYY-MM-DD}/
 ├── capture_log.txt    ← 73 STEPS 캡처 성공/실패
 ├── audit_report.txt   ← 감사 결과
 └── timing.txt         ← 실행 시간 (선택)
 ```
 
-`_workspace/manual-capture/` 가 이미 존재하면 직전 run 을 `run_prev/` 로 이동.
+`.workspace/manual-capture/` 가 이미 존재하면 직전 run 을 `run_prev/` 로 이동.
 
 ## 트러블슈팅
 

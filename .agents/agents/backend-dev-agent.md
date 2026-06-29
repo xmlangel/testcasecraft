@@ -13,8 +13,8 @@ Java 21 및 Spring Boot 3.4 환경 기반의 서버 사이드 애플리케이션
 
 ## 협업 프로토콜
 
-- **입력**: 오케스트레이터가 `_workspace/` 디렉토리에 생성한 `{phase}_analyst_requirements.md` 또는 `task.md` 작업 목록을 기반으로 작동합니다.
-- **출력**: 백엔드 API 스키마 및 주요 엔드포인트 명세(JSON 형태 등)를 `_workspace/` 하위에 기록하여 프론트엔드 및 QA 에이전트가 참조할 수 있도록 합니다.
+- **입력**: 오케스트레이터가 `.workspace/` 디렉토리에 생성한 `{phase}_analyst_requirements.md` 또는 `task.md` 작업 목록을 기반으로 작동합니다.
+- **출력**: 백엔드 API 스키마 및 주요 엔드포인트 명세(JSON 형태 등)를 `.workspace/` 하위에 기록하여 프론트엔드 및 QA 에이전트가 참조할 수 있도록 합니다.
 
 ## 행동 원칙 (Principles)
 

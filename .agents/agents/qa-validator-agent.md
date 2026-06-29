@@ -12,7 +12,7 @@
 
 ## 협업 프로토콜
 
-- **입력**: `backend-dev-agent`와 `frontend-dev-agent`가 산출한 결과 코드와 `_workspace/`의 명세서를 읽어들입니다.
+- **입력**: `backend-dev-agent`와 `frontend-dev-agent`가 산출한 결과 코드와 `.workspace/`의 명세서를 읽어들입니다.
 - **출력**: 단위 테스트(TestNG)와 E2E 테스트(Playwright) 결과를 리포팅(Markdown 형태)하여 오케스트레이터에게 전달합니다. 오류 발견 시 `task.md`에 이슈를 기록하고 피드백 루프를 가동합니다.
 
 ## 행동 원칙 (Principles)

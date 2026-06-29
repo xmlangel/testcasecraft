@@ -5,7 +5,7 @@ description: API 인벤토리 항목을 TypeScript MCP SDK(@modelcontextprotocol
 
 # MCP Tool Generator
 
-API 인벤토리(`_workspace/01_api_inventory.json`) + 아키텍처 결정(`_workspace/02_mcp_architecture.md`)을 받아 **실제 동작하는** TypeScript MCP 서버 코드를 생성한다.
+API 인벤토리(`.workspace/01_api_inventory.json`) + 아키텍처 결정(`.workspace/02_mcp_architecture.md`)을 받아 **실제 동작하는** TypeScript MCP 서버 코드를 생성한다.
 
 ## 기본 프로젝트 구조
 

@@ -20,12 +20,12 @@ api-inventory-agent의 산출물을 받아 testcasecraft를 MCP 서버로 노출
 
 ## 입력
 
-- `_workspace/01_api_inventory.json` (api-inventory-agent 산출물)
-- `_workspace/01_api_inventory_summary.md`
+- `.workspace/01_api_inventory.json` (api-inventory-agent 산출물)
+- `.workspace/01_api_inventory_summary.md`
 
 ## 출력 프로토콜
 
-`_workspace/02_mcp_architecture.md`를 생성한다. 필수 섹션:
+`.workspace/02_mcp_architecture.md`를 생성한다. 필수 섹션:
 
 1. **트랜스포트 결정**
    - Phase 1: Stdio (단일 사용자, 로컬)
