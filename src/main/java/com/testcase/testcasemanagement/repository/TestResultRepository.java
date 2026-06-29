@@ -16,6 +16,14 @@ import org.springframework.data.repository.query.Param;
 public interface TestResultRepository extends JpaRepository<TestResult, String> {
   List<TestResult> findByTestCaseId(String testCaseId);
 
+  /**
+   * 여러 테스트케이스 ID에 연결된 모든 테스트 결과 조회. 크로스 프로젝트 이동 시 옮길 결과 집합을 한 번에 모으는 용도.
+   *
+   * @param testCaseIds 테스트케이스 ID 목록
+   * @return 해당 케이스들에 연결된 테스트 결과 목록
+   */
+  List<TestResult> findByTestCaseIdIn(java.util.Collection<String> testCaseIds);
+
   @Query(
       "SELECT tr FROM TestResult tr "
           + "JOIN tr.testExecution te "

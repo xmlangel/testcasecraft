@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.testcase.testcasemanagement.dto.CrossProjectTransferRequest;
+import com.testcase.testcasemanagement.dto.CrossProjectTransferResultDto;
 import com.testcase.testcasemanagement.dto.ExportRequestDto;
 import com.testcase.testcasemanagement.dto.ImportValidationResultDto;
 import com.testcase.testcasemanagement.dto.TestCaseDto;
@@ -17,6 +19,7 @@ import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.service.TestCaseAiGenerationService;
+import com.testcase.testcasemanagement.service.TestCaseCrossProjectService;
 import com.testcase.testcasemanagement.service.TestCaseService;
 import com.testcase.testcasemanagement.service.TestCaseTreeMoveService;
 import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.CrossProjectMoveException;
@@ -54,16 +57,19 @@ public class TestCaseController {
   private final ObjectMapper objectMapper;
   private final TestCaseAiGenerationService testCaseAiGenerationService;
   private final TestCaseTreeMoveService testCaseTreeMoveService;
+  private final TestCaseCrossProjectService testCaseCrossProjectService;
 
   public TestCaseController(
       TestCaseService testCaseService,
       ObjectMapper objectMapper,
       TestCaseAiGenerationService testCaseAiGenerationService,
-      TestCaseTreeMoveService testCaseTreeMoveService) {
+      TestCaseTreeMoveService testCaseTreeMoveService,
+      TestCaseCrossProjectService testCaseCrossProjectService) {
     this.testCaseService = testCaseService;
     this.objectMapper = objectMapper;
     this.testCaseAiGenerationService = testCaseAiGenerationService;
     this.testCaseTreeMoveService = testCaseTreeMoveService;
+    this.testCaseCrossProjectService = testCaseCrossProjectService;
   }
 
   // ==================== Tree Drag-and-Drop Move APIs ====================
@@ -126,6 +132,67 @@ public class TestCaseController {
       log.error("move-batch 실패", e);
       return ResponseEntity.internalServerError()
           .body(Map.of("error", "서버 오류", "message", e.getMessage()));
+    }
+  }
+
+  // ==================== Cross-Project Move / Copy APIs ====================
+  // 다른 프로젝트로 테스트케이스를 이동(결과 미러링 포함)하거나 복사(케이스만)한다.
+  // 같은-프로젝트 DnD 이동(위의 /move, /move-batch)과는 별개 경로다.
+
+  @Operation(
+      summary = "테스트케이스 다른 프로젝트로 이동 (결과 포함)",
+      description =
+          "선택한 케이스(폴더면 하위 전체)를 대상 프로젝트로 이동하고, 연결된 테스트 결과를 미러 실행으로 함께 옮긴다. 출발/대상 프로젝트 모두 편집 권한이 필요하다.")
+  @PostMapping("/cross-project/move")
+  public ResponseEntity<?> moveToProject(@Valid @RequestBody CrossProjectTransferRequest request) {
+    try {
+      CrossProjectTransferResultDto result = testCaseCrossProjectService.moveToProject(request);
+      return ResponseEntity.ok(result);
+    } catch (MoveValidationException e) {
+      log.warn("cross-move 검증 실패: msg={}", e.getMessage());
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    } catch (MoveNotFoundException e) {
+      log.warn("cross-move 대상 없음: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    } catch (MoveForbiddenException e) {
+      log.warn("cross-move 권한 없음: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+    } catch (CrossProjectMoveException | SystemFolderProtectedException e) {
+      log.warn("cross-move 충돌: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    } catch (Exception e) {
+      log.error("cross-move 실패", e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "서버 오류", "message", String.valueOf(e.getMessage())));
+    }
+  }
+
+  @Operation(
+      summary = "테스트케이스 다른 프로젝트로 복사 (케이스만)",
+      description =
+          "선택한 케이스(폴더면 하위 전체)를 대상 프로젝트로 복제한다. 테스트 결과는 가져오지 않으며 출발 데이터는 변경되지 않는다. 출발 조회 권한 + 대상 편집 권한이"
+              + " 필요하다.")
+  @PostMapping("/cross-project/copy")
+  public ResponseEntity<?> copyToProject(@Valid @RequestBody CrossProjectTransferRequest request) {
+    try {
+      CrossProjectTransferResultDto result = testCaseCrossProjectService.copyToProject(request);
+      return ResponseEntity.ok(result);
+    } catch (MoveValidationException e) {
+      log.warn("cross-copy 검증 실패: msg={}", e.getMessage());
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    } catch (MoveNotFoundException e) {
+      log.warn("cross-copy 대상 없음: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    } catch (MoveForbiddenException e) {
+      log.warn("cross-copy 권한 없음: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+    } catch (SystemFolderProtectedException e) {
+      log.warn("cross-copy 충돌: msg={}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    } catch (Exception e) {
+      log.error("cross-copy 실패", e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "서버 오류", "message", String.valueOf(e.getMessage())));
     }
   }
 
