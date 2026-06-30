@@ -32,25 +32,37 @@ export function classifyError(error) {
 
 /**
  * 사용자 친화적 에러 메시지 생성
+ * @param {Error} error - 에러 객체
+ * @param {Function} t - i18n 번역 함수 (선택사항, 기본값: fallback 반환)
+ * @returns {string} 사용자 친화적 메시지
  */
-export function getUserFriendlyMessage(error) {
+export function getUserFriendlyMessage(error, t = (key, fallback) => fallback) {
   const errorType = classifyError(error);
 
   switch (errorType) {
     case ErrorTypes.NETWORK:
-      return "네트워크 연결을 확인해주세요.";
+      return t("error.networkError", "네트워크 연결을 확인해주세요.");
 
     case ErrorTypes.AUTH:
-      return "로그인이 필요하거나 권한이 없습니다.";
+      return t("error.authRequired", "로그인이 필요하거나 권한이 없습니다.");
 
     case ErrorTypes.VALIDATION:
-      return error.message || "입력한 정보를 확인해주세요.";
+      return (
+        error.message ||
+        t("error.validationError", "입력한 정보를 확인해주세요.")
+      );
 
     case ErrorTypes.SERVER:
-      return "서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      return t(
+        "error.serverError",
+        "서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      );
 
     default:
-      return error.message || "알 수 없는 오류가 발생했습니다.";
+      return (
+        error.message ||
+        t("error.unknownError", "알 수 없는 오류가 발생했습니다.")
+      );
   }
 }
 
@@ -88,10 +100,13 @@ class ErrorHandler {
 
   /**
    * 에러 처리
+   * @param {Error} error - 에러 객체
+   * @param {Function} t - i18n 번역 함수 (선택사항)
+   * @returns {Object} 에러 정보 객체
    */
-  handleError(error) {
+  handleError(error, t = (key, fallback) => fallback) {
     const errorType = classifyError(error);
-    const userMessage = getUserFriendlyMessage(error);
+    const userMessage = getUserFriendlyMessage(error, t);
 
     // 에러 정보 객체 생성
     const errorInfo = {
@@ -123,12 +138,16 @@ class ErrorHandler {
 
   /**
    * 인증 실패 처리
+   * @param {Function} t - i18n 번역 함수 (선택사항)
    */
-  handleAuthFailure() {
+  handleAuthFailure(t = (key, fallback) => fallback) {
     // 로그인 페이지로 리다이렉트하거나 모달 표시
     this.notifyListeners({
       type: ErrorTypes.AUTH,
-      message: "세션이 만료되었습니다. 다시 로그인해주세요.",
+      message: t(
+        "error.sessionExpired",
+        "세션이 만료되었습니다. 다시 로그인해주세요.",
+      ),
       timestamp: new Date().toISOString(),
       requiresReauth: true,
     });
@@ -187,11 +206,18 @@ class ErrorHandler {
 
   /**
    * React 컴포넌트용 에러 바운더리 헬퍼
+   * @param {Error} error - 에러 객체
+   * @param {Object} errorInfo - 컴포넌트 스택 정보
+   * @param {Function} t - i18n 번역 함수 (선택사항)
+   * @returns {Object} 에러 정보 객체
    */
-  createErrorBoundaryInfo(error, errorInfo) {
+  createErrorBoundaryInfo(error, errorInfo, t = (key, fallback) => fallback) {
     return {
       type: ErrorTypes.UNKNOWN,
-      message: "화면을 표시하는 중 오류가 발생했습니다.",
+      message: t(
+        "error.renderingError",
+        "화면을 표시하는 중 오류가 발생했습니다.",
+      ),
       originalError: error,
       componentStack: errorInfo?.componentStack,
       timestamp: new Date().toISOString(),

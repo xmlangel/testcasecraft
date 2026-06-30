@@ -84,9 +84,14 @@ export function formatTimeOnly(date, locale = "ko-KR") {
  * 상대적 시간 표시 (몇 분 전, 몇 시간 전 등)
  * @param {string|Date} date - 기준 날짜
  * @param {string|Date} baseDate - 비교 기준 날짜 (기본: 현재)
+ * @param {Function} t - i18n 번역 함수 (기본: (key, fallback) => fallback)
  * @returns {string} 상대적 시간 문자열
  */
-export function formatRelativeTime(date, baseDate = new Date()) {
+export function formatRelativeTime(
+  date,
+  baseDate = new Date(),
+  t = (key, fallback) => fallback,
+) {
   if (!date) return "-";
 
   const dateObj = typeof date === "string" ? safeParseDate(date) : date;
@@ -106,10 +111,13 @@ export function formatRelativeTime(date, baseDate = new Date()) {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffMinutes < 1) return "방금 전";
-  if (diffMinutes < 60) return `${diffMinutes}분 전`;
-  if (diffHours < 24) return `${diffHours}시간 전`;
-  if (diffDays < 7) return `${diffDays}일 전`;
+  if (diffMinutes < 1) return t("time.justNow", "방금 전");
+  if (diffMinutes < 60)
+    return t("time.minutesAgo", `${diffMinutes}분 전`, { n: diffMinutes });
+  if (diffHours < 24)
+    return t("time.hoursAgo", `${diffHours}시간 전`, { n: diffHours });
+  if (diffDays < 7)
+    return t("time.daysAgo", `${diffDays}일 전`, { n: diffDays });
 
   // 일주일 이상은 실제 날짜 표시
   return formatDateOnly(date);
@@ -119,9 +127,14 @@ export function formatRelativeTime(date, baseDate = new Date()) {
  * 두 날짜 사이의 기간 계산
  * @param {string|Date} startDate - 시작 날짜
  * @param {string|Date} endDate - 종료 날짜
+ * @param {Function} t - i18n 번역 함수 (기본: (key, fallback) => fallback)
  * @returns {string} 기간 문자열
  */
-export function formatDuration(startDate, endDate) {
+export function formatDuration(
+  startDate,
+  endDate,
+  t = (key, fallback) => fallback,
+) {
   if (!startDate || !endDate) return "-";
 
   const start =
@@ -133,7 +146,7 @@ export function formatDuration(startDate, endDate) {
 
   const diffMs = end.getTime() - start.getTime();
 
-  if (diffMs < 0) return "0초";
+  if (diffMs < 0) return t("time.zeroSeconds", "0초");
 
   const seconds = Math.floor(diffMs / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -142,24 +155,35 @@ export function formatDuration(startDate, endDate) {
 
   if (days > 0) {
     const remainingHours = hours % 24;
-    return remainingHours > 0 ? `${days}일 ${remainingHours}시간` : `${days}일`;
+    return remainingHours > 0
+      ? t("time.daysAndHours", `${days}일 ${remainingHours}시간`, {
+          days,
+          hours: remainingHours,
+        })
+      : t("time.daysOnly", `${days}일`, { days });
   }
 
   if (hours > 0) {
     const remainingMinutes = minutes % 60;
     return remainingMinutes > 0
-      ? `${hours}시간 ${remainingMinutes}분`
-      : `${hours}시간`;
+      ? t("time.hoursAndMinutes", `${hours}시간 ${remainingMinutes}분`, {
+          hours,
+          minutes: remainingMinutes,
+        })
+      : t("time.hoursOnly", `${hours}시간`, { hours });
   }
 
   if (minutes > 0) {
     const remainingSeconds = seconds % 60;
     return remainingSeconds > 0
-      ? `${minutes}분 ${remainingSeconds}초`
-      : `${minutes}분`;
+      ? t("time.minutesAndSeconds", `${minutes}분 ${remainingSeconds}초`, {
+          minutes,
+          seconds: remainingSeconds,
+        })
+      : t("time.minutesOnly", `${minutes}분`, { minutes });
   }
 
-  return `${seconds}초`;
+  return t("time.secondsOnly", `${seconds}초`, { seconds });
 }
 
 /**
