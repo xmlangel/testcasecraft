@@ -1803,6 +1803,25 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.bulkOps.button.execute", languageCode, "Execute", createdBy);
 
+    // Cross-project move/copy (tree header button + errors)
+    createTranslationIfNotExists(
+        "testcase.crossProject.button.label", languageCode, "Move/Copy to Project", createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.button.title",
+        languageCode,
+        "Move/copy selected items to another project",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.error.noTarget",
+        languageCode,
+        "Please select a target project.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.error.failed",
+        languageCode,
+        "Cross-project operation failed.",
+        createdBy);
+
     // Spreadsheet Row Insert/Delete Buttons
     createTranslationIfNotExists(
         "testcase.spreadsheet.button.insertAbove", languageCode, "Insert Above", createdBy);

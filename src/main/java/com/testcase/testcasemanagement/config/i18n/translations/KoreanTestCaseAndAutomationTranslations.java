@@ -1292,6 +1292,19 @@ public class KoreanTestCaseAndAutomationTranslations {
         "testcase.bulkOps.status.processing", languageCode, "처리 중...", createdBy);
     createTranslationIfNotExists("testcase.bulkOps.button.execute", languageCode, "실행", createdBy);
 
+    // 다른 프로젝트로 이동/복사 (트리 헤더 버튼 + 에러)
+    createTranslationIfNotExists(
+        "testcase.crossProject.button.label", languageCode, "프로젝트 이동/복사", createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.button.title",
+        languageCode,
+        "선택 항목을 다른 프로젝트로 이동/복사",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.error.noTarget", languageCode, "대상 프로젝트를 선택해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.error.failed", languageCode, "프로젝트 간 작업에 실패했습니다.", createdBy);
+
     // 스프레드시트 행 삽입/삭제 버튼 한글
     createTranslationIfNotExists(
         "testcase.spreadsheet.button.insertAbove", languageCode, "위에 추가", createdBy);

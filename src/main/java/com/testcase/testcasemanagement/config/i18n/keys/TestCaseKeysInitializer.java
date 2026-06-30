@@ -1796,6 +1796,25 @@ public class TestCaseKeysInitializer {
         "testcase.bulkOps.status.processing", "testcase", "처리 중 상태", "처리 중...");
     createTranslationKeyIfNotExists("testcase.bulkOps.button.execute", "testcase", "실행 버튼", "실행");
 
+    // 다른 프로젝트로 이동/복사 (트리 헤더 버튼 + 에러)
+    createTranslationKeyIfNotExists(
+        "testcase.crossProject.button.label", "testcase", "프로젝트 이동/복사 버튼 라벨", "프로젝트 이동/복사");
+    createTranslationKeyIfNotExists(
+        "testcase.crossProject.button.title",
+        "testcase",
+        "프로젝트 이동/복사 버튼 툴팁",
+        "선택 항목을 다른 프로젝트로 이동/복사");
+    createTranslationKeyIfNotExists(
+        "testcase.crossProject.error.noTarget",
+        "testcase",
+        "대상 프로젝트 미선택 오류",
+        "대상 프로젝트를 선택해주세요.");
+    createTranslationKeyIfNotExists(
+        "testcase.crossProject.error.failed",
+        "testcase",
+        "프로젝트 간 작업 실패 오류",
+        "프로젝트 간 작업에 실패했습니다.");
+
     // 스프레드시트 행 삽입/삭제 버튼
     createTranslationKeyIfNotExists(
         "testcase.spreadsheet.button.insertAbove", "testcase", "위에 추가 버튼", "위에 추가");
