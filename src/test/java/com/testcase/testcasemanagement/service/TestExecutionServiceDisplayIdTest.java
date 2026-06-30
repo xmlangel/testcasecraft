@@ -9,6 +9,7 @@ import com.testcase.testcasemanagement.dto.BulkTestResultDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
+import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import java.util.*;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -29,6 +30,7 @@ public class TestExecutionServiceDisplayIdTest {
   @Mock private JiraIntegrationService jiraIntegrationService;
   @Mock private TestCaseRepository testCaseRepository;
   @Mock private TestCaseFileStorageService fileStorageService;
+  @Mock private ProjectSecurityService projectSecurityService;
 
   private TestExecutionService testExecutionService;
 
@@ -51,7 +53,8 @@ public class TestExecutionServiceDisplayIdTest {
             userRepository,
             jiraIntegrationService,
             testCaseRepository,
-            fileStorageService);
+            fileStorageService,
+            projectSecurityService);
 
     // SecurityContext Mocking
     Authentication authentication = mock(Authentication.class);
@@ -83,6 +86,9 @@ public class TestExecutionServiceDisplayIdTest {
         .thenReturn(Optional.of(mockExecution));
     when(testExecutionRepository.save(any(TestExecution.class)))
         .thenAnswer(i -> i.getArguments()[0]);
+
+    // 프로젝트 편집 권한 허용
+    when(projectSecurityService.canEditProject(anyString())).thenReturn(true);
   }
 
   /** testCaseId(UUID)가 제공된 경우 DisplayID보다 우선순위를 갖는지 테스트 (하위 호환성) */

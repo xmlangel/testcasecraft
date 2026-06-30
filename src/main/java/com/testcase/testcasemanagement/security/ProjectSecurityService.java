@@ -74,6 +74,14 @@ public class ProjectSecurityService {
     return currentUserId != null && projectUserRepository.hasEditRole(projectId, currentUserId);
   }
 
+  /**
+   * 현재 사용자가 프로젝트 데이터를 변경(생성/수정/삭제)할 수 있는지. 시스템 ADMIN 이거나 프로젝트 편집 롤(PM/LEAD/DEVELOPER/CONTRIBUTOR)을
+   * 가진 경우 허용. 테스트케이스/플랜/실행 CRUD 인가의 표준 검사로 사용한다.
+   */
+  public boolean canEditProject(String projectId) {
+    return securityContextUtil.isSystemAdmin() || hasEditRole(projectId);
+  }
+
   /** 사용자가 프로젝트 매니저인지 확인 */
   public boolean isProjectManager(String projectId, String username) {
     return userRepository
