@@ -367,6 +367,36 @@ public class TestCaseCrossProjectServiceTest {
     Assert.assertEquals(store.get("T3").getParentId(), "F2");
   }
 
+  // ====================== 입력 순서 무관 구조 보존 (부모 우선 정렬) ======================
+
+  @Test
+  public void copy_childFirstInputOrder_preservesStructure() {
+    // 프런트 checkedIds 가 자식(T3)을 부모(F2)보다 먼저 보내도 구조가 평탄화되면 안 된다.
+    buildTrees(); // F2 > T3
+    CrossProjectTransferResultDto res =
+        service.copyToProject(req(java.util.Arrays.asList("T3", "F2"), "DEST"));
+
+    Map<String, String> map = new HashMap<>();
+    for (CrossProjectTransferResultDto.NodeMapping m : res.getNodes()) {
+      map.put(m.getSourceId(), m.getTargetId());
+    }
+    String newF2 = map.get("F2");
+    String newT3 = map.get("T3");
+    Assert.assertNotNull(newF2);
+    Assert.assertNotNull(newT3);
+    // 새 T3 의 부모는 새 F2 여야 함 (DEST 직속/루트로 평탄화 금지)
+    Assert.assertEquals(store.get(newT3).getParentId(), newF2);
+    Assert.assertEquals(store.get(newF2).getParentId(), "DEST");
+  }
+
+  @Test
+  public void move_childFirstInputOrder_preservesStructure() {
+    buildTrees();
+    service.moveToProject(req(java.util.Arrays.asList("T3", "F2"), "DEST"));
+    Assert.assertEquals(store.get("F2").getParentId(), "DEST");
+    Assert.assertEquals(store.get("T3").getParentId(), "F2");
+  }
+
   // ============================ MOVE/COPY: 순서(displayOrder) ============================
 
   @Test

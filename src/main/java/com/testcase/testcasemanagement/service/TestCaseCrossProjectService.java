@@ -22,6 +22,7 @@ import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.MoveValid
 import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.SystemFolderProtectedException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -274,12 +275,21 @@ public class TestCaseCrossProjectService {
       }
     }
 
-    // 서브트리 수집 (부모 우선 정렬)
+    // 서브트리 수집
     List<TestCase> ordered = new ArrayList<>();
     Set<String> movedIds = new LinkedHashSet<>();
     for (TestCase root : roots) {
       collectSubtree(root, ordered, movedIds);
     }
+
+    // 부모 우선(위상) 정렬 — 입력(checkedIds) 순서가 자식-우선일 수 있어, copy 경로의
+    // idMap(부모 새 id) 매핑이 깨지면 하위 노드가 평탄화된다. 깊이 기준 안정 정렬로
+    // 항상 부모를 자식보다 먼저 처리하도록 보장한다. (move는 원래 순서 무관하지만 결정성 향상)
+    Map<String, TestCase> byId = new HashMap<>();
+    for (TestCase n : ordered) byId.put(n.getId(), n);
+    Map<String, Integer> depthMemo = new HashMap<>();
+    ordered.sort(
+        Comparator.comparingInt(n -> depthWithinMovedSet(n, byId, movedIds, depthMemo)));
 
     // 대상 부모가 옮기는 서브트리 안에 있으면 순환 — 차단
     if (targetParentId != null && movedIds.contains(targetParentId)) {
@@ -293,6 +303,24 @@ public class TestCaseCrossProjectService {
     ctx.orderedNodes = ordered;
     ctx.movedIds = movedIds;
     return ctx;
+  }
+
+  /**
+   * 이동/복사 집합(movedIds) 내에서 노드의 깊이. 부모가 집합 밖(=이 노드가 이동 루트)이면 0, 아니면 부모 깊이 +1. 부모 우선 정렬 키로 사용한다.
+   */
+  private int depthWithinMovedSet(
+      TestCase node,
+      Map<String, TestCase> byId,
+      Set<String> movedIds,
+      Map<String, Integer> memo) {
+    String parentId = node.getParentId();
+    if (parentId == null || !movedIds.contains(parentId)) return 0;
+    Integer cached = memo.get(node.getId());
+    if (cached != null) return cached;
+    TestCase parent = byId.get(parentId);
+    int d = (parent == null) ? 0 : depthWithinMovedSet(parent, byId, movedIds, memo) + 1;
+    memo.put(node.getId(), d);
+    return d;
   }
 
   /** 노드 + 모든 후손을 부모 우선(BFS) 순서로 수집. */
