@@ -62,7 +62,6 @@ public class RAGKeysInitializer {
     createTranslationKeyIfNotExists("rag.document.status.analyzing", "rag", "문서 상태 분석 중", "분석 중");
     createTranslationKeyIfNotExists("rag.document.status.completed", "rag", "문서 상태 완료", "완료");
     createTranslationKeyIfNotExists("rag.document.status.failed", "rag", "문서 상태 실패", "실패");
-    createTranslationKeyIfNotExists("rag.document.loading", "rag", "문서 목록 로딩", "문서 목록을 불러오는 중...");
     createTranslationKeyIfNotExists("rag.document.empty", "rag", "문서 없음 메시지", "업로드된 문서가 없습니다");
     createTranslationKeyIfNotExists(
         "rag.document.emptyDescription", "rag", "문서 없음 설명", "상단의 업로드 영역을 사용하여 문서를 등록하세요");
@@ -146,7 +145,6 @@ public class RAGKeysInitializer {
         "rag.similar.testCaseTitle", "rag", "테스트케이스 제목 템플릿", "테스트케이스 - {fileName}");
     createTranslationKeyIfNotExists("rag.similar.sourceTestcase", "rag", "출처 타입: 테스트케이스", "테스트케이스");
     createTranslationKeyIfNotExists("rag.similar.sourceDocument", "rag", "문서 소스 타입", "문서");
-    createTranslationKeyIfNotExists("rag.similar.showDetails", "rag", "유사도 낮음 결과 펼치기", "자세히 보기");
     createTranslationKeyIfNotExists(
         "rag.similar.noHighSimilarityResults",
         "rag",
@@ -427,11 +425,9 @@ public class RAGKeysInitializer {
     createTranslationKeyIfNotExists("rag.analysis.total", "rag", "전체 텍스트", "/ 전체 {count} 청크");
     createTranslationKeyIfNotExists("rag.analysis.cost", "rag", "비용 라벨", "비용:");
     createTranslationKeyIfNotExists("rag.analysis.results", "rag", "분석 결과 제목", "분석 결과");
-    createTranslationKeyIfNotExists("rag.analysis.chunkColumn", "rag", "청크 컬럼", "청크 #");
     createTranslationKeyIfNotExists("rag.analysis.originalText", "rag", "원본 텍스트 컬럼", "원본 텍스트");
     createTranslationKeyIfNotExists("rag.analysis.llmResponse", "rag", "LLM 응답 컬럼", "LLM 응답");
     createTranslationKeyIfNotExists("rag.analysis.tokens", "rag", "토큰 컬럼", "토큰");
-    createTranslationKeyIfNotExists("rag.analysis.costColumn", "rag", "비용 컬럼", "비용");
     createTranslationKeyIfNotExists("rag.analysis.estimateCost", "rag", "비용 추정 버튼", "비용 추정");
     createTranslationKeyIfNotExists("rag.analysis.stop", "rag", "중단 버튼", "중단");
     createTranslationKeyIfNotExists("rag.analysis.resume", "rag", "재개 버튼", "재개");
@@ -513,10 +509,6 @@ public class RAGKeysInitializer {
     createTranslationKeyIfNotExists(
         "rag.document.summary.progressLabel", "rag", "진행률 레이블", "진행률: {progress}%");
     createTranslationKeyIfNotExists(
-        "rag.document.summary.chunkTemplate", "rag", "청크 제목 템플릿", "📄 청크 {chunkNumber}");
-    createTranslationKeyIfNotExists(
-        "rag.document.summary.progressFormat", "rag", "진행률 포맷", "{analyzed}/{total} 청크");
-    createTranslationKeyIfNotExists(
         "rag.document.summary.resultsSummary", "rag", "LLM 분석 결과 요약 제목", "LLM 분석 결과 요약");
 
     // Job History 관련 번역 키들
@@ -562,29 +554,8 @@ public class RAGKeysInitializer {
         "rag",
         "이미 진행중 메시지 (진행률 포함)",
         "이미 분석이 진행 중입니다. (진행율: {progress})");
-    createTranslationKeyIfNotExists(
-        "rag.document.alert.cancelConfirm",
-        "rag",
-        "분석 취소 확인 메시지",
-        "\"{documentName}\" 문서의 분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.");
 
     // Error 메시지 관련 번역 키들
-    createTranslationKeyIfNotExists(
-        "rag.document.error.listFailed", "rag", "문서 목록 조회 실패", "문서 목록 조회에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.uploadFailed", "rag", "문서 업로드 실패", "문서 업로드에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.deleteFailed", "rag", "문서 삭제 실패", "문서 삭제에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.downloadFailed", "rag", "문서 다운로드 실패", "문서 다운로드에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.analyzeFailed", "rag", "문서 분석 실패", "문서 분석에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.embeddingFailed", "rag", "임베딩 생성 실패", "임베딩 생성에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.promoteFailed", "rag", "공통 문서 이동 실패", "공통 문서 이동에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.requestFailed", "rag", "공통 문서 등록 요청 실패", "공통 문서 등록 요청에 실패했습니다.");
 
     // 공통 문서 요청 관련 키들
     createTranslationKeyIfNotExists(
@@ -596,23 +567,8 @@ public class RAGKeysInitializer {
         "rag",
         "공통 문서 등록 요청 전송됨",
         "관리자에게 공통 문서 등록 요청이 전송되었습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.jobHistoryFailed", "rag", "작업 이력 조회 실패", "작업 이력 조회에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.pauseFailed", "rag", "일시정지 실패", "일시정지에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.resumeFailed", "rag", "재개 실패", "재개에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "rag.document.error.cancelFailed", "rag", "취소 실패", "취소에 실패했습니다.");
 
     // Confirm 다이얼로그 관련 번역 키들
-    createTranslationKeyIfNotExists(
-        "rag.document.confirm.analyze", "rag", "문서 분석 확인 메시지", "문서 \"{fileName}\"을 분석하시겠습니까?");
-    createTranslationKeyIfNotExists(
-        "rag.document.confirm.generateEmbeddings",
-        "rag",
-        "임베딩 생성 확인 메시지",
-        "문서 \"{fileName}\"의 임베딩을 생성하시겠습니까?");
 
     // 공통 문서 관리 관련 키들
     createTranslationKeyIfNotExists(
@@ -623,47 +579,17 @@ public class RAGKeysInitializer {
         "공통 문서 관리 설명",
         "모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스를 관리합니다. (관리자 전용)");
     createTranslationKeyIfNotExists("admin.globalDoc.uploadFile", "rag", "파일 업로드 버튼", "파일 업로드");
-    createTranslationKeyIfNotExists("admin.globalDoc.fileName", "rag", "파일명 컬럼", "파일명");
-    createTranslationKeyIfNotExists("admin.globalDoc.fileSize", "rag", "파일 크기 컬럼", "파일 크기");
-    createTranslationKeyIfNotExists("admin.globalDoc.analysisStatus", "rag", "분석 상태 컬럼", "분석 상태");
-    createTranslationKeyIfNotExists("admin.globalDoc.parser", "rag", "파서 컬럼", "파서");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.embeddingStatus", "rag", "임베딩 상태 컬럼", "임베딩 상태");
-    createTranslationKeyIfNotExists("admin.globalDoc.chunkCount", "rag", "청크 수 컬럼", "청크 수");
-    createTranslationKeyIfNotExists("admin.globalDoc.uploader", "rag", "업로더 컬럼", "업로더");
-    createTranslationKeyIfNotExists("admin.globalDoc.uploadDate", "rag", "업로드 날짜 컬럼", "업로드 날짜");
     createTranslationKeyIfNotExists(
         "admin.globalDoc.noDocuments", "rag", "문서 없음 메시지", "아직 공통 문서가 없습니다. 첫 번째 문서를 업로드해보세요!");
 
     // 공통 문서 메시지 관련 키들
     createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.uploaded", "rag", "공통 문서 업로드 성공 메시지", "공통 문서 \"{0}\"이 업로드되었습니다");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.deleted", "rag", "공통 문서 삭제 성공 메시지", "공통 문서 \"{0}\"이 삭제되었습니다");
-    createTranslationKeyIfNotExists(
         "admin.globalDoc.message.confirmDelete",
         "rag",
         "공통 문서 삭제 확인 메시지",
         "공통 문서 \"{0}\"을 삭제하시겠습니까?");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.confirmEmbedding",
-        "rag",
-        "공통 문서 임베딩 생성 확인 메시지",
-        "문서 \"{0}\"의 임베딩을 생성하시겠습니까?");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.embeddingStarted",
-        "rag",
-        "공통 문서 임베딩 시작 메시지",
-        "문서 \"{0}\" 임베딩 생성 시작됨");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.downloaded", "rag", "공통 문서 다운로드 완료 메시지", "문서 \"{0}\" 다운로드 완료");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.maxSize", "rag", "파일 크기 초과 메시지", "파일 크기는 50MB를 초과할 수 없습니다");
 
     // 공통 문서 청크 관련 키들
-    createTranslationKeyIfNotExists("admin.globalDoc.chunks.title", "rag", "문서 청크 제목", "문서 청크");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.chunks.noChunks", "rag", "청크 없음 메시지", "청크가 없습니다.");
   }
 
   private void createTranslationKeyIfNotExists(

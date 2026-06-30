@@ -65,44 +65,12 @@ public class DashboardKeysInitializer {
         "dashboard.noData.chart", "dashboard", "차트 데이터 없음", "표시할 데이터가 없습니다.");
     createTranslationKeyIfNotExists(
         "dashboard.noData.noActiveTestRuns", "dashboard", "진행 중인 테스트런 없음", "진행 중인 테스트런이 없습니다.");
-    createTranslationKeyIfNotExists(
-        "dashboard.noData.noResults", "dashboard", "검색 결과 없음", "검색 결과가 없습니다");
 
     // 대시보드 요약 정보
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.totalProjects", "dashboard", "총 프로젝트 수", "총 프로젝트");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.activeProjects", "dashboard", "활성 프로젝트 수", "활성 프로젝트");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.totalTestCases", "dashboard", "총 테스트케이스 수", "총 테스트케이스");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.passedTests", "dashboard", "통과한 테스트 수", "통과한 테스트");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.failedTests", "dashboard", "실패한 테스트 수", "실패한 테스트");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.testCoverage", "dashboard", "테스트 커버리지", "테스트 커버리지");
 
     // 대시보드 활동 정보
-    createTranslationKeyIfNotExists(
-        "dashboard.activity.recentActivities", "dashboard", "최근 활동", "최근 활동");
-    createTranslationKeyIfNotExists(
-        "dashboard.activity.testExecutions", "dashboard", "테스트 실행", "테스트 실행");
-    createTranslationKeyIfNotExists(
-        "dashboard.activity.newTestCases", "dashboard", "새 테스트케이스", "새 테스트케이스");
-    createTranslationKeyIfNotExists(
-        "dashboard.activity.completedPlans", "dashboard", "완료된 계획", "완료된 계획");
 
     // 대시보드 빠른 작업
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.title", "dashboard", "빠른 작업 제목", "빠른 작업");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.createTestCase", "dashboard", "테스트케이스 생성", "테스트케이스 생성");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.runTests", "dashboard", "테스트 실행", "테스트 실행");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.viewReports", "dashboard", "리포트 보기", "리포트 보기");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.manageProjects", "dashboard", "프로젝트 관리", "프로젝트 관리");
 
     // 대시보드 에러 처리
     createTranslationKeyIfNotExists(
@@ -236,30 +204,6 @@ public class DashboardKeysInitializer {
         "organization.dashboard.testResults.notRun", "dashboard", "미실행 테스트 결과", "미실행");
 
     // 사용량 요약 (Usage Summary)
-    createTranslationKeyIfNotExists("dashboard.usage.title", "dashboard", "사용량 요약 제목", "사용량 요약");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.lastUpdated", "dashboard", "최근 업데이트 시간", "최근 업데이트 {time}");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.loading", "dashboard", "사용량 데이터 로딩 중", "사용량 데이터를 불러오는 중입니다...");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.error", "dashboard", "사용량 데이터 로딩 실패", "사용량 데이터를 불러오지 못했습니다.");
-    createTranslationKeyIfNotExists("dashboard.usage.retry", "dashboard", "다시 시도 버튼", "다시 시도");
-    createTranslationKeyIfNotExists("dashboard.usage.totalVisits", "dashboard", "오늘 방문 수", "오늘 방문");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.uniqueVisitors", "dashboard", "오늘 고유 방문자 수", "오늘 고유 방문자");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.activeVisitors", "dashboard", "활성 세션 수", "활성 세션");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.activeWindow", "dashboard", "활성 세션 기준 시간", "최근 {minutes}분 기준");
-    createTranslationKeyIfNotExists("dashboard.usage.topPages", "dashboard", "상위 페이지 제목", "상위 페이지");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.totalLabel", "dashboard", "누적 방문 수 라벨", "누적 {total}");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.noData", "dashboard", "방문 데이터 없음", "집계된 방문 데이터가 없습니다.");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.dailySummary", "dashboard", "일별 방문 요약 제목", "일별 방문 요약");
-    createTranslationKeyIfNotExists(
-        "dashboard.usage.uniqueLabel", "dashboard", "고유 방문자 수 라벨", "고유 {count}");
 
     // 통계 소스 타입 선택 (수동 테스트 / 자동화 테스트 / 전체 합계)
     createTranslationKeyIfNotExists("dashboard.source.manual", "dashboard", "수동 테스트 소스", "수동 테스트");

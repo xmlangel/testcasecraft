@@ -42,14 +42,6 @@ public class EnglishTestResultTranslations {
         languageCode,
         "Visualize Pass/Fail/NotRun/Blocked result distribution at a glance",
         createdBy);
-    createTranslationIfNotExists("testResult.tab.trend", languageCode, "Trend", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tab.trendFull", languageCode, "Trend Analysis", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tab.trendDescription",
-        languageCode,
-        "Analyze and compare results by test plan and executor with performance trend analysis",
-        createdBy);
     createTranslationIfNotExists("testResult.tab.table", languageCode, "Table", createdBy);
     createTranslationIfNotExists(
         "testResult.tab.tableFull", languageCode, "Detailed Table", createdBy);
@@ -57,14 +49,6 @@ public class EnglishTestResultTranslations {
         "testResult.tab.tableDescription",
         languageCode,
         "View all test results in detailed table format",
-        createdBy);
-    createTranslationIfNotExists("testResult.tab.report", languageCode, "Report", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tab.reportFull", languageCode, "Detailed Report", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tab.reportDescription",
-        languageCode,
-        "Support detailed results by folder and case with JIRA integration status management",
         createdBy);
     createTranslationIfNotExists(
         "testResult.form.title", languageCode, "Enter Test Result", createdBy);
@@ -139,8 +123,6 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.filteredCases.notRunTitle", languageCode, "Not Run Test Cases", createdBy);
     createTranslationIfNotExists(
-        "testResult.filteredCases.column.actions", languageCode, "Actions", createdBy);
-    createTranslationIfNotExists(
         "testResult.filteredCases.goToResult", languageCode, "View Detailed Result", createdBy);
     createTranslationIfNotExists(
         "testResult.filteredCases.goToExecution", languageCode, "Go to Execution", createdBy);
@@ -152,93 +134,26 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.form.mode.markdown", languageCode, "Markdown", createdBy);
     createTranslationIfNotExists(
-        "testResult.form.mode.switch", languageCode, "Mode Switch", createdBy);
-    createTranslationIfNotExists(
         "testResult.form.fileAttachment", languageCode, "File Attachment", createdBy);
     createTranslationIfNotExists(
         "testResult.form.fileSelect", languageCode, "Select Files", createdBy);
     createTranslationIfNotExists(
         "testResult.form.fileUploading", languageCode, "Uploading...", createdBy);
     createTranslationIfNotExists(
-        "testResult.form.fileFormat",
-        languageCode,
-        "Allowed formats: TXT, CSV, JSON, MD, PDF, LOG (Max 10MB)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.newAttachments",
-        languageCode,
-        "Files to be attached ({count} files)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.attachments", languageCode, "Attachments", createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.attachmentsNote",
-        languageCode,
-        "Attachments will be available after saving the test result.",
-        createdBy);
-    createTranslationIfNotExists(
         "testResult.form.jiraIntegration", languageCode, "JIRA Issue Integration", createdBy);
     createTranslationIfNotExists(
-        "testResult.form.jiraIssueId", languageCode, "JIRA Issue ID (e.g., ICT-123)", createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.jiraIssuePlaceholder",
-        languageCode,
-        "Enter related JIRA issue key (automatically converted to uppercase)",
-        createdBy);
-    createTranslationIfNotExists(
         "testResult.form.jiraComment", languageCode, "JIRA Comment", createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.jiraDetected", languageCode, "Detected issues: {issues}", createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.jiraDetectedShort", languageCode, "Detected: {issues}", createdBy);
     createTranslationIfNotExists(
         "testResult.jira.connectionCheckFailed",
         languageCode,
         "JIRA connection check failed:",
         createdBy);
     createTranslationIfNotExists(
-        "testResult.jira.placeholder",
-        languageCode,
-        "Enter related JIRA issue key (automatically converted to uppercase)",
-        createdBy);
-    createTranslationIfNotExists(
         "testResult.jira.detectedIssues", languageCode, "Detected Issues", createdBy);
-    createTranslationIfNotExists(
-        "testResult.jira.issueIdLabel", languageCode, "JIRA Issue ID (e.g., ICT-123)", createdBy);
-    createTranslationIfNotExists(
-        "testResult.jira.issueIdPlaceholder",
-        languageCode,
-        "Enter related JIRA issue key (auto-converted to uppercase)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.jira.invalidFormat",
-        languageCode,
-        "Invalid JIRA issue key format (e.g., ICT-123)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.jira.autoUppercase",
-        languageCode,
-        "The entered key will be automatically converted to uppercase",
-        createdBy);
     createTranslationIfNotExists(
         "testResult.file.sizeError", languageCode, "File size must be 10MB or less", createdBy);
     createTranslationIfNotExists(
         "testResult.file.typeError", languageCode, "File type not allowed", createdBy);
-    createTranslationIfNotExists(
-        "testResult.file.allowedFormats",
-        languageCode,
-        "Allowed formats: TXT, CSV, JSON, MD, PDF, LOG (Max 10MB)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.file.newAttachmentsCount",
-        languageCode,
-        "Files to be attached ({count} files)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.file.attachedFilesCount",
-        languageCode,
-        "Attached files ({count} files)",
-        createdBy);
     createTranslationIfNotExists(
         "testResult.file.saveToViewAttachments",
         languageCode,
@@ -253,30 +168,10 @@ public class EnglishTestResultTranslations {
         createdBy);
     createTranslationIfNotExists(
         "testResult.error.resultRequired", languageCode, "Please select a test result.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.warning.xmlCountMismatch",
-        languageCode,
-        "XML metadata count ({metadata}) differs from actual loaded tests ({actual}). Some tests"
-            + " might be missing from the file.",
-        createdBy);
     createTranslationIfNotExists("testResult.status.pass", languageCode, "Pass", createdBy);
     createTranslationIfNotExists("testResult.status.fail", languageCode, "Fail", createdBy);
     createTranslationIfNotExists("testResult.status.blocked", languageCode, "Blocked", createdBy);
     createTranslationIfNotExists("testResult.status.notRun", languageCode, "Not Run", createdBy);
-    createTranslationIfNotExists("testResult.status.error", languageCode, "Error", createdBy);
-    createTranslationIfNotExists(
-        "testResult.table.title", languageCode, "Test Results Detailed List", createdBy);
-    createTranslationIfNotExists(
-        "testResult.table.resultCount", languageCode, " test results", createdBy);
-    createTranslationIfNotExists("testResult.table.filtered", languageCode, "Filtered", createdBy);
-    createTranslationIfNotExists(
-        "testResult.table.loadError", languageCode, "Cannot load test results", createdBy);
-    createTranslationIfNotExists(
-        "testResult.chart.distribution", languageCode, "Test Result Distribution", createdBy);
-    createTranslationIfNotExists(
-        "testResult.chart.loading", languageCode, "Loading chart data...", createdBy);
-    createTranslationIfNotExists(
-        "testResult.chart.noData", languageCode, "No chart data available.", createdBy);
     createTranslationIfNotExists(
         "testResult.chart.total", languageCode, "Total test cases: {total}", createdBy);
 
@@ -285,11 +180,7 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists("testResult.status.fail", languageCode, "Fail", createdBy);
     createTranslationIfNotExists("testResult.status.blocked", languageCode, "Blocked", createdBy);
     createTranslationIfNotExists("testResult.status.notRun", languageCode, "Not Run", createdBy);
-    createTranslationIfNotExists("testResult.status.error", languageCode, "Error", createdBy);
     createTranslationIfNotExists("testResult.status.skipped", languageCode, "Skipped", createdBy);
-    createTranslationIfNotExists("testResult.status.untested", languageCode, "Untested", createdBy);
-    createTranslationIfNotExists("testResult.status.retest", languageCode, "Retest", createdBy);
-    createTranslationIfNotExists("testResult.status.final", languageCode, "Final", createdBy);
 
     // Test Result Buttons (Extended)
     createTranslationIfNotExists(
@@ -326,8 +217,6 @@ public class EnglishTestResultTranslations {
         createdBy);
 
     // JIRA Status
-    createTranslationIfNotExists(
-        "testResult.jira.status.unknown", languageCode, "Unknown", createdBy);
 
     // Tooltips
     createTranslationIfNotExists(
@@ -353,18 +242,7 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.column.linkedDocCount", languageCode, "{count} docs", createdBy);
     createTranslationIfNotExists(
-        "testResult.column.executedBy", languageCode, "Executor", createdBy);
-    createTranslationIfNotExists(
-        "testResult.column.executedAt", languageCode, "Executed At", createdBy);
-    createTranslationIfNotExists(
-        "testResult.column.testPlan", languageCode, "Test Plan", createdBy);
-    createTranslationIfNotExists(
-        "testResult.column.testExecution", languageCode, "Test Execution", createdBy);
-    createTranslationIfNotExists(
         "testResult.column.jiraStatus", languageCode, "JIRA Status", createdBy);
-    createTranslationIfNotExists("testResult.column.actions", languageCode, "Actions", createdBy);
-    createTranslationIfNotExists(
-        "testResult.chart.compareTitle", languageCode, "Test Result Comparison", createdBy);
     createTranslationIfNotExists(
         "testResult.chart.percentageView", languageCode, "Percentage View", createdBy);
     createTranslationIfNotExists(
@@ -393,8 +271,6 @@ public class EnglishTestResultTranslations {
         "testResult.statistics.successRate", languageCode, "Success Rate", createdBy);
     createTranslationIfNotExists(
         "testResult.statistics.totalTests", languageCode, "Total Tests", createdBy);
-    createTranslationIfNotExists(
-        "testResult.statistics.totalCount", languageCode, "Total {count} items", createdBy);
     createTranslationIfNotExists(
         "testResult.pieChart.title", languageCode, "Test Result Distribution", createdBy);
     createTranslationIfNotExists(
@@ -493,7 +369,6 @@ public class EnglishTestResultTranslations {
         "testResult.tooltip.noPreCondition", languageCode, "No precondition", createdBy);
     createTranslationIfNotExists(
         "testResult.tooltip.noExpectedResults", languageCode, "No expected results", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.noNotes", languageCode, "No notes", createdBy);
     createTranslationIfNotExists(
         "testResult.tooltip.multipleJiraIds", languageCode, "Total {count} JIRA IDs", createdBy);
     createTranslationIfNotExists("testResult.status.unknown", languageCode, "Unknown", createdBy);
@@ -675,10 +550,6 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.orderDialog.apply", languageCode, "Apply Order", createdBy);
     createTranslationIfNotExists(
-        "testResult.message.error", languageCode, "An error occurred", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.deleteFailed", languageCode, "Failed to delete", createdBy);
-    createTranslationIfNotExists(
         "testResult.dialog.attachmentsTitle", languageCode, "Test Result Attachments", createdBy);
     createTranslationIfNotExists(
         "testResult.detailReport.searchPlaceholder",
@@ -709,8 +580,6 @@ public class EnglishTestResultTranslations {
         "testResult.pieChart.totalTestCases", languageCode, "Total Test Cases", createdBy);
     createTranslationIfNotExists(
         "testResult.statistics.noData", languageCode, "No statistics data", createdBy);
-    createTranslationIfNotExists(
-        "testResult.statistics.totalCount", languageCode, "Total Count", createdBy);
     createTranslationIfNotExists(
         "testResult.form.preCondition", languageCode, "Pre-condition", createdBy);
     createTranslationIfNotExists(

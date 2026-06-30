@@ -28,8 +28,6 @@ public class AttachmentKeysInitializer {
         "attachment.error.auth.failed", "attachment", "사용자 인증 실패 메시지", "사용자 인증에 실패했습니다.");
 
     // 에러 메시지 - 업로드
-    createTranslationKeyIfNotExists(
-        "attachment.error.upload.validation", "attachment", "파일 검증 실패 메시지", "파일 검증에 실패했습니다.");
 
     createTranslationKeyIfNotExists(
         "attachment.error.upload.io", "attachment", "파일 저장 IO 오류 메시지", "파일 저장 중 오류가 발생했습니다.");
@@ -54,20 +52,8 @@ public class AttachmentKeysInitializer {
         "첨부파일 정보를 조회하는 중 오류가 발생했습니다.");
 
     // 에러 메시지 - 다운로드
-    createTranslationKeyIfNotExists(
-        "attachment.error.download.notfound",
-        "attachment",
-        "다운로드 파일을 찾을 수 없음 메시지",
-        "파일을 찾을 수 없습니다.");
 
-    createTranslationKeyIfNotExists(
-        "attachment.error.download.io", "attachment", "파일 다운로드 IO 오류 메시지", "파일 다운로드 중 오류가 발생했습니다.");
 
-    createTranslationKeyIfNotExists(
-        "attachment.error.download.general",
-        "attachment",
-        "파일 다운로드 일반 오류 메시지",
-        "파일 다운로드 중 예상치 못한 오류가 발생했습니다.");
 
     // 에러 메시지 - 삭제
     createTranslationKeyIfNotExists(

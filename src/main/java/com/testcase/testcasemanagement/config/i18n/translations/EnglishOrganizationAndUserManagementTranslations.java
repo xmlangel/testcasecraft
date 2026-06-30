@@ -27,17 +27,9 @@ public class EnglishOrganizationAndUserManagementTranslations {
     String createdBy = "system";
 
     createTranslationIfNotExists(
-        "junit.tracelog.skipMessage", languageCode, "Skip Message", createdBy);
-    createTranslationIfNotExists(
         "junit.tracelog.noErrorLog", languageCode, "No error logs for this test case.", createdBy);
-    createTranslationIfNotExists("junit.testbody.tab", languageCode, "Test Body", createdBy);
-    createTranslationIfNotExists("junit.testbody.systemOut", languageCode, "System Out", createdBy);
-    createTranslationIfNotExists(
-        "junit.testbody.systemErr", languageCode, "System Error", createdBy);
     createTranslationIfNotExists(
         "junit.testbody.noOutput", languageCode, "No system output for this test case.", createdBy);
-    createTranslationIfNotExists(
-        "junit.testbody.fullscreen", languageCode, "View in fullscreen", createdBy);
     createTranslationIfNotExists(
         "junit.testbody.fullscreenTitle", languageCode, "Test Body - {testName}", createdBy);
     createTranslationIfNotExists("recentResults.status.notRun", languageCode, "Not Run", createdBy);
@@ -52,8 +44,6 @@ public class EnglishOrganizationAndUserManagementTranslations {
         createdBy);
     createTranslationIfNotExists(
         "recentResults.button.refresh", languageCode, "Refresh", createdBy);
-    createTranslationIfNotExists(
-        "recentResults.label.testcase", languageCode, "Test Case", createdBy);
     createTranslationIfNotExists(
         "recentResults.label.project", languageCode, "Project:", createdBy);
     createTranslationIfNotExists(
@@ -236,12 +226,6 @@ public class EnglishOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists("mail.config.button.saving", languageCode, "Saving...", createdBy);
     createTranslationIfNotExists(
         "mail.guide.dialog.title", languageCode, "Gmail App Password Setup Guide", createdBy);
-    createTranslationIfNotExists(
-        "mail.guide.stepGuide", languageCode, "Step-by-Step Setup Method", createdBy);
-    createTranslationIfNotExists(
-        "mail.guide.troubleshooting", languageCode, "Troubleshooting", createdBy);
-    createTranslationIfNotExists(
-        "mail.guide.securityWarnings", languageCode, "Security Warnings", createdBy);
     createTranslationIfNotExists("mail.guide.button.close", languageCode, "Close", createdBy);
     createTranslationIfNotExists("mail.guide.button.next", languageCode, "Next", createdBy);
     createTranslationIfNotExists("mail.guide.button.previous", languageCode, "Previous", createdBy);
@@ -505,7 +489,6 @@ public class EnglishOrganizationAndUserManagementTranslations {
         "profile.tabs.language", languageCode, "Language Settings", createdBy);
     createTranslationIfNotExists(
         "profile.tabs.googleConfig", languageCode, "Google Sheets Settings", createdBy);
-    createTranslationIfNotExists("profile.tabs.appearance", languageCode, "Appearance", createdBy);
     createTranslationIfNotExists("profile.tabs.jira", languageCode, "JIRA Settings", createdBy);
     createTranslationIfNotExists("profile.form.username", languageCode, "Username", createdBy);
     createTranslationIfNotExists(
@@ -529,35 +512,6 @@ public class EnglishOrganizationAndUserManagementTranslations {
         "profile.success.updated", languageCode, "Profile updated successfully.", createdBy);
     createTranslationIfNotExists(
         "profile.error.updateFailed", languageCode, "Failed to update profile.", createdBy);
-    createTranslationIfNotExists(
-        "profile.appearance.title", languageCode, "Appearance Settings", createdBy);
-    createTranslationIfNotExists(
-        "profile.appearance.description",
-        languageCode,
-        "Customize the theme of the application.",
-        createdBy);
-    createTranslationIfNotExists(
-        "profile.appearance.lightMode", languageCode, "Light Mode", createdBy);
-    createTranslationIfNotExists(
-        "profile.appearance.darkMode", languageCode, "Dark Mode", createdBy);
-    createTranslationIfNotExists(
-        "profile.appearance.lightMode.description",
-        languageCode,
-        "Clean interface with bright background",
-        createdBy);
-    createTranslationIfNotExists(
-        "profile.appearance.darkMode.description",
-        languageCode,
-        "Comfortable interface with dark background",
-        createdBy);
-    createTranslationIfNotExists("profile.appearance.switch.dark", languageCode, "Dark", createdBy);
-    createTranslationIfNotExists(
-        "profile.appearance.switch.light", languageCode, "Light", createdBy);
-    createTranslationIfNotExists(
-        "profile.appearance.info",
-        languageCode,
-        "Theme changes are applied immediately and saved automatically to your browser.",
-        createdBy);
     createTranslationIfNotExists(
         "language.settings.title", languageCode, "Language Settings", createdBy);
     createTranslationIfNotExists(
@@ -825,12 +779,6 @@ public class EnglishOrganizationAndUserManagementTranslations {
         languageCode,
         "Please enter both name and email.",
         createdBy);
-    createTranslationIfNotExists("userProfile.edit.title", languageCode, "Edit Profile", createdBy);
-    createTranslationIfNotExists(
-        "userProfile.edit.description",
-        languageCode,
-        "You can update your profile information.",
-        createdBy);
     createTranslationIfNotExists(
         "common.unauthorized.title", languageCode, "Login Required", createdBy);
     createTranslationIfNotExists(
@@ -838,21 +786,6 @@ public class EnglishOrganizationAndUserManagementTranslations {
         languageCode,
         "You need to login to access this page.",
         createdBy);
-    createTranslationIfNotExists(
-        "common.unauthorized.redirecting", languageCode, "Redirecting to login page...", createdBy);
-    createTranslationIfNotExists("common.loading.text", languageCode, "Loading...", createdBy);
-    createTranslationIfNotExists(
-        "common.error.networkError", languageCode, "A network error occurred.", createdBy);
-    createTranslationIfNotExists(
-        "common.error.serverError", languageCode, "A server error occurred.", createdBy);
-    createTranslationIfNotExists(
-        "common.error.unknownError", languageCode, "An unknown error occurred.", createdBy);
-    createTranslationIfNotExists(
-        "common.success.saved", languageCode, "Successfully saved.", createdBy);
-    createTranslationIfNotExists(
-        "common.success.deleted", languageCode, "Successfully deleted.", createdBy);
-    createTranslationIfNotExists(
-        "common.confirm.delete", languageCode, "Are you sure you want to delete this?", createdBy);
     createTranslationIfNotExists(
         "project.messages.noParticipatingProjects",
         languageCode,
@@ -871,12 +804,7 @@ public class EnglishOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists(
         "common.unauthorized.backToProjects", languageCode, "Back to Project Selection", createdBy);
     createTranslationIfNotExists("common.buttons.refresh", languageCode, "Refresh", createdBy);
-    createTranslationIfNotExists("common.status.loading", languageCode, "Loading...", createdBy);
-    createTranslationIfNotExists("common.status.error", languageCode, "Error Occurred", createdBy);
     createTranslationIfNotExists("common.actions.view", languageCode, "View", createdBy);
-    createTranslationIfNotExists("common.actions.download", languageCode, "Download", createdBy);
-    createTranslationIfNotExists(
-        "common.validation.required", languageCode, "This field is required", createdBy);
     createTranslationIfNotExists("userDetail.status.active", languageCode, "Active", createdBy);
     createTranslationIfNotExists("userDetail.status.inactive", languageCode, "Inactive", createdBy);
     createTranslationIfNotExists("userDetail.tooltip.save", languageCode, "Save", createdBy);
@@ -958,8 +886,6 @@ public class EnglishOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists(
         "testcase.folderList.column.priority", languageCode, "Priority", createdBy);
     createTranslationIfNotExists(
-        "testcase.folderList.column.cases", languageCode, "Cases", createdBy);
-    createTranslationIfNotExists(
         "testcase.folderList.column.folder", languageCode, "Folder", createdBy);
     createTranslationIfNotExists(
         "testcase.folderList.column.description", languageCode, "Description", createdBy);
@@ -986,10 +912,6 @@ public class EnglishOrganizationAndUserManagementTranslations {
         languageCode,
         "Automation Test Result Count",
         createdBy);
-    createTranslationIfNotExists(
-        "project.tooltips.junitStatus", languageCode, "Automation Test Status", createdBy);
-    createTranslationIfNotExists(
-        "testcase.validation.stepRequired", languageCode, "Please enter step content.", createdBy);
     createTranslationIfNotExists("testcase.form.stepNumber", languageCode, "No.", createdBy);
     createTranslationIfNotExists("testcase.form.step", languageCode, "Step", createdBy);
     createTranslationIfNotExists(

@@ -33,8 +33,6 @@ public class OrganizationKeysInitializer {
         "organization.buttons.firstOrganization", "organization", "첫 번째 조직 생성 버튼", "첫 번째 조직 생성");
     createTranslationKeyIfNotExists(
         "organization.buttons.firstProject", "organization", "첫 번째 프로젝트 생성 버튼", "첫 번째 프로젝트 생성");
-    createTranslationKeyIfNotExists(
-        "organization.buttons.back", "organization", "조직 목록으로 돌아가기", "조직 목록으로");
 
     // 조직 상태 및 메시지들
     createTranslationKeyIfNotExists(
@@ -63,8 +61,6 @@ public class OrganizationKeysInitializer {
         "organization",
         "접근 불가 안내",
         "현재 참가 가능한 조직이 없습니다. 시스템 관리자에게 문의하세요.");
-    createTranslationKeyIfNotExists(
-        "organization.messages.notFound", "organization", "조직 찾을 수 없음", "조직을 찾을 수 없습니다.");
 
     // 조직 폼 라벨들
     createTranslationKeyIfNotExists("organization.form.name", "organization", "조직 이름 라벨", "조직 이름");
@@ -77,8 +73,6 @@ public class OrganizationKeysInitializer {
         "조직에 대한 설명을 입력하세요...");
     createTranslationKeyIfNotExists(
         "organization.form.nameRequired", "organization", "조직 이름 필수 입력", "조직 이름을 입력해주세요.");
-    createTranslationKeyIfNotExists(
-        "organization.form.codeRequired", "organization", "프로젝트 코드 필수", "프로젝트 코드를 입력해주세요.");
     createTranslationKeyIfNotExists(
         "organization.form.projectNameRequired", "organization", "프로젝트 이름 필수", "프로젝트 이름을 입력해주세요.");
     createTranslationKeyIfNotExists(
@@ -93,10 +87,6 @@ public class OrganizationKeysInitializer {
         "organization.dialog.delete.title", "organization", "조직 삭제 다이얼로그 제목", "조직 삭제 확인");
     createTranslationKeyIfNotExists(
         "organization.dialog.invite.title", "organization", "멤버 초대 다이얼로그 제목", "멤버 초대");
-    createTranslationKeyIfNotExists(
-        "organization.dialog.project.title", "organization", "프로젝트 생성 다이얼로그 제목", "조직별 프로젝트 생성");
-    createTranslationKeyIfNotExists(
-        "organization.dialog.editInfo.title", "organization", "조직 정보 수정 다이얼로그 제목", "조직 정보 수정");
 
     // 삭제 확인 메시지들
     createTranslationKeyIfNotExists(
@@ -108,13 +98,6 @@ public class OrganizationKeysInitializer {
         "이 작업은 되돌릴 수 없습니다. 조직에 속한 모든 프로젝트와 데이터도 함께 삭제됩니다.");
 
     // 상세 페이지 관련
-    createTranslationKeyIfNotExists("organization.detail.members", "organization", "멤버 탭", "멤버");
-    createTranslationKeyIfNotExists(
-        "organization.detail.projects", "organization", "프로젝트 탭", "프로젝트");
-    createTranslationKeyIfNotExists(
-        "organization.detail.organizationMembers", "organization", "조직 멤버 제목", "조직 멤버");
-    createTranslationKeyIfNotExists(
-        "organization.detail.organizationProjects", "organization", "조직 프로젝트 제목", "조직 프로젝트");
 
     // 테이블 헤더들
     createTranslationKeyIfNotExists("organization.table.user", "organization", "사용자 테이블 헤더", "사용자");
@@ -125,39 +108,8 @@ public class OrganizationKeysInitializer {
         "organization.table.actions", "organization", "작업 테이블 헤더", "작업");
 
     // 멤버 관리 관련
-    createTranslationKeyIfNotExists("organization.member.remove", "organization", "멤버 제거", "멤버 제거");
-    createTranslationKeyIfNotExists("organization.member.username", "organization", "사용자명", "사용자명");
-    createTranslationKeyIfNotExists("organization.member.role", "organization", "역할", "역할");
 
     // 프로젝트 관리 관련
-    createTranslationKeyIfNotExists(
-        "organization.project.code", "organization", "프로젝트 코드", "프로젝트 코드");
-    createTranslationKeyIfNotExists(
-        "organization.project.name", "organization", "프로젝트 이름", "프로젝트 이름");
-    createTranslationKeyIfNotExists(
-        "organization.project.description", "organization", "프로젝트 설명", "프로젝트 설명");
-    createTranslationKeyIfNotExists(
-        "organization.project.codePlaceholder",
-        "organization",
-        "프로젝트 코드 플레이스홀더",
-        "예: WEB_APP_TEST");
-    createTranslationKeyIfNotExists(
-        "organization.project.namePlaceholder",
-        "organization",
-        "프로젝트 이름 플레이스홀더",
-        "예: 웹 애플리케이션 테스트");
-    createTranslationKeyIfNotExists(
-        "organization.project.descriptionPlaceholder",
-        "organization",
-        "프로젝트 설명 플레이스홀더",
-        "프로젝트에 대한 간단한 설명을 입력하세요...");
-    createTranslationKeyIfNotExists(
-        "organization.project.codeHelperText",
-        "organization",
-        "프로젝트 코드 도움말",
-        "영문, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능");
-    createTranslationKeyIfNotExists(
-        "organization.project.belongsTo", "organization", "프로젝트 소속 안내", "이 프로젝트는 조직에 속하게 됩니다.");
     createTranslationKeyIfNotExists(
         "organization.project.noDescription", "organization", "설명 없음", "설명 없음");
 

@@ -22,17 +22,10 @@ public class JiraIntegrationKeysInitializer {
     createTranslationKeyIfNotExists("jira.status.connectionStatus", "jira", "JIRA 연결 상태", "연결 상태");
     createTranslationKeyIfNotExists("jira.status.notConfigured", "jira", "JIRA 미설정 상태", "설정되지 않음");
     createTranslationKeyIfNotExists("jira.status.connected", "jira", "JIRA 연결됨", "연결됨");
-    createTranslationKeyIfNotExists("jira.status.disconnected", "jira", "JIRA 연결 안됨", "연결 안됨");
 
     // JIRA 메시지 키들
     createTranslationKeyIfNotExists(
         "jira.messages.noConfig", "jira", "JIRA 설정 없음 메시지", "JIRA 서버가 설정되지 않았습니다.");
-    createTranslationKeyIfNotExists(
-        "jira.messages.connectionError", "jira", "JIRA 연결 오류", "JIRA 연결에 실패했습니다");
-    createTranslationKeyIfNotExists(
-        "jira.messages.syncSuccess", "jira", "JIRA 동기화 성공", "JIRA와 성공적으로 동기화되었습니다");
-    createTranslationKeyIfNotExists(
-        "jira.messages.syncError", "jira", "JIRA 동기화 오류", "JIRA 동기화에 실패했습니다");
 
     // JiraStatusIndicator 컴포넌트 관련
     createTranslationKeyIfNotExists(
@@ -243,23 +236,13 @@ public class JiraIntegrationKeysInitializer {
         "jira.summary.loadingData", "jira", "데이터 로딩 중", "데이터를 불러오는 중...");
     createTranslationKeyIfNotExists(
         "jira.summary.testResultsCount", "jira", "테스트 결과 수", "총 {count}개 테스트 결과");
-    createTranslationKeyIfNotExists("jira.summary.noResults", "jira", "결과 없음", "테스트 결과가 없습니다");
     createTranslationKeyIfNotExists(
         "jira.summary.connectedResults", "jira", "연결된 결과", "JIRA 연결: {count}개");
-    createTranslationKeyIfNotExists("jira.summary.connectionRate", "jira", "연결률", "연결률: {rate}%");
     createTranslationKeyIfNotExists("jira.summary.hasNoFailed", "jira", "실패 없음", "실패한 테스트가 없습니다");
 
     // JIRA Settings 관련 추가 키들
-    createTranslationKeyIfNotExists("jira.settings.title", "jira", "JIRA 설정 제목", "JIRA 설정");
-    createTranslationKeyIfNotExists(
-        "jira.settings.description", "jira", "JIRA 설정 설명", "JIRA 서버 연결 설정을 관리합니다");
 
     // JIRA Success/Confirm/Button 관련 추가 키들
-    createTranslationKeyIfNotExists("jira.success.saved", "jira", "저장 성공", "JIRA 설정이 저장되었습니다");
-    createTranslationKeyIfNotExists("jira.success.deleted", "jira", "삭제 성공", "JIRA 설정이 삭제되었습니다");
-    createTranslationKeyIfNotExists("jira.confirm.delete", "jira", "삭제 확인", "JIRA 설정을 삭제하시겠습니까?");
-    createTranslationKeyIfNotExists("jira.button.configure", "jira", "설정 버튼", "설정");
-    createTranslationKeyIfNotExists("jira.button.delete", "jira", "삭제 버튼", "삭제");
 
     // JIRA Config Error 관련
     createTranslationKeyIfNotExists(

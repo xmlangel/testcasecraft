@@ -53,10 +53,6 @@ public class SchedulerKeysInitializer {
     createTranslationKeyIfNotExists("scheduler.column.actions", "scheduler", "작업 컬럼", "작업");
 
     // 스케줄 타입 & 단위
-    createTranslationKeyIfNotExists(
-        "scheduler.type.fixedRate", "scheduler", "Fixed Rate 타입", "Fixed Rate");
-    createTranslationKeyIfNotExists(
-        "scheduler.type.fixedDelay", "scheduler", "Fixed Delay 타입", "Fixed Delay");
     createTranslationKeyIfNotExists("scheduler.time.seconds", "scheduler", "초 단위", "{seconds}초");
     createTranslationKeyIfNotExists("scheduler.time.minutes", "scheduler", "분 단위", "{minutes}분");
     createTranslationKeyIfNotExists("scheduler.time.hours", "scheduler", "시간 단위", "{hours}시간");
@@ -132,27 +128,6 @@ public class SchedulerKeysInitializer {
         "scheduler.error.updateFailed", "scheduler", "설정 업데이트 실패 에러", "스케줄 설정 업데이트에 실패했습니다.");
 
     // 스케줄러 목록 (SchedulerList.jsx)
-    createTranslationKeyIfNotExists(
-        "scheduler.list.title", "scheduler", "스케줄된 작업 목록 제목", "스케줄된 작업 목록");
-    createTranslationKeyIfNotExists(
-        "scheduler.list.lastUpdated", "scheduler", "최근 업데이트 라벨", "최근 업데이트: {time}");
-    createTranslationKeyIfNotExists("scheduler.list.retry", "scheduler", "다시 시도 버튼", "다시 시도");
-    createTranslationKeyIfNotExists(
-        "scheduler.list.totalTasks", "scheduler", "총 스케줄 작업 라벨", "총 스케줄 작업");
-    createTranslationKeyIfNotExists(
-        "scheduler.list.activeStatus", "scheduler", "활성 상태 라벨", "활성 상태");
-    createTranslationKeyIfNotExists(
-        "scheduler.list.normalOperation", "scheduler", "정상 동작 상태", "정상 동작");
-    createTranslationKeyIfNotExists(
-        "scheduler.list.serverTimezone", "scheduler", "서버 시간대 라벨", "서버 시간대");
-    createTranslationKeyIfNotExists(
-        "scheduler.list.detailsTitle", "scheduler", "스케줄 상세 정보 제목", "스케줄 상세 정보");
-    createTranslationKeyIfNotExists("scheduler.list.columnName", "scheduler", "작업 이름 컬럼", "작업 이름");
-    createTranslationKeyIfNotExists("scheduler.list.columnSchedule", "scheduler", "스케줄 컬럼", "스케줄");
-    createTranslationKeyIfNotExists("scheduler.list.columnType", "scheduler", "타입 컬럼", "타입");
-    createTranslationKeyIfNotExists("scheduler.list.columnDescription", "scheduler", "설명 컬럼", "설명");
-    createTranslationKeyIfNotExists(
-        "scheduler.error.loadFailed", "scheduler", "스케줄러 정보 로딩 실패 에러", "스케줄러 정보를 불러오는데 실패했습니다.");
 
     System.out.println("SchedulerKeysInitializer.initialize() 완료! 스케줄러 키들 초기화됨");
     log.info("스케줄러 번역 키 초기화 완료");

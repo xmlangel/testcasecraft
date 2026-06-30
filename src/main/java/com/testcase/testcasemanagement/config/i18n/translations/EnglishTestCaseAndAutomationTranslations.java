@@ -97,8 +97,6 @@ public class EnglishTestCaseAndAutomationTranslations {
         "Error occurred while deleting.",
         createdBy);
     createTranslationIfNotExists(
-        "testcase.tree.ragVectorized", languageCode, "RAG Vectorized", createdBy);
-    createTranslationIfNotExists(
         "testcase.tree.button.batchDelete", languageCode, "Delete Selected", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.button.refresh", languageCode, "Refresh", createdBy);
@@ -210,13 +208,9 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testcase.form.testcaseDescription", languageCode, "Test case description", createdBy);
 
     // Section translations
-    createTranslationIfNotExists(
-        "testcase.sections.basicInfo", languageCode, "Basic Information", createdBy);
     createTranslationIfNotExists("testcase.sections.steps", languageCode, "Test Steps", createdBy);
     createTranslationIfNotExists(
         "testcase.sections.expectedResults", languageCode, "Expected Results", createdBy);
-    createTranslationIfNotExists(
-        "testcase.sections.attachments", languageCode, "Attachments", createdBy);
 
     // Tab labels
     createTranslationIfNotExists("testcase.tabs.details", languageCode, "Details", createdBy);
@@ -246,8 +240,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.button.saving", languageCode, "Saving...", createdBy);
     createTranslationIfNotExists("testcase.button.addStep", languageCode, "Add Step", createdBy);
     createTranslationIfNotExists(
-        "testcase.form.continueAdding", languageCode, "Continue Adding", createdBy);
-    createTranslationIfNotExists(
         "testcase.form.button.add", languageCode, "Add New Case", createdBy);
     createTranslationIfNotExists(
         "testcase.message.selectProject",
@@ -270,8 +262,6 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testcase.message.saved", languageCode, "Saved successfully.", createdBy);
     createTranslationIfNotExists(
         "testcase.validation.nameRequired", languageCode, "Please enter a name.", createdBy);
-    createTranslationIfNotExists(
-        "testcase.validation.stepRequired", languageCode, "Please enter a step.", createdBy);
     createTranslationIfNotExists(
         "testcase.validation.expectedResultsRequired",
         languageCode,
@@ -593,10 +583,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.validation.row", languageCode, "Row", createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.validation.solution", languageCode, "💡 Solution:", createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.validation.improvement", languageCode, "💡 Improvement:", createdBy);
-    createTranslationIfNotExists(
         "testcase.spreadsheet.validation.successMessage",
         languageCode,
         "All data is valid! Ready to save.",
@@ -692,8 +678,6 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "Expected {number}",
         createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.validation.columnName.all", languageCode, "All", createdBy);
 
     createTranslationIfNotExists(
         "testcase.spreadsheet.fallback.title",
@@ -713,21 +697,9 @@ public class EnglishTestCaseAndAutomationTranslations {
         "An error occurred while loading react-datasheet-grid.",
         createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.placeholder.multiline",
-        languageCode,
-        "Multi-line input available...",
-        createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.placeholder.text", languageCode, "Enter text...", createdBy);
-    createTranslationIfNotExists(
         "testcase.spreadsheet.placeholder.columnInput",
         languageCode,
         "Enter {title}...",
-        createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.message.saveSuccess",
-        languageCode,
-        "{count} test case(s) saved successfully.",
         createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.message.saveError",
@@ -878,11 +850,7 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testPlan.execution.dialog.close", languageCode, "Close", createdBy);
     createTranslationIfNotExists(
-        "testPlan.execution.list.copyLink", languageCode, "Copy Execution Link", createdBy);
-    createTranslationIfNotExists(
         "testPlan.execution.list.createdAt", languageCode, "Created: {date}", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.execution.list.progress", languageCode, "Progress", createdBy);
 
     // Delete
     createTranslationIfNotExists(
@@ -1103,13 +1071,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "junit.dashboard.uploadResult", languageCode, "Upload Test Result", createdBy);
     createTranslationIfNotExists("junit.dashboard.refresh", languageCode, "Refresh", createdBy);
-    createTranslationIfNotExists(
-        "junit.header.testResultDashboard", languageCode, "Test Result Dashboard", createdBy);
-    createTranslationIfNotExists(
-        "junit.header.automationAnalysis",
-        languageCode,
-        "Automation Test Result Analysis",
-        createdBy);
     createTranslationIfNotExists("junit.stats.passed", languageCode, "Passed", createdBy);
     createTranslationIfNotExists("junit.stats.failed", languageCode, "Failed", createdBy);
     createTranslationIfNotExists("junit.stats.error", languageCode, "Error", createdBy);
@@ -1128,17 +1089,9 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "junit.tab.recentResults", languageCode, "Recent Results", createdBy);
     createTranslationIfNotExists(
-        "junit.tab.statisticsChart", languageCode, "Statistics Chart", createdBy);
-    createTranslationIfNotExists(
-        "junit.tab.trendAnalysis", languageCode, "Trend Analysis", createdBy);
-    createTranslationIfNotExists(
         "junit.chart.testStatusDistribution", languageCode, "Test Status Distribution", createdBy);
     createTranslationIfNotExists(
         "junit.chart.recentExecutionResults", languageCode, "Recent Execution Results", createdBy);
-    createTranslationIfNotExists(
-        "junit.chart.successRateTrend", languageCode, "Success Rate Trend", createdBy);
-    createTranslationIfNotExists(
-        "junit.chart.detailedStatistics", languageCode, "Detailed Statistics", createdBy);
     createTranslationIfNotExists(
         "junit.table.executionName", languageCode, "Execution Name", createdBy);
     createTranslationIfNotExists("junit.table.fileName", languageCode, "File Name", createdBy);
@@ -1148,63 +1101,19 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("junit.table.status", languageCode, "Status", createdBy);
     createTranslationIfNotExists("junit.table.uploadTime", languageCode, "Upload Time", createdBy);
     createTranslationIfNotExists("junit.table.actions", languageCode, "Actions", createdBy);
-    createTranslationIfNotExists("junit.button.viewDetail", languageCode, "View Detail", createdBy);
-    createTranslationIfNotExists("junit.button.delete", languageCode, "Delete", createdBy);
-    createTranslationIfNotExists(
-        "junit.button.backToAutomation", languageCode, "Back to Test Automation", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.noResults", languageCode, "No test results found", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.uploadFirst",
-        languageCode,
-        "Upload JUnit XML files to analyze test results.",
-        createdBy);
-    createTranslationIfNotExists(
-        "junit.message.firstUpload", languageCode, "Upload First Test Result", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.loadingResults", languageCode, "Loading test results...", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.loadFailed", languageCode, "Failed to load test results.", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.noData", languageCode, "No test results found.", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.trendDataInsufficient",
-        languageCode,
-        "Insufficient data for trend analysis.",
-        createdBy);
-    createTranslationIfNotExists(
-        "junit.message.statisticsImplementing",
-        languageCode,
-        "Statistics chart implementation in progress",
-        createdBy);
     createTranslationIfNotExists(
         "junit.message.selectProject", languageCode, "Please select a project first.", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.deletingResult",
-        languageCode,
-        "Are you sure you want to delete this test result?",
-        createdBy);
     createTranslationIfNotExists(
         "junit.upload.dialog.title", languageCode, "Upload JUnit XML File", createdBy);
     createTranslationIfNotExists(
         "junit.upload.dragDrop", languageCode, "Drag JUnit XML file or click to select", createdBy);
     createTranslationIfNotExists("junit.upload.selectFile", languageCode, "Select File", createdBy);
     createTranslationIfNotExists(
-        "junit.upload.selectAnother", languageCode, "Select Another File", createdBy);
-    createTranslationIfNotExists(
         "junit.upload.maxSize", languageCode, "Maximum {maxSize} allowed", createdBy);
     createTranslationIfNotExists(
         "junit.upload.allowedFormats", languageCode, "Allowed formats: {formats}", createdBy);
     createTranslationIfNotExists(
         "junit.upload.executionInfo", languageCode, "Test Execution Information", createdBy);
-    createTranslationIfNotExists(
-        "junit.upload.executionName",
-        languageCode,
-        "Execution name (e.g., Sprint 24 Integration Tests)",
-        createdBy);
-    createTranslationIfNotExists(
-        "junit.upload.description", languageCode, "Description (optional)", createdBy);
-    createTranslationIfNotExists("junit.upload.cancel", languageCode, "Cancel", createdBy);
     createTranslationIfNotExists("junit.upload.fileSize", languageCode, "Size: {size}", createdBy);
     createTranslationIfNotExists(
         "junit.date.noInfo", languageCode, "No date information", createdBy);
@@ -1213,10 +1122,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("junit.date.invalid", languageCode, "Invalid date", createdBy);
     createTranslationIfNotExists(
         "junit.date.error", languageCode, "Date processing error", createdBy);
-    createTranslationIfNotExists(
-        "junit.detail.title", languageCode, "JUnit Test Result Details", createdBy);
-    createTranslationIfNotExists(
-        "junit.detail.uploadInfo", languageCode, "Upload: {date} | {uploader}", createdBy);
     createTranslationIfNotExists("junit.detail.upload", languageCode, "Upload", createdBy);
     createTranslationIfNotExists(
         "junit.detail.unknownUploader", languageCode, "Unknown", createdBy);
@@ -1273,8 +1178,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "junit.detail.clickForDetails", languageCode, "Click the test name for details", createdBy);
     createTranslationIfNotExists(
-        "junit.detail.slowestTests", languageCode, "Slowest Test Cases", createdBy);
-    createTranslationIfNotExists(
         "junit.detail.slowestTestsTop",
         languageCode,
         "Slowest Test Cases (Top {count})",
@@ -1309,22 +1212,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("common.unit.count", languageCode, "", createdBy);
     createTranslationIfNotExists("common.status", languageCode, "Status", createdBy);
     createTranslationIfNotExists("common.all", languageCode, "All", createdBy);
-    createTranslationIfNotExists("junit.suite.testSuite", languageCode, "Test Suite", createdBy);
-    createTranslationIfNotExists("junit.suite.all", languageCode, "All", createdBy);
-    createTranslationIfNotExists(
-        "junit.suite.search", languageCode, "Search test cases...", createdBy);
-    createTranslationIfNotExists(
-        "junit.failed.title", languageCode, "Failed Test Cases ({count} cases)", createdBy);
-    createTranslationIfNotExists(
-        "junit.failed.noFailures", languageCode, "No failed test cases!", createdBy);
-    createTranslationIfNotExists(
-        "junit.failed.failureMessage", languageCode, "Failure message preview:", createdBy);
-    createTranslationIfNotExists(
-        "junit.failed.clickForDetail", languageCode, "Click test name to view details", createdBy);
-    createTranslationIfNotExists(
-        "junit.slow.title", languageCode, "Slowest Test Cases (Top {count})", createdBy);
-    createTranslationIfNotExists(
-        "junit.slow.noData", languageCode, "No execution time data available.", createdBy);
     createTranslationIfNotExists(
         "junit.testcase.selectCase", languageCode, "Select a test case", createdBy);
     createTranslationIfNotExists(
@@ -1349,11 +1236,6 @@ public class EnglishTestCaseAndAutomationTranslations {
         createdBy);
     createTranslationIfNotExists(
         "junit.testcase.previousNotes.copyBtn", languageCode, "Copy to current notes", createdBy);
-    createTranslationIfNotExists("junit.tracelog.tab", languageCode, "Tracelog", createdBy);
-    createTranslationIfNotExists(
-        "junit.tracelog.failureMessage", languageCode, "Failure Message", createdBy);
-    createTranslationIfNotExists(
-        "junit.tracelog.stackTrace", languageCode, "Stack Trace", createdBy);
 
     // RAG AI Generated Test Case English Translations
     createTranslationIfNotExists(
@@ -1399,8 +1281,6 @@ public class EnglishTestCaseAndAutomationTranslations {
         createdBy);
 
     // Post-condition Helper Text English Translation
-    createTranslationIfNotExists(
-        "testcase.helper.postCondition", languageCode, "Enter post-condition.", createdBy);
 
     // Markdown Support Message English Translation
     createTranslationIfNotExists(
@@ -1517,45 +1397,18 @@ public class EnglishTestCaseAndAutomationTranslations {
         "Restored to version v{version}",
         createdBy);
     createTranslationIfNotExists(
-        "testcase.version.summary.updated", languageCode, "{field} updated", createdBy);
-    createTranslationIfNotExists(
         "testcase.version.summary.steps_updated",
         languageCode,
         "Test steps updated ({count})",
         createdBy);
 
     // 필드명 영어 번역
-    createTranslationIfNotExists("testcase.version.field.name", languageCode, "Name", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.description", languageCode, "Description", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.preCondition", languageCode, "Pre-condition", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.postCondition", languageCode, "Post-condition", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.expectedResults", languageCode, "Expected Results", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.priority", languageCode, "Priority", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.isAutomated", languageCode, "Automated", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.executionType", languageCode, "Execution Type", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.testTechnique", languageCode, "Test Technique", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.testSteps", languageCode, "Test Steps", createdBy);
     createTranslationIfNotExists(
         "testcase.version.field.folder", languageCode, "Folder", createdBy);
 
     // 버전 레이블 영어 번역
     createTranslationIfNotExists(
         "testcase.version.label.initial", languageCode, "Initial Version", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.label.modified", languageCode, "Modified v{version}", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.label.manual", languageCode, "Manual Save v{version}", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.label.restored", languageCode, "Restored v{version}", createdBy);
 
     // Version Action Tooltips
     createTranslationIfNotExists(
@@ -1820,9 +1673,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     // Input Mode Selection Collapse/Expand
     createTranslationIfNotExists(
         "testcase.inputMode.title", languageCode, "Input Mode Selection", createdBy);
-    createTranslationIfNotExists("testcase.inputMode.expand", languageCode, "Expand", createdBy);
-    createTranslationIfNotExists(
-        "testcase.inputMode.collapse", languageCode, "Collapse", createdBy);
 
     // Usage Guide Collapse/Expand
     createTranslationIfNotExists(
@@ -2008,17 +1858,6 @@ public class EnglishTestCaseAndAutomationTranslations {
         createdBy);
 
     // Statistics and Folder View
-    createTranslationIfNotExists(
-        "testResult.viewType.byFolder", languageCode, "By Folder", createdBy);
-    createTranslationIfNotExists(
-        "testResult.filter.depth", languageCode, "Depth: {depth}", createdBy);
-    createTranslationIfNotExists(
-        "testResult.statistics.folderName", languageCode, "Folder Name", createdBy);
-    createTranslationIfNotExists(
-        "testResult.statistics.folderResults",
-        languageCode,
-        "Test Result Statistics by Folder",
-        createdBy);
 
     // Notes Copy English
     createTranslationIfNotExists("testcase.notes.copy", languageCode, "Copy Notes", createdBy);
@@ -2103,11 +1942,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.io.google.connect.label", languageCode, "2. Google Sheets Connection", createdBy);
     createTranslationIfNotExists(
-        "testcase.io.google.config.label",
-        languageCode,
-        "2. Google Sheets Configuration",
-        createdBy);
-    createTranslationIfNotExists(
         "testcase.io.google.url.label", languageCode, "Google Sheets URL or ID", createdBy);
     createTranslationIfNotExists(
         "testcase.io.google.url.placeholder",
@@ -2136,8 +1970,6 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.io.export.format.json", languageCode, "JSON (Importable)", createdBy);
 
-    createTranslationIfNotExists(
-        "testcase.io.validation.summary", languageCode, "Validation Summary", createdBy);
     createTranslationIfNotExists(
         "testcase.io.validation.totalRows", languageCode, "Total {count} rows", createdBy);
     createTranslationIfNotExists(

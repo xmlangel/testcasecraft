@@ -324,7 +324,6 @@ public class UserManagementKeysInitializer {
     createTranslationKeyIfNotExists("profile.tabs.language", "profile", "언어 설정 탭", "언어 설정");
     createTranslationKeyIfNotExists(
         "profile.tabs.googleConfig", "profile", "구글 시트 설정 탭", "Google Sheets 설정");
-    createTranslationKeyIfNotExists("profile.tabs.appearance", "profile", "화면 설정 탭", "화면 설정");
     createTranslationKeyIfNotExists("profile.tabs.jira", "profile", "JIRA 설정 탭", "JIRA 설정");
     createTranslationKeyIfNotExists("profile.tabs.apiToken", "profile", "API 토큰 탭", "API 토큰");
     createTranslationKeyIfNotExists("profile.form.username", "profile", "사용자명 필드", "사용자명");
@@ -335,9 +334,6 @@ public class UserManagementKeysInitializer {
     createTranslationKeyIfNotExists("profile.form.role", "profile", "역할 필드", "역할");
 
     // 사용자 프로필 편집 관련
-    createTranslationKeyIfNotExists("userProfile.edit.title", "profile", "사용자 프로필 편집 제목", "프로필 편집");
-    createTranslationKeyIfNotExists(
-        "userProfile.edit.description", "profile", "사용자 프로필 편집 설명", "사용자 프로필 정보를 수정할 수 있습니다");
 
     // 역할 종류
     createTranslationKeyIfNotExists("role.admin", "role", "시스템 관리자 역할", "시스템 관리자");
@@ -351,22 +347,6 @@ public class UserManagementKeysInitializer {
         "profile.error.updateFailed", "profile", "정보 변경 실패", "정보 변경에 실패했습니다.");
 
     // 사용자 프로필 - 화면 설정 관련
-    createTranslationKeyIfNotExists("profile.appearance.title", "profile", "화면 설정 제목", "화면 설정");
-    createTranslationKeyIfNotExists(
-        "profile.appearance.description", "profile", "화면 설정 설명", "애플리케이션의 화면 테마를 변경할 수 있습니다.");
-    createTranslationKeyIfNotExists(
-        "profile.appearance.lightMode", "profile", "라이트 모드 제목", "라이트 모드");
-    createTranslationKeyIfNotExists("profile.appearance.darkMode", "profile", "다크 모드 제목", "다크 모드");
-    createTranslationKeyIfNotExists(
-        "profile.appearance.lightMode.description", "profile", "라이트 모드 설명", "밝은 배경의 깔끔한 화면");
-    createTranslationKeyIfNotExists(
-        "profile.appearance.darkMode.description", "profile", "다크 모드 설명", "어두운 배경의 편안한 화면");
-    createTranslationKeyIfNotExists(
-        "profile.appearance.switch.dark", "profile", "다크 모드 스위치 라벨", "다크");
-    createTranslationKeyIfNotExists(
-        "profile.appearance.switch.light", "profile", "라이트 모드 스위치 라벨", "라이트");
-    createTranslationKeyIfNotExists(
-        "profile.appearance.info", "profile", "테마 변경 안내", "테마 변경은 즉시 적용되며 브라우저에 자동으로 저장됩니다.");
 
     // 공통 버튼
     createTranslationKeyIfNotExists("button.close", "common", "닫기 버튼", "닫기");

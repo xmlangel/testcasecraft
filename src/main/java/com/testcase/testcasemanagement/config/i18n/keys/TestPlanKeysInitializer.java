@@ -67,10 +67,7 @@ public class TestPlanKeysInitializer {
         "testPlan.list.empty.message", "testPlan", "등록된 테스트 플랜이 없습니다.", "등록된 테스트 플랜이 없습니다.");
 
     // 테스트 실행 목록 및 액션
-    createTranslationKeyIfNotExists(
-        "testPlan.execution.list.copyLink", "testPlan", "실행 링크 복사", "실행 링크 복사");
     createTranslationKeyIfNotExists("testPlan.execution.list.createdAt", "testPlan", "생성일", "생성일");
-    createTranslationKeyIfNotExists("testPlan.execution.list.progress", "testPlan", "진행률", "진행률");
 
     // 테스트 실행 다이얼로그
     createTranslationKeyIfNotExists(

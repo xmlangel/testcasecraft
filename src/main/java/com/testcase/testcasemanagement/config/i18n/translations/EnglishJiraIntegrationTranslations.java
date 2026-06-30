@@ -42,15 +42,11 @@ public class EnglishJiraIntegrationTranslations {
     createTranslationIfNotExists(
         "jira.summary.testResultsCount", languageCode, "Test Results ({count})", createdBy);
     createTranslationIfNotExists(
-        "jira.summary.noResults", languageCode, "No test results available.", createdBy);
-    createTranslationIfNotExists(
         "jira.summary.summaryStats", languageCode, "Summary Statistics", createdBy);
     createTranslationIfNotExists(
         "jira.summary.totalIssues", languageCode, "Total Issues", createdBy);
     createTranslationIfNotExists(
         "jira.summary.connectedResults", languageCode, "Connected Results", createdBy);
-    createTranslationIfNotExists(
-        "jira.summary.connectionRate", languageCode, "Connection Rate", createdBy);
     createTranslationIfNotExists(
         "jira.summary.hasNoFailed", languageCode, "No Failures", createdBy);
     createTranslationIfNotExists("jira.summary.hasFailed", languageCode, "Has Failures", createdBy);
@@ -68,41 +64,6 @@ public class EnglishJiraIntegrationTranslations {
         languageCode,
         "JIRA settings are missing. Please register JIRA server information on the settings page.",
         createdBy);
-    createTranslationIfNotExists(
-        "jira.settings.title", languageCode, "JIRA Integration Settings", createdBy);
-    createTranslationIfNotExists(
-        "jira.settings.description",
-        languageCode,
-        "Integrate with JIRA to automatically add test results as comments to issues.",
-        createdBy);
-    createTranslationIfNotExists(
-        "jira.success.saved", languageCode, "JIRA settings saved successfully.", createdBy);
-    createTranslationIfNotExists(
-        "jira.success.deleted", languageCode, "JIRA settings deleted successfully.", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.saveFailed", languageCode, "Failed to save JIRA settings.", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.deleteFailed", languageCode, "Failed to delete JIRA settings.", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.network", languageCode, "Please check your network connection.", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.authentication",
-        languageCode,
-        "Your session has expired. Please log in again.",
-        createdBy);
-    createTranslationIfNotExists(
-        "jira.error.encryption",
-        languageCode,
-        "Server configuration issue. Please contact administrator.",
-        createdBy);
-    createTranslationIfNotExists(
-        "jira.confirm.delete",
-        languageCode,
-        "Are you sure you want to delete JIRA settings?",
-        createdBy);
-    createTranslationIfNotExists(
-        "jira.button.configure", languageCode, "Configure Settings", createdBy);
-    createTranslationIfNotExists("jira.button.delete", languageCode, "Delete Settings", createdBy);
     createTranslationIfNotExists(
         "jira.indicator.checkingStatus", languageCode, "Checking...", createdBy);
     createTranslationIfNotExists("jira.indicator.unknown", languageCode, "Unknown", createdBy);
@@ -258,29 +219,8 @@ public class EnglishJiraIntegrationTranslations {
         "jira.api.testFailure", languageCode, "Connection Test Failed", createdBy);
     createTranslationIfNotExists("jira.api.unknownError", languageCode, "Unknown Error", createdBy);
     createTranslationIfNotExists(
-        "jira.error.saveFailed", languageCode, "Failed to save", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.deleteFailed", languageCode, "Failed to delete", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.network", languageCode, "Network connection error", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.authentication", languageCode, "Authentication failed", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.encryption", languageCode, "Encryption processing error", createdBy);
-    createTranslationIfNotExists(
         "jira.status.connectionStatus", languageCode, "JIRA Connection Status", createdBy);
     createTranslationIfNotExists("jira.status.connected", languageCode, "Connected", createdBy);
-    createTranslationIfNotExists(
-        "jira.status.disconnected", languageCode, "Disconnected", createdBy);
-    createTranslationIfNotExists(
-        "jira.messages.connectionError", languageCode, "Failed to connect to JIRA", createdBy);
-    createTranslationIfNotExists(
-        "jira.messages.syncSuccess",
-        languageCode,
-        "Successfully synchronized with JIRA",
-        createdBy);
-    createTranslationIfNotExists(
-        "jira.messages.syncError", languageCode, "Failed to synchronize with JIRA", createdBy);
 
     // JiraCommentDialog Component
     createTranslationIfNotExists(

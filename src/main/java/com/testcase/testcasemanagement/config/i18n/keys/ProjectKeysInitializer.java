@@ -35,8 +35,6 @@ public class ProjectKeysInitializer {
         "project.tooltips.testCaseCount", "project", "테스트케이스 수 툴팁", "테스트케이스 수");
     createTranslationKeyIfNotExists("project.tooltips.memberCount", "project", "멤버 수 툴팁", "멤버 수");
     createTranslationKeyIfNotExists(
-        "project.tooltips.junitStatus", "project", "자동화 테스트 현황 툴팁", "자동화 테스트 현황");
-    createTranslationKeyIfNotExists(
         "project.stats.projectCount", "project", "프로젝트 수 통계", "{count}개 프로젝트");
     createTranslationKeyIfNotExists(
         "project.messages.noOrganizationProjects", "project", "조직별 프로젝트 없음 메시지", "조직별 프로젝트가 없습니다");

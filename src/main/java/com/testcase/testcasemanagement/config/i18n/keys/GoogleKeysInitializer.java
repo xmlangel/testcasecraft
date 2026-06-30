@@ -17,12 +17,8 @@ public class GoogleKeysInitializer {
 
   public void initialize() {
     // Header & Menu
-    createTranslationKeyIfNotExists(
-        "header.userMenu.googleConfig", "header", "구글 시트 설정 메뉴", "Google Sheets 설정");
 
     // Config Page
-    createTranslationKeyIfNotExists(
-        "google.config.title", "google", "구글 시트 연동 관리 제목", "Google Sheets 연동 관리");
     createTranslationKeyIfNotExists("google.config.status", "google", "연동 상태 라벨", "연동 상태");
     createTranslationKeyIfNotExists("google.config.disconnect", "google", "연동 해제 버튼", "연동 해제");
     createTranslationKeyIfNotExists(
@@ -30,9 +26,6 @@ public class GoogleKeysInitializer {
     createTranslationKeyIfNotExists("google.config.projectId", "google", "프로젝트 ID", "프로젝트 ID");
     createTranslationKeyIfNotExists("google.config.lastUpdated", "google", "최종 업데이트", "최종 업데이트");
     createTranslationKeyIfNotExists("google.config.active", "google", "활성화 상태", "활성화됨");
-    createTranslationKeyIfNotExists(
-        "google.config.noConfig", "google", "설정 없음 메시지", "현재 등록된 구글 인증 정보가 없습니다.");
-    createTranslationKeyIfNotExists("google.config.inputTitle", "google", "입력 영역 제목", "새 인증 정보 등록");
     createTranslationKeyIfNotExists(
         "google.config.inputDesc",
         "google",
@@ -60,7 +53,6 @@ public class GoogleKeysInitializer {
         "google.config.success.delete", "google", "삭제 성공 메시지", "Google 연동이 해제되었습니다.");
     createTranslationKeyIfNotExists(
         "google.config.error.deleteFailed", "google", "삭제 실패 메시지", "연동 해제 중 오류가 발생했습니다.");
-    createTranslationKeyIfNotExists("google.config.status.inactive", "google", "비활성 상태 라벨", "비활성");
     createTranslationKeyIfNotExists(
         "google.config.noConfigDesc",
         "google",

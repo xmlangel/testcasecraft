@@ -38,13 +38,6 @@ public class TestResultKeysInitializer {
         "testResult",
         "통계 탭 설명",
         "테스트 결과의 통계를 차트와 그래프로 확인할 수 있습니다.");
-    createTranslationKeyIfNotExists("testResult.tab.trend", "testResult", "추이 탭", "추이");
-    createTranslationKeyIfNotExists("testResult.tab.trendFull", "testResult", "추이 분석 탭", "추이 분석");
-    createTranslationKeyIfNotExists(
-        "testResult.tab.trendDescription",
-        "testResult",
-        "추이 탭 설명",
-        "시간에 따른 테스트 결과 변화를 분석할 수 있습니다.");
     createTranslationKeyIfNotExists("testResult.tab.table", "testResult", "테이블 탭", "테이블");
     createTranslationKeyIfNotExists("testResult.tab.tableFull", "testResult", "상세 테이블 탭", "상세 테이블");
     createTranslationKeyIfNotExists(
@@ -52,14 +45,6 @@ public class TestResultKeysInitializer {
         "testResult",
         "테이블 탭 설명",
         "모든 테스트 결과를 상세한 테이블 형태로 확인할 수 있습니다.");
-    createTranslationKeyIfNotExists("testResult.tab.report", "testResult", "리포트 탭", "리포트");
-    createTranslationKeyIfNotExists(
-        "testResult.tab.reportFull", "testResult", "상세 리포트 탭", "상세 리포트");
-    createTranslationKeyIfNotExists(
-        "testResult.tab.reportDescription",
-        "testResult",
-        "리포트 탭 설명",
-        "완전한 테스트 리포트를 생성하고 확인할 수 있습니다.");
 
     // 테스트케이스 결과 페이지
     createTranslationKeyIfNotExists(
@@ -122,7 +107,6 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists("testResult.form.mode.text", "testResult", "텍스트 모드", "텍스트");
     createTranslationKeyIfNotExists(
         "testResult.form.mode.markdown", "testResult", "Markdown 모드", "Markdown");
-    createTranslationKeyIfNotExists("testResult.form.mode.switch", "testResult", "모드 전환", "모드 전환");
 
     // 파일 첨부
     createTranslationKeyIfNotExists(
@@ -130,77 +114,22 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists("testResult.form.fileSelect", "testResult", "파일 선택", "파일 선택");
     createTranslationKeyIfNotExists(
         "testResult.form.fileUploading", "testResult", "파일 업로드 중", "업로드 중...");
-    createTranslationKeyIfNotExists(
-        "testResult.form.fileFormat",
-        "testResult",
-        "파일 형식",
-        "지원 형식: JPG, PNG, PDF, DOC, DOCX, XLS, XLSX");
-    createTranslationKeyIfNotExists(
-        "testResult.form.newAttachments", "testResult", "새 첨부파일", "새 첨부파일:");
-    createTranslationKeyIfNotExists("testResult.form.attachments", "testResult", "첨부파일", "첨부파일:");
-    createTranslationKeyIfNotExists(
-        "testResult.form.attachmentsNote",
-        "testResult",
-        "첨부파일 안내",
-        "테스트 관련 스크린샷, 문서 등을 첨부할 수 있습니다.");
 
     // JIRA 연동
     createTranslationKeyIfNotExists(
         "testResult.form.jiraIntegration", "testResult", "JIRA 연동", "JIRA 연동");
     createTranslationKeyIfNotExists(
-        "testResult.form.jiraIssueId", "testResult", "JIRA 이슈 ID", "JIRA 이슈 ID");
-    createTranslationKeyIfNotExists(
-        "testResult.form.jiraIssuePlaceholder", "testResult", "JIRA 이슈 ID 입력란", "예: TEST-123");
-    createTranslationKeyIfNotExists(
         "testResult.form.jiraComment", "testResult", "JIRA 코멘트", "JIRA 코멘트로 추가");
-    createTranslationKeyIfNotExists(
-        "testResult.form.jiraDetected",
-        "testResult",
-        "JIRA 이슈 감지",
-        "비고에서 JIRA 이슈가 감지되었습니다. 자동으로 연결하시겠습니까?");
-    createTranslationKeyIfNotExists(
-        "testResult.form.jiraDetectedShort", "testResult", "JIRA 이슈 감지 짧은 메시지", "JIRA 이슈 감지됨");
     createTranslationKeyIfNotExists(
         "testResult.jira.connectionCheckFailed", "testResult", "JIRA 연결 실패", "JIRA 연결 상태 확인 실패:");
     createTranslationKeyIfNotExists(
-        "testResult.jira.placeholder",
-        "testResult",
-        "JIRA 입력란 도움말",
-        "관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)");
-    createTranslationKeyIfNotExists(
         "testResult.jira.detectedIssues", "testResult", "감지된 이슈", "감지된 이슈");
-    createTranslationKeyIfNotExists(
-        "testResult.jira.issueIdLabel", "testResult", "JIRA 이슈 ID 라벨", "JIRA 이슈 ID (예: ICT-123)");
-    createTranslationKeyIfNotExists(
-        "testResult.jira.issueIdPlaceholder",
-        "testResult",
-        "JIRA 이슈 ID 플레이스홀더",
-        "관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)");
-    createTranslationKeyIfNotExists(
-        "testResult.jira.invalidFormat",
-        "testResult",
-        "JIRA 이슈 키 형식 오류",
-        "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)");
-    createTranslationKeyIfNotExists(
-        "testResult.jira.autoUppercase",
-        "testResult",
-        "JIRA 자동 대문자 변환 메시지",
-        "입력된 키가 자동으로 대문자로 변환됩니다");
 
     // 파일 에러 메시지
     createTranslationKeyIfNotExists(
         "testResult.file.sizeError", "testResult", "파일 크기 오류", "파일 크기는 10MB 이하여야 합니다");
     createTranslationKeyIfNotExists(
         "testResult.file.typeError", "testResult", "파일 형식 오류", "허용되지 않은 파일 형식입니다");
-    createTranslationKeyIfNotExists(
-        "testResult.file.allowedFormats",
-        "testResult",
-        "허용 파일 형식",
-        "허용 형식: TXT, CSV, JSON, MD, PDF, LOG (최대 10MB)");
-    createTranslationKeyIfNotExists(
-        "testResult.file.newAttachmentsCount", "testResult", "새 첨부파일 개수", "새로 첨부할 파일 ({count}개)");
-    createTranslationKeyIfNotExists(
-        "testResult.file.attachedFilesCount", "testResult", "첨부된 파일 개수", "첨부된 파일 ({count}개)");
     createTranslationKeyIfNotExists(
         "testResult.file.saveToViewAttachments",
         "testResult",
@@ -221,27 +150,15 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists("common.button.close", "common", "닫기 버튼", "닫기");
     createTranslationKeyIfNotExists("common.button.refresh", "common", "새로고침 버튼", "새로고침");
     createTranslationKeyIfNotExists("common.button.retry", "common", "다시 시도 버튼", "다시 시도");
-    createTranslationKeyIfNotExists("common.empty", "common", "빈 값", "-");
 
     // 테스트 결과 상태 (확장)
     createTranslationKeyIfNotExists("testResult.status.pass", "testResult", "성공 상태", "성공");
     createTranslationKeyIfNotExists("testResult.status.fail", "testResult", "실패 상태", "실패");
     createTranslationKeyIfNotExists("testResult.status.blocked", "testResult", "차단됨 상태", "차단됨");
     createTranslationKeyIfNotExists("testResult.status.notRun", "testResult", "미실행 상태", "미실행");
-    createTranslationKeyIfNotExists("testResult.status.error", "testResult", "에러 상태", "에러");
     createTranslationKeyIfNotExists("testResult.status.skipped", "testResult", "건너뜀 상태", "건너뜀");
-    createTranslationKeyIfNotExists("testResult.status.untested", "testResult", "미테스트 상태", "미테스트");
-    createTranslationKeyIfNotExists("testResult.status.retest", "testResult", "재테스트 상태", "재테스트");
-    createTranslationKeyIfNotExists("testResult.status.final", "testResult", "완료 상태", "완료");
 
     // 테스트 결과 테이블
-    createTranslationKeyIfNotExists(
-        "testResult.table.title", "testResult", "테이블 제목", "테스트 결과 상세 목록");
-    createTranslationKeyIfNotExists(
-        "testResult.table.resultCount", "testResult", "결과 개수", "개의 테스트 결과");
-    createTranslationKeyIfNotExists("testResult.table.filtered", "testResult", "필터됨", "필터됨");
-    createTranslationKeyIfNotExists(
-        "testResult.table.loadError", "testResult", "테이블 로드 에러", "테스트 결과를 불러올 수 없습니다");
 
     // 테스트 결과 버튼 (확장)
     createTranslationKeyIfNotExists(
@@ -272,8 +189,6 @@ public class TestResultKeysInitializer {
         "testResult.columnMenu.tip", "testResult", "컬럼 설정 팁", "팁: 테스트케이스와 결과는 필수 컬럼으로 항상 표시됩니다");
 
     // JIRA 상태
-    createTranslationKeyIfNotExists(
-        "testResult.jira.status.unknown", "testResult", "JIRA 알 수 없는 상태", "Unknown");
 
     // 툴팁
     createTranslationKeyIfNotExists(
@@ -300,15 +215,7 @@ public class TestResultKeysInitializer {
 
     // 테스트 결과 차트
     createTranslationKeyIfNotExists(
-        "testResult.chart.distribution", "testResult", "차트 분포", "테스트 결과 분포");
-    createTranslationKeyIfNotExists(
-        "testResult.chart.loading", "testResult", "차트 로딩", "차트 데이터를 불러오는 중...");
-    createTranslationKeyIfNotExists(
-        "testResult.chart.noData", "testResult", "차트 데이터 없음", "차트 데이터가 없습니다.");
-    createTranslationKeyIfNotExists(
         "testResult.chart.total", "testResult", "차트 총계", "총 테스트 케이스: {total}건");
-    createTranslationKeyIfNotExists(
-        "testResult.chart.compareTitle", "testResult", "차트 비교 제목", "테스트 결과 비교");
     createTranslationKeyIfNotExists(
         "testResult.chart.percentageView", "testResult", "퍼센트 보기", "퍼센트 보기");
     createTranslationKeyIfNotExists(
@@ -336,8 +243,6 @@ public class TestResultKeysInitializer {
         "testResult.statistics.successRate", "testResult", "성공률", "성공률");
     createTranslationKeyIfNotExists(
         "testResult.statistics.totalTests", "testResult", "총 테스트", "총 테스트");
-    createTranslationKeyIfNotExists(
-        "testResult.statistics.totalCount", "testResult", "총 개수", "총 {count}건");
 
     // 테스트 결과 파이차트
     createTranslationKeyIfNotExists(
@@ -356,8 +261,6 @@ public class TestResultKeysInitializer {
         "testResult.filteredCases.failTitle", "testResult", "실패 케이스 다이얼로그 제목", "실패 테스트 케이스");
     createTranslationKeyIfNotExists(
         "testResult.filteredCases.notRunTitle", "testResult", "미실행 케이스 다이얼로그 제목", "미실행 테스트 케이스");
-    createTranslationKeyIfNotExists(
-        "testResult.filteredCases.column.actions", "testResult", "작업 컬럼 헤더", "작업");
     createTranslationKeyIfNotExists(
         "testResult.filteredCases.goToResult", "testResult", "결과 상세 보기 버튼 툴팁", "결과 상세 보기");
     createTranslationKeyIfNotExists(
@@ -411,13 +314,10 @@ public class TestResultKeysInitializer {
     // JIRA 상태 요약 카드
     createTranslationKeyIfNotExists("jira.summary.title", "jira", "JIRA 상태 요약 제목", "JIRA 상태 요약");
     createTranslationKeyIfNotExists(
-        "jira.summary.loading", "jira", "JIRA 로딩", "JIRA 상태 정보를 불러오는 중...");
-    createTranslationKeyIfNotExists(
         "jira.summary.error", "jira", "JIRA 에러", "JIRA 상태 정보를 불러오는데 실패했습니다: {error}");
     createTranslationKeyIfNotExists(
         "jira.summary.noData", "jira", "JIRA 데이터 없음", "연결된 JIRA 이슈가 없습니다.");
     createTranslationKeyIfNotExists("jira.summary.filterAll", "jira", "전체 필터", "전체");
-    createTranslationKeyIfNotExists("jira.summary.filterActive", "jira", "진행중 필터", "진행중");
     createTranslationKeyIfNotExists("jira.summary.filterFailed", "jira", "실패 필터", "실패");
     createTranslationKeyIfNotExists("jira.summary.filterPassed", "jira", "통과 필터", "통과");
     createTranslationKeyIfNotExists("jira.summary.refresh", "jira", "새로고침", "새로고침");
@@ -428,8 +328,6 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists("jira.summary.sync", "jira", "동기화", "동기화:");
     createTranslationKeyIfNotExists("jira.summary.summaryStats", "jira", "요약 통계", "요약 통계");
     createTranslationKeyIfNotExists("jira.summary.totalIssues", "jira", "전체 이슈", "전체 이슈");
-    createTranslationKeyIfNotExists("jira.summary.activeIssues", "jira", "활성 이슈", "활성 이슈");
-    createTranslationKeyIfNotExists("jira.summary.allPassed", "jira", "전체 통과", "전체 통과");
     createTranslationKeyIfNotExists("jira.summary.hasFailed", "jira", "실패 포함", "실패 포함");
 
     // JIRA 상태 및 메시지 관련 키
@@ -537,93 +435,25 @@ public class TestResultKeysInitializer {
         "testTrendAnalysis.prompt.selectAssignee", "testResult", "실행자 선택 프롬프트", "비교할 실행자를 선택해주세요");
 
     // 테스트 결과 메시지 키들 (누락된 키들)
-    createTranslationKeyIfNotExists(
-        "testResult.message.noData", "testResult", "데이터 없음 메시지", "데이터가 없습니다");
-    createTranslationKeyIfNotExists(
-        "testResult.message.deleteConfirm", "testResult", "삭제 확인 메시지", "정말로 삭제하시겠습니까?");
-    createTranslationKeyIfNotExists(
-        "testResult.message.deleteSuccess", "testResult", "테스트 결과 삭제 성공 메시지", "테스트 결과가 삭제되었습니다");
 
     // 기본값 관련 키들
-    createTranslationKeyIfNotExists(
-        "testResult.default.noExecutor", "testResult", "실행자 없음 기본값", "-");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noTestPlan", "testResult", "테스트 계획 없음 기본값", "테스트 계획 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noTestExecution", "testResult", "테스트 실행 없음 기본값", "테스트 실행 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noPreCondition", "testResult", "사전 조건 없음 기본값", "사전 조건 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noSteps", "testResult", "테스트 단계 없음 기본값", "테스트 단계 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noExpectedResult", "testResult", "예상 결과 없음 기본값", "예상 결과 없음");
-    createTranslationKeyIfNotExists("testResult.default.noNotes", "testResult", "비고 없음 기본값", "-");
-    createTranslationKeyIfNotExists(
-        "testResult.message.loading", "testResult", "로딩 중 메시지", "로딩 중...");
 
     // 컬럼 관련 키들 (5개)
-    createTranslationKeyIfNotExists("testResult.column.executedBy", "testResult", "실행자 컬럼", "실행자");
-    createTranslationKeyIfNotExists(
-        "testResult.column.executedAt", "testResult", "실행일시 컬럼", "실행일시");
-    createTranslationKeyIfNotExists(
-        "testResult.column.testPlan", "testResult", "테스트 계획 컬럼", "테스트 계획");
-    createTranslationKeyIfNotExists(
-        "testResult.column.testExecution", "testResult", "테스트 실행 컬럼", "테스트 실행");
-    createTranslationKeyIfNotExists("testResult.column.actions", "testResult", "작업 컬럼", "작업");
 
     // 버튼 관련 키들 (3개)
-    createTranslationKeyIfNotExists("testResult.button.view", "testResult", "보기 버튼", "보기");
-    createTranslationKeyIfNotExists("testResult.button.delete", "testResult", "삭제 버튼", "삭제");
-    createTranslationKeyIfNotExists("testResult.button.refresh", "testResult", "새로고침 버튼", "새로고침");
 
     // 툴팁 관련 키들 (8개)
-    createTranslationKeyIfNotExists("testResult.tooltip.edit", "testResult", "편집 툴팁", "편집");
-    createTranslationKeyIfNotExists("testResult.tooltip.view", "testResult", "보기 툴팁", "보기");
-    createTranslationKeyIfNotExists("testResult.tooltip.delete", "testResult", "삭제 툴팁", "삭제");
-    createTranslationKeyIfNotExists("testResult.tooltip.export", "testResult", "내보내기 툴팁", "내보내기");
-    createTranslationKeyIfNotExists("testResult.tooltip.refresh", "testResult", "새로고침 툴팁", "새로고침");
-    createTranslationKeyIfNotExists(
-        "testResult.tooltip.noSteps", "testResult", "테스트 단계 없음 툴팁", "테스트 단계가 없습니다");
-    createTranslationKeyIfNotExists(
-        "testResult.tooltip.noExpectedResult", "testResult", "예상 결과 없음 툴팁", "예상 결과가 없습니다");
 
     // 추가 기본값 관련 키들 (2개)
-    createTranslationKeyIfNotExists(
-        "testResult.default.noData", "testResult", "데이터 없음 기본값", "데이터 없음");
-    createTranslationKeyIfNotExists("testResult.default.noFolder", "testResult", "폴더 없음 기본값", "-");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noTestCase", "testResult", "테스트케이스 없음 기본값", "-");
-    createTranslationKeyIfNotExists(
-        "testResult.message.error", "testResult", "테스트 결과 오류 메시지", "오류가 발생했습니다");
-    createTranslationKeyIfNotExists(
-        "testResult.message.deleteFailed", "testResult", "테스트 결과 삭제 실패 메시지", "삭제에 실패했습니다");
 
     // JIRA 오류 관련 키들 (누락된 키들)
-    createTranslationKeyIfNotExists("jira.error.saveFailed", "jira", "JIRA 저장 실패", "저장에 실패했습니다");
-    createTranslationKeyIfNotExists("jira.error.deleteFailed", "jira", "JIRA 삭제 실패", "삭제에 실패했습니다");
-    createTranslationKeyIfNotExists("jira.error.network", "jira", "JIRA 네트워크 오류", "네트워크 연결 오류");
-    createTranslationKeyIfNotExists(
-        "jira.error.authentication", "jira", "JIRA 인증 오류", "인증에 실패했습니다");
-    createTranslationKeyIfNotExists("jira.error.encryption", "jira", "JIRA 암호화 오류", "암호화 처리 오류");
 
     createTranslationKeyIfNotExists(
         "testResult.filter.showLatestOnly", "testResult", "최신 결과만 보기 필터", "최신 결과만 보기");
 
     log.info("테스트 결과 번역 키 초기화 완료");
-    createTranslationKeyIfNotExists(
-        "testResult.message.exportSuccess",
-        "testResult",
-        "CSV 내보내기 성공 메시지",
-        "CSV 파일이 성공적으로 내보내졌습니다.");
-    createTranslationKeyIfNotExists(
-        "testResult.message.exportFailed", "testResult", "CSV 내보내기 실패 메시지", "CSV 내보내기에 실패했습니다.");
 
     // XML 데이터 불일치 경고
-    createTranslationKeyIfNotExists(
-        "testResult.warning.xmlCountMismatch",
-        "testResult",
-        "XML 카운트 불일치 경고",
-        "XML 메타데이터({metadata})와 실제 로드된 테스트({actual}) 개수가 다릅니다.");
 
     // 컬럼 순서 변경 다이얼로그
     createTranslationKeyIfNotExists(

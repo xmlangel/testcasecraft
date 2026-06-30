@@ -1509,8 +1509,6 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.deleteRowsTooltip", languageCode, "Delete {count} rows", createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.deleteTitle", languageCode, "Delete {count} rows", createdBy);
-    createTranslationIfNotExists(
         "testcase.spreadsheet.errorsTitle", languageCode, "🚨 Errors to Resolve", createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.excelExportError",
@@ -1525,19 +1523,9 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.folderNameFormat", languageCode, "{name} Folder", createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.insertAboveTitle",
-        languageCode,
-        "Insert above row {rowNum}",
-        createdBy);
-    createTranslationIfNotExists(
         "testcase.spreadsheet.insertAboveTooltip",
         languageCode,
         "Insert above row {row}",
-        createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.insertBelowTitle",
-        languageCode,
-        "Insert below row {rowNum}",
         createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.insertBelowTooltip",
@@ -1944,7 +1932,6 @@ public class EnglishI18nHardcodedTranslations {
         createdBy);
     createTranslationIfNotExists("manual.viewer.retry", languageCode, "Retry", createdBy);
     createTranslationIfNotExists("manual.viewer.print", languageCode, "Print", createdBy);
-    createTranslationIfNotExists("manual.viewer.close", languageCode, "Close", createdBy);
     createTranslationIfNotExists(
         "manual.viewer.relatedGuides", languageCode, "Related Guides", createdBy);
     createTranslationIfNotExists(

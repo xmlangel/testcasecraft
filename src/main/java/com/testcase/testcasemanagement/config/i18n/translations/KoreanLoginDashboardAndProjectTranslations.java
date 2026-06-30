@@ -189,7 +189,6 @@ public class KoreanLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists("common.button.close", languageCode, "닫기", createdBy);
     createTranslationIfNotExists("common.button.refresh", languageCode, "새로고침", createdBy);
     createTranslationIfNotExists("common.button.retry", languageCode, "다시 시도", createdBy);
-    createTranslationIfNotExists("common.empty", languageCode, "-", createdBy);
     createTranslationIfNotExists("common.close", languageCode, "닫기", createdBy);
     createTranslationIfNotExists("common.select", languageCode, "선택", createdBy);
     createTranslationIfNotExists("common.buttons.refresh", languageCode, "새로고침", createdBy);
@@ -400,8 +399,6 @@ public class KoreanLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists(
         "testcase.tree.error.deleteFailed", languageCode, "삭제 중 오류가 발생했습니다.", createdBy);
     createTranslationIfNotExists(
-        "testcase.tree.ragVectorized", languageCode, "RAG 벡터화됨", createdBy);
-    createTranslationIfNotExists(
         "testcase.tree.button.batchDelete", languageCode, "선택 삭제", createdBy);
     createTranslationIfNotExists("testcase.tree.button.refresh", languageCode, "리프레시", createdBy);
     createTranslationIfNotExists(
@@ -419,8 +416,6 @@ public class KoreanLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists("testcase.folderList.column.name", languageCode, "이름", createdBy);
     createTranslationIfNotExists(
         "testcase.folderList.column.priority", languageCode, "우선순위", createdBy);
-    createTranslationIfNotExists(
-        "testcase.folderList.column.cases", languageCode, "케이스", createdBy);
     createTranslationIfNotExists(
         "testcase.folderList.column.folder", languageCode, "폴더", createdBy);
     createTranslationIfNotExists(
@@ -540,8 +535,6 @@ public class KoreanLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists(
         "testcase.validation.nameRequired", languageCode, "이름을 입력하세요.", createdBy);
     createTranslationIfNotExists(
-        "testcase.validation.stepRequired", languageCode, "Step을 입력하세요.", createdBy);
-    createTranslationIfNotExists(
         "testcase.validation.expectedResultsRequired", languageCode, "전체 예상 결과를 입력하세요.", createdBy);
     createTranslationIfNotExists(
         "testcase.error.saveError", languageCode, "저장 중 오류가 발생했습니다.", createdBy);
@@ -608,30 +601,6 @@ public class KoreanLoginDashboardAndProjectTranslations {
         "testcase.spreadsheet.button.addRows", languageCode, "행 추가", createdBy);
 
     // 사용량 요약 (Usage Summary)
-    createTranslationIfNotExists("dashboard.usage.title", languageCode, "사용량 요약", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.lastUpdated", languageCode, "최근 업데이트 {time}", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.loading", languageCode, "사용량 데이터를 불러오는 중입니다...", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.error", languageCode, "사용량 데이터를 불러오지 못했습니다.", createdBy);
-    createTranslationIfNotExists("dashboard.usage.retry", languageCode, "다시 시도", createdBy);
-    createTranslationIfNotExists("dashboard.usage.totalVisits", languageCode, "오늘 방문", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.uniqueVisitors", languageCode, "오늘 고유 방문자", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.activeVisitors", languageCode, "활성 세션", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.activeWindow", languageCode, "최근 {minutes}분 기준", createdBy);
-    createTranslationIfNotExists("dashboard.usage.topPages", languageCode, "상위 페이지", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.totalLabel", languageCode, "누적 {total}", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.noData", languageCode, "집계된 방문 데이터가 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.dailySummary", languageCode, "일별 방문 요약", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.uniqueLabel", languageCode, "고유 {count}", createdBy);
 
     // 통계 소스 타입 선택 (수동 테스트 / 자동화 테스트 / 전체 합계)
     createTranslationIfNotExists("dashboard.source.manual", languageCode, "수동 테스트", createdBy);

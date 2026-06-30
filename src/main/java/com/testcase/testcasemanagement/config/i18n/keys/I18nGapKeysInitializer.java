@@ -212,44 +212,6 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists("common.type", "common", "i18n gap 보강 (2026-06-06)", "유형");
     createTranslationKeyIfNotExists("common.update", "common", "i18n gap 보강 (2026-06-06)", "수정");
     createTranslationKeyIfNotExists(
-        "dashboard.activity.completedPlans", "dashboard", "i18n gap 보강 (2026-06-06)", "완료된 계획");
-    createTranslationKeyIfNotExists(
-        "dashboard.activity.newTestCases", "dashboard", "i18n gap 보강 (2026-06-06)", "새 테스트 케이스");
-    createTranslationKeyIfNotExists(
-        "dashboard.activity.recentActivities", "dashboard", "i18n gap 보강 (2026-06-06)", "최근 활동");
-    createTranslationKeyIfNotExists(
-        "dashboard.activity.testExecutions", "dashboard", "i18n gap 보강 (2026-06-06)", "테스트 실행");
-    createTranslationKeyIfNotExists(
-        "dashboard.noData.noResults", "dashboard", "i18n gap 보강 (2026-06-06)", "결과가 없습니다");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.createTestCase",
-        "dashboard",
-        "i18n gap 보강 (2026-06-06)",
-        "테스트 케이스 생성");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.manageProjects",
-        "dashboard",
-        "i18n gap 보강 (2026-06-06)",
-        "프로젝트 관리");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.runTests", "dashboard", "i18n gap 보강 (2026-06-06)", "테스트 실행");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.title", "dashboard", "i18n gap 보강 (2026-06-06)", "빠른 작업");
-    createTranslationKeyIfNotExists(
-        "dashboard.quickActions.viewReports", "dashboard", "i18n gap 보강 (2026-06-06)", "리포트 보기");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.activeProjects", "dashboard", "i18n gap 보강 (2026-06-06)", "활성 프로젝트");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.failedTests", "dashboard", "i18n gap 보강 (2026-06-06)", "실패한 테스트");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.passedTests", "dashboard", "i18n gap 보강 (2026-06-06)", "통과된 테스트");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.testCoverage", "dashboard", "i18n gap 보강 (2026-06-06)", "테스트 커버리지");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.totalProjects", "dashboard", "i18n gap 보강 (2026-06-06)", "총 프로젝트");
-    createTranslationKeyIfNotExists(
-        "dashboard.summary.totalTestCases", "dashboard", "i18n gap 보강 (2026-06-06)", "총 테스트 케이스");
-    createTranslationKeyIfNotExists(
         "exploratory.charter.dialog.missionPlaceholder",
         "exploratory",
         "i18n gap 보강 (2026-06-06)",
@@ -488,107 +450,16 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "jira.linker.unlink", "jira", "i18n gap 보강 (2026-06-06)", "연결 해제");
     createTranslationKeyIfNotExists(
-        "jira.summary.activeIssues", "jira", "i18n gap 보강 (2026-06-06)", "활성 이슈");
-    createTranslationKeyIfNotExists(
-        "jira.summary.allPassed", "jira", "i18n gap 보강 (2026-06-06)", "전체 통과");
-    createTranslationKeyIfNotExists(
-        "jira.summary.filterActive", "jira", "i18n gap 보강 (2026-06-06)", "진행중");
-    createTranslationKeyIfNotExists(
-        "jira.summary.loading", "jira", "i18n gap 보강 (2026-06-06)", "JIRA 상태 정보를 불러오는 중...");
-    createTranslationKeyIfNotExists(
         "junit.list.previousExecution", "junit", "i18n gap 보강 (2026-06-06)", "이전 실행");
     createTranslationKeyIfNotExists(
         "login.error.failed", "login", "i18n gap 보강 (2026-06-06)", "로그인에 실패했습니다.");
     createTranslationKeyIfNotExists(
         "login.error.general", "login", "i18n gap 보강 (2026-06-06)", "로그인 중 오류가 발생했습니다.");
     createTranslationKeyIfNotExists(
-        "navigation.breadcrumb.back", "navigation", "i18n gap 보강 (2026-06-06)", "뒤로");
-    createTranslationKeyIfNotExists(
-        "navigation.menu.help", "navigation", "i18n gap 보강 (2026-06-06)", "도움말");
-    createTranslationKeyIfNotExists(
-        "navigation.menu.settings", "navigation", "i18n gap 보강 (2026-06-06)", "설정");
-    createTranslationKeyIfNotExists(
-        "navigation.menu.testExecutions", "navigation", "i18n gap 보강 (2026-06-06)", "테스트 실행");
-    createTranslationKeyIfNotExists(
-        "navigation.user.logout", "navigation", "i18n gap 보강 (2026-06-06)", "로그아웃");
-    createTranslationKeyIfNotExists(
-        "navigation.user.preferences", "navigation", "i18n gap 보강 (2026-06-06)", "환경설정");
-    createTranslationKeyIfNotExists(
-        "navigation.user.profile", "navigation", "i18n gap 보강 (2026-06-06)", "프로필");
-    createTranslationKeyIfNotExists(
-        "organization.buttons.back", "organization", "i18n gap 보강 (2026-06-06)", "조직 목록으로");
-    createTranslationKeyIfNotExists(
-        "organization.detail.organizationMembers",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "조직 멤버");
-    createTranslationKeyIfNotExists(
-        "organization.detail.organizationProjects",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "조직 프로젝트");
-    createTranslationKeyIfNotExists(
-        "organization.dialog.editInfo.title",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "조직 정보 수정");
-    createTranslationKeyIfNotExists(
-        "organization.dialog.project.title",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "조직별 프로젝트 생성");
-    createTranslationKeyIfNotExists(
         "organization.error.selectMember",
         "organization",
         "i18n gap 보강 (2026-06-06)",
         "이전할 멤버를 선택해주세요.");
-    createTranslationKeyIfNotExists(
-        "organization.form.codeRequired",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "프로젝트 코드를 입력해주세요.");
-    createTranslationKeyIfNotExists(
-        "organization.member.remove", "organization", "i18n gap 보강 (2026-06-06)", "멤버 제거");
-    createTranslationKeyIfNotExists(
-        "organization.member.role", "organization", "i18n gap 보강 (2026-06-06)", "역할");
-    createTranslationKeyIfNotExists(
-        "organization.member.username", "organization", "i18n gap 보강 (2026-06-06)", "사용자명");
-    createTranslationKeyIfNotExists(
-        "organization.messages.notFound",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "조직을 찾을 수 없습니다.");
-    createTranslationKeyIfNotExists(
-        "organization.project.belongsTo",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "이 프로젝트는 조직에 속하게 됩니다.");
-    createTranslationKeyIfNotExists(
-        "organization.project.code", "organization", "i18n gap 보강 (2026-06-06)", "프로젝트 코드");
-    createTranslationKeyIfNotExists(
-        "organization.project.codeHelperText",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "영문, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능");
-    createTranslationKeyIfNotExists(
-        "organization.project.codePlaceholder",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "예: WEB_APP_TEST");
-    createTranslationKeyIfNotExists(
-        "organization.project.description", "organization", "i18n gap 보강 (2026-06-06)", "프로젝트 설명");
-    createTranslationKeyIfNotExists(
-        "organization.project.descriptionPlaceholder",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "프로젝트에 대한 간단한 설명을 입력하세요...");
-    createTranslationKeyIfNotExists(
-        "organization.project.name", "organization", "i18n gap 보강 (2026-06-06)", "프로젝트 이름");
-    createTranslationKeyIfNotExists(
-        "organization.project.namePlaceholder",
-        "organization",
-        "i18n gap 보강 (2026-06-06)",
-        "예: 웹 애플리케이션 테스트");
     createTranslationKeyIfNotExists(
         "profile.apiToken.dialog.delete.button.cancel",
         "profile",
@@ -885,20 +756,10 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testPlan.linkAutomated.title", "testPlan", "i18n gap 보강 (2026-06-06)", "자동화 테스트 연결");
     createTranslationKeyIfNotExists(
-        "testResult.button.delete", "testResult", "i18n gap 보강 (2026-06-06)", "삭제");
-    createTranslationKeyIfNotExists(
         "testResult.button.jiraStatusLoading",
         "testResult",
         "i18n gap 보강 (2026-06-06)",
         "JIRA 상태 확인 중...");
-    createTranslationKeyIfNotExists(
-        "testResult.button.refresh", "testResult", "i18n gap 보강 (2026-06-06)", "새로고침");
-    createTranslationKeyIfNotExists(
-        "testResult.button.view", "testResult", "i18n gap 보강 (2026-06-06)", "보기");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noData", "testResult", "i18n gap 보강 (2026-06-06)", "데이터 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noExecutor", "testResult", "i18n gap 보강 (2026-06-06)", "실행자 없음");
     createTranslationKeyIfNotExists(
         "testResult.caseDetails.expandAll", "testResult", "단계 표 보기 옵션 (2026-06-12)", "모두 펼치기");
     createTranslationKeyIfNotExists(
@@ -941,25 +802,6 @@ public class I18nGapKeysInitializer {
         "testResult.export.pdf.qaSummaryTitle", "testResult", "실행 QA 총평 (2026-06-10)", "💬 QA 총평");
     createTranslationKeyIfNotExists(
         "testResult.export.pdf.qaSummaryBy", "testResult", "실행 QA 총평 (2026-06-10)", "작성");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noExpectedResult",
-        "testResult",
-        "i18n gap 보강 (2026-06-06)",
-        "기대 결과 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noFolder", "testResult", "i18n gap 보강 (2026-06-06)", "폴더 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noNotes", "testResult", "i18n gap 보강 (2026-06-06)", "노트 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noPreCondition", "testResult", "i18n gap 보강 (2026-06-06)", "사전설정 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noSteps", "testResult", "i18n gap 보강 (2026-06-06)", "테스트 단계 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noTestCase", "testResult", "i18n gap 보강 (2026-06-06)", "테스트케이스 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noTestExecution", "testResult", "i18n gap 보강 (2026-06-06)", "테스트실행 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.default.noTestPlan", "testResult", "i18n gap 보강 (2026-06-06)", "테스트플랜 없음");
     createTranslationKeyIfNotExists(
         "testResult.export.attachmentsAvailable",
         "testResult",
@@ -1116,71 +958,27 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.jiraDialog.title", "testResult", "i18n gap 보강 (2026-06-06)", "JIRA 연동 이슈 목록");
     createTranslationKeyIfNotExists(
-        "testResult.message.deleteConfirm",
-        "testResult",
-        "i18n gap 보강 (2026-06-06)",
-        "이 테스트 결과를 삭제하시겠습니까?");
-    createTranslationKeyIfNotExists(
-        "testResult.message.deleteSuccess",
-        "testResult",
-        "i18n gap 보강 (2026-06-06)",
-        "테스트 결과가 성공적으로 삭제되었습니다.");
-    createTranslationKeyIfNotExists(
-        "testResult.message.exportFailed",
-        "testResult",
-        "i18n gap 보강 (2026-06-06)",
-        "CSV 내보내기에 실패했습니다.");
-    createTranslationKeyIfNotExists(
-        "testResult.message.exportSuccess",
-        "testResult",
-        "i18n gap 보강 (2026-06-06)",
-        "CSV 파일이 성공적으로 내보내졌습니다.");
-    createTranslationKeyIfNotExists(
-        "testResult.message.loading",
-        "testResult",
-        "i18n gap 보강 (2026-06-06)",
-        "테스트 결과를 불러오는 중...");
-    createTranslationKeyIfNotExists(
         "testResult.message.noChange",
         "testResult",
         "i18n gap 보강 (2026-06-06)",
         "변경 사항이 없어 저장하지 않았습니다.");
     createTranslationKeyIfNotExists(
-        "testResult.message.noData", "testResult", "i18n gap 보강 (2026-06-06)", "표시할 테스트 결과가 없습니다.");
-    createTranslationKeyIfNotExists(
         "testResult.status.loading", "testResult", "i18n gap 보강 (2026-06-06)", "불러오는 중...");
-    createTranslationKeyIfNotExists(
-        "testResult.tooltip.delete", "testResult", "i18n gap 보강 (2026-06-06)", "테스트 결과 삭제");
-    createTranslationKeyIfNotExists(
-        "testResult.tooltip.edit", "testResult", "i18n gap 보강 (2026-06-06)", "테스트 결과 편집");
-    createTranslationKeyIfNotExists(
-        "testResult.tooltip.export", "testResult", "i18n gap 보강 (2026-06-06)", "CSV로 내보내기");
     createTranslationKeyIfNotExists(
         "testResult.tooltip.jiraNotConfigured",
         "testResult",
         "i18n gap 보강 (2026-06-06)",
         "JIRA 설정이 필요합니다");
     createTranslationKeyIfNotExists(
-        "testResult.tooltip.noExpectedResult",
-        "testResult",
-        "i18n gap 보강 (2026-06-06)",
-        "기대 결과 없음");
-    createTranslationKeyIfNotExists(
         "testResult.tooltip.noJiraTargets",
         "testResult",
         "i18n gap 보강 (2026-06-06)",
         "연결된 JIRA ID가 없습니다");
     createTranslationKeyIfNotExists(
-        "testResult.tooltip.noSteps", "testResult", "i18n gap 보강 (2026-06-06)", "테스트 단계 없음");
-    createTranslationKeyIfNotExists(
         "testResult.tooltip.noTestTechnique",
         "testResult",
         "i18n gap 보강 (2026-06-06)",
         "테스트 기법 없음");
-    createTranslationKeyIfNotExists(
-        "testResult.tooltip.refresh", "testResult", "i18n gap 보강 (2026-06-06)", "데이터 새로고침");
-    createTranslationKeyIfNotExists(
-        "testResult.tooltip.view", "testResult", "i18n gap 보강 (2026-06-06)", "테스트 결과 보기");
     createTranslationKeyIfNotExists(
         "testResultDashboard.chart.executionComparison",
         "testResultDashboard",
@@ -1350,11 +1148,6 @@ public class I18nGapKeysInitializer {
         "i18n gap 보강 (2026-06-06)",
         "2. Google Sheets 설정");
     createTranslationKeyIfNotExists(
-        "testcase.io.import.url.required",
-        "testcase",
-        "i18n gap 보강 (2026-06-06)",
-        "Google Sheets URL을 입력하세요");
-    createTranslationKeyIfNotExists(
         "testcase.message.confirmDiscard",
         "testcase",
         "i18n gap 보강 (2026-06-06)",
@@ -1479,19 +1272,10 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "userList.table.emailVerified", "userList", "i18n gap 보강 (2026-06-06)", "이메일 인증");
     createTranslationKeyIfNotExists(
-        "validation.email.invalid", "validation", "i18n gap 보강 (2026-06-06)", "올바른 이메일 형식이 아닙니다");
-    createTranslationKeyIfNotExists(
-        "validation.password.minLength",
-        "validation",
-        "i18n gap 보강 (2026-06-06)",
-        "비밀번호는 최소 8자 이상이어야 합니다");
-    createTranslationKeyIfNotExists(
         "validation.password.mismatch",
         "validation",
         "i18n gap 보강 (2026-06-06)",
         "비밀번호가 일치하지 않습니다.");
-    createTranslationKeyIfNotExists(
-        "validation.required", "validation", "i18n gap 보강 (2026-06-06)", "필수 입력 항목입니다");
     createTranslationKeyIfNotExists(
         "validation.required.all", "validation", "i18n gap 보강 (2026-06-06)", "모든 필드를 입력해주세요.");
     createTranslationKeyIfNotExists(

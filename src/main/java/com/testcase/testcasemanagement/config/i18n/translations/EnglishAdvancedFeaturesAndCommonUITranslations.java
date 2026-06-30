@@ -83,387 +83,15 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createdBy);
     createTranslationIfNotExists(
         "organization.form.description", languageCode, "Description", createdBy);
-    createTranslationIfNotExists("organization.detail.members", languageCode, "Members", createdBy);
-    createTranslationIfNotExists(
-        "organization.detail.projects", languageCode, "Projects", createdBy);
-    createTranslationIfNotExists(
-        "organization.detail.settings", languageCode, "Settings", createdBy);
-    createTranslationIfNotExists(
-        "organization.member.role.admin", languageCode, "Admin", createdBy);
-    createTranslationIfNotExists(
-        "organization.member.role.member", languageCode, "Member", createdBy);
-    createTranslationIfNotExists(
-        "organization.member.role.viewer", languageCode, "Viewer", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.status.active", languageCode, "Active", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.status.inactive", languageCode, "Inactive", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.status.archived", languageCode, "Archived", createdBy);
     createTranslationIfNotExists("project.form.name", languageCode, "Project Name", createdBy);
     createTranslationIfNotExists(
         "project.form.description", languageCode, "Project Description", createdBy);
-    createTranslationIfNotExists("project.form.startDate", languageCode, "Start Date", createdBy);
-    createTranslationIfNotExists("project.form.endDate", languageCode, "End Date", createdBy);
-    createTranslationIfNotExists("project.status.planning", languageCode, "Planning", createdBy);
-    createTranslationIfNotExists(
-        "project.status.inProgress", languageCode, "In Progress", createdBy);
-    createTranslationIfNotExists("project.status.completed", languageCode, "Completed", createdBy);
-    createTranslationIfNotExists("project.status.onHold", languageCode, "On Hold", createdBy);
-    createTranslationIfNotExists("testCase.form.name", languageCode, "Test Case Name", createdBy);
     createTranslationIfNotExists("testCase.form.priority", languageCode, "Priority", createdBy);
     createTranslationIfNotExists("testCase.priority.high", languageCode, "High", createdBy);
     createTranslationIfNotExists("testCase.priority.medium", languageCode, "Medium", createdBy);
     createTranslationIfNotExists("testCase.priority.low", languageCode, "Low", createdBy);
-    createTranslationIfNotExists("testCase.status.draft", languageCode, "Draft", createdBy);
-    createTranslationIfNotExists("testCase.status.review", languageCode, "Under Review", createdBy);
-    createTranslationIfNotExists("testCase.status.approved", languageCode, "Approved", createdBy);
-    createTranslationIfNotExists(
-        "testCase.status.deprecated", languageCode, "Deprecated", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.pieChart.title", languageCode, "Test Result Pie Chart", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.pieChart.passed", languageCode, "Passed", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.pieChart.failed", languageCode, "Failed", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.pieChart.blocked", languageCode, "Blocked", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.pieChart.notRun", languageCode, "Not Run", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.barChart.title", languageCode, "Monthly Test Execution Trend", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.lineChart.title", languageCode, "Quality Trend", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.lineChart.passRate", languageCode, "Pass Rate", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.lineChart.failRate", languageCode, "Fail Rate", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.chart.donutChart.title",
-        languageCode,
-        "Test Case Distribution by Priority",
-        createdBy);
-    createTranslationIfNotExists(
-        "dashboard.metrics.totalTestCases", languageCode, "Total Test Cases", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.metrics.executedTests", languageCode, "Executed Tests", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.metrics.passedTests", languageCode, "Passed Tests", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.metrics.failedTests", languageCode, "Failed Tests", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.metrics.passRate", languageCode, "Pass Rate", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.widget.recentActivity", languageCode, "Recent Activity", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.widget.upcomingTests", languageCode, "Upcoming Tests", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.widget.criticalIssues", languageCode, "Critical Issues", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.widget.teamPerformance", languageCode, "Team Performance", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.widget.projectStatus", languageCode, "Project Status", createdBy);
-    createTranslationIfNotExists(
-        "table.column.sortAscending", languageCode, "Sort Ascending", createdBy);
-    createTranslationIfNotExists(
-        "table.column.sortDescending", languageCode, "Sort Descending", createdBy);
-    createTranslationIfNotExists("table.column.filter", languageCode, "Filter Column", createdBy);
-    createTranslationIfNotExists("table.column.hide", languageCode, "Hide Column", createdBy);
-    createTranslationIfNotExists("table.column.show", languageCode, "Show Column", createdBy);
-    createTranslationIfNotExists("table.pagination.first", languageCode, "First Page", createdBy);
-    createTranslationIfNotExists(
-        "table.pagination.previous", languageCode, "Previous Page", createdBy);
-    createTranslationIfNotExists("table.pagination.next", languageCode, "Next Page", createdBy);
-    createTranslationIfNotExists("table.pagination.last", languageCode, "Last Page", createdBy);
-    createTranslationIfNotExists(
-        "table.pagination.info",
-        languageCode,
-        "Showing {from} to {to} of {total} entries",
-        createdBy);
-    createTranslationIfNotExists(
-        "search.placeholder.global", languageCode, "Search all content...", createdBy);
-    createTranslationIfNotExists(
-        "search.placeholder.testCase", languageCode, "Search test cases...", createdBy);
-    createTranslationIfNotExists(
-        "search.placeholder.project", languageCode, "Search projects...", createdBy);
-    createTranslationIfNotExists(
-        "search.placeholder.user", languageCode, "Search users...", createdBy);
-    createTranslationIfNotExists(
-        "search.filter.status", languageCode, "Filter by Status", createdBy);
-    createTranslationIfNotExists(
-        "search.filter.priority", languageCode, "Filter by Priority", createdBy);
-    createTranslationIfNotExists(
-        "search.filter.assignee", languageCode, "Filter by Assignee", createdBy);
-    createTranslationIfNotExists(
-        "search.filter.dateRange", languageCode, "Filter by Date Range", createdBy);
-    createTranslationIfNotExists(
-        "search.results.found", languageCode, "{count} results found", createdBy);
-    createTranslationIfNotExists(
-        "search.results.noResults", languageCode, "No results found for your search", createdBy);
-    createTranslationIfNotExists("export.format.pdf", languageCode, "Export to PDF", createdBy);
-    createTranslationIfNotExists("export.format.excel", languageCode, "Export to Excel", createdBy);
-    createTranslationIfNotExists("export.format.csv", languageCode, "Export to CSV", createdBy);
-    createTranslationIfNotExists("export.format.json", languageCode, "Export to JSON", createdBy);
-    createTranslationIfNotExists(
-        "export.options.includeAttachments", languageCode, "Include Attachments", createdBy);
-    createTranslationIfNotExists(
-        "export.options.includeHistory", languageCode, "Include History", createdBy);
-    createTranslationIfNotExists(
-        "export.progress.preparing", languageCode, "Preparing export...", createdBy);
-    createTranslationIfNotExists(
-        "export.progress.generating", languageCode, "Generating file...", createdBy);
-    createTranslationIfNotExists(
-        "export.success.message", languageCode, "Export completed successfully", createdBy);
-    createTranslationIfNotExists(
-        "export.error.message", languageCode, "Export failed. Please try again.", createdBy);
-    createTranslationIfNotExists("notification.type.info", languageCode, "Information", createdBy);
-    createTranslationIfNotExists("notification.type.success", languageCode, "Success", createdBy);
-    createTranslationIfNotExists("notification.type.warning", languageCode, "Warning", createdBy);
-    createTranslationIfNotExists("notification.type.error", languageCode, "Error", createdBy);
-    createTranslationIfNotExists(
-        "notification.email.testResult", languageCode, "Test Result Notification", createdBy);
-    createTranslationIfNotExists(
-        "notification.email.projectUpdate", languageCode, "Project Update Notification", createdBy);
-    createTranslationIfNotExists(
-        "notification.settings.enable", languageCode, "Enable Notifications", createdBy);
-    createTranslationIfNotExists(
-        "notification.settings.disable", languageCode, "Disable Notifications", createdBy);
-    createTranslationIfNotExists(
-        "notification.markAsRead", languageCode, "Mark as Read", createdBy);
-    createTranslationIfNotExists(
-        "notification.clearAll", languageCode, "Clear All Notifications", createdBy);
-    createTranslationIfNotExists("workflow.status.pending", languageCode, "Pending", createdBy);
-    createTranslationIfNotExists("workflow.status.approved", languageCode, "Approved", createdBy);
-    createTranslationIfNotExists("workflow.status.rejected", languageCode, "Rejected", createdBy);
-    createTranslationIfNotExists("workflow.status.inReview", languageCode, "In Review", createdBy);
-    createTranslationIfNotExists("workflow.action.approve", languageCode, "Approve", createdBy);
-    createTranslationIfNotExists("workflow.action.reject", languageCode, "Reject", createdBy);
-    createTranslationIfNotExists(
-        "workflow.action.submit", languageCode, "Submit for Review", createdBy);
-    createTranslationIfNotExists("workflow.action.withdraw", languageCode, "Withdraw", createdBy);
-    createTranslationIfNotExists(
-        "workflow.comment.placeholder", languageCode, "Add a comment...", createdBy);
-    createTranslationIfNotExists(
-        "workflow.history.title", languageCode, "Workflow History", createdBy);
-    createTranslationIfNotExists("navigation.menu.dashboard", languageCode, "Dashboard", createdBy);
-    createTranslationIfNotExists("navigation.menu.projects", languageCode, "Projects", createdBy);
-    createTranslationIfNotExists(
-        "navigation.menu.testCases", languageCode, "Test Cases", createdBy);
-    createTranslationIfNotExists(
-        "navigation.menu.testPlans", languageCode, "Test Plans", createdBy);
-    createTranslationIfNotExists(
-        "navigation.menu.testExecution", languageCode, "Test Execution", createdBy);
-    createTranslationIfNotExists("navigation.menu.reports", languageCode, "Reports", createdBy);
-    createTranslationIfNotExists(
-        "navigation.menu.administration", languageCode, "Administration", createdBy);
-    createTranslationIfNotExists("navigation.breadcrumb.home", languageCode, "Home", createdBy);
-    createTranslationIfNotExists("navigation.breadcrumb.separator", languageCode, "/", createdBy);
-    createTranslationIfNotExists("navigation.back.button", languageCode, "Back", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.field.title", languageCode, "Session Title", createdBy);
-    createTranslationIfNotExists(
-        "action.permission.view", languageCode, "View Permission", createdBy);
-    createTranslationIfNotExists(
-        "action.permission.edit", languageCode, "Edit Permission", createdBy);
-    createTranslationIfNotExists(
-        "action.permission.delete", languageCode, "Delete Permission", createdBy);
-    createTranslationIfNotExists(
-        "action.permission.admin", languageCode, "Admin Permission", createdBy);
-    createTranslationIfNotExists("action.user.login", languageCode, "Log In", createdBy);
-    createTranslationIfNotExists("action.user.logout", languageCode, "Log Out", createdBy);
-    createTranslationIfNotExists("action.user.profile", languageCode, "View Profile", createdBy);
-    createTranslationIfNotExists(
-        "action.user.changePassword", languageCode, "Change Password", createdBy);
-    createTranslationIfNotExists(
-        "action.user.preferences", languageCode, "User Preferences", createdBy);
-    createTranslationIfNotExists("action.user.activity", languageCode, "User Activity", createdBy);
-    createTranslationIfNotExists(
-        "validation.password.complexity",
-        languageCode,
-        "Password must contain letters, numbers, and special characters",
-        createdBy);
-    createTranslationIfNotExists(
-        "validation.confirm.password", languageCode, "Passwords do not match", createdBy);
-    createTranslationIfNotExists(
-        "validation.date.invalid", languageCode, "Invalid date format", createdBy);
-    createTranslationIfNotExists(
-        "validation.number.invalid", languageCode, "Invalid number format", createdBy);
-    createTranslationIfNotExists(
-        "notification.success.saved", languageCode, "Successfully saved", createdBy);
-    createTranslationIfNotExists(
-        "notification.success.deleted", languageCode, "Successfully deleted", createdBy);
-    createTranslationIfNotExists(
-        "notification.success.updated", languageCode, "Successfully updated", createdBy);
-    createTranslationIfNotExists(
-        "notification.error.networkError", languageCode, "Network error occurred", createdBy);
-    createTranslationIfNotExists(
-        "notification.error.serverError", languageCode, "Server error occurred", createdBy);
-    createTranslationIfNotExists(
-        "notification.info.processing", languageCode, "Processing...", createdBy);
-    createTranslationIfNotExists("file.upload.title", languageCode, "File Upload", createdBy);
-    createTranslationIfNotExists(
-        "file.upload.description",
-        languageCode,
-        "Drag and drop files here or click to upload",
-        createdBy);
-    createTranslationIfNotExists(
-        "file.upload.progress", languageCode, "Upload in progress...", createdBy);
-    createTranslationIfNotExists(
-        "file.upload.success", languageCode, "File uploaded successfully", createdBy);
-    createTranslationIfNotExists(
-        "file.upload.error", languageCode, "File upload failed", createdBy);
-    createTranslationIfNotExists(
-        "file.size.limit", languageCode, "File size must not exceed {size}MB", createdBy);
-    createTranslationIfNotExists(
-        "file.type.invalid", languageCode, "Unsupported file type", createdBy);
-    createTranslationIfNotExists(
-        "file.download.preparing", languageCode, "Preparing download...", createdBy);
-    createTranslationIfNotExists(
-        "file.download.error", languageCode, "File download failed", createdBy);
-    createTranslationIfNotExists(
-        "file.management.title", languageCode, "File Management", createdBy);
-    createTranslationIfNotExists(
-        "team.management.title", languageCode, "Team Management", createdBy);
-    createTranslationIfNotExists("team.create.title", languageCode, "Create New Team", createdBy);
-    createTranslationIfNotExists("team.member.add", languageCode, "Add Team Member", createdBy);
-    createTranslationIfNotExists(
-        "team.member.remove", languageCode, "Remove Team Member", createdBy);
-    createTranslationIfNotExists(
-        "team.leader.assign", languageCode, "Assign Team Leader", createdBy);
-    createTranslationIfNotExists(
-        "user.management.title", languageCode, "User Management", createdBy);
-    createTranslationIfNotExists("user.create.title", languageCode, "Create New User", createdBy);
-    createTranslationIfNotExists("user.edit.title", languageCode, "Edit User", createdBy);
-    createTranslationIfNotExists(
-        "user.deactivate.title", languageCode, "Deactivate User", createdBy);
-    createTranslationIfNotExists("user.password.reset", languageCode, "Reset Password", createdBy);
-    createTranslationIfNotExists(
-        "report.dashboard.title", languageCode, "Report Dashboard", createdBy);
-    createTranslationIfNotExists(
-        "report.generate.title", languageCode, "Generate Report", createdBy);
-    createTranslationIfNotExists(
-        "report.template.select", languageCode, "Select Report Template", createdBy);
-    createTranslationIfNotExists(
-        "report.period.select", languageCode, "Select Report Period", createdBy);
-    createTranslationIfNotExists("report.format.pdf", languageCode, "PDF Format", createdBy);
-    createTranslationIfNotExists("report.format.excel", languageCode, "Excel Format", createdBy);
-    createTranslationIfNotExists(
-        "analytics.overview.title", languageCode, "Analytics Overview", createdBy);
-    createTranslationIfNotExists(
-        "analytics.trend.title", languageCode, "Trend Analysis", createdBy);
-    createTranslationIfNotExists(
-        "analytics.performance.title", languageCode, "Performance Analysis", createdBy);
-    createTranslationIfNotExists(
-        "analytics.quality.metrics", languageCode, "Quality Metrics", createdBy);
-    createTranslationIfNotExists(
-        "settings.general.title", languageCode, "General Settings", createdBy);
-    createTranslationIfNotExists(
-        "settings.system.title", languageCode, "System Settings", createdBy);
-    createTranslationIfNotExists(
-        "settings.security.title", languageCode, "Security Settings", createdBy);
-    createTranslationIfNotExists(
-        "settings.notification.title", languageCode, "Notification Settings", createdBy);
-    createTranslationIfNotExists(
-        "settings.appearance.title", languageCode, "Appearance Settings", createdBy);
-    createTranslationIfNotExists(
-        "settings.language.title", languageCode, "Language Settings", createdBy);
-    createTranslationIfNotExists(
-        "settings.backup.title", languageCode, "Backup Settings", createdBy);
-    createTranslationIfNotExists(
-        "config.database.title", languageCode, "Database Configuration", createdBy);
-    createTranslationIfNotExists("config.api.title", languageCode, "API Configuration", createdBy);
-    createTranslationIfNotExists(
-        "config.integration.title", languageCode, "Integration Configuration", createdBy);
-    createTranslationIfNotExists(
-        "approval.request.title", languageCode, "Approval Request", createdBy);
-    createTranslationIfNotExists(
-        "approval.pending.list", languageCode, "Pending Approvals", createdBy);
-    createTranslationIfNotExists(
-        "approval.approved.list", languageCode, "Approved Items", createdBy);
-    createTranslationIfNotExists(
-        "approval.rejected.list", languageCode, "Rejected Items", createdBy);
-    createTranslationIfNotExists("workflow.step.next", languageCode, "Next Step", createdBy);
-    createTranslationIfNotExists(
-        "workflow.step.previous", languageCode, "Previous Step", createdBy);
-    createTranslationIfNotExists(
-        "workflow.complete.title", languageCode, "Complete Task", createdBy);
-    createTranslationIfNotExists("workflow.cancel.title", languageCode, "Cancel Task", createdBy);
-    createTranslationIfNotExists(
-        "task.assignment.title", languageCode, "Task Assignment", createdBy);
-    createTranslationIfNotExists("task.deadline.title", languageCode, "Task Deadline", createdBy);
-    createTranslationIfNotExists("audit.log.title", languageCode, "Audit Log", createdBy);
-    createTranslationIfNotExists("audit.trail.title", languageCode, "Audit Trail", createdBy);
-    createTranslationIfNotExists("log.system.title", languageCode, "System Log", createdBy);
-    createTranslationIfNotExists("log.user.activity", languageCode, "User Activity Log", createdBy);
-    createTranslationIfNotExists("log.error.title", languageCode, "Error Log", createdBy);
-    createTranslationIfNotExists("log.access.title", languageCode, "Access Log", createdBy);
-    createTranslationIfNotExists("history.change.title", languageCode, "Change History", createdBy);
-    createTranslationIfNotExists(
-        "history.version.title", languageCode, "Version History", createdBy);
-    createTranslationIfNotExists("history.backup.title", languageCode, "Backup History", createdBy);
-    createTranslationIfNotExists(
-        "monitoring.status.title", languageCode, "Monitoring Status", createdBy);
-    createTranslationIfNotExists("calendar.view.title", languageCode, "Calendar View", createdBy);
-    createTranslationIfNotExists("calendar.event.create", languageCode, "Create Event", createdBy);
-    createTranslationIfNotExists("calendar.event.edit", languageCode, "Edit Event", createdBy);
-    createTranslationIfNotExists("calendar.event.delete", languageCode, "Delete Event", createdBy);
-    createTranslationIfNotExists(
-        "schedule.test.execution", languageCode, "Test Execution Schedule", createdBy);
-    createTranslationIfNotExists(
-        "schedule.maintenance.title", languageCode, "Maintenance Schedule", createdBy);
-    createTranslationIfNotExists(
-        "schedule.release.title", languageCode, "Release Schedule", createdBy);
-    createTranslationIfNotExists(
-        "reminder.notification.title", languageCode, "Reminder Notification", createdBy);
-    createTranslationIfNotExists(
-        "deadline.approaching.title", languageCode, "Deadline Approaching", createdBy);
-    createTranslationIfNotExists(
-        "milestone.achievement.title", languageCode, "Milestone Achievement", createdBy);
-    createTranslationIfNotExists(
-        "statistics.summary.title", languageCode, "Statistics Summary", createdBy);
-    createTranslationIfNotExists(
-        "statistics.detailed.title", languageCode, "Detailed Statistics", createdBy);
-    createTranslationIfNotExists("chart.pie.title", languageCode, "Pie Chart", createdBy);
-    createTranslationIfNotExists("chart.bar.title", languageCode, "Bar Chart", createdBy);
-    createTranslationIfNotExists("chart.line.title", languageCode, "Line Chart", createdBy);
-    createTranslationIfNotExists("chart.area.title", languageCode, "Area Chart", createdBy);
-    createTranslationIfNotExists("chart.scatter.title", languageCode, "Scatter Chart", createdBy);
-    createTranslationIfNotExists("chart.radar.title", languageCode, "Radar Chart", createdBy);
-    createTranslationIfNotExists("chart.heatmap.title", languageCode, "Heatmap Chart", createdBy);
-    createTranslationIfNotExists("chart.gauge.title", languageCode, "Gauge Chart", createdBy);
-    createTranslationIfNotExists("communication.chat.title", languageCode, "Chat", createdBy);
-    createTranslationIfNotExists(
-        "communication.message.send", languageCode, "Send Message", createdBy);
-    createTranslationIfNotExists(
-        "communication.message.receive", languageCode, "Receive Message", createdBy);
-    createTranslationIfNotExists("collaboration.share.title", languageCode, "Share", createdBy);
-    createTranslationIfNotExists(
-        "collaboration.comment.add", languageCode, "Add Comment", createdBy);
-    createTranslationIfNotExists(
-        "collaboration.review.request", languageCode, "Request Review", createdBy);
-    createTranslationIfNotExists(
-        "collaboration.feedback.title", languageCode, "Feedback", createdBy);
-    createTranslationIfNotExists(
-        "discussion.forum.title", languageCode, "Discussion Forum", createdBy);
-    createTranslationIfNotExists(
-        "discussion.thread.create", languageCode, "Create Discussion Thread", createdBy);
-    createTranslationIfNotExists("discussion.reply.add", languageCode, "Add Reply", createdBy);
-    createTranslationIfNotExists("mobile.menu.title", languageCode, "Mobile Menu", createdBy);
-    createTranslationIfNotExists(
-        "mobile.navigation.title", languageCode, "Mobile Navigation", createdBy);
-    createTranslationIfNotExists(
-        "mobile.responsive.title", languageCode, "Responsive Design", createdBy);
-    createTranslationIfNotExists("mobile.touch.gesture", languageCode, "Touch Gesture", createdBy);
-    createTranslationIfNotExists("mobile.offline.mode", languageCode, "Offline Mode", createdBy);
-    createTranslationIfNotExists("mobile.sync.title", languageCode, "Synchronization", createdBy);
-    createTranslationIfNotExists(
-        "responsive.breakpoint.mobile", languageCode, "Mobile Breakpoint", createdBy);
-    createTranslationIfNotExists(
-        "responsive.breakpoint.tablet", languageCode, "Tablet Breakpoint", createdBy);
-    createTranslationIfNotExists(
-        "responsive.breakpoint.desktop", languageCode, "Desktop Breakpoint", createdBy);
-    createTranslationIfNotExists(
-        "responsive.layout.adaptive", languageCode, "Adaptive Layout", createdBy);
     createTranslationIfNotExists("header.nav.dashboard", languageCode, "Dashboard", createdBy);
     createTranslationIfNotExists(
         "header.nav.organizationManagement", languageCode, "Organization Management", createdBy);
@@ -475,27 +103,8 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "organization.dashboard.title", languageCode, "System Dashboard", createdBy);
     createTranslationIfNotExists(
         "organization.dashboard.metrics.totalUsers", languageCode, "Total Users", createdBy);
-    createTranslationIfNotExists(
-        "organization.dashboard.metrics.activeProjects",
-        languageCode,
-        "Active Projects",
-        createdBy);
-    createTranslationIfNotExists(
-        "organization.dashboard.metrics.testCases", languageCode, "Test Cases", createdBy);
-    createTranslationIfNotExists(
-        "organization.dashboard.metrics.completedTests",
-        languageCode,
-        "Completed Tests",
-        createdBy);
-    createTranslationIfNotExists(
-        "organization.dashboard.stats.title", languageCode, "Organization Statistics", createdBy);
     createTranslationIfNotExists("common.buttons.refresh", languageCode, "Refresh", createdBy);
-    createTranslationIfNotExists("common.buttons.reset", languageCode, "Reset", createdBy);
-    createTranslationIfNotExists("common.buttons.apply", languageCode, "Apply", createdBy);
     createTranslationIfNotExists("common.buttons.cancel", languageCode, "Cancel", createdBy);
-    createTranslationIfNotExists("common.buttons.ok", languageCode, "OK", createdBy);
-    createTranslationIfNotExists("common.buttons.yes", languageCode, "Yes", createdBy);
-    createTranslationIfNotExists("common.buttons.no", languageCode, "No", createdBy);
     createTranslationIfNotExists("common.save", languageCode, "Save", createdBy);
     createTranslationIfNotExists(
         "junit.empty.noResults", languageCode, "No test results available", createdBy);
@@ -652,8 +261,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "rag.document.status.completed", languageCode, "Completed", createdBy);
     createTranslationIfNotExists("rag.document.status.failed", languageCode, "Failed", createdBy);
     createTranslationIfNotExists(
-        "rag.document.loading", languageCode, "Loading document list...", createdBy);
-    createTranslationIfNotExists(
         "rag.document.empty", languageCode, "No documents uploaded", createdBy);
     createTranslationIfNotExists(
         "rag.document.emptyDescription",
@@ -773,8 +380,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "rag.similar.sourceTestcase", languageCode, "Test Case", createdBy);
     createTranslationIfNotExists("rag.similar.sourceDocument", languageCode, "Document", createdBy);
-    createTranslationIfNotExists(
-        "rag.similar.showDetails", languageCode, "Show Details", createdBy);
     createTranslationIfNotExists(
         "rag.similar.noHighSimilarityResults",
         languageCode,
@@ -1085,13 +690,11 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("rag.analysis.cost", languageCode, "Cost:", createdBy);
     createTranslationIfNotExists(
         "rag.analysis.results", languageCode, "Analysis Results", createdBy);
-    createTranslationIfNotExists("rag.analysis.chunkColumn", languageCode, "Chunk #", createdBy);
     createTranslationIfNotExists(
         "rag.analysis.originalText", languageCode, "Original Text", createdBy);
     createTranslationIfNotExists(
         "rag.analysis.llmResponse", languageCode, "LLM Response", createdBy);
     createTranslationIfNotExists("rag.analysis.tokens", languageCode, "Tokens", createdBy);
-    createTranslationIfNotExists("rag.analysis.costColumn", languageCode, "Cost", createdBy);
     createTranslationIfNotExists(
         "rag.analysis.estimateCost", languageCode, "Estimate Cost", createdBy);
     createTranslationIfNotExists("rag.analysis.stop", languageCode, "Stop", createdBy);
@@ -1177,8 +780,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "attachment.error.auth.failed", languageCode, "User authentication failed.", createdBy);
     createTranslationIfNotExists(
-        "attachment.error.upload.validation", languageCode, "File validation failed.", createdBy);
-    createTranslationIfNotExists(
         "attachment.error.upload.io",
         languageCode,
         "An error occurred while saving the file.",
@@ -1196,18 +797,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "attachment.error.info.failed",
         languageCode,
         "An error occurred while retrieving attachment information.",
-        createdBy);
-    createTranslationIfNotExists(
-        "attachment.error.download.notfound", languageCode, "File not found.", createdBy);
-    createTranslationIfNotExists(
-        "attachment.error.download.io",
-        languageCode,
-        "An error occurred while downloading the file.",
-        createdBy);
-    createTranslationIfNotExists(
-        "attachment.error.download.general",
-        languageCode,
-        "An unexpected error occurred while downloading the file.",
         createdBy);
     createTranslationIfNotExists(
         "attachment.error.delete.failed",
@@ -1280,13 +869,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "rag.document.summary.progressLabel", languageCode, "Progress: {progress}%", createdBy);
     createTranslationIfNotExists(
-        "rag.document.summary.chunkTemplate", languageCode, "📄 Chunk {chunkNumber}", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.summary.progressFormat",
-        languageCode,
-        "{analyzed}/{total} chunks",
-        createdBy);
-    createTranslationIfNotExists(
         "rag.document.summary.resultsSummary",
         languageCode,
         "LLM Analysis Results Summary",
@@ -1353,68 +935,10 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         languageCode,
         "Analysis is already in progress. (Progress: {progress})",
         createdBy);
-    createTranslationIfNotExists(
-        "rag.document.alert.cancelConfirm",
-        languageCode,
-        "Are you sure you want to cancel the analysis of \"{documentName}\"? The results so far"
-            + " will be preserved.",
-        createdBy);
 
     // Error Message Related English Translations
-    createTranslationIfNotExists(
-        "rag.document.error.listFailed",
-        languageCode,
-        "Failed to retrieve document list.",
-        createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.uploadFailed", languageCode, "Failed to upload document.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.deleteFailed", languageCode, "Failed to delete document.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.downloadFailed",
-        languageCode,
-        "Failed to download document.",
-        createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.analyzeFailed", languageCode, "Failed to analyze document.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.embeddingFailed",
-        languageCode,
-        "Failed to generate embeddings.",
-        createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.promoteFailed",
-        languageCode,
-        "Failed to move document to global library.",
-        createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.requestFailed",
-        languageCode,
-        "Failed to request global registration.",
-        createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.jobHistoryFailed",
-        languageCode,
-        "Failed to retrieve job history.",
-        createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.pauseFailed", languageCode, "Failed to pause.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.resumeFailed", languageCode, "Failed to resume.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.cancelFailed", languageCode, "Failed to cancel.", createdBy);
 
     // Confirm Dialog Related English Translations
-    createTranslationIfNotExists(
-        "rag.document.confirm.analyze",
-        languageCode,
-        "Are you sure you want to analyze document \"{fileName}\"?",
-        createdBy);
-    createTranslationIfNotExists(
-        "rag.document.confirm.generateEmbeddings",
-        languageCode,
-        "Are you sure you want to generate embeddings for document \"{fileName}\"?",
-        createdBy);
 
     // LLM Configuration Management English Translations
     createTranslationIfNotExists("common.create", languageCode, "Create", createdBy);
@@ -1570,27 +1094,11 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.uploadFile", languageCode, "Upload File", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.fileName", languageCode, "File Name", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.fileSize", languageCode, "File Size", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.analysisStatus", languageCode, "Analysis Status", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.parser", languageCode, "Parser", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.embeddingStatus", languageCode, "Embedding Status", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.chunkCount", languageCode, "Chunk Count", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.uploader", languageCode, "Uploader", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.uploadDate", languageCode, "Upload Date", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.noDocuments",
         languageCode,
         "No global documents yet. Upload your first document!",
         createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.parserUnknown", languageCode, "Unknown", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.parserAuto", languageCode, "Auto Select", createdBy);
 
     // Global Document Information Section
     createTranslationIfNotExists(
@@ -1647,24 +1155,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "Upload/delete available to admins only (ADMIN permission required)",
         createdBy);
     createTranslationIfNotExists(
-        "admin.globalDoc.status.completed", languageCode, "Completed", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.status.pending", languageCode, "Pending", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.status.failed", languageCode, "Failed", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.preview", languageCode, "PDF Preview", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.viewChunks", languageCode, "View Chunks", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.download", languageCode, "Download", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.analyze", languageCode, "Analyze Document", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.generateEmbedding", languageCode, "Generate Embedding", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.generateEmbeddings", languageCode, "Generate Embedding", createdBy);
-    createTranslationIfNotExists(
         "admin.globalDoc.message.uploadSuccess",
         languageCode,
         "Global document \"{0}\" has been uploaded",
@@ -1685,16 +1175,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "Failed to delete global document",
         createdBy);
     createTranslationIfNotExists(
-        "admin.globalDoc.message.uploaded",
-        languageCode,
-        "Global document \"{0}\" has been uploaded",
-        createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.deleted",
-        languageCode,
-        "Global document \"{0}\" has been deleted",
-        createdBy);
-    createTranslationIfNotExists(
         "admin.globalDoc.message.confirmDelete",
         languageCode,
         "Are you sure you want to delete the global document \"{0}\"?",
@@ -1703,11 +1183,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "admin.globalDoc.message.confirmAnalyze",
         languageCode,
         "Are you sure you want to analyze the document \"{0}\"?",
-        createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.confirmEmbedding",
-        languageCode,
-        "Are you sure you want to generate embeddings for the document \"{0}\"?",
         createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.confirmEmbeddings",
@@ -1725,11 +1200,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "Failed to start analysis",
         createdBy);
     createTranslationIfNotExists(
-        "admin.globalDoc.message.embeddingStarted",
-        languageCode,
-        "Document \"{0}\" embedding generation started",
-        createdBy);
-    createTranslationIfNotExists(
         "admin.globalDoc.message.embeddingsStarted",
         languageCode,
         "Document \"{0}\" embedding generation started",
@@ -1740,11 +1210,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "Failed to generate embeddings",
         createdBy);
     createTranslationIfNotExists(
-        "admin.globalDoc.message.downloaded",
-        languageCode,
-        "Document \"{0}\" download completed",
-        createdBy);
-    createTranslationIfNotExists(
         "admin.globalDoc.message.downloadSuccess",
         languageCode,
         "Document \"{0}\" download completed",
@@ -1752,24 +1217,10 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "admin.globalDoc.message.downloadFailed", languageCode, "Download failed", createdBy);
     createTranslationIfNotExists(
-        "admin.globalDoc.message.viewChunksFailed",
-        languageCode,
-        "Failed to view chunks",
-        createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.previewFailed", languageCode, "Preview failed", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.pdfOnly",
-        languageCode,
-        "Only PDF files can be previewed.",
-        createdBy);
-    createTranslationIfNotExists(
         "admin.globalDoc.message.supportedFormats",
         languageCode,
         "Supported file formats: PDF, DOCX, DOC, TXT",
         createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.maxSize", languageCode, "File size cannot exceed 50MB", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.fileSizeLimit",
         languageCode,
@@ -1777,10 +1228,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.unknownError", languageCode, "Unknown error", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.chunks.title", languageCode, "Document Chunks", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.chunks.chunkNumber", languageCode, "Chunk #{0}", createdBy);
 
     // Scheduler Management English Translations
     createTranslationIfNotExists(
@@ -1818,9 +1265,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("scheduler.column.actions", languageCode, "Actions", createdBy);
 
     // Schedule Types & Units
-    createTranslationIfNotExists("scheduler.type.fixedRate", languageCode, "Fixed Rate", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.type.fixedDelay", languageCode, "Fixed Delay", createdBy);
     createTranslationIfNotExists("scheduler.time.seconds", languageCode, "{seconds}s", createdBy);
     createTranslationIfNotExists("scheduler.time.minutes", languageCode, "{minutes}m", createdBy);
     createTranslationIfNotExists("scheduler.time.hours", languageCode, "{hours}h", createdBy);
@@ -1907,32 +1351,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createdBy);
 
     // Scheduler List
-    createTranslationIfNotExists(
-        "scheduler.list.title", languageCode, "Scheduled Tasks", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.lastUpdated", languageCode, "Last updated: {time}", createdBy);
-    createTranslationIfNotExists("scheduler.list.retry", languageCode, "Retry", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.totalTasks", languageCode, "Total Scheduled Tasks", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.activeStatus", languageCode, "Active Status", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.normalOperation", languageCode, "Normal Operation", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.serverTimezone", languageCode, "Server Timezone", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.detailsTitle", languageCode, "Schedule Details", createdBy);
-    createTranslationIfNotExists("scheduler.list.columnName", languageCode, "Task Name", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.columnSchedule", languageCode, "Schedule", createdBy);
-    createTranslationIfNotExists("scheduler.list.columnType", languageCode, "Type", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.columnDescription", languageCode, "Description", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.error.loadFailed",
-        languageCode,
-        "Failed to load scheduler information.",
-        createdBy);
 
     // Exploratory Session
     createTranslationIfNotExists(
@@ -1955,11 +1373,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "exploratory.charter.filter.status", languageCode, "Status Filter", createdBy);
     createTranslationIfNotExists(
         "exploratory.charter.create", languageCode, "Create Charter", createdBy);
-    createTranslationIfNotExists("exploratory.charter.mission", languageCode, "Mission", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.charter.sessionCount", languageCode, "Runs {count}", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.charter.totalBugs", languageCode, "Total Bugs {count}", createdBy);
     createTranslationIfNotExists(
         "exploratory.charter.dialog.createTitle", languageCode, "Create Charter", createdBy);
     createTranslationIfNotExists(
@@ -1975,24 +1388,9 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "exploratory.session.filter.linkedCharter", languageCode, "Linked Charter", createdBy);
     createTranslationIfNotExists(
-        "exploratory.session.filter.minBugs", languageCode, "Min Bugs", createdBy);
-    createTranslationIfNotExists(
         "exploratory.session.filter.periodFrom", languageCode, "Period From", createdBy);
     createTranslationIfNotExists(
         "exploratory.session.filter.periodTo", languageCode, "Period To", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.session.label.bugs", languageCode, "Bugs {count}", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.session.label.meta",
-        languageCode,
-        "Period {date} | Tester {tester} | Charter {charter}",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.header.title", languageCode, "Header", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.header.elapsed", languageCode, "Elapsed {value}", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.header.paused", languageCode, "Paused {value}", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.timer.start", languageCode, "Start", createdBy);
     createTranslationIfNotExists(
@@ -2006,178 +1404,28 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "exploratory.editor.field.version", languageCode, "Version", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.field.netDuration", languageCode, "Target Duration (min)", createdBy);
-    createTranslationIfNotExists("exploratory.editor.field.tags", languageCode, "Tags", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.charterSection.title", languageCode, "Charter Section", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.charterSection.assigned", languageCode, "Assigned Charter", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.charterSection.autoMission",
         languageCode,
         "Auto-bound Mission",
         createdBy);
     createTranslationIfNotExists(
-        "exploratory.editor.timeSection.title", languageCode, "Time Allocation", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.execution", languageCode, "Test Execution (%)", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.bugInvestigation",
-        languageCode,
-        "Bug Investigation (%)",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.setupAdmin", languageCode, "Setup/Admin (%)", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.total", languageCode, "Total {total}%", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.pausedMinutes",
-        languageCode,
-        "Auto-reflected paused time {minutes}m",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.ratioWarning",
-        languageCode,
-        "Time allocation total is not 100%.",
-        createdBy);
-    createTranslationIfNotExists(
         "exploratory.editor.notes.title", languageCode, "Test Notes", createdBy);
-    createTranslationIfNotExists("exploratory.editor.notes.flow", languageCode, "Flow", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.notes.coverage", languageCode, "Coverage", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.notes.oracle", languageCode, "Oracle", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.notes.activity", languageCode, "Activity Detail", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.issue.title", languageCode, "Bugs/Issues", createdBy);
     createTranslationIfNotExists(
-        "exploratory.editor.issue.bugHeadline", languageCode, "Bug Headline Link", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.issue.blockers", languageCode, "Blockers", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.issue.questions", languageCode, "Open Questions", createdBy);
-    createTranslationIfNotExists(
         "exploratory.editor.artifact.title", languageCode, "Data/Artifacts", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.artifact.testData", languageCode, "Test Data", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.artifact.upload", languageCode, "Upload Evidence", createdBy);
     createTranslationIfNotExists(
-        "exploratory.editor.artifact.empty", languageCode, "No uploaded files.", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.artifact.sizeKb", languageCode, "{size} KB", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.evaluation.title", languageCode, "Evaluation/Action", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.evaluation.achievement",
-        languageCode,
-        "Charter Achievement {value}%",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.evaluation.overall", languageCode, "Overall Evaluation", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.evaluation.nextCharter",
-        languageCode,
-        "Suggested Next Charter",
-        createdBy);
-    createTranslationIfNotExists(
         "exploratory.debrief.report.title", languageCode, "Debrief Report", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.report.meta",
-        languageCode,
-        "Session: Sprint 22 payment exploration | Tester: Kim QA | Status: DONE",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.report.summary",
-        languageCode,
-        "Summary: Intermittent timeout reproduced during payment approval. Duplicate approval risk"
-            + " found in retry flow.",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.report.keyBugs",
-        languageCode,
-        "Key bugs: PAY-421, PAY-433",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.report.evidence",
-        languageCode,
-        "Evidence: screenshot_0210.png, payment-retry.log",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.title", languageCode, "Checklist", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.scope", languageCode, "Charter scope compliance", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.timebox",
-        languageCode,
-        "Timebox/paused time recorded",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.evidence", languageCode, "Bug evidence attached", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.action",
-        languageCode,
-        "Follow-up action proposed",
-        createdBy);
     createTranslationIfNotExists(
         "exploratory.debrief.leadComment", languageCode, "Lead Comment", createdBy);
     createTranslationIfNotExists(
         "exploratory.debrief.action.approve", languageCode, "Approve", createdBy);
     createTranslationIfNotExists(
         "exploratory.debrief.action.requestChanges", languageCode, "Request Changes", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.title",
-        languageCode,
-        "Session Activity Timeline (Read-only)",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.start.primary",
-        languageCode,
-        "10:02 Session started",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.start.secondary",
-        languageCode,
-        "Charter bound: payment failure recovery exploration",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.bug.primary", languageCode, "10:27 Bug found", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.bug.secondary",
-        languageCode,
-        "PAY-421 created, 2 evidence files attached",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.pause.primary", languageCode, "10:41 Pause/Resume", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.pause.secondary",
-        languageCode,
-        "Paused 4 minutes due to unstable environment, then resumed",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.done.primary",
-        languageCode,
-        "11:03 Ended and approved",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.done.secondary",
-        languageCode,
-        "Lead approver: Choi Lead (2026-02-10)",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.archive.title",
-        languageCode,
-        "Final Approved Report Archive",
-        createdBy);
 
-    createTranslationIfNotExists(
-        "admin.globalDoc.chunks.noChunks", languageCode, "No chunks available.", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.noChunks", languageCode, "No chunks available.", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.preview.title", languageCode, "PDF Preview", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.preview.loading", languageCode, "Unable to load preview.", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.requests.title", languageCode, "📨 Global Document Requests", createdBy);
     createTranslationIfNotExists(
@@ -2253,10 +1501,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
 
     // Google Sheets Integration
     createTranslationIfNotExists(
-        "header.userMenu.googleConfig", languageCode, "Google Sheets Settings", createdBy);
-    createTranslationIfNotExists(
-        "google.config.title", languageCode, "Google Sheets Integration Management", createdBy);
-    createTranslationIfNotExists(
         "google.config.status", languageCode, "Integration Status", createdBy);
     createTranslationIfNotExists("google.config.disconnect", languageCode, "Disconnect", createdBy);
     createTranslationIfNotExists(
@@ -2265,16 +1509,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "google.config.lastUpdated", languageCode, "Last Updated", createdBy);
     createTranslationIfNotExists("google.config.active", languageCode, "Active", createdBy);
-    createTranslationIfNotExists(
-        "google.config.noConfig",
-        languageCode,
-        "No Google authentication info is currently registered.",
-        createdBy);
-    createTranslationIfNotExists(
-        "google.config.inputTitle",
-        languageCode,
-        "New Authentication Info Registration",
-        createdBy);
     createTranslationIfNotExists(
         "google.config.inputDesc",
         languageCode,
@@ -2326,8 +1560,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         languageCode,
         "An error occurred while disconnecting the integration.",
         createdBy);
-    createTranslationIfNotExists(
-        "google.config.status.inactive", languageCode, "Inactive", createdBy);
     createTranslationIfNotExists(
         "google.config.noConfigDesc",
         languageCode,

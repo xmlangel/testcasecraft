@@ -40,26 +40,12 @@ public class KoreanTestResultTranslations {
         languageCode,
         "Pass/Fail/NotRun/Blocked 결과 분포를 시각화하여 한눈에 파악할 수 있습니다",
         createdBy);
-    createTranslationIfNotExists("testResult.tab.trend", languageCode, "추이", createdBy);
-    createTranslationIfNotExists("testResult.tab.trendFull", languageCode, "추이 분석", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tab.trendDescription",
-        languageCode,
-        "테스트 플랜별, 실행자별 결과 비교 및 성능 추이 분석이 가능합니다",
-        createdBy);
     createTranslationIfNotExists("testResult.tab.table", languageCode, "테이블", createdBy);
     createTranslationIfNotExists("testResult.tab.tableFull", languageCode, "상세 테이블", createdBy);
     createTranslationIfNotExists(
         "testResult.tab.tableDescription",
         languageCode,
         "전체 테스트 결과를 테이블 형태로 상세하게 확인할 수 있습니다",
-        createdBy);
-    createTranslationIfNotExists("testResult.tab.report", languageCode, "리포트", createdBy);
-    createTranslationIfNotExists("testResult.tab.reportFull", languageCode, "상세 리포트", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tab.reportDescription",
-        languageCode,
-        "폴더별, 케이스별 상세 결과와 JIRA 연동 상태 관리를 지원합니다",
         createdBy);
     createTranslationIfNotExists("testResult.form.title", languageCode, "테스트 결과 입력", createdBy);
     createTranslationIfNotExists("testResult.form.testResult", languageCode, "테스트 결과", createdBy);
@@ -107,76 +93,23 @@ public class KoreanTestResultTranslations {
         "testResult.pieChart.totalExecutionCount", languageCode, "누적 수행 횟수", createdBy);
     createTranslationIfNotExists(
         "testResult.form.mode.markdown", languageCode, "Markdown", createdBy);
-    createTranslationIfNotExists("testResult.form.mode.switch", languageCode, "모드 전환", createdBy);
     createTranslationIfNotExists(
         "testResult.form.fileAttachment", languageCode, "파일 첨부", createdBy);
     createTranslationIfNotExists("testResult.form.fileSelect", languageCode, "파일 선택", createdBy);
     createTranslationIfNotExists(
         "testResult.form.fileUploading", languageCode, "업로드 중...", createdBy);
     createTranslationIfNotExists(
-        "testResult.form.fileFormat",
-        languageCode,
-        "허용 형식: TXT, CSV, JSON, MD, PDF, LOG (최대 10MB)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.newAttachments", languageCode, "새로 첨부할 파일 ({count}개)", createdBy);
-    createTranslationIfNotExists("testResult.form.attachments", languageCode, "첨부파일", createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.attachmentsNote",
-        languageCode,
-        "테스트 결과를 저장하면 첨부파일을 확인할 수 있습니다.",
-        createdBy);
-    createTranslationIfNotExists(
         "testResult.form.jiraIntegration", languageCode, "JIRA 이슈 연동", createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.jiraIssueId", languageCode, "JIRA 이슈 ID (예: ICT-123)", createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.jiraIssuePlaceholder",
-        languageCode,
-        "관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)",
-        createdBy);
     createTranslationIfNotExists(
         "testResult.form.jiraComment", languageCode, "JIRA 코멘트", createdBy);
     createTranslationIfNotExists(
-        "testResult.form.jiraDetected", languageCode, "감지된 이슈: {issues}", createdBy);
-    createTranslationIfNotExists(
-        "testResult.form.jiraDetectedShort", languageCode, "감지: {issues}", createdBy);
-    createTranslationIfNotExists(
         "testResult.jira.connectionCheckFailed", languageCode, "JIRA 연결 상태 확인 실패:", createdBy);
     createTranslationIfNotExists(
-        "testResult.jira.placeholder",
-        languageCode,
-        "관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)",
-        createdBy);
-    createTranslationIfNotExists(
         "testResult.jira.detectedIssues", languageCode, "감지된 이슈", createdBy);
-    createTranslationIfNotExists(
-        "testResult.jira.issueIdLabel", languageCode, "JIRA 이슈 ID (예: ICT-123)", createdBy);
-    createTranslationIfNotExists(
-        "testResult.jira.issueIdPlaceholder",
-        languageCode,
-        "관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.jira.invalidFormat",
-        languageCode,
-        "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.jira.autoUppercase", languageCode, "입력된 키가 자동으로 대문자로 변환됩니다", createdBy);
     createTranslationIfNotExists(
         "testResult.file.sizeError", languageCode, "파일 크기는 10MB 이하여야 합니다", createdBy);
     createTranslationIfNotExists(
         "testResult.file.typeError", languageCode, "허용되지 않은 파일 형식입니다", createdBy);
-    createTranslationIfNotExists(
-        "testResult.file.allowedFormats",
-        languageCode,
-        "허용 형식: TXT, CSV, JSON, MD, PDF, LOG (최대 10MB)",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.file.newAttachmentsCount", languageCode, "새로 첨부할 파일 ({count}개)", createdBy);
-    createTranslationIfNotExists(
-        "testResult.file.attachedFilesCount", languageCode, "첨부된 파일 ({count}개)", createdBy);
     createTranslationIfNotExists(
         "testResult.file.saveToViewAttachments",
         languageCode,
@@ -192,24 +125,13 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists("testResult.status.fail", languageCode, "실패", createdBy);
     createTranslationIfNotExists("testResult.status.blocked", languageCode, "차단됨", createdBy);
     createTranslationIfNotExists("testResult.status.notRun", languageCode, "미실행", createdBy);
-    createTranslationIfNotExists("testResult.status.error", languageCode, "에러", createdBy);
-    createTranslationIfNotExists("testResult.table.title", languageCode, "테스트 결과 상세 목록", createdBy);
-    createTranslationIfNotExists(
-        "testResult.table.resultCount", languageCode, "개의 테스트 결과", createdBy);
-    createTranslationIfNotExists("testResult.table.filtered", languageCode, "필터됨", createdBy);
-    createTranslationIfNotExists(
-        "testResult.table.loadError", languageCode, "테스트 결과를 불러올 수 없습니다", createdBy);
 
     // 테스트 결과 상태 (확장)
     createTranslationIfNotExists("testResult.status.pass", languageCode, "성공", createdBy);
     createTranslationIfNotExists("testResult.status.fail", languageCode, "실패", createdBy);
     createTranslationIfNotExists("testResult.status.blocked", languageCode, "차단됨", createdBy);
     createTranslationIfNotExists("testResult.status.notRun", languageCode, "미실행", createdBy);
-    createTranslationIfNotExists("testResult.status.error", languageCode, "에러", createdBy);
     createTranslationIfNotExists("testResult.status.skipped", languageCode, "건너뜀", createdBy);
-    createTranslationIfNotExists("testResult.status.untested", languageCode, "미테스트", createdBy);
-    createTranslationIfNotExists("testResult.status.retest", languageCode, "재테스트", createdBy);
-    createTranslationIfNotExists("testResult.status.final", languageCode, "완료", createdBy);
 
     // 테스트 결과 버튼 (확장)
     createTranslationIfNotExists(
@@ -238,8 +160,6 @@ public class KoreanTestResultTranslations {
         "testResult.columnMenu.tip", languageCode, "팁: 테스트케이스와 결과는 필수 컬럼으로 항상 표시됩니다", createdBy);
 
     // JIRA 기타
-    createTranslationIfNotExists(
-        "testResult.jira.status.unknown", languageCode, "알 수 없음", createdBy);
 
     // 툴팁
     createTranslationIfNotExists(
@@ -261,25 +181,11 @@ public class KoreanTestResultTranslations {
         "testResult.column.linkedDocuments", languageCode, "연결된 RAG 문서", createdBy);
     createTranslationIfNotExists(
         "testResult.column.linkedDocCount", languageCode, "{count}건", createdBy);
-    createTranslationIfNotExists("testResult.column.executedBy", languageCode, "실행자", createdBy);
-    createTranslationIfNotExists("testResult.column.executedAt", languageCode, "실행일시", createdBy);
-    createTranslationIfNotExists("testResult.column.testPlan", languageCode, "테스트플랜", createdBy);
-    createTranslationIfNotExists(
-        "testResult.column.testExecution", languageCode, "테스트실행", createdBy);
     createTranslationIfNotExists(
         "testResult.column.jiraStatus", languageCode, "JIRA 상태", createdBy);
-    createTranslationIfNotExists("testResult.column.actions", languageCode, "작업", createdBy);
 
     createTranslationIfNotExists(
-        "testResult.chart.distribution", languageCode, "테스트 결과 분포", createdBy);
-    createTranslationIfNotExists(
-        "testResult.chart.loading", languageCode, "차트 데이터를 불러오는 중...", createdBy);
-    createTranslationIfNotExists(
-        "testResult.chart.noData", languageCode, "차트 데이터가 없습니다.", createdBy);
-    createTranslationIfNotExists(
         "testResult.chart.total", languageCode, "총 테스트 케이스: {total}건", createdBy);
-    createTranslationIfNotExists(
-        "testResult.chart.compareTitle", languageCode, "테스트 결과 비교", createdBy);
     createTranslationIfNotExists(
         "testResult.chart.percentageView", languageCode, "퍼센트 보기", createdBy);
     createTranslationIfNotExists(
@@ -304,8 +210,6 @@ public class KoreanTestResultTranslations {
         "testResult.statistics.successRate", languageCode, "성공률", createdBy);
     createTranslationIfNotExists(
         "testResult.statistics.totalTests", languageCode, "총 테스트", createdBy);
-    createTranslationIfNotExists(
-        "testResult.statistics.totalCount", languageCode, "총 {count}건", createdBy);
     createTranslationIfNotExists("testResult.pieChart.title", languageCode, "테스트 결과 분포", createdBy);
     createTranslationIfNotExists(
         "testResult.pieChart.loading", languageCode, "차트 데이터를 불러오는 중...", createdBy);
@@ -321,8 +225,6 @@ public class KoreanTestResultTranslations {
         "testResult.filteredCases.failTitle", languageCode, "실패 테스트 케이스", createdBy);
     createTranslationIfNotExists(
         "testResult.filteredCases.notRunTitle", languageCode, "미실행 테스트 케이스", createdBy);
-    createTranslationIfNotExists(
-        "testResult.filteredCases.column.actions", languageCode, "작업", createdBy);
     createTranslationIfNotExists(
         "testResult.filteredCases.goToResult", languageCode, "결과 상세 보기", createdBy);
     createTranslationIfNotExists(
@@ -367,72 +269,14 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists("testResult.column.folder", languageCode, "폴더", createdBy);
     createTranslationIfNotExists("testResult.column.testCase", languageCode, "테스트케이스", createdBy);
     createTranslationIfNotExists("testResult.column.result", languageCode, "결과", createdBy);
-    createTranslationIfNotExists("testResult.column.executedBy", languageCode, "실행자", createdBy);
-    createTranslationIfNotExists("testResult.column.executedAt", languageCode, "실행일시", createdBy);
-    createTranslationIfNotExists("testResult.column.testPlan", languageCode, "테스트플랜", createdBy);
-    createTranslationIfNotExists(
-        "testResult.column.testExecution", languageCode, "테스트실행", createdBy);
     createTranslationIfNotExists(
         "testResult.column.jiraStatus", languageCode, "JIRA 상태", createdBy);
-    createTranslationIfNotExists("testResult.column.actions", languageCode, "작업", createdBy);
     createTranslationIfNotExists("testResult.button.edit", languageCode, "편집", createdBy);
-    createTranslationIfNotExists("testResult.button.view", languageCode, "보기", createdBy);
-    createTranslationIfNotExists("testResult.button.delete", languageCode, "삭제", createdBy);
     createTranslationIfNotExists("testResult.button.export", languageCode, "내보내기", createdBy);
-    createTranslationIfNotExists("testResult.button.refresh", languageCode, "새로고침", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.edit", languageCode, "테스트 결과 편집", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.view", languageCode, "테스트 결과 보기", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.delete", languageCode, "테스트 결과 삭제", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.export", languageCode, "CSV로 내보내기", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.refresh", languageCode, "데이터 새로고침", createdBy);
     createTranslationIfNotExists(
         "testResult.tooltip.noPreCondition", languageCode, "사전설정 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tooltip.noSteps", languageCode, "테스트 단계 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tooltip.noExpectedResult", languageCode, "기대 결과 없음", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.noNotes", languageCode, "노트 없음", createdBy);
-    createTranslationIfNotExists("testResult.default.noData", languageCode, "데이터 없음", createdBy);
-    createTranslationIfNotExists("testResult.default.noFolder", languageCode, "폴더 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestCase", languageCode, "테스트케이스 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noExecutor", languageCode, "실행자 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestPlan", languageCode, "테스트플랜 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestExecution", languageCode, "테스트실행 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noPreCondition", languageCode, "사전설정 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noSteps", languageCode, "테스트 단계 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noExpectedResult", languageCode, "기대 결과 없음", createdBy);
-    createTranslationIfNotExists("testResult.default.noNotes", languageCode, "노트 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.loading", languageCode, "테스트 결과를 불러오는 중...", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.noData", languageCode, "표시할 테스트 결과가 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.error", languageCode, "테스트 결과를 불러오는 중 오류가 발생했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.deleteConfirm", languageCode, "이 테스트 결과를 삭제하시겠습니까?", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.deleteSuccess", languageCode, "테스트 결과가 성공적으로 삭제되었습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.deleteFailed", languageCode, "테스트 결과 삭제에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.exportSuccess", languageCode, "CSV 파일이 성공적으로 내보내졌습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.exportFailed", languageCode, "CSV 내보내기에 실패했습니다.", createdBy);
 
     // XML 데이터 불일치 경고
-    createTranslationIfNotExists(
-        "testResult.warning.xmlCountMismatch",
-        languageCode,
-        "XML 메타데이터의 테스트 개수({metadata})와 실제 로드된 테스트 개수({actual})가 일치하지 않습니다. 일부 테스트(예: 성공한 테스트)가"
-            + " 누락되었을 수 있습니다.",
-        createdBy);
 
     createTranslationIfNotExists("testResult.status.pass", languageCode, "성공", createdBy);
     createTranslationIfNotExists("testResult.status.fail", languageCode, "실패", createdBy);
@@ -567,9 +411,6 @@ public class KoreanTestResultTranslations {
         languageCode,
         "내보내기 실패: {status} {statusText}",
         createdBy);
-    createTranslationIfNotExists("testResult.message.error", languageCode, "오류가 발생했습니다", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.deleteFailed", languageCode, "삭제에 실패했습니다", createdBy);
     createTranslationIfNotExists(
         "testResult.dialog.attachmentsTitle", languageCode, "테스트 결과 첨부파일", createdBy);
     createTranslationIfNotExists(
@@ -595,8 +436,6 @@ public class KoreanTestResultTranslations {
         "testResult.pieChart.totalTestCases", languageCode, "총 테스트 케이스", createdBy);
     createTranslationIfNotExists(
         "testResult.statistics.noData", languageCode, "통계 데이터 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.statistics.totalCount", languageCode, "총 개수", createdBy);
     createTranslationIfNotExists("testResult.form.preCondition", languageCode, "사전 조건", createdBy);
     createTranslationIfNotExists("testResult.form.testSteps", languageCode, "테스트 단계", createdBy);
     createTranslationIfNotExists(
