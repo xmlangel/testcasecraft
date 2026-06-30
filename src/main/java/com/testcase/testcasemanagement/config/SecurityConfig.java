@@ -121,8 +121,9 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiauth/me")
                     .authenticated()
-                    // 스케줄러 정보 조회는 모두 허용 (admin 역할 체크 전에 먼저 처리)
-                    .requestMatchers("/api/admin/scheduler/**")
+                    // 스케줄러 정보 "조회(GET)"만 허용 — 변경(PUT/POST)은 아래 /api/admin/** 규칙으로
+                    // ADMIN 권한이 강제된다. (이전: 전체 permitAll → 비인증 변경/실행 가능 취약점)
+                    .requestMatchers(HttpMethod.GET, "/api/admin/scheduler/**")
                     .permitAll()
                     // 역할 기반 접근 제어 (더 구체적인 경로가 먼저)
                     .requestMatchers("/api/admin/**")
