@@ -227,7 +227,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         const dto = await response.json();
         if (!cancelled) setExecutionInfo(dto);
       } catch (e) {
-        debugWarn("QA 총평용 실행 정보 로드 실패:", e);
+        debugWarn(
+          t("testResult.qaSummary.loadError", "QA 총평용 실행 정보 로드 실패:"),
+          e,
+        );
         if (!cancelled) setExecutionInfo(null);
       }
     })();
@@ -255,7 +258,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       setExecutionInfo(updated);
       return true;
     } catch (e) {
-      debugError("QA 총평 저장 실패:", e);
+      debugError(t("testResult.qaSummary.saveFailed", "QA 총평 저장 실패:"), e);
       alert(
         t("testResult.qaSummary.saveError", "QA 총평 저장에 실패했습니다."),
       );
@@ -303,7 +306,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           if (response.success) {
             reportData = { content: response.data };
           } else {
-            throw new Error("필터링된 테스트 결과를 불러올 수 없습니다");
+            throw new Error(
+              t(
+                "testResult.error.filteredResultsLoad",
+                "필터링된 테스트 결과를 불러올 수 없습니다",
+              ),
+            );
           }
         } else {
           // 기존 전체 데이터 로드 방식
@@ -312,7 +320,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             `?projectId=${projectId}&page=0&size=1000`;
           const response = await api(apiUrl);
           if (!response.ok) {
-            throw new Error("테스트 결과를 불러올 수 없습니다");
+            throw new Error(
+              t(
+                "testResult.error.resultsLoad",
+                "테스트 결과를 불러올 수 없습니다",
+              ),
+            );
           }
           reportData = await response.json();
         }
@@ -425,7 +438,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       } catch (error) {
         debugWarn(
           "TestResultDetailTable",
-          "JIRA 설정을 불러올 수 없습니다:",
+          t("testResult.error.jiraConfig", "JIRA 설정을 불러올 수 없습니다:"),
           error,
         );
       }
@@ -566,7 +579,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         headerClassName: "table-header",
         renderCell: (params) => {
           const displayValue =
-            params.value === "Root" || params.value === "루트"
+            params.value === "Root" ||
+            params.value === t("testResult.defaultValue.root", "루트")
               ? "-"
               : params.value;
           return (
@@ -628,7 +642,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                   </Typography>
                 </Tooltip>
                 {hasActiveEdit && (
-                  <Tooltip title={`편집본: ${editStatusInfo.description}`}>
+                  <Tooltip
+                    title={`${t("testResult.label.editVersion", "편집본")}: ${editStatusInfo.description}`}
+                  >
                     <Chip
                       label={editStatusInfo.label}
                       size="small"

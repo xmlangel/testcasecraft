@@ -34,11 +34,13 @@ import { RESULT_COLORS } from "../constants/statusColors";
 function TestResultBarChart({
   data,
   loading = false,
-  title = "테스트 결과 비교",
+  title = null,
   showPercentage = false,
   onTogglePercentage = null,
 }) {
   const { t } = useTranslation();
+  const finalTitle =
+    title || t("testResult.barChart.title", "테스트 결과 비교");
   const theme = useTheme();
 
   // 기존 Dashboard.jsx와 동일한 색상 사용
@@ -60,7 +62,7 @@ function TestResultBarChart({
       <Card sx={{ height: "100%", minHeight: 400 }}>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
-            {title}
+            {finalTitle}
           </Typography>
           <Box sx={{ textAlign: "center", py: 4 }}>
             <Typography variant="body2" color="text.secondary">
@@ -78,7 +80,7 @@ function TestResultBarChart({
       <Card sx={{ height: "100%", minHeight: 400 }}>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
-            {title}
+            {finalTitle}
           </Typography>
           <LinearProgress sx={{ mt: 2 }} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -160,12 +162,12 @@ function TestResultBarChart({
           {originalItem && (
             <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: "divider" }}>
               <Typography variant="caption" color="text.secondary">
-                {t("testResult.chart.total", "Total")} {" "}
+                {t("testResult.chart.total", "Total")}{" "}
                 {originalItem.passCount +
                   originalItem.failCount +
                   originalItem.blockedCount +
-                  originalItem.notRunCount}
-                {" "}{t("testResult.chart.cases", "cases")}
+                  originalItem.notRunCount}{" "}
+                {t("testResult.chart.cases", "cases")}
               </Typography>
             </Box>
           )}
@@ -200,7 +202,7 @@ function TestResultBarChart({
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography variant="h6" component="h2">
-              {title}
+              {finalTitle}
             </Typography>
             <Tooltip title={t("testResult.chart.tooltip")} arrow>
               <Info fontSize="small" color="action" />

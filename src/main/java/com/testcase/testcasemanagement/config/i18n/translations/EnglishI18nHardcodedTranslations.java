@@ -1951,6 +1951,85 @@ public class EnglishI18nHardcodedTranslations {
         "manual.viewer.backToManual", languageCode, "Back to Manual", createdBy);
     createTranslationIfNotExists(
         "manual.viewer.guideError", languageCode, "Failed to load the guide document.", createdBy);
+    createTranslationIfNotExists("manual.viewer.intro", languageCode, "Introduction", createdBy);
+
+    // Hardcoded i18n cleanup (2026-06-30)
+    createTranslationIfNotExists(
+        "rag.chat.relatedDocuments", languageCode, "Related Documents:", createdBy);
+    createTranslationIfNotExists("rag.chat.similarity", languageCode, "Similarity: {percent}%", createdBy);
+    createTranslationIfNotExists(
+        "testResult.barChart.title", languageCode, "Test Result Comparison", createdBy);
+    createTranslationIfNotExists(
+        "testCaseResult.error.executionLoad",
+        languageCode,
+        "Failed to load test execution information.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testCaseResult.error.caseLoad",
+        languageCode,
+        "Failed to load test case information.",
+        createdBy);
+    createTranslationIfNotExists("junit.version.compressed", languageCode, "Compressed", createdBy);
+    createTranslationIfNotExists(
+        "testResult.qaSummary.loadError",
+        languageCode,
+        "Failed to load execution info for QA summary:",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.qaSummary.saveFailed", languageCode, "Failed to save QA summary:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.error.filteredResultsLoad",
+        languageCode,
+        "Failed to load filtered test results",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.error.resultsLoad", languageCode, "Failed to load test results", createdBy);
+    createTranslationIfNotExists(
+        "testResult.error.jiraConfig",
+        languageCode,
+        "Failed to load JIRA configuration:",
+        createdBy);
+    createTranslationIfNotExists("testResult.defaultValue.root", languageCode, "Root", createdBy);
+    createTranslationIfNotExists("testResult.label.editVersion", languageCode, "Edited", createdBy);
+    createTranslationIfNotExists(
+        "testcaseAttachments.fetchError",
+        languageCode,
+        "Failed to load the attachment list.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.deleteError",
+        languageCode,
+        "An error occurred while deleting items: {error}",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.validationError",
+        languageCode,
+        "An error occurred during validation: {error}",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.pdfExportError",
+        languageCode,
+        "An error occurred during PDF export.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.noData", languageCode, "No data to export.", createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.csvSuccess", languageCode, "CSV file downloaded: {filename}", createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.csvError",
+        languageCode,
+        "Error downloading CSV file: {message}",
+        createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.excelSuccess",
+        languageCode,
+        "Excel file downloaded: {filename}",
+        createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.excelError",
+        languageCode,
+        "Error downloading Excel file: {message}",
+        createdBy);
 
     log.info("i18n 하드코딩 보강 en 번역 초기화 완료");
   }

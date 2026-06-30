@@ -154,11 +154,17 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
 
       if (result.restoreResult.checksumValid) {
         setSuccess(
-          t("junit.version.restored", `버전 ${selectedVersion.versionNumber}이 성공적으로 복원되었습니다.`),
+          t(
+            "junit.version.restored",
+            `버전 ${selectedVersion.versionNumber}이 성공적으로 복원되었습니다.`,
+          ),
         );
       } else {
         setSuccess(
-          t("junit.version.restoredWithWarning", `버전 ${selectedVersion.versionNumber}이 복원되었지만 체크섬 검증에 실패했습니다.`),
+          t(
+            "junit.version.restoredWithWarning",
+            `버전 ${selectedVersion.versionNumber}이 복원되었지만 체크섬 검증에 실패했습니다.`,
+          ),
         );
       }
 
@@ -241,7 +247,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <HistoryIcon />
-          <Typography variant="h6">{t("junit.version.management", "버전 관리")}</Typography>
+          <Typography variant="h6">
+            {t("junit.version.management", "버전 관리")}
+          </Typography>
           <Typography variant="caption" color="text.secondary">
             테스트 ID: {testResultId}
           </Typography>
@@ -280,7 +288,11 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
             <Button
               variant="contained"
               startIcon={<UploadIcon />}
-              onClick={() => handleCreateVersion(t("junit.version.manualCreate", "수동 버전 생성"))}
+              onClick={() =>
+                handleCreateVersion(
+                  t("junit.version.manualCreate", "수동 버전 생성"),
+                )
+              }
               disabled={loading}
             >
               {t("junit.version.newVersion", "새 버전 생성")}
@@ -330,7 +342,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                           />
                           {version.compressed && (
                             <Chip
-                              label="압축됨"
+                              label={t("junit.version.compressed", "압축됨")}
                               size="small"
                               color="info"
                               variant="outlined"
@@ -341,7 +353,8 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                       secondary={
                         <Box>
                           <Typography variant="body2" color="text.secondary">
-                            {version.description || t("junit.version.noDescription", "설명 없음")}
+                            {version.description ||
+                              t("junit.version.noDescription", "설명 없음")}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             {formatDistanceToNow(new Date(version.createdAt), {
@@ -357,7 +370,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                       }
                     />
                     <ListItemSecondaryAction>
-                      <Tooltip title={t("junit.version.restoreTooltip", "복원")}>
+                      <Tooltip
+                        title={t("junit.version.restoreTooltip", "복원")}
+                      >
                         <IconButton
                           onClick={() => {
                             setSelectedVersion(version);
@@ -377,7 +392,10 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
             </List>
           ) : (
             <Alert severity="info">
-              {t("junit.version.noVersions", "아직 생성된 버전이 없습니다. 새 버전을 생성해보세요.")}
+              {t(
+                "junit.version.noVersions",
+                "아직 생성된 버전이 없습니다. 새 버전을 생성해보세요.",
+              )}
             </Alert>
           )}
         </TabPanel>
@@ -454,7 +472,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                           )
                         }
                         label={`${t("junit.version.autoBackup", "자동 백업")}: ${
-                          storageStats.autoBackupEnabled ? t("junit.version.enabled", "활성화") : t("junit.version.disabled", "비활성화")
+                          storageStats.autoBackupEnabled
+                            ? t("junit.version.enabled", "활성화")
+                            : t("junit.version.disabled", "비활성화")
                         }`}
                         color={
                           storageStats.autoBackupEnabled ? "success" : "warning"
@@ -463,7 +483,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                       />
                     </Box>
                     <Typography variant="h5" sx={{ mt: 2 }}>
-                      {t("junit.version.totalUsage", "총 사용량")}: {" "}
+                      {t("junit.version.totalUsage", "총 사용량")}:{" "}
                       {junitVersionService.formatFileSize(
                         storageStats.totalStorageSize,
                       )}
@@ -520,7 +540,10 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
             </Grid>
           ) : (
             <Alert severity="warning">
-              {t("junit.version.noStoragePermission", "스토리지 통계를 조회할 권한이 없습니다. (관리자 권한 필요)")}
+              {t(
+                "junit.version.noStoragePermission",
+                "스토리지 통계를 조회할 권한이 없습니다. (관리자 권한 필요)",
+              )}
             </Alert>
           )}
         </TabPanel>
@@ -552,7 +575,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                     }
                     sx={{ mb: 3 }}
                   >
-                    <Typography variant="subtitle2">{t("junit.version.backupRecommended", "백업 권장")}</Typography>
+                    <Typography variant="subtitle2">
+                      {t("junit.version.backupRecommended", "백업 권장")}
+                    </Typography>
                     <Typography variant="body2">
                       {backupRecommendation.reason}
                     </Typography>
@@ -562,7 +587,10 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
             })()}
 
           <Typography variant="body2" color="text.secondary">
-            {t("junit.version.backupInfo", "백업은 버전과 별도로 관리되며, 시스템 장애 시 데이터 복구에 사용됩니다. 정기적인 백업을 통해 데이터 손실을 방지할 수 있습니다.")}
+            {t(
+              "junit.version.backupInfo",
+              "백업은 버전과 별도로 관리되며, 시스템 장애 시 데이터 복구에 사용됩니다. 정기적인 백업을 통해 데이터 손실을 방지할 수 있습니다.",
+            )}
           </Typography>
         </TabPanel>
       </DialogContent>
@@ -576,19 +604,24 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>{t("junit.version.compareDialog", "버전 비교")}</DialogTitle>
+        <DialogTitle>
+          {t("junit.version.compareDialog", "버전 비교")}
+        </DialogTitle>
         <DialogContent>
           <Grid container spacing={3} sx={{ mt: 1 }}>
             <Grid size={{ xs: 6 }}>
               <FormControl fullWidth>
-                <InputLabel>{t("junit.version.firstVersion", "첫 번째 버전")}</InputLabel>
+                <InputLabel>
+                  {t("junit.version.firstVersion", "첫 번째 버전")}
+                </InputLabel>
                 <Select
                   value={compareVersion1}
                   onChange={(e) => setCompareVersion1(e.target.value)}
                 >
                   {versionHistory?.versions.map((v) => (
                     <MenuItem key={v.versionId} value={v.versionNumber}>
-                      {t("junit.version.versionNumber", "버전")} {v.versionNumber}
+                      {t("junit.version.versionNumber", "버전")}{" "}
+                      {v.versionNumber}
                     </MenuItem>
                   ))}
                 </Select>
@@ -596,14 +629,17 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
             </Grid>
             <Grid size={{ xs: 6 }}>
               <FormControl fullWidth>
-                <InputLabel>{t("junit.version.secondVersion", "두 번째 버전")}</InputLabel>
+                <InputLabel>
+                  {t("junit.version.secondVersion", "두 번째 버전")}
+                </InputLabel>
                 <Select
                   value={compareVersion2}
                   onChange={(e) => setCompareVersion2(e.target.value)}
                 >
                   {versionHistory?.versions.map((v) => (
                     <MenuItem key={v.versionId} value={v.versionNumber}>
-                      {t("junit.version.versionNumber", "버전")} {v.versionNumber}
+                      {t("junit.version.versionNumber", "버전")}{" "}
+                      {v.versionNumber}
                     </MenuItem>
                   ))}
                 </Select>
@@ -626,7 +662,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 6 }}>
-                  <Typography variant="caption">{t("junit.version.sizeDiff", "크기 차이")}:</Typography>
+                  <Typography variant="caption">
+                    {t("junit.version.sizeDiff", "크기 차이")}:
+                  </Typography>
                   <Typography variant="body2">
                     {comparisonResult.sizeDifference > 0 ? "+" : ""}
                     {junitVersionService.formatFileSize(
@@ -635,7 +673,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 6 }}>
-                  <Typography variant="caption">{t("junit.version.timeDiff", "시간 차이")}:</Typography>
+                  <Typography variant="caption">
+                    {t("junit.version.timeDiff", "시간 차이")}:
+                  </Typography>
                   <Typography variant="body2">
                     {junitVersionService.formatTimeDifference(
                       comparisonResult.timeDifference,
@@ -647,7 +687,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCompareDialogOpen(false)}>{t("junit.version.cancel", "취소")}</Button>
+          <Button onClick={() => setCompareDialogOpen(false)}>
+            {t("junit.version.cancel", "취소")}
+          </Button>
           <Button
             onClick={handleCompareVersions}
             variant="contained"
@@ -664,12 +706,17 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{t("junit.version.restoreDialog", "버전 복원")}</DialogTitle>
+        <DialogTitle>
+          {t("junit.version.restoreDialog", "버전 복원")}
+        </DialogTitle>
         <DialogContent>
           {selectedVersion && (
             <>
               <Typography variant="body1" gutterBottom>
-                {t("junit.version.restoreConfirm", `버전 ${selectedVersion.versionNumber}을 복원하시겠습니까?`)}
+                {t(
+                  "junit.version.restoreConfirm",
+                  `버전 ${selectedVersion.versionNumber}을 복원하시겠습니까?`,
+                )}
               </Typography>
               <Typography
                 variant="body2"
@@ -678,7 +725,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                   marginBottom: "16px",
                 }}
               >
-                {t("junit.version.createdDate", "생성일")}: {" "}
+                {t("junit.version.createdDate", "생성일")}:{" "}
                 {new Date(selectedVersion.createdAt).toLocaleString("ko-KR")}
               </Typography>
               <TextField
@@ -695,7 +742,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setRestoreDialogOpen(false)}>{t("junit.version.cancel", "취소")}</Button>
+          <Button onClick={() => setRestoreDialogOpen(false)}>
+            {t("junit.version.cancel", "취소")}
+          </Button>
           <Button
             onClick={handleRestoreVersion}
             variant="contained"
@@ -712,15 +761,21 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{t("junit.version.backupCreateDialog", "백업 생성")}</DialogTitle>
+        <DialogTitle>
+          {t("junit.version.backupCreateDialog", "백업 생성")}
+        </DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>{t("junit.version.backupVersionLabel", "백업할 버전")}</InputLabel>
+            <InputLabel>
+              {t("junit.version.backupVersionLabel", "백업할 버전")}
+            </InputLabel>
             <Select
               value={backupVersion}
               onChange={(e) => setBackupVersion(e.target.value)}
             >
-              <MenuItem value={-1}>{t("junit.version.latestVersion", "최신 버전")}</MenuItem>
+              <MenuItem value={-1}>
+                {t("junit.version.latestVersion", "최신 버전")}
+              </MenuItem>
               {versionHistory?.versions.map((v) => (
                 <MenuItem key={v.versionId} value={v.versionNumber}>
                   {t("junit.version.versionNumber", "버전")} {v.versionNumber}
@@ -730,7 +785,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setBackupDialogOpen(false)}>{t("junit.version.cancel", "취소")}</Button>
+          <Button onClick={() => setBackupDialogOpen(false)}>
+            {t("junit.version.cancel", "취소")}
+          </Button>
           <Button
             onClick={handleCreateBackup}
             variant="contained"

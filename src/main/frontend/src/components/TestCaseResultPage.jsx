@@ -49,10 +49,20 @@ const TestCaseResultPage = () => {
         ]);
 
         if (!executionResponse.ok) {
-          throw new Error("테스트 실행 정보를 불러올 수 없습니다.");
+          throw new Error(
+            t(
+              "testCaseResult.error.executionLoad",
+              "테스트 실행 정보를 불러올 수 없습니다.",
+            ),
+          );
         }
         if (!testCaseResponse.ok) {
-          throw new Error("테스트케이스 정보를 불러올 수 없습니다.");
+          throw new Error(
+            t(
+              "testCaseResult.error.caseLoad",
+              "테스트케이스 정보를 불러올 수 없습니다.",
+            ),
+          );
         }
 
         const executionData = await executionResponse.json();

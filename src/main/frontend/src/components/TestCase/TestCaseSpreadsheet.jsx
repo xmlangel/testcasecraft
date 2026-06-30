@@ -412,7 +412,10 @@ const TestCaseSpreadsheet = ({
       setSelectedRange(null);
       selectedRangeRef.current = null;
     } catch (error) {
-      logError("삭제 중 오류 발생:", error);
+      logError(
+        t("testcase.spreadsheet.deleteErrorLog", "삭제 중 오류 발생:"),
+        error,
+      );
       setSnackbarMessage(
         t(
           "testcase.spreadsheet.deleteError",
@@ -703,7 +706,10 @@ const TestCaseSpreadsheet = ({
       setSnackbarSeverity(result.isValid ? "success" : "warning");
       setSnackbarOpen(true);
     } catch (error) {
-      logError("검증 중 오류:", error);
+      logError(
+        t("testcase.spreadsheet.validationErrorLog", "검증 중 오류:"),
+        error,
+      );
       setSnackbarMessage(
         t(
           "testcase.spreadsheet.validationError",
@@ -803,7 +809,10 @@ const TestCaseSpreadsheet = ({
         await onRefresh();
       }
     } catch (error) {
-      logError("일괄 저장 실패:", error);
+      logError(
+        t("testcase.spreadsheet.saveFailedLog", "일괄 저장 실패:"),
+        error,
+      );
       setSnackbarMessage(
         t(
           "testcase.spreadsheet.saveError",
@@ -843,7 +852,10 @@ const TestCaseSpreadsheet = ({
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
       } catch (error) {
-        logError("새로고침 실패:", error);
+        logError(
+          t("testcase.spreadsheet.refreshFailedLog", "새로고침 실패:"),
+          error,
+        );
         setSnackbarMessage(
           t(
             "testcase.spreadsheet.refreshError",
@@ -945,18 +957,22 @@ const TestCaseSpreadsheet = ({
   };
 
   const handleExportCSV = useCallback(() => {
-    const result = exportToCSV(spreadsheetData, memoizedColumnLabels);
+    const result = exportToCSV(spreadsheetData, memoizedColumnLabels, t);
     setSnackbarMessage(result.message);
     setSnackbarSeverity(result.severity);
     setSnackbarOpen(true);
     handleExportMenuClose();
-  }, [spreadsheetData, memoizedColumnLabels]);
+  }, [spreadsheetData, memoizedColumnLabels, t]);
 
   const handleExportExcel = useCallback(async () => {
     handleExportMenuClose();
     setLocalLoading(true);
     try {
-      const result = await exportToExcel(spreadsheetData, memoizedColumnLabels);
+      const result = await exportToExcel(
+        spreadsheetData,
+        memoizedColumnLabels,
+        t,
+      );
       setSnackbarMessage(result.message);
       setSnackbarSeverity(result.severity);
       setSnackbarOpen(true);
@@ -999,7 +1015,10 @@ const TestCaseSpreadsheet = ({
       setSnackbarSeverity(result.severity);
       setSnackbarOpen(true);
     } catch (error) {
-      logError("PDF 내보내기 오류:", error);
+      logError(
+        t("testcase.spreadsheet.pdfExportErrorLog", "PDF 내보내기 오류:"),
+        error,
+      );
       setSnackbarMessage(
         t(
           "testcase.spreadsheet.pdfExportError",

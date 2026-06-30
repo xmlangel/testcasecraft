@@ -1124,7 +1124,7 @@ function ChatMessage({
                       variant="caption"
                       sx={{ fontWeight: "bold", display: "block", mb: 1 }}
                     >
-                      참고 문서:
+                      {t("rag.chat.relatedDocuments", "참고 문서:")}
                     </Typography>
                     <Stack
                       direction="row"
@@ -1194,11 +1194,15 @@ function ChatMessage({
                                 number: doc.chunkIndex + 1,
                               })
                             : "";
-                        const label = t("chat.source.citation", "[출처{sourceNum}] {baseName}{chunkInfo}", {
-                          sourceNum: sourceNumber,
-                          baseName,
-                          chunkInfo,
-                        });
+                        const label = t(
+                          "chat.source.citation",
+                          "[출처{sourceNum}] {baseName}{chunkInfo}",
+                          {
+                            sourceNum: sourceNumber,
+                            baseName,
+                            chunkInfo,
+                          },
+                        );
 
                         const icon = isTestCaseDoc ? (
                           <AssignmentIcon />
@@ -1320,7 +1324,9 @@ function ChatMessage({
                   fontStyle: "italic",
                 }}
               >
-                유사도: {(message.similarity * 100).toFixed(1)}%
+                {t("rag.chat.similarity", "유사도: {percent}%", {
+                  percent: (message.similarity * 100).toFixed(1),
+                })}
               </Typography>
             )}
           </Paper>
