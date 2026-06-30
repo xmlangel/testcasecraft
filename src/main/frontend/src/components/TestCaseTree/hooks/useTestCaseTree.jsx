@@ -57,13 +57,16 @@ export const useTestCaseTree = ({
     [filteredTestCases],
   );
 
-  // 전체 선택 상태 (testcase 타입만)
+  // 전체 선택 대상.
+  // - selectable 모드(테스트플랜 케이스 선택): 케이스만 (폴더는 플랜 멤버가 아님)
+  // - 일반 모드: 폴더 + 케이스 모두. 전체선택 후 "다른 프로젝트로 이동/복사" 시
+  //   폴더가 빠지면 구조가 평탄화되므로 폴더도 포함해야 한다.
   const allIds = useMemo(
     () =>
       filteredTestCases
-        .filter((tc) => tc && tc.type === "testcase")
+        .filter((tc) => tc && (selectable ? tc.type === "testcase" : true))
         .map((tc) => tc.id),
-    [filteredTestCases],
+    [filteredTestCases, selectable],
   );
   const isAllChecked =
     allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));

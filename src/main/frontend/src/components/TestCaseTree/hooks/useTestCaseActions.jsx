@@ -380,7 +380,12 @@ export const useTestCaseActions = ({
       if (isViewer(user?.role)) return;
       if (!ids || ids.length === 0) return;
       if (beforeId && afterId) {
-        setErrorMessage(t("testcase.tree.error.conflictingPositions", "beforeId와 afterId는 동시에 지정할 수 없습니다."));
+        setErrorMessage(
+          t(
+            "testcase.tree.error.conflictingPositions",
+            "beforeId와 afterId는 동시에 지정할 수 없습니다.",
+          ),
+        );
         return;
       }
 
@@ -429,6 +434,65 @@ export const useTestCaseActions = ({
       }
     },
     [user?.role, projectId, fetchProjectTestCases, t],
+  );
+
+  // ── 크로스 프로젝트 이동/복사 ───────────────────────────────────────────────
+  // 백엔드: POST /api/testcases/cross-project/move | /api/testcases/cross-project/copy
+  // 이동은 연결된 테스트 결과를 실행 미러링으로 함께 옮기고, 복사는 케이스만 복제한다.
+
+  const transferToProject = useCallback(
+    async (path, { ids, targetProjectId, targetParentId }) => {
+      if (isViewer(user?.role)) return null;
+      if (!ids || ids.length === 0) return null;
+      if (!targetProjectId) {
+        setErrorMessage(
+          t(
+            "testcase.crossProject.error.noTarget",
+            "대상 프로젝트를 선택해주세요.",
+          ),
+        );
+        return null;
+      }
+      try {
+        const res = await apiService.post(path, {
+          ids,
+          targetProjectId,
+          targetParentId: targetParentId || null,
+        });
+        let data = null;
+        if (res && typeof res.json === "function") {
+          try {
+            data = await res.json();
+          } catch {
+            // 본문이 없어도 무시
+          }
+        }
+        // 현재 프로젝트 트리 재동기화 (이동 시 옮겨간 항목이 사라짐)
+        await fetchProjectTestCases(projectId);
+        return data;
+      } catch (err) {
+        const msg =
+          err?.message ||
+          t(
+            "testcase.crossProject.error.failed",
+            "프로젝트 간 작업에 실패했습니다.",
+          );
+        setErrorMessage(msg);
+        await fetchProjectTestCases(projectId);
+        throw err;
+      }
+    },
+    [user?.role, projectId, fetchProjectTestCases, t, setErrorMessage],
+  );
+
+  const moveToProject = useCallback(
+    (args) => transferToProject("/api/testcases/cross-project/move", args),
+    [transferToProject],
+  );
+
+  const copyToProject = useCallback(
+    (args) => transferToProject("/api/testcases/cross-project/copy", args),
+    [transferToProject],
   );
 
   // ── 버전 히스토리 ─────────────────────────────────────────────────────────
@@ -562,6 +626,8 @@ export const useTestCaseActions = ({
     handleOpenVersionHistory,
     handleVersionRestore,
     moveNodes,
+    moveToProject,
+    copyToProject,
 
     // 헬퍼
     getBatchDeleteItems,

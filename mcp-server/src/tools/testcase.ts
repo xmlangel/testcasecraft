@@ -64,6 +64,16 @@ const MoveBatchInput = z.object({
   afterId: z.string().min(1).optional(),
 });
 
+const CrossProjectTransferInput = z.object({
+  ids: z
+    .array(z.string().min(1))
+    .min(1, "ids는 최소 1개 필요")
+    .max(500, "한 번에 최대 500개까지"),
+  targetProjectId: z.string().min(1, "대상 프로젝트 ID 필수"),
+  // null이면 대상 프로젝트 루트로 이동/복사
+  targetParentId: z.string().min(1).nullable().optional(),
+});
+
 const VersionsInput = z.object({
   id: z.string().min(1, "테스트케이스 ID 필수"),
   limit: z.number().int().min(1).max(200).default(50),
@@ -113,6 +123,21 @@ export const testcaseTools: Tool[] = [
       "하나라도 실패하면 전체 롤백된다. targetParentId가 null이면 루트로 이동. " +
       "beforeId 또는 afterId로 형제 사이 삽입 위치 지정 가능.",
     inputSchema: zodToJsonSchema(MoveBatchInput) as any,
+  },
+  {
+    name: "testcase_move_to_project",
+    description:
+      "테스트 케이스(폴더면 하위 전체)를 다른 프로젝트로 이동한다. 연결된 테스트 결과는 '실행 미러링'으로 함께 이동하며 JIRA 버그·첨부도 따라간다. " +
+      "'다른 프로젝트로 이동', 'TC를 프로젝트 X로 옮겨' 같은 요청 시 사용. 출발/대상 프로젝트 모두 편집 권한 필요. " +
+      "targetParentId가 null이면 대상 프로젝트 루트로 이동.",
+    inputSchema: zodToJsonSchema(CrossProjectTransferInput) as any,
+  },
+  {
+    name: "testcase_copy_to_project",
+    description:
+      "테스트 케이스(폴더면 하위 전체)를 다른 프로젝트로 복사한다. 케이스만 복제하며 테스트 결과는 가져오지 않고 출발 데이터는 변경되지 않는다. " +
+      "'다른 프로젝트로 복사', 'TC를 프로젝트 X로 복제' 같은 요청 시 사용. 출발 조회 권한 + 대상 편집 권한 필요.",
+    inputSchema: zodToJsonSchema(CrossProjectTransferInput) as any,
   },
   {
     name: "testcase_versions",
@@ -199,6 +224,26 @@ export const testcaseHandlers: Record<
     if (input.beforeId) body.beforeId = input.beforeId;
     if (input.afterId) body.afterId = input.afterId;
     const res = await httpClient.post(`/api/testcases/move-batch`, body);
+    return res.data;
+  },
+
+  testcase_move_to_project: async (args: unknown) => {
+    const input = CrossProjectTransferInput.parse(args);
+    const res = await httpClient.post(`/api/testcases/cross-project/move`, {
+      ids: input.ids,
+      targetProjectId: input.targetProjectId,
+      targetParentId: input.targetParentId ?? null,
+    });
+    return res.data;
+  },
+
+  testcase_copy_to_project: async (args: unknown) => {
+    const input = CrossProjectTransferInput.parse(args);
+    const res = await httpClient.post(`/api/testcases/cross-project/copy`, {
+      ids: input.ids,
+      targetProjectId: input.targetProjectId,
+      targetParentId: input.targetParentId ?? null,
+    });
     return res.data;
   },
 

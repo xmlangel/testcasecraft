@@ -18,6 +18,7 @@ import {
   Close as CloseIcon,
   Refresh as RefreshIcon,
   SwapVert as SwapVertIcon,
+  DriveFileMove as DriveFileMoveIcon,
   AccountTree as AccountTreeIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
@@ -51,6 +52,7 @@ const TreeHeader = ({
   onOrderSave,
   onOrderCancel,
   onBatchDelete,
+  onOpenCrossProjectTransfer,
 }) => {
   const { t } = useI18n();
 
@@ -92,6 +94,29 @@ const TreeHeader = ({
         {/* 우측: 버튼 그룹 (selectable 모드에서는 숨김) */}
         {!selectable && (
           <Box sx={{ display: "flex", gap: 0.5 }}>
+            {/* 다른 프로젝트로 이동/복사 버튼 */}
+            {!isViewer(userRole) &&
+              checkedIds.length > 0 &&
+              onOpenCrossProjectTransfer && (
+                <Button
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  startIcon={<DriveFileMoveIcon />}
+                  onClick={onOpenCrossProjectTransfer}
+                  title={t(
+                    "testcase.crossProject.button.title",
+                    "선택 항목을 다른 프로젝트로 이동/복사",
+                  )}
+                  data-testid="cross-project-transfer-button"
+                >
+                  {t(
+                    "testcase.crossProject.button.label",
+                    "프로젝트 이동/복사",
+                  )}
+                </Button>
+              )}
+
             {/* 일괄 삭제 버튼 */}
             {!isViewer(userRole) &&
               checkedIds.length > 0 &&

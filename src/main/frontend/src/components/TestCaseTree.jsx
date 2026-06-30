@@ -36,6 +36,8 @@ import TreeHeader from "./TestCaseTree/components/TreeHeader.jsx";
 import TreeContextMenu from "./TestCaseTree/components/TreeContextMenu.jsx";
 import TreeDialogs from "./TestCaseTree/components/TreeDialogs.jsx";
 import TreeVirtualNodes from "./TestCaseTree/components/TreeVirtualNodes.jsx";
+import TestCaseBulkOperations from "./TestCase/TestCaseBulkOperations.jsx";
+import testCaseService from "../services/testCaseService.js";
 
 // 트리 뷰 모드 저장 키 ("folders" = 폴더 전용, "all" = 폴더+케이스 혼합)
 const TREE_VIEW_MODE_KEY = "testcase-tree-view-mode";
@@ -58,7 +60,7 @@ const TestCaseTree = ({
   selectedTestCaseId = null,
 }) => {
   const { user } = useAuth();
-  const { activeProject } = useProject();
+  const { activeProject, projects: projectList } = useProject();
   const {
     testCases,
     addTestCase,
@@ -129,6 +131,62 @@ const TestCaseTree = ({
     setInputMode,
     onSelectTestCase,
   });
+
+  // ── 2.5. 다른 프로젝트로 이동/복사 (일괄) ──────────────────────────────────
+  const [bulkOpsOpen, setBulkOpsOpen] = useState(false);
+
+  // 대상 프로젝트 목록: 현재 프로젝트는 제외 (다른 프로젝트로의 전송이므로)
+  const transferProjects = useMemo(
+    () =>
+      Array.isArray(projectList)
+        ? projectList.filter((p) => p.id !== projectId)
+        : [],
+    [projectList, projectId],
+  );
+
+  // 체크된 노드를 객체로 변환 (다이얼로그에 이름 표시 + id 추출용)
+  const selectedTransferObjects = useMemo(
+    () =>
+      (treeState.checkedIds || [])
+        .map((id) => testCases?.find((tc) => tc.id === id))
+        .filter(Boolean),
+    [treeState.checkedIds, testCases],
+  );
+
+  // 대상 프로젝트의 폴더 목록을 온디맨드로 로드
+  const loadProjectFolders = useCallback(async (pid) => {
+    if (!pid) return [];
+    const nodes = await testCaseService.getTestCasesByProject(pid);
+    return (Array.isArray(nodes) ? nodes : [])
+      .filter((n) => isFolder(n))
+      .map((n) => ({ id: n.id, name: n.name, projectId: pid }));
+  }, []);
+
+  const handleBulkMoveToProject = useCallback(
+    async (selected, targetProjectId, targetFolderId) => {
+      const ids = (selected || []).map((tc) => tc.id);
+      await actions.moveToProject({
+        ids,
+        targetProjectId,
+        targetParentId: targetFolderId || null,
+      });
+      treeState.setCheckedIds?.([]);
+    },
+    [actions, treeState],
+  );
+
+  const handleBulkCopyToProject = useCallback(
+    async (selected, targetProjectId, targetFolderId) => {
+      const ids = (selected || []).map((tc) => tc.id);
+      await actions.copyToProject({
+        ids,
+        targetProjectId,
+        targetParentId: targetFolderId || null,
+      });
+      treeState.setCheckedIds?.([]);
+    },
+    [actions, treeState],
+  );
 
   // ── 3. orderMap을 반영한 정렬 트리 데이터 ─────────────────────────────────
   const sortedTestCases = useMemo(() => {
@@ -502,7 +560,24 @@ const TestCaseTree = ({
         onOrderSave={actions.handleOrderSave}
         onOrderCancel={actions.handleOrderCancel}
         onBatchDelete={() => actions.setBatchDeleteDialogOpen(true)}
+        onOpenCrossProjectTransfer={
+          selectable ? undefined : () => setBulkOpsOpen(true)
+        }
       />
+
+      {/* 다른 프로젝트로 이동/복사 다이얼로그 */}
+      {bulkOpsOpen && (
+        <TestCaseBulkOperations
+          selectedTestCases={selectedTransferObjects}
+          projects={transferProjects}
+          loadProjectFolders={loadProjectFolders}
+          onBulkMove={handleBulkMoveToProject}
+          onBulkCopy={handleBulkCopyToProject}
+          onBulkUpdate={() => {}}
+          onBulkDelete={() => {}}
+          onClose={() => setBulkOpsOpen(false)}
+        />
+      )}
 
       {/* 구분선 */}
       <Box sx={{ borderBottom: 1, borderColor: "divider", mx: 2 }} />
