@@ -140,6 +140,16 @@ public class TestCaseCrossProjectServiceTest {
                     .filter(java.util.Objects::nonNull)
                     .max(Comparator.naturalOrder())
                     .orElse(null));
+    // maxChildOrder가 사용하는 프로젝트 전체 조회 (루트=null parentId도 정확히 처리)
+    lenient()
+        .when(testCaseRepository.findByProjectId(anyString()))
+        .thenAnswer(
+            inv -> {
+              String pid = inv.getArgument(0);
+              return store.values().stream()
+                  .filter(tc -> tc.getProject() != null && pid.equals(tc.getProject().getId()))
+                  .collect(Collectors.toList());
+            });
     lenient()
         .when(testCaseRepository.saveAll(any()))
         .thenAnswer(
@@ -355,6 +365,50 @@ public class TestCaseCrossProjectServiceTest {
     Assert.assertEquals(store.get("SUB").getParentId(), "F2");
     Assert.assertEquals(store.get("T9").getParentId(), "SUB");
     Assert.assertEquals(store.get("T3").getParentId(), "F2");
+  }
+
+  // ============================ MOVE/COPY: 순서(displayOrder) ============================
+
+  @Test
+  public void move_intoFolderWithExistingData_appendsLast() {
+    buildTrees();
+    // 대상 폴더 DEST 에 기존 자식 2개 (order 1, 2)
+    put("D1", "testcase", "DEST", 1, 101, projectB);
+    put("D2", "testcase", "DEST", 2, 102, projectB);
+
+    service.moveToProject(req(List.of("T1"), "DEST"));
+
+    // 옮긴 T1 은 기존 마지막(2) 다음인 3 이어야 함 (중간 삽입 금지)
+    Assert.assertEquals((int) store.get("T1").getDisplayOrder(), 3);
+    // 기존 항목 순서는 그대로
+    Assert.assertEquals((int) store.get("D1").getDisplayOrder(), 1);
+    Assert.assertEquals((int) store.get("D2").getDisplayOrder(), 2);
+  }
+
+  @Test
+  public void move_intoProjectRootWithExistingData_appendsLast() {
+    buildTrees();
+    // proj-B 루트(parentId=null)에 기존 항목: DEST(order 1) + R2(order 2)
+    put("R2", "folder", null, 2, null, projectB);
+
+    // 루트로 이동 (targetParentId = null)
+    service.moveToProject(new CrossProjectTransferRequest(List.of("T1"), "proj-B", null));
+
+    // 루트 기존 최대 order(2) 다음인 3 — 1,2 로 충돌해 중간에 끼면 안 됨
+    Assert.assertNull(store.get("T1").getParentId());
+    Assert.assertEquals((int) store.get("T1").getDisplayOrder(), 3);
+  }
+
+  @Test
+  public void copy_intoFolderWithExistingData_appendsLast() {
+    buildTrees();
+    put("D1", "testcase", "DEST", 1, 101, projectB);
+    put("D2", "testcase", "DEST", 2, 102, projectB);
+
+    CrossProjectTransferResultDto res = service.copyToProject(req(List.of("T1"), "DEST"));
+
+    String newId = res.getNodes().get(0).getTargetId();
+    Assert.assertEquals((int) store.get(newId).getDisplayOrder(), 3);
   }
 
   // ============================ MOVE: results mirroring ============================

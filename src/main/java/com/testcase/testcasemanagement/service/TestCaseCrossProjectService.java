@@ -100,7 +100,7 @@ public class TestCaseCrossProjectService {
     }
 
     SequenceAllocator seq = new SequenceAllocator(maxSeq(ctx.targetProject.getId()));
-    int rootOrder = maxChildOrder(ctx.targetParentId);
+    int rootOrder = maxChildOrder(ctx.targetProject.getId(), ctx.targetParentId);
 
     List<NodeMapping> mappings = new ArrayList<>();
     List<String> auditIds = new ArrayList<>();
@@ -177,7 +177,7 @@ public class TestCaseCrossProjectService {
     }
 
     SequenceAllocator seq = new SequenceAllocator(maxSeq(ctx.targetProject.getId()));
-    int rootOrder = maxChildOrder(ctx.targetParentId);
+    int rootOrder = maxChildOrder(ctx.targetProject.getId(), ctx.targetParentId);
 
     Map<String, String> idMap = new HashMap<>(); // oldId -> newId
     List<NodeMapping> mappings = new ArrayList<>();
@@ -430,9 +430,23 @@ public class TestCaseCrossProjectService {
     return max == null ? 0 : max;
   }
 
-  private int maxChildOrder(String parentId) {
-    Integer max = testCaseRepository.findMaxDisplayOrderByParentId(parentId);
-    return max == null ? 0 : max;
+  /**
+   * 대상 부모(또는 루트)의 기존 형제 중 최대 displayOrder. 이동/복사한 항목은 이 값 +1부터 부여되어 항상 마지막 순서로 들어간다.
+   *
+   * <p>{@code findMaxDisplayOrderByParentId}는 JPQL {@code t.parentId = :parentId}라 parentId가 null(프로젝트
+   * 루트)이면 어떤 행도 매칭하지 못해 항상 null→0을 돌려준다. 그 결과 루트로 이동/복사 시 displayOrder가 1,2..로 부여되어 기존 루트 항목과
+   * 충돌(중간 삽입)했다. 프로젝트 전체를 로드해 Java에서 parentId(널 포함)를 비교하여 정확한 최대값을 구한다.
+   */
+  private int maxChildOrder(String projectId, String parentId) {
+    int max = 0;
+    for (TestCase tc : testCaseRepository.findByProjectId(projectId)) {
+      if (java.util.Objects.equals(tc.getParentId(), parentId)
+          && tc.getDisplayOrder() != null
+          && tc.getDisplayOrder() > max) {
+        max = tc.getDisplayOrder();
+      }
+    }
+    return max;
   }
 
   private NodeMapping toMapping(String sourceId, TestCase node) {

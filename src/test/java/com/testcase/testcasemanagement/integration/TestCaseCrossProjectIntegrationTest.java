@@ -204,4 +204,32 @@ public class TestCaseCrossProjectIntegrationTest extends AbstractTestNGSpringCon
     Assert.assertEquals(destChildren.size(), 1);
     Assert.assertEquals(destChildren.get(0).getName(), "Signup test");
   }
+
+  @Test
+  void move_intoProjectRootWithExistingData_appendsLast_realDb() throws Exception {
+    // 실제 Postgres에서 루트(parentId=null) 순서 버그 회귀 가드.
+    // target 루트에는 이미 destFolder(displayOrder=1)가 있다. 케이스를 루트로 이동하면
+    // 1로 충돌(중간 삽입)하지 않고 마지막(2)로 들어가야 한다.
+    grant(mover, source, ProjectRole.PROJECT_MANAGER);
+    grant(mover, target, ProjectRole.PROJECT_MANAGER);
+    TestCase t1 = newCase(source, "Root move test", "testcase", null, 1);
+
+    mockMvc
+        .perform(
+            post("/api/testcases/cross-project/move")
+                .header("Authorization", moverToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(
+                        Map.of("ids", List.of(t1.getId()), "targetProjectId", target.getId()))))
+        .andExpect(status().isOk());
+
+    TestCase moved = testCaseRepository.findById(t1.getId()).orElseThrow();
+    Assert.assertEquals(moved.getProject().getId(), target.getId());
+    Assert.assertNull(moved.getParentId(), "루트로 이동");
+    Assert.assertTrue(
+        moved.getDisplayOrder() > destFolder.getDisplayOrder(),
+        "기존 루트 항목(destFolder order=" + destFolder.getDisplayOrder() + ") 뒤로 들어가야 함: 실제="
+            + moved.getDisplayOrder());
+  }
 }
