@@ -334,6 +334,29 @@ public class TestCaseCrossProjectServiceTest {
     Assert.assertEquals(res.getTestCaseCount(), 1);
   }
 
+  @Test
+  public void move_payloadWithFolderAndAllDescendants_preservesNestedStructure() {
+    // 프런트 "전체선택"은 폴더 + 모든 하위(서브폴더·케이스)를 함께 보낸다.
+    // 2단계 중첩에서 폴더+자식 전체를 payload로 줘도 구조가 평탄화되지 않아야 한다.
+    buildTrees();
+    put("SUB", "folder", "F2", 1, null, projectA); // F2 > SUB
+    put("T9", "testcase", "SUB", 1, 9, projectA); // F2 > SUB > T9
+
+    // 전체선택 payload 흉내: 폴더와 하위 노드를 모두 명시적으로 전달
+    CrossProjectTransferResultDto res =
+        service.moveToProject(req(List.of("F2", "SUB", "T3", "T9"), "DEST"));
+
+    // 모두 대상 프로젝트로
+    Assert.assertEquals(store.get("F2").getProject().getId(), "proj-B");
+    Assert.assertEquals(store.get("SUB").getProject().getId(), "proj-B");
+    Assert.assertEquals(store.get("T9").getProject().getId(), "proj-B");
+    // 중첩 구조 보존: F2→DEST, SUB→F2, T9→SUB, T3→F2
+    Assert.assertEquals(store.get("F2").getParentId(), "DEST");
+    Assert.assertEquals(store.get("SUB").getParentId(), "F2");
+    Assert.assertEquals(store.get("T9").getParentId(), "SUB");
+    Assert.assertEquals(store.get("T3").getParentId(), "F2");
+  }
+
   // ============================ MOVE: results mirroring ============================
 
   @Test
