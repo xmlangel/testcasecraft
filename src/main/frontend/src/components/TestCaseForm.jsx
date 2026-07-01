@@ -87,6 +87,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     updateTestCase,
     updateTestCaseLocal,
     addTestCase,
+    deleteTestCase,
     user,
     api,
   } = useAppContext();
@@ -1133,6 +1134,29 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     navigate(-1);
   };
 
+  // 개별 폼에서 테스트케이스 삭제 (저장된 케이스에만)
+  const handleDelete = async () => {
+    if (isViewer || !testCaseId) return;
+    const confirmed = window.confirm(
+      t(
+        "testcase.form.deleteConfirm",
+        "이 테스트케이스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      ),
+    );
+    if (!confirmed) return;
+    try {
+      await deleteTestCase(testCaseId);
+      // 삭제 성공 → 부모 갱신(트리 새로고침·선택 해제 등)
+      if (onSave) onSave();
+    } catch (err) {
+      setSnackbarError(
+        err?.message ||
+          t("testcase.form.deleteError", "삭제 중 오류가 발생했습니다."),
+      );
+      setSnackbarOpen(true);
+    }
+  };
+
   // 인라인 이미지 훅
   const getFieldValue = useCallback(
     (fieldConfig) => resolveFieldValue(fieldConfig, testCase),
@@ -1272,6 +1296,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           t={t}
           onSave={handleSave}
           onCancel={handleCancel}
+          onDelete={handleDelete}
           onVersionHistory={handleVersionHistory}
           onCreateVersion={handleCreateVersion}
           onAddNew={handleAddNew}

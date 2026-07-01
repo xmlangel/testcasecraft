@@ -1474,6 +1474,16 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "manual.viewer.guideError", languageCode, "가이드 문서를 불러오지 못했습니다.", createdBy);
 
+    // 개별 폼 삭제 버튼 (2026-07-01)
+    createTranslationIfNotExists("testcase.form.button.delete", languageCode, "삭제", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.deleteConfirm",
+        languageCode,
+        "이 테스트케이스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.deleteError", languageCode, "삭제 중 오류가 발생했습니다.", createdBy);
+
     log.info("i18n 하드코딩 보강 ko 번역 초기화 완료");
   }
 
