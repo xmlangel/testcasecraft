@@ -238,14 +238,13 @@ public class GroupSecurityService {
       return true;
     }
 
-    // 그룹 리더는 다른 멤버 제거 가능 (단, 리더는 다른 리더 제거 불가)
-    if (isGroupLeader(groupId, username)) {
-      // 대상이 리더인지 확인
+    // 그룹 리더십 역할(LEADER, CO_LEADER)은 다른 멤버 제거 가능
+    // (단, LEADER는 제거 불가 — CO_LEADER가 정 리더를 임의로 축출하는 것을 방지. LEADER끼리도 동일 규칙 유지)
+    if (hasLeadershipRole(groupId, username)) {
       Optional<GroupRole> targetRole =
           groupMemberRepository.findRoleByGroupIdAndUserId(groupId, targetUserId);
 
       if (targetRole.isPresent() && targetRole.get() == GroupRole.LEADER) {
-        // 리더는 다른 리더를 제거할 수 없음
         return false;
       }
 
@@ -290,13 +289,16 @@ public class GroupSecurityService {
     }
   }
 
-  /** 사용자가 그룹의 리더 역할을 가지는지 확인 (Controller @PreAuthorize용) */
+  /**
+   * 사용자가 그룹 관리(수정/삭제/역할변경) 권한을 가지는지 확인 (Controller @PreAuthorize용).
+   * CO_LEADER는 "부 리더"라는 이름에 맞게 LEADER와 동등한 관리 권한을 가진다.
+   */
   public boolean hasLeaderRole(String groupId, String username) {
-    return isGroupLeader(groupId, username) || canManageGroup(groupId, username);
+    return hasLeadershipRole(groupId, username) || canManageGroup(groupId, username);
   }
 
-  /** 현재 사용자가 그룹의 리더 역할을 가지는지 확인 */
+  /** 현재 사용자가 그룹 관리(수정/삭제/역할변경) 권한을 가지는지 확인 */
   public boolean hasLeaderRole(String groupId) {
-    return isGroupLeader(groupId) || canManageGroup(groupId);
+    return hasLeadershipRole(groupId) || canManageGroup(groupId);
   }
 }

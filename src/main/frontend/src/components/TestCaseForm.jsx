@@ -45,6 +45,8 @@ import TestCaseAttachments from "./TestCase/TestCaseAttachments.jsx";
 import { useRAG } from "../context/RAGContext.jsx";
 import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import useAutoSave from "../hooks/useAutoSave.js";
+import { useProjectRole } from "../hooks/useProjectRole.js";
+import { isViewer as isViewerProjectRole } from "./TestCaseTree/utils/permissionUtils.js";
 import {
   resolveFieldValue,
   applyFieldValueToState,
@@ -91,6 +93,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     user,
     api,
   } = useAppContext();
+  // 편집 가능 여부는 시스템 role이 아니라 이 프로젝트에서의 role(project role)로 판단한다.
+  const { projectRole } = useProjectRole(projectId, user);
   const { t } = useI18n();
   const theme = useTheme();
   const { state: ragState, listDocuments, isRagEnabled } = useRAG();
@@ -172,7 +176,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     [projectId, updateTestCase],
   );
 
-  const isViewerForAutoSave = user?.role === "VIEWER";
+  const isViewerForAutoSave = isViewerProjectRole(projectRole);
 
   const { autoSaveStatus, autoSaveError, markSaved } = useAutoSave({
     id: testCaseId,
@@ -205,7 +209,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     );
   };
 
-  const isViewer = user?.role === "VIEWER";
+  const isViewer = isViewerProjectRole(projectRole);
   const isFolder = testCase?.type === "folder";
 
   // 현재 버전 정보 조회

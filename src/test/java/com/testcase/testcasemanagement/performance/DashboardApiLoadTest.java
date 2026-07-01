@@ -2,6 +2,7 @@
 
 package com.testcase.testcasemanagement.performance;
 
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
@@ -30,6 +31,7 @@ import org.testng.annotations.Test;
  * 개선) - 스트레스 테스트 (높은 부하에서의 안정성) - 지속성 테스트 (장시간 부하에서의 메모리 누수 확인)
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Feature("ICT-130: Dashboard API Performance and Caching")
 @TmsLink("ICT-130")

@@ -10,13 +10,10 @@ import jakarta.persistence.Query;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -25,13 +22,13 @@ import org.testng.annotations.*;
  * ICT-133: 대시보드 쿼리 성능을 위한 DB 인덱스 최적화 - 성능 검증 테스트
  *
  * <p>이 클래스는 새로 추가된 인덱스의 성능 향상을 검증합니다. - 쿼리 실행 계획 분석 - 실행 시간 측정 - 인덱스 사용률 검증
+ *
+ * <p>컨텍스트 캐시 재사용을 위해 다른 RANDOM_PORT 통합테스트와 동일한 설정(@AutoConfigureMockMvc, 기본 리스너)으로 통일한다.
+ * @ContextConfiguration/커스텀 @TestExecutionListeners 는 제거해도 AbstractTransactionalTestNGSpringContextTests 의
+ * 기본 리스너로 동일하게 동작한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(classes = TestcasemanagementApplication.class)
-@TestExecutionListeners({
-  DependencyInjectionTestExecutionListener.class,
-  TransactionalTestExecutionListener.class
-})
+@AutoConfigureMockMvc
 @Epic("ICT-133: Database Index Performance Optimization")
 @Feature("인덱스 성능 검증")
 @ActiveProfiles("test")

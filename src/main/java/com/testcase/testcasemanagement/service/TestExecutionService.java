@@ -92,8 +92,18 @@ public class TestExecutionService {
   public List<TestExecutionDto> getTestExecutions(String testPlanId) {
     List<TestExecution> executions;
     if (testPlanId != null) {
+      TestPlan plan =
+          testPlanRepository
+              .findById(testPlanId)
+              .orElseThrow(() -> new NoSuchElementException("TestPlan not found: " + testPlanId));
+      if (!projectSecurityService.canAccessProject(plan.getProject().getId())) {
+        throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + plan.getProject().getId());
+      }
       executions = testExecutionRepository.findByTestPlanId(testPlanId);
     } else {
+      if (!projectSecurityService.isSystemAdmin()) {
+        throw new AccessDeniedException("전체 테스트 실행 조회는 시스템 관리자만 가능합니다.");
+      }
       executions = testExecutionRepository.findAll();
     }
     return executions.stream().map(this::toDto).collect(Collectors.toList());
@@ -101,7 +111,13 @@ public class TestExecutionService {
 
   @Transactional(readOnly = true)
   public Optional<TestExecutionDto> getTestExecutionById(String id) {
-    return testExecutionRepository.findByIdWithResults(id).map(entity -> toDto(entity, true));
+    Optional<TestExecutionDto> result =
+        testExecutionRepository.findByIdWithResults(id).map(entity -> toDto(entity, true));
+    if (result.isPresent()
+        && !projectSecurityService.canAccessProject(result.get().getProjectId())) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + result.get().getProjectId());
+    }
+    return result;
   }
 
   @Transactional
@@ -239,9 +255,9 @@ public class TestExecutionService {
             .findByIdWithResults(executionId)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
 
-    // 프로젝트 편집 권한 검사
-    if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+    // 결과 기록 권한 검사 (PM/LEAD/DEV/CONTRIBUTOR 편집 롤 + TESTER)
+    if (!projectSecurityService.canRecordTestResult(entity.getProject().getId())) {
+      throw new AccessDeniedException("결과 기록 권한이 없습니다: " + entity.getProject().getId());
     }
 
     if ("COMPLETED".equals(entity.getStatus())) {
@@ -340,9 +356,9 @@ public class TestExecutionService {
             .findByIdWithResults(executionId)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
 
-    // 프로젝트 편집 권한 검사
-    if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+    // 결과 기록 권한 검사 (PM/LEAD/DEV/CONTRIBUTOR 편집 롤 + TESTER)
+    if (!projectSecurityService.canRecordTestResult(entity.getProject().getId())) {
+      throw new AccessDeniedException("결과 기록 권한이 없습니다: " + entity.getProject().getId());
     }
 
     if ("COMPLETED".equals(entity.getStatus())) {
@@ -607,6 +623,9 @@ public class TestExecutionService {
   @Transactional(readOnly = true)
   public Page<TestExecutionDto> getTestExecutionsByProject(
       String projectId, String name, Pageable pageable) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
     // 1. 실행 목록 페이징 조회 (results fetch 제거로 매우 빨라짐)
     org.springframework.data.domain.Page<TestExecution> executionPage;
     if (name != null && !name.trim().isEmpty()) {
@@ -709,6 +728,16 @@ public class TestExecutionService {
 
   // 테스트케이스ID로 결과 조회 (최신순 정렬)
   public List<TestResultDto> getTestResultsByTestCaseId(String testCaseId) {
+    testCaseRepository
+        .findById(testCaseId)
+        .ifPresent(
+            testCase -> {
+              if (testCase.getProject() != null
+                  && !projectSecurityService.canAccessProject(testCase.getProject().getId())) {
+                throw new AccessDeniedException(
+                    "프로젝트 접근 권한이 없습니다: " + testCase.getProject().getId());
+              }
+            });
     List<TestResult> results = testResultRepository.findByTestCaseId(testCaseId);
     return results.stream()
         .sorted(

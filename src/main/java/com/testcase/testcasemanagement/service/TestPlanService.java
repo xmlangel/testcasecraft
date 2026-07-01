@@ -100,10 +100,20 @@ public class TestPlanService {
   }
 
   public Optional<TestPlan> getTestPlanById(String id) {
-    return testPlanRepository.findById(id);
+    Optional<TestPlan> testPlan = testPlanRepository.findById(id);
+    testPlan.ifPresent(
+        plan -> {
+          if (!projectSecurityService.canAccessProject(plan.getProject().getId())) {
+            throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + plan.getProject().getId());
+          }
+        });
+    return testPlan;
   }
 
   public List<TestPlan> getTestPlansByProject(String projectId) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
     return testPlanRepository.findByProjectId(projectId);
   }
 }

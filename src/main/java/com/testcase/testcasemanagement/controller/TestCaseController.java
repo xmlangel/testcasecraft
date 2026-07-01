@@ -205,7 +205,7 @@ public class TestCaseController {
   @Operation(summary = "테스트케이스 트리 조회", description = "테스트케이스를 트리 구조로 조회합니다.")
   @GetMapping("/tree")
   public List<TestCaseDto> getTestCaseTree() {
-    return TestCaseMapper.toTreeDtoList(testCaseService.getAllTestCases());
+    return TestCaseMapper.toTreeDtoList(testCaseService.getAllTestCasesForTree());
   }
 
   @Operation(summary = "테스트케이스 생성", description = "새로운 테스트케이스를 생성합니다.")
@@ -218,6 +218,9 @@ public class TestCaseController {
       return ResponseEntity.badRequest().body(e.getErrors());
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      // 인가 실패는 403으로 전달 (GlobalExceptionHandler가 처리) — 500으로 삼키지 않는다
+      throw e;
     } catch (Exception e) {
       // 예외의 메시지와 전체 스택트레이스를 문자열로 변환해서 응답에 포함
       StringWriter sw = new StringWriter();
@@ -247,6 +250,9 @@ public class TestCaseController {
     } catch (IllegalArgumentException e) {
       log.warn("updateTestCase IllegalArgumentException: {}", e.getMessage());
       return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      // 인가 실패는 403으로 전달 (GlobalExceptionHandler가 처리) — 500으로 삼키지 않는다
+      throw e;
     } catch (Exception e) {
       // 예외의 메시지와 전체 스택트레이스를 문자열로 변환해서 응답에 포함
       StringWriter sw = new StringWriter();
@@ -297,6 +303,9 @@ public class TestCaseController {
           testCaseService.batchDeleteTestCases(ids);
 
       return ResponseEntity.ok(result);
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      // 인가 실패는 403으로 전달 (GlobalExceptionHandler가 처리) — 500으로 삼키지 않는다
+      throw e;
     } catch (Exception e) {
       log.error("일괄 삭제 중 오류 발생", e);
       return ResponseEntity.internalServerError()
@@ -310,6 +319,8 @@ public class TestCaseController {
   public ResponseEntity<TestCaseDto> getTestCaseById(@PathVariable String id) {
     try {
       return ResponseEntity.ok(testCaseService.getTestCaseDtoById(id));
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      throw e;
     } catch (Exception e) {
       return ResponseEntity.notFound().build();
     }
@@ -508,16 +519,9 @@ public class TestCaseController {
   @GetMapping("/projects/{projectId}/tags")
   public ResponseEntity<Set<String>> getProjectTags(@PathVariable String projectId) {
     try {
-      List<TestCase> testCases = testCaseRepository.findByProjectId(projectId);
-      Set<String> allTags =
-          testCases.stream()
-              .filter(tc -> tc.getTags() != null)
-              .flatMap(tc -> tc.getTags().stream())
-              .filter(tag -> tag != null && !tag.trim().isEmpty())
-              .map(String::trim)
-              .collect(Collectors.toCollection(TreeSet::new)); // 알파벳 순 정렬
-
-      return ResponseEntity.ok(allTags);
+      return ResponseEntity.ok(testCaseService.getProjectTags(projectId));
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      throw e;
     } catch (Exception e) {
       log.error("프로젝트 태그 조회 실패: projectId={}", projectId, e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -704,6 +708,8 @@ public class TestCaseController {
       headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
       headers.setContentDispositionFormData("attachment", "testcases_export.csv");
       return ResponseEntity.ok().headers(headers).body(data);
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      throw e;
     } catch (Exception e) {
       return ResponseEntity.internalServerError().build();
     }
@@ -720,6 +726,8 @@ public class TestCaseController {
               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
       headers.setContentDispositionFormData("attachment", "testcases_export.xlsx");
       return ResponseEntity.ok().headers(headers).body(data);
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      throw e;
     } catch (Exception e) {
       return ResponseEntity.internalServerError().build();
     }
@@ -735,6 +743,8 @@ public class TestCaseController {
       headers.setContentType(MediaType.APPLICATION_JSON);
       headers.setContentDispositionFormData("attachment", "testcases_export.json");
       return ResponseEntity.ok().headers(headers).body(data);
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      throw e;
     } catch (Exception e) {
       return ResponseEntity.internalServerError().build();
     }

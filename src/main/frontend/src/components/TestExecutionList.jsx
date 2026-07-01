@@ -41,6 +41,8 @@ import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
 import { ExecutionStatus } from "../models/testExecution.jsx";
+import { useProjectRole } from "../hooks/useProjectRole.js";
+import { canEditProjectContent } from "./TestCaseTree/utils/permissionUtils.js";
 
 const EXECUTIONS_PER_PAGE = 5;
 // 리스트를 보고 있는 동안 진행률/상태를 자동 갱신하는 폴링 주기(ms)
@@ -89,8 +91,10 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const loadedCountRef = useRef(0);
   const searchQueryRef = useRef("");
 
-  const isAdminOrManager = user?.role === "ADMIN" || user?.role === "MANAGER";
-  const isUser = user?.role === "USER";
+  // 실행 생성/삭제 버튼 노출 여부는 시스템 role이 아니라 이 프로젝트에서의 role로 판단한다.
+  // (백엔드 TestExecutionService의 canEditProject()와 동일한 규칙)
+  const { projectRole } = useProjectRole(activeProject?.id, user);
+  const canEditExecutions = canEditProjectContent(projectRole);
 
   // 검색 상태 관리 — 마운트 시 현재 프로젝트에 저장된 필터를 복원
   const [searchQuery, setSearchQuery] = useState(() =>
@@ -426,7 +430,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                 </IconButton>
               </span>
             </Tooltip>
-            {isAdminOrManager && (
+            {canEditExecutions && (
               <Button
                 variant="contained"
                 size="small"
@@ -463,7 +467,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                     disablePadding
                     data-testid={`execution-item-${execution.id}`}
                     secondaryAction={
-                      isAdminOrManager && (
+                      canEditExecutions && (
                         <IconButton
                           edge="end"
                           aria-label="delete"

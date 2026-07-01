@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.integration;
 
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -22,6 +23,7 @@ import org.testng.annotations.Test;
  * permitAll 로 좁히고 변경(PUT/POST)은 ADMIN 으로 강제했음을 검증한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class SchedulerAuthzTest extends AbstractTestNGSpringContextTests {
 

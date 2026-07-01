@@ -429,7 +429,24 @@ public class TestCaseService {
   }
 
   public List<TestCase> getTestCasesByProjectId(String projectId) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
     return testCaseRepository.findAllByProjectIdWithSteps(projectId);
+  }
+
+  /** 프로젝트 내에서 사용된 모든 테스트케이스 태그를 알파벳 순으로 조회한다. */
+  public Set<String> getProjectTags(String projectId) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
+    List<TestCase> testCases = testCaseRepository.findByProjectId(projectId);
+    return testCases.stream()
+        .filter(tc -> tc.getTags() != null)
+        .flatMap(tc -> tc.getTags().stream())
+        .filter(tag -> tag != null && !tag.trim().isEmpty())
+        .map(String::trim)
+        .collect(Collectors.toCollection(TreeSet::new));
   }
 
   @Transactional
@@ -747,7 +764,11 @@ public class TestCaseService {
     return pathElements.isEmpty() ? "상위없음" : String.join(" >> ", pathElements);
   }
 
+  /** 시스템 전체 테스트케이스 조회 (프로젝트 스코프 없음) — 시스템 ADMIN만 허용 */
   public List<TestCaseDto> getAllTestCasesWithParentName() {
+    if (!projectSecurityService.isSystemAdmin()) {
+      throw new AccessDeniedException("전체 테스트케이스 조회는 시스템 관리자만 가능합니다.");
+    }
     List<TestCase> entities = getAllTestCases();
     Map<String, String> pathCache = new HashMap<>();
     return entities.stream()
@@ -755,8 +776,20 @@ public class TestCaseService {
         .collect(Collectors.toList());
   }
 
+  /** 시스템 전체 테스트케이스 트리 조회 (프로젝트 스코프 없음) — 시스템 ADMIN만 허용 */
+  public List<TestCase> getAllTestCasesForTree() {
+    if (!projectSecurityService.isSystemAdmin()) {
+      throw new AccessDeniedException("전체 테스트케이스 조회는 시스템 관리자만 가능합니다.");
+    }
+    return getAllTestCases();
+  }
+
   public TestCaseDto getTestCaseDtoById(String id) {
     TestCase entity = findById(id);
+    if (entity.getProject() != null
+        && !projectSecurityService.canAccessProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + entity.getProject().getId());
+    }
     return toDtoWithParentName(entity);
   }
 
@@ -2027,6 +2060,10 @@ public class TestCaseService {
    */
   @Transactional(readOnly = true)
   public Optional<TestCase> findByDisplayIdWithRedirect(String displayId, String projectId) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
+
     // 1. 현재 DisplayID로 조회 시도
     Optional<TestCase> testCase =
         testCaseRepository.findByProjectIdAndDisplayId(projectId, displayId);

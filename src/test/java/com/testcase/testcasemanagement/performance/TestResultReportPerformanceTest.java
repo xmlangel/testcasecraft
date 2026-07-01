@@ -1,6 +1,7 @@
 // ICT-191: 테스트 결과 리포트 성능 테스트
 package com.testcase.testcasemanagement.performance;
 
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import static org.testng.Assert.*;
 
 import com.testcase.testcasemanagement.dto.TestResultFilterDto;
@@ -28,7 +29,8 @@ import org.testng.annotations.Test;
  *
  * <p>목적: 대용량 데이터와 동시 사용자 환경에서의 성능 검증 기준: 응답시간 < 500ms, 동시 사용자 지원, 메모리 효율성
  */
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 @WithMockUser(

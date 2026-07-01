@@ -89,6 +89,8 @@ public class TestExecutionServiceDisplayIdTest {
 
     // 프로젝트 편집 권한 허용
     when(projectSecurityService.canEditProject(anyString())).thenReturn(true);
+    // 결과 기록 권한 허용 (updateTestResult/updateTestResultsBulk가 사용)
+    when(projectSecurityService.canRecordTestResult(anyString())).thenReturn(true);
   }
 
   /** testCaseId(UUID)가 제공된 경우 DisplayID보다 우선순위를 갖는지 테스트 (하위 호환성) */

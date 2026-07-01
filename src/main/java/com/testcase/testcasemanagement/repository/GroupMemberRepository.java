@@ -30,22 +30,6 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, String
   // 사용자가 특정 역할로 속한 그룹들 조회
   List<GroupMember> findByUserIdAndRoleInGroup(String userId, GroupRole role);
 
-  // 그룹의 리더들 조회
-  @Query("SELECT gm FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.roleInGroup = 'LEADER'")
-  List<GroupMember> findLeadersByGroupId(@Param("groupId") String groupId);
-
-  // 그룹의 리더십 역할 멤버들 조회 (리더 + 부리더)
-  @Query(
-      "SELECT gm FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.roleInGroup IN ('LEADER',"
-          + " 'CO_LEADER')")
-  List<GroupMember> findLeadershipByGroupId(@Param("groupId") String groupId);
-
-  // 사용자가 리더십 역할을 가진 그룹들 조회
-  @Query(
-      "SELECT gm FROM GroupMember gm WHERE gm.user.id = :userId AND gm.roleInGroup IN ('LEADER',"
-          + " 'CO_LEADER')")
-  List<GroupMember> findLeadershipGroupsByUserId(@Param("userId") String userId);
-
   // 사용자의 그룹별 역할 조회
   @Query(
       "SELECT gm.roleInGroup FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.user.id ="
