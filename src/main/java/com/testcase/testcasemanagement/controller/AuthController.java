@@ -105,7 +105,9 @@ public class AuthController {
     newUser.setPassword(passwordEncoder.encode(user.getPassword()));
     newUser.setName(user.getName());
     newUser.setEmail(user.getEmail());
-    newUser.setRole(user.getRole() != null ? user.getRole() : "TESTER");
+    // 보안: 회원가입은 비인증(permitAll) 엔드포인트이므로 클라이언트가 보낸 role은 절대 신뢰하지 않는다.
+    // 특권 role 부여는 인증된 관리자용 API(UserManagementService.changeUserRole 등)로만 가능해야 한다.
+    newUser.setRole("TESTER");
 
     userRepository.save(newUser);
 
@@ -303,6 +305,7 @@ public class AuthController {
     User user = userOpt.get();
     return ResponseEntity.ok(
         Map.of(
+            "id", user.getId(),
             "username", user.getUsername(),
             "name", user.getName(),
             "email", user.getEmail(),

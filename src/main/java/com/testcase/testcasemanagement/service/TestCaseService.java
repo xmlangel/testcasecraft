@@ -25,6 +25,7 @@ import com.testcase.testcasemanagement.model.TestStep;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
 import com.testcase.testcasemanagement.util.CsvUtils;
 import com.testcase.testcasemanagement.util.SheetsServiceUtil;
@@ -48,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -66,6 +68,7 @@ public class TestCaseService {
   private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
   private final GoogleConfigService googleConfigService;
   private final ProjectRepository projectRepository;
+  private final ProjectSecurityService projectSecurityService;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -79,7 +82,8 @@ public class TestCaseService {
           displayIdHistoryRepository,
       TestCaseFileStorageService fileStorageService,
       GoogleConfigService googleConfigService,
-      ProjectRepository projectRepository) {
+      ProjectRepository projectRepository,
+      ProjectSecurityService projectSecurityService) {
     this.testCaseRepository = testCaseRepository;
     this.displayIdService = displayIdService;
     this.eventPublisher = eventPublisher;
@@ -89,6 +93,7 @@ public class TestCaseService {
     this.fileStorageService = fileStorageService;
     this.googleConfigService = googleConfigService;
     this.projectRepository = projectRepository;
+    this.projectSecurityService = projectSecurityService;
   }
 
   public List<TestCase> getAllTestCases() {
@@ -112,6 +117,13 @@ public class TestCaseService {
 
   @Transactional
   public TestCase saveTestCase(TestCaseDto testCaseDto) {
+    // 프로젝트 편집 권한 검사 (생성 권한)
+    if (testCaseDto.getProjectId() != null && !testCaseDto.getProjectId().isEmpty()) {
+      if (!projectSecurityService.canEditProject(testCaseDto.getProjectId())) {
+        throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + testCaseDto.getProjectId());
+      }
+    }
+
     Map<String, String> errors = new HashMap<>();
 
     if (testCaseDto.getName() == null || testCaseDto.getName().trim().isEmpty()) {
@@ -231,6 +243,11 @@ public class TestCaseService {
         testCaseRepository
             .findById(id)
             .orElseThrow(() -> new RuntimeException("TestCase not found"));
+
+    // 프로젝트 편집 권한 검사
+    if (!projectSecurityService.canEditProject(testCase.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + testCase.getProject().getId());
+    }
 
     if (TestCaseConstants.TYPE_FOLDER.equals(testCase.getType())
         && TestCaseConstants.SYSTEM_DEFAULT_FOLDER_DESCRIPTION.equals(testCase.getDescription())) {
@@ -412,11 +429,35 @@ public class TestCaseService {
   }
 
   public List<TestCase> getTestCasesByProjectId(String projectId) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
     return testCaseRepository.findAllByProjectIdWithSteps(projectId);
+  }
+
+  /** 프로젝트 내에서 사용된 모든 테스트케이스 태그를 알파벳 순으로 조회한다. */
+  public Set<String> getProjectTags(String projectId) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
+    List<TestCase> testCases = testCaseRepository.findByProjectId(projectId);
+    return testCases.stream()
+        .filter(tc -> tc.getTags() != null)
+        .flatMap(tc -> tc.getTags().stream())
+        .filter(tag -> tag != null && !tag.trim().isEmpty())
+        .map(String::trim)
+        .collect(Collectors.toCollection(TreeSet::new));
   }
 
   @Transactional
   public TestCase updateTestCase(String id, TestCaseDto testCaseDto) {
+    // 프로젝트 편집 권한 검사 (수정 권한)
+    if (testCaseDto.getProjectId() != null && !testCaseDto.getProjectId().isEmpty()) {
+      if (!projectSecurityService.canEditProject(testCaseDto.getProjectId())) {
+        throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + testCaseDto.getProjectId());
+      }
+    }
+
     Map<String, String> errors = new HashMap<>();
 
     if (testCaseDto.getName() == null || testCaseDto.getName().trim().isEmpty()) {
@@ -723,7 +764,11 @@ public class TestCaseService {
     return pathElements.isEmpty() ? "상위없음" : String.join(" >> ", pathElements);
   }
 
+  /** 시스템 전체 테스트케이스 조회 (프로젝트 스코프 없음) — 시스템 ADMIN만 허용 */
   public List<TestCaseDto> getAllTestCasesWithParentName() {
+    if (!projectSecurityService.isSystemAdmin()) {
+      throw new AccessDeniedException("전체 테스트케이스 조회는 시스템 관리자만 가능합니다.");
+    }
     List<TestCase> entities = getAllTestCases();
     Map<String, String> pathCache = new HashMap<>();
     return entities.stream()
@@ -731,8 +776,20 @@ public class TestCaseService {
         .collect(Collectors.toList());
   }
 
+  /** 시스템 전체 테스트케이스 트리 조회 (프로젝트 스코프 없음) — 시스템 ADMIN만 허용 */
+  public List<TestCase> getAllTestCasesForTree() {
+    if (!projectSecurityService.isSystemAdmin()) {
+      throw new AccessDeniedException("전체 테스트케이스 조회는 시스템 관리자만 가능합니다.");
+    }
+    return getAllTestCases();
+  }
+
   public TestCaseDto getTestCaseDtoById(String id) {
     TestCase entity = findById(id);
+    if (entity.getProject() != null
+        && !projectSecurityService.canAccessProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + entity.getProject().getId());
+    }
     return toDtoWithParentName(entity);
   }
 
@@ -1381,6 +1438,19 @@ public class TestCaseService {
   public com.testcase.testcasemanagement.dto.BatchSaveResult batchSaveTestCases(
       List<com.testcase.testcasemanagement.dto.TestCaseDto> testCaseDtos) {
 
+    // 모든 항목의 프로젝트에 대한 편집 권한 검사
+    Set<String> projectIds = new HashSet<>();
+    for (com.testcase.testcasemanagement.dto.TestCaseDto dto : testCaseDtos) {
+      if (dto.getProjectId() != null && !dto.getProjectId().isEmpty()) {
+        projectIds.add(dto.getProjectId());
+      }
+    }
+    for (String projectId : projectIds) {
+      if (!projectSecurityService.canEditProject(projectId)) {
+        throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + projectId);
+      }
+    }
+
     com.testcase.testcasemanagement.dto.BatchSaveResult.BatchSaveResultBuilder resultBuilder =
         com.testcase.testcasemanagement.dto.BatchSaveResult.builder()
             .totalCount(testCaseDtos.size())
@@ -1990,6 +2060,10 @@ public class TestCaseService {
    */
   @Transactional(readOnly = true)
   public Optional<TestCase> findByDisplayIdWithRedirect(String displayId, String projectId) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
+
     // 1. 현재 DisplayID로 조회 시도
     Optional<TestCase> testCase =
         testCaseRepository.findByProjectIdAndDisplayId(projectId, displayId);

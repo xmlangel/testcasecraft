@@ -118,9 +118,7 @@ const TreeHeader = ({
               )}
 
             {/* 일괄 삭제 버튼 */}
-            {!isViewer(userRole) &&
-              checkedIds.length > 0 &&
-              userRole !== "USER" && (
+            {!isViewer(userRole) && checkedIds.length > 0 && (
                 <Button
                   size="small"
                   color="error"

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /** 스케줄러 설정 관리 API */
@@ -43,6 +44,7 @@ public class SchedulerConfigController {
 
   /** 스케줄 설정 업데이트 */
   @PutMapping("/configs/{taskKey}")
+  @PreAuthorize("hasRole('ADMIN')")
   @Operation(summary = "스케줄 설정 업데이트", description = "스케줄 설정을 업데이트합니다. (Cron 표현식, 활성화 여부 등)")
   public ResponseEntity<SchedulerConfigDto> updateConfig(
       @PathVariable String taskKey, @Valid @RequestBody UpdateSchedulerDto dto) {
@@ -52,6 +54,7 @@ public class SchedulerConfigController {
 
   /** 스케줄 활성화/비활성화 토글 */
   @PostMapping("/configs/{taskKey}/toggle")
+  @PreAuthorize("hasRole('ADMIN')")
   @Operation(summary = "스케줄 활성화/비활성화", description = "스케줄을 활성화 또는 비활성화합니다.")
   public ResponseEntity<SchedulerConfigDto> toggleEnabled(@PathVariable String taskKey) {
     SchedulerConfigDto updated = schedulerConfigService.toggleEnabled(taskKey);
@@ -60,6 +63,7 @@ public class SchedulerConfigController {
 
   /** 스케줄 즉시 실행 */
   @PostMapping("/configs/{taskKey}/execute")
+  @PreAuthorize("hasRole('ADMIN')")
   @Operation(summary = "스케줄 즉시 실행", description = "스케줄 작업을 즉시 실행합니다.")
   public ResponseEntity<Map<String, String>> executeNow(@PathVariable String taskKey) {
     schedulerConfigService.executeNow(taskKey);

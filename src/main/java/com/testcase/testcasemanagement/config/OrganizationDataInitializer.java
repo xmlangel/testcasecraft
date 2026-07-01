@@ -245,7 +245,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
               user.setEmail(email);
               user.setName(name);
               user.setPassword(passwordEncoder.encode(password));
-              user.setRole("USER");
+              user.setRole("TESTER"); // User.role 유효값(ADMIN/MANAGER/TESTER)에 맞춤 — "USER"는 존재하지 않는 값
               user.setCreatedAt(LocalDateTime.now());
               user.setUpdatedAt(LocalDateTime.now());
               try {

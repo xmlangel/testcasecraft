@@ -60,10 +60,21 @@ describe("ProjectManager (빈 상태/권한)", () => {
     ).toBeInTheDocument();
   });
 
-  it("VIEWER 는 생성 버튼(헤더·빈 상태 모두)을 보지 못한다", async () => {
-    appCtx.value = baseCtx({ user: { id: 2, role: "VIEWER" } });
+  it("role=null(비로그인 상태 아님)이어도 인증된 사용자면 생성 버튼을 본다", async () => {
+    // 백엔드 ProjectSecurityService.canCreateProject(organizationId=null)는
+    // 독립 프로젝트 생성을 role 값과 무관하게 인증된 사용자 전원에게 허용한다.
+    // "VIEWER"/"USER"는 애초에 User.role(ADMIN/MANAGER/TESTER/null)에 존재하지 않는 값이라
+    // 시스템 role로 이 케이스를 검증하는 것 자체가 성립하지 않는다.
+    appCtx.value = baseCtx({ user: { id: 2, role: null } });
     render(<ProjectManager onSelectProject={vi.fn()} />);
-    // 빈 상태 문구가 뜰 때까지 대기 후 버튼 부재 확인
+    expect(
+      await screen.findByRole("button", { name: "새 프로젝트 생성" }),
+    ).toBeInTheDocument();
+  });
+
+  it("user가 없으면(비로그인) 생성 버튼을 보지 못한다", async () => {
+    appCtx.value = baseCtx({ user: null });
+    render(<ProjectManager onSelectProject={vi.fn()} />);
     await screen.findByText("참여 중인 프로젝트가 없습니다");
     expect(
       screen.queryByRole("button", { name: "새 프로젝트 생성" }),

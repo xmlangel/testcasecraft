@@ -145,6 +145,12 @@ class ApiService {
           // JSON 파싱 실패 시 기본 메시지 사용
         }
 
+        // 403(권한 없음)은 백엔드의 기술적 메시지("Access Denied: ...") 대신
+        // 사용자 친화 메시지로 치환한다. (백엔드 인가 강화로 CRUD/RAG 에서 발생 가능)
+        if (response.status === 403) {
+          errorMessage = "이 작업을 수행할 권한이 없습니다.";
+        }
+
         throw new ApiError(
           errorMessage,
           response.status,

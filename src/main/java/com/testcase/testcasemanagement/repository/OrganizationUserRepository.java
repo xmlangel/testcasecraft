@@ -37,12 +37,6 @@ public interface OrganizationUserRepository extends JpaRepository<OrganizationUs
           + " ou.roleInOrganization = 'OWNER'")
   List<OrganizationUser> findOwnersByOrganizationId(@Param("organizationId") String organizationId);
 
-  // 조직의 관리자들 조회 (소유자 + 관리자)
-  @Query(
-      "SELECT ou FROM OrganizationUser ou WHERE ou.organization.id = :organizationId AND"
-          + " ou.roleInOrganization IN ('OWNER', 'ADMIN')")
-  List<OrganizationUser> findAdminsByOrganizationId(@Param("organizationId") String organizationId);
-
   // 사용자가 관리 권한을 가진 조직들 조회
   @Query(
       "SELECT ou FROM OrganizationUser ou WHERE ou.user.id = :userId AND ou.roleInOrganization IN"

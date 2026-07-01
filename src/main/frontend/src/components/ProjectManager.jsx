@@ -127,15 +127,11 @@ const ProjectManager = ({ onSelectProject }) => {
   const organizationService = new OrganizationService(api);
 
   // 권한 확인 함수
-  const hasProjectCreationAccess = (user) => {
-    // 모든 인증된 사용자는 독립 프로젝트를 생성할 수 있음
-    return (
-      user?.role === "ADMIN" ||
-      user?.role === "MANAGER" ||
-      user?.role === "TESTER" ||
-      user?.role === "USER"
-    );
-  };
+  // 백엔드 ProjectSecurityService.canCreateProject(organizationId=null)와 동일하게
+  // 독립 프로젝트 생성은 role 값과 무관하게 인증된 사용자면 누구나 가능하다.
+  // (이전엔 시스템 role 허용목록에 "USER"가 포함돼 있었으나 그 값은 백엔드에 존재하지 않아
+  //  role=null인 정상 사용자가 오히려 차단되는 문제가 있었다.)
+  const hasProjectCreationAccess = (user) => Boolean(user);
 
   useEffect(() => {
     loadData();

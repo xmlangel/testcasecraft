@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,10 @@ public class UserDto {
     @NotBlank @Email private String email;
     @NotBlank private String name;
     @NotBlank private String password;
-    private String role; // USER, ADMIN
+
+    @Pattern(regexp = "ADMIN|MANAGER|TESTER", message = "role은 ADMIN, MANAGER, TESTER 중 하나여야 합니다.")
+    private String role;
+
     private String timezone; // 사용자 시간대
   }
 
@@ -39,7 +43,10 @@ public class UserDto {
   public static class UpdateRequest {
     @NotBlank @Email private String email;
     @NotBlank private String name;
+
+    @Pattern(regexp = "ADMIN|MANAGER|TESTER", message = "role은 ADMIN, MANAGER, TESTER 중 하나여야 합니다.")
     private String role;
+
     private Boolean isActive;
     private String timezone; // 사용자 시간대
   }
@@ -188,7 +195,9 @@ public class UserDto {
   @AllArgsConstructor
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class ChangeRoleRequest {
-    @NotBlank private String role; // USER, ADMIN
+    @NotBlank
+    @Pattern(regexp = "ADMIN|MANAGER|TESTER", message = "role은 ADMIN, MANAGER, TESTER 중 하나여야 합니다.")
+    private String role;
   }
 
   /** 사용자 활성화/비활성화 요청 DTO (관리자용) */

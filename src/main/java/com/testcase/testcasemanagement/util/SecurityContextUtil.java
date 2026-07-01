@@ -84,16 +84,6 @@ public class SecurityContextUtil {
     return hasRole("ADMIN");
   }
 
-  /** 현재 사용자가 매니저인지 확인 */
-  public boolean isManager() {
-    return hasRole("MANAGER");
-  }
-
-  /** 현재 사용자가 테스터인지 확인 */
-  public boolean isTester() {
-    return hasRole("TESTER");
-  }
-
   /** 현재 사용자가 특정 사용자와 같은지 확인 */
   public boolean isCurrentUser(String userId) {
     String currentUserId = getCurrentUserId();

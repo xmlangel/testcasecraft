@@ -479,6 +479,11 @@ test {
 		// API 종합 테스트 그룹을 기본 테스트에서 제외하여 빌드에 영향 없도록 함
 		excludeGroups 'api-comprehensive-test'
 	}
+	// 병렬 실행: 테스트 클래스를 여러 JVM 포크에 분산한다.
+	// 각 포크는 PostgresTestContainer(JVM 전역 싱글턴)를 통해 자체 격리된 Postgres 컨테이너를 사용하므로
+	// 포크 간 DB 충돌이 없다. 병목인 Spring 컨텍스트 부팅(48-엔티티 create-drop)을 벽시계상 N배로 나눈다.
+	// 코어/2 를 4로 캡(포크 4 × 2g 힙 + 컨테이너 4개 ≈ 32GB/12코어에서 안전).
+	maxParallelForks = Math.max(1, Math.min(4, Runtime.runtime.availableProcessors().intdiv(2)))
 	// API 패키지 테스트 전체 제외 (AllApiComprehensiveTest는 apiComprehensiveTest 태스크로 별도 실행)
 	exclude 'com/testcase/testcasemanagement/api/**'
 	// Google Sheets 연동 테스트 제외 (google.json 인증 파일 필요 - CI 환경 미지원)
@@ -637,3 +642,20 @@ task apiComprehensiveTest(type: Test) {
 
 
 }
+
+// ── Spotlight 색인 제외 마커 자동 생성 ──
+// clean/rm 으로 build/ 가 재생성될 때 .metadata_never_index 를 되살려
+// mds_stores(Spotlight) 가 대용량 산출물을 반복 색인하는 것을 방지한다.
+tasks.register('spotlightExcludeMarker') {
+	description = 'build/ 에 Spotlight 색인 제외 마커(.metadata_never_index) 생성'
+	group = 'build'
+	doLast {
+		def dir = layout.buildDirectory.get().asFile
+		dir.mkdirs()
+		new File(dir, '.metadata_never_index').text = ''
+	}
+}
+
+// build/ 를 만들어내는 주요 태스크 실행 전에 마커를 먼저 생성
+tasks.matching { it.name in ['compileJava', 'processResources', 'test', 'bootRun'] }
+	.configureEach { dependsOn 'spotlightExcludeMarker' }

@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -73,6 +74,18 @@ public class SingleApiTest extends AbstractTestNGSpringContextTests {
       }
     } else {
       throw new RuntimeException("Server port not initialized!");
+    }
+  }
+
+  /**
+   * 이 테스트가 생성한 사용자(및 로그인으로 생긴 리프레시 토큰)를 실제 DB에서 정리한다. RestAssured는 실제 HTTP(RANDOM_PORT)라 트랜잭션 롤백이
+   * 적용되지 않으므로 명시적 삭제가 필요하다. User.refreshTokens는 cascade/orphanRemoval 로 함께 삭제된다.
+   */
+  @AfterMethod(alwaysRun = true)
+  public void cleanup() {
+    if (testUsername != null) {
+      userRepository.findByUsername(testUsername).ifPresent(userRepository::delete);
+      testUsername = null;
     }
   }
 

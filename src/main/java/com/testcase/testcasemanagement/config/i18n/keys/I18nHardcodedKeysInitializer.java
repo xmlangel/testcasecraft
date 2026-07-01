@@ -2599,6 +2599,16 @@ public class I18nHardcodedKeysInitializer {
     createTranslationKeyIfNotExists("validation.number.tooSmall", "validation", "util i18n (2026-06-30)", "{fieldName}는 {min} 이상이어야 합니다.");
     createTranslationKeyIfNotExists("validation.number.tooLarge", "validation", "util i18n (2026-06-30)", "{fieldName}는 {max} 이하여야 합니다.");
 
+    // 개별 폼 삭제 버튼 (2026-07-01)
+    createTranslationKeyIfNotExists("testcase.form.button.delete", "testcase", "폼 삭제 버튼", "삭제");
+    createTranslationKeyIfNotExists(
+        "testcase.form.deleteConfirm",
+        "testcase",
+        "폼 삭제 확인",
+        "이 테스트케이스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.");
+    createTranslationKeyIfNotExists(
+        "testcase.form.deleteError", "testcase", "폼 삭제 오류", "삭제 중 오류가 발생했습니다.");
+
     log.info("i18n 하드코딩 보강 번역 키 초기화 완료");
   }
 

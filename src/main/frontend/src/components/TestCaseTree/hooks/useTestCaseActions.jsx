@@ -19,7 +19,7 @@ export const useTestCaseActions = ({
   updateTestCaseLocal,
   deleteTestCase,
   fetchProjectTestCases,
-  user,
+  projectRole,
   t,
   setExpanded,
   checkedIds,
@@ -61,7 +61,7 @@ export const useTestCaseActions = ({
 
   const handleAddItem = useCallback(
     (type, contextMenuNodeId) => {
-      if (!checkCanAdd(user?.role)) return;
+      if (!checkCanAdd(projectRole)) return;
       const parentId = contextMenuNodeId ?? null;
       setNewItemData({
         type,
@@ -78,7 +78,7 @@ export const useTestCaseActions = ({
         });
       }
     },
-    [user?.role, projectId, filteredTestCases, setExpanded],
+    [projectRole, projectId, filteredTestCases, setExpanded],
   );
 
   const handleCancelAdd = useCallback(() => setNewItemData(null), []);
@@ -137,13 +137,13 @@ export const useTestCaseActions = ({
 
   const handleRename = useCallback(
     (nodeId) => {
-      if (isViewer(user?.role) || !nodeId) return;
+      if (isViewer(projectRole) || !nodeId) return;
       const node = filteredTestCases.find((tc) => tc.id === nodeId);
       if (!node) return;
       // 메뉴가 완전히 닫힌 후 다이얼로그를 열기 위해 보류 상태로 설정
       setPendingRename({ id: node.id, name: node.name });
     },
-    [user?.role, filteredTestCases],
+    [projectRole, filteredTestCases],
   );
 
   const handleCancelRename = useCallback(() => setRenameData(null), []);
@@ -181,11 +181,11 @@ export const useTestCaseActions = ({
 
   const handleDeleteClick = useCallback(
     (nodeId) => {
-      if (isViewer(user?.role) || user?.role === "USER") return;
+      if (isViewer(projectRole)) return;
       setItemToDeleteId(nodeId);
       setDeleteConfirmationOpen(true);
     },
-    [user?.role],
+    [projectRole],
   );
 
   const handleCancelDelete = useCallback(() => {
@@ -274,7 +274,7 @@ export const useTestCaseActions = ({
 
   const moveNodeOrder = useCallback(
     (nodeId, direction) => {
-      if (isViewer(user?.role)) return;
+      if (isViewer(projectRole)) return;
       const node = filteredTestCases.find((tc) => tc.id === nodeId);
       if (!node) return;
 
@@ -298,13 +298,13 @@ export const useTestCaseActions = ({
       setOrderMap(newOrderMap);
       setOrderChanged(true);
     },
-    [user?.role, filteredTestCases, orderMap],
+    [projectRole, filteredTestCases, orderMap],
   );
 
   const handleOrderEditMode = useCallback(() => {
-    if (isViewer(user?.role)) return;
+    if (isViewer(projectRole)) return;
     setOrderEditMode(true);
-  }, [user?.role]);
+  }, [projectRole]);
 
   const handleOrderCancel = useCallback(() => {
     setOrderEditMode(false);
@@ -312,7 +312,7 @@ export const useTestCaseActions = ({
   }, []);
 
   const handleOrderSave = useCallback(async () => {
-    if (isViewer(user?.role)) return;
+    if (isViewer(projectRole)) return;
 
     const byParent = {};
     filteredTestCases.forEach((item) => {
@@ -357,7 +357,7 @@ export const useTestCaseActions = ({
     setOrderEditMode(false);
     setOrderChanged(false);
   }, [
-    user?.role,
+    projectRole,
     filteredTestCases,
     orderMap,
     updateTestCase,
@@ -377,7 +377,7 @@ export const useTestCaseActions = ({
 
   const moveNodes = useCallback(
     async ({ ids, targetParentId, beforeId, afterId }) => {
-      if (isViewer(user?.role)) return;
+      if (isViewer(projectRole)) return;
       if (!ids || ids.length === 0) return;
       if (beforeId && afterId) {
         setErrorMessage(
@@ -433,7 +433,7 @@ export const useTestCaseActions = ({
         throw err;
       }
     },
-    [user?.role, projectId, fetchProjectTestCases, t],
+    [projectRole, projectId, fetchProjectTestCases, t],
   );
 
   // ── 크로스 프로젝트 이동/복사 ───────────────────────────────────────────────
@@ -442,7 +442,7 @@ export const useTestCaseActions = ({
 
   const transferToProject = useCallback(
     async (path, { ids, targetProjectId, targetParentId }) => {
-      if (isViewer(user?.role)) return null;
+      if (isViewer(projectRole)) return null;
       if (!ids || ids.length === 0) return null;
       if (!targetProjectId) {
         setErrorMessage(
@@ -482,7 +482,7 @@ export const useTestCaseActions = ({
         throw err;
       }
     },
-    [user?.role, projectId, fetchProjectTestCases, t, setErrorMessage],
+    [projectRole, projectId, fetchProjectTestCases, t, setErrorMessage],
   );
 
   const moveToProject = useCallback(

@@ -14,6 +14,7 @@ import {
   Save as SaveIcon,
   Add as AddIcon,
   SaveAs as SaveVersionIcon,
+  Delete as DeleteIcon,
   CheckCircleOutline as CheckCircleOutlineIcon,
   ErrorOutline as ErrorOutlineIcon,
 } from "@mui/icons-material";
@@ -32,6 +33,7 @@ const TestCaseFormHeader = ({
   t,
   onSave,
   onCancel,
+  onDelete,
   onVersionHistory,
   onCreateVersion,
   onAddNew,
@@ -193,6 +195,17 @@ const TestCaseFormHeader = ({
                   {t("testcase.version.button.create", "버전 생성")}
                 </Button>
               )}
+              {testCaseId && onDelete && testCase?.type === "testcase" && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={onDelete}
+                  startIcon={<DeleteIcon />}
+                  data-testid="testcase-header-delete-button"
+                >
+                  {t("testcase.form.button.delete", "삭제")}
+                </Button>
+              )}
             </>
           )}
         </Box>
@@ -211,6 +224,7 @@ TestCaseFormHeader.propTypes = {
   t: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
+  onDelete: PropTypes.func,
   onVersionHistory: PropTypes.func,
   onCreateVersion: PropTypes.func,
   ragSlot: PropTypes.node,

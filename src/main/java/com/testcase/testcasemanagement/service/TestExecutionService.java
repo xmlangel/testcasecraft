@@ -8,6 +8,7 @@ import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
+import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.util.JiraKeyUtils;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class TestExecutionService {
 
   private final TestCaseRepository testCaseRepository;
   private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
+  private final ProjectSecurityService projectSecurityService;
 
   @Autowired
   public TestExecutionService(
@@ -42,7 +45,8 @@ public class TestExecutionService {
       UserRepository userRepository,
       JiraIntegrationService jiraIntegrationService,
       TestCaseRepository testCaseRepository,
-      TestCaseFileStorageService fileStorageService) {
+      TestCaseFileStorageService fileStorageService,
+      ProjectSecurityService projectSecurityService) {
     this.testExecutionRepository = testExecutionRepository;
     this.testResultRepository = testResultRepository;
     this.testPlanRepository = testPlanRepository;
@@ -51,6 +55,7 @@ public class TestExecutionService {
     this.jiraIntegrationService = jiraIntegrationService;
     this.testCaseRepository = testCaseRepository;
     this.fileStorageService = fileStorageService;
+    this.projectSecurityService = projectSecurityService;
   }
 
   private User getCurrentUser() {
@@ -62,6 +67,11 @@ public class TestExecutionService {
   }
 
   public TestExecutionDto createTestExecution(TestExecutionDto dto) {
+    // 프로젝트 편집 권한 검사
+    if (!projectSecurityService.canEditProject(dto.getProjectId())) {
+      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + dto.getProjectId());
+    }
+
     TestExecution entity = toEntity(dto);
     entity.setStatus("NOTSTARTED");
     entity.setCreatedAt(LocalDateTime.now());
@@ -82,8 +92,18 @@ public class TestExecutionService {
   public List<TestExecutionDto> getTestExecutions(String testPlanId) {
     List<TestExecution> executions;
     if (testPlanId != null) {
+      TestPlan plan =
+          testPlanRepository
+              .findById(testPlanId)
+              .orElseThrow(() -> new NoSuchElementException("TestPlan not found: " + testPlanId));
+      if (!projectSecurityService.canAccessProject(plan.getProject().getId())) {
+        throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + plan.getProject().getId());
+      }
       executions = testExecutionRepository.findByTestPlanId(testPlanId);
     } else {
+      if (!projectSecurityService.isSystemAdmin()) {
+        throw new AccessDeniedException("전체 테스트 실행 조회는 시스템 관리자만 가능합니다.");
+      }
       executions = testExecutionRepository.findAll();
     }
     return executions.stream().map(this::toDto).collect(Collectors.toList());
@@ -91,7 +111,13 @@ public class TestExecutionService {
 
   @Transactional(readOnly = true)
   public Optional<TestExecutionDto> getTestExecutionById(String id) {
-    return testExecutionRepository.findByIdWithResults(id).map(entity -> toDto(entity, true));
+    Optional<TestExecutionDto> result =
+        testExecutionRepository.findByIdWithResults(id).map(entity -> toDto(entity, true));
+    if (result.isPresent()
+        && !projectSecurityService.canAccessProject(result.get().getProjectId())) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + result.get().getProjectId());
+    }
+    return result;
   }
 
   @Transactional
@@ -100,6 +126,12 @@ public class TestExecutionService {
         testExecutionRepository
             .findById(id)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+    // 프로젝트 편집 권한 검사
+    if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+    }
+
     entity.setName(dto.getName());
     entity.setDescription(dto.getDescription());
     if (dto.getTags() != null) {
@@ -117,6 +149,12 @@ public class TestExecutionService {
         testExecutionRepository
             .findById(id)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+    // 프로젝트 편집 권한 검사
+    if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+    }
+
     entity.setQaSummary(qaSummary);
     entity.setQaSummaryUpdatedBy(username);
     entity.setQaSummaryUpdatedAt(LocalDateTime.now());
@@ -133,6 +171,11 @@ public class TestExecutionService {
             .findByIdWithResults(id)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
 
+    // 프로젝트 편집 권한 검사
+    if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+    }
+
     if (entity.getResults() != null) {
       for (TestResult result : entity.getResults()) {
         deleteInlineImagesFromNotes(result.getNotes());
@@ -148,6 +191,12 @@ public class TestExecutionService {
         testExecutionRepository
             .findById(id)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+    // 프로젝트 편집 권한 검사
+    if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+    }
+
     entity.setStatus("INPROGRESS");
     entity.setStartDate(LocalDateTime.now());
     entity.setUpdatedAt(LocalDateTime.now());
@@ -161,6 +210,12 @@ public class TestExecutionService {
         testExecutionRepository
             .findById(id)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+    // 프로젝트 편집 권한 검사
+    if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+    }
+
     entity.setStatus("COMPLETED");
     entity.setEndDate(LocalDateTime.now());
     entity.setUpdatedAt(LocalDateTime.now());
@@ -174,6 +229,11 @@ public class TestExecutionService {
         testExecutionRepository
             .findById(id)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+    // 프로젝트 편집 권한 검사
+    if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+    }
 
     // Only allow restarting of completed test executions
     if (!"COMPLETED".equals(entity.getStatus())) {
@@ -194,6 +254,11 @@ public class TestExecutionService {
         testExecutionRepository
             .findByIdWithResults(executionId)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+    // 결과 기록 권한 검사 (PM/LEAD/DEV/CONTRIBUTOR 편집 롤 + TESTER)
+    if (!projectSecurityService.canRecordTestResult(entity.getProject().getId())) {
+      throw new AccessDeniedException("결과 기록 권한이 없습니다: " + entity.getProject().getId());
+    }
 
     if ("COMPLETED".equals(entity.getStatus())) {
       throw new IllegalStateException("COMPLETED_EXECUTION");
@@ -290,6 +355,11 @@ public class TestExecutionService {
         testExecutionRepository
             .findByIdWithResults(executionId)
             .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+    // 결과 기록 권한 검사 (PM/LEAD/DEV/CONTRIBUTOR 편집 롤 + TESTER)
+    if (!projectSecurityService.canRecordTestResult(entity.getProject().getId())) {
+      throw new AccessDeniedException("결과 기록 권한이 없습니다: " + entity.getProject().getId());
+    }
 
     if ("COMPLETED".equals(entity.getStatus())) {
       throw new IllegalStateException("COMPLETED_EXECUTION");
@@ -553,6 +623,9 @@ public class TestExecutionService {
   @Transactional(readOnly = true)
   public Page<TestExecutionDto> getTestExecutionsByProject(
       String projectId, String name, Pageable pageable) {
+    if (!projectSecurityService.canAccessProject(projectId)) {
+      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+    }
     // 1. 실행 목록 페이징 조회 (results fetch 제거로 매우 빨라짐)
     org.springframework.data.domain.Page<TestExecution> executionPage;
     if (name != null && !name.trim().isEmpty()) {
@@ -655,6 +728,16 @@ public class TestExecutionService {
 
   // 테스트케이스ID로 결과 조회 (최신순 정렬)
   public List<TestResultDto> getTestResultsByTestCaseId(String testCaseId) {
+    testCaseRepository
+        .findById(testCaseId)
+        .ifPresent(
+            testCase -> {
+              if (testCase.getProject() != null
+                  && !projectSecurityService.canAccessProject(testCase.getProject().getId())) {
+                throw new AccessDeniedException(
+                    "프로젝트 접근 권한이 없습니다: " + testCase.getProject().getId());
+              }
+            });
     List<TestResult> results = testResultRepository.findByTestCaseId(testCaseId);
     return results.stream()
         .sorted(

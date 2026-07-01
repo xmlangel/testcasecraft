@@ -1,6 +1,7 @@
 // ICT-191: 테스트 결과 리포트 API 통합 테스트
 package com.testcase.testcasemanagement.integration;
 
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import static org.testng.Assert.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +32,7 @@ import org.testng.annotations.Test;
  * <p>목적: 테스트 결과 리포트 기능의 API 엔드포인트와 서비스 계층 통합 테스트 범위: REST API, 서비스 로직, 데이터베이스 통합
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 public class TestResultReportIntegrationTest extends AbstractTransactionalTestNGSpringContextTests {

@@ -130,6 +130,9 @@ public class TestExecutionController {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      // 인가 실패는 403으로 전달 (GlobalExceptionHandler가 처리) — 500으로 삼키지 않는다
+      throw e;
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
@@ -243,6 +246,9 @@ public class TestExecutionController {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      // 인가 실패는 403으로 전달 (GlobalExceptionHandler가 처리) — 500으로 삼키지 않는다
+      throw e;
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }

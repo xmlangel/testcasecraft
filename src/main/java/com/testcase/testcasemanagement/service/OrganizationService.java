@@ -351,6 +351,15 @@ public class OrganizationService {
       if (!organizationSecurityService.isOrganizationOwner(organizationId, currentUsername)) {
         throw new AccessDeniedException("소유자 권한을 부여할 수 없습니다.");
       }
+      // 조직당 OWNER는 1명만 존재해야 함 (transferOwnership()이 단일 OWNER를 전제로 동작함)
+      boolean ownerAlreadyExists =
+          organizationUserRepository.findByOrganizationId(organizationId).stream()
+              .anyMatch(
+                  member -> member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER);
+      if (ownerAlreadyExists) {
+        throw new IllegalStateException(
+            "조직에는 이미 OWNER가 존재합니다. 소유권을 이전하려면 transferOwnership을 사용하세요.");
+      }
     }
 
     // 멤버 추가
@@ -419,6 +428,19 @@ public class OrganizationService {
         || organizationUser.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER) {
       if (!organizationSecurityService.isOrganizationOwner(organizationId, currentUsername)) {
         throw new AccessDeniedException("소유자 권한과 관련된 변경을 할 수 없습니다.");
+      }
+    }
+
+    // 조직당 OWNER는 1명만 존재해야 함 (transferOwnership()이 단일 OWNER를 전제로 동작함)
+    if (newRole == OrganizationUser.OrganizationRole.OWNER
+        && organizationUser.getRoleInOrganization() != OrganizationUser.OrganizationRole.OWNER) {
+      boolean ownerAlreadyExists =
+          organizationUserRepository.findByOrganizationId(organizationId).stream()
+              .anyMatch(
+                  member -> member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER);
+      if (ownerAlreadyExists) {
+        throw new IllegalStateException(
+            "조직에는 이미 OWNER가 존재합니다. 소유권을 이전하려면 transferOwnership을 사용하세요.");
       }
     }
 

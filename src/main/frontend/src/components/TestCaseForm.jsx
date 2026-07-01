@@ -45,6 +45,8 @@ import TestCaseAttachments from "./TestCase/TestCaseAttachments.jsx";
 import { useRAG } from "../context/RAGContext.jsx";
 import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import useAutoSave from "../hooks/useAutoSave.js";
+import { useProjectRole } from "../hooks/useProjectRole.js";
+import { isViewer as isViewerProjectRole } from "./TestCaseTree/utils/permissionUtils.js";
 import {
   resolveFieldValue,
   applyFieldValueToState,
@@ -87,9 +89,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     updateTestCase,
     updateTestCaseLocal,
     addTestCase,
+    deleteTestCase,
     user,
     api,
   } = useAppContext();
+  // 편집 가능 여부는 시스템 role이 아니라 이 프로젝트에서의 role(project role)로 판단한다.
+  const { projectRole } = useProjectRole(projectId, user);
   const { t } = useI18n();
   const theme = useTheme();
   const { state: ragState, listDocuments, isRagEnabled } = useRAG();
@@ -171,7 +176,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     [projectId, updateTestCase],
   );
 
-  const isViewerForAutoSave = user?.role === "VIEWER";
+  const isViewerForAutoSave = isViewerProjectRole(projectRole);
 
   const { autoSaveStatus, autoSaveError, markSaved } = useAutoSave({
     id: testCaseId,
@@ -204,7 +209,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     );
   };
 
-  const isViewer = user?.role === "VIEWER";
+  const isViewer = isViewerProjectRole(projectRole);
   const isFolder = testCase?.type === "folder";
 
   // 현재 버전 정보 조회
@@ -1133,6 +1138,29 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     navigate(-1);
   };
 
+  // 개별 폼에서 테스트케이스 삭제 (저장된 케이스에만)
+  const handleDelete = async () => {
+    if (isViewer || !testCaseId) return;
+    const confirmed = window.confirm(
+      t(
+        "testcase.form.deleteConfirm",
+        "이 테스트케이스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      ),
+    );
+    if (!confirmed) return;
+    try {
+      await deleteTestCase(testCaseId);
+      // 삭제 성공 → 부모 갱신(트리 새로고침·선택 해제 등)
+      if (onSave) onSave();
+    } catch (err) {
+      setSnackbarError(
+        err?.message ||
+          t("testcase.form.deleteError", "삭제 중 오류가 발생했습니다."),
+      );
+      setSnackbarOpen(true);
+    }
+  };
+
   // 인라인 이미지 훅
   const getFieldValue = useCallback(
     (fieldConfig) => resolveFieldValue(fieldConfig, testCase),
@@ -1272,6 +1300,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           t={t}
           onSave={handleSave}
           onCancel={handleCancel}
+          onDelete={handleDelete}
           onVersionHistory={handleVersionHistory}
           onCreateVersion={handleCreateVersion}
           onAddNew={handleAddNew}

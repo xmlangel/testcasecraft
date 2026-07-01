@@ -30,18 +30,6 @@ public interface ProjectUserRepository extends JpaRepository<ProjectUser, String
   // 사용자가 특정 역할로 참여한 프로젝트들 조회
   List<ProjectUser> findByUserIdAndRoleInProject(String userId, ProjectRole role);
 
-  // 프로젝트 매니저들 조회
-  @Query(
-      "SELECT pu FROM ProjectUser pu WHERE pu.project.id = :projectId AND pu.roleInProject ="
-          + " 'PROJECT_MANAGER'")
-  List<ProjectUser> findManagersByProjectId(@Param("projectId") String projectId);
-
-  // 프로젝트의 관리 권한을 가진 멤버들 조회 (PM + 리드)
-  @Query(
-      "SELECT pu FROM ProjectUser pu WHERE pu.project.id = :projectId AND pu.roleInProject IN"
-          + " ('PROJECT_MANAGER', 'LEAD_DEVELOPER')")
-  List<ProjectUser> findManagersAndLeadsByProjectId(@Param("projectId") String projectId);
-
   // 사용자가 관리 권한을 가진 프로젝트들 조회
   @Query(
       "SELECT pu FROM ProjectUser pu WHERE pu.user.id = :userId AND pu.roleInProject IN"
@@ -101,12 +89,16 @@ public interface ProjectUserRepository extends JpaRepository<ProjectUser, String
           + " 'CONTRIBUTOR')")
   boolean hasEditRole(@Param("projectId") String projectId, @Param("userId") String userId);
 
+  // 사용자가 테스트 실행 결과를 기록할 권한을 가지는지 확인 (편집 권한 + TESTER)
+  // TESTER는 테스트케이스/플랜 편집 권한은 없지만, 본업인 결과 기록(PASS/FAIL 등)은 할 수 있어야 한다.
+  @Query(
+      "SELECT COUNT(pu) > 0 FROM ProjectUser pu WHERE pu.project.id = :projectId AND pu.user.id ="
+          + " :userId AND pu.roleInProject IN ('PROJECT_MANAGER', 'LEAD_DEVELOPER', 'DEVELOPER',"
+          + " 'CONTRIBUTOR', 'TESTER')")
+  boolean hasResultEntryRole(@Param("projectId") String projectId, @Param("userId") String userId);
+
   // 조직의 프로젝트들에 참여한 사용자들 조회
   @Query(
       "SELECT DISTINCT pu FROM ProjectUser pu WHERE pu.project.organization.id = :organizationId")
   List<ProjectUser> findByOrganizationId(@Param("organizationId") String organizationId);
-
-  // 조직 없는 프로젝트들에 참여한 사용자들 조회
-  @Query("SELECT pu FROM ProjectUser pu WHERE pu.project.organization IS NULL")
-  List<ProjectUser> findByIndependentProjects();
 }

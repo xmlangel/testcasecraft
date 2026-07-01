@@ -29,6 +29,8 @@ import TestResultHeader from "./TestResult/TestResultHeader.jsx";
 import TestResultFloatingMenu from "./TestResult/TestResultFloatingMenu.jsx";
 import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
+import { useProjectRole } from "../hooks/useProjectRole.js";
+import { canRecordTestResult } from "./TestCaseTree/utils/permissionUtils.js";
 
 const KEY_RESULT_MAP = {
   N: TestResult.NOT_RUN,
@@ -59,9 +61,11 @@ const TestResultForm = ({
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
 
-  const isViewer = user?.role === "VIEWER";
-
   const [testCase, setTestCase] = useState(null);
+  // 편집 가능 여부는 시스템 role이 아니라 이 테스트케이스가 속한 프로젝트에서의 role로 판단한다.
+  const { projectRole } = useProjectRole(testCase?.projectId, user);
+  // 결과 기록은 편집 가능 role(PM/LEAD/DEV/CONTRIBUTOR)뿐 아니라 TESTER도 허용한다.
+  const isViewer = !canRecordTestResult(projectRole);
   const [result, setResult] = useState(TestResult.NOT_RUN);
   const [notes, setNotes] = useState("");
   const [tags, setTags] = useState([]);

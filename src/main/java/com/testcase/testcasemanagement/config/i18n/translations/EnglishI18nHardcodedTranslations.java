@@ -2057,6 +2057,19 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists("validation.number.tooSmall", languageCode, "{fieldName} must be at least {min}.", createdBy);
     createTranslationIfNotExists("validation.number.tooLarge", languageCode, "{fieldName} must be at most {max}.", createdBy);
 
+    // Test case form delete button (2026-07-01)
+    createTranslationIfNotExists("testcase.form.button.delete", languageCode, "Delete", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.deleteConfirm",
+        languageCode,
+        "Delete this test case? This action cannot be undone.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.deleteError",
+        languageCode,
+        "An error occurred while deleting.",
+        createdBy);
+
     log.info("i18n 하드코딩 보강 en 번역 초기화 완료");
   }
 

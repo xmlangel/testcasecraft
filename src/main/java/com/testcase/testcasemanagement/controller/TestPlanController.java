@@ -62,6 +62,8 @@ public class TestPlanController {
           .map(testPlanMapper::toDto)
           .map(ResponseEntity::ok)
           .orElse(ResponseEntity.notFound().build());
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      throw e;
     } catch (Exception e) {
       e.printStackTrace();
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

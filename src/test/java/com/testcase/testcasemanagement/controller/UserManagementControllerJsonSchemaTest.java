@@ -1,6 +1,7 @@
 // src/test/java/com/testcase/testcasemanagement/controller/UserManagementControllerJsonSchemaTest.java
 package com.testcase.testcasemanagement.controller;
 
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -24,11 +25,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /** 사용자 관리 API JSON 스키마 검증 테스트 */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 @ContextConfiguration(classes = TestcasemanagementApplication.class)
 @ActiveProfiles("test")
 @Epic("사용자 관리 시스템")
@@ -54,7 +57,8 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
 
     RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
 
-    // 테스트용 격리된 데이터베이스를 사용하므로 별도 정리 불필요
+    // 주의: RestAssured가 실제 HTTP(RANDOM_PORT)로 요청하므로 @Transactional 롤백이 적용되지 않는다.
+    // 아래에서 생성한 사용자는 실제 DB에 커밋되므로 @AfterClass(cleanup)에서 명시적으로 삭제한다.
 
     // 관리자 사용자 생성
     String uniqueId = UUID.randomUUID().toString().substring(0, 8);
@@ -96,6 +100,24 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     // JWT 토큰 생성 (로그인을 통해)
     adminToken = loginAndGetToken(adminUser.getUsername(), "admin123");
     regularUserToken = loginAndGetToken(regularUser.getUsername(), "user123");
+  }
+
+  /**
+   * 이 테스트가 생성한 사용자(및 로그인으로 생긴 리프레시 토큰)를 실제 DB에서 정리한다. RestAssured는 실제 HTTP라 트랜잭션 롤백이 없으므로 명시적
+   * 삭제가 필요하다. User 엔티티의 refreshTokens는 cascade/orphanRemoval 로 함께 삭제된다.
+   */
+  @AfterClass(alwaysRun = true)
+  public void globalTeardown() {
+    for (User u : new User[] {testUser, regularUser, adminUser}) {
+      if (u != null && u.getId() != null && userRepository.existsById(u.getId())) {
+        try {
+          userRepository.deleteById(u.getId());
+        } catch (Exception e) {
+          // 정리 실패는 테스트 결과에 영향 주지 않도록 무시(로그만)
+          System.err.println("테스트 사용자 정리 실패: " + u.getUsername() + " - " + e.getMessage());
+        }
+      }
+    }
   }
 
   private String loginAndGetToken(String username, String password) {

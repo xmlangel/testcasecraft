@@ -14,6 +14,7 @@ import { useProject } from "../context/ProjectContext.jsx";
 import { useTest } from "../context/TestContext.jsx";
 import { useInputMode } from "../context/InputModeContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import { useProjectRole } from "../hooks/useProjectRole.js";
 import { isViewer } from "./TestCaseTree/utils/permissionUtils.js";
 import {
   isFolder,
@@ -61,6 +62,8 @@ const TestCaseTree = ({
 }) => {
   const { user } = useAuth();
   const { activeProject, projects: projectList } = useProject();
+  // 트리 편집/조회 권한은 시스템 role이 아니라 이 프로젝트에서의 role(project role)로 판단한다.
+  const { projectRole } = useProjectRole(projectId, user);
   const {
     testCases,
     addTestCase,
@@ -110,7 +113,7 @@ const TestCaseTree = ({
     selectedTestCaseId,
     setActiveTestCase,
     onSelectTestCase,
-    userRole: user?.role,
+    userRole: projectRole,
   });
 
   // ── 2. CRUD / 순서 / 버전 액션 ────────────────────────────────────────────
@@ -122,7 +125,7 @@ const TestCaseTree = ({
     updateTestCaseLocal,
     deleteTestCase,
     fetchProjectTestCases,
-    user,
+    projectRole,
     t,
     setExpanded: treeState.setExpanded,
     checkedIds: treeState.checkedIds,
@@ -496,7 +499,7 @@ const TestCaseTree = ({
                   isExpanded={isExpanded}
                   onToggle={(e) => treeState.handleToggleNode(e, node.id)}
                   selectable={selectable}
-                  userRole={user?.role}
+                  userRole={projectRole}
                   orderEditMode={actions.orderEditMode}
                   nodeOrder={nodeOrder}
                   testCaseCount={testCaseCount}
@@ -540,7 +543,7 @@ const TestCaseTree = ({
       }}
     >
       <TreeHeader
-        userRole={user?.role}
+        userRole={projectRole}
         selectable={selectable}
         isAllChecked={treeState.isAllChecked}
         isIndeterminate={treeState.isIndeterminate}
@@ -637,7 +640,7 @@ const TestCaseTree = ({
       </DndContext>
 
       {/* 컨텍스트 메뉴 */}
-      {!selectable && !isViewer(user?.role) && (
+      {!selectable && !isViewer(projectRole) && (
         <TreeContextMenu
           contextMenu={treeState.contextMenu}
           onClose={treeState.handleCloseContextMenu}
@@ -655,7 +658,7 @@ const TestCaseTree = ({
             actions.handleOpenVersionHistory(treeState.contextMenu?.nodeId)
           }
           selectedNode={selectedNode}
-          userRole={user?.role}
+          userRole={projectRole}
           pendingRename={actions.pendingRename}
           setPendingRename={actions.setPendingRename}
           setRenameData={actions.setRenameData}

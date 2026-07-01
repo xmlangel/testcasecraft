@@ -21,7 +21,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -45,10 +47,16 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
   private String userInfoSchema;
   private String jwtToken;
   private String refreshToken;
+  private String adminUsername; // @BeforeClass에서 생성한 관리자 username (로그인 테스트에서 사용)
 
   @Autowired private com.testcase.testcasemanagement.repository.UserRepository userRepository;
 
   @Autowired private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  // 클래스 시작 시점에 이미 존재하던 username 스냅샷 — 종료 시 이 목록에 없는(=이 테스트가 만든) 사용자만 삭제한다.
+  private Set<String> preExistingUsernames;
 
   @BeforeClass
   public void globalSetup() throws Exception {
@@ -56,6 +64,10 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
     RestAssured.baseURI = "http://localhost";
 
     RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+
+    // 정리(teardown) 기준선: 이 테스트가 사용자를 만들기 "전"의 username 집합을 스냅샷.
+    preExistingUsernames =
+        new HashSet<>(jdbcTemplate.queryForList("SELECT username FROM users", String.class));
 
     // JSON Schema 로드
     try (InputStream is =
@@ -76,7 +88,7 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
     // Admin 사용자 생성 또는 업데이트 (비밀번호 보장)
     // 테스트용 유니크 ID 생성
     String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-    String adminUsername = "test_admin_" + uniqueId;
+    adminUsername = "test_admin_" + uniqueId;
     String adminEmail = "admin_" + uniqueId + "@test.com";
 
     // Admin 사용자 생성
@@ -109,6 +121,35 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
 
     jwtToken = loginResponse.path("accessToken");
     refreshToken = loginResponse.path("refreshToken");
+  }
+
+  /**
+   * 이 테스트가 생성한 사용자(admin + 회원가입으로 만든 사용자들)와 그들이 남긴 refresh_token/audit_log를 실제 DB에서 정리한다.
+   * RestAssured가 실제 HTTP(RANDOM_PORT)라 트랜잭션 롤백이 없으므로 명시적 삭제가 필요하다. 시작 스냅샷에 없던 username 만 삭제하므로 기존
+   * 사용자는 보존된다. FK 순서: audit_logs(performed_by) → refresh_tokens(user_id) → users.
+   */
+  @AfterClass(alwaysRun = true)
+  public void globalTeardown() {
+    if (preExistingUsernames == null) {
+      return;
+    }
+    List<String> current = jdbcTemplate.queryForList("SELECT username FROM users", String.class);
+    for (String username : current) {
+      if (preExistingUsernames.contains(username)) {
+        continue; // 이 테스트가 만든 게 아니면 건드리지 않는다
+      }
+      try {
+        jdbcTemplate.update(
+            "DELETE FROM audit_logs WHERE performed_by = (SELECT id FROM users WHERE username = ?)",
+            username);
+        jdbcTemplate.update(
+            "DELETE FROM refresh_tokens WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+            username);
+        jdbcTemplate.update("DELETE FROM users WHERE username = ?", username);
+      } catch (Exception e) {
+        System.err.println("AuthControllerTest 사용자 정리 실패: " + username + " - " + e.getMessage());
+      }
+    }
   }
 
   // ========== 회원가입 테스트 ==========
@@ -275,8 +316,9 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
   @Severity(SeverityLevel.CRITICAL)
   @Description("정상적인 로그인 시 JWT 토큰 발급 검증")
   public void testLogin_Success() {
+    // @BeforeClass에서 생성한 실제 관리자 계정으로 로그인한다(고정 시드유저 "test_admin"과 혼동 금지).
     Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("username", "test_admin");
+    requestBody.put("username", adminUsername);
     requestBody.put("password", "admin123");
 
     given()
@@ -293,7 +335,7 @@ public class AuthControllerTest extends AbstractTestNGSpringContextTests {
         .body("tokenType", equalTo("Bearer"))
         .body("accessTokenExpiration", is(notNullValue()))
         .body("refreshTokenExpiration", greaterThan(0L))
-        .body("user.username", startsWith("test_admin_"))
+        .body("user.username", equalTo(adminUsername))
         .body("user.role", equalTo("ADMIN"));
   }
 
