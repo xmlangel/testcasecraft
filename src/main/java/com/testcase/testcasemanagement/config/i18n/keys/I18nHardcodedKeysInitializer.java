@@ -2560,6 +2560,45 @@ public class I18nHardcodedKeysInitializer {
     createTranslationKeyIfNotExists(
         "testCase.export.excelError", "testcase", "Excel 다운로드 오류", "Excel 다운로드 중 오류가 발생했습니다: {message}");
 
+    
+    // 유틸 레벨 i18n (2026-06-30)
+    createTranslationKeyIfNotExists("error.networkError", "error", "util i18n (2026-06-30)", "네트워크 연결을 확인해주세요.");
+    createTranslationKeyIfNotExists("error.authRequired", "error", "util i18n (2026-06-30)", "로그인이 필요하거나 권한이 없습니다.");
+    createTranslationKeyIfNotExists("error.validationError", "error", "util i18n (2026-06-30)", "입력한 정보를 확인해주세요.");
+    createTranslationKeyIfNotExists("error.serverError", "error", "util i18n (2026-06-30)", "서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    createTranslationKeyIfNotExists("error.unknownError", "error", "util i18n (2026-06-30)", "알 수 없는 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists("error.sessionExpired", "error", "util i18n (2026-06-30)", "세션이 만료되었습니다. 다시 로그인해주세요.");
+    createTranslationKeyIfNotExists("error.renderingError", "error", "util i18n (2026-06-30)", "화면을 표시하는 중 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists("time.justNow", "time", "util i18n (2026-06-30)", "방금 전");
+    createTranslationKeyIfNotExists("time.minutesAgo", "time", "util i18n (2026-06-30)", "{n}분 전");
+    createTranslationKeyIfNotExists("time.hoursAgo", "time", "util i18n (2026-06-30)", "{n}시간 전");
+    createTranslationKeyIfNotExists("time.daysAgo", "time", "util i18n (2026-06-30)", "{n}일 전");
+    createTranslationKeyIfNotExists("time.zeroSeconds", "time", "util i18n (2026-06-30)", "0초");
+    createTranslationKeyIfNotExists("time.daysAndHours", "time", "util i18n (2026-06-30)", "{days}일 {hours}시간");
+    createTranslationKeyIfNotExists("time.daysOnly", "time", "util i18n (2026-06-30)", "{days}일");
+    createTranslationKeyIfNotExists("time.hoursAndMinutes", "time", "util i18n (2026-06-30)", "{hours}시간 {minutes}분");
+    createTranslationKeyIfNotExists("time.hoursOnly", "time", "util i18n (2026-06-30)", "{hours}시간");
+    createTranslationKeyIfNotExists("time.minutesAndSeconds", "time", "util i18n (2026-06-30)", "{minutes}분 {seconds}초");
+    createTranslationKeyIfNotExists("time.minutesOnly", "time", "util i18n (2026-06-30)", "{minutes}분");
+    createTranslationKeyIfNotExists("time.secondsOnly", "time", "util i18n (2026-06-30)", "{seconds}초");
+    createTranslationKeyIfNotExists("validation.password.required", "validation", "util i18n (2026-06-30)", "비밀번호를 입력해주세요.");
+    createTranslationKeyIfNotExists("validation.password.minLength", "validation", "util i18n (2026-06-30)", "비밀번호는 8자 이상이어야 합니다.");
+    createTranslationKeyIfNotExists("validation.password.lowercase", "validation", "util i18n (2026-06-30)", "소문자를 포함해야 합니다.");
+    createTranslationKeyIfNotExists("validation.password.uppercase", "validation", "util i18n (2026-06-30)", "대문자를 포함해야 합니다.");
+    createTranslationKeyIfNotExists("validation.password.number", "validation", "util i18n (2026-06-30)", "숫자를 포함해야 합니다.");
+    createTranslationKeyIfNotExists("validation.password.special", "validation", "util i18n (2026-06-30)", "특수문자를 포함해야 합니다.");
+    createTranslationKeyIfNotExists("validation.username.required", "validation", "util i18n (2026-06-30)", "사용자명을 입력해주세요.");
+    createTranslationKeyIfNotExists("validation.username.minLength", "validation", "util i18n (2026-06-30)", "사용자명은 3자 이상이어야 합니다.");
+    createTranslationKeyIfNotExists("validation.username.maxLength", "validation", "util i18n (2026-06-30)", "사용자명은 20자 이하여야 합니다.");
+    createTranslationKeyIfNotExists("validation.username.invalidChars", "validation", "util i18n (2026-06-30)", "사용자명은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.");
+    createTranslationKeyIfNotExists("validation.required.message", "validation", "util i18n (2026-06-30)", "{fieldName}는 필수 입력 항목입니다.");
+    createTranslationKeyIfNotExists("validation.length.notString", "validation", "util i18n (2026-06-30)", "{fieldName}는 문자열이어야 합니다.");
+    createTranslationKeyIfNotExists("validation.length.tooShort", "validation", "util i18n (2026-06-30)", "{fieldName}는 {minLength}자 이상이어야 합니다.");
+    createTranslationKeyIfNotExists("validation.length.tooLong", "validation", "util i18n (2026-06-30)", "{fieldName}는 {maxLength}자 이하여야 합니다.");
+    createTranslationKeyIfNotExists("validation.number.notValid", "validation", "util i18n (2026-06-30)", "{fieldName}는 유효한 숫자여야 합니다.");
+    createTranslationKeyIfNotExists("validation.number.tooSmall", "validation", "util i18n (2026-06-30)", "{fieldName}는 {min} 이상이어야 합니다.");
+    createTranslationKeyIfNotExists("validation.number.tooLarge", "validation", "util i18n (2026-06-30)", "{fieldName}는 {max} 이하여야 합니다.");
+
     log.info("i18n 하드코딩 보강 번역 키 초기화 완료");
   }
 

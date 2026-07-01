@@ -6,9 +6,10 @@
 /**
  * 이메일 주소 유효성 검사
  * @param {string} email - 검사할 이메일 주소
+ * @param {Function} t - i18n 함수 (기본값: 폴백 반환)
  * @returns {boolean} 유효성 여부
  */
-export function validateEmail(email) {
+export function validateEmail(email, t = (key, fallback) => fallback) {
   if (!email || typeof email !== "string") return false;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,9 +19,10 @@ export function validateEmail(email) {
 /**
  * 비밀번호 강도 검사
  * @param {string} password - 검사할 비밀번호
+ * @param {Function} t - i18n 함수 (기본값: 폴백 반환)
  * @returns {object} 검사 결과 { isValid, strength, issues }
  */
-export function validatePassword(password) {
+export function validatePassword(password, t = (key, fallback) => fallback) {
   const result = {
     isValid: false,
     strength: "weak",
@@ -28,28 +30,40 @@ export function validatePassword(password) {
   };
 
   if (!password || typeof password !== "string") {
-    result.issues.push("비밀번호를 입력해주세요.");
+    result.issues.push(
+      t("validation.password.required", "비밀번호를 입력해주세요."),
+    );
     return result;
   }
 
   if (password.length < 8) {
-    result.issues.push("비밀번호는 8자 이상이어야 합니다.");
+    result.issues.push(
+      t("validation.password.minLength", "비밀번호는 8자 이상이어야 합니다."),
+    );
   }
 
   if (!/[a-z]/.test(password)) {
-    result.issues.push("소문자를 포함해야 합니다.");
+    result.issues.push(
+      t("validation.password.lowercase", "소문자를 포함해야 합니다."),
+    );
   }
 
   if (!/[A-Z]/.test(password)) {
-    result.issues.push("대문자를 포함해야 합니다.");
+    result.issues.push(
+      t("validation.password.uppercase", "대문자를 포함해야 합니다."),
+    );
   }
 
   if (!/\d/.test(password)) {
-    result.issues.push("숫자를 포함해야 합니다.");
+    result.issues.push(
+      t("validation.password.number", "숫자를 포함해야 합니다."),
+    );
   }
 
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    result.issues.push("특수문자를 포함해야 합니다.");
+    result.issues.push(
+      t("validation.password.special", "특수문자를 포함해야 합니다."),
+    );
   }
 
   const strengthScore = 5 - result.issues.length;
@@ -71,32 +85,42 @@ export function validatePassword(password) {
 /**
  * 사용자명 유효성 검사
  * @param {string} username - 검사할 사용자명
+ * @param {Function} t - i18n 함수 (기본값: 폴백 반환)
  * @returns {object} 검사 결과 { isValid, issues }
  */
-export function validateUsername(username) {
+export function validateUsername(username, t = (key, fallback) => fallback) {
   const result = {
     isValid: false,
     issues: [],
   };
 
   if (!username || typeof username !== "string") {
-    result.issues.push("사용자명을 입력해주세요.");
+    result.issues.push(
+      t("validation.username.required", "사용자명을 입력해주세요."),
+    );
     return result;
   }
 
   const trimmedUsername = username.trim();
 
   if (trimmedUsername.length < 3) {
-    result.issues.push("사용자명은 3자 이상이어야 합니다.");
+    result.issues.push(
+      t("validation.username.minLength", "사용자명은 3자 이상이어야 합니다."),
+    );
   }
 
   if (trimmedUsername.length > 20) {
-    result.issues.push("사용자명은 20자 이하여야 합니다.");
+    result.issues.push(
+      t("validation.username.maxLength", "사용자명은 20자 이하여야 합니다."),
+    );
   }
 
   if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
     result.issues.push(
-      "사용자명은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.",
+      t(
+        "validation.username.invalidChars",
+        "사용자명은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.",
+      ),
     );
   }
 
@@ -108,9 +132,19 @@ export function validateUsername(username) {
  * 필수 입력 필드 검사
  * @param {any} value - 검사할 값
  * @param {string} fieldName - 필드명
+ * @param {Function} t - i18n 함수 (기본값: 폴백 반환)
  * @returns {object} 검사 결과 { isValid, message }
  */
-export function validateRequired(value, fieldName = "필드") {
+export function validateRequired(
+  value,
+  fieldName = "필드",
+  t = (key, fallback, vars) => {
+    if (fallback.includes("{fieldName}")) {
+      return fallback.replace("{fieldName}", vars?.fieldName || fieldName);
+    }
+    return fallback;
+  },
+) {
   const isValid =
     value !== null &&
     value !== undefined &&
@@ -118,7 +152,13 @@ export function validateRequired(value, fieldName = "필드") {
 
   return {
     isValid,
-    message: isValid ? "" : `${fieldName}는 필수 입력 항목입니다.`,
+    message: isValid
+      ? ""
+      : t(
+          "validation.required.message",
+          `${fieldName}는 필수 입력 항목입니다.`,
+          { fieldName },
+        ),
   };
 }
 
@@ -128,6 +168,7 @@ export function validateRequired(value, fieldName = "필드") {
  * @param {number} minLength - 최소 길이
  * @param {number} maxLength - 최대 길이
  * @param {string} fieldName - 필드명
+ * @param {Function} t - i18n 함수 (기본값: 폴백 반환)
  * @returns {object} 검사 결과 { isValid, message }
  */
 export function validateLength(
@@ -135,11 +176,24 @@ export function validateLength(
   minLength = 0,
   maxLength = Infinity,
   fieldName = "필드",
+  t = (key, fallback, vars) => {
+    let result = fallback;
+    if (vars?.fieldName) result = result.replace("{fieldName}", vars.fieldName);
+    if (vars?.minLength !== undefined)
+      result = result.replace("{minLength}", vars.minLength);
+    if (vars?.maxLength !== undefined)
+      result = result.replace("{maxLength}", vars.maxLength);
+    return result;
+  },
 ) {
   if (!value || typeof value !== "string") {
     return {
       isValid: false,
-      message: `${fieldName}는 문자열이어야 합니다.`,
+      message: t(
+        "validation.length.notString",
+        `${fieldName}는 문자열이어야 합니다.`,
+        { fieldName },
+      ),
     };
   }
 
@@ -148,14 +202,22 @@ export function validateLength(
   if (trimmedValue.length < minLength) {
     return {
       isValid: false,
-      message: `${fieldName}는 ${minLength}자 이상이어야 합니다.`,
+      message: t(
+        "validation.length.tooShort",
+        `${fieldName}는 ${minLength}자 이상이어야 합니다.`,
+        { fieldName, minLength },
+      ),
     };
   }
 
   if (trimmedValue.length > maxLength) {
     return {
       isValid: false,
-      message: `${fieldName}는 ${maxLength}자 이하여야 합니다.`,
+      message: t(
+        "validation.length.tooLong",
+        `${fieldName}는 ${maxLength}자 이하여야 합니다.`,
+        { fieldName, maxLength },
+      ),
     };
   }
 
@@ -171,6 +233,7 @@ export function validateLength(
  * @param {number} min - 최솟값
  * @param {number} max - 최댓값
  * @param {string} fieldName - 필드명
+ * @param {Function} t - i18n 함수 (기본값: 폴백 반환)
  * @returns {object} 검사 결과 { isValid, message }
  */
 export function validateNumberRange(
@@ -178,25 +241,44 @@ export function validateNumberRange(
   min = -Infinity,
   max = Infinity,
   fieldName = "필드",
+  t = (key, fallback, vars) => {
+    let result = fallback;
+    if (vars?.fieldName) result = result.replace("{fieldName}", vars.fieldName);
+    if (vars?.min !== undefined) result = result.replace("{min}", vars.min);
+    if (vars?.max !== undefined) result = result.replace("{max}", vars.max);
+    return result;
+  },
 ) {
   if (typeof value !== "number" || isNaN(value)) {
     return {
       isValid: false,
-      message: `${fieldName}는 유효한 숫자여야 합니다.`,
+      message: t(
+        "validation.number.notValid",
+        `${fieldName}는 유효한 숫자여야 합니다.`,
+        { fieldName },
+      ),
     };
   }
 
   if (value < min) {
     return {
       isValid: false,
-      message: `${fieldName}는 ${min} 이상이어야 합니다.`,
+      message: t(
+        "validation.number.tooSmall",
+        `${fieldName}는 ${min} 이상이어야 합니다.`,
+        { fieldName, min },
+      ),
     };
   }
 
   if (value > max) {
     return {
       isValid: false,
-      message: `${fieldName}는 ${max} 이하여야 합니다.`,
+      message: t(
+        "validation.number.tooLarge",
+        `${fieldName}는 ${max} 이하여야 합니다.`,
+        { fieldName, max },
+      ),
     };
   }
 
