@@ -1473,6 +1473,45 @@ public class KoreanI18nHardcodedTranslations {
         "manual.viewer.backToManual", languageCode, "매뉴얼로 돌아가기", createdBy);
     createTranslationIfNotExists(
         "manual.viewer.guideError", languageCode, "가이드 문서를 불러오지 못했습니다.", createdBy);
+    createTranslationIfNotExists("manual.viewer.intro", languageCode, "소개", createdBy);
+
+    // 하드코딩 i18n 정리 (2026-06-30)
+    createTranslationIfNotExists("rag.chat.relatedDocuments", languageCode, "참고 문서:", createdBy);
+    createTranslationIfNotExists("rag.chat.similarity", languageCode, "유사도: {percent}%", createdBy);
+    createTranslationIfNotExists("testResult.barChart.title", languageCode, "테스트 결과 비교", createdBy);
+    createTranslationIfNotExists(
+        "testCaseResult.error.executionLoad", languageCode, "테스트 실행 정보를 불러올 수 없습니다.", createdBy);
+    createTranslationIfNotExists(
+        "testCaseResult.error.caseLoad", languageCode, "테스트케이스 정보를 불러올 수 없습니다.", createdBy);
+    createTranslationIfNotExists("junit.version.compressed", languageCode, "압축됨", createdBy);
+    createTranslationIfNotExists(
+        "testResult.qaSummary.loadError", languageCode, "QA 총평용 실행 정보 로드 실패:", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.saveFailed", languageCode, "QA 총평 저장 실패:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.error.filteredResultsLoad", languageCode, "필터링된 테스트 결과를 불러올 수 없습니다", createdBy);
+    createTranslationIfNotExists(
+        "testResult.error.resultsLoad", languageCode, "테스트 결과를 불러올 수 없습니다", createdBy);
+    createTranslationIfNotExists(
+        "testResult.error.jiraConfig", languageCode, "JIRA 설정을 불러올 수 없습니다:", createdBy);
+    createTranslationIfNotExists("testResult.defaultValue.root", languageCode, "루트", createdBy);
+    createTranslationIfNotExists("testResult.label.editVersion", languageCode, "편집본", createdBy);
+    createTranslationIfNotExists(
+        "testcaseAttachments.fetchError", languageCode, "첨부파일 목록을 불러오는데 실패했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.deleteError", languageCode, "항목 삭제 중 오류가 발생했습니다: {error}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.validationError", languageCode, "검증 중 오류가 발생했습니다: {error}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.pdfExportError", languageCode, "PDF 내보내기 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists("testCase.export.noData", languageCode, "내보낼 데이터가 없습니다.", createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.csvSuccess", languageCode, "CSV 파일이 다운로드되었습니다: {filename}", createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.csvError", languageCode, "CSV 다운로드 중 오류가 발생했습니다: {message}", createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.excelSuccess", languageCode, "Excel 파일이 다운로드되었습니다: {filename}", createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.excelError", languageCode, "Excel 다운로드 중 오류가 발생했습니다: {message}", createdBy);
 
     log.info("i18n 하드코딩 보강 ko 번역 초기화 완료");
   }

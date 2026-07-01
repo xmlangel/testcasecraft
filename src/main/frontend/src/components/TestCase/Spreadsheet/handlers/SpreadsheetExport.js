@@ -11,9 +11,14 @@ import { convertDataForExport } from "../utils/SpreadsheetUtils.js";
  * CSV Export 함수
  * @param {Array} spreadsheetData - 스프레드시트 데이터
  * @param {Array} columnLabels - 컬럼 라벨
+ * @param {Function} t - i18n 번역 함수
  * @returns {Object} - { success, message, error }
  */
-export const exportToCSV = (spreadsheetData, columnLabels) => {
+export const exportToCSV = (
+  spreadsheetData,
+  columnLabels,
+  t = (key, fallback) => fallback,
+) => {
   try {
     const { headers, rows } = convertDataForExport(
       spreadsheetData,
@@ -23,7 +28,7 @@ export const exportToCSV = (spreadsheetData, columnLabels) => {
     if (rows.length === 0) {
       return {
         success: false,
-        message: "내보낼 데이터가 없습니다.",
+        message: t("testCase.export.noData", "내보낼 데이터가 없습니다."),
         severity: "warning",
       };
     }
@@ -59,14 +64,20 @@ export const exportToCSV = (spreadsheetData, columnLabels) => {
 
     return {
       success: true,
-      message: `CSV 파일이 다운로드되었습니다: ${filename}`,
+      message: t(
+        "testCase.export.csvSuccess",
+        "CSV 파일이 다운로드되었습니다: {filename}",
+      ).replace("{filename}", filename),
       severity: "success",
     };
   } catch (error) {
     logError("CSV Export 실패:", error);
     return {
       success: false,
-      message: "CSV 다운로드 중 오류가 발생했습니다: " + error.message,
+      message: t(
+        "testCase.export.csvError",
+        "CSV 다운로드 중 오류가 발생했습니다: {message}",
+      ).replace("{message}", error.message),
       severity: "error",
       error,
     };
@@ -77,9 +88,14 @@ export const exportToCSV = (spreadsheetData, columnLabels) => {
  * Excel Export 함수
  * @param {Array} spreadsheetData - 스프레드시트 데이터
  * @param {Array} columnLabels - 컬럼 라벨
+ * @param {Function} t - i18n 번역 함수
  * @returns {Object} - { success, message, error }
  */
-export const exportToExcel = (spreadsheetData, columnLabels) => {
+export const exportToExcel = (
+  spreadsheetData,
+  columnLabels,
+  t = (key, fallback) => fallback,
+) => {
   try {
     const { headers, rows } = convertDataForExport(
       spreadsheetData,
@@ -89,7 +105,7 @@ export const exportToExcel = (spreadsheetData, columnLabels) => {
     if (rows.length === 0) {
       return {
         success: false,
-        message: "내보낼 데이터가 없습니다.",
+        message: t("testCase.export.noData", "내보낼 데이터가 없습니다."),
         severity: "warning",
       };
     }
@@ -126,14 +142,20 @@ export const exportToExcel = (spreadsheetData, columnLabels) => {
 
     return {
       success: true,
-      message: `Excel 파일이 다운로드되었습니다: ${filename}`,
+      message: t(
+        "testCase.export.excelSuccess",
+        "Excel 파일이 다운로드되었습니다: {filename}",
+      ).replace("{filename}", filename),
       severity: "success",
     };
   } catch (error) {
     logError("Excel Export 실패:", error);
     return {
       success: false,
-      message: "Excel 다운로드 중 오류가 발생했습니다: " + error.message,
+      message: t(
+        "testCase.export.excelError",
+        "Excel 다운로드 중 오류가 발생했습니다: {message}",
+      ).replace("{message}", error.message),
       severity: "error",
       error,
     };
@@ -151,7 +173,7 @@ export const exportToExcel = (spreadsheetData, columnLabels) => {
 export const exportToPDF = async (
   spreadsheetData,
   columnLabels,
-  t,
+  t = (key, fallback) => fallback,
   projectInfo = {},
 ) => {
   try {

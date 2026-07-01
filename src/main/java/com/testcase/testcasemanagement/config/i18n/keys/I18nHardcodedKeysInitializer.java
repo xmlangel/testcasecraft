@@ -2535,6 +2535,47 @@ public class I18nHardcodedKeysInitializer {
         "manual.viewer.backToManual", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "매뉴얼로 돌아가기");
     createTranslationKeyIfNotExists(
         "manual.viewer.guideError", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "가이드 문서를 불러오지 못했습니다.");
+    createTranslationKeyIfNotExists("manual.viewer.intro", "manual", "사용자 매뉴얼 뷰어 소개 라벨", "소개");
+
+    // 하드코딩 i18n 정리 (2026-06-30) — 컴포넌트 하드코딩 한국어 t() 래핑 보강
+    createTranslationKeyIfNotExists("rag.chat.relatedDocuments", "rag", "RAG 채팅 참고문서 라벨", "참고 문서:");
+    createTranslationKeyIfNotExists("rag.chat.similarity", "rag", "RAG 채팅 유사도", "유사도: {percent}%");
+    createTranslationKeyIfNotExists("testResult.barChart.title", "testResult", "결과 비교 차트 제목", "테스트 결과 비교");
+    createTranslationKeyIfNotExists(
+        "testCaseResult.error.executionLoad", "testResult", "실행정보 로드 실패", "테스트 실행 정보를 불러올 수 없습니다.");
+    createTranslationKeyIfNotExists(
+        "testCaseResult.error.caseLoad", "testResult", "케이스정보 로드 실패", "테스트케이스 정보를 불러올 수 없습니다.");
+    createTranslationKeyIfNotExists("junit.version.compressed", "junit", "버전 압축됨 칩", "압축됨");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.loadError", "testResult", "QA총평 실행정보 로드 실패", "QA 총평용 실행 정보 로드 실패:");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.saveFailed", "testResult", "QA총평 저장 실패", "QA 총평 저장 실패:");
+    createTranslationKeyIfNotExists(
+        "testResult.error.filteredResultsLoad", "testResult", "필터 결과 로드 실패", "필터링된 테스트 결과를 불러올 수 없습니다");
+    createTranslationKeyIfNotExists(
+        "testResult.error.resultsLoad", "testResult", "결과 로드 실패", "테스트 결과를 불러올 수 없습니다");
+    createTranslationKeyIfNotExists(
+        "testResult.error.jiraConfig", "testResult", "JIRA 설정 로드 실패", "JIRA 설정을 불러올 수 없습니다:");
+    createTranslationKeyIfNotExists("testResult.defaultValue.root", "testResult", "루트 폴더 표시", "루트");
+    createTranslationKeyIfNotExists("testResult.label.editVersion", "testResult", "편집본 라벨", "편집본");
+    createTranslationKeyIfNotExists(
+        "testcaseAttachments.fetchError", "testcase", "첨부 목록 로드 실패", "첨부파일 목록을 불러오는데 실패했습니다.");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.deleteError", "testcase", "스프레드시트 삭제 오류", "항목 삭제 중 오류가 발생했습니다: {error}");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.validationError", "testcase", "스프레드시트 검증 오류", "검증 중 오류가 발생했습니다: {error}");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.pdfExportError", "testcase", "스프레드시트 PDF 오류", "PDF 내보내기 중 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists(
+        "testCase.export.noData", "testcase", "내보낼 데이터 없음", "내보낼 데이터가 없습니다.");
+    createTranslationKeyIfNotExists(
+        "testCase.export.csvSuccess", "testcase", "CSV 다운로드 성공", "CSV 파일이 다운로드되었습니다: {filename}");
+    createTranslationKeyIfNotExists(
+        "testCase.export.csvError", "testcase", "CSV 다운로드 오류", "CSV 다운로드 중 오류가 발생했습니다: {message}");
+    createTranslationKeyIfNotExists(
+        "testCase.export.excelSuccess", "testcase", "Excel 다운로드 성공", "Excel 파일이 다운로드되었습니다: {filename}");
+    createTranslationKeyIfNotExists(
+        "testCase.export.excelError", "testcase", "Excel 다운로드 오류", "Excel 다운로드 중 오류가 발생했습니다: {message}");
 
     log.info("i18n 하드코딩 보강 번역 키 초기화 완료");
   }
