@@ -101,6 +101,7 @@ public class RagController {
    */
   @Operation(summary = "문서 분석", description = "업로드된 문서를 분석하여 텍스트를 추출합니다.")
   @PostMapping("/documents/{documentId}/analyze")
+  @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId)")
   public ResponseEntity<RagDocumentResponse> analyzeDocument(
       @PathVariable UUID documentId,
       @RequestParam(value = "parser", defaultValue = "pymupdf4llm") String parser) {
@@ -126,6 +127,7 @@ public class RagController {
    */
   @Operation(summary = "임베딩 생성", description = "분석된 문서의 텍스트 청크에 대한 벡터 임베딩을 생성합니다.")
   @PostMapping("/embeddings/generate")
+  @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId)")
   public ResponseEntity<RagDocumentResponse> generateEmbeddings(
       @RequestParam("documentId") UUID documentId) {
 
@@ -251,6 +253,7 @@ public class RagController {
    */
   @Operation(summary = "문서 삭제", description = "문서를 삭제합니다.")
   @DeleteMapping("/documents/{documentId}")
+  @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId)")
   public ResponseEntity<String> deleteDocument(@PathVariable UUID documentId) {
     log.info("REST API: Delete document request - documentId={}", documentId);
 
