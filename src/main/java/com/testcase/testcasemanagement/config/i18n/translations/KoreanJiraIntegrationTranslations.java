@@ -28,13 +28,10 @@ public class KoreanJiraIntegrationTranslations {
 
     createTranslationIfNotExists("jira.summary.title", languageCode, "JIRA 상태 요약", createdBy);
     createTranslationIfNotExists(
-        "jira.summary.loading", languageCode, "JIRA 상태 정보를 불러오는 중...", createdBy);
-    createTranslationIfNotExists(
         "jira.summary.error", languageCode, "JIRA 상태 정보를 불러오는데 실패했습니다: {error}", createdBy);
     createTranslationIfNotExists(
         "jira.summary.noData", languageCode, "연결된 JIRA 이슈가 없습니다.", createdBy);
     createTranslationIfNotExists("jira.summary.filterAll", languageCode, "전체", createdBy);
-    createTranslationIfNotExists("jira.summary.filterActive", languageCode, "진행중", createdBy);
     createTranslationIfNotExists("jira.summary.filterFailed", languageCode, "실패", createdBy);
     createTranslationIfNotExists("jira.summary.filterPassed", languageCode, "통과", createdBy);
     createTranslationIfNotExists("jira.summary.refresh", languageCode, "새로고침", createdBy);
@@ -51,35 +48,10 @@ public class KoreanJiraIntegrationTranslations {
         createdBy);
     createTranslationIfNotExists("jira.summary.summaryStats", languageCode, "요약 통계", createdBy);
     createTranslationIfNotExists("jira.summary.totalIssues", languageCode, "전체 이슈", createdBy);
-    createTranslationIfNotExists("jira.summary.activeIssues", languageCode, "활성 이슈", createdBy);
-    createTranslationIfNotExists("jira.summary.allPassed", languageCode, "전체 통과", createdBy);
     createTranslationIfNotExists("jira.summary.hasFailed", languageCode, "실패 포함", createdBy);
     createTranslationIfNotExists("jira.summary.latestTest", languageCode, "최근 테스트:", createdBy);
     createTranslationIfNotExists("jira.summary.executionTime", languageCode, "실행 시간:", createdBy);
     createTranslationIfNotExists("jira.summary.sync", languageCode, "동기화:", createdBy);
-    createTranslationIfNotExists("jira.settings.title", languageCode, "JIRA 통합 설정", createdBy);
-    createTranslationIfNotExists(
-        "jira.settings.description",
-        languageCode,
-        "JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.",
-        createdBy);
-    createTranslationIfNotExists("jira.button.configure", languageCode, "설정 수정", createdBy);
-    createTranslationIfNotExists("jira.button.delete", languageCode, "설정 삭제", createdBy);
-    createTranslationIfNotExists(
-        "jira.success.saved", languageCode, "JIRA 설정이 저장되었습니다.", createdBy);
-    createTranslationIfNotExists(
-        "jira.success.deleted", languageCode, "JIRA 설정이 삭제되었습니다.", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.saveFailed", languageCode, "JIRA 설정 저장에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.deleteFailed", languageCode, "JIRA 설정 삭제 실패", createdBy);
-    createTranslationIfNotExists("jira.error.network", languageCode, "네트워크 연결을 확인해주세요.", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.authentication", languageCode, "로그인이 만료되었습니다. 다시 로그인해주세요.", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.encryption", languageCode, "서버 설정에 문제가 있습니다. 관리자에게 문의하세요.", createdBy);
-    createTranslationIfNotExists(
-        "jira.confirm.delete", languageCode, "JIRA 설정을 삭제하시겠습니까?", createdBy);
     createTranslationIfNotExists(
         "jira.indicator.checkingStatus", languageCode, "확인 중...", createdBy);
     createTranslationIfNotExists("jira.indicator.unknown", languageCode, "알 수 없음", createdBy);
@@ -187,22 +159,9 @@ public class KoreanJiraIntegrationTranslations {
     createTranslationIfNotExists("jira.api.networkError", languageCode, "네트워크 연결 실패", createdBy);
     createTranslationIfNotExists("jira.api.testFailure", languageCode, "연결 테스트 실패", createdBy);
     createTranslationIfNotExists("jira.api.unknownError", languageCode, "알 수 없는 오류", createdBy);
-    createTranslationIfNotExists("jira.error.saveFailed", languageCode, "저장에 실패했습니다", createdBy);
-    createTranslationIfNotExists("jira.error.deleteFailed", languageCode, "삭제에 실패했습니다", createdBy);
-    createTranslationIfNotExists("jira.error.network", languageCode, "네트워크 연결 오류", createdBy);
-    createTranslationIfNotExists(
-        "jira.error.authentication", languageCode, "인증에 실패했습니다", createdBy);
-    createTranslationIfNotExists("jira.error.encryption", languageCode, "암호화 처리 오류", createdBy);
     createTranslationIfNotExists(
         "jira.status.connectionStatus", languageCode, "JIRA 연결 상태", createdBy);
     createTranslationIfNotExists("jira.status.connected", languageCode, "연결됨", createdBy);
-    createTranslationIfNotExists("jira.status.disconnected", languageCode, "연결 안됨", createdBy);
-    createTranslationIfNotExists(
-        "jira.messages.connectionError", languageCode, "JIRA 연결에 실패했습니다", createdBy);
-    createTranslationIfNotExists(
-        "jira.messages.syncSuccess", languageCode, "JIRA와 성공적으로 동기화되었습니다", createdBy);
-    createTranslationIfNotExists(
-        "jira.messages.syncError", languageCode, "JIRA 동기화에 실패했습니다", createdBy);
 
     // JiraCommentDialog 컴포넌트 관련
     createTranslationIfNotExists(

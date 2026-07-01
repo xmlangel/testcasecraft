@@ -259,11 +259,6 @@ public class EnglishTranslationManagementTranslations {
     createTranslationIfNotExists(
         "translation.languageTab.table.sortOrder", languageCode, "Sort Order", createdBy);
     createTranslationIfNotExists(
-        "translation.languageTab.deleteConfirm",
-        languageCode,
-        "Are you sure you want to delete this language?",
-        createdBy);
-    createTranslationIfNotExists(
         "translation.keyTab.listTitle", languageCode, "Translation Key List", createdBy);
     createTranslationIfNotExists(
         "translation.keyTab.addKey", languageCode, "Add Translation Key", createdBy);
@@ -281,11 +276,6 @@ public class EnglishTranslationManagementTranslations {
         "translation.keyTab.table.defaultValue", languageCode, "Default Value", createdBy);
     createTranslationIfNotExists(
         "translation.keyTab.table.isActive", languageCode, "Active Status", createdBy);
-    createTranslationIfNotExists(
-        "translation.keyTab.deleteConfirm",
-        languageCode,
-        "Are you sure you want to delete this translation key?",
-        createdBy);
     createTranslationIfNotExists(
         "translation.translationTab.listTitle", languageCode, "Translation List", createdBy);
     createTranslationIfNotExists(
@@ -311,11 +301,6 @@ public class EnglishTranslationManagementTranslations {
         "translation.translationTab.table.isActive", languageCode, "Active Status", createdBy);
     createTranslationIfNotExists(
         "translation.translationTab.table.updatedBy", languageCode, "Updated By", createdBy);
-    createTranslationIfNotExists(
-        "translation.translationTab.deleteConfirm",
-        languageCode,
-        "Are you sure you want to delete this translation?",
-        createdBy);
     createTranslationIfNotExists(
         "translation.statisticsTab.title",
         languageCode,

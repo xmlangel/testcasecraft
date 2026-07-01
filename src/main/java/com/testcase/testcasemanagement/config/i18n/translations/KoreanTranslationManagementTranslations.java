@@ -207,8 +207,6 @@ public class KoreanTranslationManagementTranslations {
     createTranslationIfNotExists(
         "translation.languageTab.table.sortOrder", languageCode, "정렬 순서", createdBy);
     createTranslationIfNotExists(
-        "translation.languageTab.deleteConfirm", languageCode, "정말로 이 언어를 삭제하시겠습니까?", createdBy);
-    createTranslationIfNotExists(
         "translation.keyTab.listTitle", languageCode, "번역 키 목록", createdBy);
     createTranslationIfNotExists("translation.keyTab.addKey", languageCode, "번역 키 추가", createdBy);
     createTranslationIfNotExists(
@@ -225,8 +223,6 @@ public class KoreanTranslationManagementTranslations {
         "translation.keyTab.table.defaultValue", languageCode, "기본값", createdBy);
     createTranslationIfNotExists(
         "translation.keyTab.table.isActive", languageCode, "활성 상태", createdBy);
-    createTranslationIfNotExists(
-        "translation.keyTab.deleteConfirm", languageCode, "정말로 이 번역 키를 삭제하시겠습니까?", createdBy);
     createTranslationIfNotExists(
         "translation.translationTab.listTitle", languageCode, "번역 목록", createdBy);
     createTranslationIfNotExists(
@@ -252,8 +248,6 @@ public class KoreanTranslationManagementTranslations {
         "translation.translationTab.table.isActive", languageCode, "활성 상태", createdBy);
     createTranslationIfNotExists(
         "translation.translationTab.table.updatedBy", languageCode, "수정자", createdBy);
-    createTranslationIfNotExists(
-        "translation.translationTab.deleteConfirm", languageCode, "정말로 이 번역을 삭제하시겠습니까?", createdBy);
     createTranslationIfNotExists(
         "translation.statisticsTab.title", languageCode, "번역 완성도 통계", createdBy);
     createTranslationIfNotExists(

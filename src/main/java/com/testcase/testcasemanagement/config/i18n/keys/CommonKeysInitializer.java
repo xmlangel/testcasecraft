@@ -29,12 +29,8 @@ public class CommonKeysInitializer {
     createTranslationKeyIfNotExists("message.success", "message", "성공 메시지", "성공적으로 처리되었습니다.");
     createTranslationKeyIfNotExists("message.error", "message", "오류 메시지", "오류가 발생했습니다.");
     createTranslationKeyIfNotExists("message.loading", "message", "로딩 메시지", "로딩 중...");
-    createTranslationKeyIfNotExists(
-        "message.confirm_delete", "message", "삭제 확인 메시지", "정말로 삭제하시겠습니까?");
 
     // 검증 메시지 키들
-    createTranslationKeyIfNotExists(
-        "validation.required", "validation", "필수 입력 검증", "필수 입력 항목입니다.");
     createTranslationKeyIfNotExists(
         "validation.email", "validation", "이메일 형식 검증", "올바른 이메일 형식을 입력하세요.");
     createTranslationKeyIfNotExists(
@@ -111,24 +107,8 @@ public class CommonKeysInitializer {
 
     // 추가 누락된 common 키들
     createTranslationKeyIfNotExists(
-        "common.unauthorized.redirecting", "common", "인증 실패 리다이렉트 메시지", "로그인 페이지로 이동합니다");
-    createTranslationKeyIfNotExists("common.loading.text", "common", "로딩 텍스트", "로딩 중");
-    createTranslationKeyIfNotExists(
-        "common.error.networkError", "common", "네트워크 오류", "네트워크 오류가 발생했습니다");
-    createTranslationKeyIfNotExists("common.error.serverError", "common", "서버 오류", "서버 오류가 발생했습니다");
-    createTranslationKeyIfNotExists(
-        "common.error.unknownError", "common", "알 수 없는 오류", "알 수 없는 오류가 발생했습니다");
-    createTranslationKeyIfNotExists("common.success.saved", "common", "저장 성공", "성공적으로 저장되었습니다");
-    createTranslationKeyIfNotExists("common.success.deleted", "common", "삭제 성공", "성공적으로 삭제되었습니다");
-    createTranslationKeyIfNotExists("common.confirm.delete", "common", "삭제 확인", "삭제하시겠습니까?");
-    createTranslationKeyIfNotExists(
         "common.unauthorized.backToProjects", "common", "프로젝트 목록으로 돌아가기", "프로젝트 목록으로");
-    createTranslationKeyIfNotExists("common.status.loading", "common", "로딩 상태", "로딩 중");
-    createTranslationKeyIfNotExists("common.status.error", "common", "오류 상태", "오류");
     createTranslationKeyIfNotExists("common.actions.view", "common", "보기 액션", "보기");
-    createTranslationKeyIfNotExists("common.actions.download", "common", "다운로드 액션", "다운로드");
-    createTranslationKeyIfNotExists(
-        "common.validation.required", "common", "필수 입력 검증", "필수 입력 항목입니다");
     createTranslationKeyIfNotExists("common.expand", "common", "펼치기", "펼치기");
     createTranslationKeyIfNotExists("common.collapse", "common", "접기", "접기");
     createTranslationKeyIfNotExists("common.excel", "common", "Excel", "Excel (.xlsx)");
@@ -145,37 +125,16 @@ public class CommonKeysInitializer {
     createTranslationKeyIfNotExists("common.search", "common", "검색", "검색");
 
     // 설정 관련 키
-    createTranslationKeyIfNotExists("config.database.title", "config", "데이터베이스 설정", "데이터베이스 설정");
-    createTranslationKeyIfNotExists("config.api.title", "config", "API 설정", "API 설정");
-    createTranslationKeyIfNotExists("config.integration.title", "config", "통합 설정", "통합 설정");
 
     // 승인 워크플로 관련 키
-    createTranslationKeyIfNotExists("approval.request.title", "approval", "승인 요청", "승인 요청");
-    createTranslationKeyIfNotExists("approval.pending.list", "approval", "대기 중인 승인 목록", "대기 중인 승인");
-    createTranslationKeyIfNotExists("approval.approved.list", "approval", "승인된 목록", "승인됨");
-    createTranslationKeyIfNotExists("approval.rejected.list", "approval", "거부된 목록", "거부됨");
 
     // 작업 관리 관련 키
-    createTranslationKeyIfNotExists("task.assignment.title", "task", "작업 할당", "작업 할당");
-    createTranslationKeyIfNotExists("task.deadline.title", "task", "마감일 설정", "마감일");
 
     // 감사 및 로깅 관련 키
-    createTranslationKeyIfNotExists("audit.log.title", "audit", "감사 로그", "감사 로그");
-    createTranslationKeyIfNotExists("audit.trail.title", "audit", "감사 추적", "감사 추적");
-    createTranslationKeyIfNotExists("log.system.title", "log", "시스템 로그", "시스템 로그");
-    createTranslationKeyIfNotExists("log.user.activity", "log", "사용자 활동 로그", "사용자 활동");
-    createTranslationKeyIfNotExists("log.error.title", "log", "오류 로그", "오류 로그");
-    createTranslationKeyIfNotExists("log.access.title", "log", "접근 로그", "접근 로그");
 
     // 이력 관리 관련 키
-    createTranslationKeyIfNotExists("history.change.title", "history", "변경 이력", "변경 이력");
-    createTranslationKeyIfNotExists("history.version.title", "history", "버전 이력", "버전 이력");
-    createTranslationKeyIfNotExists("history.backup.title", "history", "백업 이력", "백업 이력");
 
     // 모니터링 관련
-    createTranslationKeyIfNotExists(
-        "monitoring.status.title", "monitoring", "시스템 모니터링 상태", "모니터링 상태");
-    createTranslationKeyIfNotExists("calendar.view.title", "calendar", "캘린더 보기", "캘린더 보기");
 
     // LLM 설정 관리 키들
     createTranslationKeyIfNotExists("admin.llmConfig.title", "admin", "LLM 설정 관리 제목", "LLM 설정 관리");
@@ -286,19 +245,8 @@ public class CommonKeysInitializer {
         "공통 문서 설명",
         "모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스를 관리합니다. (관리자 전용)");
     createTranslationKeyIfNotExists("admin.globalDoc.uploadFile", "admin", "파일 업로드", "파일 업로드");
-    createTranslationKeyIfNotExists("admin.globalDoc.fileName", "admin", "파일명", "파일명");
-    createTranslationKeyIfNotExists("admin.globalDoc.fileSize", "admin", "파일 크기", "파일 크기");
-    createTranslationKeyIfNotExists("admin.globalDoc.analysisStatus", "admin", "분석 상태", "분석 상태");
-    createTranslationKeyIfNotExists("admin.globalDoc.parser", "admin", "파서", "파서");
-    createTranslationKeyIfNotExists("admin.globalDoc.embeddingStatus", "admin", "임베딩 상태", "임베딩 상태");
-    createTranslationKeyIfNotExists("admin.globalDoc.chunkCount", "admin", "청크 수", "청크 수");
-    createTranslationKeyIfNotExists("admin.globalDoc.uploader", "admin", "업로더", "업로더");
-    createTranslationKeyIfNotExists("admin.globalDoc.uploadDate", "admin", "업로드 날짜", "업로드 날짜");
     createTranslationKeyIfNotExists(
         "admin.globalDoc.noDocuments", "admin", "문서 없음", "아직 공통 문서가 없습니다. 첫 번째 문서를 업로드해보세요!");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.parserUnknown", "admin", "파서 알 수 없음", "알 수 없음");
-    createTranslationKeyIfNotExists("admin.globalDoc.parserAuto", "admin", "파서 자동", "자동 선택");
 
     // 공통 문서 정보 섹션
     createTranslationKeyIfNotExists(
@@ -331,20 +279,8 @@ public class CommonKeysInitializer {
         "admin.globalDoc.info.adminOnly", "admin", "관리자 전용", "관리자만 업로드/삭제 가능 (ADMIN 권한 필요)");
 
     // 문서 상태
-    createTranslationKeyIfNotExists("admin.globalDoc.status.completed", "admin", "완료", "완료");
-    createTranslationKeyIfNotExists("admin.globalDoc.status.pending", "admin", "대기", "대기");
-    createTranslationKeyIfNotExists("admin.globalDoc.status.failed", "admin", "실패", "실패");
 
     // 문서 작업 버튼
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.action.preview", "admin", "PDF 미리보기", "PDF 미리보기");
-    createTranslationKeyIfNotExists("admin.globalDoc.action.viewChunks", "admin", "청크 보기", "청크 보기");
-    createTranslationKeyIfNotExists("admin.globalDoc.action.download", "admin", "다운로드", "다운로드");
-    createTranslationKeyIfNotExists("admin.globalDoc.action.analyze", "admin", "문서 분석", "문서 분석");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.action.generateEmbedding", "admin", "임베딩 생성", "임베딩 생성");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.action.generateEmbeddings", "admin", "임베딩 생성", "임베딩 생성");
 
     // 문서 메시지
     createTranslationKeyIfNotExists(
@@ -377,12 +313,6 @@ public class CommonKeysInitializer {
     createTranslationKeyIfNotExists(
         "admin.globalDoc.message.downloadFailed", "admin", "다운로드 실패", "다운로드 실패");
     createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.viewChunksFailed", "admin", "청크 조회 실패", "청크 조회 실패");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.previewFailed", "admin", "미리보기 실패", "미리보기 실패");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.message.pdfOnly", "admin", "PDF만 가능", "PDF 파일만 미리보기가 가능합니다.");
-    createTranslationKeyIfNotExists(
         "admin.globalDoc.message.supportedFormats",
         "admin",
         "지원 형식",
@@ -393,16 +323,8 @@ public class CommonKeysInitializer {
         "admin.globalDoc.message.unknownError", "admin", "알 수 없는 오류", "알 수 없는 오류");
 
     // 청크 다이얼로그
-    createTranslationKeyIfNotExists("admin.globalDoc.chunks.title", "admin", "문서 청크 제목", "문서 청크");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.chunks.chunkNumber", "admin", "청크 번호", "청크 #{0}");
-    createTranslationKeyIfNotExists("admin.globalDoc.noChunks", "admin", "청크 없음", "청크가 없습니다.");
 
     // PDF 미리보기 다이얼로그
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.preview.title", "admin", "PDF 미리보기 제목", "PDF 미리보기");
-    createTranslationKeyIfNotExists(
-        "admin.globalDoc.preview.loading", "admin", "미리보기 로딩", "미리보기를 불러올 수 없습니다.");
 
     // 가이드 뷰어 관련 키들
     createTranslationKeyIfNotExists("guide.viewer.title", "guide", "가이드 뷰어 제목", "가이드");

@@ -18,8 +18,6 @@ public class TestExecutionKeysInitializer {
   public void initialize() {
     // 테스트 실행 관련 키들
     createTranslationKeyIfNotExists(
-        "testExecution.title", "testExecution", "테스트 실행 페이지 제목", "테스트 실행");
-    createTranslationKeyIfNotExists(
         "testExecution.createTitle", "testExecution", "테스트 실행 등록 제목", "테스트 실행 등록");
     createTranslationKeyIfNotExists(
         "testExecution.list.title", "testExecution", "실행 이력 제목", "실행 이력");
@@ -93,11 +91,6 @@ public class TestExecutionKeysInitializer {
         "testExecution.table.executionId", "testExecution", "실행 ID 컬럼", "실행ID");
     createTranslationKeyIfNotExists(
         "testExecution.table.executionName", "testExecution", "실행명 컬럼", "실행명");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.noTestCases",
-        "testExecution",
-        "테스트케이스 없음 메시지",
-        "테스트 계획에 포함된 테스트케이스가 없습니다.");
     createTranslationKeyIfNotExists("testExecution.table.folder", "testExecution", "폴더 컬럼", "폴더");
     createTranslationKeyIfNotExists("testExecution.table.tags", "testExecution", "태그 컬럼", "태그");
     // Checkbox aria-labels for accessibility
@@ -139,26 +132,8 @@ public class TestExecutionKeysInitializer {
         "체크하면 저장과 동시에 테스트 실행이 '진행 중' 상태로 변경되며, 창을 닫지 않고 현재 화면에서 바로 테스트를 시작할 수 있습니다");
 
     // 추가 누락 키들
-    createTranslationKeyIfNotExists(
-        "testExecution.form.startImmediately", "testExecution", "즉시 시작 폼 라벨", "저장 후 즉시 실행 시작");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.startImmediately.description",
-        "testExecution",
-        "즉시 시작 폼 설명",
-        "체크하면 저장과 동시에 테스트 실행이 '진행 중' 상태로 변경됩니다");
-    createTranslationKeyIfNotExists(
-        "testExecution.attachments.close", "testExecution", "첨부파일 닫기", "닫기");
-    createTranslationKeyIfNotExists(
-        "testExecution.actions.rerunExecution", "testExecution", "재실행 액션", "재실행");
 
     // 이전 결과 다이얼로그
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.title", "testExecution", "이전 실행 결과 제목", "이전 실행 결과");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.noResults",
-        "testExecution",
-        "이전 실행 결과 없음",
-        "이전 실행 결과가 없습니다.");
     createTranslationKeyIfNotExists(
         "testExecution.previousResults.executionDate", "testExecution", "실행일시 컬럼", "실행일시");
     createTranslationKeyIfNotExists(
@@ -184,14 +159,6 @@ public class TestExecutionKeysInitializer {
         "testExecution.attachments.view", "testExecution", "첨부파일 보기", "첨부파일 보기");
 
     // 추가 누락된 키들 (dialog, progress)
-    createTranslationKeyIfNotExists(
-        "testExecution.dialog.attachments.title", "testExecution", "첨부파일 다이얼로그 제목", "첨부파일");
-    createTranslationKeyIfNotExists(
-        "testExecution.dialog.attachments.close", "testExecution", "첨부파일 다이얼로그 닫기 버튼", "닫기");
-    createTranslationKeyIfNotExists(
-        "testExecution.progress.completed", "testExecution", "완료된 테스트 수", "완료: {count}");
-    createTranslationKeyIfNotExists(
-        "testExecution.progress.total", "testExecution", "전체 테스트 수", "/ {total}");
     createTranslationKeyIfNotExists("testExecution.progress", "testExecution", "진행률", "진행률");
 
     // 추가 번역 키 (누락된 것들)
@@ -212,44 +179,13 @@ public class TestExecutionKeysInitializer {
         "testExecution.list.refresh", "testExecution", "목록 새로고침 버튼", "새로고침");
 
     createTranslationKeyIfNotExists(
-        "testExecution.form.title.create", "testExecution", "테스트 실행 등록 제목", "테스트 실행 등록");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.title.edit", "testExecution", "테스트 실행 편집 제목", "테스트 실행: {name}");
-    createTranslationKeyIfNotExists(
         "testExecution.form.executionName", "testExecution", "실행명", "실행명");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.testPlan.select", "testExecution", "선택", "선택");
 
-    createTranslationKeyIfNotExists("testExecution.form.button.list", "testExecution", "목록", "목록");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.button.cancel", "testExecution", "취소", "취소");
-    createTranslationKeyIfNotExists("testExecution.form.button.save", "testExecution", "저장", "저장");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.button.saveAndStart", "testExecution", "저장 및 시작", "저장 및 시작");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.button.start", "testExecution", "실행시작", "실행시작");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.button.complete", "testExecution", "실행완료", "실행완료");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.button.restart", "testExecution", "재실행", "재실행");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.button.hideGuide", "testExecution", "안내 숨기기", "안내 숨기기");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.button.showGuide", "testExecution", "실행 절차", "실행 절차");
 
-    createTranslationKeyIfNotExists("testExecution.info.title", "testExecution", "실행 정보", "실행 정보");
-    createTranslationKeyIfNotExists("testExecution.info.status", "testExecution", "상태", "상태");
-    createTranslationKeyIfNotExists(
-        "testExecution.info.startDate", "testExecution", "시작일시", "시작일시");
-    createTranslationKeyIfNotExists("testExecution.info.endDate", "testExecution", "종료일시", "종료일시");
-    createTranslationKeyIfNotExists("testExecution.info.progress", "testExecution", "진행률", "진행률");
-    createTranslationKeyIfNotExists(
-        "testExecution.info.total", "testExecution", "총 건수", "총 {total} 건");
 
     // 테스트 실행 가이드
     createTranslationKeyIfNotExists(
         "testExecution.guide.title", "testExecution", "테스트 실행 절차 안내", "📋 테스트 실행 절차 안내");
-    createTranslationKeyIfNotExists("testExecution.guide.close", "testExecution", "닫기", "닫기");
     createTranslationKeyIfNotExists(
         "testExecution.guide.step1.title", "testExecution", "1단계 제목", "1. 테스트 실행 준비");
     createTranslationKeyIfNotExists(
@@ -310,34 +246,8 @@ public class TestExecutionKeysInitializer {
     createTranslationKeyIfNotExists("common.cancel", "common", "취소", "취소");
 
     // 테스트 케이스 테이블 헤더
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.folderCase", "testExecution", "폴더/케이스", "폴더/케이스");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.caseName", "testExecution", "케이스명", "케이스명");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.result", "testExecution", "결과", "결과");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.executedAt", "testExecution", "실행일시", "실행일시");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.executedBy", "testExecution", "실행자", "실행자");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.notes", "testExecution", "비고", "비고");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.jiraId", "testExecution", "JIRA ID", "JIRA ID");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.resultInput", "testExecution", "결과입력", "결과입력");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.previousResults", "testExecution", "이전결과", "이전결과");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.header.attachments", "testExecution", "첨부파일", "첨부파일");
 
     // 테스트 케이스 테이블 버튼
-    createTranslationKeyIfNotExists(
-        "testExecution.table.button.resultInput", "testExecution", "결과입력", "결과입력");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.button.previousResults", "testExecution", "이전결과", "이전결과");
-    createTranslationKeyIfNotExists(
-        "testExecution.table.button.attachments", "testExecution", "첨부파일", "첨부파일");
 
     // 페이지네이션
     createTranslationKeyIfNotExists(
@@ -349,22 +259,6 @@ public class TestExecutionKeysInitializer {
         "testExecution.pagination.page", "testExecution", "페이지", "페이지 {current} / {total}");
 
     // 이전 결과 다이얼로그 테이블
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.table.executedAt", "testExecution", "실행일시", "실행일시");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.table.result", "testExecution", "결과", "결과");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.table.executionId", "testExecution", "실행ID", "실행ID");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.table.executionName", "testExecution", "실행명", "실행명");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.table.executedBy", "testExecution", "실행자", "실행자");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.table.notes", "testExecution", "비고", "비고");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.table.jiraId", "testExecution", "JIRA ID", "JIRA ID");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.table.attachments", "testExecution", "첨부파일", "첨부파일");
     createTranslationKeyIfNotExists(
         "testExecution.previousResults.table.tags", "testExecution", "태그", "태그");
     createTranslationKeyIfNotExists(
@@ -396,8 +290,6 @@ public class TestExecutionKeysInitializer {
         "testExecution",
         "테스트 결과 첨부파일 다이얼로그 제목",
         "테스트 결과 첨부파일");
-    createTranslationKeyIfNotExists(
-        "testExecution.previousResults.close", "testExecution", "닫기", "닫기");
 
     // JIRA 이슈 링크
     createTranslationKeyIfNotExists(
@@ -409,17 +301,8 @@ public class TestExecutionKeysInitializer {
         "testExecution.jira.historical", "testExecution", "JIRA 과거 연결 이력 안내", "과거 연결 이력");
 
     // 성공 메시지
-    createTranslationKeyIfNotExists(
-        "testExecution.success.savedAndStarted",
-        "testExecution",
-        "저장 및 시작 성공",
-        "테스트 실행 '{name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.");
 
     // 누락된 키들 추가
-    createTranslationKeyIfNotExists(
-        "testExecution.form.titleNew", "testExecution", "새 테스트 실행 제목", "테스트 실행 등록");
-    createTranslationKeyIfNotExists(
-        "testExecution.form.titleEdit", "testExecution", "테스트 실행 편집 제목", "테스트 실행: {name}");
     createTranslationKeyIfNotExists(
         "testExecution.form.saveAndStart", "testExecution", "저장 및 시작", "저장 및 시작");
     createTranslationKeyIfNotExists(
@@ -517,13 +400,7 @@ public class TestExecutionKeysInitializer {
 
     // 일괄 결과 입력 관련
     createTranslationKeyIfNotExists(
-        "testExecution.bulk.selectAll", "testExecution", "전체 선택", "전체 선택");
-    createTranslationKeyIfNotExists(
-        "testExecution.bulk.deselectAll", "testExecution", "전체 해제", "전체 해제");
-    createTranslationKeyIfNotExists(
         "testExecution.bulk.selectedCount", "testExecution", "선택된 개수", "{count}개 선택됨");
-    createTranslationKeyIfNotExists(
-        "testExecution.bulk.actionToolbar.title", "testExecution", "일괄 작업 툴바 제목", "일괄 작업");
     createTranslationKeyIfNotExists(
         "testExecution.bulk.actionToolbar.deselect", "testExecution", "선택 해제 버튼", "선택 해제");
     createTranslationKeyIfNotExists(
@@ -555,12 +432,6 @@ public class TestExecutionKeysInitializer {
         "일괄 처리 진행 중",
         "{current}/{total} 처리 중...");
     createTranslationKeyIfNotExists(
-        "testExecution.bulk.partialSuccess",
-        "testExecution",
-        "일부 성공 메시지",
-        "{success}개 성공, {failed}개 실패");
-    createTranslationKeyIfNotExists("testExecution.table.select", "testExecution", "선택 컬럼", "선택");
-    createTranslationKeyIfNotExists(
         "testExecution.table.priority", "testExecution", "우선순위 컬럼", "우선순위");
 
     // 필터 관련 번역 키 추가
@@ -568,7 +439,6 @@ public class TestExecutionKeysInitializer {
     createTranslationKeyIfNotExists(
         "testExecution.filter.active", "testExecution", "필터 적용 중 표시", "적용 중");
     createTranslationKeyIfNotExists("testExecution.filter.all", "testExecution", "전체 선택", "전체");
-    createTranslationKeyIfNotExists("testExecution.filter.status", "testExecution", "상태 필터", "상태");
     createTranslationKeyIfNotExists(
         "testExecution.filter.priority", "testExecution", "우선순위 필터", "우선순위");
     createTranslationKeyIfNotExists(
@@ -591,17 +461,11 @@ public class TestExecutionKeysInitializer {
     createTranslationKeyIfNotExists(
         "testExecution.filter.executedBy.placeholder", "testExecution", "실행자 입력 안내", "username");
     createTranslationKeyIfNotExists(
-        "testExecution.filter.dateFrom", "testExecution", "실행일자 시작", "실행일자 (시작)");
-    createTranslationKeyIfNotExists(
-        "testExecution.filter.dateTo", "testExecution", "실행일자 종료", "실행일자 (종료)");
-    createTranslationKeyIfNotExists(
         "testExecution.filter.jiraIssueKey", "testExecution", "JIRA 아이디 필터", "JIRA 아이디");
     createTranslationKeyIfNotExists(
         "testExecution.filter.apply", "testExecution", "필터 적용 버튼", "적용");
     createTranslationKeyIfNotExists(
         "testExecution.filter.clear", "testExecution", "필터 초기화 버튼", "초기화");
-    createTranslationKeyIfNotExists(
-        "testExecution.filter.noResults", "testExecution", "필터 결과 없음", "필터 조건에 맞는 테스트 실행이 없습니다.");
     createTranslationKeyIfNotExists(
         "testExecution.filter.testCaseName", "testExecution", "테스트 케이스명 필터", "테스트 케이스명");
     createTranslationKeyIfNotExists(

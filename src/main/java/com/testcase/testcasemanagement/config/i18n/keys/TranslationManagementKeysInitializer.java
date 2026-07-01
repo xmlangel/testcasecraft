@@ -224,8 +224,6 @@ public class TranslationManagementKeysInitializer {
         "translation.languageTab.table.isActive", "translation", "활성 상태 테이블 헤더", "활성 상태");
     createTranslationKeyIfNotExists(
         "translation.languageTab.table.sortOrder", "translation", "정렬 순서 테이블 헤더", "정렬 순서");
-    createTranslationKeyIfNotExists(
-        "translation.languageTab.deleteConfirm", "translation", "언어 삭제 확인", "정말로 이 언어를 삭제하시겠습니까?");
 
     // 번역 키 관리 탭 키들
     createTranslationKeyIfNotExists(
@@ -247,8 +245,6 @@ public class TranslationManagementKeysInitializer {
         "translation.keyTab.table.defaultValue", "translation", "기본값 테이블 헤더", "기본값");
     createTranslationKeyIfNotExists(
         "translation.keyTab.table.isActive", "translation", "활성 상태 테이블 헤더", "활성 상태");
-    createTranslationKeyIfNotExists(
-        "translation.keyTab.deleteConfirm", "translation", "번역 키 삭제 확인", "정말로 이 번역 키를 삭제하시겠습니까?");
 
     // 번역 관리 탭 키들
     createTranslationKeyIfNotExists(
@@ -276,11 +272,6 @@ public class TranslationManagementKeysInitializer {
         "translation.translationTab.table.isActive", "translation", "활성 상태 테이블 헤더", "활성 상태");
     createTranslationKeyIfNotExists(
         "translation.translationTab.table.updatedBy", "translation", "수정자 테이블 헤더", "수정자");
-    createTranslationKeyIfNotExists(
-        "translation.translationTab.deleteConfirm",
-        "translation",
-        "번역 삭제 확인",
-        "정말로 이 번역을 삭제하시겠습니까?");
 
     // 통계 탭 키들
     createTranslationKeyIfNotExists(

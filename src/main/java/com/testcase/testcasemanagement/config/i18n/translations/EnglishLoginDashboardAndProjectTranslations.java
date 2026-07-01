@@ -258,8 +258,6 @@ public class EnglishLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists(
         "project.tooltips.memberCount", languageCode, "Member Count", createdBy);
     createTranslationIfNotExists(
-        "project.tooltips.junitStatus", languageCode, "Automation Test Status", createdBy);
-    createTranslationIfNotExists(
         "project.tooltips.automationTestCount",
         languageCode,
         "Automation Test Result Count",
@@ -392,7 +390,6 @@ public class EnglishLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists("common.button.close", languageCode, "Close", createdBy);
     createTranslationIfNotExists("common.button.refresh", languageCode, "Refresh", createdBy);
     createTranslationIfNotExists("common.button.retry", languageCode, "Retry", createdBy);
-    createTranslationIfNotExists("common.empty", languageCode, "-", createdBy);
     createTranslationIfNotExists("common.close", languageCode, "Close", createdBy);
     createTranslationIfNotExists("common.select", languageCode, "Select", createdBy);
     createTranslationIfNotExists("common.buttons.refresh", languageCode, "Refresh", createdBy);
@@ -827,31 +824,6 @@ public class EnglishLoginDashboardAndProjectTranslations {
         "organization.project.noDescription", languageCode, "No description", createdBy);
 
     // Usage Summary
-    createTranslationIfNotExists("dashboard.usage.title", languageCode, "Usage Summary", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.lastUpdated", languageCode, "Last Updated {time}", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.loading", languageCode, "Loading usage data...", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.error", languageCode, "Failed to load usage data.", createdBy);
-    createTranslationIfNotExists("dashboard.usage.retry", languageCode, "Retry", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.totalVisits", languageCode, "Today's Visits", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.uniqueVisitors", languageCode, "Today's Unique Visitors", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.activeVisitors", languageCode, "Active Sessions", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.activeWindow", languageCode, "Based on last {minutes} minutes", createdBy);
-    createTranslationIfNotExists("dashboard.usage.topPages", languageCode, "Top Pages", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.totalLabel", languageCode, "Total {total}", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.noData", languageCode, "No aggregated visit data available.", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.dailySummary", languageCode, "Daily Visit Summary", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.usage.uniqueLabel", languageCode, "Unique {count}", createdBy);
 
     // Statistics source type selection (Manual Test / Automated Test / Total
     // Aggregate)

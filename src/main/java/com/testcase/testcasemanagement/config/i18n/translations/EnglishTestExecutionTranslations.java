@@ -26,7 +26,6 @@ public class EnglishTestExecutionTranslations {
     String languageCode = "en";
     String createdBy = "system";
 
-    createTranslationIfNotExists("testExecution.title", languageCode, "Test Execution", createdBy);
     createTranslationIfNotExists(
         "testExecution.list.title", languageCode, "Execution History", createdBy);
     createTranslationIfNotExists(
@@ -54,59 +53,15 @@ public class EnglishTestExecutionTranslations {
     createTranslationIfNotExists(
         "testExecution.status.completed", languageCode, "Completed", createdBy);
     createTranslationIfNotExists(
-        "testExecution.form.title.create", languageCode, "Create Test Execution", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.title.edit", languageCode, "Test Execution: {name}", createdBy);
-    createTranslationIfNotExists(
         "testExecution.form.executionName", languageCode, "Execution Name", createdBy);
     createTranslationIfNotExists(
         "testExecution.form.testPlan", languageCode, "Test Plan", createdBy);
     createTranslationIfNotExists(
-        "testExecution.form.testPlan.select", languageCode, "Select", createdBy);
-    createTranslationIfNotExists(
         "testExecution.form.description", languageCode, "Description", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.startImmediately",
-        languageCode,
-        "Start execution immediately after saving",
-        createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.startImmediately.description",
-        languageCode,
-        "If checked, the test execution will be changed to 'In Progress' status immediately upon"
-            + " saving, allowing you to start testing right away without closing the window",
-        createdBy);
-    createTranslationIfNotExists("testExecution.form.button.list", languageCode, "List", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.button.cancel", languageCode, "Cancel", createdBy);
-    createTranslationIfNotExists("testExecution.form.button.save", languageCode, "Save", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.button.saveAndStart", languageCode, "Save & Start", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.button.start", languageCode, "Start Execution", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.button.complete", languageCode, "Complete Execution", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.button.restart", languageCode, "Restart", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.button.hideGuide", languageCode, "Hide Guide", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.button.showGuide", languageCode, "Execution Guide", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.info.title", languageCode, "Execution Info", createdBy);
-    createTranslationIfNotExists("testExecution.info.status", languageCode, "Status", createdBy);
     createTranslationIfNotExists(
         "testExecution.executionSummary", languageCode, "Execution Summary", createdBy);
     createTranslationIfNotExists(
-        "testExecution.info.startDate", languageCode, "Start Date", createdBy);
-    createTranslationIfNotExists("testExecution.info.endDate", languageCode, "End Date", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.info.progress", languageCode, "Progress", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.info.total", languageCode, "Total {total} items", createdBy);
-    createTranslationIfNotExists(
         "testExecution.guide.title", languageCode, "📋 Test Execution Procedure Guide", createdBy);
-    createTranslationIfNotExists("testExecution.guide.close", languageCode, "Close", createdBy);
     createTranslationIfNotExists(
         "testExecution.guide.step1.title",
         languageCode,
@@ -159,32 +114,6 @@ public class EnglishTestExecutionTranslations {
             + " to 'In Progress' status for additional testing.",
         createdBy);
     createTranslationIfNotExists(
-        "testExecution.table.header.folderCase", languageCode, "Folder/Case", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.caseName", languageCode, "Case Name", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.result", languageCode, "Result", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.executedAt", languageCode, "Executed At", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.executedBy", languageCode, "Executed By", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.notes", languageCode, "Notes", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.jiraId", languageCode, "JIRA ID", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.resultInput", languageCode, "Enter Result", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.previousResults", languageCode, "Previous Results", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.attachments", languageCode, "Attachments", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.button.resultInput", languageCode, "Enter Result", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.button.previousResults", languageCode, "Previous Results", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.button.attachments", languageCode, "Attachments", createdBy);
-    createTranslationIfNotExists(
         "testExecution.pagination.info",
         languageCode,
         "Showing {start}-{end} of {totalItems} items",
@@ -192,59 +121,14 @@ public class EnglishTestExecutionTranslations {
     createTranslationIfNotExists(
         "testExecution.pagination.page", languageCode, "Page {current} / {total}", createdBy);
     createTranslationIfNotExists(
-        "testExecution.table.noTestCases", languageCode, "No test cases to display.", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.title",
-        languageCode,
-        "Previous Execution Results",
-        createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.noResults",
-        languageCode,
-        "No previous execution results found.",
-        createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.close", languageCode, "Close", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.table.executedAt", languageCode, "Executed At", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.table.result", languageCode, "Result", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.table.executionId", languageCode, "Execution ID", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.table.executionName",
-        languageCode,
-        "Execution Name",
-        createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.table.executedBy", languageCode, "Executed By", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.table.notes", languageCode, "Notes", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.table.jiraId", languageCode, "JIRA ID", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.previousResults.table.attachments", languageCode, "Attachments", createdBy);
-    createTranslationIfNotExists(
         "testExecution.attachments.title", languageCode, "Test Result Attachments", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.attachments.close", languageCode, "Close", createdBy);
     createTranslationIfNotExists(
         "testExecution.jira.urlNotSet", languageCode, "{issueKey} (JIRA URL not set)", createdBy);
     createTranslationIfNotExists(
         "testExecution.jira.historical", languageCode, "Historical Linkage", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.success.savedAndStarted",
-        languageCode,
-        "Test execution '{name}' has been successfully saved and started. You can now enter results"
-            + " for each test case.",
-        createdBy);
     createTranslationIfNotExists("testExecution.form.status", languageCode, "Status", createdBy);
     createTranslationIfNotExists(
         "testExecution.table.folderCase", languageCode, "Folder/Case", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.titleNew", languageCode, "Create Test Execution", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.form.titleEdit", languageCode, "Test Execution: {name}", createdBy);
     createTranslationIfNotExists(
         "testExecution.actions.enterResult", languageCode, "Add", createdBy);
     createTranslationIfNotExists(
@@ -253,35 +137,6 @@ public class EnglishTestExecutionTranslations {
         "testExecution.actions.startExecution", languageCode, "Start Execution", createdBy);
     createTranslationIfNotExists(
         "testExecution.actions.completeExecution", languageCode, "Complete Execution", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.actions.rerunExecution", languageCode, "Re-run", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.folderCase", languageCode, "Folder/Case", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.caseName", languageCode, "Case Name", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.result", languageCode, "Result", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.executedAt", languageCode, "Executed At", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.executedBy", languageCode, "Executed By", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.notes", languageCode, "Notes", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.jiraId", languageCode, "JIRA ID", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.resultInput", languageCode, "Enter Result", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.previousResults", languageCode, "Previous Results", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.table.header.attachments", languageCode, "Attachments", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.dialog.attachments.title", languageCode, "Attachments", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.dialog.attachments.close", languageCode, "Close", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.progress.completed", languageCode, "Completed", createdBy);
-    createTranslationIfNotExists("testExecution.progress.total", languageCode, "Total", createdBy);
     createTranslationIfNotExists("testExecution.progress", languageCode, "Progress", createdBy);
     createTranslationIfNotExists(
         "testExecution.table.caseName", languageCode, "Case Name", createdBy);
@@ -486,13 +341,7 @@ public class EnglishTestExecutionTranslations {
 
     // Bulk result input related English translations
     createTranslationIfNotExists(
-        "testExecution.bulk.selectAll", languageCode, "Select All", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.bulk.deselectAll", languageCode, "Deselect All", createdBy);
-    createTranslationIfNotExists(
         "testExecution.bulk.selectedCount", languageCode, "{count} selected", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.bulk.actionToolbar.title", languageCode, "Bulk Actions", createdBy);
     createTranslationIfNotExists(
         "testExecution.bulk.actionToolbar.deselect", languageCode, "Deselect", createdBy);
     createTranslationIfNotExists(
@@ -526,14 +375,8 @@ public class EnglishTestExecutionTranslations {
         languageCode,
         "Processing {current}/{total}...",
         createdBy);
-    createTranslationIfNotExists(
-        "testExecution.bulk.partialSuccess",
-        languageCode,
-        "{success} succeeded, {failed} failed",
-        createdBy);
     createTranslationIfNotExists("testExecution.table.folder", languageCode, "Folder", createdBy);
     createTranslationIfNotExists("testExecution.table.tags", languageCode, "Tags", createdBy);
-    createTranslationIfNotExists("testExecution.table.select", languageCode, "Select", createdBy);
     createTranslationIfNotExists(
         "testExecution.table.priority", languageCode, "Priority", createdBy);
 
@@ -547,7 +390,6 @@ public class EnglishTestExecutionTranslations {
     createTranslationIfNotExists("testExecution.filter.title", languageCode, "Filter", createdBy);
     createTranslationIfNotExists("testExecution.filter.active", languageCode, "Active", createdBy);
     createTranslationIfNotExists("testExecution.filter.all", languageCode, "All", createdBy);
-    createTranslationIfNotExists("testExecution.filter.status", languageCode, "Status", createdBy);
     createTranslationIfNotExists(
         "testExecution.filter.priority", languageCode, "Priority", createdBy);
     createTranslationIfNotExists(
@@ -570,18 +412,9 @@ public class EnglishTestExecutionTranslations {
     createTranslationIfNotExists(
         "testExecution.filter.executedBy.placeholder", languageCode, "username", createdBy);
     createTranslationIfNotExists(
-        "testExecution.filter.dateFrom", languageCode, "Execution Date (From)", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.filter.dateTo", languageCode, "Execution Date (To)", createdBy);
-    createTranslationIfNotExists(
         "testExecution.filter.jiraIssueKey", languageCode, "JIRA Issue Key", createdBy);
     createTranslationIfNotExists("testExecution.filter.apply", languageCode, "Apply", createdBy);
     createTranslationIfNotExists("testExecution.filter.clear", languageCode, "Clear", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.filter.noResults",
-        languageCode,
-        "No test executions match the filter criteria.",
-        createdBy);
     createTranslationIfNotExists(
         "testExecution.filter.testCaseName", languageCode, "Test Case Name", createdBy);
     createTranslationIfNotExists(

@@ -27,11 +27,9 @@ public class KoreanTestCaseAndAutomationTranslations {
     String createdBy = "system";
 
     // 섹션 번역
-    createTranslationIfNotExists("testcase.sections.basicInfo", languageCode, "기본 정보", createdBy);
     createTranslationIfNotExists("testcase.sections.steps", languageCode, "테스트 단계", createdBy);
     createTranslationIfNotExists(
         "testcase.sections.expectedResults", languageCode, "기대 결과", createdBy);
-    createTranslationIfNotExists("testcase.sections.attachments", languageCode, "첨부 파일", createdBy);
 
     // 탭 레이블
     createTranslationIfNotExists("testcase.tabs.details", languageCode, "상세 정보", createdBy);
@@ -248,10 +246,6 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.validation.row", languageCode, "행", createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.validation.solution", languageCode, "💡 해결 방법:", createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.validation.improvement", languageCode, "💡 개선 방법:", createdBy);
-    createTranslationIfNotExists(
         "testcase.spreadsheet.validation.successMessage",
         languageCode,
         "모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.",
@@ -304,7 +298,6 @@ public class KoreanTestCaseAndAutomationTranslations {
         "{row}번 행: 테스트케이스에 실행 단계가 정의되지 않았습니다.",
         createdBy);
 
-    createTranslationIfNotExists("testcase.form.continueAdding", languageCode, "계속 추가", createdBy);
     createTranslationIfNotExists("testcase.form.button.add", languageCode, "새 케이스 추가", createdBy);
 
     // 검증 제안 메시지 한글
@@ -346,8 +339,6 @@ public class KoreanTestCaseAndAutomationTranslations {
         languageCode,
         "Expected {number}",
         createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.validation.columnName.all", languageCode, "전체", createdBy);
 
     createTranslationIfNotExists(
         "testcase.spreadsheet.fallback.title", languageCode, "향상된 스프레드시트 모드", createdBy);
@@ -364,16 +355,7 @@ public class KoreanTestCaseAndAutomationTranslations {
         "react-datasheet-grid를 로드하는 중 오류가 발생했습니다.",
         createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.placeholder.multiline", languageCode, "여러 줄 입력 가능...", createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.placeholder.text", languageCode, "텍스트 입력...", createdBy);
-    createTranslationIfNotExists(
         "testcase.spreadsheet.placeholder.columnInput", languageCode, "{title} 입력...", createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.message.saveSuccess",
-        languageCode,
-        "{count}개의 테스트케이스가 저장되었습니다.",
-        createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.message.saveError",
         languageCode,
@@ -513,11 +495,7 @@ public class KoreanTestCaseAndAutomationTranslations {
         "testPlan.execution.action.view", languageCode, "전체화면 보기", createdBy);
     createTranslationIfNotExists("testPlan.execution.dialog.close", languageCode, "닫기", createdBy);
     createTranslationIfNotExists(
-        "testPlan.execution.list.copyLink", languageCode, "실행 링크 복사", createdBy);
-    createTranslationIfNotExists(
         "testPlan.execution.list.createdAt", languageCode, "생성일: {date}", createdBy);
-    createTranslationIfNotExists(
-        "testPlan.execution.list.progress", languageCode, "진행률", createdBy);
 
     // 삭제 관련
     createTranslationIfNotExists(
@@ -665,10 +643,6 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "junit.dashboard.uploadResult", languageCode, "테스트 결과 업로드", createdBy);
     createTranslationIfNotExists("junit.dashboard.refresh", languageCode, "새로고침", createdBy);
-    createTranslationIfNotExists(
-        "junit.header.testResultDashboard", languageCode, "테스트 결과 대시보드", createdBy);
-    createTranslationIfNotExists(
-        "junit.header.automationAnalysis", languageCode, "자동화 테스트 결과 분석", createdBy);
     createTranslationIfNotExists("junit.stats.passed", languageCode, "통과", createdBy);
     createTranslationIfNotExists("junit.stats.failed", languageCode, "실패", createdBy);
     createTranslationIfNotExists("junit.stats.error", languageCode, "에러", createdBy);
@@ -682,16 +656,10 @@ public class KoreanTestCaseAndAutomationTranslations {
         "junit.stats.averageSuccessRate", languageCode, "평균 성공률", createdBy);
     createTranslationIfNotExists("junit.tab.overview", languageCode, "개요", createdBy);
     createTranslationIfNotExists("junit.tab.recentResults", languageCode, "최근 결과", createdBy);
-    createTranslationIfNotExists("junit.tab.statisticsChart", languageCode, "통계 차트", createdBy);
-    createTranslationIfNotExists("junit.tab.trendAnalysis", languageCode, "트렌드 분석", createdBy);
     createTranslationIfNotExists(
         "junit.chart.testStatusDistribution", languageCode, "테스트 상태 분포", createdBy);
     createTranslationIfNotExists(
         "junit.chart.recentExecutionResults", languageCode, "최근 실행 결과", createdBy);
-    createTranslationIfNotExists(
-        "junit.chart.successRateTrend", languageCode, "성공률 트렌드", createdBy);
-    createTranslationIfNotExists(
-        "junit.chart.detailedStatistics", languageCode, "상세 통계 정보", createdBy);
     createTranslationIfNotExists("junit.table.executionName", languageCode, "실행 이름", createdBy);
     createTranslationIfNotExists("junit.table.fileName", languageCode, "파일명", createdBy);
     createTranslationIfNotExists("junit.table.totalTests", languageCode, "총 테스트", createdBy);
@@ -699,59 +667,24 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("junit.table.status", languageCode, "상태", createdBy);
     createTranslationIfNotExists("junit.table.uploadTime", languageCode, "업로드 시간", createdBy);
     createTranslationIfNotExists("junit.table.actions", languageCode, "작업", createdBy);
-    createTranslationIfNotExists("junit.button.viewDetail", languageCode, "상세 보기", createdBy);
-    createTranslationIfNotExists("junit.button.delete", languageCode, "삭제", createdBy);
-    createTranslationIfNotExists(
-        "junit.button.backToAutomation", languageCode, "자동화 테스트로 돌아가기", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.noResults", languageCode, "테스트 결과가 없습니다", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.uploadFirst",
-        languageCode,
-        "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
-        createdBy);
-    createTranslationIfNotExists(
-        "junit.message.firstUpload", languageCode, "첫 번째 테스트 결과 업로드", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.loadingResults", languageCode, "테스트 결과를 불러오는 중...", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.loadFailed", languageCode, "테스트 결과를 불러오는데 실패했습니다.", createdBy);
-    createTranslationIfNotExists("junit.message.noData", languageCode, "테스트 결과가 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.trendDataInsufficient", languageCode, "트렌드 분석을 위한 데이터가 부족합니다.", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.statisticsImplementing", languageCode, "통계 차트 구현 예정", createdBy);
     createTranslationIfNotExists(
         "junit.message.selectProject", languageCode, "프로젝트를 먼저 선택해주세요.", createdBy);
-    createTranslationIfNotExists(
-        "junit.message.deletingResult", languageCode, "정말로 이 테스트 결과를 삭제하시겠습니까?", createdBy);
     createTranslationIfNotExists(
         "junit.upload.dialog.title", languageCode, "JUnit XML 파일 업로드", createdBy);
     createTranslationIfNotExists(
         "junit.upload.dragDrop", languageCode, "JUnit XML 파일을 드래그하거나 클릭하여 선택", createdBy);
     createTranslationIfNotExists("junit.upload.selectFile", languageCode, "파일 선택", createdBy);
-    createTranslationIfNotExists("junit.upload.selectAnother", languageCode, "다른 파일 선택", createdBy);
     createTranslationIfNotExists(
         "junit.upload.maxSize", languageCode, "최대 {maxSize}까지 업로드 가능", createdBy);
     createTranslationIfNotExists(
         "junit.upload.allowedFormats", languageCode, "허용 형식: {formats}", createdBy);
     createTranslationIfNotExists(
         "junit.upload.executionInfo", languageCode, "테스트 실행 정보", createdBy);
-    createTranslationIfNotExists(
-        "junit.upload.executionName",
-        languageCode,
-        "실행 이름 (예: Sprint 24 Integration Tests)",
-        createdBy);
-    createTranslationIfNotExists("junit.upload.description", languageCode, "설명 (선택사항)", createdBy);
-    createTranslationIfNotExists("junit.upload.cancel", languageCode, "취소", createdBy);
     createTranslationIfNotExists("junit.upload.fileSize", languageCode, "크기: {size}", createdBy);
     createTranslationIfNotExists("junit.date.noInfo", languageCode, "날짜 정보 없음", createdBy);
     createTranslationIfNotExists("junit.date.unknown", languageCode, "알 수 없는 날짜 형식", createdBy);
     createTranslationIfNotExists("junit.date.invalid", languageCode, "유효하지 않은 날짜", createdBy);
     createTranslationIfNotExists("junit.date.error", languageCode, "날짜 처리 오류", createdBy);
-    createTranslationIfNotExists("junit.detail.title", languageCode, "JUnit 테스트 결과 상세", createdBy);
-    createTranslationIfNotExists(
-        "junit.detail.uploadInfo", languageCode, "업로드: {date} | {uploader}", createdBy);
     createTranslationIfNotExists(
         "junit.detail.loadingDetail", languageCode, "테스트 결과 상세 정보를 불러오는 중...", createdBy);
     createTranslationIfNotExists(
@@ -798,8 +731,6 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "junit.detail.clickForDetails", languageCode, "상세 내용을 보려면 테스트명을 클릭하세요", createdBy);
     createTranslationIfNotExists(
-        "junit.detail.slowestTests", languageCode, "가장 느린 테스트 케이스", createdBy);
-    createTranslationIfNotExists(
         "junit.detail.slowestTestsTop", languageCode, "가장 느린 테스트 케이스 (상위 {count}개)", createdBy);
     createTranslationIfNotExists(
         "junit.detail.noExecutionTimeData", languageCode, "실행 시간 데이터가 없습니다.", createdBy);
@@ -822,20 +753,6 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("common.unit.count", languageCode, "개", createdBy);
     createTranslationIfNotExists("common.status", languageCode, "상태", createdBy);
     createTranslationIfNotExists("common.all", languageCode, "전체", createdBy);
-    createTranslationIfNotExists("junit.suite.testSuite", languageCode, "테스트 스위트", createdBy);
-    createTranslationIfNotExists("junit.suite.all", languageCode, "전체", createdBy);
-    createTranslationIfNotExists("junit.suite.search", languageCode, "테스트 케이스 검색...", createdBy);
-    createTranslationIfNotExists(
-        "junit.failed.title", languageCode, "실패한 테스트 케이스 ({count}개)", createdBy);
-    createTranslationIfNotExists(
-        "junit.failed.noFailures", languageCode, "실패한 테스트 케이스가 없습니다!", createdBy);
-    createTranslationIfNotExists(
-        "junit.failed.failureMessage", languageCode, "실패 메시지 미리보기:", createdBy);
-    createTranslationIfNotExists(
-        "junit.failed.clickForDetail", languageCode, "상세 내용을 보려면 테스트명을 클릭하세요", createdBy);
-    createTranslationIfNotExists(
-        "junit.slow.title", languageCode, "가장 느린 테스트 케이스 (상위 {count}개)", createdBy);
-    createTranslationIfNotExists("junit.slow.noData", languageCode, "실행 시간 데이터가 없습니다.", createdBy);
     createTranslationIfNotExists(
         "testcase.message.selectProject", languageCode, "프로젝트를 먼저 선택하세요.", createdBy);
     createTranslationIfNotExists(
@@ -857,22 +774,10 @@ public class KoreanTestCaseAndAutomationTranslations {
         createdBy);
     createTranslationIfNotExists(
         "junit.testcase.previousNotes.copyBtn", languageCode, "현재 노트로 복사", createdBy);
-    createTranslationIfNotExists("junit.tracelog.tab", languageCode, "Tracelog", createdBy);
-    createTranslationIfNotExists(
-        "junit.tracelog.failureMessage", languageCode, "Failure Message", createdBy);
-    createTranslationIfNotExists(
-        "junit.tracelog.stackTrace", languageCode, "Stack Trace", createdBy);
-    createTranslationIfNotExists(
-        "junit.tracelog.skipMessage", languageCode, "Skip Message", createdBy);
     createTranslationIfNotExists(
         "junit.tracelog.noErrorLog", languageCode, "이 테스트 케이스에는 오류 로그가 없습니다.", createdBy);
-    createTranslationIfNotExists("junit.testbody.tab", languageCode, "Test Body", createdBy);
-    createTranslationIfNotExists("junit.testbody.systemOut", languageCode, "System Out", createdBy);
-    createTranslationIfNotExists(
-        "junit.testbody.systemErr", languageCode, "System Error", createdBy);
     createTranslationIfNotExists(
         "junit.testbody.noOutput", languageCode, "이 테스트 케이스에는 시스템 출력이 없습니다.", createdBy);
-    createTranslationIfNotExists("junit.testbody.fullscreen", languageCode, "전체화면으로 보기", createdBy);
     createTranslationIfNotExists(
         "junit.testbody.fullscreenTitle", languageCode, "Test Body - {testName}", createdBy);
     createTranslationIfNotExists("recentResults.status.notRun", languageCode, "미실행", createdBy);
@@ -882,7 +787,6 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "recentResults.title.withCount", languageCode, "최근 테스트 결과 ({count}개)", createdBy);
     createTranslationIfNotExists("recentResults.button.refresh", languageCode, "새로고침", createdBy);
-    createTranslationIfNotExists("recentResults.label.testcase", languageCode, "테스트케이스", createdBy);
     createTranslationIfNotExists("recentResults.label.project", languageCode, "프로젝트:", createdBy);
     createTranslationIfNotExists("recentResults.label.execution", languageCode, "실행:", createdBy);
     createTranslationIfNotExists("recentResults.label.executor", languageCode, "실행자:", createdBy);
@@ -999,8 +903,6 @@ public class KoreanTestCaseAndAutomationTranslations {
         "testcase.helper.linkedDocuments", languageCode, "RAG 문서를 연결하면 AI가 참고할 수 있습니다", createdBy);
 
     // 사후 조건 헬퍼 텍스트 한글 번역
-    createTranslationIfNotExists(
-        "testcase.helper.postCondition", languageCode, "사후 조건을 입력하세요.", createdBy);
 
     // Markdown 지원 안내 메시지 한글 번역
     createTranslationIfNotExists(
@@ -1070,45 +972,13 @@ public class KoreanTestCaseAndAutomationTranslations {
     // 버전 히스토리 요약 한글 번역
     createTranslationIfNotExists(
         "testcase.version.summary.initial", languageCode, "초기 테스트케이스 생성", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.summary.restored_to", languageCode, "버전 v{version}로 복원됨", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.summary.updated", languageCode, "{field} 수정", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.summary.steps_updated", languageCode, "테스트 스텝 수정 ({count}개)", createdBy);
 
     // 필드명 한글 번역
-    createTranslationIfNotExists(
-        "testcase.version.field.name", languageCode, "테스트케이스 이름", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.description", languageCode, "설명", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.preCondition", languageCode, "사전 조건", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.postCondition", languageCode, "사후 조건", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.expectedResults", languageCode, "예상 결과", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.priority", languageCode, "우선순위", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.isAutomated", languageCode, "자동화 여부", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.executionType", languageCode, "수행 유형", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.testTechnique", languageCode, "테스트 기법", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.field.testSteps", languageCode, "테스트 스텝", createdBy);
     createTranslationIfNotExists("testcase.version.field.folder", languageCode, "폴더", createdBy);
 
     // 버전 레이블 한글 번역
     createTranslationIfNotExists(
         "testcase.version.label.initial", languageCode, "초기 버전", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.label.modified", languageCode, "수정 v{version}", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.label.manual", languageCode, "수동 저장 v{version}", createdBy);
-    createTranslationIfNotExists(
-        "testcase.version.label.restored", languageCode, "복원 v{version}", createdBy);
 
     // 버전 액션 버튼 툴팁 한글
     createTranslationIfNotExists(
@@ -1307,8 +1177,6 @@ public class KoreanTestCaseAndAutomationTranslations {
 
     // 입력 모드 선택 접기/펼치기 한글
     createTranslationIfNotExists("testcase.inputMode.title", languageCode, "입력 모드 선택", createdBy);
-    createTranslationIfNotExists("testcase.inputMode.expand", languageCode, "펼치기", createdBy);
-    createTranslationIfNotExists("testcase.inputMode.collapse", languageCode, "접기", createdBy);
 
     // 사용법 안내 접기/펼치기 한글
     createTranslationIfNotExists(
@@ -1447,13 +1315,6 @@ public class KoreanTestCaseAndAutomationTranslations {
         "profile.apiToken.message.deleteError", languageCode, "API 키 삭제 중 오류가 발생했습니다.", createdBy);
 
     // 통계 및 폴더별 보기
-    createTranslationIfNotExists("testResult.viewType.byFolder", languageCode, "폴더별", createdBy);
-    createTranslationIfNotExists(
-        "testResult.filter.depth", languageCode, "Depth: {depth}", createdBy);
-    createTranslationIfNotExists(
-        "testResult.statistics.folderName", languageCode, "폴더명", createdBy);
-    createTranslationIfNotExists(
-        "testResult.statistics.folderResults", languageCode, "폴더별 테스트 결과 통계", createdBy);
 
     // 노트 복사 관련 한글
     createTranslationIfNotExists("testcase.notes.copy", languageCode, "노트 복사", createdBy);
@@ -1526,8 +1387,6 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.io.google.connect.label", languageCode, "2. Google Sheets 연결", createdBy);
     createTranslationIfNotExists(
-        "testcase.io.google.config.label", languageCode, "2. Google Sheets 설정", createdBy);
-    createTranslationIfNotExists(
         "testcase.io.google.url.label", languageCode, "Google Sheets URL 또는 ID", createdBy);
     createTranslationIfNotExists(
         "testcase.io.google.url.placeholder",
@@ -1536,8 +1395,6 @@ public class KoreanTestCaseAndAutomationTranslations {
         createdBy);
     createTranslationIfNotExists(
         "testcase.io.google.sheet.label", languageCode, "시트 이름", createdBy);
-    createTranslationIfNotExists(
-        "testcase.io.import.url.required", languageCode, "Google Sheets URL을 입력하세요", createdBy);
 
     // Export Formats labels
     createTranslationIfNotExists(
@@ -1547,8 +1404,6 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.io.export.format.json", languageCode, "JSON (가져오기 가능)", createdBy);
 
-    createTranslationIfNotExists(
-        "testcase.io.validation.summary", languageCode, "검증 요약", createdBy);
     createTranslationIfNotExists(
         "testcase.io.validation.totalRows", languageCode, "총 {count}행", createdBy);
     createTranslationIfNotExists(

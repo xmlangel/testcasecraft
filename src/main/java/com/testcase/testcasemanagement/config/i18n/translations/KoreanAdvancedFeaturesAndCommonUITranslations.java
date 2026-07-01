@@ -75,185 +75,8 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("dashboard.noData.chart", languageCode, "차트 데이터 없음", createdBy);
     createTranslationIfNotExists(
         "dashboard.charts.openTestRunResults", languageCode, "열린 테스트 실행 결과", createdBy);
-    createTranslationIfNotExists("dashboard.noData.noResults", languageCode, "결과가 없습니다", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.totalProjects", languageCode, "총 프로젝트", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.activeProjects", languageCode, "활성 프로젝트", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.totalTestCases", languageCode, "총 테스트 케이스", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.passedTests", languageCode, "통과된 테스트", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.failedTests", languageCode, "실패한 테스트", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.testCoverage", languageCode, "테스트 커버리지", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.recentActivities", languageCode, "최근 활동", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.testExecutions", languageCode, "테스트 실행", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.newTestCases", languageCode, "새 테스트 케이스", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.completedPlans", languageCode, "완료된 계획", createdBy);
-    createTranslationIfNotExists("dashboard.quickActions.title", languageCode, "빠른 작업", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.createTestCase", languageCode, "테스트 케이스 생성", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.runTests", languageCode, "테스트 실행", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.viewReports", languageCode, "리포트 보기", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.manageProjects", languageCode, "프로젝트 관리", createdBy);
-    createTranslationIfNotExists("navigation.menu.dashboard", languageCode, "대시보드", createdBy);
-    createTranslationIfNotExists("navigation.menu.projects", languageCode, "프로젝트", createdBy);
-    createTranslationIfNotExists("navigation.menu.testCases", languageCode, "테스트 케이스", createdBy);
-    createTranslationIfNotExists("navigation.menu.testPlans", languageCode, "테스트 플랜", createdBy);
-    createTranslationIfNotExists(
-        "navigation.menu.testExecutions", languageCode, "테스트 실행", createdBy);
-    createTranslationIfNotExists("navigation.menu.reports", languageCode, "리포트", createdBy);
-    createTranslationIfNotExists("navigation.menu.settings", languageCode, "설정", createdBy);
-    createTranslationIfNotExists("navigation.menu.help", languageCode, "도움말", createdBy);
-    createTranslationIfNotExists("navigation.user.profile", languageCode, "프로필", createdBy);
-    createTranslationIfNotExists("navigation.user.preferences", languageCode, "환경설정", createdBy);
-    createTranslationIfNotExists("navigation.user.logout", languageCode, "로그아웃", createdBy);
-    createTranslationIfNotExists("navigation.breadcrumb.home", languageCode, "홈", createdBy);
-    createTranslationIfNotExists("navigation.breadcrumb.back", languageCode, "뒤로", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.field.title", languageCode, "세션 제목", createdBy);
-    createTranslationIfNotExists("validation.required", languageCode, "필수 입력 항목입니다", createdBy);
-    createTranslationIfNotExists(
-        "validation.email.invalid", languageCode, "올바른 이메일 형식이 아닙니다", createdBy);
-    createTranslationIfNotExists(
-        "validation.password.minLength", languageCode, "비밀번호는 최소 8자 이상이어야 합니다", createdBy);
-    createTranslationIfNotExists(
-        "validation.password.complexity", languageCode, "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다", createdBy);
-    createTranslationIfNotExists(
-        "validation.confirm.password", languageCode, "비밀번호가 일치하지 않습니다", createdBy);
-    createTranslationIfNotExists(
-        "validation.date.invalid", languageCode, "올바른 날짜 형식이 아닙니다", createdBy);
-    createTranslationIfNotExists(
-        "validation.number.invalid", languageCode, "올바른 숫자 형식이 아닙니다", createdBy);
-    createTranslationIfNotExists(
-        "notification.success.saved", languageCode, "성공적으로 저장되었습니다", createdBy);
-    createTranslationIfNotExists(
-        "notification.success.deleted", languageCode, "성공적으로 삭제되었습니다", createdBy);
-    createTranslationIfNotExists(
-        "notification.success.updated", languageCode, "성공적으로 수정되었습니다", createdBy);
-    createTranslationIfNotExists(
-        "notification.error.networkError", languageCode, "네트워크 오류가 발생했습니다", createdBy);
-    createTranslationIfNotExists(
-        "notification.error.serverError", languageCode, "서버 오류가 발생했습니다", createdBy);
-    createTranslationIfNotExists(
-        "notification.info.processing", languageCode, "처리 중입니다...", createdBy);
-    createTranslationIfNotExists("file.upload.title", languageCode, "파일 업로드", createdBy);
-    createTranslationIfNotExists(
-        "file.upload.description", languageCode, "파일을 끌어다 놓거나 클릭하여 업로드하세요", createdBy);
-    createTranslationIfNotExists("file.upload.progress", languageCode, "업로드 진행 중...", createdBy);
-    createTranslationIfNotExists(
-        "file.upload.success", languageCode, "파일이 성공적으로 업로드되었습니다", createdBy);
-    createTranslationIfNotExists("file.upload.error", languageCode, "파일 업로드에 실패했습니다", createdBy);
-    createTranslationIfNotExists(
-        "file.size.limit", languageCode, "파일 크기는 최대 {size}MB입니다", createdBy);
-    createTranslationIfNotExists("file.type.invalid", languageCode, "지원하지 않는 파일 형식입니다", createdBy);
-    createTranslationIfNotExists(
-        "file.download.preparing", languageCode, "다운로드 준비 중...", createdBy);
-    createTranslationIfNotExists("file.download.error", languageCode, "파일 다운로드에 실패했습니다", createdBy);
-    createTranslationIfNotExists("file.management.title", languageCode, "파일 관리", createdBy);
-    createTranslationIfNotExists("team.management.title", languageCode, "팀 관리", createdBy);
-    createTranslationIfNotExists("team.create.title", languageCode, "새 팀 생성", createdBy);
-    createTranslationIfNotExists("team.member.add", languageCode, "팀원 추가", createdBy);
-    createTranslationIfNotExists("team.member.remove", languageCode, "팀원 제거", createdBy);
-    createTranslationIfNotExists("team.leader.assign", languageCode, "팀장 지정", createdBy);
-    createTranslationIfNotExists("user.management.title", languageCode, "사용자 관리", createdBy);
-    createTranslationIfNotExists("user.create.title", languageCode, "새 사용자 생성", createdBy);
-    createTranslationIfNotExists("user.edit.title", languageCode, "사용자 편집", createdBy);
-    createTranslationIfNotExists("user.deactivate.title", languageCode, "사용자 비활성화", createdBy);
-    createTranslationIfNotExists("user.password.reset", languageCode, "비밀번호 재설정", createdBy);
-    createTranslationIfNotExists("report.dashboard.title", languageCode, "보고서 대시보드", createdBy);
-    createTranslationIfNotExists("report.generate.title", languageCode, "보고서 생성", createdBy);
-    createTranslationIfNotExists("report.template.select", languageCode, "보고서 템플릿 선택", createdBy);
-    createTranslationIfNotExists("report.period.select", languageCode, "보고 기간 선택", createdBy);
-    createTranslationIfNotExists("report.format.pdf", languageCode, "PDF 형식", createdBy);
-    createTranslationIfNotExists("report.format.excel", languageCode, "엑셀 형식", createdBy);
-    createTranslationIfNotExists("analytics.overview.title", languageCode, "분석 개요", createdBy);
-    createTranslationIfNotExists("analytics.trend.title", languageCode, "트렌드 분석", createdBy);
-    createTranslationIfNotExists("analytics.performance.title", languageCode, "성능 분석", createdBy);
-    createTranslationIfNotExists("analytics.quality.metrics", languageCode, "품질 지표", createdBy);
-    createTranslationIfNotExists("settings.general.title", languageCode, "일반 설정", createdBy);
-    createTranslationIfNotExists("settings.system.title", languageCode, "시스템 설정", createdBy);
-    createTranslationIfNotExists("settings.security.title", languageCode, "보안 설정", createdBy);
-    createTranslationIfNotExists("settings.notification.title", languageCode, "알림 설정", createdBy);
-    createTranslationIfNotExists("settings.appearance.title", languageCode, "화면 설정", createdBy);
-    createTranslationIfNotExists("settings.language.title", languageCode, "언어 설정", createdBy);
-    createTranslationIfNotExists("settings.backup.title", languageCode, "백업 설정", createdBy);
-    createTranslationIfNotExists("config.database.title", languageCode, "데이터베이스 구성", createdBy);
-    createTranslationIfNotExists("config.api.title", languageCode, "API 구성", createdBy);
-    createTranslationIfNotExists("config.integration.title", languageCode, "통합 구성", createdBy);
-    createTranslationIfNotExists("approval.request.title", languageCode, "승인 요청", createdBy);
-    createTranslationIfNotExists("approval.pending.list", languageCode, "대기 중인 승인", createdBy);
-    createTranslationIfNotExists("approval.approved.list", languageCode, "승인된 항목", createdBy);
-    createTranslationIfNotExists("approval.rejected.list", languageCode, "거부된 항목", createdBy);
-    createTranslationIfNotExists("workflow.step.next", languageCode, "다음 단계", createdBy);
-    createTranslationIfNotExists("workflow.step.previous", languageCode, "이전 단계", createdBy);
-    createTranslationIfNotExists("workflow.complete.title", languageCode, "작업 완료", createdBy);
-    createTranslationIfNotExists("workflow.cancel.title", languageCode, "작업 취소", createdBy);
-    createTranslationIfNotExists("task.assignment.title", languageCode, "작업 할당", createdBy);
-    createTranslationIfNotExists("task.deadline.title", languageCode, "작업 마감일", createdBy);
-    createTranslationIfNotExists("audit.log.title", languageCode, "감사 로그", createdBy);
-    createTranslationIfNotExists("audit.trail.title", languageCode, "감사 추적", createdBy);
-    createTranslationIfNotExists("log.system.title", languageCode, "시스템 로그", createdBy);
-    createTranslationIfNotExists("log.user.activity", languageCode, "사용자 활동 로그", createdBy);
-    createTranslationIfNotExists("log.error.title", languageCode, "오류 로그", createdBy);
-    createTranslationIfNotExists("log.access.title", languageCode, "접근 로그", createdBy);
-    createTranslationIfNotExists("history.change.title", languageCode, "변경 이력", createdBy);
-    createTranslationIfNotExists("history.version.title", languageCode, "버전 이력", createdBy);
-    createTranslationIfNotExists("history.backup.title", languageCode, "백업 이력", createdBy);
-    createTranslationIfNotExists("monitoring.status.title", languageCode, "모니터링 상태", createdBy);
-    createTranslationIfNotExists("calendar.view.title", languageCode, "캘린더 보기", createdBy);
-    createTranslationIfNotExists("calendar.event.create", languageCode, "일정 생성", createdBy);
-    createTranslationIfNotExists("calendar.event.edit", languageCode, "일정 편집", createdBy);
-    createTranslationIfNotExists("calendar.event.delete", languageCode, "일정 삭제", createdBy);
-    createTranslationIfNotExists("schedule.test.execution", languageCode, "테스트 실행 일정", createdBy);
-    createTranslationIfNotExists("schedule.maintenance.title", languageCode, "유지보수 일정", createdBy);
-    createTranslationIfNotExists("schedule.release.title", languageCode, "릴리스 일정", createdBy);
-    createTranslationIfNotExists("reminder.notification.title", languageCode, "알림 리마인더", createdBy);
-    createTranslationIfNotExists("deadline.approaching.title", languageCode, "마감일 임박", createdBy);
-    createTranslationIfNotExists("milestone.achievement.title", languageCode, "마일스톤 달성", createdBy);
-    createTranslationIfNotExists("statistics.summary.title", languageCode, "통계 요약", createdBy);
-    createTranslationIfNotExists("statistics.detailed.title", languageCode, "상세 통계", createdBy);
-    createTranslationIfNotExists("chart.pie.title", languageCode, "파이 차트", createdBy);
-    createTranslationIfNotExists("chart.bar.title", languageCode, "막대 차트", createdBy);
-    createTranslationIfNotExists("chart.line.title", languageCode, "선형 차트", createdBy);
-    createTranslationIfNotExists("chart.area.title", languageCode, "영역 차트", createdBy);
-    createTranslationIfNotExists("chart.scatter.title", languageCode, "산점도 차트", createdBy);
-    createTranslationIfNotExists("chart.radar.title", languageCode, "레이더 차트", createdBy);
-    createTranslationIfNotExists("chart.heatmap.title", languageCode, "히트맵 차트", createdBy);
-    createTranslationIfNotExists("chart.gauge.title", languageCode, "게이지 차트", createdBy);
-    createTranslationIfNotExists("communication.chat.title", languageCode, "채팅", createdBy);
-    createTranslationIfNotExists("communication.message.send", languageCode, "메시지 전송", createdBy);
-    createTranslationIfNotExists(
-        "communication.message.receive", languageCode, "메시지 수신", createdBy);
-    createTranslationIfNotExists("collaboration.share.title", languageCode, "공유", createdBy);
-    createTranslationIfNotExists("collaboration.comment.add", languageCode, "댓글 추가", createdBy);
-    createTranslationIfNotExists("collaboration.review.request", languageCode, "검토 요청", createdBy);
-    createTranslationIfNotExists("collaboration.feedback.title", languageCode, "피드백", createdBy);
-    createTranslationIfNotExists("discussion.forum.title", languageCode, "토론 포럼", createdBy);
-    createTranslationIfNotExists("discussion.thread.create", languageCode, "토론 주제 생성", createdBy);
-    createTranslationIfNotExists("discussion.reply.add", languageCode, "답글 추가", createdBy);
-    createTranslationIfNotExists("mobile.menu.title", languageCode, "모바일 메뉴", createdBy);
-    createTranslationIfNotExists("mobile.navigation.title", languageCode, "모바일 네비게이션", createdBy);
-    createTranslationIfNotExists("mobile.responsive.title", languageCode, "반응형 디자인", createdBy);
-    createTranslationIfNotExists("mobile.touch.gesture", languageCode, "터치 제스처", createdBy);
-    createTranslationIfNotExists("mobile.offline.mode", languageCode, "오프라인 모드", createdBy);
-    createTranslationIfNotExists("mobile.sync.title", languageCode, "동기화", createdBy);
-    createTranslationIfNotExists(
-        "responsive.breakpoint.mobile", languageCode, "모바일 브레이크포인트", createdBy);
-    createTranslationIfNotExists(
-        "responsive.breakpoint.tablet", languageCode, "태블릿 브레이크포인트", createdBy);
-    createTranslationIfNotExists(
-        "responsive.breakpoint.desktop", languageCode, "데스크톱 브레이크포인트", createdBy);
-    createTranslationIfNotExists("responsive.layout.adaptive", languageCode, "적응형 레이아웃", createdBy);
     createTranslationIfNotExists("header.nav.dashboard", languageCode, "대시보드", createdBy);
     createTranslationIfNotExists(
         "header.nav.organizationManagement", languageCode, "조직 관리", createdBy);
@@ -265,21 +88,8 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "organization.dashboard.title", languageCode, "시스템 대시보드", createdBy);
     createTranslationIfNotExists(
         "organization.dashboard.metrics.totalUsers", languageCode, "전체 사용자 수", createdBy);
-    createTranslationIfNotExists(
-        "organization.dashboard.metrics.activeProjects", languageCode, "활성 프로젝트 수", createdBy);
-    createTranslationIfNotExists(
-        "organization.dashboard.metrics.testCases", languageCode, "테스트케이스 수", createdBy);
-    createTranslationIfNotExists(
-        "organization.dashboard.metrics.completedTests", languageCode, "완료된 테스트 수", createdBy);
-    createTranslationIfNotExists(
-        "organization.dashboard.stats.title", languageCode, "조직 통계", createdBy);
     createTranslationIfNotExists("common.buttons.refresh", languageCode, "새로고침", createdBy);
-    createTranslationIfNotExists("common.buttons.reset", languageCode, "재설정", createdBy);
-    createTranslationIfNotExists("common.buttons.apply", languageCode, "적용", createdBy);
     createTranslationIfNotExists("common.buttons.cancel", languageCode, "취소", createdBy);
-    createTranslationIfNotExists("common.buttons.ok", languageCode, "확인", createdBy);
-    createTranslationIfNotExists("common.buttons.yes", languageCode, "예", createdBy);
-    createTranslationIfNotExists("common.buttons.no", languageCode, "아니오", createdBy);
     createTranslationIfNotExists("common.save", languageCode, "저장", createdBy);
     createTranslationIfNotExists("junit.empty.noResults", languageCode, "테스트 결과가 없습니다", createdBy);
     createTranslationIfNotExists(
@@ -398,8 +208,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("rag.document.status.analyzing", languageCode, "분석 중", createdBy);
     createTranslationIfNotExists("rag.document.status.completed", languageCode, "완료", createdBy);
     createTranslationIfNotExists("rag.document.status.failed", languageCode, "실패", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.loading", languageCode, "문서 목록을 불러오는 중...", createdBy);
     createTranslationIfNotExists("rag.document.empty", languageCode, "업로드된 문서가 없습니다", createdBy);
     createTranslationIfNotExists(
         "rag.document.emptyDescription", languageCode, "상단의 업로드 영역을 사용하여 문서를 등록하세요", createdBy);
@@ -488,7 +296,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "rag.similar.testCaseTitle", languageCode, "테스트케이스 - {fileName}", createdBy);
     createTranslationIfNotExists("rag.similar.sourceTestcase", languageCode, "테스트케이스", createdBy);
     createTranslationIfNotExists("rag.similar.sourceDocument", languageCode, "문서", createdBy);
-    createTranslationIfNotExists("rag.similar.showDetails", languageCode, "자세히 보기", createdBy);
     createTranslationIfNotExists(
         "rag.similar.noHighSimilarityResults",
         languageCode,
@@ -735,11 +542,9 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("rag.analysis.total", languageCode, "/ 전체 {count} 청크", createdBy);
     createTranslationIfNotExists("rag.analysis.cost", languageCode, "비용:", createdBy);
     createTranslationIfNotExists("rag.analysis.results", languageCode, "분석 결과", createdBy);
-    createTranslationIfNotExists("rag.analysis.chunkColumn", languageCode, "청크 #", createdBy);
     createTranslationIfNotExists("rag.analysis.originalText", languageCode, "원본 텍스트", createdBy);
     createTranslationIfNotExists("rag.analysis.llmResponse", languageCode, "LLM 응답", createdBy);
     createTranslationIfNotExists("rag.analysis.tokens", languageCode, "토큰", createdBy);
-    createTranslationIfNotExists("rag.analysis.costColumn", languageCode, "비용", createdBy);
     createTranslationIfNotExists("rag.analysis.estimateCost", languageCode, "비용 추정", createdBy);
     createTranslationIfNotExists("rag.analysis.stop", languageCode, "중단", createdBy);
     createTranslationIfNotExists("rag.analysis.resume", languageCode, "재개", createdBy);
@@ -809,8 +614,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "attachment.error.auth.failed", languageCode, "사용자 인증에 실패했습니다.", createdBy);
     createTranslationIfNotExists(
-        "attachment.error.upload.validation", languageCode, "파일 검증에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
         "attachment.error.upload.io", languageCode, "파일 저장 중 오류가 발생했습니다.", createdBy);
     createTranslationIfNotExists(
         "attachment.error.upload.general", languageCode, "서버 오류가 발생했습니다.", createdBy);
@@ -820,15 +623,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "attachment.error.notfound", languageCode, "첨부파일을 찾을 수 없습니다.", createdBy);
     createTranslationIfNotExists(
         "attachment.error.info.failed", languageCode, "첨부파일 정보를 조회하는 중 오류가 발생했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "attachment.error.download.notfound", languageCode, "파일을 찾을 수 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "attachment.error.download.io", languageCode, "파일 다운로드 중 오류가 발생했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "attachment.error.download.general",
-        languageCode,
-        "파일 다운로드 중 예상치 못한 오류가 발생했습니다.",
-        createdBy);
     createTranslationIfNotExists(
         "attachment.error.delete.failed", languageCode, "첨부파일을 삭제하는 중 오류가 발생했습니다.", createdBy);
     createTranslationIfNotExists(
@@ -857,10 +651,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "rag.document.summary.analyzedChunksLabel", languageCode, "분석 완료: {count}개", createdBy);
     createTranslationIfNotExists(
         "rag.document.summary.progressLabel", languageCode, "진행률: {progress}%", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.summary.chunkTemplate", languageCode, "📄 청크 {chunkNumber}", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.summary.progressFormat", languageCode, "{analyzed}/{total} 청크", createdBy);
     createTranslationIfNotExists(
         "rag.document.summary.resultsSummary", languageCode, "LLM 분석 결과 요약", createdBy);
 
@@ -909,46 +699,10 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         languageCode,
         "이미 분석이 진행 중입니다. (진행율: {progress})",
         createdBy);
-    createTranslationIfNotExists(
-        "rag.document.alert.cancelConfirm",
-        languageCode,
-        "\"{documentName}\" 문서의 분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.",
-        createdBy);
 
     // Error 메시지 관련 한국어 번역
-    createTranslationIfNotExists(
-        "rag.document.error.listFailed", languageCode, "문서 목록 조회에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.uploadFailed", languageCode, "문서 업로드에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.deleteFailed", languageCode, "문서 삭제에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.downloadFailed", languageCode, "문서 다운로드에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.analyzeFailed", languageCode, "문서 분석에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.embeddingFailed", languageCode, "임베딩 생성에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.promoteFailed", languageCode, "공통 문서 이동에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.requestFailed", languageCode, "공통 문서 등록 요청에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.jobHistoryFailed", languageCode, "작업 이력 조회에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.pauseFailed", languageCode, "일시정지에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.resumeFailed", languageCode, "재개에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.error.cancelFailed", languageCode, "취소에 실패했습니다.", createdBy);
 
     // Confirm 다이얼로그 관련 한국어 번역
-    createTranslationIfNotExists(
-        "rag.document.confirm.analyze", languageCode, "문서 \"{fileName}\"을 분석하시겠습니까?", createdBy);
-    createTranslationIfNotExists(
-        "rag.document.confirm.generateEmbeddings",
-        languageCode,
-        "문서 \"{fileName}\"의 임베딩을 생성하시겠습니까?",
-        createdBy);
     createTranslationIfNotExists("rag.document.list.parser", languageCode, "파서", createdBy);
     createTranslationIfNotExists(
         "rag.document.list.embeddingStatus", languageCode, "임베딩", createdBy);
@@ -1079,24 +833,11 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스를 관리합니다. (관리자 전용)",
         createdBy);
     createTranslationIfNotExists("admin.globalDoc.uploadFile", languageCode, "파일 업로드", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.fileName", languageCode, "파일명", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.fileSize", languageCode, "파일 크기", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.analysisStatus", languageCode, "분석 상태", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.parser", languageCode, "파서", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.embeddingStatus", languageCode, "임베딩 상태", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.chunkCount", languageCode, "청크 수", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.uploader", languageCode, "업로더", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.uploadDate", languageCode, "업로드 날짜", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.noDocuments",
         languageCode,
         "아직 공통 문서가 없습니다. 첫 번째 문서를 업로드해보세요!",
         createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.parserUnknown", languageCode, "알 수 없음", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.parserAuto", languageCode, "자동 선택", createdBy);
 
     // 공통 문서 정보 섹션
     createTranslationIfNotExists(
@@ -1130,21 +871,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "admin.globalDoc.info.autoSearch", languageCode, "모든 프로젝트의 RAG Q&A에서 자동 검색됨", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.info.adminOnly", languageCode, "관리자만 업로드/삭제 가능 (ADMIN 권한 필요)", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.status.completed", languageCode, "완료", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.status.pending", languageCode, "대기", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.status.failed", languageCode, "실패", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.preview", languageCode, "PDF 미리보기", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.viewChunks", languageCode, "청크 보기", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.download", languageCode, "다운로드", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.analyze", languageCode, "문서 분석", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.generateEmbedding", languageCode, "임베딩 생성", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.action.generateEmbeddings", languageCode, "임베딩 생성", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.uploadSuccess",
         languageCode,
@@ -1157,21 +883,12 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "admin.globalDoc.message.deleteFailed", languageCode, "공통 문서 삭제 실패", createdBy);
     createTranslationIfNotExists(
-        "admin.globalDoc.message.uploaded", languageCode, "공통 문서 \"{0}\"이 업로드되었습니다", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.deleted", languageCode, "공통 문서 \"{0}\"이 삭제되었습니다", createdBy);
-    createTranslationIfNotExists(
         "admin.globalDoc.message.confirmDelete",
         languageCode,
         "공통 문서 \"{0}\"을 삭제하시겠습니까?",
         createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.confirmAnalyze", languageCode, "문서 \"{0}\"을 분석하시겠습니까?", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.confirmEmbedding",
-        languageCode,
-        "문서 \"{0}\"의 임베딩을 생성하시겠습니까?",
-        createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.confirmEmbeddings",
         languageCode,
@@ -1182,11 +899,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "admin.globalDoc.message.analyzeFailed", languageCode, "분석 시작 실패", createdBy);
     createTranslationIfNotExists(
-        "admin.globalDoc.message.embeddingStarted",
-        languageCode,
-        "문서 \"{0}\" 임베딩 생성 시작됨",
-        createdBy);
-    createTranslationIfNotExists(
         "admin.globalDoc.message.embeddingsStarted",
         languageCode,
         "문서 \"{0}\" 임베딩 생성 시작됨",
@@ -1194,24 +906,14 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "admin.globalDoc.message.embeddingsFailed", languageCode, "임베딩 생성 실패", createdBy);
     createTranslationIfNotExists(
-        "admin.globalDoc.message.downloaded", languageCode, "문서 \"{0}\" 다운로드 완료", createdBy);
-    createTranslationIfNotExists(
         "admin.globalDoc.message.downloadSuccess", languageCode, "문서 \"{0}\" 다운로드 완료", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.downloadFailed", languageCode, "다운로드 실패", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.viewChunksFailed", languageCode, "청크 조회 실패", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.previewFailed", languageCode, "미리보기 실패", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.pdfOnly", languageCode, "PDF 파일만 미리보기가 가능합니다.", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.supportedFormats",
         languageCode,
         "지원되는 파일 형식: PDF, DOCX, DOC, TXT",
         createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.message.maxSize", languageCode, "파일 크기는 50MB를 초과할 수 없습니다", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.fileSizeLimit",
         languageCode,
@@ -1219,9 +921,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.message.unknownError", languageCode, "알 수 없는 오류", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.chunks.title", languageCode, "문서 청크", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.chunks.chunkNumber", languageCode, "청크 #{0}", createdBy);
 
     // 스케줄러 관리 한글 번역
     createTranslationIfNotExists("scheduler.title", languageCode, "스케줄러 관리", createdBy);
@@ -1254,9 +953,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("scheduler.column.actions", languageCode, "작업", createdBy);
 
     // 스케줄 타입 & 단위
-    createTranslationIfNotExists("scheduler.type.fixedRate", languageCode, "Fixed Rate", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.type.fixedDelay", languageCode, "Fixed Delay", createdBy);
     createTranslationIfNotExists("scheduler.time.seconds", languageCode, "{seconds}초", createdBy);
     createTranslationIfNotExists("scheduler.time.minutes", languageCode, "{minutes}분", createdBy);
     createTranslationIfNotExists("scheduler.time.hours", languageCode, "{hours}시간", createdBy);
@@ -1320,24 +1016,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "scheduler.error.updateFailed", languageCode, "스케줄 설정 업데이트에 실패했습니다.", createdBy);
 
     // 스케줄러 목록
-    createTranslationIfNotExists("scheduler.list.title", languageCode, "스케줄된 작업 목록", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.lastUpdated", languageCode, "최근 업데이트: {time}", createdBy);
-    createTranslationIfNotExists("scheduler.list.retry", languageCode, "다시 시도", createdBy);
-    createTranslationIfNotExists("scheduler.list.totalTasks", languageCode, "총 스케줄 작업", createdBy);
-    createTranslationIfNotExists("scheduler.list.activeStatus", languageCode, "활성 상태", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.normalOperation", languageCode, "정상 동작", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.serverTimezone", languageCode, "서버 시간대", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.list.detailsTitle", languageCode, "스케줄 상세 정보", createdBy);
-    createTranslationIfNotExists("scheduler.list.columnName", languageCode, "작업 이름", createdBy);
-    createTranslationIfNotExists("scheduler.list.columnSchedule", languageCode, "스케줄", createdBy);
-    createTranslationIfNotExists("scheduler.list.columnType", languageCode, "타입", createdBy);
-    createTranslationIfNotExists("scheduler.list.columnDescription", languageCode, "설명", createdBy);
-    createTranslationIfNotExists(
-        "scheduler.error.loadFailed", languageCode, "스케줄러 정보를 불러오는데 실패했습니다.", createdBy);
 
     // Exploratory Session
     createTranslationIfNotExists(
@@ -1358,11 +1036,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "exploratory.charter.filter.status", languageCode, "상태 필터", createdBy);
     createTranslationIfNotExists("exploratory.charter.create", languageCode, "차터 생성", createdBy);
-    createTranslationIfNotExists("exploratory.charter.mission", languageCode, "미션", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.charter.sessionCount", languageCode, "수행 횟수 {count}", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.charter.totalBugs", languageCode, "총 버그 {count}", createdBy);
     createTranslationIfNotExists(
         "exploratory.charter.dialog.createTitle", languageCode, "차터 생성", createdBy);
     createTranslationIfNotExists(
@@ -1378,23 +1051,9 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "exploratory.session.filter.linkedCharter", languageCode, "연결 차터", createdBy);
     createTranslationIfNotExists(
-        "exploratory.session.filter.minBugs", languageCode, "버그 수(이상)", createdBy);
-    createTranslationIfNotExists(
         "exploratory.session.filter.periodFrom", languageCode, "기간 시작", createdBy);
     createTranslationIfNotExists(
         "exploratory.session.filter.periodTo", languageCode, "기간 종료", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.session.label.bugs", languageCode, "버그 {count}", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.session.label.meta",
-        languageCode,
-        "기간 {date} | 테스터 {tester} | 차터 {charter}",
-        createdBy);
-    createTranslationIfNotExists("exploratory.editor.header.title", languageCode, "헤더", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.header.elapsed", languageCode, "실행 시간 {value}", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.header.paused", languageCode, "중단 시간 {value}", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.timer.start", languageCode, "Start", createdBy);
     createTranslationIfNotExists(
@@ -1405,145 +1064,25 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "exploratory.editor.field.environment", languageCode, "환경", createdBy);
     createTranslationIfNotExists("exploratory.editor.field.version", languageCode, "버전", createdBy);
-    createTranslationIfNotExists("exploratory.editor.field.tags", languageCode, "태그", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.charterSection.title", languageCode, "차터 섹션", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.charterSection.assigned", languageCode, "할당 차터", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.charterSection.autoMission", languageCode, "자동 바인딩된 미션", createdBy);
     createTranslationIfNotExists(
-        "exploratory.editor.timeSection.title", languageCode, "시간 배분", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.execution", languageCode, "Test Execution (%)", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.bugInvestigation",
-        languageCode,
-        "Bug Investigation (%)",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.setupAdmin", languageCode, "Setup/Admin (%)", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.total", languageCode, "합계 {total}%", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.pausedMinutes",
-        languageCode,
-        "자동 반영된 중단 시간 {minutes}분",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.timeSection.ratioWarning",
-        languageCode,
-        "시간 배분 합계가 100%가 아닙니다.",
-        createdBy);
-    createTranslationIfNotExists(
         "exploratory.editor.notes.title", languageCode, "테스트 노트", createdBy);
-    createTranslationIfNotExists("exploratory.editor.notes.flow", languageCode, "수행 흐름", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.notes.coverage", languageCode, "커버리지", createdBy);
-    createTranslationIfNotExists("exploratory.editor.notes.oracle", languageCode, "오라클", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.notes.activity", languageCode, "활동 상세", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.issue.title", languageCode, "버그/이슈", createdBy);
     createTranslationIfNotExists(
-        "exploratory.editor.issue.bugHeadline", languageCode, "버그 헤드라인 연동", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.issue.blockers", languageCode, "방해 이슈", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.issue.questions", languageCode, "남은 질문", createdBy);
-    createTranslationIfNotExists(
         "exploratory.editor.artifact.title", languageCode, "데이터/산출물", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.artifact.testData", languageCode, "테스트 데이터", createdBy);
     createTranslationIfNotExists(
         "exploratory.editor.artifact.upload", languageCode, "증적 업로드", createdBy);
     createTranslationIfNotExists(
-        "exploratory.editor.artifact.empty", languageCode, "업로드된 파일이 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.artifact.sizeKb", languageCode, "{size} KB", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.evaluation.title", languageCode, "평가/액션", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.evaluation.achievement", languageCode, "차터 달성도 {value}%", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.evaluation.overall", languageCode, "전체 평가", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.editor.evaluation.nextCharter", languageCode, "다음 세션 제안 차터", createdBy);
-    createTranslationIfNotExists(
         "exploratory.debrief.report.title", languageCode, "디브리프 리포트", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.report.meta",
-        languageCode,
-        "세션: Sprint 22 결제 탐색 | 테스터: Kim QA | 상태: DONE",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.report.summary",
-        languageCode,
-        "요약: 결제 승인 단계에서 간헐적 타임아웃 재현. 재시도 경로에서 중복 승인 위험 발견.",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.report.keyBugs", languageCode, "주요 버그: PAY-421, PAY-433", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.report.evidence",
-        languageCode,
-        "증적: screenshot_0210.png, payment-retry.log",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.title", languageCode, "체크리스트", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.scope", languageCode, "차터 범위 준수", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.timebox", languageCode, "타임박스/중단 시간 기록", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.evidence", languageCode, "버그 근거 자료 첨부", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.debrief.checklist.action", languageCode, "후속 액션 제안 포함", createdBy);
     createTranslationIfNotExists(
         "exploratory.debrief.leadComment", languageCode, "리드 코멘트", createdBy);
     createTranslationIfNotExists(
         "exploratory.debrief.action.approve", languageCode, "승인", createdBy);
     createTranslationIfNotExists(
         "exploratory.debrief.action.requestChanges", languageCode, "보완요청", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.title", languageCode, "세션 활동 타임라인 (Read-only)", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.start.primary", languageCode, "10:02 세션 시작", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.start.secondary",
-        languageCode,
-        "차터 바인딩: 결제 실패 복구 시나리오 탐색",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.bug.primary", languageCode, "10:27 버그 발견", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.bug.secondary",
-        languageCode,
-        "PAY-421 생성, 증적 2건 첨부",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.pause.primary", languageCode, "10:41 중단/재개", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.pause.secondary",
-        languageCode,
-        "환경 불안정으로 4분 중단 후 재개",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.done.primary", languageCode, "11:03 종료 및 승인 완료", createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.timeline.done.secondary",
-        languageCode,
-        "리드 승인자: Choi Lead (2026-02-10)",
-        createdBy);
-    createTranslationIfNotExists(
-        "exploratory.detail.archive.title", languageCode, "최종 승인 리포트 아카이브", createdBy);
 
-    createTranslationIfNotExists(
-        "admin.globalDoc.chunks.noChunks", languageCode, "청크가 없습니다.", createdBy);
-    createTranslationIfNotExists("admin.globalDoc.noChunks", languageCode, "청크가 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.preview.title", languageCode, "PDF 미리보기", createdBy);
-    createTranslationIfNotExists(
-        "admin.globalDoc.preview.loading", languageCode, "미리보기를 불러올 수 없습니다.", createdBy);
     createTranslationIfNotExists(
         "admin.globalDoc.requests.title", languageCode, "📨 공통 문서 등록 요청", createdBy);
     createTranslationIfNotExists(
@@ -1600,10 +1139,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "exploratory.session.status.needsUpdate", languageCode, "보완 필요", createdBy);
 
     // Google Sheets Integration
-    createTranslationIfNotExists(
-        "header.userMenu.googleConfig", languageCode, "Google Sheets 설정", createdBy);
-    createTranslationIfNotExists(
-        "google.config.title", languageCode, "Google Sheets 연동 관리", createdBy);
     createTranslationIfNotExists("google.config.status", languageCode, "연동 상태", createdBy);
     createTranslationIfNotExists("google.config.disconnect", languageCode, "연동 해제", createdBy);
     createTranslationIfNotExists(
@@ -1611,9 +1146,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("google.config.projectId", languageCode, "프로젝트 ID", createdBy);
     createTranslationIfNotExists("google.config.lastUpdated", languageCode, "최종 업데이트", createdBy);
     createTranslationIfNotExists("google.config.active", languageCode, "활성화됨", createdBy);
-    createTranslationIfNotExists(
-        "google.config.noConfig", languageCode, "현재 등록된 구글 인증 정보가 없습니다.", createdBy);
-    createTranslationIfNotExists("google.config.inputTitle", languageCode, "새 인증 정보 등록", createdBy);
     createTranslationIfNotExists(
         "google.config.inputDesc",
         languageCode,
@@ -1643,7 +1175,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "google.config.success.delete", languageCode, "Google 연동이 해제되었습니다.", createdBy);
     createTranslationIfNotExists(
         "google.config.error.deleteFailed", languageCode, "연동 해제 중 오류가 발생했습니다.", createdBy);
-    createTranslationIfNotExists("google.config.status.inactive", languageCode, "비활성", createdBy);
     createTranslationIfNotExists(
         "google.config.noConfigDesc",
         languageCode,

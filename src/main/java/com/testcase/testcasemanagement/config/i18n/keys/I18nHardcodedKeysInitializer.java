@@ -1898,11 +1898,6 @@ public class I18nHardcodedKeysInitializer {
         "i18n 하드코딩 보강 (2026-06-06)",
         "{count}개 행 삭제");
     createTranslationKeyIfNotExists(
-        "testcase.spreadsheet.deleteTitle",
-        "testcase",
-        "i18n 하드코딩 보강 (2026-06-06)",
-        "{count}개 행 삭제");
-    createTranslationKeyIfNotExists(
         "testcase.spreadsheet.errorsTitle",
         "testcase",
         "i18n 하드코딩 보강 (2026-06-06)",
@@ -1923,20 +1918,10 @@ public class I18nHardcodedKeysInitializer {
         "i18n 하드코딩 보강 (2026-06-06)",
         "{name} 폴더");
     createTranslationKeyIfNotExists(
-        "testcase.spreadsheet.insertAboveTitle",
-        "testcase",
-        "i18n 하드코딩 보강 (2026-06-06)",
-        "{rowNum}번 행 위에 추가");
-    createTranslationKeyIfNotExists(
         "testcase.spreadsheet.insertAboveTooltip",
         "testcase",
         "i18n 하드코딩 보강 (2026-06-06)",
         "{row}번 행 위에 추가");
-    createTranslationKeyIfNotExists(
-        "testcase.spreadsheet.insertBelowTitle",
-        "testcase",
-        "i18n 하드코딩 보강 (2026-06-06)",
-        "{rowNum}번 행 아래에 추가");
     createTranslationKeyIfNotExists(
         "testcase.spreadsheet.insertBelowTooltip",
         "testcase",
@@ -2527,8 +2512,6 @@ public class I18nHardcodedKeysInitializer {
         "manual.viewer.retry", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "다시 시도");
     createTranslationKeyIfNotExists(
         "manual.viewer.print", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "인쇄");
-    createTranslationKeyIfNotExists(
-        "manual.viewer.close", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "닫기");
     createTranslationKeyIfNotExists(
         "manual.viewer.relatedGuides", "manual", "사용자 매뉴얼 뷰어 (2026-06-06)", "관련 가이드");
     createTranslationKeyIfNotExists(

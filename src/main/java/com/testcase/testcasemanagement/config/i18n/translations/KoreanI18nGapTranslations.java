@@ -149,36 +149,6 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("common.type", languageCode, "유형", createdBy);
     createTranslationIfNotExists("common.update", languageCode, "수정", createdBy);
     createTranslationIfNotExists(
-        "dashboard.activity.completedPlans", languageCode, "완료된 계획", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.newTestCases", languageCode, "새 테스트 케이스", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.recentActivities", languageCode, "최근 활동", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.testExecutions", languageCode, "테스트 실행", createdBy);
-    createTranslationIfNotExists("dashboard.noData.noResults", languageCode, "결과가 없습니다", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.createTestCase", languageCode, "테스트 케이스 생성", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.manageProjects", languageCode, "프로젝트 관리", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.runTests", languageCode, "테스트 실행", createdBy);
-    createTranslationIfNotExists("dashboard.quickActions.title", languageCode, "빠른 작업", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.viewReports", languageCode, "리포트 보기", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.activeProjects", languageCode, "활성 프로젝트", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.failedTests", languageCode, "실패한 테스트", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.passedTests", languageCode, "통과된 테스트", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.testCoverage", languageCode, "테스트 커버리지", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.totalProjects", languageCode, "총 프로젝트", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.totalTestCases", languageCode, "총 테스트 케이스", createdBy);
-    createTranslationIfNotExists(
         "exploratory.charter.dialog.missionPlaceholder",
         languageCode,
         "차터 내용을 마크다운으로 작성하세요.",
@@ -331,61 +301,12 @@ public class KoreanI18nGapTranslations {
         "jira.linker.searchAndLink", languageCode, "JIRA 이슈 검색 및 연결", createdBy);
     createTranslationIfNotExists("jira.linker.searchResults", languageCode, "검색 결과", createdBy);
     createTranslationIfNotExists("jira.linker.unlink", languageCode, "연결 해제", createdBy);
-    createTranslationIfNotExists("jira.summary.activeIssues", languageCode, "활성 이슈", createdBy);
-    createTranslationIfNotExists("jira.summary.allPassed", languageCode, "전체 통과", createdBy);
-    createTranslationIfNotExists("jira.summary.filterActive", languageCode, "진행중", createdBy);
-    createTranslationIfNotExists(
-        "jira.summary.loading", languageCode, "JIRA 상태 정보를 불러오는 중...", createdBy);
     createTranslationIfNotExists("junit.list.previousExecution", languageCode, "이전 실행", createdBy);
     createTranslationIfNotExists("login.error.failed", languageCode, "로그인에 실패했습니다.", createdBy);
     createTranslationIfNotExists(
         "login.error.general", languageCode, "로그인 중 오류가 발생했습니다.", createdBy);
-    createTranslationIfNotExists("navigation.breadcrumb.back", languageCode, "뒤로", createdBy);
-    createTranslationIfNotExists("navigation.menu.help", languageCode, "도움말", createdBy);
-    createTranslationIfNotExists("navigation.menu.settings", languageCode, "설정", createdBy);
-    createTranslationIfNotExists(
-        "navigation.menu.testExecutions", languageCode, "테스트 실행", createdBy);
-    createTranslationIfNotExists("navigation.user.logout", languageCode, "로그아웃", createdBy);
-    createTranslationIfNotExists("navigation.user.preferences", languageCode, "환경설정", createdBy);
-    createTranslationIfNotExists("navigation.user.profile", languageCode, "프로필", createdBy);
-    createTranslationIfNotExists("organization.buttons.back", languageCode, "조직 목록으로", createdBy);
-    createTranslationIfNotExists(
-        "organization.detail.organizationMembers", languageCode, "조직 멤버", createdBy);
-    createTranslationIfNotExists(
-        "organization.detail.organizationProjects", languageCode, "조직 프로젝트", createdBy);
-    createTranslationIfNotExists(
-        "organization.dialog.editInfo.title", languageCode, "조직 정보 수정", createdBy);
-    createTranslationIfNotExists(
-        "organization.dialog.project.title", languageCode, "조직별 프로젝트 생성", createdBy);
     createTranslationIfNotExists(
         "organization.error.selectMember", languageCode, "이전할 멤버를 선택해주세요.", createdBy);
-    createTranslationIfNotExists(
-        "organization.form.codeRequired", languageCode, "프로젝트 코드를 입력해주세요.", createdBy);
-    createTranslationIfNotExists("organization.member.remove", languageCode, "멤버 제거", createdBy);
-    createTranslationIfNotExists("organization.member.role", languageCode, "역할", createdBy);
-    createTranslationIfNotExists("organization.member.username", languageCode, "사용자명", createdBy);
-    createTranslationIfNotExists(
-        "organization.messages.notFound", languageCode, "조직을 찾을 수 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.belongsTo", languageCode, "이 프로젝트는 조직에 속하게 됩니다.", createdBy);
-    createTranslationIfNotExists("organization.project.code", languageCode, "프로젝트 코드", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.codeHelperText",
-        languageCode,
-        "영문, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능",
-        createdBy);
-    createTranslationIfNotExists(
-        "organization.project.codePlaceholder", languageCode, "예: WEB_APP_TEST", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.description", languageCode, "프로젝트 설명", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.descriptionPlaceholder",
-        languageCode,
-        "프로젝트에 대한 간단한 설명을 입력하세요...",
-        createdBy);
-    createTranslationIfNotExists("organization.project.name", languageCode, "프로젝트 이름", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.namePlaceholder", languageCode, "예: 웹 애플리케이션 테스트", createdBy);
     createTranslationIfNotExists(
         "profile.apiToken.dialog.delete.button.cancel", languageCode, "취소", createdBy);
     createTranslationIfNotExists("profile.tabs.theme", languageCode, "테마 설정", createdBy);
@@ -572,14 +493,8 @@ public class KoreanI18nGapTranslations {
         "testPlan.linkAutomated.searchPlaceholder", languageCode, "실행 이름 또는 파일명으로 검색", createdBy);
     createTranslationIfNotExists(
         "testPlan.linkAutomated.title", languageCode, "자동화 테스트 연결", createdBy);
-    createTranslationIfNotExists("testResult.button.delete", languageCode, "삭제", createdBy);
     createTranslationIfNotExists(
         "testResult.button.jiraStatusLoading", languageCode, "JIRA 상태 확인 중...", createdBy);
-    createTranslationIfNotExists("testResult.button.refresh", languageCode, "새로고침", createdBy);
-    createTranslationIfNotExists("testResult.button.view", languageCode, "보기", createdBy);
-    createTranslationIfNotExists("testResult.default.noData", languageCode, "데이터 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noExecutor", languageCode, "실행자 없음", createdBy);
     createTranslationIfNotExists(
         "testResult.caseDetails.expandAll", languageCode, "모두 펼치기", createdBy);
     createTranslationIfNotExists(
@@ -613,20 +528,6 @@ public class KoreanI18nGapTranslations {
         "testResult.export.pdf.qaSummaryTitle", languageCode, "💬 QA 총평", createdBy);
     createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryBy", languageCode, "작성", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noExpectedResult", languageCode, "기대 결과 없음", createdBy);
-    createTranslationIfNotExists("testResult.default.noFolder", languageCode, "폴더 없음", createdBy);
-    createTranslationIfNotExists("testResult.default.noNotes", languageCode, "노트 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noPreCondition", languageCode, "사전설정 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noSteps", languageCode, "테스트 단계 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestCase", languageCode, "테스트케이스 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestExecution", languageCode, "테스트실행 없음", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestPlan", languageCode, "테스트플랜 없음", createdBy);
     createTranslationIfNotExists(
         "testResult.export.attachmentsAvailable", languageCode, "첨부 있음", createdBy);
     createTranslationIfNotExists(
@@ -716,35 +617,14 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.jiraDialog.title", languageCode, "JIRA 연동 이슈 목록", createdBy);
     createTranslationIfNotExists(
-        "testResult.message.deleteConfirm", languageCode, "이 테스트 결과를 삭제하시겠습니까?", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.deleteSuccess", languageCode, "테스트 결과가 성공적으로 삭제되었습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.exportFailed", languageCode, "CSV 내보내기에 실패했습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.exportSuccess", languageCode, "CSV 파일이 성공적으로 내보내졌습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.loading", languageCode, "테스트 결과를 불러오는 중...", createdBy);
-    createTranslationIfNotExists(
         "testResult.message.noChange", languageCode, "변경 사항이 없어 저장하지 않았습니다.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.noData", languageCode, "표시할 테스트 결과가 없습니다.", createdBy);
     createTranslationIfNotExists("testResult.status.loading", languageCode, "불러오는 중...", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.delete", languageCode, "테스트 결과 삭제", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.edit", languageCode, "테스트 결과 편집", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.export", languageCode, "CSV로 내보내기", createdBy);
     createTranslationIfNotExists(
         "testResult.tooltip.jiraNotConfigured", languageCode, "JIRA 설정이 필요합니다", createdBy);
     createTranslationIfNotExists(
-        "testResult.tooltip.noExpectedResult", languageCode, "기대 결과 없음", createdBy);
-    createTranslationIfNotExists(
         "testResult.tooltip.noJiraTargets", languageCode, "연결된 JIRA ID가 없습니다", createdBy);
     createTranslationIfNotExists(
-        "testResult.tooltip.noSteps", languageCode, "테스트 단계 없음", createdBy);
-    createTranslationIfNotExists(
         "testResult.tooltip.noTestTechnique", languageCode, "테스트 기법 없음", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.refresh", languageCode, "데이터 새로고침", createdBy);
-    createTranslationIfNotExists("testResult.tooltip.view", languageCode, "테스트 결과 보기", createdBy);
     createTranslationIfNotExists(
         "testResultDashboard.chart.executionComparison", languageCode, "실행별 결과 비교", createdBy);
     createTranslationIfNotExists(
@@ -852,8 +732,6 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testcase.io.export.google.label", languageCode, "2. Google Sheets 설정", createdBy);
     createTranslationIfNotExists(
-        "testcase.io.import.url.required", languageCode, "Google Sheets URL을 입력하세요", createdBy);
-    createTranslationIfNotExists(
         "testcase.message.confirmDiscard",
         languageCode,
         "작성 중인 내용이 있습니다. 새 케이스를 추가하시겠습니까? 기존 내용은 사라집니다.",
@@ -952,12 +830,7 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("userList.email.verified", languageCode, "인증됨", createdBy);
     createTranslationIfNotExists("userList.table.emailVerified", languageCode, "이메일 인증", createdBy);
     createTranslationIfNotExists(
-        "validation.email.invalid", languageCode, "올바른 이메일 형식이 아닙니다", createdBy);
-    createTranslationIfNotExists(
-        "validation.password.minLength", languageCode, "비밀번호는 최소 8자 이상이어야 합니다", createdBy);
-    createTranslationIfNotExists(
         "validation.password.mismatch", languageCode, "비밀번호가 일치하지 않습니다.", createdBy);
-    createTranslationIfNotExists("validation.required", languageCode, "필수 입력 항목입니다", createdBy);
     createTranslationIfNotExists(
         "validation.required.all", languageCode, "모든 필드를 입력해주세요.", createdBy);
     createTranslationIfNotExists(

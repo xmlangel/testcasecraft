@@ -189,38 +189,6 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists("common.type", languageCode, "Type", createdBy);
     createTranslationIfNotExists("common.update", languageCode, "Update", createdBy);
     createTranslationIfNotExists(
-        "dashboard.activity.completedPlans", languageCode, "Completed Plans", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.newTestCases", languageCode, "New Test Cases", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.recentActivities", languageCode, "Recent Activities", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.activity.testExecutions", languageCode, "Test Executions", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.noData.noResults", languageCode, "No results", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.createTestCase", languageCode, "Create Test Case", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.manageProjects", languageCode, "Manage Projects", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.runTests", languageCode, "Run Tests", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.title", languageCode, "Quick Actions", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.quickActions.viewReports", languageCode, "View Reports", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.activeProjects", languageCode, "Active Projects", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.failedTests", languageCode, "Failed Tests", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.passedTests", languageCode, "Passed Tests", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.testCoverage", languageCode, "Test Coverage", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.totalProjects", languageCode, "Total Projects", createdBy);
-    createTranslationIfNotExists(
-        "dashboard.summary.totalTestCases", languageCode, "Total Test Cases", createdBy);
-    createTranslationIfNotExists(
         "exploratory.charter.dialog.missionPlaceholder",
         languageCode,
         "Write the charter content in Markdown.",
@@ -423,81 +391,12 @@ public class EnglishI18nGapTranslations {
         "jira.linker.searchResults", languageCode, "Search Results", createdBy);
     createTranslationIfNotExists("jira.linker.unlink", languageCode, "Unlink", createdBy);
     createTranslationIfNotExists(
-        "jira.summary.activeIssues", languageCode, "Active Issues", createdBy);
-    createTranslationIfNotExists("jira.summary.allPassed", languageCode, "All Passed", createdBy);
-    createTranslationIfNotExists(
-        "jira.summary.filterActive", languageCode, "In Progress", createdBy);
-    createTranslationIfNotExists(
-        "jira.summary.loading", languageCode, "Loading JIRA status...", createdBy);
-    createTranslationIfNotExists(
         "junit.list.previousExecution", languageCode, "Previous Execution", createdBy);
     createTranslationIfNotExists("login.error.failed", languageCode, "Login failed.", createdBy);
     createTranslationIfNotExists(
         "login.error.general", languageCode, "An error occurred during login.", createdBy);
-    createTranslationIfNotExists("navigation.breadcrumb.back", languageCode, "Back", createdBy);
-    createTranslationIfNotExists("navigation.menu.help", languageCode, "Help", createdBy);
-    createTranslationIfNotExists("navigation.menu.settings", languageCode, "Settings", createdBy);
-    createTranslationIfNotExists(
-        "navigation.menu.testExecutions", languageCode, "Test Executions", createdBy);
-    createTranslationIfNotExists("navigation.user.logout", languageCode, "Logout", createdBy);
-    createTranslationIfNotExists(
-        "navigation.user.preferences", languageCode, "Preferences", createdBy);
-    createTranslationIfNotExists("navigation.user.profile", languageCode, "Profile", createdBy);
-    createTranslationIfNotExists(
-        "organization.buttons.back", languageCode, "Back to Organizations", createdBy);
-    createTranslationIfNotExists(
-        "organization.detail.organizationMembers", languageCode, "Organization Members", createdBy);
-    createTranslationIfNotExists(
-        "organization.detail.organizationProjects",
-        languageCode,
-        "Organization Projects",
-        createdBy);
-    createTranslationIfNotExists(
-        "organization.dialog.editInfo.title", languageCode, "Edit Organization Info", createdBy);
-    createTranslationIfNotExists(
-        "organization.dialog.project.title",
-        languageCode,
-        "Create Project in Organization",
-        createdBy);
     createTranslationIfNotExists(
         "organization.error.selectMember", languageCode, "Select a member to transfer.", createdBy);
-    createTranslationIfNotExists(
-        "organization.form.codeRequired", languageCode, "Enter the project code.", createdBy);
-    createTranslationIfNotExists(
-        "organization.member.remove", languageCode, "Remove Member", createdBy);
-    createTranslationIfNotExists("organization.member.role", languageCode, "Role", createdBy);
-    createTranslationIfNotExists(
-        "organization.member.username", languageCode, "Username", createdBy);
-    createTranslationIfNotExists(
-        "organization.messages.notFound", languageCode, "Organization not found.", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.belongsTo",
-        languageCode,
-        "This project will belong to the organization.",
-        createdBy);
-    createTranslationIfNotExists(
-        "organization.project.code", languageCode, "Project Code", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.codeHelperText",
-        languageCode,
-        "Only letters, numbers, underscores (_), and hyphens (-) are allowed",
-        createdBy);
-    createTranslationIfNotExists(
-        "organization.project.codePlaceholder", languageCode, "e.g., WEB_APP_TEST", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.description", languageCode, "Project Description", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.descriptionPlaceholder",
-        languageCode,
-        "Enter a short description of the project...",
-        createdBy);
-    createTranslationIfNotExists(
-        "organization.project.name", languageCode, "Project Name", createdBy);
-    createTranslationIfNotExists(
-        "organization.project.namePlaceholder",
-        languageCode,
-        "e.g., Web Application Testing",
-        createdBy);
     createTranslationIfNotExists(
         "profile.apiToken.dialog.delete.button.cancel", languageCode, "Cancel", createdBy);
     createTranslationIfNotExists("profile.tabs.theme", languageCode, "Theme", createdBy);
@@ -758,14 +657,8 @@ public class EnglishI18nGapTranslations {
         createdBy);
     createTranslationIfNotExists(
         "testPlan.linkAutomated.title", languageCode, "Link Automated Tests", createdBy);
-    createTranslationIfNotExists("testResult.button.delete", languageCode, "Delete", createdBy);
     createTranslationIfNotExists(
         "testResult.button.jiraStatusLoading", languageCode, "Checking JIRA status...", createdBy);
-    createTranslationIfNotExists("testResult.button.refresh", languageCode, "Refresh", createdBy);
-    createTranslationIfNotExists("testResult.button.view", languageCode, "View", createdBy);
-    createTranslationIfNotExists("testResult.default.noData", languageCode, "No data", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noExecutor", languageCode, "No executor", createdBy);
     createTranslationIfNotExists(
         "testResult.caseDetails.expandAll", languageCode, "Expand All", createdBy);
     createTranslationIfNotExists(
@@ -805,21 +698,6 @@ public class EnglishI18nGapTranslations {
         "testResult.export.pdf.qaSummaryTitle", languageCode, "💬 QA Summary", createdBy);
     createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryBy", languageCode, "By", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noExpectedResult", languageCode, "No expected result", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noFolder", languageCode, "No folder", createdBy);
-    createTranslationIfNotExists("testResult.default.noNotes", languageCode, "No notes", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noPreCondition", languageCode, "No preconditions", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noSteps", languageCode, "No test steps", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestCase", languageCode, "No test case", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestExecution", languageCode, "No test execution", createdBy);
-    createTranslationIfNotExists(
-        "testResult.default.noTestPlan", languageCode, "No test plan", createdBy);
     createTranslationIfNotExists(
         "testResult.export.attachmentsAvailable", languageCode, "Has attachments", createdBy);
     createTranslationIfNotExists(
@@ -927,53 +805,21 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.jiraDialog.title", languageCode, "Linked JIRA Issues", createdBy);
     createTranslationIfNotExists(
-        "testResult.message.deleteConfirm", languageCode, "Delete this test result?", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.deleteSuccess",
-        languageCode,
-        "Test result deleted successfully.",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.exportFailed", languageCode, "CSV export failed.", createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.exportSuccess",
-        languageCode,
-        "CSV file exported successfully.",
-        createdBy);
-    createTranslationIfNotExists(
-        "testResult.message.loading", languageCode, "Loading test results...", createdBy);
-    createTranslationIfNotExists(
         "testResult.message.noChange",
         languageCode,
         "Nothing was saved because there are no changes.",
         createdBy);
     createTranslationIfNotExists(
-        "testResult.message.noData", languageCode, "No test results to display.", createdBy);
-    createTranslationIfNotExists(
         "testResult.status.loading", languageCode, "Loading...", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tooltip.delete", languageCode, "Delete test result", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tooltip.edit", languageCode, "Edit test result", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tooltip.export", languageCode, "Export to CSV", createdBy);
     createTranslationIfNotExists(
         "testResult.tooltip.jiraNotConfigured",
         languageCode,
         "JIRA configuration required",
         createdBy);
     createTranslationIfNotExists(
-        "testResult.tooltip.noExpectedResult", languageCode, "No expected result", createdBy);
-    createTranslationIfNotExists(
         "testResult.tooltip.noJiraTargets", languageCode, "No linked JIRA IDs", createdBy);
     createTranslationIfNotExists(
-        "testResult.tooltip.noSteps", languageCode, "No test steps", createdBy);
-    createTranslationIfNotExists(
         "testResult.tooltip.noTestTechnique", languageCode, "No test technique", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tooltip.refresh", languageCode, "Refresh data", createdBy);
-    createTranslationIfNotExists(
-        "testResult.tooltip.view", languageCode, "View test result", createdBy);
     createTranslationIfNotExists(
         "testResultDashboard.chart.executionComparison",
         languageCode,
@@ -1110,8 +956,6 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists(
         "testcase.io.export.google.label", languageCode, "2. Google Sheets Settings", createdBy);
     createTranslationIfNotExists(
-        "testcase.io.import.url.required", languageCode, "Enter a Google Sheets URL", createdBy);
-    createTranslationIfNotExists(
         "testcase.message.confirmDiscard",
         languageCode,
         "You have unsaved content. Add a new case anyway? Existing content will be lost.",
@@ -1230,16 +1074,7 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists(
         "userList.table.emailVerified", languageCode, "Email Verified", createdBy);
     createTranslationIfNotExists(
-        "validation.email.invalid", languageCode, "Invalid email format", createdBy);
-    createTranslationIfNotExists(
-        "validation.password.minLength",
-        languageCode,
-        "Password must be at least 8 characters",
-        createdBy);
-    createTranslationIfNotExists(
         "validation.password.mismatch", languageCode, "Passwords do not match.", createdBy);
-    createTranslationIfNotExists(
-        "validation.required", languageCode, "This field is required", createdBy);
     createTranslationIfNotExists(
         "validation.required.all", languageCode, "Please fill in all fields.", createdBy);
     createTranslationIfNotExists(

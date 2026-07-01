@@ -131,9 +131,6 @@ public class MailKeysInitializer {
     // GmailGuideDialog 관련
     createTranslationKeyIfNotExists(
         "mail.guide.dialog.title", "mail", "Gmail 앱 비밀번호 설정 가이드", "Gmail 앱 비밀번호 설정 가이드");
-    createTranslationKeyIfNotExists("mail.guide.stepGuide", "mail", "단계별 설정 방법", "단계별 설정 방법");
-    createTranslationKeyIfNotExists("mail.guide.troubleshooting", "mail", "문제 해결", "문제 해결");
-    createTranslationKeyIfNotExists("mail.guide.securityWarnings", "mail", "보안 주의사항", "보안 주의사항");
     createTranslationKeyIfNotExists("mail.guide.button.close", "mail", "닫기 버튼", "닫기");
     createTranslationKeyIfNotExists("mail.guide.button.next", "mail", "다음 버튼", "다음");
     createTranslationKeyIfNotExists("mail.guide.button.previous", "mail", "이전 버튼", "이전");

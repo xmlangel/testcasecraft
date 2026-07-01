@@ -1173,8 +1173,6 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.deleteRowsTooltip", languageCode, "{count}개 행 삭제", createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.deleteTitle", languageCode, "{count}개 행 삭제", createdBy);
-    createTranslationIfNotExists(
         "testcase.spreadsheet.errorsTitle", languageCode, "🚨 해결이 필요한 오류", createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.excelExportError",
@@ -1189,11 +1187,7 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.folderNameFormat", languageCode, "{name} 폴더", createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.insertAboveTitle", languageCode, "{rowNum}번 행 위에 추가", createdBy);
-    createTranslationIfNotExists(
         "testcase.spreadsheet.insertAboveTooltip", languageCode, "{row}번 행 위에 추가", createdBy);
-    createTranslationIfNotExists(
-        "testcase.spreadsheet.insertBelowTitle", languageCode, "{rowNum}번 행 아래에 추가", createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.insertBelowTooltip", languageCode, "{row}번 행 아래에 추가", createdBy);
     createTranslationIfNotExists(
@@ -1467,7 +1461,6 @@ public class KoreanI18nHardcodedTranslations {
         "manual.viewer.error", languageCode, "매뉴얼을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", createdBy);
     createTranslationIfNotExists("manual.viewer.retry", languageCode, "다시 시도", createdBy);
     createTranslationIfNotExists("manual.viewer.print", languageCode, "인쇄", createdBy);
-    createTranslationIfNotExists("manual.viewer.close", languageCode, "닫기", createdBy);
     createTranslationIfNotExists("manual.viewer.relatedGuides", languageCode, "관련 가이드", createdBy);
     createTranslationIfNotExists(
         "manual.viewer.backToManual", languageCode, "매뉴얼로 돌아가기", createdBy);
