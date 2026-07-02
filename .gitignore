@@ -270,3 +270,7 @@ CLAUDE.md
 
 .mcp.json
 .workspace/
+
+# DB 통합 마이그레이션 백업 (실데이터 — 커밋 금지)
+docker-compose-build/backups/
+docker-compose-build/data/

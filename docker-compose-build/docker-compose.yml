@@ -81,8 +81,8 @@ services:
     image: xmlangel/testcasecraft-rag-service:1.0.11
     container_name: testcasecraft-rag-service
     environment:
-      # Database
-      DATABASE_URL: postgresql://rag_user:${POSTGRES_RAG_PASSWORD}@postgres-rag:5432/rag_db
+      # Database (통합된 postgres 서버의 rag_db)
+      DATABASE_URL: postgresql://rag_user:${POSTGRES_RAG_PASSWORD}@postgres:5432/rag_db
 
       # MinIO (Docker Compose MinIO 사용)
       MINIO_ENDPOINT: minio:9000
@@ -107,21 +107,23 @@ services:
     networks:
       - testcasecraft-network
     depends_on:
-      postgres-rag:
+      postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     restart: always
 
-  # PostgreSQL 18 Database
+  # PostgreSQL 18 with pgvector (Spring app DB + RAG DB 통합)
   postgres:
-    image: postgres:18
+    image: pgvector/pgvector:pg18
     container_name: testcasecraft_postgres_spring
     environment:
       POSTGRES_DB: testcase_management
       POSTGRES_USER: testcase_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # 빈 볼륨 최초 기동 시 init-scripts/00-init-rag.sh 가 rag_db/rag_user 생성에 사용
+      POSTGRES_RAG_PASSWORD: ${POSTGRES_RAG_PASSWORD}
     ports:
       - "5434:5432"
     volumes:
@@ -131,28 +133,6 @@ services:
       - testcasecraft-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U testcase_user -d testcase_management"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: always
-
-  # PostgreSQL 18 with pgvector extension (RAG)
-  postgres-rag:
-    image: pgvector/pgvector:pg18
-    container_name: testcasecraft-postgres-rag
-    environment:
-      POSTGRES_DB: rag_db
-      POSTGRES_USER: rag_user
-      POSTGRES_PASSWORD: ${POSTGRES_RAG_PASSWORD}
-    ports:
-      - "5433:5432"
-    volumes:
-      - ./data/postgres-rag:/var/lib/postgresql
-      - ./postgres-init:/docker-entrypoint-initdb.d
-    networks:
-      - testcasecraft-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rag_user -d rag_db"]
       interval: 10s
       timeout: 5s
       retries: 5
