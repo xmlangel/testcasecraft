@@ -63,6 +63,7 @@ import TestStepsTable from "./TestCase/TestStepsTable.jsx";
 import MarkdownFieldEditor from "./TestCase/MarkdownFieldEditor.jsx";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import VersionDialog from "./TestCase/VersionDialog.jsx";
+import { DeleteConfirmationDialog } from "./TestCase/Spreadsheet/components/DeleteConfirmationDialog.jsx";
 import FolderForm from "./TestCase/FolderForm.jsx";
 import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
 import RagStatusBadge from "./TestCase/RagStatusBadge.jsx";
@@ -116,6 +117,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [versionDescription, setVersionDescription] = useState("");
   const [savingVersion, setSavingVersion] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [currentVersion, setCurrentVersion] = useState(null);
   const [renderKey, setRenderKey] = useState(0);
   const [availableTags, setAvailableTags] = useState([]);
@@ -1139,24 +1141,33 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   };
 
   // 개별 폼에서 테스트케이스 삭제 (저장된 케이스에만)
-  const handleDelete = async () => {
+  // 삭제 버튼 클릭 → 트리와 동일한 확인 다이얼로그(DeleteConfirmationDialog) 오픈
+  const handleDelete = () => {
     if (isViewer || !testCaseId) return;
-    const confirmed = window.confirm(
-      t(
-        "testcase.form.deleteConfirm",
-        "이 테스트케이스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
-      ),
-    );
-    if (!confirmed) return;
+    setDeleteConfirmationOpen(true);
+  };
+
+  const handleCancelDelete = useCallback(() => {
+    setDeleteConfirmationOpen(false);
+  }, []);
+
+  const handleConfirmDelete = async () => {
+    if (isViewer || !testCaseId) return;
     try {
       await deleteTestCase(testCaseId);
+      setDeleteConfirmationOpen(false);
       // 삭제 성공 → 부모 갱신(트리 새로고침·선택 해제 등)
       if (onSave) onSave();
     } catch (err) {
-      setSnackbarError(
+      // 트리 삭제와 동일하게 백엔드 에러 메시지(403 인가 등)를 우선 노출
+      let msg =
         err?.message ||
-          t("testcase.form.deleteError", "삭제 중 오류가 발생했습니다."),
-      );
+        t("testcase.form.deleteError", "삭제 중 오류가 발생했습니다.");
+      if (err?.response?.data?.message) {
+        msg = err.response.data.message;
+      }
+      setDeleteConfirmationOpen(false);
+      setSnackbarError(msg);
       setSnackbarOpen(true);
     }
   };
@@ -1624,6 +1635,30 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         open={versionHistoryOpen}
         onClose={() => setVersionHistoryOpen(false)}
         onRestore={handleVersionRestore}
+      />
+
+      {/* 삭제 확인 다이얼로그 — 트리 삭제와 동일한 컴포넌트/문구 사용 */}
+      <DeleteConfirmationDialog
+        open={deleteConfirmationOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title={t("testcase.tree.dialog.deleteConfirm.title", "삭제 확인")}
+        description={t(
+          "testcase.tree.dialog.deleteConfirm.message",
+          "정말로 삭제하시겠습니까? (하위 항목 포함)",
+        )}
+        items={
+          testCaseId
+            ? [
+                {
+                  id: testCaseId,
+                  displayId: testCase?.displayId || testCase?.sequentialId,
+                  name: testCase?.name,
+                  type: "testcase",
+                },
+              ]
+            : []
+        }
       />
     </Card>
   );

@@ -309,7 +309,7 @@ def main():
             f"\n{YELLOW}Note:{RESET} To run actual API tests, start the RAG service first:"
         )
         print("  cd docker-compose-dev-spring")
-        print("  docker-compose up -d postgres-rag minio rag-service")
+        print("  docker-compose up -d postgres minio rag-service")
         print("  cd ../rag-service")
         print("  python3 test_api_comprehensive.py")
         return 0

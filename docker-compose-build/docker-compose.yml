@@ -1,7 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:1.0.92
+    image: xmlangel/testcasecraft:1.0.93
     container_name: testcasecraft
     environment:
       # Spring Profile
@@ -81,7 +81,7 @@ services:
     image: xmlangel/testcasecraft-rag-service:1.0.11
     container_name: testcasecraft-rag-service
     environment:
-      # Database (통합된 postgres 서버의 rag_db)
+      # Database (통합 단일 PostgreSQL 인스턴스의 rag_db 를 사용)
       DATABASE_URL: postgresql://rag_user:${POSTGRES_RAG_PASSWORD}@postgres:5432/rag_db
 
       # MinIO (Docker Compose MinIO 사용)
@@ -114,15 +114,19 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     restart: always
 
-  # PostgreSQL 18 with pgvector (Spring app DB + RAG DB 통합)
+  # PostgreSQL 18 with pgvector — 통합 단일 인스턴스
+  #   - testcase_management (앱 DB, testcase_user)
+  #   - rag_db (RAG 벡터 DB, rag_user) : init-scripts 가 최초 기동 시 자동 생성
+  # 신규 배포는 init-scripts 로 rag_db 가 자동 생성되고, 기존 배포는
+  # scripts/migrate-consolidate-db.sh 로 rag_db 데이터를 이관한다.
   postgres:
     image: pgvector/pgvector:pg18
-    container_name: testcasecraft_postgres_spring
+    container_name: testcasecraft-postgres
     environment:
       POSTGRES_DB: testcase_management
       POSTGRES_USER: testcase_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # 빈 볼륨 최초 기동 시 init-scripts/00-init-rag.sh 가 rag_db/rag_user 생성에 사용
+      # 최초 기동 시 rag_user/rag_db 생성에 사용 (init-scripts/01-init-rag.sh)
       POSTGRES_RAG_PASSWORD: ${POSTGRES_RAG_PASSWORD}
     ports:
       - "5434:5432"
@@ -138,10 +142,12 @@ services:
       retries: 5
     restart: always
 
-  # MinIO Object Storage (RAG)
+  # MinIO Object Storage — 앱/RAG 공용 단일 인스턴스
+  #   - testcase-attachments 버킷 (앱 첨부파일)
+  #   - rag-documents 버킷 (RAG 문서)
   minio:
     image: minio/minio:latest
-    container_name: testcasecraft-minio-rag
+    container_name: testcasecraft-minio
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}

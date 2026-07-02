@@ -13,9 +13,9 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     LOG_LEVEL: str = "INFO"
 
-    # Database
+    # Database (통합 단일 PostgreSQL 인스턴스의 rag_db)
     DATABASE_URL: str = (
-        "postgresql://rag_user:rag_dev_password_123@postgres-rag:5432/rag_db"
+        "postgresql://rag_user:rag_dev_password_123@postgres:5432/rag_db"
     )
 
     # MinIO
