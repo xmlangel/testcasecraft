@@ -298,6 +298,7 @@ def open_cross_project_dialog(page: Page) -> None:
 
     체크박스로 항목을 선택해야 헤더에 이동/복사 버튼(cross-project-transfer-button)이
     노출된다. 전체 선택 체크박스를 사용해 버튼을 띄운 뒤 다이얼로그를 연다.
+    이어서 '작업 유형 = 이동'을 선택해 대상 프로젝트·대상 폴더 필드가 보이게 한다.
     """
     tree_select_all_cases(page)
     page.locator('[data-testid="testcase-check-all-input"]').first.check(timeout=10_000)
@@ -306,6 +307,17 @@ def open_cross_project_dialog(page: Page) -> None:
         timeout=5_000
     )
     page.wait_for_timeout(700)
+    # 작업 유형 드롭다운을 열고 '이동'(Move) 을 선택 → 대상 프로젝트/폴더 셀렉터 노출
+    dialog = page.get_by_role("dialog")
+    try:
+        dialog.get_by_role("combobox").first.click(timeout=5_000)
+        page.wait_for_timeout(300)
+        page.get_by_role(
+            "option", name=re.compile(r"^\s*(이동|Move)\s*$", re.I)
+        ).first.click(timeout=5_000)
+        page.wait_for_timeout(800)
+    except PWTimeout:
+        pass  # 드롭다운 구조 변경 시 다이얼로그 초기 상태라도 캡처
 
 
 # ---------------------------------------------------------------------------
