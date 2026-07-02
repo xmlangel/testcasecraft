@@ -142,10 +142,12 @@ services:
       retries: 5
     restart: always
 
-  # MinIO Object Storage (RAG)
+  # MinIO Object Storage — 앱/RAG 공용 단일 인스턴스
+  #   - testcase-attachments 버킷 (앱 첨부파일)
+  #   - rag-documents 버킷 (RAG 문서)
   minio:
     image: minio/minio:latest
-    container_name: testcasecraft-minio-rag
+    container_name: testcasecraft-minio
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}

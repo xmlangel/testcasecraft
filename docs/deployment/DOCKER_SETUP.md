@@ -49,7 +49,7 @@ lsof -nP -iTCP:8080 -sTCP:LISTEN
 |---|---|---|---|
 | Spring Boot 앱 | `testcasecraft` | `xmlangel/testcasecraft:1.0.83` | `${HTTP_PORT}` / `${HTTPS_PORT}` |
 | PostgreSQL + pgvector (통합: 앱 DB `testcase_management` + RAG DB `rag_db`) | `testcasecraft-postgres` | `pgvector/pgvector:pg18` | `5434:5432` |
-| MinIO (S3 호환 첨부 저장소) | `testcasecraft-minio-rag` | `minio/minio:latest` | `9000`/`9001` |
+| MinIO (S3 호환 첨부 저장소) | `testcasecraft-minio` | `minio/minio:latest` | `9000`/`9001` |
 | FastAPI RAG 서비스 | `testcasecraft-rag-service` | `xmlangel/testcasecraft-rag-service:1.0.11` | `8001:8000` |
 
 앱 컨테이너는 PostgreSQL / MinIO가 `healthy`가 된 다음에 기동되도록 `depends_on`이 설정되어 있습니다.

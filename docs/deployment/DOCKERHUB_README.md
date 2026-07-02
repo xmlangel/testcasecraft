@@ -479,7 +479,7 @@ services:
 # MinIO Object Storage (RAG)
   minio:
     image: minio/minio:latest
-    container_name: testcasecraft-minio-rag
+    container_name: testcasecraft-minio
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
