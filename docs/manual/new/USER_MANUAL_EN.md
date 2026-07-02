@@ -328,6 +328,8 @@ Opening a case in form mode displays the following screen.
 
 > **Changed 2026-07-02 (v1.0.93)**: When editing a saved case, a red **[Delete]** button appears on the right side of the header. It now opens the **same confirmation dialog as the tree delete** — it **shows the target case's ID and name in a table** and you confirm with **[Delete] / [Cancel]**. The button is hidden when you lack permission (e.g. viewers), and if you are not allowed to delete, the message returned by the server is shown at the bottom of the screen as-is.
 
+![Form delete confirmation dialog](images_en/93_form_delete_dialog.png)
+
 **Main content tabs** (4 tabs):
 
 | Tab | Content |
@@ -427,6 +429,8 @@ All successful moves are automatically recorded in the system — **who, when, a
 1. Select one or more cases/folders in the tree using their **checkboxes**.
 2. Click the **[Move/Copy to Project]** button that appears in the tree header. (It is visible only when items are selected.)
 3. The **Bulk Test Case Operations** dialog opens, showing the count and names of the selected items at the top.
+
+![Move/Copy to project dialog](images_en/94_cross_project_dialog.png)
 
 **Running move / copy**
 
