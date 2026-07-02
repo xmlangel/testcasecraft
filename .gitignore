@@ -270,3 +270,4 @@ CLAUDE.md
 
 .mcp.json
 .workspace/
+docker-compose-build/backups/

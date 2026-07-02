@@ -261,10 +261,11 @@ docker compose --env-file myenvfile.env up -d --build
 
 개발, 디버깅 또는 외부 도구(DBeaver 등) 연결 시 사용하는 계정 정보입니다.
 
+> v1.0.93부터 앱 DB와 RAG DB가 단일 PostgreSQL(pgvector) 인스턴스로 통합되었습니다 (호스트 포트 `5434` 하나).
+
 | Component | Host Port | Username | Password | Note |
 | :--- | :--- | :--- | :--- | :--- |
-| **PostgreSQL (Main)** | `localhost:5434` | `testcase_user` | `testcase_password` | 주요 데이터 저장소 (v18) |
-| **PostgreSQL (RAG)** | `localhost:5433` | `rag_user` | `rag_dev_password_123` | 벡터 DB (pgvector + v18) |
+| **PostgreSQL + pgvector (통합)** | `localhost:5434` | `testcase_user` (앱) / `rag_user` (RAG) | `testcase_password` / `rag_dev_password_123` | 단일 인스턴스가 앱 DB `testcase_management` + RAG DB `rag_db` 를 함께 호스팅 (pgvector, v18) |
 | **MinIO** | `localhost:9000` / `9001` | `minioadmin` | `minioadmin_dev_password_789` | S3 호환 스토리지 |
 
 
@@ -419,7 +420,7 @@ services:
     container_name: testcasecraft-rag-service
     environment:
       # Database
-      DATABASE_URL: postgresql://rag_user:${POSTGRES_RAG_PASSWORD}@postgres-rag:5432/rag_db
+      DATABASE_URL: postgresql://rag_user:${POSTGRES_RAG_PASSWORD}@postgres:5432/rag_db
 
       # MinIO (Docker Compose MinIO 사용)
       MINIO_ENDPOINT: minio:9000
@@ -444,20 +445,24 @@ services:
     networks:
       - testcasecraft-network
     depends_on:
-      postgres-rag:
+      postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-# PostgreSQL 18 Database
+  # PostgreSQL 18 with pgvector — 통합 단일 인스턴스
+  #   - testcase_management (앱 DB, testcase_user)
+  #   - rag_db (RAG 벡터 DB, rag_user) : init-scripts 가 최초 기동 시 자동 생성
   postgres:
-    image: postgres:18
-    container_name: testcasecraft_postgres_spring
+    image: pgvector/pgvector:pg18
+    container_name: testcasecraft-postgres
     environment:
       POSTGRES_DB: testcase_management
       POSTGRES_USER: testcase_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # 최초 기동 시 rag_user/rag_db 생성에 사용 (init-scripts/01-init-rag.sh)
+      POSTGRES_RAG_PASSWORD: ${POSTGRES_RAG_PASSWORD}
     ports:
       - "5434:5432"
     volumes:
@@ -467,27 +472,6 @@ services:
       - testcasecraft-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U testcase_user -d testcase_management"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # PostgreSQL 18 with pgvector extension (RAG)
-  postgres-rag:
-    image: pgvector/pgvector:pg18
-    container_name: testcasecraft-postgres-rag
-    environment:
-      POSTGRES_DB: rag_db
-      POSTGRES_USER: rag_user
-      POSTGRES_PASSWORD: ${POSTGRES_RAG_PASSWORD}
-    ports:
-      - "5433:5432"
-    volumes:
-      - ./data/postgres-rag:/var/lib/postgresql
-      - ./postgres-init:/docker-entrypoint-initdb.d
-    networks:
-      - testcasecraft-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rag_user -d rag_db"]
       interval: 10s
       timeout: 5s
       retries: 5

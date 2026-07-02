@@ -78,9 +78,9 @@ SSL_KEYSTORE_TYPE=PKCS12
 
 ### 공통
 
-| 서비스     | URL            | 설명         |
-| ---------- | -------------- | ------------ |
-| PostgreSQL | localhost:5433 | 데이터베이스 |
+| 서비스              | URL            | 설명                                              |
+| ------------------- | -------------- | ------------------------------------------------- |
+| PostgreSQL+pgvector | localhost:5434 | 통합 DB (앱 `testcase_management` + RAG `rag_db`) |
 
 ### 🔐 기본 로그인
 
@@ -200,7 +200,7 @@ docker-compose up -d --build app
 # 포트 사용 중인 프로세스 확인 및 종료
 lsof -ti:80 | xargs kill -9    # HTTP 포트
 lsof -ti:443 | xargs kill -9   # HTTPS 포트
-lsof -ti:5433 | xargs kill -9  # PostgreSQL 포트
+lsof -ti:5434 | xargs kill -9  # PostgreSQL 포트
 ```
 
 **HTTPS 인증서 문제**

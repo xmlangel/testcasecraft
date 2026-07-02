@@ -28,7 +28,7 @@
 | 호스트 OS | Linux / macOS (M-series 포함) / WSL2 |
 | RAM | 8GB 이상 (PostgreSQL + pgvector + MinIO + RAG 서비스 동시 기동) |
 | 디스크 | 컨테이너 이미지 ~6GB + DB·MinIO 볼륨 가변 |
-| 호스트 포트 | 기본값 — `8080`(app), `5434`(postgres), `5433`(pgvector), `9000`/`9001`(MinIO), `8001`(RAG) |
+| 호스트 포트 | 기본값 — `8080`(app), `5434`(postgres+pgvector 통합), `9000`/`9001`(MinIO), `8001`(RAG) |
 
 호스트 포트가 다른 프로세스에 점유되어 있으면 §3의 `.env`에서 매핑을 바꾸세요.
 
@@ -39,19 +39,20 @@ lsof -nP -iTCP:8080 -sTCP:LISTEN
 
 ---
 
-## 2. 구성 요소 (5개 컨테이너)
+## 2. 구성 요소 (4개 컨테이너)
 
 `docker-compose-build/docker-compose.yml`이 정의하는 서비스:
+
+> v1.0.93부터 앱 DB와 RAG DB가 단일 PostgreSQL(pgvector) 인스턴스로 통합되어, 컨테이너가 5개에서 4개로 줄었습니다.
 
 | 서비스 | 컨테이너 이름 | 이미지 | 호스트 포트 |
 |---|---|---|---|
 | Spring Boot 앱 | `testcasecraft` | `xmlangel/testcasecraft:1.0.83` | `${HTTP_PORT}` / `${HTTPS_PORT}` |
-| PostgreSQL (메인 도메인) | `testcasecraft_postgres_spring` | `postgres:18` | `5434:5432` |
-| PostgreSQL + pgvector (RAG 벡터 DB) | `testcasecraft-postgres-rag` | `pgvector/pgvector:pg18` | `5433:5432` |
+| PostgreSQL + pgvector (통합: 앱 DB `testcase_management` + RAG DB `rag_db`) | `testcasecraft-postgres` | `pgvector/pgvector:pg18` | `5434:5432` |
 | MinIO (S3 호환 첨부 저장소) | `testcasecraft-minio-rag` | `minio/minio:latest` | `9000`/`9001` |
 | FastAPI RAG 서비스 | `testcasecraft-rag-service` | `xmlangel/testcasecraft-rag-service:1.0.11` | `8001:8000` |
 
-앱 컨테이너는 PostgreSQL 메인 / MinIO가 `healthy`가 된 다음에 기동되도록 `depends_on`이 설정되어 있습니다.
+앱 컨테이너는 PostgreSQL / MinIO가 `healthy`가 된 다음에 기동되도록 `depends_on`이 설정되어 있습니다.
 
 ---
 
@@ -245,21 +246,28 @@ openssl rand -base64 64 | tr -d '\n'
 
 ## 7. 데이터 영속성과 백업
 
-기본적으로 다음 4개 도커 볼륨이 영속화됩니다.
+기본적으로 다음 3개 도커 볼륨이 영속화됩니다.
 
 | 볼륨 | 용도 |
 |---|---|
-| `postgres-data` | 메인 도메인 DB (테스트케이스/유저/JIRA 설정 등) |
-| `postgres-rag-data` | 벡터 DB (pgvector) |
+| `postgres-data` (`./data/postgres`) | 통합 PostgreSQL — 메인 도메인 DB(`testcase_management`) + RAG 벡터 DB(`rag_db`, pgvector) |
 | `minio-data` | 첨부 파일 / RAG 원본 문서 |
 | `app-logs` | 앱 로그 (옵션) |
 
-### 7-1. 백업 — PostgreSQL 메인
+### 7-1. 백업 — PostgreSQL (통합 인스턴스)
+
+앱 DB와 RAG DB가 같은 컨테이너(`testcasecraft-postgres`)에 있으므로 각각 백업합니다.
 
 ```bash
-docker exec testcasecraft_postgres_spring \
+# 앱 DB
+docker exec testcasecraft-postgres \
   pg_dump -U testcase_user testcase_management \
   > backup_main_$(date +%Y%m%d).sql
+
+# RAG 벡터 DB
+docker exec testcasecraft-postgres \
+  pg_dump -U rag_user rag_db \
+  > backup_rag_$(date +%Y%m%d).sql
 ```
 
 ### 7-2. 백업 — MinIO 버킷
@@ -328,7 +336,7 @@ JPA `ddl-auto`가 비활성화된 환경 — `SPRING_JPA_HIBERNATE_DDL_AUTO=upda
 
 ### 9-4. `testcasecraft-rag-service` healthy 안 됨
 
-- pgvector DB 컨테이너(`testcasecraft-postgres-rag`)가 먼저 healthy인지 확인
+- 통합 PostgreSQL 컨테이너(`testcasecraft-postgres`, pgvector 포함)가 먼저 healthy인지 확인 (`rag_db` 는 init-scripts 가 최초 기동 시 자동 생성)
 - MinIO도 healthy여야 함 (`mc alias set`로 버킷 자동 생성 시도)
 - 로그: `docker compose logs -f rag-service`
 
