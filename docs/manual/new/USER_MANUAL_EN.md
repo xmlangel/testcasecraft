@@ -408,7 +408,7 @@ Move multiple items at once.
 The following moves are automatically blocked — the guide line turns **red**:
 
 - Moving a folder into itself or a subfolder it contains (example: moving folder A into subfolder B inside A)
-- Moving to a folder in a different project
+- Moving to a folder in a different project (not possible by drag — use the **[Move/Copy to Project]** feature in Section 5-5 instead)
 - Placing other items **inside** a test case (cases cannot have children)
 - Moving system default folders
 
@@ -417,6 +417,32 @@ When blocked, a notification at the bottom of the screen explains the reason, an
 ### 5-4. Move Log (Audit Trail)
 
 All successful moves are automatically recorded in the system — **who, when, and where items were moved** can be tracked by administrators. If you accidentally move something, contact your administrator to find its original location.
+
+### 5-5. Move / Copy to Another Project
+
+> **Added 2026-07-02 (v1.0.93)**: You can **move or copy** selected test cases (and all children if a folder is selected) **to another project**. Unlike drag-and-drop (Sections 5-1 to 5-4), which only changes position within the same project, cross-project operations use a dedicated button.
+
+**How to open**
+
+1. Select one or more cases/folders in the tree using their **checkboxes**.
+2. Click the **[Move/Copy to Project]** button that appears in the tree header. (It is visible only when items are selected.)
+3. The **Bulk Test Case Operations** dialog opens, showing the count and names of the selected items at the top.
+
+**Running move / copy**
+
+1. Under **Operation**, choose **Move** or **Copy**.
+2. Select a **Target Project** (required). The folder list for that project is loaded automatically.
+3. Select a **Target Folder** (optional). If left unset, items go into the **root folder** of the target project.
+4. Click **[Execute]**. The operation runs and the tree refreshes afterward. For a **move**, the transferred items disappear from the current project tree.
+
+**Move vs. Copy — how test results are handled**
+
+| Operation | Cases | Test results | Required permission |
+|-----------|-------|--------------|---------------------|
+| **Move** | Transferred to the target project (removed from the source) | Linked results **move too** — corresponding executions are created in the target project and the results are re-homed there (JIRA bug field, attachments, tags, executor, and execution time preserved) | **Edit permission on both** source and target projects |
+| **Copy** | **Duplicated** into the target project (source unchanged) | **Not brought over** — only the cases are duplicated | **View** on source + **Edit** on target |
+
+> ⚠️ System default folders cannot be selected as move/copy targets. If you lack edit permission on the target project, the operation is rejected and a message appears at the bottom of the screen.
 
 ---
 
@@ -941,3 +967,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-06-10 | Added Bookmarks screen screenshot in Section 4-7 (`90_bookmarks`). Added "Previous Execution Results dialog — note view format toggle" feature in Section 8-1 (MARKDOWN/TEXT toggle, TEXT shows raw note as-is, selection persisted in browser) with screenshot `91_prev_results_dialog`. Synchronized same sections and screenshots (images_en) in Korean edition. |
 | 2026-06-10 | Added new "QA Summary" subsection (Section 9-1) — panel shown above the Detail Table when an execution filter is selected, Markdown editor with live preview, saved per execution with author/last-modified time, printed above the "Detailed Test Result List" in Advanced Export PDF (not in Excel/CSV, up to 10,000 characters) with screenshot `92_qa_summary_panel`. Synchronized same section and screenshot (images_en) in Korean edition. |
 | 2026-07-02 | Reflected v1.0.93: added **[Delete]** to the Section 4-6 form header action buttons + new change note — the individual form delete is now unified with the tree delete (same confirmation dialog showing the target ID/name in a table, button hidden without permission, server message surfaced). Synchronized same section in Korean edition. |
+| 2026-07-02 | Reflected v1.0.93: new "Move / Copy to Another Project" subsection (Section 5-5) — select via tree checkboxes → **[Move/Copy to Project]** button → bulk operations dialog (target project/folder). Move carries results via mirroring and needs edit on both sides; copy duplicates cases only and needs view on source + edit on target. Added dedicated-button note to the Section 5-3 auto-blocked list. Also reflected in `test_case_manual.md` Section 3.7. Synchronized same sections in Korean edition. |

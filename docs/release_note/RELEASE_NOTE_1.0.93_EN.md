@@ -8,7 +8,7 @@ Hello! v1.0.93 introduces **moving and copying test cases across projects** and 
 
 #### 📦 Move / copy test cases across projects (New)
 
-* You can now **move or copy** a test case (or folder) from the tree **to another project**, and the **test results move/copy along with it**.
+* You can now **move or copy** a test case (or folder) from the tree **to another project**. A **move** also carries the linked **test results** (by mirroring them into newly created executions in the target project), while a **copy** duplicates **only the cases** (results are not brought over).
 * Beyond the backend and the frontend tree UI, the same operations are available as **MCP tools (`testcase_move_to_project`, `testcase_copy_to_project`)**.
 * Structural issues found during move/copy were fixed as well — Select-All now includes folders (prevents structure flattening), items are **inserted at the end** of the target folder/root (fixes a mid-insert bug), and folder structure is no longer flattened when input arrives child-first.
 
