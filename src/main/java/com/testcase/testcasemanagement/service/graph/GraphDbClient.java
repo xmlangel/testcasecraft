@@ -61,7 +61,15 @@ public class GraphDbClient {
 
     this.dataSource = new HikariDataSource(config);
     this.jdbcTemplate = new JdbcTemplate(dataSource);
-    logger.info("AgensGraph 클라이언트 초기화 — url={}, graph_path={}", url, graphPath);
+    // initializationFailTimeout(-1) 은 앱 기동을 막지 않는 대신 실패를 숨긴다 — 기동 직후 probe 로 상태를 드러낸다
+    if (isAvailable()) {
+      logger.info("AgensGraph 클라이언트 초기화 — url={}, graph_path={}", url, graphPath);
+    } else {
+      logger.warn(
+          "AgensGraph 에 연결할 수 없습니다 — url={}. 그래프 API 는 연결 복구 시까지 오류를 반환합니다. "
+              + "(앱 기동은 계속합니다 / graceful degradation)",
+          url);
+    }
   }
 
   @PreDestroy

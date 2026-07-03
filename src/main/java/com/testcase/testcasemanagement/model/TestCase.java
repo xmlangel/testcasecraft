@@ -107,6 +107,24 @@ public class TestCase {
 
   @Version private Long version;
 
+  // ---------- 그래프 표현 모드 (docs/graph-db/AGENSGRAPH_TESTCASE_GRAPH_PLAN.md §5-A) ----------
+  // ddl-auto:update 가 추가하는 컬럼이라 기존 행은 null — null 은 BASIC 으로 해석한다 (getter 정규화).
+  // 모드 전환은 /api/graph/testcase/{id}/convert·revert 로만 이뤄진다 (일반 수정 API 로 변경 불가).
+  public static final String MODE_BASIC = "BASIC";
+  public static final String MODE_GRAPH = "GRAPH";
+  public static final String MODE_HYBRID = "HYBRID";
+
+  @Column(name = "representation_mode", length = 10)
+  private String representationMode;
+
+  // AgensGraph GraphTestCase 정점 키 (도메인 id 와 동일 값 사용)
+  @Column(name = "graph_vertex_id", length = 64)
+  private String graphVertexId;
+
+  // 마지막 그래프↔관계형 프로젝션 시각
+  @Column(name = "graph_synced_at")
+  private LocalDateTime graphSyncedAt;
+
   @org.hibernate.annotations.BatchSize(size = 100)
   @ElementCollection
   @CollectionTable(name = "testcase_tags", joinColumns = @JoinColumn(name = "testcase_id"))
@@ -121,6 +139,17 @@ public class TestCase {
       joinColumns = @JoinColumn(name = "testcase_id"))
   @Column(name = "document_id", length = 36)
   private List<String> linkedDocumentIds;
+
+  /** null(그래프 도입 전 데이터)을 BASIC 으로 정규화 — 동명 메서드가 있으면 Lombok 은 생성하지 않는다. */
+  public String getRepresentationMode() {
+    return representationMode != null ? representationMode : MODE_BASIC;
+  }
+
+  /** 그래프 모드(GRAPH/HYBRID) 여부 — 관계형 스텝이 read-only 미러인 상태. */
+  public boolean isGraphMode() {
+    return MODE_GRAPH.equals(getRepresentationMode())
+        || MODE_HYBRID.equals(getRepresentationMode());
+  }
 
   @PrePersist
   protected void onCreate() {

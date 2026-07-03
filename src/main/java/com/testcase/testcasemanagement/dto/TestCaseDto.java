@@ -98,4 +98,9 @@ public class TestCaseDto {
   private List<String> linkedDocumentIds = new ArrayList<>();
 
   private Long version;
+
+  // 그래프 표현 모드 — 조회 전용. 전환은 /api/graph/testcase/{id}/convert·revert 로만 가능하며
+  // 일반 생성/수정 API 에서는 무시된다 (toEntity 미매핑).
+  private String representationMode;
+  private java.time.LocalDateTime graphSyncedAt;
 }
