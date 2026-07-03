@@ -46,6 +46,8 @@ public class TranslationDataInitializer {
   private final EnglishI18nHardcodedTranslations englishI18nHardcodedTranslations;
   // 2026-06-09 즐겨찾기/개인 북마크 기능
   private final KoreanBookmarkTranslations koreanBookmarkTranslations;
+  private final KoreanGraphTranslations koreanGraphTranslations;
+  private final EnglishGraphTranslations englishGraphTranslations;
   private final EnglishBookmarkTranslations englishBookmarkTranslations;
 
   @Transactional
@@ -86,6 +88,8 @@ public class TranslationDataInitializer {
 
     // 2026-06-09 즐겨찾기/개인 북마크 기능
     koreanBookmarkTranslations.initialize();
+    koreanGraphTranslations.initialize();
+    englishGraphTranslations.initialize();
     englishBookmarkTranslations.initialize();
 
     log.info("번역 데이터 초기화 완료");
