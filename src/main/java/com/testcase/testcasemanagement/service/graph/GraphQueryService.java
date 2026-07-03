@@ -74,8 +74,12 @@ public class GraphQueryService {
   /**
    * 케이스 이웃 그래프 — 도메인 id 를 가진 정점에서 depth 단계까지 확장. 가변 길이 경로(-[*1..n]-)는 경로 파싱이 복잡해 frontier 확장 방식으로
    * 구현한다 (visited 집합으로 중복 방문 차단).
+   *
+   * <p>모든 hop 을 projectId 로 스코프한다 — 컨트롤러의 @PreAuthorize 는 projectId 만 검증하므로, 여기서 걸지 않으면 다른 프로젝트의
+   * testCaseId 를 넣어 타 프로젝트 데이터를 읽을 수 있다 (코드리뷰 CRITICAL 대응).
    */
-  public GraphResponseDto getNeighborhood(String domainId, int depth) {
+  public GraphResponseDto getNeighborhood(String projectId, String domainId, int depth) {
+    validateId(projectId);
     validateId(domainId);
     int clampedDepth = Math.max(1, Math.min(depth, MAX_DEPTH));
 
@@ -94,7 +98,12 @@ public class GraphQueryService {
         String cypher =
             "MATCH (a {id: '"
                 + currentId
-                + "'})-[e]-(b) RETURN a, e, b LIMIT "
+                + "'})-[e]-(b)"
+                + " WHERE a.\"projectId\" = '"
+                + projectId
+                + "' AND b.\"projectId\" = '"
+                + projectId
+                + "' RETURN a, e, b LIMIT "
                 + NEIGHBOR_LIMIT_PER_STEP;
         List<String[]> rows = queryTriples(cypher);
         for (String[] row : rows) {

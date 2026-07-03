@@ -44,12 +44,38 @@ public class AgResultParserTest {
     assertEquals(node.getProperties().get("name"), "로그인 성공");
   }
 
+  @Test(description = "속성 문자열에 중괄호·대괄호가 있어도 전체 JSON 을 정확히 잡는다 (greedy + $ 앵커)")
+  public void parsesBracesInsidePropertyValues() {
+    // 리뷰 지적 검증: greedy 매칭은 마지막 } 까지 전체 JSON 을 잡는 게 맞는 동작이다
+    GraphNodeDto node =
+        AgResultParser.parseVertex(
+            "JunitCase[8.1]{\"failureMessage\": \"expected {ok} but got [err]\", \"name\":"
+                + " \"t1\"}");
+
+    assertNotNull(node);
+    assertEquals(node.getProperties().get("failureMessage"), "expected {ok} but got [err]");
+    assertEquals(node.getProperties().get("name"), "t1");
+  }
+
   @Test(description = "형식이 어긋나면 null 을 반환한다 (예외 아님)")
   public void returnsNullOnMalformedInput() {
     assertNull(AgResultParser.parseVertex("not-a-vertex"));
     assertNull(AgResultParser.parseVertex(null));
     assertNull(AgResultParser.parseEdge("TestCase[3.1]{\"id\": \"x\"}")); // vertex 를 edge 로
     assertNull(AgResultParser.parseEdge(null));
+  }
+
+  @Test(description = "Cypher 리터럴 이스케이프 — 따옴표는 '' 로, 백슬래시는 \\\\ 로 (PoC 실측 규칙)")
+  public void quotesCypherLiterals() {
+    assertEquals(TestCaseGraphService.quote("plain"), "'plain'");
+    assertEquals(TestCaseGraphService.quote(null), "''");
+    // PoC 검증 문자열: It's a "test" with back\slash and }brace
+    assertEquals(
+        TestCaseGraphService.quote("It's a \"test\" with back\\slash and }brace"),
+        "'It''s a \"test\" with back\\\\slash and }brace'");
+    // 인젝션 시도 — 따옴표 탈출 불가
+    assertEquals(
+        TestCaseGraphService.quote("x'}) DETACH DELETE (n) //"), "'x''}) DETACH DELETE (n) //'");
   }
 
   @Test(description = "식별자 화이트리스트 — UUID 는 통과, 인젝션 문자는 거부")
