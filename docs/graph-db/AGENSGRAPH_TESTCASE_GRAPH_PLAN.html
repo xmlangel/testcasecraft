@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgensGraph 테스트 케이스·오류 그래프 구현 계획</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#fff; --ink:#1c2230; --muted:#5b6472; --line:#e3e7ee;
+    --accent:#2f6df6; --accent2:#7b3ff2; --ok:#1a9e5f; --warn:#d98a00; --bad:#d9463e;
+    --code-bg:#f2f4f8; --chip:#eef2fb;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f1420; --panel:#161d2b; --ink:#e7ecf5; --muted:#9aa6ba; --line:#26304a;
+      --accent:#5b8dff; --accent2:#b58bff; --ok:#3ad38a; --warn:#f0b437; --bad:#ff6b60;
+      --code-bg:#0c111b; --chip:#1c2740; }
+  }
+  :root[data-theme="light"]{ --bg:#f7f8fa; --panel:#fff; --ink:#1c2230; --muted:#5b6472; --line:#e3e7ee; --code-bg:#f2f4f8; --chip:#eef2fb; }
+  :root[data-theme="dark"]{ --bg:#0f1420; --panel:#161d2b; --ink:#e7ecf5; --muted:#9aa6ba; --line:#26304a; --code-bg:#0c111b; --chip:#1c2740; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.65;font-size:15px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+  header.hero{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    padding:48px 20px 40px;margin-bottom:28px;}
+  header.hero .inner{max-width:1080px;margin:0 auto;padding:0 20px;}
+  header.hero h1{margin:0 0 10px;font-size:29px;line-height:1.25;}
+  header.hero p{margin:4px 0;opacity:.95;font-size:14px;}
+  .badges{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;}
+  .badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+    padding:5px 11px;border-radius:20px;font-size:12.5px;backdrop-filter:blur(4px);}
+  h2{margin:38px 0 14px;font-size:22px;padding-bottom:8px;border-bottom:2px solid var(--line);}
+  h3{margin:24px 0 10px;font-size:17px;color:var(--accent);}
+  h4{margin:18px 0 8px;font-size:14.5px;color:var(--muted);text-transform:none;}
+  p,li{color:var(--ink)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;margin:14px 0;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--chip);font-weight:600;}
+  code{background:var(--code-bg);padding:2px 6px;border-radius:5px;font-size:13px;
+    font-family:"SF Mono",Menlo,Consolas,monospace;}
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;overflow-x:auto;font-size:12.5px;line-height:1.5;}
+  pre code{background:none;padding:0;}
+  .toc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 22px;}
+  .toc ol{margin:6px 0;padding-left:22px;column-count:2;column-gap:32px;}
+  .toc a{color:var(--accent);text-decoration:none;font-size:13.5px;}
+  .toc a:hover{text-decoration:underline;}
+  .chip{display:inline-block;background:var(--chip);border:1px solid var(--line);
+    border-radius:6px;padding:2px 9px;font-size:12px;margin:2px 3px 2px 0;}
+  .ok{color:var(--ok);font-weight:600} .warn{color:var(--warn);font-weight:600} .bad{color:var(--bad);font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}.toc ol{column-count:1}header.hero h1{font-size:23px}}
+  .callout{border-left:4px solid var(--accent);background:var(--chip);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;}
+  .callout.warn{border-left-color:var(--warn)} .callout.bad{border-left-color:var(--bad)} .callout.ok{border-left-color:var(--ok)}
+  .themebtn{position:fixed;top:14px;right:14px;z-index:9;background:var(--panel);color:var(--ink);
+    border:1px solid var(--line);border-radius:20px;padding:6px 14px;cursor:pointer;font-size:12.5px;}
+  .phase{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .phase .pn{flex:0 0 46px;font-weight:700;color:var(--accent);}
+  .muted{color:var(--muted);font-size:13px;}
+  footer{color:var(--muted);font-size:12.5px;margin-top:40px;text-align:center;}
+  .diagram{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 16px;margin:14px 0;}
+  .diagram svg{max-width:960px;margin:0 auto;display:block;}
+  .stack{display:block;}
+  .stack .card{margin:14px 0;}
+  .flow{font-family:"SF Mono",Menlo,monospace;font-size:12px;white-space:pre;overflow-x:auto;
+    background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px;}
+</style>
+</head>
+<body>
+<button class="themebtn" onclick="var r=document.documentElement,d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))==='dark'?'light':'dark';r.setAttribute('data-theme',d);this.textContent=d==='dark'?'☀︎ Light':'☾ Dark';">☾ Dark</button>
+
+<header class="hero">
+  <div class="inner">
+    <h1>AgensGraph 기반 테스트 케이스·오류 그래프 구현 계획</h1>
+    <p>testcasecraft — 관계형 자산을 보존하며 그래프 시각화·저작·전환을 추가</p>
+    <div class="badges">
+      <span class="badge">🎯 버전 1.0.x → 1.1.1</span>
+      <span class="badge">🗄 AgensGraph 2.16.9 (PG16.9)</span>
+      <span class="badge">🕸 Cytoscape.js</span>
+      <span class="badge">🔁 상향 호환 only</span>
+      <span class="badge">📅 2026-07-04</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <strong>목차</strong>
+  <ol>
+    <li><a href="#s0">요약</a></li>
+    <li><a href="#s1">두 가지 그래프 개념</a></li>
+    <li><a href="#s2">현행 분석 (As-Is)</a></li>
+    <li><a href="#s3">목표 아키텍처 (To-Be)</a></li>
+    <li><a href="#s4">그래프 데이터 모델</a></li>
+    <li><a href="#s5">표현 이중화 & 역투영</a></li>
+    <li><a href="#s6">시나리오 선택식 전환</a></li>
+    <li><a href="#s7">동기화 / ETL</a></li>
+    <li><a href="#s8">백엔드 구현</a></li>
+    <li><a href="#s9">프런트 (Cytoscape)</a></li>
+    <li><a href="#s10">버전 & 호환성</a></li>
+    <li><a href="#s11">배포</a></li>
+    <li><a href="#s12">로드맵</a></li>
+    <li><a href="#s13">리스크</a></li>
+    <li><a href="#s14">완료 기준</a></li>
+  </ol>
+</div>
+
+<h2 id="s0">0. 요약</h2>
+<div class="card">
+<p>testcasecraft에 그래프 데이터 모델을 도입한다. 테스트 케이스·실행·결과·오류 사이의 관계를 그래프로 시각화하고, 테스트 케이스 자체도 그래프 기반으로 만들거나 전환할 수 있게 한다. 기존 관계형(1.0.x) 자산은 <span class="ok">손대지 않고</span>, 그래프는 그 위에 얹는 추가 기능으로 간다.</p>
+<table>
+<tr><th>항목</th><th>결정</th><th>근거</th></tr>
+<tr><td>그래프 엔진</td><td><strong>AgensGraph 2.16.9</strong> 별도 인스턴스</td><td>PG16 기반 → 메인(pgvector/<strong>pg18</strong>)과 동거 불가</td></tr>
+<tr><td>토폴로지</td><td>메인 DB=SSOT, AgensGraph=그래프 스토어</td><td>관계형 자산 보존 + 그래프 이점</td></tr>
+<tr><td>프런트</td><td>Cytoscape.js (react-cytoscapejs)</td><td>대규모 그래프·레이아웃·필터, MUI 병존</td></tr>
+<tr><td>버전</td><td><strong>1.1.1</strong></td><td>상향 호환(1.0.x→1.1.1 ✅), 하향 비호환(1.1.1→1.0.x ❌)</td></tr>
+<tr><td>전환</td><td>시나리오 선택식 (기본 / 그래프 / 기본→그래프)</td><td>케이스 단위 표현 선택</td></tr>
+</table>
+</div>
+
+<h2 id="s1">1. 두 가지 "그래프" 개념 (혼동 방지)</h2>
+<div class="grid2">
+  <div class="card"><h3>1-A. 관계 그래프 <span class="muted">(시각화용)</span></h3>
+  <p>프로젝트→폴더→케이스→계획→실행→결과→오류 유형으로 이어지는 관계망. 같은 오류가 어디까지 반복되는지 눈으로 확인하는 용도다. <span class="muted">(최초 요청)</span></p></div>
+  <div class="card"><h3>1-B. 그래프 테스트 케이스 <span class="muted">(저작용)</span></h3>
+  <p>테스트 케이스 내용을 선형 스텝 대신 노드(스텝/전제/분기/상태)와 엣지(흐름/전이/의존)로 모델링한다. 분기·상태전이는 이쪽이 표현하기 자연스럽다. <span class="muted">(신규 요청)</span></p></div>
+</div>
+<div class="callout">둘 다 같은 AgensGraph 인스턴스 안에 들어가되, 라벨 집합을 다르게 해서 공존시킨다.</div>
+
+<h2 id="s2">2. 현행 분석 (As-Is)</h2>
+<div class="card">
+<h4>데이터베이스</h4>
+<p><span class="chip">메인: pgvector/pgvector:pg18</span><span class="chip">DB: testcase_management</span><span class="chip">포트 5434:5432</span><span class="chip">Flyway</span><span class="chip">JPA/Hibernate</span><span class="chip">postgresql 42.7.11</span></p>
+<h4>핵심 엔티티 (그래프 원천)</h4>
+<table>
+<tr><th>엔티티</th><th>그래프 관점 핵심 필드</th></tr>
+<tr><td>TestCase</td><td>id, displayId, name, type, priority, <strong>parentId(폴더계층)</strong>, <strong>steps</strong>, expected/pre/postCondition, tags</td></tr>
+<tr><td>TestPlan</td><td>id, name, <strong>testCaseIds</strong></td></tr>
+<tr><td>TestExecution / TestResult</td><td>status / <strong>result(PASS·FAIL·BLOCKED·NOT_RUN)</strong>, testCaseId, jiraIssueKey</td></tr>
+<tr><td>TestSessionBug</td><td>title, <strong>severity</strong>, jiraIssueKey</td></tr>
+<tr><td>JunitTestCase</td><td>name, className, status, <strong>failureType</strong>, failureMessage, stackTrace</td></tr>
+</table>
+<h4>프런트 / 제약</h4>
+<ul>
+<li>Vite + React 18 + MUI 7 + recharts + axios. 그래프 라이브러리 <span class="bad">없음</span>(신규).</li>
+<li><span class="warn">@tanstack/react-query가 없으므로</span> 그래프 데이터 페칭도 기존 axios + ProjectContext 패턴을 따른다.</li>
+<li>AgensGraph 2.16.9는 PG16 포크라서 메인(pg18)과 같은 인스턴스에 합칠 수 없다. 별도 컨테이너로 간다.</li>
+</ul>
+</div>
+
+<h2 id="s3">3. 목표 아키텍처 (To-Be)</h2>
+<div class="diagram">
+<svg viewBox="0 0 880 620" role="img" aria-label="목표 아키텍처 다이어그램" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent2)"/>
+    </marker>
+  </defs>
+
+  <!-- Spring Boot container -->
+  <rect x="30" y="18" width="820" height="152" rx="14" fill="var(--chip)" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="440" y="42" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">testcasecraft (Spring Boot)</text>
+
+  <rect x="55"  y="66" width="210" height="66" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+  <text x="160" y="93"  text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">기존 REST</text>
+  <text x="160" y="113" text-anchor="middle" font-size="12" fill="var(--muted)">/api/v1</text>
+
+  <rect x="320" y="66" width="230" height="66" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+  <text x="435" y="93"  text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">GraphController</text>
+  <text x="435" y="113" text-anchor="middle" font-size="12" fill="var(--muted)">/api/graph</text>
+
+  <rect x="615" y="66" width="200" height="66" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+  <text x="715" y="93"  text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">GraphSync</text>
+  <text x="715" y="113" text-anchor="middle" font-size="12" fill="var(--muted)">스케줄·이벤트</text>
+
+  <line x1="160" y1="170" x2="160" y2="248" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="435" y1="170" x2="450" y2="238" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="715" y1="170" x2="670" y2="238" stroke="var(--accent2)" stroke-width="2" marker-end="url(#arrow2)"/>
+
+  <g font-size="11" fill="var(--muted)" text-anchor="middle">
+    <rect x="128" y="196" width="64" height="18" rx="4" fill="var(--bg)"/><text x="160" y="209">JPA</text>
+    <rect x="360" y="186" width="150" height="18" rx="4" fill="var(--bg)"/><text x="435" y="199">JdbcTemplate · Cypher</text>
+    <rect x="628" y="186" width="98" height="18" rx="4" fill="var(--bg)"/><text x="677" y="199" fill="var(--accent2)" font-weight="600">MERGE · ETL</text>
+  </g>
+
+  <!-- Main DB -->
+  <rect x="55" y="250" width="230" height="150" rx="12" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+  <text x="170" y="282" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">메인 DB (SSOT)</text>
+  <text x="170" y="312" text-anchor="middle" font-size="12" fill="var(--muted)">pgvector / PostgreSQL 18</text>
+  <text x="170" y="336" text-anchor="middle" font-size="12" fill="var(--muted)">testcase_management</text>
+  <text x="170" y="366" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--accent)">포트 :5434</text>
+
+  <!-- AgensGraph -->
+  <rect x="395" y="240" width="360" height="180" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>
+  <text x="575" y="272" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">AgensGraph 2.16.9</text>
+  <text x="575" y="298" text-anchor="middle" font-size="12" fill="var(--muted)">PostgreSQL 16 · 포트 :5436</text>
+  <text x="575" y="324" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--accent)">graph: tc_graph</text>
+  <line x1="440" y1="338" x2="710" y2="338" stroke="var(--line)"/>
+  <text x="575" y="360" text-anchor="middle" font-size="12" fill="var(--ink)">· 관계 그래프 (1-A · 시각화)</text>
+  <text x="575" y="382" text-anchor="middle" font-size="12" fill="var(--ink)">· 그래프 테스트 케이스 (1-B · 저작)</text>
+
+  <line x1="575" y1="420" x2="575" y2="486" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrow)"/>
+  <g font-size="11" text-anchor="middle">
+    <rect x="588" y="444" width="132" height="18" rx="4" fill="var(--bg)"/>
+    <text x="654" y="457" fill="var(--muted)">{ nodes, edges } JSON</text>
+  </g>
+
+  <!-- Cytoscape -->
+  <rect x="415" y="488" width="320" height="78" rx="12" fill="var(--panel)" stroke="var(--accent2)" stroke-width="1.8"/>
+  <text x="575" y="520" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">React + Cytoscape.js</text>
+  <text x="575" y="544" text-anchor="middle" font-size="12" fill="var(--muted)">/graph · /graph-tc</text>
+</svg>
+<p class="muted" style="text-align:center;margin:6px 0 0">메인 DB(SSOT) — AgensGraph 간 <strong>양방향 프로젝션</strong>, 그래프는 Cytoscape로 렌더</p>
+</div>
+<div class="callout ok">메인 DB가 관계형 원본(SSOT)을 갖고, AgensGraph는 시각화와 그래프 TC 저작을 맡는다. 둘 사이는 양방향 프로젝션으로 잇는다.</div>
+
+<h2 id="s4">4. 그래프 데이터 모델</h2>
+<p><code>CREATE GRAPH tc_graph;</code> 후 라벨 정의 (VLABEL=정점, ELABEL=간선).</p>
+<div class="stack">
+<div class="card"><h3>4-A. 관계 그래프 (시각화)</h3>
+<p><strong>정점:</strong> <span class="chip">Project</span><span class="chip">Folder</span><span class="chip">TestCase</span><span class="chip">TestPlan</span><span class="chip">TestExecution</span><span class="chip">TestResult</span><span class="chip">Bug</span><span class="chip">JunitCase</span><span class="chip">FailureType</span><span class="chip">User</span><span class="chip">JiraIssue</span></p>
+<div class="diagram">
+<svg viewBox="0 0 900 470" role="img" aria-label="관계 그래프 데이터 모델" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <marker id="a4a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+    <marker id="a4h" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"/></marker>
+  </defs>
+  <!-- edges -->
+  <g stroke="var(--muted)" stroke-width="1.6" fill="none">
+    <line x1="105" y1="74" x2="105" y2="146" marker-end="url(#a4a)"/>
+    <line x1="162" y1="172" x2="281" y2="184" marker-end="url(#a4a)"/>
+    <line x1="345" y1="74" x2="345" y2="164" marker-end="url(#a4a)"/>
+    <line x1="518" y1="258" x2="420" y2="206" marker-end="url(#a4a)"/>
+    <line x1="545" y1="288" x2="404" y2="340" marker-end="url(#a4a)"/>
+    <line x1="790" y1="118" x2="793" y2="236" marker-end="url(#a4a)"/>
+    <line x1="135" y1="348" x2="308" y2="212" marker-end="url(#a4a)"/>
+    <line x1="152" y1="378" x2="266" y2="420" marker-end="url(#a4a)"/>
+    <path d="M417,176 C464,150 464,208 417,198" marker-end="url(#a4a)"/>
+  </g>
+  <line x1="640" y1="262" x2="716" y2="264" stroke="var(--bad)" stroke-width="2.2" marker-end="url(#a4h)"/>
+  <!-- edge labels -->
+  <g font-size="10.5" fill="var(--muted)">
+    <text x="112" y="114">CONTAINS</text>
+    <text x="186" y="158">PARENT_OF</text>
+    <text x="352" y="114">INCLUDES</text>
+    <text x="452" y="222">OF_CASE</text>
+    <text x="428" y="326">IN_EXECUTION</text>
+    <text x="800" y="182">FAILED_WITH</text>
+    <text x="160" y="282">AFFECTS</text>
+    <text x="158" y="416">REPORTED_AS</text>
+    <text x="472" y="168">SIMILAR_TO</text>
+    <text x="614" y="248" fill="var(--bad)" font-weight="700">FAILED_WITH</text>
+  </g>
+  <!-- nodes -->
+  <g font-size="12" text-anchor="middle">
+    <g><rect x="50" y="36" width="110" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="105" y="59" fill="var(--ink)">Project</text></g>
+    <g><rect x="50" y="150" width="110" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="105" y="173" fill="var(--ink)">Folder</text></g>
+    <g><rect x="285" y="168" width="130" height="40" rx="9" fill="var(--chip)" stroke="var(--accent)" stroke-width="1.8"/><text x="350" y="193" font-weight="700" fill="var(--ink)">TestCase</text></g>
+    <g><rect x="290" y="36" width="110" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="345" y="59" fill="var(--ink)">TestPlan</text></g>
+    <g><rect x="288" y="342" width="134" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="355" y="365" fill="var(--ink)">TestExecution</text></g>
+    <g><rect x="520" y="248" width="120" height="38" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="580" y="272" fill="var(--ink)">TestResult</text></g>
+    <g><rect x="730" y="82" width="120" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="790" y="105" fill="var(--ink)">JunitCase</text></g>
+    <g><rect x="718" y="238" width="150" height="52" rx="10" fill="var(--bad)" stroke="var(--bad)"/><text x="793" y="260" font-weight="700" fill="#fff">FailureType</text><text x="793" y="278" font-size="10" fill="#fff" opacity=".92">오류 허브 (근본원인)</text></g>
+    <g><rect x="60" y="350" width="90" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="105" y="373" fill="var(--ink)">Bug</text></g>
+    <g><rect x="268" y="410" width="110" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="323" y="433" fill="var(--ink)">JiraIssue</text></g>
+  </g>
+</svg>
+</div>
+<div class="callout"><code>FailureType</code>을 허브로 두는 이유: 같은 근본원인(failureType/stackTrace 시그니처)이 어느 케이스·폴더·실행까지 퍼져 있는지가 그래프에서 바로 보인다.</div>
+</div>
+<div class="card"><h3>4-B. 그래프 테스트 케이스 (저작)</h3>
+<p><strong>정점:</strong> <span class="chip">GraphTestCase</span><span class="chip">StepNode</span><span class="chip">Precondition</span><span class="chip">Decision</span><span class="chip">State</span><span class="chip">Expected</span></p>
+<div class="diagram">
+<svg viewBox="0 0 920 390" role="img" aria-label="그래프 테스트 케이스 모델" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <marker id="b4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+  </defs>
+  <!-- edges -->
+  <g stroke="var(--accent)" stroke-width="1.8" fill="none">
+    <line x1="182" y1="82" x2="238" y2="82" marker-end="url(#b4)"/>
+    <line x1="374" y1="82" x2="428" y2="82" marker-end="url(#b4)"/>
+    <line x1="544" y1="82" x2="592" y2="82" marker-end="url(#b4)"/>
+    <line x1="682" y1="62" x2="756" y2="42" marker-end="url(#b4)"/>
+    <line x1="682" y1="102" x2="756" y2="126" marker-end="url(#b4)"/>
+    <line x1="487" y1="102" x2="487" y2="166" marker-end="url(#b4)" stroke-dasharray="5 4"/>
+    <line x1="144" y1="304" x2="218" y2="304" marker-end="url(#b4)"/>
+  </g>
+  <!-- edge labels (모두 화살표에서 떨어진 빈 공간) -->
+  <g font-size="10.5" fill="var(--muted)">
+    <text x="210" y="66" text-anchor="middle">STARTS_AT</text>
+    <text x="401" y="66" text-anchor="middle">NEXT</text>
+    <text x="568" y="66" text-anchor="middle">NEXT</text>
+    <text x="700" y="30" fill="var(--accent)">ON {Yes}</text>
+    <text x="700" y="150" fill="var(--accent)">ON {No}</text>
+    <text x="500" y="140">VERIFIES</text>
+    <text x="181" y="340" text-anchor="middle">TRANSITION {event}</text>
+  </g>
+  <!-- nodes -->
+  <g font-size="12" text-anchor="middle">
+    <g><rect x="30" y="62" width="150" height="40" rx="9" fill="var(--chip)" stroke="var(--accent)" stroke-width="1.8"/><text x="105" y="87" font-weight="700" fill="var(--ink)">GraphTestCase</text></g>
+    <g><rect x="240" y="64" width="132" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="306" y="87" fill="var(--ink)">Precondition</text></g>
+    <g><rect x="430" y="64" width="112" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="486" y="87" fill="var(--ink)">StepNode</text></g>
+    <g><polygon points="648,44 704,82 648,120 592,82" fill="var(--panel)" stroke="var(--warn)" stroke-width="1.8"/><text x="648" y="86" font-size="11" fill="var(--ink)">Decision</text></g>
+    <g><rect x="758" y="24" width="128" height="34" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="822" y="46" font-size="11.5" fill="var(--ink)">StepNode ✓</text></g>
+    <g><rect x="758" y="110" width="128" height="34" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="822" y="132" font-size="11.5" fill="var(--ink)">StepNode ✗</text></g>
+    <g><rect x="428" y="168" width="118" height="36" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="487" y="191" fill="var(--ink)">Expected</text></g>
+    <!-- 상태전이 -->
+    <text x="40" y="268" font-size="10.5" text-anchor="start" fill="var(--muted)">상태전이 (State machine)</text>
+    <g><rect x="40" y="286" width="102" height="36" rx="18" fill="var(--panel)" stroke="var(--line)"/><text x="91" y="309" fill="var(--ink)">State A</text></g>
+    <g><rect x="220" y="286" width="102" height="36" rx="18" fill="var(--panel)" stroke="var(--line)"/><text x="271" y="309" fill="var(--ink)">State B</text></g>
+  </g>
+  <text x="890" y="340" font-size="10.5" text-anchor="end" fill="var(--muted)">NEXT 순차 · ON 분기 · VERIFIES 검증 · DEPENDS_ON 의존</text>
+</svg>
+</div>
+<p class="muted">기본(선형) TC를 전환하면 스텝 N개가 StepNode N개와 NEXT 간선 N-1개로 매핑된다.</p>
+</div>
+</div>
+
+<h2 id="s5">5. 표현 이중화 & 관계형 역투영</h2>
+<div class="callout bad">요구: <strong>"그래프로 만든 테스트 케이스를 관계형 DB에서도 볼 수 있게."</strong></div>
+<div class="card">
+<h4>5-A. TestCase 표현 모드 (additive 컬럼)</h4>
+<pre><code>ALTER TABLE testcase
+  ADD COLUMN representation_mode VARCHAR(10) NOT NULL DEFAULT 'BASIC', -- BASIC|GRAPH|HYBRID
+  ADD COLUMN graph_vertex_id    VARCHAR(64),  -- AgensGraph 정점 참조
+  ADD COLUMN graph_synced_at    TIMESTAMP;</code></pre>
+<table>
+<tr><th>모드</th><th>SSOT</th><th>관계형 스텝</th><th>그래프</th></tr>
+<tr><td><code>BASIC</code></td><td>관계형</td><td>원본(편집)</td><td>없음</td></tr>
+<tr><td><code>GRAPH</code></td><td>그래프</td><td><strong>프로젝션(read-only)</strong></td><td>원본(편집)</td></tr>
+<tr><td><code>HYBRID</code></td><td>그래프</td><td>프로젝션(대표경로)</td><td>원본+분기</td></tr>
+</table>
+<h4>5-B. 역투영 (Graph → Relational)</h4>
+<p>그래프 TC를 <code>testcasesteps</code>로 <strong>평탄화</strong>하여 기존 스프레드시트/폼(1.0.x UI 포함)에서 조회 가능하게:</p>
+<ol>
+<li><code>STARTS_AT</code>→<code>NEXT</code> 따라 <strong>주 경로</strong>를 위상정렬 추출.</li>
+<li>분기(Decision) 있으면 대표 경로 선형화 + 주석 → <code>HYBRID</code>.</li>
+<li>각 StepNode → TestStep 행 기록, <code>graph_synced_at</code> 갱신 (미러는 read-only).</li>
+</ol>
+<div class="callout ok">이렇게 하면 그래프 TC도 항상 관계형 표에서 조회할 수 있다. 분기 구조 전체는 그래프 뷰에서 보고, 선형 요약은 관계형 쪽에 늘 남는다.</div>
+<h4>5-C. 편집 충돌 방지</h4>
+<p>편집은 SSOT 쪽에서만 허용하고, 반대편은 재생성으로만 갱신한다. 양쪽을 따로 고치는 일이 생기지 않는다. UI에는 "그래프 모드 — 관계형 읽기 전용" 배지를 띄운다.</p>
+</div>
+
+<h2 id="s6">6. 시나리오 선택식 저작·전환</h2>
+<div class="diagram">
+<svg viewBox="0 0 640 224" role="img" aria-label="시나리오 선택 화면" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;">
+  <rect x="18" y="14" width="604" height="196" rx="14" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+  <text x="42" y="48" font-size="15" font-weight="700" fill="var(--ink)">새 테스트 케이스 만들기</text>
+  <line x1="42" y1="62" x2="598" y2="62" stroke="var(--line)"/>
+
+  <!-- Option A -->
+  <circle cx="52" cy="92" r="7" fill="none" stroke="var(--muted)" stroke-width="2"/>
+  <text x="72" y="89" font-size="13.5" font-weight="600" fill="var(--ink)">기본 테스트 케이스</text>
+  <text x="72" y="106" font-size="12" fill="var(--muted)">선형 스텝 — 현재 방식</text>
+
+  <!-- Option B (강조: 선택된 모습) -->
+  <circle cx="52" cy="134" r="7" fill="var(--accent)" stroke="var(--accent)" stroke-width="2"/>
+  <circle cx="52" cy="134" r="2.6" fill="var(--panel)"/>
+  <text x="72" y="131" font-size="13.5" font-weight="600" fill="var(--ink)">그래프 테스트 케이스</text>
+  <text x="72" y="148" font-size="12" fill="var(--muted)">분기·상태전이 · Cytoscape 저작</text>
+
+  <!-- Option C -->
+  <circle cx="52" cy="176" r="7" fill="none" stroke="var(--muted)" stroke-width="2"/>
+  <text x="72" y="173" font-size="13.5" font-weight="600" fill="var(--ink)">기존 케이스를 그래프로 전환</text>
+  <text x="72" y="190" font-size="12" fill="var(--muted)">선형 → 그래프 (비파괴적 · 롤백 가능)</text>
+</svg>
+</div>
+<div class="grid2">
+<div class="card"><h3>A · 기본 TC</h3><p>지금과 완전히 같은 동작이다(<code>BASIC</code>). AgensGraph를 거치지 않으므로 <span class="ok">회귀 걱정이 없다.</span></p></div>
+<div class="card"><h3>B · 그래프 TC (신규)</h3><p>Cytoscape 편집기에서 노드를 배치해 저장하면, 메타 행 생성과 AgensGraph 서브그래프 MERGE, 관계형 역투영이 한 번에 이뤄진다.</p></div>
+</div>
+<div class="card"><h3>C · 기본 → 그래프 전환 (마이그레이션)</h3>
+<div class="diagram">
+<svg viewBox="0 0 820 330" role="img" aria-label="기본 → 그래프 전환" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <marker id="cv" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+    <marker id="cvb" viewBox="0 0 12 12" refX="6" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L12,6 L0,12 z" fill="var(--accent2)"/></marker>
+  </defs>
+  <!-- LEFT: 기본 TC 선형 -->
+  <rect x="24" y="40" width="210" height="252" rx="12" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+  <text x="129" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">기본 TC · 선형</text>
+  <g font-size="12" fill="var(--ink)">
+    <rect x="44" y="82"  width="170" height="30" rx="6" fill="var(--chip)" stroke="var(--line)"/><text x="54" y="102">preCondition</text>
+    <rect x="44" y="122" width="170" height="30" rx="6" fill="var(--chip)" stroke="var(--line)"/><text x="54" y="142">Step 1 (action, expected)</text>
+    <rect x="44" y="162" width="170" height="30" rx="6" fill="var(--chip)" stroke="var(--line)"/><text x="54" y="182">Step 2</text>
+    <rect x="44" y="202" width="170" height="30" rx="6" fill="var(--chip)" stroke="var(--line)"/><text x="54" y="222">Step 3</text>
+    <rect x="44" y="242" width="170" height="30" rx="6" fill="var(--chip)" stroke="var(--line)"/><text x="54" y="262">expectedResults</text>
+  </g>
+  <!-- MIDDLE: converter (라벨 위, 부가설명 아래로 충분히 분리) -->
+  <text x="288" y="130" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--accent2)">Converter</text>
+  <line x1="246" y1="166" x2="322" y2="166" stroke="var(--accent2)" stroke-width="3" marker-end="url(#cvb)"/>
+  <text x="288" y="210" text-anchor="middle" font-size="10" fill="var(--muted)">비파괴적 · 롤백 가능</text>
+  <!-- RIGHT: 그래프 TC -->
+  <rect x="344" y="40" width="452" height="252" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.8"/>
+  <text x="570" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">그래프 TC · representation_mode=GRAPH</text>
+  <g stroke="var(--accent)" stroke-width="1.8" fill="none">
+    <line x1="570" y1="112" x2="570" y2="128" marker-end="url(#cv)"/>
+    <line x1="570" y1="164" x2="570" y2="180" marker-end="url(#cv)"/>
+    <line x1="570" y1="216" x2="570" y2="232" marker-end="url(#cv)"/>
+  </g>
+  <g font-size="10.5" fill="var(--muted)">
+    <text x="668" y="124">NEXT</text><text x="668" y="176">NEXT</text><text x="668" y="228">NEXT</text>
+  </g>
+  <g font-size="12" text-anchor="middle">
+    <rect x="474" y="80"  width="192" height="30" rx="8" fill="var(--chip)" stroke="var(--line)"/><text x="570" y="100" fill="var(--ink)">Precondition</text>
+    <rect x="484" y="130" width="172" height="32" rx="8" fill="var(--panel)" stroke="var(--accent)"/><text x="570" y="151" fill="var(--ink)">StepNode (order 1)</text>
+    <rect x="484" y="182" width="172" height="32" rx="8" fill="var(--panel)" stroke="var(--accent)"/><text x="570" y="203" fill="var(--ink)">StepNode 2</text>
+    <rect x="484" y="234" width="172" height="32" rx="8" fill="var(--panel)" stroke="var(--accent)"/><text x="570" y="255" fill="var(--ink)">StepNode 3</text>
+  </g>
+  <text x="570" y="282" text-anchor="middle" font-size="10.5" fill="var(--muted)">graph_vertex_id 기록 · 관계형 미러 유지(역투영)</text>
+</svg>
+</div>
+<p>전환은 비파괴적이다(원본은 미러로 남는다). 폴더/프로젝트 단위 일괄 전환은 P5에서 붙이고, 롤백은 미러를 SSOT로 되돌리는 것으로 처리한다.</p>
+<table><tr><th>From \ To</th><th>BASIC</th><th>GRAPH</th></tr>
+<tr><td><strong>BASIC</strong></td><td>—</td><td>시나리오 C</td></tr>
+<tr><td><strong>GRAPH</strong></td><td>역전환(미러 승격)</td><td>—</td></tr></table>
+</div>
+
+<h2 id="s7">7. 동기화 / ETL</h2>
+<div class="diagram">
+<svg viewBox="0 0 760 250" role="img" aria-label="동기화 데이터 흐름" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <marker id="s7a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+    <marker id="s7b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent2)"/></marker>
+  </defs>
+  <!-- DB boxes -->
+  <rect x="30" y="90" width="176" height="82" rx="12" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+  <text x="118" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">메인 DB (SSOT)</text>
+  <text x="118" y="142" text-anchor="middle" font-size="11.5" fill="var(--muted)">pgvector / pg18</text>
+  <text x="118" y="160" text-anchor="middle" font-size="11" fill="var(--muted)">+ 관계형 미러</text>
+  <rect x="554" y="90" width="176" height="82" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.8"/>
+  <text x="642" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">AgensGraph</text>
+  <text x="642" y="142" text-anchor="middle" font-size="11.5" fill="var(--muted)">tc_graph</text>
+  <text x="642" y="160" text-anchor="middle" font-size="11" fill="var(--muted)">관계그래프 + 그래프TC</text>
+
+  <!-- Lane 1: 메인 → Agens (파생) -->
+  <line x1="206" y1="112" x2="554" y2="112" stroke="var(--accent)" stroke-width="2" marker-end="url(#s7a)"/>
+  <rect x="252" y="60" width="256" height="40" rx="8" fill="var(--chip)" stroke="var(--line)"/>
+  <text x="380" y="78" text-anchor="middle" font-size="11" fill="var(--ink)">풀 적재 · 증분</text>
+  <text x="380" y="93" text-anchor="middle" font-size="10" fill="var(--muted)">@Scheduled · 도메인 이벤트 · 수동 (MERGE 멱등)</text>
+  <text x="380" y="128" text-anchor="middle" font-size="10.5" fill="var(--accent)" font-weight="600">① 관계 그래프 파생 · 최종 일관성</text>
+
+  <!-- Lane 2: Agens(그래프TC) → 미러 (역투영) -->
+  <line x1="554" y1="150" x2="206" y2="150" stroke="var(--accent2)" stroke-width="2" marker-end="url(#s7b)"/>
+  <text x="380" y="170" text-anchor="middle" font-size="10.5" fill="var(--accent2)" font-weight="600">② 그래프 TC 역투영 · 쓰기 직후 일관성</text>
+  <rect x="272" y="182" width="216" height="38" rx="8" fill="var(--chip)" stroke="var(--line)"/>
+  <text x="380" y="200" text-anchor="middle" font-size="11" fill="var(--ink)">편집 → 즉시 미러 재생성</text>
+  <text x="380" y="214" text-anchor="middle" font-size="10" fill="var(--muted)">실패 시 graph_synced_at 미갱신 → 재시도 큐</text>
+</svg>
+</div>
+<div class="grid2">
+<div class="card"><h3>7-A. 관계 그래프 (파생)</h3>
+<ul><li>초기 <strong>풀 적재</strong>: SELECT → 멱등 <code>MERGE</code>.</li>
+<li>증분: <code>@Scheduled</code>(예 5분) + 도메인 이벤트 훅(event 패키지) + 관리자 수동(<code>POST /api/graph/sync</code>).</li>
+<li>멱등: <code>MERGE (n:Label {id}) SET …</code>.</li></ul></div>
+<div class="card"><h3>7-B. 그래프 TC (역투영)</h3>
+<p>저장/편집 → 즉시 관계형 미러 재생성(§5-B). 실패 시 <code>graph_synced_at</code> 미갱신으로 감지 + 재시도 큐.</p>
+<h4>정합성</h4><p>관계 그래프=최종 일관성(재적재 가능) · 그래프 TC 미러=쓰기 직후 일관성 목표.</p></div>
+</div>
+
+<h2 id="s8">8. 백엔드 구현</h2>
+<div class="card">
+<h4>8-A. 두 번째 DataSource</h4>
+<p>AgensGraph=표준 PG 프로토콜 → <code>org.postgresql</code> 드라이버 그대로. <code>GraphDataSourceConfig</code> + 전용 <code>graphJdbcTemplate</code>. 세션마다 <code>SET graph_path=tc_graph;</code>.</p>
+<h4>8-B. Cypher 실행 & JSON</h4>
+<p>SQL 문맥에서 <code>MATCH…RETURN</code> 직접 실행 → vertex/edge → <code>GraphResponse{nodes[],edges[]}</code>. 파라미터화 + 라벨 화이트리스트(인젝션 방지).</p>
+<h4>8-C. REST 엔드포인트 <code>/api/graph/*</code></h4>
+<table>
+<tr><th>메서드</th><th>경로</th><th>설명</th></tr>
+<tr><td>GET</td><td><code>/project/{id}/structure</code></td><td>구조 그래프</td></tr>
+<tr><td>GET</td><td><code>/failures?projectId=&from=&to=</code></td><td>오류 클러스터</td></tr>
+<tr><td>GET</td><td><code>/testcase/{id}/neighborhood?depth=</code></td><td>케이스 이웃</td></tr>
+<tr><td>GET</td><td><code>/testcase/{id}/steps</code></td><td>그래프 TC 스텝</td></tr>
+<tr><td>POST</td><td><code>/testcase/{id}/convert</code></td><td>기본→그래프 (C)</td></tr>
+<tr><td>POST</td><td><code>/testcase</code></td><td>그래프 TC 신규 (B)</td></tr>
+<tr><td>PUT</td><td><code>/testcase/{id}/steps</code></td><td>그래프 TC 편집</td></tr>
+<tr><td>POST</td><td><code>/testcase/{id}/revert</code></td><td>그래프→기본 역전환</td></tr>
+<tr><td>POST</td><td><code>/sync</code></td><td>관계 그래프 재동기(관리자)</td></tr>
+</table>
+<p class="muted">모든 엔드포인트에 <code>@PreAuthorize</code>와 프로젝트 스코프 검증을 건다. AgensGraph는 Cypher에도 RLS가 걸리므로 DB 레벨에서 한 번 더 막을 수 있다. 통합테스트는 Testcontainers로 AgensGraph를 띄워서 돌린다.</p>
+</div>
+
+<h2 id="s9">9. 프런트엔드 (Cytoscape.js)</h2>
+<div class="diagram">
+<svg viewBox="0 0 760 400" role="img" aria-label="Cytoscape 그래프 뷰 화면 구성" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <!-- window -->
+  <rect x="20" y="16" width="720" height="368" rx="12" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+  <rect x="20" y="16" width="720" height="34" rx="12" fill="var(--chip)"/>
+  <circle cx="42" cy="33" r="5" fill="var(--bad)"/><circle cx="60" cy="33" r="5" fill="var(--warn)"/><circle cx="78" cy="33" r="5" fill="var(--ok)"/>
+  <text x="400" y="37" text-anchor="middle" font-size="12" fill="var(--muted)">testcasecraft — 그래프 뷰 탭</text>
+  <!-- tabs -->
+  <g font-size="11.5">
+    <rect x="34" y="60" width="112" height="26" rx="7" fill="var(--accent)"/><text x="90" y="77" text-anchor="middle" fill="#fff" font-weight="600">구조 그래프</text>
+    <rect x="154" y="60" width="112" height="26" rx="7" fill="var(--chip)" stroke="var(--line)"/><text x="210" y="77" text-anchor="middle" fill="var(--ink)">오류 클러스터</text>
+    <rect x="274" y="60" width="104" height="26" rx="7" fill="var(--chip)" stroke="var(--line)"/><text x="326" y="77" text-anchor="middle" fill="var(--ink)">케이스 이웃</text>
+    <rect x="386" y="60" width="120" height="26" rx="7" fill="var(--chip)" stroke="var(--line)"/><text x="446" y="77" text-anchor="middle" fill="var(--ink)">그래프 TC 편집</text>
+  </g>
+  <!-- left filter panel -->
+  <rect x="34" y="98" width="150" height="270" rx="8" fill="var(--chip)" stroke="var(--line)"/>
+  <text x="48" y="120" font-size="12" font-weight="700" fill="var(--ink)">필터</text>
+  <g font-size="11" fill="var(--ink)">
+    <rect x="48" y="132" width="12" height="12" rx="3" fill="var(--ok)"/><text x="66" y="142">PASS</text>
+    <rect x="48" y="152" width="12" height="12" rx="3" fill="var(--bad)"/><text x="66" y="162">FAIL</text>
+    <rect x="48" y="172" width="12" height="12" rx="3" fill="var(--warn)"/><text x="66" y="182">BLOCKED</text>
+  </g>
+  <g font-size="11" fill="var(--muted)">
+    <text x="48" y="210">우선순위 ▾</text>
+    <text x="48" y="234">기간 ▾</text>
+    <text x="48" y="258">자동화 여부 ▾</text>
+    <text x="48" y="298" font-weight="700" fill="var(--ink)">레이아웃</text>
+    <text x="48" y="318">◉ fcose</text>
+    <text x="48" y="336">○ dagre</text>
+  </g>
+  <!-- canvas with mini graph -->
+  <rect x="196" y="98" width="378" height="270" rx="8" fill="var(--bg)" stroke="var(--line)"/>
+  <g stroke="var(--muted)" stroke-width="1.3">
+    <line x1="300" y1="160" x2="380" y2="210"/><line x1="380" y1="210" x2="300" y2="270"/>
+    <line x1="380" y1="210" x2="470" y2="180"/><line x1="470" y1="180" x2="500" y2="260"/>
+    <line x1="380" y1="210" x2="440" y2="300"/>
+  </g>
+  <g>
+    <circle cx="300" cy="160" r="16" fill="var(--accent)"/>
+    <circle cx="380" cy="210" r="20" fill="var(--bad)"/><text x="380" y="214" text-anchor="middle" font-size="9" fill="#fff">오류</text>
+    <circle cx="300" cy="270" r="14" fill="var(--accent)"/>
+    <circle cx="470" cy="180" r="14" fill="var(--accent2)"/>
+    <circle cx="500" cy="260" r="12" fill="var(--ok)"/>
+    <circle cx="440" cy="300" r="12" fill="var(--accent)"/>
+  </g>
+  <text x="385" y="120" text-anchor="middle" font-size="11" fill="var(--muted)">Cytoscape 캔버스 (노드=케이스·결과·오류)</text>
+  <!-- right detail panel -->
+  <rect x="586" y="98" width="120" height="270" rx="8" fill="var(--chip)" stroke="var(--line)"/>
+  <text x="600" y="120" font-size="12" font-weight="700" fill="var(--ink)">노드 상세</text>
+  <g font-size="10" fill="var(--muted)">
+    <text x="600" y="142">displayId</text><text x="600" y="160">이름 / 우선순위</text>
+    <text x="600" y="178">최근 결과</text><text x="600" y="196">연결 오류</text>
+    <text x="600" y="214">Jira 링크</text>
+    <line x1="600" y1="228" x2="694" y2="228" stroke="var(--line)"/>
+    <text x="600" y="248" fill="var(--accent)">＋ 케이스 열기</text>
+  </g>
+</svg>
+</div>
+<div class="card">
+<h4>9-A. 의존성</h4>
+<pre><code>"cytoscape":"^3.30.0", "react-cytoscapejs":"^2.0.0",
+"cytoscape-fcose":"^2.2.0",  // force-directed
+"cytoscape-dagre":"^2.5.0"    // DAG/흐름(그래프 TC)</code></pre>
+<p class="muted">데이터 페칭은 axios + ProjectContext로 간다(react-query 미설치). 사용자에게 보이는 문구는 <code>t("키","한국어")</code>로 감싸고 시드를 한/영 같이 넣는다.</p>
+<h4>9-B. 화면/라우트</h4>
+<table>
+<tr><th>라우트</th><th>뷰</th></tr>
+<tr><td><code>/graph/structure</code></td><td>구조 그래프 (dagre/fcose 토글)</td></tr>
+<tr><td><code>/graph/failures</code></td><td><strong>오류 클러스터</strong> — 노드크기=빈도, 색=severity</td></tr>
+<tr><td><code>/graph/testcase/:id</code></td><td>케이스 이웃 (depth 조절)</td></tr>
+<tr><td><code>/graph-tc/:id/edit</code></td><td><strong>그래프 TC 편집기</strong> (B/C)</td></tr>
+</table>
+<h4>9-C. 컴포넌트</h4>
+<p><span class="chip">GraphCanvas.jsx</span><span class="chip">GraphToolbar.jsx</span><span class="chip">NodeDetailPanel.jsx</span><span class="chip">TestCaseGraphEditor.jsx</span><span class="chip">services/graphApi.js</span></p>
+<p class="muted">진입점: 프로젝트 상단 "그래프 뷰" 탭 추가. 필터(결과·우선순위·기간)·레이아웃 토글·hotspot 강조.</p>
+</div>
+
+<h2 id="s10">10. 버전 & 호환성 (1.0.x → 1.1.1)</h2>
+<div class="card">
+<table>
+<tr><th>방향</th><th>지원</th><th>설명</th></tr>
+<tr><td>1.0.x 데이터 → 1.1.1</td><td class="ok">✅ 상향 호환</td><td>기존 케이스 <code>BASIC</code> 기본값으로 그대로 동작. 추가 컬럼/그래프는 옵셔널.</td></tr>
+<tr><td>1.1.1 → 1.0.x</td><td class="bad">❌ 하향 비호환</td><td>GRAPH/HYBRID 케이스 완전 표현 불가. 다운그레이드 미지원.</td></tr>
+</table>
+<h4>상향 호환 보장 설계</h4>
+<ol>
+<li><strong>Additive-only 마이그레이션</strong>(Flyway): 신규 컬럼 nullable/DEFAULT, 기존 불변.</li>
+<li><strong>API 버저닝</strong>: <code>/api/v1</code> 계약 불변, 그래프는 신규 <code>/api/graph</code>만.</li>
+<li><strong>관계형 미러 보장</strong>(§5-B): 그래프 미지원 소비자도 최소 선형 표현 확보.</li>
+<li><strong>Feature flag</strong> <code>features.graph.enabled</code>: 미활성 시 1.0.x와 동일.</li>
+</ol>
+<div class="callout warn">릴리즈 노트 명시: <strong>"1.1.1에서 생성한 그래프 테스트 케이스는 1.0.x 다운그레이드 시 완전 복원 불가"</strong>(추가 컬럼이라 크래시는 없으나 미러만 조회).</div>
+<h4>태깅</h4>
+<p><code>incrementVersion</code> Gradle 태스크로 app 1.0.x→<strong>1.1.1</strong> 범프. 이미지 <code>xmlangel/testcasecraft:1.1.1</code> + <code>skaiworldwide/agensgraph:2.16.9</code>.</p>
+</div>
+
+<h2 id="s11">11. 배포 (docker-compose)</h2>
+<div class="diagram">
+<svg viewBox="0 0 760 360" role="img" aria-label="컨테이너 배포 토폴로지" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <marker id="d11" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+  </defs>
+  <rect x="20" y="18" width="720" height="326" rx="14" fill="var(--chip)" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="40" y="42" font-size="13" font-weight="700" fill="var(--ink)">Docker Compose (docker-compose-build)</text>
+  <!-- edges (교차 없음: app→agens 수직, app→pg 사선, rag→pg 사선) -->
+  <g stroke="var(--muted)" stroke-width="1.6" fill="none">
+    <line x1="118" y1="128" x2="140" y2="196" marker-end="url(#d11)"/>
+    <line x1="190" y1="128" x2="360" y2="196" marker-end="url(#d11)"/>
+    <line x1="586" y1="126" x2="452" y2="196" marker-end="url(#d11)"/>
+    <line x1="230" y1="96" x2="512" y2="96" marker-end="url(#d11)"/>
+  </g>
+  <g font-size="9.5" fill="var(--muted)">
+    <text x="96" y="168">Cypher</text>
+    <text x="268" y="156">JPA</text>
+    <text x="532" y="168">pgvector</text>
+    <text x="356" y="88" text-anchor="middle">REST</text>
+  </g>
+  <!-- 상단: app / rag -->
+  <g font-size="12">
+    <rect x="50" y="64" width="180" height="64" rx="10" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+    <text x="140" y="90" text-anchor="middle" font-weight="700" fill="var(--ink)">testcasecraft (app)</text>
+    <text x="140" y="110" text-anchor="middle" font-size="11" fill="var(--muted)">1.1.1 · :8080/:8443</text>
+    <rect x="512" y="66" width="150" height="60" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+    <text x="587" y="92" text-anchor="middle" font-weight="600" fill="var(--ink)">rag-service</text>
+    <text x="587" y="110" text-anchor="middle" font-size="11" fill="var(--muted)">pgvector 사용</text>
+  </g>
+  <!-- 하단: agensgraph / postgres / minio -->
+  <g font-size="12">
+    <rect x="36" y="192" width="216" height="92" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="2.2"/>
+    <rect x="176" y="200" width="66" height="20" rx="10" fill="var(--accent)"/><text x="209" y="214" text-anchor="middle" font-size="10.5" fill="#fff" font-weight="700">신규</text>
+    <text x="128" y="224" text-anchor="middle" font-weight="700" fill="var(--ink)">agensgraph</text>
+    <text x="144" y="243" text-anchor="middle" font-size="11" fill="var(--muted)">2.16.9 / PG16 · :5436</text>
+    <text x="144" y="261" text-anchor="middle" font-size="10.5" fill="var(--muted)">vol ./data/agensgraph</text>
+    <text x="144" y="277" text-anchor="middle" font-size="10" fill="var(--accent)">init: CREATE GRAPH tc_graph</text>
+
+    <rect x="296" y="198" width="190" height="80" rx="10" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+    <text x="391" y="226" text-anchor="middle" font-weight="700" fill="var(--ink)">postgres</text>
+    <text x="391" y="245" text-anchor="middle" font-size="11" fill="var(--muted)">pgvector / pg18 · :5434</text>
+    <text x="391" y="263" text-anchor="middle" font-size="10.5" fill="var(--muted)">vol ./data/postgres</text>
+
+    <rect x="530" y="198" width="160" height="80" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+    <text x="610" y="230" text-anchor="middle" font-weight="600" fill="var(--ink)">minio</text>
+    <text x="610" y="250" text-anchor="middle" font-size="11" fill="var(--muted)">첨부 저장소</text>
+  </g>
+  <text x="380" y="326" text-anchor="middle" font-size="10.5" fill="var(--muted)">AgensGraph는 PG16 기반이라 pg18 인스턴스와 별도 컨테이너·별도 포트로 나란히 뜬다</text>
+</svg>
+</div>
+<pre><code>  agensgraph:
+    image: skaiworldwide/agensgraph:2.16.9
+    container_name: testcasecraft-agensgraph
+    environment:
+      POSTGRES_DB: tc_graph_db
+      POSTGRES_USER: graph_user
+      POSTGRES_PASSWORD: ${GRAPH_DB_PASSWORD}
+    ports: ["5436:5432"]          # 메인(5434)과 분리
+    volumes:
+      - ./data/agensgraph:/var/lib/postgresql/data
+      - ./init-scripts/graph:/docker-entrypoint-initdb.d  # CREATE GRAPH+라벨
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U graph_user -d tc_graph_db || exit 1"]</code></pre>
+<p>app env: <code>GRAPH_DB_URL=jdbc:postgresql://agensgraph:5432/tc_graph_db</code>, <code>FEATURES_GRAPH_ENABLED=true</code>.</p>
+<div class="callout warn">이미지 태그 <code>2.16.9</code> 존재 여부는 <strong>P0 검증</strong> — 없으면 소스 빌드(<code>github.com/skaiworldwide-oss/agensgraph</code>) 또는 최신 2.16 태그.</div>
+
+<h2 id="s12">12. 단계별 로드맵</h2>
+<div class="card">
+<div class="phase"><span class="pn">P0</span><div><strong>PoC/검증</strong> — AgensGraph 2.16.9 기동, 이미지 태그·PG16.9 base 확인, 샘플 그래프+Cypher 검증. <span class="muted">3~5일 · 선행 게이트</span></div></div>
+<div class="phase"><span class="pn">P1</span><div><strong>데이터 모델 + 초기 ETL</strong> — §4 라벨·인덱스, 관계 그래프 풀 적재 배치. <span class="muted">1~2주</span></div></div>
+<div class="phase"><span class="pn">P2</span><div><strong>백엔드 그래프 API</strong> — 두 번째 DataSource, Cypher→JSON, 조회 API. <span class="muted">1~2주</span></div></div>
+<div class="phase"><span class="pn">P3</span><div><strong>표현 이중화 & 전환</strong> — representation_mode 마이그레이션, 변환기(B/C/역투영). <span class="muted">1.5~2주</span></div></div>
+<div class="phase"><span class="pn">P4</span><div><strong>프런트 (Cytoscape)</strong> — 구조·오류·이웃 뷰 + 그래프 TC 편집기, i18n 한/영. <span class="muted">2~3주</span></div></div>
+<div class="phase"><span class="pn">P5</span><div><strong>증분 동기화 & 일괄 전환</strong> — @Scheduled/이벤트, 폴더/프로젝트 bulk 전환, 관리자 UI. <span class="muted">1주</span></div></div>
+<div class="phase"><span class="pn">P6</span><div><strong>마감</strong> — 1.1.1 범프, 매뉴얼(한/영), E2E, 릴리즈 노트. <span class="muted">1주</span></div></div>
+<p class="muted" style="margin-top:12px">1인 기준 8~11주 정도로 본다(병렬로 나누면 단축). P0가 통과돼야 나머지를 시작한다.</p>
+</div>
+
+<h2 id="s13">13. 리스크 & 완화</h2>
+<div class="card"><table>
+<tr><th>리스크</th><th>완화</th></tr>
+<tr><td>PG 버전 차이(16 vs 18)</td><td><strong>별도 인스턴스</strong>(확정). 메인 pg18 유지 — 마이그레이션 아님.</td></tr>
+<tr><td><code>2.16.9</code> 태그 부재 가능</td><td>P0 검증. 소스 빌드/최신 2.16 태그 대안.</td></tr>
+<tr><td>동기화 지연·정합성</td><td>관계 그래프=최종 일관성+재적재. 미러=쓰기직후+재시도.</td></tr>
+<tr><td>그래프 규모 폭증</td><td>프로젝트 스코프 + depth/페이지네이션 + 뷰포트 컬링.</td></tr>
+<tr><td>이중 편집 충돌</td><td>SSOT 단일화, 반대편 read-only + regenerate.</td></tr>
+<tr><td>Cypher 인젝션</td><td>파라미터화 + 화이트리스트 + RLS 이중 방어.</td></tr>
+<tr><td>하향 비호환 오해</td><td>릴리즈 노트/매뉴얼 명시, feature flag 점진 활성.</td></tr>
+<tr><td>react-query 오도입</td><td>axios+ProjectContext 강제.</td></tr>
+</table></div>
+
+<h2 id="s14">14. 완료 기준 (DoD)</h2>
+<div class="card"><ul>
+<li>☐ AgensGraph 2.16.9 기동 + healthcheck 통과 (P0)</li>
+<li>☐ 관계 그래프 풀 적재 후 Cypher 3종(구조·오류·이웃) 정상</li>
+<li>☐ BASIC→GRAPH 전환 후 그래프 편집 + <strong>관계형 미러 조회</strong> 동시 성립</li>
+<li>☐ GRAPH 케이스가 기존 스프레드시트/폼(1.0.x UI)에서 선형 표시</li>
+<li>☐ Cytoscape 3뷰+편집기 동작, 한/영 무결(하드코딩 한국어 0)</li>
+<li>☐ 1.0.x 데이터로 1.1.1 기동 시 회귀 0 (상향 호환)</li>
+<li>☐ @PreAuthorize + 프로젝트 스코프 + RLS, 통합테스트(Testcontainers) 통과</li>
+<li>☐ v1.1.1 태그, 매뉴얼 한/영 신규 섹션, 릴리즈 노트(하향 비호환 명시)</li>
+</ul></div>
+
+<h2>참고 자료</h2>
+<div class="card"><ul>
+<li>AgensGraph (skaiworldwide-oss): <code>github.com/skaiworldwide-oss/agensgraph</code></li>
+<li>AgensGraph v2.16.0 릴리즈 — PostgreSQL 16.9 호환, SQL+openCypher 단일 쿼리, Cypher RLS 지원</li>
+<li>Cytoscape.js: <code>cytoscape.org</code> · Docker: <code>skaiworldwide/agensgraph</code></li>
+</ul></div>
+
+
+
+
+</div>
+<footer>testcasecraft · AgensGraph 구현 계획 초안 · Phase 0 검증 결과에 따라 조정</footer>
+</body>
+</html>
