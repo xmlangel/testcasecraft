@@ -200,7 +200,7 @@
   <!-- AgensGraph -->
   <rect x="395" y="240" width="360" height="180" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>
   <text x="575" y="272" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">AgensGraph 2.16.9</text>
-  <text x="575" y="298" text-anchor="middle" font-size="12" fill="var(--muted)">PostgreSQL 16 · 포트 :5436</text>
+  <text x="575" y="298" text-anchor="middle" font-size="12" fill="var(--muted)">PostgreSQL 16 · 포트 :5437</text>
   <text x="575" y="324" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--accent)">graph: tc_graph</text>
   <line x1="440" y1="338" x2="710" y2="338" stroke="var(--line)"/>
   <text x="575" y="360" text-anchor="middle" font-size="12" fill="var(--ink)">· 관계 그래프 (1-A · 시각화)</text>
@@ -587,7 +587,7 @@
 </ol>
 <div class="callout warn">릴리즈 노트 명시: <strong>"1.1.1에서 생성한 그래프 테스트 케이스는 1.0.x 다운그레이드 시 완전 복원 불가"</strong>(추가 컬럼이라 크래시는 없으나 미러만 조회).</div>
 <h4>태깅</h4>
-<p><code>incrementVersion</code> Gradle 태스크로 app 1.0.x→<strong>1.1.1</strong> 범프. 이미지 <code>xmlangel/testcasecraft:1.1.1</code> + <code>skaiworldwide/agensgraph:2.16.9</code>.</p>
+<p><code>incrementVersion</code> Gradle 태스크로 app 1.0.x→<strong>1.1.1</strong> 범프. 이미지 <code>xmlangel/testcasecraft:1.1.1</code> + <code>skaiworldwide/agensgraph:v2.16.0-bookworm</code>.</p>
 </div>
 
 <h2 id="s11">11. 배포 (docker-compose)</h2>
@@ -625,7 +625,7 @@
     <rect x="36" y="192" width="216" height="92" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="2.2"/>
     <rect x="176" y="200" width="66" height="20" rx="10" fill="var(--accent)"/><text x="209" y="214" text-anchor="middle" font-size="10.5" fill="#fff" font-weight="700">신규</text>
     <text x="128" y="224" text-anchor="middle" font-weight="700" fill="var(--ink)">agensgraph</text>
-    <text x="144" y="243" text-anchor="middle" font-size="11" fill="var(--muted)">2.16.9 / PG16 · :5436</text>
+    <text x="144" y="243" text-anchor="middle" font-size="11" fill="var(--muted)">2.16.9 / PG16 · :5437</text>
     <text x="144" y="261" text-anchor="middle" font-size="10.5" fill="var(--muted)">vol ./data/agensgraph</text>
     <text x="144" y="277" text-anchor="middle" font-size="10" fill="var(--accent)">init: CREATE GRAPH tc_graph</text>
 
@@ -642,13 +642,13 @@
 </svg>
 </div>
 <pre><code>  agensgraph:
-    image: skaiworldwide/agensgraph:2.16.9
+    image: skaiworldwide/agensgraph:v2.16.0-bookworm
     container_name: testcasecraft-agensgraph
     environment:
       POSTGRES_DB: tc_graph_db
       POSTGRES_USER: graph_user
       POSTGRES_PASSWORD: ${GRAPH_DB_PASSWORD}
-    ports: ["5436:5432"]          # 메인(5434)과 분리
+    ports: ["5437:5432"]          # 메인(5434)과 분리
     volumes:
       - ./data/agensgraph:/var/lib/postgresql/data
       - ./init-scripts/graph:/docker-entrypoint-initdb.d  # CREATE GRAPH+라벨

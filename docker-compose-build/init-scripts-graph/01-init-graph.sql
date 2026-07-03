@@ -1,0 +1,65 @@
+-- ============================================================
+-- testcasecraft 그래프 스키마 초기화 (AgensGraph v2.16.x / PG16.9)
+-- docker-entrypoint-initdb.d 에서 최초 기동 시 1회 실행된다.
+-- 대상 DB: POSTGRES_DB(tc_graph_db), 실행 계정: POSTGRES_USER(graph_user)
+-- 계획: docs/graph-db/AGENSGRAPH_TESTCASE_GRAPH_PLAN.md §4
+-- ============================================================
+
+CREATE GRAPH IF NOT EXISTS tc_graph;
+SET graph_path = tc_graph;
+
+-- ---------- 관계 그래프 (1-A · 시각화) ----------
+-- 정점
+CREATE VLABEL IF NOT EXISTS "Project";
+CREATE VLABEL IF NOT EXISTS "Folder";
+CREATE VLABEL IF NOT EXISTS "TestCase";
+CREATE VLABEL IF NOT EXISTS "TestPlan";
+CREATE VLABEL IF NOT EXISTS "TestExecution";
+CREATE VLABEL IF NOT EXISTS "TestResult";
+CREATE VLABEL IF NOT EXISTS "Bug";
+CREATE VLABEL IF NOT EXISTS "JunitCase";
+CREATE VLABEL IF NOT EXISTS "FailureType";
+CREATE VLABEL IF NOT EXISTS "User";
+CREATE VLABEL IF NOT EXISTS "JiraIssue";
+
+-- 간선
+CREATE ELABEL IF NOT EXISTS "CONTAINS";
+CREATE ELABEL IF NOT EXISTS "PARENT_OF";
+CREATE ELABEL IF NOT EXISTS "HAS_PLAN";
+CREATE ELABEL IF NOT EXISTS "INCLUDES";
+CREATE ELABEL IF NOT EXISTS "FROM_PLAN";
+CREATE ELABEL IF NOT EXISTS "OF_CASE";
+CREATE ELABEL IF NOT EXISTS "IN_EXECUTION";
+CREATE ELABEL IF NOT EXISTS "EXECUTED_BY";
+CREATE ELABEL IF NOT EXISTS "FAILED_WITH";
+CREATE ELABEL IF NOT EXISTS "AFFECTS";
+CREATE ELABEL IF NOT EXISTS "REPORTED_AS";
+CREATE ELABEL IF NOT EXISTS "LINKED_TO";
+CREATE ELABEL IF NOT EXISTS "SIMILAR_TO";
+
+-- ---------- 그래프 테스트 케이스 (1-B · 저작) ----------
+CREATE VLABEL IF NOT EXISTS "GraphTestCase";
+CREATE VLABEL IF NOT EXISTS "StepNode";
+CREATE VLABEL IF NOT EXISTS "Precondition";
+CREATE VLABEL IF NOT EXISTS "Decision";
+CREATE VLABEL IF NOT EXISTS "State";
+CREATE VLABEL IF NOT EXISTS "Expected";
+
+CREATE ELABEL IF NOT EXISTS "STARTS_AT";
+CREATE ELABEL IF NOT EXISTS "NEXT";
+CREATE ELABEL IF NOT EXISTS "BRANCH_ON";   -- Decision 분기 (라벨 속성 label 에 Yes/No/조건)
+CREATE ELABEL IF NOT EXISTS "VERIFIES";
+CREATE ELABEL IF NOT EXISTS "TRANSITION";
+CREATE ELABEL IF NOT EXISTS "DEPENDS_ON";
+
+-- ---------- 조회 키 인덱스 ----------
+CREATE PROPERTY INDEX IF NOT EXISTS project_id_idx      ON "Project" (id);
+CREATE PROPERTY INDEX IF NOT EXISTS folder_id_idx       ON "Folder" (id);
+CREATE PROPERTY INDEX IF NOT EXISTS testcase_id_idx     ON "TestCase" (id);
+CREATE PROPERTY INDEX IF NOT EXISTS testcase_proj_idx   ON "TestCase" ("projectId");
+CREATE PROPERTY INDEX IF NOT EXISTS testplan_id_idx     ON "TestPlan" (id);
+CREATE PROPERTY INDEX IF NOT EXISTS testexec_id_idx     ON "TestExecution" (id);
+CREATE PROPERTY INDEX IF NOT EXISTS testresult_id_idx   ON "TestResult" (id);
+CREATE PROPERTY INDEX IF NOT EXISTS failuretype_sig_idx ON "FailureType" (signature);
+CREATE PROPERTY INDEX IF NOT EXISTS gtc_id_idx          ON "GraphTestCase" (id);
+CREATE PROPERTY INDEX IF NOT EXISTS stepnode_id_idx     ON "StepNode" (id);
