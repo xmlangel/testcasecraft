@@ -185,3 +185,19 @@ jira:
 # 프론트엔드 기능 제어 설정 (런타임용)
 frontend:
   show-exploratory-session-tab: ${SHOW_EXPLORATORY_SESSION_TAB:false}
+
+# 기능 플래그
+features:
+  graph:
+    # false(기본)면 그래프 관련 빈이 생성되지 않아 기존(1.0.x)과 동일하게 동작한다
+    enabled: ${FEATURES_GRAPH_ENABLED:false}
+
+# AgensGraph 접속 설정 (features.graph.enabled=true 일 때만 사용)
+# 주의: spring.datasource 가 아닌 별도 키 — JPA 자동구성과 분리 (docs/graph-db 계획 §8-A)
+graph:
+  datasource:
+    url: ${GRAPH_DB_URL:jdbc:postgresql://localhost:5437/tc_graph_db}
+    username: ${GRAPH_DB_USERNAME:graph_user}
+    password: ${GRAPH_DB_PASSWORD:}
+    graph-path: tc_graph
+    maximum-pool-size: 5
