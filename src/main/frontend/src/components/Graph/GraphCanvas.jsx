@@ -53,7 +53,7 @@ const nodeCaption = (node) => {
   );
 };
 
-const toElements = (graph) => {
+export const toElements = (graph) => {
   const nodes = (graph?.nodes || []).map((n) => ({
     data: {
       id: n.id,

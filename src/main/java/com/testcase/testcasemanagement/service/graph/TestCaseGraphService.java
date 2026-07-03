@@ -136,6 +136,61 @@ public class TestCaseGraphService {
     return testCaseRepository.save(testCase);
   }
 
+  /**
+   * 일괄 전환 (P5) — 폴더(하위 전체) 또는 프로젝트 전체의 BASIC 케이스를 그래프 모드로 전환한다. folderId 가 null 이면 프로젝트 전체. 반환:
+   * {converted, skipped(이미 그래프/폴더)}.
+   */
+  @Transactional
+  public Map<String, Integer> bulkConvert(String projectId, String folderId) {
+    GraphQueryService.validateId(projectId);
+    if (folderId != null) {
+      GraphQueryService.validateId(folderId);
+    }
+    List<TestCase> all = testCaseRepository.findAllByProjectIdWithHierarchy(projectId);
+
+    // parentId 기준 자손 집합 계산 (folderId 지정 시)
+    java.util.Set<String> inScope = new java.util.HashSet<>();
+    if (folderId == null) {
+      all.forEach(tc -> inScope.add(tc.getId()));
+    } else {
+      java.util.Map<String, List<TestCase>> byParent = new java.util.HashMap<>();
+      for (TestCase tc : all) {
+        byParent.computeIfAbsent(tc.getParentId(), k -> new ArrayList<>()).add(tc);
+      }
+      java.util.Deque<String> queue = new java.util.ArrayDeque<>();
+      queue.add(folderId);
+      while (!queue.isEmpty()) {
+        String current = queue.poll();
+        for (TestCase child : byParent.getOrDefault(current, List.of())) {
+          if (inScope.add(child.getId())) {
+            queue.add(child.getId());
+          }
+        }
+      }
+    }
+
+    int converted = 0;
+    int skipped = 0;
+    for (TestCase tc : all) {
+      if (!inScope.contains(tc.getId())) {
+        continue;
+      }
+      if ("folder".equalsIgnoreCase(tc.getType()) || tc.isGraphMode()) {
+        skipped++;
+        continue;
+      }
+      convertToGraph(tc.getId());
+      converted++;
+    }
+    logger.info(
+        "일괄 전환 — project={}, folder={}, converted={}, skipped={}",
+        projectId,
+        folderId,
+        converted,
+        skipped);
+    return Map.of("converted", converted, "skipped", skipped);
+  }
+
   // ---------- 내부 ----------
 
   /** GraphTestCase + StepNode 체인을 멱등하게 재작성한다 (기존 StepNode 삭제 후 재생성). */

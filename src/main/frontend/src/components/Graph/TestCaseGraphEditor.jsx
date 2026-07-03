@@ -27,7 +27,7 @@ import { getGraphSteps, updateGraphSteps } from "../../services/graphApi";
 import GraphCanvas from "./GraphCanvas";
 
 // 그래프 응답(StepNode 정점)을 편집 가능한 스텝 배열로 변환
-const graphToSteps = (graph) =>
+export const graphToSteps = (graph) =>
   (graph?.nodes || [])
     .filter((n) => n.label === "StepNode")
     .map((n) => ({

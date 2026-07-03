@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.dto.graph.GraphResponseDto;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.service.graph.GraphQueryService;
+import com.testcase.testcasemanagement.service.graph.GraphSyncService;
 import com.testcase.testcasemanagement.service.graph.TestCaseGraphService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,14 +37,17 @@ public class GraphController {
 
   private final GraphQueryService graphQueryService;
   private final TestCaseGraphService testCaseGraphService;
+  private final GraphSyncService graphSyncService;
   private final TestCaseRepository testCaseRepository;
 
   public GraphController(
       GraphQueryService graphQueryService,
       TestCaseGraphService testCaseGraphService,
+      GraphSyncService graphSyncService,
       TestCaseRepository testCaseRepository) {
     this.graphQueryService = graphQueryService;
     this.testCaseGraphService = testCaseGraphService;
+    this.graphSyncService = graphSyncService;
     this.testCaseRepository = testCaseRepository;
   }
 
@@ -130,6 +134,23 @@ public class GraphController {
             "id", updated.getId(),
             "steps", updated.getSteps() != null ? updated.getSteps().size() : 0,
             "graphSyncedAt", String.valueOf(updated.getGraphSyncedAt())));
+  }
+
+  @Operation(
+      summary = "관계 그래프 동기화",
+      description = "프로젝트의 케이스·계획·실행·결과·JUnit 실패를 그래프로 풀 동기화한다 (멱등).")
+  @PostMapping("/sync")
+  @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
+  public ResponseEntity<Map<String, Integer>> sync(@RequestParam String projectId) {
+    return ResponseEntity.ok(graphSyncService.syncProject(projectId));
+  }
+
+  @Operation(summary = "일괄 그래프 전환", description = "폴더(하위 전체) 또는 프로젝트 전체의 기본 케이스를 그래프 모드로 전환한다.")
+  @PostMapping("/testcase/bulk-convert")
+  @PreAuthorize("@projectSecurityService.hasEditRole(#projectId, authentication.name)")
+  public ResponseEntity<Map<String, Integer>> bulkConvert(
+      @RequestParam String projectId, @RequestParam(required = false) String folderId) {
+    return ResponseEntity.ok(testCaseGraphService.bulkConvert(projectId, folderId));
   }
 
   @Operation(summary = "케이스 이웃 그래프", description = "지정 케이스에서 depth 단계까지 연결된 정점·간선.")
