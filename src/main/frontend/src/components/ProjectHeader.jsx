@@ -24,6 +24,7 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
   StarBorder as StarBorderIcon,
+  Hub as HubIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
@@ -161,6 +162,14 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
         </Breadcrumbs>
 
         <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton
+            size="small"
+            onClick={() => navigate("/graph")}
+            title={t("graph.nav", "그래프 뷰")}
+            data-testid="open-graph-button"
+          >
+            <HubIcon />
+          </IconButton>
           <IconButton
             size="small"
             onClick={() => navigate(`/projects/${projectId}/bookmarks`)}
