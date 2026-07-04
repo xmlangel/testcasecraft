@@ -53,6 +53,9 @@ public class GraphKeysInitializer {
     createKey("projectHeader.tabs.graph", "프로젝트 그래프 탭", "그래프");
     createKey("graph.syncNow", "빈 상태 동기화 버튼", "지금 동기화");
     createKey("graph.syncing", "동기화 진행 표시", "동기화 중…");
+    createKey("graph.openEditor", "편집기 열기 버튼", "그래프 편집기 열기");
+    createKey("graph.convertAndEdit", "전환후 편집 버튼", "그래프로 전환 후 편집");
+    createKey("graph.converting", "전환 진행", "전환 중…");
 
     // 필터 바 + 레이아웃 확장
     createKey("graph.layout.label", "레이아웃 셀렉트 라벨", "레이아웃");

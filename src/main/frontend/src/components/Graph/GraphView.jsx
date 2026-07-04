@@ -23,9 +23,13 @@ import {
   TextField,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import HubIcon from "@mui/icons-material/Hub";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
 import {
+  convertToGraph,
   createRelation,
   deleteRelation,
   getFailureClusters,
@@ -49,6 +53,7 @@ const TAB_NEIGHBOR = 2;
 const GraphView = () => {
   const { api, activeProject } = useAppContext();
   const { t } = useI18n();
+  const navigate = useNavigate();
 
   const projectId = activeProject?.id;
 
@@ -183,6 +188,29 @@ const GraphView = () => {
       await loadGraph();
     } catch (e) {
       setError(e.message);
+    }
+  };
+
+  // 선택 케이스 노드의 표현 모드 판정 (동기화가 노드에 저장한 representationMode 사용)
+  const isGraphModeNode = (node) =>
+    node?.properties?.representationMode === "GRAPH" ||
+    node?.properties?.representationMode === "HYBRID";
+
+  const openEditor = (caseId) =>
+    navigate(`/graph-tc/${caseId}/edit?projectId=${projectId}`);
+
+  // 기본 케이스 → 그래프로 전환 후 편집기로 이동
+  const [converting, setConverting] = useState(false);
+  const convertAndEdit = async (caseId) => {
+    setConverting(true);
+    setError(null);
+    try {
+      await convertToGraph(api, projectId, caseId);
+      openEditor(caseId);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setConverting(false);
     }
   };
 
@@ -371,7 +399,41 @@ const GraphView = () => {
             <>
               <NodeDetailPanel node={selectedNode} />
               {selectedNode?.label === "TestCase" && !relationSource && (
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box
+                  sx={{
+                    px: 2,
+                    pb: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                  }}
+                >
+                  {isGraphModeNode(selectedNode) ? (
+                    <Button
+                      size="small"
+                      variant="contained"
+                      fullWidth
+                      startIcon={<AccountTreeIcon />}
+                      onClick={() => openEditor(selectedNode.properties.id)}
+                      data-testid="graph-open-editor"
+                    >
+                      {t("graph.openEditor", "그래프 편집기 열기")}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="small"
+                      variant="contained"
+                      fullWidth
+                      startIcon={<HubIcon />}
+                      disabled={converting}
+                      onClick={() => convertAndEdit(selectedNode.properties.id)}
+                      data-testid="graph-convert-edit"
+                    >
+                      {converting
+                        ? t("graph.converting", "전환 중…")
+                        : t("graph.convertAndEdit", "그래프로 전환 후 편집")}
+                    </Button>
+                  )}
                   <Button
                     size="small"
                     variant="outlined"
