@@ -48,6 +48,11 @@ public class GraphKeysInitializer {
     createKey("graph.editor.addStep", "스텝 추가 버튼", "스텝 추가");
     createKey("graph.editor.save", "저장 버튼", "저장");
     createKey("graph.editor.saved", "저장 완료 표시", "저장됨");
+
+    // 프로젝트 탭 편입 (UX 통합) + 빈 상태 동기화 버튼
+    createKey("projectHeader.tabs.graph", "프로젝트 그래프 탭", "그래프");
+    createKey("graph.syncNow", "빈 상태 동기화 버튼", "지금 동기화");
+    createKey("graph.syncing", "동기화 진행 표시", "동기화 중…");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

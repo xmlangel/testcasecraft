@@ -64,3 +64,9 @@ export const updateGraphSteps = (api, projectId, testCaseId, steps) =>
     `/api/graph/testcase/${encodeURIComponent(testCaseId)}/steps?projectId=${encodeURIComponent(projectId)}`,
     { method: "PUT", body: JSON.stringify(steps) },
   ).then(json);
+
+// 관계 그래프 동기화 (프로젝트 관리 권한 필요) — 멱등
+export const syncGraph = (api, projectId) =>
+  api(`/api/graph/sync?projectId=${encodeURIComponent(projectId)}`, {
+    method: "POST",
+  }).then(json);

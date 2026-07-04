@@ -18,7 +18,6 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
-  Typography,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useAppContext } from "../../context/AppContext";
@@ -28,6 +27,7 @@ import {
   getGraphStatus,
   getNeighborhood,
   getProjectStructure,
+  syncGraph,
 } from "../../services/graphApi";
 import GraphCanvas from "./GraphCanvas";
 import NodeDetailPanel from "./NodeDetailPanel";
@@ -98,6 +98,20 @@ const GraphView = () => {
     [],
   );
 
+  const [syncing, setSyncing] = useState(false);
+  const runSync = useCallback(async () => {
+    setSyncing(true);
+    setError(null);
+    try {
+      await syncGraph(api, projectId);
+      await loadGraph();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSyncing(false);
+    }
+  }, [api, projectId, loadGraph]);
+
   const emptyGraph = useMemo(
     () => graph && (graph.nodes?.length ?? 0) === 0,
     [graph],
@@ -115,11 +129,7 @@ const GraphView = () => {
   }
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" sx={{ mb: 1 }}>
-        {t("graph.title", "그래프 뷰")}
-      </Typography>
-
+    <Box sx={{ pt: 1 }}>
       {dbAvailable === false && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           {t(
@@ -205,10 +215,26 @@ const GraphView = () => {
         </Alert>
       )}
       {emptyGraph && !loading && (
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <Alert
+          severity="info"
+          sx={{ mb: 2 }}
+          action={
+            <Button
+              size="small"
+              color="inherit"
+              onClick={runSync}
+              disabled={syncing}
+              data-testid="graph-sync-button"
+            >
+              {syncing
+                ? t("graph.syncing", "동기화 중…")
+                : t("graph.syncNow", "지금 동기화")}
+            </Button>
+          }
+        >
           {t(
             "graph.empty",
-            "표시할 그래프 데이터가 없습니다. 동기화가 아직 실행되지 않았을 수 있습니다.",
+            "표시할 그래프 데이터가 없습니다. 프로젝트 데이터를 그래프로 동기화하세요.",
           )}
         </Alert>
       )}
