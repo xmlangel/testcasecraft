@@ -47,6 +47,7 @@ public class KoreanGraphTranslations {
     create("graph.editor.expected", lang, "기대 결과", by);
     create("graph.editor.addStep", lang, "스텝 추가", by);
     create("graph.editor.save", lang, "저장", by);
+    create("graph.editor.back", lang, "그래프로 돌아가기", by);
     create("graph.editor.saved", lang, "저장됨", by);
     create("projectHeader.tabs.graph", lang, "그래프", by);
     create("graph.syncNow", lang, "지금 동기화", by);

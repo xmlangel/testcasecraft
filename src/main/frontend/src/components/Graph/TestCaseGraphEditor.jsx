@@ -4,9 +4,10 @@
 // 상단에 Cytoscape 미리보기(계층 레이아웃), 하단에 스텝 편집 테이블.
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Alert,
+  AppBar,
   Box,
   Button,
   CircularProgress,
@@ -18,6 +19,7 @@ import {
   Select,
   Stack,
   TextField,
+  Toolbar,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -25,6 +27,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import SaveIcon from "@mui/icons-material/Save";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import CallSplitIcon from "@mui/icons-material/CallSplit";
 import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
@@ -72,6 +76,7 @@ const TestCaseGraphEditor = () => {
   const { testCaseId } = useParams();
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
+  const navigate = useNavigate();
   const { api } = useAppContext();
   const { t } = useI18n();
 
@@ -251,187 +256,212 @@ const TestCaseGraphEditor = () => {
   }
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" sx={{ mb: 1 }}>
-        {t("graph.editor.title", "그래프 테스트 케이스 편집")}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {t(
-          "graph.editor.hint",
-          "저장하면 그래프가 원본이 되고, 기존 스텝 표는 읽기 전용 미러로 자동 갱신됩니다.",
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      {/* 앱 톤의 상단 바 — 뒤로가기 + 타이틀 + 저장 (전체화면 페이지 공통 패턴) */}
+      <AppBar position="sticky" color="default" elevation={1}>
+        <Toolbar variant="dense">
+          <IconButton
+            edge="start"
+            onClick={() => navigate(-1)}
+            data-testid="editor-back"
+            title={t("graph.editor.back", "그래프로 돌아가기")}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <AccountTreeIcon color="primary" sx={{ mr: 1 }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            {t("graph.editor.title", "그래프 테스트 케이스 편집")}
+          </Typography>
+          <Box sx={{ flex: 1 }} />
+          {savedAt && (
+            <Typography variant="caption" color="success.main" sx={{ mr: 2 }}>
+              {t("graph.editor.saved", "저장됨")} {savedAt.toLocaleTimeString()}
+            </Typography>
+          )}
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<SaveIcon />}
+            onClick={save}
+            disabled={saving || steps.length === 0}
+          >
+            {t("graph.editor.save", "저장")}
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      <Box sx={{ maxWidth: 1100, mx: "auto", p: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {t(
+            "graph.editor.hint",
+            "저장하면 그래프가 원본이 되고, 기존 스텝 표는 읽기 전용 미러로 자동 갱신됩니다.",
+          )}
+        </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
         )}
-      </Typography>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <>
+            <GraphCanvas graph={previewGraph} layout="dagre" height={220} />
 
-      {loading ? (
-        <CircularProgress />
-      ) : (
-        <>
-          <GraphCanvas graph={previewGraph} layout="dagre" height={220} />
-
-          <Paper sx={{ mt: 2, p: 2 }}>
-            <Stack spacing={1.5}>
-              {steps.map((step, index) => (
-                <Box
-                  key={index}
-                  sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}
-                >
-                  <Typography sx={{ width: 28, pt: 1 }} color="text.secondary">
-                    {index + 1}
-                  </Typography>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    multiline
-                    label={t("graph.editor.action", "수행 절차")}
-                    value={step.description}
-                    onChange={(e) =>
-                      mutateStep(index, "description", e.target.value)
-                    }
-                  />
-                  <TextField
-                    size="small"
-                    fullWidth
-                    multiline
-                    label={t("graph.editor.expected", "기대 결과")}
-                    value={step.expectedResult}
-                    onChange={(e) =>
-                      mutateStep(index, "expectedResult", e.target.value)
-                    }
-                  />
-                  <IconButton size="small" onClick={() => moveStep(index, -1)}>
-                    <ArrowUpwardIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => moveStep(index, 1)}>
-                    <ArrowDownwardIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => removeStep(index)}
+            <Paper sx={{ mt: 2, p: 2 }}>
+              <Stack spacing={1.5}>
+                {steps.map((step, index) => (
+                  <Box
+                    key={index}
+                    sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}
                   >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => addBranch(index)}
-                    title={t("graph.editor.addBranch", "분기 추가")}
-                    data-testid={`add-branch-${index}`}
-                  >
-                    <CallSplitIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              ))}
-            </Stack>
-
-            {/* 분기 편집 — 분기가 있는 스텝만 표시 */}
-            {steps.some((s) => s.branches?.length) && (
-              <Box sx={{ mt: 2 }}>
-                {steps.map((step, index) =>
-                  step.branches?.length ? (
-                    <Box
-                      key={`br-${index}`}
-                      sx={{
-                        ml: 4,
-                        mb: 1,
-                        p: 1,
-                        borderLeft: "3px solid",
-                        borderColor: "warning.main",
-                        bgcolor: "action.hover",
-                        borderRadius: 1,
-                      }}
+                    <Typography
+                      sx={{ width: 28, pt: 1 }}
+                      color="text.secondary"
                     >
+                      {index + 1}
+                    </Typography>
+                    <TextField
+                      size="small"
+                      fullWidth
+                      multiline
+                      label={t("graph.editor.action", "수행 절차")}
+                      value={step.description}
+                      onChange={(e) =>
+                        mutateStep(index, "description", e.target.value)
+                      }
+                    />
+                    <TextField
+                      size="small"
+                      fullWidth
+                      multiline
+                      label={t("graph.editor.expected", "기대 결과")}
+                      value={step.expectedResult}
+                      onChange={(e) =>
+                        mutateStep(index, "expectedResult", e.target.value)
+                      }
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => moveStep(index, -1)}
+                    >
+                      <ArrowUpwardIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => moveStep(index, 1)}>
+                      <ArrowDownwardIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => removeStep(index)}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => addBranch(index)}
+                      title={t("graph.editor.addBranch", "분기 추가")}
+                      data-testid={`add-branch-${index}`}
+                    >
+                      <CallSplitIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Stack>
+
+              {/* 분기 편집 — 분기가 있는 스텝만 표시 */}
+              {steps.some((s) => s.branches?.length) && (
+                <Box sx={{ mt: 2 }}>
+                  {steps.map((step, index) =>
+                    step.branches?.length ? (
                       <Box
-                        sx={{ fontSize: 12, mb: 0.5, color: "text.secondary" }}
+                        key={`br-${index}`}
+                        sx={{
+                          ml: 4,
+                          mb: 1,
+                          p: 1,
+                          borderLeft: "3px solid",
+                          borderColor: "warning.main",
+                          bgcolor: "action.hover",
+                          borderRadius: 1,
+                        }}
                       >
-                        {t("graph.editor.branchOf", "스텝")} {index + 1}{" "}
-                        {t("graph.editor.branches", "분기")}
-                      </Box>
-                      {step.branches.map((branch, bi) => (
                         <Box
-                          key={bi}
                           sx={{
-                            display: "flex",
-                            gap: 1,
-                            alignItems: "center",
+                            fontSize: 12,
                             mb: 0.5,
+                            color: "text.secondary",
                           }}
                         >
-                          <TextField
-                            size="small"
-                            sx={{ width: 180 }}
-                            label={t("graph.editor.branchLabel", "조건 라벨")}
-                            value={branch.label}
-                            onChange={(e) =>
-                              mutateBranch(index, bi, "label", e.target.value)
-                            }
-                          />
-                          <FormControl size="small" sx={{ width: 140 }}>
-                            <InputLabel>
-                              {t("graph.editor.branchTo", "이동할 스텝")}
-                            </InputLabel>
-                            <Select
-                              value={branch.to}
-                              label={t("graph.editor.branchTo", "이동할 스텝")}
-                              onChange={(e) =>
-                                mutateBranch(index, bi, "to", e.target.value)
-                              }
-                            >
-                              {steps.map((_, ti) => (
-                                <MenuItem key={ti} value={ti + 1}>
-                                  {t("graph.editor.stepN", "스텝")} {ti + 1}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => removeBranch(index, bi)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
+                          {t("graph.editor.branchOf", "스텝")} {index + 1}{" "}
+                          {t("graph.editor.branches", "분기")}
                         </Box>
-                      ))}
-                    </Box>
-                  ) : null,
-                )}
-              </Box>
-            )}
-
-            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-              <Button size="small" startIcon={<AddIcon />} onClick={addStep}>
-                {t("graph.editor.addStep", "스텝 추가")}
-              </Button>
-              <Box sx={{ flex: 1 }} />
-              {savedAt && (
-                <Typography
-                  variant="caption"
-                  sx={{ alignSelf: "center" }}
-                  color="success.main"
-                >
-                  {t("graph.editor.saved", "저장됨")}{" "}
-                  {savedAt.toLocaleTimeString()}
-                </Typography>
+                        {step.branches.map((branch, bi) => (
+                          <Box
+                            key={bi}
+                            sx={{
+                              display: "flex",
+                              gap: 1,
+                              alignItems: "center",
+                              mb: 0.5,
+                            }}
+                          >
+                            <TextField
+                              size="small"
+                              sx={{ width: 180 }}
+                              label={t("graph.editor.branchLabel", "조건 라벨")}
+                              value={branch.label}
+                              onChange={(e) =>
+                                mutateBranch(index, bi, "label", e.target.value)
+                              }
+                            />
+                            <FormControl size="small" sx={{ width: 140 }}>
+                              <InputLabel>
+                                {t("graph.editor.branchTo", "이동할 스텝")}
+                              </InputLabel>
+                              <Select
+                                value={branch.to}
+                                label={t(
+                                  "graph.editor.branchTo",
+                                  "이동할 스텝",
+                                )}
+                                onChange={(e) =>
+                                  mutateBranch(index, bi, "to", e.target.value)
+                                }
+                              >
+                                {steps.map((_, ti) => (
+                                  <MenuItem key={ti} value={ti + 1}>
+                                    {t("graph.editor.stepN", "스텝")} {ti + 1}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => removeBranch(index, bi)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        ))}
+                      </Box>
+                    ) : null,
+                  )}
+                </Box>
               )}
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<SaveIcon />}
-                onClick={save}
-                disabled={saving || steps.length === 0}
-              >
-                {t("graph.editor.save", "저장")}
-              </Button>
-            </Box>
-          </Paper>
-        </>
-      )}
+
+              <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                <Button size="small" startIcon={<AddIcon />} onClick={addStep}>
+                  {t("graph.editor.addStep", "스텝 추가")}
+                </Button>
+              </Box>
+            </Paper>
+          </>
+        )}
+      </Box>
     </Box>
   );
 };

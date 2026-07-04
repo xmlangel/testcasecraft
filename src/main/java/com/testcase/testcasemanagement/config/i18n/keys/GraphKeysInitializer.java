@@ -47,6 +47,7 @@ public class GraphKeysInitializer {
     createKey("graph.editor.expected", "기대 결과 입력 라벨", "기대 결과");
     createKey("graph.editor.addStep", "스텝 추가 버튼", "스텝 추가");
     createKey("graph.editor.save", "저장 버튼", "저장");
+    createKey("graph.editor.back", "편집기 뒤로가기", "그래프로 돌아가기");
     createKey("graph.editor.saved", "저장 완료 표시", "저장됨");
 
     // 프로젝트 탭 편입 (UX 통합) + 빈 상태 동기화 버튼
