@@ -216,7 +216,7 @@ const GraphView = () => {
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const filteredGraph = useMemo(
-    () => (tab === TAB_STRUCTURE ? applyGraphFilters(graph, filters) : graph),
+    () => applyGraphFilters(graph, filters),
     [graph, filters, tab],
   );
 
@@ -325,7 +325,7 @@ const GraphView = () => {
         {loading && <CircularProgress size={20} />}
       </Box>
 
-      {tab === TAB_STRUCTURE && graph && (
+      {graph && (
         <GraphFilters graph={graph} filters={filters} onChange={setFilters} />
       )}
 

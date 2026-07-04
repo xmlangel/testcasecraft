@@ -474,15 +474,13 @@ Click **[Refresh]** at the top to update to the latest data. Use **[Last 15 Days
 
 Explore the relationships among test cases, executions, and results in your project visually.
 
-> **Note:** The graph screenshots in this section were captured with a Korean UI; an English recapture is pending.
-
 > **Activation required**: The graph feature is off by default. An administrator must set the `FEATURES_GRAPH_ENABLED=true` environment variable, and a user with project management permission must run graph synchronization. See the release note ([RELEASE_NOTE_1.1.1_KO](../../release_note/RELEASE_NOTE_1.1.1_KO.md)) for setup details.
 
 ### 7-1. Opening the Graph View
 
 Inside a project, click the **[Graph]** tab in the top tab bar to open the graph view (`/projects/{projectId}/graph`). The view has three inner tabs: **Structure / Failure Clusters / Case Neighborhood**. If no data exists yet, use the **[Sync now]** button in the banner to build it (project management permission required).
 
-![Graph View — Structure Graph](images/93_graph_structure.png)
+![Graph View — Structure Graph](images_en/93_graph_structure.png)
 
 ### 7-2. Structure Graph
 
@@ -500,7 +498,7 @@ Shows the relationship network of project → folders → cases → test plans �
 
 Groups JUnit (automated test) upload failures by shared cause.
 
-![Graph View — Failure Clusters](images/94_graph_failures.png)
+![Graph View — Failure Clusters](images_en/94_graph_failures.png)
 
 Each failure is keyed by its `failureType` and the first line of the message, so failures with the same cause gather into one hub. The cause node sits at the center with the affected cases and executions around it, which shows how far a single defect has spread and whether it recurs across executions.
 
@@ -508,7 +506,7 @@ Each failure is keyed by its `failureType` and the first line of the message, so
 
 Explores items connected to a specific test case within one to three hops.
 
-![Graph View — Case Neighborhood](images/95_graph_neighborhood.png)
+![Graph View — Case Neighborhood](images_en/95_graph_neighborhood.png)
 
 Enter a test case ID at the top, choose a depth (1–3), and click **[Load]**. The plans and folders the case belongs to, along with its linked executions and results, unfold to the chosen depth; click any node to inspect its properties in the right panel.
 
@@ -532,7 +530,7 @@ You can author and manage cases in **three ways**.
 
 **Branch authoring (editor)**: in the graph test case editor (`/graph-tc/{id}/edit`) you can attach a **branch (Decision)** to a step, not just list steps in order. Use each step's branch button to set a condition label (e.g., valid/invalid) and a target step; branch points then appear as diamonds in the preview at the top. A case with branches becomes `HYBRID` mode, and the relational mirror records the main path (the first branch) as linear steps.
 
-![Graph Test Case Editor — branch authoring](images/96_graph_tc_editor.png)
+![Graph Test Case Editor — branch authoring](images_en/96_graph_tc_editor.png)
 
 ### 7-7. Data Synchronization
 
