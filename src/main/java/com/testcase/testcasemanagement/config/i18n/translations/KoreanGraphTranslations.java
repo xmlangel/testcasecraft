@@ -51,6 +51,19 @@ public class KoreanGraphTranslations {
     create("projectHeader.tabs.graph", lang, "그래프", by);
     create("graph.syncNow", lang, "지금 동기화", by);
     create("graph.syncing", lang, "동기화 중…", by);
+    create("graph.layout.label", lang, "레이아웃", by);
+    create("graph.layout.concentric", lang, "동심원 (허브 중심)", by);
+    create("graph.layout.circle", lang, "원형", by);
+    create("graph.layout.grid", lang, "격자", by);
+    create("graph.filter.folder", lang, "폴더", by);
+    create("graph.filter.case", lang, "케이스", by);
+    create("graph.filter.plan", lang, "플랜", by);
+    create("graph.filter.execution", lang, "실행", by);
+    create("graph.filter.result", lang, "결과", by);
+    create("graph.filter.scope", lang, "플랜/실행 선택", by);
+    create("graph.filter.all", lang, "전체", by);
+    create("graph.filter.planPrefix", lang, "[플랜] ", by);
+    create("graph.filter.executionPrefix", lang, "[실행] ", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

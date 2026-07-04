@@ -53,6 +53,21 @@ public class GraphKeysInitializer {
     createKey("projectHeader.tabs.graph", "프로젝트 그래프 탭", "그래프");
     createKey("graph.syncNow", "빈 상태 동기화 버튼", "지금 동기화");
     createKey("graph.syncing", "동기화 진행 표시", "동기화 중…");
+
+    // 필터 바 + 레이아웃 확장
+    createKey("graph.layout.label", "레이아웃 셀렉트 라벨", "레이아웃");
+    createKey("graph.layout.concentric", "동심원 레이아웃", "동심원 (허브 중심)");
+    createKey("graph.layout.circle", "원형 레이아웃", "원형");
+    createKey("graph.layout.grid", "격자 레이아웃", "격자");
+    createKey("graph.filter.folder", "유형 필터: 폴더", "폴더");
+    createKey("graph.filter.case", "유형 필터: 케이스", "케이스");
+    createKey("graph.filter.plan", "유형 필터: 플랜", "플랜");
+    createKey("graph.filter.execution", "유형 필터: 실행", "실행");
+    createKey("graph.filter.result", "유형 필터: 결과", "결과");
+    createKey("graph.filter.scope", "플랜/실행 스코프 셀렉트", "플랜/실행 선택");
+    createKey("graph.filter.all", "스코프 전체", "전체");
+    createKey("graph.filter.planPrefix", "스코프 플랜 접두", "[플랜] ");
+    createKey("graph.filter.executionPrefix", "스코프 실행 접두", "[실행] ");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

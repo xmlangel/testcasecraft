@@ -61,6 +61,19 @@ public class EnglishGraphTranslations {
     create("projectHeader.tabs.graph", lang, "Graph", by);
     create("graph.syncNow", lang, "Sync now", by);
     create("graph.syncing", lang, "Syncing…", by);
+    create("graph.layout.label", lang, "Layout", by);
+    create("graph.layout.concentric", lang, "Concentric (hub-centered)", by);
+    create("graph.layout.circle", lang, "Circle", by);
+    create("graph.layout.grid", lang, "Grid", by);
+    create("graph.filter.folder", lang, "Folders", by);
+    create("graph.filter.case", lang, "Cases", by);
+    create("graph.filter.plan", lang, "Plans", by);
+    create("graph.filter.execution", lang, "Executions", by);
+    create("graph.filter.result", lang, "Results", by);
+    create("graph.filter.scope", lang, "Plan/Execution", by);
+    create("graph.filter.all", lang, "All", by);
+    create("graph.filter.planPrefix", lang, "[Plan] ", by);
+    create("graph.filter.executionPrefix", lang, "[Run] ", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

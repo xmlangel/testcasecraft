@@ -16,8 +16,6 @@ import {
   Tab,
   Tabs,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useAppContext } from "../../context/AppContext";
@@ -30,6 +28,10 @@ import {
   syncGraph,
 } from "../../services/graphApi";
 import GraphCanvas from "./GraphCanvas";
+import GraphFilters, {
+  DEFAULT_FILTERS,
+  applyGraphFilters,
+} from "./GraphFilters";
 import NodeDetailPanel from "./NodeDetailPanel";
 
 const TAB_STRUCTURE = 0;
@@ -89,6 +91,7 @@ const GraphView = () => {
 
   // 구조/오류 탭은 진입 시 자동 로드, 이웃 탭은 조회 버튼으로
   useEffect(() => {
+    setFilters(DEFAULT_FILTERS);
     if (tab !== TAB_NEIGHBOR) loadGraph();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, projectId]);
@@ -111,6 +114,12 @@ const GraphView = () => {
       setSyncing(false);
     }
   }, [api, projectId, loadGraph]);
+
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const filteredGraph = useMemo(
+    () => (tab === TAB_STRUCTURE ? applyGraphFilters(graph, filters) : graph),
+    [graph, filters, tab],
+  );
 
   const emptyGraph = useMemo(
     () => graph && (graph.nodes?.length ?? 0) === 0,
@@ -156,19 +165,27 @@ const GraphView = () => {
           flexWrap: "wrap",
         }}
       >
-        <ToggleButtonGroup
-          size="small"
-          exclusive
-          value={layout}
-          onChange={(_, v) => v && setLayout(v)}
-        >
-          <ToggleButton value="fcose">
-            {t("graph.layout.force", "포스")}
-          </ToggleButton>
-          <ToggleButton value="dagre">
-            {t("graph.layout.hierarchy", "계층")}
-          </ToggleButton>
-        </ToggleButtonGroup>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>{t("graph.layout.label", "레이아웃")}</InputLabel>
+          <Select
+            value={layout}
+            label={t("graph.layout.label", "레이아웃")}
+            onChange={(e) => setLayout(e.target.value)}
+            data-testid="graph-layout-select"
+          >
+            <MenuItem value="fcose">{t("graph.layout.force", "포스")}</MenuItem>
+            <MenuItem value="dagre">
+              {t("graph.layout.hierarchy", "계층")}
+            </MenuItem>
+            <MenuItem value="concentric">
+              {t("graph.layout.concentric", "동심원 (허브 중심)")}
+            </MenuItem>
+            <MenuItem value="circle">
+              {t("graph.layout.circle", "원형")}
+            </MenuItem>
+            <MenuItem value="grid">{t("graph.layout.grid", "격자")}</MenuItem>
+          </Select>
+        </FormControl>
 
         {tab === TAB_NEIGHBOR && (
           <>
@@ -209,6 +226,10 @@ const GraphView = () => {
         {loading && <CircularProgress size={20} />}
       </Box>
 
+      {tab === TAB_STRUCTURE && graph && (
+        <GraphFilters graph={graph} filters={filters} onChange={setFilters} />
+      )}
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -242,7 +263,7 @@ const GraphView = () => {
       <Box sx={{ display: "flex", gap: 2 }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <GraphCanvas
-            graph={graph}
+            graph={filteredGraph}
             layout={layout}
             onSelectNode={handleSelectNode}
           />

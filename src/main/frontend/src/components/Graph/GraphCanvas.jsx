@@ -128,6 +128,16 @@ const LAYOUTS = {
     idealEdgeLength: 90,
   },
   dagre: { name: "dagre", rankDir: "LR", nodeSep: 40, rankSep: 80 },
+  // 동심원: 연결(차수)이 많은 허브가 중앙 — 반복 실패·핵심 케이스 식별용
+  concentric: {
+    name: "concentric",
+    animate: false,
+    minNodeSpacing: 24,
+    concentric: (node) => node.degree(),
+    levelWidth: () => 2,
+  },
+  circle: { name: "circle", animate: false, spacingFactor: 1.2 },
+  grid: { name: "grid", animate: false, avoidOverlapPadding: 14 },
 };
 
 const GraphCanvas = ({
