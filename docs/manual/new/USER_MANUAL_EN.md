@@ -498,13 +498,11 @@ Shows the relationship network of project → folders → cases → test plans �
 
 ### 7-3. Failure Clusters
 
-Groups JUnit (automated test) upload failures by shared cause and visualizes them.
+Groups JUnit (automated test) upload failures by shared cause.
 
 ![Graph View — Failure Clusters](images/94_graph_failures.png)
 
-- **Failure cause** — each cause is defined by the `failureType` plus the first line of the failure message
-- **Hub shape** — failures with the same cause form a hub: the cause sits at the center with affected cases and executions around it
-- **Pattern spotting** — recurring defects across multiple cases and executions stand out at a glance
+Each failure is keyed by its `failureType` and the first line of the message, so failures with the same cause gather into one hub. The cause node sits at the center with the affected cases and executions around it, which shows how far a single defect has spread and whether it recurs across executions.
 
 ### 7-4. Case Neighborhood
 
@@ -512,18 +510,13 @@ Explores items connected to a specific test case within one to three hops.
 
 ![Graph View — Case Neighborhood](images/95_graph_neighborhood.png)
 
-- **Pick a case** — enter a test case ID in the input field at the top, choose a depth (1–3), and click **[Load]**
-- **Connected items** — the plans and folders the case belongs to, plus linked executions and results, unfold to the chosen depth
-- **Node details** — click any node to inspect its properties in the right panel
+Enter a test case ID at the top, choose a depth (1–3), and click **[Load]**. The plans and folders the case belongs to, along with its linked executions and results, unfold to the chosen depth; click any node to inspect its properties in the right panel.
 
 ### 7-5. Defining Case Relations Manually
 
-Beyond the relations created automatically by synchronization (folder containment, plan inclusion, result links, etc.), you can draw logical relations between cases yourself.
+Besides the relations created automatically by synchronization (folder containment, plan inclusion, result links, and so on), you can draw logical relations between cases yourself.
 
-- **Start a relation** — in the structure graph, click a case node and press **[Start relation from this case]** in the right panel
-- **Pick the target** — then click another case node to open the relation type dialog: `DEPENDS_ON` / `RELATES_TO` / `BLOCKS`
-- **Display & delete** — manual relations appear as **purple dashed edges**, distinct from automatic ones. Click a dashed edge to delete it
-- **Preserved** — manual relations are graph-native data, so re-running synchronization does not erase them
+In the structure graph, click a case node, press **[Start relation from this case]** in the right panel, then click the target case to open the type dialog. The three types are `DEPENDS_ON`, `RELATES_TO`, and `BLOCKS`. Manual relations appear as purple dashed edges, distinct from automatic ones, and you delete one by clicking its edge. Because these relations live only in the graph, re-running synchronization does not erase them.
 
 ### 7-6. Graph Test Cases
 
@@ -543,11 +536,7 @@ You can author and manage cases in **three ways**.
 
 ### 7-7. Data Synchronization
 
-Graph data is not generated automatically. A user with **project management permission** must run synchronization manually.
-
-- **Sync API** — call `POST /api/graph/sync?projectId={projectId}` to build the graph data
-- **Idempotent** — synchronization is always safe to re-run; it overwrites existing data without partial duplication
-- **Timing** — run it after adding new cases or making substantial edits so the graph reflects the latest state
+Graph data is not generated automatically, so a user with project management permission must run synchronization. Press **[Sync now]** in the graph view or call `POST /api/graph/sync?projectId={projectId}`. Synchronization is idempotent, so it is safe to re-run; run it after adding new cases or making substantial edits to reflect the latest state.
 
 ### 7-8. Version Compatibility
 
