@@ -82,6 +82,20 @@ public class GraphKeysInitializer {
     createKey("graph.relation.cancelBtn", "다이얼로그 취소", "취소");
     createKey("graph.relation.delete", "관계 삭제 버튼", "이 관계 삭제");
     createKey("graph.relation.autoEdge", "자동 간선 안내", "동기화로 생성된 관계는 삭제할 수 없습니다.");
+
+    // 범례 (v1.1.1)
+    createKey("graph.legend.title", "범례 헤더", "범례 — 색·모양 의미");
+    createKey("graph.legend.nodeTypes", "범례 노드유형 소제목", "노드 유형");
+    createKey("graph.legend.testCase", "범례 케이스", "테스트 케이스");
+    createKey("graph.legend.folder", "범례 폴더", "폴더");
+    createKey("graph.legend.testPlan", "범례 플랜", "테스트 플랜");
+    createKey("graph.legend.testExecution", "범례 실행", "테스트 실행");
+    createKey("graph.legend.junitCase", "범례 JUnit", "JUnit 케이스");
+    createKey("graph.legend.jiraIssue", "범례 Jira", "Jira 이슈");
+    createKey("graph.legend.failureType", "범례 오류허브", "오류 원인(허브)");
+    createKey("graph.legend.decision", "범례 분기", "분기(Decision)");
+    createKey("graph.legend.resultStatus", "범례 결과 소제목", "실행 결과(색이 상태를 뜻함)");
+    createKey("graph.legend.edges", "범례 간선 설명", "간선: 회색 실선 = 자동 관계 · 보라 점선 = 사용자가 지정한 관계");
     createKey("graph.editor.addBranch", "분기 추가 버튼", "분기 추가");
     createKey("graph.editor.branchOf", "분기 소속 표기", "스텝");
     createKey("graph.editor.branches", "분기 목록 제목", "분기");

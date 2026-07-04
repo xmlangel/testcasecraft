@@ -12,7 +12,7 @@ cytoscape.use(fcose);
 cytoscape.use(dagre);
 
 // 라벨별 노드 색 — FailureType(오류 허브)은 경고색으로 강조
-const LABEL_COLORS = {
+export const LABEL_COLORS = {
   Project: "#5c6bc0",
   Folder: "#8d9db6",
   TestCase: "#1976d2",
@@ -33,7 +33,7 @@ const LABEL_COLORS = {
 };
 
 // TestResult 는 result 값에 따라 색을 덮어쓴다
-const RESULT_COLORS = {
+export const RESULT_COLORS = {
   PASS: "#2e7d32",
   FAIL: "#c62828",
   BLOCKED: "#ef6c00",
