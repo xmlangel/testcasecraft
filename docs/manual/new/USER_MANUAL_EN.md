@@ -474,42 +474,58 @@ Click **[Refresh]** at the top to update to the latest data. Use **[Last 15 Days
 
 Explore the relationships among test cases, executions, and results in your project visually.
 
+> **Note:** The graph screenshots in this section were captured with a Korean UI; an English recapture is pending.
+
 > **Activation required**: The graph feature is off by default. An administrator must set the `FEATURES_GRAPH_ENABLED=true` environment variable, and a user with project management permission must run graph synchronization. See the release note ([RELEASE_NOTE_1.1.1_KO](../../release_note/RELEASE_NOTE_1.1.1_KO.md)) for setup details.
 
 ### 7-1. Opening the Graph View
 
-Click the **Hub icon** (🕸) on the right side of the project header to open the graph view (`/graph`). Three tabs appear at the top of the screen.
+Inside a project, click the **[Graph]** tab in the top tab bar to open the graph view (`/projects/{projectId}/graph`). The view has three inner tabs: **Structure / Failure Clusters / Case Neighborhood**. If no data exists yet, use the **[Sync now]** button in the banner to build it (project management permission required).
 
-<!-- TODO: capture graph-view -->
+![Graph View — Structure Graph](images/93_graph_structure.png)
 
 ### 7-2. Structure Graph
 
-Shows the relationship network of project → folders → cases → test plans → executions → results as a network graph.
+Shows the relationship network of project → folders → cases → test plans → executions → results. Result nodes are colored by status (PASS green, FAIL red, BLOCKED orange, NOT_RUN gray).
 
 | Feature | Description |
 |---|---|
-| **Layout toggle** | Switch between **Force (fcose)** and **Hierarchy (dagre)** layouts with the toggle at the top. Force spreads nodes freely; Hierarchy flows from one side to the other |
-| **Node click** | Click a node (circle) to see its details in the right panel |
-| **Drag** | Drag nodes to reposition them; selecting a layout again restores the arrangement |
-| **Zoom** | Zoom in and out with the mouse wheel |
+| **Layout** | Choose Force, Hierarchy, Concentric (hub-centered), Circle, or Grid from the **Layout** selector at the top left |
+| **Filters** | Toggle node types (folders, cases, plans, executions, results) and result statuses (PASS/FAIL/BLOCKED/NOT_RUN) on and off to keep only what you want when there are many nodes |
+| **Plan/Execution scope** | Pick a specific plan or execution in **[Plan/Execution]** to show only its connected subgraph |
+| **Node click** | Click a node to see its properties in the right panel. On a case node you can start relation editing (7-5) |
+| **Zoom & pan** | Zoom with the mouse wheel; drag nodes to reposition them |
 
 ### 7-3. Failure Clusters
 
 Groups JUnit (automated test) upload failures by shared cause and visualizes them.
 
+![Graph View — Failure Clusters](images/94_graph_failures.png)
+
 - **Failure cause** — each cause is defined by the `failureType` plus the first line of the failure message
 - **Hub shape** — failures with the same cause form a hub: the cause sits at the center with affected cases and executions around it
-- **Pattern spotting** — recurring defects across multiple executions stand out at a glance
+- **Pattern spotting** — recurring defects across multiple cases and executions stand out at a glance
 
 ### 7-4. Case Neighborhood
 
 Explores items connected to a specific test case within one to three hops.
 
+![Graph View — Case Neighborhood](images/95_graph_neighborhood.png)
+
 - **Pick a case** — enter a test case ID in the input field at the top, choose a depth (1–3), and click **[Load]**
 - **Connected items** — the plans and folders the case belongs to, plus linked executions and results, unfold to the chosen depth
 - **Node details** — click any node to inspect its properties in the right panel
 
-### 7-5. Graph Test Cases
+### 7-5. Defining Case Relations Manually
+
+Beyond the relations created automatically by synchronization (folder containment, plan inclusion, result links, etc.), you can draw logical relations between cases yourself.
+
+- **Start a relation** — in the structure graph, click a case node and press **[Start relation from this case]** in the right panel
+- **Pick the target** — then click another case node to open the relation type dialog: `DEPENDS_ON` / `RELATES_TO` / `BLOCKS`
+- **Display & delete** — manual relations appear as **purple dashed edges**, distinct from automatic ones. Click a dashed edge to delete it
+- **Preserved** — manual relations are graph-native data, so re-running synchronization does not erase them
+
+### 7-6. Graph Test Cases
 
 You can author and manage cases in **three ways**.
 
@@ -521,7 +537,11 @@ You can author and manage cases in **three ways**.
 
 **Relational mirror guarantee**: cases authored in graph mode always remain viewable as linear steps in the existing spreadsheet view and case form. In graph mode the graph is the source of truth, and the step table is a read-only mirror that refreshes automatically. Reverting makes the mirror the source of truth again.
 
-### 7-6. Data Synchronization
+**Branch authoring (editor)**: in the graph test case editor (`/graph-tc/{id}/edit`) you can attach a **branch (Decision)** to a step, not just list steps in order. Use each step's branch button to set a condition label (e.g., valid/invalid) and a target step; branch points then appear as diamonds in the preview at the top. A case with branches becomes `HYBRID` mode, and the relational mirror records the main path (the first branch) as linear steps.
+
+![Graph Test Case Editor — branch authoring](images/96_graph_tc_editor.png)
+
+### 7-7. Data Synchronization
 
 Graph data is not generated automatically. A user with **project management permission** must run synchronization manually.
 
@@ -529,7 +549,7 @@ Graph data is not generated automatically. A user with **project management perm
 - **Idempotent** — synchronization is always safe to re-run; it overwrites existing data without partial duplication
 - **Timing** — run it after adding new cases or making substantial edits so the graph reflects the latest state
 
-### 7-7. Version Compatibility
+### 7-8. Version Compatibility
 
 | Direction | Status |
 |---|---|
