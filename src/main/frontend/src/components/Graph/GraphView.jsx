@@ -39,6 +39,7 @@ import GraphFilters, {
   DEFAULT_FILTERS,
   applyGraphFilters,
 } from "./GraphFilters";
+import GraphLegend from "./GraphLegend";
 import NodeDetailPanel from "./NodeDetailPanel";
 
 const TAB_STRUCTURE = 0;
@@ -338,6 +339,7 @@ const GraphView = () => {
             onSelectNode={handleSelectNode}
             onSelectEdge={handleSelectEdge}
           />
+          <GraphLegend />
         </Box>
         <Paper
           sx={{ width: 280, flexShrink: 0, maxHeight: 560, overflow: "auto" }}

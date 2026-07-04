@@ -88,6 +88,24 @@ public class EnglishGraphTranslations {
     create("graph.relation.cancelBtn", lang, "Cancel", by);
     create("graph.relation.delete", lang, "Delete this relation", by);
     create("graph.relation.autoEdge", lang, "Relations created by sync cannot be deleted.", by);
+
+    // 범례 (v1.1.1)
+    create("graph.legend.title", lang, "Legend — colors & shapes", by);
+    create("graph.legend.nodeTypes", lang, "Node types", by);
+    create("graph.legend.testCase", lang, "Test case", by);
+    create("graph.legend.folder", lang, "Folder", by);
+    create("graph.legend.testPlan", lang, "Test plan", by);
+    create("graph.legend.testExecution", lang, "Test execution", by);
+    create("graph.legend.junitCase", lang, "JUnit case", by);
+    create("graph.legend.jiraIssue", lang, "Jira issue", by);
+    create("graph.legend.failureType", lang, "Failure cause (hub)", by);
+    create("graph.legend.decision", lang, "Decision (branch)", by);
+    create("graph.legend.resultStatus", lang, "Result status (color = status)", by);
+    create(
+        "graph.legend.edges",
+        lang,
+        "Edges: gray solid = automatic relation · purple dashed = user-defined relation",
+        by);
     create("graph.editor.addBranch", lang, "Add branch", by);
     create("graph.editor.branchOf", lang, "Step", by);
     create("graph.editor.branches", lang, "branches", by);

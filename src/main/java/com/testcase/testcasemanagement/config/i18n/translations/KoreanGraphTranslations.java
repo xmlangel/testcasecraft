@@ -78,6 +78,20 @@ public class KoreanGraphTranslations {
     create("graph.relation.cancelBtn", lang, "취소", by);
     create("graph.relation.delete", lang, "이 관계 삭제", by);
     create("graph.relation.autoEdge", lang, "동기화로 생성된 관계는 삭제할 수 없습니다.", by);
+
+    // 범례 (v1.1.1)
+    create("graph.legend.title", lang, "범례 — 색·모양 의미", by);
+    create("graph.legend.nodeTypes", lang, "노드 유형", by);
+    create("graph.legend.testCase", lang, "테스트 케이스", by);
+    create("graph.legend.folder", lang, "폴더", by);
+    create("graph.legend.testPlan", lang, "테스트 플랜", by);
+    create("graph.legend.testExecution", lang, "테스트 실행", by);
+    create("graph.legend.junitCase", lang, "JUnit 케이스", by);
+    create("graph.legend.jiraIssue", lang, "Jira 이슈", by);
+    create("graph.legend.failureType", lang, "오류 원인(허브)", by);
+    create("graph.legend.decision", lang, "분기(Decision)", by);
+    create("graph.legend.resultStatus", lang, "실행 결과(색이 상태를 뜻함)", by);
+    create("graph.legend.edges", lang, "간선: 회색 실선 = 자동 관계 · 보라 점선 = 사용자가 지정한 관계", by);
     create("graph.editor.addBranch", lang, "분기 추가", by);
     create("graph.editor.branchOf", lang, "스텝", by);
     create("graph.editor.branches", lang, "분기", by);
