@@ -12,6 +12,7 @@ import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -151,6 +152,34 @@ public class GraphController {
   public ResponseEntity<Map<String, Integer>> bulkConvert(
       @RequestParam String projectId, @RequestParam(required = false) String folderId) {
     return ResponseEntity.ok(testCaseGraphService.bulkConvert(projectId, folderId));
+  }
+
+  @Operation(
+      summary = "케이스 간 수동 관계 생성",
+      description = "그래프 뷰 편집 — DEPENDS_ON/RELATES_TO/BLOCKS 관계를 추가한다 (그래프 고유 데이터).")
+  @PostMapping("/relation")
+  @PreAuthorize("@projectSecurityService.hasEditRole(#projectId, authentication.name)")
+  public ResponseEntity<Map<String, Object>> createRelation(
+      @RequestParam String projectId,
+      @RequestParam String sourceId,
+      @RequestParam String targetId,
+      @RequestParam String type) {
+    testCaseGraphService.createManualRelation(projectId, sourceId, targetId, type);
+    return ResponseEntity.ok(
+        Map.of("source", sourceId, "target", targetId, "type", type, "created", true));
+  }
+
+  @Operation(summary = "케이스 간 수동 관계 삭제", description = "그래프 뷰에서 수동으로 만든 관계를 제거한다.")
+  @DeleteMapping("/relation")
+  @PreAuthorize("@projectSecurityService.hasEditRole(#projectId, authentication.name)")
+  public ResponseEntity<Map<String, Object>> deleteRelation(
+      @RequestParam String projectId,
+      @RequestParam String sourceId,
+      @RequestParam String targetId,
+      @RequestParam String type) {
+    testCaseGraphService.deleteManualRelation(projectId, sourceId, targetId, type);
+    return ResponseEntity.ok(
+        Map.of("source", sourceId, "target", targetId, "type", type, "deleted", true));
   }
 
   @Operation(summary = "케이스 이웃 그래프", description = "지정 케이스에서 depth 단계까지 연결된 정점·간선.")

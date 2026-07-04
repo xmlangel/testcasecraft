@@ -101,6 +101,22 @@ const buildStyle = () => [
     style: { width: 38, height: 38, "font-weight": "bold" },
   },
   {
+    selector: "node[label = 'Decision']",
+    style: { shape: "diamond", width: 34, height: 34 },
+  },
+  {
+    // 사용자 수동 관계는 점선 강조 — 자동 유도 간선과 구분
+    selector:
+      "edge[label = 'DEPENDS_ON'], edge[label = 'RELATES_TO'], edge[label = 'BLOCKS']",
+    style: {
+      "line-style": "dashed",
+      "line-color": "#7b1fa2",
+      "target-arrow-color": "#7b1fa2",
+      color: "#7b1fa2",
+      width: 2,
+    },
+  },
+  {
     selector: "edge",
     style: {
       width: 1.4,
@@ -145,6 +161,7 @@ const GraphCanvas = ({
   layout = "fcose",
   height = 560,
   onSelectNode,
+  onSelectEdge,
 }) => {
   const containerRef = useRef(null);
   const cyRef = useRef(null);
@@ -160,8 +177,14 @@ const GraphCanvas = ({
     cy.on("tap", "node", (evt) => {
       onSelectNode?.(evt.target.data());
     });
+    cy.on("tap", "edge", (evt) => {
+      onSelectEdge?.(evt.target.data());
+    });
     cy.on("tap", (evt) => {
-      if (evt.target === cy) onSelectNode?.(null);
+      if (evt.target === cy) {
+        onSelectNode?.(null);
+        onSelectEdge?.(null);
+      }
     });
     cyRef.current = cy;
     return () => cy.destroy();

@@ -10,8 +10,12 @@ import {
   Box,
   Button,
   CircularProgress,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   TextField,
   Typography,
@@ -21,21 +25,48 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import SaveIcon from "@mui/icons-material/Save";
+import CallSplitIcon from "@mui/icons-material/CallSplit";
 import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
 import { getGraphSteps, updateGraphSteps } from "../../services/graphApi";
 import GraphCanvas from "./GraphCanvas";
 
-// 그래프 응답(StepNode 정점)을 편집 가능한 스텝 배열로 변환
-export const graphToSteps = (graph) =>
-  (graph?.nodes || [])
+// 그래프 응답을 편집 가능한 스텝 배열로 변환 — Decision/BRANCH_ON 에서 branches 복원
+export const graphToSteps = (graph) => {
+  const nodes = graph?.nodes || [];
+  const edges = graph?.edges || [];
+  const byGraphId = new Map(nodes.map((n) => [n.id, n]));
+
+  const steps = nodes
     .filter((n) => n.label === "StepNode")
     .map((n) => ({
       order: Number(n.properties?.order ?? 0),
       description: n.properties?.action || "",
       expectedResult: n.properties?.expected || "",
+      branches: [],
     }))
     .sort((a, b) => a.order - b.order);
+
+  // Decision(order=i) 의 BRANCH_ON → 스텝 i 의 branches
+  edges
+    .filter((e) => e.label === "BRANCH_ON")
+    .forEach((e) => {
+      const decision = byGraphId.get(e.source);
+      const target = byGraphId.get(e.target);
+      if (decision?.label !== "Decision" || target?.label !== "StepNode")
+        return;
+      const owner = steps.find(
+        (s) => s.order === Number(decision.properties?.order),
+      );
+      if (owner) {
+        owner.branches.push({
+          label: e.properties?.label || "분기",
+          to: Number(target.properties?.order ?? 0),
+        });
+      }
+    });
+  return steps;
+};
 
 const TestCaseGraphEditor = () => {
   const { testCaseId } = useParams();
@@ -75,10 +106,51 @@ const TestCaseGraphEditor = () => {
     );
 
   const addStep = () =>
-    setSteps((prev) => [...prev, { description: "", expectedResult: "" }]);
+    setSteps((prev) => [
+      ...prev,
+      { description: "", expectedResult: "", branches: [] },
+    ]);
 
   const removeStep = (index) =>
     setSteps((prev) => prev.filter((_, i) => i !== index));
+
+  const mutateBranch = (stepIndex, branchIndex, field, value) =>
+    setSteps((prev) =>
+      prev.map((s, i) =>
+        i === stepIndex
+          ? {
+              ...s,
+              branches: s.branches.map((b, bi) =>
+                bi === branchIndex ? { ...b, [field]: value } : b,
+              ),
+            }
+          : s,
+      ),
+    );
+
+  const addBranch = (stepIndex) =>
+    setSteps((prev) =>
+      prev.map((s, i) =>
+        i === stepIndex
+          ? {
+              ...s,
+              branches: [
+                ...(s.branches || []),
+                { label: "", to: Math.min(stepIndex + 2, prev.length) },
+              ],
+            }
+          : s,
+      ),
+    );
+
+  const removeBranch = (stepIndex, branchIndex) =>
+    setSteps((prev) =>
+      prev.map((s, i) =>
+        i === stepIndex
+          ? { ...s, branches: s.branches.filter((_, bi) => bi !== branchIndex) }
+          : s,
+      ),
+    );
 
   const moveStep = (index, delta) =>
     setSteps((prev) => {
@@ -100,6 +172,7 @@ const TestCaseGraphEditor = () => {
         steps.map((s) => ({
           description: s.description,
           expectedResult: s.expectedResult,
+          ...(s.branches?.length ? { branches: s.branches } : {}),
         })),
       );
       setSavedAt(new Date());
@@ -121,12 +194,51 @@ const TestCaseGraphEditor = () => {
         properties: { order: i + 1, action: s.description || `Step ${i + 1}` },
       })),
     ];
-    const edges = steps.map((_, i) => ({
-      id: `e${i}`,
-      label: i === 0 ? "STARTS_AT" : "NEXT",
-      source: i === 0 ? "root" : `s${i}`,
-      target: `s${i + 1}`,
-    }));
+    const edges = [];
+    steps.forEach((s, i) => {
+      const stepId = `s${i + 1}`;
+      const prev = steps[i - 1];
+      // 진입 간선 — 이전 스텝에 분기가 있으면 경로는 분기가 정의하므로 암묵 NEXT 생략
+      if (i === 0) {
+        edges.push({
+          id: `e-in-${i}`,
+          label: "STARTS_AT",
+          source: "root",
+          target: stepId,
+        });
+      } else if (!prev?.branches?.length) {
+        edges.push({
+          id: `e-in-${i}`,
+          label: "NEXT",
+          source: `s${i}`,
+          target: stepId,
+        });
+      }
+      if (s.branches?.length) {
+        const decisionId = `d${i + 1}`;
+        nodes.push({
+          id: decisionId,
+          label: "Decision",
+          properties: { order: i + 1, name: "?" },
+        });
+        edges.push({
+          id: `e-dec-${i}`,
+          label: "NEXT",
+          source: stepId,
+          target: decisionId,
+        });
+        s.branches.forEach((b, bi) => {
+          if (b.to >= 1 && b.to <= steps.length) {
+            edges.push({
+              id: `e-br-${i}-${bi}`,
+              label: b.label || "분기",
+              source: decisionId,
+              target: `s${b.to}`,
+            });
+          }
+        });
+      }
+    });
     return { nodes, edges };
   }, [steps, testCaseId]);
 
@@ -205,9 +317,92 @@ const TestCaseGraphEditor = () => {
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => addBranch(index)}
+                    title={t("graph.editor.addBranch", "분기 추가")}
+                    data-testid={`add-branch-${index}`}
+                  >
+                    <CallSplitIcon fontSize="small" />
+                  </IconButton>
                 </Box>
               ))}
             </Stack>
+
+            {/* 분기 편집 — 분기가 있는 스텝만 표시 */}
+            {steps.some((s) => s.branches?.length) && (
+              <Box sx={{ mt: 2 }}>
+                {steps.map((step, index) =>
+                  step.branches?.length ? (
+                    <Box
+                      key={`br-${index}`}
+                      sx={{
+                        ml: 4,
+                        mb: 1,
+                        p: 1,
+                        borderLeft: "3px solid",
+                        borderColor: "warning.main",
+                        bgcolor: "action.hover",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{ fontSize: 12, mb: 0.5, color: "text.secondary" }}
+                      >
+                        {t("graph.editor.branchOf", "스텝")} {index + 1}{" "}
+                        {t("graph.editor.branches", "분기")}
+                      </Box>
+                      {step.branches.map((branch, bi) => (
+                        <Box
+                          key={bi}
+                          sx={{
+                            display: "flex",
+                            gap: 1,
+                            alignItems: "center",
+                            mb: 0.5,
+                          }}
+                        >
+                          <TextField
+                            size="small"
+                            sx={{ width: 180 }}
+                            label={t("graph.editor.branchLabel", "조건 라벨")}
+                            value={branch.label}
+                            onChange={(e) =>
+                              mutateBranch(index, bi, "label", e.target.value)
+                            }
+                          />
+                          <FormControl size="small" sx={{ width: 140 }}>
+                            <InputLabel>
+                              {t("graph.editor.branchTo", "이동할 스텝")}
+                            </InputLabel>
+                            <Select
+                              value={branch.to}
+                              label={t("graph.editor.branchTo", "이동할 스텝")}
+                              onChange={(e) =>
+                                mutateBranch(index, bi, "to", e.target.value)
+                              }
+                            >
+                              {steps.map((_, ti) => (
+                                <MenuItem key={ti} value={ti + 1}>
+                                  {t("graph.editor.stepN", "스텝")} {ti + 1}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => removeBranch(index, bi)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : null,
+                )}
+              </Box>
+            )}
 
             <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
               <Button size="small" startIcon={<AddIcon />} onClick={addStep}>

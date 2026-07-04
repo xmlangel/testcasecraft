@@ -64,6 +64,26 @@ public class KoreanGraphTranslations {
     create("graph.filter.all", lang, "전체", by);
     create("graph.filter.planPrefix", lang, "[플랜] ", by);
     create("graph.filter.executionPrefix", lang, "[실행] ", by);
+
+    // 관계 편집 + 분기 편집 (v1.1.1)
+    create("graph.relation.start", lang, "이 케이스에서 관계 시작", by);
+    create("graph.relation.pickTarget", lang, "대상 케이스 노드를 클릭하세요", by);
+    create("graph.relation.cancel", lang, "관계 추가 취소", by);
+    create("graph.relation.typeTitle", lang, "관계 유형 선택", by);
+    create("graph.relation.type", lang, "유형", by);
+    create("graph.relation.dependsOn", lang, "선행 필요", by);
+    create("graph.relation.relatesTo", lang, "연관", by);
+    create("graph.relation.blocks", lang, "차단함", by);
+    create("graph.relation.save", lang, "관계 생성", by);
+    create("graph.relation.cancelBtn", lang, "취소", by);
+    create("graph.relation.delete", lang, "이 관계 삭제", by);
+    create("graph.relation.autoEdge", lang, "동기화로 생성된 관계는 삭제할 수 없습니다.", by);
+    create("graph.editor.addBranch", lang, "분기 추가", by);
+    create("graph.editor.branchOf", lang, "스텝", by);
+    create("graph.editor.branches", lang, "분기", by);
+    create("graph.editor.branchLabel", lang, "조건 라벨", by);
+    create("graph.editor.branchTo", lang, "이동할 스텝", by);
+    create("graph.editor.stepN", lang, "스텝", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {
