@@ -61,6 +61,9 @@ public class EnglishGraphTranslations {
     create("projectHeader.tabs.graph", lang, "Graph", by);
     create("graph.syncNow", lang, "Sync now", by);
     create("graph.syncing", lang, "Syncing…", by);
+    create("graph.openEditor", lang, "Open graph editor", by);
+    create("graph.convertAndEdit", lang, "Convert to graph & edit", by);
+    create("graph.converting", lang, "Converting…", by);
     create("graph.layout.label", lang, "Layout", by);
     create("graph.layout.concentric", lang, "Concentric (hub-centered)", by);
     create("graph.layout.circle", lang, "Circle", by);

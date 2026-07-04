@@ -51,6 +51,9 @@ public class KoreanGraphTranslations {
     create("projectHeader.tabs.graph", lang, "그래프", by);
     create("graph.syncNow", lang, "지금 동기화", by);
     create("graph.syncing", lang, "동기화 중…", by);
+    create("graph.openEditor", lang, "그래프 편집기 열기", by);
+    create("graph.convertAndEdit", lang, "그래프로 전환 후 편집", by);
+    create("graph.converting", lang, "전환 중…", by);
     create("graph.layout.label", lang, "레이아웃", by);
     create("graph.layout.concentric", lang, "동심원 (허브 중심)", by);
     create("graph.layout.circle", lang, "원형", by);
