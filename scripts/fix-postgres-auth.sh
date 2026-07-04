@@ -125,7 +125,7 @@ echo ""
 
 # 30초 동안 애플리케이션 상태 확인
 for i in {1..30}; do
-    if docker-compose -f docker-compose.yml exec app curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
+    if docker-compose -f docker-compose.yml exec app wget -q -O /dev/null http://localhost:8080/actuator/health >/dev/null 2>&1; then
         echo "   ✅ 애플리케이션 시작 완료 ($i초 소요)"
         break
     fi

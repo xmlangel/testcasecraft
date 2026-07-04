@@ -57,7 +57,7 @@ docker exec testcase-app grep -r "junit.file.upload.dir" /app/ 2>/dev/null || ec
 echo ""
 
 echo "📋 7. 애플리케이션 헬스 체크..."
-if docker exec testcase-app curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
+if docker exec testcase-app wget -q -O /dev/null http://localhost:8080/actuator/health >/dev/null 2>&1; then
     echo "   ✅ 애플리케이션이 정상 실행 중입니다"
 else
     echo "   ⚠️  애플리케이션 헬스 체크 실패 (curl 명령어가 없거나 앱이 시작 중일 수 있음)"

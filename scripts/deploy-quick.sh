@@ -178,7 +178,7 @@ max_attempts=30
 attempt=1
 
 while [ $attempt -le $max_attempts ]; do
-    if docker-compose -f docker-compose.yml --env-file $ENV_FILE exec app curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
+    if docker-compose -f docker-compose.yml --env-file $ENV_FILE exec app wget -q -O /dev/null http://localhost:8080/actuator/health >/dev/null 2>&1; then
         log_success "애플리케이션이 정상적으로 시작되었습니다!"
         break
     fi
