@@ -74,6 +74,26 @@ public class EnglishGraphTranslations {
     create("graph.filter.all", lang, "All", by);
     create("graph.filter.planPrefix", lang, "[Plan] ", by);
     create("graph.filter.executionPrefix", lang, "[Run] ", by);
+
+    // 관계 편집 + 분기 편집 (v1.1.1)
+    create("graph.relation.start", lang, "Start relation from this case", by);
+    create("graph.relation.pickTarget", lang, "Click the target case node", by);
+    create("graph.relation.cancel", lang, "Cancel relation", by);
+    create("graph.relation.typeTitle", lang, "Select relation type", by);
+    create("graph.relation.type", lang, "Type", by);
+    create("graph.relation.dependsOn", lang, "depends on", by);
+    create("graph.relation.relatesTo", lang, "relates to", by);
+    create("graph.relation.blocks", lang, "blocks", by);
+    create("graph.relation.save", lang, "Create relation", by);
+    create("graph.relation.cancelBtn", lang, "Cancel", by);
+    create("graph.relation.delete", lang, "Delete this relation", by);
+    create("graph.relation.autoEdge", lang, "Relations created by sync cannot be deleted.", by);
+    create("graph.editor.addBranch", lang, "Add branch", by);
+    create("graph.editor.branchOf", lang, "Step", by);
+    create("graph.editor.branches", lang, "branches", by);
+    create("graph.editor.branchLabel", lang, "Condition label", by);
+    create("graph.editor.branchTo", lang, "Go to step", by);
+    create("graph.editor.stepN", lang, "Step", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

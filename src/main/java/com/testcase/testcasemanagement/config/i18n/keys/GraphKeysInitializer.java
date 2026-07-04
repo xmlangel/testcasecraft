@@ -68,6 +68,26 @@ public class GraphKeysInitializer {
     createKey("graph.filter.all", "스코프 전체", "전체");
     createKey("graph.filter.planPrefix", "스코프 플랜 접두", "[플랜] ");
     createKey("graph.filter.executionPrefix", "스코프 실행 접두", "[실행] ");
+
+    // 관계 편집 + 분기 편집 (v1.1.1)
+    createKey("graph.relation.start", "관계 시작 버튼", "이 케이스에서 관계 시작");
+    createKey("graph.relation.pickTarget", "대상 선택 안내", "대상 케이스 노드를 클릭하세요");
+    createKey("graph.relation.cancel", "관계 추가 취소", "관계 추가 취소");
+    createKey("graph.relation.typeTitle", "관계 유형 다이얼로그 제목", "관계 유형 선택");
+    createKey("graph.relation.type", "관계 유형 라벨", "유형");
+    createKey("graph.relation.dependsOn", "DEPENDS_ON 설명", "선행 필요");
+    createKey("graph.relation.relatesTo", "RELATES_TO 설명", "연관");
+    createKey("graph.relation.blocks", "BLOCKS 설명", "차단함");
+    createKey("graph.relation.save", "관계 생성 버튼", "관계 생성");
+    createKey("graph.relation.cancelBtn", "다이얼로그 취소", "취소");
+    createKey("graph.relation.delete", "관계 삭제 버튼", "이 관계 삭제");
+    createKey("graph.relation.autoEdge", "자동 간선 안내", "동기화로 생성된 관계는 삭제할 수 없습니다.");
+    createKey("graph.editor.addBranch", "분기 추가 버튼", "분기 추가");
+    createKey("graph.editor.branchOf", "분기 소속 표기", "스텝");
+    createKey("graph.editor.branches", "분기 목록 제목", "분기");
+    createKey("graph.editor.branchLabel", "분기 조건 라벨", "조건 라벨");
+    createKey("graph.editor.branchTo", "분기 대상 라벨", "이동할 스텝");
+    createKey("graph.editor.stepN", "스텝 번호 표기", "스텝");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

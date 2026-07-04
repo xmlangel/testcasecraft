@@ -34,6 +34,10 @@ public class TestCaseGraphService {
   private static final Logger logger = LoggerFactory.getLogger(TestCaseGraphService.class);
   private static final int MAX_STEPS = 200;
 
+  /** 사용자 수동 관계 타입 화이트리스트 — Cypher 라벨로 인라인되므로 이 집합 밖은 거부한다. */
+  private static final java.util.Set<String> MANUAL_RELATION_TYPES =
+      java.util.Set.of("DEPENDS_ON", "RELATES_TO", "BLOCKS");
+
   private final GraphDbClient graphDbClient;
   private final GraphQueryService graphQueryService;
   private final TestCaseRepository testCaseRepository;
@@ -60,7 +64,7 @@ public class TestCaseGraphService {
     }
 
     List<TestStep> steps = testCase.getSteps() != null ? testCase.getSteps() : List.of();
-    writeStepChain(testCase, steps);
+    writeStepChain(testCase, steps, java.util.Collections.nCopies(steps.size(), List.of()));
 
     testCase.setRepresentationMode(TestCase.MODE_GRAPH);
     testCase.setGraphVertexId(testCaseId);
@@ -82,6 +86,8 @@ public class TestCaseGraphService {
     }
 
     List<TestStep> steps = new ArrayList<>();
+    List<List<Map<String, Object>>> branchesPerStep = new ArrayList<>();
+    boolean hasBranches = false;
     for (int i = 0; i < stepPayload.size(); i++) {
       Map<String, Object> raw = stepPayload.get(i);
       TestStep step = new TestStep();
@@ -89,14 +95,69 @@ public class TestCaseGraphService {
       step.setDescription(asText(raw.get("description")));
       step.setExpectedResult(asText(raw.get("expectedResult")));
       steps.add(step);
+
+      List<Map<String, Object>> branches = extractBranches(raw, stepPayload.size(), i + 1);
+      branchesPerStep.add(branches);
+      if (!branches.isEmpty()) {
+        hasBranches = true;
+      }
     }
 
-    writeStepChain(testCase, steps);
+    writeStepChain(testCase, steps, branchesPerStep);
 
-    // 관계형 미러 즉시 재생성 (역투영) — 기존 스프레드시트/폼에서 항상 조회 가능해야 한다
-    testCase.setSteps(steps);
+    // 관계형 미러 즉시 재생성 (역투영). 분기가 있으면 대표 경로(각 분기의 첫 갈래)를 선형화하고
+    // HYBRID 모드로 표시한다 — 전체 분기 구조는 그래프 뷰에서만 보인다 (계획 §5-B).
+    testCase.setSteps(hasBranches ? linearizeMainPath(steps, branchesPerStep) : steps);
+    testCase.setRepresentationMode(hasBranches ? TestCase.MODE_HYBRID : TestCase.MODE_GRAPH);
     testCase.setGraphSyncedAt(LocalDateTime.now());
     return testCaseRepository.save(testCase);
+  }
+
+  /** payload 의 branches: [{label, to}] — to 는 1-based 스텝 번호. 범위·형식 검증. */
+  @SuppressWarnings("unchecked")
+  private static List<Map<String, Object>> extractBranches(
+      Map<String, Object> raw, int stepCount, int selfNumber) {
+    Object value = raw.get("branches");
+    if (!(value instanceof List<?> list) || list.isEmpty()) {
+      return List.of();
+    }
+    List<Map<String, Object>> branches = new ArrayList<>();
+    for (Object item : list) {
+      if (!(item instanceof Map<?, ?> m)) {
+        throw new IllegalArgumentException("branches 항목 형식이 잘못되었습니다");
+      }
+      int to;
+      try {
+        to = Integer.parseInt(String.valueOf(m.get("to")));
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("branches.to 는 스텝 번호(정수)여야 합니다");
+      }
+      if (to < 1 || to > stepCount) {
+        throw new IllegalArgumentException("branches.to 가 스텝 범위를 벗어났습니다: " + to);
+      }
+      String label = asText(m.get("label"));
+      branches.add(Map.of("label", label.isBlank() ? "분기" : label, "to", to));
+    }
+    return branches;
+  }
+
+  /** 대표 경로 선형화 — 각 Decision 에서 첫 번째 갈래를 따라가며 방문 순서대로 미러 스텝을 만든다 (사이클은 방문 집합으로 중단). */
+  private static List<TestStep> linearizeMainPath(
+      List<TestStep> steps, List<List<Map<String, Object>>> branchesPerStep) {
+    List<TestStep> mirror = new ArrayList<>();
+    java.util.Set<Integer> visited = new java.util.HashSet<>();
+    int current = 1;
+    while (current >= 1 && current <= steps.size() && visited.add(current)) {
+      TestStep source = steps.get(current - 1);
+      TestStep copy = new TestStep();
+      copy.setStepNumber(mirror.size() + 1);
+      copy.setDescription(source.getDescription());
+      copy.setExpectedResult(source.getExpectedResult());
+      mirror.add(copy);
+      List<Map<String, Object>> branches = branchesPerStep.get(current - 1);
+      current = branches.isEmpty() ? current + 1 : (Integer) branches.get(0).get("to");
+    }
+    return mirror;
   }
 
   /** 그래프 스텝 서브그래프 조회 — 편집기 로딩용. */
@@ -104,11 +165,20 @@ public class TestCaseGraphService {
   public GraphResponseDto getGraphSteps(String testCaseId) {
     GraphQueryService.validateId(testCaseId);
     GraphResponseDto response = new GraphResponseDto();
+    // 루트(id=tcId) + 스텝/분기(tcId 속성) 서브그래프 전체 — NEXT 는 물론 Decision 의 BRANCH_ON 도 포함
+    String scope =
+        "(a.id = "
+            + quote(testCaseId)
+            + " OR a.\"tcId\" = "
+            + quote(testCaseId)
+            + ")"
+            + " AND (b.id = "
+            + quote(testCaseId)
+            + " OR b.\"tcId\" = "
+            + quote(testCaseId)
+            + ")";
     String cypher =
-        "MATCH (g:\"GraphTestCase\" {id: '"
-            + testCaseId
-            + "'})-[e:\"STARTS_AT\"|\"NEXT\"]->(s) RETURN g, e, s LIMIT "
-            + (MAX_STEPS + 1);
+        "MATCH (a)-[e]->(b) WHERE " + scope + " RETURN a, e, b LIMIT " + (MAX_STEPS * 3);
     graphDbClient
         .query(
             cypher,
@@ -191,10 +261,80 @@ public class TestCaseGraphService {
     return Map.of("converted", converted, "skipped", skipped);
   }
 
+  /**
+   * 케이스 간 수동 관계 생성 (그래프 뷰 편집). 관계는 그래프 고유 데이터 — 동기화(MERGE 기반)가 덮어쓰지 않는다. 양 케이스가 모두 해당 프로젝트 소속인지
+   * 검증한다 (크로스 프로젝트 차단).
+   */
+  @Transactional(readOnly = true)
+  public void createManualRelation(
+      String projectId, String sourceCaseId, String targetCaseId, String type) {
+    validateManualRelation(projectId, sourceCaseId, targetCaseId, type);
+    graphDbClient.execute(
+        "MATCH (a:\"TestCase\" {id: "
+            + quote(sourceCaseId)
+            + "}), (b:\"TestCase\" {id: "
+            + quote(targetCaseId)
+            + "}) WHERE a.\"projectId\" = "
+            + quote(projectId)
+            + " AND b.\"projectId\" = "
+            + quote(projectId)
+            + " MERGE (a)-[r:\""
+            + type
+            + "\"]->(b) SET r.manual = true");
+    logger.info(
+        "수동 관계 생성 — {} -[{}]-> {} (project={})", sourceCaseId, type, targetCaseId, projectId);
+  }
+
+  /** 케이스 간 수동 관계 삭제. */
+  @Transactional(readOnly = true)
+  public void deleteManualRelation(
+      String projectId, String sourceCaseId, String targetCaseId, String type) {
+    validateManualRelation(projectId, sourceCaseId, targetCaseId, type);
+    graphDbClient.execute(
+        "MATCH (a:\"TestCase\" {id: "
+            + quote(sourceCaseId)
+            + "})-[r:\""
+            + type
+            + "\"]->(b:\"TestCase\" {id: "
+            + quote(targetCaseId)
+            + "}) WHERE a.\"projectId\" = "
+            + quote(projectId)
+            + " AND b.\"projectId\" = "
+            + quote(projectId)
+            + " DELETE r");
+    logger.info(
+        "수동 관계 삭제 — {} -[{}]-> {} (project={})", sourceCaseId, type, targetCaseId, projectId);
+  }
+
+  private void validateManualRelation(
+      String projectId, String sourceCaseId, String targetCaseId, String type) {
+    GraphQueryService.validateId(projectId);
+    GraphQueryService.validateId(sourceCaseId);
+    GraphQueryService.validateId(targetCaseId);
+    if (!MANUAL_RELATION_TYPES.contains(type)) {
+      throw new IllegalArgumentException("허용되지 않은 관계 타입입니다: " + type);
+    }
+    if (sourceCaseId.equals(targetCaseId)) {
+      throw new IllegalArgumentException("같은 케이스끼리는 관계를 만들 수 없습니다");
+    }
+    // 양쪽 케이스의 프로젝트 소속을 관계형 DB 기준으로도 확인 (그래프가 비어 있어도 안전)
+    for (String caseId : List.of(sourceCaseId, targetCaseId)) {
+      TestCase testCase = loadCase(caseId);
+      if (!testCase.getProject().getId().equals(projectId)) {
+        throw new IllegalArgumentException("해당 프로젝트 소속 테스트케이스가 아닙니다: " + caseId);
+      }
+    }
+  }
+
   // ---------- 내부 ----------
 
-  /** GraphTestCase + StepNode 체인을 멱등하게 재작성한다 (기존 StepNode 삭제 후 재생성). */
-  private void writeStepChain(TestCase testCase, List<TestStep> steps) {
+  /**
+   * GraphTestCase + StepNode 체인을 멱등하게 재작성한다 (기존 서브그래프 삭제 후 재생성). 스텝에 분기가 있으면 StepNode 뒤에 Decision
+   * 정점을 만들고 각 갈래를 BRANCH_ON(label) 으로 대상 스텝에 연결한다. 분기가 있는 스텝은 다음 스텝으로의 암묵적 NEXT 를 만들지 않는다 — 진행 경로는
+   * 전적으로 갈래가 정의한다.
+   */
+  private void writeStepChain(
+      TestCase testCase, List<TestStep> steps, List<List<Map<String, Object>>> branchesPerStep) {
     String tcId = testCase.getId();
     String projectId = testCase.getProject().getId();
 
@@ -212,6 +352,8 @@ public class TestCaseGraphService {
         "MATCH (s:\"StepNode\") WHERE s.\"tcId\" = " + quote(tcId) + " DETACH DELETE s");
     graphDbClient.execute(
         "MATCH (p:\"Precondition\") WHERE p.\"tcId\" = " + quote(tcId) + " DETACH DELETE p");
+    graphDbClient.execute(
+        "MATCH (d:\"Decision\") WHERE d.\"tcId\" = " + quote(tcId) + " DETACH DELETE d");
 
     // 3) 전제조건 + 스텝 체인 재생성
     String previousRef = null; // null 이면 루트(g) 에서 STARTS_AT
@@ -233,14 +375,14 @@ public class TestCaseGraphService {
       previousRef = preId;
     }
 
+    // 스텝 정점을 먼저 전부 만든다 — 분기(BRANCH_ON)가 뒤 번호 스텝을 가리킬 수 있어서다
     List<TestStep> ordered = new ArrayList<>(steps);
     ordered.sort(Comparator.comparingInt(TestStep::getStepNumber));
     for (int i = 0; i < ordered.size(); i++) {
       TestStep step = ordered.get(i);
-      String stepId = tcId + ":s" + (i + 1);
       graphDbClient.execute(
           "MERGE (s:\"StepNode\" {id: "
-              + quote(stepId)
+              + quote(tcId + ":s" + (i + 1))
               + "}) SET s.\"order\" = "
               + (i + 1)
               + ", s.action = "
@@ -249,6 +391,12 @@ public class TestCaseGraphService {
               + quote(step.getExpectedResult())
               + ", s.\"tcId\" = "
               + quote(tcId));
+    }
+
+    // 흐름 간선: 이전 노드 → 현재 스텝, 분기가 있으면 스텝 → Decision → (BRANCH_ON) 대상 스텝
+    boolean previousHadBranches = false;
+    for (int i = 0; i < ordered.size(); i++) {
+      String stepId = tcId + ":s" + (i + 1);
       if (previousRef == null) {
         graphDbClient.execute(
             "MATCH (g:\"GraphTestCase\" {id: "
@@ -256,7 +404,7 @@ public class TestCaseGraphService {
                 + "}), (s:\"StepNode\" {id: "
                 + quote(stepId)
                 + "}) MERGE (g)-[:\"STARTS_AT\"]->(s)");
-      } else {
+      } else if (!previousHadBranches) {
         graphDbClient.execute(
             "MATCH (a {id: "
                 + quote(previousRef)
@@ -266,7 +414,40 @@ public class TestCaseGraphService {
                 + quote(tcId)
                 + " MERGE (a)-[:\"NEXT\"]->(s)");
       }
-      previousRef = stepId;
+
+      List<Map<String, Object>> branches =
+          i < branchesPerStep.size() ? branchesPerStep.get(i) : List.of();
+      if (!branches.isEmpty()) {
+        String decisionId = tcId + ":d" + (i + 1);
+        graphDbClient.execute(
+            "MERGE (d:\"Decision\" {id: "
+                + quote(decisionId)
+                + "}) SET d.\"order\" = "
+                + (i + 1)
+                + ", d.\"tcId\" = "
+                + quote(tcId));
+        graphDbClient.execute(
+            "MATCH (s:\"StepNode\" {id: "
+                + quote(stepId)
+                + "}), (d:\"Decision\" {id: "
+                + quote(decisionId)
+                + "}) MERGE (s)-[:\"NEXT\"]->(d)");
+        for (Map<String, Object> branch : branches) {
+          String targetId = tcId + ":s" + branch.get("to");
+          graphDbClient.execute(
+              "MATCH (d:\"Decision\" {id: "
+                  + quote(decisionId)
+                  + "}), (t:\"StepNode\" {id: "
+                  + quote(targetId)
+                  + "}) MERGE (d)-[r:\"BRANCH_ON\"]->(t) SET r.label = "
+                  + quote(String.valueOf(branch.get("label"))));
+        }
+        previousRef = decisionId;
+        previousHadBranches = true;
+      } else {
+        previousRef = stepId;
+        previousHadBranches = false;
+      }
     }
   }
 

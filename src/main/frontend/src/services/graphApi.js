@@ -70,3 +70,20 @@ export const syncGraph = (api, projectId) =>
   api(`/api/graph/sync?projectId=${encodeURIComponent(projectId)}`, {
     method: "POST",
   }).then(json);
+
+// 케이스 간 수동 관계 (그래프 뷰 편집) — type: DEPENDS_ON | RELATES_TO | BLOCKS
+export const createRelation = (api, projectId, sourceId, targetId, type) =>
+  api(
+    `/api/graph/relation?projectId=${encodeURIComponent(projectId)}` +
+      `&sourceId=${encodeURIComponent(sourceId)}&targetId=${encodeURIComponent(targetId)}` +
+      `&type=${encodeURIComponent(type)}`,
+    { method: "POST" },
+  ).then(json);
+
+export const deleteRelation = (api, projectId, sourceId, targetId, type) =>
+  api(
+    `/api/graph/relation?projectId=${encodeURIComponent(projectId)}` +
+      `&sourceId=${encodeURIComponent(sourceId)}&targetId=${encodeURIComponent(targetId)}` +
+      `&type=${encodeURIComponent(type)}`,
+    { method: "DELETE" },
+  ).then(json);

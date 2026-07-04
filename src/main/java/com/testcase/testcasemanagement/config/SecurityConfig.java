@@ -139,6 +139,8 @@ public class SecurityConfig {
                         "/organizations/**",
                         "/projects",
                         "/projects/**",
+                        "/graph-tc",
+                        "/graph-tc/**",
                         "/testcases",
                         "/testcases/**",
                         "/executions",

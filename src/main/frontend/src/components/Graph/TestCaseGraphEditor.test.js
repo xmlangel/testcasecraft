@@ -34,11 +34,13 @@ describe("TestCaseGraphEditor.graphToSteps", () => {
         order: 1,
         description: "Click button",
         expectedResult: "Dialog opens",
+        branches: [],
       });
       expect(steps[1]).toEqual({
         order: 2,
         description: "Enter text",
         expectedResult: "Text appears",
+        branches: [],
       });
     });
 
@@ -305,6 +307,7 @@ describe("TestCaseGraphEditor.graphToSteps", () => {
         order: 1,
         description: "",
         expectedResult: "",
+        branches: [],
       });
     });
   });
@@ -415,6 +418,7 @@ describe("TestCaseGraphEditor.graphToSteps", () => {
         order: 0,
         description: "",
         expectedResult: "",
+        branches: [],
       });
     });
 
@@ -434,6 +438,7 @@ describe("TestCaseGraphEditor.graphToSteps", () => {
         order: 0,
         description: "",
         expectedResult: "",
+        branches: [],
       });
     });
   });

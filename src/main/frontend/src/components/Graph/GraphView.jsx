@@ -7,7 +7,12 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
   MenuItem,
@@ -21,6 +26,8 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
 import {
+  createRelation,
+  deleteRelation,
   getFailureClusters,
   getGraphStatus,
   getNeighborhood,
@@ -96,10 +103,22 @@ const GraphView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, projectId]);
 
-  const handleSelectNode = useCallback(
-    (nodeData) => setSelectedNode(nodeData),
-    [],
-  );
+  const handleSelectNode = useCallback((nodeData) => {
+    setSelectedEdge(null);
+    setSelectedNode(nodeData);
+    // 관계 추가 모드: 시작 케이스가 지정된 상태에서 다른 케이스를 클릭하면 타입 선택으로
+    setRelationSource((source) => {
+      if (
+        source &&
+        nodeData &&
+        nodeData.label === "TestCase" &&
+        nodeData.properties?.id !== source.properties?.id
+      ) {
+        setRelationTarget(nodeData);
+      }
+      return source;
+    });
+  }, []);
 
   const [syncing, setSyncing] = useState(false);
   const runSync = useCallback(async () => {
@@ -114,6 +133,57 @@ const GraphView = () => {
       setSyncing(false);
     }
   }, [api, projectId, loadGraph]);
+
+  // ── 케이스 간 수동 관계 편집 ──
+  const MANUAL_TYPES = ["DEPENDS_ON", "RELATES_TO", "BLOCKS"];
+  const [relationSource, setRelationSource] = useState(null); // 관계 시작 노드
+  const [relationTarget, setRelationTarget] = useState(null); // 타입 선택 대기
+  const [relationType, setRelationType] = useState("DEPENDS_ON");
+  const [selectedEdge, setSelectedEdge] = useState(null);
+
+  const handleSelectEdge = useCallback((edgeData) => {
+    setSelectedEdge(edgeData);
+    if (edgeData) setSelectedNode(null);
+  }, []);
+
+  const saveRelation = async () => {
+    try {
+      await createRelation(
+        api,
+        projectId,
+        relationSource.properties.id,
+        relationTarget.properties.id,
+        relationType,
+      );
+      setRelationSource(null);
+      setRelationTarget(null);
+      await loadGraph();
+    } catch (e) {
+      setError(e.message);
+      setRelationTarget(null);
+    }
+  };
+
+  const removeSelectedEdge = async () => {
+    // 수동 관계 엣지: source/target 은 graphid — 노드 목록에서 도메인 id 로 환원
+    const byGraphId = new Map((graph?.nodes || []).map((n) => [n.id, n]));
+    const src = byGraphId.get(selectedEdge.source);
+    const dst = byGraphId.get(selectedEdge.target);
+    if (!src || !dst) return;
+    try {
+      await deleteRelation(
+        api,
+        projectId,
+        src.properties?.id,
+        dst.properties?.id,
+        selectedEdge.label,
+      );
+      setSelectedEdge(null);
+      await loadGraph();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const filteredGraph = useMemo(
@@ -266,13 +336,116 @@ const GraphView = () => {
             graph={filteredGraph}
             layout={layout}
             onSelectNode={handleSelectNode}
+            onSelectEdge={handleSelectEdge}
           />
         </Box>
         <Paper
           sx={{ width: 280, flexShrink: 0, maxHeight: 560, overflow: "auto" }}
         >
-          <NodeDetailPanel node={selectedNode} />
+          {selectedEdge ? (
+            <Box sx={{ p: 2 }}>
+              <Chip size="small" label={selectedEdge.label} sx={{ mb: 1 }} />
+              {MANUAL_TYPES.includes(selectedEdge.label) ? (
+                <Button
+                  size="small"
+                  color="error"
+                  variant="outlined"
+                  fullWidth
+                  onClick={removeSelectedEdge}
+                  data-testid="graph-relation-delete"
+                >
+                  {t("graph.relation.delete", "이 관계 삭제")}
+                </Button>
+              ) : (
+                <Alert severity="info" sx={{ fontSize: 12 }}>
+                  {t(
+                    "graph.relation.autoEdge",
+                    "동기화로 생성된 관계는 삭제할 수 없습니다.",
+                  )}
+                </Alert>
+              )}
+            </Box>
+          ) : (
+            <>
+              <NodeDetailPanel node={selectedNode} />
+              {selectedNode?.label === "TestCase" && !relationSource && (
+                <Box sx={{ px: 2, pb: 2 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => setRelationSource(selectedNode)}
+                    data-testid="graph-relation-start"
+                  >
+                    {t("graph.relation.start", "이 케이스에서 관계 시작")}
+                  </Button>
+                </Box>
+              )}
+              {relationSource && (
+                <Box sx={{ px: 2, pb: 2 }}>
+                  <Alert severity="info" sx={{ mb: 1, fontSize: 12 }}>
+                    {t(
+                      "graph.relation.pickTarget",
+                      "대상 케이스 노드를 클릭하세요",
+                    )}
+                    : {relationSource.caption}
+                  </Alert>
+                  <Button
+                    size="small"
+                    fullWidth
+                    onClick={() => setRelationSource(null)}
+                  >
+                    {t("graph.relation.cancel", "관계 추가 취소")}
+                  </Button>
+                </Box>
+              )}
+            </>
+          )}
         </Paper>
+
+        <Dialog
+          open={Boolean(relationTarget)}
+          onClose={() => setRelationTarget(null)}
+        >
+          <DialogTitle>
+            {t("graph.relation.typeTitle", "관계 유형 선택")}
+          </DialogTitle>
+          <DialogContent sx={{ pt: 1 }}>
+            <Box sx={{ fontSize: 13, mb: 2 }}>
+              {relationSource?.caption} → {relationTarget?.caption}
+            </Box>
+            <FormControl size="small" fullWidth>
+              <InputLabel>{t("graph.relation.type", "유형")}</InputLabel>
+              <Select
+                value={relationType}
+                label={t("graph.relation.type", "유형")}
+                onChange={(e) => setRelationType(e.target.value)}
+              >
+                <MenuItem value="DEPENDS_ON">
+                  DEPENDS_ON — {t("graph.relation.dependsOn", "선행 필요")}
+                </MenuItem>
+                <MenuItem value="RELATES_TO">
+                  RELATES_TO — {t("graph.relation.relatesTo", "연관")}
+                </MenuItem>
+                <MenuItem value="BLOCKS">
+                  BLOCKS — {t("graph.relation.blocks", "차단함")}
+                </MenuItem>
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRelationTarget(null)}>
+              {t("graph.relation.cancelBtn", "취소")}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={saveRelation}
+              data-testid="graph-relation-save"
+            >
+              {t("graph.relation.save", "관계 생성")}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );
