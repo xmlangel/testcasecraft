@@ -57,6 +57,7 @@ public class EnglishGraphTranslations {
     create("graph.editor.expected", lang, "Expected Result", by);
     create("graph.editor.addStep", lang, "Add Step", by);
     create("graph.editor.save", lang, "Save", by);
+    create("graph.editor.back", lang, "Back to graph", by);
     create("graph.editor.saved", lang, "Saved", by);
     create("projectHeader.tabs.graph", lang, "Graph", by);
     create("graph.syncNow", lang, "Sync now", by);
