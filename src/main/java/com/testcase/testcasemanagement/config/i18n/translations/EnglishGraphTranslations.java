@@ -58,6 +58,9 @@ public class EnglishGraphTranslations {
     create("graph.editor.addStep", lang, "Add Step", by);
     create("graph.editor.save", lang, "Save", by);
     create("graph.editor.saved", lang, "Saved", by);
+    create("projectHeader.tabs.graph", lang, "Graph", by);
+    create("graph.syncNow", lang, "Sync now", by);
+    create("graph.syncing", lang, "Syncing…", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

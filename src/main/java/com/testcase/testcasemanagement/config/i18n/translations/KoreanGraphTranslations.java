@@ -48,6 +48,9 @@ public class KoreanGraphTranslations {
     create("graph.editor.addStep", lang, "스텝 추가", by);
     create("graph.editor.save", lang, "저장", by);
     create("graph.editor.saved", lang, "저장됨", by);
+    create("projectHeader.tabs.graph", lang, "그래프", by);
+    create("graph.syncNow", lang, "지금 동기화", by);
+    create("graph.syncing", lang, "동기화 중…", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {
