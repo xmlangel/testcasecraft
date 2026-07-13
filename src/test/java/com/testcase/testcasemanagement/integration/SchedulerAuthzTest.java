@@ -1,11 +1,11 @@
 package com.testcase.testcasemanagement.integration;
 
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -48,8 +48,7 @@ public class SchedulerAuthzTest extends AbstractTestNGSpringContextTests {
             .getResponse()
             .getStatus();
     org.testng.Assert.assertTrue(
-        status == 401 || status == 403,
-        "비인증 스케줄러 변경은 401/403 이어야 함, 실제=" + status);
+        status == 401 || status == 403, "비인증 스케줄러 변경은 401/403 이어야 함, 실제=" + status);
   }
 
   /** 비인증 POST(즉시 실행)도 차단되어야 한다. */
@@ -62,7 +61,6 @@ public class SchedulerAuthzTest extends AbstractTestNGSpringContextTests {
             .getResponse()
             .getStatus();
     org.testng.Assert.assertTrue(
-        status == 401 || status == 403,
-        "비인증 스케줄러 실행은 401/403 이어야 함, 실제=" + status);
+        status == 401 || status == 403, "비인증 스케줄러 실행은 401/403 이어야 함, 실제=" + status);
   }
 }

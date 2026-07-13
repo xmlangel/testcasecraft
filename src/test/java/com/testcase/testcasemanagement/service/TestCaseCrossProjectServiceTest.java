@@ -36,8 +36,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
- * {@link TestCaseCrossProjectService} 단위 테스트 — 인메모리 가짜 리포지토리로 다른 프로젝트로의 이동(결과 미러링 포함)·복사·권한·무영향
- * 보장을 점검한다. 기존 {@code TestCaseTreeMoveServiceTest} 패턴을 그대로 따른다.
+ * {@link TestCaseCrossProjectService} 단위 테스트 — 인메모리 가짜 리포지토리로 다른 프로젝트로의 이동(결과 미러링 포함)·복사·권한·무영향 보장을
+ * 점검한다. 기존 {@code TestCaseTreeMoveServiceTest} 패턴을 그대로 따른다.
  */
 public class TestCaseCrossProjectServiceTest {
 
@@ -323,7 +323,8 @@ public class TestCaseCrossProjectServiceTest {
     Assert.assertEquals(moved.getProject().getId(), "proj-B", "프로젝트가 대상으로 변경");
     Assert.assertEquals(moved.getParentId(), "DEST", "대상 폴더로 reparent");
     // 대상 프로젝트 기준 새 displayId (BBB-001)
-    Assert.assertTrue(moved.getDisplayId().startsWith("BBB-"), "displayId 재발급: " + moved.getDisplayId());
+    Assert.assertTrue(
+        moved.getDisplayId().startsWith("BBB-"), "displayId 재발급: " + moved.getDisplayId());
     Assert.assertEquals(res.getMode(), "move");
     Assert.assertEquals(res.getTestCaseCount(), 1);
     Assert.assertEquals(res.getFolderCount(), 0);

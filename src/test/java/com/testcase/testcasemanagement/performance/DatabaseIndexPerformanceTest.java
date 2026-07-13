@@ -2,7 +2,6 @@
 
 package com.testcase.testcasemanagement.performance;
 
-import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import io.qameta.allure.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -23,9 +22,9 @@ import org.testng.annotations.*;
  *
  * <p>이 클래스는 새로 추가된 인덱스의 성능 향상을 검증합니다. - 쿼리 실행 계획 분석 - 실행 시간 측정 - 인덱스 사용률 검증
  *
- * <p>컨텍스트 캐시 재사용을 위해 다른 RANDOM_PORT 통합테스트와 동일한 설정(@AutoConfigureMockMvc, 기본 리스너)으로 통일한다.
- * @ContextConfiguration/커스텀 @TestExecutionListeners 는 제거해도 AbstractTransactionalTestNGSpringContextTests 의
- * 기본 리스너로 동일하게 동작한다.
+ * <p>컨텍스트 캐시 재사용을 위해 다른 RANDOM_PORT 통합테스트와 동일한 설정(@AutoConfigureMockMvc, 기본 리스너)으로
+ * 통일한다. @ContextConfiguration/커스텀 @TestExecutionListeners 는 제거해도
+ * AbstractTransactionalTestNGSpringContextTests 의 기본 리스너로 동일하게 동작한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc

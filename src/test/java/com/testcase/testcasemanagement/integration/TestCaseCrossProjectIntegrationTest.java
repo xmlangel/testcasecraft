@@ -31,16 +31,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 크로스 프로젝트 이동/복사의 HTTP + 권한 롤 통합 검증 (JWT + MockMvc + 실제 ProjectSecurityService).
  *
- * <p>{@code hasEditRole}은 시스템 ADMIN을 우회하지 않고 project_users 롤만 본다. 따라서 출발/대상 프로젝트 각각에 대해 실제
- * {@link ProjectUser} 롤 행으로 권한을 구성한 뒤, 이동 성공(200)과 권한 부족(403)을 검증한다.
+ * <p>{@code hasEditRole}은 시스템 ADMIN을 우회하지 않고 project_users 롤만 본다. 따라서 출발/대상 프로젝트 각각에 대해 실제 {@link
+ * ProjectUser} 롤 행으로 권한을 구성한 뒤, 이동 성공(200)과 권한 부족(403)을 검증한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -229,7 +229,9 @@ public class TestCaseCrossProjectIntegrationTest extends AbstractTestNGSpringCon
     Assert.assertNull(moved.getParentId(), "루트로 이동");
     Assert.assertTrue(
         moved.getDisplayOrder() > destFolder.getDisplayOrder(),
-        "기존 루트 항목(destFolder order=" + destFolder.getDisplayOrder() + ") 뒤로 들어가야 함: 실제="
+        "기존 루트 항목(destFolder order="
+            + destFolder.getDisplayOrder()
+            + ") 뒤로 들어가야 함: 실제="
             + moved.getDisplayOrder());
   }
 }

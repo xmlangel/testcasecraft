@@ -53,8 +53,6 @@ public class AttachmentKeysInitializer {
 
     // 에러 메시지 - 다운로드
 
-
-
     // 에러 메시지 - 삭제
     createTranslationKeyIfNotExists(
         "attachment.error.delete.failed",

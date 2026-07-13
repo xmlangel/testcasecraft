@@ -79,7 +79,6 @@ public class ExploratorySessionKeysInitializer {
     createTranslationKeyIfNotExists(
         "exploratory.editor.field.netDuration", "exploratory", "목표 수행 시간 (분)", "목표 수행 시간 (분)");
 
-
     createTranslationKeyIfNotExists(
         "exploratory.editor.notes.title", "exploratory", "테스트 노트 제목", "테스트 노트");
 
@@ -91,7 +90,6 @@ public class ExploratorySessionKeysInitializer {
     createTranslationKeyIfNotExists(
         "exploratory.editor.artifact.upload", "exploratory", "증적 업로드", "증적 업로드");
 
-
     createTranslationKeyIfNotExists(
         "exploratory.debrief.report.title", "exploratory", "디브리프 리포트 제목", "디브리프 리포트");
     createTranslationKeyIfNotExists(
@@ -100,7 +98,6 @@ public class ExploratorySessionKeysInitializer {
         "exploratory.debrief.action.approve", "exploratory", "디브리프 승인 버튼", "승인");
     createTranslationKeyIfNotExists(
         "exploratory.debrief.action.requestChanges", "exploratory", "디브리프 보완요청 버튼", "보완요청");
-
 
     createTranslationKeyIfNotExists(
         "exploratory.editor.field.netDuration", "exploratory", "목표 수행 시간 (분)", "목표 수행 시간 (분)");

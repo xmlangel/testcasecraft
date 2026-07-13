@@ -1479,7 +1479,8 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("junit.version.compressed", languageCode, "압축됨", createdBy);
     createTranslationIfNotExists(
         "testResult.qaSummary.loadError", languageCode, "QA 총평용 실행 정보 로드 실패:", createdBy);
-    createTranslationIfNotExists("testResult.qaSummary.saveFailed", languageCode, "QA 총평 저장 실패:", createdBy);
+    createTranslationIfNotExists(
+        "testResult.qaSummary.saveFailed", languageCode, "QA 총평 저장 실패:", createdBy);
     createTranslationIfNotExists(
         "testResult.error.filteredResultsLoad", languageCode, "필터링된 테스트 결과를 불러올 수 없습니다", createdBy);
     createTranslationIfNotExists(
@@ -1493,10 +1494,14 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.deleteError", languageCode, "항목 삭제 중 오류가 발생했습니다: {error}", createdBy);
     createTranslationIfNotExists(
-        "testcase.spreadsheet.validationError", languageCode, "검증 중 오류가 발생했습니다: {error}", createdBy);
+        "testcase.spreadsheet.validationError",
+        languageCode,
+        "검증 중 오류가 발생했습니다: {error}",
+        createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.pdfExportError", languageCode, "PDF 내보내기 중 오류가 발생했습니다.", createdBy);
-    createTranslationIfNotExists("testCase.export.noData", languageCode, "내보낼 데이터가 없습니다.", createdBy);
+    createTranslationIfNotExists(
+        "testCase.export.noData", languageCode, "내보낼 데이터가 없습니다.", createdBy);
     createTranslationIfNotExists(
         "testCase.export.csvSuccess", languageCode, "CSV 파일이 다운로드되었습니다: {filename}", createdBy);
     createTranslationIfNotExists(
@@ -1504,17 +1509,25 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testCase.export.excelSuccess", languageCode, "Excel 파일이 다운로드되었습니다: {filename}", createdBy);
     createTranslationIfNotExists(
-        "testCase.export.excelError", languageCode, "Excel 다운로드 중 오류가 발생했습니다: {message}", createdBy);
+        "testCase.export.excelError",
+        languageCode,
+        "Excel 다운로드 중 오류가 발생했습니다: {message}",
+        createdBy);
 
-    
     // 유틸 레벨 i18n (2026-06-30)
     createTranslationIfNotExists("error.networkError", languageCode, "네트워크 연결을 확인해주세요.", createdBy);
-    createTranslationIfNotExists("error.authRequired", languageCode, "로그인이 필요하거나 권한이 없습니다.", createdBy);
-    createTranslationIfNotExists("error.validationError", languageCode, "입력한 정보를 확인해주세요.", createdBy);
-    createTranslationIfNotExists("error.serverError", languageCode, "서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.", createdBy);
-    createTranslationIfNotExists("error.unknownError", languageCode, "알 수 없는 오류가 발생했습니다.", createdBy);
-    createTranslationIfNotExists("error.sessionExpired", languageCode, "세션이 만료되었습니다. 다시 로그인해주세요.", createdBy);
-    createTranslationIfNotExists("error.renderingError", languageCode, "화면을 표시하는 중 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "error.authRequired", languageCode, "로그인이 필요하거나 권한이 없습니다.", createdBy);
+    createTranslationIfNotExists(
+        "error.validationError", languageCode, "입력한 정보를 확인해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "error.serverError", languageCode, "서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "error.unknownError", languageCode, "알 수 없는 오류가 발생했습니다.", createdBy);
+    createTranslationIfNotExists(
+        "error.sessionExpired", languageCode, "세션이 만료되었습니다. 다시 로그인해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "error.renderingError", languageCode, "화면을 표시하는 중 오류가 발생했습니다.", createdBy);
     createTranslationIfNotExists("time.justNow", languageCode, "방금 전", createdBy);
     createTranslationIfNotExists("time.minutesAgo", languageCode, "{n}분 전", createdBy);
     createTranslationIfNotExists("time.hoursAgo", languageCode, "{n}시간 전", createdBy);
@@ -1522,28 +1535,56 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("time.zeroSeconds", languageCode, "0초", createdBy);
     createTranslationIfNotExists("time.daysAndHours", languageCode, "{days}일 {hours}시간", createdBy);
     createTranslationIfNotExists("time.daysOnly", languageCode, "{days}일", createdBy);
-    createTranslationIfNotExists("time.hoursAndMinutes", languageCode, "{hours}시간 {minutes}분", createdBy);
+    createTranslationIfNotExists(
+        "time.hoursAndMinutes", languageCode, "{hours}시간 {minutes}분", createdBy);
     createTranslationIfNotExists("time.hoursOnly", languageCode, "{hours}시간", createdBy);
-    createTranslationIfNotExists("time.minutesAndSeconds", languageCode, "{minutes}분 {seconds}초", createdBy);
+    createTranslationIfNotExists(
+        "time.minutesAndSeconds", languageCode, "{minutes}분 {seconds}초", createdBy);
     createTranslationIfNotExists("time.minutesOnly", languageCode, "{minutes}분", createdBy);
     createTranslationIfNotExists("time.secondsOnly", languageCode, "{seconds}초", createdBy);
-    createTranslationIfNotExists("validation.password.required", languageCode, "비밀번호를 입력해주세요.", createdBy);
-    createTranslationIfNotExists("validation.password.minLength", languageCode, "비밀번호는 8자 이상이어야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.password.lowercase", languageCode, "소문자를 포함해야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.password.uppercase", languageCode, "대문자를 포함해야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.password.number", languageCode, "숫자를 포함해야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.password.special", languageCode, "특수문자를 포함해야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.username.required", languageCode, "사용자명을 입력해주세요.", createdBy);
-    createTranslationIfNotExists("validation.username.minLength", languageCode, "사용자명은 3자 이상이어야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.username.maxLength", languageCode, "사용자명은 20자 이하여야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.username.invalidChars", languageCode, "사용자명은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.", createdBy);
-    createTranslationIfNotExists("validation.required.message", languageCode, "{fieldName}는 필수 입력 항목입니다.", createdBy);
-    createTranslationIfNotExists("validation.length.notString", languageCode, "{fieldName}는 문자열이어야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.length.tooShort", languageCode, "{fieldName}는 {minLength}자 이상이어야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.length.tooLong", languageCode, "{fieldName}는 {maxLength}자 이하여야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.number.notValid", languageCode, "{fieldName}는 유효한 숫자여야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.number.tooSmall", languageCode, "{fieldName}는 {min} 이상이어야 합니다.", createdBy);
-    createTranslationIfNotExists("validation.number.tooLarge", languageCode, "{fieldName}는 {max} 이하여야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.required", languageCode, "비밀번호를 입력해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.minLength", languageCode, "비밀번호는 8자 이상이어야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.lowercase", languageCode, "소문자를 포함해야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.uppercase", languageCode, "대문자를 포함해야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.number", languageCode, "숫자를 포함해야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.special", languageCode, "특수문자를 포함해야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.username.required", languageCode, "사용자명을 입력해주세요.", createdBy);
+    createTranslationIfNotExists(
+        "validation.username.minLength", languageCode, "사용자명은 3자 이상이어야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.username.maxLength", languageCode, "사용자명은 20자 이하여야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.username.invalidChars",
+        languageCode,
+        "사용자명은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.required.message", languageCode, "{fieldName}는 필수 입력 항목입니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.length.notString", languageCode, "{fieldName}는 문자열이어야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.length.tooShort",
+        languageCode,
+        "{fieldName}는 {minLength}자 이상이어야 합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.length.tooLong",
+        languageCode,
+        "{fieldName}는 {maxLength}자 이하여야 합니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.number.notValid", languageCode, "{fieldName}는 유효한 숫자여야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.number.tooSmall", languageCode, "{fieldName}는 {min} 이상이어야 합니다.", createdBy);
+    createTranslationIfNotExists(
+        "validation.number.tooLarge", languageCode, "{fieldName}는 {max} 이하여야 합니다.", createdBy);
 
     // 개별 폼 삭제 버튼 (2026-07-01)
     createTranslationIfNotExists("testcase.form.button.delete", languageCode, "삭제", createdBy);

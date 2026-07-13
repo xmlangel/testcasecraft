@@ -142,7 +142,8 @@ public class TestCaseController {
   @Operation(
       summary = "테스트케이스 다른 프로젝트로 이동 (결과 포함)",
       description =
-          "선택한 케이스(폴더면 하위 전체)를 대상 프로젝트로 이동하고, 연결된 테스트 결과를 미러 실행으로 함께 옮긴다. 출발/대상 프로젝트 모두 편집 권한이 필요하다.")
+          "선택한 케이스(폴더면 하위 전체)를 대상 프로젝트로 이동하고, 연결된 테스트 결과를 미러 실행으로 함께 옮긴다. 출발/대상 프로젝트 모두 편집 권한이"
+              + " 필요하다.")
   @PostMapping("/cross-project/move")
   public ResponseEntity<?> moveToProject(@Valid @RequestBody CrossProjectTransferRequest request) {
     try {
@@ -170,8 +171,8 @@ public class TestCaseController {
   @Operation(
       summary = "테스트케이스 다른 프로젝트로 복사 (케이스만)",
       description =
-          "선택한 케이스(폴더면 하위 전체)를 대상 프로젝트로 복제한다. 테스트 결과는 가져오지 않으며 출발 데이터는 변경되지 않는다. 출발 조회 권한 + 대상 편집 권한이"
-              + " 필요하다.")
+          "선택한 케이스(폴더면 하위 전체)를 대상 프로젝트로 복제한다. 테스트 결과는 가져오지 않으며 출발 데이터는 변경되지 않는다. 출발 조회 권한 + 대상 편집"
+              + " 권한이 필요하다.")
   @PostMapping("/cross-project/copy")
   public ResponseEntity<?> copyToProject(@Valid @RequestBody CrossProjectTransferRequest request) {
     try {

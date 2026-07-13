@@ -316,7 +316,9 @@ public class TestCaseTreeMoveService {
       throw new MoveValidationException("프로젝트 정보가 없는 노드입니다: " + node.getId());
     }
     String projectId = node.getProject().getId();
-    if (!projectSecurityService.hasEditRole(projectId)) {
+    // 테스트케이스/플랜/실행 CRUD 인가의 표준 검사(canEditProject: 시스템 ADMIN 또는 프로젝트 편집 롤)와 일치시킨다.
+    // 트리 이동(DnD)도 create/update/delete와 동일한 편집 행위이므로 시스템 ADMIN을 제외하는 hasEditRole은 부적절 → 403 오작동.
+    if (!projectSecurityService.canEditProject(projectId)) {
       throw new MoveForbiddenException("프로젝트 편집 권한이 없습니다: " + projectId);
     }
   }
