@@ -133,6 +133,7 @@ const TestCaseTree = ({
     inputMode,
     setInputMode,
     onSelectTestCase,
+    folderOnlyView,
   });
 
   // ── 2.5. 다른 프로젝트로 이동/복사 (일괄) ──────────────────────────────────

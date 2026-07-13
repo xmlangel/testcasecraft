@@ -19,7 +19,6 @@ import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -57,8 +56,8 @@ import org.testng.annotations.Test;
  * <p><b>Setup/Teardown 전략(명시적 정리):</b> {@code @Transactional} 롤백에 의존하지 않고 실제 커밋 + 명시적 삭제를 사용한다.
  *
  * <ul>
- *   <li>사용자는 <b>get-or-create</b> — 이미 존재하면 재사용(생성하지 않음), 없을 때만 생성한다. 그리고 <b>이 테스트가 직접 생성한
- *       사용자만</b> {@code @AfterClass}에서 삭제한다(기존 사용자는 건드리지 않는다).
+ *   <li>사용자는 <b>get-or-create</b> — 이미 존재하면 재사용(생성하지 않음), 없을 때만 생성한다. 그리고 <b>이 테스트가 직접 생성한 사용자만</b>
+ *       {@code @AfterClass}에서 삭제한다(기존 사용자는 건드리지 않는다).
  *   <li>프로젝트/실행/테스트케이스/결과/멤버십 등 각 테스트에서 만든 데이터는 {@code @AfterMethod}에서 FK 안전 순서로 삭제한다.
  *   <li>회원가입 테스트가 생성한 사용자도 추적하여 정리한다.
  * </ul>
@@ -155,8 +154,7 @@ public class ProjectRoleAuthorizationIntegrationTest extends AbstractTestNGSprin
     // 회원가입 테스트가 만든 사용자 정리
     if (!registrationUserIds.isEmpty()) {
       new TransactionTemplate(txManager)
-          .executeWithoutResult(
-              status -> registrationUserIds.forEach(userRepository::deleteById));
+          .executeWithoutResult(status -> registrationUserIds.forEach(userRepository::deleteById));
       registrationUserIds.clear();
     }
   }
@@ -259,6 +257,26 @@ public class ProjectRoleAuthorizationIntegrationTest extends AbstractTestNGSprin
         .getStatus();
   }
 
+  /**
+   * 트리 이동(DnD, POST /api/testcases/{id}/move) 인가 상태. 매 호출마다 새 케이스를 만들어 루트로 이동(순서 재배치)한다 — 구조
+   * 검증(validateAuthorization가 먼저 실행)은 항상 통과하므로 롤별 인가 차이만 드러난다.
+   */
+  private int moveStatus(String username) throws Exception {
+    String caseId = newCase("Move target by " + username).getId();
+    Map<String, Object> payload = new LinkedHashMap<>();
+    payload.put("targetParentId", null); // 루트로 이동(같은 프로젝트 내 순서 재배치)
+    String body = objectMapper.writeValueAsString(payload);
+    return mockMvc
+        .perform(
+            post("/api/testcases/" + caseId + "/move")
+                .header("Authorization", tokens.get(username))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andReturn()
+        .getResponse()
+        .getStatus();
+  }
+
   // ============================ Tests ============================
 
   @Test
@@ -289,6 +307,19 @@ public class ProjectRoleAuthorizationIntegrationTest extends AbstractTestNGSprin
   }
 
   @Test
+  void treeMove_editorsAndSystemAdmin_allowed_viewerTesterOutsider_forbidden() throws Exception {
+    // 회귀 방지: 트리 이동(DnD)은 create/update/delete와 동일한 표준 인가(canEditProject:
+    // 시스템 ADMIN 또는 프로젝트 편집 롤)를 사용해야 한다. 이전에는 시스템 ADMIN을 제외하는
+    // hasEditRole을 써서, 케이스 생성/수정은 되지만 DnD 이동만 403이 나는 회귀가 있었다.
+    Assert.assertEquals(moveStatus(PM), 200, "PM은 트리 이동 가능");
+    Assert.assertEquals(moveStatus(DEV), 200, "DEVELOPER는 트리 이동 가능");
+    Assert.assertEquals(moveStatus(SYSADMIN), 200, "시스템 ADMIN은 트리 이동 가능(회귀 방지)");
+    Assert.assertEquals(moveStatus(TESTER), 403, "TESTER는 트리 이동 불가(403)");
+    Assert.assertEquals(moveStatus(VIEWER), 403, "VIEWER는 트리 이동 불가(403)");
+    Assert.assertEquals(moveStatus(OUTSIDER), 403, "비멤버는 트리 이동 불가(403)");
+  }
+
+  @Test
   void fullTree_systemAdminOnly() throws Exception {
     int pmStatus =
         mockMvc
@@ -314,18 +345,21 @@ public class ProjectRoleAuthorizationIntegrationTest extends AbstractTestNGSprin
     String body =
         objectMapper.writeValueAsString(
             Map.of(
-                "username", username,
-                "email", username + "@authz-it.local",
-                "name", "Reg " + uid,
-                "password", "Passw0rd!",
-                "role", "ADMIN")); // 악의적으로 ADMIN 요청
+                "username",
+                username,
+                "email",
+                username + "@authz-it.local",
+                "name",
+                "Reg " + uid,
+                "password",
+                "Passw0rd!",
+                "role",
+                "ADMIN")); // 악의적으로 ADMIN 요청
 
     int status =
         mockMvc
             .perform(
-                post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
+                post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
             .andReturn()
             .getResponse()
             .getStatus();
@@ -333,7 +367,6 @@ public class ProjectRoleAuthorizationIntegrationTest extends AbstractTestNGSprin
 
     User created = userRepository.findByUsername(username).orElseThrow();
     registrationUserIds.add(created.getId()); // teardown 대상 등록
-    Assert.assertEquals(
-        created.getRole(), "TESTER", "요청 role=ADMIN을 무시하고 서버가 TESTER로 강제해야 함");
+    Assert.assertEquals(created.getRole(), "TESTER", "요청 role=ADMIN을 무시하고 서버가 TESTER로 강제해야 함");
   }
 }

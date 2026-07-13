@@ -2523,7 +2523,8 @@ public class I18nHardcodedKeysInitializer {
     // 하드코딩 i18n 정리 (2026-06-30) — 컴포넌트 하드코딩 한국어 t() 래핑 보강
     createTranslationKeyIfNotExists("rag.chat.relatedDocuments", "rag", "RAG 채팅 참고문서 라벨", "참고 문서:");
     createTranslationKeyIfNotExists("rag.chat.similarity", "rag", "RAG 채팅 유사도", "유사도: {percent}%");
-    createTranslationKeyIfNotExists("testResult.barChart.title", "testResult", "결과 비교 차트 제목", "테스트 결과 비교");
+    createTranslationKeyIfNotExists(
+        "testResult.barChart.title", "testResult", "결과 비교 차트 제목", "테스트 결과 비교");
     createTranslationKeyIfNotExists(
         "testCaseResult.error.executionLoad", "testResult", "실행정보 로드 실패", "테스트 실행 정보를 불러올 수 없습니다.");
     createTranslationKeyIfNotExists(
@@ -2534,7 +2535,10 @@ public class I18nHardcodedKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.qaSummary.saveFailed", "testResult", "QA총평 저장 실패", "QA 총평 저장 실패:");
     createTranslationKeyIfNotExists(
-        "testResult.error.filteredResultsLoad", "testResult", "필터 결과 로드 실패", "필터링된 테스트 결과를 불러올 수 없습니다");
+        "testResult.error.filteredResultsLoad",
+        "testResult",
+        "필터 결과 로드 실패",
+        "필터링된 테스트 결과를 불러올 수 없습니다");
     createTranslationKeyIfNotExists(
         "testResult.error.resultsLoad", "testResult", "결과 로드 실패", "테스트 결과를 불러올 수 없습니다");
     createTranslationKeyIfNotExists(
@@ -2544,11 +2548,20 @@ public class I18nHardcodedKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcaseAttachments.fetchError", "testcase", "첨부 목록 로드 실패", "첨부파일 목록을 불러오는데 실패했습니다.");
     createTranslationKeyIfNotExists(
-        "testcase.spreadsheet.deleteError", "testcase", "스프레드시트 삭제 오류", "항목 삭제 중 오류가 발생했습니다: {error}");
+        "testcase.spreadsheet.deleteError",
+        "testcase",
+        "스프레드시트 삭제 오류",
+        "항목 삭제 중 오류가 발생했습니다: {error}");
     createTranslationKeyIfNotExists(
-        "testcase.spreadsheet.validationError", "testcase", "스프레드시트 검증 오류", "검증 중 오류가 발생했습니다: {error}");
+        "testcase.spreadsheet.validationError",
+        "testcase",
+        "스프레드시트 검증 오류",
+        "검증 중 오류가 발생했습니다: {error}");
     createTranslationKeyIfNotExists(
-        "testcase.spreadsheet.pdfExportError", "testcase", "스프레드시트 PDF 오류", "PDF 내보내기 중 오류가 발생했습니다.");
+        "testcase.spreadsheet.pdfExportError",
+        "testcase",
+        "스프레드시트 PDF 오류",
+        "PDF 내보내기 중 오류가 발생했습니다.");
     createTranslationKeyIfNotExists(
         "testCase.export.noData", "testcase", "내보낼 데이터 없음", "내보낼 데이터가 없습니다.");
     createTranslationKeyIfNotExists(
@@ -2556,48 +2569,116 @@ public class I18nHardcodedKeysInitializer {
     createTranslationKeyIfNotExists(
         "testCase.export.csvError", "testcase", "CSV 다운로드 오류", "CSV 다운로드 중 오류가 발생했습니다: {message}");
     createTranslationKeyIfNotExists(
-        "testCase.export.excelSuccess", "testcase", "Excel 다운로드 성공", "Excel 파일이 다운로드되었습니다: {filename}");
+        "testCase.export.excelSuccess",
+        "testcase",
+        "Excel 다운로드 성공",
+        "Excel 파일이 다운로드되었습니다: {filename}");
     createTranslationKeyIfNotExists(
-        "testCase.export.excelError", "testcase", "Excel 다운로드 오류", "Excel 다운로드 중 오류가 발생했습니다: {message}");
+        "testCase.export.excelError",
+        "testcase",
+        "Excel 다운로드 오류",
+        "Excel 다운로드 중 오류가 발생했습니다: {message}");
 
-    
     // 유틸 레벨 i18n (2026-06-30)
-    createTranslationKeyIfNotExists("error.networkError", "error", "util i18n (2026-06-30)", "네트워크 연결을 확인해주세요.");
-    createTranslationKeyIfNotExists("error.authRequired", "error", "util i18n (2026-06-30)", "로그인이 필요하거나 권한이 없습니다.");
-    createTranslationKeyIfNotExists("error.validationError", "error", "util i18n (2026-06-30)", "입력한 정보를 확인해주세요.");
-    createTranslationKeyIfNotExists("error.serverError", "error", "util i18n (2026-06-30)", "서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
-    createTranslationKeyIfNotExists("error.unknownError", "error", "util i18n (2026-06-30)", "알 수 없는 오류가 발생했습니다.");
-    createTranslationKeyIfNotExists("error.sessionExpired", "error", "util i18n (2026-06-30)", "세션이 만료되었습니다. 다시 로그인해주세요.");
-    createTranslationKeyIfNotExists("error.renderingError", "error", "util i18n (2026-06-30)", "화면을 표시하는 중 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists(
+        "error.networkError", "error", "util i18n (2026-06-30)", "네트워크 연결을 확인해주세요.");
+    createTranslationKeyIfNotExists(
+        "error.authRequired", "error", "util i18n (2026-06-30)", "로그인이 필요하거나 권한이 없습니다.");
+    createTranslationKeyIfNotExists(
+        "error.validationError", "error", "util i18n (2026-06-30)", "입력한 정보를 확인해주세요.");
+    createTranslationKeyIfNotExists(
+        "error.serverError", "error", "util i18n (2026-06-30)", "서버에서 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    createTranslationKeyIfNotExists(
+        "error.unknownError", "error", "util i18n (2026-06-30)", "알 수 없는 오류가 발생했습니다.");
+    createTranslationKeyIfNotExists(
+        "error.sessionExpired", "error", "util i18n (2026-06-30)", "세션이 만료되었습니다. 다시 로그인해주세요.");
+    createTranslationKeyIfNotExists(
+        "error.renderingError", "error", "util i18n (2026-06-30)", "화면을 표시하는 중 오류가 발생했습니다.");
     createTranslationKeyIfNotExists("time.justNow", "time", "util i18n (2026-06-30)", "방금 전");
     createTranslationKeyIfNotExists("time.minutesAgo", "time", "util i18n (2026-06-30)", "{n}분 전");
     createTranslationKeyIfNotExists("time.hoursAgo", "time", "util i18n (2026-06-30)", "{n}시간 전");
     createTranslationKeyIfNotExists("time.daysAgo", "time", "util i18n (2026-06-30)", "{n}일 전");
     createTranslationKeyIfNotExists("time.zeroSeconds", "time", "util i18n (2026-06-30)", "0초");
-    createTranslationKeyIfNotExists("time.daysAndHours", "time", "util i18n (2026-06-30)", "{days}일 {hours}시간");
+    createTranslationKeyIfNotExists(
+        "time.daysAndHours", "time", "util i18n (2026-06-30)", "{days}일 {hours}시간");
     createTranslationKeyIfNotExists("time.daysOnly", "time", "util i18n (2026-06-30)", "{days}일");
-    createTranslationKeyIfNotExists("time.hoursAndMinutes", "time", "util i18n (2026-06-30)", "{hours}시간 {minutes}분");
-    createTranslationKeyIfNotExists("time.hoursOnly", "time", "util i18n (2026-06-30)", "{hours}시간");
-    createTranslationKeyIfNotExists("time.minutesAndSeconds", "time", "util i18n (2026-06-30)", "{minutes}분 {seconds}초");
-    createTranslationKeyIfNotExists("time.minutesOnly", "time", "util i18n (2026-06-30)", "{minutes}분");
-    createTranslationKeyIfNotExists("time.secondsOnly", "time", "util i18n (2026-06-30)", "{seconds}초");
-    createTranslationKeyIfNotExists("validation.password.required", "validation", "util i18n (2026-06-30)", "비밀번호를 입력해주세요.");
-    createTranslationKeyIfNotExists("validation.password.minLength", "validation", "util i18n (2026-06-30)", "비밀번호는 8자 이상이어야 합니다.");
-    createTranslationKeyIfNotExists("validation.password.lowercase", "validation", "util i18n (2026-06-30)", "소문자를 포함해야 합니다.");
-    createTranslationKeyIfNotExists("validation.password.uppercase", "validation", "util i18n (2026-06-30)", "대문자를 포함해야 합니다.");
-    createTranslationKeyIfNotExists("validation.password.number", "validation", "util i18n (2026-06-30)", "숫자를 포함해야 합니다.");
-    createTranslationKeyIfNotExists("validation.password.special", "validation", "util i18n (2026-06-30)", "특수문자를 포함해야 합니다.");
-    createTranslationKeyIfNotExists("validation.username.required", "validation", "util i18n (2026-06-30)", "사용자명을 입력해주세요.");
-    createTranslationKeyIfNotExists("validation.username.minLength", "validation", "util i18n (2026-06-30)", "사용자명은 3자 이상이어야 합니다.");
-    createTranslationKeyIfNotExists("validation.username.maxLength", "validation", "util i18n (2026-06-30)", "사용자명은 20자 이하여야 합니다.");
-    createTranslationKeyIfNotExists("validation.username.invalidChars", "validation", "util i18n (2026-06-30)", "사용자명은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.");
-    createTranslationKeyIfNotExists("validation.required.message", "validation", "util i18n (2026-06-30)", "{fieldName}는 필수 입력 항목입니다.");
-    createTranslationKeyIfNotExists("validation.length.notString", "validation", "util i18n (2026-06-30)", "{fieldName}는 문자열이어야 합니다.");
-    createTranslationKeyIfNotExists("validation.length.tooShort", "validation", "util i18n (2026-06-30)", "{fieldName}는 {minLength}자 이상이어야 합니다.");
-    createTranslationKeyIfNotExists("validation.length.tooLong", "validation", "util i18n (2026-06-30)", "{fieldName}는 {maxLength}자 이하여야 합니다.");
-    createTranslationKeyIfNotExists("validation.number.notValid", "validation", "util i18n (2026-06-30)", "{fieldName}는 유효한 숫자여야 합니다.");
-    createTranslationKeyIfNotExists("validation.number.tooSmall", "validation", "util i18n (2026-06-30)", "{fieldName}는 {min} 이상이어야 합니다.");
-    createTranslationKeyIfNotExists("validation.number.tooLarge", "validation", "util i18n (2026-06-30)", "{fieldName}는 {max} 이하여야 합니다.");
+    createTranslationKeyIfNotExists(
+        "time.hoursAndMinutes", "time", "util i18n (2026-06-30)", "{hours}시간 {minutes}분");
+    createTranslationKeyIfNotExists(
+        "time.hoursOnly", "time", "util i18n (2026-06-30)", "{hours}시간");
+    createTranslationKeyIfNotExists(
+        "time.minutesAndSeconds", "time", "util i18n (2026-06-30)", "{minutes}분 {seconds}초");
+    createTranslationKeyIfNotExists(
+        "time.minutesOnly", "time", "util i18n (2026-06-30)", "{minutes}분");
+    createTranslationKeyIfNotExists(
+        "time.secondsOnly", "time", "util i18n (2026-06-30)", "{seconds}초");
+    createTranslationKeyIfNotExists(
+        "validation.password.required", "validation", "util i18n (2026-06-30)", "비밀번호를 입력해주세요.");
+    createTranslationKeyIfNotExists(
+        "validation.password.minLength",
+        "validation",
+        "util i18n (2026-06-30)",
+        "비밀번호는 8자 이상이어야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.password.lowercase", "validation", "util i18n (2026-06-30)", "소문자를 포함해야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.password.uppercase", "validation", "util i18n (2026-06-30)", "대문자를 포함해야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.password.number", "validation", "util i18n (2026-06-30)", "숫자를 포함해야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.password.special", "validation", "util i18n (2026-06-30)", "특수문자를 포함해야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.username.required", "validation", "util i18n (2026-06-30)", "사용자명을 입력해주세요.");
+    createTranslationKeyIfNotExists(
+        "validation.username.minLength",
+        "validation",
+        "util i18n (2026-06-30)",
+        "사용자명은 3자 이상이어야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.username.maxLength",
+        "validation",
+        "util i18n (2026-06-30)",
+        "사용자명은 20자 이하여야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.username.invalidChars",
+        "validation",
+        "util i18n (2026-06-30)",
+        "사용자명은 영문, 숫자, 언더스코어, 하이픈만 사용할 수 있습니다.");
+    createTranslationKeyIfNotExists(
+        "validation.required.message",
+        "validation",
+        "util i18n (2026-06-30)",
+        "{fieldName}는 필수 입력 항목입니다.");
+    createTranslationKeyIfNotExists(
+        "validation.length.notString",
+        "validation",
+        "util i18n (2026-06-30)",
+        "{fieldName}는 문자열이어야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.length.tooShort",
+        "validation",
+        "util i18n (2026-06-30)",
+        "{fieldName}는 {minLength}자 이상이어야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.length.tooLong",
+        "validation",
+        "util i18n (2026-06-30)",
+        "{fieldName}는 {maxLength}자 이하여야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.number.notValid",
+        "validation",
+        "util i18n (2026-06-30)",
+        "{fieldName}는 유효한 숫자여야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.number.tooSmall",
+        "validation",
+        "util i18n (2026-06-30)",
+        "{fieldName}는 {min} 이상이어야 합니다.");
+    createTranslationKeyIfNotExists(
+        "validation.number.tooLarge",
+        "validation",
+        "util i18n (2026-06-30)",
+        "{fieldName}는 {max} 이하여야 합니다.");
 
     // 개별 폼 삭제 버튼 (2026-07-01)
     createTranslationKeyIfNotExists("testcase.form.button.delete", "testcase", "폼 삭제 버튼", "삭제");

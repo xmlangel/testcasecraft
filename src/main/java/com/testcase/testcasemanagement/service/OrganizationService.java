@@ -355,7 +355,8 @@ public class OrganizationService {
       boolean ownerAlreadyExists =
           organizationUserRepository.findByOrganizationId(organizationId).stream()
               .anyMatch(
-                  member -> member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER);
+                  member ->
+                      member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER);
       if (ownerAlreadyExists) {
         throw new IllegalStateException(
             "조직에는 이미 OWNER가 존재합니다. 소유권을 이전하려면 transferOwnership을 사용하세요.");
@@ -437,7 +438,8 @@ public class OrganizationService {
       boolean ownerAlreadyExists =
           organizationUserRepository.findByOrganizationId(organizationId).stream()
               .anyMatch(
-                  member -> member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER);
+                  member ->
+                      member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER);
       if (ownerAlreadyExists) {
         throw new IllegalStateException(
             "조직에는 이미 OWNER가 존재합니다. 소유권을 이전하려면 transferOwnership을 사용하세요.");
