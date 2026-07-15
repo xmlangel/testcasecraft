@@ -201,3 +201,8 @@ graph:
     password: ${GRAPH_DB_PASSWORD:}
     graph-path: tc_graph
     maximum-pool-size: 5
+  # 주기 동기화 (GraphSyncScheduler) — features.graph.enabled=true 일 때만 스케줄러 빈이 생성되고,
+  # 아래 scheduled-enabled=true 여야 실제로 실행된다 (그래프는 켜되 배치는 끄는 운영 분리).
+  sync:
+    scheduled-enabled: ${GRAPH_SYNC_SCHEDULED_ENABLED:false}
+    cron: ${GRAPH_SYNC_CRON:0 0 4 * * *}
