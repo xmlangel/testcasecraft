@@ -27,6 +27,7 @@ export const useTestCaseActions = ({
   inputMode,
   setInputMode,
   onSelectTestCase,
+  folderOnlyView = false,
 }) => {
   const [newItemData, setNewItemData] = useState(null);
   const [renameData, setRenameData] = useState(null);
@@ -279,8 +280,12 @@ export const useTestCaseActions = ({
       if (!node) return;
 
       const parentId = node.parentId ?? null;
+      // 트리에 실제로 함께 표시되는 형제만 순서 대상이 된다.
+      // 폴더 전용 뷰에서는 케이스가 트리에 없으므로, 형제 계산에 케이스를 섞으면
+      // 위/아래 이동이 보이지 않는 케이스와 swap 되어 시각적으로 아무 변화가 없다.
       const siblings = filteredTestCases
         .filter((tc) => (tc.parentId ?? null) === parentId)
+        .filter((tc) => (folderOnlyView ? tc.type === node.type : true))
         .sort((a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0));
 
       const idx = siblings.findIndex((tc) => tc.id === nodeId);
@@ -298,7 +303,7 @@ export const useTestCaseActions = ({
       setOrderMap(newOrderMap);
       setOrderChanged(true);
     },
-    [projectRole, filteredTestCases, orderMap],
+    [projectRole, filteredTestCases, orderMap, folderOnlyView],
   );
 
   const handleOrderEditMode = useCallback(() => {

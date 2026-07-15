@@ -171,7 +171,6 @@ public class TestCaseKeysInitializer {
         "예상 결과 필수 입력 메시지",
         "전체 예상 결과를 입력하세요.");
 
-
     // InputModeToggle 관련 키들
     createTranslationKeyIfNotExists(
         "testcase.inputMode.title", "testcase", "입력 모드 선택 제목", "입력 모드 선택");

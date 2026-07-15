@@ -290,8 +290,8 @@ public class GroupSecurityService {
   }
 
   /**
-   * 사용자가 그룹 관리(수정/삭제/역할변경) 권한을 가지는지 확인 (Controller @PreAuthorize용).
-   * CO_LEADER는 "부 리더"라는 이름에 맞게 LEADER와 동등한 관리 권한을 가진다.
+   * 사용자가 그룹 관리(수정/삭제/역할변경) 권한을 가지는지 확인 (Controller @PreAuthorize용). CO_LEADER는 "부 리더"라는 이름에 맞게
+   * LEADER와 동등한 관리 권한을 가진다.
    */
   public boolean hasLeaderRole(String groupId, String username) {
     return hasLeadershipRole(groupId, username) || canManageGroup(groupId, username);

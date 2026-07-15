@@ -181,8 +181,6 @@ public class TestExecutionKeysInitializer {
     createTranslationKeyIfNotExists(
         "testExecution.form.executionName", "testExecution", "실행명", "실행명");
 
-
-
     // 테스트 실행 가이드
     createTranslationKeyIfNotExists(
         "testExecution.guide.title", "testExecution", "테스트 실행 절차 안내", "📋 테스트 실행 절차 안내");

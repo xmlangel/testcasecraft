@@ -88,8 +88,8 @@ public class ProjectSecurityService {
   }
 
   /**
-   * 현재 사용자가 테스트 실행 결과를 기록(PASS/FAIL 등)할 수 있는지. 시스템 ADMIN, 프로젝트 편집 롤에 더해 TESTER도 허용한다 —
-   * TESTER는 테스트케이스/플랜 자체를 편집할 권한은 없지만 결과 기록은 본연의 업무이기 때문이다.
+   * 현재 사용자가 테스트 실행 결과를 기록(PASS/FAIL 등)할 수 있는지. 시스템 ADMIN, 프로젝트 편집 롤에 더해 TESTER도 허용한다 — TESTER는
+   * 테스트케이스/플랜 자체를 편집할 권한은 없지만 결과 기록은 본연의 업무이기 때문이다.
    */
   public boolean canRecordTestResult(String projectId) {
     String currentUserId = securityContextUtil.getCurrentUserId();

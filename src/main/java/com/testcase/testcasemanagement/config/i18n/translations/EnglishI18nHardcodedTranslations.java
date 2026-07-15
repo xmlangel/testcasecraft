@@ -1943,7 +1943,8 @@ public class EnglishI18nHardcodedTranslations {
     // Hardcoded i18n cleanup (2026-06-30)
     createTranslationIfNotExists(
         "rag.chat.relatedDocuments", languageCode, "Related Documents:", createdBy);
-    createTranslationIfNotExists("rag.chat.similarity", languageCode, "Similarity: {percent}%", createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.similarity", languageCode, "Similarity: {percent}%", createdBy);
     createTranslationIfNotExists(
         "testResult.barChart.title", languageCode, "Test Result Comparison", createdBy);
     createTranslationIfNotExists(
@@ -2018,15 +2019,36 @@ public class EnglishI18nHardcodedTranslations {
         "Error downloading Excel file: {message}",
         createdBy);
 
-    
     // 유틸 레벨 i18n (2026-06-30)
-    createTranslationIfNotExists("error.networkError", languageCode, "Please check your network connection.", createdBy);
-    createTranslationIfNotExists("error.authRequired", languageCode, "Login required or you do not have permission.", createdBy);
-    createTranslationIfNotExists("error.validationError", languageCode, "Please check the information you entered.", createdBy);
-    createTranslationIfNotExists("error.serverError", languageCode, "A problem occurred on the server. Please try again later.", createdBy);
-    createTranslationIfNotExists("error.unknownError", languageCode, "An unknown error has occurred.", createdBy);
-    createTranslationIfNotExists("error.sessionExpired", languageCode, "Your session has expired. Please log in again.", createdBy);
-    createTranslationIfNotExists("error.renderingError", languageCode, "An error occurred while displaying the screen.", createdBy);
+    createTranslationIfNotExists(
+        "error.networkError", languageCode, "Please check your network connection.", createdBy);
+    createTranslationIfNotExists(
+        "error.authRequired",
+        languageCode,
+        "Login required or you do not have permission.",
+        createdBy);
+    createTranslationIfNotExists(
+        "error.validationError",
+        languageCode,
+        "Please check the information you entered.",
+        createdBy);
+    createTranslationIfNotExists(
+        "error.serverError",
+        languageCode,
+        "A problem occurred on the server. Please try again later.",
+        createdBy);
+    createTranslationIfNotExists(
+        "error.unknownError", languageCode, "An unknown error has occurred.", createdBy);
+    createTranslationIfNotExists(
+        "error.sessionExpired",
+        languageCode,
+        "Your session has expired. Please log in again.",
+        createdBy);
+    createTranslationIfNotExists(
+        "error.renderingError",
+        languageCode,
+        "An error occurred while displaying the screen.",
+        createdBy);
     createTranslationIfNotExists("time.justNow", languageCode, "Just now", createdBy);
     createTranslationIfNotExists("time.minutesAgo", languageCode, "{n} minutes ago", createdBy);
     createTranslationIfNotExists("time.hoursAgo", languageCode, "{n} hours ago", createdBy);
@@ -2034,28 +2056,83 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists("time.zeroSeconds", languageCode, "0 seconds", createdBy);
     createTranslationIfNotExists("time.daysAndHours", languageCode, "{days}d {hours}h", createdBy);
     createTranslationIfNotExists("time.daysOnly", languageCode, "{days}d", createdBy);
-    createTranslationIfNotExists("time.hoursAndMinutes", languageCode, "{hours}h {minutes}m", createdBy);
+    createTranslationIfNotExists(
+        "time.hoursAndMinutes", languageCode, "{hours}h {minutes}m", createdBy);
     createTranslationIfNotExists("time.hoursOnly", languageCode, "{hours}h", createdBy);
-    createTranslationIfNotExists("time.minutesAndSeconds", languageCode, "{minutes}m {seconds}s", createdBy);
+    createTranslationIfNotExists(
+        "time.minutesAndSeconds", languageCode, "{minutes}m {seconds}s", createdBy);
     createTranslationIfNotExists("time.minutesOnly", languageCode, "{minutes}m", createdBy);
     createTranslationIfNotExists("time.secondsOnly", languageCode, "{seconds}s", createdBy);
-    createTranslationIfNotExists("validation.password.required", languageCode, "Please enter a password.", createdBy);
-    createTranslationIfNotExists("validation.password.minLength", languageCode, "Password must be at least 8 characters.", createdBy);
-    createTranslationIfNotExists("validation.password.lowercase", languageCode, "Must include a lowercase letter.", createdBy);
-    createTranslationIfNotExists("validation.password.uppercase", languageCode, "Must include an uppercase letter.", createdBy);
-    createTranslationIfNotExists("validation.password.number", languageCode, "Must include a number.", createdBy);
-    createTranslationIfNotExists("validation.password.special", languageCode, "Must include a special character.", createdBy);
-    createTranslationIfNotExists("validation.username.required", languageCode, "Please enter a username.", createdBy);
-    createTranslationIfNotExists("validation.username.minLength", languageCode, "Username must be at least 3 characters.", createdBy);
-    createTranslationIfNotExists("validation.username.maxLength", languageCode, "Username must be 20 characters or fewer.", createdBy);
-    createTranslationIfNotExists("validation.username.invalidChars", languageCode, "Username may contain only letters, numbers, underscores, and hyphens.", createdBy);
-    createTranslationIfNotExists("validation.required.message", languageCode, "{fieldName} is required.", createdBy);
-    createTranslationIfNotExists("validation.length.notString", languageCode, "{fieldName} must be a string.", createdBy);
-    createTranslationIfNotExists("validation.length.tooShort", languageCode, "{fieldName} must be at least {minLength} characters.", createdBy);
-    createTranslationIfNotExists("validation.length.tooLong", languageCode, "{fieldName} must be {maxLength} characters or fewer.", createdBy);
-    createTranslationIfNotExists("validation.number.notValid", languageCode, "{fieldName} must be a valid number.", createdBy);
-    createTranslationIfNotExists("validation.number.tooSmall", languageCode, "{fieldName} must be at least {min}.", createdBy);
-    createTranslationIfNotExists("validation.number.tooLarge", languageCode, "{fieldName} must be at most {max}.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.required", languageCode, "Please enter a password.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.minLength",
+        languageCode,
+        "Password must be at least 8 characters.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.password.lowercase",
+        languageCode,
+        "Must include a lowercase letter.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.password.uppercase",
+        languageCode,
+        "Must include an uppercase letter.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.password.number", languageCode, "Must include a number.", createdBy);
+    createTranslationIfNotExists(
+        "validation.password.special",
+        languageCode,
+        "Must include a special character.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.username.required", languageCode, "Please enter a username.", createdBy);
+    createTranslationIfNotExists(
+        "validation.username.minLength",
+        languageCode,
+        "Username must be at least 3 characters.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.username.maxLength",
+        languageCode,
+        "Username must be 20 characters or fewer.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.username.invalidChars",
+        languageCode,
+        "Username may contain only letters, numbers, underscores, and hyphens.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.required.message", languageCode, "{fieldName} is required.", createdBy);
+    createTranslationIfNotExists(
+        "validation.length.notString", languageCode, "{fieldName} must be a string.", createdBy);
+    createTranslationIfNotExists(
+        "validation.length.tooShort",
+        languageCode,
+        "{fieldName} must be at least {minLength} characters.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.length.tooLong",
+        languageCode,
+        "{fieldName} must be {maxLength} characters or fewer.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.number.notValid",
+        languageCode,
+        "{fieldName} must be a valid number.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.number.tooSmall",
+        languageCode,
+        "{fieldName} must be at least {min}.",
+        createdBy);
+    createTranslationIfNotExists(
+        "validation.number.tooLarge",
+        languageCode,
+        "{fieldName} must be at most {max}.",
+        createdBy);
 
     // Test case form delete button (2026-07-01)
     createTranslationIfNotExists("testcase.form.button.delete", languageCode, "Delete", createdBy);
@@ -2065,10 +2142,7 @@ public class EnglishI18nHardcodedTranslations {
         "Delete this test case? This action cannot be undone.",
         createdBy);
     createTranslationIfNotExists(
-        "testcase.form.deleteError",
-        languageCode,
-        "An error occurred while deleting.",
-        createdBy);
+        "testcase.form.deleteError", languageCode, "An error occurred while deleting.", createdBy);
 
     log.info("i18n 하드코딩 보강 en 번역 초기화 완료");
   }

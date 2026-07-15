@@ -265,7 +265,8 @@ public class TestCaseCrossProjectService {
           testCaseRepository
               .findById(targetParentId)
               .orElseThrow(
-                  () -> new MoveNotFoundException("대상 부모 폴더를 찾을 수 없습니다: " + req.getTargetParentId()));
+                  () ->
+                      new MoveNotFoundException("대상 부모 폴더를 찾을 수 없습니다: " + req.getTargetParentId()));
       if (parent.getProject() == null
           || !targetProject.getId().equals(parent.getProject().getId())) {
         throw new MoveValidationException("대상 부모 폴더가 대상 프로젝트에 속하지 않습니다: " + targetParentId);
@@ -288,8 +289,7 @@ public class TestCaseCrossProjectService {
     Map<String, TestCase> byId = new HashMap<>();
     for (TestCase n : ordered) byId.put(n.getId(), n);
     Map<String, Integer> depthMemo = new HashMap<>();
-    ordered.sort(
-        Comparator.comparingInt(n -> depthWithinMovedSet(n, byId, movedIds, depthMemo)));
+    ordered.sort(Comparator.comparingInt(n -> depthWithinMovedSet(n, byId, movedIds, depthMemo)));
 
     // 대상 부모가 옮기는 서브트리 안에 있으면 순환 — 차단
     if (targetParentId != null && movedIds.contains(targetParentId)) {
@@ -305,14 +305,9 @@ public class TestCaseCrossProjectService {
     return ctx;
   }
 
-  /**
-   * 이동/복사 집합(movedIds) 내에서 노드의 깊이. 부모가 집합 밖(=이 노드가 이동 루트)이면 0, 아니면 부모 깊이 +1. 부모 우선 정렬 키로 사용한다.
-   */
+  /** 이동/복사 집합(movedIds) 내에서 노드의 깊이. 부모가 집합 밖(=이 노드가 이동 루트)이면 0, 아니면 부모 깊이 +1. 부모 우선 정렬 키로 사용한다. */
   private int depthWithinMovedSet(
-      TestCase node,
-      Map<String, TestCase> byId,
-      Set<String> movedIds,
-      Map<String, Integer> memo) {
+      TestCase node, Map<String, TestCase> byId, Set<String> movedIds, Map<String, Integer> memo) {
     String parentId = node.getParentId();
     if (parentId == null || !movedIds.contains(parentId)) return 0;
     Integer cached = memo.get(node.getId());
@@ -461,9 +456,9 @@ public class TestCaseCrossProjectService {
   /**
    * 대상 부모(또는 루트)의 기존 형제 중 최대 displayOrder. 이동/복사한 항목은 이 값 +1부터 부여되어 항상 마지막 순서로 들어간다.
    *
-   * <p>{@code findMaxDisplayOrderByParentId}는 JPQL {@code t.parentId = :parentId}라 parentId가 null(프로젝트
-   * 루트)이면 어떤 행도 매칭하지 못해 항상 null→0을 돌려준다. 그 결과 루트로 이동/복사 시 displayOrder가 1,2..로 부여되어 기존 루트 항목과
-   * 충돌(중간 삽입)했다. 프로젝트 전체를 로드해 Java에서 parentId(널 포함)를 비교하여 정확한 최대값을 구한다.
+   * <p>{@code findMaxDisplayOrderByParentId}는 JPQL {@code t.parentId = :parentId}라 parentId가
+   * null(프로젝트 루트)이면 어떤 행도 매칭하지 못해 항상 null→0을 돌려준다. 그 결과 루트로 이동/복사 시 displayOrder가 1,2..로 부여되어 기존 루트
+   * 항목과 충돌(중간 삽입)했다. 프로젝트 전체를 로드해 Java에서 parentId(널 포함)를 비교하여 정확한 최대값을 구한다.
    */
   private int maxChildOrder(String projectId, String parentId) {
     int max = 0;

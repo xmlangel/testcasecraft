@@ -64,7 +64,8 @@ public class TestCaseTreeMoveServiceTest {
     projectB.setId("proj-B");
 
     // 권한 기본 허용 + 사용자 식별
-    lenient().when(projectSecurityService.hasEditRole(anyString())).thenReturn(true);
+    // 트리 이동 인가는 CRUD 표준 검사(canEditProject: 시스템 ADMIN 또는 프로젝트 편집 롤)를 사용한다.
+    lenient().when(projectSecurityService.canEditProject(anyString())).thenReturn(true);
     lenient().when(securityContextUtil.getCurrentUsername()).thenReturn("tester");
 
     // 리포지토리 fake 동작
@@ -252,7 +253,7 @@ public class TestCaseTreeMoveServiceTest {
   @Test(expectedExceptions = TestCaseTreeMoveService.MoveForbiddenException.class)
   public void move_withoutEditRole_rejected() {
     buildTreeA();
-    when(projectSecurityService.hasEditRole(anyString())).thenReturn(false);
+    when(projectSecurityService.canEditProject(anyString())).thenReturn(false);
     service.move("T1", new TestCaseMoveRequest("F2", null, null));
   }
 

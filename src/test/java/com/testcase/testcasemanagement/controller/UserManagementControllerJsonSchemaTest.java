@@ -1,7 +1,6 @@
 // src/test/java/com/testcase/testcasemanagement/controller/UserManagementControllerJsonSchemaTest.java
 package com.testcase.testcasemanagement.controller;
 
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -19,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -103,8 +103,8 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
   }
 
   /**
-   * 이 테스트가 생성한 사용자(및 로그인으로 생긴 리프레시 토큰)를 실제 DB에서 정리한다. RestAssured는 실제 HTTP라 트랜잭션 롤백이 없으므로 명시적
-   * 삭제가 필요하다. User 엔티티의 refreshTokens는 cascade/orphanRemoval 로 함께 삭제된다.
+   * 이 테스트가 생성한 사용자(및 로그인으로 생긴 리프레시 토큰)를 실제 DB에서 정리한다. RestAssured는 실제 HTTP라 트랜잭션 롤백이 없으므로 명시적 삭제가
+   * 필요하다. User 엔티티의 refreshTokens는 cascade/orphanRemoval 로 함께 삭제된다.
    */
   @AfterClass(alwaysRun = true)
   public void globalTeardown() {
