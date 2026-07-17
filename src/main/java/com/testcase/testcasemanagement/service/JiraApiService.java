@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -289,36 +290,32 @@ public class JiraApiService {
 
   private String createIssueRequestBody(JiraConfigDto.IssueCreateRequestDto request)
       throws Exception {
-    // ADF 형식으로 설명 구성
+    // 보안: String.format 로 JSON 을 조립하면 큰따옴표만 이스케이프돼 백슬래시·개행 등으로
+    // JSON 구조가 파손되거나 필드가 주입될 수 있다. ObjectMapper 로 구조적으로 빌드해 모든 값을 안전하게 이스케이프한다.
+    ObjectNode fields = objectMapper.createObjectNode();
+
+    ObjectNode project = objectMapper.createObjectNode();
+    project.put("key", request.getProjectKey());
+    fields.set("project", project);
+
+    fields.put("summary", request.getSummary());
+
+    // 설명(ADF) — createAdfDescription 은 JSON 문자열("null" 또는 ADF 객체)을 반환
     String descriptionJson = createAdfDescription(request.getDescription());
+    fields.set("description", objectMapper.readTree(descriptionJson));
 
-    // 이슈 유형 처리
-    String issueTypeNode;
+    ObjectNode issueType = objectMapper.createObjectNode();
     if (request.getIssueTypeId() != null && !request.getIssueTypeId().isEmpty()) {
-      issueTypeNode =
-          String.format("{\"id\": \"%s\"}", request.getIssueTypeId().replace("\"", "\\\""));
+      issueType.put("id", request.getIssueTypeId());
     } else {
-      String typeName = request.getIssueTypeName() != null ? request.getIssueTypeName() : "Bug";
-      issueTypeNode = String.format("{\"name\": \"%s\"}", typeName.replace("\"", "\\\""));
+      issueType.put(
+          "name", request.getIssueTypeName() != null ? request.getIssueTypeName() : "Bug");
     }
+    fields.set("issuetype", issueType);
 
-    return String.format(
-        """
-        {
-            "fields": {
-                "project": {
-                    "key": "%s"
-                },
-                "summary": "%s",
-                "description": %s,
-                "issuetype": %s
-            }
-        }
-        """,
-        request.getProjectKey().replace("\"", "\\\""),
-        request.getSummary().replace("\"", "\\\""),
-        descriptionJson,
-        issueTypeNode);
+    ObjectNode root = objectMapper.createObjectNode();
+    root.set("fields", fields);
+    return objectMapper.writeValueAsString(root);
   }
 
   private String createAdfDescription(String text) {
@@ -399,10 +396,22 @@ public class JiraApiService {
       return objectMapper.writeValueAsString(adf);
     } catch (Exception e) {
       log.error("ADF 변환 실패, 일반 텍스트로 폴백", e);
-      return String.format(
-          "{\"version\": 1, \"type\": \"doc\", \"content\": [{\"type\": \"paragraph\", \"content\":"
-              + " [{\"type\": \"text\", \"text\": \"%s\"}]}]}",
-          text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n"));
+      // 폴백도 ObjectMapper 로 구성해 text 값을 안전하게 이스케이프
+      try {
+        ObjectNode textNode = objectMapper.createObjectNode();
+        textNode.put("type", "text");
+        textNode.put("text", text);
+        ObjectNode paragraph = objectMapper.createObjectNode();
+        paragraph.put("type", "paragraph");
+        paragraph.set("content", objectMapper.createArrayNode().add(textNode));
+        ObjectNode doc = objectMapper.createObjectNode();
+        doc.put("version", 1);
+        doc.put("type", "doc");
+        doc.set("content", objectMapper.createArrayNode().add(paragraph));
+        return objectMapper.writeValueAsString(doc);
+      } catch (Exception ex) {
+        return "null";
+      }
     }
   }
 
@@ -569,11 +578,16 @@ public class JiraApiService {
       String searchUrl = normalizedUrl + "/rest/api/3/search/jql";
       String authHeader = createBasicAuthHeader(username, apiToken);
 
-      // 검색 요청 본문 구성
-      String requestBody =
-          String.format(
-              "{\"jql\":\"%s\",\"maxResults\":%d,\"fields\":[\"key\",\"summary\",\"status\",\"priority\",\"created\",\"updated\",\"assignee\"]}",
-              jql.replace("\"", "\\\""), maxResults);
+      // 검색 요청 본문 구성 (ObjectMapper 로 안전하게 — jql 의 백슬래시/개행 등에 의한 JSON 주입 방지)
+      ObjectNode bodyNode = objectMapper.createObjectNode();
+      bodyNode.put("jql", jql);
+      bodyNode.put("maxResults", maxResults);
+      com.fasterxml.jackson.databind.node.ArrayNode fieldsArr = bodyNode.putArray("fields");
+      for (String f :
+          new String[] {"key", "summary", "status", "priority", "created", "updated", "assignee"}) {
+        fieldsArr.add(f);
+      }
+      String requestBody = objectMapper.writeValueAsString(bodyNode);
 
       HttpHeaders headers = createHeaders(authHeader);
       HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
@@ -842,13 +856,21 @@ public class JiraApiService {
                   + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
       // createAdfDescription은 {"version":1, "type":"doc", "content": [...]} 형태를 반환함
-      // 코멘트 API는 "body": { ... } 형태를 요구함
-      return String.format("{\"body\": %s}", adfJson);
+      // 코멘트 API는 "body": { ... } 형태를 요구함 — ObjectMapper 로 안전하게 감싼다
+      ObjectNode body = objectMapper.createObjectNode();
+      body.set("body", objectMapper.readTree(adfJson));
+      return objectMapper.writeValueAsString(body);
 
     } catch (Exception e) {
       log.error("코멘트 본문 생성 실패", e);
-      // 실패 시 간단한 형태로 폴백
-      return String.format("{\"body\":\"%s\"}", comment.replace("\"", "\\\""));
+      // 실패 시 간단한 형태로 폴백 (ObjectMapper 로 안전 이스케이프)
+      try {
+        ObjectNode fb = objectMapper.createObjectNode();
+        fb.put("body", comment);
+        return objectMapper.writeValueAsString(fb);
+      } catch (Exception ex) {
+        return "{\"body\":\"\"}";
+      }
     }
   }
 
