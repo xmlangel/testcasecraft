@@ -11,6 +11,8 @@ import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestSessionAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestSessionRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
@@ -42,6 +44,10 @@ public class ProjectSecurityService {
   @Autowired private JunitTestSuiteRepository junitTestSuiteRepository;
 
   @Autowired private JunitTestCaseRepository junitTestCaseRepository;
+
+  @Autowired private TestSessionRepository testSessionRepository;
+
+  @Autowired private TestSessionAttachmentRepository testSessionAttachmentRepository;
 
   @Autowired @Lazy private RagService ragService;
 
@@ -182,6 +188,38 @@ public class ProjectSecurityService {
     return junitTestCaseRepository
         .findProjectIdByCaseId(caseId)
         .map(this::canUploadToProject)
+        .orElse(false);
+  }
+
+  /** 탐색적 세션이 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
+  public boolean canAccessTestSession(String sessionId) {
+    return testSessionRepository
+        .findProjectIdById(sessionId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** 탐색적 세션이 속한 프로젝트에 현재 사용자가 업로드(첨부 추가)할 수 있는지 */
+  public boolean canUploadToTestSession(String sessionId) {
+    return testSessionRepository
+        .findProjectIdById(sessionId)
+        .map(this::canUploadToProject)
+        .orElse(false);
+  }
+
+  /** 세션 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
+  public boolean canAccessTestSessionAttachment(String attachmentId) {
+    return testSessionAttachmentRepository
+        .findProjectIdByAttachmentId(attachmentId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** 세션 첨부파일이 속한 프로젝트를 현재 사용자가 편집(수정/삭제)할 수 있는지 */
+  public boolean canEditTestSessionAttachment(String attachmentId) {
+    return testSessionAttachmentRepository
+        .findProjectIdByAttachmentId(attachmentId)
+        .map(this::canEditProject)
         .orElse(false);
   }
 
