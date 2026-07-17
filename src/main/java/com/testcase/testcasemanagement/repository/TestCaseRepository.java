@@ -62,6 +62,10 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
   @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId")
   List<TestCase> findByProjectId(@Param("projectId") String projectId);
 
+  /** 테스트케이스가 속한 프로젝트 ID (객체수준 인가용). */
+  @Query("SELECT t.project.id FROM TestCase t WHERE t.id = :testCaseId")
+  Optional<String> findProjectIdById(@Param("testCaseId") String testCaseId);
+
   @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId AND t.type = :type")
   List<TestCase> findByProjectIdAndType(String projectId, String type);
 

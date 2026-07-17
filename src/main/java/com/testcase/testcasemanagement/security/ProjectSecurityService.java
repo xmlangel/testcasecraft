@@ -13,6 +13,7 @@ import com.testcase.testcasemanagement.repository.RagChatCategoryRepository;
 import com.testcase.testcasemanagement.repository.RagChatMessageRepository;
 import com.testcase.testcasemanagement.repository.RagChatThreadRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestSessionAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestSessionRepository;
@@ -39,6 +40,8 @@ public class ProjectSecurityService {
   @Autowired private OrganizationSecurityService organizationSecurityService;
 
   @Autowired private TestCaseAttachmentRepository testCaseAttachmentRepository;
+
+  @Autowired private TestCaseRepository testCaseRepository;
 
   @Autowired private TestResultAttachmentRepository testResultAttachmentRepository;
 
@@ -126,6 +129,14 @@ public class ProjectSecurityService {
     return securityContextUtil.isSystemAdmin()
         || (currentUserId != null
             && projectUserRepository.hasResultEntryRole(projectId, currentUserId));
+  }
+
+  /** 테스트케이스가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 (미존재 시 fail-closed) */
+  public boolean canAccessTestCase(String testCaseId) {
+    return testCaseRepository
+        .findProjectIdById(testCaseId)
+        .map(this::canAccessProject)
+        .orElse(false);
   }
 
   /** 테스트케이스 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */

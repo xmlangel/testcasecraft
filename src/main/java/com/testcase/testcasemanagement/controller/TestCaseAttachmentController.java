@@ -158,6 +158,7 @@ public class TestCaseAttachmentController {
   }
 
   /** 테스트케이스별 첨부파일 목록 조회 */
+  @PreAuthorize("@projectSecurityService.canAccessTestCase(#testCaseId)")
   @GetMapping("/testcase/{testCaseId}")
   @Operation(summary = "첨부파일 목록 조회")
   public ResponseEntity<?> getAttachmentsByTestCase(
