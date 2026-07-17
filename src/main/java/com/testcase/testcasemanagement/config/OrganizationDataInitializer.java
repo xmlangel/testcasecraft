@@ -32,6 +32,14 @@ public class OrganizationDataInitializer implements CommandLineRunner {
 
   @Autowired private PasswordEncoder passwordEncoder;
 
+  /** 시드/데모 모드 전용 admin 비밀번호. 환경변수 우선, 없으면 개발 편의를 위한 고정값. */
+  @org.springframework.beans.factory.annotation.Value("${TESTCASE_ADMIN_PASSWORD:}")
+  private String adminPassword;
+
+  private String seedAdminPassword() {
+    return (adminPassword != null && !adminPassword.isBlank()) ? adminPassword : "admin123";
+  }
+
   @Override
   public void run(String... args) throws Exception {
     // DataInitializer가 먼저 실행되도록 잠시 대기
@@ -64,7 +72,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
     // 1. 기존 사용자 확인 및 설정 (DataInitializer와 호환성 확보)
     User adminUser = userRepository.findByUsername("admin").orElse(null);
     if (adminUser == null) {
-      adminUser = createAdminUser("admin", "admin@company.com", "관리자", "admin123");
+      adminUser = createAdminUser("admin", "admin@company.com", "관리자", seedAdminPassword());
     } else {
       // 기존 admin 사용자가 있으면 역할과 비밀번호만 확인/업데이트
       // 기존 admin 사용자가 있으면 역할과 비밀번호만 확인/업데이트
@@ -147,10 +155,11 @@ public class OrganizationDataInitializer implements CommandLineRunner {
       System.out.println("admin 사용자는 이미 ADMIN 역할을 가지고 있습니다.");
     }
 
-    // admin 사용자의 비밀번호 확인 및 재설정 (개발 환경용)
-    if (!passwordEncoder.matches("admin123", adminUser.getPassword())) {
+    // admin 사용자의 비밀번호 확인 및 재설정 (시드/데모 모드 전용 — 운영에서는 이 클래스가 실행되지 않음)
+    String seedPassword = seedAdminPassword();
+    if (!passwordEncoder.matches(seedPassword, adminUser.getPassword())) {
       System.out.println("admin 사용자 비밀번호 재설정");
-      adminUser.setPassword(passwordEncoder.encode("admin123"));
+      adminUser.setPassword(passwordEncoder.encode(seedPassword));
       needsUpdate = true;
     } else {
       System.out.println("admin 사용자 비밀번호 정상 확인");

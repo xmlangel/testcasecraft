@@ -22,6 +22,13 @@ public class DataInitializer {
   @Value("${TESTCASE_INIT_ENABLED:false}")
   private boolean initEnabled;
 
+  /**
+   * 최초 부트스트랩 admin 계정의 초기 비밀번호. 미설정(빈 값)이면 부팅 시 무작위로 생성해 로그에 1회만 출력한다. 하드코딩 기본값을 두지 않아 신규 배포에 알려진
+   * 자격증명이 실리지 않도록 한다.
+   */
+  @Value("${TESTCASE_ADMIN_PASSWORD:}")
+  private String adminPassword;
+
   @Bean
   @Order(1) // OrganizationDataInitializer(Order=2)보다 먼저 실행
   public CommandLineRunner initTestData(
@@ -50,10 +57,12 @@ public class DataInitializer {
         }
 
         System.out.println("⚠️ 기존 사용자 계정이 없습니다. 관리자 계정(admin)만 생성합니다.");
+        String bootstrapPassword = resolveBootstrapAdminPassword();
         User adminUser =
-            createUser("admin", "admin123", "관리자", "admin@test.com", "ADMIN", passwordEncoder);
+            createUser(
+                "admin", bootstrapPassword, "관리자", "admin@test.com", "ADMIN", passwordEncoder);
         userRepository.save(adminUser);
-        System.out.println("✅ 관리자 계정 생성 완료 (admin/admin123)");
+        System.out.println("✅ 관리자 계정 생성 완료 (username=admin)");
         return;
       }
 
@@ -73,13 +82,14 @@ public class DataInitializer {
       userRepository.deleteAll();
       System.out.println("✅ 기존 데이터 삭제 완료");
 
-      // 2. 기본 사용자 생성 (admin/admin123)
+      // 2. 기본 사용자 생성 (시드/데모 모드 전용 고정 계정, 환경변수로 재정의 가능)
+      String seedAdminPassword = seedAdminPassword();
       User adminUser =
-          createUser("admin", "admin123", "관리자", "admin@test.com", "ADMIN", passwordEncoder);
+          createUser("admin", seedAdminPassword, "관리자", "admin@test.com", "ADMIN", passwordEncoder);
       User testUser =
           createUser("tester", "tester", "테스터", "tester@test.com", "TESTER", passwordEncoder);
       userRepository.saveAll(List.of(adminUser, testUser));
-      System.out.println("✅ 사용자 생성 완료 (admin/admin123, tester/tester)");
+      System.out.println("✅ 사용자 생성 완료 (시드 모드: admin, tester)");
 
       // 3. 프로젝트 생성 - QA팀 모바일 앱 테스트 프로젝트만 생성
       Project project1 =
@@ -363,8 +373,7 @@ public class DataInitializer {
       System.out.println("🎉 데이터베이스 초기화 완료!");
       System.out.println("=".repeat(70));
       System.out.println("📋 생성된 데이터 요약:");
-      System.out.println(
-          "   👤 사용자: " + userRepository.count() + "명 (admin/admin123, tester/tester)");
+      System.out.println("   👤 사용자: " + userRepository.count() + "명 (시드 모드: admin, tester)");
       System.out.println("   📁 프로젝트: " + projectRepository.count() + "개 (QA팀 모바일 앱 테스트)");
       long totalTestCases = testCaseRepository.count();
       System.out.println("   📂 폴더: 5개 (5개 카테고리)");
@@ -396,6 +405,35 @@ public class DataInitializer {
     user.setEmail(email);
     user.setRole(role);
     return user;
+  }
+
+  /**
+   * 운영 부트스트랩 admin 비밀번호를 결정한다. 환경변수 TESTCASE_ADMIN_PASSWORD 가 설정돼 있으면 그 값을, 없으면 암호학적 난수를 생성해 로그에
+   * 1회만 노출한다. 어떤 경우에도 하드코딩 기본값을 쓰지 않는다.
+   */
+  private String resolveBootstrapAdminPassword() {
+    if (adminPassword != null && !adminPassword.isBlank()) {
+      System.out.println("ℹ️ 관리자 초기 비밀번호를 환경변수(TESTCASE_ADMIN_PASSWORD)에서 설정합니다.");
+      return adminPassword;
+    }
+    String generated = generateRandomPassword();
+    System.out.println("============================================================");
+    System.out.println("⚠️ TESTCASE_ADMIN_PASSWORD 미설정 — 임시 관리자 비밀번호를 무작위 생성했습니다.");
+    System.out.println("   이 값은 최초 1회만 로그에 출력됩니다. 로그인 후 즉시 변경하세요.");
+    System.out.println("   admin 초기 비밀번호: " + generated);
+    System.out.println("============================================================");
+    return generated;
+  }
+
+  /** 시드/데모 모드(TESTCASE_INIT_ENABLED=true) 전용 admin 비밀번호. 환경변수 우선, 없으면 개발 편의를 위한 고정값. */
+  private String seedAdminPassword() {
+    return (adminPassword != null && !adminPassword.isBlank()) ? adminPassword : "admin123";
+  }
+
+  private String generateRandomPassword() {
+    byte[] buf = new byte[18];
+    new java.security.SecureRandom().nextBytes(buf);
+    return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(buf);
   }
 
   private Project createProject(String name, String code, String description, int displayOrder) {
