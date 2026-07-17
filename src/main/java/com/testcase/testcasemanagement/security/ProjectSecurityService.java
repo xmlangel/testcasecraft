@@ -9,6 +9,9 @@ import com.testcase.testcasemanagement.repository.JunitTestResultRepository;
 import com.testcase.testcasemanagement.repository.JunitTestSuiteRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
+import com.testcase.testcasemanagement.repository.RagChatCategoryRepository;
+import com.testcase.testcasemanagement.repository.RagChatMessageRepository;
+import com.testcase.testcasemanagement.repository.RagChatThreadRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestSessionAttachmentRepository;
@@ -48,6 +51,12 @@ public class ProjectSecurityService {
   @Autowired private TestSessionRepository testSessionRepository;
 
   @Autowired private TestSessionAttachmentRepository testSessionAttachmentRepository;
+
+  @Autowired private RagChatThreadRepository ragChatThreadRepository;
+
+  @Autowired private RagChatMessageRepository ragChatMessageRepository;
+
+  @Autowired private RagChatCategoryRepository ragChatCategoryRepository;
 
   @Autowired @Lazy private RagService ragService;
 
@@ -220,6 +229,30 @@ public class ProjectSecurityService {
     return testSessionAttachmentRepository
         .findProjectIdByAttachmentId(attachmentId)
         .map(this::canEditProject)
+        .orElse(false);
+  }
+
+  /** RAG 채팅 스레드가 속한 프로젝트에 현재 사용자가 접근할 수 있는지 (조회/생성/수정/삭제 공통 — 프로젝트 멤버 협업) */
+  public boolean canAccessRagChatThread(String threadId) {
+    return ragChatThreadRepository
+        .findProjectIdById(threadId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** RAG 채팅 메시지가 속한(스레드→) 프로젝트에 현재 사용자가 접근할 수 있는지 */
+  public boolean canAccessRagChatMessage(String messageId) {
+    return ragChatMessageRepository
+        .findProjectIdByMessageId(messageId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** RAG 채팅 카테고리가 속한 프로젝트에 현재 사용자가 접근할 수 있는지 */
+  public boolean canAccessRagChatCategory(String categoryId) {
+    return ragChatCategoryRepository
+        .findProjectIdById(categoryId)
+        .map(this::canAccessProject)
         .orElse(false);
   }
 

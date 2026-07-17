@@ -26,7 +26,7 @@ public class RagChatConversationController {
   private final RagChatConversationService conversationService;
 
   @GetMapping("/threads")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId.toString())")
   @Operation(summary = "채팅 스레드 목록 조회")
   public List<RagChatThreadDTO> listThreads(@RequestParam("projectId") @NotNull UUID projectId) {
     log.info("📋 스레드 목록 조회 요청: projectId={}", projectId);
@@ -40,7 +40,9 @@ public class RagChatConversationController {
   }
 
   @PostMapping("/threads")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize(
+      "#request.projectId != null and"
+          + " @projectSecurityService.canAccessProject(#request.projectId.toString())")
   @Operation(summary = "채팅 스레드 생성")
   public RagChatThreadDTO createThread(
       @Valid @RequestBody RagChatThreadCreateRequest request, Authentication authentication) {
@@ -49,14 +51,14 @@ public class RagChatConversationController {
   }
 
   @GetMapping("/threads/{threadId}")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessRagChatThread(#threadId)")
   @Operation(summary = "채팅 스레드 단건 조회")
   public RagChatThreadDTO getThread(@PathVariable("threadId") String threadId) {
     return conversationService.getThread(threadId);
   }
 
   @PatchMapping("/threads/{threadId}")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessRagChatThread(#threadId)")
   @Operation(summary = "채팅 스레드 수정")
   public RagChatThreadDTO updateThread(
       @PathVariable("threadId") String threadId,
@@ -68,21 +70,21 @@ public class RagChatConversationController {
   }
 
   @DeleteMapping("/threads/{threadId}")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessRagChatThread(#threadId)")
   @Operation(summary = "채팅 스레드 삭제")
   public void deleteThread(@PathVariable("threadId") String threadId) {
     conversationService.deleteThread(threadId);
   }
 
   @GetMapping("/threads/{threadId}/messages")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessRagChatThread(#threadId)")
   @Operation(summary = "채팅 메시지 목록 조회")
   public List<RagChatMessageDTO> getMessages(@PathVariable("threadId") String threadId) {
     return conversationService.getMessages(threadId);
   }
 
   @PatchMapping("/messages/{messageId}")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessRagChatMessage(#messageId)")
   @Operation(summary = "어시스턴트 메시지 편집")
   public RagChatMessageDTO editMessage(
       @PathVariable("messageId") String messageId,
@@ -94,7 +96,7 @@ public class RagChatConversationController {
   }
 
   @DeleteMapping("/messages/{messageId}")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessRagChatMessage(#messageId)")
   @Operation(summary = "어시스턴트 메시지 삭제")
   public void deleteMessage(
       @PathVariable("messageId") String messageId, Authentication authentication) {
@@ -102,7 +104,7 @@ public class RagChatConversationController {
   }
 
   @GetMapping("/categories")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId.toString())")
   @Operation(summary = "카테고리 목록 조회")
   public List<RagChatCategoryDTO> listCategories(
       @RequestParam("projectId") @NotNull UUID projectId) {
@@ -110,7 +112,9 @@ public class RagChatConversationController {
   }
 
   @PostMapping("/categories")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize(
+      "#request.projectId != null and"
+          + " @projectSecurityService.canAccessProject(#request.projectId.toString())")
   @Operation(summary = "카테고리 생성")
   public RagChatCategoryDTO createCategory(
       @Valid @RequestBody RagChatCategoryCreateRequest request, Authentication authentication) {
@@ -118,7 +122,7 @@ public class RagChatConversationController {
   }
 
   @PatchMapping("/categories/{categoryId}")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessRagChatCategory(#categoryId)")
   @Operation(summary = "카테고리 수정")
   public RagChatCategoryDTO updateCategory(
       @PathVariable("categoryId") String categoryId,
@@ -129,7 +133,7 @@ public class RagChatConversationController {
   }
 
   @DeleteMapping("/categories/{categoryId}")
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("@projectSecurityService.canAccessRagChatCategory(#categoryId)")
   @Operation(summary = "카테고리 삭제")
   public void deleteCategory(@PathVariable("categoryId") String categoryId) {
     conversationService.deleteCategory(categoryId);
