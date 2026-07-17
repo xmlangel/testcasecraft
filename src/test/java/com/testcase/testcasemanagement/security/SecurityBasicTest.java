@@ -1,17 +1,18 @@
 package com.testcase.testcasemanagement.security;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.testng.Assert.*;
 
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
 /** 기본 보안 컴포넌트 테스트 */
 @SpringBootTest
 @ActiveProfiles("test")
-public class SecurityBasicTest {
+public class SecurityBasicTest extends AbstractTestNGSpringContextTests {
 
   @Autowired private SecurityContextUtil securityContextUtil;
 
