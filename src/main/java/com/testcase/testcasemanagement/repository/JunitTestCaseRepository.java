@@ -5,6 +5,7 @@ package com.testcase.testcasemanagement.repository;
 import com.testcase.testcasemanagement.model.JunitTestCase;
 import com.testcase.testcasemanagement.model.JunitTestStatus;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -95,4 +96,9 @@ public interface JunitTestCaseRepository extends JpaRepository<JunitTestCase, St
           + "WHERE jtc.junitTestSuite.junitTestResult.id = :testResultId "
           + "AND jtc.userNotes IS NOT NULL AND TRIM(jtc.userNotes) <> ''")
   int countNotesInTestResult(@Param("testResultId") String testResultId);
+
+  /** 케이스가 속한 프로젝트 ID 조회 (인가 검사용) */
+  @Query(
+      "SELECT c.junitTestSuite.junitTestResult.projectId FROM JunitTestCase c WHERE c.id = :caseId")
+  Optional<String> findProjectIdByCaseId(@Param("caseId") String caseId);
 }

@@ -4,8 +4,13 @@ package com.testcase.testcasemanagement.security;
 import com.testcase.testcasemanagement.dto.rag.RagDocumentResponse;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.ProjectUser.ProjectRole;
+import com.testcase.testcasemanagement.repository.JunitTestCaseRepository;
+import com.testcase.testcasemanagement.repository.JunitTestResultRepository;
+import com.testcase.testcasemanagement.repository.JunitTestSuiteRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
+import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
@@ -27,6 +32,16 @@ public class ProjectSecurityService {
   @Autowired private SecurityContextUtil securityContextUtil;
 
   @Autowired private OrganizationSecurityService organizationSecurityService;
+
+  @Autowired private TestCaseAttachmentRepository testCaseAttachmentRepository;
+
+  @Autowired private TestResultAttachmentRepository testResultAttachmentRepository;
+
+  @Autowired private JunitTestResultRepository junitTestResultRepository;
+
+  @Autowired private JunitTestSuiteRepository junitTestSuiteRepository;
+
+  @Autowired private JunitTestCaseRepository junitTestCaseRepository;
 
   @Autowired @Lazy private RagService ragService;
 
@@ -96,6 +111,78 @@ public class ProjectSecurityService {
     return securityContextUtil.isSystemAdmin()
         || (currentUserId != null
             && projectUserRepository.hasResultEntryRole(projectId, currentUserId));
+  }
+
+  /** 테스트케이스 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
+  public boolean canAccessTestCaseAttachment(String attachmentId) {
+    return testCaseAttachmentRepository
+        .findProjectIdByAttachmentId(attachmentId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** 테스트케이스 첨부파일이 속한 프로젝트를 현재 사용자가 편집(삭제/사용표시)할 수 있는지 */
+  public boolean canEditTestCaseAttachment(String attachmentId) {
+    return testCaseAttachmentRepository
+        .findProjectIdByAttachmentId(attachmentId)
+        .map(this::canEditProject)
+        .orElse(false);
+  }
+
+  /** 테스트 결과 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드/미리보기)할 수 있는지 */
+  public boolean canAccessTestResultAttachment(String attachmentId) {
+    return testResultAttachmentRepository
+        .findProjectIdByAttachmentId(attachmentId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** 테스트 결과 첨부파일이 속한 프로젝트를 현재 사용자가 편집(삭제)할 수 있는지 */
+  public boolean canEditTestResultAttachment(String attachmentId) {
+    return testResultAttachmentRepository
+        .findProjectIdByAttachmentId(attachmentId)
+        .map(this::canEditProject)
+        .orElse(false);
+  }
+
+  /** JUnit 결과가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
+  public boolean canAccessJunitResult(String testResultId) {
+    return junitTestResultRepository
+        .findProjectIdById(testResultId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** JUnit 결과가 속한 프로젝트를 현재 사용자가 변경(수정/삭제/플랜연결)할 수 있는지 (업로드 권한과 동일 기준) */
+  public boolean canModifyJunitResult(String testResultId) {
+    return junitTestResultRepository
+        .findProjectIdById(testResultId)
+        .map(this::canUploadToProject)
+        .orElse(false);
+  }
+
+  /** JUnit 스위트가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
+  public boolean canAccessJunitSuite(String suiteId) {
+    return junitTestSuiteRepository
+        .findProjectIdBySuiteId(suiteId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** JUnit 케이스가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
+  public boolean canAccessJunitCase(String caseId) {
+    return junitTestCaseRepository
+        .findProjectIdByCaseId(caseId)
+        .map(this::canAccessProject)
+        .orElse(false);
+  }
+
+  /** JUnit 케이스가 속한 프로젝트를 현재 사용자가 변경(수정)할 수 있는지 (업로드 권한과 동일 기준) */
+  public boolean canModifyJunitCase(String caseId) {
+    return junitTestCaseRepository
+        .findProjectIdByCaseId(caseId)
+        .map(this::canUploadToProject)
+        .orElse(false);
   }
 
   /** 사용자가 프로젝트 매니저인지 확인 */

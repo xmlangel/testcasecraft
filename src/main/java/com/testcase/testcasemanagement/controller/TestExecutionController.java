@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 /** 테스트 실행(Execution) 관리용 컨트롤러 */
+@lombok.extern.slf4j.Slf4j
 @Tag(name = "Test Execution - Management", description = "테스트 실행 관리 API")
 @RestController
 @RequestMapping("/api/test-executions")
@@ -118,7 +119,7 @@ public class TestExecutionController {
   @PostMapping("/{executionId}/results")
   public ResponseEntity<TestExecutionDto> updateTestResult(
       @PathVariable String executionId, @Valid @RequestBody TestResultDto resultDto) {
-    System.out.println("받은 요청: " + resultDto);
+    log.debug("받은 요청: " + resultDto);
     try {
       TestExecutionDto updated = testExecutionService.updateTestResult(executionId, resultDto);
       return ResponseEntity.ok(updated);
@@ -142,7 +143,7 @@ public class TestExecutionController {
   @PostMapping("/{executionId}/results/bulk")
   public ResponseEntity<TestExecutionDto> updateTestResultsBulk(
       @PathVariable String executionId, @Valid @RequestBody BulkTestResultDto bulkResultDto) {
-    System.out.println("일괄 결과 업데이트 요청: " + bulkResultDto);
+    log.debug("일괄 결과 업데이트 요청: " + bulkResultDto);
     try {
       TestExecutionDto updated =
           testExecutionService.updateTestResultsBulk(executionId, bulkResultDto);
@@ -197,7 +198,7 @@ public class TestExecutionController {
       @Valid @RequestBody TestResultDto resultDto,
       Authentication authentication) {
 
-    System.out.println("이전 결과 수정 요청: resultId=" + resultId + ", user=" + authentication.getName());
+    log.debug("이전 결과 수정 요청: resultId=" + resultId + ", user=" + authentication.getName());
 
     try {
       String currentUsername = authentication.getName();
@@ -228,7 +229,7 @@ public class TestExecutionController {
       @Parameter(description = "테스트 결과 ID") @PathVariable String resultId,
       Authentication authentication) {
 
-    System.out.println("이전 결과 삭제 요청: resultId=" + resultId + ", user=" + authentication.getName());
+    log.debug("이전 결과 삭제 요청: resultId=" + resultId + ", user=" + authentication.getName());
 
     try {
       String currentUsername = authentication.getName();
