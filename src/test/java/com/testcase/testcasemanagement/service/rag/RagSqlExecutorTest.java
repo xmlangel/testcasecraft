@@ -66,4 +66,47 @@ public class RagSqlExecutorTest {
     String sql = "SELECT * FROM testcases WHERE project_id = 'other-project-id'";
     sqlExecutor.executeSelect(sql, projectId);
   }
+
+  // ===== dev-review P0: LLM-SQL 경계 강화 회귀 가드 =====
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksUnionExfiltration() {
+    String sql =
+        "SELECT id FROM testcases WHERE project_id = '"
+            + projectId
+            + "' UNION SELECT name FROM testcases";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksUsersTable() {
+    String sql = "SELECT username FROM users WHERE project_id = '" + projectId + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksLlmConfigApiKey() {
+    String sql = "SELECT encrypted_api_key FROM llm_config WHERE project_id = '" + projectId + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksServiceApiKeys() {
+    String sql = "SELECT api_key FROM service_api_keys WHERE project_id = '" + projectId + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksMultipleStatements() {
+    String sql = "SELECT id FROM testcases WHERE project_id = '" + projectId + "'; SELECT 1 AS x";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test
+  public void testAllowsProjectScopedSelect_doesNotThrowIllegalArgument() {
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(java.util.List.of());
+    String sql = "SELECT id, name FROM testcases WHERE project_id = '" + projectId + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+    verify(jdbcTemplate).queryForList(anyString());
+  }
 }
