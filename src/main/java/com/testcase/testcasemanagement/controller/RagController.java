@@ -874,6 +874,9 @@ public class RagController {
    */
   @Operation(summary = "분석 요약 생성", description = "분석 결과에 대한 요약을 생성합니다.")
   @PostMapping("/analysis-summaries")
+  @PreAuthorize(
+      "#request.documentId != null and"
+          + " @projectSecurityService.canAccessDocumentProject(#request.documentId)")
   public ResponseEntity<RagAnalysisSummaryResponse> createAnalysisSummary(
       @Valid @RequestBody RagAnalysisSummaryRequest request) {
 
@@ -893,8 +896,12 @@ public class RagController {
    *
    * <p>GET /api/rag/analysis-summaries
    */
-  @Operation(summary = "분석 요약 목록 조회", description = "생성된 분석 요약 목록을 조회합니다.")
+  @Operation(
+      summary = "분석 요약 목록 조회",
+      description = "생성된 분석 요약 목록을 조회합니다. (접근 가능한 documentId 스코프 필수)")
   @GetMapping("/analysis-summaries")
+  @PreAuthorize(
+      "#documentId != null and @projectSecurityService.canAccessDocumentProject(#documentId)")
   public ResponseEntity<java.util.List<RagAnalysisSummaryResponse>> listAnalysisSummaries(
       @RequestParam(required = false) UUID documentId,
       @RequestParam(required = false) UUID userId,
@@ -928,6 +935,7 @@ public class RagController {
    */
   @Operation(summary = "분석 요약 상세 조회", description = "특정 분석 요약의 상세 내용을 조회합니다.")
   @GetMapping("/analysis-summaries/{summaryId}")
+  @PreAuthorize("@projectSecurityService.canAccessRagAnalysisSummary(#summaryId)")
   public ResponseEntity<RagAnalysisSummaryResponse> getAnalysisSummary(
       @PathVariable UUID summaryId) {
 
@@ -948,6 +956,7 @@ public class RagController {
    * <p>PUT /api/rag/analysis-summaries/{summaryId}
    */
   @PutMapping("/analysis-summaries/{summaryId}")
+  @PreAuthorize("@projectSecurityService.canAccessRagAnalysisSummary(#summaryId)")
   public ResponseEntity<RagAnalysisSummaryResponse> updateAnalysisSummary(
       @PathVariable UUID summaryId, @Valid @RequestBody RagAnalysisSummaryRequest request) {
 
@@ -968,6 +977,7 @@ public class RagController {
    * <p>DELETE /api/rag/analysis-summaries/{summaryId}
    */
   @DeleteMapping("/analysis-summaries/{summaryId}")
+  @PreAuthorize("@projectSecurityService.canAccessRagAnalysisSummary(#summaryId)")
   public ResponseEntity<String> deleteAnalysisSummary(@PathVariable UUID summaryId) {
 
     log.info("REST API: Delete analysis summary - summaryId={}", summaryId);
