@@ -348,7 +348,7 @@ public class RagController {
       summary = "테스트케이스 일괄 벡터화",
       description = "전체 또는 특정 프로젝트의 모든 테스트케이스를 RAG 시스템에 등록합니다. (관리자 전용)")
   @PostMapping("/testcases/vectorize-all")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Map<String, Object>> vectorizeAllTestCases(
       @RequestParam(value = "projectId", required = false) String projectId) {
 
@@ -431,7 +431,7 @@ public class RagController {
    */
   @Operation(summary = "공통 문서 업로드", description = "모든 프로젝트에서 접근 가능한 공통 문서를 업로드합니다. (관리자 전용)")
   @PostMapping(value = "/global-documents/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<RagDocumentResponse> uploadGlobalDocument(
       @RequestParam("file") MultipartFile file,
       @RequestParam(value = "uploadedBy", required = false) String uploadedBy) {
@@ -503,7 +503,7 @@ public class RagController {
    */
   @Operation(summary = "공통 문서 삭제", description = "공통 문서를 삭제합니다. (관리자 전용)")
   @DeleteMapping("/global-documents/{documentId}")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<String> deleteGlobalDocument(@PathVariable UUID documentId) {
     log.info("REST API: Delete global document request - documentId={}", documentId);
 
@@ -519,7 +519,7 @@ public class RagController {
   /** 프로젝트 문서를 공통 문서로 승격 (관리자 전용) */
   @Operation(summary = "문서 공통화 승격", description = "프로젝트 문서를 공통 문서로 승격시킵니다. (관리자 전용)")
   @PostMapping("/documents/{documentId}/promote-to-global")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<RagDocumentResponse> promoteDocumentToGlobal(
       @PathVariable UUID documentId,
       @RequestBody(required = false) RagPromoteDocumentRequest request,
@@ -565,7 +565,7 @@ public class RagController {
   /** 공통 문서 요청 목록 조회 (관리자) */
   @Operation(summary = "공통 문서 요청 목록 조회", description = "공통 문서 등록 요청 목록을 조회합니다. (관리자 전용)")
   @GetMapping("/global-document-requests")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<RagGlobalDocumentRequestDto>> listGlobalDocumentRequests(
       @RequestParam(value = "status", required = false) RagGlobalDocumentRequestStatus status) {
     try {
@@ -581,7 +581,7 @@ public class RagController {
   /** 공통 문서 요청 승인 (관리자) */
   @Operation(summary = "공통 문서 요청 승인", description = "공통 문서 등록 요청을 승인합니다. (관리자 전용)")
   @PostMapping("/global-document-requests/{requestId}/approve")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<RagGlobalDocumentRequestDto> approveGlobalDocumentRequest(
       @PathVariable String requestId,
       @RequestBody(required = false) RagGlobalDocumentRequestDecisionRequest request,
@@ -600,7 +600,7 @@ public class RagController {
   /** 공통 문서 요청 거절 (관리자) */
   @Operation(summary = "공통 문서 요청 거절", description = "공통 문서 등록 요청을 거절합니다. (관리자 전용)")
   @PostMapping("/global-document-requests/{requestId}/reject")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<RagGlobalDocumentRequestDto> rejectGlobalDocumentRequest(
       @PathVariable String requestId,
       @RequestBody(required = false) RagGlobalDocumentRequestDecisionRequest request,

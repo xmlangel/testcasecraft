@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(name = "System - Authentication", description = "사용자 인증 및 토큰 관리 API")
 @RestController
 @RequestMapping("/api/auth")
@@ -127,15 +129,6 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<?> createAuthenticationToken(@RequestBody User user) {
     try {
-      System.out.println("DEBUG - AuthController.createAuthenticationToken:");
-      System.out.println("  - Received user: " + (user != null ? "NOT NULL" : "NULL"));
-      System.out.println("  - Username: " + (user != null ? user.getUsername() : "NULL"));
-      System.out.println(
-          "  - Password: "
-              + (user != null && user.getPassword() != null
-                  ? "***" + user.getPassword().length() + " chars***"
-                  : "NULL"));
-
       // 사용자 인증
       Authentication authentication =
           authenticationManager.authenticate(
@@ -153,8 +146,7 @@ public class AuthController {
 
       // ICT-169: 비활성화된 사용자 추가 검증 (보안 강화)
       if (!userEntity.getIsActive()) {
-        System.out.println(
-            "SECURITY - Login blocked for inactive user: " + userEntity.getUsername());
+        log.warn("SECURITY - Login blocked for inactive user: {}", userEntity.getUsername());
         return ResponseEntity.status(403)
             .body(
                 Map.of(
@@ -201,7 +193,7 @@ public class AuthController {
 
     } catch (org.springframework.security.authentication.DisabledException e) {
       // ICT-169: 비활성화된 계정 로그인 시도 처리
-      System.out.println("SECURITY - Disabled account login attempt: " + e.getMessage());
+      log.warn("SECURITY - Disabled account login attempt: {}", e.getMessage());
       return ResponseEntity.status(403)
           .body(
               Map.of(
@@ -215,7 +207,7 @@ public class AuthController {
                   "errorCode", "INVALID_CREDENTIALS",
                   "message", "사용자명 또는 비밀번호가 올바르지 않습니다."));
     } catch (Exception e) {
-      System.out.println("ERROR - Authentication failure: " + e.getMessage());
+      log.error("ERROR - Authentication failure", e);
       return ResponseEntity.status(401)
           .body(
               Map.of(

@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -107,6 +108,7 @@ public class TestCaseAttachmentController {
   }
 
   /** 전체 첨부파일 목록 조회 (관리자용) */
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/admin/all")
   @Operation(
       summary = "전체 첨부파일 목록 조회",
@@ -230,7 +232,8 @@ public class TestCaseAttachmentController {
       @PathVariable String attachmentId, @RequestParam("token") String token) {
 
     try {
-      log.debug("공개 토큰을 이용한 파일 다운로드 시도: attachmentId={}, token={}", attachmentId, token);
+      // 공개 토큰은 인증 자격이므로 평문으로 로깅하지 않는다
+      log.debug("공개 토큰을 이용한 파일 다운로드 시도: attachmentId={}", attachmentId);
       TestCaseAttachment attachment =
           fileStorageService.getAttachmentByPublicToken(attachmentId, token);
       log.debug(
@@ -379,6 +382,7 @@ public class TestCaseAttachmentController {
   }
 
   /** 스토리지 정보 조회 (관리자용) */
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/admin/storage-info")
   @Operation(summary = "스토리지 정보 조회")
   public ResponseEntity<?> getStorageInfo(@AuthenticationPrincipal UserDetails userDetails) {
@@ -437,6 +441,7 @@ public class TestCaseAttachmentController {
   }
 
   /** 미사용 첨부파일 정리 (관리자용) */
+  @PreAuthorize("hasRole('ADMIN')")
   @DeleteMapping("/admin/cleanup-unused")
   @Operation(
       summary = "미사용 첨부파일 정리",

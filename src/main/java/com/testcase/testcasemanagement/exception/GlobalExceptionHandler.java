@@ -520,20 +520,22 @@ public class GlobalExceptionHandler {
     }
 
     generalErrorCounter.increment();
+    // 내부 예외 상세(원문 메시지·예외 클래스·파일명·라인번호)는 응답에 노출하지 않고 서버 로그로만 남긴다 (CWE-209).
+    // 클라이언트에는 추적용 traceId만 전달해 로그와 상관관계를 맺는다.
+    String traceId = java.util.UUID.randomUUID().toString().substring(0, 8);
     logger.error(
-        "Unexpected error: {} - Request: {}", ex.getMessage(), request.getDescription(false), ex);
-
-    // Debugging: Include stack trace in error message
-    String debugMessage = "서버 내부 오류 발생: " + ex.getMessage();
-    for (StackTraceElement element : ex.getStackTrace()) {
-      if (element.getClassName().startsWith("com.testcase")) {
-        debugMessage += " [At: " + element.getFileName() + ":" + element.getLineNumber() + "]";
-        break;
-      }
-    }
+        "Unexpected error [traceId={}]: {} - Request: {}",
+        traceId,
+        ex.getMessage(),
+        request.getDescription(false),
+        ex);
 
     ErrorResponse response =
-        new ErrorResponse("INTERNAL_ERROR", debugMessage, LocalDateTime.now(), null);
+        new ErrorResponse(
+            "INTERNAL_ERROR",
+            "서버 내부 오류가 발생했습니다. (traceId: " + traceId + ")",
+            LocalDateTime.now(),
+            null);
     return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 

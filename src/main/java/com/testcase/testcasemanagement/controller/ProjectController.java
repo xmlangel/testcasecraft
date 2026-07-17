@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>테스트 케이스 관리 시스템의 핵심인 프로젝트 생성, 수정, 삭제 및 관리 기능을 제공합니다. 조직 기반 프로젝트 관리와 독립 프로젝트 관리를 모두 지원합니다.
  */
+@lombok.extern.slf4j.Slf4j
 @Tag(name = "Project Management", description = "프로젝트 관리 API")
 @RestController
 @RequestMapping("/api/projects")
@@ -366,15 +367,22 @@ public class ProjectController {
           @RequestBody
           ProjectDto projectDto,
       Authentication authentication) { // @Valid 추가
-    System.out.println("createProject 메서드 호출됨: " + projectDto.getName()); // 디버그 로그 유지
-    System.out.println("DTO code: " + projectDto.getCode()); // 디버그 로그 추가
-    System.out.println("DTO id: " + projectDto.getId()); // 디버그 로그 추가
-    System.out.println("DTO description: " + projectDto.getDescription()); // 디버그 로그 추가
+    log.debug("createProject 메서드 호출됨: " + projectDto.getName()); // 디버그 로그 유지
+    log.debug("DTO code: " + projectDto.getCode()); // 디버그 로그 추가
+    log.debug("DTO id: " + projectDto.getId()); // 디버그 로그 추가
+    log.debug("DTO description: " + projectDto.getDescription()); // 디버그 로그 추가
+    // 생성 엔드포인트에 기존 프로젝트 id가 실리면 saveProject가 update로 분기해
+    // 임의 인증 사용자가 타 프로젝트를 덮어쓸 수 있다(하이재킹). 생성 경로에서는 id를 허용하지 않는다.
+    if (projectDto.getId() != null && !projectDto.getId().trim().isEmpty()) {
+      return ResponseEntity.badRequest()
+          .body(Map.of("error", "프로젝트 생성 요청에는 id를 포함할 수 없습니다. 수정은 PUT /api/projects/{id}를 사용하세요."));
+    }
+
     // 기존 수동 코드 필드 검증 로직 제거
 
     Project project = ProjectMapper.toEntity(projectDto);
-    System.out.println("Entity code: " + project.getCode()); // 디버그 로그 추가
-    System.out.println("DTO organizationId: " + projectDto.getOrganizationId()); // 디버그 로그 추가
+    log.debug("Entity code: " + project.getCode()); // 디버그 로그 추가
+    log.debug("DTO organizationId: " + projectDto.getOrganizationId()); // 디버그 로그 추가
 
     // organizationId가 있으면 Organization 객체 설정
     if (projectDto.getOrganizationId() != null
@@ -384,9 +392,9 @@ public class ProjectController {
         Organization organization =
             organizationService.getOrganization(projectDto.getOrganizationId());
         project.setOrganization(organization);
-        System.out.println("Organization 설정 완료: " + organization.getName()); // 디버그 로그
+        log.debug("Organization 설정 완료: " + organization.getName()); // 디버그 로그
       } catch (Exception e) {
-        System.out.println("Organization 설정 실패: " + e.getMessage()); // 디버그 로그
+        log.debug("Organization 설정 실패: " + e.getMessage()); // 디버그 로그
         return ResponseEntity.badRequest()
             .body(Map.of("error", "유효하지 않은 조직 ID입니다: " + projectDto.getOrganizationId()));
       }
@@ -910,23 +918,23 @@ public class ProjectController {
       HttpServletRequest request) {
 
     // 디버깅: 모든 파라미터 값과 요청 정보 출력
-    System.out.println("=== createOrganizationProject 호출됨 ===");
-    System.out.println("organizationId: " + organizationId);
-    System.out.println("@RequestParam code: " + code);
-    System.out.println("@RequestParam name: " + name);
-    System.out.println("@RequestParam description: " + description);
-    System.out.println("Content-Type: " + request.getContentType());
-    System.out.println("Method: " + request.getMethod());
+    log.debug("=== createOrganizationProject 호출됨 ===");
+    log.debug("organizationId: " + organizationId);
+    log.debug("@RequestParam code: " + code);
+    log.debug("@RequestParam name: " + name);
+    log.debug("@RequestParam description: " + description);
+    log.debug("Content-Type: " + request.getContentType());
+    log.debug("Method: " + request.getMethod());
 
     // 모든 요청 파라미터 출력
-    System.out.println("=== 모든 요청 파라미터 ===");
+    log.debug("=== 모든 요청 파라미터 ===");
     request
         .getParameterMap()
         .forEach(
             (key, values) -> {
-              System.out.println(key + ": " + String.join(", ", values));
+              log.debug(key + ": " + String.join(", ", values));
             });
-    System.out.println("=============================");
+    log.debug("=============================");
 
     // form data에서 직접 파라미터 읽기 (fallback)
     if (code == null) {
@@ -947,7 +955,7 @@ public class ProjectController {
       throw new IllegalArgumentException("프로젝트 이름은 필수입니다");
     }
 
-    System.out.println(
+    log.debug(
         "createOrganizationProject - code: "
             + code
             + ", name: "

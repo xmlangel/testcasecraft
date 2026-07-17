@@ -18,7 +18,9 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Test Execution - Individual", description = "개별 테스트 실행 API")
 @RestController
-@RequestMapping("/executions")
+// SPA 라우트(/executions/**, SecurityConfig permitAll)와 경로가 겹쳐 비인증 노출되던 문제 수정:
+// REST API를 /api 네임스페이스로 이전해 /api/** 인증 규칙의 보호를 받게 한다.
+@RequestMapping("/api/executions")
 @CrossOrigin(origins = "*")
 public class TestExecutionIndividualController {
 

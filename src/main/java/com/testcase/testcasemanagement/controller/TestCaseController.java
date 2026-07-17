@@ -31,8 +31,6 @@ import com.testcase.testcasemanagement.util.CsvMappingConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -223,16 +221,10 @@ public class TestCaseController {
       // 인가 실패는 403으로 전달 (GlobalExceptionHandler가 처리) — 500으로 삼키지 않는다
       throw e;
     } catch (Exception e) {
-      // 예외의 메시지와 전체 스택트레이스를 문자열로 변환해서 응답에 포함
-      StringWriter sw = new StringWriter();
-      e.printStackTrace(new PrintWriter(sw));
-      String stackTrace = sw.toString();
-      Map<String, Object> errorInfo = new HashMap<>();
-      errorInfo.put("error", "Server error");
-      errorInfo.put("exception", e.getClass().getName());
-      errorInfo.put("message", e.getMessage());
-      errorInfo.put("stackTrace", stackTrace);
-      return ResponseEntity.internalServerError().body(errorInfo);
+      // 내부 예외 상세(스택트레이스·예외 클래스·원문 메시지)는 서버 로그로만 남기고 응답엔 노출하지 않는다 (CWE-209)
+      log.error("테스트케이스 생성 중 오류 발생", e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "테스트케이스 생성 중 서버 오류가 발생했습니다."));
     }
   }
 
@@ -255,17 +247,10 @@ public class TestCaseController {
       // 인가 실패는 403으로 전달 (GlobalExceptionHandler가 처리) — 500으로 삼키지 않는다
       throw e;
     } catch (Exception e) {
-      // 예외의 메시지와 전체 스택트레이스를 문자열로 변환해서 응답에 포함
-      StringWriter sw = new StringWriter();
-      e.printStackTrace(new PrintWriter(sw));
-      String stackTrace = sw.toString();
-      Map<String, Object> errorInfo = new HashMap<>();
-      errorInfo.put("error", "Server error in updateTestCase");
-      errorInfo.put("exception", e.getClass().getName());
-      errorInfo.put("message", e.getMessage());
-      errorInfo.put("stackTrace", stackTrace);
-      log.error("테스트케이스 업데이트 중 오류 발생 - ID: {}, 오류: {}", id, e.getMessage(), e);
-      return ResponseEntity.internalServerError().body(errorInfo);
+      // 내부 예외 상세는 서버 로그로만 남기고 응답엔 노출하지 않는다 (CWE-209)
+      log.error("테스트케이스 업데이트 중 오류 발생 - ID: {}", id, e);
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "테스트케이스 업데이트 중 서버 오류가 발생했습니다."));
     }
   }
 
@@ -369,20 +354,9 @@ public class TestCaseController {
       }
 
     } catch (Exception e) {
+      // 내부 예외 상세는 서버 로그로만 남기고 응답엔 노출하지 않는다 (CWE-209)
       log.error("ICT-373: 배치 저장 중 예외 발생", e);
-
-      // 예외 정보를 포함한 에러 응답
-      StringWriter sw = new StringWriter();
-      e.printStackTrace(new PrintWriter(sw));
-      String stackTrace = sw.toString();
-
-      Map<String, Object> errorInfo = new HashMap<>();
-      errorInfo.put("error", "배치 저장 중 서버 오류 발생");
-      errorInfo.put("exception", e.getClass().getName());
-      errorInfo.put("message", e.getMessage());
-      errorInfo.put("stackTrace", stackTrace);
-
-      return ResponseEntity.internalServerError().body(errorInfo);
+      return ResponseEntity.internalServerError().body(Map.of("error", "배치 저장 중 서버 오류가 발생했습니다."));
     }
   }
 
