@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.repository;
 
 import com.testcase.testcasemanagement.model.JunitTestSuite;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,4 +29,8 @@ public interface JunitTestSuiteRepository extends JpaRepository<JunitTestSuite, 
           + "AND jts.name LIKE %:suiteName% ORDER BY jts.name")
   List<JunitTestSuite> findByTestResultAndNameContaining(
       @Param("testResultId") String testResultId, @Param("suiteName") String suiteName);
+
+  /** 스위트가 속한 프로젝트 ID 조회 (인가 검사용) */
+  @Query("SELECT s.junitTestResult.projectId FROM JunitTestSuite s WHERE s.id = :suiteId")
+  Optional<String> findProjectIdBySuiteId(@Param("suiteId") String suiteId);
 }

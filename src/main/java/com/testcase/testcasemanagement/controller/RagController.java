@@ -209,6 +209,7 @@ public class RagController {
    */
   @Operation(summary = "문서 조회", description = "특정 문서의 메타데이터를 조회합니다.")
   @GetMapping("/documents/{documentId}")
+  @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId)")
   public ResponseEntity<RagDocumentResponse> getDocument(@PathVariable UUID documentId) {
 
     log.info("REST API: Get document request - documentId={}", documentId);
@@ -229,6 +230,11 @@ public class RagController {
    */
   @Operation(summary = "문서 목록 조회", description = "프로젝트의 문서 목록을 페이징하여 조회합니다.")
   @GetMapping("/documents")
+  // projectId 생략 시 전체 프로젝트 문서가 노출되던 IDOR 차단:
+  // projectId가 있으면 해당 프로젝트 접근 권한을, 없으면(전체 조회) ADMIN을 요구한다.
+  @PreAuthorize(
+      "#projectId == null ? hasRole('ADMIN') "
+          + ": @projectSecurityService.canAccessProject(#projectId.toString())")
   public ResponseEntity<RagDocumentListResponse> listDocuments(
       @RequestParam(value = "projectId", required = false) UUID projectId,
       @RequestParam(value = "page", defaultValue = "1") Integer page,

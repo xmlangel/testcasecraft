@@ -184,6 +184,7 @@ public class TestCaseAttachmentController {
   }
 
   /** 파일 다운로드 */
+  @PreAuthorize("@projectSecurityService.canAccessTestCaseAttachment(#attachmentId)")
   @GetMapping("/{attachmentId}/download")
   @Operation(summary = "파일 다운로드")
   public ResponseEntity<Resource> downloadFile(
@@ -276,6 +277,7 @@ public class TestCaseAttachmentController {
   }
 
   /** 첨부파일 정보 조회 */
+  @PreAuthorize("@projectSecurityService.canAccessTestCaseAttachment(#attachmentId)")
   @GetMapping("/{attachmentId}")
   @Operation(summary = "첨부파일 정보 조회")
   public ResponseEntity<?> getAttachmentInfo(
@@ -307,6 +309,7 @@ public class TestCaseAttachmentController {
   }
 
   /** 첨부파일 삭제 */
+  @PreAuthorize("@projectSecurityService.canEditTestCaseAttachment(#attachmentId)")
   @DeleteMapping("/{attachmentId}")
   @Operation(summary = "첨부파일 삭제")
   public ResponseEntity<?> deleteAttachment(
@@ -406,6 +409,7 @@ public class TestCaseAttachmentController {
   }
 
   /** 첨부파일 사용 상태 업데이트 (인라인 이미지 추적용) */
+  @PreAuthorize("@projectSecurityService.canEditTestCaseAttachment(#attachmentId)")
   @PatchMapping("/{attachmentId}/mark-used")
   @Operation(summary = "첨부파일 사용 상태 업데이트", description = "이미지가 본문에 삽입되었음을 표시합니다.")
   public ResponseEntity<?> markAttachmentAsUsed(

@@ -53,6 +53,10 @@ public interface TestCaseAttachmentRepository extends JpaRepository<TestCaseAtta
   /** 공개 토큰으로 첨부파일 조회 */
   Optional<TestCaseAttachment> findByIdAndPublicAccessToken(String id, String publicAccessToken);
 
+  /** 첨부파일이 속한 프로젝트 ID 조회 (인가 검사용 — LAZY 로딩 우회) */
+  @Query("SELECT a.testCase.project.id FROM TestCaseAttachment a WHERE a.id = :attachmentId")
+  Optional<String> findProjectIdByAttachmentId(@Param("attachmentId") String attachmentId);
+
   /** 미사용 첨부파일 목록 조회 (생성일 기준) - isUsedInContent가 false 또는 null - 생성일이 지정 날짜 이전 - 상태가 ACTIVE */
   @Query(
       "SELECT a FROM TestCaseAttachment a WHERE "

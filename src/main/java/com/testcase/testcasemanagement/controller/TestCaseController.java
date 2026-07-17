@@ -39,6 +39,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -361,6 +362,7 @@ public class TestCaseController {
   }
 
   @Operation(summary = "CSV 가져오기", description = "CSV 파일에서 테스트케이스를 가져옵니다.")
+  @PreAuthorize("@projectSecurityService.canEditProject(#projectId)")
   @PostMapping("/import/csv")
   public ResponseEntity<?> importTestCases(
       @RequestParam("file") MultipartFile file,
@@ -390,6 +392,7 @@ public class TestCaseController {
 
   // ===== Excel Import API 추가 =====
   @Operation(summary = "Excel 가져오기", description = "Excel 파일에서 테스트케이스를 가져옵니다.")
+  @PreAuthorize("@projectSecurityService.canEditProject(#projectId)")
   @PostMapping("/import/excel")
   public ResponseEntity<?> importTestCasesFromExcel(
       @RequestParam("file") MultipartFile file,
@@ -423,6 +426,7 @@ public class TestCaseController {
   }
 
   @Operation(summary = "Google Sheet 가져오기", description = "Google Sheet에서 테스트케이스를 가져옵니다.")
+  @PreAuthorize("@projectSecurityService.canEditProject(#projectId)")
   @PostMapping("/import/google-sheet")
   public List<?> importFromGoogleSheet(
       @RequestParam String spreadsheetId,
@@ -590,6 +594,7 @@ public class TestCaseController {
   // ==================== 표준 형식 Import ====================
 
   @Operation(summary = "CSV 표준 가져오기", description = "표준 형식 CSV 파일에서 테스트케이스를 가져옵니다 (샘플 파일과 동일 형식).")
+  @PreAuthorize("@projectSecurityService.canEditProject(#projectId)")
   @PostMapping("/import/csv-standard")
   public ResponseEntity<?> importTestCasesStandardCsv(
       @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
@@ -614,6 +619,7 @@ public class TestCaseController {
   @Operation(
       summary = "Excel 표준 가져오기",
       description = "표준 형식 Excel 파일에서 테스트케이스를 가져옵니다 (샘플 파일과 동일 형식).")
+  @PreAuthorize("@projectSecurityService.canEditProject(#projectId)")
   @PostMapping("/import/excel-standard")
   public ResponseEntity<?> importTestCasesStandardExcel(
       @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
@@ -636,6 +642,7 @@ public class TestCaseController {
   }
 
   @Operation(summary = "JSON 가져오기", description = "표준 형식 JSON 파일에서 테스트케이스를 가져옵니다.")
+  @PreAuthorize("@projectSecurityService.canEditProject(#projectId)")
   @PostMapping("/import/json")
   public ResponseEntity<?> importTestCasesJson(
       @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
