@@ -1,6 +1,14 @@
 # src/main/resources/application-prod.yml
 # 운영 환경 전용 설정
 
+# 운영에서는 API 문서(Swagger UI·api-docs)를 노출하지 않는다 (비인증 정보 노출 차단).
+# 개발/테스트에서는 base application.yml 의 enabled=true 를 그대로 사용한다.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 # 운영용 데이터베이스 설정 (PostgreSQL)
 spring:
   datasource:

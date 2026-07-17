@@ -35,6 +35,14 @@ public class SecurityConfig {
   private final com.testcase.testcasemanagement.repository.ServiceApiKeyRepository
       serviceApiKeyRepository;
 
+  /**
+   * CORS 허용 Origin 목록(쉼표 구분). 와일드카드 '*'를 쓰지 않는다 — allowCredentials(true)와 '*' 조합은 요청 Origin을 그대로
+   * 반사해 임의 사이트의 자격증명 실은 요청을 허용하는 취약점이다. 운영에서는 APP_CORS_ALLOWED_ORIGINS 환경변수로 실제 도메인을 지정한다.
+   */
+  @org.springframework.beans.factory.annotation.Value(
+      "${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://localhost:8080}")
+  private String allowedOrigins;
+
   public SecurityConfig(
       CustomUserDetailsService userDetailsService,
       JwtTokenUtil jwtTokenUtil,
@@ -108,13 +116,12 @@ public class SecurityConfig {
                     .permitAll() // 가이드 API 허용
                     .requestMatchers("/api/manual/**")
                     .permitAll() // 사용자 매뉴얼 API 허용 (로그인 화면 링크 지원)
-                    // 액추에이터 엔드포인트 허용 (루트, 헬스, 스케줄러)
-                    .requestMatchers(
-                        "/actuator",
-                        "/actuator/health",
-                        "/actuator/health/**",
-                        "/actuator/scheduledtasks")
+                    // 액추에이터: 헬스체크(프로브)만 공개, 나머지(scheduledtasks·metrics 등)는 ADMIN 전용.
+                    // (이전: /actuator·/actuator/scheduledtasks 까지 permitAll → 내부 스케줄·정보 비인증 노출)
+                    .requestMatchers("/actuator/health", "/actuator/health/**")
                     .permitAll()
+                    .requestMatchers("/actuator/**")
+                    .hasRole("ADMIN")
                     // Swagger UI 및 API 문서 허용
                     .requestMatchers(
                         "/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**")
@@ -192,8 +199,13 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    // 모든 Origin 허용 (개발/테스트용)
-    configuration.setAllowedOriginPatterns(List.of("*"));
+    // 명시적으로 설정된 Origin만 허용 (와일드카드 '*' 금지 — allowCredentials와 결합 시 Origin 반사 취약점).
+    List<String> origins =
+        java.util.Arrays.stream(allowedOrigins.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .toList();
+    configuration.setAllowedOriginPatterns(origins);
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("*"));
     configuration.setAllowCredentials(true);
