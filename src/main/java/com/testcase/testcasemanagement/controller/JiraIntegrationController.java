@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -254,7 +255,12 @@ public class JiraIntegrationController {
 
   /** JIRA 동기화가 필요한 테스트 결과 조회 */
   @GetMapping("/pending-sync-results")
-  @Operation(summary = "동기화 대기 테스트 결과 조회", description = "JIRA 동기화가 필요한 테스트 결과 목록을 조회합니다")
+  @PreAuthorize(
+      "(#projectId != null and @projectSecurityService.canAccessProject(#projectId)) or"
+          + " hasRole('ADMIN')")
+  @Operation(
+      summary = "동기화 대기 테스트 결과 조회",
+      description = "JIRA 동기화가 필요한 테스트 결과 목록을 조회합니다 (프로젝트 스코프 또는 관리자)")
   public ResponseEntity<List<TestResult>> getPendingSyncResults(
       @RequestParam(required = false) String projectId,
       @RequestParam(defaultValue = "50") int limit) {
@@ -281,7 +287,10 @@ public class JiraIntegrationController {
 
   /** JIRA 동기화 상태 통계 조회 */
   @GetMapping("/sync-status-statistics")
-  @Operation(summary = "JIRA 동기화 상태 통계", description = "JIRA 동기화 상태별 통계를 조회합니다")
+  @PreAuthorize(
+      "(#projectId != null and @projectSecurityService.canAccessProject(#projectId)) or"
+          + " hasRole('ADMIN')")
+  @Operation(summary = "JIRA 동기화 상태 통계", description = "JIRA 동기화 상태별 통계를 조회합니다 (프로젝트 스코프 또는 관리자)")
   public ResponseEntity<List<Map<String, Object>>> getSyncStatusStatistics(
       @RequestParam(required = false) String projectId) {
 
@@ -298,7 +307,8 @@ public class JiraIntegrationController {
 
   /** 실패한 JIRA 동기화 재시도 */
   @PostMapping("/retry-failed-syncs")
-  @Operation(summary = "실패한 JIRA 동기화 재시도", description = "실패한 JIRA 동기화를 재시도합니다")
+  @PreAuthorize("hasRole('ADMIN')")
+  @Operation(summary = "실패한 JIRA 동기화 재시도", description = "실패한 JIRA 동기화를 재시도합니다 (관리자 전용, 전 프로젝트 대상)")
   public ResponseEntity<Map<String, Object>> retryFailedSyncs(
       @RequestParam(defaultValue = "30") int retryDelayMinutes,
       @RequestParam(defaultValue = "20") int batchSize) {
@@ -333,7 +343,8 @@ public class JiraIntegrationController {
 
   /** 타임아웃된 진행 중 동기화 정리 */
   @PostMapping("/cleanup-timed-out-syncs")
-  @Operation(summary = "타임아웃 동기화 정리", description = "오래된 진행 중 상태의 동기화를 정리합니다")
+  @PreAuthorize("hasRole('ADMIN')")
+  @Operation(summary = "타임아웃 동기화 정리", description = "오래된 진행 중 상태의 동기화를 정리합니다 (관리자 전용, 전 프로젝트 대상)")
   public ResponseEntity<Map<String, Object>> cleanupTimedOutSyncs(
       @RequestParam(defaultValue = "30") int timeoutMinutes) {
 
