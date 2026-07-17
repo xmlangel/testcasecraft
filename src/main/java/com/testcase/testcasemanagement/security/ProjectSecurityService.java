@@ -517,4 +517,22 @@ public class ProjectSecurityService {
     String currentUsername = securityContextUtil.getCurrentUsername();
     return currentUsername != null && canAccessDocumentProject(documentId, currentUsername);
   }
+
+  /**
+   * RAG 분석요약이 속한(요약→document→) 프로젝트에 현재 사용자가 접근할 수 있는지. 요약은 외부 RAG 서비스에 저장되므로 요약을 조회해 소속 documentId
+   * 를 얻은 뒤 문서-프로젝트 접근 권한으로 판정한다(canAccessDocumentProject 가 외부 getDocument 를 쓰는 것과 동일 패턴). 조회 실패·미존재
+   * 시 fail-closed.
+   */
+  public boolean canAccessRagAnalysisSummary(java.util.UUID summaryId) {
+    try {
+      com.testcase.testcasemanagement.dto.rag.RagAnalysisSummaryResponse summary =
+          ragService.getAnalysisSummary(summaryId);
+      if (summary == null || summary.getDocumentId() == null) {
+        return false;
+      }
+      return canAccessDocumentProject(summary.getDocumentId());
+    } catch (Exception e) {
+      return false;
+    }
+  }
 }
