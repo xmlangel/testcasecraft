@@ -1,24 +1,25 @@
 // src/test/java/com/testcase/testcasemanagement/audit/AuditServiceTest.java
 package com.testcase.testcasemanagement.audit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.testng.Assert.*;
 
 import com.testcase.testcasemanagement.model.AuditLog;
 import com.testcase.testcasemanagement.repository.AuditLogRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import java.util.List;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.transaction.annotation.Transactional;
+import org.testng.annotations.Test;
 
 /** AuditService 테스트 Task 9 완료 검증: 감사 로그 자동 기록 및 조회 기능 */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class AuditServiceTest {
+public class AuditServiceTest extends AbstractTestNGSpringContextTests {
 
   @Autowired private AuditService auditService;
 
@@ -44,10 +45,10 @@ public class AuditServiceTest {
     assertFalse(logs.isEmpty());
 
     AuditLog log = logs.get(0);
-    assertEquals(entityType, log.getEntityType());
-    assertEquals(entityId, log.getEntityId());
-    assertEquals(action, log.getAction());
-    assertEquals(details, log.getDetails());
+    assertEquals(log.getEntityType(), entityType);
+    assertEquals(log.getEntityId(), entityId);
+    assertEquals(log.getAction(), action);
+    assertEquals(log.getDetails(), details);
     assertNotNull(log.getTimestamp());
   }
 
@@ -68,10 +69,10 @@ public class AuditServiceTest {
     assertFalse(logs.isEmpty());
 
     AuditLog log = logs.get(0);
-    assertEquals(AuditEntityType.ORGANIZATION.getValue(), log.getEntityType());
-    assertEquals(organizationId, log.getEntityId());
-    assertEquals(action.getValue(), log.getAction());
-    assertEquals(details, log.getDetails());
+    assertEquals(log.getEntityType(), AuditEntityType.ORGANIZATION.getValue());
+    assertEquals(log.getEntityId(), organizationId);
+    assertEquals(log.getAction(), action.getValue());
+    assertEquals(log.getDetails(), details);
   }
 
   @Test
@@ -92,9 +93,9 @@ public class AuditServiceTest {
     assertFalse(logs.isEmpty());
 
     AuditLog log = logs.get(0);
-    assertEquals(AuditEntityType.ORGANIZATION_USER.getValue(), log.getEntityType());
-    assertEquals(organizationId, log.getEntityId());
-    assertEquals(action.getValue(), log.getAction());
+    assertEquals(log.getEntityType(), AuditEntityType.ORGANIZATION_USER.getValue());
+    assertEquals(log.getEntityId(), organizationId);
+    assertEquals(log.getAction(), action.getValue());
     assertTrue(log.getDetails().contains("memberId:" + memberId));
     assertTrue(log.getDetails().contains("role:" + role));
   }
@@ -116,10 +117,10 @@ public class AuditServiceTest {
     assertFalse(logs.isEmpty());
 
     AuditLog log = logs.get(0);
-    assertEquals(entityType.getValue(), log.getEntityType());
-    assertEquals(entityId, log.getEntityId());
-    assertEquals(action.getValue(), log.getAction());
-    assertEquals(details, log.getDetails());
+    assertEquals(log.getEntityType(), entityType.getValue());
+    assertEquals(log.getEntityId(), entityId);
+    assertEquals(log.getAction(), action.getValue());
+    assertEquals(log.getDetails(), details);
   }
 
   @Test
@@ -138,10 +139,10 @@ public class AuditServiceTest {
     assertFalse(logs.isEmpty());
 
     AuditLog log = logs.get(0);
-    assertEquals(entityType, log.getEntityType());
-    assertEquals(entityId, log.getEntityId());
-    assertEquals(action, log.getAction());
-    assertEquals(details, log.getDetails());
+    assertEquals(log.getEntityType(), entityType);
+    assertEquals(log.getEntityId(), entityId);
+    assertEquals(log.getAction(), action);
+    assertEquals(log.getDetails(), details);
     assertNull(log.getPerformedBy()); // 사용자 정보 없음
   }
 
@@ -157,14 +158,14 @@ public class AuditServiceTest {
      * 인증: LOGIN, LOGOUT
      * 기타: ACTIVATE, DEACTIVATE, ARCHIVE, RESTORE
      */
-    assertEquals("CREATE", AuditAction.CREATE.getValue());
-    assertEquals("UPDATE", AuditAction.UPDATE.getValue());
-    assertEquals("DELETE", AuditAction.DELETE.getValue());
-    assertEquals("INVITE_MEMBER", AuditAction.INVITE_MEMBER.getValue());
-    assertEquals("REMOVE_MEMBER", AuditAction.REMOVE_MEMBER.getValue());
-    assertEquals("UPDATE_MEMBER_ROLE", AuditAction.UPDATE_MEMBER_ROLE.getValue());
-    assertEquals("LOGIN", AuditAction.LOGIN.getValue());
-    assertEquals("LOGOUT", AuditAction.LOGOUT.getValue());
+    assertEquals(AuditAction.CREATE.getValue(), "CREATE");
+    assertEquals(AuditAction.UPDATE.getValue(), "UPDATE");
+    assertEquals(AuditAction.DELETE.getValue(), "DELETE");
+    assertEquals(AuditAction.INVITE_MEMBER.getValue(), "INVITE_MEMBER");
+    assertEquals(AuditAction.REMOVE_MEMBER.getValue(), "REMOVE_MEMBER");
+    assertEquals(AuditAction.UPDATE_MEMBER_ROLE.getValue(), "UPDATE_MEMBER_ROLE");
+    assertEquals(AuditAction.LOGIN.getValue(), "LOGIN");
+    assertEquals(AuditAction.LOGOUT.getValue(), "LOGOUT");
   }
 
   @Test
@@ -179,15 +180,15 @@ public class AuditServiceTest {
      * 테스트: TEST_CASE, TEST_PLAN, TEST_EXECUTION, TEST_RESULT
      * 시스템: SYSTEM, AUTHENTICATION
      */
-    assertEquals("USER", AuditEntityType.USER.getValue());
-    assertEquals("ORGANIZATION", AuditEntityType.ORGANIZATION.getValue());
-    assertEquals("ORGANIZATION_USER", AuditEntityType.ORGANIZATION_USER.getValue());
-    assertEquals("PROJECT", AuditEntityType.PROJECT.getValue());
-    assertEquals("PROJECT_USER", AuditEntityType.PROJECT_USER.getValue());
-    assertEquals("GROUP", AuditEntityType.GROUP.getValue());
-    assertEquals("GROUP_MEMBER", AuditEntityType.GROUP_MEMBER.getValue());
-    assertEquals("SYSTEM", AuditEntityType.SYSTEM.getValue());
-    assertEquals("AUTHENTICATION", AuditEntityType.AUTHENTICATION.getValue());
+    assertEquals(AuditEntityType.USER.getValue(), "USER");
+    assertEquals(AuditEntityType.ORGANIZATION.getValue(), "ORGANIZATION");
+    assertEquals(AuditEntityType.ORGANIZATION_USER.getValue(), "ORGANIZATION_USER");
+    assertEquals(AuditEntityType.PROJECT.getValue(), "PROJECT");
+    assertEquals(AuditEntityType.PROJECT_USER.getValue(), "PROJECT_USER");
+    assertEquals(AuditEntityType.GROUP.getValue(), "GROUP");
+    assertEquals(AuditEntityType.GROUP_MEMBER.getValue(), "GROUP_MEMBER");
+    assertEquals(AuditEntityType.SYSTEM.getValue(), "SYSTEM");
+    assertEquals(AuditEntityType.AUTHENTICATION.getValue(), "AUTHENTICATION");
   }
 }
 

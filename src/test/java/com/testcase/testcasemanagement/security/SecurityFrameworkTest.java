@@ -1,21 +1,22 @@
 package com.testcase.testcasemanagement.security;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.testng.Assert.*;
 
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.transaction.annotation.Transactional;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /** 보안 프레임워크 통합 테스트 권한 없는 사용자의 접근 차단을 검증합니다. */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class SecurityFrameworkTest {
+public class SecurityFrameworkTest extends AbstractTestNGSpringContextTests {
 
   @Autowired private OrganizationSecurityService organizationSecurityService;
 
@@ -44,7 +45,7 @@ public class SecurityFrameworkTest {
   private Project testProject;
   private Group testGroup;
 
-  @BeforeEach
+  @BeforeMethod
   public void setUp() {
     // 테스트 사용자 생성
     testUser1 = new User();
