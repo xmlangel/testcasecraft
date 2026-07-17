@@ -20,7 +20,17 @@ public class RagSqlExecutor {
   // 안전하지 않은 키워드 체크 (대소문자 구분 없이)
   private static final Pattern UNSAFE_PATTERN =
       Pattern.compile(
-          "\\b(UPDATE|DELETE|INSERT|DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE|REPLACE)\\b",
+          "\\b(UPDATE|DELETE|INSERT|DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE|REPLACE|MERGE|CALL|COPY|EXECUTE)\\b",
+          Pattern.CASE_INSENSITIVE);
+
+  // 집합 연산자 — 서로 다른 테이블/프로젝트 데이터를 접합해 격리를 우회하는 통로. 차단.
+  private static final Pattern SET_OPERATOR_PATTERN =
+      Pattern.compile("\\b(UNION|INTERSECT|EXCEPT)\\b", Pattern.CASE_INSENSITIVE);
+
+  // 민감 테이블/컬럼 — RAG 질의의 정당한 대상이 아니며 유출 시 치명적. 어디(서브쿼리 포함)에 등장해도 차단.
+  private static final Pattern SENSITIVE_PATTERN =
+      Pattern.compile(
+          "\\b(users|llm_config|service_api_keys|mail_settings|email_verification_tokens?|refresh_tokens?|redirect_token|google_config|jira_config|password|encrypted_api_key|api_key|apikey|secret_key)\\b",
           Pattern.CASE_INSENSITIVE);
 
   /** SELECT 쿼리를 실행하고 결과를 반환합니다. */
@@ -65,6 +75,26 @@ public class RagSqlExecutor {
       return false;
     }
 
+    // 2-1. 집합 연산자(UNION/INTERSECT/EXCEPT) 금지 — 프로젝트/테이블 격리 우회 통로
+    if (SET_OPERATOR_PATTERN.matcher(sql).find()) {
+      log.warn("SQL Safety Check Failed: Set operator (UNION/INTERSECT/EXCEPT) not allowed");
+      return false;
+    }
+
+    // 2-2. 민감 테이블/컬럼 접근 금지 (서브쿼리 포함 어디에 등장해도)
+    if (SENSITIVE_PATTERN.matcher(sql).find()) {
+      log.warn("SQL Safety Check Failed: Access to sensitive table/column blocked");
+      return false;
+    }
+
+    // 2-3. 다중 문장 금지 (선택적 말미 세미콜론 1개만 허용)
+    String withoutTrailingSemicolon =
+        trimmed.endsWith(";") ? trimmed.substring(0, trimmed.length() - 1) : trimmed;
+    if (withoutTrailingSemicolon.contains(";")) {
+      log.warn("SQL Safety Check Failed: Multiple statements not allowed");
+      return false;
+    }
+
     // 3. 주석을 통한 우회 시도 차단
     if (sql.contains("--") || sql.contains("/*")) {
       log.warn("SQL Safety Check Failed: Comments detected (not allowed for safety)");
@@ -91,10 +121,9 @@ public class RagSqlExecutor {
     String sqlWithoutDashes = normalizedSql.replaceAll("-", "");
 
     if (!sqlWithoutDashes.contains("PROJECT_ID=") && !sqlWithoutDashes.contains("PROJECT_IDIN")) {
-      // 완벽한 정규식은 아니지만, 최소한 '=' 이나 'IN' 조건이 PROJECT_ID 뒤에 오는지 확인
-      log.warn(
-          "SQL Safety Check Failed: project_id condition might be invalid or missing '=' or 'IN'");
-      // return false; // 일단은 경고만 하고 통과 (contains 체크가 이미 되었으므로)
+      // project_id 에 대한 '=' 또는 'IN' 조건을 강제한다. (이전: 경고만 하고 통과 → 문자열 리터럴로 우회 가능했음)
+      log.warn("SQL Safety Check Failed: project_id must be constrained with '=' or 'IN'");
+      return false;
     }
 
     return true;
