@@ -44,7 +44,7 @@ public class UserPermissionController {
   /** 특정 사용자의 권한 정보 조회 */
   @Operation(summary = "특정 사용자의 권한 정보 조회", description = "특정 사용자가 가진 모든 조직 및 프로젝트 권한을 조회합니다.")
   @GetMapping("/{userId}")
-  @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
+  @PreAuthorize("hasRole('ADMIN') or @securityContextUtil.isCurrentUser(#userId)")
   public ResponseEntity<UserPermissionDto> getUserPermissions(@PathVariable String userId) {
     UserPermissionDto permissions = userPermissionService.getUserPermissions(userId);
     return ResponseEntity.ok(permissions);
@@ -217,7 +217,7 @@ public class UserPermissionController {
   /** 사용자의 권한 변경 이력 조회 */
   @Operation(summary = "사용자의 권한 변경 이력 조회", description = "사용자의 권한 변경 로그를 조회합니다.")
   @GetMapping("/{userId}/history")
-  @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
+  @PreAuthorize("hasRole('ADMIN') or @securityContextUtil.isCurrentUser(#userId)")
   public ResponseEntity<List<AuditLog>> getUserPermissionHistory(@PathVariable String userId) {
     List<AuditLog> history = userPermissionService.getUserPermissionHistory(userId);
     return ResponseEntity.ok(history);
