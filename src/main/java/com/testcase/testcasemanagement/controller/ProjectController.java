@@ -1075,7 +1075,7 @@ public class ProjectController {
   @DeleteMapping("/{projectId}/members/{userId}")
   @PreAuthorize(
       "@projectSecurityService.hasManagementRole(#projectId, authentication.name) or"
-          + " authentication.name == #userId")
+          + " @securityContextUtil.isCurrentUser(#userId)")
   public ResponseEntity<Void> removeProjectMember(
       @Parameter(description = "멤버를 제거할 프로젝트 ID", required = true, example = "proj-mobile-123")
           @PathVariable

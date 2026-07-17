@@ -120,8 +120,8 @@ public class GroupController {
   @Operation(summary = "그룹 멤버 제거", description = "그룹에서 멤버를 제거합니다.")
   @DeleteMapping("/{groupId}/members/{userId}")
   @PreAuthorize(
-      "@groupSecurityService.hasLeaderRole(#groupId, authentication.name) or authentication.name =="
-          + " #userId")
+      "@groupSecurityService.hasLeaderRole(#groupId, authentication.name) or"
+          + " @securityContextUtil.isCurrentUser(#userId)")
   public ResponseEntity<Void> removeGroupMember(
       @PathVariable String groupId, @PathVariable String userId) {
     groupService.removeMember(groupId, userId);
