@@ -3,7 +3,6 @@ package com.testcase.testcasemanagement.security;
 import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -47,8 +46,7 @@ public class EncryptionUtil {
   }
 
   private boolean isProdProfileActive() {
-    return Arrays.stream(environment.getActiveProfiles())
-        .anyMatch(p -> p.equalsIgnoreCase("prod") || p.equalsIgnoreCase("production"));
+    return com.testcase.testcasemanagement.util.ProfileUtils.isProdActive(environment);
   }
 
   @PostConstruct
@@ -71,6 +69,14 @@ public class EncryptionUtil {
     if (encryptionKeyBase64 == null || encryptionKeyBase64.trim().isEmpty()) {
       throw new IllegalStateException(
           "암호화 키가 설정되지 않았습니다. jira.security.encryption.key 환경변수를 설정하세요.");
+    }
+
+    // 운영(prod)에서 저장소에 커밋된 공개 기본 키로 암호화하는 것은 실질 평문 저장이다 → fail-closed.
+    // (비-운영에서는 warnOnInsecureKey 가 경고만 하고 계속 진행 — 개발/테스트 무마찰 유지)
+    if (isProdProfileActive() && isUsingCommittedDefaultKey()) {
+      throw new IllegalStateException(
+          "운영에서 저장소에 커밋된 기본 암호화 키가 사용되고 있습니다. 환경변수 JIRA_ENCRYPTION_KEY 로 고유 키를 주입하세요"
+              + "(EncryptionUtil.generateEncryptionKey()).");
     }
 
     try {

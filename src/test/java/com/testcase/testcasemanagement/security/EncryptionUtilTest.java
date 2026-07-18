@@ -117,19 +117,14 @@ public class EncryptionUtilTest {
     assertEquals(util.decrypt(""), "");
   }
 
-  // ===== dev-review R2(P1): 커밋 기본키 운영 fail-closed — 목표 스펙(수정 前) =====
+  // ===== dev-review R2(P1): 커밋 기본키 운영 fail-closed (수정 완료 — 활성) =====
 
   /**
-   * <b>목표 스펙(TDD, 아직 RED)</b>: 운영(prod) 프로파일에서 저장소에 커밋된 기본 암호화 키가 그대로 쓰이면, 공개 키로 토큰을 암호화하는 것은 실질 평문
-   * 저장이다. 현재는 warnOnInsecureKey 가 경고만 하고 암호화는 계속 성공한다(warn-only). 목표는 이 경우 fail-closed — 암호화 시도가
-   * 예외로 거부돼야 한다.
-   *
-   * <p>이 테스트는 수정(예: prod + 커밋기본키 → getEncryptionKey 예외, 또는 prod yml 기본값 제거) 전에는 실패하므로 {@code
-   * enabled=false} 로 둔다. 수정 PR 에서 활성화하고 초록으로 만든다.
+   * 운영(prod) 프로파일에서 저장소에 커밋된 기본 암호화 키가 그대로 쓰이면, 공개 키로 토큰을 암호화하는 것은 실질 평문 저장이다. getEncryptionKey 가 이
+   * 경우를 fail-closed 로 거부한다(암호화 시도가 예외). 비-운영에서는 warnOnInsecureKey 가 경고만 하고 계속 진행한다.
    */
-  @Test(enabled = false)
-  public void prod_committedDefaultKey_encryptShouldFailClosed_TODO_enableWithFix()
-      throws Exception {
+  @Test
+  public void prod_committedDefaultKey_encryptFailsClosed() throws Exception {
     Environment prodEnv = Mockito.mock(Environment.class);
     Mockito.when(prodEnv.getActiveProfiles()).thenReturn(new String[] {"prod"});
     EncryptionUtil prodUtil = new EncryptionUtil(prodEnv);
@@ -142,5 +137,32 @@ public class EncryptionUtilTest {
     key.set(prodUtil, "5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y="); // 커밋된 기본 키
 
     org.testng.Assert.expectThrows(RuntimeException.class, () -> prodUtil.encrypt("jira-token"));
+  }
+
+  /** fail-closed 는 운영 전용 — 비-운영(test/dev)에서는 커밋 기본 키로도 암호화가 계속 동작해야 한다(무마찰 유지). */
+  @Test
+  public void nonProd_committedDefaultKey_stillEncrypts() throws Exception {
+    setEnabled(true);
+    setKey("5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y="); // 커밋된 기본 키, 프로파일=test
+    String enc = util.encrypt("jira-token");
+    assertEquals(util.decrypt(enc), "jira-token", "비-운영에서는 커밋 기본 키로도 라운드트립 성공");
+  }
+
+  /** 운영이라도 고유(비-커밋) 키면 정상 동작해야 한다(과도차단 방지). */
+  @Test
+  public void prod_uniqueKey_encryptsNormally() throws Exception {
+    Environment prodEnv = Mockito.mock(Environment.class);
+    Mockito.when(prodEnv.getActiveProfiles()).thenReturn(new String[] {"prod"});
+    EncryptionUtil prodUtil = new EncryptionUtil(prodEnv);
+
+    Field enabled = EncryptionUtil.class.getDeclaredField("encryptionEnabled");
+    enabled.setAccessible(true);
+    enabled.setBoolean(prodUtil, true);
+    Field key = EncryptionUtil.class.getDeclaredField("encryptionKeyBase64");
+    key.setAccessible(true);
+    key.set(prodUtil, EncryptionUtil.generateEncryptionKey()); // 고유 키
+
+    String enc = prodUtil.encrypt("jira-token");
+    assertEquals(prodUtil.decrypt(enc), "jira-token", "운영에서 고유 키는 정상 동작");
   }
 }
