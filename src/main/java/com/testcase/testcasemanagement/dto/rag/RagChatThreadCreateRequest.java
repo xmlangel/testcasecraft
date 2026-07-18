@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.dto.rag;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,6 +20,7 @@ public class RagChatThreadCreateRequest {
 
   @NotNull
   @JsonProperty("projectId")
+  @JsonAlias("project_id")
   private UUID projectId;
 
   @NotBlank
@@ -29,5 +31,6 @@ public class RagChatThreadCreateRequest {
   private String description;
 
   @JsonProperty("categoryIds")
+  @JsonAlias("category_ids")
   private List<String> categoryIds;
 }
