@@ -423,7 +423,8 @@ public class UserManagementKeysInitializer {
         "profile.apiToken.list.empty", "profile", "토큰 없음 메시지", "발급된 API 토큰이 없습니다.");
 
     createTranslationKeyIfNotExists("profile.apiToken.table.name", "profile", "테이블 이름 헤더", "이름");
-    createTranslationKeyIfNotExists("profile.apiToken.table.key", "profile", "테이블 키 헤더", "키 (마스킹)");
+    createTranslationKeyIfNotExists(
+        "profile.apiToken.table.key", "profile", "테이블 키 헤더", "키 (발급 시 1회만 표시)");
     createTranslationKeyIfNotExists("profile.apiToken.table.status", "profile", "테이블 상태 헤더", "상태");
     createTranslationKeyIfNotExists(
         "profile.apiToken.table.expiry", "profile", "테이블 만료일 헤더", "만료일");

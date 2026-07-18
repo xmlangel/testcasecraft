@@ -1235,7 +1235,8 @@ public class KoreanTestCaseAndAutomationTranslations {
         "profile.apiToken.list.empty", languageCode, "발급된 API 토큰이 없습니다.", createdBy);
 
     createTranslationIfNotExists("profile.apiToken.table.name", languageCode, "이름", createdBy);
-    createTranslationIfNotExists("profile.apiToken.table.key", languageCode, "키 (마스킹)", createdBy);
+    createTranslationIfNotExists(
+        "profile.apiToken.table.key", languageCode, "키 (발급 시 1회만 표시)", createdBy);
     createTranslationIfNotExists("profile.apiToken.table.status", languageCode, "상태", createdBy);
     createTranslationIfNotExists("profile.apiToken.table.expiry", languageCode, "만료일", createdBy);
     createTranslationIfNotExists("profile.apiToken.table.created", languageCode, "생성일", createdBy);
