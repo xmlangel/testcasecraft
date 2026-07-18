@@ -4,19 +4,21 @@ package com.testcase.testcasemanagement.filter;
 
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
-import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.HtmlUtils;
 
 /**
  * Rate Limiting 필터 - IP 기반으로 페이지 리프레시 제한
@@ -28,12 +30,29 @@ public class RateLimiterFilter implements Filter {
 
   private static final Logger log = LoggerFactory.getLogger(RateLimiterFilter.class);
 
-  // IP별 Rate Limiter를 관리하는 맵
-  private final ConcurrentMap<String, RateLimiter> rateLimiters = new ConcurrentHashMap<>();
+  // 추적 IP 상한 — 무한 증식(스푸핑된 IP 회전에 의한 메모리 고갈 DoS) 방지용 LRU 캡
+  private static final int MAX_TRACKED_IPS = 100_000;
+
+  // IP별 Rate Limiter를 관리하는 크기 제한 LRU 맵 (접근 순서, 상한 초과 시 오래된 항목 제거).
+  // (이전: 무한 ConcurrentHashMap + resilience4j Registry 이중 저장 → evict 없이 무한 증식)
+  private final Map<String, RateLimiter> rateLimiters =
+      Collections.synchronizedMap(
+          new LinkedHashMap<>(1024, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, RateLimiter> eldest) {
+              return size() > MAX_TRACKED_IPS;
+            }
+          });
 
   // Rate Limiter 설정
   private final RateLimiterConfig rateLimiterConfig;
-  private final RateLimiterRegistry rateLimiterRegistry;
+
+  /**
+   * X-Forwarded-For / X-Real-IP 신뢰 여부. 기본 false — 헤더는 클라이언트가 임의로 설정할 수 있어, 신뢰하면 IP를 회전시켜 rate
+   * limit을 우회하고 추적 맵을 무한 증식시킬 수 있다. 신뢰할 수 있는 리버스 프록시 뒤에 배포된 경우에만 true로 설정한다.
+   */
+  @Value("${app.ratelimit.trust-forwarded-headers:false}")
+  private boolean trustForwardedHeaders;
 
   // Rate Limiting에서 제외할 경로 패턴
   private static final String[] EXCLUDED_PATHS = {
@@ -58,8 +77,6 @@ public class RateLimiterFilter implements Filter {
             .limitRefreshPeriod(Duration.ofSeconds(1)) // 1초마다 리셋
             .timeoutDuration(Duration.ZERO) // 대기 없이 즉시 거부
             .build();
-
-    this.rateLimiterRegistry = RateLimiterRegistry.of(rateLimiterConfig);
   }
 
   @Override
@@ -80,10 +97,9 @@ public class RateLimiterFilter implements Filter {
     // 클라이언트 IP 추출
     String clientIp = extractClientIp(httpRequest);
 
-    // IP별 Rate Limiter 가져오기 또는 생성
+    // IP별 Rate Limiter 가져오기 또는 생성 (Registry 미사용 — LRU 맵이 수명 관리)
     RateLimiter rateLimiter =
-        rateLimiters.computeIfAbsent(
-            clientIp, ip -> rateLimiterRegistry.rateLimiter(ip, rateLimiterConfig));
+        rateLimiters.computeIfAbsent(clientIp, ip -> RateLimiter.of(ip, rateLimiterConfig));
 
     try {
       // Rate Limiter 체크
@@ -123,21 +139,37 @@ public class RateLimiterFilter implements Filter {
       String htmlResponse = generateRateLimitHtmlPage(clientIp, request.getRequestURI());
       response.getWriter().write(htmlResponse);
     } else {
-      // JSON 응답 반환 (API 요청)
+      // JSON 응답 반환 (API 요청) — clientIp 를 JSON 이스케이프해 구조 주입 방지
       response.setContentType("application/json;charset=UTF-8");
       String jsonResponse =
           String.format(
               "{\"error\":\"Too Many Requests\",\"message\":\"동일 IP에서 1초에 60번 이상 요청이 발생했습니다. 1초 후"
                   + " 다시 시도해주세요.\",\"retryAfter\":1,\"clientIp\":\"%s\"}",
-              clientIp);
+              jsonEscape(clientIp));
       response.getWriter().write(jsonResponse);
     }
 
     response.getWriter().flush();
   }
 
+  /** 최소 JSON 문자열 이스케이프 (백슬래시·큰따옴표·제어문자). */
+  private String jsonEscape(String value) {
+    if (value == null) {
+      return "";
+    }
+    return value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t");
+  }
+
   /** Rate Limit 초과 시 표시할 HTML 페이지 생성 */
-  private String generateRateLimitHtmlPage(String clientIp, String requestPath) {
+  private String generateRateLimitHtmlPage(String clientIpRaw, String requestPathRaw) {
+    // 반영 XSS 방지 — 헤더/URI 유래 값을 HTML 이스케이프
+    String clientIp = HtmlUtils.htmlEscape(clientIpRaw == null ? "" : clientIpRaw);
+    String requestPath = HtmlUtils.htmlEscape(requestPathRaw == null ? "" : requestPathRaw);
     return "<!DOCTYPE html>\n"
         + "<html lang=\"ko\">\n"
         + "<head>\n"
@@ -358,23 +390,29 @@ public class RateLimiterFilter implements Filter {
     return false;
   }
 
-  /** 클라이언트 IP 추출 (프록시 고려) */
+  /**
+   * 클라이언트 IP 추출.
+   *
+   * <p>보안: X-Forwarded-For / X-Real-IP 는 클라이언트가 임의로 설정 가능하므로 신뢰할 수 있는 프록시 뒤에 있을 때만
+   * (app.ratelimit.trust-forwarded-headers=true) 참고한다. 그렇지 않으면 헤더를 무시하고 실제 소켓 주소(getRemoteAddr)를
+   * 사용해 IP 스푸핑에 의한 rate limit 우회·추적 맵 무한 증식을 막는다.
+   */
   private String extractClientIp(HttpServletRequest request) {
-    // X-Forwarded-For 헤더 확인 (프록시/로드밸런서 뒤에 있는 경우)
-    String xForwardedFor = request.getHeader("X-Forwarded-For");
-    if (StringUtils.hasText(xForwardedFor)) {
-      // 여러 IP가 있을 경우 첫 번째 IP 사용
-      int commaIndex = xForwardedFor.indexOf(',');
-      return commaIndex > 0 ? xForwardedFor.substring(0, commaIndex).trim() : xForwardedFor.trim();
+    if (trustForwardedHeaders) {
+      String xForwardedFor = request.getHeader("X-Forwarded-For");
+      if (StringUtils.hasText(xForwardedFor)) {
+        // 여러 IP가 있을 경우 첫 번째 IP 사용
+        int commaIndex = xForwardedFor.indexOf(',');
+        return commaIndex > 0
+            ? xForwardedFor.substring(0, commaIndex).trim()
+            : xForwardedFor.trim();
+      }
+      String xRealIp = request.getHeader("X-Real-IP");
+      if (StringUtils.hasText(xRealIp)) {
+        return xRealIp.trim();
+      }
     }
-
-    // X-Real-IP 헤더 확인
-    String xRealIp = request.getHeader("X-Real-IP");
-    if (StringUtils.hasText(xRealIp)) {
-      return xRealIp.trim();
-    }
-
-    // 기본 Remote Address 사용
+    // 기본: 스푸핑 불가능한 실제 소켓 주소
     return request.getRemoteAddr();
   }
 
