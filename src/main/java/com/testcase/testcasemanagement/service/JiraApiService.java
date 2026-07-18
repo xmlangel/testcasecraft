@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,6 +15,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -33,6 +36,13 @@ public class JiraApiService {
   private final ObjectMapper objectMapper;
   private final JiraConnectionManager jiraConnectionManager;
   private final Optional<JiraMonitoringService> jiraMonitoringService;
+
+  /**
+   * SSRF 가드 우회 스위치. 기본 false — 루프백/사설/링크로컬(클라우드 메타데이터 169.254.169.254 포함) 대상을 차단한다. 내부 IP 로 운영되는
+   * 신뢰된 on-prem Jira 를 쓰는 배포에서만 true 로 켠다.
+   */
+  @Value("${app.jira.allow-private-targets:false}")
+  private boolean allowPrivateTargets;
 
   public JiraApiService(
       RestTemplate restTemplate,
@@ -671,7 +681,9 @@ public class JiraApiService {
 
   /** JIRA 이슈 URL 생성 ICT-162: 이슈 URL 생성 유틸리티 */
   public String generateIssueUrl(String serverUrl, String issueKey) {
-    String normalizedUrl = normalizeServerUrl(serverUrl);
+    // 표시용 링크 조립 — 서버측 요청이 없으므로 SSRF 검증 없는 순수 정규화를 쓴다.
+    // (검증하는 normalizeServerUrl 을 쓰면 내부 URL 저장 시 배치 상태요약 집계가 500 으로 전파됨)
+    String normalizedUrl = normalizeServerUrlForDisplay(serverUrl);
     return normalizedUrl + "/browse/" + issueKey;
   }
 
@@ -793,7 +805,21 @@ public class JiraApiService {
 
   // Private helper methods
 
+  /**
+   * 아웃바운드 Jira 호출용 정규화 — 문자열 정규화 후 SSRF 대상 검증까지 수행한다. 서버측 요청(RestTemplate.exchange)을 내는 모든 경로는 이
+   * 메서드를 통과하는 것이 단일 초크포인트다. 표시용 URL 조립처럼 서버측 요청이 없는 경로는 {@link #normalizeServerUrlForDisplay} 를 쓴다.
+   */
   private String normalizeServerUrl(String serverUrl) {
+    String normalized = normalizeServerUrlForDisplay(serverUrl);
+    validateOutboundTarget(normalized);
+    return normalized;
+  }
+
+  /**
+   * 순수 문자열 정규화 — 스킴 접두어 보정 + 후행 슬래시 제거. SSRF 검증을 하지 않으므로 서버측 요청이 없는 표시용 URL 조립(generateIssueUrl)에서만
+   * 쓴다. 내부 대상이라도 예외를 던지지 않는다(링크 렌더는 서버가 아니라 사용자 브라우저가 요청).
+   */
+  private String normalizeServerUrlForDisplay(String serverUrl) {
     if (serverUrl == null || serverUrl.isEmpty()) {
       throw new IllegalArgumentException("서버 URL이 필요합니다");
     }
@@ -809,6 +835,71 @@ public class JiraApiService {
     }
 
     return serverUrl;
+  }
+
+  /**
+   * 정규화된 서버 URL 이 안전한 아웃바운드 대상인지 검증한다 (SSRF 방지).
+   *
+   * <p>http/https 스킴만 허용하고, 호스트를 실제로 해석해 루프백/임의로컬/링크로컬(169.254/fe80)/사설(10·172.16-31·192.168·fc00
+   * ULA)/CGNAT(100.64/10)/멀티캐스트 대상을 차단한다. 하나의 이름이 여러 주소로 해석되면 그중 하나라도 차단 대상이면 거부한다(DNS 리바인딩 완화).
+   * {@code app.jira.allow-private-targets=true} 로 켜면 내부 대상 차단을 생략한다(신뢰된 on-prem 배포 전용).
+   */
+  private void validateOutboundTarget(String normalizedUrl) {
+    final URI uri;
+    try {
+      uri = URI.create(normalizedUrl);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("유효하지 않은 서버 URL 입니다");
+    }
+
+    String scheme = uri.getScheme();
+    if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+      throw new IllegalArgumentException("서버 URL 은 http/https 스킴만 허용됩니다");
+    }
+
+    String host = uri.getHost();
+    if (host == null || host.isEmpty()) {
+      throw new IllegalArgumentException("서버 URL 의 호스트가 유효하지 않습니다");
+    }
+
+    if (allowPrivateTargets) {
+      return;
+    }
+
+    final InetAddress[] addresses;
+    try {
+      addresses = InetAddress.getAllByName(host);
+    } catch (UnknownHostException e) {
+      throw new IllegalArgumentException("서버 호스트를 확인할 수 없습니다: " + host);
+    }
+    for (InetAddress address : addresses) {
+      if (isBlockedTarget(address)) {
+        throw new IllegalArgumentException("허용되지 않는 내부/사설 대상입니다: " + host);
+      }
+    }
+  }
+
+  /** 내부/사설/특수용도 주소인지 판정한다. */
+  private boolean isBlockedTarget(InetAddress address) {
+    if (address.isLoopbackAddress()
+        || address.isAnyLocalAddress()
+        || address.isLinkLocalAddress()
+        || address.isSiteLocalAddress()
+        || address.isMulticastAddress()) {
+      return true;
+    }
+    byte[] octets = address.getAddress();
+    if (octets.length == 4) {
+      int first = octets[0] & 0xff;
+      int second = octets[1] & 0xff;
+      // CGNAT 100.64.0.0/10 (isSiteLocalAddress 미포함)
+      return first == 100 && second >= 64 && second <= 127;
+    }
+    if (octets.length == 16) {
+      // IPv6 Unique Local Address fc00::/7 (isSiteLocalAddress 는 deprecated fec0::/10 만 커버)
+      return (octets[0] & 0xfe) == 0xfc;
+    }
+    return false;
   }
 
   private String createBasicAuthHeader(String username, String apiToken) {

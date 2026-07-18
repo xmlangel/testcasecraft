@@ -137,3 +137,9 @@ logging:
 app:
   ratelimit:
     trust-forwarded-headers: ${APP_RATELIMIT_TRUST_FORWARDED_HEADERS:false}
+  jira:
+    # SSRF 가드 (JiraApiService.normalizeServerUrl)
+    # 기본 false: Jira 서버 URL 이 루프백/사설/링크로컬(클라우드 메타데이터 169.254.169.254 포함) 로
+    # 향하면 아웃바운드 요청을 거부한다.
+    # 내부 IP 로 운영되는 신뢰된 on-prem Jira 를 연동해야 하는 배포에서만 true 로 켠다.
+    allow-private-targets: ${APP_JIRA_ALLOW_PRIVATE_TARGETS:false}
