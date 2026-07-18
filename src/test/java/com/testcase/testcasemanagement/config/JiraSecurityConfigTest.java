@@ -65,4 +65,36 @@ public class JiraSecurityConfigTest {
     assertFalse(bypassAllowed(new String[] {"dev"}, false));
     assertFalse(bypassAllowed(new String[] {"prod"}, false));
   }
+
+  /**
+   * dev-review R2(SSRF 잔여): Jira 아웃바운드 커넥션은 리다이렉트를 자동 추종하면 안 된다. 검증(#81)을 통과한 공개 URL 이 302 로
+   * 사설/메타데이터(169.254.169.254)로 재유도하는 우회를 prepareConnection 이 차단하는지 검증한다.
+   */
+  @Test
+  public void jiraConnection_doesNotFollowRedirects() throws Exception {
+    when(environment.getActiveProfiles()).thenReturn(new String[] {"test"});
+    JiraSecurityConfig config = new JiraSecurityConfig(environment);
+    // httpsEnforce=false 로 두어 HTTPS/SSL 분기를 건너뛰고 리다이렉트 설정만 검증한다.
+    Field httpsField = JiraSecurityConfig.class.getDeclaredField("httpsEnforce");
+    httpsField.setAccessible(true);
+    httpsField.setBoolean(config, false);
+
+    org.springframework.http.client.SimpleClientHttpRequestFactory factory =
+        (org.springframework.http.client.SimpleClientHttpRequestFactory)
+            config.jiraClientHttpRequestFactory();
+
+    java.net.HttpURLConnection conn =
+        (java.net.HttpURLConnection)
+            java.net.URI.create("http://example.com").toURL().openConnection();
+    // 기본값은 true — prepareConnection 이 명시적으로 false 로 바꿔야 한다.
+    conn.setInstanceFollowRedirects(true);
+
+    Method prepare =
+        org.springframework.http.client.SimpleClientHttpRequestFactory.class.getDeclaredMethod(
+            "prepareConnection", java.net.HttpURLConnection.class, String.class);
+    prepare.setAccessible(true);
+    prepare.invoke(factory, conn, "GET");
+
+    assertFalse(conn.getInstanceFollowRedirects(), "Jira 아웃바운드 커넥션은 리다이렉트를 추종하면 안 됨(SSRF 재유도 차단)");
+  }
 }
