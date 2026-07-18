@@ -416,10 +416,11 @@ public class DashboardService {
     statusCounts.put("FAIL", 0);
     statusCounts.put("BLOCKED", 0);
     statusCounts.put("SKIPPED", 0);
-    statusCounts.put("NOTRUN", 0);
+    // 저장 정본은 "NOT_RUN"(언더스코어) — 과거 "NOTRUN" 키는 저장값과 불일치해 미실행 건수가 0으로 누락됐다.
+    statusCounts.put("NOT_RUN", 0);
 
     for (TestResult result : uniqueResults) {
-      String status = result.getResult() != null ? result.getResult() : "NOTRUN";
+      String status = result.getResult() != null ? result.getResult() : "NOT_RUN";
       statusCounts.put(status, statusCounts.getOrDefault(status, 0) + 1);
     }
 
@@ -430,7 +431,7 @@ public class DashboardService {
     statistics.setFAIL(statusCounts.get("FAIL"));
     statistics.setBLOCKED(statusCounts.get("BLOCKED"));
     statistics.setSKIPPED(statusCounts.get("SKIPPED"));
-    statistics.setNOTRUN(statusCounts.get("NOTRUN"));
+    statistics.setNOTRUN(statusCounts.get("NOT_RUN"));
 
     return statistics;
   }
