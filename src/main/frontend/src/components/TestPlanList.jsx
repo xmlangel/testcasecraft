@@ -52,6 +52,7 @@ import { safeParseDate } from "../utils/dateUtils";
 import TestPlanAutomatedLinkDialog from "./TestPlanAutomatedLinkDialog";
 import { Link as LinkIcon } from "@mui/icons-material";
 import { countRealTestCases } from "../utils/treeUtils";
+import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
 
 const ADMIN_ROLES = ["ADMIN", "MANAGER"];
 const PLANS_PER_PAGE = 10;
@@ -243,21 +244,11 @@ const TestPlanList = ({
   };
 
   // Calculate progress for test execution
+  // 진행률 계산은 공유 progressUtils 를 쓴다. 이전엔 여기 인라인 사본이 미실행 판정을 "NOTRUN"(언더스코어
+  // 없음)과 비교해, 저장 정본 "NOT_RUN"(언더스코어)인 미실행 케이스를 완료로 오집계 → 진행률이 부풀려졌다(#76 드리프트).
   const calculateProgress = useCallback(
-    (execution) => {
-      if (!selectedTestPlan?.testCaseIds?.length || !Array.isArray(testCases))
-        return 0;
-      const caseIds = selectedTestPlan.testCaseIds.filter((id) => {
-        const tc = testCases.find((tc) => tc.id === id);
-        return tc && tc.type === "testcase";
-      });
-      if (caseIds.length === 0) return 0;
-      const completedTests = caseIds.filter((id) => {
-        const resultObj = execution.results?.find((r) => r.testCaseId === id);
-        return resultObj && resultObj.result && resultObj.result !== "NOTRUN";
-      }).length;
-      return Math.round((completedTests / caseIds.length) * 100);
-    },
+    (execution) =>
+      calculateExecutionProgress(execution, selectedTestPlan, testCases),
     [selectedTestPlan, testCases],
   );
 

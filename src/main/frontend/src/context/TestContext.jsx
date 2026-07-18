@@ -548,7 +548,8 @@ export const TestProvider = ({ children }) => {
     const execution = testExecutions.find((exec) => exec.id === executionId);
     if (!execution) return 0;
     const testPlan = testPlans.find((plan) => plan.id === execution.testPlanId);
-    return calcProgress(execution, testPlan);
+    // calcProgress 는 (execution, testPlan, testCases) 3인자 — testCases 를 빼면 Array 가드로 항상 0 이 된다.
+    return calcProgress(execution, testPlan, testCases);
   };
 
   // --- Dashboard APIs ---

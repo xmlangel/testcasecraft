@@ -53,4 +53,15 @@ describe("calculateExecutionProgress - NOT_RUN 드리프트", () => {
       100,
     );
   });
+
+  // 계약 가드: testCases(3번째 인자) 누락 시 0. TestContext 가 2인자로 호출해 진행률이 항상 0 이던 버그의 근원.
+  it("testCases 인자를 빼면 0 (계약 위반 방어)", () => {
+    const execution = {
+      results: [
+        { testCaseId: "c1", result: "PASS" },
+        { testCaseId: "c2", result: "PASS" },
+      ],
+    };
+    expect(calculateExecutionProgress(execution, testPlan)).toBe(0);
+  });
 });
