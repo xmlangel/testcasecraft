@@ -5,6 +5,7 @@ import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.TestResultAttachment;
+import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
@@ -306,7 +307,10 @@ public class JiraIntegrationService {
   private Map<String, List<TestResult>> extractJiraIssuesFromFailedTests(
       List<TestResult> testResults) {
     return testResults.stream()
-        .filter(result -> "FAIL".equals(result.getResult()) || "BLOCKED".equals(result.getResult()))
+        .filter(
+            result ->
+                TestResultStatus.FAIL.value().equals(result.getResult())
+                    || TestResultStatus.BLOCKED.value().equals(result.getResult()))
         .filter(result -> result.getNotes() != null && !result.getNotes().trim().isEmpty())
         .flatMap(
             result -> {
@@ -401,10 +405,22 @@ public class JiraIntegrationService {
     StringBuilder comment = new StringBuilder();
 
     // 결과 통계 계산
-    long passCount = testResults.stream().filter(r -> "PASS".equals(r.getResult())).count();
-    long failCount = testResults.stream().filter(r -> "FAIL".equals(r.getResult())).count();
-    long blockedCount = testResults.stream().filter(r -> "BLOCKED".equals(r.getResult())).count();
-    long notRunCount = testResults.stream().filter(r -> "NOT_RUN".equals(r.getResult())).count();
+    long passCount =
+        testResults.stream()
+            .filter(r -> TestResultStatus.PASS.value().equals(r.getResult()))
+            .count();
+    long failCount =
+        testResults.stream()
+            .filter(r -> TestResultStatus.FAIL.value().equals(r.getResult()))
+            .count();
+    long blockedCount =
+        testResults.stream()
+            .filter(r -> TestResultStatus.BLOCKED.value().equals(r.getResult()))
+            .count();
+    long notRunCount =
+        testResults.stream()
+            .filter(r -> TestResultStatus.NOT_RUN.value().equals(r.getResult()))
+            .count();
 
     double passRate = testResults.size() > 0 ? (double) passCount / testResults.size() * 100 : 0;
 
@@ -436,7 +452,7 @@ public class JiraIntegrationService {
     if (failCount > 0) {
       comment.append("\n**실패한 테스트:**\n");
       testResults.stream()
-          .filter(r -> "FAIL".equals(r.getResult()))
+          .filter(r -> TestResultStatus.FAIL.value().equals(r.getResult()))
           .limit(3)
           .forEach(r -> comment.append("- ").append(r.getTestCaseId()).append("\n"));
 

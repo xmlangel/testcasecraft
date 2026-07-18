@@ -7,6 +7,7 @@ import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.model.*;
+import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.repository.*;
 import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.util.JiraKeyUtils;
@@ -528,11 +529,11 @@ public class TestExecutionService {
         if (latest != null && latest.getResult() != null) {
           String resultStatus = latest.getResult();
           // 저장 정본은 "NOT_RUN" — "NOTRUN"과 비교하면 미실행이 완료로 오집계됐다.
-          if (!"NOT_RUN".equalsIgnoreCase(resultStatus)) {
+          if (!TestResultStatus.NOT_RUN.value().equalsIgnoreCase(resultStatus)) {
             completed++;
-            if ("PASS".equalsIgnoreCase(resultStatus)) {
+            if (TestResultStatus.PASS.value().equalsIgnoreCase(resultStatus)) {
               passed++;
-            } else if ("FAIL".equalsIgnoreCase(resultStatus)) {
+            } else if (TestResultStatus.FAIL.value().equalsIgnoreCase(resultStatus)) {
               failed++;
             }
           }
@@ -700,9 +701,9 @@ public class TestExecutionService {
 
                   if (plan != null && plan.getTestCaseIds() != null) {
                     int total = plan.getTestCaseIds().size();
-                    long passed = counts.getOrDefault("PASS", 0L);
-                    long failed = counts.getOrDefault("FAIL", 0L);
-                    long blocked = counts.getOrDefault("BLOCKED", 0L);
+                    long passed = counts.getOrDefault(TestResultStatus.PASS.value(), 0L);
+                    long failed = counts.getOrDefault(TestResultStatus.FAIL.value(), 0L);
+                    long blocked = counts.getOrDefault(TestResultStatus.BLOCKED.value(), 0L);
                     long completed = passed + failed + blocked;
 
                     dto.setTotalCount(total);
