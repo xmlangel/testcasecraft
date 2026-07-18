@@ -75,10 +75,13 @@ jira:
   security:
     encryption:
       enabled: true
-      key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
+      # 운영 키는 반드시 환경변수 JIRA_ENCRYPTION_KEY 로 주입한다(기본값 없음).
+      # 미설정 시 기동 실패(fail-closed) — 저장소에 커밋된 기본 키로 조용히 암호화되는 것을 방지.
+      # 키 생성: EncryptionUtil.generateEncryptionKey() (AES-256 Base64).
+      key: ${JIRA_ENCRYPTION_KEY}
     https:
       enforce: true # HTTPS 강제
-      skip-ssl-verification: false
+      skip-ssl-verification: false # 운영에서는 강제로 무시됨(JiraSecurityConfig 가 prod 프로파일에서 우회 차단)
   connection:
     timeout: ${JIRA_CONNECTION_TIMEOUT:30000}
     read-timeout: ${JIRA_READ_TIMEOUT:60000}

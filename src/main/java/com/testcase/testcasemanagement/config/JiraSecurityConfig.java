@@ -1,8 +1,10 @@
 package com.testcase.testcasemanagement.config;
 
+import jakarta.annotation.PostConstruct;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -11,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
@@ -32,15 +35,40 @@ public class JiraSecurityConfig {
   @Value("${jira.connection.read-timeout:60000}")
   private int readTimeout;
 
+  private final Environment environment;
+  private boolean prodProfileActive;
+
+  public JiraSecurityConfig(Environment environment) {
+    this.environment = environment;
+  }
+
+  @PostConstruct
+  void init() {
+    prodProfileActive =
+        Arrays.stream(environment.getActiveProfiles())
+            .anyMatch(p -> p.equalsIgnoreCase("prod") || p.equalsIgnoreCase("production"));
+    if (skipSslVerification && prodProfileActive) {
+      // 운영에서 인증서 검증 우회는 MITM 위험 → 설정돼 있어도 강제로 무시하고 보안 연결을 쓴다.
+      log.error(
+          "보안 경고: 운영(prod) 프로파일에서 jira.security.https.skip-ssl-verification=true 가 설정됐습니다."
+              + " 인증서 검증 우회를 거부하고 안전한 HTTPS 를 강제합니다.");
+    }
+  }
+
+  /** SSL 검증 우회가 실제로 허용되는지 — 운영 프로파일에서는 설정과 무관하게 항상 false. */
+  private boolean isSslBypassAllowed() {
+    return skipSslVerification && !prodProfileActive;
+  }
+
   /** JIRA API 통신용 RestTemplate 설정 */
   @Bean(name = "jiraRestTemplate")
   public RestTemplate jiraRestTemplate() {
     RestTemplate restTemplate = new RestTemplate();
     restTemplate.setRequestFactory(jiraClientHttpRequestFactory());
     log.info(
-        "JIRA RestTemplate 초기화 완료 - HTTPS 강제: {}, SSL 검증 스킵: {}",
+        "JIRA RestTemplate 초기화 완료 - HTTPS 강제: {}, SSL 검증 스킵(유효): {}",
         httpsEnforce,
-        skipSslVerification);
+        isSslBypassAllowed());
     return restTemplate;
   }
 
@@ -58,8 +86,8 @@ public class JiraSecurityConfig {
             if (httpsEnforce && connection instanceof HttpsURLConnection) {
               HttpsURLConnection httpsConnection = (HttpsURLConnection) connection;
 
-              if (skipSslVerification) {
-                // 개발/테스트 환경에서만 사용 (운영 환경 권장하지 않음)
+              if (isSslBypassAllowed()) {
+                // 개발/테스트 환경에서만 사용 (운영 프로파일에서는 isSslBypassAllowed 가 false → 진입 불가)
                 log.warn("SSL 인증서 검증을 건너뜁니다. 운영 환경에서는 권장하지 않습니다.");
                 configureSslBypass(httpsConnection);
               } else {
