@@ -33,6 +33,15 @@ public class RagSqlExecutor {
           "\\b(users|llm_config|service_api_keys|mail_settings|email_verification_tokens?|refresh_tokens?|redirect_token|google_config|jira_config|password|encrypted_api_key|api_key|apikey|secret_key)\\b",
           Pattern.CASE_INSENSITIVE);
 
+  // PG 시스템 카탈로그·정보 스키마·파일/네트워크 함수 — project_id 필터를 통과하는 콤마 크로스조인
+  // (예: FROM pg_authid a, testcases t WHERE t.project_id='<피해ID>')으로 rolpassword 등 크로스테넌트/
+  // 시크릿을 유출하는 통로. pg_ 접두 객체는 전량 차단하고 정보 스키마·dblink·lo_import/export·
+  // current_setting/set_config·rolpassword 도 함께 차단한다. (근본 방어는 read-only DB 롤 분리)
+  private static final Pattern SYSTEM_OBJECT_PATTERN =
+      Pattern.compile(
+          "\\b(pg_[a-z0-9_]+|information_schema|dblink\\w*|lo_import|lo_export|current_setting|set_config|rolpassword)\\b",
+          Pattern.CASE_INSENSITIVE);
+
   /** SELECT 쿼리를 실행하고 결과를 반환합니다. */
   @Transactional(readOnly = true)
   public List<Map<String, Object>> executeSelect(String sql, String projectId) {
@@ -84,6 +93,13 @@ public class RagSqlExecutor {
     // 2-2. 민감 테이블/컬럼 접근 금지 (서브쿼리 포함 어디에 등장해도)
     if (SENSITIVE_PATTERN.matcher(sql).find()) {
       log.warn("SQL Safety Check Failed: Access to sensitive table/column blocked");
+      return false;
+    }
+
+    // 2-2b. PG 시스템 카탈로그/정보 스키마/파일·네트워크 함수 금지 — 콤마 크로스조인으로 project_id 필터를
+    // 통과해 pg_authid.rolpassword 등 시스템 시크릿을 유출하는 경로 차단.
+    if (SYSTEM_OBJECT_PATTERN.matcher(sql).find()) {
+      log.warn("SQL Safety Check Failed: Access to system catalog/schema/function blocked");
       return false;
     }
 

@@ -109,4 +109,60 @@ public class RagSqlExecutorTest {
     sqlExecutor.executeSelect(sql, projectId);
     verify(jdbcTemplate).queryForList(anyString());
   }
+
+  // ===== dev-review R2: 시스템 카탈로그 콤마 크로스조인 우회 회귀 가드 =====
+
+  /**
+   * 핵심 익스플로잇: pg_authid 를 project_id 있는 testcases 와 콤마 크로스조인하면 프로젝트 필터·denylist·집합연산자 검사를 전부 통과하면서
+   * rolpassword(시스템 비밀번호 해시)를 유출한다. 시스템 카탈로그 차단으로 봉쇄돼야 한다.
+   */
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksPgAuthidCrossJoin() {
+    String sql =
+        "SELECT a.rolpassword FROM pg_authid a, testcases t WHERE t.project_id = '"
+            + projectId
+            + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksPgCatalogAccess() {
+    String sql =
+        "SELECT relname FROM pg_class, testcases WHERE testcases.project_id = '" + projectId + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksInformationSchema() {
+    String sql =
+        "SELECT table_name FROM information_schema.tables, testcases t WHERE t.project_id = '"
+            + projectId
+            + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksFileReadFunction() {
+    String sql =
+        "SELECT pg_read_file('/etc/passwd') FROM testcases WHERE project_id = '" + projectId + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testBlocksCurrentSetting() {
+    String sql =
+        "SELECT current_setting('is_superuser') FROM testcases WHERE project_id = '"
+            + projectId
+            + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+  }
+
+  /** 정상 프로젝트 스코프 쿼리는 시스템 카탈로그 차단 추가 후에도 계속 통과해야 한다(과도차단 방지). */
+  @Test
+  public void testLegitimateQueryStillAllowed_afterSystemCatalogBlock() {
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(java.util.List.of());
+    String sql = "SELECT id, title, status FROM testcases WHERE project_id = '" + projectId + "'";
+    sqlExecutor.executeSelect(sql, projectId);
+    verify(jdbcTemplate).queryForList(anyString());
+  }
 }

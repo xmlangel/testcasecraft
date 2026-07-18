@@ -82,6 +82,11 @@ public class JiraSecurityConfig {
               throws java.io.IOException {
             super.prepareConnection(connection, httpMethod);
 
+            // SSRF 방어: 리다이렉트 자동 추종 차단. normalizeServerUrl 의 대상검증(#81)을 통과한 공개 URL 이
+            // 302 로 사설/링크로컬(169.254.169.254 메타데이터)로 재유도하는 우회를 막는다. 리다이렉트가 필요한
+            // 정상 Jira 는 없다. (DNS 리바인딩 TOCTOU 의 근본 방어인 SSRF-aware 소켓팩토리/이그레스 프록시는 후속 과제)
+            connection.setInstanceFollowRedirects(false);
+
             // HTTPS 강제 적용
             if (httpsEnforce && connection instanceof HttpsURLConnection) {
               HttpsURLConnection httpsConnection = (HttpsURLConnection) connection;
