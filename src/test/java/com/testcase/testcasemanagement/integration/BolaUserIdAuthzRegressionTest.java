@@ -44,11 +44,12 @@ public class BolaUserIdAuthzRegressionTest extends AbstractTestNGSpringContextTe
   }
 
   /**
-   * 인가 거부로 판정한다. 이 앱은 Spring Security 의 AuthorizationDeniedException 을 엔드포인트에 따라 403 또는 400("Access
-   * Denied" 본문)으로 매핑한다(선재 매핑 불일치). 두 경우 모두 "거부"로 인정하되, 인가가 통과해 리소스 로직까지 도달한 경우(성공/다른 오류)는 실패로 본다.
+   * 인가 거부로 판정한다. 인가 거부(@PreAuthorize)는 401(비인증) 또는 403(권한 없음)이어야 한다. 과거 UserPermissionController 의
+   * 로컬 RuntimeException 핸들러가 AuthorizationDeniedException 을 400 으로 삼켜 인가 거부가 400 으로 나가던 것을 로컬
+   * AccessDeniedException→403 핸들러로 바로잡았다 — 이제 400 은 인가 거부로 인정하지 않는다.
    */
   private void assertDenied(int status, String body, String label) {
-    boolean denied = status == 401 || status == 403 || (status == 400 && body.contains("Denied"));
+    boolean denied = status == 401 || status == 403;
     org.testng.Assert.assertTrue(
         denied, label + " 는 인가 거부여야 함, 실제 status=" + status + " body=" + body);
   }

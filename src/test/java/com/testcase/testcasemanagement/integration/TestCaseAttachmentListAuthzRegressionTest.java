@@ -45,7 +45,7 @@ public class TestCaseAttachmentListAuthzRegressionTest extends AbstractTestNGSpr
             .getResponse();
     int status = resp.getStatus();
     String body = resp.getContentAsString();
-    boolean denied = status == 401 || status == 403 || (status == 400 && body.contains("Denied"));
+    boolean denied = status == 401 || status == 403; // 400 인정 제거 — 인가 거부는 403 이어야
     org.testng.Assert.assertTrue(
         denied, "접근권 없는 첨부 목록 조회는 거부여야 함, 실제 status=" + status + " body=" + body);
   }
