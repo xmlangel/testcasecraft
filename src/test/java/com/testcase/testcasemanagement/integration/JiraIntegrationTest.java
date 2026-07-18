@@ -2,6 +2,7 @@
 package com.testcase.testcasemanagement.integration;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.testng.Assert.*;
@@ -20,7 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -30,8 +30,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-@TestPropertySource(locations = "classpath:application-test.properties")
+// application-test.properties 는 존재하지 않았고(실제 설정은 application-test.yml), replace=ANY 는 임베디드
+// DB 를 요구했다. @ActiveProfiles("test") 가 application-test.yml 을 로드하므로 다른 통합 테스트처럼 그 PG 를 쓴다.
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Transactional
 class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
@@ -44,6 +45,8 @@ class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
 
   @Autowired private EncryptionService encryptionService;
 
+  @Autowired private com.testcase.testcasemanagement.security.EncryptionUtil encryptionUtil;
+
   @Autowired private JwtTokenUtil jwtTokenUtil;
 
   @Autowired private ObjectMapper objectMapper;
@@ -54,7 +57,10 @@ class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
 
   @BeforeMethod
   void setUp() {
-    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    // springSecurity() 를 적용해야 JWT 인증 필터 체인이 돌아 Bearer 토큰이 처리된다.
+    // 이전에는 미적용이라 인증된 요청도 401 을 받았다(다른 통합 테스트는 apply(springSecurity()) 사용).
+    mockMvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
 
     // 테스트 사용자 생성
     testUser = new User();
@@ -99,7 +105,9 @@ class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
         .andExpect(jsonPath("$.serverUrl", is("https://test.atlassian.net")))
         .andExpect(jsonPath("$.username", is("testuser@example.com")))
         .andExpect(jsonPath("$.isActive", is(true)))
-        .andExpect(jsonPath("$.apiToken").doesNotExist()); // 보안상 응답에 포함되지 않아야 함
+        // 보안: 원문 토큰은 노출되지 않고 마스킹된다(응답에 포함되되 평문 아님).
+        .andExpect(jsonPath("$.apiToken", not(is("test-api-token-12345"))))
+        .andExpect(jsonPath("$.apiToken", containsString("*")));
 
     // When & Then - 설정 조회
     mockMvc
@@ -164,7 +172,7 @@ class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
     // When & Then - 다른 사용자로 설정 조회 시도
     mockMvc
         .perform(get("/api/jira/config").header("Authorization", "Bearer " + anotherUserToken))
-        .andExpect(status().isNotFound()); // 설정이 없어야 함
+        .andExpect(status().isNoContent()); // 타 사용자에겐 설정이 없으므로 204 (noContent)
   }
 
   @Test(description = "JIRA 설정 삭제 테스트")
@@ -202,7 +210,7 @@ class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
     // 삭제 후 조회 시 404 응답
     mockMvc
         .perform(get("/api/jira/config").header("Authorization", "Bearer " + jwtToken))
-        .andExpect(status().isNotFound());
+        .andExpect(status().isNoContent()); // 활성 설정 없으면 204 (컨트롤러 계약: noContent)
   }
 
   @Test(description = "JIRA 연결 상태 조회 테스트")
@@ -330,8 +338,9 @@ class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
     assertNotEquals(
         savedConfig.getEncryptedApiToken(), originalApiToken, "데이터베이스에 암호화되지 않은 토큰이 저장되면 안됨");
 
-    // 복호화하여 원본과 같은지 확인
-    String decryptedToken = encryptionService.decrypt(savedConfig.getEncryptedApiToken());
+    // 복호화하여 원본과 같은지 확인 — 저장 시 EncryptionUtil 로 암호화하므로 동일 유틸로 복호화해야 한다
+    // (JiraConfigService 는 EncryptionUtil 사용; 구 EncryptionService 로 복호화하면 실패).
+    String decryptedToken = encryptionUtil.decrypt(savedConfig.getEncryptedApiToken());
     assertEquals(decryptedToken, originalApiToken, "복호화한 토큰이 원본과 같아야 함");
   }
 }
