@@ -527,7 +527,8 @@ public class TestExecutionService {
         TestResult latest = latestResultsMap.get(caseId);
         if (latest != null && latest.getResult() != null) {
           String resultStatus = latest.getResult();
-          if (!"NOTRUN".equalsIgnoreCase(resultStatus)) {
+          // 저장 정본은 "NOT_RUN" — "NOTRUN"과 비교하면 미실행이 완료로 오집계됐다.
+          if (!"NOT_RUN".equalsIgnoreCase(resultStatus)) {
             completed++;
             if ("PASS".equalsIgnoreCase(resultStatus)) {
               passed++;

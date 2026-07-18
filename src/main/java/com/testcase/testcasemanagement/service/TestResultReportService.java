@@ -85,11 +85,13 @@ public class TestResultReportService {
     statusCount.put("FAIL", 0);
     statusCount.put("BLOCKED", 0);
     statusCount.put("SKIPPED", 0);
-    statusCount.put("NOTRUN", 0);
+    // 저장 정본은 "NOT_RUN"(언더스코어) — "NOTRUN" init 키는 저장값과 불일치해 고아 버킷이었다.
+    statusCount.put("NOT_RUN", 0);
 
     for (TestExecution execution : executions) {
       for (TestResult result : execution.getResults()) {
-        String status = result.getResult();
+        // null result 는 null 맵 키를 만들어 소비 측 오류를 유발 — NOT_RUN 으로 정규화
+        String status = result.getResult() != null ? result.getResult() : "NOT_RUN";
         statusCount.put(status, statusCount.getOrDefault(status, 0) + 1);
       }
     }
