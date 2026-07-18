@@ -48,16 +48,16 @@ public class JiraSecurityConfig {
         Arrays.stream(environment.getActiveProfiles())
             .anyMatch(p -> p.equalsIgnoreCase("prod") || p.equalsIgnoreCase("production"));
     if (skipSslVerification && prodProfileActive) {
-      // 운영에서 인증서 검증 우회는 MITM 위험 → 설정돼 있어도 강제로 무시하고 보안 연결을 쓴다.
+      // 운영에서 인증서 검증 우회는 MITM 위험 → 동작은 유지하되 강한 경고를 남긴다(기존 자체서명 배포 무중단).
       log.error(
           "보안 경고: 운영(prod) 프로파일에서 jira.security.https.skip-ssl-verification=true 가 설정됐습니다."
-              + " 인증서 검증 우회를 거부하고 안전한 HTTPS 를 강제합니다.");
+              + " 인증서 검증을 우회하므로 MITM 에 취약합니다. 정식 인증서 사용을 강력히 권장합니다.");
     }
   }
 
-  /** SSL 검증 우회가 실제로 허용되는지 — 운영 프로파일에서는 설정과 무관하게 항상 false. */
+  /** SSL 검증 우회 여부 — 설정값을 그대로 따른다(운영이라도 동작 유지, 대신 init 에서 강한 경고). */
   private boolean isSslBypassAllowed() {
-    return skipSslVerification && !prodProfileActive;
+    return skipSslVerification;
   }
 
   /** JIRA API 통신용 RestTemplate 설정 */

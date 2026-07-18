@@ -16,8 +16,8 @@ import org.testng.annotations.Test;
 /**
  * dev-code-review P0(Jira SSL 전면 우회) 하드닝 회귀 가드.
  *
- * <p>인증서 검증 우회(skip-ssl-verification)는 운영(prod) 프로파일에서는 설정과 무관하게 강제로 거부돼야 한다(MITM 방지). 비운영에서만 우회가
- * 유효함을 검증한다.
+ * <p>완화 정책: 인증서 검증 우회(skip-ssl-verification)는 설정값을 그대로 따르되(운영이라도 무중단), 운영에서는 강한 경고 로그를 남긴다. 여기서는 우회
+ * 유효 여부가 설정 플래그를 따름을 검증한다(경고 로그 자체는 검증 대상 아님).
  */
 public class JiraSecurityConfigTest {
 
@@ -52,14 +52,10 @@ public class JiraSecurityConfigTest {
   }
 
   @Test
-  public void prodProfile_refusesSslBypass_evenWhenRequested() throws Exception {
-    assertFalse(bypassAllowed(new String[] {"prod"}, true));
-    assertFalse(bypassAllowed(new String[] {"production"}, true));
-    assertFalse(bypassAllowed(new String[] {"docker", "prod"}, true));
-  }
-
-  @Test
-  public void nonProdProfile_allowsSslBypass_whenRequested() throws Exception {
+  public void bypassFollowsFlag_regardlessOfProfile() throws Exception {
+    // 완화 정책: 운영이라도 설정값을 따라 우회는 동작한다(무중단). 운영에서는 init 이 강한 경고 로그를 남긴다.
+    assertTrue(bypassAllowed(new String[] {"prod"}, true));
+    assertTrue(bypassAllowed(new String[] {"production"}, true));
     assertTrue(bypassAllowed(new String[] {"dev"}, true));
     assertTrue(bypassAllowed(new String[] {"test"}, true));
   }
