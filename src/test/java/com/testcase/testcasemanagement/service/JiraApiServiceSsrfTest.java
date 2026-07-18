@@ -86,6 +86,14 @@ public class JiraApiServiceSsrfTest {
   }
 
   @Test
+  public void generateIssueUrl_doesNotThrowForInternalHost() throws Exception {
+    // 표시용 링크 조립은 서버측 요청이 없으므로 내부 URL 이라도 예외 없이 문자열을 반환해야 한다.
+    // (예전엔 SSRF 검증하는 normalizeServerUrl 을 타 배치 상태요약 집계가 500 으로 전파됐다.)
+    String url = service.generateIssueUrl("http://169.254.169.254", "TEST-1");
+    assertEquals(url, "http://169.254.169.254/browse/TEST-1");
+  }
+
+  @Test
   public void cgnatRangeBoundaries() throws Exception {
     assertTrue(isBlocked("100.64.0.1"));
     assertTrue(isBlocked("100.127.255.255"));

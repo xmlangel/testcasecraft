@@ -681,7 +681,9 @@ public class JiraApiService {
 
   /** JIRA 이슈 URL 생성 ICT-162: 이슈 URL 생성 유틸리티 */
   public String generateIssueUrl(String serverUrl, String issueKey) {
-    String normalizedUrl = normalizeServerUrl(serverUrl);
+    // 표시용 링크 조립 — 서버측 요청이 없으므로 SSRF 검증 없는 순수 정규화를 쓴다.
+    // (검증하는 normalizeServerUrl 을 쓰면 내부 URL 저장 시 배치 상태요약 집계가 500 으로 전파됨)
+    String normalizedUrl = normalizeServerUrlForDisplay(serverUrl);
     return normalizedUrl + "/browse/" + issueKey;
   }
 
@@ -803,7 +805,21 @@ public class JiraApiService {
 
   // Private helper methods
 
+  /**
+   * 아웃바운드 Jira 호출용 정규화 — 문자열 정규화 후 SSRF 대상 검증까지 수행한다. 서버측 요청(RestTemplate.exchange)을 내는 모든 경로는 이
+   * 메서드를 통과하는 것이 단일 초크포인트다. 표시용 URL 조립처럼 서버측 요청이 없는 경로는 {@link #normalizeServerUrlForDisplay} 를 쓴다.
+   */
   private String normalizeServerUrl(String serverUrl) {
+    String normalized = normalizeServerUrlForDisplay(serverUrl);
+    validateOutboundTarget(normalized);
+    return normalized;
+  }
+
+  /**
+   * 순수 문자열 정규화 — 스킴 접두어 보정 + 후행 슬래시 제거. SSRF 검증을 하지 않으므로 서버측 요청이 없는 표시용 URL 조립(generateIssueUrl)에서만
+   * 쓴다. 내부 대상이라도 예외를 던지지 않는다(링크 렌더는 서버가 아니라 사용자 브라우저가 요청).
+   */
+  private String normalizeServerUrlForDisplay(String serverUrl) {
     if (serverUrl == null || serverUrl.isEmpty()) {
       throw new IllegalArgumentException("서버 URL이 필요합니다");
     }
@@ -817,9 +833,6 @@ public class JiraApiService {
     if (serverUrl.endsWith("/")) {
       serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
     }
-
-    // SSRF 가드: 모든 아웃바운드 Jira 호출이 이 메서드를 통과하므로 여기서 대상 호스트를 검증한다.
-    validateOutboundTarget(serverUrl);
 
     return serverUrl;
   }
