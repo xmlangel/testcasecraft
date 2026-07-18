@@ -139,6 +139,14 @@ public class ProjectSecurityService {
         .orElse(false);
   }
 
+  /** 테스트케이스가 속한 프로젝트에 현재 사용자가 업로드(첨부 추가)할 수 있는지 (업로드 권한 기준) */
+  public boolean canUploadTestCase(String testCaseId) {
+    return testCaseRepository
+        .findProjectIdById(testCaseId)
+        .map(this::canUploadToProject)
+        .orElse(false);
+  }
+
   /** 테스트케이스 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
   public boolean canAccessTestCaseAttachment(String attachmentId) {
     return testCaseAttachmentRepository
