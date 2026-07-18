@@ -1,18 +1,23 @@
 package com.testcase.testcasemanagement.security;
 
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /** AES-256 암호화/복호화 유틸리티 클래스 JIRA API 키 및 민감한 데이터 암호화용 */
 @Component
+@Slf4j
 public class EncryptionUtil {
 
   private static final String ALGORITHM = "AES";
@@ -20,11 +25,47 @@ public class EncryptionUtil {
   private static final int KEY_LENGTH = 256;
   private static final int IV_LENGTH = 16;
 
+  /** 저장소에 커밋된 DEV/TEST 기본 키. 운영에서 이 값이 그대로 쓰이면 안전하지 않으므로 감지·경고한다. */
+  private static final String COMMITTED_DEFAULT_KEY =
+      "5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=";
+
   @Value("${jira.security.encryption.key:#{null}}")
   private String encryptionKeyBase64;
 
   @Value("${jira.security.encryption.enabled:true}")
   private boolean encryptionEnabled;
+
+  private final Environment environment;
+
+  public EncryptionUtil(Environment environment) {
+    this.environment = environment;
+  }
+
+  /** 커밋된 기본 키가 그대로 쓰이는지 여부(운영 경고 판정용). */
+  boolean isUsingCommittedDefaultKey() {
+    return COMMITTED_DEFAULT_KEY.equals(encryptionKeyBase64);
+  }
+
+  private boolean isProdProfileActive() {
+    return Arrays.stream(environment.getActiveProfiles())
+        .anyMatch(p -> p.equalsIgnoreCase("prod") || p.equalsIgnoreCase("production"));
+  }
+
+  @PostConstruct
+  void warnOnInsecureKey() {
+    if (!encryptionEnabled) {
+      return;
+    }
+    if (isUsingCommittedDefaultKey()) {
+      if (isProdProfileActive()) {
+        log.error(
+            "보안 경고: 운영(prod)에서 저장소에 커밋된 기본 암호화 키가 사용 중입니다. 저장된 JIRA 토큰이 공개 키로 암호화됩니다. 즉시 환경변수"
+                + " JIRA_ENCRYPTION_KEY 로 고유 키를 주입하세요(EncryptionUtil.generateEncryptionKey()).");
+      } else {
+        log.warn("DEV/TEST 기본 암호화 키 사용 중 — 운영 배포 시 JIRA_ENCRYPTION_KEY 를 반드시 설정하세요.");
+      }
+    }
+  }
 
   private SecretKey getEncryptionKey() {
     if (encryptionKeyBase64 == null || encryptionKeyBase64.trim().isEmpty()) {
