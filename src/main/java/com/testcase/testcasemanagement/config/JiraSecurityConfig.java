@@ -4,7 +4,6 @@ import jakarta.annotation.PostConstruct;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -44,9 +43,7 @@ public class JiraSecurityConfig {
 
   @PostConstruct
   void init() {
-    prodProfileActive =
-        Arrays.stream(environment.getActiveProfiles())
-            .anyMatch(p -> p.equalsIgnoreCase("prod") || p.equalsIgnoreCase("production"));
+    prodProfileActive = com.testcase.testcasemanagement.util.ProfileUtils.isProdActive(environment);
     if (skipSslVerification && prodProfileActive) {
       // 운영에서 인증서 검증 우회는 MITM 위험 → 동작은 유지하되 강한 경고를 남긴다(기존 자체서명 배포 무중단).
       log.error(

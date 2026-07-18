@@ -3,7 +3,6 @@ package com.testcase.testcasemanagement.security;
 import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -47,8 +46,7 @@ public class EncryptionUtil {
   }
 
   private boolean isProdProfileActive() {
-    return Arrays.stream(environment.getActiveProfiles())
-        .anyMatch(p -> p.equalsIgnoreCase("prod") || p.equalsIgnoreCase("production"));
+    return com.testcase.testcasemanagement.util.ProfileUtils.isProdActive(environment);
   }
 
   @PostConstruct
