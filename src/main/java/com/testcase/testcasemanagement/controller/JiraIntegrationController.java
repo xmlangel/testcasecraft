@@ -5,12 +5,14 @@ import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.model.JiraSyncStatus;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.service.DashboardService;
 import com.testcase.testcasemanagement.service.JiraIntegrationService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,29 @@ public class JiraIntegrationController {
   private final TestResultRepository testResultRepository;
   private final DashboardService dashboardService;
   private final SecurityContextUtil securityContextUtil;
+  private final ProjectSecurityService projectSecurityService;
+
+  /**
+   * Jira 이슈 키로 조회한 테스트 결과를 <b>현재 사용자가 접근 가능한 프로젝트</b>의 것만 남긴다. 이 엔드포인트들은 projectId 가 아니라
+   * jiraIssueKey 로만 조회하므로 @PreAuthorize 로 단일 프로젝트를 게이팅할 수 없다 → 결과를 프로젝트별로 후필터링해 크로스-프로젝트 유출을 막는다.
+   * projectId 별 판정을 메모이즈해 반복 조회를 줄인다(시스템 ADMIN 은 canAccessProject 가 전부 true).
+   */
+  private List<TestResult> scopeToAccessibleProjects(List<TestResult> results) {
+    Map<String, Boolean> memo = new HashMap<>();
+    return results.stream()
+        .filter(
+            r -> {
+              String projectId =
+                  (r.getTestExecution() != null && r.getTestExecution().getProject() != null)
+                      ? r.getTestExecution().getProject().getId()
+                      : null;
+              if (projectId == null) {
+                return false; // 프로젝트를 특정할 수 없으면 fail-closed
+              }
+              return memo.computeIfAbsent(projectId, projectSecurityService::canAccessProject);
+            })
+        .toList();
+  }
 
   /** 텍스트에서 JIRA 이슈 키 추출 */
   @GetMapping("/extract-issues")
@@ -223,7 +248,8 @@ public class JiraIntegrationController {
       List<TestResult> testResults =
           testResultRepository.findRecentResultsByJiraIssue(jiraIssueKey, pageable);
 
-      return ResponseEntity.ok(testResults);
+      // 크로스-프로젝트 유출 차단: 현재 사용자가 접근 가능한 프로젝트의 결과만 반환.
+      return ResponseEntity.ok(scopeToAccessibleProjects(testResults));
 
     } catch (Exception e) {
       log.error("JIRA 이슈 연결 테스트 결과 조회 실패: {}", jiraIssueKey, e);
@@ -246,7 +272,8 @@ public class JiraIntegrationController {
       List<TestResult> testResults =
           testResultRepository.findByJiraIssueKeyOrderByExecutedAtDesc(jiraIssueKey);
 
-      return ResponseEntity.ok(testResults);
+      // 크로스-프로젝트 유출 차단: 현재 사용자가 접근 가능한 프로젝트의 결과만 반환.
+      return ResponseEntity.ok(scopeToAccessibleProjects(testResults));
     } catch (Exception e) {
       log.error("JIRA 이슈 연결 모든 테스트 결과 조회 실패: {}, {}", jiraIssueKey, e.getMessage());
       return ResponseEntity.internalServerError().build();
