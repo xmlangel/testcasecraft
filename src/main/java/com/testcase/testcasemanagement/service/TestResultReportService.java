@@ -112,7 +112,8 @@ public class TestResultReportService {
                 : "<not assigned>";
         assigneeMap.putIfAbsent(assignee, new HashMap<>());
         Map<String, Integer> statusCount = assigneeMap.get(assignee);
-        String status = result.getResult();
+        // null result 는 null 맵 키 버킷을 만들어 소비 측 혼선 → NOT_RUN 으로 정규화
+        String status = result.getResult() != null ? result.getResult() : "NOT_RUN";
         statusCount.put(status, statusCount.getOrDefault(status, 0) + 1);
       }
     }
@@ -231,7 +232,8 @@ public class TestResultReportService {
       // 1. 전체 수행 이력 통계 (기본 카운트 증가)
       statistics.setTotalTests(statistics.getTotalTests() + 1);
 
-      switch (result.getResult()) {
+      // null result 는 switch 에서 NPE → 정본 NOT_RUN 으로 정규화
+      switch (result.getResult() != null ? result.getResult() : "NOT_RUN") {
         case "PASS":
           statistics.setPassCount(statistics.getPassCount() + 1);
           break;
@@ -1446,15 +1448,21 @@ public class TestResultReportService {
             .jiraIssueKey(jiraKey)
             .linkedTestCount((long) relatedResults.size());
 
-    // 테스트 결과 분포 계산
+    // 테스트 결과 분포 계산 — null result 는 groupingBy 키로 NPE(requireNonNull) → NOT_RUN 정규화
     Map<String, Long> testResultDistribution =
         relatedResults.stream()
-            .collect(Collectors.groupingBy(TestResult::getResult, Collectors.counting()));
+            .collect(
+                Collectors.groupingBy(
+                    r -> r.getResult() != null ? r.getResult() : "NOT_RUN", Collectors.counting()));
     builder.testResultDistribution(testResultDistribution);
 
-    // 최신 테스트 정보
+    // 최신 테스트 정보 — null executedAt 은 비교 시 NPE → nullsFirst(가장 오래된 것으로 취급)
     TestResult latestResult =
-        relatedResults.stream().max(Comparator.comparing(TestResult::getExecutedAt)).orElse(null);
+        relatedResults.stream()
+            .max(
+                Comparator.comparing(
+                    TestResult::getExecutedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
+            .orElse(null);
 
     if (latestResult != null) {
       builder
