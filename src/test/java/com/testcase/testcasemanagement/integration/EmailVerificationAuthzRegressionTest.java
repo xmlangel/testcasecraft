@@ -36,7 +36,7 @@ public class EmailVerificationAuthzRegressionTest extends AbstractTestNGSpringCo
   }
 
   private void assertDenied(int status, String body, String label) {
-    boolean denied = status == 401 || status == 403 || (status == 400 && body.contains("Denied"));
+    boolean denied = status == 401 || status == 403; // 400 인정 제거 — 인가 거부는 403 이어야
     org.testng.Assert.assertTrue(
         denied, label + " 는 인가 거부여야 함, 실제 status=" + status + " body=" + body);
   }
