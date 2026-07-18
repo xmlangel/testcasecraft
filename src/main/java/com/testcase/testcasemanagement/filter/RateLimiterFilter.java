@@ -152,17 +152,48 @@ public class RateLimiterFilter implements Filter {
     response.getWriter().flush();
   }
 
-  /** 최소 JSON 문자열 이스케이프 (백슬래시·큰따옴표·제어문자). */
+  /**
+   * JSON 문자열 이스케이프 — 백슬래시·큰따옴표뿐 아니라 모든 제어문자(U+0000~U+001F)를 처리한다. 이전 구현은 \n\r\t 만 다뤄, \b·\f 나
+   * U+0000 같은 제어문자가 clientIp/헤더 경유로 섞이면 깨진 JSON(파서 실패·구조 오염)을 만들 수 있었다.
+   */
   private String jsonEscape(String value) {
     if (value == null) {
       return "";
     }
-    return value
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t");
+    StringBuilder sb = new StringBuilder(value.length() + 8);
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
+      switch (c) {
+        case '\\':
+          sb.append("\\\\");
+          break;
+        case '"':
+          sb.append("\\\"");
+          break;
+        case '\n':
+          sb.append("\\n");
+          break;
+        case '\r':
+          sb.append("\\r");
+          break;
+        case '\t':
+          sb.append("\\t");
+          break;
+        case '\b':
+          sb.append("\\b");
+          break;
+        case '\f':
+          sb.append("\\f");
+          break;
+        default:
+          if (c < 0x20) {
+            sb.append(String.format("\\u%04x", (int) c));
+          } else {
+            sb.append(c);
+          }
+      }
+    }
+    return sb.toString();
   }
 
   /** Rate Limit 초과 시 표시할 HTML 페이지 생성 */

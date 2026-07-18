@@ -81,4 +81,39 @@ public class EncryptionUtilTest {
     setKey(EncryptionUtil.generateEncryptionKey());
     assertFalse(util.isUsingCommittedDefaultKey());
   }
+
+  // ===== dev-review R2(P2): decrypt 손상 입력 fail-closed 특성화 =====
+
+  /**
+   * IV 길이(16바이트) 미만의 Base64 는 내부에서 음수 크기 배열(NegativeArraySizeException)을 유발한다. 조용한 성공이나 부분 평문 반환이
+   * 아니라 예외로 fail-closed 돼야 한다(현재 동작 고정 — 미래에 예외를 삼키는 변경을 가드).
+   */
+  @Test(expectedExceptions = RuntimeException.class)
+  public void decrypt_shortInput_failsClosed() throws Exception {
+    setEnabled(true);
+    setKey(EncryptionUtil.generateEncryptionKey());
+    util.decrypt("QQ=="); // 1바이트 → IV 분리 불가
+  }
+
+  /** IV 는 있으나 암호문이 손상된 경우도 조용히 통과하지 않고 예외여야 한다. */
+  @Test(expectedExceptions = RuntimeException.class)
+  public void decrypt_corruptCiphertext_failsClosed() throws Exception {
+    setEnabled(true);
+    setKey(EncryptionUtil.generateEncryptionKey());
+    // 20바이트 임의 데이터(IV 16 + 잘못된 4바이트) → 복호화 실패
+    byte[] junk = new byte[20];
+    for (int i = 0; i < junk.length; i++) {
+      junk[i] = (byte) i;
+    }
+    util.decrypt(java.util.Base64.getEncoder().encodeToString(junk));
+  }
+
+  /** null/빈 입력은 그대로 반환(암호화 안 된 값 통과 — 기존 계약 유지). */
+  @Test
+  public void decrypt_nullOrEmpty_passthrough() throws Exception {
+    setEnabled(true);
+    setKey(EncryptionUtil.generateEncryptionKey());
+    assertEquals(util.decrypt(null), null);
+    assertEquals(util.decrypt(""), "");
+  }
 }
