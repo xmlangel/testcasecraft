@@ -128,3 +128,12 @@ logging:
 #     frame: DENY
 #     content-type: nosniff
 #     xss-protection: true
+
+# Rate limit 클라이언트 IP 산정 (RateLimiterFilter)
+# 기본(false): 소켓 주소(getRemoteAddr) 사용 — 헤더 스푸핑으로 IP를 회전해 우회하는 것을 차단.
+# 리버스 프록시(Nginx/LB) 뒤에 배포하면 모든 요청 출발지가 프록시 IP 하나로 합산되므로,
+# 프록시가 X-Forwarded-For 를 신뢰 가능하게 덮어쓰는(클라이언트 위조분 제거) 구성일 때만 true 로 켠다.
+# 프록시 없이 Spring Boot 직접 노출(docker-compose-build no-nginx) 모드면 반드시 false 유지.
+app:
+  ratelimit:
+    trust-forwarded-headers: ${APP_RATELIMIT_TRUST_FORWARDED_HEADERS:false}
