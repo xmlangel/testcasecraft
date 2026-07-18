@@ -12,6 +12,7 @@ import com.itextpdf.layout.element.Table;
 import com.opencsv.CSVWriter;
 import com.testcase.testcasemanagement.dto.TestResultFilterDto;
 import com.testcase.testcasemanagement.dto.TestResultReportDto;
+import com.testcase.testcasemanagement.model.TestResultStatus;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.time.format.DateTimeFormatter;
@@ -72,10 +73,10 @@ public class ExportService {
 
   private static final Map<String, String> RESULT_DISPLAY_NAMES =
       Map.of(
-          "PASS", "성공",
-          "FAIL", "실패",
-          "BLOCKED", "차단됨",
-          "NOT_RUN", "미실행");
+          TestResultStatus.PASS.value(), "성공",
+          TestResultStatus.FAIL.value(), "실패",
+          TestResultStatus.BLOCKED.value(), "차단됨",
+          TestResultStatus.NOT_RUN.value(), "미실행");
 
   private static String cachedFontName = null;
   private static String cachedFontPath = null;
@@ -683,12 +684,22 @@ public class ExportService {
     // 통계 계산
     List<TestResultReportDto> content = reportData.getContent();
     long totalCount = content.size();
-    long passCount = content.stream().mapToLong(r -> "PASS".equals(r.getResult()) ? 1 : 0).sum();
-    long failCount = content.stream().mapToLong(r -> "FAIL".equals(r.getResult()) ? 1 : 0).sum();
+    long passCount =
+        content.stream()
+            .mapToLong(r -> TestResultStatus.PASS.value().equals(r.getResult()) ? 1 : 0)
+            .sum();
+    long failCount =
+        content.stream()
+            .mapToLong(r -> TestResultStatus.FAIL.value().equals(r.getResult()) ? 1 : 0)
+            .sum();
     long blockedCount =
-        content.stream().mapToLong(r -> "BLOCKED".equals(r.getResult()) ? 1 : 0).sum();
+        content.stream()
+            .mapToLong(r -> TestResultStatus.BLOCKED.value().equals(r.getResult()) ? 1 : 0)
+            .sum();
     long notRunCount =
-        content.stream().mapToLong(r -> "NOT_RUN".equals(r.getResult()) ? 1 : 0).sum();
+        content.stream()
+            .mapToLong(r -> TestResultStatus.NOT_RUN.value().equals(r.getResult()) ? 1 : 0)
+            .sum();
 
     // 통계 데이터 작성
     Row headerRow = statsSheet.createRow(0);

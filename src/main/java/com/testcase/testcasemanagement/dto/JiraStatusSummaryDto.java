@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.testcase.testcasemanagement.model.TestResultStatus;
 import java.time.LocalDateTime;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -83,7 +84,8 @@ public class JiraStatusSummaryDto {
 
   /** 테스트 실패가 있는지 확인 */
   public boolean hasFailedTests() {
-    return testResultDistribution != null && testResultDistribution.getOrDefault("FAIL", 0L) > 0;
+    return testResultDistribution != null
+        && testResultDistribution.getOrDefault(TestResultStatus.FAIL.value(), 0L) > 0;
   }
 
   /** 모든 테스트가 통과했는지 확인 */
@@ -92,13 +94,13 @@ public class JiraStatusSummaryDto {
       return false;
     }
 
-    Long passCount = testResultDistribution.getOrDefault("PASS", 0L);
-    Long notRunCount = testResultDistribution.getOrDefault("NOT_RUN", 0L);
+    Long passCount = testResultDistribution.getOrDefault(TestResultStatus.PASS.value(), 0L);
+    Long notRunCount = testResultDistribution.getOrDefault(TestResultStatus.NOT_RUN.value(), 0L);
 
     // PASS + NOT_RUN = 전체 테스트 수인 경우 (실행된 모든 테스트가 통과)
     return passCount > 0
-        && testResultDistribution.getOrDefault("FAIL", 0L) == 0
-        && testResultDistribution.getOrDefault("BLOCKED", 0L) == 0;
+        && testResultDistribution.getOrDefault(TestResultStatus.FAIL.value(), 0L) == 0
+        && testResultDistribution.getOrDefault(TestResultStatus.BLOCKED.value(), 0L) == 0;
   }
 
   /** 성공률 계산 */
@@ -108,7 +110,9 @@ public class JiraStatusSummaryDto {
     }
 
     Long passCount =
-        testResultDistribution != null ? testResultDistribution.getOrDefault("PASS", 0L) : 0L;
+        testResultDistribution != null
+            ? testResultDistribution.getOrDefault(TestResultStatus.PASS.value(), 0L)
+            : 0L;
 
     return (passCount.doubleValue() / linkedTestCount.doubleValue()) * 100.0;
   }

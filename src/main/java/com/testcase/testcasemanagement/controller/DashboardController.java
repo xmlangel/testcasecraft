@@ -10,6 +10,7 @@ import com.testcase.testcasemanagement.dto.TestExecutionProgressDto;
 import com.testcase.testcasemanagement.dto.TestPlanDto;
 import com.testcase.testcasemanagement.dto.TestResultsTrendDto;
 import com.testcase.testcasemanagement.model.TestPlan;
+import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.repository.TestPlanRepository;
 import com.testcase.testcasemanagement.service.DashboardService;
 import com.testcase.testcasemanagement.service.MonitoringService;
@@ -71,11 +72,11 @@ public class DashboardController {
             response.put(
                 "lastResult",
                 Map.of(
-                    "PASS", statistics.getPASS(),
-                    "FAIL", statistics.getFAIL(),
-                    "BLOCKED", statistics.getBLOCKED(),
-                    "SKIPPED", statistics.getSKIPPED(),
-                    "NOTRUN", statistics.getNOTRUN()));
+                    TestResultStatus.PASS.value(), statistics.getPASS(),
+                    TestResultStatus.FAIL.value(), statistics.getFAIL(),
+                    TestResultStatus.BLOCKED.value(), statistics.getBLOCKED(),
+                    TestResultStatus.SKIPPED.value(), statistics.getSKIPPED(),
+                    TestResultStatus.NOT_RUN.responseKey(), statistics.getNOTRUN()));
 
             // 완료율 계산
             int completedCases =
@@ -138,10 +139,11 @@ public class DashboardController {
                         result -> {
                           Map<String, Object> item = new HashMap<>();
                           item.put("assignee", result.getAssigneeName());
-                          item.put("PASS", result.getPassedTestCases());
-                          item.put("FAIL", result.getFailedTestCases());
-                          item.put("BLOCKED", result.getBlockedTestCases());
-                          item.put("NOTRUN", result.getNotRunTestCases());
+                          item.put(TestResultStatus.PASS.value(), result.getPassedTestCases());
+                          item.put(TestResultStatus.FAIL.value(), result.getFailedTestCases());
+                          item.put(TestResultStatus.BLOCKED.value(), result.getBlockedTestCases());
+                          item.put(
+                              TestResultStatus.NOT_RUN.responseKey(), result.getNotRunTestCases());
                           item.put("totalCases", result.getTotalTestCases());
                           item.put("completionRate", result.getCompletionRate());
                           return item;
@@ -503,13 +505,21 @@ public class DashboardController {
                           }
 
                           // 결과 데이터 설정 (null 체크 추가)
-                          item.put("PASS", result.getPASS() != null ? result.getPASS() : 0);
-                          item.put("FAIL", result.getFAIL() != null ? result.getFAIL() : 0);
                           item.put(
-                              "BLOCKED", result.getBLOCKED() != null ? result.getBLOCKED() : 0);
+                              TestResultStatus.PASS.value(),
+                              result.getPASS() != null ? result.getPASS() : 0);
                           item.put(
-                              "SKIPPED", result.getSKIPPED() != null ? result.getSKIPPED() : 0);
-                          item.put("NOTRUN", result.getNOTRUN() != null ? result.getNOTRUN() : 0);
+                              TestResultStatus.FAIL.value(),
+                              result.getFAIL() != null ? result.getFAIL() : 0);
+                          item.put(
+                              TestResultStatus.BLOCKED.value(),
+                              result.getBLOCKED() != null ? result.getBLOCKED() : 0);
+                          item.put(
+                              TestResultStatus.SKIPPED.value(),
+                              result.getSKIPPED() != null ? result.getSKIPPED() : 0);
+                          item.put(
+                              TestResultStatus.NOT_RUN.responseKey(),
+                              result.getNOTRUN() != null ? result.getNOTRUN() : 0);
                           return item;
                         })
                     .collect(java.util.stream.Collectors.toList());

@@ -12,6 +12,7 @@ import com.testcase.testcasemanagement.exception.DashboardException;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
+import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestExecutionRepository;
@@ -183,14 +184,17 @@ public class DashboardService {
             assigneeTestResults.stream()
                 .collect(
                     Collectors.groupingBy(
-                        tr -> tr.getResult() != null ? tr.getResult() : "NOT_RUN",
+                        tr ->
+                            tr.getResult() != null
+                                ? tr.getResult()
+                                : TestResultStatus.NOT_RUN.value(),
                         Collectors.collectingAndThen(Collectors.counting(), Math::toIntExact)));
 
         int totalTestCases = assigneeTestResults.size();
-        int passedTestCases = resultCounts.getOrDefault("PASS", 0);
-        int failedTestCases = resultCounts.getOrDefault("FAIL", 0);
-        int blockedTestCases = resultCounts.getOrDefault("BLOCKED", 0);
-        int notRunTestCases = resultCounts.getOrDefault("NOT_RUN", 0);
+        int passedTestCases = resultCounts.getOrDefault(TestResultStatus.PASS.value(), 0);
+        int failedTestCases = resultCounts.getOrDefault(TestResultStatus.FAIL.value(), 0);
+        int blockedTestCases = resultCounts.getOrDefault(TestResultStatus.BLOCKED.value(), 0);
+        int notRunTestCases = resultCounts.getOrDefault(TestResultStatus.NOT_RUN.value(), 0);
         int completedTestCases = passedTestCases + failedTestCases + blockedTestCases;
 
         // 완료율과 통과율 계산
@@ -346,7 +350,10 @@ public class DashboardService {
                     },
                     LinkedHashMap::new, // 순서 보장
                     Collectors.groupingBy(
-                        result -> result.getResult() != null ? result.getResult() : "NOT_RUN",
+                        result ->
+                            result.getResult() != null
+                                ? result.getResult()
+                                : TestResultStatus.NOT_RUN.value(),
                         Collectors.collectingAndThen(Collectors.counting(), Math::toIntExact))));
 
     List<TestResultsTrendDto> trendData = new ArrayList<>();
@@ -355,11 +362,11 @@ public class DashboardService {
       String date = entry.getKey();
       Map<String, Integer> resultCounts = entry.getValue();
 
-      int pass = resultCounts.getOrDefault("PASS", 0);
-      int fail = resultCounts.getOrDefault("FAIL", 0);
-      int blocked = resultCounts.getOrDefault("BLOCKED", 0);
-      int skipped = resultCounts.getOrDefault("SKIPPED", 0);
-      int notRun = resultCounts.getOrDefault("NOT_RUN", 0);
+      int pass = resultCounts.getOrDefault(TestResultStatus.PASS.value(), 0);
+      int fail = resultCounts.getOrDefault(TestResultStatus.FAIL.value(), 0);
+      int blocked = resultCounts.getOrDefault(TestResultStatus.BLOCKED.value(), 0);
+      int skipped = resultCounts.getOrDefault(TestResultStatus.SKIPPED.value(), 0);
+      int notRun = resultCounts.getOrDefault(TestResultStatus.NOT_RUN.value(), 0);
 
       int total = pass + fail + blocked + skipped + notRun;
       int completed = pass + fail + blocked + skipped;
@@ -412,26 +419,27 @@ public class DashboardService {
 
     // 상태별 카운트 집계 (중복 제거된 데이터 기준)
     Map<String, Integer> statusCounts = new HashMap<>();
-    statusCounts.put("PASS", 0);
-    statusCounts.put("FAIL", 0);
-    statusCounts.put("BLOCKED", 0);
-    statusCounts.put("SKIPPED", 0);
+    statusCounts.put(TestResultStatus.PASS.value(), 0);
+    statusCounts.put(TestResultStatus.FAIL.value(), 0);
+    statusCounts.put(TestResultStatus.BLOCKED.value(), 0);
+    statusCounts.put(TestResultStatus.SKIPPED.value(), 0);
     // 저장 정본은 "NOT_RUN"(언더스코어) — 과거 "NOTRUN" 키는 저장값과 불일치해 미실행 건수가 0으로 누락됐다.
-    statusCounts.put("NOT_RUN", 0);
+    statusCounts.put(TestResultStatus.NOT_RUN.value(), 0);
 
     for (TestResult result : uniqueResults) {
-      String status = result.getResult() != null ? result.getResult() : "NOT_RUN";
+      String status =
+          result.getResult() != null ? result.getResult() : TestResultStatus.NOT_RUN.value();
       statusCounts.put(status, statusCounts.getOrDefault(status, 0) + 1);
     }
 
     // TestCaseStatisticsDto 생성
     TestCaseStatisticsDto statistics = new TestCaseStatisticsDto();
     statistics.setTotalCases(uniqueResults.size());
-    statistics.setPASS(statusCounts.get("PASS"));
-    statistics.setFAIL(statusCounts.get("FAIL"));
-    statistics.setBLOCKED(statusCounts.get("BLOCKED"));
-    statistics.setSKIPPED(statusCounts.get("SKIPPED"));
-    statistics.setNOTRUN(statusCounts.get("NOT_RUN"));
+    statistics.setPASS(statusCounts.get(TestResultStatus.PASS.value()));
+    statistics.setFAIL(statusCounts.get(TestResultStatus.FAIL.value()));
+    statistics.setBLOCKED(statusCounts.get(TestResultStatus.BLOCKED.value()));
+    statistics.setSKIPPED(statusCounts.get(TestResultStatus.SKIPPED.value()));
+    statistics.setNOTRUN(statusCounts.get(TestResultStatus.NOT_RUN.value()));
 
     return statistics;
   }
@@ -494,15 +502,21 @@ public class DashboardService {
           results.stream()
               .collect(
                   Collectors.groupingBy(
-                      tr -> tr.getResult() != null ? tr.getResult() : "NOT_RUN",
+                      tr ->
+                          tr.getResult() != null
+                              ? tr.getResult()
+                              : TestResultStatus.NOT_RUN.value(),
                       Collectors.counting()));
 
       int totalTestCases = results.size();
-      int passedTestCases = resultCounts.getOrDefault("PASS", 0L).intValue();
-      int failedTestCases = resultCounts.getOrDefault("FAIL", 0L).intValue();
-      int blockedTestCases = resultCounts.getOrDefault("BLOCKED", 0L).intValue();
-      int skippedTestCases = resultCounts.getOrDefault("SKIPPED", 0L).intValue();
-      int notRunTestCases = resultCounts.getOrDefault("NOT_RUN", 0L).intValue();
+      int passedTestCases = resultCounts.getOrDefault(TestResultStatus.PASS.value(), 0L).intValue();
+      int failedTestCases = resultCounts.getOrDefault(TestResultStatus.FAIL.value(), 0L).intValue();
+      int blockedTestCases =
+          resultCounts.getOrDefault(TestResultStatus.BLOCKED.value(), 0L).intValue();
+      int skippedTestCases =
+          resultCounts.getOrDefault(TestResultStatus.SKIPPED.value(), 0L).intValue();
+      int notRunTestCases =
+          resultCounts.getOrDefault(TestResultStatus.NOT_RUN.value(), 0L).intValue();
       int completedTestCases =
           passedTestCases + failedTestCases + blockedTestCases + skippedTestCases;
 
