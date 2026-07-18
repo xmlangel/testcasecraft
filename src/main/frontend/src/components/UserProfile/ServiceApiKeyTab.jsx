@@ -28,7 +28,6 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   ContentCopy as CopyIcon,
-  Visibility as VisibilityIcon,
   Key as KeyIcon,
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
