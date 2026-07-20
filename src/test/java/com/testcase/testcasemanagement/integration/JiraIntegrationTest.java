@@ -13,7 +13,6 @@ import com.testcase.testcasemanagement.model.JiraConfig;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.JiraConfigRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
-import com.testcase.testcasemanagement.service.EncryptionService;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -42,8 +41,6 @@ class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
   @Autowired private JiraConfigRepository jiraConfigRepository;
 
   @Autowired private UserRepository userRepository;
-
-  @Autowired private EncryptionService encryptionService;
 
   @Autowired private com.testcase.testcasemanagement.security.EncryptionUtil encryptionUtil;
 
@@ -116,21 +113,6 @@ class JiraIntegrationTest extends AbstractTestNGSpringContextTests {
         .andExpect(jsonPath("$.serverUrl", is("https://test.atlassian.net")))
         .andExpect(jsonPath("$.username", is("testuser@example.com")))
         .andExpect(jsonPath("$.isActive", is(true)));
-  }
-
-  @Test(description = "암호화/복호화 보안 테스트")
-  void testEncryptionDecryption() {
-    // Given
-    String originalApiToken = "test-api-token-very-secret";
-
-    // When
-    String encrypted = encryptionService.encrypt(originalApiToken);
-    String decrypted = encryptionService.decrypt(encrypted);
-
-    // Then
-    assertNotEquals(encrypted, originalApiToken, "원본 토큰과 암호화된 토큰이 달라야 함");
-    assertEquals(decrypted, originalApiToken, "복호화된 토큰이 원본과 같아야 함");
-    assertTrue(encrypted.length() > originalApiToken.length(), "암호화된 데이터가 더 길어야 함");
   }
 
   @Test(description = "JIRA 설정 권한 테스트 - 다른 사용자의 설정 접근 불가")

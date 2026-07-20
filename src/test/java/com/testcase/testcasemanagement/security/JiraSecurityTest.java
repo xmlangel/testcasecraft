@@ -4,12 +4,9 @@ package com.testcase.testcasemanagement.security;
 import static org.testng.Assert.*;
 
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
-import com.testcase.testcasemanagement.service.EncryptionService;
 import com.testcase.testcasemanagement.service.JiraApiService;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,11 +15,15 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+/**
+ * JIRA 보안 관련 테스트 — 서버 URL 정규화·API 토큰 형식·데이터 격리.
+ *
+ * <p>과거 여기 있던 암호화 라운드트립 테스트는 미사용(main 참조 0) EncryptionService 를 대상으로 했다. 실사용 암호화 정본은
+ * security.EncryptionUtil 이며 EncryptionUtilTest 가 검증한다 — EncryptionService 와 그 죽은 테스트는 함께 제거했다.
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 class JiraSecurityTest extends AbstractTestNGSpringContextTests {
-
-  @Autowired private EncryptionService encryptionService;
 
   @Autowired private JiraApiService jiraApiService;
 
@@ -31,124 +32,10 @@ class JiraSecurityTest extends AbstractTestNGSpringContextTests {
   @BeforeMethod
   void setUp() {
     secureRandom = new SecureRandom();
-    encryptionService.initializeKey();
-  }
-
-  @Test(description = "암호화 키 강도 테스트")
-  void testEncryptionKeyStrength() {
-    // Given
-    String testData = "sensitive-api-token-data";
-
-    // When
-    String encrypted = encryptionService.encrypt(testData);
-
-    // Then
-    assertNotNull(encrypted, "암호화된 데이터가 null이면 안됨");
-    assertFalse(encrypted.isEmpty(), "암호화된 데이터가 비어있으면 안됨");
-    assertNotEquals(encrypted, testData, "암호화된 데이터가 원본과 같으면 안됨");
-
-    // Base64로 인코딩되어야 함
-    Base64.getDecoder().decode(encrypted);
-  }
-
-  @Test(invocationCount = 10, description = "암호화 결과 무작위성 테스트")
-  void testEncryptionRandomness() {
-    // Given
-    String testData = "same-input-data";
-    Set<String> encryptedResults = new HashSet<>();
-
-    // When
-    for (int i = 0; i < 10; i++) {
-      String encrypted = encryptionService.encrypt(testData);
-      encryptedResults.add(encrypted);
-    }
-
-    // Then
-    assertEquals(encryptedResults.size(), 10, "같은 입력에 대해 매번 다른 암호화 결과가 나와야 함 (IV 사용)");
-  }
-
-  @Test(description = "null 및 빈 문자열 입력 처리 테스트")
-  void testNullAndEmptyInputHandling() {
-    // null 입력
-    String encryptedNull = encryptionService.encrypt(null);
-    assertNull(encryptedNull, "null 입력에 대해 null을 반환해야 함");
-
-    String decryptedNull = encryptionService.decrypt(null);
-    assertNull(decryptedNull, "null 입력에 대해 null을 반환해야 함");
-
-    // 빈 문자열 입력
-    String encryptedEmpty = encryptionService.encrypt("");
-    assertEquals(encryptedEmpty, "", "빈 문자열 입력에 대해 빈 문자열을 반환해야 함");
-
-    String decryptedEmpty = encryptionService.decrypt("");
-    assertEquals(decryptedEmpty, "", "빈 문자열 입력에 대해 빈 문자열을 반환해야 함");
-  }
-
-  @Test(description = "대용량 데이터 암호화/복호화 테스트")
-  void testLargeDataEncryption() {
-    // Given - 10KB 크기의 테스트 데이터
-    StringBuilder largeData = new StringBuilder();
-    for (int i = 0; i < 10240; i++) {
-      largeData.append((char) ('A' + (i % 26)));
-    }
-    String testData = largeData.toString();
-
-    // When
-    String encrypted = encryptionService.encrypt(testData);
-    String decrypted = encryptionService.decrypt(encrypted);
-
-    // Then
-    assertNotNull(encrypted, "대용량 데이터 암호화 결과가 null이면 안됨");
-    assertEquals(decrypted, testData, "대용량 데이터 복호화 결과가 원본과 같아야 함");
-  }
-
-  @Test(description = "특수문자 및 유니코드 데이터 암호화 테스트")
-  void testSpecialCharactersEncryption() {
-    // Given
-    String testData = "특수문자!@#$%^&*()_+{}|:<>?~`-=[]\\;'\",./ 유니코드한글 emoji🔐🛡️";
-
-    // When
-    String encrypted = encryptionService.encrypt(testData);
-    String decrypted = encryptionService.decrypt(encrypted);
-
-    // Then
-    assertEquals(decrypted, testData, "특수문자와 유니코드 데이터가 정확히 복호화되어야 함");
-  }
-
-  @Test(description = "잘못된 암호화 데이터 복호화 시 예외 발생 테스트")
-  void testInvalidDataDecryption() {
-    // 잘못된 Base64 데이터
-    assertThrows(
-        "잘못된 Base64 데이터 복호화 시 예외가 발생해야 함",
-        RuntimeException.class,
-        () -> {
-          encryptionService.decrypt("invalid-base64-data!");
-        });
-
-    // 올바른 Base64이지만 잘못된 암호화 데이터
-    String invalidEncryptedData =
-        Base64.getEncoder().encodeToString("invalid encrypted data".getBytes());
-    assertThrows(
-        "잘못된 암호화 데이터 복호화 시 예외가 발생해야 함",
-        RuntimeException.class,
-        () -> {
-          encryptionService.decrypt(invalidEncryptedData);
-        });
-  }
-
-  @Test(description = "암호화 키 검증 테스트")
-  void testEncryptionKeyValidation() {
-    // When
-    boolean isKeyValid = encryptionService.isKeyValid();
-
-    // Then
-    assertTrue(isKeyValid, "암호화 키가 유효해야 함");
   }
 
   @Test(description = "JIRA 서버 URL 정규화 보안 테스트")
   void testJiraUrlNormalizationSecurity() {
-    JiraConfigDto.TestConnectionDto testConfig;
-
     // 정상적인 URL
     final JiraConfigDto.TestConnectionDto validTestConfig =
         JiraConfigDto.TestConnectionDto.builder()
@@ -185,31 +72,11 @@ class JiraSecurityTest extends AbstractTestNGSpringContextTests {
 
   @Test(description = "사용자별 데이터 격리 테스트")
   void testUserDataIsolation() {
-    // 이 테스트는 실제로는 통합 테스트에서 더 적절하지만,
-    // 보안 관점에서 중요한 원칙을 확인
-
-    // 사용자 ID가 다르면 다른 사용자의 데이터에 접근할 수 없어야 함
+    // 사용자 ID가 다르면 다른 사용자의 데이터에 접근할 수 없어야 함 (실제 격리 검증은 JiraIntegrationTest)
     String user1Id = "user1-id";
     String user2Id = "user2-id";
 
     assertNotEquals(user2Id, user1Id, "사용자 ID는 달라야 함");
-    // 실제 격리 테스트는 JiraIntegrationTest에서 수행
-  }
-
-  @Test(description = "메모리 내 민감 정보 처리 테스트")
-  void testSensitiveDataInMemory() {
-    // Given
-    String sensitiveToken = "very-sensitive-api-token-12345";
-
-    // When
-    String encrypted = encryptionService.encrypt(sensitiveToken);
-    String decrypted = encryptionService.decrypt(encrypted);
-
-    // Then
-    assertEquals(decrypted, sensitiveToken, "복호화가 정확해야 함");
-
-    // 메모리에서 원본 토큰이 암호화된 형태로만 존재하는지 확인
-    assertNotEquals(encrypted, sensitiveToken, "메모리에 평문이 남아있으면 안됨");
   }
 
   // Helper methods
