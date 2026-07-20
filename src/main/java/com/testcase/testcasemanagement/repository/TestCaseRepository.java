@@ -16,6 +16,17 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
   @Query("SELECT t FROM TestCase t WHERE t.parentId = :parentId ORDER BY t.displayOrder ASC")
   List<TestCase> findByParentIdOrderByDisplayOrder(@Param("parentId") String parentId);
 
+  // 프로젝트 + 부모(널=루트) 스코프 형제를 displayOrder 오름차순으로 조회.
+  // parentId=null(루트)은 모든 프로젝트의 루트 노드를 가로지르므로, 트리 이동/정렬 시 반드시
+  // projectId 로 한정해야 한다. 또 JPQL 의 `t.parentId = :parentId` 는 :parentId 가 null 이면
+  // UNKNOWN 이 되어 0건을 반환하므로 (:parentId IS NULL AND t.parentId IS NULL) 분기를 명시한다.
+  @Query(
+      "SELECT t FROM TestCase t WHERE t.project.id = :projectId "
+          + "AND ((:parentId IS NULL AND t.parentId IS NULL) OR t.parentId = :parentId) "
+          + "ORDER BY t.displayOrder ASC")
+  List<TestCase> findByProjectIdAndParentIdOrderByDisplayOrder(
+      @Param("projectId") String projectId, @Param("parentId") String parentId);
+
   // parentId가 같고 displayOrder가 startOrder 이상인 항목의 displayOrder를 +1 (정렬/삽입시 사용)
   @Modifying
   @Query(
