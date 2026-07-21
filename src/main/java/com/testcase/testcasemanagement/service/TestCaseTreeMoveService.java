@@ -78,7 +78,7 @@ public class TestCaseTreeMoveService {
 
     // 옛 부모 형제 정규화
     if (!java.util.Objects.equals(oldParentId, targetParentId)) {
-      renumberSiblings(oldParentId, node.getId());
+      renumberSiblings(node.getProject().getId(), oldParentId, node.getId());
     }
 
     TestCaseMoveAuditLog audit =
@@ -150,7 +150,7 @@ public class TestCaseTreeMoveService {
     }
 
     // 한 번에 형제로 들어가도록: 새 부모의 기존 자식 가져와서 입력 노드 제거 후 삽입점에 일괄 삽입
-    List<TestCase> siblings = new ArrayList<>(loadSortedSiblings(targetParentId));
+    List<TestCase> siblings = new ArrayList<>(loadSortedSiblings(projectId, targetParentId));
     Set<String> movingIdSet = new HashSet<>(orderedIds);
     siblings.removeIf(s -> movingIdSet.contains(s.getId()));
 
@@ -173,7 +173,7 @@ public class TestCaseTreeMoveService {
     for (String op : oldParents) {
       String opActual = op.isEmpty() ? null : op;
       if (!java.util.Objects.equals(opActual, targetParentId)) {
-        renumberSiblings(opActual, null);
+        renumberSiblings(projectId, opActual, null);
       }
     }
 
@@ -225,9 +225,11 @@ public class TestCaseTreeMoveService {
     return result;
   }
 
-  private List<TestCase> loadSortedSiblings(String parentId) {
+  // 루트(parentId=null) 형제는 프로젝트 경계 없이 모든 프로젝트를 가로지르므로 반드시 projectId 로 한정한다.
+  private List<TestCase> loadSortedSiblings(String projectId, String parentId) {
     List<TestCase> siblings =
-        new ArrayList<>(testCaseRepository.findByParentIdOrderByDisplayOrder(parentId));
+        new ArrayList<>(
+            testCaseRepository.findByProjectIdAndParentIdOrderByDisplayOrder(projectId, parentId));
     // 안전을 위해 displayOrder 기준 재정렬
     siblings.sort(
         Comparator.comparing(
@@ -238,7 +240,8 @@ public class TestCaseTreeMoveService {
   /** 단일 노드 이동 후 displayOrder를 반환. */
   private int applyMoveOnSingleNode(
       TestCase node, String targetParentId, String beforeId, String afterId) {
-    List<TestCase> siblings = new ArrayList<>(loadSortedSiblings(targetParentId));
+    List<TestCase> siblings =
+        new ArrayList<>(loadSortedSiblings(node.getProject().getId(), targetParentId));
     // 자기 자신 제외
     siblings.removeIf(s -> s.getId().equals(node.getId()));
     int insertIdx = computeInsertIndex(siblings, beforeId, afterId, targetParentId);
@@ -268,8 +271,8 @@ public class TestCaseTreeMoveService {
   }
 
   /** 기준 노드(removeId)는 제외하고 부모 자식 displayOrder를 1..N 으로 정규화. */
-  private void renumberSiblings(String parentId, String removeId) {
-    List<TestCase> siblings = loadSortedSiblings(parentId);
+  private void renumberSiblings(String projectId, String parentId, String removeId) {
+    List<TestCase> siblings = loadSortedSiblings(projectId, parentId);
     int n = 1;
     boolean changed = false;
     List<TestCase> toSave = new ArrayList<>();

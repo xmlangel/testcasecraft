@@ -106,6 +106,24 @@ public class TestCaseTreeMoveServiceTest {
                             TestCase::getDisplayOrder,
                             Comparator.nullsLast(Comparator.naturalOrder())))
                     .collect(Collectors.toList()));
+    // 프로젝트 + 부모(널 포함) 스코프 형제 조회 — 트리 이동 서비스가 실제로 쓰는 메서드
+    lenient()
+        .when(
+            testCaseRepository.findByProjectIdAndParentIdOrderByDisplayOrder(
+                Mockito.anyString(), Mockito.any()))
+        .thenAnswer(
+            inv -> {
+              String projId = inv.getArgument(0);
+              String pid = inv.getArgument(1);
+              return store.values().stream()
+                  .filter(tc -> tc.getProject() != null && projId.equals(tc.getProject().getId()))
+                  .filter(tc -> java.util.Objects.equals(tc.getParentId(), pid))
+                  .sorted(
+                      Comparator.comparing(
+                          TestCase::getDisplayOrder,
+                          Comparator.nullsLast(Comparator.naturalOrder())))
+                  .collect(Collectors.toList());
+            });
     lenient()
         .when(testCaseRepository.findByParentId(null))
         .thenAnswer(
@@ -202,6 +220,35 @@ public class TestCaseTreeMoveServiceTest {
     TestCaseMoveRequest req = new TestCaseMoveRequest("F1", null, "T2");
     service.move("T1", req);
     Assert.assertEquals((int) store.get("T1").getDisplayOrder(), 2);
+    Assert.assertEquals((int) store.get("T2").getDisplayOrder(), 1);
+  }
+
+  @Test
+  public void move_reorderRootNodes_beforeId_success() {
+    buildTreeA();
+    // 루트 폴더 F2를 F1 "앞"으로 이동 (targetParentId=null, beforeId=F1)
+    // 회귀: findByParentIdOrderByDisplayOrder(null) 이 빈 리스트를 주면 여기서 400 이 났었다.
+    TestCaseMoveRequest req = new TestCaseMoveRequest(null, "F1", null);
+    service.move("F2", req);
+    Assert.assertEquals(store.get("F2").getParentId(), null);
+    Assert.assertEquals((int) store.get("F2").getDisplayOrder(), 1);
+    Assert.assertEquals((int) store.get("F1").getDisplayOrder(), 2);
+    Assert.assertEquals((int) store.get("F3").getDisplayOrder(), 3);
+  }
+
+  @Test
+  public void move_reparentTestcaseToRoot_afterId_success() {
+    buildTreeA();
+    // 폴더 안 T1을 루트로 빼내 F1 "뒤"에 배치 (targetParentId=null, afterId=F1)
+    TestCaseMoveRequest req = new TestCaseMoveRequest(null, null, "F1");
+    service.move("T1", req);
+    Assert.assertEquals(store.get("T1").getParentId(), null);
+    Assert.assertEquals((int) store.get("T1").getDisplayOrder(), 2);
+    // F1 뒤로 밀려 F2/F3 재번호
+    Assert.assertEquals((int) store.get("F1").getDisplayOrder(), 1);
+    Assert.assertEquals((int) store.get("F2").getDisplayOrder(), 3);
+    Assert.assertEquals((int) store.get("F3").getDisplayOrder(), 4);
+    // 옛 부모(F1) 형제 재번호: 남은 T2가 1
     Assert.assertEquals((int) store.get("T2").getDisplayOrder(), 1);
   }
 

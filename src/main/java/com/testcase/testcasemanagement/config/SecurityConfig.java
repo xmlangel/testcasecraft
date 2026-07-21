@@ -21,7 +21,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -195,24 +194,47 @@ public class SecurityConfig {
     return new JwtAuthenticationFilter(jwtTokenUtil, userDetailsService);
   }
 
-  // CORS 설정 (기존 코드 유지)
+  // CORS 설정
+  // 보안: 와일드카드 '*' 금지 — allowCredentials(true)와 '*' 조합은 임의 Origin 을 반사해 취약하다.
+  // 다만 '동일 출처(same-origin)' 요청은 교차 사이트 공격 벡터가 아니므로 설정과 무관하게 항상 허용한다.
+  // (Vite 가 정적 자산을 <script type="module" crossorigin> 으로 로드하므로 브라우저가 자기 자신 Origin 을
+  //  실어 CORS 요청을 보낸다 — 이를 막으면 APP_CORS_ALLOWED_ORIGINS 를 설정하지 않은 배포에서 앱 자체가
+  //  뜨지 않는다. 요청 Host 와 Origin host 가 같으면 same-origin 으로 판정해 반사한다.)
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    // 명시적으로 설정된 Origin만 허용 (와일드카드 '*' 금지 — allowCredentials와 결합 시 Origin 반사 취약점).
-    List<String> origins =
+    List<String> configuredOrigins =
         java.util.Arrays.stream(allowedOrigins.split(","))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .toList();
-    configuration.setAllowedOriginPatterns(origins);
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*"));
-    configuration.setAllowCredentials(true);
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
+    return (jakarta.servlet.http.HttpServletRequest request) -> {
+      java.util.List<String> patterns = new java.util.ArrayList<>(configuredOrigins);
+
+      // 동일 출처 반사: Origin 의 host 가 요청 Host 헤더와 일치하면 허용 목록에 추가(안전 — 교차 사이트 아님).
+      String origin = request.getHeader("Origin");
+      String hostHeader = request.getHeader("Host");
+      if (origin != null && hostHeader != null) {
+        try {
+          String originHost = java.net.URI.create(origin).getHost();
+          String requestHost = hostHeader.split(":", 2)[0];
+          if (originHost != null
+              && originHost.equalsIgnoreCase(requestHost)
+              && !patterns.contains(origin)) {
+            patterns.add(origin);
+          }
+        } catch (RuntimeException ignored) {
+          // 파싱 불가한 Origin 은 무시(설정된 목록만 적용)
+        }
+      }
+
+      CorsConfiguration configuration = new CorsConfiguration();
+      configuration.setAllowedOriginPatterns(patterns);
+      configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+      configuration.setAllowedHeaders(List.of("*"));
+      configuration.setAllowCredentials(true);
+      return configuration;
+    };
   }
 
   // 나머지 기존 빈 설정 유지
