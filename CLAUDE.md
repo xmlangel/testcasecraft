@@ -31,6 +31,16 @@
 
 ---
 
+## 하네스: 온톨로지 시각화
+
+**목표:** testcasecraft 데이터를 온톨로지 그래프로 만들어 Microsoft **Ontology-Playground**에서 본다. 두 층 — (1) 코어 스키마(JPA 엔티티 기반, 전 프로젝트 공용, 재작성 안 함) + (2) 프로젝트별 도메인 오버레이(실제 폴더 계층 `parentId`에서 자동 추출한 "무엇을 테스트하는가" taxonomy).
+
+**트리거:** "테스트케이스 온톨로지", "온톨로지로 시각화", "이 프로젝트 온톨로지로 그려줘", "Ontology-Playground에 올려줘", "도메인 오버레이 만들어" 류 요청 시 `testcasecraft-ontology` 스킬을 사용하라. 단순 트리 조회는 `testcasecraft-tc-manage`(tree_dump). **핵심 원칙:** 코어는 1개 공용, 프로젝트마다 오버레이만 `--project-id`로 재생성(온톨로지 전체 재작성 아님).
+
+**구성:** 스킬 `testcasecraft-ontology` (`.claude/skills/`) + 스크립트 3종(`build_core.py`·`build_overlay.py`·`pg_common.py`). 인증·트리 조회는 글로벌 `testcasecraft-tc-manage`의 `tcc_common` 재사용. Playground repo 기본 경로 `~/kmdata/git/xmlangel/Ontology-Playground`. 이름에 한글이 들어가면 `npm run validate`(Fabric IQ 명명 규칙)는 FAIL(시각화 전용) — 커밋·export용은 `--english-names`.
+
+---
+
 ## 하네스 변경 이력
 
 | 날짜 | 변경 내용 | 대상 | 사유 |
@@ -43,3 +53,5 @@
 | 2026-06-06 | CLAUDE.md 하네스 포인터 최초 등록 | CLAUDE.md | 포인터 부재 drift 해소 (/harness 감사) |
 | 2026-06-06 | 매뉴얼 캡처 도구 강제 규칙 — manual_capture.py 필수, Playwright MCP 금지 | skills/manual-capture | 사용자 피드백 — MCP 브라우저 캡처 패턴 반복 발생 |
 | 2026-06-06 | 하네스 감사 권장 조치 — integration-tester 후속작업 지침, manual-writer 섹션명 통일, dead pointer 2건 수정, i18n 스캐너 실행 경로 명시 | agents/, skills/ | /harness 전체 점검 (높음 2·중간 3 해소) |
+| 2026-07-21 | 온톨로지 시각화 스킬 신설 (`testcasecraft-ontology` — build_core·build_overlay·pg_common) | skills/testcasecraft-ontology | 사용자 요청 — testcasecraft 데이터를 Ontology-Playground 온톨로지로. 코어 스키마(공용) + 프로젝트별 오버레이(폴더 계층 자동 추출) 2층 구조. AUX 프로젝트(539b1952, 폴더151/케이스1167)로 검증 |
+| 2026-07-21 | 오버레이 슬러그·이름 자동화 — `GET /api/projects/<id>`로 실제 name/code 조회 | skills/testcasecraft-ontology/scripts/build_overlay.py | 사용자 지적 — 기본 슬러그가 UUID 8자리(dca4a2a4)라 의미 불명. code 기반 슬러그(testcasecraft-agg/-ags) + 실제 이름(AgensGraph/AgensSQL)으로 전환, 조회 실패 시만 UUID 폴백. 두 프로젝트 재생성해 통일 |
