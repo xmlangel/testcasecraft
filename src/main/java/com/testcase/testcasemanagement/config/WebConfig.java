@@ -35,6 +35,8 @@ public class WebConfig implements WebMvcConfigurer {
     registry.addViewController("/organizations/**").setViewName("forward:/index.html");
     registry.addViewController("/projects").setViewName("forward:/index.html");
     registry.addViewController("/projects/**").setViewName("forward:/index.html");
+    // 그래프 테스트 케이스 편집기 (SPA 라우트) — 직접 진입·새로고침 시에도 index.html 서빙
+    registry.addViewController("/graph-tc/**").setViewName("forward:/index.html");
     registry.addViewController("/testcases").setViewName("forward:/index.html");
     registry.addViewController("/testcases/**").setViewName("forward:/index.html");
     registry.addViewController("/executions").setViewName("forward:/index.html");

@@ -1,6 +1,6 @@
 {
   "name": "testcasecraft",
-  "version": "1.0.96",
+  "version": "1.1.1",
   "private": true,
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.7",
@@ -17,6 +17,9 @@
     "@tanstack/react-virtual": "^3.13.12",
     "@uiw/react-md-editor": "^4.0.8",
     "axios": "^1.13.2",
+    "cytoscape": "^3.34.0",
+    "cytoscape-dagre": "^4.0.0",
+    "cytoscape-fcose": "^2.2.0",
     "date-fns": "^4.1.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.2",

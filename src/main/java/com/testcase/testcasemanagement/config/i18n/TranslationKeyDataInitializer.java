@@ -40,6 +40,7 @@ public class TranslationKeyDataInitializer {
   private final I18nHardcodedKeysInitializer i18nHardcodedKeysInitializer;
   // 2026-06-09 즐겨찾기/개인 북마크 기능
   private final BookmarkKeysInitializer bookmarkKeysInitializer;
+  private final GraphKeysInitializer graphKeysInitializer;
 
   @Transactional
   public void initialize() {
@@ -74,6 +75,7 @@ public class TranslationKeyDataInitializer {
 
     // 2026-06-09 즐겨찾기/개인 북마크 기능
     bookmarkKeysInitializer.initialize();
+    graphKeysInitializer.initialize();
 
     log.info("번역 키 데이터 초기화 완료");
   }

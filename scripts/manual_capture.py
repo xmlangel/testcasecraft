@@ -68,9 +68,11 @@ def do_login(page: Page, base_url: str, user: str, password: str) -> None:
     page.fill('[data-testid="login-username-input"]', user)
     page.fill('[data-testid="login-password-input"]', password)
     page.click('[data-testid="login-submit-button"]')
-    # 로그인 후 /projects 또는 / 로 리다이렉트 — networkidle 은 SPA 폴링 때문에
-    # 도달하지 않으므로 URL 변화만 확인
-    page.wait_for_url(lambda url: "/login" not in url, timeout=15_000)
+    # 로그인 완료 판정: URL 검사("/login" 부재)는 로그인 폼이 "/" 에서 렌더되는 구성에서
+    # 즉시 참이 되어 미로그인 상태로 통과한다 — accessToken 저장을 직접 기다린다.
+    page.wait_for_function(
+        "() => !!localStorage.getItem('accessToken')", timeout=15_000
+    )
     page.wait_for_load_state("domcontentloaded")
     page.wait_for_timeout(800)
 
@@ -114,6 +116,52 @@ def open_user_menu(page: Page) -> None:
     # 매뉴얼 버튼을 먼저 잡는다 — 정확 매칭만 사용
     page.locator("header [aria-label='user menu']").first.click()
     page.wait_for_selector('[data-testid="profile-menu-item"]', timeout=5_000)
+
+
+def open_graph_view(page: Page) -> None:
+    """프로젝트 목록에서 프로젝트를 클릭해 진입한 뒤(activeProject 설정) 그래프 탭으로 이동.
+
+    /projects/{id} 직접 진입은 컨텍스트 로딩 레이스로 /projects 로 되돌아갈 수 있어,
+    실제 사용자 흐름(목록 → 프로젝트 클릭 → 그래프 탭)을 그대로 따른다.
+    """
+    project_id = os.environ.get("MANUAL_PROJECT_ID", "")
+    if "/projects/" not in page.url or page.url.rstrip("/").endswith("/projects"):
+        page.goto(page.url.split("/projects")[0] + "/projects")
+        card = (
+            page.locator(f'[data-testid="project-card-{project_id}"]')
+            if project_id
+            else page.locator('[data-testid^="project-card-"]').first
+        )
+        card.click()
+        page.wait_for_url(lambda url: "/projects/" in url, timeout=10_000)
+        page.wait_for_timeout(1000)
+    page.locator('[data-testid="tab-graph"]').click()
+    page.wait_for_url(lambda url: "/graph" in url, timeout=10_000)
+    page.wait_for_timeout(3000)  # fcose 레이아웃 + 데이터 로딩
+
+
+def open_graph_tab(tab_label: str, extra_wait_ms: int = 3000):
+    """그래프 뷰 진입 후 지정 탭 클릭."""
+
+    def _prepare(page: Page) -> None:
+        open_graph_view(page)
+        page.get_by_role("tab", name=tab_label).click()
+        page.wait_for_timeout(extra_wait_ms)
+
+    return _prepare
+
+
+def open_graph_neighborhood(page: Page) -> None:
+    """케이스 이웃 탭 — MANUAL_GRAPH_CASE_ID 가 있으면 조회까지 수행."""
+    open_graph_view(page)
+    page.get_by_role("tab", name="케이스 이웃").click()
+    page.wait_for_timeout(800)
+    case_id = os.environ.get("MANUAL_GRAPH_CASE_ID", "")
+    if case_id:
+        page.get_by_label("테스트케이스 ID").fill(case_id)
+        page.get_by_role("button", name="조회").click()
+        page.wait_for_timeout(3000)
+
 
 
 def open_admin_menu(page: Page) -> None:
@@ -334,6 +382,8 @@ def open_cross_project_dialog(page: Page) -> None:
 # 미지정 시 첫 번째 프로젝트의 ID 를 자동 사용한다 (resolve_project_id 참고).
 
 PROJECT_ID_PLACEHOLDER = "{PROJECT_ID}"
+# 그래프 편집기 캡처용 케이스 id — 환경 변수 MANUAL_GRAPH_CASE_ID 로 주입 (그래프 모드로 전환된 케이스)
+GRAPH_CASE_ID_PLACEHOLDER = "{GRAPH_CASE_ID}"
 
 
 def _project_path(suffix: str) -> str:
@@ -529,6 +579,25 @@ STEPS: list[Step] = [
         prepare=open_qa_summary_panel,
         wait_ms=800,
     ),
+    # ── 7. 그래프 뷰 (v1.1.1 — FEATURES_GRAPH_ENABLED=true + 동기화 필요) ──
+    Step("93_graph_structure", url="/projects", prepare=open_graph_view, wait_ms=800),  # ●
+    Step(
+        "94_graph_failures",
+        url="/projects",
+        prepare=open_graph_tab("오류 클러스터"),
+        wait_ms=800,
+    ),  # ●
+    Step(
+        "95_graph_neighborhood",
+        url="/projects",
+        prepare=open_graph_neighborhood,
+        wait_ms=800,
+    ),  # ● (MANUAL_GRAPH_CASE_ID 로 조회 데이터 포함)
+    Step(
+        "96_graph_tc_editor",
+        url=f"/graph-tc/{GRAPH_CASE_ID_PLACEHOLDER}/edit?projectId={PROJECT_ID_PLACEHOLDER}",
+        wait_ms=3000,
+    ),  # ● (그래프 모드 전환된 케이스 필요)
 ]
 
 
@@ -802,6 +871,9 @@ def run(args: argparse.Namespace, pw: Playwright) -> int:
         for step in steps:
             page = page_auth if step.auth else page_anon
             url = (step.url or "").replace(PROJECT_ID_PLACEHOLDER, project_id)
+            url = url.replace(
+                GRAPH_CASE_ID_PLACEHOLDER, os.environ.get("MANUAL_GRAPH_CASE_ID", "")
+            )
             out_file = out_dir / f"{step.slug}.png"
 
             try:

@@ -24,6 +24,7 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
   StarBorder as StarBorderIcon,
+  Hub as HubIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
@@ -150,11 +151,12 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
                 t("projectHeader.tabs.testResults", "테스트결과")}
               {tabIndex === 5 &&
                 t("projectHeader.tabs.automation", "자동화 테스트")}
-              {tabIndex === 6 &&
+              {tabIndex === 6 && t("projectHeader.tabs.graph", "그래프")}
+              {tabIndex === 7 &&
                 (isRagEnabled
                   ? t("projectHeader.tabs.ragDocuments", "RAG 문서")
                   : t("projectHeader.tabs.exploratorySessions", "탐색 세션"))}
-              {tabIndex === 7 &&
+              {tabIndex === 8 &&
                 t("projectHeader.tabs.exploratorySessions", "탐색 세션")}
             </Typography>
           )}
@@ -267,6 +269,13 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
           label={t("projectHeader.tabs.automation", "자동화 테스트")}
           sx={tabStyle}
           data-testid="tab-automation"
+        />
+        <Tab
+          icon={<HubIcon />}
+          iconPosition="start"
+          label={t("projectHeader.tabs.graph", "그래프")}
+          sx={tabStyle}
+          data-testid="tab-graph"
         />
         {/* RAG 비활성화 시 탭 자동 숨김, 활성화 시 자동 표시 */}
         {isRagEnabled && (

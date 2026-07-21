@@ -260,7 +260,8 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f -k ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1"]
+      # 앱 이미지(1.0.84+)는 보안상 curl 미포함 — busybox wget 사용
+      test: ["CMD-SHELL", "wget -q --no-check-certificate -O /dev/null ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
