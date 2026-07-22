@@ -45,6 +45,7 @@ import TestExecutionList from "./components/TestExecutionList.jsx";
 import TestExecutionForm from "./components/TestExecutionForm.jsx";
 import TestCaseResultPage from "./components/TestCaseResultPage.jsx";
 import BookmarkPage from "./components/Bookmark/BookmarkPage.jsx";
+import GraphView from "./components/Graph/GraphView.jsx";
 import TestResultMainPage from "./components/TestResultMainPage.jsx";
 import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
@@ -59,7 +60,6 @@ import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
 import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
 import TranslationManagement from "./components/admin/TranslationManagement.jsx";
 import CommonDocumentManagement from "./components/admin/CommonDocumentManagement.jsx";
-import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import ExploratorySessionWorkspace from "./components/ExploratorySessionWorkspace.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
@@ -198,8 +198,8 @@ const AppContent = () => {
   // 탐색 세션 탭 비노출 상태에서는 직접 접근도 허용하지 않는다.
   const EXPLORATORY_TAB = showExploratorySessionTab
     ? isRagEnabled
-      ? 7
-      : 6
+      ? 8
+      : 7
     : -1;
 
   const navigate = useNavigate();
@@ -386,6 +386,12 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/(junit|automation)/);
   };
 
+  // URL이 그래프 섹션인지 확인
+  const isGraphSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/graph/);
+  };
+
   // URL이 RAG 문서 섹션인지 확인
   const isRagSection = () => {
     const path = location.pathname;
@@ -487,13 +493,16 @@ const AppContent = () => {
         } else if (isAutomationTestsSection()) {
           setTabIndex(5);
           setActiveTestCaseId(null);
+        } else if (isGraphSection()) {
+          setTabIndex(6);
+          setActiveTestCaseId(null);
         } else if (isRagSection()) {
           // RAG 비활성화 시 /rag URL 직접 접근하면 대시보드로 리다이렉트
           if (!isRagEnabled) {
             navigate(`/projects/${urlProjectId}`);
             setTabIndex(0);
           } else {
-            setTabIndex(6);
+            setTabIndex(7);
           }
           setActiveTestCaseId(null);
         } else if (isExploratorySection()) {
@@ -539,7 +548,7 @@ const AppContent = () => {
 
   React.useEffect(() => {
     if (!showExploratorySessionTab) {
-      const maxVisibleTabIndex = isRagEnabled ? 6 : 5;
+      const maxVisibleTabIndex = isRagEnabled ? 7 : 6;
       if (tabIndex > maxVisibleTabIndex) {
         setTabIndex(0);
       }
@@ -555,6 +564,7 @@ const AppContent = () => {
       !isTestExecutionsSection() &&
       !isTestResultsSection() &&
       !isAutomationTestsSection() &&
+      !isGraphSection() &&
       !isRagSection() &&
       !isExploratorySection()
     ) {
@@ -600,17 +610,20 @@ const AppContent = () => {
         // 자동화 테스트 탭
         navigate(`/projects/${projectId}/automation`);
       } else if (newValue === 6) {
+        // 그래프 탭
+        navigate(`/projects/${projectId}/graph`);
+      } else if (newValue === 7) {
         if (isRagEnabled) {
-          // RAG 활성화 시: 6 = RAG 문서 탭
+          // RAG 활성화 시: 7 = RAG 문서 탭
           navigate(`/projects/${projectId}/rag`);
         } else if (showExploratorySessionTab) {
-          // RAG 비활성화 시: 6 = 탘색 세션 탭
+          // RAG 비활성화 시: 7 = 탘색 세션 탭
           navigate(`/projects/${projectId}/exploratory`);
         } else {
           navigate(`/projects/${projectId}`);
         }
-      } else if (newValue === 7 && showExploratorySessionTab) {
-        // RAG 활성화 시만 탭 7이 존재 (= 탘색 세션)
+      } else if (newValue === 8 && showExploratorySessionTab) {
+        // RAG 활성화 시만 탭 8이 존재 (= 탐색 세션)
         navigate(`/projects/${projectId}/exploratory`);
       } else {
         // 대시보드(0) 탭
@@ -814,7 +827,8 @@ const AppContent = () => {
                 ml: 1,
                 mt: "22px",
                 fontWeight: "bold",
-                color: "rgba(255, 255, 255, 0.7)",
+                color: "inherit",
+                opacity: 0.7,
                 letterSpacing: "0.05em",
                 fontFamily: "monospace",
               }}
@@ -1236,8 +1250,14 @@ const AppContent = () => {
                     <JunitResultDashboard />
                   </Box>
                 )}
-                {/* RAG 문서 탭: RAG 활성화 + tabIndex 6일 때만 표시 */}
-                {tabIndex === 6 && isRagEnabled && activeProject && (
+                {/* 그래프 탭 (v1.1.1) */}
+                {tabIndex === 6 && activeProject && (
+                  <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                    <GraphView />
+                  </Box>
+                )}
+                {/* RAG 문서 탭: RAG 활성화 + tabIndex 7일 때만 표시 */}
+                {tabIndex === 7 && isRagEnabled && activeProject && (
                   <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
                     <RAGDocumentManager projectId={activeProject.id} />
                   </Box>
@@ -1482,7 +1502,6 @@ const AppWrapper = () => {
       </Routes>
 
       {/* 서버 시간 표시 */}
-      <ServerTimeDisplay />
     </BrowserRouter>
   );
 };

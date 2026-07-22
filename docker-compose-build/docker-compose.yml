@@ -1,7 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:1.0.96
+    image: xmlangel/testcasecraft:1.1.1
     container_name: testcasecraft
     environment:
       # Spring Profile
@@ -50,6 +50,14 @@ services:
 
       # Frontend API Configuration
       - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL:-http://localhost:8080}
+
+      # Graph DB (AgensGraph) — features.graph.enabled=false(기본) 면 앱은 그래프 없이 기존과 동일 동작.
+      # 그래프를 쓰려면 FEATURES_GRAPH_ENABLED=true + `--profile graph` 로 agensgraph 를 함께 띄운다.
+      # 비밀번호 기본값은 agensgraph 서비스와 반드시 동일해야 인증된다(둘 다 changeme-graph 기본).
+      - FEATURES_GRAPH_ENABLED=${FEATURES_GRAPH_ENABLED:-false}
+      - GRAPH_DB_URL=${GRAPH_DB_URL:-jdbc:postgresql://agensgraph:5432/tc_graph_db}
+      - GRAPH_DB_USERNAME=${GRAPH_DB_USERNAME:-graph_user}
+      - GRAPH_DB_PASSWORD=${GRAPH_DB_PASSWORD:-changeme-graph}
     ports:
       - "${HTTP_PORT}:${SERVER_PORT}"
       - "${HTTPS_PORT}:${SERVER_PORT}"
@@ -63,6 +71,11 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      # 그래프 프로파일(--profile graph)로 agensgraph 를 띄운 경우에만 대기.
+      # required: false 라 그래프 미사용 시엔 무시된다.
+      agensgraph:
+        condition: service_healthy
+        required: false
     healthcheck:
       # busybox wget 사용 (1.0.84+ 이미지는 보안상 curl 미포함)
       test:
@@ -137,6 +150,33 @@ services:
       - testcasecraft-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U testcase_user -d testcase_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # AgensGraph — 테스트케이스·오류 그래프 (docs/graph-db/AGENSGRAPH_TESTCASE_GRAPH_PLAN.md)
+  #   PG16.9 기반이라 메인 postgres(pg18)와 별도 인스턴스로 병존한다.
+  #   FEATURES_GRAPH_ENABLED=false(기본)면 앱은 이 서비스 없이도 기존과 동일하게 동작.
+  agensgraph:
+    image: skaiworldwide/agensgraph:v2.16.0-bookworm
+    container_name: testcasecraft-agensgraph
+    # opt-in — `docker compose --profile graph up -d` 일 때만 기동. 기본 up 에는 안 뜬다.
+    profiles: ["graph"]
+    environment:
+      POSTGRES_DB: tc_graph_db
+      POSTGRES_USER: graph_user
+      POSTGRES_PASSWORD: ${GRAPH_DB_PASSWORD:-changeme-graph}
+    ports:
+      # 개발 머신에서 5435/5436 을 다른 AgensGraph 가 쓰는 경우가 있어 5437 기본
+      - "${GRAPH_DB_PORT:-5437}:5432"
+    volumes:
+      - ./data/agensgraph:/var/lib/postgresql/data
+      - ./init-scripts-graph:/docker-entrypoint-initdb.d
+    networks:
+      - testcasecraft-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U graph_user -d tc_graph_db"]
       interval: 10s
       timeout: 5s
       retries: 5

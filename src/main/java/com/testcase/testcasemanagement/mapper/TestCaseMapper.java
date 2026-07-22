@@ -64,6 +64,9 @@ public class TestCaseMapper {
     }
 
     dto.setVersion(entity.getVersion());
+    // 그래프 모드 정보 — 조회 전용 (getter 가 null→BASIC 정규화)
+    dto.setRepresentationMode(entity.getRepresentationMode());
+    dto.setGraphSyncedAt(entity.getGraphSyncedAt());
 
     return dto;
   }

@@ -16,10 +16,11 @@ Depending on your situation, you can read only the sections you need.
 |---|---|
 | **Getting started** | §1 Sign-Up and Login → §2 Creating a Project → §3 Screen Layout (in order) |
 | **Writing test cases** (testers, developers) | §4 Writing Test Cases → §5 Test Case Tree Reorganization |
-| **Running and reporting tests** | §7 Test Plans → §8 Test Execution → §9 Test Results → §10 Automated Tests |
-| **Managing projects** (Project Managers) | §6 Dashboard and Statistics → §17-9 Project Settings |
-| **Operating the system** (Administrators) | §17 System Administrator Settings → §16-3 Installation and Operations Documentation |
-| **Unfamiliar terminology** | §18 Glossary (keep open for reference at any time) |
+| **Running and reporting tests** | §8 Test Plans → §9 Test Execution → §10 Test Results → §11 Automated Tests |
+| **Analyzing with graphs** | §6 Dashboard and Statistics → §7 Graph View |
+| **Managing projects** (Project Managers) | §6 Dashboard and Statistics → §18-9 Project Settings |
+| **Operating the system** (Administrators) | §18 System Administrator Settings → §17-3 Installation and Operations Documentation |
+| **Unfamiliar terminology** | §19 Glossary (keep open for reference at any time) |
 
 This manual uses three types of guidance indicators.
 
@@ -38,18 +39,19 @@ This manual uses three types of guidance indicators.
 4. [Writing Test Cases](#4-writing-test-cases)
 5. [Test Case Tree — Drag-and-Drop Reorganization](#5-test-case-tree--drag-and-drop-reorganization)
 6. [Dashboard and Statistics](#6-dashboard-and-statistics)
-7. [Test Plans](#7-test-plans)
-8. [Test Execution](#8-test-execution)
-9. [Test Results](#9-test-results)
-10. [Automated Tests](#10-automated-tests)
-11. [RAG Documents & Chat](#11-rag-documents--chat)
-12. [Exploratory Sessions (SBTM)](#12-exploratory-sessions-sbtm)
-13. [User Profile & Settings](#13-user-profile--settings)
-14. [Header Tools — Dark Mode · Language · Project Selector](#14-header-tools--dark-mode--language--project-selector)
-15. [Logging Out](#15-logging-out)
-16. [Appendix — JIRA Integration & FAQ](#16-appendix--jira-integration--faq)
-17. [System Administrator Settings (ADMIN Only)](#17-system-administrator-settings-admin-only)
-18. [Glossary](#18-glossary)
+7. [Graph View](#7-graph-view)
+8. [Test Plans](#8-test-plans)
+9. [Test Execution](#9-test-execution)
+10. [Test Results](#10-test-results)
+11. [Automated Tests](#11-automated-tests)
+12. [RAG Documents & Chat](#12-rag-documents--chat)
+13. [Exploratory Sessions (SBTM)](#13-exploratory-sessions-sbtm)
+14. [User Profile & Settings](#14-user-profile--settings)
+15. [Header Tools — Dark Mode · Language · Project Selector](#15-header-tools--dark-mode--language--project-selector)
+16. [Logging Out](#16-logging-out)
+17. [Appendix — JIRA Integration & FAQ](#17-appendix--jira-integration--faq)
+18. [System Administrator Settings (ADMIN Only)](#18-system-administrator-settings-admin-only)
+19. [Glossary](#19-glossary)
 
 ---
 
@@ -468,7 +470,82 @@ The **[Dashboard]** tab at the top of the project (`/projects/{projectId}` defau
 Click **[Refresh]** at the top to update to the latest data. Use **[Last 15 Days ▾]** to change the display period.
 
 
-## 7. Test Plans
+## 7. Graph View
+
+Explore the relationships among test cases, executions, and results in your project visually.
+
+> **Activation required**: The graph feature is off by default. An administrator must set the `FEATURES_GRAPH_ENABLED=true` environment variable, and a user with project management permission must run graph synchronization. See the release note ([RELEASE_NOTE_1.1.1_KO](../../release_note/RELEASE_NOTE_1.1.1_KO.md)) for setup details.
+
+### 7-1. Opening the Graph View
+
+Inside a project, click the **[Graph]** tab in the top tab bar to open the graph view (`/projects/{projectId}/graph`). The view has three inner tabs: **Structure / Failure Clusters / Case Neighborhood**. If no data exists yet, use the **[Sync now]** button in the banner to build it (project management permission required).
+
+![Graph View — Structure Graph](images_en/93_graph_structure.png)
+
+### 7-2. Structure Graph
+
+Shows the relationship network of project → folders → cases → test plans → executions → results. Result nodes are colored by status (PASS green, FAIL red, BLOCKED orange, NOT_RUN gray).
+
+| Feature | Description |
+|---|---|
+| **Layout** | Choose Force, Hierarchy, Concentric (hub-centered), Circle, or Grid from the **Layout** selector at the top left |
+| **Filters** | Toggle node types (folders, cases, plans, executions, results) and result statuses (PASS/FAIL/BLOCKED/NOT_RUN) on and off to keep only what you want when there are many nodes |
+| **Plan/Execution scope** | Pick a specific plan or execution in **[Plan/Execution]** to show only its connected subgraph |
+| **Node click** | Click a node to see its properties in the right panel. On a case node you can start relation editing (7-5) |
+| **Zoom & pan** | Zoom with the mouse wheel; drag nodes to reposition them |
+
+### 7-3. Failure Clusters
+
+Groups JUnit (automated test) upload failures by shared cause.
+
+![Graph View — Failure Clusters](images_en/94_graph_failures.png)
+
+Each failure is keyed by its `failureType` and the first line of the message, so failures with the same cause gather into one hub. The cause node sits at the center with the affected cases and executions around it, which shows how far a single defect has spread and whether it recurs across executions.
+
+### 7-4. Case Neighborhood
+
+Explores items connected to a specific test case within one to three hops.
+
+![Graph View — Case Neighborhood](images_en/95_graph_neighborhood.png)
+
+Enter a test case ID at the top, choose a depth (1–3), and click **[Load]**. The plans and folders the case belongs to, along with its linked executions and results, unfold to the chosen depth; click any node to inspect its properties in the right panel.
+
+### 7-5. Defining Case Relations Manually
+
+Besides the relations created automatically by synchronization (folder containment, plan inclusion, result links, and so on), you can draw logical relations between cases yourself.
+
+In the structure graph, click a case node, press **[Start relation from this case]** in the right panel, then click the target case to open the type dialog. The three types are `DEPENDS_ON`, `RELATES_TO`, and `BLOCKS`. Manual relations appear as purple dashed edges, distinct from automatic ones, and you delete one by clicking its edge. Because these relations live only in the graph, re-running synchronization does not erase them.
+
+### 7-6. Graph Test Cases
+
+You can author and manage cases in **three ways**.
+
+| Mode | Description | When to use |
+|---|---|---|
+| **Basic** | The linear step format used so far — actions listed in order | Typical scenario tests |
+| **Graph** | Steps authored as a node chain; complex branching or repeated flows can be expressed (dedicated editor at `/graph-tc/{id}/edit`) | Complex test flows with many decision points |
+| **Basic ↔ Graph** | Convert an existing linear case to graph form or back. Bulk conversion by folder or project is supported. Conversion is non-destructive, so you can return to the original format at any time | Migrating existing cases to the new format |
+
+**Relational mirror guarantee**: cases authored in graph mode always remain viewable as linear steps in the existing spreadsheet view and case form. In graph mode the graph is the source of truth, and the step table is a read-only mirror that refreshes automatically. Reverting makes the mirror the source of truth again.
+
+**Branch authoring (editor)**: in the graph test case editor (`/graph-tc/{id}/edit`) you can attach a **branch (Decision)** to a step, not just list steps in order. Use each step's branch button to set a condition label (e.g., valid/invalid) and a target step; branch points then appear as diamonds in the preview at the top. A case with branches becomes `HYBRID` mode, and the relational mirror records the main path (the first branch) as linear steps.
+
+![Graph Test Case Editor — branch authoring](images_en/96_graph_tc_editor.png)
+
+### 7-7. Data Synchronization
+
+Graph data is not generated automatically, so a user with project management permission must run synchronization. Press **[Sync now]** in the graph view or call `POST /api/graph/sync?projectId={projectId}`. Synchronization is idempotent, so it is safe to re-run; run it after adding new cases or making substantial edits to reflect the latest state.
+
+### 7-8. Version Compatibility
+
+| Direction | Status |
+|---|---|
+| **1.0.x data → 1.1.1 (or later)** | ✅ Fully compatible. Existing cases are all recognized as "Basic" mode; the only schema change is added columns |
+| **1.1.1 → 1.0.x downgrade** | ⚠️ Not supported. Cases created or converted to graph mode in 1.1.1 lose their graph structure when rolled back to 1.0.x (only the linear mirror steps remain visible; no crash). Reverting those cases before downgrading is recommended |
+
+---
+
+## 8. Test Plans
 
 Click the **[Test Plans]** tab at the top (`/projects/{projectId}/testplans`) to manage **test plans** — groups of test cases bundled together as a single execution unit.
 
@@ -482,7 +559,7 @@ Click the **[Test Plans]** tab at the top (`/projects/{projectId}/testplans`) to
 
 ---
 
-## 8. Test Execution
+## 9. Test Execution
 
 Click the **[Test Execution]** tab at the top (`/projects/{projectId}/executions`) to manage execution instances of cases bundled in test plans.
 
@@ -505,7 +582,7 @@ The manual execution flow is as follows:
 
 ![Execution detail — filter panel expanded](images_en/52b_execution_filter_panel.png)
 
-### 8-1. Result Entry Screen
+### 9-1. Result Entry Screen
 
 Click a case within an execution to open the result entry screen (`/projects/{projectId}/executions/{executionId}/testcases/{testCaseId}/result`). Use the floating result button on the screen to record one of the following four states:
 
@@ -529,7 +606,7 @@ The selected view format is saved in your browser, so it is preserved the next t
 
 ![Previous Execution Results dialog — note view format toggle](images_en/91_prev_results_dialog.png)
 
-### 8-2. Auto-Save — Viewing Never Saves
+### 9-2. Auto-Save — Viewing Never Saves
 
 > **Changed on 2026-06-05 (v1.0.80)**: Result entry auto-save behavior has been safely redesigned.
 
@@ -541,7 +618,7 @@ The selected view format is saved in your browser, so it is preserved the next t
 
 ---
 
-## 9. Test Results
+## 10. Test Results
 
 Click the **[Test Results]** tab at the top (`/projects/{projectId}/results`) to view consolidated results from completed executions.
 
@@ -559,7 +636,7 @@ Click the **[Test Results]** tab at the top (`/projects/{projectId}/results`) to
 
 > **Changed on 2026-06-05 (v1.0.80)**: PDF export no longer cuts off long test steps (step/expected result) at page boundaries; they now print in full across multiple pages.
 
-### 9-1. QA Summary
+### 10-1. QA Summary
 
 On the **Detail Table** tab of the Test Results screen, **selecting a single test execution filter** displays a **"QA Summary"** panel above the results table. This is a free-form space for recording your evaluation, observations, and follow-up actions after completing that execution.
 
@@ -571,7 +648,7 @@ On the **Detail Table** tab of the Test Results screen, **selecting a single tes
 
 ---
 
-## 10. Automated Tests
+## 11. Automated Tests
 
 Click the **[Automated Tests]** tab at the top (`/projects/{projectId}/automation`) to upload result files from automated test tools (JUnit, Playwright, Pytest, etc.) and view them consolidated in TestcaseCraft.
 
@@ -588,7 +665,7 @@ Click the **[Automated Tests]** tab at the top (`/projects/{projectId}/automatio
 
 ---
 
-## 11. RAG Documents & Chat
+## 12. RAG Documents & Chat
 
 Click the **[RAG Documents]** tab at the top (`/projects/{projectId}/rag`) to manage your project knowledge base.
 
@@ -602,7 +679,7 @@ Click the **[RAG Documents]** tab at the top (`/projects/{projectId}/rag`) to ma
 
 ---
 
-## 12. Exploratory Sessions (SBTM)
+## 13. Exploratory Sessions (SBTM)
 
 Click the **[Exploratory Sessions]** tab at the top (`/projects/{projectId}/exploratory`) to manage exploratory test sessions based on **Session-Based Test Management**.
 
@@ -617,12 +694,12 @@ Click the **[Exploratory Sessions]** tab at the top (`/projects/{projectId}/expl
 
 ---
 
-## 13. User Profile & Settings
+## 14. User Profile & Settings
 
 Click the **user avatar** in the upper right of the header, then click **[Profile]** to open the user profile dialog.
 The dialog comprises seven tabs:
 
-### 13-1. Basic Information
+### 14-1. Basic Information
 
 ![Profile — Basic Information](images_en/65_profile_page.png)
 
@@ -631,13 +708,13 @@ The dialog comprises seven tabs:
 - Email verification status — If **[Not Verified]**, click **[Send Verification Email]** to send verification mail. Click the link in the received email to see the verification complete screen (`/verify-email`). After verification, click **[Refresh Status]** to update the badge.
 - Service version (server/client) displayed at the bottom
 
-### 13-2. Password Change
+### 14-2. Password Change
 
 ![Profile — Password](images_en/67_profile_password.png)
 
 Confirm existing password, then enter and confirm new password → click **[Save]**.
 
-### 13-3. Language & Time Zone Settings
+### 14-3. Language & Time Zone Settings
 
 ![Profile — Language Settings](images_en/68_profile_language.png)
 
@@ -645,13 +722,13 @@ Confirm existing password, then enter and confirm new password → click **[Save
 - **Time Zone** — Applied to all time displays (creation date, move log, test results, etc.)
   - Default is `UTC`; to change to your local time zone, click **[Save]**
 
-### 13-4. JIRA Settings
+### 14-4. JIRA Settings
 
 ![Profile — JIRA Settings](images_en/69_profile_jira.png)
 
 Register your JIRA server URL, email, and connection key for use with your account. Once saved, the warning badge **⚠ JIRA** in the header disappears.
 
-### 13-5. Google Sheets Settings
+### 14-5. Google Sheets Settings
 
 ![Profile — Google Sheets Settings](images_en/70_profile_gsheets.png)
 
@@ -659,7 +736,7 @@ To import or export test cases to Google Sheets, you need to connect your Google
 
 > 💡 For detailed connection steps with illustrations, see the in-app guide (`/guides/GOOGLE_SHEETS_SETUP_GUIDE`). Click the help link on the settings screen to open the same document.
 
-### 13-6. API Token
+### 14-6. API Token
 
 ![Profile — API Token](images_en/71_profile_apitoken.png)
 
@@ -669,7 +746,7 @@ Generate a **connection key (token)** for use when connecting from other systems
 - **The full key displays only once immediately after issuance; copy it to a safe place.** You cannot view it again.
 - Lost keys must be revoked and reissued
 
-### 13-7. Theme Settings
+### 14-7. Theme Settings
 
 ![Profile — Theme Settings](images_en/72_profile_theme.png)
 
@@ -678,19 +755,19 @@ Generate a **connection key (token)** for use when connecting from other systems
 
 ---
 
-## 14. Header Tools — Dark Mode · Language · Project Selector
+## 15. Header Tools — Dark Mode · Language · Project Selector
 
-### 14-1. Dark Mode Toggle
+### 15-1. Dark Mode Toggle
 
 Click the **◐** (half-moon) icon in the top-right corner of the header to instantly switch between light and dark mode.
 
 ![Dark mode full screen](images_en/60_dark_mode.png)
 
-### 14-2. Language Selection
+### 15-2. Language Selection
 
 Screen language is changed in **Profile → Language Settings** (see Section 13-3). Changes take effect immediately across all screens and are saved automatically without requiring a save button.
 
-### 14-3. Project Selector (Quick Switch)
+### 15-3. Project Selector (Quick Switch)
 
 Click **[Project Selector]** in the header to display a dropdown list of projects to which the current user belongs.
 
@@ -700,7 +777,7 @@ Switch to another project instantly — the current tab location (Dashboard / Te
 
 ---
 
-## 15. Logging Out
+## 16. Logging Out
 
 Click **[Logout]** from the user avatar menu in the top-right corner of the header to sign out and return to the login screen.
 
@@ -710,9 +787,9 @@ Click **[Logout]** from the user avatar menu in the top-right corner of the head
 
 ---
 
-## 16. Appendix — JIRA Integration & FAQ
+## 17. Appendix — JIRA Integration & FAQ
 
-### 16-1. JIRA Integration
+### 17-1. JIRA Integration
 
 The **`⚠ JIRA`** badge in the header indicates that JIRA settings are not configured. Click it to open the JIRA integration settings screen.
 
@@ -722,7 +799,7 @@ The **`⚠ JIRA`** badge in the header indicates that JIRA settings are not conf
 - Configure field mappings (priority, assignee, etc.)
 - After saving, the warning badge disappears
 
-### 16-2. Common Screen Issues
+### 17-2. Common Screen Issues
 
 | Symptom | Solution |
 |---------|----------|
@@ -734,7 +811,7 @@ The **`⚠ JIRA`** badge in the header indicates that JIRA settings are not conf
 | Screen continuously loading | Likely a temporary network error — try refreshing. If it persists, contact your system administrator |
 | `Failed to fetch` during signup | Possible server-side environment variable issue — contact your system administrator. See details in [`docs/deployment/DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md) Section 9 |
 
-### 16-3. Installation & Operations Documentation
+### 17-3. Installation & Operations Documentation
 
 Setup, Docker configuration, environment variables, backup, upgrade, troubleshooting, and other **administrator guides** are maintained in a separate document.
 
@@ -742,11 +819,11 @@ Setup, Docker configuration, environment variables, backup, upgrade, troubleshoo
 
 ---
 
-## 17. System Administrator Settings (ADMIN Only)
+## 18. System Administrator Settings (ADMIN Only)
 
 > ⚠️ This section and its menus are only visible to users with `role=ADMIN`. The default admin account uses the initial credentials `admin / admin123`. **Change these credentials immediately after deployment to production.**
 
-### 17-1. Accessing the Admin Menu
+### 18-1. Accessing the Admin Menu
 
 When logged in with an admin account, **[Dashboard] / [Admin Menu ▾] / [Project Selector]** are displayed in the header.
 
@@ -759,13 +836,13 @@ Dropdown items:
 - **LLM Settings** (`/llm-config`)
 - **Scheduler Management** (`/scheduler`)
 
-### 17-2. Global Dashboard
+### 18-2. Global Dashboard
 
 **[Dashboard]** in the header provides an operations statistics view spanning all organizations and projects.
 
 ![Global dashboard](images_en/80_global_dashboard.png)
 
-### 17-3. Organization Management
+### 18-3. Organization Management
 
 `/organizations` — Groups projects by Organization.
 
@@ -775,7 +852,7 @@ Dropdown items:
 - Manage permissions matrix for groups within organizations
 - Click to enter organization details (`/organizations/{id}`)
 
-### 17-4. User Management
+### 18-4. User Management
 
 `/users` — View and manage all system users.
 
@@ -788,7 +865,7 @@ Dropdown items:
 - Email verification status badge (unverified / verified)
 - Top-right buttons: **🔄 Refresh / ⬇ Download / Reset**
 
-### 17-5. Mail Settings
+### 18-5. Mail Settings
 
 `/mail-settings` — Configure SMTP, sender, and email templates.
 
@@ -799,7 +876,7 @@ Dropdown items:
 - System email templates for authentication, password reset, and execution result notifications
 - **Send Test Email** to validate settings
 
-### 17-6. LLM Settings
+### 18-6. LLM Settings
 
 `/llm-config` — Configure the LLM provider for RAG chat, AI-generated case metadata, and other features.
 
@@ -810,7 +887,7 @@ Dropdown items:
 - Manage prompt templates (system prompt, examples)
 - Usage limits and cost tracking options
 
-### 17-7. Scheduler Management
+### 18-7. Scheduler Management
 
 `/scheduler` — Enable / disable periodic background jobs and modify their schedules.
 
@@ -820,7 +897,7 @@ Dropdown items:
 - Each job displays its Cron expression, last execution time, and result
 - **Manual Run** button, pause / resume
 
-### 17-8. Translation Management (i18n)
+### 18-8. Translation Management (i18n)
 
 `/translation-management` — Dynamically edit UI multi-language keys and translations (not exposed in the header menu by default — access via direct URL).
 
@@ -833,7 +910,7 @@ Dropdown items:
 
 > This screen is hidden from general users due to the large number of i18n keys. Use it only when introducing additional languages beyond Korean and English or modifying labels.
 
-### 17-9. Project-Level Settings (PM)
+### 18-9. Project-Level Settings (PM)
 
 Access via the **⋮ (three-dot)** menu in the project card top-right or through the header menu after entering the project. (Requires `PROJECT_MANAGER` permission)
 
@@ -846,11 +923,11 @@ Access via the **⋮ (three-dot)** menu in the project card top-right or through
 
 ---
 
-## 18. Glossary
+## 19. Glossary
 
 Frequently used terms in the manual are compiled here for reference when first using the system.
 
-### 18-1. Core Domain Terms
+### 19-1. Core Domain Terms
 
 | Term | Definition |
 |------|-----------|
@@ -864,7 +941,7 @@ Frequently used terms in the manual are compiled here for reference when first u
 | **Exploratory Session (SBTM)** | Session-Based Test Management. A method where exploratory testing is conducted in 60–120 minute sessions with findings, notes, and evidence documented |
 | **RAG (Search Assistance)** | A supplementary feature that indexes documents and answers natural language queries with source citations |
 
-### 18-2. Test Case Editing Screen Terms
+### 19-2. Test Case Editing Screen Terms
 
 | Term | Definition |
 |------|-----------|
@@ -878,7 +955,7 @@ Frequently used terms in the manual are compiled here for reference when first u
 | **Tag** | A freely assigned label to a test case (example: `smoke`, `regression`). Used in search, filtering, and automation |
 | **Import / Export** | A feature to move bundles of test cases as files. Import supports CSV, Excel, and Google Sheets; export supports CSV, Excel, JSON, and Google Sheets. (Test **result report** export supports Excel, PDF, CSV — see Section 9) |
 
-### 18-3. Test Execution Result Status
+### 19-3. Test Execution Result Status
 
 | Status | Meaning |
 |--------|---------|
@@ -888,7 +965,7 @@ Frequently used terms in the manual are compiled here for reference when first u
 | **Skipped** | Intentionally not executed (example: environment mismatch). Primarily appears in automated (JUnit) results; manual result input buttons are limited to 4 options: P/F/B/N (see Section 8-1) |
 | **Blocked** | Execution is not possible due to unmet preconditions or environment issues |
 
-### 18-4. Permissions and Roles
+### 19-4. Permissions and Roles
 
 | Role | Capabilities |
 |------|--------------|
@@ -904,7 +981,7 @@ Test plan creation and management are available to all project members.
 
 A single user can be PM on Project A and VIEWER on Project B — permissions are **per-project**.
 
-### 18-5. Screen Operation and Tool Terms
+### 19-5. Screen Operation and Tool Terms
 
 | Term | Definition |
 |------|-----------|
@@ -921,7 +998,7 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | **Dark Mode / Light Mode** | Overall screen color tone. Switch instantly using the ◐ (half-moon) icon in the header |
 | **Multi-Language (i18n)** | Screen language selection (Korean, English, etc.). Change in Profile → Language Settings |
 
-### 18-6. External Integrations and Tools
+### 19-6. External Integrations and Tools
 
 | Term | Definition |
 |------|-----------|
@@ -933,7 +1010,7 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | **LLM** | Large Language Model — AI for natural language generation and summarization. Used for auto-generating test case names/descriptions and providing RAG chat answers |
 | **MCP** | Model Context Protocol — a standard communication protocol that enables AI clients (such as Claude and Cline) to interact with TestcaseCraft through natural language commands |
 
-### 18-7. Time and Identifiers
+### 19-7. Time and Identifiers
 
 | Term | Definition |
 |------|-----------|
@@ -943,7 +1020,7 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | **Sequential ID** | An auto-generated sequential number on a test case (example: 1, 2, 3, …). Meaningful only within a project |
 | **Display ID** | An identifier in the format `ProjectCode-SequentialID`, human-readable (example: `SMP-001`) |
 
-### 18-8. Frequently Seen Screen Guidance
+### 19-8. Frequently Seen Screen Guidance
 
 | Expression | Meaning |
 |-----------|---------|

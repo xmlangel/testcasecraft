@@ -1,0 +1,504 @@
+{
+  "name": "TestcaseCraft — Test Case Domain",
+  "description": "testcasecraft 백엔드 JPA 엔티티에서 추출한 테스트케이스 도메인 온톨로지. 프로젝트·케이스(폴더 겸용)·플랜·실행·결과의 정적/동적 구조.",
+  "entityTypes": [
+    {
+      "id": "organization",
+      "name": "조직",
+      "description": "여러 프로젝트를 묶는 최상위 조직 컨테이너. 프로젝트가 소속되는 소유 단위다. (엔티티: Organization)",
+      "icon": "🏢",
+      "color": "#004E8C",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "이름",
+          "type": "string",
+          "description": "표시 이름 (name)"
+        }
+      ]
+    },
+    {
+      "id": "project",
+      "name": "프로젝트",
+      "description": "테스트케이스·플랜·실행·차터·세션이 모두 소속되는 루트. code 필드는 프로젝트 전역에서 유니크한 식별 코드다. (엔티티: Project)",
+      "icon": "📁",
+      "color": "#0078D4",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "이름",
+          "type": "string",
+          "description": "표시 이름 (name)"
+        },
+        {
+          "name": "코드",
+          "type": "string",
+          "description": "프로젝트 전역에서 유니크한 식별 코드 (code)"
+        },
+        {
+          "name": "설명",
+          "type": "string",
+          "description": "자유 서술 설명 (description)"
+        }
+      ]
+    },
+    {
+      "id": "testCase",
+      "name": "테스트케이스/폴더",
+      "description": "type 값이 testcase·folder·systemFolder 중 하나로, 케이스와 폴더를 한 테이블에서 겸한다. parentId 자기참조로 무한 깊이 폴더 트리를 이루며, 실제 케이스(testcase)만 단계(steps)를 가진다. (엔티티: TestCase)",
+      "icon": "📝",
+      "color": "#107C10",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "이름",
+          "type": "string",
+          "description": "표시 이름 (name)"
+        },
+        {
+          "name": "유형",
+          "type": "enum",
+          "description": "노드 성격: testcase(케이스)·folder(폴더)·systemFolder(시스템 폴더) (type)",
+          "values": ["testcase", "folder", "systemFolder"]
+        },
+        {
+          "name": "우선순위",
+          "type": "enum",
+          "description": "HIGH·MEDIUM·LOW 3단계 우선순위 (priority)",
+          "values": ["HIGH", "MEDIUM", "LOW"]
+        },
+        {
+          "name": "실행유형",
+          "type": "enum",
+          "description": "Manual(수동)·Auto(자동) 실행 방식 (executionType)",
+          "values": ["Manual", "Auto"]
+        },
+        {
+          "name": "자동화여부",
+          "type": "boolean",
+          "description": "자동화 케이스인지 여부 (isAutomated)"
+        },
+        {
+          "name": "표시ID",
+          "type": "string",
+          "description": "사람이 읽는 케이스 번호(예: TC-001) (displayId)"
+        },
+        {
+          "name": "설명",
+          "type": "string",
+          "description": "자유 서술 설명 (description)"
+        },
+        {
+          "name": "사전조건",
+          "type": "string",
+          "description": "케이스 실행 전 갖춰야 할 조건 (preCondition)"
+        },
+        {
+          "name": "사후조건",
+          "type": "string",
+          "description": "케이스 실행 후 기대되는 상태 (postCondition)"
+        },
+        {
+          "name": "기대결과",
+          "type": "string",
+          "description": "케이스 전체의 기대 결과 (expectedResults)"
+        }
+      ]
+    },
+    {
+      "id": "testStep",
+      "name": "테스트 단계",
+      "description": "케이스 내부의 실행 절차 한 줄. 순번·설명·단계별 기대결과로 구성된 임베디드 값이며 별도 테이블이 아니라 케이스에 종속된다. (엔티티: TestStep)",
+      "icon": "🔢",
+      "color": "#5C2D91",
+      "properties": [
+        {
+          "name": "단계번호",
+          "type": "integer",
+          "description": "단계의 실행 순번 (stepNumber)",
+          "isIdentifier": true
+        },
+        {
+          "name": "설명",
+          "type": "string",
+          "description": "자유 서술 설명 (description)"
+        },
+        {
+          "name": "단계기대결과",
+          "type": "string",
+          "description": "해당 단계에서 기대되는 결과 (expectedResult)"
+        }
+      ]
+    },
+    {
+      "id": "testCaseVersion",
+      "name": "케이스 버전",
+      "description": "케이스를 수정할 때마다 남기는 스냅샷 이력. versionNumber로 순번을 매기고 isCurrentVersion으로 현재 버전을 표시한다. (엔티티: TestCaseVersion)",
+      "icon": "🕐",
+      "color": "#8764B8",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "버전번호",
+          "type": "integer",
+          "description": "버전 순번 (versionNumber)"
+        },
+        {
+          "name": "버전라벨",
+          "type": "string",
+          "description": "버전 이름표 (versionLabel)"
+        },
+        {
+          "name": "현재버전여부",
+          "type": "boolean",
+          "description": "현재 활성 버전인지 여부 (isCurrentVersion)"
+        },
+        {
+          "name": "변경유형",
+          "type": "string",
+          "description": "CREATE·UPDATE 등 변경 종류 (changeType)"
+        },
+        {
+          "name": "버전태그",
+          "type": "string",
+          "description": "STABLE 등 버전 태그 (versionTag)"
+        }
+      ]
+    },
+    {
+      "id": "testPlan",
+      "name": "테스트 플랜",
+      "description": "실행 대상 케이스들의 묶음. 케이스를 직접 소유하지 않고 testCaseIds 배열로 참조한다. (엔티티: TestPlan)",
+      "icon": "📋",
+      "color": "#038387",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "이름",
+          "type": "string",
+          "description": "표시 이름 (name)"
+        },
+        {
+          "name": "설명",
+          "type": "string",
+          "description": "자유 서술 설명 (description)"
+        }
+      ]
+    },
+    {
+      "id": "testExecution",
+      "name": "실행 회차",
+      "description": "플랜을 한 번 돌린 실행 단위. status로 진행 상태를 나타내고, 케이스별 결과(TestResult) 목록을 거느린다. (엔티티: TestExecution)",
+      "icon": "▶️",
+      "color": "#CA5010",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "이름",
+          "type": "string",
+          "description": "표시 이름 (name)"
+        },
+        {
+          "name": "상태",
+          "type": "enum",
+          "description": "진행 상태 (status)",
+          "values": ["NOTSTARTED", "INPROGRESS", "COMPLETED"]
+        },
+        {
+          "name": "시작일",
+          "type": "date",
+          "description": "실행 시작일 (startDate)"
+        },
+        {
+          "name": "종료일",
+          "type": "date",
+          "description": "실행 종료일 (endDate)"
+        },
+        {
+          "name": "QA요약",
+          "type": "string",
+          "description": "실행에 대한 QA 총평 (qaSummary)"
+        }
+      ]
+    },
+    {
+      "id": "testResult",
+      "name": "실행 결과",
+      "description": "케이스 하나에 대한 판정(PASS/FAIL/BLOCKED)과 비고·증적. FAIL이면 jiraIssueKey로 Jira 이슈에 연동된다. (엔티티: TestResult)",
+      "icon": "✅",
+      "color": "#D13438",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "판정",
+          "type": "enum",
+          "description": "NOT_RUN·PASS·FAIL·BLOCKED 판정 (result)",
+          "values": ["NOT_RUN", "PASS", "FAIL", "BLOCKED"]
+        },
+        {
+          "name": "비고",
+          "type": "string",
+          "description": "실행 메모 (notes)"
+        },
+        {
+          "name": "Jira이슈키",
+          "type": "string",
+          "description": "FAIL 시 연동된 Jira 이슈 키 (jiraIssueKey)"
+        },
+        {
+          "name": "실행시각",
+          "type": "datetime",
+          "description": "결과가 기록된 시각 (executedAt)"
+        }
+      ]
+    },
+    {
+      "id": "testCharter",
+      "name": "테스트 차터",
+      "description": "탐색적 테스트(ET)의 미션과 대상 영역을 정의한 세션 헌장. 세션이 이 차터를 근거로 수행된다. (엔티티: TestCharter)",
+      "icon": "🎯",
+      "color": "#B146C2",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "제목",
+          "type": "string",
+          "description": "제목 (title)"
+        },
+        {
+          "name": "미션",
+          "type": "string",
+          "description": "차터의 테스트 미션 (mission)"
+        },
+        {
+          "name": "상태",
+          "type": "enum",
+          "description": "진행 상태 (status)",
+          "values": ["ACTIVE", "ARCHIVED"]
+        }
+      ]
+    },
+    {
+      "id": "testSession",
+      "name": "테스트 세션",
+      "description": "차터를 기반으로 진행한 탐색적 테스트 기록. 시간 배분(테스트·버그조사·셋업)·발견·평가·달성도를 남긴다. (엔티티: TestSession)",
+      "icon": "🔍",
+      "color": "#486991",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "제목",
+          "type": "string",
+          "description": "제목 (title)"
+        },
+        {
+          "name": "상태",
+          "type": "enum",
+          "description": "진행 상태 (status)",
+          "values": [
+            "DRAFT",
+            "RUNNING",
+            "PAUSED",
+            "COMPLETED",
+            "SUBMITTED",
+            "NEEDS_UPDATE",
+            "APPROVED",
+            "ARCHIVED"
+          ]
+        },
+        {
+          "name": "달성도",
+          "type": "integer",
+          "description": "세션 목표 달성 정도 (achievement)"
+        }
+      ]
+    },
+    {
+      "id": "user",
+      "name": "사용자",
+      "description": "케이스 작성자이자 실행 결과의 실행자. (엔티티: User)",
+      "icon": "👤",
+      "color": "#767676",
+      "properties": [
+        {
+          "name": "식별자",
+          "type": "string",
+          "description": "행을 유일하게 구분하는 기본 키 (id)",
+          "isIdentifier": true
+        },
+        {
+          "name": "이름",
+          "type": "string",
+          "description": "표시 이름 (name)"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "organization_contains_project",
+      "name": "contains",
+      "from": "organization",
+      "to": "project",
+      "cardinality": "one-to-many",
+      "description": "조직이 프로젝트를 포함한다"
+    },
+    {
+      "id": "project_has_testCase",
+      "name": "has",
+      "from": "project",
+      "to": "testCase",
+      "cardinality": "one-to-many",
+      "description": "프로젝트가 테스트케이스를 가진다"
+    },
+    {
+      "id": "project_hasPlan_testPlan",
+      "name": "hasPlan",
+      "from": "project",
+      "to": "testPlan",
+      "cardinality": "one-to-many",
+      "description": "프로젝트가 테스트 플랜을 가진다"
+    },
+    {
+      "id": "project_hasExecution_testExecution",
+      "name": "hasExecution",
+      "from": "project",
+      "to": "testExecution",
+      "cardinality": "one-to-many",
+      "description": "프로젝트가 실행 회차를 가진다"
+    },
+    {
+      "id": "project_hasCharter_testCharter",
+      "name": "hasCharter",
+      "from": "project",
+      "to": "testCharter",
+      "cardinality": "one-to-many",
+      "description": "프로젝트가 차터를 가진다"
+    },
+    {
+      "id": "project_hasSession_testSession",
+      "name": "hasSession",
+      "from": "project",
+      "to": "testSession",
+      "cardinality": "one-to-many",
+      "description": "프로젝트가 세션을 가진다"
+    },
+    {
+      "id": "testCase_parentOf_testCase",
+      "name": "parentOf",
+      "from": "testCase",
+      "to": "testCase",
+      "cardinality": "one-to-many",
+      "description": "폴더/케이스 자기참조 트리 (parentId)"
+    },
+    {
+      "id": "testCase_hasStep_testStep",
+      "name": "hasStep",
+      "from": "testCase",
+      "to": "testStep",
+      "cardinality": "one-to-many",
+      "description": "케이스가 단계로 구성된다"
+    },
+    {
+      "id": "testCase_hasVersion_testCaseVersion",
+      "name": "hasVersion",
+      "from": "testCase",
+      "to": "testCaseVersion",
+      "cardinality": "one-to-many",
+      "description": "케이스 변경 버전 이력"
+    },
+    {
+      "id": "testPlan_references_testCase",
+      "name": "references",
+      "from": "testPlan",
+      "to": "testCase",
+      "cardinality": "many-to-many",
+      "description": "플랜이 케이스들을 참조한다"
+    },
+    {
+      "id": "testExecution_basedOn_testPlan",
+      "name": "basedOn",
+      "from": "testExecution",
+      "to": "testPlan",
+      "cardinality": "many-to-one",
+      "description": "실행은 플랜을 기반으로 한다"
+    },
+    {
+      "id": "testExecution_produces_testResult",
+      "name": "produces",
+      "from": "testExecution",
+      "to": "testResult",
+      "cardinality": "one-to-many",
+      "description": "실행이 결과들을 낳는다"
+    },
+    {
+      "id": "testResult_targets_testCase",
+      "name": "targets",
+      "from": "testResult",
+      "to": "testCase",
+      "cardinality": "many-to-one",
+      "description": "결과의 대상 케이스"
+    },
+    {
+      "id": "testResult_executedBy_user",
+      "name": "executedBy",
+      "from": "testResult",
+      "to": "user",
+      "cardinality": "many-to-one",
+      "description": "결과 실행자"
+    },
+    {
+      "id": "testSession_runs_testCharter",
+      "name": "runs",
+      "from": "testSession",
+      "to": "testCharter",
+      "cardinality": "many-to-one",
+      "description": "세션이 차터를 수행한다"
+    }
+  ]
+}

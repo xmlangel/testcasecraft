@@ -49,6 +49,48 @@ Spring Boot 애플리케이션만 사용하는 간단한 개발 환경입니다.
 ./start.sh
 ```
 
+### 🕸️ 그래프(온톨로지 뷰) 실행
+
+그래프 기능은 **기본 비활성**이다. 켜지 않으면 `agensgraph` 컨테이너는 뜨지 않고 앱은 기존과 동일하게 동작한다.
+켜면 프로젝트 데이터를 **코어 온톨로지 인스턴스 그래프**(노드 11종·간선 15종)로 시각화한다.
+
+**1) `.env` 설정** — 둘 다 필요, 비밀번호는 반드시 일치:
+
+```bash
+FEATURES_GRAPH_ENABLED=true
+GRAPH_DB_PASSWORD=changeme-graph   # app 과 agensgraph 공용 — 동일해야 인증됨
+GRAPH_DB_PORT=5437                 # 호스트 노출 포트(선택)
+```
+
+**2) 그래프 프로파일로 실행** — `--profile graph` 를 붙여야 agensgraph 가 함께 뜬다:
+
+```bash
+docker compose --profile graph up -d
+# app 은 agensgraph 가 healthy 해질 때까지 대기(required:false — 프로파일 없으면 무시)
+```
+
+- **신규 부팅**: `init-scripts-graph/01-init-graph.sql` 이 자동 실행돼 온톨로지 스키마가 생성된다.
+- **기존 운영 DB**(옛 그래프 스키마가 남은 경우): 스키마 전환 마이그레이션을 1회 적용한다.
+
+  ```bash
+  cd graph-migrations
+  GRAPH_DB_PASSWORD=changeme-graph ./apply-graph-migration.sh
+  ```
+
+**3) 데이터 적재(동기화)** — 프로젝트별로 최초 1회(이후 데이터 변경 시 재실행):
+
+- 앱 그래프 화면의 **"지금 동기화"** 버튼, 또는
+- `POST /api/graph/sync?projectId=<프로젝트ID>` (프로젝트 관리 권한 필요), 또는
+- `.env` 에 `GRAPH_SYNC_SCHEDULED_ENABLED=true` 로 주기 동기화(기본 매일 04:00).
+
+**끄기**: `--profile graph` 없이 `docker compose up -d` 로 실행하면 agensgraph 는 뜨지 않고 그래프 메뉴만 "연결 불가"로 표시된다(앱은 정상).
+
+> 트러블슈팅 — 그래프 화면 "연결 불가"/500:
+>
+> - `--profile graph` 없이 떠서 agensgraph 부재 → 프로파일 포함해 재실행
+> - `GRAPH_DB_PASSWORD` 가 app↔agensgraph 불일치 → `.env` 에서 동일하게 맞추고 재기동
+> - 기존 DB 에 새 레이블 없음 → 위 마이그레이션 적용
+
 ### 🔧 환경 설정 (.env 파일)
 
 ```bash
