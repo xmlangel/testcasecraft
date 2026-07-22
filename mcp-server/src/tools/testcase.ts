@@ -9,6 +9,13 @@ const TestStepInput = z.object({
   expectedResult: z.string().max(10000).optional(),
 });
 
+// 연결 ID 배열: 빈 문자열 차단(min 1) + 최대 50 + 중복 제거.
+const linkedIdArray = z
+  .array(z.string().min(1, "빈 ID는 허용되지 않습니다"))
+  .max(50)
+  .transform((ids) => Array.from(new Set(ids)))
+  .optional();
+
 const ListInput = z.object({
   projectId: z.string().min(1, "프로젝트 ID는 UUID 문자열입니다"),
   limit: z.number().int().min(1).max(200).default(50),
@@ -43,6 +50,12 @@ const CreateOrUpdateInput = z.object({
   steps: z.array(TestStepInput).max(100).optional(),
   expectedResults: z.string().max(10000).optional(),
   tags: z.array(z.string()).max(50).optional(),
+  // 연결 케이스(1.0.97+): 다른 테스트케이스·문서·JUnit 자동화 케이스 링크.
+  // 원소는 빈 문자열 차단(min 1) + 중복 제거(백엔드가 검증하지 않아 MCP UX 층에서 방어).
+  // 존재하지 않는 ID(dangling)·자기참조는 백엔드 참조 무결성이 정답이라 여기선 못 막음.
+  linkedTestCaseIds: linkedIdArray,
+  linkedDocumentIds: linkedIdArray,
+  linkedJunitTestCaseIds: linkedIdArray,
 });
 
 const MoveInput = z.object({
@@ -106,7 +119,9 @@ export const testcaseTools: Tool[] = [
       "테스트 케이스를 생성하거나 수정한다. id 없으면 생성(POST /api/testcases), id 있으면 수정(PUT /api/testcases/{id}). " +
       "필수: projectId(UUID), name. " +
       "지원 필드: description, preCondition, postCondition, parentId, priority(LOW|MEDIUM|HIGH), " +
-      "isAutomated, executionType, testTechnique, steps(action·expectedResult), expectedResults, type, tags.",
+      "isAutomated, executionType, testTechnique, steps(action·expectedResult), expectedResults, type, tags, " +
+      "linkedTestCaseIds(연결 테스트케이스), linkedDocumentIds(연결 문서), linkedJunitTestCaseIds(연결 JUnit 자동화 케이스). " +
+      "수정(PUT) 시 연결 필드는 생략하면 기존 값이 보존되고, 빈 배열([])을 보내면 해당 연결이 전부 삭제된다.",
     inputSchema: zodToJsonSchema(CreateOrUpdateInput) as any,
   },
   {

@@ -4,9 +4,9 @@
 
 ## Overview
 
-This MCP server bridges the testcasecraft REST API to Claude and other AI tools via the Model Context Protocol. It provides 40 tools for managing projects, test cases, test plans, execution, results, and more.
+This MCP server bridges the testcasecraft REST API to Claude and other AI tools via the Model Context Protocol. It provides 59 tools for managing projects, test cases, test plans, execution, results, attachments, bookmarks, and more.
 
-**Phase 1 Status:** 40 core tools implemented (no DELETE operations, read/create/update focus).
+**Status:** 59 tools implemented. Includes DELETE operations for attachments and bookmarks. Run `npm run build` (or `npm install`, which triggers the `prepare` hook) after pulling to keep `dist/` in sync with `src/`.
 
 ## Installation
 
@@ -91,7 +91,7 @@ Configure via `.env` file or environment:
 - **TESTCASECRAFT_TIMEOUT_MS** (default: `30000`)  
   HTTP request timeout in milliseconds
 
-## Tools (40 Total)
+## Tools (59 Total)
 
 ### Authentication (4 tools)
 
@@ -113,14 +113,24 @@ Configure via `.env` file or environment:
 - `org_list_groups` — List groups
 - `org_list_users` — List users
 
-### Test Cases (6 tools)
+### Test Cases (9 tools)
 
 - `testcase_list` — List test cases in a project
 - `testcase_get` — Get test case details
 - `testcase_search` — Search test cases
-- `testcase_create_or_update` — Create or update test case
+- `testcase_create_or_update` — Create or update test case (supports `linkedTestCaseIds` / `linkedDocumentIds` / `linkedJunitTestCaseIds`)
 - `testcase_move` — Move test case to another location
+- `testcase_move_batch` — Move multiple test cases at once
+- `testcase_move_to_project` — Move a test case to another project
+- `testcase_copy_to_project` — Copy a test case to another project
 - `testcase_versions` — View test case version history
+
+### Test Case Attachments (4 tools)
+
+- `testcase_attachment_upload` — Upload an attachment to a test case
+- `testcase_attachment_list` — List attachments of a test case
+- `testcase_attachment_get` — Get attachment metadata/content
+- `testcase_attachment_delete` — Delete an attachment
 
 ### Test Plans (3 tools)
 
@@ -128,22 +138,39 @@ Configure via `.env` file or environment:
 - `testplan_get` — Get test plan details
 - `testplan_create_or_update` — Create or update test plan
 
-### Test Execution (3 tools)
+### Test Execution (4 tools)
 
 - `testexecution_list` — List test executions
 - `testexecution_get` — Get test execution details
-- `testexecution_record_result` — Record test execution result (PASS/FAIL/SKIP/BLOCKED)
+- `testexecution_record_result` — Record test execution result (PASS/FAIL/BLOCKED/NOT_RUN; SKIP is accepted and mapped to BLOCKED)
+- `testexecution_update_qa_summary` — Save/update the execution-level QA summary (markdown)
 
-### Test Results (3 tools)
+### Test Results (4 tools)
 
 - `testresult_list` — List test results
 - `testresult_get` — Get test result details
 - `testresult_report_get` — Get test result report
+- `testresult_report_html` — Get test result report as HTML
 
 ### Test Sessions (2 tools)
 
 - `testsession_list` — List test sessions
 - `testsession_get` — Get test session details
+
+### Bookmarks / Favorites (10 tools)
+
+Personal bookmarks — all responses are scoped to the current authenticated user.
+
+- `bookmark_list_collections` — List my bookmark collections for a project
+- `bookmark_create_collection` — Create a bookmark collection
+- `bookmark_update_collection` — Update a collection's name/description
+- `bookmark_delete_collection` — Delete a collection (default collection cannot be deleted)
+- `bookmark_list_items` — List items in a collection (read-only case summaries)
+- `bookmark_add_item` — Add a test case to a collection
+- `bookmark_update_item` — Update a bookmark item's note
+- `bookmark_delete_item` — Remove a bookmark item
+- `bookmark_toggle_favorite` — Toggle a test case's default-collection favorite (star)
+- `bookmark_status` — Get the favorite-status map for a project's cases
 
 ### Dashboard (3 tools)
 
@@ -224,17 +251,14 @@ User: "List all test results"
 - **500+:** Server error
 - **Network:** Connection refused → suggest checking backend
 
-## Known Limitations (Phase 1)
+## Known Limitations
 
-- No DELETE operations (for safety)
-- No batch/bulk operations
-- No file upload/attachment tools
 - No permission/role management tools
 - No mail/LLM configuration tools
 - No translation management tools
 - Single user per MCP server instance (token stored locally)
 
-These will be addressed in Phase 2.
+DELETE (attachments, bookmarks) and batch operations (`testcase_move_batch`, cross-project move/copy) are now supported.
 
 ## Architecture
 
@@ -248,11 +272,13 @@ src/
     ├── auth.ts                 # Authentication (4 tools)
     ├── project.ts              # Projects (4 tools)
     ├── organization.ts         # Organizations (3 tools)
-    ├── testcase.ts             # Test Cases (6 tools)
+    ├── testcase.ts             # Test Cases (9 tools)
+    ├── testcase_attachment.ts  # Test Case Attachments (4 tools)
     ├── testplan.ts             # Test Plans (3 tools)
-    ├── testexecution.ts        # Test Execution (3 tools)
-    ├── testresult.ts           # Test Results (3 tools)
+    ├── testexecution.ts        # Test Execution (4 tools)
+    ├── testresult.ts           # Test Results (4 tools)
     ├── testsession.ts          # Test Sessions (2 tools)
+    ├── bookmark.ts             # Bookmarks / Favorites (10 tools)
     ├── dashboard.ts            # Dashboard (3 tools)
     ├── jira.ts                 # Jira Integration (3 tools)
     ├── rag.ts                  # RAG Chat (3 tools)
