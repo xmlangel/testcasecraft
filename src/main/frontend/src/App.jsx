@@ -46,7 +46,6 @@ import TestExecutionForm from "./components/TestExecutionForm.jsx";
 import TestCaseResultPage from "./components/TestCaseResultPage.jsx";
 import BookmarkPage from "./components/Bookmark/BookmarkPage.jsx";
 import GraphView from "./components/Graph/GraphView.jsx";
-import TestCaseGraphEditor from "./components/Graph/TestCaseGraphEditor.jsx";
 import TestResultMainPage from "./components/TestResultMainPage.jsx";
 import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
@@ -61,7 +60,6 @@ import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
 import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
 import TranslationManagement from "./components/admin/TranslationManagement.jsx";
 import CommonDocumentManagement from "./components/admin/CommonDocumentManagement.jsx";
-import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import ExploratorySessionWorkspace from "./components/ExploratorySessionWorkspace.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
@@ -829,7 +827,8 @@ const AppContent = () => {
                 ml: 1,
                 mt: "22px",
                 fontWeight: "bold",
-                color: "rgba(255, 255, 255, 0.7)",
+                color: "inherit",
+                opacity: 0.7,
                 letterSpacing: "0.05em",
                 fontFamily: "monospace",
               }}
@@ -1498,20 +1497,11 @@ const AppWrapper = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/graph-tc/:testCaseId/edit"
-          element={
-            <ProtectedRoute>
-              <TestCaseGraphEditor />
-            </ProtectedRoute>
-          }
-        />
         <Route path="/guides/:guideName" element={<GuideViewer />} />
         <Route path="/manual" element={<ManualViewer />} />
       </Routes>
 
       {/* 서버 시간 표시 */}
-      <ServerTimeDisplay />
     </BrowserRouter>
   );
 };

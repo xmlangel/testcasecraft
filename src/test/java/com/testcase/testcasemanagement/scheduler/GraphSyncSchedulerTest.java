@@ -1,6 +1,5 @@
 package com.testcase.testcasemanagement.scheduler;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -15,8 +14,8 @@ import java.util.List;
 import org.testng.annotations.Test;
 
 /**
- * GraphSyncScheduler 단위 테스트 — 런타임 게이트, DB 가용성 체크, 전 프로젝트 순회, 부분 실패 격리를 검증한다. 스케줄 트리거 자체(cron)는 Spring
- * 이 담당하므로 여기서는 {@link GraphSyncScheduler#syncAllProjects()} 의 동작만 본다.
+ * GraphSyncScheduler 단위 테스트 — 런타임 게이트, DB 가용성 체크, 전 프로젝트 순회, 부분 실패 격리를 검증한다. 스케줄 트리거 자체(cron)는
+ * Spring 이 담당하므로 여기서는 {@link GraphSyncScheduler#syncAllProjects()} 의 동작만 본다.
  */
 public class GraphSyncSchedulerTest {
 

@@ -67,15 +67,14 @@ public class AgResultParserTest {
 
   @Test(description = "Cypher 리터럴 이스케이프 — 따옴표는 '' 로, 백슬래시는 \\\\ 로 (PoC 실측 규칙)")
   public void quotesCypherLiterals() {
-    assertEquals(TestCaseGraphService.quote("plain"), "'plain'");
-    assertEquals(TestCaseGraphService.quote(null), "''");
+    assertEquals(GraphDbClient.quote("plain"), "'plain'");
+    assertEquals(GraphDbClient.quote(null), "''");
     // PoC 검증 문자열: It's a "test" with back\slash and }brace
     assertEquals(
-        TestCaseGraphService.quote("It's a \"test\" with back\\slash and }brace"),
+        GraphDbClient.quote("It's a \"test\" with back\\slash and }brace"),
         "'It''s a \"test\" with back\\\\slash and }brace'");
     // 인젝션 시도 — 따옴표 탈출 불가
-    assertEquals(
-        TestCaseGraphService.quote("x'}) DETACH DELETE (n) //"), "'x''}) DETACH DELETE (n) //'");
+    assertEquals(GraphDbClient.quote("x'}) DETACH DELETE (n) //"), "'x''}) DETACH DELETE (n) //'");
   }
 
   @Test(description = "식별자 화이트리스트 — UUID 는 통과, 인젝션 문자는 거부")

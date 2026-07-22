@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
  *
  * <p>빈 생성 조건은 {@code features.graph.enabled=true} 로, {@link GraphSyncService}·{@link GraphDbClient}
  * 와 생명주기를 맞춘다 (그래프 비활성 시 이 스케줄러도 미생성 → 주입 실패 없음). 실제 실행 여부는 런타임 플래그 {@code
- * graph.sync.scheduled-enabled} 로 별도 게이트한다. 두 값을 분리해 두면 그래프는 켜되 주기 동기화만 끄는 운영이 가능하고, 오설정으로 기동이
- * 깨지지 않는다.
+ * graph.sync.scheduled-enabled} 로 별도 게이트한다. 두 값을 분리해 두면 그래프는 켜되 주기 동기화만 끄는 운영이 가능하고, 오설정으로 기동이 깨지지
+ * 않는다.
  *
  * <p>동기화는 read-model 재구성(멱등)이라 프로젝트별로 독립 실행하며, 한 프로젝트가 실패해도 나머지는 계속한다. 수동 동기화(POST
  * /api/graph/sync)와 동일한 {@link GraphSyncService#syncProject(String)} 를 재사용한다.

@@ -100,6 +100,27 @@ public class GraphDbClient {
     }
   }
 
+  /**
+   * Cypher 단일 인용 문자열 리터럴로 감싼다 — 역슬래시·작은따옴표 이스케이프, null 은 빈 문자열. AgensGraph Cypher 는 파라미터 바인딩이 제한적이라
+   * 값은 리터럴로 넣되, 식별자성 입력은 호출부에서 별도 화이트리스트 검증(GraphQueryService.validateId)을 거친다.
+   */
+  public static String quote(String text) {
+    if (text == null) {
+      return "''";
+    }
+    // AgensGraph 는 속성을 jsonb 로 저장한다 — 리터럴 개행/제어문자(0x0a 등)가 그대로 들어가면
+    // "invalid input syntax for type json" 으로 깨진다. 역슬래시·작은따옴표에 더해 개행·CR·탭을
+    // 이스케이프 시퀀스로 바꾸고, 그 외 제어문자(0x00-0x1F)는 공백으로 치환한다.
+    String safe =
+        text.replace("\\", "\\\\")
+            .replace("'", "''")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+            .replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]", " ");
+    return "'" + safe + "'";
+  }
+
   /** graph_path 식별자 검증 — 영문/숫자/언더스코어만 허용 (SET 구문 인젝션 방지). */
   private static String sanitizeIdentifier(String identifier) {
     if (identifier == null || !identifier.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {

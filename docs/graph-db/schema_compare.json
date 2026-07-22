@@ -1,0 +1,420 @@
+{
+  "sources": {
+    "rdf": "/Users/dicky/kmdata/git/xmlangel/Ontology-Playground/catalogue/community/xmlangel/testcasecraft/testcasecraft.rdf",
+    "sql": "/Users/dicky/kmdata/git/xmlangel/testcase/testcasecraft/docker-compose-build/init-scripts-graph/01-init-graph.sql",
+    "rdf_found": true
+  },
+  "counts": {
+    "onto_classes": 11,
+    "onto_props": 15,
+    "graph_vlabels": 17,
+    "graph_vlabels_live": 13,
+    "graph_elabels": 21,
+    "graph_elabels_live": 16
+  },
+  "drift": [
+    "[SCAN] ELABEL 'BLOCKS' 는 LIVE 정본이나 스캔 미검출(동적 레이블 가능) — 정보",
+    "[SCAN] ELABEL 'DEPENDS_ON' 는 LIVE 정본이나 스캔 미검출(동적 레이블 가능) — 정보",
+    "[SCAN] ELABEL 'RELATES_TO' 는 LIVE 정본이나 스캔 미검출(동적 레이블 가능) — 정보"
+  ],
+  "nodes": [
+    {
+      "concept": "조직",
+      "onto": "Organization",
+      "graph": "—",
+      "jpa": "Organization",
+      "verdict": "기존유지",
+      "why": "JPA 엔티티 근거 있음. 그래프 범위 밖일 뿐 — 온톨로지에 남긴다",
+      "note": "온톨로지에만 존재. 그래프는 프로젝트 단위라 조직 노드 없음."
+    },
+    {
+      "concept": "프로젝트",
+      "onto": "Project",
+      "graph": "Project",
+      "jpa": "Project",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/분리 차이만 정리(그래프 표현 유지)",
+      "note": ""
+    },
+    {
+      "concept": "케이스/폴더",
+      "onto": "TestCase",
+      "graph": "TestCase, Folder",
+      "jpa": "TestCase",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/분리 차이만 정리(그래프 표현 유지)",
+      "note": "온톨로지는 TestCase.type(testcase/folder)로 한 클래스, 그래프는 TestCase·Folder 두 레이블로 분리."
+    },
+    {
+      "concept": "테스트 단계",
+      "onto": "TestStep",
+      "graph": "StepNode",
+      "jpa": "TestStep(embedded)",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/분리 차이만 정리(그래프 표현 유지)",
+      "note": "온톨로지 TestStep(케이스 임베디드) ↔ 그래프 StepNode(저작 서브그래프 노드). 성격이 다름."
+    },
+    {
+      "concept": "케이스 버전",
+      "onto": "TestCaseVersion",
+      "graph": "—",
+      "jpa": "TestCaseVersion",
+      "verdict": "기존유지",
+      "why": "JPA 엔티티 근거 있음. 그래프 범위 밖일 뿐 — 온톨로지에 남긴다",
+      "note": "온톨로지에만 존재. 그래프 미반영."
+    },
+    {
+      "concept": "테스트 플랜",
+      "onto": "TestPlan",
+      "graph": "TestPlan",
+      "jpa": "TestPlan",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/분리 차이만 정리(그래프 표현 유지)",
+      "note": ""
+    },
+    {
+      "concept": "실행 회차",
+      "onto": "TestExecution",
+      "graph": "TestExecution",
+      "jpa": "TestExecution",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/분리 차이만 정리(그래프 표현 유지)",
+      "note": ""
+    },
+    {
+      "concept": "실행 결과",
+      "onto": "TestResult",
+      "graph": "TestResult",
+      "jpa": "TestResult",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/분리 차이만 정리(그래프 표현 유지)",
+      "note": ""
+    },
+    {
+      "concept": "테스트 차터",
+      "onto": "TestCharter",
+      "graph": "—",
+      "jpa": "TestCharter",
+      "verdict": "기존유지",
+      "why": "JPA 엔티티 근거 있음. 그래프 범위 밖일 뿐 — 온톨로지에 남긴다",
+      "note": "온톨로지에만 존재. 그래프 미반영."
+    },
+    {
+      "concept": "테스트 세션",
+      "onto": "TestSession",
+      "graph": "—",
+      "jpa": "TestSession",
+      "verdict": "기존유지",
+      "why": "JPA 엔티티 근거 있음. 그래프 범위 밖일 뿐 — 온톨로지에 남긴다",
+      "note": "온톨로지에만 존재. 그래프 미반영."
+    },
+    {
+      "concept": "사용자",
+      "onto": "User",
+      "graph": "User(dead)",
+      "jpa": "User",
+      "verdict": "제거후보",
+      "why": "그래프 선언만·미사용(dead) — init SQL 에서 제거 또는 배선",
+      "note": "양쪽 다 선언됐으나 그래프 User 노드는 write 없음(dead)."
+    },
+    {
+      "concept": "JUnit 케이스",
+      "onto": "—",
+      "graph": "JunitCase",
+      "jpa": "JunitTestCase",
+      "verdict": "현재채택",
+      "why": "그래프에서 실사용·근거 있음 — 코어 온톨로지에 추가",
+      "note": "CI 결과 계층. 실재 엔티티인데 코어 온톨로지가 누락."
+    },
+    {
+      "concept": "실패 유형",
+      "onto": "—",
+      "graph": "FailureType",
+      "jpa": "derived",
+      "verdict": "현재채택",
+      "why": "그래프에서 실사용·근거 있음 — 코어 온톨로지에 추가",
+      "note": "JunitTestResult 실패 signature 에서 파생. 엔티티 아님."
+    },
+    {
+      "concept": "Jira 이슈",
+      "onto": "—",
+      "graph": "JiraIssue",
+      "jpa": "derived",
+      "verdict": "현재채택",
+      "why": "그래프에서 실사용·근거 있음 — 코어 온톨로지에 추가",
+      "note": "TestResult.jiraIssueKey + JiraConfig 에서 파생."
+    },
+    {
+      "concept": "버그",
+      "onto": "—",
+      "graph": "Bug(dead)",
+      "jpa": "—",
+      "verdict": "제거후보",
+      "why": "그래프 선언만·미사용(dead) — 제거",
+      "note": "선언만·write 없음(dead). 프론트 색상만 존재."
+    },
+    {
+      "concept": "그래프 케이스",
+      "onto": "—",
+      "graph": "GraphTestCase",
+      "jpa": "derived",
+      "verdict": "현재채택",
+      "why": "그래프에서 실사용·근거 있음 — 코어 온톨로지에 추가",
+      "note": "저작 서브그래프 루트. TestCase 를 그래프로 변환할 때 생성."
+    },
+    {
+      "concept": "사전조건 노드",
+      "onto": "—",
+      "graph": "Precondition",
+      "jpa": "derived",
+      "verdict": "현재채택",
+      "why": "그래프에서 실사용·근거 있음 — 코어 온톨로지에 추가",
+      "note": "저작 서브그래프."
+    },
+    {
+      "concept": "분기 노드",
+      "onto": "—",
+      "graph": "Decision",
+      "jpa": "derived",
+      "verdict": "현재채택",
+      "why": "그래프에서 실사용·근거 있음 — 코어 온톨로지에 추가",
+      "note": "저작 서브그래프."
+    },
+    {
+      "concept": "상태 노드",
+      "onto": "—",
+      "graph": "State(dead)",
+      "jpa": "—",
+      "verdict": "제거후보",
+      "why": "그래프 선언만·미사용(dead) — 제거",
+      "note": "선언만·write 없음(dead)."
+    },
+    {
+      "concept": "기대결과 노드",
+      "onto": "—",
+      "graph": "Expected(dead)",
+      "jpa": "—",
+      "verdict": "제거후보",
+      "why": "그래프 선언만·미사용(dead) — 제거",
+      "note": "선언만·write 없음(dead). 프론트 색상만 존재."
+    }
+  ],
+  "edges": [
+    {
+      "concept": "조직→프로젝트 포함",
+      "onto": "Organization.contains→Project",
+      "graph": "—",
+      "verdict": "기존유지",
+      "why": "온톨로지 전용 관계",
+      "note": "온톨로지 전용(조직 노드 없어 그래프 미반영)."
+    },
+    {
+      "concept": "프로젝트→케이스 포함",
+      "onto": "Project.has→TestCase",
+      "graph": "CONTAINS",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/방향 차이 정리",
+      "note": "이름 다름: has ↔ CONTAINS."
+    },
+    {
+      "concept": "폴더 트리",
+      "onto": "TestCase.parentOf→TestCase",
+      "graph": "PARENT_OF",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/방향 차이 정리",
+      "note": "이름 다름: parentOf ↔ PARENT_OF (그래프는 Folder→TC/Folder)."
+    },
+    {
+      "concept": "프로젝트→플랜",
+      "onto": "Project.hasPlan→TestPlan",
+      "graph": "HAS_PLAN",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/방향 차이 정리",
+      "note": ""
+    },
+    {
+      "concept": "프로젝트→실행",
+      "onto": "Project.hasExecution→TestExecution",
+      "graph": "—",
+      "verdict": "기존유지",
+      "why": "온톨로지 전용 관계",
+      "note": "온톨로지엔 직접 간선. 그래프엔 Project→Execution 직접 간선 없음(플랜 경유 간접)."
+    },
+    {
+      "concept": "프로젝트→차터",
+      "onto": "Project.hasCharter→TestCharter",
+      "graph": "—",
+      "verdict": "기존유지",
+      "why": "온톨로지 전용 관계",
+      "note": "온톨로지 전용."
+    },
+    {
+      "concept": "프로젝트→세션",
+      "onto": "Project.hasSession→TestSession",
+      "graph": "—",
+      "verdict": "기존유지",
+      "why": "온톨로지 전용 관계",
+      "note": "온톨로지 전용."
+    },
+    {
+      "concept": "케이스→단계",
+      "onto": "TestCase.hasStep→TestStep",
+      "graph": "STARTS_AT",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/방향 차이 정리",
+      "note": "느슨한 대응: 온톨로지 hasStep ↔ 그래프 저작 STARTS_AT/NEXT 체인."
+    },
+    {
+      "concept": "케이스→버전",
+      "onto": "TestCase.hasVersion→TestCaseVersion",
+      "graph": "—",
+      "verdict": "기존유지",
+      "why": "온톨로지 전용 관계",
+      "note": "온톨로지 전용."
+    },
+    {
+      "concept": "플랜→케이스 참조",
+      "onto": "TestPlan.references→TestCase",
+      "graph": "INCLUDES",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/방향 차이 정리",
+      "note": "이름 다름: references ↔ INCLUDES."
+    },
+    {
+      "concept": "실행→플랜 기반",
+      "onto": "TestExecution.basedOn→TestPlan",
+      "graph": "FROM_PLAN",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/방향 차이 정리",
+      "note": "이름 다름: basedOn ↔ FROM_PLAN."
+    },
+    {
+      "concept": "실행→결과 산출",
+      "onto": "TestExecution.produces→TestResult",
+      "graph": "IN_EXECUTION",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/방향 차이 정리",
+      "note": "방향 반대: 온톨로지 Exec→Result(produces) vs 그래프 Result→Exec(IN_EXECUTION)."
+    },
+    {
+      "concept": "결과→케이스 대상",
+      "onto": "TestResult.targets→TestCase",
+      "graph": "OF_CASE",
+      "verdict": "정합",
+      "why": "양쪽 존재 — 이름/방향 차이 정리",
+      "note": "이름 다름: targets ↔ OF_CASE."
+    },
+    {
+      "concept": "결과→실행자",
+      "onto": "TestResult.executedBy→User",
+      "graph": "EXECUTED_BY(dead)",
+      "verdict": "정합·주의",
+      "why": "온톨로지엔 있으나 그래프 간선 dead",
+      "note": "양쪽 선언되나 그래프 EXECUTED_BY 는 write 없음(dead). 온톨로지는 Result→User, 그래프 의도는 Exec→User."
+    },
+    {
+      "concept": "세션→차터 수행",
+      "onto": "TestSession.runs→TestCharter",
+      "graph": "—",
+      "verdict": "기존유지",
+      "why": "온톨로지 전용 관계",
+      "note": "온톨로지 전용."
+    },
+    {
+      "concept": "결과→Jira 연동",
+      "onto": "—",
+      "graph": "LINKED_TO",
+      "verdict": "현재채택",
+      "why": "그래프 실사용 관계 — 온톨로지 반영 검토",
+      "note": "그래프 전용(Jira 통합)."
+    },
+    {
+      "concept": "JUnit→실패유형",
+      "onto": "—",
+      "graph": "FAILED_WITH",
+      "verdict": "현재채택",
+      "why": "그래프 실사용 관계 — 온톨로지 반영 검토",
+      "note": "그래프 전용(CI 실패 클러스터)."
+    },
+    {
+      "concept": "케이스 유사도",
+      "onto": "—",
+      "graph": "SIMILAR_TO",
+      "verdict": "현재채택",
+      "why": "그래프 실사용 관계 — 온톨로지 반영 검토",
+      "note": "그래프 전용(태그 겹침 휴리스틱, sharedTags 속성)."
+    },
+    {
+      "concept": "수동 관계",
+      "onto": "—",
+      "graph": "RELATES_TO",
+      "verdict": "현재채택",
+      "why": "그래프 실사용 관계 — 온톨로지 반영 검토",
+      "note": "그래프 전용(사용자 편집, manual=true)."
+    },
+    {
+      "concept": "수동 차단",
+      "onto": "—",
+      "graph": "BLOCKS",
+      "verdict": "현재채택",
+      "why": "그래프 실사용 관계 — 온톨로지 반영 검토",
+      "note": "그래프 전용(사용자 편집)."
+    },
+    {
+      "concept": "수동 의존",
+      "onto": "—",
+      "graph": "DEPENDS_ON",
+      "verdict": "현재채택",
+      "why": "그래프 실사용 관계 — 온톨로지 반영 검토",
+      "note": "그래프 전용(사용자 편집)."
+    },
+    {
+      "concept": "저작 다음단계",
+      "onto": "—",
+      "graph": "NEXT",
+      "verdict": "현재채택",
+      "why": "그래프 실사용 관계 — 온톨로지 반영 검토",
+      "note": "그래프 전용(저작 서브그래프)."
+    },
+    {
+      "concept": "저작 분기",
+      "onto": "—",
+      "graph": "BRANCH_ON",
+      "verdict": "현재채택",
+      "why": "그래프 실사용 관계 — 온톨로지 반영 검토",
+      "note": "그래프 전용(저작 서브그래프, label 속성)."
+    },
+    {
+      "concept": "영향(dead)",
+      "onto": "—",
+      "graph": "AFFECTS(dead)",
+      "verdict": "제거후보",
+      "why": "그래프 선언만·미사용(dead) — 제거",
+      "note": "선언만·write 없음(dead)."
+    },
+    {
+      "concept": "보고(dead)",
+      "onto": "—",
+      "graph": "REPORTED_AS(dead)",
+      "verdict": "제거후보",
+      "why": "그래프 선언만·미사용(dead) — 제거",
+      "note": "선언만·write 없음(dead)."
+    },
+    {
+      "concept": "검증(dead)",
+      "onto": "—",
+      "graph": "VERIFIES(dead)",
+      "verdict": "제거후보",
+      "why": "그래프 선언만·미사용(dead) — 제거",
+      "note": "선언만·write 없음(dead)."
+    },
+    {
+      "concept": "전이(dead)",
+      "onto": "—",
+      "graph": "TRANSITION(dead)",
+      "verdict": "제거후보",
+      "why": "그래프 선언만·미사용(dead) — 제거",
+      "note": "선언만·write 없음(dead)."
+    }
+  ]
+}

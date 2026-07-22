@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 public class GraphQueryService {
 
   private static final int STRUCTURE_LIMIT = 2000;
-  private static final int FAILURE_LIMIT = 1000;
   private static final int NEIGHBOR_LIMIT_PER_STEP = 300;
   private static final int MAX_DEPTH = 3;
 
@@ -36,6 +35,9 @@ public class GraphQueryService {
   public GraphResponseDto getProjectStructure(String projectId) {
     validateId(projectId);
     GraphResponseDto response = new GraphResponseDto();
+    if (!graphDbClient.isAvailable()) {
+      return response; // 그래프 DB 미연결 — 빈 결과로 우아하게 degrade (500 방지)
+    }
     String cypher =
         "MATCH (a)-[e]->(b)"
             + " WHERE a.\"projectId\" = '"
@@ -45,29 +47,6 @@ public class GraphQueryService {
             + "' RETURN a, e, b LIMIT "
             + STRUCTURE_LIMIT;
     collectTriples(cypher, response);
-    return response;
-  }
-
-  /** 오류 클러스터 — FailureType 허브와 연결된 결과·케이스. */
-  public GraphResponseDto getFailureClusters(String projectId) {
-    validateId(projectId);
-    GraphResponseDto response = new GraphResponseDto();
-    // 1) 실패 결과 → FailureType
-    collectTriples(
-        "MATCH (r)-[e:\"FAILED_WITH\"]->(ft:\"FailureType\")"
-            + " WHERE r.\"projectId\" = '"
-            + projectId
-            + "' RETURN r, e, ft LIMIT "
-            + FAILURE_LIMIT,
-        response);
-    // 2) 그 결과들이 속한 테스트 케이스
-    collectTriples(
-        "MATCH (r)-[f:\"FAILED_WITH\"]->(:\"FailureType\"), (r)-[e:\"OF_CASE\"]->(tc)"
-            + " WHERE r.\"projectId\" = '"
-            + projectId
-            + "' RETURN r, e, tc LIMIT "
-            + FAILURE_LIMIT,
-        response);
     return response;
   }
 
@@ -84,6 +63,9 @@ public class GraphQueryService {
     int clampedDepth = Math.max(1, Math.min(depth, MAX_DEPTH));
 
     GraphResponseDto response = new GraphResponseDto();
+    if (!graphDbClient.isAvailable()) {
+      return response; // 그래프 DB 미연결 — 빈 결과로 degrade
+    }
     Set<String> visited = new HashSet<>();
     Deque<String> frontier = new ArrayDeque<>();
     frontier.add(domainId);
