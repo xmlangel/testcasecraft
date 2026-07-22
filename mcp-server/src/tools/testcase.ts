@@ -43,6 +43,10 @@ const CreateOrUpdateInput = z.object({
   steps: z.array(TestStepInput).max(100).optional(),
   expectedResults: z.string().max(10000).optional(),
   tags: z.array(z.string()).max(50).optional(),
+  // 연결 케이스(1.0.97+): 다른 테스트케이스·문서·JUnit 자동화 케이스 링크
+  linkedTestCaseIds: z.array(z.string()).max(50).optional(),
+  linkedDocumentIds: z.array(z.string()).max(50).optional(),
+  linkedJunitTestCaseIds: z.array(z.string()).max(50).optional(),
 });
 
 const MoveInput = z.object({
@@ -106,7 +110,8 @@ export const testcaseTools: Tool[] = [
       "테스트 케이스를 생성하거나 수정한다. id 없으면 생성(POST /api/testcases), id 있으면 수정(PUT /api/testcases/{id}). " +
       "필수: projectId(UUID), name. " +
       "지원 필드: description, preCondition, postCondition, parentId, priority(LOW|MEDIUM|HIGH), " +
-      "isAutomated, executionType, testTechnique, steps(action·expectedResult), expectedResults, type, tags.",
+      "isAutomated, executionType, testTechnique, steps(action·expectedResult), expectedResults, type, tags, " +
+      "linkedTestCaseIds(연결 테스트케이스), linkedDocumentIds(연결 문서), linkedJunitTestCaseIds(연결 JUnit 자동화 케이스).",
     inputSchema: zodToJsonSchema(CreateOrUpdateInput) as any,
   },
   {
