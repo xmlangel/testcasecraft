@@ -16,9 +16,11 @@ const GetInput = z.object({
 
 const CreateOrUpdateInput = z.object({
   id: z.string().optional(),
-  name: z.string().min(1, "프로젝트 이름 필수"),
-  description: z.string().optional(),
-  key: z.string().optional(),
+  // 백엔드 ProjectDto: code @NotBlank(max 30) — 생성 시 필수(이전엔 잘못된 필드명 key 를 써서 항상 400 이었음)
+  code: z.string().max(30, "코드는 30자 이내").optional(),
+  name: z.string().min(1, "프로젝트 이름 필수").max(100),
+  description: z.string().max(1000).optional(),
+  organizationId: z.string().max(36).optional(),
 });
 
 const MembersInput = z.object({
@@ -46,6 +48,7 @@ export const projectTools: Tool[] = [
     name: "project_create_or_update",
     description:
       "프로젝트를 생성하거나 수정한다. id 없으면 생성(POST), id 있으면 수정(PUT). " +
+      "생성 시 code(최대 30자)는 필수, name도 필수. 지원 필드: code, name, description, organizationId. " +
       "'프로젝트 만들어줘', '프로젝트 이름 변경' 같은 요청 시 사용.",
     inputSchema: zodToJsonSchema(CreateOrUpdateInput) as any,
   },
@@ -76,7 +79,9 @@ export const projectHandlers: Record<
 
   project_get: async (args: unknown) => {
     const input = GetInput.parse(args);
-    const res = await httpClient.get(`/api/projects/${input.id}`);
+    const res = await httpClient.get(
+      `/api/projects/${encodeURIComponent(input.id)}`,
+    );
     return res.data;
   },
 
@@ -85,7 +90,10 @@ export const projectHandlers: Record<
     if (input.id) {
       // PUT: update existing
       const { id, ...body } = input;
-      const res = await httpClient.put(`/api/projects/${id}`, body);
+      const res = await httpClient.put(
+        `/api/projects/${encodeURIComponent(id)}`,
+        body,
+      );
       return res.data;
     } else {
       // POST: create new
@@ -96,12 +104,15 @@ export const projectHandlers: Record<
 
   project_members: async (args: unknown) => {
     const input = MembersInput.parse(args);
-    const res = await httpClient.get(`/api/projects/${input.id}/members`, {
-      params: {
-        limit: input.limit,
-        page: input.page,
+    const res = await httpClient.get(
+      `/api/projects/${encodeURIComponent(input.id)}/members`,
+      {
+        params: {
+          limit: input.limit,
+          page: input.page,
+        },
       },
-    });
+    );
     return res.data;
   },
 };
