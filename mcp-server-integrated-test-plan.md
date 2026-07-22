@@ -339,3 +339,25 @@
 - **관련 커밋:** 연결 케이스 1.0.97 — `025bc24b`·`fb9a1a60`·`5d4f5b8c`(역방향 표시·삭제 정합성 — OQ-A/OQ-B 판정 오라클)
 - **기존 자동화 스위트:** `mcp-server`에 `*.test.ts`/`*.spec.ts`/jest/vitest **부재** → 전 TC 신규, 회귀 게이트=`tsc`+MCP 스모크
 - **다운스트림 라우팅:** 실측=MCP 라이브 호출(+로컬 tsc/body 캡처) · TC 문서·HTML=`qa-tc-scenario` · 적재·실행 결과 기입=`testcasecraft-tc-manage`
+
+---
+
+## 부록: P0 실측 결과 (2026-07-22, automation 계정 / tc.qaspecialist.uk)
+
+임시 프로젝트 `ZZMCP`(생성→검증→삭제, 운영 잔존 0)에서 MCP 도구로 라이브 실행.
+
+| P0 항목               | 실측 절차                                                          | 실제 결과                                                                                                          | 판정                                                                                                                                                                             |
+| --------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **G2 라운드트립**     | create A(`linkedTestCaseIds=[B]`) → 응답·GET 확인                  | 생성 응답·GET 모두 `linkedTestCaseIds:["B"]` 반영. `linkedDocumentIds:[]`, `linkedJunitTestCaseIds:null` 함께 노출 | ✅ PASS — MCP 와이어가 신규 필드를 백엔드까지 정확히 전달·회수                                                                                                                   |
+| **P0-2 PUT 시맨틱**   | ① PUT omit(linked 미전송) → GET ② PUT `linked=[]` → GET            | ① **보존**(`[B]` 유지) ② **삭제**(`[]`)                                                                            | ✅ 확정 — **omit=보존(partial update), `[]`=파괴적 삭제.** 부정 축 KG-2/N-11의 "미전달 필드 조용한 삭제"는 오탐(omit은 안전), 단 `[]` 명시는 실삭제 → 사용자 실수 방지 문구 필요 |
+| **P0-3 원소 검증 갭** | PUT `[""]` / `[dangling-UUID]` / `[dup,dup]` / `[self]` 각각 → GET | **전부 200·그대로 저장** (빈문자열·존재하지 않는 케이스·중복·자기참조 모두 통과)                                   | ⚠️ CONFIRMED 결함 — MCP zod도 백엔드도 원소 검증 없음. 부정 축 N-08~N-13 정확. **참조 무결성·dedup·self-link 방어 부재**                                                         |
+
+### 실측 중 추가 발견 (delta 무관 pre-existing)
+
+- **`project_create_or_update` 버그**: zod 스키마가 `key`(optional)를 쓰나 백엔드는 `code`(필수) 요구 → MCP로 프로젝트 생성 시 항상 `[code] 필수` 400. `testcase.ts`의 linked 필드와 동일한 "strict zod가 실제 계약 필드를 누락" 클래스. `mcp-server/src/tools/project.ts:20` `key`→`code` 교체 필요.
+
+### 후속 권고
+
+- **P0-3**: MCP zod에 `.min(1)`(빈문자열 차단) + 중복 제거는 가능하나, dangling/self-link는 백엔드 참조 무결성이 정답(MCP는 UX 방어까지만).
+- **P0-2**: `testcase_create_or_update` description에 "linked\* 필드 omit 시 보존, `[]` 전송 시 전체 삭제" 명시.
+- **project_create 버그**: 별도 P1로 등재(이번 실측이 최초 재현).
