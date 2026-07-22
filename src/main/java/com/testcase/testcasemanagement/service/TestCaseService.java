@@ -362,15 +362,11 @@ public class TestCaseService {
         .createNativeQuery("DELETE FROM testcase_linked_documents WHERE testcase_id = :id")
         .setParameter("id", id)
         .executeUpdate();
-    // 연결된 테스트케이스 / JUnit 자동화 케이스 링크 (신규 @ElementCollection 테이블)
-    entityManager
-        .createNativeQuery("DELETE FROM testcase_linked_test_cases WHERE testcase_id = :id")
-        .setParameter("id", id)
-        .executeUpdate();
-    entityManager
-        .createNativeQuery("DELETE FROM testcase_linked_junit_cases WHERE testcase_id = :id")
-        .setParameter("id", id)
-        .executeUpdate();
+    // 연결된 테스트케이스 링크 (신규 @ElementCollection 테이블): 정방향(내가 건 링크) + 역방향(남이 나를 건 링크)을
+    // 함께 정리해 dangling 을 방지한다. native SQL 은 리포지토리로 위임(테스트 가능·컬럼명 드리프트 방어).
+    testCaseRepository.deleteTestCaseLinkRefs(id);
+    // 연결된 JUnit 자동화 케이스 링크 (내가 건 링크)
+    testCaseRepository.deleteJunitCaseLinksByTestCaseId(id);
     // test_case_attachments: fileStorageService.deleteAttachment()는 소프트 딜리트(status=DELETED)만 수행
     entityManager
         .createNativeQuery("DELETE FROM test_case_attachments WHERE test_case_id = :id")

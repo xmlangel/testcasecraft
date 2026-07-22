@@ -1154,6 +1154,13 @@ public class EnglishTestCaseAndAutomationTranslations {
         "junit.detail.backToAutomation", languageCode, "Back to Automation Tests", createdBy);
     createTranslationIfNotExists("junit.detail.refresh", languageCode, "Refresh", createdBy);
     createTranslationIfNotExists(
+        "junit.detail.linkedTestCases", languageCode, "Linked Test Cases", createdBy);
+    createTranslationIfNotExists(
+        "junit.detail.openLinkedTestCase",
+        languageCode,
+        "Click to open the linked test case",
+        createdBy);
+    createTranslationIfNotExists(
         "junit.detail.noDateInfo", languageCode, "No date information", createdBy);
     createTranslationIfNotExists(
         "junit.detail.unknownDateFormat", languageCode, "Unknown date format", createdBy);
@@ -1293,6 +1300,8 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "Link other test cases related to this automated case",
         createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedByTestCases", languageCode, "Test Cases Linking This One", createdBy);
     createTranslationIfNotExists(
         "testcase.form.linkedJunitCases",
         languageCode,

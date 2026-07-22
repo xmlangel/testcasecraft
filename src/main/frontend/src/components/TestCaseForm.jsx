@@ -183,6 +183,19 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     }));
   }, []);
 
+  // 역방향(read-time): 이 테스트케이스를 연결한 다른 TC들 (프로젝트 testCases에서 계산, 읽기 전용)
+  const linkedByTestCases = useMemo(() => {
+    if (!testCaseId) return [];
+    return (testCases || []).filter(
+      (tc) =>
+        tc.type === "testcase" &&
+        String(tc.id) !== String(testCaseId) &&
+        (tc.linkedTestCaseIds || []).some(
+          (id) => String(id) === String(testCaseId),
+        ),
+    );
+  }, [testCases, testCaseId]);
+
   // 연결 항목 클릭 시 해당 페이지로 이동
   const handleOpenLinkedTestCase = useCallback(
     (option) => {
@@ -1600,6 +1613,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                   testCaseOptions={testCaseOptions}
                   onLinkedTestCasesChange={handleLinkedTestCasesChange}
                   onOpenLinkedTestCase={handleOpenLinkedTestCase}
+                  linkedByTestCases={linkedByTestCases}
                   linkedJunitCases={linkedJunitCases}
                   junitCaseOptions={junitOptionsMerged}
                   onLinkedJunitCasesChange={handleLinkedJunitCasesChange}

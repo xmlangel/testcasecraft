@@ -706,6 +706,10 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "junit.detail.backToAutomation", languageCode, "자동화 테스트로 돌아가기", createdBy);
     createTranslationIfNotExists("junit.detail.refresh", languageCode, "새로고침", createdBy);
+    createTranslationIfNotExists(
+        "junit.detail.linkedTestCases", languageCode, "연결된 테스트케이스", createdBy);
+    createTranslationIfNotExists(
+        "junit.detail.openLinkedTestCase", languageCode, "클릭하면 해당 테스트케이스로 이동합니다", createdBy);
     createTranslationIfNotExists("junit.detail.noDateInfo", languageCode, "날짜 정보 없음", createdBy);
     createTranslationIfNotExists(
         "junit.detail.unknownDateFormat", languageCode, "알 수 없는 날짜 형식", createdBy);
@@ -912,6 +916,8 @@ public class KoreanTestCaseAndAutomationTranslations {
         languageCode,
         "이 자동화 케이스와 연관된 다른 테스트케이스를 연결합니다",
         createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedByTestCases", languageCode, "이 테스트케이스를 연결한 케이스", createdBy);
     createTranslationIfNotExists(
         "testcase.form.linkedJunitCases", languageCode, "연결된 자동화(JUnit) 케이스", createdBy);
     createTranslationIfNotExists(

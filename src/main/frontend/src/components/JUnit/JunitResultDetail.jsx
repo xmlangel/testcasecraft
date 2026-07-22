@@ -129,6 +129,8 @@ const JunitResultDetail = () => {
   const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [editRefreshTrigger, setEditRefreshTrigger] = useState(0);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  // 이 결과의 케이스를 연결한 테스트케이스 (역방향 노출)
+  const [linkedTestCases, setLinkedTestCases] = useState([]);
 
   // PDF/CSV 내보내기 (useJunitExport 훅)
   const { exportingPDF, exportingCSV, handleExportToPDF, handleExportToCSV } =
@@ -345,6 +347,24 @@ const JunitResultDetail = () => {
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
     loadData();
+  }, [testResultId]);
+
+  // 이 결과의 케이스를 연결한 테스트케이스(역방향) 로드
+  useEffect(() => {
+    if (!testResultId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await junitResultService.getLinkedTestCases(testResultId);
+        if (!cancelled) setLinkedTestCases(res?.content || []);
+      } catch (err) {
+        if (!cancelled) setLinkedTestCases([]);
+        console.error("연결된 테스트케이스 로드 실패:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [testResultId]);
 
   // 창 크기 조절에 따른 동적 pageSize 업데이트
@@ -823,6 +843,49 @@ const JunitResultDetail = () => {
         handleAccordionChange={handleAccordionChange}
         t={t}
       />
+
+      {/* 연결된 테스트케이스 (역방향): 이 결과의 케이스를 연결한 TC들 */}
+      {linkedTestCases.length > 0 && (
+        <Box
+          sx={{
+            mt: 2,
+            mb: 1,
+            p: 2,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: "8px",
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ mb: 1 }} color="text.primary">
+            {t("junit.detail.linkedTestCases", "연결된 테스트케이스")} (
+            {linkedTestCases.length})
+          </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {linkedTestCases.map((item) => (
+              <Chip
+                key={`${item.testCaseId}-${item.junitCaseId}`}
+                variant="outlined"
+                clickable
+                onClick={() => {
+                  const pid = item.projectId || projectId;
+                  if (pid)
+                    navigate(`/projects/${pid}/testcases/${item.testCaseId}`);
+                }}
+                title={t(
+                  "junit.detail.openLinkedTestCase",
+                  "클릭하면 해당 테스트케이스로 이동합니다",
+                )}
+                sx={{ cursor: "pointer" }}
+                label={
+                  (item.displayId ? `${item.displayId} · ` : "") +
+                  (item.testCaseName || item.testCaseId) +
+                  (item.junitCaseName ? `  ← ${item.junitCaseName}` : "")
+                }
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
 
       {/* 테스트 케이스 리스트 영역 - Accordion 적용 */}
       <Stack spacing={2}>

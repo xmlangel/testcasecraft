@@ -127,4 +127,18 @@ public interface JunitTestCaseRepository extends JpaRepository<JunitTestCase, St
           + "ORDER BY jtc.className, jtc.name")
   List<JunitTestCase> findByProjectIdAndIdIn(
       @Param("projectId") String projectId, @Param("ids") List<String> ids);
+
+  /**
+   * 특정 테스트 결과(result)에 속한 JUnit 케이스를 참조하는 테스트케이스 링크(역방향)를 모두 삭제한다. JUnit 결과 삭제 시 TC 쪽에 남는 dangling
+   * 링크를 방지하기 위한 정리 쿼리.
+   */
+  @org.springframework.data.jpa.repository.Modifying
+  @Query(
+      value =
+          "DELETE FROM testcase_linked_junit_cases WHERE junit_test_case_id IN "
+              + "(SELECT c.id FROM junit_test_cases c "
+              + "JOIN junit_test_suites s ON c.junit_test_suite_id = s.id "
+              + "WHERE s.junit_test_result_id = :resultId)",
+      nativeQuery = true)
+  void deleteTestCaseLinksByResultId(@Param("resultId") String resultId);
 }

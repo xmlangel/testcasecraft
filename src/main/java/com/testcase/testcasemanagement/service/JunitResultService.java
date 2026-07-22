@@ -34,6 +34,9 @@ public class JunitResultService {
 
   @Autowired private JunitTestCaseRepository testCaseRepository;
 
+  @Autowired
+  private com.testcase.testcasemanagement.repository.TestCaseRepository projectTestCaseRepository;
+
   @Autowired private TestPlanRepository testPlanRepository;
 
   @Autowired private JunitFileStorageService fileStorageService;
@@ -251,6 +254,44 @@ public class JunitResultService {
     return testCaseRepository.searchByProject(projectId, searchTerm, pageable);
   }
 
+  /** JUnit 결과 역조회: 이 결과에 속한 JUnit 케이스를 연결한 테스트케이스 목록을 반환한다. JUnit 결과 페이지의 "연결된 테스트케이스" 섹션용. */
+  @Transactional(readOnly = true)
+  public List<Map<String, Object>> getLinkedTestCasesByResult(String resultId) {
+    List<Object[]> pairs = projectTestCaseRepository.findTestCaseJunitLinksByResultId(resultId);
+    if (pairs.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+
+    java.util.Set<String> tcIds = new java.util.LinkedHashSet<>();
+    java.util.Set<String> junitIds = new java.util.LinkedHashSet<>();
+    for (Object[] row : pairs) {
+      tcIds.add((String) row[0]);
+      junitIds.add((String) row[1]);
+    }
+
+    Map<String, TestCase> tcMap = new HashMap<>();
+    projectTestCaseRepository.findAllById(tcIds).forEach(tc -> tcMap.put(tc.getId(), tc));
+    Map<String, JunitTestCase> jcMap = new HashMap<>();
+    testCaseRepository.findAllById(junitIds).forEach(jc -> jcMap.put(jc.getId(), jc));
+
+    List<Map<String, Object>> out = new java.util.ArrayList<>();
+    for (Object[] row : pairs) {
+      TestCase tc = tcMap.get((String) row[0]);
+      if (tc == null) continue; // 이미 삭제된 TC는 건너뜀
+      JunitTestCase jc = jcMap.get((String) row[1]);
+      Map<String, Object> m = new HashMap<>();
+      m.put("testCaseId", tc.getId());
+      m.put("displayId", tc.getDisplayId());
+      m.put("testCaseName", tc.getName());
+      m.put("projectId", tc.getProject() != null ? tc.getProject().getId() : null);
+      m.put("junitCaseId", (String) row[1]);
+      m.put("junitCaseName", jc != null ? jc.getName() : null);
+      m.put("junitClassName", jc != null ? jc.getClassName() : null);
+      out.add(m);
+    }
+    return out;
+  }
+
   /** 프로젝트 스코프로 ID 목록의 JUnit 케이스 조회 (연결된 케이스 표시용) */
   @Transactional(readOnly = true)
   public List<JunitTestCase> getTestCasesByIds(String projectId, List<String> ids) {
@@ -275,28 +316,31 @@ public class JunitResultService {
 
   /** 테스트 결과 삭제 */
   public boolean deleteTestResult(String id) {
-    try {
-      Optional<JunitTestResult> testResult = testResultRepository.findById(id);
-      if (testResult.isPresent()) {
-        JunitTestResult result = testResult.get();
-
-        // 원본 파일 삭제
-        if (result.getOriginalFilePath() != null) {
-          fileStorageService.deleteFile(result.getOriginalFilePath());
-        }
-
-        // 데이터베이스에서 삭제 (Cascade로 인해 관련 데이터도 삭제됨)
-        testResultRepository.delete(result);
-
-        logger.info("테스트 결과 삭제 완료: {}", id);
-        return true;
-      }
-      return false;
-
-    } catch (Exception e) {
-      logger.error("테스트 결과 삭제 중 오류: {}", e.getMessage(), e);
-      return false;
+    Optional<JunitTestResult> testResult = testResultRepository.findById(id);
+    if (testResult.isEmpty()) {
+      return false; // 대상 없음 (404) — 이 경우만 false, 처리 오류는 예외로 전파
     }
+    JunitTestResult result = testResult.get();
+    String originalFilePath = result.getOriginalFilePath();
+
+    // DB 삭제는 원자적으로 수행 — 실패 시 예외가 전파되어 트랜잭션 전체가 롤백된다
+    // (이전엔 catch로 예외를 삼켜 링크만 삭제되고 결과는 남는 부분 커밋 + 404 오보가 가능했음)
+    // cascade로 junit 케이스가 삭제되기 전에 역방향 링크(TC → junit 케이스)를 먼저 정리해야
+    // 참조 대상 id를 조회할 수 있다.
+    testCaseRepository.deleteTestCaseLinksByResultId(id);
+    testResultRepository.delete(result);
+
+    // 원본 파일 삭제는 비트랜잭션 부수효과 — 실패해도 DB 삭제는 유지(로그만)
+    if (originalFilePath != null) {
+      try {
+        fileStorageService.deleteFile(originalFilePath);
+      } catch (Exception e) {
+        logger.warn("원본 파일 삭제 실패(무시): path={}, error={}", originalFilePath, e.getMessage());
+      }
+    }
+
+    logger.info("테스트 결과 삭제 완료: {}", id);
+    return true;
   }
 
   /**

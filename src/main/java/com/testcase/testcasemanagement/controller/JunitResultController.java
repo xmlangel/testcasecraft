@@ -240,6 +240,32 @@ public class JunitResultController {
   }
 
   /** 테스트 스위트 목록 조회 */
+  /** JUnit 결과 역조회: 이 결과의 케이스를 연결한 테스트케이스 목록 */
+  @GetMapping("/{testResultId}/linked-testcases")
+  @PreAuthorize("@projectSecurityService.canAccessJunitResult(#testResultId)")
+  @Operation(
+      summary = "결과에 연결된 테스트케이스",
+      description = "이 JUnit 결과의 케이스를 연결한 테스트케이스 목록을 조회합니다. (역방향)")
+  public ResponseEntity<Map<String, Object>> getLinkedTestCases(@PathVariable String testResultId) {
+    try {
+      List<Map<String, Object>> content =
+          junitResultService.getLinkedTestCasesByResult(testResultId);
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", true);
+      response.put("content", content);
+      response.put("count", content.size());
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      logger.error("연결된 테스트케이스 조회 실패: {}", e.getMessage(), e);
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", false);
+      response.put("error", "연결된 테스트케이스를 조회할 수 없습니다.");
+      return ResponseEntity.status(500).body(response);
+    }
+  }
+
   @GetMapping("/{testResultId}/suites")
   @PreAuthorize("@projectSecurityService.canAccessJunitResult(#testResultId)")
   @Operation(summary = "테스트 스위트 목록", description = "테스트 결과에 포함된 스위트 목록을 조회합니다.")

@@ -60,6 +60,7 @@ const TestCaseBasicInfo = ({
   testCaseOptions = [],
   onLinkedTestCasesChange = () => {},
   onOpenLinkedTestCase = () => {},
+  linkedByTestCases = [],
   linkedJunitCases = [],
   junitCaseOptions = [],
   onLinkedJunitCasesChange = () => {},
@@ -607,6 +608,45 @@ const TestCaseBasicInfo = ({
             disabled={isViewer}
           />
         )}
+
+        {/* 역방향(읽기 전용): 이 테스트케이스를 연결한 다른 테스트케이스 */}
+        {linkedByTestCases.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mb: 0.5 }}
+            >
+              {t(
+                "testcase.form.linkedByTestCases",
+                "이 테스트케이스를 연결한 케이스",
+              )}{" "}
+              ({linkedByTestCases.length})
+            </Typography>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              {linkedByTestCases.map((option) => (
+                <Chip
+                  key={option.id}
+                  variant="outlined"
+                  size="small"
+                  icon={<OpenInNewIcon style={{ fontSize: 15 }} />}
+                  clickable
+                  onClick={() => onOpenLinkedTestCase(option)}
+                  title={t(
+                    "testcase.helper.openLinkedTestCase",
+                    "클릭하면 해당 테스트케이스로 이동합니다",
+                  )}
+                  sx={{ cursor: "pointer" }}
+                  label={
+                    option.displayId
+                      ? `${option.displayId} · ${option.name}`
+                      : option.name || option.id
+                  }
+                />
+              ))}
+            </Box>
+          </Box>
+        )}
       </AccordionDetails>
     </Accordion>
   );
@@ -632,6 +672,7 @@ TestCaseBasicInfo.propTypes = {
   testCaseOptions: PropTypes.array,
   onLinkedTestCasesChange: PropTypes.func,
   onOpenLinkedTestCase: PropTypes.func,
+  linkedByTestCases: PropTypes.array,
   linkedJunitCases: PropTypes.array,
   junitCaseOptions: PropTypes.array,
   onLinkedJunitCasesChange: PropTypes.func,
