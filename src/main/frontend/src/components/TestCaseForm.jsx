@@ -183,6 +183,25 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     }));
   }, []);
 
+  // 연결 항목 클릭 시 해당 페이지로 이동
+  const handleOpenLinkedTestCase = useCallback(
+    (option) => {
+      if (option?.id) {
+        navigate(`/projects/${projectId}/testcases/${option.id}`);
+      }
+    },
+    [navigate, projectId],
+  );
+
+  const handleOpenLinkedJunitCase = useCallback(
+    (option) => {
+      if (option?.testResultId) {
+        navigate(`/projects/${projectId}/junit-results/${option.testResultId}`);
+      }
+    },
+    [navigate, projectId],
+  );
+
   // 검색 옵션 + 이미 연결된 케이스를 합쳐 옵션으로 노출 (선택값이 옵션에 없을 때의 경고 방지)
   const junitOptionsMerged = useMemo(() => {
     const map = new Map();
@@ -1580,9 +1599,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                   linkedTestCases={linkedTestCaseValue}
                   testCaseOptions={testCaseOptions}
                   onLinkedTestCasesChange={handleLinkedTestCasesChange}
+                  onOpenLinkedTestCase={handleOpenLinkedTestCase}
                   linkedJunitCases={linkedJunitCases}
                   junitCaseOptions={junitOptionsMerged}
                   onLinkedJunitCasesChange={handleLinkedJunitCasesChange}
+                  onOpenLinkedJunitCase={handleOpenLinkedJunitCase}
                   onJunitSearchChange={handleJunitSearchChange}
                   junitLoading={junitLoading}
                   onMarkdownPaste={handleMarkdownPaste}

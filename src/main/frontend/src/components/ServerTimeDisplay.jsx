@@ -10,6 +10,7 @@ import { formatDateTime, getTimezoneOffset } from "../utils/timezoneUtils";
 
 const ServerTimeDisplay = () => {
   const { user } = useAppContext();
+  const isAdmin = user?.role === "ADMIN";
   const [serverTimeState, setServerTimeState] = useState({
     time: "",
     loading: true,
@@ -41,6 +42,9 @@ const ServerTimeDisplay = () => {
   };
 
   useEffect(() => {
+    // 관리자에게만 표시하므로 비관리자는 서버 시간 조회 자체를 생략
+    if (!isAdmin) return undefined;
+
     // 초기 로드
     fetchServerTime();
 
@@ -48,7 +52,12 @@ const ServerTimeDisplay = () => {
     const interval = setInterval(fetchServerTime, 30000);
 
     return () => clearInterval(interval);
-  }, []); // 의존성 배열 비움: 사용자 정보 변경 시에도 서버 시간 다시 조회 안함
+  }, [isAdmin]);
+
+  // 시간·버전 하단 위젯은 관리자(ADMIN)에게만 노출
+  if (!isAdmin) {
+    return null;
+  }
 
   // 사용자 타임존 정보 (렌더링 시 계산)
   const userTimezone = user?.timezone || "UTC";
@@ -61,7 +70,7 @@ const ServerTimeDisplay = () => {
         sx={{
           position: "fixed",
           bottom: 16,
-          left: 16,
+          right: 16,
           display: "flex",
           alignItems: "center",
           gap: 1,
@@ -87,7 +96,7 @@ const ServerTimeDisplay = () => {
         sx={{
           position: "fixed",
           bottom: 16,
-          left: 16,
+          right: 16,
           display: "flex",
           alignItems: "center",
           gap: 1,
@@ -130,7 +139,7 @@ const ServerTimeDisplay = () => {
       sx={{
         position: "fixed",
         bottom: 16,
-        left: 16,
+        right: 16,
         display: "flex",
         alignItems: "center",
         gap: 1,

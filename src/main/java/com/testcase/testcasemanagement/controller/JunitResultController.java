@@ -399,6 +399,10 @@ public class JunitResultController {
     m.put("className", tc.getClassName());
     m.put("displayTitle", tc.getDisplayTitle());
     m.put("status", tc.getDisplayStatus() != null ? tc.getDisplayStatus().name() : null);
+    // 바로가기 링크용: 상위 테스트 결과(result) ID → /projects/{pid}/junit-results/{resultId}
+    if (tc.getJunitTestSuite() != null && tc.getJunitTestSuite().getJunitTestResult() != null) {
+      m.put("testResultId", tc.getJunitTestSuite().getJunitTestResult().getId());
+    }
     return m;
   }
 

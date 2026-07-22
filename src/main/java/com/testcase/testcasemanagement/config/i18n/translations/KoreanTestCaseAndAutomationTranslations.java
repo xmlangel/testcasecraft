@@ -924,6 +924,10 @@ public class KoreanTestCaseAndAutomationTranslations {
         languageCode,
         "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다 (동일 XML 재업로드 시 다시 연결 필요)",
         createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.openLinkedTestCase", languageCode, "클릭하면 해당 테스트케이스로 이동합니다", createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.openLinkedJunitCase", languageCode, "클릭하면 해당 JUnit 결과로 이동합니다", createdBy);
 
     // 사후 조건 헬퍼 텍스트 한글 번역
 

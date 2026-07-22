@@ -1309,6 +1309,16 @@ public class EnglishTestCaseAndAutomationTranslations {
         "Link the actual JUnit cases that automate this test case (re-link after re-uploading the"
             + " same XML)",
         createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.openLinkedTestCase",
+        languageCode,
+        "Click to open the linked test case",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.openLinkedJunitCase",
+        languageCode,
+        "Click to open the linked JUnit result",
+        createdBy);
 
     // Post-condition Helper Text English Translation
 

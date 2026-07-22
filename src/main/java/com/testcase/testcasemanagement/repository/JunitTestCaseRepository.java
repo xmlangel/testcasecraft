@@ -102,10 +102,12 @@ public interface JunitTestCaseRepository extends JpaRepository<JunitTestCase, St
       "SELECT c.junitTestSuite.junitTestResult.projectId FROM JunitTestCase c WHERE c.id = :caseId")
   Optional<String> findProjectIdByCaseId(@Param("caseId") String caseId);
 
-  /** 프로젝트 전체 JUnit 케이스 검색 (자동화 연결 선택기용) */
+  /** 프로젝트 전체 JUnit 케이스 검색 (자동화 연결 선택기용). 바로가기 링크용으로 상위 result까지 fetch */
   @Query(
       "SELECT jtc FROM JunitTestCase jtc "
-          + "WHERE jtc.junitTestSuite.junitTestResult.projectId = :projectId "
+          + "JOIN FETCH jtc.junitTestSuite s "
+          + "JOIN FETCH s.junitTestResult r "
+          + "WHERE r.projectId = :projectId "
           + "AND (:searchTerm IS NULL OR :searchTerm = '' "
           + "     OR LOWER(jtc.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) "
           + "     OR LOWER(jtc.className) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) "
@@ -118,7 +120,9 @@ public interface JunitTestCaseRepository extends JpaRepository<JunitTestCase, St
   /** 프로젝트 스코프로 ID 목록의 JUnit 케이스 조회 (연결된 케이스 표시용, cross-project 노출 방지) */
   @Query(
       "SELECT jtc FROM JunitTestCase jtc "
-          + "WHERE jtc.junitTestSuite.junitTestResult.projectId = :projectId "
+          + "JOIN FETCH jtc.junitTestSuite s "
+          + "JOIN FETCH s.junitTestResult r "
+          + "WHERE r.projectId = :projectId "
           + "AND jtc.id IN :ids "
           + "ORDER BY jtc.className, jtc.name")
   List<JunitTestCase> findByProjectIdAndIdIn(

@@ -22,6 +22,7 @@ import {
 import {
   ExpandMore as ExpandMoreIcon,
   AutoAwesome as AutoAwesomeIcon,
+  OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import MarkdownFieldEditor from "./MarkdownFieldEditor.jsx";
 
@@ -58,9 +59,11 @@ const TestCaseBasicInfo = ({
   linkedTestCases = [],
   testCaseOptions = [],
   onLinkedTestCasesChange = () => {},
+  onOpenLinkedTestCase = () => {},
   linkedJunitCases = [],
   junitCaseOptions = [],
   onLinkedJunitCasesChange = () => {},
+  onOpenLinkedJunitCase = () => {},
   onJunitSearchChange = () => {},
   junitLoading = false,
   onMarkdownPaste,
@@ -464,12 +467,20 @@ const TestCaseBasicInfo = ({
                   <Chip
                     key={option.id || index}
                     variant="outlined"
+                    icon={<OpenInNewIcon style={{ fontSize: 15 }} />}
                     label={
                       option.displayId
                         ? `${option.displayId} · ${option.name}`
                         : option.name || option.id
                     }
                     {...tagProps}
+                    clickable
+                    onClick={() => onOpenLinkedTestCase(option)}
+                    title={t(
+                      "testcase.helper.openLinkedTestCase",
+                      "클릭하면 해당 테스트케이스로 이동합니다",
+                    )}
+                    sx={{ cursor: "pointer" }}
                     disabled={isViewer}
                   />
                 );
@@ -529,16 +540,35 @@ const TestCaseBasicInfo = ({
             renderTags={(value, getTagProps) =>
               value.map((option, index) => {
                 const { key, ...tagProps } = getTagProps({ index });
+                const canOpen = Boolean(option.testResultId);
                 return (
                   <Chip
                     key={option.id || index}
                     variant="outlined"
+                    icon={
+                      canOpen ? (
+                        <OpenInNewIcon style={{ fontSize: 15 }} />
+                      ) : undefined
+                    }
                     label={
                       option.className
                         ? `${option.className}.${option.name}`
                         : option.name || option.id
                     }
                     {...tagProps}
+                    clickable={canOpen}
+                    onClick={
+                      canOpen ? () => onOpenLinkedJunitCase(option) : undefined
+                    }
+                    title={
+                      canOpen
+                        ? t(
+                            "testcase.helper.openLinkedJunitCase",
+                            "클릭하면 해당 JUnit 결과로 이동합니다",
+                          )
+                        : undefined
+                    }
+                    sx={canOpen ? { cursor: "pointer" } : undefined}
                     disabled={isViewer}
                   />
                 );
@@ -601,9 +631,11 @@ TestCaseBasicInfo.propTypes = {
   linkedTestCases: PropTypes.array,
   testCaseOptions: PropTypes.array,
   onLinkedTestCasesChange: PropTypes.func,
+  onOpenLinkedTestCase: PropTypes.func,
   linkedJunitCases: PropTypes.array,
   junitCaseOptions: PropTypes.array,
   onLinkedJunitCasesChange: PropTypes.func,
+  onOpenLinkedJunitCase: PropTypes.func,
   onJunitSearchChange: PropTypes.func,
   junitLoading: PropTypes.bool,
   onMarkdownPaste: PropTypes.func.isRequired,

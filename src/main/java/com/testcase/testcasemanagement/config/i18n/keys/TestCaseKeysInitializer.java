@@ -1455,6 +1455,16 @@ public class TestCaseKeysInitializer {
         "testcase",
         "연결된 JUnit 케이스 헬퍼 텍스트",
         "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다");
+    createTranslationKeyIfNotExists(
+        "testcase.helper.openLinkedTestCase",
+        "testcase",
+        "연결된 테스트케이스 바로가기 툴팁",
+        "클릭하면 해당 테스트케이스로 이동합니다");
+    createTranslationKeyIfNotExists(
+        "testcase.helper.openLinkedJunitCase",
+        "testcase",
+        "연결된 JUnit 케이스 바로가기 툴팁",
+        "클릭하면 해당 JUnit 결과로 이동합니다");
 
     // 사후 조건 헬퍼 텍스트
 
