@@ -1215,6 +1215,10 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "junit.detail.backToAutomation", "junit", "자동화 테스트로 돌아가기", "자동화 테스트로 돌아가기");
     createTranslationKeyIfNotExists("junit.detail.refresh", "junit", "새로고침", "새로고침");
+    createTranslationKeyIfNotExists(
+        "junit.detail.linkedTestCases", "junit", "결과에 연결된 테스트케이스 섹션", "연결된 테스트케이스");
+    createTranslationKeyIfNotExists(
+        "junit.detail.openLinkedTestCase", "junit", "연결된 테스트케이스 바로가기 툴팁", "클릭하면 해당 테스트케이스로 이동합니다");
     createTranslationKeyIfNotExists("junit.detail.noDateInfo", "junit", "날짜 정보 없음", "날짜 정보 없음");
     createTranslationKeyIfNotExists(
         "junit.detail.unknownDateFormat", "junit", "알 수 없는 날짜 형식", "알 수 없는 날짜 형식");
@@ -1429,6 +1433,47 @@ public class TestCaseKeysInitializer {
         "testcase",
         "RAG 문서 헬퍼 텍스트",
         "RAG 문서를 연결하면 AI가 참고할 수 있습니다");
+
+    // 연결된 테스트케이스 / 자동화(JUnit) 케이스 관련 번역 키들 (자동화 여부 체크 시 노출)
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedTestCases", "testcase", "연결된 테스트케이스 필드", "연결된 테스트케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedTestCasesPlaceholder",
+        "testcase",
+        "테스트케이스 선택 placeholder",
+        "연결할 테스트케이스를 선택하세요");
+    createTranslationKeyIfNotExists(
+        "testcase.helper.linkedTestCases",
+        "testcase",
+        "연결된 테스트케이스 헬퍼 텍스트",
+        "이 자동화 케이스와 연관된 다른 테스트케이스를 연결합니다");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedByTestCases",
+        "testcase",
+        "이 TC를 연결한 케이스(역방향) 필드",
+        "이 테스트케이스를 연결한 케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedJunitCases", "testcase", "연결된 JUnit 자동화 케이스 필드", "연결된 자동화(JUnit) 케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedJunitCasesPlaceholder",
+        "testcase",
+        "JUnit 케이스 검색 placeholder",
+        "자동화 JUnit 케이스를 검색·선택하세요");
+    createTranslationKeyIfNotExists(
+        "testcase.helper.linkedJunitCases",
+        "testcase",
+        "연결된 JUnit 케이스 헬퍼 텍스트",
+        "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다");
+    createTranslationKeyIfNotExists(
+        "testcase.helper.openLinkedTestCase",
+        "testcase",
+        "연결된 테스트케이스 바로가기 툴팁",
+        "클릭하면 해당 테스트케이스로 이동합니다");
+    createTranslationKeyIfNotExists(
+        "testcase.helper.openLinkedJunitCase",
+        "testcase",
+        "연결된 JUnit 케이스 바로가기 툴팁",
+        "클릭하면 해당 JUnit 결과로 이동합니다");
 
     // 사후 조건 헬퍼 텍스트
 

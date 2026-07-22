@@ -22,6 +22,7 @@ import {
 import {
   ExpandMore as ExpandMoreIcon,
   AutoAwesome as AutoAwesomeIcon,
+  OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import MarkdownFieldEditor from "./MarkdownFieldEditor.jsx";
 
@@ -55,6 +56,17 @@ const TestCaseBasicInfo = ({
   onTestCaseChange,
   onTagChange,
   onLinkedDocumentsChange,
+  linkedTestCases = [],
+  testCaseOptions = [],
+  onLinkedTestCasesChange = () => {},
+  onOpenLinkedTestCase = () => {},
+  linkedByTestCases = [],
+  linkedJunitCases = [],
+  junitCaseOptions = [],
+  onLinkedJunitCasesChange = () => {},
+  onOpenLinkedJunitCase = () => {},
+  onJunitSearchChange = () => {},
+  junitLoading = false,
   onMarkdownPaste,
   onAiGenerate = () => {},
   isAiGenerating = false,
@@ -425,6 +437,216 @@ const TestCaseBasicInfo = ({
             disabled={isViewer}
           />
         )}
+
+        {/* 자동화 여부 체크 시에만 노출 — 연결된 테스트케이스 / JUnit 자동화 케이스 */}
+        {Boolean(testCase.isAutomated) && isVisible("linkedTestCases") && (
+          <Autocomplete
+            multiple
+            options={testCaseOptions}
+            value={linkedTestCases}
+            onChange={(event, newValue) => onLinkedTestCasesChange(newValue)}
+            getOptionLabel={(option) =>
+              option.displayId
+                ? `${option.displayId} · ${option.name}`
+                : option.name || option.id || ""
+            }
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderOption={(props, option) => {
+              const { key, ...optionProps } = props;
+              return (
+                <li key={option.id} {...optionProps}>
+                  {option.displayId
+                    ? `${option.displayId} · ${option.name}`
+                    : option.name}
+                </li>
+              );
+            }}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return (
+                  <Chip
+                    key={option.id || index}
+                    variant="outlined"
+                    icon={<OpenInNewIcon style={{ fontSize: 15 }} />}
+                    label={
+                      option.displayId
+                        ? `${option.displayId} · ${option.name}`
+                        : option.name || option.id
+                    }
+                    {...tagProps}
+                    clickable
+                    onClick={() => onOpenLinkedTestCase(option)}
+                    title={t(
+                      "testcase.helper.openLinkedTestCase",
+                      "클릭하면 해당 테스트케이스로 이동합니다",
+                    )}
+                    sx={{ cursor: "pointer" }}
+                    disabled={isViewer}
+                  />
+                );
+              })
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="outlined"
+                label={t(
+                  "testcase.form.linkedTestCases",
+                  "연결된 테스트케이스",
+                )}
+                placeholder={t(
+                  "testcase.form.linkedTestCasesPlaceholder",
+                  "연결할 테스트케이스를 선택하세요",
+                )}
+                helperText={t(
+                  "testcase.helper.linkedTestCases",
+                  "이 자동화 케이스와 연관된 다른 테스트케이스를 연결합니다",
+                )}
+                margin="normal"
+              />
+            )}
+            disabled={isViewer}
+          />
+        )}
+
+        {Boolean(testCase.isAutomated) && isVisible("linkedJunitCases") && (
+          <Autocomplete
+            multiple
+            options={junitCaseOptions}
+            value={linkedJunitCases}
+            loading={junitLoading}
+            filterOptions={(x) => x}
+            onChange={(event, newValue) => onLinkedJunitCasesChange(newValue)}
+            onInputChange={(event, newInput, reason) => {
+              if (reason === "input") onJunitSearchChange(newInput);
+            }}
+            getOptionLabel={(option) =>
+              option.className
+                ? `${option.className}.${option.name}`
+                : option.displayTitle || option.name || option.id || ""
+            }
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderOption={(props, option) => {
+              const { key, ...optionProps } = props;
+              return (
+                <li key={option.id} {...optionProps}>
+                  {option.className
+                    ? `${option.className}.${option.name}`
+                    : option.name}
+                  {option.status ? ` [${option.status}]` : ""}
+                </li>
+              );
+            }}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                const canOpen = Boolean(option.testResultId);
+                return (
+                  <Chip
+                    key={option.id || index}
+                    variant="outlined"
+                    icon={
+                      canOpen ? (
+                        <OpenInNewIcon style={{ fontSize: 15 }} />
+                      ) : undefined
+                    }
+                    label={
+                      option.className
+                        ? `${option.className}.${option.name}`
+                        : option.name || option.id
+                    }
+                    {...tagProps}
+                    clickable={canOpen}
+                    onClick={
+                      canOpen ? () => onOpenLinkedJunitCase(option) : undefined
+                    }
+                    title={
+                      canOpen
+                        ? t(
+                            "testcase.helper.openLinkedJunitCase",
+                            "클릭하면 해당 JUnit 결과로 이동합니다",
+                          )
+                        : undefined
+                    }
+                    sx={canOpen ? { cursor: "pointer" } : undefined}
+                    disabled={isViewer}
+                  />
+                );
+              })
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="outlined"
+                label={t(
+                  "testcase.form.linkedJunitCases",
+                  "연결된 자동화(JUnit) 케이스",
+                )}
+                placeholder={t(
+                  "testcase.form.linkedJunitCasesPlaceholder",
+                  "자동화 JUnit 케이스를 검색·선택하세요",
+                )}
+                helperText={t(
+                  "testcase.helper.linkedJunitCases",
+                  "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다 (동일 XML 재업로드 시 다시 연결 필요)",
+                )}
+                margin="normal"
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {junitLoading ? (
+                        <CircularProgress color="inherit" size={18} />
+                      ) : null}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
+              />
+            )}
+            disabled={isViewer}
+          />
+        )}
+
+        {/* 역방향(읽기 전용): 이 테스트케이스를 연결한 다른 테스트케이스 */}
+        {linkedByTestCases.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mb: 0.5 }}
+            >
+              {t(
+                "testcase.form.linkedByTestCases",
+                "이 테스트케이스를 연결한 케이스",
+              )}{" "}
+              ({linkedByTestCases.length})
+            </Typography>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              {linkedByTestCases.map((option) => (
+                <Chip
+                  key={option.id}
+                  variant="outlined"
+                  size="small"
+                  icon={<OpenInNewIcon style={{ fontSize: 15 }} />}
+                  clickable
+                  onClick={() => onOpenLinkedTestCase(option)}
+                  title={t(
+                    "testcase.helper.openLinkedTestCase",
+                    "클릭하면 해당 테스트케이스로 이동합니다",
+                  )}
+                  sx={{ cursor: "pointer" }}
+                  label={
+                    option.displayId
+                      ? `${option.displayId} · ${option.name}`
+                      : option.name || option.id
+                  }
+                />
+              ))}
+            </Box>
+          </Box>
+        )}
       </AccordionDetails>
     </Accordion>
   );
@@ -446,6 +668,17 @@ TestCaseBasicInfo.propTypes = {
   onTestCaseChange: PropTypes.func.isRequired,
   onTagChange: PropTypes.func.isRequired,
   onLinkedDocumentsChange: PropTypes.func.isRequired,
+  linkedTestCases: PropTypes.array,
+  testCaseOptions: PropTypes.array,
+  onLinkedTestCasesChange: PropTypes.func,
+  onOpenLinkedTestCase: PropTypes.func,
+  linkedByTestCases: PropTypes.array,
+  linkedJunitCases: PropTypes.array,
+  junitCaseOptions: PropTypes.array,
+  onLinkedJunitCasesChange: PropTypes.func,
+  onOpenLinkedJunitCase: PropTypes.func,
+  onJunitSearchChange: PropTypes.func,
+  junitLoading: PropTypes.bool,
   onMarkdownPaste: PropTypes.func.isRequired,
   onAiGenerate: PropTypes.func,
   isAiGenerating: PropTypes.bool,

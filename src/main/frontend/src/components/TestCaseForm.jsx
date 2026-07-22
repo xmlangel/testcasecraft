@@ -123,6 +123,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [availableTags, setAvailableTags] = useState([]);
   const [isStepMarkdownMode, setIsStepMarkdownMode] = useState(true);
   const [linkedDocuments, setLinkedDocuments] = useState([]);
+  // 연결된 자동화(JUnit) 케이스: value 표시용 resolved 객체 + 검색 옵션
+  const [linkedJunitCases, setLinkedJunitCases] = useState([]);
+  const [junitCaseOptions, setJunitCaseOptions] = useState([]);
+  const [junitLoading, setJunitLoading] = useState(false);
+  const junitSearchDebounceRef = useRef(null);
   const [tabValue, setTabValue] = useState(0);
 
   // 필드 표시 여부 (localStorage 영속화)
@@ -148,6 +153,153 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
+  // 연결된 테스트케이스: 옵션(프로젝트 내 실제 TC, 자기 자신 제외) + 현재 값(ID→객체 resolve)
+  const testCaseOptions = useMemo(
+    () =>
+      (testCases || []).filter(
+        (tc) => tc.type === "testcase" && String(tc.id) !== String(testCaseId),
+      ),
+    [testCases, testCaseId],
+  );
+
+  const linkedTestCaseValue = useMemo(() => {
+    const ids = testCase?.linkedTestCaseIds || [];
+    return ids
+      .map(
+        (id) =>
+          (testCases || []).find((tc) => String(tc.id) === String(id)) || {
+            id,
+            name: id,
+          },
+      )
+      .filter(Boolean);
+  }, [testCase?.linkedTestCaseIds, testCases]);
+
+  const handleLinkedTestCasesChange = useCallback((newValue) => {
+    setTestCase((prev) => ({
+      ...prev,
+      linkedTestCaseIds: newValue.map((o) => o.id),
+    }));
+  }, []);
+
+  // 역방향(read-time): 이 테스트케이스를 연결한 다른 TC들 (프로젝트 testCases에서 계산, 읽기 전용)
+  const linkedByTestCases = useMemo(() => {
+    if (!testCaseId) return [];
+    return (testCases || []).filter(
+      (tc) =>
+        tc.type === "testcase" &&
+        String(tc.id) !== String(testCaseId) &&
+        (tc.linkedTestCaseIds || []).some(
+          (id) => String(id) === String(testCaseId),
+        ),
+    );
+  }, [testCases, testCaseId]);
+
+  // 연결 항목 클릭 시 해당 페이지로 이동
+  const handleOpenLinkedTestCase = useCallback(
+    (option) => {
+      if (option?.id) {
+        navigate(`/projects/${projectId}/testcases/${option.id}`);
+      }
+    },
+    [navigate, projectId],
+  );
+
+  const handleOpenLinkedJunitCase = useCallback(
+    (option) => {
+      if (option?.testResultId) {
+        navigate(`/projects/${projectId}/junit-results/${option.testResultId}`);
+      }
+    },
+    [navigate, projectId],
+  );
+
+  // 검색 옵션 + 이미 연결된 케이스를 합쳐 옵션으로 노출 (선택값이 옵션에 없을 때의 경고 방지)
+  const junitOptionsMerged = useMemo(() => {
+    const map = new Map();
+    [...junitCaseOptions, ...linkedJunitCases].forEach((c) => {
+      if (c && c.id) map.set(c.id, c);
+    });
+    return Array.from(map.values());
+  }, [junitCaseOptions, linkedJunitCases]);
+
+  const handleLinkedJunitCasesChange = useCallback((newValue) => {
+    setLinkedJunitCases(newValue);
+    setTestCase((prev) => ({
+      ...prev,
+      linkedJunitTestCaseIds: newValue.map((o) => o.id),
+    }));
+  }, []);
+
+  // 프로젝트 전체 JUnit 케이스 검색 (자동화 연결 선택기 옵션)
+  const fetchJunitCases = useCallback(
+    async (search) => {
+      if (!projectId) return;
+      setJunitLoading(true);
+      try {
+        const qs = new URLSearchParams({ size: "50" });
+        if (search) qs.set("search", search);
+        const res = await api(
+          `/api/junit-results/projects/${projectId}/testcases?${qs.toString()}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setJunitCaseOptions(data.content || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch JUnit cases:", err);
+      } finally {
+        setJunitLoading(false);
+      }
+    },
+    [api, projectId],
+  );
+
+  const handleJunitSearchChange = useCallback(
+    (search) => {
+      if (junitSearchDebounceRef.current)
+        clearTimeout(junitSearchDebounceRef.current);
+      junitSearchDebounceRef.current = setTimeout(() => {
+        fetchJunitCases(search);
+      }, 300);
+    },
+    [fetchJunitCases],
+  );
+
+  // 연결된 JUnit 케이스 ID → 표시용 객체 resolve (연결된 케이스가 검색 옵션에 없어도 표시)
+  const resolveLinkedJunitCases = useCallback(
+    async (ids) => {
+      if (!ids || ids.length === 0) {
+        setLinkedJunitCases([]);
+        return;
+      }
+      try {
+        const qs = new URLSearchParams();
+        ids.forEach((id) => qs.append("ids", id));
+        const res = await api(
+          `/api/junit-results/projects/${projectId}/testcases/by-ids?${qs.toString()}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const resolved = data.content || [];
+          // 조회 실패(삭제 등)한 ID는 최소한 id만이라도 유지
+          const merged = ids.map(
+            (id) =>
+              resolved.find((c) => String(c.id) === String(id)) || {
+                id,
+                name: id,
+              },
+          );
+          setLinkedJunitCases(merged);
+        }
+      } catch (err) {
+        console.error("Failed to resolve linked JUnit cases:", err);
+        setLinkedJunitCases(ids.map((id) => ({ id, name: id })));
+      }
+    },
+    [api, projectId],
+  );
 
   // 자동 저장용 formData: testCase + linkedDocumentIds 합산 (변경 감지 단위)
   const autoSaveData = useMemo(() => {
@@ -364,6 +516,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           setLinkedDocuments([]);
         }
 
+        // 연결된 자동화(JUnit) 케이스 resolve + 자동화 케이스면 검색 옵션 프리페치
+        resolveLinkedJunitCases(tc.linkedJunitTestCaseIds || []);
+        if (tc.isAutomated) {
+          fetchJunitCases("");
+        }
+
         // 실제 테스트케이스인 경우만 버전 정보 조회
         if (tc.type === "testcase") {
           fetchCurrentVersion(testCaseId);
@@ -407,6 +565,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           priority: initialData.priority || "MEDIUM",
           tags: initialData.tags || [],
           linkedDocumentIds: [],
+          linkedTestCaseIds: [],
+          linkedJunitTestCaseIds: [],
         });
         setMaxStepNumber(
           aiSteps.length > 0
@@ -456,10 +616,13 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           priority: "MEDIUM",
           tags: [],
           linkedDocumentIds: [],
+          linkedTestCaseIds: [],
+          linkedJunitTestCaseIds: [],
         });
         setMaxStepNumber(0);
       }
       setLinkedDocuments([]);
+      setLinkedJunitCases([]);
     }
   }, [
     testCaseId,
@@ -468,6 +631,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     ragState.documents,
     initialData,
     location.state,
+    resolveLinkedJunitCases,
+    fetchJunitCases,
   ]);
 
   // 버전 복원이나 외부 변경에 의한 testCases 업데이트 감지
@@ -1444,6 +1609,17 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                     setTestCase((prev) => ({ ...prev, tags: newValue }))
                   }
                   onLinkedDocumentsChange={setLinkedDocuments}
+                  linkedTestCases={linkedTestCaseValue}
+                  testCaseOptions={testCaseOptions}
+                  onLinkedTestCasesChange={handleLinkedTestCasesChange}
+                  onOpenLinkedTestCase={handleOpenLinkedTestCase}
+                  linkedByTestCases={linkedByTestCases}
+                  linkedJunitCases={linkedJunitCases}
+                  junitCaseOptions={junitOptionsMerged}
+                  onLinkedJunitCasesChange={handleLinkedJunitCasesChange}
+                  onOpenLinkedJunitCase={handleOpenLinkedJunitCase}
+                  onJunitSearchChange={handleJunitSearchChange}
+                  junitLoading={junitLoading}
                   onMarkdownPaste={handleMarkdownPaste}
                   onAiGenerate={handleAiGenerateMeta}
                   isAiGenerating={isAiGenerating}

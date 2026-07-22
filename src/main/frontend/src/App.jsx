@@ -814,7 +814,9 @@ const AppContent = () => {
                 ml: 1,
                 mt: "22px",
                 fontWeight: "bold",
-                color: "rgba(255, 255, 255, 0.7)",
+                // 헤더 텍스트 색을 그대로 따라 라이트/다크·헤더 배경 변화에도 항상 보이게
+                color: "inherit",
+                opacity: 0.7,
                 letterSpacing: "0.05em",
                 fontFamily: "monospace",
               }}

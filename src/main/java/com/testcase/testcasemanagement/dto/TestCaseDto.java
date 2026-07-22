@@ -97,5 +97,15 @@ public class TestCaseDto {
   @Size(max = 50, message = "linkedDocumentIds는 최대 50개까지 가능합니다.")
   private List<String> linkedDocumentIds = new ArrayList<>();
 
+  // 연결된 (수동) 테스트케이스 ID 목록
+  // 기본값 null: 필드를 생략한 PUT(MCP/bulk/sheet-import)이 기존 링크를 전삭제하지 않도록 —
+  // 매퍼가 null이면 미변경, []이면 전체 비움(명시적 clear)으로 구분한다.
+  @Size(max = 50, message = "linkedTestCaseIds는 최대 50개까지 가능합니다.")
+  private List<String> linkedTestCaseIds = null;
+
+  // 연결된 JUnit 자동화 케이스 ID 목록 (동일 규칙: null=미변경, []=명시적 clear)
+  @Size(max = 50, message = "linkedJunitTestCaseIds는 최대 50개까지 가능합니다.")
+  private List<String> linkedJunitTestCaseIds = null;
+
   private Long version;
 }

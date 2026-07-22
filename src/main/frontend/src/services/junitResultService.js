@@ -732,6 +732,30 @@ class JunitResultService {
   }
 
   /**
+   * 이 JUnit 결과의 케이스를 연결한 테스트케이스 목록 조회 (역방향)
+   */
+  async getLinkedTestCases(testResultId) {
+    try {
+      const response = await fetch(
+        `${await this.getBaseUrl()}/${testResultId}/linked-testcases`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`연결된 테스트케이스 조회 실패: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("연결된 테스트케이스 조회 오류:", error);
+      throw error;
+    }
+  }
+
+  /**
    * 프로젝트별 JUnit 요약 통계 조회 (ICT-211)
    */
   async getProjectJunitSummary(projectId) {

@@ -1,8 +1,11 @@
 // src/main/frontend/src/components/ServerTimeDisplay.jsx
 
 import React, { useState, useEffect, useContext } from "react";
-import { Box, Typography, Chip } from "@mui/material";
-import { AccessTime as TimeIcon } from "@mui/icons-material";
+import { Box, Typography, Chip, IconButton, Tooltip } from "@mui/material";
+import {
+  AccessTime as TimeIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
 import packageJson from "../../package.json";
 const APP_VERSION = packageJson.version;
 import { useAppContext } from "../context/AppContext";
@@ -10,6 +13,9 @@ import { formatDateTime, getTimezoneOffset } from "../utils/timezoneUtils";
 
 const ServerTimeDisplay = () => {
   const { user } = useAppContext();
+  const isAdmin = user?.role === "ADMIN";
+  // 기본은 접힘 — 작은 시계 아이콘만 노출, 클릭 시 펼침
+  const [expanded, setExpanded] = useState(false);
   const [serverTimeState, setServerTimeState] = useState({
     time: "",
     loading: true,
@@ -41,6 +47,9 @@ const ServerTimeDisplay = () => {
   };
 
   useEffect(() => {
+    // 관리자이고 펼쳐진 상태에서만 서버 시간 조회/폴링 (접힘 상태는 폴링 생략)
+    if (!isAdmin || !expanded) return undefined;
+
     // 초기 로드
     fetchServerTime();
 
@@ -48,7 +57,37 @@ const ServerTimeDisplay = () => {
     const interval = setInterval(fetchServerTime, 30000);
 
     return () => clearInterval(interval);
-  }, []); // 의존성 배열 비움: 사용자 정보 변경 시에도 서버 시간 다시 조회 안함
+  }, [isAdmin, expanded]);
+
+  // 시간·버전 하단 위젯은 관리자(ADMIN)에게만 노출
+  if (!isAdmin) {
+    return null;
+  }
+
+  // 접힘 상태: 좌측 하단에 작은 시계 아이콘만 (클릭 시 펼침)
+  if (!expanded) {
+    return (
+      <Tooltip title="서버 시간·버전 보기">
+        <IconButton
+          size="small"
+          onClick={() => setExpanded(true)}
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            left: 16,
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: 2,
+            zIndex: 1000,
+            "&:hover": { bgcolor: "action.hover" },
+          }}
+        >
+          <TimeIcon fontSize="small" color="primary" />
+        </IconButton>
+      </Tooltip>
+    );
+  }
 
   // 사용자 타임존 정보 (렌더링 시 계산)
   const userTimezone = user?.timezone || "UTC";
@@ -203,6 +242,17 @@ const ServerTimeDisplay = () => {
           v{APP_VERSION}
         </Typography>
       </Box>
+
+      {/* 접기 버튼 */}
+      <Tooltip title="접기">
+        <IconButton
+          size="small"
+          onClick={() => setExpanded(false)}
+          sx={{ ml: 0.5, p: 0.25 }}
+        >
+          <CloseIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Tooltip>
     </Box>
   );
 };

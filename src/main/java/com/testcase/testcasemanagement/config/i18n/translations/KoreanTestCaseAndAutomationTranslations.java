@@ -706,6 +706,10 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "junit.detail.backToAutomation", languageCode, "자동화 테스트로 돌아가기", createdBy);
     createTranslationIfNotExists("junit.detail.refresh", languageCode, "새로고침", createdBy);
+    createTranslationIfNotExists(
+        "junit.detail.linkedTestCases", languageCode, "연결된 테스트케이스", createdBy);
+    createTranslationIfNotExists(
+        "junit.detail.openLinkedTestCase", languageCode, "클릭하면 해당 테스트케이스로 이동합니다", createdBy);
     createTranslationIfNotExists("junit.detail.noDateInfo", languageCode, "날짜 정보 없음", createdBy);
     createTranslationIfNotExists(
         "junit.detail.unknownDateFormat", languageCode, "알 수 없는 날짜 형식", createdBy);
@@ -901,6 +905,35 @@ public class KoreanTestCaseAndAutomationTranslations {
         "testcase.form.linkedDocumentsPlaceholder", languageCode, "RAG 문서를 선택하세요", createdBy);
     createTranslationIfNotExists(
         "testcase.helper.linkedDocuments", languageCode, "RAG 문서를 연결하면 AI가 참고할 수 있습니다", createdBy);
+
+    // 연결된 테스트케이스 / 자동화(JUnit) 케이스 한글 번역
+    createTranslationIfNotExists(
+        "testcase.form.linkedTestCases", languageCode, "연결된 테스트케이스", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedTestCasesPlaceholder", languageCode, "연결할 테스트케이스를 선택하세요", createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.linkedTestCases",
+        languageCode,
+        "이 자동화 케이스와 연관된 다른 테스트케이스를 연결합니다",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedByTestCases", languageCode, "이 테스트케이스를 연결한 케이스", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedJunitCases", languageCode, "연결된 자동화(JUnit) 케이스", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedJunitCasesPlaceholder",
+        languageCode,
+        "자동화 JUnit 케이스를 검색·선택하세요",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.linkedJunitCases",
+        languageCode,
+        "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다 (동일 XML 재업로드 시 다시 연결 필요)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.openLinkedTestCase", languageCode, "클릭하면 해당 테스트케이스로 이동합니다", createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.openLinkedJunitCase", languageCode, "클릭하면 해당 JUnit 결과로 이동합니다", createdBy);
 
     // 사후 조건 헬퍼 텍스트 한글 번역
 

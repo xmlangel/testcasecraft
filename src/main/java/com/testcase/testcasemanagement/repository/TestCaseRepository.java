@@ -133,4 +133,37 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
           + "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
   List<TestCase> searchByKeyword(
       @Param("projectId") String projectId, @Param("keyword") String keyword);
+
+  /**
+   * JUnit 결과 역조회: 해당 result에 속한 JUnit 케이스를 연결한 (testcase_id, junit_test_case_id) 쌍 목록. JUnit 결과
+   * 페이지에서 "이 결과의 케이스를 연결한 테스트케이스"를 표시하기 위한 역방향 조회.
+   */
+  @Query(
+      value =
+          "SELECT l.testcase_id, l.junit_test_case_id FROM testcase_linked_junit_cases l "
+              + "WHERE l.junit_test_case_id IN "
+              + "(SELECT c.id FROM junit_test_cases c "
+              + "JOIN junit_test_suites s ON c.junit_test_suite_id = s.id "
+              + "WHERE s.junit_test_result_id = :resultId)",
+      nativeQuery = true)
+  List<Object[]> findTestCaseJunitLinksByResultId(@Param("resultId") String resultId);
+
+  /**
+   * 테스트케이스 삭제 시 연결된 테스트케이스 링크를 양방향으로 정리한다. 정방향(내가 건 링크, testcase_id) + 역방향(남이 나를 건 링크,
+   * linked_test_case_id)을 모두 삭제해 dangling 참조를 남기지 않는다.
+   */
+  @Modifying
+  @Query(
+      value =
+          "DELETE FROM testcase_linked_test_cases WHERE testcase_id = :id OR linked_test_case_id ="
+              + " :id",
+      nativeQuery = true)
+  void deleteTestCaseLinkRefs(@Param("id") String id);
+
+  /** 테스트케이스 삭제 시 이 TC가 건 JUnit 자동화 케이스 링크를 정리한다. */
+  @Modifying
+  @Query(
+      value = "DELETE FROM testcase_linked_junit_cases WHERE testcase_id = :id",
+      nativeQuery = true)
+  void deleteJunitCaseLinksByTestCaseId(@Param("id") String id);
 }

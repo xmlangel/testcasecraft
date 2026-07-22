@@ -63,6 +63,16 @@ public class TestCaseMapper {
       dto.setLinkedDocumentIds(new ArrayList<>(entity.getLinkedDocumentIds()));
     }
 
+    // 연결된 테스트케이스 ID 목록 매핑
+    if (entity.getLinkedTestCaseIds() != null) {
+      dto.setLinkedTestCaseIds(new ArrayList<>(entity.getLinkedTestCaseIds()));
+    }
+
+    // 연결된 JUnit 자동화 케이스 ID 목록 매핑
+    if (entity.getLinkedJunitTestCaseIds() != null) {
+      dto.setLinkedJunitTestCaseIds(new ArrayList<>(entity.getLinkedJunitTestCaseIds()));
+    }
+
     dto.setVersion(entity.getVersion());
 
     return dto;
@@ -123,6 +133,16 @@ public class TestCaseMapper {
     // 연결된 RAG 문서 ID 목록 매핑
     if (dto.getLinkedDocumentIds() != null) {
       entity.setLinkedDocumentIds(new ArrayList<>(dto.getLinkedDocumentIds()));
+    }
+
+    // 연결된 테스트케이스 ID 목록 매핑
+    if (dto.getLinkedTestCaseIds() != null) {
+      entity.setLinkedTestCaseIds(new ArrayList<>(dto.getLinkedTestCaseIds()));
+    }
+
+    // 연결된 JUnit 자동화 케이스 ID 목록 매핑
+    if (dto.getLinkedJunitTestCaseIds() != null) {
+      entity.setLinkedJunitTestCaseIds(new ArrayList<>(dto.getLinkedJunitTestCaseIds()));
     }
 
     // 프로젝트 ID는 서비스 레이어에서 처리 (여기서는 매핑하지 않음)
@@ -205,6 +225,16 @@ public class TestCaseMapper {
     // 연결된 RAG 문서 ID 목록 업데이트
     if (dto.getLinkedDocumentIds() != null) {
       entity.setLinkedDocumentIds(new ArrayList<>(dto.getLinkedDocumentIds()));
+    }
+
+    // 연결된 테스트케이스 ID 목록 업데이트
+    if (dto.getLinkedTestCaseIds() != null) {
+      entity.setLinkedTestCaseIds(new ArrayList<>(dto.getLinkedTestCaseIds()));
+    }
+
+    // 연결된 JUnit 자동화 케이스 ID 목록 업데이트
+    if (dto.getLinkedJunitTestCaseIds() != null) {
+      entity.setLinkedJunitTestCaseIds(new ArrayList<>(dto.getLinkedJunitTestCaseIds()));
     }
   }
 
