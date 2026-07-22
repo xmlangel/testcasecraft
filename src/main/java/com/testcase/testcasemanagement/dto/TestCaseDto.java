@@ -97,5 +97,13 @@ public class TestCaseDto {
   @Size(max = 50, message = "linkedDocumentIds는 최대 50개까지 가능합니다.")
   private List<String> linkedDocumentIds = new ArrayList<>();
 
+  // 연결된 (수동) 테스트케이스 ID 목록
+  @Size(max = 50, message = "linkedTestCaseIds는 최대 50개까지 가능합니다.")
+  private List<String> linkedTestCaseIds = new ArrayList<>();
+
+  // 연결된 JUnit 자동화 케이스 ID 목록
+  @Size(max = 50, message = "linkedJunitTestCaseIds는 최대 50개까지 가능합니다.")
+  private List<String> linkedJunitTestCaseIds = new ArrayList<>();
+
   private Long version;
 }

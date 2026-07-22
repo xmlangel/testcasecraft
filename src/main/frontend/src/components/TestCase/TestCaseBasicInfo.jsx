@@ -55,6 +55,14 @@ const TestCaseBasicInfo = ({
   onTestCaseChange,
   onTagChange,
   onLinkedDocumentsChange,
+  linkedTestCases = [],
+  testCaseOptions = [],
+  onLinkedTestCasesChange = () => {},
+  linkedJunitCases = [],
+  junitCaseOptions = [],
+  onLinkedJunitCasesChange = () => {},
+  onJunitSearchChange = () => {},
+  junitLoading = false,
   onMarkdownPaste,
   onAiGenerate = () => {},
   isAiGenerating = false,
@@ -425,6 +433,150 @@ const TestCaseBasicInfo = ({
             disabled={isViewer}
           />
         )}
+
+        {/* 자동화 여부 체크 시에만 노출 — 연결된 테스트케이스 / JUnit 자동화 케이스 */}
+        {Boolean(testCase.isAutomated) && isVisible("linkedTestCases") && (
+          <Autocomplete
+            multiple
+            options={testCaseOptions}
+            value={linkedTestCases}
+            onChange={(event, newValue) => onLinkedTestCasesChange(newValue)}
+            getOptionLabel={(option) =>
+              option.displayId
+                ? `${option.displayId} · ${option.name}`
+                : option.name || option.id || ""
+            }
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderOption={(props, option) => {
+              const { key, ...optionProps } = props;
+              return (
+                <li key={option.id} {...optionProps}>
+                  {option.displayId
+                    ? `${option.displayId} · ${option.name}`
+                    : option.name}
+                </li>
+              );
+            }}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return (
+                  <Chip
+                    key={option.id || index}
+                    variant="outlined"
+                    label={
+                      option.displayId
+                        ? `${option.displayId} · ${option.name}`
+                        : option.name || option.id
+                    }
+                    {...tagProps}
+                    disabled={isViewer}
+                  />
+                );
+              })
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="outlined"
+                label={t(
+                  "testcase.form.linkedTestCases",
+                  "연결된 테스트케이스",
+                )}
+                placeholder={t(
+                  "testcase.form.linkedTestCasesPlaceholder",
+                  "연결할 테스트케이스를 선택하세요",
+                )}
+                helperText={t(
+                  "testcase.helper.linkedTestCases",
+                  "이 자동화 케이스와 연관된 다른 테스트케이스를 연결합니다",
+                )}
+                margin="normal"
+              />
+            )}
+            disabled={isViewer}
+          />
+        )}
+
+        {Boolean(testCase.isAutomated) && isVisible("linkedJunitCases") && (
+          <Autocomplete
+            multiple
+            options={junitCaseOptions}
+            value={linkedJunitCases}
+            loading={junitLoading}
+            filterOptions={(x) => x}
+            onChange={(event, newValue) => onLinkedJunitCasesChange(newValue)}
+            onInputChange={(event, newInput, reason) => {
+              if (reason === "input") onJunitSearchChange(newInput);
+            }}
+            getOptionLabel={(option) =>
+              option.className
+                ? `${option.className}.${option.name}`
+                : option.displayTitle || option.name || option.id || ""
+            }
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderOption={(props, option) => {
+              const { key, ...optionProps } = props;
+              return (
+                <li key={option.id} {...optionProps}>
+                  {option.className
+                    ? `${option.className}.${option.name}`
+                    : option.name}
+                  {option.status ? ` [${option.status}]` : ""}
+                </li>
+              );
+            }}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return (
+                  <Chip
+                    key={option.id || index}
+                    variant="outlined"
+                    label={
+                      option.className
+                        ? `${option.className}.${option.name}`
+                        : option.name || option.id
+                    }
+                    {...tagProps}
+                    disabled={isViewer}
+                  />
+                );
+              })
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="outlined"
+                label={t(
+                  "testcase.form.linkedJunitCases",
+                  "연결된 자동화(JUnit) 케이스",
+                )}
+                placeholder={t(
+                  "testcase.form.linkedJunitCasesPlaceholder",
+                  "자동화 JUnit 케이스를 검색·선택하세요",
+                )}
+                helperText={t(
+                  "testcase.helper.linkedJunitCases",
+                  "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다 (동일 XML 재업로드 시 다시 연결 필요)",
+                )}
+                margin="normal"
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {junitLoading ? (
+                        <CircularProgress color="inherit" size={18} />
+                      ) : null}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
+              />
+            )}
+            disabled={isViewer}
+          />
+        )}
       </AccordionDetails>
     </Accordion>
   );
@@ -446,6 +598,14 @@ TestCaseBasicInfo.propTypes = {
   onTestCaseChange: PropTypes.func.isRequired,
   onTagChange: PropTypes.func.isRequired,
   onLinkedDocumentsChange: PropTypes.func.isRequired,
+  linkedTestCases: PropTypes.array,
+  testCaseOptions: PropTypes.array,
+  onLinkedTestCasesChange: PropTypes.func,
+  linkedJunitCases: PropTypes.array,
+  junitCaseOptions: PropTypes.array,
+  onLinkedJunitCasesChange: PropTypes.func,
+  onJunitSearchChange: PropTypes.func,
+  junitLoading: PropTypes.bool,
   onMarkdownPaste: PropTypes.func.isRequired,
   onAiGenerate: PropTypes.func,
   isAiGenerating: PropTypes.bool,

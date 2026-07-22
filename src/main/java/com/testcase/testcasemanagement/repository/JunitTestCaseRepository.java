@@ -101,4 +101,26 @@ public interface JunitTestCaseRepository extends JpaRepository<JunitTestCase, St
   @Query(
       "SELECT c.junitTestSuite.junitTestResult.projectId FROM JunitTestCase c WHERE c.id = :caseId")
   Optional<String> findProjectIdByCaseId(@Param("caseId") String caseId);
+
+  /** 프로젝트 전체 JUnit 케이스 검색 (자동화 연결 선택기용) */
+  @Query(
+      "SELECT jtc FROM JunitTestCase jtc "
+          + "WHERE jtc.junitTestSuite.junitTestResult.projectId = :projectId "
+          + "AND (:searchTerm IS NULL OR :searchTerm = '' "
+          + "     OR LOWER(jtc.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) "
+          + "     OR LOWER(jtc.className) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) "
+          + "ORDER BY jtc.className, jtc.name")
+  Page<JunitTestCase> searchByProject(
+      @Param("projectId") String projectId,
+      @Param("searchTerm") String searchTerm,
+      Pageable pageable);
+
+  /** 프로젝트 스코프로 ID 목록의 JUnit 케이스 조회 (연결된 케이스 표시용, cross-project 노출 방지) */
+  @Query(
+      "SELECT jtc FROM JunitTestCase jtc "
+          + "WHERE jtc.junitTestSuite.junitTestResult.projectId = :projectId "
+          + "AND jtc.id IN :ids "
+          + "ORDER BY jtc.className, jtc.name")
+  List<JunitTestCase> findByProjectIdAndIdIn(
+      @Param("projectId") String projectId, @Param("ids") List<String> ids);
 }

@@ -1430,6 +1430,32 @@ public class TestCaseKeysInitializer {
         "RAG 문서 헬퍼 텍스트",
         "RAG 문서를 연결하면 AI가 참고할 수 있습니다");
 
+    // 연결된 테스트케이스 / 자동화(JUnit) 케이스 관련 번역 키들 (자동화 여부 체크 시 노출)
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedTestCases", "testcase", "연결된 테스트케이스 필드", "연결된 테스트케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedTestCasesPlaceholder",
+        "testcase",
+        "테스트케이스 선택 placeholder",
+        "연결할 테스트케이스를 선택하세요");
+    createTranslationKeyIfNotExists(
+        "testcase.helper.linkedTestCases",
+        "testcase",
+        "연결된 테스트케이스 헬퍼 텍스트",
+        "이 자동화 케이스와 연관된 다른 테스트케이스를 연결합니다");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedJunitCases", "testcase", "연결된 JUnit 자동화 케이스 필드", "연결된 자동화(JUnit) 케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkedJunitCasesPlaceholder",
+        "testcase",
+        "JUnit 케이스 검색 placeholder",
+        "자동화 JUnit 케이스를 검색·선택하세요");
+    createTranslationKeyIfNotExists(
+        "testcase.helper.linkedJunitCases",
+        "testcase",
+        "연결된 JUnit 케이스 헬퍼 텍스트",
+        "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다");
+
     // 사후 조건 헬퍼 텍스트
 
     // Markdown 지원 안내 메시지

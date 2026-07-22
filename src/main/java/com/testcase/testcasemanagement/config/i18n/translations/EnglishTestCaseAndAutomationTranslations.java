@@ -1280,6 +1280,36 @@ public class EnglishTestCaseAndAutomationTranslations {
         "AI can reference linked RAG documents",
         createdBy);
 
+    // Linked Test Cases / Automation (JUnit) Cases English Translations
+    createTranslationIfNotExists(
+        "testcase.form.linkedTestCases", languageCode, "Linked Test Cases", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedTestCasesPlaceholder",
+        languageCode,
+        "Select test cases to link",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.linkedTestCases",
+        languageCode,
+        "Link other test cases related to this automated case",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedJunitCases",
+        languageCode,
+        "Linked Automation (JUnit) Cases",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkedJunitCasesPlaceholder",
+        languageCode,
+        "Search and select automated JUnit cases",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.helper.linkedJunitCases",
+        languageCode,
+        "Link the actual JUnit cases that automate this test case (re-link after re-uploading the"
+            + " same XML)",
+        createdBy);
+
     // Post-condition Helper Text English Translation
 
     // Markdown Support Message English Translation

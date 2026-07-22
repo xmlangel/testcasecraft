@@ -310,6 +310,98 @@ public class JunitResultController {
     }
   }
 
+  /** 자동화 연결 선택기 관련 상한 (대량 IN 절·대량 페이지 요청 방지) */
+  private static final int MAX_LINK_PICKER_PAGE_SIZE = 100;
+
+  private static final int MAX_LINK_PICKER_IDS = 100;
+
+  /** 프로젝트 전체 JUnit 케이스 검색 (자동화 연결 선택기용) */
+  @GetMapping("/projects/{projectId}/testcases")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
+  @Operation(
+      summary = "프로젝트 JUnit 케이스 검색",
+      description = "특정 프로젝트의 JUnit 개별 테스트 케이스를 검색합니다. (테스트케이스 자동화 연결 선택기용)")
+  public ResponseEntity<Map<String, Object>> searchProjectTestCases(
+      @PathVariable String projectId,
+      @RequestParam(value = "search", required = false) String search,
+      @RequestParam(value = "page", defaultValue = "0") int page,
+      @RequestParam(value = "size", defaultValue = "50") int size) {
+
+    try {
+      int cappedSize = Math.min(Math.max(size, 1), MAX_LINK_PICKER_PAGE_SIZE);
+      Pageable pageable = PageRequest.of(page, cappedSize);
+      Page<JunitTestCase> cases =
+          junitResultService.searchTestCasesByProject(projectId, search, pageable);
+
+      List<Map<String, Object>> content =
+          cases.getContent().stream().map(JunitResultController::toCaseSummary).toList();
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", true);
+      response.put("content", content);
+      response.put("totalElements", cases.getTotalElements());
+      response.put("totalPages", cases.getTotalPages());
+      response.put("currentPage", page);
+      response.put("size", cappedSize);
+
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      logger.error("프로젝트 JUnit 케이스 검색 실패: {}", e.getMessage(), e);
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", false);
+      response.put("error", "JUnit 케이스를 검색할 수 없습니다.");
+
+      return ResponseEntity.status(500).body(response);
+    }
+  }
+
+  /** ID 목록으로 JUnit 케이스 요약 조회 (연결된 케이스 표시용, 프로젝트 스코프) */
+  @GetMapping("/projects/{projectId}/testcases/by-ids")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
+  @Operation(
+      summary = "JUnit 케이스 요약 (ID 목록)",
+      description = "프로젝트 범위에서 ID 목록에 해당하는 JUnit 케이스 요약을 조회합니다.")
+  public ResponseEntity<Map<String, Object>> getTestCasesByIds(
+      @PathVariable String projectId,
+      @RequestParam(value = "ids", required = false) List<String> ids) {
+    try {
+      // 대량 IN 절 방지: 상한 초과분은 잘라낸다
+      List<String> cappedIds =
+          (ids != null && ids.size() > MAX_LINK_PICKER_IDS)
+              ? ids.subList(0, MAX_LINK_PICKER_IDS)
+              : ids;
+      List<Map<String, Object>> content =
+          junitResultService.getTestCasesByIds(projectId, cappedIds).stream()
+              .map(JunitResultController::toCaseSummary)
+              .toList();
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", true);
+      response.put("content", content);
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      logger.error("JUnit 케이스 요약 조회 실패: {}", e.getMessage(), e);
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("success", false);
+      response.put("error", "JUnit 케이스를 조회할 수 없습니다.");
+
+      return ResponseEntity.status(500).body(response);
+    }
+  }
+
+  /** JUnit 케이스를 선택기 표시용 경량 요약(Map)으로 변환 (지연 로딩 관계 노출 방지) */
+  private static Map<String, Object> toCaseSummary(JunitTestCase tc) {
+    Map<String, Object> m = new HashMap<>();
+    m.put("id", tc.getId());
+    m.put("name", tc.getName());
+    m.put("className", tc.getClassName());
+    m.put("displayTitle", tc.getDisplayTitle());
+    m.put("status", tc.getDisplayStatus() != null ? tc.getDisplayStatus().name() : null);
+    return m;
+  }
+
   /** 실패한 테스트 케이스만 조회 */
   @GetMapping("/{testResultId}/failed-cases")
   @PreAuthorize("@projectSecurityService.canAccessJunitResult(#testResultId)")

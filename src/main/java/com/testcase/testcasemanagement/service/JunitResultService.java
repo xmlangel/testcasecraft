@@ -244,6 +244,22 @@ public class JunitResultService {
     return testCaseRepository.findByJunitTestSuite_IdOrderByName(testSuiteId, pageable);
   }
 
+  /** 프로젝트 전체 JUnit 케이스 검색 (자동화 연결 선택기용) */
+  @Transactional(readOnly = true)
+  public Page<JunitTestCase> searchTestCasesByProject(
+      String projectId, String searchTerm, Pageable pageable) {
+    return testCaseRepository.searchByProject(projectId, searchTerm, pageable);
+  }
+
+  /** 프로젝트 스코프로 ID 목록의 JUnit 케이스 조회 (연결된 케이스 표시용) */
+  @Transactional(readOnly = true)
+  public List<JunitTestCase> getTestCasesByIds(String projectId, List<String> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+    return testCaseRepository.findByProjectIdAndIdIn(projectId, ids);
+  }
+
   /** 실패한 테스트 케이스만 조회 */
   @Transactional(readOnly = true)
   public List<JunitTestCase> getFailedTestCases(String testResultId) {

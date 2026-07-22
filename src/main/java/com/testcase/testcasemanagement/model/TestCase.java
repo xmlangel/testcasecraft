@@ -122,6 +122,28 @@ public class TestCase {
   @Column(name = "document_id", length = 36)
   private List<String> linkedDocumentIds;
 
+  // 연결된 (수동) 테스트케이스 ID 목록 — 자동화 케이스와 원본 수동 TC 간 상호 링크
+  @org.hibernate.annotations.BatchSize(size = 100)
+  @ElementCollection
+  @CollectionTable(
+      name = "testcase_linked_test_cases",
+      joinColumns = @JoinColumn(name = "testcase_id"))
+  @Column(name = "linked_test_case_id", length = 36)
+  private List<String> linkedTestCaseIds;
+
+  // 연결된 JUnit 자동화 케이스 ID 목록 — 이 TC를 자동화한 실제 JUnit 테스트 케이스.
+  // 주의: 저장하는 값은 JunitTestCase.id(업로드마다 새로 발급되는 UUID PK)다.
+  // 동일 XML을 재업로드하면 새 JunitTestCase row(새 UUID)가 생성되어 여기 저장된 링크는
+  // 조회 실패(dangling)가 된다 → 재업로드 후에는 자동화 케이스를 다시 연결해야 한다.
+  // (논리키 className.name 저장으로 내구성을 높이는 방안은 후속 과제로 보류됨)
+  @org.hibernate.annotations.BatchSize(size = 100)
+  @ElementCollection
+  @CollectionTable(
+      name = "testcase_linked_junit_cases",
+      joinColumns = @JoinColumn(name = "testcase_id"))
+  @Column(name = "junit_test_case_id", length = 36)
+  private List<String> linkedJunitTestCaseIds;
+
   @PrePersist
   protected void onCreate() {
     if (this.createdAt == null) this.createdAt = LocalDateTime.now();

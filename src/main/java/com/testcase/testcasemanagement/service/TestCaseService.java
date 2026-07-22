@@ -362,6 +362,15 @@ public class TestCaseService {
         .createNativeQuery("DELETE FROM testcase_linked_documents WHERE testcase_id = :id")
         .setParameter("id", id)
         .executeUpdate();
+    // 연결된 테스트케이스 / JUnit 자동화 케이스 링크 (신규 @ElementCollection 테이블)
+    entityManager
+        .createNativeQuery("DELETE FROM testcase_linked_test_cases WHERE testcase_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
+    entityManager
+        .createNativeQuery("DELETE FROM testcase_linked_junit_cases WHERE testcase_id = :id")
+        .setParameter("id", id)
+        .executeUpdate();
     // test_case_attachments: fileStorageService.deleteAttachment()는 소프트 딜리트(status=DELETED)만 수행
     entityManager
         .createNativeQuery("DELETE FROM test_case_attachments WHERE test_case_id = :id")

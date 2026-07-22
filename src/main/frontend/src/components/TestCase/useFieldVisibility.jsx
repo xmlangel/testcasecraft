@@ -50,6 +50,16 @@ export const FIELD_DEFINITIONS = [
     labelKey: "testcase.form.linkedDocuments",
     labelDefault: "Linked RAG Documents",
   },
+  {
+    key: "linkedTestCases",
+    labelKey: "testcase.form.linkedTestCases",
+    labelDefault: "Linked Test Cases",
+  },
+  {
+    key: "linkedJunitCases",
+    labelKey: "testcase.form.linkedJunitCases",
+    labelDefault: "Linked Automation (JUnit) Cases",
+  },
 ];
 
 const DEFAULT_VISIBILITY = FIELD_DEFINITIONS.reduce(
