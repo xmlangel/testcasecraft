@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -112,24 +113,39 @@ public class TestCaseAttachment {
     return String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0));
   }
 
+  // 브라우저·업로드 클라이언트가 content-type 을 못 잡으면 application/octet-stream(또는 null)로
+  // 올라온다. 그러면 아래 판정이 전부 false 가 되어 텍스트·이미지·PDF 인데도 미리보기가 막힌다.
+  // MIME 으로 먼저 판정하고, 판정이 안 되면 확장자로 한 번 더 본다.
+  private static final Set<String> TEXT_EXTENSIONS =
+      Set.of("txt", "csv", "json", "md", "log", "xml", "yml", "yaml");
+  private static final Set<String> IMAGE_EXTENSIONS =
+      Set.of("png", "jpg", "jpeg", "gif", "bmp", "webp");
+
   /** 파일이 텍스트 파일인지 확인 */
   public boolean isTextFile() {
-    if (mimeType == null) return false;
-    return mimeType.startsWith("text/")
-        || mimeType.equals("application/json")
-        || mimeType.equals("application/xml");
+    if (mimeType != null
+        && (mimeType.startsWith("text/")
+            || mimeType.equals("application/json")
+            || mimeType.equals("application/xml"))) {
+      return true;
+    }
+    return TEXT_EXTENSIONS.contains(getFileExtension());
   }
 
   /** 이미지 파일인지 확인 */
   public boolean isImageFile() {
-    if (mimeType == null) return false;
-    return mimeType.startsWith("image/");
+    if (mimeType != null && mimeType.startsWith("image/")) {
+      return true;
+    }
+    return IMAGE_EXTENSIONS.contains(getFileExtension());
   }
 
   /** PDF 파일인지 확인 */
   public boolean isPdfFile() {
-    if (mimeType == null) return false;
-    return "application/pdf".equals(mimeType);
+    if ("application/pdf".equals(mimeType)) {
+      return true;
+    }
+    return "pdf".equals(getFileExtension());
   }
 
   /** 다운로드 가능한 파일인지 확인 */

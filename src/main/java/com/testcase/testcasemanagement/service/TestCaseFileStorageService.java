@@ -99,7 +99,7 @@ public class TestCaseFileStorageService {
     attachment.setOriginalFileName(StringUtils.cleanPath(file.getOriginalFilename()));
     attachment.setStoredFileName(storedFileName);
     attachment.setFileSize(file.getSize());
-    attachment.setMimeType(file.getContentType());
+    attachment.setMimeType(resolveMimeType(file));
     attachment.setFilePath(objectKey); // MinIO objectKey 저장
     attachment.setUploadedBy(uploadedBy);
     attachment.setDescription(description);
@@ -273,6 +273,35 @@ public class TestCaseFileStorageService {
       log.warn("MIME 타입 경고 - 파일: {}, MIME: {}", originalFileName, contentType);
       // 경고만 로깅하고 확장자로 판단 (일부 브라우저에서 MIME 타입이 다르게 전송될 수 있음)
     }
+  }
+
+  /**
+   * 업로드 파일의 MIME 타입 결정.
+   *
+   * <p>브라우저가 content-type 을 못 잡으면 null 또는 application/octet-stream 으로 올라오고, 그대로 저장하면 텍스트·이미지·PDF
+   * 인데도 미리보기가 막힌다. 그런 경우에만 확장자로 보정한다.
+   */
+  private String resolveMimeType(MultipartFile file) {
+    String contentType = file.getContentType();
+    if (contentType != null
+        && !contentType.isBlank()
+        && !"application/octet-stream".equalsIgnoreCase(contentType)) {
+      return contentType;
+    }
+
+    String extension = getFileExtension(file.getOriginalFilename()).toLowerCase();
+    return switch (extension) {
+      case "txt", "log" -> "text/plain";
+      case "csv" -> "text/csv";
+      case "md" -> "text/markdown";
+      case "json" -> "application/json";
+      case "xml" -> "application/xml";
+      case "pdf" -> "application/pdf";
+      case "png" -> "image/png";
+      case "jpg", "jpeg" -> "image/jpeg";
+      case "gif" -> "image/gif";
+      default -> contentType;
+    };
   }
 
   /** 고유한 파일명 생성 */

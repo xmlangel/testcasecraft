@@ -496,6 +496,8 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.button.jiraStatusLoading", languageCode, "JIRA 상태 확인 중...", createdBy);
     createTranslationIfNotExists(
+        "testResult.caseAttachments.title", languageCode, "테스트케이스 첨부파일", createdBy);
+    createTranslationIfNotExists(
         "testResult.caseDetails.expandAll", languageCode, "모두 펼치기", createdBy);
     createTranslationIfNotExists(
         "testResult.caseDetails.expandAllTooltip",

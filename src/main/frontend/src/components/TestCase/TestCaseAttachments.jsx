@@ -42,8 +42,18 @@ import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
  * ICT-386: 테스트케이스 첨부파일 관리 컴포넌트
+ *
+ * readOnly      — 업로드·삭제 UI를 감추고 조회(미리보기·다운로드)만 제공.
+ *                 테스트 결과 입력 화면처럼 케이스를 수정하지 않는 곳에서 쓴다.
+ * hideWhenEmpty — 첨부가 없으면 섹션 자체를 렌더하지 않는다("없습니다" 안내도 생략).
+ * title         — 헤더 문구 교체. 결과 첨부와 구분해야 하는 화면에서 사용.
  */
-const TestCaseAttachments = ({ testCaseId }) => {
+const TestCaseAttachments = ({
+  testCaseId,
+  readOnly = false,
+  hideWhenEmpty = false,
+  title,
+}) => {
   const { api } = useAppContext();
   const { t } = useI18n();
   const [attachments, setAttachments] = useState([]);
@@ -387,8 +397,17 @@ const TestCaseAttachments = ({ testCaseId }) => {
     });
   };
 
+  // 조회 전용 + 첨부 없음 → 섹션을 통째로 감춘다 (결과 입력 화면 노이즈 방지)
+  if (hideWhenEmpty && !loading && !error && attachments.length === 0) {
+    return null;
+  }
+
   return (
-    <Paper elevation={2} sx={{ p: 2, mt: 2 }}>
+    <Paper
+      elevation={2}
+      sx={{ p: 2, mt: 2 }}
+      data-testid="testcase-attachments"
+    >
       <Box
         sx={{
           display: "flex",
@@ -402,26 +421,29 @@ const TestCaseAttachments = ({ testCaseId }) => {
           sx={{ display: "flex", alignItems: "center", gap: 1 }}
         >
           <AttachFileIcon />
-          {t("testcaseAttachments.title", "첨부파일")}
+          {title || t("testcaseAttachments.title", "첨부파일")}
           {attachments.length > 0 && (
             <Chip label={attachments.length} size="small" color="primary" />
           )}
         </Typography>
-        <Button
-          variant="contained"
-          component="label"
-          startIcon={<UploadIcon />}
-          size="small"
-          disabled={!testCaseId}
-        >
-          {t("testcaseAttachments.uploadButton", "파일 업로드")}
-          <input
-            type="file"
-            hidden
-            onChange={handleFileSelect}
-            accept=".txt,.csv,.json,.md,.pdf,.log,.png,.jpg,.jpeg,.gif,.xls,.xlsx,.doc,.docx"
-          />
-        </Button>
+        {!readOnly && (
+          <Button
+            variant="contained"
+            component="label"
+            startIcon={<UploadIcon />}
+            size="small"
+            disabled={!testCaseId}
+            data-testid="tc-attachment-upload"
+          >
+            {t("testcaseAttachments.uploadButton", "파일 업로드")}
+            <input
+              type="file"
+              hidden
+              onChange={handleFileSelect}
+              accept=".txt,.csv,.json,.md,.pdf,.log,.png,.jpg,.jpeg,.gif,.xls,.xlsx,.doc,.docx"
+            />
+          </Button>
+        )}
       </Box>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -508,6 +530,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                       <IconButton
                         size="small"
                         color="info"
+                        data-testid="tc-attachment-preview"
                         onClick={() => handlePreview(attachment)}
                         disabled={
                           !attachment.imageFile &&
@@ -527,6 +550,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                       <IconButton
                         size="small"
                         color="primary"
+                        data-testid="tc-attachment-download"
                         onClick={() =>
                           handleDownload(
                             attachment.id,
@@ -537,17 +561,20 @@ const TestCaseAttachments = ({ testCaseId }) => {
                         <DownloadIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip
-                      title={t("testcaseAttachments.deleteTooltip", "삭제")}
-                    >
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDelete(attachment.id)}
+                    {!readOnly && (
+                      <Tooltip
+                        title={t("testcaseAttachments.deleteTooltip", "삭제")}
                       >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          data-testid="tc-attachment-delete"
+                          onClick={() => handleDelete(attachment.id)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -555,9 +582,9 @@ const TestCaseAttachments = ({ testCaseId }) => {
           </Table>
         </TableContainer>
       )}
-      {/* 파일 업로드 다이얼로그 */}
+      {/* 파일 업로드 다이얼로그 — 조회 전용에서는 업로드 경로 자체가 없다 */}
       <Dialog
-        open={uploadDialogOpen}
+        open={!readOnly && uploadDialogOpen}
         onClose={() => !uploading && setUploadDialogOpen(false)}
         maxWidth="sm"
         fullWidth
@@ -790,7 +817,10 @@ const TestCaseAttachments = ({ testCaseId }) => {
 };
 
 TestCaseAttachments.propTypes = {
-  testCaseId: PropTypes.string,
+  testCaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  readOnly: PropTypes.bool,
+  hideWhenEmpty: PropTypes.bool,
+  title: PropTypes.node,
 };
 
 export default TestCaseAttachments;

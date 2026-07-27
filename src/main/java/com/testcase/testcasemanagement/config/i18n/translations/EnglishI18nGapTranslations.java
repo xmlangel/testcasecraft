@@ -660,6 +660,8 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.button.jiraStatusLoading", languageCode, "Checking JIRA status...", createdBy);
     createTranslationIfNotExists(
+        "testResult.caseAttachments.title", languageCode, "Test Case Attachments", createdBy);
+    createTranslationIfNotExists(
         "testResult.caseDetails.expandAll", languageCode, "Expand All", createdBy);
     createTranslationIfNotExists(
         "testResult.caseDetails.expandAllTooltip",

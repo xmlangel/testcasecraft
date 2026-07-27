@@ -21,6 +21,7 @@ import { TestResult } from "../models/testExecution.jsx";
 
 // Import new components
 import TestCaseDetails from "./TestResult/TestCaseDetails.jsx";
+import TestCaseAttachments from "./TestCase/TestCaseAttachments.jsx";
 import TestResultNotes from "./TestResult/TestResultNotes.jsx";
 import TestResultAttachments from "./TestResult/TestResultAttachments.jsx";
 import TestResultTags from "./TestResult/TestResultTags.jsx";
@@ -515,7 +516,12 @@ const TestResultForm = ({
       setAttachedFiles((prev) => [...prev, ...newFiles]);
       event.target.value = "";
     } catch (error) {
-      setFileUploadError(t("testResult.error.fileUploadError", "파일 업로드 중 오류가 발생했습니다."));
+      setFileUploadError(
+        t(
+          "testResult.error.fileUploadError",
+          "파일 업로드 중 오류가 발생했습니다.",
+        ),
+      );
     } finally {
       setIsFileUploading(false);
     }
@@ -750,10 +756,22 @@ const TestResultForm = ({
         });
 
         if (!response.ok)
-          throw new Error(t("testResult.error.uploadFailed", `파일 업로드 실패: ${fileInfo.file.name}`, { filename: fileInfo.file.name }));
+          throw new Error(
+            t(
+              "testResult.error.uploadFailed",
+              `파일 업로드 실패: ${fileInfo.file.name}`,
+              { filename: fileInfo.file.name },
+            ),
+          );
         const data = await response.json();
         if (!data.success)
-          throw new Error(t("testResult.error.uploadFailed", `파일 업로드 실패: ${fileInfo.file.name}`, { filename: fileInfo.file.name }));
+          throw new Error(
+            t(
+              "testResult.error.uploadFailed",
+              `파일 업로드 실패: ${fileInfo.file.name}`,
+              { filename: fileInfo.file.name },
+            ),
+          );
         return data.attachment;
       });
 
@@ -761,7 +779,12 @@ const TestResultForm = ({
       setAttachedFiles([]);
     } catch (error) {
       console.error("파일 업로드 오류:", error);
-      throw new Error(t("testResult.error.uploadErrorDetail", "파일 업로드 중 오류가 발생했습니다: " + error.message));
+      throw new Error(
+        t(
+          "testResult.error.uploadErrorDetail",
+          "파일 업로드 중 오류가 발생했습니다: " + error.message,
+        ),
+      );
     } finally {
       setUploadingFiles(false);
     }
@@ -873,6 +896,17 @@ const TestResultForm = ({
       ) : testCase ? (
         <>
           <TestCaseDetails testCase={testCase} t={t} />
+
+          {/* 케이스에 붙은 첨부파일 — 실행 중 참고용 조회 전용(업로드·삭제는 케이스 편집에서) */}
+          <TestCaseAttachments
+            testCaseId={testCaseId}
+            readOnly
+            hideWhenEmpty
+            title={t(
+              "testResult.caseAttachments.title",
+              "테스트케이스 첨부파일",
+            )}
+          />
 
           <Box sx={{ mt: 3, width: "100%", boxSizing: "border-box" }}>
             <TestResultNotes

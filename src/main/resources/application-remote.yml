@@ -59,9 +59,11 @@ rag:
   api:
     url: ${RAG_API_URL:http://localhost:8001}
 
-# MinIO 설정 (Docker Compose의 MinIO)
+# MinIO 설정 (원격 호스트의 MinIO)
+# DB 가 원격(192.168.1.156)인데 MinIO 만 localhost 를 보면, 첨부 메타데이터는 조회되지만
+# 실제 객체가 로컬 버킷에 없어 다운로드·미리보기가 "File not found in storage" 로 실패한다.
 minio:
-  endpoint: ${MINIO_ENDPOINT:localhost:9000}
+  endpoint: ${MINIO_ENDPOINT:192.168.1.156:9000}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin_dev_password_789}
   bucket: ${MINIO_TESTCASE_BUCKET:testcase-attachments}
