@@ -2063,6 +2063,11 @@ public class I18nHardcodedKeysInitializer {
         "i18n 하드코딩 보강 (2026-06-06)",
         "파일 다운로드에 실패했습니다.");
     createTranslationKeyIfNotExists(
+        "testcaseAttachments.staleError",
+        "testcaseAttachments",
+        "삭제된 첨부 요청 안내 (2026-07-27)",
+        "첨부파일을 찾을 수 없습니다. 삭제된 것 같아 목록을 새로고침했습니다.");
+    createTranslationKeyIfNotExists(
         "testcaseAttachments.downloadToPreview",
         "testcaseAttachments",
         "i18n 하드코딩 보강 (2026-06-06)",

@@ -1271,6 +1271,11 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcaseAttachments.downloadError", languageCode, "파일 다운로드에 실패했습니다.", createdBy);
     createTranslationIfNotExists(
+        "testcaseAttachments.staleError",
+        languageCode,
+        "첨부파일을 찾을 수 없습니다. 삭제된 것 같아 목록을 새로고침했습니다.",
+        createdBy);
+    createTranslationIfNotExists(
         "testcaseAttachments.downloadToPreview", languageCode, "파일을 다운로드하여 확인해주세요.", createdBy);
     createTranslationIfNotExists(
         "testcaseAttachments.downloadTooltip", languageCode, "다운로드", createdBy);
