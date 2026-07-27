@@ -761,6 +761,11 @@ public class I18nGapKeysInitializer {
         "i18n gap 보강 (2026-06-06)",
         "JIRA 상태 확인 중...");
     createTranslationKeyIfNotExists(
+        "testResult.caseAttachments.title",
+        "testResult",
+        "결과 입력 화면의 케이스 첨부 조회 (2026-07-27)",
+        "테스트케이스 첨부파일");
+    createTranslationKeyIfNotExists(
         "testResult.caseDetails.expandAll", "testResult", "단계 표 보기 옵션 (2026-06-12)", "모두 펼치기");
     createTranslationKeyIfNotExists(
         "testResult.caseDetails.expandAllTooltip",
