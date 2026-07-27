@@ -218,6 +218,12 @@ public class TestCaseAttachmentController {
       log.warn("파일 다운로드 요청 오류: {}", e.getMessage());
       return ResponseEntity.notFound().build();
 
+    } catch (IllegalStateException e) {
+      // 이미 삭제된(비활성) 첨부를 가리키는 오래된 목록에서 온 요청 — 서버 오류가 아니다.
+      // 스택트레이스 없이 410 으로 답해 클라이언트가 목록을 갱신하도록 한다.
+      log.warn("다운로드할 수 없는 첨부파일 요청: {}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.GONE).build();
+
     } catch (IOException e) {
       log.error("파일 다운로드 중 IO 오류: {}", e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

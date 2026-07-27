@@ -1632,6 +1632,11 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcaseAttachments.downloadError", languageCode, "Failed to download file", createdBy);
     createTranslationIfNotExists(
+        "testcaseAttachments.staleError",
+        languageCode,
+        "Attachment not found. It looks deleted, so the list was refreshed.",
+        createdBy);
+    createTranslationIfNotExists(
         "testcaseAttachments.downloadToPreview",
         languageCode,
         "Please download the file to view it",

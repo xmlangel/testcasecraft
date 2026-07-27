@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 
 const apiMock = vi.fn();
 
@@ -18,6 +18,15 @@ const attachment = {
   originalFileName: "screenshot.png",
   fileSize: 2048,
   imageFile: true,
+  uploadedByName: "kim",
+  createdAt: "2026-07-27T00:00:00Z",
+};
+
+const textAttachment = {
+  id: "att-2",
+  originalFileName: "notes.txt",
+  fileSize: 512,
+  textFile: true,
   uploadedByName: "kim",
   createdAt: "2026-07-27T00:00:00Z",
 };
@@ -76,6 +85,58 @@ describe("TestCaseAttachments", () => {
 
     expect(
       await screen.findByText("첨부된 파일이 없습니다."),
+    ).toBeInTheDocument();
+  });
+
+  it("삭제된 첨부를 미리보기하면 410 을 받고 목록을 다시 읽는다", async () => {
+    // 1) 최초 목록 → 2) 미리보기 요청 410 → 3) 갱신된(빈) 목록
+    apiMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ attachments: [textAttachment] }),
+      })
+      .mockResolvedValueOnce({ ok: false, status: 410 })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ attachments: [] }),
+      });
+
+    render(<TestCaseAttachments testCaseId="tc-1" readOnly />);
+    await screen.findByText("notes.txt");
+
+    fireEvent.click(screen.getByTestId("tc-attachment-preview"));
+
+    await waitFor(() => expect(apiMock).toHaveBeenCalledTimes(3));
+    expect(apiMock).toHaveBeenLastCalledWith(
+      "/api/testcase-attachments/testcase/tc-1",
+    );
+    // 갱신된 목록이 비어 목록 영역에서 사라진다 (미리보기 다이얼로그 제목에는 남아 있음)
+    expect(
+      await screen.findByText("첨부된 파일이 없습니다."),
+    ).toBeInTheDocument();
+  });
+
+  it("삭제된 첨부를 다운로드하면 안내 메시지를 보여준다", async () => {
+    apiMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ attachments: [textAttachment] }),
+      })
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ attachments: [] }),
+      });
+
+    render(<TestCaseAttachments testCaseId="tc-1" readOnly />);
+    await screen.findByText("notes.txt");
+
+    fireEvent.click(screen.getByTestId("tc-attachment-download"));
+
+    expect(
+      await screen.findByText(
+        "첨부파일을 찾을 수 없습니다. 삭제된 것 같아 목록을 새로고침했습니다.",
+      ),
     ).toBeInTheDocument();
   });
 

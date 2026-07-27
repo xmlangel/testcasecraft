@@ -205,16 +205,44 @@ const TestCaseAttachments = ({
     }
   };
 
+  // 첨부 원본 요청 — 다운로드·미리보기 공용.
+  // 자동화 동기화가 첨부를 지우고 다시 올리면 화면에 남은 목록이 이미 삭제된 id 를 가리킨다.
+  // 그때 서버는 404/410 을 주므로, 사라진 첨부임을 표시(stale)해 호출부가 목록을 새로고침하게 한다.
+  const requestAttachmentFile = async (attachmentId) => {
+    const response = await api(
+      `/api/testcase-attachments/${attachmentId}/download`,
+      { method: "GET" },
+    );
+
+    if (response.ok) return response;
+
+    if (response.status === 404 || response.status === 410) {
+      const staleError = new Error(
+        t(
+          "testcaseAttachments.staleError",
+          "첨부파일을 찾을 수 없습니다. 삭제된 것 같아 목록을 새로고침했습니다.",
+        ),
+      );
+      staleError.stale = true;
+      throw staleError;
+    }
+
+    return response;
+  };
+
+  // stale 첨부 오류면 목록을 다시 읽어 사라진 항목을 화면에서 걷어낸다
+  const handleAttachmentError = async (err) => {
+    // 목록 재조회가 setError(null) 로 시작하므로 갱신을 먼저 끝내고 안내를 띄운다
+    if (err.stale) {
+      await fetchAttachments();
+    }
+    setError(err.message);
+  };
+
   // 파일 다운로드
   const handleDownload = async (attachmentId, originalFileName) => {
     try {
-      // AppContext의 api() 함수 사용
-      const response = await api(
-        `/api/testcase-attachments/${attachmentId}/download`,
-        {
-          method: "GET",
-        },
-      );
+      const response = await requestAttachmentFile(attachmentId);
 
       if (response.ok) {
         const blob = await response.blob();
@@ -236,7 +264,7 @@ const TestCaseAttachments = ({
       }
     } catch (err) {
       console.error("File download error:", err);
-      setError(err.message);
+      await handleAttachmentError(err);
     }
   };
 
@@ -278,12 +306,7 @@ const TestCaseAttachments = ({
     try {
       // 이미지 파일 미리보기
       if (attachment.imageFile) {
-        const response = await api(
-          `/api/testcase-attachments/${attachment.id}/download`,
-          {
-            method: "GET",
-          },
-        );
+        const response = await requestAttachmentFile(attachment.id);
 
         if (response.ok) {
           const blob = await response.blob();
@@ -300,12 +323,7 @@ const TestCaseAttachments = ({
       }
       // PDF 파일 미리보기
       else if (attachment.pdfFile) {
-        const response = await api(
-          `/api/testcase-attachments/${attachment.id}/download`,
-          {
-            method: "GET",
-          },
-        );
+        const response = await requestAttachmentFile(attachment.id);
 
         if (response.ok) {
           const blob = await response.blob();
@@ -319,12 +337,7 @@ const TestCaseAttachments = ({
       }
       // 텍스트 파일 미리보기
       else if (attachment.textFile) {
-        const response = await api(
-          `/api/testcase-attachments/${attachment.id}/download`,
-          {
-            method: "GET",
-          },
-        );
+        const response = await requestAttachmentFile(attachment.id);
 
         if (response.ok) {
           const text = await response.text();
@@ -345,6 +358,9 @@ const TestCaseAttachments = ({
     } catch (err) {
       console.error("File preview error:", err);
       setPreviewContent({ type: "error", message: err.message });
+      if (err.stale) {
+        await fetchAttachments();
+      }
     } finally {
       setLoadingPreview(false);
     }
