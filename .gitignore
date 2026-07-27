@@ -32,11 +32,19 @@ pids
 *.pid.lock
 
 # Environment variables
+# 실제 값이 들어가는 env 파일은 절대 커밋하지 않는다.
+# 커밋 대상은 *.example 템플릿뿐 (아래 negation 참고).
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
+.env.prod.*
+.env.secret
+!.env.example
+!*.env.example
+!.env.*.example
 
 # macOS
 .DS_Store

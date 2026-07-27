@@ -1,0 +1,15 @@
+# 빌드 컨텍스트 차단 (allow-list 방식)
+#
+# 이 디렉터리는 이미지 빌드 컨텍스트인 동시에 운영 배포 디렉터리라서
+# 아래 것들이 같이 들어 있다:
+#   .env         POSTGRES_PASSWORD / JWT_SECRET / MINIO_SECRET_KEY
+#   ssl/         TLS 인증서·개인키
+#   data/        기동 중인 PostgreSQL·MinIO 실데이터 (~265MB)
+#   backups/     백업 아카이브
+#
+# 기본 제외 후 실제로 이미지에 COPY 되는 두 파일만 허용한다.
+# (새 파일을 COPY 하려면 여기에 `!파일명` 을 함께 추가할 것)
+*
+
+!app.jar
+!docker-entrypoint.sh

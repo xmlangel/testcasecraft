@@ -1,0 +1,14 @@
+# 빌드 컨텍스트 차단 (allow-list 방식)
+#
+# 이 디렉터리에는 로컬 .env(DB URL·MinIO 키·API 키)와 테스트 스크립트가 섞여 있다.
+# Dockerfile 이 실제로 COPY 하는 것만 허용한다.
+*
+
+!requirements.txt
+!app/
+
+# app/ 안에서도 캐시·로컬 산출물은 제외
+app/**/__pycache__/
+app/**/*.py[cod]
+app/**/.env
+app/**/*.log
