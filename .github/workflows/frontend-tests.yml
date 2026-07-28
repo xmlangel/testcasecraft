@@ -14,6 +14,11 @@ on:
       - ".github/workflows/frontend-tests.yml"
   workflow_dispatch:
 
+# 테스트만 돌리는 잡이라 GITHUB_TOKEN 은 읽기 권한이면 충분하다.
+# (블록이 없으면 저장소 기본값이 적용돼 쓰기 권한까지 딸려올 수 있다)
+permissions:
+  contents: read
+
 jobs:
   vitest:
     runs-on: ubuntu-latest

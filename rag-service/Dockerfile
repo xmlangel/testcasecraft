@@ -38,10 +38,13 @@ FROM python:3.11-slim
 LABEL description="TestCaseCraft RAG Service API"
 
 # 런타임 종속성만 설치
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    libpq5 \
-    && rm -rf /var/lib/apt/lists/*
+# 보안: 베이스 이미지에 남아 있는 OS 패키지 CVE 를 빌드 시점에 패치하고,
+#       curl 은 설치하지 않는다(헬스체크는 아래 python urllib 로 대체).
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends libpq5 && \
+    apt-get purge -y --auto-remove && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -67,9 +70,9 @@ USER raguser
 
 EXPOSE 8000
 
-# 헬스체크 추가
+# 헬스체크 (curl 미설치 — 표준 라이브러리 urllib 사용)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=5).status == 200 else 1)"]
 
 # Uvicorn 실행
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
