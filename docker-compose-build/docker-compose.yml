@@ -65,17 +65,12 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    healthcheck:
-      # busybox wget 사용 (1.0.84+ 이미지는 보안상 curl 미포함)
-      test:
-        [
-          "CMD-SHELL",
-          "wget -q --no-check-certificate -O /dev/null ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    # healthcheck 오버라이드를 두지 않는다 — 이미지의 HEALTHCHECK 를 그대로 쓴다.
+    # 여기 있던 오버라이드는 ${PROTOCOL}(=https, 사용자가 밖에서 접속하는 스킴)을
+    # 컨테이너 *내부* 프로브에도 써서 평문 8080 포트에 TLS 로 붙었고, 앱이 정상
+    # 기동해도 항상 unhealthy 였다:
+    #   SSL routines:tls_validate_record_header:wrong version number
+    # 이미지 쪽 HEALTHCHECK 는 SERVER_PORT 로 http → https 폴백을 한다.
     # 컨테이너 하드닝: setuid 권한상승 차단 + 모든 리눅스 capability 제거
     # (앱은 8080 비특권 포트로 뜨므로 NET_BIND_SERVICE 도 필요 없다)
     security_opt:

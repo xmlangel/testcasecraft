@@ -332,10 +332,11 @@ ext {
 // Boot BOM 이 관리하는 버전을 CVE 픽스 버전으로 끌어올린다.
 // (하이픈이 들어간 프로퍼티명이라 ext{} 블록이 아닌 대괄호 표기로 설정)
 //
-// jackson 2.21.4 — PolymorphicTypeValidator 우회 RCE 계열 11건 수정
-//   CVE-2026-54512/54513 (HIGH, PTV allow-list 우회)
-//   CVE-2026-54514~54518, 59888, 59889, GHSA-mhm7-754m-9p8w, GHSA-r7wm-3cxj-wff9
-ext['jackson-bom.version'] = '2.21.4'
+// jackson 2.21.5 — PolymorphicTypeValidator 우회 RCE 계열 14건 수정
+//   CVE-2026-54512/54513 (HIGH, PTV allow-list 우회), GHSA-r7wm-3cxj-wff9(core)
+//   CVE-2026-54514/54516/54517/54518, 59888
+//   2.21.4 로는 안 빠지고 2.21.5 에서 잡히는 것: CVE-2026-54515, 59889, GHSA-mhm7-754m-9p8w
+ext['jackson-bom.version'] = '2.21.5'
 // spring-security 6.5.11 — CVE-2026-47838 (HIGH, X.509 CN 파싱 오류로 사용자 사칭)
 //   SubjectDnX509PrincipalExtractor 가 deprecated 되고 SubjectX500PrincipalExtractor 로 대체됐다.
 ext['spring-security.version'] = '6.5.11'
