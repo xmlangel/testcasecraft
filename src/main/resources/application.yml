@@ -110,7 +110,10 @@ app:
     auto-comment:
       enabled: ${JIRA_AUTO_COMMENT_ENABLED:true}
     issue-key:
-      pattern: "^[A-Z]+-\\d+$"
+      # 프로젝트 키는 첫 글자가 영문이고 이후 영문·숫자가 올 수 있다(JIRA 자체 규칙).
+      # AGV2-100 처럼 숫자를 포함한 프로젝트 키가 유효하므로 [A-Z]+ 로 좁히면 안 된다.
+      # 정본은 JiraKeyUtils.JIRA_ISSUE_KEY_REGEX — 바꿀 때 함께 맞춘다.
+      pattern: ${JIRA_ISSUE_KEY_PATTERN:^[A-Z][A-Z0-9]+-[0-9]+$}
     scheduler:
       enabled: ${JIRA_SCHEDULER_ENABLED:false}
       batch-size: ${JIRA_SCHEDULER_BATCH_SIZE:20}
