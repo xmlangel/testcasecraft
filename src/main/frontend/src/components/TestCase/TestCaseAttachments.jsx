@@ -39,6 +39,7 @@ import {
 } from "@mui/icons-material";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 
 /**
  * ICT-386: 테스트케이스 첨부파일 관리 컴포넌트
@@ -56,6 +57,9 @@ const TestCaseAttachments = ({
 }) => {
   const { api } = useAppContext();
   const { t } = useI18n();
+  // 업로드 일시 표기는 공용 포맷터를 쓴다 — 백엔드가 LocalDateTime 을 배열로
+  // 내보내므로 new Date() 직접 호출은 "Invalid Date" 가 된다.
+  const { formatDate } = useDateFormatter();
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -398,19 +402,6 @@ const TestCaseAttachments = ({
     if (bytes < 1024 * 1024 * 1024)
       return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  };
-
-  // 날짜 포맷팅
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   // 조회 전용 + 첨부 없음 → 섹션을 통째로 감춘다 (결과 입력 화면 노이즈 방지)

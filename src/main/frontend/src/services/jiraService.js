@@ -1,6 +1,16 @@
 // src/services/jiraService.js
 import { getDynamicApiUrl } from "../utils/apiConstants.js";
 
+/**
+ * JIRA 이슈 키 패턴 (예: TEST-123, AGV2-100).
+ *
+ * 프로젝트 키는 첫 글자가 영문이고 이후 영문·숫자가 올 수 있다(JIRA 자체 규칙).
+ * `AGV2` 처럼 숫자를 포함한 프로젝트 키가 유효하므로 `[A-Z]+` 로 좁히면 안 된다.
+ * 백엔드 정본은 JiraKeyUtils.JIRA_ISSUE_KEY_REGEX — 양쪽을 같은 형태로 유지한다.
+ */
+const ISSUE_KEY_SOURCE = "[A-Z][A-Z0-9]+-[0-9]+";
+const ISSUE_KEY_EXACT_PATTERN = new RegExp(`^${ISSUE_KEY_SOURCE}$`);
+
 class JiraService {
   constructor() {
     this.baseURL = null;
@@ -265,17 +275,27 @@ class JiraService {
   }
 
   /**
-   * JIRA 이슈 키 유효성 검증 (클라이언트 사이드)
+   * 사용자 입력을 이슈 키로 정규화 (공백 제거 + 대문자).
+   * 이슈 키 형식이면 정규화된 값을, 아니면 null 을 반환한다.
+   *
+   * @param {string} value
+   * @returns {string|null}
    */
-  isValidIssueKey(issueKey) {
-    if (!issueKey || typeof issueKey !== "string") {
-      return false;
+  normalizeIssueKey(value) {
+    if (!value || typeof value !== "string") {
+      return null;
     }
 
-    // JIRA 이슈 키 패턴: 프로젝트키-숫자 (예: TEST-123, PROJECT-1)
-    // 이미 입력 시 대문자로 변환되므로 원본 그대로 검증
-    const pattern = /^[A-Z]+-\d+$/;
-    return pattern.test(issueKey.trim());
+    const normalized = value.trim().toUpperCase();
+    return ISSUE_KEY_EXACT_PATTERN.test(normalized) ? normalized : null;
+  }
+
+  /**
+   * JIRA 이슈 키 유효성 검증 (클라이언트 사이드)
+   * 입력 필드가 대문자로 강제하지 않으므로 소문자 입력(agv2-100)도 유효로 본다.
+   */
+  isValidIssueKey(issueKey) {
+    return this.normalizeIssueKey(issueKey) !== null;
   }
 
   /**
@@ -286,7 +306,7 @@ class JiraService {
       return [];
     }
 
-    const pattern = /[A-Z]+-\d+/g;
+    const pattern = new RegExp(ISSUE_KEY_SOURCE, "g");
     const matches = text.match(pattern);
 
     return matches ? [...new Set(matches)] : [];
@@ -301,23 +321,23 @@ class JiraService {
     }
 
     // /browse/KEY-123 패턴
-    const browseMatch = url.match(/\/browse\/([A-Z]+-\d+)/i);
+    const browseMatch = url.match(
+      new RegExp(`/browse/(${ISSUE_KEY_SOURCE})`, "i"),
+    );
     if (browseMatch && browseMatch[1]) {
       return browseMatch[1].toUpperCase();
     }
 
     // /issues/KEY-123 패턴
-    const issuesMatch = url.match(/\/issues\/([A-Z]+-\d+)/i);
+    const issuesMatch = url.match(
+      new RegExp(`/issues/(${ISSUE_KEY_SOURCE})`, "i"),
+    );
     if (issuesMatch && issuesMatch[1]) {
       return issuesMatch[1].toUpperCase();
     }
 
     // URL은 아니지만 키만 붙여넣은 경우도 처리
-    if (this.isValidIssueKey(url)) {
-      return url.toUpperCase();
-    }
-
-    return null;
+    return this.normalizeIssueKey(url);
   }
 
   /**
@@ -452,8 +472,9 @@ class JiraService {
         };
       }
 
-      // 클라이언트 사이드 형식 검증
-      if (!this.isValidIssueKey(issueKey)) {
+      // 클라이언트 사이드 형식 검증 — 백엔드는 대문자 키만 받으므로 정규화된 값을 보낸다.
+      const normalizedKey = this.normalizeIssueKey(issueKey);
+      if (!normalizedKey) {
         return {
           exists: false,
           issueKey: issueKey,
@@ -464,7 +485,7 @@ class JiraService {
       // 백엔드 API 호출
       const apiUrl = await getDynamicApiUrl();
       const url = `${apiUrl}/api/jira-integration/check-issue-exists?issueKey=${encodeURIComponent(
-        issueKey,
+        normalizedKey,
       )}`;
 
       const response = await fetch(url, {
