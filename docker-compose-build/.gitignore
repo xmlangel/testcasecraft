@@ -1,6 +1,8 @@
 # JAR files copied for Docker build
 app.jar
 *.jar
+# backup_jar() 가 재빌드 전에 남기는 타임스탬프 사본 (app.jar.20260728172804 등)
+app.jar.*
 
 # Log files
 logs/
