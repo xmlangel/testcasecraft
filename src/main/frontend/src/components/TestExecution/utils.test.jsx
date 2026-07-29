@@ -4,6 +4,7 @@ import {
   saveFilteredNavIds,
   readFilteredNavIds,
   clearFilteredNavIds,
+  matchesAnyTag,
 } from "./utils.jsx";
 
 // 전체화면 결과 뷰가 목록 화면의 필터 순서를 그대로 따르도록 하는
@@ -65,5 +66,40 @@ describe("filtered nav id persistence", () => {
     clearFilteredNavIds(undefined);
     // 다른 실행 키는 영향 없음
     expect(readFilteredNavIds("exec-2")).toEqual(["x"]);
+  });
+});
+
+// ICT-427: 결과 태그 필터 매칭 — 실행 화면 필터 패널에서 고른 태그로 케이스를 좁힌다
+describe("matchesAnyTag", () => {
+  it("선택 태그가 없으면 모두 통과", () => {
+    expect(matchesAnyTag(["수정필요"], [])).toBe(true);
+    expect(matchesAnyTag([], [])).toBe(true);
+    expect(matchesAnyTag(undefined, undefined)).toBe(true);
+  });
+
+  it("선택 태그 중 하나라도 걸리면 통과 (OR)", () => {
+    expect(matchesAnyTag(["로그인", "수정필요"], ["수정필요"])).toBe(true);
+    expect(matchesAnyTag(["로그인"], ["수정필요", "로그인"])).toBe(true);
+  });
+
+  it("대소문자·공백을 무시한다", () => {
+    expect(matchesAnyTag(["NeedsFix"], [" needsfix "])).toBe(true);
+  });
+
+  it("직접 입력한 값은 부분 일치로 걸린다", () => {
+    expect(matchesAnyTag(["수정필요-스텝"], ["수정필요"])).toBe(true);
+  });
+
+  it("결과에 태그가 없으면 제외", () => {
+    expect(matchesAnyTag([], ["수정필요"])).toBe(false);
+    expect(matchesAnyTag(undefined, ["수정필요"])).toBe(false);
+  });
+
+  it("어느 태그에도 걸리지 않으면 제외", () => {
+    expect(matchesAnyTag(["로그인"], ["결제"])).toBe(false);
+  });
+
+  it("문자열 단일 입력도 받는다", () => {
+    expect(matchesAnyTag(["수정필요"], "수정")).toBe(true);
   });
 });

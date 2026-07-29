@@ -16,6 +16,7 @@ import { useInputMode } from "../context/InputModeContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
 import { isViewer } from "./TestCaseTree/utils/permissionUtils.js";
+import { matchesTreeQuery } from "./TestCaseTree/utils/treeFilter.js";
 import {
   isFolder,
   listToTree,
@@ -212,15 +213,16 @@ const TestCaseTree = ({
 
   // 필터 적용: 일치 노드 + 조상 경로 + 하위 항목 유지
   const { treeSourceData, filterMatchedFolderIds } = useMemo(() => {
-    const query = filterText.trim().toLowerCase();
+    const query = filterText.trim();
     if (!query) {
       return { treeSourceData: baseTreeSource, filterMatchedFolderIds: null };
     }
 
     const itemMap = new Map(baseTreeSource.map((item) => [item.id, item]));
     const matched = new Set();
+    // ICT-428: 이름 외에 표시 ID·태그로도 찾는다 (판정은 treeFilter 로 분리)
     baseTreeSource.forEach((item) => {
-      if ((item.name || "").toLowerCase().includes(query)) {
+      if (matchesTreeQuery(item, query)) {
         matched.add(item.id);
       }
     });

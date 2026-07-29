@@ -2,6 +2,7 @@
 
 import React from "react";
 import {
+  Autocomplete,
   Box,
   TextField,
   MenuItem,
@@ -12,6 +13,7 @@ import {
   IconButton,
   Collapse,
   Checkbox,
+  Chip,
   ListItemText,
 } from "@mui/material";
 import {
@@ -27,6 +29,7 @@ const TestExecutionFilterPanel = ({
   onFilterChange,
   onApply,
   onClear,
+  availableTags = [],
 }) => {
   const { t } = useI18n();
 
@@ -239,6 +242,49 @@ const TestExecutionFilterPanel = ({
                 placeholder={t(
                   "testExecution.filter.notes.placeholder",
                   "노트 검색 (콤마로 여러 개)",
+                )}
+              />
+            </Grid>
+
+            {/* ICT-427: 결과 태그 (다중 선택 + 직접 입력) */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Autocomplete
+                multiple
+                freeSolo
+                size="small"
+                options={availableTags}
+                value={Array.isArray(filters.tags) ? filters.tags : []}
+                onChange={(event, newValue) => onFilterChange("tags", newValue)}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => {
+                    const { key, ...tagProps } = getTagProps({ index });
+                    return (
+                      <Chip
+                        key={key}
+                        size="small"
+                        variant="outlined"
+                        label={option}
+                        {...tagProps}
+                      />
+                    );
+                  })
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    id="filter-tags"
+                    label={t("testExecution.filter.tags", "태그")}
+                    placeholder={t(
+                      "testExecution.filter.tags.placeholder",
+                      "태그 선택 또는 입력",
+                    )}
+                    slotProps={{
+                      htmlInput: {
+                        ...params.inputProps,
+                        "data-testid": "filter-tags-input",
+                      },
+                    }}
+                  />
                 )}
               />
             </Grid>

@@ -469,6 +469,12 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testExecution.filter.notes", languageCode, "노트", createdBy);
     createTranslationIfNotExists(
         "testExecution.filter.notes.placeholder", languageCode, "search notes", createdBy);
+    // ICT-427 / ICT-428
+    createTranslationIfNotExists("testExecution.filter.tags", languageCode, "태그", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.filter.tags.placeholder", languageCode, "태그 선택 또는 입력", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.filter.placeholderAll", languageCode, "이름·ID·태그 검색", createdBy);
     createTranslationIfNotExists(
         "testExecution.list.noMoreExecutions", languageCode, "모든 데이터를 불러왔습니다.", createdBy);
     createTranslationIfNotExists(

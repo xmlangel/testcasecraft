@@ -384,6 +384,9 @@ public class TestResultReportService {
                 .collect(Collectors.toList());
       }
 
+      // ICT-427: 결과 태그 필터 (최신 결과 기준). 미실행 케이스는 결과 태그가 없어 자연히 제외된다
+      allCases = applyTagFilterToDtos(allCases, filter.getTags());
+
       // 수동 정렬
       allCases = applySorting(allCases, filter.getSortBy(), filter.getSortDirection());
 
@@ -415,21 +418,46 @@ public class TestResultReportService {
       List<String> ids;
       long total;
 
+      // ICT-427: 결과 태그 필터가 있으면 태그 조건을 DB 레벨에서 함께 건다
+      List<String> tagFilter = normalizeTagFilter(filter.getTags());
+      boolean hasTagFilter = !tagFilter.isEmpty();
+
       if (filter.getTestExecutionIds() != null && !filter.getTestExecutionIds().isEmpty()) {
         ids =
-            testResultRepository.findDedupedIdsByExecutions(
-                filter.getTestExecutionIds(), idPageable);
-        total = testResultRepository.countDedupedByExecutions(filter.getTestExecutionIds());
+            hasTagFilter
+                ? testResultRepository.findDedupedIdsByExecutionsAndTags(
+                    filter.getTestExecutionIds(), tagFilter, idPageable)
+                : testResultRepository.findDedupedIdsByExecutions(
+                    filter.getTestExecutionIds(), idPageable);
+        total =
+            hasTagFilter
+                ? testResultRepository.countDedupedByExecutionsAndTags(
+                    filter.getTestExecutionIds(), tagFilter)
+                : testResultRepository.countDedupedByExecutions(filter.getTestExecutionIds());
       } else if (filter.getTestPlanIds() != null && !filter.getTestPlanIds().isEmpty()) {
         ids =
-            testResultRepository.findDedupedIdsByProjectAndPlans(
-                filter.getProjectId(), filter.getTestPlanIds(), idPageable);
+            hasTagFilter
+                ? testResultRepository.findDedupedIdsByProjectAndPlansAndTags(
+                    filter.getProjectId(), filter.getTestPlanIds(), tagFilter, idPageable)
+                : testResultRepository.findDedupedIdsByProjectAndPlans(
+                    filter.getProjectId(), filter.getTestPlanIds(), idPageable);
         total =
-            testResultRepository.countDedupedByProjectAndPlans(
-                filter.getProjectId(), filter.getTestPlanIds());
+            hasTagFilter
+                ? testResultRepository.countDedupedByProjectAndPlansAndTags(
+                    filter.getProjectId(), filter.getTestPlanIds(), tagFilter)
+                : testResultRepository.countDedupedByProjectAndPlans(
+                    filter.getProjectId(), filter.getTestPlanIds());
       } else {
-        ids = testResultRepository.findDedupedIdsByProject(filter.getProjectId(), idPageable);
-        total = testResultRepository.countDedupedByProject(filter.getProjectId());
+        ids =
+            hasTagFilter
+                ? testResultRepository.findDedupedIdsByProjectAndTags(
+                    filter.getProjectId(), tagFilter, idPageable)
+                : testResultRepository.findDedupedIdsByProject(filter.getProjectId(), idPageable);
+        total =
+            hasTagFilter
+                ? testResultRepository.countDedupedByProjectAndTags(
+                    filter.getProjectId(), tagFilter)
+                : testResultRepository.countDedupedByProject(filter.getProjectId());
       }
 
       List<TestResult> results =
@@ -491,6 +519,15 @@ public class TestResultReportService {
                   return keys.stream().anyMatch(k -> filter.getJiraIssueKeys().contains(k.trim()));
                 })
             .collect(Collectors.toList());
+
+    // ICT-427: 결과 태그 필터 (JIRA 필터 경로는 Java 레벨 처리)
+    List<String> tagFilter = normalizeTagFilter(filter.getTags());
+    if (!tagFilter.isEmpty()) {
+      filteredResults =
+          filteredResults.stream()
+              .filter(result -> matchesTagFilter(result.getTags(), tagFilter))
+              .collect(Collectors.toList());
+    }
 
     // 중복 제거 (execution+testCase 기준 최신)
     Map<String, TestResult> latestMap =
@@ -1261,6 +1298,47 @@ public class TestResultReportService {
    * 배치로 TestResult 목록을 TestResultReportDto 목록으로 변환 (N+1 방지) testCase, testPlan을 한 번에 로딩하고 폴더 경로를
    * 캐싱하여 DB 왕복을 최소화
    */
+  /**
+   * ICT-427: 태그 필터 정규화 — null·공백 제거 후 소문자화. DB 쿼리(LOWER(tag) IN)와 Java 비교가 같은 기준을 쓰도록 여기서 한 번에 맞춘다.
+   */
+  private List<String> normalizeTagFilter(List<String> tags) {
+    if (tags == null || tags.isEmpty()) return Collections.emptyList();
+    return tags.stream()
+        .filter(Objects::nonNull)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(s -> s.toLowerCase())
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
+  /** ICT-427: 결과 태그가 필터 태그 중 하나라도 일치하면 통과(OR, 대소문자 무시) */
+  private boolean matchesTagFilter(
+      Collection<String> resultTags, List<String> normalizedTagFilter) {
+    if (normalizedTagFilter.isEmpty()) return true;
+    if (resultTags == null || resultTags.isEmpty()) return false;
+    return resultTags.stream()
+        .filter(Objects::nonNull)
+        .map(t -> t.trim().toLowerCase())
+        .anyMatch(normalizedTagFilter::contains);
+  }
+
+  /** ICT-427: 결과 태그를 정렬된 목록으로 변환 (엔티티는 Set 이라 순서가 들쭉날쭉해 화면 표시가 흔들린다) */
+  private List<String> toSortedTagList(Collection<String> tags) {
+    if (tags == null || tags.isEmpty()) return Collections.emptyList();
+    return tags.stream().filter(Objects::nonNull).sorted().collect(Collectors.toList());
+  }
+
+  /** ICT-427: DTO 목록에 태그 필터 적용 (모집단 기반 경로용) */
+  private List<TestResultReportDto> applyTagFilterToDtos(
+      List<TestResultReportDto> dtos, List<String> tags) {
+    List<String> tagFilter = normalizeTagFilter(tags);
+    if (tagFilter.isEmpty()) return dtos;
+    return dtos.stream()
+        .filter(dto -> matchesTagFilter(dto.getTags(), tagFilter))
+        .collect(Collectors.toList());
+  }
+
   private List<TestResultReportDto> batchConvertToReportDtos(List<TestResult> results) {
     if (results.isEmpty()) return new ArrayList<>();
 
@@ -1334,6 +1412,7 @@ public class TestResultReportService {
         .executedBy(result.getExecutedBy() != null ? result.getExecutedBy().getId() : null)
         .executorName(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null)
         .notes(result.getNotes())
+        .tags(toSortedTagList(result.getTags())) // ICT-427
         .jiraIssueKey(result.getJiraIssueKey())
         .jiraIssueUrl(result.getJiraIssueUrl())
         .jiraStatus(result.getJiraStatus())
@@ -1410,6 +1489,7 @@ public class TestResultReportService {
         .executedBy(result.getExecutedBy() != null ? result.getExecutedBy().getId() : null)
         .executorName(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null)
         .notes(result.getNotes())
+        .tags(toSortedTagList(result.getTags())) // ICT-427
         .jiraIssueKey(result.getJiraIssueKey())
         .jiraIssueUrl(result.getJiraIssueUrl())
         .jiraStatus(result.getJiraStatus())

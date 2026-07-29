@@ -121,6 +121,38 @@ export function parseDateTime(dateInput) {
   }
 }
 
+// ICT-427: 결과 태그 필터 매칭.
+// 선택한 태그 중 하나라도 결과 태그에 걸리면 통과한다(필드 내 OR). 비교는 대소문자를 무시한
+// 부분 일치라, 직접 입력(freeSolo) 중에도 목록이 좁혀진다.
+// 서버 필터(TestResultReportService)는 정확 일치를 쓴다 — API 계약이라 예측 가능한 편이 낫고,
+// 화면은 입력 중 반응이 중요해서 기준이 다르다. 같은 태그를 목록에서 골랐다면 결과는 같다.
+/**
+ * @param {string[]|undefined} resultTags 결과에 붙은 태그
+ * @param {string[]|string|undefined} selectedTags 필터에서 선택·입력한 태그
+ * @returns {boolean} 통과 여부 (선택 태그가 없으면 항상 true)
+ */
+export function matchesAnyTag(resultTags, selectedTags) {
+  const terms = (Array.isArray(selectedTags) ? selectedTags : [selectedTags])
+    .map((t) =>
+      String(t || "")
+        .trim()
+        .toLowerCase(),
+    )
+    .filter(Boolean);
+  if (!terms.length) return true;
+
+  const tags = (Array.isArray(resultTags) ? resultTags : [])
+    .map((t) =>
+      String(t || "")
+        .trim()
+        .toLowerCase(),
+    )
+    .filter(Boolean);
+  if (!tags.length) return false;
+
+  return tags.some((tag) => terms.some((term) => tag.includes(term)));
+}
+
 // 필터가 적용된 이전/다음 네비게이션 ID 목록을 실행(executionId)별로 보존하는 sessionStorage 키 접두사.
 // 필터 매칭 로직은 TestExecutionForm 한 곳에만 두고(단일 진실 출처), 별도 라우트인
 // 전체화면 결과 뷰(TestCaseResultPage)는 그 결과 목록을 읽어 동일 순서로 이동한다.

@@ -276,6 +276,7 @@ public class TestResultApiController {
             .testExecutionIds(query.getTestExecutionIds())
             .results(query.getResultStatuses())
             .executedByIds(query.getExecutorIds()) // executorIds -> executedByIds
+            .tags(query.getTags()) // ICT-427: 결과 태그 필터
             .page(query.getPage())
             .size(query.getSize())
             .build();

@@ -13,6 +13,7 @@ import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
 import java.time.LocalDateTime;
 import java.util.*;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -751,5 +752,101 @@ public class TestResultReportServiceMockTest {
     uniqueExecution.setTestPlanId(planId);
     testResult.setTestExecution(uniqueExecution);
     return testResult;
+  }
+
+  // ================= ICT-427: 결과 태그 필터 라우팅 =================
+
+  @Test(description = "ICT-427: 태그 필터가 있으면 태그 조건이 들어간 쿼리로 라우팅된다")
+  public void testDetailedReport_TagFilterRoutesToTagAwareQuery() {
+    // Given
+    String projectId = "project-1";
+    mockTestResult.setTags(Set.of("수정필요"));
+    TestResultFilterDto filter =
+        TestResultFilterDto.builder()
+            .projectId(projectId)
+            .tags(List.of("수정필요"))
+            .page(0)
+            .size(10)
+            .build();
+    filter.setDefaultSort();
+    filter.setDefaultDisplayColumns();
+
+    when(testResultRepository.findDedupedIdsByProjectAndTags(
+            eq(projectId), anyList(), any(Pageable.class)))
+        .thenReturn(List.of(mockTestResult.getId()));
+    when(testResultRepository.countDedupedByProjectAndTags(eq(projectId), anyList()))
+        .thenReturn(1L);
+    when(testResultRepository.findByIdsWithFetch(anyList())).thenReturn(List.of(mockTestResult));
+    when(testCaseRepository.findAllById(any())).thenReturn(List.of(mockTestCase));
+    when(testPlanRepository.findAllById(any())).thenReturn(List.of(mockTestPlan));
+
+    // When
+    Page<TestResultReportDto> result = testResultReportService.getDetailedTestResultReport(filter);
+
+    // Then: 태그 전용 쿼리가 쓰이고, 태그 없는 기존 쿼리는 쓰이지 않는다
+    assertNotNull(result);
+    assertEquals(result.getContent().size(), 1);
+    assertEquals(result.getContent().get(0).getTags(), List.of("수정필요"), "결과 태그가 DTO 에 실려야 한다");
+    verify(testResultRepository)
+        .findDedupedIdsByProjectAndTags(eq(projectId), anyList(), any(Pageable.class));
+    verify(testResultRepository, never())
+        .findDedupedIdsByProject(anyString(), any(Pageable.class));
+  }
+
+  @Test(description = "ICT-427: 태그 필터에 소문자로 정규화된 값이 전달된다 (DB 는 LOWER(tag) 비교)")
+  public void testDetailedReport_TagFilterIsLowercasedBeforeQuery() {
+    // Given
+    String projectId = "project-1";
+    TestResultFilterDto filter =
+        TestResultFilterDto.builder()
+            .projectId(projectId)
+            .tags(List.of("  NeedsFix  ", "수정필요", ""))
+            .page(0)
+            .size(10)
+            .build();
+    filter.setDefaultSort();
+    filter.setDefaultDisplayColumns();
+
+    when(testResultRepository.findDedupedIdsByProjectAndTags(
+            eq(projectId), anyList(), any(Pageable.class)))
+        .thenReturn(List.of());
+    when(testResultRepository.countDedupedByProjectAndTags(eq(projectId), anyList()))
+        .thenReturn(0L);
+
+    // When
+    testResultReportService.getDetailedTestResultReport(filter);
+
+    // Then
+    ArgumentCaptor<List<String>> captor = ArgumentCaptor.forClass(List.class);
+    verify(testResultRepository)
+        .findDedupedIdsByProjectAndTags(eq(projectId), captor.capture(), any(Pageable.class));
+    assertEquals(captor.getValue(), List.of("needsfix", "수정필요"), "공백·빈 값은 버리고 소문자로 넘겨야 한다");
+  }
+
+  @Test(description = "ICT-427: 태그 필터가 공백뿐이면 기존(태그 없는) 쿼리를 쓴다")
+  public void testDetailedReport_BlankTagFilterFallsBackToPlainQuery() {
+    // Given
+    String projectId = "project-1";
+    TestResultFilterDto filter =
+        TestResultFilterDto.builder()
+            .projectId(projectId)
+            .tags(List.of("   ", ""))
+            .page(0)
+            .size(10)
+            .build();
+    filter.setDefaultSort();
+    filter.setDefaultDisplayColumns();
+
+    when(testResultRepository.findDedupedIdsByProject(eq(projectId), any(Pageable.class)))
+        .thenReturn(List.of());
+    when(testResultRepository.countDedupedByProject(eq(projectId))).thenReturn(0L);
+
+    // When
+    testResultReportService.getDetailedTestResultReport(filter);
+
+    // Then
+    verify(testResultRepository).findDedupedIdsByProject(eq(projectId), any(Pageable.class));
+    verify(testResultRepository, never())
+        .findDedupedIdsByProjectAndTags(anyString(), anyList(), any(Pageable.class));
   }
 }

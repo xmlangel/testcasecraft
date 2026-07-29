@@ -119,16 +119,16 @@ const TreeHeader = ({
 
             {/* 일괄 삭제 버튼 */}
             {!isViewer(userRole) && checkedIds.length > 0 && (
-                <Button
-                  size="small"
-                  color="error"
-                  variant="outlined"
-                  startIcon={<DeleteIcon />}
-                  onClick={onBatchDelete}
-                >
-                  ({checkedIds.length})
-                </Button>
-              )}
+              <Button
+                size="small"
+                color="error"
+                variant="outlined"
+                startIcon={<DeleteIcon />}
+                onClick={onBatchDelete}
+              >
+                ({checkedIds.length})
+              </Button>
+            )}
 
             {/* 트리 뷰 모드 토글 (폴더 전용 ↔ 전체) */}
             {onToggleViewMode && (
@@ -204,14 +204,17 @@ const TreeHeader = ({
         )}
       </Box>
 
-      {/* 트리 필터 (이름 부분 일치) */}
+      {/* ICT-428: 트리 필터 (이름·표시 ID·태그 부분 일치, 콤마로 여러 개) */}
       {onFilterChange && (
         <TextField
           fullWidth
           size="small"
           value={filterText || ""}
           onChange={(e) => onFilterChange(e.target.value)}
-          placeholder={t("testcase.tree.filter.placeholder", "폴더 필터")}
+          placeholder={t(
+            "testcase.tree.filter.placeholderAll",
+            "이름·ID·태그 검색",
+          )}
           sx={{ mt: 1 }}
           inputProps={{ "data-testid": "tree-filter-input" }}
           InputProps={{
