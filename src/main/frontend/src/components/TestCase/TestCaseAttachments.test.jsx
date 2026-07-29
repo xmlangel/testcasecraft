@@ -7,8 +7,17 @@ const apiMock = vi.fn();
 vi.mock("../../context/AppContext.jsx", () => ({
   useAppContext: () => ({ api: apiMock }),
 }));
+// currentLanguage 는 useDateFormatter 가 함께 참조한다(같은 모듈이라 한 곳에서 준다).
 vi.mock("../../context/I18nContext.jsx", () => ({
-  useI18n: () => ({ t: (key, fallback) => fallback || key }),
+  useI18n: () => ({
+    t: (key, fallback) => fallback || key,
+    currentLanguage: "ko",
+  }),
+}));
+// useDateFormatter 는 모킹하지 않는다 — 공용 포맷터 경로를 실제로 태워야
+// 배열 형태 날짜가 "Invalid Date" 로 새지 않는지 검증된다.
+vi.mock("../../context/AuthContext", () => ({
+  useAuth: () => ({ user: { timezone: "Asia/Seoul" } }),
 }));
 
 import TestCaseAttachments from "./TestCaseAttachments.jsx";
@@ -68,6 +77,25 @@ describe("TestCaseAttachments", () => {
     await screen.findByText("screenshot.png");
     expect(screen.getByTestId("tc-attachment-upload")).toBeInTheDocument();
     expect(screen.getByTestId("tc-attachment-delete")).toBeInTheDocument();
+  });
+
+  it("백엔드가 배열로 준 업로드 일시도 Invalid date 없이 표기한다", async () => {
+    // 백엔드는 LocalDateTime 을 [년,월,일,시,분,초,나노초] 배열로 내보낸다.
+    // 컴포넌트가 new Date() 를 직접 호출하면 이 형태에서 "Invalid Date" 가 됐다.
+    respondWith([{ ...attachment, createdAt: [2026, 7, 27, 14, 30, 0, 0] }]);
+    render(<TestCaseAttachments testCaseId="tc-1" readOnly />);
+
+    await screen.findByText("screenshot.png");
+    expect(screen.queryByText(/Invalid Date/i)).toBeNull();
+    expect(screen.getByText(/2026/)).toBeInTheDocument();
+  });
+
+  it("업로드 일시가 없거나 깨져도 Invalid date 대신 - 로 표기한다", async () => {
+    respondWith([{ ...attachment, createdAt: "깨진값" }]);
+    render(<TestCaseAttachments testCaseId="tc-1" readOnly />);
+
+    await screen.findByText("screenshot.png");
+    expect(screen.queryByText(/Invalid Date/i)).toBeNull();
   });
 
   it("hideWhenEmpty 면 첨부가 없을 때 섹션을 렌더하지 않는다", async () => {

@@ -23,8 +23,11 @@ export function isServerUTC() {
 export function formatDate(date, locale = "ko-KR", options = {}) {
   if (!date) return "-";
 
-  const dateObj = typeof date === "string" ? safeParseDate(date) : date;
-  if (!dateObj || isNaN(dateObj.getTime())) return "-";
+  // 입력 형태(문자열·Date·LocalDateTime 배열)를 가리지 않고 safeParseDate 로 통과시킨다.
+  // 과거엔 문자열만 파싱해서, 백엔드가 주는 배열이 들어오면 getTime 호출로 터지거나
+  // "Invalid Date" 가 그대로 화면에 나갔다.
+  const dateObj = safeParseDate(date);
+  if (!dateObj) return "-";
 
   // 짧은 로케일 코드 (ko, en)를 전체 코드로 변환
   const fullLocale =
@@ -94,17 +97,10 @@ export function formatRelativeTime(
 ) {
   if (!date) return "-";
 
-  const dateObj = typeof date === "string" ? safeParseDate(date) : date;
-  const baseDateObj =
-    typeof baseDate === "string" ? safeParseDate(baseDate) : baseDate;
+  const dateObj = safeParseDate(date);
+  const baseDateObj = safeParseDate(baseDate);
 
-  if (
-    !dateObj ||
-    !baseDateObj ||
-    isNaN(dateObj.getTime()) ||
-    isNaN(baseDateObj.getTime())
-  )
-    return "-";
+  if (!dateObj || !baseDateObj) return "-";
 
   const diffMs = baseDateObj.getTime() - dateObj.getTime();
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
@@ -137,12 +133,10 @@ export function formatDuration(
 ) {
   if (!startDate || !endDate) return "-";
 
-  const start =
-    typeof startDate === "string" ? safeParseDate(startDate) : startDate;
-  const end = typeof endDate === "string" ? safeParseDate(endDate) : endDate;
+  const start = safeParseDate(startDate);
+  const end = safeParseDate(endDate);
 
-  if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime()))
-    return "-";
+  if (!start || !end) return "-";
 
   const diffMs = end.getTime() - start.getTime();
 
@@ -193,8 +187,7 @@ export function formatDuration(
  */
 export function isValidDate(date) {
   if (!date) return false;
-  const dateObj = typeof date === "string" ? safeParseDate(date) : date;
-  return dateObj instanceof Date && !isNaN(dateObj.getTime());
+  return safeParseDate(date) !== null;
 }
 
 /**

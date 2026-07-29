@@ -40,7 +40,8 @@
     "test": "vitest run --config vitest.config.mjs",
     "test:watch": "vitest --config vitest.config.mjs",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,html,md}\"",
-    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,html,md}\""
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,html,md}\"",
+    "check:dates": "node scripts/check-date-formatting.mjs"
   },
   "browserslist": {
     "production": [

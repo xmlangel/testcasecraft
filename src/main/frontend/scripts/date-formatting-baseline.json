@@ -1,0 +1,29 @@
+{
+  "_comment": "날짜 표기 안전성 baseline — 파일::규칙 별 기존 위반 건수. 새 위반만 실패시키기 위한 기준이며, 줄여 나가는 것이 목표다.",
+  "counts": {
+    "src/components/JUnit/JunitTestCaseEditor.jsx::raw-date-format": 1,
+    "src/components/JUnit/JunitVersionManager.jsx::raw-date-format": 1,
+    "src/components/JUnit/TestCaseDetailPanel.jsx::raw-date-format": 1,
+    "src/components/JiraIntegration/JiraIssueRedirect.jsx::raw-date-format": 1,
+    "src/components/JiraSettings/JiraConfigDialog.jsx::raw-date-format": 1,
+    "src/components/JiraStatus/JiraStatusDashboard.jsx::raw-date-format": 2,
+    "src/components/JunitResult/JunitResultDashboard.jsx::local-formatter": 2,
+    "src/components/OrganizationList.jsx::raw-date-format": 1,
+    "src/components/RAG/AnalysisJobList.jsx::local-formatter": 1,
+    "src/components/RAG/AnalysisSummaryManager.jsx::local-formatter": 1,
+    "src/components/RAG/ChatMessage.jsx::raw-date-format": 1,
+    "src/components/RAG/DocumentChunks.jsx::local-formatter": 1,
+    "src/components/RAG/DocumentTableSection.jsx::local-formatter": 2,
+    "src/components/RAG/utils/documentFormatUtils.js::local-formatter": 1,
+    "src/components/RAG/utils/formatUtils.js::local-formatter": 1,
+    "src/components/TestCase/JiraIntegrationReportSection.jsx::raw-date-format": 1,
+    "src/components/TestCase/TestCaseVersionHistory.jsx::raw-date-format": 1,
+    "src/components/TestCase/TestResultFilterPanel.jsx::raw-date-format": 1,
+    "src/components/TestExecution/utils.jsx::local-formatter": 2,
+    "src/components/TestResultStatisticsDashboard.jsx::raw-date-format": 1,
+    "src/components/UserProfile/ServiceApiKeyTab.jsx::local-formatter": 1,
+    "src/components/admin/GlobalDocumentManager.jsx::local-formatter": 1,
+    "src/components/admin/SchedulerConfigDialog.jsx::raw-date-format": 1,
+    "src/components/admin/SchedulerManagement.jsx::local-formatter": 1
+  }
+}
