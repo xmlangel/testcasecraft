@@ -7,6 +7,7 @@ import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.TestResultAttachment;
 import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.util.JiraKeyUtils;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -33,10 +34,11 @@ public class JiraIntegrationService {
   @Value("${app.jira.auto-comment.enabled:true}")
   private boolean autoCommentEnabled;
 
-  @Value("${app.jira.issue-key.pattern:^[A-Z]+-\\d+$}")
+  @Value("${app.jira.issue-key.pattern:^[A-Z][A-Z0-9]+-[0-9]+$}")
   private String issueKeyPattern;
 
-  private static final Pattern JIRA_ISSUE_PATTERN = Pattern.compile("[A-Z]+-\\d+");
+  private static final Pattern JIRA_ISSUE_PATTERN =
+      Pattern.compile(JiraKeyUtils.JIRA_ISSUE_KEY_REGEX);
 
   /** 테스트 실행 완료 시 자동으로 JIRA 이슈에 코멘트 추가 */
   @Async

@@ -5,6 +5,7 @@ import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.model.JiraConfig;
 import com.testcase.testcasemanagement.repository.JiraConfigRepository;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
+import com.testcase.testcasemanagement.util.JiraKeyUtils;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -724,9 +725,12 @@ public class JiraConfigService {
 
     String trimmedQuery = query.trim();
 
-    // 이슈 키 패턴이면 정확 매치 (예: TEST-123)
-    if (trimmedQuery.matches("^[A-Z]+-\\d+$")) {
-      return "key = \"" + trimmedQuery + "\"";
+    // 이슈 키 패턴이면 정확 매치 (예: TEST-123, AGV2-100)
+    // 프로젝트 키에 숫자가 섞인 키(AGV2)와 소문자 입력(agv2-100)도 키 검색으로 처리한다 —
+    // 과거엔 "^[A-Z]+-\\d+$" 라 둘 다 텍스트 검색으로 흘러가 결과가 0건이었다.
+    String normalizedKey = JiraKeyUtils.normalizeIssueKey(trimmedQuery);
+    if (normalizedKey != null) {
+      return "key = \"" + normalizedKey + "\"";
     }
 
     // 그 외에는 항상 이스케이프된 텍스트 검색으로만 변환한다.

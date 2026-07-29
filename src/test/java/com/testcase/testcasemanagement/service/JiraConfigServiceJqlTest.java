@@ -41,6 +41,31 @@ public class JiraConfigServiceJqlTest {
     assertEquals(buildJql("TEST-123", "PROJ"), "key = \"TEST-123\"");
   }
 
+  /**
+   * 프로젝트 키에 숫자가 섞인 이슈 키(AGV2-100)도 키 검색이어야 한다.
+   *
+   * <p>과거 패턴이 "^[A-Z]+-\\d+$" 라서 AGV2 처럼 숫자를 포함한 프로젝트 키가 텍스트 검색(summary/description ~)으로 흘러갔고, 설정된
+   * testProjectKey 로까지 스코프가 걸려 검색 결과가 항상 0건이었다.
+   */
+  @Test
+  public void issueKeyWithDigitsInProjectKey_exactMatch() throws Exception {
+    assertEquals(buildJql("AGV2-100", "PROJ"), "key = \"AGV2-100\"");
+  }
+
+  /** 소문자로 입력해도 키 검색으로 정규화돼야 한다. */
+  @Test
+  public void lowercaseIssueKey_normalizedToExactMatch() throws Exception {
+    assertEquals(buildJql("agv2-100", "PROJ"), "key = \"AGV2-100\"");
+    assertEquals(buildJql("  test-123  ", "PROJ"), "key = \"TEST-123\"");
+  }
+
+  /** 키 형식이 아닌 입력은 여전히 이스케이프된 텍스트 검색이어야 한다(주입 봉쇄 유지). */
+  @Test
+  public void nonKeyInput_staysTextSearch() throws Exception {
+    String jql = buildJql("AGV2-100 크래시", "PROJ");
+    assertTrue(jql.startsWith("project = \"PROJ\" AND (summary ~ \"AGV2-100 크래시\""), jql);
+  }
+
   @Test
   public void plainTextWithJqlKeywords_notPassedThroughAsRawJql() throws Exception {
     // 과거엔 이 입력이 원문 JQL 로 통과됐다 — 이제 텍스트 검색으로만 변환돼야 한다.

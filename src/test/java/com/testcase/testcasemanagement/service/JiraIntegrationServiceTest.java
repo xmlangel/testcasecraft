@@ -34,7 +34,8 @@ public class JiraIntegrationServiceTest {
     jiraIntegrationService =
         new JiraIntegrationService(jiraConfigService, testResultRepository, minIOService);
     // @Value 로 주입되는 필드의 기본값을 ReflectionTestUtils 로 설정
-    ReflectionTestUtils.setField(jiraIntegrationService, "issueKeyPattern", "^[A-Z]+-\\d+$");
+    ReflectionTestUtils.setField(
+        jiraIntegrationService, "issueKeyPattern", "^[A-Z][A-Z0-9]+-[0-9]+$");
     ReflectionTestUtils.setField(jiraIntegrationService, "autoCommentEnabled", true);
   }
 

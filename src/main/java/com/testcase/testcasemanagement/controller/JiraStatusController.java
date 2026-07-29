@@ -6,6 +6,7 @@ import com.testcase.testcasemanagement.dto.JiraStatusSummaryDto;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.JiraStatusAggregationService;
+import com.testcase.testcasemanagement.util.JiraKeyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -371,8 +372,8 @@ public class JiraStatusController {
       return false;
     }
 
-    // JIRA 이슈 키 패턴: 프로젝트키-숫자 (예: TEST-123)
-    return jiraId.trim().matches("^[A-Z]+-\\d+$");
+    // JIRA 이슈 키 패턴: 프로젝트키-숫자 (예: TEST-123, AGV2-100)
+    return jiraId.trim().matches(JiraKeyUtils.JIRA_ISSUE_KEY_EXACT_REGEX);
   }
 
   /**

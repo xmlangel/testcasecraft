@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
+import com.testcase.testcasemanagement.util.JiraKeyUtils;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -799,8 +800,8 @@ public class JiraApiService {
       return false;
     }
 
-    // JIRA 이슈 키 패턴: 프로젝트키-숫자 (예: TEST-123)
-    return issueKey.trim().matches("^[A-Z]+-\\d+$");
+    // JIRA 이슈 키 패턴: 프로젝트키-숫자 (예: TEST-123, AGV2-100)
+    return issueKey.trim().matches(JiraKeyUtils.JIRA_ISSUE_KEY_EXACT_REGEX);
   }
 
   // Private helper methods
