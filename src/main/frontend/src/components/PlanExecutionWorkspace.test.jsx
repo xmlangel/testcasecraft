@@ -276,4 +276,23 @@ describe("PlanExecutionWorkspace", () => {
       ).toBeInTheDocument(),
     );
   });
+  it("실행 목록에 플랜 이름이 붙고 눌러서 그 플랜으로 넘어간다", () => {
+    const onOpenPlan = vi.fn();
+    setup({ mode: "executions", onOpenPlan });
+
+    const link = screen.getByTestId("workspace-execution-plan-link-ex1");
+    expect(link).toHaveTextContent("회귀 플랜");
+
+    fireEvent.click(link);
+    expect(onOpenPlan).toHaveBeenCalledWith("tp1");
+  });
+
+  it("플랜 링크를 눌러도 실행이 선택되지는 않는다", async () => {
+    const onOpenPlan = vi.fn();
+    setup({ mode: "executions", onOpenPlan });
+
+    fireEvent.click(screen.getByTestId("workspace-execution-plan-link-ex2"));
+    expect(onOpenPlan).toHaveBeenCalledWith("tp2");
+    expect(screen.queryByTestId("stub-execution-form")).toBeNull();
+  });
 });

@@ -19,6 +19,7 @@ import {
   InputAdornment,
   Tooltip,
   Collapse,
+  Link,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -73,6 +74,7 @@ function PlanExecutionWorkspace({
   projectId,
   initialPlanId = null,
   initialExecutionId = null,
+  onOpenPlan,
 }) {
   const { t } = useI18n();
   const {
@@ -109,6 +111,13 @@ function PlanExecutionWorkspace({
       ),
     [testExecutions, projectId],
   );
+
+  // 실행에 붙은 플랜 이름 — 실행 목록에서 어느 플랜의 실행인지 바로 보이게
+  const planNameById = useMemo(() => {
+    const map = new Map();
+    plansOfProject.forEach((plan) => map.set(String(plan.id), plan.name));
+    return map;
+  }, [plansOfProject]);
 
   // 왼쪽 목록 — 모드에 따라 플랜 또는 실행
   const primaryItems = useMemo(() => {
@@ -317,14 +326,44 @@ function PlanExecutionWorkspace({
                         noWrap: true,
                         fontWeight: selected ? 700 : 400,
                       }}
+                      secondaryTypographyProps={{ component: "div" }}
                       secondary={
-                        mode === "executions" && item.status ? (
-                          <Chip
-                            size="small"
-                            label={item.status}
-                            color={statusColor(item.status)}
-                            sx={{ height: 18, fontSize: "0.65rem" }}
-                          />
+                        mode === "executions" ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {item.status && (
+                              <Chip
+                                size="small"
+                                label={item.status}
+                                color={statusColor(item.status)}
+                                sx={{ height: 18, fontSize: "0.65rem" }}
+                              />
+                            )}
+                            {/* 어느 플랜의 실행인지 이름으로 보여주고, 눌러서 그 플랜으로 넘어간다 */}
+                            {item.testPlanId &&
+                              planNameById.has(String(item.testPlanId)) && (
+                                <Link
+                                  component="button"
+                                  type="button"
+                                  underline="hover"
+                                  variant="caption"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onOpenPlan?.(item.testPlanId);
+                                  }}
+                                  data-testid={`workspace-execution-plan-link-${item.id}`}
+                                  sx={{ textAlign: "left" }}
+                                >
+                                  {planNameById.get(String(item.testPlanId))}
+                                </Link>
+                              )}
+                          </Box>
                         ) : undefined
                       }
                     />
@@ -544,6 +583,7 @@ PlanExecutionWorkspace.propTypes = {
   projectId: PropTypes.string,
   initialPlanId: PropTypes.string,
   initialExecutionId: PropTypes.string,
+  onOpenPlan: PropTypes.func,
 };
 
 export default PlanExecutionWorkspace;

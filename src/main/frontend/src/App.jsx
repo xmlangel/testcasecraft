@@ -1273,11 +1273,12 @@ const AppContent = () => {
                     {tabIndex === 3 &&
                       isSidebarMode &&
                       (isCaseResultRoute ? (
-                        <TestCaseResultPage />
+                        <TestCaseResultPage embedded />
                       ) : (
                         <PlanExecutionWorkspace
                           mode="executions"
                           projectId={activeProject?.id}
+                          onOpenPlan={handleEditTestPlan}
                           initialExecutionId={
                             editingTestExecutionId &&
                             editingTestExecutionId !== "new"
