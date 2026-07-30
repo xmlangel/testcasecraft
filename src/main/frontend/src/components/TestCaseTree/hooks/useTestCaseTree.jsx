@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { getAncestorIds, getAllChildIds } from "../../../utils/treeUtils.jsx";
 import { isViewer } from "../utils/permissionUtils.js";
+import { collectQueryScopedIds } from "../utils/treeFilter.js";
 
 /**
  * 테스트케이스 트리 UI 상태 관리 훅
@@ -20,6 +21,8 @@ export const useTestCaseTree = ({
   setActiveTestCase,
   onSelectTestCase,
   userRole,
+  filterText = "",
+  folderOnlyView = false,
 }) => {
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -57,20 +60,66 @@ export const useTestCaseTree = ({
     [filteredTestCases],
   );
 
+  // ICT-431: 검색 결과에 속하는 노드 집합(자신 또는 조상이 걸린 것).
+  // 검색이 없으면 null = 제한 없음. 폴더 전용 뷰에서는 케이스가 화면에 없으므로 뺀다.
+  const queryScopedIds = useMemo(
+    () =>
+      collectQueryScopedIds(
+        folderOnlyView
+          ? filteredTestCases.filter((tc) => tc && tc.type === "folder")
+          : filteredTestCases,
+        filterText,
+      ),
+    [filteredTestCases, filterText, folderOnlyView],
+  );
+
   // 전체 선택 대상.
   // - selectable 모드(테스트플랜 케이스 선택): 케이스만 (폴더는 플랜 멤버가 아님)
   // - 일반 모드: 폴더 + 케이스 모두. 전체선택 후 "다른 프로젝트로 이동/복사" 시
   //   폴더가 빠지면 구조가 평탄화되므로 폴더도 포함해야 한다.
-  const allIds = useMemo(
+  // - ICT-431: 검색으로 좁혀둔 상태면 걸린 것만. 안 보이는 항목이 딸려 들어가면
+  //   플랜에 엉뚱한 케이스가 담기고, 일반 모드에서는 일괄 삭제 대상이 번진다.
+  const checkTargetIds = useMemo(() => {
+    const eligible = filteredTestCases.filter(
+      (tc) => tc && (selectable ? tc.type === "testcase" : true),
+    );
+    const scoped = queryScopedIds
+      ? eligible.filter((tc) => queryScopedIds.has(tc.id))
+      : eligible;
+    return scoped.map((tc) => tc.id);
+  }, [filteredTestCases, selectable, queryScopedIds]);
+
+  // 검색 결과 기준 카운트 (헤더에 "걸린 수 / 전체 수" 로 표시)
+  const matchedTestCaseCount = useMemo(
     () =>
-      filteredTestCases
-        .filter((tc) => tc && (selectable ? tc.type === "testcase" : true))
-        .map((tc) => tc.id),
-    [filteredTestCases, selectable],
+      queryScopedIds
+        ? filteredTestCases.filter(
+            (tc) => tc && tc.type === "testcase" && queryScopedIds.has(tc.id),
+          ).length
+        : totalTestCaseCount,
+    [filteredTestCases, queryScopedIds, totalTestCaseCount],
   );
+  const matchedFolderCount = useMemo(
+    () =>
+      queryScopedIds
+        ? filteredTestCases.filter(
+            (tc) => tc && tc.type === "folder" && queryScopedIds.has(tc.id),
+          ).length
+        : totalFolderCount,
+    [filteredTestCases, queryScopedIds, totalFolderCount],
+  );
+
+  const checkedTargetCount = useMemo(() => {
+    const checked = new Set(checkedIds);
+    return checkTargetIds.filter((id) => checked.has(id)).length;
+  }, [checkTargetIds, checkedIds]);
+
   const isAllChecked =
-    allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));
-  const isIndeterminate = checkedIds.length > 0 && !isAllChecked;
+    checkTargetIds.length > 0 && checkedTargetCount === checkTargetIds.length;
+  // 검색 중에는 "걸린 것 중 일부만 선택" 일 때만 중간 상태. 필터 밖 선택은 셈에서 뺀다.
+  const isIndeterminate = queryScopedIds
+    ? checkedTargetCount > 0 && !isAllChecked
+    : checkedIds.length > 0 && !isAllChecked;
 
   // selectable 모드: 외부 selectedIds 동기화
   useEffect(() => {
@@ -97,15 +146,23 @@ export const useTestCaseTree = ({
 
   const handleCheckAll = useCallback(
     (event) => {
+      // 검색 중이면 필터 밖 선택은 건드리지 않는다.
+      // "smoke 걸러 전부 담고, regression 걸러 또 담기" 가 되어야 하므로.
+      let next;
       if (event.target.checked) {
-        setCheckedIds(allIds);
-        if (selectable && onSelectionChange) onSelectionChange(allIds);
+        next = queryScopedIds
+          ? Array.from(new Set([...checkedIds, ...checkTargetIds]))
+          : checkTargetIds;
+      } else if (queryScopedIds) {
+        const targets = new Set(checkTargetIds);
+        next = checkedIds.filter((id) => !targets.has(id));
       } else {
-        setCheckedIds([]);
-        if (selectable && onSelectionChange) onSelectionChange([]);
+        next = [];
       }
+      setCheckedIds(next);
+      if (selectable && onSelectionChange) onSelectionChange(next);
     },
-    [allIds, selectable, onSelectionChange],
+    [checkTargetIds, checkedIds, queryScopedIds, selectable, onSelectionChange],
   );
 
   const handleToggleNode = useCallback((e, nodeId) => {
@@ -118,7 +175,11 @@ export const useTestCaseTree = ({
 
   const updateCheckedState = useCallback(
     (nodeId, isChecked) => {
-      const childIds = getAllChildIds(filteredTestCases, nodeId);
+      // ICT-431: 검색 중 폴더를 체크하면 걸린 하위 항목만 따라온다.
+      // 클릭한 노드 자체는 화면에 있으니 항상 포함.
+      const childIds = getAllChildIds(filteredTestCases, nodeId).filter(
+        (id) => !queryScopedIds || queryScopedIds.has(id),
+      );
       let newCheckedIds;
       if (isChecked) {
         const idsToAdd = [nodeId, ...childIds];
@@ -133,7 +194,13 @@ export const useTestCaseTree = ({
       }
       return newCheckedIds;
     },
-    [filteredTestCases, checkedIds, selectable, onSelectionChange],
+    [
+      filteredTestCases,
+      checkedIds,
+      queryScopedIds,
+      selectable,
+      onSelectionChange,
+    ],
   );
 
   const handleSelect = useCallback(
@@ -215,6 +282,10 @@ export const useTestCaseTree = ({
     filteredTestCases,
     totalTestCaseCount,
     totalFolderCount,
+    queryScopedIds,
+    checkTargetIds,
+    matchedTestCaseCount,
+    matchedFolderCount,
     isAllChecked,
     isIndeterminate,
 

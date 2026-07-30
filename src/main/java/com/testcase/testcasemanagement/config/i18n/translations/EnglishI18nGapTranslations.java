@@ -629,14 +629,16 @@ public class EnglishI18nGapTranslations {
     // ICT-427 / ICT-428
     createTranslationIfNotExists("testExecution.filter.tags", languageCode, "Tags", createdBy);
     createTranslationIfNotExists(
-        "testExecution.filter.tags.placeholder",
-        languageCode,
-        "Select or type tags",
-        createdBy);
+        "testExecution.filter.tags.placeholder", languageCode, "Select or type tags", createdBy);
     createTranslationIfNotExists(
-        "testcase.tree.filter.placeholderAll",
+        "testcase.tree.filter.placeholderAll", languageCode, "Search name, ID, or tag", createdBy);
+    // ICT-431
+    createTranslationIfNotExists(
+        "testcase.tree.checkAll.all", languageCode, "Select all", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.checkAll.filtered",
         languageCode,
-        "Search name, ID, or tag",
+        "Select all search results (selections outside the search are kept)",
         createdBy);
     createTranslationIfNotExists(
         "testExecution.list.noMoreExecutions",

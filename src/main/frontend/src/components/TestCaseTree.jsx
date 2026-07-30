@@ -16,7 +16,6 @@ import { useInputMode } from "../context/InputModeContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
 import { isViewer } from "./TestCaseTree/utils/permissionUtils.js";
-import { matchesTreeQuery } from "./TestCaseTree/utils/treeFilter.js";
 import {
   isFolder,
   listToTree,
@@ -115,6 +114,9 @@ const TestCaseTree = ({
     setActiveTestCase,
     onSelectTestCase,
     userRole: projectRole,
+    // ICT-431: 검색으로 좁힌 상태에서는 선택 대상도 걸린 항목으로 제한된다
+    filterText,
+    folderOnlyView,
   });
 
   // ── 2. CRUD / 순서 / 버전 액션 ────────────────────────────────────────────
@@ -212,44 +214,27 @@ const TestCaseTree = ({
   );
 
   // 필터 적용: 일치 노드 + 조상 경로 + 하위 항목 유지
+  // ICT-428: 이름 외에 표시 ID·태그로도 찾는다 (판정은 treeFilter 로 분리)
+  // ICT-431: 일치 판정은 트리 상태 훅과 같은 집합을 쓴다 — 화면에 보이는 것과
+  //          선택 대상이 어긋나면 안 되므로 규칙을 두 곳에 두지 않는다.
   const { treeSourceData, filterMatchedFolderIds } = useMemo(() => {
-    const query = filterText.trim();
-    if (!query) {
+    const scoped = treeState.queryScopedIds;
+    if (!scoped) {
       return { treeSourceData: baseTreeSource, filterMatchedFolderIds: null };
     }
 
     const itemMap = new Map(baseTreeSource.map((item) => [item.id, item]));
-    const matched = new Set();
-    // ICT-428: 이름 외에 표시 ID·태그로도 찾는다 (판정은 treeFilter 로 분리)
-    baseTreeSource.forEach((item) => {
-      if (matchesTreeQuery(item, query)) {
-        matched.add(item.id);
-      }
-    });
 
+    // 검색 결과 + 그 조상 경로만 남긴다 (경로 폴더는 길을 보여주려고 유지)
     const keep = new Set();
     baseTreeSource.forEach((item) => {
-      // 자신 또는 조상 중 일치 항목이 있으면 유지
+      if (!scoped.has(item.id)) return;
       let cur = item;
       const visited = new Set();
-      let shouldKeep = false;
       while (cur && !visited.has(cur.id)) {
         visited.add(cur.id);
-        if (matched.has(cur.id)) {
-          shouldKeep = true;
-          break;
-        }
+        keep.add(cur.id);
         cur = itemMap.get(cur.parentId);
-      }
-      if (!shouldKeep) return;
-
-      // 자신 + 조상 경로 전체 유지
-      let pathCur = item;
-      const pathVisited = new Set();
-      while (pathCur && !pathVisited.has(pathCur.id)) {
-        pathVisited.add(pathCur.id);
-        keep.add(pathCur.id);
-        pathCur = itemMap.get(pathCur.parentId);
       }
     });
 
@@ -261,7 +246,7 @@ const TestCaseTree = ({
       treeSourceData: filtered,
       filterMatchedFolderIds: folderIds,
     };
-  }, [baseTreeSource, filterText]);
+  }, [baseTreeSource, treeState.queryScopedIds]);
 
   const treeData = useMemo(
     () =>
@@ -552,6 +537,9 @@ const TestCaseTree = ({
         isIndeterminate={treeState.isIndeterminate}
         totalFolderCount={treeState.totalFolderCount}
         totalTestCaseCount={treeState.totalTestCaseCount}
+        matchedFolderCount={treeState.matchedFolderCount}
+        matchedTestCaseCount={treeState.matchedTestCaseCount}
+        filterActive={Boolean(treeState.queryScopedIds)}
         checkedIds={treeState.checkedIds}
         orderEditMode={actions.orderEditMode}
         orderChanged={actions.orderChanged}

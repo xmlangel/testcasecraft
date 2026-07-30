@@ -717,6 +717,14 @@ public class I18nGapKeysInitializer {
     // ICT-428: 트리 검색 대상 확장 (이름·표시 ID·태그)
     createTranslationKeyIfNotExists(
         "testcase.tree.filter.placeholderAll", "testcase", "ICT-428 트리 ID·태그 검색", "이름·ID·태그 검색");
+    // ICT-431: 검색 결과 기준 전체 선택
+    createTranslationKeyIfNotExists(
+        "testcase.tree.checkAll.all", "testcase", "ICT-431 검색 결과 선택", "전체 선택");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.checkAll.filtered",
+        "testcase",
+        "ICT-431 검색 결과 선택",
+        "검색 결과 전체 선택 (검색 밖 선택은 유지)");
     createTranslationKeyIfNotExists(
         "testExecution.list.noMoreExecutions",
         "testExecution",

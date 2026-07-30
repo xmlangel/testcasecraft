@@ -29,6 +29,7 @@ import { isViewer, canAdd } from "../utils/permissionUtils.js";
 /**
  * 테스트케이스 트리 헤더 컴포넌트
  * - Select All 체크박스 + 폴더/케이스 수 표시
+ *   (ICT-431: 검색 중이면 "걸린 수 / 전체 수" 로 표시하고 체크박스는 걸린 것만 선택)
  * - 우측 버튼 그룹: 삭제, 새로고침, 추가, 순서편집
  */
 const TreeHeader = ({
@@ -38,6 +39,9 @@ const TreeHeader = ({
   isIndeterminate,
   totalFolderCount,
   totalTestCaseCount,
+  matchedFolderCount,
+  matchedTestCaseCount,
+  filterActive = false,
   checkedIds,
   orderEditMode,
   orderChanged,
@@ -76,16 +80,32 @@ const TreeHeader = ({
               indeterminate={isIndeterminate}
               onChange={onCheckAll}
               size="small"
+              title={
+                filterActive
+                  ? t(
+                      "testcase.tree.checkAll.filtered",
+                      "검색 결과 전체 선택 (검색 밖 선택은 유지)",
+                    )
+                  : t("testcase.tree.checkAll.all", "전체 선택")
+              }
               inputProps={{ "data-testid": "testcase-check-all-input" }}
             />
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                 <FolderIcon fontSize="small" color="action" />
-                <Typography variant="body2">{totalFolderCount}</Typography>
+                <Typography variant="body2" data-testid="tree-folder-count">
+                  {filterActive
+                    ? `${matchedFolderCount ?? 0}/${totalFolderCount}`
+                    : totalFolderCount}
+                </Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                 <DescriptionIcon fontSize="small" color="action" />
-                <Typography variant="body2">{totalTestCaseCount}</Typography>
+                <Typography variant="body2" data-testid="tree-testcase-count">
+                  {filterActive
+                    ? `${matchedTestCaseCount ?? 0}/${totalTestCaseCount}`
+                    : totalTestCaseCount}
+                </Typography>
               </Box>
             </Box>
           </Box>
