@@ -35,8 +35,10 @@ import {
   useTheme as useCustomTheme,
 } from "./context/ThemeContext.jsx";
 import { useTranslation } from "./context/I18nContext.jsx";
+import { useNavMode } from "./context/NavModeContext.jsx";
 import ProjectManager from "./components/ProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
+import ProjectSidebar from "./components/ProjectSidebar.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
 import TestCaseHybridForm from "./components/TestCase/TestCaseHybridForm.jsx";
 import TestPlanForm from "./components/TestPlanForm.jsx";
@@ -81,6 +83,8 @@ import {
   Brightness4 as Brightness4Icon,
   Brightness7 as Brightness7Icon,
   HelpOutline as HelpOutlineIcon,
+  ViewSidebar as ViewSidebarIcon,
+  Tab as TabViewIcon,
 } from "@mui/icons-material";
 
 const STORAGEKEY = "testcase-manager-ui-state";
@@ -195,6 +199,8 @@ const AppContent = () => {
   }, []);
 
   const { isRagEnabled } = useRAG();
+  // 사용자가 고른 네비게이션 구조 (가로 탭 / 좌측 사이드바)
+  const { isSidebarMode, toggleNavMode } = useNavMode();
   // 탐색 세션 탭 비노출 상태에서는 직접 접근도 허용하지 않는다.
   const EXPLORATORY_TAB = showExploratorySessionTab
     ? isRagEnabled
@@ -923,6 +929,26 @@ const AppContent = () => {
             </IconButton>
           </Box>
 
+          {/* 네비게이션 구조 전환 (가로 탭 ↔ 좌측 사이드바) */}
+          <Box sx={{ ml: 1 }}>
+            <IconButton
+              color="inherit"
+              onClick={toggleNavMode}
+              aria-label="toggle navigation layout"
+              data-testid="nav-mode-toggle"
+              title={
+                isSidebarMode
+                  ? t("projectNav.mode.switchToTabs", "가로 탭 구조로 보기")
+                  : t(
+                      "projectNav.mode.switchToSidebar",
+                      "좌측 메뉴 구조로 보기",
+                    )
+              }
+            >
+              {isSidebarMode ? <TabViewIcon /> : <ViewSidebarIcon />}
+            </IconButton>
+          </Box>
+
           {/* Dark/Light 모드 토글 버튼 */}
           <Box sx={{ ml: 1 }}>
             <IconButton
@@ -1070,190 +1096,211 @@ const AppContent = () => {
                   onTabChange={handleTabChange}
                   showExploratoryTab={showExploratorySessionTab}
                 />
-                {tabIndex === 0 && (
-                  <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
-                    <Dashboard />
-                  </Paper>
-                )}
-                {tabIndex === 1 && (
+                {/* 사이드바 모드: 좌측 영역 메뉴 + 본문. 탭 모드에서는 래퍼만 통과한다. */}
+                <Box sx={{ display: "flex", alignItems: "stretch" }}>
+                  {isSidebarMode && (
+                    <ProjectSidebar
+                      tabIndex={tabIndex}
+                      onSelect={(nextIndex) => handleTabChange(null, nextIndex)}
+                      isRagEnabled={isRagEnabled}
+                      showExploratory={showExploratorySessionTab}
+                    />
+                  )}
                   <Box
-                    ref={testcaseFrameRef}
                     sx={{
-                      display: "flex",
-                      // 측정된 시작 위치부터 화면 바닥까지(하단 여백 12px) 채움
-                      height: `calc(100vh - ${testcaseFrameTop + 12}px)`,
+                      flexGrow: 1,
+                      minWidth: 0,
+                      pl: isSidebarMode ? 1.5 : 0,
                     }}
                   >
-                    {/* 트리 토글 버튼 - ICT-315 */}
-                    {!treeVisible && (
+                    {tabIndex === 0 && (
+                      <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                        <Dashboard />
+                      </Paper>
+                    )}
+                    {tabIndex === 1 && (
                       <Box
+                        ref={testcaseFrameRef}
                         sx={{
-                          position: "absolute",
-                          left: 16,
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          zIndex: 10,
-                          backgroundColor: "background.paper",
-                          boxShadow: 2,
-                          borderRadius: 1,
+                          display: "flex",
+                          // 측정된 시작 위치부터 화면 바닥까지(하단 여백 12px) 채움
+                          height: `calc(100vh - ${testcaseFrameTop + 12}px)`,
                         }}
                       >
-                        <IconButton
-                          onClick={handleTreeToggle}
-                          size="small"
-                          sx={{
-                            color: "primary.main",
-                            "&:hover": { backgroundColor: "action.hover" },
-                          }}
-                          title={t("testcase.tree.tooltip.open")}
-                        >
-                          <ChevronRightIcon />
-                        </IconButton>
-                      </Box>
-                    )}
-
-                    {/* 트리 영역 */}
-                    {treeVisible && (
-                      <>
-                        <Paper
-                          sx={{
-                            width: treeWidth,
-                            minWidth,
-                            maxWidth,
-                            height: "100%",
-                            transition: "width 0.3s ease-in-out",
-                            display: "flex",
-                            flexDirection: "column",
-                            p: 2,
-                            position: "relative",
-                          }}
-                          elevation={3}
-                        >
-                          {/* 트리 닫기 버튼 */}
+                        {/* 트리 토글 버튼 - ICT-315 */}
+                        {!treeVisible && (
                           <Box
                             sx={{
                               position: "absolute",
-                              right: 8,
-                              top: 8,
-                              zIndex: 5,
+                              left: 16,
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                              zIndex: 10,
+                              backgroundColor: "background.paper",
+                              boxShadow: 2,
+                              borderRadius: 1,
                             }}
                           >
                             <IconButton
                               onClick={handleTreeToggle}
                               size="small"
                               sx={{
-                                color: "text.secondary",
-                                "&:hover": {
-                                  backgroundColor: "action.hover",
-                                  color: "primary.main",
-                                },
+                                color: "primary.main",
+                                "&:hover": { backgroundColor: "action.hover" },
                               }}
-                              title={t("testcase.tree.tooltip.close")}
+                              title={t("testcase.tree.tooltip.open")}
                             >
-                              <ChevronLeftIcon />
+                              <ChevronRightIcon />
                             </IconButton>
                           </Box>
+                        )}
 
-                          <TestCaseTree
+                        {/* 트리 영역 */}
+                        {treeVisible && (
+                          <>
+                            <Paper
+                              sx={{
+                                width: treeWidth,
+                                minWidth,
+                                maxWidth,
+                                height: "100%",
+                                transition: "width 0.3s ease-in-out",
+                                display: "flex",
+                                flexDirection: "column",
+                                p: 2,
+                                position: "relative",
+                              }}
+                              elevation={3}
+                            >
+                              {/* 트리 닫기 버튼 */}
+                              <Box
+                                sx={{
+                                  position: "absolute",
+                                  right: 8,
+                                  top: 8,
+                                  zIndex: 5,
+                                }}
+                              >
+                                <IconButton
+                                  onClick={handleTreeToggle}
+                                  size="small"
+                                  sx={{
+                                    color: "text.secondary",
+                                    "&:hover": {
+                                      backgroundColor: "action.hover",
+                                      color: "primary.main",
+                                    },
+                                  }}
+                                  title={t("testcase.tree.tooltip.close")}
+                                >
+                                  <ChevronLeftIcon />
+                                </IconButton>
+                              </Box>
+
+                              <TestCaseTree
+                                projectId={
+                                  typeof activeProject === "object"
+                                    ? activeProject.id
+                                    : activeProject
+                                }
+                                onSelectTestCase={handleSelectTestCase}
+                                selectedTestCaseId={activeTestCaseId}
+                              />
+                            </Paper>
+                            <Resizer onDrag={handleResizerDrag} />
+                          </>
+                        )}
+
+                        {/* 입력폼/스프레드시트 영역 — 페이지 프레임(100vh-180px) 안에서 내부 스크롤 */}
+                        <Box
+                          sx={{
+                            flex: 1,
+                            minWidth: 0,
+                            ml: treeVisible ? 1 : 0,
+                            transition: "margin-left 0.3s ease-in-out",
+                            height: "100%",
+                            overflowY: "auto",
+                          }}
+                        >
+                          <TestCaseHybridForm
                             projectId={
                               typeof activeProject === "object"
                                 ? activeProject.id
                                 : activeProject
                             }
+                            testCaseId={activeTestCaseId}
                             onSelectTestCase={handleSelectTestCase}
-                            selectedTestCaseId={activeTestCaseId}
                           />
-                        </Paper>
-                        <Resizer onDrag={handleResizerDrag} />
-                      </>
+                        </Box>
+                      </Box>
                     )}
-
-                    {/* 입력폼/스프레드시트 영역 — 페이지 프레임(100vh-180px) 안에서 내부 스크롤 */}
-                    <Box
-                      sx={{
-                        flex: 1,
-                        minWidth: 0,
-                        ml: treeVisible ? 1 : 0,
-                        transition: "margin-left 0.3s ease-in-out",
-                        height: "100%",
-                        overflowY: "auto",
-                      }}
-                    >
-                      <TestCaseHybridForm
-                        projectId={
-                          typeof activeProject === "object"
-                            ? activeProject.id
-                            : activeProject
-                        }
-                        testCaseId={activeTestCaseId}
-                        onSelectTestCase={handleSelectTestCase}
-                      />
-                    </Box>
-                  </Box>
-                )}
-                {tabIndex === 2 && (
-                  <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
-                    {showTestPlanForm ? (
-                      <TestPlanForm
-                        testPlanId={editingTestPlanId}
-                        onCancel={handleCloseTestPlanForm}
-                        onSave={handleCloseTestPlanForm}
-                      />
-                    ) : (
-                      <TestPlanList
-                        onNewTestPlan={handleNewTestPlan}
-                        onEditTestPlan={handleEditTestPlan}
-                        onStartExecution={handleStartExecutionFromPlan}
-                        onEditExecution={handleEditTestExecution}
-                        onViewExecution={handleViewTestExecution}
-                      />
+                    {tabIndex === 2 && (
+                      <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                        {showTestPlanForm ? (
+                          <TestPlanForm
+                            testPlanId={editingTestPlanId}
+                            onCancel={handleCloseTestPlanForm}
+                            onSave={handleCloseTestPlanForm}
+                          />
+                        ) : (
+                          <TestPlanList
+                            onNewTestPlan={handleNewTestPlan}
+                            onEditTestPlan={handleEditTestPlan}
+                            onStartExecution={handleStartExecutionFromPlan}
+                            onEditExecution={handleEditTestExecution}
+                            onViewExecution={handleViewTestExecution}
+                          />
+                        )}
+                      </Paper>
                     )}
-                  </Paper>
-                )}
-                {tabIndex === 3 && (
-                  <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
-                    {showTestExecutionForm ? (
-                      <TestExecutionForm
-                        executionId={editingTestExecutionId}
-                        projectId={activeProject?.id}
-                        initialTestPlanId={selectedTestPlanIdForNewExecution}
-                        onCancel={handleCloseTestExecutionForm}
-                        onSave={handleCloseTestExecutionForm}
-                      />
-                    ) : (
-                      <TestExecutionList
-                        onNewExecution={handleNewTestExecution}
-                        onEditExecution={handleEditTestExecution}
-                      />
+                    {tabIndex === 3 && (
+                      <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                        {showTestExecutionForm ? (
+                          <TestExecutionForm
+                            executionId={editingTestExecutionId}
+                            projectId={activeProject?.id}
+                            initialTestPlanId={
+                              selectedTestPlanIdForNewExecution
+                            }
+                            onCancel={handleCloseTestExecutionForm}
+                            onSave={handleCloseTestExecutionForm}
+                          />
+                        ) : (
+                          <TestExecutionList
+                            onNewExecution={handleNewTestExecution}
+                            onEditExecution={handleEditTestExecution}
+                          />
+                        )}
+                      </Paper>
                     )}
-                  </Paper>
-                )}
-                {tabIndex === 4 && (
-                  <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
-                    <TestResultMainPage />
-                  </Paper>
-                )}
-                {tabIndex === 5 && (
-                  <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
-                    <JunitResultDashboard />
+                    {tabIndex === 4 && (
+                      <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                        <TestResultMainPage />
+                      </Paper>
+                    )}
+                    {tabIndex === 5 && (
+                      <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                        <JunitResultDashboard />
+                      </Box>
+                    )}
+                    {/* RAG 문서 탭: RAG 활성화 + tabIndex 6일 때만 표시 */}
+                    {tabIndex === 6 && isRagEnabled && activeProject && (
+                      <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                        <RAGDocumentManager projectId={activeProject.id} />
+                      </Box>
+                    )}
+                    {/* 탘색 세션 탭: RAG 활성화 시 tabIndex 7, 비활성화 시 tabIndex 6 */}
+                    {showExploratorySessionTab &&
+                      tabIndex === EXPLORATORY_TAB &&
+                      activeProject && (
+                        <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                          <ExploratorySessionWorkspace
+                            projectId={activeProject.id}
+                          />
+                        </Box>
+                      )}
                   </Box>
-                )}
-                {/* RAG 문서 탭: RAG 활성화 + tabIndex 6일 때만 표시 */}
-                {tabIndex === 6 && isRagEnabled && activeProject && (
-                  <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
-                    <RAGDocumentManager projectId={activeProject.id} />
-                  </Box>
-                )}
-                {/* 탘색 세션 탭: RAG 활성화 시 tabIndex 7, 비활성화 시 tabIndex 6 */}
-                {showExploratorySessionTab &&
-                  tabIndex === EXPLORATORY_TAB &&
-                  activeProject && (
-                    <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
-                      <ExploratorySessionWorkspace
-                        projectId={activeProject.id}
-                      />
-                    </Box>
-                  )}
+                </Box>
               </>
             )}
           </>

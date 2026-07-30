@@ -632,6 +632,44 @@ public class EnglishI18nGapTranslations {
         "testExecution.filter.tags.placeholder", languageCode, "Select or type tags", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.filter.placeholderAll", languageCode, "Search name, ID, or tag", createdBy);
+    // Layout choice
+    createTranslationIfNotExists(
+        "projectNav.project.select", languageCode, "Select project", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.project.openList", languageCode, "Open project list", createdBy);
+    createTranslationIfNotExists("profile.nav.title", languageCode, "Menu layout", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.description",
+        languageCode,
+        "Choose how you move between areas inside a project, such as dashboard, test cases and test"
+            + " plans.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.title", languageCode, "Current layout — horizontal tabs", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.desc",
+        languageCode,
+        "Areas are laid out horizontally under the project name. This is the existing layout and"
+            + " the default.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.sidebar.title", languageCode, "New layout — left menu", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.sidebar.desc",
+        languageCode,
+        "Areas are stacked on the left. Names stay readable as areas grow, and the menu collapses"
+            + " to icons.",
+        createdBy);
+    createTranslationIfNotExists(
+        "projectNav.mode.switchToTabs", languageCode, "Switch to horizontal tabs", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.mode.switchToSidebar", languageCode, "Switch to left menu", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.sidebar.aria", languageCode, "Project areas", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.sidebar.collapse", languageCode, "Collapse sidebar", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.sidebar.expand", languageCode, "Expand sidebar", createdBy);
     // ICT-431
     createTranslationIfNotExists(
         "testcase.tree.checkAll.all", languageCode, "Select all", createdBy);

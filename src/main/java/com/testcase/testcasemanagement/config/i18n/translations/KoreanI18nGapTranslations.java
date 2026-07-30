@@ -475,6 +475,37 @@ public class KoreanI18nGapTranslations {
         "testExecution.filter.tags.placeholder", languageCode, "태그 선택 또는 입력", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.filter.placeholderAll", languageCode, "이름·ID·태그 검색", createdBy);
+    // 레이아웃 선택
+    createTranslationIfNotExists("projectNav.project.select", languageCode, "프로젝트 선택", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.project.openList", languageCode, "프로젝트 목록 보기", createdBy);
+    createTranslationIfNotExists("profile.nav.title", languageCode, "메뉴 구조", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.description",
+        languageCode,
+        "프로젝트 안에서 대시보드·테스트케이스·테스트 플랜 같은 영역을 어떻게 이동할지 고릅니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.title", languageCode, "현재 레이아웃 — 가로 탭", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.desc",
+        languageCode,
+        "프로젝트 이름 아래에 영역을 가로로 늘어놓습니다. 지금까지 쓰던 구조이고 기본값입니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.sidebar.title", languageCode, "신규 레이아웃 — 좌측 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.sidebar.desc",
+        languageCode,
+        "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "projectNav.mode.switchToTabs", languageCode, "가로 탭 구조로 보기", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.mode.switchToSidebar", languageCode, "좌측 메뉴 구조로 보기", createdBy);
+    createTranslationIfNotExists("projectNav.sidebar.aria", languageCode, "프로젝트 영역", createdBy);
+    createTranslationIfNotExists("projectNav.sidebar.collapse", languageCode, "사이드바 접기", createdBy);
+    createTranslationIfNotExists("projectNav.sidebar.expand", languageCode, "사이드바 펼치기", createdBy);
     // ICT-431
     createTranslationIfNotExists("testcase.tree.checkAll.all", languageCode, "전체 선택", createdBy);
     createTranslationIfNotExists(

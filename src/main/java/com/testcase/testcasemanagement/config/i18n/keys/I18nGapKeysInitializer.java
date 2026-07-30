@@ -717,6 +717,40 @@ public class I18nGapKeysInitializer {
     // ICT-428: 트리 검색 대상 확장 (이름·표시 ID·태그)
     createTranslationKeyIfNotExists(
         "testcase.tree.filter.placeholderAll", "testcase", "ICT-428 트리 ID·태그 검색", "이름·ID·태그 검색");
+    // 레이아웃 선택 (현재 가로 탭 / 신규 좌측 메뉴)
+    createTranslationKeyIfNotExists(
+        "projectNav.project.select", "projectNav", "레이아웃 선택", "프로젝트 선택");
+    createTranslationKeyIfNotExists(
+        "projectNav.project.openList", "projectNav", "레이아웃 선택", "프로젝트 목록 보기");
+    createTranslationKeyIfNotExists("profile.nav.title", "profile", "레이아웃 선택", "메뉴 구조");
+    createTranslationKeyIfNotExists(
+        "profile.nav.description",
+        "profile",
+        "레이아웃 선택",
+        "프로젝트 안에서 대시보드·테스트케이스·테스트 플랜 같은 영역을 어떻게 이동할지 고릅니다.");
+    createTranslationKeyIfNotExists(
+        "profile.nav.tabs.title", "profile", "레이아웃 선택", "현재 레이아웃 — 가로 탭");
+    createTranslationKeyIfNotExists(
+        "profile.nav.tabs.desc",
+        "profile",
+        "레이아웃 선택",
+        "프로젝트 이름 아래에 영역을 가로로 늘어놓습니다. 지금까지 쓰던 구조이고 기본값입니다.");
+    createTranslationKeyIfNotExists(
+        "profile.nav.sidebar.title", "profile", "레이아웃 선택", "신규 레이아웃 — 좌측 메뉴");
+    createTranslationKeyIfNotExists(
+        "profile.nav.sidebar.desc",
+        "profile",
+        "레이아웃 선택",
+        "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.");
+    createTranslationKeyIfNotExists(
+        "projectNav.mode.switchToTabs", "projectNav", "레이아웃 선택", "가로 탭 구조로 보기");
+    createTranslationKeyIfNotExists(
+        "projectNav.mode.switchToSidebar", "projectNav", "레이아웃 선택", "좌측 메뉴 구조로 보기");
+    createTranslationKeyIfNotExists("projectNav.sidebar.aria", "projectNav", "레이아웃 선택", "프로젝트 영역");
+    createTranslationKeyIfNotExists(
+        "projectNav.sidebar.collapse", "projectNav", "레이아웃 선택", "사이드바 접기");
+    createTranslationKeyIfNotExists(
+        "projectNav.sidebar.expand", "projectNav", "레이아웃 선택", "사이드바 펼치기");
     // ICT-431: 검색 결과 기준 전체 선택
     createTranslationKeyIfNotExists(
         "testcase.tree.checkAll.all", "testcase", "ICT-431 검색 결과 선택", "전체 선택");

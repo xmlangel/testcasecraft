@@ -38,6 +38,11 @@ import {
 } from "@mui/icons-material";
 import { useTheme as useAppTheme } from "../context/ThemeContext.jsx";
 import {
+  useNavMode,
+  NAV_MODE_TABS,
+  NAV_MODE_SIDEBAR,
+} from "../context/NavModeContext.jsx";
+import {
   FormControl,
   FormLabel,
   RadioGroup,
@@ -61,6 +66,8 @@ function UserProfileDialog({
   const { currentLanguage, changeLanguage, t, forceReloadTranslations } =
     useI18n();
   const { designSystem, setDesignSystem, mode, toggleTheme } = useAppTheme();
+  // 메뉴 구조(가로 탭 / 좌측 메뉴) — 서버에 사용자별로 저장된다
+  const { navMode, setNavMode } = useNavMode();
 
   const [tabValue, setTabValue] = useState(0);
   const [form, setForm] = useState({
@@ -894,6 +901,96 @@ function UserProfileDialog({
                     color="primary"
                   />
                 </Box>
+
+                <Divider sx={{ my: 3 }} />
+
+                {/* 프로젝트 영역 이동 구조 — 사용자가 기존 가로 탭과 좌측 메뉴 중 고른다.
+                    고른 값은 서버에 사용자별로 저장돼 다른 PC 에서도 유지된다. */}
+                <Typography variant="h6" gutterBottom>
+                  {t("profile.nav.title", "메뉴 구조")}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {t(
+                    "profile.nav.description",
+                    "프로젝트 안에서 대시보드·테스트케이스·테스트 플랜 같은 영역을 어떻게 이동할지 고릅니다.",
+                  )}
+                </Typography>
+
+                <FormControl component="fieldset" sx={{ width: "100%" }}>
+                  <RadioGroup
+                    value={navMode}
+                    onChange={(e) => setNavMode(e.target.value)}
+                    data-testid="profile-nav-mode-group"
+                  >
+                    {[
+                      {
+                        value: NAV_MODE_TABS,
+                        testId: "profile-nav-mode-tabs",
+                        title: t(
+                          "profile.nav.tabs.title",
+                          "현재 레이아웃 — 가로 탭",
+                        ),
+                        desc: t(
+                          "profile.nav.tabs.desc",
+                          "프로젝트 이름 아래에 영역을 가로로 늘어놓습니다. 지금까지 쓰던 구조이고 기본값입니다.",
+                        ),
+                      },
+                      {
+                        value: NAV_MODE_SIDEBAR,
+                        testId: "profile-nav-mode-sidebar",
+                        title: t(
+                          "profile.nav.sidebar.title",
+                          "신규 레이아웃 — 좌측 메뉴",
+                        ),
+                        desc: t(
+                          "profile.nav.sidebar.desc",
+                          "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.",
+                        ),
+                      },
+                    ].map((option) => (
+                      <Card
+                        key={option.value}
+                        variant="outlined"
+                        sx={{
+                          mb: 2,
+                          borderColor:
+                            navMode === option.value
+                              ? "primary.main"
+                              : "divider",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setNavMode(option.value)}
+                      >
+                        <CardContent sx={{ py: 1.5 }}>
+                          <FormControlLabel
+                            value={option.value}
+                            control={<Radio data-testid={option.testId} />}
+                            label={
+                              <Box>
+                                <Typography
+                                  variant="subtitle1"
+                                  sx={{ fontWeight: 600 }}
+                                >
+                                  {option.title}
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  {option.desc}
+                                </Typography>
+                              </Box>
+                            }
+                          />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
               </Box>
             )}
 

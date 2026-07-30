@@ -6,6 +6,7 @@ import { ProjectProvider, useProject } from "./ProjectContext";
 import { TestProvider, useTest } from "./TestContext";
 import { JiraProvider, useJira } from "./JiraContext";
 import { InputModeProvider, useInputMode } from "./InputModeContext";
+import { NavModeProvider } from "./NavModeContext";
 
 // --- Backward Compatibility Types ---
 export const ActionTypes = {
@@ -80,13 +81,15 @@ export const AppProvider = ({ children }) => {
           <TestProvider>
             <JiraProvider>
               <InputModeProvider>
-                <AppConsumerProvider>
-                  <SchedulerProvider>
-                    <LlmConfigProvider>
-                      <RAGProvider>{children}</RAGProvider>
-                    </LlmConfigProvider>
-                  </SchedulerProvider>
-                </AppConsumerProvider>
+                <NavModeProvider>
+                  <AppConsumerProvider>
+                    <SchedulerProvider>
+                      <LlmConfigProvider>
+                        <RAGProvider>{children}</RAGProvider>
+                      </LlmConfigProvider>
+                    </SchedulerProvider>
+                  </AppConsumerProvider>
+                </NavModeProvider>
               </InputModeProvider>
             </JiraProvider>
           </TestProvider>
