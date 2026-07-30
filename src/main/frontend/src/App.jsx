@@ -39,6 +39,7 @@ import { useNavMode } from "./context/NavModeContext.jsx";
 import ProjectManager from "./components/ProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import ProjectSidebar from "./components/ProjectSidebar.jsx";
+import PlanExecutionWorkspace from "./components/PlanExecutionWorkspace.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
 import TestCaseHybridForm from "./components/TestCase/TestCaseHybridForm.jsx";
 import TestPlanForm from "./components/TestPlanForm.jsx";
@@ -354,6 +355,11 @@ const AppContent = () => {
 
   // URL이 테스트실행 섹션인지 확인
   // /executions 경로더라도 viewType 쿼리 파라미터가 있으면 결과 대시보드 섹션으로 처리
+  // 케이스 결과 화면(.../executions/:eid/testcases/:tcid/result)도 신규 레이아웃에서는
+  // 전체 화면이 아니라 상단 바·좌측 메뉴를 유지한 채 오른쪽 영역에서 열린다.
+  const isCaseResultRoute =
+    /\/executions\/[^/]+\/testcases\/[^/]+\/result$/.test(location.pathname);
+
   const isTestExecutionsSection = () => {
     const path = location.pathname;
     const searchParams = new URLSearchParams(location.search);
@@ -1234,7 +1240,18 @@ const AppContent = () => {
                         </Box>
                       </Box>
                     )}
-                    {tabIndex === 2 && (
+                    {tabIndex === 2 && isSidebarMode && (
+                      <PlanExecutionWorkspace
+                        mode="plans"
+                        projectId={activeProject?.id}
+                        initialPlanId={
+                          editingTestPlanId && editingTestPlanId !== "new"
+                            ? editingTestPlanId
+                            : null
+                        }
+                      />
+                    )}
+                    {tabIndex === 2 && !isSidebarMode && (
                       <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
                         {showTestPlanForm ? (
                           <TestPlanForm
@@ -1253,7 +1270,23 @@ const AppContent = () => {
                         )}
                       </Paper>
                     )}
-                    {tabIndex === 3 && (
+                    {tabIndex === 3 &&
+                      isSidebarMode &&
+                      (isCaseResultRoute ? (
+                        <TestCaseResultPage />
+                      ) : (
+                        <PlanExecutionWorkspace
+                          mode="executions"
+                          projectId={activeProject?.id}
+                          initialExecutionId={
+                            editingTestExecutionId &&
+                            editingTestExecutionId !== "new"
+                              ? editingTestExecutionId
+                              : null
+                          }
+                        />
+                      ))}
+                    {tabIndex === 3 && !isSidebarMode && (
                       <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
                         {showTestExecutionForm ? (
                           <TestExecutionForm
@@ -1337,6 +1370,24 @@ const AppContent = () => {
     </>
   );
 };
+
+/**
+ * 실행 상세 라우트.
+ *
+ * 기존에는 실행을 고르면 상단 바·좌측 메뉴가 없는 전체 화면으로 빠져 다른 화면과
+ * 구조가 달랐다. 신규 레이아웃에서는 같은 껍데기(상단 + 좌측 메뉴 + 오른쪽 영역)
+ * 안에서 열리도록 AppContent 로 넘긴다. 기존 레이아웃은 지금까지처럼 전체 화면.
+ */
+function ExecutionDetailRoute() {
+  const { isSidebarMode } = useNavMode();
+  return isSidebarMode ? <AppContent /> : <TestExecutionFullPage />;
+}
+
+/** 케이스 결과 화면도 같은 규칙 — 신규 레이아웃이면 껍데기 안에서 연다. */
+function CaseResultRoute() {
+  const { isSidebarMode } = useNavMode();
+  return isSidebarMode ? <AppContent /> : <TestCaseResultPage />;
+}
 
 // 전체화면 실행 상세 페이지
 function TestExecutionFullPage() {
@@ -1449,7 +1500,7 @@ const AppWrapper = () => {
           path="/executions/:id"
           element={
             <ProtectedRoute>
-              <TestExecutionFullPage />
+              <ExecutionDetailRoute />
             </ProtectedRoute>
           }
         />
@@ -1457,7 +1508,7 @@ const AppWrapper = () => {
           path="/projects/:projectId/executions/new"
           element={
             <ProtectedRoute>
-              <TestExecutionFullPage />
+              <ExecutionDetailRoute />
             </ProtectedRoute>
           }
         />
@@ -1465,7 +1516,7 @@ const AppWrapper = () => {
           path="/projects/:projectId/executions/:executionId"
           element={
             <ProtectedRoute>
-              <TestExecutionFullPage />
+              <ExecutionDetailRoute />
             </ProtectedRoute>
           }
         />
@@ -1473,7 +1524,7 @@ const AppWrapper = () => {
           path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result"
           element={
             <ProtectedRoute>
-              <TestCaseResultPage />
+              <CaseResultRoute />
             </ProtectedRoute>
           }
         />

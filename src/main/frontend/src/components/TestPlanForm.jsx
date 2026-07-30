@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
+  Box,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -20,7 +21,7 @@ import { useI18n } from "../context/I18nContext.jsx";
 import TestCaseTree from "./TestCaseTree.jsx";
 import { countRealTestCases } from "../utils/treeUtils";
 
-const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
+const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
   const {
     activeProject,
     testPlans = [],
@@ -139,15 +140,28 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
     testCases,
   );
 
+  // inline: 3단 작업 화면의 상세 열에 그대로 놓인다 (팝업으로 화면을 덮지 않는다)
+  const Wrapper = inline ? Box : Dialog;
+  const wrapperProps = inline
+    ? { sx: { p: 2 }, "data-testid": "testplan-form-inline" }
+    : { open: true, maxWidth: "lg", fullWidth: true, onClose: onCancel };
+  const Title = inline ? Box : DialogTitle;
+  const Content = inline ? Box : DialogContent;
+  const Actions = inline ? Box : DialogActions;
+
   return (
-    <Dialog open maxWidth="lg" fullWidth onClose={onCancel}>
-      <DialogTitle>
+    <Wrapper {...wrapperProps}>
+      <Title
+        {...(inline
+          ? { sx: { mb: 1, fontWeight: 700, fontSize: "1.05rem" } }
+          : {})}
+      >
         {testPlanId
           ? t("testPlan.form.title.edit", "테스트 플랜 수정")
           : t("testPlan.form.title.create", "새 테스트 플랜 생성")}
-      </DialogTitle>
+      </Title>
 
-      <DialogContent dividers>
+      <Content {...(inline ? {} : { dividers: true })}>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -215,9 +229,20 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
             </Paper>
           </Grid>
         </Grid>
-      </DialogContent>
+      </Content>
 
-      <DialogActions>
+      <Actions
+        {...(inline
+          ? {
+              sx: {
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 1,
+                mt: 2,
+              },
+            }
+          : {})}
+      >
         <Button
           onClick={onCancel}
           color="secondary"
@@ -238,12 +263,13 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
             ? t("testPlan.form.button.processing", "처리 중...")
             : t("testPlan.form.button.save", "저장")}
         </Button>
-      </DialogActions>
-    </Dialog>
+      </Actions>
+    </Wrapper>
   );
 };
 
 TestPlanForm.propTypes = {
+  inline: PropTypes.bool,
   testPlanId: PropTypes.string,
   onCancel: PropTypes.func.isRequired,
   onSave: PropTypes.func,

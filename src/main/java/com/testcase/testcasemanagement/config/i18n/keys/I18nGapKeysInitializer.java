@@ -718,6 +718,48 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.tree.filter.placeholderAll", "testcase", "ICT-428 트리 ID·태그 검색", "이름·ID·태그 검색");
     // 레이아웃 선택 (현재 가로 탭 / 신규 좌측 메뉴)
+    // 3단 작업 화면 (플랜 → 실행)
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.backToPlan", "testPlan", "작업 화면", "플랜으로 돌아가기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.collapseList", "testPlan", "작업 화면", "목록 접기");
+    createTranslationKeyIfNotExists("testPlan.workspace.expandList", "testPlan", "작업 화면", "목록 펼치기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.collapseRuns", "testPlan", "작업 화면", "실행 목록 접기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.expandRuns", "testPlan", "작업 화면", "실행 목록 펼치기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.executions", "testPlan", "3단 작업 화면", "이 플랜의 실행");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.newExecution", "testPlan", "3단 작업 화면", "실행 만들기");
+    createTranslationKeyIfNotExists("testPlan.workspace.filter", "testPlan", "3단 작업 화면", "이름으로 찾기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.empty", "testPlan", "3단 작업 화면", "항목이 없습니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.selectPlan",
+        "testPlan",
+        "3단 작업 화면",
+        "왼쪽에서 테스트 플랜을 고르면 그 플랜의 실행이 여기에 보입니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.noExecution", "testPlan", "3단 작업 화면", "아직 실행이 없습니다. 실행 만들기로 시작하세요.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.planInfo", "testPlan", "3단 작업 화면", "연결된 플랜");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.caseCount", "testPlan", "3단 작업 화면", "{count}개 케이스");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.selectExecution",
+        "testPlan",
+        "3단 작업 화면",
+        "왼쪽에서 실행을 고르면 연결된 플랜이 여기에 보입니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.detailHint",
+        "testPlan",
+        "3단 작업 화면",
+        "플랜을 고르면 내용이 여기에 열립니다. 실행을 고르면 실행 상세로 바뀝니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.detailHintExecution", "testPlan", "3단 작업 화면", "실행을 고르면 상세가 여기에 열립니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.executionsFailed", "testPlan", "3단 작업 화면", "실행 목록을 불러오지 못했습니다.");
     createTranslationKeyIfNotExists(
         "projectNav.project.select", "projectNav", "레이아웃 선택", "프로젝트 선택");
     createTranslationKeyIfNotExists(

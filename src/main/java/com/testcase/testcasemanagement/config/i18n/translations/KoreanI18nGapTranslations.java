@@ -476,6 +476,47 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testcase.tree.filter.placeholderAll", languageCode, "이름·ID·태그 검색", createdBy);
     // 레이아웃 선택
+    // 3단 작업 화면
+    createTranslationIfNotExists(
+        "testPlan.workspace.backToPlan", languageCode, "플랜으로 돌아가기", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.collapseList", languageCode, "목록 접기", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.expandList", languageCode, "목록 펼치기", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.collapseRuns", languageCode, "실행 목록 접기", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.expandRuns", languageCode, "실행 목록 펼치기", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.executions", languageCode, "이 플랜의 실행", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.newExecution", languageCode, "실행 만들기", createdBy);
+    createTranslationIfNotExists("testPlan.workspace.filter", languageCode, "이름으로 찾기", createdBy);
+    createTranslationIfNotExists("testPlan.workspace.empty", languageCode, "항목이 없습니다.", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.selectPlan",
+        languageCode,
+        "왼쪽에서 테스트 플랜을 고르면 그 플랜의 실행이 여기에 보입니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.noExecution", languageCode, "아직 실행이 없습니다. 실행 만들기로 시작하세요.", createdBy);
+    createTranslationIfNotExists("testPlan.workspace.planInfo", languageCode, "연결된 플랜", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.caseCount", languageCode, "{count}개 케이스", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.selectExecution",
+        languageCode,
+        "왼쪽에서 실행을 고르면 연결된 플랜이 여기에 보입니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.detailHint",
+        languageCode,
+        "플랜을 고르면 내용이 여기에 열립니다. 실행을 고르면 실행 상세로 바뀝니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.detailHintExecution", languageCode, "실행을 고르면 상세가 여기에 열립니다.", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.executionsFailed", languageCode, "실행 목록을 불러오지 못했습니다.", createdBy);
     createTranslationIfNotExists("projectNav.project.select", languageCode, "프로젝트 선택", createdBy);
     createTranslationIfNotExists(
         "projectNav.project.openList", languageCode, "프로젝트 목록 보기", createdBy);
