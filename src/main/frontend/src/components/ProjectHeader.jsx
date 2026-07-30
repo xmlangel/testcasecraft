@@ -30,7 +30,7 @@ import { useI18n } from "../context/I18nContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { useRAG } from "../context/RAGContext.jsx";
 
-// 탭 라벨 우측 개수 배지 (Testiny 스타일 "테스트 케이스 | 20")
+// 탭 라벨 우측 개수 배지 ("테스트 케이스 | 20" 형태)
 const TabCountBadge = ({ count }) => (
   <Typography
     component="span"
