@@ -175,7 +175,10 @@ public class ProjectRepositoryTest extends AbstractTestNGSpringContextTests {
 
     // Then
     assertNotNull(result);
-    assertEquals(5, result.size());
+    // 전체 행 수를 단정하지 않는다. 테스트 DB 를 여러 테스트가 공유하고 이 클래스는 자기 픽스처만
+    // 롤백하므로, 남아 있는 다른 프로젝트 수에 따라 개수가 흔들린다(단독 실행 5 / 전체 실행 3).
+    // findAll 이 이 테스트가 만든 3건을 빠짐없이 담고 있는지로 검증한다.
+    assertEquals(countOwnProjects(result), 3, "이 테스트가 만든 프로젝트 3건이 findAll 에 모두 있어야 한다");
 
     // 프로젝트 타입별 확인
     assertTrue(
@@ -490,15 +493,28 @@ public class ProjectRepositoryTest extends AbstractTestNGSpringContextTests {
     List<Project> org2Projects = projectRepository.findByOrganizationId(testOrganization2.getId());
     List<Project> independentProjects = projectRepository.findByOrganizationIsNull();
 
-    // Then
+    // Then — 조직 ID 는 이 테스트가 만든 것이라 개수 단정이 안전하다
     assertNotNull(org1Projects);
-    assertEquals(1, org1Projects.size());
-    assertEquals(1, org2Projects.size());
-    assertEquals(3, independentProjects.size());
+    assertEquals(org1Projects.size(), 1);
+    assertEquals(org2Projects.size(), 1);
 
-    // 전체 프로젝트 수 확인
-    List<Project> allProjects = projectRepository.findAll();
-    assertEquals(5, allProjects.size());
+    // 독립 프로젝트·전체 목록은 공유 DB 의 다른 행까지 포함하므로 개수가 아니라 포함 여부로 본다
+    assertTrue(
+        independentProjects.stream()
+            .anyMatch(project -> testIndependentProject.getId().equals(project.getId())),
+        "조직 없는 프로젝트 조회에 이 테스트의 독립 프로젝트가 포함돼야 한다");
+    assertTrue(
+        independentProjects.stream().allMatch(project -> project.getOrganization() == null),
+        "조직 없는 프로젝트 조회 결과에 조직이 붙은 프로젝트가 섞이면 안 된다");
+    assertEquals(countOwnProjects(projectRepository.findAll()), 3);
+  }
+
+  /** 공유 테스트 DB 에서 이 클래스가 만든 프로젝트만 센다 (다른 테스트가 남긴 행에 흔들리지 않도록) */
+  private long countOwnProjects(List<Project> projects) {
+    List<String> ownIds =
+        List.of(
+            testOrgProject1.getId(), testOrgProject2.getId(), testIndependentProject.getId());
+    return projects.stream().filter(project -> ownIds.contains(project.getId())).count();
   }
 
   @Test
@@ -509,8 +525,9 @@ public class ProjectRepositoryTest extends AbstractTestNGSpringContextTests {
             .filter(project -> project.getName().contains("Organization"))
             .toList();
 
-    // Then
-    assertEquals(2, result.size());
+    // Then — 공유 DB 라 다른 테스트가 남긴 동명 패턴이 섞일 수 있어, 이 테스트가 만든 2건이
+    // 검색에 걸리는지와 검색 조건이 지켜지는지를 본다
+    assertEquals(countOwnProjects(result), 2, "이름에 Organization 이 들어간 이 테스트의 프로젝트 2건이 걸려야 한다");
     assertTrue(result.stream().allMatch(project -> project.getName().contains("Organization")));
   }
 

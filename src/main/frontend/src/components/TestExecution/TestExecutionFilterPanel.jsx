@@ -21,12 +21,14 @@ import {
   ExpandLess as ExpandLessIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext";
+import TagsAutocomplete from "../common/TagsAutocomplete.jsx";
 
 const TestExecutionFilterPanel = ({
   filters,
   onFilterChange,
   onApply,
   onClear,
+  availableTags = [],
 }) => {
   const { t } = useI18n();
 
@@ -240,6 +242,23 @@ const TestExecutionFilterPanel = ({
                   "testExecution.filter.notes.placeholder",
                   "노트 검색 (콤마로 여러 개)",
                 )}
+              />
+            </Grid>
+
+            {/* ICT-427: 결과 태그 (다중 선택 + 직접 입력) */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <TagsAutocomplete
+                id="filter-tags"
+                size="small"
+                value={filters.tags}
+                onChange={(newValue) => onFilterChange("tags", newValue)}
+                options={availableTags}
+                label={t("testExecution.filter.tags", "태그")}
+                placeholder={t(
+                  "testExecution.filter.tags.placeholder",
+                  "태그 선택 또는 입력",
+                )}
+                inputTestId="filter-tags-input"
               />
             </Grid>
 

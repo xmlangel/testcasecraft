@@ -38,6 +38,9 @@ public class TestResultReportDto {
 
   private String notes; // 비고
 
+  // ICT-427: 결과 태그 — 태그 필터로 무엇이 걸렸는지 화면·API 에서 확인 가능하게 함
+  private java.util.List<String> tags;
+
   // JIRA 연동 정보
   private String jiraIssueKey; // JIRA ID
   private String jiraIssueUrl;

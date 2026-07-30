@@ -57,13 +57,15 @@ import {
   parseDateTime,
   saveFilteredNavIds,
   clearFilteredNavIds,
+  matchesAnyTag,
+  buildBulkResultPayload,
 } from "./TestExecution/utils.jsx";
 
 // 테스트케이스 필터를 실행(executionId)별로 보존하기 위한 sessionStorage 키 접두사.
 // 테스트케이스 결과 화면(.../testcases/:id/result)은 별도 라우트라 본 폼이
 // 언마운트→재마운트되어 로컬 state가 초기화된다. 마지막 필터를 저장해 복원한다.
 const FILTERS_STORAGE_PREFIX = "testExecutionForm.filters.";
-// priority·result 는 다중 선택(배열), 나머지는 단일 텍스트.
+// priority·result·tags 는 다중 선택(배열), 나머지는 단일 텍스트.
 const EMPTY_FILTERS = {
   name: "",
   priority: [],
@@ -72,6 +74,7 @@ const EMPTY_FILTERS = {
   executionDate: "",
   jiraIssueKey: "",
   notes: "",
+  tags: [], // ICT-427: 결과 태그
 };
 // 배열(다중선택)/문자열 모두를 일관되게 "값이 있는가"로 판정
 const filterHasValue = (v) =>
@@ -97,13 +100,14 @@ const readSavedFilters = (executionId) => {
     );
     if (!raw) return { ...EMPTY_FILTERS };
     const parsed = JSON.parse(raw);
-    // 구버전(문자열) 저장값 호환 — priority·result 를 배열로 정규화
+    // 구버전(문자열) 저장값 호환 — priority·result·tags 를 배열로 정규화
     const toArray = (v) => (Array.isArray(v) ? v : v ? [v] : []);
     return {
       ...EMPTY_FILTERS,
       ...parsed,
       priority: toArray(parsed.priority),
       result: toArray(parsed.result),
+      tags: toArray(parsed.tags),
     };
   } catch {
     return { ...EMPTY_FILTERS };
@@ -771,13 +775,15 @@ const TestExecutionForm = ({
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              testCaseIds: testCaseArray,
-              result,
-              notes,
-              tags: newTags,
-              jiraIssueKey,
-            }),
+            body: JSON.stringify(
+              buildBulkResultPayload({
+                testCaseIds: testCaseArray,
+                result,
+                notes,
+                tags: newTags,
+                jiraIssueKey,
+              }),
+            ),
           },
         );
 
@@ -932,13 +938,14 @@ const TestExecutionForm = ({
         }
       }
 
-      // 실행자, 실행일자, JIRA, 노트 필터 - resultsMap에서 확인
+      // 실행자, 실행일자, JIRA, 노트, 태그 필터 - resultsMap에서 확인
       if (
         matches &&
         (filters.executedBy ||
           filters.executionDate ||
           filters.jiraIssueKey ||
-          filters.notes)
+          filters.notes ||
+          filters.tags?.length)
       ) {
         const resultObj = resultsMap.get(node.id);
 
@@ -999,6 +1006,15 @@ const TestExecutionForm = ({
             matches &&
             filters.notes &&
             !matchesAnyTerm(resultObj.notes || "", filters.notes)
+          ) {
+            matches = false;
+          }
+
+          // ICT-427: 태그 필터 (다중 선택 — 선택한 태그 중 하나라도 걸리면 통과)
+          if (
+            matches &&
+            filters.tags?.length &&
+            !matchesAnyTag(resultObj.tags, filters.tags)
           ) {
             matches = false;
           }
@@ -1346,6 +1362,7 @@ const TestExecutionForm = ({
               onFilterChange={handleFilterChange}
               onApply={handleFilterApply}
               onClear={handleFilterClear}
+              availableTags={availableTags}
             />
           </AccordionDetails>
         </Accordion>

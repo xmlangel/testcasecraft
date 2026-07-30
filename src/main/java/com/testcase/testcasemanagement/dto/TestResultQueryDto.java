@@ -34,6 +34,9 @@ public class TestResultQueryDto {
   /** 실행자 ID 목록 */
   private List<String> executorIds;
 
+  /** ICT-427: 결과 태그 필터 — 하나라도 걸리면 통과(OR) */
+  private List<String> tags;
+
   /** JIRA 이슈 키 */
   private String jiraIssueKey;
 

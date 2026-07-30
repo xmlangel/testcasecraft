@@ -37,6 +37,9 @@ public class TestResultFilterDto {
   private List<String> executedByIds;
   private List<String> executorNames;
 
+  // ICT-427: 결과 태그 필터 (test_result_tags). 하나라도 걸리면 통과(OR)
+  private List<String> tags;
+
   // JIRA 관련 필터
   private Boolean hasJiraIssue; // JIRA 이슈가 있는 것만
   private List<String> jiraIssueKeys;

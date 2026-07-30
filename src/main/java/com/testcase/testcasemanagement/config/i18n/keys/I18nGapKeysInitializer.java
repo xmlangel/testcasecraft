@@ -706,6 +706,17 @@ public class I18nGapKeysInitializer {
         "testExecution",
         "i18n gap 보강 (2026-06-06)",
         "search notes");
+    // ICT-427: 결과 태그 필터
+    createTranslationKeyIfNotExists(
+        "testExecution.filter.tags", "testExecution", "ICT-427 결과 태그 필터", "태그");
+    createTranslationKeyIfNotExists(
+        "testExecution.filter.tags.placeholder",
+        "testExecution",
+        "ICT-427 결과 태그 필터",
+        "태그 선택 또는 입력");
+    // ICT-428: 트리 검색 대상 확장 (이름·표시 ID·태그)
+    createTranslationKeyIfNotExists(
+        "testcase.tree.filter.placeholderAll", "testcase", "ICT-428 트리 ID·태그 검색", "이름·ID·태그 검색");
     createTranslationKeyIfNotExists(
         "testExecution.list.noMoreExecutions",
         "testExecution",

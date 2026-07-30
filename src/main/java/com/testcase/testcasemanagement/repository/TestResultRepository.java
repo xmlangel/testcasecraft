@@ -631,6 +631,116 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
       nativeQuery = true)
   long countDedupedByExecutions(@Param("executionIds") List<String> executionIds);
 
+  // ========== ICT-427: 결과 태그 필터 (test_result_tags EXISTS) ==========
+  // 태그 조건은 중복 제거 이전(sub)에 걸린다. 즉 "태그가 붙은 결과들 중 실행+케이스별 최신"을
+  // 돌려준다. 최신 결과에 태그가 없고 과거 결과에만 있으면 과거 결과가 나오는데, 표시해 둔 것을
+  // 모아 보는 용도라 이 편이 맞다. 호출부는 tags 가 비어 있지 않을 때만 이 메서드를 쓴다
+  // (빈 목록을 IN 에 넣으면 SQL 이 깨진다).
+
+  /** 프로젝트 + 태그 필터 중복 제거된 테스트 결과 ID 조회 */
+  @Query(
+      value =
+          "SELECT deduped.id FROM ("
+              + "  SELECT DISTINCT ON (sub.test_execution_id, sub.test_case_id)"
+              + "    sub.id, sub.executed_at"
+              + "  FROM test_results sub"
+              + "  JOIN test_executions te ON sub.test_execution_id = te.id"
+              + "  WHERE te.project_id = :projectId"
+              + "    AND EXISTS (SELECT 1 FROM test_result_tags trt"
+              + "                WHERE trt.test_result_id = sub.id AND LOWER(trt.tag) IN (:tags))"
+              + "  ORDER BY sub.test_execution_id, sub.test_case_id,"
+              + "    COALESCE(sub.executed_at, '1970-01-01'::timestamp) DESC"
+              + ") deduped"
+              + " ORDER BY deduped.executed_at DESC NULLS LAST",
+      nativeQuery = true)
+  List<String> findDedupedIdsByProjectAndTags(
+      @Param("projectId") String projectId, @Param("tags") List<String> tags, Pageable pageable);
+
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM ("
+              + "  SELECT DISTINCT sub.test_execution_id, sub.test_case_id"
+              + "  FROM test_results sub"
+              + "  JOIN test_executions te ON sub.test_execution_id = te.id"
+              + "  WHERE te.project_id = :projectId"
+              + "    AND EXISTS (SELECT 1 FROM test_result_tags trt"
+              + "                WHERE trt.test_result_id = sub.id AND LOWER(trt.tag) IN (:tags))"
+              + ") cnt",
+      nativeQuery = true)
+  long countDedupedByProjectAndTags(
+      @Param("projectId") String projectId, @Param("tags") List<String> tags);
+
+  /** 프로젝트 + 테스트플랜 + 태그 필터 중복 제거된 테스트 결과 ID 조회 */
+  @Query(
+      value =
+          "SELECT deduped.id FROM ("
+              + "  SELECT DISTINCT ON (sub.test_execution_id, sub.test_case_id)"
+              + "    sub.id, sub.executed_at"
+              + "  FROM test_results sub"
+              + "  JOIN test_executions te ON sub.test_execution_id = te.id"
+              + "  WHERE te.project_id = :projectId AND te.test_plan_id IN (:testPlanIds)"
+              + "    AND EXISTS (SELECT 1 FROM test_result_tags trt"
+              + "                WHERE trt.test_result_id = sub.id AND LOWER(trt.tag) IN (:tags))"
+              + "  ORDER BY sub.test_execution_id, sub.test_case_id,"
+              + "    COALESCE(sub.executed_at, '1970-01-01'::timestamp) DESC"
+              + ") deduped"
+              + " ORDER BY deduped.executed_at DESC NULLS LAST",
+      nativeQuery = true)
+  List<String> findDedupedIdsByProjectAndPlansAndTags(
+      @Param("projectId") String projectId,
+      @Param("testPlanIds") List<String> testPlanIds,
+      @Param("tags") List<String> tags,
+      Pageable pageable);
+
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM ("
+              + "  SELECT DISTINCT sub.test_execution_id, sub.test_case_id"
+              + "  FROM test_results sub"
+              + "  JOIN test_executions te ON sub.test_execution_id = te.id"
+              + "  WHERE te.project_id = :projectId AND te.test_plan_id IN (:testPlanIds)"
+              + "    AND EXISTS (SELECT 1 FROM test_result_tags trt"
+              + "                WHERE trt.test_result_id = sub.id AND LOWER(trt.tag) IN (:tags))"
+              + ") cnt",
+      nativeQuery = true)
+  long countDedupedByProjectAndPlansAndTags(
+      @Param("projectId") String projectId,
+      @Param("testPlanIds") List<String> testPlanIds,
+      @Param("tags") List<String> tags);
+
+  /** 테스트 실행 + 태그 필터 중복 제거된 테스트 결과 ID 조회 */
+  @Query(
+      value =
+          "SELECT deduped.id FROM ("
+              + "  SELECT DISTINCT ON (sub.test_execution_id, sub.test_case_id)"
+              + "    sub.id, sub.executed_at"
+              + "  FROM test_results sub"
+              + "  WHERE sub.test_execution_id IN (:executionIds)"
+              + "    AND EXISTS (SELECT 1 FROM test_result_tags trt"
+              + "                WHERE trt.test_result_id = sub.id AND LOWER(trt.tag) IN (:tags))"
+              + "  ORDER BY sub.test_execution_id, sub.test_case_id,"
+              + "    COALESCE(sub.executed_at, '1970-01-01'::timestamp) DESC"
+              + ") deduped"
+              + " ORDER BY deduped.executed_at DESC NULLS LAST",
+      nativeQuery = true)
+  List<String> findDedupedIdsByExecutionsAndTags(
+      @Param("executionIds") List<String> executionIds,
+      @Param("tags") List<String> tags,
+      Pageable pageable);
+
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM ("
+              + "  SELECT DISTINCT sub.test_execution_id, sub.test_case_id"
+              + "  FROM test_results sub"
+              + "  WHERE sub.test_execution_id IN (:executionIds)"
+              + "    AND EXISTS (SELECT 1 FROM test_result_tags trt"
+              + "                WHERE trt.test_result_id = sub.id AND LOWER(trt.tag) IN (:tags))"
+              + ") cnt",
+      nativeQuery = true)
+  long countDedupedByExecutionsAndTags(
+      @Param("executionIds") List<String> executionIds, @Param("tags") List<String> tags);
+
   /** ID 목록으로 TestResult 엔티티 페치 (testExecution, executedBy JOIN FETCH) */
   @Query(
       "SELECT tr FROM TestResult tr"

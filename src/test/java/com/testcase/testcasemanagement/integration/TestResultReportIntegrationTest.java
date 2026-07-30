@@ -7,8 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.TestResultFilterDto;
 import com.testcase.testcasemanagement.dto.TestResultReportDto;
 import com.testcase.testcasemanagement.dto.TestResultStatisticsDto;
+import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.TestResultReportService;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -49,18 +54,61 @@ public class TestResultReportIntegrationTest extends AbstractTransactionalTestNG
 
   @Autowired private PasswordEncoder passwordEncoder;
 
+  @Autowired private PlatformTransactionManager transactionManager;
+
+  /**
+   * 이 테스트만 쓰는 API 호출 계정. 시드 계정(test_admin)에 기대지 않는다 — 전체 실행에서 다른 테스트가 그 계정의 비밀번호를 바꾸면 여기서 로그인이 401 로
+   * 실패하고, 토큰 없이 호출한 API 6건이 한꺼번에 401 로 깨졌다(단독 실행에서는 통과해 원인이 가려졌다).
+   */
+  private static final String API_USERNAME = "itest_report_admin";
+
+  private static final String API_PASSWORD = "Itest!Report123";
+
   private String baseUrl;
   private String authToken;
+  private String lastLoginFailure;
 
   @BeforeMethod
   public void setUp() {
     baseUrl = "http://localhost:" + port + "/api";
 
-    // 시드된 admin 사용자 사용 (비밀번호는 admin123으로 추정)
+    ensureApiUser();
     authToken = getAuthToken();
-    System.out.println("🔑 획득한 토큰: " + authToken);
+    // 토큰 획득 실패를 여기서 끊는다. 예전에는 null 토큰으로 진행해 뒤따르는 API 검증이 전부
+    // "expected 200 but found 401" 로 깨져 진짜 원인(로그인 실패)이 보이지 않았다.
+    assertNotNull(
+        authToken, "API 호출용 토큰을 받지 못했습니다. 로그인 응답: " + lastLoginFailure);
 
     System.out.println("=== ICT-191 테스트 결과 리포트 통합 테스트 시작 ===");
+  }
+
+  /**
+   * API 호출 계정을 커밋된 상태로 보장한다.
+   *
+   * <p>이 클래스는 테스트 트랜잭션을 롤백하고(AbstractTransactional...), HTTP 서버는 별도 커넥션으로 사용자를 조회한다. 따라서 테스트
+   * 트랜잭션에서 저장한 사용자는 서버에서 보이지 않는다. REQUIRES_NEW 로 커밋해야 로그인이 성립한다.
+   *
+   * <p>매 메서드마다 비밀번호를 되돌려 놓으므로, 다른 테스트가 이 계정을 건드려도 다음 실행이 영향을 받지 않는다.
+   */
+  private void ensureApiUser() {
+    TransactionTemplate tx = new TransactionTemplate(transactionManager);
+    tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    tx.executeWithoutResult(
+        status -> {
+          User user = userRepository.findByUsername(API_USERNAME).orElseGet(User::new);
+          user.setUsername(API_USERNAME);
+          user.setEmail(API_USERNAME + "@example.com");
+          user.setName("Integration Test Admin");
+          user.setRole("ADMIN");
+          user.setIsActive(true);
+          user.setEmailVerified(true);
+          user.setPassword(passwordEncoder.encode(API_PASSWORD));
+          if (user.getCreatedAt() == null) {
+            user.setCreatedAt(LocalDateTime.now());
+          }
+          user.setUpdatedAt(LocalDateTime.now());
+          userRepository.save(user);
+        });
   }
 
   @AfterMethod
@@ -340,8 +388,9 @@ public class TestResultReportIntegrationTest extends AbstractTransactionalTestNG
   private String getAuthToken() {
     try {
       String loginUrl = baseUrl + "/auth/login";
-      // data-test.sql 의 시드 admin 사용자 (BCrypt 해시는 비밀번호 "admin123" 에 매칭)
-      Map<String, String> loginRequest = Map.of("username", "test_admin", "password", "admin123");
+      // ensureApiUser() 가 방금 커밋해 둔 이 테스트 전용 계정으로 로그인한다
+      Map<String, String> loginRequest =
+          Map.of("username", API_USERNAME, "password", API_PASSWORD);
 
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
@@ -352,14 +401,16 @@ public class TestResultReportIntegrationTest extends AbstractTransactionalTestNG
 
       if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
         return (String) response.getBody().get("accessToken");
-      } else {
-        System.err.println("❌ 로그인 실패: " + response.getStatusCode() + ", 바디: " + response.getBody());
       }
+      lastLoginFailure = response.getStatusCode() + " " + response.getBody();
+      System.err.println("❌ 로그인 실패: " + lastLoginFailure);
     } catch (Exception e) {
-      System.err.println("인증 토큰 획득 실패: " + e.getMessage());
+      lastLoginFailure = e.getClass().getSimpleName() + ": " + e.getMessage();
+      System.err.println("인증 토큰 획득 실패: " + lastLoginFailure);
     }
 
-    return null; // 토큰 없이 테스트 (일부 테스트는 실패할 수 있음)
+    // 토큰이 없으면 setUp 이 즉시 실패시킨다 (원인이 하위 API 검증으로 번지지 않게)
+    return null;
   }
 
   private HttpHeaders createAuthHeaders() {
