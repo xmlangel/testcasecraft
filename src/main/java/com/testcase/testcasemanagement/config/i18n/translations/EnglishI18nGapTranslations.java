@@ -637,6 +637,11 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists(
         "testPlan.workspace.backToPlan", languageCode, "Back to plan", createdBy);
     createTranslationIfNotExists(
+        "testPlan.workspace.runsInTree",
+        languageCode,
+        "Runs for this plan are listed in the tree on the left.",
+        createdBy);
+    createTranslationIfNotExists(
         "testPlan.workspace.collapseList", languageCode, "Collapse list", createdBy);
     createTranslationIfNotExists(
         "testPlan.workspace.expandList", languageCode, "Expand list", createdBy);

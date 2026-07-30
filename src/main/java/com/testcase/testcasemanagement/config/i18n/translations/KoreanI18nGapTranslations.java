@@ -480,6 +480,8 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testPlan.workspace.backToPlan", languageCode, "플랜으로 돌아가기", createdBy);
     createTranslationIfNotExists(
+        "testPlan.workspace.runsInTree", languageCode, "이 플랜의 실행은 왼쪽 트리에서 볼 수 있습니다.", createdBy);
+    createTranslationIfNotExists(
         "testPlan.workspace.collapseList", languageCode, "목록 접기", createdBy);
     createTranslationIfNotExists(
         "testPlan.workspace.expandList", languageCode, "목록 펼치기", createdBy);

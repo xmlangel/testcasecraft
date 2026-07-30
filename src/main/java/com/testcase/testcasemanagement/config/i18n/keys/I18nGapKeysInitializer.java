@@ -722,6 +722,8 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testPlan.workspace.backToPlan", "testPlan", "작업 화면", "플랜으로 돌아가기");
     createTranslationKeyIfNotExists(
+        "testPlan.workspace.runsInTree", "testPlan", "작업 화면", "이 플랜의 실행은 왼쪽 트리에서 볼 수 있습니다.");
+    createTranslationKeyIfNotExists(
         "testPlan.workspace.collapseList", "testPlan", "작업 화면", "목록 접기");
     createTranslationKeyIfNotExists("testPlan.workspace.expandList", "testPlan", "작업 화면", "목록 펼치기");
     createTranslationKeyIfNotExists(

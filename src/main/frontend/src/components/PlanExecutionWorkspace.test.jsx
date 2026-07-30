@@ -122,7 +122,7 @@ describe("PlanExecutionWorkspace", () => {
     );
   });
 
-  it("플랜을 고르면 그 플랜의 실행 목록을 상세 안에 불러온다", async () => {
+  it("플랜을 고르면 트리에서 그 플랜의 실행이 펼쳐진다", async () => {
     setup();
     fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
 
@@ -190,24 +190,46 @@ describe("PlanExecutionWorkspace", () => {
     ).toBeInTheDocument();
   });
 
-  it("실행 모드는 실행을 목록에, 고른 실행을 상세에 보여준다", async () => {
+  it("실행 영역도 같은 트리를 쓴다 (플랜 아래 실행)", async () => {
     setup({ mode: "executions" });
+    // 부모는 플랜
     expect(
-      screen.getByTestId("workspace-primary-item-ex1"),
+      screen.getByTestId("workspace-primary-item-tp1"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("workspace-primary-item-ex2"),
-    ).toBeInTheDocument();
+    // 실행은 가지를 펼쳐야 보인다
+    expect(screen.queryByTestId("workspace-execution-item-ex1")).toBeNull();
 
-    fireEvent.click(screen.getByTestId("workspace-primary-item-ex2"));
+    fireEvent.click(screen.getByTestId("workspace-plan-toggle-tp1"));
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("workspace-execution-item-ex1"),
+      ).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByTestId("workspace-execution-item-ex1"));
     await waitFor(() =>
       expect(screen.getByTestId("stub-execution-form")).toHaveTextContent(
-        "exec=ex2",
+        "exec=ex1",
       ),
     );
   });
 
-  it("목록 단을 접으면 필터가 사라지고 다시 펴면 돌아온다", () => {
+  it("가지를 다시 누르면 접힌다", async () => {
+    setup();
+    fireEvent.click(screen.getByTestId("workspace-plan-toggle-tp1"));
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("workspace-execution-item-ex1"),
+      ).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByTestId("workspace-plan-toggle-tp1"));
+    await waitFor(() =>
+      expect(screen.queryByTestId("workspace-execution-item-ex1")).toBeNull(),
+    );
+  });
+
+  it("트리 단을 접으면 필터가 사라지고 다시 펴면 돌아온다", () => {
     setup();
     expect(screen.getByTestId("workspace-primary-filter")).toBeInTheDocument();
 
@@ -217,23 +239,6 @@ describe("PlanExecutionWorkspace", () => {
 
     fireEvent.click(screen.getByTestId("workspace-list-collapse-toggle"));
     expect(screen.getByTestId("workspace-primary-filter")).toBeInTheDocument();
-  });
-
-  it("실행 목록 섹션도 접을 수 있다", async () => {
-    setup();
-    fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
-    await waitFor(() =>
-      expect(
-        screen.getByTestId("workspace-execution-item-ex1"),
-      ).toBeInTheDocument(),
-    );
-
-    fireEvent.click(screen.getByTestId("workspace-runs-collapse-toggle"));
-    await waitFor(() =>
-      expect(screen.queryByTestId("workspace-execution-item-ex1")).toBeNull(),
-    );
-    // 섹션 머리는 남아 다시 펼 수 있다
-    expect(screen.getByTestId("workspace-runs-section")).toBeInTheDocument();
   });
 
   it("실행 상세에서 플랜으로 돌아온다", async () => {
@@ -275,24 +280,5 @@ describe("PlanExecutionWorkspace", () => {
         screen.getByText(/실행 목록을 불러오지 못했습니다/),
       ).toBeInTheDocument(),
     );
-  });
-  it("실행 목록에 플랜 이름이 붙고 눌러서 그 플랜으로 넘어간다", () => {
-    const onOpenPlan = vi.fn();
-    setup({ mode: "executions", onOpenPlan });
-
-    const link = screen.getByTestId("workspace-execution-plan-link-ex1");
-    expect(link).toHaveTextContent("회귀 플랜");
-
-    fireEvent.click(link);
-    expect(onOpenPlan).toHaveBeenCalledWith("tp1");
-  });
-
-  it("플랜 링크를 눌러도 실행이 선택되지는 않는다", async () => {
-    const onOpenPlan = vi.fn();
-    setup({ mode: "executions", onOpenPlan });
-
-    fireEvent.click(screen.getByTestId("workspace-execution-plan-link-ex2"));
-    expect(onOpenPlan).toHaveBeenCalledWith("tp2");
-    expect(screen.queryByTestId("stub-execution-form")).toBeNull();
   });
 });

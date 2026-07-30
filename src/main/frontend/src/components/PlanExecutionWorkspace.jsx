@@ -87,12 +87,12 @@ function PlanExecutionWorkspace({
   const [selectedExecutionId, setSelectedExecutionId] =
     useState(initialExecutionId);
   const [creatingExecution, setCreatingExecution] = useState(false);
-  const [planExecutions, setPlanExecutions] = useState([]);
-  const [executionsLoading, setExecutionsLoading] = useState(false);
+  const [executionsByPlan, setExecutionsByPlan] = useState({});
+  const [expandedPlanIds, setExpandedPlanIds] = useState([]);
+  const [loadingPlanIds, setLoadingPlanIds] = useState([]);
   const [errorDetail, setErrorDetail] = useState(null);
   const [filterText, setFilterText] = useState("");
   const [listCollapsed, setListCollapsed] = useState(false);
-  const [runsOpen, setRunsOpen] = useState(true);
 
   const plansOfProject = useMemo(
     () =>
@@ -112,49 +112,70 @@ function PlanExecutionWorkspace({
     [testExecutions, projectId],
   );
 
-  // 실행에 붙은 플랜 이름 — 실행 목록에서 어느 플랜의 실행인지 바로 보이게
-  const planNameById = useMemo(() => {
-    const map = new Map();
-    plansOfProject.forEach((plan) => map.set(String(plan.id), plan.name));
-    return map;
-  }, [plansOfProject]);
-
-  // 왼쪽 목록 — 모드에 따라 플랜 또는 실행
-  const primaryItems = useMemo(() => {
+  // 왼쪽 트리 — 플랜(부모) 아래 그 플랜의 실행(자식).
+  // 이름으로 좁힐 때는 플랜 이름과 실행 이름을 함께 본다.
+  const visiblePlans = useMemo(() => {
     const query = filterText.trim().toLowerCase();
-    const items = mode === "plans" ? plansOfProject : executionsOfProject;
-    if (!query) return items;
-    return items.filter((item) =>
-      String(item?.name || "")
-        .toLowerCase()
-        .includes(query),
-    );
-  }, [mode, plansOfProject, executionsOfProject, filterText]);
+    if (!query) return plansOfProject;
+    return plansOfProject.filter((plan) => {
+      if (
+        String(plan.name || "")
+          .toLowerCase()
+          .includes(query)
+      )
+        return true;
+      const children = executionsByPlan[String(plan.id)] || [];
+      return children.some((exec) =>
+        String(exec.name || "")
+          .toLowerCase()
+          .includes(query),
+      );
+    });
+  }, [plansOfProject, filterText, executionsByPlan]);
 
   const loadPlanExecutions = useCallback(
     async (planId) => {
-      if (!planId) {
-        setPlanExecutions([]);
-        return;
-      }
-      setExecutionsLoading(true);
+      if (!planId) return;
+      setLoadingPlanIds((prev) =>
+        prev.includes(String(planId)) ? prev : [...prev, String(planId)],
+      );
       setErrorDetail(null);
       try {
         const res = await apiService.get(
           `/api/test-executions?testPlanId=${planId}`,
         );
         const data = await res.json();
-        setPlanExecutions(Array.isArray(data) ? data : []);
+        setExecutionsByPlan((prev) => ({
+          ...prev,
+          [String(planId)]: Array.isArray(data) ? data : [],
+        }));
       } catch (err) {
         setErrorDetail(err?.message || "unknown");
-        setPlanExecutions([]);
+        setExecutionsByPlan((prev) => ({ ...prev, [String(planId)]: [] }));
       } finally {
-        setExecutionsLoading(false);
+        setLoadingPlanIds((prev) => prev.filter((id) => id !== String(planId)));
       }
     },
     // t 를 의존성에 넣으면(구현에 따라 매 렌더 새 함수) 이 콜백이 매번 새로 만들어져
     // 아래 effect 가 무한히 재실행된다. 메시지는 렌더에서 조립한다.
     [],
+  );
+
+  /** 플랜 가지를 펼치고, 아직 안 불러온 실행이면 그때 불러온다. */
+  const expandPlan = useCallback(
+    (planId) => {
+      const key = String(planId);
+      setExpandedPlanIds((prev) =>
+        prev.includes(key) ? prev : [...prev, key],
+      );
+      setExecutionsByPlan((prev) => {
+        if (!Object.prototype.hasOwnProperty.call(prev, key)) {
+          loadPlanExecutions(planId);
+        }
+        return prev;
+      });
+    },
+    [loadPlanExecutions],
   );
 
   // URL 로 특정 실행·플랜을 열고 들어온 경우 그 선택을 이어받는다.
@@ -166,37 +187,58 @@ function PlanExecutionWorkspace({
     if (initialPlanId) setSelectedPlanId(initialPlanId);
   }, [initialPlanId]);
 
-  // 플랜을 고르면 그 플랜의 실행 목록을 상세 안에 채운다
+  // 플랜을 고르면 그 가지를 펼쳐 실행을 보여준다
   useEffect(() => {
-    if (mode !== "plans") return;
-    setCreatingExecution(false);
-    loadPlanExecutions(selectedPlanId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, selectedPlanId, loadPlanExecutions]);
+    if (!selectedPlanId) return;
+    expandPlan(selectedPlanId);
+  }, [selectedPlanId, expandPlan]);
+
+  // 실행을 URL 로 열고 들어왔으면 그 실행이 속한 플랜 가지도 펼친다
+  useEffect(() => {
+    if (!initialExecutionId) return;
+    const owner = executionsOfProject.find(
+      (e) => String(e.id) === String(initialExecutionId),
+    );
+    if (owner?.testPlanId) expandPlan(owner.testPlanId);
+  }, [initialExecutionId, executionsOfProject, expandPlan]);
 
   const selectedExecution = useMemo(() => {
-    const pool = mode === "plans" ? planExecutions : executionsOfProject;
+    const pool = [
+      ...Object.values(executionsByPlan).flat(),
+      ...executionsOfProject,
+    ];
     return (
       pool.find((e) => String(e.id) === String(selectedExecutionId)) || null
     );
-  }, [mode, planExecutions, executionsOfProject, selectedExecutionId]);
+  }, [executionsByPlan, executionsOfProject, selectedExecutionId]);
 
   const effectivePlanId =
     mode === "plans" ? selectedPlanId : selectedExecution?.testPlanId || null;
 
-  const handleSelectPrimary = (item) => {
+  const handleSelectPlan = (plan) => {
     setCreatingExecution(false);
-    if (mode === "plans") {
-      setSelectedExecutionId(null);
-      setSelectedPlanId(item.id);
+    setSelectedExecutionId(null);
+    setSelectedPlanId(plan.id);
+  };
+
+  const handleSelectExecution = (exec) => {
+    setCreatingExecution(false);
+    setSelectedExecutionId(exec.id);
+    if (exec.testPlanId) setSelectedPlanId(exec.testPlanId);
+  };
+
+  const togglePlanBranch = (planId) => {
+    const key = String(planId);
+    if (expandedPlanIds.includes(key)) {
+      setExpandedPlanIds((prev) => prev.filter((id) => id !== key));
     } else {
-      setSelectedExecutionId(item.id);
+      expandPlan(planId);
     }
   };
 
   const handleAfterExecutionSaved = () => {
     setCreatingExecution(false);
-    if (mode === "plans") loadPlanExecutions(selectedPlanId);
+    if (selectedPlanId) loadPlanExecutions(selectedPlanId);
   };
 
   const paneSx = {
@@ -206,10 +248,11 @@ function PlanExecutionWorkspace({
     overflow: "hidden",
   };
 
-  const listTitle =
-    mode === "plans"
-      ? t("testPlan.tab.label", "테스트플랜")
-      : t("projectHeader.tabs.testExecution", "테스트실행");
+  // 트리 제목 — 플랜 아래 실행이 달리므로 두 영역에서 같은 트리를 쓴다
+  const listTitle = `${t("testPlan.tab.label", "테스트플랜")} / ${t(
+    "projectHeader.tabs.testExecution",
+    "테스트실행",
+  )}`;
 
   // ── 왼쪽: 목록 (접을 수 있다) ──────────────────────────────────────────────
   const listPane = (
@@ -239,7 +282,7 @@ function PlanExecutionWorkspace({
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }} noWrap>
               {listTitle}
             </Typography>
-            <Chip size="small" label={primaryItems.length} />
+            <Chip size="small" label={visiblePlans.length} />
           </>
         )}
         <Tooltip
@@ -290,84 +333,136 @@ function PlanExecutionWorkspace({
               }}
             />
           </Box>
-          {testPlansLoading && mode === "plans" ? (
+          {testPlansLoading ? (
             <Box sx={{ p: 2, textAlign: "center" }}>
               <CircularProgress size={20} />
             </Box>
           ) : (
             <List dense sx={{ overflowY: "auto", flexGrow: 1 }}>
-              {primaryItems.length === 0 && (
+              {visiblePlans.length === 0 && (
                 <Box sx={{ p: 2 }}>
                   <Typography variant="body2" color="text.secondary">
                     {t("testPlan.workspace.empty", "항목이 없습니다.")}
                   </Typography>
                 </Box>
               )}
-              {primaryItems.map((item) => {
-                const selected =
-                  mode === "plans"
-                    ? String(item.id) === String(selectedPlanId)
-                    : String(item.id) === String(selectedExecutionId);
+              {visiblePlans.map((plan) => {
+                const key = String(plan.id);
+                const expanded = expandedPlanIds.includes(key);
+                const planSelected =
+                  !selectedExecutionId && key === String(selectedPlanId);
+                const children = executionsByPlan[key] || [];
+                const loading = loadingPlanIds.includes(key);
                 return (
-                  <ListItemButton
-                    key={item.id}
-                    selected={selected}
-                    onClick={() => handleSelectPrimary(item)}
-                    data-testid={`workspace-primary-item-${item.id}`}
-                    sx={{
-                      borderLeft: 3,
-                      borderColor: selected ? "primary.main" : "transparent",
-                    }}
-                  >
-                    <ListItemText
-                      primary={item.name}
-                      primaryTypographyProps={{
-                        variant: "body2",
-                        noWrap: true,
-                        fontWeight: selected ? 700 : 400,
+                  <React.Fragment key={plan.id}>
+                    {/* 부모: 플랜 */}
+                    <ListItemButton
+                      selected={planSelected}
+                      onClick={() => handleSelectPlan(plan)}
+                      data-testid={`workspace-primary-item-${plan.id}`}
+                      sx={{
+                        borderLeft: 3,
+                        borderColor: planSelected
+                          ? "primary.main"
+                          : "transparent",
+                        pl: 0.5,
                       }}
-                      secondaryTypographyProps={{ component: "div" }}
-                      secondary={
-                        mode === "executions" ? (
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 0.5,
-                              flexWrap: "wrap",
-                            }}
-                          >
-                            {item.status && (
-                              <Chip
-                                size="small"
-                                label={item.status}
-                                color={statusColor(item.status)}
-                                sx={{ height: 18, fontSize: "0.65rem" }}
-                              />
+                    >
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePlanBranch(plan.id);
+                        }}
+                        data-testid={`workspace-plan-toggle-${plan.id}`}
+                        title={
+                          expanded
+                            ? t(
+                                "testPlan.workspace.collapseRuns",
+                                "실행 목록 접기",
+                              )
+                            : t(
+                                "testPlan.workspace.expandRuns",
+                                "실행 목록 펼치기",
+                              )
+                        }
+                        sx={{ mr: 0.25 }}
+                      >
+                        {expanded ? (
+                          <ExpandLessIcon fontSize="small" />
+                        ) : (
+                          <ExpandMoreIcon fontSize="small" />
+                        )}
+                      </IconButton>
+                      <ListItemText
+                        primary={plan.name}
+                        primaryTypographyProps={{
+                          variant: "body2",
+                          noWrap: true,
+                          fontWeight: planSelected ? 700 : 400,
+                        }}
+                      />
+                      {expanded && !loading && (
+                        <Chip
+                          size="small"
+                          label={children.length}
+                          sx={{ height: 18, fontSize: "0.65rem" }}
+                        />
+                      )}
+                      {loading && <CircularProgress size={14} />}
+                    </ListItemButton>
+
+                    {/* 자식: 그 플랜의 실행 */}
+                    <Collapse in={expanded} unmountOnExit>
+                      {children.length === 0 && !loading ? (
+                        <Box sx={{ pl: 5, py: 0.75 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {t(
+                              "testPlan.workspace.noExecution",
+                              "아직 실행이 없습니다. 실행 만들기로 시작하세요.",
                             )}
-                            {/* 어느 플랜의 실행인지 이름으로 보여주고, 눌러서 그 플랜으로 넘어간다 */}
-                            {item.testPlanId &&
-                              planNameById.has(String(item.testPlanId)) && (
-                                <Link
-                                  component="button"
-                                  type="button"
-                                  underline="hover"
-                                  variant="caption"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onOpenPlan?.(item.testPlanId);
-                                  }}
-                                  data-testid={`workspace-execution-plan-link-${item.id}`}
-                                  sx={{ textAlign: "left" }}
-                                >
-                                  {planNameById.get(String(item.testPlanId))}
-                                </Link>
+                          </Typography>
+                        </Box>
+                      ) : (
+                        children.map((exec) => {
+                          const execSelected =
+                            String(exec.id) === String(selectedExecutionId);
+                          return (
+                            <ListItemButton
+                              key={exec.id}
+                              selected={execSelected}
+                              onClick={() => handleSelectExecution(exec)}
+                              data-testid={`workspace-execution-item-${exec.id}`}
+                              sx={{
+                                pl: 5,
+                                borderLeft: 3,
+                                borderColor: execSelected
+                                  ? "primary.main"
+                                  : "transparent",
+                              }}
+                            >
+                              <ListItemText
+                                primary={exec.name}
+                                primaryTypographyProps={{
+                                  variant: "body2",
+                                  noWrap: true,
+                                  fontWeight: execSelected ? 700 : 400,
+                                }}
+                              />
+                              {exec.status && (
+                                <Chip
+                                  size="small"
+                                  label={exec.status}
+                                  color={statusColor(exec.status)}
+                                  sx={{ height: 18, fontSize: "0.65rem" }}
+                                />
                               )}
-                          </Box>
-                        ) : undefined
-                      }
-                    />
-                  </ListItemButton>
+                            </ListItemButton>
+                          );
+                        })
+                      )}
+                    </Collapse>
+                  </React.Fragment>
                 );
               })}
             </List>
@@ -378,107 +473,40 @@ function PlanExecutionWorkspace({
   );
 
   // ── 오른쪽 상세 안의 실행 섹션 (접을 수 있다) ─────────────────────────────
+  // 실행 목록은 왼쪽 트리가 보여주므로, 상세에는 실행을 만드는 입구만 둔다
   const planRunsSection = (
-    <Box sx={{ px: 2, pb: 2 }} data-testid="workspace-runs-section">
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 1,
-          mb: 1,
+    <Box
+      sx={{ px: 2, pb: 2, display: "flex", gap: 1, alignItems: "center" }}
+      data-testid="workspace-runs-section"
+    >
+      <Button
+        size="small"
+        variant="contained"
+        startIcon={<AddIcon />}
+        disabled={!selectedPlanId}
+        onClick={() => {
+          setSelectedExecutionId(null);
+          setCreatingExecution(true);
         }}
+        data-testid="workspace-new-execution"
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <IconButton
-            size="small"
-            onClick={() => setRunsOpen((prev) => !prev)}
-            data-testid="workspace-runs-collapse-toggle"
-            title={
-              runsOpen
-                ? t("testPlan.workspace.collapseRuns", "실행 목록 접기")
-                : t("testPlan.workspace.expandRuns", "실행 목록 펼치기")
-            }
-          >
-            {runsOpen ? (
-              <ExpandLessIcon fontSize="small" />
-            ) : (
-              <ExpandMoreIcon fontSize="small" />
-            )}
-          </IconButton>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            {t("testPlan.workspace.executions", "이 플랜의 실행")}
-          </Typography>
-          <Chip size="small" label={planExecutions.length} />
-        </Box>
-        <Box sx={{ display: "flex", gap: 0.5 }}>
-          <Tooltip title={t("common.refresh", "새로고침")}>
-            <IconButton
-              size="small"
-              onClick={() => loadPlanExecutions(selectedPlanId)}
-              data-testid="workspace-executions-refresh"
-            >
-              <RefreshIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<AddIcon />}
-            disabled={!selectedPlanId}
-            onClick={() => {
-              setSelectedExecutionId(null);
-              setCreatingExecution(true);
-            }}
-            data-testid="workspace-new-execution"
-          >
-            {t("testPlan.workspace.newExecution", "실행 만들기")}
-          </Button>
-        </Box>
-      </Box>
-
-      <Collapse in={runsOpen} unmountOnExit>
-        {executionsLoading ? (
-          <Box sx={{ py: 1, textAlign: "center" }}>
-            <CircularProgress size={18} />
-          </Box>
-        ) : planExecutions.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            {t(
-              "testPlan.workspace.noExecution",
-              "아직 실행이 없습니다. 실행 만들기로 시작하세요.",
-            )}
-          </Typography>
-        ) : (
-          <Paper variant="outlined">
-            <List dense disablePadding>
-              {planExecutions.map((exec) => (
-                <ListItemButton
-                  key={exec.id}
-                  onClick={() => {
-                    setCreatingExecution(false);
-                    setSelectedExecutionId(exec.id);
-                  }}
-                  data-testid={`workspace-execution-item-${exec.id}`}
-                >
-                  <ListItemText
-                    primary={exec.name}
-                    primaryTypographyProps={{ variant: "body2", noWrap: true }}
-                  />
-                  {exec.status && (
-                    <Chip
-                      size="small"
-                      label={exec.status}
-                      color={statusColor(exec.status)}
-                      sx={{ height: 18, fontSize: "0.65rem" }}
-                    />
-                  )}
-                </ListItemButton>
-              ))}
-            </List>
-          </Paper>
+        {t("testPlan.workspace.newExecution", "실행 만들기")}
+      </Button>
+      <Tooltip title={t("common.refresh", "새로고침")}>
+        <IconButton
+          size="small"
+          onClick={() => loadPlanExecutions(selectedPlanId)}
+          data-testid="workspace-executions-refresh"
+        >
+          <RefreshIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <Typography variant="caption" color="text.secondary">
+        {t(
+          "testPlan.workspace.runsInTree",
+          "이 플랜의 실행은 왼쪽 트리에서 볼 수 있습니다.",
         )}
-      </Collapse>
+      </Typography>
     </Box>
   );
 
