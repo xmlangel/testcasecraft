@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.integration;
 
 import static org.testng.Assert.*;
 
+import com.testcase.testcasemanagement.dto.BulkTestResultDto;
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.model.Project;
@@ -17,6 +18,7 @@ import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.TestExecutionService;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -168,6 +170,108 @@ public class TestResultTagPersistenceIntegrationTest
         reloaded.getResults().get(0).getTags(),
         List.of("수정필요"),
         "실행을 다시 읽을 때 결과 태그가 내려와야 한다 (화면에 태그가 안 보이는 원인 확인용)");
+  }
+
+  @Test(description = "ICT-427: 태그를 보내지 않으면 그 케이스의 이전 태그를 물려받는다 (자동화 적재 경로)")
+  public void newResultInheritsPreviousTagsWhenNotProvided() {
+    // 화면에서 수정 필요로 표시
+    TestResultDto marked = new TestResultDto();
+    marked.setTestCaseId(testCase.getId());
+    marked.setResult("FAIL");
+    marked.setTags(List.of("수정필요"));
+    testExecutionService.updateTestResult(execution.getId(), marked);
+
+    // 자동화 적재처럼 태그 없이 결과만 저장
+    TestResultDto automation = new TestResultDto();
+    automation.setTestCaseId(testCase.getId());
+    automation.setResult("PASS");
+    automation.setTags(null);
+
+    TestExecutionDto saved = testExecutionService.updateTestResult(execution.getId(), automation);
+
+    List<TestResultDto> results = saved.getResults();
+    TestResultDto newest =
+        results.stream()
+            .max(Comparator.comparing(TestResultDto::getExecutedAt))
+            .orElseThrow();
+    assertEquals(newest.getResult(), "PASS");
+    assertEquals(
+        newest.getTags(), List.of("수정필요"), "새 줄이 이전 태그를 물려받아야 화면에서 표시가 유지된다");
+  }
+
+  @Test(description = "ICT-427: 이전 태그가 없으면 물려받을 것도 없다")
+  public void newResultHasNoTagsWhenNothingToInherit() {
+    TestResultDto dto = new TestResultDto();
+    dto.setTestCaseId(testCase.getId());
+    dto.setResult("PASS");
+    dto.setTags(null);
+
+    TestExecutionDto saved = testExecutionService.updateTestResult(execution.getId(), dto);
+
+    List<String> tags = saved.getResults().get(0).getTags();
+    assertTrue(tags == null || tags.isEmpty(), "물려받을 태그가 없으면 빈 상태여야 한다");
+  }
+
+  @Test(description = "ICT-427: 일괄 입력에서 공통 태그를 지정하지 않으면 케이스별로 각자의 이전 태그를 물려받는다")
+  public void bulkSaveInheritsPerCaseTags() {
+    TestCase secondCase = new TestCase();
+    secondCase.setProject(testCase.getProject());
+    secondCase.setName("두 번째 케이스");
+    secondCase.setType("testcase");
+    secondCase.setDisplayOrder(2);
+    secondCase.setCreatedAt(LocalDateTime.now());
+    secondCase = testCaseRepository.save(secondCase);
+
+    // 케이스마다 다른 태그를 달아 둔다
+    TestResultDto first = new TestResultDto();
+    first.setTestCaseId(testCase.getId());
+    first.setResult("FAIL");
+    first.setTags(List.of("수정필요"));
+    testExecutionService.updateTestResult(execution.getId(), first);
+
+    TestResultDto second = new TestResultDto();
+    second.setTestCaseId(secondCase.getId());
+    second.setResult("FAIL");
+    second.setTags(List.of("기대결과오류"));
+    testExecutionService.updateTestResult(execution.getId(), second);
+
+    // 공통 태그 없이 일괄로 PASS 처리 (프런트가 태그를 싣지 않는 경우)
+    BulkTestResultDto bulk = new BulkTestResultDto();
+    bulk.setTestCaseIds(List.of(testCase.getId(), secondCase.getId()));
+    bulk.setResult("PASS");
+    bulk.setTags(null);
+
+    TestExecutionDto saved = testExecutionService.updateTestResultsBulk(execution.getId(), bulk);
+
+    assertEquals(latestTagsOf(saved, testCase.getId()), List.of("수정필요"));
+    assertEquals(latestTagsOf(saved, secondCase.getId()), List.of("기대결과오류"));
+  }
+
+  @Test(description = "ICT-427: 일괄 입력에 공통 태그를 지정하면 그 값이 우선한다")
+  public void bulkSaveUsesCommonTagsWhenProvided() {
+    TestResultDto marked = new TestResultDto();
+    marked.setTestCaseId(testCase.getId());
+    marked.setResult("FAIL");
+    marked.setTags(List.of("수정필요"));
+    testExecutionService.updateTestResult(execution.getId(), marked);
+
+    BulkTestResultDto bulk = new BulkTestResultDto();
+    bulk.setTestCaseIds(List.of(testCase.getId()));
+    bulk.setResult("BLOCKED");
+    bulk.setTags(List.of("환경문제"));
+
+    TestExecutionDto saved = testExecutionService.updateTestResultsBulk(execution.getId(), bulk);
+
+    assertEquals(latestTagsOf(saved, testCase.getId()), List.of("환경문제"));
+  }
+
+  /** 특정 케이스의 가장 최근 결과 태그 */
+  private List<String> latestTagsOf(TestExecutionDto executionDto, String testCaseId) {
+    return executionDto.getResults().stream()
+        .filter(r -> testCaseId.equals(r.getTestCaseId()))
+        .max(Comparator.comparing(TestResultDto::getExecutedAt))
+        .map(TestResultDto::getTags)
+        .orElseThrow();
   }
 
   @Test(description = "태그를 빈 배열로 보내면 지워지고, null 로 보내면 유지된다")

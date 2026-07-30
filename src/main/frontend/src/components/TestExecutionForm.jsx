@@ -58,6 +58,7 @@ import {
   saveFilteredNavIds,
   clearFilteredNavIds,
   matchesAnyTag,
+  buildBulkResultPayload,
 } from "./TestExecution/utils.jsx";
 
 // 테스트케이스 필터를 실행(executionId)별로 보존하기 위한 sessionStorage 키 접두사.
@@ -774,13 +775,15 @@ const TestExecutionForm = ({
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              testCaseIds: testCaseArray,
-              result,
-              notes,
-              tags: newTags,
-              jiraIssueKey,
-            }),
+            body: JSON.stringify(
+              buildBulkResultPayload({
+                testCaseIds: testCaseArray,
+                result,
+                notes,
+                tags: newTags,
+                jiraIssueKey,
+              }),
+            ),
           },
         );
 

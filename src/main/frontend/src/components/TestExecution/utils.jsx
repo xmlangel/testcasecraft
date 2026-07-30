@@ -153,6 +153,28 @@ export function matchesAnyTag(resultTags, selectedTags) {
   return tags.some((tag) => terms.some((term) => tag.includes(term)));
 }
 
+// ICT-427: 일괄 결과 입력 요청 본문을 만든다.
+// 공통 태그를 비워 두면 tags 를 아예 싣지 않는다 — 서버는 태그 미지정을 "케이스별 이전 태그 유지"로
+// 해석하고, 빈 배열은 "태그 삭제"로 해석한다. 이 구분이 없으면 일괄로 결과만 갱신할 때 케이스에
+// 달아 둔 수정 필요 표시가 매번 지워진다.
+/**
+ * @param {{testCaseIds: string[], result: string, notes?: string, tags?: string[], jiraIssueKey?: string}} input
+ * @returns {object} 일괄 저장 API 요청 본문
+ */
+export function buildBulkResultPayload({
+  testCaseIds,
+  result,
+  notes,
+  tags,
+  jiraIssueKey,
+}) {
+  const payload = { testCaseIds, result, notes, jiraIssueKey };
+  if (Array.isArray(tags) && tags.length > 0) {
+    payload.tags = tags;
+  }
+  return payload;
+}
+
 // 필터가 적용된 이전/다음 네비게이션 ID 목록을 실행(executionId)별로 보존하는 sessionStorage 키 접두사.
 // 필터 매칭 로직은 TestExecutionForm 한 곳에만 두고(단일 진실 출처), 별도 라우트인
 // 전체화면 결과 뷰(TestCaseResultPage)는 그 결과 목록을 읽어 동일 순서로 이동한다.

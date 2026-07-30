@@ -59,6 +59,40 @@ public class TestExecutionService {
     this.projectSecurityService = projectSecurityService;
   }
 
+  /**
+   * ICT-427: 새 결과 줄에 붙일 태그를 정한다.
+   *
+   * <p>이 시스템은 결과를 덮어쓰지 않고 계속 쌓는다. 그래서 태그("이 케이스 고쳐야 함")를 달아 둔 뒤 같은 케이스를 다시 실행하면 새 줄이 생기는데, 그 줄에 태그가
+   * 없으면 화면(최신 줄만 보여줌)에서 표시가 사라진 것처럼 보인다. 결과 입력 화면은 최신 결과의 태그를 입력창에 채워 넣어 사실상 물려받고 있었지만, 일괄 입력과
+   * 자동화 적재는 태그를 보내지 않아 연결이 끊겼다. 규칙을 서버 한 곳으로 모아 셋을 같게 만든다.
+   *
+   * <ul>
+   *   <li>태그를 보내지 않으면(null) 같은 실행 안에서 그 케이스의 가장 최근 태그를 물려받는다
+   *   <li>빈 배열을 보내면 명시적 삭제로 보고 물려받지 않는다 (다 고쳐서 태그를 떼는 경우)
+   *   <li>값을 보내면 그 값을 쓴다
+   * </ul>
+   *
+   * @param existingResults 이 실행에 이미 쌓여 있는 결과 목록
+   * @param testCaseId 대상 테스트케이스
+   * @param requestedTags 요청이 보낸 태그 (null = 미지정)
+   * @return 새 결과에 붙일 태그 (없으면 null)
+   */
+  private java.util.Set<String> resolveTagsForNewResult(
+      List<TestResult> existingResults, String testCaseId, List<String> requestedTags) {
+    if (requestedTags != null) {
+      return new java.util.LinkedHashSet<>(requestedTags);
+    }
+
+    return existingResults.stream()
+        .filter(prev -> testCaseId.equals(prev.getTestCaseId()))
+        .filter(prev -> prev.getTags() != null && !prev.getTags().isEmpty())
+        .max(
+            Comparator.comparing(
+                TestResult::getExecutedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
+        .map(prev -> (java.util.Set<String>) new java.util.LinkedHashSet<>(prev.getTags()))
+        .orElse(null);
+  }
+
   private User getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String username = authentication.getName();
@@ -330,9 +364,8 @@ public class TestExecutionService {
     r.setNotes(resultDto.getNotes());
 
     r.setJiraIssueKey(cleanedJiraKeys); // ICT-178: 정제된 JIRA 이슈 키 설정
-    if (resultDto.getTags() != null) {
-      r.setTags(new java.util.LinkedHashSet<>(resultDto.getTags()));
-    }
+    // ICT-427: 태그를 보내지 않으면 이 케이스의 이전 결과 태그를 물려받는다
+    r.setTags(resolveTagsForNewResult(results, testCaseId, resultDto.getTags()));
     r.setExecutedAt(LocalDateTime.now());
     r.setExecutedBy(currentUser);
 
@@ -438,9 +471,8 @@ public class TestExecutionService {
       r.setResult(bulkDto.getResult());
       r.setNotes(bulkDto.getNotes());
       r.setJiraIssueKey(cleanedBulkJiraKeys);
-      if (bulkDto.getTags() != null) {
-        r.setTags(new java.util.LinkedHashSet<>(bulkDto.getTags()));
-      }
+      // ICT-427: 공통 태그를 지정하지 않았으면 케이스별로 각자의 이전 태그를 물려받는다
+      r.setTags(resolveTagsForNewResult(results, testCaseId, bulkDto.getTags()));
       r.setExecutedAt(now);
       r.setExecutedBy(currentUser);
 

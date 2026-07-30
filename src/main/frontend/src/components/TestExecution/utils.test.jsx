@@ -5,6 +5,7 @@ import {
   readFilteredNavIds,
   clearFilteredNavIds,
   matchesAnyTag,
+  buildBulkResultPayload,
 } from "./utils.jsx";
 
 // 전체화면 결과 뷰가 목록 화면의 필터 순서를 그대로 따르도록 하는
@@ -101,5 +102,40 @@ describe("matchesAnyTag", () => {
 
   it("문자열 단일 입력도 받는다", () => {
     expect(matchesAnyTag(["수정필요"], "수정")).toBe(true);
+  });
+});
+
+// ICT-427: 일괄 결과 입력 페이로드 — 공통 태그를 비워두면 tags 를 싣지 않아야
+// 서버가 "케이스별 이전 태그 유지"로 처리한다(빈 배열은 삭제 신호라 매번 지워졌다)
+describe("buildBulkResultPayload", () => {
+  const base = { testCaseIds: ["tc1", "tc2"], result: "PASS", notes: "" };
+
+  it("공통 태그가 없으면 tags 키를 넣지 않는다", () => {
+    const payload = buildBulkResultPayload({ ...base, tags: [] });
+    expect("tags" in payload).toBe(false);
+  });
+
+  it("tags 가 undefined 여도 키를 넣지 않는다", () => {
+    const payload = buildBulkResultPayload({ ...base });
+    expect("tags" in payload).toBe(false);
+  });
+
+  it("공통 태그를 입력했으면 그대로 싣는다", () => {
+    const payload = buildBulkResultPayload({ ...base, tags: ["환경문제"] });
+    expect(payload.tags).toEqual(["환경문제"]);
+  });
+
+  it("나머지 필드는 그대로 전달한다", () => {
+    const payload = buildBulkResultPayload({
+      ...base,
+      notes: "일괄 처리",
+      jiraIssueKey: "ICT-427",
+    });
+    expect(payload).toMatchObject({
+      testCaseIds: ["tc1", "tc2"],
+      result: "PASS",
+      notes: "일괄 처리",
+      jiraIssueKey: "ICT-427",
+    });
   });
 });
