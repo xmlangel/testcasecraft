@@ -10,7 +10,6 @@ import {
   Typography,
   Chip,
   TextField,
-  Autocomplete,
   CircularProgress,
   Alert,
 } from "@mui/material";
@@ -25,6 +24,7 @@ import { useTranslation } from "../../context/I18nContext.jsx";
 import { TestResult } from "../../models/testExecution.jsx";
 import { RESULT_COLORS } from "../../constants/statusColors";
 import { jiraService } from "../../services/jiraService";
+import TagsAutocomplete from "../common/TagsAutocomplete.jsx";
 
 const BulkResultDialog = ({
   open,
@@ -251,25 +251,19 @@ const BulkResultDialog = ({
           />
 
           {/* Common tags */}
-          <Autocomplete
-            multiple
-            freeSolo
-            options={availableTags || []}
+          <TagsAutocomplete
+            id="bulk-common-tags"
             value={commonTags}
-            onChange={(e, newValue) => setCommonTags(newValue)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                id="bulk-common-tags"
-                label={t("testExecution.bulk.dialog.commonTags", "공통 태그")}
-                placeholder={t(
-                  "testExecution.form.tagsPlaceholder",
-                  "태그를 입력하고 Enter를 누르세요",
-                )}
-              />
+            onChange={setCommonTags}
+            options={availableTags || []}
+            label={t("testExecution.bulk.dialog.commonTags", "공통 태그")}
+            placeholder={t(
+              "testExecution.form.tagsPlaceholder",
+              "태그를 입력하고 Enter를 누르세요",
             )}
-            sx={{ mb: 2 }}
+            inputTestId="bulk-common-tags-input"
             disabled={processing}
+            sx={{ mb: 2 }}
           />
 
           {/* Common JIRA ID */}
