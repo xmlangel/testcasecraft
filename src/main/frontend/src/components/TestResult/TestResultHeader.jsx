@@ -31,6 +31,7 @@ import {
  * 데이터 집계 로직 및 프리미엄 디자인 적용
  */
 const TestResultHeader = ({
+  embedded = false,
   onPrevious,
   onNext,
   onBack,
@@ -107,15 +108,23 @@ const TestResultHeader = ({
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        bgcolor: isDark ? alpha(theme.palette.background.paper, 0.9) : "#fff",
-        backdropFilter: "blur(12px)",
+        // embedded: 상세 카드 안에 들어가므로 또 하나의 떠 있는 바처럼 보이지 않게
+        // 배경·그림자를 걷고 아래 구분선만 남긴다 (다른 화면과 같은 결).
+        bgcolor: embedded
+          ? "transparent"
+          : isDark
+            ? alpha(theme.palette.background.paper, 0.9)
+            : "#fff",
+        backdropFilter: embedded ? "none" : "blur(12px)",
         borderBottom: `1px solid ${theme.palette.divider}`,
-        position: "sticky",
+        position: embedded ? "static" : "sticky",
         top: 0,
-        zIndex: 1100,
-        boxShadow: isDark
-          ? "0 4px 20px rgba(0,0,0,0.4)"
-          : "0 2px 10px rgba(0,0,0,0.05)",
+        zIndex: embedded ? "auto" : 1100,
+        boxShadow: embedded
+          ? "none"
+          : isDark
+            ? "0 4px 20px rgba(0,0,0,0.4)"
+            : "0 2px 10px rgba(0,0,0,0.05)",
       }}
     >
       {/* Top Bar: Title and Navigation */}
@@ -192,7 +201,10 @@ const TestResultHeader = ({
         )}
         {!isViewer && autoSaveStatus === "error" && (
           <MuiTooltip
-            title={autoSaveError || t("testResult.header.saveError", "Auto-save failed")}
+            title={
+              autoSaveError ||
+              t("testResult.header.saveError", "Auto-save failed")
+            }
             placement="bottom"
           >
             <Box

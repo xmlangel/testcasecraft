@@ -153,7 +153,9 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
     <Wrapper {...wrapperProps}>
       <Title
         {...(inline
-          ? { sx: { mb: 1, fontWeight: 700, fontSize: "1.05rem" } }
+          ? {
+              sx: { mb: 1, fontSize: "1rem", fontWeight: 700, lineHeight: 1.4 },
+            }
           : {})}
       >
         {testPlanId

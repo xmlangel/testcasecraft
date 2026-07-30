@@ -135,6 +135,9 @@ const TestExecutionForm = ({
   initialTestPlanId,
   onCancel,
   onSave,
+  // embedded: 신규 레이아웃의 상세 영역(카드) 안에 들어간다. 페이지 배경·최대폭·
+  // 최소높이를 그대로 쓰면 "카드 안에 또 페이지"처럼 보여 다른 화면과 이질감이 생긴다.
+  embedded = false,
 }) => {
   const {
     testPlans,
@@ -1231,7 +1234,7 @@ const TestExecutionForm = ({
     );
 
   return (
-    <Box sx={PAGE_CONTAINER_SX.main}>
+    <Box sx={embedded ? { p: 2 } : PAGE_CONTAINER_SX.main}>
       <TestExecutionHeader
         executionId={executionId}
         executionName={execution?.name}
@@ -1621,6 +1624,7 @@ const TestExecutionForm = ({
 };
 
 TestExecutionForm.propTypes = {
+  embedded: PropTypes.bool,
   executionId: PropTypes.string,
   projectId: PropTypes.string,
   initialTestPlanId: PropTypes.string,

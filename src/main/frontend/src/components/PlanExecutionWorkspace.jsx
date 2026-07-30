@@ -37,6 +37,7 @@ import { useI18n } from "../context/I18nContext.jsx";
 import apiService from "../services/apiService.js";
 import TestPlanForm from "./TestPlanForm.jsx";
 import TestExecutionForm from "./TestExecutionForm.jsx";
+import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 
 const LIST_WIDTH = 260;
 const LIST_COLLAPSED_WIDTH = 44;
@@ -279,7 +280,7 @@ function PlanExecutionWorkspace({
       >
         {!listCollapsed && (
           <>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }} noWrap>
+            <Typography sx={CHROME_TYPOGRAPHY.paneTitle} noWrap>
               {listTitle}
             </Typography>
             <Chip size="small" label={visiblePlans.length} />
@@ -397,16 +398,17 @@ function PlanExecutionWorkspace({
                       <ListItemText
                         primary={plan.name}
                         primaryTypographyProps={{
-                          variant: "body2",
                           noWrap: true,
-                          fontWeight: planSelected ? 700 : 400,
+                          sx: planSelected
+                            ? CHROME_TYPOGRAPHY.navItemSelected
+                            : CHROME_TYPOGRAPHY.navItem,
                         }}
                       />
                       {expanded && !loading && (
                         <Chip
                           size="small"
                           label={children.length}
-                          sx={{ height: 18, fontSize: "0.65rem" }}
+                          sx={CHROME_TYPOGRAPHY.statusChip}
                         />
                       )}
                       {loading && <CircularProgress size={14} />}
@@ -444,9 +446,10 @@ function PlanExecutionWorkspace({
                               <ListItemText
                                 primary={exec.name}
                                 primaryTypographyProps={{
-                                  variant: "body2",
                                   noWrap: true,
-                                  fontWeight: execSelected ? 700 : 400,
+                                  sx: execSelected
+                                    ? CHROME_TYPOGRAPHY.navItemSelected
+                                    : CHROME_TYPOGRAPHY.navItem,
                                 }}
                               />
                               {exec.status && (
@@ -454,7 +457,7 @@ function PlanExecutionWorkspace({
                                   size="small"
                                   label={exec.status}
                                   color={statusColor(exec.status)}
-                                  sx={{ height: 18, fontSize: "0.65rem" }}
+                                  sx={CHROME_TYPOGRAPHY.statusChip}
                                 />
                               )}
                             </ListItemButton>
@@ -501,7 +504,7 @@ function PlanExecutionWorkspace({
           <RefreshIcon fontSize="small" />
         </IconButton>
       </Tooltip>
-      <Typography variant="caption" color="text.secondary">
+      <Typography color="text.secondary" sx={CHROME_TYPOGRAPHY.hint}>
         {t(
           "testPlan.workspace.runsInTree",
           "이 플랜의 실행은 왼쪽 트리에서 볼 수 있습니다.",
@@ -547,6 +550,7 @@ function PlanExecutionWorkspace({
           executionId={null}
           projectId={projectId}
           initialTestPlanId={effectivePlanId}
+          embedded
           onCancel={() => setCreatingExecution(false)}
           onSave={handleAfterExecutionSaved}
         />
@@ -560,6 +564,7 @@ function PlanExecutionWorkspace({
           key={selectedExecutionId}
           executionId={selectedExecutionId}
           projectId={projectId}
+          embedded
           onCancel={() => setSelectedExecutionId(null)}
           onSave={handleAfterExecutionSaved}
         />

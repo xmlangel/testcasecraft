@@ -145,3 +145,47 @@ export const LAYOUT_UTILS = {
     overflowX: "hidden",
   },
 };
+
+/**
+ * 네비게이션·작업 화면 껍데기의 글자 규격 (한 곳에서 정의).
+ *
+ * 가로 탭 레이아웃과 좌측 메뉴 레이아웃이 같은 값을 써야 화면을 오갈 때 글자 크기·
+ * 굵기가 튀지 않는다. 컴포넌트마다 0.875rem·0.65rem 을 손으로 적으면 한쪽만 바뀌어
+ * 이질감이 생기므로 여기서만 고친다.
+ */
+export const CHROME_TYPOGRAPHY = {
+  /** 패널·섹션 제목 (트리 머리, 상세 제목) */
+  paneTitle: {
+    fontSize: "0.8125rem",
+    fontWeight: 700,
+    lineHeight: 1.4,
+  },
+  /** 영역 이동 항목·목록 행 (탭 라벨, 사이드바 항목, 트리 행) */
+  navItem: {
+    fontSize: "0.875rem",
+    fontWeight: 400,
+    lineHeight: 1.5,
+  },
+  /** 선택된 항목 */
+  navItemSelected: {
+    fontSize: "0.875rem",
+    fontWeight: 700,
+    lineHeight: 1.5,
+  },
+  /** 개수 배지 (테스트케이스 964 등) */
+  countBadge: {
+    fontSize: "0.72rem",
+    fontWeight: 600,
+    lineHeight: 1.4,
+  },
+  /** 상태 칩 (통과·실행 중 등) */
+  statusChip: {
+    height: 20,
+    fontSize: "0.72rem",
+  },
+  /** 보조 안내 문구 */
+  hint: {
+    fontSize: "0.78rem",
+    lineHeight: 1.5,
+  },
+};

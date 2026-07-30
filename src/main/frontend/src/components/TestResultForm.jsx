@@ -996,13 +996,15 @@ const TestResultForm = ({
           // embedded: 레이아웃(상단 바 + 좌측 메뉴) 안에 들어가므로 뷰포트 높이를
           // 강제하지 않는다. 강제하면 껍데기 아래로 한 화면만큼 밀려난다.
           minHeight: embedded ? 0 : "100vh",
-          bgcolor: (theme) => theme.palette.background.default,
-          p: { xs: 1, sm: 2, md: 3 },
+          bgcolor: (theme) =>
+            embedded ? "transparent" : theme.palette.background.default,
+          p: embedded ? 2 : { xs: 1, sm: 2, md: 3 },
           boxSizing: "border-box",
           overflowX: "hidden",
         }}
       >
         <TestResultHeader
+          embedded={embedded}
           onPrevious={onPrevious}
           onNext={onNext}
           onBack={onBack}

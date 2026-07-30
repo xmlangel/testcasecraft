@@ -41,6 +41,7 @@ import {
   getVisibleNavItems,
   NAV_COUNT_KEYS,
 } from "./navigation/projectNavItems.js";
+import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 
 // projectNavItems 의 icon 식별자 → 실제 아이콘 컴포넌트
 const TAB_ICONS = {
@@ -66,8 +67,7 @@ const TabCountBadge = ({ count }) => (
       borderRadius: 1,
       bgcolor: "action.selected",
       color: "text.secondary",
-      fontWeight: 600,
-      lineHeight: 1.4,
+      ...CHROME_TYPOGRAPHY.countBadge,
     }}
   >
     {count}
@@ -148,6 +148,9 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
     px: 1,
     py: 0.5,
     borderRadius: 1,
+    // 사이드바 항목과 같은 글자 규격 — 레이아웃을 바꿔도 크기가 튀지 않게
+    ...CHROME_TYPOGRAPHY.navItem,
+    textTransform: "none",
     transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
     "&:hover": {
       transform: "translateY(-4px) scale(1.05)",

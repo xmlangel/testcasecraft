@@ -32,6 +32,7 @@ import {
   getVisibleNavItems,
   NAV_COUNT_KEYS,
 } from "./navigation/projectNavItems.js";
+import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 
 const EXPANDED_WIDTH = 184;
 const COLLAPSED_WIDTH = 56;
@@ -58,8 +59,7 @@ const CountBadge = ({ count }) => (
       borderRadius: 1,
       bgcolor: "action.selected",
       color: "text.secondary",
-      fontWeight: 600,
-      lineHeight: 1.4,
+      ...CHROME_TYPOGRAPHY.countBadge,
     }}
   >
     {count}
@@ -165,10 +165,11 @@ function ProjectSidebar({
                     >
                       <Box
                         component="span"
-                        sx={{
-                          fontSize: "0.875rem",
-                          fontWeight: selected ? 700 : 400,
-                        }}
+                        sx={
+                          selected
+                            ? CHROME_TYPOGRAPHY.navItemSelected
+                            : CHROME_TYPOGRAPHY.navItem
+                        }
                       >
                         {label}
                       </Box>
