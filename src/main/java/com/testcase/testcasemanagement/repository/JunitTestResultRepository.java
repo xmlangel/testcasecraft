@@ -122,4 +122,8 @@ public interface JunitTestResultRepository extends JpaRepository<JunitTestResult
               + "ORDER BY executor_name",
       nativeQuery = true)
   List<Map<String, Object>> findStatisticsByUploader(@Param("projectId") String projectId);
+
+  /** 결과가 속한 프로젝트 ID 조회 (인가 검사용) */
+  @Query("SELECT r.projectId FROM JunitTestResult r WHERE r.id = :id")
+  Optional<String> findProjectIdById(@Param("id") String id);
 }

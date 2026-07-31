@@ -1,6 +1,14 @@
 # src/main/resources/application-prod.yml
 # 운영 환경 전용 설정
 
+# 운영에서는 API 문서(Swagger UI·api-docs)를 노출하지 않는다 (비인증 정보 노출 차단).
+# 개발/테스트에서는 base application.yml 의 enabled=true 를 그대로 사용한다.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 # 운영용 데이터베이스 설정 (PostgreSQL)
 spring:
   datasource:
@@ -67,10 +75,14 @@ jira:
   security:
     encryption:
       enabled: true
-      key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
+      # 운영에서는 반드시 환경변수 JIRA_ENCRYPTION_KEY 로 고유 키를 주입할 것.
+      # 저장소에 커밋된 공개 기본 키는 두지 않는다(fail-closed) — 미주입 시 Jira 암호화가 예외로 거부된다.
+      # 설령 커밋 기본 키를 주입하더라도 EncryptionUtil 이 운영에서 이를 거부한다.
+      # 키 생성: EncryptionUtil.generateEncryptionKey() (AES-256 Base64).
+      key: ${JIRA_ENCRYPTION_KEY:}
     https:
       enforce: true # HTTPS 강제
-      skip-ssl-verification: false
+      skip-ssl-verification: false # 운영 권장값. true 로 켜면 동작은 하되 JiraSecurityConfig 가 강한 경고 로그를 남긴다
   connection:
     timeout: ${JIRA_CONNECTION_TIMEOUT:30000}
     read-timeout: ${JIRA_READ_TIMEOUT:60000}
@@ -120,3 +132,18 @@ logging:
 #     frame: DENY
 #     content-type: nosniff
 #     xss-protection: true
+
+# Rate limit 클라이언트 IP 산정 (RateLimiterFilter)
+# 기본(false): 소켓 주소(getRemoteAddr) 사용 — 헤더 스푸핑으로 IP를 회전해 우회하는 것을 차단.
+# 리버스 프록시(Nginx/LB) 뒤에 배포하면 모든 요청 출발지가 프록시 IP 하나로 합산되므로,
+# 프록시가 X-Forwarded-For 를 신뢰 가능하게 덮어쓰는(클라이언트 위조분 제거) 구성일 때만 true 로 켠다.
+# 프록시 없이 Spring Boot 직접 노출(docker-compose-build no-nginx) 모드면 반드시 false 유지.
+app:
+  ratelimit:
+    trust-forwarded-headers: ${APP_RATELIMIT_TRUST_FORWARDED_HEADERS:false}
+  jira:
+    # SSRF 가드 (JiraApiService.normalizeServerUrl)
+    # 기본 false: Jira 서버 URL 이 루프백/사설/링크로컬(클라우드 메타데이터 169.254.169.254 포함) 로
+    # 향하면 아웃바운드 요청을 거부한다.
+    # 내부 IP 로 운영되는 신뢰된 on-prem Jira 를 연동해야 하는 배포에서만 true 로 켠다.
+    allow-private-targets: ${APP_JIRA_ALLOW_PRIVATE_TARGETS:false}

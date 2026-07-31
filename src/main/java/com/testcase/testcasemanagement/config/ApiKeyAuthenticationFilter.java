@@ -2,6 +2,7 @@ package com.testcase.testcasemanagement.config;
 
 import com.testcase.testcasemanagement.model.ServiceApiKey;
 import com.testcase.testcasemanagement.repository.ServiceApiKeyRepository;
+import com.testcase.testcasemanagement.util.ApiKeyHasher;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +34,9 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     if (apiKey != null
         && !apiKey.isEmpty()
         && SecurityContextHolder.getContext().getAuthentication() == null) {
-      Optional<ServiceApiKey> keyOpt = serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKey);
+      // DB에는 키 해시만 저장되므로 들어온 키를 같은 방식으로 해시해 비교한다.
+      Optional<ServiceApiKey> keyOpt =
+          serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(ApiKeyHasher.sha256Hex(apiKey));
 
       if (keyOpt.isPresent()) {
         ServiceApiKey serviceApiKey = keyOpt.get();

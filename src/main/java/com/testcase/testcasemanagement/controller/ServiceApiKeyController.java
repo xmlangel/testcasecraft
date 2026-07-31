@@ -1,8 +1,10 @@
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.dto.ServiceApiKeyResponse;
 import com.testcase.testcasemanagement.model.ServiceApiKey;
 import com.testcase.testcasemanagement.repository.ServiceApiKeyRepository;
 import com.testcase.testcasemanagement.service.RedirectTokenStore;
+import com.testcase.testcasemanagement.util.ApiKeyHasher;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,9 +39,11 @@ public class ServiceApiKeyController {
 
   @GetMapping("/api/admin/service-api-keys")
   @PreAuthorize("hasRole('ADMIN')")
-  @Operation(summary = "모든 서비스 API 키 조회 (관리자)")
-  public ResponseEntity<List<ServiceApiKey>> getAllKeys() {
-    return ResponseEntity.ok(serviceApiKeyRepository.findAll());
+  @Operation(summary = "모든 서비스 API 키 조회 (관리자, 키 값 제외 메타데이터만)")
+  public ResponseEntity<List<ServiceApiKeyResponse>> getAllKeys() {
+    List<ServiceApiKeyResponse> keys =
+        serviceApiKeyRepository.findAll().stream().map(ServiceApiKeyResponse::from).toList();
+    return ResponseEntity.ok(keys);
   }
 
   @PostMapping("/api/admin/service-api-keys/generate")
@@ -70,19 +74,15 @@ public class ServiceApiKeyController {
   @GetMapping("/api/users/me/service-api-keys")
   @PreAuthorize("isAuthenticated()")
   @Operation(summary = "내 서비스 API 키 목록 조회")
-  public ResponseEntity<List<ServiceApiKey>> getMyKeys(
+  public ResponseEntity<List<ServiceApiKeyResponse>> getMyKeys(
       @AuthenticationPrincipal UserDetails userDetails) {
     String username = userDetails.getUsername();
-    List<ServiceApiKey> keys =
-        serviceApiKeyRepository.findByCreatedByOrderByCreatedAtDesc(username);
-    // 보안: apiKey 값을 마스킹하여 반환 (앞 8자만 표시)
-    keys.forEach(
-        key -> {
-          String masked = key.getApiKey();
-          if (masked != null && masked.length() > 8) {
-            key.setApiKey(masked.substring(0, 8) + "...(hidden)");
-          }
-        });
+    // 키 값은 DB에 해시로만 저장되며 재조회 불가 — 메타데이터만 DTO로 반환한다.
+    // (이전엔 관리 엔티티에 setApiKey 로 in-place 마스킹 → OSIV flush 시 DB 값 오염 위험)
+    List<ServiceApiKeyResponse> keys =
+        serviceApiKeyRepository.findByCreatedByOrderByCreatedAtDesc(username).stream()
+            .map(ServiceApiKeyResponse::from)
+            .toList();
     return ResponseEntity.ok(keys);
   }
 
@@ -137,7 +137,9 @@ public class ServiceApiKeyController {
           .body(Map.of("error", "X-API-KEY 헤더가 누락되었습니다."));
     }
 
-    Optional<ServiceApiKey> keyOpt = serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKey);
+    String apiKeyHash = ApiKeyHasher.sha256Hex(apiKey);
+    Optional<ServiceApiKey> keyOpt =
+        serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKeyHash);
     if (keyOpt.isEmpty()) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(Map.of("error", "유효하지 않은 API 키입니다."));
@@ -148,7 +150,8 @@ public class ServiceApiKeyController {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "만료된 API 키입니다."));
     }
 
-    String redirectToken = redirectTokenStore.generateToken(apiKey);
+    // 임시 토큰 저장소에도 원본 키 대신 해시를 담는다 (인메모리 노출 표면 축소).
+    String redirectToken = redirectTokenStore.generateToken(apiKeyHash);
     return ResponseEntity.ok(Map.of("token", redirectToken, "expiresInSeconds", 300));
   }
 
@@ -163,13 +166,15 @@ public class ServiceApiKeyController {
           .body(Map.of("error", "token 필드가 누락되었습니다."));
     }
 
-    String apiKey = redirectTokenStore.consumeToken(token);
-    if (apiKey == null) {
+    // 저장소에는 API 키 해시가 담겨 있다 (issueRedirectToken 참조).
+    String apiKeyHash = redirectTokenStore.consumeToken(token);
+    if (apiKeyHash == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(Map.of("error", "임시 토큰이 유효하지 않거나 만료되었습니다."));
     }
 
-    Optional<ServiceApiKey> keyOpt = serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKey);
+    Optional<ServiceApiKey> keyOpt =
+        serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKeyHash);
     if (keyOpt.isEmpty()) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(Map.of("error", "API 키가 비활성화되었습니다."));
@@ -203,10 +208,11 @@ public class ServiceApiKeyController {
     secureRandom.nextBytes(keyBytes);
     String apiKey = Base64.getUrlEncoder().withoutPadding().encodeToString(keyBytes);
 
+    // DB에는 원본 키가 아닌 SHA-256 해시를 저장한다 (평문 미저장). 원본은 이 응답에서 1회만 노출.
     ServiceApiKey newKey =
         ServiceApiKey.builder()
             .name(name)
-            .apiKey(apiKey)
+            .apiKey(ApiKeyHasher.sha256Hex(apiKey))
             .createdBy(owner)
             .expiresAt(LocalDateTime.now().plusYears(1))
             .isActive(true)

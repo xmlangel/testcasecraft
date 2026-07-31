@@ -407,8 +407,6 @@ export function RAGProvider({ children }) {
     createChatThread: chatHooks.createChatThread,
     updateChatThread: chatHooks.updateChatThread,
     deleteChatThread: chatHooks.deleteChatThread,
-    updateThreadCategory: chatHooks.updateThreadCategory,
-    deleteThreadCategory: chatHooks.deleteThreadCategory,
     chat: chatHooks.chat,
     chatStream: chatHooks.chatStream,
     editChatMessage: chatHooks.editChatMessage,

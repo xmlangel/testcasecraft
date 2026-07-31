@@ -114,7 +114,7 @@ public class OrganizationController {
   @DeleteMapping("/{organizationId}/members/{userId}")
   @PreAuthorize(
       "@organizationSecurityService.canManageOrganization(#organizationId, authentication.name) or"
-          + " authentication.name == #userId")
+          + " @securityContextUtil.isCurrentUser(#userId)")
   public ResponseEntity<Void> removeMember(
       @PathVariable String organizationId, @PathVariable String userId) {
     organizationService.removeMember(organizationId, userId);

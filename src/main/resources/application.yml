@@ -124,6 +124,7 @@ app:
       retry-delay: ${JIRA_API_RETRY_DELAY:5000}
     security:
       encryption:
+        # DEV/TEST 전용 기본 키. 운영(prod)은 application-prod.yml 에서 JIRA_ENCRYPTION_KEY 를 필수로 주입(기본값 없음).
         key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
 
 # ICT-390: RAG API 클라이언트 설정
@@ -178,6 +179,7 @@ resilience4j:
 jira:
   security:
     encryption:
+      # DEV/TEST 전용 기본 키(EncryptionUtil 이 읽는 경로). 운영은 application-prod.yml 에서 JIRA_ENCRYPTION_KEY 필수.
       key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
 
 # 프론트엔드 기능 제어 설정 (런타임용)

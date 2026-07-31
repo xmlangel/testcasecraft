@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ public class TestSessionAttachmentController {
   private final I18nService i18nService;
 
   @PostMapping("/upload/{sessionId}")
+  @PreAuthorize("@projectSecurityService.canUploadToTestSession(#sessionId)")
   @Operation(summary = "파일 업로드")
   public ResponseEntity<?> uploadFile(
       @PathVariable String sessionId,
@@ -59,6 +61,7 @@ public class TestSessionAttachmentController {
   }
 
   @GetMapping("/session/{sessionId}")
+  @PreAuthorize("@projectSecurityService.canAccessTestSession(#sessionId)")
   @Operation(summary = "세션별 첨부파일 목록 조회")
   public ResponseEntity<?> getAttachmentsBySession(@PathVariable String sessionId) {
     try {
@@ -72,6 +75,7 @@ public class TestSessionAttachmentController {
   }
 
   @GetMapping("/{attachmentId}/download")
+  @PreAuthorize("@projectSecurityService.canAccessTestSessionAttachment(#attachmentId)")
   @Operation(summary = "파일 다운로드")
   public ResponseEntity<Resource> downloadFile(
       @PathVariable String attachmentId, @AuthenticationPrincipal UserDetails userDetails) {
@@ -97,6 +101,7 @@ public class TestSessionAttachmentController {
   }
 
   @PatchMapping("/{attachmentId}")
+  @PreAuthorize("@projectSecurityService.canEditTestSessionAttachment(#attachmentId)")
   @Operation(summary = "첨부파일 정보 수정")
   public ResponseEntity<?> updateAttachment(
       @PathVariable String attachmentId,
@@ -115,6 +120,7 @@ public class TestSessionAttachmentController {
   }
 
   @DeleteMapping("/{attachmentId}")
+  @PreAuthorize("@projectSecurityService.canEditTestSessionAttachment(#attachmentId)")
   @Operation(summary = "첨부파일 삭제")
   public ResponseEntity<?> deleteAttachment(
       @PathVariable String attachmentId, @AuthenticationPrincipal UserDetails userDetails) {

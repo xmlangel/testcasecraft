@@ -5,6 +5,7 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.TestResultQueryDto;
 import com.testcase.testcasemanagement.dto.TestResultSummaryDto;
 import com.testcase.testcasemanagement.model.JunitTestResult;
+import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.repository.JunitTestResultRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import java.time.LocalDateTime;
@@ -82,20 +83,26 @@ public class TestResultStatisticsService {
     // TestResult 기반 통계
     if (query.getProjectId() != null) {
       stats.put(
-          "passed", testResultRepository.countByResultAndProjectId("PASS", query.getProjectId()));
+          "passed",
+          testResultRepository.countByResultAndProjectId(
+              TestResultStatus.PASS.value(), query.getProjectId()));
       stats.put(
-          "failed", testResultRepository.countByResultAndProjectId("FAIL", query.getProjectId()));
+          "failed",
+          testResultRepository.countByResultAndProjectId(
+              TestResultStatus.FAIL.value(), query.getProjectId()));
       stats.put(
           "blocked",
-          testResultRepository.countByResultAndProjectId("BLOCKED", query.getProjectId()));
+          testResultRepository.countByResultAndProjectId(
+              TestResultStatus.BLOCKED.value(), query.getProjectId()));
       stats.put(
           "notRun",
-          testResultRepository.countByResultAndProjectId("NOT_RUN", query.getProjectId()));
+          testResultRepository.countByResultAndProjectId(
+              TestResultStatus.NOT_RUN.value(), query.getProjectId()));
     } else {
-      stats.put("passed", testResultRepository.countByResult("PASS"));
-      stats.put("failed", testResultRepository.countByResult("FAIL"));
-      stats.put("blocked", testResultRepository.countByResult("BLOCKED"));
-      stats.put("notRun", testResultRepository.countByResult("NOT_RUN"));
+      stats.put("passed", testResultRepository.countByResult(TestResultStatus.PASS.value()));
+      stats.put("failed", testResultRepository.countByResult(TestResultStatus.FAIL.value()));
+      stats.put("blocked", testResultRepository.countByResult(TestResultStatus.BLOCKED.value()));
+      stats.put("notRun", testResultRepository.countByResult(TestResultStatus.NOT_RUN.value()));
     }
 
     stats.put("total", stats.values().stream().mapToLong(Long::longValue).sum());
@@ -240,10 +247,10 @@ public class TestResultStatisticsService {
   /** 결과 분포 계산 */
   private Map<String, Long> calculateResultDistribution(Map<String, Long> basicStats) {
     Map<String, Long> distribution = new LinkedHashMap<>();
-    distribution.put("PASS", basicStats.get("passed"));
-    distribution.put("FAIL", basicStats.get("failed"));
-    distribution.put("BLOCKED", basicStats.get("blocked"));
-    distribution.put("NOT_RUN", basicStats.get("notRun"));
+    distribution.put(TestResultStatus.PASS.value(), basicStats.get("passed"));
+    distribution.put(TestResultStatus.FAIL.value(), basicStats.get("failed"));
+    distribution.put(TestResultStatus.BLOCKED.value(), basicStats.get("blocked"));
+    distribution.put(TestResultStatus.NOT_RUN.value(), basicStats.get("notRun"));
     return distribution;
   }
 

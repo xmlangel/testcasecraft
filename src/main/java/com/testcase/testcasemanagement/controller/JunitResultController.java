@@ -204,6 +204,7 @@ public class JunitResultController {
 
   /** 테스트 결과 상세 조회 */
   @GetMapping("/{testResultId}")
+  @PreAuthorize("@projectSecurityService.canAccessJunitResult(#testResultId)")
   @Operation(summary = "테스트 결과 상세 조회", description = "특정 테스트 결과의 상세 정보를 조회합니다.")
   public ResponseEntity<Map<String, Object>> getTestResultDetail(
       @PathVariable String testResultId) {
@@ -240,6 +241,7 @@ public class JunitResultController {
 
   /** 테스트 스위트 목록 조회 */
   @GetMapping("/{testResultId}/suites")
+  @PreAuthorize("@projectSecurityService.canAccessJunitResult(#testResultId)")
   @Operation(summary = "테스트 스위트 목록", description = "테스트 결과에 포함된 스위트 목록을 조회합니다.")
   public ResponseEntity<Map<String, Object>> getTestSuites(@PathVariable String testResultId) {
 
@@ -266,6 +268,7 @@ public class JunitResultController {
 
   /** 테스트 케이스 목록 조회 */
   @GetMapping("/suites/{testSuiteId}/cases")
+  @PreAuthorize("@projectSecurityService.canAccessJunitSuite(#testSuiteId)")
   @Operation(summary = "테스트 케이스 목록", description = "테스트 스위트에 포함된 케이스 목록을 조회합니다.")
   public ResponseEntity<Map<String, Object>> getTestCases(
       @PathVariable String testSuiteId,
@@ -309,6 +312,7 @@ public class JunitResultController {
 
   /** 실패한 테스트 케이스만 조회 */
   @GetMapping("/{testResultId}/failed-cases")
+  @PreAuthorize("@projectSecurityService.canAccessJunitResult(#testResultId)")
   @Operation(summary = "실패한 테스트 케이스", description = "실패한 테스트 케이스만 조회합니다.")
   public ResponseEntity<Map<String, Object>> getFailedTestCases(@PathVariable String testResultId) {
 
@@ -335,6 +339,7 @@ public class JunitResultController {
 
   /** 가장 느린 테스트 케이스 조회 */
   @GetMapping("/{testResultId}/slowest-cases")
+  @PreAuthorize("@projectSecurityService.canAccessJunitResult(#testResultId)")
   @Operation(summary = "가장 느린 테스트 케이스", description = "실행 시간이 가장 긴 테스트 케이스들을 조회합니다.")
   public ResponseEntity<Map<String, Object>> getSlowestTestCases(
       @PathVariable String testResultId,
@@ -364,6 +369,7 @@ public class JunitResultController {
 
   /** 테스트 케이스 편집 */
   @PutMapping("/cases/{testCaseId}")
+  @PreAuthorize("@projectSecurityService.canModifyJunitCase(#testCaseId)")
   @Operation(summary = "테스트 케이스 편집", description = "테스트 케이스의 사용자 편집 정보를 업데이트합니다.")
   public ResponseEntity<Map<String, Object>> updateTestCase(
       @PathVariable String testCaseId,
@@ -413,6 +419,7 @@ public class JunitResultController {
 
   /** 테스트 결과 삭제 */
   @DeleteMapping("/{testResultId}")
+  @PreAuthorize("@projectSecurityService.canModifyJunitResult(#testResultId)")
   @Operation(summary = "테스트 결과 삭제", description = "테스트 결과와 관련된 모든 데이터를 삭제합니다.")
   public ResponseEntity<Map<String, Object>> deleteTestResult(
       @PathVariable String testResultId, Authentication authentication) {
@@ -444,6 +451,7 @@ public class JunitResultController {
 
   /** 파일 처리 진행률 조회 (대용량 파일용) */
   @GetMapping("/{testResultId}/processing-progress")
+  @PreAuthorize("@projectSecurityService.canAccessJunitResult(#testResultId)")
   @Operation(summary = "파일 처리 진행률 조회", description = "대용량 파일의 비동기 처리 진행률을 조회합니다.")
   public ResponseEntity<Map<String, Object>> getProcessingProgress(
       @PathVariable String testResultId) {
@@ -800,6 +808,7 @@ public class JunitResultController {
 
   /** ICT-337: 테스트 케이스 상세 정보 조회 (tracelog, testbody 포함) */
   @GetMapping("/testcases/{testCaseId}/details")
+  @PreAuthorize("@projectSecurityService.canAccessJunitCase(#testCaseId)")
   @Operation(
       summary = "테스트 케이스 상세 정보 조회",
       description = "테스트 케이스의 tracelog, testbody 등 상세 정보를 조회합니다.")
@@ -931,6 +940,7 @@ public class JunitResultController {
 
   /** 테스트 결과를 테스트 플랜에 연결 */
   @PutMapping("/{testResultId}/link-plan")
+  @PreAuthorize("@projectSecurityService.canModifyJunitResult(#testResultId)")
   @Operation(summary = "테스트 플랜 연결", description = "테스트 결과를 테스트 플랜에 연결합니다.")
   public ResponseEntity<Map<String, Object>> linkTestPlan(
       @PathVariable String testResultId, @RequestBody Map<String, String> body) {

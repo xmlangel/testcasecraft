@@ -285,37 +285,9 @@ export const generateTestCasePaths = (treeNodes) => {
   return paths;
 };
 
-// 테스트 실행 진행상황 계산
-export const calculateExecutionProgress = (
-  execution,
-  testPlan,
-  allTestCases,
-) => {
-  if (
-    !execution ||
-    !testPlan ||
-    !testPlan.testCaseIds ||
-    !testPlan.testCaseIds.length
-  )
-    return 0;
-
-  // 실제 테스트케이스만 필터링
-  const realTestCaseIds = allTestCases
-    ? testPlan.testCaseIds.filter((id) => {
-        const tc = allTestCases.find((t) => t.id === id);
-        return tc && tc.type === "testcase";
-      })
-    : testPlan.testCaseIds;
-
-  if (realTestCaseIds.length === 0) return 0;
-
-  const totalTests = realTestCaseIds.length;
-  const results = execution.results || {};
-  const completedTests = realTestCaseIds.filter(
-    (id) => results[id] && results[id].result !== "NOT_RUN",
-  ).length;
-  return Math.round((completedTests / totalTests) * 100);
-};
+// 진행률 계산 정본은 progressUtils.calculateExecutionProgress 다. 여기 있던 동명 사본은
+// (a) 어디서도 import 되지 않는 죽은 코드였고, (b) utils/index.js 배럴이 progressUtils·treeUtils
+// 양쪽을 export * 해서 이름 충돌을 일으켰다. 제거해 정본 하나만 남긴다.
 
 // 실제 테스트케이스 수 계산 (폴더 제외)
 export const countRealTestCases = (testCaseIds, allTestCases) => {

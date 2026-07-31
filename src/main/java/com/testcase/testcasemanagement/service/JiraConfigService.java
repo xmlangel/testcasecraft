@@ -724,29 +724,27 @@ public class JiraConfigService {
 
     String trimmedQuery = query.trim();
 
-    // 이미 JQL인 경우 그대로 사용
-    if (trimmedQuery.toLowerCase().contains("project")
-        || trimmedQuery.toLowerCase().contains("and")
-        || trimmedQuery.toLowerCase().contains("order by")) {
-      return trimmedQuery;
-    }
-
-    // 이슈 키 패턴인지 확인
+    // 이슈 키 패턴이면 정확 매치 (예: TEST-123)
     if (trimmedQuery.matches("^[A-Z]+-\\d+$")) {
       return "key = \"" + trimmedQuery + "\"";
     }
 
-    // 일반 텍스트 검색 - summary와 description에서 검색
+    // 그 외에는 항상 이스케이프된 텍스트 검색으로만 변환한다.
+    // (과거에는 "project"/"and"/"order by" 부분문자열이 있으면 입력을 원문 JQL 로 통과시켜
+    //  임의 JQL 주입·평문 오판정 경로가 됐다 — 부분문자열 휴리스틱을 제거해 봉쇄한다.)
+    // JQL 문자열 리터럴 이스케이프: 백슬래시를 먼저, 그다음 큰따옴표 순서로 처리.
+    String escaped = trimmedQuery.replace("\\", "\\\\").replace("\"", "\\\"");
+
     StringBuilder jql = new StringBuilder();
 
     // 프로젝트 키가 있으면 해당 프로젝트로 제한
     if (projectKey != null && !projectKey.trim().isEmpty()) {
-      jql.append("project = \"").append(projectKey).append("\" AND ");
+      jql.append("project = \"").append(projectKey.replace("\"", "\\\"")).append("\" AND ");
     }
 
     // 텍스트 검색
-    jql.append("(summary ~ \"").append(trimmedQuery.replace("\"", "\\\"")).append("\"");
-    jql.append(" OR description ~ \"").append(trimmedQuery.replace("\"", "\\\"")).append("\")");
+    jql.append("(summary ~ \"").append(escaped).append("\"");
+    jql.append(" OR description ~ \"").append(escaped).append("\")");
     jql.append(" ORDER BY created DESC");
 
     return jql.toString();

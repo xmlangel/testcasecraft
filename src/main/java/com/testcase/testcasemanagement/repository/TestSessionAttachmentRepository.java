@@ -25,6 +25,10 @@ public interface TestSessionAttachmentRepository
 
   Optional<TestSessionAttachment> findByIdAndPublicAccessToken(String id, String publicAccessToken);
 
+  /** 첨부파일이 속한 세션의 프로젝트 ID (객체수준 인가용). */
+  @Query("SELECT a.session.project.id FROM TestSessionAttachment a WHERE a.id = :attachmentId")
+  Optional<String> findProjectIdByAttachmentId(@Param("attachmentId") String attachmentId);
+
   @Query(
       "SELECT a FROM TestSessionAttachment a WHERE a.fileSize >= :minSize AND a.status = 'ACTIVE'")
   List<TestSessionAttachment> findLargeFiles(@Param("minSize") Long minSize);

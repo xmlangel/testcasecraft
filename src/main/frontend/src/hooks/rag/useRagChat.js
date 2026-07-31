@@ -216,55 +216,9 @@ export function useRagChat(
     [api, ensureRagAvailable, dispatch, ActionTypes],
   );
 
-  // ============ 카테고리 수정 ============
-  const updateThreadCategory = useCallback(
-    async (threadId, categoryId, categoryName) => {
-      ensureRagAvailable("updateThreadCategory");
-
-      try {
-        const response = await api(
-          `/api/rag/chat/conversations/threads/${threadId}/category`,
-          {
-            method: "PATCH",
-            body: JSON.stringify({
-              category_id: categoryId,
-              category_name: categoryName,
-            }),
-          },
-        );
-
-        const thread = await response.json();
-        dispatch({ type: ActionTypes.UPSERT_THREAD, payload: thread });
-        return thread;
-      } catch (error) {
-        console.error("카테고리 수정 실패:", error);
-        throw error;
-      }
-    },
-    [api, ensureRagAvailable, dispatch, ActionTypes],
-  );
-
-  // ============ 카테고리 삭제 ============
-  const deleteThreadCategory = useCallback(
-    async (threadId) => {
-      ensureRagAvailable("deleteThreadCategory");
-
-      try {
-        const response = await api(
-          `/api/rag/chat/conversations/threads/${threadId}/category`,
-          { method: "DELETE" },
-        );
-
-        const thread = await response.json();
-        dispatch({ type: ActionTypes.UPSERT_THREAD, payload: thread });
-        return thread;
-      } catch (error) {
-        console.error("카테고리 삭제 실패:", error);
-        throw error;
-      }
-    },
-    [api, ensureRagAvailable, dispatch, ActionTypes],
-  );
+  // 참고: 스레드의 카테고리 지정/해제는 updateChatThread(categoryIds)로 처리한다.
+  // (과거의 updateThreadCategory/deleteThreadCategory 는 존재하지 않는
+  //  /threads/{id}/category 엔드포인트를 호출하는 죽은 코드여서 제거함)
 
   // ============ 일반 채팅 (응답 한 번에) ============
   const chat = useCallback(
@@ -586,8 +540,6 @@ export function useRagChat(
     createChatThread,
     updateChatThread,
     deleteChatThread,
-    updateThreadCategory,
-    deleteThreadCategory,
     chat,
     chatStream,
     editChatMessage,

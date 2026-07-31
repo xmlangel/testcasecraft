@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.config;
 
+import jakarta.annotation.PostConstruct;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.cert.X509Certificate;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
@@ -32,15 +34,38 @@ public class JiraSecurityConfig {
   @Value("${jira.connection.read-timeout:60000}")
   private int readTimeout;
 
+  private final Environment environment;
+  private boolean prodProfileActive;
+
+  public JiraSecurityConfig(Environment environment) {
+    this.environment = environment;
+  }
+
+  @PostConstruct
+  void init() {
+    prodProfileActive = com.testcase.testcasemanagement.util.ProfileUtils.isProdActive(environment);
+    if (skipSslVerification && prodProfileActive) {
+      // 운영에서 인증서 검증 우회는 MITM 위험 → 동작은 유지하되 강한 경고를 남긴다(기존 자체서명 배포 무중단).
+      log.error(
+          "보안 경고: 운영(prod) 프로파일에서 jira.security.https.skip-ssl-verification=true 가 설정됐습니다."
+              + " 인증서 검증을 우회하므로 MITM 에 취약합니다. 정식 인증서 사용을 강력히 권장합니다.");
+    }
+  }
+
+  /** SSL 검증 우회 여부 — 설정값을 그대로 따른다(운영이라도 동작 유지, 대신 init 에서 강한 경고). */
+  private boolean isSslBypassAllowed() {
+    return skipSslVerification;
+  }
+
   /** JIRA API 통신용 RestTemplate 설정 */
   @Bean(name = "jiraRestTemplate")
   public RestTemplate jiraRestTemplate() {
     RestTemplate restTemplate = new RestTemplate();
     restTemplate.setRequestFactory(jiraClientHttpRequestFactory());
     log.info(
-        "JIRA RestTemplate 초기화 완료 - HTTPS 강제: {}, SSL 검증 스킵: {}",
+        "JIRA RestTemplate 초기화 완료 - HTTPS 강제: {}, SSL 검증 스킵(유효): {}",
         httpsEnforce,
-        skipSslVerification);
+        isSslBypassAllowed());
     return restTemplate;
   }
 
@@ -54,12 +79,17 @@ public class JiraSecurityConfig {
               throws java.io.IOException {
             super.prepareConnection(connection, httpMethod);
 
+            // SSRF 방어: 리다이렉트 자동 추종 차단. normalizeServerUrl 의 대상검증(#81)을 통과한 공개 URL 이
+            // 302 로 사설/링크로컬(169.254.169.254 메타데이터)로 재유도하는 우회를 막는다. 리다이렉트가 필요한
+            // 정상 Jira 는 없다. (DNS 리바인딩 TOCTOU 의 근본 방어인 SSRF-aware 소켓팩토리/이그레스 프록시는 후속 과제)
+            connection.setInstanceFollowRedirects(false);
+
             // HTTPS 강제 적용
             if (httpsEnforce && connection instanceof HttpsURLConnection) {
               HttpsURLConnection httpsConnection = (HttpsURLConnection) connection;
 
-              if (skipSslVerification) {
-                // 개발/테스트 환경에서만 사용 (운영 환경 권장하지 않음)
+              if (isSslBypassAllowed()) {
+                // 개발/테스트 환경에서만 사용 (운영 프로파일에서는 isSslBypassAllowed 가 false → 진입 불가)
                 log.warn("SSL 인증서 검증을 건너뜁니다. 운영 환경에서는 권장하지 않습니다.");
                 configureSslBypass(httpsConnection);
               } else {

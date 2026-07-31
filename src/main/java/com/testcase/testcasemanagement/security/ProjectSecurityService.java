@@ -4,13 +4,25 @@ package com.testcase.testcasemanagement.security;
 import com.testcase.testcasemanagement.dto.rag.RagDocumentResponse;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.ProjectUser.ProjectRole;
+import com.testcase.testcasemanagement.repository.JunitTestCaseRepository;
+import com.testcase.testcasemanagement.repository.JunitTestResultRepository;
+import com.testcase.testcasemanagement.repository.JunitTestSuiteRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
+import com.testcase.testcasemanagement.repository.RagChatCategoryRepository;
+import com.testcase.testcasemanagement.repository.RagChatMessageRepository;
+import com.testcase.testcasemanagement.repository.RagChatThreadRepository;
+import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestSessionAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestSessionRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -27,6 +39,28 @@ public class ProjectSecurityService {
   @Autowired private SecurityContextUtil securityContextUtil;
 
   @Autowired private OrganizationSecurityService organizationSecurityService;
+
+  @Autowired private TestCaseAttachmentRepository testCaseAttachmentRepository;
+
+  @Autowired private TestCaseRepository testCaseRepository;
+
+  @Autowired private TestResultAttachmentRepository testResultAttachmentRepository;
+
+  @Autowired private JunitTestResultRepository junitTestResultRepository;
+
+  @Autowired private JunitTestSuiteRepository junitTestSuiteRepository;
+
+  @Autowired private JunitTestCaseRepository junitTestCaseRepository;
+
+  @Autowired private TestSessionRepository testSessionRepository;
+
+  @Autowired private TestSessionAttachmentRepository testSessionAttachmentRepository;
+
+  @Autowired private RagChatThreadRepository ragChatThreadRepository;
+
+  @Autowired private RagChatMessageRepository ragChatMessageRepository;
+
+  @Autowired private RagChatCategoryRepository ragChatCategoryRepository;
 
   @Autowired @Lazy private RagService ragService;
 
@@ -96,6 +130,131 @@ public class ProjectSecurityService {
     return securityContextUtil.isSystemAdmin()
         || (currentUserId != null
             && projectUserRepository.hasResultEntryRole(projectId, currentUserId));
+  }
+
+  /**
+   * 리소스 → 프로젝트 투영 후 권한 판정의 공통 형태. 17개 리소스별 can* 메서드가 동일하게 "리소스ID로 projectId 조회 → 권한 술어 적용, 미존재 시
+   * fail-closed(false)"를 반복하던 것을 한 곳으로 모은다. 새 리소스 메서드를 추가할 때 이 한 줄 형태를 따르면 미묘한 실수(예: orElse(true)
+   * 오타)를 줄인다.
+   */
+  private boolean projectPermission(Optional<String> projectId, Predicate<String> permission) {
+    return projectId.map(permission::test).orElse(false);
+  }
+
+  /** 테스트케이스가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 (미존재 시 fail-closed) */
+  public boolean canAccessTestCase(String testCaseId) {
+    return projectPermission(
+        testCaseRepository.findProjectIdById(testCaseId), this::canAccessProject);
+  }
+
+  /** 테스트케이스가 속한 프로젝트에 현재 사용자가 업로드(첨부 추가)할 수 있는지 (업로드 권한 기준) */
+  public boolean canUploadTestCase(String testCaseId) {
+    return testCaseRepository
+        .findProjectIdById(testCaseId)
+        .map(this::canUploadToProject)
+        .orElse(false);
+  }
+
+  /** 테스트케이스 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
+  public boolean canAccessTestCaseAttachment(String attachmentId) {
+    return projectPermission(
+        testCaseAttachmentRepository.findProjectIdByAttachmentId(attachmentId),
+        this::canAccessProject);
+  }
+
+  /** 테스트케이스 첨부파일이 속한 프로젝트를 현재 사용자가 편집(삭제/사용표시)할 수 있는지 */
+  public boolean canEditTestCaseAttachment(String attachmentId) {
+    return projectPermission(
+        testCaseAttachmentRepository.findProjectIdByAttachmentId(attachmentId),
+        this::canEditProject);
+  }
+
+  /** 테스트 결과 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드/미리보기)할 수 있는지 */
+  public boolean canAccessTestResultAttachment(String attachmentId) {
+    return projectPermission(
+        testResultAttachmentRepository.findProjectIdByAttachmentId(attachmentId),
+        this::canAccessProject);
+  }
+
+  /** 테스트 결과 첨부파일이 속한 프로젝트를 현재 사용자가 편집(삭제)할 수 있는지 */
+  public boolean canEditTestResultAttachment(String attachmentId) {
+    return projectPermission(
+        testResultAttachmentRepository.findProjectIdByAttachmentId(attachmentId),
+        this::canEditProject);
+  }
+
+  /** JUnit 결과가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
+  public boolean canAccessJunitResult(String testResultId) {
+    return projectPermission(
+        junitTestResultRepository.findProjectIdById(testResultId), this::canAccessProject);
+  }
+
+  /** JUnit 결과가 속한 프로젝트를 현재 사용자가 변경(수정/삭제/플랜연결)할 수 있는지 (업로드 권한과 동일 기준) */
+  public boolean canModifyJunitResult(String testResultId) {
+    return projectPermission(
+        junitTestResultRepository.findProjectIdById(testResultId), this::canUploadToProject);
+  }
+
+  /** JUnit 스위트가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
+  public boolean canAccessJunitSuite(String suiteId) {
+    return projectPermission(
+        junitTestSuiteRepository.findProjectIdBySuiteId(suiteId), this::canAccessProject);
+  }
+
+  /** JUnit 케이스가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
+  public boolean canAccessJunitCase(String caseId) {
+    return projectPermission(
+        junitTestCaseRepository.findProjectIdByCaseId(caseId), this::canAccessProject);
+  }
+
+  /** JUnit 케이스가 속한 프로젝트를 현재 사용자가 변경(수정)할 수 있는지 (업로드 권한과 동일 기준) */
+  public boolean canModifyJunitCase(String caseId) {
+    return projectPermission(
+        junitTestCaseRepository.findProjectIdByCaseId(caseId), this::canUploadToProject);
+  }
+
+  /** 탐색적 세션이 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
+  public boolean canAccessTestSession(String sessionId) {
+    return projectPermission(
+        testSessionRepository.findProjectIdById(sessionId), this::canAccessProject);
+  }
+
+  /** 탐색적 세션이 속한 프로젝트에 현재 사용자가 업로드(첨부 추가)할 수 있는지 */
+  public boolean canUploadToTestSession(String sessionId) {
+    return projectPermission(
+        testSessionRepository.findProjectIdById(sessionId), this::canUploadToProject);
+  }
+
+  /** 세션 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
+  public boolean canAccessTestSessionAttachment(String attachmentId) {
+    return projectPermission(
+        testSessionAttachmentRepository.findProjectIdByAttachmentId(attachmentId),
+        this::canAccessProject);
+  }
+
+  /** 세션 첨부파일이 속한 프로젝트를 현재 사용자가 편집(수정/삭제)할 수 있는지 */
+  public boolean canEditTestSessionAttachment(String attachmentId) {
+    return projectPermission(
+        testSessionAttachmentRepository.findProjectIdByAttachmentId(attachmentId),
+        this::canEditProject);
+  }
+
+  /** RAG 채팅 스레드가 속한 프로젝트에 현재 사용자가 접근할 수 있는지 (조회/생성/수정/삭제 공통 — 프로젝트 멤버 협업) */
+  public boolean canAccessRagChatThread(String threadId) {
+    return projectPermission(
+        ragChatThreadRepository.findProjectIdById(threadId), this::canAccessProject);
+  }
+
+  /** RAG 채팅 메시지가 속한(스레드→) 프로젝트에 현재 사용자가 접근할 수 있는지 */
+  public boolean canAccessRagChatMessage(String messageId) {
+    return projectPermission(
+        ragChatMessageRepository.findProjectIdByMessageId(messageId), this::canAccessProject);
+  }
+
+  /** RAG 채팅 카테고리가 속한 프로젝트에 현재 사용자가 접근할 수 있는지 */
+  public boolean canAccessRagChatCategory(String categoryId) {
+    return projectPermission(
+        ragChatCategoryRepository.findProjectIdById(categoryId), this::canAccessProject);
   }
 
   /** 사용자가 프로젝트 매니저인지 확인 */
@@ -358,5 +517,23 @@ public class ProjectSecurityService {
 
     String currentUsername = securityContextUtil.getCurrentUsername();
     return currentUsername != null && canAccessDocumentProject(documentId, currentUsername);
+  }
+
+  /**
+   * RAG 분석요약이 속한(요약→document→) 프로젝트에 현재 사용자가 접근할 수 있는지. 요약은 외부 RAG 서비스에 저장되므로 요약을 조회해 소속 documentId
+   * 를 얻은 뒤 문서-프로젝트 접근 권한으로 판정한다(canAccessDocumentProject 가 외부 getDocument 를 쓰는 것과 동일 패턴). 조회 실패·미존재
+   * 시 fail-closed.
+   */
+  public boolean canAccessRagAnalysisSummary(java.util.UUID summaryId) {
+    try {
+      com.testcase.testcasemanagement.dto.rag.RagAnalysisSummaryResponse summary =
+          ragService.getAnalysisSummary(summaryId);
+      if (summary == null || summary.getDocumentId() == null) {
+        return false;
+      }
+      return canAccessDocumentProject(summary.getDocumentId());
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

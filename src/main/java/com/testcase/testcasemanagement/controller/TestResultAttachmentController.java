@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -139,6 +140,7 @@ public class TestResultAttachmentController {
   }
 
   /** 파일 다운로드 */
+  @PreAuthorize("@projectSecurityService.canAccessTestResultAttachment(#attachmentId)")
   @GetMapping("/{attachmentId}/download")
   @Operation(summary = "파일 다운로드", description = "첨부파일을 다운로드합니다.")
   @ApiResponses(
@@ -191,6 +193,7 @@ public class TestResultAttachmentController {
   }
 
   /** 첨부파일 정보 조회 */
+  @PreAuthorize("@projectSecurityService.canAccessTestResultAttachment(#attachmentId)")
   @GetMapping("/{attachmentId}")
   @Operation(summary = "첨부파일 정보 조회", description = "첨부파일의 상세 정보를 조회합니다.")
   @ApiResponses(
@@ -229,6 +232,7 @@ public class TestResultAttachmentController {
   }
 
   /** 첨부파일 삭제 */
+  @PreAuthorize("@projectSecurityService.canEditTestResultAttachment(#attachmentId)")
   @DeleteMapping("/{attachmentId}")
   @Operation(summary = "첨부파일 삭제", description = "첨부파일을 삭제합니다. (논리적 삭제)")
   @ApiResponses(
@@ -320,6 +324,7 @@ public class TestResultAttachmentController {
   }
 
   /** 첨부파일 미리보기 (스트리밍 방식) */
+  @PreAuthorize("@projectSecurityService.canAccessTestResultAttachment(#attachmentId)")
   @GetMapping("/{attachmentId}/preview")
   @Operation(summary = "파일 미리보기", description = "첨부파일을 스트리밍 방식으로 미리보기합니다.")
   @ApiResponses(

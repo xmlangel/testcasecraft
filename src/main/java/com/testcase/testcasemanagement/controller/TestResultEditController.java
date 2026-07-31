@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -84,6 +85,7 @@ public class TestResultEditController {
 
   /** 편집본 승인/거부 */
   @Operation(summary = "편집본 승인/거부", description = "제출된 편집본을 승인하거나 거부합니다.")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
   @PostMapping("/{editId}/approval")
   public ResponseEntity<TestResultEditDto> processEditApproval(
       @PathVariable String editId,
@@ -109,6 +111,7 @@ public class TestResultEditController {
 
   /** 편집본 적용 (승인된 편집본을 활성화) */
   @Operation(summary = "편집본 적용", description = "승인된 편집본을 실제 테스트 결과에 적용합니다.")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
   @PostMapping("/{editId}/apply")
   public ResponseEntity<TestResultEditDto.EditApplicationResultDto> applyEdit(
       @PathVariable String editId, Authentication authentication) {
@@ -135,6 +138,7 @@ public class TestResultEditController {
 
   /** 편집본 되돌리기 */
   @Operation(summary = "편집본 되돌리기", description = "적용된 편집본을 이전 상태로 되돌립니다.")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
   @PostMapping("/{editId}/revert")
   public ResponseEntity<TestResultEditDto> revertEdit(
       @PathVariable String editId, Authentication authentication) {
@@ -304,11 +308,17 @@ public class TestResultEditController {
 
       Page<TestResultEditDto> pendingEdits = editService.getEdits(filter);
 
-      // 자신의 편집본은 제외 (자가 승인 방지)
+      // 자신의 편집본은 제외 (자가 승인 방지).
+      // 주의: Page.map은 원소 변환이라 제거가 안 된다. 기존 map(→null)은 본인 편집본을 null 원소로 남겨
+      //   (1) 자가 승인 방지가 무효화되고 (2) 직렬화/소비 시 NPE를 유발했다.
+      //   content를 필터링해 새 Page로 재구성한다. (정확한 total 반영은 서비스 쿼리단 필터가 P1 과제)
+      List<TestResultEditDto> visibleEdits =
+          pendingEdits.getContent().stream()
+              .filter(edit -> !currentUserId.equals(edit.getEditedByUserId()))
+              .collect(java.util.stream.Collectors.toList());
       Page<TestResultEditDto> filteredEdits =
-          pendingEdits
-              .map(edit -> edit.getEditedByUserId().equals(currentUserId) ? null : edit)
-              .map(edit -> edit);
+          new org.springframework.data.domain.PageImpl<>(
+              visibleEdits, pendingEdits.getPageable(), pendingEdits.getTotalElements());
 
       return ResponseEntity.ok(filteredEdits);
 

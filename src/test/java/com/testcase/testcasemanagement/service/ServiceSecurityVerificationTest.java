@@ -1,13 +1,14 @@
 package com.testcase.testcasemanagement.service;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
 /** Service 레이어 보안 검증 테스트 */
 @SpringBootTest
 @ActiveProfiles("test")
-public class ServiceSecurityVerificationTest {
+public class ServiceSecurityVerificationTest extends AbstractTestNGSpringContextTests {
 
   @Test
   public void verifyOrganizationServiceImplementation() {

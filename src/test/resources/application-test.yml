@@ -57,3 +57,10 @@ rag:
 testcase:
   init:
     enabled: false
+
+# 테스트 전용 고정 암호화 키 — 유효한 base64(AES-256). 미지정 시 환경/기본값에 따라 base64
+# 디코드가 실패(Illegal base64 character)해 JiraConfig 저장이 500 이 되던 것을 결정론적으로 고정.
+jira:
+  security:
+    encryption:
+      key: 5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=

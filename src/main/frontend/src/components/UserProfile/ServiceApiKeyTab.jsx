@@ -28,7 +28,6 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   ContentCopy as CopyIcon,
-  Visibility as VisibilityIcon,
   Key as KeyIcon,
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
@@ -334,7 +333,7 @@ function ServiceApiKeyTab() {
                   {t("profile.apiToken.table.name", "이름")}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>
-                  {t("profile.apiToken.table.key", "키 (마스킹)")}
+                  {t("profile.apiToken.table.key", "키 (발급 시 1회만 표시)")}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>
                   {t("profile.apiToken.table.status", "상태")}
@@ -362,8 +361,12 @@ function ServiceApiKeyTab() {
                     <Typography
                       variant="body2"
                       sx={{ fontFamily: "monospace", color: "text.secondary" }}
+                      title={t(
+                        "profile.apiToken.table.keyHiddenHint",
+                        "보안상 키는 저장하지 않으며 발급 시 1회만 표시됩니다.",
+                      )}
                     >
-                      {key.apiKey}
+                      {"•".repeat(12)}
                     </Typography>
                   </TableCell>
                   <TableCell>

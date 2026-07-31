@@ -48,4 +48,10 @@ public interface TestResultAttachmentRepository
       "SELECT a FROM TestResultAttachment a WHERE a.createdAt < :beforeDate AND a.status ="
           + " 'ACTIVE'")
   List<TestResultAttachment> findOldFiles(@Param("beforeDate") java.time.LocalDateTime beforeDate);
+
+  /** 첨부파일이 속한 프로젝트 ID 조회 (인가 검사용 — LAZY 로딩 우회) */
+  @Query(
+      "SELECT a.testResult.testExecution.project.id FROM TestResultAttachment a WHERE a.id ="
+          + " :attachmentId")
+  Optional<String> findProjectIdByAttachmentId(@Param("attachmentId") String attachmentId);
 }

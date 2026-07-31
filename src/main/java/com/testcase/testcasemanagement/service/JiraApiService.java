@@ -3,8 +3,11 @@ package com.testcase.testcasemanagement.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,6 +15,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -32,6 +36,13 @@ public class JiraApiService {
   private final ObjectMapper objectMapper;
   private final JiraConnectionManager jiraConnectionManager;
   private final Optional<JiraMonitoringService> jiraMonitoringService;
+
+  /**
+   * SSRF 가드 우회 스위치. 기본 false — 루프백/사설/링크로컬(클라우드 메타데이터 169.254.169.254 포함) 대상을 차단한다. 내부 IP 로 운영되는
+   * 신뢰된 on-prem Jira 를 쓰는 배포에서만 true 로 켠다.
+   */
+  @Value("${app.jira.allow-private-targets:false}")
+  private boolean allowPrivateTargets;
 
   public JiraApiService(
       RestTemplate restTemplate,
@@ -289,36 +300,32 @@ public class JiraApiService {
 
   private String createIssueRequestBody(JiraConfigDto.IssueCreateRequestDto request)
       throws Exception {
-    // ADF 형식으로 설명 구성
+    // 보안: String.format 로 JSON 을 조립하면 큰따옴표만 이스케이프돼 백슬래시·개행 등으로
+    // JSON 구조가 파손되거나 필드가 주입될 수 있다. ObjectMapper 로 구조적으로 빌드해 모든 값을 안전하게 이스케이프한다.
+    ObjectNode fields = objectMapper.createObjectNode();
+
+    ObjectNode project = objectMapper.createObjectNode();
+    project.put("key", request.getProjectKey());
+    fields.set("project", project);
+
+    fields.put("summary", request.getSummary());
+
+    // 설명(ADF) — createAdfDescription 은 JSON 문자열("null" 또는 ADF 객체)을 반환
     String descriptionJson = createAdfDescription(request.getDescription());
+    fields.set("description", objectMapper.readTree(descriptionJson));
 
-    // 이슈 유형 처리
-    String issueTypeNode;
+    ObjectNode issueType = objectMapper.createObjectNode();
     if (request.getIssueTypeId() != null && !request.getIssueTypeId().isEmpty()) {
-      issueTypeNode =
-          String.format("{\"id\": \"%s\"}", request.getIssueTypeId().replace("\"", "\\\""));
+      issueType.put("id", request.getIssueTypeId());
     } else {
-      String typeName = request.getIssueTypeName() != null ? request.getIssueTypeName() : "Bug";
-      issueTypeNode = String.format("{\"name\": \"%s\"}", typeName.replace("\"", "\\\""));
+      issueType.put(
+          "name", request.getIssueTypeName() != null ? request.getIssueTypeName() : "Bug");
     }
+    fields.set("issuetype", issueType);
 
-    return String.format(
-        """
-        {
-            "fields": {
-                "project": {
-                    "key": "%s"
-                },
-                "summary": "%s",
-                "description": %s,
-                "issuetype": %s
-            }
-        }
-        """,
-        request.getProjectKey().replace("\"", "\\\""),
-        request.getSummary().replace("\"", "\\\""),
-        descriptionJson,
-        issueTypeNode);
+    ObjectNode root = objectMapper.createObjectNode();
+    root.set("fields", fields);
+    return objectMapper.writeValueAsString(root);
   }
 
   private String createAdfDescription(String text) {
@@ -399,10 +406,22 @@ public class JiraApiService {
       return objectMapper.writeValueAsString(adf);
     } catch (Exception e) {
       log.error("ADF 변환 실패, 일반 텍스트로 폴백", e);
-      return String.format(
-          "{\"version\": 1, \"type\": \"doc\", \"content\": [{\"type\": \"paragraph\", \"content\":"
-              + " [{\"type\": \"text\", \"text\": \"%s\"}]}]}",
-          text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n"));
+      // 폴백도 ObjectMapper 로 구성해 text 값을 안전하게 이스케이프
+      try {
+        ObjectNode textNode = objectMapper.createObjectNode();
+        textNode.put("type", "text");
+        textNode.put("text", text);
+        ObjectNode paragraph = objectMapper.createObjectNode();
+        paragraph.put("type", "paragraph");
+        paragraph.set("content", objectMapper.createArrayNode().add(textNode));
+        ObjectNode doc = objectMapper.createObjectNode();
+        doc.put("version", 1);
+        doc.put("type", "doc");
+        doc.set("content", objectMapper.createArrayNode().add(paragraph));
+        return objectMapper.writeValueAsString(doc);
+      } catch (Exception ex) {
+        return "null";
+      }
     }
   }
 
@@ -569,11 +588,16 @@ public class JiraApiService {
       String searchUrl = normalizedUrl + "/rest/api/3/search/jql";
       String authHeader = createBasicAuthHeader(username, apiToken);
 
-      // 검색 요청 본문 구성
-      String requestBody =
-          String.format(
-              "{\"jql\":\"%s\",\"maxResults\":%d,\"fields\":[\"key\",\"summary\",\"status\",\"priority\",\"created\",\"updated\",\"assignee\"]}",
-              jql.replace("\"", "\\\""), maxResults);
+      // 검색 요청 본문 구성 (ObjectMapper 로 안전하게 — jql 의 백슬래시/개행 등에 의한 JSON 주입 방지)
+      ObjectNode bodyNode = objectMapper.createObjectNode();
+      bodyNode.put("jql", jql);
+      bodyNode.put("maxResults", maxResults);
+      com.fasterxml.jackson.databind.node.ArrayNode fieldsArr = bodyNode.putArray("fields");
+      for (String f :
+          new String[] {"key", "summary", "status", "priority", "created", "updated", "assignee"}) {
+        fieldsArr.add(f);
+      }
+      String requestBody = objectMapper.writeValueAsString(bodyNode);
 
       HttpHeaders headers = createHeaders(authHeader);
       HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
@@ -657,7 +681,9 @@ public class JiraApiService {
 
   /** JIRA 이슈 URL 생성 ICT-162: 이슈 URL 생성 유틸리티 */
   public String generateIssueUrl(String serverUrl, String issueKey) {
-    String normalizedUrl = normalizeServerUrl(serverUrl);
+    // 표시용 링크 조립 — 서버측 요청이 없으므로 SSRF 검증 없는 순수 정규화를 쓴다.
+    // (검증하는 normalizeServerUrl 을 쓰면 내부 URL 저장 시 배치 상태요약 집계가 500 으로 전파됨)
+    String normalizedUrl = normalizeServerUrlForDisplay(serverUrl);
     return normalizedUrl + "/browse/" + issueKey;
   }
 
@@ -779,7 +805,21 @@ public class JiraApiService {
 
   // Private helper methods
 
+  /**
+   * 아웃바운드 Jira 호출용 정규화 — 문자열 정규화 후 SSRF 대상 검증까지 수행한다. 서버측 요청(RestTemplate.exchange)을 내는 모든 경로는 이
+   * 메서드를 통과하는 것이 단일 초크포인트다. 표시용 URL 조립처럼 서버측 요청이 없는 경로는 {@link #normalizeServerUrlForDisplay} 를 쓴다.
+   */
   private String normalizeServerUrl(String serverUrl) {
+    String normalized = normalizeServerUrlForDisplay(serverUrl);
+    validateOutboundTarget(normalized);
+    return normalized;
+  }
+
+  /**
+   * 순수 문자열 정규화 — 스킴 접두어 보정 + 후행 슬래시 제거. SSRF 검증을 하지 않으므로 서버측 요청이 없는 표시용 URL 조립(generateIssueUrl)에서만
+   * 쓴다. 내부 대상이라도 예외를 던지지 않는다(링크 렌더는 서버가 아니라 사용자 브라우저가 요청).
+   */
+  private String normalizeServerUrlForDisplay(String serverUrl) {
     if (serverUrl == null || serverUrl.isEmpty()) {
       throw new IllegalArgumentException("서버 URL이 필요합니다");
     }
@@ -795,6 +835,71 @@ public class JiraApiService {
     }
 
     return serverUrl;
+  }
+
+  /**
+   * 정규화된 서버 URL 이 안전한 아웃바운드 대상인지 검증한다 (SSRF 방지).
+   *
+   * <p>http/https 스킴만 허용하고, 호스트를 실제로 해석해 루프백/임의로컬/링크로컬(169.254/fe80)/사설(10·172.16-31·192.168·fc00
+   * ULA)/CGNAT(100.64/10)/멀티캐스트 대상을 차단한다. 하나의 이름이 여러 주소로 해석되면 그중 하나라도 차단 대상이면 거부한다(DNS 리바인딩 완화).
+   * {@code app.jira.allow-private-targets=true} 로 켜면 내부 대상 차단을 생략한다(신뢰된 on-prem 배포 전용).
+   */
+  private void validateOutboundTarget(String normalizedUrl) {
+    final URI uri;
+    try {
+      uri = URI.create(normalizedUrl);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("유효하지 않은 서버 URL 입니다");
+    }
+
+    String scheme = uri.getScheme();
+    if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+      throw new IllegalArgumentException("서버 URL 은 http/https 스킴만 허용됩니다");
+    }
+
+    String host = uri.getHost();
+    if (host == null || host.isEmpty()) {
+      throw new IllegalArgumentException("서버 URL 의 호스트가 유효하지 않습니다");
+    }
+
+    if (allowPrivateTargets) {
+      return;
+    }
+
+    final InetAddress[] addresses;
+    try {
+      addresses = InetAddress.getAllByName(host);
+    } catch (UnknownHostException e) {
+      throw new IllegalArgumentException("서버 호스트를 확인할 수 없습니다: " + host);
+    }
+    for (InetAddress address : addresses) {
+      if (isBlockedTarget(address)) {
+        throw new IllegalArgumentException("허용되지 않는 내부/사설 대상입니다: " + host);
+      }
+    }
+  }
+
+  /** 내부/사설/특수용도 주소인지 판정한다. */
+  private boolean isBlockedTarget(InetAddress address) {
+    if (address.isLoopbackAddress()
+        || address.isAnyLocalAddress()
+        || address.isLinkLocalAddress()
+        || address.isSiteLocalAddress()
+        || address.isMulticastAddress()) {
+      return true;
+    }
+    byte[] octets = address.getAddress();
+    if (octets.length == 4) {
+      int first = octets[0] & 0xff;
+      int second = octets[1] & 0xff;
+      // CGNAT 100.64.0.0/10 (isSiteLocalAddress 미포함)
+      return first == 100 && second >= 64 && second <= 127;
+    }
+    if (octets.length == 16) {
+      // IPv6 Unique Local Address fc00::/7 (isSiteLocalAddress 는 deprecated fec0::/10 만 커버)
+      return (octets[0] & 0xfe) == 0xfc;
+    }
+    return false;
   }
 
   private String createBasicAuthHeader(String username, String apiToken) {
@@ -842,13 +947,21 @@ public class JiraApiService {
                   + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
       // createAdfDescription은 {"version":1, "type":"doc", "content": [...]} 형태를 반환함
-      // 코멘트 API는 "body": { ... } 형태를 요구함
-      return String.format("{\"body\": %s}", adfJson);
+      // 코멘트 API는 "body": { ... } 형태를 요구함 — ObjectMapper 로 안전하게 감싼다
+      ObjectNode body = objectMapper.createObjectNode();
+      body.set("body", objectMapper.readTree(adfJson));
+      return objectMapper.writeValueAsString(body);
 
     } catch (Exception e) {
       log.error("코멘트 본문 생성 실패", e);
-      // 실패 시 간단한 형태로 폴백
-      return String.format("{\"body\":\"%s\"}", comment.replace("\"", "\\\""));
+      // 실패 시 간단한 형태로 폴백 (ObjectMapper 로 안전 이스케이프)
+      try {
+        ObjectNode fb = objectMapper.createObjectNode();
+        fb.put("body", comment);
+        return objectMapper.writeValueAsString(fb);
+      } catch (Exception ex) {
+        return "{\"body\":\"\"}";
+      }
     }
   }
 

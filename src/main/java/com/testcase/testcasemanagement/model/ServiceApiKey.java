@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,8 @@ public class ServiceApiKey {
   @Column(length = 36)
   private String id;
 
+  // 저장 값은 원본 키가 아니라 SHA-256 hex(64자) 해시. 직렬화 응답에 절대 노출하지 않는다.
+  @JsonIgnore
   @Column(nullable = false, unique = true, length = 100)
   private String apiKey;
 

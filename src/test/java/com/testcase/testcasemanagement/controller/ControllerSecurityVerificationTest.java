@@ -1,13 +1,14 @@
 package com.testcase.testcasemanagement.controller;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
 /** Controller 레이어 보안 검증 테스트 Task 8 완료 검증: 조직, 프로젝트, 그룹 API의 접근 제어 확인 */
 @SpringBootTest
 @ActiveProfiles("test")
-public class ControllerSecurityVerificationTest {
+public class ControllerSecurityVerificationTest extends AbstractTestNGSpringContextTests {
 
   @Test
   public void verifyOrganizationControllerSecurity() {

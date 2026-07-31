@@ -1756,7 +1756,7 @@ public class EnglishTestCaseAndAutomationTranslations {
 
     createTranslationIfNotExists("profile.apiToken.table.name", languageCode, "Name", createdBy);
     createTranslationIfNotExists(
-        "profile.apiToken.table.key", languageCode, "Key (Masked)", createdBy);
+        "profile.apiToken.table.key", languageCode, "Key (shown once at creation)", createdBy);
     createTranslationIfNotExists(
         "profile.apiToken.table.status", languageCode, "Status", createdBy);
     createTranslationIfNotExists(

@@ -44,7 +44,7 @@ public class UserPermissionController {
   /** 특정 사용자의 권한 정보 조회 */
   @Operation(summary = "특정 사용자의 권한 정보 조회", description = "특정 사용자가 가진 모든 조직 및 프로젝트 권한을 조회합니다.")
   @GetMapping("/{userId}")
-  @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
+  @PreAuthorize("hasRole('ADMIN') or @securityContextUtil.isCurrentUser(#userId)")
   public ResponseEntity<UserPermissionDto> getUserPermissions(@PathVariable String userId) {
     UserPermissionDto permissions = userPermissionService.getUserPermissions(userId);
     return ResponseEntity.ok(permissions);
@@ -217,7 +217,7 @@ public class UserPermissionController {
   /** 사용자의 권한 변경 이력 조회 */
   @Operation(summary = "사용자의 권한 변경 이력 조회", description = "사용자의 권한 변경 로그를 조회합니다.")
   @GetMapping("/{userId}/history")
-  @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
+  @PreAuthorize("hasRole('ADMIN') or @securityContextUtil.isCurrentUser(#userId)")
   public ResponseEntity<List<AuditLog>> getUserPermissionHistory(@PathVariable String userId) {
     List<AuditLog> history = userPermissionService.getUserPermissionHistory(userId);
     return ResponseEntity.ok(history);
@@ -413,6 +413,17 @@ public class UserPermissionController {
       return ResponseEntity.status(500)
           .body(Map.of("error", "권한 변경 처리 중 오류가 발생했습니다.", "message", e.getMessage()));
     }
+  }
+
+  /**
+   * 인가 거부는 403 으로 응답한다. @PreAuthorize 거부의 AuthorizationDeniedException 은 RuntimeException 하위라, 아래
+   * 로컬 RuntimeException 핸들러가 이를 400 으로 삼켜 인가 거부가 400 으로 나가던 문제가 있었다(전역 403 핸들러가 이 컨트롤러에서는 로컬 핸들러에
+   * 가려짐). 더 구체적인 이 핸들러가 AccessDeniedException(및 하위 AuthorizationDeniedException)을 먼저 잡아 403 을 준다.
+   */
+  @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+  public ResponseEntity<Map<String, String>> handleAccessDenied(
+      org.springframework.security.access.AccessDeniedException e) {
+    return ResponseEntity.status(403).body(Map.of("error", "접근 거부", "message", "접근 권한이 없습니다."));
   }
 
   /** 에러 처리 - 일반 런타임 에러 */

@@ -19,9 +19,10 @@ export function calculateExecutionProgress(execution, testPlan, testCases) {
   if (caseIds.length === 0) return 0;
 
   // 완료로 간주하는 상태: PASS, FAIL, BLOCKED
+  // 저장/응답 정본은 "NOT_RUN"(언더스코어) — "NOTRUN"과 비교하면 미실행이 항상 완료로 집계돼 진행률이 부풀려졌다.
   const completed = caseIds.filter((id) => {
     const resultObj = execution.results?.find((r) => r.testCaseId === id);
-    return resultObj && resultObj.result && resultObj.result !== "NOTRUN";
+    return resultObj && resultObj.result && resultObj.result !== "NOT_RUN";
   }).length;
 
   return Math.round((completed / caseIds.length) * 100);

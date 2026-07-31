@@ -9,6 +9,7 @@ import com.testcase.testcasemanagement.dto.TestResultStatisticsDto;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
+import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestExecutionRepository;
@@ -81,15 +82,18 @@ public class TestResultReportService {
   // Helper: 전체 결과 집계
   private Map<String, Object> aggregateTestResults(List<TestExecution> executions) {
     Map<String, Integer> statusCount = new HashMap<>();
-    statusCount.put("PASS", 0);
-    statusCount.put("FAIL", 0);
-    statusCount.put("BLOCKED", 0);
-    statusCount.put("SKIPPED", 0);
-    statusCount.put("NOTRUN", 0);
+    statusCount.put(TestResultStatus.PASS.value(), 0);
+    statusCount.put(TestResultStatus.FAIL.value(), 0);
+    statusCount.put(TestResultStatus.BLOCKED.value(), 0);
+    statusCount.put(TestResultStatus.SKIPPED.value(), 0);
+    // 저장 정본은 "NOT_RUN"(언더스코어) — "NOTRUN" init 키는 저장값과 불일치해 고아 버킷이었다.
+    statusCount.put(TestResultStatus.NOT_RUN.value(), 0);
 
     for (TestExecution execution : executions) {
       for (TestResult result : execution.getResults()) {
-        String status = result.getResult();
+        // null result 는 null 맵 키를 만들어 소비 측 오류를 유발 — NOT_RUN 으로 정규화
+        String status =
+            result.getResult() != null ? result.getResult() : TestResultStatus.NOT_RUN.value();
         statusCount.put(status, statusCount.getOrDefault(status, 0) + 1);
       }
     }
@@ -110,7 +114,9 @@ public class TestResultReportService {
                 : "<not assigned>";
         assigneeMap.putIfAbsent(assignee, new HashMap<>());
         Map<String, Integer> statusCount = assigneeMap.get(assignee);
-        String status = result.getResult();
+        // null result 는 null 맵 키 버킷을 만들어 소비 측 혼선 → NOT_RUN 으로 정규화
+        String status =
+            result.getResult() != null ? result.getResult() : TestResultStatus.NOT_RUN.value();
         statusCount.put(status, statusCount.getOrDefault(status, 0) + 1);
       }
     }
@@ -229,7 +235,8 @@ public class TestResultReportService {
       // 1. 전체 수행 이력 통계 (기본 카운트 증가)
       statistics.setTotalTests(statistics.getTotalTests() + 1);
 
-      switch (result.getResult()) {
+      // null result 는 switch 에서 NPE → 정본 NOT_RUN 으로 정규화
+      switch (result.getResult() != null ? result.getResult() : TestResultStatus.NOT_RUN.value()) {
         case "PASS":
           statistics.setPassCount(statistics.getPassCount() + 1);
           break;
@@ -355,7 +362,9 @@ public class TestResultReportService {
         allCases =
             allCases.stream()
                 .filter(
-                    dto -> dto.getResult() != null && !"NOT_RUN".equalsIgnoreCase(dto.getResult()))
+                    dto ->
+                        dto.getResult() != null
+                            && !TestResultStatus.NOT_RUN.value().equalsIgnoreCase(dto.getResult()))
                 .collect(Collectors.toList());
       }
 
@@ -367,8 +376,8 @@ public class TestResultReportService {
                     dto -> {
                       String res = dto.getResult();
                       // 미실행 또는 명시적 NOT_RUN 처리
-                      if (res == null || "NOT_RUN".equalsIgnoreCase(res)) {
-                        return filter.getResults().contains("NOT_RUN");
+                      if (res == null || TestResultStatus.NOT_RUN.value().equalsIgnoreCase(res)) {
+                        return filter.getResults().contains(TestResultStatus.NOT_RUN.value());
                       }
                       return filter.getResults().contains(res);
                     })
@@ -1000,7 +1009,7 @@ public class TestResultReportService {
         dto.setTestCaseId(tc.getId());
         dto.setTestCaseName(tc.getName());
         dto.setFolderPath(buildFolderPath(tc));
-        dto.setResult("NOT_RUN");
+        dto.setResult(TestResultStatus.NOT_RUN.value());
 
         // ICT-JIRA-LATEST: 결과가 없더라도(미실행) 과거 이력에 JIRA가 있으면 표시
         if (jiraTr != null) {
@@ -1121,7 +1130,9 @@ public class TestResultReportService {
         totalTestCases += testCases.size();
 
         for (TestResultReportDto testCase : testCases) {
-          switch (testCase.getResult() != null ? testCase.getResult() : "NOT_RUN") {
+          switch (testCase.getResult() != null
+              ? testCase.getResult()
+              : TestResultStatus.NOT_RUN.value()) {
             case "PASS":
               totalPassed++;
               break;
@@ -1176,7 +1187,9 @@ public class TestResultReportService {
     int passed = 0, failed = 0, blocked = 0, notRun = 0;
 
     for (TestResultReportDto testCase : testCases) {
-      switch (testCase.getResult() != null ? testCase.getResult() : "NOT_RUN") {
+      switch (testCase.getResult() != null
+          ? testCase.getResult()
+          : TestResultStatus.NOT_RUN.value()) {
         case "PASS":
           passed++;
           break;
@@ -1444,15 +1457,22 @@ public class TestResultReportService {
             .jiraIssueKey(jiraKey)
             .linkedTestCount((long) relatedResults.size());
 
-    // 테스트 결과 분포 계산
+    // 테스트 결과 분포 계산 — null result 는 groupingBy 키로 NPE(requireNonNull) → NOT_RUN 정규화
     Map<String, Long> testResultDistribution =
         relatedResults.stream()
-            .collect(Collectors.groupingBy(TestResult::getResult, Collectors.counting()));
+            .collect(
+                Collectors.groupingBy(
+                    r -> r.getResult() != null ? r.getResult() : TestResultStatus.NOT_RUN.value(),
+                    Collectors.counting()));
     builder.testResultDistribution(testResultDistribution);
 
-    // 최신 테스트 정보
+    // 최신 테스트 정보 — null executedAt 은 비교 시 NPE → nullsFirst(가장 오래된 것으로 취급)
     TestResult latestResult =
-        relatedResults.stream().max(Comparator.comparing(TestResult::getExecutedAt)).orElse(null);
+        relatedResults.stream()
+            .max(
+                Comparator.comparing(
+                    TestResult::getExecutedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
+            .orElse(null);
 
     if (latestResult != null) {
       builder

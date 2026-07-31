@@ -1,21 +1,22 @@
 package com.testcase.testcasemanagement.security;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.testng.Assert.*;
 
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.transaction.annotation.Transactional;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /** 보안 프레임워크 통합 테스트 권한 없는 사용자의 접근 차단을 검증합니다. */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class SecurityFrameworkTest {
+public class SecurityFrameworkTest extends AbstractTestNGSpringContextTests {
 
   @Autowired private OrganizationSecurityService organizationSecurityService;
 
@@ -44,26 +45,31 @@ public class SecurityFrameworkTest {
   private Project testProject;
   private Group testGroup;
 
-  @BeforeEach
+  @BeforeMethod
   public void setUp() {
     // 테스트 사용자 생성
+    // 전용 접두사(sfw_)로 부팅 시드 계정(username="admin") 및 타 테스트 데이터와의 유니크 충돌을 피한다.
+    // users.name 은 NOT NULL — 누락 시 배치 insert 제약위반.
     testUser1 = new User();
-    testUser1.setUsername("testuser1");
-    testUser1.setEmail("testuser1@example.com");
+    testUser1.setUsername("sfw_testuser1");
+    testUser1.setName("SFW Test User 1");
+    testUser1.setEmail("sfw_testuser1@example.com");
     testUser1.setPassword("password");
     testUser1.setRole("USER");
     testUser1 = userRepository.save(testUser1);
 
     testUser2 = new User();
-    testUser2.setUsername("testuser2");
-    testUser2.setEmail("testuser2@example.com");
+    testUser2.setUsername("sfw_testuser2");
+    testUser2.setName("SFW Test User 2");
+    testUser2.setEmail("sfw_testuser2@example.com");
     testUser2.setPassword("password");
     testUser2.setRole("USER");
     testUser2 = userRepository.save(testUser2);
 
     adminUser = new User();
-    adminUser.setUsername("admin");
-    adminUser.setEmail("admin@example.com");
+    adminUser.setUsername("sfw_admin");
+    adminUser.setName("SFW Admin User");
+    adminUser.setEmail("sfw_admin@example.com");
     adminUser.setPassword("password");
     adminUser.setRole("ADMIN");
     adminUser = userRepository.save(adminUser);
@@ -84,6 +90,7 @@ public class SecurityFrameworkTest {
     // 테스트 프로젝트 생성 (조직에 속함)
     testProject = new Project();
     testProject.setName("Test Project");
+    testProject.setCode("SFW_PROJ"); // projects.code 는 NOT NULL·unique — 누락 시 제약위반
     testProject.setDescription("Test Project Description");
     testProject.setOrganization(testOrganization);
     testProject = projectRepository.save(testProject);
