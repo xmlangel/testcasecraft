@@ -741,6 +741,51 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
   long countDedupedByExecutionsAndTags(
       @Param("executionIds") List<String> executionIds, @Param("tags") List<String> tags);
 
+  /*
+   * 통계 집계용 경량 행. 행 구성:
+   *   [0] 케이스 ID · [1] 수행시각 · [2] 판정 · [3] 플랜 ID · [4] JIRA 키 · [5] JIRA 동기화 상태 · [6] 실행자 이름
+   * 엔티티로 받으면 결과 한 건마다 태그(EAGER)가 딸려와 결과 수만 명이면 통계 한 번에 1초가 넘었다.
+   * 수행시각 조건을 걸지 않는 것은 기존 동작(실행에 달린 결과를 전부 센다)을 지키기 위해서다.
+   */
+  String STATS_ROW_SELECT =
+      "SELECT tr.testCaseId, tr.executedAt, tr.result, te.testPlanId, tr.jiraIssueKey,"
+          + " tr.jiraSyncStatus, u.username FROM TestResult tr JOIN tr.testExecution te LEFT JOIN"
+          + " tr.executedBy u ";
+
+  @Query(STATS_ROW_SELECT + "JOIN te.project p WHERE p.id = :projectId")
+  List<Object[]> findStatsRowsByProjectId(@Param("projectId") String projectId);
+
+  @Query(STATS_ROW_SELECT + "WHERE te.testPlanId IN :testPlanIds")
+  List<Object[]> findStatsRowsByTestPlanIds(@Param("testPlanIds") List<String> testPlanIds);
+
+  @Query(STATS_ROW_SELECT + "WHERE te.id = :executionId")
+  List<Object[]> findStatsRowsByExecutionId(@Param("executionId") String executionId);
+
+  /** 필터가 없는 전체 통계용. 실행에 연결되지 않은 결과도 세던 기존 동작을 지키려 LEFT JOIN 을 쓴다. */
+  @Query(
+      "SELECT tr.testCaseId, tr.executedAt, tr.result, te.testPlanId, tr.jiraIssueKey,"
+          + " tr.jiraSyncStatus, u.username FROM TestResult tr LEFT JOIN tr.testExecution te LEFT"
+          + " JOIN tr.executedBy u")
+  List<Object[]> findStatsRowsAll();
+
+  /**
+   * 인구(Population) 집계용 경량 행 조회.
+   *
+   * <p>최신 결과·수행 횟수·JIRA 이력을 가리는 데는 여섯 컬럼이면 된다. 엔티티로 받으면 결과 한 건마다 태그(EAGER)·첨부·실행자까지 딸려와,
+   * 결과 수만 명인 프로젝트에서 리포트 한 장을 여는 데 수 초가 걸렸다. 승자를 가린 뒤 그 행만 엔티티로 다시 읽는다.
+   *
+   * <p>행 구성: [0] 결과 ID · [1] 케이스 ID · [2] 수행시각 · [3] 플랜 ID · [4] 실행 ID · [5] JIRA 키
+   */
+  @Query(
+      "SELECT tr.id, tr.testCaseId, tr.executedAt, te.testPlanId, te.id, tr.jiraIssueKey "
+          + "FROM TestResult tr "
+          + "JOIN tr.testExecution te "
+          + "JOIN te.project p "
+          + "WHERE p.id = :projectId "
+          + "AND tr.executedAt IS NOT NULL "
+          + "ORDER BY tr.executedAt DESC")
+  List<Object[]> findPopulationRowsByProject(@Param("projectId") String projectId);
+
   /** ID 목록으로 TestResult 엔티티 페치 (testExecution, executedBy JOIN FETCH) */
   @Query(
       "SELECT tr FROM TestResult tr"

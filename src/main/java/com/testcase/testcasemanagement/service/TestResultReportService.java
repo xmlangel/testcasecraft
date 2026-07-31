@@ -134,38 +134,33 @@ public class TestResultReportService {
 
   /** ICT-185: 테스트 결과 통계 조회 */
   @org.springframework.transaction.annotation.Transactional(readOnly = true)
+  /** 통계 집계에서 (플랜:케이스)별로 붙들고 있는 최신 판정. 엔티티 대신 이 두 값만 남긴다. */
+  private record LatestResult(String result, LocalDateTime executedAt) {}
+
   public TestResultStatisticsDto getTestResultStatistics(
       String projectId, List<String> testPlanIds, String testExecutionId) {
     TestResultStatisticsDto.TestResultStatisticsDtoBuilder builder =
         TestResultStatisticsDto.builder();
 
-    // 필터 조건에 따른 TestResult 조회
-    List<TestResult> results;
+    // 필터 조건에 따른 결과 조회.
+    // 엔티티가 아니라 집계에 쓰는 일곱 컬럼만 읽는다 — 결과가 수만 건이면 태그·첨부까지 딸려와 통계가 1초를 넘겼다.
+    List<Object[]> statsRows;
 
     if (testExecutionId != null) {
       // 특정 테스트 실행 기준
-      Optional<TestExecution> execution = testExecutionRepository.findById(testExecutionId);
-      results = execution.map(TestExecution::getResults).orElse(new ArrayList<>());
+      statsRows = testResultRepository.findStatsRowsByExecutionId(testExecutionId);
       builder.filterType("TEST_EXECUTION").filterId(testExecutionId);
     } else if (testPlanIds != null && !testPlanIds.isEmpty()) {
       // 테스트 플랜 기준 (다중 지원)
-      List<TestExecution> executions = testExecutionRepository.findAllByTestPlanIdIn(testPlanIds);
-      results =
-          executions.stream()
-              .flatMap(exec -> exec.getResults().stream())
-              .collect(Collectors.toList());
+      statsRows = testResultRepository.findStatsRowsByTestPlanIds(testPlanIds);
       builder.filterType("TEST_PLAN").filterId(String.join(",", testPlanIds));
     } else if (projectId != null) {
       // 프로젝트 기준
-      List<TestExecution> executions = testExecutionRepository.findByProjectId(projectId);
-      results =
-          executions.stream()
-              .flatMap(exec -> exec.getResults().stream())
-              .collect(Collectors.toList());
+      statsRows = testResultRepository.findStatsRowsByProjectId(projectId);
       builder.filterType("PROJECT").filterId(projectId);
     } else {
       // 전체
-      results = testResultRepository.findAll();
+      statsRows = testResultRepository.findStatsRowsAll();
       builder.filterType("ALL").filterId("all");
     }
 
@@ -228,15 +223,25 @@ public class TestResultReportService {
 
     // ICT-247/283: 플랜별 테스트케이스 최신 결과를 추적하기 위한 맵
     // 키 형식: planId + ":" + caseId (프로젝트 기준일 경우 "PROJ:" + caseId)
-    Map<String, TestResult> latestPlanCaseResultsMap = new HashMap<>();
+    // 값은 (판정, 수행시각) 두 개만 쓰므로 엔티티를 들고 있지 않는다
+    Map<String, LatestResult> latestPlanCaseResultsMap = new HashMap<>();
     Set<String> jiraLinkedCaseKeys = new HashSet<>(); // ICT-JIRA-LINK: Jira 연동 케이스 추적용
 
-    for (TestResult result : results) {
+    for (Object[] row : statsRows) {
+      String rowCaseId = (String) row[0];
+      LocalDateTime rowExecutedAt = (LocalDateTime) row[1];
+      String rowResult = (String) row[2];
+      String rowPlanId = (String) row[3];
+      String rowJiraKey = (String) row[4];
+      Object rowSyncStatus = row[5];
+      String rowExecutor = (String) row[6];
+      boolean rowHasJira = rowJiraKey != null && !rowJiraKey.trim().isEmpty();
+
       // 1. 전체 수행 이력 통계 (기본 카운트 증가)
       statistics.setTotalTests(statistics.getTotalTests() + 1);
 
       // null result 는 switch 에서 NPE → 정본 NOT_RUN 으로 정규화
-      switch (result.getResult() != null ? result.getResult() : TestResultStatus.NOT_RUN.value()) {
+      switch (rowResult != null ? rowResult : TestResultStatus.NOT_RUN.value()) {
         case "PASS":
           statistics.setPassCount(statistics.getPassCount() + 1);
           break;
@@ -255,41 +260,36 @@ public class TestResultReportService {
       }
 
       // 2. 최신 결과 추적
-      String caseId = result.getTestCaseId();
-      if (caseId != null) {
-        String planId =
-            (result.getTestExecution() != null && result.getTestExecution().getTestPlanId() != null)
-                ? result.getTestExecution().getTestPlanId()
-                : "PROJ";
-        String key = planId + ":" + caseId;
+      if (rowCaseId != null) {
+        String planId = rowPlanId != null ? rowPlanId : "PROJ";
+        String key = planId + ":" + rowCaseId;
 
-        TestResult existing = latestPlanCaseResultsMap.get(key);
+        LatestResult existing = latestPlanCaseResultsMap.get(key);
         if (existing == null
-            || (result.getExecutedAt() != null
-                && (existing.getExecutedAt() == null
-                    || result.getExecutedAt().isAfter(existing.getExecutedAt())))) {
-          latestPlanCaseResultsMap.put(key, result);
+            || (rowExecutedAt != null
+                && (existing.executedAt() == null
+                    || rowExecutedAt.isAfter(existing.executedAt())))) {
+          latestPlanCaseResultsMap.put(key, new LatestResult(rowResult, rowExecutedAt));
         }
 
         // ICT-JIRA-LINK: 해당 케이스가 한 번이라도 JIRA와 연결된 적이 있는지 추적
-        if (result.hasJiraIssue()) {
+        if (rowHasJira) {
           jiraLinkedCaseKeys.add(key);
         }
       }
 
       // JIRA 관련 통계
-      if (result.hasJiraIssue()) {
+      if (rowHasJira) {
         statistics.setJiraLinkedCount(statistics.getJiraLinkedCount() + 1);
-        if (result.getJiraSyncStatus() != null
-            && "SYNCED".equals(result.getJiraSyncStatus().toString())) {
+        if (rowSyncStatus != null && "SYNCED".equals(rowSyncStatus.toString())) {
           statistics.setJiraSyncedCount(statistics.getJiraSyncedCount() + 1);
         }
       }
 
       // 실행자별 분포
-      if (result.getExecutedBy() != null) {
-        String executor = result.getExecutedBy().getUsername();
-        executorDistribution.put(executor, executorDistribution.getOrDefault(executor, 0L) + 1);
+      if (rowExecutor != null) {
+        executorDistribution.put(
+            rowExecutor, executorDistribution.getOrDefault(rowExecutor, 0L) + 1);
       }
     }
 
@@ -298,9 +298,9 @@ public class TestResultReportService {
       statistics.setTotalCaseCount((long) targetPlanCaseKeys.size());
 
       // 결과가 있는 플랜:케이스 조합의 상태 합산
-      for (Map.Entry<String, TestResult> entry : latestPlanCaseResultsMap.entrySet()) {
+      for (Map.Entry<String, LatestResult> entry : latestPlanCaseResultsMap.entrySet()) {
         if (targetPlanCaseKeys.contains(entry.getKey())) {
-          updateLatestStatusCount(statistics, entry.getValue().getResult());
+          updateLatestStatusCount(statistics, entry.getValue().result());
         }
       }
 
@@ -319,8 +319,8 @@ public class TestResultReportService {
     } else {
       // 필터가 없어 모집단을 알 수 없는 경우 결과가 있는 조합들만 기준
       statistics.setTotalCaseCount((long) latestPlanCaseResultsMap.size());
-      for (TestResult latest : latestPlanCaseResultsMap.values()) {
-        updateLatestStatusCount(statistics, latest.getResult());
+      for (LatestResult latest : latestPlanCaseResultsMap.values()) {
+        updateLatestStatusCount(statistics, latest.result());
       }
 
       // ICT-JIRA-LINK: 결과가 있는 것들 중 JIRA와 연동된 케이스 수
@@ -940,77 +940,89 @@ public class TestResultReportService {
       }
     }
 
-    // 2. 해당 케이스들의 모든 결과 조회 (수행 횟수 합산 및 최신 결과 매칭을 위해)
-    List<TestResult> recentResults =
-        testResultRepository.findRecentTestResultsByProject(
-            projectId, PageRequest.of(0, Integer.MAX_VALUE));
+    // 2. 결과를 경량 행으로 훑어 (플랜:케이스)별 승자를 가린다.
+    //    엔티티로 받으면 결과 한 건마다 태그·첨부·실행자가 딸려와 결과 수만 명이면 리포트가 수 초 걸린다.
+    //    행: [0] 결과 ID · [1] 케이스 ID · [2] 수행시각 · [3] 플랜 ID · [4] 실행 ID · [5] JIRA 키
+    List<Object[]> populationRows =
+        projectId != null
+            ? testResultRepository.findPopulationRowsByProject(projectId)
+            : List.of(); // 프로젝트가 없으면 집계할 결과도 없다(기존 동작과 같음)
 
-    // (플랜:케이스)별 최신 결과, 수행 횟수 및 JIRA 연동 정보 관리
-    Map<String, TestResult> latestResultByPlanCase = new HashMap<>();
+    Map<String, String> latestResultIdByPlanCase = new HashMap<>();
+    Map<String, LocalDateTime> latestExecutedAtByPlanCase = new HashMap<>();
     Map<String, Integer> executionCountByPlanCase = new HashMap<>();
-    Map<String, TestResult> latestJiraInfoByPlanCase =
-        new HashMap<>(); // ICT-JIRA-LATEST: 과거 이력의 JIRA 정보 추적용
+    // ICT-JIRA-LATEST: 과거 이력의 JIRA 정보 추적용
+    Map<String, String> latestJiraResultIdByPlanCase = new HashMap<>();
+    Map<String, LocalDateTime> latestJiraExecutedAtByPlanCase = new HashMap<>();
 
-    for (TestResult result : recentResults) {
-      String tcId = result.getTestCaseId();
+    boolean planFiltered = testPlanIds != null && !testPlanIds.isEmpty();
+    boolean executionFiltered = testExecutionIds != null && !testExecutionIds.isEmpty();
+
+    for (Object[] row : populationRows) {
+      String tcId = (String) row[1];
       if (tcId == null) continue;
 
-      String resultPlanId =
-          (result.getTestExecution() != null && result.getTestExecution().getTestPlanId() != null)
-              ? result.getTestExecution().getTestPlanId()
-              : "PROJ";
+      String resultId = (String) row[0];
+      LocalDateTime executedAt = (LocalDateTime) row[2];
+      String resultPlanId = row[3] != null ? (String) row[3] : "PROJ";
+      String executionId = (String) row[4];
+      String jiraIssueKey = (String) row[5];
 
-      // 매칭을 위한 가능한 모든 키 검토
-      // 1. 특정 플랜/실행 필터가 있는 경우 정확한 매칭 필요
-      // 2. 프로젝트 전체 보기('PROJ')인 경우, 어떤 플랜에서 실행되었든 해당 케이스면 매칭
+      // 플랜·실행 필터가 있으면 그 플랜의 결과만, 프로젝트 전체 보기면 'PROJ:케이스' 로 모아 센다
+      String key =
+          (planFiltered || executionFiltered) ? resultPlanId + ":" + tcId : "PROJ:" + tcId;
+      if (!targetPlanCaseKeys.contains(key)) continue;
 
-      List<String> matchingKeys = new ArrayList<>();
-      if (testPlanIds != null && !testPlanIds.isEmpty()) {
-        // 특정 플랜 필터가 있을 때는 해당 플랜의 결과만 매칭
-        matchingKeys.add(resultPlanId + ":" + tcId);
-      } else if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
-        // 특정 실행 필터가 있을 때는 해당 실행의 결과만 매칭 (나중에 filtering 로직에서 걸러짐)
-        matchingKeys.add(resultPlanId + ":" + tcId);
-      } else {
-        // 프로젝트 전체 보기인 경우, 'PROJ:tcId' 키로 집계
-        matchingKeys.add("PROJ:" + tcId);
+      // 실행 필터 적용
+      if (executionFiltered && (executionId == null || !testExecutionIds.contains(executionId))) {
+        continue;
       }
 
-      for (String key : matchingKeys) {
-        if (!targetPlanCaseKeys.contains(key)) continue;
+      // 수행 횟수 증가
+      executionCountByPlanCase.merge(key, 1, Integer::sum);
 
-        // 실행 필터 적용
-        if (testExecutionIds != null && !testExecutionIds.isEmpty()) {
-          if (result.getTestExecution() == null
-              || !testExecutionIds.contains(result.getTestExecution().getId())) {
-            continue;
-          }
-        }
+      // 가장 최신 결과 하나만 유지 (executedAt 기준)
+      LocalDateTime latestAt = latestExecutedAtByPlanCase.get(key);
+      if (!latestResultIdByPlanCase.containsKey(key)
+          || (executedAt != null && (latestAt == null || executedAt.isAfter(latestAt)))) {
+        latestResultIdByPlanCase.put(key, resultId);
+        latestExecutedAtByPlanCase.put(key, executedAt);
+      }
 
-        // 수행 횟수 증가
-        executionCountByPlanCase.put(key, executionCountByPlanCase.getOrDefault(key, 0) + 1);
-
-        // 가장 최신 결과 하나만 유지 (executedAt 기준)
-        TestResult existing = latestResultByPlanCase.get(key);
-        if (existing == null
-            || (result.getExecutedAt() != null
-                && (existing.getExecutedAt() == null
-                    || result.getExecutedAt().isAfter(existing.getExecutedAt())))) {
-          latestResultByPlanCase.put(key, result);
-        }
-
-        // JIRA 정보 추적: 현재 결과에 JIRA 정보가 있다면 최신 정보로 갱신
-        if (result.hasJiraIssue()) {
-          TestResult existingJira = latestJiraInfoByPlanCase.get(key);
-          if (existingJira == null
-              || (result.getExecutedAt() != null
-                  && (existingJira.getExecutedAt() == null
-                      || result.getExecutedAt().isAfter(existingJira.getExecutedAt())))) {
-            latestJiraInfoByPlanCase.put(key, result);
-          }
+      // JIRA 정보 추적: 현재 결과에 JIRA 정보가 있다면 최신 정보로 갱신
+      if (jiraIssueKey != null && !jiraIssueKey.trim().isEmpty()) {
+        LocalDateTime latestJiraAt = latestJiraExecutedAtByPlanCase.get(key);
+        if (!latestJiraResultIdByPlanCase.containsKey(key)
+            || (executedAt != null && (latestJiraAt == null || executedAt.isAfter(latestJiraAt)))) {
+          latestJiraResultIdByPlanCase.put(key, resultId);
+          latestJiraExecutedAtByPlanCase.put(key, executedAt);
         }
       }
     }
+
+    // 승자로 뽑힌 행만 엔티티로 읽는다 — 전체 결과가 아니라 (플랜:케이스) 개수만큼
+    Set<String> winnerIds = new LinkedHashSet<>(latestResultIdByPlanCase.values());
+    winnerIds.addAll(latestJiraResultIdByPlanCase.values());
+    Map<String, TestResult> resultById = loadResultsByIds(winnerIds);
+
+    // 행마다 findById 하지 않도록 폴더 경로용 케이스(폴더 포함)와 플랜 이름을 미리 적재
+    Map<String, TestCase> caseLookup = new HashMap<>();
+    if (projectId != null) {
+      for (TestCase tc : testCaseRepository.findByProjectId(projectId)) {
+        caseLookup.put(tc.getId(), tc);
+      }
+    }
+    testCaseMap.forEach(caseLookup::putIfAbsent);
+    // 플랜 이름은 대상 키의 플랜과 승자 결과가 속한 플랜을 함께 본다.
+    // 프로젝트 전체 보기의 키는 'PROJ:케이스' 라서 키만 보면 플랜 이름이 비어 버린다.
+    Set<String> planIdsToName = new LinkedHashSet<>(planIdsOf(targetPlanCaseKeys));
+    for (TestResult winner : resultById.values()) {
+      if (winner.getTestExecution() != null && winner.getTestExecution().getTestPlanId() != null) {
+        planIdsToName.add(winner.getTestExecution().getTestPlanId());
+      }
+    }
+    Map<String, String> planNameById = loadPlanNames(planIdsToName);
+    Map<String, String> folderPathCache = new HashMap<>();
 
     // 3. (플랜:케이스) 목록을 순회하며 DTO 생성
     List<TestResultReportDto> reportDtos = new ArrayList<>();
@@ -1022,14 +1034,14 @@ public class TestResultReportService {
       TestCase tc = testCaseMap.get(tcId);
       if (tc == null) continue;
 
-      TestResult tr = latestResultByPlanCase.get(key);
-      TestResult jiraTr =
-          latestJiraInfoByPlanCase.get(key); // ICT-JIRA-LATEST: 과거 이력이더라도 가장 최신 JIRA 정보 사용
+      TestResult tr = resultById.get(latestResultIdByPlanCase.get(key));
+      // ICT-JIRA-LATEST: 과거 이력이더라도 가장 최신 JIRA 정보 사용
+      TestResult jiraTr = resultById.get(latestJiraResultIdByPlanCase.get(key));
       Integer execCount = executionCountByPlanCase.getOrDefault(key, 0);
 
       TestResultReportDto dto;
       if (tr != null) {
-        dto = convertToReportDto(tr);
+        dto = convertToReportDtoWithCache(tr, caseLookup, planNameById, folderPathCache);
 
         // ICT-JIRA-LATEST: 최신 결과에 JIRA 정보가 없으나 과거 이력에 있는 경우 JIRA 정보 합성
         if (!tr.hasJiraIssue() && jiraTr != null) {
@@ -1045,7 +1057,7 @@ public class TestResultReportService {
         dto = new TestResultReportDto();
         dto.setTestCaseId(tc.getId());
         dto.setTestCaseName(tc.getName());
-        dto.setFolderPath(buildFolderPath(tc));
+        dto.setFolderPath(buildFolderPathFromCache(tc, caseLookup, folderPathCache));
         dto.setResult(TestResultStatus.NOT_RUN.value());
 
         // ICT-JIRA-LATEST: 결과가 없더라도(미실행) 과거 이력에 JIRA가 있으면 표시
@@ -1062,20 +1074,54 @@ public class TestResultReportService {
         dto.setExecutionCount(0); // 미실행 시 0
 
         // 플랜 정보 추가 (미실행 케이스라도 플랜 필터가 있으면 플랜 정보를 명시)
-        if (!"PROJ".equals(planId)) {
-          testPlanRepository
-              .findById(planId)
-              .ifPresent(
-                  p -> {
-                    dto.setTestPlanId(p.getId());
-                    dto.setTestPlanName(p.getName());
-                  });
+        if (!"PROJ".equals(planId) && planNameById.containsKey(planId)) {
+          dto.setTestPlanId(planId);
+          dto.setTestPlanName(planNameById.get(planId));
         }
       }
       reportDtos.add(dto);
     }
 
     return reportDtos;
+  }
+
+  /**
+   * 결과 ID 목록을 엔티티로 읽어 ID 로 찾을 수 있게 담는다. IN 절이 지나치게 길어지지 않게 1000개씩 끊는다(드라이버·DB 한계 회피).
+   */
+  private Map<String, TestResult> loadResultsByIds(Collection<String> ids) {
+    Map<String, TestResult> byId = new HashMap<>();
+    if (ids == null || ids.isEmpty()) return byId;
+
+    List<String> pending = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
+    for (int from = 0; from < pending.size(); from += 1000) {
+      List<String> chunk = pending.subList(from, Math.min(from + 1000, pending.size()));
+      for (TestResult tr : testResultRepository.findByIdsWithFetch(chunk)) {
+        byId.put(tr.getId(), tr);
+      }
+    }
+    return byId;
+  }
+
+  /** (플랜:케이스) 키에서 플랜 ID 만 뽑는다 ('PROJ' 는 플랜이 아니라 프로젝트 전체 보기 표식). */
+  private Set<String> planIdsOf(Collection<String> planCaseKeys) {
+    Set<String> planIds = new LinkedHashSet<>();
+    for (String key : planCaseKeys) {
+      String planId = key.substring(0, key.indexOf(':'));
+      if (!"PROJ".equals(planId)) planIds.add(planId);
+    }
+    return planIds;
+  }
+
+  /** 플랜 이름을 한 번에 읽는다. 행마다 findById 하면 케이스 수만큼 쿼리가 나간다. */
+  private Map<String, String> loadPlanNames(Collection<String> planIds) {
+    if (planIds == null || planIds.isEmpty()) return Map.of();
+
+    Map<String, String> names = new HashMap<>();
+    for (com.testcase.testcasemanagement.model.TestPlan plan :
+        testPlanRepository.findAllById(planIds)) {
+      names.put(plan.getId(), plan.getName());
+    }
+    return names;
   }
 
   /** ICT-283: 미실행 테스트 케이스와 결과를 포함한 목록 조회 (폴더 필터 지원) */

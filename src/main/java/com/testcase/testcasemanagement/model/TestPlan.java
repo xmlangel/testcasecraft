@@ -10,7 +10,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "test_plans")
+@Table(
+    name = "test_plans",
+    indexes = {
+      // 플랜 목록은 늘 프로젝트로 걸러 최신순으로 본다. 인덱스가 없어 전수 스캔이었다.
+      @Index(name = "idx_test_plan_project", columnList = "project_id"),
+      @Index(name = "idx_test_plan_project_created", columnList = "project_id, created_at")
+    })
 public class TestPlan {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

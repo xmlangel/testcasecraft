@@ -163,6 +163,91 @@ def open_prev_results_dialog(page: Page) -> None:
     page.wait_for_timeout(800)
 
 
+def _origin(page: Page) -> str:
+    """현재 페이지의 origin (http://host:port) — prepare 는 base_url 을 받지 않는다."""
+    m = re.match(r"https?://[^/]+", page.url)
+    if not m:
+        raise RuntimeError(f"origin 을 알 수 없는 URL: {page.url}")
+    return m.group(0)
+
+
+def set_ui_preference(page: Page, key: str, value) -> None:
+    """서버에 저장되는 사용자 UI 설정을 캡처 전에 확정한다.
+
+    레이아웃(가로 탭 / 좌측 메뉴)은 계정에 남는다. 직전 작업에서 좌측 메뉴로 바꿔 뒀으면
+    다음 캡처가 통째로 다른 화면으로 찍히므로, 값을 가정하지 않고 매번 정한다.
+    """
+    token = page.evaluate("() => localStorage.getItem('accessToken')")
+    if not token:
+        raise RuntimeError("accessToken 이 없다 — 로그인 세션 확인 필요")
+    resp = page.context.request.patch(
+        f"{_origin(page)}/api/auth/me/preferences",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+        data={"key": key, "value": value},  # 서버는 단일 key patch 형식을 받는다
+    )
+    if not resp.ok:
+        raise RuntimeError(f"UI 설정 저장 실패 ({key}={value}): status={resp.status}")
+    page.reload()
+    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_timeout(900)
+
+
+def use_sidebar_layout(page: Page) -> None:
+    """신규 레이아웃(좌측 메뉴)으로 전환."""
+    set_ui_preference(page, "projectNavSidebarCollapsed", False)
+    set_ui_preference(page, "projectNavMode", "sidebar")
+    page.wait_for_selector('[data-testid="project-sidebar"]', timeout=10_000)
+
+
+def use_tab_layout(page: Page) -> None:
+    """기존 레이아웃(가로 탭)으로 되돌린다 — 나머지 캡처의 기준값."""
+    set_ui_preference(page, "projectNavMode", "tabs")
+
+
+def collapse_sidebar(page: Page) -> None:
+    """좌측 메뉴를 아이콘만 남기고 접는다."""
+    use_sidebar_layout(page)
+    page.locator('[data-testid="project-sidebar-collapse-toggle"]').click()
+    page.wait_for_timeout(600)
+
+
+def open_breadcrumb_project_switcher(page: Page) -> None:
+    """신규 레이아웃의 브레드크럼 첫 크럼(프로젝트 선택기)을 펼친다."""
+    use_sidebar_layout(page)
+    page.locator('[data-testid="breadcrumb-project-switcher"]').click()
+    page.wait_for_selector('[data-testid="breadcrumb-project-menu"]', timeout=10_000)
+    page.wait_for_timeout(500)
+
+
+def open_plan_workspace(page: Page) -> None:
+    """플랜 영역의 2단 화면에서 첫 플랜을 골라 오른쪽에 내용이 열린 상태로 만든다."""
+    use_sidebar_layout(page)
+    row = page.locator('[data-testid^="workspace-primary-item-"]').first
+    row.wait_for(timeout=10_000)
+    row.click()
+    page.wait_for_timeout(1_200)
+
+
+def open_execution_workspace(page: Page) -> None:
+    """실행 영역의 평면 목록(상태 칩 + 소속 플랜 이름)이 보이는 상태."""
+    use_sidebar_layout(page)
+    page.wait_for_selector(
+        '[data-testid^="workspace-execution-item-"]', timeout=15_000
+    )
+    page.wait_for_timeout(800)
+
+
+def fill_tree_filter(page: Page) -> None:
+    """트리 검색창에 값을 넣어 이름·표시 ID·태그 검색(ICT-428) 결과를 보여준다."""
+    box = page.locator('[data-testid="tree-filter-input"]')
+    box.wait_for(timeout=10_000)
+    box.fill("TC")
+    page.wait_for_timeout(900)
+
+
 def tree_right_click(page: Page) -> None:
     """트리의 첫 폴더 노드에서 우클릭 → 컨텍스트 메뉴 노출.
 
@@ -529,6 +614,43 @@ STEPS: list[Step] = [
         prepare=open_qa_summary_panel,
         wait_ms=800,
     ),
+    # ── 20. 신규 화면 (2026-07-31) — 레이아웃 선택 · 플랜/실행 2단 · 검색·필터 ──
+    Step(
+        "95_sidebar_layout",
+        url=_project_path(""),
+        prepare=use_sidebar_layout,
+        wait_ms=900,
+    ),
+    Step(
+        "96_sidebar_collapsed",
+        url=_project_path(""),
+        prepare=collapse_sidebar,
+        wait_ms=700,
+    ),
+    Step(
+        "97_breadcrumb_project_switcher",
+        url=_project_path(""),
+        prepare=open_breadcrumb_project_switcher,
+        wait_ms=700,
+    ),
+    Step(
+        "98_plan_workspace",
+        url=_project_path("/testplans"),
+        prepare=open_plan_workspace,
+        wait_ms=900,
+    ),
+    Step(
+        "99_execution_workspace",
+        url=_project_path("/executions"),
+        prepare=open_execution_workspace,
+        wait_ms=900,
+    ),
+    Step(
+        "100_tree_filter_search",
+        url=_project_path("/testcases"),
+        prepare=fill_tree_filter,
+        wait_ms=800,
+    ),
 ]
 
 
@@ -794,6 +916,15 @@ def run(args: argparse.Namespace, pw: Playwright) -> int:
     project_id = resolve_project_id(page_auth, args.base_url, args.project_id)
     print(f"📁 PROJECT_ID = {project_id}")
 
+    # 레이아웃은 계정에 저장된다. 매뉴얼 캡처의 기준은 기본값(가로 탭)이므로,
+    # 직전에 좌측 메뉴로 바꿔 둔 상태가 남아 73장을 통째로 다르게 찍는 일을 막는다.
+    if not args.audit_only:
+        page_auth.goto(f"{args.base_url}/projects")
+        page_auth.wait_for_load_state("domcontentloaded")
+        set_ui_preference(page_auth, "projectNavSidebarCollapsed", False)
+        set_ui_preference(page_auth, "projectNavMode", "tabs")
+        print("🧭 레이아웃을 기본값(가로 탭)으로 맞췄습니다")
+
     ok = fail = 0
     if not args.audit_only:
         steps = filter_steps(STEPS, args.only, args.skip_todo, args.include_todo)
@@ -823,6 +954,15 @@ def run(args: argparse.Namespace, pw: Playwright) -> int:
                 fail += 1
 
         print(f"\n캡처 결과: ok={ok}  fail={fail}")
+
+        # 좌측 메뉴 캡처가 계정에 남지 않도록 기본 레이아웃으로 되돌린다
+        try:
+            page_auth.goto(f"{args.base_url}/projects")
+            page_auth.wait_for_load_state("domcontentloaded")
+            use_tab_layout(page_auth)
+            print("🧭 레이아웃을 기본값(가로 탭)으로 되돌렸습니다")
+        except Exception as e:  # pylint: disable=broad-except
+            print(f"⚠️  레이아웃 원복 실패 — 프로필에서 직접 확인 필요: {e}")
 
     # ── 매뉴얼 커버리지 감사 ──────────────────────────────────────────────
     if args.audit or args.audit_only:

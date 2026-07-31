@@ -185,32 +185,32 @@ const TestPlanList = ({
         sortedTestPlans.length,
         "plans",
       );
-    try {
-      const counts = {};
-      for (const plan of sortedTestPlans) {
-        try {
-          const response = await api(`/api/junit-results/by-plan/${plan.id}`);
-          if (response.ok) {
-            const data = await response.json();
-            const count = data.count || data.content?.length || 0;
-            if (isDebug)
-              console.log(
-                `Plan ${plan.id} (${plan.name}): ${count} automated tests`,
-                data,
-              );
-            counts[plan.id] = count;
-          } else {
-            console.warn(
-              `Failed to fetch for plan ${plan.id}:`,
-              response.status,
-            );
-            counts[plan.id] = 0;
-          }
-        } catch (err) {
-          console.error(`Error fetching for plan ${plan.id}:`, err);
-          counts[plan.id] = 0;
+    // 플랜마다 한 번씩 물어봐야 하는 건 그대로지만, 줄 서서 기다리지는 않는다.
+    // 예전에는 앞 요청이 끝나야 다음이 나가서 플랜 수만큼 왕복 시간이 그대로 쌓였다.
+    const countOf = async (plan) => {
+      try {
+        const response = await api(`/api/junit-results/by-plan/${plan.id}`);
+        if (!response.ok) {
+          console.warn(`Failed to fetch for plan ${plan.id}:`, response.status);
+          return [plan.id, 0];
         }
+        const data = await response.json();
+        const count = data.count || data.content?.length || 0;
+        if (isDebug)
+          console.log(
+            `Plan ${plan.id} (${plan.name}): ${count} automated tests`,
+            data,
+          );
+        return [plan.id, count];
+      } catch (err) {
+        console.error(`Error fetching for plan ${plan.id}:`, err);
+        return [plan.id, 0];
       }
+    };
+
+    try {
+      const entries = await Promise.all(sortedTestPlans.map(countOf));
+      const counts = Object.fromEntries(entries);
       if (isDebug) console.log("Final counts:", counts);
       setAutomatedTestCounts(counts);
     } catch (err) {

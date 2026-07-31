@@ -1,7 +1,7 @@
 # TestcaseCraft User Manual
 
-> **Version:** v1.0.80 reference
-> **Created:** 2026-05-27 (Last updated 2026-06-06)
+> **Version:** v1.0.102 reference
+> **Created:** 2026-05-27 (Last updated 2026-07-31)
 > **Audience:** QA engineers, developers, and project managers using TestcaseCraft for the first time
 > **Environment:** This manual was captured in a local Docker environment (`http://localhost:8080`)
 > **Standards Basis:** This manual follows the principles of international standards on information design (IEC/IEEE 82079-1, ISO/IEC/IEEE 26514) — information type classification, audience-based structure, and procedure documentation.
@@ -157,6 +157,20 @@ Upon entering a project (`/projects/{projectId}`), the screen displays a three-s
 
 ### 3-2. JIRA Panel
 
+> **Changed 2026-07-31**: You can choose how project sections are laid out — **horizontal tabs** or a **left-side menu**. Pick one in Profile → Theme Settings → `Menu structure` (Section 13-7); the default remains the horizontal tabs used so far. The toggle icon in the top bar switches it right away.
+
+With the left-side menu, sections sit vertically on the left. The items and count badges match the horizontal tabs.
+
+![Left-side menu layout](images_en/95_sidebar_layout.png)
+
+Collapse it with the arrow at the bottom of the menu and only the icons remain, widening the content area.
+
+![Left-side menu collapsed](images_en/96_sidebar_collapsed.png)
+
+In this layout the first breadcrumb item is the **project selector** (`ShopFlow EN / Dashboard`). Click the project name to open the list and move to another project without leaving the section you were viewing. The former `Project /` crumb is folded away so the project name does not appear twice.
+
+![Project selector in the breadcrumb](images_en/97_breadcrumb_project_switcher.png)
+
 Click the **JIRA** badge in the header to navigate to the integration settings screen.
 
 ![JIRA panel](images_en/45_jira_panel.png)
@@ -271,7 +285,17 @@ Click these rows to display the corresponding case list on the right. These list
 
 #### Folder Filter
 
-Use the **Folder Filter** search box below the tree header to search folders by name. The tree filters on partial match, preserving parent paths of matched items and auto-expanding them. Clear the filter with the X button.
+Use the **search box** below the tree header to find cases and folders. The search hint reads **"Search by name, ID, or tag"**.
+
+- **Folder Filter** (previous name) — Search folders by name. Works on partial match; parent paths of matched items are preserved and auto-expanded.
+- **Display ID Search** — Search cases by their Display ID (example: `TC-12`). Supports partial matching.
+- **Tag Search** — Search cases by their attached tags.
+- **Complex Search** — Separate multiple search terms with commas (`,`); the results show items matching all conditions.
+- **Select All with Filter** — When search narrows the tree, clicking the **☑ Select All** button in the tree header selects only the visible results (hidden items are excluded).
+
+Clear the filter with the X button.
+
+![Search by name, ID, or tag](images_en/100_tree_filter_search.png)
 
 #### Add Folders or Cases
 
@@ -480,6 +504,12 @@ Click the **[Test Plans]** tab at the top (`/projects/{projectId}/testplans`) to
 
 > This new project has no plans yet. Once you create a plan, it displays as a card.
 
+> **Changed 2026-07-31 (new layout)**: With the left-side menu layout active, test plans display in a **2-section (list + detail)** format. The left panel shows the plan tree (with execution entries visible under each plan), and the right panel displays the selected plan's content. There is no popup or full-screen mode — everything stays within the layout. In the tab-based layout, the existing popup/full-screen behavior is preserved.
+
+![Plan workspace — tree + details](images_en/98_plan_workspace.png)
+
+Expand a branch on the left and that plan's executions appear under it. Select an execution and the right panel switches to the execution detail; `Back to plan` returns to the plan content. The `New run` button under the plan content inherits the plan you selected.
+
 ---
 
 ## 8. Test Execution
@@ -494,6 +524,12 @@ Click the **[Test Execution]** tab at the top (`/projects/{projectId}/executions
 
 > **Changed on 2026-06-09**: The test execution list **auto-refreshes about every 20 seconds**, so progress recorded by other team members appears without a manual reload. Auto-refresh pauses while you are on another tab to avoid unnecessary requests, and resumes when you return to the screen. You can also refresh instantly at any time using the **[Refresh]** button at the top of the list.
 
+> **Changed 2026-07-31 (new layout)**: With the left-side menu layout active, test execution displays in a **2-section (list + detail)** format. The left panel lists all executions in the project (newest first), and the right panel shows the selected execution's detail (result entry, etc.). The result entry screen does not break out into full-screen — it stays within the right panel while keeping the header and left menu intact. In the tab-based layout, the existing behavior is preserved.
+
+Each execution row carries a status chip and the name of the plan it belongs to. The search box queries execution names on the server, and `Load more` at the bottom pulls the next batch when the list is long.
+
+![Execution list — status and owning plan](images_en/99_execution_workspace.png)
+
 The manual execution flow is as follows:
 
 1. Click **[Start Execution]** from a test plan
@@ -502,6 +538,8 @@ The manual execution flow is as follows:
 4. On completion, results automatically reflect in **Test Results** and **dashboard statistics**
 
 > **Changed on 2026-06-09**: A **filter panel** was added above the case list inside an execution, letting you narrow cases by **result** (PASS/FAIL/BLOCKED/NOT RUN), **priority**, **executor**, **execution date**, **JIRA issue key**, and **notes**. When a filter is active, an **Active** indicator appears, and **[Clear]** removes all conditions at once.
+
+> **Changed 2026-07-31**: A **tag** filter item has been added to the filter panel. You can now filter results by the tags attached to them; both multi-select and direct input are supported. When saving results, if you do not enter tags, the previous tags are inherited (tags do not disappear).
 
 ![Execution detail — filter panel expanded](images_en/52b_execution_filter_panel.png)
 
@@ -517,6 +555,8 @@ Click a case within an execution to open the result entry screen (`/projects/{pr
 | **N** | Not Run | Not yet executed (default) |
 
 In addition to the result, you can record **notes** (free-form comments), **tags**, and **JIRA issue key**. At the bottom, the **previous result list** shows execution history for this case at a glance. Rows from this execution in the previous result list are visually distinguished, so you always know which results belong to the current run.
+
+> **Added 2026-07-31**: Near the top of the result entry screen, a **Test Case Attachments** section now displays. You can view attachments (screenshots, scripts, supporting documents, etc.) that are attached to this test case here. If opening a download link shows an error, refreshing the page will automatically update the list.
 
 **Previous Execution Results dialog — note view format toggle**
 
@@ -675,6 +715,11 @@ Generate a **connection key (token)** for use when connecting from other systems
 
 - **Screen Mode** — Choose Light or Dark mode (synchronized with the ◐ icon in the header)
 - **Design System** — Choose from two design styles: Glass (glass texture) or Material 3. Changes apply to the entire screen immediately.
+- **Menu Structure** (new) — Choose between two layout styles:
+  - `Current Layout — Horizontal Tabs`: Top tab-based navigation structure (default)
+  - `New Layout — Left-Side Menu`: Vertical menu on the left side, with a collapse icon to show only icons
+  - Layout changes take effect immediately and are saved per user on the server, persisting across logins from different computers
+  - In the new layout, test plans and test executions display in a 2-section format (list on left, details on right), and the breadcrumb's first item becomes the project selector
 
 ---
 
@@ -972,3 +1017,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-06-10 | Added new "QA Summary" subsection (Section 9-1) — panel shown above the Detail Table when an execution filter is selected, Markdown editor with live preview, saved per execution with author/last-modified time, printed above the "Detailed Test Result List" in Advanced Export PDF (not in Excel/CSV, up to 10,000 characters) with screenshot `92_qa_summary_panel`. Synchronized same section and screenshot (images_en) in Korean edition. |
 | 2026-07-02 | Reflected v1.0.93: added **[Delete]** to the Section 4-6 form header action buttons + new change note — the individual form delete is now unified with the tree delete (same confirmation dialog showing the target ID/name in a table, button hidden without permission, server message surfaced). Synchronized same section in Korean edition. |
 | 2026-07-02 | Reflected v1.0.93: new "Move / Copy to Another Project" subsection (Section 5-5) — select via tree checkboxes → **[Move/Copy to Project]** button → bulk operations dialog (target project/folder). Move carries results via mirroring and needs edit on both sides; copy duplicates cases only and needs view on source + edit on target. Added dedicated-button note to the Section 5-3 auto-blocked list. Also reflected in `test_case_manual.md` Section 3.7. Synchronized same sections in Korean edition. |
+| 2026-07-31 | Reflected UI changes since 2026-07-02 based on v1.0.102. A(Layout selector): Section 3-1 header breadcrumb change + Section 13-7 theme settings add menu structure selection. B(Plans/Executions 2-section): Sections 7 and 8 add new layout descriptions (new layout only). C(Tree search): Section 4-4 filter refreshed — search by name/ID/tag, comma-separated complex search, select-all captures visible items only; new image 100_tree_filter_search. D(Result tags): Section 8 filter panel adds tag item — multi-select, direct input, tag inheritance. E(Attachments): Section 8-1 result entry screen adds test case attachments section. F(Linked items): existing Section 4 handles it (image updates only post-2026-07-02). Synchronized same sections/images (images_en) in Korean edition. |

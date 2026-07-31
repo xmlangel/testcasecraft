@@ -32,7 +32,10 @@ import lombok.Setter;
       @Index(name = "idx_test_execution_status_updated_at", columnList = "status, updatedAt"),
       @Index(
           name = "idx_test_execution_project_testplan_status",
-          columnList = "project_id, test_plan_id, status")
+          columnList = "project_id, test_plan_id, status"),
+
+      // 실행 목록은 프로젝트로 걸러 생성 최신순으로 페이지를 넘긴다
+      @Index(name = "idx_test_execution_project_created", columnList = "project_id, created_at")
     })
 public class TestExecution {
   @Id

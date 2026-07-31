@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -23,7 +24,13 @@ import {
 
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
-const TestCaseResultPage = () => {
+/**
+ * 케이스 결과 입력 화면.
+ *
+ * embedded=true 면 신규 레이아웃의 오른쪽 영역 안에서 열린다 — 상단 바·좌측 메뉴를
+ * 유지하려면 뷰포트 높이(100vh)를 쓰지 않아야 한다. 기존 레이아웃은 전체 화면 그대로.
+ */
+const TestCaseResultPage = ({ embedded = false }) => {
   const { projectId, executionId, testCaseId } = useParams();
   const navigate = useNavigate();
   const { api } = useAppContext();
@@ -180,7 +187,7 @@ const TestCaseResultPage = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: "100vh",
+          minHeight: embedded ? 0 : "100vh",
           bgcolor: "background.default",
         }}
       >
@@ -191,7 +198,13 @@ const TestCaseResultPage = () => {
 
   if (error) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "background.default", p: 4 }}>
+      <Box
+        sx={{
+          minHeight: embedded ? 0 : "100vh",
+          bgcolor: "background.default",
+          p: embedded ? 2 : 4,
+        }}
+      >
         <Container maxWidth="md">
           <Alert
             severity="error"
@@ -209,12 +222,18 @@ const TestCaseResultPage = () => {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box
+      sx={{
+        minHeight: embedded ? 0 : "100vh",
+        bgcolor: "background.default",
+      }}
+    >
       <Box
         sx={{
           width: "100%",
-          height: "100vh",
-          overflow: "hidden",
+          height: embedded ? "auto" : "100vh",
+          minHeight: embedded ? "calc(100vh - 210px)" : undefined,
+          overflow: embedded ? "visible" : "hidden",
           display: "flex",
           flexDirection: "column",
         }}
@@ -242,6 +261,7 @@ const TestCaseResultPage = () => {
             currentIndex={currentIndex}
             totalCount={testCasesList.length || 1}
             fullPage={true}
+            embedded={embedded}
             execution={execution}
           />
         ) : (
@@ -264,6 +284,10 @@ const TestCaseResultPage = () => {
       </Box>
     </Box>
   );
+};
+
+TestCaseResultPage.propTypes = {
+  embedded: PropTypes.bool,
 };
 
 export default TestCaseResultPage;

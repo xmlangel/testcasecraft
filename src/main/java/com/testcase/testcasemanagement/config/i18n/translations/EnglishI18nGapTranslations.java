@@ -632,6 +632,108 @@ public class EnglishI18nGapTranslations {
         "testExecution.filter.tags.placeholder", languageCode, "Select or type tags", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.filter.placeholderAll", languageCode, "Search name, ID, or tag", createdBy);
+    // Layout choice
+    // Three-pane plan/execution workspace
+    createTranslationIfNotExists(
+        "testPlan.workspace.backToPlan", languageCode, "Back to plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.runsInTree",
+        languageCode,
+        "Runs for this plan are listed in the tree on the left.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.collapseList", languageCode, "Collapse list", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.expandList", languageCode, "Expand list", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.collapseRuns", languageCode, "Collapse runs", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.expandRuns", languageCode, "Expand runs", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.executions", languageCode, "Runs in this plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.newExecution", languageCode, "New run", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.filter", languageCode, "Find by name", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.filterExecution", languageCode, "Find a run by name", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.emptyExecutions", languageCode, "No runs yet.", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.loadMore", languageCode, "Load more", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.empty", languageCode, "Nothing here yet.", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.selectPlan",
+        languageCode,
+        "Pick a test plan on the left to see its runs here.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.noExecution",
+        languageCode,
+        "No runs yet. Start one with New run.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.planInfo", languageCode, "Linked plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.caseCount", languageCode, "{count} test cases", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.selectExecution",
+        languageCode,
+        "Pick a run on the left to see its linked plan here.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.detailHint",
+        languageCode,
+        "Pick a plan to open it here. Picking a run switches this pane to the run detail.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.detailHintExecution",
+        languageCode,
+        "Pick a run to open its detail here.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.executionsFailed",
+        languageCode,
+        "Could not load the run list.",
+        createdBy);
+    createTranslationIfNotExists(
+        "projectNav.project.select", languageCode, "Select project", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.project.openList", languageCode, "Open project list", createdBy);
+    createTranslationIfNotExists("profile.nav.title", languageCode, "Menu layout", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.description",
+        languageCode,
+        "Choose how you move between areas inside a project, such as dashboard, test cases and test"
+            + " plans.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.title", languageCode, "Current layout — horizontal tabs", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.desc",
+        languageCode,
+        "Areas are laid out horizontally under the project name. This is the existing layout and"
+            + " the default.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.sidebar.title", languageCode, "New layout — left menu", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.sidebar.desc",
+        languageCode,
+        "Areas are stacked on the left. Names stay readable as areas grow, and the menu collapses"
+            + " to icons.",
+        createdBy);
+    createTranslationIfNotExists(
+        "projectNav.mode.switchToTabs", languageCode, "Switch to horizontal tabs", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.mode.switchToSidebar", languageCode, "Switch to left menu", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.sidebar.aria", languageCode, "Project areas", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.sidebar.collapse", languageCode, "Collapse sidebar", createdBy);
+    createTranslationIfNotExists(
+        "projectNav.sidebar.expand", languageCode, "Expand sidebar", createdBy);
     // ICT-431
     createTranslationIfNotExists(
         "testcase.tree.checkAll.all", languageCode, "Select all", createdBy);

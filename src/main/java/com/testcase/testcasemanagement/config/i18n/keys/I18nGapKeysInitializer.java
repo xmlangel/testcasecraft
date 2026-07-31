@@ -717,6 +717,90 @@ public class I18nGapKeysInitializer {
     // ICT-428: 트리 검색 대상 확장 (이름·표시 ID·태그)
     createTranslationKeyIfNotExists(
         "testcase.tree.filter.placeholderAll", "testcase", "ICT-428 트리 ID·태그 검색", "이름·ID·태그 검색");
+    // 레이아웃 선택 (현재 가로 탭 / 신규 좌측 메뉴)
+    // 3단 작업 화면 (플랜 → 실행)
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.backToPlan", "testPlan", "작업 화면", "플랜으로 돌아가기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.runsInTree", "testPlan", "작업 화면", "이 플랜의 실행은 왼쪽 트리에서 볼 수 있습니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.collapseList", "testPlan", "작업 화면", "목록 접기");
+    createTranslationKeyIfNotExists("testPlan.workspace.expandList", "testPlan", "작업 화면", "목록 펼치기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.collapseRuns", "testPlan", "작업 화면", "실행 목록 접기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.expandRuns", "testPlan", "작업 화면", "실행 목록 펼치기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.executions", "testPlan", "3단 작업 화면", "이 플랜의 실행");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.newExecution", "testPlan", "3단 작업 화면", "실행 만들기");
+    createTranslationKeyIfNotExists("testPlan.workspace.filter", "testPlan", "3단 작업 화면", "이름으로 찾기");
+    // 실행 영역 목록 (플랜 영역의 트리와 구분)
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.filterExecution", "testPlan", "작업 화면", "실행 이름으로 찾기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.emptyExecutions", "testPlan", "작업 화면", "실행이 없습니다.");
+    createTranslationKeyIfNotExists("testPlan.workspace.loadMore", "testPlan", "작업 화면", "더 보기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.empty", "testPlan", "3단 작업 화면", "항목이 없습니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.selectPlan",
+        "testPlan",
+        "3단 작업 화면",
+        "왼쪽에서 테스트 플랜을 고르면 그 플랜의 실행이 여기에 보입니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.noExecution", "testPlan", "3단 작업 화면", "아직 실행이 없습니다. 실행 만들기로 시작하세요.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.planInfo", "testPlan", "3단 작업 화면", "연결된 플랜");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.caseCount", "testPlan", "3단 작업 화면", "{count}개 케이스");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.selectExecution",
+        "testPlan",
+        "3단 작업 화면",
+        "왼쪽에서 실행을 고르면 연결된 플랜이 여기에 보입니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.detailHint",
+        "testPlan",
+        "3단 작업 화면",
+        "플랜을 고르면 내용이 여기에 열립니다. 실행을 고르면 실행 상세로 바뀝니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.detailHintExecution", "testPlan", "3단 작업 화면", "실행을 고르면 상세가 여기에 열립니다.");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.executionsFailed", "testPlan", "3단 작업 화면", "실행 목록을 불러오지 못했습니다.");
+    createTranslationKeyIfNotExists(
+        "projectNav.project.select", "projectNav", "레이아웃 선택", "프로젝트 선택");
+    createTranslationKeyIfNotExists(
+        "projectNav.project.openList", "projectNav", "레이아웃 선택", "프로젝트 목록 보기");
+    createTranslationKeyIfNotExists("profile.nav.title", "profile", "레이아웃 선택", "메뉴 구조");
+    createTranslationKeyIfNotExists(
+        "profile.nav.description",
+        "profile",
+        "레이아웃 선택",
+        "프로젝트 안에서 대시보드·테스트케이스·테스트 플랜 같은 영역을 어떻게 이동할지 고릅니다.");
+    createTranslationKeyIfNotExists(
+        "profile.nav.tabs.title", "profile", "레이아웃 선택", "현재 레이아웃 — 가로 탭");
+    createTranslationKeyIfNotExists(
+        "profile.nav.tabs.desc",
+        "profile",
+        "레이아웃 선택",
+        "프로젝트 이름 아래에 영역을 가로로 늘어놓습니다. 지금까지 쓰던 구조이고 기본값입니다.");
+    createTranslationKeyIfNotExists(
+        "profile.nav.sidebar.title", "profile", "레이아웃 선택", "신규 레이아웃 — 좌측 메뉴");
+    createTranslationKeyIfNotExists(
+        "profile.nav.sidebar.desc",
+        "profile",
+        "레이아웃 선택",
+        "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.");
+    createTranslationKeyIfNotExists(
+        "projectNav.mode.switchToTabs", "projectNav", "레이아웃 선택", "가로 탭 구조로 보기");
+    createTranslationKeyIfNotExists(
+        "projectNav.mode.switchToSidebar", "projectNav", "레이아웃 선택", "좌측 메뉴 구조로 보기");
+    createTranslationKeyIfNotExists("projectNav.sidebar.aria", "projectNav", "레이아웃 선택", "프로젝트 영역");
+    createTranslationKeyIfNotExists(
+        "projectNav.sidebar.collapse", "projectNav", "레이아웃 선택", "사이드바 접기");
+    createTranslationKeyIfNotExists(
+        "projectNav.sidebar.expand", "projectNav", "레이아웃 선택", "사이드바 펼치기");
     // ICT-431: 검색 결과 기준 전체 선택
     createTranslationKeyIfNotExists(
         "testcase.tree.checkAll.all", "testcase", "ICT-431 검색 결과 선택", "전체 선택");
