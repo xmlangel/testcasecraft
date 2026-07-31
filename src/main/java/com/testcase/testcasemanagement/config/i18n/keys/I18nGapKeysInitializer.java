@@ -735,6 +735,12 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testPlan.workspace.newExecution", "testPlan", "3단 작업 화면", "실행 만들기");
     createTranslationKeyIfNotExists("testPlan.workspace.filter", "testPlan", "3단 작업 화면", "이름으로 찾기");
+    // 실행 영역 목록 (플랜 영역의 트리와 구분)
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.filterExecution", "testPlan", "작업 화면", "실행 이름으로 찾기");
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.emptyExecutions", "testPlan", "작업 화면", "실행이 없습니다.");
+    createTranslationKeyIfNotExists("testPlan.workspace.loadMore", "testPlan", "작업 화면", "더 보기");
     createTranslationKeyIfNotExists(
         "testPlan.workspace.empty", "testPlan", "3단 작업 화면", "항목이 없습니다.");
     createTranslationKeyIfNotExists(

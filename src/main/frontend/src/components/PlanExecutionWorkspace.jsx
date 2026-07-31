@@ -19,7 +19,6 @@ import {
   InputAdornment,
   Tooltip,
   Collapse,
-  Link,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -41,6 +40,8 @@ import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 
 const LIST_WIDTH = 260;
 const LIST_COLLAPSED_WIDTH = 44;
+/** 실행 영역 목록을 한 번에 가져오는 개수 (서버 기본 정렬 createdAt DESC) */
+const EXECUTIONS_PAGE_SIZE = 50;
 
 /** 실행 상태 칩 색 — 목록에서 한눈에 구분되게. */
 const statusColor = (status) => {
@@ -64,10 +65,15 @@ const statusColor = (status) => {
  * 없는 전체 화면으로 빠졌다. 플랜을 오가며 실행을 만들거나 결과를 보려면 매번 닫고
  * 다시 열어야 했다. 여기서는 왼쪽 목록에서 고르면 오른쪽 상세가 바뀐다.
  *
- *   plans      모드: [플랜 목록] [플랜 내용 + 그 플랜의 실행 목록]
- *   executions 모드: [실행 목록] [실행 상세]
+ *   plans      모드: [플랜 트리 — 플랜 아래 그 플랜의 실행] [플랜 내용]
+ *   executions 모드: [실행 목록 — 최신순 · 상태 · 소속 플랜] [실행 상세]
  *
- * 각 단은 접을 수 있다 — 상세를 넓게 보려면 목록을, 목록을 훑을 때는 실행 섹션을 접는다.
+ * 두 영역은 왼쪽 목록이 다르다. 한동안 같은 트리를 공유했더니 사이드바에서 어느
+ * 영역에 들어왔는지 알 수 없었다 — 플랜을 짜는 자리와 실행을 굴리는 자리는 찾는
+ * 대상이 다르므로, 플랜 영역은 플랜을 부모로 세운 트리를, 실행 영역은 프로젝트의
+ * 실행을 최신순으로 세운 평면 목록을 보여준다.
+ *
+ * 각 단은 접을 수 있다 — 상세를 넓게 보려면 목록을 접는다.
  * 팝업이 없으므로 목록 사이를 오가는 동안 맥락이 끊기지 않는다.
  */
 function PlanExecutionWorkspace({
@@ -75,7 +81,6 @@ function PlanExecutionWorkspace({
   projectId,
   initialPlanId = null,
   initialExecutionId = null,
-  onOpenPlan,
 }) {
   const { t } = useI18n();
   const {
@@ -94,6 +99,12 @@ function PlanExecutionWorkspace({
   const [errorDetail, setErrorDetail] = useState(null);
   const [filterText, setFilterText] = useState("");
   const [listCollapsed, setListCollapsed] = useState(false);
+  // 실행 영역 목록 (executions 모드 전용 — 프로젝트의 실행을 최신순으로)
+  const [projectExecutions, setProjectExecutions] = useState([]);
+  const [execListLoading, setExecListLoading] = useState(false);
+  const [execFetchingMore, setExecFetchingMore] = useState(false);
+  const [execHasMore, setExecHasMore] = useState(false);
+  const [execPage, setExecPage] = useState(0);
 
   const plansOfProject = useMemo(
     () =>
@@ -112,6 +123,13 @@ function PlanExecutionWorkspace({
       ),
     [testExecutions, projectId],
   );
+
+  // 실행에 붙은 플랜 이름 — 평면 목록에서 어느 플랜의 실행인지 바로 보이게
+  const planNameById = useMemo(() => {
+    const map = new Map();
+    plansOfProject.forEach((plan) => map.set(String(plan.id), plan.name));
+    return map;
+  }, [plansOfProject]);
 
   // 왼쪽 트리 — 플랜(부모) 아래 그 플랜의 실행(자식).
   // 이름으로 좁힐 때는 플랜 이름과 실행 이름을 함께 본다.
@@ -162,6 +180,52 @@ function PlanExecutionWorkspace({
     [],
   );
 
+  /**
+   * 실행 영역 목록을 가져온다. 이름 검색·정렬·페이지는 서버에 맡긴다
+   * (`/by-project` 는 createdAt DESC 페이지를 준다).
+   */
+  const loadProjectExecutions = useCallback(
+    async (page, query, replace) => {
+      if (!projectId) return;
+      if (replace) {
+        setExecListLoading(true);
+      } else {
+        setExecFetchingMore(true);
+      }
+      setErrorDetail(null);
+      try {
+        let url = `/api/test-executions/by-project/${projectId}?page=${page}&size=${EXECUTIONS_PAGE_SIZE}`;
+        if (query) url += `&name=${encodeURIComponent(query)}`;
+        const res = await apiService.get(url);
+        const data = await res.json();
+        const content = data?.content || (Array.isArray(data) ? data : []);
+        setProjectExecutions((prev) => {
+          if (replace) return content;
+          const seen = new Set(prev.map((exec) => String(exec.id)));
+          return [
+            ...prev,
+            ...content.filter((exec) => !seen.has(String(exec.id))),
+          ];
+        });
+        setExecHasMore(
+          data?.last !== undefined
+            ? !data.last
+            : content.length === EXECUTIONS_PAGE_SIZE,
+        );
+        setExecPage(page);
+      } catch (err) {
+        setErrorDetail(err?.message || "unknown");
+        if (replace) setProjectExecutions([]);
+        setExecHasMore(false);
+      } finally {
+        setExecListLoading(false);
+        setExecFetchingMore(false);
+      }
+    },
+    // t 는 의존성에 넣지 않는다 — 아래 effect 가 매 렌더 재실행된다(무한 렌더).
+    [projectId],
+  );
+
   /** 플랜 가지를 펼치고, 아직 안 불러온 실행이면 그때 불러온다. */
   const expandPlan = useCallback(
     (planId) => {
@@ -188,30 +252,47 @@ function PlanExecutionWorkspace({
     if (initialPlanId) setSelectedPlanId(initialPlanId);
   }, [initialPlanId]);
 
-  // 플랜을 고르면 그 가지를 펼쳐 실행을 보여준다
+  // 플랜을 고르면 그 가지를 펼쳐 실행을 보여준다 (플랜 영역의 트리)
   useEffect(() => {
-    if (!selectedPlanId) return;
+    if (mode !== "plans" || !selectedPlanId) return;
     expandPlan(selectedPlanId);
-  }, [selectedPlanId, expandPlan]);
+  }, [mode, selectedPlanId, expandPlan]);
 
   // 실행을 URL 로 열고 들어왔으면 그 실행이 속한 플랜 가지도 펼친다
   useEffect(() => {
-    if (!initialExecutionId) return;
+    if (mode !== "plans" || !initialExecutionId) return;
     const owner = executionsOfProject.find(
       (e) => String(e.id) === String(initialExecutionId),
     );
     if (owner?.testPlanId) expandPlan(owner.testPlanId);
-  }, [initialExecutionId, executionsOfProject, expandPlan]);
+  }, [mode, initialExecutionId, executionsOfProject, expandPlan]);
+
+  // 실행 영역: 입력이 멎으면 그 이름으로 서버에 다시 물어본다
+  useEffect(() => {
+    if (mode !== "executions" || !projectId) return undefined;
+    const query = filterText.trim();
+    const timer = setTimeout(
+      () => loadProjectExecutions(0, query, true),
+      query ? 300 : 0,
+    );
+    return () => clearTimeout(timer);
+  }, [mode, projectId, filterText, loadProjectExecutions]);
 
   const selectedExecution = useMemo(() => {
     const pool = [
       ...Object.values(executionsByPlan).flat(),
+      ...projectExecutions,
       ...executionsOfProject,
     ];
     return (
       pool.find((e) => String(e.id) === String(selectedExecutionId)) || null
     );
-  }, [executionsByPlan, executionsOfProject, selectedExecutionId]);
+  }, [
+    executionsByPlan,
+    projectExecutions,
+    executionsOfProject,
+    selectedExecutionId,
+  ]);
 
   const effectivePlanId =
     mode === "plans" ? selectedPlanId : selectedExecution?.testPlanId || null;
@@ -239,7 +320,11 @@ function PlanExecutionWorkspace({
 
   const handleAfterExecutionSaved = () => {
     setCreatingExecution(false);
-    if (selectedPlanId) loadPlanExecutions(selectedPlanId);
+    if (mode === "executions") {
+      loadProjectExecutions(0, filterText.trim(), true);
+    } else if (selectedPlanId) {
+      loadPlanExecutions(selectedPlanId);
+    }
   };
 
   const paneSx = {
@@ -249,11 +334,104 @@ function PlanExecutionWorkspace({
     overflow: "hidden",
   };
 
-  // 트리 제목 — 플랜 아래 실행이 달리므로 두 영역에서 같은 트리를 쓴다
-  const listTitle = `${t("testPlan.tab.label", "테스트플랜")} / ${t(
-    "projectHeader.tabs.testExecution",
-    "테스트실행",
-  )}`;
+  // 목록 제목·개수 — 사이드바에서 고른 영역이 그대로 보이게
+  const isExecutionsMode = mode === "executions";
+  const listTitle = isExecutionsMode
+    ? t("projectHeader.tabs.testExecution", "테스트실행")
+    : t("testPlan.tab.label", "테스트플랜");
+  const listCount = isExecutionsMode
+    ? projectExecutions.length
+    : visiblePlans.length;
+
+  // ── 실행 영역 목록 — 최신 실행부터, 상태와 소속 플랜을 함께 ────────────────
+  const executionsList = (
+    <List dense sx={{ overflowY: "auto", flexGrow: 1 }}>
+      {projectExecutions.length === 0 && (
+        <Box sx={{ p: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            {t("testPlan.workspace.emptyExecutions", "실행이 없습니다.")}
+          </Typography>
+        </Box>
+      )}
+      {projectExecutions.map((exec) => {
+        const selected = String(exec.id) === String(selectedExecutionId);
+        const planName = planNameById.get(String(exec.testPlanId));
+        return (
+          <ListItemButton
+            key={exec.id}
+            selected={selected}
+            onClick={() => handleSelectExecution(exec)}
+            data-testid={`workspace-execution-item-${exec.id}`}
+            sx={{
+              borderLeft: 3,
+              borderColor: selected ? "primary.main" : "transparent",
+              alignItems: "flex-start",
+            }}
+          >
+            <ListItemText
+              primary={exec.name}
+              primaryTypographyProps={{
+                noWrap: true,
+                sx: selected
+                  ? CHROME_TYPOGRAPHY.navItemSelected
+                  : CHROME_TYPOGRAPHY.navItem,
+              }}
+              secondaryTypographyProps={{ component: "div" }}
+              secondary={
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {exec.status && (
+                    <Chip
+                      size="small"
+                      label={exec.status}
+                      color={statusColor(exec.status)}
+                      sx={CHROME_TYPOGRAPHY.statusChip}
+                    />
+                  )}
+                  {/* 어느 플랜의 실행인지 이름으로만 알려준다 (누를 데는 없다) */}
+                  {planName && (
+                    <Typography
+                      component="span"
+                      color="text.secondary"
+                      noWrap
+                      data-testid={`workspace-execution-plan-name-${exec.id}`}
+                      sx={CHROME_TYPOGRAPHY.hint}
+                    >
+                      {planName}
+                    </Typography>
+                  )}
+                </Box>
+              }
+            />
+          </ListItemButton>
+        );
+      })}
+      {execHasMore && (
+        <Box sx={{ p: 1, textAlign: "center" }}>
+          <Button
+            size="small"
+            disabled={execFetchingMore}
+            onClick={() =>
+              loadProjectExecutions(execPage + 1, filterText.trim(), false)
+            }
+            data-testid="workspace-executions-load-more"
+          >
+            {execFetchingMore ? (
+              <CircularProgress size={14} />
+            ) : (
+              t("testPlan.workspace.loadMore", "더 보기")
+            )}
+          </Button>
+        </Box>
+      )}
+    </List>
+  );
 
   // ── 왼쪽: 목록 (접을 수 있다) ──────────────────────────────────────────────
   const listPane = (
@@ -283,7 +461,7 @@ function PlanExecutionWorkspace({
             <Typography sx={CHROME_TYPOGRAPHY.paneTitle} noWrap>
               {listTitle}
             </Typography>
-            <Chip size="small" label={visiblePlans.length} />
+            <Chip size="small" label={listCount} />
           </>
         )}
         <Tooltip
@@ -316,7 +494,14 @@ function PlanExecutionWorkspace({
               size="small"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
-              placeholder={t("testPlan.workspace.filter", "이름으로 찾기")}
+              placeholder={
+                isExecutionsMode
+                  ? t(
+                      "testPlan.workspace.filterExecution",
+                      "실행 이름으로 찾기",
+                    )
+                  : t("testPlan.workspace.filter", "이름으로 찾기")
+              }
               inputProps={{ "data-testid": "workspace-primary-filter" }}
               InputProps={{
                 startAdornment: (
@@ -334,10 +519,12 @@ function PlanExecutionWorkspace({
               }}
             />
           </Box>
-          {testPlansLoading ? (
+          {(isExecutionsMode ? execListLoading : testPlansLoading) ? (
             <Box sx={{ p: 2, textAlign: "center" }}>
               <CircularProgress size={20} />
             </Box>
+          ) : isExecutionsMode ? (
+            executionsList
           ) : (
             <List dense sx={{ overflowY: "auto", flexGrow: 1 }}>
               {visiblePlans.length === 0 && (
@@ -616,7 +803,6 @@ PlanExecutionWorkspace.propTypes = {
   projectId: PropTypes.string,
   initialPlanId: PropTypes.string,
   initialExecutionId: PropTypes.string,
-  onOpenPlan: PropTypes.func,
 };
 
 export default PlanExecutionWorkspace;

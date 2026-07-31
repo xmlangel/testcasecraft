@@ -656,6 +656,12 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists(
         "testPlan.workspace.filter", languageCode, "Find by name", createdBy);
     createTranslationIfNotExists(
+        "testPlan.workspace.filterExecution", languageCode, "Find a run by name", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.emptyExecutions", languageCode, "No runs yet.", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.loadMore", languageCode, "Load more", createdBy);
+    createTranslationIfNotExists(
         "testPlan.workspace.empty", languageCode, "Nothing here yet.", createdBy);
     createTranslationIfNotExists(
         "testPlan.workspace.selectPlan",

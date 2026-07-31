@@ -1278,7 +1278,6 @@ const AppContent = () => {
                         <PlanExecutionWorkspace
                           mode="executions"
                           projectId={activeProject?.id}
-                          onOpenPlan={handleEditTestPlan}
                           initialExecutionId={
                             editingTestExecutionId &&
                             editingTestExecutionId !== "new"

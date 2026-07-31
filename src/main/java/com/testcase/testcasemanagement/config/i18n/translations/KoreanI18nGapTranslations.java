@@ -494,6 +494,11 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testPlan.workspace.newExecution", languageCode, "실행 만들기", createdBy);
     createTranslationIfNotExists("testPlan.workspace.filter", languageCode, "이름으로 찾기", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.filterExecution", languageCode, "실행 이름으로 찾기", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.emptyExecutions", languageCode, "실행이 없습니다.", createdBy);
+    createTranslationIfNotExists("testPlan.workspace.loadMore", languageCode, "더 보기", createdBy);
     createTranslationIfNotExists("testPlan.workspace.empty", languageCode, "항목이 없습니다.", createdBy);
     createTranslationIfNotExists(
         "testPlan.workspace.selectPlan",

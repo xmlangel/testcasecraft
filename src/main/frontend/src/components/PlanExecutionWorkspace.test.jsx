@@ -190,26 +190,51 @@ describe("PlanExecutionWorkspace", () => {
     ).toBeInTheDocument();
   });
 
-  it("실행 영역도 같은 트리를 쓴다 (플랜 아래 실행)", async () => {
+  // 두 영역이 같은 트리를 공유했을 때 사이드바에서 어디에 들어왔는지 알 수 없었다.
+  // 실행 영역은 플랜을 거치지 않고 실행부터 보여야 한다.
+  it("실행 영역은 프로젝트의 실행을 평면 목록으로 보여준다", async () => {
     setup({ mode: "executions" });
-    // 부모는 플랜
-    expect(
-      screen.getByTestId("workspace-primary-item-tp1"),
-    ).toBeInTheDocument();
-    // 실행은 가지를 펼쳐야 보인다
-    expect(screen.queryByTestId("workspace-execution-item-ex1")).toBeNull();
-
-    fireEvent.click(screen.getByTestId("workspace-plan-toggle-tp1"));
     await waitFor(() =>
       expect(
         screen.getByTestId("workspace-execution-item-ex1"),
       ).toBeInTheDocument(),
+    );
+    // 플랜 행·가지 토글은 실행 영역에 없다
+    expect(screen.queryByTestId("workspace-primary-item-tp1")).toBeNull();
+    expect(screen.queryByTestId("workspace-plan-toggle-tp1")).toBeNull();
+    expect(getMock).toHaveBeenCalledWith(
+      "/api/test-executions/by-project/p1?page=0&size=50",
     );
 
     fireEvent.click(screen.getByTestId("workspace-execution-item-ex1"));
     await waitFor(() =>
       expect(screen.getByTestId("stub-execution-form")).toHaveTextContent(
         "exec=ex1",
+      ),
+    );
+  });
+
+  it("실행 행에 소속 플랜 이름을 표시한다 (누를 데는 없다)", async () => {
+    setup({ mode: "executions" });
+    const planName = await waitFor(() =>
+      screen.getByTestId("workspace-execution-plan-name-ex1"),
+    );
+    expect(planName).toHaveTextContent("회귀 플랜");
+    expect(planName.tagName).toBe("SPAN");
+    expect(planName.closest("a")).toBeNull();
+    expect(planName.querySelector("button")).toBeNull();
+  });
+
+  it("실행 영역의 이름 검색은 서버에 넘긴다", async () => {
+    setup({ mode: "executions" });
+    await waitFor(() => expect(getMock).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(screen.getByTestId("workspace-primary-filter"), {
+      target: { value: "1차" },
+    });
+    await waitFor(() =>
+      expect(getMock).toHaveBeenLastCalledWith(
+        "/api/test-executions/by-project/p1?page=0&size=50&name=1%EC%B0%A8",
       ),
     );
   });
