@@ -1,7 +1,7 @@
 # 테스트 플랜·실행·실행 목록·결과 화면 속도 개선
 
 작성: 2026-07-31 23:25 KST
-대상: testcasecraft v1.0.102-dev
+대상: testcasecraft v1.0.102
 측정 환경: 로컬 (Spring Boot local 프로파일 · PostgreSQL 5434 · macOS arm64)
 
 ## 무엇이 느렸는가
