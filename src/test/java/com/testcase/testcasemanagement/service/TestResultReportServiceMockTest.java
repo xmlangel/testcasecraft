@@ -123,7 +123,7 @@ public class TestResultReportServiceMockTest {
             createMockResult("NOT_RUN"),
             createMockResult("BLOCKED"));
 
-    when(testResultRepository.findAll()).thenReturn(mockResults);
+    when(testResultRepository.findStatsRowsAll()).thenReturn(statsRows(mockResults));
 
     // When
     TestResultStatisticsDto statistics =
@@ -152,8 +152,10 @@ public class TestResultReportServiceMockTest {
         Arrays.asList(createMockResult("PASS"), createMockResult("FAIL"));
 
     mockTestExecution.setResults(mockResults);
+    assertEquals(mockExecutions.size(), 1);
 
-    when(testExecutionRepository.findByProjectId(projectId)).thenReturn(mockExecutions);
+    when(testResultRepository.findStatsRowsByProjectId(projectId))
+        .thenReturn(statsRows(mockResults));
 
     // When
     TestResultStatisticsDto statistics =
@@ -552,8 +554,9 @@ public class TestResultReportServiceMockTest {
     execution.setTestPlanId(planId);
     execution.setResults(Arrays.asList(res1, res2));
 
-    when(testExecutionRepository.findAllByTestPlanIdIn(planIds))
-        .thenReturn(Arrays.asList(execution));
+    assertEquals(execution.getResults().size(), 2);
+    when(testResultRepository.findStatsRowsByTestPlanIds(planIds))
+        .thenReturn(statsRows(Arrays.asList(res1, res2)));
 
     // ICT-FOLDER-STATS: 존재 여부 확인 목킹 추가
     when(testCaseRepository.findAllById(anyList()))
@@ -621,8 +624,9 @@ public class TestResultReportServiceMockTest {
     exec2.setTestPlanId(plan2Id);
     exec2.setResults(Arrays.asList(resA, resB, resD));
 
-    when(testExecutionRepository.findAllByTestPlanIdIn(planIds))
-        .thenReturn(Arrays.asList(exec1, exec2));
+    assertEquals(exec1.getResults().size(), 0);
+    when(testResultRepository.findStatsRowsByTestPlanIds(planIds))
+        .thenReturn(statsRows(Arrays.asList(resA, resB, resD)));
 
     when(testCaseRepository.findAllById(anyList()))
         .thenAnswer(
@@ -681,12 +685,22 @@ public class TestResultReportServiceMockTest {
     tc.setProject(mockProj);
     tc.setType("testcase");
 
-    when(testResultRepository.findRecentTestResultsByProject(
-            eq(projectId), any(PageRequest.of(0, Integer.MAX_VALUE).getClass())))
-        .thenReturn(Arrays.asList(oldResult, latestResult));
+    when(testResultRepository.findPopulationRowsByProject(projectId))
+        .thenReturn(Arrays.asList(populationRow(oldResult), populationRow(latestResult)));
+    // 승자로 뽑힌 행만 엔티티로 다시 읽는다
+    when(testResultRepository.findByIdsWithFetch(anyList()))
+        .thenAnswer(
+            invocation -> {
+              List<String> ids = invocation.getArgument(0);
+              List<TestResult> picked = new ArrayList<>();
+              for (TestResult candidate : Arrays.asList(oldResult, latestResult)) {
+                if (ids.contains(candidate.getId())) picked.add(candidate);
+              }
+              return picked;
+            });
     when(testCaseRepository.findByProjectId(projectId)).thenReturn(Arrays.asList(tc));
     when(testCaseRepository.findById(tcId)).thenReturn(Optional.of(tc));
-    when(testPlanRepository.findById(anyString())).thenReturn(Optional.of(mockTestPlan));
+    when(testPlanRepository.findAllById(any())).thenReturn(Arrays.asList(mockTestPlan));
 
     TestResultFilterDto filter =
         TestResultFilterDto.builder()
@@ -715,6 +729,38 @@ public class TestResultReportServiceMockTest {
   }
 
   // Helper Methods
+
+  /** 통계 집계 조회가 돌려주는 경량 행. 엔티티 대신 컬럼 배열을 받으므로 목도 같은 모양으로 준다. */
+  private Object[] statsRow(TestResult r) {
+    return new Object[] {
+      r.getTestCaseId(),
+      r.getExecutedAt(),
+      r.getResult(),
+      r.getTestExecution() != null ? r.getTestExecution().getTestPlanId() : null,
+      r.getJiraIssueKey(),
+      r.getJiraSyncStatus(),
+      r.getExecutedBy() != null ? r.getExecutedBy().getUsername() : null
+    };
+  }
+
+  private List<Object[]> statsRows(List<TestResult> results) {
+    List<Object[]> rows = new ArrayList<>();
+    for (TestResult r : results) rows.add(statsRow(r));
+    return rows;
+  }
+
+  /** 인구(Population) 집계 조회가 돌려주는 경량 행. */
+  private Object[] populationRow(TestResult r) {
+    return new Object[] {
+      r.getId(),
+      r.getTestCaseId(),
+      r.getExecutedAt(),
+      r.getTestExecution() != null ? r.getTestExecution().getTestPlanId() : null,
+      r.getTestExecution() != null ? r.getTestExecution().getId() : null,
+      r.getJiraIssueKey()
+    };
+  }
+
   private TestResult createMockResult(String result) {
     TestResult testResult = new TestResult();
     testResult.setId(UUID.randomUUID().toString());

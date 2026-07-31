@@ -8,7 +8,7 @@ import {
   useParams,
   useLocation,
 } from "react-router-dom";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import packageJson from "../package.json";
 const APP_VERSION = packageJson.version;
 import {
@@ -39,43 +39,89 @@ import { useNavMode } from "./context/NavModeContext.jsx";
 import ProjectManager from "./components/ProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import ProjectSidebar from "./components/ProjectSidebar.jsx";
-import PlanExecutionWorkspace from "./components/PlanExecutionWorkspace.jsx";
-import TestCaseTree from "./components/TestCaseTree.jsx";
-import TestCaseHybridForm from "./components/TestCase/TestCaseHybridForm.jsx";
-import TestPlanForm from "./components/TestPlanForm.jsx";
-import TestPlanList from "./components/TestPlanList.jsx";
-import TestExecutionList from "./components/TestExecutionList.jsx";
-import TestExecutionForm from "./components/TestExecutionForm.jsx";
-import TestCaseResultPage from "./components/TestCaseResultPage.jsx";
-import BookmarkPage from "./components/Bookmark/BookmarkPage.jsx";
-import TestResultMainPage from "./components/TestResultMainPage.jsx";
-import UserProfileDialog from "./components/UserProfileDialog.jsx";
-import Dashboard from "./components/Dashboard.jsx";
-import OrganizationList from "./components/OrganizationList.jsx";
-import OrganizationDetail from "./components/OrganizationDetail.jsx";
-import SystemDashboard from "./components/SystemDashboard.jsx";
-import UserList from "./components/UserManagement/UserList.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
+// 화면을 열 때 그 화면 몫만 받는다. 전에는 이 목록 전부가 첫 요청에 실려 왔다.
+const PlanExecutionWorkspace = React.lazy(
+  () => import("./components/PlanExecutionWorkspace.jsx"),
+);
+const TestCaseTree = React.lazy(() => import("./components/TestCaseTree.jsx"));
+const TestCaseHybridForm = React.lazy(
+  () => import("./components/TestCase/TestCaseHybridForm.jsx"),
+);
+const TestPlanForm = React.lazy(() => import("./components/TestPlanForm.jsx"));
+const TestPlanList = React.lazy(() => import("./components/TestPlanList.jsx"));
+const TestExecutionList = React.lazy(
+  () => import("./components/TestExecutionList.jsx"),
+);
+const TestExecutionForm = React.lazy(
+  () => import("./components/TestExecutionForm.jsx"),
+);
+const TestCaseResultPage = React.lazy(
+  () => import("./components/TestCaseResultPage.jsx"),
+);
+const BookmarkPage = React.lazy(
+  () => import("./components/Bookmark/BookmarkPage.jsx"),
+);
+const TestResultMainPage = React.lazy(
+  () => import("./components/TestResultMainPage.jsx"),
+);
+const UserProfileDialog = React.lazy(
+  () => import("./components/UserProfileDialog.jsx"),
+);
+const Dashboard = React.lazy(() => import("./components/Dashboard.jsx"));
+const OrganizationList = React.lazy(
+  () => import("./components/OrganizationList.jsx"),
+);
+const OrganizationDetail = React.lazy(
+  () => import("./components/OrganizationDetail.jsx"),
+);
+const SystemDashboard = React.lazy(
+  () => import("./components/SystemDashboard.jsx"),
+);
+const UserList = React.lazy(
+  () => import("./components/UserManagement/UserList.jsx"),
+);
+const JunitResultDashboard = React.lazy(
+  () => import("./components/JunitResult/JunitResultDashboard.jsx"),
+);
+const JunitResultDetail = React.lazy(
+  () => import("./components/JUnit/JunitResultDetail.jsx"),
+);
+const MailSettingsManager = React.lazy(
+  () => import("./components/MailSettings/MailSettingsManager.jsx"),
+);
+const TranslationManagement = React.lazy(
+  () => import("./components/admin/TranslationManagement.jsx"),
+);
+const CommonDocumentManagement = React.lazy(
+  () => import("./components/admin/CommonDocumentManagement.jsx"),
+);
+const RAGDocumentManager = React.lazy(
+  () => import("./components/RAG/RAGDocumentManager.jsx"),
+);
+const ExploratorySessionWorkspace = React.lazy(
+  () => import("./components/ExploratorySessionWorkspace.jsx"),
+);
+const SchedulerManagement = React.lazy(
+  () => import("./components/admin/SchedulerManagement.jsx"),
+);
+const GuideViewer = React.lazy(
+  () => import("./components/Settings/GuideViewer.jsx"),
+);
+const ManualViewer = React.lazy(
+  () => import("./components/Settings/ManualViewer.jsx"),
+);
 import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
-import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.jsx";
-import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
-import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
-import TranslationManagement from "./components/admin/TranslationManagement.jsx";
-import CommonDocumentManagement from "./components/admin/CommonDocumentManagement.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
-import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
-import ExploratorySessionWorkspace from "./components/ExploratorySessionWorkspace.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
 import { RAGProvider, useRAG } from "./context/RAGContext.jsx";
 import { LlmConfigProvider } from "./context/LlmConfigContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import { SchedulerProvider } from "./context/SchedulerContext.jsx";
-import SchedulerManagement from "./components/admin/SchedulerManagement.jsx";
 import EmailVerification from "./components/EmailVerification.jsx";
 import SessionExpiryDialog from "./components/common/SessionExpiryDialog.jsx";
 import JiraIssueRedirect from "./components/JiraIntegration/JiraIssueRedirect.jsx";
-import GuideViewer from "./components/Settings/GuideViewer.jsx";
-import ManualViewer from "./components/Settings/ManualViewer.jsx";
 
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -87,6 +133,21 @@ import {
   ViewSidebar as ViewSidebarIcon,
   Tab as TabViewIcon,
 } from "@mui/icons-material";
+
+/** 화면 청크를 받는 동안 보여줄 자리 표시. 레이아웃이 튀지 않게 높이를 잡아 둔다. */
+const ScreenLoading = () => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "60vh",
+    }}
+    data-testid="screen-loading"
+  >
+    <CircularProgress />
+  </Box>
+);
 
 const STORAGEKEY = "testcase-manager-ui-state";
 const TRACKED_PAGE_PATHS = [
@@ -1484,102 +1545,105 @@ const AppWrapper = () => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public route for email verification */}
-        <Route path="/verify-email" element={<EmailVerification />} />
+      {/* 화면 몫을 따로 받으므로 받아오는 동안 자리를 지킬 표시가 필요하다 */}
+      <Suspense fallback={<ScreenLoading />}>
+        <Routes>
+          {/* Public route for email verification */}
+          <Route path="/verify-email" element={<EmailVerification />} />
 
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <AppContent />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/executions/:id"
-          element={
-            <ProtectedRoute>
-              <ExecutionDetailRoute />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/projects/:projectId/executions/new"
-          element={
-            <ProtectedRoute>
-              <ExecutionDetailRoute />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/projects/:projectId/executions/:executionId"
-          element={
-            <ProtectedRoute>
-              <ExecutionDetailRoute />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result"
-          element={
-            <ProtectedRoute>
-              <CaseResultRoute />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/junit-results/:testResultId"
-          element={
-            <ProtectedRoute>
-              <JunitResultDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/projects/:projectId/junit-results/:testResultId"
-          element={
-            <ProtectedRoute>
-              <JunitResultDetail />
-            </ProtectedRoute>
-          }
-        />
-        {/* 새로운 자동화 테스트 경로 */}
-        <Route
-          path="/automation-tests/:testResultId"
-          element={
-            <ProtectedRoute>
-              <JunitResultDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/projects/:projectId/automation-results/:testResultId"
-          element={
-            <ProtectedRoute>
-              <JunitResultDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/jira-redirect/:issueKey"
-          element={
-            <ProtectedRoute>
-              <JiraIssueRedirect />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/projects/:projectId/bookmarks"
-          element={
-            <ProtectedRoute>
-              <BookmarkPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/guides/:guideName" element={<GuideViewer />} />
-        <Route path="/manual" element={<ManualViewer />} />
-      </Routes>
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <AppContent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/executions/:id"
+            element={
+              <ProtectedRoute>
+                <ExecutionDetailRoute />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/executions/new"
+            element={
+              <ProtectedRoute>
+                <ExecutionDetailRoute />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/executions/:executionId"
+            element={
+              <ProtectedRoute>
+                <ExecutionDetailRoute />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result"
+            element={
+              <ProtectedRoute>
+                <CaseResultRoute />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/junit-results/:testResultId"
+            element={
+              <ProtectedRoute>
+                <JunitResultDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/junit-results/:testResultId"
+            element={
+              <ProtectedRoute>
+                <JunitResultDetail />
+              </ProtectedRoute>
+            }
+          />
+          {/* 새로운 자동화 테스트 경로 */}
+          <Route
+            path="/automation-tests/:testResultId"
+            element={
+              <ProtectedRoute>
+                <JunitResultDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/automation-results/:testResultId"
+            element={
+              <ProtectedRoute>
+                <JunitResultDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/jira-redirect/:issueKey"
+            element={
+              <ProtectedRoute>
+                <JiraIssueRedirect />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/bookmarks"
+            element={
+              <ProtectedRoute>
+                <BookmarkPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/guides/:guideName" element={<GuideViewer />} />
+          <Route path="/manual" element={<ManualViewer />} />
+        </Routes>
+      </Suspense>
 
       {/* 서버 시간 표시 */}
       <ServerTimeDisplay />
