@@ -276,8 +276,11 @@ def check_style():
         text = p.read_text(encoding="utf-8")
         for label, pat in FORBIDDEN:
             for m in pat.finditer(text):
-                if label == "절 기호 §" and rel.name == "README.md":
-                    continue          # 규약을 설명하는 문장에서 한 번 쓴다
+                if rel.name == "README.md" and (
+                        label == "절 기호 §"           # 규약을 설명하는 문장에서 한 번 쓴다
+                        or m.group(0) == "validate.py"  # 이 검증 루틴을 돌리는 방법을 적는다
+                ):
+                    continue
                 line = text[:m.start()].count("\n") + 1
                 err(f"[금지:{label}] {rel}:{line} — {m.group(0)[:40]!r}")
         in_fence = False
