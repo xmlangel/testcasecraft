@@ -18,7 +18,7 @@
   <text class="desc" x="28" y="60">화면 우상단 고정 · 한국어 / English · 로그인 전 선택은 서버에 저장하지 않는다</text>
   <rect class="bx" x="16" y="90" width="928" height="64" rx="6"/>
   <text class="area" x="28" y="113">B 카드 제목</text>
-  <text class="desc" x="28" y="134">모드에 따라 `로그인` 또는 `회원가입` · testid 는 두 모드 공용</text>
+  <text class="desc" x="28" y="134">모드에 따라 `로그인` 또는 `회원가입` · 카드는 두 모드가 함께 쓴다</text>
   <rect class="bx" x="16" y="164" width="928" height="121" rx="6"/>
   <text class="area" x="28" y="187">C 입력 폼</text>
   <text class="desc" x="28" y="208">1 아이디 (공통, autoFocus)      2 비밀번호 (공통)</text>

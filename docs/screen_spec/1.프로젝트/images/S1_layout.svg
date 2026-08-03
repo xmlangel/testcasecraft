@@ -23,7 +23,7 @@
   <rect class="bx-ch" x="16" y="164" width="928" height="83" rx="6"/>
   <text class="area" x="28" y="187">C 소속 탭</text>
   <text class="desc" x="28" y="208">[조직별 프로젝트]  [독립 프로젝트]  [전체 프로젝트]</text>
-  <text class="tiny" x="28" y="227">내용이 있는 탭만 그린다 · testid 는 내부 인덱스를 쓴다</text>
+  <text class="tiny" x="28" y="227">내용이 있는 탭만 그린다 · 탭 순서는 화면에 보이는 순서를 따른다</text>
   <rect class="bx" x="16" y="257" width="302.667" height="159" rx="6"/>
   <text class="area" x="28" y="280">D 프로젝트 카드</text>
   <text class="desc" x="28" y="301">프로젝트 이름 · [코드] 칩 · ⋮ 메뉴</text>

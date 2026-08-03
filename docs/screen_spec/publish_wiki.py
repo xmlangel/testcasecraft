@@ -33,6 +33,12 @@ BRANCH = "master"
 INDEX_PAGE = "화면기획서"
 OVERVIEW_PAGE = "화면기획서-전체업무프로세스"
 
+# 영문판. 한국어판과 파일이 따로이므로 페이지 이름도 겹치지 않게 둔다.
+EN_DIR = SPEC_ROOT / "en"
+EN_INDEX_PAGE = "Screen-Spec"
+EN_OVERVIEW_PAGE = "Screen-Spec-Overview"
+EN_IMG_PREFIX = "en"  # wiki images/en/ 로 넣어 한국어 배치도와 같은 파일명이 부딪히지 않게 한다
+
 # 문서 종류 → 페이지 이름 꼬리. 번호 접두사는 wiki 에서 의미가 없어 뗀다.
 DOC_KINDS = {
     "01": "업무프로세스",
@@ -242,6 +248,7 @@ def build_sidebar(names: dict[str, str]) -> str:
         "",
         f"- [들어가기]({INDEX_PAGE})",
         f"- [전체 업무프로세스]({OVERVIEW_PAGE})",
+        f"- [English edition]({EN_INDEX_PAGE})",
         "",
         "**화면별**",
         "",
@@ -270,7 +277,8 @@ def patch_home(wiki: Path, names: dict[str, str], caps: dict[str, str]) -> str:
             f"업무프로세스 · 화면정의 · 컴포넌트 · 요건반영목록 네 문서를 둔다.",
             "",
             f"👉 **[화면 기획서 들어가기]({INDEX_PAGE})** · "
-            f"[전체 업무프로세스]({OVERVIEW_PAGE})",
+            f"[전체 업무프로세스]({OVERVIEW_PAGE}) · "
+            f"[English edition]({EN_INDEX_PAGE})",
             "",
             "| 화면 | |",
             "|---|---|",
@@ -288,6 +296,80 @@ def patch_home(wiki: Path, names: dict[str, str], caps: dict[str, str]) -> str:
         head = text.split(HOME_MARKER)[0].rstrip() + "\n\n"
         return head + block
     return text.rstrip() + "\n\n" + block
+
+
+def publish_en(wiki: Path) -> tuple[list[str], list[str]]:
+    """영문판을 발행한다. 파일이 이미 한 층에 평평하게 있어 눌러 담을 것이 없다.
+
+    바꿀 것은 셋뿐이다 — `.md` 확장자를 뗀 페이지 이름, 배치도 경로를 `images/en/` 로,
+    저장소 경로 코드 스팬을 GitHub 링크로.
+    """
+    written: list[str] = []
+    problems: list[str] = []
+    if not EN_DIR.is_dir():
+        return written, ["docs/screen_spec/en 이 없다 — 영문판을 건너뛴다"]
+
+    docs = sorted(p for p in EN_DIR.glob("*.md") if not p.name.startswith("_"))
+    names = {p.stem for p in docs}
+
+    def to_page(m: re.Match) -> str:
+        text, target = m.group(1), m.group(2)
+        if target.startswith(("http://", "https://", "#")):
+            return m.group(0)
+        path, _, anchor = target.partition("#")
+        # 배치도 — 어느 경로로 적혀 있든 파일명만 살려 wiki 자리로 보낸다
+        img = re.match(r"(?:.*/)?images/(.+\.svg)$", path)
+        if img:
+            return f"[{text}](images/{EN_IMG_PREFIX}/{img.group(1)})"
+        stem = path[:-3] if path.endswith(".md") else path
+        if stem in names:
+            return f"[{text}]({stem + (f'#{anchor}' if anchor else '')})"
+        if path.endswith(".md"):
+            problems.append(f"en/{m.group(0)[:60]} — 가리키는 영문 페이지가 없다")
+        return m.group(0)
+
+    for src in docs:
+        body = src.read_text(encoding="utf-8")
+        body = link_repo_paths(body, depth=1)  # en/ 은 screen_spec 한 단 아래다
+        body = re.sub(r"\[([^\]]*)\]\(([^)]+)\)", to_page, body)
+        if src.stem == EN_INDEX_PAGE_SRC:
+            page, nav = EN_INDEX_PAGE, f"**English** · [한국어]({INDEX_PAGE})"
+        elif src.stem == EN_OVERVIEW_PAGE_SRC:
+            page = EN_OVERVIEW_PAGE
+            nav = f"[Screen Specification]({EN_INDEX_PAGE}) › **Overall Workflow**"
+        else:
+            m = re.match(r"EN-(S\d+)-(\w+)$", src.stem)
+            if not m:
+                problems.append(f"en/{src.name} — 페이지 이름 규칙에 안 맞는다")
+                continue
+            page, nav = src.stem, en_nav_line(m.group(1), m.group(2))
+        (wiki / f"{page}.md").write_text(f"{nav}\n\n{body.lstrip()}", encoding="utf-8")
+        written.append(f"{page}.md")
+
+    # 배치도 — 영문 세트를 wiki images/en/ 으로
+    dst = wiki / "images" / EN_IMG_PREFIX
+    dst.mkdir(parents=True, exist_ok=True)
+    svgs = sorted((EN_DIR / "images").glob("*.svg"))
+    for svg in svgs:
+        shutil.copy2(svg, dst / svg.name)
+    if not svgs:
+        problems.append("en/images 에 배치도가 없다")
+
+    return written, problems
+
+
+EN_INDEX_PAGE_SRC = "EN-Index"
+EN_OVERVIEW_PAGE_SRC = "EN-Overview"
+EN_KINDS = ["Workflow", "Screen", "Components", "Requirements"]
+
+
+def en_nav_line(screen: str, current: str) -> str:
+    parts = [
+        f"**{k}**" if k == current else f"[{k}](EN-{screen}-{k})" for k in EN_KINDS
+    ]
+    return (
+        f"[Screen Specification]({EN_INDEX_PAGE}) › **{screen}** › " + " · ".join(parts)
+    )
 
 
 def publish(wiki: Path, push: bool) -> int:
@@ -356,7 +438,15 @@ def publish(wiki: Path, push: bool) -> int:
         seen[svg.name] = svg
         shutil.copy2(svg, img_dst / svg.name)
 
-    print(f"페이지 {len(written)}개 · 배치도 {len(seen)}장 → {wiki}")
+    # 5) 영문판
+    en_written, en_problems = publish_en(wiki)
+    written += en_written
+    problems += en_problems
+
+    print(
+        f"페이지 {len(written)}개 (한국어 {len(written) - len(en_written)} · "
+        f"영문 {len(en_written)}) · 배치도 {len(seen)}장 → {wiki}"
+    )
     if problems:
         print("\n확인할 것:")
         for p in problems:

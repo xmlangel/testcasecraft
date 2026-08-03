@@ -49,6 +49,33 @@ SCREENS = [
 ]
 KINDS = [("01", "업무프로세스"), ("02", "화면정의"), ("03", "컴포넌트"), ("04", "요건반영목록")]
 
+# 영문판. 문서가 `en/` 에 평평하게 있고 이름 규칙이 달라, 읽는 자리와 라벨만 갈아 끼운다.
+EN_DIR = ROOT / "en"
+EN_KINDS = [
+    ("01", "Workflow"),
+    ("02", "Screen"),
+    ("03", "Components"),
+    ("04", "Requirements"),
+]
+EN_SCREENS = [
+    ("0.로그인계정", "S0", "Login & Account"),
+    ("1.프로젝트", "S1", "Projects"),
+    ("2.공통레이아웃", "S2", "Shared Layout"),
+    ("3.대시보드", "S3", "Dashboards"),
+    ("4.테스트케이스", "S4", "Test Cases"),
+    ("5.테스트플랜", "S5", "Test Plans"),
+    ("6.테스트실행", "S6", "Test Execution"),
+    ("7.테스트결과", "S7", "Test Results"),
+    ("8.자동화테스트", "S8", "Automated Tests"),
+    ("9.RAG문서", "S9", "RAG Documents"),
+    ("10.탐색세션", "S10", "Exploratory Sessions"),
+    ("11.관리자설정", "S11", "Administrator Settings"),
+]
+EN_ROOT_DOCS = (("README", "EN-Index.md", "About this set"),
+                ("FLOW", "EN-Overview.md", "Overall Workflow"))
+KO_ROOT_DOCS = (("README", "README.md", "문서 안내"),
+                ("FLOW", "00_전체_업무프로세스.md", "전체 업무프로세스"))
+
 MD = markdown.Markdown(extensions=["tables", "fenced_code", "sane_lists", "attr_list"])
 
 
@@ -69,12 +96,19 @@ def strip_front(text):
     return "\n".join(lines[i:]).lstrip("\n")
 
 
-def render(text, folder=None):
-    """마크다운을 HTML로. 배치도 SVG는 본문에 심고, 문서 사이 링크는 뷰어 경로로 바꾼다."""
+def render(text, folder=None, en=False):
+    """마크다운을 HTML로. 배치도 SVG는 본문에 심고, 문서 사이 링크는 뷰어 경로로 바꾼다.
+
+    영문판은 배치도가 `en/images/` 에 있다. 폴더 이름은 한국어 폴더를 그대로 물려받으므로
+    그것으로 경로를 만들면 한국어 배치도가 영문 뷰어에 들어간다 — 기준을 갈라 둔다.
+    """
     text = strip_front(text)
     def inline_svg(m):
         alt, rel = m.group(1), m.group(2)
-        p = (ROOT / folder / rel) if folder else (ROOT / rel)
+        if en:
+            p = EN_DIR / rel
+        else:
+            p = (ROOT / folder / rel) if folder else (ROOT / rel)
         if not p.exists():
             return f'<p class="miss">배치도 없음: {html.escape(rel)}</p>'
         svg = p.read_text(encoding="utf-8")
@@ -86,6 +120,17 @@ def render(text, folder=None):
     # 같은 폴더의 다른 문서로 가는 링크 → 뷰어 안 이동
     def doc_link(m):
         label, target = m.group(1), m.group(2)
+        if en:
+            mm = re.match(r'EN-(S\d+)-(\w+)\.md$', target)
+            if mm:
+                kind = next((k for k, dn in EN_KINDS if dn == mm.group(2)), None)
+                if kind:
+                    return f'<a href="#/{mm.group(1)}/{kind}">{label}</a>'
+            if target in ("EN-Index.md", "../README.md"):
+                return f'<a href="#/README">{label}</a>'
+            if target == "EN-Overview.md":
+                return f'<a href="#/FLOW">{label}</a>'
+            return f'<code>{html.escape(label)}</code>'
         mm = re.match(r'(0[1-4])_', target)
         if mm and folder:
             sid = next(s for f, s, _ in SCREENS if f == folder)
@@ -101,31 +146,38 @@ def render(text, folder=None):
     return MD.convert(text)
 
 
-def read_docs():
-    """화면별 4문서와 루트 문서를 읽어 렌더한 결과와 검색용 본문을 함께 담는다."""
+def read_docs(en=False):
+    """화면별 4문서와 루트 문서를 읽어 렌더한 결과와 검색용 본문을 함께 담는다.
+
+    영문판은 문서가 `en/` 에 `EN-S4-Screen.md` 처럼 평평하게 있다. 배치도도 그쪽
+    `en/images/` 를 쓴다. 나머지 렌더·검색 처리는 두 판본이 같다.
+    """
     data, index = {}, []
-    for folder, sid, name in SCREENS:
-        d = ROOT / folder
+    screens = EN_SCREENS if en else SCREENS
+    kinds = EN_KINDS if en else KINDS
+    for folder, sid, name in screens:
+        d = EN_DIR if en else ROOT / folder
         route = ""
         docs = {}
-        for kind, dn in KINDS:
-            fs = list(d.glob(f"{kind}_*.md"))
-            if not fs:
+        for kind, dn in kinds:
+            fs = [d / f"EN-{sid}-{dn}.md"] if en else list(d.glob(f"{kind}_*.md"))
+            if not fs or not fs[0].exists():
                 continue
             raw = fs[0].read_text(encoding="utf-8")
             if kind == "01":
-                m = re.search(r'^> 라우트:\s*(.+)$', raw, re.M)
+                pat = r'^> Routes?:\s*(.+)$' if en else r'^> 라우트:\s*(.+)$'
+                m = re.search(pat, raw, re.M)
                 route = m.group(1).strip() if m else ""
-            docs[kind] = render(raw, folder)
+            docs[kind] = render(raw, folder, en)
             index.append({"screen": sid, "kind": kind, "label": f"{sid} {name} · {dn}",
                           "text": re.sub(r'\s+', " ", re.sub(r'[`*|>#\-]', " ", raw))[:60000]})
-        svgs = sorted((d / "images").glob("*.svg")) if (d / "images").exists() else []
+        img = (EN_DIR / "images") if en else (d / "images")
+        svgs = sorted(img.glob("*.svg")) if img.exists() else []
         data[sid] = {"name": name, "folder": folder, "route": route, "docs": docs,
-                     "diagrams": [s.name for s in svgs]}
-    for key, fname, label in (("README", "README.md", "문서 안내"),
-                              ("FLOW", "00_전체_업무프로세스.md", "전체 업무프로세스")):
-        raw = (ROOT / fname).read_text(encoding="utf-8")
-        data[key] = {"name": label, "folder": None, "route": "", "docs": {"doc": render(raw)},
+                     "diagrams": [s.name for s in svgs if s.name.startswith(sid + "_")] if en else [s.name for s in svgs]}
+    for key, fname, label in (EN_ROOT_DOCS if en else KO_ROOT_DOCS):
+        raw = ((EN_DIR if en else ROOT) / fname).read_text(encoding="utf-8")
+        data[key] = {"name": label, "folder": None, "route": "", "docs": {"doc": render(raw, None, en)},
                      "diagrams": []}
         index.append({"screen": key, "kind": "doc", "label": label,
                       "text": re.sub(r'\s+', " ", re.sub(r'[`*|>#\-]', " ", raw))[:60000]})
@@ -134,6 +186,33 @@ def read_docs():
 
 CAP_DIR = ROOT.parent / "manual" / "new" / "images"
 CAP_REL = "../manual/new/images"
+
+
+CAP_DIR_EN = ROOT.parent / "manual" / "new" / "images_en"
+CAP_REL_EN = "../manual/new/images_en"
+
+
+def shots_of_en(sid, embed):
+    """영문 02 문서 머리말이 가리키는 영문 매뉴얼 캡처를 모은다."""
+    f = EN_DIR / f"EN-{sid}-Screen.md"
+    if not f.exists():
+        return []
+    m = re.search(
+        r'^> Captures?[^:]*:\s*(.+)$', f.read_text(encoding="utf-8"), re.M
+    )
+    if not m:
+        return []
+    out = []
+    for name in re.findall(r'`([0-9A-Za-z_]+\.png)`', m.group(1)):
+        p = CAP_DIR_EN / name
+        if not p.exists():
+            continue
+        if embed:
+            src = "data:image/png;base64," + base64.b64encode(p.read_bytes()).decode()
+        else:
+            src = f"{CAP_REL_EN}/{name}"
+        out.append({"name": name, "src": src})
+    return out
 
 
 def shots_of(folder, embed):
@@ -381,23 +460,31 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 def main():
     embed = "--embed" in sys.argv
-    data, index = read_docs()
-    order = [sid for _, sid, _ in SCREENS]
+    en = "--lang" in sys.argv and "en" in sys.argv
+    out_path = ROOT / ("index_en.html" if en else "index.html")
+    screens = EN_SCREENS if en else SCREENS
+    data, index = read_docs(en)
+    order = [sid for _, sid, _ in screens]
     routes = {sid: routes_of(data[sid]["route"]) for sid in order}
     diagrams = {}
-    for folder, sid, _ in SCREENS:
+    for folder, sid, _ in screens:
         parts = []
         for name in data[sid]["diagrams"]:
-            svg = (ROOT / folder / "images" / name).read_text(encoding="utf-8")
+            base = (EN_DIR / "images") if en else (ROOT / folder / "images")
+            svg = (base / name).read_text(encoding="utf-8")
             svg = re.sub(r'<\?xml[^>]*\?>', "", svg).strip()
             parts.append(f'<figure class="dia">{svg}<figcaption>{html.escape(name)}</figcaption></figure>')
-        diagrams[sid] = "".join(parts) or '<p class="note">배치도가 없다.</p>'
+        empty = "No layout diagram." if en else "배치도가 없다."
+        diagrams[sid] = "".join(parts) or f'<p class="note">{empty}</p>'
 
-    shots = {sid: shots_of(folder, embed) for folder, sid, _ in SCREENS}
+    shots = {
+        sid: (shots_of_en(sid, embed) if en else shots_of(folder, embed))
+        for folder, sid, _ in screens
+    }
     payload = {
         "DATA": {k: {"name": v["name"], "route": v["route"], "docs": v["docs"],
                      "diagrams": v["diagrams"]} for k, v in data.items()},
-        "ORDER": order, "ROUTES": routes, "KINDS": KINDS, "INDEX": index,
+        "ORDER": order, "ROUTES": routes, "KINDS": (EN_KINDS if en else KINDS), "INDEX": index,
         "DIAGRAMS": diagrams, "SHOTS": shots,
     }
     # 본문에 </script> 나 <!-- 가 섞여도 스크립트가 끊기지 않게 '<' 를 이스케이프한다
@@ -406,8 +493,8 @@ def main():
 
     js_data = "\n".join(js_const(k, v) for k, v in payload.items())
 
-    OUT.write_text(f"""<!doctype html>
-<html lang="ko"><head><meta charset="utf-8">
+    out_path.write_text(f"""<!doctype html>
+<html lang="{ "en" if en else "ko" }"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TestcaseCraft 화면 기획</title>
 <style>{CSS}</style></head><body>
@@ -424,8 +511,8 @@ def main():
 <script>{JS}</script>
 </body></html>
 """, encoding="utf-8")
-    size = OUT.stat().st_size
-    print(f"생성 {OUT.relative_to(ROOT.parent.parent)}  ({size/1024:.0f} KB)")
+    size = out_path.stat().st_size
+    print(f"생성 {out_path.relative_to(ROOT.parent.parent)}  ({size/1024:.0f} KB)")
     print(f"  화면 {len(order)}개 · 문서 {len(index)}개 · "
           f"배치도 {sum(len(d['diagrams']) for d in data.values())}장 · "
           f"캡처 {sum(len(v) for v in shots.values())}장"

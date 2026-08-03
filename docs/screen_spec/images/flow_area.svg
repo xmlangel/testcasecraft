@@ -54,5 +54,5 @@
   <text class="tiny" x="718" y="208">환경 변수로만 노출</text>
 
   <text class="tiny" x="32" y="272">* 점선 박스는 조건부 노출. 꺼지면 영역 항목 자체가 목록에서 빠지고 뒤 항목의 tabIndex 가 한 칸 당겨진다.</text>
-  <text class="tiny" x="32" y="290">영역 목록의 정본은 navigation/projectNavItems.js 배열 하나이고, 가로 탭과 좌측 메뉴가 그 배열을 함께 읽는다.</text>
+  <text class="tiny" x="32" y="290">영역 목록의 정본은 한 곳이고, 가로 탭과 좌측 메뉴가 그것을 함께 읽는다.</text>
 </svg>
