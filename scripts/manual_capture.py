@@ -590,7 +590,6 @@ STEPS: list[Step] = [
     Step("13_project_created", url="/projects", todo=True),  # ✕ 생성 완료
     # ── 4. 헤더 / 메뉴 ─────────────────────────────────────────────
     Step("15_user_menu", url="/projects", prepare=open_user_menu),  # △
-    Step("17_header_jira", url=_project_path(""), todo=True),  # ✕ JIRA 배지 클릭
     Step(
         "18_user_menu_logout", url="/projects", prepare=open_user_menu
     ),  # △ (동일 메뉴, 로그아웃 강조)
@@ -610,13 +609,6 @@ STEPS: list[Step] = [
     Step(
         "24_tree_populated", url=_project_path("/testcases"), wait_ms=1500
     ),  # ● 폴더·케이스 트리
-    Step("25_folder_created", url=_project_path("/testcases"), todo=True),
-    Step("27_testcase_created", url=_project_path("/testcases"), todo=True),
-    Step("28_two_folders", url=_project_path("/testcases"), todo=True),
-    Step("32_tree_final", url=_project_path("/testcases"), todo=True),
-    Step(
-        "32_tree_final_full", url=_project_path("/testcases"), full_page=True, todo=True
-    ),
     # ── 6b. 폴더 전용 트리 + 케이스 목록 (2026-06-06 feat/style-folder-tree) ──
     Step(
         "87_tree_folder_only", url=_project_path("/testcases"), wait_ms=1500
@@ -702,9 +694,6 @@ STEPS: list[Step] = [
         "63_project_selector", url="/projects", todo=True
     ),  # ✕ 프로젝트 선택 드롭다운 오픈
     Step("64_user_menu_v2", url="/projects", prepare=open_user_menu),
-    Step(
-        "66_tree_panel_crop", url=_project_path("/testcases"), todo=True
-    ),  # ✕ 트리 패널만 crop
     # ── 10. 프로필 다이얼로그 (탭별) ─────────────────────────────────────────────
     Step("65_profile_page", url="/projects", todo=True),  # ✕ 프로필 다이얼로그 오픈
     Step("67_profile_password", url="/projects", todo=True),
