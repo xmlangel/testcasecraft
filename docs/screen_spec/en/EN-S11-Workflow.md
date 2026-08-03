@@ -181,7 +181,7 @@ Entering S11 requires system `ADMIN` role. The six sub-screens have the same per
 | # | Rule | Reference |
 |---|---|---|
 | F1 | **Organization member invites happen by email only** | Mail settings must be completed for invitation emails to be sent |
-| F2 | **User list search is real-time** | Filters apply while typing; pagination recalculates | |
+| F2 | **User list search is real-time** | Filters apply while typing; pagination recalculates |
 | F3 | **Scheduler jobs are added in code only** | No form to add jobs on screen; only subsequent changes are possible |
 | F4 | **Translation keys are incremental** | When new `t` call appears in UI, empty translation row auto-generates (estimated) |
 | F5 | **Multiple LLM providers can be registered** | Providers have different API Keys, models, prompts; default per-project selection (needs verification) |

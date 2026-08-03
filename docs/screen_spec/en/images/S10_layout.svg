@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 518" width="100%" role="img" aria-label="S10 Exploratory Sessions layout">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">Area A header</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[+ New charter]</text>
+  <text class="desc" x="28" y="60">Title: Exploratory Sessions</text>
+  <rect class="bx-ch" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B 5 tabs</text>
+  <text class="desc" x="28" y="134">0. Charter   1. Session list   2. Session edit   3. Post-evaluation   4. Detail</text>
+  <rect class="bx" x="16" y="164" width="302.667" height="102" rx="6"/>
+  <text class="area" x="28" y="187">C Charter card</text>
+  <text class="desc" x="28" y="208">Login to payment full flow</text>
+  <text class="desc" x="28" y="227">Created 2026-08-01 · 1 active</text>
+  <text class="desc" x="28" y="246">ACTIVE   [start]</text>
+  <rect class="bx" x="328.667" y="164" width="302.667" height="102" rx="6"/>
+  <text class="area" x="340.667" y="187">Charter card</text>
+  <text class="desc" x="340.667" y="208">Product search · filters</text>
+  <text class="desc" x="340.667" y="227">Created 2026-07-28 · 0 active</text>
+  <text class="desc" x="340.667" y="246">ARCHIVED   [start]</text>
+  <rect class="bx" x="641.333" y="164" width="302.667" height="102" rx="6"/>
+  <text class="area" x="653.333" y="187">Charter card</text>
+  <text class="desc" x="653.333" y="208">Payment process safety</text>
+  <text class="desc" x="653.333" y="227">Created 2026-07-15 · 2 active</text>
+  <text class="desc" x="653.333" y="246">ACTIVE   [start]</text>
+  <rect class="bx-ac" x="16" y="276" width="224.5" height="102" rx="6"/>
+  <text class="area" x="28" y="299">D ① Basic info</text>
+  <text class="desc" x="28" y="320">charter select ▾</text>
+  <text class="desc" x="28" y="339">Tester · planned 90 minutes</text>
+  <rect class="bx-ac" x="250.5" y="276" width="224.5" height="102" rx="6"/>
+  <text class="area" x="262.5" y="299">E ② Session progress</text>
+  <text class="desc" x="262.5" y="320">Timer 00:15:30</text>
+  <text class="desc" x="262.5" y="339">[Start] [Pause] [Stop]</text>
+  <text class="desc" x="262.5" y="358">Note · bug · halt log</text>
+  <rect class="bx-ac" x="485" y="276" width="224.5" height="102" rx="6"/>
+  <text class="area" x="497" y="299">F ③ Post-eval</text>
+  <text class="desc" x="497" y="320">Evaluation notes</text>
+  <text class="desc" x="497" y="339">Achievement 85%</text>
+  <text class="desc" x="497" y="358">[Submit]</text>
+  <rect class="bx-ac" x="719.5" y="276" width="224.5" height="102" rx="6"/>
+  <text class="area" x="731.5" y="299">G ④ Detail·Approval</text>
+  <text class="desc" x="731.5" y="320">SUBMITTED</text>
+  <text class="desc" x="731.5" y="339">Timeline</text>
+  <text class="desc" x="731.5" y="358">[Approve] [Reject]</text>
+  <rect class="bx" x="16" y="388" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="411">Timeline example</text>
+  <text class="desc" x="28" y="432">· [00:05] login page slow   · [00:25] cart total error   · [00:30] halted (2-min environment reset)</text>
+  <text class="tiny" x="16" y="473">Shown only with env SHOW_EXPLORATORY_SESSION_TAB.</text>
+  <text class="strong" x="16" y="500">Legend</text>
+  <rect class="bx" x="73.60" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="92.60" y="501">Regular area</text>
+  <rect class="bx-ac" x="183.20" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="202.20" y="501">Highlighted · conditional areas</text>
+  <rect class="bx-ch" x="407.75" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="426.75" y="501">Global chrome</text>
+  <rect class="bx-dq" x="523.40" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="542.40" y="501">Empty · hidden</text>
+  <rect class="bx-bt" x="645.10" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="664.10" y="501">Button · Action</text>
+</svg>

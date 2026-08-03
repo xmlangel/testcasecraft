@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%">
+  <defs>
+    <style>
+      .area-box { stroke: #d0d5dd; stroke-width: 1; fill: #ffffff; }
+      .area-label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 12px; font-weight: 700; fill: #111827; }
+      .area-name { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #475467; }
+      .content-text { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #111827; }
+      .mode-label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 10px; fill: #6b7280; font-style: italic; }
+      @media (prefers-color-scheme: dark) {
+        .area-box { stroke: #404854; fill: #1f2937; }
+        .area-label { fill: #f3f4f6; }
+        .area-name { fill: #d1d5db; }
+        .content-text { fill: #e5e7eb; }
+        .mode-label { fill: #9ca3af; }
+      }
+    </style>
+  </defs>
+
+  <rect class="area-box" x="10" y="10" width="980" height="60"/>
+  <text class="area-label" x="20" y="31">A</text>
+  <text class="area-name" x="35" y="31">Global header</text>
+  <text class="content-text" x="35" y="47">Logo  v1.0.102  [Dashboard]  [Admin menu▾]  [Project select]  JIRA  ?  ⇄  ◐  👤</text>
+
+  <rect class="area-box" x="10" y="80" width="980" height="80"/>
+  <text class="area-label" x="20" y="101">B</text>
+  <text class="area-name" x="35" y="101">breadcrumb</text>
+  <text class="content-text" x="35" y="117">Projects  /  ShopFlow  /  Test Cases                                        ☆</text>
+  <text class="content-text" x="35" y="133">[Project] Description</text>
+  <text class="mode-label" x="35" y="150">(appears in both tab and sidebar layouts)</text>
+
+  <g>
+    <rect class="area-box" x="10" y="170" width="480" height="70"/>
+    <text class="area-label" x="20" y="191">C</text>
+    <text class="area-name" x="35" y="191">Area nav — tabs</text>
+    <text class="mode-label" x="35" y="207">(only when layout is tab mode)</text>
+    <text class="content-text" x="35" y="223">[Dash] [Cases] [Plans] [Exec]</text>
+  </g>
+
+  <g>
+    <rect class="area-box" x="510" y="170" width="480" height="70"/>
+    <text class="area-label" x="520" y="191">D</text>
+    <text class="area-name" x="535" y="191">Area nav — sidebar</text>
+    <text class="mode-label" x="535" y="207">(sidebar layout only; collapsible)</text>
+    <text class="content-text" x="535" y="223">[Dash] [Cases] [Plans] [Exec]</text>
+  </g>
+
+  <rect class="area-box" x="10" y="250" width="980" height="50"/>
+  <text class="area-label" x="20" y="271">E</text>
+  <text class="area-name" x="35" y="271">Project picker</text>
+  <text class="mode-label" x="35" y="287">(breadcrumb 1-level only in sidebar layout)</text>
+
+  <rect class="area-box" x="10" y="310" width="980" height="300"/>
+  <text class="area-label" x="20" y="331">F</text>
+  <text class="area-name" x="35" y="331">Content area</text>
+  <text class="content-text" x="35" y="347">S3 Dash·S4 Cases·S5 Plans·S6 Exec</text>
+  <text class="content-text" x="35" y="365">S7 Results·S8 Auto·S9 RAG·S10 Sess</text>
+  <text class="mode-label" x="35" y="565">(active area renders here; identical in tab and sidebar layouts)</text>
+
+  <g opacity="0.6">
+    <rect class="area-box" x="10" y="620" width="300" height="70"/>
+    <text class="area-label" x="20" y="641">G</text>
+    <text class="area-name" x="35" y="641">Profile dialog</text>
+    <text class="content-text" x="35" y="657">basic info · password · language·timezone</text>
+  </g>
+
+  <g opacity="0.6">
+    <rect class="area-box" x="320" y="620" width="300" height="70"/>
+    <text class="area-label" x="330" y="641">H</text>
+    <text class="area-name" x="345" y="641">Bookmark</text>
+    <text class="content-text" x="345" y="657">Collection list · cases · notes</text>
+  </g>
+
+  <text class="area-name" x="10" y="695" font-style="italic">* RAG · Exploratory: conditional display (feature flag). All other areas: always shown.</text>
+</svg>

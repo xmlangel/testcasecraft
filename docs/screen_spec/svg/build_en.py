@@ -32,6 +32,16 @@ def text_width(s: str, fs: float) -> float:
     return w
 
 
+def xml_escape(s: str) -> str:
+    """SVG 안에 넣어도 XML 이 깨지지 않게 한다.
+
+    번역문에 `&`(Login & Account) 나 `<` 가 그대로 들어오면 문서가 파싱되지 않는다.
+    이미 실체 참조(`&lt;` · `&amp;`)로 적힌 것은 두 번 escape 하지 않는다.
+    """
+    s = re.sub(r"&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9A-Fa-f]+);)", "&amp;", s)
+    return s.replace("<", "&lt;").replace(">", "&gt;")
+
+
 def font_size(tag: str, default: float = 12.0) -> float:
     m = re.search(r'font-size="([\d.]+)"', tag)
     if m:
@@ -69,17 +79,80 @@ def apply(svg: str, mapping: dict[str, str], canvas_w: float) -> tuple[str, list
         x = float(xm.group(1)) if xm else 0.0
         w = text_width(new, fs)
         # 글자가 담긴 가장 좁은 상자를 찾아 그 오른쪽 끝과 견준다
+        # 글자가 담긴 상자들 중 오른쪽 끝이 가장 가까운 것을 한계로 본다.
+        # 상자가 겹겹이 있으면 가장 안쪽이 실제 한계다.
         limit = canvas_w - x - 8
         for bx, _, bw in boxes:
-            if bx <= x <= bx + bw:
-                limit = min(limit, bx + bw - (x - bx) - 8) if bw else limit
+            if bx <= x < bx + bw:
+                limit = min(limit, bx + bw - x - 8)
         if w > limit:
             warns.append(
                 f"넘침 위험 {w:.0f}>{limit:.0f}pt (fs{fs:.0f}): {new[:60]}"
             )
-        return f"{head}{new}</text>"
+        return f"{head}{xml_escape(new)}</text>"
 
-    return re.sub(r"(<text[^>]*>)(.*?)</text>", sub, svg, flags=re.S), warns
+    svg = re.sub(r"(<text[^>]*>)(.*?)</text>", sub, svg, flags=re.S)
+
+    # 그림 전체 설명(aria-label)도 화면 읽기 도구가 읽는 글이다 — 함께 바꾼다
+    def sub_aria(m: re.Match) -> str:
+        val = m.group(1)
+        if not re.search(r"[가-힣]", val):
+            return m.group(0)
+        new = mapping.get(val)
+        if new is None:
+            warns.append(f"번역 없음(aria-label): {val[:50]}")
+            return m.group(0)
+        return f'aria-label="{xml_escape(new)}"'
+
+    svg = re.sub(r'aria-label="([^"]*)"', sub_aria, svg)
+
+    # XML 주석은 그리는 사람이 남긴 한국어 메모다. 화면에 보이지 않지만 영문판 파일에
+    # 한국어가 섞여 있으면 검사기가 매번 걸리므로 지운다.
+    svg = re.sub(r"<!--.*?-->\s*", "", svg, flags=re.S)
+    svg = relayout_legend(svg)
+    return svg, warns
+
+
+LEGEND_SWATCH = 13
+LEGEND_GAP_LABEL = 6      # 색 견본과 글자 사이
+LEGEND_GAP_ITEM = 18      # 항목 사이
+
+
+def relayout_legend(svg: str) -> str:
+    """범례 한 줄의 x 좌표를 영문 글자폭으로 다시 배치한다.
+
+    범례는 `색 견본 + 라벨` 을 한 줄에 늘어놓은 것이고, 좌표는 한국어 글자폭으로
+    계산돼 있었다. 영문은 같은 뜻을 더 넓게 쓰므로 그대로 두면 항목이 서로 겹친다.
+    """
+    m = re.search(r'<text class="strong" x="([\d.]+)" y="([\d.]+)">Legend</text>', svg)
+    if not m:
+        return svg
+    start_x = float(m.group(1))
+    pat = re.compile(
+        r'<rect class="(bx[\w-]*)" x="[\d.]+" y="([\d.]+)" width="13" height="13" rx="3"/>\s*'
+        r'<text class="tiny" x="[\d.]+" y="([\d.]+)">([^<]*)</text>'
+    )
+    items = pat.findall(svg)
+    if not items:
+        return svg
+
+    # "Legend" 글자 뒤에서 시작한다
+    x = start_x + text_width("Legend", 12.0) + LEGEND_GAP_ITEM
+    parts = []
+    for cls, ry, ty, label in items:
+        parts.append(
+            f'<rect class="{cls}" x="{x:.2f}" y="{ry}" width="13" height="13" rx="3"/>\n'
+            f'  <text class="tiny" x="{x + LEGEND_SWATCH + LEGEND_GAP_LABEL:.2f}" '
+            f'y="{ty}">{label}</text>'
+        )
+        x += LEGEND_SWATCH + LEGEND_GAP_LABEL + text_width(label, 11.0) + LEGEND_GAP_ITEM
+
+    # 원래 범례 블록 전체를 새로 배치한 것으로 갈아 끼운다
+    first = pat.search(svg)
+    last = None
+    for last in pat.finditer(svg):
+        pass
+    return svg[: first.start()] + "\n  ".join(parts) + svg[last.end() :]
 
 
 def main() -> int:

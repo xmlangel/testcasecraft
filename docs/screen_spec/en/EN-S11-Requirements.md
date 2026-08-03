@@ -2,7 +2,7 @@
 
 > Screen ID **S11** · Reference documents: [`EN-S11-Workflow.md`](EN-S11-Workflow.md) · [`EN-S11-Screen.md`](EN-S11-Screen.md) · [`EN-S11-Components.md`](EN-S11-Components.md)
 > Baseline version **v1.0.102**
-> Status notation and reference conventions: [`../EN-Index.md`](../EN-Index.md) section 4.
+> Status notation and reference conventions: [`../EN-Index.md`](EN-Index.md) section 4.
 
 ---
 

@@ -14,7 +14,7 @@
 | Header | Refresh button | Button (chip) | Load latest data |
 | Header | Last update | Text | M/D/YYYY HH:MM format |
 | Header | Status notification | Banner (Alert) | Loading/error message |
-| Summary | Project summary | Accordion | Project name, case count, member count (expand/collapse state persisted) |
+| Summary | Project summary | accordion | Project name, case count, member count (expand/collapse state persisted) |
 | Chart D | Result distribution | Pie chart | PASS/FAIL/BLOCKED/SKIPPED/NOTRUN ratio |
 | Chart E | 14-day trend | Line chart | Cumulative by date (PASS, FAIL, BLOCKED) |
 | Chart F | Open execution | Bar chart | Results sum by execution or date |
@@ -55,7 +55,7 @@ Same composition as project dashboard but aggregation scope covers all projects.
 | Bar (execution) | Right | Open executions or time buckets | Date, count |
 | Bar (assignee) | Right | All assignees | Member name, status sum |
 
-### 2.4 Accordion State
+### 2.4 accordion State
 
 - Open/close state: Saved in browser
 - Next visit: Previous state restored
@@ -80,7 +80,7 @@ Same composition as project dashboard but aggregation scope covers all projects.
 - **Timing**: Complete within 1 second (typically 500ms)
 - **Note**: Plan filter persists
 
-### 3.3 Accordion Expand/Collapse
+### 3.3 accordion Expand/Collapse
 
 - **Location**: "Project Summary" section header
 - **State saved**: Immediately saved to browser storage on click
@@ -120,7 +120,7 @@ Same composition as project dashboard but aggregation scope covers all projects.
 
 | Setting | Storage Location | Scope | Duration |
 |-----|---------|------|---------|
-| Accordion expand state | Browser storage | User on this device | Until explicit delete |
+| accordion expand state | Browser storage | User on this device | Until explicit delete |
 | Plan filter selection | Session (memory) | This session only | Cleared on page refresh |
 
 ---

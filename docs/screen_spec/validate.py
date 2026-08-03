@@ -48,7 +48,10 @@ FORBIDDEN = [
 ]
 
 # README 만 예외로 두는 파일 이름. 이 폴더의 도구와 화면 ID 판별 규칙의 위치다.
-README_ALLOW = {"validate.py", "build_html.py", "screenIds.js"}
+# 유지보수자가 찾아가야 하는 도구 파일. 제품 소스가 아니라 이 문서 묶음의 도구다.
+README_ALLOW = {"validate.py", "build_html.py", "screenIds.js",
+                "publish_wiki.py", "build_ko.py", "build_en.py", "audit.py",
+                "svg_gen.py"}
 
 errs, warns = [], []
 
@@ -162,7 +165,7 @@ def ncols(line):
 
 
 def check_markdown():
-    for p in sorted(ROOT.rglob("*.md")):
+    for p in sorted(q for q in ROOT.rglob("*.md") if not q.name.startswith("_")):
         rel = p.relative_to(ROOT)
         text = p.read_text(encoding="utf-8")
         lines = text.split("\n")
@@ -200,7 +203,7 @@ def check_markdown():
 def check_assets():
     have = {q.name for q in (MANUAL_IMG / "images").glob("*.png")} | \
            {q.name for q in (MANUAL_IMG / "images_en").glob("*.png")}
-    for p in sorted(ROOT.rglob("*.md")):
+    for p in sorted(q for q in ROOT.rglob("*.md") if not q.name.startswith("_")):
         text = p.read_text(encoding="utf-8")
         for m in re.finditer(r'`([0-9A-Za-z_]+\.png)`', text):
             if m.group(1) not in have:
@@ -274,14 +277,15 @@ def check_assets():
 # ── 6. 금지 항목·문체 ───────────────────────────────────────
 def check_style():
     quoted = re.compile(r'`[^`\n]*`|"[^"\n]*"|“[^”\n]*”')
-    for p in sorted(ROOT.rglob("*.md")):
+    for p in sorted(q for q in ROOT.rglob("*.md") if not q.name.startswith("_")):
         rel = p.relative_to(ROOT)
         text = p.read_text(encoding="utf-8")
         for label, pat in FORBIDDEN:
             for m in pat.finditer(text):
-                if rel.name == "README.md" and (
+                # 두 판본의 안내 문서는 도구 파일 이름을 적어야 한다 — 유지보수자가 찾아갈 길이다
+                if rel.name in ("README.md", "EN-Index.md") and (
                         label == "절 기호 §"           # 규약을 설명하는 문장에서 한 번 쓴다
-                        or m.group(0) in README_ALLOW   # 유지보수자가 찾아가야 하는 파일 두 개
+                        or m.group(0) in README_ALLOW
                 ):
                     continue
                 line = text[:m.start()].count("\n") + 1
@@ -318,9 +322,10 @@ if __name__ == "__main__":
         before = len(errs)
         fn()
         print(f"  {label:<16} {'통과' if len(errs) == before else f'{len(errs)-before}건'}")
-    docs = len(list(ROOT.rglob("*.md")))
+    docs = len([q for q in ROOT.rglob("*.md") if not q.name.startswith("_")])
     svgs = len(list(ROOT.rglob("*.svg")))
-    lines = sum(len(p.read_text(encoding='utf-8').splitlines()) for p in ROOT.rglob("*.md"))
+    lines = sum(len(p.read_text(encoding='utf-8').splitlines())
+                for p in ROOT.rglob("*.md") if not p.name.startswith("_"))
     print(f"\n문서 {docs}개 · 배치도 {svgs}장 · {lines:,}행")
     if warns:
         print(f"\n확인 권고 {len(warns)}건")

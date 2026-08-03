@@ -79,7 +79,7 @@ back into `Screen` and `Components`.**
 | `/projects/{projectId}/testcases` | screen route |
 | manual section 4-4 | section number in `../../manual/new/USER_MANUAL_EN.md` |
 | `Screen` Area C | an area in the same screen's `Screen` document |
-| `Workflow` section 5.2 | a section in the same screen's `Workflow` document. The `§` symbol is not used |
+| `Workflow` section 5.2 | a section in the same screen's `Workflow` document. Section-sign notation is not used |
 | S4 → S6 | navigation between screens |
 | `⚠ Needs verification` | a point where the screen alone leaves the verdict open and a run is needed |
 

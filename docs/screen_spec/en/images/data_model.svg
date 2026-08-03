@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" width="100%" role="img" aria-label="Core entity relationships">
+  <defs>
+    <style>
+      .ent   { fill: #fff; stroke: #d0d5dd; stroke-width: 1; }
+      .root  { fill: #f7f9ff; stroke: #c7d2fe; stroke-width: 1; }
+      .own   { fill: #fff; stroke: #d0d5dd; stroke-width: 1; stroke-dasharray: 4 3; }
+      .label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 12px; font-weight: bold; fill: #111827; }
+      .desc  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #475467; }
+      .tiny  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #6b7280; }
+      .edge  { stroke: #98a2b3; stroke-width: 1; fill: none; }
+      .grp   { fill: none; stroke: #e5e7eb; stroke-width: 1; stroke-dasharray: 3 3; }
+    </style>
+    <marker id="one2many" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="#98a2b3" stroke-width="1.2"/>
+    </marker>
+  </defs>
+
+  <rect class="root" x="24" y="20" width="150" height="34" rx="5"/>
+  <text class="label" x="36" y="42">Organization</text>
+
+  <line class="edge" x1="99" y1="54" x2="99" y2="76" marker-end="url(#one2many)"/>
+
+  <rect class="root" x="24" y="78" width="150" height="34" rx="5"/>
+  <text class="label" x="36" y="100">Project</text>
+
+  <line class="edge" x1="174" y1="95" x2="238" y2="95" marker-end="url(#one2many)"/>
+  <rect class="ent" x="240" y="78" width="140" height="34" rx="5"/>
+  <text class="label" x="252" y="100">ProjectUser</text>
+  <line class="edge" x1="380" y1="95" x2="440" y2="95"/>
+  <rect class="ent" x="442" y="78" width="110" height="34" rx="5"/>
+  <text class="label" x="454" y="100">User</text>
+  <text class="tiny" x="240" y="130">roleInProject 6 types — project-level permissions</text>
+
+  <line class="edge" x1="99" y1="112" x2="99" y2="596"/>
+
+  <line class="edge" x1="99" y1="170" x2="158" y2="170" marker-end="url(#one2many)"/>
+  <rect class="ent" x="160" y="152" width="150" height="34" rx="5"/>
+  <text class="label" x="172" y="174">TestCase</text>
+  <line class="edge" x1="310" y1="169" x2="368" y2="169" marker-end="url(#one2many)"/>
+  <rect class="ent" x="370" y="152" width="130" height="34" rx="5"/>
+  <text class="label" x="382" y="174">TestStep</text>
+  <rect class="grp" x="360" y="192" width="420" height="66" rx="5"/>
+  <text class="desc" x="372" y="212">TestCaseVersion · TestCaseAttachment · TestCaseMoveAuditLog</text>
+  <text class="tiny" x="372" y="232">Ver. history · attachments · move audit</text>
+  <text class="tiny" x="372" y="250">DisplayIdHistory — ID history</text>
+  <line class="edge" x1="235" y1="186" x2="235" y2="216" marker-end="url(#one2many)"/>
+  <line class="edge" x1="235" y1="216" x2="358" y2="216"/>
+
+  <line class="edge" x1="99" y1="290" x2="158" y2="290" marker-end="url(#one2many)"/>
+  <rect class="ent" x="160" y="272" width="150" height="34" rx="5"/>
+  <text class="label" x="172" y="294">TestPlan</text>
+
+  <line class="edge" x1="99" y1="344" x2="158" y2="344" marker-end="url(#one2many)"/>
+  <rect class="ent" x="160" y="326" width="180" height="34" rx="5"/>
+  <text class="label" x="172" y="348">TestExecution</text>
+  <line class="edge" x1="235" y1="306" x2="235" y2="326" stroke-dasharray="4 3"/>
+  <text class="tiny" x="160" y="396">testPlanId is nullable — execution without plan is allowed</text>
+
+  <line class="edge" x1="340" y1="343" x2="398" y2="343" marker-end="url(#one2many)"/>
+  <rect class="ent" x="400" y="326" width="150" height="34" rx="5"/>
+  <text class="label" x="412" y="348">TestResult</text>
+  <line class="edge" x1="550" y1="343" x2="606" y2="343" marker-end="url(#one2many)"/>
+  <rect class="ent" x="608" y="326" width="200" height="34" rx="5"/>
+  <text class="label" x="620" y="348">TestResultAttachment</text>
+  <text class="tiny" x="400" y="378">TestResultEdit — result history</text>
+
+  <line class="edge" x1="99" y1="424" x2="158" y2="424" marker-end="url(#one2many)"/>
+  <rect class="ent" x="160" y="406" width="180" height="34" rx="5"/>
+  <text class="label" x="172" y="428">JunitTestResult</text>
+  <line class="edge" x1="340" y1="423" x2="398" y2="423" marker-end="url(#one2many)"/>
+  <rect class="ent" x="400" y="406" width="160" height="34" rx="5"/>
+  <text class="label" x="412" y="428">JunitTestSuite</text>
+  <line class="edge" x1="560" y1="423" x2="618" y2="423" marker-end="url(#one2many)"/>
+  <rect class="ent" x="620" y="406" width="160" height="34" rx="5"/>
+  <text class="label" x="632" y="428">JunitTestCase</text>
+
+  <line class="edge" x1="99" y1="490" x2="158" y2="490" marker-end="url(#one2many)"/>
+  <rect class="ent" x="160" y="472" width="150" height="34" rx="5"/>
+  <text class="label" x="172" y="494">TestCharter</text>
+  <line class="edge" x1="310" y1="489" x2="368" y2="489" marker-end="url(#one2many)"/>
+  <rect class="ent" x="370" y="472" width="150" height="34" rx="5"/>
+  <text class="label" x="382" y="494">TestSession</text>
+  <rect class="grp" x="540" y="458" width="380" height="62" rx="5"/>
+  <text class="desc" x="552" y="478">TestSessionNote · Bug · Interruption · Test · Approval</text>
+  <text class="tiny" x="552" y="498">TestSessionAttachment</text>
+  <line class="edge" x1="520" y1="489" x2="538" y2="489" marker-end="url(#one2many)"/>
+
+  <line class="edge" x1="99" y1="560" x2="158" y2="560" marker-end="url(#one2many)"/>
+  <rect class="ent" x="160" y="542" width="260" height="34" rx="5"/>
+  <text class="label" x="172" y="564">rag/ — documents · chunks · embeddings</text>
+
+  <rect class="own" x="24" y="600" width="900" height="30" rx="5"/>
+  <text class="desc" x="36" y="620">Personal assets (outside projects): User ─&lt; BookmarkCollection ─&lt; BookmarkItem · ServiceApiKey · RefreshToken · EmailVerificationToken</text>
+</svg>

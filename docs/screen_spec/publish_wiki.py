@@ -321,7 +321,15 @@ def publish_en(wiki: Path) -> tuple[list[str], list[str]]:
         img = re.match(r"(?:.*/)?images/(.+\.svg)$", path)
         if img:
             return f"[{text}](images/{EN_IMG_PREFIX}/{img.group(1)})"
+        # 영문 문서가 한국어판을 가리키는 자리(`../README.md`) — 한국어 인덱스로 보낸다
+        if path in ("../README.md", "README.md"):
+            return f"[{text}]({INDEX_PAGE})"
         stem = path[:-3] if path.endswith(".md") else path
+        # 인덱스·전체문서는 파일 이름과 발행 페이지 이름이 다르다
+        if stem == EN_INDEX_PAGE_SRC:
+            return f"[{text}]({EN_INDEX_PAGE})"
+        if stem == EN_OVERVIEW_PAGE_SRC:
+            return f"[{text}]({EN_OVERVIEW_PAGE + (f'#{anchor}' if anchor else '')})"
         if stem in names:
             return f"[{text}]({stem + (f'#{anchor}' if anchor else '')})"
         if path.endswith(".md"):
@@ -429,7 +437,9 @@ def publish(wiki: Path, push: bool) -> int:
     # 4) 배치도
     img_dst = wiki / "images"
     img_dst.mkdir(exist_ok=True)
-    svgs = sorted(SPEC_ROOT.rglob("images/*.svg"))
+    # 영문 배치도는 publish_en 이 images/en/ 으로 따로 넣는다 — 여기서는 제외한다
+    svgs = [p for p in sorted(SPEC_ROOT.rglob("images/*.svg"))
+            if (EN_DIR / "images") not in p.parents]
     seen: dict[str, Path] = {}
     for svg in svgs:
         if svg.name in seen:
