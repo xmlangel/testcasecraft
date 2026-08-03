@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """화면 기획 문서를 하나의 HTML 뷰어로 묶는다.
 
-    python3 docs/screen_spec/build_html.py
+    python3 docs/screen_spec/build_html.py            # 캡처는 매뉴얼 폴더를 상대 경로로 참조
+    python3 docs/screen_spec/build_html.py --embed    # 캡처까지 심어 파일 하나로 공유
 
 산출물은 `index.html` 한 파일이다. 외부 리소스를 쓰지 않으므로 파일을 그대로 열거나
 공유해도 되고, 배치도 SVG는 본문에 심는다.
@@ -11,10 +12,12 @@
   - 화면 12개를 왼쪽 목록에서 골라 배치도와 4문서를 탭으로 넘겨 본다
   - 화면의 라우트를 눌러 **실제 화면을 새 탭으로 연다**. 앱 주소와 프로젝트 ID는
     상단에서 한 번 넣어 두면 브라우저에 남는다
+  - **실제 화면 캡처를 배치도와 나란히** 놓고 기획과 현재 화면을 대조한다
   - 전문 검색으로 문서를 가로질러 찾는다
 
 필요한 것: `markdown` 패키지(표·코드블록 확장을 쓴다)
 """
+import base64
 import html
 import json
 import pathlib
@@ -129,6 +132,35 @@ def read_docs():
     return data, index
 
 
+CAP_DIR = ROOT.parent / "manual" / "new" / "images"
+CAP_REL = "../manual/new/images"
+
+
+def shots_of(folder, embed):
+    """02 문서 머리말이 가리키는 매뉴얼 캡처를 모은다.
+
+    기본은 상대 경로로 참조해 산출 파일을 가볍게 둔다. `--embed` 면 데이터로 심어
+    파일 하나만 보내도 캡처가 함께 보이게 한다.
+    """
+    fs = list((ROOT / folder).glob("02_*.md"))
+    if not fs:
+        return []
+    m = re.search(r'^> 캡처\(매뉴얼 `images/`\):\s*(.+)$', fs[0].read_text(encoding="utf-8"), re.M)
+    if not m:
+        return []
+    out = []
+    for name in re.findall(r'`([0-9A-Za-z_]+\.png)`', m.group(1)):
+        p = CAP_DIR / name
+        if not p.exists():
+            continue
+        if embed:
+            src = "data:image/png;base64," + base64.b64encode(p.read_bytes()).decode()
+        else:
+            src = f"{CAP_REL}/{name}"
+        out.append({"name": name, "src": src})
+    return out
+
+
 def routes_of(route_line):
     """머리말 라우트 줄에서 주소만 뽑는다"""
     return [r for r in re.findall(r'`([^`]+)`', route_line) if r.startswith("/")]
@@ -190,6 +222,23 @@ font:inherit;font-size:13px;color:var(--dim);cursor:pointer}
 .hit b{font-size:12.5px}.hit p{margin:4px 0 0;font-size:12px;color:var(--dim)}
 .hit mark{background:#fde68a;color:#111827;border-radius:2px}
 .note{font-size:12px;color:var(--faint);margin:10px 0 0}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin:14px 0}
+.shot{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg);cursor:zoom-in}
+.shot:hover{border-color:var(--accent)}
+.shot img{display:block;width:100%;height:auto;background:var(--chrome)}
+.shot .cap{padding:6px 9px;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;color:var(--faint);
+border-top:1px solid var(--line);word-break:break-all}
+.side{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+@media (max-width:1000px){.side{grid-template-columns:1fr}}
+.side>div{min-width:0}
+.side h4{margin:0 0 8px;font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.03em}
+.side .shots{grid-template-columns:1fr;margin:0}
+#lb{position:fixed;inset:0;background:rgba(8,10,14,.92);z-index:50;display:none;
+align-items:center;justify-content:center;padding:24px;cursor:zoom-out}
+#lb.on{display:flex}
+#lb img{max-width:100%;max-height:88vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+#lb .nm{position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#cbd5e1;
+font-family:ui-monospace,Consolas,monospace;font-size:11.5px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:14px 0}
 .card{border:1px solid var(--line);border-radius:8px;padding:11px 13px;background:var(--bg)}
 .card:hover{border-color:var(--accent)}
@@ -225,7 +274,8 @@ function show(sid,kind){
   const d=DATA[sid]; if(!d){location.hash="#/README";return}
   const kinds=Object.keys(d.docs);
   const hasDia=d.diagrams.length>0;
-  if(!kind||(!kinds.includes(kind)&&kind!=="dia")) kind=hasDia?"dia":kinds[0];
+  const extra=["dia","shot","side"];
+  if(!kind||(!kinds.includes(kind)&&!extra.includes(kind))) kind=hasDia?"dia":kinds[0];
   cur={s:sid,k:kind};
   document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.s===sid));
 
@@ -243,16 +293,41 @@ function show(sid,kind){
     h+='</div>';
   }
 
+  const shots=(SHOTS[sid]||[]);
   h+='<div class="tabs">';
   if(hasDia) h+=`<button data-k="dia" class="${kind==="dia"?"on":""}">배치도</button>`;
+  if(shots.length) h+=`<button data-k="shot" class="${kind==="shot"?"on":""}">실제 화면 ${shots.length}</button>`;
+  if(hasDia&&shots.length) h+=`<button data-k="side" class="${kind==="side"?"on":""}">나란히</button>`;
   KINDS.forEach(([k,label])=>{ if(d.docs[k]) h+=`<button data-k="${k}" class="${kind===k?"on":""}">${label}</button>`});
   if(d.docs.doc) h+=`<button data-k="doc" class="${kind==="doc"?"on":""}">본문</button>`;
   h+='</div>';
 
-  h+='<div class="md">'+(kind==="dia"?DIAGRAMS[sid]:d.docs[kind])+'</div>';
+  let body;
+  if(kind==="dia") body=DIAGRAMS[sid];
+  else if(kind==="shot") body=shotGrid(shots);
+  else if(kind==="side") body=`<div class="side">
+      <div><h4>기획 배치도</h4>${DIAGRAMS[sid]}</div>
+      <div><h4>실제 화면</h4>${shotGrid(shots)}</div></div>`;
+  else body=d.docs[kind];
+  h+='<div class="md">'+body+'</div>';
   const m=$('#main'); m.innerHTML=h; m.scrollTop=0; window.scrollTo(0,0);
   m.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{location.hash=`#/${sid}/${b.dataset.k}`});
+  m.querySelectorAll('.shot').forEach(e=>e.onclick=()=>zoom(e.dataset.src,e.dataset.name));
   if(sid==="README") addMap(m);
+}
+
+function shotGrid(shots){
+  if(!shots.length) return '<p class="note">이 화면의 캡처가 매뉴얼에 없다.</p>';
+  return '<div class="shots">'+shots.map(s=>
+    `<div class="shot" data-src="${esc(s.src)}" data-name="${esc(s.name)}" title="눌러서 크게 보기">
+       <img src="${esc(s.src)}" alt="${esc(s.name)}" loading="lazy">
+       <div class="cap">${esc(s.name)}</div></div>`).join('')+'</div>';
+}
+
+function zoom(src,name){
+  const lb=$('#lb');
+  lb.innerHTML=`<img src="${esc(src)}" alt="${esc(name)}"><div class="nm">${esc(name)}</div>`;
+  lb.classList.add('on');
 }
 
 function addMap(m){
@@ -290,6 +365,8 @@ function route(){
   show(p[0]||"README",p[1]);
 }
 
+$('#lb') && ($('#lb').onclick=()=>$('#lb').classList.remove('on'));
+window.addEventListener('keydown',e=>{if(e.key==="Escape")$('#lb').classList.remove('on')});
 window.addEventListener('hashchange',route);
 window.addEventListener('DOMContentLoaded',()=>{
   renderNav();
@@ -303,6 +380,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 
 def main():
+    embed = "--embed" in sys.argv
     data, index = read_docs()
     order = [sid for _, sid, _ in SCREENS]
     routes = {sid: routes_of(data[sid]["route"]) for sid in order}
@@ -315,10 +393,12 @@ def main():
             parts.append(f'<figure class="dia">{svg}<figcaption>{html.escape(name)}</figcaption></figure>')
         diagrams[sid] = "".join(parts) or '<p class="note">배치도가 없다.</p>'
 
+    shots = {sid: shots_of(folder, embed) for folder, sid, _ in SCREENS}
     payload = {
         "DATA": {k: {"name": v["name"], "route": v["route"], "docs": v["docs"],
                      "diagrams": v["diagrams"]} for k, v in data.items()},
-        "ORDER": order, "ROUTES": routes, "KINDS": KINDS, "INDEX": index, "DIAGRAMS": diagrams,
+        "ORDER": order, "ROUTES": routes, "KINDS": KINDS, "INDEX": index,
+        "DIAGRAMS": diagrams, "SHOTS": shots,
     }
     # 본문에 </script> 나 <!-- 가 섞여도 스크립트가 끊기지 않게 '<' 를 이스케이프한다
     def js_const(k, v):
@@ -339,13 +419,17 @@ def main():
   <input id="pid" placeholder="프로젝트 ID" aria-label="프로젝트 ID">
 </header>
 <div class="layout"><nav id="nav"></nav><main id="main"></main></div>
+<div id="lb" role="dialog" aria-label="캡처 크게 보기"></div>
 <script>{js_data}</script>
 <script>{JS}</script>
 </body></html>
 """, encoding="utf-8")
     size = OUT.stat().st_size
     print(f"생성 {OUT.relative_to(ROOT.parent.parent)}  ({size/1024:.0f} KB)")
-    print(f"  화면 {len(order)}개 · 문서 {len(index)}개 · 배치도 {sum(len(d['diagrams']) for d in data.values())}장")
+    print(f"  화면 {len(order)}개 · 문서 {len(index)}개 · "
+          f"배치도 {sum(len(d['diagrams']) for d in data.values())}장 · "
+          f"캡처 {sum(len(v) for v in shots.values())}장"
+          f"{' (심음)' if embed else ' (상대 경로 참조)'}")
 
 
 if __name__ == "__main__":
