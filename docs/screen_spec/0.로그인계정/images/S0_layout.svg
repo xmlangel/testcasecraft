@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" width="100%">
+  <defs>
+    <style>
+      text { font-family: -apple-system, 'Malgun Gothic', sans-serif; }
+      .label-title { font-size: 13px; font-weight: bold; fill: #111827; }
+      .label-desc { font-size: 12px; fill: #475467; }
+      .area-box { stroke: #d0d5dd; fill: #f7f9ff; stroke-width: 1; rx: 6; }
+      .frame { stroke: #8590a2; stroke-width: 2; fill: none; stroke-dasharray: 5,5; }
+      .area-label { font-size: 11px; fill: #8590a2; font-weight: bold; }
+    </style>
+  </defs>
+
+  <!-- 화면 외곽 -->
+  <rect class="frame" x="10" y="10" width="940" height="660"/>
+
+  <!-- A 언어 토글 (우상단 고정) -->
+  <rect class="area-box" x="840" y="20" width="110" height="50"/>
+  <text class="area-label" x="845" y="35">A 언어 토글</text>
+  <text class="label-desc" x="895" y="58" text-anchor="middle">한국어 / EN</text>
+
+  <!-- 중앙 카드 -->
+  <rect class="area-box" x="200" y="100" width="560" height="500"/>
+
+  <!-- B 제목 -->
+  <rect x="220" y="120" width="520" height="40" fill="none"/>
+  <text class="area-label" x="225" y="135">B 카드 제목</text>
+  <text class="label-title" x="480" y="155" text-anchor="middle">로그인 / 회원가입</text>
+
+  <!-- C 입력 폼 -->
+  <rect x="220" y="170" width="520" height="230" fill="none"/>
+  <text class="area-label" x="225" y="185">C 입력 폼</text>
+  <rect x="240" y="200" width="480" height="30" stroke="#d0d5dd" fill="#fff" rx="4" stroke-width="1"/>
+  <text class="label-desc" x="245" y="222">아이디</text>
+
+  <rect x="240" y="250" width="480" height="30" stroke="#d0d5dd" fill="#fff" rx="4" stroke-width="1"/>
+  <text class="label-desc" x="245" y="272">비밀번호</text>
+
+  <rect x="240" y="300" width="480" height="30" stroke="#d0d5dd" fill="#fff" rx="4" stroke-width="1"/>
+  <text class="label-desc" x="245" y="322">비밀번호 확인 (회원가입 모드)</text>
+
+  <rect x="240" y="350" width="480" height="30" stroke="#d0d5dd" fill="#fff" rx="4" stroke-width="1"/>
+  <text class="label-desc" x="245" y="372">이름 (회원가입 모드)</text>
+
+  <!-- D 알림 영역 -->
+  <rect x="220" y="410" width="520" height="40" fill="none"/>
+  <text class="area-label" x="225" y="425">D 알림 영역</text>
+  <text class="label-desc" x="480" y="447" text-anchor="middle">[!] 오류 / [i] 안내</text>
+
+  <!-- E 액션 영역 -->
+  <rect x="220" y="460" width="520" height="110" fill="none"/>
+  <text class="area-label" x="225" y="475">E 액션 영역</text>
+
+  <rect x="260" y="490" width="440" height="35" stroke="#315efb" fill="#fff" rx="4" stroke-width="2"/>
+  <text class="label-title" x="480" y="513" text-anchor="middle">[로그인] 또는 [회원가입]</text>
+
+  <rect x="260" y="535" width="440" height="30" stroke="#315efb" fill="#f7f9ff" rx="4" stroke-width="1"/>
+  <text class="label-title" x="480" y="557" text-anchor="middle">[모드 전환]</text>
+
+  <!-- 범례 -->
+  <text class="label-desc" x="20" y="640" font-size="11">A: 언어 토글 (고정)</text>
+  <text class="label-desc" x="20" y="658" font-size="11">B: 제목 | C: 입력 필드 | D: 알림 | E: 버튼/액션</text>
+</svg>
