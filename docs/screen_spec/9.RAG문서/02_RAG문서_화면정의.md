@@ -2,7 +2,7 @@
 
 > 화면 ID **S9** · 상위 문서: [`01_RAG문서_업무프로세스.md`](01_RAG문서_업무프로세스.md)
 > 라우트: `/projects/{projectId}/rag`
-> 캡처: 매뉴얼 `images/` 의 `55_rag.png`
+> 캡처(매뉴얼 `images/`): `55_rag.png`
 
 ---
 
