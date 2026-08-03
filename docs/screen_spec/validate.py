@@ -47,8 +47,8 @@ FORBIDDEN = [
     ("목업 잔재", re.compile(r'정본 입력|\(개발 중\)|\(가정\)')),
 ]
 
-# README 만 예외로 두는 파일 이름. 검증 루틴 실행법과 화면 ID 판별 규칙의 위치다.
-README_ALLOW = {"validate.py", "screenIds.js"}
+# README 만 예외로 두는 파일 이름. 이 폴더의 도구와 화면 ID 판별 규칙의 위치다.
+README_ALLOW = {"validate.py", "build_html.py", "screenIds.js"}
 
 errs, warns = [], []
 
