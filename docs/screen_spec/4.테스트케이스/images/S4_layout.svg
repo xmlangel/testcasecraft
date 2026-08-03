@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 890" width="100%" role="img" aria-label="S4 테스트케이스 화면 배치">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A 영역 헤더</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[개별 폼] [스프레드시트]</text>
+  <text class="desc" x="28" y="60">브레드크럼 `프로젝트 / 이름 / 테스트케이스`</text>
+  <rect class="bx" x="16" y="90" width="573.75" height="140" rx="6"/>
+  <text class="area" x="28" y="113">B 트리 패널</text>
+  <text class="desc" x="28" y="134">도구줄: ☑ 전체선택 · 📁 폴더수 · 📄 케이스수 · 🔄 · 🌳 뷰모드 · ↕ 순서편집</text>
+  <text class="desc" x="28" y="153">검색: 이름·ID·태그 (콤마로 복합 검색)</text>
+  <text class="desc" x="28" y="172">가상 노드: 모든 테스트케이스 / 폴더에 없는 테스트케이스</text>
+  <text class="desc" x="28" y="191">폴더·케이스 트리 (드래그 핸들 ⋮⋮ · 호버 시 노출)</text>
+  <text class="tiny" x="28" y="210">선택 시 [프로젝트 이동/복사] 버튼이 헤더에 나타난다</text>
+  <rect class="bx-bt" x="599.75" y="90" width="344.25" height="140" rx="6"/>
+  <text class="area" x="611.75" y="113">C 컨텍스트 메뉴</text>
+  <text class="desc" x="611.75" y="134">하위 폴더 추가</text>
+  <text class="desc" x="611.75" y="153">하위 케이스 추가</text>
+  <text class="desc" x="611.75" y="172">이름 변경</text>
+  <text class="desc" x="611.75" y="191">삭제</text>
+  <rect class="bx" x="16" y="240" width="928" height="140" rx="6"/>
+  <text class="area" x="28" y="263">D 폴더 케이스 목록 (폴더 선택 시)</text>
+  <rect class="bx-hd" x="28" y="280" width="904" height="26" rx="4"/>
+  <text class="tiny" x="36" y="297">이름</text>
+  <text class="tiny" x="244.615" y="297">설명</text>
+  <text class="tiny" x="522.769" y="297">기대결과</text>
+  <text class="tiny" x="800.923" y="297">우선순위</text>
+  <text class="desc" x="36" y="323">로그인 정상</text>
+  <text class="desc" x="244.615" y="323">아이디·비밀번호 입력</text>
+  <text class="desc" x="522.769" y="323">대시보드 진입</text>
+  <text class="desc" x="800.923" y="323">High</text>
+  <text class="desc" x="36" y="347">로그인 실패</text>
+  <text class="desc" x="244.615" y="347">잘못된 비밀번호</text>
+  <text class="desc" x="522.769" y="347">오류 메시지</text>
+  <text class="desc" x="800.923" y="347">Medium</text>
+  <text class="tiny" x="28" y="368">하위 폴더 케이스까지 포함 · 100자 초과 시 말줄임 + 툴팁 · 폴더 컬럼으로 상대 경로 표시</text>
+  <rect class="bx-ac" x="16" y="390" width="459" height="83" rx="6"/>
+  <text class="area" x="28" y="413">E 개별 폼 — 헤더</text>
+  <text class="desc" x="28" y="434">표시 ID 배지 `SHOP-112` · 버전 · RAG 등록됨 배지</text>
+  <text class="desc" x="28" y="453">[취소] [수정] [버전 생성] [삭제]</text>
+  <rect class="bx-bt" x="485" y="390" width="459" height="83" rx="6"/>
+  <text class="area" x="497" y="413">F 필드 표시 토글</text>
+  <text class="desc" x="497" y="434">9개 메타 필드 on/off</text>
+  <text class="tiny" x="497" y="453">모두 표시 / 모두 숨김 / 기본값</text>
+  <rect class="bx" x="16" y="483" width="928" height="102" rx="6"/>
+  <text class="area" x="28" y="506">G 개별 폼 — 본문 탭 4개</text>
+  <text class="desc" x="28" y="527">상세 정보 (기본) · 첨부 파일 · 실행 이력 · 기록</text>
+  <text class="desc" x="28" y="546">메타데이터(접힘): 이름·표시 ID·설명·우선순위·태그 / 읽기 전용 생성일·수정일·작성자·UUID</text>
+  <text class="desc" x="28" y="565">테스트 단계 표: 스텝 · 기대 결과 (내용에 맞춰 높이 자동, 최대 10줄 후 스크롤)</text>
+  <rect class="bx" x="16" y="595" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="618">H 스프레드시트 모드</text>
+  <text class="desc" x="28" y="639">도구줄: + 행 추가 · 위에 추가 · 아래에 추가 · 폴더 추가 · 삭제 · 검증 · 가져오기/내보내기 · ⚙ · 전체화면 · 💾 일괄 저장</text>
+  <text class="tiny" x="28" y="658">행 추가는 1~100건 · 한글 30자 초과 셀은 자동 워드랩</text>
+  <rect class="bx-ac" x="16" y="688" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="711">I 프로젝트 이동·복사 다이얼로그</text>
+  <text class="desc" x="28" y="732">작업 유형(이동/복사) · 대상 프로젝트(필수) · 대상 폴더(선택)</text>
+  <text class="tiny" x="28" y="751">이동은 결과까지 함께 옮기고 양쪽 편집 권한이 필요하다 · 복사는 케이스만</text>
+  <rect class="bx-dq" x="16" y="781" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="804">빈 상태</text>
+  <text class="desc" x="28" y="825">폴더나 테스트 케이스를 선택해주세요</text>
+  <text class="strong" x="16" y="872">범례</text>
+  <rect class="bx" x="54" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="73" y="873">일반 영역</text>
+  <rect class="bx-ac" x="142.05" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="161.05" y="873">강조·조건부 영역</text>
+  <rect class="bx-ch" x="269.15" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="288.15" y="873">전역 크롬</text>
+  <rect class="bx-dq" x="357.2" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="376.2" y="873">빈 상태·미노출</text>
+  <rect class="bx-bt" x="473.3" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="492.3" y="873">버튼·액션</text>
+</svg>

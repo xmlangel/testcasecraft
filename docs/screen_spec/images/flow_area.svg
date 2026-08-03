@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" width="100%" role="img" aria-label="작업공간 껍데기 안의 영역 8개 배치">
+  <defs>
+    <style>
+      .shell { fill: #f7f9ff; stroke: #c7d2fe; stroke-width: 1; }
+      .box   { fill: #fff; stroke: #d0d5dd; stroke-width: 1; }
+      .cond  { fill: #fff; stroke: #d0d5dd; stroke-width: 1; stroke-dasharray: 4 3; }
+      .chrome{ fill: #f3f4f6; stroke: #d0d5dd; stroke-width: 1; }
+      .label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 13px; font-weight: bold; fill: #111827; }
+      .desc  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 12px; fill: #475467; }
+      .tiny  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #6b7280; }
+    </style>
+  </defs>
+
+  <!-- 껍데기 -->
+  <rect class="shell" x="16" y="16" width="928" height="230" rx="8"/>
+  <text class="label" x="32" y="40">S2 껍데기</text>
+  <text class="desc" x="112" y="40">헤더 · 브레드크럼 · 영역 이동(가로 탭 또는 좌측 메뉴)</text>
+
+  <!-- 껍데기 상단 크롬 -->
+  <rect class="chrome" x="32" y="52" width="896" height="26" rx="4"/>
+  <text class="tiny" x="44" y="70">로고 · [프로젝트 선택] · JIRA · ☆ · ? · 레이아웃 전환 · 다크모드 · 아바타</text>
+
+  <!-- 본문 영역 8개 (2행 4열) -->
+  <rect class="box" x="32" y="96" width="212" height="56" rx="6"/>
+  <text class="label" x="46" y="120">S3 대시보드</text>
+  <text class="tiny" x="46" y="140">진입 직후 기본 영역</text>
+
+  <rect class="box" x="256" y="96" width="212" height="56" rx="6"/>
+  <text class="label" x="270" y="120">S4 테스트케이스</text>
+  <text class="tiny" x="270" y="140">개수 배지 있음</text>
+
+  <rect class="box" x="480" y="96" width="212" height="56" rx="6"/>
+  <text class="label" x="494" y="120">S5 테스트 플랜</text>
+  <text class="tiny" x="494" y="140">개수 배지 있음</text>
+
+  <rect class="box" x="704" y="96" width="212" height="56" rx="6"/>
+  <text class="label" x="718" y="120">S6 테스트 실행</text>
+  <text class="tiny" x="718" y="140">개수 배지 있음</text>
+
+  <rect class="box" x="32" y="164" width="212" height="56" rx="6"/>
+  <text class="label" x="46" y="188">S7 테스트 결과</text>
+  <text class="tiny" x="46" y="208">통계·QA 총평·내보내기</text>
+
+  <rect class="box" x="256" y="164" width="212" height="56" rx="6"/>
+  <text class="label" x="270" y="188">S8 자동화 테스트</text>
+  <text class="tiny" x="270" y="208">JUnit 결과 흡수</text>
+
+  <rect class="cond" x="480" y="164" width="212" height="56" rx="6"/>
+  <text class="label" x="494" y="188">S9 RAG 문서 *</text>
+  <text class="tiny" x="494" y="208">isRagEnabled 일 때만</text>
+
+  <rect class="cond" x="704" y="164" width="212" height="56" rx="6"/>
+  <text class="label" x="718" y="188">S10 탐색 세션 *</text>
+  <text class="tiny" x="718" y="208">환경 변수로만 노출</text>
+
+  <text class="tiny" x="32" y="272">* 점선 박스는 조건부 노출. 꺼지면 영역 항목 자체가 목록에서 빠지고 뒤 항목의 tabIndex 가 한 칸 당겨진다.</text>
+  <text class="tiny" x="32" y="290">영역 목록의 정본은 navigation/projectNavItems.js 배열 하나이고, 가로 탭과 좌측 메뉴가 그 배열을 함께 읽는다.</text>
+</svg>

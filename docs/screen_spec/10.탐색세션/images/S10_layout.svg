@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 518" width="100%" role="img" aria-label="S10 탐색 세션 화면 배치">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A 영역 헤더</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[+ 새 차터 생성]</text>
+  <text class="desc" x="28" y="60">제목 `탐색 세션`</text>
+  <rect class="bx-ch" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B 탭 5개</text>
+  <text class="desc" x="28" y="134">0. 차터   1. 세션 목록   2. 세션 편집   3. 사후평가   4. 상세</text>
+  <rect class="bx" x="16" y="164" width="302.667" height="102" rx="6"/>
+  <text class="area" x="28" y="187">C 차터 카드</text>
+  <text class="desc" x="28" y="208">로그인~결제 전체 흐름</text>
+  <text class="desc" x="28" y="227">생성일 2026-08-01 · 활성 세션 1개</text>
+  <text class="desc" x="28" y="246">ACTIVE   [시작]</text>
+  <rect class="bx" x="328.667" y="164" width="302.667" height="102" rx="6"/>
+  <text class="area" x="340.667" y="187">차터 카드</text>
+  <text class="desc" x="340.667" y="208">상품 검색·필터 탐색</text>
+  <text class="desc" x="340.667" y="227">생성일 2026-07-28 · 활성 세션 0개</text>
+  <text class="desc" x="340.667" y="246">ARCHIVED   [시작]</text>
+  <rect class="bx" x="641.333" y="164" width="302.667" height="102" rx="6"/>
+  <text class="area" x="653.333" y="187">차터 카드</text>
+  <text class="desc" x="653.333" y="208">결제 프로세스 안전성</text>
+  <text class="desc" x="653.333" y="227">생성일 2026-07-15 · 활성 세션 2개</text>
+  <text class="desc" x="653.333" y="246">ACTIVE   [시작]</text>
+  <rect class="bx-ac" x="16" y="276" width="224.5" height="102" rx="6"/>
+  <text class="area" x="28" y="299">D ① 기본 정보</text>
+  <text class="desc" x="28" y="320">차터 선택 ▾</text>
+  <text class="desc" x="28" y="339">테스터 · 계획 시간 90분</text>
+  <rect class="bx-ac" x="250.5" y="276" width="224.5" height="102" rx="6"/>
+  <text class="area" x="262.5" y="299">E ② 세션 진행</text>
+  <text class="desc" x="262.5" y="320">타이머 00:15:30</text>
+  <text class="desc" x="262.5" y="339">[시작] [일시정지] [종료]</text>
+  <text class="desc" x="262.5" y="358">노트 · 버그 · 중단 기록</text>
+  <rect class="bx-ac" x="485" y="276" width="224.5" height="102" rx="6"/>
+  <text class="area" x="497" y="299">F ③ 사후평가</text>
+  <text class="desc" x="497" y="320">평가 메모</text>
+  <text class="desc" x="497" y="339">성과도 85%</text>
+  <text class="desc" x="497" y="358">[제출]</text>
+  <rect class="bx-ac" x="719.5" y="276" width="224.5" height="102" rx="6"/>
+  <text class="area" x="731.5" y="299">G ④ 상세·승인</text>
+  <text class="desc" x="731.5" y="320">SUBMITTED</text>
+  <text class="desc" x="731.5" y="339">타임라인</text>
+  <text class="desc" x="731.5" y="358">[승인] [반려]</text>
+  <rect class="bx" x="16" y="388" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="411">타임라인 예시</text>
+  <text class="desc" x="28" y="432">· [00:05] 로그인 페이지 느림   · [00:25] 장바구니 합계 오류   · [00:30] 중단(환경 리셋 2분)</text>
+  <text class="tiny" x="16" y="473">환경 변수 SHOW_EXPLORATORY_SESSION_TAB 이 켜져 있을 때만 이 영역이 노출된다.</text>
+  <text class="strong" x="16" y="500">범례</text>
+  <rect class="bx" x="54" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="73" y="501">일반 영역</text>
+  <rect class="bx-ac" x="142.05" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="161.05" y="501">강조·조건부 영역</text>
+  <rect class="bx-ch" x="269.15" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="288.15" y="501">전역 크롬</text>
+  <rect class="bx-dq" x="357.2" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="376.2" y="501">빈 상태·미노출</text>
+  <rect class="bx-bt" x="473.3" y="491" width="13" height="13" rx="3"/>
+  <text class="tiny" x="492.3" y="501">버튼·액션</text>
+</svg>

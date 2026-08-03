@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 776" width="100%" role="img" aria-label="S3 대시보드 화면 배치">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A 헤더</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[새로고침]  [최근 15일 ▾]</text>
+  <text class="desc" x="28" y="60">제목 `대시보드`</text>
+  <rect class="bx-dq" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B 상태</text>
+  <text class="tiny" x="28" y="134">로딩 중 진행 표시 · 조회 실패 시 오류 메시지</text>
+  <rect class="bx-ac" x="16" y="164" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="187">C 프로젝트 요약</text>
+  <text class="desc" x="28" y="208">프로젝트명</text>
+  <text class="desc" x="28" y="227">📄 케이스 수 · 👤 참여 인원</text>
+  <rect class="bx" x="16" y="257" width="459" height="120" rx="6"/>
+  <text class="area" x="28" y="280">D 최근 테스트 결과</text>
+  <text class="tiny" x="28" y="301">도넛 — PASS / FAIL / NOTRUN / SKIPPED / BLOCKED 비율</text>
+  <rect class="bx" x="485" y="257" width="459" height="120" rx="6"/>
+  <text class="area" x="497" y="280">E 테스트 결과 추이</text>
+  <text class="tiny" x="497" y="301">선형 차트 — 기간별 누적</text>
+  <rect class="bx" x="16" y="387" width="459" height="120" rx="6"/>
+  <text class="area" x="28" y="410">F 열린 테스트 실행 결과</text>
+  <text class="tiny" x="28" y="431">막대 — 진행 중 실행의 상태 분포</text>
+  <rect class="bx" x="485" y="387" width="459" height="120" rx="6"/>
+  <text class="area" x="497" y="410">G 담당자별 결과</text>
+  <text class="tiny" x="497" y="431">스택 막대 — 멤버별 진행</text>
+  <rect class="bx" x="16" y="517" width="928" height="140" rx="6"/>
+  <text class="area" x="28" y="540">H 테스트 플랜별 결과</text>
+  <rect class="bx-hd" x="28" y="557" width="904" height="26" rx="4"/>
+  <text class="tiny" x="36" y="574">플랜명</text>
+  <text class="tiny" x="552.571" y="574">PASS</text>
+  <text class="tiny" x="681.714" y="574">FAIL</text>
+  <text class="tiny" x="810.857" y="574">성공률</text>
+  <text class="desc" x="36" y="600">Plan A</text>
+  <text class="desc" x="552.571" y="600">50</text>
+  <text class="desc" x="681.714" y="600">10</text>
+  <text class="desc" x="810.857" y="600">83%</text>
+  <text class="desc" x="36" y="624">Plan B</text>
+  <text class="desc" x="552.571" y="624">24</text>
+  <text class="desc" x="681.714" y="624">2</text>
+  <text class="desc" x="810.857" y="624">92%</text>
+  <text class="tiny" x="28" y="645">플랜 선택으로 대상을 좁힌다</text>
+  <rect class="bx-ac" x="16" y="667" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="690">전사 대시보드 (/dashboard · 시스템 ADMIN 전용)</text>
+  <text class="desc" x="28" y="711">집계 범위가 전 조직·전 프로젝트로 넓어진다. 레이아웃은 프로젝트 대시보드와 같은 위젯 구성을 쓴다.</text>
+  <text class="strong" x="16" y="758">범례</text>
+  <rect class="bx" x="54" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="73" y="759">일반 영역</text>
+  <rect class="bx-ac" x="142.05" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="161.05" y="759">강조·조건부 영역</text>
+  <rect class="bx-ch" x="269.15" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="288.15" y="759">전역 크롬</text>
+  <rect class="bx-dq" x="357.2" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="376.2" y="759">빈 상태·미노출</text>
+  <rect class="bx-bt" x="473.3" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="492.3" y="759">버튼·액션</text>
+</svg>

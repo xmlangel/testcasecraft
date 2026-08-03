@@ -1,62 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" width="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 683" width="100%" role="img" aria-label="S0 로그인·계정 화면 배치">
   <defs>
     <style>
-      text { font-family: -apple-system, 'Malgun Gothic', sans-serif; }
-      .label-title { font-size: 13px; font-weight: bold; fill: #111827; }
-      .label-desc { font-size: 12px; fill: #475467; }
-      .area-box { stroke: #d0d5dd; fill: #f7f9ff; stroke-width: 1; rx: 6; }
-      .frame { stroke: #8590a2; stroke-width: 2; fill: none; stroke-dasharray: 5,5; }
-      .area-label { font-size: 11px; fill: #8590a2; font-weight: bold; }
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
     </style>
   </defs>
-
-  <!-- 화면 외곽 -->
-  <rect class="frame" x="10" y="10" width="940" height="660"/>
-
-  <!-- A 언어 토글 (우상단 고정) -->
-  <rect class="area-box" x="840" y="20" width="110" height="50"/>
-  <text class="area-label" x="845" y="35">A 언어 토글</text>
-  <text class="label-desc" x="895" y="58" text-anchor="middle">한국어 / EN</text>
-
-  <!-- 중앙 카드 -->
-  <rect class="area-box" x="200" y="100" width="560" height="500"/>
-
-  <!-- B 제목 -->
-  <rect x="220" y="120" width="520" height="40" fill="none"/>
-  <text class="area-label" x="225" y="135">B 카드 제목</text>
-  <text class="label-title" x="480" y="155" text-anchor="middle">로그인 / 회원가입</text>
-
-  <!-- C 입력 폼 -->
-  <rect x="220" y="170" width="520" height="230" fill="none"/>
-  <text class="area-label" x="225" y="185">C 입력 폼</text>
-  <rect x="240" y="200" width="480" height="30" stroke="#d0d5dd" fill="#fff" rx="4" stroke-width="1"/>
-  <text class="label-desc" x="245" y="222">아이디</text>
-
-  <rect x="240" y="250" width="480" height="30" stroke="#d0d5dd" fill="#fff" rx="4" stroke-width="1"/>
-  <text class="label-desc" x="245" y="272">비밀번호</text>
-
-  <rect x="240" y="300" width="480" height="30" stroke="#d0d5dd" fill="#fff" rx="4" stroke-width="1"/>
-  <text class="label-desc" x="245" y="322">비밀번호 확인 (회원가입 모드)</text>
-
-  <rect x="240" y="350" width="480" height="30" stroke="#d0d5dd" fill="#fff" rx="4" stroke-width="1"/>
-  <text class="label-desc" x="245" y="372">이름 (회원가입 모드)</text>
-
-  <!-- D 알림 영역 -->
-  <rect x="220" y="410" width="520" height="40" fill="none"/>
-  <text class="area-label" x="225" y="425">D 알림 영역</text>
-  <text class="label-desc" x="480" y="447" text-anchor="middle">[!] 오류 / [i] 안내</text>
-
-  <!-- E 액션 영역 -->
-  <rect x="220" y="460" width="520" height="110" fill="none"/>
-  <text class="area-label" x="225" y="475">E 액션 영역</text>
-
-  <rect x="260" y="490" width="440" height="35" stroke="#315efb" fill="#fff" rx="4" stroke-width="2"/>
-  <text class="label-title" x="480" y="513" text-anchor="middle">[로그인] 또는 [회원가입]</text>
-
-  <rect x="260" y="535" width="440" height="30" stroke="#315efb" fill="#f7f9ff" rx="4" stroke-width="1"/>
-  <text class="label-title" x="480" y="557" text-anchor="middle">[모드 전환]</text>
-
-  <!-- 범례 -->
-  <text class="label-desc" x="20" y="640" font-size="11">A: 언어 토글 (고정)</text>
-  <text class="label-desc" x="20" y="658" font-size="11">B: 제목 | C: 입력 필드 | D: 알림 | E: 버튼/액션</text>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A 언어 토글</text>
+  <text class="desc" x="28" y="60">화면 우상단 고정 · 한국어 / English · 로그인 전 선택은 서버에 저장하지 않는다</text>
+  <rect class="bx" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B 카드 제목</text>
+  <text class="desc" x="28" y="134">모드에 따라 `로그인` 또는 `회원가입` · testid 는 두 모드 공용</text>
+  <rect class="bx" x="16" y="164" width="928" height="121" rx="6"/>
+  <text class="area" x="28" y="187">C 입력 폼</text>
+  <text class="desc" x="28" y="208">1 아이디 (공통, autoFocus)      2 비밀번호 (공통)</text>
+  <text class="desc" x="28" y="227">3 비밀번호 확인 (회원가입 모드에서만 추가)</text>
+  <text class="desc" x="28" y="246">4 이름 (회원가입)              5 이메일 (회원가입)</text>
+  <text class="tiny" x="28" y="265">전 필드 fullWidth · 로딩 중 일괄 비활성 · 폼 전체 autoComplete=off</text>
+  <rect class="bx-ac" x="16" y="295" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="318">D 알림 영역</text>
+  <text class="desc" x="28" y="339">오류(빨강) 또는 안내(초록) 하나만 노출 · 모드 전환·입력 시 비운다</text>
+  <rect class="bx" x="16" y="369" width="612" height="102" rx="6"/>
+  <text class="area" x="28" y="392">E 액션 영역</text>
+  <text class="desc" x="28" y="413">주 버튼: [로그인] / [회원가입]</text>
+  <text class="desc" x="28" y="432">전환 버튼: [회원가입] / [로그인으로 돌아가기]</text>
+  <text class="tiny" x="28" y="451">로딩 중에는 두 버튼이 사라지고 진행 표시로 바뀐다</text>
+  <rect class="bx-bt" x="638" y="369" width="306" height="102" rx="6"/>
+  <text class="area" x="650" y="392">하단 링크</text>
+  <text class="desc" x="650" y="413">사용자 매뉴얼 · User Manual</text>
+  <text class="tiny" x="650" y="432">/manual 을 새 탭으로</text>
+  <rect class="bx-ac" x="16" y="481" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="504">F 이메일 인증 결과 (/verify-email)</text>
+  <text class="desc" x="28" y="525">처리 중 · 성공(초록 체크) · 만료(주황 경고) · 이미 사용됨(파란 안내) · 실패(빨간 오류)</text>
+  <text class="tiny" x="28" y="544">만료·실패에만 [재발송] 이 함께 뜬다 · USED 를 오류로 다루지 않는다</text>
+  <rect class="bx-dq" x="16" y="574" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="597">G 매뉴얼 뷰어 (/manual)</text>
+  <text class="desc" x="28" y="618">언어 전환 · 섹션 목록 · 이전/다음 절 · 목록 복귀</text>
+  <text class="strong" x="16" y="665">범례</text>
+  <rect class="bx" x="54" y="656" width="13" height="13" rx="3"/>
+  <text class="tiny" x="73" y="666">일반 영역</text>
+  <rect class="bx-ac" x="142.05" y="656" width="13" height="13" rx="3"/>
+  <text class="tiny" x="161.05" y="666">강조·조건부 영역</text>
+  <rect class="bx-ch" x="269.15" y="656" width="13" height="13" rx="3"/>
+  <text class="tiny" x="288.15" y="666">전역 크롬</text>
+  <rect class="bx-dq" x="357.2" y="656" width="13" height="13" rx="3"/>
+  <text class="tiny" x="376.2" y="666">빈 상태·미노출</text>
+  <rect class="bx-bt" x="473.3" y="656" width="13" height="13" rx="3"/>
+  <text class="tiny" x="492.3" y="666">버튼·액션</text>
 </svg>

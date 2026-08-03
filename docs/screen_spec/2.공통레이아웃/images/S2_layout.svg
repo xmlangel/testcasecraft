@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%">
+  <defs>
+    <style>
+      .area-box { stroke: #d0d5dd; stroke-width: 1; fill: #ffffff; }
+      .area-label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 12px; font-weight: 700; fill: #111827; }
+      .area-name { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #475467; }
+      .content-text { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #111827; }
+      .mode-label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 10px; fill: #6b7280; font-style: italic; }
+      @media (prefers-color-scheme: dark) {
+        .area-box { stroke: #404854; fill: #1f2937; }
+        .area-label { fill: #f3f4f6; }
+        .area-name { fill: #d1d5db; }
+        .content-text { fill: #e5e7eb; }
+        .mode-label { fill: #9ca3af; }
+      }
+    </style>
+  </defs>
+
+  <!-- A: 전역 헤더 (높이 64px) -->
+  <rect class="area-box" x="10" y="10" width="980" height="60"/>
+  <text class="area-label" x="20" y="31">A</text>
+  <text class="area-name" x="35" y="31">전역 헤더</text>
+  <text class="content-text" x="35" y="47">로고  v1.0.102  [대시]  [관리메뉴▾]  [프로젝트선택]  JIRA  ?  ⇄  ◐  👤</text>
+
+  <!-- B: 브레드크럼 -->
+  <rect class="area-box" x="10" y="80" width="980" height="80"/>
+  <text class="area-label" x="20" y="101">B</text>
+  <text class="area-name" x="35" y="101">브레드크럼</text>
+  <text class="content-text" x="35" y="117">프로젝트  /  ShopFlow  /  테스트케이스                                        ☆</text>
+  <text class="content-text" x="35" y="133">[프로젝트선택▾] 프로젝트설명... ▼</text>
+  <text class="mode-label" x="35" y="150">(가로탭 모드 좌측메뉴 모드 모두에 나타남)</text>
+
+  <!-- C: 영역 이동 — 가로 탭 모드 (좌측) -->
+  <g>
+    <rect class="area-box" x="10" y="170" width="480" height="70"/>
+    <text class="area-label" x="20" y="191">C</text>
+    <text class="area-name" x="35" y="191">영역 이동 — 가로 탭</text>
+    <text class="mode-label" x="35" y="207">(레이아웃이 '가로 탭' 모드일 때만)</text>
+    <text class="content-text" x="35" y="223">[대시] [케이스] [플랜] [실행] [결과] [자동화] [RAG*] [탐색*]</text>
+  </g>
+
+  <!-- D: 영역 이동 — 좌측 메뉴 모드 (우측) -->
+  <g>
+    <rect class="area-box" x="510" y="170" width="480" height="70"/>
+    <text class="area-label" x="520" y="191">D</text>
+    <text class="area-name" x="535" y="191">영역 이동 — 좌측 메뉴</text>
+    <text class="mode-label" x="535" y="207">(레이아웃이 '좌측 메뉴' 모드일 때만. 접을 수 있음)</text>
+    <text class="content-text" x="535" y="223">[대시] [케이스] [플랜] [실행] [결과] [자동화] [RAG*] [탐색*]</text>
+  </g>
+
+  <!-- E: 프로젝트 선택기 (좌측 메뉴 모드에서 브레드크럼 1단에 나타남) -->
+  <rect class="area-box" x="10" y="250" width="980" height="50"/>
+  <text class="area-label" x="20" y="271">E</text>
+  <text class="area-name" x="35" y="271">프로젝트 선택기</text>
+  <text class="mode-label" x="35" y="287">(좌측 메뉴 모드에서만 브레드크럼 1단으로 나타남)</text>
+
+  <!-- F: 본문 영역 -->
+  <rect class="area-box" x="10" y="310" width="980" height="300"/>
+  <text class="area-label" x="20" y="331">F</text>
+  <text class="area-name" x="35" y="331">본문 영역</text>
+  <text class="content-text" x="35" y="347">S3 대시보드 · S4 테스트케이스 · S5 테스트플랜 · S6 테스트실행</text>
+  <text class="content-text" x="35" y="365">S7 테스트결과 · S8 자동화테스트 · S9 RAG 문서 · S10 탐색세션</text>
+  <text class="mode-label" x="35" y="565">(활성 영역이 여기에 렌더됨. 가로탭과 좌측메뉴 두 레이아웃 모두 동일)</text>
+
+  <!-- G, H: 모달/추가 화면들 -->
+  <g opacity="0.6">
+    <rect class="area-box" x="10" y="620" width="300" height="70"/>
+    <text class="area-label" x="20" y="641">G</text>
+    <text class="area-name" x="35" y="641">프로필 다이얼로그</text>
+    <text class="content-text" x="35" y="657">기본정보 · 비밀번호 · 언어·시간대</text>
+  </g>
+
+  <g opacity="0.6">
+    <rect class="area-box" x="320" y="620" width="300" height="70"/>
+    <text class="area-label" x="330" y="641">H</text>
+    <text class="area-name" x="345" y="641">북마크 화면</text>
+    <text class="content-text" x="345" y="657">모음 목록 · 케이스 · 메모</text>
+  </g>
+
+  <!-- 범례 -->
+  <text class="area-name" x="10" y="695" font-style="italic">* RAG · 탐색은 조건부 노출 (기능 플래그). 그 외 모든 영역은 항상 표시.</text>
+</svg>
