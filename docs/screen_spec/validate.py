@@ -37,7 +37,7 @@ CONDITIONAL = {"9.RAG문서", "10.탐색세션"}
 
 # 기획 문서에 남으면 안 되는 것
 FORBIDDEN = [
-    ("소스 파일명·행번호", re.compile(r'[A-Za-z][A-Za-z0-9_.]*\.(?:jsx|java|tsx|ts|py)\b')),
+    ("소스 파일명·행번호", re.compile(r'[A-Za-z][A-Za-z0-9_.]*\.(?:jsx?|java|tsx?|py)\b')),
     ("테스트 식별자", re.compile(r'testid|testId')),
     ("내부 식별자", re.compile(r'\btabIndex\b|\buseState\b|React\.lazy|\bslotProps\b|\blocalStorage\b|'
                               r'\bDataGrid\b|\bAccordion\b|\bTabPanel\b|has(?:Edit|Management|ResultEntry)Role|'
@@ -46,6 +46,9 @@ FORBIDDEN = [
     ("비유어", re.compile(r'골격|껍데기')),
     ("목업 잔재", re.compile(r'정본 입력|\(개발 중\)|\(가정\)')),
 ]
+
+# README 만 예외로 두는 파일 이름. 검증 루틴 실행법과 화면 ID 판별 규칙의 위치다.
+README_ALLOW = {"validate.py", "screenIds.js"}
 
 errs, warns = [], []
 
@@ -278,7 +281,7 @@ def check_style():
             for m in pat.finditer(text):
                 if rel.name == "README.md" and (
                         label == "절 기호 §"           # 규약을 설명하는 문장에서 한 번 쓴다
-                        or m.group(0) == "validate.py"  # 이 검증 루틴을 돌리는 방법을 적는다
+                        or m.group(0) in README_ALLOW   # 유지보수자가 찾아가야 하는 파일 두 개
                 ):
                     continue
                 line = text[:m.start()].count("\n") + 1
