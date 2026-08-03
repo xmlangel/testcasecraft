@@ -163,6 +163,6 @@ python3 docs/screen_spec/validate.py
 | `../plan/LEFT_NAV_RESTRUCTURE.md` | S2 영역 이동 구조(가로 탭 ↔ 좌측 메뉴)의 설계 배경 |
 | `../plan/BOOKMARK_FAVORITES_SRS.md` | S2 북마크 요건 정의서 |
 | `../plan/TREE_DND_REORGANIZE_PLAN.md` | S4 트리 드래그앤드롭 설계 |
-| `../plan/RAG_SERVICE_STRUCTURE.md` · `RAG_EMBEDDING_PROCESS.md` | S9 RAG 파이프라인 |
+| `../plan/RAG_SERVICE_STRUCTURE.md` · `../plan/RAG_EMBEDDING_PROCESS.md` | S9 RAG 파이프라인 |
 | `../deployment/DOCKER_SETUP.md` | 환경 설정(RAG·탐색 세션 노출 조건 포함) |
 | `../release_note/` | 버전별 변경 이력 |
