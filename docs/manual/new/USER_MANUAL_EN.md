@@ -785,6 +785,68 @@ Setup, Docker configuration, environment variables, backup, upgrade, troubleshoo
 
 👉 **[`docs/deployment/DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md)**
 
+### 16-4. Screen Address Reference
+
+Every screen has its own address. Sharing the address opens the exact same screen for someone else, which helps when reporting defects or reviewing an acceptance build. Parts such as `{projectId}` are replaced with real values.
+
+> 💡 A small **screen number** (`S0`–`S11`) appears at the bottom right of every screen. Hover it to see the screen name. The number matches the screen breakdown in the design documents, so saying "this happens on S6" points everyone at the same screen.
+
+**Addresses that open without signing in**
+
+| Address | Screen | No. |
+|---|---|---|
+| `/login` | Sign in & sign up | S0 |
+| `/verify-email?token=...` | Email verification result | S0 |
+| `/manual` | User manual (KO/EN) | S0 |
+| `/guides/{documentName}` | In-app guide document, e.g. `/guides/GOOGLE_SHEETS_SETUP_GUIDE` | S0 |
+
+**Addresses after signing in**
+
+| Address | Screen | No. |
+|---|---|---|
+| `/projects` | Project list | S1 |
+| `/projects/{projectId}` | Project dashboard | S3 |
+| `/dashboard` | Organization-wide dashboard (admin only) | S3 |
+| `/projects/{projectId}/testcases` | Test cases | S4 |
+| `/projects/{projectId}/testcases/{testCaseId}` | Test case detail | S4 |
+| `/projects/{projectId}/testplans` | Test plan list | S5 |
+| `/projects/{projectId}/testplans/new` | Create a plan | S5 |
+| `/projects/{projectId}/testplans/{testPlanId}` | Plan detail & edit | S5 |
+| `/projects/{projectId}/executions` | Test execution list | S6 |
+| `/projects/{projectId}/executions/new` | Create an execution | S6 |
+| `/projects/{projectId}/executions/{executionId}` | Execution detail | S6 |
+| `/projects/{projectId}/executions/{executionId}/testcases/{testCaseId}/result` | Result entry | S6 |
+| `/projects/{projectId}/results` | Test results & statistics | S7 |
+| `/projects/{projectId}/automation` | Automation tests | S8 |
+| `/projects/{projectId}/junit` | JUnit result list | S8 |
+| `/projects/{projectId}/automation-results/{testResultId}` | Automation result detail | S8 |
+| `/projects/{projectId}/junit-results/{testResultId}` | JUnit result detail | S8 |
+| `/projects/{projectId}/rag` | RAG documents | S9 |
+| `/projects/{projectId}/exploratory` | Exploratory sessions | S10 |
+| `/projects/{projectId}/bookmarks` | My bookmarks | S2 |
+
+**Short addresses and pass-through**
+
+Shorter forms that omit the project also open. Use them when sharing a result screen.
+
+| Address | Screen | No. |
+|---|---|---|
+| `/executions/{executionId}` | Execution detail | S6 |
+| `/junit-results/{testResultId}` | JUnit result detail | S8 |
+| `/automation-tests/{testResultId}` | Automation result detail | S8 |
+| `/jira-redirect/{issueKey}` | Jumps to the test case linked to a JIRA issue. A pass-through address, not a screen | — |
+
+**Administrator addresses** (ADMIN only, see [§17](#17-system-administrator-settings-admin-only))
+
+| Address | Screen | No. |
+|---|---|---|
+| `/organizations` · `/organizations/{id}` | Organization management & detail | S11 |
+| `/users` | User management | S11 |
+| `/mail-settings` | Mail settings | S11 |
+| `/llm-config` | LLM settings | S11 |
+| `/scheduler` | Scheduler management | S11 |
+| `/translation-management` | Translation management (not in the menu — open by address) | S11 |
+
 ---
 
 ## 17. System Administrator Settings (ADMIN Only)

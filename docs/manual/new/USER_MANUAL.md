@@ -791,6 +791,68 @@ Google Sheets로 테스트 케이스를 가져오거나 내보내려면 Google �
 
 👉 **[`docs/deployment/DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md)**
 
+### 16-4. 화면 주소 모음
+
+화면마다 고유한 주소가 있습니다. 주소를 그대로 주고받으면 같은 화면을 바로 열 수 있어, 결함 보고나 인수 검토에 편합니다. `{projectId}` 같은 부분은 실제 값으로 바뀝니다.
+
+> 💡 화면 오른쪽 아래에는 **화면 번호**(`S0`~`S11`)가 작게 표시됩니다. 마우스를 올리면 화면 이름이 나옵니다. 이 번호는 설계 문서의 화면 구분과 같아, 담당자에게 "S6 화면에서 이렇게 됩니다"라고 전하면 서로 같은 화면을 봅니다.
+
+**로그인 없이 열리는 주소**
+
+| 주소 | 화면 | 화면 번호 |
+|---|---|---|
+| `/login` | 로그인·회원가입 | S0 |
+| `/verify-email?token=...` | 이메일 인증 결과 | S0 |
+| `/manual` | 사용자 매뉴얼(한/영) | S0 |
+| `/guides/{guideName}` | 앱 안의 가이드 문서. 예: `/guides/GOOGLE_SHEETS_SETUP_GUIDE` | S0 |
+
+**로그인 후 주소**
+
+| 주소 | 화면 | 화면 번호 |
+|---|---|---|
+| `/projects` | 프로젝트 목록 | S1 |
+| `/projects/{projectId}` | 프로젝트 대시보드 | S3 |
+| `/dashboard` | 전사 대시보드 (관리자 전용) | S3 |
+| `/projects/{projectId}/testcases` | 테스트케이스 | S4 |
+| `/projects/{projectId}/testcases/{testCaseId}` | 케이스 상세 | S4 |
+| `/projects/{projectId}/testplans` | 테스트 플랜 목록 | S5 |
+| `/projects/{projectId}/testplans/new` | 새 플랜 만들기 | S5 |
+| `/projects/{projectId}/testplans/{testPlanId}` | 플랜 상세·수정 | S5 |
+| `/projects/{projectId}/executions` | 테스트 실행 목록 | S6 |
+| `/projects/{projectId}/executions/new` | 새 실행 만들기 | S6 |
+| `/projects/{projectId}/executions/{executionId}` | 실행 상세 | S6 |
+| `/projects/{projectId}/executions/{executionId}/testcases/{testCaseId}/result` | 결과 입력 | S6 |
+| `/projects/{projectId}/results` | 테스트 결과·통계 | S7 |
+| `/projects/{projectId}/automation` | 자동화 테스트 | S8 |
+| `/projects/{projectId}/junit` | JUnit 결과 목록 | S8 |
+| `/projects/{projectId}/automation-results/{testResultId}` | 자동화 결과 상세 | S8 |
+| `/projects/{projectId}/junit-results/{testResultId}` | JUnit 결과 상세 | S8 |
+| `/projects/{projectId}/rag` | RAG 문서 | S9 |
+| `/projects/{projectId}/exploratory` | 탐색 세션 | S10 |
+| `/projects/{projectId}/bookmarks` | 내 북마크 | S2 |
+
+**짧은 주소와 경유 주소**
+
+프로젝트를 주소에 쓰지 않는 짧은 형태도 열립니다. 결과 화면을 남에게 전할 때 씁니다.
+
+| 주소 | 화면 | 화면 번호 |
+|---|---|---|
+| `/executions/{executionId}` | 실행 상세 | S6 |
+| `/junit-results/{testResultId}` | JUnit 결과 상세 | S8 |
+| `/automation-tests/{testResultId}` | 자동화 결과 상세 | S8 |
+| `/jira-redirect/{issueKey}` | JIRA 이슈에 연결된 케이스로 넘어갑니다. 화면이 아니라 경유 주소입니다 | — |
+
+**관리자 주소** (ADMIN 전용, 자세한 내용은 [§17](#17-시스템-관리자-설정-admin-전용))
+
+| 주소 | 화면 | 화면 번호 |
+|---|---|---|
+| `/organizations` · `/organizations/{id}` | 조직 관리·조직 상세 | S11 |
+| `/users` | 사용자 관리 | S11 |
+| `/mail-settings` | 메일 설정 | S11 |
+| `/llm-config` | LLM 설정 | S11 |
+| `/scheduler` | 스케줄러 관리 | S11 |
+| `/translation-management` | 번역 관리 (메뉴에 없음 — 주소로 직접 접근) | S11 |
+
 ---
 
 ## 17. 시스템 관리자 설정 (ADMIN 전용)
