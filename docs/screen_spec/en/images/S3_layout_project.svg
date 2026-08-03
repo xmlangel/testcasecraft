@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 776" width="100%" role="img" aria-label="S3 Dashboards layout">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A Header</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[Refresh] [15d]</text>
+  <text class="desc" x="28" y="60">Title: Dashboards</text>
+  <rect class="bx-dq" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B Status</text>
+  <text class="tiny" x="28" y="134">Loading: progress indicator · on failure: error message</text>
+  <rect class="bx-ac" x="16" y="164" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="187">C Project summary</text>
+  <text class="desc" x="28" y="208">Project name</text>
+  <text class="desc" x="28" y="227">📄 Case count · 👤 Team members</text>
+  <rect class="bx" x="16" y="257" width="459" height="120" rx="6"/>
+  <text class="area" x="28" y="280">D Recent test results</text>
+  <text class="tiny" x="28" y="301">Donut — Pass / Fail / Not Run / Skipped / Blocked ratio</text>
+  <rect class="bx" x="485" y="257" width="459" height="120" rx="6"/>
+  <text class="area" x="497" y="280">E Result trend</text>
+  <text class="tiny" x="497" y="301">Line chart — cumulative</text>
+  <rect class="bx" x="16" y="387" width="459" height="120" rx="6"/>
+  <text class="area" x="28" y="410">F Open test results</text>
+  <text class="tiny" x="28" y="431">Bar — in-progress execution status distribution</text>
+  <rect class="bx" x="485" y="387" width="459" height="120" rx="6"/>
+  <text class="area" x="497" y="410">G Results by assignee</text>
+  <text class="tiny" x="497" y="431">Stack bar — by member</text>
+  <rect class="bx" x="16" y="517" width="928" height="140" rx="6"/>
+  <text class="area" x="28" y="540">H Results by plan</text>
+  <rect class="bx-hd" x="28" y="557" width="904" height="26" rx="4"/>
+  <text class="tiny" x="36" y="574">Plan name</text>
+  <text class="tiny" x="552.571" y="574">PASS</text>
+  <text class="tiny" x="681.714" y="574">FAIL</text>
+  <text class="tiny" x="810.857" y="574">Success rate</text>
+  <text class="desc" x="36" y="600">Plan A</text>
+  <text class="desc" x="552.571" y="600">50</text>
+  <text class="desc" x="681.714" y="600">10</text>
+  <text class="desc" x="810.857" y="600">83%</text>
+  <text class="desc" x="36" y="624">Plan B</text>
+  <text class="desc" x="552.571" y="624">24</text>
+  <text class="desc" x="681.714" y="624">2</text>
+  <text class="desc" x="810.857" y="624">92%</text>
+  <text class="tiny" x="28" y="645">Narrow by plan select</text>
+  <rect class="bx-ac" x="16" y="667" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="690">Enterprise dashboards (/dashboard · ADMIN only)</text>
+  <text class="desc" x="28" y="711">Spans all orgs · all projects. Same widget layout as project dashboard.</text>
+  <text class="strong" x="16" y="758">Legend</text>
+  <rect class="bx" x="73.60" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="92.60" y="759">Regular area</text>
+  <rect class="bx-ac" x="183.20" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="202.20" y="759">Highlighted · conditional areas</text>
+  <rect class="bx-ch" x="407.75" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="426.75" y="759">Global chrome</text>
+  <rect class="bx-dq" x="523.40" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="542.40" y="759">Empty · hidden</text>
+  <rect class="bx-bt" x="645.10" y="749" width="13" height="13" rx="3"/>
+  <text class="tiny" x="664.10" y="759">Button · Action</text>
+</svg>

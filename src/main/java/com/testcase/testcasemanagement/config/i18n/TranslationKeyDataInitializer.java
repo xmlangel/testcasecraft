@@ -40,6 +40,8 @@ public class TranslationKeyDataInitializer {
   private final I18nHardcodedKeysInitializer i18nHardcodedKeysInitializer;
   // 2026-06-09 즐겨찾기/개인 북마크 기능
   private final BookmarkKeysInitializer bookmarkKeysInitializer;
+  // 2026-08-03 화면 ID 배지 (기획 문서 docs/screen_spec 의 화면 구분)
+  private final ScreenIdKeysInitializer screenIdKeysInitializer;
 
   @Transactional
   public void initialize() {
@@ -74,6 +76,9 @@ public class TranslationKeyDataInitializer {
 
     // 2026-06-09 즐겨찾기/개인 북마크 기능
     bookmarkKeysInitializer.initialize();
+
+    // 2026-08-03 화면 ID 배지
+    screenIdKeysInitializer.initialize();
 
     log.info("번역 키 데이터 초기화 완료");
   }

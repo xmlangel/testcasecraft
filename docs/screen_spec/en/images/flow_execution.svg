@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 250" width="100%" role="img" aria-label="Execution pipeline round trip — plan to execution, result entry, statistics">
+  <defs>
+    <style>
+      .box   { fill: #fff; stroke: #d0d5dd; stroke-width: 1; }
+      .accent{ fill: #f7f9ff; stroke: #c7d2fe; stroke-width: 1; }
+      .label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 13px; font-weight: bold; fill: #111827; }
+      .desc  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 12px; fill: #475467; }
+      .tiny  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #6b7280; }
+      .edge  { stroke: #315efb; stroke-width: 1.5; fill: none; }
+    </style>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#315efb"/>
+    </marker>
+  </defs>
+
+  <rect class="box" x="24" y="40" width="196" height="60" rx="6"/>
+  <text class="label" x="38" y="66">S5 Plan detail</text>
+  <text class="tiny" x="38" y="86">Case bundle</text>
+
+  <line class="edge" x1="220" y1="70" x2="316" y2="70" marker-end="url(#arw)"/>
+  <text class="tiny" x="228" y="62">[New exec]</text>
+
+  <rect class="box" x="318" y="40" width="196" height="60" rx="6"/>
+  <text class="label" x="332" y="66">S6 Exec detail</text>
+  <text class="tiny" x="332" y="86">case list + filter</text>
+
+  <line class="edge" x1="416" y1="100" x2="416" y2="136" marker-end="url(#arw)"/>
+  <text class="tiny" x="426" y="124">Click case row</text>
+
+  <rect class="accent" x="318" y="138" width="196" height="60" rx="6"/>
+  <text class="label" x="332" y="164">S6 Result entry</text>
+  <text class="tiny" x="332" y="184">P/F/B/N · Note · Tag</text>
+
+  <line class="edge" x1="514" y1="168" x2="610" y2="168" marker-end="url(#arw)"/>
+  <text class="tiny" x="522" y="160">Save results</text>
+
+  <rect class="box" x="612" y="138" width="196" height="60" rx="6"/>
+  <text class="label" x="626" y="164">S3·S7 aggregate</text>
+  <text class="tiny" x="626" y="184">Statistics · trends · reports</text>
+
+  <path class="edge" d="M 808 168 L 880 168 L 880 20 L 122 20 L 122 40" marker-end="url(#arw)"/>
+  <text class="tiny" x="440" y="14">Regression → new plan &amp; execution</text>
+
+  <text class="tiny" x="24" y="228">Execution inherits plan's case bundle. Aggregates from TestResult—consistent across screens.</text>
+</svg>

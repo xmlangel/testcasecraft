@@ -114,6 +114,7 @@ const ManualViewer = React.lazy(
 );
 import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
+import ScreenIdBadge from "./components/common/ScreenIdBadge.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
 import { RAGProvider, useRAG } from "./context/RAGContext.jsx";
 import { LlmConfigProvider } from "./context/LlmConfigContext.jsx";
@@ -1647,6 +1648,9 @@ const AppWrapper = () => {
 
       {/* 서버 시간 표시 */}
       <ServerTimeDisplay />
+
+      {/* 화면 ID — 기획 문서(docs/screen_spec)와 같은 구분이다. 우측 하단에 최소 크기로 */}
+      <ScreenIdBadge />
     </BrowserRouter>
   );
 };

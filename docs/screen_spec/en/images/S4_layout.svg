@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 890" width="100%" role="img" aria-label="S4 Test Cases layout">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">Area A header</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[Form] [Sheet]</text>
+  <text class="desc" x="28" y="60">Breadcrumb: Projects / Name / Cases</text>
+  <rect class="bx" x="16" y="90" width="573.75" height="140" rx="6"/>
+  <text class="area" x="28" y="113">B Tree panel</text>
+  <text class="desc" x="28" y="134">Toolbar: ☑ all · 📁 folders · 📄 cases · 🔄 · 🌳 view · ↕ order</text>
+  <text class="desc" x="28" y="153">search: Name · ID · tag (comma-separated multi-search)</text>
+  <text class="desc" x="28" y="172">Virtual nodes: all Test Cases / cases outside folders</text>
+  <text class="desc" x="28" y="191">Folder·case tree (drag handle ⋮⋮ · revealed on hover)</text>
+  <text class="tiny" x="28" y="210">Selected — move/copy buttons appear</text>
+  <rect class="bx-bt" x="599.75" y="90" width="344.25" height="140" rx="6"/>
+  <text class="area" x="611.75" y="113">C Context menu</text>
+  <text class="desc" x="611.75" y="134">Add folder</text>
+  <text class="desc" x="611.75" y="153">Add case</text>
+  <text class="desc" x="611.75" y="172">Rename</text>
+  <text class="desc" x="611.75" y="191">delete</text>
+  <rect class="bx" x="16" y="240" width="928" height="140" rx="6"/>
+  <text class="area" x="28" y="263">D Cases by folder</text>
+  <rect class="bx-hd" x="28" y="280" width="904" height="26" rx="4"/>
+  <text class="tiny" x="36" y="297">Name</text>
+  <text class="tiny" x="244.615" y="297">Description</text>
+  <text class="tiny" x="522.769" y="297">Expected result</text>
+  <text class="tiny" x="800.923" y="297">Priority</text>
+  <text class="desc" x="36" y="323">Login Working</text>
+  <text class="desc" x="244.615" y="323">ID · password</text>
+  <text class="desc" x="522.769" y="323">Enter Dashboards</text>
+  <text class="desc" x="800.923" y="323">High</text>
+  <text class="desc" x="36" y="347">Login Fail</text>
+  <text class="desc" x="244.615" y="347">Invalid password</text>
+  <text class="desc" x="522.769" y="347">Error message</text>
+  <text class="desc" x="800.923" y="347">Medium</text>
+  <text class="tiny" x="28" y="368">Cases + subfolders · 100+ chars ellipsis · relative path</text>
+  <rect class="bx-ac" x="16" y="390" width="459" height="83" rx="6"/>
+  <text class="area" x="28" y="413">E Form — header</text>
+  <text class="desc" x="28" y="434">Display ID badge `SHOP-112` · version · RAG registered badge</text>
+  <text class="desc" x="28" y="453">[Cancel] [Edit] [Version]</text>
+  <rect class="bx-bt" x="485" y="390" width="459" height="83" rx="6"/>
+  <text class="area" x="497" y="413">F Field display</text>
+  <text class="desc" x="497" y="434">9 metadata fields toggle</text>
+  <text class="tiny" x="497" y="453">Show all / Hide all / Default</text>
+  <rect class="bx" x="16" y="483" width="928" height="102" rx="6"/>
+  <text class="area" x="28" y="506">G Form — 4 tabs</text>
+  <text class="desc" x="28" y="527">Details · attachments · execution history · record</text>
+  <text class="desc" x="28" y="546">Metadata (collapsed): Name · Display ID · description · priority · tag / read-only created · modified · author · UUID</text>
+  <text class="desc" x="28" y="565">Step table: steps · expected (auto-height, scroll after 10)</text>
+  <rect class="bx" x="16" y="595" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="618">H Spreadsheet</text>
+  <text class="desc" x="28" y="639">Toolbar: + add row · add top · add bottom · add folder · delete · validate · import/export · ⚙ · fullscreen · 💾 batch save</text>
+  <text class="tiny" x="28" y="658">Add 1–100 rows · auto wrap</text>
+  <rect class="bx-ac" x="16" y="688" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="711">I Move·Copy dialog</text>
+  <text class="desc" x="28" y="732">Type (move/copy) · project (req) · folder (opt)</text>
+  <text class="tiny" x="28" y="751">Move includes results; both need edit perm · copy is case only</text>
+  <rect class="bx-dq" x="16" y="781" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="804">empty state</text>
+  <text class="desc" x="28" y="825">Select folder or case</text>
+  <text class="strong" x="16" y="872">Legend</text>
+  <rect class="bx" x="73.60" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="92.60" y="873">Regular area</text>
+  <rect class="bx-ac" x="183.20" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="202.20" y="873">Highlighted · conditional areas</text>
+  <rect class="bx-ch" x="407.75" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="426.75" y="873">Global chrome</text>
+  <rect class="bx-dq" x="523.40" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="542.40" y="873">Empty · hidden</text>
+  <rect class="bx-bt" x="645.10" y="863" width="13" height="13" rx="3"/>
+  <text class="tiny" x="664.10" y="873">Button · Action</text>
+</svg>

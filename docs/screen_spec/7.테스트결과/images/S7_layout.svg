@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 785" width="100%" role="img" aria-label="S7 테스트 결과 화면 배치">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A 페이지 헤더</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[내보내기 ▾] Excel · PDF · CSV</text>
+  <text class="desc" x="28" y="60">제목 `테스트 결과`</text>
+  <rect class="bx-ch" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B 탭</text>
+  <text class="desc" x="28" y="134">📊 통계 대시보드    📋 상세 테이블</text>
+  <rect class="bx-ac" x="16" y="164" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="187">C 필터 (통계 대시보드 탭)</text>
+  <text class="desc" x="28" y="208">기간(최근 30일) · 플랜 · 담당자 · 결과 상태  ·  [초기화]</text>
+  <rect class="bx" x="16" y="238" width="227" height="83" rx="6"/>
+  <text class="area" x="28" y="261">D-1 통과율</text>
+  <text class="desc" x="28" y="282">87.5%</text>
+  <text class="tiny" x="28" y="301">(21/24)</text>
+  <rect class="bx" x="253" y="238" width="340.5" height="83" rx="6"/>
+  <text class="area" x="265" y="261">D-2 결과 분포</text>
+  <text class="desc" x="265" y="282">🟢 통과 21 · 🔴 실패 2</text>
+  <text class="desc" x="265" y="301">🟠 차단 1 · ⚪ 미실행 0</text>
+  <rect class="bx" x="603.5" y="238" width="340.5" height="83" rx="6"/>
+  <text class="area" x="615.5" y="261">D-3 추이</text>
+  <text class="tiny" x="615.5" y="282">최근 7일 선형 차트</text>
+  <rect class="bx" x="16" y="331" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="354">D-4 폴더별 통계</text>
+  <text class="desc" x="28" y="375">📁 모듈 A (18) ▾    ├ 기능 A-1 (5) 🟢 4 / 🔴 1    └ 기능 A-2 (3) 🟢 3</text>
+  <text class="desc" x="28" y="394">📁 모듈 B (6) ▸</text>
+  <rect class="bx" x="16" y="424" width="928" height="164" rx="6"/>
+  <text class="area" x="28" y="447">E 상세 테이블 (상세 테이블 탭)</text>
+  <rect class="bx-hd" x="28" y="464" width="904" height="26" rx="4"/>
+  <text class="tiny" x="36" y="481">테스트 케이스</text>
+  <text class="tiny" x="364.727" y="481">상태</text>
+  <text class="tiny" x="529.091" y="481">담당자</text>
+  <text class="tiny" x="693.455" y="481">실행 일시</text>
+  <text class="desc" x="36" y="507">SHP-001</text>
+  <text class="desc" x="364.727" y="507">🟢 통과</text>
+  <text class="desc" x="529.091" y="507">김철수</text>
+  <text class="desc" x="693.455" y="507">2026-08-02 14:32</text>
+  <text class="desc" x="36" y="531">SHP-002</text>
+  <text class="desc" x="364.727" y="531">🔴 실패</text>
+  <text class="desc" x="529.091" y="531">이영희</text>
+  <text class="desc" x="693.455" y="531">2026-08-02 15:01</text>
+  <text class="desc" x="36" y="555">SHP-003</text>
+  <text class="desc" x="364.727" y="555">🟠 차단</text>
+  <text class="desc" x="529.091" y="555">미할당</text>
+  <text class="desc" x="693.455" y="555">2026-08-01 10:15</text>
+  <text class="tiny" x="28" y="576">1-50 / 총 24건 · 페이지 1 / 1 · 1,000행 이상도 가상화로 스크롤</text>
+  <rect class="bx-ac" x="16" y="598" width="928" height="102" rx="6"/>
+  <text class="area" x="28" y="621">F QA 총평 (실행 필터를 하나 골랐을 때만)</text>
+  <text class="desc" x="28" y="642">마크다운 에디터 + 라이브 프리뷰 · 최대 10,000자</text>
+  <text class="desc" x="28" y="661">작성자와 마지막 수정 시각을 패널 헤더에 함께 표시  ·  [총평 작성] / [수정] / [저장]</text>
+  <text class="tiny" x="28" y="680">고급 내보내기 PDF 에는 포함되고 Excel·CSV 에는 들어가지 않는다</text>
+  <text class="tiny" x="16" y="721">통계 대시보드 탭에서는 C·D 가 보이고 E·F 는 숨는다. 상세 테이블 탭에서는 E 가 보이고 F 는 실행을 고른 뒤 나타난다.</text>
+  <text class="tiny" x="16" y="740">600px 미만에서는 차트를 세로로 쌓는다.</text>
+  <text class="strong" x="16" y="767">범례</text>
+  <rect class="bx" x="54" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="73" y="768">일반 영역</text>
+  <rect class="bx-ac" x="142.05" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="161.05" y="768">강조·조건부 영역</text>
+  <rect class="bx-ch" x="269.15" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="288.15" y="768">전역 크롬</text>
+  <rect class="bx-dq" x="357.2" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="376.2" y="768">빈 상태·미노출</text>
+  <rect class="bx-bt" x="473.3" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="492.3" y="768">버튼·액션</text>
+</svg>

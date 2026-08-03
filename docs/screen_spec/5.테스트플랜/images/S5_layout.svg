@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 408" width="100%" role="img" aria-label="S5 테스트 플랜 좌측 메뉴 2단 배치">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">S2 껍데기</text>
+  <text class="desc" x="28" y="60">헤더 · 브레드크럼(프로젝트 선택기) · 좌측 메뉴</text>
+  <rect class="bx" x="16" y="90" width="344.25" height="178" rx="6"/>
+  <text class="area" x="28" y="113">A 플랜 트리 (좌 260px)</text>
+  <text class="desc" x="28" y="134">[+ 새 플랜]  ·  이름으로 찾기</text>
+  <text class="desc" x="28" y="153">▾ 회귀 스위트 v1.0.102</text>
+  <text class="desc" x="28" y="172">   └ 실행 2026-08-02</text>
+  <text class="desc" x="28" y="191">   └ 실행 2026-07-28</text>
+  <text class="desc" x="28" y="210">▸ 결제 플로우 점검</text>
+  <text class="desc" x="28" y="229">▸ 스모크</text>
+  <text class="tiny" x="28" y="248">플랜을 부모로 세우고 그 플랜의 실행을 자식으로 붙인다</text>
+  <rect class="bx-ac" x="370.25" y="90" width="573.75" height="178" rx="6"/>
+  <text class="area" x="382.25" y="113">B 상세 (우)</text>
+  <text class="desc" x="382.25" y="134">플랜 이름 · 설명 · 포함 케이스 목록</text>
+  <text class="desc" x="382.25" y="153">[실행 만들기]  [수정]  [삭제]</text>
+  <text class="desc" x="382.25" y="172">실행을 고르면 이 영역이 실행 상세로 바뀐다</text>
+  <text class="desc" x="382.25" y="191">[플랜으로 돌아가기] 로 복귀</text>
+  <text class="tiny" x="382.25" y="210">팝업이나 전체 화면으로 빠지지 않고 이 영역 안에서 완결된다</text>
+  <rect class="bx-dq" x="16" y="278" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="301">빈 상태 (플랜 0건)</text>
+  <text class="desc" x="28" y="322">플랜이 없습니다 · 케이스를 묶은 플랜을 만들어 시작하세요 · [+ 새 플랜 생성]</text>
+  <text class="tiny" x="16" y="363">가로 탭 레이아웃의 배치는 S5_layout_tabs.svg 를 본다.</text>
+  <text class="strong" x="16" y="390">범례</text>
+  <rect class="bx" x="54" y="381" width="13" height="13" rx="3"/>
+  <text class="tiny" x="73" y="391">일반 영역</text>
+  <rect class="bx-ac" x="142.05" y="381" width="13" height="13" rx="3"/>
+  <text class="tiny" x="161.05" y="391">강조·조건부 영역</text>
+  <rect class="bx-ch" x="269.15" y="381" width="13" height="13" rx="3"/>
+  <text class="tiny" x="288.15" y="391">전역 크롬</text>
+  <rect class="bx-dq" x="357.2" y="381" width="13" height="13" rx="3"/>
+  <text class="tiny" x="376.2" y="391">빈 상태·미노출</text>
+  <rect class="bx-bt" x="473.3" y="381" width="13" height="13" rx="3"/>
+  <text class="tiny" x="492.3" y="391">버튼·액션</text>
+</svg>

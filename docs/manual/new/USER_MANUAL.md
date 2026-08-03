@@ -510,6 +510,18 @@ X 버튼으로 필터를 해제합니다.
 
 > 신규 프로젝트라 플랜이 비어 있는 상태입니다. 플랜을 만들면 카드로 보입니다.
 
+#### 플랜 만들기 (`/projects/{projectId}/testplans/new`)
+
+![새 테스트 플랜 생성](images/104_plan_form_new.png)
+
+왼쪽에 이름과 설명을 넣고, 오른쪽 트리에서 담을 케이스를 고릅니다. 폴더를 접은 채 폴더 체크박스만 눌러도 그 안의 케이스가 함께 선택됩니다. 검색창은 이름·표시 ID·태그를 함께 찾습니다. 이름은 필수이고, 케이스를 하나도 고르지 않은 플랜도 만들 수 있습니다.
+
+#### 플랜 열기·고치기 (`/projects/{projectId}/testplans/{testPlanId}`)
+
+![테스트 플랜 수정](images/105_plan_detail.png)
+
+같은 폼이 저장된 값과 함께 열립니다. 상단에 담긴 케이스 수가 표시되고, 체크를 풀면 그 케이스는 플랜에서 빠집니다. 이미 실행이 만들어진 플랜에서 케이스를 빼도 지난 실행의 결과는 그대로 남습니다.
+
 > **2026-07-31 변경 (신규 레이아웃)**: 좌측 메뉴 레이아웃을 선택하면, 테스트 플랜이 **목록 + 상세 2단** 화면으로 표시됩니다. 왼쪽에는 플랜 트리(플랜 아래에 그 플랜의 실행이 표시됨), 오른쪽에는 선택한 플랜의 내용이 나타납니다. 팝업이나 전체 화면으로 빠지지 않고 오른쪽 영역 안에서 완결되며, 가로 탭 레이아웃에서는 기존의 팝업/전체 화면 방식이 그대로 유지됩니다.
 
 ![플랜 2단 — 트리 + 상세](images/98_plan_workspace.png)
@@ -536,6 +548,12 @@ X 버튼으로 필터를 해제합니다.
 
 ![실행 목록 2단 — 상태와 소속 플랜](images/99_execution_workspace.png)
 
+#### 실행 만들기 (`/projects/{projectId}/executions/new`)
+
+![테스트 실행 등록](images/106_execution_form_new.png)
+
+실행명은 필수이고, 테스트플랜을 고르면 그 플랜에 담긴 케이스가 실행 목록으로 딸려 옵니다. **[즉시 시작]** 을 켜면 저장과 동시에 실행이 시작되고, 끄면 `NOTSTARTED` 로 남아 나중에 시작할 수 있습니다. 상단 요약에는 아직 결과가 없어 0건으로 표시됩니다.
+
 수동 실행은 다음 흐름입니다.
 
 1. 테스트 플랜에서 **[실행 시작]** 클릭
@@ -552,6 +570,10 @@ X 버튼으로 필터를 해제합니다.
 ### 8-1. 결과 입력 화면
 
 실행 안에서 케이스를 클릭하면 결과 입력 화면(`/projects/{projectId}/executions/{executionId}/testcases/{testCaseId}/result`)이 열립니다. 화면의 플로팅 결과 버튼으로 다음 4가지 상태를 기록합니다.
+
+![결과 입력 화면 — 판정 버튼과 진행률](images/107_result_entry.png)
+
+머리에는 결과별 집계와 전체 진행률이 붙고, `1 / 12` 화살표로 같은 실행의 다음 케이스로 넘어갑니다. 아래에는 케이스의 사전 조건과 단계·기대 결과가 그대로 따라와, 문서를 따로 열지 않고 판정할 수 있습니다.
 
 | 버튼 | 상태 | 의미 |
 |---|---|---|
@@ -597,6 +619,20 @@ X 버튼으로 필터를 해제합니다.
 - 케이스 단위 통과율, 최근 N회 추이 차트
 - 결과 보고서를 파일로 내보내기 가능 — 형식은 3가지입니다.
 
+**보기 형태 바꾸기** — 통계 필터의 **보기 형태** 를 바꾸면 같은 결과를 다른 기준으로 묶어 봅니다. 고른 형태는 주소에 남아(`?viewType=by-folder`) 링크로 그대로 공유됩니다.
+
+![결과 통계 — 폴더별 보기](images/109_results_by_folder.png)
+
+| 보기 형태 | 주소에 남는 값 | 무엇으로 묶는가 |
+|---|---|---|
+| 개요 | `overview` | 프로젝트 전체 한 장 요약 |
+| 폴더별 | `by-folder` | 트리 폴더 기준 — 어느 기능 묶음이 약한지 |
+| 플랜별 | `by-plan` | 플랜 기준 — 어느 릴리즈 묶음이 약한지 |
+| 실행별 | `by-execution` | 실행 회차 기준 — 회차 간 추이 |
+| 실행자별 | `by-executor` | 사람 기준 — 업무 분포 |
+
+아래쪽 **수동 테스트 / 자동화 테스트 / 전체 합계** 토글로 어느 결과를 셀지도 함께 정합니다.
+
 | 형식 | 이런 분께 추천 |
 |---|---|
 | **Excel (.xlsx)** | 통계 차트가 포함된 보고서를 그대로 공유·필터링하고 싶을 때 |
@@ -631,6 +667,21 @@ X 버튼으로 필터를 해제합니다.
 > 단순히 결과 파일만 따로 보고 싶다면 **[JUnit 결과]** 화면(`/projects/{projectId}/junit`)에서 확인할 수 있습니다.
 
 ![JUnit 페이지](images/54_junit.png)
+
+### 10-1. 결과 상세 화면
+
+![자동화·JUnit 결과 상세](images/108_junit_result_detail.png)
+
+머리에 통과·실패·에러·건너뜀 집계와 성공률이 붙고, 아래 목록에서 개별 테스트를 봅니다. 테스트 스위트와 상태로 추려 보거나 이름으로 찾을 수 있고, 실패한 항목은 에러 메시지가 함께 펼쳐집니다. 각 행의 연필 아이콘으로 노트를 남기면 그 기록이 결과에 함께 남습니다. 우상단에서 **PDF·CSV 내보내기** 와 **새로고침** 을 씁니다.
+
+이 화면은 주소가 네 갈래인데 모두 같은 화면입니다.
+
+| 주소 | 언제 쓰이는가 |
+|---|---|
+| `/projects/{projectId}/automation-results/{testResultId}` | 자동화 테스트 목록에서 행을 클릭할 때 |
+| `/projects/{projectId}/junit-results/{testResultId}` | JUnit 결과 화면에서 행을 클릭할 때 |
+| `/automation-tests/{testResultId}` | 프로젝트를 주소에 안 쓰는 짧은 별칭 |
+| `/junit-results/{testResultId}` | 같은 별칭 |
 
 ---
 
@@ -674,7 +725,11 @@ X 버튼으로 필터를 해제합니다.
 
 - 사용자명 / 이름 / 이메일 표시 (사용자명은 변경 불가)
 - 역할 (테스터/PM/관리자 등) 배지
-- 이메일 인증 상태 — **[미인증]** 이면 **[인증 이메일 발송]** 버튼으로 메일 인증. 받은 메일의 링크를 열면 인증 완료 화면(`/verify-email`)이 표시됩니다. 인증 후 **[상태 새로고침]** 버튼으로 배지를 갱신하세요.
+- 이메일 인증 상태 — **[미인증]** 이면 **[인증 이메일 발송]** 버튼으로 메일 인증. 받은 메일의 링크를 열면 인증 결과 화면(`/verify-email`)이 표시됩니다. 인증 후 **[상태 새로고침]** 버튼으로 배지를 갱신하세요.
+
+![이메일 인증 결과 — 링크가 만료·변형된 경우](images/101_verify_email.png)
+
+링크에 담긴 인증 값이 없거나 이미 쓰였으면 위와 같이 실패로 표시됩니다. 이때는 프로필에서 **[인증 이메일 발송]** 을 다시 눌러 새 메일을 받으세요. 성공하면 같은 자리에 완료 안내와 로그인 버튼이 나타납니다.
 - 하단에 서비스 버전(서버/화면) 표시
 
 ### 13-2. 비밀번호 변경
@@ -703,7 +758,9 @@ X 버튼으로 필터를 해제합니다.
 
 Google Sheets로 테스트 케이스를 가져오거나 내보내려면 Google 계정 연결이 필요합니다. 화면 안내에 따라 한 번만 연결하면 됩니다.
 
-> 💡 자세한 연결 절차는 앱 안의 가이드 문서(`/guides/GOOGLE_SHEETS_SETUP_GUIDE`)에서 단계별 그림과 함께 확인할 수 있습니다. 설정 화면의 안내 링크를 클릭해도 같은 문서가 열립니다.
+> 💡 자세한 연결 절차는 앱 안의 가이드 문서(`/guides/GOOGLE_SHEETS_SETUP_GUIDE.md`)에서 단계별 그림과 함께 확인할 수 있습니다. 설정 화면의 안내 링크를 클릭해도 같은 문서가 열립니다. 주소를 직접 입력할 때는 **`.md` 까지 붙여야** 열립니다.
+
+![가이드 문서 뷰어 — Google Sheets 연동](images/103_guide_viewer.png)
 
 ### 13-6. API 토큰
 
@@ -790,6 +847,74 @@ Google Sheets로 테스트 케이스를 가져오거나 내보내려면 Google �
 자체 호스팅·도커 설정·환경 변수·백업·업그레이드·트러블슈팅 등 **운영자용 가이드**는 별도 문서로 분리되어 있습니다.
 
 👉 **[`docs/deployment/DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md)**
+
+**앱 안에서 이 매뉴얼 보기** — 헤더의 **?** 아이콘 또는 주소 `/manual` 로 열립니다. 로그인 없이도 볼 수 있습니다.
+
+![매뉴얼 뷰어](images/102_manual_viewer.png)
+
+왼쪽 목차에서 절을 골라 이동하고, 우상단 **한국어 / ENGLISH** 로 언어를 바꿉니다. 프린터 아이콘으로 인쇄하거나 PDF로 저장할 수 있습니다. `/manual?l=en` 처럼 주소에 언어를 붙여 링크를 공유해도 됩니다.
+
+### 16-4. 화면 주소 모음
+
+화면마다 고유한 주소가 있습니다. 주소를 그대로 주고받으면 같은 화면을 바로 열 수 있어, 결함 보고나 인수 검토에 편합니다. `{projectId}` 같은 부분은 실제 값으로 바뀝니다.
+
+> 💡 화면 오른쪽 아래에는 **화면 번호**(`S0`~`S11`)가 작게 표시됩니다. 마우스를 올리면 화면 이름이 나옵니다. 이 번호는 설계 문서의 화면 구분과 같아, 담당자에게 "S6 화면에서 이렇게 됩니다"라고 전하면 서로 같은 화면을 봅니다.
+
+**로그인 없이 열리는 주소**
+
+| 주소 | 화면 | 화면 번호 |
+|---|---|---|
+| `/login` | 로그인·회원가입 | S0 |
+| `/verify-email?token=...` | 이메일 인증 결과 | S0 |
+| `/manual` | 사용자 매뉴얼(한/영) | S0 |
+| `/guides/{guideName}` | 앱 안의 가이드 문서. 예: `/guides/GOOGLE_SHEETS_SETUP_GUIDE` | S0 |
+
+**로그인 후 주소**
+
+| 주소 | 화면 | 화면 번호 |
+|---|---|---|
+| `/projects` | 프로젝트 목록 | S1 |
+| `/projects/{projectId}` | 프로젝트 대시보드 | S3 |
+| `/dashboard` | 전사 대시보드 (관리자 전용) | S3 |
+| `/projects/{projectId}/testcases` | 테스트케이스 | S4 |
+| `/projects/{projectId}/testcases/{testCaseId}` | 케이스 상세 | S4 |
+| `/projects/{projectId}/testplans` | 테스트 플랜 목록 | S5 |
+| `/projects/{projectId}/testplans/new` | 새 플랜 만들기 | S5 |
+| `/projects/{projectId}/testplans/{testPlanId}` | 플랜 상세·수정 | S5 |
+| `/projects/{projectId}/executions` | 테스트 실행 목록 | S6 |
+| `/projects/{projectId}/executions/new` | 새 실행 만들기 | S6 |
+| `/projects/{projectId}/executions/{executionId}` | 실행 상세 | S6 |
+| `/projects/{projectId}/executions/{executionId}/testcases/{testCaseId}/result` | 결과 입력 | S6 |
+| `/projects/{projectId}/results` | 테스트 결과·통계 | S7 |
+| `/projects/{projectId}/automation` | 자동화 테스트 | S8 |
+| `/projects/{projectId}/junit` | JUnit 결과 목록 | S8 |
+| `/projects/{projectId}/automation-results/{testResultId}` | 자동화 결과 상세 | S8 |
+| `/projects/{projectId}/junit-results/{testResultId}` | JUnit 결과 상세 | S8 |
+| `/projects/{projectId}/rag` | RAG 문서 | S9 |
+| `/projects/{projectId}/exploratory` | 탐색 세션 | S10 |
+| `/projects/{projectId}/bookmarks` | 내 북마크 | S2 |
+
+**짧은 주소와 경유 주소**
+
+프로젝트를 주소에 쓰지 않는 짧은 형태도 열립니다. 결과 화면을 남에게 전할 때 씁니다.
+
+| 주소 | 화면 | 화면 번호 |
+|---|---|---|
+| `/executions/{executionId}` | 실행 상세 | S6 |
+| `/junit-results/{testResultId}` | JUnit 결과 상세 | S8 |
+| `/automation-tests/{testResultId}` | 자동화 결과 상세 | S8 |
+| `/jira-redirect/{issueKey}` | JIRA 이슈에 연결된 케이스로 넘어갑니다. 화면이 아니라 경유 주소입니다 | — |
+
+**관리자 주소** (ADMIN 전용, 자세한 내용은 [§17](#17-시스템-관리자-설정-admin-전용))
+
+| 주소 | 화면 | 화면 번호 |
+|---|---|---|
+| `/organizations` · `/organizations/{id}` | 조직 관리·조직 상세 | S11 |
+| `/users` | 사용자 관리 | S11 |
+| `/mail-settings` | 메일 설정 | S11 |
+| `/llm-config` | LLM 설정 | S11 |
+| `/scheduler` | 스케줄러 관리 | S11 |
+| `/translation-management` | 번역 관리 (메뉴에 없음 — 주소로 직접 접근) | S11 |
 
 ---
 
@@ -887,6 +1012,14 @@ Google Sheets로 테스트 케이스를 가져오거나 내보내려면 Google �
 ### 17-9. 프로젝트 단위 설정 (PM)
 
 프로젝트 카드의 우상단 **⋮ (점 3개)** 메뉴 또는 프로젝트 진입 후 헤더의 메뉴로 접근합니다. (`PROJECT_MANAGER` 권한)
+
+![프로젝트 카드 ⋮ 메뉴](images/110_project_more_menu.png)
+
+메뉴에는 **수정 · 조직 이전 · 삭제** 가 있습니다. **[수정]** 을 누르면 프로젝트 정보 폼이 열립니다.
+
+![프로젝트 수정](images/111_project_edit_form.png)
+
+이름·코드·소속 조직·설명을 고칩니다. 코드는 케이스의 표시 ID에 쓰이는 값이라(`SHOP-031` 의 `SHOP`) 바꾸면 이후 표시가 함께 달라집니다.
 
 - 프로젝트 이름 / 코드 / 설명 변경
 - 멤버 초대 / 역할 부여 (PM / LEAD_DEVELOPER / DEVELOPER / TESTER / CONTRIBUTOR / VIEWER — 6단계, [§18-4](#18-4-권한과-역할) 참고)

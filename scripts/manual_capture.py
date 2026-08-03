@@ -378,6 +378,137 @@ def open_case_delete_dialog(page: Page) -> None:
     page.wait_for_timeout(700)
 
 
+def _api_get(page: Page, path: str):
+    """로그인 토큰으로 API 를 호출해 JSON 을 돌려준다. 목록은 리스트로 정규화한다."""
+    token = page.evaluate("() => localStorage.getItem('accessToken')")
+    if not token:
+        raise RuntimeError("accessToken 이 없다 — 로그인 세션 확인 필요")
+    resp = page.context.request.get(
+        f"{_origin(page)}{path}", headers={"Authorization": f"Bearer {token}"}
+    )
+    if not resp.ok:
+        raise RuntimeError(f"API 실패 {path}: status={resp.status}")
+    data = resp.json()
+    if isinstance(data, dict) and ("content" in data or "data" in data):
+        return data.get("content") or data.get("data") or []
+    return data
+
+
+def _current_project_id(page: Page) -> str:
+    m = re.search(r"/projects/([0-9a-f-]{36})", page.url)
+    if not m:
+        raise RuntimeError(f"프로젝트 URL 이 아닙니다: {page.url}")
+    return m.group(1)
+
+
+def open_first_plan_detail(page: Page) -> None:
+    """플랜 목록에서 첫 플랜의 상세 주소로 직접 이동한다 (§7 플랜 상세 캡처용).
+
+    목록 행 클릭은 레이아웃(가로 탭 / 좌측 메뉴)에 따라 2단 워크스페이스로 열려
+    상세 라우트가 주소에 남지 않는다. 라우트 자체를 보여주려면 주소로 들어간다.
+    """
+    use_tab_layout(page)
+    pid = _current_project_id(page)
+    plans = _api_get(page, f"/api/test-plans/project/{pid}")
+    if not plans:
+        raise RuntimeError("플랜이 없다 — shopflow-seed 로 데모 데이터를 넣어야 한다")
+    page.goto(f"{_origin(page)}/projects/{pid}/testplans/{plans[0]['id']}")
+    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_timeout(1_400)
+
+
+def open_result_entry(page: Page) -> None:
+    """실행 안의 첫 케이스 결과 입력 화면으로 이동한다 (§8-1 캡처용).
+
+    결과가 이미 기록된 실행을 골라야 판정 버튼과 이력이 함께 보인다.
+    """
+    use_tab_layout(page)
+    pid = _current_project_id(page)
+    execs = _api_get(page, f"/api/test-executions/by-project/{pid}")
+    if not execs:
+        raise RuntimeError("실행이 없다 — shopflow-seed 로 데모 데이터를 넣어야 한다")
+    ordered = sorted(execs, key=lambda e: e.get("status") != "INPROGRESS")
+    for ex in ordered:
+        detail = _api_get(page, f"/api/test-executions/{ex['id']}")
+        cases = detail.get("testCases") or detail.get("results") or []
+        if not cases:
+            continue
+        first = cases[0]
+        cid = first.get("testCaseId") or first.get("testCase", {}).get("id")
+        if not cid:
+            continue
+        page.goto(
+            f"{_origin(page)}/projects/{pid}/executions/{ex['id']}"
+            f"/testcases/{cid}/result"
+        )
+        page.wait_for_load_state("domcontentloaded")
+        page.wait_for_timeout(1_600)
+        return
+    raise RuntimeError("케이스가 담긴 실행을 찾지 못했다")
+
+
+def open_first_junit_detail(page: Page) -> None:
+    """업로드된 첫 JUnit 결과의 상세로 이동한다 (§9 캡처용).
+
+    자동화 결과 상세도 같은 화면을 쓴다 — 네 별칭 라우트가 한 컴포넌트를 렌더한다.
+    """
+    pid = _current_project_id(page)
+    results = _api_get(page, f"/api/junit-results/projects/{pid}")
+    if not results:
+        raise RuntimeError("JUnit 결과가 없다 — XML 을 업로드해야 한다")
+    page.goto(f"{_origin(page)}/projects/{pid}/junit-results/{results[0]['id']}")
+    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_timeout(1_600)
+
+
+def open_project_more_menu(page: Page) -> None:
+    """프로젝트 카드의 ⋮ 메뉴를 펼친다 (§17-9 캡처용 — 수정·조직 이전·삭제)."""
+    btn = page.locator('[data-testid="project-more-menu-button"]').first
+    btn.wait_for(timeout=10_000)
+    btn.click()
+    page.wait_for_timeout(700)
+
+
+def open_project_edit_form(page: Page) -> None:
+    """⋮ 메뉴 → [수정] → 프로젝트 정보 편집 폼 (§17-9 캡처용)."""
+    open_project_more_menu(page)
+    page.get_by_role(
+        "menuitem", name=re.compile(r"^\s*(수정|Edit)\s*$", re.I)
+    ).first.click(timeout=5_000)
+    page.wait_for_selector('[data-testid="project-save-button"]', timeout=10_000)
+    page.wait_for_timeout(800)
+
+
+def set_manual_viewer_lang(page: Page) -> None:
+    """매뉴얼 뷰어의 언어 토글을 캡처 언어에 맞춘다.
+
+    로그아웃 상태로 여는 화면이라 계정 언어 설정을 따르지 않고 뷰어가 자체 기본값으로
+    열린다. 한/영 캡처가 같은 화면으로 찍히지 않도록 env `MANUAL_CAPTURE_LANG` 로 정한다.
+    """
+    lang = os.environ.get("MANUAL_CAPTURE_LANG", "ko").lower()
+    btn = page.locator(f'[data-testid="manual-lang-{lang}"]')
+    btn.wait_for(timeout=10_000)
+    btn.click()
+    page.wait_for_timeout(1_200)
+
+
+def open_localized_guide(page: Page) -> None:
+    """가이드 문서를 캡처 언어의 판본으로 다시 불러온다.
+
+    서버는 `Accept-Language` 로 `_en` 판본을 고르는데, 프런트는 그 헤더를
+    localStorage 의 `preferred-language`(기본 `ko`)에서 만든다. 로그아웃 상태로 여는
+    화면이라 계정 언어가 반영되지 않으므로 값을 직접 심고 다시 읽힌다.
+    """
+    lang = os.environ.get("MANUAL_CAPTURE_LANG", "ko").lower()
+    page.evaluate(
+        "(l) => localStorage.setItem('preferred-language', l)",
+        lang,
+    )
+    page.reload()
+    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_timeout(1_500)
+
+
 def open_cross_project_dialog(page: Page) -> None:
     """트리 전체 선택 → [프로젝트 이동/복사] 버튼 → 일괄 작업 다이얼로그 (§5-5, v1.0.93).
 
@@ -459,7 +590,6 @@ STEPS: list[Step] = [
     Step("13_project_created", url="/projects", todo=True),  # ✕ 생성 완료
     # ── 4. 헤더 / 메뉴 ─────────────────────────────────────────────
     Step("15_user_menu", url="/projects", prepare=open_user_menu),  # △
-    Step("17_header_jira", url=_project_path(""), todo=True),  # ✕ JIRA 배지 클릭
     Step(
         "18_user_menu_logout", url="/projects", prepare=open_user_menu
     ),  # △ (동일 메뉴, 로그아웃 강조)
@@ -479,13 +609,6 @@ STEPS: list[Step] = [
     Step(
         "24_tree_populated", url=_project_path("/testcases"), wait_ms=1500
     ),  # ● 폴더·케이스 트리
-    Step("25_folder_created", url=_project_path("/testcases"), todo=True),
-    Step("27_testcase_created", url=_project_path("/testcases"), todo=True),
-    Step("28_two_folders", url=_project_path("/testcases"), todo=True),
-    Step("32_tree_final", url=_project_path("/testcases"), todo=True),
-    Step(
-        "32_tree_final_full", url=_project_path("/testcases"), full_page=True, todo=True
-    ),
     # ── 6b. 폴더 전용 트리 + 케이스 목록 (2026-06-06 feat/style-folder-tree) ──
     Step(
         "87_tree_folder_only", url=_project_path("/testcases"), wait_ms=1500
@@ -571,9 +694,6 @@ STEPS: list[Step] = [
         "63_project_selector", url="/projects", todo=True
     ),  # ✕ 프로젝트 선택 드롭다운 오픈
     Step("64_user_menu_v2", url="/projects", prepare=open_user_menu),
-    Step(
-        "66_tree_panel_crop", url=_project_path("/testcases"), todo=True
-    ),  # ✕ 트리 패널만 crop
     # ── 10. 프로필 다이얼로그 (탭별) ─────────────────────────────────────────────
     Step("65_profile_page", url="/projects", todo=True),  # ✕ 프로필 다이얼로그 오픈
     Step("67_profile_password", url="/projects", todo=True),
@@ -651,6 +771,59 @@ STEPS: list[Step] = [
         prepare=fill_tree_filter,
         wait_ms=800,
     ),
+    # ── 12. 글로만 설명하던 화면 (2026-08-04 커버리지 감사에서 검출) ────────
+    Step("101_verify_email", url="/verify-email", auth=False),  # ●
+    Step(
+        "102_manual_viewer",
+        url="/manual",
+        auth=False,
+        prepare=set_manual_viewer_lang,
+        wait_ms=900,
+    ),  # △
+    Step(
+        # 파일명 그대로가 주소다 — 확장자를 빼면 서버가 400 을 낸다
+        "103_guide_viewer",
+        url="/guides/GOOGLE_SHEETS_SETUP_GUIDE.md",
+        auth=False,
+        prepare=open_localized_guide,
+        wait_ms=1_000,
+    ),  # △
+    Step(
+        "104_plan_form_new", url=_project_path("/testplans/new"), wait_ms=1_000
+    ),  # ●
+    Step(
+        "105_plan_detail",
+        url=_project_path("/testplans"),
+        prepare=open_first_plan_detail,
+        wait_ms=800,
+    ),  # △
+    Step(
+        "106_execution_form_new", url=_project_path("/executions/new"), wait_ms=1_000
+    ),  # ●
+    Step(
+        "107_result_entry",
+        url=_project_path("/executions"),
+        prepare=open_result_entry,
+        wait_ms=800,
+    ),  # △
+    Step(
+        "108_junit_result_detail",
+        url=_project_path("/junit"),
+        prepare=open_first_junit_detail,
+        wait_ms=800,
+    ),  # △
+    Step(
+        "109_results_by_folder",
+        url=_project_path("/executions?viewType=by-folder"),
+        wait_ms=1_200,
+    ),  # ●
+    Step("110_project_more_menu", url="/projects", prepare=open_project_more_menu),  # △
+    Step(
+        "111_project_edit_form",
+        url="/projects",
+        prepare=open_project_edit_form,
+        wait_ms=800,
+    ),  # △
 ]
 
 
@@ -902,12 +1075,19 @@ def run(args: argparse.Namespace, pw: Playwright) -> int:
         ctx.close()
 
     # 2) 인증 컨텍스트 + 비인증 컨텍스트 두 개 준비
+    #    브라우저 로케일을 캡처 언어에 맞춘다 — 로그아웃 상태로 보는 가이드·매뉴얼은
+    #    계정 언어가 아니라 Accept-Language 로 언어판이 갈린다.
+    capture_locale = (
+        "en-US" if os.environ.get("MANUAL_CAPTURE_LANG", "ko").lower() == "en" else "ko-KR"
+    )
     ctx_auth = browser.new_context(
         viewport={"width": viewport_w, "height": viewport_h},
         storage_state=str(state_path),
+        locale=capture_locale,
     )
     ctx_anon = browser.new_context(
         viewport={"width": viewport_w, "height": viewport_h},
+        locale=capture_locale,
     )
     page_auth = ctx_auth.new_page()
     page_anon = ctx_anon.new_page()

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 666" width="100%" role="img" aria-label="S1 Projects layout">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A Screen hdr</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[+ New project]</text>
+  <text class="desc" x="28" y="60">Title: Project Admin</text>
+  <rect class="bx-dq" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B Error alert</text>
+  <text class="tiny" x="28" y="134">Shows only on list query or manipulation failure</text>
+  <rect class="bx-ch" x="16" y="164" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="187">C Member tab</text>
+  <text class="desc" x="28" y="208">[By org] [Standalone]</text>
+  <text class="tiny" x="28" y="227">Draw only tabs with content · tab order matches screen display</text>
+  <rect class="bx" x="16" y="257" width="302.667" height="159" rx="6"/>
+  <text class="area" x="28" y="280">D Project card</text>
+  <text class="desc" x="28" y="301">Project name · [code] chip · ⋮ menu</text>
+  <text class="desc" x="28" y="320">🏢 Organization name or 🌐 standalone project</text>
+  <text class="desc" x="28" y="339">Description (omit if empty)</text>
+  <text class="desc" x="28" y="358">📄 Cases 12 · 👤 Members 3 ▾ · ⚙ Automated 2</text>
+  <text class="desc" x="28" y="377">Members expanded: avatar + name + role badge (max …</text>
+  <text class="desc" x="28" y="396">[Open]</text>
+  <rect class="bx" x="328.667" y="257" width="302.667" height="159" rx="6"/>
+  <text class="area" x="340.667" y="280">Card 2</text>
+  <text class="tiny" x="340.667" y="301">Grid repeat</text>
+  <rect class="bx" x="641.333" y="257" width="302.667" height="159" rx="6"/>
+  <text class="area" x="653.333" y="280">Card 3</text>
+  <text class="tiny" x="653.333" y="301">Grid repeat</text>
+  <rect class="bx-dq" x="16" y="426" width="928" height="102" rx="6"/>
+  <text class="area" x="28" y="449">E Empty (no projects)</text>
+  <text class="desc" x="28" y="470">👥 Icon · No active projects</text>
+  <text class="desc" x="28" y="489">Users without projects must be invited to use.</text>
+  <text class="desc" x="28" y="508">Request project invite from admin + [create]</text>
+  <rect class="bx-bt" x="16" y="538" width="224.5" height="83" rx="6"/>
+  <text class="area" x="28" y="561">F Card menu</text>
+  <text class="desc" x="28" y="582">Edit · org transfer</text>
+  <text class="desc" x="28" y="601">Delete · Force delete</text>
+  <rect class="bx-ac" x="250.5" y="538" width="224.5" height="83" rx="6"/>
+  <text class="area" x="262.5" y="561">G Create·Edit dialog</text>
+  <text class="desc" x="262.5" y="582">Name · code · org · description</text>
+  <rect class="bx-ac" x="485" y="538" width="224.5" height="83" rx="6"/>
+  <text class="area" x="497" y="561">H Org transfer</text>
+  <text class="desc" x="497" y="582">Select target organization</text>
+  <rect class="bx-ac" x="719.5" y="538" width="224.5" height="83" rx="6"/>
+  <text class="area" x="731.5" y="561">I Delete confirm</text>
+  <text class="desc" x="731.5" y="582">Normal · forced</text>
+  <text class="strong" x="16" y="648">Legend</text>
+  <rect class="bx" x="73.60" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="92.60" y="649">Regular area</text>
+  <rect class="bx-ac" x="183.20" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="202.20" y="649">Highlighted · conditional areas</text>
+  <rect class="bx-ch" x="407.75" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="426.75" y="649">Global chrome</text>
+  <rect class="bx-dq" x="523.40" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="542.40" y="649">Empty · hidden</text>
+  <rect class="bx-bt" x="645.10" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="664.10" y="649">Button · Action</text>
+</svg>

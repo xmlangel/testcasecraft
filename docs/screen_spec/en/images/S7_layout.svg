@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 785" width="100%" role="img" aria-label="S7 Test Results layout">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A Page hdr</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[Export] Excel·PDF·CSV</text>
+  <text class="desc" x="28" y="60">Title: Test Results</text>
+  <rect class="bx-ch" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B Tab</text>
+  <text class="desc" x="28" y="134">📊 Statistics dashboard    📋 Detail table</text>
+  <rect class="bx-ac" x="16" y="164" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="187">C Filter (stats tab)</text>
+  <text class="desc" x="28" y="208">Date (last 30 days) · plan · assignee · result status  ·  [Reset]</text>
+  <rect class="bx" x="16" y="238" width="227" height="83" rx="6"/>
+  <text class="area" x="28" y="261">D-1 Pass rate</text>
+  <text class="desc" x="28" y="282">87.5%</text>
+  <text class="tiny" x="28" y="301">(21/24)</text>
+  <rect class="bx" x="253" y="238" width="340.5" height="83" rx="6"/>
+  <text class="area" x="265" y="261">D-2 Distribution</text>
+  <text class="desc" x="265" y="282">🟢 Pass 21 · 🔴 Fail 2</text>
+  <text class="desc" x="265" y="301">🟠 Blocked 1 · ⚪ Not Run 0</text>
+  <rect class="bx" x="603.5" y="238" width="340.5" height="83" rx="6"/>
+  <text class="area" x="615.5" y="261">D-3 Trend</text>
+  <text class="tiny" x="615.5" y="282">Last 7 days line chart</text>
+  <rect class="bx" x="16" y="331" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="354">D-4 Stats by folder</text>
+  <text class="desc" x="28" y="375">📁 Module A (18) ▾    ├ Feature A-1 (5) 🟢 4 / 🔴 1    └ Feature A-2 (3) 🟢 3</text>
+  <text class="desc" x="28" y="394">📁 Module B (6) ▸</text>
+  <rect class="bx" x="16" y="424" width="928" height="164" rx="6"/>
+  <text class="area" x="28" y="447">E Detail table</text>
+  <rect class="bx-hd" x="28" y="464" width="904" height="26" rx="4"/>
+  <text class="tiny" x="36" y="481">Test case</text>
+  <text class="tiny" x="364.727" y="481">status</text>
+  <text class="tiny" x="529.091" y="481">Assignee</text>
+  <text class="tiny" x="693.455" y="481">Execution date/time</text>
+  <text class="desc" x="36" y="507">SHP-001</text>
+  <text class="desc" x="364.727" y="507">🟢 Pass</text>
+  <text class="desc" x="529.091" y="507">Kim Chulsu</text>
+  <text class="desc" x="693.455" y="507">2026-08-02 14:32</text>
+  <text class="desc" x="36" y="531">SHP-002</text>
+  <text class="desc" x="364.727" y="531">🔴 Fail</text>
+  <text class="desc" x="529.091" y="531">Lee Young-hee</text>
+  <text class="desc" x="693.455" y="531">2026-08-02 15:01</text>
+  <text class="desc" x="36" y="555">SHP-003</text>
+  <text class="desc" x="364.727" y="555">🟠 Blocked</text>
+  <text class="desc" x="529.091" y="555">Unassigned</text>
+  <text class="desc" x="693.455" y="555">2026-08-01 10:15</text>
+  <text class="tiny" x="28" y="576">1-50 of 24 items · page 1 of 1 · 1,000+ rows virtualized</text>
+  <rect class="bx-ac" x="16" y="598" width="928" height="102" rx="6"/>
+  <text class="area" x="28" y="621">F QA summary</text>
+  <text class="desc" x="28" y="642">Markdown editor + live preview · max 10,000 chars</text>
+  <text class="desc" x="28" y="661">Show author &amp; last edit in header · [summary] [edit] [save]</text>
+  <text class="tiny" x="28" y="680">Advanced export: included in PDF, excluded from Excel · CSV</text>
+  <text class="tiny" x="16" y="721">Stats tab: C·D shown, E·F hidden. Detail: E shown, F after select.</text>
+  <text class="tiny" x="16" y="740">Below 600px, charts stack vertically.</text>
+  <text class="strong" x="16" y="767">Legend</text>
+  <rect class="bx" x="73.60" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="92.60" y="768">Regular area</text>
+  <rect class="bx-ac" x="183.20" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="202.20" y="768">Highlighted · conditional areas</text>
+  <rect class="bx-ch" x="407.75" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="426.75" y="768">Global chrome</text>
+  <rect class="bx-dq" x="523.40" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="542.40" y="768">Empty · hidden</text>
+  <rect class="bx-bt" x="645.10" y="758" width="13" height="13" rx="3"/>
+  <text class="tiny" x="664.10" y="768">Button · Action</text>
+</svg>

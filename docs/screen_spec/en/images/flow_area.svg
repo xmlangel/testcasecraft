@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" width="100%" role="img" aria-label="Eight areas inside the workspace shell">
+  <defs>
+    <style>
+      .shell { fill: #f7f9ff; stroke: #c7d2fe; stroke-width: 1; }
+      .box   { fill: #fff; stroke: #d0d5dd; stroke-width: 1; }
+      .cond  { fill: #fff; stroke: #d0d5dd; stroke-width: 1; stroke-dasharray: 4 3; }
+      .chrome{ fill: #f3f4f6; stroke: #d0d5dd; stroke-width: 1; }
+      .label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 13px; font-weight: bold; fill: #111827; }
+      .desc  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 12px; fill: #475467; }
+      .tiny  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #6b7280; }
+    </style>
+  </defs>
+
+  <rect class="shell" x="16" y="16" width="928" height="230" rx="8"/>
+  <text class="label" x="32" y="40">S2 Shell</text>
+  <text class="desc" x="112" y="40">Header · breadcrumb · nav (tab/sidebar)</text>
+
+  <rect class="chrome" x="32" y="52" width="896" height="26" rx="4"/>
+  <text class="tiny" x="44" y="70">Logo · [Project select] · JIRA · ☆ · ? · layout toggle · dark mode · avatar</text>
+
+  <rect class="box" x="32" y="96" width="212" height="56" rx="6"/>
+  <text class="label" x="46" y="120">S3 Dashboard</text>
+  <text class="tiny" x="46" y="140">Default area after entering</text>
+
+  <rect class="box" x="256" y="96" width="212" height="56" rx="6"/>
+  <text class="label" x="270" y="120">S4 Test Cases</text>
+  <text class="tiny" x="270" y="140">has count badge</text>
+
+  <rect class="box" x="480" y="96" width="212" height="56" rx="6"/>
+  <text class="label" x="494" y="120">S5 Test Plans</text>
+  <text class="tiny" x="494" y="140">has count badge</text>
+
+  <rect class="box" x="704" y="96" width="212" height="56" rx="6"/>
+  <text class="label" x="718" y="120">S6 Test Execution</text>
+  <text class="tiny" x="718" y="140">has count badge</text>
+
+  <rect class="box" x="32" y="164" width="212" height="56" rx="6"/>
+  <text class="label" x="46" y="188">S7 Test Results</text>
+  <text class="tiny" x="46" y="208">Statistics·QA summary·export</text>
+
+  <rect class="box" x="256" y="164" width="212" height="56" rx="6"/>
+  <text class="label" x="270" y="188">S8 Automated Tests</text>
+  <text class="tiny" x="270" y="208">JUnit result import</text>
+
+  <rect class="cond" x="480" y="164" width="212" height="56" rx="6"/>
+  <text class="label" x="494" y="188">S9 RAG *</text>
+  <text class="tiny" x="494" y="208">only when isRagEnabled</text>
+
+  <rect class="cond" x="704" y="164" width="212" height="56" rx="6"/>
+  <text class="label" x="718" y="188">S10 Sessions *</text>
+  <text class="tiny" x="718" y="208">Exposed by environment variable only</text>
+
+  <text class="tiny" x="32" y="272">* Dashed boxes: conditional display. When hidden: area item removed from list, next item's tabIndex shifts forward.</text>
+  <text class="tiny" x="32" y="290">The area list has one canonical source; tab and sidebar layouts both read it.</text>
+</svg>

@@ -47,6 +47,9 @@ public class TranslationDataInitializer {
   // 2026-06-09 즐겨찾기/개인 북마크 기능
   private final KoreanBookmarkTranslations koreanBookmarkTranslations;
   private final EnglishBookmarkTranslations englishBookmarkTranslations;
+  // 2026-08-03 화면 ID 배지
+  private final KoreanScreenIdTranslations koreanScreenIdTranslations;
+  private final EnglishScreenIdTranslations englishScreenIdTranslations;
 
   @Transactional
   public void initialize() {
@@ -87,6 +90,10 @@ public class TranslationDataInitializer {
     // 2026-06-09 즐겨찾기/개인 북마크 기능
     koreanBookmarkTranslations.initialize();
     englishBookmarkTranslations.initialize();
+
+    // 2026-08-03 화면 ID 배지
+    koreanScreenIdTranslations.initialize();
+    englishScreenIdTranslations.initialize();
 
     log.info("번역 데이터 초기화 완료");
   }

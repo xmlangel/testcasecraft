@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 404" width="100%" role="img" aria-label="S11 관리자 설정 구조">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="39">진입 — 헤더 `[관리 메뉴 ▾]` (시스템 ADMIN 전용)</text>
+  <text class="desc" x="28" y="60">조직 관리 · 사용자 관리 · 메일 설정 · LLM 설정 · 스케줄러 관리</text>
+  <text class="tiny" x="28" y="79">번역 관리는 메뉴에서 주석 처리되어 URL 직접 진입만 가능하다</text>
+  <rect class="bx" x="16" y="109" width="302.667" height="83" rx="6"/>
+  <text class="area" x="28" y="132">조직 관리 /organizations</text>
+  <text class="desc" x="28" y="153">목록 · 생성 · 수정</text>
+  <text class="desc" x="28" y="172">상세: 멤버·그룹 권한</text>
+  <rect class="bx" x="328.667" y="109" width="302.667" height="83" rx="6"/>
+  <text class="area" x="340.667" y="132">사용자 관리 /users</text>
+  <text class="desc" x="340.667" y="153">통계 카드 4종 · 검색 · 필터</text>
+  <text class="desc" x="340.667" y="172">행 액션: 상세·비밀번호 재설정·역할 변경·활…</text>
+  <rect class="bx" x="641.333" y="109" width="302.667" height="83" rx="6"/>
+  <text class="area" x="653.333" y="132">메일 설정 /mail-settings</text>
+  <text class="desc" x="653.333" y="153">SMTP 호스트·포트·계정</text>
+  <text class="desc" x="653.333" y="172">발신자 · 템플릿 · 테스트 발송</text>
+  <rect class="bx" x="16" y="202" width="302.667" height="83" rx="6"/>
+  <text class="area" x="28" y="225">LLM 설정 /llm-config</text>
+  <text class="desc" x="28" y="246">프로바이더 · 모델 · 키</text>
+  <text class="desc" x="28" y="265">프롬프트 템플릿 · 기본값</text>
+  <rect class="bx" x="328.667" y="202" width="302.667" height="83" rx="6"/>
+  <text class="area" x="340.667" y="225">스케줄러 /scheduler</text>
+  <text class="desc" x="340.667" y="246">잡 목록 · Cron 표현식</text>
+  <text class="desc" x="340.667" y="265">마지막 실행 · 수동 실행 · 일시정지</text>
+  <rect class="bx-dq" x="641.333" y="202" width="302.667" height="83" rx="6"/>
+  <text class="area" x="653.333" y="225">번역 관리 /translation-management</text>
+  <text class="desc" x="653.333" y="246">언어별 키·값 편집</text>
+  <text class="desc" x="653.333" y="265">누락 통계 · 카테고리</text>
+  <rect class="bx-ac" x="16" y="295" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="318">전사 대시보드 /dashboard</text>
+  <text class="desc" x="28" y="339">헤더 `[대시보드]` 로 진입한다. 상세는 S3 문서가 다룬다.</text>
+  <text class="strong" x="16" y="386">범례</text>
+  <rect class="bx" x="54" y="377" width="13" height="13" rx="3"/>
+  <text class="tiny" x="73" y="387">일반 영역</text>
+  <rect class="bx-ac" x="142.05" y="377" width="13" height="13" rx="3"/>
+  <text class="tiny" x="161.05" y="387">강조·조건부 영역</text>
+  <rect class="bx-ch" x="269.15" y="377" width="13" height="13" rx="3"/>
+  <text class="tiny" x="288.15" y="387">전역 크롬</text>
+  <rect class="bx-dq" x="357.2" y="377" width="13" height="13" rx="3"/>
+  <text class="tiny" x="376.2" y="387">빈 상태·미노출</text>
+  <rect class="bx-bt" x="473.3" y="377" width="13" height="13" rx="3"/>
+  <text class="tiny" x="492.3" y="387">버튼·액션</text>
+</svg>

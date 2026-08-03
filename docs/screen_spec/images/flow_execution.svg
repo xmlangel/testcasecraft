@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 250" width="100%" role="img" aria-label="실행 파이프라인의 왕복 — 플랜에서 실행, 결과 입력, 통계 반영">
+  <defs>
+    <style>
+      .box   { fill: #fff; stroke: #d0d5dd; stroke-width: 1; }
+      .accent{ fill: #f7f9ff; stroke: #c7d2fe; stroke-width: 1; }
+      .label { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 13px; font-weight: bold; fill: #111827; }
+      .desc  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 12px; fill: #475467; }
+      .tiny  { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 11px; fill: #6b7280; }
+      .edge  { stroke: #315efb; stroke-width: 1.5; fill: none; }
+    </style>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#315efb"/>
+    </marker>
+  </defs>
+
+  <!-- 1. 플랜 상세 -->
+  <rect class="box" x="24" y="40" width="196" height="60" rx="6"/>
+  <text class="label" x="38" y="66">S5 플랜 상세</text>
+  <text class="tiny" x="38" y="86">케이스 묶음</text>
+
+  <line class="edge" x1="220" y1="70" x2="316" y2="70" marker-end="url(#arw)"/>
+  <text class="tiny" x="228" y="62">[실행 만들기]</text>
+
+  <!-- 2. 실행 상세 -->
+  <rect class="box" x="318" y="40" width="196" height="60" rx="6"/>
+  <text class="label" x="332" y="66">S6 실행 상세</text>
+  <text class="tiny" x="332" y="86">케이스 목록 + 필터</text>
+
+  <line class="edge" x1="416" y1="100" x2="416" y2="136" marker-end="url(#arw)"/>
+  <text class="tiny" x="426" y="124">케이스 행 클릭</text>
+
+  <!-- 3. 결과 입력 -->
+  <rect class="accent" x="318" y="138" width="196" height="60" rx="6"/>
+  <text class="label" x="332" y="164">S6 결과 입력</text>
+  <text class="tiny" x="332" y="184">P / F / B / N · 노트 · 태그</text>
+
+  <line class="edge" x1="514" y1="168" x2="610" y2="168" marker-end="url(#arw)"/>
+  <text class="tiny" x="522" y="160">결과 저장</text>
+
+  <!-- 4. 통계 -->
+  <rect class="box" x="612" y="138" width="196" height="60" rx="6"/>
+  <text class="label" x="626" y="164">S3 · S7 집계</text>
+  <text class="tiny" x="626" y="184">통계 · 추이 · 보고서</text>
+
+  <!-- 회귀 루프 -->
+  <path class="edge" d="M 808 168 L 880 168 L 880 20 L 122 20 L 122 40" marker-end="url(#arw)"/>
+  <text class="tiny" x="440" y="14">회귀 — 케이스 보완 후 새 플랜·새 실행으로 되돌아온다</text>
+
+  <text class="tiny" x="24" y="228">플랜에서 실행을 만들면 그 시점의 케이스 묶음을 물려받는다. 집계는 별도 테이블 없이 TestResult 를 다시 읽으므로 화면 간 숫자가 갈라지지 않는다.</text>
+</svg>

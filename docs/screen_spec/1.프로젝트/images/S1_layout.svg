@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 666" width="100%" role="img" aria-label="S1 프로젝트 화면 배치">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A 화면 헤더</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[+ 새 프로젝트 생성]</text>
+  <text class="desc" x="28" y="60">제목 `프로젝트 관리`</text>
+  <rect class="bx-dq" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B 오류 알림</text>
+  <text class="tiny" x="28" y="134">목록 조회·조작 실패 시에만 노출</text>
+  <rect class="bx-ch" x="16" y="164" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="187">C 소속 탭</text>
+  <text class="desc" x="28" y="208">[조직별 프로젝트]  [독립 프로젝트]  [전체 프로젝트]</text>
+  <text class="tiny" x="28" y="227">내용이 있는 탭만 그린다 · 탭 순서는 화면에 보이는 순서를 따른다</text>
+  <rect class="bx" x="16" y="257" width="302.667" height="159" rx="6"/>
+  <text class="area" x="28" y="280">D 프로젝트 카드</text>
+  <text class="desc" x="28" y="301">프로젝트 이름 · [코드] 칩 · ⋮ 메뉴</text>
+  <text class="desc" x="28" y="320">🏢 조직명 또는 🌐 독립 프로젝트</text>
+  <text class="desc" x="28" y="339">설명 (없으면 행을 그리지 않는다)</text>
+  <text class="desc" x="28" y="358">📄 케이스 12 · 👤 멤버 3 ▾ · ⚙ 자동화 2</text>
+  <text class="desc" x="28" y="377">멤버 펼침: 아바타 + 이름 + 역할 배지 (최대 …</text>
+  <text class="desc" x="28" y="396">[프로젝트 열기]</text>
+  <rect class="bx" x="328.667" y="257" width="302.667" height="159" rx="6"/>
+  <text class="area" x="340.667" y="280">카드 2</text>
+  <text class="tiny" x="340.667" y="301">그리드 반복</text>
+  <rect class="bx" x="641.333" y="257" width="302.667" height="159" rx="6"/>
+  <text class="area" x="653.333" y="280">카드 3</text>
+  <text class="tiny" x="653.333" y="301">그리드 반복</text>
+  <rect class="bx-dq" x="16" y="426" width="928" height="102" rx="6"/>
+  <text class="area" x="28" y="449">E 빈 상태 (참여 프로젝트 0건)</text>
+  <text class="desc" x="28" y="470">👥 아이콘 · 참여 중인 프로젝트가 없습니다</text>
+  <text class="desc" x="28" y="489">프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.</text>
+  <text class="desc" x="28" y="508">시스템관리자에게 프로젝트 초대를 요청하세요.  +  [프로젝트 생성]</text>
+  <rect class="bx-bt" x="16" y="538" width="224.5" height="83" rx="6"/>
+  <text class="area" x="28" y="561">F 카드 메뉴 (⋮)</text>
+  <text class="desc" x="28" y="582">수정 · 조직 이전</text>
+  <text class="desc" x="28" y="601">삭제 · 강제 삭제</text>
+  <rect class="bx-ac" x="250.5" y="538" width="224.5" height="83" rx="6"/>
+  <text class="area" x="262.5" y="561">G 생성·수정 다이얼로그</text>
+  <text class="desc" x="262.5" y="582">이름 · 코드 · 소속 조직 · 설명</text>
+  <rect class="bx-ac" x="485" y="538" width="224.5" height="83" rx="6"/>
+  <text class="area" x="497" y="561">H 조직 이전</text>
+  <text class="desc" x="497" y="582">대상 조직 선택</text>
+  <rect class="bx-ac" x="719.5" y="538" width="224.5" height="83" rx="6"/>
+  <text class="area" x="731.5" y="561">I 삭제 확인</text>
+  <text class="desc" x="731.5" y="582">일반 · 강제 두 모드</text>
+  <text class="strong" x="16" y="648">범례</text>
+  <rect class="bx" x="54" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="73" y="649">일반 영역</text>
+  <rect class="bx-ac" x="142.05" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="161.05" y="649">강조·조건부 영역</text>
+  <rect class="bx-ch" x="269.15" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="288.15" y="649">전역 크롬</text>
+  <rect class="bx-dq" x="357.2" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="376.2" y="649">빈 상태·미노출</text>
+  <rect class="bx-bt" x="473.3" y="639" width="13" height="13" rx="3"/>
+  <text class="tiny" x="492.3" y="649">버튼·액션</text>
+</svg>

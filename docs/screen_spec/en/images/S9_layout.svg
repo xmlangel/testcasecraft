@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 673" width="100%" role="img" aria-label="S9 RAG Documents layout">
+  <defs>
+    <style>
+    .bx    { fill:#fff; stroke:#d0d5dd; stroke-width:1 }
+    .bx-ac { fill:#f7f9ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-ch { fill:#f3f4f6; stroke:#d0d5dd; stroke-width:1 }
+    .bx-dq { fill:#fff; stroke:#d0d5dd; stroke-width:1; stroke-dasharray:4 3 }
+    .bx-bt { fill:#eef2ff; stroke:#c7d2fe; stroke-width:1 }
+    .bx-hd { fill:#f9fafb; stroke:#e5e7eb; stroke-width:1 }
+    .area  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:13px; font-weight:bold; fill:#111827 }
+    .desc  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; fill:#475467 }
+    .tiny  { font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:11px; fill:#6b7280 }
+    .strong{ font-family:-apple-system,'Malgun Gothic',sans-serif; font-size:12px; font-weight:bold; fill:#111827 }
+    </style>
+  </defs>
+  <rect class="bx-ch" x="16" y="16" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="39">A Screen hdr</text>
+  <text class="desc" x="932" y="39" text-anchor="end">[+ Add doc]</text>
+  <text class="desc" x="28" y="60">Title: RAG Documents</text>
+  <rect class="bx-dq" x="16" y="90" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="113">B Error alert</text>
+  <text class="desc" x="28" y="134">⚠ Embedding error message</text>
+  <rect class="bx-ch" x="16" y="164" width="928" height="64" rx="6"/>
+  <text class="area" x="28" y="187">C Tab group</text>
+  <text class="desc" x="28" y="208">[Docs] [Chat]</text>
+  <rect class="bx" x="16" y="238" width="928" height="145" rx="6"/>
+  <text class="area" x="28" y="261">D.1 Doc list</text>
+  <rect class="bx-hd" x="28" y="278" width="904" height="26" rx="4"/>
+  <text class="tiny" x="36" y="295">Filename</text>
+  <text class="tiny" x="397.6" y="295">status</text>
+  <text class="tiny" x="638.667" y="295">Chunk</text>
+  <text class="tiny" x="759.2" y="295">Size</text>
+  <text class="tiny" x="879.733" y="295">⋮</text>
+  <text class="desc" x="36" y="321">test_specification.pdf</text>
+  <text class="desc" x="397.6" y="321">Ready ✓</text>
+  <text class="desc" x="638.667" y="321">42</text>
+  <text class="desc" x="759.2" y="321">3.2 MB</text>
+  <text class="desc" x="879.733" y="321">⋮</text>
+  <text class="desc" x="36" y="345">requirement_2024.md</text>
+  <text class="desc" x="397.6" y="345">Embedding ▮ 65%</text>
+  <text class="desc" x="638.667" y="345">—</text>
+  <text class="desc" x="759.2" y="345">0.8 MB</text>
+  <text class="desc" x="879.733" y="345">⋮</text>
+  <text class="desc" x="36" y="369">legacy_docs.html</text>
+  <text class="desc" x="397.6" y="369">Fail ✗</text>
+  <text class="desc" x="638.667" y="369">—</text>
+  <text class="desc" x="759.2" y="369">2.1 MB</text>
+  <text class="desc" x="879.733" y="369">⋮</text>
+  <rect class="bx-ac" x="16" y="393" width="655.714" height="121" rx="6"/>
+  <text class="area" x="28" y="416">D.2 Chat</text>
+  <text class="desc" x="28" y="437">User: test env setup?</text>
+  <text class="desc" x="28" y="456">Answer: two approaches. Docker or local installation…</text>
+  <text class="desc" x="28" y="475">Source: [requirement_2024.md · #15]</text>
+  <text class="desc" x="28" y="494">Input: Enter message…   [send]</text>
+  <rect class="bx-bt" x="681.714" y="393" width="262.286" height="121" rx="6"/>
+  <text class="area" x="693.714" y="416">All analytics</text>
+  <text class="desc" x="693.714" y="437">Select document ▾</text>
+  <text class="desc" x="693.714" y="456">[Analyze]</text>
+  <text class="tiny" x="693.714" y="475">Confirmed in chunk batch units</text>
+  <rect class="bx-dq" x="16" y="524" width="928" height="83" rx="6"/>
+  <text class="area" x="28" y="547">E Empty (no docs)</text>
+  <text class="desc" x="28" y="568">📄 No documents uploaded</text>
+  <text class="desc" x="28" y="587">Upload docs → auto-indexed for chat · [+ Doc]</text>
+  <text class="tiny" x="16" y="628">RAG service off → hidden</text>
+  <text class="strong" x="16" y="655">Legend</text>
+  <rect class="bx" x="73.60" y="646" width="13" height="13" rx="3"/>
+  <text class="tiny" x="92.60" y="656">Regular area</text>
+  <rect class="bx-ac" x="183.20" y="646" width="13" height="13" rx="3"/>
+  <text class="tiny" x="202.20" y="656">Highlighted · conditional areas</text>
+  <rect class="bx-ch" x="407.75" y="646" width="13" height="13" rx="3"/>
+  <text class="tiny" x="426.75" y="656">Global chrome</text>
+  <rect class="bx-dq" x="523.40" y="646" width="13" height="13" rx="3"/>
+  <text class="tiny" x="542.40" y="656">Empty · hidden</text>
+  <rect class="bx-bt" x="645.10" y="646" width="13" height="13" rx="3"/>
+  <text class="tiny" x="664.10" y="656">Button · Action</text>
+</svg>

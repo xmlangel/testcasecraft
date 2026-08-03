@@ -41,6 +41,20 @@
 
 ---
 
+## 하네스: 화면 커버리지 감사
+
+**목표:** 코드가 가진 화면이 화면 기획 문서(`docs/screen_spec/`)·사용자 매뉴얼·캡처에 빠짐없이 있고, 실제 화면이 문서대로 동작하는지 4자 대조로 검증한다. 분모는 코드다.
+
+**트리거:** "화면 커버리지 검증", "누락된 게 없는지 검증", "코드에 있는 것이 문서에 다 있나", "기획문서·매뉴얼·캡처 대조", "화면 감사", "문서화 안 된 라우트 찾아줘", "재감사" 류 요청 시 `screen-coverage-audit` 스킬을 사용하라. 기획 문서 자체의 규격 검사는 `docs/screen_spec/validate.py`, 캡처 촬영은 `manual-capture`, 매뉴얼 본문 수정은 `manual-sync`.
+
+**구성:** 스킬 `screen-coverage-audit` (`.claude/skills/`, `scripts/audit.py` 번들 — code·spec·manual·app·matrix 서브커맨드) + 에이전트 2종 (`screen-coverage-auditor` 문서 축 판정 · `screen-behavior-prober` 실측 축 판정). 산출물은 `.workspace/screen-coverage-audit/`.
+
+**실행 모드:** 하이브리드. 수집은 결정적 스크립트가 단독으로 한다(세는 일에 판단이 끼면 숫자가 매번 달라진다). 판정만 에이전트 2인 병렬 팬아웃 후 메인이 합성. 실측은 앱이 떠 있어야 하고, 없으면 문서 축만 대조하며 리포트에 `미실측`으로 남는다.
+
+**화면 ID 정의가 7곳에 흩어져 있다.** 문서 폴더 이름 · `docs/screen_spec/validate.py` · `build_html.py` · `src/main/frontend/src/constants/screenIds.js` · `README.md` 화면 목록 · `ScreenIdKeysInitializer.java` · 한/영 번역 클래스. 화면을 더하거나 이름을 바꿀 때 일곱 곳을 함께 고친다.
+
+---
+
 ## 하네스 변경 이력
 
 | 날짜 | 변경 내용 | 대상 | 사유 |
@@ -55,3 +69,4 @@
 | 2026-06-06 | 하네스 감사 권장 조치 — integration-tester 후속작업 지침, manual-writer 섹션명 통일, dead pointer 2건 수정, i18n 스캐너 실행 경로 명시 | agents/, skills/ | /harness 전체 점검 (높음 2·중간 3 해소) |
 | 2026-07-21 | 온톨로지 시각화 스킬 신설 (`testcasecraft-ontology` — build_core·build_overlay·pg_common) | skills/testcasecraft-ontology | 사용자 요청 — testcasecraft 데이터를 Ontology-Playground 온톨로지로. 코어 스키마(공용) + 프로젝트별 오버레이(폴더 계층 자동 추출) 2층 구조. AUX 프로젝트(539b1952, 폴더151/케이스1167)로 검증 |
 | 2026-07-21 | 오버레이 슬러그·이름 자동화 — `GET /api/projects/<id>`로 실제 name/code 조회 | skills/testcasecraft-ontology/scripts/build_overlay.py | 사용자 지적 — 기본 슬러그가 UUID 8자리(dca4a2a4)라 의미 불명. code 기반 슬러그(testcasecraft-agg/-ags) + 실제 이름(AgensGraph/AgensSQL)으로 전환, 조회 실패 시만 UUID 폴백. 두 프로젝트 재생성해 통일 |
+| 2026-08-03 | **화면 커버리지 감사 하네스 신설** (스킬 `screen-coverage-audit` + `audit.py` + 에이전트 2종) | skills/screen-coverage-audit, agents/screen-coverage-auditor·screen-behavior-prober, CLAUDE.md | 화면 기획 문서(`docs/screen_spec/`)를 새로 만들면서 코드·문서·매뉴얼·캡처가 서로 어긋나는지 확인할 방법이 없었다. `manual-capture`가 이미 라우트↔매뉴얼 2자 대조를 하므로 기획 문서 축과 화면 ID 배지 실측을 더해 4자로 넓혔다. 첫 실행에서 실제 결함 다수 검출 — 기획 문서 라우트 줄이 축약형이라 코드와 안 맞던 3화면, 매뉴얼은 쓰는데 기획 문서가 안 가리킨 캡처 11장, 코드에 있으나 문서에 없던 라우트 3개(`/executions/{id}`·`/junit-results/{id}`·`/automation-tests/{id}`), 매뉴얼에 없던 라우트 8개. 매뉴얼 16-4절 「화면 주소 모음」을 한/영 신설해 전 라우트를 담고 갭 0건 달성 |
