@@ -504,6 +504,18 @@ Click the **[Test Plans]** tab at the top (`/projects/{projectId}/testplans`) to
 
 > This new project has no plans yet. Once you create a plan, it displays as a card.
 
+#### Creating a plan (`/projects/{projectId}/testplans/new`)
+
+![New test plan](images_en/104_plan_form_new.png)
+
+Enter the name and description on the left, then pick the cases to include from the tree on the right. Checking a folder selects the cases inside it, even while the folder stays collapsed. The search box matches name, display ID, and tags together. The name is required; a plan with no cases selected can still be saved.
+
+#### Opening and editing a plan (`/projects/{projectId}/testplans/{testPlanId}`)
+
+![Edit test plan](images_en/105_plan_detail.png)
+
+The same form opens with the stored values. The header shows how many cases the plan holds, and clearing a checkbox removes that case from the plan. Removing a case from a plan that already has executions leaves the earlier results untouched.
+
 > **Changed 2026-07-31 (new layout)**: With the left-side menu layout active, test plans display in a **2-section (list + detail)** format. The left panel shows the plan tree (with execution entries visible under each plan), and the right panel displays the selected plan's content. There is no popup or full-screen mode — everything stays within the layout. In the tab-based layout, the existing popup/full-screen behavior is preserved.
 
 ![Plan workspace — tree + details](images_en/98_plan_workspace.png)
@@ -530,6 +542,12 @@ Each execution row carries a status chip and the name of the plan it belongs to.
 
 ![Execution list — status and owning plan](images_en/99_execution_workspace.png)
 
+#### Creating an execution (`/projects/{projectId}/executions/new`)
+
+![Register test execution](images_en/106_execution_form_new.png)
+
+The execution name is required. Selecting a test plan pulls in the cases that plan holds. Turning on **[Start immediately]** starts the execution as soon as you save; leaving it off keeps the execution at `NOTSTARTED` so you can start it later. The summary header shows zeros because no results exist yet.
+
 The manual execution flow is as follows:
 
 1. Click **[Start Execution]** from a test plan
@@ -546,6 +564,10 @@ The manual execution flow is as follows:
 ### 8-1. Result Entry Screen
 
 Click a case within an execution to open the result entry screen (`/projects/{projectId}/executions/{executionId}/testcases/{testCaseId}/result`). Use the floating result button on the screen to record one of the following four states:
+
+![Result entry screen — verdict buttons and progress](images_en/107_result_entry.png)
+
+The header carries per-state counts and overall progress, and the `1 / 12` arrows move to the next case in the same execution. Below, the case's pre-condition, steps, and expected results follow along, so you can judge without opening a separate document.
 
 | Button | State | Meaning |
 |--------|-------|---------|
@@ -591,6 +613,20 @@ Click the **[Test Results]** tab at the top (`/projects/{projectId}/results`) to
 - Pass rate per case, recent N-run trend chart
 - Export result reports as files — three formats available:
 
+**Changing the view mode** — Changing **View mode** in the statistics filter regroups the same results by a different key. The chosen mode stays in the address (`?viewType=by-folder`), so the link shares as-is.
+
+![Test results — folder view](images_en/109_results_by_folder.png)
+
+| View mode | Value in the address | Grouped by |
+|---|---|---|
+| Overview | `overview` | Whole project on one page |
+| By folder | `by-folder` | Tree folders — which feature area is weak |
+| By plan | `by-plan` | Plans — which release bundle is weak |
+| By execution | `by-execution` | Execution runs — trend across runs |
+| By executor | `by-executor` | People — workload distribution |
+
+The **Manual tests / Automated tests / Combined** toggle below decides which results are counted.
+
 | Format | Recommended For |
 |--------|-----------------|
 | **Excel (.xlsx)** | Sharing report with charts, filtering statistics, and making modifications |
@@ -625,6 +661,21 @@ Click the **[Automated Tests]** tab at the top (`/projects/{projectId}/automatio
 > To view result files separately in simple form, check the **[JUnit Results]** screen (`/projects/{projectId}/junit`).
 
 ![JUnit page](images_en/54_junit.png)
+
+### 10-1. Result Detail Screen
+
+![Automation / JUnit result detail](images_en/108_junit_result_detail.png)
+
+The header carries passed, failed, error, and skipped counts alongside the success rate, and the list below shows individual tests. Narrow the list by test suite and status or search by name; failed entries expand with their error messages. The pencil icon on each row records a note that stays with the result. Use **PDF / CSV export** and **Refresh** in the upper right.
+
+Four addresses reach this same screen.
+
+| Address | When it is used |
+|---|---|
+| `/projects/{projectId}/automation-results/{testResultId}` | Clicking a row in the Automated Tests list |
+| `/projects/{projectId}/junit-results/{testResultId}` | Clicking a row on the JUnit Results screen |
+| `/automation-tests/{testResultId}` | Short alias that omits the project |
+| `/junit-results/{testResultId}` | The same alias |
 
 ---
 
@@ -668,7 +719,11 @@ The dialog comprises seven tabs:
 
 - Username / Full name / Email display (username cannot be changed)
 - Role badge (Tester/PM/Admin, etc.)
-- Email verification status — If **[Not Verified]**, click **[Send Verification Email]** to send verification mail. Click the link in the received email to see the verification complete screen (`/verify-email`). After verification, click **[Refresh Status]** to update the badge.
+- Email verification status — If **[Not Verified]**, click **[Send Verification Email]** to send verification mail. Click the link in the received email to see the verification result screen (`/verify-email`). After verification, click **[Refresh Status]** to update the badge.
+
+![Email verification result — expired or altered link](images_en/101_verify_email.png)
+
+If the link carries no verification value or the value was already used, the screen reports failure as shown above. Return to your profile and click **[Send Verification Email]** again to receive a fresh message. On success, the same area shows a completion notice and a login button.
 - Service version (server/client) displayed at the bottom
 
 ### 13-2. Password Change
@@ -697,7 +752,9 @@ Register your JIRA server URL, email, and connection key for use with your accou
 
 To import or export test cases to Google Sheets, you need to connect your Google account. Connect once following the on-screen instructions.
 
-> 💡 For detailed connection steps with illustrations, see the in-app guide (`/guides/GOOGLE_SHEETS_SETUP_GUIDE`). Click the help link on the settings screen to open the same document.
+> 💡 For detailed connection steps with illustrations, see the in-app guide (`/guides/GOOGLE_SHEETS_SETUP_GUIDE.md`). Click the help link on the settings screen to open the same document. When typing the address directly, **include the `.md` extension** — the server rejects the request without it.
+
+![Guide document viewer — Google Sheets integration](images_en/103_guide_viewer.png)
 
 ### 13-6. API Token
 
@@ -784,6 +841,12 @@ The **`⚠ JIRA`** badge in the header indicates that JIRA settings are not conf
 Setup, Docker configuration, environment variables, backup, upgrade, troubleshooting, and other **administrator guides** are maintained in a separate document.
 
 👉 **[`docs/deployment/DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md)**
+
+**Reading this manual inside the app** — Open it from the **?** icon in the header or at the address `/manual`. No login required.
+
+![Manual viewer](images_en/102_manual_viewer.png)
+
+Pick a section from the table of contents on the left, and switch languages with **한국어 / ENGLISH** in the upper right. The printer icon prints or saves as PDF. You can also append the language to the address (`/manual?l=en`) and share that link.
 
 ### 16-4. Screen Address Reference
 
@@ -943,6 +1006,14 @@ Dropdown items:
 ### 17-9. Project-Level Settings (PM)
 
 Access via the **⋮ (three-dot)** menu in the project card top-right or through the header menu after entering the project. (Requires `PROJECT_MANAGER` permission)
+
+![Project card ⋮ menu](images_en/110_project_more_menu.png)
+
+The menu offers **Edit · Transfer organization · Delete**. Clicking **[Edit]** opens the project information form.
+
+![Edit project](images_en/111_project_edit_form.png)
+
+Change the name, code, owning organization, and description. The code is the value used in case display IDs (the `SHOP` in `SHOP-031`), so changing it changes how cases are labeled from then on.
 
 - Change project name / code / description
 - Invite members / assign roles (PM / LEAD_DEVELOPER / DEVELOPER / TESTER / CONTRIBUTOR / VIEWER — 6 levels; see Section 18-4)
