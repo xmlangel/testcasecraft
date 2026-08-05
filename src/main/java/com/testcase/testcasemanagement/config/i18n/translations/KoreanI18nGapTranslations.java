@@ -629,6 +629,8 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryBy", languageCode, "작성", createdBy);
     createTranslationIfNotExists(
+        "testResult.export.option.includeQaSummary", languageCode, "QA 총평 포함", createdBy);
+    createTranslationIfNotExists(
         "testResult.export.attachmentsAvailable", languageCode, "첨부 있음", createdBy);
     createTranslationIfNotExists(
         "testResult.export.error.noData", languageCode, "내보내기할 데이터가 없습니다.", createdBy);

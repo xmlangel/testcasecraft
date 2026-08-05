@@ -922,6 +922,11 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.export.pdf.qaSummaryBy", "testResult", "실행 QA 총평 (2026-06-10)", "작성");
     createTranslationKeyIfNotExists(
+        "testResult.export.option.includeQaSummary",
+        "testResult",
+        "내보내기 QA 총평 포함 옵션 (2026-08-05)",
+        "QA 총평 포함");
+    createTranslationKeyIfNotExists(
         "testResult.export.attachmentsAvailable",
         "testResult",
         "i18n gap 보강 (2026-06-06)",

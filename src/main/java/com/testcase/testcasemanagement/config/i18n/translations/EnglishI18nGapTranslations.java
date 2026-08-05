@@ -828,6 +828,8 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryBy", languageCode, "By", createdBy);
     createTranslationIfNotExists(
+        "testResult.export.option.includeQaSummary", languageCode, "Include QA summary", createdBy);
+    createTranslationIfNotExists(
         "testResult.export.attachmentsAvailable", languageCode, "Has attachments", createdBy);
     createTranslationIfNotExists(
         "testResult.export.error.noData", languageCode, "No data to export.", createdBy);

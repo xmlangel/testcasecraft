@@ -16,6 +16,8 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  Checkbox,
+  FormControlLabel,
   ToggleButton,
   ToggleButtonGroup,
   alpha,
@@ -213,6 +215,8 @@ const TestResultExportDialog = ({
   const [exportFormat, setExportFormat] = useState("EXCEL");
   const [pdfOrientation, setPdfOrientation] = useState("landscape");
   const [footerPrefix, setFooterPrefix] = useState("");
+  // QA 총평 포함 여부 (PDF·HTML 만 해당). 기본은 포함 — 체크를 풀면 빼고 내보낸다.
+  const [includeQaSummary, setIncludeQaSummary] = useState(true);
   const [exporting, setExporting] = useState(false);
   const hasClientRows = useMemo(
     () => Array.isArray(rows) && rows.length > 0 && visibleColumns.length > 0,
@@ -881,7 +885,7 @@ const TestResultExportDialog = ({
 
     // QA 총평 — 상세 테스트 결과 리스트 바로 위에 출력
     const drawQaSummarySection = () => {
-      if (!qaSummary || !qaSummary.trim()) return;
+      if (!includeQaSummary || !qaSummary || !qaSummary.trim()) return;
 
       ensureSpace(60);
       pdf.setTextColor(...colors.black);
@@ -1290,7 +1294,7 @@ const TestResultExportDialog = ({
       .join("");
 
     const qaHtml =
-      qaSummary && qaSummary.trim()
+      includeQaSummary && qaSummary && qaSummary.trim()
         ? `<h2 class="sec">${escapeHtml(t("testResult.export.pdf.qaSummaryTitle", "💬 QA 총평"))}</h2>` +
           (qaSummaryUpdatedBy
             ? `<div class="qa-by">${escapeHtml(t("testResult.export.pdf.qaSummaryBy", "작성"))}: ${escapeHtml(qaSummaryUpdatedBy)}</div>`
@@ -1742,6 +1746,23 @@ footer.report{border-top:1px solid var(--border);margin-top:30px;padding:18px 28
         {/* 푸터 브랜딩 문구 — PDF·HTML 공통 */}
         {(exportFormat === "PDF" || exportFormat === "HTML") && (
           <Box sx={{ mb: 3 }}>
+            {qaSummary && qaSummary.trim() && (
+              <FormControlLabel
+                sx={{ mb: 1, display: "block" }}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={includeQaSummary}
+                    onChange={(e) => setIncludeQaSummary(e.target.checked)}
+                    inputProps={{ "data-testid": "export-include-qa-summary" }}
+                  />
+                }
+                label={t(
+                  "testResult.export.option.includeQaSummary",
+                  "QA 총평 포함",
+                )}
+              />
+            )}
             <Typography
               variant="subtitle2"
               sx={{
