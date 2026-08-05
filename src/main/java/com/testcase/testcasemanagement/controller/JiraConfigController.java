@@ -486,13 +486,25 @@ public class JiraConfigController {
       if (config.isPresent()) {
         JiraConfigDto configDto = config.get();
 
+        // 저장된 플래그가 아니라 지금 인증되는지 확인한다. 그 플래그는 공개 엔드포인트만 보고
+        // 통과했던 과거 값일 수 있어, 인증이 깨진 설정도 "연결됨" 으로 보이게 만든다.
+        JiraConfigDto.ConnectionStatusDto verified =
+            jiraConfigService.verifyActiveConnection(userId);
+        boolean connected = verified != null && Boolean.TRUE.equals(verified.getIsConnected());
+
         Map<String, Object> status = new HashMap<>();
         status.put("hasConfig", true);
+        status.put("isConnected", connected);
         status.put(
-            "isConnected",
-            configDto.getConnectionVerified() != null && configDto.getConnectionVerified());
-        status.put("lastTested", configDto.getLastConnectionTest());
-        status.put("lastError", configDto.getLastConnectionError());
+            "lastTested",
+            verified != null && verified.getLastTested() != null
+                ? verified.getLastTested()
+                : configDto.getLastConnectionTest());
+        status.put(
+            "lastError",
+            connected
+                ? null
+                : verified != null ? verified.getMessage() : configDto.getLastConnectionError());
         status.put("serverUrl", configDto.getServerUrl());
         status.put("username", configDto.getUsername());
 
