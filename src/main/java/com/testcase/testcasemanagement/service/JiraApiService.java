@@ -137,18 +137,27 @@ public class JiraApiService {
     return createFailureStatus("알 수 없는 오류", "연결 테스트 실패");
   }
 
-  /** JIRA 프로젝트 목록 조회 */
+  /** 프로젝트 목록 한 페이지 크기. Jira Cloud project/search 상한이 50 이다. */
+  private static final int PROJECT_PAGE_SIZE = 50;
+
+  /** 페이지 순회 상한 (50 * 40 = 2,000 프로젝트). 무한 루프 방지용. */
+  private static final int PROJECT_MAX_PAGES = 40;
+
+  /**
+   * JIRA 프로젝트 목록 조회.
+   *
+   * <p>Jira Cloud 는 전체 조회 엔드포인트(GET /rest/api/3/project)를 폐기해, 사이트에 프로젝트가 있어도 200 + 빈 배열이 올 수 있다.
+   * 그래서 페이지네이션 엔드포인트(/rest/api/3/project/search)를 먼저 쓰고, 그 경로가 없는 구형 서버(404)면 옛 엔드포인트로 되돌아간다. 어느
+   * 쪽이든 비200 응답을 조용히 빈 목록으로 삼키지 않고 로그로 남긴다.
+   */
   public List<JiraConfigDto.JiraProjectDto> getProjects(
       String serverUrl, String username, String apiToken) {
     List<JiraConfigDto.JiraProjectDto> projects = new ArrayList<>();
 
     try {
       String normalizedUrl = normalizeServerUrl(serverUrl);
-      String projectsUrl = normalizedUrl + "/rest/api/3/project";
       String authHeader = createBasicAuthHeader(username, apiToken);
-
-      HttpHeaders headers = createHeaders(authHeader);
-      HttpEntity<String> entity = new HttpEntity<>(headers);
+      HttpEntity<String> entity = new HttpEntity<>(createHeaders(authHeader));
 
       // 연결 풀에서 최적화된 RestTemplate 획득
       RestTemplate optimizedRestTemplate =
@@ -156,24 +165,49 @@ public class JiraApiService {
               ? jiraConnectionManager.getRestTemplate(normalizedUrl)
               : restTemplate;
 
-      ResponseEntity<String> response =
-          optimizedRestTemplate.exchange(
-              URI.create(projectsUrl), HttpMethod.GET, entity, String.class);
+      int startAt = 0;
+      for (int page = 0; page < PROJECT_MAX_PAGES; page++) {
+        String searchUrl =
+            normalizedUrl
+                + "/rest/api/3/project/search?startAt="
+                + startAt
+                + "&maxResults="
+                + PROJECT_PAGE_SIZE;
 
-      if (response.getStatusCode() == HttpStatus.OK) {
-        JsonNode projectsArray = objectMapper.readTree(response.getBody());
-
-        for (JsonNode project : projectsArray) {
-          projects.add(
-              JiraConfigDto.JiraProjectDto.builder()
-                  .id(project.path("id").asText())
-                  .key(project.path("key").asText())
-                  .name(project.path("name").asText())
-                  .description(project.path("description").asText())
-                  .projectTypeKey(project.path("projectTypeKey").asText())
-                  .leadDisplayName(project.path("lead").path("displayName").asText())
-                  .build());
+        ResponseEntity<String> response;
+        try {
+          response =
+              optimizedRestTemplate.exchange(
+                  URI.create(searchUrl), HttpMethod.GET, entity, String.class);
+        } catch (HttpClientErrorException.NotFound notFound) {
+          // 구형 서버에는 project/search 가 없다 → 옛 전체 조회로 폴백
+          log.info("project/search 미지원 서버로 판단, 전체 조회로 폴백: url={}", normalizedUrl);
+          return getProjectsLegacy(optimizedRestTemplate, normalizedUrl, entity);
         }
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+          log.warn("JIRA 프로젝트 목록 응답 비정상: status={}, url={}", response.getStatusCode(), searchUrl);
+          break;
+        }
+
+        JsonNode body = objectMapper.readTree(response.getBody());
+        JsonNode values = body.path("values");
+        for (JsonNode project : values) {
+          projects.add(toProjectDto(project));
+        }
+
+        if (body.path("isLast").asBoolean(true) || values.isEmpty()) {
+          break;
+        }
+        startAt += PROJECT_PAGE_SIZE;
+      }
+
+      if (projects.isEmpty()) {
+        // 권한(Browse Projects)이 없으면 정상 응답에도 목록이 비어 온다 — 추적 단서를 남긴다
+        log.warn(
+            "JIRA 프로젝트 목록이 비어 있습니다. 계정({})에 Browse Projects 권한이 있는지 확인하세요: url={}",
+            username,
+            normalizedUrl);
       }
 
     } catch (Exception e) {
@@ -181,6 +215,38 @@ public class JiraApiService {
     }
 
     return projects;
+  }
+
+  /** 폐기된 전체 조회 엔드포인트(루트가 배열). project/search 가 없는 서버용 폴백. */
+  private List<JiraConfigDto.JiraProjectDto> getProjectsLegacy(
+      RestTemplate client, String normalizedUrl, HttpEntity<String> entity) throws Exception {
+    List<JiraConfigDto.JiraProjectDto> projects = new ArrayList<>();
+    String projectsUrl = normalizedUrl + "/rest/api/3/project";
+
+    ResponseEntity<String> response =
+        client.exchange(URI.create(projectsUrl), HttpMethod.GET, entity, String.class);
+
+    if (!response.getStatusCode().is2xxSuccessful()) {
+      log.warn("JIRA 프로젝트 전체 조회 응답 비정상: status={}, url={}", response.getStatusCode(), projectsUrl);
+      return projects;
+    }
+
+    for (JsonNode project : objectMapper.readTree(response.getBody())) {
+      projects.add(toProjectDto(project));
+    }
+    return projects;
+  }
+
+  /** 프로젝트 JSON 한 건 → DTO. 두 엔드포인트의 필드 구성이 같아 공용으로 쓴다. */
+  private JiraConfigDto.JiraProjectDto toProjectDto(JsonNode project) {
+    return JiraConfigDto.JiraProjectDto.builder()
+        .id(project.path("id").asText())
+        .key(project.path("key").asText())
+        .name(project.path("name").asText())
+        .description(project.path("description").asText())
+        .projectTypeKey(project.path("projectTypeKey").asText())
+        .leadDisplayName(project.path("lead").path("displayName").asText())
+        .build();
   }
 
   /** JIRA 이슈 생성 */
