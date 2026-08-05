@@ -76,9 +76,15 @@ describe("markdownToHtml", () => {
     expect(html).not.toContain("| 항목");
   });
 
-  it("중첩 목록을 하위 리스트로 감싼다", () => {
+  it("중첩 목록은 부모 li 안에 들어간다 (ul 직속 ul 금지)", () => {
     expect(markdownToHtml("- 상위\n  - 하위")).toBe(
-      "<ul><li>상위</li><ul><li>하위</li></ul></ul>",
+      "<ul><li>상위<ul><li>하위</li></ul></li></ul>",
+    );
+  });
+
+  it("중첩 뒤에 같은 단계 항목이 이어져도 구조가 유지된다", () => {
+    expect(markdownToHtml("- A\n  - A-1\n- B")).toBe(
+      "<ul><li>A<ul><li>A-1</li></ul></li><li>B</li></ul>",
     );
   });
 

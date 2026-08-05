@@ -83,16 +83,35 @@ export const hasEditableSections = (markdown = "") =>
 
 /**
  * 섹션 하나를 새 내용으로 교체한 전체 마크다운을 돌려준다.
- * 섹션을 찾지 못하면 원문을 그대로 반환한다(내용 유실 방지).
+ *
+ * 섹션 id 는 줄 번호 기반이라 원문이 바뀌면 같은 id 가 다른 구간을 가리킬 수 있다.
+ * 그래서 편집을 시작할 때의 구간 내용(expectedContent)을 함께 넘기면 대조하고,
+ * 어긋나면 **null** 을 돌려준다. 호출부는 이 경우 저장하지 말고 사용자에게
+ * 알려야 한다(모르는 채로 남의 수정을 덮어쓰는 것을 막는다).
+ *
+ * @param {string} markdown 현재 전체 마크다운
+ * @param {string} sectionId splitMarkdownSections 가 준 구간 id
+ * @param {string} newContent 그 구간을 대체할 내용
+ * @param {{expectedContent?: string, sections?: Array}} [options]
+ *   expectedContent: 편집 시작 시점의 구간 내용 (충돌 감지용)
+ *   sections: 이미 계산해 둔 구간 목록 (중복 분할 회피)
+ * @returns {string|null} 병합된 마크다운. 구간을 못 찾으면 원문, 충돌이면 null.
  */
 export const replaceMarkdownSection = (
   markdown = "",
   sectionId,
   newContent = "",
+  { expectedContent, sections } = {},
 ) => {
-  const target = splitMarkdownSections(markdown).find(
+  const target = (sections ?? splitMarkdownSections(markdown)).find(
     (section) => section.id === sectionId,
   );
+
+  // 편집을 시작한 구간과 지금 그 id 가 가리키는 구간이 다르면(또는 사라졌으면)
+  // 병합을 거부한다. expectedContent 없이 부르면 종전처럼 원문을 그대로 준다.
+  if (expectedContent !== undefined && target?.content !== expectedContent) {
+    return null;
+  }
   if (!target) return String(markdown ?? "");
 
   const lines = toLines(markdown);

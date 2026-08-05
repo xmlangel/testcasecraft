@@ -112,6 +112,47 @@ describe("ExecutionQaSummaryPanel (QA 총평)", () => {
     );
   });
 
+  it("편집 중 총평이 바뀌어 구간이 밀리면 저장하지 않고 알린다", async () => {
+    const onSave = vi.fn().mockResolvedValue(true);
+    const { rerender } = render(
+      <ExecutionQaSummaryPanel
+        execution={{
+          id: 1,
+          name: "exec",
+          qaSummary: "# 총평\n안정적.\n\n## 실패 분석\n- FAIL 3건",
+        }}
+        onSave={onSave}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByText("이 부분 수정")[1]);
+    fireEvent.change(screen.getByTestId("qa-summary-section-editor"), {
+      target: { value: "## 실패 분석\n- FAIL 5건" },
+    });
+
+    // 다른 사람이 앞부분을 지워 같은 id 가 다른 구간을 가리키게 된 상태
+    rerender(
+      <ExecutionQaSummaryPanel
+        execution={{
+          id: 1,
+          name: "exec",
+          qaSummary: "## 실패 분석\n- FAIL 3건",
+        }}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("qa-summary-section-save-button"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("qa-summary-conflict")).toBeInTheDocument(),
+    );
+    expect(onSave).not.toHaveBeenCalled();
+    // 작성 중이던 내용은 편집기에 남아 있어야 한다
+    expect(screen.getByTestId("qa-summary-section-editor").value).toBe(
+      "## 실패 분석\n- FAIL 5건",
+    );
+  });
+
   it("총평이 비어 있으면 안내 문구를 보여준다", () => {
     render(
       <ExecutionQaSummaryPanel

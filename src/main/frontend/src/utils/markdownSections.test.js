@@ -94,4 +94,38 @@ describe("replaceMarkdownSection", () => {
   it("없는 섹션 id 는 원문을 그대로 돌려준다", () => {
     expect(replaceMarkdownSection(DOC, "h999", "덮어쓰기")).toBe(DOC);
   });
+
+  it("편집 중 원문이 바뀌어 같은 id 가 다른 구간을 가리키면 null 을 준다", () => {
+    const target = splitMarkdownSections(DOC).find(
+      (s) => s.title === "실패 분석",
+    );
+    // 다른 사람이 앞부분 두 줄을 지워 id 가 가리키는 구간이 밀린 상태
+    const shifted = DOC.split("\n").slice(2).join("\n");
+    expect(
+      replaceMarkdownSection(shifted, target.id, "## 실패 분석\n- FAIL 5건", {
+        expectedContent: target.content,
+      }),
+    ).toBeNull();
+  });
+
+  it("expectedContent 가 현재 구간과 같으면 정상 병합한다", () => {
+    const target = splitMarkdownSections(DOC).find((s) => s.title === "총평");
+    expect(
+      replaceMarkdownSection(DOC, target.id, target.content, {
+        expectedContent: target.content,
+      }),
+    ).toBe(DOC);
+  });
+
+  it("미리 계산한 sections 를 넘겨도 같은 결과를 준다", () => {
+    const sections = splitMarkdownSections(DOC);
+    const target = sections.find((s) => s.title === "재현 조건");
+    expect(
+      replaceMarkdownSection(DOC, target.id, "### 재현 조건\n동시 접속 100", {
+        sections,
+      }),
+    ).toBe(
+      replaceMarkdownSection(DOC, target.id, "### 재현 조건\n동시 접속 100"),
+    );
+  });
 });

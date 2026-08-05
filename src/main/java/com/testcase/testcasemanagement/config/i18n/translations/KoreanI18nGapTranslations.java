@@ -620,6 +620,11 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testResult.qaSummary.editAll", languageCode, "전체 수정", createdBy);
     createTranslationIfNotExists("testResult.qaSummary.preamble", languageCode, "머리글", createdBy);
     createTranslationIfNotExists(
+        "testResult.qaSummary.conflict",
+        languageCode,
+        "편집하는 동안 총평이 다른 곳에서 바뀌었습니다. 작성한 내용을 복사해 두고 화면을 새로 고친 뒤 다시 저장하세요.",
+        createdBy);
+    createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryTitle", languageCode, "💬 QA 총평", createdBy);
     createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryBy", languageCode, "작성", createdBy);

@@ -7,6 +7,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -40,6 +41,9 @@ const ExecutionQaSummaryPanel = ({ execution, onSave, saving = false }) => {
   // null = 보기 모드, EDIT_ALL = 전체 편집, 그 외 = 해당 섹션 편집
   const [editTarget, setEditTarget] = useState(null);
   const [draft, setDraft] = useState("");
+  // 편집을 시작한 시점의 원본 (다른 사람이 그 사이 총평을 바꿨는지 대조용)
+  const [baseline, setBaseline] = useState("");
+  const [conflict, setConflict] = useState(false);
 
   const qaSummary = execution?.qaSummary || "";
   const sections = useMemo(() => splitMarkdownSections(qaSummary), [qaSummary]);
@@ -58,15 +62,27 @@ const ExecutionQaSummaryPanel = ({ execution, onSave, saving = false }) => {
 
   const startEdit = (target, initialValue) => {
     setDraft(initialValue);
+    setBaseline(initialValue);
+    setConflict(false);
     setEditTarget(target);
   };
 
   const handleSave = async () => {
-    // 섹션 편집이면 그 구간만 교체하고 나머지 줄은 원문 그대로 넘긴다
-    const nextSummary =
-      editTarget === EDIT_ALL
-        ? draft
-        : replaceMarkdownSection(qaSummary, editTarget, draft);
+    // 섹션 편집이면 그 구간만 교체하고 나머지 줄은 원문 그대로 넘긴다.
+    // 구간 id 는 줄 번호 기반이라, 편집 중에 총평이 바뀌면 같은 id 가 다른 구간을
+    // 가리킬 수 있다. 그때는 저장하지 않고 알린다 — 조용히 남의 수정을 덮어쓰거나
+    // 내 수정을 버리는 것보다 낫다.
+    let nextSummary = draft;
+    if (editTarget !== EDIT_ALL) {
+      nextSummary = replaceMarkdownSection(qaSummary, editTarget, draft, {
+        expectedContent: baseline,
+        sections,
+      });
+      if (nextSummary === null) {
+        setConflict(true);
+        return;
+      }
+    }
     const ok = await onSave(nextSummary);
     if (ok) setEditTarget(null);
   };
@@ -96,6 +112,18 @@ const ExecutionQaSummaryPanel = ({ execution, onSave, saving = false }) => {
 
   const renderEditor = (testidPrefix, height) => (
     <>
+      {(conflict || editingSectionGone) && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 1 }}
+          data-testid="qa-summary-conflict"
+        >
+          {t(
+            "testResult.qaSummary.conflict",
+            "편집하는 동안 총평이 다른 곳에서 바뀌었습니다. 작성한 내용을 복사해 두고 화면을 새로 고친 뒤 다시 저장하세요.",
+          )}
+        </Alert>
+      )}
       <MarkdownFieldEditor
         label=""
         value={draft}
@@ -185,6 +213,49 @@ const ExecutionQaSummaryPanel = ({ execution, onSave, saving = false }) => {
   );
 
   const editingAll = editTarget === EDIT_ALL;
+  // 편집하던 구간이 사라졌다(다른 곳에서 총평이 바뀌었다). 편집기를 그대로 남겨
+  // 작성 중이던 내용을 복사할 수 있게 하고, 저장은 충돌로 막는다.
+  const editingSectionGone =
+    editTarget !== null &&
+    !editingAll &&
+    !sections.some((section) => section.id === editTarget);
+
+  const sectionEditorHeight = () =>
+    computeMarkdownEditorHeight(draft, { minLines: 6, maxLines: 20 });
+
+  const renderBody = () => {
+    if (editingAll) return renderEditor("qa-summary", 180);
+
+    if (editingSectionGone) {
+      return (
+        <>
+          {renderEditor("qa-summary-section", sectionEditorHeight())}
+          {sectionMode ? (
+            renderSections()
+          ) : qaSummary ? (
+            <MarkdownViewer content={qaSummary} sx={{ fontSize: "0.875rem" }} />
+          ) : null}
+        </>
+      );
+    }
+
+    if (sectionMode) return renderSections();
+
+    if (qaSummary) {
+      return (
+        <MarkdownViewer content={qaSummary} sx={{ fontSize: "0.875rem" }} />
+      );
+    }
+
+    return (
+      <Typography variant="body2" color="text.secondary">
+        {t(
+          "testResult.qaSummary.empty",
+          "아직 작성된 QA 총평이 없습니다. 고급 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.",
+        )}
+      </Typography>
+    );
+  };
 
   return (
     <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
@@ -230,20 +301,7 @@ const ExecutionQaSummaryPanel = ({ execution, onSave, saving = false }) => {
         )}
       </Box>
 
-      {editingAll ? (
-        renderEditor("qa-summary", 180)
-      ) : sectionMode ? (
-        renderSections()
-      ) : qaSummary ? (
-        <MarkdownViewer content={qaSummary} sx={{ fontSize: "0.875rem" }} />
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          {t(
-            "testResult.qaSummary.empty",
-            "아직 작성된 QA 총평이 없습니다. 고급 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.",
-          )}
-        </Typography>
-      )}
+      {renderBody()}
     </Paper>
   );
 };
