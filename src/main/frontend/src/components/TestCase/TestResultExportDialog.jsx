@@ -38,6 +38,12 @@ import { useI18n } from "../../context/I18nContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { API_ENDPOINTS, buildUrl } from "../../utils/apiConstants.js";
 import {
+  escapeHtml,
+  markdownToHtml,
+  parseMarkdownBlocks,
+} from "../../utils/markdownRender.js";
+import { drawMarkdownBlocks } from "../../utils/pdf/markdownPdf.js";
+import {
   getResultLabel,
   getResultConfig,
   getLocalizedResultConfig,
@@ -160,21 +166,6 @@ const computeStatisticsSummary = (rows = []) => {
  * 테스트 결과 내보내기 다이얼로그 컴포넌트
  * ICT-190 기능을 별도 컴포넌트로 분리하여 재사용성 향상
  */
-// QA 총평(마크다운)을 PDF 텍스트 출력용 일반 텍스트로 변환
-const markdownToPlainText = (md = "") =>
-  md
-    .replace(/```[a-zA-Z0-9]*\n?/g, "") // 코드 펜스
-    .replace(/^#{1,6}\s+/gm, "") // 제목
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/__([^_]+)__/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1") // 이미지
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // 링크
-    .replace(/^>\s?/gm, "")
-    .replace(/^\s*[-*+]\s+/gm, "• ")
-    .trim();
-
 // 내보내기 매트릭스의 Result 값(현지화/원문 라벨 또는 코드)을 표준 결과 타입으로 복원.
 // HTML·PDF 칩 색상 분류에 공통 사용.
 const resolveResultType = (value) => {
@@ -913,17 +904,19 @@ const TestResultExportDialog = ({
         cursorY += 14;
       }
 
-      const applyBodyStyle = () => {
-        pdf.setFont("NanumGothic", "normal");
-        pdf.setTextColor(...colors.greyDark);
-        pdf.setFontSize(9);
-      };
-      applyBodyStyle();
-      const summaryLines = pdf.splitTextToSize(
-        markdownToPlainText(qaSummary),
-        usableWidth - 8,
-      );
-      drawTextLines(summaryLines, margin + 4, 13, applyBodyStyle);
+      // 화면의 마크다운 뷰어와 같은 서식(제목·목록·표·코드·인용)으로 그린다
+      drawMarkdownBlocks(parseMarkdownBlocks(qaSummary), {
+        pdf,
+        x: margin + 4,
+        width: usableWidth - 8,
+        colors,
+        fontName: "NanumGothic",
+        getY: () => cursorY,
+        setY: (y) => {
+          cursorY = y;
+        },
+        ensureSpace,
+      });
       cursorY += 16;
     };
 
@@ -1102,15 +1095,6 @@ const TestResultExportDialog = ({
 
     pdf.save(fileName);
   };
-
-  // HTML 특수문자 escape
-  const escapeHtml = (value) =>
-    String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
 
   /**
    * HTML 리포트 내보내기.
@@ -1311,7 +1295,8 @@ const TestResultExportDialog = ({
           (qaSummaryUpdatedBy
             ? `<div class="qa-by">${escapeHtml(t("testResult.export.pdf.qaSummaryBy", "작성"))}: ${escapeHtml(qaSummaryUpdatedBy)}</div>`
             : "") +
-          `<pre class="qa-body">${escapeHtml(markdownToPlainText(qaSummary))}</pre>`
+          // 마크다운 원문이 아니라 화면 뷰어와 같은 렌더 결과를 싣는다
+          `<div class="qa-body md">${markdownToHtml(qaSummary)}</div>`
         : "";
 
     const footerText =
@@ -1358,7 +1343,28 @@ header.report h1{margin:0 0 4px;font-size:21px}header.report .meta{font-size:12p
 .bd .lbl{font-size:12px;color:var(--text-sub)}.bd .val{font-size:20px;font-weight:700}.bd .rate{font-size:11px;color:var(--grey)}
 h2.sec{font-size:16px;border-bottom:2px solid var(--border);padding-bottom:6px;margin:30px 0 12px}
 .qa-by{font-size:11px;color:var(--grey);margin-bottom:6px}
-.qa-body,.fld-b{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font:12px/1.55 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;margin:0;color:var(--text)}
+.fld-b{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font:12px/1.55 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;margin:0;color:var(--text)}
+.qa-body{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 18px;color:var(--text);font-size:13.5px;line-height:1.7;word-break:break-word}
+.md>:first-child{margin-top:0}.md>:last-child{margin-bottom:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:18px 0 8px;line-height:1.35;font-weight:700}
+.md h1{font-size:20px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.md h2{font-size:17px;border-bottom:1px solid var(--border);padding-bottom:5px}
+.md h3{font-size:15px}.md h4{font-size:14px}
+.md h5,.md h6{font-size:13px;color:var(--text-sub)}
+.md p{margin:8px 0;white-space:pre-wrap}
+.md ul,.md ol{margin:8px 0;padding-left:22px}
+.md li{margin:3px 0;white-space:pre-wrap}
+.md blockquote{margin:10px 0;padding:2px 14px;border-left:4px solid var(--border);color:var(--text-sub)}
+.md code{background:var(--grey-light);border-radius:4px;padding:1px 5px;font:12px ui-monospace,Menlo,monospace}
+.md pre{background:var(--code-bg);color:var(--code-fg);border-radius:6px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.md pre code{background:none;color:inherit;padding:0;font-size:12px;line-height:1.55}
+.md table{border-collapse:collapse;margin:10px 0;max-width:100%;display:block;overflow-x:auto}
+.md th,.md td{border:1px solid var(--border);padding:6px 10px;font-size:12.5px}
+.md th{background:var(--grey-light);font-weight:700}
+.md tbody tr:nth-child(2n){background:var(--surface-2)}
+.md hr{border:0;border-top:1px solid var(--border);margin:16px 0}
+.md a{color:var(--primary)}
+.md img{max-width:100%}
 section.case{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0 0 14px;margin:0 0 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
 .case-h{display:flex;align-items:center;gap:10px;padding:10px 16px}
 .case-h .num{color:var(--grey);font-family:ui-monospace,Menlo,monospace}.case-h .ttl{font-weight:600;flex:1}

@@ -813,6 +813,11 @@ public class EnglishI18nGapTranslations {
         "Failed to save the QA summary.",
         createdBy);
     createTranslationIfNotExists(
+        "testResult.qaSummary.editSection", languageCode, "Edit this part", createdBy);
+    createTranslationIfNotExists(
+        "testResult.qaSummary.editAll", languageCode, "Edit all", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.preamble", languageCode, "Intro", createdBy);
+    createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryTitle", languageCode, "💬 QA Summary", createdBy);
     createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryBy", languageCode, "By", createdBy);
