@@ -78,8 +78,18 @@ public class JiraApiServiceProjectsTest {
     return service;
   }
 
+  private static String project(String key) {
+    return "{\"id\":\"10001\",\"key\":\""
+        + key
+        + "\",\"name\":\"proj-"
+        + key
+        + "\",\"description\":\"\",\"projectTypeKey\":\"software\","
+        + "\"lead\":{\"displayName\":\"tester\"}}";
+  }
+
   private static String page(String key, String name, boolean isLast) {
-    return "{\"isLast\":"
+    // maxResults 를 실제 담긴 건수(1)로 맞춘다. 실제 Jira 응답도 페이지 크기를 함께 준다.
+    return "{\"maxResults\":1,\"isLast\":"
         + isLast
         + ",\"values\":[{\"id\":\"10001\",\"key\":\""
         + key
@@ -95,7 +105,7 @@ public class JiraApiServiceProjectsTest {
         new StubRestTemplate(
             Map.of(
                 "startAt=0", ResponseEntity.ok(page("AS", "AgensSQL", false)),
-                "startAt=50", ResponseEntity.ok(page("AG", "AgensGraph", true))));
+                "startAt=1", ResponseEntity.ok(page("AG", "AgensGraph", true))));
 
     List<JiraConfigDto.JiraProjectDto> projects =
         serviceWith(client).getProjects(BASE, "qa@example.com", "token");
@@ -105,7 +115,7 @@ public class JiraApiServiceProjectsTest {
     assertEquals(projects.get(1).getKey(), "AG");
     assertEquals(projects.get(0).getLeadDisplayName(), "tester");
     assertTrue(client.requested.get(0).contains("/rest/api/3/project/search"));
-    assertTrue(client.requested.get(1).contains("startAt=50"));
+    assertTrue(client.requested.get(1).contains("startAt=1"));
   }
 
   @Test
@@ -139,15 +149,63 @@ public class JiraApiServiceProjectsTest {
   }
 
   @Test
-  public void 비200_응답은_예외없이_빈_목록이다() throws Exception {
+  public void 권한부족_403_은_예외없이_빈_목록이다() throws Exception {
+    // RestTemplate 기본 핸들러는 4xx 를 예외로 던진다 — 프로덕션에서 실제로 오는 경로
     StubRestTemplate client =
         new StubRestTemplate(
-            Map.of("startAt=0", ResponseEntity.status(HttpStatus.FORBIDDEN).body("{}")));
+            Map.of(),
+            "/project/search",
+            HttpClientErrorException.create(HttpStatus.FORBIDDEN, "Forbidden", null, null, null));
 
     List<JiraConfigDto.JiraProjectDto> projects =
         serviceWith(client).getProjects(BASE, "qa@example.com", "token");
 
     assertTrue(projects.isEmpty());
+    assertEquals(client.requested.size(), 1);
+  }
+
+  @Test
+  public void isLast_가_없어도_다음_페이지를_읽는다() throws Exception {
+    // 구형 DC·프록시가 isLast 를 빼는 경우. 첫 페이지가 가득 차 있으면 계속 읽어야 한다.
+    StringBuilder full = new StringBuilder("{\"maxResults\":2,\"values\":[");
+    full.append(project("A1")).append(",").append(project("A2")).append("]}");
+    StubRestTemplate client =
+        new StubRestTemplate(
+            Map.of(
+                "startAt=0",
+                ResponseEntity.ok(full.toString()),
+                "startAt=2",
+                ResponseEntity.ok("{\"maxResults\":2,\"values\":[" + project("A3") + "]}")));
+
+    List<JiraConfigDto.JiraProjectDto> projects =
+        serviceWith(client).getProjects(BASE, "qa@example.com", "token");
+
+    assertEquals(projects.size(), 3);
+    assertEquals(client.requested.size(), 2);
+  }
+
+  @Test
+  public void 서버가_페이지크기를_깎으면_받은_개수만큼_전진한다() throws Exception {
+    // maxResults=50 을 요청해도 서버가 2로 깎아 줄 수 있다. startAt 을 50 씩 올리면 중간이 빠진다.
+    StubRestTemplate client =
+        new StubRestTemplate(
+            Map.of(
+                "startAt=0",
+                ResponseEntity.ok(
+                    "{\"maxResults\":2,\"isLast\":false,\"values\":["
+                        + project("B1")
+                        + ","
+                        + project("B2")
+                        + "]}"),
+                "startAt=2",
+                ResponseEntity.ok(
+                    "{\"maxResults\":2,\"isLast\":true,\"values\":[" + project("B3") + "]}")));
+
+    List<JiraConfigDto.JiraProjectDto> projects =
+        serviceWith(client).getProjects(BASE, "qa@example.com", "token");
+
+    assertEquals(projects.size(), 3);
+    assertTrue(client.requested.get(1).contains("startAt=2"));
   }
 
   @Test

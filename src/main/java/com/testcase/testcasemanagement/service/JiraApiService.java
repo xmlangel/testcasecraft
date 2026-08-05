@@ -26,6 +26,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
@@ -166,6 +167,8 @@ public class JiraApiService {
               : restTemplate;
 
       int startAt = 0;
+      boolean complete = false;
+
       for (int page = 0; page < PROJECT_MAX_PAGES; page++) {
         String searchUrl =
             normalizedUrl
@@ -182,33 +185,51 @@ public class JiraApiService {
         } catch (HttpClientErrorException.NotFound notFound) {
           // 구형 서버에는 project/search 가 없다 → 옛 전체 조회로 폴백
           log.info("project/search 미지원 서버로 판단, 전체 조회로 폴백: url={}", normalizedUrl);
-          return getProjectsLegacy(optimizedRestTemplate, normalizedUrl, entity);
+          return logProjectListDiagnostics(
+              getProjectsLegacy(optimizedRestTemplate, normalizedUrl, entity),
+              true,
+              username,
+              normalizedUrl);
+        } catch (HttpStatusCodeException statusError) {
+          // RestTemplate 기본 핸들러는 4xx/5xx 를 예외로 던진다 — 실제 오류는 여기로 온다
+          log.warn(
+              "JIRA 프로젝트 목록 응답 비정상: status={}, url={}", statusError.getStatusCode(), searchUrl);
+          break;
         }
 
         if (!response.getStatusCode().is2xxSuccessful()) {
+          // 예외를 던지지 않는 커스텀 에러 핸들러를 쓰는 배포 대비
           log.warn("JIRA 프로젝트 목록 응답 비정상: status={}, url={}", response.getStatusCode(), searchUrl);
           break;
         }
 
         JsonNode body = objectMapper.readTree(response.getBody());
         JsonNode values = body.path("values");
+        int received = 0;
         for (JsonNode project : values) {
           projects.add(toProjectDto(project));
+          received++;
         }
 
-        if (body.path("isLast").asBoolean(true) || values.isEmpty()) {
+        // 서버가 요청한 maxResults 를 자기 상한으로 깎아 줄 수 있다. 고정값이 아니라 실제 받은
+        // 개수만큼 전진해야 중간 구간이 빠지지 않는다.
+        int pageSize = Math.max(1, body.path("maxResults").asInt(PROJECT_PAGE_SIZE));
+        // isLast 가 없는 응답(구형 DC·중간 프록시)에서 첫 페이지만 읽고 끊기지 않도록,
+        // 받은 개수가 페이지 크기보다 적을 때를 마지막 페이지로 본다.
+        if (body.path("isLast").asBoolean(false) || received < pageSize) {
+          complete = true;
           break;
         }
-        startAt += PROJECT_PAGE_SIZE;
+        startAt += received;
       }
 
-      if (projects.isEmpty()) {
-        // 권한(Browse Projects)이 없으면 정상 응답에도 목록이 비어 온다 — 추적 단서를 남긴다
+      if (!complete && !projects.isEmpty()) {
+        // 부분 목록을 완전한 목록처럼 넘기면 호출자가 잘림을 알 수 없다
         log.warn(
-            "JIRA 프로젝트 목록이 비어 있습니다. 계정({})에 Browse Projects 권한이 있는지 확인하세요: url={}",
-            username,
-            normalizedUrl);
+            "JIRA 프로젝트 목록을 끝까지 읽지 못했습니다(부분 목록 {}건 반환): url={}", projects.size(), normalizedUrl);
       }
+
+      return logProjectListDiagnostics(projects, complete, username, normalizedUrl);
 
     } catch (Exception e) {
       log.error("JIRA 프로젝트 목록 조회 실패", e);
@@ -233,6 +254,21 @@ public class JiraApiService {
 
     for (JsonNode project : objectMapper.readTree(response.getBody())) {
       projects.add(toProjectDto(project));
+    }
+    return projects;
+  }
+
+  /** 목록이 비면 원인 추적 단서를 남긴다. 권한 없는 계정도 정상 응답에 빈 목록이 오기 때문이다. */
+  private List<JiraConfigDto.JiraProjectDto> logProjectListDiagnostics(
+      List<JiraConfigDto.JiraProjectDto> projects,
+      boolean complete,
+      String username,
+      String normalizedUrl) {
+    if (projects.isEmpty() && complete) {
+      log.warn(
+          "JIRA 프로젝트 목록이 비어 있습니다. 계정({})에 Browse Projects 권한이 있는지 확인하세요: url={}",
+          username,
+          normalizedUrl);
     }
     return projects;
   }
