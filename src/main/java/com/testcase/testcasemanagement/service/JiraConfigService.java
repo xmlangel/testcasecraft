@@ -328,6 +328,45 @@ public class JiraConfigService {
     }
   }
 
+  /**
+   * 저장된 활성 설정으로 지금 인증되는지 확인하고 결과를 DB에 반영한다.
+   *
+   * <p>연결 상태 표시에 쓴다. 저장된 connection_verified 를 그대로 믿으면, 공개 엔드포인트만 보고 통과했던 과거 값 때문에 인증이 깨진 설정도 "연결됨"
+   * 으로 보인다.
+   *
+   * @return 활성 설정이 없으면 null
+   */
+  public JiraConfigDto.ConnectionStatusDto verifyActiveConnection(String userId) {
+    Optional<JiraConfig> configOpt = jiraConfigRepository.findByUserIdAndIsActiveTrue(userId);
+    if (configOpt.isEmpty()) {
+      return null;
+    }
+
+    JiraConfig config = configOpt.get();
+    String decryptedApiToken;
+    try {
+      decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
+    } catch (Exception e) {
+      log.warn("JIRA API 토큰 복호화 실패: userId={}, configId={}", userId, config.getId());
+      config.markConnectionFailure("API 토큰을 읽을 수 없습니다. 토큰을 다시 입력해 주세요.");
+      jiraConfigRepository.save(config);
+      return JiraConfigDto.ConnectionStatusDto.builder()
+          .isConnected(false)
+          .status("토큰 복호화 실패")
+          .message("저장된 API 토큰을 읽을 수 없습니다. 토큰을 다시 입력해 주세요.")
+          .lastTested(config.getLastConnectionTest())
+          .build();
+    }
+
+    return testAndUpdateConnection(
+        userId,
+        JiraConfigDto.TestConnectionDto.builder()
+            .serverUrl(config.getServerUrl())
+            .username(config.getUsername())
+            .apiToken(decryptedApiToken)
+            .build());
+  }
+
   /** JIRA 프로젝트 목록 조회 */
   public List<JiraConfigDto.JiraProjectDto> getJiraProjects(String userId) {
     try {

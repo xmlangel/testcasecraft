@@ -57,6 +57,21 @@ repos:
         files: ^src/main/frontend/.*\.(js|jsx)$
         pass_filenames: false
 
+      # 스테이징된 코드 변경분을 claude CLI(헤드리스)로 리뷰한다 — 권고이며 커밋을
+      # 막지 않는다. claude 가 없거나 응답 실패면 안내만 남기고 통과.
+      # 이번 커밋만 건너뛰기: SKIP=claude-code-review git commit ...
+      # 지적이 있을 때 커밋을 멈추려면: CLAUDE_REVIEW_BLOCK=1
+      - id: claude-code-review
+        name: Claude Code Review (staged)
+        entry: bash scripts/claude_review.sh
+        language: system
+        files: \.(java|js|jsx|ts|tsx|py|sh)$
+        pass_filenames: false
+        require_serial: true
+        verbose: true
+        stages: [pre-commit]
+
+      # 로컬 ollama 로 리뷰하던 대안 (기본 비활성 — 위 claude 훅으로 대체)
       # - id: ollama-code-review
       #   name: Ollama Code Review
       #   entry: python scripts/ollama_review.py

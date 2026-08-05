@@ -57,8 +57,8 @@ public class TestResultReportIntegrationTest extends AbstractTransactionalTestNG
   @Autowired private PlatformTransactionManager transactionManager;
 
   /**
-   * 이 테스트만 쓰는 API 호출 계정. 시드 계정(test_admin)에 기대지 않는다 — 전체 실행에서 다른 테스트가 그 계정의 비밀번호를 바꾸면 여기서 로그인이 401 로
-   * 실패하고, 토큰 없이 호출한 API 6건이 한꺼번에 401 로 깨졌다(단독 실행에서는 통과해 원인이 가려졌다).
+   * 이 테스트만 쓰는 API 호출 계정. 시드 계정(test_admin)에 기대지 않는다 — 전체 실행에서 다른 테스트가 그 계정의 비밀번호를 바꾸면 여기서 로그인이 401
+   * 로 실패하고, 토큰 없이 호출한 API 6건이 한꺼번에 401 로 깨졌다(단독 실행에서는 통과해 원인이 가려졌다).
    */
   private static final String API_USERNAME = "itest_report_admin";
 
@@ -76,8 +76,7 @@ public class TestResultReportIntegrationTest extends AbstractTransactionalTestNG
     authToken = getAuthToken();
     // 토큰 획득 실패를 여기서 끊는다. 예전에는 null 토큰으로 진행해 뒤따르는 API 검증이 전부
     // "expected 200 but found 401" 로 깨져 진짜 원인(로그인 실패)이 보이지 않았다.
-    assertNotNull(
-        authToken, "API 호출용 토큰을 받지 못했습니다. 로그인 응답: " + lastLoginFailure);
+    assertNotNull(authToken, "API 호출용 토큰을 받지 못했습니다. 로그인 응답: " + lastLoginFailure);
 
     System.out.println("=== ICT-191 테스트 결과 리포트 통합 테스트 시작 ===");
   }
@@ -85,8 +84,8 @@ public class TestResultReportIntegrationTest extends AbstractTransactionalTestNG
   /**
    * API 호출 계정을 커밋된 상태로 보장한다.
    *
-   * <p>이 클래스는 테스트 트랜잭션을 롤백하고(AbstractTransactional...), HTTP 서버는 별도 커넥션으로 사용자를 조회한다. 따라서 테스트
-   * 트랜잭션에서 저장한 사용자는 서버에서 보이지 않는다. REQUIRES_NEW 로 커밋해야 로그인이 성립한다.
+   * <p>이 클래스는 테스트 트랜잭션을 롤백하고(AbstractTransactional...), HTTP 서버는 별도 커넥션으로 사용자를 조회한다. 따라서 테스트 트랜잭션에서
+   * 저장한 사용자는 서버에서 보이지 않는다. REQUIRES_NEW 로 커밋해야 로그인이 성립한다.
    *
    * <p>매 메서드마다 비밀번호를 되돌려 놓으므로, 다른 테스트가 이 계정을 건드려도 다음 실행이 영향을 받지 않는다.
    */
@@ -389,8 +388,7 @@ public class TestResultReportIntegrationTest extends AbstractTransactionalTestNG
     try {
       String loginUrl = baseUrl + "/auth/login";
       // ensureApiUser() 가 방금 커밋해 둔 이 테스트 전용 계정으로 로그인한다
-      Map<String, String> loginRequest =
-          Map.of("username", API_USERNAME, "password", API_PASSWORD);
+      Map<String, String> loginRequest = Map.of("username", API_USERNAME, "password", API_PASSWORD);
 
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);

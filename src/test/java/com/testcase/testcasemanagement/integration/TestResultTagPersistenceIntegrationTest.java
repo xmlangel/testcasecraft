@@ -34,9 +34,9 @@ import org.testng.annotations.Test;
 /**
  * ICT-427: 결과 입력 화면에서 넣은 태그가 DB 까지 남는지 확인하는 재현 테스트.
  *
- * <p>"태그를 입력하고 저장해도 안 된다"는 신고를 서버 경로에서 갈라내기 위한 것이다. 화면이 쓰는 두 저장 경로(신규 결과 POST =
- * updateTestResult, 기존 결과 수정 PUT = updatePreviousTestResult)와 일괄 입력을 서비스 계층에서 그대로 호출해, 저장 후 다시 읽은 값에
- * 태그가 살아 있는지 본다. 여기서 통과하면 서버는 정상이고 원인은 화면 쪽이다.
+ * <p>"태그를 입력하고 저장해도 안 된다"는 신고를 서버 경로에서 갈라내기 위한 것이다. 화면이 쓰는 두 저장 경로(신규 결과 POST = updateTestResult,
+ * 기존 결과 수정 PUT = updatePreviousTestResult)와 일괄 입력을 서비스 계층에서 그대로 호출해, 저장 후 다시 읽은 값에 태그가 살아 있는지 본다.
+ * 여기서 통과하면 서버는 정상이고 원인은 화면 쪽이다.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -191,12 +191,9 @@ public class TestResultTagPersistenceIntegrationTest
 
     List<TestResultDto> results = saved.getResults();
     TestResultDto newest =
-        results.stream()
-            .max(Comparator.comparing(TestResultDto::getExecutedAt))
-            .orElseThrow();
+        results.stream().max(Comparator.comparing(TestResultDto::getExecutedAt)).orElseThrow();
     assertEquals(newest.getResult(), "PASS");
-    assertEquals(
-        newest.getTags(), List.of("수정필요"), "새 줄이 이전 태그를 물려받아야 화면에서 표시가 유지된다");
+    assertEquals(newest.getTags(), List.of("수정필요"), "새 줄이 이전 태그를 물려받아야 화면에서 표시가 유지된다");
   }
 
   @Test(description = "ICT-427: 이전 태그가 없으면 물려받을 것도 없다")

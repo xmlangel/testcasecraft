@@ -835,8 +835,7 @@ public class TestResultReportServiceMockTest {
     assertEquals(result.getContent().get(0).getTags(), List.of("수정필요"), "결과 태그가 DTO 에 실려야 한다");
     verify(testResultRepository)
         .findDedupedIdsByProjectAndTags(eq(projectId), anyList(), any(Pageable.class));
-    verify(testResultRepository, never())
-        .findDedupedIdsByProject(anyString(), any(Pageable.class));
+    verify(testResultRepository, never()).findDedupedIdsByProject(anyString(), any(Pageable.class));
   }
 
   @Test(description = "ICT-427: 태그 필터에 소문자로 정규화된 값이 전달된다 (DB 는 LOWER(tag) 비교)")

@@ -616,9 +616,20 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.qaSummary.saveError", languageCode, "QA 총평 저장에 실패했습니다.", createdBy);
     createTranslationIfNotExists(
+        "testResult.qaSummary.editSection", languageCode, "이 부분 수정", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.editAll", languageCode, "전체 수정", createdBy);
+    createTranslationIfNotExists("testResult.qaSummary.preamble", languageCode, "머리글", createdBy);
+    createTranslationIfNotExists(
+        "testResult.qaSummary.conflict",
+        languageCode,
+        "편집하는 동안 총평이 다른 곳에서 바뀌었습니다. 작성한 내용을 복사해 두고 화면을 새로 고친 뒤 다시 저장하세요.",
+        createdBy);
+    createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryTitle", languageCode, "💬 QA 총평", createdBy);
     createTranslationIfNotExists(
         "testResult.export.pdf.qaSummaryBy", languageCode, "작성", createdBy);
+    createTranslationIfNotExists(
+        "testResult.export.option.includeQaSummary", languageCode, "QA 총평 포함", createdBy);
     createTranslationIfNotExists(
         "testResult.export.attachmentsAvailable", languageCode, "첨부 있음", createdBy);
     createTranslationIfNotExists(

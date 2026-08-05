@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 // 컨텍스트/훅 모킹 — 패널 자체 렌더만 검증
 vi.mock("../../context/I18nContext.jsx", () => ({
@@ -39,13 +39,118 @@ describe("ExecutionQaSummaryPanel (QA 총평)", () => {
   it("총평 마크다운 루트에 인라인 white-space:pre-wrap 을 적용하지 않는다 (공백 회귀 가드)", () => {
     const { container } = render(
       <ExecutionQaSummaryPanel
-        execution={{ id: 1, name: "exec", qaSummary: "문단1\n\n문단2\n\n문단3" }}
+        execution={{
+          id: 1,
+          name: "exec",
+          qaSummary: "문단1\n\n문단2\n\n문단3",
+        }}
         onSave={vi.fn()}
       />,
     );
     const root = container.querySelector(".wmde-markdown");
     expect(root).toBeTruthy();
     expect(root.style.whiteSpace).not.toBe("pre-wrap");
+  });
+
+  it("제목이 있으면 구간마다 레벨 표시와 부분 수정 버튼을 보여준다", () => {
+    render(
+      <ExecutionQaSummaryPanel
+        execution={{
+          id: 1,
+          name: "exec",
+          qaSummary: "# 총평\n안정적.\n\n## 실패 분석\n- FAIL 3건",
+        }}
+        onSave={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("qa-summary-sections")).toBeInTheDocument();
+    expect(screen.getByText("#")).toBeInTheDocument();
+    expect(screen.getByText("##")).toBeInTheDocument();
+    expect(screen.getAllByText("이 부분 수정")).toHaveLength(2);
+    expect(screen.getByText("전체 수정")).toBeInTheDocument();
+  });
+
+  it("구간 수정 버튼은 그 구간 내용만 편집기에 올린다", () => {
+    render(
+      <ExecutionQaSummaryPanel
+        execution={{
+          id: 1,
+          name: "exec",
+          qaSummary: "# 총평\n안정적.\n\n## 실패 분석\n- FAIL 3건",
+        }}
+        onSave={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getAllByText("이 부분 수정")[1]);
+    const editor = screen.getByTestId("qa-summary-section-editor");
+    expect(editor.value).toBe("## 실패 분석\n- FAIL 3건");
+    expect(editor.value).not.toContain("# 총평");
+  });
+
+  it("구간을 저장하면 나머지 구간이 보존된 전체 마크다운을 넘긴다", async () => {
+    const onSave = vi.fn().mockResolvedValue(true);
+    render(
+      <ExecutionQaSummaryPanel
+        execution={{
+          id: 1,
+          name: "exec",
+          qaSummary: "# 총평\n안정적.\n\n## 실패 분석\n- FAIL 3건",
+        }}
+        onSave={onSave}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByText("이 부분 수정")[1]);
+    fireEvent.change(screen.getByTestId("qa-summary-section-editor"), {
+      target: { value: "## 실패 분석\n- FAIL 5건" },
+    });
+    fireEvent.click(screen.getByTestId("qa-summary-section-save-button"));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave).toHaveBeenCalledWith(
+      "# 총평\n안정적.\n\n## 실패 분석\n- FAIL 5건",
+    );
+  });
+
+  it("편집 중 총평이 바뀌어 구간이 밀리면 저장하지 않고 알린다", async () => {
+    const onSave = vi.fn().mockResolvedValue(true);
+    const { rerender } = render(
+      <ExecutionQaSummaryPanel
+        execution={{
+          id: 1,
+          name: "exec",
+          qaSummary: "# 총평\n안정적.\n\n## 실패 분석\n- FAIL 3건",
+        }}
+        onSave={onSave}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByText("이 부분 수정")[1]);
+    fireEvent.change(screen.getByTestId("qa-summary-section-editor"), {
+      target: { value: "## 실패 분석\n- FAIL 5건" },
+    });
+
+    // 다른 사람이 앞부분을 지워 같은 id 가 다른 구간을 가리키게 된 상태
+    rerender(
+      <ExecutionQaSummaryPanel
+        execution={{
+          id: 1,
+          name: "exec",
+          qaSummary: "## 실패 분석\n- FAIL 3건",
+        }}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("qa-summary-section-save-button"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("qa-summary-conflict")).toBeInTheDocument(),
+    );
+    expect(onSave).not.toHaveBeenCalled();
+    // 작성 중이던 내용은 편집기에 남아 있어야 한다
+    expect(screen.getByTestId("qa-summary-section-editor").value).toBe(
+      "## 실패 분석\n- FAIL 5건",
+    );
   });
 
   it("총평이 비어 있으면 안내 문구를 보여준다", () => {
@@ -55,6 +160,8 @@ describe("ExecutionQaSummaryPanel (QA 총평)", () => {
         onSave={vi.fn()}
       />,
     );
-    expect(screen.getByText(/아직 작성된 QA 총평이 없습니다/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/아직 작성된 QA 총평이 없습니다/),
+    ).toBeInTheDocument();
   });
 });

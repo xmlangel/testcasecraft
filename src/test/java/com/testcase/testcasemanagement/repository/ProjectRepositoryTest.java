@@ -512,8 +512,7 @@ public class ProjectRepositoryTest extends AbstractTestNGSpringContextTests {
   /** 공유 테스트 DB 에서 이 클래스가 만든 프로젝트만 센다 (다른 테스트가 남긴 행에 흔들리지 않도록) */
   private long countOwnProjects(List<Project> projects) {
     List<String> ownIds =
-        List.of(
-            testOrgProject1.getId(), testOrgProject2.getId(), testIndependentProject.getId());
+        List.of(testOrgProject1.getId(), testOrgProject2.getId(), testIndependentProject.getId());
     return projects.stream().filter(project -> ownIds.contains(project.getId())).count();
   }
 

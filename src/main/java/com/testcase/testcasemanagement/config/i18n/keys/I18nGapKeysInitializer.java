@@ -907,9 +907,25 @@ public class I18nGapKeysInitializer {
         "실행 QA 총평 (2026-06-10)",
         "QA 총평 저장에 실패했습니다.");
     createTranslationKeyIfNotExists(
+        "testResult.qaSummary.editSection", "testResult", "QA 총평 구간 편집 (2026-08-05)", "이 부분 수정");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.editAll", "testResult", "QA 총평 구간 편집 (2026-08-05)", "전체 수정");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.preamble", "testResult", "QA 총평 구간 편집 (2026-08-05)", "머리글");
+    createTranslationKeyIfNotExists(
+        "testResult.qaSummary.conflict",
+        "testResult",
+        "QA 총평 구간 편집 (2026-08-05)",
+        "편집하는 동안 총평이 다른 곳에서 바뀌었습니다. 작성한 내용을 복사해 두고 화면을 새로 고친 뒤 다시 저장하세요.");
+    createTranslationKeyIfNotExists(
         "testResult.export.pdf.qaSummaryTitle", "testResult", "실행 QA 총평 (2026-06-10)", "💬 QA 총평");
     createTranslationKeyIfNotExists(
         "testResult.export.pdf.qaSummaryBy", "testResult", "실행 QA 총평 (2026-06-10)", "작성");
+    createTranslationKeyIfNotExists(
+        "testResult.export.option.includeQaSummary",
+        "testResult",
+        "내보내기 QA 총평 포함 옵션 (2026-08-05)",
+        "QA 총평 포함");
     createTranslationKeyIfNotExists(
         "testResult.export.attachmentsAvailable",
         "testResult",

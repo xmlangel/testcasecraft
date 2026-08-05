@@ -969,8 +969,7 @@ public class TestResultReportService {
       String jiraIssueKey = (String) row[5];
 
       // 플랜·실행 필터가 있으면 그 플랜의 결과만, 프로젝트 전체 보기면 'PROJ:케이스' 로 모아 센다
-      String key =
-          (planFiltered || executionFiltered) ? resultPlanId + ":" + tcId : "PROJ:" + tcId;
+      String key = (planFiltered || executionFiltered) ? resultPlanId + ":" + tcId : "PROJ:" + tcId;
       if (!targetPlanCaseKeys.contains(key)) continue;
 
       // 실행 필터 적용
@@ -1085,9 +1084,7 @@ public class TestResultReportService {
     return reportDtos;
   }
 
-  /**
-   * 결과 ID 목록을 엔티티로 읽어 ID 로 찾을 수 있게 담는다. IN 절이 지나치게 길어지지 않게 1000개씩 끊는다(드라이버·DB 한계 회피).
-   */
+  /** 결과 ID 목록을 엔티티로 읽어 ID 로 찾을 수 있게 담는다. IN 절이 지나치게 길어지지 않게 1000개씩 끊는다(드라이버·DB 한계 회피). */
   private Map<String, TestResult> loadResultsByIds(Collection<String> ids) {
     Map<String, TestResult> byId = new HashMap<>();
     if (ids == null || ids.isEmpty()) return byId;
