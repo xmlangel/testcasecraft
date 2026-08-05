@@ -95,6 +95,18 @@ public class JiraApiService {
           testProjectAccess(serverUrl, authHeader, projectKey);
         }
 
+        // serverInfo 는 공개 엔드포인트라 자격증명이 틀려도 200 이 온다(익명 강등).
+        // 인증까지 확인해야 "연결 성공" 이 실제 인증 성공을 뜻한다.
+        AuthState authState = probeAuth(optimizedRestTemplate, serverUrl, entity);
+        if (authState == AuthState.UNAUTHENTICATED) {
+          log.warn(
+              "JIRA 인증 실패(익명으로 강등됨): username={}, url={}", testConfig.getUsername(), serverUrl);
+          return createFailureStatus(
+              "인증 실패",
+              "이메일(Atlassian 계정)과 API 토큰을 확인하세요. Jira Cloud 는 잘못된 자격증명을 익명 요청으로"
+                  + " 처리하므로 서버 정보 조회만으로는 인증을 확인할 수 없습니다.");
+        }
+
         success = true;
         return JiraConfigDto.ConnectionStatusDto.builder()
             .isConnected(true)
@@ -185,11 +197,13 @@ public class JiraApiService {
         } catch (HttpClientErrorException.NotFound notFound) {
           // 구형 서버에는 project/search 가 없다 → 옛 전체 조회로 폴백
           log.info("project/search 미지원 서버로 판단, 전체 조회로 폴백: url={}", normalizedUrl);
-          return logProjectListDiagnostics(
-              getProjectsLegacy(optimizedRestTemplate, normalizedUrl, entity),
-              true,
-              username,
-              normalizedUrl);
+          List<JiraConfigDto.JiraProjectDto> legacy =
+              getProjectsLegacy(optimizedRestTemplate, normalizedUrl, entity);
+          if (legacy.isEmpty()) {
+            logEmptyProjectListReason(
+                probeAuth(optimizedRestTemplate, normalizedUrl, entity), username, normalizedUrl);
+          }
+          return legacy;
         } catch (HttpStatusCodeException statusError) {
           // RestTemplate 기본 핸들러는 4xx/5xx 를 예외로 던진다 — 실제 오류는 여기로 온다
           log.warn(
@@ -229,7 +243,11 @@ public class JiraApiService {
             "JIRA 프로젝트 목록을 끝까지 읽지 못했습니다(부분 목록 {}건 반환): url={}", projects.size(), normalizedUrl);
       }
 
-      return logProjectListDiagnostics(projects, complete, username, normalizedUrl);
+      if (projects.isEmpty() && complete) {
+        logEmptyProjectListReason(
+            probeAuth(optimizedRestTemplate, normalizedUrl, entity), username, normalizedUrl);
+      }
+      return projects;
 
     } catch (Exception e) {
       log.error("JIRA 프로젝트 목록 조회 실패", e);
@@ -258,19 +276,59 @@ public class JiraApiService {
     return projects;
   }
 
-  /** 목록이 비면 원인 추적 단서를 남긴다. 권한 없는 계정도 정상 응답에 빈 목록이 오기 때문이다. */
-  private List<JiraConfigDto.JiraProjectDto> logProjectListDiagnostics(
-      List<JiraConfigDto.JiraProjectDto> projects,
-      boolean complete,
-      String username,
-      String normalizedUrl) {
-    if (projects.isEmpty() && complete) {
+  /** 자격증명이 실제로 인증되는지의 상태. Jira Cloud 는 틀린 자격증명을 익명으로 강등한다. */
+  private enum AuthState {
+    AUTHENTICATED,
+    UNAUTHENTICATED,
+    UNKNOWN
+  }
+
+  /**
+   * /rest/api/3/myself 로 인증 여부를 가른다.
+   *
+   * <p>익명 요청이면 401 이 오므로 200 이면 자격증명이 실제로 먹은 것이다. 그 밖의 오류(404·5xx·네트워크)는 판정하지 않는다 — 이 검사로 정상 저장을
+   * 막으면 안 된다.
+   */
+  private AuthState probeAuth(
+      RestTemplate client, String normalizedUrl, HttpEntity<String> entity) {
+    String myselfUrl = normalizedUrl + "/rest/api/3/myself";
+    try {
+      ResponseEntity<String> response =
+          client.exchange(URI.create(myselfUrl), HttpMethod.GET, entity, String.class);
+      if (!response.getStatusCode().is2xxSuccessful()) {
+        return AuthState.UNKNOWN;
+      }
+      JsonNode me = objectMapper.readTree(response.getBody());
+      log.info(
+          "JIRA 인증 확인: accountId={}, email={}, displayName={}",
+          me.path("accountId").asText("-"),
+          me.path("emailAddress").asText("-"),
+          me.path("displayName").asText("-"));
+      return AuthState.AUTHENTICATED;
+    } catch (HttpClientErrorException.Unauthorized unauthorized) {
+      return AuthState.UNAUTHENTICATED;
+    } catch (Exception e) {
+      log.debug("JIRA 인증 확인 실패(판정 보류): url={}, error={}", myselfUrl, e.getMessage());
+      return AuthState.UNKNOWN;
+    }
+  }
+
+  /** 목록이 빈 이유를 자격증명 문제와 권한 문제로 갈라 남긴다. */
+  private void logEmptyProjectListReason(
+      AuthState authState, String username, String normalizedUrl) {
+    if (authState == AuthState.UNAUTHENTICATED) {
       log.warn(
-          "JIRA 프로젝트 목록이 비어 있습니다. 계정({})에 Browse Projects 권한이 있는지 확인하세요: url={}",
+          "JIRA 자격증명이 유효하지 않아 익명으로 조회됐습니다(그래서 목록이 빕니다)."
+              + " username({})이 Atlassian 계정 이메일인지, API 토큰이 그 계정 것인지 확인하세요: url={}",
           username,
           normalizedUrl);
+      return;
     }
-    return projects;
+    log.warn(
+        "JIRA 프로젝트 목록이 비어 있습니다(인증은 통과). 계정({})에 Browse Projects 권한이 있는 프로젝트가"
+            + " 없는지 확인하세요: url={}",
+        username,
+        normalizedUrl);
   }
 
   /** 프로젝트 JSON 한 건 → DTO. 두 엔드포인트의 필드 구성이 같아 공용으로 쓴다. */

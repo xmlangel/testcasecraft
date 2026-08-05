@@ -161,7 +161,8 @@ public class JiraApiServiceProjectsTest {
         serviceWith(client).getProjects(BASE, "qa@example.com", "token");
 
     assertTrue(projects.isEmpty());
-    assertEquals(client.requested.size(), 1);
+    // 빈 목록이면 원인 판별용 myself 호출이 붙으므로 project/search 요청만 센다
+    assertEquals(client.requested.stream().filter(u -> u.contains("/project/search")).count(), 1L);
   }
 
   @Test
@@ -218,6 +219,70 @@ public class JiraApiServiceProjectsTest {
         serviceWith(client).getProjects(BASE, "qa@example.com", "token");
 
     assertTrue(projects.isEmpty());
-    assertEquals(client.requested.size(), 1);
+    // 빈 목록이면 원인 판별용 myself 호출이 붙으므로 project/search 요청만 센다
+    assertEquals(client.requested.stream().filter(u -> u.contains("/project/search")).count(), 1L);
+  }
+
+  @Test
+  public void 잘못된_자격증명은_연결_성공으로_저장되지_않는다() throws Exception {
+    // serverInfo 는 공개라 200 이 오지만 myself 는 401 → 인증 실패로 판정해야 한다
+    StubRestTemplate client =
+        new StubRestTemplate(
+            Map.of("/serverInfo", ResponseEntity.ok("{\"version\":\"1001.0.0\"}")),
+            "/myself",
+            HttpClientErrorException.create(
+                HttpStatus.UNAUTHORIZED, "Unauthorized", null, null, null));
+
+    JiraConfigDto.ConnectionStatusDto status =
+        serviceWith(client)
+            .testConnection(
+                JiraConfigDto.TestConnectionDto.builder()
+                    .serverUrl(BASE)
+                    .username("teddy")
+                    .apiToken("token")
+                    .build());
+
+    assertEquals(status.getIsConnected(), Boolean.FALSE);
+    assertEquals(status.getStatus(), "인증 실패");
+  }
+
+  @Test
+  public void 인증되면_연결_성공이다() throws Exception {
+    StubRestTemplate client =
+        new StubRestTemplate(
+            Map.of(
+                "/serverInfo",
+                ResponseEntity.ok("{\"version\":\"1001.0.0\"}"),
+                "/myself",
+                ResponseEntity.ok(
+                    "{\"accountId\":\"5f0\",\"emailAddress\":\"qa@example.com\","
+                        + "\"displayName\":\"QA\"}")));
+
+    JiraConfigDto.ConnectionStatusDto status =
+        serviceWith(client)
+            .testConnection(
+                JiraConfigDto.TestConnectionDto.builder()
+                    .serverUrl(BASE)
+                    .username("qa@example.com")
+                    .apiToken("token")
+                    .build());
+
+    assertEquals(status.getIsConnected(), Boolean.TRUE);
+  }
+
+  @Test
+  public void 목록이_비면_myself_로_원인을_가른다() throws Exception {
+    StubRestTemplate client =
+        new StubRestTemplate(
+            Map.of("/project/search", ResponseEntity.ok("{\"isLast\":true,\"values\":[]}")),
+            "/myself",
+            HttpClientErrorException.create(
+                HttpStatus.UNAUTHORIZED, "Unauthorized", null, null, null));
+
+    List<JiraConfigDto.JiraProjectDto> projects =
+        serviceWith(client).getProjects(BASE, "teddy", "token");
+
+    assertTrue(projects.isEmpty());
+    assertTrue(client.requested.stream().anyMatch(u -> u.contains("/rest/api/3/myself")));
   }
 }
