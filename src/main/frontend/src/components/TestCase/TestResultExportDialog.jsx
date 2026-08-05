@@ -1358,7 +1358,7 @@ h2.sec{font-size:16px;border-bottom:2px solid var(--border);padding-bottom:6px;m
 .md code{background:var(--grey-light);border-radius:4px;padding:1px 5px;font:12px ui-monospace,Menlo,monospace}
 .md pre{background:var(--code-bg);color:var(--code-fg);border-radius:6px;padding:12px 14px;overflow-x:auto;margin:10px 0}
 .md pre code{background:none;color:inherit;padding:0;font-size:12px;line-height:1.55}
-.md table{border-collapse:collapse;margin:10px 0;max-width:100%;display:block;overflow-x:auto}
+.md table{border-collapse:collapse;margin:12px 0 26px;max-width:100%;display:block;overflow-x:auto}
 .md th,.md td{border:1px solid var(--border);padding:6px 10px;font-size:12.5px}
 .md th{background:var(--grey-light);font-weight:700}
 .md tbody tr:nth-child(2n){background:var(--surface-2)}

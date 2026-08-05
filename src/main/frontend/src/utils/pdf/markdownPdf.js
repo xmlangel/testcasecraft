@@ -230,7 +230,7 @@ export const drawMarkdownBlocks = (blocks = [], ctx) => {
 
     drawRow(block.header, true);
     block.rows.forEach((row) => drawRow(row, false));
-    setY(getY() + 8);
+    setY(getY() + 18); // 표 아래는 넉넉히 — 다음 문단·제목이 표에 붙어 보인다
   };
 
   const drawHr = () => {
