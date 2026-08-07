@@ -64,6 +64,11 @@ public class SchedulerConfigService {
             .orElseThrow(
                 () -> new IllegalArgumentException("Scheduler config not found: " + taskKey));
 
+    // 자동 실행하지 않는 작업은 켤 수 없다 — 켜도 일정이 걸리지 않으므로 켜진 척하는 상태를 막는다
+    if (Boolean.TRUE.equals(dto.getEnabled())) {
+      rejectIfAutoScheduleBlocked(taskKey);
+    }
+
     // RAG 비활성화 시 RAG 관련 스케줄러 활성화 시도 차단
     if (Boolean.TRUE.equals(dto.getEnabled()) && RAG_SCHEDULER_KEYS.contains(taskKey)) {
       checkRagEnabledForScheduler(taskKey);
@@ -122,8 +127,14 @@ public class SchedulerConfigService {
             .orElseThrow(
                 () -> new IllegalArgumentException("Scheduler config not found: " + taskKey));
 
-    // RAG 비활성화 시 RAG 관련 스케줄러 toggle을 활성화하려 할 때 차단
     boolean willBeEnabled = !config.getEnabled();
+
+    // 자동 실행하지 않는 작업은 켤 수 없다
+    if (willBeEnabled) {
+      rejectIfAutoScheduleBlocked(taskKey);
+    }
+
+    // RAG 비활성화 시 RAG 관련 스케줄러 toggle을 활성화하려 할 때 차단
     if (willBeEnabled && RAG_SCHEDULER_KEYS.contains(taskKey)) {
       checkRagEnabledForScheduler(taskKey);
     }
@@ -228,6 +239,19 @@ public class SchedulerConfigService {
   private void validateFixedValue(Long value) {
     if (value == null || value <= 0) {
       throw new IllegalArgumentException("Fixed rate/delay must be greater than 0");
+    }
+  }
+
+  /**
+   * 자동 실행하지 않는 작업을 켜려는 요청을 거절한다.
+   *
+   * <p>화면에서 토글을 막아도 REST 로 직접 부르면 켤 수 있다. 그러면 설정은 켜졌는데 일정은 걸리지 않아, 정리가 돌아가는 줄 아는 상태가 그대로 생긴다. 필요할
+   * 때는 즉시 실행으로 돌린다.
+   */
+  private void rejectIfAutoScheduleBlocked(String taskKey) {
+    if (taskKey != null && DynamicSchedulerService.NO_AUTO_SCHEDULE.contains(taskKey)) {
+      throw new IllegalArgumentException(
+          "자동 실행하지 않는 작업이라 활성화할 수 없습니다. 필요할 때 즉시 실행을 쓰세요: " + taskKey);
     }
   }
 }

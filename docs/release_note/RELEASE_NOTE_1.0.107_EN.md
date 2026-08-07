@@ -23,7 +23,7 @@ The last path that deleted attachment files — removing a test case — is clos
 
 * No database migration scripts. No schema changes.
 * One new i18n key (`scheduler.tooltip.autoScheduleBlocked`) is registered automatically for both languages at startup.
-* **Unused attachments will accumulate.** Files survive case deletion, so watch storage usage and run "Attachment cleanup" from the admin screen when needed.
+* **Orphaned files will accumulate.** Deleting a case removes the attachment record and leaves the file. "Attachment cleanup" will not reclaim those files either — it only handles attachments that still have a record. Use the file paths from the log to clean storage directly, or to pull back an image you need.
 * For 1.0.106 changes see [RELEASE_NOTE_1.0.106_EN.md](RELEASE_NOTE_1.0.106_EN.md).
 
 ### Four releases, one problem

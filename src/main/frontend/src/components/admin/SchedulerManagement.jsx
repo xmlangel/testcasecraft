@@ -237,7 +237,7 @@ const SchedulerManagement = () => {
           >
             <span>
               <Switch
-                checked={Boolean(params.value) && !blocked}
+                checked={Boolean(params.value)}
                 disabled={blocked}
                 onChange={() => handleToggleEnabled(params.row.taskKey)}
                 color="primary"
