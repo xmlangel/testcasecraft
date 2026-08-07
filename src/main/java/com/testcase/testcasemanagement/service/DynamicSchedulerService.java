@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import org.slf4j.Logger;
@@ -21,6 +22,17 @@ import org.springframework.stereotype.Service;
 public class DynamicSchedulerService {
 
   private static final Logger logger = LoggerFactory.getLogger(DynamicSchedulerService.class);
+
+  /**
+   * 시간이 지났다는 이유로 저절로 돌게 두지 않는 작업.
+   *
+   * <p>첨부 정리는 생성 7일이 지난 미사용 첨부를 저장소에서 지운다. 사용자가 지우라고 한 적이 없는데 파일이 사라지고 되돌릴 수 없어, 일정으로 도는 것을 막았다. 기능
+   * 자체는 남아 있어 관리자가 필요할 때 직접 실행할 수 있다({@code POST
+   * /api/admin/scheduler/configs/attachment-cleanup/execute}).
+   *
+   * <p>설정에 남은 값(cron·활성 여부)과 무관하게 여기서 걸러지므로, 이미 켜진 채로 돌던 서버도 코드를 올리면 곧 멈춘다.
+   */
+  public static final Set<String> NO_AUTO_SCHEDULE = Set.of("attachment-cleanup");
 
   private final TaskScheduler taskScheduler;
   private final SchedulerConfigRepository schedulerConfigRepository;
@@ -65,6 +77,13 @@ public class DynamicSchedulerService {
 
   /** 스케줄 작업 등록 또는 변경 */
   public void scheduleTask(SchedulerConfig config) {
+    if (NO_AUTO_SCHEDULE.contains(config.getTaskKey())) {
+      logger.info(
+          "시간이 지나면 저절로 도는 일정은 걸지 않는다 — 필요할 때 관리자가 직접 실행한다: taskKey={}", config.getTaskKey());
+      cancelTask(config.getTaskKey());
+      return;
+    }
+
     if (!config.getEnabled()) {
       logger.debug("비활성화된 스케줄은 등록하지 않음: taskKey={}", config.getTaskKey());
       cancelTask(config.getTaskKey());
