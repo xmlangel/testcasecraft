@@ -150,13 +150,25 @@ describe("useResultShortcuts", () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it("자동 반복분도 기본 동작은 막는다 — 차단까지 건너뛰면 버튼 클릭·폼 제출로 샌다", () => {
+  it("이 훅이 맡은 키는 반복분에서도 기본 동작을 막는다", () => {
     mount();
 
     expect(fireEvent.keyDown(window, { key: "p", repeat: true })).toBe(false);
     expect(fireEvent.keyDown(window, { key: "Enter", repeat: true })).toBe(
       false,
     );
+  });
+
+  it("버튼 위의 Enter 는 반복분도 그대로 넘긴다 — 반복 클릭은 버튼의 동작이다", () => {
+    mount();
+    focusOn("<button>태그 삭제</button>");
+
+    // 여기서 기본 동작을 막으면 버튼을 누르고 있는 동작 자체가 죽는다
+    expect(fireEvent.keyDown(window, { key: "Enter" })).toBe(true);
+    expect(fireEvent.keyDown(window, { key: "Enter", repeat: true })).toBe(
+      true,
+    );
+    expect(onSave).not.toHaveBeenCalled();
   });
 
   it("입력칸 밖의 Enter 는 저장으로 간다", () => {

@@ -33,8 +33,10 @@ export function useResultShortcuts({
       // 판정 단축키로 먹혀 입력이 사라지고 결과까지 저장되던 문제
       if (isTextEntryElement(document.activeElement)) return;
 
-      // 키를 누른 채로 두면 keydown 이 자동 반복된다. 이때 저장은 건너뛰되 기본 동작 차단은
-      // 유지한다 — 차단까지 건너뛰면 반복분이 버튼 클릭·폼 제출로 새어 이중 저장이 된다.
+      // 키를 누른 채로 두면 keydown 이 자동 반복된다. 이 훅이 맡은 키(판정 키와, 버튼 밖에서
+      // 누른 Enter)는 반복분에서 저장만 건너뛰고 기본 동작 차단은 유지한다 — 첫 입력은 막고
+      // 반복은 흘려보내면 같은 키가 도중에 스크롤·폼 제출 같은 기본 동작으로 바뀐다.
+      // 버튼 위의 Enter 는 아래에서 이 훅이 손대지 않고 넘긴다. 반복 클릭은 버튼의 동작이다.
       const verdict = keyResultMap[e.key.toUpperCase()];
       if (verdict) {
         e.preventDefault();
