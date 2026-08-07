@@ -29,6 +29,9 @@ export function useResultShortcuts({
     const handleKeyDown = (e) => {
       if (e.ctrlKey || e.altKey || e.metaKey) return;
 
+      // 키를 누른 채로 두면 keydown 이 자동 반복된다 — 그때마다 저장 요청이 나가면 안 된다
+      if (e.repeat) return;
+
       // 글자를 치는 중에는 단축키가 물러난다 — 태그·JIRA 이슈 키를 적다가 N·P·F·B 가
       // 판정 단축키로 먹혀 입력이 사라지고 결과까지 저장되던 문제
       if (isTextEntryElement(document.activeElement)) return;

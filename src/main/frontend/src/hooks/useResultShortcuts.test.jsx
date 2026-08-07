@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook } from "@testing-library/react";
-import { fireEvent } from "@testing-library/dom";
+import { renderHook, fireEvent } from "@testing-library/react";
 import useResultShortcuts from "./useResultShortcuts.js";
 
 /**
@@ -132,9 +131,23 @@ describe("useResultShortcuts", () => {
     mount();
     focusOn('<input type="checkbox" />');
 
-    fireEvent.keyDown(window, { key: "Enter" });
+    // 기본 동작도 막는다 — 폼 제출까지 태우면 이중 저장이 된다
+    const notPrevented = fireEvent.keyDown(window, { key: "Enter" });
 
     expect(onSave).toHaveBeenCalledTimes(1);
+    expect(notPrevented).toBe(false);
+  });
+
+  it("키를 누른 채로 두어도 저장은 한 번만 — 자동 반복은 무시한다", () => {
+    mount();
+
+    fireEvent.keyDown(window, { key: "p" });
+    fireEvent.keyDown(window, { key: "p", repeat: true });
+    fireEvent.keyDown(window, { key: "p", repeat: true });
+    fireEvent.keyDown(window, { key: "Enter", repeat: true });
+
+    expect(onVerdict).toHaveBeenCalledTimes(1);
+    expect(onSave).not.toHaveBeenCalled();
   });
 
   it("입력칸 밖의 Enter 는 저장으로 간다", () => {
