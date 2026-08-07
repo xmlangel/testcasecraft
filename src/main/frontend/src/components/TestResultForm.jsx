@@ -32,7 +32,10 @@ import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
 import { canRecordTestResult } from "./TestCaseTree/utils/permissionUtils.js";
-import { isTextEntryElement } from "../utils/isTextEntryElement.js";
+import {
+  isTextEntryElement,
+  isActivatableElement,
+} from "../utils/isTextEntryElement.js";
 
 const KEY_RESULT_MAP = {
   N: TestResult.NOT_RUN,
@@ -873,8 +876,11 @@ const TestResultForm = ({
       }
 
       if (e.key === "Enter") {
-        // 글자 입력 중이면 위에서 이미 물러났다 — 태그 확정·자동완성 선택을 저장이 가로채지 않는다
-        if (document.activeElement !== saveButtonRef.current) {
+        // 글자 입력 중이면 위에서 이미 물러났다 — 태그 확정·자동완성 선택을 저장이 가로채지 않는다.
+        // 버튼·링크 위에서도 물러난다 — 태그 삭제나 닫기를 Enter 로 누른 것이 저장이 되면 안 된다.
+        // 저장 버튼 자신은 클릭 기본 동작이 저장이므로 중복 실행을 피해 제외한다.
+        const active = document.activeElement;
+        if (active !== saveButtonRef.current && !isActivatableElement(active)) {
           handleSaveAndNext(result);
           e.preventDefault();
         }

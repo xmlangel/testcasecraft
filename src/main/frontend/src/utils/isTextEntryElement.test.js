@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { isTextEntryElement } from "./isTextEntryElement.js";
+import {
+  isTextEntryElement,
+  isActivatableElement,
+} from "./isTextEntryElement.js";
 
 const el = (html) => {
   const wrapper = document.createElement("div");
@@ -43,7 +46,24 @@ describe("isTextEntryElement", () => {
     expect(isTextEntryElement(el('<div role="searchbox"></div>'))).toBe(true);
   });
 
-  it("contentEditable 요소도 글자 입력으로 본다", () => {
+  it("열린 목록 안에서도 글자 입력으로 본다 — MUI Select 를 펼친 상태의 type-ahead", () => {
+    expect(isTextEntryElement(el('<ul role="listbox"></ul>'))).toBe(true);
+    expect(isTextEntryElement(el('<li role="option"></li>'))).toBe(true);
+    expect(isTextEntryElement(el('<ul role="menu"></ul>'))).toBe(true);
+    expect(isTextEntryElement(el('<li role="menuitem"></li>'))).toBe(true);
+  });
+
+  it("contentEditable 요소도 글자 입력으로 본다 — 속성으로도 판별한다", () => {
+    // jsdom 은 isContentEditable 를 구현하지 않으므로 속성 경로가 실제로 쓰인다
+    expect(isTextEntryElement(el('<div contenteditable="true"></div>'))).toBe(
+      true,
+    );
+    expect(isTextEntryElement(el("<div contenteditable></div>"))).toBe(true);
+    expect(isTextEntryElement(el('<div contenteditable="false"></div>'))).toBe(
+      false,
+    );
+
+    // 브라우저가 주는 isContentEditable 도 그대로 인정한다
     const editable = el("<div></div>");
     Object.defineProperty(editable, "isContentEditable", { value: true });
     expect(isTextEntryElement(editable)).toBe(true);
@@ -58,5 +78,29 @@ describe("isTextEntryElement", () => {
   it("포커스가 없을 때(null·undefined)는 단축키를 막지 않는다", () => {
     expect(isTextEntryElement(null)).toBe(false);
     expect(isTextEntryElement(undefined)).toBe(false);
+  });
+});
+
+describe("isActivatableElement", () => {
+  it("Enter 로 활성화되는 요소를 알아본다 — 태그 삭제·닫기 버튼이 여기 해당한다", () => {
+    expect(isActivatableElement(el("<button>삭제</button>"))).toBe(true);
+    expect(isActivatableElement(el('<a href="#">이동</a>'))).toBe(true);
+    expect(isActivatableElement(el('<div role="button"></div>'))).toBe(true);
+    expect(isActivatableElement(el('<div role="link"></div>'))).toBe(true);
+    expect(isActivatableElement(el('<div role="tab"></div>'))).toBe(true);
+    expect(isActivatableElement(el('<div role="switch"></div>'))).toBe(true);
+  });
+
+  it("버튼 역할의 input 도 활성화 요소로 본다", () => {
+    expect(isActivatableElement(el('<input type="submit" />'))).toBe(true);
+    expect(isActivatableElement(el('<input type="checkbox" />'))).toBe(true);
+    expect(isActivatableElement(el('<input type="radio" />'))).toBe(true);
+  });
+
+  it("글자 입력칸과 평범한 요소는 활성화 요소가 아니다", () => {
+    expect(isActivatableElement(el('<input type="text" />'))).toBe(false);
+    expect(isActivatableElement(el("<textarea></textarea>"))).toBe(false);
+    expect(isActivatableElement(el("<div>본문</div>"))).toBe(false);
+    expect(isActivatableElement(null)).toBe(false);
   });
 });
