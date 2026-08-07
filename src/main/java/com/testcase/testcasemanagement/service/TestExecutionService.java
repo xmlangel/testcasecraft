@@ -44,7 +44,8 @@ public class TestExecutionService {
   private final JiraIntegrationService jiraIntegrationService;
 
   private final TestCaseRepository testCaseRepository;
-  private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
+  // 인라인 이미지 사용 표시 전용. 결과·실행을 지울 때 첨부를 함께 지우지는 않는다.
+  private final TestCaseFileStorageService fileStorageService;
   private final ProjectSecurityService projectSecurityService;
 
   @Autowired
@@ -210,7 +211,6 @@ public class TestExecutionService {
 
   @Transactional
   public void deleteTestExecution(String id) {
-    // ICT-InlineImage: 실행 삭제 전 모든 결과의 인라인 이미지 정리
     TestExecution entity =
         testExecutionRepository
             .findByIdWithResults(id)
@@ -221,12 +221,9 @@ public class TestExecutionService {
       throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
     }
 
-    if (entity.getResults() != null) {
-      for (TestResult result : entity.getResults()) {
-        deleteInlineImagesFromNotes(result.getNotes());
-      }
-    }
-
+    // 결과 노트에 붙여넣은 이미지는 함께 지우지 않는다. 같은 이미지를 다른 결과가 참조할 수
+    // 있고, 여기서 지우면 그쪽 화면의 이미지가 조용히 사라진다. 첨부 삭제는 사용자가 직접
+    // 지울 때만 한다.
     testExecutionRepository.delete(entity);
   }
 
@@ -990,37 +987,11 @@ public class TestExecutionService {
               currentUsername, currentUser.getRole()));
     }
 
-    // 4. ICT-InlineImage: 인라인 이미지 삭제 연동
-    deleteInlineImagesFromNotes(existingResult.getNotes());
-
-    // 5. 삭제
+    // 4. 삭제. 노트에 붙여넣은 이미지는 함께 지우지 않는다 — 같은 이미지를 다른 결과가
+    // 참조할 수 있고, 여기서 지우면 그쪽 화면의 이미지가 조용히 사라진다.
     testResultRepository.delete(existingResult);
 
     System.out.println("🗑️ 테스트 결과 삭제 완료: " + resultId + " by " + currentUsername);
-  }
-
-  /**
-   * ICT-InlineImage: 노트 본문에서 인라인 이미지 ID를 추출하여 삭제 처리
-   *
-   * @param notes 마크다운 본문
-   */
-  private void deleteInlineImagesFromNotes(String notes) {
-    Set<String> attachmentIds = extractInlineImageIds(notes);
-    if (attachmentIds.isEmpty()) {
-      // 지울 이미지가 없으면 사용자 조회도 하지 않는다 — 인증 컨텍스트가 없는 경로에서 실패하지 않도록
-      return;
-    }
-
-    User currentUser = getCurrentUser();
-    for (String attachmentId : attachmentIds) {
-      try {
-        fileStorageService.deleteAttachment(attachmentId, currentUser);
-        System.out.println("🖼️ 인라인 이미지 연계 삭제 완료: " + attachmentId);
-      } catch (Exception e) {
-        System.err.println("❌ 인라인 이미지 삭제 실패 (ID: " + attachmentId + "): " + e.getMessage());
-        // 개별 이미지 삭제 실패가 전체 프로세스를 중단시키지 않도록 예외 처리
-      }
-    }
   }
 
   /**
