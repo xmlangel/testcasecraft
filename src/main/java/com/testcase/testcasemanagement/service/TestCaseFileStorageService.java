@@ -450,8 +450,13 @@ public class TestCaseFileStorageService {
    * <ul>
    *   <li>첨부가 없으면 {@link #markAsUsed(String)}를 부르지 않는다 — 그 메서드는 첨부 부재 시 예외를 던진다.
    *   <li>별도 트랜잭션에서 실행한다 — 같은 트랜잭션이면 여기서 난 예외를 호출한 쪽이 잡아도 바깥 트랜잭션이 rollback-only로 마킹되어 커밋 시점에 결과
-   *       저장까지 실패한다. 존재 확인을 통과한 뒤 삭제되는 경우(TOCTOU)나 제약 위반도 이 경계가 흡수한다.
+   *       저장까지 실패한다. 이 경계는 그 마킹을 막을 뿐 예외를 삼키지 않으므로, 호출하는 쪽에서 잡아야 한다(현재 {@code
+   *       TestExecutionService.markInlineImagesAsUsed}가 잡는다).
    * </ul>
+   *
+   * <p>알려진 절충: 이 트랜잭션이 먼저 커밋되므로 바깥 저장이 롤백되면 본문에 없는 첨부가 사용 중으로 남는다. 살아 있는 이미지가 지워지는 것(데이터 손실)보다 회수되지
+   * 않는 파일(스토리지 누수)이 낫다고 보고 택했다. 저장 성공 후로 미루려면 {@code TransactionSynchronization.afterCommit}으로 옮겨야
+   * 한다.
    *
    * @param attachmentId 첨부 ID (null 허용)
    */

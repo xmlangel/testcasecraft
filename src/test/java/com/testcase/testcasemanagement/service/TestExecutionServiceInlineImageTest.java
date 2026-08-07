@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -100,6 +101,12 @@ public class TestExecutionServiceInlineImageTest {
 
     when(projectSecurityService.canEditProject(anyString())).thenReturn(true);
     when(projectSecurityService.canRecordTestResult(anyString())).thenReturn(true);
+  }
+
+  /** SecurityContextHolder는 전역 static이라, 이 클래스가 비운 컨텍스트를 다른 테스트가 물려받지 않도록 되돌린다. */
+  @AfterMethod
+  public void tearDown() {
+    SecurityContextHolder.clearContext();
   }
 
   /** 결과 노트에 이미지 두 장을 넣으면 둘 다 사용 중으로 표시된다. */
