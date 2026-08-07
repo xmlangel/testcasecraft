@@ -32,10 +32,7 @@ import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
 import { canRecordTestResult } from "./TestCaseTree/utils/permissionUtils.js";
-import {
-  isTextEntryElement,
-  isActivatableElement,
-} from "../utils/isTextEntryElement.js";
+import useResultShortcuts from "../hooks/useResultShortcuts.js";
 
 const KEY_RESULT_MAP = {
   N: TestResult.NOT_RUN,
@@ -849,46 +846,34 @@ const TestResultForm = ({
     );
   };
 
-  useEffect(() => {
-    if ((!open && !fullPage) || isViewer) return;
+  const handleShortcutVerdict = useCallback(
+    (newResult) => {
+      setResultByUser(newResult);
+      // 판정 상태가 반영된 뒤 저장하도록 한 틱 미룬다
+      setTimeout(
+        () =>
+          handleSaveAndNext(newResult, {
+            advanceToNext: false,
+            keepDialogOpen: true,
+            showSuccess: true,
+          }),
+        0,
+      );
+    },
+    [handleSaveAndNext, setResultByUser],
+  );
 
-    const handleKeyDown = (e) => {
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
-      // 글자를 치는 중에는 단축키가 물러난다 — 태그·JIRA 이슈 키를 적다가 N·P·F·B 가
-      // 판정 단축키로 먹혀 입력이 사라지고 결과까지 저장되던 문제
-      if (isTextEntryElement(document.activeElement)) return;
+  const handleShortcutSave = useCallback(
+    () => handleSaveAndNext(result),
+    [handleSaveAndNext, result],
+  );
 
-      const key = e.key.toUpperCase();
-      if (KEY_RESULT_MAP[key]) {
-        const newResult = KEY_RESULT_MAP[key];
-        setResultByUser(newResult);
-        setTimeout(
-          () =>
-            handleSaveAndNext(newResult, {
-              advanceToNext: false,
-              keepDialogOpen: true,
-              showSuccess: true,
-            }),
-          0,
-        );
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === "Enter") {
-        // 글자 입력 중이면 위에서 이미 물러났다 — 태그 확정·자동완성 선택을 저장이 가로채지 않는다.
-        // 버튼·링크 위에서도 물러난다. 태그 삭제나 닫기를 Enter 로 누른 것이 저장이 되면 안 되고,
-        // 저장 버튼도 여기 해당해서 클릭 기본 동작과 이중으로 저장되지 않는다.
-        if (!isActivatableElement(document.activeElement)) {
-          handleSaveAndNext(result);
-          e.preventDefault();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, fullPage, isViewer, handleSaveAndNext, result]);
+  useResultShortcuts({
+    enabled: (open || fullPage) && !isViewer,
+    keyResultMap: KEY_RESULT_MAP,
+    onVerdict: handleShortcutVerdict,
+    onSave: handleShortcutSave,
+  });
 
   const renderContent = () => (
     <>
