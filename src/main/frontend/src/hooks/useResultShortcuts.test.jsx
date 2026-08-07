@@ -159,7 +159,7 @@ describe("useResultShortcuts", () => {
     );
   });
 
-  it("버튼 위의 Enter 는 반복분도 그대로 넘긴다 — 반복 클릭은 버튼의 동작이다", () => {
+  it("버튼 위의 Enter 는 반복분까지 이 훅이 가로채지 않는다", () => {
     mount();
     focusOn("<button>태그 삭제</button>");
 
