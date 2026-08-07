@@ -225,8 +225,44 @@ public class TestExecutionServiceInlineImageTest {
     testExecutionService.deleteTestExecution("exec-1");
 
     verify(userRepository, never()).findByUsername(anyString());
-    verify(fileStorageService, never()).deleteAttachment(anyString(), any(User.class));
+    verify(fileStorageService, never()).deleteAttachment(any(), any());
     verify(testExecutionRepository, times(1)).delete(mockExecution);
+  }
+
+  /**
+   * 실행을 지워도 노트의 이미지는 남긴다.
+   *
+   * <p>같은 이미지를 다른 결과가 참조할 수 있어, 여기서 지우면 그쪽 화면의 이미지가 조용히 사라진다.
+   */
+  @Test
+  public void testDeleteExecutionKeepsInlineImages() {
+    TestResult withImage = new TestResult();
+    withImage.setId("result-1");
+    withImage.setTestCaseId("tc-1");
+    withImage.setNotes(noteWith(IMG_A, IMG_B));
+    mockExecution.getResults().add(withImage);
+
+    testExecutionService.deleteTestExecution("exec-1");
+
+    verify(fileStorageService, never()).deleteAttachment(any(), any());
+    verify(testExecutionRepository, times(1)).delete(mockExecution);
+  }
+
+  /** 이전 결과를 지워도 노트의 이미지는 남긴다. */
+  @Test
+  public void testDeletePreviousResultKeepsInlineImages() {
+    TestResult existing = new TestResult();
+    existing.setId("result-1");
+    existing.setTestCaseId("tc-1");
+    existing.setNotes(noteWith(IMG_A));
+    existing.setExecutedBy(mockUser);
+    existing.setTestExecution(mockExecution);
+    when(testResultRepository.findById("result-1")).thenReturn(Optional.of(existing));
+
+    testExecutionService.deletePreviousTestResult("result-1", "testuser");
+
+    verify(fileStorageService, never()).deleteAttachment(any(), any());
+    verify(testResultRepository, times(1)).delete(existing);
   }
 
   /** 이전 결과를 고쳐 이미지를 새로 넣은 경우에도 표시된다. */
