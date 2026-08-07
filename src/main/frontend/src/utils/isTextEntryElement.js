@@ -32,9 +32,13 @@ const TEXT_ENTRY_ROLES = new Set([
   "menuitem",
 ]);
 
-// Enter·Space 로 활성화되는 요소 — Enter 를 이들에게 넘겨야 클릭이 먹는다
+// Enter 로 활성화되는 요소 — Enter 를 이들에게 넘겨야 클릭이 먹는다
 const ACTIVATABLE_TAGS = new Set(["BUTTON", "A", "SUMMARY"]);
 const ACTIVATABLE_ROLES = new Set(["button", "link", "tab", "switch"]);
+
+// 버튼 구실을 하는 input 타입만 넣는다. 체크박스·라디오는 Space 로 토글되고 Enter 로는
+// 아무 일도 하지 않으므로 여기 넣으면 Enter 가 저장도 토글도 못 하는 구간이 생긴다.
+const ACTIVATABLE_INPUT_TYPES = new Set(["button", "image", "reset", "submit"]);
 
 /**
  * @param {Element | null | undefined} element 검사할 요소 (보통 document.activeElement)
@@ -43,10 +47,13 @@ const ACTIVATABLE_ROLES = new Set(["button", "link", "tab", "switch"]);
 export function isTextEntryElement(element) {
   if (!element) return false;
 
-  // jsdom 은 isContentEditable 을 구현하지 않아 속성으로도 확인한다
+  // jsdom 은 isContentEditable 을 구현하지 않아 속성으로도 확인한다.
+  // 조상까지 보는 이유는 편집 영역 안쪽 자식에 포커스가 갈 수 있어서다.
   if (element.isContentEditable) return true;
-  const contentEditable = element.getAttribute?.("contenteditable");
-  if (contentEditable === "" || contentEditable === "true") return true;
+  const editableHost = element.closest?.("[contenteditable]");
+  if (editableHost) {
+    return editableHost.getAttribute("contenteditable") !== "false";
+  }
 
   const tagName = element.tagName;
   if (tagName === "TEXTAREA") return true;
@@ -81,7 +88,7 @@ export function isActivatableElement(element) {
 
   if (element.tagName === "INPUT") {
     const type = (element.getAttribute?.("type") || "text").toLowerCase();
-    return NON_TEXT_INPUT_TYPES.has(type);
+    return ACTIVATABLE_INPUT_TYPES.has(type);
   }
 
   const role = element.getAttribute?.("role");

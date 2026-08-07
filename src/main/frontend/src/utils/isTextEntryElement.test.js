@@ -62,6 +62,13 @@ describe("isTextEntryElement", () => {
     expect(isTextEntryElement(el('<div contenteditable="false"></div>'))).toBe(
       false,
     );
+    expect(
+      isTextEntryElement(el('<div contenteditable="plaintext-only"></div>')),
+    ).toBe(true);
+
+    // 편집 영역 안쪽 자식에 포커스가 있어도 글자 입력 중이다
+    const host = el('<div contenteditable="true"><span>글자</span></div>');
+    expect(isTextEntryElement(host.querySelector("span"))).toBe(true);
 
     // 브라우저가 주는 isContentEditable 도 그대로 인정한다
     const editable = el("<div></div>");
@@ -91,10 +98,17 @@ describe("isActivatableElement", () => {
     expect(isActivatableElement(el('<div role="switch"></div>'))).toBe(true);
   });
 
-  it("버튼 역할의 input 도 활성화 요소로 본다", () => {
+  it("버튼 구실을 하는 input 만 활성화 요소로 본다", () => {
     expect(isActivatableElement(el('<input type="submit" />'))).toBe(true);
-    expect(isActivatableElement(el('<input type="checkbox" />'))).toBe(true);
-    expect(isActivatableElement(el('<input type="radio" />'))).toBe(true);
+    expect(isActivatableElement(el('<input type="reset" />'))).toBe(true);
+    expect(isActivatableElement(el('<input type="button" />'))).toBe(true);
+    expect(isActivatableElement(el('<input type="image" />'))).toBe(true);
+  });
+
+  it("체크박스·라디오는 활성화 요소가 아니다 — Space 로 토글되고 Enter 로는 반응하지 않는다", () => {
+    // 여기서 true 를 주면 Enter 가 저장도 토글도 못 하는 구간이 생긴다
+    expect(isActivatableElement(el('<input type="checkbox" />'))).toBe(false);
+    expect(isActivatableElement(el('<input type="radio" />'))).toBe(false);
   });
 
   it("글자 입력칸과 평범한 요소는 활성화 요소가 아니다", () => {
