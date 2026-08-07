@@ -61,6 +61,11 @@ public class SchedulerKeysInitializer {
     // 버튼 & 툴팁
     createTranslationKeyIfNotExists("scheduler.tooltip.edit", "scheduler", "편집 툴팁", "편집");
     createTranslationKeyIfNotExists("scheduler.tooltip.execute", "scheduler", "즉시 실행 툴팁", "즉시 실행");
+    createTranslationKeyIfNotExists(
+        "scheduler.tooltip.autoScheduleBlocked",
+        "scheduler",
+        "자동 실행 차단 안내 툴팁",
+        "자동 실행하지 않는 작업입니다. 필요할 때 즉시 실행으로 돌리세요.");
 
     // 스케줄 설정 다이얼로그 (SchedulerConfigDialog.jsx)
     createTranslationKeyIfNotExists(

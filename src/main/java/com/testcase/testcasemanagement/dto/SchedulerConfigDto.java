@@ -34,6 +34,14 @@ public class SchedulerConfigDto {
   /** 스케줄 표현식 (사용자 친화적 문자열) */
   private String scheduleExpression;
 
+  /**
+   * 자동 실행이 막힌 작업인지.
+   *
+   * <p>켜 두어도 일정이 걸리지 않는다. 화면에서 이 값이 참이면 켜기를 막고 사유를 보여 준다 — 그러지 않으면 켜 놓고 돌아가는 줄 아는 상태가 생긴다. 필요할 때는
+   * 즉시 실행으로 돌린다.
+   */
+  private Boolean autoScheduleBlocked;
+
   /** Entity를 DTO로 변환 */
   public static SchedulerConfigDto from(SchedulerConfig entity) {
     return SchedulerConfigDto.builder()
@@ -50,6 +58,9 @@ public class SchedulerConfigDto {
         .lastExecutionStatus(entity.getLastExecutionStatus())
         .lastModifiedDate(entity.getLastModifiedDate())
         .lastModifiedBy(entity.getLastModifiedBy())
+        .autoScheduleBlocked(
+            com.testcase.testcasemanagement.service.DynamicSchedulerService.NO_AUTO_SCHEDULE
+                .contains(entity.getTaskKey()))
         .build();
   }
 }

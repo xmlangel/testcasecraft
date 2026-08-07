@@ -961,6 +961,11 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     // 버튼 & 툴팁
     createTranslationIfNotExists("scheduler.tooltip.edit", languageCode, "편집", createdBy);
     createTranslationIfNotExists("scheduler.tooltip.execute", languageCode, "즉시 실행", createdBy);
+    createTranslationIfNotExists(
+        "scheduler.tooltip.autoScheduleBlocked",
+        languageCode,
+        "자동 실행하지 않는 작업입니다. 필요할 때 즉시 실행으로 돌리세요.",
+        createdBy);
 
     // 스케줄 설정 다이얼로그
     createTranslationIfNotExists("scheduler.dialog.title", languageCode, "스케줄 설정 편집", createdBy);

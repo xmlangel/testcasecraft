@@ -1274,6 +1274,11 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("scheduler.tooltip.edit", languageCode, "Edit", createdBy);
     createTranslationIfNotExists(
         "scheduler.tooltip.execute", languageCode, "Execute Now", createdBy);
+    createTranslationIfNotExists(
+        "scheduler.tooltip.autoScheduleBlocked",
+        languageCode,
+        "This task never runs on a schedule. Use Execute Now when you need it.",
+        createdBy);
 
     // Schedule Config Dialog
     createTranslationIfNotExists(
