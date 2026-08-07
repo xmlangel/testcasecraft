@@ -85,6 +85,9 @@ public class SchedulerInitializer implements CommandLineRunner {
         true,
         "매일 새벽 1시에 DB에 존재하지 않는 테스트케이스 ID를 가진 RAG 문서 삭제");
 
+    // 자동 실행하지 않는다. 사용자가 지우라고 한 적 없는 파일이 시간이 지났다는 이유로 사라지고
+    // 되돌릴 수 없어, 일정으로 도는 것을 막았다(DynamicSchedulerService.NO_AUTO_SCHEDULE).
+    // 기능은 남아 있어 관리자가 필요할 때 직접 실행할 수 있다.
     createSchedulerConfigIfNotExists(
         "attachment-cleanup",
         "첨부파일 정리",
@@ -92,8 +95,8 @@ public class SchedulerInitializer implements CommandLineRunner {
         SchedulerConfig.ScheduleType.CRON,
         null,
         null,
-        true,
-        "매일 새벽 2시에 7일 이상 사용되지 않은 첨부파일 삭제");
+        false,
+        "7일 이상 사용되지 않은 첨부파일 삭제 (자동 실행 없음 — 관리자가 직접 실행)");
 
     createSchedulerConfigIfNotExists(
         "rag-auto-analysis",
