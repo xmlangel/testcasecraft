@@ -34,6 +34,11 @@ public class DynamicSchedulerService {
    */
   public static final Set<String> NO_AUTO_SCHEDULE = Set.of("attachment-cleanup");
 
+  /** 자동 실행이 막힌 작업인지. 화면 배지와 서버 거절이 같은 판정을 쓰도록 여기 한 곳에 둔다. */
+  public static boolean isAutoScheduleBlocked(String taskKey) {
+    return taskKey != null && NO_AUTO_SCHEDULE.contains(taskKey);
+  }
+
   private final TaskScheduler taskScheduler;
   private final SchedulerConfigRepository schedulerConfigRepository;
   private final SchedulingConfig schedulingConfig;
@@ -77,7 +82,7 @@ public class DynamicSchedulerService {
 
   /** 스케줄 작업 등록 또는 변경 */
   public void scheduleTask(SchedulerConfig config) {
-    if (NO_AUTO_SCHEDULE.contains(config.getTaskKey())) {
+    if (isAutoScheduleBlocked(config.getTaskKey())) {
       logger.info(
           "시간이 지나면 저절로 도는 일정은 걸지 않는다 — 필요할 때 관리자가 직접 실행한다: taskKey={}", config.getTaskKey());
       cancelTask(config.getTaskKey());

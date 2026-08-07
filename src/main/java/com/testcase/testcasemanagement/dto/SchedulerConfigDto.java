@@ -59,9 +59,8 @@ public class SchedulerConfigDto {
         .lastModifiedDate(entity.getLastModifiedDate())
         .lastModifiedBy(entity.getLastModifiedBy())
         .autoScheduleBlocked(
-            entity.getTaskKey() != null
-                && com.testcase.testcasemanagement.service.DynamicSchedulerService.NO_AUTO_SCHEDULE
-                    .contains(entity.getTaskKey()))
+            com.testcase.testcasemanagement.service.DynamicSchedulerService.isAutoScheduleBlocked(
+                entity.getTaskKey()))
         .build();
   }
 }

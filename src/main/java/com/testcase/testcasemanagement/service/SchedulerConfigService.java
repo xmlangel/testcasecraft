@@ -64,8 +64,9 @@ public class SchedulerConfigService {
             .orElseThrow(
                 () -> new IllegalArgumentException("Scheduler config not found: " + taskKey));
 
-    // 자동 실행하지 않는 작업은 켤 수 없다 — 켜도 일정이 걸리지 않으므로 켜진 척하는 상태를 막는다
-    if (Boolean.TRUE.equals(dto.getEnabled())) {
+    // 자동 실행하지 않는 작업은 끄기만 되고 켜지지 않는다. 다른 필드를 고치려고 현재 값(true)을
+    // 그대로 실어 보내는 경우까지 막지 않도록, 꺼짐→켜짐 전이일 때만 거절한다.
+    if (Boolean.FALSE.equals(config.getEnabled()) && Boolean.TRUE.equals(dto.getEnabled())) {
       rejectIfAutoScheduleBlocked(taskKey);
     }
 
@@ -249,9 +250,10 @@ public class SchedulerConfigService {
    * 때는 즉시 실행으로 돌린다.
    */
   private void rejectIfAutoScheduleBlocked(String taskKey) {
-    if (taskKey != null && DynamicSchedulerService.NO_AUTO_SCHEDULE.contains(taskKey)) {
+    if (DynamicSchedulerService.isAutoScheduleBlocked(taskKey)) {
       throw new IllegalArgumentException(
-          "자동 실행하지 않는 작업이라 활성화할 수 없습니다. 필요할 때 즉시 실행을 쓰세요: " + taskKey);
+          "This task never runs on a schedule and cannot be enabled. Use execute-now instead: "
+              + taskKey);
     }
   }
 }
