@@ -441,6 +441,23 @@ public class TestCaseFileStorageService {
     }
   }
 
+  /**
+   * 첨부가 남아 있을 때만 사용됨으로 표시한다 (없으면 조용히 건너뛴다).
+   *
+   * <p>본문 저장 흐름에서 부르는 진입점이다. {@link #markAsUsed(String)}는 첨부가 없으면 예외를 던지는데, 이 클래스가 트랜잭션 경계라 호출한 쪽에서
+   * 예외를 잡아도 바깥 트랜잭션이 rollback-only로 마킹된다. 그러면 이미 지워진 이미지를 참조하는 오래된 노트를 다시 저장할 때 저장 자체가 실패한다. 부가 작업이
+   * 본작업을 되돌리지 않도록 존재 여부를 먼저 확인한다.
+   *
+   * @param attachmentId 첨부 ID (null 허용)
+   */
+  public void markAsUsedIfPresent(String attachmentId) {
+    if (attachmentId == null || !attachmentRepository.existsById(attachmentId)) {
+      log.debug("사용 표시를 건너뜀 (첨부 없음): {}", attachmentId);
+      return;
+    }
+    markAsUsed(attachmentId);
+  }
+
   /** 첨부파일을 본문에 사용됨으로 표시 (인라인 이미지 추적용) */
   public TestCaseAttachmentDto markAsUsed(String attachmentId) {
     TestCaseAttachment attachment =
