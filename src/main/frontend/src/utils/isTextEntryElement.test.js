@@ -113,6 +113,7 @@ describe("isActivatableElement", () => {
 
   it("글자 입력칸과 평범한 요소는 활성화 요소가 아니다", () => {
     expect(isActivatableElement(el('<input type="text" />'))).toBe(false);
+    expect(isActivatableElement(el("<input />"))).toBe(false); // type 없으면 text
     expect(isActivatableElement(el("<textarea></textarea>"))).toBe(false);
     expect(isActivatableElement(el("<div>본문</div>"))).toBe(false);
     expect(isActivatableElement(null)).toBe(false);
