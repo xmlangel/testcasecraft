@@ -32,6 +32,7 @@ import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
 import { canRecordTestResult } from "./TestCaseTree/utils/permissionUtils.js";
+import { isTextEntryElement } from "../utils/isTextEntryElement.js";
 
 const KEY_RESULT_MAP = {
   N: TestResult.NOT_RUN,
@@ -850,7 +851,9 @@ const TestResultForm = ({
 
     const handleKeyDown = (e) => {
       if (e.ctrlKey || e.altKey || e.metaKey) return;
-      if (document.activeElement.tagName === "TEXTAREA") return;
+      // 글자를 치는 중에는 단축키가 물러난다 — 태그·JIRA 이슈 키를 적다가 N·P·F·B 가
+      // 판정 단축키로 먹혀 입력이 사라지고 결과까지 저장되던 문제
+      if (isTextEntryElement(document.activeElement)) return;
 
       const key = e.key.toUpperCase();
       if (KEY_RESULT_MAP[key]) {
@@ -870,10 +873,8 @@ const TestResultForm = ({
       }
 
       if (e.key === "Enter") {
-        if (
-          document.activeElement !== saveButtonRef.current &&
-          document.activeElement.tagName !== "TEXTAREA"
-        ) {
+        // 글자 입력 중이면 위에서 이미 물러났다 — 태그 확정·자동완성 선택을 저장이 가로채지 않는다
+        if (document.activeElement !== saveButtonRef.current) {
           handleSaveAndNext(result);
           e.preventDefault();
         }
