@@ -21,10 +21,10 @@ Deleting a test execution or a previous result no longer deletes the images embe
 * No database migration scripts. No schema changes.
 * No new i18n keys.
 * **Unreferenced attachments can accumulate.** Images from a deleted result are no longer visible anywhere yet remain in storage. The attachment cleanup in the admin screen can reclaim them. Using a little more storage is the better trade against losing data.
-* Behavior when deleting a test case is unchanged in this release; attachment records are still cleaned up in that path.
+* **The test case deletion path is unchanged in this release.** It still removes attachments without checking whether another result references the same image, so deleting a test case can still take out images from result notes that point at it.
 * For 1.0.104 changes see [RELEASE_NOTE_1.0.104_EN.md](RELEASE_NOTE_1.0.104_EN.md).
 
 ### Related
 
-* 1.0.104 made result notes mark their embedded images as in use. Together with this release, the paths that silently removed result images are closed.
+* 1.0.104 made result notes mark their embedded images as in use. Together with this release, the **result and execution deletion paths** are closed. The test case deletion path remains.
 * Images saved before that release carried no mark and were cleanup candidates. The marks have been filled in on the production data.

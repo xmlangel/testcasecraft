@@ -211,6 +211,8 @@ public class TestExecutionService {
 
   @Transactional
   public void deleteTestExecution(String id) {
+    // results 를 fetch join 으로 함께 읽는다 — cascade=ALL·orphanRemoval 이라 삭제 시 JPA 가
+    // 컬렉션을 어차피 로드하므로, 미리 읽어 쿼리를 한 번으로 줄인다.
     TestExecution entity =
         testExecutionRepository
             .findByIdWithResults(id)

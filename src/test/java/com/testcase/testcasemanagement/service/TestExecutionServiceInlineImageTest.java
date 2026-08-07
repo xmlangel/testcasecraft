@@ -225,7 +225,7 @@ public class TestExecutionServiceInlineImageTest {
     testExecutionService.deleteTestExecution("exec-1");
 
     verify(userRepository, never()).findByUsername(anyString());
-    verify(fileStorageService, never()).deleteAttachment(anyString(), any(User.class));
+    verify(fileStorageService, never()).deleteAttachment(any(), any());
     verify(testExecutionRepository, times(1)).delete(mockExecution);
   }
 
@@ -244,7 +244,7 @@ public class TestExecutionServiceInlineImageTest {
 
     testExecutionService.deleteTestExecution("exec-1");
 
-    verify(fileStorageService, never()).deleteAttachment(anyString(), any(User.class));
+    verify(fileStorageService, never()).deleteAttachment(any(), any());
     verify(testExecutionRepository, times(1)).delete(mockExecution);
   }
 
@@ -261,7 +261,7 @@ public class TestExecutionServiceInlineImageTest {
 
     testExecutionService.deletePreviousTestResult("result-1", "testuser");
 
-    verify(fileStorageService, never()).deleteAttachment(anyString(), any(User.class));
+    verify(fileStorageService, never()).deleteAttachment(any(), any());
     verify(testResultRepository, times(1)).delete(existing);
   }
 
