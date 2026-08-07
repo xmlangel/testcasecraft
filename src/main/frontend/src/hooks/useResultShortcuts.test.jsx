@@ -150,6 +150,15 @@ describe("useResultShortcuts", () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
+  it("자동 반복분도 기본 동작은 막는다 — 차단까지 건너뛰면 버튼 클릭·폼 제출로 샌다", () => {
+    mount();
+
+    expect(fireEvent.keyDown(window, { key: "p", repeat: true })).toBe(false);
+    expect(fireEvent.keyDown(window, { key: "Enter", repeat: true })).toBe(
+      false,
+    );
+  });
+
   it("입력칸 밖의 Enter 는 저장으로 간다", () => {
     mount();
 

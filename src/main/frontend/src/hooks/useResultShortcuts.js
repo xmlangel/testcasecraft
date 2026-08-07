@@ -29,17 +29,18 @@ export function useResultShortcuts({
     const handleKeyDown = (e) => {
       if (e.ctrlKey || e.altKey || e.metaKey) return;
 
-      // 키를 누른 채로 두면 keydown 이 자동 반복된다 — 그때마다 저장 요청이 나가면 안 된다
-      if (e.repeat) return;
-
       // 글자를 치는 중에는 단축키가 물러난다 — 태그·JIRA 이슈 키를 적다가 N·P·F·B 가
       // 판정 단축키로 먹혀 입력이 사라지고 결과까지 저장되던 문제
       if (isTextEntryElement(document.activeElement)) return;
 
+      // 키를 누른 채로 두면 keydown 이 자동 반복된다. 이때 저장은 건너뛰되 기본 동작 차단은
+      // 유지한다 — 차단까지 건너뛰면 반복분이 버튼 클릭·폼 제출로 새어 이중 저장이 된다.
       const verdict = keyResultMap[e.key.toUpperCase()];
       if (verdict) {
-        onVerdict(verdict);
         e.preventDefault();
+        if (e.repeat) return;
+
+        onVerdict(verdict);
         return;
       }
 
@@ -48,8 +49,10 @@ export function useResultShortcuts({
         // 안 되고, 저장 버튼도 여기 해당해서 클릭 기본 동작과 이중으로 저장되지 않는다.
         if (isActivatableElement(document.activeElement)) return;
 
-        onSave();
         e.preventDefault();
+        if (e.repeat) return;
+
+        onSave();
       }
     };
 
