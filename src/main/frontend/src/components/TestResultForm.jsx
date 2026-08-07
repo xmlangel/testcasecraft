@@ -32,6 +32,7 @@ import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
 import { canRecordTestResult } from "./TestCaseTree/utils/permissionUtils.js";
+import useResultShortcuts from "../hooks/useResultShortcuts.js";
 
 const KEY_RESULT_MAP = {
   N: TestResult.NOT_RUN,
@@ -845,44 +846,34 @@ const TestResultForm = ({
     );
   };
 
-  useEffect(() => {
-    if ((!open && !fullPage) || isViewer) return;
+  const handleShortcutVerdict = useCallback(
+    (newResult) => {
+      setResultByUser(newResult);
+      // 판정 상태가 반영된 뒤 저장하도록 한 틱 미룬다
+      setTimeout(
+        () =>
+          handleSaveAndNext(newResult, {
+            advanceToNext: false,
+            keepDialogOpen: true,
+            showSuccess: true,
+          }),
+        0,
+      );
+    },
+    [handleSaveAndNext, setResultByUser],
+  );
 
-    const handleKeyDown = (e) => {
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
-      if (document.activeElement.tagName === "TEXTAREA") return;
+  const handleShortcutSave = useCallback(
+    () => handleSaveAndNext(result),
+    [handleSaveAndNext, result],
+  );
 
-      const key = e.key.toUpperCase();
-      if (KEY_RESULT_MAP[key]) {
-        const newResult = KEY_RESULT_MAP[key];
-        setResultByUser(newResult);
-        setTimeout(
-          () =>
-            handleSaveAndNext(newResult, {
-              advanceToNext: false,
-              keepDialogOpen: true,
-              showSuccess: true,
-            }),
-          0,
-        );
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === "Enter") {
-        if (
-          document.activeElement !== saveButtonRef.current &&
-          document.activeElement.tagName !== "TEXTAREA"
-        ) {
-          handleSaveAndNext(result);
-          e.preventDefault();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, fullPage, isViewer, handleSaveAndNext, result]);
+  useResultShortcuts({
+    enabled: (open || fullPage) && !isViewer,
+    keyResultMap: KEY_RESULT_MAP,
+    onVerdict: handleShortcutVerdict,
+    onSave: handleShortcutSave,
+  });
 
   const renderContent = () => (
     <>
