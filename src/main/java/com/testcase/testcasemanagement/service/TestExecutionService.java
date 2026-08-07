@@ -26,6 +26,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class TestExecutionService {
 
+  /**
+   * ICT-InlineImage: 노트 본문에 삽입된 첨부 이미지 URL에서 첨부 ID를 뽑아내는 패턴.
+   *
+   * <p>예: {@code /api/testcase-attachments/public/{uuid}?token=...}
+   */
+  private static final java.util.regex.Pattern INLINE_IMAGE_PATTERN =
+      java.util.regex.Pattern.compile(
+          "(?i)/api/testcase-attachments/public/"
+              + "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
+
   private final TestExecutionRepository testExecutionRepository;
   private final TestResultRepository testResultRepository;
   private final TestPlanRepository testPlanRepository;
@@ -375,6 +385,9 @@ public class TestExecutionService {
     entity.setUpdatedAt(LocalDateTime.now());
     TestExecution saved = testExecutionRepository.save(entity);
 
+    // ICT-InlineImage: 노트에 붙여넣은 이미지를 사용 중으로 표시 (미사용 정리로 지워지는 것 방지)
+    markInlineImagesAsUsed(r.getNotes());
+
     // 저장 후 다시 조회하여 tags를 포함한 모든 데이터를 가져옴
     TestExecution reloaded =
         testExecutionRepository.findByIdWithResults(saved.getId()).orElse(saved);
@@ -482,6 +495,9 @@ public class TestExecutionService {
     entity.setResults(results);
     entity.setUpdatedAt(now);
     TestExecution saved = testExecutionRepository.save(entity);
+
+    // ICT-InlineImage: 케이스가 여럿이어도 같은 노트를 공유하므로 이미지 표시는 한 번만
+    markInlineImagesAsUsed(bulkDto.getNotes());
 
     // 저장 후 다시 조회
     TestExecution reloaded =
@@ -907,6 +923,9 @@ public class TestExecutionService {
     // 6. 저장
     TestResult updatedResult = testResultRepository.save(existingResult);
 
+    // ICT-InlineImage: 수정하면서 새로 넣은 이미지도 사용 중으로 표시
+    markInlineImagesAsUsed(updatedResult.getNotes());
+
     // 7. DTO로 변환하여 반환
     TestResultDto responseDto = new TestResultDto();
     responseDto.setId(updatedResult.getId());
@@ -986,19 +1005,14 @@ public class TestExecutionService {
    * @param notes 마크다운 본문
    */
   private void deleteInlineImagesFromNotes(String notes) {
-    if (notes == null || notes.isBlank()) {
+    Set<String> attachmentIds = extractInlineImageIds(notes);
+    if (attachmentIds.isEmpty()) {
+      // 지울 이미지가 없으면 사용자 조회도 하지 않는다 — 인증 컨텍스트가 없는 경로에서 실패하지 않도록
       return;
     }
 
-    // 인라인 이미지 패턴 추출: ![[...]] (/api/testcase-attachments/public/{id}?token=...)
-    // 공통 이미지 URL 패턴: /api/testcase-attachments/public/([a-f0-9\-]{36})
-    java.util.regex.Pattern pattern =
-        java.util.regex.Pattern.compile("/api/testcase-attachments/public/([a-f0-9\\-]{36})");
-    java.util.regex.Matcher matcher = pattern.matcher(notes);
-
     User currentUser = getCurrentUser();
-    while (matcher.find()) {
-      String attachmentId = matcher.group(1);
+    for (String attachmentId : attachmentIds) {
       try {
         fileStorageService.deleteAttachment(attachmentId, currentUser);
         System.out.println("🖼️ 인라인 이미지 연계 삭제 완료: " + attachmentId);
@@ -1007,5 +1021,44 @@ public class TestExecutionService {
         // 개별 이미지 삭제 실패가 전체 프로세스를 중단시키지 않도록 예외 처리
       }
     }
+  }
+
+  /**
+   * ICT-InlineImage: 노트 본문에 삽입된 인라인 이미지를 "사용 중"으로 표시한다.
+   *
+   * <p>표시가 없으면 미사용 첨부로 분류되어 정리 대상이 되고, 결과 화면에서 이미지가 사라진다. 결과를 저장하는 모든 경로가 이 메서드를 거치게 해서, 화면마다 따로
+   * 호출하다 빠뜨리는 일을 막는다.
+   *
+   * @param notes 결과 노트 본문
+   */
+  private void markInlineImagesAsUsed(String notes) {
+    for (String attachmentId : extractInlineImageIds(notes)) {
+      try {
+        fileStorageService.markAsUsedIfPresent(attachmentId);
+      } catch (Exception e) {
+        // 표시 실패가 결과 저장을 되돌리게 하지 않는다
+        System.err.println("❌ 인라인 이미지 사용 표시 실패 (ID: " + attachmentId + "): " + e.getMessage());
+      }
+    }
+  }
+
+  /**
+   * 본문에서 인라인 이미지 첨부 ID를 중복 없이 추출한다.
+   *
+   * @param content 노트 또는 설명 본문
+   * @return 등장 순서를 지킨 첨부 ID 집합 (본문이 비면 빈 집합)
+   */
+  private Set<String> extractInlineImageIds(String content) {
+    if (content == null || content.isBlank()) {
+      return Collections.emptySet();
+    }
+
+    Set<String> ids = new LinkedHashSet<>();
+    java.util.regex.Matcher matcher = INLINE_IMAGE_PATTERN.matcher(content);
+    while (matcher.find()) {
+      // 저장된 첨부 ID는 소문자 UUID이므로 대문자로 적힌 URL도 같은 값으로 취급한다
+      ids.add(matcher.group(1).toLowerCase(java.util.Locale.ROOT));
+    }
+    return ids;
   }
 }

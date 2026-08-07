@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -439,6 +440,33 @@ public class TestCaseFileStorageService {
             allowedExtensions);
       }
     }
+  }
+
+  /**
+   * 첨부가 남아 있을 때만 사용됨으로 표시한다 (없으면 조용히 건너뛴다).
+   *
+   * <p>본문 저장 흐름에서 부르는 진입점이다. 사용 표시는 부가 작업이므로 무슨 일이 있어도 본작업(결과 저장)을 되돌리지 않아야 한다. 두 겹으로 막는다.
+   *
+   * <ul>
+   *   <li>첨부가 없으면 {@link #markAsUsed(String)}를 부르지 않는다 — 그 메서드는 첨부 부재 시 예외를 던진다.
+   *   <li>별도 트랜잭션에서 실행한다 — 같은 트랜잭션이면 여기서 난 예외를 호출한 쪽이 잡아도 바깥 트랜잭션이 rollback-only로 마킹되어 커밋 시점에 결과
+   *       저장까지 실패한다. 이 경계는 그 마킹을 막을 뿐 예외를 삼키지 않으므로, 호출하는 쪽에서 잡아야 한다(현재 {@code
+   *       TestExecutionService.markInlineImagesAsUsed}가 잡는다).
+   * </ul>
+   *
+   * <p>알려진 절충: 이 트랜잭션이 먼저 커밋되므로 바깥 저장이 롤백되면 본문에 없는 첨부가 사용 중으로 남는다. 살아 있는 이미지가 지워지는 것(데이터 손실)보다 회수되지
+   * 않는 파일(스토리지 누수)이 낫다고 보고 택했다. 저장 성공 후로 미루려면 {@code TransactionSynchronization.afterCommit}으로 옮겨야
+   * 한다.
+   *
+   * @param attachmentId 첨부 ID (null 허용)
+   */
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void markAsUsedIfPresent(String attachmentId) {
+    if (attachmentId == null || !attachmentRepository.existsById(attachmentId)) {
+      log.debug("사용 표시를 건너뜀 (첨부 없음): {}", attachmentId);
+      return;
+    }
+    markAsUsed(attachmentId);
   }
 
   /** 첨부파일을 본문에 사용됨으로 표시 (인라인 이미지 추적용) */
