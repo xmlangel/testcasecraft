@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -444,12 +445,17 @@ public class TestCaseFileStorageService {
   /**
    * 첨부가 남아 있을 때만 사용됨으로 표시한다 (없으면 조용히 건너뛴다).
    *
-   * <p>본문 저장 흐름에서 부르는 진입점이다. {@link #markAsUsed(String)}는 첨부가 없으면 예외를 던지는데, 이 클래스가 트랜잭션 경계라 호출한 쪽에서
-   * 예외를 잡아도 바깥 트랜잭션이 rollback-only로 마킹된다. 그러면 이미 지워진 이미지를 참조하는 오래된 노트를 다시 저장할 때 저장 자체가 실패한다. 부가 작업이
-   * 본작업을 되돌리지 않도록 존재 여부를 먼저 확인한다.
+   * <p>본문 저장 흐름에서 부르는 진입점이다. 사용 표시는 부가 작업이므로 무슨 일이 있어도 본작업(결과 저장)을 되돌리지 않아야 한다. 두 겹으로 막는다.
+   *
+   * <ul>
+   *   <li>첨부가 없으면 {@link #markAsUsed(String)}를 부르지 않는다 — 그 메서드는 첨부 부재 시 예외를 던진다.
+   *   <li>별도 트랜잭션에서 실행한다 — 같은 트랜잭션이면 여기서 난 예외를 호출한 쪽이 잡아도 바깥 트랜잭션이 rollback-only로 마킹되어 커밋 시점에 결과
+   *       저장까지 실패한다. 존재 확인을 통과한 뒤 삭제되는 경우(TOCTOU)나 제약 위반도 이 경계가 흡수한다.
+   * </ul>
    *
    * @param attachmentId 첨부 ID (null 허용)
    */
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void markAsUsedIfPresent(String attachmentId) {
     if (attachmentId == null || !attachmentRepository.existsById(attachmentId)) {
       log.debug("사용 표시를 건너뜀 (첨부 없음): {}", attachmentId);

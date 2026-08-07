@@ -174,6 +174,54 @@ public class TestExecutionServiceInlineImageTest {
     verify(fileStorageService, times(1)).markAsUsedIfPresent(IMG_B);
   }
 
+  /** 대문자로 적힌 첨부 URL도 같은 이미지로 인식한다 — 저장된 ID는 소문자다. */
+  @Test
+  public void testUpdateTestResultNormalizesUppercaseUrl() {
+    TestResultDto dto = new TestResultDto();
+    dto.setTestCaseId("tc-1");
+    dto.setResult("FAIL");
+    dto.setNotes(noteWith(IMG_A.toUpperCase(Locale.ROOT)));
+
+    testExecutionService.updateTestResult("exec-1", dto);
+
+    verify(fileStorageService, times(1)).markAsUsedIfPresent(IMG_A);
+  }
+
+  /** UUID 형태가 아닌 36자 문자열은 첨부 ID로 보지 않는다. */
+  @Test
+  public void testUpdateTestResultIgnoresNonUuidPath() {
+    TestResultDto dto = new TestResultDto();
+    dto.setTestCaseId("tc-1");
+    dto.setResult("FAIL");
+    dto.setNotes(noteWith("------------------------------------"));
+
+    testExecutionService.updateTestResult("exec-1", dto);
+
+    verify(fileStorageService, never()).markAsUsedIfPresent(anyString());
+  }
+
+  /**
+   * 노트가 빈 결과를 지울 때 사용자 조회를 하지 않는다.
+   *
+   * <p>인증 컨텍스트가 없는 경로(스케줄러·시스템 정리)에서 실행 삭제가 실패하지 않아야 한다.
+   */
+  @Test
+  public void testDeleteExecutionWithBlankNotesDoesNotLookUpUser() {
+    TestResult blankNoteResult = new TestResult();
+    blankNoteResult.setId("result-blank");
+    blankNoteResult.setTestCaseId("tc-1");
+    blankNoteResult.setNotes(null);
+    mockExecution.getResults().add(blankNoteResult);
+
+    SecurityContextHolder.clearContext();
+
+    testExecutionService.deleteTestExecution("exec-1");
+
+    verify(userRepository, never()).findByUsername(anyString());
+    verify(fileStorageService, never()).deleteAttachment(anyString(), any(User.class));
+    verify(testExecutionRepository, times(1)).delete(mockExecution);
+  }
+
   /** 이전 결과를 고쳐 이미지를 새로 넣은 경우에도 표시된다. */
   @Test
   public void testUpdatePreviousTestResultMarksInlineImagesAsUsed() {

@@ -32,7 +32,9 @@ public class TestExecutionService {
    * <p>예: {@code /api/testcase-attachments/public/{uuid}?token=...}
    */
   private static final java.util.regex.Pattern INLINE_IMAGE_PATTERN =
-      java.util.regex.Pattern.compile("/api/testcase-attachments/public/([a-f0-9\\-]{36})");
+      java.util.regex.Pattern.compile(
+          "(?i)/api/testcase-attachments/public/"
+              + "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
 
   private final TestExecutionRepository testExecutionRepository;
   private final TestResultRepository testResultRepository;
@@ -1003,8 +1005,14 @@ public class TestExecutionService {
    * @param notes 마크다운 본문
    */
   private void deleteInlineImagesFromNotes(String notes) {
+    Set<String> attachmentIds = extractInlineImageIds(notes);
+    if (attachmentIds.isEmpty()) {
+      // 지울 이미지가 없으면 사용자 조회도 하지 않는다 — 인증 컨텍스트가 없는 경로에서 실패하지 않도록
+      return;
+    }
+
     User currentUser = getCurrentUser();
-    for (String attachmentId : extractInlineImageIds(notes)) {
+    for (String attachmentId : attachmentIds) {
       try {
         fileStorageService.deleteAttachment(attachmentId, currentUser);
         System.out.println("🖼️ 인라인 이미지 연계 삭제 완료: " + attachmentId);
@@ -1048,7 +1056,8 @@ public class TestExecutionService {
     Set<String> ids = new LinkedHashSet<>();
     java.util.regex.Matcher matcher = INLINE_IMAGE_PATTERN.matcher(content);
     while (matcher.find()) {
-      ids.add(matcher.group(1));
+      // 저장된 첨부 ID는 소문자 UUID이므로 대문자로 적힌 URL도 같은 값으로 취급한다
+      ids.add(matcher.group(1).toLowerCase(java.util.Locale.ROOT));
     }
     return ids;
   }
