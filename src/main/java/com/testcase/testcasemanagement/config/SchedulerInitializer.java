@@ -2,6 +2,7 @@ package com.testcase.testcasemanagement.config;
 
 import com.testcase.testcasemanagement.model.SchedulerConfig;
 import com.testcase.testcasemanagement.repository.SchedulerConfigRepository;
+import com.testcase.testcasemanagement.service.DynamicSchedulerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Component;
 public class SchedulerInitializer implements CommandLineRunner {
 
   private static final Logger logger = LoggerFactory.getLogger(SchedulerInitializer.class);
+
+  private static final String NO_AUTO_SCHEDULE_DESCRIPTION =
+      "7일 이상 사용되지 않은 첨부파일 삭제 (자동 실행 없음 — 관리자가 직접 실행)";
 
   private final SchedulerConfigRepository schedulerConfigRepository;
 
@@ -96,7 +100,7 @@ public class SchedulerInitializer implements CommandLineRunner {
         null,
         null,
         false,
-        "7일 이상 사용되지 않은 첨부파일 삭제 (자동 실행 없음 — 관리자가 직접 실행)");
+        NO_AUTO_SCHEDULE_DESCRIPTION);
 
     createSchedulerConfigIfNotExists(
         "rag-auto-analysis",
@@ -108,7 +112,33 @@ public class SchedulerInitializer implements CommandLineRunner {
         true,
         "매일 저녁 11시에 등록된 RAG 문서를 날짜순으로 자동 LLM 청크 분석 (기본 LLM Config 사용, 완료된 문서는 Skip)");
 
+    // 예전부터 돌던 서버의 설정을 꺼진 상태로 맞춘다 (신규 생성만으로는 기존 행이 그대로 남는다)
+    forceDisableAutoSchedules();
+
     logger.info("=== 스케줄러 설정 초기화 완료 ===");
+  }
+
+  /**
+   * 자동 실행하지 않는 작업의 기존 설정을 꺼진 상태로 맞춘다.
+   *
+   * <p>{@code createSchedulerConfigIfNotExists} 는 이미 있는 행을 건드리지 않으므로, 예전부터 돌던 서버는 화면에 「활성·매일 새벽
+   * 2시」로 보인다. 코드가 일정을 걸지 않으니 화면과 실제가 반대로 읽혀, 운영자가 정리가 도는 줄 알고 저장소를 방치하게 된다. 그래서 이 작업만 값을 맞춰 준다.
+   *
+   * <p>시각·타입은 그대로 남긴다 — 관리자가 직접 실행할 때 참고하는 값이다.
+   */
+  private void forceDisableAutoSchedules() {
+    for (String taskKey : DynamicSchedulerService.NO_AUTO_SCHEDULE) {
+      schedulerConfigRepository
+          .findByTaskKey(taskKey)
+          .filter(config -> Boolean.TRUE.equals(config.getEnabled()))
+          .ifPresent(
+              config -> {
+                config.setEnabled(false);
+                config.setDescription(NO_AUTO_SCHEDULE_DESCRIPTION);
+                schedulerConfigRepository.save(config);
+                logger.info("자동 실행하지 않는 작업이라 설정을 꺼진 상태로 맞췄다: taskKey={}", taskKey);
+              });
+    }
   }
 
   /** 스케줄 설정이 존재하지 않으면 생성 */

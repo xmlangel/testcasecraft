@@ -32,7 +32,7 @@ public class DynamicSchedulerService {
    *
    * <p>설정에 남은 값(cron·활성 여부)과 무관하게 여기서 걸러지므로, 이미 켜진 채로 돌던 서버도 코드를 올리면 곧 멈춘다.
    */
-  private static final Set<String> NO_AUTO_SCHEDULE = Set.of("attachment-cleanup");
+  public static final Set<String> NO_AUTO_SCHEDULE = Set.of("attachment-cleanup");
 
   private final TaskScheduler taskScheduler;
   private final SchedulerConfigRepository schedulerConfigRepository;

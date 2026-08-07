@@ -21,7 +21,7 @@ The schedule that deleted attachments simply because time had passed is gone. Th
 
 * No database migration scripts. No schema changes.
 * No new i18n keys.
-* The existing configuration values (daily at 2 AM, seven-day threshold) are left in place. They remain visible on screen but no longer drive a schedule.
+* Taking this release also flips existing servers' configuration to disabled on startup, so the screen no longer reads "enabled" for something that does not run. The time and schedule type are kept — they are what an administrator refers to when running it manually.
 * **Unused attachments will accumulate.** Nothing reclaims them automatically, so watch storage usage and run the cleanup from the admin screen when needed.
 * For 1.0.105 changes see [RELEASE_NOTE_1.0.105_EN.md](RELEASE_NOTE_1.0.105_EN.md).
 
