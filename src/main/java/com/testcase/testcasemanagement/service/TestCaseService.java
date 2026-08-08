@@ -20,7 +20,6 @@ import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
-import com.testcase.testcasemanagement.model.TestCaseAttachment;
 import com.testcase.testcasemanagement.model.TestStep;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
@@ -311,26 +310,9 @@ public class TestCaseService {
           }
         });
 
-    // 첨부 파일은 저장소에서 지우지 않는다.
-    //
-    // 결과 노트에 붙여넣은 이미지도 이 테스트케이스에 매달려 올라간다. 여기서 파일까지 지우면
-    // 그 이미지를 쓰는 다른 사람의 결과 화면이 조용히 비고, 되돌릴 수 없다. 아래에서 첨부 기록은
-    // 정리하지만(test_case_id 가 NOT NULL 이라 남길 수 없다) 파일은 남겨 되찾을 수 있게 한다.
-    // 파일 삭제는 사용자가 첨부 목록에서 직접 지를 때만 한다.
-    //
-    // 어떤 파일이 남았는지 로그로 남긴다 — 나중에 저장소를 정리하거나 되찾을 때 쓴다.
-    try {
-      List<TestCaseAttachment> keptFiles = testCaseAttachmentRepository.findByTestCase_Id(id);
-      if (!keptFiles.isEmpty()) {
-        log.info(
-            "테스트케이스 삭제 — 첨부 파일 {}건은 저장소에 남긴다(기록만 정리): testCaseId={}, filePaths={}",
-            keptFiles.size(),
-            id,
-            keptFiles.stream().map(TestCaseAttachment::getFilePath).toList());
-      }
-    } catch (Exception e) {
-      log.warn("남기는 첨부 파일 목록을 기록하지 못했다: testCaseId={}, error={}", id, e.getMessage());
-    }
+    // 첨부는 파일도 기록도 지우지 않는다. 아래에서 소유(test_case_id)만 비운다.
+    // 케이스와 달리 실행 결과는 그대로 남으므로, 그 노트가 참조하는 이미지를 여기서 지우면
+    // 살아 있는 결과의 화면이 조용히 빈다. 삭제는 사용자가 첨부 목록에서 직접 지를 때만 한다.
 
     // 엔티티 삭제: 네이티브 쿼리로 직접 삭제 (JPA 세션 캐시/cascade 문제 완전 회피)
     // FK 제약 순서: 자식 테이블 → 본 테이블 순으로 삭제
@@ -351,12 +333,18 @@ public class TestCaseService {
     testCaseRepository.deleteTestCaseLinkRefs(id);
     // 연결된 JUnit 자동화 케이스 링크 (내가 건 링크)
     testCaseRepository.deleteJunitCaseLinksByTestCaseId(id);
-    // test_case_attachments: 기록만 지운다. 저장소의 파일은 위에서 로그로 남기고 그대로 둔다
-    // (test_case_id 가 NOT NULL 이라 행을 남길 수 없다)
-    entityManager
-        .createNativeQuery("DELETE FROM test_case_attachments WHERE test_case_id = :id")
-        .setParameter("id", id)
-        .executeUpdate();
+    // test_case_attachments: 기록을 지우지 않고 소유만 비운다.
+    // 결과 노트가 참조하는 이미지는 공개 토큰으로 내려가고 그 경로는 소유를 보지 않으므로,
+    // 기록이 남아 있으면 케이스를 지워도 결과 화면의 이미지가 그대로 보인다.
+    int detached =
+        entityManager
+            .createNativeQuery(
+                "UPDATE test_case_attachments SET test_case_id = NULL WHERE test_case_id = :id")
+            .setParameter("id", id)
+            .executeUpdate();
+    if (detached > 0) {
+      log.info("테스트케이스 삭제 — 첨부 {}건의 소유를 비우고 기록·파일을 남긴다: testCaseId={}", detached, id);
+    }
     // display_id_history, testcase_versions 도 FK 참조
     entityManager
         .createNativeQuery("DELETE FROM display_id_history WHERE test_case_id = :id")

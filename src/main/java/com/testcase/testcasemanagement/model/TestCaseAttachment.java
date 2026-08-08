@@ -28,8 +28,14 @@ public class TestCaseAttachment {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
+  /**
+   * 이 첨부를 올린 테스트케이스. 케이스가 지워지면 null 이 된다.
+   *
+   * <p>결과 노트에 붙여넣은 이미지도 테스트케이스에 매달려 올라간다. 케이스를 지울 때 이 기록까지 지우면, 케이스와 달리 그대로 남는 실행 결과의 노트에서 이미지가
+   * 사라진다. 소유만 비우고 기록은 남겨, 공개 토큰으로 내려받는 이미지가 계속 보이게 한다.
+   */
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "test_case_id", nullable = false)
+  @JoinColumn(name = "test_case_id")
   private TestCase testCase;
 
   /** 원본 파일명 */
