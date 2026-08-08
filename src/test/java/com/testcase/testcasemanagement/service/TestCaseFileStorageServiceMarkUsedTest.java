@@ -2,13 +2,15 @@ package com.testcase.testcasemanagement.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.TestCaseAttachment;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import java.util.Optional;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
@@ -25,13 +27,17 @@ public class TestCaseFileStorageServiceMarkUsedTest {
   private static final String ATTACHMENT_ID = "12c544bc-acf9-4860-b4ee-f28ee02eccde";
 
   @Mock private TestCaseAttachmentRepository attachmentRepository;
+  @Mock private TestCaseRepository testCaseRepository;
   @Mock private MinIOService minioService;
 
-  @InjectMocks private TestCaseFileStorageService fileStorageService;
+  private TestCaseFileStorageService fileStorageService;
 
   @BeforeMethod
   public void setUp() {
     MockitoAnnotations.openMocks(this);
+    // 생성자 인자가 셋이라 @InjectMocks 주입이 어긋났다(목이 빠진 자리에 null). 명시 생성이 확실하다.
+    fileStorageService =
+        new TestCaseFileStorageService(attachmentRepository, testCaseRepository, minioService);
   }
 
   /** 첨부가 없으면 표시를 시도하지 않는다 — 조회도 저장도 하지 않는다. */
@@ -82,5 +88,42 @@ public class TestCaseFileStorageServiceMarkUsedTest {
     verify(attachmentRepository, times(1)).save(attachment);
     Assert.assertTrue(attachment.getIsUsedInContent());
     Assert.assertNotNull(attachment.getUsedAt());
+  }
+
+  /**
+   * 케이스가 지워져 소유가 빈 첨부도 표시할 수 있다.
+   *
+   * <p>케이스 삭제는 소유만 비우고 기록·파일을 남긴다. 그 첨부를 참조하는 결과가 다시 저장될 때 표시 과정에서 깨지면 저장 자체가 막힌다.
+   */
+  @Test
+  public void testMarksAttachmentWithoutOwner() throws Exception {
+    TestCaseAttachment orphan = new TestCaseAttachment();
+    orphan.setId(ATTACHMENT_ID);
+    orphan.setTestCase(null); // 케이스가 지워진 상태
+    orphan.setOriginalFileName("image.png");
+    orphan.setStoredFileName("stored.png");
+    orphan.setFilePath("testcase/tc-1/stored.png");
+    orphan.setFileSize(58138L);
+    orphan.setMimeType("image/png");
+    orphan.setIsUsedInContent(false);
+    orphan.setPublicAccessToken("933eca699d3647dd8977bab1d046f89f");
+
+    when(attachmentRepository.existsById(ATTACHMENT_ID)).thenReturn(true);
+    when(attachmentRepository.findById(ATTACHMENT_ID)).thenReturn(Optional.of(orphan));
+    when(attachmentRepository.save(any(TestCaseAttachment.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    fileStorageService.markAsUsedIfPresent(ATTACHMENT_ID);
+
+    verify(attachmentRepository, times(1)).save(orphan);
+    Assert.assertTrue(orphan.getIsUsedInContent());
+
+    // 소유가 없으므로 MinIO 태그에서 testCaseId 는 빠진다
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<java.util.Map<String, String>> tags =
+        ArgumentCaptor.forClass(java.util.Map.class);
+    verify(minioService).setObjectTags(eq(orphan.getFilePath()), tags.capture());
+    Assert.assertFalse(tags.getValue().containsKey("testCaseId"));
+    Assert.assertEquals(tags.getValue().get("isUsed"), "true");
   }
 }

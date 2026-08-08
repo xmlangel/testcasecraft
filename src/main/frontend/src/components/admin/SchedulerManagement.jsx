@@ -220,13 +220,32 @@ const SchedulerManagement = () => {
       field: "enabled",
       headerName: t("scheduler.column.enabled", "활성화"),
       width: 100,
-      renderCell: (params) => (
-        <Switch
-          checked={params.value}
-          onChange={() => handleToggleEnabled(params.row.taskKey)}
-          color="primary"
-        />
-      ),
+      renderCell: (params) => {
+        // 자동 실행이 막힌 작업은 켜도 일정이 걸리지 않는다. 켜는 것만 막고 사유를 보여 준다.
+        // 이미 켜진 값(옛 서버에서 넘어온 행)은 끌 수 있어야 하므로 그때는 토글을 열어 둔다.
+        const blocked = params.row.autoScheduleBlocked;
+        return (
+          <Tooltip
+            title={
+              blocked
+                ? t(
+                    "scheduler.tooltip.autoScheduleBlocked",
+                    "자동 실행하지 않는 작업입니다. 필요할 때 즉시 실행으로 돌리세요.",
+                  )
+                : ""
+            }
+          >
+            <span>
+              <Switch
+                checked={Boolean(params.value)}
+                disabled={blocked && !params.value}
+                onChange={() => handleToggleEnabled(params.row.taskKey)}
+                color="primary"
+              />
+            </span>
+          </Tooltip>
+        );
+      },
     },
     {
       field: "actions",

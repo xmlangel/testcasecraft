@@ -20,7 +20,6 @@ import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
-import com.testcase.testcasemanagement.model.TestCaseAttachment;
 import com.testcase.testcasemanagement.model.TestStep;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
@@ -65,7 +64,6 @@ public class TestCaseService {
   private final TestCaseAttachmentRepository testCaseAttachmentRepository;
   private final com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository
       displayIdHistoryRepository;
-  private final TestCaseFileStorageService fileStorageService; // ICT-InlineImage: 첨부파일 삭제 연동용
   private final GoogleConfigService googleConfigService;
   private final ProjectRepository projectRepository;
   private final ProjectSecurityService projectSecurityService;
@@ -80,7 +78,6 @@ public class TestCaseService {
       TestCaseAttachmentRepository testCaseAttachmentRepository,
       com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository
           displayIdHistoryRepository,
-      TestCaseFileStorageService fileStorageService,
       GoogleConfigService googleConfigService,
       ProjectRepository projectRepository,
       ProjectSecurityService projectSecurityService) {
@@ -90,7 +87,6 @@ public class TestCaseService {
     this.ragService = ragService;
     this.testCaseAttachmentRepository = testCaseAttachmentRepository;
     this.displayIdHistoryRepository = displayIdHistoryRepository;
-    this.fileStorageService = fileStorageService;
     this.googleConfigService = googleConfigService;
     this.projectRepository = projectRepository;
     this.projectSecurityService = projectSecurityService;
@@ -314,39 +310,9 @@ public class TestCaseService {
           }
         });
 
-    // 첨부파일 삭제
-    try {
-      deleteInlineImagesFromDescription(testCase.getDescription());
-
-      List<TestCaseAttachment> attachments = testCaseAttachmentRepository.findByTestCase_Id(id);
-      if (!attachments.isEmpty()) {
-        com.testcase.testcasemanagement.model.User currentUser = null;
-        try {
-          String username = getCurrentUsername();
-          if (username != null && !username.equals("anonymousUser")) {
-            currentUser =
-                entityManager
-                    .createQuery(
-                        "SELECT u FROM User u WHERE u.username = :username",
-                        com.testcase.testcasemanagement.model.User.class)
-                    .setParameter("username", username)
-                    .getSingleResult();
-          }
-        } catch (Exception e) {
-          log.warn("사용자 정보 조회 실패: {}", e.getMessage());
-        }
-        for (TestCaseAttachment attachment : attachments) {
-          try {
-            fileStorageService.deleteAttachment(attachment.getId(), currentUser);
-          } catch (Exception e) {
-            log.error(
-                "첨부파일 물리 삭제 실패: attachmentId={}, error={}", attachment.getId(), e.getMessage());
-          }
-        }
-      }
-    } catch (Exception e) {
-      log.error("첨부파일 처리 중 오류: testCaseId={}", id, e);
-    }
+    // 첨부는 파일도 기록도 지우지 않는다. 아래에서 소유(test_case_id)만 비운다.
+    // 케이스와 달리 실행 결과는 그대로 남으므로, 그 노트가 참조하는 이미지를 여기서 지우면
+    // 살아 있는 결과의 화면이 조용히 빈다. 삭제는 사용자가 첨부 목록에서 직접 지를 때만 한다.
 
     // 엔티티 삭제: 네이티브 쿼리로 직접 삭제 (JPA 세션 캐시/cascade 문제 완전 회피)
     // FK 제약 순서: 자식 테이블 → 본 테이블 순으로 삭제
@@ -367,11 +333,18 @@ public class TestCaseService {
     testCaseRepository.deleteTestCaseLinkRefs(id);
     // 연결된 JUnit 자동화 케이스 링크 (내가 건 링크)
     testCaseRepository.deleteJunitCaseLinksByTestCaseId(id);
-    // test_case_attachments: fileStorageService.deleteAttachment()는 소프트 딜리트(status=DELETED)만 수행
-    entityManager
-        .createNativeQuery("DELETE FROM test_case_attachments WHERE test_case_id = :id")
-        .setParameter("id", id)
-        .executeUpdate();
+    // test_case_attachments: 기록을 지우지 않고 소유만 비운다.
+    // 결과 노트가 참조하는 이미지는 공개 토큰으로 내려가고 그 경로는 소유를 보지 않으므로,
+    // 기록이 남아 있으면 케이스를 지워도 결과 화면의 이미지가 그대로 보인다.
+    int detached =
+        entityManager
+            .createNativeQuery(
+                "UPDATE test_case_attachments SET test_case_id = NULL WHERE test_case_id = :id")
+            .setParameter("id", id)
+            .executeUpdate();
+    if (detached > 0) {
+      log.info("테스트케이스 삭제 — 첨부 {}건의 소유를 비우고 기록·파일을 남긴다: testCaseId={}", detached, id);
+    }
     // display_id_history, testcase_versions 도 FK 참조
     entityManager
         .createNativeQuery("DELETE FROM display_id_history WHERE test_case_id = :id")
@@ -2891,50 +2864,5 @@ public class TestCaseService {
       map.put(tc.getId(), tc.getName());
     }
     return map;
-  }
-
-  /**
-   * ICT-InlineImage: 본문(description)에서 인라인 이미지 ID를 추출하여 삭제 처리
-   *
-   * @param description 마크다운 본문
-   */
-  private void deleteInlineImagesFromDescription(String description) {
-    if (description == null || description.isBlank()) {
-      return;
-    }
-
-    // 인라인 이미지 패턴 추출: ![[...]] (/api/testcase-attachments/public/{id}?token=...)
-    // 공통 이미지 URL 패턴: /api/testcase-attachments/public/([a-f0-9\-]{36})
-    java.util.regex.Pattern pattern =
-        java.util.regex.Pattern.compile("/api/testcase-attachments/public/([a-f0-9\\-]{36})");
-    java.util.regex.Matcher matcher = pattern.matcher(description);
-
-    // 현재 사용자 정보 가져오기 (감사용)
-    com.testcase.testcasemanagement.model.User currentUser = null;
-    try {
-      String username = getCurrentUsername();
-      if (username != null && !username.equals("anonymousUser")) {
-        currentUser =
-            entityManager
-                .createQuery(
-                    "SELECT u FROM User u WHERE u.username = :username",
-                    com.testcase.testcasemanagement.model.User.class)
-                .setParameter("username", username)
-                .getSingleResult();
-      }
-    } catch (Exception e) {
-      log.warn("사용자 정보 조회 실패 (인라인 이미지 삭제 로직 계속 진행): {}", e.getMessage());
-    }
-
-    while (matcher.find()) {
-      String attachmentId = matcher.group(1);
-      try {
-        fileStorageService.deleteAttachment(attachmentId, currentUser);
-        log.info("🖼️ 테스트케이스 인라인 이미지 연계 삭제 완료: attachmentId={}", attachmentId);
-      } catch (Exception e) {
-        log.error("❌ 테스트케이스 인라인 이미지 삭제 실패 (ID: {}): {}", attachmentId, e.getMessage());
-        // 개별 이미지 삭제 실패가 전체 프로세스를 중단시키지 않도록 예외 처리
-      }
-    }
   }
 }

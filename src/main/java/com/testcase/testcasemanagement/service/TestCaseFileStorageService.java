@@ -487,7 +487,10 @@ public class TestCaseFileStorageService {
       java.util.Map<String, String> tags = new java.util.HashMap<>();
       tags.put("isUsed", "true");
       tags.put("usedAt", attachment.getUsedAt().toString());
-      tags.put("testCaseId", attachment.getTestCase().getId());
+      // 케이스가 지워진 첨부는 소유가 비어 있다
+      if (attachment.getTestCase() != null) {
+        tags.put("testCaseId", attachment.getTestCase().getId());
+      }
       tags.put("originalFileName", attachment.getOriginalFileName());
 
       if (attachment.getUploadedBy() != null) {

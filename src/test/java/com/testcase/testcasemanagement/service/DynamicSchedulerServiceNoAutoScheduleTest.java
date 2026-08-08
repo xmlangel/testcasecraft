@@ -78,4 +78,20 @@ public class DynamicSchedulerServiceNoAutoScheduleTest {
 
     verify(schedulingConfig, times(1)).cleanupUnusedAttachments();
   }
+
+  /** 자동 실행이 막힌 작업은 어떤 스케줄 타입이어도 등록되지 않는다. */
+  @Test
+  public void testBlocksRegardlessOfScheduleType() {
+    for (SchedulerConfig.ScheduleType type : SchedulerConfig.ScheduleType.values()) {
+      SchedulerConfig config = cronConfig(BLOCKED, true);
+      config.setScheduleType(type);
+      config.setFixedRateMs(60000L);
+      config.setFixedDelayMs(60000L);
+
+      service.scheduleTask(config);
+    }
+
+    verify(taskScheduler, never()).schedule(any(Runnable.class), any(Trigger.class));
+    assertFalse(service.isTaskScheduled(BLOCKED));
+  }
 }
