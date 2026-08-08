@@ -2,6 +2,7 @@ package com.testcase.testcasemanagement.config;
 
 import jakarta.persistence.EntityManager;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -34,7 +35,15 @@ public class DatabaseConstraintFixer {
   public CommandLineRunner relaxTestCaseAttachmentOwnerConstraint() {
     return args -> {
       try (Connection connection = dataSource.getConnection()) {
-        if (!isOwnerColumnNotNull(connection)) {
+        // 판정에 실패하면 해제를 시도한다. 조회가 안 되는 DB 에서 ALTER 를 건너뛰면
+        // 컬럼이 NOT NULL 로 남아 케이스 삭제 시 첨부 기록이 사라진다.
+        boolean notNull;
+        try {
+          notNull = isOwnerColumnNotNull(connection);
+        } catch (SQLException e) {
+          notNull = true;
+        }
+        if (!notNull) {
           return;
         }
         try (Statement statement = connection.createStatement()) {
@@ -51,15 +60,25 @@ public class DatabaseConstraintFixer {
     };
   }
 
-  /** 소유 컬럼이 아직 NOT NULL 인지. 표를 못 찾으면 손대지 않는다. */
+  /**
+   * 소유 컬럼이 아직 NOT NULL 인지.
+   *
+   * <p>같은 이름의 표가 여러 스키마에 있을 수 있어 현재 스키마로 좁힌다. 표를 못 찾으면 해제할 것이 없다고 본다.
+   */
   private boolean isOwnerColumnNotNull(Connection connection) throws SQLException {
+    String schema = connection.getSchema();
     String sql =
         "SELECT is_nullable FROM information_schema.columns "
             + "WHERE lower(table_name) = 'test_case_attachments' "
-            + "AND lower(column_name) = 'test_case_id'";
-    try (Statement statement = connection.createStatement();
-        ResultSet rs = statement.executeQuery(sql)) {
-      return rs.next() && "NO".equalsIgnoreCase(rs.getString("is_nullable"));
+            + "AND lower(column_name) = 'test_case_id'"
+            + (schema != null ? " AND table_schema = ?" : "");
+    try (PreparedStatement statement = connection.prepareStatement(sql)) {
+      if (schema != null) {
+        statement.setString(1, schema);
+      }
+      try (ResultSet rs = statement.executeQuery()) {
+        return rs.next() && "NO".equalsIgnoreCase(rs.getString("is_nullable"));
+      }
     }
   }
 
