@@ -21,7 +21,7 @@ The last path that deleted attachments — removing a test case — is closed. D
 
 ### Upgrade Notes
 
-* No database migration scripts. No schema changes.
+* No database migration scripts.
 * One new i18n key (`scheduler.tooltip.autoScheduleBlocked`) is registered automatically for both languages at startup.
 * **One schema change is applied.** The owner column (`test_case_attachments.test_case_id`) must accept empty values, so the app drops its `NOT NULL` constraint once at startup. If it is already dropped, nothing happens. No migration scripts.
 * **Ownerless attachments will accumulate.** Records and files survive case deletion. Leave the ones still used by results; anything nobody references can be reclaimed with "Attachment cleanup" in the admin screen.
