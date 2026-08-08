@@ -41,6 +41,9 @@ public class DatabaseConstraintFixer {
         try {
           notNull = isOwnerColumnNotNull(connection);
         } catch (SQLException e) {
+          System.err.println(
+              "test_case_attachments.test_case_id 의 NULL 허용 여부를 확인하지 못해 해제를 시도합니다: "
+                  + e.getMessage());
           notNull = true;
         }
         if (!notNull) {
