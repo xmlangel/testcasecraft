@@ -108,7 +108,7 @@ function TestResultMainPage() {
       </Box>
 
       {/* 메인 컨텐츠: 탭 기반 뷰 - 반응형 개선 */}
-      <Paper sx={{ mb: 2, overflow: "hidden" }}>
+      <Paper sx={{ mb: 1, overflow: "hidden" }}>
         <Tabs
           value={tabValue}
           onChange={handleTabChange}

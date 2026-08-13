@@ -218,6 +218,116 @@ export const readFilteredNavIds = (executionId) => {
   }
 };
 
+// 결과 입력 리스트의 폴더 접힘 상태를 실행(executionId)별로 보존하는 sessionStorage 키 접두사.
+// 필터·네비게이션 목록과 같은 규약을 쓴다(prefix + executionId, 저장 실패는 무시).
+export const COLLAPSED_FOLDERS_STORAGE_PREFIX =
+  "testExecutionForm.collapsedFolders.";
+
+// 접힌 폴더 ID 목록을 실행별로 저장한다. 비어 있으면 키를 제거해 stale 상태를 남기지 않는다.
+export const saveCollapsedFolders = (executionId, folderIds) => {
+  if (!executionId || executionId === "new") return;
+  const key = `${COLLAPSED_FOLDERS_STORAGE_PREFIX}${executionId}`;
+  const ids = folderIds instanceof Set ? [...folderIds] : folderIds || [];
+  try {
+    if (ids.length === 0) {
+      sessionStorage.removeItem(key);
+    } else {
+      sessionStorage.setItem(key, JSON.stringify(ids));
+    }
+  } catch {
+    // sessionStorage 미지원/차단 환경에서는 무시(접힘 상태 미보존)
+  }
+};
+
+// 저장된 접힘 폴더 ID 목록을 Set으로 읽는다. 없거나 깨졌으면 빈 Set(=전체 펼침).
+export const readCollapsedFolders = (executionId) => {
+  if (!executionId || executionId === "new") return new Set();
+  try {
+    const raw = sessionStorage.getItem(
+      `${COLLAPSED_FOLDERS_STORAGE_PREFIX}${executionId}`,
+    );
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+};
+
+/**
+ * 접힌 폴더의 하위 노드를 걷어낸 표시용 배열을 만든다.
+ *
+ * 접힌 폴더 자신은 남기고 그 아래 모든 자손(폴더·케이스)을 제외한다. 판정은 부모의 판정
+ * 결과를 물려받는 방식이라 같은 경로를 두 번 타지 않는다(플래튼 배열은 부모가 자식보다 앞).
+ *
+ * 인피니티 스크롤의 slice보다 **먼저** 적용해야 한다. 뒤에 적용하면 접힌 폴더의 자식이 표시
+ * 개수 예산을 먹어 화면에 몇 줄만 남는다.
+ *
+ * @param {Array<{id: string, parentId?: string}>} nodes 플래튼 노드 배열(부모가 자식보다 앞)
+ * @param {Set<string>|Array<string>} collapsedIds 접힌 폴더 ID 집합
+ * @returns {Array} 접힘이 반영된 노드 배열
+ */
+export const filterCollapsedNodes = (nodes, collapsedIds) => {
+  const list = nodes || [];
+  const collapsed =
+    collapsedIds instanceof Set ? collapsedIds : new Set(collapsedIds || []);
+  if (collapsed.size === 0) return list;
+
+  const present = new Set();
+  list.forEach((node) => {
+    if (node) present.add(node.id);
+  });
+
+  // id → 숨김 여부. 부모가 앞에 오는 순서라 부모 판정이 이미 채워져 있다.
+  const hidden = new Map();
+
+  return list.filter((node) => {
+    if (!node) return false;
+
+    const parentId = node.parentId;
+    let parentHidden = false;
+    if (parentId && present.has(parentId)) {
+      parentHidden = hidden.get(parentId) === true || collapsed.has(parentId);
+    }
+
+    hidden.set(node.id, parentHidden);
+    return !parentHidden;
+  });
+};
+
+/**
+ * 플래튼 배열에서 어떤 노드의 상위 폴더 ID를 모두 모은다(자기 자신 제외).
+ *
+ * 접힌 폴더 안의 행으로 이동해야 할 때(scrollTo 파라미터) 그 경로를 펼치는 데 쓴다.
+ *
+ * @param {Array<{id: string, parentId?: string}>} nodes 플래튼 노드 배열
+ * @param {string} nodeId 대상 노드 ID
+ * @returns {Array<string>} 상위 폴더 ID 배열
+ */
+export const collectAncestorFolderIds = (nodes, nodeId) => {
+  const byId = new Map();
+  (nodes || []).forEach((node) => {
+    if (node) byId.set(node.id, node);
+  });
+
+  const ancestors = [];
+  const seen = new Set();
+  let current = byId.get(nodeId);
+  while (current?.parentId && byId.has(current.parentId)) {
+    if (seen.has(current.parentId)) break; // 순환 방어
+    seen.add(current.parentId);
+    ancestors.push(current.parentId);
+    current = byId.get(current.parentId);
+  }
+  return ancestors;
+};
+
+// 플래튼 배열의 폴더 ID 전체 (전체 접기용)
+export const collectFolderIds = (nodes) =>
+  (nodes || [])
+    .filter((node) => node && node.type === "folder")
+    .map((node) => node.id);
+
 export const HEADER_HEIGHT = 40;
 
 // Grid 템플릿 정의 - 모든 행에서 동일한 컬럼 너비 보장

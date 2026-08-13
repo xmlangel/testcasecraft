@@ -59,6 +59,11 @@ import {
   clearFilteredNavIds,
   matchesAnyTag,
   buildBulkResultPayload,
+  filterCollapsedNodes,
+  collectAncestorFolderIds,
+  collectFolderIds,
+  saveCollapsedFolders,
+  readCollapsedFolders,
 } from "./TestExecution/utils.jsx";
 
 // 테스트케이스 필터를 실행(executionId)별로 보존하기 위한 sessionStorage 키 접두사.
@@ -76,6 +81,8 @@ const EMPTY_FILTERS = {
   notes: "",
   tags: [], // ICT-427: 결과 태그
 };
+// 접힘 미적용(전체 펼침)을 나타내는 고정 Set — 매 렌더 새 Set을 만들면 useMemo가 헛돈다.
+const NO_COLLAPSED_FOLDERS = new Set();
 // 배열(다중선택)/문자열 모두를 일관되게 "값이 있는가"로 판정
 const filterHasValue = (v) =>
   Array.isArray(v) ? v.length > 0 : !!(v && v !== "");
@@ -127,6 +134,24 @@ const writeSavedFilters = (executionId, filters) => {
   } catch {
     // sessionStorage 미지원/차단 환경에서는 무시(필터 미보존)
   }
+};
+
+// 아코디언 세 개(실행 요약·필터·목록)를 같은 규격으로 좁힌다.
+// MUI 기본값이 화면에 남기는 빈 줄이 세 군데다 — 머리 높이 48px(펼치면 64px),
+// 펼쳤을 때 위아래로 붙는 16px 바깥 여백, 내용 아래쪽 16px 안 여백.
+// 펼침 여부와 무관하게 같은 값을 쓰도록 `&.Mui-expanded` 까지 함께 지정한다.
+const COMPACT_ACCORDION_SX = {
+  "&, &.Mui-expanded": { marginTop: 0, marginBottom: "8px" },
+  "&:before": { display: "none" },
+  "& .MuiAccordionSummary-root": {
+    minHeight: 40,
+    "&.Mui-expanded": { minHeight: 40 },
+  },
+  "& .MuiAccordionSummary-content": {
+    my: 0.75,
+    "&.Mui-expanded": { my: 0.75 },
+  },
+  "& .MuiAccordionDetails-root": { pt: 1, pb: 1.5 },
 };
 
 const TestExecutionForm = ({
@@ -222,6 +247,16 @@ const TestExecutionForm = ({
   useEffect(() => {
     writeSavedFilters(executionId, filters);
   }, [executionId, filters]);
+
+  // 결과 입력 리스트의 접힌 폴더 — 마운트 시 이 실행에 저장해 둔 상태를 복원.
+  // 기본값은 빈 Set(전체 펼침)이라 기존 화면과 같게 보인다.
+  const [collapsedFolders, setCollapsedFolders] = useState(() =>
+    readCollapsedFolders(executionId),
+  );
+
+  useEffect(() => {
+    saveCollapsedFolders(executionId, collapsedFolders);
+  }, [executionId, collapsedFolders]);
 
   // Accordion state
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
@@ -1067,6 +1102,98 @@ const TestExecutionForm = ({
     [filteredData],
   );
 
+  const hasActiveFilters = useMemo(
+    () => Object.values(filters).some(filterHasValue),
+    [filters],
+  );
+
+  // 필터가 걸려 있으면 접힘을 표시에 반영하지 않는다. filteredData 에는 매칭된 케이스와 그
+  // 상위 폴더만 남아 있어, 접힌 폴더를 그대로 숨기면 검색했는데 아무것도 안 보이는 상태가
+  // 된다. 테스트케이스 트리와 같은 방식으로 사용자 접힘 상태는 state 에 그대로 두고 표시할
+  // 때만 무시한다(필터를 지우면 원래 접힘으로 돌아온다).
+  const effectiveCollapsedFolders = hasActiveFilters
+    ? NO_COLLAPSED_FOLDERS
+    : collapsedFolders;
+
+  // 접힌 폴더의 하위를 걷어낸 표시용 목록. 인피니티 스크롤 slice 앞이라, 접은 만큼 뒤 항목이
+  // 채워진다.
+  const displayData = useMemo(
+    () => filterCollapsedNodes(filteredData, effectiveCollapsedFolders),
+    [filteredData, effectiveCollapsedFolders],
+  );
+
+  // 폴더별 하위 테스트케이스 수 — 접힌 폴더에 몇 건이 숨어 있는지 보여주는 데 쓴다.
+  const folderCaseCounts = useMemo(() => {
+    const counts = new Map();
+    const parentOf = new Map(
+      filteredData.map((node) => [node.id, node.parentId]),
+    );
+
+    filteredData.forEach((node) => {
+      if (node.type !== "testcase") return;
+      let parentId = node.parentId;
+      const seen = new Set();
+      while (parentId && parentOf.has(parentId) && !seen.has(parentId)) {
+        seen.add(parentId);
+        counts.set(parentId, (counts.get(parentId) || 0) + 1);
+        parentId = parentOf.get(parentId);
+      }
+    });
+
+    return counts;
+  }, [filteredData]);
+
+  // 접힘 상태를 바꾸면서, 그 때문에 화면에서 사라지는 케이스의 선택을 해제한다.
+  // 보이지 않는 케이스가 선택된 채로 남으면 일괄 결과 입력이 화면에 없는 케이스에까지 들어간다.
+  const applyCollapsedFolders = useCallback(
+    (nextCollapsed) => {
+      setCollapsedFolders(nextCollapsed);
+
+      const stillVisible = new Set(
+        extractTestCaseIds(
+          filterCollapsedNodes(
+            filteredData,
+            hasActiveFilters ? NO_COLLAPSED_FOLDERS : nextCollapsed,
+          ),
+        ),
+      );
+      setSelectedTestCases((prev) => {
+        if (prev.size === 0) return prev;
+        const next = new Set([...prev].filter((id) => stillVisible.has(id)));
+        return next.size === prev.size ? prev : next;
+      });
+    },
+    [filteredData, hasActiveFilters],
+  );
+
+  const handleToggleFolder = useCallback(
+    (folderId) => {
+      const next = new Set(collapsedFolders);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      applyCollapsedFolders(next);
+    },
+    [collapsedFolders, applyCollapsedFolders],
+  );
+
+  const handleCollapseAllFolders = useCallback(() => {
+    applyCollapsedFolders(new Set(collectFolderIds(filteredData)));
+  }, [filteredData, applyCollapsedFolders]);
+
+  const handleExpandAllFolders = useCallback(() => {
+    applyCollapsedFolders(new Set());
+  }, [applyCollapsedFolders]);
+
+  const collapsedFolderCount = useMemo(
+    () =>
+      collectFolderIds(filteredData).filter((id) => collapsedFolders.has(id))
+        .length,
+    [filteredData, collapsedFolders],
+  );
+
   // 필터가 적용된 목록 기준 이전/다음 네비게이션을 위한 테스트케이스 ID 배열
   // (선택 케이스가 필터 목록에 없으면 전체 목록으로 폴백)
   const navTestCaseIds = useMemo(
@@ -1128,12 +1255,12 @@ const TestExecutionForm = ({
     };
   }, [resultsMap, testCaseIds]);
 
-  // 인피니티 스크롤을 위한 데이터 추출
+  // 인피니티 스크롤을 위한 데이터 추출 (접힘이 반영된 목록에서 잘라낸다)
   const visibleData = useMemo(() => {
-    return filteredData.slice(0, visibleCount);
-  }, [filteredData, visibleCount]);
+    return displayData.slice(0, visibleCount);
+  }, [displayData, visibleCount]);
 
-  const hasMore = visibleCount < filteredData.length;
+  const hasMore = visibleCount < displayData.length;
 
   const loadMore = useCallback(() => {
     if (hasMore) {
@@ -1152,8 +1279,24 @@ const TestExecutionForm = ({
     const scrollToId = searchParams.get("scrollTo");
 
     if (scrollToId && filteredData.length > 0) {
-      // 1. 해당 ID가 필터링된 데이터에 있는지 확인 및 인덱스 찾기
-      const targetIndex = filteredData.findIndex(
+      // 0. 대상이 접힌 폴더 안이면 그 경로를 먼저 펼친다. 안 펼치면 행이 DOM에 없어
+      //    아래 scrollIntoView 가 조용히 실패한다.
+      const isHiddenByCollapse =
+        filteredData.some((item) => item.id === scrollToId) &&
+        !displayData.some((item) => item.id === scrollToId);
+      if (isHiddenByCollapse) {
+        const ancestors = collectAncestorFolderIds(filteredData, scrollToId);
+        if (ancestors.length > 0) {
+          const next = new Set(collapsedFolders);
+          ancestors.forEach((id) => next.delete(id));
+          applyCollapsedFolders(next);
+          // 펼친 결과가 반영된 다음 렌더에서 이어서 처리한다.
+          return;
+        }
+      }
+
+      // 1. 해당 ID가 표시 목록에 있는지 확인 및 인덱스 찾기
+      const targetIndex = displayData.findIndex(
         (item) => item.id === scrollToId,
       );
 
@@ -1194,6 +1337,9 @@ const TestExecutionForm = ({
   }, [
     location.search,
     filteredData,
+    displayData,
+    collapsedFolders,
+    applyCollapsedFolders,
     visibleCount,
     navigate,
     location.pathname,
@@ -1258,7 +1404,8 @@ const TestExecutionForm = ({
         expanded={accordionExpanded.executionSummary}
         onChange={handleAccordionChange("executionSummary")}
         sx={{
-          mb: 2,
+          ...COMPACT_ACCORDION_SX,
+          mb: 1,
           boxShadow: "none",
           border: "1px solid",
           borderColor: "divider",
@@ -1314,7 +1461,7 @@ const TestExecutionForm = ({
             )}
           </Box>
         </AccordionSummary>
-        <AccordionDetails sx={{ pt: 2 }}>
+        <AccordionDetails sx={{ pt: 1 }}>
           <Grid container spacing={1}>
             <Grid size={{ xs: 12, md: 6, lg: 5 }}>
               <TestExecutionInfo
@@ -1348,11 +1495,11 @@ const TestExecutionForm = ({
           </Grid>
         </AccordionDetails>
       </Accordion>
-      <Box sx={{ my: 3 }}>
+      <Box sx={{ my: 1 }}>
         <Accordion
           expanded={accordionExpanded.filters}
           onChange={handleAccordionChange("filters")}
-          sx={{ mb: 2 }}
+          sx={{ ...COMPACT_ACCORDION_SX, mb: 1 }}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="subtitle1" fontWeight="bold">
@@ -1373,6 +1520,7 @@ const TestExecutionForm = ({
         <Accordion
           expanded={accordionExpanded.list}
           onChange={handleAccordionChange("list")}
+          sx={COMPACT_ACCORDION_SX}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="subtitle1" fontWeight="bold">
@@ -1494,6 +1642,13 @@ const TestExecutionForm = ({
               canEnterResults={canEnterResults}
               selectedTestCases={selectedTestCases}
               onSelectionChange={handleSelectionChange}
+              collapsedFolders={effectiveCollapsedFolders}
+              folderCaseCounts={folderCaseCounts}
+              collapsedFolderCount={hasActiveFilters ? 0 : collapsedFolderCount}
+              onToggleFolder={handleToggleFolder}
+              onExpandAllFolders={handleExpandAllFolders}
+              onCollapseAllFolders={handleCollapseAllFolders}
+              treeControlsDisabled={hasActiveFilters}
             />
           </AccordionDetails>
         </Accordion>

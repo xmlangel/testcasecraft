@@ -140,7 +140,12 @@ function PreviousResultsDialog({
       );
 
       if (response.ok) {
-        alert(t("testExecution.prevResults.deleteSuccess", "테스트 결과가 삭제되었습니다."));
+        alert(
+          t(
+            "testExecution.prevResults.deleteSuccess",
+            "테스트 결과가 삭제되었습니다.",
+          ),
+        );
         setDeleteConfirmOpen(false);
         setResultToDelete(null);
         // 부모 컴포넌트 리로드 트리거
@@ -148,14 +153,25 @@ function PreviousResultsDialog({
           onAttachmentDeleted();
         }
       } else {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: t("testExecution.prevResults.unknownError", "알 수 없는 오류") }));
-        alert(t("testExecution.prevResults.deleteError", "삭제 실패") + `: ${errorData.message || response.statusText}`);
+        const errorData = await response.json().catch(() => ({
+          message: t(
+            "testExecution.prevResults.unknownError",
+            "알 수 없는 오류",
+          ),
+        }));
+        alert(
+          t("testExecution.prevResults.deleteError", "삭제 실패") +
+            `: ${errorData.message || response.statusText}`,
+        );
       }
     } catch (error) {
       console.error("삭제 중 오류:", error);
-      alert(t("testExecution.prevResults.deleteErrorOccurred", "삭제 중 오류가 발생했습니다."));
+      alert(
+        t(
+          "testExecution.prevResults.deleteErrorOccurred",
+          "삭제 중 오류가 발생했습니다.",
+        ),
+      );
     } finally {
       setDeleting(false);
     }
@@ -249,185 +265,189 @@ function PreviousResultsDialog({
                       currentExecutionId &&
                       r.testExecutionId === currentExecutionId;
                     return (
-                    <TableRow
-                      key={idx}
-                      sx={
-                        isCurrent
-                          ? {
-                              backgroundColor: alpha(
-                                theme.palette.primary.main,
-                                darkMode ? 0.18 : 0.08,
-                              ),
-                              "& > td:first-of-type": {
-                                borderLeft: `3px solid ${theme.palette.primary.main}`,
-                              },
-                              "&:hover": {
+                      <TableRow
+                        key={idx}
+                        sx={
+                          isCurrent
+                            ? {
                                 backgroundColor: alpha(
                                   theme.palette.primary.main,
-                                  darkMode ? 0.24 : 0.12,
+                                  darkMode ? 0.18 : 0.08,
                                 ),
-                              },
-                            }
-                          : { opacity: 0.92 }
-                      }
-                    >
-                      <TableCell>
-                        {r.executedAt ? formatDate(r.executedAt) : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {getResultIcon(r.result)}
-                        <span style={{ marginLeft: 6 }}>{r.result}</span>
-                      </TableCell>
-                      <TableCell>{r.testExecutionId}</TableCell>
-                      <TableCell>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          {r.testExecutionName}
-                          {isCurrent && (
-                            <Chip
-                              label={t(
-                                "testExecution.prevResults.currentExecution",
-                                "현재 실행",
-                              )}
-                              size="small"
-                              color="primary"
-                              sx={{
-                                height: 18,
-                                fontSize: "0.65rem",
-                                fontWeight: 700,
-                              }}
-                            />
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell>{r.executedBy}</TableCell>
-                      <TableCell>
-                        {r.notes ? (
-                          notesViewMode === "text" ? (
-                            <Typography
-                              component="pre"
-                              sx={{
-                                whiteSpace: "pre-wrap",
-                                wordBreak: "break-word",
-                                fontFamily: "inherit",
-                                fontSize: "0.875rem",
-                                m: 0,
-                              }}
-                            >
-                              {r.notes}
-                            </Typography>
-                          ) : (
-                            <Box
-                              data-color-mode={darkMode ? "dark" : "light"}
-                              sx={MARKDOWN_PREWRAP_SX}
-                            >
-                              <MDEditor.Markdown
-                                source={r.notes}
-                                style={{
-                                  backgroundColor: "transparent",
-                                  color: theme.palette.text.primary,
-                                  fontSize: "0.875rem",
+                                "& > td:first-of-type": {
+                                  borderLeft: `3px solid ${theme.palette.primary.main}`,
+                                },
+                                "&:hover": {
+                                  backgroundColor: alpha(
+                                    theme.palette.primary.main,
+                                    darkMode ? 0.24 : 0.12,
+                                  ),
+                                },
+                              }
+                            : { opacity: 0.92 }
+                        }
+                      >
+                        <TableCell>
+                          {r.executedAt ? formatDate(r.executedAt) : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {getResultIcon(r.result)}
+                          <span style={{ marginLeft: 6 }}>{r.result}</span>
+                        </TableCell>
+                        <TableCell>{r.testExecutionId}</TableCell>
+                        <TableCell>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {r.testExecutionName}
+                            {isCurrent && (
+                              <Chip
+                                label={t(
+                                  "testExecution.prevResults.currentExecution",
+                                  "현재 실행",
+                                )}
+                                size="small"
+                                color="primary"
+                                sx={{
+                                  height: 18,
+                                  fontSize: "0.65rem",
+                                  fontWeight: 700,
                                 }}
                               />
-                            </Box>
-                          )
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {r.tags && r.tags.length > 0 ? (
-                          <Box
-                            sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
-                          >
-                            {r.tags.map((tag, index) => (
-                              <Chip
-                                key={index}
-                                label={tag}
-                                size="small"
-                                variant="outlined"
-                              />
-                            ))}
+                            )}
                           </Box>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {r.jiraIssueKey ? (
-                          <JiraIssueLink issueKey={r.jiraIssueKey} />
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {r.attachmentCount > 0 ? (
-                          <Tooltip
-                            title={t("testExecution.table.viewAttachments")}
+                        </TableCell>
+                        <TableCell>{r.executedBy}</TableCell>
+                        <TableCell>
+                          {r.notes ? (
+                            notesViewMode === "text" ? (
+                              <Typography
+                                component="pre"
+                                sx={{
+                                  whiteSpace: "pre-wrap",
+                                  wordBreak: "break-word",
+                                  fontFamily: "inherit",
+                                  fontSize: "0.875rem",
+                                  m: 0,
+                                }}
+                              >
+                                {r.notes}
+                              </Typography>
+                            ) : (
+                              <Box
+                                data-color-mode={darkMode ? "dark" : "light"}
+                                sx={MARKDOWN_PREWRAP_SX}
+                              >
+                                <MDEditor.Markdown
+                                  source={r.notes}
+                                  style={{
+                                    backgroundColor: "transparent",
+                                    color: theme.palette.text.primary,
+                                    fontSize: "0.875rem",
+                                  }}
+                                />
+                              </Box>
+                            )
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {r.tags && r.tags.length > 0 ? (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 0.5,
+                              }}
+                            >
+                              {r.tags.map((tag, index) => (
+                                <Chip
+                                  key={index}
+                                  label={tag}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              ))}
+                            </Box>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {r.jiraIssueKey ? (
+                            <JiraIssueLink issueKey={r.jiraIssueKey} />
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {r.attachmentCount > 0 ? (
+                            <Tooltip
+                              title={t("testExecution.table.viewAttachments")}
+                            >
+                              <IconButton
+                                size="small"
+                                onClick={() => handleAttachmentClick(r.id)}
+                                sx={{ p: 0.5 }}
+                              >
+                                <AttachFileIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 0.5,
+                              justifyContent: "center",
+                            }}
                           >
-                            <IconButton
-                              size="small"
-                              onClick={() => handleAttachmentClick(r.id)}
-                              sx={{ p: 0.5 }}
-                            >
-                              <AttachFileIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: 0.5,
-                            justifyContent: "center",
-                          }}
-                        >
-                          {canEdit(r) && (
-                            <Tooltip
-                              title={t(
-                                "testExecution.previousResults.action.edit",
-                              )}
-                            >
-                              <IconButton
-                                size="small"
-                                onClick={() => handleEditClick(r)}
-                                sx={{ p: 0.5 }}
-                                color="primary"
-                                data-testid={`prev-result-edit-button-${r.id}`}
+                            {canEdit(r) && (
+                              <Tooltip
+                                title={t(
+                                  "testExecution.previousResults.action.edit",
+                                )}
                               >
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                          {canDelete() && (
-                            <Tooltip
-                              title={t(
-                                "testExecution.previousResults.action.delete",
-                              )}
-                            >
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDeleteClick(r)}
-                                sx={{ p: 0.5 }}
-                                color="error"
-                                data-testid={`prev-result-delete-button-${r.id}`}
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleEditClick(r)}
+                                  sx={{ p: 0.5 }}
+                                  color="primary"
+                                  data-testid={`prev-result-edit-button-${r.id}`}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            {canDelete() && (
+                              <Tooltip
+                                title={t(
+                                  "testExecution.previousResults.action.delete",
+                                )}
                               >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                        </Box>
-                      </TableCell>
-                    </TableRow>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDeleteClick(r)}
+                                  sx={{ p: 0.5 }}
+                                  color="error"
+                                  data-testid={`prev-result-delete-button-${r.id}`}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
                 </TableBody>

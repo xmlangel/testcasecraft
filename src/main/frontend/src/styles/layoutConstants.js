@@ -3,14 +3,17 @@
 
 /**
  * 표준 컨테이너 maxWidth 설정
- * ICT-180에서 검증된 최적의 화면 활용도를 기반으로 정의
+ *
+ * 화면 폭을 그대로 쓴다. 이전에는 md 1600px·lg 1900px·xl 98vw 로 묶어 두었는데, 가로가 넓은
+ * 모니터에서 목록 열이 좁아지고 양옆에 쓰지 않는 띠가 남았다. 좌우 여백은 아래 컨테이너
+ * 패딩으로만 준다.
  */
 export const STANDARD_MAX_WIDTH = {
   xs: "100%",
   sm: "100%",
-  md: "1600px",
-  lg: "1900px",
-  xl: "98vw",
+  md: "100%",
+  lg: "100%",
+  xl: "100%",
 };
 
 /**
@@ -21,7 +24,7 @@ export const PAGE_CONTAINER_SX = {
   main: {
     maxWidth: STANDARD_MAX_WIDTH,
     mx: "auto",
-    p: 2,
+    p: 1.5,
     bgcolor: "background.default",
     minHeight: "calc(100vh - 64px)", // AppBar 높이 제외
   },
@@ -33,9 +36,9 @@ export const PAGE_CONTAINER_SX = {
     bgcolor: "background.paper",
     borderRadius: 2,
     boxShadow: 1,
-    p: 3,
-    mt: 2,
-    mb: 2,
+    p: 2,
+    mt: 1.5,
+    mb: 1.5,
   },
 
   // 다이얼로그 내부 컨테이너

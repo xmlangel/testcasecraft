@@ -124,7 +124,7 @@ const TestResultNotes = ({
   };
 
   return (
-    <Box sx={{ mt: 2, position: "relative" }}>
+    <Box sx={{ mt: 1, position: "relative" }}>
       <Box
         sx={{
           display: "flex",

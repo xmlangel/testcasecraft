@@ -77,7 +77,7 @@ const TestResultHeader = ({
           borderWidth: 1,
           borderStyle: "solid",
           color: color,
-          height: 28,
+          height: 22,
           px: 0.5,
           fontSize: "0.75rem",
           transition: "all 0.2s ease-in-out",
@@ -130,8 +130,9 @@ const TestResultHeader = ({
       {/* Top Bar: Title and Navigation */}
       <Box
         sx={{
-          height: 64,
+          minHeight: 34,
           px: 3,
+          py: 0.25,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -297,8 +298,9 @@ const TestResultHeader = ({
       {stats && (
         <Box
           sx={{
-            height: 48,
+            minHeight: 28,
             px: 3,
+            py: 0.25,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",

@@ -68,10 +68,10 @@ const TestExecutionFilterPanel = ({
   const [expanded, setExpanded] = React.useState(hasActiveFilters);
 
   return (
-    <Paper elevation={1} sx={{ mb: 2 }}>
+    <Paper elevation={1} sx={{ mb: 1 }}>
       <Box
         sx={{
-          p: 2,
+          p: 1.5,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -94,7 +94,7 @@ const TestExecutionFilterPanel = ({
       </Box>
       <Collapse in={expanded}>
         <Box sx={{ px: 2, pb: 2 }}>
-          <Grid container spacing={2}>
+          <Grid container spacing={1.5}>
             {/* 테스트 케이스명 */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField

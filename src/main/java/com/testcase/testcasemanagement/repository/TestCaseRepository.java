@@ -93,6 +93,24 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
   //  Display ID 마이그레이션을 위한 메소드들
   List<TestCase> findByDisplayIdIsNull();
 
+  // Display ID 를 실제로 부여할 수 있는 노드만 고른다.
+  // 폴더는 순차 ID 를 받지 않아 Display ID 를 만들 수 없다(프로젝트 간 복사도 같은 기준을 쓴다).
+  // 이 필터가 없으면 기동마다 같은 폴더를 다시 시도하며 "생성 실패" 경고만 쌓인다.
+  @Query(
+      "SELECT t FROM TestCase t WHERE t.displayId IS NULL"
+          + " AND (t.type = 'testcase' OR t.sequentialId IS NOT NULL)")
+  List<TestCase> findMigratableWithoutDisplayId();
+
+  @Query(
+      "SELECT t FROM TestCase t WHERE t.displayId IS NULL AND t.project.id = :projectId"
+          + " AND (t.type = 'testcase' OR t.sequentialId IS NOT NULL)")
+  List<TestCase> findMigratableWithoutDisplayIdByProjectId(@Param("projectId") String projectId);
+
+  @Query(
+      "SELECT COUNT(t) FROM TestCase t WHERE t.displayId IS NULL"
+          + " AND (t.type = 'testcase' OR t.sequentialId IS NOT NULL)")
+  long countMigratableWithoutDisplayId();
+
   List<TestCase> findByProjectIdAndDisplayIdIsNull(String projectId);
 
   long countByDisplayIdIsNull();

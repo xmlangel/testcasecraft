@@ -74,7 +74,8 @@ export default function BookmarkPage() {
   const selected = collections.find((c) => c.id === selectedId) || null;
 
   const collectionLabel = useCallback(
-    (c) => (c.isDefault ? t("bookmark.collection.default", "즐겨찾기") : c.name),
+    (c) =>
+      c.isDefault ? t("bookmark.collection.default", "즐겨찾기") : c.name,
     [t],
   );
 
@@ -217,7 +218,7 @@ export default function BookmarkPage() {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: 2 }}>
+      <Container maxWidth={false} sx={{ py: 1 }}>
         <Alert severity="info" sx={{ mb: 2 }}>
           {t(
             "bookmark.readonly.hint",
@@ -278,10 +279,10 @@ export default function BookmarkPage() {
                     >
                       <ListItemText
                         primary={collectionLabel(c)}
-                        secondary={t(
-                          "bookmark.itemCount",
-                          "{count}개",
-                        ).replace("{count}", c.itemCount)}
+                        secondary={t("bookmark.itemCount", "{count}개").replace(
+                          "{count}",
+                          c.itemCount,
+                        )}
                       />
                       {!c.isDefault && (
                         <>
@@ -324,7 +325,10 @@ export default function BookmarkPage() {
               {!selected ? null : items.length === 0 ? (
                 <Paper variant="outlined" sx={{ p: 3, textAlign: "center" }}>
                   <Typography variant="body2" color="text.secondary">
-                    {t("bookmark.empty.items", "이 모음에 담긴 케이스가 없습니다.")}
+                    {t(
+                      "bookmark.empty.items",
+                      "이 모음에 담긴 케이스가 없습니다.",
+                    )}
                   </Typography>
                 </Paper>
               ) : (
@@ -338,7 +342,9 @@ export default function BookmarkPage() {
                         <TableCell sx={{ width: 110 }}>
                           {t("bookmark.column.priority", "우선순위")}
                         </TableCell>
-                        <TableCell>{t("bookmark.column.note", "메모")}</TableCell>
+                        <TableCell>
+                          {t("bookmark.column.note", "메모")}
+                        </TableCell>
                         <TableCell sx={{ width: 96 }} align="center">
                           {t("bookmark.column.actions", "동작")}
                         </TableCell>
@@ -409,10 +415,7 @@ export default function BookmarkPage() {
                           </TableCell>
                           <TableCell align="center">
                             <Tooltip
-                              title={t(
-                                "bookmark.item.remove",
-                                "모음에서 제거",
-                              )}
+                              title={t("bookmark.item.remove", "모음에서 제거")}
                             >
                               <IconButton
                                 size="small"
@@ -435,7 +438,12 @@ export default function BookmarkPage() {
       </Container>
 
       {/* 모음 생성/이름변경 다이얼로그 */}
-      <Dialog open={editorOpen} onClose={() => setEditorOpen(false)} fullWidth maxWidth="xs">
+      <Dialog
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        fullWidth
+        maxWidth="xs"
+      >
         <DialogTitle>
           {editorMode === "create"
             ? t("bookmark.collection.create", "모음 만들기")
@@ -475,8 +483,13 @@ export default function BookmarkPage() {
       </Dialog>
 
       {/* 모음 삭제 확인 */}
-      <Dialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)}>
-        <DialogTitle>{t("bookmark.collection.delete", "모음 삭제")}</DialogTitle>
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+      >
+        <DialogTitle>
+          {t("bookmark.collection.delete", "모음 삭제")}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
             {t(

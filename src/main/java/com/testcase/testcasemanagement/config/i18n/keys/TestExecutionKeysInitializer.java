@@ -93,6 +93,20 @@ public class TestExecutionKeysInitializer {
         "testExecution.table.executionName", "testExecution", "실행명 컬럼", "실행명");
     createTranslationKeyIfNotExists("testExecution.table.folder", "testExecution", "폴더 컬럼", "폴더");
     createTranslationKeyIfNotExists("testExecution.table.tags", "testExecution", "태그 컬럼", "태그");
+    // 결과 입력 리스트의 폴더 접기/펼치기
+    createTranslationKeyIfNotExists(
+        "testExecution.tree.expandFolder", "testExecution", "폴더 펼치기 버튼", "폴더 펼치기");
+    createTranslationKeyIfNotExists(
+        "testExecution.tree.collapseFolder", "testExecution", "폴더 접기 버튼", "폴더 접기");
+    createTranslationKeyIfNotExists(
+        "testExecution.tree.expandAll", "testExecution", "폴더 모두 펼치기 버튼", "폴더 모두 펼치기");
+    createTranslationKeyIfNotExists(
+        "testExecution.tree.collapseAll", "testExecution", "폴더 모두 접기 버튼", "폴더 모두 접기");
+    createTranslationKeyIfNotExists(
+        "testExecution.tree.disabledByFilter",
+        "testExecution",
+        "필터 적용 중 접기 비활성 안내",
+        "필터가 걸려 있어 모두 펼쳐 보여줍니다");
     // Checkbox aria-labels for accessibility
     createTranslationKeyIfNotExists(
         "testExecution.table.selectAll", "testExecution", "전체 선택 체크박스 aria-label", "모든 테스트케이스 선택");

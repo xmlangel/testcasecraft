@@ -35,7 +35,7 @@ const TestExecutionHeader = ({
         sx={{
           display: "flex",
           alignItems: "center",
-          mb: 2,
+          mb: 1,
           flexWrap: "wrap",
           gap: 1,
         }}
@@ -137,7 +137,7 @@ const TestExecutionHeader = ({
           </Button>
         )}
       </Box>
-      <Divider sx={{ mb: 3 }} />
+      <Divider sx={{ mb: 1.5 }} />
 
       {/* 테스트 실행 절차 안내 */}
       <TestExecutionGuide

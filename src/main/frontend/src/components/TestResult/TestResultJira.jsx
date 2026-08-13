@@ -23,7 +23,7 @@ const TestResultJira = ({
     <Box>
       {/* JIRA Integration Section */}
       {jiraConnectionStatus?.hasConfig && jiraConnectionStatus?.isConnected && (
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 1 }}>
           <Typography
             variant="subtitle1"
             gutterBottom

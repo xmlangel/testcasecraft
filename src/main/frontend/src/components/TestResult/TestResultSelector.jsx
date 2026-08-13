@@ -23,7 +23,7 @@ const TestResultSelector = ({
     <FormControl
       component="fieldset"
       fullWidth
-      sx={{ mb: 3 }}
+      sx={{ mb: 1.5 }}
       disabled={isViewer}
     >
       <FormLabel
@@ -31,7 +31,7 @@ const TestResultSelector = ({
         sx={{
           fontSize: "1.3rem",
           fontWeight: 700,
-          mb: 2.5,
+          mb: 1.25,
           color: (theme) => theme.palette.text.primary,
           textTransform: "uppercase",
           letterSpacing: "0.5px",
