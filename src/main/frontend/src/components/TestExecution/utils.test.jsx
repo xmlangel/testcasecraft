@@ -6,6 +6,12 @@ import {
   clearFilteredNavIds,
   matchesAnyTag,
   buildBulkResultPayload,
+  COLLAPSED_FOLDERS_STORAGE_PREFIX,
+  saveCollapsedFolders,
+  readCollapsedFolders,
+  filterCollapsedNodes,
+  collectAncestorFolderIds,
+  collectFolderIds,
 } from "./utils.jsx";
 
 // 전체화면 결과 뷰가 목록 화면의 필터 순서를 그대로 따르도록 하는
@@ -137,5 +143,156 @@ describe("buildBulkResultPayload", () => {
       notes: "일괄 처리",
       jiraIssueKey: "ICT-427",
     });
+  });
+});
+
+// 결과 입력 리스트의 폴더 접기/펼치기.
+// 트리 모양은 아래 플래튼 배열을 공용으로 쓴다(부모가 자식보다 앞에 오는 순서).
+//   f1
+//    ├ tc1
+//    └ f2
+//       ├ tc2
+//       └ f3
+//          └ tc3
+//   f4
+//    └ tc4
+const sampleNodes = [
+  { id: "f1", type: "folder", parentId: null, level: 0 },
+  { id: "tc1", type: "testcase", parentId: "f1", level: 1 },
+  { id: "f2", type: "folder", parentId: "f1", level: 1 },
+  { id: "tc2", type: "testcase", parentId: "f2", level: 2 },
+  { id: "f3", type: "folder", parentId: "f2", level: 2 },
+  { id: "tc3", type: "testcase", parentId: "f3", level: 3 },
+  { id: "f4", type: "folder", parentId: null, level: 0 },
+  { id: "tc4", type: "testcase", parentId: "f4", level: 1 },
+];
+
+describe("filterCollapsedNodes", () => {
+  it("접힘이 없으면 원본을 그대로 돌려준다", () => {
+    expect(filterCollapsedNodes(sampleNodes, new Set())).toBe(sampleNodes);
+  });
+
+  it("접은 폴더 자신은 남기고 직계 자식을 숨긴다", () => {
+    const result = filterCollapsedNodes(sampleNodes, new Set(["f4"]));
+    expect(result.map((n) => n.id)).toEqual([
+      "f1",
+      "tc1",
+      "f2",
+      "tc2",
+      "f3",
+      "tc3",
+      "f4",
+    ]);
+  });
+
+  it("손자 이하 모든 자손을 숨긴다 (다단계)", () => {
+    const result = filterCollapsedNodes(sampleNodes, new Set(["f1"]));
+    expect(result.map((n) => n.id)).toEqual(["f1", "f4", "tc4"]);
+  });
+
+  it("중간 폴더를 접으면 그 아래만 사라진다", () => {
+    const result = filterCollapsedNodes(sampleNodes, new Set(["f2"]));
+    expect(result.map((n) => n.id)).toEqual(["f1", "tc1", "f2", "f4", "tc4"]);
+  });
+
+  it("이미 숨겨진 하위 폴더가 접혀 있어도 결과가 같다 (중첩 접힘)", () => {
+    const result = filterCollapsedNodes(sampleNodes, new Set(["f1", "f3"]));
+    expect(result.map((n) => n.id)).toEqual(["f1", "f4", "tc4"]);
+  });
+
+  it("배열로 준 접힘 목록도 받는다", () => {
+    const result = filterCollapsedNodes(sampleNodes, ["f4"]);
+    expect(result.map((n) => n.id)).not.toContain("tc4");
+  });
+
+  it("목록에 없는 폴더 ID는 무시한다", () => {
+    const result = filterCollapsedNodes(sampleNodes, new Set(["없는폴더"]));
+    expect(result).toHaveLength(sampleNodes.length);
+  });
+
+  it("빈 입력에 안전하다", () => {
+    expect(filterCollapsedNodes(null, new Set(["f1"]))).toEqual([]);
+    expect(filterCollapsedNodes(undefined, undefined)).toEqual([]);
+  });
+});
+
+describe("collectAncestorFolderIds", () => {
+  it("가까운 상위부터 루트까지 모은다 (자기 자신 제외)", () => {
+    expect(collectAncestorFolderIds(sampleNodes, "tc3")).toEqual([
+      "f3",
+      "f2",
+      "f1",
+    ]);
+  });
+
+  it("루트 직계는 부모 하나만", () => {
+    expect(collectAncestorFolderIds(sampleNodes, "tc4")).toEqual(["f4"]);
+  });
+
+  it("루트 노드는 빈 배열", () => {
+    expect(collectAncestorFolderIds(sampleNodes, "f1")).toEqual([]);
+  });
+
+  it("부모 참조가 순환해도 멈춘다", () => {
+    const cyclic = [
+      { id: "a", type: "folder", parentId: "b" },
+      { id: "b", type: "folder", parentId: "a" },
+    ];
+    expect(collectAncestorFolderIds(cyclic, "a")).toEqual(["b", "a"]);
+  });
+});
+
+describe("collectFolderIds", () => {
+  it("폴더 ID만 순서대로 모은다", () => {
+    expect(collectFolderIds(sampleNodes)).toEqual(["f1", "f2", "f3", "f4"]);
+  });
+
+  it("빈 입력에 안전하다", () => {
+    expect(collectFolderIds(null)).toEqual([]);
+  });
+});
+
+describe("collapsed folder persistence", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  it("저장한 접힘 목록을 Set으로 읽는다 (라운드트립)", () => {
+    saveCollapsedFolders("exec-1", new Set(["f1", "f2"]));
+    const restored = readCollapsedFolders("exec-1");
+    expect(restored).toBeInstanceOf(Set);
+    expect([...restored].sort()).toEqual(["f1", "f2"]);
+  });
+
+  it("실행 ID 별로 격리된다", () => {
+    saveCollapsedFolders("exec-1", ["f1"]);
+    saveCollapsedFolders("exec-2", ["f9"]);
+    expect([...readCollapsedFolders("exec-1")]).toEqual(["f1"]);
+    expect([...readCollapsedFolders("exec-2")]).toEqual(["f9"]);
+  });
+
+  it("전체 펼침(빈 목록)이면 저장 키를 지운다", () => {
+    saveCollapsedFolders("exec-1", ["f1"]);
+    saveCollapsedFolders("exec-1", new Set());
+    expect(
+      sessionStorage.getItem(`${COLLAPSED_FOLDERS_STORAGE_PREFIX}exec-1`),
+    ).toBeNull();
+    expect(readCollapsedFolders("exec-1").size).toBe(0);
+  });
+
+  it("신규 실행(new)·미지정은 저장하지 않고 빈 Set을 준다", () => {
+    saveCollapsedFolders("new", ["f1"]);
+    saveCollapsedFolders(undefined, ["f2"]);
+    expect(sessionStorage.length).toBe(0);
+    expect(readCollapsedFolders("new").size).toBe(0);
+    expect(readCollapsedFolders(undefined).size).toBe(0);
+  });
+
+  it("저장값이 깨져 있으면 빈 Set으로 폴백한다", () => {
+    sessionStorage.setItem(
+      `${COLLAPSED_FOLDERS_STORAGE_PREFIX}exec-1`,
+      "{깨진 JSON",
+    );
+    expect(readCollapsedFolders("exec-1").size).toBe(0);
   });
 });

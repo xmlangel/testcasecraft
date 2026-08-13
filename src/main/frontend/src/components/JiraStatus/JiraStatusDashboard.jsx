@@ -391,14 +391,14 @@ const JiraStatusDashboard = () => {
 
   if (!selectedProject) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth={false} sx={{ mt: 1.5, mb: 1.5 }}>
         <Alert severity="info">프로젝트를 선택해주세요.</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth={false} sx={{ mt: 1.5, mb: 1.5 }}>
       {/* 헤더 */}
       <Box mb={3}>
         <Typography variant="h4" component="h1" gutterBottom>

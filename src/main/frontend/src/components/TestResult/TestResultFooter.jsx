@@ -17,7 +17,7 @@ const TestResultFooter = ({
 }) => {
   return (
     <Box
-      sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "space-between" }}
+      sx={{ mt: 2, display: "flex", gap: 2, justifyContent: "space-between" }}
     >
       {/* JIRA 버튼 (좌측) */}
       <Box>

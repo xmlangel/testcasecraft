@@ -882,7 +882,7 @@ const TestResultForm = ({
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Alert severity="error" sx={{ my: 2 }}>
+        <Alert severity="error" sx={{ my: 1 }}>
           {error}
         </Alert>
       ) : testCase ? (
@@ -900,7 +900,7 @@ const TestResultForm = ({
             )}
           />
 
-          <Box sx={{ mt: 3, width: "100%", boxSizing: "border-box" }}>
+          <Box sx={{ mt: 1.5, width: "100%", boxSizing: "border-box" }}>
             <TestResultNotes
               notes={notes}
               setNotes={setNotesByUser}
@@ -989,7 +989,8 @@ const TestResultForm = ({
           minHeight: embedded ? 0 : "100vh",
           bgcolor: (theme) =>
             embedded ? "transparent" : theme.palette.background.default,
-          p: embedded ? 2 : { xs: 1, sm: 2, md: 3 },
+          px: embedded ? 2 : { xs: 1, sm: 2, md: 3 },
+          py: embedded ? 0.5 : { xs: 0.5, sm: 0.5, md: 1 },
           boxSizing: "border-box",
           overflowX: "hidden",
         }}

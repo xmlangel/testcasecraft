@@ -380,6 +380,21 @@ public class EnglishTestExecutionTranslations {
     createTranslationIfNotExists(
         "testExecution.table.priority", languageCode, "Priority", createdBy);
 
+    // Folder collapse/expand in the result entry list
+    createTranslationIfNotExists(
+        "testExecution.tree.expandFolder", languageCode, "Expand folder", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.tree.collapseFolder", languageCode, "Collapse folder", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.tree.expandAll", languageCode, "Expand all folders", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.tree.collapseAll", languageCode, "Collapse all folders", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.tree.disabledByFilter",
+        languageCode,
+        "A filter is active, so all folders stay expanded",
+        createdBy);
+
     // Checkbox aria-labels for accessibility
     createTranslationIfNotExists(
         "testExecution.table.selectAll", languageCode, "Select all test cases", createdBy);

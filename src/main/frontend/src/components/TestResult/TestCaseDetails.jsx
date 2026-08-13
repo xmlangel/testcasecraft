@@ -134,14 +134,23 @@ const TestCaseDetails = ({ testCase, t }) => {
       <Paper
         elevation={0}
         sx={{
-          mb: 3,
-          p: 3,
+          mb: 1.5,
+          px: 3,
+          py: 2,
           bgcolor: (theme) => theme.palette.background.paper,
           borderRadius: 2,
           boxShadow: 1,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5, mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 0.5,
+            mb: 1,
+          }}
+        >
           {testCase.displayId && (
             <Chip
               label={testCase.displayId}
@@ -157,7 +166,8 @@ const TestCaseDetails = ({ testCase, t }) => {
             sx={{ mb: 0 }}
             data-testid="result-case-title"
           >
-            {testCase.parentName && testCase.parentName !== t("testcase.noParent", "상위없음")
+            {testCase.parentName &&
+            testCase.parentName !== t("testcase.noParent", "상위없음")
               ? `${testCase.parentName} >> ${testCase.name}`
               : testCase.name}
           </Subtitle>
@@ -219,7 +229,7 @@ const TestCaseDetails = ({ testCase, t }) => {
             <MDEditor.Markdown
               source={testCase.description}
               style={{
-                padding: "12px",
+                padding: "8px 12px",
                 backgroundColor: darkMode
                   ? "transparent"
                   : theme.palette.action.hover,
@@ -235,14 +245,15 @@ const TestCaseDetails = ({ testCase, t }) => {
       <Paper
         elevation={0}
         sx={{
-          mb: 3,
-          p: 3,
+          mb: 1.5,
+          px: 3,
+          py: 2,
           bgcolor: (theme) => theme.palette.background.paper,
           borderRadius: 2,
           boxShadow: 1,
         }}
       >
-        <Subtitle variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+        <Subtitle variant="subtitle1" gutterBottom sx={{ mt: 1 }}>
           {t("testResult.form.preCondition")}
         </Subtitle>
         {testCase.preCondition && (
@@ -250,7 +261,7 @@ const TestCaseDetails = ({ testCase, t }) => {
             <MDEditor.Markdown
               source={testCase.preCondition}
               style={{
-                padding: "12px",
+                padding: "8px 12px",
                 backgroundColor: darkMode
                   ? "transparent"
                   : theme.palette.action.hover,
@@ -262,10 +273,10 @@ const TestCaseDetails = ({ testCase, t }) => {
           </Box>
         )}
 
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ my: 1.5 }} />
 
         {testCase.steps?.length > 0 && (
-          <Box sx={{ mt: 2, mb: 3 }}>
+          <Box sx={{ mt: 1, mb: 1.5 }}>
             <Subtitle variant="subtitle2" gutterBottom>
               {t("testResult.form.testSteps")}
             </Subtitle>
@@ -322,7 +333,7 @@ const TestCaseDetails = ({ testCase, t }) => {
           </Box>
         )}
 
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 1 }} />
 
         <Box>
           <Subtitle variant="subtitle1" gutterBottom>
@@ -333,7 +344,7 @@ const TestCaseDetails = ({ testCase, t }) => {
               <MDEditor.Markdown
                 source={testCase.expectedResults}
                 style={{
-                  padding: "12px",
+                  padding: "8px 12px",
                   backgroundColor: darkMode
                     ? "transparent"
                     : theme.palette.action.hover,
@@ -346,11 +357,11 @@ const TestCaseDetails = ({ testCase, t }) => {
           )}
         </Box>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 1 }} />
 
         {/* 사후조건 */}
         {testCase.postCondition && (
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 1 }}>
             <Subtitle variant="subtitle1" gutterBottom>
               {t("testResult.form.postCondition")}
             </Subtitle>
@@ -358,7 +369,7 @@ const TestCaseDetails = ({ testCase, t }) => {
               <MDEditor.Markdown
                 source={testCase.postCondition}
                 style={{
-                  padding: "12px",
+                  padding: "8px 12px",
                   backgroundColor: darkMode
                     ? "transparent"
                     : theme.palette.action.hover,
@@ -374,7 +385,7 @@ const TestCaseDetails = ({ testCase, t }) => {
         {/* 자동화 여부, 실행 타입 */}
         <Box
           sx={{
-            mb: 2,
+            mb: 1,
             display: "flex",
             gap: 2,
             flexWrap: "wrap",
@@ -421,7 +432,7 @@ const TestCaseDetails = ({ testCase, t }) => {
 
         {/* 테스트 기법 */}
         {testCase.testTechnique && (
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 1 }}>
             <Subtitle variant="subtitle1" gutterBottom>
               {t("testResult.form.testTechnique")}
             </Subtitle>
@@ -429,7 +440,7 @@ const TestCaseDetails = ({ testCase, t }) => {
               <MDEditor.Markdown
                 source={testCase.testTechnique}
                 style={{
-                  padding: "12px",
+                  padding: "8px 12px",
                   backgroundColor: darkMode
                     ? "transparent"
                     : theme.palette.action.hover,
@@ -444,7 +455,7 @@ const TestCaseDetails = ({ testCase, t }) => {
 
         {/* 테스트 케이스 태그 */}
         {testCase.tags && testCase.tags.length > 0 && (
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 1 }}>
             <Subtitle variant="caption" sx={{ mb: 0.5, display: "block" }}>
               {t("testResult.form.tags")}
             </Subtitle>
@@ -456,7 +467,7 @@ const TestCaseDetails = ({ testCase, t }) => {
           </Box>
         )}
 
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 1 }} />
       </Paper>
     </Box>
   );

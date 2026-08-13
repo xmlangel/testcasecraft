@@ -40,7 +40,7 @@ const TestResultAttachments = ({
   };
 
   return (
-    <Box sx={{ mt: 3 }}>
+    <Box sx={{ mt: 1.5 }}>
       <Typography
         variant="subtitle1"
         gutterBottom
@@ -51,7 +51,7 @@ const TestResultAttachments = ({
         {t("testResult.form.fileAttachment")}
       </Typography>
 
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 1 }}>
         <input
           accept=".txt,.csv,.json,.md,.pdf,.log,.png,.jpg,.jpeg,.gif"
           style={{ display: "none" }}
@@ -88,14 +88,14 @@ const TestResultAttachments = ({
       </Box>
 
       {fileUploadError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 1 }}>
           {fileUploadError}
         </Alert>
       )}
 
       {/* 새로 첨부될 파일 목록 */}
       {attachedFiles.length > 0 && (
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ mb: 1 }}>
           <Typography variant="subtitle2" gutterBottom color="primary.light">
             새로 첨부할 파일 ({attachedFiles.length}개)
           </Typography>
@@ -142,7 +142,7 @@ const TestResultAttachments = ({
       {currentResult &&
         currentResult.id &&
         currentResult.attachmentCount > 0 && (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 1 }}>
             <Typography variant="subtitle2" color="text.primary" gutterBottom>
               첨부파일
               {currentResult && currentResult.id && (

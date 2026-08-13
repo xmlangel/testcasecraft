@@ -17,7 +17,7 @@ const TestResultTags = ({ tags, setTags, availableTags, isViewer, t }) => (
     disabled={isViewer}
     inputTestId="result-tags-input"
     margin="normal"
-    sx={{ mt: 2 }}
+    sx={{ mt: 1 }}
   />
 );
 

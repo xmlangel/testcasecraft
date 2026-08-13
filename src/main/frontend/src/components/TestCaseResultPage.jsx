@@ -202,10 +202,11 @@ const TestCaseResultPage = ({ embedded = false }) => {
         sx={{
           minHeight: embedded ? 0 : "100vh",
           bgcolor: "background.default",
-          p: embedded ? 2 : 4,
+          px: embedded ? 2 : 3,
+          py: embedded ? 1 : 1.5,
         }}
       >
-        <Container maxWidth="md">
+        <Container maxWidth={false} disableGutters>
           <Alert
             severity="error"
             action={

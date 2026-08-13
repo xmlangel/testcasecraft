@@ -21,6 +21,10 @@ import {
   AttachFile as AttachFileIcon,
   ContentCopy as ContentCopyIcon,
   History as HistoryIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowRight as KeyboardArrowRightIcon,
+  UnfoldMore as UnfoldMoreIcon,
+  UnfoldLess as UnfoldLessIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { TestResult } from "../../models/testExecution.jsx";
@@ -50,6 +54,9 @@ const ExecutionRow = memo(
     handleAttachmentClick,
     handleCopyLink,
     handleCopyNotes,
+    isCollapsed,
+    childCaseCount,
+    onToggleFolder,
     t,
     formatDate,
     formatDateOnly,
@@ -66,6 +73,7 @@ const ExecutionRow = memo(
 
     let titleStyle = {
       fontWeight: "bold",
+      lineHeight: 1.25,
       textAlign: "center",
       width: "100%",
       display: "block",
@@ -84,7 +92,7 @@ const ExecutionRow = memo(
           display: "grid",
           gridTemplateColumns: gridTemplateColumns,
           width: "100%",
-          minHeight: 32,
+          minHeight: 26,
           backgroundColor:
             idx % 2 === 0
               ? theme.palette.action.hover
@@ -125,18 +133,53 @@ const ExecutionRow = memo(
         <Box sx={{ ...responsiveColumnSx[2], pl: `${node.level * 20}px` }}>
           {isFolder ? (
             <>
-              <FolderIcon sx={{ mr: 1 }} />
+              <Tooltip
+                title={
+                  isCollapsed
+                    ? t("testExecution.tree.expandFolder", "폴더 펼치기")
+                    : t("testExecution.tree.collapseFolder", "폴더 접기")
+                }
+              >
+                <IconButton
+                  size="small"
+                  onClick={() => onToggleFolder?.(node.id)}
+                  sx={{ p: 0.25, mr: 0.25, flexShrink: 0 }}
+                  aria-expanded={!isCollapsed}
+                  aria-label={
+                    isCollapsed
+                      ? `${t("testExecution.tree.expandFolder", "폴더 펼치기")} ${node.name}`
+                      : `${t("testExecution.tree.collapseFolder", "폴더 접기")} ${node.name}`
+                  }
+                  data-testid={`execution-table-folder-toggle-${node.id}`}
+                >
+                  {isCollapsed ? (
+                    <KeyboardArrowRightIcon fontSize="small" />
+                  ) : (
+                    <KeyboardArrowDownIcon fontSize="small" />
+                  )}
+                </IconButton>
+              </Tooltip>
+              <FolderIcon sx={{ mr: 1, flexShrink: 0 }} />
               <Typography
                 variant="body2"
                 sx={{ ...titleStyle, textAlign: "left" }}
               >
                 {wrapName(node.name)}
               </Typography>
+              {isCollapsed && childCaseCount > 0 && (
+                <Chip
+                  label={childCaseCount}
+                  size="small"
+                  variant="outlined"
+                  sx={{ ml: 0.5, height: "18px", fontSize: "0.7rem" }}
+                  data-testid={`execution-table-folder-count-${node.id}`}
+                />
+              )}
             </>
           ) : (
             <Typography
               variant="body2"
-              sx={{ color: theme.palette.text.secondary }}
+              sx={{ color: theme.palette.text.secondary, lineHeight: 1.25 }}
             >
               {node.parentName ? `${node.parentName}>` : "-"}
             </Typography>
@@ -167,6 +210,7 @@ const ExecutionRow = memo(
                 variant="body2"
                 sx={{
                   fontWeight: "bold",
+                  lineHeight: 1.25,
                   color: theme.palette.primary.main,
                   whiteSpace: "pre-line",
                   overflow: "hidden",
@@ -229,7 +273,7 @@ const ExecutionRow = memo(
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
-                    lineHeight: 1.5,
+                    lineHeight: 1.25,
                     textAlign: "center",
                     cursor: "help",
                     color: theme.palette.primary.main,
@@ -260,7 +304,7 @@ const ExecutionRow = memo(
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                lineHeight: 1.5,
+                lineHeight: 1.25,
                 color: executedBy ? undefined : theme.palette.text.disabled,
                 textAlign: "center",
               }}
@@ -293,7 +337,7 @@ const ExecutionRow = memo(
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  lineHeight: 1.5,
+                  lineHeight: 1.25,
                   color: notes ? undefined : theme.palette.text.disabled,
                   textAlign: "center",
                   cursor: canEnterResults ? "pointer" : "default",
@@ -505,6 +549,13 @@ const TestExecutionTable = ({
   canEnterResults,
   selectedTestCases,
   onSelectionChange,
+  collapsedFolders,
+  folderCaseCounts,
+  collapsedFolderCount = 0,
+  onToggleFolder,
+  onExpandAllFolders,
+  onCollapseAllFolders,
+  treeControlsDisabled = false,
 }) => {
   const { t } = useI18n();
   const { formatDate, formatDateOnly } = useDateFormatter();
@@ -552,6 +603,9 @@ const TestExecutionTable = ({
         handleAttachmentClick={handleAttachmentClick}
         handleCopyLink={handleCopyLink}
         handleCopyNotes={handleCopyNotes}
+        isCollapsed={collapsedFolders?.has(node.id) || false}
+        childCaseCount={folderCaseCounts?.get(node.id) || 0}
+        onToggleFolder={onToggleFolder}
         t={t}
         formatDate={formatDate}
         formatDateOnly={formatDateOnly}
@@ -568,7 +622,7 @@ const TestExecutionTable = ({
         width: "100%",
         overflow: "hidden", // 전체 컨테이너는 hidden 유지
         minHeight: 300,
-        maxHeight: "calc(100vh - 350px)",
+        maxHeight: "calc(100vh - 270px)",
         display: "flex",
         flexDirection: "column",
       }}
@@ -586,20 +640,70 @@ const TestExecutionTable = ({
         {/* 데이터 요약 정보 표시 */}
         <Box
           sx={{
-            mb: 1,
-            mt: 1,
+            mb: 0.5,
+            mt: 0.5,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             flexShrink: 0,
           }}
         >
-          <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
-            {t("testExecution.table.totalCount", "전체: {count}건").replace(
-              "{count}",
-              totalItems,
-            )}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: 4 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t("testExecution.table.totalCount", "전체: {count}건").replace(
+                "{count}",
+                totalItems,
+              )}
+            </Typography>
+            <Tooltip
+              title={
+                treeControlsDisabled
+                  ? t(
+                      "testExecution.tree.disabledByFilter",
+                      "필터가 걸려 있어 모두 펼쳐 보여줍니다",
+                    )
+                  : t("testExecution.tree.expandAll", "폴더 모두 펼치기")
+              }
+            >
+              <span>
+                <Button
+                  size="small"
+                  variant="text"
+                  startIcon={<UnfoldMoreIcon />}
+                  onClick={onExpandAllFolders}
+                  disabled={treeControlsDisabled || collapsedFolderCount === 0}
+                  sx={{ fontSize: "0.75rem", py: 0.25, px: 1 }}
+                  data-testid="execution-table-expand-all"
+                >
+                  {t("testExecution.tree.expandAll", "폴더 모두 펼치기")}
+                </Button>
+              </span>
+            </Tooltip>
+            <Tooltip
+              title={
+                treeControlsDisabled
+                  ? t(
+                      "testExecution.tree.disabledByFilter",
+                      "필터가 걸려 있어 모두 펼쳐 보여줍니다",
+                    )
+                  : t("testExecution.tree.collapseAll", "폴더 모두 접기")
+              }
+            >
+              <span>
+                <Button
+                  size="small"
+                  variant="text"
+                  startIcon={<UnfoldLessIcon />}
+                  onClick={onCollapseAllFolders}
+                  disabled={treeControlsDisabled}
+                  sx={{ fontSize: "0.75rem", py: 0.25, px: 1 }}
+                  data-testid="execution-table-collapse-all"
+                >
+                  {t("testExecution.tree.collapseAll", "폴더 모두 접기")}
+                </Button>
+              </span>
+            </Tooltip>
+          </Box>
           <Typography variant="caption" color="text.secondary" sx={{ mr: 4 }}>
             {t("testExecution.scroll.hint", "스크롤하여 더 보기")}
           </Typography>
@@ -637,7 +741,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               <Checkbox
@@ -674,7 +778,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.id", "ID")}
@@ -685,12 +789,12 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.folder", "폴더")}
             </Box>
-            <Box sx={{ ...responsiveColumnSx[3], py: 1 }}>
+            <Box sx={{ ...responsiveColumnSx[3], py: 0.5 }}>
               <Typography
                 variant="body2"
                 sx={{
@@ -720,7 +824,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.result")}
@@ -731,7 +835,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.executedAt")}
@@ -742,7 +846,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.executedBy")}
@@ -753,7 +857,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.notes")}
@@ -764,7 +868,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.tags", "태그")}
@@ -775,7 +879,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.jiraId")}
@@ -787,7 +891,7 @@ const TestExecutionTable = ({
                 fontWeight: "bold",
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
-                py: 1,
+                py: 0.5,
               }}
             >
               {t("testExecution.table.actions")}
@@ -849,6 +953,13 @@ TestExecutionTable.propTypes = {
   canEnterResults: PropTypes.bool,
   selectedTestCases: PropTypes.instanceOf(Set),
   onSelectionChange: PropTypes.func,
+  collapsedFolders: PropTypes.instanceOf(Set),
+  folderCaseCounts: PropTypes.instanceOf(Map),
+  collapsedFolderCount: PropTypes.number,
+  onToggleFolder: PropTypes.func,
+  onExpandAllFolders: PropTypes.func,
+  onCollapseAllFolders: PropTypes.func,
+  treeControlsDisabled: PropTypes.bool,
 };
 
 export default TestExecutionTable;

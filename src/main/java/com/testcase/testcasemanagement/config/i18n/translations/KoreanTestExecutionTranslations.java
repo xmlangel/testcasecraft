@@ -337,6 +337,18 @@ public class KoreanTestExecutionTranslations {
     createTranslationIfNotExists("testExecution.table.tags", languageCode, "태그", createdBy);
     createTranslationIfNotExists("testExecution.table.priority", languageCode, "우선순위", createdBy);
 
+    // 결과 입력 리스트의 폴더 접기/펼치기
+    createTranslationIfNotExists(
+        "testExecution.tree.expandFolder", languageCode, "폴더 펼치기", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.tree.collapseFolder", languageCode, "폴더 접기", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.tree.expandAll", languageCode, "폴더 모두 펼치기", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.tree.collapseAll", languageCode, "폴더 모두 접기", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.tree.disabledByFilter", languageCode, "필터가 걸려 있어 모두 펼쳐 보여줍니다", createdBy);
+
     // Checkbox aria-labels for accessibility
     createTranslationIfNotExists(
         "testExecution.table.selectAll", languageCode, "모든 테스트케이스 선택", createdBy);

@@ -84,7 +84,7 @@ const TestExecutionStatus = ({
     <Paper
       elevation={0}
       sx={{
-        p: 2,
+        p: 1.5,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -98,7 +98,7 @@ const TestExecutionStatus = ({
       }}
     >
       {/* 기본 정보 행 */}
-      <Box sx={{ display: "flex", gap: 4, mb: 1.5, alignItems: "center" }}>
+      <Box sx={{ display: "flex", gap: 4, mb: 1, alignItems: "center" }}>
         <StatusInfoItem
           label={t("testExecution.form.status")}
           value={execution?.status || "-"}
