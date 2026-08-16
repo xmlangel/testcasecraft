@@ -322,6 +322,87 @@ export const collectAncestorFolderIds = (nodes, nodeId) => {
   return ancestors;
 };
 
+/**
+ * 폴더별 하위 케이스의 판정 집계.
+ *
+ * 접힌 폴더는 그 안이 안 보이므로 건수만으로는 진행 상황을 알 수 없다. 폴더 행에 총 건수와
+ * 판정별 건수를 함께 붙이는 데 쓴다. 조상 폴더까지 누적하므로 상위 폴더 하나만 접어도 그
+ * 아래 전체가 집계된다.
+ *
+ * 판정 분류는 상단 요약(TestExecutionForm 의 statusCounts)과 같은 규약이다 — PASS·FAIL·
+ * BLOCKED 만 세고 나머지(결과 없음·NOTRUN·SKIPPED)는 전부 미실행으로 묶는다. 두 곳이
+ * 다르게 세면 같은 폴더의 합이 머리말 숫자와 어긋난다.
+ *
+ * @param {Array<{id: string, type?: string, parentId?: string}>} nodes 플래튼 노드 배열
+ * @param {Map<string, {result?: string}>} resultsMap 케이스 ID → 최신 결과
+ * @returns {Map<string, {total: number, PASS: number, FAIL: number, BLOCKED: number, NOTRUN: number}>}
+ */
+export const computeFolderResultCounts = (nodes, resultsMap) => {
+  const list = nodes || [];
+  const counts = new Map();
+  const parentOf = new Map(list.map((node) => [node?.id, node?.parentId]));
+
+  const bump = (folderId, key) => {
+    let stat = counts.get(folderId);
+    if (!stat) {
+      stat = { total: 0, PASS: 0, FAIL: 0, BLOCKED: 0, NOTRUN: 0 };
+      counts.set(folderId, stat);
+    }
+    stat.total += 1;
+    stat[key] += 1;
+  };
+
+  list.forEach((node) => {
+    if (node?.type !== "testcase") return;
+
+    const result = resultsMap?.get?.(node.id)?.result;
+    const key =
+      result === TestResult.PASS ||
+      result === TestResult.FAIL ||
+      result === TestResult.BLOCKED
+        ? result
+        : "NOTRUN";
+
+    let parentId = node.parentId;
+    const seen = new Set();
+    while (parentId && parentOf.has(parentId) && !seen.has(parentId)) {
+      seen.add(parentId); // 순환 방어
+      bump(parentId, key);
+      parentId = parentOf.get(parentId);
+    }
+  });
+
+  return counts;
+};
+
+// 폴더 집계 칩의 표시 순서·색·라벨 키. 총 건수 다음에 이 순서로 붙는다.
+export const FOLDER_RESULT_KEYS = [
+  {
+    key: "PASS",
+    color: RESULT_COLORS.PASS,
+    labelKey: "testResult.status.pass",
+    labelFallback: "성공",
+  },
+  {
+    key: "FAIL",
+    color: RESULT_COLORS.FAIL,
+    labelKey: "testResult.status.fail",
+    labelFallback: "실패",
+  },
+  {
+    key: "BLOCKED",
+    color: RESULT_COLORS.BLOCKED,
+    labelKey: "testResult.status.blocked",
+    labelFallback: "차단됨",
+  },
+  {
+    key: "NOTRUN",
+    color: RESULT_COLORS.NOTRUN,
+    labelKey: "testResult.status.notRun",
+    labelFallback: "미실행",
+  },
+];
+
 // 플래튼 배열의 폴더 ID 전체 (전체 접기용)
 export const collectFolderIds = (nodes) =>
   (nodes || [])
@@ -331,8 +412,9 @@ export const collectFolderIds = (nodes) =>
 export const HEADER_HEIGHT = 40;
 
 // Grid 템플릿 정의 - 모든 행에서 동일한 컬럼 너비 보장
+// 폴더 열은 접힘 배지(총계 + 판정 4종)와 폴더명이 한 줄에 같이 들어가야 해 최소 폭을 넓게 잡는다.
 export const gridTemplateColumns =
-  "40px 110px minmax(150px, 2fr) minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
+  "40px 110px minmax(260px, 2fr) minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
 
 // 개별 컬럼 스타일 (Grid에서는 display와 align만 필요)
 export const responsiveColumnSx = [

@@ -926,29 +926,27 @@ function UserProfileDialog({
                     onChange={(e) => setNavMode(e.target.value)}
                     data-testid="profile-nav-mode-group"
                   >
+                    {/* 기본값이 좌측 메뉴이므로 그것을 먼저 놓는다 */}
                     {[
-                      {
-                        value: NAV_MODE_TABS,
-                        testId: "profile-nav-mode-tabs",
-                        title: t(
-                          "profile.nav.tabs.title",
-                          "현재 레이아웃 — 가로 탭",
-                        ),
-                        desc: t(
-                          "profile.nav.tabs.desc",
-                          "프로젝트 이름 아래에 영역을 가로로 늘어놓습니다. 지금까지 쓰던 구조이고 기본값입니다.",
-                        ),
-                      },
                       {
                         value: NAV_MODE_SIDEBAR,
                         testId: "profile-nav-mode-sidebar",
                         title: t(
-                          "profile.nav.sidebar.title",
-                          "신규 레이아웃 — 좌측 메뉴",
+                          "profile.nav.sidebar.name",
+                          "좌측 메뉴 (기본)",
                         ),
                         desc: t(
-                          "profile.nav.sidebar.desc",
+                          "profile.nav.sidebar.summary",
                           "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.",
+                        ),
+                      },
+                      {
+                        value: NAV_MODE_TABS,
+                        testId: "profile-nav-mode-tabs",
+                        title: t("profile.nav.tabs.name", "가로 탭"),
+                        desc: t(
+                          "profile.nav.tabs.summary",
+                          "프로젝트 이름 아래에 영역을 가로로 늘어놓습니다. 영역이 늘어나면 이름이 잘립니다.",
                         ),
                       },
                     ].map((option) => (

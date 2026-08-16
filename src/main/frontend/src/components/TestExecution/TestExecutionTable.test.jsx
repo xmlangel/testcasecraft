@@ -47,7 +47,9 @@ const renderTable = (props = {}) => {
     selectedTestCases: new Set(),
     onSelectionChange: vi.fn(),
     collapsedFolders: new Set(),
-    folderCaseCounts: new Map([["f1", 1]]),
+    folderResultCounts: new Map([
+      ["f1", { total: 1, PASS: 1, FAIL: 0, BLOCKED: 0, NOTRUN: 0 }],
+    ]),
     collapsedFolderCount: 0,
     onToggleFolder: vi.fn(),
     onExpandAllFolders: vi.fn(),
@@ -96,11 +98,48 @@ describe("TestExecutionTable 폴더 접기/펼치기", () => {
       visibleData: [folder("f1", "로그인")],
       collapsedFolders: new Set(["f1"]),
       collapsedFolderCount: 1,
-      folderCaseCounts: new Map([["f1", 7]]),
+      folderResultCounts: new Map([
+        ["f1", { total: 7, PASS: 4, FAIL: 2, BLOCKED: 1, NOTRUN: 0 }],
+      ]),
     });
     expect(
       screen.getByTestId("execution-table-folder-count-f1"),
     ).toHaveTextContent("7");
+  });
+
+  it("접힌 폴더에 총계 다음으로 성공·실패·차단됨·미실행 건수를 붙인다", () => {
+    renderTable({
+      visibleData: [folder("f1", "로그인")],
+      collapsedFolders: new Set(["f1"]),
+      collapsedFolderCount: 1,
+      folderResultCounts: new Map([
+        ["f1", { total: 7, PASS: 4, FAIL: 2, BLOCKED: 1, NOTRUN: 0 }],
+      ]),
+    });
+    expect(
+      screen.getByTestId("execution-table-folder-pass-f1"),
+    ).toHaveTextContent("4");
+    expect(
+      screen.getByTestId("execution-table-folder-fail-f1"),
+    ).toHaveTextContent("2");
+    expect(
+      screen.getByTestId("execution-table-folder-blocked-f1"),
+    ).toHaveTextContent("1");
+    // 0건도 칸을 남긴다 — 순서가 고정돼야 눈이 자리로 읽는다
+    expect(
+      screen.getByTestId("execution-table-folder-notrun-f1"),
+    ).toHaveTextContent("0");
+  });
+
+  it("판정 집계가 없으면 건수 칩도 붙지 않는다", () => {
+    renderTable({
+      visibleData: [folder("f1", "로그인")],
+      collapsedFolders: new Set(["f1"]),
+      collapsedFolderCount: 1,
+      folderResultCounts: new Map(),
+    });
+    expect(screen.queryByTestId("execution-table-folder-count-f1")).toBeNull();
+    expect(screen.queryByTestId("execution-table-folder-pass-f1")).toBeNull();
   });
 
   it("펼친 상태에서는 건수 칩을 붙이지 않는다", () => {

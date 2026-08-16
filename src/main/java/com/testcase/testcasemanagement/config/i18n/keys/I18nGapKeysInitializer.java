@@ -792,6 +792,21 @@ public class I18nGapKeysInitializer {
         "profile",
         "레이아웃 선택",
         "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.");
+    // 기본값이 좌측 메뉴로 바뀌어 title·desc 의 "현재/신규·기본값" 서술이 뒤집혔다.
+    // 기존 키는 DB 에 값이 이미 있어 갱신되지 않으므로 name·summary 로 새로 만든다 (2026-08-16)
+    createTranslationKeyIfNotExists(
+        "profile.nav.sidebar.name", "profile", "레이아웃 선택 (기본값 전환)", "좌측 메뉴 (기본)");
+    createTranslationKeyIfNotExists(
+        "profile.nav.sidebar.summary",
+        "profile",
+        "레이아웃 선택 (기본값 전환)",
+        "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.");
+    createTranslationKeyIfNotExists("profile.nav.tabs.name", "profile", "레이아웃 선택 (기본값 전환)", "가로 탭");
+    createTranslationKeyIfNotExists(
+        "profile.nav.tabs.summary",
+        "profile",
+        "레이아웃 선택 (기본값 전환)",
+        "프로젝트 이름 아래에 영역을 가로로 늘어놓습니다. 영역이 늘어나면 이름이 잘립니다.");
     createTranslationKeyIfNotExists(
         "projectNav.mode.switchToTabs", "projectNav", "레이아웃 선택", "가로 탭 구조로 보기");
     createTranslationKeyIfNotExists(
@@ -840,6 +855,11 @@ public class I18nGapKeysInitializer {
         "testExecution.sections.filters", "testExecution", "i18n gap 보강 (2026-06-06)", "필터");
     createTranslationKeyIfNotExists(
         "testExecution.sections.list", "testExecution", "i18n gap 보강 (2026-06-06)", "테스트 실행 목록");
+    createTranslationKeyIfNotExists(
+        "testExecution.sections.caseList",
+        "testExecution",
+        "실행 상세의 케이스 목록 — 좌측 실행 목록과 구분 (2026-08-16)",
+        "테스트 케이스 실행 목록");
     createTranslationKeyIfNotExists(
         "testExecution.summary.cases", "testExecution", "i18n gap 보강 (2026-06-06)", "건");
     createTranslationKeyIfNotExists(

@@ -64,6 +64,7 @@ import {
   collectFolderIds,
   saveCollapsedFolders,
   readCollapsedFolders,
+  computeFolderResultCounts,
 } from "./TestExecution/utils.jsx";
 
 // 테스트케이스 필터를 실행(executionId)별로 보존하기 위한 sessionStorage 키 접두사.
@@ -1122,26 +1123,12 @@ const TestExecutionForm = ({
     [filteredData, effectiveCollapsedFolders],
   );
 
-  // 폴더별 하위 테스트케이스 수 — 접힌 폴더에 몇 건이 숨어 있는지 보여주는 데 쓴다.
-  const folderCaseCounts = useMemo(() => {
-    const counts = new Map();
-    const parentOf = new Map(
-      filteredData.map((node) => [node.id, node.parentId]),
-    );
-
-    filteredData.forEach((node) => {
-      if (node.type !== "testcase") return;
-      let parentId = node.parentId;
-      const seen = new Set();
-      while (parentId && parentOf.has(parentId) && !seen.has(parentId)) {
-        seen.add(parentId);
-        counts.set(parentId, (counts.get(parentId) || 0) + 1);
-        parentId = parentOf.get(parentId);
-      }
-    });
-
-    return counts;
-  }, [filteredData]);
+  // 폴더별 하위 테스트케이스 수와 판정 집계 — 접힌 폴더에 몇 건이 숨어 있고 그중 몇 건이
+  // 성공·실패·차단·미실행인지 폴더 행에 함께 보여주는 데 쓴다.
+  const folderResultCounts = useMemo(
+    () => computeFolderResultCounts(filteredData, resultsMap),
+    [filteredData, resultsMap],
+  );
 
   // 접힘 상태를 바꾸면서, 그 때문에 화면에서 사라지는 케이스의 선택을 해제한다.
   // 보이지 않는 케이스가 선택된 채로 남으면 일괄 결과 입력이 화면에 없는 케이스에까지 들어간다.
@@ -1524,7 +1511,7 @@ const TestExecutionForm = ({
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="subtitle1" fontWeight="bold">
-              {t("testExecution.sections.list", "테스트 실행 목록")}
+              {t("testExecution.sections.caseList", "테스트 케이스 실행 목록")}
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -1643,7 +1630,7 @@ const TestExecutionForm = ({
               selectedTestCases={selectedTestCases}
               onSelectionChange={handleSelectionChange}
               collapsedFolders={effectiveCollapsedFolders}
-              folderCaseCounts={folderCaseCounts}
+              folderResultCounts={folderResultCounts}
               collapsedFolderCount={hasActiveFilters ? 0 : collapsedFolderCount}
               onToggleFolder={handleToggleFolder}
               onExpandAllFolders={handleExpandAllFolders}
