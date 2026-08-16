@@ -582,7 +582,7 @@ In addition to the result, you can record **notes** (free-form comments), **tags
 
 **Previous Execution Results dialog — note view format toggle**
 
-> **Added on 2026-06-10**: In the test execution list, clicking a case's **[Previous Results]** button opens the **Previous Execution Results** dialog. A **MARKDOWN / TEXT** view format toggle sits at the top right of this dialog.
+> **Added on 2026-06-10**: In the test case execution list, clicking a case's **[Previous Results]** button opens the **Previous Execution Results** dialog. A **MARKDOWN / TEXT** view format toggle sits at the top right of this dialog.
 
 - **MARKDOWN** (default): renders notes with Markdown formatting, so tables, lists, code blocks, and the like are displayed nicely.
 - **TEXT**: shows notes **as-is** without any formatting conversion. Use this mode to read the raw text when a note that is not in Markdown format appears broken.

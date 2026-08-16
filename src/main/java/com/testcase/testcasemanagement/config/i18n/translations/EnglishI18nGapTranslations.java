@@ -725,6 +725,22 @@ public class EnglishI18nGapTranslations {
             + " to icons.",
         createdBy);
     createTranslationIfNotExists(
+        "profile.nav.sidebar.name", languageCode, "Left menu (default)", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.sidebar.summary",
+        languageCode,
+        "Areas are stacked on the left. Names stay readable as areas grow, and the menu collapses"
+            + " to icons.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.name", languageCode, "Horizontal tabs", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.summary",
+        languageCode,
+        "Areas are laid out horizontally under the project name. Names get truncated as areas"
+            + " grow.",
+        createdBy);
+    createTranslationIfNotExists(
         "projectNav.mode.switchToTabs", languageCode, "Switch to horizontal tabs", createdBy);
     createTranslationIfNotExists(
         "projectNav.mode.switchToSidebar", languageCode, "Switch to left menu", createdBy);
@@ -761,6 +777,8 @@ public class EnglishI18nGapTranslations {
         "testExecution.sections.filters", languageCode, "Filters", createdBy);
     createTranslationIfNotExists(
         "testExecution.sections.list", languageCode, "Test Execution List", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.sections.caseList", languageCode, "Test Case Execution List", createdBy);
     createTranslationIfNotExists("testExecution.summary.cases", languageCode, "case(s)", createdBy);
     createTranslationIfNotExists("testExecution.summary.total", languageCode, "Total", createdBy);
     createTranslationIfNotExists("testExecution.table.id", languageCode, "ID", createdBy);

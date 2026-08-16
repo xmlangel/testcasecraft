@@ -6,9 +6,9 @@ const NavModeContext = createContext();
 export const NAV_MODE_TABS = "tabs";
 export const NAV_MODE_SIDEBAR = "sidebar";
 
-/** 저장된 값이 깨졌거나 모르는 값이면 기존 동작(가로 탭)으로 되돌린다. */
+/** 저장된 값이 깨졌거나 모르는 값이면 기본값(좌측 메뉴)으로 되돌린다. */
 const normalize = (value) =>
-  value === NAV_MODE_SIDEBAR ? NAV_MODE_SIDEBAR : NAV_MODE_TABS;
+  value === NAV_MODE_TABS ? NAV_MODE_TABS : NAV_MODE_SIDEBAR;
 
 /**
  * 프로젝트 네비게이션 표현 방식 컨텍스트.
@@ -19,12 +19,13 @@ const normalize = (value) =>
  *
  * InputModeContext 와 같은 방식으로 useUiPreference 에 얹어 서버에 사용자별로
  * 저장한다 — 다른 PC 에서 로그인해도 고른 구조가 유지된다.
- * 기본값은 "tabs" — 업데이트만으로 화면이 바뀌지 않게 한다.
+ * 기본값은 "sidebar" — 영역이 늘어나 가로 탭에서 이름이 잘리기 시작했다. 가로 탭을
+ * 고른 사용자는 그 값이 서버에 남아 있어 그대로 유지된다.
  */
 export const NavModeProvider = ({ children }) => {
   const [rawMode, setRawMode] = useUiPreference(
     "projectNavMode",
-    NAV_MODE_TABS,
+    NAV_MODE_SIDEBAR,
   );
   const [collapsed, setCollapsed] = useUiPreference(
     "projectNavSidebarCollapsed",
@@ -56,8 +57,10 @@ export const NavModeProvider = ({ children }) => {
 };
 
 /**
- * 컨텍스트 밖에서도 안전하게 쓰인다 — 프로바이더가 없으면 기존 동작(가로 탭)으로
- * 응답한다. 단위 테스트가 컴포넌트를 프로바이더 없이 렌더하는 경우가 많아서다.
+ * 컨텍스트 밖에서도 안전하게 쓰인다 — 프로바이더가 없으면 가로 탭으로 응답한다.
+ * 앱에는 항상 프로바이더가 있으므로(App.jsx) 이 값은 단위 테스트에만 닿는다.
+ * 기본값(sidebar)과 다르게 두는 이유는, 프로바이더 없이 렌더하는 기존 테스트가
+ * 사이드바 껍데기까지 그리게 되면 검증 대상과 무관한 실패가 생기기 때문이다.
  */
 export const useNavMode = () => {
   const context = useContext(NavModeContext);

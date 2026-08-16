@@ -547,6 +547,18 @@ public class KoreanI18nGapTranslations {
         languageCode,
         "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.",
         createdBy);
+    createTranslationIfNotExists("profile.nav.sidebar.name", languageCode, "좌측 메뉴 (기본)", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.sidebar.summary",
+        languageCode,
+        "영역을 화면 왼쪽에 세로로 놓습니다. 영역이 많아도 이름이 잘리지 않고, 접어서 아이콘만 남길 수 있습니다.",
+        createdBy);
+    createTranslationIfNotExists("profile.nav.tabs.name", languageCode, "가로 탭", createdBy);
+    createTranslationIfNotExists(
+        "profile.nav.tabs.summary",
+        languageCode,
+        "프로젝트 이름 아래에 영역을 가로로 늘어놓습니다. 영역이 늘어나면 이름이 잘립니다.",
+        createdBy);
     createTranslationIfNotExists(
         "projectNav.mode.switchToTabs", languageCode, "가로 탭 구조로 보기", createdBy);
     createTranslationIfNotExists(
@@ -573,6 +585,8 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testExecution.sections.filters", languageCode, "필터", createdBy);
     createTranslationIfNotExists(
         "testExecution.sections.list", languageCode, "테스트 실행 목록", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.sections.caseList", languageCode, "테스트 케이스 실행 목록", createdBy);
     createTranslationIfNotExists("testExecution.summary.cases", languageCode, "건", createdBy);
     createTranslationIfNotExists("testExecution.summary.total", languageCode, "총", createdBy);
     createTranslationIfNotExists("testExecution.table.id", languageCode, "ID", createdBy);

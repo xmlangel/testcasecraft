@@ -36,6 +36,7 @@ import {
   priorityColor,
   responsiveColumnSx,
   gridTemplateColumns,
+  FOLDER_RESULT_KEYS,
 } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { copyToClipboard } from "../../utils";
@@ -56,6 +57,7 @@ const ExecutionRow = memo(
     handleCopyNotes,
     isCollapsed,
     childCaseCount,
+    childResultCounts,
     onToggleFolder,
     t,
     formatDate,
@@ -159,21 +161,92 @@ const ExecutionRow = memo(
                   )}
                 </IconButton>
               </Tooltip>
-              <FolderIcon sx={{ mr: 1, flexShrink: 0 }} />
-              <Typography
-                variant="body2"
-                sx={{ ...titleStyle, textAlign: "left" }}
-              >
-                {wrapName(node.name)}
-              </Typography>
+              <FolderIcon sx={{ mr: 0.5, flexShrink: 0 }} />
+              <Tooltip title={node.name}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    ...titleStyle,
+                    textAlign: "left",
+                    // 폴더명이 먼저 줄어들되 0 까지는 가지 않게 — 집계 배지가 잘리는 쪽이
+                    // 아니라 이름이 말줄임되는 쪽으로 눌린다
+                    width: "auto",
+                    flex: "1 1 auto",
+                    minWidth: 40,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {node.name}
+                </Typography>
+              </Tooltip>
               {isCollapsed && childCaseCount > 0 && (
-                <Chip
-                  label={childCaseCount}
-                  size="small"
-                  variant="outlined"
-                  sx={{ ml: 0.5, height: "18px", fontSize: "0.7rem" }}
-                  data-testid={`execution-table-folder-count-${node.id}`}
-                />
+                // 폴더 열이 좁아 알약을 5개 붙이면 이름이 밀려 사라진다. 총계만 칩으로 두고
+                // 판정별 건수는 색만 입힌 숫자로 붙인다(테두리·배경 없음).
+                <Box
+                  sx={{
+                    ml: 0.5,
+                    display: "flex",
+                    alignItems: "center",
+                    flexShrink: 0,
+                    fontSize: "0.65rem",
+                    lineHeight: "16px",
+                    fontWeight: 700,
+                  }}
+                >
+                  <Tooltip
+                    title={`${t("testExecution.summary.total", "총")} ${childCaseCount}`}
+                  >
+                    <Box
+                      component="span"
+                      sx={{
+                        px: 0.5,
+                        mr: 0.5,
+                        borderRadius: "8px",
+                        border: `1px solid ${theme.palette.divider}`,
+                        color: theme.palette.text.secondary,
+                      }}
+                      data-testid={`execution-table-folder-count-${node.id}`}
+                    >
+                      {childCaseCount}
+                    </Box>
+                  </Tooltip>
+                  {FOLDER_RESULT_KEYS.map(
+                    ({ key, color, labelKey, labelFallback }, i) => {
+                      const count = childResultCounts?.[key] || 0;
+                      const label = t(labelKey, labelFallback);
+                      return (
+                        <React.Fragment key={key}>
+                          {i > 0 && (
+                            <Box
+                              component="span"
+                              aria-hidden="true"
+                              sx={{
+                                color: theme.palette.text.disabled,
+                                fontWeight: 400,
+                              }}
+                            >
+                              /
+                            </Box>
+                          )}
+                          <Tooltip title={`${label} ${count}`}>
+                            <Box
+                              component="span"
+                              aria-label={`${label} ${count}`}
+                              sx={{
+                                color: color,
+                                // 0건은 눈이 건너뛰도록 낮춘다 — 순서를 고정하려고 칸은 남긴다
+                                opacity: count > 0 ? 1 : 0.4,
+                              }}
+                              data-testid={`execution-table-folder-${key.toLowerCase()}-${node.id}`}
+                            >
+                              {count}
+                            </Box>
+                          </Tooltip>
+                        </React.Fragment>
+                      );
+                    },
+                  )}
+                </Box>
               )}
             </>
           ) : (
@@ -550,7 +623,7 @@ const TestExecutionTable = ({
   selectedTestCases,
   onSelectionChange,
   collapsedFolders,
-  folderCaseCounts,
+  folderResultCounts,
   collapsedFolderCount = 0,
   onToggleFolder,
   onExpandAllFolders,
@@ -604,7 +677,8 @@ const TestExecutionTable = ({
         handleCopyLink={handleCopyLink}
         handleCopyNotes={handleCopyNotes}
         isCollapsed={collapsedFolders?.has(node.id) || false}
-        childCaseCount={folderCaseCounts?.get(node.id) || 0}
+        childCaseCount={folderResultCounts?.get(node.id)?.total || 0}
+        childResultCounts={folderResultCounts?.get(node.id)}
         onToggleFolder={onToggleFolder}
         t={t}
         formatDate={formatDate}
@@ -954,7 +1028,7 @@ TestExecutionTable.propTypes = {
   selectedTestCases: PropTypes.instanceOf(Set),
   onSelectionChange: PropTypes.func,
   collapsedFolders: PropTypes.instanceOf(Set),
-  folderCaseCounts: PropTypes.instanceOf(Map),
+  folderResultCounts: PropTypes.instanceOf(Map),
   collapsedFolderCount: PropTypes.number,
   onToggleFolder: PropTypes.func,
   onExpandAllFolders: PropTypes.func,

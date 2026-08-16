@@ -12,6 +12,7 @@ import {
   filterCollapsedNodes,
   collectAncestorFolderIds,
   collectFolderIds,
+  computeFolderResultCounts,
 } from "./utils.jsx";
 
 // 전체화면 결과 뷰가 목록 화면의 필터 순서를 그대로 따르도록 하는
@@ -294,5 +295,85 @@ describe("collapsed folder persistence", () => {
       "{깨진 JSON",
     );
     expect(readCollapsedFolders("exec-1").size).toBe(0);
+  });
+});
+
+// 폴더 행에 붙는 판정 집계 — 접힌 폴더 안이 안 보이므로 이 숫자가 유일한 단서다
+describe("computeFolderResultCounts", () => {
+  const folder = (id, parentId = null) => ({ id, type: "folder", parentId });
+  const testcase = (id, parentId) => ({ id, type: "testcase", parentId });
+
+  it("판정별로 세고 총계를 함께 낸다", () => {
+    const nodes = [
+      folder("f1"),
+      testcase("tc1", "f1"),
+      testcase("tc2", "f1"),
+      testcase("tc3", "f1"),
+      testcase("tc4", "f1"),
+    ];
+    const results = new Map([
+      ["tc1", { result: "PASS" }],
+      ["tc2", { result: "FAIL" }],
+      ["tc3", { result: "BLOCKED" }],
+      // tc4 는 결과 없음
+    ]);
+
+    expect(computeFolderResultCounts(nodes, results).get("f1")).toEqual({
+      total: 4,
+      PASS: 1,
+      FAIL: 1,
+      BLOCKED: 1,
+      NOTRUN: 1,
+    });
+  });
+
+  it("NOTRUN·SKIPPED·결과없음을 모두 미실행으로 묶는다 (상단 요약과 같은 규약)", () => {
+    const nodes = [
+      folder("f1"),
+      testcase("tc1", "f1"),
+      testcase("tc2", "f1"),
+      testcase("tc3", "f1"),
+    ];
+    const results = new Map([
+      ["tc1", { result: "NOTRUN" }],
+      ["tc2", { result: "SKIPPED" }],
+    ]);
+
+    const stat = computeFolderResultCounts(nodes, results).get("f1");
+    expect(stat.NOTRUN).toBe(3);
+    expect(stat.total).toBe(3);
+  });
+
+  it("조상 폴더까지 누적해, 상위 하나만 접어도 그 아래 전체가 집계된다", () => {
+    const nodes = [
+      folder("root"),
+      folder("child", "root"),
+      testcase("tc1", "child"),
+      testcase("tc2", "root"),
+    ];
+    const results = new Map([
+      ["tc1", { result: "PASS" }],
+      ["tc2", { result: "FAIL" }],
+    ]);
+
+    const counts = computeFolderResultCounts(nodes, results);
+    expect(counts.get("root")).toMatchObject({ total: 2, PASS: 1, FAIL: 1 });
+    expect(counts.get("child")).toMatchObject({ total: 1, PASS: 1 });
+  });
+
+  it("폴더만 있거나 입력이 비면 빈 Map", () => {
+    expect(computeFolderResultCounts([folder("f1")], new Map()).size).toBe(0);
+    expect(computeFolderResultCounts(null, null).size).toBe(0);
+  });
+
+  it("부모 참조가 순환해도 멈춘다", () => {
+    const nodes = [
+      { id: "a", type: "folder", parentId: "b" },
+      { id: "b", type: "folder", parentId: "a" },
+      testcase("tc1", "a"),
+    ];
+    const counts = computeFolderResultCounts(nodes, new Map());
+    expect(counts.get("a").total).toBe(1);
+    expect(counts.get("b").total).toBe(1);
   });
 });
