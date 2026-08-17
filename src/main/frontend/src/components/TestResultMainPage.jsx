@@ -25,6 +25,7 @@ import TestResultStatisticsDashboard from "./TestResultStatisticsDashboard.jsx";
 import TestResultDetailTable from "./TestCase/TestResultDetailTable.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
+import PageTitle from "./common/PageTitle.jsx";
 import { PAGE_CONTAINER_SX } from "../styles/layoutConstants";
 
 /**
@@ -61,36 +62,14 @@ function TestResultMainPage() {
   };
 
   return (
-    <Box sx={PAGE_CONTAINER_SX.main}>
+    <Box sx={PAGE_CONTAINER_SX.tabContent}>
       {/* 페이지 헤더 - 반응형 개선 */}
       <Box sx={{ mb: { xs: 2, md: 3 } }}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: { xs: 0.5, md: 1 },
-            mb: { xs: 1, md: 2 },
-            flexWrap: { xs: "wrap", sm: "nowrap" },
-          }}
-        >
-          <BarChartIcon
-            color="primary"
-            sx={{
-              fontSize: { xs: 24, sm: 26, md: 28 },
-            }}
-          />
-          <Typography
-            variant={isMobile ? "h5" : "h4"}
-            component="h1"
-            color="primary"
-            sx={{
-              fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.125rem" },
-              fontWeight: { xs: 600, md: 400 },
-            }}
-          >
-            {t("testResult.mainPage.title")}
-          </Typography>
-        </Box>
+        <PageTitle
+          icon={BarChartIcon}
+          title={t("testResult.mainPage.title")}
+          sx={{ mb: { xs: 1, md: 2 } }}
+        />
 
         <Typography
           variant={isMobile ? "body2" : "body1"}

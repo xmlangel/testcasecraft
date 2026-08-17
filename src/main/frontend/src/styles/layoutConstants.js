@@ -29,6 +29,17 @@ export const PAGE_CONTAINER_SX = {
     minHeight: "calc(100vh - 64px)", // AppBar 높이 제외
   },
 
+  // 탭·좌측 메뉴 본문에 얹히는 화면 (App.jsx 가 이미 Paper 를 두른 자리)
+  //
+  // main 과 달리 배경을 칠하지 않는다. background.default(#F8FAFC)를 Paper 안에 다시
+  // 칠하면 유리 질감이 덮여 그 화면만 회색 판으로 보인다 — 테스트결과·자동화가
+  // 테스트실행·테스트플랜과 달라 보였던 이유다. 높이도 감싼 Paper 가 정한다.
+  tabContent: {
+    maxWidth: STANDARD_MAX_WIDTH,
+    mx: "auto",
+    p: 1.5,
+  },
+
   // 폼 페이지 컨테이너 (TestExecutionForm, TestPlanForm 등)
   form: {
     maxWidth: STANDARD_MAX_WIDTH,
@@ -146,6 +157,32 @@ export const LAYOUT_UTILS = {
     maxHeight: "70vh",
     overflowY: "auto",
     overflowX: "hidden",
+  },
+};
+
+/**
+ * 화면 제목 규격 — 앞 아이콘 + 제목 한 줄 (한 곳에서 정의).
+ *
+ * 대시보드·테스트실행·테스트결과·자동화 테스트가 같은 값을 쓴다. 화면마다
+ * variant·fontWeight·아이콘 크기를 손으로 적으면 한쪽만 바뀌어 제목이 튄다.
+ * 실제 렌더는 components/common/PageTitle.jsx 가 담당한다.
+ */
+export const PAGE_TITLE = {
+  /** 아이콘·제목·부속물을 담는 줄 */
+  row: {
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+    flexWrap: "wrap",
+    mb: 2,
+  },
+  /** 제목 앞 아이콘 (제목 글자 24px 보다 살짝 크게) */
+  icon: {
+    fontSize: 26,
+  },
+  /** 제목 글자 — theme h5(1.5rem) 에 굵기만 올린다 */
+  text: {
+    fontWeight: 700,
   },
 };
 

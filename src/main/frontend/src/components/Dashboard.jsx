@@ -1,6 +1,7 @@
 // src/components/Dashboard.jsx
 
 import React, { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Typography,
@@ -18,8 +19,10 @@ import {
   AccordionDetails,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 import { alpha } from "@mui/material/styles";
 import StyledPaper from "./common/StyledPaper";
+import PageTitle from "./common/PageTitle";
 import {
   PieChart,
   Pie,
@@ -50,7 +53,13 @@ import { PAGE_CONTAINER_SX, GRID_SETTINGS } from "../styles/layoutConstants";
 
 // RESULT_LABELS는 이제 t() 함수로 번역됨
 
-function Dashboard() {
+/**
+ * @param {object} props
+ * @param {boolean} [props.embedded] 탭·좌측 메뉴 본문(Paper 안)에 얹힌 경우.
+ *   이때는 배경을 칠하지 않는다 — 다른 영역과 같은 유리 질감을 그대로 쓴다.
+ *   `/projectdashboard` 단독 화면은 바탕 그라디언트 위에 올라가므로 배경이 필요하다.
+ */
+function Dashboard({ embedded = false }) {
   const { t } = useI18n();
   const theme = useTheme();
 
@@ -317,14 +326,13 @@ function Dashboard() {
   };
 
   return (
-    <Box sx={PAGE_CONTAINER_SX.main}>
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        {t("dashboard.title")}
+    <Box sx={embedded ? PAGE_CONTAINER_SX.tabContent : PAGE_CONTAINER_SX.main}>
+      <PageTitle icon={DashboardIcon} title={t("dashboard.title")}>
         <Chip
           label={t("dashboard.lastUpdated", { date: lastUpdated })}
           color={dashboardLoading ? "default" : "primary"}
           size="small"
-          sx={{ ml: 2, verticalAlign: "middle" }}
+          sx={{ ml: 1 }}
         />
         {/* ICT-135: 새로고침 버튼 추가 */}
         {activeProject && (
@@ -334,11 +342,11 @@ function Dashboard() {
               color="secondary"
               size="small"
               onClick={refreshDashboardData}
-              sx={{ ml: 1, verticalAlign: "middle", cursor: "pointer" }}
+              sx={{ cursor: "pointer" }}
             />
           </Tooltip>
         )}
-      </Typography>
+      </PageTitle>
 
       {/* ICT-135: 로딩 상태 표시 */}
       {dashboardLoading && (
@@ -882,5 +890,9 @@ function Dashboard() {
     </Box>
   );
 }
+
+Dashboard.propTypes = {
+  embedded: PropTypes.bool,
+};
 
 export default Dashboard;

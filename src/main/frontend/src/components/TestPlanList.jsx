@@ -43,7 +43,9 @@ import {
   CheckCircle,
   Schedule,
   ExpandMore as ExpandMoreIcon,
+  Assignment as AssignmentIcon,
 } from "@mui/icons-material";
+import PageTitle from "./common/PageTitle.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { ExecutionStatus } from "../models/testExecution.jsx";
@@ -339,14 +341,11 @@ const TestPlanList = ({
           }}
         >
           <Box>
-            <Typography
-              variant="h4"
-              component="h1"
-              gutterBottom
-              sx={{ fontWeight: "bold" }}
-            >
-              {t("testPlan.list.title", "테스트 플랜 목록")}
-            </Typography>
+            <PageTitle
+              icon={AssignmentIcon}
+              title={t("testPlan.list.title", "테스트 플랜 목록")}
+              sx={{ mb: 0.5 }}
+            />
             <Typography variant="subtitle1" color="text.secondary">
               {activeProject?.name}
             </Typography>
