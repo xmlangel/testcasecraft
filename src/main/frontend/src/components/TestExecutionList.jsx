@@ -36,8 +36,10 @@ import {
   Schedule as ScheduleIcon,
   Search as SearchIcon,
   Refresh as RefreshIcon,
+  PlayCircle as PlayCircleIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import PageTitle from "./common/PageTitle";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
 import { ExecutionStatus } from "../models/testExecution.jsx";
@@ -383,9 +385,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
             mb: 2,
           }}
         >
-          <Typography variant="h6" component="div">
-            {t("testExecution.list.title")}
-          </Typography>
+          <PageTitle
+            icon={PlayCircleIcon}
+            title={t("testExecution.list.title")}
+            sx={{ mb: 0 }}
+          />
           <Box sx={{ display: "flex", gap: 1 }}>
             <TextField
               size="small"

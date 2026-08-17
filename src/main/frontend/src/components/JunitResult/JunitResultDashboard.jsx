@@ -57,6 +57,7 @@ import {
   ChevronRight as ChevronRightIcon,
   ExpandMore as ExpandMoreIcon,
   NoteAlt as NoteAltIcon,
+  SmartToy as SmartToyIcon,
 } from "@mui/icons-material";
 import {
   PieChart as RechartsPieChart,
@@ -78,6 +79,7 @@ import { useAppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../context/I18nContext";
 import JunitProcessingProgress from "../JUnit/JunitProcessingProgress";
+import PageTitle from "../common/PageTitle";
 
 // 색상 팔레트 (Allure 스타일)
 import {
@@ -474,7 +476,7 @@ export default function JunitResultDashboard() {
   }
 
   return (
-    <Box sx={PAGE_CONTAINER_SX.main}>
+    <Box sx={PAGE_CONTAINER_SX.tabContent}>
       {/* 헤더 */}
       <Box
         sx={{
@@ -485,9 +487,11 @@ export default function JunitResultDashboard() {
         }}
       >
         <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
-            {t("junit.dashboard.title")}
-          </Typography>
+          <PageTitle
+            icon={SmartToyIcon}
+            title={t("junit.dashboard.title")}
+            sx={{ mb: 0.5 }}
+          />
           <Typography variant="subtitle1" color="text.secondary">
             {t("junit.dashboard.subtitle", { projectName: activeProject.name })}
           </Typography>

@@ -231,6 +231,8 @@ public class KoreanTestExecutionTranslations {
     createTranslationIfNotExists(
         "testExecution.form.editTitle", languageCode, "테스트 실행: {name}", createdBy);
     createTranslationIfNotExists(
+        "testExecution.form.editTitleFallback", languageCode, "테스트 실행", createdBy);
+    createTranslationIfNotExists(
         "testExecution.table.attachments", languageCode, "첨부파일", createdBy);
     createTranslationIfNotExists(
         "testExecution.attachments.title", languageCode, "테스트 결과 첨부파일", createdBy);

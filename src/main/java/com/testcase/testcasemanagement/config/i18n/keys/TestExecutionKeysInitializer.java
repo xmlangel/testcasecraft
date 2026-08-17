@@ -248,6 +248,9 @@ public class TestExecutionKeysInitializer {
         "testExecution.form.registerTitle", "testExecution", "테스트 실행 등록 제목", "테스트 실행 등록");
     createTranslationKeyIfNotExists(
         "testExecution.form.editTitle", "testExecution", "테스트 실행 편집 제목", "테스트 실행: {name}");
+    // 실행 이름을 아직 못 받아온 동안 제목 자리에 넣는 말
+    createTranslationKeyIfNotExists(
+        "testExecution.form.editTitleFallback", "testExecution", "실행 이름 대체 제목", "테스트 실행");
     createTranslationKeyIfNotExists(
         "testExecution.table.attachments", "testExecution", "첨부파일", "첨부파일");
     createTranslationKeyIfNotExists(

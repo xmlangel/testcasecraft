@@ -1183,7 +1183,7 @@ const AppContent = () => {
                   >
                     {tabIndex === 0 && (
                       <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
-                        <Dashboard />
+                        <Dashboard embedded />
                       </Paper>
                     )}
                     {tabIndex === 1 && (
@@ -1373,10 +1373,11 @@ const AppContent = () => {
                         <TestResultMainPage />
                       </Paper>
                     )}
+                    {/* 자동화 테스트도 다른 영역과 같은 Paper 위에 얹는다 — 배경 통일 */}
                     {tabIndex === 5 && (
-                      <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                      <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
                         <JunitResultDashboard />
-                      </Box>
+                      </Paper>
                     )}
                     {/* RAG 문서 탭: RAG 활성화 + tabIndex 6일 때만 표시 */}
                     {tabIndex === 6 && isRagEnabled && activeProject && (

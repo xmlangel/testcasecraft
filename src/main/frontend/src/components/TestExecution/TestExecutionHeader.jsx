@@ -7,9 +7,13 @@ import {
   Divider,
   CircularProgress,
 } from "@mui/material";
-import { Info as InfoIcon } from "@mui/icons-material";
+import {
+  Info as InfoIcon,
+  PlayCircle as PlayCircleIcon,
+} from "@mui/icons-material";
 import { useTranslation } from "../../context/I18nContext.jsx";
 import TestExecutionGuide from "./TestExecutionGuide.jsx";
+import PageTitle from "../common/PageTitle.jsx";
 
 const TestExecutionHeader = ({
   executionId,
@@ -41,27 +45,25 @@ const TestExecutionHeader = ({
         }}
       >
         <Box sx={{ flex: 1, minWidth: 200 }}>
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: "bold",
-              color: "#1976d2",
-              cursor: "pointer",
-              display: "inline-block",
-              "&:hover": {
-                textDecoration: "underline",
-                opacity: 0.8,
-              },
-            }}
+          {/* 제목 규격은 대시보드·테스트결과·자동화 테스트와 같다(PageTitle).
+              실행 이름만 보여준다 — "테스트 실행:" 접두는 좌측 메뉴·탭이 이미 말한다 */}
+          <PageTitle
+            icon={PlayCircleIcon}
+            title={
+              executionId
+                ? executionName ||
+                  t("testExecution.form.editTitleFallback", "테스트 실행")
+                : t("testExecution.form.registerTitle")
+            }
             onClick={onGoToList}
             data-testid="execution-header-title"
-          >
-            {executionId ? (
-              <>{t("testExecution.form.editTitle", { name: executionName })}</>
-            ) : (
-              t("testExecution.form.registerTitle")
-            )}
-          </Typography>
+            sx={{
+              mb: 0,
+              cursor: "pointer",
+              "&:hover h1": { textDecoration: "underline" },
+              "&:hover": { opacity: 0.8 },
+            }}
+          />
           {execution?.displayId && (
             <Typography
               variant="caption"

@@ -267,6 +267,8 @@ public class EnglishTestExecutionTranslations {
     createTranslationIfNotExists(
         "testExecution.form.editTitle", languageCode, "Test Execution: {name}", createdBy);
     createTranslationIfNotExists(
+        "testExecution.form.editTitleFallback", languageCode, "Test Execution", createdBy);
+    createTranslationIfNotExists(
         "testExecution.table.attachments", languageCode, "Attachments", createdBy);
     createTranslationIfNotExists(
         "testExecution.attachments.title", languageCode, "Test Result Attachments", createdBy);

@@ -356,3 +356,11 @@ networks:
     name: testcasecraft-network-spring
     driver: bridge
 ```
+
+# License
+
+MIT License. Copyright (c) 2025-2026 Kwangmyung Kim. 전문은 [LICENSE](LICENSE) 를 참고하세요.
+
+상업적 이용·수정·재배포·비공개 제품에 넣는 것까지 허용하며, 저작권 표시와 위 라이선스 전문을 사본에 함께 포함하는 것이 유일한 조건입니다. 보증과 책임은 지지 않습니다.
+
+이 라이선스는 본 저장소의 코드에만 적용됩니다. 함께 배포되는 서드파티 구성 요소는 각자의 라이선스를 따릅니다. 특히 PDF 내보내기에 쓰는 **iText 7(`com.itextpdf:itext7-core`)은 AGPL-3.0 과 상용 라이선스의 이중 라이선스**이므로, 이 애플리케이션을 빌드해 배포하거나 서비스로 제공할 때는 AGPL 조건을 따르거나 iText 상용 라이선스를 확보해야 합니다. 소스 라이선스와 별개로 판단할 항목입니다.
