@@ -2,6 +2,7 @@
   "name": "testcasecraft",
   "version": "1.0.110",
   "private": true,
+  "license": "MIT",
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.7",
     "@dnd-kit/core": "^6.3.1",

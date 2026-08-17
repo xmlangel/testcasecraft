@@ -40,8 +40,8 @@ public class OpenApiConfig {
                     .url("https://github.com/xmlangel/testcasecraft/releases"))
             .license(
                 new License()
-                    .name("Apache 2.0 License")
-                    .url("https://www.apache.org/licenses/LICENSE-2.0"));
+                    .name("MIT License")
+                    .url("https://github.com/xmlangel/testcasecraft/blob/master/LICENSE"));
 
     // JWT 보안 스키마 정의
     String jwtSchemeName = "bearerAuth";
