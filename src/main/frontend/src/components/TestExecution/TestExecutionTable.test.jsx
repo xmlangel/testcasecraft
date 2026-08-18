@@ -170,6 +170,30 @@ describe("TestExecutionTable 폴더 접기/펼치기", () => {
     expect(screen.getByTestId("execution-table-collapse-all")).toBeDisabled();
   });
 
+  it("첨부 유무와 관계없이 작업 열의 칸 수가 같다", () => {
+    // 첨부 아이콘이 있는 행만 묶음이 넓어지면 가운데 정렬 때문에 입력 버튼이 세로로 어긋난다
+    const cellChildCount = () =>
+      screen.getByTestId("execution-table-result-button-tc1").parentElement
+        .children.length;
+
+    const { unmount } = renderTable();
+    expect(
+      screen.queryByTestId("execution-table-attachments-button-r1"),
+    ).toBeNull();
+    const withoutAttachment = cellChildCount();
+    unmount();
+
+    renderTable({
+      resultsMap: new Map([
+        ["tc1", { id: "r1", result: "PASS", attachmentCount: 2 }],
+      ]),
+    });
+    expect(
+      screen.getByTestId("execution-table-attachments-button-r1"),
+    ).toBeInTheDocument();
+    expect(cellChildCount()).toBe(withoutAttachment);
+  });
+
   it("접힘 관련 props 를 주지 않아도 렌더된다 (하위 호환)", () => {
     render(
       <TestExecutionTable

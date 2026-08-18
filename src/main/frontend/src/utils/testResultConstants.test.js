@@ -136,6 +136,20 @@ describe("testResultConstants", () => {
     it("배열이 아니면 빈 배열", () => {
       expect(getLatestExecutionResults(null)).toEqual([]);
     });
+    it("배열 순서와 무관하게 executedAt 이 가장 최근인 결과를 고른다", () => {
+      const latest = getLatestExecutionResults([
+        { testCaseId: "a", result: "PASS", executedAt: "2026-08-01T10:00:00" },
+        { testCaseId: "a", result: "FAIL", executedAt: "2026-08-02T10:00:00" },
+      ]);
+      expect(latest.find((r) => r.testCaseId === "a").result).toBe("FAIL");
+    });
+    it("LocalDateTime 배열 형식도 비교한다", () => {
+      const latest = getLatestExecutionResults([
+        { testCaseId: "a", result: "PASS", executedAt: [2026, 7, 28, 0, 0, 0] },
+        { testCaseId: "a", result: "FAIL", executedAt: [2026, 10, 1, 0, 0, 0] },
+      ]);
+      expect(latest.find((r) => r.testCaseId === "a").result).toBe("FAIL");
+    });
   });
 
   describe("calculateExecutionSummary", () => {
@@ -156,6 +170,44 @@ describe("testResultConstants", () => {
     });
     it("totalCount 0 이면 진행률 0", () => {
       expect(calculateExecutionSummary([], 0).progressPercent).toBe(0);
+    });
+    it("집계 범위를 주면 범위 밖 케이스의 결과는 세지 않는다", () => {
+      // 플랜에서 빠진 케이스(z)의 과거 결과가 분자에 섞이면 진행률이 부풀고 미실행이 줄어든다
+      const { stats, progressPercent } = calculateExecutionSummary(
+        [
+          { testCaseId: "a", result: "PASS" },
+          { testCaseId: "b", result: "FAIL" },
+          { testCaseId: "z", result: "PASS" },
+        ],
+        99,
+        ["a", "b", "c", "d"],
+      );
+      expect(stats.total).toBe(4);
+      expect(stats.pass).toBe(1);
+      expect(stats.fail).toBe(1);
+      expect(stats.completedCount).toBe(2);
+      expect(stats.notRun).toBe(2);
+      expect(progressPercent).toBe(50);
+    });
+    it("범위 안이라도 최신 결과가 NOT_RUN 이면 미실행", () => {
+      const { stats } = calculateExecutionSummary(
+        [
+          {
+            testCaseId: "a",
+            result: "PASS",
+            executedAt: "2026-08-01T10:00:00",
+          },
+          {
+            testCaseId: "a",
+            result: "NOT_RUN",
+            executedAt: "2026-08-02T10:00:00",
+          },
+        ],
+        1,
+        ["a"],
+      );
+      expect(stats.pass).toBe(0);
+      expect(stats.notRun).toBe(1);
     });
   });
 });

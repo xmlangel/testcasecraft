@@ -8,6 +8,7 @@ import {
   PlayArrow,
   HourglassEmpty,
 } from "@mui/icons-material";
+import { safeParseDate } from "./dateUtils";
 
 /**
  * 테스트 결과 타입 상수
@@ -332,15 +333,32 @@ export const getLocalizedResultConfig = (resultType, t) => {
 
 /**
  * 테스트 실행 결과 배열에서 각 테스트케이스별 최신 결과만 추출
- * @param {Array} results - 실행 결과 배열 (최신순 정렬 가정)
- * @returns {Array} 최신 결과 배열
+ *
+ * 배열 순서에 기대지 않고 executedAt 이 가장 최근인 레코드를 고른다.
+ * 서버(TestExecutionService.toDto)가 최신순으로 내려주지만, 저장 응답·부분 갱신 등
+ * 다른 경로로 들어온 배열은 순서를 보장하지 않는다. 백엔드 집계(TestResultRepository 의
+ * MAX(executed_at) 기준)와 같은 의미라 프론트/백엔드 숫자가 어긋나지 않는다.
+ * executedAt 이 같거나 없으면 먼저 나온 레코드를 유지한다.
+ *
+ * @param {Array} results - 실행 결과 배열
+ * @returns {Array} 테스트케이스별 최신 결과 배열
  */
 export const getLatestExecutionResults = (results) => {
   if (!Array.isArray(results)) return [];
   const map = new Map();
   results.forEach((r) => {
-    const key = r.testCaseId;
-    if (key && !map.has(key)) {
+    const key = r?.testCaseId;
+    if (!key) return;
+    const prev = map.get(key);
+    if (!prev) {
+      map.set(key, r);
+      return;
+    }
+    const prevAt = safeParseDate(prev.executedAt);
+    const curAt = safeParseDate(r.executedAt);
+    const prevTime = prevAt ? prevAt.getTime() : 0;
+    const curTime = curAt ? curAt.getTime() : 0;
+    if (curTime > prevTime) {
       map.set(key, r);
     }
   });
@@ -349,12 +367,32 @@ export const getLatestExecutionResults = (results) => {
 
 /**
  * 테스트 실행의 종합 요약 정보 계산 (최신 결과 기준)
+ *
+ * 집계 범위(scopeCaseIds)를 주면 그 목록 안의 테스트케이스만 센다. 분모는 플랜의
+ * 케이스 수인데 분자는 실행에 남은 모든 결과를 세던 것이 실행 화면과 결과 입력 화면의
+ * 통계가 어긋난 원인이었다 — 플랜에서 빠진 케이스의 과거 결과가 분자에만 들어가
+ * 진행률이 부풀고 미실행이 줄어든다.
+ *
  * @param {Array} results - 실행 결과 배열
- * @param {number} totalCount - 전체 테스트케이스 수
+ * @param {number} totalCount - 전체 테스트케이스 수 (scopeCaseIds 를 주면 그 길이가 우선)
+ * @param {Array<string>} [scopeCaseIds] - 집계 대상 테스트케이스 ID 목록(보통 플랜의 케이스 목록)
  * @returns {Object} { stats, progressPercent }
  */
-export const calculateExecutionSummary = (results, totalCount) => {
-  const latestResults = getLatestExecutionResults(results);
+export const calculateExecutionSummary = (
+  results,
+  totalCount,
+  scopeCaseIds,
+) => {
+  const scope = Array.isArray(scopeCaseIds)
+    ? new Set(scopeCaseIds.filter(Boolean))
+    : null;
+
+  const latestByCase = new Map();
+  getLatestExecutionResults(results).forEach((r) => {
+    latestByCase.set(r.testCaseId, r);
+  });
+
+  const total = scope ? scope.size : Math.max(0, Number(totalCount) || 0);
 
   const stats = {
     pass: 0,
@@ -362,10 +400,12 @@ export const calculateExecutionSummary = (results, totalCount) => {
     blocked: 0,
     notRun: 0,
     completedCount: 0,
+    total,
   };
 
-  latestResults.forEach((r) => {
-    const res = r.result;
+  const countedCaseIds = scope ? scope : new Set(latestByCase.keys());
+  countedCaseIds.forEach((caseId) => {
+    const res = latestByCase.get(caseId)?.result;
     if (res === TEST_RESULT_TYPES.PASS) {
       stats.pass++;
       stats.completedCount++;
@@ -376,13 +416,14 @@ export const calculateExecutionSummary = (results, totalCount) => {
       stats.blocked++;
       stats.completedCount++;
     }
+    // NOT_RUN·결과 없음은 미실행 — total 에서 빼는 방식으로 한 번만 센다
   });
 
-  stats.notRun = Math.max(0, totalCount - stats.completedCount);
+  stats.notRun = Math.max(0, total - stats.completedCount);
 
   const progressPercent =
-    totalCount > 0
-      ? Math.min(100, Math.round((stats.completedCount / totalCount) * 100))
+    total > 0
+      ? Math.min(100, Math.round((stats.completedCount / total) * 100))
       : 0;
 
   return { stats, progressPercent };

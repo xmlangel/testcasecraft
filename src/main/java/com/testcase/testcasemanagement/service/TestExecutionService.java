@@ -561,6 +561,7 @@ public class TestExecutionService {
       int total = planCaseIds.size();
       int passed = 0;
       int failed = 0;
+      int blocked = 0;
       int completed = 0;
 
       // 각 테스트케이스별 최신 결과 확인
@@ -582,6 +583,8 @@ public class TestExecutionService {
               passed++;
             } else if (TestResultStatus.FAIL.value().equalsIgnoreCase(resultStatus)) {
               failed++;
+            } else if (TestResultStatus.BLOCKED.value().equalsIgnoreCase(resultStatus)) {
+              blocked++;
             }
           }
         }
@@ -590,11 +593,15 @@ public class TestExecutionService {
       dto.setTotalCount(total);
       dto.setPassedCount(passed);
       dto.setFailedCount(failed);
+      // 목록 조회(getTestExecutionsByProject)와 같은 필드 집합을 채운다 — 한쪽만 비어 있으면
+      // 같은 실행인데 화면마다 차단 건수가 보이거나 안 보인다.
+      dto.setSkippedCount(blocked);
       dto.setProgress(total > 0 ? (completed * 100 / total) : 0);
     } else {
       dto.setTotalCount(0);
       dto.setPassedCount(0);
       dto.setFailedCount(0);
+      dto.setSkippedCount(0);
       dto.setProgress(0);
     }
 

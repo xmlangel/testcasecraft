@@ -37,6 +37,7 @@ const TestResultHeader = ({
   onBack,
   currentIndex,
   totalCount,
+  statCaseIds = null,
   testCase,
   isViewer,
   execution = null,
@@ -48,9 +49,16 @@ const TestResultHeader = ({
   const isDark = theme.palette.mode === "dark";
 
   // 결과 통계 및 진행률 계산
+  // 통계는 집계 범위(플랜의 케이스 목록) 안에서만 센다. statCaseIds 가 없으면
+  // 예전처럼 totalCount 를 분모로 쓰지만, 그 경우 분자에 플랜 밖 결과가 섞일 수 있다.
   const { stats, progressPercent } = useMemo(
-    () => calculateExecutionSummary(execution?.results || [], totalCount),
-    [execution, totalCount],
+    () =>
+      calculateExecutionSummary(
+        execution?.results || [],
+        totalCount,
+        statCaseIds,
+      ),
+    [execution, totalCount, statCaseIds],
   );
 
   const StatusChip = ({ icon, label, count, color, tooltip }) => (
@@ -345,7 +353,7 @@ const TestResultHeader = ({
               variant="caption"
               sx={{ fontWeight: 700, opacity: 0.8 }}
             >
-              {t("testExecution.summary.total", "총")} {totalCount}
+              {t("testExecution.summary.total", "총")} {stats.total}
               {t("testExecution.summary.cases", "건")}
             </Typography>
 

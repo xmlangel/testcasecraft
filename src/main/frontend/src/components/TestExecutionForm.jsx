@@ -42,7 +42,10 @@ import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX } from "../styles/layoutConstants";
 import TestResultAttachmentsView from "./TestCase/TestResultAttachmentsView.jsx";
 import { debugLog } from "../utils/logger";
-import { TEST_RESULT_TYPES } from "../utils/testResultConstants.js";
+import {
+  TEST_RESULT_TYPES,
+  calculateExecutionSummary,
+} from "../utils/testResultConstants.js";
 
 // New Components
 import TestExecutionHeader from "./TestExecution/TestExecutionHeader.jsx";
@@ -1202,45 +1205,25 @@ const TestExecutionForm = ({
     }
   }, [executionId, filters, filteredTestCaseIds]);
   const { stats: statusCounts, progressPercent: progress } = useMemo(() => {
-    // testCaseIds(플랜의 실제 케이스 목록)를 기준으로 각 상태를 카운팅
-    // resultsMap.values() 기반 계산은 재실행 이력이 많을 때 카운트가 부풀려지는 버그가 있었음
-    const total = testCaseIds.length;
-    let pass = 0;
-    let fail = 0;
-    let blocked = 0;
-    let completedCount = 0;
-
-    testCaseIds.forEach((id) => {
-      const result = resultsMap.get(id);
-      const resultValue = result?.result;
-      if (resultValue === "PASS") {
-        pass++;
-        completedCount++;
-      } else if (resultValue === "FAIL") {
-        fail++;
-        completedCount++;
-      } else if (resultValue === "BLOCKED") {
-        blocked++;
-        completedCount++;
-      }
-      // NOTRUN이거나 결과가 없는 경우 미실행으로 처리 (별도 카운팅 불필요)
-    });
-
-    const notRun = Math.max(0, total - completedCount);
-    const progressPercent =
-      total > 0 ? Math.min(100, Math.round((completedCount / total) * 100)) : 0;
-
+    // 집계 범위는 testCaseIds(플랜의 실제 케이스 목록) — 플랜에서 빠진 케이스의
+    // 과거 결과가 분자에 섞이면 분모(플랜 케이스 수)와 어긋난다.
+    // 결과 입력 화면(TestResultHeader)·백엔드 집계와 같은 함수를 쓴다.
+    const { stats, progressPercent } = calculateExecutionSummary(
+      execution?.results || [],
+      testCaseIds.length,
+      testCaseIds,
+    );
     return {
       stats: {
-        PASS: pass,
-        FAIL: fail,
-        BLOCKED: blocked,
-        NOTRUN: notRun,
-        total,
+        PASS: stats.pass,
+        FAIL: stats.fail,
+        BLOCKED: stats.blocked,
+        NOTRUN: stats.notRun,
+        total: stats.total,
       },
       progressPercent,
     };
-  }, [resultsMap, testCaseIds]);
+  }, [execution?.results, testCaseIds]);
 
   // 인피니티 스크롤을 위한 데이터 추출 (접힘이 반영된 목록에서 잘라낸다)
   const visibleData = useMemo(() => {
@@ -1665,6 +1648,7 @@ const TestExecutionForm = ({
           }}
           currentIndex={navTestCaseIds.indexOf(selectedTestCaseId)}
           totalCount={navTestCaseIds.length}
+          statCaseIds={testCaseIds}
           onOpenFullPage={() => {
             const projectId =
               propProjectId ||

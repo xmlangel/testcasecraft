@@ -41,6 +41,11 @@ import {
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { copyToClipboard } from "../../utils";
 
+// 작업 열 아이콘 한 칸의 크기(px). 아이콘 20px + 패딩 4px×2.
+// 첨부 아이콘은 결과에 첨부가 있을 때만 뜨므로, 없을 때도 같은 크기의 빈 칸을 둬
+// 행마다 작업 묶음의 너비가 같게 만든다.
+const ACTION_ICON_SLOT = 28;
+
 // 개별 행 컴포넌트 - 메모이제이션 적용
 const ExecutionRow = memo(
   ({
@@ -565,7 +570,11 @@ const ExecutionRow = memo(
                     size="small"
                     onClick={() => handleCopyLink?.(node.id)}
                     disabled={!canEnterResults}
-                    sx={{ p: 0.5 }}
+                    sx={{
+                      p: 0.5,
+                      width: ACTION_ICON_SLOT,
+                      height: ACTION_ICON_SLOT,
+                    }}
                     data-testid={`execution-table-copy-link-button-${node.id}`}
                   >
                     <ContentCopyIcon
@@ -579,26 +588,41 @@ const ExecutionRow = memo(
                 <IconButton
                   size="small"
                   onClick={() => handleShowPrevResults(node.id)}
-                  sx={{ p: 0.5 }}
+                  sx={{
+                    p: 0.5,
+                    width: ACTION_ICON_SLOT,
+                    height: ACTION_ICON_SLOT,
+                  }}
                   data-testid={`execution-table-prev-results-button-${node.id}`}
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
               {resultObj?.id &&
-                ((resultObj.attachments && resultObj.attachments.length > 0) ||
-                  resultObj.attachmentCount > 0) && (
-                  <Tooltip title={t("testExecution.table.viewAttachments")}>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleAttachmentClick(resultObj.id)}
-                      sx={{ p: 0.5 }}
-                      data-testid={`execution-table-attachments-button-${resultObj.id}`}
-                    >
-                      <AttachFileIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                )}
+              ((resultObj.attachments && resultObj.attachments.length > 0) ||
+                resultObj.attachmentCount > 0) ? (
+                <Tooltip title={t("testExecution.table.viewAttachments")}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleAttachmentClick(resultObj.id)}
+                    sx={{
+                      p: 0.5,
+                      width: ACTION_ICON_SLOT,
+                      height: ACTION_ICON_SLOT,
+                    }}
+                    data-testid={`execution-table-attachments-button-${resultObj.id}`}
+                  >
+                    <AttachFileIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                // 첨부가 없어도 자리를 비워 둔다. 첨부 유무로 아이콘 수가 달라지면
+                // 가운데 정렬된 묶음의 너비가 행마다 바뀌어 입력 버튼·아이콘이 세로로 어긋난다.
+                <Box
+                  aria-hidden
+                  sx={{ width: ACTION_ICON_SLOT, flexShrink: 0 }}
+                />
+              )}
             </>
           ) : null}
         </Box>

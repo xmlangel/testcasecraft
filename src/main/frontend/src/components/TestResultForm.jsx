@@ -53,6 +53,9 @@ const TestResultForm = ({
   onBack = null,
   currentIndex = 0,
   totalCount = 0,
+  // 상단 통계(Pass/Fail/Blocked/Not Run·진행률)의 집계 범위 — 보통 플랜의 케이스 ID 목록.
+  // totalCount 는 이전/다음 이동 카운터(1/N)에 쓰이므로 필터가 걸리면 줄어든다.
+  statCaseIds = null,
   fullPage = false,
   embedded = false,
   onOpenFullPage = null,
@@ -1002,6 +1005,7 @@ const TestResultForm = ({
           onBack={onBack}
           currentIndex={currentIndex}
           totalCount={totalCount}
+          statCaseIds={statCaseIds}
           testCase={testCase}
           isViewer={isViewer}
           t={t}
@@ -1256,6 +1260,7 @@ TestResultForm.propTypes = {
   onPrevious: PropTypes.func,
   currentIndex: PropTypes.number,
   totalCount: PropTypes.number,
+  statCaseIds: PropTypes.arrayOf(PropTypes.string),
   fullPage: PropTypes.bool,
   onOpenFullPage: PropTypes.func,
   isPreviousResultEdit: PropTypes.bool,
