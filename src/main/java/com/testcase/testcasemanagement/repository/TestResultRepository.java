@@ -458,15 +458,15 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
           "WITH latest_results_by_plan_execution AS (     SELECT         tc.id as test_case_id,    "
               + "     tp.id as test_plan_id,         te.id as test_execution_id,         tr.result,"
               + "         ROW_NUMBER() OVER (             PARTITION BY tc.id, tp.id, te.id         "
-              + "    ORDER BY tr.executed_at DESC         ) as rn     FROM testcases tc     LEFT"
-              + " JOIN test_plans tp ON tp.project_id = tc.project_id     LEFT JOIN test_executions"
-              + " te ON te.test_plan_id = tp.id     LEFT JOIN test_results tr ON tr.test_case_id ="
-              + " tc.id AND tr.test_execution_id = te.id     WHERE tc.project_id = :projectId    "
-              + " AND tr.executed_at IS NOT NULL ) SELECT     COALESCE(lr.result, 'NOTRUN') as"
-              + " result,     COUNT(*) as count,     lr.test_plan_id,     lr.test_execution_id FROM"
-              + " latest_results_by_plan_execution lr WHERE lr.rn = 1 OR lr.result IS NULL GROUP BY"
-              + " COALESCE(lr.result, 'NOTRUN'), lr.test_plan_id, lr.test_execution_id ORDER BY"
-              + " lr.test_plan_id, lr.test_execution_id, result",
+              + "    ORDER BY tr.executed_at DESC NULLS LAST         ) as rn     FROM testcases tc "
+              + "    LEFT JOIN test_plans tp ON tp.project_id = tc.project_id     LEFT JOIN"
+              + " test_executions te ON te.test_plan_id = tp.id     LEFT JOIN test_results tr ON"
+              + " tr.test_case_id = tc.id AND tr.test_execution_id = te.id     WHERE tc.project_id"
+              + " = :projectId     AND tr.executed_at IS NOT NULL ) SELECT     COALESCE(lr.result,"
+              + " 'NOTRUN') as result,     COUNT(*) as count,     lr.test_plan_id,    "
+              + " lr.test_execution_id FROM latest_results_by_plan_execution lr WHERE lr.rn = 1 OR"
+              + " lr.result IS NULL GROUP BY COALESCE(lr.result, 'NOTRUN'), lr.test_plan_id,"
+              + " lr.test_execution_id ORDER BY lr.test_plan_id, lr.test_execution_id, result",
       nativeQuery = true)
   List<Map<String, Object>> findTestCaseStatisticsByPlanAndExecution(
       @Param("projectId") String projectId);
@@ -482,16 +482,16 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
           "WITH latest_results_by_plan_execution AS (     SELECT         tc.id as test_case_id,    "
               + "     tp.id as test_plan_id,         te.id as test_execution_id,         tr.result,"
               + "         ROW_NUMBER() OVER (             PARTITION BY tc.id, tp.id, te.id         "
-              + "    ORDER BY tr.executed_at DESC         ) as rn     FROM testcases tc     LEFT"
-              + " JOIN test_plans tp ON tp.project_id = tc.project_id     LEFT JOIN test_executions"
-              + " te ON te.test_plan_id = tp.id     LEFT JOIN test_results tr ON tr.test_case_id ="
-              + " tc.id AND tr.test_execution_id = te.id     WHERE tc.project_id = :projectId    "
-              + " AND tr.executed_at IS NOT NULL ), aggregated_stats AS (     SELECT         tc.id"
-              + " as test_case_id,         COALESCE(lr.result, 'NOTRUN') as final_result     FROM"
-              + " testcases tc     LEFT JOIN latest_results_by_plan_execution lr ON lr.test_case_id"
-              + " = tc.id AND lr.rn = 1     WHERE tc.project_id = :projectId ) SELECT    "
-              + " final_result as result,     COUNT(*) as count FROM aggregated_stats GROUP BY"
-              + " final_result ORDER BY final_result",
+              + "    ORDER BY tr.executed_at DESC NULLS LAST         ) as rn     FROM testcases tc "
+              + "    LEFT JOIN test_plans tp ON tp.project_id = tc.project_id     LEFT JOIN"
+              + " test_executions te ON te.test_plan_id = tp.id     LEFT JOIN test_results tr ON"
+              + " tr.test_case_id = tc.id AND tr.test_execution_id = te.id     WHERE tc.project_id"
+              + " = :projectId     AND tr.executed_at IS NOT NULL ), aggregated_stats AS (    "
+              + " SELECT         tc.id as test_case_id,         COALESCE(lr.result, 'NOTRUN') as"
+              + " final_result     FROM testcases tc     LEFT JOIN latest_results_by_plan_execution"
+              + " lr ON lr.test_case_id = tc.id AND lr.rn = 1     WHERE tc.project_id = :projectId"
+              + " ) SELECT     final_result as result,     COUNT(*) as count FROM aggregated_stats"
+              + " GROUP BY final_result ORDER BY final_result",
       nativeQuery = true)
   List<Map<String, Object>> findTestCaseStatisticsByProjectImproved(
       @Param("projectId") String projectId);
@@ -916,6 +916,12 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
   /**
    * ICT-Performance: 실행 ID 목록에 대한 결과 상태별 집계 조회 각 실행 내에서 테스트케이스별 최신 결과를 기준으로 집계합니다.
    *
+   * <p>집계 대상은 그 실행이 물고 있는 테스트 플랜의 케이스로 한정한다(test_plan_cases 조인). 진행률의 분모가 플랜의 케이스 수인데 분자에 플랜에서 빠진
+   * 케이스의 과거 결과까지 들어가면, 같은 실행인데도 목록 화면과 상세 화면의 통계가 어긋난다.
+   *
+   * <p>최신 판정은 executed_at 내림차순이되 NULL 은 뒤로 보낸다 — Postgres 는 DESC 에서 NULL 을 먼저 주므로 명시하지 않으면 실행일시가 비어
+   * 있는 결과가 최신으로 뽑혀 Java·프론트 집계와 어긋난다.
+   *
    * @param executionIds 테스트 실행 ID 목록
    * @return 실행 ID별 상태별 개수 목록 (test_execution_id, result, count)
    */
@@ -923,10 +929,12 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
       value =
           "WITH latest_results AS (     SELECT         test_execution_id,         test_case_id,    "
               + "     result,         ROW_NUMBER() OVER (PARTITION BY test_execution_id,"
-              + " test_case_id ORDER BY executed_at DESC) as rn     FROM test_results     WHERE"
-              + " test_execution_id IN :executionIds ) SELECT     test_execution_id,     result,   "
-              + "  COUNT(*) as count FROM latest_results WHERE rn = 1 GROUP BY test_execution_id,"
-              + " result",
+              + " test_case_id ORDER BY executed_at DESC NULLS LAST) as rn     FROM test_results  "
+              + "   WHERE test_execution_id IN :executionIds ) SELECT     lr.test_execution_id,   "
+              + "  lr.result,     COUNT(*) as count FROM latest_results lr JOIN test_executions te"
+              + " ON te.id = lr.test_execution_id JOIN test_plan_cases tpc ON tpc.test_plan_id ="
+              + " te.test_plan_id AND tpc.test_case_id = lr.test_case_id WHERE lr.rn = 1 GROUP BY"
+              + " lr.test_execution_id, lr.result",
       nativeQuery = true)
   List<Map<String, Object>> findSummaryByExecutionIds(
       @Param("executionIds") List<String> executionIds);
@@ -943,20 +951,20 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
       value =
           "WITH latest_results AS (   SELECT test_execution_id, test_case_id, result,    "
               + " ROW_NUMBER() OVER (PARTITION BY test_execution_id, test_case_id ORDER BY"
-              + " executed_at DESC) as rn   FROM test_results ), target_cases AS (   SELECT te.id"
-              + " as test_execution_id, te.name as execution_name,          tp.id as test_plan_id,"
-              + " tp.name as test_plan_name,          tpc.test_case_id   FROM test_executions te  "
-              + " JOIN test_plans tp ON te.test_plan_id = tp.id   JOIN test_plan_cases tpc ON tp.id"
-              + " = tpc.test_plan_id   WHERE tp.project_id = :projectId ) SELECT tc.execution_name,"
-              + " tc.test_execution_id, tc.test_plan_name, COUNT(CASE WHEN lr.result = 'PASS' THEN"
-              + " 1 END) as pass_count, COUNT(CASE WHEN lr.result = 'FAIL' THEN 1 END) as"
-              + " fail_count, COUNT(CASE WHEN lr.result = 'BLOCKED' THEN 1 END) as blocked_count,"
-              + " COUNT(CASE WHEN lr.result IS NULL OR lr.result = 'NOT_RUN' OR lr.result ="
-              + " 'NOTRUN' THEN 1 END) as not_run_count FROM target_cases tc LEFT JOIN"
-              + " latest_results lr ON lr.test_execution_id = tc.test_execution_id   AND"
-              + " lr.test_case_id = tc.test_case_id AND lr.rn = 1 GROUP BY tc.test_execution_id,"
-              + " tc.execution_name, tc.test_plan_id, tc.test_plan_name ORDER BY tc.test_plan_name,"
-              + " tc.execution_name",
+              + " executed_at DESC NULLS LAST) as rn   FROM test_results ), target_cases AS (  "
+              + " SELECT te.id as test_execution_id, te.name as execution_name,          tp.id as"
+              + " test_plan_id, tp.name as test_plan_name,          tpc.test_case_id   FROM"
+              + " test_executions te   JOIN test_plans tp ON te.test_plan_id = tp.id   JOIN"
+              + " test_plan_cases tpc ON tp.id = tpc.test_plan_id   WHERE tp.project_id ="
+              + " :projectId ) SELECT tc.execution_name, tc.test_execution_id, tc.test_plan_name,"
+              + " COUNT(CASE WHEN lr.result = 'PASS' THEN 1 END) as pass_count, COUNT(CASE WHEN"
+              + " lr.result = 'FAIL' THEN 1 END) as fail_count, COUNT(CASE WHEN lr.result ="
+              + " 'BLOCKED' THEN 1 END) as blocked_count, COUNT(CASE WHEN lr.result IS NULL OR"
+              + " lr.result = 'NOT_RUN' OR lr.result = 'NOTRUN' THEN 1 END) as not_run_count FROM"
+              + " target_cases tc LEFT JOIN latest_results lr ON lr.test_execution_id ="
+              + " tc.test_execution_id   AND lr.test_case_id = tc.test_case_id AND lr.rn = 1 GROUP"
+              + " BY tc.test_execution_id, tc.execution_name, tc.test_plan_id, tc.test_plan_name"
+              + " ORDER BY tc.test_plan_name, tc.execution_name",
       nativeQuery = true)
   List<Map<String, Object>> findStatisticsByExecution(@Param("projectId") String projectId);
 
@@ -971,17 +979,18 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
       value =
           "WITH latest_results AS (   SELECT test_execution_id, test_case_id, result,    "
               + " ROW_NUMBER() OVER (PARTITION BY test_execution_id, test_case_id ORDER BY"
-              + " executed_at DESC) as rn   FROM test_results ), target_cases AS (   SELECT te.id"
-              + " as test_execution_id, te.name as execution_name,          tp.id as test_plan_id,"
-              + " tp.name as test_plan_name,          tpc.test_case_id   FROM test_executions te  "
-              + " JOIN test_plans tp ON te.test_plan_id = tp.id   JOIN test_plan_cases tpc ON tp.id"
-              + " = tpc.test_plan_id   WHERE tp.project_id = :projectId   AND tp.id IN :testPlanIds"
-              + " ) SELECT tc.execution_name, tc.test_execution_id, tc.test_plan_name, COUNT(CASE"
-              + " WHEN lr.result = 'PASS' THEN 1 END) as pass_count, COUNT(CASE WHEN lr.result ="
-              + " 'FAIL' THEN 1 END) as fail_count, COUNT(CASE WHEN lr.result = 'BLOCKED' THEN 1"
-              + " END) as blocked_count, COUNT(CASE WHEN lr.result IS NULL OR lr.result = 'NOT_RUN'"
-              + " OR lr.result = 'NOTRUN' THEN 1 END) as not_run_count FROM target_cases tc LEFT"
-              + " JOIN latest_results lr ON lr.test_execution_id = tc.test_execution_id   AND"
+              + " executed_at DESC NULLS LAST) as rn   FROM test_results ), target_cases AS (  "
+              + " SELECT te.id as test_execution_id, te.name as execution_name,          tp.id as"
+              + " test_plan_id, tp.name as test_plan_name,          tpc.test_case_id   FROM"
+              + " test_executions te   JOIN test_plans tp ON te.test_plan_id = tp.id   JOIN"
+              + " test_plan_cases tpc ON tp.id = tpc.test_plan_id   WHERE tp.project_id ="
+              + " :projectId   AND tp.id IN :testPlanIds ) SELECT tc.execution_name,"
+              + " tc.test_execution_id, tc.test_plan_name, COUNT(CASE WHEN lr.result = 'PASS' THEN"
+              + " 1 END) as pass_count, COUNT(CASE WHEN lr.result = 'FAIL' THEN 1 END) as"
+              + " fail_count, COUNT(CASE WHEN lr.result = 'BLOCKED' THEN 1 END) as blocked_count,"
+              + " COUNT(CASE WHEN lr.result IS NULL OR lr.result = 'NOT_RUN' OR lr.result ="
+              + " 'NOTRUN' THEN 1 END) as not_run_count FROM target_cases tc LEFT JOIN"
+              + " latest_results lr ON lr.test_execution_id = tc.test_execution_id   AND"
               + " lr.test_case_id = tc.test_case_id AND lr.rn = 1 GROUP BY tc.test_execution_id,"
               + " tc.execution_name, tc.test_plan_id, tc.test_plan_name ORDER BY tc.test_plan_name,"
               + " tc.execution_name",

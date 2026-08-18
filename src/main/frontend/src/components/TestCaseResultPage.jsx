@@ -39,6 +39,8 @@ const TestCaseResultPage = ({ embedded = false }) => {
   const [execution, setExecution] = useState(null);
   const [testCase, setTestCase] = useState(null);
   const [testCasesList, setTestCasesList] = useState([]);
+  // 상단 통계의 집계 범위 — 플랜의 케이스 목록(필터와 무관하게 실행 전체 기준)
+  const [planCaseIds, setPlanCaseIds] = useState([]);
   const [testCases, setTestCases] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -114,6 +116,9 @@ const TestCaseResultPage = ({ embedded = false }) => {
 
             const casesList = finalTestCaseIds.map((id) => ({ id }));
             setTestCasesList(casesList);
+            // 통계는 필터·네비 목록이 아니라 플랜 전체를 분모로 삼는다 —
+            // 실행 화면(TestExecutionForm)의 요약과 같은 범위여야 숫자가 맞는다.
+            setPlanCaseIds(orderedTestCaseIds);
             setTestCases(allTestCases);
 
             // 현재 테스트 케이스의 인덱스 찾기
@@ -122,6 +127,7 @@ const TestCaseResultPage = ({ embedded = false }) => {
           } else {
             // 테스트 플랜이나 테스트 케이스 목록 조회 실패 시에도 현재 testCaseId는 표시
             setTestCasesList([{ id: testCaseId }]);
+            setPlanCaseIds([testCaseId]);
             setCurrentIndex(0);
           }
         }
@@ -261,6 +267,7 @@ const TestCaseResultPage = ({ embedded = false }) => {
             onBack={handleBack}
             currentIndex={currentIndex}
             totalCount={testCasesList.length || 1}
+            statCaseIds={planCaseIds.length > 0 ? planCaseIds : undefined}
             fullPage={true}
             embedded={embedded}
             execution={execution}
