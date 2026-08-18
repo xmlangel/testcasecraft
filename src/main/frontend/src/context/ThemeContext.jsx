@@ -9,6 +9,7 @@ import React, {
 import {
   createTheme,
   ThemeProvider as MuiThemeProvider,
+  alpha,
 } from "@mui/material/styles";
 import PropTypes from "prop-types";
 
@@ -162,7 +163,8 @@ const createMaterial3Theme = (mode) => {
   });
 };
 
-const createAppTheme = (mode) => {
+// 테스트에서 팔레트·컴포넌트 오버라이드를 직접 확인할 수 있도록 내보낸다
+export const createAppTheme = (mode) => {
   const isLight = mode === "light";
 
   return createTheme({
@@ -448,9 +450,28 @@ const createAppTheme = (mode) => {
             fontFamily: "'JetBrains Mono', monospace",
             backdropFilter: "blur(10px)",
           },
-          filled: {
-            backgroundColor: "rgba(6, 182, 212, 0.15)",
-            color: "#0891B2",
+          // 채움형 칩은 색을 지정하지 않은 것만 시안으로 물들인다.
+          // 예전에는 color 와 무관하게 전부 시안이라, 상태를 색으로 구분하는 칩
+          // (진행중 primary / 완료 success / 실패 error 등)이 모두 같은 색으로 보였다.
+          // 색을 지정한 칩은 그 팔레트 색을 반투명하게 깔아 유리 질감을 유지하면서 구분된다.
+          filled: ({ ownerState, theme: chipTheme }) => {
+            const chipColor = ownerState?.color;
+            if (!chipColor || chipColor === "default") {
+              return {
+                backgroundColor: "rgba(6, 182, 212, 0.15)",
+                color: "#0891B2",
+              };
+            }
+            const paletteColor = chipTheme.palette[chipColor];
+            if (!paletteColor?.main) return {};
+            return {
+              backgroundColor: alpha(paletteColor.main, isLight ? 0.18 : 0.32),
+              color: isLight ? paletteColor.dark : paletteColor.light,
+              border: `1px solid ${alpha(paletteColor.main, isLight ? 0.35 : 0.5)}`,
+              "& .MuiChip-icon, & .MuiChip-deleteIcon": {
+                color: "inherit",
+              },
+            };
           },
         },
       },
