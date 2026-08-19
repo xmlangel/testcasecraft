@@ -60,6 +60,9 @@ import {
   canManageProjectSettings,
 } from "../TestCaseTree/utils/permissionUtils.js";
 
+const TAB_GENERAL = "general";
+const TAB_MEMBERS = "members";
+
 /** 다른 영역 패널(대시보드 등)과 같은 높이 규칙 — 화면이 짧아 보이지 않게 맞춘다. */
 const PANEL_MIN_HEIGHT = "calc(100vh - 180px)";
 
@@ -97,7 +100,9 @@ export default function ProjectSettingsPage() {
   const { t } = useI18n();
   const { projectRole, loading: roleLoading } = useProjectRole(projectId, user);
 
-  const [tab, setTab] = useState(0);
+  // 탭은 번호가 아니라 값으로 고른다. 권한에 따라 일반 탭이 없을 수 있어,
+  // 번호로 다루면 없는 탭을 가리키게 된다.
+  const [tab, setTab] = useState(TAB_GENERAL);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState("");
@@ -120,6 +125,14 @@ export default function ProjectSettingsPage() {
 
   const canEditMembers = canManageProjectMembers(projectRole);
   const canEditSettings = canManageProjectSettings(projectRole);
+
+  // 일반 탭이 없는 역할(리드)은 멤버 탭에서 시작한다. 초기값을 그대로 두면
+  // 어느 탭도 고르지 않은 상태로 빈 화면이 뜬다.
+  useEffect(() => {
+    if (!roleLoading && !canEditSettings && tab === TAB_GENERAL) {
+      setTab(TAB_MEMBERS);
+    }
+  }, [roleLoading, canEditSettings, tab]);
 
   // 역할 라벨. 번역 키와 한국어 기본값을 t() 안에 두어야 i18n 스캐너가 하드코딩으로 세지 않는다.
   const roleLabel = useCallback(
@@ -307,11 +320,15 @@ export default function ProjectSettingsPage() {
           sx={{ mb: 2 }}
           data-testid="project-settings-tabs"
         >
+          {canEditSettings && (
+            <Tab
+              value={TAB_GENERAL}
+              label={t("projectSettings.tab.general", "일반")}
+              data-testid="project-settings-tab-general"
+            />
+          )}
           <Tab
-            label={t("projectSettings.tab.general", "일반")}
-            data-testid="project-settings-tab-general"
-          />
-          <Tab
+            value={TAB_MEMBERS}
             label={t("projectSettings.tab.members", "멤버")}
             data-testid="project-settings-tab-members"
           />
@@ -321,16 +338,8 @@ export default function ProjectSettingsPage() {
           <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
             <CircularProgress />
           </Box>
-        ) : tab === 0 ? (
+        ) : tab === TAB_GENERAL ? (
           <Paper variant="outlined" sx={{ p: 2, maxWidth: 640 }}>
-            {!canEditSettings && (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                {t(
-                  "projectSettings.general.readonly",
-                  "프로젝트 정보 변경은 프로젝트 매니저와 시스템 관리자만 할 수 있습니다.",
-                )}
-              </Alert>
-            )}
             <TextField
               label={t("projectSettings.general.code", "프로젝트 코드")}
               value={project?.code ?? ""}
@@ -350,7 +359,6 @@ export default function ProjectSettingsPage() {
               }
               fullWidth
               margin="normal"
-              disabled={!canEditSettings}
               inputProps={{ maxLength: 100 }}
               data-testid="project-settings-name"
             />
@@ -364,7 +372,6 @@ export default function ProjectSettingsPage() {
               margin="normal"
               multiline
               minRows={3}
-              disabled={!canEditSettings}
               inputProps={{ maxLength: 1000 }}
               data-testid="project-settings-description"
             />
@@ -377,14 +384,13 @@ export default function ProjectSettingsPage() {
               type="number"
               fullWidth
               margin="normal"
-              disabled={!canEditSettings}
               data-testid="project-settings-display-order"
             />
             <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
               <Button
                 variant="contained"
                 onClick={handleSaveGeneral}
-                disabled={!canEditSettings || saving || !form.name.trim()}
+                disabled={saving || !form.name.trim()}
                 data-testid="project-settings-save"
               >
                 {t("projectSettings.general.save", "저장")}

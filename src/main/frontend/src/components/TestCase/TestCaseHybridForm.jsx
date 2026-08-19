@@ -26,6 +26,9 @@ import {
 import { useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import useProjectRole from "../../hooks/useProjectRole.js";
+import { canEditProjectContent } from "../TestCaseTree/utils/permissionUtils.js";
 import { debugLog, debugWarn } from "../../utils/logger.js";
 import TestCaseForm from "../TestCaseForm.jsx";
 import TestCaseSpreadsheet from "./TestCaseSpreadsheet.jsx";
@@ -68,6 +71,19 @@ const TestCaseHybridForm = ({
     setInputMode,
   } = useAppContext();
   const { t } = useI18n();
+  const { user } = useAuth();
+  // 편집 권한이 없으면 스프레드시트 모드를 아예 내보이지 않는다. 일괄 입력은 저장이
+  // 목적이라, 열어 준 뒤 저장에서 막으면 무엇을 하려 했는지만 잃는다.
+  const { projectRole } = useProjectRole(effectiveProjectId, user);
+  const canEdit = canEditProjectContent(projectRole);
+
+  // 입력 모드는 컨텍스트에 남아 있다. 편집 권한을 잃은 사용자가 스프레드시트 모드로
+  // 들어와 있으면 토글이 사라져 돌아갈 길이 없으므로 개별 폼으로 되돌린다.
+  useEffect(() => {
+    if (!canEdit && inputMode !== "form") {
+      setInputMode("form");
+    }
+  }, [canEdit, inputMode, setInputMode]);
   // 개인 북마크(즐겨찾기) 상태 — 케이스 리스트 별 버튼용
   const { favoriteIds, toggleFavorite } = useBookmarks(effectiveProjectId);
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
@@ -372,72 +388,74 @@ const TestCaseHybridForm = ({
         </Breadcrumbs>
       )}
 
-      {/* 입력 모드 선택 — 좌측에 작은 토글 버튼 두 개만 노출 */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-start",
-          mb: 1.5,
-        }}
-      >
-        <ToggleButtonGroup
-          value={inputMode}
-          exclusive
-          onChange={(_, newMode) => {
-            if (newMode !== null) handleModeChange(newMode);
-          }}
-          aria-label={t("testcase.inputMode.title", "입력 모드 선택")}
-          size="small"
+      {/* 입력 모드 선택 — 편집 권한이 있을 때만 내보인다. 없으면 개별 폼만 쓴다. */}
+      {canEdit && (
+        <Box
           sx={{
-            "& .MuiToggleButton-root": {
-              px: 1.5,
-              fontWeight: 500,
-              borderColor: "divider",
-            },
-            "& .MuiToggleButton-root.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "primary.contrastText",
-              fontWeight: 700,
-              boxShadow: 1,
-              "&:hover": { bgcolor: "primary.dark" },
-            },
+            display: "flex",
+            justifyContent: "flex-start",
+            mb: 1.5,
           }}
         >
-          <Tooltip
-            title={t(
-              "testcase.inputMode.form.tooltip",
-              "개별 폼으로 상세 입력",
-            )}
+          <ToggleButtonGroup
+            value={inputMode}
+            exclusive
+            onChange={(_, newMode) => {
+              if (newMode !== null) handleModeChange(newMode);
+            }}
+            aria-label={t("testcase.inputMode.title", "입력 모드 선택")}
+            size="small"
+            sx={{
+              "& .MuiToggleButton-root": {
+                px: 1.5,
+                fontWeight: 500,
+                borderColor: "divider",
+              },
+              "& .MuiToggleButton-root.Mui-selected": {
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
+                fontWeight: 700,
+                boxShadow: 1,
+                "&:hover": { bgcolor: "primary.dark" },
+              },
+            }}
           >
-            <ToggleButton
-              value="form"
-              aria-label={t("testcase.inputMode.form.ariaLabel", "폼 모드")}
-              data-testid="mode-individual-button"
-            >
-              <FormIcon fontSize="small" sx={{ mr: 0.75 }} />
-              {t("testcase.inputMode.form.title", "개별 폼")}
-            </ToggleButton>
-          </Tooltip>
-          <Tooltip
-            title={t(
-              "testcase.inputMode.spreadsheet.tooltip",
-              "스프레드시트로 일괄 입력",
-            )}
-          >
-            <ToggleButton
-              value="spreadsheet"
-              aria-label={t(
-                "testcase.inputMode.spreadsheet.ariaLabel",
-                "스프레드시트 모드",
+            <Tooltip
+              title={t(
+                "testcase.inputMode.form.tooltip",
+                "개별 폼으로 상세 입력",
               )}
-              data-testid="mode-spreadsheet-button"
             >
-              <SpreadsheetIcon fontSize="small" sx={{ mr: 0.75 }} />
-              {t("testcase.inputMode.spreadsheet.title", "스프레드시트")}
-            </ToggleButton>
-          </Tooltip>
-        </ToggleButtonGroup>
-      </Box>
+              <ToggleButton
+                value="form"
+                aria-label={t("testcase.inputMode.form.ariaLabel", "폼 모드")}
+                data-testid="mode-individual-button"
+              >
+                <FormIcon fontSize="small" sx={{ mr: 0.75 }} />
+                {t("testcase.inputMode.form.title", "개별 폼")}
+              </ToggleButton>
+            </Tooltip>
+            <Tooltip
+              title={t(
+                "testcase.inputMode.spreadsheet.tooltip",
+                "스프레드시트로 일괄 입력",
+              )}
+            >
+              <ToggleButton
+                value="spreadsheet"
+                aria-label={t(
+                  "testcase.inputMode.spreadsheet.ariaLabel",
+                  "스프레드시트 모드",
+                )}
+                data-testid="mode-spreadsheet-button"
+              >
+                <SpreadsheetIcon fontSize="small" sx={{ mr: 0.75 }} />
+                {t("testcase.inputMode.spreadsheet.title", "스프레드시트")}
+              </ToggleButton>
+            </Tooltip>
+          </ToggleButtonGroup>
+        </Box>
+      )}
 
       {/* 로딩 인디케이터 (스프레드시트 모드에서만 표시) */}
       {(inputMode === "spreadsheet" ||

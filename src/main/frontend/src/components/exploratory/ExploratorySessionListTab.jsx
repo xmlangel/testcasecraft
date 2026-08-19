@@ -42,6 +42,7 @@ function ExploratorySessionListTab({
   onCreateSession,
   onDeleteSession,
   canRun = false,
+  canDelete = false,
 }) {
   const theme = useTheme();
   const { designSystem } = useAppTheme();
@@ -335,38 +336,38 @@ function ExploratorySessionListTab({
                               </Typography>
                             </Stack>
                           )}
-                          <Tooltip
-                            title={t("common.delete", "삭제")}
-                            sx={{ display: canRun ? undefined : "none" }}
-                          >
-                            <IconButton
-                              size="small"
-                              disabled={!canRun}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!canRun) return;
-                                onDeleteSession && onDeleteSession(item.id);
-                              }}
-                              sx={{
-                                opacity: 0.3,
-                                transition: "all 0.2s ease-in-out",
-                                color: isDark
-                                  ? "rgba(255,255,255,0.4)"
-                                  : "text.secondary",
-                                "&:hover": {
-                                  opacity: 1,
-                                  color: "error.main",
-                                  bgcolor: isDark
-                                    ? "rgba(211, 47, 47, 0.1)"
-                                    : "rgba(211, 47, 47, 0.05)",
-                                  transform: "scale(1.1)",
-                                },
-                                ".MuiCard-root:hover &": { opacity: 0.8 },
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          {/* 삭제 권한이 없으면 버튼 자체를 내보내지 않는다.
+                              Tooltip 에 sx 를 걸어도 숨겨지지 않는다 — Tooltip 은 자기 DOM 을
+                              만들지 않고 자식에게 props 만 넘긴다(실측에서 VIEWER 에게 보였다). */}
+                          {canDelete && (
+                            <Tooltip title={t("common.delete", "삭제")}>
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteSession && onDeleteSession(item.id);
+                                }}
+                                sx={{
+                                  opacity: 0.3,
+                                  transition: "all 0.2s ease-in-out",
+                                  color: isDark
+                                    ? "rgba(255,255,255,0.4)"
+                                    : "text.secondary",
+                                  "&:hover": {
+                                    opacity: 1,
+                                    color: "error.main",
+                                    bgcolor: isDark
+                                      ? "rgba(211, 47, 47, 0.1)"
+                                      : "rgba(211, 47, 47, 0.05)",
+                                    transform: "scale(1.1)",
+                                  },
+                                  ".MuiCard-root:hover &": { opacity: 0.8 },
+                                }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Box>
                       </Box>
 

@@ -20,7 +20,10 @@ import {
 import { useI18n } from "../context/I18nContext.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import useProjectRole from "../hooks/useProjectRole.js";
-import { canRecordTestResult } from "./TestCaseTree/utils/permissionUtils.js";
+import {
+  canManageProjectMembers,
+  canRecordTestResult,
+} from "./TestCaseTree/utils/permissionUtils.js";
 import { useTheme as useAppTheme } from "../context/ThemeContext.jsx";
 import ExploratoryCharterTab from "./exploratory/ExploratoryCharterTab.jsx";
 import ExploratorySessionListTab from "./exploratory/ExploratorySessionListTab.jsx";
@@ -98,6 +101,8 @@ function ExploratorySessionWorkspace({ projectId }) {
   // 매뉴얼 18-4 가 TESTER 에게 "탐색 세션 진행" 을 준다. 백엔드 canRunTestSession 과 같은 기준이다.
   const { projectRole } = useProjectRole(projectId, user);
   const canRunSessions = canRecordTestResult(projectRole);
+  // 삭제는 진행보다 좁다. 백엔드 canDeleteTestSession 과 같은 기준 — 리드 이상만.
+  const canDeleteSessions = canManageProjectMembers(projectRole);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab") || "charters";
@@ -1182,6 +1187,7 @@ function ExploratorySessionWorkspace({ projectId }) {
             onCreateSession={handleCreateSession}
             onDeleteSession={handleDeleteSession}
             canRun={canRunSessions}
+            canDelete={canDeleteSessions}
           />
         )}
 
