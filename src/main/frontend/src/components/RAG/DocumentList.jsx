@@ -410,14 +410,16 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             "문서 업로드 버튼을 사용하여 파일을 추가하세요",
           )}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<CloudUploadIcon />}
-          sx={{ mt: 2 }}
-          onClick={handleUploadDialogOpen}
-        >
-          {t("rag.document.list.uploadButton", "문서 업로드")}
-        </Button>
+        {canEditDocuments && (
+          <Button
+            variant="contained"
+            startIcon={<CloudUploadIcon />}
+            sx={{ mt: 2 }}
+            onClick={handleUploadDialogOpen}
+          >
+            {t("rag.document.list.uploadButton", "문서 업로드")}
+          </Button>
+        )}
 
         <DocumentListDialogs
           deleteDialogOpen={false}

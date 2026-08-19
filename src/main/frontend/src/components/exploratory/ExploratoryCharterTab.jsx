@@ -38,6 +38,7 @@ function ExploratoryCharterTab({
   charterFilter,
   setCharterFilter,
   openNewCharterDialog,
+  canRun = false,
   filteredCharters,
   openEditCharterDialog,
   statusColor,
@@ -79,13 +80,17 @@ function ExploratoryCharterTab({
             <MenuItem value="ARCHIVED">ARCHIVED</MenuItem>
           </Select>
         </FormControl>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={openNewCharterDialog}
-        >
-          {t("exploratory.charter.create", "차터 생성")}
-        </Button>
+        {/* 차터는 세션의 전제라 세션을 진행할 수 있는 사람만 만든다. */}
+        {canRun && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={openNewCharterDialog}
+            data-testid="exploratory-charter-create"
+          >
+            {t("exploratory.charter.create", "차터 생성")}
+          </Button>
+        )}
       </Box>
 
       <Grid container spacing={2}>

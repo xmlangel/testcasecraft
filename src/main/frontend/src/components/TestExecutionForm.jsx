@@ -192,17 +192,11 @@ const TestExecutionForm = ({
 
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
-  // 상태 조건만으로 버튼을 띄우면 조회 전용 역할에게도 보인다. 백엔드 TestExecutionService 는
-  // CUD·상태전환을 canEditProject, 결과 기록을 canRecordTestResult 로 막으므로 같은 기준을 쓴다.
-  const roleProjectId =
-    execution?.testPlan?.projectId || execution?.projectId || propProjectId;
-  const { projectRole } = useProjectRole(roleProjectId, currentUser);
-  const canEditExecution = canEditProjectContent(projectRole);
-  const canRecordResults = canRecordTestResult(projectRole);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [execution, setExecution] = useState(null);
+
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isResultFormOpen, setIsResultFormOpen] = useState(false);
   const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
@@ -805,6 +799,17 @@ const TestExecutionForm = ({
 
   // 일괄 액션 버튼 클릭
   const [preselectedResult, setPreselectedResult] = useState(null);
+
+  // 역할 판정은 execution 상태 아래에 둔다. 위에 두면 execution 을 선언 전에 읽어
+  // TDZ ReferenceError 가 나고 실행 상세 화면이 통째로 죽는다(실측으로 확인).
+  //
+  // 상태 조건만으로 버튼을 띄우면 조회 전용 역할에게도 보인다. 백엔드 TestExecutionService 는
+  // CUD·상태전환을 canEditProject, 결과 기록을 canRecordTestResult 로 막으므로 같은 기준을 쓴다.
+  const roleProjectId =
+    execution?.testPlan?.projectId || execution?.projectId || propProjectId;
+  const { projectRole } = useProjectRole(roleProjectId, currentUser);
+  const canEditExecution = canEditProjectContent(projectRole);
+  const canRecordResults = canRecordTestResult(projectRole);
 
   const handleBulkActionClick = useCallback(
     (result) => {

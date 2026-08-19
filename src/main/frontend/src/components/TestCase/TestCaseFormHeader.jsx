@@ -115,7 +115,8 @@ const TestCaseFormHeader = ({
           )}
         </Box>
         {/* 테스트 케이스 추가 버튼 (상단으로 이동하여 저장 버튼과 구분) */}
-        {!isFolder && onAddNew && (
+        {/* 조회 전용 역할에는 케이스를 더하는 입구를 내보내지 않는다. */}
+        {!isFolder && !isViewer && onAddNew && (
           <Button
             onClick={onAddNew}
             color="secondary"

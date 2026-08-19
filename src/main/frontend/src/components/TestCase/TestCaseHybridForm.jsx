@@ -84,6 +84,7 @@ const TestCaseHybridForm = ({
       setInputMode("form");
     }
   }, [canEdit, inputMode, setInputMode]);
+
   // 개인 북마크(즐겨찾기) 상태 — 케이스 리스트 별 버튼용
   const { favoriteIds, toggleFavorite } = useBookmarks(effectiveProjectId);
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
@@ -94,6 +95,12 @@ const TestCaseHybridForm = ({
 
   // 폴더 정보 편집 모드 (폴더 선택 시 기본은 케이스 목록, 편집 버튼으로 폼 전환)
   const [isFolderEditMode, setIsFolderEditMode] = useState(false);
+  // 폴더 편집 모드도 같이 되돌린다. 버튼을 감춰도 이미 들어와 있으면 폼이 열린 채 남는다.
+  useEffect(() => {
+    if (!canEdit && isFolderEditMode) {
+      setIsFolderEditMode(false);
+    }
+  }, [canEdit, isFolderEditMode]);
   useEffect(() => {
     setIsFolderEditMode(false);
   }, [effectiveTestCaseId]);
@@ -527,7 +534,11 @@ const TestCaseHybridForm = ({
               folder={selectedItem}
               items={folderListItems}
               onSelectItem={onSelectTestCase}
-              onEditFolder={() => setIsFolderEditMode(true)}
+              // 편집 권한이 없으면 폴더 편집 입구를 넘기지 않는다. FolderCaseList 는
+              // 이 콜백이 있을 때만 연필 버튼을 그린다.
+              onEditFolder={
+                canEdit ? () => setIsFolderEditMode(true) : undefined
+              }
               favoriteIds={favoriteIds}
               onToggleFavorite={(item) => toggleFavorite(item.id)}
             />

@@ -1170,6 +1170,7 @@ function ExploratorySessionWorkspace({ projectId }) {
             saveCharter={saveCharter}
             savingCharter={savingCharter}
             charterErrors={charterErrors}
+            canRun={canRunSessions}
           />
         )}
 
