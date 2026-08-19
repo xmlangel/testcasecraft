@@ -16,6 +16,8 @@ import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestCaseVersionRepository;
 import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
+import com.testcase.testcasemanagement.repository.TestResultEditRepository;
+import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.repository.TestSessionAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestSessionRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
@@ -56,6 +58,10 @@ public class ProjectSecurityService {
   @Autowired private TestSessionRepository testSessionRepository;
 
   @Autowired private TestCaseVersionRepository testCaseVersionRepository;
+
+  @Autowired private TestResultRepository testResultRepository;
+
+  @Autowired private TestResultEditRepository testResultEditRepository;
 
   @Autowired private TestSessionAttachmentRepository testSessionAttachmentRepository;
 
@@ -184,12 +190,12 @@ public class ProjectSecurityService {
         testCaseRepository.findProjectIdById(testCaseId), this::canAccessProject);
   }
 
-  /** 테스트케이스가 속한 프로젝트에 현재 사용자가 업로드(첨부 추가)할 수 있는지 (업로드 권한 기준) */
+  /**
+   * 테스트케이스에 첨부를 더할 수 있는지. 케이스에 파일을 붙이는 것은 케이스를 바꾸는 일이라 편집 권한을 요구한다(이전에는 업로드 권한을 썼고 그 정의가 읽기 권한이었다).
+   */
   public boolean canUploadTestCase(String testCaseId) {
-    return testCaseRepository
-        .findProjectIdById(testCaseId)
-        .map(this::canUploadToProject)
-        .orElse(false);
+    return projectPermission(
+        testCaseRepository.findProjectIdById(testCaseId), this::canEditProject);
   }
 
   /**
@@ -240,6 +246,18 @@ public class ProjectSecurityService {
         this::canEditProject);
   }
 
+  /** 테스트 결과가 속한 프로젝트에 현재 사용자가 결과를 기록할 수 있는지 (결과 → 실행 → 프로젝트 투영). */
+  public boolean canRecordTestResultById(String testResultId) {
+    return projectPermission(
+        testResultRepository.findProjectIdById(testResultId), this::canRecordTestResult);
+  }
+
+  /** 결과 편집본이 속한 프로젝트에 현재 사용자가 결과를 기록할 수 있는지 (편집본 → 원본 결과 → 실행 → 프로젝트). */
+  public boolean canEditTestResultEdit(String editId) {
+    return projectPermission(
+        testResultEditRepository.findProjectIdByEditId(editId), this::canRecordTestResult);
+  }
+
   /** JUnit 결과가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */
   public boolean canAccessJunitResult(String testResultId) {
     return projectPermission(
@@ -276,10 +294,10 @@ public class ProjectSecurityService {
         testSessionRepository.findProjectIdById(sessionId), this::canAccessProject);
   }
 
-  /** 탐색적 세션이 속한 프로젝트에 현재 사용자가 업로드(첨부 추가)할 수 있는지 */
+  /** 탐색적 세션에 첨부를 더할 수 있는지. 세션을 진행할 수 있는 사람과 같은 기준이다. */
   public boolean canUploadToTestSession(String sessionId) {
     return projectPermission(
-        testSessionRepository.findProjectIdById(sessionId), this::canUploadToProject);
+        testSessionRepository.findProjectIdById(sessionId), this::canRunTestSession);
   }
 
   /**
@@ -535,19 +553,22 @@ public class ProjectSecurityService {
       return true;
     }
 
-    // 프로젝트에 접근할 수 있으면 업로드도 가능
-    return canAccessProject(projectId, username);
+    // 결과 기록 권한(편집 롤 + TESTER)이 있어야 올릴 수 있다.
+    // 이전에는 canAccessProject(읽기)였어서 VIEWER 도 업로드할 수 있었다.
+    return userRepository
+        .findByUsername(username)
+        .map(user -> projectUserRepository.hasResultEntryRole(projectId, user.getId()))
+        .orElse(false);
   }
 
-  /** ICT-203: 현재 사용자가 프로젝트에 JUnit XML 파일을 업로드할 수 있는지 확인 */
+  /**
+   * ICT-203: 현재 사용자가 프로젝트에 JUnit XML 파일 등을 업로드할 수 있는지 확인.
+   *
+   * <p>업로드는 결과를 남기는 동작이므로 결과 기록 권한과 같은 기준을 쓴다 — 편집 롤 + TESTER + 시스템 관리자. 이름만 보면 쓰기 권한처럼 보이지만 정의가
+   * canAccessProject 였어서 VIEWER 도 통과했다.
+   */
   public boolean canUploadToProject(String projectId) {
-    // 시스템 관리자는 모든 프로젝트에 업로드 가능
-    if (securityContextUtil.isSystemAdmin()) {
-      return true;
-    }
-
-    // 프로젝트에 접근할 수 있으면 업로드도 가능
-    return canAccessProject(projectId);
+    return canRecordTestResult(projectId);
   }
 
   /**
@@ -598,6 +619,42 @@ public class ProjectSecurityService {
 
     String currentUsername = securityContextUtil.getCurrentUsername();
     return currentUsername != null && canAccessDocumentProject(documentId, currentUsername);
+  }
+
+  /**
+   * RAG 문서가 속한 프로젝트를 현재 사용자가 편집할 수 있는지. 문서 업로드·삭제·분석 실행처럼 상태를 바꾸는 동작에 쓴다.
+   *
+   * <p>공통(글로벌) 문서는 프로젝트가 없으므로 시스템 관리자만 바꿀 수 있다. 조회 판정(canAccessDocumentProject)은 인증만 요구하지만 변경은 그럴 수
+   * 없다.
+   */
+  public boolean canEditDocumentProject(UUID documentId) {
+    try {
+      RagDocumentResponse document = ragService.getDocument(documentId);
+      if (document == null || document.getProjectId() == null) {
+        return false;
+      }
+      if (RagService.GLOBAL_PROJECT_ID.equals(document.getProjectId())) {
+        return securityContextUtil.isSystemAdmin();
+      }
+      return canEditProject(document.getProjectId().toString());
+    } catch (Exception e) {
+      // 문서 조회 실패 시 fail-closed
+      return false;
+    }
+  }
+
+  /** RAG 분석요약이 속한 프로젝트를 현재 사용자가 편집할 수 있는지 (요약 → 문서 → 프로젝트). */
+  public boolean canEditRagAnalysisSummary(java.util.UUID summaryId) {
+    try {
+      com.testcase.testcasemanagement.dto.rag.RagAnalysisSummaryResponse summary =
+          ragService.getAnalysisSummary(summaryId);
+      if (summary == null || summary.getDocumentId() == null) {
+        return false;
+      }
+      return canEditDocumentProject(summary.getDocumentId());
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   /**

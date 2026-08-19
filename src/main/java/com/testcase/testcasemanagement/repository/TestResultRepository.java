@@ -7,6 +7,7 @@ import com.testcase.testcasemanagement.model.TestResult;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,6 +15,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface TestResultRepository extends JpaRepository<TestResult, String> {
+
+  /** 결과가 속한 프로젝트 ID (결과 → 실행 → 프로젝트). 인가 판정에서 투영용으로 쓴다. */
+  @Query("SELECT e.project.id FROM TestResult r JOIN r.testExecution e WHERE r.id = :testResultId")
+  Optional<String> findProjectIdById(@Param("testResultId") String testResultId);
+
   List<TestResult> findByTestCaseId(String testCaseId);
 
   /**

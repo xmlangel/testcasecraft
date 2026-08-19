@@ -57,6 +57,17 @@ public class WriteEndpointAuthorizationTest {
           "canEditTestResultAttachment",
           "canEditTestSessionAttachment",
           "canRecordTestResult",
+          "canRecordTestResultById",
+          "canEditTestResultEdit",
+          "canEditDocumentProject",
+          "canEditRagAnalysisSummary",
+          // 이름은 업로드지만 정의를 결과 기록·편집 권한으로 조였다. 정의가 풀리면
+          // predicateDefinitionsStayTightened 가 잡는다.
+          "canUploadToProject",
+          "canUploadTestCase",
+          "canUploadToTestSession",
+          "canModifyJunitResult",
+          "canModifyJunitCase",
           "canRunTestSession",
           "canApproveTestSession",
           "canManageMembers",
@@ -88,50 +99,6 @@ public class WriteEndpointAuthorizationTest {
     // POST 를 쓰지만 실제로는 읽기인 것들
     ALLOWED.put("RagController.java POST /search/similar", "검색 조회다. 조건이 길어 POST 를 쓴다");
     ALLOWED.put("RagController.java POST /search/advanced", "검색 조회다. 조건이 길어 POST 를 쓴다");
-
-    // P1 로 남긴 것들 — 읽기 권한 술어로 쓰기를 막고 있어 프로젝트 VIEWER 가 통과한다
-    ALLOWED.put(
-        "TestCaseAttachmentController.java POST /upload/{testCaseId}",
-        "P1 — canUploadTestCase 가 canUploadToProject(=canAccessProject) 를 물고 있다");
-    ALLOWED.put("TestResultEditController.java POST (기본 경로)", "P1 — 인가 표현이 없다");
-    ALLOWED.put("TestResultEditController.java PUT /{editId}", "P1 — 인가 표현이 없다");
-    ALLOWED.put("TestResultEditController.java DELETE /{editId}", "P1 — 인가 표현이 없다");
-    ALLOWED.put(
-        "TestResultAttachmentController.java POST /upload/{testResultId}", "P1 — 인가 표현이 없다");
-    ALLOWED.put(
-        "JunitResultController.java POST /upload",
-        "P1 — canUploadToProject 가 canAccessProject 와 같다");
-    ALLOWED.put(
-        "JunitResultController.java PUT /cases/{testCaseId}",
-        "P1 — canModifyJunitCase 가 업로드 권한을 쓴다");
-    ALLOWED.put(
-        "JunitResultController.java DELETE /{testResultId}",
-        "P1 — canModifyJunitResult 가 업로드 권한을 쓴다");
-    ALLOWED.put(
-        "JunitResultController.java PUT /{testResultId}/link-plan",
-        "P1 — canModifyJunitResult 가 업로드 권한을 쓴다");
-    ALLOWED.put(
-        "TestSessionAttachmentController.java POST /upload/{sessionId}",
-        "P1 — canUploadToTestSession 이 업로드 권한을 쓴다");
-    for (String rag :
-        new String[] {
-          "POST /documents/upload",
-          "POST /documents/{documentId}/analyze",
-          "POST /embeddings/generate",
-          "DELETE /documents/{documentId}",
-          "POST /testcases/{testCaseId}/vectorize",
-          "POST /documents/{documentId}/global-request",
-          "POST /documents/{documentId}/estimate-cost",
-          "POST /documents/{documentId}/analyze-with-llm",
-          "POST /documents/{documentId}/pause-analysis",
-          "POST /documents/{documentId}/resume-analysis",
-          "POST /documents/{documentId}/cancel-analysis",
-          "POST /analysis-summaries",
-          "PUT /analysis-summaries/{summaryId}",
-          "DELETE /analysis-summaries/{summaryId}"
-        }) {
-      ALLOWED.put("RagController.java " + rag, "P1 — 접근 권한 술어로 쓰기를 막고 있다");
-    }
   }
 
   @Test(description = "프로젝트 쓰기 엔드포인트는 읽기 권한이나 시스템 역할만으로 열려 있지 않다")
@@ -165,6 +132,47 @@ public class WriteEndpointAuthorizationTest {
     assertTrue(
         violations.isEmpty(),
         "프로젝트 역할로 막히지 않는 쓰기 엔드포인트가 있다:\n  " + String.join("\n  ", violations));
+  }
+
+  /**
+   * 이름이 업로드·수정인 술어들이 읽기 권한으로 되돌아가지 않았는지 정의에서 확인한다.
+   *
+   * <p>`canUploadToProject` 는 이름과 달리 정의가 `canAccessProject` 여서 프로젝트 VIEWER 가 JUnit 결과를 올리고 지울 수
+   * 있었다. 이름을 바꾸지 않고 정의만 조였으므로, 정의가 다시 풀리면 엔드포인트 검사만으로는 드러나지 않는다. 그래서 정의를 따로 못 박는다.
+   */
+  @Test(description = "업로드·수정 술어의 정의가 읽기 권한으로 되돌아가지 않았다")
+  public void predicateDefinitionsStayTightened() throws IOException {
+    String src =
+        Files.readString(
+            Path.of(
+                "src/main/java/com/testcase/testcasemanagement/security/ProjectSecurityService.java"),
+            StandardCharsets.UTF_8);
+
+    assertTrue(
+        body(src, "public boolean canUploadToProject(String projectId) {")
+            .contains("canRecordTestResult"),
+        "canUploadToProject 가 결과 기록 권한을 쓰지 않는다");
+    assertTrue(
+        body(src, "public boolean canUploadTestCase(String testCaseId) {")
+            .contains("canEditProject"),
+        "canUploadTestCase 가 편집 권한을 쓰지 않는다");
+    assertTrue(
+        body(src, "public boolean canUploadToTestSession(String sessionId) {")
+            .contains("canRunTestSession"),
+        "canUploadToTestSession 이 세션 진행 권한을 쓰지 않는다");
+    // 주석에 옛 이름이 남아 있어도 걸리지 않게, 무엇을 부르는지로 확인한다.
+    assertTrue(
+        body(src, "public boolean canUploadToProject(String projectId, String username) {")
+            .contains("hasResultEntryRole"),
+        "canUploadToProject(username) 가 결과 기록 롤을 확인하지 않는다");
+  }
+
+  /** 메서드 선언부터 다음 빈 줄까지의 본문. 정의가 무엇을 부르는지 보기에 충분하다. */
+  private static String body(String src, String declaration) {
+    int start = src.indexOf(declaration);
+    assertTrue(start >= 0, "선언을 찾지 못했다: " + declaration);
+    int end = src.indexOf("\n  }", start);
+    return src.substring(start, end < 0 ? src.length() : end);
   }
 
   @Test(description = "예외 목록의 모든 항목에 사유가 붙어 있다")

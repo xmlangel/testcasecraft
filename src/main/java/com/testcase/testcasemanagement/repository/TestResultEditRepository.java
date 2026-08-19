@@ -18,6 +18,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TestResultEditRepository extends JpaRepository<TestResultEdit, String> {
 
+  /** 편집본이 속한 프로젝트 ID (편집본 → 원본 결과 → 실행 → 프로젝트). 인가 판정에서 투영용으로 쓴다. */
+  @Query(
+      "SELECT e.project.id FROM TestResultEdit ed "
+          + "JOIN ed.originalTestResult r JOIN r.testExecution e WHERE ed.id = :editId")
+  Optional<String> findProjectIdByEditId(@Param("editId") String editId);
+
   /** 특정 테스트 결과의 활성 편집본 조회 */
   @Query(
       "SELECT e FROM TestResultEdit e WHERE e.originalTestResult.id = :testResultId AND e.isActive"

@@ -35,6 +35,7 @@ public class TestResultEditController {
 
   /** 새로운 편집본 생성 */
   @Operation(summary = "새로운 편집본 생성", description = "기존 테스트 결과에 대한 새로운 편집본(Draft)을 생성합니다.")
+  @PreAuthorize("@projectSecurityService.canRecordTestResultById(#request.originalTestResultId)")
   @PostMapping
   public ResponseEntity<TestResultEditDto> createEdit(
       @Valid @RequestBody TestResultEditDto.CreateEditRequestDto request,
@@ -61,6 +62,7 @@ public class TestResultEditController {
 
   /** 편집본 수정 (DRAFT 상태만 가능) */
   @Operation(summary = "편집본 수정", description = "작성 중인 편집본(Draft)을 수정합니다.")
+  @PreAuthorize("@projectSecurityService.canEditTestResultEdit(#editId)")
   @PutMapping("/{editId}")
   public ResponseEntity<TestResultEditDto> updateEdit(
       @PathVariable String editId,
@@ -161,6 +163,7 @@ public class TestResultEditController {
 
   /** 편집본 삭제 (DRAFT 상태만 가능) */
   @Operation(summary = "편집본 삭제", description = "작성 중인 편집본(Draft)을 삭제합니다.")
+  @PreAuthorize("@projectSecurityService.canEditTestResultEdit(#editId)")
   @DeleteMapping("/{editId}")
   public ResponseEntity<Void> deleteEdit(
       @PathVariable String editId, Authentication authentication) {
