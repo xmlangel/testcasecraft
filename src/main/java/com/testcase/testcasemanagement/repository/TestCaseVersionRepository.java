@@ -20,6 +20,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TestCaseVersionRepository extends JpaRepository<TestCaseVersion, String> {
 
+  /** 버전이 속한 프로젝트 ID. 인가 판정에서 버전 → 프로젝트로 투영할 때 쓴다. */
+  @Query("SELECT v.projectId FROM TestCaseVersion v WHERE v.id = :versionId")
+  Optional<String> findProjectIdById(@Param("versionId") String versionId);
+
   // ============ 기본 조회 쿼리 ============
 
   /** 특정 테스트케이스의 모든 버전 조회 (버전 번호 내림차순) */

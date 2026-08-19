@@ -14,6 +14,7 @@ import com.testcase.testcasemanagement.repository.RagChatMessageRepository;
 import com.testcase.testcasemanagement.repository.RagChatThreadRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.repository.TestCaseVersionRepository;
 import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestSessionAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestSessionRepository;
@@ -53,6 +54,8 @@ public class ProjectSecurityService {
   @Autowired private JunitTestCaseRepository junitTestCaseRepository;
 
   @Autowired private TestSessionRepository testSessionRepository;
+
+  @Autowired private TestCaseVersionRepository testCaseVersionRepository;
 
   @Autowired private TestSessionAttachmentRepository testSessionAttachmentRepository;
 
@@ -100,8 +103,8 @@ public class ProjectSecurityService {
   }
 
   /**
-   * 프로젝트 멤버를 관리(초대·역할 변경·제거)할 수 있는지 확인. 프로젝트 관리 역할(PROJECT_MANAGER·LEAD_DEVELOPER)과 시스템
-   * 관리자만 통과한다. canManageProject 와 달리 조직 관리자는 포함하지 않는다 — 멤버 구성은 프로젝트 안에서 정한다.
+   * 프로젝트 멤버를 관리(초대·역할 변경·제거)할 수 있는지 확인. 프로젝트 관리 역할(PROJECT_MANAGER·LEAD_DEVELOPER)과 시스템 관리자만 통과한다.
+   * canManageProject 와 달리 조직 관리자는 포함하지 않는다 — 멤버 구성은 프로젝트 안에서 정한다.
    */
   public boolean canManageMembers(String projectId, String username) {
     return userRepository
@@ -117,8 +120,8 @@ public class ProjectSecurityService {
   }
 
   /**
-   * 프로젝트 설정(이름·설명·정렬 순서)을 바꿀 수 있는지 확인. 사용자 매뉴얼 18-4 의 역할표대로 PROJECT_MANAGER 와 시스템 관리자만
-   * 통과한다. canManageProject 보다 좁다 — LEAD_DEVELOPER 와 조직 관리자는 멤버는 다뤄도 프로젝트 자체의 설정은 바꾸지 못한다.
+   * 프로젝트 설정(이름·설명·정렬 순서)을 바꿀 수 있는지 확인. 사용자 매뉴얼 18-4 의 역할표대로 PROJECT_MANAGER 와 시스템 관리자만 통과한다.
+   * canManageProject 보다 좁다 — LEAD_DEVELOPER 와 조직 관리자는 멤버는 다뤄도 프로젝트 자체의 설정은 바꾸지 못한다.
    */
   public boolean canUpdateProjectSettings(String projectId, String username) {
     return userRepository
@@ -189,6 +192,26 @@ public class ProjectSecurityService {
         .orElse(false);
   }
 
+  /**
+   * 테스트케이스가 속한 프로젝트를 현재 사용자가 편집할 수 있는지 (미존재 시 fail-closed).
+   *
+   * <p>canAccessTestCase 는 읽기 판정이라 VIEWER 가 통과한다. 케이스를 바꾸는 동작에는 이것을 쓴다.
+   */
+  public boolean canEditTestCase(String testCaseId) {
+    return projectPermission(
+        testCaseRepository.findProjectIdById(testCaseId), this::canEditProject);
+  }
+
+  /**
+   * 테스트케이스 버전이 속한 프로젝트를 현재 사용자가 편집할 수 있는지 (미존재 시 fail-closed).
+   *
+   * <p>버전 복원은 케이스 본문을 그 버전으로 덮어쓰므로 케이스 수정과 같은 권한을 요구한다.
+   */
+  public boolean canEditTestCaseVersion(String versionId) {
+    return projectPermission(
+        testCaseVersionRepository.findProjectIdById(versionId), this::canEditProject);
+  }
+
   /** 테스트케이스 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
   public boolean canAccessTestCaseAttachment(String attachmentId) {
     return projectPermission(
@@ -257,6 +280,30 @@ public class ProjectSecurityService {
   public boolean canUploadToTestSession(String sessionId) {
     return projectPermission(
         testSessionRepository.findProjectIdById(sessionId), this::canUploadToProject);
+  }
+
+  /**
+   * 탐색적 세션을 진행(생성·수정·상태전환)할 수 있는지. 사용자 매뉴얼 18-4 가 TESTER 에게 "탐색 세션 진행" 을 주므로 결과 기록과 같은 기준을 쓴다 — 편집
+   * 롤 + TESTER + 시스템 관리자. VIEWER 는 빠진다.
+   */
+  public boolean canRunTestSession(String projectId) {
+    return canRecordTestResult(projectId);
+  }
+
+  /** 세션 ID 로 진행 권한을 판정한다. 세션이 없으면 fail-closed. */
+  public boolean canRunTestSessionById(String sessionId) {
+    return projectPermission(
+        testSessionRepository.findProjectIdById(sessionId), this::canRunTestSession);
+  }
+
+  /**
+   * 탐색적 세션을 승인·보완요청할 수 있는지. 세션이 속한 프로젝트의 관리 역할(PROJECT_MANAGER·LEAD_DEVELOPER)과 시스템 관리자만 통과한다.
+   *
+   * <p>이전에는 시스템 역할(ADMIN·MANAGER)만 봐서, 그 프로젝트의 VIEWER 인 시스템 MANAGER 도 승인할 수 있었다.
+   */
+  public boolean canApproveTestSession(String sessionId) {
+    return projectPermission(
+        testSessionRepository.findProjectIdById(sessionId), this::canManageMembers);
   }
 
   /** 세션 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
