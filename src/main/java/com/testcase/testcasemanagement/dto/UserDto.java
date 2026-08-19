@@ -58,7 +58,10 @@ public class UserDto {
   @AllArgsConstructor
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class ChangePasswordRequest {
-    @NotBlank private String currentPassword;
+    // 관리자가 다른 사용자의 비밀번호를 변경할 때는 현재 비밀번호 확인을 생략할 수 있으므로 선택 항목이다.
+    // 본인 변경(/api/auth/change-password)에서는 컨트롤러와 서비스가 필수 여부를 따로 검사한다.
+    private String currentPassword;
+
     @NotBlank private String newPassword;
   }
 
