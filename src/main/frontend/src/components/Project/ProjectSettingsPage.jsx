@@ -12,7 +12,7 @@
 // 진입 자체를 역할로 막는다. 백엔드 멤버 API 는 hasManagementRole 로 두 역할만
 // 통과시키므로, 다른 역할에게 화면을 열어 주면 저장 단계에서 403 만 보게 된다.
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -46,6 +46,7 @@ import {
   PersonAdd as PersonAddIcon,
   RemoveCircleOutline as RemoveIcon,
 } from "@mui/icons-material";
+import { useAppContext } from "../../context/AppContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
 import useProjectRole from "../../hooks/useProjectRole.js";
@@ -61,10 +62,37 @@ import {
 /** 다른 영역 패널(대시보드 등)과 같은 높이 규칙 — 화면이 짧아 보이지 않게 맞춘다. */
 const PANEL_MIN_HEIGHT = "calc(100vh - 180px)";
 
+/**
+ * 이 화면이 볼 프로젝트 ID 를 정한다.
+ *
+ * 전역 레이아웃(`/*` 라우트) 안에서 그려지므로 useParams 는 비어 있다. 주소에서 직접 읽고,
+ * 못 읽으면 현재 선택된 프로젝트로 떨어진다. 여기서 null 이 나오면 역할을 조회할 대상이 없어
+ * 권한 없음으로 보이므로 순서를 지킨다.
+ *
+ * @param {string|undefined} routeProjectId useParams 가 준 값(독립 라우트로 그릴 때만 채워진다)
+ * @param {string} pathname 현재 주소
+ * @param {{id?: string}|null|undefined} activeProject 현재 선택된 프로젝트
+ * @returns {string|null}
+ */
+export const resolveProjectId = (routeProjectId, pathname, activeProject) => {
+  if (routeProjectId) {
+    return routeProjectId;
+  }
+  const matched = (pathname || "").match(/^\/projects\/([^/]+)\/settings/);
+  return matched ? matched[1] : (activeProject?.id ?? null);
+};
+
 export default function ProjectSettingsPage() {
-  const { projectId } = useParams();
+  const { projectId: routeProjectId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { activeProject } = useAppContext();
+  const projectId = resolveProjectId(
+    routeProjectId,
+    location.pathname,
+    activeProject,
+  );
   const { t } = useI18n();
   const { projectRole, loading: roleLoading } = useProjectRole(projectId, user);
 
@@ -224,7 +252,9 @@ export default function ProjectSettingsPage() {
 
   const goBack = () => navigate(`/projects/${projectId}`);
 
-  if (roleLoading) {
+  // 프로젝트를 아직 못 정했으면 권한이 없는 것이 아니라 판정할 대상이 없는 것이다.
+  // 이때 권한 없음 안내를 띄우면 시스템 관리자에게도 잘못된 문구가 보인다.
+  if (roleLoading || !projectId) {
     return (
       <Paper
         sx={{
