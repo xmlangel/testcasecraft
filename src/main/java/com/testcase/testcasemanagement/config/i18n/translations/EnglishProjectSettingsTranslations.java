@@ -74,6 +74,12 @@ public class EnglishProjectSettingsTranslations {
     create("projectSettings.members.column.email", lang, "Email", by);
     create("projectSettings.members.column.role", lang, "Role", by);
     create("projectSettings.members.column.actions", lang, "Actions", by);
+    create("memberSearch.label", lang, "Search users", by);
+    create("memberSearch.placeholder", lang, "Username, name, or email (2+ characters)", by);
+    create("memberSearch.noOptions", lang, "No matching users.", by);
+    create("memberSearch.hint", lang, "Type at least two characters to search.", by);
+    create("memberSearch.loading", lang, "Searching...", by);
+
     create("projectSettings.role.projectManager", lang, "Project Manager", by);
     create("projectSettings.role.leadDeveloper", lang, "Lead Developer", by);
     create("projectSettings.role.developer", lang, "Developer", by);

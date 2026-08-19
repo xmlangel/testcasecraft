@@ -170,6 +170,17 @@ export class OrganizationService {
     return await response.json();
   }
 
+  /** 조직에 넣을 수 있는 사용자 검색 (이미 멤버인 사람과 비활성 계정은 서버가 뺀다) */
+  async searchMemberCandidates(organizationId, query) {
+    const response = await this.api(
+      `${await getApiBaseUrl()}/api/organizations/${organizationId}/member-candidates?query=${encodeURIComponent(query)}`,
+    );
+    if (!response.ok) {
+      return [];
+    }
+    return response.json();
+  }
+
   /**
    * 조직에 멤버 초대
    */

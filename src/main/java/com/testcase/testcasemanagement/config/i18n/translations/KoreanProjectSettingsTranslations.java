@@ -58,6 +58,12 @@ public class KoreanProjectSettingsTranslations {
     create("projectSettings.members.column.email", lang, "이메일", by);
     create("projectSettings.members.column.role", lang, "역할", by);
     create("projectSettings.members.column.actions", lang, "동작", by);
+    create("memberSearch.label", lang, "사용자 검색", by);
+    create("memberSearch.placeholder", lang, "사용자명·이름·이메일 2자 이상", by);
+    create("memberSearch.noOptions", lang, "일치하는 사용자가 없습니다.", by);
+    create("memberSearch.hint", lang, "두 글자 이상 입력하면 찾습니다.", by);
+    create("memberSearch.loading", lang, "찾는 중...", by);
+
     create("projectSettings.role.projectManager", lang, "프로젝트 매니저", by);
     create("projectSettings.role.leadDeveloper", lang, "리드 개발자", by);
     create("projectSettings.role.developer", lang, "개발자", by);

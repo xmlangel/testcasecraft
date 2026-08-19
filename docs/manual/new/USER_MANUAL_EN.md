@@ -1086,7 +1086,9 @@ The gear icon at the top right of a project screen opens **Project Settings** (`
 | Tab | What it does | Who can use it |
 |---|---|---|
 | General | Change project name, description, and display order (the code cannot be changed after creation) | PROJECT_MANAGER, ADMIN |
-| Members | Add a member by username, change a role from the dropdown, remove a member | PROJECT_MANAGER, LEAD_DEVELOPER, ADMIN |
+| Members | Add a member by searching for the user, change a role from the dropdown, remove a member | PROJECT_MANAGER, LEAD_DEVELOPER, ADMIN |
+
+Type two or more characters in the user search box to find people whose username, name, or email matches. Users who already belong to the project and inactive accounts never appear, so a pick never fails as a duplicate. The organization member invite dialog uses the same search.
 
 The gear icon appears only for those three. Role changes from the dropdown apply immediately — there is no save button. Demoting or removing the last remaining PROJECT_MANAGER is blocked. Granting or revoking PROJECT_MANAGER is limited to a current PM and system ADMIN.
 

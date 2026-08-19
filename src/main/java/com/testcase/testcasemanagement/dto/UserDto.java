@@ -65,6 +65,19 @@ public class UserDto {
     @NotBlank private String newPassword;
   }
 
+  /** 멤버 후보 검색 결과. 고르는 데 필요한 최소 정보만 담는다. */
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public static class Summary {
+    private String id;
+    private String username;
+    private String name;
+    private String email;
+  }
+
   /** 사용자 응답 DTO */
   @Data
   @Builder

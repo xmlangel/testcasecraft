@@ -54,6 +54,7 @@ import projectService from "../../services/projectService.js";
 import projectMemberService, {
   PROJECT_ROLES,
 } from "../../services/projectMemberService.js";
+import MemberSearchAutocomplete from "../common/MemberSearchAutocomplete.jsx";
 import {
   canManageProjectMembers,
   canManageProjectSettings,
@@ -112,7 +113,7 @@ export default function ProjectSettingsPage() {
 
   // 멤버 탭
   const [members, setMembers] = useState([]);
-  const [inviteUsername, setInviteUsername] = useState("");
+  const [inviteUser, setInviteUser] = useState(null);
   const [inviteRole, setInviteRole] = useState("TESTER");
   const [inviting, setInviting] = useState(false);
   const [removeTarget, setRemoveTarget] = useState(null);
@@ -141,6 +142,11 @@ export default function ProjectSettingsPage() {
       }
     },
     [t],
+  );
+
+  const searchCandidates = useCallback(
+    (query) => projectMemberService.searchCandidates(projectId, query),
+    [projectId],
   );
 
   const load = useCallback(async () => {
@@ -216,16 +222,16 @@ export default function ProjectSettingsPage() {
   };
 
   const handleInvite = async () => {
-    if (!inviteUsername.trim()) return;
+    if (!inviteUser) return;
     setInviting(true);
     setError(null);
     try {
       await projectMemberService.inviteMember(
         projectId,
-        inviteUsername.trim(),
+        inviteUser.username,
         inviteRole,
       );
-      setInviteUsername("");
+      setInviteUser(null);
       setNotice(t("projectSettings.members.invited", "멤버를 추가했습니다."));
       const memberList = await projectMemberService.getMembers(projectId);
       setMembers(Array.isArray(memberList) ? memberList : []);
@@ -399,13 +405,12 @@ export default function ProjectSettingsPage() {
                   flexWrap: "wrap",
                 }}
               >
-                <TextField
-                  size="small"
-                  label={t("projectSettings.members.username", "사용자명")}
-                  value={inviteUsername}
-                  onChange={(e) => setInviteUsername(e.target.value)}
-                  sx={{ minWidth: 220 }}
-                  data-testid="project-settings-invite-username"
+                <MemberSearchAutocomplete
+                  value={inviteUser}
+                  onChange={setInviteUser}
+                  search={searchCandidates}
+                  sx={{ minWidth: 280 }}
+                  testId="project-settings-invite-username"
                 />
                 <FormControl size="small" sx={{ minWidth: 180 }}>
                   <InputLabel id="invite-role-label">
@@ -429,7 +434,7 @@ export default function ProjectSettingsPage() {
                   variant="contained"
                   startIcon={<PersonAddIcon />}
                   onClick={handleInvite}
-                  disabled={inviting || !inviteUsername.trim()}
+                  disabled={inviting || !inviteUser}
                   data-testid="project-settings-invite-submit"
                 >
                   {t("projectSettings.members.inviteSubmit", "추가")}

@@ -1,5 +1,5 @@
 // src/components/OrganizationDetail.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -50,6 +50,7 @@ import { formatDateOnlySafe } from "../utils/dateUtils";
 import { useTranslation } from "../context/I18nContext";
 
 import TabPanel from "./common/TabPanel";
+import MemberSearchAutocomplete from "./common/MemberSearchAutocomplete.jsx";
 
 const OrganizationDetail = ({ organizationId }) => {
   const navigate = useNavigate();
@@ -75,6 +76,8 @@ const OrganizationDetail = ({ organizationId }) => {
     username: "",
     role: "MEMBER",
   });
+  // 검색으로 고른 사용자. 서버로는 사용자명만 보내고 화면에는 이름·이메일까지 보여 준다.
+  const [inviteUser, setInviteUser] = useState(null);
   const [inviteError, setInviteError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -172,9 +175,18 @@ const OrganizationDetail = ({ organizationId }) => {
 
   const handleInviteMember = () => {
     setInviteData({ username: "", role: "MEMBER" });
+    setInviteUser(null);
     setInviteError("");
     setInviteDialogOpen(true);
   };
+
+  // 검색 함수는 조직이 바뀔 때만 새로 만든다. 매 렌더 새 함수를 넘기면
+  // 검색 컴포넌트가 입력과 무관하게 다시 조회한다.
+  const searchCandidates = useCallback(
+    (query) => organizationService.searchMemberCandidates(id, query),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [id],
+  );
 
   const handleInviteSubmit = async () => {
     if (!inviteData.username.trim()) {
@@ -622,17 +634,19 @@ const OrganizationDetail = ({ organizationId }) => {
               {inviteError}
             </Alert>
           )}
-          <TextField
-            autoFocus
-            label={t("organization.form.username")}
-            fullWidth
-            variant="outlined"
-            value={inviteData.username}
-            onChange={(e) =>
-              setInviteData((prev) => ({ ...prev, username: e.target.value }))
-            }
+          <MemberSearchAutocomplete
+            value={inviteUser}
+            onChange={(next) => {
+              setInviteUser(next);
+              setInviteData((prev) => ({
+                ...prev,
+                username: next?.username ?? "",
+              }));
+            }}
+            search={searchCandidates}
+            size="medium"
             sx={{ mb: 2, mt: 1 }}
-            required
+            testId="organization-invite-username"
           />
           <FormControl fullWidth variant="outlined">
             <InputLabel>{t("organization.form.role")}</InputLabel>

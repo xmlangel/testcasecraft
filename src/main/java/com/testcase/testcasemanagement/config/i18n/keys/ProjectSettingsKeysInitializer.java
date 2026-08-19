@@ -55,6 +55,13 @@ public class ProjectSettingsKeysInitializer {
     createKey("projectSettings.members.column.role", "역할 컬럼", "역할");
     createKey("projectSettings.members.column.actions", "동작 컬럼", "동작");
 
+    // 멤버 검색 (프로젝트 설정과 조직 관리가 같이 쓴다)
+    createSharedKey("memberSearch.label", "사용자 검색 입력 라벨", "사용자 검색");
+    createSharedKey("memberSearch.placeholder", "사용자 검색 안내", "사용자명·이름·이메일 2자 이상");
+    createSharedKey("memberSearch.noOptions", "검색 결과 없음", "일치하는 사용자가 없습니다.");
+    createSharedKey("memberSearch.hint", "검색 시작 안내", "두 글자 이상 입력하면 찾습니다.");
+    createSharedKey("memberSearch.loading", "검색 중", "찾는 중...");
+
     // 프로젝트 역할 라벨
     createKey("projectSettings.role.projectManager", "역할 라벨 PROJECT_MANAGER", "프로젝트 매니저");
     createKey("projectSettings.role.leadDeveloper", "역할 라벨 LEAD_DEVELOPER", "리드 개발자");
@@ -62,6 +69,15 @@ public class ProjectSettingsKeysInitializer {
     createKey("projectSettings.role.tester", "역할 라벨 TESTER", "테스터");
     createKey("projectSettings.role.contributor", "역할 라벨 CONTRIBUTOR", "기여자");
     createKey("projectSettings.role.viewer", "역할 라벨 VIEWER", "뷰어");
+  }
+
+  /** 프로젝트 설정 밖(조직 관리)에서도 쓰는 키. 분류를 따로 둬 어느 화면 것인지 헷갈리지 않게 한다. */
+  private void createSharedKey(String keyName, String description, String defaultValue) {
+    Optional<TranslationKey> existingKey = translationKeyRepository.findByKeyName(keyName);
+    if (existingKey.isEmpty()) {
+      translationKeyRepository.save(
+          new TranslationKey(keyName, "memberSearch", description, defaultValue));
+    }
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

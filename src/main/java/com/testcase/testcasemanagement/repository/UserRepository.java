@@ -5,6 +5,7 @@ import com.testcase.testcasemanagement.model.User;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -37,6 +38,35 @@ public interface UserRepository extends JpaRepository<User, String> {
 
   // 역할별 사용자 조회
   List<User> findByRole(String role);
+
+  /**
+   * 프로젝트에 넣을 수 있는 사용자 후보. 이미 멤버인 사람과 비활성 계정은 뺀다. 사용자명·이름·이메일 중 하나라도 걸리면 후보다.
+   *
+   * <p>목록을 통째로 내려주지 않으려고 keyword 를 필수로 두고 호출 쪽에서 개수를 자른다.
+   */
+  @Query(
+      "SELECT u FROM User u WHERE u.isActive = true AND ("
+          + "LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR "
+          + "LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR "
+          + "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND "
+          + "u.id NOT IN (SELECT pu.user.id FROM ProjectUser pu WHERE pu.project.id = :projectId) "
+          + "ORDER BY u.username ASC")
+  List<User> searchProjectMemberCandidates(
+      @Param("projectId") String projectId, @Param("keyword") String keyword, Pageable pageable);
+
+  /** 조직에 넣을 수 있는 사용자 후보. 판정 기준은 프로젝트 쪽과 같다. */
+  @Query(
+      "SELECT u FROM User u WHERE u.isActive = true AND ("
+          + "LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR "
+          + "LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR "
+          + "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND "
+          + "u.id NOT IN (SELECT ou.user.id FROM OrganizationUser ou "
+          + "WHERE ou.organization.id = :organizationId) "
+          + "ORDER BY u.username ASC")
+  List<User> searchOrganizationMemberCandidates(
+      @Param("organizationId") String organizationId,
+      @Param("keyword") String keyword,
+      Pageable pageable);
 
   // 사용자 검색 (이름, 사용자명, 이메일로 - password 필드 제외)
   @Query(

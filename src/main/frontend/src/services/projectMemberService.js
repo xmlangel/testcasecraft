@@ -28,6 +28,14 @@ class ProjectMemberService {
     return response.json();
   }
 
+  /** 프로젝트에 넣을 수 있는 사용자 검색 (이미 멤버인 사람과 비활성 계정은 서버가 뺀다) */
+  async searchCandidates(projectId, query) {
+    const response = await apiService.get(
+      `/api/projects/${projectId}/member-candidates?query=${encodeURIComponent(query)}`,
+    );
+    return response.json();
+  }
+
   /** 사용자명으로 멤버 초대 */
   async inviteMember(projectId, username, role) {
     const query = `username=${encodeURIComponent(username)}&role=${encodeURIComponent(role)}`;
