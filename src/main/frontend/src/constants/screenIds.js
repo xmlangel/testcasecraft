@@ -44,6 +44,7 @@ const RULES = [
 
   // 프로젝트 작업공간
   [/^\/projects\/[^/]+\/bookmarks/, "S2"],
+  [/^\/projects\/[^/]+\/settings/, "S1"],
   [/^\/projects\/[^/]+\/testcases/, "S4"],
   [/^\/projects\/[^/]+\/testplans/, "S5"],
   [/^\/projects\/[^/]+\/results/, "S7"],

@@ -47,6 +47,8 @@ public class TranslationDataInitializer {
   // 2026-06-09 즐겨찾기/개인 북마크 기능
   private final KoreanBookmarkTranslations koreanBookmarkTranslations;
   private final EnglishBookmarkTranslations englishBookmarkTranslations;
+  private final KoreanProjectSettingsTranslations koreanProjectSettingsTranslations;
+  private final EnglishProjectSettingsTranslations englishProjectSettingsTranslations;
   // 2026-08-03 화면 ID 배지
   private final KoreanScreenIdTranslations koreanScreenIdTranslations;
   private final EnglishScreenIdTranslations englishScreenIdTranslations;
@@ -90,6 +92,8 @@ public class TranslationDataInitializer {
     // 2026-06-09 즐겨찾기/개인 북마크 기능
     koreanBookmarkTranslations.initialize();
     englishBookmarkTranslations.initialize();
+    koreanProjectSettingsTranslations.initialize();
+    englishProjectSettingsTranslations.initialize();
 
     // 2026-08-03 화면 ID 배지
     koreanScreenIdTranslations.initialize();

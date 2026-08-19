@@ -31,6 +31,7 @@ import {
   StarBorder as StarBorderIcon,
   UnfoldMore as UnfoldMoreIcon,
   FolderSpecial as FolderSpecialIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
@@ -42,6 +43,9 @@ import {
   NAV_COUNT_KEYS,
 } from "./navigation/projectNavItems.js";
 import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
+import { useAuth } from "../context/AuthContext.jsx";
+import useProjectRole from "../hooks/useProjectRole.js";
+import { canManageProjectMembers } from "./TestCaseTree/utils/permissionUtils.js";
 
 // projectNavItems 의 icon 식별자 → 실제 아이콘 컴포넌트
 const TAB_ICONS = {
@@ -93,8 +97,14 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
   // 사이드바 모드에서는 영역 이동을 사이드바가 맡으므로 탭을 그리지 않는다.
   // 브레드크럼·즐겨찾기·프로젝트 정보는 두 모드에서 공통으로 남는다.
   const { isSidebarMode } = useNavMode();
+  const { user } = useAuth();
 
   const projectId = activeProject?.id;
+
+  // 프로젝트 설정 진입은 관리 역할에게만 보인다.
+  // 백엔드 멤버 API 가 PROJECT_MANAGER·LEAD_DEVELOPER 만 통과시키므로 같은 기준을 쓴다.
+  const { projectRole } = useProjectRole(projectId, user);
+  const showSettings = canManageProjectMembers(projectRole);
 
   // 탭 개수 배지 (프로젝트 진입 시 TestContext가 세 데이터셋을 모두 로드함)
   const testCaseCount = (testCases || []).filter(
@@ -260,6 +270,16 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
           >
             <StarBorderIcon />
           </IconButton>
+          {showSettings && (
+            <IconButton
+              size="small"
+              onClick={() => navigate(`/projects/${projectId}/settings`)}
+              title={t("projectSettings.title", "프로젝트 설정")}
+              data-testid="open-project-settings-button"
+            >
+              <SettingsIcon />
+            </IconButton>
+          )}
           <IconButton
             size="small"
             onClick={toggleHeader}

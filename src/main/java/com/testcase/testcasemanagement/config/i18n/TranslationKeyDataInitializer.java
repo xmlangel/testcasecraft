@@ -40,6 +40,7 @@ public class TranslationKeyDataInitializer {
   private final I18nHardcodedKeysInitializer i18nHardcodedKeysInitializer;
   // 2026-06-09 즐겨찾기/개인 북마크 기능
   private final BookmarkKeysInitializer bookmarkKeysInitializer;
+  private final ProjectSettingsKeysInitializer projectSettingsKeysInitializer;
   // 2026-08-03 화면 ID 배지 (기획 문서 docs/screen_spec 의 화면 구분)
   private final ScreenIdKeysInitializer screenIdKeysInitializer;
 
@@ -76,6 +77,7 @@ public class TranslationKeyDataInitializer {
 
     // 2026-06-09 즐겨찾기/개인 북마크 기능
     bookmarkKeysInitializer.initialize();
+    projectSettingsKeysInitializer.initialize();
 
     // 2026-08-03 화면 ID 배지
     screenIdKeysInitializer.initialize();

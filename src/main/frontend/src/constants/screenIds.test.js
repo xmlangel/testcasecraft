@@ -11,6 +11,7 @@ describe("resolveScreenId", () => {
     ["/guides/GOOGLE_SHEETS_SETUP_GUIDE", "S0"],
     ["/projects", "S1"],
     ["/projects/p1/bookmarks", "S2"],
+    ["/projects/p1/settings", "S1"],
     ["/dashboard", "S3"],
     ["/projects/p1", "S3"],
     ["/projects/p1/", "S3"],

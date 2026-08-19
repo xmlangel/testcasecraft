@@ -5,6 +5,8 @@ import {
   canAdd,
   canEditProjectContent,
   canRecordTestResult,
+  canManageProjectMembers,
+  canManageProjectSettings,
 } from "./permissionUtils.js";
 
 describe("permissionUtils", () => {
@@ -66,6 +68,30 @@ describe("permissionUtils", () => {
       expect(canRecordTestResult("TESTER")).toBe(true);
       expect(canRecordTestResult("VIEWER")).toBe(false);
       expect(canRecordTestResult(null)).toBe(false);
+    });
+  });
+
+  describe("canManageProjectMembers", () => {
+    it("관리 역할 둘과 시스템 ADMIN 만 true", () => {
+      expect(canManageProjectMembers("PROJECT_MANAGER")).toBe(true);
+      expect(canManageProjectMembers("LEAD_DEVELOPER")).toBe(true);
+      // 시스템 관리자 우회 센티널 — 백엔드 canManageMembers() 와 같은 기준
+      expect(canManageProjectMembers("ADMIN")).toBe(true);
+      expect(canManageProjectMembers("DEVELOPER")).toBe(false);
+      expect(canManageProjectMembers("CONTRIBUTOR")).toBe(false);
+      expect(canManageProjectMembers("TESTER")).toBe(false);
+      expect(canManageProjectMembers("VIEWER")).toBe(false);
+      expect(canManageProjectMembers(null)).toBe(false);
+    });
+  });
+
+  describe("canManageProjectSettings", () => {
+    it("PROJECT_MANAGER 와 시스템 ADMIN 만 true", () => {
+      expect(canManageProjectSettings("PROJECT_MANAGER")).toBe(true);
+      expect(canManageProjectSettings("ADMIN")).toBe(true);
+      expect(canManageProjectSettings("LEAD_DEVELOPER")).toBe(false);
+      expect(canManageProjectSettings("DEVELOPER")).toBe(false);
+      expect(canManageProjectSettings(null)).toBe(false);
     });
   });
 });

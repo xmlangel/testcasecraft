@@ -63,6 +63,9 @@ const TestCaseResultPage = React.lazy(
 const BookmarkPage = React.lazy(
   () => import("./components/Bookmark/BookmarkPage.jsx"),
 );
+const ProjectSettingsPage = React.lazy(
+  () => import("./components/Project/ProjectSettingsPage.jsx"),
+);
 const TestResultMainPage = React.lazy(
   () => import("./components/TestResultMainPage.jsx"),
 );
@@ -1639,6 +1642,14 @@ const AppWrapper = () => {
             element={
               <ProtectedRoute>
                 <BookmarkPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/settings"
+            element={
+              <ProtectedRoute>
+                <ProjectSettingsPage />
               </ProtectedRoute>
             }
           />
