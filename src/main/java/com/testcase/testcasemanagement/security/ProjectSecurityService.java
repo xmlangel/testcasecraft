@@ -324,6 +324,17 @@ public class ProjectSecurityService {
         testSessionRepository.findProjectIdById(sessionId), this::canManageMembers);
   }
 
+  /**
+   * 탐색적 세션을 삭제할 수 있는지. 승인과 같은 기준을 쓴다 — 그 프로젝트의 관리 역할(PROJECT_MANAGER·LEAD_DEVELOPER)과 시스템 관리자.
+   *
+   * <p>진행 권한(canRunTestSessionById)보다 좁다. 세션은 여러 사람이 함께 보는 기록이라, 진행할 수 있는 사람이 남의 기록까지 지울 수 있으면 안
+   * 된다.
+   */
+  public boolean canDeleteTestSession(String sessionId) {
+    return projectPermission(
+        testSessionRepository.findProjectIdById(sessionId), this::canManageMembers);
+  }
+
   /** 세션 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
   public boolean canAccessTestSessionAttachment(String attachmentId) {
     return projectPermission(

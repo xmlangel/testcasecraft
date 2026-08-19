@@ -70,6 +70,7 @@ public class WriteEndpointAuthorizationTest {
           "canModifyJunitCase",
           "canRunTestSession",
           "canApproveTestSession",
+          "canDeleteTestSession",
           "canManageMembers",
           "canUpdateProjectSettings",
           "canManageProject",

@@ -122,7 +122,7 @@ public class TestSessionController {
   }
 
   @DeleteMapping("/sessions/{id}")
-  @PreAuthorize("@projectSecurityService.canRunTestSessionById(#id)")
+  @PreAuthorize("@projectSecurityService.canDeleteTestSession(#id)")
   public ResponseEntity<Void> deleteSession(@PathVariable String id) {
     testSessionService.deleteSession(id);
     return ResponseEntity.noContent().build();
