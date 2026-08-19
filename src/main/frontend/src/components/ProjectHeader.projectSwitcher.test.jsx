@@ -135,4 +135,21 @@ describe("ProjectHeader 프로젝트 선택기", () => {
     setup(0);
     expect(screen.queryByTestId("open-project-settings-button")).toBeNull();
   });
+
+  it("영역 밖 화면은 currentLabel 을 마지막 크럼으로 쓰고 어느 탭도 고르지 않는다", () => {
+    navModeState.isSidebarMode = false;
+    render(
+      <ProjectHeader
+        tabIndex={false}
+        onTabChange={vi.fn()}
+        currentLabel="프로젝트 설정"
+      />,
+    );
+    expect(screen.getByLabelText("breadcrumb")).toHaveTextContent(
+      "프로젝트 설정",
+    );
+    // 탭은 그대로 보이되 선택된 항목이 없다 — 다른 영역으로 바로 나갈 수 있어야 한다
+    expect(screen.getByLabelText("project tabs")).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { selected: true })).toBeNull();
+  });
 });

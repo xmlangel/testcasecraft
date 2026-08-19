@@ -2,6 +2,9 @@
 //
 // 프로젝트 설정 화면 (`/projects/:projectId/settings`).
 //
+// App.jsx 의 프로젝트 작업공간 안에서 그려진다 — 전역 헤더·브레드크럼·좌측 영역 메뉴를
+// 그대로 두고 본문만 이 화면이 채운다. 자체 AppBar 를 두면 같은 앱의 다른 화면과 어긋난다.
+//
 // 두 갈래를 한 화면에 둔다.
 //   일반 — 프로젝트 이름·설명·정렬 순서 변경 (PROJECT_MANAGER)
 //   멤버 — 사용자별 프로젝트 역할 부여·변경·제거 (PROJECT_MANAGER, LEAD_DEVELOPER)
@@ -12,11 +15,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
-  AppBar,
   Box,
   Button,
   CircularProgress,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -39,14 +40,11 @@ import {
   TableRow,
   Tabs,
   TextField,
-  Toolbar,
   Typography,
 } from "@mui/material";
 import {
-  ArrowBack as ArrowBackIcon,
   PersonAdd as PersonAddIcon,
   RemoveCircleOutline as RemoveIcon,
-  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
@@ -59,6 +57,9 @@ import {
   canManageProjectMembers,
   canManageProjectSettings,
 } from "../TestCaseTree/utils/permissionUtils.js";
+
+/** 다른 영역 패널(대시보드 등)과 같은 높이 규칙 — 화면이 짧아 보이지 않게 맞춘다. */
+const PANEL_MIN_HEIGHT = "calc(100vh - 180px)";
 
 export default function ProjectSettingsPage() {
   const { projectId } = useParams();
@@ -225,49 +226,39 @@ export default function ProjectSettingsPage() {
 
   if (roleLoading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
+      <Paper
+        sx={{
+          p: 2,
+          minHeight: PANEL_MIN_HEIGHT,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <CircularProgress />
-      </Box>
+      </Paper>
     );
   }
 
   if (!canEditMembers) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Paper sx={{ p: 2, minHeight: PANEL_MIN_HEIGHT }}>
         <Alert severity="warning" data-testid="project-settings-denied">
           {t(
             "projectSettings.denied",
             "프로젝트 설정은 프로젝트 매니저·리드 개발자·시스템 관리자만 열 수 있습니다.",
           )}
         </Alert>
-        <Button sx={{ mt: 2 }} onClick={goBack} startIcon={<ArrowBackIcon />}>
+        <Button sx={{ mt: 2 }} onClick={goBack}>
           {t("projectSettings.back", "프로젝트로 돌아가기")}
         </Button>
-      </Container>
+      </Paper>
     );
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar variant="dense">
-          <IconButton
-            edge="start"
-            onClick={goBack}
-            title={t("projectSettings.back", "프로젝트로 돌아가기")}
-            data-testid="project-settings-back"
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <SettingsIcon sx={{ mr: 1 }} />
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            {t("projectSettings.title", "프로젝트 설정")}
-            {project?.name ? ` · ${project.name}` : ""}
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="lg" sx={{ py: 2 }}>
+    <Paper sx={{ p: 2, minHeight: PANEL_MIN_HEIGHT }}>
+      <Box>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
@@ -502,7 +493,7 @@ export default function ProjectSettingsPage() {
             </Typography>
           </Box>
         )}
-      </Container>
+      </Box>
 
       <Dialog
         open={Boolean(removeTarget)}
@@ -540,6 +531,6 @@ export default function ProjectSettingsPage() {
         onClose={() => setNotice("")}
         message={notice}
       />
-    </Box>
+    </Paper>
   );
 }
