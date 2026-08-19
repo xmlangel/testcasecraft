@@ -99,6 +99,40 @@ public class ProjectSecurityService {
         && projectUserRepository.hasManagementRole(projectId, currentUserId);
   }
 
+  /**
+   * 프로젝트 멤버를 관리(초대·역할 변경·제거)할 수 있는지 확인. 프로젝트 관리 역할(PROJECT_MANAGER·LEAD_DEVELOPER)과 시스템
+   * 관리자만 통과한다. canManageProject 와 달리 조직 관리자는 포함하지 않는다 — 멤버 구성은 프로젝트 안에서 정한다.
+   */
+  public boolean canManageMembers(String projectId, String username) {
+    return userRepository
+            .findByUsername(username)
+            .map(user -> "ADMIN".equals(user.getRole()))
+            .orElse(false)
+        || hasManagementRole(projectId, username);
+  }
+
+  /** 현재 사용자가 프로젝트 멤버를 관리할 수 있는지 확인 */
+  public boolean canManageMembers(String projectId) {
+    return securityContextUtil.isSystemAdmin() || hasManagementRole(projectId);
+  }
+
+  /**
+   * 프로젝트 설정(이름·설명·정렬 순서)을 바꿀 수 있는지 확인. 사용자 매뉴얼 18-4 의 역할표대로 PROJECT_MANAGER 와 시스템 관리자만
+   * 통과한다. canManageProject 보다 좁다 — LEAD_DEVELOPER 와 조직 관리자는 멤버는 다뤄도 프로젝트 자체의 설정은 바꾸지 못한다.
+   */
+  public boolean canUpdateProjectSettings(String projectId, String username) {
+    return userRepository
+            .findByUsername(username)
+            .map(user -> "ADMIN".equals(user.getRole()))
+            .orElse(false)
+        || isProjectManager(projectId, username);
+  }
+
+  /** 현재 사용자가 프로젝트 설정을 바꿀 수 있는지 확인 */
+  public boolean canUpdateProjectSettings(String projectId) {
+    return securityContextUtil.isSystemAdmin() || isProjectManager(projectId);
+  }
+
   /** 사용자가 프로젝트를 편집할 수 있는지 확인 */
   public boolean hasEditRole(String projectId, String username) {
     return userRepository

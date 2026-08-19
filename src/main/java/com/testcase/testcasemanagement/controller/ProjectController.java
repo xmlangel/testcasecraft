@@ -599,7 +599,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "403", description = "프로젝트 수정 권한 없음")
       })
   @PutMapping("/{id}")
-  @PreAuthorize("@projectSecurityService.canManageProject(#id, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canUpdateProjectSettings(#id, authentication.name)")
   public ResponseEntity<ProjectDto> updateProject(
       @Parameter(description = "수정할 프로젝트 ID", required = true, example = "proj-mobile-123")
           @PathVariable
@@ -1017,7 +1017,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "404", description = "프로젝트 또는 사용자를 찾을 수 없음")
       })
   @PostMapping("/{projectId}/members")
-  @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canManageMembers(#projectId, authentication.name)")
   public ResponseEntity<ProjectUser> inviteProjectMember(
       @Parameter(description = "멤버를 초대할 프로젝트 ID", required = true, example = "proj-mobile-123")
           @PathVariable
@@ -1074,7 +1074,7 @@ public class ProjectController {
       })
   @DeleteMapping("/{projectId}/members/{userId}")
   @PreAuthorize(
-      "@projectSecurityService.hasManagementRole(#projectId, authentication.name) or"
+      "@projectSecurityService.canManageMembers(#projectId, authentication.name) or"
           + " @securityContextUtil.isCurrentUser(#userId)")
   public ResponseEntity<Void> removeProjectMember(
       @Parameter(description = "멤버를 제거할 프로젝트 ID", required = true, example = "proj-mobile-123")
@@ -1143,7 +1143,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "409", description = "마지막 PROJECT_MANAGER 권한 변경 시도")
       })
   @PutMapping("/{projectId}/members/{userId}/role")
-  @PreAuthorize("@projectSecurityService.hasManagementRole(#projectId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canManageMembers(#projectId, authentication.name)")
   public ResponseEntity<ProjectUser> updateProjectMemberRole(
       @Parameter(description = "역할을 변경할 프로젝트 ID", required = true, example = "proj-mobile-123")
           @PathVariable

@@ -310,9 +310,11 @@ public class ProjectService {
       throw new IllegalArgumentException("이미 프로젝트의 멤버입니다.");
     }
 
-    // 프로젝트 매니저 역할은 현재 프로젝트 매니저만 부여 가능
+    // 프로젝트 매니저 역할은 현재 프로젝트 매니저 또는 시스템 관리자만 부여 가능.
+    // 시스템 관리자를 넣는 이유는 매니저가 없는 프로젝트를 되살릴 사람이 필요해서다.
     if (role == ProjectUser.ProjectRole.PROJECT_MANAGER) {
-      if (!projectSecurityService.isProjectManager(projectId, currentUsername)) {
+      if (!projectSecurityService.isProjectManager(projectId, currentUsername)
+          && !securityContextUtil.isSystemAdmin()) {
         throw new AccessDeniedException("프로젝트 매니저 권한을 부여할 수 없습니다.");
       }
     }
@@ -366,10 +368,11 @@ public class ProjectService {
             .findByProjectIdAndUserId(projectId, targetUserId)
             .orElseThrow(() -> new ResourceNotFoundException("프로젝트 멤버를 찾을 수 없습니다."));
 
-    // 프로젝트 매니저 역할 변경은 현재 프로젝트 매니저만 가능
+    // 프로젝트 매니저 역할 변경은 현재 프로젝트 매니저 또는 시스템 관리자만 가능
     if (newRole == ProjectUser.ProjectRole.PROJECT_MANAGER
         || projectUser.getRoleInProject() == ProjectUser.ProjectRole.PROJECT_MANAGER) {
-      if (!projectSecurityService.isProjectManager(projectId, currentUsername)) {
+      if (!projectSecurityService.isProjectManager(projectId, currentUsername)
+          && !securityContextUtil.isSystemAdmin()) {
         throw new AccessDeniedException("프로젝트 매니저 권한과 관련된 변경을 할 수 없습니다.");
       }
     }
