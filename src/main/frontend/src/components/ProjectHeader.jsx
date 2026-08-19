@@ -31,6 +31,7 @@ import {
   StarBorder as StarBorderIcon,
   UnfoldMore as UnfoldMoreIcon,
   FolderSpecial as FolderSpecialIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
@@ -42,6 +43,9 @@ import {
   NAV_COUNT_KEYS,
 } from "./navigation/projectNavItems.js";
 import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
+import { useAuth } from "../context/AuthContext.jsx";
+import useProjectRole from "../hooks/useProjectRole.js";
+import { canManageProjectMembers } from "./TestCaseTree/utils/permissionUtils.js";
 
 // projectNavItems 의 icon 식별자 → 실제 아이콘 컴포넌트
 const TAB_ICONS = {
@@ -78,7 +82,12 @@ TabCountBadge.propTypes = {
   count: PropTypes.number.isRequired,
 };
 
-function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
+function ProjectHeader({
+  tabIndex,
+  onTabChange,
+  showExploratoryTab = true,
+  currentLabel,
+}) {
   const {
     activeProject,
     testCases,
@@ -93,8 +102,14 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
   // 사이드바 모드에서는 영역 이동을 사이드바가 맡으므로 탭을 그리지 않는다.
   // 브레드크럼·즐겨찾기·프로젝트 정보는 두 모드에서 공통으로 남는다.
   const { isSidebarMode } = useNavMode();
+  const { user } = useAuth();
 
   const projectId = activeProject?.id;
+
+  // 프로젝트 설정 진입은 관리 역할에게만 보인다.
+  // 백엔드 멤버 API 가 PROJECT_MANAGER·LEAD_DEVELOPER 만 통과시키므로 같은 기준을 쓴다.
+  const { projectRole } = useProjectRole(projectId, user);
+  const showSettings = canManageProjectMembers(projectRole);
 
   // 탭 개수 배지 (프로젝트 진입 시 TestContext가 세 데이터셋을 모두 로드함)
   const testCaseCount = (testCases || []).filter(
@@ -118,7 +133,13 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
     [NAV_COUNT_KEYS.testPlans]: testPlanCount,
     [NAV_COUNT_KEYS.testExecutions]: testExecutionCount,
   };
-  const currentItem = navItems[tabIndex];
+  // 영역 밖 화면(예: 프로젝트 설정)은 tabIndex 대신 currentLabel 로 마지막 크럼을 정한다.
+  // 그때 tabIndex 는 false 로 들어와 어느 탭도 선택되지 않는다.
+  const currentItem =
+    typeof tabIndex === "number" ? navItems[tabIndex] : undefined;
+  const breadcrumbTail =
+    currentLabel ||
+    (currentItem ? t(currentItem.i18nKey, currentItem.label) : null);
 
   // ICT-PROJECT-HEADER-COLLAPSE: Initialize state from localStorage
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(() => {
@@ -208,9 +229,9 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
               {activeProject.name}
             </Typography>
           )}
-          {currentItem && (
+          {breadcrumbTail && (
             <Typography color="text.primary" fontWeight="bold">
-              {t(currentItem.i18nKey, currentItem.label)}
+              {breadcrumbTail}
             </Typography>
           )}
         </Breadcrumbs>
@@ -260,6 +281,16 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
           >
             <StarBorderIcon />
           </IconButton>
+          {showSettings && (
+            <IconButton
+              size="small"
+              onClick={() => navigate(`/projects/${projectId}/settings`)}
+              title={t("projectSettings.title", "프로젝트 설정")}
+              data-testid="open-project-settings-button"
+            >
+              <SettingsIcon />
+            </IconButton>
+          )}
           <IconButton
             size="small"
             onClick={toggleHeader}
@@ -330,9 +361,11 @@ function ProjectHeader({ tabIndex, onTabChange, showExploratoryTab = true }) {
 }
 
 ProjectHeader.propTypes = {
-  tabIndex: PropTypes.number.isRequired,
+  // 영역 화면은 번호, 영역 밖 화면(프로젝트 설정 등)은 false — MUI Tabs 가 "선택 없음" 으로 받는 값이다.
+  tabIndex: PropTypes.oneOfType([PropTypes.number, PropTypes.bool]).isRequired,
   onTabChange: PropTypes.func.isRequired,
   showExploratoryTab: PropTypes.bool,
+  currentLabel: PropTypes.string,
 };
 
 export default ProjectHeader;

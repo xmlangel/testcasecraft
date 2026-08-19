@@ -887,6 +887,7 @@ Every screen has its own address. Sharing the address opens the exact same scree
 | `/projects/{projectId}/rag` | RAG documents | S9 |
 | `/projects/{projectId}/exploratory` | Exploratory sessions | S10 |
 | `/projects/{projectId}/bookmarks` | My bookmarks | S2 |
+| `/projects/{projectId}/settings` | Project settings (General / Members) | S1 |
 
 **Short addresses and pass-through**
 
@@ -1074,9 +1075,22 @@ Frequently used terms in the manual are compiled here for reference when first u
 | **TESTER** | View + record test case execution results, conduct exploratory sessions |
 | **CONTRIBUTOR** | Add / edit test cases and folders, drag-and-drop reordering |
 | **DEVELOPER** | Add / edit test cases and folders, drag-and-drop reordering (same edit permissions as CONTRIBUTOR) |
-| **LEAD_DEVELOPER** | All of the above + invite members and assign roles |
-| **PROJECT_MANAGER (PM)** | All of the above + change project settings |
-| **ADMIN** | System-wide — organization / user / mail / LLM / scheduler settings (see Section 17) |
+| **LEAD_DEVELOPER** | All of the above + add members, assign roles, remove members |
+| **PROJECT_MANAGER (PM)** | All of the above + change project settings (name, description, display order) |
+| **ADMIN** | System-wide — organization / user / mail / LLM / scheduler settings (see Section 17). Can also change member roles and settings on every project |
+
+**Where roles are assigned**
+
+The gear icon at the top right of a project screen opens **Project Settings** (`/projects/{projectId}/settings`), which has two tabs.
+
+| Tab | What it does | Who can use it |
+|---|---|---|
+| General | Change project name, description, and display order (the code cannot be changed after creation) | PROJECT_MANAGER, ADMIN |
+| Members | Add a member by searching for the user, change a role from the dropdown, remove a member | PROJECT_MANAGER, LEAD_DEVELOPER, ADMIN |
+
+Type two or more characters in the user search box to find people whose username, name, or email matches. Users who already belong to the project and inactive accounts never appear, so a pick never fails as a duplicate. The organization member invite dialog uses the same search.
+
+The gear icon appears only for those three. Role changes from the dropdown apply immediately — there is no save button. Demoting or removing the last remaining PROJECT_MANAGER is blocked. Granting or revoking PROJECT_MANAGER is limited to a current PM and system ADMIN.
 
 Test plan creation and management are available to all project members.
 
@@ -1151,3 +1165,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-07-02 | Reflected v1.0.93: added **[Delete]** to the Section 4-6 form header action buttons + new change note — the individual form delete is now unified with the tree delete (same confirmation dialog showing the target ID/name in a table, button hidden without permission, server message surfaced). Synchronized same section in Korean edition. |
 | 2026-07-02 | Reflected v1.0.93: new "Move / Copy to Another Project" subsection (Section 5-5) — select via tree checkboxes → **[Move/Copy to Project]** button → bulk operations dialog (target project/folder). Move carries results via mirroring and needs edit on both sides; copy duplicates cases only and needs view on source + edit on target. Added dedicated-button note to the Section 5-3 auto-blocked list. Also reflected in `test_case_manual.md` Section 3.7. Synchronized same sections in Korean edition. |
 | 2026-07-31 | Reflected UI changes since 2026-07-02 based on v1.0.102. A(Layout selector): Section 3-1 header breadcrumb change + Section 13-7 theme settings add menu structure selection. B(Plans/Executions 2-section): Sections 7 and 8 add new layout descriptions (new layout only). C(Tree search): Section 4-4 filter refreshed — search by name/ID/tag, comma-separated complex search, select-all captures visible items only; new image 100_tree_filter_search. D(Result tags): Section 8 filter panel adds tag item — multi-select, direct input, tag inheritance. E(Attachments): Section 8-1 result entry screen adds test case attachments section. F(Linked items): existing Section 4 handles it (image updates only post-2026-07-02). Synchronized same sections/images (images_en) in Korean edition. |
+| 2026-08-19 | Reflected the new Project Settings screen: added `/projects/{projectId}/settings` to the Section 16-4 address table and a new "Where roles are assigned" block in Section 18-4 — gear icon entry, General tab (name, description, display order; PROJECT_MANAGER and ADMIN) and Members tab (add, change role, remove; PROJECT_MANAGER, LEAD_DEVELOPER, ADMIN). The backend was tightened as well so that project settings changes are limited to PM and ADMIN (previously LEAD_DEVELOPER and organization admins also passed). Screenshots are not captured yet. Synchronized same sections in Korean edition. |

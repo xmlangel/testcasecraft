@@ -29,7 +29,7 @@ run_one() {
   echo "════════════════════════════════════════════════════════════════"
   export SHOPFLOW_LOCALE="$loc"
   python3 00_login.py
-  python3 00b_users.py      # 시드 사용자(manager/tester/developer) 자동 등록
+  python3 00b_users.py      # 시드 사용자 + 역할 확인 계정(pm/lead/contributor/viewer) 등록·비밀번호 교정
   python3 01_project.py
   python3 02_folders.py
   python3 02b_members.py

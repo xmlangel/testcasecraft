@@ -43,6 +43,7 @@ public class TestResultAttachmentController {
   private static final String DEFAULT_LANG = "ko";
 
   /** 파일 업로드 */
+  @PreAuthorize("@projectSecurityService.canRecordTestResultById(#testResultId)")
   @PostMapping("/upload/{testResultId}")
   @Operation(summary = "파일 업로드", description = "테스트 결과에 파일을 첨부합니다.")
   @ApiResponses(

@@ -19,6 +19,11 @@ import {
 } from "@mui/material";
 import { useI18n } from "../context/I18nContext.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
+import useProjectRole from "../hooks/useProjectRole.js";
+import {
+  canManageProjectMembers,
+  canRecordTestResult,
+} from "./TestCaseTree/utils/permissionUtils.js";
 import { useTheme as useAppTheme } from "../context/ThemeContext.jsx";
 import ExploratoryCharterTab from "./exploratory/ExploratoryCharterTab.jsx";
 import ExploratorySessionListTab from "./exploratory/ExploratorySessionListTab.jsx";
@@ -93,6 +98,11 @@ function ExploratorySessionWorkspace({ projectId }) {
   const isGlass = designSystem === "glass";
   const { t } = useI18n();
   const { api, user } = useAppContext();
+  // 매뉴얼 18-4 가 TESTER 에게 "탐색 세션 진행" 을 준다. 백엔드 canRunTestSession 과 같은 기준이다.
+  const { projectRole } = useProjectRole(projectId, user);
+  const canRunSessions = canRecordTestResult(projectRole);
+  // 삭제는 진행보다 좁다. 백엔드 canDeleteTestSession 과 같은 기준 — 리드 이상만.
+  const canDeleteSessions = canManageProjectMembers(projectRole);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab") || "charters";
@@ -180,7 +190,13 @@ function ExploratorySessionWorkspace({ projectId }) {
         const response = await api(`/api/sessions/${sessionId}`);
         if (!response.ok) {
           throw new Error(
-            await parseApiError(response, t("exploratory.sessionInfo.loadError", "세션 정보를 불러오지 못했습니다.")),
+            await parseApiError(
+              response,
+              t(
+                "exploratory.sessionInfo.loadError",
+                "세션 정보를 불러오지 못했습니다.",
+              ),
+            ),
           );
         }
         const data = await response.json();
@@ -364,7 +380,10 @@ function ExploratorySessionWorkspace({ projectId }) {
       if (!response.ok) {
         const message = await parseApiError(
           response,
-          t("exploratory.charterList.loadError", "차터 목록을 불러오지 못했습니다."),
+          t(
+            "exploratory.charterList.loadError",
+            "차터 목록을 불러오지 못했습니다.",
+          ),
         );
         setCharterError(message);
         return;
@@ -373,7 +392,12 @@ function ExploratorySessionWorkspace({ projectId }) {
       const data = await response.json();
       setCharters(Array.isArray(data) ? data : []);
     } catch (error) {
-      setCharterError(t("exploratory.charterList.networkError", "차터 목록을 불러오는 중 네트워크 오류가 발생했습니다."));
+      setCharterError(
+        t(
+          "exploratory.charterList.networkError",
+          "차터 목록을 불러오는 중 네트워크 오류가 발생했습니다.",
+        ),
+      );
     } finally {
       setChartersLoading(false);
     }
@@ -429,7 +453,12 @@ function ExploratorySessionWorkspace({ projectId }) {
 
   const saveCharter = async () => {
     if (!projectId) {
-      setCharterError(t("exploratory.charter.noProjectInfo", "프로젝트 정보가 없어 차터를 저장할 수 없습니다."));
+      setCharterError(
+        t(
+          "exploratory.charter.noProjectInfo",
+          "프로젝트 정보가 없어 차터를 저장할 수 없습니다.",
+        ),
+      );
       return;
     }
 
@@ -495,7 +524,12 @@ function ExploratorySessionWorkspace({ projectId }) {
       await loadCharters();
       setCharterDialogOpen(false);
     } catch (error) {
-      setCharterError(t("exploratory.charter.networkError", "차터 저장 중 네트워크 오류가 발생했습니다."));
+      setCharterError(
+        t(
+          "exploratory.charter.networkError",
+          "차터 저장 중 네트워크 오류가 발생했습니다.",
+        ),
+      );
     } finally {
       setSavingCharter(false);
     }
@@ -537,7 +571,10 @@ function ExploratorySessionWorkspace({ projectId }) {
       if (!response.ok) {
         const message = await parseApiError(
           response,
-          t("exploratory.sessionList.loadError", "세션 목록을 불러오지 못했습니다."),
+          t(
+            "exploratory.sessionList.loadError",
+            "세션 목록을 불러오지 못했습니다.",
+          ),
         );
         setSessionError(message);
         return;
@@ -556,7 +593,12 @@ function ExploratorySessionWorkspace({ projectId }) {
       }));
       setSessions(mapped);
     } catch (error) {
-      setSessionError(t("exploratory.sessionList.networkError", "세션 목록을 불러오는 중 네트워크 오류가 발생했습니다."));
+      setSessionError(
+        t(
+          "exploratory.sessionList.networkError",
+          "세션 목록을 불러오는 중 네트워크 오류가 발생했습니다.",
+        ),
+      );
     } finally {
       setSessionsLoading(false);
     }
@@ -617,7 +659,10 @@ function ExploratorySessionWorkspace({ projectId }) {
 
       if (!response.ok) {
         throw new Error(
-          await parseApiError(response, t("exploratory.session.saveError", "세션 저장에 실패했습니다.")),
+          await parseApiError(
+            response,
+            t("exploratory.session.saveError", "세션 저장에 실패했습니다."),
+          ),
         );
       }
 
@@ -653,7 +698,10 @@ function ExploratorySessionWorkspace({ projectId }) {
 
       if (!response.ok) {
         throw new Error(
-          await parseApiError(response, t("exploratory.session.submitError", "세션 제출에 실패했습니다.")),
+          await parseApiError(
+            response,
+            t("exploratory.session.submitError", "세션 제출에 실패했습니다."),
+          ),
         );
       }
 
@@ -684,7 +732,10 @@ function ExploratorySessionWorkspace({ projectId }) {
 
       if (!response.ok) {
         throw new Error(
-          await parseApiError(response, t("exploratory.session.approveError", "세션 승인에 실패했습니다.")),
+          await parseApiError(
+            response,
+            t("exploratory.session.approveError", "세션 승인에 실패했습니다."),
+          ),
         );
       }
 
@@ -718,7 +769,13 @@ function ExploratorySessionWorkspace({ projectId }) {
 
       if (!response.ok) {
         throw new Error(
-          await parseApiError(response, t("exploratory.session.amendmentError", "보완 요청에 실패했습니다.")),
+          await parseApiError(
+            response,
+            t(
+              "exploratory.session.amendmentError",
+              "보완 요청에 실패했습니다.",
+            ),
+          ),
         );
       }
 
@@ -737,7 +794,9 @@ function ExploratorySessionWorkspace({ projectId }) {
 
   const handleTimerAction = async (action) => {
     if (!sessionDraft.id && action !== "start") {
-      setSessionError(t("exploratory.session.mustSaveFirst", "세션을 먼저 저장해야 합니다."));
+      setSessionError(
+        t("exploratory.session.mustSaveFirst", "세션을 먼저 저장해야 합니다."),
+      );
       return;
     }
 
@@ -761,7 +820,11 @@ function ExploratorySessionWorkspace({ projectId }) {
           throw new Error(
             await parseApiError(
               response,
-              t("exploratory.session.actionError", "세션 {action} 요청에 실패했습니다.", { action }),
+              t(
+                "exploratory.session.actionError",
+                "세션 {action} 요청에 실패했습니다.",
+                { action },
+              ),
             ),
           );
         }
@@ -828,7 +891,12 @@ function ExploratorySessionWorkspace({ projectId }) {
         setSessionDraft(INITIAL_SESSION_DRAFT);
       }
     } catch (error) {
-      setSessionError(t("exploratory.session.deleteErrorOccurred", "세션 삭제 중 오류가 발생했습니다."));
+      setSessionError(
+        t(
+          "exploratory.session.deleteErrorOccurred",
+          "세션 삭제 중 오류가 발생했습니다.",
+        ),
+      );
     }
   };
 
@@ -883,7 +951,10 @@ function ExploratorySessionWorkspace({ projectId }) {
 
         if (!response.ok) {
           throw new Error(
-            await parseApiError(response, t("exploratory.file.uploadError", "파일 업로드에 실패했습니다.")),
+            await parseApiError(
+              response,
+              t("exploratory.file.uploadError", "파일 업로드에 실패했습니다."),
+            ),
           );
         }
 
@@ -912,7 +983,13 @@ function ExploratorySessionWorkspace({ projectId }) {
 
       if (!response.ok) {
         throw new Error(
-          await parseApiError(response, t("exploratory.file.descriptionError", "파일 설명 수정에 실패했습니다.")),
+          await parseApiError(
+            response,
+            t(
+              "exploratory.file.descriptionError",
+              "파일 설명 수정에 실패했습니다.",
+            ),
+          ),
         );
       }
 
@@ -941,7 +1018,10 @@ function ExploratorySessionWorkspace({ projectId }) {
 
       if (!response.ok) {
         throw new Error(
-          await parseApiError(response, t("exploratory.file.deleteError", "파일 삭제에 실패했습니다.")),
+          await parseApiError(
+            response,
+            t("exploratory.file.deleteError", "파일 삭제에 실패했습니다."),
+          ),
         );
       }
 
@@ -1090,6 +1170,7 @@ function ExploratorySessionWorkspace({ projectId }) {
             saveCharter={saveCharter}
             savingCharter={savingCharter}
             charterErrors={charterErrors}
+            canRun={canRunSessions}
           />
         )}
 
@@ -1106,6 +1187,8 @@ function ExploratorySessionWorkspace({ projectId }) {
             onSelectSession={handleSelectSession}
             onCreateSession={handleCreateSession}
             onDeleteSession={handleDeleteSession}
+            canRun={canRunSessions}
+            canDelete={canDeleteSessions}
           />
         )}
 

@@ -152,3 +152,24 @@ scripts/shopflow_seed/
 - `testcasecraft-sheet-import-orchestrator` — 외부 Google Sheets/Excel 에서 케이스 임포트
 - `testcasecraft-mcp-orchestrator` — 같은 백엔드를 MCP로 노출
 - `manual-capture-orchestrator` — 매뉴얼 캡처 + 동기화
+
+## 계정과 프로젝트 역할
+
+시드는 결과를 남기는 계정 넷과 역할 확인용 계정 넷을 만든다. 뒤 넷은 **시스템 역할을 모두 `TESTER` 로 같게 두고 프로젝트 역할만 달리한다.** 두 역할 축은 값 집합이 다른데 같은 자리에서 판정하는 결함이 실제로 있었고, 시스템 역할까지 다르면 어느 축 때문에 막혔는지 갈라 볼 수 없다.
+
+| 계정 | 비밀번호 | 시스템 역할 | 프로젝트 역할 | 쓰임 |
+|---|---|---|---|---|
+| `admin` | `admin123` | ADMIN | PROJECT_MANAGER | 시드 실행·시스템 관리자 확인 |
+| `manager` | `manager123` | MANAGER | PROJECT_MANAGER | 결과 작성자 분포 |
+| `tester` | `tester123` | TESTER | TESTER | 결과 작성자 분포 |
+| `developer` | `developer123` | USER | DEVELOPER | 결과 작성자 분포 |
+| `pm` | `Testcase123!` | TESTER | PROJECT_MANAGER | 프로젝트 설정 변경까지 되는 역할 |
+| `lead` | `Testcase123!` | TESTER | LEAD_DEVELOPER | 멤버 관리는 되고 설정 변경은 안 되는 역할 |
+| `contributor` | `Testcase123!` | TESTER | CONTRIBUTOR | 편집만 되는 역할 |
+| `viewer` | `Testcase123!` | TESTER | VIEWER | 조회만 되는 역할 |
+
+여덟 계정이 프로젝트 역할 여섯 종을 모두 덮는다. `07_verify.py` 가 실제 멤버 역할을 조회해 이 표와 대조하고, 어긋나면 어느 계정이 어긋났는지 밝힌다.
+
+역할별로 무엇이 막히는지는 `docs/역할별_권한_실측표.md` 에 응답 코드로 적혀 있다.
+
+**비밀번호가 다른 계정은 시드가 되맞춘다.** 계정이 이미 있고 로그인만 실패하면 관리자 권한으로 이 표의 값으로 바꾼다. 예전에는 "백엔드에서 직접 수정 필요" 로 끝나 그 계정으로는 아무것도 못 했다.

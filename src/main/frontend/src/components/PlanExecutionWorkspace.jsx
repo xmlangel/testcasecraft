@@ -37,6 +37,9 @@ import apiService from "../services/apiService.js";
 import TestPlanForm from "./TestPlanForm.jsx";
 import TestExecutionForm from "./TestExecutionForm.jsx";
 import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
+import { useAuth } from "../context/AuthContext.jsx";
+import useProjectRole from "../hooks/useProjectRole.js";
+import { canEditProjectContent } from "./TestCaseTree/utils/permissionUtils.js";
 
 const LIST_WIDTH = 260;
 const LIST_COLLAPSED_WIDTH = 44;
@@ -83,6 +86,11 @@ function PlanExecutionWorkspace({
   initialExecutionId = null,
 }) {
   const { t } = useI18n();
+  const { user } = useAuth();
+  // 편집 가능 역할만 플랜·실행을 만들거나 고칠 수 있다.
+  // 백엔드 TestPlanService·TestExecutionService 의 canEditProject 와 같은 규칙이다.
+  const { projectRole } = useProjectRole(projectId, user);
+  const canEdit = canEditProjectContent(projectRole);
   const {
     testPlans = [],
     testPlansLoading,
@@ -669,19 +677,21 @@ function PlanExecutionWorkspace({
       sx={{ px: 2, pb: 2, display: "flex", gap: 1, alignItems: "center" }}
       data-testid="workspace-runs-section"
     >
-      <Button
-        size="small"
-        variant="contained"
-        startIcon={<AddIcon />}
-        disabled={!selectedPlanId}
-        onClick={() => {
-          setSelectedExecutionId(null);
-          setCreatingExecution(true);
-        }}
-        data-testid="workspace-new-execution"
-      >
-        {t("testPlan.workspace.newExecution", "실행 만들기")}
-      </Button>
+      {canEdit && (
+        <Button
+          size="small"
+          variant="contained"
+          startIcon={<AddIcon />}
+          disabled={!selectedPlanId}
+          onClick={() => {
+            setSelectedExecutionId(null);
+            setCreatingExecution(true);
+          }}
+          data-testid="workspace-new-execution"
+        >
+          {t("testPlan.workspace.newExecution", "실행 만들기")}
+        </Button>
+      )}
       <Tooltip title={t("common.refresh", "새로고침")}>
         <IconButton
           size="small"
@@ -729,7 +739,7 @@ function PlanExecutionWorkspace({
     </Box>
   );
 
-  if (creatingExecution && effectivePlanId) {
+  if (creatingExecution && effectivePlanId && canEdit) {
     detail = (
       <>
         {mode === "plans" && backToPlan}

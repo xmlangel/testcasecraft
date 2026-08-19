@@ -48,6 +48,8 @@ import {
 import PageTitle from "./common/PageTitle.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import useProjectRole from "../hooks/useProjectRole.js";
+import { canEditProjectContent } from "./TestCaseTree/utils/permissionUtils.js";
 import { ExecutionStatus } from "../models/testExecution.jsx";
 import { useDateFormatter } from "../hooks/useDateFormatter";
 import { safeParseDate } from "../utils/dateUtils";
@@ -56,7 +58,8 @@ import { Link as LinkIcon } from "@mui/icons-material";
 import { countRealTestCases } from "../utils/treeUtils";
 import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
 
-const ADMIN_ROLES = ["ADMIN", "MANAGER"];
+// 프로젝트 역할로 판정한다. 이전에는 시스템 역할(ADMIN·MANAGER)을 봐서 두 방향으로 어긋났다 —
+// 프로젝트 매니저인데 버튼이 안 보이고, 프로젝트 뷰어인 시스템 매니저에게는 보였다.
 const PLANS_PER_PAGE = 10;
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
@@ -115,7 +118,8 @@ const TestPlanList = ({
   // Derived state
   const projectId = activeProject?.id;
   const globalLoading = projectsLoading || testPlansLoading;
-  const canManage = ADMIN_ROLES.includes(user?.role);
+  const { projectRole } = useProjectRole(projectId, user);
+  const canManage = canEditProjectContent(projectRole);
 
   // 생성일(createdAt) 기준 정렬
   const sortedTestPlans = useMemo(() => {

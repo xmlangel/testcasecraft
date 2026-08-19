@@ -1692,7 +1692,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           {/* 첨부 파일 탭 */}
           {testCaseId && (
             <TabPanel value={tabValue} index={1}>
-              <TestCaseAttachments testCaseId={testCaseId} />
+              {/* 조회 전용 역할에는 업로드 버튼을 내보내지 않는다. 백엔드
+                  canUploadTestCase 도 편집 권한을 요구한다. */}
+              <TestCaseAttachments
+                testCaseId={testCaseId}
+                readOnly={isViewer}
+              />
             </TabPanel>
           )}
 

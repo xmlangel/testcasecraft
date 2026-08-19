@@ -63,6 +63,9 @@ const TestCaseResultPage = React.lazy(
 const BookmarkPage = React.lazy(
   () => import("./components/Bookmark/BookmarkPage.jsx"),
 );
+const ProjectSettingsPage = React.lazy(
+  () => import("./components/Project/ProjectSettingsPage.jsx"),
+);
 const TestResultMainPage = React.lazy(
   () => import("./components/TestResultMainPage.jsx"),
 );
@@ -472,6 +475,12 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/exploratory/);
   };
 
+  // URL이 프로젝트 설정 화면인지 확인 (영역 탭이 아니라 프로젝트 안의 별도 화면)
+  const isProjectSettingsSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/settings/);
+  };
+
   // URL 경로에 따른 화면 표시 결정
   React.useEffect(() => {
     const urlProjectId = getProjectIdFromUrl();
@@ -577,6 +586,9 @@ const AppContent = () => {
             navigate(`/projects/${urlProjectId}`);
             setTabIndex(0);
           }
+          setActiveTestCaseId(null);
+        } else if (isProjectSettingsSection()) {
+          // 설정은 영역 탭이 아니다. 탭 번호를 바꾸면 돌아갔을 때 보던 영역을 잃는다.
           setActiveTestCaseId(null);
         } else {
           // 기본 프로젝트 URL 접근 시 대시보드 탭 표시
@@ -1144,6 +1156,34 @@ const AppContent = () => {
           ) : (
             <UnauthorizedPage />
           )
+        ) : isProjectSettingsSection() ? (
+          // 프로젝트 설정 — 영역 탭은 아니지만 프로젝트 작업공간 안의 화면이다.
+          // 전역 헤더·브레드크럼·좌측 영역 메뉴를 그대로 두고 본문만 갈아 끼운다.
+          <>
+            {activeProject && (
+              <ProjectHeader
+                tabIndex={false}
+                onTabChange={handleTabChange}
+                showExploratoryTab={showExploratorySessionTab}
+                currentLabel={t("projectSettings.title", "프로젝트 설정")}
+              />
+            )}
+            <Box sx={{ display: "flex", alignItems: "stretch" }}>
+              {isSidebarMode && (
+                <ProjectSidebar
+                  tabIndex={-1}
+                  onSelect={(nextIndex) => handleTabChange(null, nextIndex)}
+                  isRagEnabled={isRagEnabled}
+                  showExploratory={showExploratorySessionTab}
+                />
+              )}
+              <Box
+                sx={{ flexGrow: 1, minWidth: 0, pl: isSidebarMode ? 1.5 : 0 }}
+              >
+                <ProjectSettingsPage />
+              </Box>
+            </Box>
+          </>
         ) : projectSelectionOpen ? (
           <Box sx={{ mt: 0.5, mb: 0.5 }}>
             <Typography

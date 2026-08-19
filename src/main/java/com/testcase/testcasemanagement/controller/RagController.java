@@ -47,7 +47,7 @@ public class RagController {
    */
   @Operation(summary = "문서 업로드", description = "RAG 시스템에 문서를 업로드합니다. (50MB 제한)")
   @PostMapping(value = "/documents/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canEditProject(#projectId)")
   public ResponseEntity<RagDocumentResponse> uploadDocument(
       @RequestParam("file") MultipartFile file,
       @RequestParam("projectId") UUID projectId,
@@ -101,7 +101,7 @@ public class RagController {
    */
   @Operation(summary = "문서 분석", description = "업로드된 문서를 분석하여 텍스트를 추출합니다.")
   @PostMapping("/documents/{documentId}/analyze")
-  @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<RagDocumentResponse> analyzeDocument(
       @PathVariable UUID documentId,
       @RequestParam(value = "parser", defaultValue = "pymupdf4llm") String parser) {
@@ -127,7 +127,7 @@ public class RagController {
    */
   @Operation(summary = "임베딩 생성", description = "분석된 문서의 텍스트 청크에 대한 벡터 임베딩을 생성합니다.")
   @PostMapping("/embeddings/generate")
-  @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<RagDocumentResponse> generateEmbeddings(
       @RequestParam("documentId") UUID documentId) {
 
@@ -259,7 +259,7 @@ public class RagController {
    */
   @Operation(summary = "문서 삭제", description = "문서를 삭제합니다.")
   @DeleteMapping("/documents/{documentId}")
-  @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<String> deleteDocument(@PathVariable UUID documentId) {
     log.info("REST API: Delete document request - documentId={}", documentId);
 
@@ -385,6 +385,7 @@ public class RagController {
    * <p>프로젝트 멤버 이상 접근 가능. LLM 설정이 활성화된 경우에만 사용자에게 노출됩니다.
    */
   @Operation(summary = "테스트케이스 RAG 등록", description = "단일 테스트케이스를 RAG 시스템에 등록합니다. (프로젝트 멤버 이상)")
+  @PreAuthorize("@projectSecurityService.canEditTestCase(#testCaseId)")
   @PostMapping("/testcases/{testCaseId}/vectorize")
   public ResponseEntity<Map<String, Object>> vectorizeSingleTestCase(
       @PathVariable String testCaseId) {
@@ -546,8 +547,7 @@ public class RagController {
   /** 공통 문서 등록 요청 생성 (일반 사용자) */
   @Operation(summary = "공통 문서 등록 요청", description = "프로젝트 문서를 공통 문서로 등록해달라고 요청합니다.")
   @PostMapping("/documents/{documentId}/global-request")
-  @PreAuthorize(
-      "@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<RagGlobalDocumentRequestDto> requestGlobalDocument(
       @PathVariable UUID documentId,
       @RequestBody(required = false) RagGlobalDocumentRequestCreateRequest request,
@@ -667,8 +667,7 @@ public class RagController {
    */
   @Operation(summary = "LLM 분석 비용 추정", description = "문서 분석에 소요될 예상 비용을 계산합니다.")
   @PostMapping("/documents/{documentId}/estimate-cost")
-  @PreAuthorize(
-      "@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<RagCostEstimateResponse> estimateAnalysisCost(
       @PathVariable UUID documentId, @Valid @RequestBody RagCostEstimateRequest request) {
 
@@ -694,8 +693,7 @@ public class RagController {
    */
   @Operation(summary = "LLM 문서 분석 시작", description = "문서에 대한 LLM 심층 분석을 시작합니다.")
   @PostMapping("/documents/{documentId}/analyze-with-llm")
-  @PreAuthorize(
-      "@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<RagLlmAnalysisResponse> analyzeDocumentWithLlm(
       @PathVariable UUID documentId, @Valid @RequestBody RagLlmAnalysisRequest request) {
 
@@ -774,8 +772,7 @@ public class RagController {
    */
   @Operation(summary = "LLM 분석 일시정지", description = "진행 중인 LLM 분석 작업을 일시정지합니다.")
   @PostMapping("/documents/{documentId}/pause-analysis")
-  @PreAuthorize(
-      "@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<RagLlmAnalysisStatusResponse> pauseAnalysis(@PathVariable UUID documentId) {
 
     log.info("REST API: Pause LLM analysis - documentId={}", documentId);
@@ -796,8 +793,7 @@ public class RagController {
    */
   @Operation(summary = "LLM 분석 재개", description = "일시정지된 LLM 분석 작업을 재개합니다.")
   @PostMapping("/documents/{documentId}/resume-analysis")
-  @PreAuthorize(
-      "@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<RagLlmAnalysisStatusResponse> resumeAnalysis(
       @PathVariable UUID documentId) {
 
@@ -819,8 +815,7 @@ public class RagController {
    */
   @Operation(summary = "LLM 분석 취소", description = "진행 중인 LLM 분석 작업을 취소합니다.")
   @PostMapping("/documents/{documentId}/cancel-analysis")
-  @PreAuthorize(
-      "@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+  @PreAuthorize("@projectSecurityService.canEditDocumentProject(#documentId)")
   public ResponseEntity<RagLlmAnalysisStatusResponse> cancelAnalysis(
       @PathVariable UUID documentId) {
 
@@ -876,7 +871,7 @@ public class RagController {
   @PostMapping("/analysis-summaries")
   @PreAuthorize(
       "#request.documentId != null and"
-          + " @projectSecurityService.canAccessDocumentProject(#request.documentId)")
+          + " @projectSecurityService.canEditDocumentProject(#request.documentId)")
   public ResponseEntity<RagAnalysisSummaryResponse> createAnalysisSummary(
       @Valid @RequestBody RagAnalysisSummaryRequest request) {
 
@@ -956,7 +951,7 @@ public class RagController {
    * <p>PUT /api/rag/analysis-summaries/{summaryId}
    */
   @PutMapping("/analysis-summaries/{summaryId}")
-  @PreAuthorize("@projectSecurityService.canAccessRagAnalysisSummary(#summaryId)")
+  @PreAuthorize("@projectSecurityService.canEditRagAnalysisSummary(#summaryId)")
   public ResponseEntity<RagAnalysisSummaryResponse> updateAnalysisSummary(
       @PathVariable UUID summaryId, @Valid @RequestBody RagAnalysisSummaryRequest request) {
 
@@ -977,7 +972,7 @@ public class RagController {
    * <p>DELETE /api/rag/analysis-summaries/{summaryId}
    */
   @DeleteMapping("/analysis-summaries/{summaryId}")
-  @PreAuthorize("@projectSecurityService.canAccessRagAnalysisSummary(#summaryId)")
+  @PreAuthorize("@projectSecurityService.canEditRagAnalysisSummary(#summaryId)")
   public ResponseEntity<String> deleteAnalysisSummary(@PathVariable UUID summaryId) {
 
     log.info("REST API: Delete analysis summary - summaryId={}", summaryId);

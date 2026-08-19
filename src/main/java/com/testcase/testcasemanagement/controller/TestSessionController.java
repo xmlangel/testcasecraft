@@ -34,7 +34,7 @@ public class TestSessionController {
   @Autowired private TestSessionService testSessionService;
 
   @PostMapping("/sessions")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canRunTestSession(#request.projectId)")
   public ResponseEntity<TestSessionResponseDto> createSession(
       @Valid @RequestBody TestSessionRequestDto request) {
     return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,26 +42,26 @@ public class TestSessionController {
   }
 
   @GetMapping("/sessions/{id}")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canAccessTestSession(#id)")
   public ResponseEntity<TestSessionResponseDto> getSession(@PathVariable String id) {
     return ResponseEntity.ok(testSessionService.getSession(id));
   }
 
   @PutMapping("/sessions/{id}")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canRunTestSessionById(#id)")
   public ResponseEntity<TestSessionResponseDto> updateSession(
       @PathVariable String id, @Valid @RequestBody TestSessionRequestDto request) {
     return ResponseEntity.ok(testSessionService.updateSession(id, request));
   }
 
   @PostMapping("/sessions/{id}/start")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canRunTestSessionById(#id)")
   public ResponseEntity<TestSessionResponseDto> startSession(@PathVariable String id) {
     return ResponseEntity.ok(testSessionService.startSession(id));
   }
 
   @PostMapping("/sessions/{id}/pause")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canRunTestSessionById(#id)")
   public ResponseEntity<TestSessionResponseDto> pauseSession(
       @PathVariable String id, @RequestBody(required = false) TestSessionPauseRequestDto request) {
     String reason = request == null ? null : request.getReason();
@@ -69,25 +69,25 @@ public class TestSessionController {
   }
 
   @PostMapping("/sessions/{id}/resume")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canRunTestSessionById(#id)")
   public ResponseEntity<TestSessionResponseDto> resumeSession(@PathVariable String id) {
     return ResponseEntity.ok(testSessionService.resumeSession(id));
   }
 
   @PostMapping("/sessions/{id}/end")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canRunTestSessionById(#id)")
   public ResponseEntity<TestSessionResponseDto> endSession(@PathVariable String id) {
     return ResponseEntity.ok(testSessionService.endSession(id));
   }
 
   @PostMapping("/sessions/{id}/submit")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canRunTestSessionById(#id)")
   public ResponseEntity<TestSessionResponseDto> submitSession(@PathVariable String id) {
     return ResponseEntity.ok(testSessionService.submitSession(id));
   }
 
   @PostMapping("/sessions/{id}/approve")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+  @PreAuthorize("@projectSecurityService.canApproveTestSession(#id)")
   public ResponseEntity<TestSessionResponseDto> approveSession(
       @PathVariable String id, @RequestBody(required = false) TestSessionReviewRequestDto request) {
     String comment = request == null ? null : request.getComment();
@@ -95,7 +95,7 @@ public class TestSessionController {
   }
 
   @PostMapping("/sessions/{id}/request-update")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+  @PreAuthorize("@projectSecurityService.canApproveTestSession(#id)")
   public ResponseEntity<TestSessionResponseDto> requestUpdate(
       @PathVariable String id, @RequestBody(required = false) TestSessionReviewRequestDto request) {
     String comment = request == null ? null : request.getComment();
@@ -103,7 +103,7 @@ public class TestSessionController {
   }
 
   @GetMapping("/projects/{projectId}/sessions")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
   public ResponseEntity<List<TestSessionResponseDto>> listByProject(
       @PathVariable String projectId,
       @RequestParam(required = false) String status,
@@ -122,7 +122,7 @@ public class TestSessionController {
   }
 
   @DeleteMapping("/sessions/{id}")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER')")
+  @PreAuthorize("@projectSecurityService.canDeleteTestSession(#id)")
   public ResponseEntity<Void> deleteSession(@PathVariable String id) {
     testSessionService.deleteSession(id);
     return ResponseEntity.noContent().build();

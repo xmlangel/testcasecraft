@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -105,6 +106,7 @@ public class TestCaseVersionController {
 
   // ============ 버전 생성 API ============
 
+  @PreAuthorize("@projectSecurityService.canEditTestCase(#testCaseId)")
   @PostMapping("/{testCaseId}/manual")
   @Operation(summary = "수동 버전 생성", description = "사용자가 직접 새 버전을 생성합니다.")
   public ResponseEntity<ApiResponse<TestCaseVersionDto>> createManualVersion(
@@ -136,6 +138,7 @@ public class TestCaseVersionController {
 
   // ============ 버전 복원 API ============
 
+  @PreAuthorize("@projectSecurityService.canEditTestCaseVersion(#versionId)")
   @PostMapping("/{versionId}/restore")
   @Operation(summary = "버전 복원", description = "특정 버전을 현재 버전으로 복원합니다.")
   public ResponseEntity<ApiResponse<TestCaseVersionDto>> restoreVersion(
@@ -188,6 +191,7 @@ public class TestCaseVersionController {
 
   // ============ 버전 관리 유틸리티 API ============
 
+  @PreAuthorize("@projectSecurityService.canEditTestCase(#testCaseId)")
   @DeleteMapping("/testcase/{testCaseId}/cleanup")
   @Operation(summary = "오래된 버전 정리", description = "지정된 개수만 남기고 오래된 버전들을 삭제합니다.")
   public ResponseEntity<ApiResponse<Integer>> cleanupOldVersions(
@@ -210,6 +214,8 @@ public class TestCaseVersionController {
     }
   }
 
+  // 프로젝트를 가리지 않고 전체 드래프트를 지우므로 시스템 관리자만 허용한다.
+  @PreAuthorize("hasRole('ADMIN')")
   @DeleteMapping("/draft/cleanup")
   @Operation(summary = "임시 버전 정리", description = "지정된 날짜 이전의 임시 버전들을 삭제합니다.")
   public ResponseEntity<ApiResponse<Integer>> cleanupDraftVersions(

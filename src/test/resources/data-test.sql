@@ -20,10 +20,12 @@ INSERT INTO project_users (id, project_id, user_id, role_in_project, created_at,
 ('pu-3', 'project-2', 'user-2', 'TESTER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 테스트 케이스 데이터
-INSERT INTO testcases (id, project_id, name, type, description, display_order, priority, created_at, updated_at) VALUES
-('tc-1', 'project-1', '로그인 테스트', 'testcase', '로그인 기능 테스트', 1, 'HIGH', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('tc-2', 'project-1', '회원가입 테스트', 'testcase', '회원가입 기능 테스트', 2, 'MEDIUM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('tc-3', 'project-2', '상품 목록 조회', 'testcase', '상품 목록 조회 테스트', 1, 'HIGH', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+-- version 은 @Version 낙관적 락 컬럼이다. 비워 두면 기동 시 Display ID 마이그레이션이
+-- 이 행을 수정하다 null 을 증가시키지 못해 컨텍스트 로딩 자체가 실패한다.
+INSERT INTO testcases (id, project_id, name, type, description, display_order, priority, version, created_at, updated_at) VALUES
+('tc-1', 'project-1', '로그인 테스트', 'testcase', '로그인 기능 테스트', 1, 'HIGH', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('tc-2', 'project-1', '회원가입 테스트', 'testcase', '회원가입 기능 테스트', 2, 'MEDIUM', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('tc-3', 'project-2', '상품 목록 조회', 'testcase', '상품 목록 조회 테스트', 1, 'HIGH', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 테스트플랜 데이터
 INSERT INTO test_plans (id, name, description, project_id, created_at, updated_at) VALUES

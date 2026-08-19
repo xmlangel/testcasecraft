@@ -41,6 +41,8 @@ function ExploratorySessionListTab({
   onSelectSession,
   onCreateSession,
   onDeleteSession,
+  canRun = false,
+  canDelete = false,
 }) {
   const theme = useTheme();
   const { designSystem } = useAppTheme();
@@ -67,15 +69,18 @@ function ExploratorySessionListTab({
           {t("exploratory.session.countUnit", "개의 세션이 있습니다.")}
         </Typography>
         <Stack direction="row" spacing={1}>
-          <Chip
-            icon={<AddIcon />}
-            label={t("exploratory.session.btn.createNew", "새 세션 시작")}
-            onClick={onCreateSession}
-            color="primary"
-            variant="filled"
-            clickable
-            sx={{ fontWeight: "bold", px: 1 }}
-          />
+          {canRun && (
+            <Chip
+              icon={<AddIcon />}
+              label={t("exploratory.session.btn.createNew", "새 세션 시작")}
+              onClick={onCreateSession}
+              color="primary"
+              variant="filled"
+              clickable
+              sx={{ fontWeight: "bold", px: 1 }}
+              data-testid="exploratory-session-create"
+            />
+          )}
         </Stack>
       </Box>
 
@@ -331,33 +336,38 @@ function ExploratorySessionListTab({
                               </Typography>
                             </Stack>
                           )}
-                          <Tooltip title={t("common.delete", "삭제")}>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDeleteSession && onDeleteSession(item.id);
-                              }}
-                              sx={{
-                                opacity: 0.3,
-                                transition: "all 0.2s ease-in-out",
-                                color: isDark
-                                  ? "rgba(255,255,255,0.4)"
-                                  : "text.secondary",
-                                "&:hover": {
-                                  opacity: 1,
-                                  color: "error.main",
-                                  bgcolor: isDark
-                                    ? "rgba(211, 47, 47, 0.1)"
-                                    : "rgba(211, 47, 47, 0.05)",
-                                  transform: "scale(1.1)",
-                                },
-                                ".MuiCard-root:hover &": { opacity: 0.8 },
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          {/* 삭제 권한이 없으면 버튼 자체를 내보내지 않는다.
+                              Tooltip 에 sx 를 걸어도 숨겨지지 않는다 — Tooltip 은 자기 DOM 을
+                              만들지 않고 자식에게 props 만 넘긴다(실측에서 VIEWER 에게 보였다). */}
+                          {canDelete && (
+                            <Tooltip title={t("common.delete", "삭제")}>
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteSession && onDeleteSession(item.id);
+                                }}
+                                sx={{
+                                  opacity: 0.3,
+                                  transition: "all 0.2s ease-in-out",
+                                  color: isDark
+                                    ? "rgba(255,255,255,0.4)"
+                                    : "text.secondary",
+                                  "&:hover": {
+                                    opacity: 1,
+                                    color: "error.main",
+                                    bgcolor: isDark
+                                      ? "rgba(211, 47, 47, 0.1)"
+                                      : "rgba(211, 47, 47, 0.05)",
+                                    transform: "scale(1.1)",
+                                  },
+                                  ".MuiCard-root:hover &": { opacity: 0.8 },
+                                }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Box>
                       </Box>
 

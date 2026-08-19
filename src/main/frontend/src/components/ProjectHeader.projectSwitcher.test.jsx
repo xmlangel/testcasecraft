@@ -32,6 +32,17 @@ vi.mock("../context/AppContext.jsx", () => ({
   useAppContext: () => appContext,
 }));
 
+vi.mock("../context/AuthContext.jsx", () => ({
+  useAuth: () => ({ user: { id: "u1", username: "kim" } }),
+}));
+
+// 프로젝트 설정 입구는 프로젝트 역할로 갈린다 — 역할을 바꿔 가며 확인한다.
+const roleState = { projectRole: "PROJECT_MANAGER", loading: false };
+vi.mock("../hooks/useProjectRole.js", () => ({
+  default: () => roleState,
+  useProjectRole: () => roleState,
+}));
+
 /**
  * 상단 브레드크럼의 프로젝트 선택기 테스트.
  *
@@ -44,6 +55,7 @@ describe("ProjectHeader 프로젝트 선택기", () => {
   beforeEach(() => {
     navigateMock.mockClear();
     navModeState.isSidebarMode = true;
+    roleState.projectRole = "PROJECT_MANAGER";
   });
 
   const setup = (tabIndex = 0) =>
@@ -94,5 +106,50 @@ describe("ProjectHeader 프로젝트 선택기", () => {
     expect(screen.getByLabelText("breadcrumb")).toHaveTextContent(
       "테스트케이스",
     );
+  });
+
+  it("프로젝트 설정 입구는 관리 역할과 시스템 관리자에게 보인다", () => {
+    setup(0);
+    expect(screen.getByTestId("open-project-settings-button")).toBeTruthy();
+
+    roleState.projectRole = "LEAD_DEVELOPER";
+    setup(0);
+    expect(screen.getAllByTestId("open-project-settings-button").length).toBe(
+      2,
+    );
+
+    // 시스템 관리자는 프로젝트 멤버가 아니어도 useProjectRole 이 ADMIN 센티널을 준다
+    roleState.projectRole = "ADMIN";
+    setup(0);
+    expect(screen.getAllByTestId("open-project-settings-button").length).toBe(
+      3,
+    );
+  });
+
+  it("편집 역할이라도 관리 역할이 아니면 설정 입구가 없다", () => {
+    roleState.projectRole = "DEVELOPER";
+    setup(0);
+    expect(screen.queryByTestId("open-project-settings-button")).toBeNull();
+
+    roleState.projectRole = null;
+    setup(0);
+    expect(screen.queryByTestId("open-project-settings-button")).toBeNull();
+  });
+
+  it("영역 밖 화면은 currentLabel 을 마지막 크럼으로 쓰고 어느 탭도 고르지 않는다", () => {
+    navModeState.isSidebarMode = false;
+    render(
+      <ProjectHeader
+        tabIndex={false}
+        onTabChange={vi.fn()}
+        currentLabel="프로젝트 설정"
+      />,
+    );
+    expect(screen.getByLabelText("breadcrumb")).toHaveTextContent(
+      "프로젝트 설정",
+    );
+    // 탭은 그대로 보이되 선택된 항목이 없다 — 다른 영역으로 바로 나갈 수 있어야 한다
+    expect(screen.getByLabelText("project tabs")).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { selected: true })).toBeNull();
   });
 });

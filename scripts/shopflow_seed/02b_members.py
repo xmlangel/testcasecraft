@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""ShopFlow seed - Step 2b: 프로젝트에 멤버 4명 추가 (멱등, i18n).
+"""ShopFlow seed - Step 2b: 프로젝트에 멤버 추가 (멱등, i18n).
 
-manager/tester/developer 를 ShopFlow 프로젝트의 멤버로 등록한다.
+결과를 남기는 네 계정(admin/manager/tester/developer)과 역할 확인용 세 계정
+(pm/lead/viewer)을 ShopFlow 프로젝트의 멤버로 등록한다. 뒤 셋은 프로젝트 역할이
+VIEWER·LEAD_DEVELOPER·PROJECT_MANAGER 로 갈려 있어, 역할별로 무엇이 막히는지
+로컬에서 바로 확인할 수 있다.
 admin 은 프로젝트 생성자이므로 자동 PROJECT_MANAGER.
 백엔드는 결과 입력 시 JWT 의 인증된 사용자로 executedBy 를 강제 설정하므로,
 각 사용자가 프로젝트 멤버여야 결과 입력 권한이 있다.
@@ -13,7 +16,9 @@ from __future__ import annotations
 import sys
 import urllib.parse
 from _lib import request, get, load_state, LOCALE
-from i18n import USERS, USER_PROJECT_ROLES
+from i18n import ROLE_COVERAGE_USERS, USERS, USER_PROJECT_ROLES
+
+MEMBERS = USERS + ROLE_COVERAGE_USERS
 
 
 def main():
@@ -33,7 +38,7 @@ def main():
     print(f"[{LOCALE}] 기존 멤버: {sorted(existing)}")
 
     added = reused = failed = 0
-    for u in USERS:
+    for u in MEMBERS:
         if u in existing:
             print(f"  [{LOCALE}] = {u}  (이미 멤버)")
             reused += 1

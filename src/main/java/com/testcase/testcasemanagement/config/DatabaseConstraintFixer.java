@@ -85,6 +85,32 @@ public class DatabaseConstraintFixer {
     }
   }
 
+  /**
+   * 테스트케이스의 낙관적 락 컬럼(version)이 비어 있는 행을 0 으로 채운다.
+   *
+   * <p>version 이 NULL 인 행을 수정하려 하면 Hibernate 가 다음 버전을 계산하지 못해 flush 단계에서
+   * NullPointerException 이 나고, 그것이 기동 직후 도는 Display ID 마이그레이션 트랜잭션을 깨뜨려 애플리케이션이 뜨지 않는다. SQL
+   * 로 직접 넣은 행(시드·이관 스크립트)은 이 컬럼을 빠뜨리기 쉬우므로 기동할 때 한 번 메운다.
+   *
+   * <p>ApplicationReadyEvent 보다 CommandLineRunner 가 먼저 돌기 때문에 마이그레이션이 이 행을 만나기 전에 채워진다.
+   */
+  @Bean
+  @Order(0)
+  public CommandLineRunner backfillTestCaseVersion() {
+    return args -> {
+      try (Connection connection = dataSource.getConnection();
+          Statement statement = connection.createStatement()) {
+        int filled = statement.executeUpdate("UPDATE testcases SET version = 0 WHERE version IS NULL");
+        if (filled > 0) {
+          System.out.println("🔧 testcases.version 이 비어 있던 " + filled + "행을 0 으로 채웠습니다");
+        }
+      } catch (Exception e) {
+        System.err.println(
+            "testcases.version 을 채우지 못했습니다. 해당 행을 수정할 때 오류가 날 수 있습니다: " + e.getMessage());
+      }
+    };
+  }
+
   @Bean
   @Order(0) // DataInitializer보다 먼저 실행하여 제약 조건을 수정
   public CommandLineRunner fixTestSessionStatusConstraint() {
