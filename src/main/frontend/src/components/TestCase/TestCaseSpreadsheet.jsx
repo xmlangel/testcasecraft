@@ -1261,12 +1261,6 @@ const TestCaseSpreadsheet = ({
             }}
           >
             <Box>
-              <Typography variant="h6" gutterBottom>
-                {t(
-                  "testcase.spreadsheet.header.title",
-                  "테스트케이스 스프레드시트",
-                )}
-              </Typography>
               <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                 <Chip
                   label={t("testcase.spreadsheet.status.rows", "{count}개 행", {

@@ -194,8 +194,11 @@ public class UserManagementService {
             .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 
     // 현재 비밀번호 확인 (관리자가 다른 사용자 비밀번호 변경 시에는 현재 비밀번호 확인 생략 가능)
-    if (passwordRequest.getCurrentPassword() != null
-        && !passwordEncoder.matches(passwordRequest.getCurrentPassword(), user.getPassword())) {
+    // 값이 없거나 빈 문자열이면 확인을 건너뛴다.
+    String currentPassword = passwordRequest.getCurrentPassword();
+    if (currentPassword != null
+        && !currentPassword.isBlank()
+        && !passwordEncoder.matches(currentPassword, user.getPassword())) {
       throw new ResourceNotValidException("현재 비밀번호가 일치하지 않습니다.", null);
     }
 
