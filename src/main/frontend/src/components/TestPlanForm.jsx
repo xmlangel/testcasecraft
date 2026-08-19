@@ -264,6 +264,9 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
           onClick={handleSave}
           variant="contained"
           color="primary"
+          // 조회 전용 역할에는 버튼 자체를 숨긴다. 다른 화면과 같은 방식이다 —
+          // 비활성 버튼만 남기면 왜 눌리지 않는지 알 수 없다.
+          sx={canEdit ? undefined : { display: "none" }}
           disabled={!formData.name || !activeProject || loading || !canEdit}
           startIcon={loading && <CircularProgress size={20} />}
           data-testid="testplan-save-button"
