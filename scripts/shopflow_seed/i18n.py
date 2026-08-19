@@ -349,11 +349,31 @@ CASE_STRINGS = {
 # 백엔드가 executedBy 를 JWT 의 인증된 사용자로 강제 설정하므로, 각 사용자로 실제 로그인 후
 # 해당 토큰으로 결과를 POST 해야 분포가 형성됨. 다음 4명은 시드된 비밀번호가 있어 로그인 가능.
 USERS = ["admin", "manager", "tester", "developer"]
+
+# 역할별 권한을 확인하기 위한 계정. 결과 작성자 분포(EXECUTED_BY_WEIGHTS)에는 넣지 않는다 —
+# 결과를 남기는 사람과 권한을 확인하는 사람을 섞으면 결과 분포가 흔들린다.
+#
+# 시스템 역할은 셋 다 TESTER 로 같게 두고 프로젝트 역할만 달리한다. 시스템 역할과
+# 프로젝트 역할은 값 집합이 다른데 같은 자리에서 판정하는 결함이 실제로 있었고
+# (TestPlanList 가 시스템 역할로 버튼을 감췄다), 두 축을 같게 두지 않으면 그것이 드러나지 않는다.
+# 기존 네 계정은 PROJECT_MANAGER·TESTER·DEVELOPER 만 덮는다. 여기서 나머지 셋
+# (LEAD_DEVELOPER·CONTRIBUTOR·VIEWER)을 채워 여섯 역할을 모두 만든다.
+ROLE_COVERAGE_USERS = ["pm", "lead", "contributor", "viewer"]
+
+# 역할 확인 계정의 시스템 역할. 00b_users.py 의 기본값(TESTER)과 같은 값을 명시해 둔다.
+ROLE_COVERAGE_SYSTEM_ROLE = "TESTER"
+
 USER_PASSWORDS = {
     "admin": "admin123",
     "manager": "manager123",
-    "tester": "tester",
+    # 여덟 자 미만은 관리자 비밀번호 변경 API 가 거부한다(최소 8자). 예전 값 "tester" 는
+    # 등록으로는 통과하지만 교정으로는 되맞출 수 없어 계정이 잠긴 것과 같아진다.
+    "tester": "tester123",
     "developer": "developer123",
+    "pm": "Testcase123!",
+    "contributor": "Testcase123!",
+    "lead": "Testcase123!",
+    "viewer": "Testcase123!",
 }
 
 # 프로젝트 멤버 추가 시 부여할 역할
@@ -362,6 +382,10 @@ USER_PROJECT_ROLES = {
     "manager": "PROJECT_MANAGER",
     "tester": "TESTER",
     "developer": "DEVELOPER",
+    "pm": "PROJECT_MANAGER",
+    "contributor": "CONTRIBUTOR",
+    "lead": "LEAD_DEVELOPER",
+    "viewer": "VIEWER",
 }
 
 # 결과 enum별 담당자 가중치 (실제 운영 패턴 모사)
