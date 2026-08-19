@@ -94,10 +94,12 @@ const TreeContextMenu = ({
             </>
           )}
           <MenuItem divider />
-          <MenuItem onClick={handleItemClick(onRename)}>
-            <EditIcon fontSize="small" sx={{ mr: 1 }} />
-            {t("testcase.tree.action.rename", "이름 변경")}
-          </MenuItem>
+          {canAdd(userRole) && (
+            <MenuItem onClick={handleItemClick(onRename)}>
+              <EditIcon fontSize="small" sx={{ mr: 1 }} />
+              {t("testcase.tree.action.rename", "이름 변경")}
+            </MenuItem>
+          )}
           {selectedNode?.type === "testcase" && (
             <MenuItem onClick={handleItemClick(onOpenVersionHistory)}>
               <HistoryIcon fontSize="small" sx={{ mr: 1 }} />

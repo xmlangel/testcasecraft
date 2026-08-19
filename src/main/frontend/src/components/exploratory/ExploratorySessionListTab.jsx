@@ -41,6 +41,7 @@ function ExploratorySessionListTab({
   onSelectSession,
   onCreateSession,
   onDeleteSession,
+  canRun = false,
 }) {
   const theme = useTheme();
   const { designSystem } = useAppTheme();
@@ -67,15 +68,18 @@ function ExploratorySessionListTab({
           {t("exploratory.session.countUnit", "개의 세션이 있습니다.")}
         </Typography>
         <Stack direction="row" spacing={1}>
-          <Chip
-            icon={<AddIcon />}
-            label={t("exploratory.session.btn.createNew", "새 세션 시작")}
-            onClick={onCreateSession}
-            color="primary"
-            variant="filled"
-            clickable
-            sx={{ fontWeight: "bold", px: 1 }}
-          />
+          {canRun && (
+            <Chip
+              icon={<AddIcon />}
+              label={t("exploratory.session.btn.createNew", "새 세션 시작")}
+              onClick={onCreateSession}
+              color="primary"
+              variant="filled"
+              clickable
+              sx={{ fontWeight: "bold", px: 1 }}
+              data-testid="exploratory-session-create"
+            />
+          )}
         </Stack>
       </Box>
 
@@ -331,11 +335,16 @@ function ExploratorySessionListTab({
                               </Typography>
                             </Stack>
                           )}
-                          <Tooltip title={t("common.delete", "삭제")}>
+                          <Tooltip
+                            title={t("common.delete", "삭제")}
+                            sx={{ display: canRun ? undefined : "none" }}
+                          >
                             <IconButton
                               size="small"
+                              disabled={!canRun}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                if (!canRun) return;
                                 onDeleteSession && onDeleteSession(item.id);
                               }}
                               sx={{

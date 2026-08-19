@@ -13,6 +13,7 @@ function DocumentListHeader({
   title,
   onRefresh,
   onUpload,
+  canEdit = false,
   isRefreshing = false,
   isLoading = false,
   t,
@@ -45,13 +46,16 @@ function DocumentListHeader({
         >
           {t("rag.document.list.refreshButton", "새로고침")}
         </Button>
-        <Button
-          variant="contained"
-          startIcon={<CloudUploadIcon />}
-          onClick={onUpload}
-        >
-          {t("rag.document.list.uploadButton", "문서 업로드")}
-        </Button>
+        {canEdit && (
+          <Button
+            variant="contained"
+            startIcon={<CloudUploadIcon />}
+            onClick={onUpload}
+            data-testid="rag-document-upload-button"
+          >
+            {t("rag.document.list.uploadButton", "문서 업로드")}
+          </Button>
+        )}
       </Box>
     </Box>
   );
@@ -61,6 +65,8 @@ DocumentListHeader.propTypes = {
   title: PropTypes.string.isRequired,
   onRefresh: PropTypes.func.isRequired,
   onUpload: PropTypes.func.isRequired,
+  /** 문서를 올릴 수 있는 역할인지 — 백엔드 canEditDocumentProject 와 같은 기준 */
+  canEdit: PropTypes.bool,
   isRefreshing: PropTypes.bool,
   isLoading: PropTypes.bool,
   t: PropTypes.func.isRequired,

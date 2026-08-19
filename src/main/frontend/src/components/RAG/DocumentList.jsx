@@ -20,6 +20,9 @@ import { useRAG } from "../../context/RAGContext.jsx";
 import { useTranslation } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import DocumentTableSection from "./DocumentTableSection.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import useProjectRole from "../../hooks/useProjectRole.js";
+import { canEditProjectContent } from "../TestCaseTree/utils/permissionUtils.js";
 import DocumentListHeader from "./DocumentListHeader.jsx";
 import DocumentListTabs from "./DocumentListTabs.jsx";
 import SummaryDialog from "./SummaryDialog.jsx";
@@ -42,6 +45,11 @@ import { useJobHistory } from "./hooks/useJobHistory.js";
  * RAG 문서 목록을 표시하고 관리합니다.
  */
 function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
+  const { user: currentUser } = useAuth();
+  // 문서 업로드·삭제·분석은 프로젝트를 바꾸는 동작이다.
+  // 백엔드 canEditDocumentProject 와 같은 기준으로 편집 역할만 허용한다.
+  const { projectRole } = useProjectRole(projectId, currentUser);
+  const canEditDocuments = canEditProjectContent(projectRole);
   const { t } = useTranslation();
   const theme = useTheme();
   const colorMode = theme.palette.mode === "dark" ? "dark" : "light";
@@ -268,7 +276,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     } catch (err) {
       const errorMessage =
         err.response?.data?.message ||
-        t("rag.document.global.promoteFailed", "공통 문서 이동에 실패했습니다.");
+        t(
+          "rag.document.global.promoteFailed",
+          "공통 문서 이동에 실패했습니다.",
+        );
       setLocalError(errorMessage);
       setTimeout(
         () => setLocalError(null),
@@ -308,7 +319,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         err.response?.data?.message ||
         t(
           "rag.document.global.requestFailed",
-          "공통 문서 등록 요청에 실패했습니다."
+          "공통 문서 등록 요청에 실패했습니다.",
         );
       setLocalError(errorMessage);
       setTimeout(
@@ -466,6 +477,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           title={t("rag.document.list.title", "문서 목록")}
           onRefresh={handleRefreshWithStates}
           onUpload={handleUploadDialogOpen}
+          canEdit={canEditDocuments}
           isRefreshing={isRefreshing}
           isLoading={state.loading}
           t={t}

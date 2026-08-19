@@ -18,6 +18,9 @@ import {
 } from "@mui/material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import useProjectRole from "../hooks/useProjectRole.js";
+import { canEditProjectContent } from "./TestCaseTree/utils/permissionUtils.js";
 import TestCaseTree from "./TestCaseTree.jsx";
 import { countRealTestCases } from "../utils/treeUtils";
 
@@ -32,6 +35,10 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
   } = useAppContext();
 
   const { t } = useI18n();
+  const { user: currentUser } = useAuth();
+  // 백엔드 TestPlanService 의 canEditProject 와 같은 기준으로 저장을 막는다.
+  const { projectRole } = useProjectRole(activeProject?.id, currentUser);
+  const canEdit = canEditProjectContent(projectRole);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -257,7 +264,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
           onClick={handleSave}
           variant="contained"
           color="primary"
-          disabled={!formData.name || !activeProject || loading}
+          disabled={!formData.name || !activeProject || loading || !canEdit}
           startIcon={loading && <CircularProgress size={20} />}
           data-testid="testplan-save-button"
         >

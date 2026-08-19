@@ -29,6 +29,12 @@ import {
 import { alpha } from "@mui/material/styles";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import useProjectRole from "../hooks/useProjectRole.js";
+import {
+  canEditProjectContent,
+  canRecordTestResult,
+} from "./TestCaseTree/utils/permissionUtils.js";
 import { RESULT_COLORS } from "../constants/statusColors";
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
@@ -185,6 +191,14 @@ const TestExecutionForm = ({
   } = useAppContext();
 
   const { t } = useTranslation();
+  const { user: currentUser } = useAuth();
+  // 상태 조건만으로 버튼을 띄우면 조회 전용 역할에게도 보인다. 백엔드 TestExecutionService 는
+  // CUD·상태전환을 canEditProject, 결과 기록을 canRecordTestResult 로 막으므로 같은 기준을 쓴다.
+  const roleProjectId =
+    execution?.testPlan?.projectId || execution?.projectId || propProjectId;
+  const { projectRole } = useProjectRole(roleProjectId, currentUser);
+  const canEditExecution = canEditProjectContent(projectRole);
+  const canRecordResults = canRecordTestResult(projectRole);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -889,13 +903,19 @@ const TestExecutionForm = ({
     }
   }, [location.state, navigate]);
 
-  const canEditBasicInfo = isEditingBasicInfo; // 이름, 설명, 태그는 편집 모드일 때만 수정 가능
-  const canEditPlan = execution?.status === ExecutionStatus.NOTSTARTED; // 테스트 플랜 변경은 시작 전까지만 가능
+  const canEditBasicInfo = isEditingBasicInfo && canEditExecution;
+  const canEditPlan =
+    execution?.status === ExecutionStatus.NOTSTARTED && canEditExecution;
   const canStartExecution =
-    execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;
-  const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
-  const canRestartExecution = execution?.status === ExecutionStatus.COMPLETED;
-  const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
+    execution?.status === ExecutionStatus.NOTSTARTED &&
+    !!execution?.testPlanId &&
+    canEditExecution;
+  const canCompleteExecution =
+    execution?.status === ExecutionStatus.INPROGRESS && canEditExecution;
+  const canRestartExecution =
+    execution?.status === ExecutionStatus.COMPLETED && canEditExecution;
+  const canEnterResults =
+    execution?.status === ExecutionStatus.INPROGRESS && canRecordResults;
 
   // 1. 테스트 케이스별 가장 최근 유효한 JIRA ID 맵 생성 (같은 실행 내의 과거 이력 포함)
   const effectiveJiraMap = useMemo(() => {

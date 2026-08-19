@@ -44,6 +44,17 @@ vi.mock("../context/AppContext.jsx", () => ({
   useAppContext: () => appContext,
 }));
 
+vi.mock("../context/AuthContext.jsx", () => ({
+  useAuth: () => ({ user: { id: "u1", username: "kim" } }),
+}));
+
+// 쓰기 입구는 프로젝트 역할로 갈린다 — 역할을 바꿔 가며 확인한다.
+const roleState = { projectRole: "PROJECT_MANAGER", loading: false };
+vi.mock("../hooks/useProjectRole.js", () => ({
+  default: () => roleState,
+  useProjectRole: () => roleState,
+}));
+
 // 플랜 편집·실행 상세는 별도 컴포넌트라 여기서는 자리만 확인한다
 vi.mock("./TestPlanForm.jsx", () => ({
   default: ({ testPlanId, inline }) => (
@@ -77,6 +88,7 @@ vi.mock("../services/apiService.js", () => ({
  */
 describe("PlanExecutionWorkspace", () => {
   beforeEach(() => {
+    roleState.projectRole = "PROJECT_MANAGER";
     getMock.mockReset();
     getMock.mockResolvedValue({
       json: async () => [
@@ -304,6 +316,24 @@ describe("PlanExecutionWorkspace", () => {
       expect(
         screen.getByText(/실행 목록을 불러오지 못했습니다/),
       ).toBeInTheDocument(),
+    );
+  });
+
+  it("조회 전용 역할에는 실행 만들기 입구가 없다", async () => {
+    roleState.projectRole = "VIEWER";
+    setup({ mode: "plans" });
+    fireEvent.click(await screen.findByText("회귀 플랜"));
+    await waitFor(() =>
+      expect(screen.queryByTestId("workspace-new-execution")).toBeNull(),
+    );
+  });
+
+  it("결과만 기록하는 역할에도 실행 만들기 입구가 없다", async () => {
+    roleState.projectRole = "TESTER";
+    setup({ mode: "plans" });
+    fireEvent.click(await screen.findByText("회귀 플랜"));
+    await waitFor(() =>
+      expect(screen.queryByTestId("workspace-new-execution")).toBeNull(),
     );
   });
 });

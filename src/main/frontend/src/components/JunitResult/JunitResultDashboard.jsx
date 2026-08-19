@@ -78,6 +78,8 @@ import junitResultService from "../../services/junitResultService";
 import { useAppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../context/I18nContext";
+import useProjectRole from "../../hooks/useProjectRole.js";
+import { canRecordTestResult } from "../TestCaseTree/utils/permissionUtils.js";
 import JunitProcessingProgress from "../JUnit/JunitProcessingProgress";
 import PageTitle from "../common/PageTitle";
 
@@ -205,6 +207,10 @@ export default function JunitResultDashboard() {
   const { activeProject, user } = useAppContext();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  // 자동화 결과는 결과를 남기는 동작이다. 백엔드도 업로드·삭제를
+  // canUploadToProject(= 결과 기록 권한)로 막으므로 화면도 같은 기준을 쓴다.
+  const { projectRole } = useProjectRole(activeProject?.id, user);
+  const canRecordResults = canRecordTestResult(projectRole);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
   const [loading, setLoading] = useState(false);
@@ -284,7 +290,9 @@ export default function JunitResultDashboard() {
   // 파일 업로드 처리
   const handleFileUpload = async (uploadData) => {
     if (!activeProject?.id) {
-      setError(t("junit.error.noProjectSelected", "프로젝트가 선택되지 않았습니다."));
+      setError(
+        t("junit.error.noProjectSelected", "프로젝트가 선택되지 않았습니다."),
+      );
       return;
     }
 
@@ -314,7 +322,9 @@ export default function JunitResultDashboard() {
       await loadData(false);
     } catch (err) {
       console.error("파일 업로드 실패:", err);
-      setError(t("junit.error.uploadFailed", `파일 업로드 실패: ${err.message}`));
+      setError(
+        t("junit.error.uploadFailed", `파일 업로드 실패: ${err.message}`),
+      );
     } finally {
       setLoading(false);
       setUploadProgress(0);
@@ -506,15 +516,17 @@ export default function JunitResultDashboard() {
           >
             {t("junit.dashboard.refresh")}
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<CloudUpload />}
-            onClick={() => setUploadDialogOpen(true)}
-            disabled={loading}
-            data-testid="automation-upload-button"
-          >
-            {t("junit.dashboard.uploadResult")}
-          </Button>
+          {canRecordResults && (
+            <Button
+              variant="contained"
+              startIcon={<CloudUpload />}
+              onClick={() => setUploadDialogOpen(true)}
+              disabled={loading}
+              data-testid="automation-upload-button"
+            >
+              {t("junit.dashboard.uploadResult")}
+            </Button>
+          )}
         </Box>
       </Box>
 
@@ -937,7 +949,11 @@ export default function JunitResultDashboard() {
                                     )}
                                     {latestResult.notesCount > 0 && (
                                       <Tooltip
-                                        title={t("junit.notes.label", `노트 ${latestResult.notesCount}개`, { count: latestResult.notesCount })}
+                                        title={t(
+                                          "junit.notes.label",
+                                          `노트 ${latestResult.notesCount}개`,
+                                          { count: latestResult.notesCount },
+                                        )}
                                       >
                                         <Chip
                                           icon={
@@ -1143,16 +1159,18 @@ export default function JunitResultDashboard() {
                                   >
                                     <Visibility fontSize="small" />
                                   </IconButton>
-                                  <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={() =>
-                                      handleDeleteResult(latestResult.id)
-                                    }
-                                    data-testid="automation-delete-button"
-                                  >
-                                    <Delete fontSize="small" />
-                                  </IconButton>
+                                  {canRecordResults && (
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() =>
+                                        handleDeleteResult(latestResult.id)
+                                      }
+                                      data-testid="automation-delete-button"
+                                    >
+                                      <Delete fontSize="small" />
+                                    </IconButton>
+                                  )}
                                 </TableCell>
                               </TableRow>
 
@@ -1197,7 +1215,11 @@ export default function JunitResultDashboard() {
                                           </Typography>
                                           {result.notesCount > 0 && (
                                             <Tooltip
-                                              title={t("junit.notes.label", `노트 ${result.notesCount}개`, { count: result.notesCount })}
+                                              title={t(
+                                                "junit.notes.label",
+                                                `노트 ${result.notesCount}개`,
+                                                { count: result.notesCount },
+                                              )}
                                             >
                                               <Chip
                                                 icon={
@@ -1459,7 +1481,14 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
       if (file.size > maxSizeBytes) {
         const fileSizeFormatted = formatFileSize(file.size);
         setValidationError(
-          t("junit.error.fileTooLarge", `파일 크기가 너무 큽니다. (${fileSizeFormatted} / 최대 ${uploadLimits.junitMaxSizeFormatted})`, { current: fileSizeFormatted, max: uploadLimits.junitMaxSizeFormatted }),
+          t(
+            "junit.error.fileTooLarge",
+            `파일 크기가 너무 큽니다. (${fileSizeFormatted} / 최대 ${uploadLimits.junitMaxSizeFormatted})`,
+            {
+              current: fileSizeFormatted,
+              max: uploadLimits.junitMaxSizeFormatted,
+            },
+          ),
         );
         setSelectedFile(null);
         return;
