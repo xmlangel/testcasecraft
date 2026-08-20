@@ -211,4 +211,38 @@ describe("TestExecutionTable 폴더 접기/펼치기", () => {
       screen.getByTestId("execution-table-folder-toggle-f1"),
     ).toHaveAttribute("aria-expanded", "true");
   });
+  // 역할과 상태를 나눠 본다. 권한이 없으면 버튼을 내보내지 않고,
+  // 권한은 있으나 실행 상태가 안 맞을 때만 비활성으로 남긴다.
+  describe("결과 입력 버튼 노출", () => {
+    it("결과 기록 권한이 없으면 입력 버튼을 내보내지 않는다", () => {
+      renderTable({ canRecordResults: false, canEnterResults: false });
+      expect(
+        screen.queryByTestId("execution-table-result-button-tc1"),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId("execution-table-copy-link-button-tc1"),
+      ).toBeNull();
+    });
+
+    it("권한은 있고 상태가 안 맞으면 비활성으로 남긴다", () => {
+      renderTable({ canRecordResults: true, canEnterResults: false });
+      expect(
+        screen.getByTestId("execution-table-result-button-tc1"),
+      ).toBeDisabled();
+    });
+
+    it("권한과 상태가 모두 맞으면 누를 수 있다", () => {
+      renderTable({ canRecordResults: true, canEnterResults: true });
+      expect(
+        screen.getByTestId("execution-table-result-button-tc1"),
+      ).toBeEnabled();
+    });
+
+    it("권한 prop 을 주지 않으면 기존 동작을 유지한다 (하위 호환)", () => {
+      renderTable({ canEnterResults: true });
+      expect(
+        screen.getByTestId("execution-table-result-button-tc1"),
+      ).toBeEnabled();
+    });
+  });
 });

@@ -53,6 +53,9 @@ const ExecutionRow = memo(
     idx,
     resultObj,
     canEnterResults,
+    // 역할 기준. 상태 때문에 못 누르는 것과 권한이 없어 못 누르는 것을 나눠 쓴다.
+    // 권한이 없으면 버튼 자체를 내보내지 않고, 상태가 안 맞을 때만 비활성으로 남긴다.
+    canRecordResults = true,
     isSelected,
     onSelectionChange,
     handleOpenResultForm,
@@ -547,7 +550,7 @@ const ExecutionRow = memo(
             gap: 0.5,
           }}
         >
-          {!isFolder ? (
+          {!isFolder && canRecordResults ? (
             <>
               <Button
                 variant="outlined"
@@ -644,6 +647,7 @@ const TestExecutionTable = ({
   handleAttachmentClick,
   handleCopyLink,
   canEnterResults,
+  canRecordResults = true,
   selectedTestCases,
   onSelectionChange,
   collapsedFolders,
@@ -693,6 +697,7 @@ const TestExecutionTable = ({
         idx={idx}
         resultObj={resultsMap?.get(node.id)}
         canEnterResults={canEnterResults}
+        canRecordResults={canRecordResults}
         isSelected={selectedTestCases?.has(node.id) || false}
         onSelectionChange={onSelectionChange}
         handleOpenResultForm={handleOpenResultForm}
@@ -1049,6 +1054,8 @@ TestExecutionTable.propTypes = {
   handleAttachmentClick: PropTypes.func.isRequired,
   handleCopyLink: PropTypes.func,
   canEnterResults: PropTypes.bool,
+  /** 결과를 기록할 수 있는 역할인지 (상태 조건과 별개) */
+  canRecordResults: PropTypes.bool,
   selectedTestCases: PropTypes.instanceOf(Set),
   onSelectionChange: PropTypes.func,
   collapsedFolders: PropTypes.instanceOf(Set),

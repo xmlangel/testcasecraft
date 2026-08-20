@@ -24,6 +24,7 @@ const TestExecutionHeader = ({
   onSaveOrUpdate,
   saving,
   canEditBasicInfo,
+  canEdit = false,
   isEditingBasicInfo,
   onEditClick,
   onCancelEdit,
@@ -110,8 +111,10 @@ const TestExecutionHeader = ({
           </Button>
         )}
 
-        {/* 기존 데이터 조회 중이고 편집 모드가 아닐 때 '수정' 버튼 표시 */}
-        {executionId && !isEditingBasicInfo && (
+        {/* 기존 데이터 조회 중이고 편집 모드가 아닐 때 '수정' 버튼 표시.
+            편집 역할이 아니면 내보내지 않는다 — 조회 전용 역할에게 보이면
+            눌러 보고 403 을 받아야 권한이 없다는 것을 알게 된다. */}
+        {executionId && !isEditingBasicInfo && canEdit && (
           <Button
             onClick={onEditClick}
             variant="contained"
@@ -124,7 +127,7 @@ const TestExecutionHeader = ({
         )}
 
         {/* 편집 모드이거나 신규 생성일 때 '저장' 버튼 표시 */}
-        {(isEditingBasicInfo || !executionId) && (
+        {(isEditingBasicInfo || !executionId) && canEdit && (
           <Button
             onClick={onSaveOrUpdate}
             variant="contained"
@@ -159,6 +162,8 @@ TestExecutionHeader.propTypes = {
   onSaveOrUpdate: PropTypes.func.isRequired,
   saving: PropTypes.bool,
   canEditBasicInfo: PropTypes.bool,
+  /** 실행을 편집할 수 있는 역할인지 — 백엔드 canEditProject 와 같은 기준 */
+  canEdit: PropTypes.bool,
   canEditPlan: PropTypes.bool,
   startImmediately: PropTypes.bool,
   showExecutionGuide: PropTypes.bool,
