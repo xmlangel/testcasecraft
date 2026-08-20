@@ -70,6 +70,21 @@ def main():
     counts = {"PASS": 0, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0}
     auto_counts = {"PASS": 0, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0}
     user_counts: dict[str, int] = {u: 0 for u in active_users}
+
+    # 이미 있는 결과를 계수에 넣는다. 아래 판정은 "이번에 몇 건 만들었나" 가 아니라
+    # "샘플셋이 조건을 갖췄나" 를 물어야 한다. 넣지 않으면 이미 시딩된 DB 에서 다시
+    # 돌릴 때 만든 건수가 0 이 되어 판정이 실패한다.
+    for r in existing:
+        result = r.get("result")
+        if result not in counts:
+            continue
+        counts[result] += 1
+        if r.get("isAutomated"):
+            auto_counts[result] += 1
+        user = r.get("executedBy")
+        if user in user_counts:
+            user_counts[user] += 1
+
     target_auto_pass, target_auto_fail = 30, 10
     total = 0
     new_results = []
@@ -136,7 +151,7 @@ def main():
         print(f"  [{LOCALE}] done exec {exec_name[:38]}  partial total={total}")
 
     save_state("results", existing + new_results)
-    print(f"\n[{LOCALE}] results created={total}")
+    print(f"\n[{LOCALE}] results created={total}  (기존 {len(existing)}건 포함해 판정)")
     print(
         f"  전체   : PASS={counts['PASS']} FAIL={counts['FAIL']} BLOCKED={counts['BLOCKED']} NOT_RUN={counts['NOT_RUN']}"
     )

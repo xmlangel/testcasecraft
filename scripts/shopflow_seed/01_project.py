@@ -9,8 +9,14 @@ meta = PROJECT[LOCALE]
 
 cached = load_state("project")
 if cached and cached.get("projectId"):
-    print(f"[{LOCALE}] reuse projectId={cached['projectId']}")
-    sys.exit(0)
+    # 캐시한 ID 가 아직 있는지 확인한다. state 파일은 DB 를 비워도 남으므로,
+    # 확인 없이 재사용하면 뒤 단계가 전부 "Invalid project ID" 로 죽는다.
+    pid = cached["projectId"]
+    status, _ = get(f"/api/projects/{pid}")
+    if status == 200:
+        print(f"[{LOCALE}] reuse projectId={pid}")
+        sys.exit(0)
+    print(f"[{LOCALE}] 캐시한 projectId={pid} 가 없다(HTTP {status}). 다시 찾는다.")
 
 # code 중복 회피: 기존 목록 검색
 status, resp = get("/api/projects?limit=200")
