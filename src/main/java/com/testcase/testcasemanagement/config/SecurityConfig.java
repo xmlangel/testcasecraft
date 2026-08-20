@@ -6,6 +6,7 @@ import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,7 +57,51 @@ public class SecurityConfig {
     this.serviceApiKeyRepository = serviceApiKeyRepository;
   }
 
+  /** 파일 이름에 내용 해시가 붙어 내용이 바뀌면 이름도 바뀌는 정적 자산 경로. */
+  private static final String[] IMMUTABLE_ASSET_PATHS = {"/assets/**", "/static/**"};
+
+  /** 이름이 고정된 정적 파일. 오래 캐시하면 교체가 반영되지 않으므로 짧게 잡는다. */
+  private static final String[] NAMED_STATIC_PATHS = {
+    "/favicon.ico",
+    "/manifest.json",
+    "/asset-manifest.json",
+    "/robots.txt",
+    "/logo*.png",
+    "/testcasecraft_*.jpg",
+    "/testcasecraft_*.png"
+  };
+
+  /**
+   * 정적 자산 전용 체인. 캐시 금지 헤더를 붙이지 않는다.
+   *
+   * <p>기본 체인은 모든 응답에 {@code Cache-Control: no-cache, no-store, max-age=0, must-revalidate} 를 붙인다.
+   * API 응답에는 맞는 값이지만 정적 자산에는 값이 비싸다. CDN 이 앞에 있으면 {@code no-store} 때문에 캐시를 통째로 건너뛰고(Cloudflare 는
+   * BYPASS 로 표시한다) 매 요청이 오리진까지 간다. 실측에서 0.8 kB 짜리 청크 하나가 4초를 썼다(2026-08-21 확인).
+   *
+   * <p>{@code index.html} 과 SPA 라우팅 경로는 여기에 넣지 않는다. 그 문서가 캐시되면 배포한 새 자산 이름을 가리키는 문서가 갱신되지 않아 옛 화면이
+   * 계속 뜬다.
+   */
   @Bean
+  @Order(1)
+  public SecurityFilterChain staticAssetFilterChain(HttpSecurity http) throws Exception {
+    String[] paths = new String[IMMUTABLE_ASSET_PATHS.length + NAMED_STATIC_PATHS.length];
+    System.arraycopy(IMMUTABLE_ASSET_PATHS, 0, paths, 0, IMMUTABLE_ASSET_PATHS.length);
+    System.arraycopy(
+        NAMED_STATIC_PATHS, 0, paths, IMMUTABLE_ASSET_PATHS.length, NAMED_STATIC_PATHS.length);
+
+    http.securityMatcher(paths)
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        // 캐시 헤더는 WebConfig 의 자원 핸들러가 경로별로 정한다.
+        .headers(headers -> headers.cacheControl(HeadersConfigurer.CacheControlConfig::disable));
+    return http.build();
+  }
+
+  @Bean
+  @Order(2)
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(csrf -> csrf.disable())
