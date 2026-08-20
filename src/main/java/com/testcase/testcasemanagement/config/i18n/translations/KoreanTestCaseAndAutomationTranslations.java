@@ -1005,6 +1005,13 @@ public class KoreanTestCaseAndAutomationTranslations {
     // 버전 히스토리 요약 한글 번역
     createTranslationIfNotExists(
         "testcase.version.summary.initial", languageCode, "초기 테스트케이스 생성", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.restored_to", languageCode, "v{version} 으로 복원", createdBy);
+    createTranslationIfNotExists(
+        "testcase.version.summary.steps_updated",
+        languageCode,
+        "테스트 단계 변경 ({count})",
+        createdBy);
 
     // 필드명 한글 번역
     createTranslationIfNotExists("testcase.version.field.folder", languageCode, "폴더", createdBy);

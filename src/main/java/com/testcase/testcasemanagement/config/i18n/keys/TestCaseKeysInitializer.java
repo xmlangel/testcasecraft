@@ -1258,6 +1258,25 @@ public class TestCaseKeysInitializer {
     // 버전 히스토리 요약 및 필드 관련 키
     createTranslationKeyIfNotExists(
         "testcase.version.summary.initial", "testcase", "초기 테스트케이스 생성 요약", "초기 테스트케이스 생성");
+    // 아래 둘은 TestCaseVersionService·TestCaseService 가 changeSummary 에 넣는 값이다.
+    // 번역값만 있고 키가 없어 시딩 때 "번역 키를 찾을 수 없음" 으로 건너뛰고 있었다.
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.restored_to",
+        "testcase",
+        "버전 복원 요약",
+        "v{version} 으로 복원");
+    createTranslationKeyIfNotExists(
+        "testcase.version.summary.steps_updated",
+        "testcase",
+        "테스트 단계 변경 요약",
+        "테스트 단계 변경 ({count})");
+    createTranslationKeyIfNotExists(
+        "testcase.version.button.create", "testcase", "버전 생성 버튼", "버전 생성");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.excel.title",
+        "testcase",
+        "스프레드시트 Excel 내보내기 제목",
+        "Excel로 내보내기");
 
     // 버전 히스토리 필드명 표준 키
     createTranslationKeyIfNotExists("testcase.version.field.folder", "testcase", "폴더 필드명", "폴더");
