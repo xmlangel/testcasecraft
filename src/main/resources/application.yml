@@ -188,3 +188,12 @@ jira:
 # 프론트엔드 기능 제어 설정 (런타임용)
 frontend:
   show-exploratory-session-tab: ${SHOW_EXPLORATORY_SESSION_TAB:false}
+
+# 응답 압축. 프로파일과 무관하게 켠다.
+# 운영은 앞단 CDN 이 압축하지만 오리진에서 CDN 으로 가는 구간은 그대로였고,
+# 개발·CDN 없는 배포에서는 압축이 아예 없었다. 메인 번들이 1.1MB 로 나갔다.
+server:
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json,application/xml,image/svg+xml
