@@ -1,9 +1,8 @@
 // src/main/java/com/testcase/testcasemanagement/config/i18n/keys/GoogleKeysInitializer.java
 package com.testcase.testcasemanagement.config.i18n.keys;
 
-import com.testcase.testcasemanagement.model.TranslationKey;
+import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class GoogleKeysInitializer {
 
+  private final I18nSeedIndex seedIndex;
   private final TranslationKeyRepository translationKeyRepository;
 
   public void initialize() {
@@ -102,11 +102,7 @@ public class GoogleKeysInitializer {
 
   private void createTranslationKeyIfNotExists(
       String keyName, String category, String description, String defaultValue) {
-    Optional<TranslationKey> existingKey = translationKeyRepository.findByKeyName(keyName);
-    if (existingKey.isEmpty()) {
-      TranslationKey translationKey =
-          new TranslationKey(keyName, category, description, defaultValue);
-      translationKeyRepository.save(translationKey);
+    if (seedIndex.createKeyIfAbsent(keyName, category, description, defaultValue)) {
       log.debug("Google 번역 키 생성: {}", keyName);
     }
   }

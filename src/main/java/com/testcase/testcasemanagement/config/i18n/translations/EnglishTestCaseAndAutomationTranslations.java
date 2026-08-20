@@ -1,13 +1,10 @@
 // src/main/java/com/testcase/testcasemanagement/config/i18n/translations/EnglishTestCaseAndAutomationTranslations.java
 package com.testcase.testcasemanagement.config.i18n.translations;
 
-import com.testcase.testcasemanagement.model.Language;
-import com.testcase.testcasemanagement.model.Translation;
-import com.testcase.testcasemanagement.model.TranslationKey;
+import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.LanguageRepository;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
 import com.testcase.testcasemanagement.repository.TranslationRepository;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,6 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EnglishTestCaseAndAutomationTranslations {
 
+  private final I18nSeedIndex seedIndex;
   private final LanguageRepository languageRepository;
   private final TranslationKeyRepository translationKeyRepository;
   private final TranslationRepository translationRepository;
@@ -2053,38 +2051,17 @@ public class EnglishTestCaseAndAutomationTranslations {
 
   private void createTranslationIfNotExists(
       String keyName, String languageCode, String value, String createdBy) {
-    Optional<TranslationKey> translationKeyOpt = translationKeyRepository.findByKeyName(keyName);
-    if (translationKeyOpt.isPresent()) {
-      TranslationKey translationKey = translationKeyOpt.get();
-      Optional<Language> languageOpt = languageRepository.findByCode(languageCode);
-      if (languageOpt.isPresent()) {
-        Language language = languageOpt.get();
-        Optional<Translation> existingTranslationOpt =
-            translationRepository.findByTranslationKeyAndLanguage(translationKey, language);
-        if (existingTranslationOpt.isEmpty()) {
-          Translation translation = new Translation();
-          translation.setTranslationKey(translationKey);
-          translation.setLanguage(language);
-          translation.setValue(value);
-          translation.setCreatedBy(createdBy);
-          translation.setUpdatedBy(createdBy);
-          translation.setIsActive(true);
-          translationRepository.save(translation);
-          log.debug("Translation created: {} - {}", keyName, languageCode);
-        } else {
-          Translation existingTranslation = existingTranslationOpt.get();
-          if (!existingTranslation.getValue().equals(value)) {
-            existingTranslation.setValue(value);
-            existingTranslation.setUpdatedBy(createdBy);
-            translationRepository.save(existingTranslation);
-            log.debug("Translation updated: {} - {}", keyName, languageCode);
-          } else {
-            log.debug("Translation exists and is identical: {} - {}", keyName, languageCode);
-          }
-        }
+    I18nSeedIndex.UpsertResult result =
+        seedIndex.upsertTranslation(keyName, languageCode, value, createdBy, true);
+    switch (result) {
+      case KEY_MISSING -> log.warn("Translation key not found: {}", keyName);
+      case CREATED -> log.debug("Translation created: {} - {}", keyName, languageCode);
+      case UPDATED -> log.debug("Translation updated: {} - {}", keyName, languageCode);
+      case UNCHANGED ->
+          log.debug("Translation exists and is identical: {} - {}", keyName, languageCode);
+      default -> {
+        // LANGUAGE_MISSING 과 그 밖의 결과는 원래도 조용히 지나갔다.
       }
-    } else {
-      log.warn("Translation key not found: {}", keyName);
     }
   }
 }
