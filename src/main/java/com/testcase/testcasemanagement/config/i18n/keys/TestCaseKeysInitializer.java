@@ -1,9 +1,8 @@
 // src/main/java/com/testcase/testcasemanagement/config/i18n/keys/TestCaseKeysInitializer.java
 package com.testcase.testcasemanagement.config.i18n.keys;
 
-import com.testcase.testcasemanagement.model.TranslationKey;
+import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TestCaseKeysInitializer {
 
+  private final I18nSeedIndex seedIndex;
   private final TranslationKeyRepository translationKeyRepository;
 
   public void initialize() {
@@ -1261,10 +1261,7 @@ public class TestCaseKeysInitializer {
     // 아래 둘은 TestCaseVersionService·TestCaseService 가 changeSummary 에 넣는 값이다.
     // 번역값만 있고 키가 없어 시딩 때 "번역 키를 찾을 수 없음" 으로 건너뛰고 있었다.
     createTranslationKeyIfNotExists(
-        "testcase.version.summary.restored_to",
-        "testcase",
-        "버전 복원 요약",
-        "v{version} 으로 복원");
+        "testcase.version.summary.restored_to", "testcase", "버전 복원 요약", "v{version} 으로 복원");
     createTranslationKeyIfNotExists(
         "testcase.version.summary.steps_updated",
         "testcase",
@@ -1882,11 +1879,7 @@ public class TestCaseKeysInitializer {
 
   private void createTranslationKeyIfNotExists(
       String keyName, String category, String description, String defaultValue) {
-    Optional<TranslationKey> existingKey = translationKeyRepository.findByKeyName(keyName);
-    if (existingKey.isEmpty()) {
-      TranslationKey translationKey =
-          new TranslationKey(keyName, category, description, defaultValue);
-      translationKeyRepository.save(translationKey);
+    if (seedIndex.createKeyIfAbsent(keyName, category, description, defaultValue)) {
       log.debug("번역 키 생성: {}", keyName);
     } else {
       log.debug("번역 키 이미 존재: {}", keyName);
