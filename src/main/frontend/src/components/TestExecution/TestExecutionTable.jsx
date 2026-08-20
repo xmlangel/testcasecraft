@@ -53,6 +53,9 @@ const ExecutionRow = memo(
     idx,
     resultObj,
     canEnterResults,
+    // 역할 기준. 상태 때문에 못 누르는 것과 권한이 없어 못 누르는 것을 나눠 쓴다.
+    // 권한이 없으면 버튼 자체를 내보내지 않고, 상태가 안 맞을 때만 비활성으로 남긴다.
+    canRecordResults = true,
     isSelected,
     onSelectionChange,
     handleOpenResultForm,
@@ -293,20 +296,14 @@ const ExecutionRow = memo(
                   whiteSpace: "pre-line",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  cursor: canEnterResults ? "pointer" : "default",
+                  cursor: "pointer",
                   flex: 1,
-                  "&:hover": canEnterResults
-                    ? {
-                        textDecoration: "underline",
-                        color: theme.palette.primary.dark,
-                      }
-                    : {},
+                  "&:hover": {
+                    textDecoration: "underline",
+                    color: theme.palette.primary.dark,
+                  },
                 }}
-                onClick={
-                  canEnterResults
-                    ? () => handleOpenResultForm(node.id)
-                    : undefined
-                }
+                onClick={() => handleOpenResultForm(node.id)}
                 data-testid={`execution-table-case-name-${node.id}`}
               >
                 {wrapName(node.name)}
@@ -553,37 +550,47 @@ const ExecutionRow = memo(
                 variant="outlined"
                 size="small"
                 onClick={() => handleOpenResultForm(node.id)}
-                disabled={!canEnterResults}
+                disabled={canRecordResults && !canEnterResults}
                 sx={{ fontSize: "0.75rem", py: 0.25, px: 1 }}
-                data-testid={`execution-table-result-button-${node.id}`}
+                data-testid={
+                  canRecordResults
+                    ? `execution-table-result-button-${node.id}`
+                    : `execution-table-view-button-${node.id}`
+                }
               >
-                {t("testExecution.actions.enterResult")}
+                {canRecordResults
+                  ? t("testExecution.actions.enterResult")
+                  : t("common.actions.view", "보기")}
               </Button>
-              <Tooltip
-                title={t(
-                  "testExecution.actions.copyResultLink",
-                  "결과 입력 링크 복사",
-                )}
-              >
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleCopyLink?.(node.id)}
-                    disabled={!canEnterResults}
-                    sx={{
-                      p: 0.5,
-                      width: ACTION_ICON_SLOT,
-                      height: ACTION_ICON_SLOT,
-                    }}
-                    data-testid={`execution-table-copy-link-button-${node.id}`}
-                  >
-                    <ContentCopyIcon
-                      fontSize="small"
-                      sx={{ fontSize: "0.9rem" }}
-                    />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              {/* 결과 입력 링크 복사. 기록 권한이 없으면 내보내지 않는다 —
+                  조회는 케이스 이름과 '보기' 버튼으로 들어간다. */}
+              {canRecordResults && (
+                <Tooltip
+                  title={t(
+                    "testExecution.actions.copyResultLink",
+                    "결과 입력 링크 복사",
+                  )}
+                >
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleCopyLink?.(node.id)}
+                      disabled={!canEnterResults}
+                      sx={{
+                        p: 0.5,
+                        width: ACTION_ICON_SLOT,
+                        height: ACTION_ICON_SLOT,
+                      }}
+                      data-testid={`execution-table-copy-link-button-${node.id}`}
+                    >
+                      <ContentCopyIcon
+                        fontSize="small"
+                        sx={{ fontSize: "0.9rem" }}
+                      />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
               <Tooltip title={t("testExecution.actions.prevResults")}>
                 <IconButton
                   size="small"
@@ -644,6 +651,7 @@ const TestExecutionTable = ({
   handleAttachmentClick,
   handleCopyLink,
   canEnterResults,
+  canRecordResults = true,
   selectedTestCases,
   onSelectionChange,
   collapsedFolders,
@@ -693,6 +701,7 @@ const TestExecutionTable = ({
         idx={idx}
         resultObj={resultsMap?.get(node.id)}
         canEnterResults={canEnterResults}
+        canRecordResults={canRecordResults}
         isSelected={selectedTestCases?.has(node.id) || false}
         onSelectionChange={onSelectionChange}
         handleOpenResultForm={handleOpenResultForm}
@@ -1049,6 +1058,8 @@ TestExecutionTable.propTypes = {
   handleAttachmentClick: PropTypes.func.isRequired,
   handleCopyLink: PropTypes.func,
   canEnterResults: PropTypes.bool,
+  /** 결과를 기록할 수 있는 역할인지 (상태 조건과 별개) */
+  canRecordResults: PropTypes.bool,
   selectedTestCases: PropTypes.instanceOf(Set),
   onSelectionChange: PropTypes.func,
   collapsedFolders: PropTypes.instanceOf(Set),
