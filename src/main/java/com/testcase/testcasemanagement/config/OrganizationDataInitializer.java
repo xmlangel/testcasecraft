@@ -333,10 +333,28 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         "새 멤버십 생성: " + org.getName() + " - " + user.getUsername() + " (역할: " + role + ")");
   }
 
+  /**
+   * 코드로 먼저 찾고 없을 때만 만든다.
+   *
+   * <p>같은 코드를 {@code DataInitializer} 도 만든다. 무조건 넣으면 유일 제약에 걸려 이 초기화가 예외로 빠지고, 그 뒤의 멤버 배정까지 건너뛴다. 더
+   * 나쁜 것은 조직 연결이다 — 예외가 난 쪽이 조직을 들고 있으므로 프로젝트가 조직 없이 남는다. DB 를 비우고 시드 모드로 올리면 재현된다(2026-08-20 확인).
+   *
+   * <p>이미 있는 프로젝트에 조직만 빠져 있으면 채운다. 이름·설명은 덮지 않는다 — 사람이 화면에서 고친 값일 수 있다.
+   */
   private Project createProject(
       String name, String code, String description, Organization organization) {
+    Project existing = projectRepository.findByCode(code).orElse(null);
+    if (existing != null) {
+      if (existing.getOrganization() == null && organization != null) {
+        existing.setOrganization(organization);
+        existing.setUpdatedAt(LocalDateTime.now());
+        projectRepository.save(existing);
+        System.out.println("ℹ️ 기존 프로젝트에 조직을 연결했습니다: " + code);
+      }
+      return existing;
+    }
+
     Project project = new Project();
-    // project.setId(UUID.randomUUID().toString()); // @GeneratedValue 사용
     project.setName(name);
     project.setCode(code);
     project.setDescription(description);
@@ -347,7 +365,14 @@ public class OrganizationDataInitializer implements CommandLineRunner {
     return projectRepository.save(project);
   }
 
+  /**
+   * 이미 멤버면 그대로 둔다. (project_id, user_id) 에 유일 제약이 걸려 있어 무조건 넣으면 두 번째 부팅에서 깨진다. 역할을 덮지 않는 것은 화면에서 바꾼
+   * 역할을 시드가 되돌리지 않게 하기 위한 것이다.
+   */
   private void createProjectMember(Project project, User user, ProjectUser.ProjectRole role) {
+    if (projectUserRepository.existsByProjectIdAndUserId(project.getId(), user.getId())) {
+      return;
+    }
     ProjectUser projectUser = new ProjectUser();
     // projectUser.setId(UUID.randomUUID().toString()); // @GeneratedValue 사용
     projectUser.setProject(project);
