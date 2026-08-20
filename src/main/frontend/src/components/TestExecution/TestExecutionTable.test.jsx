@@ -214,14 +214,37 @@ describe("TestExecutionTable 폴더 접기/펼치기", () => {
   // 역할과 상태를 나눠 본다. 권한이 없으면 버튼을 내보내지 않고,
   // 권한은 있으나 실행 상태가 안 맞을 때만 비활성으로 남긴다.
   describe("결과 입력 버튼 노출", () => {
-    it("결과 기록 권한이 없으면 입력 버튼을 내보내지 않는다", () => {
+    it("결과 기록 권한이 없으면 입력 버튼 대신 보기 버튼이 나온다", () => {
       renderTable({ canRecordResults: false, canEnterResults: false });
       expect(
         screen.queryByTestId("execution-table-result-button-tc1"),
       ).toBeNull();
+      // 조회는 막지 않는다. 결과 화면이 읽기 전용으로 뜬다.
+      const view = screen.getByTestId("execution-table-view-button-tc1");
+      expect(view).toBeInTheDocument();
+      expect(view).toBeEnabled();
+      // 결과 입력 링크 복사는 쓰기 흐름이라 내보내지 않는다.
       expect(
         screen.queryByTestId("execution-table-copy-link-button-tc1"),
       ).toBeNull();
+    });
+
+    it("보기 버튼을 누르면 결과 화면으로 보낸다", () => {
+      const { props } = renderTable({
+        canRecordResults: false,
+        canEnterResults: false,
+      });
+      fireEvent.click(screen.getByTestId("execution-table-view-button-tc1"));
+      expect(props.handleOpenResultForm).toHaveBeenCalledWith("tc1");
+    });
+
+    it("기록 권한이 없어도 케이스 이름으로 들어갈 수 있다", () => {
+      const { props } = renderTable({
+        canRecordResults: false,
+        canEnterResults: false,
+      });
+      fireEvent.click(screen.getByTestId("execution-table-case-name-tc1"));
+      expect(props.handleOpenResultForm).toHaveBeenCalledWith("tc1");
     });
 
     it("권한은 있고 상태가 안 맞으면 비활성으로 남긴다", () => {

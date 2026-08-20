@@ -296,20 +296,14 @@ const ExecutionRow = memo(
                   whiteSpace: "pre-line",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  cursor: canEnterResults ? "pointer" : "default",
+                  cursor: "pointer",
                   flex: 1,
-                  "&:hover": canEnterResults
-                    ? {
-                        textDecoration: "underline",
-                        color: theme.palette.primary.dark,
-                      }
-                    : {},
+                  "&:hover": {
+                    textDecoration: "underline",
+                    color: theme.palette.primary.dark,
+                  },
                 }}
-                onClick={
-                  canEnterResults
-                    ? () => handleOpenResultForm(node.id)
-                    : undefined
-                }
+                onClick={() => handleOpenResultForm(node.id)}
                 data-testid={`execution-table-case-name-${node.id}`}
               >
                 {wrapName(node.name)}
@@ -550,43 +544,53 @@ const ExecutionRow = memo(
             gap: 0.5,
           }}
         >
-          {!isFolder && canRecordResults ? (
+          {!isFolder ? (
             <>
               <Button
                 variant="outlined"
                 size="small"
                 onClick={() => handleOpenResultForm(node.id)}
-                disabled={!canEnterResults}
+                disabled={canRecordResults && !canEnterResults}
                 sx={{ fontSize: "0.75rem", py: 0.25, px: 1 }}
-                data-testid={`execution-table-result-button-${node.id}`}
+                data-testid={
+                  canRecordResults
+                    ? `execution-table-result-button-${node.id}`
+                    : `execution-table-view-button-${node.id}`
+                }
               >
-                {t("testExecution.actions.enterResult")}
+                {canRecordResults
+                  ? t("testExecution.actions.enterResult")
+                  : t("common.actions.view", "보기")}
               </Button>
-              <Tooltip
-                title={t(
-                  "testExecution.actions.copyResultLink",
-                  "결과 입력 링크 복사",
-                )}
-              >
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleCopyLink?.(node.id)}
-                    disabled={!canEnterResults}
-                    sx={{
-                      p: 0.5,
-                      width: ACTION_ICON_SLOT,
-                      height: ACTION_ICON_SLOT,
-                    }}
-                    data-testid={`execution-table-copy-link-button-${node.id}`}
-                  >
-                    <ContentCopyIcon
-                      fontSize="small"
-                      sx={{ fontSize: "0.9rem" }}
-                    />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              {/* 결과 입력 링크 복사. 기록 권한이 없으면 내보내지 않는다 —
+                  조회는 케이스 이름과 '보기' 버튼으로 들어간다. */}
+              {canRecordResults && (
+                <Tooltip
+                  title={t(
+                    "testExecution.actions.copyResultLink",
+                    "결과 입력 링크 복사",
+                  )}
+                >
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleCopyLink?.(node.id)}
+                      disabled={!canEnterResults}
+                      sx={{
+                        p: 0.5,
+                        width: ACTION_ICON_SLOT,
+                        height: ACTION_ICON_SLOT,
+                      }}
+                      data-testid={`execution-table-copy-link-button-${node.id}`}
+                    >
+                      <ContentCopyIcon
+                        fontSize="small"
+                        sx={{ fontSize: "0.9rem" }}
+                      />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
               <Tooltip title={t("testExecution.actions.prevResults")}>
                 <IconButton
                   size="small"
