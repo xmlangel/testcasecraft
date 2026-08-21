@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.ApiResponse;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
+import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.testcase.testcasemanagement.service.LlmConfigService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -260,6 +261,11 @@ public class LlmConfigController {
     try {
       LlmConfigDTO createdConfig = llmConfigService.createConfig(configDTO);
       return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdConfig));
+    } catch (EncryptionKeyNotConfiguredException e) {
+      // 서버에 암호화 키가 없는 상태. 화면이 해결 안내를 띄울 수 있도록 errorCode 를 함께 내려준다.
+      log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error(EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage()));
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
     } catch (Exception e) {
@@ -307,6 +313,11 @@ public class LlmConfigController {
     try {
       LlmConfigDTO updatedConfig = llmConfigService.updateConfig(id, configDTO);
       return ResponseEntity.ok(ApiResponse.success(updatedConfig));
+    } catch (EncryptionKeyNotConfiguredException e) {
+      // 서버에 암호화 키가 없는 상태. 화면이 해결 안내를 띄울 수 있도록 errorCode 를 함께 내려준다.
+      log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error(EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage()));
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
     } catch (Exception e) {
@@ -495,6 +506,11 @@ public class LlmConfigController {
     try {
       llmConfigService.testUnsavedSettings(configDTO);
       return ResponseEntity.ok(ApiResponse.success(null, "연결 테스트 성공"));
+    } catch (EncryptionKeyNotConfiguredException e) {
+      // 서버에 암호화 키가 없는 상태. 화면이 해결 안내를 띄울 수 있도록 errorCode 를 함께 내려준다.
+      log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error(EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage()));
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
     } catch (Exception e) {

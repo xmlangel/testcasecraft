@@ -47,6 +47,8 @@ import {
 } from "@mui/icons-material";
 import { useLlmConfig } from "../../context/LlmConfigContext";
 import { useI18n } from "../../context/I18nContext";
+import EncryptionKeyHelp from "./EncryptionKeyHelp";
+import { isEncryptionKeyError } from "../../constants/errorCodes";
 
 // 기본 테스트 케이스 템플릿
 const DEFAULT_TEST_CASE_TEMPLATE = `{
@@ -110,6 +112,8 @@ const LlmConfigList = ({ onSuccess }) => {
   const [testingId, setTestingId] = useState(null);
   const [testingDialog, setTestingDialog] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  // 저장 실패 메시지. 기존에는 Context 의 error 만 갱신하고 다이얼로그에는 아무것도 뜨지 않았다.
+  const [submitError, setSubmitError] = useState(null);
 
   const handleOpenDialog = (config = null) => {
     if (config) {
@@ -138,6 +142,7 @@ const LlmConfigList = ({ onSuccess }) => {
     setDialogOpen(true);
     setShowApiKey(false);
     setTestResult(null);
+    setSubmitError(null);
   };
 
   const handleCloseDialog = () => {
@@ -154,6 +159,7 @@ const LlmConfigList = ({ onSuccess }) => {
     });
     setShowApiKey(false);
     setTestResult(null);
+    setSubmitError(null);
   };
 
   const handleTestDialogSettings = async () => {
@@ -176,6 +182,7 @@ const LlmConfigList = ({ onSuccess }) => {
 
     setTestingDialog(true);
     setTestResult(null);
+    setSubmitError(null);
     try {
       await testUnsavedSettings(formData);
       setTestResult({
@@ -189,8 +196,11 @@ const LlmConfigList = ({ onSuccess }) => {
       setTestResult({
         success: false,
         message:
+          err.serverMessage ||
           err.message ||
           t("admin.llmConfig.message.connectionFailed", "연결 테스트 실패"),
+        // 서버에 암호화 키가 없어 막힌 경우에는 해결 안내를 함께 띄운다.
+        needsEncryptionKey: isEncryptionKeyError(err),
       });
     } finally {
       setTestingDialog(false);
@@ -232,6 +242,7 @@ const LlmConfigList = ({ onSuccess }) => {
   };
 
   const handleSubmit = async () => {
+    setSubmitError(null);
     try {
       if (editingConfig) {
         await updateConfig(editingConfig.id, formData);
@@ -248,7 +259,13 @@ const LlmConfigList = ({ onSuccess }) => {
       }
       handleCloseDialog();
     } catch (err) {
-      // 에러는 Context에서 처리됨
+      setSubmitError({
+        message:
+          err.serverMessage ||
+          err.message ||
+          t("admin.llmConfig.message.saveFailed", "저장에 실패했습니다"),
+        needsEncryptionKey: isEncryptionKeyError(err),
+      });
     }
   };
 
@@ -783,6 +800,13 @@ const LlmConfigList = ({ onSuccess }) => {
                 {testResult.message}
               </Alert>
             )}
+            {submitError && (
+              <Alert severity="error" sx={{ mt: 1 }}>
+                {submitError.message}
+              </Alert>
+            )}
+            {(testResult?.needsEncryptionKey ||
+              submitError?.needsEncryptionKey) && <EncryptionKeyHelp />}
           </Stack>
         </DialogContent>
         <DialogActions>
