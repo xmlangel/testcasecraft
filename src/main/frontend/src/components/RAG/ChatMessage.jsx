@@ -3,6 +3,7 @@ import React, { memo, useState, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
+  Alert,
   Paper,
   Typography,
   Avatar,
@@ -57,6 +58,8 @@ function ChatMessage({
 }) {
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
+  // 서버가 error=true 로 내려준 응답. 답변처럼 보이면 실패한 줄 모르고 지나간다.
+  const isError = Boolean(message.isError);
   const isStreaming = Boolean(message.isStreaming);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
@@ -393,7 +396,11 @@ function ChatMessage({
         {/* Avatar */}
         <Avatar
           sx={{
-            bgcolor: isUser ? "primary.main" : "grey.400",
+            bgcolor: isUser
+              ? "primary.main"
+              : isError
+                ? "error.main"
+                : "grey.400",
             width: 36,
             height: 36,
           }}
@@ -415,9 +422,11 @@ function ChatMessage({
               wordBreak: "break-word",
               position: "relative",
               overflow: "hidden",
-              border: isDarkMode
-                ? `1px solid ${theme.palette.divider}`
-                : "none",
+              border: isError
+                ? `1px solid ${theme.palette.error.main}`
+                : isDarkMode
+                  ? `1px solid ${theme.palette.divider}`
+                  : "none",
               ...(isAssistant && isStreaming
                 ? {
                     bgcolor: "transparent",
@@ -457,6 +466,22 @@ function ChatMessage({
                   </Tooltip>
                 </Box>
               )}
+            {/* 실패 사유 — 서버가 내려준 원인을 그대로 보여준다.
+                이것이 없으면 "오류가 발생했습니다" 만 남아 무엇을 고쳐야 할지 알 수 없다. */}
+            {isError && (
+              <Alert
+                severity="error"
+                variant="outlined"
+                sx={{ mb: message.content ? 1.5 : 0 }}
+              >
+                {message.errorMessage ||
+                  t(
+                    "rag.chat.error.unknownCause",
+                    "응답을 만들지 못했습니다. 원인이 전달되지 않아 서버 로그를 확인해야 합니다.",
+                  )}
+              </Alert>
+            )}
+
             {/* Message Text */}
             {isUser ? (
               <Typography variant="body1">{message.content}</Typography>
@@ -1490,6 +1515,8 @@ ChatMessage.propTypes = {
     similarity: PropTypes.number,
     isStreaming: PropTypes.bool,
     persistedId: PropTypes.string,
+    isError: PropTypes.bool,
+    errorMessage: PropTypes.string,
   }).isRequired,
   onDocumentClick: PropTypes.func,
   projectId: PropTypes.string,

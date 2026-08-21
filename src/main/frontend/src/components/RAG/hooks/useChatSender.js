@@ -150,6 +150,19 @@ export function useChatSender({
         (streamError) => {
           clearStreamingScheduler();
           resetStreamingBuffer();
+          // 스트림이 끊기면 정리만 하고 조용히 끝나 빈 말풍선만 남았다.
+          // 실패했다는 사실과 원인을 그 말풍선에 그대로 싣는다.
+          const reason =
+            streamError?.errorMessage || streamError?.message || null;
+          updateStreamingMessage((current) => ({
+            ...current,
+            isStreaming: false,
+            isError: true,
+            errorMessage: reason,
+          }));
+          streamingMessageIdRef.current = null;
+          setIsStreaming(false);
+          setIsLoading(false);
         },
         {
           ...chatOptions,
@@ -214,6 +227,9 @@ export function useChatSender({
         documents: response.documents || [],
         similarity: response.similarity,
         persistedId: response.assistantMessageId || null,
+        // 서버가 내려준 실패 원인을 메시지에 실어 화면에서 드러낸다.
+        isError: Boolean(response.error),
+        errorMessage: response.errorMessage || null,
       };
 
       setMessages((prev) =>

@@ -415,6 +415,23 @@ export function useRagChat(
                 continue;
               }
 
+              // 서버는 실패 사유를 error 이벤트에 평문으로 실어 보낸다.
+              // JSON 으로 읽으려 하면 파싱에서 걸려 사유가 통째로 사라진다.
+              if (currentEvent === "error") {
+                // 문구를 여기서 만들지 않는다. 이 훅에는 번역 함수가 없고,
+                // 사유가 비면 화면(ChatMessage)이 번역된 기본 문구로 대신한다.
+                const streamError = new Error(data || "RAG stream failed");
+                streamError.errorMessage = data || null;
+                if (onError) {
+                  onError(streamError);
+                }
+                dispatch({
+                  type: ActionTypes.SET_ERROR,
+                  payload: streamError.message,
+                });
+                continue;
+              }
+
               try {
                 const parsed = JSON.parse(data);
 

@@ -476,6 +476,12 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "rag.chat.useRagSearch", languageCode, "Search RAG Documents First", createdBy);
     createTranslationIfNotExists(
+        "rag.chat.error.unknownCause",
+        languageCode,
+        "The response could not be generated. No cause was reported, so the server log has to be"
+            + " checked.",
+        createdBy);
+    createTranslationIfNotExists(
         "rag.chat.threadSelectLabel", languageCode, "Saved Threads", createdBy);
     createTranslationIfNotExists(
         "rag.chat.threadAutoOption", languageCode, "Auto-create New Thread", createdBy);

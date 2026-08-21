@@ -380,6 +380,11 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("rag.chat.clear", languageCode, "대화 초기화", createdBy);
     createTranslationIfNotExists("rag.chat.persistToggle", languageCode, "대화 자동 저장", createdBy);
     createTranslationIfNotExists("rag.chat.useRagSearch", languageCode, "RAG 문서 우선 검색", createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.unknownCause",
+        languageCode,
+        "응답을 만들지 못했습니다. 원인이 전달되지 않아 서버 로그를 확인해야 합니다.",
+        createdBy);
     createTranslationIfNotExists("rag.chat.threadSelectLabel", languageCode, "저장된 스레드", createdBy);
     createTranslationIfNotExists(
         "rag.chat.threadAutoOption", languageCode, "새 스레드 자동 생성", createdBy);

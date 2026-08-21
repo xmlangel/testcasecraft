@@ -438,6 +438,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         documents: response?.documents || [],
         similarity: response?.similarity,
         persistedId: response?.assistantMessageId || null,
+        // 서버는 실패 원인을 errorMessage 로 내려주는데 여기서 버리면
+        // 화면에는 "오류가 발생했습니다" 만 남아 무엇을 고칠지 알 수 없다.
+        isError: Boolean(response?.error),
+        errorMessage: response?.errorMessage || null,
       };
 
       setMessages((prev) =>

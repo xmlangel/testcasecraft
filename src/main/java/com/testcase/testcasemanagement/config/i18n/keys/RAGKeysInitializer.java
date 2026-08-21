@@ -225,6 +225,11 @@ public class RAGKeysInitializer {
     createTranslationKeyIfNotExists("rag.chat.persistToggle", "rag", "대화 자동 저장 토글", "대화 자동 저장");
     createTranslationKeyIfNotExists(
         "rag.chat.useRagSearch", "rag", "RAG 문서 우선 검색 토글", "RAG 문서 우선 검색");
+    createTranslationKeyIfNotExists(
+        "rag.chat.error.unknownCause",
+        "rag",
+        "실패 원인 미전달",
+        "응답을 만들지 못했습니다. 원인이 전달되지 않아 서버 로그를 확인해야 합니다.");
     createTranslationKeyIfNotExists("rag.chat.threadSelectLabel", "rag", "스레드 선택 라벨", "저장된 스레드");
     createTranslationKeyIfNotExists("rag.chat.threadAutoOption", "rag", "자동 생성 옵션", "새 스레드 자동 생성");
     createTranslationKeyIfNotExists("rag.chat.untitledThread", "rag", "제목 없는 스레드", "제목 없는 스레드");
