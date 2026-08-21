@@ -133,6 +133,7 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
               + "    ) "
               + ") latest_results ON tc.id = latest_results.test_case_id "
               + "WHERE tc.project_id = :projectId "
+              + "AND tc.type = 'testcase' "
               + "GROUP BY COALESCE(latest_results.result, 'NOTRUN')",
       nativeQuery = true)
   List<Map<String, Object>> findTestCaseStatisticsByProject(@Param("projectId") String projectId);
@@ -154,7 +155,8 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
               + "LEFT JOIN test_plans tp ON tc.project_id = tp.project_id "
               + "LEFT JOIN test_executions te ON tc.project_id = te.project_id "
               + "LEFT JOIN test_results tr ON tc.id = tr.test_case_id "
-              + "WHERE tc.project_id = :projectId",
+              + "WHERE tc.project_id = :projectId "
+              + "AND tc.type = 'testcase' ",
       nativeQuery = true)
   Map<String, Object> findProjectBasicStatistics(@Param("projectId") String projectId);
 
@@ -209,7 +211,8 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
               + " te2 ON tr2.test_execution_id = te2.id         WHERE tr2.test_case_id ="
               + " tr1.test_case_id         AND te2.project_id = :projectId         AND"
               + " tr2.executed_at IS NOT NULL     ) ) latest_results ON tc.id ="
-              + " latest_results.test_case_id WHERE tc.project_id = :projectId",
+              + " latest_results.test_case_id WHERE tc.project_id = :projectId "
+              + " AND tc.type = 'testcase' ",
       nativeQuery = true)
   Map<String, Object> findProjectResultStatistics(@Param("projectId") String projectId);
 
@@ -233,7 +236,8 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
               + " te2 ON tr2.test_execution_id = te2.id         WHERE tr2.test_case_id ="
               + " tr1.test_case_id         AND te2.project_id = :projectId         AND"
               + " tr2.executed_at IS NOT NULL     ) ) latest_results ON tc.id ="
-              + " latest_results.test_case_id WHERE tc.project_id = :projectId",
+              + " latest_results.test_case_id WHERE tc.project_id = :projectId "
+              + " AND tc.type = 'testcase' ",
       nativeQuery = true)
   Map<String, Object> findProjectPriorityStatistics(@Param("projectId") String projectId);
 

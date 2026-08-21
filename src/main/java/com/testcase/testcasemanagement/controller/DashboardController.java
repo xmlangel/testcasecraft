@@ -196,6 +196,8 @@ public class DashboardController {
             // 기본 통계
             Map<String, Object> basicStats = new HashMap<>();
             basicStats.put("totalTestCases", projectStats.getTotalTestCases());
+            // 폴더는 케이스 수에서 빠지므로 별도 항목으로 함께 내려준다.
+            basicStats.put("totalFolders", projectStats.getTotalFolders());
             basicStats.put("totalTestPlans", projectStats.getTotalTestPlans());
             basicStats.put("totalTestExecutions", projectStats.getTotalTestExecutions());
             basicStats.put("executionRate", projectStats.getExecutionRate());
@@ -632,6 +634,7 @@ public class DashboardController {
       emptyStatistics.setProjectId(projectId);
       emptyStatistics.setProjectName("Project " + projectId);
       emptyStatistics.setTotalTestCases(0);
+      emptyStatistics.setTotalFolders(0);
       emptyStatistics.setTotalTestPlans(0);
       emptyStatistics.setTotalTestExecutions(0);
       emptyStatistics.setExecutedTestCases(0);

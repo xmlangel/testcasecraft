@@ -64,6 +64,17 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
 
   long countByProjectId(String projectId);
 
+  // testcases 테이블에는 폴더 행이 함께 들어 있다(type = testcase | folder | systemFolder).
+  // 케이스 수를 셀 때 폴더가 섞이면 총계가 부풀고, 미실행 집계에도 폴더가 잡힌다.
+  // 통계·챗봇이 같은 기준을 쓰도록 이 두 메서드를 정본으로 둔다.
+  @Query("SELECT COUNT(t) FROM TestCase t WHERE t.project.id = :projectId AND t.type = 'testcase'")
+  long countTestCasesOnlyByProjectId(@Param("projectId") String projectId);
+
+  @Query(
+      "SELECT COUNT(t) FROM TestCase t WHERE t.project.id = :projectId"
+          + " AND (t.type IS NULL OR t.type <> 'testcase')")
+  long countFoldersByProjectId(@Param("projectId") String projectId);
+
   @Query(
       "SELECT t.project.id, COUNT(t) FROM TestCase t WHERE t.project.id IN :projectIds GROUP BY"
           + " t.project.id")

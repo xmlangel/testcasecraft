@@ -689,6 +689,9 @@ public class DashboardService {
       dto.setTestCoverage(0.0);
     }
 
+    // 폴더 수 (테스트케이스와 같은 테이블에 있어 총계에서 제외하고 따로 센다)
+    dto.setTotalFolders((int) testCaseRepository.countFoldersByProjectId(projectId));
+
     // 메타 정보 설정
     dto.setCalculatedAt(now);
     dto.setDataFreshnessMinutes(0); // 실시간 계산

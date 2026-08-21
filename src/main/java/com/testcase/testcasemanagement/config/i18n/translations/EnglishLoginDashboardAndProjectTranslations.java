@@ -174,6 +174,8 @@ public class EnglishLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists(
         "dashboard.project.totalTestCases", languageCode, "Total {count} test cases", createdBy);
     createTranslationIfNotExists(
+        "dashboard.project.totalFolders", languageCode, "{count} folders", createdBy);
+    createTranslationIfNotExists(
         "dashboard.project.members", languageCode, "{count} members", createdBy);
     createTranslationIfNotExists(
         "dashboard.charts.recentTestResults", languageCode, "Recent Test Results", createdBy);

@@ -18,7 +18,8 @@ public class ProjectStatisticsDto {
   // === 기본 통계 ===
   private String projectId; // 프로젝트 ID
   private String projectName; // 프로젝트 이름
-  private Integer totalTestCases; // 총 테스트케이스 수
+  private Integer totalTestCases; // 총 테스트케이스 수 (폴더 제외)
+  private Integer totalFolders; // 총 폴더 수 (테스트케이스와 같은 테이블에 있어 따로 센다)
   private Integer totalTestPlans; // 총 테스트 플랜 수
   private Integer totalTestExecutions; // 총 테스트 실행 수
 

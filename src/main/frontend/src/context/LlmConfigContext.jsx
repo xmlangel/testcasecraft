@@ -61,7 +61,12 @@ const parseApiResponse = async (response, actionDescription) => {
       (isWrappedResponse && (parsed?.errorMessage || parsed?.message)) ||
       parsed?.message ||
       `${response.status} ${response.statusText}`;
-    throw new Error(`Failed to ${actionDescription}: ${errorMessage}`);
+    const error = new Error(`Failed to ${actionDescription}: ${errorMessage}`);
+    // 서버가 내려준 식별자·원문을 붙여 둔다. 호출부가 문구 매칭 없이 원인을 구분해
+    // 해결 안내를 띄울 수 있다 (예: ENCRYPTION_KEY_NOT_CONFIGURED).
+    error.errorCode = (isWrappedResponse && parsed?.errorCode) || null;
+    error.serverMessage = errorMessage;
+    throw error;
   }
 
   if (isWrappedResponse) {

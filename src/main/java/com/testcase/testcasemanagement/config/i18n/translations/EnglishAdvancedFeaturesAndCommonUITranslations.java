@@ -1010,6 +1010,52 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         "LLM configuration has been created",
         createdBy);
     createTranslationIfNotExists(
+        "admin.llmConfig.message.saveFailed", languageCode, "Failed to save", createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.title",
+        languageCode,
+        "No encryption key is configured on the server",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.intro",
+        languageCode,
+        "API keys are encrypted before they are stored on the server. Without an encryption key,"
+            + " configurations cannot be saved and connections cannot be tested. A server"
+            + " administrator can resolve this with the following steps.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.step1",
+        languageCode,
+        "Generate a key on the server with the command below. AES-256 is used, so the key must be"
+            + " 32 bytes.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.step2",
+        languageCode,
+        "Set the generated value as a server environment variable. When running under Docker"
+            + " Compose, add it to both the .env file and the environment list in"
+            + " docker-compose.yml so that it reaches the container.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.step3",
+        languageCode,
+        "Restart the application, then run the connection test again on this screen.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.warning",
+        languageCode,
+        "If API keys or JIRA tokens are already stored, they cannot be decrypted after the key"
+            + " changes and must be entered again. Keep the key in a safe place.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.showGuide", languageCode, "Show how to fix", createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.hideGuide", languageCode, "Hide how to fix", createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.copyCommand", languageCode, "Copy", createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.help.encryptionKey.copied", languageCode, "Copied", createdBy);
+    createTranslationIfNotExists(
         "admin.llmConfig.message.defaultChanged",
         languageCode,
         "Default LLM configuration has been changed",

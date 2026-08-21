@@ -183,6 +183,50 @@ public class CommonKeysInitializer {
         "admin.llmConfig.message.defaultChanged", "admin", "기본 설정 변경", "기본 LLM 설정이 변경되었습니다");
     createTranslationKeyIfNotExists(
         "admin.llmConfig.message.activeChanged", "admin", "활성 상태 변경", "LLM 설정 활성 상태가 변경되었습니다");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.message.saveFailed", "admin", "저장 실패", "저장에 실패했습니다");
+
+    // 암호화 키 미설정 해결 안내 (errorCode = ENCRYPTION_KEY_NOT_CONFIGURED)
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.title",
+        "admin",
+        "암호화 키 미설정 안내 제목",
+        "서버에 암호화 키가 설정되어 있지 않습니다");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.intro",
+        "admin",
+        "암호화 키 미설정 안내 도입",
+        "API Key 는 서버에 저장하기 전에 암호화합니다. 암호화 키가 없으면 설정 저장과 연결 테스트를 할 수 없습니다. 서버 관리자가 다음 순서로 설정하면"
+            + " 해결됩니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.step1",
+        "admin",
+        "암호화 키 안내 1단계",
+        "서버에서 아래 명령으로 키를 만듭니다. AES-256 을 쓰므로 32바이트여야 합니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.step2",
+        "admin",
+        "암호화 키 안내 2단계",
+        "만든 값을 서버 환경변수에 지정합니다. Docker Compose 로 운영한다면 .env 파일과 docker-compose.yml 의 environment 목록"
+            + " 양쪽에 넣어야 컨테이너까지 전달됩니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.step3",
+        "admin",
+        "암호화 키 안내 3단계",
+        "애플리케이션을 다시 시작한 뒤 이 화면에서 연결 테스트를 다시 실행합니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.warning",
+        "admin",
+        "암호화 키 교체 주의",
+        "이미 저장해 둔 API Key 나 JIRA 토큰이 있다면 키를 바꾼 뒤에는 복호화할 수 없어 다시 입력해야 합니다. 키는 분실하지 않도록 따로 보관하세요.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.showGuide", "admin", "해결 방법 펼치기", "해결 방법 보기");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.hideGuide", "admin", "해결 방법 접기", "해결 방법 접기");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.copyCommand", "admin", "명령 복사", "복사");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.help.encryptionKey.copied", "admin", "복사 완료", "복사했습니다");
 
     // LLM 탭 및 섹션
     createTranslationKeyIfNotExists(

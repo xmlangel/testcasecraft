@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.rag.RagChatMessage;
+import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
@@ -37,7 +38,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     // 암호화 상태 확인
     if (!encryptionUtil.isEncryptionKeyConfigured()) {
       log.error("❌ LLM 암호화 키가 설정되지 않았습니다!");
-      log.error("   환경변수 JIRA_ENCRYPTION_KEY를 설정해주세요.");
+      log.error("   환경변수 {} 를 설정해주세요.", EncryptionKeyNotConfiguredException.ENV_VAR_NAME);
       log.error("   ⚠️  LLM 설정 저장이 불가능합니다!");
     } else {
       log.info("✅ LLM 암호화 키 설정 완료");
@@ -107,7 +108,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     // 암호화 키 확인
     if (!encryptionUtil.isEncryptionKeyConfigured()) {
-      throw new RuntimeException("암호화 키가 설정되지 않았습니다. 관리자에게 문의하세요.");
+      throw new EncryptionKeyNotConfiguredException();
     }
 
     // Entity 생성
@@ -197,6 +198,11 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     // API Key 업데이트 (제공된 경우에만)
     if (configDTO.getApiKey() != null && !configDTO.getApiKey().trim().isEmpty()) {
+      // 키가 없으면 encrypt() 가 IllegalStateException 을 던져 원인 코드 없이 500 으로 올라간다.
+      // 화면이 해결 안내를 띄울 수 있도록 여기서 먼저 판정해 전용 예외로 거부한다.
+      if (!encryptionUtil.isEncryptionKeyConfigured()) {
+        throw new EncryptionKeyNotConfiguredException();
+      }
       try {
         String encryptedApiKey = encryptionUtil.encrypt(configDTO.getApiKey());
         config.setEncryptedApiKey(encryptedApiKey);
@@ -302,7 +308,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     // 암호화 키 확인
     if (!encryptionUtil.isEncryptionKeyConfigured()) {
-      throw new RuntimeException("암호화 키가 설정되지 않았습니다. 관리자에게 문의하세요.");
+      throw new EncryptionKeyNotConfiguredException();
     }
 
     // 임시 LlmConfig 객체 생성 (DB에 저장하지 않음)
