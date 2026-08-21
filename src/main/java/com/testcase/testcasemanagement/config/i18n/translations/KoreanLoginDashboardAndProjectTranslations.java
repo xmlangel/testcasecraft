@@ -116,6 +116,8 @@ public class KoreanLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists(
         "dashboard.project.totalTestCases", languageCode, "총 {count}개 테스트케이스", createdBy);
     createTranslationIfNotExists(
+        "dashboard.project.totalFolders", languageCode, "폴더 {count}개", createdBy);
+    createTranslationIfNotExists(
         "dashboard.project.members", languageCode, "{count}명 참여", createdBy);
     createTranslationIfNotExists(
         "dashboard.charts.recentTestResults", languageCode, "최근 테스트 결과", createdBy);

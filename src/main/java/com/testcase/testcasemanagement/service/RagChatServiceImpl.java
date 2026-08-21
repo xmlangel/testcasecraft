@@ -401,7 +401,12 @@ public class RagChatServiceImpl implements RagChatService {
       if (dbContext.containsKey("statistics")) {
         ProjectStatisticsDto stats = (ProjectStatisticsDto) dbContext.get("statistics");
         prompt.append(String.format("- 프로젝트: %s\n", stats.getProjectName()));
-        prompt.append(String.format("- 총 테스트 케이스: %d개\n", stats.getTotalTestCases()));
+        // 폴더와 케이스를 갈라 적는다. 한 수치로 합치면 답변이 폴더까지 케이스로 세어 말한다.
+        prompt.append(String.format("- 총 테스트 케이스: %d개 (폴더 제외)\n", stats.getTotalTestCases()));
+        prompt.append(
+            String.format(
+                "- 폴더: %d개 (테스트 케이스 수에 포함하지 않음)\n",
+                stats.getTotalFolders() != null ? stats.getTotalFolders() : 0));
         prompt.append(
             String.format(
                 "- 실행된 케이스: %d개 (실행률: %.1f%%)\n",

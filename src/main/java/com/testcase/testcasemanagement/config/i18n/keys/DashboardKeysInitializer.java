@@ -31,6 +31,8 @@ public class DashboardKeysInitializer {
     createTranslationKeyIfNotExists(
         "dashboard.project.totalTestCases", "dashboard", "총 테스트케이스 수", "총 테스트케이스: {count}개");
     createTranslationKeyIfNotExists(
+        "dashboard.project.totalFolders", "dashboard", "총 폴더 수", "폴더: {count}개");
+    createTranslationKeyIfNotExists(
         "dashboard.project.members", "dashboard", "프로젝트 멤버 수", "프로젝트 멤버: {count}명");
 
     // 대시보드 차트 제목들

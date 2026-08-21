@@ -292,6 +292,9 @@ function Dashboard({ embedded = false }) {
 
   // ICT-135: 실제 API 데이터 사용
   const totalCases = dashboardData?.summary?.totalCases || realTotalCases || 0;
+  // 폴더는 테스트케이스와 같은 테이블에 있어 총계에서 빠진다. 따로 세어 함께 보여준다.
+  const totalFolders =
+    dashboardData?.overview?.basicStatistics?.totalFolders ?? 0;
   const completeRate =
     dashboardData?.summary?.completeRate ||
     (totalCases > 0 ? Math.round((lastResult.PASS / totalCases) * 100) : 0);
@@ -494,6 +497,18 @@ function Dashboard({ embedded = false }) {
                     sx={{ mr: 1 }}
                   />
                 </Grid>
+                {totalFolders > 0 && (
+                  <Grid>
+                    <Chip
+                      label={t("dashboard.project.totalFolders", {
+                        count: totalFolders,
+                      })}
+                      color="default"
+                      size="small"
+                      sx={{ mr: 1 }}
+                    />
+                  </Grid>
+                )}
                 <Grid>
                   <Chip
                     label={t("dashboard.project.members", {
