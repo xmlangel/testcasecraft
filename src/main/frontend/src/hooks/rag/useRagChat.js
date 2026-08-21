@@ -12,6 +12,32 @@ const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
   import.meta.env.VITE_USE_DEMO_DATA !== "true";
 
+/**
+ * 실패 응답에서 원인을 꺼내 에러로 만든다.
+ *
+ * 서버가 JSON 으로 사유를 보냈으면 그것을 쓰고, 앞단 프록시가 끊어 HTML 이 오면
+ * 본문을 버린다. HTML 조각을 그대로 보여 주면 읽을 수 없는 문자열만 남는다.
+ * 그 경우 상태 코드만 붙여 보내고, 문구는 화면이 번역해 만든다.
+ */
+async function buildRagHttpError(response) {
+  const error = new Error(`RAG request failed with status ${response.status}`);
+  error.statusCode = response.status;
+  error.errorMessage = null;
+
+  try {
+    const raw = await response.text();
+    if (raw && !raw.trimStart().startsWith("<")) {
+      const parsed = JSON.parse(raw);
+      error.errorMessage =
+        parsed?.errorMessage || parsed?.message || parsed?.error || null;
+    }
+  } catch {
+    // 본문을 읽지 못해도 상태 코드는 남는다. 그것만으로 안내가 가능하다.
+  }
+
+  return error;
+}
+
 export function useRagChat(
   state,
   dispatch,
@@ -270,7 +296,16 @@ export function useRagChat(
         const response = await api("/api/rag/chat", {
           method: "POST",
           body: JSON.stringify(payload),
+          // 중지를 누르면 이 신호로 요청 자체를 끊는다.
+          signal: options.signal,
         });
+
+        // 앞단 프록시가 끊으면(예: Cloudflare 524) 본문이 HTML 이라
+        // json() 이 먼저 깨지고 "Unexpected token '<'" 만 남는다.
+        // 상태 코드를 먼저 보고 원인을 붙여 올려 보낸다.
+        if (!response.ok) {
+          throw await buildRagHttpError(response);
+        }
 
         dispatch({ type: ActionTypes.SET_LOADING, payload: false });
         return await response.json();
@@ -378,7 +413,7 @@ export function useRagChat(
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw await buildRagHttpError(response);
         }
 
         if (!response.body) {

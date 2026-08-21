@@ -230,6 +230,20 @@ public class RAGKeysInitializer {
         "rag",
         "실패 원인 미전달",
         "응답을 만들지 못했습니다. 원인이 전달되지 않아 서버 로그를 확인해야 합니다.");
+    createTranslationKeyIfNotExists(
+        "rag.chat.error.gatewayTimeout",
+        "rag",
+        "앞단 프록시 시간 초과",
+        "응답이 제한 시간 안에 오지 않아 연결이 끊겼습니다. 서버는 아직 처리하고 있을 수 있습니다. 질문을 짧게 나누거나 잠시 후 다시 시도해 주세요.");
+    createTranslationKeyIfNotExists(
+        "rag.chat.error.unauthorized", "rag", "인증 만료", "인증이 만료되었거나 권한이 없습니다. 다시 로그인한 뒤 시도해 주세요.");
+    createTranslationKeyIfNotExists(
+        "rag.chat.error.serverError",
+        "rag",
+        "서버 오류",
+        "서버에서 요청을 처리하지 못했습니다. 잠시 후 다시 시도하고, 계속되면 서버 로그를 확인해야 합니다.");
+    createTranslationKeyIfNotExists(
+        "rag.chat.error.networkFailed", "rag", "연결 실패", "서버에 연결하지 못했습니다. 네트워크 상태를 확인해 주세요.");
     createTranslationKeyIfNotExists("rag.chat.threadSelectLabel", "rag", "스레드 선택 라벨", "저장된 스레드");
     createTranslationKeyIfNotExists("rag.chat.threadAutoOption", "rag", "자동 생성 옵션", "새 스레드 자동 생성");
     createTranslationKeyIfNotExists("rag.chat.untitledThread", "rag", "제목 없는 스레드", "제목 없는 스레드");

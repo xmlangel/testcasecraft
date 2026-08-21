@@ -152,13 +152,15 @@ export function useChatSender({
           resetStreamingBuffer();
           // 스트림이 끊기면 정리만 하고 조용히 끝나 빈 말풍선만 남았다.
           // 실패했다는 사실과 원인을 그 말풍선에 그대로 싣는다.
-          const reason =
-            streamError?.errorMessage || streamError?.message || null;
+          // 사용자가 중지를 누른 경우는 실패가 아니므로 오류로 표시하지 않는다.
+          const aborted = streamError?.name === "AbortError";
           updateStreamingMessage((current) => ({
             ...current,
             isStreaming: false,
-            isError: true,
-            errorMessage: reason,
+            isError: !aborted,
+            // 사유가 없으면 상태 코드로 화면이 문구를 만든다.
+            errorMessage: aborted ? null : streamError?.errorMessage || null,
+            errorStatusCode: aborted ? undefined : streamError?.statusCode,
           }));
           streamingMessageIdRef.current = null;
           setIsStreaming(false);
@@ -207,7 +209,13 @@ export function useChatSender({
       resolvedThreadId,
       userMessageId,
     ) => {
-      const response = await chat(projectId, messageContentForAPI, chatOptions);
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      const response = await chat(projectId, messageContentForAPI, {
+        ...chatOptions,
+        signal: abortController.signal,
+      });
 
       if (shouldPersist) {
         await handleChatResult(response, {
@@ -245,6 +253,7 @@ export function useChatSender({
       setMessages,
       setIsLoading,
       handleChatResult,
+      abortControllerRef,
     ],
   );
 

@@ -482,6 +482,28 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
             + " checked.",
         createdBy);
     createTranslationIfNotExists(
+        "rag.chat.error.gatewayTimeout",
+        languageCode,
+        "The response did not arrive within the time limit and the connection was closed. The"
+            + " server may still be working on it. Try splitting the question or retrying shortly.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.unauthorized",
+        languageCode,
+        "The session has expired or you do not have permission. Sign in again and retry.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.serverError",
+        languageCode,
+        "The server could not process the request. Retry shortly; if it persists, the server log"
+            + " has to be checked.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.networkFailed",
+        languageCode,
+        "Could not reach the server. Check the network connection.",
+        createdBy);
+    createTranslationIfNotExists(
         "rag.chat.threadSelectLabel", languageCode, "Saved Threads", createdBy);
     createTranslationIfNotExists(
         "rag.chat.threadAutoOption", languageCode, "Auto-create New Thread", createdBy);

@@ -37,6 +37,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme, alpha } from "@mui/material/styles";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { describeRagError } from "../../utils/ragErrorMessage.js";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { extractTestCasesFromAIResponse } from "../../utils/testCaseParser.js";
 import TestCaseForm from "../TestCaseForm.jsx";
@@ -474,7 +475,13 @@ function ChatMessage({
                 variant="outlined"
                 sx={{ mb: message.content ? 1.5 : 0 }}
               >
-                {message.errorMessage ||
+                {describeRagError(
+                  {
+                    errorMessage: message.errorMessage,
+                    statusCode: message.errorStatusCode,
+                  },
+                  t,
+                ) ||
                   t(
                     "rag.chat.error.unknownCause",
                     "응답을 만들지 못했습니다. 원인이 전달되지 않아 서버 로그를 확인해야 합니다.",
@@ -1517,6 +1524,7 @@ ChatMessage.propTypes = {
     persistedId: PropTypes.string,
     isError: PropTypes.bool,
     errorMessage: PropTypes.string,
+    errorStatusCode: PropTypes.number,
   }).isRequired,
   onDocumentClick: PropTypes.func,
   projectId: PropTypes.string,
