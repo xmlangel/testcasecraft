@@ -11,10 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -91,6 +95,85 @@ public final class LlmClientTestSupport {
   /** 정상 상항을 돌려주는 교환기. */
   public static StubExchange ok(String body) {
     return new StubExchange(HttpStatus.OK, body);
+  }
+
+  /**
+   * SSE 스트림을 여러 청크로 나눠 돌려주는 교환기.
+   *
+   * <p>클라이언트가 {@code bodyToFlux(DataBuffer.class)} 로 받아 줄 단위로 다시 쪼개므로, 청크 경계가 줄 중간에 걸리는 경우를 시험할 수
+   * 있어야 한다. 그래서 본문을 통째로 주지 않고 넘긴 조각 그대로 흘려보낸다.
+   *
+   * @param chunks 흘려보낼 조각. 줄바꿈이 조각 경계에 걸쳐도 된다
+   */
+  public static StreamStubExchange stream(String... chunks) {
+    return new StreamStubExchange(List.of(chunks));
+  }
+
+  /** SSE 스트림을 흘려보내는 교환기. */
+  public static final class StreamStubExchange {
+
+    private final List<String> chunks;
+    private final List<ClientRequest> requests = new ArrayList<>();
+
+    private StreamStubExchange(List<String> chunks) {
+      this.chunks = chunks;
+    }
+
+    public WebClient.Builder builder() {
+      return WebClient.builder()
+          .exchangeFunction(
+              request -> {
+                requests.add(request);
+                DataBufferFactory factory = new DefaultDataBufferFactory();
+                Flux<DataBuffer> body =
+                    Flux.fromIterable(chunks)
+                        .map(
+                            chunk ->
+                                factory.wrap(chunk.getBytes(StandardCharsets.UTF_8)));
+                return Mono.just(
+                    ClientResponse.create(HttpStatus.OK)
+                        .header("Content-Type", MediaType.TEXT_EVENT_STREAM_VALUE)
+                        .body(body)
+                        .build());
+              });
+    }
+
+    public ClientRequest firstRequest() {
+      if (requests.isEmpty()) {
+        throw new AssertionError("요청이 나가지 않았다");
+      }
+      return requests.get(0);
+    }
+  }
+
+  /** 스트리밍 콜백이 받은 것을 모아 두는 상자. */
+  public static final class RecordedStream implements LlmClient.StreamCallback {
+
+    private final List<String> chunks = new ArrayList<>();
+    private int completionCount;
+
+    @Override
+    public void onChunk(String chunk, boolean isLast) {
+      if (isLast) {
+        completionCount++;
+      } else {
+        chunks.add(chunk);
+      }
+    }
+
+    /** 받은 청크를 이어 붙인 전문. */
+    public String text() {
+      return String.join("", chunks);
+    }
+
+    public List<String> chunks() {
+      return chunks;
+    }
+
+    /** 완료 신호를 몇 번 받았는지. 두 번 이상이면 중복 통지다. */
+    public int completionCount() {
+      return completionCount;
+    }
   }
 
   /** 오류 상항을 돌려주는 교환기. */
