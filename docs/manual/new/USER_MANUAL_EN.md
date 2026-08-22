@@ -994,7 +994,7 @@ Dropdown items:
 
 Items registered on the **LLM Configurations** tab:
 
-- Provider: OpenAI / Anthropic / Azure OpenAI / local models, etc.
+- Provider: OpenAI / OpenRouter / NVIDIA / Perplexity / Ollama / OpenWebUI (Ollama and OpenWebUI run models on your own server)
 - Model name, API key, base URL
 - After registering, use **[Test Connection]** to confirm the values
 

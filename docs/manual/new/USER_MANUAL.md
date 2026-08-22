@@ -1000,7 +1000,7 @@ Google Sheets로 테스트 케이스를 가져오거나 내보내려면 Google �
 
 **LLM 설정목록** 탭에서 등록하는 항목입니다.
 
-- 제공자: OpenAI / Anthropic / Azure OpenAI / 로컬 모델 등
+- 제공자: OpenAI / OpenRouter / NVIDIA / Perplexity / Ollama / OpenWebUI (Ollama·OpenWebUI 는 서버에 직접 띄우는 모델입니다)
 - 모델 이름, API Key, 기본 주소
 - 등록 후 **[연결 테스트]** 로 값이 맞는지 확인합니다
 
