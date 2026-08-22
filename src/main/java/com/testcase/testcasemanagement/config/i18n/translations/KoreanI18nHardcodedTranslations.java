@@ -150,6 +150,18 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("common.error.hideDetail", languageCode, "접기", createdBy);
     createTranslationIfNotExists("common.error.copyDetail", languageCode, "전문 복사", createdBy);
     createTranslationIfNotExists("common.error.copied", languageCode, "복사했습니다", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeOneButton", languageCode, "이 모델 확인", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeOneTooltip", languageCode, "지금 고른 모델에만 최소 요청을 보냅니다. 무료 한도 1건을 사용합니다.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllButton", languageCode, "전수 확인 ({count}건)", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllTooltip", languageCode, "목록의 모든 모델을 확인합니다. 모델 수만큼 무료 한도를 사용하므로 누르기 전에 다시 묻습니다.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllConfirm", languageCode, "모델 {count}개를 확인합니다. OpenRouter 무료 일일 한도를 그만큼 사용합니다(실측 한도 50건). 계속하시겠습니까?", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.needModel", languageCode, "확인할 모델을 먼저 고르거나 입력해 주세요.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.allChecked", languageCode, "이미 전부 확인했습니다. 다시 확인하려면 '판정 초기화' 를 누르세요.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.resetVerdicts", languageCode, "판정 초기화", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.verdictsReset", languageCode, "판정을 지웠습니다. 다시 확인할 수 있습니다.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.requestsSent", languageCode, "이번에 요청 {count}건을 보냈습니다.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.accountLimitDetail", languageCode, "하루 {limit}건 중 {remaining}건 남음. {reset} 에 초기화됩니다.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.loadedHint", languageCode, "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.", createdBy);
     createTranslationIfNotExists(
         "admin.llmConfig.models.autoSelected",
         languageCode,

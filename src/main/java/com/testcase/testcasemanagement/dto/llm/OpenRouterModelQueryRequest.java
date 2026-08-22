@@ -24,4 +24,13 @@ public class OpenRouterModelQueryRequest {
       description = "가용성 확인 대상 모델 슬러그. 확인 요청에서만 쓰고, 비우면 무료 모델 전체를 확인한다",
       example = "[\"nvidia/nemotron-3-nano-30b-a3b:free\"]")
   private List<String> modelIds;
+
+  @Schema(
+      description =
+          """
+          이미 판정한 모델 슬러그. 이 목록에 있는 모델은 확인하지 않고 건너뛴다.
+          확인 한 번이 무료 일일 한도를 그만큼 쓰므로, 버튼을 다시 눌렀을 때 같은 모델을
+          또 두드리지 않게 하려는 것이다.
+          """)
+  private List<String> alreadyChecked;
 }

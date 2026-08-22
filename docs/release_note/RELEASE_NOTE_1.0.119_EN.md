@@ -28,12 +28,17 @@ The same trap existed for OpenAI, Ollama, OpenWebUI, and Perplexity. All four we
 
 #### 📋 Pick a free model from a list
 
-Selecting OpenRouter under Admin → LLM Configuration shows two buttons.
+Selecting OpenRouter under Admin → LLM Configuration shows these buttons.
 
 - **Load free models** — fetches the free models currently offered. No cost, appears immediately.
-- **Check availability** — sends a minimal request to each model to see whether it works right now.
+- **Check this model** — sends a request to the selected model only. Uses one request of the quota.
+- **Check all** — checks the whole list. It uses one request per model, so you are asked to confirm first.
 
 After the check, unusable models turn grey with the reason attached.
+
+**The check is split in two because checking itself consumes the quota.** The free daily limit is 50 requests and there are 20 free models, so checking all of them once consumes 40% of a day. Since you will actually use one model, checking that one is the default.
+
+A model that has been judged once is not checked again. Pressing the button repeatedly does not spend more quota, and **Reset results** clears the verdicts so you can check again. The response reports how many requests were actually sent.
 
 | Label | Meaning | Selectable |
 |---|---|---|
@@ -42,7 +47,9 @@ After the check, unusable models turn grey with the reason attached.
 | Account quota | The account's daily free-request quota is used up | Yes (not the model's fault) |
 | Unavailable | Cannot be called through this path | No, greyed out |
 
-**Account quota does not block selection.** Switching models does not help, so greying everything out would leave nothing to choose. The reset time is shown instead.
+**Account quota does not block selection.** Switching models does not help, so greying everything out would leave nothing to choose. The daily limit, the remaining count, and the reset time are shown instead.
+
+When the quota is hit, the remaining checks stop. Sending more produces the same result and only consumes further quota.
 
 **For paid models, type the slug directly.** The list holds free models only.
 
@@ -76,7 +83,8 @@ The same format applies to the LLM connection test, document upload, chunk listi
 * **Existing API URLs can be left as they are.** The server strips any appended path before calling. Saving the configuration again stores the normalized value.
 * **English strings appear after a restart.** Korean is immediate.
 * The free model list comes straight from OpenRouter. Which models exist, and when a free offering ends, is not decided by this product. Expiration dates are shown when the list provides them.
-* Checking availability sends one request per model, so it consumes a small part of the free quota. Use it when you need it.
+* Checking availability sends one request per model. The free daily limit is 50, so run the full check only when you need it and use **Check this model** day to day.
+* **The remaining quota cannot be known in advance.** OpenRouter does not include quota information in successful responses, and the key endpoint reports credit amounts only. The remaining count and reset time are known only after the quota has been hit.
 * For 1.0.118 changes, see [RELEASE_NOTE_1.0.118_EN.md](RELEASE_NOTE_1.0.118_EN.md).
 
 ### Known limitations
@@ -92,6 +100,8 @@ The same format applies to the LLM connection test, document upload, chunk listi
 | Connection test | Real calls with three URL forms | 200 on all three |
 | Free model list | Real query (20 selected from 421 total) | Passed |
 | Availability check | 20 real calls, 15 seconds | Passed |
+| Quota savings by scope | 1 model → 1 request · reuse → 1 · all judged → 0 | Passed |
+| Stop on quota exhaustion | Stopped after 4 of 20 targets | Passed |
 | Error summary rules | 7 new tests | Passed |
 | Error display component | 5 new tests | Passed |
 | Screen behavior | Browser check on admin and chat screens | Passed |

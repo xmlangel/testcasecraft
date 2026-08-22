@@ -5,6 +5,7 @@ import com.testcase.testcasemanagement.dto.ApiResponse;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.testcase.testcasemanagement.service.LlmConfigService;
@@ -562,7 +563,18 @@ public class LlmConfigController {
           - `UNAVAILABLE`: 이 경로로는 쓸 수 없음(403·404·502 등)
           - `UNKNOWN`: 확인하지 않음
 
-          **주의**: 확인 호출도 무료 한도를 조금 씁니다. 화면에서 사용자가 요청할 때만 호출하세요.
+          **주의: 확인 호출이 무료 일일 한도를 그만큼 씁니다.** 실측으로 확인한 한도는 50건이고
+          무료 모델은 20개이므로, 전체 확인 한 번이 하루치의 40% 를 씁니다. 그래서 화면은 고른 모델
+          하나만 확인하는 것을 기본으로 하고, 전체 확인은 소모량을 알린 뒤에만 보냅니다.
+
+          `alreadyChecked` 에 이미 판정한 모델을 담아 보내면 그 모델은 건너뜁니다. 버튼을 다시 눌렀을
+          때 같은 모델을 또 두드리지 않게 하려는 것입니다. 응답의 `requestsSent` 로 실제로 보낸 요청
+          수를 알 수 있습니다.
+
+          응답의 `accountLimit` 은 계정 일일 한도에 걸렸을 때만 채워집니다. **잔량은 미리 알 수
+          없습니다** — 정상 응답 헤더에는 한도 정보가 없고 `/api/v1/key` 는 달러 크레딧만 알려 줍니다.
+          429 응답 헤더에만 들어 있어 한 번 걸린 뒤에야 알 수 있습니다.
+
           한 번에 최대 40개까지 확인합니다.
 
           **권한**: ADMIN
@@ -583,17 +595,19 @@ public class LlmConfigController {
   })
   @PostMapping("/openrouter/free-models/probe")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<List<OpenRouterModelDTO>>> probeOpenRouterModels(
+  public ResponseEntity<ApiResponse<OpenRouterProbeResponse>> probeOpenRouterModels(
       @RequestBody OpenRouterModelQueryRequest request) {
     log.info("🔍 OpenRouter 모델 가용성 확인 요청");
     try {
-      List<OpenRouterModelDTO> results = llmConfigService.probeOpenRouterModels(request);
+      OpenRouterProbeResponse result = llmConfigService.probeOpenRouterModels(request);
+      List<OpenRouterModelDTO> models = result.getModels();
       long available =
-          results.stream()
+          models.stream()
               .filter(m -> m.getAvailability() == OpenRouterModelDTO.Availability.AVAILABLE)
               .count();
       return ResponseEntity.ok(
-          ApiResponse.success(results, "사용 가능 " + available + " / 확인 " + results.size()));
+          ApiResponse.success(
+              result, "사용 가능 " + available + " / 확인 " + models.size()));
     } catch (EncryptionKeyNotConfiguredException e) {
       log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
       return ResponseEntity.badRequest()

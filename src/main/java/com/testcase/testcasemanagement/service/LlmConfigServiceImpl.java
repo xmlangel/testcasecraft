@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
 import com.testcase.testcasemanagement.dto.rag.RagChatMessage;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.service.llm.LlmApiUrlNormalizer;
@@ -350,7 +351,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   @Override
-  public List<OpenRouterModelDTO> probeOpenRouterModels(OpenRouterModelQueryRequest request) {
+  public OpenRouterProbeResponse probeOpenRouterModels(OpenRouterModelQueryRequest request) {
     String apiKey = resolveOpenRouterApiKey(request);
 
     List<String> targets = request.getModelIds();
@@ -361,6 +362,16 @@ public class LlmConfigServiceImpl implements LlmConfigService {
               .map(OpenRouterModelDTO::getId)
               .collect(Collectors.toList());
     }
+
+    // 이미 판정한 모델은 건너뛴다. 확인 한 번이 한도를 그만큼 쓰므로, 버튼을 다시 눌렀을 때 같은
+    // 모델을 또 두드리지 않게 한다. 화면이 판정 결과를 갖고 있으므로 목록은 화면이 보내 준다.
+    List<String> skip = request.getAlreadyChecked();
+    if (skip != null && !skip.isEmpty()) {
+      java.util.Set<String> checked = new java.util.HashSet<>(skip);
+      targets = targets.stream().filter(id -> !checked.contains(id)).collect(Collectors.toList());
+      log.info("🔁 이미 판정한 {}개를 건너뛴다. 확인 대상 {}개", checked.size(), targets.size());
+    }
+
     return openRouterModelCatalogService.probeAvailability(apiKey, targets);
   }
 

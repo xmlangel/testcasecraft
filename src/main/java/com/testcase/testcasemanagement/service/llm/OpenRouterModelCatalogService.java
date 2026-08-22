@@ -2,6 +2,7 @@ package com.testcase.testcasemanagement.service.llm;
 
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO.Availability;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +53,15 @@ public class OpenRouterModelCatalogService {
   /** API Key 확인 경로. 목록 경로와 달리 인증을 요구하므로 키 검증에 쓴다. */
   private static final String KEY_PATH = "/api/v1/key";
 
-  /** 가용성 확인 동시 실행 수. 실측에서 22개를 12 병렬로 11초에 처리했다. */
-  private static final int PROBE_CONCURRENCY = 12;
+  /**
+   * 가용성 확인 동시 실행 수.
+   *
+   * <p>낮게 잡는다. 무료 등급의 일일 요청 한도가 50건이라(실측: 429 응답의 {@code X-RateLimit-Limit})
+   * 확인 자체가 한도를 태운다. 계정 한도에 걸렸을 때 이미 날아간 요청이 곧 낭비이므로, 동시 실행이 곧
+   * 최악의 낭비량이다. 12 로 두면 12건을 버리고 4 로 두면 4건을 버린다. 그 대신 전수 확인이 더 오래
+   * 걸린다.
+   */
+  private static final int PROBE_CONCURRENCY = 4;
 
   private static final Duration LIST_TIMEOUT = Duration.ofSeconds(30);
   /**
@@ -150,7 +159,7 @@ public class OpenRouterModelCatalogService {
    * @param modelIds 확인할 모델 슬러그. {@value #PROBE_LIMIT} 개를 넘으면 앞에서 자른다
    * @return 입력 순서와 무관하게 슬러그 순으로 정렬된 판정 결과
    */
-  public List<OpenRouterModelDTO> probeAvailability(String apiKey, Collection<String> modelIds) {
+  public OpenRouterProbeResponse probeAvailability(String apiKey, Collection<String> modelIds) {
     Set<String> targets = new LinkedHashSet<>();
     for (String id : modelIds) {
       if (id != null && !id.isBlank()) {
@@ -161,7 +170,7 @@ public class OpenRouterModelCatalogService {
       }
     }
     if (targets.isEmpty()) {
-      return List.of();
+      return OpenRouterProbeResponse.builder().models(List.of()).requestsSent(0).build();
     }
 
     log.info("🔍 OpenRouter 가용성 확인 시작: {}개 (동시 {})", targets.size(), PROBE_CONCURRENCY);
@@ -172,16 +181,20 @@ public class OpenRouterModelCatalogService {
     // 앞의 것을 만나면 남은 모델을 확인해도 전부 같은 429 가 나오고 한도만 더 쓴다. 그래서 그 시점에
     // 확인을 멈추고, 확인하지 못한 모델은 UNKNOWN 으로 둔다. 모델 탓이 아니므로 회색으로 막지 않는다.
     AtomicReference<String> accountLimitReset = new AtomicReference<>();
+    AtomicReference<OpenRouterProbeResponse.AccountLimit> accountLimit = new AtomicReference<>();
+    AtomicInteger requestsSent = new AtomicInteger();
 
     WebClient client = client(apiKey);
     List<OpenRouterModelDTO> results =
         Flux.fromIterable(targets)
-            .flatMap(id -> probeOne(client, id, accountLimitReset), PROBE_CONCURRENCY)
+            .flatMap(
+                id -> probeOne(client, id, accountLimitReset, accountLimit, requestsSent),
+                PROBE_CONCURRENCY)
             .collectList()
             .block();
 
     if (results == null) {
-      return List.of();
+      return OpenRouterProbeResponse.builder().models(List.of()).requestsSent(0).build();
     }
     List<OpenRouterModelDTO> sorted = new ArrayList<>(results);
     sorted.sort(Comparator.comparing(OpenRouterModelDTO::getId));
@@ -191,12 +204,24 @@ public class OpenRouterModelCatalogService {
     if (accountLimitReset.get() != null) {
       log.warn("⚠️ 계정 일일 무료 한도 소진. 복구 예정 {}", accountLimitReset.get());
     }
-    log.info("✅ 가용성 확인 완료: 사용 가능 {} / 확인 {}", available, sorted.size());
-    return sorted;
+    log.info(
+        "✅ 가용성 확인 완료: 사용 가능 {} / 확인 {} / 실제 요청 {}",
+        available,
+        sorted.size(),
+        requestsSent.get());
+    return OpenRouterProbeResponse.builder()
+        .models(sorted)
+        .accountLimit(accountLimit.get())
+        .requestsSent(requestsSent.get())
+        .build();
   }
 
   private Mono<OpenRouterModelDTO> probeOne(
-      WebClient client, String modelId, AtomicReference<String> accountLimitReset) {
+      WebClient client,
+      String modelId,
+      AtomicReference<String> accountLimitReset,
+      AtomicReference<OpenRouterProbeResponse.AccountLimit> accountLimit,
+      AtomicInteger requestsSent) {
     // 이미 계정 한도가 소진된 것이 확인됐으면 요청을 보내지 않는다.
     String knownReset = accountLimitReset.get();
     if (knownReset != null) {
@@ -213,6 +238,8 @@ public class OpenRouterModelCatalogService {
             "messages", List.of(Map.of("role", "user", "content", "ok")),
             "max_tokens", 1);
 
+    requestsSent.incrementAndGet();
+
     return client
         .post()
         .uri(LlmApiUrlNormalizer.OPENROUTER_CHAT_PATH)
@@ -222,11 +249,15 @@ public class OpenRouterModelCatalogService {
         .bodyToMono(String.class)
         .timeout(PROBE_TIMEOUT)
         .map(ignored -> verdict(modelId, Availability.AVAILABLE, "사용 가능"))
-        .onErrorResume(error -> Mono.just(toVerdict(modelId, error, accountLimitReset)));
+        .onErrorResume(
+            error -> Mono.just(toVerdict(modelId, error, accountLimitReset, accountLimit)));
   }
 
   private OpenRouterModelDTO toVerdict(
-      String modelId, Throwable error, AtomicReference<String> accountLimitReset) {
+      String modelId,
+      Throwable error,
+      AtomicReference<String> accountLimitReset,
+      AtomicReference<OpenRouterProbeResponse.AccountLimit> accountLimit) {
     if (error instanceof WebClientResponseException e) {
       int status = e.getStatusCode().value();
       String responseBody = e.getResponseBodyAsString();
@@ -241,6 +272,14 @@ public class OpenRouterModelCatalogService {
           } else {
             accountLimitReset.compareAndSet(null, "");
           }
+          // 잔량과 초기화 시각은 429 응답 헤더에만 온다. 한 번 받은 것을 화면까지 올려 준다.
+          accountLimit.compareAndSet(
+              null,
+              OpenRouterProbeResponse.AccountLimit.builder()
+                  .limit(kind.limit())
+                  .remaining(kind.remaining())
+                  .resetAt(kind.reset())
+                  .build());
           return verdict(
               modelId,
               Availability.ACCOUNT_LIMIT,
@@ -325,8 +364,16 @@ public class OpenRouterModelCatalogService {
     return firstLine(responseBody);
   }
 
-  /** 429 의 두 종류를 가른 결과. {@code reset} 은 계정 한도가 풀리는 시각(없으면 null). */
-  private record RateLimitKind(boolean accountDaily, String reset) {}
+  /**
+   * 429 의 두 종류를 가른 결과.
+   *
+   * @param accountDaily 계정 일일 한도이면 true, 모델별 혼잡이면 false
+   * @param reset 계정 한도가 풀리는 시각(없으면 null)
+   * @param limit 일일 한도 요청 수(없으면 null)
+   * @param remaining 남은 요청 수(없으면 null)
+   */
+  private record RateLimitKind(
+      boolean accountDaily, String reset, Integer limit, Integer remaining) {}
 
   /**
    * 429 응답이 계정 단위 한도인지 모델 단위 혼잡인지 가른다.
@@ -337,33 +384,55 @@ public class OpenRouterModelCatalogService {
    */
   private RateLimitKind classifyRateLimit(String responseBody) {
     if (responseBody == null || responseBody.isBlank()) {
-      return new RateLimitKind(false, null);
+      return new RateLimitKind(false, null, null, null);
     }
     try {
       @SuppressWarnings("unchecked")
       Map<String, Object> parsed = new ObjectMapper().readValue(responseBody, Map.class);
       if (!(parsed.get("error") instanceof Map<?, ?> error)
           || !(error.get("metadata") instanceof Map<?, ?> metadata)) {
-        return new RateLimitKind(false, null);
+        return new RateLimitKind(false, null, null, null);
       }
       String source = String.valueOf(metadata.get("limit_source"));
       boolean accountDaily = source != null && source.contains("free_tier_daily");
+
       String reset = null;
+      Integer limit = null;
+      Integer remaining = null;
       if (metadata.get("headers") instanceof Map<?, ?> headers) {
-        Object raw = headers.get("X-RateLimit-Reset");
-        if (raw != null) {
-          reset = formatReset(String.valueOf(raw));
-        }
+        reset = formatReset(headerValue(headers, "X-RateLimit-Reset"));
+        limit = headerInt(headers, "X-RateLimit-Limit");
+        remaining = headerInt(headers, "X-RateLimit-Remaining");
       }
-      return new RateLimitKind(accountDaily, reset);
+      return new RateLimitKind(accountDaily, reset, limit, remaining);
     } catch (Exception e) {
       log.trace("429 본문 해석 실패", e);
-      return new RateLimitKind(false, null);
+      return new RateLimitKind(false, null, null, null);
+    }
+  }
+
+  private String headerValue(Map<?, ?> headers, String name) {
+    Object raw = headers.get(name);
+    return raw == null ? null : String.valueOf(raw);
+  }
+
+  private Integer headerInt(Map<?, ?> headers, String name) {
+    String raw = headerValue(headers, name);
+    if (raw == null) {
+      return null;
+    }
+    try {
+      return Integer.valueOf(raw.trim());
+    } catch (NumberFormatException e) {
+      return null;
     }
   }
 
   /** epoch 밀리초를 KST 시각 문구로 바꾼다. 사용자가 언제 다시 시도할지 알 수 있게 한다. */
   private String formatReset(String epochMillis) {
+    if (epochMillis == null) {
+      return null;
+    }
     try {
       long millis = Long.parseLong(epochMillis.trim());
       return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")

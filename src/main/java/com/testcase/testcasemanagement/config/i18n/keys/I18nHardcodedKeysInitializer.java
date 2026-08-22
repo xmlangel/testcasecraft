@@ -158,6 +158,30 @@ public class I18nHardcodedKeysInitializer {
     createTranslationKeyIfNotExists(
         "common.error.copied", "common", "오류 전문 접기 (2026-08-22)", "복사했습니다");
     createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeOneButton", "admin", "가용성 확인 한도 절약 (2026-08-22)", "이 모델 확인");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeOneTooltip", "admin", "가용성 확인 한도 절약 (2026-08-22)", "지금 고른 모델에만 최소 요청을 보냅니다. 무료 한도 1건을 사용합니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeAllButton", "admin", "가용성 확인 한도 절약 (2026-08-22)", "전수 확인 ({count}건)");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeAllTooltip", "admin", "가용성 확인 한도 절약 (2026-08-22)", "목록의 모든 모델을 확인합니다. 모델 수만큼 무료 한도를 사용하므로 누르기 전에 다시 묻습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeAllConfirm", "admin", "가용성 확인 한도 절약 (2026-08-22)", "모델 {count}개를 확인합니다. OpenRouter 무료 일일 한도를 그만큼 사용합니다(실측 한도 50건). 계속하시겠습니까?");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.needModel", "admin", "가용성 확인 한도 절약 (2026-08-22)", "확인할 모델을 먼저 고르거나 입력해 주세요.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.allChecked", "admin", "가용성 확인 한도 절약 (2026-08-22)", "이미 전부 확인했습니다. 다시 확인하려면 '판정 초기화' 를 누르세요.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.resetVerdicts", "admin", "가용성 확인 한도 절약 (2026-08-22)", "판정 초기화");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.verdictsReset", "admin", "가용성 확인 한도 절약 (2026-08-22)", "판정을 지웠습니다. 다시 확인할 수 있습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.requestsSent", "admin", "가용성 확인 한도 절약 (2026-08-22)", "이번에 요청 {count}건을 보냈습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.accountLimitDetail", "admin", "가용성 확인 한도 절약 (2026-08-22)", "하루 {limit}건 중 {remaining}건 남음. {reset} 에 초기화됩니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.loadedHint", "admin", "가용성 확인 한도 절약 (2026-08-22)", "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.");
+    createTranslationKeyIfNotExists(
         "admin.llmConfig.models.autoSelected",
         "admin",
         "OpenRouter 무료 모델 목록 (2026-08-22)",

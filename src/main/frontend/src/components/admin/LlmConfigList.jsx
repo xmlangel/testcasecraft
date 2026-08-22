@@ -268,9 +268,11 @@ const LlmConfigList = ({ onSuccess }) => {
         setModelListOpen(true);
       }
       setModelsNotice(
+        // 옛 키(models.loaded)는 DB 에 이전 문구가 들어 있고 시드가 기존 값을 덮지 않는다.
+        // 버튼 이름이 바뀌었으므로 새 키로 옮긴다.
         t(
-          "admin.llmConfig.models.loaded",
-          "무료 모델 {count}개를 불러왔습니다. 지금 쓸 수 있는지는 '가용성 확인' 을 눌러 보세요.",
+          "admin.llmConfig.models.loadedHint",
+          "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.",
         ).replace("{count}", String(models.length)),
       );
     } catch (err) {
@@ -280,7 +282,24 @@ const LlmConfigList = ({ onSuccess }) => {
     }
   };
 
-  const handleProbeModels = async () => {
+  /** 이미 판정한 모델 수. 판정 초기화 버튼을 띄울지 정한다. */
+  const checkedCount = freeModels.filter(
+    (m) => m.availability && m.availability !== "UNKNOWN",
+  ).length;
+
+  /** 아직 확인하지 않은 모델 수. 전수 확인이 실제로 보낼 요청 수다. */
+  const pendingCheckCount = freeModels.length - checkedCount;
+
+  /**
+   * 가용성 확인.
+   *
+   * 확인 한 번이 무료 일일 한도를 그만큼 쓴다(실측 한도 50건, 무료 모델 20개). 그래서 기본은
+   * 고른 모델 하나만 확인하고, 전체 확인은 소모량을 알린 뒤에만 보낸다. 이미 판정한 모델은
+   * 서버에서 건너뛰므로 버튼을 다시 눌러도 한도가 다시 쓰이지 않는다.
+   *
+   * @param scope "one" 이면 지금 고른 모델만, "all" 이면 목록 전체
+   */
+  const handleProbeModels = async (scope) => {
     const credentials = modelQueryCredentials();
     if (!credentials) {
       setModelsError(
@@ -292,13 +311,59 @@ const LlmConfigList = ({ onSuccess }) => {
       return;
     }
 
+    let modelIds;
+    let alreadyChecked = [];
+
+    if (scope === "one") {
+      if (!formData.modelName) {
+        setModelsError(
+          t(
+            "admin.llmConfig.models.needModel",
+            "확인할 모델을 먼저 고르거나 입력해 주세요.",
+          ),
+        );
+        return;
+      }
+      modelIds = [formData.modelName];
+    } else {
+      modelIds = freeModels.map((m) => m.id);
+      // 이미 판정한 모델은 서버가 건너뛴다. 남은 개수를 알려 준 뒤 확인을 받는다.
+      alreadyChecked = freeModels
+        .filter((m) => m.availability && m.availability !== "UNKNOWN")
+        .map((m) => m.id);
+
+      const pending = modelIds.length - alreadyChecked.length;
+      if (pending === 0) {
+        setModelsNotice(
+          t(
+            "admin.llmConfig.models.allChecked",
+            "이미 전부 확인했습니다. 다시 확인하려면 '판정 초기화' 를 누르세요.",
+          ),
+        );
+        return;
+      }
+
+      const proceed = window.confirm(
+        t(
+          "admin.llmConfig.models.probeAllConfirm",
+          "모델 {count}개를 확인합니다. OpenRouter 무료 일일 한도를 그만큼 사용합니다(실측 한도 50건). 계속하시겠습니까?",
+        ).replace("{count}", String(pending)),
+      );
+      if (!proceed) {
+        return;
+      }
+    }
+
     setModelsProbing(true);
     setModelsError(null);
     setModelsNotice(null);
     try {
-      // 목록을 아직 안 받았으면 서버가 무료 모델 전체를 확인한다.
-      const modelIds = freeModels.map((m) => m.id);
-      const results = await probeOpenRouterModels({ ...credentials, modelIds });
+      const result = await probeOpenRouterModels({
+        ...credentials,
+        modelIds,
+        alreadyChecked,
+      });
+      const results = result.models || [];
 
       // 판정 결과를 기존 목록에 합친다. 목록이 비어 있었다면 판정 결과가 곧 목록이다.
       const verdictById = new Map(results.map((r) => [r.id, r]));
@@ -328,14 +393,25 @@ const LlmConfigList = ({ onSuccess }) => {
         (r) => r.availability === "ACCOUNT_LIMIT",
       );
       if (accountLimited) {
-        setModelsError(
-          t(
-            "admin.llmConfig.models.accountLimit",
-            "계정의 일일 무료 요청 한도를 다 썼습니다. 다른 무료 모델로 바꿔도 해결되지 않습니다.",
-          ) +
-            " " +
-            (accountLimited.availabilityMessage || ""),
+        const limit = result.accountLimit;
+        let message = t(
+          "admin.llmConfig.models.accountLimit",
+          "계정의 일일 무료 요청 한도를 다 썼습니다. 다른 무료 모델로 바꿔도 해결되지 않습니다.",
         );
+        if (limit) {
+          message +=
+            " " +
+            t(
+              "admin.llmConfig.models.accountLimitDetail",
+              "하루 {limit}건 중 {remaining}건 남음. {reset} 에 초기화됩니다.",
+            )
+              .replace("{limit}", String(limit.limit ?? "?"))
+              .replace("{remaining}", String(limit.remaining ?? "?"))
+              .replace("{reset}", limit.resetAt || "다음 날");
+        } else {
+          message += " " + (accountLimited.availabilityMessage || "");
+        }
+        setModelsError(message);
       }
 
       let notice = t(
@@ -344,6 +420,16 @@ const LlmConfigList = ({ onSuccess }) => {
       )
         .replace("{total}", String(results.length))
         .replace("{available}", String(availableModels.length));
+
+      // 실제로 보낸 요청 수를 함께 알린다. 한도를 얼마나 썼는지 사용자가 알아야 다음 판단을 한다.
+      if (typeof result.requestsSent === "number") {
+        notice +=
+          " " +
+          t(
+            "admin.llmConfig.models.requestsSent",
+            "이번에 요청 {count}건을 보냈습니다.",
+          ).replace("{count}", String(result.requestsSent));
+      }
 
       // 모델 기본값은 하드코딩하지 않는다. 무료 모델에는 만료일이 붙어 있어(실측: expiration_date)
       // 박아 두면 곧 죽은 값이 되고 사용자는 원인 모를 실패를 만난다. 대신 방금 확인한 결과에서
@@ -374,6 +460,24 @@ const LlmConfigList = ({ onSuccess }) => {
     } finally {
       setModelsProbing(false);
     }
+  };
+
+  /** 판정을 지워 다시 확인할 수 있게 한다. 목록 자체는 그대로 둔다. */
+  const handleResetVerdicts = () => {
+    setFreeModels((previous) =>
+      previous.map((model) => ({
+        ...model,
+        availability: "UNKNOWN",
+        availabilityMessage: null,
+      })),
+    );
+    setModelsError(null);
+    setModelsNotice(
+      t(
+        "admin.llmConfig.models.verdictsReset",
+        "판정을 지웠습니다. 다시 확인할 수 있습니다.",
+      ),
+    );
   };
 
   /**
@@ -1124,10 +1228,15 @@ const LlmConfigList = ({ onSuccess }) => {
                       "무료 모델 목록 불러오기",
                     )}
                   </Button>
+                  {/*
+                    확인을 둘로 나눈다. 확인 한 번이 무료 일일 한도를 그만큼 쓰기 때문이다
+                    (실측 한도 50건, 무료 모델 20개 → 전수 확인이 하루치의 40%).
+                    쓸 모델은 하나이므로 기본은 그 하나만 확인한다.
+                  */}
                   <Tooltip
                     title={t(
-                      "admin.llmConfig.models.probeTooltip",
-                      "각 모델에 최소 요청을 보내 지금 쓸 수 있는지 확인합니다. 무료 한도를 조금 사용하며 20초 정도 걸립니다.",
+                      "admin.llmConfig.models.probeOneTooltip",
+                      "지금 고른 모델에만 최소 요청을 보냅니다. 무료 한도 1건을 사용합니다.",
                     )}
                   >
                     <span>
@@ -1141,13 +1250,53 @@ const LlmConfigList = ({ onSuccess }) => {
                             <PlaylistAddCheckIcon />
                           )
                         }
-                        onClick={handleProbeModels}
-                        disabled={modelsLoading || modelsProbing}
+                        onClick={() => handleProbeModels("one")}
+                        disabled={
+                          modelsLoading || modelsProbing || !formData.modelName
+                        }
                       >
-                        {t("admin.llmConfig.models.probeButton", "가용성 확인")}
+                        {t(
+                          "admin.llmConfig.models.probeOneButton",
+                          "이 모델 확인",
+                        )}
                       </Button>
                     </span>
                   </Tooltip>
+                  <Tooltip
+                    title={t(
+                      "admin.llmConfig.models.probeAllTooltip",
+                      "목록의 모든 모델을 확인합니다. 모델 수만큼 무료 한도를 사용하므로 누르기 전에 다시 묻습니다.",
+                    )}
+                  >
+                    <span>
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => handleProbeModels("all")}
+                        disabled={
+                          modelsLoading ||
+                          modelsProbing ||
+                          pendingCheckCount === 0
+                        }
+                      >
+                        {t(
+                          "admin.llmConfig.models.probeAllButton",
+                          "전수 확인 ({count}건)",
+                        ).replace("{count}", String(pendingCheckCount))}
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  {checkedCount > 0 && (
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="inherit"
+                      onClick={handleResetVerdicts}
+                      disabled={modelsProbing}
+                    >
+                      {t("admin.llmConfig.models.resetVerdicts", "판정 초기화")}
+                    </Button>
+                  )}
                 </Stack>
 
                 {modelsNotice && (

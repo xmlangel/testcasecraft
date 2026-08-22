@@ -153,6 +153,18 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists("common.error.hideDetail", languageCode, "Hide", createdBy);
     createTranslationIfNotExists("common.error.copyDetail", languageCode, "Copy full text", createdBy);
     createTranslationIfNotExists("common.error.copied", languageCode, "Copied", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeOneButton", languageCode, "Check this model", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeOneTooltip", languageCode, "Sends a minimal request to the selected model only. Uses one request of the free quota.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllButton", languageCode, "Check all ({count})", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllTooltip", languageCode, "Checks every model in the list. It uses one request per model, so you are asked to confirm first.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllConfirm", languageCode, "About to check {count} models. That uses the same number of requests from the OpenRouter free daily quota (measured limit: 50). Continue?", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.needModel", languageCode, "Pick or type a model to check first.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.allChecked", languageCode, "Everything has been checked. Click 'Reset results' to check again.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.resetVerdicts", languageCode, "Reset results", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.verdictsReset", languageCode, "Results cleared. You can check again.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.requestsSent", languageCode, "Sent {count} requests this time.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.accountLimitDetail", languageCode, "{remaining} of {limit} daily requests left. Resets at {reset}.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.loadedHint", languageCode, "Loaded {count} free models. Pick the model you will use and click 'Check this model'. Checking all uses one request per model.", createdBy);
     createTranslationIfNotExists(
         "admin.llmConfig.models.autoSelected",
         languageCode,

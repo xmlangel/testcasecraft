@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.util.List;
 import java.util.Optional;
@@ -57,10 +58,13 @@ public interface LlmConfigService {
   /**
    * OpenRouter 모델 가용성 확인
    *
-   * <p>각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. 무료 한도를 조금 쓰므로 사용자가 명시적으로 요청할 때만 호출한다. modelIds 를 비우면 무료 모델
-   * 전체를 확인한다.
+   * <p>각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. <b>확인 자체가 무료 일일 한도를 태운다</b>(실측: 한도 50건). 그래서 화면은 고른 모델
+   * 하나만 확인하는 것을 기본으로 하고, 전체 확인은 소모량을 알린 뒤에만 보낸다.
+   *
+   * <p>{@code modelIds} 를 비우면 무료 모델 전체를 확인한다. {@code alreadyChecked} 에 담긴 모델은 확인하지 않고 건너뛴다. 같은
+   * 회차에서 버튼을 여러 번 눌러도 한도가 다시 쓰이지 않게 하려는 것이다.
    */
-  List<OpenRouterModelDTO> probeOpenRouterModels(OpenRouterModelQueryRequest request);
+  OpenRouterProbeResponse probeOpenRouterModels(OpenRouterModelQueryRequest request);
 
   /**
    * 채팅 화면에서 고를 수 있는 무료 모델 목록

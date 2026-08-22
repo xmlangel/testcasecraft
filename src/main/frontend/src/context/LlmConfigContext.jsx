@@ -386,16 +386,17 @@ export const LlmConfigProvider = ({ children }) => {
   /**
    * OpenRouter 모델 가용성 확인
    *
-   * 각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. 무료 한도를 조금 쓰므로
-   * 사용자가 버튼을 누를 때만 호출한다. modelIds 를 비우면 무료 모델 전체를 확인한다.
+   * 각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. 확인 한 번이 무료 일일 한도를
+   * 그만큼 쓰므로(실측 한도 50건) 사용자가 버튼을 누를 때만 호출한다.
+   * modelIds 를 비우면 무료 모델 전체를 확인하고, alreadyChecked 에 담긴 모델은 건너뛴다.
    */
   const probeOpenRouterModels = useCallback(
-    async ({ apiKey, configId, modelIds }) => {
+    async ({ apiKey, configId, modelIds, alreadyChecked }) => {
       const response = await api(
         "/api/llm-configs/openrouter/free-models/probe",
         {
           method: "POST",
-          body: JSON.stringify({ apiKey, configId, modelIds }),
+          body: JSON.stringify({ apiKey, configId, modelIds, alreadyChecked }),
         },
       );
 
@@ -403,7 +404,8 @@ export const LlmConfigProvider = ({ children }) => {
         response,
         "probe OpenRouter models",
       );
-      return data || [];
+      // { models, accountLimit, requestsSent } 형태다. 한도 상태를 화면이 쓰므로 그대로 넘긴다.
+      return data || { models: [], accountLimit: null, requestsSent: 0 };
     },
     [api],
   );
