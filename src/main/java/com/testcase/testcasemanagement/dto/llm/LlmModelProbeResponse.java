@@ -32,6 +32,18 @@ public class LlmModelProbeResponse {
   @Schema(description = "이번 확인에서 실제로 보낸 요청 수. 재사용으로 건너뛴 것은 세지 않는다")
   private Integer requestsSent;
 
+  /**
+   * 한 회차 확인 상한 때문에 목록에서 빠진 모델 수.
+   *
+   * <p>이 값이 없으면 요청한 모델이 결과에서 조용히 사라진다. 45개를 확인 요청했는데 상한이 40이면 5개가 결과에 없고, 화면은 전부 확인된 것으로 보인다.
+   * 확인되지 않은 모델을 나중에 골라 채팅하면 실패하고 원인을 되짚기 어렵다.
+   */
+  @Schema(description = "한 회차 상한 때문에 확인하지 못한 모델 수. 상한에 걸리지 않았으면 0")
+  private Integer skippedByLimit;
+
+  @Schema(description = "한 회차 확인 상한. 화면이 남은 개수를 안내할 때 쓴다")
+  private Integer probeLimit;
+
   /** 계정 무료 일일 한도 상태. 429 응답 헤더에서 얻는다. */
   @Data
   @Builder

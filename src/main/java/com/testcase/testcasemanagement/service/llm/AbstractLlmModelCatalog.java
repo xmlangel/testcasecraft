@@ -100,17 +100,22 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
 
   @Override
   public LlmModelProbeResponse probeAvailability(String apiKey, Collection<String> modelIds) {
+    // 상한에 걸려 빠진 개수를 함께 센다. 세지 않으면 요청한 모델이 결과에서 조용히 사라져,
+    // 화면은 전부 확인된 것으로 보인다. 확인되지 않은 모델을 나중에 골라 채팅하면 실패한다.
     Set<String> targets = new LinkedHashSet<>();
+    int skippedByLimit = 0;
     for (String id : modelIds) {
-      if (id != null && !id.isBlank()) {
-        targets.add(id.trim());
+      if (id == null || id.isBlank()) {
+        continue;
       }
       if (targets.size() >= probeLimit()) {
-        break;
+        skippedByLimit++;
+        continue;
       }
+      targets.add(id.trim());
     }
     if (targets.isEmpty()) {
-      return LlmModelProbeResponse.builder().models(List.of()).requestsSent(0).build();
+      return emptyProbeResponse(skippedByLimit);
     }
 
     log.info(
@@ -130,7 +135,7 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
             .block();
 
     if (results == null) {
-      return LlmModelProbeResponse.builder().models(List.of()).requestsSent(0).build();
+      return emptyProbeResponse(skippedByLimit);
     }
     List<LlmModelDTO> sorted = new ArrayList<>(results);
     sorted.sort(Comparator.comparing(LlmModelDTO::getId));
@@ -144,10 +149,30 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
         sorted.size(),
         requestsSent.get());
 
+    if (skippedByLimit > 0) {
+      log.warn(
+          "⚠️ {} 한 회차 상한 {}개를 넘어 {}개를 확인하지 못했다",
+          provider().getDisplayName(),
+          probeLimit(),
+          skippedByLimit);
+    }
+
     return LlmModelProbeResponse.builder()
         .models(sorted)
         .accountLimit(accountLimit())
         .requestsSent(requestsSent.get())
+        .skippedByLimit(skippedByLimit)
+        .probeLimit(probeLimit())
+        .build();
+  }
+
+  /** 확인할 대상이 없을 때의 응답. 상한 때문에 빠진 개수는 그대로 전한다. */
+  private LlmModelProbeResponse emptyProbeResponse(int skippedByLimit) {
+    return LlmModelProbeResponse.builder()
+        .models(List.of())
+        .requestsSent(0)
+        .skippedByLimit(skippedByLimit)
+        .probeLimit(probeLimit())
         .build();
   }
 

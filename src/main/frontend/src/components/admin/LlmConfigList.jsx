@@ -446,6 +446,20 @@ const LlmConfigList = ({ onSuccess }) => {
         .replace("{total}", String(results.length))
         .replace("{available}", String(availableModels.length));
 
+      // 한 회차 상한을 넘어 확인하지 못한 모델이 있으면 먼저 알린다. 이 안내가 없으면 요청한
+      // 모델이 결과에서 조용히 빠져 전부 확인된 것으로 보이고, 확인되지 않은 모델을 골라
+      // 채팅하면 원인 모를 실패를 만난다.
+      if (result.skippedByLimit > 0) {
+        notice +=
+          " " +
+          t(
+            "admin.llmConfig.models.skippedByLimit",
+            "한 번에 {limit}개까지만 확인합니다. {skipped}개는 확인하지 않았으니 버튼을 다시 눌러 주세요.",
+          )
+            .replace("{limit}", String(result.probeLimit ?? ""))
+            .replace("{skipped}", String(result.skippedByLimit));
+      }
+
       // 실제로 보낸 요청 수를 함께 알린다. 한도를 얼마나 썼는지 사용자가 알아야 다음 판단을 한다.
       if (typeof result.requestsSent === "number") {
         notice +=

@@ -163,6 +163,7 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists("admin.llmConfig.models.resetVerdicts", languageCode, "Reset results", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.verdictsReset", languageCode, "Results cleared. You can check again.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.requestsSent", languageCode, "Sent {count} requests this time.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.skippedByLimit", languageCode, "Only {limit} models are checked at a time. {skipped} were not checked, so press the button again.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.accountLimitDetail", languageCode, "{remaining} of {limit} daily requests left. Resets at {reset}.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.loadedHint", languageCode, "Loaded {count} free models. Pick the model you will use and click 'Check this model'. Checking all uses one request per model.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.apiUrlHelperNvidia", languageCode, "Base URL: https://integrate.api.nvidia.com", createdBy);
