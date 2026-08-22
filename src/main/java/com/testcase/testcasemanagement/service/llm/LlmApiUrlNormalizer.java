@@ -18,7 +18,7 @@ public final class LlmApiUrlNormalizer {
   /** OpenRouter 가 채팅 완성을 받는 경로. */
   public static final String OPENROUTER_CHAT_PATH = "/api/v1/chat/completions";
 
-  /** OpenAI 및 OpenAI 호환(Ollama) 채팅 완성 경로. */
+  /** OpenAI 및 OpenAI 호환(Ollama·NVIDIA) 채팅 완성 경로. */
   public static final String OPENAI_CHAT_PATH = "/v1/chat/completions";
 
   /** OpenWebUI 채팅 완성 경로. */
@@ -38,7 +38,7 @@ public final class LlmApiUrlNormalizer {
   public static String chatCompletionsPathOf(LlmProvider provider) {
     return switch (provider) {
       case OPENROUTER -> OPENROUTER_CHAT_PATH;
-      case OPENAI, OLLAMA -> OPENAI_CHAT_PATH;
+      case OPENAI, OLLAMA, NVIDIA -> OPENAI_CHAT_PATH;
       case OPENWEBUI -> OPENWEBUI_CHAT_PATH;
       case PERPLEXITY -> PERPLEXITY_CHAT_PATH;
     };

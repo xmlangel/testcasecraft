@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.ApiResponse;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
@@ -460,6 +461,38 @@ public class LlmConfigController {
       log.error("❌ 연결 테스트 실패", e);
       return ResponseEntity.badRequest().body(ApiResponse.error("연결 테스트 실패: " + e.getMessage()));
     }
+  }
+
+  @Operation(
+      summary = "모델 목록을 내주는 제공자",
+      description =
+          """
+          어느 제공자에서 모델 목록 선택기를 띄울 수 있는지 알려 줍니다.
+
+          `probeRecommendedByDefault` 가 true 인 제공자는 **전수 확인이 필수에 가깝습니다.**
+          NVIDIA 가 그렇습니다. 목록에 오른 모델의 상당수가 계정에 없어 404 를 내므로(실측: 채팅
+          후보 77개 중 사용 가능 25개) 확인하지 않으면 사용자가 쓸 수 없는 모델을 고릅니다.
+          확인에 한도 부담도 없습니다.
+
+          false 인 제공자는 **확인을 아껴야 합니다.** OpenRouter 가 그렇습니다. 목록에 오른 모델은
+          대개 쓸 수 있지만 확인 한 번이 무료 일일 한도(실측 50건)를 그만큼 씁니다.
+
+          목록에 없는 제공자(OpenWebUI·Ollama·OpenAI·Perplexity)는 모델 이름을 직접 입력합니다.
+
+          **권한**: 모든 인증된 사용자
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "조회 성공"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증 실패")
+  })
+  @GetMapping("/model-catalogs")
+  public ResponseEntity<ApiResponse<List<LlmModelCatalogInfo>>> listModelCatalogProviders() {
+    List<LlmModelCatalogInfo> catalogs = llmConfigService.listModelCatalogProviders();
+    return ResponseEntity.ok(ApiResponse.success(catalogs, "제공자 " + catalogs.size() + "개"));
   }
 
   @Operation(
