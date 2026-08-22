@@ -1,8 +1,8 @@
 package com.testcase.testcasemanagement.service.llm;
 
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO.Availability;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO.Availability;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
@@ -99,7 +99,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
    * @return 무료 채팅 모델 목록. 가용성은 모두 {@link Availability#UNKNOWN}
    */
   @Override
-  public List<OpenRouterModelDTO> listSelectableModels(String apiKey) {
+  public List<LlmModelDTO> listSelectableModels(String apiKey) {
     log.info("📋 OpenRouter 무료 모델 목록 조회");
 
     // 모델 목록 경로는 인증을 요구하지 않는다(실측: 키 없이도 200). 검증 없이 목록을 내주면 잘못된 키를
@@ -135,7 +135,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
       throw new LlmClient.LlmClientException("OpenRouter 모델 목록 응답을 해석할 수 없습니다");
     }
 
-    List<OpenRouterModelDTO> models = new ArrayList<>();
+    List<LlmModelDTO> models = new ArrayList<>();
     for (Object raw : rawList) {
       if (!(raw instanceof Map<?, ?> model)) {
         continue;
@@ -146,7 +146,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
       models.add(toDto(model));
     }
 
-    models.sort(Comparator.comparing(OpenRouterModelDTO::getId));
+    models.sort(Comparator.comparing(LlmModelDTO::getId));
     log.info("✅ 무료 채팅 모델 {}개 (전체 {}개 중)", models.size(), rawList.size());
     return models;
   }
@@ -162,7 +162,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
    * @return 입력 순서와 무관하게 슬러그 순으로 정렬된 판정 결과
    */
   @Override
-  public OpenRouterProbeResponse probeAvailability(
+  public LlmModelProbeResponse probeAvailability(
       String apiKey, Collection<String> modelIds) {
     Set<String> targets = new LinkedHashSet<>();
     for (String id : modelIds) {
@@ -174,7 +174,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
       }
     }
     if (targets.isEmpty()) {
-      return OpenRouterProbeResponse.builder().models(List.of()).requestsSent(0).build();
+      return LlmModelProbeResponse.builder().models(List.of()).requestsSent(0).build();
     }
 
     log.info("🔍 OpenRouter 가용성 확인 시작: {}개 (동시 {})", targets.size(), PROBE_CONCURRENCY);
@@ -185,11 +185,11 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
     // 앞의 것을 만나면 남은 모델을 확인해도 전부 같은 429 가 나오고 한도만 더 쓴다. 그래서 그 시점에
     // 확인을 멈추고, 확인하지 못한 모델은 UNKNOWN 으로 둔다. 모델 탓이 아니므로 회색으로 막지 않는다.
     AtomicReference<String> accountLimitReset = new AtomicReference<>();
-    AtomicReference<OpenRouterProbeResponse.AccountLimit> accountLimit = new AtomicReference<>();
+    AtomicReference<LlmModelProbeResponse.AccountLimit> accountLimit = new AtomicReference<>();
     AtomicInteger requestsSent = new AtomicInteger();
 
     WebClient client = client(apiKey);
-    List<OpenRouterModelDTO> results =
+    List<LlmModelDTO> results =
         Flux.fromIterable(targets)
             .flatMap(
                 id -> probeOne(client, id, accountLimitReset, accountLimit, requestsSent),
@@ -198,10 +198,10 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
             .block();
 
     if (results == null) {
-      return OpenRouterProbeResponse.builder().models(List.of()).requestsSent(0).build();
+      return LlmModelProbeResponse.builder().models(List.of()).requestsSent(0).build();
     }
-    List<OpenRouterModelDTO> sorted = new ArrayList<>(results);
-    sorted.sort(Comparator.comparing(OpenRouterModelDTO::getId));
+    List<LlmModelDTO> sorted = new ArrayList<>(results);
+    sorted.sort(Comparator.comparing(LlmModelDTO::getId));
 
     long available =
         sorted.stream().filter(m -> m.getAvailability() == Availability.AVAILABLE).count();
@@ -213,7 +213,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
         available,
         sorted.size(),
         requestsSent.get());
-    return OpenRouterProbeResponse.builder()
+    return LlmModelProbeResponse.builder()
         .models(sorted)
         .accountLimit(accountLimit.get())
         .requestsSent(requestsSent.get())
@@ -236,11 +236,11 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
     return false;
   }
 
-  private Mono<OpenRouterModelDTO> probeOne(
+  private Mono<LlmModelDTO> probeOne(
       WebClient client,
       String modelId,
       AtomicReference<String> accountLimitReset,
-      AtomicReference<OpenRouterProbeResponse.AccountLimit> accountLimit,
+      AtomicReference<LlmModelProbeResponse.AccountLimit> accountLimit,
       AtomicInteger requestsSent) {
     // 이미 계정 한도가 소진된 것이 확인됐으면 요청을 보내지 않는다.
     String knownReset = accountLimitReset.get();
@@ -273,11 +273,11 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
             error -> Mono.just(toVerdict(modelId, error, accountLimitReset, accountLimit)));
   }
 
-  private OpenRouterModelDTO toVerdict(
+  private LlmModelDTO toVerdict(
       String modelId,
       Throwable error,
       AtomicReference<String> accountLimitReset,
-      AtomicReference<OpenRouterProbeResponse.AccountLimit> accountLimit) {
+      AtomicReference<LlmModelProbeResponse.AccountLimit> accountLimit) {
     if (error instanceof WebClientResponseException e) {
       int status = e.getStatusCode().value();
       String responseBody = e.getResponseBodyAsString();
@@ -295,7 +295,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
           // 잔량과 초기화 시각은 429 응답 헤더에만 온다. 한 번 받은 것을 화면까지 올려 준다.
           accountLimit.compareAndSet(
               null,
-              OpenRouterProbeResponse.AccountLimit.builder()
+              LlmModelProbeResponse.AccountLimit.builder()
                   .limit(kind.limit())
                   .remaining(kind.remaining())
                   .resetAt(kind.reset())
@@ -471,8 +471,8 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
     return reset + " 에 한도가 초기화됩니다. 크레딧을 넣으면 한도를 바로 올릴 수 있습니다.";
   }
 
-  private OpenRouterModelDTO verdict(String modelId, Availability availability, String message) {
-    return OpenRouterModelDTO.builder()
+  private LlmModelDTO verdict(String modelId, Availability availability, String message) {
+    return LlmModelDTO.builder()
         .id(modelId)
         .availability(availability)
         .availabilityMessage(message)
@@ -544,7 +544,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
     return !outputs.isEmpty() && outputs.stream().allMatch(o -> "text".equals(String.valueOf(o)));
   }
 
-  private OpenRouterModelDTO toDto(Map<?, ?> model) {
+  private LlmModelDTO toDto(Map<?, ?> model) {
     boolean supportsTools =
         model.get("supported_parameters") instanceof List<?> params
             && params.stream().anyMatch(p -> "tools".equals(String.valueOf(p)));
@@ -554,7 +554,7 @@ public class OpenRouterModelCatalogService implements LlmModelCatalog {
       contextLength = number.intValue();
     }
 
-    return OpenRouterModelDTO.builder()
+    return LlmModelDTO.builder()
         .id(String.valueOf(model.get("id")))
         .name(model.get("name") == null ? null : String.valueOf(model.get("name")))
         .contextLength(contextLength)

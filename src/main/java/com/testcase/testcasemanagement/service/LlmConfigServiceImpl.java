@@ -2,9 +2,9 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelQueryRequest;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.dto.rag.RagChatMessage;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.service.llm.LlmApiUrlNormalizer;
@@ -348,14 +348,14 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   @Override
-  public List<OpenRouterModelDTO> listOpenRouterFreeModels(OpenRouterModelQueryRequest request) {
+  public List<LlmModelDTO> listSelectableModels(LlmModelQueryRequest request) {
     LlmProvider provider = resolveProvider(request);
     LlmModelCatalog catalog = requireCatalog(provider);
     return catalog.listSelectableModels(resolveApiKey(request, provider));
   }
 
   @Override
-  public OpenRouterProbeResponse probeOpenRouterModels(OpenRouterModelQueryRequest request) {
+  public LlmModelProbeResponse probeModelAvailability(LlmModelQueryRequest request) {
     LlmProvider provider = resolveProvider(request);
     LlmModelCatalog catalog = requireCatalog(provider);
     String apiKey = resolveApiKey(request, provider);
@@ -365,7 +365,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       // 대상을 지정하지 않으면 목록 전체를 확인한다.
       targets =
           catalog.listSelectableModels(apiKey).stream()
-              .map(OpenRouterModelDTO::getId)
+              .map(LlmModelDTO::getId)
               .collect(Collectors.toList());
     }
 
@@ -398,7 +398,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   /** 요청의 제공자. 비우면 OPENROUTER 로 본다(옛 요청 형태와의 호환). */
-  private LlmProvider resolveProvider(OpenRouterModelQueryRequest request) {
+  private LlmProvider resolveProvider(LlmModelQueryRequest request) {
     if (request == null) {
       throw new IllegalArgumentException("요청 본문이 필요합니다");
     }
@@ -420,7 +420,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
    * <p>화면이 키를 직접 보내면 그것을 쓰고, 저장된 설정 ID 만 보내면 저장된 키를 복호화해 쓴다. 저장된 설정을 다시 열어 목록을 새로 받을 때 사용자가 키를 다시
    * 타이핑하지 않게 하려는 것이다.
    */
-  private String resolveApiKey(OpenRouterModelQueryRequest request, LlmProvider provider) {
+  private String resolveApiKey(LlmModelQueryRequest request, LlmProvider provider) {
     String apiKey = request.getApiKey();
     if (apiKey != null && !apiKey.isBlank()) {
       return apiKey.trim();
@@ -457,7 +457,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   @Override
-  public List<OpenRouterModelDTO> listSelectableFreeModelsForChat() {
+  public List<LlmModelDTO> listSelectableModelsForChat() {
     LlmConfig config = llmConfigRepository.findByIsDefaultTrueAndIsActiveTrue().orElse(null);
     if (config == null) {
       return Collections.emptyList();

@@ -120,8 +120,8 @@ const LlmConfigList = ({ onSuccess }) => {
     testConnection,
     testUnsavedSettings,
     toggleActive,
-    fetchOpenRouterFreeModels,
-    probeOpenRouterModels,
+    fetchSelectableModels,
+    probeModelAvailability,
     fetchModelCatalogProviders,
   } = useLlmConfig();
 
@@ -287,7 +287,7 @@ const LlmConfigList = ({ onSuccess }) => {
     setModelsError(null);
     setModelsNotice(null);
     try {
-      const models = await fetchOpenRouterFreeModels(credentials);
+      const models = await fetchSelectableModels(credentials);
       setFreeModels(models);
       // 목록을 받았으면 바로 펼쳐 준다. 버튼을 눌렀는데 화면이 그대로면 아무 일도 없어 보인다.
       if (models.length > 0) {
@@ -398,7 +398,7 @@ const LlmConfigList = ({ onSuccess }) => {
     setModelsError(null);
     setModelsNotice(null);
     try {
-      const result = await probeOpenRouterModels({
+      const result = await probeModelAvailability({
         ...credentials,
         modelIds,
         alreadyChecked,

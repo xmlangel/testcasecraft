@@ -4,9 +4,9 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.dto.ApiResponse;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelQueryRequest;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.testcase.testcasemanagement.service.LlmConfigService;
@@ -518,9 +518,9 @@ public class LlmConfigController {
         responseCode = "401",
         description = "인증 실패")
   })
-  @GetMapping("/openrouter/free-models/for-chat")
-  public ResponseEntity<ApiResponse<List<OpenRouterModelDTO>>> listSelectableFreeModelsForChat() {
-    List<OpenRouterModelDTO> models = llmConfigService.listSelectableFreeModelsForChat();
+  @GetMapping("/models/for-chat")
+  public ResponseEntity<ApiResponse<List<LlmModelDTO>>> listSelectableModelsForChat() {
+    List<LlmModelDTO> models = llmConfigService.listSelectableModelsForChat();
     return ResponseEntity.ok(ApiResponse.success(models, "무료 모델 " + models.size() + "개"));
   }
 
@@ -541,7 +541,7 @@ public class LlmConfigController {
           목록에 오르지 않습니다.
 
           **가용성은 확인하지 않습니다.** 응답의 `availability` 는 모두 `UNKNOWN` 입니다. 지금 쓸 수 있는지
-          알려면 `/openrouter/free-models/probe` 를 따로 호출하세요.
+          알려면 `/models/probe` 를 따로 호출하세요.
 
           **권한**: ADMIN
           """)
@@ -559,13 +559,13 @@ public class LlmConfigController {
         responseCode = "403",
         description = "권한 없음 (ADMIN 필요)")
   })
-  @PostMapping("/openrouter/free-models")
+  @PostMapping("/models")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<List<OpenRouterModelDTO>>> listOpenRouterFreeModels(
-      @RequestBody OpenRouterModelQueryRequest request) {
+  public ResponseEntity<ApiResponse<List<LlmModelDTO>>> listSelectableModels(
+      @RequestBody LlmModelQueryRequest request) {
     log.info("📋 OpenRouter 무료 모델 목록 요청");
     try {
-      List<OpenRouterModelDTO> models = llmConfigService.listOpenRouterFreeModels(request);
+      List<LlmModelDTO> models = llmConfigService.listSelectableModels(request);
       return ResponseEntity.ok(ApiResponse.success(models, "무료 모델 " + models.size() + "개"));
     } catch (EncryptionKeyNotConfiguredException e) {
       log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
@@ -626,17 +626,17 @@ public class LlmConfigController {
         responseCode = "403",
         description = "권한 없음 (ADMIN 필요)")
   })
-  @PostMapping("/openrouter/free-models/probe")
+  @PostMapping("/models/probe")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<OpenRouterProbeResponse>> probeOpenRouterModels(
-      @RequestBody OpenRouterModelQueryRequest request) {
+  public ResponseEntity<ApiResponse<LlmModelProbeResponse>> probeModelAvailability(
+      @RequestBody LlmModelQueryRequest request) {
     log.info("🔍 OpenRouter 모델 가용성 확인 요청");
     try {
-      OpenRouterProbeResponse result = llmConfigService.probeOpenRouterModels(request);
-      List<OpenRouterModelDTO> models = result.getModels();
+      LlmModelProbeResponse result = llmConfigService.probeModelAvailability(request);
+      List<LlmModelDTO> models = result.getModels();
       long available =
           models.stream()
-              .filter(m -> m.getAvailability() == OpenRouterModelDTO.Availability.AVAILABLE)
+              .filter(m -> m.getAvailability() == LlmModelDTO.Availability.AVAILABLE)
               .count();
       return ResponseEntity.ok(
           ApiResponse.success(

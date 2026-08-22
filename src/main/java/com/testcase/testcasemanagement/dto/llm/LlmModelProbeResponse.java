@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 /**
  * 가용성 확인 결과
  *
- * <p>모델별 판정과 함께 계정 한도 상태를 담는다. 한도 상태를 별도 필드로 두는 이유는, 판정 사유 문자열에 묻어 두면 화면이 그것을 문자열로 뒤져야 하고 그 방식은
+ * <p>모델별 판정과 함께 계정 한도 상태를 담는다. 한도 개념이 없는 제공자(NVIDIA)에서는 {@code accountLimit} 이 항상 null 이다. 한도 상태를 별도 필드로 두는 이유는, 판정 사유 문자열에 묻어 두면 화면이 그것을 문자열로 뒤져야 하고 그 방식은
  * 문구를 고칠 때마다 깨지기 때문이다.
  *
  * <p>계정의 무료 일일 잔량은 <b>미리 알 수 없다</b>(실측). 정상 응답 헤더에는 한도 정보가 없고 {@code /api/v1/key} 는 달러 크레딧만 알려 준다.
@@ -20,11 +20,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "OpenRouter 가용성 확인 결과")
-public class OpenRouterProbeResponse {
+@Schema(description = "모델 가용성 확인 결과")
+public class LlmModelProbeResponse {
 
   @Schema(description = "모델별 판정. 슬러그 순으로 정렬된다")
-  private List<OpenRouterModelDTO> models;
+  private List<LlmModelDTO> models;
 
   @Schema(description = "계정 무료 일일 한도 상태. 이번 확인에서 한도에 걸리지 않았으면 null")
   private AccountLimit accountLimit;

@@ -1,8 +1,8 @@
 package com.testcase.testcasemanagement.service.llm;
 
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO.Availability;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO.Availability;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ public class NvidiaModelCatalogService implements LlmModelCatalog {
   }
 
   @Override
-  public List<OpenRouterModelDTO> listSelectableModels(String apiKey) {
+  public List<LlmModelDTO> listSelectableModels(String apiKey) {
     log.info("📋 NVIDIA 모델 목록 조회");
 
     // 모델 목록 경로는 인증을 요구하지 않는다(실측: 키 없이도 200). 검증 없이 목록을 내주면 잘못된
@@ -148,7 +148,7 @@ public class NvidiaModelCatalogService implements LlmModelCatalog {
       throw new LlmClient.LlmClientException("NVIDIA 모델 목록 응답을 해석할 수 없습니다");
     }
 
-    List<OpenRouterModelDTO> models = new ArrayList<>();
+    List<LlmModelDTO> models = new ArrayList<>();
     for (Object raw : rawList) {
       if (!(raw instanceof Map<?, ?> model)) {
         continue;
@@ -158,20 +158,20 @@ public class NvidiaModelCatalogService implements LlmModelCatalog {
         continue;
       }
       models.add(
-          OpenRouterModelDTO.builder()
+          LlmModelDTO.builder()
               .id(id)
               .name(id)
               .availability(Availability.UNKNOWN)
               .build());
     }
 
-    models.sort(Comparator.comparing(OpenRouterModelDTO::getId));
+    models.sort(Comparator.comparing(LlmModelDTO::getId));
     log.info("✅ NVIDIA 채팅 후보 {}개 (전체 {}개 중)", models.size(), rawList.size());
     return models;
   }
 
   @Override
-  public OpenRouterProbeResponse probeAvailability(String apiKey, Collection<String> modelIds) {
+  public LlmModelProbeResponse probeAvailability(String apiKey, Collection<String> modelIds) {
     Set<String> targets = new LinkedHashSet<>();
     for (String id : modelIds) {
       if (id != null && !id.isBlank()) {
@@ -182,29 +182,29 @@ public class NvidiaModelCatalogService implements LlmModelCatalog {
       }
     }
     if (targets.isEmpty()) {
-      return OpenRouterProbeResponse.builder().models(List.of()).requestsSent(0).build();
+      return LlmModelProbeResponse.builder().models(List.of()).requestsSent(0).build();
     }
 
     log.info("🔍 NVIDIA 가용성 확인 시작: {}개 (동시 {})", targets.size(), PROBE_CONCURRENCY);
 
     AtomicInteger requestsSent = new AtomicInteger();
     WebClient client = client(apiKey);
-    List<OpenRouterModelDTO> results =
+    List<LlmModelDTO> results =
         Flux.fromIterable(targets)
             .flatMap(id -> probeOne(client, id, requestsSent), PROBE_CONCURRENCY)
             .collectList()
             .block();
 
     if (results == null) {
-      return OpenRouterProbeResponse.builder().models(List.of()).requestsSent(0).build();
+      return LlmModelProbeResponse.builder().models(List.of()).requestsSent(0).build();
     }
-    List<OpenRouterModelDTO> sorted = new ArrayList<>(results);
-    sorted.sort(Comparator.comparing(OpenRouterModelDTO::getId));
+    List<LlmModelDTO> sorted = new ArrayList<>(results);
+    sorted.sort(Comparator.comparing(LlmModelDTO::getId));
 
     long available =
         sorted.stream().filter(m -> m.getAvailability() == Availability.AVAILABLE).count();
     log.info("✅ NVIDIA 가용성 확인 완료: 사용 가능 {} / 확인 {}", available, sorted.size());
-    return OpenRouterProbeResponse.builder()
+    return LlmModelProbeResponse.builder()
         .models(sorted)
         .requestsSent(requestsSent.get())
         .build();
@@ -258,7 +258,7 @@ public class NvidiaModelCatalogService implements LlmModelCatalog {
     }
   }
 
-  private Mono<OpenRouterModelDTO> probeOne(
+  private Mono<LlmModelDTO> probeOne(
       WebClient client, String modelId, AtomicInteger requestsSent) {
     Map<String, Object> body =
         Map.of(
@@ -280,7 +280,7 @@ public class NvidiaModelCatalogService implements LlmModelCatalog {
         .onErrorResume(error -> Mono.just(toVerdict(modelId, error)));
   }
 
-  private OpenRouterModelDTO toVerdict(String modelId, Throwable error) {
+  private LlmModelDTO toVerdict(String modelId, Throwable error) {
     if (error instanceof WebClientResponseException e) {
       int status = e.getStatusCode().value();
 
@@ -333,8 +333,8 @@ public class NvidiaModelCatalogService implements LlmModelCatalog {
     return false;
   }
 
-  private OpenRouterModelDTO verdict(String modelId, Availability availability, String message) {
-    return OpenRouterModelDTO.builder()
+  private LlmModelDTO verdict(String modelId, Availability availability, String message) {
+    return LlmModelDTO.builder()
         .id(modelId)
         .availability(availability)
         .availabilityMessage(message)
