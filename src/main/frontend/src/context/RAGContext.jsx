@@ -44,7 +44,13 @@ const fetchRagStatusOnce = (api) => {
       });
       if (!response.ok) return { ok: false };
       const data = await response.json();
-      return { ok: true, isEnabled: data?.data?.enabled ?? data?.enabled };
+      return {
+        ok: true,
+        isEnabled: data?.data?.enabled ?? data?.enabled,
+        // 색인만 꺼진 상태를 화면이 갈라 안내할 수 있게 함께 담는다.
+        vectorWriteEnabled:
+          data?.data?.vectorWriteEnabled ?? data?.vectorWriteEnabled,
+      };
     } finally {
       ragStatusInFlight = null;
     }
@@ -53,6 +59,8 @@ const fetchRagStatusOnce = (api) => {
 };
 
 const initialState = {
+  // 두 설정의 현재 값. 값이 없으면 켜진 것으로 본다(서버 기본값과 같다).
+  ragStatus: { ragEnabled: true, vectorWriteEnabled: true },
   documents: [],
   activeDocument: null,
   searchResults: [],
@@ -220,6 +228,11 @@ function ragReducer(state, action) {
         ragDisabledMessage: action.payload.message,
         error: action.payload.isEnabled ? null : action.payload.message,
         ragStatusInitialized: true,
+        // 화면이 두 설정을 함께 보고 무엇이 되는지 안내한다.
+        ragStatus: {
+          ragEnabled: action.payload.isEnabled !== false,
+          vectorWriteEnabled: action.payload.vectorWriteEnabled !== false,
+        },
       };
     case ActionTypes.SET_RAG_STATUS_INITIALIZED:
       return { ...state, ragStatusInitialized: true };
@@ -243,19 +256,18 @@ export function RAGProvider({ children }) {
         if (!result.ok) return; // 오류 응답 시 무시
         const isEnabled = result.isEnabled;
 
-        if (isEnabled === false) {
-          dispatch({
-            type: ActionTypes.SET_RAG_ENABLED_STATUS,
-            payload: {
-              isEnabled: false,
-              message:
-                "시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다.",
-            },
-          });
-        } else {
-          // RAG 활성화 상태 확인 완료
-          dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
-        }
+        // 켜져 있을 때도 색인 상태를 함께 담아야 화면이 "질문만 가능"을 알 수 있다.
+        dispatch({
+          type: ActionTypes.SET_RAG_ENABLED_STATUS,
+          payload: {
+            isEnabled: isEnabled !== false,
+            vectorWriteEnabled: result.vectorWriteEnabled,
+            message:
+              isEnabled === false
+                ? "시스템 관리자에 의해 RAG 기능이 임시 비활성화되었습니다."
+                : null,
+          },
+        });
       } catch (err) {
         // 세션 만료 등으로 인한 조회 실패 시 로그를 남기지 않고 조용히 처리 완료
         dispatch({ type: ActionTypes.SET_RAG_STATUS_INITIALIZED });
@@ -349,6 +361,8 @@ export function RAGProvider({ children }) {
 
   // ============ Context Value ============
   const value = {
+    // 화면이 지금 무엇이 되는지 판정할 때 쓴다.
+    ragStatus: state.ragStatus,
     // State
     state,
     threads: state.threads,

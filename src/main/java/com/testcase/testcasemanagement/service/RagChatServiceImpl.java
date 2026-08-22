@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.ProjectStatisticsDto;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.rag.*;
+import com.testcase.testcasemanagement.exception.RagDisabledException;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
@@ -538,7 +539,7 @@ public class RagChatServiceImpl implements RagChatService {
 
   private void checkRagEnabled() {
     if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
-      throw new IllegalStateException("현재 RAG (AI) 시스템이 안정화를 위해 일시 중지되었습니다. 나중에 다시 시도해주세요.");
+      throw new RagDisabledException();
     }
   }
 }

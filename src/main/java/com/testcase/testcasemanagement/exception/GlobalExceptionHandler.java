@@ -236,6 +236,25 @@ public class GlobalExceptionHandler {
    *
    * <p>실패가 아니라 관리자가 의도적으로 막아 둔 상태다. 화면이 errorCode 로 원인을 가려내 "질문은 그대로 된다"까지 안내할 수 있도록 코드를 함께 내려준다.
    */
+  /**
+   * RAG 기능이 통째로 꺼진 상태에서 요청한 경우.
+   *
+   * <p>장애가 아니라 관리자가 중지해 둔 상태다. 전에는 IllegalStateException 이 컨트롤러의 catch(Exception) 에 걸려 500 으로 나갔고
+   * 화면에는 아무 설명도 오지 않았다.
+   */
+  @ExceptionHandler(RagDisabledException.class)
+  public ResponseEntity<ErrorResponse> handleRagDisabled(
+      RagDisabledException ex, WebRequest request) {
+
+    logger.info("RAG 중지 상태에서 요청 거부: {}", request.getDescription(false));
+
+    ErrorResponse response =
+        new ErrorResponse(
+            RagDisabledException.ERROR_CODE, ex.getMessage(), LocalDateTime.now(), null);
+
+    return new ResponseEntity<>(response, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
   @ExceptionHandler(RagVectorWriteDisabledException.class)
   public ResponseEntity<ErrorResponse> handleRagVectorWriteDisabled(
       RagVectorWriteDisabledException ex, WebRequest request) {

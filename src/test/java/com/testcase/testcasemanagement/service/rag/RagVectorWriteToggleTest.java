@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.testcase.testcasemanagement.dto.rag.RagConversationMessageIndexRequest;
 import com.testcase.testcasemanagement.dto.rag.RagConversationMessageIndexResponse;
+import com.testcase.testcasemanagement.exception.RagDisabledException;
 import com.testcase.testcasemanagement.exception.RagVectorWriteDisabledException;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
@@ -108,6 +109,21 @@ public class RagVectorWriteToggleTest {
     Assert.assertEquals(response.getStatus(), "skipped");
     Assert.assertEquals(response.getMessageId(), messageId);
     verify(ragWebClient, never()).post();
+  }
+
+  /**
+   * RAG 를 통째로 끄면 질의도 막히고, 그 이유가 전용 예외로 올라온다.
+   *
+   * <p>전에는 IllegalStateException 이라 컨트롤러의 catch(Exception) 이 500 으로 만들었고 화면에는 아무 설명도 오지 않았다.
+   */
+  @Test
+  public void RAG가_꺼지면_질의도_전용_예외로_거부된다() {
+    when(systemSettingService.getBooleanSetting(eq("RAG_ENABLED"), anyBoolean())).thenReturn(false);
+
+    Assert.assertThrows(
+        RagDisabledException.class, () -> ragService.listDocuments(UUID.randomUUID(), 1, 20));
+    Assert.assertThrows(
+        RagDisabledException.class, () -> ragService.getDocument(UUID.randomUUID()));
   }
 
   /** 켜 두면 거부하지 않는다. 게이트가 항상 막는 것이 아님을 확인한다. */
