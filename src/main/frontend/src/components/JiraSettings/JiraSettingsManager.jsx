@@ -70,7 +70,9 @@ const JiraSettingsManager = () => {
       setError(null);
     } catch (error) {
       console.error("JIRA 설정 로드 실패:", error);
-      setError(t("jira.configLoadError", "JIRA 설정을 불러오는데 실패했습니다."));
+      setError(
+        t("jira.configLoadError", "JIRA 설정을 불러오는데 실패했습니다."),
+      );
       // 에러 발생 시에도 빈 배열로 설정
       setConfigs([]);
     } finally {
@@ -124,7 +126,11 @@ const JiraSettingsManager = () => {
   };
 
   const handleDeleteConfig = async (configId) => {
-    if (!window.confirm(t("jira.configDeleteConfirm", "이 JIRA 설정을 삭제하시겠습니까?"))) {
+    if (
+      !window.confirm(
+        t("jira.configDeleteConfirm", "이 JIRA 설정을 삭제하시겠습니까?"),
+      )
+    ) {
       return;
     }
 
@@ -140,7 +146,9 @@ const JiraSettingsManager = () => {
       // 오류가 있으면 로그 출력하지만 중단하지 않음
       if (configsResult.status === "rejected") {
         console.warn("⚠️ 설정 로드 실패:", configsResult.reason);
-        setError(t("jira.configRefreshError", "설정 목록 새로고침에 실패했습니다."));
+        setError(
+          t("jira.configRefreshError", "설정 목록 새로고침에 실패했습니다."),
+        );
       }
       if (statusResult.status === "rejected") {
         console.warn("⚠️ 연결 상태 로드 실패:", statusResult.reason);
@@ -170,7 +178,9 @@ const JiraSettingsManager = () => {
       const statusResult = await loadConnectionStatus();
     } catch (error) {
       console.error("❌ 연결 상태 갱신 실패:", error);
-      setError(t("jira.connectionRefreshError", "연결 상태 새로고침에 실패했습니다."));
+      setError(
+        t("jira.connectionRefreshError", "연결 상태 새로고침에 실패했습니다."),
+      );
     } finally {
       setRefreshing(false);
     }
@@ -195,7 +205,8 @@ const JiraSettingsManager = () => {
 
   const getConnectionStatusText = () => {
     if (!connectionStatus) return t("jira.statusChecking", "상태 확인 중...");
-    if (!connectionStatus.hasConfig) return t("jira.noConfig", "JIRA 설정이 없습니다");
+    if (!connectionStatus.hasConfig)
+      return t("jira.noConfig", "JIRA 설정이 없습니다");
     if (connectionStatus.isConnected) return t("jira.connected", "연결됨");
     return t("jira.connectionFailed", "연결 실패");
   };
@@ -316,8 +327,13 @@ const JiraSettingsManager = () => {
       {/* 설정 목록 */}
       <Card>
         <CardHeader
-          title={t("jira.configList", "JIRA 설정 목록 ({count}개)", { count: configs.length })}
-          subheader={t("jira.configListDescription", "모든 JIRA 설정을 관리할 수 있습니다")}
+          title={t("jira.configList", "JIRA 설정 목록 ({count}개)", {
+            count: configs.length,
+          })}
+          subheader={t(
+            "jira.configListDescription",
+            "모든 JIRA 설정을 관리할 수 있습니다",
+          )}
         />
         <CardContent sx={{ pt: 0 }}>
           {configs.length === 0 ? (
@@ -410,7 +426,10 @@ const JiraSettingsManager = () => {
                             {config.connectionVerified ? (
                               <Chip
                                 icon={<CheckCircleIcon />}
-                                label={t("jira.connectionVerified", "연결 확인됨")}
+                                label={t(
+                                  "jira.connectionVerified",
+                                  "연결 확인됨",
+                                )}
                                 size="small"
                                 color="success"
                                 variant="outlined"

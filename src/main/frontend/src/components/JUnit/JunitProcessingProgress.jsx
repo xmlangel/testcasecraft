@@ -160,7 +160,9 @@ const JunitProcessingProgress = ({
           <ScheduleIcon
             sx={{ fontSize: 16, mr: 0.5, verticalAlign: "text-bottom" }}
           />
-          {t("junit.processing.estimatedTime")}: {progress.estimatedProcessingTime || t("junit.processing.calculating")}
+          {t("junit.processing.estimatedTime")}:{" "}
+          {progress.estimatedProcessingTime ||
+            t("junit.processing.calculating")}
         </Typography>
       </Box>
     );
@@ -176,7 +178,11 @@ const JunitProcessingProgress = ({
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          {t("junit.processing.parsingProgress", "테스트 스위트 파싱: {current}/{total}", { current, total })}
+          {t(
+            "junit.processing.parsingProgress",
+            "테스트 스위트 파싱: {current}/{total}",
+            { current, total },
+          )}
         </Typography>
         <LinearProgress
           variant="determinate"
@@ -303,7 +309,8 @@ const JunitProcessingProgress = ({
 
             {/* 현재 상태 메시지 */}
             <Typography variant="body1" gutterBottom>
-              <strong>{t("junit.processing.status")}:</strong> {progress.statusMessage}
+              <strong>{t("junit.processing.status")}:</strong>{" "}
+              {progress.statusMessage}
             </Typography>
 
             {/* 파일 정보 */}
@@ -314,7 +321,7 @@ const JunitProcessingProgress = ({
             {/* 마지막 업데이트 시간 */}
             {progress.lastUpdated && (
               <Typography variant="caption" color="text.secondary">
-                {t("junit.processing.lastUpdated")}: {" "}
+                {t("junit.processing.lastUpdated")}:{" "}
                 {formatDistanceToNow(new Date(progress.lastUpdated), {
                   addSuffix: true,
                   locale: ko,
@@ -355,7 +362,9 @@ const JunitProcessingProgress = ({
             py={4}
           >
             <CircularProgress />
-            <Typography sx={{ ml: 2 }}>{t("junit.processing.loadingProgress")}</Typography>
+            <Typography sx={{ ml: 2 }}>
+              {t("junit.processing.loadingProgress")}
+            </Typography>
           </Box>
         )}
       </DialogContent>

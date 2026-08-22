@@ -5,7 +5,8 @@
 const json = async (response) => {
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    const message = err.message || err.error || `요청 실패 (${response.status})`;
+    const message =
+      err.message || err.error || `요청 실패 (${response.status})`;
     const e = new Error(message);
     e.status = response.status;
     throw e;
@@ -18,7 +19,9 @@ const json = async (response) => {
 // ===== 모음(Collection) =====
 
 export const listCollections = (api, projectId) =>
-  api(`/api/bookmarks/collections?projectId=${encodeURIComponent(projectId)}`).then(json);
+  api(
+    `/api/bookmarks/collections?projectId=${encodeURIComponent(projectId)}`,
+  ).then(json);
 
 export const createCollection = (api, { projectId, name, description }) =>
   api(`/api/bookmarks/collections`, {
@@ -33,7 +36,9 @@ export const updateCollection = (api, collectionId, { name, description }) =>
   }).then(json);
 
 export const deleteCollection = (api, collectionId) =>
-  api(`/api/bookmarks/collections/${collectionId}`, { method: "DELETE" }).then(json);
+  api(`/api/bookmarks/collections/${collectionId}`, { method: "DELETE" }).then(
+    json,
+  );
 
 // ===== 항목(Item) =====
 
@@ -64,4 +69,6 @@ export const toggleFavorite = (api, testCaseId, projectId) =>
   ).then(json);
 
 export const getStatus = (api, projectId) =>
-  api(`/api/bookmarks/status?projectId=${encodeURIComponent(projectId)}`).then(json);
+  api(`/api/bookmarks/status?projectId=${encodeURIComponent(projectId)}`).then(
+    json,
+  );

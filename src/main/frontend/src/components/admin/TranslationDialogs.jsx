@@ -64,12 +64,15 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.code.trim()) newErrors.code = t("translation.languageDialog.codeRequired");
+    if (!form.code.trim())
+      newErrors.code = t("translation.languageDialog.codeRequired");
     else if (!/^[a-z]{2,3}$/.test(form.code))
       newErrors.code = t("translation.languageDialog.codeFormat");
 
-    if (!form.name.trim()) newErrors.name = t("translation.languageDialog.nameRequired");
-    if (!form.nativeName.trim()) newErrors.nativeName = t("translation.languageDialog.nativeNameRequired");
+    if (!form.name.trim())
+      newErrors.name = t("translation.languageDialog.nameRequired");
+    if (!form.nativeName.trim())
+      newErrors.nativeName = t("translation.languageDialog.nativeNameRequired");
 
     if (form.sortOrder < 0)
       newErrors.sortOrder = t("translation.languageDialog.sortOrderMin");
@@ -204,8 +207,14 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
     { value: "register", label: t("translation.keyDialog.category.register") },
     { value: "button", label: t("translation.keyDialog.category.button") },
     { value: "message", label: t("translation.keyDialog.category.message") },
-    { value: "validation", label: t("translation.keyDialog.category.validation") },
-    { value: "navigation", label: t("translation.keyDialog.category.navigation") },
+    {
+      value: "validation",
+      label: t("translation.keyDialog.category.validation"),
+    },
+    {
+      value: "navigation",
+      label: t("translation.keyDialog.category.navigation"),
+    },
     { value: "form", label: t("translation.keyDialog.category.form") },
     { value: "error", label: t("translation.keyDialog.category.error") },
     { value: "success", label: t("translation.keyDialog.category.success") },
@@ -244,13 +253,16 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.keyName.trim()) newErrors.keyName = t("translation.keyDialog.keyNameRequired");
+    if (!form.keyName.trim())
+      newErrors.keyName = t("translation.keyDialog.keyNameRequired");
     else if (!/^[a-zA-Z][a-zA-Z0-9._]*$/.test(form.keyName)) {
       newErrors.keyName = t("translation.keyDialog.keyNameFormat");
     }
 
-    if (!form.category) newErrors.category = t("translation.keyDialog.categoryRequired");
-    if (!form.description.trim()) newErrors.description = t("translation.keyDialog.descriptionRequired");
+    if (!form.category)
+      newErrors.category = t("translation.keyDialog.categoryRequired");
+    if (!form.description.trim())
+      newErrors.description = t("translation.keyDialog.descriptionRequired");
     if (!form.defaultValue.trim())
       newErrors.defaultValue = t("translation.keyDialog.defaultValueRequired");
 
@@ -451,9 +463,14 @@ export const TranslationDialog = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.keyName) newErrors.keyName = t("translation.translationDialog.keyRequired");
-    if (!form.languageCode) newErrors.languageCode = t("translation.translationDialog.languageRequired");
-    if (!form.value.trim()) newErrors.value = t("translation.translationDialog.valueRequired");
+    if (!form.keyName)
+      newErrors.keyName = t("translation.translationDialog.keyRequired");
+    if (!form.languageCode)
+      newErrors.languageCode = t(
+        "translation.translationDialog.languageRequired",
+      );
+    if (!form.value.trim())
+      newErrors.value = t("translation.translationDialog.valueRequired");
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

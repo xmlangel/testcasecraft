@@ -21,8 +21,8 @@ describe("getSummaryMarkdownStyles", () => {
 
   it("다크 모드에서도 동일한 한정 규칙을 유지한다", () => {
     const styles = getSummaryMarkdownStyles(makeTheme("dark"), true);
-    expect(
-      styles["& .wmde-markdown p, & .wmde-markdown li"].whiteSpace,
-    ).toBe("pre-wrap");
+    expect(styles["& .wmde-markdown p, & .wmde-markdown li"].whiteSpace).toBe(
+      "pre-wrap",
+    );
   });
 });

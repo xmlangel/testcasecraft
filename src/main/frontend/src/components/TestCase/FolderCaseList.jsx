@@ -273,8 +273,14 @@ const FolderCaseList = ({
                               <Tooltip
                                 title={
                                   active
-                                    ? t("bookmark.favorite.remove", "즐겨찾기 제거")
-                                    : t("bookmark.favorite.add", "즐겨찾기 추가")
+                                    ? t(
+                                        "bookmark.favorite.remove",
+                                        "즐겨찾기 제거",
+                                      )
+                                    : t(
+                                        "bookmark.favorite.add",
+                                        "즐겨찾기 추가",
+                                      )
                                 }
                                 arrow
                               >

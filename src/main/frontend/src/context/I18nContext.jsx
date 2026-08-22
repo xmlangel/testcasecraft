@@ -328,63 +328,67 @@ export const I18nProvider = ({ children }) => {
   // useCallback 으로 참조를 안정화한다. 이 함수가 매 렌더마다 새로 생성되면
   // 이를 의존성으로 갖는 AuthContext.api → 모든 Context 의 fetch effect 가
   // 연쇄적으로 재실행되어 동일 API 가 반복 호출된다. (성능 핵심)
-  const t = useCallback((key, defaultValue = null, params = {}) => {
-    // 두 번째 매개변수가 문자열이면 기본값으로, 객체면 params로 처리
-    let actualDefault = defaultValue;
-    let actualParams = params;
+  const t = useCallback(
+    (key, defaultValue = null, params = {}) => {
+      // 두 번째 매개변수가 문자열이면 기본값으로, 객체면 params로 처리
+      let actualDefault = defaultValue;
+      let actualParams = params;
 
-    if (typeof defaultValue === "object" && defaultValue !== null) {
-      actualParams = defaultValue;
-      actualDefault = null;
-    }
-
-    const currentTranslations = state.translations[state.currentLanguage] || {};
-    let translation = currentTranslations[key];
-
-    // 번역이 없으면 fallback 시도
-    if (!translation) {
-      // 기본 언어로 fallback
-      const defaultLanguage =
-        state.availableLanguages.find((lang) => lang.isDefault)?.code || "ko";
-      if (defaultLanguage !== state.currentLanguage) {
-        const defaultTranslations = state.translations[defaultLanguage] || {};
-        translation = defaultTranslations[key];
+      if (typeof defaultValue === "object" && defaultValue !== null) {
+        actualParams = defaultValue;
+        actualDefault = null;
       }
 
-      // 여전히 없으면 제공된 기본값 또는 키 자체 반환
+      const currentTranslations =
+        state.translations[state.currentLanguage] || {};
+      let translation = currentTranslations[key];
+
+      // 번역이 없으면 fallback 시도
       if (!translation) {
-        if (actualDefault) {
-          translation = actualDefault;
-        } else {
-          // 번역 데이터가 로딩 중이 아니고, 현재 언어의 번역 데이터가 존재할 때만 경고 출력
-          // 이렇게 하면 초기 로딩 중에 발생하는 불필요한 경고를 방지
-          if (!state.loading && state.translations[state.currentLanguage]) {
-            console.warn(`번역 누락: ${key} (${state.currentLanguage})`);
+        // 기본 언어로 fallback
+        const defaultLanguage =
+          state.availableLanguages.find((lang) => lang.isDefault)?.code || "ko";
+        if (defaultLanguage !== state.currentLanguage) {
+          const defaultTranslations = state.translations[defaultLanguage] || {};
+          translation = defaultTranslations[key];
+        }
+
+        // 여전히 없으면 제공된 기본값 또는 키 자체 반환
+        if (!translation) {
+          if (actualDefault) {
+            translation = actualDefault;
+          } else {
+            // 번역 데이터가 로딩 중이 아니고, 현재 언어의 번역 데이터가 존재할 때만 경고 출력
+            // 이렇게 하면 초기 로딩 중에 발생하는 불필요한 경고를 방지
+            if (!state.loading && state.translations[state.currentLanguage]) {
+              console.warn(`번역 누락: ${key} (${state.currentLanguage})`);
+            }
+            translation = key;
           }
-          translation = key;
         }
       }
-    }
 
-    // 매개변수 치환
-    if (
-      typeof translation === "string" &&
-      Object.keys(actualParams).length > 0
-    ) {
-      return translation.replace(/\{(\w+)\}/g, (match, paramKey) => {
-        return actualParams[paramKey] !== undefined
-          ? actualParams[paramKey]
-          : match;
-      });
-    }
+      // 매개변수 치환
+      if (
+        typeof translation === "string" &&
+        Object.keys(actualParams).length > 0
+      ) {
+        return translation.replace(/\{(\w+)\}/g, (match, paramKey) => {
+          return actualParams[paramKey] !== undefined
+            ? actualParams[paramKey]
+            : match;
+        });
+      }
 
-    return translation;
-  }, [
-    state.translations,
-    state.currentLanguage,
-    state.availableLanguages,
-    state.loading,
-  ]);
+      return translation;
+    },
+    [
+      state.translations,
+      state.currentLanguage,
+      state.availableLanguages,
+      state.loading,
+    ],
+  );
 
   // 초기화
   useEffect(() => {

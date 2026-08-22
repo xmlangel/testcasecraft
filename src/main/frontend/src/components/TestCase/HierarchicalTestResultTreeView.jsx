@@ -457,7 +457,11 @@ const HierarchicalTestResultTreeView = ({
             </Box>
             <Box sx={{ display: "flex", gap: 0.5 }}>
               <Badge badgeContent={plan.totalExecutions} color="primary">
-                <Chip label={t("hierarchical.status.executing", "실행")} size="small" variant="outlined" />
+                <Chip
+                  label={t("hierarchical.status.executing", "실행")}
+                  size="small"
+                  variant="outlined"
+                />
               </Badge>
               {stats.totalCases > 0 && (
                 <Chip
@@ -504,7 +508,9 @@ const HierarchicalTestResultTreeView = ({
         fullWidth
       >
         <DialogTitle>
-          {type === "testCase" ? t("testcase.details.title", "테스트 케이스 상세 정보") : t("common.details", "상세 정보")}
+          {type === "testCase"
+            ? t("testcase.details.title", "테스트 케이스 상세 정보")
+            : t("common.details", "상세 정보")}
         </DialogTitle>
         <DialogContent>
           {type === "testCase" && (
@@ -515,13 +521,16 @@ const HierarchicalTestResultTreeView = ({
 
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  {t("testcase.details.folderPath", "폴더 경로")}: {data.folderPath || t("common.unspecified", "미지정")}
+                  {t("testcase.details.folderPath", "폴더 경로")}:{" "}
+                  {data.folderPath || t("common.unspecified", "미지정")}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {t("testcase.details.result", "실행 결과")}: {data.result || "NOT_RUN"}
+                  {t("testcase.details.result", "실행 결과")}:{" "}
+                  {data.result || "NOT_RUN"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {t("testcase.details.executor", "실행자")}: {data.executorName || t("common.unspecified", "미지정")}
+                  {t("testcase.details.executor", "실행자")}:{" "}
+                  {data.executorName || t("common.unspecified", "미지정")}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {t("testcase.details.executedAt", "실행 일시")}:{" "}

@@ -68,7 +68,10 @@ export const resolveScreenId = (pathname, search = "") => {
   const path = pathname.replace(/\/+$/, "") || "/";
 
   // 실행 주소에 viewType 이 붙으면 결과 통계 화면이다(같은 주소를 두 화면이 나눠 쓴다).
-  if (/^\/projects\/[^/]+\/executions/.test(path) && /(\?|&)viewType=/.test(`?${search.replace(/^\?/, "")}`)) {
+  if (
+    /^\/projects\/[^/]+\/executions/.test(path) &&
+    /(\?|&)viewType=/.test(`?${search.replace(/^\?/, "")}`)
+  ) {
     return "S7";
   }
 

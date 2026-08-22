@@ -82,7 +82,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
     } catch (err) {
       const errorMsg = t(
         "testResultEdit.permissions.loadFailed",
-        "권한 데이터 로드 실패"
+        "권한 데이터 로드 실패",
       );
       console.error(`${errorMsg}:`, err);
       setError(err.message);
@@ -107,7 +107,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
     } catch (err) {
       const errorMsg = t(
         "testResultEdit.permissions.approveFailed",
-        "편집본 승인 처리 실패"
+        "편집본 승인 처리 실패",
       );
       console.error(`${errorMsg}:`, err);
       setError(err.message);
@@ -131,7 +131,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
     } catch (err) {
       const errorMsg = t(
         "testResultEdit.permissions.applyFailed",
-        "편집본 적용 실패"
+        "편집본 적용 실패",
       );
       console.error(`${errorMsg}:`, err);
       setError(err.message);
@@ -184,7 +184,10 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                       <Typography variant="subtitle2">
                         v{edit.editVersion} -{" "}
                         {edit.originalData?.testCaseName ||
-                          t("testResultEdit.permissions.testCase", "테스트케이스")}
+                          t(
+                            "testResultEdit.permissions.testCase",
+                            "테스트케이스",
+                          )}
                       </Typography>
                       <Chip
                         label={
@@ -313,7 +316,10 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                         <Typography variant="subtitle2">
                           v{edit.editVersion} -{" "}
                           {edit.originalData?.testCaseName ||
-                            t("testResultEdit.permissions.testCase", "테스트케이스")}
+                            t(
+                              "testResultEdit.permissions.testCase",
+                              "테스트케이스",
+                            )}
                         </Typography>
                         <Chip
                           label={statusInfo.label}

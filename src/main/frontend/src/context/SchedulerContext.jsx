@@ -25,9 +25,7 @@ export const SchedulerProvider = ({ children }) => {
       return response.data;
     } catch (err) {
       console.error("스케줄 설정 조회 실패:", err);
-      setError(
-        err.response?.data?.message || "Schedule config fetch failed",
-      );
+      setError(err.response?.data?.message || "Schedule config fetch failed");
       throw err;
     } finally {
       setLoading(false);
@@ -101,9 +99,7 @@ export const SchedulerProvider = ({ children }) => {
       return response.data;
     } catch (err) {
       console.error("스케줄 활성화/비활성화 실패:", err);
-      setError(
-        err.response?.data?.message || "Failed to toggle schedule",
-      );
+      setError(err.response?.data?.message || "Failed to toggle schedule");
       throw err;
     } finally {
       setLoading(false);

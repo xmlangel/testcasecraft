@@ -154,7 +154,8 @@ export const LanguageSelector = ({
     useI18n();
 
   // label이 전달되지 않으면 기본값 사용 (t() 래핑)
-  const displayLabel = label !== undefined ? label : t("common.selectLanguage", "언어 선택");
+  const displayLabel =
+    label !== undefined ? label : t("common.selectLanguage", "언어 선택");
 
   const handleChange = (event) => {
     const languageCode = event.target.value;

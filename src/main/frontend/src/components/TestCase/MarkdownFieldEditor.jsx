@@ -39,8 +39,7 @@ const MarkdownFieldEditor = ({
 
   // 내용이 없으면 최소 높이, 있으면 maxLines(기본 10줄)까지 자동 확장 후 스크롤.
   // height 를 넘기면 그 값을 최소 높이(floor)로 사용한다(기존 호출부 호환).
-  const floor =
-    typeof height === "number" ? height : parseInt(height, 10) || 0;
+  const floor = typeof height === "number" ? height : parseInt(height, 10) || 0;
   const dynamicHeight = Math.max(
     floor,
     computeMarkdownEditorHeight(value, { maxLines }),

@@ -190,7 +190,9 @@ const TestResultFolderStatsView = ({
 
     data.forEach((item) => {
       const folderPath =
-        item.folderPath === ROOT_LABEL || !item.folderPath ? "" : item.folderPath;
+        item.folderPath === ROOT_LABEL || !item.folderPath
+          ? ""
+          : item.folderPath;
       const parts = folderPath
         .split(/[\/>]/)
         .map((p) => p.trim())

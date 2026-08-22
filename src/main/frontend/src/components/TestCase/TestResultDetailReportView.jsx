@@ -525,10 +525,21 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <FilterListIcon color="primary" />
-              <Typography variant="h6">{t("testResult.detailReport.advancedFilter", "고급 필터")}</Typography>
+              <Typography variant="h6">
+                {t("testResult.detailReport.advancedFilter", "고급 필터")}
+              </Typography>
               {Object.values(filters).some(
                 (v) => v && (Array.isArray(v) ? v.length > 0 : v !== ""),
-              ) && <Chip label={t("testResult.detailReport.filterApplied", "필터 적용됨")} size="small" color="primary" />}
+              ) && (
+                <Chip
+                  label={t(
+                    "testResult.detailReport.filterApplied",
+                    "필터 적용됨",
+                  )}
+                  size="small"
+                  color="primary"
+                />
+              )}
             </Box>
           </AccordionSummary>
           <AccordionDetails>
@@ -559,7 +570,9 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
               {/* 결과 필터 */}
               <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
-                  <InputLabel>{t("testResult.detailReport.resultLabel", "테스트 결과")}</InputLabel>
+                  <InputLabel>
+                    {t("testResult.detailReport.resultLabel", "테스트 결과")}
+                  </InputLabel>
                   <Select
                     multiple
                     value={filters.result}
@@ -657,7 +670,10 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                         }
                       />
                     }
-                    label={t("testResult.detailReport.hasJiraIssue", "JIRA 이슈 연결됨")}
+                    label={t(
+                      "testResult.detailReport.hasJiraIssue",
+                      "JIRA 이슈 연결됨",
+                    )}
                   />
                   <FormControlLabel
                     control={
@@ -668,7 +684,10 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                         }
                       />
                     }
-                    label={t("testResult.detailReport.recentDays", "최근 7일 이내")}
+                    label={t(
+                      "testResult.detailReport.recentDays",
+                      "최근 7일 이내",
+                    )}
                   />
                 </FormGroup>
               </Grid>
@@ -679,26 +698,40 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                   variant="subtitle2"
                   sx={{ mb: 1, color: "primary.main" }}
                 >
-                  {t("testResult.detailReport.advancedSearchOptions", "복합 검색 옵션")}
+                  {t(
+                    "testResult.detailReport.advancedSearchOptions",
+                    "복합 검색 옵션",
+                  )}
                 </Typography>
               </Grid>
 
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
-                  label={t("testResult.detailReport.excludeTerms", "제외할 검색어")}
-                  placeholder={t("testResult.detailReport.excludeTermsPlaceholder", "쉼표로 구분하여 입력")}
+                  label={t(
+                    "testResult.detailReport.excludeTerms",
+                    "제외할 검색어",
+                  )}
+                  placeholder={t(
+                    "testResult.detailReport.excludeTermsPlaceholder",
+                    "쉼표로 구분하여 입력",
+                  )}
                   value={filters.excludeTerms}
                   onChange={(e) =>
                     handleFilterChange("excludeTerms", e.target.value)
                   }
-                  helperText={t("testResult.detailReport.excludeTermsHelper", "이 단어들이 포함된 결과는 제외됩니다")}
+                  helperText={t(
+                    "testResult.detailReport.excludeTermsHelper",
+                    "이 단어들이 포함된 결과는 제외됩니다",
+                  )}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
-                  <InputLabel>{t("testResult.detailReport.dateRange", "날짜 범위")}</InputLabel>
+                  <InputLabel>
+                    {t("testResult.detailReport.dateRange", "날짜 범위")}
+                  </InputLabel>
                   <Select
                     value={filters.dateRange}
                     onChange={(e) =>
@@ -707,10 +740,18 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                     label={t("testResult.detailReport.dateRange", "날짜 범위")}
                   >
                     <MenuItem value="all">{t("common.all", "전체")}</MenuItem>
-                    <MenuItem value="today">{t("testResult.detailReport.today", "오늘")}</MenuItem>
-                    <MenuItem value="week">{t("testResult.detailReport.thisWeek", "이번 주")}</MenuItem>
-                    <MenuItem value="month">{t("testResult.detailReport.thisMonth", "이번 달")}</MenuItem>
-                    <MenuItem value="custom">{t("testResult.detailReport.custom", "사용자 정의")}</MenuItem>
+                    <MenuItem value="today">
+                      {t("testResult.detailReport.today", "오늘")}
+                    </MenuItem>
+                    <MenuItem value="week">
+                      {t("testResult.detailReport.thisWeek", "이번 주")}
+                    </MenuItem>
+                    <MenuItem value="month">
+                      {t("testResult.detailReport.thisMonth", "이번 달")}
+                    </MenuItem>
+                    <MenuItem value="custom">
+                      {t("testResult.detailReport.custom", "사용자 정의")}
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -726,7 +767,10 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                         }
                       />
                     }
-                    label={t("testResult.detailReport.useRegex", "정규표현식 사용")}
+                    label={t(
+                      "testResult.detailReport.useRegex",
+                      "정규표현식 사용",
+                    )}
                   />
                   <FormControlLabel
                     control={
@@ -737,7 +781,10 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                         }
                       />
                     }
-                    label={t("testResult.detailReport.caseSensitive", "대소문자 구분")}
+                    label={t(
+                      "testResult.detailReport.caseSensitive",
+                      "대소문자 구분",
+                    )}
                   />
                   <FormControlLabel
                     control={
@@ -759,7 +806,10 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                   variant="subtitle2"
                   sx={{ mb: 1, color: "primary.main" }}
                 >
-                  {t("testResult.detailReport.performanceOptimization", "성능 최적화")}
+                  {t(
+                    "testResult.detailReport.performanceOptimization",
+                    "성능 최적화",
+                  )}
                 </Typography>
               </Grid>
 
@@ -772,7 +822,10 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                         onChange={(e) => setVirtualScrolling(e.target.checked)}
                       />
                     }
-                    label={t("testResult.detailReport.virtualScrolling", "가상 스크롤링")}
+                    label={t(
+                      "testResult.detailReport.virtualScrolling",
+                      "가상 스크롤링",
+                    )}
                   />
                   <FormControlLabel
                     control={
@@ -781,9 +834,18 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                         onChange={(e) => setLazyLoading(e.target.checked)}
                       />
                     }
-                    label={t("testResult.detailReport.lazyLoading", "지연 로딩")}
+                    label={t(
+                      "testResult.detailReport.lazyLoading",
+                      "지연 로딩",
+                    )}
                   />
-                  <Tooltip title={t("testResult.detailReport.cachedItems", "캐시된 항목: {size}/10", { size: cache.size })}>
+                  <Tooltip
+                    title={t(
+                      "testResult.detailReport.cachedItems",
+                      "캐시된 항목: {size}/10",
+                      { size: cache.size },
+                    )}
+                  >
                     <Button
                       size="small"
                       variant="outlined"
@@ -868,7 +930,10 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                   sx={{ fontSize: 64, color: "text.secondary" }}
                 />
                 <Typography variant="h6" color="text.secondary">
-                  {t("testResult.detailReport.noResults", "조건에 맞는 테스트 결과가 없습니다")}
+                  {t(
+                    "testResult.detailReport.noResults",
+                    "조건에 맞는 테스트 결과가 없습니다",
+                  )}
                 </Typography>
                 <Button variant="outlined" onClick={handleFilterReset}>
                   {t("testResult.detailReport.resetFilter", "필터 초기화")}
@@ -886,7 +951,9 @@ const TestResultDetailReportView = ({ projectId, activeProject, onError }) => {
                 }}
               >
                 <CircularProgress />
-                <Typography>{t("common.loading", "데이터를 불러오는 중...")}</Typography>
+                <Typography>
+                  {t("common.loading", "데이터를 불러오는 중...")}
+                </Typography>
               </Box>
             ),
           }}

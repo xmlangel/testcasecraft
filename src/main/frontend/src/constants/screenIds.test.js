@@ -44,8 +44,12 @@ describe("resolveScreenId", () => {
   });
 
   it("실행 주소에 viewType 이 붙으면 결과 화면으로 본다", () => {
-    expect(resolveScreenId("/projects/p1/executions", "?viewType=summary")).toBe("S7");
-    expect(resolveScreenId("/projects/p1/executions", "viewType=summary")).toBe("S7");
+    expect(
+      resolveScreenId("/projects/p1/executions", "?viewType=summary"),
+    ).toBe("S7");
+    expect(resolveScreenId("/projects/p1/executions", "viewType=summary")).toBe(
+      "S7",
+    );
     expect(resolveScreenId("/projects/p1/executions", "?page=2")).toBe("S6");
   });
 

@@ -34,7 +34,10 @@ const EmailVerification = () => {
     if (!token) {
       setVerificationResult({
         success: false,
-        message: t("emailVerification.message.invalidLink", "유효하지 않은 인증 링크입니다."),
+        message: t(
+          "emailVerification.message.invalidLink",
+          "유효하지 않은 인증 링크입니다.",
+        ),
         error: "INVALID",
       });
       setLoading(false);
@@ -52,7 +55,10 @@ const EmailVerification = () => {
         console.error("Email verification error:", error);
         setVerificationResult({
           success: false,
-          message: t("emailVerification.message.processingError", "인증 처리 중 오류가 발생했습니다."),
+          message: t(
+            "emailVerification.message.processingError",
+            "인증 처리 중 오류가 발생했습니다.",
+          ),
           error: "ERROR",
         });
       } finally {
@@ -69,7 +75,12 @@ const EmailVerification = () => {
 
   const handleResend = async () => {
     // 재발송 로직 - userId가 필요하므로 여기서는 안내 메시지만 표시
-    alert(t("emailVerification.message.resendInfo", "재발송 기능은 로그인 후 프로필 설정에서 이용 가능합니다."));
+    alert(
+      t(
+        "emailVerification.message.resendInfo",
+        "재발송 기능은 로그인 후 프로필 설정에서 이용 가능합니다.",
+      ),
+    );
   };
 
   // 로딩 중

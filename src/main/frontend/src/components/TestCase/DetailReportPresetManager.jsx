@@ -137,7 +137,10 @@ const DetailReportPresetManager = ({
         hasJiraIssue: true,
         isRecent: false,
       },
-      description: t("preset.withJira.desc", "JIRA 이슈가 연결된 테스트 케이스"),
+      description: t(
+        "preset.withJira.desc",
+        "JIRA 이슈가 연결된 테스트 케이스",
+      ),
     },
   ];
 
@@ -161,7 +164,9 @@ const DetailReportPresetManager = ({
       setPresets([...defaults, ...userPresets]);
     } catch (error) {
       console.error("프리셋 로드 실패:", error);
-      setError(t("preset.loadError", "프리셋을 불러오는 중 오류가 발생했습니다."));
+      setError(
+        t("preset.loadError", "프리셋을 불러오는 중 오류가 발생했습니다."),
+      );
       setPresets(getDefaultPresets());
     }
   };
@@ -228,7 +233,9 @@ const DetailReportPresetManager = ({
   const handleDeletePreset = (presetId) => {
     const defaults = getDefaultPresets();
     if (defaults.find((p) => p.id === presetId)) {
-      setError(t("preset.cannotDeleteDefault", "기본 프리셋은 삭제할 수 없습니다."));
+      setError(
+        t("preset.cannotDeleteDefault", "기본 프리셋은 삭제할 수 없습니다."),
+      );
       return;
     }
 
@@ -406,7 +413,9 @@ const DetailReportPresetManager = ({
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{t("preset.saveDialog.title", "필터 프리셋 저장")}</DialogTitle>
+        <DialogTitle>
+          {t("preset.saveDialog.title", "필터 프리셋 저장")}
+        </DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -420,7 +429,10 @@ const DetailReportPresetManager = ({
             sx={{ mt: 2 }}
           />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            {t("preset.saveDialog.hint", "현재 설정된 필터 조건이 프리셋으로 저장됩니다.")}
+            {t(
+              "preset.saveDialog.hint",
+              "현재 설정된 필터 조건이 프리셋으로 저장됩니다.",
+            )}
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -440,7 +452,9 @@ const DetailReportPresetManager = ({
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{t("preset.editDialog.title", "프리셋 이름 수정")}</DialogTitle>
+        <DialogTitle>
+          {t("preset.editDialog.title", "프리셋 이름 수정")}
+        </DialogTitle>
         <DialogContent>
           <TextField
             autoFocus

@@ -6,8 +6,22 @@ import {
 
 describe("findFolderIdByName", () => {
   const data = [
-    { id: "f1", type: "folder", name: "로그인", displayId: "1", sequentialId: 1, displayOrder: 10 },
-    { id: "f2", type: "folder", name: "결제", displayId: "2", sequentialId: 2, displayOrder: 20 },
+    {
+      id: "f1",
+      type: "folder",
+      name: "로그인",
+      displayId: "1",
+      sequentialId: 1,
+      displayOrder: 10,
+    },
+    {
+      id: "f2",
+      type: "folder",
+      name: "결제",
+      displayId: "2",
+      sequentialId: 2,
+      displayOrder: 20,
+    },
     { id: "t1", type: "testcase", name: "로그인", displayId: "1" },
   ];
 

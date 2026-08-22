@@ -178,10 +178,7 @@ const ManualViewer = () => {
         console.error("Guide loading failed:", err);
         if (!cancelled)
           setGuideContent(
-            t(
-              "manual.viewer.guideError",
-              "가이드 문서를 불러오지 못했습니다.",
-            ),
+            t("manual.viewer.guideError", "가이드 문서를 불러오지 못했습니다."),
           );
       } finally {
         if (!cancelled) setGuideLoading(false);
@@ -465,7 +462,9 @@ const ManualViewer = () => {
                   data-color-mode={isDark ? "dark" : "light"}
                 >
                   {guideLoading ? (
-                    <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                    <Box
+                      sx={{ display: "flex", justifyContent: "center", py: 8 }}
+                    >
                       <CircularProgress size={32} />
                     </Box>
                   ) : (
@@ -498,32 +497,40 @@ const ManualViewer = () => {
                     </Button>
                   </Box>
                 ) : (
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Button
-                    startIcon={<NavigateBeforeIcon />}
-                    disabled={currentIndex <= 0}
-                    onClick={() => selectSection(sections[currentIndex - 1].id)}
-                    data-testid="manual-prev-section"
-                    sx={{ maxWidth: "45%" }}
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
                   >
-                    <Typography noWrap variant="button">
-                      {currentIndex > 0 ? sections[currentIndex - 1].label : ""}
-                    </Typography>
-                  </Button>
-                  <Button
-                    endIcon={<NavigateNextIcon />}
-                    disabled={currentIndex >= sections.length - 1}
-                    onClick={() => selectSection(sections[currentIndex + 1].id)}
-                    data-testid="manual-next-section"
-                    sx={{ maxWidth: "45%" }}
-                  >
-                    <Typography noWrap variant="button">
-                      {currentIndex < sections.length - 1
-                        ? sections[currentIndex + 1].label
-                        : ""}
-                    </Typography>
-                  </Button>
-                </Box>
+                    <Button
+                      startIcon={<NavigateBeforeIcon />}
+                      disabled={currentIndex <= 0}
+                      onClick={() =>
+                        selectSection(sections[currentIndex - 1].id)
+                      }
+                      data-testid="manual-prev-section"
+                      sx={{ maxWidth: "45%" }}
+                    >
+                      <Typography noWrap variant="button">
+                        {currentIndex > 0
+                          ? sections[currentIndex - 1].label
+                          : ""}
+                      </Typography>
+                    </Button>
+                    <Button
+                      endIcon={<NavigateNextIcon />}
+                      disabled={currentIndex >= sections.length - 1}
+                      onClick={() =>
+                        selectSection(sections[currentIndex + 1].id)
+                      }
+                      data-testid="manual-next-section"
+                      sx={{ maxWidth: "45%" }}
+                    >
+                      <Typography noWrap variant="button">
+                        {currentIndex < sections.length - 1
+                          ? sections[currentIndex + 1].label
+                          : ""}
+                      </Typography>
+                    </Button>
+                  </Box>
                 )}
               </Box>
             </Box>

@@ -74,7 +74,13 @@ function SummaryDialog({
           LLM 분석 요약 - {selectedSummary?.documentName}
         </Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
-          <Tooltip title={isFullScreen ? t("common.exitFullscreen", "전체화면 종료") : t("common.fullscreen", "전체화면")}>
+          <Tooltip
+            title={
+              isFullScreen
+                ? t("common.exitFullscreen", "전체화면 종료")
+                : t("common.fullscreen", "전체화면")
+            }
+          >
             <IconButton
               onClick={onToggleFullScreen}
               size="small"
@@ -153,9 +159,7 @@ function SummaryDialog({
                   className="glass-surface shadow-glass-medium"
                   sx={summaryMarkdownStyles}
                 >
-                  <MDEditor.Markdown
-                    source={summaryContent}
-                  />
+                  <MDEditor.Markdown source={summaryContent} />
                 </Box>
               )}
               <Box

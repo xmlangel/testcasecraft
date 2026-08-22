@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  PROJECT_NAV_ITEMS,
-  getVisibleNavItems,
-} from "./projectNavItems.js";
+import { PROJECT_NAV_ITEMS, getVisibleNavItems } from "./projectNavItems.js";
 
 /**
  * 가로 탭과 좌측 사이드바가 공유하는 항목 정의 테스트.

@@ -102,9 +102,21 @@ const TestResultTrendSection = ({
 
   // 분석 유형 옵션
   const analysisTypeOptions = [
-    { value: "timeline", label: t("trend.analysisType.timeline", "시간별 추이"), icon: <TimelineIcon /> },
-    { value: "executor", label: t("trend.analysisType.byExecutor", "실행자별"), icon: <BarChartIcon /> },
-    { value: "testplan", label: t("trend.analysisType.byTestPlan", "테스트플랜별"), icon: <PieChartIcon /> },
+    {
+      value: "timeline",
+      label: t("trend.analysisType.timeline", "시간별 추이"),
+      icon: <TimelineIcon />,
+    },
+    {
+      value: "executor",
+      label: t("trend.analysisType.byExecutor", "실행자별"),
+      icon: <BarChartIcon />,
+    },
+    {
+      value: "testplan",
+      label: t("trend.analysisType.byTestPlan", "테스트플랜별"),
+      icon: <PieChartIcon />,
+    },
   ];
 
   // 필터링된 테스트 결과
@@ -189,7 +201,8 @@ const TestResultTrendSection = ({
     const groupedData = {};
 
     filteredResults.forEach((result) => {
-      const executor = result.executorName || t("trend.common.notSpecified", "미지정");
+      const executor =
+        result.executorName || t("trend.common.notSpecified", "미지정");
 
       if (!groupedData[executor]) {
         groupedData[executor] = {
@@ -223,7 +236,8 @@ const TestResultTrendSection = ({
     const groupedData = {};
 
     filteredResults.forEach((result) => {
-      const testPlan = result.testPlanName || t("trend.plan.default", "기본 플랜");
+      const testPlan =
+        result.testPlanName || t("trend.plan.default", "기본 플랜");
 
       if (!groupedData[testPlan]) {
         groupedData[testPlan] = {
@@ -290,7 +304,10 @@ const TestResultTrendSection = ({
         await onRefresh();
       }
     } catch (error) {
-      console.error(t("trend.trendData.refreshError", "트렌드 데이터 새로고침 실패:"), error);
+      console.error(
+        t("trend.trendData.refreshError", "트렌드 데이터 새로고침 실패:"),
+        error,
+      );
     } finally {
       setRefreshing(false);
     }

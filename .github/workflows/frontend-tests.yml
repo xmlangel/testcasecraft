@@ -1,7 +1,10 @@
-name: Frontend Unit Tests
+name: Frontend Checks
 
-# 프런트엔드 vitest 단위 테스트를 PR·master push 시 자동 실행한다.
+# 프런트엔드 포맷 검사와 vitest 단위 테스트를 PR·master push 시 자동 실행한다.
 # (빌드/도커 워크플로우는 태그 push 전용이라 테스트가 돌지 않으므로 별도 게이트로 추가)
+#
+# 포맷 검사를 넣은 이유: `npm run format` 은 있었지만 강제하는 곳이 없어
+# 폭을 넘긴 줄이 65개 파일에 쌓였다. 검사가 없으면 다시 쌓인다.
 on:
   pull_request:
     paths:
@@ -20,6 +23,27 @@ permissions:
   contents: read
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/main/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: src/main/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 고치지 않고 검사만 한다. 어긋나면 `npm run format` 을 돌리라고 알린다.
+      - name: Check formatting
+        run: npm run format:check
+
   vitest:
     runs-on: ubuntu-latest
     defaults:

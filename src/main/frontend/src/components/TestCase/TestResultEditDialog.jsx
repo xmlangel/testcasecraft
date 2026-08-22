@@ -122,20 +122,29 @@ const TestResultEditDialog = ({
           setJiraValidation({
             status: "success",
             message: `✅ ${result.issueKey}: ${
-              result.summary || t("testResultEditDialog.jiraIssueExists", "이슈가 존재합니다")
+              result.summary ||
+              t("testResultEditDialog.jiraIssueExists", "이슈가 존재합니다")
             }`,
           });
         } else {
           setJiraValidation({
             status: "error",
-            message: result.errorMessage || t("testResultEditDialog.jiraIssueNotFound", "이슈를 찾을 수 없습니다"),
+            message:
+              result.errorMessage ||
+              t(
+                "testResultEditDialog.jiraIssueNotFound",
+                "이슈를 찾을 수 없습니다",
+              ),
           });
         }
       } catch (error) {
         console.error("JIRA issue validation failed:", error);
         setJiraValidation({
           status: "error",
-          message: t("testResultEditDialog.jiraValidationError", "이슈 검증 중 오류가 발생했습니다"),
+          message: t(
+            "testResultEditDialog.jiraValidationError",
+            "이슈 검증 중 오류가 발생했습니다",
+          ),
         });
       } finally {
         setJiraValidationLoading(false);
@@ -233,7 +242,12 @@ const TestResultEditDialog = ({
       // ICT-184: JIRA 이슈 존재 여부 검증 (저장 시점)
       if (editData.editedJiraIssueKey.trim()) {
         if (jiraValidation.status === "error") {
-          setError(t("testResultEditDialog.jiraValidationFailed", `JIRA 이슈 검증 실패: ${jiraValidation.message}`));
+          setError(
+            t(
+              "testResultEditDialog.jiraValidationFailed",
+              `JIRA 이슈 검증 실패: ${jiraValidation.message}`,
+            ),
+          );
           return;
         }
 
@@ -247,9 +261,16 @@ const TestResultEditDialog = ({
           );
           if (!result.exists) {
             setError(
-              t("testResultEditDialog.jiraIssueInvalid", `존재하지 않는 JIRA 이슈입니다: ${
-                result.errorMessage || t("testResultEditDialog.jiraIssueNotFoundAgain", "이슈를 찾을 수 없습니다")
-              }`),
+              t(
+                "testResultEditDialog.jiraIssueInvalid",
+                `존재하지 않는 JIRA 이슈입니다: ${
+                  result.errorMessage ||
+                  t(
+                    "testResultEditDialog.jiraIssueNotFoundAgain",
+                    "이슈를 찾을 수 없습니다",
+                  )
+                }`,
+              ),
             );
             return;
           }
@@ -365,7 +386,8 @@ const TestResultEditDialog = ({
               {t("testResultEditDialog.testCaseName", "테스트케이스명")}
             </Typography>
             <Typography variant="body1">
-              {testCase?.name || t("testResultEditDialog.unknown", "알 수 없음")}
+              {testCase?.name ||
+                t("testResultEditDialog.unknown", "알 수 없음")}
             </Typography>
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -412,7 +434,8 @@ const TestResultEditDialog = ({
               {t("testResultEditDialog.jiraId", "JIRA ID")}
             </Typography>
             <Typography variant="body1">
-              {testResult?.jiraIssueKey || t("testResultEditDialog.noneAlt", "없음")}
+              {testResult?.jiraIssueKey ||
+                t("testResultEditDialog.noneAlt", "없음")}
             </Typography>
           </Grid>
         </Grid>
@@ -560,9 +583,15 @@ const TestResultEditDialog = ({
         {/* 권한 정보 */}
         {!permissions.canEdit && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            {t("testResultEditDialog.noEditPermission", "현재 편집 권한이 없습니다.")}
+            {t(
+              "testResultEditDialog.noEditPermission",
+              "현재 편집 권한이 없습니다.",
+            )}
             {activeEdit &&
-              t("testResultEditDialog.activeEditExists", `활성 편집본(${activeEdit.editedByUserName})이 존재합니다.`)}
+              t(
+                "testResultEditDialog.activeEditExists",
+                `활성 편집본(${activeEdit.editedByUserName})이 존재합니다.`,
+              )}
           </Alert>
         )}
 
@@ -580,7 +609,10 @@ const TestResultEditDialog = ({
               <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
-                  label={t("testResultEditDialog.testCaseNameLabel", "테스트케이스명")}
+                  label={t(
+                    "testResultEditDialog.testCaseNameLabel",
+                    "테스트케이스명",
+                  )}
                   value={editData.editedTestCaseName}
                   onChange={(e) =>
                     handleInputChange("editedTestCaseName", e.target.value)
@@ -591,19 +623,32 @@ const TestResultEditDialog = ({
 
               <Grid size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
-                  <InputLabel>{t("testResultEditDialog.testResultLabel", "테스트 결과")}</InputLabel>
+                  <InputLabel>
+                    {t("testResultEditDialog.testResultLabel", "테스트 결과")}
+                  </InputLabel>
                   <Select
                     value={editData.editedResult}
                     onChange={(e) =>
                       handleInputChange("editedResult", e.target.value)
                     }
                     disabled={loading}
-                    label={t("testResultEditDialog.testResultLabel", "테스트 결과")}
+                    label={t(
+                      "testResultEditDialog.testResultLabel",
+                      "테스트 결과",
+                    )}
                   >
-                    <MenuItem value="PASS">{t("testResultEditDialog.pass", "통과 (PASS)")}</MenuItem>
-                    <MenuItem value="FAIL">{t("testResultEditDialog.fail", "실패 (FAIL)")}</MenuItem>
-                    <MenuItem value="BLOCKED">{t("testResultEditDialog.blocked", "차단됨 (BLOCKED)")}</MenuItem>
-                    <MenuItem value="NOT_RUN">{t("testResultEditDialog.notRun", "실행 안됨 (NOT_RUN)")}</MenuItem>
+                    <MenuItem value="PASS">
+                      {t("testResultEditDialog.pass", "통과 (PASS)")}
+                    </MenuItem>
+                    <MenuItem value="FAIL">
+                      {t("testResultEditDialog.fail", "실패 (FAIL)")}
+                    </MenuItem>
+                    <MenuItem value="BLOCKED">
+                      {t("testResultEditDialog.blocked", "차단됨 (BLOCKED)")}
+                    </MenuItem>
+                    <MenuItem value="NOT_RUN">
+                      {t("testResultEditDialog.notRun", "실행 안됨 (NOT_RUN)")}
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -616,7 +661,10 @@ const TestResultEditDialog = ({
                   onChange={(e) =>
                     handleInputChange("editedJiraIssueKey", e.target.value)
                   }
-                  placeholder={t("testResultEditDialog.jiraIssueKeyExample", "예: PRJ-123")}
+                  placeholder={t(
+                    "testResultEditDialog.jiraIssueKeyExample",
+                    "예: PRJ-123",
+                  )}
                   disabled={loading}
                   // ICT-184: 실시간 검증 결과에 따른 색상 변경
                   color={
@@ -629,7 +677,10 @@ const TestResultEditDialog = ({
                   helperText={
                     jiraValidation.status && jiraValidation.message
                       ? jiraValidation.message
-                      : t("testResultEditDialog.jiraIssueKeyHelper", "JIRA 이슈 키를 입력하면 존재 여부를 확인합니다")
+                      : t(
+                          "testResultEditDialog.jiraIssueKeyHelper",
+                          "JIRA 이슈 키를 입력하면 존재 여부를 확인합니다",
+                        )
                   }
                   error={jiraValidation.status === "error"}
                   slotProps={{
@@ -658,7 +709,10 @@ const TestResultEditDialog = ({
               <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
-                  label={t("testResultEditDialog.jiraIssueUrl", "JIRA 이슈 URL")}
+                  label={t(
+                    "testResultEditDialog.jiraIssueUrl",
+                    "JIRA 이슈 URL",
+                  )}
                   value={editData.editedJiraIssueUrl}
                   onChange={(e) =>
                     handleInputChange("editedJiraIssueUrl", e.target.value)
@@ -726,9 +780,15 @@ const TestResultEditDialog = ({
                   onChange={(e) =>
                     handleInputChange("editReason", e.target.value)
                   }
-                  placeholder={t("testResultEditDialog.editReasonPlaceholder", "편집하는 이유를 입력해주세요...")}
+                  placeholder={t(
+                    "testResultEditDialog.editReasonPlaceholder",
+                    "편집하는 이유를 입력해주세요...",
+                  )}
                   disabled={loading}
-                  helperText={t("testResultEditDialog.editReasonRequired", "편집 이유는 필수입니다")}
+                  helperText={t(
+                    "testResultEditDialog.editReasonRequired",
+                    "편집 이유는 필수입니다",
+                  )}
                 />
               </Grid>
 
@@ -743,7 +803,11 @@ const TestResultEditDialog = ({
                       disabled={loading}
                     />
                   }
-                  label={editData.saveAsDraft ? t("testResultEditDialog.saveAsDraft", "임시저장") : t("testResultEditDialog.requestApproval", "승인 요청")}
+                  label={
+                    editData.saveAsDraft
+                      ? t("testResultEditDialog.saveAsDraft", "임시저장")
+                      : t("testResultEditDialog.requestApproval", "승인 요청")
+                  }
                 />
                 <Typography
                   variant="caption"
@@ -751,8 +815,14 @@ const TestResultEditDialog = ({
                   display="block"
                 >
                   {editData.saveAsDraft
-                    ? t("testResultEditDialog.saveAsDraftDescription", "임시저장하면 나중에 계속 편집할 수 있습니다")
-                    : t("testResultEditDialog.requestApprovalDescription", "승인 요청하면 관리자의 승인 후 적용됩니다")}
+                    ? t(
+                        "testResultEditDialog.saveAsDraftDescription",
+                        "임시저장하면 나중에 계속 편집할 수 있습니다",
+                      )
+                    : t(
+                        "testResultEditDialog.requestApprovalDescription",
+                        "승인 요청하면 관리자의 승인 후 적용됩니다",
+                      )}
                 </Typography>
               </Grid>
             </Grid>
@@ -781,7 +851,10 @@ const TestResultEditDialog = ({
             onClick={() => setShowHistory(!showHistory)}
             size="small"
           >
-            {t("testResultEditDialog.editHistoryToggle", `편집 이력 ${showHistory ? "숨기기" : "보기"}`)}
+            {t(
+              "testResultEditDialog.editHistoryToggle",
+              `편집 이력 ${showHistory ? "숨기기" : "보기"}`,
+            )}
           </Button>
         </Box>
 
