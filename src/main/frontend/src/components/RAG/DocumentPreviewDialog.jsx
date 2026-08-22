@@ -15,6 +15,7 @@ import {
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import CloseIcon from "@mui/icons-material/Close";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
   const { t } = useI18n();
@@ -53,7 +54,7 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
       } catch (err) {
         if (!isMounted) return;
         setError(
-          err?.response?.data?.message ||
+          serverErrorMessage(err) ||
             err?.message ||
             t("rag.preview.error", "PDF를 불러올 수 없습니다."),
         );

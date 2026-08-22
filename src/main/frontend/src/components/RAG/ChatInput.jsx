@@ -43,7 +43,7 @@ function ChatInput({
           onCompositionEnd={onCompositionEnd}
           size="small"
         />
-        {isStreaming ? (
+        {isStreaming || isLoading ? (
           <Tooltip title={t("rag.chat.stopStreaming", "전송 중지")}>
             <IconButton
               color="error"

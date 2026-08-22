@@ -37,6 +37,7 @@ import MDEditor from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import { debugLog } from "../../utils/logger.js";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 /**
  * 분석 요약 관리 컴포넌트
@@ -329,7 +330,10 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                   totalChunks,
                   analyzedChunks: processedChunks,
                   status: "completed",
-                  combinedResponse: t("rag.analysisSummaryManager.noResults", "분석이 완료되었지만 결과가 없습니다."),
+                  combinedResponse: t(
+                    "rag.analysisSummaryManager.noResults",
+                    "분석이 완료되었지만 결과가 없습니다.",
+                  ),
                   uploadDate: doc.uploadDate,
                 };
               }
@@ -345,8 +349,10 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                 totalChunks,
                 analyzedChunks: processedChunks,
                 status: "completed",
-                combinedResponse:
-                  t("rag.analysisSummaryManager.noResultsError", "분석이 완료되었지만 결과 조회에 실패했습니다."),
+                combinedResponse: t(
+                  "rag.analysisSummaryManager.noResultsError",
+                  "분석이 완료되었지만 결과 조회에 실패했습니다.",
+                ),
                 uploadDate: doc.uploadDate,
               };
             }
@@ -377,7 +383,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
             status: "error",
             combinedResponse: null,
             uploadDate: doc.uploadDate,
-            errorMessage: err.response?.data?.message || err.message,
+            errorMessage: serverErrorMessage(err) || err.message,
           };
         }
       });
@@ -396,7 +402,11 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
     } catch (err) {
       console.error("[AnalysisSummaryManager] 요약 로드 실패:", err);
       setError(
-        err.response?.data?.message || t("rag.analysisSummaryManager.loadError", "요약 목록을 불러오는데 실패했습니다."),
+        serverErrorMessage(err) ||
+          t(
+            "rag.analysisSummaryManager.loadError",
+            "요약 목록을 불러오는데 실패했습니다.",
+          ),
       );
     } finally {
       setLoading(false);
@@ -555,7 +565,9 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell width="30%">{t("rag.summary.table.fileName", "문서명")}</TableCell>
+                    <TableCell width="30%">
+                      {t("rag.summary.table.fileName", "문서명")}
+                    </TableCell>
                     <TableCell width="12%" align="center">
                       {t("rag.summary.table.chunks", "청크 수")}
                     </TableCell>
@@ -565,7 +577,9 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                     <TableCell width="12%" align="center">
                       {t("rag.summary.table.status", "상태")}
                     </TableCell>
-                    <TableCell width="17%">{t("rag.summary.table.uploadDate", "업로드 일시")}</TableCell>
+                    <TableCell width="17%">
+                      {t("rag.summary.table.uploadDate", "업로드 일시")}
+                    </TableCell>
                     <TableCell width="17%" align="center">
                       {t("rag.summary.table.actions", "작업")}
                     </TableCell>
@@ -833,7 +847,8 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                       "분석 중 오류가 발생했습니다: {error}",
                       {
                         error:
-                          selectedSummary.errorMessage || t("common.unknown", "알 수 없는 오류"),
+                          selectedSummary.errorMessage ||
+                          t("common.unknown", "알 수 없는 오류"),
                       },
                     )}
                   </Alert>
@@ -857,7 +872,10 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                     <MDEditor.Markdown
                       source={
                         selectedSummary.combinedResponse ||
-                        t("rag.analysisSummaryManager.noAnalysisResults", "분석 결과가 없습니다.")
+                        t(
+                          "rag.analysisSummaryManager.noAnalysisResults",
+                          "분석 결과가 없습니다.",
+                        )
                       }
                     />
                   </Box>

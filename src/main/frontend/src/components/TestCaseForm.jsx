@@ -67,6 +67,7 @@ import { DeleteConfirmationDialog } from "./TestCase/Spreadsheet/components/Dele
 import FolderForm from "./TestCase/FolderForm.jsx";
 import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
 import RagStatusBadge from "./TestCase/RagStatusBadge.jsx";
+import { serverErrorMessage } from "../utils/apiError.js";
 
 const TabPanel = (props) => {
   const { children, value, index, ...other } = props;
@@ -1328,8 +1329,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       let msg =
         err?.message ||
         t("testcase.form.deleteError", "삭제 중 오류가 발생했습니다.");
-      if (err?.response?.data?.message) {
-        msg = err.response.data.message;
+      // 서버가 사유를 보냈으면 그것이 더 구체적이다.
+      const serverMessage = serverErrorMessage(err);
+      if (serverMessage) {
+        msg = serverMessage;
       }
       setDeleteConfirmationOpen(false);
       setSnackbarError(msg);

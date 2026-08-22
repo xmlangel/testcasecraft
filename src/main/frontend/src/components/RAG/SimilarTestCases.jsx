@@ -39,6 +39,7 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import TuneIcon from "@mui/icons-material/Tune";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { useTranslation } from "../../context/I18nContext.jsx";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 const SIMILARITY_THRESHOLD = 0.81; // 81% 이상인 경우만 바로 표시
 
@@ -90,7 +91,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
     } catch (error) {
       // console.error('검색 실패:', error);
       const errorMessage =
-        error.response?.data?.message ||
+        serverErrorMessage(error) ||
         error.message ||
         t("rag.similar.searchFailed", "검색에 실패했습니다.");
       setLocalError(errorMessage);
@@ -186,7 +187,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
           {ragDisabledMessage ||
             t(
               "rag.similar.disabled",
-              "RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다."
+              "RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다.",
             )}
         </Alert>
       )}

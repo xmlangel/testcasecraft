@@ -22,6 +22,7 @@ import ChatInput from "./ChatInput.jsx";
 import ChatDialogs from "./ChatDialogs.jsx";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { describeRagError, isAbortError } from "../../utils/ragError.js";
 import { useLlmConfig } from "../../context/LlmConfigContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useMessageManagement } from "./hooks/useMessageManagement.js";
@@ -142,6 +143,17 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     handleStopStreaming,
     startTransition,
   } = streamingChat;
+
+  // 중지는 스트리밍 시작 전에도 눌릴 수 있다. 그 구간은 isLoading 만 참이라
+  // 스트리밍 정리만으로는 "AI가 답변을 생성하고 있습니다..." 가 지워지지 않는다.
+  const handleStopRequest = useCallback(() => {
+    handleStopStreaming();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+  }, [handleStopStreaming, abortControllerRef, setIsLoading]);
 
   const refreshPersistedConversation = useCallback(
     async (threadIdToLoad) => {
@@ -438,6 +450,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         documents: response?.documents || [],
         similarity: response?.similarity,
         persistedId: response?.assistantMessageId || null,
+        // 서버는 실패 원인을 errorMessage 로 내려주는데 여기서 버리면
+        // 화면에는 "오류가 발생했습니다" 만 남아 무엇을 고칠지 알 수 없다.
+        isError: Boolean(response?.error),
+        errorMessage: response?.errorMessage || null,
       };
 
       setMessages((prev) =>
@@ -630,7 +646,16 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
       setIsStreaming(false);
       setIsLoading(false);
-      setError(error.message || t("ragChatInterface.sendError", "Failed to send message"));
+      // error.message 는 "RAG request failed with status 524" 같은 내부 문구다.
+      // 사용자가 다음에 무엇을 할지 알 수 있는 문장으로 바꿔 보여 준다.
+      // 사용자가 중지를 누른 경우는 알림을 띄우지 않는다.
+      if (!isAbortError(error)) {
+        setError(
+          describeRagError(error, t) ||
+            error.message ||
+            t("ragChatInterface.sendError", "Failed to send message"),
+        );
+      }
     }
   }, [
     inputText,
@@ -877,7 +902,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             onSend={handleSendMessage}
             isLoading={isLoading}
             isStreaming={isStreaming}
-            onStopStreaming={handleStopStreaming}
+            onStopStreaming={handleStopRequest}
             isFullScreen={isFullScreenMode}
             inputRef={inputRef}
           />

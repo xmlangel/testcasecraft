@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.rag.*;
+import com.testcase.testcasemanagement.exception.RagVectorWriteDisabledException;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
@@ -38,6 +39,9 @@ public class RagServiceImpl implements RagService {
   /** WebClient block 호출의 기본 타임아웃. 무한 대기를 막아 응답 없는 RAG API로부터 시스템 보호. */
   static final Duration DEFAULT_BLOCK_TIMEOUT = Duration.ofSeconds(30);
 
+  /** 벡터 색인을 끈 상태에서 건너뛴 메시지에 남기는 상태값. "failed" 와 갈라 기록한다. */
+  private static final String EMBEDDING_STATUS_SKIPPED = "skipped";
+
   /** 기본 PDF 파서 식별자. RAG API에서 인식하는 파서명. */
   static final String DEFAULT_PDF_PARSER = "pymupdf4llm";
 
@@ -72,6 +76,7 @@ public class RagServiceImpl implements RagService {
   @Override
   public RagDocumentResponse uploadDocument(MultipartFile file, UUID projectId, String uploadedBy) {
     checkRagEnabled();
+    checkVectorWriteEnabled();
     log.info(
         "Uploading document to RAG API: file={}, projectId={}",
         file.getOriginalFilename(),
@@ -125,6 +130,7 @@ public class RagServiceImpl implements RagService {
   @Override
   public RagDocumentResponse analyzeDocument(UUID documentId, String parser) {
     checkRagEnabled();
+    checkVectorWriteEnabled();
     log.info("Analyzing document in RAG API: documentId={}, parser={}", documentId, parser);
 
     try {
@@ -173,6 +179,7 @@ public class RagServiceImpl implements RagService {
   @Override
   public RagDocumentResponse generateEmbeddings(UUID documentId) {
     checkRagEnabled();
+    checkVectorWriteEnabled();
     log.info("Generating embeddings in RAG API: documentId={}", documentId);
 
     try {
@@ -655,6 +662,12 @@ public class RagServiceImpl implements RagService {
       return;
     }
 
+    // 배경에서 도는 색인이다. 예외를 던지면 테스트케이스 저장까지 실패로 보이므로 건너뛴다.
+    if (!isVectorWriteEnabled()) {
+      log.info("벡터 색인이 중지되어 테스트케이스 벡터화를 건너뜁니다: testCaseId={}", testCaseId);
+      return;
+    }
+
     log.info(
         "[비동기] Vectorizing TestCase to RAG: testCaseId={}, testCaseName={}, projectId={},"
             + " thread={}",
@@ -895,6 +908,17 @@ public class RagServiceImpl implements RagService {
   public RagConversationMessageIndexResponse indexConversationMessage(
       RagConversationMessageIndexRequest request) {
     checkRagEnabled();
+
+    // 채팅이 부르는 색인이다. 예외를 던지면 호출부가 그것을 잡아 메시지를 "failed" 로
+    // 기록한다. 끈 것을 실패로 남기면 나중에 원인을 되짚을 수 없으므로 상태로 알린다.
+    if (!isVectorWriteEnabled()) {
+      log.info("벡터 색인이 중지되어 대화 메시지 색인을 건너뜁니다: messageId={}", request.getMessageId());
+      return RagConversationMessageIndexResponse.builder()
+          .messageId(request.getMessageId())
+          .status(EMBEDDING_STATUS_SKIPPED)
+          .build();
+    }
+
     log.info("Indexing conversation message in RAG: messageId={}", request.getMessageId());
 
     try {
@@ -959,6 +983,7 @@ public class RagServiceImpl implements RagService {
   @Override
   public RagDocumentResponse uploadGlobalDocument(MultipartFile file, String uploadedBy) {
     checkRagEnabled();
+    checkVectorWriteEnabled();
     log.info(
         "Uploading global document to RAG API: file={}, globalProjectId={}",
         file.getOriginalFilename(),
@@ -1015,6 +1040,23 @@ public class RagServiceImpl implements RagService {
   private void checkRagEnabled() {
     if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
       throw new IllegalStateException("현재 RAG (AI) 시스템이 안정화를 위해 일시 중지되었습니다. 나중에 다시 시도해주세요.");
+    }
+  }
+
+  /**
+   * 벡터 쓰기가 켜져 있는지 본다.
+   *
+   * <p>질의는 이 설정과 무관하게 계속 된다. 이미 색인된 자료로 답하는 데에는 새 벡터가 필요하지 않기 때문이다.
+   */
+  private boolean isVectorWriteEnabled() {
+    return systemSettingService.getBooleanSetting(
+        RagVectorWriteDisabledException.SETTING_KEY, true);
+  }
+
+  /** 사용자가 직접 누른 쓰기 작업에서 쓴다. 왜 거부됐는지 화면에 알려야 하므로 예외로 막는다. */
+  private void checkVectorWriteEnabled() {
+    if (!isVectorWriteEnabled()) {
+      throw new RagVectorWriteDisabledException();
     }
   }
 
@@ -1220,6 +1262,7 @@ public class RagServiceImpl implements RagService {
   @Override
   public RagLlmAnalysisResponse analyzeDocumentWithLlm(
       UUID documentId, RagLlmAnalysisRequest request) {
+    checkVectorWriteEnabled();
     log.info(
         "Starting LLM analysis: documentId={}, llmConfigId={}, llmProvider={}, llmModel={},"
             + " batchSize={}",

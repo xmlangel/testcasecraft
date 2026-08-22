@@ -7,6 +7,8 @@ import { useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 import { debugLog } from "../../utils/logger.js";
+import { serverErrorMessage } from "../../utils/apiError.js";
+import { buildApiError } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -42,6 +44,10 @@ export function useRagChat(
             projectId,
           )}`;
           const response = await api(url);
+          if (!response.ok) {
+            throw await buildApiError(response);
+          }
+
           const data = await response.json();
 
           // 백엔드가 배열을 직접 반환하는 경우와 객체로 감싼 경우 모두 처리
@@ -90,6 +96,10 @@ export function useRagChat(
             projectId,
           )}`;
           const response = await api(url);
+          if (!response.ok) {
+            throw await buildApiError(response);
+          }
+
           const data = await response.json();
 
           const categories = data.categories || [];
@@ -122,6 +132,10 @@ export function useRagChat(
         const response = await api(
           `/api/rag/chat/conversations/threads/${threadId}/messages`,
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         const data = await response.json();
         const messages = data || [];
 
@@ -157,6 +171,10 @@ export function useRagChat(
           }),
         });
 
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         const thread = await response.json();
         dispatch({ type: ActionTypes.UPSERT_THREAD, payload: thread });
         return thread;
@@ -186,6 +204,10 @@ export function useRagChat(
             }),
           },
         );
+
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
 
         const thread = await response.json();
         dispatch({ type: ActionTypes.UPSERT_THREAD, payload: thread });
@@ -270,14 +292,23 @@ export function useRagChat(
         const response = await api("/api/rag/chat", {
           method: "POST",
           body: JSON.stringify(payload),
+          // 중지를 누르면 이 신호로 요청 자체를 끊는다.
+          signal: options.signal,
         });
+
+        // 앞단 프록시가 끊으면(예: Cloudflare 524) 본문이 HTML 이라
+        // json() 이 먼저 깨지고 "Unexpected token '<'" 만 남는다.
+        // 상태 코드를 먼저 보고 원인을 붙여 올려 보낸다.
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
 
         dispatch({ type: ActionTypes.SET_LOADING, payload: false });
         return await response.json();
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.response?.data?.message || "채팅 요청에 실패했습니다.",
+          payload: serverErrorMessage(error) || "채팅 요청에 실패했습니다.",
         });
         throw error;
       }
@@ -378,7 +409,7 @@ export function useRagChat(
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw await buildApiError(response);
         }
 
         if (!response.body) {
@@ -412,6 +443,23 @@ export function useRagChat(
               const data = line.substring(5).trim();
 
               if (!data || data === "[DONE]") {
+                continue;
+              }
+
+              // 서버는 실패 사유를 error 이벤트에 평문으로 실어 보낸다.
+              // JSON 으로 읽으려 하면 파싱에서 걸려 사유가 통째로 사라진다.
+              if (currentEvent === "error") {
+                // 문구를 여기서 만들지 않는다. 이 훅에는 번역 함수가 없고,
+                // 사유가 비면 화면(ChatMessage)이 번역된 기본 문구로 대신한다.
+                const streamError = new Error(data || "RAG stream failed");
+                streamError.errorMessage = data || null;
+                if (onError) {
+                  onError(streamError);
+                }
+                dispatch({
+                  type: ActionTypes.SET_ERROR,
+                  payload: streamError.message,
+                });
                 continue;
               }
 
@@ -474,14 +522,17 @@ export function useRagChat(
             }),
           },
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("채팅 메시지 편집 실패:", error);
         dispatch({
           type: ActionTypes.SET_ERROR,
           payload:
-            error.response?.data?.message ||
-            "채팅 메시지를 편집하지 못했습니다.",
+            serverErrorMessage(error) || "채팅 메시지를 편집하지 못했습니다.",
         });
         throw error;
       }
@@ -506,8 +557,7 @@ export function useRagChat(
         dispatch({
           type: ActionTypes.SET_ERROR,
           payload:
-            error.response?.data?.message ||
-            "채팅 메시지를 삭제하지 못했습니다.",
+            serverErrorMessage(error) || "채팅 메시지를 삭제하지 못했습니다.",
         });
         throw error;
       }
@@ -524,6 +574,10 @@ export function useRagChat(
         const response = await api(
           `/api/rag/chat/conversations/threads/${threadId}`,
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("스레드 조회 실패:", error);

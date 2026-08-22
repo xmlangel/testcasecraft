@@ -37,6 +37,7 @@ import CostWarningDialog from "./CostWarningDialog.jsx";
 import BatchConfirmDialog from "./BatchConfirmDialog.jsx";
 import ResumeAnalysisDialog from "./ResumeAnalysisDialog.jsx";
 import { debugLog } from "../../utils/logger.js";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 /**
  * 문서 LLM 분석 메인 컴포넌트
@@ -68,7 +69,10 @@ function DocumentAnalysis({ document }) {
     llmModel: "",
     llmApiKey: "",
     llmBaseUrl: "",
-    promptTemplate: t("rag.analysis.defaultPrompt", "다음 텍스트를 요약하세요:\n\n{chunk_text}"),
+    promptTemplate: t(
+      "rag.analysis.defaultPrompt",
+      "다음 텍스트를 요약하세요:\n\n{chunk_text}",
+    ),
     chunkBatchSize: 10,
     pauseAfterBatch: false, // 기본값: 중단 없이 계속 진행
     maxTokens: 500,
@@ -172,7 +176,12 @@ function DocumentAnalysis({ document }) {
 
     // 유효성 검사
     if (!config.llmProvider || !config.llmModel || !config.promptTemplate) {
-      setError(t("rag.analysis.error.selectConfig", "LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요."));
+      setError(
+        t(
+          "rag.analysis.error.selectConfig",
+          "LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요.",
+        ),
+      );
       return;
     }
 
@@ -232,7 +241,12 @@ function DocumentAnalysis({ document }) {
 
     // 유효성 검사
     if (!config.llmProvider || !config.llmModel || !config.promptTemplate) {
-      setError(t("rag.analysis.error.selectConfig", "LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요."));
+      setError(
+        t(
+          "rag.analysis.error.selectConfig",
+          "LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요.",
+        ),
+      );
       return;
     }
 
@@ -273,7 +287,7 @@ function DocumentAnalysis({ document }) {
       } else {
         console.error("상태 확인 오류:", err);
         setError(
-          err.response?.data?.message ||
+          serverErrorMessage(err) ||
             err.message ||
             t(
               "rag.analysis.error.statusCheck",
@@ -310,7 +324,7 @@ function DocumentAnalysis({ document }) {
     } catch (err) {
       console.error("분석 시작 오류:", err);
       setError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           err.message ||
           t(
             "rag.analysis.error.startAnalysis",
@@ -338,7 +352,7 @@ function DocumentAnalysis({ document }) {
     } catch (err) {
       console.error("분석 재개 오류:", err);
       setError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           err.message ||
           t("rag.analysis.error.resume", "분석 재개에 실패했습니다."),
       );
@@ -365,7 +379,7 @@ function DocumentAnalysis({ document }) {
     } catch (err) {
       console.error("분석 재시작 오류:", err);
       setError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           err.message ||
           t("rag.analysis.error.restart", "분석 재시작에 실패했습니다."),
       );

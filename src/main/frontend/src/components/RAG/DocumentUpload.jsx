@@ -25,6 +25,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import InfoIcon from "@mui/icons-material/Info";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 const ALLOWED_FILE_TYPES = [
   "application/pdf",
@@ -187,7 +188,7 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
     } catch (error) {
       // console.error('문서 업로드 처리 실패:', error);
       const errorMessage =
-        error.response?.data?.message ||
+        serverErrorMessage(error) ||
         error.message ||
         t("rag.upload.error.uploadFailed", "문서 업로드에 실패했습니다.");
       setLocalError(errorMessage);

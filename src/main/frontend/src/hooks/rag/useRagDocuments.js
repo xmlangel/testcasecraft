@@ -8,6 +8,8 @@ import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 
 import { debugLog } from "../../utils/logger.js";
+import { describeRagWriteError } from "../../utils/ragError.js";
+import { buildApiError, serverErrorMessage } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -70,6 +72,12 @@ export function useRagDocuments(
           },
         });
 
+        // 상태를 먼저 본다. 실패 응답도 JSON 이라 그냥 읽으면 문서로 등록된다.
+        if (!response.ok) {
+          // 기본 문구는 아래 catch 가 이미 갖고 있다. 여기서 또 두면 문구가 두 곳이 된다.
+          throw await buildApiError(response);
+        }
+
         const uploadedDoc = await response.json();
         dispatch({ type: ActionTypes.ADD_DOCUMENT, payload: uploadedDoc });
         dispatch({
@@ -82,8 +90,9 @@ export function useRagDocuments(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload:
-            error.response?.data?.message || "문서 업로드에 실패했습니다.",
+          // buildApiError 가 서버 사유를 errorMessage 에 담아 준다.
+          // 기존의 error.response 는 axios 형태라 fetch 응답에서는 늘 undefined 였다.
+          payload: error.errorMessage || "문서 업로드에 실패했습니다.",
         });
         dispatch({
           type: ActionTypes.REMOVE_UPLOADING_FILE,
@@ -113,12 +122,16 @@ export function useRagDocuments(
         });
 
         dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         const result = await response.json();
         return result;
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.response?.data?.message || "문서 분석에 실패했습니다.",
+          payload: error.errorMessage || "문서 분석에 실패했습니다.",
         });
         throw error;
       }
@@ -145,6 +158,10 @@ export function useRagDocuments(
 
           try {
             const response = await api(`/api/rag/documents/${documentId}`);
+            if (!response.ok) {
+              throw await buildApiError(response);
+            }
+
             document = await response.json();
 
             if (document) {
@@ -208,6 +225,10 @@ export function useRagDocuments(
 
           try {
             const response = await api(`/api/rag/documents/${documentId}`);
+            if (!response.ok) {
+              throw await buildApiError(response);
+            }
+
             document = await response.json();
 
             if (document) {
@@ -222,7 +243,7 @@ export function useRagDocuments(
             }
           } catch (error) {
             const message =
-              error.response?.data?.message ||
+              serverErrorMessage(error) ||
               error.message ||
               "임베딩 상태 조회에 실패했습니다.";
             dispatch({ type: ActionTypes.SET_ERROR, payload: message });
@@ -272,13 +293,16 @@ export function useRagDocuments(
         );
 
         dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         const result = await response.json();
         return result;
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload:
-            error.response?.data?.message || "임베딩 생성에 실패했습니다.",
+          payload: error.errorMessage || "임베딩 생성에 실패했습니다.",
         });
         throw error;
       }
@@ -296,6 +320,10 @@ export function useRagDocuments(
 
       try {
         const response = await api(`/api/rag/documents/${documentId}`);
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         const document = await response.json();
 
         dispatch({ type: ActionTypes.SET_ACTIVE_DOCUMENT, payload: document });
@@ -305,7 +333,7 @@ export function useRagDocuments(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.response?.data?.message || "문서 조회에 실패했습니다.",
+          payload: serverErrorMessage(error) || "문서 조회에 실패했습니다.",
         });
         throw error;
       }
@@ -337,6 +365,10 @@ export function useRagDocuments(
             projectId,
           )}&page=${page}&size=${pageSize}`;
           const response = await api(url);
+          if (!response.ok) {
+            throw await buildApiError(response);
+          }
+
           const data = await response.json();
 
           const documents = data.items || data.documents || [];
@@ -354,7 +386,7 @@ export function useRagDocuments(
           dispatch({
             type: ActionTypes.SET_ERROR,
             payload:
-              error.response?.data?.message || "문서 목록 조회에 실패했습니다.",
+              serverErrorMessage(error) || "문서 목록 조회에 실패했습니다.",
           });
           throw error;
         } finally {
@@ -386,7 +418,7 @@ export function useRagDocuments(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.response?.data?.message || "문서 삭제에 실패했습니다.",
+          payload: serverErrorMessage(error) || "문서 삭제에 실패했습니다.",
         });
         throw error;
       }
@@ -419,8 +451,7 @@ export function useRagDocuments(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload:
-            error.response?.data?.message || "문서 다운로드에 실패했습니다.",
+          payload: serverErrorMessage(error) || "문서 다운로드에 실패했습니다.",
         });
         throw error;
       }
@@ -436,6 +467,10 @@ export function useRagDocuments(
       try {
         const url = `/api/rag/documents/${documentId}/chunks?page=${page}&page_size=${pageSize}`;
         const response = await api(url);
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("청크 조회 실패:", error);

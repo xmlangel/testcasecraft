@@ -37,6 +37,7 @@ import {
 import { useAppContext } from "../../context/AppContext";
 import { useI18n } from "../../context/I18nContext";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 /**
  * ICT-361: 테스트 결과 첨부파일 보기 컴포넌트
@@ -91,7 +92,7 @@ const TestResultAttachmentsView = ({
     } catch (error) {
       console.error("첨부파일 로드 오류:", error);
       setError(
-        error.response?.data?.message ||
+        serverErrorMessage(error) ||
           t(
             "attachments.error.loadError",
             "첨부파일 목록을 불러오는 중 오류가 발생했습니다.",

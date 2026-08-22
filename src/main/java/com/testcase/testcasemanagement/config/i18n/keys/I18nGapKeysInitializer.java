@@ -111,6 +111,30 @@ public class I18nGapKeysInitializer {
         "i18n gap 보강 (2026-06-06)",
         "RAG 기능 활성화 상태");
     createTranslationKeyIfNotExists(
+        "admin.systemSettings.vectorWriteTitle", "admin", "벡터 색인 분리 옵션 (2026-08-22)", "벡터 색인");
+    createTranslationKeyIfNotExists(
+        "admin.systemSettings.vectorWriteDesc",
+        "admin",
+        "벡터 색인 분리 옵션 (2026-08-22)",
+        "이 설정을 끄면 새 벡터를 만드는 작업만 멈춥니다. 문서 업로드·분석·임베딩 생성과 테스트케이스·대화 색인이 중지되고, 이미 색인된 자료로 질문하는 것은 그대로"
+            + " 됩니다. 임베딩 비용을 묶어 두거나 색인을 잠시 멈출 때 사용하세요.");
+    createTranslationKeyIfNotExists(
+        "admin.systemSettings.vectorWriteRagOff",
+        "admin",
+        "벡터 색인 분리 옵션 (2026-08-22)",
+        "RAG 기능이 꺼져 있어 이 설정은 적용되지 않습니다. 질문과 색인이 모두 중지된 상태입니다.");
+    createTranslationKeyIfNotExists(
+        "admin.systemSettings.vectorWriteOffNotice",
+        "admin",
+        "벡터 색인 분리 옵션 (2026-08-22)",
+        "색인이 멈춘 동안 추가하거나 수정한 테스트케이스는 검색 결과에 반영되지 않습니다. 다시 켜도 그 사이 변경분은 자동으로 따라잡지 않으므로 필요하면 문서를 다시"
+            + " 분석해야 합니다.");
+    createTranslationKeyIfNotExists(
+        "admin.systemSettings.vectorWriteToggleDescription",
+        "admin",
+        "벡터 색인 분리 옵션 (2026-08-22)",
+        "벡터 색인 활성화 토글");
+    createTranslationKeyIfNotExists(
         "admin.systemSettings.saveError", "admin", "i18n gap 보강 (2026-06-06)", "설정 저장에 실패했습니다.");
     createTranslationKeyIfNotExists(
         "admin.systemSettings.saveSuccess",

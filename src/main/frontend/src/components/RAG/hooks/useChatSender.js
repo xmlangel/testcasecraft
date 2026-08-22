@@ -7,6 +7,7 @@ import {
 } from "../utils/keywordUtils.js";
 import { formatDocumentListMessage } from "../utils/documentUtils.js";
 import { PAGINATION_CONSTANTS } from "../constants.js";
+import { serverErrorMessage } from "../../../utils/apiError.js";
 
 /**
  * 채팅 메시지 전송 로직 훅
@@ -69,8 +70,7 @@ export function useChatSender({
         };
       } catch (error) {
         throw new Error(
-          error.response?.data?.message ||
-            "문서 목록을 불러오는데 실패했습니다.",
+          serverErrorMessage(error) || "문서 목록을 불러오는데 실패했습니다.",
         );
       }
     },
@@ -78,14 +78,11 @@ export function useChatSender({
   );
 
   // 테스트 케이스 템플릿 적용 (백엔드에서 지능적으로 처리하도록 변경됨)
-  const applyTestCaseTemplate = useCallback(
-    (trimmedInput) => {
-      // 이제 백엔드(RagQueryAnalyzer)에서 테스트케이스 생성 의도를 감지하여 
-      // 시스템 프롬프트에 자동으로 템플릿을 포함하므로 프론트엔드에서는 추가하지 않습니다.
-      return trimmedInput;
-    },
-    [],
-  );
+  const applyTestCaseTemplate = useCallback((trimmedInput) => {
+    // 이제 백엔드(RagQueryAnalyzer)에서 테스트케이스 생성 의도를 감지하여
+    // 시스템 프롬프트에 자동으로 템플릿을 포함하므로 프론트엔드에서는 추가하지 않습니다.
+    return trimmedInput;
+  }, []);
 
   // 스트리밍 채팅 처리
   const handleStreamingChat = useCallback(
@@ -150,6 +147,21 @@ export function useChatSender({
         (streamError) => {
           clearStreamingScheduler();
           resetStreamingBuffer();
+          // 스트림이 끊기면 정리만 하고 조용히 끝나 빈 말풍선만 남았다.
+          // 실패했다는 사실과 원인을 그 말풍선에 그대로 싣는다.
+          // 사용자가 중지를 누른 경우는 실패가 아니므로 오류로 표시하지 않는다.
+          const aborted = streamError?.name === "AbortError";
+          updateStreamingMessage((current) => ({
+            ...current,
+            isStreaming: false,
+            isError: !aborted,
+            // 사유가 없으면 상태 코드로 화면이 문구를 만든다.
+            errorMessage: aborted ? null : streamError?.errorMessage || null,
+            errorStatusCode: aborted ? undefined : streamError?.statusCode,
+          }));
+          streamingMessageIdRef.current = null;
+          setIsStreaming(false);
+          setIsLoading(false);
         },
         {
           ...chatOptions,
@@ -194,7 +206,13 @@ export function useChatSender({
       resolvedThreadId,
       userMessageId,
     ) => {
-      const response = await chat(projectId, messageContentForAPI, chatOptions);
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      const response = await chat(projectId, messageContentForAPI, {
+        ...chatOptions,
+        signal: abortController.signal,
+      });
 
       if (shouldPersist) {
         await handleChatResult(response, {
@@ -214,6 +232,9 @@ export function useChatSender({
         documents: response.documents || [],
         similarity: response.similarity,
         persistedId: response.assistantMessageId || null,
+        // 서버가 내려준 실패 원인을 메시지에 실어 화면에서 드러낸다.
+        isError: Boolean(response.error),
+        errorMessage: response.errorMessage || null,
       };
 
       setMessages((prev) =>
@@ -229,6 +250,7 @@ export function useChatSender({
       setMessages,
       setIsLoading,
       handleChatResult,
+      abortControllerRef,
     ],
   );
 

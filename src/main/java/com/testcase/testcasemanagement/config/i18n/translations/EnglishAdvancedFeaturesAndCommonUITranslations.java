@@ -474,7 +474,42 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "rag.chat.persistToggle", languageCode, "Auto-save Conversation", createdBy);
     createTranslationIfNotExists(
+        "rag.document.error.vectorWriteDisabled",
+        languageCode,
+        "Vector indexing is stopped, so this action is unavailable. Querying"
+            + " already-indexed material keeps working. An administrator can turn it back on"
+            + " in the settings.",
+        createdBy);
+    createTranslationIfNotExists(
         "rag.chat.useRagSearch", languageCode, "Search RAG Documents First", createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.unknownCause",
+        languageCode,
+        "The response could not be generated. No cause was reported, so the server log has to be"
+            + " checked.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.gatewayTimeout",
+        languageCode,
+        "The response did not arrive within the time limit and the connection was closed. The"
+            + " server may still be working on it. Try splitting the question or retrying shortly.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.unauthorized",
+        languageCode,
+        "The session has expired or you do not have permission. Sign in again and retry.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.serverError",
+        languageCode,
+        "The server could not process the request. Retry shortly; if it persists, the server log"
+            + " has to be checked.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.error.networkFailed",
+        languageCode,
+        "Could not reach the server. Check the network connection.",
+        createdBy);
     createTranslationIfNotExists(
         "rag.chat.threadSelectLabel", languageCode, "Saved Threads", createdBy);
     createTranslationIfNotExists(

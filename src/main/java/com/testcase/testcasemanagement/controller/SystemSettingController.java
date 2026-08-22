@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.UpdateSchedulerDto;
+import com.testcase.testcasemanagement.exception.RagVectorWriteDisabledException;
 import com.testcase.testcasemanagement.service.SchedulerConfigService;
 import com.testcase.testcasemanagement.service.SystemSettingService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,9 +26,16 @@ public class SystemSettingController {
 
   public static final String RAG_ENABLED_KEY = "RAG_ENABLED";
 
+  /** 벡터 쓰기(색인·임베딩 생성)만 따로 끄는 설정. 질의는 이 값과 무관하게 계속 된다. */
+  public static final String RAG_VECTOR_WRITE_ENABLED_KEY =
+      RagVectorWriteDisabledException.SETTING_KEY;
+
   /** RAG 관련 스케줄러 taskKey 목록 */
   private static final List<String> RAG_SCHEDULER_KEYS =
       List.of("rag-cleanup", "rag-auto-analysis");
+
+  /** 새 벡터를 만드는 스케줄러. 정리(rag-cleanup)는 벡터를 만들지 않으므로 여기 포함하지 않는다. */
+  private static final String RAG_AUTO_ANALYSIS_TASK_KEY = "rag-auto-analysis";
 
   @GetMapping("/{key}")
   @Operation(summary = "설정 조회", description = "특정 키의 설정값을 조회합니다.")
@@ -43,7 +51,10 @@ public class SystemSettingController {
   @Operation(summary = "RAG 기능 활성화 상태 조회", description = "현재 RAG 기능이 켜져있는지 확인합니다.")
   public ResponseEntity<Map<String, Boolean>> getRagStatus() {
     boolean isEnabled = systemSettingService.getBooleanSetting(RAG_ENABLED_KEY, true);
-    return ResponseEntity.ok(Map.of("enabled", isEnabled));
+    boolean vectorWriteEnabled =
+        systemSettingService.getBooleanSetting(RAG_VECTOR_WRITE_ENABLED_KEY, true);
+    return ResponseEntity.ok(
+        Map.of("enabled", isEnabled, "vectorWriteEnabled", vectorWriteEnabled));
   }
 
   @PutMapping("/{key}")
@@ -59,6 +70,22 @@ public class SystemSettingController {
     }
 
     systemSettingService.updateSetting(key, value, description);
+
+    // 벡터 쓰기를 끄면 새 벡터를 만드는 스케줄러도 함께 내린다.
+    // 설정만 끄고 스케줄러를 두면 다음 주기에 다시 색인을 시도한다.
+    if (RAG_VECTOR_WRITE_ENABLED_KEY.equals(key) && "false".equalsIgnoreCase(value)) {
+      try {
+        UpdateSchedulerDto dto = new UpdateSchedulerDto();
+        dto.setEnabled(false);
+        schedulerConfigService.updateConfig(RAG_AUTO_ANALYSIS_TASK_KEY, dto);
+        log.info("벡터 색인 중지로 스케줄러를 내립니다: taskKey={}", RAG_AUTO_ANALYSIS_TASK_KEY);
+      } catch (Exception e) {
+        log.warn(
+            "스케줄러 중지 실패 (설정 없을 수 있음): taskKey={}, error={}",
+            RAG_AUTO_ANALYSIS_TASK_KEY,
+            e.getMessage());
+      }
+    }
 
     // RAG_ENABLED=false 시 RAG 관련 스케줄러를 DB에서 비활성화 (자동 재시작 방지)
     if (RAG_ENABLED_KEY.equals(key) && "false".equalsIgnoreCase(value)) {

@@ -34,6 +34,7 @@ import {
 import googleConfigApi from "../../services/googleConfigApi";
 import { useI18n } from "../../context/I18nContext";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 /**
  * 사용자별 Google Sheets 설정을 관리하는 컴포넌트 (Premium UI)
@@ -110,7 +111,7 @@ const GoogleConfigManager = () => {
         "google.config.saveError",
         "설정 저장 중 오류가 발생했습니다. 형식을 확인해주세요.",
       );
-      if (err.response?.data?.message) {
+      if (serverErrorMessage(err)) {
         msg = err.response.data.message;
       } else if (err.message) {
         msg = err.message;

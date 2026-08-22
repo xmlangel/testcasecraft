@@ -1,5 +1,6 @@
 // src/components/RAG/hooks/useThreadManagement.js
 import { useState, useCallback } from "react";
+import { serverErrorMessage } from "../../../utils/apiError.js";
 
 /**
  * 스레드 및 카테고리 관리 훅
@@ -141,7 +142,7 @@ export function useThreadManagement({
     } catch (createError) {
       // console.error('채팅 스레드 생성 실패:', createError);
       setError(
-        createError.response?.data?.message ||
+        serverErrorMessage(createError) ||
           t("rag.chat.threadCreateFailed", "스레드를 생성하지 못했습니다."),
       );
     } finally {
@@ -224,7 +225,7 @@ export function useThreadManagement({
     } catch (deleteError) {
       // console.error('채팅 스레드 삭제 실패:', deleteError);
       setError(
-        deleteError.response?.data?.message ||
+        serverErrorMessage(deleteError) ||
           t("rag.chat.threadDeleteFailed", "스레드를 삭제하지 못했습니다."),
       );
     } finally {
@@ -265,7 +266,7 @@ export function useThreadManagement({
     } catch (editError) {
       // console.error('채팅 메시지 편집 실패:', editError);
       setError(
-        editError.response?.data?.message ||
+        serverErrorMessage(editError) ||
           t("rag.chat.editFailed", "메시지를 수정하지 못했습니다."),
       );
     }
@@ -307,7 +308,7 @@ export function useThreadManagement({
     } catch (deleteError) {
       // console.error('채팅 메시지 삭제 실패:', deleteError);
       setError(
-        deleteError.response?.data?.message ||
+        serverErrorMessage(deleteError) ||
           t("rag.chat.messageDeleteFailed", "메시지를 삭제하지 못했습니다."),
       );
     } finally {
