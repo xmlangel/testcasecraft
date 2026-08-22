@@ -269,6 +269,12 @@ public abstract class OpenAiCompatibleLlmClient implements LlmClient {
       }
 
       Map<String, Object> firstChoice = choices.get(0);
+      // 목록은 비어 있지 않은데 첫 요소가 null 인 상항을 보내는 제공자가 있다. 아래 catch 가
+      // 조각 하나를 감싸고 있어 검사하지 않아도 다음 조각은 정상 처리되므로, 이 검사가 막는
+      // 것은 사용자에게 보이는 문제가 아니라 로그에 쌓이는 예외 소음이다.
+      if (firstChoice == null) {
+        return;
+      }
       @SuppressWarnings("unchecked")
       Map<String, Object> delta = (Map<String, Object>) firstChoice.get("delta");
       if (delta != null) {
@@ -342,10 +348,7 @@ public abstract class OpenAiCompatibleLlmClient implements LlmClient {
     }
 
     String endpoint = LlmApiUrlNormalizer.resolveEndpoint(config.getApiUrl(), chatPath());
-    String prefix =
-        streaming
-            ? "Failed to call " + displayName() + " API stream"
-            : displayName() + " API 호출 실패";
+    String prefix = displayName() + " API " + (streaming ? "스트리밍 " : "") + "호출 실패";
     return new LlmClientException(
         prefix
             + " (상태코드: "

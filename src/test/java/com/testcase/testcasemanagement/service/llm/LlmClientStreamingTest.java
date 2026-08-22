@@ -228,6 +228,26 @@ public class LlmClientStreamingTest {
         provider + ": Accept 에 event-stream 을 요구한다");
   }
 
+  @Test(
+      dataProvider = "제공자별",
+      description = "choices 첫 요소가 null 이어도 스트리밍이 정상 완료된다")
+  public void survivesNullFirstChoice(
+      LlmProvider provider, ClientFactory factory, String apiUrl) {
+    // 현재 동작을 고정하는 특성화 시험이다. null 요소를 만나도 다음 조각과 완료 신호가
+    // 정상으로 온다. 앞으로 이 처리를 바꿔 스트림을 끊도록 하면 이 시험이 알려 준다.
+    // 회귀 확인 실측 — 클라이언트의 null 검사를 지워도 이 시험은 통과한다. catch 가 조각
+    // 하나를 감싸므로 검사 유무가 사용자에게 보이는 결과를 바꾸지 않기 때문이다.
+    LlmClientTestSupport.StreamStubExchange stub =
+        stream("data: {\"choices\":[null]}\n\n" + sseDelta("복구") + "data: [DONE]\n\n");
+    LlmClient client = factory.apply(stub.builder());
+    LlmClientTestSupport.RecordedStream recorded = new LlmClientTestSupport.RecordedStream();
+
+    client.chatStream(config(provider, apiUrl, "m"), oneMessage("안녕?"), 0.5, 50, recorded);
+
+    assertEquals(recorded.text(), "복구", provider + ": null 요소 뒤 조각이 도달한다");
+    assertEquals(recorded.completionCount(), 1, provider + ": 완료 신호가 정확히 한 번 온다");
+  }
+
   /** 내용 하나를 담은 SSE 데이터 줄. */
   private String sseDelta(String content) {
     return "data: {\"choices\":[{\"delta\":{\"content\":\"" + content + "\"}}]}\n\n";
