@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { DOCUMENT_LIST_CONSTANTS } from "../constants.js";
 import { useI18n } from "../../../context/I18nContext.jsx";
-import { describeRagWriteError } from "../../../utils/ragWriteError.js";
+import { describeRagWriteError } from "../../../utils/ragError.js";
 import { serverErrorMessage } from "../../../utils/apiError.js";
 
 /**

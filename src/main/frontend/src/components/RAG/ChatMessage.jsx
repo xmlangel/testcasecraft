@@ -37,7 +37,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme, alpha } from "@mui/material/styles";
 import { useI18n } from "../../context/I18nContext.jsx";
-import { describeRagError } from "../../utils/ragErrorMessage.js";
+import { describeRagError } from "../../utils/ragError.js";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { extractTestCasesFromAIResponse } from "../../utils/testCaseParser.js";
 import TestCaseForm from "../TestCaseForm.jsx";

@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
   describeRagError,
+  describeRagWriteError,
   isAbortError,
+  isVectorWriteDisabled,
   GATEWAY_TIMEOUT_STATUSES,
-} from "./ragErrorMessage.js";
+  RAG_VECTOR_WRITE_DISABLED,
+} from "./ragError.js";
 
-// 실제 t() 처럼 폴백을 그대로 돌려준다.
 const t = (key, fallback) => fallback;
 
 describe("describeRagError", () => {
@@ -81,5 +83,43 @@ describe("isAbortError - 사용자가 중지한 경우", () => {
     expect(isAbortError(abortError())).toBe(true);
     expect(isAbortError(new TypeError("Failed to fetch"))).toBe(false);
     expect(isAbortError(null)).toBe(false);
+  });
+});
+
+describe("describeRagWriteError", () => {
+  it("벡터 색인 중지는 전용 안내로 바꾼다", () => {
+    const error = new Error("boom");
+    error.errorCode = RAG_VECTOR_WRITE_DISABLED;
+    error.errorMessage = "서버 원문";
+
+    const message = describeRagWriteError(error, t, "기본 문구");
+    expect(message).toContain("질문하는 것은 그대로");
+  });
+
+  it("그 밖에는 서버 사유를 그대로 쓴다", () => {
+    const error = new Error("boom");
+    error.errorMessage = "문서 형식을 읽을 수 없습니다.";
+    expect(describeRagWriteError(error, t, "기본 문구")).toBe(
+      "문서 형식을 읽을 수 없습니다.",
+    );
+  });
+
+  it("사유가 없으면 기본 문구", () => {
+    expect(describeRagWriteError(new Error("boom"), t, "기본 문구")).toBe(
+      "기본 문구",
+    );
+    expect(describeRagWriteError(null, t, "기본 문구")).toBe("기본 문구");
+  });
+});
+
+describe("isVectorWriteDisabled", () => {
+  it("코드가 맞을 때만 참", () => {
+    const error = new Error("boom");
+    error.errorCode = RAG_VECTOR_WRITE_DISABLED;
+    expect(isVectorWriteDisabled(error)).toBe(true);
+
+    error.errorCode = "OTHER";
+    expect(isVectorWriteDisabled(error)).toBe(false);
+    expect(isVectorWriteDisabled(null)).toBe(false);
   });
 });

@@ -22,7 +22,7 @@ import ChatInput from "./ChatInput.jsx";
 import ChatDialogs from "./ChatDialogs.jsx";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
-import { describeRagError, isAbortError } from "../../utils/ragErrorMessage.js";
+import { describeRagError, isAbortError } from "../../utils/ragError.js";
 import { useLlmConfig } from "../../context/LlmConfigContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useMessageManagement } from "./hooks/useMessageManagement.js";

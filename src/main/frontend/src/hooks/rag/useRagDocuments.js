@@ -8,12 +8,8 @@ import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 
 import { debugLog } from "../../utils/logger.js";
-import {
-  buildRagWriteError,
-  describeRagWriteError,
-} from "../../utils/ragWriteError.js";
-import { serverErrorMessage } from "../../utils/apiError.js";
-import { buildApiError } from "../../utils/apiError.js";
+import { describeRagWriteError } from "../../utils/ragError.js";
+import { buildApiError, serverErrorMessage } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -79,7 +75,7 @@ export function useRagDocuments(
         // 상태를 먼저 본다. 실패 응답도 JSON 이라 그냥 읽으면 문서로 등록된다.
         if (!response.ok) {
           // 기본 문구는 아래 catch 가 이미 갖고 있다. 여기서 또 두면 문구가 두 곳이 된다.
-          throw await buildRagWriteError(response, null);
+          throw await buildApiError(response);
         }
 
         const uploadedDoc = await response.json();
@@ -94,7 +90,7 @@ export function useRagDocuments(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          // buildRagWriteError 가 서버 사유를 errorMessage 에 담아 준다.
+          // buildApiError 가 서버 사유를 errorMessage 에 담아 준다.
           // 기존의 error.response 는 axios 형태라 fetch 응답에서는 늘 undefined 였다.
           payload: error.errorMessage || "문서 업로드에 실패했습니다.",
         });
@@ -127,7 +123,7 @@ export function useRagDocuments(
 
         dispatch({ type: ActionTypes.SET_LOADING, payload: false });
         if (!response.ok) {
-          throw await buildRagWriteError(response, null);
+          throw await buildApiError(response);
         }
 
         const result = await response.json();
@@ -298,7 +294,7 @@ export function useRagDocuments(
 
         dispatch({ type: ActionTypes.SET_LOADING, payload: false });
         if (!response.ok) {
-          throw await buildRagWriteError(response, null);
+          throw await buildApiError(response);
         }
 
         const result = await response.json();

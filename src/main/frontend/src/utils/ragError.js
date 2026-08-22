@@ -1,12 +1,12 @@
-// src/utils/ragErrorMessage.js
+// src/utils/ragError.js
 /**
- * RAG 질의 실패를 사람이 읽을 문구로 옮긴다.
+ * RAG 실패를 화면 문구로 옮긴다.
  *
- * 실패는 세 층에서 온다.
- *   1. 서버가 원인을 담아 응답한 경우 (errorMessage)
- *   2. 앞단 프록시가 끊은 경우 (statusCode 만 있고 본문은 HTML)
- *   3. 브라우저가 연결 자체를 못 맺은 경우
- * 층마다 사용자가 할 일이 다르므로 문구도 갈라 준다.
+ * 질의(채팅)와 쓰기(업로드·색인)는 사용자가 할 일이 다르므로 판정도 갈라 둔다.
+ *   - describeRagError: 질의 실패
+ *   - describeRagWriteError: 쓰기 실패
+ *
+ * 응답에서 사유를 꺼내는 일은 전송 계층의 몫이라 utils/apiError.js 가 맡는다.
  */
 
 /** 앞단(프록시·게이트웨이)이 끊었을 때 오는 상태 코드. 본문은 대개 HTML 이라 사유가 없다. */
@@ -69,4 +69,39 @@ export function describeRagError(error, t) {
   }
 
   return null;
+}
+
+/** 관리자가 벡터 색인을 꺼 둔 상태. 백엔드 RagVectorWriteDisabledException.ERROR_CODE 와 같은 값. */
+export const RAG_VECTOR_WRITE_DISABLED = "RAG_VECTOR_WRITE_DISABLED";
+
+/**
+ * 실패 응답에서 원인을 꺼내 에러로 만든다.
+ *
+ * @param {Response} response fetch 응답
+ * @param {string} fallbackMessage 사유를 읽지 못했을 때 쓸 문구
+ * @returns {Promise<Error>} statusCode·errorCode·errorMessage 가 붙은 에러
+ */
+/** 벡터 색인이 꺼져 있어 거부된 것인지 판정한다. */
+export function isVectorWriteDisabled(error) {
+  return error?.errorCode === RAG_VECTOR_WRITE_DISABLED;
+}
+
+/**
+ * 화면에 보여줄 문구를 고른다.
+ *
+ * @param {Error|null|undefined} error 잡은 에러
+ * @param {(key: string, fallback: string) => string} t 번역 함수
+ * @param {string} fallbackMessage 어느 규칙에도 걸리지 않을 때 쓸 문구
+ */
+export function describeRagWriteError(error, t, fallbackMessage) {
+  if (!error) return fallbackMessage;
+
+  if (isVectorWriteDisabled(error)) {
+    return t(
+      "rag.document.error.vectorWriteDisabled",
+      "벡터 색인이 중지되어 있어 이 작업을 할 수 없습니다. 이미 색인된 자료로 질문하는 것은 그대로 됩니다. 관리자 설정에서 다시 켤 수 있습니다.",
+    );
+  }
+
+  return error.errorMessage || fallbackMessage;
 }
