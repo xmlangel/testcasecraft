@@ -29,6 +29,8 @@ import {
   Tooltip,
   Stack,
   Typography,
+  Autocomplete,
+  ListItemText,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -44,11 +46,33 @@ import {
   VisibilityOff as VisibilityOffIcon,
   Refresh as RefreshIcon,
   Download as DownloadIcon,
+  PlaylistAddCheck as PlaylistAddCheckIcon,
 } from "@mui/icons-material";
 import { useLlmConfig } from "../../context/LlmConfigContext";
 import { useI18n } from "../../context/I18nContext";
 import EncryptionKeyHelp from "./EncryptionKeyHelp";
+import ErrorDetailAlert from "../common/ErrorDetailAlert.jsx";
 import { isEncryptionKeyError } from "../../constants/errorCodes";
+
+/**
+ * 제공자별 기본 API URL.
+ *
+ * 각 값은 클라이언트가 뒤에 호출 경로를 붙이는 **호스트**다. 제공자 공식 문서는 대개 경로가 포함된
+ * 형태를 base URL 로 안내하지만(OpenRouter 는 `/api/v1`, OpenAI 는 `/v1`), 서버가 그 경로를 다시
+ * 붙이므로 여기서는 호스트만 둔다. 서버 쪽 정규화가 어느 형태든 받아 주지만, 처음부터 올바른 값을
+ * 채워 두면 사용자가 문서를 보고 경로를 덧붙이는 일 자체가 줄어든다.
+ */
+const PROVIDER_DEFAULT_API_URLS = {
+  OPENWEBUI: "http://localhost:3000",
+  OPENAI: "https://api.openai.com",
+  OLLAMA: "http://localhost:11434",
+  PERPLEXITY: "https://api.perplexity.ai",
+  OPENROUTER: "https://openrouter.ai",
+};
+
+/** 어느 제공자의 기본값과도 다르면 사용자가 직접 고친 값으로 본다. */
+const isUntouchedApiUrl = (apiUrl) =>
+  !apiUrl || Object.values(PROVIDER_DEFAULT_API_URLS).includes(apiUrl);
 
 // 기본 테스트 케이스 템플릿
 const DEFAULT_TEST_CASE_TEMPLATE = `{
@@ -95,6 +119,8 @@ const LlmConfigList = ({ onSuccess }) => {
     testConnection,
     testUnsavedSettings,
     toggleActive,
+    fetchOpenRouterFreeModels,
+    probeOpenRouterModels,
   } = useLlmConfig();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -114,6 +140,16 @@ const LlmConfigList = ({ onSuccess }) => {
   const [testResult, setTestResult] = useState(null);
   // 저장 실패 메시지. 기존에는 Context 의 error 만 갱신하고 다이얼로그에는 아무것도 뜨지 않았다.
   const [submitError, setSubmitError] = useState(null);
+  // OpenRouter 무료 모델 목록. 목록만 받은 상태에서는 availability 가 UNKNOWN 이다.
+  const [freeModels, setFreeModels] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsProbing, setModelsProbing] = useState(false);
+  const [modelsError, setModelsError] = useState(null);
+  const [modelsNotice, setModelsNotice] = useState(null);
+  // 목록 개방 상태와 입력 문자열을 직접 들고 있는다. 목록을 받은 직후 자동으로 펼쳐 주려면
+  // 개방 여부를 컴포넌트가 통제해야 하고, 고른 값과 타이핑 중인 문자열도 구분해야 한다.
+  const [modelListOpen, setModelListOpen] = useState(false);
+  const [modelInput, setModelInput] = useState("");
 
   const handleOpenDialog = (config = null) => {
     if (config) {
@@ -132,7 +168,8 @@ const LlmConfigList = ({ onSuccess }) => {
       setFormData({
         name: "",
         provider: "OPENWEBUI",
-        apiUrl: "",
+        // 기본값을 미리 채운다. 빈 칸으로 두면 사용자가 공식 문서의 경로 포함 URL 을 그대로 넣게 된다.
+        apiUrl: PROVIDER_DEFAULT_API_URLS.OPENWEBUI,
         apiKey: "",
         modelName: "",
         isDefault: false,
@@ -143,6 +180,8 @@ const LlmConfigList = ({ onSuccess }) => {
     setShowApiKey(false);
     setTestResult(null);
     setSubmitError(null);
+    resetModelCatalog();
+    setModelInput(config ? config.modelName || "" : "");
   };
 
   const handleCloseDialog = () => {
@@ -151,7 +190,7 @@ const LlmConfigList = ({ onSuccess }) => {
     setFormData({
       name: "",
       provider: "OPENWEBUI",
-      apiUrl: "",
+      apiUrl: PROVIDER_DEFAULT_API_URLS.OPENWEBUI,
       apiKey: "",
       modelName: "",
       isDefault: false,
@@ -160,7 +199,297 @@ const LlmConfigList = ({ onSuccess }) => {
     setShowApiKey(false);
     setTestResult(null);
     setSubmitError(null);
+    resetModelCatalog();
+    setModelInput("");
   };
+
+  /**
+   * 제공자 변경.
+   *
+   * 그 제공자의 기본 API URL 을 채워 넣되, **사용자가 직접 고친 값은 덮지 않는다.** 사설 호스트를
+   * 입력해 둔 사용자가 제공자를 잠깐 바꿨다 돌아왔을 때 값을 잃으면 안 되기 때문이다. 채워진 값은
+   * 그대로 편집할 수 있다.
+   *
+   * 모델 이름은 제공자마다 체계가 전혀 달라 그대로 두면 잘못된 값이 남는다. 그래서 비운다.
+   */
+  const handleProviderChange = (provider) => {
+    setFormData((previous) => ({
+      ...previous,
+      provider,
+      apiUrl: isUntouchedApiUrl(previous.apiUrl)
+        ? PROVIDER_DEFAULT_API_URLS[provider] || ""
+        : previous.apiUrl,
+      modelName: "",
+    }));
+    resetModelCatalog();
+    setModelInput("");
+  };
+
+  const resetModelCatalog = () => {
+    setFreeModels([]);
+    setModelsError(null);
+    setModelsNotice(null);
+    setModelsLoading(false);
+    setModelsProbing(false);
+    setModelListOpen(false);
+  };
+
+  /** 목록 조회·가용성 확인에 쓸 자격 증명. 입력한 키가 있으면 그것을, 없으면 저장된 설정 ID 를 쓴다. */
+  const modelQueryCredentials = () => {
+    if (formData.apiKey) {
+      return { apiKey: formData.apiKey };
+    }
+    if (editingConfig?.id) {
+      return { configId: editingConfig.id };
+    }
+    return null;
+  };
+
+  const handleLoadFreeModels = async () => {
+    const credentials = modelQueryCredentials();
+    if (!credentials) {
+      setModelsError(
+        t(
+          "admin.llmConfig.models.needApiKey",
+          "먼저 API Key 를 입력해 주세요. 저장된 설정을 수정하는 경우에는 키를 다시 입력하지 않아도 됩니다.",
+        ),
+      );
+      return;
+    }
+
+    setModelsLoading(true);
+    setModelsError(null);
+    setModelsNotice(null);
+    try {
+      const models = await fetchOpenRouterFreeModels(credentials);
+      setFreeModels(models);
+      // 목록을 받았으면 바로 펼쳐 준다. 버튼을 눌렀는데 화면이 그대로면 아무 일도 없어 보인다.
+      if (models.length > 0) {
+        setModelListOpen(true);
+      }
+      setModelsNotice(
+        // 옛 키(models.loaded)는 DB 에 이전 문구가 들어 있고 시드가 기존 값을 덮지 않는다.
+        // 버튼 이름이 바뀌었으므로 새 키로 옮긴다.
+        t(
+          "admin.llmConfig.models.loadedHint",
+          "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.",
+        ).replace("{count}", String(models.length)),
+      );
+    } catch (err) {
+      setModelsError(err.message);
+    } finally {
+      setModelsLoading(false);
+    }
+  };
+
+  /** 이미 판정한 모델 수. 판정 초기화 버튼을 띄울지 정한다. */
+  const checkedCount = freeModels.filter(
+    (m) => m.availability && m.availability !== "UNKNOWN",
+  ).length;
+
+  /** 아직 확인하지 않은 모델 수. 전수 확인이 실제로 보낼 요청 수다. */
+  const pendingCheckCount = freeModels.length - checkedCount;
+
+  /**
+   * 가용성 확인.
+   *
+   * 확인 한 번이 무료 일일 한도를 그만큼 쓴다(실측 한도 50건, 무료 모델 20개). 그래서 기본은
+   * 고른 모델 하나만 확인하고, 전체 확인은 소모량을 알린 뒤에만 보낸다. 이미 판정한 모델은
+   * 서버에서 건너뛰므로 버튼을 다시 눌러도 한도가 다시 쓰이지 않는다.
+   *
+   * @param scope "one" 이면 지금 고른 모델만, "all" 이면 목록 전체
+   */
+  const handleProbeModels = async (scope) => {
+    const credentials = modelQueryCredentials();
+    if (!credentials) {
+      setModelsError(
+        t(
+          "admin.llmConfig.models.needApiKey",
+          "먼저 API Key 를 입력해 주세요. 저장된 설정을 수정하는 경우에는 키를 다시 입력하지 않아도 됩니다.",
+        ),
+      );
+      return;
+    }
+
+    let modelIds;
+    let alreadyChecked = [];
+
+    if (scope === "one") {
+      if (!formData.modelName) {
+        setModelsError(
+          t(
+            "admin.llmConfig.models.needModel",
+            "확인할 모델을 먼저 고르거나 입력해 주세요.",
+          ),
+        );
+        return;
+      }
+      modelIds = [formData.modelName];
+    } else {
+      modelIds = freeModels.map((m) => m.id);
+      // 이미 판정한 모델은 서버가 건너뛴다. 남은 개수를 알려 준 뒤 확인을 받는다.
+      alreadyChecked = freeModels
+        .filter((m) => m.availability && m.availability !== "UNKNOWN")
+        .map((m) => m.id);
+
+      const pending = modelIds.length - alreadyChecked.length;
+      if (pending === 0) {
+        setModelsNotice(
+          t(
+            "admin.llmConfig.models.allChecked",
+            "이미 전부 확인했습니다. 다시 확인하려면 '판정 초기화' 를 누르세요.",
+          ),
+        );
+        return;
+      }
+
+      const proceed = window.confirm(
+        t(
+          "admin.llmConfig.models.probeAllConfirm",
+          "모델 {count}개를 확인합니다. OpenRouter 무료 일일 한도를 그만큼 사용합니다(실측 한도 50건). 계속하시겠습니까?",
+        ).replace("{count}", String(pending)),
+      );
+      if (!proceed) {
+        return;
+      }
+    }
+
+    setModelsProbing(true);
+    setModelsError(null);
+    setModelsNotice(null);
+    try {
+      const result = await probeOpenRouterModels({
+        ...credentials,
+        modelIds,
+        alreadyChecked,
+      });
+      const results = result.models || [];
+
+      // 판정 결과를 기존 목록에 합친다. 목록이 비어 있었다면 판정 결과가 곧 목록이다.
+      const verdictById = new Map(results.map((r) => [r.id, r]));
+      setFreeModels((previous) => {
+        if (previous.length === 0) {
+          return results;
+        }
+        return previous.map((model) => {
+          const verdict = verdictById.get(model.id);
+          return verdict
+            ? {
+                ...model,
+                availability: verdict.availability,
+                availabilityMessage: verdict.availabilityMessage,
+              }
+            : model;
+        });
+      });
+
+      const availableModels = results.filter(
+        (r) => r.availability === "AVAILABLE",
+      );
+
+      // 계정 일일 한도가 걸린 경우는 모델을 바꿔도 풀리지 않는다. 개별 항목 사유로 묻어 두면
+      // 사용자가 다른 모델을 계속 시도하게 되므로 알림으로 먼저 알린다.
+      const accountLimited = results.find(
+        (r) => r.availability === "ACCOUNT_LIMIT",
+      );
+      if (accountLimited) {
+        const limit = result.accountLimit;
+        let message = t(
+          "admin.llmConfig.models.accountLimit",
+          "계정의 일일 무료 요청 한도를 다 썼습니다. 다른 무료 모델로 바꿔도 해결되지 않습니다.",
+        );
+        if (limit) {
+          message +=
+            " " +
+            t(
+              "admin.llmConfig.models.accountLimitDetail",
+              "하루 {limit}건 중 {remaining}건 남음. {reset} 에 초기화됩니다.",
+            )
+              .replace("{limit}", String(limit.limit ?? "?"))
+              .replace("{remaining}", String(limit.remaining ?? "?"))
+              .replace("{reset}", limit.resetAt || "다음 날");
+        } else {
+          message += " " + (accountLimited.availabilityMessage || "");
+        }
+        setModelsError(message);
+      }
+
+      let notice = t(
+        "admin.llmConfig.models.probed",
+        "확인 {total}개 중 {available}개를 지금 쓸 수 있습니다. 회색 항목은 고를 수 없습니다.",
+      )
+        .replace("{total}", String(results.length))
+        .replace("{available}", String(availableModels.length));
+
+      // 실제로 보낸 요청 수를 함께 알린다. 한도를 얼마나 썼는지 사용자가 알아야 다음 판단을 한다.
+      if (typeof result.requestsSent === "number") {
+        notice +=
+          " " +
+          t(
+            "admin.llmConfig.models.requestsSent",
+            "이번에 요청 {count}건을 보냈습니다.",
+          ).replace("{count}", String(result.requestsSent));
+      }
+
+      // 모델 기본값은 하드코딩하지 않는다. 무료 모델에는 만료일이 붙어 있어(실측: expiration_date)
+      // 박아 두면 곧 죽은 값이 되고 사용자는 원인 모를 실패를 만난다. 대신 방금 확인한 결과에서
+      // 살아 있는 모델을 채운다. 이미 고른 모델이 지금 쓸 수 있으면 건드리지 않는다.
+      const currentVerdict = verdictById.get(formData.modelName);
+      const currentUnusable =
+        !formData.modelName ||
+        (currentVerdict && currentVerdict.availability !== "AVAILABLE");
+
+      if (currentUnusable && availableModels.length > 0) {
+        const picked = availableModels[0].id;
+        setFormData((previous) => ({ ...previous, modelName: picked }));
+        setModelInput(picked);
+        notice +=
+          " " +
+          t(
+            "admin.llmConfig.models.autoSelected",
+            "모델을 {model} 로 채웠습니다. 다른 모델로 바꿀 수 있습니다.",
+          ).replace("{model}", picked);
+      }
+
+      setModelsNotice(notice);
+      if (results.length > 0) {
+        setModelListOpen(true);
+      }
+    } catch (err) {
+      setModelsError(err.message);
+    } finally {
+      setModelsProbing(false);
+    }
+  };
+
+  /** 판정을 지워 다시 확인할 수 있게 한다. 목록 자체는 그대로 둔다. */
+  const handleResetVerdicts = () => {
+    setFreeModels((previous) =>
+      previous.map((model) => ({
+        ...model,
+        availability: "UNKNOWN",
+        availabilityMessage: null,
+      })),
+    );
+    setModelsError(null);
+    setModelsNotice(
+      t(
+        "admin.llmConfig.models.verdictsReset",
+        "판정을 지웠습니다. 다시 확인할 수 있습니다.",
+      ),
+    );
+  };
+
+  /**
+   * 회색 처리 대상.
+   *
+   * 계정 일일 한도(ACCOUNT_LIMIT)는 막지 않는다. 모델 탓이 아니라 계정 상태이므로 전부 회색이 되면
+   * 아무것도 고를 수 없고 저장조차 못 한다. 대신 알림으로 사유를 알린다.
+   * 아직 확인하지 않은 모델(UNKNOWN)도 고를 수 있게 둔다.
+   */
+  const isModelDisabled = (model) =>
+    model.availability === "RATE_LIMITED" ||
+    model.availability === "UNAVAILABLE";
 
   const handleTestDialogSettings = async () => {
     // 필수 필드 검증
@@ -613,9 +942,7 @@ const LlmConfigList = ({ onSuccess }) => {
               <InputLabel>{t("admin.llmConfig.provider", "제공자")}</InputLabel>
               <Select
                 value={formData.provider}
-                onChange={(e) =>
-                  setFormData({ ...formData, provider: e.target.value })
-                }
+                onChange={(e) => handleProviderChange(e.target.value)}
                 label={t("admin.llmConfig.provider", "제공자")}
               >
                 <MenuItem value="OPENWEBUI">OpenWebUI</MenuItem>
@@ -706,52 +1033,326 @@ const LlmConfigList = ({ onSuccess }) => {
               }}
             />
 
-            <TextField
-              label={t("admin.llmConfig.model", "모델 이름")}
-              value={formData.modelName}
-              onChange={(e) =>
-                setFormData({ ...formData, modelName: e.target.value })
-              }
-              fullWidth
-              required
-              placeholder={
-                formData.provider === "OPENAI"
-                  ? "gpt-4"
-                  : formData.provider === "OLLAMA"
-                    ? "qwen2.5-coder:7b"
-                    : formData.provider === "PERPLEXITY"
-                      ? "llama-3.1-sonar-large-128k-online"
-                      : formData.provider === "OPENROUTER"
-                        ? "anthropic/claude-3.5-sonnet"
-                        : "llama3.1"
-              }
-              helperText={
-                formData.provider === "OLLAMA"
-                  ? t(
-                      "admin.llmConfig.modelHelperOllama",
-                      "예시: qwen2.5-coder:7b, llama3.1:8b, mistral:7b, deepseek-coder:6.7b",
-                    )
-                  : formData.provider === "OPENAI"
-                    ? t(
-                        "admin.llmConfig.modelHelperOpenai",
-                        "예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo",
-                      )
-                    : formData.provider === "PERPLEXITY"
+            {/*
+              모델 입력란.
+
+              OpenRouter 는 무료 모델이 자주 바뀌고 한도 소진 여부가 시시각각 달라진다. 그래서
+              목록을 불러와 고르게 하고, 지금 쓸 수 없는 것은 회색으로 막는다. 다만 목록은
+              무료 모델만 담으므로 유료 모델을 쓰려면 직접 입력해야 한다. 그래서 freeSolo 로
+              두어 타이핑한 값도 그대로 받는다. 다른 제공자는 목록 API 가 없어 입력란만 쓴다.
+            */}
+            {formData.provider === "OPENROUTER" ? (
+              <Box>
+                <Autocomplete
+                  freeSolo
+                  // freeSolo 는 기본적으로 드롭다운 화살표를 감추고 입력이 있을 때만 목록을 연다.
+                  // 그러면 목록을 받아 놓고도 펼칠 방법이 없다. 화살표를 강제로 띄우고 포커스에도
+                  // 열리게 해서, 타이핑 없이 목록만 보고 고를 수 있게 한다.
+                  forcePopupIcon
+                  openOnFocus
+                  selectOnFocus
+                  handleHomeEndKeys
+                  open={modelListOpen}
+                  onOpen={() => setModelListOpen(true)}
+                  onClose={() => setModelListOpen(false)}
+                  loading={modelsLoading || modelsProbing}
+                  loadingText={t(
+                    "admin.llmConfig.models.loading",
+                    "불러오는 중…",
+                  )}
+                  noOptionsText={
+                    freeModels.length === 0
                       ? t(
-                          "admin.llmConfig.modelHelperPerplexity",
-                          "예시: llama-3.1-sonar-large-128k-online, llama-3.1-sonar-small-128k-online",
+                          "admin.llmConfig.models.emptyList",
+                          "'무료 모델 목록 불러오기' 를 먼저 눌러 주세요.",
                         )
-                      : formData.provider === "OPENROUTER"
+                      : t(
+                          "admin.llmConfig.models.noMatch",
+                          "일치하는 모델이 없습니다.",
+                        )
+                  }
+                  options={freeModels}
+                  value={formData.modelName}
+                  inputValue={modelInput}
+                  isOptionEqualToValue={(option, value) =>
+                    (typeof option === "string" ? option : option.id) ===
+                    (typeof value === "string" ? value : value?.id)
+                  }
+                  getOptionLabel={(option) =>
+                    typeof option === "string" ? option : option.id
+                  }
+                  getOptionDisabled={(option) =>
+                    typeof option === "string" ? false : isModelDisabled(option)
+                  }
+                  filterOptions={(options, state) => {
+                    // 이미 고른 값이 입력란에 그대로 들어 있는 상태에서 걸러내면 목록이 한 줄로
+                    // 좁아져 다른 모델로 바꿀 수 없다. 실제로 타이핑한 경우만 걸러낸다.
+                    const keyword = state.inputValue.trim().toLowerCase();
+                    if (!keyword || state.inputValue === formData.modelName) {
+                      return options;
+                    }
+                    return options.filter((option) =>
+                      option.id.toLowerCase().includes(keyword),
+                    );
+                  }}
+                  onChange={(event, newValue) => {
+                    const modelName =
+                      typeof newValue === "string"
+                        ? newValue
+                        : newValue?.id || "";
+                    setFormData((previous) => ({ ...previous, modelName }));
+                    setModelInput(modelName);
+                  }}
+                  onInputChange={(event, newInput, reason) => {
+                    setModelInput(newInput);
+                    // 목록에서 고른 경우는 onChange 가 이미 처리했다.
+                    if (reason === "input") {
+                      setFormData((previous) => ({
+                        ...previous,
+                        modelName: newInput,
+                      }));
+                    }
+                  }}
+                  renderOption={(props, option) => {
+                    const disabled = isModelDisabled(option);
+                    const context = [];
+                    if (option.contextLength) {
+                      context.push(
+                        `${Math.round(option.contextLength / 1000)}K 컨텍스트`,
+                      );
+                    }
+                    if (option.expirationDate) {
+                      context.push(`${option.expirationDate} 까지`);
+                    }
+                    return (
+                      <li {...props} key={option.id}>
+                        <ListItemText
+                          primary={
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              <span>{option.id}</span>
+                              {option.availability === "AVAILABLE" && (
+                                <Chip
+                                  size="small"
+                                  color="success"
+                                  variant="outlined"
+                                  label={t(
+                                    "admin.llmConfig.models.available",
+                                    "사용 가능",
+                                  )}
+                                />
+                              )}
+                              {option.availability === "RATE_LIMITED" && (
+                                <Chip
+                                  size="small"
+                                  color="warning"
+                                  variant="outlined"
+                                  label={t(
+                                    "admin.llmConfig.models.rateLimited",
+                                    "한도 소진",
+                                  )}
+                                />
+                              )}
+                              {option.availability === "ACCOUNT_LIMIT" && (
+                                <Chip
+                                  size="small"
+                                  color="warning"
+                                  variant="outlined"
+                                  label={t(
+                                    "admin.llmConfig.models.accountLimitBadge",
+                                    "계정 한도",
+                                  )}
+                                />
+                              )}
+                              {option.availability === "UNAVAILABLE" && (
+                                <Chip
+                                  size="small"
+                                  variant="outlined"
+                                  label={t(
+                                    "admin.llmConfig.models.unavailable",
+                                    "사용 불가",
+                                  )}
+                                />
+                              )}
+                            </Box>
+                          }
+                          secondary={
+                            (disabled ||
+                              option.availability === "ACCOUNT_LIMIT") &&
+                            option.availabilityMessage
+                              ? option.availabilityMessage
+                              : context.join(" · ")
+                          }
+                        />
+                      </li>
+                    );
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={t("admin.llmConfig.model", "모델 이름")}
+                      required
+                      placeholder="nvidia/nemotron-3-nano-30b-a3b:free"
+                      // 옛 키(modelHelperOpenrouter)는 DB 에 이전 문구가 이미 들어 있고
+                      // 시드가 기존 값을 덮지 않는다. 새 키로 옮겨 새 문구가 뜨게 한다.
+                      helperText={t(
+                        "admin.llmConfig.models.helper",
+                        "목록은 무료 모델입니다. 유료 모델은 슬러그를 직접 입력하세요 (예: anthropic/claude-sonnet-5).",
+                      )}
+                    />
+                  )}
+                />
+
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={
+                      modelsLoading ? (
+                        <CircularProgress size={16} />
+                      ) : (
+                        <DownloadIcon />
+                      )
+                    }
+                    onClick={handleLoadFreeModels}
+                    disabled={modelsLoading || modelsProbing}
+                  >
+                    {t(
+                      "admin.llmConfig.models.loadButton",
+                      "무료 모델 목록 불러오기",
+                    )}
+                  </Button>
+                  {/*
+                    확인을 둘로 나눈다. 확인 한 번이 무료 일일 한도를 그만큼 쓰기 때문이다
+                    (실측 한도 50건, 무료 모델 20개 → 전수 확인이 하루치의 40%).
+                    쓸 모델은 하나이므로 기본은 그 하나만 확인한다.
+                  */}
+                  <Tooltip
+                    title={t(
+                      "admin.llmConfig.models.probeOneTooltip",
+                      "지금 고른 모델에만 최소 요청을 보냅니다. 무료 한도 1건을 사용합니다.",
+                    )}
+                  >
+                    <span>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={
+                          modelsProbing ? (
+                            <CircularProgress size={16} />
+                          ) : (
+                            <PlaylistAddCheckIcon />
+                          )
+                        }
+                        onClick={() => handleProbeModels("one")}
+                        disabled={
+                          modelsLoading || modelsProbing || !formData.modelName
+                        }
+                      >
+                        {t(
+                          "admin.llmConfig.models.probeOneButton",
+                          "이 모델 확인",
+                        )}
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip
+                    title={t(
+                      "admin.llmConfig.models.probeAllTooltip",
+                      "목록의 모든 모델을 확인합니다. 모델 수만큼 무료 한도를 사용하므로 누르기 전에 다시 묻습니다.",
+                    )}
+                  >
+                    <span>
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => handleProbeModels("all")}
+                        disabled={
+                          modelsLoading ||
+                          modelsProbing ||
+                          pendingCheckCount === 0
+                        }
+                      >
+                        {t(
+                          "admin.llmConfig.models.probeAllButton",
+                          "전수 확인 ({count}건)",
+                        ).replace("{count}", String(pendingCheckCount))}
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  {checkedCount > 0 && (
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="inherit"
+                      onClick={handleResetVerdicts}
+                      disabled={modelsProbing}
+                    >
+                      {t("admin.llmConfig.models.resetVerdicts", "판정 초기화")}
+                    </Button>
+                  )}
+                </Stack>
+
+                {modelsNotice && (
+                  <Alert severity="info" sx={{ mt: 1 }}>
+                    {modelsNotice}
+                  </Alert>
+                )}
+                {modelsError && (
+                  <ErrorDetailAlert
+                    severity="error"
+                    sx={{ mt: 1 }}
+                    message={modelsError}
+                  />
+                )}
+              </Box>
+            ) : (
+              <TextField
+                label={t("admin.llmConfig.model", "모델 이름")}
+                value={formData.modelName}
+                onChange={(e) =>
+                  setFormData({ ...formData, modelName: e.target.value })
+                }
+                fullWidth
+                required
+                placeholder={
+                  formData.provider === "OPENAI"
+                    ? "gpt-4"
+                    : formData.provider === "OLLAMA"
+                      ? "qwen2.5-coder:7b"
+                      : formData.provider === "PERPLEXITY"
+                        ? "llama-3.1-sonar-large-128k-online"
+                        : "llama3.1"
+                }
+                helperText={
+                  formData.provider === "OLLAMA"
+                    ? t(
+                        "admin.llmConfig.modelHelperOllama",
+                        "예시: qwen2.5-coder:7b, llama3.1:8b, mistral:7b, deepseek-coder:6.7b",
+                      )
+                    : formData.provider === "OPENAI"
+                      ? t(
+                          "admin.llmConfig.modelHelperOpenai",
+                          "예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo",
+                        )
+                      : formData.provider === "PERPLEXITY"
                         ? t(
-                            "admin.llmConfig.modelHelperOpenrouter",
-                            "예시: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro",
+                            "admin.llmConfig.modelHelperPerplexity",
+                            "예시: llama-3.1-sonar-large-128k-online, llama-3.1-sonar-small-128k-online",
                           )
                         : t(
                             "admin.llmConfig.modelHelperOpenwebui",
                             "예시: llama3.1, granite3.1-dense:8b",
                           )
-              }
-            />
+                }
+              />
+            )}
 
             <FormControlLabel
               control={
@@ -847,18 +1448,25 @@ const LlmConfigList = ({ onSuccess }) => {
             </Box>
 
             {/* 테스트 결과 표시 */}
-            {testResult && (
-              <Alert
-                severity={testResult.success ? "success" : "error"}
-                sx={{ mt: 1 }}
-              >
-                {testResult.message}
-              </Alert>
-            )}
+            {testResult &&
+              (testResult.success ? (
+                <Alert severity="success" sx={{ mt: 1 }}>
+                  {testResult.message}
+                </Alert>
+              ) : (
+                // 실패 사유는 원인 사슬과 응답 본문이 이어 붙어 길다. 요약만 보이고 전문은 접는다.
+                <ErrorDetailAlert
+                  severity="error"
+                  sx={{ mt: 1 }}
+                  message={testResult.message}
+                />
+              ))}
             {submitError && (
-              <Alert severity="error" sx={{ mt: 1 }}>
-                {submitError.message}
-              </Alert>
+              <ErrorDetailAlert
+                severity="error"
+                sx={{ mt: 1 }}
+                message={submitError.message}
+              />
             )}
             {(testResult?.needsEncryptionKey ||
               submitError?.needsEncryptionKey) && <EncryptionKeyHelp />}

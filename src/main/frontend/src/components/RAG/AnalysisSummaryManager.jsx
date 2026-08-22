@@ -1,6 +1,7 @@
 // src/components/RAG/AnalysisSummaryManager.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
+import ErrorDetailAlert from "../common/ErrorDetailAlert.jsx";
 import {
   Box,
   Paper,
@@ -530,9 +531,12 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
       <Paper elevation={5} className="glass-border" sx={{ p: 3 }}>
         {/* 에러 메시지 */}
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
+          <ErrorDetailAlert
+            severity="error"
+            sx={{ mb: 2 }}
+            onClose={() => setError(null)}
+            message={error}
+          />
         )}
 
         {/* 헤더 */}

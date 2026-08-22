@@ -27,6 +27,10 @@ import reactor.core.publisher.Flux;
 @Slf4j
 public class OpenRouterClient implements LlmClient {
 
+  /** 이 제공자의 채팅 완성 호출 경로. baseUrl 정규화 기준이 된다. */
+  private static final String CHAT_COMPLETIONS_PATH =
+      LlmApiUrlNormalizer.chatCompletionsPathOf(LlmConfig.LlmProvider.OPENROUTER);
+
   private final WebClient.Builder webClientBuilder;
   private final EncryptionUtil encryptionUtil;
   private final ObjectMapper objectMapper;
@@ -43,7 +47,9 @@ public class OpenRouterClient implements LlmClient {
 
       WebClient webClient =
           webClientBuilder
-              .baseUrl(config.getApiUrl())
+              .baseUrl(
+                  LlmApiUrlNormalizer.normalizeBaseUrl(
+                      config.getApiUrl(), CHAT_COMPLETIONS_PATH))
               .defaultHeader("Authorization", "Bearer " + apiKey)
               .defaultHeader("HTTP-Referer", "https://github.com/testcase-management-tool")
               .defaultHeader("X-Title", "Test Case Management Tool")
@@ -65,7 +71,7 @@ public class OpenRouterClient implements LlmClient {
       Map<String, Object> response =
           webClient
               .post()
-              .uri("/api/v1/chat/completions")
+              .uri(CHAT_COMPLETIONS_PATH)
               .contentType(MediaType.APPLICATION_JSON)
               .bodyValue(requestBody)
               .retrieve()
@@ -107,7 +113,11 @@ public class OpenRouterClient implements LlmClient {
             "OpenRouter API 인증에 실패했습니다 (401/403). 등록된 API Key가 올바르고 만료되지 않았는지 확인해 주세요.", e);
       }
       throw new LlmClientException(
-          "OpenRouter API 호출 실패 (상태코드: " + e.getStatusCode() + "): " + e.getResponseBodyAsString(),
+          "OpenRouter API 호출 실패 (상태코드: " + e.getStatusCode() + "): "
+              + "[호출 주소: "
+              + LlmApiUrlNormalizer.resolveEndpoint(
+                  config.getApiUrl(), CHAT_COMPLETIONS_PATH)
+              + "] " + e.getResponseBodyAsString(),
           e);
     } catch (Exception e) {
       log.error("❌ OpenRouter API 호출 실패", e);
@@ -133,7 +143,9 @@ public class OpenRouterClient implements LlmClient {
 
       WebClient webClient =
           webClientBuilder
-              .baseUrl(config.getApiUrl())
+              .baseUrl(
+                  LlmApiUrlNormalizer.normalizeBaseUrl(
+                      config.getApiUrl(), CHAT_COMPLETIONS_PATH))
               .defaultHeader("Authorization", "Bearer " + apiKey)
               .defaultHeader("HTTP-Referer", "https://github.com/testcase-management-tool")
               .defaultHeader("X-Title", "Test Case Management Tool")
@@ -157,7 +169,7 @@ public class OpenRouterClient implements LlmClient {
       Flux<String> responseFlux =
           webClient
               .post()
-              .uri("/api/v1/chat/completions")
+              .uri(CHAT_COMPLETIONS_PATH)
               .contentType(MediaType.APPLICATION_JSON)
               .accept(MediaType.TEXT_EVENT_STREAM)
               .bodyValue(requestBody)
@@ -266,6 +278,10 @@ public class OpenRouterClient implements LlmClient {
           "Failed to call OpenRouter API stream (상태코드: "
               + e.getStatusCode()
               + "): "
+              + "[호출 주소: "
+              + LlmApiUrlNormalizer.resolveEndpoint(
+                  config.getApiUrl(), CHAT_COMPLETIONS_PATH)
+              + "] "
               + e.getResponseBodyAsString(),
           e);
     } catch (Exception e) {

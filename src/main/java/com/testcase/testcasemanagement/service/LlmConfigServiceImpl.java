@@ -2,18 +2,22 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
 import com.testcase.testcasemanagement.dto.rag.RagChatMessage;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
+import com.testcase.testcasemanagement.service.llm.LlmApiUrlNormalizer;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
 import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
+import com.testcase.testcasemanagement.service.llm.OpenRouterModelCatalogService;
 import jakarta.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   private final LlmConfigRepository llmConfigRepository;
   private final EncryptionUtil encryptionUtil;
   private final LlmClientFactory llmClientFactory;
+  private final OpenRouterModelCatalogService openRouterModelCatalogService;
 
   @PostConstruct
   public void init() {
@@ -341,6 +346,100 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   @Override
+  public List<OpenRouterModelDTO> listOpenRouterFreeModels(OpenRouterModelQueryRequest request) {
+    return openRouterModelCatalogService.listFreeChatModels(resolveOpenRouterApiKey(request));
+  }
+
+  @Override
+  public OpenRouterProbeResponse probeOpenRouterModels(OpenRouterModelQueryRequest request) {
+    String apiKey = resolveOpenRouterApiKey(request);
+
+    List<String> targets = request.getModelIds();
+    if (targets == null || targets.isEmpty()) {
+      // 대상을 지정하지 않으면 무료 모델 전체를 확인한다.
+      targets =
+          openRouterModelCatalogService.listFreeChatModels(apiKey).stream()
+              .map(OpenRouterModelDTO::getId)
+              .collect(Collectors.toList());
+    }
+
+    // 이미 판정한 모델은 건너뛴다. 확인 한 번이 한도를 그만큼 쓰므로, 버튼을 다시 눌렀을 때 같은
+    // 모델을 또 두드리지 않게 한다. 화면이 판정 결과를 갖고 있으므로 목록은 화면이 보내 준다.
+    List<String> skip = request.getAlreadyChecked();
+    if (skip != null && !skip.isEmpty()) {
+      java.util.Set<String> checked = new java.util.HashSet<>(skip);
+      targets = targets.stream().filter(id -> !checked.contains(id)).collect(Collectors.toList());
+      log.info("🔁 이미 판정한 {}개를 건너뛴다. 확인 대상 {}개", checked.size(), targets.size());
+    }
+
+    return openRouterModelCatalogService.probeAvailability(apiKey, targets);
+  }
+
+  /**
+   * 요청에서 OpenRouter API Key 를 얻는다.
+   *
+   * <p>화면이 키를 직접 보내면 그것을 쓰고, 저장된 설정 ID 만 보내면 저장된 키를 복호화해 쓴다. 저장된 설정을 다시 열어 목록을 새로 받을 때 사용자가 키를 다시
+   * 타이핑하지 않게 하려는 것이다.
+   */
+  private String resolveOpenRouterApiKey(OpenRouterModelQueryRequest request) {
+    if (request == null) {
+      throw new IllegalArgumentException("요청 본문이 필요합니다");
+    }
+
+    String apiKey = request.getApiKey();
+    if (apiKey != null && !apiKey.isBlank()) {
+      return apiKey.trim();
+    }
+
+    String configId = request.getConfigId();
+    if (configId == null || configId.isBlank()) {
+      throw new IllegalArgumentException("API Key 또는 저장된 설정 ID 가 필요합니다");
+    }
+
+    if (!encryptionUtil.isEncryptionKeyConfigured()) {
+      throw new EncryptionKeyNotConfiguredException();
+    }
+
+    LlmConfig config =
+        llmConfigRepository
+            .findById(configId)
+            .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + configId));
+
+    if (config.getProvider() != LlmProvider.OPENROUTER) {
+      throw new IllegalArgumentException(
+          "OpenRouter 설정이 아닙니다: " + config.getProvider().getDisplayName());
+    }
+
+    try {
+      return encryptionUtil.decrypt(config.getEncryptedApiKey());
+    } catch (Exception e) {
+      log.error("❌ 저장된 API Key 복호화 실패: configId={}", configId, e);
+      throw new IllegalStateException("저장된 API Key 를 읽을 수 없습니다. 키를 다시 입력해 주세요.");
+    }
+  }
+
+  @Override
+  public List<OpenRouterModelDTO> listSelectableFreeModelsForChat() {
+    LlmConfig config = llmConfigRepository.findByIsDefaultTrueAndIsActiveTrue().orElse(null);
+    if (config == null || config.getProvider() != LlmProvider.OPENROUTER) {
+      // OpenRouter 가 아니면 고를 목록이 없다. 오류가 아니라 빈 목록으로 답해 화면이 선택기를 감춘다.
+      return Collections.emptyList();
+    }
+    if (!encryptionUtil.isEncryptionKeyConfigured()) {
+      return Collections.emptyList();
+    }
+
+    try {
+      String apiKey = encryptionUtil.decrypt(config.getEncryptedApiKey());
+      return openRouterModelCatalogService.listFreeChatModels(apiKey);
+    } catch (Exception e) {
+      // 목록을 못 받아도 채팅 자체는 기본 모델로 되어야 한다. 실패를 던지지 않고 빈 목록으로 답한다.
+      log.warn("⚠️ 채팅용 무료 모델 목록 조회 실패, 빈 목록으로 응답: {}", e.getMessage());
+      return Collections.emptyList();
+    }
+  }
+
+  @Override
   @Transactional
   public LlmConfigDTO toggleActive(String id) {
     log.info("🔄 활성/비활성 토글: id={}", id);
@@ -402,37 +501,25 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     }
   }
 
+  /**
+   * 저장 전에 API URL 을 정규화한다.
+   *
+   * <p>정규화 규칙 자체는 {@link LlmApiUrlNormalizer} 가 정본이다. 예전에는 이 메서드가 자체 규칙을 갖고 있었는데 OPENWEBUI·OPENAI
+   * 두 제공자만, 그것도 호출 경로 전체를 넣은 경우만 처리해서 OpenRouter 에 {@code https://openrouter.ai/api/v1} 을 넣으면 경로가 두 번
+   * 붙어 404 가 났다. 규칙을 두 벌로 두면 한쪽만 고치게 되므로 클라이언트와 같은 정의를 쓴다.
+   */
   private String normalizeApiUrl(LlmProvider provider, String apiUrl) {
     if (apiUrl == null) {
       return null;
     }
-
-    String normalized = apiUrl.trim();
-    if (normalized.isEmpty()) {
-      return normalized;
+    if (apiUrl.isBlank()) {
+      return apiUrl.trim();
     }
-
-    normalized = normalized.replaceAll("/+$", "");
-
     if (provider == null) {
-      return normalized;
+      return apiUrl.trim().replaceAll("/+$", "");
     }
-
-    String lower = normalized.toLowerCase(Locale.ROOT);
-
-    if (provider == LlmProvider.OPENWEBUI) {
-      String suffix = "/api/chat/completions";
-      if (lower.endsWith(suffix)) {
-        normalized = normalized.substring(0, normalized.length() - suffix.length());
-      }
-    } else if (provider == LlmProvider.OPENAI) {
-      String suffix = "/v1/chat/completions";
-      if (lower.endsWith(suffix)) {
-        normalized = normalized.substring(0, normalized.length() - suffix.length());
-      }
-    }
-
-    return normalized.replaceAll("/+$", "");
+    return LlmApiUrlNormalizer.normalizeBaseUrl(
+        apiUrl, LlmApiUrlNormalizer.chatCompletionsPathOf(provider));
   }
 
   /** Entity를 DTO로 변환 */

@@ -3,7 +3,6 @@ import React, { memo, useState, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
-  Alert,
   Paper,
   Typography,
   Avatar,
@@ -37,6 +36,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTheme, alpha } from "@mui/material/styles";
 import { useI18n } from "../../context/I18nContext.jsx";
+import ErrorDetailAlert from "../common/ErrorDetailAlert.jsx";
 import { describeRagError } from "../../utils/ragError.js";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { extractTestCasesFromAIResponse } from "../../utils/testCaseParser.js";
@@ -470,23 +470,25 @@ function ChatMessage({
             {/* 실패 사유 — 서버가 내려준 원인을 그대로 보여준다.
                 이것이 없으면 "오류가 발생했습니다" 만 남아 무엇을 고쳐야 할지 알 수 없다. */}
             {isError && (
-              <Alert
+              // 사유가 길면(원인 사슬 + 응답 본문) 요약만 보이고 전문은 "자세히" 로 펼친다.
+              <ErrorDetailAlert
                 severity="error"
                 variant="outlined"
                 sx={{ mb: message.content ? 1.5 : 0 }}
-              >
-                {describeRagError(
-                  {
-                    errorMessage: message.errorMessage,
-                    statusCode: message.errorStatusCode,
-                  },
-                  t,
-                ) ||
+                message={
+                  describeRagError(
+                    {
+                      errorMessage: message.errorMessage,
+                      statusCode: message.errorStatusCode,
+                    },
+                    t,
+                  ) ||
                   t(
                     "rag.chat.error.unknownCause",
                     "응답을 만들지 못했습니다. 원인이 전달되지 않아 서버 로그를 확인해야 합니다.",
-                  )}
-              </Alert>
+                  )
+                }
+              />
             )}
 
             {/* Message Text */}

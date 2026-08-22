@@ -340,6 +340,77 @@ export const LlmConfigProvider = ({ children }) => {
   );
 
   /**
+   * OpenRouter 무료 모델 목록 조회
+   *
+   * apiKey 또는 configId 중 하나가 필요하다. 저장 전 설정은 화면에 입력한 키를 보내고,
+   * 저장된 설정은 configId 만 보내면 서버가 저장된 키를 쓴다.
+   */
+  const fetchOpenRouterFreeModels = useCallback(
+    async ({ apiKey, configId }) => {
+      const response = await api("/api/llm-configs/openrouter/free-models", {
+        method: "POST",
+        body: JSON.stringify({ apiKey, configId }),
+      });
+
+      const { data } = await parseApiResponse(
+        response,
+        "fetch OpenRouter free models",
+      );
+      return data || [];
+    },
+    [api],
+  );
+
+  /**
+   * 채팅 화면에서 고를 수 있는 무료 모델 목록
+   *
+   * 기본 활성 설정이 OpenRouter 가 아니면 빈 목록이 온다(오류가 아니다). 실패해도 채팅 자체는
+   * 기본 모델로 되어야 하므로 예외를 올리지 않고 빈 배열로 답한다.
+   */
+  const fetchSelectableFreeModels = useCallback(async () => {
+    try {
+      const response = await api(
+        "/api/llm-configs/openrouter/free-models/for-chat",
+      );
+      const { data } = await parseApiResponse(
+        response,
+        "fetch selectable free models",
+      );
+      return data || [];
+    } catch (err) {
+      console.warn("Selectable free models unavailable:", err.message);
+      return [];
+    }
+  }, [api]);
+
+  /**
+   * OpenRouter 모델 가용성 확인
+   *
+   * 각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. 확인 한 번이 무료 일일 한도를
+   * 그만큼 쓰므로(실측 한도 50건) 사용자가 버튼을 누를 때만 호출한다.
+   * modelIds 를 비우면 무료 모델 전체를 확인하고, alreadyChecked 에 담긴 모델은 건너뛴다.
+   */
+  const probeOpenRouterModels = useCallback(
+    async ({ apiKey, configId, modelIds, alreadyChecked }) => {
+      const response = await api(
+        "/api/llm-configs/openrouter/free-models/probe",
+        {
+          method: "POST",
+          body: JSON.stringify({ apiKey, configId, modelIds, alreadyChecked }),
+        },
+      );
+
+      const { data } = await parseApiResponse(
+        response,
+        "probe OpenRouter models",
+      );
+      // { models, accountLimit, requestsSent } 형태다. 한도 상태를 화면이 쓰므로 그대로 넘긴다.
+      return data || { models: [], accountLimit: null, requestsSent: 0 };
+    },
+    [api],
+  );
+
+  /**
    * 활성/비활성 토글
    */
   const toggleActive = useCallback(
@@ -393,6 +464,9 @@ export const LlmConfigProvider = ({ children }) => {
     testConnection,
     testUnsavedSettings,
     toggleActive,
+    fetchOpenRouterFreeModels,
+    probeOpenRouterModels,
+    fetchSelectableFreeModels,
   };
 
   return (

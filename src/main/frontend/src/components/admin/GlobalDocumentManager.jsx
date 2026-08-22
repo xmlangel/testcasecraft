@@ -1,6 +1,7 @@
 // src/components/admin/GlobalDocumentManager.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
+import ErrorDetailAlert from "../common/ErrorDetailAlert.jsx";
 import {
   Box,
   Paper,
@@ -1008,13 +1009,12 @@ const GlobalDocumentManager = ({ onSuccess }) => {
           </Alert>
 
           {globalDocError && (
-            <Alert
+            <ErrorDetailAlert
               severity="error"
               sx={{ mb: 2 }}
               onClose={() => setGlobalDocError("")}
-            >
-              {globalDocError}
-            </Alert>
+              message={globalDocError}
+            />
           )}
 
           {loadingGlobalDocs ? (

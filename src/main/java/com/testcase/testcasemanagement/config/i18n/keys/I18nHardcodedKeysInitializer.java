@@ -75,6 +75,118 @@ public class I18nHardcodedKeysInitializer {
         "i18n 하드코딩 보강 (2026-06-06)",
         "예시: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro");
     createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.helper",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "목록은 무료 모델입니다. 유료 모델은 슬러그를 직접 입력하세요 (예: anthropic/claude-sonnet-5).");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.loadButton",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "무료 모델 목록 불러오기");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeButton",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "가용성 확인");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeTooltip",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "각 모델에 최소 요청을 보내 지금 쓸 수 있는지 확인합니다. 무료 한도를 조금 사용하며 20초 정도 걸립니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.needApiKey",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "먼저 API Key 를 입력해 주세요. 저장된 설정을 수정하는 경우에는 키를 다시 입력하지 않아도 됩니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.loaded",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "무료 모델 {count}개를 불러왔습니다. 지금 쓸 수 있는지는 '가용성 확인' 을 눌러 보세요.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probed",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "확인 {total}개 중 {available}개를 지금 쓸 수 있습니다. 회색 항목은 고를 수 없습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.available",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "사용 가능");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.rateLimited",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "한도 소진");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.unavailable",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "사용 불가");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.loading",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "불러오는 중…");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.emptyList",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "'무료 모델 목록 불러오기' 를 먼저 눌러 주세요.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.noMatch",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "일치하는 모델이 없습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.accountLimit",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "계정의 일일 무료 요청 한도를 다 썼습니다. 다른 무료 모델로 바꿔도 해결되지 않습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.accountLimitBadge",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "계정 한도");
+    createTranslationKeyIfNotExists(
+        "common.error.showDetail", "common", "오류 전문 접기 (2026-08-22)", "자세히");
+    createTranslationKeyIfNotExists(
+        "common.error.hideDetail", "common", "오류 전문 접기 (2026-08-22)", "접기");
+    createTranslationKeyIfNotExists(
+        "common.error.copyDetail", "common", "오류 전문 접기 (2026-08-22)", "전문 복사");
+    createTranslationKeyIfNotExists(
+        "common.error.copied", "common", "오류 전문 접기 (2026-08-22)", "복사했습니다");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeOneButton", "admin", "가용성 확인 한도 절약 (2026-08-22)", "이 모델 확인");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeOneTooltip", "admin", "가용성 확인 한도 절약 (2026-08-22)", "지금 고른 모델에만 최소 요청을 보냅니다. 무료 한도 1건을 사용합니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeAllButton", "admin", "가용성 확인 한도 절약 (2026-08-22)", "전수 확인 ({count}건)");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeAllTooltip", "admin", "가용성 확인 한도 절약 (2026-08-22)", "목록의 모든 모델을 확인합니다. 모델 수만큼 무료 한도를 사용하므로 누르기 전에 다시 묻습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeAllConfirm", "admin", "가용성 확인 한도 절약 (2026-08-22)", "모델 {count}개를 확인합니다. OpenRouter 무료 일일 한도를 그만큼 사용합니다(실측 한도 50건). 계속하시겠습니까?");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.needModel", "admin", "가용성 확인 한도 절약 (2026-08-22)", "확인할 모델을 먼저 고르거나 입력해 주세요.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.allChecked", "admin", "가용성 확인 한도 절약 (2026-08-22)", "이미 전부 확인했습니다. 다시 확인하려면 '판정 초기화' 를 누르세요.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.resetVerdicts", "admin", "가용성 확인 한도 절약 (2026-08-22)", "판정 초기화");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.verdictsReset", "admin", "가용성 확인 한도 절약 (2026-08-22)", "판정을 지웠습니다. 다시 확인할 수 있습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.requestsSent", "admin", "가용성 확인 한도 절약 (2026-08-22)", "이번에 요청 {count}건을 보냈습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.accountLimitDetail", "admin", "가용성 확인 한도 절약 (2026-08-22)", "하루 {limit}건 중 {remaining}건 남음. {reset} 에 초기화됩니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.loadedHint", "admin", "가용성 확인 한도 절약 (2026-08-22)", "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.autoSelected",
+        "admin",
+        "OpenRouter 무료 모델 목록 (2026-08-22)",
+        "모델을 {model} 로 채웠습니다. 다른 모델로 바꿀 수 있습니다.");
+    createTranslationKeyIfNotExists(
         "admin.llmConfig.modelHelperOpenwebui",
         "admin",
         "i18n 하드코딩 보강 (2026-06-06)",
@@ -2500,6 +2612,8 @@ public class I18nHardcodedKeysInitializer {
         "testResult.chart.countOnly", "testResult", "i18n 하드코딩 보강 (2026-06-06)", "{count}건");
     createTranslationKeyIfNotExists(
         "rag.chat.defaultConfigSuffix", "rag", "i18n 하드코딩 보강 (2026-06-06)", "(기본)");
+    createTranslationKeyIfNotExists(
+        "rag.chat.modelDefault", "rag", "무료 모델 선택기 (2026-08-22)", "설정의 기본 모델");
     createTranslationKeyIfNotExists(
         "header.userMenu.manual", "header", "사용자 매뉴얼 뷰어 (2026-06-06)", "사용자 매뉴얼");
     createTranslationKeyIfNotExists(

@@ -75,6 +75,102 @@ public class EnglishI18nHardcodedTranslations {
         "Examples: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro",
         createdBy);
     createTranslationIfNotExists(
+        "admin.llmConfig.models.helper",
+        languageCode,
+        "The list shows free models. For paid models, type the slug directly (e.g. anthropic/claude-sonnet-5).",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.loadButton",
+        languageCode,
+        "Load free models",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.probeButton",
+        languageCode,
+        "Check availability",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.probeTooltip",
+        languageCode,
+        "Sends a minimal request to each model to see whether it works right now. Uses a small amount of the free quota and takes about 20 seconds.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.needApiKey",
+        languageCode,
+        "Enter an API key first. When editing a saved configuration you do not need to retype the key.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.loaded",
+        languageCode,
+        "Loaded {count} free models. Click 'Check availability' to see which ones work right now.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.probed",
+        languageCode,
+        "{available} of {total} checked models work right now. Greyed-out entries cannot be selected.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.available",
+        languageCode,
+        "Available",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.rateLimited",
+        languageCode,
+        "Quota used up",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.unavailable",
+        languageCode,
+        "Unavailable",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.loading",
+        languageCode,
+        "Loading…",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.emptyList",
+        languageCode,
+        "Click 'Load free models' first.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.noMatch",
+        languageCode,
+        "No matching model.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.accountLimit",
+        languageCode,
+        "Your account's daily free-request quota is used up. Switching to another free model will not help.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.accountLimitBadge",
+        languageCode,
+        "Account quota",
+        createdBy);
+    createTranslationIfNotExists("common.error.showDetail", languageCode, "Details", createdBy);
+    createTranslationIfNotExists("common.error.hideDetail", languageCode, "Hide", createdBy);
+    createTranslationIfNotExists("common.error.copyDetail", languageCode, "Copy full text", createdBy);
+    createTranslationIfNotExists("common.error.copied", languageCode, "Copied", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeOneButton", languageCode, "Check this model", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeOneTooltip", languageCode, "Sends a minimal request to the selected model only. Uses one request of the free quota.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllButton", languageCode, "Check all ({count})", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllTooltip", languageCode, "Checks every model in the list. It uses one request per model, so you are asked to confirm first.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllConfirm", languageCode, "About to check {count} models. That uses the same number of requests from the OpenRouter free daily quota (measured limit: 50). Continue?", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.needModel", languageCode, "Pick or type a model to check first.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.allChecked", languageCode, "Everything has been checked. Click 'Reset results' to check again.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.resetVerdicts", languageCode, "Reset results", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.verdictsReset", languageCode, "Results cleared. You can check again.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.requestsSent", languageCode, "Sent {count} requests this time.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.accountLimitDetail", languageCode, "{remaining} of {limit} daily requests left. Resets at {reset}.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.loadedHint", languageCode, "Loaded {count} free models. Pick the model you will use and click 'Check this model'. Checking all uses one request per model.", createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.autoSelected",
+        languageCode,
+        "Model set to {model}. You can pick a different one.",
+        createdBy);
+    createTranslationIfNotExists(
         "admin.llmConfig.modelHelperOpenwebui",
         languageCode,
         "Examples: llama3.1, granite3.1-dense:8b",
@@ -1923,6 +2019,8 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists("testResult.chart.countOnly", languageCode, "{count}", createdBy);
     createTranslationIfNotExists(
         "rag.chat.defaultConfigSuffix", languageCode, "(default)", createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.modelDefault", languageCode, "Default model from settings", createdBy);
     createTranslationIfNotExists("header.userMenu.manual", languageCode, "User Manual", createdBy);
     createTranslationIfNotExists("login.manualLink", languageCode, "User Manual", createdBy);
     createTranslationIfNotExists("manual.viewer.title", languageCode, "User Manual", createdBy);
