@@ -691,6 +691,15 @@ Click the **[RAG Documents]** tab at the top (`/projects/{projectId}/rag`) to ma
 
 > RAG is operated as an auxiliary service. Some operational environments may have it disabled, hiding this tab.
 
+**If a notice appears at the top of the screen**, an administrator has paused the feature. This is not an outage. The notice lists which features still work and which are blocked.
+
+| Notice | Meaning |
+|---|---|
+| Adding new material is stopped | Questions, search, and document browsing keep working. Only uploading and analyzing new documents is blocked |
+| AI features are stopped | Everything is blocked, including questions |
+
+In both cases, an administrator can restore everything from [System Settings](#17-6-2-system-settings--turning-ai-features-and-indexing-on-or-off).
+
 ---
 
 ## 12. Exploratory Sessions (SBTM)
@@ -972,14 +981,58 @@ Dropdown items:
 
 ### 17-6. LLM Settings
 
-`/llm-config` — Configure the LLM provider for RAG chat, AI-generated case metadata, and other features.
+`/llm-config` gathers the settings used by the AI features. Its tabs are LLM Configurations, Default Template, RAG Shared Documents, and System Settings.
 
 ![LLM settings](images_en/84_llm_config.png)
 
+| Tab | Purpose |
+|---|---|
+| LLM Configurations | Register which AI service to use and verify the connection |
+| Default Template | Set the default format given to the AI when authoring cases |
+| RAG Shared Documents | Manage documents visible to every project (17-6-1) |
+| System Settings | Turn AI features and indexing on or off (17-6-2) |
+
+Items registered on the **LLM Configurations** tab:
+
 - Provider: OpenAI / Anthropic / Azure OpenAI / local models, etc.
 - Model name, API key, base URL
-- Manage prompt templates (system prompt, examples)
-- Usage limits and cost tracking options
+- After registering, use **[Test Connection]** to confirm the values
+
+> **If the connection test reports "No encryption key is configured"** — API keys are encrypted before being stored, and the server has no such key. Expanding the guidance on screen reveals the command and the setting name, both copyable. A server administrator has to set the value and restart.
+
+#### 17-6-1. RAG Shared Documents
+
+Documents that do not need to be uploaded per project go on this tab. They are searched alongside every project's questions.
+
+- Upload and delete shared documents
+- Promote a document uploaded to a project into the shared set
+- Approve or reject shared-registration requests submitted by users
+
+#### 17-6-2. System Settings — Turning AI features and indexing on or off
+
+There are two toggles, "RAG Feature Status" and "Vector Indexing", and they stop different things.
+
+| Toggle | When turned off |
+|---|---|
+| **RAG Feature Status** | Questions, search, and document browsing **all** stop |
+| **Vector Indexing** | Only new registration stops; **questions over material already registered keep working** |
+
+What remains available in each state:
+
+| State | Questions | Document search | List and download | Upload and analysis | Case indexing |
+|---|---|---|---|---|---|
+| Both on | Yes | Yes | Yes | Yes | Yes |
+| Indexing off | Yes | Yes | Yes | No | No |
+| AI features off | No | No | No | No | No |
+
+Turning off indexing alone is for **capping cost or pausing material updates while still answering questions**.
+
+Opening the RAG screen while either is off lists the features that still work and the ones that are blocked, so a failed request can be told apart from an outage.
+
+**Two things to note.**
+
+- **Cases added or changed while indexing is off will not appear in search results.** Turning it back on does not catch up on those changes, so documents have to be analyzed again if needed.
+- **Turning off the AI features also stops the related scheduled jobs.** After turning it back on, enable them on the [Scheduler Management](#17-7-scheduler-management) screen.
 
 ### 17-7. Scheduler Management
 
@@ -1157,6 +1210,7 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-05-27 | Added Section 18 Glossary (8 categories: domain / case editing screen / execution result status / permissions / screen operation / external integration / time and identifiers / frequently seen screen guidance) |
 | 2026-05-29 | Enhanced route URLs with backticks in Sections 3 and 6–12 (`/dashboard`, `/projects/{projectId}/...`). Updated Section 4 form header (removed H6 title, 2-column grid, single action row); added Section 4-2 input mode toggle button group + spreadsheet cell auto word-wrap for 30+ Korean characters; added Section 4-5 field visibility toggle (9 metadata fields, permanent per-user storage) and Section 4-6 metadata area (full UUID display). Reflected display ID chip and name tooltip on truncation in Section 5 |
 | 2026-06-06 | Comprehensive review and enhancement based on v1.0.80. Added "How to Read This Manual" to preamble (reader-specific guidance, notation rules per IEC/IEEE 82079-1). Updated Section 2-1 description field; Section 4 single-column full-width form layout (v1.0.80) and editor auto-height (v1.0.79); reflected hidden Advanced Spreadsheet in Section 4-2; added right-click context menu table and 2 tree screenshots in Section 4-4; added field visibility screenshot in Section 4-5; added 4-tab form mode with header composition and screenshot in Section 4-6; added drag handle screenshot in Section 5-1; introduced new result input screen (P/F/B/N) in Section 8-1 and auto-save safeguards (v1.0.80) in Section 8-2; corrected export formats in Section 9 (Excel / PDF / CSV); clarified detail screen path in Section 10; added guide document link in Section 13-5; added design system option in Section 13-7; corrected language change path in Section 14-2; updated troubleshooting rows in Section 16-2; corrected 6-role structure (CONTRIBUTOR) in Sections 17-9 and 18-4; refined glossary entries in Section 18. Added 4 new screenshots (23, 24, 44b, 44c) |
+| 2026-08-22 | Expanded 17-6 LLM Settings into its four tabs and added 17-6-1 RAG Shared Documents and 17-6-2 System Settings (turning AI features and indexing on or off). Added guidance in Section 11 on what works while the feature is paused. Covered the encryption key notice in the connection test. Based on v1.0.117 |
 | 2026-06-06 | English edition created from the Korean v1.0.80 manual |
 | 2026-06-06 | Reflected feat/style-folder-tree branch: Section 3-1 tab badges added, Section 4-1 screen layout table updated (folders-only tree display, folder filter added) plus new "Folder Case List" and "Edit Folder Info" subsections, Section 4-4 added three subsections (Tree View Modes, Virtual Nodes, Folder Filter), Section 5-1 drag handle hover visibility added. 4 new screenshots (87–90, ShopFlow EN). Synchronized same sections in Korean edition. |
 | 2026-06-09 | Reflected favorites/bookmarks feature: added ☆ Bookmarks button row in Section 3-1 header, new "Bookmarks & Favorites" subsection in Section 4-7 (case star toggle, collection management, personal notes, read-only). Section 8 test execution list: added 20-second auto-refresh, pause while tab inactive, [Refresh] button, and filter panel note. Section 8 screenshots refreshed: `52_executions` (real data, 12 executions) and new `52b_execution_filter_panel` (filter panel expanded), captured from ShopFlow EN with English UI. Synchronized same sections in Korean edition. |
