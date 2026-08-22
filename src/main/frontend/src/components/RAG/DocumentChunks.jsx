@@ -7,6 +7,7 @@ import React, {
   useMemo,
 } from "react";
 import PropTypes from "prop-types";
+import ErrorDetailAlert from "../common/ErrorDetailAlert.jsx";
 import {
   Dialog,
   DialogTitle,
@@ -869,9 +870,7 @@ function DocumentChunks({
           )}
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
+            <ErrorDetailAlert severity="error" sx={{ mb: 2 }} message={error} />
           )}
 
           {!loading && !error && chunks.length === 0 && (
@@ -1171,9 +1170,11 @@ function DocumentChunks({
               />
             </Box>
           ) : previewContent?.type === "error" ? (
-            <Alert severity="error" sx={{ width: "100%" }}>
-              {previewContent.message}
-            </Alert>
+            <ErrorDetailAlert
+              severity="error"
+              sx={{ width: "100%" }}
+              message={previewContent.message}
+            />
           ) : null}
         </DialogContent>
         <DialogActions>

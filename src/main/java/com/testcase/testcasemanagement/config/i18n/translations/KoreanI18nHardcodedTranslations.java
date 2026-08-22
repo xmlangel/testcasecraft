@@ -72,6 +72,90 @@ public class KoreanI18nHardcodedTranslations {
         "예시: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro",
         createdBy);
     createTranslationIfNotExists(
+        "admin.llmConfig.models.helper",
+        languageCode,
+        "목록은 무료 모델입니다. 유료 모델은 슬러그를 직접 입력하세요 (예: anthropic/claude-sonnet-5).",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.loadButton",
+        languageCode,
+        "무료 모델 목록 불러오기",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.probeButton",
+        languageCode,
+        "가용성 확인",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.probeTooltip",
+        languageCode,
+        "각 모델에 최소 요청을 보내 지금 쓸 수 있는지 확인합니다. 무료 한도를 조금 사용하며 20초 정도 걸립니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.needApiKey",
+        languageCode,
+        "먼저 API Key 를 입력해 주세요. 저장된 설정을 수정하는 경우에는 키를 다시 입력하지 않아도 됩니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.loaded",
+        languageCode,
+        "무료 모델 {count}개를 불러왔습니다. 지금 쓸 수 있는지는 '가용성 확인' 을 눌러 보세요.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.probed",
+        languageCode,
+        "확인 {total}개 중 {available}개를 지금 쓸 수 있습니다. 회색 항목은 고를 수 없습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.available",
+        languageCode,
+        "사용 가능",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.rateLimited",
+        languageCode,
+        "한도 소진",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.unavailable",
+        languageCode,
+        "사용 불가",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.loading",
+        languageCode,
+        "불러오는 중…",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.emptyList",
+        languageCode,
+        "'무료 모델 목록 불러오기' 를 먼저 눌러 주세요.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.noMatch",
+        languageCode,
+        "일치하는 모델이 없습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.accountLimit",
+        languageCode,
+        "계정의 일일 무료 요청 한도를 다 썼습니다. 다른 무료 모델로 바꿔도 해결되지 않습니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.accountLimitBadge",
+        languageCode,
+        "계정 한도",
+        createdBy);
+    createTranslationIfNotExists("common.error.showDetail", languageCode, "자세히", createdBy);
+    createTranslationIfNotExists("common.error.hideDetail", languageCode, "접기", createdBy);
+    createTranslationIfNotExists("common.error.copyDetail", languageCode, "전문 복사", createdBy);
+    createTranslationIfNotExists("common.error.copied", languageCode, "복사했습니다", createdBy);
+    createTranslationIfNotExists(
+        "admin.llmConfig.models.autoSelected",
+        languageCode,
+        "모델을 {model} 로 채웠습니다. 다른 모델로 바꿀 수 있습니다.",
+        createdBy);
+    createTranslationIfNotExists(
         "admin.llmConfig.modelHelperOpenwebui",
         languageCode,
         "예시: llama3.1, granite3.1-dense:8b",
@@ -1456,6 +1540,8 @@ public class KoreanI18nHardcodedTranslations {
         "testResult.chart.totalCount", languageCode, "총 {count}건", createdBy);
     createTranslationIfNotExists("testResult.chart.countOnly", languageCode, "{count}건", createdBy);
     createTranslationIfNotExists("rag.chat.defaultConfigSuffix", languageCode, "(기본)", createdBy);
+    createTranslationIfNotExists(
+        "rag.chat.modelDefault", languageCode, "설정의 기본 모델", createdBy);
     createTranslationIfNotExists("header.userMenu.manual", languageCode, "사용자 매뉴얼", createdBy);
     createTranslationIfNotExists("login.manualLink", languageCode, "사용자 매뉴얼", createdBy);
     createTranslationIfNotExists("manual.viewer.title", languageCode, "사용자 매뉴얼", createdBy);

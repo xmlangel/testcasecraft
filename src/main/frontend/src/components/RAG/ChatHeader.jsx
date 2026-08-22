@@ -31,6 +31,9 @@ function ChatHeader({
   selectedLlmConfigId,
   defaultLlmConfig,
   onLlmConfigChange,
+  freeModels = [],
+  selectedModel = "",
+  onModelChange = () => {},
   isFullScreen,
   onToggleFullScreen,
   onRetry,
@@ -102,6 +105,48 @@ function ChatHeader({
             </Select>
           </FormControl>
         )}
+
+        {/*
+          무료 모델 선택기.
+
+          관리자가 설정을 고치지 않고도 사용자가 이번 대화에 쓸 모델을 고를 수 있게 한다.
+          기본 설정이 OpenRouter 일 때만 목록이 내려오므로 그때만 보인다. 서버가 무료 모델
+          목록에 있는 모델만 받아 주기 때문에 유료 모델로 넘어가 과금이 붙을 일은 없다.
+        */}
+        {freeModels.length > 0 && (
+          <FormControl size="small" sx={{ minWidth: 240 }}>
+            <Select
+              value={selectedModel || ""}
+              onChange={(e) => onModelChange(e.target.value)}
+              displayEmpty
+              sx={{
+                "& .MuiSelect-select": {
+                  py: 0.5,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                },
+              }}
+            >
+              <MenuItem value="">
+                <Typography variant="body2">
+                  {t("rag.chat.modelDefault", "설정의 기본 모델")}
+                </Typography>
+              </MenuItem>
+              {freeModels.map((model) => (
+                <MenuItem key={model.id} value={model.id}>
+                  <Chip
+                    label={model.id.replace(/:free$/, "")}
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                    sx={{ fontWeight: "medium" }}
+                  />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
         <Tooltip
@@ -154,6 +199,9 @@ ChatHeader.propTypes = {
   selectedLlmConfigId: PropTypes.string,
   defaultLlmConfig: PropTypes.object,
   onLlmConfigChange: PropTypes.func.isRequired,
+  freeModels: PropTypes.array,
+  selectedModel: PropTypes.string,
+  onModelChange: PropTypes.func,
   isFullScreen: PropTypes.bool.isRequired,
   onToggleFullScreen: PropTypes.func.isRequired,
   onRetry: PropTypes.func.isRequired,
@@ -163,5 +211,4 @@ ChatHeader.propTypes = {
   persistConversation: PropTypes.bool.isRequired,
   selectedThreadId: PropTypes.string,
 };
-
 export default ChatHeader;

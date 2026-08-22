@@ -67,7 +67,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     setLoadedProjectId,
   } = useRAG();
 
-  const { configs } = useLlmConfig();
+  const { configs, fetchSelectableFreeModels } = useLlmConfig();
   const { user } = useAppContext();
 
   const [inputText, setInputText] = useState("");
@@ -76,6 +76,9 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const [isChatFullScreen, setIsChatFullScreen] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [useRagSearch, setUseRagSearch] = useState(true);
+  // 이번 대화에 쓸 무료 모델. 빈 문자열이면 설정의 기본 모델을 그대로 쓴다.
+  const [freeModels, setFreeModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
 
   const inputRef = useRef(null);
 
@@ -233,6 +236,20 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   } = threadManagement;
 
   // Admin용 기본 LLM 설정 동기화
+  // 고를 수 있는 무료 모델 목록을 한 번 받아 둔다. 기본 설정이 OpenRouter 가 아니면 빈 목록이
+  // 오고 선택기가 나타나지 않는다.
+  useEffect(() => {
+    let cancelled = false;
+    fetchSelectableFreeModels().then((models) => {
+      if (!cancelled) {
+        setFreeModels(models);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchSelectableFreeModels]);
+
   useEffect(() => {
     if (isAdmin) {
       return;
@@ -416,6 +433,33 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
   const handleChatResult = useCallback(
     async (response, { shouldPersist, resolvedThreadId, userMessageId }) => {
+      const failed = Boolean(response?.error);
+
+      // 실패는 저장 여부와 무관하게 화면에 남긴다.
+      //
+      // 예전에는 대화 자동 저장이 켜져 있으면 곧바로 스레드를 다시 읽고 return 했다. 그런데
+      // 서버는 실패 응답에 threadId 를 담지 않으므로(백엔드 예외 처리 경로가 세팅하지 않는다)
+      // nextThreadId 가 null 이 되어 아무것도 하지 않고 끝났다. 응답 본문에는 사유가 들어 있는데
+      // 화면에는 말풍선조차 남지 않았다. 게다가 스레드 ID 가 남아 있던 경우에는 서버에서 다시
+      // 읽어 온 내용으로 덮어써서, 저장되지 않은 사용자 질문까지 사라졌다.
+      if (shouldPersist && failed) {
+        setMessages((prev) =>
+          ensureUniqueMessageIds([
+            ...prev,
+            {
+              id: createMessageId(),
+              role: "assistant",
+              content: response?.answer || response?.content || "",
+              timestamp: Date.now(),
+              documents: [],
+              isError: true,
+              errorMessage: response?.errorMessage || null,
+            },
+          ]),
+        );
+        return;
+      }
+
       if (shouldPersist) {
         if (Array.isArray(response?.categoryIds)) {
           setSelectedCategoryIds(response.categoryIds);
@@ -582,6 +626,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
     if (currentLlmConfig && currentLlmConfig.id) {
       chatOptions.llmConfigId = currentLlmConfig.id;
+    }
+
+    // 모델을 고르지 않았으면 필드를 아예 넣지 않는다. 서버가 설정의 기본 모델을 쓴다.
+    if (selectedModel) {
+      chatOptions.model = selectedModel;
     }
 
     if (shouldPersist && resolvedThreadId) {
@@ -847,6 +896,9 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             selectedLlmConfigId={selectedLlmConfigId}
             defaultLlmConfig={defaultLlmConfig}
             onLlmConfigChange={setSelectedLlmConfigId}
+            freeModels={freeModels}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
             isFullScreen={isFullScreenMode}
             onToggleFullScreen={
               isFullScreenMode ? handleExitFullScreen : handleEnterFullScreen

@@ -188,6 +188,10 @@ export function useStreamingChat({
         ? metadata.documents
         : [];
       const similarity = metadata.similarity;
+      // 폴백 응답이 실패였는지와 그 사유. 이 값을 옮기지 않으면 서버가 보낸 원인이
+      // 시뮬레이션 도중 덮여 사라진다.
+      const isError = Boolean(metadata.isError);
+      const errorMessage = metadata.errorMessage || null;
       const chunkSize = Number.isFinite(metadata.chunkSize)
         ? metadata.chunkSize
         : 8;
@@ -210,6 +214,8 @@ export function useStreamingChat({
           isStreaming: true,
           documents,
           similarity,
+          isError,
+          errorMessage,
         };
       });
 
@@ -237,6 +243,8 @@ export function useStreamingChat({
             isStreaming: false,
             documents,
             similarity,
+            isError,
+            errorMessage,
             timestamp: Date.now(),
           };
         });
@@ -294,6 +302,8 @@ export function useStreamingChat({
               isStreaming: false,
               documents,
               similarity,
+              isError,
+              errorMessage,
               timestamp: Date.now(),
             };
           });

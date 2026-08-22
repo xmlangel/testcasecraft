@@ -25,6 +25,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import InfoIcon from "@mui/icons-material/Info";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
+import ErrorDetailAlert from "../common/ErrorDetailAlert.jsx";
 import { serverErrorMessage } from "../../utils/apiError.js";
 
 const ALLOWED_FILE_TYPES = [
@@ -344,13 +345,12 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
 
       {/* Local Error (Upload-specific) */}
       {localError && (
-        <Alert
+        <ErrorDetailAlert
           severity="error"
           sx={{ mb: 2 }}
           onClose={() => setLocalError(null)}
-        >
-          {localError}
-        </Alert>
+          message={localError}
+        />
       )}
 
       {/* Selected Files List */}

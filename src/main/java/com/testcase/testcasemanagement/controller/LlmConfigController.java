@@ -3,6 +3,8 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.ApiResponse;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
+import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.testcase.testcasemanagement.service.LlmConfigService;
@@ -456,6 +458,151 @@ public class LlmConfigController {
     } catch (Exception e) {
       log.error("❌ 연결 테스트 실패", e);
       return ResponseEntity.badRequest().body(ApiResponse.error("연결 테스트 실패: " + e.getMessage()));
+    }
+  }
+
+  @Operation(
+      summary = "채팅에서 고를 수 있는 무료 모델 목록",
+      description =
+          """
+          RAG 채팅 화면의 모델 선택기에 쓰는 목록입니다. 기본 활성 설정이 OpenRouter 일 때만
+          목록이 나오고, 그 외에는 **빈 목록**을 돌려줍니다(오류가 아닙니다 — 화면이 선택기를 감춥니다).
+
+          서버가 저장된 키로 조회하며 **API Key 는 응답에 담지 않습니다.**
+
+          관리자용 목록과 다른 점 둘입니다.
+          - 권한이 모든 인증된 사용자입니다
+          - 가용성 확인을 하지 않습니다. 확인 호출은 무료 한도를 쓰므로 일반 사용자에게 열지 않습니다
+
+          **권한**: 모든 인증된 사용자
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "조회 성공 (기본 설정이 OpenRouter 가 아니면 빈 목록)"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증 실패")
+  })
+  @GetMapping("/openrouter/free-models/for-chat")
+  public ResponseEntity<ApiResponse<List<OpenRouterModelDTO>>> listSelectableFreeModelsForChat() {
+    List<OpenRouterModelDTO> models = llmConfigService.listSelectableFreeModelsForChat();
+    return ResponseEntity.ok(ApiResponse.success(models, "무료 모델 " + models.size() + "개"));
+  }
+
+  @Operation(
+      summary = "OpenRouter 무료 모델 목록 조회",
+      description =
+          """
+          OpenRouter 에서 지금 제공되는 **무료 채팅 모델** 목록을 받아옵니다.
+
+          API Key 는 두 방법으로 넘길 수 있습니다.
+          - `apiKey`: 저장 전 설정에서 화면에 입력한 키를 그대로 보냅니다
+          - `configId`: 이미 저장된 설정이면 ID 만 보내고 서버가 저장된 키를 씁니다
+
+          **무료 판정은 가격입니다.** 슬러그의 `:free` 접미가 아니라 prompt·completion 단가가 0 인 것을
+          고릅니다. 접미가 없는 무료 모델(`openrouter/free` 등)이 실제로 존재하기 때문입니다.
+
+          **채팅 판정은 출력 모달리티입니다.** 출력이 텍스트뿐인 모델만 남기므로 음악·이미지 생성 모델은
+          목록에 오르지 않습니다.
+
+          **가용성은 확인하지 않습니다.** 응답의 `availability` 는 모두 `UNKNOWN` 입니다. 지금 쓸 수 있는지
+          알려면 `/openrouter/free-models/probe` 를 따로 호출하세요.
+
+          **권한**: ADMIN
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "조회 성공"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "API Key 누락 또는 OpenRouter 조회 실패"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증 실패"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "권한 없음 (ADMIN 필요)")
+  })
+  @PostMapping("/openrouter/free-models")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<ApiResponse<List<OpenRouterModelDTO>>> listOpenRouterFreeModels(
+      @RequestBody OpenRouterModelQueryRequest request) {
+    log.info("📋 OpenRouter 무료 모델 목록 요청");
+    try {
+      List<OpenRouterModelDTO> models = llmConfigService.listOpenRouterFreeModels(request);
+      return ResponseEntity.ok(ApiResponse.success(models, "무료 모델 " + models.size() + "개"));
+    } catch (EncryptionKeyNotConfiguredException e) {
+      log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error(EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage()));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+    } catch (Exception e) {
+      log.error("❌ OpenRouter 무료 모델 목록 조회 실패", e);
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error("무료 모델 목록 조회 실패: " + e.getMessage()));
+    }
+  }
+
+  @Operation(
+      summary = "OpenRouter 모델 가용성 확인",
+      description =
+          """
+          지정한 모델들에 **최소 요청(토큰 1개)** 을 보내 지금 쓸 수 있는지 확인합니다.
+          `modelIds` 를 비우면 무료 모델 전체를 확인합니다.
+
+          **왜 실제로 호출하는가**: OpenRouter 의 모델 상태 메타데이터로는 한도 소진을 알 수 없습니다.
+          429 를 내는 모델에도 `status=0`·`uptime=100` 이 돌아옵니다. 실측으로 확인한 사항입니다.
+
+          판정은 넷으로 갈립니다.
+          - `AVAILABLE`: 정상 응답
+          - `RATE_LIMITED`: 무료 한도 소진(429). 잠시 뒤 풀릴 수 있습니다
+          - `UNAVAILABLE`: 이 경로로는 쓸 수 없음(403·404·502 등)
+          - `UNKNOWN`: 확인하지 않음
+
+          **주의**: 확인 호출도 무료 한도를 조금 씁니다. 화면에서 사용자가 요청할 때만 호출하세요.
+          한 번에 최대 40개까지 확인합니다.
+
+          **권한**: ADMIN
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "확인 완료"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "API Key 누락 또는 확인 실패"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증 실패"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "권한 없음 (ADMIN 필요)")
+  })
+  @PostMapping("/openrouter/free-models/probe")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<ApiResponse<List<OpenRouterModelDTO>>> probeOpenRouterModels(
+      @RequestBody OpenRouterModelQueryRequest request) {
+    log.info("🔍 OpenRouter 모델 가용성 확인 요청");
+    try {
+      List<OpenRouterModelDTO> results = llmConfigService.probeOpenRouterModels(request);
+      long available =
+          results.stream()
+              .filter(m -> m.getAvailability() == OpenRouterModelDTO.Availability.AVAILABLE)
+              .count();
+      return ResponseEntity.ok(
+          ApiResponse.success(results, "사용 가능 " + available + " / 확인 " + results.size()));
+    } catch (EncryptionKeyNotConfiguredException e) {
+      log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error(EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage()));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+    } catch (Exception e) {
+      log.error("❌ OpenRouter 모델 가용성 확인 실패", e);
+      return ResponseEntity.badRequest().body(ApiResponse.error("가용성 확인 실패: " + e.getMessage()));
     }
   }
 

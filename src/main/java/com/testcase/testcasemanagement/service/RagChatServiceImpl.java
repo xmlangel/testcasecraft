@@ -15,6 +15,8 @@ import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
+import com.testcase.testcasemanagement.service.llm.OpenRouterModelCatalogService;
+import com.testcase.testcasemanagement.security.EncryptionUtil;
 import com.testcase.testcasemanagement.service.rag.RagDataSummarizer;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer.QueryIntent;
@@ -48,6 +50,8 @@ public class RagChatServiceImpl implements RagChatService {
   private final ProjectRepository projectRepository;
   private final RagChatConversationService conversationService;
   private final LlmClientFactory llmClientFactory;
+  private final OpenRouterModelCatalogService openRouterModelCatalogService;
+  private final EncryptionUtil encryptionUtil;
   private final SystemSettingService systemSettingService;
   private final DashboardService dashboardService;
   private final TestCaseRepository testCaseRepository;
@@ -81,7 +85,7 @@ public class RagChatServiceImpl implements RagChatService {
           request.getCategoryIds() != null ? request.getCategoryIds() : Collections.emptyList();
 
       // 1. LLM 설정 가져오기
-      LlmConfig llmConfig = getLlmConfig(request.getLlmConfigId());
+      LlmConfig llmConfig = resolveLlmConfig(request);
       log.info(
           "🔧 LLM 설정: provider={}, model={}, requestedLlmConfigId={}, actualConfigId={}",
           llmConfig.getProvider(),
@@ -193,7 +197,7 @@ public class RagChatServiceImpl implements RagChatService {
             () -> {
               try {
                 // 1. LLM 설정 가져오기
-                LlmConfig llmConfig = getLlmConfig(request.getLlmConfigId());
+                LlmConfig llmConfig = resolveLlmConfig(request);
 
                 // 2. 질의 의도 분석 및 DB 데이터 가져오기
                 String projectIdStr = request.getProjectId().toString();
@@ -272,6 +276,69 @@ public class RagChatServiceImpl implements RagChatService {
         .start();
 
     return emitter;
+  }
+
+  /**
+   * 이번 질의에 쓸 LLM 설정을 정한다.
+   *
+   * <p>요청이 모델을 지정했으면 그 모델로 바꿔 쓴다. 관리자가 설정을 고치지 않고도 사용자가 화면에서 모델을 골라 쓸 수 있게 하려는 것이다. 다만 아무 모델이나
+   * 허용하면 사용자가 유료 모델을 골라 과금이 발생한다. 그래서 <b>OpenRouter 설정에 한해, 무료 모델 목록에 있는 모델만</b> 허용한다. 목록에 없으면 요청을
+   * 거부하지 않고 설정의 기본 모델로 진행하며 그 사실을 로그에 남긴다. 모델 하나 때문에 대화가 끊기는 것보다 낫다.
+   *
+   * <p>저장된 엔티티를 그대로 고치면 영속 상태가 바뀌어 DB 에 반영될 수 있다. 그래서 복사본을 만들어 쓴다.
+   */
+  private LlmConfig resolveLlmConfig(RagChatRequest request) {
+    LlmConfig config = getLlmConfig(request.getLlmConfigId());
+
+    String requestedModel = request.getModel();
+    if (requestedModel == null || requestedModel.isBlank()) {
+      return config;
+    }
+    String model = requestedModel.trim();
+    if (model.equals(config.getModelName())) {
+      return config;
+    }
+
+    if (config.getProvider() != LlmConfig.LlmProvider.OPENROUTER) {
+      log.warn("⚠️ 모델 지정은 OpenRouter 설정에서만 허용한다. 무시하고 기본 모델을 쓴다: 요청={}", model);
+      return config;
+    }
+
+    if (!isFreeModel(config, model)) {
+      log.warn("⚠️ 무료 모델 목록에 없는 모델이라 무시하고 기본 모델을 쓴다: 요청={}", model);
+      return config;
+    }
+
+    LlmConfig overridden = copyWithModel(config, model);
+    log.info("🔀 사용자가 고른 모델로 진행: {} → {}", config.getModelName(), model);
+    return overridden;
+  }
+
+  /** 요청한 모델이 이 설정의 키로 쓸 수 있는 무료 모델인지 확인한다. */
+  private boolean isFreeModel(LlmConfig config, String model) {
+    try {
+      String apiKey = encryptionUtil.decrypt(config.getEncryptedApiKey());
+      return openRouterModelCatalogService.listFreeChatModels(apiKey).stream()
+          .anyMatch(candidate -> model.equals(candidate.getId()));
+    } catch (Exception e) {
+      log.warn("⚠️ 무료 모델 목록을 확인할 수 없어 모델 지정을 무시한다: {}", e.getMessage());
+      return false;
+    }
+  }
+
+  /** 모델만 바꾼 복사본. 영속 엔티티를 고치지 않기 위한 것이다. */
+  private LlmConfig copyWithModel(LlmConfig source, String model) {
+    LlmConfig copy = new LlmConfig();
+    copy.setId(source.getId());
+    copy.setName(source.getName());
+    copy.setProvider(source.getProvider());
+    copy.setApiUrl(source.getApiUrl());
+    copy.setEncryptedApiKey(source.getEncryptedApiKey());
+    copy.setModelName(model);
+    copy.setTestCaseTemplate(source.getTestCaseTemplate());
+    copy.setIsActive(source.getIsActive());
+    copy.setIsDefault(source.getIsDefault());
+    return copy;
   }
 
   /** LLM 설정 가져오기 (ID 지정 or 기본 설정) Repository에서 직접 조회하여 암호화된 API Key 포함 */

@@ -289,11 +289,18 @@ export function useChatSender({
         const fallbackContent = response.answer || response.content || "";
         const fallbackDocuments = response.documents || [];
         const fallbackSimilarity = response.similarity;
+        // 폴백 응답도 실패일 수 있다. 서버는 그때 HTTP 200 에 error=true 와 사유를 담아
+        // 보내는데, 이 경로가 그 두 필드를 읽지 않아 "오류가 발생했습니다" 라는 answer 만
+        // 정상 답변처럼 떴다. 사유가 화면에서 통째로 사라지던 자리다.
+        const fallbackIsError = Boolean(response.error);
+        const fallbackErrorMessage = response.errorMessage || null;
 
         if (activeStreamingId) {
           simulateFallbackStreaming(activeStreamingId, fallbackContent, {
             documents: fallbackDocuments,
             similarity: fallbackSimilarity,
+            isError: fallbackIsError,
+            errorMessage: fallbackErrorMessage,
           });
         } else {
           const fallbackMessageId = createMessageId();
@@ -305,6 +312,8 @@ export function useChatSender({
             documents: fallbackDocuments,
             similarity: fallbackSimilarity,
             isStreaming: true,
+            isError: fallbackIsError,
+            errorMessage: fallbackErrorMessage,
           };
           streamingMessageIdRef.current = fallbackMessageId;
           startTransition(() => {
@@ -315,6 +324,8 @@ export function useChatSender({
           simulateFallbackStreaming(fallbackMessageId, fallbackContent, {
             documents: fallbackDocuments,
             similarity: fallbackSimilarity,
+            isError: fallbackIsError,
+            errorMessage: fallbackErrorMessage,
           });
         }
 
