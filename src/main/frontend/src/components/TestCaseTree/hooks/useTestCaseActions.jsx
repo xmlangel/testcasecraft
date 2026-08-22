@@ -7,6 +7,7 @@ import {
 } from "../../../utils/treeUtils.jsx";
 import { isViewer, canAdd as checkCanAdd } from "../utils/permissionUtils.js";
 import apiService from "../../../services/apiService.js";
+import { serverErrorMessage } from "../../../utils/apiError.js";
 
 /**
  * 테스트케이스 CRUD, 순서, 버전 히스토리 액션을 처리하는 커스텀 훅
@@ -206,8 +207,10 @@ export const useTestCaseActions = ({
       let msg =
         err?.message ||
         t("testcase.tree.error.deleteFailed", "삭제 중 오류가 발생했습니다.");
-      if (err?.response?.data?.message) {
-        msg = err.response.data.message;
+      // 서버가 사유를 보냈으면 그것이 더 구체적이다.
+      const serverMessage = serverErrorMessage(err);
+      if (serverMessage) {
+        msg = serverMessage;
       }
       setErrorMessage(msg);
       setDeleteConfirmationOpen(false);
@@ -252,8 +255,10 @@ export const useTestCaseActions = ({
       let msg =
         err?.message ||
         t("testcase.tree.error.deleteFailed", "삭제 중 오류가 발생했습니다.");
-      if (err?.response?.data?.message) {
-        msg = err.response.data.message;
+      // 서버가 사유를 보냈으면 그것이 더 구체적이다.
+      const serverMessage = serverErrorMessage(err);
+      if (serverMessage) {
+        msg = serverMessage;
       }
       setErrorMessage(msg);
       setBatchDeleteDialogOpen(false);

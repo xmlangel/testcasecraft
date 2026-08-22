@@ -40,6 +40,7 @@ import MailConfigDialog from "./MailConfigDialog";
 import GmailGuideDialog from "./GmailGuideDialog";
 import { mailService } from "../../services/mailService";
 import { useI18n } from "../../context/I18nContext";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 const MailSettingsManager = () => {
   const { t } = useI18n();
@@ -89,7 +90,7 @@ const MailSettingsManager = () => {
     } catch (err) {
       console.error("메일 설정 저장 실패:", err);
       setError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           t("mail.message.saveError", "메일 설정 저장에 실패했습니다."),
       );
     }
@@ -114,7 +115,7 @@ const MailSettingsManager = () => {
     } catch (err) {
       console.error("테스트 메일 발송 실패:", err);
       setError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           t("mail.message.testError", "테스트 메일 발송에 실패했습니다."),
       );
     } finally {
@@ -342,7 +343,9 @@ const MailSettingsManager = () => {
                 </>
               )}
 
-              <Tooltip title={t("mail.button.refreshSettings", "설정 새로고침")}>
+              <Tooltip
+                title={t("mail.button.refreshSettings", "설정 새로고침")}
+              >
                 <IconButton onClick={loadSettings} color="default">
                   <RefreshIcon />
                 </IconButton>

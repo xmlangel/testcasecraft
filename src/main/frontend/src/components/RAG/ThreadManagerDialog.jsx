@@ -36,6 +36,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 function ThreadManagerDialog({
   open,
@@ -171,7 +172,7 @@ function ThreadManagerDialog({
         // console.error('Thread load failed:', err);
         if (!isMounted) return;
         setError(
-          err.response?.data?.message ||
+          serverErrorMessage(err) ||
             err.message ||
             t("rag.chat.threadLoadError", "스레드를 불러오지 못했습니다."),
         );
@@ -229,7 +230,7 @@ function ThreadManagerDialog({
     } catch (err) {
       // console.error('Thread update failed:', err);
       setError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           err.message ||
           t("rag.chat.threadUpdateError", "스레드를 수정하지 못했습니다."),
       );
@@ -267,7 +268,7 @@ function ThreadManagerDialog({
     } catch (err) {
       // console.error('Thread delete failed:', err);
       setError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           err.message ||
           t("rag.chat.threadDeleteError", "스레드를 삭제하지 못했습니다."),
       );
@@ -313,7 +314,7 @@ function ThreadManagerDialog({
     } catch (err) {
       // console.error('Thread refresh failed:', err);
       setError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           err.message ||
           t("rag.chat.threadLoadError", "스레드를 불러오지 못했습니다."),
       );

@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { DOCUMENT_LIST_CONSTANTS } from "../constants.js";
 import { useI18n } from "../../../context/I18nContext.jsx";
 import { describeRagWriteError } from "../../../utils/ragWriteError.js";
+import { serverErrorMessage } from "../../../utils/apiError.js";
 
 /**
  * 문서 액션 핸들러 커스텀 훅
@@ -61,7 +62,7 @@ export function useDocumentActions({
         await loadDocuments();
       } catch (error) {
         const errorMessage =
-          error.response?.data?.message ||
+          serverErrorMessage(error) ||
           error.message ||
           "문서 삭제에 실패했습니다.";
         setLocalError(errorMessage);
@@ -94,7 +95,7 @@ export function useDocumentActions({
         await downloadDocument(documentId, fileName);
       } catch (error) {
         const errorMessage =
-          error.response?.data?.message ||
+          serverErrorMessage(error) ||
           error.message ||
           "문서 다운로드에 실패했습니다.";
         setLocalError(errorMessage);

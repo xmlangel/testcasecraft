@@ -12,6 +12,7 @@ import {
   buildRagWriteError,
   describeRagWriteError,
 } from "../../utils/ragWriteError.js";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -237,7 +238,7 @@ export function useRagDocuments(
             }
           } catch (error) {
             const message =
-              error.response?.data?.message ||
+              serverErrorMessage(error) ||
               error.message ||
               "임베딩 상태 조회에 실패했습니다.";
             dispatch({ type: ActionTypes.SET_ERROR, payload: message });
@@ -323,7 +324,7 @@ export function useRagDocuments(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.response?.data?.message || "문서 조회에 실패했습니다.",
+          payload: serverErrorMessage(error) || "문서 조회에 실패했습니다.",
         });
         throw error;
       }
@@ -372,7 +373,7 @@ export function useRagDocuments(
           dispatch({
             type: ActionTypes.SET_ERROR,
             payload:
-              error.response?.data?.message || "문서 목록 조회에 실패했습니다.",
+              serverErrorMessage(error) || "문서 목록 조회에 실패했습니다.",
           });
           throw error;
         } finally {
@@ -404,7 +405,7 @@ export function useRagDocuments(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.response?.data?.message || "문서 삭제에 실패했습니다.",
+          payload: serverErrorMessage(error) || "문서 삭제에 실패했습니다.",
         });
         throw error;
       }
@@ -437,8 +438,7 @@ export function useRagDocuments(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload:
-            error.response?.data?.message || "문서 다운로드에 실패했습니다.",
+          payload: serverErrorMessage(error) || "문서 다운로드에 실패했습니다.",
         });
         throw error;
       }

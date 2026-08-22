@@ -5,6 +5,7 @@
  */
 import { useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 export function useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable) {
   const { api } = useAuth();
@@ -39,8 +40,7 @@ export function useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable) {
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload:
-            error.response?.data?.message || "유사도 검색에 실패했습니다.",
+          payload: serverErrorMessage(error) || "유사도 검색에 실패했습니다.",
         });
         throw error;
       }
@@ -97,7 +97,7 @@ export function useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable) {
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.response?.data?.message || "고급 검색에 실패했습니다.",
+          payload: serverErrorMessage(error) || "고급 검색에 실패했습니다.",
         });
         throw error;
       }

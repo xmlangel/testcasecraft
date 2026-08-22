@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 import { debugLog } from "../../utils/logger.js";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -312,7 +313,7 @@ export function useRagChat(
       } catch (error) {
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.response?.data?.message || "채팅 요청에 실패했습니다.",
+          payload: serverErrorMessage(error) || "채팅 요청에 실패했습니다.",
         });
         throw error;
       }
@@ -532,8 +533,7 @@ export function useRagChat(
         dispatch({
           type: ActionTypes.SET_ERROR,
           payload:
-            error.response?.data?.message ||
-            "채팅 메시지를 편집하지 못했습니다.",
+            serverErrorMessage(error) || "채팅 메시지를 편집하지 못했습니다.",
         });
         throw error;
       }
@@ -558,8 +558,7 @@ export function useRagChat(
         dispatch({
           type: ActionTypes.SET_ERROR,
           payload:
-            error.response?.data?.message ||
-            "채팅 메시지를 삭제하지 못했습니다.",
+            serverErrorMessage(error) || "채팅 메시지를 삭제하지 못했습니다.",
         });
         throw error;
       }

@@ -1,6 +1,7 @@
 // src/components/RAG/hooks/useDocumentList.js
 import { useState, useCallback } from "react";
 import { DOCUMENT_LIST_CONSTANTS } from "../constants.js";
+import { serverErrorMessage } from "../../../utils/apiError.js";
 
 /**
  * 문서 목록 관리 커스텀 훅
@@ -30,7 +31,7 @@ export function useDocumentList({ projectId, listDocuments, setLocalError }) {
         await listDocuments(projectId, page + 1, rowsPerPage);
       } catch (error) {
         const errorMessage =
-          error.response?.data?.message ||
+          serverErrorMessage(error) ||
           error.message ||
           "문서 목록 조회에 실패했습니다.";
         setLocalError(errorMessage);

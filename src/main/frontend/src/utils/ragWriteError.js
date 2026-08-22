@@ -8,6 +8,8 @@
  */
 
 /** 관리자가 벡터 색인을 꺼 둔 상태. 백엔드 RagVectorWriteDisabledException.ERROR_CODE 와 같은 값. */
+import { buildApiError } from "./apiError.js";
+
 export const RAG_VECTOR_WRITE_DISABLED = "RAG_VECTOR_WRITE_DISABLED";
 
 /**
@@ -18,28 +20,7 @@ export const RAG_VECTOR_WRITE_DISABLED = "RAG_VECTOR_WRITE_DISABLED";
  * @returns {Promise<Error>} statusCode·errorCode·errorMessage 가 붙은 에러
  */
 export async function buildRagWriteError(response, fallbackMessage) {
-  const error = new Error(`RAG write failed with status ${response.status}`);
-  error.statusCode = response.status;
-  error.errorCode = null;
-  error.errorMessage = null;
-
-  try {
-    const raw = await response.text();
-    // 앞단 프록시가 끊으면 본문이 HTML 이다. 그 조각을 보여 주면 읽을 수 없다.
-    if (raw && !raw.trimStart().startsWith("<")) {
-      const parsed = JSON.parse(raw);
-      error.errorCode = parsed?.errorCode || parsed?.code || null;
-      error.errorMessage =
-        parsed?.message || parsed?.errorMessage || parsed?.error || null;
-    }
-  } catch {
-    // 본문을 못 읽어도 상태 코드는 남는다.
-  }
-
-  if (!error.errorMessage) {
-    error.errorMessage = fallbackMessage || null;
-  }
-  return error;
+  return buildApiError(response, fallbackMessage);
 }
 
 /** 벡터 색인이 꺼져 있어 거부된 것인지 판정한다. */

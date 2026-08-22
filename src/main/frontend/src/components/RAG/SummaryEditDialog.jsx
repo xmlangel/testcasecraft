@@ -19,6 +19,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import { useTranslation } from "../../context/I18nContext";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 /**
  * 분석 요약 작성/편집 다이얼로그
@@ -101,7 +102,9 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
     }
 
     if (!summaryContent.trim()) {
-      setContentError(t("rag.summaryEdit.contentRequired", "요약 내용을 입력해주세요."));
+      setContentError(
+        t("rag.summaryEdit.contentRequired", "요약 내용을 입력해주세요."),
+      );
       hasError = true;
     } else {
       setContentError("");
@@ -124,7 +127,10 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
       // 성공 시 다이얼로그 닫기 (부모 컴포넌트에서 처리)
     } catch (err) {
       console.error("요약 저장 실패:", err);
-      setError(err.response?.data?.message || t("rag.summaryEdit.saveFailed", "요약 저장에 실패했습니다."));
+      setError(
+        serverErrorMessage(err) ||
+          t("rag.summaryEdit.saveFailed", "요약 저장에 실패했습니다."),
+      );
     } finally {
       setSaving(false);
     }
@@ -141,7 +147,9 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {summary ? t("rag.summaryEdit.editTitle", "요약 편집") : t("rag.summaryEdit.newTitle", "새 요약 작성")}
+        {summary
+          ? t("rag.summaryEdit.editTitle", "요약 편집")
+          : t("rag.summaryEdit.newTitle", "새 요약 작성")}
         <IconButton
           onClick={onClose}
           sx={{ position: "absolute", right: 8, top: 8 }}
@@ -182,7 +190,10 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
           onChange={(e) => setSummaryContent(e.target.value)}
           error={!!contentError}
           helperText={contentError}
-          placeholder={t("rag.summaryEdit.contentPlaceholder", "분석 결과를 요약하여 작성해주세요...")}
+          placeholder={t(
+            "rag.summaryEdit.contentPlaceholder",
+            "분석 결과를 요약하여 작성해주세요...",
+          )}
           sx={{ mb: 2 }}
           disabled={saving}
         />
@@ -221,7 +232,10 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
               onKeyPress={handleTagKeyPress}
-              placeholder={t("rag.summaryEdit.tagPlaceholder", "태그 입력 후 Enter 또는 추가 버튼")}
+              placeholder={t(
+                "rag.summaryEdit.tagPlaceholder",
+                "태그 입력 후 Enter 또는 추가 버튼",
+              )}
               disabled={saving}
             />
             <Button
@@ -248,12 +262,20 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
             label={
               <Box>
                 <Typography variant="body2">
-                  {isPublic ? t("rag.summaryEdit.public", "공개") : t("rag.summaryEdit.private", "비공개")}
+                  {isPublic
+                    ? t("rag.summaryEdit.public", "공개")
+                    : t("rag.summaryEdit.private", "비공개")}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {isPublic
-                    ? t("rag.summaryEdit.publicDesc", "모든 사용자가 이 요약을 볼 수 있습니다")
-                    : t("rag.summaryEdit.privateDesc", "나만 이 요약을 볼 수 있습니다")}
+                    ? t(
+                        "rag.summaryEdit.publicDesc",
+                        "모든 사용자가 이 요약을 볼 수 있습니다",
+                      )
+                    : t(
+                        "rag.summaryEdit.privateDesc",
+                        "나만 이 요약을 볼 수 있습니다",
+                      )}
                 </Typography>
               </Box>
             }
@@ -270,7 +292,9 @@ function SummaryEditDialog({ open, onClose, onSave, summary, documentId }) {
           variant="contained"
           disabled={saving || !title.trim() || !summaryContent.trim()}
         >
-          {saving ? t("rag.summaryEdit.saving", "저장 중...") : t("rag.summaryEdit.saveBtn", "저장")}
+          {saving
+            ? t("rag.summaryEdit.saving", "저장 중...")
+            : t("rag.summaryEdit.saveBtn", "저장")}
         </Button>
       </DialogActions>
     </Dialog>

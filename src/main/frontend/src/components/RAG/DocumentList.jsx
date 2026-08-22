@@ -39,6 +39,7 @@ import { useLlmAnalysisStates } from "./hooks/useLlmAnalysisStates.js";
 import { useDocumentActions } from "./hooks/useDocumentActions.js";
 import { useSummaryDialog } from "./hooks/useSummaryDialog.js";
 import { useJobHistory } from "./hooks/useJobHistory.js";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 /**
  * 문서 목록 컴포넌트
@@ -275,7 +276,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       await loadLlmAnalysisStates();
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
         t(
           "rag.document.global.promoteFailed",
           "공통 문서 이동에 실패했습니다.",
@@ -316,7 +317,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       );
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
         t(
           "rag.document.global.requestFailed",
           "공통 문서 등록 요청에 실패했습니다.",

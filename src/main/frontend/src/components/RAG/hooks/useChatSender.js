@@ -7,6 +7,7 @@ import {
 } from "../utils/keywordUtils.js";
 import { formatDocumentListMessage } from "../utils/documentUtils.js";
 import { PAGINATION_CONSTANTS } from "../constants.js";
+import { serverErrorMessage } from "../../../utils/apiError.js";
 
 /**
  * 채팅 메시지 전송 로직 훅
@@ -69,8 +70,7 @@ export function useChatSender({
         };
       } catch (error) {
         throw new Error(
-          error.response?.data?.message ||
-            "문서 목록을 불러오는데 실패했습니다.",
+          serverErrorMessage(error) || "문서 목록을 불러오는데 실패했습니다.",
         );
       }
     },
@@ -78,14 +78,11 @@ export function useChatSender({
   );
 
   // 테스트 케이스 템플릿 적용 (백엔드에서 지능적으로 처리하도록 변경됨)
-  const applyTestCaseTemplate = useCallback(
-    (trimmedInput) => {
-      // 이제 백엔드(RagQueryAnalyzer)에서 테스트케이스 생성 의도를 감지하여 
-      // 시스템 프롬프트에 자동으로 템플릿을 포함하므로 프론트엔드에서는 추가하지 않습니다.
-      return trimmedInput;
-    },
-    [],
-  );
+  const applyTestCaseTemplate = useCallback((trimmedInput) => {
+    // 이제 백엔드(RagQueryAnalyzer)에서 테스트케이스 생성 의도를 감지하여
+    // 시스템 프롬프트에 자동으로 템플릿을 포함하므로 프론트엔드에서는 추가하지 않습니다.
+    return trimmedInput;
+  }, []);
 
   // 스트리밍 채팅 처리
   const handleStreamingChat = useCallback(

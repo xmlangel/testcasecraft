@@ -44,6 +44,7 @@ import MDEditor from "@uiw/react-md-editor";
 import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 const CHUNK_PAGE_SIZE = 50; // 한 번에 로드할 청크 개수
 const MAX_CHUNK_API_LIMIT = 100; // 백엔드 RAG API가 허용하는 최대 limit 값
@@ -284,7 +285,7 @@ function DocumentChunks({
     } catch (err) {
       console.error("문서 요약 로드 실패:", err);
       setDocumentSummaryError(
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
           t("rag.chunks.summaryLoadFailed", "LLM 요약을 불러오지 못했습니다."),
       );
       setDocumentSummaryHasMore(false);
@@ -422,7 +423,7 @@ function DocumentChunks({
     } catch (err) {
       // console.error('[DocumentChunks] 청크 조회 실패:', err);
       const errorMessage =
-        err.response?.data?.message ||
+        serverErrorMessage(err) ||
         err.message ||
         t("rag.document.chunk.loadError", "청크 조회에 실패했습니다.");
       setError(errorMessage);
@@ -462,7 +463,13 @@ function DocumentChunks({
       }
     } catch (err) {
       // console.error('추가 청크 조회 실패:', err);
-      setError(err.response?.data?.message || t("rag.document.chunk.loadMoreError", "추가 청크 조회에 실패했습니다."));
+      setError(
+        serverErrorMessage(err) ||
+          t(
+            "rag.document.chunk.loadMoreError",
+            "추가 청크 조회에 실패했습니다.",
+          ),
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -634,7 +641,9 @@ function DocumentChunks({
         const url = window.URL.createObjectURL(blob);
         setPreviewContent({ type: "pdf", url });
       } else {
-        throw new Error(t("rag.document.pdf.loadError", "PDF를 불러올 수 없습니다."));
+        throw new Error(
+          t("rag.document.pdf.loadError", "PDF를 불러올 수 없습니다."),
+        );
       }
     } catch (err) {
       // console.error('PDF 미리보기 오류:', err);
@@ -675,7 +684,9 @@ function DocumentChunks({
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        throw new Error(t("rag.document.file.downloadError", "파일 다운로드에 실패했습니다."));
+        throw new Error(
+          t("rag.document.file.downloadError", "파일 다운로드에 실패했습니다."),
+        );
       }
     } catch (err) {
       // console.error('파일 다운로드 오류:', err);
@@ -1001,9 +1012,7 @@ function DocumentChunks({
                                 }
                                 sx={chunkMarkdownStyles}
                               >
-                                <MDEditor.Markdown
-                                  source={displayText || ""}
-                                />
+                                <MDEditor.Markdown source={displayText || ""} />
                               </Box>
                               {chunk.chunkText.length > 200 && (
                                 <Button
@@ -1335,9 +1344,10 @@ function DocumentChunks({
             <AutoAwesomeIcon color="secondary" />
             <Typography variant="h6">
               {t("rag.chunks.llmSummaryTitle", "LLM 분석 요약")}
-              {selectedSummary && t("rag.chunks.chunkLabel", " - 청크 #{number}", {
-                number: selectedSummary.chunkIndex + 1,
-              })}
+              {selectedSummary &&
+                t("rag.chunks.chunkLabel", " - 청크 #{number}", {
+                  number: selectedSummary.chunkIndex + 1,
+                })}
             </Typography>
           </Box>
           <IconButton onClick={handleCloseSummary} size="small">
@@ -1367,9 +1377,7 @@ function DocumentChunks({
                     overflow: "auto",
                   }}
                 >
-                  <MDEditor.Markdown
-                    source={selectedSummary.chunkText || ""}
-                  />
+                  <MDEditor.Markdown source={selectedSummary.chunkText || ""} />
                 </Box>
               </Box>
 

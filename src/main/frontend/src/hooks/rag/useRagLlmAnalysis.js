@@ -10,6 +10,7 @@ import { API_CONFIG } from "../../utils/apiConstants.js";
 
 import { debugLog } from "../../utils/logger.js";
 import { buildRagWriteError } from "../../utils/ragWriteError.js";
+import { serverErrorMessage } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -303,7 +304,7 @@ export function useRagLlmAnalysis(
         dispatch({
           type: ActionTypes.SET_ERROR,
           payload:
-            error.response?.data?.message || "분석 결과 조회에 실패했습니다.",
+            serverErrorMessage(error) || "분석 결과 조회에 실패했습니다.",
         });
         throw error;
       }
