@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 import { debugLog } from "../../utils/logger.js";
 import { serverErrorMessage } from "../../utils/apiError.js";
+import { buildApiError } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -69,6 +70,10 @@ export function useRagChat(
             projectId,
           )}`;
           const response = await api(url);
+          if (!response.ok) {
+            throw await buildApiError(response);
+          }
+
           const data = await response.json();
 
           // 백엔드가 배열을 직접 반환하는 경우와 객체로 감싼 경우 모두 처리
@@ -117,6 +122,10 @@ export function useRagChat(
             projectId,
           )}`;
           const response = await api(url);
+          if (!response.ok) {
+            throw await buildApiError(response);
+          }
+
           const data = await response.json();
 
           const categories = data.categories || [];
@@ -149,6 +158,10 @@ export function useRagChat(
         const response = await api(
           `/api/rag/chat/conversations/threads/${threadId}/messages`,
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         const data = await response.json();
         const messages = data || [];
 
@@ -184,6 +197,10 @@ export function useRagChat(
           }),
         });
 
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         const thread = await response.json();
         dispatch({ type: ActionTypes.UPSERT_THREAD, payload: thread });
         return thread;
@@ -213,6 +230,10 @@ export function useRagChat(
             }),
           },
         );
+
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
 
         const thread = await response.json();
         dispatch({ type: ActionTypes.UPSERT_THREAD, payload: thread });
@@ -527,6 +548,10 @@ export function useRagChat(
             }),
           },
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("채팅 메시지 편집 실패:", error);
@@ -575,6 +600,10 @@ export function useRagChat(
         const response = await api(
           `/api/rag/chat/conversations/threads/${threadId}`,
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("스레드 조회 실패:", error);

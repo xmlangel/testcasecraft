@@ -6,6 +6,7 @@
 import { useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { serverErrorMessage } from "../../utils/apiError.js";
+import { buildApiError } from "../../utils/apiError.js";
 
 export function useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable) {
   const { api } = useAuth();
@@ -28,6 +29,10 @@ export function useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable) {
             similarityThreshold: minSimilarity,
           }),
         });
+
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
 
         const data = await response.json();
         dispatch({
@@ -85,6 +90,10 @@ export function useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable) {
             rerankerTopK,
           }),
         });
+
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
 
         const data = await response.json();
         dispatch({

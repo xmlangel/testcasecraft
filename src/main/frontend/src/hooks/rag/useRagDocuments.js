@@ -13,6 +13,7 @@ import {
   describeRagWriteError,
 } from "../../utils/ragWriteError.js";
 import { serverErrorMessage } from "../../utils/apiError.js";
+import { buildApiError } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -161,6 +162,10 @@ export function useRagDocuments(
 
           try {
             const response = await api(`/api/rag/documents/${documentId}`);
+            if (!response.ok) {
+              throw await buildApiError(response);
+            }
+
             document = await response.json();
 
             if (document) {
@@ -224,6 +229,10 @@ export function useRagDocuments(
 
           try {
             const response = await api(`/api/rag/documents/${documentId}`);
+            if (!response.ok) {
+              throw await buildApiError(response);
+            }
+
             document = await response.json();
 
             if (document) {
@@ -315,6 +324,10 @@ export function useRagDocuments(
 
       try {
         const response = await api(`/api/rag/documents/${documentId}`);
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         const document = await response.json();
 
         dispatch({ type: ActionTypes.SET_ACTIVE_DOCUMENT, payload: document });
@@ -356,6 +369,10 @@ export function useRagDocuments(
             projectId,
           )}&page=${page}&size=${pageSize}`;
           const response = await api(url);
+          if (!response.ok) {
+            throw await buildApiError(response);
+          }
+
           const data = await response.json();
 
           const documents = data.items || data.documents || [];
@@ -454,6 +471,10 @@ export function useRagDocuments(
       try {
         const url = `/api/rag/documents/${documentId}/chunks?page=${page}&page_size=${pageSize}`;
         const response = await api(url);
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("청크 조회 실패:", error);

@@ -11,6 +11,7 @@ import { API_CONFIG } from "../../utils/apiConstants.js";
 import { debugLog } from "../../utils/logger.js";
 import { buildRagWriteError } from "../../utils/ragWriteError.js";
 import { serverErrorMessage } from "../../utils/apiError.js";
+import { buildApiError } from "../../utils/apiError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -188,6 +189,10 @@ export function useRagLlmAnalysis(
         const response = await api(
           `/api/rag/documents/${documentId}/llm-analysis-status`,
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 상태 조회 실패:", error);
@@ -212,6 +217,10 @@ export function useRagLlmAnalysis(
 
         const url = `/api/rag/llm-analysis/jobs?${params.toString()}`;
         const response = await api(url);
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 작업 목록 조회 실패:", error);
@@ -231,6 +240,10 @@ export function useRagLlmAnalysis(
           `/api/rag/documents/${documentId}/pause-analysis`,
           { method: "POST", body: JSON.stringify({}) },
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 일시정지 실패:", error);
@@ -254,6 +267,10 @@ export function useRagLlmAnalysis(
           `/api/rag/documents/${documentId}/resume-analysis`,
           { method: "POST", body: JSON.stringify({}) },
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 재개 실패:", error);
@@ -277,6 +294,10 @@ export function useRagLlmAnalysis(
           `/api/rag/documents/${documentId}/cancel-analysis`,
           { method: "POST", body: JSON.stringify({}) },
         );
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 취소 실패:", error);
@@ -298,6 +319,10 @@ export function useRagLlmAnalysis(
       try {
         const url = `/api/rag/documents/${documentId}/llm-analysis-results?skip=${skip}&limit=${limit}`;
         const response = await api(url);
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 결과 조회 실패:", error);
@@ -322,6 +347,10 @@ export function useRagLlmAnalysis(
           method: "POST",
           body: JSON.stringify(summaryData),
         });
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 요약 생성 실패:", error);
@@ -342,6 +371,10 @@ export function useRagLlmAnalysis(
 
       try {
         const response = await api(`/api/rag/analysis-summaries/${summaryId}`);
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 요약 조회 실패:", error);
@@ -362,6 +395,10 @@ export function useRagLlmAnalysis(
           queryParams ? `?${queryParams}` : ""
         }`;
         const response = await api(url);
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 요약 목록 조회 실패:", error);
@@ -381,6 +418,10 @@ export function useRagLlmAnalysis(
           method: "PUT",
           body: JSON.stringify(summaryData),
         });
+        if (!response.ok) {
+          throw await buildApiError(response);
+        }
+
         return await response.json();
       } catch (error) {
         console.error("분석 요약 수정 실패:", error);
