@@ -346,10 +346,10 @@ export const LlmConfigProvider = ({ children }) => {
    * 저장된 설정은 configId 만 보내면 서버가 저장된 키를 쓴다.
    */
   const fetchOpenRouterFreeModels = useCallback(
-    async ({ apiKey, configId }) => {
+    async ({ provider, apiKey, configId }) => {
       const response = await api("/api/llm-configs/openrouter/free-models", {
         method: "POST",
-        body: JSON.stringify({ apiKey, configId }),
+        body: JSON.stringify({ provider, apiKey, configId }),
       });
 
       const { data } = await parseApiResponse(
@@ -360,6 +360,26 @@ export const LlmConfigProvider = ({ children }) => {
     },
     [api],
   );
+
+  /**
+   * 모델 목록을 내주는 제공자 목록
+   *
+   * 어느 제공자에서 목록 선택기를 띄울지, 전수 확인을 기본으로 권할지 서버가 알려 준다.
+   * 제공자 목록을 화면에 박아 두면 제공자를 더할 때마다 화면도 고쳐야 한다.
+   */
+  const fetchModelCatalogProviders = useCallback(async () => {
+    try {
+      const response = await api("/api/llm-configs/model-catalogs");
+      const { data } = await parseApiResponse(
+        response,
+        "fetch model catalog providers",
+      );
+      return data || [];
+    } catch (err) {
+      console.warn("Model catalog providers unavailable:", err.message);
+      return [];
+    }
+  }, [api]);
 
   /**
    * 채팅 화면에서 고를 수 있는 무료 모델 목록
@@ -391,12 +411,18 @@ export const LlmConfigProvider = ({ children }) => {
    * modelIds 를 비우면 무료 모델 전체를 확인하고, alreadyChecked 에 담긴 모델은 건너뛴다.
    */
   const probeOpenRouterModels = useCallback(
-    async ({ apiKey, configId, modelIds, alreadyChecked }) => {
+    async ({ provider, apiKey, configId, modelIds, alreadyChecked }) => {
       const response = await api(
         "/api/llm-configs/openrouter/free-models/probe",
         {
           method: "POST",
-          body: JSON.stringify({ apiKey, configId, modelIds, alreadyChecked }),
+          body: JSON.stringify({
+            provider,
+            apiKey,
+            configId,
+            modelIds,
+            alreadyChecked,
+          }),
         },
       );
 
@@ -467,6 +493,7 @@ export const LlmConfigProvider = ({ children }) => {
     fetchOpenRouterFreeModels,
     probeOpenRouterModels,
     fetchSelectableFreeModels,
+    fetchModelCatalogProviders,
   };
 
   return (

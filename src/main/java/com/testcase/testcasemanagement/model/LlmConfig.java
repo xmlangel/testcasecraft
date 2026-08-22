@@ -120,7 +120,8 @@ public class LlmConfig {
     OPENAI("OpenAI"),
     OLLAMA("Ollama"),
     PERPLEXITY("Perplexity"),
-    OPENROUTER("OpenRouter");
+    OPENROUTER("OpenRouter"),
+    NVIDIA("NVIDIA");
 
     private final String displayName;
 

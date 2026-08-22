@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.service.llm;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO.Availability;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
+import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.Instant;
@@ -43,7 +44,7 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OpenRouterModelCatalogService {
+public class OpenRouterModelCatalogService implements LlmModelCatalog {
 
   /** OpenRouter 호스트. 사용자가 등록한 URL 과 무관하게 카탈로그는 공식 호스트에서 받는다. */
   private static final String OPENROUTER_BASE_URL = "https://openrouter.ai";
@@ -97,7 +98,8 @@ public class OpenRouterModelCatalogService {
    * @param apiKey OpenRouter API Key
    * @return 무료 채팅 모델 목록. 가용성은 모두 {@link Availability#UNKNOWN}
    */
-  public List<OpenRouterModelDTO> listFreeChatModels(String apiKey) {
+  @Override
+  public List<OpenRouterModelDTO> listSelectableModels(String apiKey) {
     log.info("📋 OpenRouter 무료 모델 목록 조회");
 
     // 모델 목록 경로는 인증을 요구하지 않는다(실측: 키 없이도 200). 검증 없이 목록을 내주면 잘못된 키를
@@ -159,7 +161,9 @@ public class OpenRouterModelCatalogService {
    * @param modelIds 확인할 모델 슬러그. {@value #PROBE_LIMIT} 개를 넘으면 앞에서 자른다
    * @return 입력 순서와 무관하게 슬러그 순으로 정렬된 판정 결과
    */
-  public OpenRouterProbeResponse probeAvailability(String apiKey, Collection<String> modelIds) {
+  @Override
+  public OpenRouterProbeResponse probeAvailability(
+      String apiKey, Collection<String> modelIds) {
     Set<String> targets = new LinkedHashSet<>();
     for (String id : modelIds) {
       if (id != null && !id.isBlank()) {
@@ -214,6 +218,22 @@ public class OpenRouterModelCatalogService {
         .accountLimit(accountLimit.get())
         .requestsSent(requestsSent.get())
         .build();
+  }
+
+  @Override
+  public LlmProvider provider() {
+    return LlmProvider.OPENROUTER;
+  }
+
+  /**
+   * 전수 확인을 권하지 않는다.
+   *
+   * <p>목록에 오른 모델은 대개 쓸 수 있고(실측: 20개 중 사용 가능 14~17개, 나머지는 일시적 혼잡), 확인 자체가 무료 일일 한도 50건을 태운다. 전수
+   * 확인 한 번이 하루치의 40% 다. 쓸 모델은 하나이므로 그 하나만 확인하는 편이 낫다.
+   */
+  @Override
+  public boolean probeRecommendedByDefault() {
+    return false;
   }
 
   private Mono<OpenRouterModelDTO> probeOne(

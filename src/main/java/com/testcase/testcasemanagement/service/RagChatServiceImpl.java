@@ -15,7 +15,8 @@ import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
-import com.testcase.testcasemanagement.service.llm.OpenRouterModelCatalogService;
+import com.testcase.testcasemanagement.service.llm.LlmModelCatalog;
+import com.testcase.testcasemanagement.service.llm.LlmModelCatalogFactory;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
 import com.testcase.testcasemanagement.service.rag.RagDataSummarizer;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer;
@@ -50,7 +51,7 @@ public class RagChatServiceImpl implements RagChatService {
   private final ProjectRepository projectRepository;
   private final RagChatConversationService conversationService;
   private final LlmClientFactory llmClientFactory;
-  private final OpenRouterModelCatalogService openRouterModelCatalogService;
+  private final LlmModelCatalogFactory llmModelCatalogFactory;
   private final EncryptionUtil encryptionUtil;
   private final SystemSettingService systemSettingService;
   private final DashboardService dashboardService;
@@ -282,7 +283,7 @@ public class RagChatServiceImpl implements RagChatService {
    * 이번 질의에 쓸 LLM 설정을 정한다.
    *
    * <p>요청이 모델을 지정했으면 그 모델로 바꿔 쓴다. 관리자가 설정을 고치지 않고도 사용자가 화면에서 모델을 골라 쓸 수 있게 하려는 것이다. 다만 아무 모델이나
-   * 허용하면 사용자가 유료 모델을 골라 과금이 발생한다. 그래서 <b>OpenRouter 설정에 한해, 무료 모델 목록에 있는 모델만</b> 허용한다. 목록에 없으면 요청을
+   * 허용하면 사용자가 유료 모델을 골라 과금이 발생한다. 그래서 <b>모델 목록을 내주는 제공자에 한해, 그 목록에 있는 모델만</b> 허용한다. 목록에 없으면 요청을
    * 거부하지 않고 설정의 기본 모델로 진행하며 그 사실을 로그에 남긴다. 모델 하나 때문에 대화가 끊기는 것보다 낫다.
    *
    * <p>저장된 엔티티를 그대로 고치면 영속 상태가 바뀌어 DB 에 반영될 수 있다. 그래서 복사본을 만들어 쓴다.
@@ -299,13 +300,19 @@ public class RagChatServiceImpl implements RagChatService {
       return config;
     }
 
-    if (config.getProvider() != LlmConfig.LlmProvider.OPENROUTER) {
-      log.warn("⚠️ 모델 지정은 OpenRouter 설정에서만 허용한다. 무시하고 기본 모델을 쓴다: 요청={}", model);
+    // 목록을 내주는 제공자에서만 모델 지정을 허용한다. 목록이 없으면 무엇이 허용된 모델인지
+    // 판단할 근거가 없고, 그러면 사용자가 유료 모델을 골라 과금이 붙는 경로가 열린다.
+    LlmModelCatalog catalog = llmModelCatalogFactory.find(config.getProvider()).orElse(null);
+    if (catalog == null) {
+      log.warn(
+          "⚠️ {} 는 모델 목록을 제공하지 않아 모델 지정을 무시한다: 요청={}",
+          config.getProvider().getDisplayName(),
+          model);
       return config;
     }
 
-    if (!isFreeModel(config, model)) {
-      log.warn("⚠️ 무료 모델 목록에 없는 모델이라 무시하고 기본 모델을 쓴다: 요청={}", model);
+    if (!isAllowedModel(catalog, config, model)) {
+      log.warn("⚠️ 목록에 없는 모델이라 무시하고 기본 모델을 쓴다: 요청={}", model);
       return config;
     }
 
@@ -314,14 +321,19 @@ public class RagChatServiceImpl implements RagChatService {
     return overridden;
   }
 
-  /** 요청한 모델이 이 설정의 키로 쓸 수 있는 무료 모델인지 확인한다. */
-  private boolean isFreeModel(LlmConfig config, String model) {
+  /**
+   * 요청한 모델이 이 설정의 키로 고를 수 있는 목록에 있는지 확인한다.
+   *
+   * <p>제공자마다 목록의 성질이 달라도 판정 방법은 같다. 그 제공자의 카탈로그가 내주는 목록에 있으면 허용한다. OpenRouter 는 무료 모델만 목록에 오르고,
+   * NVIDIA 는 채팅 가능한 모델이 오른다. 어느 쪽이든 목록 밖 모델은 받지 않는다.
+   */
+  private boolean isAllowedModel(LlmModelCatalog catalog, LlmConfig config, String model) {
     try {
       String apiKey = encryptionUtil.decrypt(config.getEncryptedApiKey());
-      return openRouterModelCatalogService.listFreeChatModels(apiKey).stream()
+      return catalog.listSelectableModels(apiKey).stream()
           .anyMatch(candidate -> model.equals(candidate.getId()));
     } catch (Exception e) {
-      log.warn("⚠️ 무료 모델 목록을 확인할 수 없어 모델 지정을 무시한다: {}", e.getMessage());
+      log.warn("⚠️ 모델 목록을 확인할 수 없어 모델 지정을 무시한다: {}", e.getMessage());
       return false;
     }
   }

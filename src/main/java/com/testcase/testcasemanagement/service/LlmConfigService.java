@@ -2,6 +2,7 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
 import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
@@ -49,14 +50,15 @@ public interface LlmConfigService {
   void testUnsavedSettings(LlmConfigDTO configDTO);
 
   /**
-   * OpenRouter 무료 모델 목록 조회
+   * 제공자의 모델 목록 조회
    *
-   * <p>호출 1회로 끝나고 비용이 없다. 가용성은 확인하지 않으므로 결과의 availability 는 UNKNOWN 이다.
+   * <p>호출 1회로 끝나고 비용이 없다. 가용성은 확인하지 않으므로 결과의 availability 는 UNKNOWN 이다. 요청의 provider 가 비면
+   * OPENROUTER 로 본다.
    */
   List<OpenRouterModelDTO> listOpenRouterFreeModels(OpenRouterModelQueryRequest request);
 
   /**
-   * OpenRouter 모델 가용성 확인
+   * 제공자 모델 가용성 확인
    *
    * <p>각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. <b>확인 자체가 무료 일일 한도를 태운다</b>(실측: 한도 50건). 그래서 화면은 고른 모델
    * 하나만 확인하는 것을 기본으로 하고, 전체 확인은 소모량을 알린 뒤에만 보낸다.
@@ -75,6 +77,14 @@ public interface LlmConfigService {
    * @return 무료 모델 목록. 기본 설정이 OpenRouter 가 아니거나 조회에 실패하면 빈 목록
    */
   List<OpenRouterModelDTO> listSelectableFreeModelsForChat();
+
+  /**
+   * 모델 목록을 내주는 제공자 목록
+   *
+   * <p>화면이 어느 제공자에서 목록 선택기를 띄울지, 전수 확인을 기본으로 권할지 정하는 데 쓴다. 제공자 목록을 화면에 박아 두면 제공자를 더할 때마다 화면도
+   * 고쳐야 하므로 서버가 알려 준다.
+   */
+  List<LlmModelCatalogInfo> listModelCatalogProviders();
 
   /** 활성/비활성 토글 */
   LlmConfigDTO toggleActive(String id);
