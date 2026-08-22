@@ -379,6 +379,11 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("rag.chat.retry", languageCode, "재시도", createdBy);
     createTranslationIfNotExists("rag.chat.clear", languageCode, "대화 초기화", createdBy);
     createTranslationIfNotExists("rag.chat.persistToggle", languageCode, "대화 자동 저장", createdBy);
+    createTranslationIfNotExists(
+        "rag.document.error.vectorWriteDisabled",
+        languageCode,
+        "벡터 색인이 중지되어 있어 이 작업을 할 수 없습니다. 이미 색인된 자료로 질문하는 것은 그대로 됩니다. 관리자 설정에서 다시 켤 수 있습니다.",
+        createdBy);
     createTranslationIfNotExists("rag.chat.useRagSearch", languageCode, "RAG 문서 우선 검색", createdBy);
     createTranslationIfNotExists(
         "rag.chat.error.unknownCause",

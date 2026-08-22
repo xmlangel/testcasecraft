@@ -474,6 +474,13 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "rag.chat.persistToggle", languageCode, "Auto-save Conversation", createdBy);
     createTranslationIfNotExists(
+        "rag.document.error.vectorWriteDisabled",
+        languageCode,
+        "Vector indexing is stopped, so this action is unavailable. Querying"
+            + " already-indexed material keeps working. An administrator can turn it back on"
+            + " in the settings.",
+        createdBy);
+    createTranslationIfNotExists(
         "rag.chat.useRagSearch", languageCode, "Search RAG Documents First", createdBy);
     createTranslationIfNotExists(
         "rag.chat.error.unknownCause",

@@ -224,6 +224,11 @@ public class RAGKeysInitializer {
     createTranslationKeyIfNotExists("rag.chat.clear", "rag", "대화 초기화", "대화 초기화");
     createTranslationKeyIfNotExists("rag.chat.persistToggle", "rag", "대화 자동 저장 토글", "대화 자동 저장");
     createTranslationKeyIfNotExists(
+        "rag.document.error.vectorWriteDisabled",
+        "rag",
+        "벡터 색인 중지 안내",
+        "벡터 색인이 중지되어 있어 이 작업을 할 수 없습니다. 이미 색인된 자료로 질문하는 것은 그대로 됩니다. 관리자 설정에서 다시 켤 수 있습니다.");
+    createTranslationKeyIfNotExists(
         "rag.chat.useRagSearch", "rag", "RAG 문서 우선 검색 토글", "RAG 문서 우선 검색");
     createTranslationKeyIfNotExists(
         "rag.chat.error.unknownCause",

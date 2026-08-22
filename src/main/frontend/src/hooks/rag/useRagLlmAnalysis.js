@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { API_CONFIG } from "../../utils/apiConstants.js";
 
 import { debugLog } from "../../utils/logger.js";
+import { buildRagWriteError } from "../../utils/ragWriteError.js";
 
 const IS_RAG_ENABLED =
   import.meta.env.VITE_ENABLE_RAG !== "false" &&
@@ -153,7 +154,12 @@ export function useRagLlmAnalysis(
         );
 
         if (!response.ok) {
-          throw new Error("LLM 분석 시작 요청 실패");
+          // 상태만 문구로 만들면 왜 거부됐는지 알 수 없다.
+          // 서버가 준 사유와 원인 코드를 붙여 올려 보낸다.
+          throw await buildRagWriteError(
+            response,
+            "LLM 분석 시작에 실패했습니다.",
+          );
         }
 
         return await response.json();
@@ -161,7 +167,10 @@ export function useRagLlmAnalysis(
         console.error("LLM 분석 시작 실패:", error);
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: error.message || "LLM 분석 시작에 실패했습니다.",
+          payload:
+            error.errorMessage ||
+            error.message ||
+            "LLM 분석 시작에 실패했습니다.",
         });
         throw error;
       }

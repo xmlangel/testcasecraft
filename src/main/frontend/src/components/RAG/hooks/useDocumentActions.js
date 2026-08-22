@@ -1,6 +1,8 @@
 // src/components/RAG/hooks/useDocumentActions.js
 import { useState, useCallback } from "react";
 import { DOCUMENT_LIST_CONSTANTS } from "../constants.js";
+import { useI18n } from "../../../context/I18nContext.jsx";
+import { describeRagWriteError } from "../../../utils/ragWriteError.js";
 
 /**
  * 문서 액션 핸들러 커스텀 훅
@@ -25,6 +27,7 @@ export function useDocumentActions({
   setLocalError,
   onViewChunks,
 }) {
+  const { t } = useI18n();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
   const [previewDialogState, setPreviewDialogState] = useState({
@@ -120,10 +123,13 @@ export function useDocumentActions({
         // 문서 목록 새로고침
         await loadDocuments();
       } catch (error) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "문서 분석에 실패했습니다.";
+        // error.response 는 axios 형태라 fetch 응답에서는 늘 undefined 였다.
+        // 서버가 준 사유와 원인 코드를 보고 문구를 고른다.
+        const errorMessage = describeRagWriteError(
+          error,
+          t,
+          error.message || "문서 분석에 실패했습니다.",
+        );
         setLocalError(errorMessage);
 
         // 자동으로 오류 메시지 제거
@@ -132,7 +138,7 @@ export function useDocumentActions({
         }, DOCUMENT_LIST_CONSTANTS.ERROR_AUTO_DISMISS);
       }
     },
-    [analyzeDocument, loadDocuments, setLocalError],
+    [analyzeDocument, loadDocuments, setLocalError, t],
   );
 
   /**
@@ -152,10 +158,11 @@ export function useDocumentActions({
         // 문서 목록 새로고침
         await loadDocuments();
       } catch (error) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "임베딩 생성에 실패했습니다.";
+        const errorMessage = describeRagWriteError(
+          error,
+          t,
+          error.message || "임베딩 생성에 실패했습니다.",
+        );
         setLocalError(errorMessage);
 
         // 자동으로 오류 메시지 제거
@@ -164,7 +171,7 @@ export function useDocumentActions({
         }, DOCUMENT_LIST_CONSTANTS.ERROR_AUTO_DISMISS);
       }
     },
-    [generateEmbeddings, loadDocuments, setLocalError],
+    [generateEmbeddings, loadDocuments, setLocalError, t],
   );
 
   /**
