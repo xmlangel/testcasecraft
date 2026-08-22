@@ -349,7 +349,9 @@ function TestResultStatisticsDashboard() {
       reportData.forEach((item) => {
         // 백엔드에서 '루트' 또는 null로 올 수 있음
         const folderPath =
-          item.folderPath === ROOT_LABEL || !item.folderPath ? "" : item.folderPath;
+          item.folderPath === ROOT_LABEL || !item.folderPath
+            ? ""
+            : item.folderPath;
         const parts = folderPath
           .split(/[\/>]/)
           .map((p) => p.trim())

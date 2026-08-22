@@ -39,10 +39,7 @@ function ResumeAnalysisDialog({ open, onClose, onResume, onRestart, status }) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Typography variant="h6" component="div">
-          {t(
-            "rag.resumeAnalysis.title",
-            "기존 분석 진행 내역 발견",
-          )}
+          {t("rag.resumeAnalysis.title", "기존 분석 진행 내역 발견")}
         </Typography>
       </DialogTitle>
 

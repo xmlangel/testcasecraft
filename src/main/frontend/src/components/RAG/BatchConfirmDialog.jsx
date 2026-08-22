@@ -79,7 +79,11 @@ function BatchConfirmDialog({
             color="textSecondary"
             sx={{ mt: 0.5, display: "block" }}
           >
-            {t("rag.batch.processed", "{processedChunks} / {totalChunks} 청크 처리 완료", { processedChunks, totalChunks })}
+            {t(
+              "rag.batch.processed",
+              "{processedChunks} / {totalChunks} 청크 처리 완료",
+              { processedChunks, totalChunks },
+            )}
           </Typography>
         </Box>
 
@@ -99,7 +103,8 @@ function BatchConfirmDialog({
               <strong>{totalTokensUsed?.toLocaleString()}</strong>
             </Typography>
             <Typography variant="h6" color="primary.main" sx={{ mt: 1 }}>
-              {t("rag.batch.totalCost", "누적 비용")}: <strong>${currentCost.toFixed(4)}</strong>
+              {t("rag.batch.totalCost", "누적 비용")}:{" "}
+              <strong>${currentCost.toFixed(4)}</strong>
             </Typography>
           </Box>
         </Box>
@@ -112,7 +117,11 @@ function BatchConfirmDialog({
             {t("rag.batch.remainingWork", "남은 작업")}
           </Typography>
           <Chip
-            label={t("rag.batch.chunksRemaining", "{remainingChunks} 개 청크 남음", { remainingChunks })}
+            label={t(
+              "rag.batch.chunksRemaining",
+              "{remainingChunks} 개 청크 남음",
+              { remainingChunks },
+            )}
             color="secondary"
             size="small"
           />
@@ -121,16 +130,22 @@ function BatchConfirmDialog({
         {/* 안내 메시지 */}
         <Alert severity="info" sx={{ mt: 2 }}>
           <Typography variant="body2">
-            {t("rag.batch.info", "배치 단위 처리가 완료되었습니다. 계속 진행하면 다음 배치가 처리됩니다.")}
+            {t(
+              "rag.batch.info",
+              "배치 단위 처리가 완료되었습니다. 계속 진행하면 다음 배치가 처리됩니다.",
+            )}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            • <strong>{t("rag.batch.continue", "계속")}</strong>: {t("rag.batch.continueDesc", "다음 배치 처리")}
+            • <strong>{t("rag.batch.continue", "계속")}</strong>:{" "}
+            {t("rag.batch.continueDesc", "다음 배치 처리")}
           </Typography>
           <Typography variant="body2">
-            • <strong>{t("rag.batch.pause", "일시정지")}</strong>: {t("rag.batch.pauseDesc", "나중에 재개 가능")}
+            • <strong>{t("rag.batch.pause", "일시정지")}</strong>:{" "}
+            {t("rag.batch.pauseDesc", "나중에 재개 가능")}
           </Typography>
           <Typography variant="body2">
-            • <strong>{t("rag.batch.stop", "중단")}</strong>: {t("rag.batch.stopDesc", "분석 완전 종료 (지금까지 결과는 보존)")}
+            • <strong>{t("rag.batch.stop", "중단")}</strong>:{" "}
+            {t("rag.batch.stopDesc", "분석 완전 종료 (지금까지 결과는 보존)")}
           </Typography>
         </Alert>
       </DialogContent>
@@ -160,7 +175,9 @@ function BatchConfirmDialog({
             color="primary"
             disabled={loading}
           >
-            {loading ? t("rag.batch.processing", "처리 중...") : t("rag.batch.buttonContinue", "계속")}
+            {loading
+              ? t("rag.batch.processing", "처리 중...")
+              : t("rag.batch.buttonContinue", "계속")}
           </Button>
         </Box>
       </DialogActions>

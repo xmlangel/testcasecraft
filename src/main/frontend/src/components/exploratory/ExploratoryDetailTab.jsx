@@ -443,7 +443,10 @@ function ExploratoryDetailTab({
                     <Grid size={12}>
                       <Box sx={{ py: 4, textAlign: "center", opacity: 0.3 }}>
                         <Typography variant="body2">
-                          {t("exploratory.notes.empty", "No session notes recorded")}
+                          {t(
+                            "exploratory.notes.empty",
+                            "No session notes recorded",
+                          )}
                         </Typography>
                       </Box>
                     </Grid>
@@ -561,7 +564,10 @@ function ExploratoryDetailTab({
                       variant="body2"
                       sx={{ opacity: 0.3, textAlign: "center", py: 2 }}
                     >
-                      {t("exploratory.tests.empty", "No structured tests performed")}
+                      {t(
+                        "exploratory.tests.empty",
+                        "No structured tests performed",
+                      )}
                     </Typography>
                   )}
                 </Stack>
@@ -716,7 +722,11 @@ function ExploratoryDetailTab({
                         whiteSpace: "pre-wrap",
                       }}
                     >
-                      {raw.testData || t("exploratory.testData.empty", "No test data recorded")}
+                      {raw.testData ||
+                        t(
+                          "exploratory.testData.empty",
+                          "No test data recorded",
+                        )}
                     </Typography>
                   </Box>
                   <Box>
@@ -775,7 +785,10 @@ function ExploratoryDetailTab({
                       </Grid>
                     ) : (
                       <Typography variant="body2" sx={{ opacity: 0.3 }}>
-                        {t("exploratory.artifacts.empty", "No uploaded artifacts")}
+                        {t(
+                          "exploratory.artifacts.empty",
+                          "No uploaded artifacts",
+                        )}
                       </Typography>
                     )}
                   </Box>

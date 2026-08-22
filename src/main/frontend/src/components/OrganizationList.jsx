@@ -82,8 +82,10 @@ const OrganizationList = () => {
         setErrorDetails({
           type: err.errorCode,
           title: t("org.error.accessDenied", "조직 접근 권한 없음"),
-          description:
-            t("org.error.accessDeniedDescription", "현재 사용자는 어떤 조직에도 속해있지 않습니다. 시스템 관리자에게 문의하여 조직 멤버로 추가되거나 새 조직을 생성하세요."),
+          description: t(
+            "org.error.accessDeniedDescription",
+            "현재 사용자는 어떤 조직에도 속해있지 않습니다. 시스템 관리자에게 문의하여 조직 멤버로 추가되거나 새 조직을 생성하세요.",
+          ),
           timestamp: err.timestamp,
           details: err.details,
         });

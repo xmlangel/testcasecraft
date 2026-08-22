@@ -188,7 +188,11 @@ function TestResultExecutionPieCharts({ data = [], loading = false, title }) {
               )}
           </Typography>
           <Chip
-            label={t("testResultDashboard.chart.executionCount", `${data.length}개 실행`, { count: data.length })}
+            label={t(
+              "testResultDashboard.chart.executionCount",
+              `${data.length}개 실행`,
+              { count: data.length },
+            )}
             size="small"
             variant="outlined"
           />
@@ -350,10 +354,14 @@ function TestResultExecutionPieCharts({ data = [], loading = false, title }) {
                           {seg.label}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {t("testResult.chart.countWithPct", "{count}건 ({pct}%)", {
-                            count: seg.value,
-                            pct: seg.pct.toFixed(1),
-                          })}
+                          {t(
+                            "testResult.chart.countWithPct",
+                            "{count}건 ({pct}%)",
+                            {
+                              count: seg.value,
+                              pct: seg.pct.toFixed(1),
+                            },
+                          )}
                         </Typography>
                       </Box>
                     ))}

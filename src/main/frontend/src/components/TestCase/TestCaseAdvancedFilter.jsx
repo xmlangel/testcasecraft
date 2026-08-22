@@ -135,22 +135,56 @@ const TestCaseAdvancedFilter = ({
   };
 
   const priorityOptions = [
-    { value: "HIGH", label: t("testcase.filter.priority.high", "높음"), color: "error" },
-    { value: "MEDIUM", label: t("testcase.filter.priority.medium", "보통"), color: "warning" },
-    { value: "LOW", label: t("testcase.filter.priority.low", "낮음"), color: "info" },
+    {
+      value: "HIGH",
+      label: t("testcase.filter.priority.high", "높음"),
+      color: "error",
+    },
+    {
+      value: "MEDIUM",
+      label: t("testcase.filter.priority.medium", "보통"),
+      color: "warning",
+    },
+    {
+      value: "LOW",
+      label: t("testcase.filter.priority.low", "낮음"),
+      color: "info",
+    },
   ];
 
   const typeOptions = [
-    { value: "testcase", label: t("testcase.filter.type.testcase", "테스트케이스") },
+    {
+      value: "testcase",
+      label: t("testcase.filter.type.testcase", "테스트케이스"),
+    },
     { value: "folder", label: t("testcase.filter.type.folder", "폴더") },
-    { value: "systemFolder", label: t("testcase.filter.type.systemFolder", "시스템 폴더") },
+    {
+      value: "systemFolder",
+      label: t("testcase.filter.type.systemFolder", "시스템 폴더"),
+    },
   ];
 
   const statusOptions = [
-    { value: "PASS", label: t("testcase.filter.status.pass", "통과"), color: "success" },
-    { value: "FAIL", label: t("testcase.filter.status.fail", "실패"), color: "error" },
-    { value: "PENDING", label: t("testcase.filter.status.pending", "대기"), color: "warning" },
-    { value: "SKIP", label: t("testcase.filter.status.skip", "건너뜀"), color: "default" },
+    {
+      value: "PASS",
+      label: t("testcase.filter.status.pass", "통과"),
+      color: "success",
+    },
+    {
+      value: "FAIL",
+      label: t("testcase.filter.status.fail", "실패"),
+      color: "error",
+    },
+    {
+      value: "PENDING",
+      label: t("testcase.filter.status.pending", "대기"),
+      color: "warning",
+    },
+    {
+      value: "SKIP",
+      label: t("testcase.filter.status.skip", "건너뜀"),
+      color: "default",
+    },
   ];
 
   return (
@@ -216,13 +250,17 @@ const TestCaseAdvancedFilter = ({
             }}
           >
             <FormControl size="small">
-              <InputLabel>{t("testcase.filter.priorityLabel", "우선순위")}</InputLabel>
+              <InputLabel>
+                {t("testcase.filter.priorityLabel", "우선순위")}
+              </InputLabel>
               <Select
                 value={filters.priority}
                 onChange={(e) => handleFilterChange("priority", e.target.value)}
                 label={t("testcase.filter.priorityLabel", "우선순위")}
               >
-                <MenuItem value="">{t("testcase.filter.allOption", "전체")}</MenuItem>
+                <MenuItem value="">
+                  {t("testcase.filter.allOption", "전체")}
+                </MenuItem>
                 {priorityOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -244,7 +282,9 @@ const TestCaseAdvancedFilter = ({
                 onChange={(e) => handleFilterChange("type", e.target.value)}
                 label={t("testcase.filter.typeLabel", "유형")}
               >
-                <MenuItem value="">{t("testcase.filter.allOption", "전체")}</MenuItem>
+                <MenuItem value="">
+                  {t("testcase.filter.allOption", "전체")}
+                </MenuItem>
                 {typeOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
@@ -254,13 +294,17 @@ const TestCaseAdvancedFilter = ({
             </FormControl>
 
             <FormControl size="small">
-              <InputLabel>{t("testcase.filter.statusLabel", "실행 상태")}</InputLabel>
+              <InputLabel>
+                {t("testcase.filter.statusLabel", "실행 상태")}
+              </InputLabel>
               <Select
                 value={filters.status}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
                 label={t("testcase.filter.statusLabel", "실행 상태")}
               >
-                <MenuItem value="">{t("testcase.filter.allOption", "전체")}</MenuItem>
+                <MenuItem value="">
+                  {t("testcase.filter.allOption", "전체")}
+                </MenuItem>
                 {statusOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -288,7 +332,10 @@ const TestCaseAdvancedFilter = ({
                 );
               }}
               renderInput={(params) => (
-                <TextField {...params} label={t("testcase.filter.projectLabel", "프로젝트")} />
+                <TextField
+                  {...params}
+                  label={t("testcase.filter.projectLabel", "프로젝트")}
+                />
               )}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => {
@@ -394,7 +441,10 @@ const TestCaseAdvancedFilter = ({
               <TextField
                 {...params}
                 label={t("testcase.filter.tagLabel", "태그")}
-                placeholder={t("testcase.filter.tagPlaceholder", "태그를 선택하세요...")}
+                placeholder={t(
+                  "testcase.filter.tagPlaceholder",
+                  "태그를 선택하세요...",
+                )}
               />
             )}
             renderTags={(value, getTagProps) =>
@@ -432,7 +482,9 @@ const TestCaseAdvancedFilter = ({
               <Chip
                 size="small"
                 label={t("testcase.filter.priorityChip", "우선순위: {label}", {
-                  label: priorityOptions.find((p) => p.value === filters.priority)?.label
+                  label: priorityOptions.find(
+                    (p) => p.value === filters.priority,
+                  )?.label,
                 })}
                 onDelete={() => handleFilterChange("priority", "")}
               />
@@ -441,7 +493,8 @@ const TestCaseAdvancedFilter = ({
               <Chip
                 size="small"
                 label={t("testcase.filter.typeChip", "유형: {label}", {
-                  label: typeOptions.find((ty) => ty.value === filters.type)?.label
+                  label: typeOptions.find((ty) => ty.value === filters.type)
+                    ?.label,
                 })}
                 onDelete={() => handleFilterChange("type", "")}
               />
@@ -450,7 +503,7 @@ const TestCaseAdvancedFilter = ({
               <Chip
                 size="small"
                 label={t("testcase.filter.tagsChip", "태그: {count}개", {
-                  count: filters.tags.length
+                  count: filters.tags.length,
                 })}
                 onDelete={() => handleFilterChange("tags", [])}
               />
@@ -458,9 +511,13 @@ const TestCaseAdvancedFilter = ({
             {filters.projectIds.length > 0 && (
               <Chip
                 size="small"
-                label={t("testcase.filter.projectsChip", "프로젝트: {count}개", {
-                  count: filters.projectIds.length
-                })}
+                label={t(
+                  "testcase.filter.projectsChip",
+                  "프로젝트: {count}개",
+                  {
+                    count: filters.projectIds.length,
+                  },
+                )}
                 onDelete={() => handleFilterChange("projectIds", [])}
               />
             )}

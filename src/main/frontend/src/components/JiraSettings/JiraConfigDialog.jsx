@@ -269,17 +269,17 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
         if (errorData.code === "ENCRYPTION_KEY_NOT_SET") {
           errorMessage = t(
             "jira.config.error.encryptionError",
-            "🔐 JIRA 암호화 설정 오류"
+            "🔐 JIRA 암호화 설정 오류",
           );
           errorDetail =
             errorData.detail ||
             t(
               "jira.config.error.encryptionNotSet",
-              "서버에서 JIRA 암호화 키가 설정되지 않았습니다."
+              "서버에서 JIRA 암호화 키가 설정되지 않았습니다.",
             );
           solution = t(
             "jira.config.error.encryptionSetupRequired",
-            "관리자에게 JIRA_ENCRYPTION_KEY 환경변수 설정을 요청하세요."
+            "관리자에게 JIRA_ENCRYPTION_KEY 환경변수 설정을 요청하세요.",
           );
         } else if (errorData.error) {
           errorMessage = errorData.error;
@@ -294,54 +294,45 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
         ) {
           errorMessage = t(
             "jira.config.error.encryptionConfigIssue",
-            "🔐 암호화 키 설정 문제"
+            "🔐 암호화 키 설정 문제",
           );
           errorDetail = t(
             "jira.config.error.encryptionConfigInvalid",
-            "서버에서 JIRA 암호화 키가 올바르게 설정되지 않았습니다."
+            "서버에서 JIRA 암호화 키가 올바르게 설정되지 않았습니다.",
           );
           solution = t(
             "jira.config.error.encryptionConfigContact",
-            "관리자에게 문의하여 JIRA_ENCRYPTION_KEY 환경변수를 설정하도록 요청하세요."
+            "관리자에게 문의하여 JIRA_ENCRYPTION_KEY 환경변수를 설정하도록 요청하세요.",
           );
         } else if (error.message.includes("401")) {
-          errorMessage = t(
-            "jira.config.error.authExpired",
-            "🔑 인증 만료"
-          );
+          errorMessage = t("jira.config.error.authExpired", "🔑 인증 만료");
           errorDetail = t(
             "jira.config.error.sessionExpired",
-            "로그인 세션이 만료되었습니다."
+            "로그인 세션이 만료되었습니다.",
           );
-          solution = t(
-            "jira.config.error.loginAgain",
-            "다시 로그인해주세요."
-          );
+          solution = t("jira.config.error.loginAgain", "다시 로그인해주세요.");
         } else if (error.message.includes("400")) {
           errorMessage = t(
             "jira.config.error.invalidInput",
-            "📝 입력 데이터 오류"
+            "📝 입력 데이터 오류",
           );
           errorDetail = t(
             "jira.config.error.invalidInputDetail",
-            "입력한 정보에 문제가 있습니다."
+            "입력한 정보에 문제가 있습니다.",
           );
           solution = t(
             "jira.config.error.checkFields",
-            "모든 필드를 올바르게 입력했는지 확인해주세요."
+            "모든 필드를 올바르게 입력했는지 확인해주세요.",
           );
         } else if (error.message.includes("500")) {
-          errorMessage = t(
-            "jira.config.error.serverError",
-            "🚨 서버 오류"
-          );
+          errorMessage = t("jira.config.error.serverError", "🚨 서버 오류");
           errorDetail = t(
             "jira.config.error.serverErrorOccurred",
-            "서버에서 오류가 발생했습니다."
+            "서버에서 오류가 발생했습니다.",
           );
           solution = t(
             "jira.config.error.retryOrContact",
-            "잠시 후 다시 시도하거나 관리자에게 문의하세요."
+            "잠시 후 다시 시도하거나 관리자에게 문의하세요.",
           );
         } else {
           errorMessage = `${t("jira.config.error.saveFailed", "저장 실패")}: ${error.message}`;

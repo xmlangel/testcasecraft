@@ -95,47 +95,52 @@ const TestCaseDatasheetGrid = ({
   const [tempMaxSteps, setTempMaxSteps] = useState(3);
 
   // 트리 구조를 평면화하면서 트리 순서를 유지하는 함수
-  const flattenTreeInOrder = useCallback((data) => {
-    if (!data || data.length === 0) return [];
+  const flattenTreeInOrder = useCallback(
+    (data) => {
+      if (!data || data.length === 0) return [];
 
-    // AI 생성 데이터 감지
-    const isAIGeneratedData = data.some(
-      (item) =>
-        item.__isAIGenerated === true ||
-        (item.id && item.id.startsWith("temp-ai-")),
-    );
+      // AI 생성 데이터 감지
+      const isAIGeneratedData = data.some(
+        (item) =>
+          item.__isAIGenerated === true ||
+          (item.id && item.id.startsWith("temp-ai-")),
+      );
 
-    if (isAIGeneratedData) {
-      return data;
-    }
+      if (isAIGeneratedData) {
+        return data;
+      }
 
-    // allKnownIds는 Set 형태로 전달
-    const allKnownIds = new Set(allData.map((tc) => tc.id));
-    const treeData = listToTree(data, null, {
-      allKnownIds,
-      orphanFolderName: t("tree.orphan.name", "[미할당 항목]"),
-      orphanFolderDescription: t(
-        "tree.orphan.description",
-        "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다."
-      ),
-    });
-
-    const flattenWithRenderTreeLogic = (nodes, result = []) => {
-      let sortedNodes = nodes.slice();
-      sortedNodes.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-
-      sortedNodes.forEach((node) => {
-        result.push(node);
-        if (Array.isArray(node.children) && node.children.length > 0) {
-          flattenWithRenderTreeLogic(node.children, result);
-        }
+      // allKnownIds는 Set 형태로 전달
+      const allKnownIds = new Set(allData.map((tc) => tc.id));
+      const treeData = listToTree(data, null, {
+        allKnownIds,
+        orphanFolderName: t("tree.orphan.name", "[미할당 항목]"),
+        orphanFolderDescription: t(
+          "tree.orphan.description",
+          "상위 폴더가 삭제되거나 접근할 수 없어 길을 잃은 항목들입니다.",
+        ),
       });
 
-      return result;
-    };
+      const flattenWithRenderTreeLogic = (nodes, result = []) => {
+        let sortedNodes = nodes.slice();
+        sortedNodes.sort(
+          (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0),
+        );
 
-    return flattenWithRenderTreeLogic(treeData);
-  }, [t]);
+        sortedNodes.forEach((node) => {
+          result.push(node);
+          if (Array.isArray(node.children) && node.children.length > 0) {
+            flattenWithRenderTreeLogic(node.children, result);
+          }
+        });
+
+        return result;
+      };
+
+      return flattenWithRenderTreeLogic(treeData);
+    },
+    [t],
+  );
 
   // 데이터 기반으로 최대 스텝 수 감지
   useEffect(() => {

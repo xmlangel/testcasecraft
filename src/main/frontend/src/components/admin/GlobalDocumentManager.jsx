@@ -873,7 +873,10 @@ const GlobalDocumentManager = ({ onSuccess }) => {
           </Typography>
           <Typography variant="body2">
             {ragDisabledMessage ||
-              t("globalDocumentManager.ragDisabled", "시스템 관리자에 의해 RAG 기능이 임시 비활성화되어 있습니다.")}
+              t(
+                "globalDocumentManager.ragDisabled",
+                "시스템 관리자에 의해 RAG 기능이 임시 비활성화되어 있습니다.",
+              )}
             <br />
             LLM 설정 관리 페이지의 &quot;시스템 설정&quot; 탭에서 RAG를 활성화한
             후 문서를 업로드해주세요.
@@ -1316,9 +1319,7 @@ const GlobalDocumentManager = ({ onSuccess }) => {
                     className="glass-surface shadow-glass-medium"
                     sx={summaryMarkdownStyles}
                   >
-                    <MDEditor.Markdown
-                      source={summaryContent}
-                    />
+                    <MDEditor.Markdown source={summaryContent} />
                   </Box>
                 )}
                 <Box

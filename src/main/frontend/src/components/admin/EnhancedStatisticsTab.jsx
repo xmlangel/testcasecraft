@@ -185,7 +185,13 @@ export const EnhancedStatisticsTab = ({
                           `${value.toFixed(1)}%`,
                           t("translation.completeness", "완성도"),
                         ]}
-                        labelFormatter={(label) => t("translation.categoryLabel", "카테고리: {category}", { category: label })}
+                        labelFormatter={(label) =>
+                          t(
+                            "translation.categoryLabel",
+                            "카테고리: {category}",
+                            { category: label },
+                          )
+                        }
                       />
                       {languageStats.map((lang, index) => (
                         <Bar

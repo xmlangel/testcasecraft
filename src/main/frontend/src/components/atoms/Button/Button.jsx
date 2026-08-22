@@ -29,7 +29,8 @@ const Button = forwardRef(
   ) => {
     const { t } = useTranslation();
     const defaultLoadingText = t("common.processing", "처리중...");
-    const finalLoadingText = loadingText !== undefined ? loadingText : defaultLoadingText;
+    const finalLoadingText =
+      loadingText !== undefined ? loadingText : defaultLoadingText;
     const handleClick = (event) => {
       if (loading || disabled) {
         event.preventDefault();

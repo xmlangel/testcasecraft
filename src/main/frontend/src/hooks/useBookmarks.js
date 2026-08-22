@@ -43,7 +43,11 @@ export default function useBookmarks(projectId) {
       else optimistic.add(testCaseId);
       setFavoriteIds(optimistic);
       try {
-        const res = await bookmarkApi.toggleFavorite(api, testCaseId, projectId);
+        const res = await bookmarkApi.toggleFavorite(
+          api,
+          testCaseId,
+          projectId,
+        );
         // 서버 응답 기준으로 동기화 (다른 모음 포함 여부는 status 재조회로 정확화)
         setFavoriteIds((cur) => {
           const next = new Set(cur);

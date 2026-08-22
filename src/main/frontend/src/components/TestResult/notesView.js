@@ -3,8 +3,11 @@
 // 스크롤 없이 표시하기 위해 MDEditor 높이를 auto 로 푼다.
 // (편집/라이브/전체화면 모드는 입력 중 무한정 늘어나지 않도록 고정 높이 유지)
 
-export const shouldExpandNotesPreview = ({ previewMode, isFullscreen, notes }) =>
-  previewMode === "preview" && !isFullscreen && !!notes && notes.length > 0;
+export const shouldExpandNotesPreview = ({
+  previewMode,
+  isFullscreen,
+  notes,
+}) => previewMode === "preview" && !isFullscreen && !!notes && notes.length > 0;
 
 const EXPANDED_SX = {
   "& .w-md-editor": { height: "auto !important" },

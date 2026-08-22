@@ -181,7 +181,10 @@ const JiraIntegrationReportSection = ({
         await onRefresh();
       }
     } catch (error) {
-      console.error(t("jira.data.refreshError", "JIRA 데이터 새로고침 실패:"), error);
+      console.error(
+        t("jira.data.refreshError", "JIRA 데이터 새로고침 실패:"),
+        error,
+      );
     } finally {
       setRefreshing(false);
     }

@@ -51,7 +51,10 @@ const SchedulerList = () => {
       setSchedulerData(data);
       setLastUpdated(new Date());
     } catch (err) {
-      setError(err.message || t("scheduler.loadFailed", "스케줄러 정보를 불러오는데 실패했습니다."));
+      setError(
+        err.message ||
+          t("scheduler.loadFailed", "스케줄러 정보를 불러오는데 실패했습니다."),
+      );
     } finally {
       setLoading(false);
     }
@@ -116,7 +119,9 @@ const SchedulerList = () => {
         <Box display="flex" alignItems="center" gap={1}>
           {lastUpdated && (
             <Chip
-              label={t("scheduler.lastUpdated", "최근 업데이트: {time}", { time: lastUpdated.toLocaleTimeString("ko-KR") })}
+              label={t("scheduler.lastUpdated", "최근 업데이트: {time}", {
+                time: lastUpdated.toLocaleTimeString("ko-KR"),
+              })}
               size="small"
               variant="outlined"
             />

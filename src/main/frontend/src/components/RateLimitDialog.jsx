@@ -90,7 +90,10 @@ const RateLimitDialog = () => {
         />
         <Box>
           <Typography variant="h6" component="div" fontWeight="bold">
-            {t("rateLimitDialog.title", "🚨 요청 제한 초과 / Request Limit Exceeded")}
+            {t(
+              "rateLimitDialog.title",
+              "🚨 요청 제한 초과 / Request Limit Exceeded",
+            )}
           </Typography>
         </Box>
       </DialogTitle>
@@ -98,7 +101,10 @@ const RateLimitDialog = () => {
         <Box sx={{ mb: 3 }}>
           <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
             {rateLimitError?.message ||
-              t("rateLimitDialog.tooManyRequests", "동일 IP에서 1초에 60번 이상 요청이 발생했습니다.")}
+              t(
+                "rateLimitDialog.tooManyRequests",
+                "동일 IP에서 1초에 60번 이상 요청이 발생했습니다.",
+              )}
           </Typography>
           <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
             Multiple requests were detected from the same IP within one second.
@@ -188,7 +194,11 @@ const RateLimitDialog = () => {
           }}
         >
           {countdown > 0
-            ? t("rateLimitDialog.retryCountdown", "재시도 ({countdown}초) / Retry ({countdown}s)", { countdown })
+            ? t(
+                "rateLimitDialog.retryCountdown",
+                "재시도 ({countdown}초) / Retry ({countdown}s)",
+                { countdown },
+              )
             : t("rateLimitDialog.retryNow", "지금 재시도 / Retry now")}
         </Button>
       </DialogActions>
