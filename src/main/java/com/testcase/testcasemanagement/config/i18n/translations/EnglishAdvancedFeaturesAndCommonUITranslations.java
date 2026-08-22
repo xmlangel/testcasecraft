@@ -474,6 +474,41 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "rag.chat.persistToggle", languageCode, "Auto-save Conversation", createdBy);
     createTranslationIfNotExists(
+        "rag.state.disabled.title", languageCode, "AI features are stopped", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.disabled.desc",
+        languageCode,
+        "An administrator turned the AI features off. This is not an outage; turning it back on in"
+            + " the settings restores everything.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.state.queryOnly.title", languageCode, "Adding new material is stopped", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.queryOnly.desc",
+        languageCode,
+        "An administrator paused indexing. Asking questions and searching over material already"
+            + " registered keeps working.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.state.queryOnly.note",
+        languageCode,
+        "Test cases added or changed while paused will not appear in search results.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.state.available", languageCode, "{name} available", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.unavailable", languageCode, "{name} unavailable", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.item.chat", languageCode, "Questions and chat", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.item.search", languageCode, "Document search", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.item.browse", languageCode, "Document list and download", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.item.upload", languageCode, "Document upload and analysis", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.item.index", languageCode, "Test case indexing", createdBy);
+    createTranslationIfNotExists(
         "rag.document.error.vectorWriteDisabled",
         languageCode,
         "Vector indexing is stopped, so this action is unavailable. Querying"

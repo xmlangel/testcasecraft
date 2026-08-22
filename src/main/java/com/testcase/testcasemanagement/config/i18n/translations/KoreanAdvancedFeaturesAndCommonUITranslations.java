@@ -380,6 +380,32 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("rag.chat.clear", languageCode, "대화 초기화", createdBy);
     createTranslationIfNotExists("rag.chat.persistToggle", languageCode, "대화 자동 저장", createdBy);
     createTranslationIfNotExists(
+        "rag.state.disabled.title", languageCode, "AI 기능이 중지되어 있습니다", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.disabled.desc",
+        languageCode,
+        "관리자가 AI 기능을 껐습니다. 장애가 아니며, 관리자 설정에서 다시 켜면 그대로 돌아옵니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.state.queryOnly.title", languageCode, "새 자료 등록이 중지되어 있습니다", createdBy);
+    createTranslationIfNotExists(
+        "rag.state.queryOnly.desc",
+        languageCode,
+        "관리자가 색인을 멈췄습니다. 이미 등록된 자료로 질문하고 검색하는 것은 그대로 됩니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "rag.state.queryOnly.note",
+        languageCode,
+        "멈춘 동안 추가하거나 수정한 테스트케이스는 검색 결과에 나오지 않습니다.",
+        createdBy);
+    createTranslationIfNotExists("rag.state.available", languageCode, "{name} 가능", createdBy);
+    createTranslationIfNotExists("rag.state.unavailable", languageCode, "{name} 불가", createdBy);
+    createTranslationIfNotExists("rag.state.item.chat", languageCode, "질문·대화", createdBy);
+    createTranslationIfNotExists("rag.state.item.search", languageCode, "문서 검색", createdBy);
+    createTranslationIfNotExists("rag.state.item.browse", languageCode, "문서 목록·내려받기", createdBy);
+    createTranslationIfNotExists("rag.state.item.upload", languageCode, "문서 등록·분석", createdBy);
+    createTranslationIfNotExists("rag.state.item.index", languageCode, "테스트케이스 색인", createdBy);
+    createTranslationIfNotExists(
         "rag.document.error.vectorWriteDisabled",
         languageCode,
         "벡터 색인이 중지되어 있어 이 작업을 할 수 없습니다. 이미 색인된 자료로 질문하는 것은 그대로 됩니다. 관리자 설정에서 다시 켤 수 있습니다.",

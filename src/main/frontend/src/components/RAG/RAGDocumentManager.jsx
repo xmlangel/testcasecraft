@@ -16,6 +16,7 @@ import SimilarTestCases from "./SimilarTestCases.jsx";
 import RAGChatInterface from "./RAGChatInterface.jsx";
 import DocumentChunks from "./DocumentChunks.jsx"; // 청크 다이얼로그 임포트
 import DocumentAnalysis from "./DocumentAnalysis.jsx"; // LLM 분석 컴포넌트
+import RagStateBanner from "./RagStateBanner.jsx";
 import { useRAG } from "../../context/RAGContext.jsx"; // RAG_DISABLED_MESSAGE 제거
 import { useI18n } from "../../context/I18nContext.jsx";
 import {
@@ -26,7 +27,7 @@ import {
 
 function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   const { t } = useI18n();
-  const { getDocument, isRagEnabled, ragDisabledMessage } = useRAG(); // isRagEnabled, ragDisabledMessage 추가
+  const { getDocument, isRagEnabled, ragStatus } = useRAG();
 
   // 청크 다이얼로그 상태 관리
   const [chunksModalState, setChunksModalState] = useState({
@@ -133,17 +134,12 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
     );
   }
 
-  // RAG 기능 비활성화 시 경고 메시지 표시
+  // 꺼져 있을 때는 화면을 대체한다. 목록·채팅을 그려 봐야 모든 요청이 거부되므로
+  // 무엇이 막혔고 어떻게 푸는지만 보여 주는 편이 낫다.
   if (!isRagEnabled) {
     return (
       <Box sx={PAGE_CONTAINER_SX.main}>
-        <Alert severity="info">
-          {ragDisabledMessage ||
-            t(
-              "rag.manager.disabled",
-              "RAG (AI 문서) 기능이 시스템 관리자에 의해 임시 비활성화되었습니다.",
-            )}
-        </Alert>
+        <RagStateBanner status={ragStatus} />
       </Box>
     );
   }
@@ -151,6 +147,12 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   return (
     <Box sx={PAGE_CONTAINER_SX.main}>
       <Grid {...GRID_SETTINGS.mainContent}>
+        {/* 설정으로 막힌 상태면 무엇이 되고 무엇이 안 되는지 먼저 알린다.
+            전부 되는 상태에서는 아무것도 그리지 않는다. */}
+        <Grid {...RESPONSIVE_SETTINGS.fullWidth}>
+          <RagStateBanner status={ragStatus} />
+        </Grid>
+
         {/* AI Q&A Chat Section */}
         <Grid {...RESPONSIVE_SETTINGS.fullWidth}>
           <RAGChatInterface

@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.rag.*;
+import com.testcase.testcasemanagement.exception.RagDisabledException;
 import com.testcase.testcasemanagement.exception.RagVectorWriteDisabledException;
 import com.testcase.testcasemanagement.model.rag.RagGlobalDocumentRequestStatus;
 import com.testcase.testcasemanagement.service.RagGlobalDocumentRequestService;
@@ -92,6 +93,9 @@ public class RagController {
     } catch (RagVectorWriteDisabledException e) {
       // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
       throw e;
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to upload document", e);
       return ResponseEntity.internalServerError().build();
@@ -121,6 +125,9 @@ public class RagController {
     } catch (RagVectorWriteDisabledException e) {
       // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
       throw e;
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to analyze document: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -149,6 +156,9 @@ public class RagController {
     } catch (RagVectorWriteDisabledException e) {
       // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
       throw e;
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to generate embeddings: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -174,6 +184,9 @@ public class RagController {
 
       // 3. 검색 결과 반환
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to search similar chunks: query={}", request.getQueryText(), e);
       return ResponseEntity.internalServerError().build();
@@ -202,6 +215,9 @@ public class RagController {
 
       // 3. 검색 결과 반환
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error(
           "Failed to perform advanced search: query={}, method={}",
@@ -227,6 +243,9 @@ public class RagController {
     try {
       RagDocumentResponse response = ragService.getDocument(documentId);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to get document: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -256,6 +275,9 @@ public class RagController {
     try {
       RagDocumentListResponse response = ragService.listDocuments(projectId, page, size);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to list documents: projectId={}", projectId, e);
       return ResponseEntity.internalServerError().build();
@@ -276,6 +298,9 @@ public class RagController {
     try {
       String message = ragService.deleteDocument(documentId);
       return ResponseEntity.ok(message);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to delete document: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -318,6 +343,9 @@ public class RagController {
           .contentLength(fileData.length)
           .contentType(mediaType)
           .body(resource);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to download document: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -347,6 +375,9 @@ public class RagController {
     try {
       RagChunkListResponse response = ragService.getDocumentChunks(documentId, skip, limit);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to get document chunks: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -381,6 +412,9 @@ public class RagController {
           result.get("failureCount"));
 
       return ResponseEntity.ok(result);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("ICT-388 REST API: Failed to vectorize all testcases - projectId={}", projectId, e);
       return ResponseEntity.internalServerError().build();
@@ -410,6 +444,10 @@ public class RagController {
       } else {
         return ResponseEntity.badRequest().body(result);
       }
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      // RuntimeException 보다 앞에 두어야 한다. 뒤에 두면 도달하지 못한다.
+      throw e;
     } catch (RuntimeException e) {
       log.error("REST API: TestCase not found - testCaseId={}", testCaseId, e);
       return ResponseEntity.notFound().build();
@@ -434,6 +472,9 @@ public class RagController {
     try {
       boolean vectorized = ragService.isTestCaseVectorized(testCaseId);
       return ResponseEntity.ok(Map.of("testCaseId", testCaseId, "vectorized", vectorized));
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.warn(
           "REST API: TestCase RAG 상태 조회 실패 - testCaseId={}, error={}", testCaseId, e.getMessage());
@@ -488,6 +529,9 @@ public class RagController {
     } catch (RagVectorWriteDisabledException e) {
       // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
       throw e;
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to upload global document", e);
       return ResponseEntity.internalServerError().build();
@@ -510,6 +554,9 @@ public class RagController {
     try {
       RagDocumentListResponse response = ragService.listGlobalDocuments(page, size);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to list global documents", e);
       return ResponseEntity.internalServerError().build();
@@ -530,6 +577,9 @@ public class RagController {
     try {
       String message = ragService.deleteDocument(documentId);
       return ResponseEntity.ok(message);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to delete global document: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -551,6 +601,9 @@ public class RagController {
       RagDocumentResponse response =
           ragService.moveDocumentToGlobal(documentId, authentication.getName(), reason);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to promote document to global: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -575,6 +628,9 @@ public class RagController {
           ragGlobalDocumentRequestService.createRequest(
               documentId, authentication.getName(), request != null ? request.getMessage() : null);
       return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to create global document request: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -591,6 +647,9 @@ public class RagController {
       List<RagGlobalDocumentRequestDto> responses =
           ragGlobalDocumentRequestService.listRequests(status);
       return ResponseEntity.ok(responses);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to list global document requests", e);
       return ResponseEntity.internalServerError().build();
@@ -610,6 +669,9 @@ public class RagController {
           ragGlobalDocumentRequestService.approveRequest(
               requestId, authentication.getName(), request != null ? request.getNote() : null);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to approve global document request: requestId={}", requestId, e);
       return ResponseEntity.internalServerError().build();
@@ -629,6 +691,9 @@ public class RagController {
           ragGlobalDocumentRequestService.rejectRequest(
               requestId, authentication.getName(), request != null ? request.getNote() : null);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to reject global document request: requestId={}", requestId, e);
       return ResponseEntity.internalServerError().build();
@@ -693,6 +758,9 @@ public class RagController {
     try {
       RagCostEstimateResponse response = ragService.estimateAnalysisCost(documentId, request);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to estimate analysis cost: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -722,6 +790,9 @@ public class RagController {
     } catch (RagVectorWriteDisabledException e) {
       // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
       throw e;
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to start LLM analysis: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -745,6 +816,9 @@ public class RagController {
     try {
       RagLlmAnalysisStatusResponse response = ragService.getLlmAnalysisStatus(documentId);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to get LLM analysis status: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -775,6 +849,9 @@ public class RagController {
       RagLlmAnalysisResultsResponse response =
           ragService.getLlmAnalysisResults(documentId, skip, limit);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to get LLM analysis results: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -796,6 +873,9 @@ public class RagController {
     try {
       RagLlmAnalysisStatusResponse response = ragService.pauseAnalysis(documentId);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to pause LLM analysis: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -818,6 +898,9 @@ public class RagController {
     try {
       RagLlmAnalysisStatusResponse response = ragService.resumeAnalysis(documentId);
       return ResponseEntity.accepted().body(response); // 202 Accepted (백그라운드 작업 재개)
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to resume LLM analysis: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -840,6 +923,9 @@ public class RagController {
     try {
       RagLlmAnalysisStatusResponse response = ragService.cancelAnalysis(documentId);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to cancel LLM analysis: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -870,6 +956,9 @@ public class RagController {
       RagLlmAnalysisJobListResponse response =
           ragService.listLlmAnalysisJobs(projectId, status, page, size);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to list LLM analysis jobs: projectId={}, status={}", projectId, status, e);
       return ResponseEntity.internalServerError().build();
@@ -896,6 +985,9 @@ public class RagController {
     try {
       RagAnalysisSummaryResponse response = ragService.createAnalysisSummary(request);
       return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to create analysis summary", e);
       return ResponseEntity.internalServerError().build();
@@ -933,6 +1025,9 @@ public class RagController {
       java.util.List<RagAnalysisSummaryResponse> response =
           ragService.listAnalysisSummaries(documentId, userId, isPublic, skip, limit);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to list analysis summaries", e);
       return ResponseEntity.internalServerError().build();
@@ -955,6 +1050,9 @@ public class RagController {
     try {
       RagAnalysisSummaryResponse response = ragService.getAnalysisSummary(summaryId);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to get analysis summary: summaryId={}", summaryId, e);
       return ResponseEntity.internalServerError().build();
@@ -976,6 +1074,9 @@ public class RagController {
     try {
       RagAnalysisSummaryResponse response = ragService.updateAnalysisSummary(summaryId, request);
       return ResponseEntity.ok(response);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to update analysis summary: summaryId={}", summaryId, e);
       return ResponseEntity.internalServerError().build();
@@ -996,6 +1097,9 @@ public class RagController {
     try {
       String message = ragService.deleteAnalysisSummary(summaryId);
       return ResponseEntity.ok(message);
+    } catch (RagDisabledException e) {
+      // 관리자가 중지해 둔 상태다. 전역 핸들러가 원인 코드와 함께 503 으로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to delete analysis summary: summaryId={}", summaryId, e);
       return ResponseEntity.internalServerError().build();

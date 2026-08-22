@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.rag.*;
+import com.testcase.testcasemanagement.exception.RagDisabledException;
 import com.testcase.testcasemanagement.exception.RagVectorWriteDisabledException;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
@@ -657,7 +658,7 @@ public class RagServiceImpl implements RagService {
       String testCaseContent,
       UUID projectId,
       String uploadedBy) {
-    if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+    if (!systemSettingService.getBooleanSetting(RagDisabledException.SETTING_KEY, true)) {
       log.warn("RAG feature is disabled. Skipping vectorizeTestCase: testCaseId={}", testCaseId);
       return;
     }
@@ -814,7 +815,7 @@ public class RagServiceImpl implements RagService {
 
   @Override
   public void deleteTestCaseFromRAG(String testCaseId) {
-    if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
+    if (!systemSettingService.getBooleanSetting(RagDisabledException.SETTING_KEY, true)) {
       log.warn(
           "RAG feature is disabled. Skipping deleteTestCaseFromRAG: testCaseId={}", testCaseId);
       return;
@@ -1038,8 +1039,8 @@ public class RagServiceImpl implements RagService {
   }
 
   private void checkRagEnabled() {
-    if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
-      throw new IllegalStateException("현재 RAG (AI) 시스템이 안정화를 위해 일시 중지되었습니다. 나중에 다시 시도해주세요.");
+    if (!systemSettingService.getBooleanSetting(RagDisabledException.SETTING_KEY, true)) {
+      throw new RagDisabledException();
     }
   }
 

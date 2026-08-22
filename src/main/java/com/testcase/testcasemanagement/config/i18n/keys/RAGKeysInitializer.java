@@ -224,6 +224,29 @@ public class RAGKeysInitializer {
     createTranslationKeyIfNotExists("rag.chat.clear", "rag", "대화 초기화", "대화 초기화");
     createTranslationKeyIfNotExists("rag.chat.persistToggle", "rag", "대화 자동 저장 토글", "대화 자동 저장");
     createTranslationKeyIfNotExists(
+        "rag.state.disabled.title", "rag", "AI 기능 중지 안내 제목", "AI 기능이 중지되어 있습니다");
+    createTranslationKeyIfNotExists(
+        "rag.state.disabled.desc",
+        "rag",
+        "AI 기능 중지 설명",
+        "관리자가 AI 기능을 껐습니다. 장애가 아니며, 관리자 설정에서 다시 켜면 그대로 돌아옵니다.");
+    createTranslationKeyIfNotExists(
+        "rag.state.queryOnly.title", "rag", "색인 중지 안내 제목", "새 자료 등록이 중지되어 있습니다");
+    createTranslationKeyIfNotExists(
+        "rag.state.queryOnly.desc",
+        "rag",
+        "색인 중지 설명",
+        "관리자가 색인을 멈췄습니다. 이미 등록된 자료로 질문하고 검색하는 것은 그대로 됩니다.");
+    createTranslationKeyIfNotExists(
+        "rag.state.queryOnly.note", "rag", "색인 중지 주의", "멈춘 동안 추가하거나 수정한 테스트케이스는 검색 결과에 나오지 않습니다.");
+    createTranslationKeyIfNotExists("rag.state.available", "rag", "가능 표시", "{name} 가능");
+    createTranslationKeyIfNotExists("rag.state.unavailable", "rag", "불가 표시", "{name} 불가");
+    createTranslationKeyIfNotExists("rag.state.item.chat", "rag", "항목 질문", "질문·대화");
+    createTranslationKeyIfNotExists("rag.state.item.search", "rag", "항목 검색", "문서 검색");
+    createTranslationKeyIfNotExists("rag.state.item.browse", "rag", "항목 조회", "문서 목록·내려받기");
+    createTranslationKeyIfNotExists("rag.state.item.upload", "rag", "항목 등록", "문서 등록·분석");
+    createTranslationKeyIfNotExists("rag.state.item.index", "rag", "항목 색인", "테스트케이스 색인");
+    createTranslationKeyIfNotExists(
         "rag.document.error.vectorWriteDisabled",
         "rag",
         "벡터 색인 중지 안내",
