@@ -104,6 +104,34 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists(
         "admin.systemSettings.ragToggleTitle", languageCode, "RAG Feature Status", createdBy);
     createTranslationIfNotExists(
+        "admin.systemSettings.vectorWriteTitle", languageCode, "Vector Indexing", createdBy);
+    createTranslationIfNotExists(
+        "admin.systemSettings.vectorWriteDesc",
+        languageCode,
+        "Turning this off stops only the creation of new vectors. Document upload,"
+            + " analysis, embedding generation, and test case and conversation indexing are"
+            + " halted, while querying already-indexed material keeps working. Use it to cap"
+            + " embedding cost or pause indexing.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.systemSettings.vectorWriteRagOff",
+        languageCode,
+        "RAG features are off, so this setting has no effect. Both querying and indexing are"
+            + " stopped.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.systemSettings.vectorWriteOffNotice",
+        languageCode,
+        "Test cases added or changed while indexing is stopped will not appear in search"
+            + " results. Turning it back on does not catch up on those changes, so documents"
+            + " have to be analyzed again if needed.",
+        createdBy);
+    createTranslationIfNotExists(
+        "admin.systemSettings.vectorWriteToggleDescription",
+        languageCode,
+        "Vector indexing toggle",
+        createdBy);
+    createTranslationIfNotExists(
         "admin.systemSettings.saveError", languageCode, "Failed to save settings.", createdBy);
     createTranslationIfNotExists(
         "admin.systemSettings.saveSuccess",

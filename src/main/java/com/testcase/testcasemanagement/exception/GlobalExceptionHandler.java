@@ -231,6 +231,24 @@ public class GlobalExceptionHandler {
   }
 
   /** 리소스 없음 예외 처리 */
+  /**
+   * 벡터 쓰기가 꺼진 상태에서 색인·임베딩 생성을 요청한 경우.
+   *
+   * <p>실패가 아니라 관리자가 의도적으로 막아 둔 상태다. 화면이 errorCode 로 원인을 가려내 "질문은 그대로 된다"까지 안내할 수 있도록 코드를 함께 내려준다.
+   */
+  @ExceptionHandler(RagVectorWriteDisabledException.class)
+  public ResponseEntity<ErrorResponse> handleRagVectorWriteDisabled(
+      RagVectorWriteDisabledException ex, WebRequest request) {
+
+    logger.info("벡터 색인 중지 상태에서 요청 거부: {}", request.getDescription(false));
+
+    ErrorResponse response =
+        new ErrorResponse(
+            RagVectorWriteDisabledException.ERROR_CODE, ex.getMessage(), LocalDateTime.now(), null);
+
+    return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+  }
+
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
       ResourceNotFoundException ex, WebRequest request) {

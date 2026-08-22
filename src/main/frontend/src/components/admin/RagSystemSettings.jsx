@@ -9,6 +9,7 @@ import {
   Paper,
   Button,
   Link,
+  Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
@@ -27,6 +28,8 @@ const RagSystemSettings = ({ onSuccess }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [isRagEnabled, setIsRagEnabled] = useState(true);
+  // 벡터 쓰기만 따로 끄는 설정. 끄면 새 색인이 멈추고 질문은 그대로 된다.
+  const [isVectorWriteEnabled, setIsVectorWriteEnabled] = useState(true);
   // 저장 완료 후 실제 반영된 상태 (안내 메시지 기준)
   const [savedRagEnabled, setSavedRagEnabled] = useState(true);
   const [showSaveResult, setShowSaveResult] = useState(false);
@@ -49,6 +52,10 @@ const RagSystemSettings = ({ onSuccess }) => {
       const resolvedEnabled = enabled !== false;
       setIsRagEnabled(resolvedEnabled);
       setSavedRagEnabled(resolvedEnabled);
+
+      const vectorWrite =
+        data?.data?.vectorWriteEnabled ?? data?.vectorWriteEnabled;
+      setIsVectorWriteEnabled(vectorWrite !== false);
     } catch (err) {
       console.error("Failed to fetch system settings:", err);
       setError(
@@ -61,6 +68,11 @@ const RagSystemSettings = ({ onSuccess }) => {
 
   const handleToggleConfig = (event) => {
     setIsRagEnabled(event.target.checked);
+    setShowSaveResult(false);
+  };
+
+  const handleToggleVectorWrite = (event) => {
+    setIsVectorWriteEnabled(event.target.checked);
     setShowSaveResult(false);
   };
 
@@ -81,6 +93,25 @@ const RagSystemSettings = ({ onSuccess }) => {
 
       if (!response.ok) {
         throw new Error("Failed to save setting");
+      }
+
+      const vectorResponse = await api(
+        "/api/system-settings/RAG_VECTOR_WRITE_ENABLED",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            value: isVectorWriteEnabled.toString(),
+            description: t(
+              "admin.systemSettings.vectorWriteToggleDescription",
+              "벡터 색인 활성화 토글",
+            ),
+          }),
+        },
+      );
+
+      if (!vectorResponse.ok) {
+        throw new Error("Failed to save vector write setting");
       }
 
       // RAGContext 전역 상태 업데이트
@@ -168,6 +199,52 @@ const RagSystemSettings = ({ onSuccess }) => {
               : t("common.disabled", "비활성화됨")
           }
         />
+
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="subtitle1" gutterBottom>
+          {t("admin.systemSettings.vectorWriteTitle", "벡터 색인")}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" paragraph>
+          {t(
+            "admin.systemSettings.vectorWriteDesc",
+            "이 설정을 끄면 새 벡터를 만드는 작업만 멈춥니다. 문서 업로드·분석·임베딩 생성과 테스트케이스·대화 색인이 중지되고, 이미 색인된 자료로 질문하는 것은 그대로 됩니다. 임베딩 비용을 묶어 두거나 색인을 잠시 멈출 때 사용하세요.",
+          )}
+        </Typography>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={isVectorWriteEnabled}
+              onChange={handleToggleVectorWrite}
+              color="primary"
+              disabled={!isRagEnabled}
+            />
+          }
+          label={
+            isVectorWriteEnabled
+              ? t("common.enabled", "활성화됨")
+              : t("common.disabled", "비활성화됨")
+          }
+        />
+
+        {!isRagEnabled && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            {t(
+              "admin.systemSettings.vectorWriteRagOff",
+              "RAG 기능이 꺼져 있어 이 설정은 적용되지 않습니다. 질문과 색인이 모두 중지된 상태입니다.",
+            )}
+          </Alert>
+        )}
+
+        {isRagEnabled && !isVectorWriteEnabled && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            {t(
+              "admin.systemSettings.vectorWriteOffNotice",
+              "색인이 멈춘 동안 추가하거나 수정한 테스트케이스는 검색 결과에 반영되지 않습니다. 다시 켜도 그 사이 변경분은 자동으로 따라잡지 않으므로 필요하면 문서를 다시 분석해야 합니다.",
+            )}
+          </Alert>
+        )}
 
         {/* 저장 완료 후 결과에 따른 안내 메시지 */}
         {showSaveResult && !savedRagEnabled && (

@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.config;
 
+import com.testcase.testcasemanagement.exception.RagVectorWriteDisabledException;
 import com.testcase.testcasemanagement.service.DashboardService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,6 +192,12 @@ public class SchedulingConfig {
     // RAG 비활성화 시 스케줄 스킵
     if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
       logger.info("RAG 기능이 비활성화되어 있어 rag-auto-analysis 스케줄을 건너뛹니다.");
+      return;
+    }
+    // 자동 분석은 벡터를 새로 만든다. 색인을 멈춘 동안에는 돌지 않아야 한다.
+    if (!systemSettingService.getBooleanSetting(
+        RagVectorWriteDisabledException.SETTING_KEY, true)) {
+      logger.info("벡터 색인이 중지되어 rag-auto-analysis 스케줄을 건너뜁니다.");
       return;
     }
     try {

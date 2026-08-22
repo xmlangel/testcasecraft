@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.rag.*;
+import com.testcase.testcasemanagement.exception.RagVectorWriteDisabledException;
 import com.testcase.testcasemanagement.model.rag.RagGlobalDocumentRequestStatus;
 import com.testcase.testcasemanagement.service.RagGlobalDocumentRequestService;
 import com.testcase.testcasemanagement.service.RagService;
@@ -88,6 +89,9 @@ public class RagController {
 
       // 3. 적절한 HTTP 상태 코드와 함께 응답 반환
       return ResponseEntity.status(201).body(response);
+    } catch (RagVectorWriteDisabledException e) {
+      // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to upload document", e);
       return ResponseEntity.internalServerError().build();
@@ -114,6 +118,9 @@ public class RagController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
       }
       return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    } catch (RagVectorWriteDisabledException e) {
+      // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to analyze document: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -139,6 +146,9 @@ public class RagController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
       }
       return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    } catch (RagVectorWriteDisabledException e) {
+      // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to generate embeddings: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
@@ -475,6 +485,9 @@ public class RagController {
 
       // 3. 적절한 HTTP 상태 코드와 함께 응답 반환
       return ResponseEntity.status(201).body(response);
+    } catch (RagVectorWriteDisabledException e) {
+      // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to upload global document", e);
       return ResponseEntity.internalServerError().build();
@@ -706,6 +719,9 @@ public class RagController {
     try {
       RagLlmAnalysisResponse response = ragService.analyzeDocumentWithLlm(documentId, request);
       return ResponseEntity.accepted().body(response); // 202 Accepted (백그라운드 작업)
+    } catch (RagVectorWriteDisabledException e) {
+      // 관리자가 색인을 막아 둔 상태다. 전역 핸들러가 원인 코드와 함께 409 로 내려준다.
+      throw e;
     } catch (Exception e) {
       log.error("Failed to start LLM analysis: documentId={}", documentId, e);
       return ResponseEntity.internalServerError().build();
