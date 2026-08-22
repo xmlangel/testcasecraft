@@ -3,9 +3,9 @@ package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelQueryRequest;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +55,7 @@ public interface LlmConfigService {
    * <p>호출 1회로 끝나고 비용이 없다. 가용성은 확인하지 않으므로 결과의 availability 는 UNKNOWN 이다. 요청의 provider 가 비면
    * OPENROUTER 로 본다.
    */
-  List<OpenRouterModelDTO> listOpenRouterFreeModels(OpenRouterModelQueryRequest request);
+  List<LlmModelDTO> listSelectableModels(LlmModelQueryRequest request);
 
   /**
    * 제공자 모델 가용성 확인
@@ -66,7 +66,7 @@ public interface LlmConfigService {
    * <p>{@code modelIds} 를 비우면 무료 모델 전체를 확인한다. {@code alreadyChecked} 에 담긴 모델은 확인하지 않고 건너뛴다. 같은
    * 회차에서 버튼을 여러 번 눌러도 한도가 다시 쓰이지 않게 하려는 것이다.
    */
-  OpenRouterProbeResponse probeOpenRouterModels(OpenRouterModelQueryRequest request);
+  LlmModelProbeResponse probeModelAvailability(LlmModelQueryRequest request);
 
   /**
    * 채팅 화면에서 고를 수 있는 무료 모델 목록
@@ -76,7 +76,7 @@ public interface LlmConfigService {
    *
    * @return 무료 모델 목록. 기본 설정이 OpenRouter 가 아니거나 조회에 실패하면 빈 목록
    */
-  List<OpenRouterModelDTO> listSelectableFreeModelsForChat();
+  List<LlmModelDTO> listSelectableModelsForChat();
 
   /**
    * 모델 목록을 내주는 제공자 목록

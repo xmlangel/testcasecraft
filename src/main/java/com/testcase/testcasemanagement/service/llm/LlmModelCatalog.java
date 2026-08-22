@@ -1,7 +1,7 @@
 package com.testcase.testcasemanagement.service.llm;
 
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.util.Collection;
 import java.util.List;
@@ -32,7 +32,7 @@ public interface LlmModelCatalog {
    * @param apiKey 제공자 API Key
    * @return 가용성이 {@code UNKNOWN} 인 목록. 실제로 쓸 수 있는지는 확인해야 안다
    */
-  List<OpenRouterModelDTO> listSelectableModels(String apiKey);
+  List<LlmModelDTO> listSelectableModels(String apiKey);
 
   /**
    * 각 모델에 최소 요청을 보내 지금 쓸 수 있는지 확인한다.
@@ -40,7 +40,7 @@ public interface LlmModelCatalog {
    * @param apiKey 제공자 API Key
    * @param modelIds 확인 대상. 비우면 목록 전체
    */
-  OpenRouterProbeResponse probeAvailability(String apiKey, Collection<String> modelIds);
+  LlmModelProbeResponse probeAvailability(String apiKey, Collection<String> modelIds);
 
   /**
    * 전수 확인을 기본으로 권할지 여부.

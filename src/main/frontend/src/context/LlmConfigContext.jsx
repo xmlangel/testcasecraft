@@ -345,16 +345,16 @@ export const LlmConfigProvider = ({ children }) => {
    * apiKey 또는 configId 중 하나가 필요하다. 저장 전 설정은 화면에 입력한 키를 보내고,
    * 저장된 설정은 configId 만 보내면 서버가 저장된 키를 쓴다.
    */
-  const fetchOpenRouterFreeModels = useCallback(
+  const fetchSelectableModels = useCallback(
     async ({ provider, apiKey, configId }) => {
-      const response = await api("/api/llm-configs/openrouter/free-models", {
+      const response = await api("/api/llm-configs/models", {
         method: "POST",
         body: JSON.stringify({ provider, apiKey, configId }),
       });
 
       const { data } = await parseApiResponse(
         response,
-        "fetch OpenRouter free models",
+        "fetch selectable models",
       );
       return data || [];
     },
@@ -389,9 +389,7 @@ export const LlmConfigProvider = ({ children }) => {
    */
   const fetchSelectableFreeModels = useCallback(async () => {
     try {
-      const response = await api(
-        "/api/llm-configs/openrouter/free-models/for-chat",
-      );
+      const response = await api("/api/llm-configs/models/for-chat");
       const { data } = await parseApiResponse(
         response,
         "fetch selectable free models",
@@ -410,25 +408,22 @@ export const LlmConfigProvider = ({ children }) => {
    * 그만큼 쓰므로(실측 한도 50건) 사용자가 버튼을 누를 때만 호출한다.
    * modelIds 를 비우면 무료 모델 전체를 확인하고, alreadyChecked 에 담긴 모델은 건너뛴다.
    */
-  const probeOpenRouterModels = useCallback(
+  const probeModelAvailability = useCallback(
     async ({ provider, apiKey, configId, modelIds, alreadyChecked }) => {
-      const response = await api(
-        "/api/llm-configs/openrouter/free-models/probe",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            provider,
-            apiKey,
-            configId,
-            modelIds,
-            alreadyChecked,
-          }),
-        },
-      );
+      const response = await api("/api/llm-configs/models/probe", {
+        method: "POST",
+        body: JSON.stringify({
+          provider,
+          apiKey,
+          configId,
+          modelIds,
+          alreadyChecked,
+        }),
+      });
 
       const { data } = await parseApiResponse(
         response,
-        "probe OpenRouter models",
+        "probe model availability",
       );
       // { models, accountLimit, requestsSent } 형태다. 한도 상태를 화면이 쓰므로 그대로 넘긴다.
       return data || { models: [], accountLimit: null, requestsSent: 0 };
@@ -490,8 +485,8 @@ export const LlmConfigProvider = ({ children }) => {
     testConnection,
     testUnsavedSettings,
     toggleActive,
-    fetchOpenRouterFreeModels,
-    probeOpenRouterModels,
+    fetchSelectableModels,
+    probeModelAvailability,
     fetchSelectableFreeModels,
     fetchModelCatalogProviders,
   };
