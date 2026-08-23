@@ -48,6 +48,17 @@ public interface LlmModelCatalog {
   Mono<LlmModelProbeResponse> probeAvailability(String apiKey, Collection<String> modelIds);
 
   /**
+   * 진행 상황을 알리며 확인한다.
+   *
+   * <p>백그라운드 작업이 진행률을 화면에 보여 주려면 모델 하나가 끝날 때마다 알아야 한다. 콜백은 판정이 나올 때마다 한 번 불리고, 건너뛴 모델도 센다. 여러
+   * 스레드에서 동시에 불리므로 받는 쪽이 스스로 동기화해야 한다.
+   *
+   * @param onEachDone 모델 하나가 끝날 때마다 불린다. null 이면 알리지 않는다
+   */
+  Mono<LlmModelProbeResponse> probeAvailability(
+      String apiKey, Collection<String> modelIds, Runnable onEachDone);
+
+  /**
    * 전수 확인을 기본으로 권할지 여부.
    *
    * <p>{@code true} 면 목록만으로는 쓸 수 있는 모델을 알 수 없고 확인에 한도 부담도 없다는 뜻이다(NVIDIA). {@code false} 면 확인이

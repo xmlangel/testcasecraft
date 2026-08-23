@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -92,6 +93,54 @@ public class LlmModelCatalogProbeTest {
         label + ": 빈 값은 넘긴 것으로 세지 않는다");
     assertTrue(
         response.getRequestsSent() <= 2, label + ": 빈 값으로 요청을 보내지 않는다");
+  }
+
+  // ---------- 진행 알림 ----------
+
+  @Test(
+      dataProvider = "카탈로그별",
+      description = "모델 하나가 끝날 때마다 진행을 알린다")
+  public void reportsProgressPerModel(String label, int limit, CatalogFactory factory) {
+    LlmClientTestSupport.StubExchange stub = ok(OK_BODY);
+    LlmModelCatalog catalog = factory.apply(stub.builder());
+    AtomicInteger progress = new AtomicInteger();
+
+    catalog.probeAvailability("key", modelIds(7), progress::incrementAndGet).block();
+
+    assertEquals(progress.get(), 7, label + ": 확인한 개수만큼 알린다");
+  }
+
+  @Test(
+      dataProvider = "카탈로그별",
+      description = "진행 알림에서 예외가 나도 확인은 끝까지 간다")
+  public void survivesFailingProgressListener(String label, int limit, CatalogFactory factory) {
+    // 진행률 표시가 깨지는 것과 확인이 통째로 실패하는 것은 무게가 다르다.
+    LlmClientTestSupport.StubExchange stub = ok(OK_BODY);
+    LlmModelCatalog catalog = factory.apply(stub.builder());
+
+    LlmModelProbeResponse response =
+        catalog
+            .probeAvailability(
+                "key",
+                modelIds(3),
+                () -> {
+                  throw new IllegalStateException("표시 갱신 실패");
+                })
+            .block();
+
+    assertEquals(response.getModels().size(), 3, label + ": 확인 결과는 온전하다");
+  }
+
+  @Test(
+      dataProvider = "카탈로그별",
+      description = "콜백을 주지 않아도 확인은 정상으로 끝난다")
+  public void worksWithoutProgressListener(String label, int limit, CatalogFactory factory) {
+    LlmClientTestSupport.StubExchange stub = ok(OK_BODY);
+    LlmModelCatalog catalog = factory.apply(stub.builder());
+
+    LlmModelProbeResponse response = catalog.probeAvailability("key", modelIds(2), null).block();
+
+    assertEquals(response.getModels().size(), 2, label + ": null 콜백을 받아들인다");
   }
 
   /** 상한 시험용 모델 슬러그. 중복이 없어야 상한 계산이 정확하다. */

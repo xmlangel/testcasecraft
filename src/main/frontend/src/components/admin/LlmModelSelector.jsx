@@ -47,6 +47,7 @@ function LlmModelSelector({
   modelListOpen,
   modelsLoading,
   modelsProbing,
+  probeProgress,
   modelsNotice,
   modelsError,
   modelHintKey,
@@ -270,10 +271,17 @@ function LlmModelSelector({
                 modelsLoading || modelsProbing || pendingCheckCount === 0
               }
             >
-              {t(
-                "admin.llmConfig.models.probeAllButton",
-                "전수 확인 ({count}건)",
-              ).replace("{count}", String(pendingCheckCount))}
+              {modelsProbing && probeProgress
+                ? t(
+                    "admin.llmConfig.models.probeProgress",
+                    "확인 중 {done} / {total}",
+                  )
+                    .replace("{done}", String(probeProgress.done))
+                    .replace("{total}", String(probeProgress.total))
+                : t(
+                    "admin.llmConfig.models.probeAllButton",
+                    "전수 확인 ({count}건)",
+                  ).replace("{count}", String(pendingCheckCount))}
             </Button>
           </span>
         </Tooltip>
@@ -316,6 +324,10 @@ LlmModelSelector.propTypes = {
   modelListOpen: PropTypes.bool,
   modelsLoading: PropTypes.bool,
   modelsProbing: PropTypes.bool,
+  probeProgress: PropTypes.shape({
+    done: PropTypes.number,
+    total: PropTypes.number,
+  }),
   modelsNotice: PropTypes.string,
   modelsError: PropTypes.string,
   /** 모델 칸 도움말. 제공자 표에서 온다. */

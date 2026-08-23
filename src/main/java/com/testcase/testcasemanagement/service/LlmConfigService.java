@@ -10,6 +10,7 @@ import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.util.List;
 import java.util.Optional;
 import reactor.core.publisher.Mono;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
 
 /** LLM 설정 서비스 인터페이스 */
 public interface LlmConfigService {
@@ -67,7 +68,19 @@ public interface LlmConfigService {
    * <p>{@code modelIds} 를 비우면 무료 모델 전체를 확인한다. {@code alreadyChecked} 에 담긴 모델은 확인하지 않고 건너뛴다. 같은
    * 회차에서 버튼을 여러 번 눌러도 한도가 다시 쓰이지 않게 하려는 것이다.
    */
-  Mono<LlmModelProbeResponse> probeModelAvailability(LlmModelQueryRequest request);
+
+  /**
+   * 가용성 확인을 백그라운드 작업으로 시작한다.
+   *
+   * <p>확인은 최악의 경우 몇 분이 걸린다(OpenRouter 2분 30초, NVIDIA 6분). 결과를 기다려 돌려주면 리버스 프록시 타임아웃에 먼저 걸려 응답을
+   * 아예 받지 못하고, 그동안 확인은 서버에서 계속 도는데 결과가 버려진다.
+   *
+   * @return 작업 ID 와 대상 개수를 담은 상태. 결과는 {@link #findProbeJob} 으로 받는다
+   */
+  LlmModelProbeJob startProbeJob(LlmModelQueryRequest request);
+
+  /** 확인 작업의 진행 상황과 결과를 본다. 없으면 비어 있다. */
+  Optional<LlmModelProbeJob> findProbeJob(String jobId);
 
   /**
    * 채팅 화면에서 고를 수 있는 무료 모델 목록

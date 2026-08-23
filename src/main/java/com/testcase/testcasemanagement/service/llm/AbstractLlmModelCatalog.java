@@ -101,6 +101,12 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
   @Override
   public Mono<LlmModelProbeResponse> probeAvailability(
       String apiKey, Collection<String> modelIds) {
+    return probeAvailability(apiKey, modelIds, null);
+  }
+
+  @Override
+  public Mono<LlmModelProbeResponse> probeAvailability(
+      String apiKey, Collection<String> modelIds, Runnable onEachDone) {
     // 상한에 걸려 빠진 개수를 함께 센다. 세지 않으면 요청한 모델이 결과에서 조용히 사라져,
     // 화면은 전부 확인된 것으로 보인다. 확인되지 않은 모델을 나중에 골라 채팅하면 실패한다.
     Set<String> targets = new LinkedHashSet<>();
@@ -131,10 +137,26 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
 
     WebClient client = client(apiKey);
     return Flux.fromIterable(targets)
-        .flatMap(id -> probeOne(client, id, requestsSent), probeConcurrency())
+        .flatMap(id -> probeOne(client, id, requestsSent, onEachDone), probeConcurrency())
         .collectList()
         .map(results -> assembleProbeResponse(results, requestsSent.get(), skipped))
         .defaultIfEmpty(emptyProbeResponse(skipped));
+  }
+
+  /**
+   * 진행 알림을 보낸다.
+   *
+   * <p>받는 쪽에서 예외가 나도 확인 자체를 멈추지 않는다. 진행률 표시가 깨지는 것과 확인이 통째로 실패하는 것은 무게가 다르다.
+   */
+  private void notifyDone(Runnable onEachDone) {
+    if (onEachDone == null) {
+      return;
+    }
+    try {
+      onEachDone.run();
+    } catch (Exception e) {
+      log.warn("진행 알림 처리 실패: {}", e.getMessage());
+    }
   }
 
   /** 확인 결과를 슬러그 순으로 정렬해 응답으로 조립한다. */
@@ -180,9 +202,12 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
   }
 
   private Mono<LlmModelDTO> probeOne(
-      WebClient client, String modelId, AtomicInteger requestsSent) {
+      WebClient client, String modelId, AtomicInteger requestsSent, Runnable onEachDone) {
     LlmModelDTO skip = skipVerdict(modelId);
     if (skip != null) {
+      // 건너뛴 것도 진행률에 센다. 세지 않으면 이미 판정한 모델이 많을 때 진행률이 끝까지
+      // 차지 않아 멈춘 것처럼 보인다.
+      notifyDone(onEachDone);
       return Mono.just(skip);
     }
 
@@ -203,7 +228,8 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
         .bodyToMono(String.class)
         .timeout(probeTimeout())
         .map(ignored -> verdict(modelId, Availability.AVAILABLE, "사용 가능"))
-        .onErrorResume(error -> Mono.just(interpretFailure(modelId, error)));
+        .onErrorResume(error -> Mono.just(interpretFailure(modelId, error)))
+        .doOnNext(ignored -> notifyDone(onEachDone));
   }
 
   /** 이 제공자 호스트로 향하는 클라이언트. 헤더가 더 필요하면 하위 클래스가 덧붙인다. */

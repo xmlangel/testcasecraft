@@ -131,6 +131,8 @@ const LlmConfigList = ({ onSuccess }) => {
   const [freeModels, setFreeModels] = useState([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsProbing, setModelsProbing] = useState(false);
+  // 확인이 몇 분 걸리므로 진행률을 보여 준다. 없으면 사용자가 멈춘 줄 안다.
+  const [probeProgress, setProbeProgress] = useState(null);
   const [modelsError, setModelsError] = useState(null);
   const [modelsNotice, setModelsNotice] = useState(null);
   // 목록 개방 상태와 입력 문자열을 직접 들고 있는다. 목록을 받은 직후 자동으로 펼쳐 주려면
@@ -382,11 +384,13 @@ const LlmConfigList = ({ onSuccess }) => {
     setModelsProbing(true);
     setModelsError(null);
     setModelsNotice(null);
+    setProbeProgress(null);
     try {
       const result = await probeModelAvailability({
         ...credentials,
         modelIds,
         alreadyChecked,
+        onProgress: setProbeProgress,
       });
       const results = result.models || [];
 
@@ -498,6 +502,7 @@ const LlmConfigList = ({ onSuccess }) => {
       setModelsError(err.message);
     } finally {
       setModelsProbing(false);
+      setProbeProgress(null);
     }
   };
 
@@ -1054,6 +1059,7 @@ const LlmConfigList = ({ onSuccess }) => {
                 modelListOpen={modelListOpen}
                 modelsLoading={modelsLoading}
                 modelsProbing={modelsProbing}
+                probeProgress={probeProgress}
                 modelsNotice={modelsNotice}
                 modelsError={modelsError}
                 modelHintKey={providerInfo(formData.provider).modelHintKey}

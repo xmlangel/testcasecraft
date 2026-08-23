@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
+import com.testcase.testcasemanagement.service.llm.LlmModelProbeJobStore;
 
 /** LLM 설정 서비스 구현 */
 @Service
@@ -39,6 +41,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   private final EncryptionUtil encryptionUtil;
   private final LlmClientFactory llmClientFactory;
   private final LlmModelCatalogFactory llmModelCatalogFactory;
+  private final LlmModelProbeJobStore probeJobStore;
 
   @PostConstruct
   public void init() {
@@ -356,17 +359,34 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     return catalog.listSelectableModels(resolveApiKey(request, provider));
   }
 
+
   @Override
-  public Mono<LlmModelProbeResponse> probeModelAvailability(LlmModelQueryRequest request) {
+  public LlmModelProbeJob startProbeJob(LlmModelQueryRequest request) {
     LlmProvider provider = resolveProvider(request);
     LlmModelCatalog catalog = requireCatalog(provider);
     String apiKey = resolveApiKey(request, provider);
 
-    // 목록 조회도 외부 호출이라 서블릿 스레드에서 하면 그만큼 스레드가 묶인다. 확인 자체를 리액티브로
-    // 바꾼 김에 목록 조회까지 흐름 안으로 넣어, 이 메서드는 조립만 하고 즉시 돌아간다.
-    return Mono.fromCallable(() -> resolveProbeTargets(catalog, apiKey, request))
+    // 대상 개수를 먼저 알아야 진행률의 분모가 정해진다. 목록 조회는 단일 요청이라 짧다.
+    List<String> targets = resolveProbeTargets(catalog, apiKey, request);
+    String jobId = probeJobStore.start(targets.size());
+
+    // 확인 자체는 구독한 쪽에서 돈다. 여기서 기다리지 않으므로 요청은 곧 돌아간다.
+    catalog
+        .probeAvailability(apiKey, targets, () -> probeJobStore.advance(jobId))
         .subscribeOn(Schedulers.boundedElastic())
-        .flatMap(targets -> catalog.probeAvailability(apiKey, targets));
+        .subscribe(
+            result -> probeJobStore.complete(jobId, result),
+            error -> {
+              log.error("❌ 가용성 확인 작업 실패: jobId={}", jobId, error);
+              probeJobStore.fail(jobId, error.getMessage());
+            });
+
+    return probeJobStore.find(jobId).orElseThrow();
+  }
+
+  @Override
+  public Optional<LlmModelProbeJob> findProbeJob(String jobId) {
+    return probeJobStore.find(jobId);
   }
 
   /** 확인 대상 슬러그를 정한다. 대상을 지정하지 않으면 목록 전체를 쓰고, 이미 판정한 것은 뺀다. */

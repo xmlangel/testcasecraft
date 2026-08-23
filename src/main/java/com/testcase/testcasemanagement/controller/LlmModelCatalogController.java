@@ -24,6 +24,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * LLM 모델 카탈로그 API 컨트롤러
@@ -162,99 +165,70 @@ public class LlmModelCatalogController {
     }
   }
 
-  @Operation(
-      summary = "OpenRouter 모델 가용성 확인",
+  @io.swagger.v3.oas.annotations.Operation(
+      summary = "가용성 확인 시작 (백그라운드)",
       description =
           """
-          지정한 모델들에 **최소 요청(토큰 1개)** 을 보내 지금 쓸 수 있는지 확인합니다.
-          `modelIds` 를 비우면 무료 모델 전체를 확인합니다.
-
-          **왜 실제로 호출하는가**: OpenRouter 의 모델 상태 메타데이터로는 한도 소진을 알 수 없습니다.
-          429 를 내는 모델에도 `status=0`·`uptime=100` 이 돌아옵니다. 실측으로 확인한 사항입니다.
-
-          판정은 넷으로 갈립니다.
-          - `AVAILABLE`: 정상 응답
-          - `RATE_LIMITED`: 무료 한도 소진(429). 잠시 뒤 풀릴 수 있습니다
-          - `UNAVAILABLE`: 이 경로로는 쓸 수 없음(403·404·502 등)
-          - `UNKNOWN`: 확인하지 않음
-
-          **주의: 확인 호출이 무료 일일 한도를 그만큼 씁니다.** 실측으로 확인한 한도는 50건이고
-          무료 모델은 20개이므로, 전체 확인 한 번이 하루치의 40% 를 씁니다. 그래서 화면은 고른 모델
-          하나만 확인하는 것을 기본으로 하고, 전체 확인은 소모량을 알린 뒤에만 보냅니다.
-
-          `alreadyChecked` 에 이미 판정한 모델을 담아 보내면 그 모델은 건너뜁니다. 버튼을 다시 눌렀을
-          때 같은 모델을 또 두드리지 않게 하려는 것입니다. 응답의 `requestsSent` 로 실제로 보낸 요청
-          수를 알 수 있습니다.
-
-          응답의 `accountLimit` 은 계정 일일 한도에 걸렸을 때만 채워집니다. **잔량은 미리 알 수
-          없습니다** — 정상 응답 헤더에는 한도 정보가 없고 `/api/v1/key` 는 달러 크레딧만 알려 줍니다.
-          429 응답 헤더에만 들어 있어 한 번 걸린 뒤에야 알 수 있습니다.
-
-          한 번에 최대 40개까지 확인합니다.
-
-          **권한**: ADMIN
+          모델 가용성 확인을 백그라운드 작업으로 시작하고 작업 ID 를 돌려준다.
+          확인은 최악의 경우 몇 분이 걸리므로(OpenRouter 2분 30초, NVIDIA 6분) 결과를 기다리지 않는다.
+          진행 상황과 결과는 `GET /models/probe/{jobId}` 로 받는다.
           """)
-  @ApiResponses({
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "200",
-        description = "확인 완료"),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "400",
-        description = "API Key 누락 또는 확인 실패"),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "401",
-        description = "인증 실패"),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "403",
-        description = "권한 없음 (ADMIN 필요)")
-  })
-  @PostMapping("/models/probe")
+  @PostMapping("/models/probe-jobs")
   @PreAuthorize("hasRole('ADMIN')")
-  public Mono<ResponseEntity<ApiResponse<LlmModelProbeResponse>>> probeModelAvailability(
+  public ResponseEntity<ApiResponse<LlmModelProbeJob>> startProbeJob(
       @RequestBody LlmModelQueryRequest request) {
-    log.info("🔍 모델 가용성 확인 요청");
-    // Mono 를 그대로 돌려준다. Spring MVC 가 이것을 비동기 요청으로 다루므로 서블릿 스레드가 즉시
-    // 풀린다. 결과를 기다려 돌려주면 최악의 경우 스레드 하나가 6분(NVIDIA 120개 / 동시 10 × 30초)
-    // 묶인다.
-    return llmConfigService
-        .probeModelAvailability(request)
-        .map(LlmModelCatalogController::probeSuccess)
-        .onErrorResume(LlmModelCatalogController::probeFailure);
-  }
-
-  /** 확인 결과를 사용 가능 개수와 함께 담는다. */
-  private static ResponseEntity<ApiResponse<LlmModelProbeResponse>> probeSuccess(
-      LlmModelProbeResponse result) {
-    List<LlmModelDTO> models = result.getModels();
-    long available =
-        models.stream()
-            .filter(m -> m.getAvailability() == LlmModelDTO.Availability.AVAILABLE)
-            .count();
-    return ResponseEntity.ok(
-        ApiResponse.success(result, "사용 가능 " + available + " / 확인 " + models.size()));
-  }
-
-  /**
-   * 확인 도중 나온 예외를 응답으로 바꾼다.
-   *
-   * <p>리액티브 흐름에서는 예외가 {@code try/catch} 로 잡히지 않으므로 여기서 종류별로 가른다. 예전 동기 코드와 같은 상태 코드와 문구를 유지한다.
-   */
-  private static Mono<ResponseEntity<ApiResponse<LlmModelProbeResponse>>> probeFailure(
-      Throwable error) {
-    if (error instanceof EncryptionKeyNotConfiguredException e) {
+    log.info("🔍 모델 가용성 확인 작업 요청");
+    try {
+      LlmModelProbeJob job = llmConfigService.startProbeJob(request);
+      // 202 를 쓰는 이유는 일이 아직 끝나지 않았음을 상태 코드로 알리기 위해서다.
+      return ResponseEntity.accepted()
+          .body(ApiResponse.success(job, "확인 대상 " + job.getTotal() + "개"));
+    } catch (EncryptionKeyNotConfiguredException e) {
       log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
-      return Mono.just(
-          ResponseEntity.badRequest()
-              .body(
-                  ApiResponse.error(
-                      EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage())));
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error(EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage()));
+    } catch (IllegalStateException e) {
+      // 동시 작업 상한을 넘었다. 잘못된 요청이 아니라 지금 받을 수 없다는 뜻이라 429 를 쓴다.
+      log.warn("⚠️ 확인 작업을 받지 못했다: {}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+          .body(ApiResponse.error(e.getMessage()));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+    } catch (Exception e) {
+      log.error("❌ 확인 작업 시작 실패", e);
+      return ResponseEntity.badRequest().body(ApiResponse.error("확인 시작 실패: " + e.getMessage()));
     }
-    if (error instanceof IllegalArgumentException e) {
-      return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
-    }
-    log.error("❌ 모델 가용성 확인 실패", error);
-    return Mono.just(
-        ResponseEntity.badRequest()
-            .body(ApiResponse.error("가용성 확인 실패: " + error.getMessage())));
   }
+
+  @io.swagger.v3.oas.annotations.Operation(
+      summary = "가용성 확인 진행 상황",
+      description =
+          """
+          작업의 진행률과 결과를 돌려준다. `status` 가 `DONE` 이면 `result` 에 확인 결과가 담긴다.
+          끝난 작업은 10분 동안 조회할 수 있고 그 뒤에는 지워진다. 서버를 다시 시작하면 진행 중인 작업이 사라진다.
+          """)
+  @GetMapping("/models/probe-jobs/{jobId}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<ApiResponse<LlmModelProbeJob>> findProbeJob(@PathVariable String jobId) {
+    return llmConfigService
+        .findProbeJob(jobId)
+        .map(job -> ResponseEntity.ok(ApiResponse.success(job, describe(job))))
+        .orElseGet(
+            () ->
+                ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(
+                        ApiResponse.error(
+                            "확인 작업을 찾을 수 없습니다. 10분이 지나 지워졌거나 서버가 다시 시작됐을 수 있습니다.")));
+  }
+
+  /** 작업 상태를 사람이 읽을 문구로 만든다. */
+  private static String describe(LlmModelProbeJob job) {
+    return switch (job.getStatus()) {
+      case RUNNING -> "확인 중 " + job.getDone() + " / " + job.getTotal();
+      case DONE -> "확인 완료 " + job.getDone() + "개";
+      case FAILED -> "확인 실패";
+    };
+  }
+
+
 }

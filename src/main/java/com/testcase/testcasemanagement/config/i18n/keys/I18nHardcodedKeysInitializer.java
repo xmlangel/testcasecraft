@@ -180,6 +180,16 @@ public class I18nHardcodedKeysInitializer {
     createTranslationKeyIfNotExists(
         "admin.llmConfig.models.skippedByLimit", "admin", "한 회차 확인 상한 안내 (2026-08-23)", "한 번에 {limit}개까지만 확인합니다. {skipped}개는 확인하지 않았으니 버튼을 다시 눌러 주세요.");
     createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeProgress", "admin", "확인 진행률 (2026-08-23)", "확인 중 {done} / {total}");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeTimeout", "admin", "확인 작업 안내 (2026-08-23)", "확인이 너무 오래 걸립니다. 잠시 뒤 버튼을 다시 눌러 주세요.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeJobMissing", "admin", "확인 작업 안내 (2026-08-23)", "확인 작업을 찾을 수 없습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeFailed", "admin", "확인 작업 안내 (2026-08-23)", "가용성 확인에 실패했습니다.");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.models.probeStartFailed", "admin", "확인 작업 안내 (2026-08-23)", "확인 작업을 시작하지 못했습니다.");
+    createTranslationKeyIfNotExists(
         "admin.llmConfig.models.accountLimitDetail", "admin", "가용성 확인 한도 절약 (2026-08-22)", "하루 {limit}건 중 {remaining}건 남음. {reset} 에 초기화됩니다.");
     createTranslationKeyIfNotExists(
         "admin.llmConfig.models.loadedHint", "admin", "가용성 확인 한도 절약 (2026-08-22)", "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.");
