@@ -13,7 +13,7 @@ import lombok.Data;
  */
 @Data
 @Schema(description = "LLM 모델 조회 요청")
-public class OpenRouterModelQueryRequest {
+public class LlmModelQueryRequest {
 
   @Schema(
       description =

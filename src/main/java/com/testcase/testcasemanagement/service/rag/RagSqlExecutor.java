@@ -15,6 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class RagSqlExecutor {
 
+  /**
+   * 한 번에 가져올 행 수 상한.
+   *
+   * <p>이 값이 곧 답변 프롬프트에 실릴 행 수다. 조회 결과가 요약을 거치지 않고 그대로 넘어가므로(그 판단은
+   * {@code RagDataSummarizer.RAW_PASS_THROUGH_LIMIT}), 올리면 프롬프트가 그만큼 커지고 모델이 앞을 잊는다.
+   *
+   * <p>실측에서 조회 행 하나가 약 122 토큰이었다({@code SELECT *} 기준, 컬럼 열셋). 30행이면 약 3,660 토큰이고, 그 규모로 돌린 질의가 11.7초에
+   * 끝났다. 예전 값 100 은 최악 12,200 토큰이 되어 답변 프롬프트를 압도한다.
+   */
+  public static final int MAX_ROWS = 30;
+
   private final JdbcTemplate jdbcTemplate;
 
   // 안전하지 않은 키워드 체크 (대소문자 구분 없이)
@@ -58,7 +69,7 @@ public class RagSqlExecutor {
         if (limitedSql.endsWith(";")) {
           limitedSql = limitedSql.substring(0, limitedSql.length() - 1);
         }
-        limitedSql += " LIMIT 100";
+        limitedSql += " LIMIT " + MAX_ROWS;
       }
 
       return jdbcTemplate.queryForList(limitedSql);

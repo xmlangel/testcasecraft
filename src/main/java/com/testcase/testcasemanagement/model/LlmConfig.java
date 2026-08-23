@@ -62,6 +62,26 @@ public class LlmConfig {
   @Column(name = "test_case_template", columnDefinition = "TEXT")
   private String testCaseTemplate;
 
+  /**
+   * 질의 의도 분석과 데이터 요약에 쓸 모델. 비우면 {@link #modelName} 을 쓴다.
+   *
+   * <p>분석은 질문을 읽고 정해진 형식으로 답하는 분류 작업이라 추론이 값어치를 내지 않는다. 그런데 답변용으로 좋은 모델을 고르면 그것이 분석에도 쓰여, 실측에서
+   * 추론 모델의 분석 호출 하나가 7.3초에 1,275 토큰을 썼다. 답변은 좋은 모델로, 분석은 값싼 모델로 갈라 쓰려는 것이다.
+   */
+  @Column(name = "analysis_model_name", length = 100)
+  private String analysisModelName;
+
+  /**
+   * 분석에 실제로 쓸 모델 이름.
+   *
+   * <p>분석용 모델을 지정하지 않았으면 답변 모델을 그대로 쓴다. 빈 문자열도 없는 것으로 본다(관리자가 지우고 저장한 경우).
+   */
+  public String resolveAnalysisModelName() {
+    return analysisModelName != null && !analysisModelName.isBlank()
+        ? analysisModelName
+        : modelName;
+  }
+
   /** 연결 검증 여부 */
   @Column(name = "connection_verified")
   private Boolean connectionVerified = false;

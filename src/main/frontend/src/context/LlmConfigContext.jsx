@@ -6,6 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { useAuth } from "./AuthContext";
+import { useTranslation } from "./I18nContext";
 
 const LlmConfigContext = createContext();
 
@@ -87,6 +88,7 @@ const parseApiResponse = async (response, actionDescription) => {
 };
 
 export const LlmConfigProvider = ({ children }) => {
+  const { t } = useTranslation();
   const { api, user } = useAuth();
   const [configs, setConfigs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -345,16 +347,16 @@ export const LlmConfigProvider = ({ children }) => {
    * apiKey 또는 configId 중 하나가 필요하다. 저장 전 설정은 화면에 입력한 키를 보내고,
    * 저장된 설정은 configId 만 보내면 서버가 저장된 키를 쓴다.
    */
-  const fetchOpenRouterFreeModels = useCallback(
+  const fetchSelectableModels = useCallback(
     async ({ provider, apiKey, configId }) => {
-      const response = await api("/api/llm-configs/openrouter/free-models", {
+      const response = await api("/api/llm-configs/models", {
         method: "POST",
         body: JSON.stringify({ provider, apiKey, configId }),
       });
 
       const { data } = await parseApiResponse(
         response,
-        "fetch OpenRouter free models",
+        "fetch selectable models",
       );
       return data || [];
     },
@@ -389,9 +391,7 @@ export const LlmConfigProvider = ({ children }) => {
    */
   const fetchSelectableFreeModels = useCallback(async () => {
     try {
-      const response = await api(
-        "/api/llm-configs/openrouter/free-models/for-chat",
-      );
+      const response = await api("/api/llm-configs/models/for-chat");
       const { data } = await parseApiResponse(
         response,
         "fetch selectable free models",
@@ -404,36 +404,120 @@ export const LlmConfigProvider = ({ children }) => {
   }, [api]);
 
   /**
-   * OpenRouter 모델 가용성 확인
+   * 확인 작업이 끝날 때까지 진행 상황을 물어본다.
    *
-   * 각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. 확인 한 번이 무료 일일 한도를
-   * 그만큼 쓰므로(실측 한도 50건) 사용자가 버튼을 누를 때만 호출한다.
-   * modelIds 를 비우면 무료 모델 전체를 확인하고, alreadyChecked 에 담긴 모델은 건너뛴다.
+   * 주기를 1.5초로 둔 이유는 둘이다. 더 짧게 하면 확인 자체보다 조회가 서버를 더 많이
+   * 두드리고, 더 길게 하면 진행률이 뜨문뜨문 올라 멈춘 것처럼 보인다.
+   *
+   * 상한을 둔다. 서버가 작업을 잃거나(재시작) 응답이 계속 실패하면 무한정 물어보게 된다.
+   * NVIDIA 최악 6분에 여유를 더해 10분으로 잡았다.
    */
-  const probeOpenRouterModels = useCallback(
-    async ({ provider, apiKey, configId, modelIds, alreadyChecked }) => {
-      const response = await api(
-        "/api/llm-configs/openrouter/free-models/probe",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            provider,
-            apiKey,
-            configId,
-            modelIds,
-            alreadyChecked,
-          }),
-        },
-      );
+  const pollProbeJob = useCallback(
+    async (jobId, onProgress) => {
+      const INTERVAL_MS = 1500;
+      const MAX_WAIT_MS = 10 * 60 * 1000;
+      const startedAt = Date.now();
 
-      const { data } = await parseApiResponse(
-        response,
-        "probe OpenRouter models",
-      );
-      // { models, accountLimit, requestsSent } 형태다. 한도 상태를 화면이 쓰므로 그대로 넘긴다.
-      return data || { models: [], accountLimit: null, requestsSent: 0 };
+      for (;;) {
+        if (Date.now() - startedAt > MAX_WAIT_MS) {
+          throw new Error(
+            t(
+              "admin.llmConfig.models.probeTimeout",
+              "확인이 너무 오래 걸립니다. 잠시 뒤 버튼을 다시 눌러 주세요.",
+            ),
+          );
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, INTERVAL_MS));
+
+        const response = await api(
+          `/api/llm-configs/models/probe-jobs/${jobId}`,
+        );
+        const { data: job } = await parseApiResponse(
+          response,
+          "poll model availability probe",
+        );
+
+        if (!job) {
+          throw new Error(
+            t(
+              "admin.llmConfig.models.probeJobMissing",
+              "확인 작업을 찾을 수 없습니다.",
+            ),
+          );
+        }
+        onProgress?.({ done: job.done ?? 0, total: job.total ?? 0 });
+
+        if (job.status === "DONE") {
+          // 결과 형태는 예전 동기 응답과 같다. 화면의 결과 처리 코드를 그대로 쓴다.
+          return (
+            job.result || { models: [], accountLimit: null, requestsSent: 0 }
+          );
+        }
+        if (job.status === "FAILED") {
+          throw new Error(
+            job.errorMessage ||
+              t(
+                "admin.llmConfig.models.probeFailed",
+                "가용성 확인에 실패했습니다.",
+              ),
+          );
+        }
+      }
     },
-    [api],
+    [api, t],
+  );
+
+  /**
+   * 모델 가용성 확인
+   *
+   * 각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. 확인 한 번이 제공자의 요청 한도를
+   * 그만큼 쓰므로 사용자가 버튼을 누를 때만 호출한다. modelIds 를 비우면 목록 전체를
+   * 확인하고, alreadyChecked 에 담긴 모델은 건너뛴다.
+   *
+   * 서버에서 작업으로 돌리고 진행 상황을 물어본다. 확인은 최악의 경우 몇 분이 걸려
+   * (OpenRouter 2분 30초, NVIDIA 6분) 한 번의 요청으로 기다리면 리버스 프록시 타임아웃에
+   * 먼저 걸린다. 그러면 확인은 서버에서 계속 도는데 결과를 받지 못한다.
+   *
+   * onProgress 를 주면 진행률이 바뀔 때마다 { done, total } 로 알린다.
+   */
+  const probeModelAvailability = useCallback(
+    async ({
+      provider,
+      apiKey,
+      configId,
+      modelIds,
+      alreadyChecked,
+      onProgress,
+    }) => {
+      const startResponse = await api("/api/llm-configs/models/probe-jobs", {
+        method: "POST",
+        body: JSON.stringify({
+          provider,
+          apiKey,
+          configId,
+          modelIds,
+          alreadyChecked,
+        }),
+      });
+
+      const { data: job } = await parseApiResponse(
+        startResponse,
+        "start model availability probe",
+      );
+      if (!job?.jobId) {
+        throw new Error(
+          t(
+            "admin.llmConfig.models.probeStartFailed",
+            "확인 작업을 시작하지 못했습니다.",
+          ),
+        );
+      }
+
+      onProgress?.({ done: 0, total: job.total ?? 0 });
+      return pollProbeJob(job.jobId, onProgress);
+    },
+    [api, pollProbeJob, t],
   );
 
   /**
@@ -490,8 +574,8 @@ export const LlmConfigProvider = ({ children }) => {
     testConnection,
     testUnsavedSettings,
     toggleActive,
-    fetchOpenRouterFreeModels,
-    probeOpenRouterModels,
+    fetchSelectableModels,
+    probeModelAvailability,
     fetchSelectableFreeModels,
     fetchModelCatalogProviders,
   };

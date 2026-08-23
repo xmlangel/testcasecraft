@@ -64,6 +64,36 @@ public class AsyncConfig {
   }
 
   /**
+   * RAG 채팅 스트리밍 전용 스레드 풀.
+   *
+   * <p>예전에는 요청마다 {@code new Thread(...).start()} 로 스레드를 직접 만들었다. 상한이 없어 사용자가 한꺼번에 몰리면 그만큼 OS 스레드가
+   * 생기고, 스트리밍이 끝날 때까지(타임아웃 180초) 살아 있었다. 스레드 이름도 기본값이라 어느 요청의 것인지 로그로 되짚을 수 없었다.
+   *
+   * <p>대기열을 두지 않은 이유는 이 작업의 성격이다. 채팅은 사람이 화면에서 기다리는 일이라, 대기열에 넣어 나중에 처리하면 이미 화면을 떠난 요청을 붙들고 있게
+   * 된다. 풀이 가득 차면 {@code AbortPolicy} 가 즉시 거부하고 호출한 쪽이 사용자에게 알린다.
+   *
+   * <p>스레드 수는 동시 대화 수와 같다. LLM 응답을 기다리는 시간이 대부분이라 CPU 를 쓰지 않으므로 코어 수와 무관하게 정한다.
+   */
+  @Bean("ragChatStreamExecutor")
+  public ThreadPoolTaskExecutor ragChatStreamExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+    executor.setCorePoolSize(4);
+    executor.setMaxPoolSize(16);
+    // 대기열 없이 바로 거부한다. 사람이 기다리는 작업이라 미뤄서 처리할 값어치가 없다.
+    executor.setQueueCapacity(0);
+    executor.setThreadNamePrefix("RAGChatStream-");
+    executor.setKeepAliveSeconds(60);
+    // 종료 시 진행 중인 스트리밍은 마치게 한다. 중간에 끊으면 화면에 잘린 답이 남는다.
+    executor.setWaitForTasksToCompleteOnShutdown(true);
+    executor.setAwaitTerminationSeconds(30);
+
+    executor.initialize();
+
+    return executor;
+  }
+
+  /**
    * ICT-388: RAG 벡터화 전용 스레드 풀 TestCase 저장 시 RAG 벡터화를 백그라운드에서 처리
    *
    * <p>대량 일괄 저장 최적화: - Core 4개 스레드로 병렬 처리 향상 - Queue 100개로 증가하여 대량 작업 처리
