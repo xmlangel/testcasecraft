@@ -331,6 +331,12 @@ MINIO_SECRET_KEY=minioadmin_dev_password_789
 # RAG Database Configuration
 POSTGRES_RAG_PASSWORD=rag_dev_password_123
 
+# 저장하는 비밀값을 암호화하는 키 (AES-256, 32바이트 Base64)
+# LLM API Key · Jira API 토큰 · 메일 비밀번호 · Google 서비스 계정 JSON 을 함께 암호화합니다.
+# 생성: openssl rand -base64 32
+# 이 값이 없으면 위 넷을 저장할 수 없습니다(prod 프로파일은 기본값을 두지 않습니다).
+JIRA_ENCRYPTION_KEY=
+
 ```
 
 ✨ Docker Compose sample(docker-compose.yml)
@@ -367,6 +373,9 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+
+      # 저장하는 비밀값을 암호화하는 키 (LLM API Key · Jira 토큰 · 메일 비밀번호 · Google JSON)
+      - JIRA_ENCRYPTION_KEY=${JIRA_ENCRYPTION_KEY:-}
       
       # Application Configuration
       - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}

@@ -25,6 +25,10 @@ services:
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
 
+      # 저장하는 비밀값을 암호화하는 키 (LLM API Key · Jira 토큰 · 메일 비밀번호 · Google JSON)
+      # prod 프로파일은 기본값을 두지 않으므로 없으면 위 넷을 저장할 수 없다.
+      - JIRA_ENCRYPTION_KEY=${JIRA_ENCRYPTION_KEY:-}
+
       # Application Configuration
       - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
       - SHOW_EXPLORATORY_SESSION_TAB=${SHOW_EXPLORATORY_SESSION_TAB:-false}
