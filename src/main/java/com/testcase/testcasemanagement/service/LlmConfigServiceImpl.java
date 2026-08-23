@@ -134,6 +134,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     }
     config.setApiUrl(normalizedApiUrl);
     config.setModelName(configDTO.getModelName());
+    config.setAnalysisModelName(configDTO.getAnalysisModelName());
     config.setIsDefault(configDTO.getIsDefault() != null ? configDTO.getIsDefault() : false);
     config.setIsActive(true);
 
@@ -197,6 +198,10 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     }
     if (configDTO.getModelName() != null) {
       config.setModelName(configDTO.getModelName());
+    }
+    // 빈 문자열도 반영한다. 관리자가 분석용 모델을 지워 답변 모델로 되돌리려는 뜻이다.
+    if (configDTO.getAnalysisModelName() != null) {
+      config.setAnalysisModelName(configDTO.getAnalysisModelName());
     }
 
     // 테스트 케이스 템플릿 업데이트
@@ -613,6 +618,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         .apiUrl(config.getApiUrl())
         .maskedApiKey(maskApiKey(config.getEncryptedApiKey()))
         .modelName(config.getModelName())
+        .analysisModelName(config.getAnalysisModelName())
         .isDefault(config.getIsDefault())
         .isActive(config.getIsActive())
         .testCaseTemplate(template) // 기본 템플릿 보장

@@ -182,6 +182,10 @@ public class I18nHardcodedKeysInitializer {
     createTranslationKeyIfNotExists(
         "admin.llmConfig.models.probeProgress", "admin", "확인 진행률 (2026-08-23)", "확인 중 {done} / {total}");
     createTranslationKeyIfNotExists(
+        "admin.llmConfig.analysisModel", "admin", "분석용 모델 분리 (2026-08-23)", "분석용 모델 (선택)");
+    createTranslationKeyIfNotExists(
+        "admin.llmConfig.analysisModelHelper", "admin", "분석용 모델 분리 (2026-08-23)", "질문 의도를 파악하고 조회 결과를 정리할 때 쓰는 모델입니다. 비우면 위 모델을 씁니다. 이 일은 정해진 형식으로 답하는 작업이라 값싸고 빠른 모델이 알맞습니다.");
+    createTranslationKeyIfNotExists(
         "admin.llmConfig.models.probeTimeout", "admin", "확인 작업 안내 (2026-08-23)", "확인이 너무 오래 걸립니다. 잠시 뒤 버튼을 다시 눌러 주세요.");
     createTranslationKeyIfNotExists(
         "admin.llmConfig.models.probeJobMissing", "admin", "확인 작업 안내 (2026-08-23)", "확인 작업을 찾을 수 없습니다.");

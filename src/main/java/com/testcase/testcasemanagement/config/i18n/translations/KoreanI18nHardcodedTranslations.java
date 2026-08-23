@@ -162,6 +162,8 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("admin.llmConfig.models.requestsSent", languageCode, "이번에 요청 {count}건을 보냈습니다.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.skippedByLimit", languageCode, "한 번에 {limit}개까지만 확인합니다. {skipped}개는 확인하지 않았으니 버튼을 다시 눌러 주세요.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.probeProgress", languageCode, "확인 중 {done} / {total}", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.analysisModel", languageCode, "분석용 모델 (선택)", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.analysisModelHelper", languageCode, "질문 의도를 파악하고 조회 결과를 정리할 때 쓰는 모델입니다. 비우면 위 모델을 씁니다. 이 일은 정해진 형식으로 답하는 작업이라 값싸고 빠른 모델이 알맞습니다.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.probeTimeout", languageCode, "확인이 너무 오래 걸립니다. 잠시 뒤 버튼을 다시 눌러 주세요.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.probeJobMissing", languageCode, "확인 작업을 찾을 수 없습니다.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.probeFailed", languageCode, "가용성 확인에 실패했습니다.", createdBy);

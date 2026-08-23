@@ -118,6 +118,7 @@ const LlmConfigList = ({ onSuccess }) => {
     apiUrl: "",
     apiKey: "",
     modelName: "",
+    analysisModelName: "",
     isDefault: false,
     testCaseTemplate: DEFAULT_TEST_CASE_TEMPLATE,
   });
@@ -168,6 +169,7 @@ const LlmConfigList = ({ onSuccess }) => {
         apiUrl: config.apiUrl,
         apiKey: "", // API Key는 수정 시 비워둠 (선택적 업데이트)
         modelName: config.modelName,
+        analysisModelName: config.analysisModelName || "",
         isDefault: config.isDefault,
         testCaseTemplate: config.testCaseTemplate || DEFAULT_TEST_CASE_TEMPLATE,
       });
@@ -180,6 +182,7 @@ const LlmConfigList = ({ onSuccess }) => {
         apiUrl: providerInfo("OPENWEBUI").apiUrl,
         apiKey: "",
         modelName: "",
+        analysisModelName: "",
         isDefault: false,
         testCaseTemplate: DEFAULT_TEST_CASE_TEMPLATE,
       });
@@ -201,6 +204,7 @@ const LlmConfigList = ({ onSuccess }) => {
       apiUrl: providerInfo("OPENWEBUI").apiUrl,
       apiKey: "",
       modelName: "",
+      analysisModelName: "",
       isDefault: false,
       testCaseTemplate: DEFAULT_TEST_CASE_TEMPLATE,
     });
@@ -1105,6 +1109,20 @@ const LlmConfigList = ({ onSuccess }) => {
                 )}
               />
             )}
+
+            <TextField
+              label={t("admin.llmConfig.analysisModel", "분석용 모델 (선택)")}
+              value={formData.analysisModelName}
+              onChange={(e) =>
+                setFormData({ ...formData, analysisModelName: e.target.value })
+              }
+              fullWidth
+              placeholder={providerInfo(formData.provider).modelPlaceholder}
+              helperText={t(
+                "admin.llmConfig.analysisModelHelper",
+                "질문 의도를 파악하고 조회 결과를 정리할 때 쓰는 모델입니다. 비우면 위 모델을 씁니다. 이 일은 정해진 형식으로 답하는 작업이라 값싸고 빠른 모델이 알맞습니다.",
+              )}
+            />
 
             <FormControlLabel
               control={

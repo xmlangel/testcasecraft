@@ -86,6 +86,13 @@ public class LlmConfigDTO {
   /** 테스트 케이스 생성 템플릿 AI에게 테스트 케이스 생성을 요청할 때 참고할 JSON 형식 예시 */
   private String testCaseTemplate;
 
+  /**
+   * 질의 의도 분석과 데이터 요약에 쓸 모델. 비우면 {@code modelName} 을 쓴다.
+   *
+   * <p>분석은 정해진 형식으로 답하는 분류 작업이라 추론 모델이 값어치를 내지 않는다. 답변은 좋은 모델로, 분석은 값싼 모델로 갈라 쓰려는 것이다.
+   */
+  private String analysisModelName;
+
   /** 연결 검증 여부 (Response 전용) */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Boolean connectionVerified;

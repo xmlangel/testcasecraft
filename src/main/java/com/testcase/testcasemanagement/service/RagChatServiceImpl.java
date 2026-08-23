@@ -355,6 +355,7 @@ public class RagChatServiceImpl implements RagChatService {
     copy.setEncryptedApiKey(source.getEncryptedApiKey());
     copy.setModelName(model);
     copy.setTestCaseTemplate(source.getTestCaseTemplate());
+    copy.setAnalysisModelName(source.getAnalysisModelName());
     copy.setIsActive(source.getIsActive());
     copy.setIsDefault(source.getIsDefault());
     return copy;

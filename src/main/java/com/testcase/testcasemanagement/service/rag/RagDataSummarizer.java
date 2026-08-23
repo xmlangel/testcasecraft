@@ -59,7 +59,7 @@ public class RagDataSummarizer {
     }
 
     try {
-      LlmConfig llmConfig = getLlmConfig();
+      LlmConfig llmConfig = withAnalysisModel(getLlmConfig());
       LlmClient llmClient = llmClientFactory.getClient(llmConfig);
 
       String systemPrompt =
@@ -93,6 +93,30 @@ public class RagDataSummarizer {
       log.error("데이터 요약 실패: {}", e.getMessage());
       return String.format("총 %d건의 데이터가 조회되었습니다. (요약 실패)", data.size());
     }
+  }
+
+  /**
+   * 분석용 설정 사본.
+   *
+   * <p>저장된 엔티티의 모델 이름을 바꾸면 영속 상태가 바뀌어 DB 에 반영될 수 있다. 그래서 복사본을 만들어 쓴다.
+   */
+  private LlmConfig withAnalysisModel(LlmConfig source) {
+    String model = source.resolveAnalysisModelName();
+    if (model == null || model.equals(source.getModelName())) {
+      return source;
+    }
+    LlmConfig copy = new LlmConfig();
+    copy.setId(source.getId());
+    copy.setName(source.getName());
+    copy.setProvider(source.getProvider());
+    copy.setApiUrl(source.getApiUrl());
+    copy.setEncryptedApiKey(source.getEncryptedApiKey());
+    copy.setModelName(model);
+    copy.setTestCaseTemplate(source.getTestCaseTemplate());
+    copy.setAnalysisModelName(source.getAnalysisModelName());
+    copy.setIsActive(source.getIsActive());
+    copy.setIsDefault(source.getIsDefault());
+    return copy;
   }
 
   private LlmConfig getLlmConfig() {
