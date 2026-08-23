@@ -996,7 +996,10 @@ Items registered on the **LLM Configurations** tab:
 
 - Provider: OpenAI / OpenRouter / NVIDIA / Perplexity / Ollama / OpenWebUI (Ollama and OpenWebUI run models on your own server)
 - Model name, API key, base URL
+- Analysis model (optional): leave blank to use the model above
 - After registering, use **[Test Connection]** to confirm the values
+
+> **Why a separate analysis model** — Before writing an answer, the AI reads the question intent and organises the query results. That work answers in a fixed format, so a cheap and fast model handles it well. Assigning a good model for answers and a cheap one for this preparation makes responses faster. Leave it blank to use the answer model.
 
 > **If the connection test reports "No encryption key is configured"** — API keys are encrypted before being stored, and the server has no such key. Expanding the guidance on screen reveals the command and the setting name, both copyable. A server administrator has to set the value and restart.
 
