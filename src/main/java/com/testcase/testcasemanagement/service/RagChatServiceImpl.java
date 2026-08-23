@@ -4,25 +4,20 @@ import com.testcase.testcasemanagement.dto.rag.*;
 import com.testcase.testcasemanagement.exception.RagDisabledException;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.model.Project;
-import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.rag.RagChatThread;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
-import com.testcase.testcasemanagement.repository.TestCaseRepository;
-import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
 import com.testcase.testcasemanagement.service.llm.LlmModelCatalog;
 import com.testcase.testcasemanagement.service.llm.LlmModelCatalogFactory;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
-import com.testcase.testcasemanagement.service.rag.RagDataSummarizer;
 import com.testcase.testcasemanagement.service.rag.RagChatTurn;
+import com.testcase.testcasemanagement.service.rag.RagContextCollector;
 import com.testcase.testcasemanagement.service.rag.RagPromptBuilder;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer.QueryIntent;
-import com.testcase.testcasemanagement.service.rag.RagSqlExecutor;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,8 +27,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -48,7 +41,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Slf4j
 public class RagChatServiceImpl implements RagChatService {
 
-  private final RagService ragService;
   private final LlmConfigRepository llmConfigRepository;
   private final ProjectRepository projectRepository;
   private final RagChatConversationService conversationService;
@@ -56,13 +48,9 @@ public class RagChatServiceImpl implements RagChatService {
   private final LlmModelCatalogFactory llmModelCatalogFactory;
   private final EncryptionUtil encryptionUtil;
   private final SystemSettingService systemSettingService;
-  private final DashboardService dashboardService;
-  private final TestCaseRepository testCaseRepository;
-  private final TestResultRepository testResultRepository;
   private final RagQueryAnalyzer queryAnalyzer;
-  private final RagSqlExecutor sqlExecutor;
-  private final RagDataSummarizer dataSummarizer;
   private final RagPromptBuilder promptBuilder;
+  private final RagContextCollector contextCollector;
 
   /** 스트리밍 전용 스레드 풀. 이름을 지정해 다른 풀과 섞이지 않게 한다. */
   @Qualifier("ragChatStreamExecutor")
@@ -277,13 +265,13 @@ public class RagChatServiceImpl implements RagChatService {
     // 2. 질의 의도 분석 및 DB 데이터 가져오기 (지능형 컨텍스트)
     String projectIdStr = request.getProjectId().toString();
     QueryIntent intent = queryAnalyzer.analyzeIntent(request.getMessage(), projectIdStr);
-    Map<String, Object> dbContext = fetchDbContext(projectIdStr, intent);
+    Map<String, Object> dbContext = contextCollector.fetchDbContext(projectIdStr, intent);
 
     // 3. RAG 문서 검색으로 관련 컨텍스트 가져오기 (useRagSearch 옵션 확인)
     boolean useRagSearch =
         request.getUseRagSearch() == null || Boolean.TRUE.equals(request.getUseRagSearch());
     List<RagChatContext> contextSources =
-        useRagSearch ? searchRelevantContext(request) : Collections.emptyList();
+        useRagSearch ? contextCollector.searchRelevantContext(request) : Collections.emptyList();
 
     if (useRagSearch) {
       log.info("📚 RAG 검색 활성화{} - 검색된 컨텍스트: {} 개", mode, contextSources.size());
@@ -385,109 +373,8 @@ public class RagChatServiceImpl implements RagChatService {
     }
   }
 
-  /** RAG 검색으로 관련 컨텍스트 가져오기 */
-  private List<RagChatContext> searchRelevantContext(RagChatRequest request) {
-    // null 값 기본값 처리
-    Double similarityThreshold =
-        request.getSimilarityThreshold() != null
-            ? request.getSimilarityThreshold()
-            : 0.7; // 기본값: 0.7
-
-    Integer maxResults =
-        request.getMaxContextResults() != null ? request.getMaxContextResults() : 5; // 기본값: 5
-
-    RagSearchRequest searchRequest =
-        RagSearchRequest.builder()
-            .queryText(request.getMessage())
-            .projectId(request.getProjectId())
-            .similarityThreshold(similarityThreshold)
-            .maxResults(maxResults)
-            .build();
-
-    RagSearchResponse searchResponse = ragService.searchSimilar(searchRequest);
-
-    return searchResponse.getResults().stream()
-        .map(
-            result -> {
-              Map<String, Object> metadata = result.getChunkMetadata();
-              String resolvedTitle = result.getFileName();
-              if (metadata != null) {
-                Object threadTitle = metadata.get("threadTitle");
-                if (threadTitle instanceof String threadTitleStr && !threadTitleStr.isBlank()) {
-                  resolvedTitle = threadTitleStr;
-                } else {
-                  Object snakeCaseTitle = metadata.get("thread_title");
-                  if (snakeCaseTitle instanceof String threadTitleSnake
-                      && !threadTitleSnake.isBlank()) {
-                    resolvedTitle = threadTitleSnake;
-                  }
-                }
-              }
-
-              return RagChatContext.builder()
-                  .id(result.getDocumentId())
-                  .fileName(result.getFileName())
-                  .title(resolvedTitle != null ? resolvedTitle : result.getFileName())
-                  .chunkText(result.getChunkText())
-                  .similarity(result.getSimilarityScore())
-                  .chunkIndex(result.getChunkIndex())
-                  .metadata(metadata)
-                  .build();
-            })
-        .collect(Collectors.toList());
-  }
 
 
-  /** 의도에 따른 DB 데이터 조회 */
-  private Map<String, Object> fetchDbContext(String projectId, QueryIntent intent) {
-    Map<String, Object> context = new HashMap<>();
-
-    try {
-      // 1. 통계 정보
-      if (intent.isNeedsStatistics()) {
-        context.put("statistics", dashboardService.getProjectStatistics(projectId));
-      }
-
-      // 2. 테스트케이스 검색
-      if (intent.isNeedsTestCaseSearch()
-          && intent.getSearchKeywords() != null
-          && !intent.getSearchKeywords().isEmpty()) {
-        List<TestCase> allResults = new ArrayList<>();
-        for (String keyword : intent.getSearchKeywords()) {
-          allResults.addAll(testCaseRepository.searchByKeyword(projectId, keyword));
-        }
-        // 중복 제거 및 상위 5개 제한
-        context.put(
-            "searchResults", allResults.stream().distinct().limit(5).collect(Collectors.toList()));
-      }
-
-      // 3. 최근 실행 결과
-      if (intent.isNeedsRecentResults()) {
-        Pageable pageable = PageRequest.of(0, 5);
-        context.put(
-            "recentResults",
-            testResultRepository.findRecentTestResultsByProject(projectId, pageable));
-      }
-
-      // 4. SQL 기반 정밀 데이터 조회 및 요약
-      if (intent.getGeneratedSql() != null && !intent.getGeneratedSql().isBlank()) {
-        try {
-          List<Map<String, Object>> sqlResults =
-              sqlExecutor.executeSelect(intent.getGeneratedSql(), projectId);
-          String summary =
-              dataSummarizer.summarize(
-                  sqlResults, intent.getJustification(), intent.isNeedsFullList());
-          context.put("sqlData", summary);
-        } catch (Exception e) {
-          log.warn("SQL 실행 또는 요약 실패: {}", e.getMessage());
-        }
-      }
-    } catch (Exception e) {
-      log.error("DB 컨텍스트 조회 실패: {}", e.getMessage());
-    }
-
-    return context;
-  }
 
   private void checkRagEnabled() {
     if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
