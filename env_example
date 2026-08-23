@@ -1,0 +1,69 @@
+# Protocol Configuration (http or https)
+PROTOCOL=http
+
+# Server Configuration
+HTTP_PORT=8080
+HTTPS_PORT=443
+DOMAIN=localhost
+
+SERVER_PORT=8080
+SERVER_SSL_ENABLED=false
+
+# SSL Configuration (only used when PROTOCOL=https)
+SSL_KEYSTORE_PATH=/app/ssl/keystore.p12
+SSL_KEYSTORE_PASSWORD=changeit
+SSL_KEYSTORE_TYPE=PKCS12
+
+# Database Configuration
+POSTGRES_DB=testcase_management
+POSTGRES_USER=testcase_user
+POSTGRES_PASSWORD=testcase_password
+DATABASE_URL=jdbc:postgresql://postgres:5432/testcase_management
+
+# JWT Configuration (512-bit key required for HS512)
+JWT_SECRET=512-bit key required for HS512
+# SessionTime
+JWT_EXPIRATION=604800000
+JWT_REFRESH_EXPIRATION=2592000000
+
+# Spring Boot Configuration
+SPRING_PROFILES_ACTIVE=prod
+
+# JPA Configuration
+# Use validate to avoid Hibernate attempting to recreate existing indexes on startup
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
+SPRING_JPA_SHOW_SQL=false
+
+# Logging Configuration
+LOGGING_LEVEL_COM_TESTCASE=INFO
+LOGGING_LEVEL_ROOT=WARN
+
+# Frontend API Configuration
+REACT_APP_API_BASE_URL=http://localhost:8080
+
+DOCUMENT_PARSER=pymupdf4llm
+
+# Upstage API Key
+UPSTAGE_API_KEY=up
+
+TESTCASE_INIT_ENABLED=false
+
+# MinIO Configuration
+MINIO_SECRET_KEY=minioadmin_dev_password_789
+
+# RAG Database Configuration
+POSTGRES_RAG_PASSWORD=rag_dev_password_123
+
+# 저장하는 비밀값을 암호화하는 키 (AES-256, 32바이트 Base64)
+#
+# 이름은 JIRA 인데 실제로는 넷을 함께 암호화한다.
+#   - LLM API Key (LLM 설정)
+#   - Jira API 토큰
+#   - 메일 비밀번호
+#   - Google 서비스 계정 JSON
+#
+# prod 프로파일은 기본값을 두지 않으므로 이 값이 없으면 위 넷을 저장할 수 없다.
+# 다시 만들려면: openssl rand -base64 32
+#
+# 키를 바꾸면 이미 저장된 값을 복호화할 수 없어 모두 다시 입력해야 한다.
+JIRA_ENCRYPTION_KEY=MQCS2AMZreQaJPwoo7CSe6EZexRseE2ctXvvtMCOgaI=
