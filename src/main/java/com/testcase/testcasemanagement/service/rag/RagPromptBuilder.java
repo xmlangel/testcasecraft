@@ -157,11 +157,19 @@ public class RagPromptBuilder {
 
       for (int i = 0; i < contextSources.size(); i++) {
         RagChatContext context = contextSources.get(i);
+        // 출처를 제목으로 밝힌다. 파일명만 쓰면 지난 대화에서 찾은 내용이 `chunk-1.txt` 처럼
+        // 뜻 없는 이름으로 보이고, 사용자가 답변의 근거를 되짚을 수 없다. 수집 쪽이 스레드
+        // 제목을 메타데이터에서 꺼내 두는데 여기서 쓰지 않아 그 값이 버려지고 있었다.
+        // 제목은 없으면 파일명으로 채워지므로 늘 값이 있다.
+        String source =
+            context.getTitle() != null && !context.getTitle().isBlank()
+                ? context.getTitle()
+                : context.getFileName();
         prompt.append(
             String.format(
                 "[출처 %d: %s (유사도: %.2f)]\n",
                 i + 1,
-                context.getFileName(),
+                source,
                 context.getSimilarity() != null ? context.getSimilarity() : 0.0));
         prompt.append(context.getChunkText());
         prompt.append("\n\n");

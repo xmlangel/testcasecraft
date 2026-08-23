@@ -114,13 +114,36 @@ public class RagPromptBuilderTest {
 
     String prompt = builder.buildSystemPrompt(List.of(context), Map.of(), null, null);
 
-    assertTrue(prompt.contains("배포절차.md"), "출처를 파일명으로 밝힌다");
+    assertTrue(prompt.contains("배포 절차"), "출처를 제목으로 밝힌다");
     assertTrue(prompt.contains("먼저 백업을 받는다"), "문서 내용이 들어간다");
     assertTrue(prompt.contains("0.87"), "유사도를 밝혀 모델이 신뢰도를 판단하게 한다");
+  }
 
-    // 현재 동작을 그대로 고정한다. 출처 표기는 파일명만 쓰고 `title` 은 쓰지 않는다. 파일명이
-    // 뜻을 담지 않으면(`doc1.md` 같은 경우) 모델과 사용자가 어느 문서인지 알 수 없다.
-    assertFalse(prompt.contains("배포 절차"), "제목은 지금 쓰이지 않는다");
+  @Test(description = "제목이 없으면 파일명으로 출처를 밝힌다")
+  public void fallsBackToFileNameAsSource() {
+    // 수집 쪽이 제목을 늘 채우지만, 다른 경로로 만든 컨텍스트가 들어올 수 있다.
+    RagChatContext noTitle =
+        RagChatContext.builder()
+            .id(UUID.randomUUID())
+            .fileName("규정.md")
+            .chunkText("내용")
+            .similarity(0.5)
+            .build();
+    RagChatContext blankTitle =
+        RagChatContext.builder()
+            .id(UUID.randomUUID())
+            .fileName("절차서.md")
+            .title("   ")
+            .chunkText("내용")
+            .similarity(0.5)
+            .build();
+
+    assertTrue(
+        builder.buildSystemPrompt(List.of(noTitle), Map.of(), null, null).contains("규정.md"),
+        "제목이 없으면 파일명");
+    assertTrue(
+        builder.buildSystemPrompt(List.of(blankTitle), Map.of(), null, null).contains("절차서.md"),
+        "빈 제목도 없는 것으로 본다");
   }
 
   @Test(description = "검색 결과가 없으면 그 사실을 프롬프트에 밝힌다")
