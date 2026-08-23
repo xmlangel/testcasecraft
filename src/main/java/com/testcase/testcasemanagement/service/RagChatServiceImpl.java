@@ -1,13 +1,10 @@
 package com.testcase.testcasemanagement.service;
 
-import com.testcase.testcasemanagement.dto.ProjectStatisticsDto;
-import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.rag.*;
 import com.testcase.testcasemanagement.exception.RagDisabledException;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
-import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.rag.RagChatThread;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
@@ -19,6 +16,7 @@ import com.testcase.testcasemanagement.service.llm.LlmModelCatalog;
 import com.testcase.testcasemanagement.service.llm.LlmModelCatalogFactory;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
 import com.testcase.testcasemanagement.service.rag.RagDataSummarizer;
+import com.testcase.testcasemanagement.service.rag.RagPromptBuilder;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer.QueryIntent;
 import com.testcase.testcasemanagement.service.rag.RagSqlExecutor;
@@ -60,6 +58,7 @@ public class RagChatServiceImpl implements RagChatService {
   private final RagQueryAnalyzer queryAnalyzer;
   private final RagSqlExecutor sqlExecutor;
   private final RagDataSummarizer dataSummarizer;
+  private final RagPromptBuilder promptBuilder;
 
   @Override
   public RagChatResponse chat(RagChatRequest request, String username) {
@@ -113,7 +112,7 @@ public class RagChatServiceImpl implements RagChatService {
 
       // 4. 시스템 프롬프트 + 컨텍스트 + 대화 히스토리 구성
       List<RagChatMessage> messages =
-          buildMessages(request, contextSources, dbContext, intent, llmConfig);
+          promptBuilder.buildMessages(request, contextSources, dbContext, intent, llmConfig);
 
       if (persistConversation) {
         thread = conversationService.ensureThread(project, request, username);
@@ -224,7 +223,7 @@ public class RagChatServiceImpl implements RagChatService {
 
                 // 4. 메시지 구성
                 List<RagChatMessage> messages =
-                    buildMessages(request, contextSources, dbContext, intent, llmConfig);
+                    promptBuilder.buildMessages(request, contextSources, dbContext, intent, llmConfig);
 
                 // 4. LLM 스트리밍 호출
                 LlmClient llmClient = llmClientFactory.getClient(llmConfig);
@@ -418,152 +417,6 @@ public class RagChatServiceImpl implements RagChatService {
         .collect(Collectors.toList());
   }
 
-  /** LLM에게 전달할 메시지 리스트 구성 */
-  private List<RagChatMessage> buildMessages(
-      RagChatRequest request,
-      List<RagChatContext> contextSources,
-      Map<String, Object> dbContext,
-      QueryIntent intent,
-      LlmConfig llmConfig) {
-    List<RagChatMessage> messages = new ArrayList<>();
-
-    // 1. 시스템 프롬프트 (RAG 컨텍스트 및 DB 데이터 포함)
-    String systemPrompt = buildSystemPrompt(contextSources, dbContext, intent, llmConfig);
-    messages.add(RagChatMessage.system(systemPrompt));
-
-    // 2. 대화 히스토리 추가 (있으면)
-    if (request.getConversationHistory() != null && !request.getConversationHistory().isEmpty()) {
-      messages.addAll(request.getConversationHistory());
-    }
-
-    // 3. 현재 사용자 질문
-    messages.add(RagChatMessage.user(request.getMessage()));
-
-    return messages;
-  }
-
-  /** RAG 컨텍스트 및 DB 데이터를 포함한 시스템 프롬프트 생성 */
-  private String buildSystemPrompt(
-      List<RagChatContext> contextSources,
-      Map<String, Object> dbContext,
-      QueryIntent intent,
-      LlmConfig llmConfig) {
-    StringBuilder prompt = new StringBuilder();
-
-    prompt.append("당신은 테스트 케이스 관리 시스템의 AI 어시스턴트입니다.\n");
-    prompt.append("사용자의 질문에 답변할 때, 제공된 시스템 통계(DB)와 참고 문서(RAG)를 바탕으로 가장 정확한 정보를 제공하세요.\n\n");
-
-    // 0. 테스트케이스 생성 요청 처리
-    if (intent != null && intent.isNeedsTestCaseGeneration()) {
-      String template =
-          (llmConfig != null
-                  && llmConfig.getTestCaseTemplate() != null
-                  && !llmConfig.getTestCaseTemplate().isBlank())
-              ? llmConfig.getTestCaseTemplate()
-              : LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE;
-
-      prompt.append("=== 테스트케이스 생성 가이드 ===\n");
-      prompt.append("사용자가 테스트케이스 생성을 요청하거나 관련 질문을 하는 경우, 다음 지침을 따르세요:\n");
-      prompt.append("1. 정보가 충분한 경우: 아래 JSON 형식을 참고하여 테스트케이스를 생성하고 응답에 JSON 블록을 포함하세요.\n");
-      prompt.append(
-          "2. 정보가 부족하거나 모호한 경우: 바로 생성하지 말고, 어떤 기능을 테스트하고 싶은지, 특별한 조건이 있는지 등 필요한 정보를 사용자에게 추가로 질문하여"
-              + " 의도를 명확히 파악하세요.\n\n");
-      prompt.append("```json\n");
-      prompt.append(template.trim());
-      prompt.append("\n```\n\n");
-      prompt.append("==============================\n\n");
-    }
-
-    // 1. DB 컨텍스트 추가 (통계, 검색 결과 등)
-    if (dbContext != null && !dbContext.isEmpty()) {
-      prompt.append("=== 시스템 실시간 데이터 (DB) ===\n");
-
-      if (dbContext.containsKey("statistics")) {
-        ProjectStatisticsDto stats = (ProjectStatisticsDto) dbContext.get("statistics");
-        prompt.append(String.format("- 프로젝트: %s\n", stats.getProjectName()));
-        // 폴더와 케이스를 갈라 적는다. 한 수치로 합치면 답변이 폴더까지 케이스로 세어 말한다.
-        prompt.append(String.format("- 총 테스트 케이스: %d개 (폴더 제외)\n", stats.getTotalTestCases()));
-        prompt.append(
-            String.format(
-                "- 폴더: %d개 (테스트 케이스 수에 포함하지 않음)\n",
-                stats.getTotalFolders() != null ? stats.getTotalFolders() : 0));
-        prompt.append(
-            String.format(
-                "- 실행된 케이스: %d개 (실행률: %.1f%%)\n",
-                stats.getExecutedTestCases(), stats.getExecutionRate()));
-        prompt.append(
-            String.format(
-                "- 결과 현황: Pass(%d), Fail(%d), Blocked(%d), NotRun(%d)\n",
-                stats.getPassedTestCases(),
-                stats.getFailedTestCases(),
-                stats.getBlockedTestCases(),
-                stats.getNotRunTestCases()));
-        if (stats.getLastExecutionDate() != null) {
-          prompt.append(String.format("- 마지막 실행: %s\n", stats.getLastExecutionDate()));
-        }
-      }
-
-      if (dbContext.containsKey("searchResults")) {
-        List<?> results = (List<?>) dbContext.get("searchResults");
-        prompt.append("\n[관련 테스트케이스 검색 결과]\n");
-        for (Object obj : results) {
-          TestCase tc = (TestCase) obj;
-          prompt.append(
-              String.format(
-                  "- [%s] %s (우선순위: %s)\n", tc.getDisplayId(), tc.getName(), tc.getPriority()));
-        }
-      }
-
-      if (dbContext.containsKey("recentResults")) {
-        List<?> results = (List<?>) dbContext.get("recentResults");
-        prompt.append("\n[최근 실행 이력]\n");
-        for (Object obj : results) {
-          TestResult tr = (TestResult) obj;
-          prompt.append(
-              String.format(
-                  "- %s: %s (실행자: %s)\n",
-                  tr.getExecutedAt(),
-                  tr.getResult(),
-                  tr.getExecutedBy() != null ? tr.getExecutedBy().getUsername() : "Unknown"));
-        }
-      }
-
-      if (dbContext.containsKey("sqlData")) {
-        prompt.append("\n[시스템 데이터 분석 결과]\n");
-        prompt.append(dbContext.get("sqlData"));
-        prompt.append("\n");
-      }
-
-      prompt.append("==============================\n\n");
-    }
-
-    // 2. RAG 컨텍스트 추가
-    if (contextSources != null && !contextSources.isEmpty()) {
-      prompt.append("=== 참고 문서 (RAG) ===\n");
-
-      for (int i = 0; i < contextSources.size(); i++) {
-        RagChatContext context = contextSources.get(i);
-        prompt.append(
-            String.format(
-                "[출처 %d: %s (유사도: %.2f)]\n",
-                i + 1,
-                context.getFileName(),
-                context.getSimilarity() != null ? context.getSimilarity() : 0.0));
-        prompt.append(context.getChunkText());
-        prompt.append("\n\n");
-      }
-
-      prompt.append("======================\n\n");
-      prompt.append("위 정보를 참고하여 답변해주세요. ");
-      prompt.append("수치 데이터는 '시스템 실시간 데이터'를 우선적으로 신뢰하세요.\n");
-      prompt.append("답변할 때는 어느 정보를 참고했는지 명시할 수 있습니다 (예: '시스템 통계에 따르면...', '[출처 1]에 따르면...').\n");
-    } else {
-      prompt.append("제공된 시스템 데이터를 바탕으로 답변해주세요. ");
-      prompt.append("만약 정보가 부족하다면 일반적인 테스팅 지식을 바탕으로 안내해 주세요.");
-    }
-
-    return prompt.toString();
-  }
 
   /** 의도에 따른 DB 데이터 조회 */
   private Map<String, Object> fetchDbContext(String projectId, QueryIntent intent) {
