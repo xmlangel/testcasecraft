@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -91,6 +92,18 @@ public class TestExecutionServiceDisplayIdTest {
     when(projectSecurityService.canEditProject(anyString())).thenReturn(true);
     // 결과 기록 권한 허용 (updateTestResult/updateTestResultsBulk가 사용)
     when(projectSecurityService.canRecordTestResult(anyString())).thenReturn(true);
+  }
+
+  /**
+   * 심어 둔 인증 컨텍스트를 지운다.
+   *
+   * <p>{@code SecurityContextHolder} 는 JVM 전역 정적 상태다. 정리하지 않으면 같은 포크에 배정된 다음 시험이 이 시험의 인증 정보를
+   * 그대로 보고, 자기가 심은 것으로 착각한다. 실제로 {@code SecurityContextUtilIsCurrentUserTest} 가 간헐적으로 실패했고
+   * 단독 실행에서는 통지해 원인을 찾기 어려웠다.
+   */
+  @AfterMethod
+  public void clearSecurityContext() {
+    SecurityContextHolder.clearContext();
   }
 
   /** testCaseId(UUID)가 제공된 경우 DisplayID보다 우선순위를 갖는지 테스트 (하위 호환성) */

@@ -2,9 +2,9 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelDTO;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterModelQueryRequest;
-import com.testcase.testcasemanagement.dto.llm.OpenRouterProbeResponse;
+import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelQueryRequest;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.dto.rag.RagChatMessage;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.service.llm.LlmApiUrlNormalizer;
@@ -26,6 +26,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
+import com.testcase.testcasemanagement.service.llm.LlmModelProbeJobStore;
 
 /** LLM 설정 서비스 구현 */
 @Service
@@ -37,6 +41,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   private final EncryptionUtil encryptionUtil;
   private final LlmClientFactory llmClientFactory;
   private final LlmModelCatalogFactory llmModelCatalogFactory;
+  private final LlmModelProbeJobStore probeJobStore;
 
   @PostConstruct
   public void init() {
@@ -129,6 +134,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     }
     config.setApiUrl(normalizedApiUrl);
     config.setModelName(configDTO.getModelName());
+    config.setAnalysisModelName(configDTO.getAnalysisModelName());
     config.setIsDefault(configDTO.getIsDefault() != null ? configDTO.getIsDefault() : false);
     config.setIsActive(true);
 
@@ -192,6 +198,10 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     }
     if (configDTO.getModelName() != null) {
       config.setModelName(configDTO.getModelName());
+    }
+    // 빈 문자열도 반영한다. 관리자가 분석용 모델을 지워 답변 모델로 되돌리려는 뜻이다.
+    if (configDTO.getAnalysisModelName() != null) {
+      config.setAnalysisModelName(configDTO.getAnalysisModelName());
     }
 
     // 테스트 케이스 템플릿 업데이트
@@ -348,24 +358,51 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   @Override
-  public List<OpenRouterModelDTO> listOpenRouterFreeModels(OpenRouterModelQueryRequest request) {
+  public List<LlmModelDTO> listSelectableModels(LlmModelQueryRequest request) {
     LlmProvider provider = resolveProvider(request);
     LlmModelCatalog catalog = requireCatalog(provider);
     return catalog.listSelectableModels(resolveApiKey(request, provider));
   }
 
+
   @Override
-  public OpenRouterProbeResponse probeOpenRouterModels(OpenRouterModelQueryRequest request) {
+  public LlmModelProbeJob startProbeJob(LlmModelQueryRequest request) {
     LlmProvider provider = resolveProvider(request);
     LlmModelCatalog catalog = requireCatalog(provider);
     String apiKey = resolveApiKey(request, provider);
 
+    // 대상 개수를 먼저 알아야 진행률의 분모가 정해진다. 목록 조회는 단일 요청이라 짧다.
+    List<String> targets = resolveProbeTargets(catalog, apiKey, request);
+    String jobId = probeJobStore.start(targets.size());
+
+    // 확인 자체는 구독한 쪽에서 돈다. 여기서 기다리지 않으므로 요청은 곧 돌아간다.
+    catalog
+        .probeAvailability(apiKey, targets, () -> probeJobStore.advance(jobId))
+        .subscribeOn(Schedulers.boundedElastic())
+        .subscribe(
+            result -> probeJobStore.complete(jobId, result),
+            error -> {
+              log.error("❌ 가용성 확인 작업 실패: jobId={}", jobId, error);
+              probeJobStore.fail(jobId, error.getMessage());
+            });
+
+    return probeJobStore.find(jobId).orElseThrow();
+  }
+
+  @Override
+  public Optional<LlmModelProbeJob> findProbeJob(String jobId) {
+    return probeJobStore.find(jobId);
+  }
+
+  /** 확인 대상 슬러그를 정한다. 대상을 지정하지 않으면 목록 전체를 쓰고, 이미 판정한 것은 뺀다. */
+  private List<String> resolveProbeTargets(
+      LlmModelCatalog catalog, String apiKey, LlmModelQueryRequest request) {
     List<String> targets = request.getModelIds();
     if (targets == null || targets.isEmpty()) {
       // 대상을 지정하지 않으면 목록 전체를 확인한다.
       targets =
           catalog.listSelectableModels(apiKey).stream()
-              .map(OpenRouterModelDTO::getId)
+              .map(LlmModelDTO::getId)
               .collect(Collectors.toList());
     }
 
@@ -379,7 +416,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       log.info("🔁 이미 판정한 {}개를 건너뛴다. 확인 대상 {}개", checked.size(), targets.size());
     }
 
-    return catalog.probeAvailability(apiKey, targets);
+    return targets;
   }
 
   @Override
@@ -398,7 +435,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   /** 요청의 제공자. 비우면 OPENROUTER 로 본다(옛 요청 형태와의 호환). */
-  private LlmProvider resolveProvider(OpenRouterModelQueryRequest request) {
+  private LlmProvider resolveProvider(LlmModelQueryRequest request) {
     if (request == null) {
       throw new IllegalArgumentException("요청 본문이 필요합니다");
     }
@@ -420,7 +457,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
    * <p>화면이 키를 직접 보내면 그것을 쓰고, 저장된 설정 ID 만 보내면 저장된 키를 복호화해 쓴다. 저장된 설정을 다시 열어 목록을 새로 받을 때 사용자가 키를 다시
    * 타이핑하지 않게 하려는 것이다.
    */
-  private String resolveApiKey(OpenRouterModelQueryRequest request, LlmProvider provider) {
+  private String resolveApiKey(LlmModelQueryRequest request, LlmProvider provider) {
     String apiKey = request.getApiKey();
     if (apiKey != null && !apiKey.isBlank()) {
       return apiKey.trim();
@@ -457,7 +494,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   @Override
-  public List<OpenRouterModelDTO> listSelectableFreeModelsForChat() {
+  public List<LlmModelDTO> listSelectableModelsForChat() {
     LlmConfig config = llmConfigRepository.findByIsDefaultTrueAndIsActiveTrue().orElse(null);
     if (config == null) {
       return Collections.emptyList();
@@ -581,6 +618,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         .apiUrl(config.getApiUrl())
         .maskedApiKey(maskApiKey(config.getEncryptedApiKey()))
         .modelName(config.getModelName())
+        .analysisModelName(config.getAnalysisModelName())
         .isDefault(config.getIsDefault())
         .isActive(config.getIsActive())
         .testCaseTemplate(template) // 기본 템플릿 보장
