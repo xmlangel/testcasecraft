@@ -16,6 +16,7 @@ import com.testcase.testcasemanagement.service.llm.LlmModelCatalog;
 import com.testcase.testcasemanagement.service.llm.LlmModelCatalogFactory;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
 import com.testcase.testcasemanagement.service.rag.RagDataSummarizer;
+import com.testcase.testcasemanagement.service.rag.RagChatTurn;
 import com.testcase.testcasemanagement.service.rag.RagPromptBuilder;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer;
 import com.testcase.testcasemanagement.service.rag.RagQueryAnalyzer.QueryIntent;
@@ -25,12 +26,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -60,6 +64,10 @@ public class RagChatServiceImpl implements RagChatService {
   private final RagDataSummarizer dataSummarizer;
   private final RagPromptBuilder promptBuilder;
 
+  /** 스트리밍 전용 스레드 풀. 이름을 지정해 다른 풀과 섞이지 않게 한다. */
+  @Qualifier("ragChatStreamExecutor")
+  private final ThreadPoolTaskExecutor streamExecutor;
+
   @Override
   public RagChatResponse chat(RagChatRequest request, String username) {
     checkRagEnabled();
@@ -84,35 +92,10 @@ public class RagChatServiceImpl implements RagChatService {
       List<String> categoryIds =
           request.getCategoryIds() != null ? request.getCategoryIds() : Collections.emptyList();
 
-      // 1. LLM 설정 가져오기
-      LlmConfig llmConfig = resolveLlmConfig(request);
-      log.info(
-          "🔧 LLM 설정: provider={}, model={}, requestedLlmConfigId={}, actualConfigId={}",
-          llmConfig.getProvider(),
-          llmConfig.getModelName(),
-          request.getLlmConfigId(),
-          llmConfig.getId());
-
-      // 2. 질의 의도 분석 및 DB 데이터 가져오기 (지능형 컨텍스트)
-      String projectIdStr = request.getProjectId().toString();
-      QueryIntent intent = queryAnalyzer.analyzeIntent(request.getMessage(), projectIdStr);
-      Map<String, Object> dbContext = fetchDbContext(projectIdStr, intent);
-
-      // 3. RAG 문서 검색으로 관련 컨텍스트 가져오기 (useRagSearch 옵션 확인)
-      boolean useRagSearch =
-          request.getUseRagSearch() == null || Boolean.TRUE.equals(request.getUseRagSearch());
-      List<RagChatContext> contextSources =
-          useRagSearch ? searchRelevantContext(request) : Collections.emptyList();
-
-      if (useRagSearch) {
-        log.info("📚 RAG 검색 활성화 - 검색된 컨텍스트: {} 개", contextSources.size());
-      } else {
-        log.info("💬 순수 LLM 대화 모드 - RAG 검색 스킵");
-      }
-
-      // 4. 시스템 프롬프트 + 컨텍스트 + 대화 히스토리 구성
-      List<RagChatMessage> messages =
-          promptBuilder.buildMessages(request, contextSources, dbContext, intent, llmConfig);
+      RagChatTurn turn = prepareTurn(request, false);
+      LlmConfig llmConfig = turn.llmConfig();
+      List<RagChatContext> contextSources = turn.contextSources();
+      List<RagChatMessage> messages = turn.messages();
 
       if (persistConversation) {
         thread = conversationService.ensureThread(project, request, username);
@@ -192,64 +175,42 @@ public class RagChatServiceImpl implements RagChatService {
 
     SseEmitter emitter = new SseEmitter(180000L); // 180초 (3분) 타임아웃
 
-    // 비동기 스트리밍 처리
-    new Thread(
-            () -> {
+    // 비동기 스트리밍 처리. 요청마다 스레드를 만들지 않고 전용 풀에 맡긴다. 풀이 가득 차면
+    // 즉시 거부되므로 그 사실을 화면에 알린다.
+    try {
+      streamExecutor.execute(
+          () -> {
+            try {
+              RagChatTurn turn = prepareTurn(request, true);
+              LlmConfig llmConfig = turn.llmConfig();
+
+              // 먼저 컨텍스트 정보 전송. 화면이 답변보다 출처를 먼저 그릴 수 있다.
+              emitter.send(SseEmitter.event().name("context").data(turn.contextSources()));
+
+              LlmClient llmClient = llmClientFactory.getClient(llmConfig);
+              boolean[] streamCompleted = {false}; // 스트리밍 완료 플래그
+
               try {
-                // 1. LLM 설정 가져오기
-                LlmConfig llmConfig = resolveLlmConfig(request);
-
-                // 2. 질의 의도 분석 및 DB 데이터 가져오기
-                String projectIdStr = request.getProjectId().toString();
-                QueryIntent intent =
-                    queryAnalyzer.analyzeIntent(request.getMessage(), projectIdStr);
-                Map<String, Object> dbContext = fetchDbContext(projectIdStr, intent);
-
-                // 3. RAG 문서 검색 (useRagSearch 옵션 확인)
-                boolean useRagSearch =
-                    request.getUseRagSearch() == null
-                        || Boolean.TRUE.equals(request.getUseRagSearch());
-                List<RagChatContext> contextSources =
-                    useRagSearch ? searchRelevantContext(request) : Collections.emptyList();
-
-                if (useRagSearch) {
-                  log.info("📚 RAG 검색 활성화 (스트리밍) - 검색된 컨텍스트: {} 개", contextSources.size());
-                } else {
-                  log.info("💬 순수 LLM 대화 모드 (스트리밍) - RAG 검색 스킵");
-                }
-
-                // 먼저 컨텍스트 정보 전송
-                emitter.send(SseEmitter.event().name("context").data(contextSources));
-
-                // 4. 메시지 구성
-                List<RagChatMessage> messages =
-                    promptBuilder.buildMessages(request, contextSources, dbContext, intent, llmConfig);
-
-                // 4. LLM 스트리밍 호출
-                LlmClient llmClient = llmClientFactory.getClient(llmConfig);
-                boolean[] streamCompleted = {false}; // 스트리밍 완료 플래그
-
-                try {
-                  llmClient.chatStream(
-                      llmConfig,
-                      messages,
-                      request.getTemperature(),
-                      request.getMaxTokens(),
-                      (chunk, isLast) -> {
-                        try {
-                          if (!chunk.isEmpty()) {
-                            emitter.send(SseEmitter.event().name("chunk").data(chunk));
-                          }
-                          if (isLast) {
-                            emitter.send(SseEmitter.event().name("done").data(""));
-                            emitter.complete();
-                            streamCompleted[0] = true;
-                            log.info("✅ RAG 채팅 스트리밍 완료");
-                          }
-                        } catch (Exception e) {
-                          log.error("❌ SSE 전송 실패", e);
-                          emitter.completeWithError(e);
+                llmClient.chatStream(
+                    llmConfig,
+                    turn.messages(),
+                    request.getTemperature(),
+                    request.getMaxTokens(),
+                    (chunk, isLast) -> {
+                      try {
+                        if (!chunk.isEmpty()) {
+                          emitter.send(SseEmitter.event().name("chunk").data(chunk));
                         }
+                        if (isLast) {
+                          emitter.send(SseEmitter.event().name("done").data(""));
+                          emitter.complete();
+                          streamCompleted[0] = true;
+                          log.info("✅ RAG 채팅 스트리밍 완료");
+                        }
+                      } catch (Exception e) {
+                        log.error("❌ SSE 전송 실패", e);
+                        emitter.completeWithError(e);
+                      }
                       });
 
                   // 스트리밍이 정상적으로 완료되지 않은 경우 강제 완료
@@ -272,10 +233,69 @@ public class RagChatServiceImpl implements RagChatService {
                   log.error("❌ 에러 전송 실패", ex);
                 }
               }
-            })
-        .start();
+          });
+    } catch (RejectedExecutionException e) {
+      // 동시 대화가 풀 상한을 넘었다. 조용히 실패하면 화면이 답을 기다리며 멈춘 것처럼 보인다.
+      log.warn("⚠️ 스트리밍 스레드 풀이 가득 차 요청을 거부했다: active={}", streamExecutor.getActiveCount());
+      try {
+        emitter.send(
+            SseEmitter.event()
+                .name("error")
+                .data("지금 대화가 많아 처리할 수 없습니다. 잠시 뒤 다시 시도해 주세요."));
+        emitter.complete();
+      } catch (Exception sendError) {
+        log.error("❌ 거부 안내 전송 실패", sendError);
+        emitter.completeWithError(sendError);
+      }
+    }
 
     return emitter;
+  }
+
+  /**
+   * 한 번의 질의에 필요한 재료를 모은다.
+   *
+   * <p>동기 채팅과 스트리밍 채팅이 이 준비 단계를 똑같이 수행하고 마지막 호출만 다르다. 예전에는 두 메서드가 각자 열여덟 줄을 갖고 있어, 검색 조건이나 프롬프트
+   * 조립을 고칠 때 두 곳을 함께 고쳐야 했다. LLM 클라이언트 여섯 개를 합치기 전에 겪은 것과 같은 형태이고, 그때 오류 문구 처리가 한 곳에만 있어 나머지
+   * 다섯이 사용자에게 {@code null} 을 보인 실례가 있다.
+   *
+   * @param streaming 로그에 스트리밍 여부를 밝히기 위한 것. 준비 내용 자체는 두 경로가 같다
+   */
+  private RagChatTurn prepareTurn(RagChatRequest request, boolean streaming) {
+    String mode = streaming ? " (스트리밍)" : "";
+
+    // 1. LLM 설정 가져오기
+    LlmConfig llmConfig = resolveLlmConfig(request);
+    log.info(
+        "🔧 LLM 설정{}: provider={}, model={}, requestedLlmConfigId={}, actualConfigId={}",
+        mode,
+        llmConfig.getProvider(),
+        llmConfig.getModelName(),
+        request.getLlmConfigId(),
+        llmConfig.getId());
+
+    // 2. 질의 의도 분석 및 DB 데이터 가져오기 (지능형 컨텍스트)
+    String projectIdStr = request.getProjectId().toString();
+    QueryIntent intent = queryAnalyzer.analyzeIntent(request.getMessage(), projectIdStr);
+    Map<String, Object> dbContext = fetchDbContext(projectIdStr, intent);
+
+    // 3. RAG 문서 검색으로 관련 컨텍스트 가져오기 (useRagSearch 옵션 확인)
+    boolean useRagSearch =
+        request.getUseRagSearch() == null || Boolean.TRUE.equals(request.getUseRagSearch());
+    List<RagChatContext> contextSources =
+        useRagSearch ? searchRelevantContext(request) : Collections.emptyList();
+
+    if (useRagSearch) {
+      log.info("📚 RAG 검색 활성화{} - 검색된 컨텍스트: {} 개", mode, contextSources.size());
+    } else {
+      log.info("💬 순수 LLM 대화 모드{} - RAG 검색 스킵", mode);
+    }
+
+    // 4. 시스템 프롬프트 + 컨텍스트 + 대화 히스토리 구성
+    List<RagChatMessage> messages =
+        promptBuilder.buildMessages(request, contextSources, dbContext, intent, llmConfig);
+
+    return new RagChatTurn(llmConfig, contextSources, messages, useRagSearch);
   }
 
   /**
