@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 /**
  * LLM 모델 카탈로그 API 컨트롤러
@@ -209,28 +210,51 @@ public class LlmModelCatalogController {
   })
   @PostMapping("/models/probe")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<LlmModelProbeResponse>> probeModelAvailability(
+  public Mono<ResponseEntity<ApiResponse<LlmModelProbeResponse>>> probeModelAvailability(
       @RequestBody LlmModelQueryRequest request) {
-    log.info("🔍 OpenRouter 모델 가용성 확인 요청");
-    try {
-      LlmModelProbeResponse result = llmConfigService.probeModelAvailability(request);
-      List<LlmModelDTO> models = result.getModels();
-      long available =
-          models.stream()
-              .filter(m -> m.getAvailability() == LlmModelDTO.Availability.AVAILABLE)
-              .count();
-      return ResponseEntity.ok(
-          ApiResponse.success(
-              result, "사용 가능 " + available + " / 확인 " + models.size()));
-    } catch (EncryptionKeyNotConfiguredException e) {
+    log.info("🔍 모델 가용성 확인 요청");
+    // Mono 를 그대로 돌려준다. Spring MVC 가 이것을 비동기 요청으로 다루므로 서블릿 스레드가 즉시
+    // 풀린다. 결과를 기다려 돌려주면 최악의 경우 스레드 하나가 6분(NVIDIA 120개 / 동시 10 × 30초)
+    // 묶인다.
+    return llmConfigService
+        .probeModelAvailability(request)
+        .map(LlmModelCatalogController::probeSuccess)
+        .onErrorResume(LlmModelCatalogController::probeFailure);
+  }
+
+  /** 확인 결과를 사용 가능 개수와 함께 담는다. */
+  private static ResponseEntity<ApiResponse<LlmModelProbeResponse>> probeSuccess(
+      LlmModelProbeResponse result) {
+    List<LlmModelDTO> models = result.getModels();
+    long available =
+        models.stream()
+            .filter(m -> m.getAvailability() == LlmModelDTO.Availability.AVAILABLE)
+            .count();
+    return ResponseEntity.ok(
+        ApiResponse.success(result, "사용 가능 " + available + " / 확인 " + models.size()));
+  }
+
+  /**
+   * 확인 도중 나온 예외를 응답으로 바꾼다.
+   *
+   * <p>리액티브 흐름에서는 예외가 {@code try/catch} 로 잡히지 않으므로 여기서 종류별로 가른다. 예전 동기 코드와 같은 상태 코드와 문구를 유지한다.
+   */
+  private static Mono<ResponseEntity<ApiResponse<LlmModelProbeResponse>>> probeFailure(
+      Throwable error) {
+    if (error instanceof EncryptionKeyNotConfiguredException e) {
       log.error("❌ 암호화 키 미설정으로 요청을 거부: {}", e.getMessage());
-      return ResponseEntity.badRequest()
-          .body(ApiResponse.error(EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage()));
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-    } catch (Exception e) {
-      log.error("❌ OpenRouter 모델 가용성 확인 실패", e);
-      return ResponseEntity.badRequest().body(ApiResponse.error("가용성 확인 실패: " + e.getMessage()));
+      return Mono.just(
+          ResponseEntity.badRequest()
+              .body(
+                  ApiResponse.error(
+                      EncryptionKeyNotConfiguredException.ERROR_CODE, e.getMessage())));
     }
+    if (error instanceof IllegalArgumentException e) {
+      return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
+    }
+    log.error("❌ 모델 가용성 확인 실패", error);
+    return Mono.just(
+        ResponseEntity.badRequest()
+            .body(ApiResponse.error("가용성 확인 실패: " + error.getMessage())));
   }
 }

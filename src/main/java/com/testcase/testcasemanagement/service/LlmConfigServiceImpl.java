@@ -26,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /** LLM 설정 서비스 구현 */
 @Service
@@ -355,11 +357,21 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   }
 
   @Override
-  public LlmModelProbeResponse probeModelAvailability(LlmModelQueryRequest request) {
+  public Mono<LlmModelProbeResponse> probeModelAvailability(LlmModelQueryRequest request) {
     LlmProvider provider = resolveProvider(request);
     LlmModelCatalog catalog = requireCatalog(provider);
     String apiKey = resolveApiKey(request, provider);
 
+    // 목록 조회도 외부 호출이라 서블릿 스레드에서 하면 그만큼 스레드가 묶인다. 확인 자체를 리액티브로
+    // 바꾼 김에 목록 조회까지 흐름 안으로 넣어, 이 메서드는 조립만 하고 즉시 돌아간다.
+    return Mono.fromCallable(() -> resolveProbeTargets(catalog, apiKey, request))
+        .subscribeOn(Schedulers.boundedElastic())
+        .flatMap(targets -> catalog.probeAvailability(apiKey, targets));
+  }
+
+  /** 확인 대상 슬러그를 정한다. 대상을 지정하지 않으면 목록 전체를 쓰고, 이미 판정한 것은 뺀다. */
+  private List<String> resolveProbeTargets(
+      LlmModelCatalog catalog, String apiKey, LlmModelQueryRequest request) {
     List<String> targets = request.getModelIds();
     if (targets == null || targets.isEmpty()) {
       // 대상을 지정하지 않으면 목록 전체를 확인한다.
@@ -379,7 +391,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       log.info("🔁 이미 판정한 {}개를 건너뛴다. 확인 대상 {}개", checked.size(), targets.size());
     }
 
-    return catalog.probeAvailability(apiKey, targets);
+    return targets;
   }
 
   @Override

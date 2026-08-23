@@ -99,7 +99,8 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
   // ── 공통 골격 ────────────────────────────────────────────────────────────
 
   @Override
-  public LlmModelProbeResponse probeAvailability(String apiKey, Collection<String> modelIds) {
+  public Mono<LlmModelProbeResponse> probeAvailability(
+      String apiKey, Collection<String> modelIds) {
     // 상한에 걸려 빠진 개수를 함께 센다. 세지 않으면 요청한 모델이 결과에서 조용히 사라져,
     // 화면은 전부 확인된 것으로 보인다. 확인되지 않은 모델을 나중에 골라 채팅하면 실패한다.
     Set<String> targets = new LinkedHashSet<>();
@@ -115,7 +116,7 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
       targets.add(id.trim());
     }
     if (targets.isEmpty()) {
-      return emptyProbeResponse(skippedByLimit);
+      return Mono.just(emptyProbeResponse(skippedByLimit));
     }
 
     log.info(
@@ -126,17 +127,19 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
 
     resetProbeState();
     AtomicInteger requestsSent = new AtomicInteger();
+    int skipped = skippedByLimit;
 
     WebClient client = client(apiKey);
-    List<LlmModelDTO> results =
-        Flux.fromIterable(targets)
-            .flatMap(id -> probeOne(client, id, requestsSent), probeConcurrency())
-            .collectList()
-            .block();
+    return Flux.fromIterable(targets)
+        .flatMap(id -> probeOne(client, id, requestsSent), probeConcurrency())
+        .collectList()
+        .map(results -> assembleProbeResponse(results, requestsSent.get(), skipped))
+        .defaultIfEmpty(emptyProbeResponse(skipped));
+  }
 
-    if (results == null) {
-      return emptyProbeResponse(skippedByLimit);
-    }
+  /** 확인 결과를 슬러그 순으로 정렬해 응답으로 조립한다. */
+  private LlmModelProbeResponse assembleProbeResponse(
+      List<LlmModelDTO> results, int requestsSent, int skippedByLimit) {
     List<LlmModelDTO> sorted = new ArrayList<>(results);
     sorted.sort(Comparator.comparing(LlmModelDTO::getId));
 
@@ -147,7 +150,7 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
         provider().getDisplayName(),
         available,
         sorted.size(),
-        requestsSent.get());
+        requestsSent);
 
     if (skippedByLimit > 0) {
       log.warn(
@@ -160,7 +163,7 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
     return LlmModelProbeResponse.builder()
         .models(sorted)
         .accountLimit(accountLimit())
-        .requestsSent(requestsSent.get())
+        .requestsSent(requestsSent)
         .skippedByLimit(skippedByLimit)
         .probeLimit(probeLimit())
         .build();

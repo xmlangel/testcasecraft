@@ -5,6 +5,7 @@ import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.util.Collection;
 import java.util.List;
+import reactor.core.publisher.Mono;
 
 /**
  * 제공자가 내주는 모델 목록을 화면이 고를 수 있는 형태로 만드는 카탈로그.
@@ -37,10 +38,14 @@ public interface LlmModelCatalog {
   /**
    * 각 모델에 최소 요청을 보내 지금 쓸 수 있는지 확인한다.
    *
+   * <p>{@code Mono} 를 돌려주는 이유는 이 작업이 오래 걸리기 때문이다. 모델 수를 동시 실행 수로 나눈 회차마다 개별 타임아웃이 걸릴 수 있어, 최악의 경우
+   * OpenRouter 는 2분 30초(40개 / 동시 4 × 15초), NVIDIA 는 6분(120개 / 동시 10 × 30초)이 걸린다. 결과를 기다려 돌려주면 그동안 서블릿
+   * 스레드 하나가 묶이므로, 구독은 호출한 쪽이 하도록 미룬다.
+   *
    * @param apiKey 제공자 API Key
    * @param modelIds 확인 대상. 비우면 목록 전체
    */
-  LlmModelProbeResponse probeAvailability(String apiKey, Collection<String> modelIds);
+  Mono<LlmModelProbeResponse> probeAvailability(String apiKey, Collection<String> modelIds);
 
   /**
    * 전수 확인을 기본으로 권할지 여부.

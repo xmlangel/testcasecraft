@@ -21,6 +21,9 @@ import org.testng.annotations.Test;
  */
 public class LlmModelCatalogProbeTest {
 
+  // 시험에서는 결과를 확인해야 하므로 block() 으로 기다린다. 제품 코드는 Mono 를 그대로 컨트롤러까지
+  // 올려 서블릿 스레드를 막지 않는다.
+
   /** 확인 요청에 성공 응답을 주는 스텁 본문. 제공자마다 형태가 다르지만 성공 여부만 보므로 최소로 둔다. */
   private static final String OK_BODY =
       "{\"choices\":[{\"message\":{\"content\":\"ok\"},\"finish_reason\":\"stop\"}]}";
@@ -42,12 +45,16 @@ public class LlmModelCatalogProbeTest {
     LlmModelCatalog catalog = factory.apply(stub.builder());
 
     int over = 5;
-    LlmModelProbeResponse response = catalog.probeAvailability("key", modelIds(limit + over));
+    LlmModelProbeResponse response =
+        catalog.probeAvailability("key", modelIds(limit + over)).block();
 
     assertEquals(response.getModels().size(), limit, label + ": 상한만큼만 확인한다");
     assertEquals(
-        response.getSkippedByLimit().intValue(), over, label + ": 넘긴 개수를 그대로 전한다");
-    assertEquals(response.getProbeLimit().intValue(), limit, label + ": 상한 값을 함께 전한다");
+        response.getSkippedByLimit().intValue(),
+        over,
+        label + ": 넘긴 개수를 그대로 전한다");
+    assertEquals(
+        response.getProbeLimit().intValue(), limit, label + ": 상한 값을 함께 전한다");
   }
 
   @Test(
@@ -57,7 +64,7 @@ public class LlmModelCatalogProbeTest {
     LlmClientTestSupport.StubExchange stub = ok(OK_BODY);
     LlmModelCatalog catalog = factory.apply(stub.builder());
 
-    LlmModelProbeResponse response = catalog.probeAvailability("key", modelIds(3));
+    LlmModelProbeResponse response = catalog.probeAvailability("key", modelIds(3)).block();
 
     assertEquals(response.getModels().size(), 3, label + ": 요청한 만큼 확인한다");
     assertEquals(response.getSkippedByLimit().intValue(), 0, label + ": 넘긴 것이 없다");
@@ -76,11 +83,13 @@ public class LlmModelCatalogProbeTest {
     ids.add("  ");
     ids.add("b/model");
 
-    LlmModelProbeResponse response = catalog.probeAvailability("key", ids);
+    LlmModelProbeResponse response = catalog.probeAvailability("key", ids).block();
 
     assertEquals(response.getModels().size(), 2, label + ": 빈 값은 확인하지 않는다");
     assertEquals(
-        response.getSkippedByLimit().intValue(), 0, label + ": 빈 값은 넘긴 것으로 세지 않는다");
+        response.getSkippedByLimit().intValue(),
+        0,
+        label + ": 빈 값은 넘긴 것으로 세지 않는다");
     assertTrue(
         response.getRequestsSent() <= 2, label + ": 빈 값으로 요청을 보내지 않는다");
   }

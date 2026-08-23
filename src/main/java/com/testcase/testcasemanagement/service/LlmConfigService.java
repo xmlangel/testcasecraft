@@ -9,6 +9,7 @@ import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.util.List;
 import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 /** LLM 설정 서비스 인터페이스 */
 public interface LlmConfigService {
@@ -66,7 +67,7 @@ public interface LlmConfigService {
    * <p>{@code modelIds} 를 비우면 무료 모델 전체를 확인한다. {@code alreadyChecked} 에 담긴 모델은 확인하지 않고 건너뛴다. 같은
    * 회차에서 버튼을 여러 번 눌러도 한도가 다시 쓰이지 않게 하려는 것이다.
    */
-  LlmModelProbeResponse probeModelAvailability(LlmModelQueryRequest request);
+  Mono<LlmModelProbeResponse> probeModelAvailability(LlmModelQueryRequest request);
 
   /**
    * 채팅 화면에서 고를 수 있는 무료 모델 목록
