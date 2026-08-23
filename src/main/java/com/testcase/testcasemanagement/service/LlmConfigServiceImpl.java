@@ -14,7 +14,9 @@ import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
 import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
-import com.testcase.testcasemanagement.service.llm.OpenRouterModelCatalogService;
+import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
+import com.testcase.testcasemanagement.service.llm.LlmModelCatalog;
+import com.testcase.testcasemanagement.service.llm.LlmModelCatalogFactory;
 import jakarta.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +36,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   private final LlmConfigRepository llmConfigRepository;
   private final EncryptionUtil encryptionUtil;
   private final LlmClientFactory llmClientFactory;
-  private final OpenRouterModelCatalogService openRouterModelCatalogService;
+  private final LlmModelCatalogFactory llmModelCatalogFactory;
 
   @PostConstruct
   public void init() {
@@ -347,24 +349,29 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
   @Override
   public List<OpenRouterModelDTO> listOpenRouterFreeModels(OpenRouterModelQueryRequest request) {
-    return openRouterModelCatalogService.listFreeChatModels(resolveOpenRouterApiKey(request));
+    LlmProvider provider = resolveProvider(request);
+    LlmModelCatalog catalog = requireCatalog(provider);
+    return catalog.listSelectableModels(resolveApiKey(request, provider));
   }
 
   @Override
   public OpenRouterProbeResponse probeOpenRouterModels(OpenRouterModelQueryRequest request) {
-    String apiKey = resolveOpenRouterApiKey(request);
+    LlmProvider provider = resolveProvider(request);
+    LlmModelCatalog catalog = requireCatalog(provider);
+    String apiKey = resolveApiKey(request, provider);
 
     List<String> targets = request.getModelIds();
     if (targets == null || targets.isEmpty()) {
-      // 대상을 지정하지 않으면 무료 모델 전체를 확인한다.
+      // 대상을 지정하지 않으면 목록 전체를 확인한다.
       targets =
-          openRouterModelCatalogService.listFreeChatModels(apiKey).stream()
+          catalog.listSelectableModels(apiKey).stream()
               .map(OpenRouterModelDTO::getId)
               .collect(Collectors.toList());
     }
 
-    // 이미 판정한 모델은 건너뛴다. 확인 한 번이 한도를 그만큼 쓰므로, 버튼을 다시 눌렀을 때 같은
-    // 모델을 또 두드리지 않게 한다. 화면이 판정 결과를 갖고 있으므로 목록은 화면이 보내 준다.
+    // 이미 판정한 모델은 건너뛴다. OpenRouter 는 확인 한 번이 무료 일일 한도를 그만큼 쓰므로 버튼을
+    // 다시 눌렀을 때 같은 모델을 또 두드리지 않게 한다. NVIDIA 는 한도 부담이 없지만 시간이 걸리므로
+    // 여기서도 건너뛰는 편이 낫다. 화면이 판정 결과를 갖고 있으므로 목록은 화면이 보내 준다.
     List<String> skip = request.getAlreadyChecked();
     if (skip != null && !skip.isEmpty()) {
       java.util.Set<String> checked = new java.util.HashSet<>(skip);
@@ -372,20 +379,48 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       log.info("🔁 이미 판정한 {}개를 건너뛴다. 확인 대상 {}개", checked.size(), targets.size());
     }
 
-    return openRouterModelCatalogService.probeAvailability(apiKey, targets);
+    return catalog.probeAvailability(apiKey, targets);
+  }
+
+  @Override
+  public List<LlmModelCatalogInfo> listModelCatalogProviders() {
+    return llmModelCatalogFactory.supportedProviders().stream()
+        .map(
+            provider ->
+                new LlmModelCatalogInfo(
+                    provider,
+                    provider.getDisplayName(),
+                    llmModelCatalogFactory
+                        .find(provider)
+                        .map(LlmModelCatalog::probeRecommendedByDefault)
+                        .orElse(false)))
+        .collect(Collectors.toList());
+  }
+
+  /** 요청의 제공자. 비우면 OPENROUTER 로 본다(옛 요청 형태와의 호환). */
+  private LlmProvider resolveProvider(OpenRouterModelQueryRequest request) {
+    if (request == null) {
+      throw new IllegalArgumentException("요청 본문이 필요합니다");
+    }
+    return request.getProvider() == null ? LlmProvider.OPENROUTER : request.getProvider();
+  }
+
+  private LlmModelCatalog requireCatalog(LlmProvider provider) {
+    return llmModelCatalogFactory
+        .find(provider)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    provider.getDisplayName() + " 는 모델 목록을 제공하지 않습니다. 모델 이름을 직접 입력해 주세요."));
   }
 
   /**
-   * 요청에서 OpenRouter API Key 를 얻는다.
+   * 요청에서 API Key 를 얻는다.
    *
    * <p>화면이 키를 직접 보내면 그것을 쓰고, 저장된 설정 ID 만 보내면 저장된 키를 복호화해 쓴다. 저장된 설정을 다시 열어 목록을 새로 받을 때 사용자가 키를 다시
    * 타이핑하지 않게 하려는 것이다.
    */
-  private String resolveOpenRouterApiKey(OpenRouterModelQueryRequest request) {
-    if (request == null) {
-      throw new IllegalArgumentException("요청 본문이 필요합니다");
-    }
-
+  private String resolveApiKey(OpenRouterModelQueryRequest request, LlmProvider provider) {
     String apiKey = request.getApiKey();
     if (apiKey != null && !apiKey.isBlank()) {
       return apiKey.trim();
@@ -405,9 +440,12 @@ public class LlmConfigServiceImpl implements LlmConfigService {
             .findById(configId)
             .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + configId));
 
-    if (config.getProvider() != LlmProvider.OPENROUTER) {
+    if (config.getProvider() != provider) {
       throw new IllegalArgumentException(
-          "OpenRouter 설정이 아닙니다: " + config.getProvider().getDisplayName());
+          "요청한 제공자와 저장된 설정이 다릅니다: 요청="
+              + provider.getDisplayName()
+              + ", 설정="
+              + config.getProvider().getDisplayName());
     }
 
     try {
@@ -421,8 +459,13 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   @Override
   public List<OpenRouterModelDTO> listSelectableFreeModelsForChat() {
     LlmConfig config = llmConfigRepository.findByIsDefaultTrueAndIsActiveTrue().orElse(null);
-    if (config == null || config.getProvider() != LlmProvider.OPENROUTER) {
-      // OpenRouter 가 아니면 고를 목록이 없다. 오류가 아니라 빈 목록으로 답해 화면이 선택기를 감춘다.
+    if (config == null) {
+      return Collections.emptyList();
+    }
+
+    LlmModelCatalog catalog = llmModelCatalogFactory.find(config.getProvider()).orElse(null);
+    if (catalog == null) {
+      // 이 제공자는 모델 목록을 내주지 않는다. 오류가 아니라 빈 목록으로 답해 화면이 선택기를 감춘다.
       return Collections.emptyList();
     }
     if (!encryptionUtil.isEncryptionKeyConfigured()) {
@@ -431,10 +474,10 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     try {
       String apiKey = encryptionUtil.decrypt(config.getEncryptedApiKey());
-      return openRouterModelCatalogService.listFreeChatModels(apiKey);
+      return catalog.listSelectableModels(apiKey);
     } catch (Exception e) {
       // 목록을 못 받아도 채팅 자체는 기본 모델로 되어야 한다. 실패를 던지지 않고 빈 목록으로 답한다.
-      log.warn("⚠️ 채팅용 무료 모델 목록 조회 실패, 빈 목록으로 응답: {}", e.getMessage());
+      log.warn("⚠️ 채팅용 모델 목록 조회 실패, 빈 목록으로 응답: {}", e.getMessage());
       return Collections.emptyList();
     }
   }

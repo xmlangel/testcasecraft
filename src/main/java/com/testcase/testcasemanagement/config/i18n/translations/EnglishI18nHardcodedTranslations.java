@@ -165,6 +165,10 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists("admin.llmConfig.models.requestsSent", languageCode, "Sent {count} requests this time.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.accountLimitDetail", languageCode, "{remaining} of {limit} daily requests left. Resets at {reset}.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.loadedHint", languageCode, "Loaded {count} free models. Pick the model you will use and click 'Check this model'. Checking all uses one request per model.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.apiUrlHelperNvidia", languageCode, "Base URL: https://integrate.api.nvidia.com", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.helperNvidia", languageCode, "The list includes models your account does not serve. Use 'Check all' to keep only the ones that work.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.loadedHintProbeFirst", languageCode, "Loaded {count} models. The list includes models your account does not serve, so run 'Check all' first.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllConfirmNoQuota", languageCode, "About to check {count} models. It takes about a minute. Continue?", createdBy);
     createTranslationIfNotExists(
         "admin.llmConfig.models.autoSelected",
         languageCode,

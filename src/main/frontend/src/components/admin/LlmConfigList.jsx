@@ -1,5 +1,5 @@
 // src/components/admin/LlmConfigList.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -68,6 +68,7 @@ const PROVIDER_DEFAULT_API_URLS = {
   OLLAMA: "http://localhost:11434",
   PERPLEXITY: "https://api.perplexity.ai",
   OPENROUTER: "https://openrouter.ai",
+  NVIDIA: "https://integrate.api.nvidia.com",
 };
 
 /** 어느 제공자의 기본값과도 다르면 사용자가 직접 고친 값으로 본다. */
@@ -121,6 +122,7 @@ const LlmConfigList = ({ onSuccess }) => {
     toggleActive,
     fetchOpenRouterFreeModels,
     probeOpenRouterModels,
+    fetchModelCatalogProviders,
   } = useLlmConfig();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -150,6 +152,25 @@ const LlmConfigList = ({ onSuccess }) => {
   // 개방 여부를 컴포넌트가 통제해야 하고, 고른 값과 타이핑 중인 문자열도 구분해야 한다.
   const [modelListOpen, setModelListOpen] = useState(false);
   const [modelInput, setModelInput] = useState("");
+  // 모델 목록을 내주는 제공자 정보. 서버가 알려 주므로 화면에 제공자를 박아 두지 않는다.
+  const [modelCatalogs, setModelCatalogs] = useState([]);
+
+  // 모델 목록을 내주는 제공자를 한 번 받아 둔다.
+  useEffect(() => {
+    let cancelled = false;
+    fetchModelCatalogProviders().then((list) => {
+      if (!cancelled) {
+        setModelCatalogs(list);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchModelCatalogProviders]);
+
+  /** 지금 고른 제공자의 카탈로그 정보. 없으면 목록 선택기를 띄우지 않는다. */
+  const modelCatalog =
+    modelCatalogs.find((c) => c.provider === formData.provider) || null;
 
   const handleOpenDialog = (config = null) => {
     if (config) {
@@ -234,13 +255,18 @@ const LlmConfigList = ({ onSuccess }) => {
     setModelListOpen(false);
   };
 
-  /** 목록 조회·가용성 확인에 쓸 자격 증명. 입력한 키가 있으면 그것을, 없으면 저장된 설정 ID 를 쓴다. */
+  /**
+   * 목록 조회·가용성 확인에 쓸 요청 값.
+   *
+   * 입력한 키가 있으면 그것을, 없으면 저장된 설정 ID 를 쓴다. provider 는 항상 실어 보낸다.
+   * 서버가 제공자별로 다른 카탈로그를 고르기 때문이다.
+   */
   const modelQueryCredentials = () => {
     if (formData.apiKey) {
-      return { apiKey: formData.apiKey };
+      return { provider: formData.provider, apiKey: formData.apiKey };
     }
     if (editingConfig?.id) {
-      return { configId: editingConfig.id };
+      return { provider: formData.provider, configId: editingConfig.id };
     }
     return null;
   };
@@ -269,11 +295,19 @@ const LlmConfigList = ({ onSuccess }) => {
       }
       setModelsNotice(
         // 옛 키(models.loaded)는 DB 에 이전 문구가 들어 있고 시드가 기존 값을 덮지 않는다.
-        // 버튼 이름이 바뀌었으므로 새 키로 옮긴다.
-        t(
-          "admin.llmConfig.models.loadedHint",
-          "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.",
-        ).replace("{count}", String(models.length)),
+        // 버튼 이름이 바뀌었으므로 새 키로 옮겼다.
+        //
+        // 안내가 제공자에 따라 갈린다. NVIDIA 는 목록의 상당수가 계정에 없어 확인하지 않으면
+        // 쓸 수 없는 모델을 고르게 되므로 전수 확인을 권한다.
+        modelCatalog?.probeRecommendedByDefault
+          ? t(
+              "admin.llmConfig.models.loadedHintProbeFirst",
+              "모델 {count}개를 불러왔습니다. 이 목록에는 계정에서 제공하지 않는 모델도 섞여 있으므로 '전수 확인' 을 먼저 누르세요.",
+            ).replace("{count}", String(models.length))
+          : t(
+              "admin.llmConfig.models.loadedHint",
+              "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.",
+            ).replace("{count}", String(models.length)),
       );
     } catch (err) {
       setModelsError(err.message);
@@ -343,13 +377,19 @@ const LlmConfigList = ({ onSuccess }) => {
         return;
       }
 
-      const proceed = window.confirm(
-        t(
-          "admin.llmConfig.models.probeAllConfirm",
-          "모델 {count}개를 확인합니다. OpenRouter 무료 일일 한도를 그만큼 사용합니다(실측 한도 50건). 계속하시겠습니까?",
-        ).replace("{count}", String(pending)),
-      );
-      if (!proceed) {
+      // 제공자에 따라 확인의 성격이 다르다. NVIDIA 는 목록의 상당수가 계정에 없어 확인이
+      // 사실상 필수이고 한도 부담이 없다. OpenRouter 는 확인이 한도를 태운다.
+      const confirmMessage = modelCatalog?.probeRecommendedByDefault
+        ? t(
+            "admin.llmConfig.models.probeAllConfirmNoQuota",
+            "모델 {count}개를 확인합니다. 1분 정도 걸립니다. 계속하시겠습니까?",
+          ).replace("{count}", String(pending))
+        : t(
+            "admin.llmConfig.models.probeAllConfirm",
+            "모델 {count}개를 확인합니다. 무료 일일 한도를 그만큼 사용합니다(실측 한도 50건). 계속하시겠습니까?",
+          ).replace("{count}", String(pending));
+
+      if (!window.confirm(confirmMessage)) {
         return;
       }
     }
@@ -950,6 +990,7 @@ const LlmConfigList = ({ onSuccess }) => {
                 <MenuItem value="OLLAMA">Ollama</MenuItem>
                 <MenuItem value="PERPLEXITY">Perplexity</MenuItem>
                 <MenuItem value="OPENROUTER">OpenRouter</MenuItem>
+                <MenuItem value="NVIDIA">NVIDIA</MenuItem>
               </Select>
             </FormControl>
 
@@ -970,7 +1011,9 @@ const LlmConfigList = ({ onSuccess }) => {
                       ? "https://api.perplexity.ai"
                       : formData.provider === "OPENROUTER"
                         ? "https://openrouter.ai"
-                        : "http://localhost:3000"
+                        : formData.provider === "NVIDIA"
+                          ? "https://integrate.api.nvidia.com"
+                          : "http://localhost:3000"
               }
               helperText={
                 formData.provider === "OLLAMA"
@@ -993,12 +1036,17 @@ const LlmConfigList = ({ onSuccess }) => {
                             "admin.llmConfig.apiUrlHelperOpenrouter",
                             "기본 URL: https://openrouter.ai",
                           )
-                        : formData.provider === "OPENWEBUI"
+                        : formData.provider === "NVIDIA"
                           ? t(
-                              "admin.llmConfig.apiUrlHelperOpenwebui",
-                              "Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000",
+                              "admin.llmConfig.apiUrlHelperNvidia",
+                              "기본 URL: https://integrate.api.nvidia.com",
                             )
-                          : ""
+                          : formData.provider === "OPENWEBUI"
+                            ? t(
+                                "admin.llmConfig.apiUrlHelperOpenwebui",
+                                "Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000",
+                              )
+                            : ""
               }
             />
 
@@ -1041,7 +1089,7 @@ const LlmConfigList = ({ onSuccess }) => {
               무료 모델만 담으므로 유료 모델을 쓰려면 직접 입력해야 한다. 그래서 freeSolo 로
               두어 타이핑한 값도 그대로 받는다. 다른 제공자는 목록 API 가 없어 입력란만 쓴다.
             */}
-            {formData.provider === "OPENROUTER" ? (
+            {modelCatalog ? (
               <Box>
                 <Autocomplete
                   freeSolo
@@ -1201,10 +1249,17 @@ const LlmConfigList = ({ onSuccess }) => {
                       placeholder="nvidia/nemotron-3-nano-30b-a3b:free"
                       // 옛 키(modelHelperOpenrouter)는 DB 에 이전 문구가 이미 들어 있고
                       // 시드가 기존 값을 덮지 않는다. 새 키로 옮겨 새 문구가 뜨게 한다.
-                      helperText={t(
-                        "admin.llmConfig.models.helper",
-                        "목록은 무료 모델입니다. 유료 모델은 슬러그를 직접 입력하세요 (예: anthropic/claude-sonnet-5).",
-                      )}
+                      helperText={
+                        modelCatalog?.probeRecommendedByDefault
+                          ? t(
+                              "admin.llmConfig.models.helperNvidia",
+                              "목록에는 계정에서 제공하지 않는 모델도 섞여 있습니다. '전수 확인' 으로 쓸 수 있는 것만 남기세요.",
+                            )
+                          : t(
+                              "admin.llmConfig.models.helper",
+                              "목록은 무료 모델입니다. 유료 모델은 슬러그를 직접 입력하세요 (예: anthropic/claude-sonnet-5).",
+                            )
+                      }
                     />
                   )}
                 />

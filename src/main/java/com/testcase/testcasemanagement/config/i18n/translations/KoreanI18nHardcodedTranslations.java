@@ -162,6 +162,10 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("admin.llmConfig.models.requestsSent", languageCode, "이번에 요청 {count}건을 보냈습니다.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.accountLimitDetail", languageCode, "하루 {limit}건 중 {remaining}건 남음. {reset} 에 초기화됩니다.", createdBy);
     createTranslationIfNotExists("admin.llmConfig.models.loadedHint", languageCode, "무료 모델 {count}개를 불러왔습니다. 쓸 모델을 고른 뒤 '이 모델 확인' 을 누르세요. 전수 확인은 한도를 모델 수만큼 사용합니다.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.apiUrlHelperNvidia", languageCode, "기본 URL: https://integrate.api.nvidia.com", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.helperNvidia", languageCode, "목록에는 계정에서 제공하지 않는 모델도 섞여 있습니다. '전수 확인' 으로 쓸 수 있는 것만 남기세요.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.loadedHintProbeFirst", languageCode, "모델 {count}개를 불러왔습니다. 이 목록에는 계정에서 제공하지 않는 모델도 섞여 있으므로 '전수 확인' 을 먼저 누르세요.", createdBy);
+    createTranslationIfNotExists("admin.llmConfig.models.probeAllConfirmNoQuota", languageCode, "모델 {count}개를 확인합니다. 1분 정도 걸립니다. 계속하시겠습니까?", createdBy);
     createTranslationIfNotExists(
         "admin.llmConfig.models.autoSelected",
         languageCode,

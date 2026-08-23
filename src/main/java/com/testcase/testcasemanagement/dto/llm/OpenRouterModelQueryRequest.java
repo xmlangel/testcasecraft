@@ -1,20 +1,30 @@
 package com.testcase.testcasemanagement.dto.llm;
 
+import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import lombok.Data;
 
 /**
- * OpenRouter 무료 모델 조회·가용성 확인 요청
+ * LLM 모델 조회·가용성 확인 요청
  *
  * <p>API Key 를 얻는 경로가 둘이다. 새로 만드는 설정은 화면에서 입력한 {@code apiKey} 를 그대로 보내고, 이미 저장된 설정은 키를 다시 타이핑하지 않도록
  * {@code configId} 만 보내면 서버가 저장된 키를 복호화해 쓴다. 둘 다 오면 {@code apiKey} 를 우선한다.
  */
 @Data
-@Schema(description = "OpenRouter 모델 조회 요청")
+@Schema(description = "LLM 모델 조회 요청")
 public class OpenRouterModelQueryRequest {
 
-  @Schema(description = "OpenRouter API Key. 저장 전 설정에서 사용", example = "sk-or-v1-…")
+  @Schema(
+      description =
+          """
+          제공자. 모델 목록을 내주는 제공자에서만 쓴다(OPENROUTER·NVIDIA).
+          비우면 OPENROUTER 로 본다(옛 요청 형태와의 호환).
+          """,
+      example = "NVIDIA")
+  private LlmProvider provider;
+
+  @Schema(description = "제공자 API Key. 저장 전 설정에서 사용", example = "sk-or-v1-… / nvapi-…")
   private String apiKey;
 
   @Schema(description = "이미 저장된 LLM 설정 ID. 저장된 키를 재사용할 때 사용")
