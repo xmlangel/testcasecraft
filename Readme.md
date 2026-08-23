@@ -5,6 +5,122 @@
 TestcaseCraft: The Finishing Touch ✨
 "코드라는 원석이 완벽한 제품으로 빛나는 순간, 그 마지막 손길을 함께합니다."
 
+# TestcaseCraft
+
+A free, open source test case management system (TCMS) you can self-host with Docker in minutes. Design, organise, execute and trace both manual and automated test cases in one place.
+
+**[한국어 안내는 아래에 있습니다 →](#한국어)**
+
+## Introduction
+
+TestcaseCraft manages the whole lifecycle of a test case, from design through execution to result analysis. On top of a Spring Boot and React stack it adds a FastAPI service for RAG (Retrieval-Augmented Generation), so the platform does more than store cases: it answers questions about them.
+
+### Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Frontend | React |
+| Backend | Spring Boot |
+| AI Service | FastAPI (RAG & LLM integration) |
+| Database | PostgreSQL 18 (+ pgvector for RAG) |
+| Storage | MinIO (S3-compatible) |
+| Auth | JWT |
+
+## Key Features
+
+### 1. Craftsmanship in Management
+
+- **Hierarchical test cases**: a folder-based tree keeps cases organised and easy to rearrange.
+- **Multi-project support**: manage the test assets of several projects from one system.
+
+### 2. Execution & Traceability
+
+- **Test plans**: group cases into runnable plans per release or test cycle.
+- **Execution history**: record Pass / Fail / Skip results and trace past runs.
+- **Automation results**: import JUnit XML so manual and automated results live side by side.
+
+### 3. Intelligence with AI
+
+- **LLM support**: ask questions in natural language to shape scenarios or get advice. Providers: OpenAI, OpenRouter, NVIDIA, Perplexity, Ollama, OpenWebUI.
+- **RAG support**: answers are grounded in the documents you register, not in the model's general knowledge.
+
+### 4. Connection & Security
+
+- **Jira integration**: link issues to test cases and keep development and test status in sync.
+- **JWT authentication**: access control and data protection based on signed tokens.
+
+## Getting Started
+
+TestcaseCraft accepts environment variables in three ways. Pick the one that fits your situation.
+
+> **Before deploying to production, read [docs/SECURITY_DEPLOYMENT_ENV.md](docs/SECURITY_DEPLOYMENT_ENV.md).** The defaults are meant for development: leaving CORS origins, the encryption key, proxy trust and SSRF guards unset breaks frontend CORS and makes stored secrets unusable.
+
+### Option A: `.env` file (recommended)
+
+Create a `.env` file in the project root. Docker Compose loads it automatically.
+
+```
+# 1. Write your .env (see Configuration below)
+# 2. Start the containers
+docker compose up -d --build
+```
+
+### Option B: Shell environment variables
+
+Useful for a quick trial or for overriding one value. These take precedence over `.env`.
+
+```
+PROTOCOL=https DOMAIN=mydomain.com SERVER_PORT=443 docker compose up -d --build
+```
+
+### Option C: A separate env file (`--env-file`)
+
+Use this when you keep production and development settings apart.
+
+```
+docker compose --env-file myenvfile.env up -d --build
+```
+
+## Access & Credentials
+
+Once the containers are healthy, reach the services below.
+
+### Service URLs
+
+| Service | URL | Description |
+| :--- | :--- | :--- |
+| **Application** | http://localhost:8080 | Main web application |
+| **App API Docs** | http://localhost:8080/swagger-ui.html | Backend API reference (Swagger) |
+| **RAG API Docs** | http://localhost:8001/docs | AI/RAG service API reference |
+| **MinIO Console** | http://localhost:9001 | File storage console |
+| **Health Check** | http://localhost:8080/actuator/health | Service status |
+
+### Default Application Login
+
+> ⚠️ **Change this password right after your first sign-in.**
+
+- **Username:** `admin`
+- **Password:** `admin123`
+
+### Database & Infrastructure Accounts
+
+For development, debugging or connecting an external tool such as DBeaver.
+
+> Since v1.0.93 the application database and the RAG database live in one PostgreSQL (pgvector) instance, on a single host port `5434`.
+
+| Component | Host Port | Username | Password | Note |
+| :--- | :--- | :--- | :--- | :--- |
+| **PostgreSQL + pgvector** | `localhost:5434` | `testcase_user` (app) / `rag_user` (RAG) | `testcase_password` / `rag_dev_password_123` | One instance hosts both `testcase_management` and `rag_db` (pgvector, v18) |
+| **MinIO** | `localhost:9000` / `9001` | `minioadmin` | `minioadmin_dev_password_789` | S3-compatible storage |
+
+---
+
+<a id="한국어"></a>
+
+# 한국어
+
+**[English is above ↑](#testcasecraft)**
+
 # Philosophy: 완성하는 손길 (The Finishing Touch)
 
 소프트웨어 개발의 끝단에서 품질을 책임지는 QA(Quality Assurance)는 단순한 오류 검출이 아닙니다. 그것은 거친 원석과도 같은 코드를 다듬고, 디지털 블록의 마지막 조각을 끼워 맞춰 비로소 제품을 빛나게 하는 '장인(Craftsman)'의 과정입니다.
@@ -46,7 +162,7 @@ Spring Boot와 React로 구축된 견고한 아키텍처 위에, FastAPI 기반�
 
 단순 반복 업무를 넘어, AI와 함께 더 깊이 있는 테스트를 수행합니다.
 
-- LLM 지원: 자연어 질의응답을 통해 테스트 시나리오를 구체화하거나 조언을 얻을 수 있습니다. (Support: Ollama, OpenWebUI, OpenAI, Perplexity, OpenRouter)
+- LLM 지원: 자연어 질의응답을 통해 테스트 시나리오를 구체화하거나 조언을 얻을 수 있습니다. (지원: OpenAI, OpenRouter, NVIDIA, Perplexity, Ollama, OpenWebUI)
 - RAG (Retrieval-Augmented Generation) 지원: 내부에 등록된 문서와 자료를 기반으로 AI가 맥락을 파악하여 정확도 높은 답변을 제공합니다.
 
 ## 4. Connection & Security (연동과 보안)
@@ -98,11 +214,11 @@ docker compose --env-file myenvfile.env up -d --build
 
 | Service           | URL                                                                                                            | Description                 |
 | :---------------- | :------------------------------------------------------------------------------------------------------------- | :-------------------------- |
-| **Application**   | [http://localhost:8080](https://www.google.com/search?q=http://localhost:8080)                                 | 메인 웹 애플리케이션        |
-| **App API Docs**  | [http://localhost:8080/swagger-ui.html](https://www.google.com/search?q=http://localhost:8080/swagger-ui.html) | 백엔드 API 명세서 (Swagger) |
-| **RAG API Docs**  | [http://localhost:8001/docs](https://www.google.com/search?q=http://localhost:8001/docs)                       | AI/RAG 서비스 API 명세서    |
-| **MinIO Console** | [http://localhost:9001](https://www.google.com/search?q=http://localhost:9001)                                 | 파일 스토리지 관리 콘솔     |
-| **Health Check**  | [http://localhost:8080/actuator/health](https://www.google.com/search?q=http://localhost:8080/actuator/health) | 서비스 상태 확인            |
+| **Application**   | http://localhost:8080                                 | 메인 웹 애플리케이션        |
+| **App API Docs**  | http://localhost:8080/swagger-ui.html | 백엔드 API 명세서 (Swagger) |
+| **RAG API Docs**  | http://localhost:8001/docs                       | AI/RAG 서비스 API 명세서    |
+| **MinIO Console** | http://localhost:9001                                 | 파일 스토리지 관리 콘솔     |
+| **Health Check**  | http://localhost:8080/actuator/health | 서비스 상태 확인            |
 
 ### 👤 Default Application Login
 
