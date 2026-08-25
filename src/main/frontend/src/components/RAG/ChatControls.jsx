@@ -73,7 +73,7 @@ function ChatControls({
             />
           }
           label={
-            <Typography variant="body1">
+            <Typography variant="body2">
               {t("rag.chat.persistToggle", "대화 자동 저장")}
             </Typography>
           }
@@ -87,7 +87,7 @@ function ChatControls({
             />
           }
           label={
-            <Typography variant="body1">
+            <Typography variant="body2">
               {t("rag.chat.useRagSearch", "RAG 문서 우선 검색")}
             </Typography>
           }

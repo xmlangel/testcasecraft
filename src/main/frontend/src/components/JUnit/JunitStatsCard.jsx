@@ -67,7 +67,7 @@ const JunitStatsCard = ({
           }}
         >
           <Assessment color="primary" />
-          <Typography variant="subtitle1" fontWeight="bold">
+          <Typography variant="subtitle2" fontWeight="bold">
             {t("junit.sections.statistics", "통계 개요")}
           </Typography>
           {!expandedSections.stats && testResult && (

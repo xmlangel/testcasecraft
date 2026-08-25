@@ -52,7 +52,7 @@ function ChatMessageList({
             height: "100%",
           }}
         >
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body2" color="text.secondary">
             {t("rag.chat.empty", "문서에 대해 질문해보세요.")}
           </Typography>
         </Box>
@@ -86,7 +86,7 @@ function ChatMessageList({
         >
           <CircularProgress size={40} />
           <Typography
-            variant="body1"
+            variant="body2"
             color="text.secondary"
             fontWeight="medium"
           >

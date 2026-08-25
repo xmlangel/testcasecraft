@@ -34,11 +34,9 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { useTranslation } from "../../context/I18nContext.jsx";
 import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
-import MDEditor from "@uiw/react-md-editor";
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
 import { debugLog } from "../../utils/logger.js";
 import { serverErrorMessage } from "../../utils/apiError.js";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 /**
  * 분석 요약 관리 컴포넌트
@@ -93,13 +91,13 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         ? "rgba(15, 23, 42, 0.85)"
         : "rgba(255, 255, 255, 0.6)",
       backdropFilter: "blur(18px) saturate(170%)",
-      "& .wmde-markdown": {
+      "& .markdown-body": {
         p: 3,
         bgcolor: "transparent",
         fontFamily: "'Bricolage Grotesque', sans-serif",
         color: baseTextColor,
       },
-      "& .wmde-markdown h1": {
+      "& .markdown-body h1": {
         fontFamily: "'Bricolage Grotesque', sans-serif",
         fontSize: "2.5rem",
         fontWeight: 800,
@@ -112,7 +110,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         backgroundClip: "text",
         WebkitTextFillColor: "transparent",
       },
-      "& .wmde-markdown h2": {
+      "& .markdown-body h2": {
         fontFamily: "'Bricolage Grotesque', sans-serif",
         fontSize: "2rem",
         fontWeight: 700,
@@ -123,7 +121,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         backgroundClip: "text",
         WebkitTextFillColor: "transparent",
       },
-      "& .wmde-markdown h3": {
+      "& .markdown-body h3": {
         fontFamily: "'Bricolage Grotesque', sans-serif",
         fontSize: "1.5rem",
         fontWeight: 600,
@@ -135,23 +133,23 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         }`,
         paddingLeft: "12px",
       },
-      "& .wmde-markdown p": {
+      "& .markdown-body p": {
         mb: 1,
         mt: 0,
         lineHeight: 1.7,
         fontSize: "1rem",
         color: baseTextColor,
       },
-      "& .wmde-markdown ul, & .wmde-markdown ol": {
+      "& .markdown-body ul, & .markdown-body ol": {
         pl: 4,
         mb: 1,
         mt: 0,
         color: baseTextColor,
       },
-      "& .wmde-markdown li": {
+      "& .markdown-body li": {
         mb: 0.5,
       },
-      "& .wmde-markdown code": {
+      "& .markdown-body code": {
         fontFamily: "'JetBrains Mono', monospace",
         bgcolor: isDarkMode
           ? "rgba(103, 232, 249, 0.15)"
@@ -165,7 +163,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
           isDarkMode ? "rgba(103, 232, 249, 0.3)" : "rgba(6, 182, 212, 0.2)"
         }`,
       },
-      "& .wmde-markdown pre": {
+      "& .markdown-body pre": {
         fontFamily: "'JetBrains Mono', monospace",
         bgcolor: isDarkMode ? "#0F172A" : "#1E293B",
         color: isDarkMode ? theme.palette.grey[100] : "#F8FAFC",
@@ -179,7 +177,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         }`,
         boxShadow: "0 8px 32px 0 rgba(6, 182, 212, 0.1)",
       },
-      "& .wmde-markdown blockquote": {
+      "& .markdown-body blockquote": {
         borderLeft: `4px solid ${
           isDarkMode ? "rgba(103, 232, 249, 0.4)" : "rgba(6, 182, 212, 0.5)"
         }`,
@@ -194,7 +192,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         color: isDarkMode ? theme.palette.grey[300] : "#64748B",
         borderRadius: "0 12px 12px 0",
       },
-      "& .wmde-markdown table": {
+      "& .markdown-body table": {
         borderCollapse: "collapse",
         width: "100%",
         mb: 1.5,
@@ -202,7 +200,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         background: isDarkMode ? "rgba(15, 23, 42, 0.85)" : "transparent",
         boxShadow: "0 8px 32px 0 rgba(6, 182, 212, 0.1)",
       },
-      "& .wmde-markdown th, & .wmde-markdown td": {
+      "& .markdown-body th, & .markdown-body td": {
         border: `1px solid ${
           isDarkMode ? "rgba(148, 163, 184, 0.35)" : "rgba(226, 232, 240, 0.8)"
         }`,
@@ -210,14 +208,14 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         fontSize: "0.9rem",
         color: baseTextColor,
       },
-      "& .wmde-markdown th": {
+      "& .markdown-body th": {
         bgcolor: isDarkMode
           ? "rgba(14, 165, 233, 0.15)"
           : "rgba(6, 182, 212, 0.1)",
         fontWeight: 600,
         fontFamily: "'Bricolage Grotesque', sans-serif",
       },
-      "& .wmde-markdown hr": {
+      "& .markdown-body hr": {
         my: 2,
         height: "3px",
         background:
@@ -553,7 +551,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         {/* 요약 목록 테이블 */}
         {documentSummaries.length === 0 ? (
           <Box sx={{ textAlign: "center", py: 4 }}>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body2" color="text.secondary">
               {t("rag.summary.empty", "LLM 분석이 완료된 문서가 없습니다.")}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -873,8 +871,8 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                       maxHeight: isFullScreen ? "calc(100vh - 250px)" : "600px",
                     }}
                   >
-                    <MDEditor.Markdown
-                      source={
+                    <MarkdownViewer
+                      content={
                         selectedSummary.combinedResponse ||
                         t(
                           "rag.analysisSummaryManager.noAnalysisResults",

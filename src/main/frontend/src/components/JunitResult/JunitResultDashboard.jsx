@@ -502,12 +502,13 @@ export default function JunitResultDashboard() {
             title={t("junit.dashboard.title")}
             sx={{ mb: 0.5 }}
           />
-          <Typography variant="subtitle1" color="text.secondary">
+          <Typography variant="subtitle2" color="text.secondary">
             {t("junit.dashboard.subtitle", { projectName: activeProject.name })}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button
+            size="small"
             variant="outlined"
             startIcon={<Refresh />}
             onClick={() => loadData()}
@@ -518,6 +519,7 @@ export default function JunitResultDashboard() {
           </Button>
           {canRecordResults && (
             <Button
+              size="small"
               variant="contained"
               startIcon={<CloudUpload />}
               onClick={() => setUploadDialogOpen(true)}
@@ -548,7 +550,7 @@ export default function JunitResultDashboard() {
           sx={{ mb: 4 }}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1" fontWeight="bold">
+            <Typography variant="subtitle2" fontWeight="bold">
               {t("junit.sections.statistics", "통계 개요")}
             </Typography>
           </AccordionSummary>
@@ -702,7 +704,7 @@ export default function JunitResultDashboard() {
           onChange={handleAccordionChange("charts")}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1" fontWeight="bold">
+            <Typography variant="subtitle2" fontWeight="bold">
               {t("junit.sections.charts", "차트 분석")}
             </Typography>
           </AccordionSummary>
@@ -772,10 +774,16 @@ export default function JunitResultDashboard() {
                           />
                           <XAxis
                             dataKey="name"
-                            tick={{ fill: theme.palette.text.secondary }}
+                            tick={{
+                              fill: theme.palette.text.secondary,
+                              fontSize: 12,
+                            }}
                           />
                           <YAxis
-                            tick={{ fill: theme.palette.text.secondary }}
+                            tick={{
+                              fill: theme.palette.text.secondary,
+                              fontSize: 12,
+                            }}
                           />
                           <RechartsTooltip
                             contentStyle={{
@@ -785,7 +793,7 @@ export default function JunitResultDashboard() {
                             }}
                             itemStyle={{ color: theme.palette.text.primary }}
                           />
-                          <Legend />
+                          <Legend wrapperStyle={{ fontSize: "0.8125rem" }} />
                           <Bar
                             dataKey={t("junit.stats.passed")}
                             fill={RESULT_COLORS.PASS}
@@ -826,7 +834,7 @@ export default function JunitResultDashboard() {
           onChange={handleAccordionChange("list")}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1" fontWeight="bold">
+            <Typography variant="subtitle2" fontWeight="bold">
               {t("junit.sections.list", "테스트 실행 목록")}
             </Typography>
           </AccordionSummary>

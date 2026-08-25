@@ -40,6 +40,10 @@ import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 import { useAuth } from "../context/AuthContext.jsx";
 import useProjectRole from "../hooks/useProjectRole.js";
 import { canEditProjectContent } from "./TestCaseTree/utils/permissionUtils.js";
+import {
+  IN_PROGRESS_CHIP_SX,
+  isInProgressStatus,
+} from "./common/inProgressPulse.js";
 
 const LIST_WIDTH = 260;
 const LIST_COLLAPSED_WIDTH = 44;
@@ -52,6 +56,7 @@ const statusColor = (status) => {
     case "COMPLETED":
       return "success";
     case "IN_PROGRESS":
+    case "INPROGRESS":
       return "warning";
     case "ABORTED":
     case "CANCELLED":
@@ -399,7 +404,18 @@ function PlanExecutionWorkspace({
                       size="small"
                       label={exec.status}
                       color={statusColor(exec.status)}
-                      sx={CHROME_TYPOGRAPHY.statusChip}
+                      variant={
+                        isInProgressStatus(exec.status) ||
+                        String(exec.status).toUpperCase() === "COMPLETED"
+                          ? "filled"
+                          : "outlined"
+                      }
+                      sx={{
+                        ...CHROME_TYPOGRAPHY.statusChip,
+                        ...(isInProgressStatus(exec.status)
+                          ? IN_PROGRESS_CHIP_SX
+                          : {}),
+                      }}
                     />
                   )}
                   {/* 어느 플랜의 실행인지 이름으로만 알려준다 (누를 데는 없다) */}
@@ -652,7 +668,19 @@ function PlanExecutionWorkspace({
                                   size="small"
                                   label={exec.status}
                                   color={statusColor(exec.status)}
-                                  sx={CHROME_TYPOGRAPHY.statusChip}
+                                  variant={
+                                    isInProgressStatus(exec.status) ||
+                                    String(exec.status).toUpperCase() ===
+                                      "COMPLETED"
+                                      ? "filled"
+                                      : "outlined"
+                                  }
+                                  sx={{
+                                    ...CHROME_TYPOGRAPHY.statusChip,
+                                    ...(isInProgressStatus(exec.status)
+                                      ? IN_PROGRESS_CHIP_SX
+                                      : {}),
+                                  }}
                                 />
                               )}
                             </ListItemButton>

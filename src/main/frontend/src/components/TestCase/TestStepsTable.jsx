@@ -21,9 +21,7 @@ import {
   ArrowUpward as ArrowUpIcon,
   ArrowDownward as ArrowDownIcon,
 } from "@mui/icons-material";
-import MDEditor from "@uiw/react-md-editor";
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
+import RichMarkdownEditor from "./RichMarkdownEditor.jsx";
 import { computeMarkdownEditorHeight } from "../../utils/markdownEditorHeight.js";
 
 /**
@@ -111,64 +109,62 @@ const TestStepsTable = ({
                         {step.stepNumber}
                       </TableCell>
                       <TableCell sx={{ width: "45%", minWidth: 160 }}>
-                        <Box data-color-mode={theme.palette.mode}>
-                          <MDEditor
-                            value={step.description || ""}
-                            onChange={(value) =>
-                              onStepMarkdownChange(
-                                step.stepNumber,
-                                "description",
-                                value || "",
-                              )
-                            }
-                            preview="live"
-                            height={stepEditorHeight}
-                            textareaProps={{
-                              placeholder: t(
-                                "testcase.form.stepDescription",
-                                "Step 설명",
-                              ),
-                              onPaste: (event) =>
-                                onMarkdownPaste(event, {
-                                  type: "step",
-                                  field: "description",
-                                  stepNumber: step.stepNumber,
-                                }),
-                              "data-testid": `step-description-${step.stepNumber}`,
-                            }}
-                            disabled={isViewer}
-                          />
-                        </Box>
+                        <RichMarkdownEditor
+                          value={step.description || ""}
+                          onChange={(value) =>
+                            onStepMarkdownChange(
+                              step.stepNumber,
+                              "description",
+                              value || "",
+                            )
+                          }
+                          placeholder={t(
+                            "testcase.form.stepDescription",
+                            "Step 설명",
+                          )}
+                          height={stepEditorHeight}
+                          onPaste={(event) =>
+                            onMarkdownPaste(event, {
+                              type: "step",
+                              field: "description",
+                              stepNumber: step.stepNumber,
+                            })
+                          }
+                          isViewer={isViewer}
+                          theme={theme}
+                          t={t}
+                          hideHelperText
+                          testid={`step-description-${step.stepNumber}`}
+                        />
                       </TableCell>
                       <TableCell sx={{ width: "45%", minWidth: 160 }}>
-                        <Box data-color-mode={theme.palette.mode}>
-                          <MDEditor
-                            value={step.expectedResult || ""}
-                            onChange={(value) =>
-                              onStepMarkdownChange(
-                                step.stepNumber,
-                                "expectedResult",
-                                value || "",
-                              )
-                            }
-                            preview="live"
-                            height={stepEditorHeight}
-                            textareaProps={{
-                              placeholder: t(
-                                "testcase.form.expectedResult",
-                                "예상 결과",
-                              ),
-                              onPaste: (event) =>
-                                onMarkdownPaste(event, {
-                                  type: "step",
-                                  field: "expectedResult",
-                                  stepNumber: step.stepNumber,
-                                }),
-                              "data-testid": `step-expected-${step.stepNumber}`,
-                            }}
-                            disabled={isViewer}
-                          />
-                        </Box>
+                        <RichMarkdownEditor
+                          value={step.expectedResult || ""}
+                          onChange={(value) =>
+                            onStepMarkdownChange(
+                              step.stepNumber,
+                              "expectedResult",
+                              value || "",
+                            )
+                          }
+                          placeholder={t(
+                            "testcase.form.expectedResult",
+                            "예상 결과",
+                          )}
+                          height={stepEditorHeight}
+                          onPaste={(event) =>
+                            onMarkdownPaste(event, {
+                              type: "step",
+                              field: "expectedResult",
+                              stepNumber: step.stepNumber,
+                            })
+                          }
+                          isViewer={isViewer}
+                          theme={theme}
+                          t={t}
+                          hideHelperText
+                          testid={`step-expected-${step.stepNumber}`}
+                        />
                       </TableCell>
                       {!isViewer && (
                         <TableCell

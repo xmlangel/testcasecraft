@@ -58,7 +58,7 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
   return {
     // 문단 내 단일 줄바꿈만 보존 — 루트에 pre-wrap 을 걸면 블록 사이 개행까지
     // 빈 줄로 렌더링되어 과도한 공백이 생긴다.
-    "& .wmde-markdown p, & .wmde-markdown li": { whiteSpace: "pre-wrap" },
+    "& .markdown-body p, & .markdown-body li": { whiteSpace: "pre-wrap" },
     mt: 2,
     border: "2px solid",
     borderColor: isDarkMode ? theme.palette.divider : "rgba(6, 182, 212, 0.3)",
@@ -69,13 +69,13 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
       ? alpha(theme.palette.background.paper, 0.8)
       : "rgba(255, 255, 255, 0.6)",
     backdropFilter: "blur(18px) saturate(170%)",
-    "& .wmde-markdown": {
+    "& .markdown-body": {
       p: 3,
       bgcolor: "transparent",
       fontFamily: "'Bricolage Grotesque', sans-serif",
       color: baseTextColor,
     },
-    "& .wmde-markdown h1": {
+    "& .markdown-body h1": {
       fontFamily: "'Bricolage Grotesque', sans-serif",
       fontSize: "2.5rem",
       fontWeight: 800,
@@ -92,7 +92,7 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
       backgroundClip: "text",
       WebkitTextFillColor: "transparent",
     },
-    "& .wmde-markdown h2": {
+    "& .markdown-body h2": {
       fontFamily: "'Bricolage Grotesque', sans-serif",
       fontSize: "2rem",
       fontWeight: 700,
@@ -103,7 +103,7 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
       backgroundClip: "text",
       WebkitTextFillColor: "transparent",
     },
-    "& .wmde-markdown h3": {
+    "& .markdown-body h3": {
       fontFamily: "'Bricolage Grotesque', sans-serif",
       fontSize: "1.5rem",
       fontWeight: 600,
@@ -119,23 +119,23 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
       }`,
       paddingLeft: "12px",
     },
-    "& .wmde-markdown p": {
+    "& .markdown-body p": {
       mb: 1,
       mt: 0,
       lineHeight: 1.7,
       fontSize: "1rem",
       color: baseTextColor,
     },
-    "& .wmde-markdown ul, & .wmde-markdown ol": {
+    "& .markdown-body ul, & .markdown-body ol": {
       pl: 4,
       mb: 1,
       mt: 0,
     },
-    "& .wmde-markdown li": {
+    "& .markdown-body li": {
       mb: 0.5,
       color: baseTextColor,
     },
-    "& .wmde-markdown code": {
+    "& .markdown-body code": {
       fontFamily: "'JetBrains Mono', monospace",
       bgcolor: isDarkMode
         ? alpha(theme.palette.common.white, 0.1)
@@ -153,7 +153,7 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
           : alpha(theme.palette.primary.main, 0.2)
       }`,
     },
-    "& .wmde-markdown pre": {
+    "& .markdown-body pre": {
       fontFamily: "'JetBrains Mono', monospace",
       bgcolor: isDarkMode
         ? alpha(theme.palette.background.paper, 0.5)
@@ -173,7 +173,7 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
       }`,
       boxShadow: isDarkMode ? "none" : "0 8px 32px 0 rgba(6, 182, 212, 0.1)",
     },
-    "& .wmde-markdown blockquote": {
+    "& .markdown-body blockquote": {
       borderLeft: `4px solid ${
         isDarkMode ? theme.palette.primary.light : theme.palette.primary.main
       }`,
@@ -190,21 +190,21 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
         : theme.palette.text.secondary,
       borderRadius: "0 12px 12px 0",
     },
-    "& .wmde-markdown table": {
+    "& .markdown-body table": {
       borderCollapse: "collapse",
       width: "100%",
       mb: 1.5,
       mt: 1,
       boxShadow: isDarkMode ? "none" : "0 8px 32px 0 rgba(6, 182, 212, 0.1)",
     },
-    "& .wmde-markdown th, & .wmde-markdown td": {
+    "& .markdown-body th, & .markdown-body td": {
       border: `1px solid ${
         isDarkMode ? theme.palette.divider : theme.palette.divider
       }`,
       p: 1,
       fontSize: "0.9rem",
     },
-    "& .wmde-markdown th": {
+    "& .markdown-body th": {
       bgcolor: isDarkMode
         ? alpha(theme.palette.primary.main, 0.2)
         : alpha(theme.palette.primary.main, 0.1),
@@ -212,7 +212,7 @@ export function getSummaryMarkdownStyles(theme, isFullScreen) {
       color: baseTextColor,
       fontFamily: "'Bricolage Grotesque', sans-serif",
     },
-    "& .wmde-markdown hr": {
+    "& .markdown-body hr": {
       my: 2,
       height: "3px",
       background: headingGradient,

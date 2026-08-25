@@ -76,7 +76,7 @@ function CostWarningDialog({
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             {t("rag.analysis.costWarning.modelSection", "LLM 모델")}
           </Typography>
-          <Typography variant="body1">
+          <Typography variant="body2">
             {selectedConfigName ? (
               <>
                 <strong>{selectedConfigName}</strong>

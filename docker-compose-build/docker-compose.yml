@@ -1,7 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:1.0.120
+    image: xmlangel/testcasecraft:1.0.121
     container_name: testcasecraft
     environment:
       # Spring Profile
@@ -100,7 +100,10 @@ services:
 
   # FastAPI RAG Service
   rag-service:
-    image: xmlangel/testcasecraft-rag-service:1.0.11
+    # 태그는 .env 의 RAG_SERVICE_IMAGE_TAG 로 고정할 수 있다. 지정하지 않으면
+    # latest 를 쓴다 — 새 이미지를 받으려면 `docker compose pull rag-service` 를
+    # 먼저 돌린다(compose 는 이미 내려받은 latest 를 그대로 재사용한다).
+    image: xmlangel/testcasecraft-rag-service:${RAG_SERVICE_IMAGE_TAG:-latest}
     container_name: testcasecraft-rag-service
     environment:
       # Database (통합 단일 PostgreSQL 인스턴스의 rag_db 를 사용)

@@ -19,10 +19,8 @@ import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-import MDEditor from "@uiw/react-md-editor";
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
 import { getProgressColor } from "./utils/documentFormatUtils.js";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 /**
  * LLM 분석 요약 다이얼로그 컴포넌트
@@ -159,7 +157,7 @@ function SummaryDialog({
                   className="glass-surface shadow-glass-medium"
                   sx={summaryMarkdownStyles}
                 >
-                  <MDEditor.Markdown source={summaryContent} />
+                  <MarkdownViewer content={summaryContent} />
                 </Box>
               )}
               <Box

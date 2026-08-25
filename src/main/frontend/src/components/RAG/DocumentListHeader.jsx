@@ -30,7 +30,7 @@ function DocumentListHeader({
       }}
     >
       <Typography
-        variant="h5"
+        variant="h6"
         className="gradient-heading text-grotesque"
         sx={{ fontWeight: "bold" }}
       >

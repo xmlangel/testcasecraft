@@ -1,6 +1,6 @@
 // 마크다운을 내보내기 산출물(HTML·PDF)에서 쓸 수 있는 형태로 변환하는 유틸.
 //
-// 화면의 MarkdownViewer(@uiw/react-md-editor)는 React 트리를 그리므로 파일로
+// 화면의 MarkdownViewer(react-markdown)는 React 트리를 그리므로 파일로
 // 저장하는 HTML 문자열이나 jsPDF 캔버스에는 쓸 수 없다. 그래서 같은 GFM 부분집합
 // (제목·목록·표·코드·인용·수평선·강조·링크)을 문자열/블록으로 변환한다.
 //

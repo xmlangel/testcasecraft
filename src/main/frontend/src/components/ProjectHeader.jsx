@@ -46,6 +46,7 @@ import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 import { useAuth } from "../context/AuthContext.jsx";
 import useProjectRole from "../hooks/useProjectRole.js";
 import { canManageProjectMembers } from "./TestCaseTree/utils/permissionUtils.js";
+import { CHROME_ICON_SX } from "./common/iconSizes.js";
 
 // projectNavItems 의 icon 식별자 → 실제 아이콘 컴포넌트
 const TAB_ICONS = {
@@ -275,6 +276,7 @@ function ProjectHeader({
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <IconButton
             size="small"
+            sx={CHROME_ICON_SX}
             onClick={() => navigate(`/projects/${projectId}/bookmarks`)}
             title={t("bookmark.nav", "북마크")}
             data-testid="open-bookmarks-button"
@@ -284,6 +286,7 @@ function ProjectHeader({
           {showSettings && (
             <IconButton
               size="small"
+              sx={CHROME_ICON_SX}
               onClick={() => navigate(`/projects/${projectId}/settings`)}
               title={t("projectSettings.title", "프로젝트 설정")}
               data-testid="open-project-settings-button"
@@ -293,6 +296,7 @@ function ProjectHeader({
           )}
           <IconButton
             size="small"
+            sx={CHROME_ICON_SX}
             onClick={toggleHeader}
             title={isHeaderCollapsed ? "Show details" : "Hide details"}
           >

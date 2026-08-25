@@ -57,6 +57,7 @@ import TestPlanAutomatedLinkDialog from "./TestPlanAutomatedLinkDialog";
 import { Link as LinkIcon } from "@mui/icons-material";
 import { countRealTestCases } from "../utils/treeUtils";
 import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
+import { IN_PROGRESS_CHIP_WITH_ICON_SX } from "./common/inProgressPulse.js";
 
 // 프로젝트 역할로 판정한다. 이전에는 시스템 역할(ADMIN·MANAGER)을 봐서 두 방향으로 어긋났다 —
 // 프로젝트 매니저인데 버튼이 안 보이고, 프로젝트 뷰어인 시스템 매니저에게는 보였다.
@@ -268,15 +269,17 @@ const TestPlanList = ({
             icon={<Schedule />}
             label={t("testPlan.status.notStarted", "Not Started")}
             color="default"
+            variant="outlined"
           />
         );
       case ExecutionStatus.INPROGRESS:
         return (
           <Chip
             size="small"
-            icon={<PlayArrow />}
+            icon={<CircularProgress size={11} thickness={6} color="inherit" />}
             label={t("testPlan.status.inProgress", "In Progress")}
-            color="primary"
+            color="warning"
+            sx={IN_PROGRESS_CHIP_WITH_ICON_SX}
           />
         );
       case ExecutionStatus.COMPLETED:

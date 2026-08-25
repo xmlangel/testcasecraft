@@ -28,10 +28,10 @@ import {
   NavigateNext as NavigateNextIcon,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
-import MDEditor from "@uiw/react-md-editor";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "../../context/I18nContext";
 import { getDynamicApiUrl } from "../../utils/apiConstants.js";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 /**
  * 사용자 매뉴얼 뷰어 — 섹션별 탐색.
@@ -468,8 +468,8 @@ const ManualViewer = () => {
                       <CircularProgress size={32} />
                     </Box>
                   ) : (
-                    <MDEditor.Markdown
-                      source={
+                    <MarkdownViewer
+                      content={
                         guideParam
                           ? guideContent
                           : currentSection

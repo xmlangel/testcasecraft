@@ -79,11 +79,19 @@ import { STATUS_COLORS, RESULT_COLORS } from "../../constants/statusColors";
 import useJunitExport from "./hooks/useJunitExport.js";
 import JunitStatsCard from "./JunitStatsCard.jsx";
 import { PAGE_CONTAINER_SX } from "../../styles/layoutConstants";
+import { FORM_LABEL_TYPOGRAPHY } from "../../styles/layoutConstants";
 
 /**
  * JUnit 테스트 결과 상세 뷰 컴포넌트
  */
-const JunitResultDetail = () => {
+/**
+ * 자동화 결과 상세.
+ *
+ * embedded 는 좌측 메뉴 모드에서 앱 껍데기 안(오른쪽 영역)에서 열릴 때 켜진다.
+ * 그때는 감싸는 쪽이 이미 Paper 와 여백을 두르므로 자기 여백을 빼야 겹치지 않는다.
+ * 가로 탭 모드에서는 이 화면이 단독으로 뜨므로 예전처럼 자기 여백을 쓴다.
+ */
+const JunitResultDetail = ({ embedded = false }) => {
   const { testResultId, projectId } = useParams();
   const navigate = useNavigate();
   const { currentProject } = useAppContext();
@@ -703,6 +711,7 @@ const JunitResultDetail = () => {
           {error}
         </Alert>
         <Button
+          size="small"
           startIcon={<BackIcon />}
           onClick={() => {
             if (projectId) {
@@ -728,6 +737,7 @@ const JunitResultDetail = () => {
           {t("junit.detail.notFound")}
         </Alert>
         <Button
+          size="small"
           startIcon={<BackIcon />}
           onClick={() => {
             if (projectId) {
@@ -747,7 +757,7 @@ const JunitResultDetail = () => {
   }
 
   return (
-    <Box sx={PAGE_CONTAINER_SX.main}>
+    <Box sx={embedded ? { p: 0 } : PAGE_CONTAINER_SX.main}>
       {/* 헤더 */}
       <Box
         sx={{
@@ -759,6 +769,7 @@ const JunitResultDetail = () => {
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Button
+            size="small"
             startIcon={<BackIcon />}
             onClick={() => {
               if (projectId) {
@@ -775,10 +786,10 @@ const JunitResultDetail = () => {
             {t("junit.detail.backToAutomation")}
           </Button>
           <Box>
-            <Typography variant="h4" component="h1" color="text.primary">
+            <Typography variant="h5" component="h1" color="text.primary">
               {testResult.testExecutionName || testResult.fileName}
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
+            <Typography variant="subtitle2" color="text.secondary">
               {t("junit.detail.upload")}:{" "}
               {formatSafeDate(testResult.uploadedAt)} |{" "}
               {testResult.uploadedBy?.displayName ||
@@ -789,6 +800,7 @@ const JunitResultDetail = () => {
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button
+            size="small"
             variant="outlined"
             startIcon={<FileDownloadIcon />}
             onClick={handleExportToPDF}
@@ -807,6 +819,7 @@ const JunitResultDetail = () => {
               : t("junit.detail.exportPDF")}
           </Button>
           <Button
+            size="small"
             variant="outlined"
             startIcon={<TableChartIcon />}
             onClick={handleExportToCSV}
@@ -825,6 +838,7 @@ const JunitResultDetail = () => {
               : t("junit.detail.exportCSV")}
           </Button>
           <Button
+            size="small"
             variant="outlined"
             startIcon={<RefreshIcon />}
             onClick={loadData}
@@ -915,7 +929,7 @@ const JunitResultDetail = () => {
               }}
             >
               <TableChartIcon color="primary" />
-              <Typography variant="subtitle1" fontWeight="bold">
+              <Typography variant="subtitle2" fontWeight="bold">
                 {t("junit.detail.tab.testCases", "테스트 케이스")}
               </Typography>
               {!expandedSections.testCases && (
@@ -973,7 +987,10 @@ const JunitResultDetail = () => {
                         p: 2,
                       }}
                     >
-                      <FormControl sx={{ minWidth: 200 }} size="small">
+                      <FormControl
+                        sx={{ minWidth: 200, ...FORM_LABEL_TYPOGRAPHY }}
+                        size="small"
+                      >
                         <InputLabel>{t("junit.detail.testSuite")}</InputLabel>
                         <Select
                           value={selectedSuite?.id || ""}
@@ -1005,7 +1022,10 @@ const JunitResultDetail = () => {
                         </Select>
                       </FormControl>
 
-                      <FormControl sx={{ minWidth: 120 }} size="small">
+                      <FormControl
+                        sx={{ minWidth: 120, ...FORM_LABEL_TYPOGRAPHY }}
+                        size="small"
+                      >
                         <InputLabel>{t("common.status")}</InputLabel>
                         <Select
                           value={statusFilter}
@@ -1434,7 +1454,7 @@ const JunitResultDetail = () => {
               }}
             >
               <BugIcon color="error" />
-              <Typography variant="subtitle1" fontWeight="bold">
+              <Typography variant="subtitle2" fontWeight="bold">
                 {t("junit.detail.tab.failedTests", "실패한 테스트")}
               </Typography>
               {!expandedSections.failedTests && (
@@ -1486,7 +1506,7 @@ const JunitResultDetail = () => {
               }}
             >
               <SpeedIcon color="warning" />
-              <Typography variant="subtitle1" fontWeight="bold">
+              <Typography variant="subtitle2" fontWeight="bold">
                 {t("junit.detail.tab.slowTests", "느린 테스트")}
               </Typography>
             </Box>

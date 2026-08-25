@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  shouldExpandNotesPreview,
-  buildNotesAutoHeightSx,
-} from "./notesView.js";
+import { shouldExpandNotesPreview, resolveNotesMaxLines } from "./notesView.js";
 
 describe("shouldExpandNotesPreview", () => {
   it("미리보기 모드 + 값 존재 + 비전체화면이면 확장한다", () => {
@@ -53,23 +50,22 @@ describe("shouldExpandNotesPreview", () => {
   });
 });
 
-describe("buildNotesAutoHeightSx", () => {
-  it("확장 조건일 때 MDEditor 높이를 auto 로 푸는 sx 를 반환한다", () => {
-    const sx = buildNotesAutoHeightSx({
+describe("resolveNotesMaxLines", () => {
+  it("확장 조건이면 내용 전체가 보이도록 큰 줄 수를 준다", () => {
+    const lines = resolveNotesMaxLines({
       previewMode: "preview",
       isFullscreen: false,
       notes: "내용",
     });
-    expect(sx["& .w-md-editor"]).toEqual({ height: "auto !important" });
-    expect(sx["& .w-md-editor-preview"].overflow).toBe("visible !important");
+    expect(lines).toBeGreaterThanOrEqual(1000);
   });
 
-  it("확장 조건이 아니면 빈 sx 를 반환한다", () => {
-    const sx = buildNotesAutoHeightSx({
+  it("확장 조건이 아니면 접힌 줄 수를 유지한다", () => {
+    const lines = resolveNotesMaxLines({
       previewMode: "live",
       isFullscreen: false,
       notes: "내용",
     });
-    expect(sx).toEqual({});
+    expect(lines).toBe(12);
   });
 });

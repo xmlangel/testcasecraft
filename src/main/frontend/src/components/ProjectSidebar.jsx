@@ -33,6 +33,7 @@ import {
   NAV_COUNT_KEYS,
 } from "./navigation/projectNavItems.js";
 import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
+import { CHROME_ICON_SX } from "./common/iconSizes.js";
 
 const EXPANDED_WIDTH = 184;
 const COLLAPSED_WIDTH = 56;
@@ -122,7 +123,7 @@ function ProjectSidebar({
         transition: "width 0.15s ease",
       }}
     >
-      <List dense sx={{ py: 0.5, flexGrow: 1 }}>
+      <List dense sx={{ py: 0.5, flexGrow: 1, ...CHROME_ICON_SX }}>
         {items.map((item, itemIndex) => {
           // 보이는 항목의 위치가 곧 tabIndex — 가로 탭(MUI Tabs)의 값 규칙과 같다.
           const Icon = ICONS[item.icon] || DashboardIcon;
@@ -140,6 +141,7 @@ function ProjectSidebar({
               data-testid={item.testId}
               title={sidebarCollapsed ? label : undefined}
               sx={{
+                ...CHROME_ICON_SX,
                 minHeight: 40,
                 px: 1.25,
                 borderLeft: 3,

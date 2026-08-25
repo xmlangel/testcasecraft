@@ -17,10 +17,10 @@ import {
   Replay as ReplayIcon,
   Description as DescriptionIcon,
 } from "@mui/icons-material";
-import MDEditor from "@uiw/react-md-editor";
 import { useNavigate, useParams } from "react-router-dom";
 import guidesApi from "../../api/guidesApi";
 import { useI18n } from "../../context/I18nContext";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 /**
  * 범용 마크다운 가이드 뷰어 컴포넌트
@@ -164,8 +164,8 @@ const GuideViewer = () => {
               </Box>
             ) : (
               <div data-color-mode="light">
-                <MDEditor.Markdown
-                  source={content}
+                <MarkdownViewer
+                  content={content}
                   style={{ backgroundColor: "white", color: "#24292e" }}
                 />
               </div>

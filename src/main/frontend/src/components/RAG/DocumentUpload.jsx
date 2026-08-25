@@ -306,7 +306,7 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
         }}
       >
         <CloudUploadIcon sx={{ fontSize: 48, color: "primary.main", mb: 1 }} />
-        <Typography variant="body1" gutterBottom>
+        <Typography variant="body2" gutterBottom>
           {t(
             "rag.upload.dragAndDrop",
             "파일을 이곳에 드래그하거나 클릭하여 선택하세요",

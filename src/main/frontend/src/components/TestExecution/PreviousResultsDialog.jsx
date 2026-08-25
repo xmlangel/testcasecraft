@@ -28,7 +28,6 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import MDEditor from "@uiw/react-md-editor";
 import { useTranslation } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import TestResultAttachmentsView from "../TestCase/TestResultAttachmentsView.jsx";
@@ -37,6 +36,7 @@ import { getResultIcon } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import TestResultForm from "../TestResultForm.jsx";
 import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 // 노트 보기 형식(markdown | text) — 사용자 선택을 브라우저에 유지
 const NOTES_VIEW_MODE_KEY = "testExecution.prevResults.notesViewMode";
@@ -343,8 +343,8 @@ function PreviousResultsDialog({
                                 data-color-mode={darkMode ? "dark" : "light"}
                                 sx={MARKDOWN_PREWRAP_SX}
                               >
-                                <MDEditor.Markdown
-                                  source={r.notes}
+                                <MarkdownViewer
+                                  content={r.notes}
                                   style={{
                                     backgroundColor: "transparent",
                                     color: theme.palette.text.primary,

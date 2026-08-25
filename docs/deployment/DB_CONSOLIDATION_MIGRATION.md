@@ -1,5 +1,27 @@
 # DB 통합 마이그레이션 런북 (원격 서버, in-place)
 
+최종 갱신: 2026-08-23 22:20 KST · 통합 시점 v1.0.93
+
+> ### 이 문서가 필요한 배포
+>
+> **v1.0.93 이전에 구축한 배포**만 대상입니다. 그때는 PostgreSQL 컨테이너가 둘(`testcasecraft_postgres_spring` + `testcasecraft-postgres-rag`)이었습니다.
+>
+> **v1.0.93 이후 새로 구축하는 배포는 이 문서가 필요하지 않습니다.** `init-scripts/01-init-rag.sh` 가 최초 기동 시 `rag_user`·`rag_db` 를 자동으로 만듭니다.
+>
+> 지금 어느 쪽인지 확인하는 방법:
+>
+> ```bash
+> docker ps --format "{{.Names}}\t{{.Image}}" | grep postgres
+> ```
+>
+> postgres 컨테이너가 **둘** 나오면 이 런북을 따릅니다. **하나**(`testcasecraft-postgres`)면 이미 통합된 상태입니다.
+>
+> ### 통합 뒤에 이 문서가 여전히 쓰이는 한 경우
+>
+> `./data/postgres` 볼륨은 이미 있는데 `rag_db` 가 없는 상태입니다. `docker-entrypoint-initdb.d` 는 **데이터 디렉터리가 비어 있는 최초 기동에만** 실행되므로, 기존 앱 DB 볼륨에 통합 이미지를 처음 붙이면 init-script 가 돌지 않습니다. 이때 5절의 `migrate-consolidate-db.sh` 로 `rag_db` 를 만들고 채웁니다. (증상: `rag-service` 가 healthy 가 되지 않음)
+
+---
+
 기존 **2개 PostgreSQL**(앱 `postgres:18` + RAG `pgvector/pgvector:pg18`) 배포를
 **단일 `pgvector/pgvector:pg18` 인스턴스**(두 DB: `testcase_management` + `rag_db`)로
 **같은 서버에서 그대로** 통합한다. **DB만 이관**하며 MinIO 는 기존 그대로 둔다.
@@ -69,8 +91,8 @@ docker compose config >/dev/null && echo "compose OK"   # 문법 검증
 ## 3. 쓰기 중단 (앱 · rag-service 정지)
 
 마이그레이션 중 데이터가 바뀌지 않도록 앱과 rag-service 를 멈춘다.
-**구 RAG postgres 컨테이너(`testcasecraft-postgres-rag`)는 아직 지우지 않는다** —
-마이그레이션 스크립트가 여기서 rag_db 를 덤프한다.
+**구 RAG postgres 컨테이너(`testcasecraft-postgres-rag`)는 아직 지우지 않는다.**
+마이그레이션 스크립트가 그 컨테이너에서 rag_db 를 덤프한다.
 
 ```bash
 docker compose stop app rag-service
@@ -191,3 +213,12 @@ docker compose up -d
 앱 DB(`./data/postgres`)는 통합 과정에서 **내용이 바뀌지 않고 이미지/인덱스만
 갱신**되므로, 구 compose 로 되돌려도 그대로 읽힌다(단 pgvector 이미지로 한 번
 기동한 뒤라면 collation 은 이미 현재 OS 기준으로 정리된 상태).
+
+---
+
+## 관련 문서
+
+- [도커 설치·운영 가이드](./DOCKER_SETUP.md): 평시 운영, 백업, 트러블슈팅
+- [운영 배포 보안 환경변수](../SECURITY_DEPLOYMENT_ENV.md): 통합 뒤 확인할 보안 설정
+- `docker-compose-build/init-scripts/01-init-rag.sh`: 신규 배포의 `rag_db` 자동 생성
+- `docker-compose-build/scripts/migrate-consolidate-db.sh`: 이 런북 5절이 호출하는 스크립트

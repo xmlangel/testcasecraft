@@ -39,9 +39,13 @@ import TreeDialogs from "./TestCaseTree/components/TreeDialogs.jsx";
 import TreeVirtualNodes from "./TestCaseTree/components/TreeVirtualNodes.jsx";
 import TestCaseBulkOperations from "./TestCase/TestCaseBulkOperations.jsx";
 import testCaseService from "../services/testCaseService.js";
+import {
+  TREE_VIEW_MODE_KEY,
+  resolveFolderOnlyView,
+  toStoredMode,
+} from "./TestCaseTree/treeViewMode.js";
 
 // 트리 뷰 모드 저장 키 ("folders" = 폴더 전용, "all" = 폴더+케이스 혼합)
-const TREE_VIEW_MODE_KEY = "testcase-tree-view-mode";
 
 /**
  * TestCaseTree - 테스트케이스 트리 조합(Orchestration) 컴포넌트
@@ -77,21 +81,23 @@ const TestCaseTree = ({
   const { t } = useI18n();
 
   // ── 0. 트리 뷰 모드 (폴더 전용 / 전체) ────────────────────────────────────
-  // selectable 모드(테스트플랜 케이스 선택 등)에서는 케이스 체크가 필요하므로 항상 전체 모드
+  // 판정 규칙과 기본값은 treeViewMode.js 에 있다. 저장된 값이 없으면 케이스까지
+  // 보이는 전체 트리로 시작한다. 한 번 고른 모드는 그대로 기억한다.
   const [folderOnlyView, setFolderOnlyView] = useState(() => {
-    if (selectable) return false;
+    let stored = null;
     try {
-      return localStorage.getItem(TREE_VIEW_MODE_KEY) !== "all";
+      stored = localStorage.getItem(TREE_VIEW_MODE_KEY);
     } catch {
-      return true;
+      // localStorage 접근 불가 — 기본값으로 판정한다
     }
+    return resolveFolderOnlyView({ selectable, stored });
   });
 
   const handleToggleViewMode = useCallback(() => {
     setFolderOnlyView((prev) => {
       const next = !prev;
       try {
-        localStorage.setItem(TREE_VIEW_MODE_KEY, next ? "folders" : "all");
+        localStorage.setItem(TREE_VIEW_MODE_KEY, toStoredMode(next));
       } catch {
         // localStorage 접근 불가 시 세션 상태만 유지
       }

@@ -58,7 +58,7 @@ describe("PreviousResultsDialog 노트 마크다운", () => {
         onClose={vi.fn()}
       />,
     );
-    const root = document.querySelector(".wmde-markdown");
+    const root = document.querySelector(".markdown-body");
     expect(root).toBeTruthy();
     expect(root.style.whiteSpace).not.toBe("pre-wrap");
   });

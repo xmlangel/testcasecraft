@@ -16,6 +16,7 @@ import {
   GridOn as AdvancedGridIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { CHROME_ICON_SX } from "../common/iconSizes.js";
 
 const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
   const { t } = useI18n();
@@ -38,6 +39,7 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
       }}
     >
       <Box
+        sx={CHROME_ICON_SX}
         sx={{
           display: "flex",
           alignItems: "center",

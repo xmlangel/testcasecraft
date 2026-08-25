@@ -1,48 +1,79 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Box } from "@mui/material";
-import MDEditor from "@uiw/react-md-editor";
-import "@uiw/react-markdown-preview/markdown.css";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
+import rehypePrismPlus from "rehype-prism-plus";
+import { buildMarkdownSx } from "./markdownStyles.js";
+import { useScrollOverflow } from "../../hooks/useScrollOverflow.js";
+import ScrollHint from "./ScrollHint.jsx";
 
 /**
- * Markdown 렌더링 전용 뷰어 컴포넌트
- * 읽기 전용으로 Markdown 컨텐츠를 렌더링합니다.
+ * Markdown 렌더링 전용 뷰어. 이 프로젝트에서 마크다운을 화면에 그리는 정본이다.
+ *
+ * 전에는 @uiw/react-md-editor 의 MDEditor.Markdown 을 직접 호출하는 자리가
+ * 열 곳에 흩어져 있었고 각자 style prop 으로 배경·글자색을 따로 지정했다.
+ * 편집기를 Tiptap 으로 바꾸면서 렌더러도 react-markdown 하나로 모았다.
+ *
+ * rehypeRaw 로 본문의 HTML 을 살리고 rehypeSanitize 로 걸러낸다. 순서가 중요하다 —
+ * raw 가 HTML 을 트리에 넣은 뒤 sanitize 가 위험한 노드를 떼어낸다. sanitize 를
+ * 빼면 TC 본문에 심은 script·onerror 가 그대로 실행되고, 그 본문은 다른 사용자가
+ * 결과 화면에서 열어 본다.
  */
-const MarkdownViewer = ({ content, sx = {} }) => {
-  // 내용이 없으면 null 반환
+const MarkdownViewer = ({
+  content,
+  sx = {},
+  style,
+  emptyFallback = null,
+  disableHighlight = false,
+  "data-testid": dataTestId,
+}) => {
+  // 훅은 조건보다 먼저 부른다. early return 을 위에 두면 content 가 비었다가
+  // 채워질 때 훅 호출 순서가 달라져 React 가 오류를 낸다.
+  const scroll = useScrollOverflow();
+
+  const rehypePlugins = useMemo(
+    () =>
+      disableHighlight
+        ? [rehypeRaw, rehypeSanitize]
+        : [
+            rehypeRaw,
+            rehypeSanitize,
+            [rehypePrismPlus, { ignoreMissing: true }],
+          ],
+    [disableHighlight],
+  );
+
+  useEffect(() => {
+    scroll.measure();
+  }, [scroll, content]);
+
   if (!content || content.trim() === "") {
-    return null;
+    return emptyFallback;
   }
 
   return (
     <Box
+      ref={scroll.ref}
+      className="markdown-body"
+      data-testid={dataTestId}
       sx={{
-        "& .wmde-markdown": {
-          backgroundColor: "transparent",
-          color: "inherit",
-          fontSize: "inherit",
-        },
-        "& .wmde-markdown-var": {
-          display: "none",
-        },
-        // 문단 내 단일 줄바꿈은 보존하되(QA 가 Enter 로 입력한 줄),
-        // pre-wrap 을 루트가 아닌 블록 텍스트 요소에만 한정한다.
-        // 루트에 걸면 react-markdown 이 블록 사이에 넣는 개행 텍스트 노드까지
-        // 빈 줄로 렌더링되어 거대한 공백이 생긴다.
-        "& .wmde-markdown p, & .wmde-markdown li": {
-          whiteSpace: "pre-wrap",
-        },
+        ...buildMarkdownSx(),
+        // 호출부가 maxHeight 를 주면 이 요소가 스크롤 영역이 된다. 가려진 내용이
+        // 있으면 위·아래에 그라데이션을 얹는다. sx 를 뒤에 펼쳐 호출부가 원하면
+        // 덮어쓸 수 있게 둔다.
+        position: "relative",
         ...sx,
       }}
-      data-color-mode="light"
+      style={style}
     >
-      <MDEditor.Markdown
-        source={content}
-        style={{
-          backgroundColor: "transparent",
-          padding: 0,
-        }}
-      />
+      <ScrollHint {...scroll} position="top" />
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={rehypePlugins}>
+        {content}
+      </ReactMarkdown>
+      <ScrollHint {...scroll} position="bottom" />
     </Box>
   );
 };
@@ -50,6 +81,10 @@ const MarkdownViewer = ({ content, sx = {} }) => {
 MarkdownViewer.propTypes = {
   content: PropTypes.string,
   sx: PropTypes.object,
+  style: PropTypes.object,
+  emptyFallback: PropTypes.node,
+  disableHighlight: PropTypes.bool,
+  "data-testid": PropTypes.string,
 };
 
 export default MarkdownViewer;

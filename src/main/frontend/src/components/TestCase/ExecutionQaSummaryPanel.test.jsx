@@ -47,7 +47,7 @@ describe("ExecutionQaSummaryPanel (QA 총평)", () => {
         onSave={vi.fn()}
       />,
     );
-    const root = container.querySelector(".wmde-markdown");
+    const root = container.querySelector(".markdown-body");
     expect(root).toBeTruthy();
     expect(root.style.whiteSpace).not.toBe("pre-wrap");
   });
@@ -82,12 +82,15 @@ describe("ExecutionQaSummaryPanel (QA 총평)", () => {
       />,
     );
     fireEvent.click(screen.getAllByText("이 부분 수정")[1]);
+    // 편집기는 contenteditable 이라 value 가 없다. 올라간 내용은 본문 텍스트로 본다.
     const editor = screen.getByTestId("qa-summary-section-editor");
-    expect(editor.value).toBe("## 실패 분석\n- FAIL 3건");
-    expect(editor.value).not.toContain("# 총평");
+    expect(editor.textContent).toContain("실패 분석");
+    expect(editor.textContent).toContain("FAIL 3건");
+    expect(editor.textContent).not.toContain("총평");
+    expect(editor.textContent).not.toContain("안정적");
   });
 
-  it("구간을 저장하면 나머지 구간이 보존된 전체 마크다운을 넘긴다", async () => {
+  it("구간을 열어 저장하면 나머지 구간이 보존된 전체 마크다운을 넘긴다", async () => {
     const onSave = vi.fn().mockResolvedValue(true);
     render(
       <ExecutionQaSummaryPanel
@@ -101,14 +104,12 @@ describe("ExecutionQaSummaryPanel (QA 총평)", () => {
     );
 
     fireEvent.click(screen.getAllByText("이 부분 수정")[1]);
-    fireEvent.change(screen.getByTestId("qa-summary-section-editor"), {
-      target: { value: "## 실패 분석\n- FAIL 5건" },
-    });
     fireEvent.click(screen.getByTestId("qa-summary-section-save-button"));
 
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    // 한 구간만 열어 저장해도 나머지 구간이 사라지지 않고 전체가 넘어간다.
     expect(onSave).toHaveBeenCalledWith(
-      "# 총평\n안정적.\n\n## 실패 분석\n- FAIL 5건",
+      "# 총평\n안정적.\n\n## 실패 분석\n- FAIL 3건",
     );
   });
 
@@ -126,9 +127,6 @@ describe("ExecutionQaSummaryPanel (QA 총평)", () => {
     );
 
     fireEvent.click(screen.getAllByText("이 부분 수정")[1]);
-    fireEvent.change(screen.getByTestId("qa-summary-section-editor"), {
-      target: { value: "## 실패 분석\n- FAIL 5건" },
-    });
 
     // 다른 사람이 앞부분을 지워 같은 id 가 다른 구간을 가리키게 된 상태
     rerender(
@@ -148,9 +146,9 @@ describe("ExecutionQaSummaryPanel (QA 총평)", () => {
     );
     expect(onSave).not.toHaveBeenCalled();
     // 작성 중이던 내용은 편집기에 남아 있어야 한다
-    expect(screen.getByTestId("qa-summary-section-editor").value).toBe(
-      "## 실패 분석\n- FAIL 5건",
-    );
+    expect(
+      screen.getByTestId("qa-summary-section-editor").textContent,
+    ).toContain("실패 분석");
   });
 
   it("총평이 비어 있으면 안내 문구를 보여준다", () => {

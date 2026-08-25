@@ -493,7 +493,7 @@ function ChatMessage({
 
             {/* Message Text */}
             {isUser ? (
-              <Typography variant="body1">{message.content}</Typography>
+              <Typography variant="body2">{message.content}</Typography>
             ) : (
               <Box
                 sx={{

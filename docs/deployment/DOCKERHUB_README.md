@@ -1,3 +1,7 @@
+<!-- verify: ignore em-dash — 남은 em dash 12곳은 모두 영문 산문(Docker Hub 공개 소개문)이다. 전역 규칙은 영문을 대상에서 제외하며, 영어에서 em dash 는 정상 문장부호다. 한글 산문의 em dash 는 이 회차에 전부 제거했다. -->
+<!-- verify: ignore metaphor-swap — '비로소'(Philosophy 절)는 이 회차 이전에 저자가 쓴 브랜드 카피다. 최신화 범위가 아니라 원문을 보존한다. -->
+<!-- 완료 판정: verify_doc.sh 의 스캐너 검사는 위 두 family 를 제외할 수 없으므로, 이 문서는 `scan_ai_tells.py --family <위 둘 제외>` 로 0건을 확인했다. -->
+
 <div align="center">
   <img src="https://raw.githubusercontent.com/xmlangel/testcasecraft/master/docs/testcasecraft.jpg" width="600" alt="TestcaseCraft — Open Source Test Case Management Tool">
 
@@ -58,7 +62,7 @@ Create a `.env` file in the project root. Docker Compose loads it automatically 
 ```bash
 # 1. Create a .env file (see Configuration below)
 # 2. Start the containers
-docker compose up -d --build
+docker compose up -d
 ```
 
 ### Method B: Shell environment variables
@@ -66,7 +70,7 @@ docker compose up -d --build
 Useful for one-off tests or overriding settings. Takes precedence over the `.env` file.
 
 ```bash
-PROTOCOL=https DOMAIN=mydomain.com SERVER_PORT=443 docker compose up -d --build
+PROTOCOL=https DOMAIN=mydomain.com SERVER_PORT=443 docker compose up -d
 ```
 
 ### Method C: Separate env file (`--env-file`)
@@ -77,23 +81,35 @@ Use this to keep separate configurations for production, development, etc.
 docker compose --env-file myenvfile.env up -d --build
 ```
 
-Then open **http://localhost:8080** and log in with the default admin account.
+Then open **http://localhost:8080** and log in as `admin` (see [First login](#-first-login) for the password).
 
 | Service | URL | Description |
 | :--- | :--- | :--- |
 | **Application** | http://localhost:8080 | Main web app |
 | **App API Docs** | http://localhost:8080/swagger-ui.html | Backend API (Swagger) |
-| **RAG API Docs** | http://localhost:8001/docs | AI / RAG service API |
-| **MinIO Console** | http://localhost:9001 | File storage console |
+| **RAG API Docs** | http://127.0.0.1:8001/docs | AI / RAG service API — loopback only, no authentication |
+| **MinIO Console** | http://127.0.0.1:9001 | File storage console — loopback only |
 | **Health Check** | http://localhost:8080/actuator/health | Service status |
 
-### 👤 Default login
+### 👤 First login
 
-| Username | Password |
-| :--- | :--- |
-| `admin` | `admin123` |
+There is **no fixed default password.** On first start against an empty database the app creates a single `admin` account and takes the password from `TESTCASE_ADMIN_PASSWORD`.
 
-> ⚠️ **Security note:** Change the default password immediately after your first login.
+**Recommended** — set it in `.env` before the first start:
+
+```bash
+TESTCASE_ADMIN_PASSWORD=<your-strong-password>
+```
+
+**If you leave it empty**, a random password is generated and printed to the startup log **once**:
+
+```bash
+docker compose logs app | grep -A2 "admin 초기 비밀번호"
+```
+
+> ⚠️ The generated password appears only on that first run. Capture it, log in, and change it in the profile menu.
+
+> ⚠️ `admin123` only applies when `TESTCASE_INIT_ENABLED=true` (demo seed mode). **That mode deletes all existing data before seeding** — never enable it on an instance with real data.
 
 ---
 
@@ -225,7 +241,7 @@ TestcaseCraft는 유연한 설정을 위해 다양한 환경 변수 주입 방�
 ```
 # 1. .env 파일 작성 (하단의 Configuration 참조)
 # 2. 컨테이너 실행
-docker compose up -d --build
+docker compose up -d
 ```
 
 
@@ -233,7 +249,7 @@ docker compose up -d --build
 일시적인 테스트나 설정 오버라이딩이 필요할 때 유용합니다. .env 파일보다 우선순위가 높습니다.
 
 ```
-PROTOCOL=https DOMAIN=mydomain.com SERVER_PORT=443 docker compose up -d --build
+PROTOCOL=https DOMAIN=mydomain.com SERVER_PORT=443 docker compose up -d
 ```
 
 #### 방법 C: 별도 환경 파일 지정 (--env-file)
@@ -248,33 +264,48 @@ docker compose --env-file myenvfile.env up -d --build
 ## 🔌 Access & Credentials
 
 컨테이너가 정상적으로 실행된 후, 아래 정보를 통해 각 서비스와 데이터베이스에 접속할 수 있습니다.
-### 👤 Default Application Login
+### 👤 최초 로그인 계정
 
-시스템 최초 접속 시 사용되는 관리자 계정입니다.
+**고정된 기본 비밀번호는 없습니다.** 빈 데이터베이스로 처음 기동하면 `admin` 계정 하나가 만들어지고, 비밀번호는 `TESTCASE_ADMIN_PASSWORD` 값을 사용합니다.
 
-> ⚠️ **보안 주의:** 최초 로그인 후 반드시 비밀번호를 변경하시기 바랍니다.
+**권장:** 첫 기동 전에 `.env` 에 지정합니다.
 
-  * **Username:** `admin`
-  * **Password:** `admin123`
+```bash
+TESTCASE_ADMIN_PASSWORD=<강한 비밀번호>
+```
+
+**비워 두면** 무작위 비밀번호가 생성되어 기동 로그에 **1회만** 출력됩니다.
+
+```bash
+docker compose logs app | grep -A2 "admin 초기 비밀번호"
+```
+
+> ⚠️ 이 값은 최초 기동에만 나옵니다. 받아 적고 로그인한 뒤 프로필에서 변경합니다.
+
+> ⚠️ `admin123` 은 `TESTCASE_INIT_ENABLED=true`(시연 시딩 모드)에서만 쓰입니다. **그 모드는 시딩 전에 기존 데이터를 모두 삭제하므로** 실제 데이터가 있는 인스턴스에서는 켜지 않습니다.
 
 ### 🗄️ Database & Infrastructure Accounts
 
-개발, 디버깅 또는 외부 도구(DBeaver 등) 연결 시 사용하는 계정 정보입니다.
+개발·디버깅이나 외부 도구(DBeaver 등) 연결에 쓰는 계정입니다. 값은 `.env` 에서 오므로 아래 표는 `env_example` 기본값이며, 운영에서는 교체합니다.
+
+postgres·MinIO·RAG 포트는 `127.0.0.1` 에만 바인딩되어 호스트 밖에서는 닿지 않습니다. 원격에서 붙어야 하면 SSH 터널을 사용합니다 (`ssh -L 5434:127.0.0.1:5434 <remote>`).
 
 > v1.0.93부터 앱 DB와 RAG DB가 단일 PostgreSQL(pgvector) 인스턴스로 통합되었습니다 (호스트 포트 `5434` 하나).
 
 | Component | Host Port | Username | Password | Note |
 | :--- | :--- | :--- | :--- | :--- |
-| **PostgreSQL + pgvector (통합)** | `localhost:5434` | `testcase_user` (앱) / `rag_user` (RAG) | `testcase_password` / `rag_dev_password_123` | 단일 인스턴스가 앱 DB `testcase_management` + RAG DB `rag_db` 를 함께 호스팅 (pgvector, v18) |
-| **MinIO** | `localhost:9000` / `9001` | `minioadmin` | `minioadmin_dev_password_789` | S3 호환 스토리지 |
+| **PostgreSQL + pgvector (통합)** | `127.0.0.1:5434` | `testcase_user` (앱) / `rag_user` (RAG) | `testcase_password` / `rag_dev_password_123` | 단일 인스턴스가 앱 DB `testcase_management` + RAG DB `rag_db` 를 함께 호스팅 (pgvector, v18) |
+| **MinIO** | `127.0.0.1:9000` / `9001` | `minioadmin` | `minioadmin_dev_password_789` | S3 호환 스토리지 |
 
 
 ### Configuration
 
 
-✨ .env sample 
+✨ `.env` sample
 
-```
+저장소 루트의 `env_example` 을 그대로 옮긴 것입니다. 복사해서 `docker-compose-build/.env` 로 두고 값을 채웁니다.
+
+```bash
 # Protocol Configuration (http or https)
 PROTOCOL=http
 
@@ -316,11 +347,11 @@ LOGGING_LEVEL_COM_TESTCASE=INFO
 LOGGING_LEVEL_ROOT=WARN
 
 # Frontend API Configuration
-REACT_APP_API_BASE_URL=http://:localhost:8080
+REACT_APP_API_BASE_URL=http://localhost:8080
 
 DOCUMENT_PARSER=pymupdf4llm
 
-# Upstage API Key 
+# Upstage API Key
 UPSTAGE_API_KEY=up
 
 TESTCASE_INIT_ENABLED=false
@@ -331,54 +362,78 @@ MINIO_SECRET_KEY=minioadmin_dev_password_789
 # RAG Database Configuration
 POSTGRES_RAG_PASSWORD=rag_dev_password_123
 
-# Encryption Configuration (AES-256, 32-byte Base64)
-# Encrypts LLM API keys, Jira API tokens, mail passwords and Google service account JSON.
-# Generate: openssl rand -base64 32
-# Without a value, none of the above can be saved (the prod profile has no default).
-JIRA_ENCRYPTION_KEY=
-
+# 저장하는 비밀값을 암호화하는 키 (AES-256, 32바이트 Base64)
+#
+# 이름은 JIRA 인데 실제로는 넷을 함께 암호화한다.
+#   - LLM API Key (LLM 설정)
+#   - Jira API 토큰
+#   - 메일 비밀번호
+#   - Google 서비스 계정 JSON
+#
+# prod 프로파일은 기본값을 두지 않으므로 이 값이 없으면 위 넷을 저장할 수 없다.
+# 다시 만들려면: openssl rand -base64 32
+#
+# 키를 바꾸면 이미 저장된 값을 복호화할 수 없어 모두 다시 입력해야 한다.
+JIRA_ENCRYPTION_KEY=MQCS2AMZreQaJPwoo7CSe6EZexRseE2ctXvvtMCOgaI=
 ```
 
-✨ Docker Compose sample(docker-compose.yml)
+**필수 값.** 없으면 컨테이너가 뜨지 않거나 기능이 막힙니다.
 
-```
+| 변수 | 미설정 시 |
+| :--- | :--- |
+| `MINIO_SECRET_KEY` | compose 의 `:?` 검사에 걸려 app·rag-service 기동 거부 |
+| `JIRA_ENCRYPTION_KEY` | 앱은 뜨지만 LLM API 키·Jira 토큰·메일 비밀번호·Google 서비스 계정 JSON 을 저장할 수 없음 |
+| `POSTGRES_PASSWORD` · `POSTGRES_RAG_PASSWORD` | DB 인증 실패 |
+| `REACT_APP_API_BASE_URL` | 브라우저 주소와 다르면 로그인·회원가입이 `Failed to fetch` 로 실패 |
+
+**앱이 읽지 않는 변수.** `env_example` 에 남아 있지만 현재 코드 경로에서 소비되지 않습니다. 값을 넣어도 동작이 바뀌지 않습니다.
+
+| 변수 | 이유 |
+| :--- | :--- |
+| `SERVER_SSL_ENABLED`, `SSL_KEYSTORE_*` | compose 가 앱 컨테이너에 전달하지 않고 `application-prod.yml` 에 `server.ssl` 블록도 없습니다. TLS 는 리버스 프록시에서 종료시킵니다 |
+| `JWT_EXPIRATION` | 컨테이너는 `prod` 프로파일로 뜨고, prod 는 **`JWT_ACCESS_EXPIRATION`** 을 읽습니다. prod 기본값은 access 1시간 · refresh 90일입니다 |
+
+운영 배포에서 함께 확인할 보안 환경변수(CORS 허용 오리진, 레이트 리밋의 프록시 헤더 신뢰, Jira SSRF 가드)는 [`docs/SECURITY_DEPLOYMENT_ENV.md`](../SECURITY_DEPLOYMENT_ENV.md) 에 정리되어 있습니다.
+
+✨ Docker Compose (`docker-compose.yml`)
+
+저장소의 `docker-compose-build/docker-compose.yml` 을 그대로 옮긴 것입니다. 이미지 태그·바인드 마운트·포트 바인딩·하드닝 설정이 실제 배포와 같습니다.
+
+```yaml
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:latest
+    image: xmlangel/testcasecraft:1.0.120
     container_name: testcasecraft
     environment:
       # Spring Profile
       - SPRING_PROFILES_ACTIVE=prod
-      
+
       # Protocol and Domain Configuration
       - PROTOCOL=${PROTOCOL}
       - DOMAIN=${DOMAIN}
-      
+
       # Server Configuration
       - SERVER_PORT=${SERVER_PORT}
-      
-      # SSL Configuration (only when HTTPS)
-      - SERVER_SSL_ENABLED=${SERVER_SSL_ENABLED}
-      - SERVER_SSL_KEYSTORE=${SSL_KEYSTORE_PATH}
-      - SERVER_SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD}
-      - SERVER_SSL_KEYSTORE_TYPE=${SSL_KEYSTORE_TYPE}
-      
+
       # Database Configuration
       - DATABASE_URL=${DATABASE_URL}
       - DATABASE_USERNAME=${POSTGRES_USER}
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
-      
+
       # JWT Configuration
-      - JWT_SECRET=${JWT_SECRET}
+      # JWT_SECRET 미설정 시 컨테이너가 자동 생성 후 /app/data/jwt-secret 에 영속화
+      - JWT_SECRET=${JWT_SECRET:-}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
 
-      # Encryption key for stored secrets (LLM API keys, Jira tokens, mail passwords, Google JSON)
+      # 저장하는 비밀값을 암호화하는 키 (LLM API Key · Jira 토큰 · 메일 비밀번호 · Google JSON)
+      # prod 프로파일은 기본값을 두지 않으므로 없으면 위 넷을 저장할 수 없다.
       - JIRA_ENCRYPTION_KEY=${JIRA_ENCRYPTION_KEY:-}
-      
+
       # Application Configuration
       - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      - SHOW_EXPLORATORY_SESSION_TAB=${SHOW_EXPLORATORY_SESSION_TAB:-false}
 
       - SPRING_JPA_SHOW_SQL=false
       - LOGGING_LEVEL_COM_TESTCASE=INFO
@@ -387,9 +442,12 @@ services:
       - TESTCASE_INIT_ENABLED=${TESTCASE_INIT_ENABLED:-false}
 
       # MinIO Configuration (TestCase Attachments)
+      # MINIO_ACCESS_KEY 는 .env 로 교체 가능하게 뺐다. 기본값은 기존 동작 유지를 위해
+      # minioadmin — 기존 .env 에 이 변수가 없어도 그대로 뜬다.
+      # 운영에서는 .env 에 고유 값을 넣고, 가능하면 root 대신 버킷 범위 서비스 계정을 쓸 것.
       - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:?MINIO_SECRET_KEY 를 .env 에 설정하세요}
       - MINIO_TESTCASE_BUCKET=testcase-attachments
       - MINIO_SECURE=false
 
@@ -398,15 +456,15 @@ services:
       - MAIL_PASSWORD=${MAIL_PASSWORD:-}
       - MAIL_HOST=${MAIL_HOST:-localhost}
       - MAIL_PORT=${MAIL_PORT:-587}
-      
+
       # Frontend API Configuration
       - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL:-http://localhost:8080}
     ports:
       - "${HTTP_PORT}:${SERVER_PORT}"
       - "${HTTPS_PORT}:${SERVER_PORT}"
     volumes:
-      - ./logs:/app/logs
-      - ./ssl:/app/ssl:ro
+      # 자동 생성된 JWT_SECRET 영속화 (컨테이너 재생성에도 세션 유지)
+      - ./data/app:/app/data
     networks:
       - testcasecraft-network
     depends_on:
@@ -415,26 +473,45 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f -k ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1"]
+      # busybox wget 사용 (1.0.84+ 이미지는 보안상 curl 미포함)
+      #
+      # 이전에는 ${PROTOCOL} 을 그대로 썼는데, 그건 사용자가 *밖에서* 접속하는
+      # 스킴이라 PROTOCOL=https 인 배포에서는 평문 SERVER_PORT 에 TLS 로 붙어
+      # 앱이 정상 기동해도 항상 unhealthy 였다:
+      #   SSL routines:tls_validate_record_header:wrong version number
+      # 컨테이너 내부 프로브는 스킴을 가정하지 말고 http → https 로 폴백한다.
+      #
+      # 이 오버라이드는 구버전 이미지 호환에도 필요하다 — 1.0.99 이하의 내장
+      # HEALTHCHECK 는 80/443 이 하드코딩돼 있어 SERVER_PORT=8080 이면 항상 실패한다.
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://localhost:${SERVER_PORT}/actuator/health || wget -q --no-check-certificate -O /dev/null https://localhost:${SERVER_PORT}/actuator/health || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-    restart: unless-stopped
-    platform: linux/amd64
-  
+    # 컨테이너 하드닝: setuid 권한상승 차단 + 모든 리눅스 capability 제거
+    # (앱은 8080 비특권 포트로 뜨므로 NET_BIND_SERVICE 도 필요 없다)
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: always
+
   # FastAPI RAG Service
   rag-service:
-    image: xmlangel/testcasecraft-rag-service:latest
+    image: xmlangel/testcasecraft-rag-service:1.0.11
     container_name: testcasecraft-rag-service
     environment:
-      # Database
+      # Database (통합 단일 PostgreSQL 인스턴스의 rag_db 를 사용)
       DATABASE_URL: postgresql://rag_user:${POSTGRES_RAG_PASSWORD}@postgres:5432/rag_db
 
       # MinIO (Docker Compose MinIO 사용)
       MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY 를 .env 에 설정하세요}
       MINIO_BUCKET: rag-documents
       MINIO_SECURE: "false"
 
@@ -444,13 +521,16 @@ services:
       DOCUMENT_PARSER: ${DOCUMENT_PARSER:-pymupdf4llm}
 
       # Upstage API (not used when using pymupdf4llm)
-      UPSTAGE_API_KEY: ${UPSTAGE_API_KEY:-your_upstage_api_key}
+      UPSTAGE_API_KEY: ${UPSTAGE_API_KEY:-}
 
       # Application
-      APP_ENV: development
-      LOG_LEVEL: DEBUG
+      # DEBUG 로그는 DB URL·MinIO 키가 섞인 커넥션 문자열까지 남기므로 운영은 INFO.
+      APP_ENV: ${RAG_APP_ENV:-production}
+      LOG_LEVEL: ${RAG_LOG_LEVEL:-INFO}
+    # 8001 은 앱이 내부 네트워크(http://rag-service:8000)로만 쓴다.
+    # 외부 노출 없이 루프백에만 바인딩 — 인증 없는 /docs·/redoc 이 열려 있다.
     ports:
-      - "8001:8000"
+      - "${INTERNAL_BIND_ADDR:-127.0.0.1}:8001:8000"
     networks:
       - testcasecraft-network
     depends_on:
@@ -458,11 +538,19 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # command 오버라이드 제거: --reload(개발용 오토리로더)는 코드 마운트도 없는
+    # 운영 컨테이너에서 파일 감시 프로세스만 늘리고 이미지 CMD 를 덮어썼다.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: always
 
   # PostgreSQL 18 with pgvector — 통합 단일 인스턴스
   #   - testcase_management (앱 DB, testcase_user)
   #   - rag_db (RAG 벡터 DB, rag_user) : init-scripts 가 최초 기동 시 자동 생성
+  # 신규 배포는 init-scripts 로 rag_db 가 자동 생성되고, 기존 배포는
+  # scripts/migrate-consolidate-db.sh 로 rag_db 데이터를 이관한다.
   postgres:
     image: pgvector/pgvector:pg18
     container_name: testcasecraft-postgres
@@ -472,8 +560,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       # 최초 기동 시 rag_user/rag_db 생성에 사용 (init-scripts/01-init-rag.sh)
       POSTGRES_RAG_PASSWORD: ${POSTGRES_RAG_PASSWORD}
+    # 앱·RAG 는 같은 도커 네트워크로 붙으므로 포트 퍼블리시는 로컬 관리용일 뿐이다.
+    # 0.0.0.0 바인딩은 호스트 방화벽을 우회(docker 가 iptables 를 직접 조작)하므로
+    # 루프백으로 제한한다. 원격 접속은 SSH 터널을 쓸 것.
     ports:
-      - "5434:5432"
+      - "${INTERNAL_BIND_ADDR:-127.0.0.1}:5434:5432"
     volumes:
       - ./data/postgres:/var/lib/postgresql
       - ./init-scripts:/docker-entrypoint-initdb.d
@@ -484,27 +575,53 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # postgres 엔트리포인트가 데이터 디렉터리 소유권 조정 후 postgres 유저로
+    # 내려가는 데 필요한 최소 capability 만 되돌린다.
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    restart: always
 
-# MinIO Object Storage (RAG)
+  # MinIO Object Storage — 앱/RAG 공용 단일 인스턴스
+  #   - testcase-attachments 버킷 (앱 첨부파일)
+  #   - rag-documents 버킷 (RAG 문서)
   minio:
-    image: minio/minio:latest
+    # :latest 대신 릴리스 고정 — 재기동마다 다른 바이너리가 내려오는 것을 막고
+    # 취약점 스캔 결과를 특정 다이제스트에 귀속시킨다.
+    image: minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2025-09-07T16-13-09Z}
     container_name: testcasecraft-minio
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY 를 .env 에 설정하세요}
+      # 콘솔은 브라우저에서만 쓰므로 CSRF/Origin 검사를 위해 접근 URL 을 고정
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_CONSOLE_URL:-http://127.0.0.1:9001}
+    # S3 API·콘솔 모두 루프백 전용. 앱/RAG 는 내부 네트워크(minio:9000)로 접근한다.
     ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console
+      - "${INTERNAL_BIND_ADDR:-127.0.0.1}:9000:9000" # API
+      - "${INTERNAL_BIND_ADDR:-127.0.0.1}:9001:9001" # Console
     volumes:
       - ./data/minio:/data
     networks:
       - testcasecraft-network
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      # minio 이미지에는 curl 이 없다 — 번들된 mc 로 체크
+      test: ["CMD", "mc", "ready", "local"]
       interval: 10s
       timeout: 5s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: always
 
 networks:
   testcasecraft-network:
