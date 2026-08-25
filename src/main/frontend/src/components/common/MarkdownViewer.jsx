@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Box } from "@mui/material";
 import ReactMarkdown from "react-markdown";
@@ -7,6 +7,8 @@ import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import rehypePrismPlus from "rehype-prism-plus";
 import { buildMarkdownSx } from "./markdownStyles.js";
+import { useScrollOverflow } from "../../hooks/useScrollOverflow.js";
+import ScrollHint from "./ScrollHint.jsx";
 
 /**
  * Markdown 렌더링 전용 뷰어. 이 프로젝트에서 마크다운을 화면에 그리는 정본이다.
@@ -30,6 +32,8 @@ const MarkdownViewer = ({
 }) => {
   // 훅은 조건보다 먼저 부른다. early return 을 위에 두면 content 가 비었다가
   // 채워질 때 훅 호출 순서가 달라져 React 가 오류를 낸다.
+  const scroll = useScrollOverflow();
+
   const rehypePlugins = useMemo(
     () =>
       disableHighlight
@@ -42,20 +46,34 @@ const MarkdownViewer = ({
     [disableHighlight],
   );
 
+  useEffect(() => {
+    scroll.measure();
+  }, [scroll, content]);
+
   if (!content || content.trim() === "") {
     return emptyFallback;
   }
 
   return (
     <Box
+      ref={scroll.ref}
       className="markdown-body"
       data-testid={dataTestId}
-      sx={{ ...buildMarkdownSx(), ...sx }}
+      sx={{
+        ...buildMarkdownSx(),
+        // 호출부가 maxHeight 를 주면 이 요소가 스크롤 영역이 된다. 가려진 내용이
+        // 있으면 위·아래에 그라데이션을 얹는다. sx 를 뒤에 펼쳐 호출부가 원하면
+        // 덮어쓸 수 있게 둔다.
+        position: "relative",
+        ...sx,
+      }}
       style={style}
     >
+      <ScrollHint {...scroll} position="top" />
       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={rehypePlugins}>
         {content}
       </ReactMarkdown>
+      <ScrollHint {...scroll} position="bottom" />
     </Box>
   );
 };

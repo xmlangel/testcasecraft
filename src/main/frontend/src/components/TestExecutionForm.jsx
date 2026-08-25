@@ -62,6 +62,10 @@ import TestExecutionFilterPanel from "./TestExecution/TestExecutionFilterPanel.j
 import PreviousResultsDialog from "./TestExecution/PreviousResultsDialog.jsx";
 import BulkResultDialog from "./TestExecution/BulkResultDialog.jsx";
 import {
+  IN_PROGRESS_CHIP_WITH_ICON_SX,
+  isInProgressStatus,
+} from "./common/inProgressPulse.js";
+import {
   getLatestResults,
   parseDateTime,
   saveFilteredNavIds,
@@ -1433,15 +1437,36 @@ const TestExecutionForm = ({
                 <Chip
                   label={execution.status}
                   size="small"
+                  icon={
+                    isInProgressStatus(execution.status) ? (
+                      <CircularProgress
+                        size={9}
+                        thickness={7}
+                        color="inherit"
+                      />
+                    ) : undefined
+                  }
                   color={
                     execution.status === ExecutionStatus.COMPLETED
                       ? "success"
-                      : execution.status === ExecutionStatus.INPROGRESS
-                        ? "primary"
+                      : isInProgressStatus(execution.status)
+                        ? "warning"
                         : "default"
                   }
-                  variant="outlined"
-                  sx={{ height: 20, fontSize: "0.7rem", fontWeight: "bold" }}
+                  variant={
+                    execution.status === ExecutionStatus.COMPLETED ||
+                    isInProgressStatus(execution.status)
+                      ? "filled"
+                      : "outlined"
+                  }
+                  sx={{
+                    height: 20,
+                    fontSize: "0.7rem",
+                    fontWeight: "bold",
+                    ...(isInProgressStatus(execution.status)
+                      ? IN_PROGRESS_CHIP_WITH_ICON_SX
+                      : {}),
+                  }}
                 />
                 <Typography variant="caption" color="text.secondary">
                   {t("testExecution.progress", "진행률")}: {progress}%

@@ -1921,6 +1921,9 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.markdown.orderedList", languageCode, "Numbered list", createdBy);
     createTranslationIfNotExists("testcase.markdown.taskList", languageCode, "Checklist", createdBy);
     createTranslationIfNotExists("testcase.markdown.table", languageCode, "Insert table", createdBy);
+
+    // Tree header selection English
+    createTranslationIfNotExists("testcase.tree.selectedCount", languageCode, "Selected", createdBy);
     createTranslationIfNotExists("testcase.notes.edit", languageCode, "Edit notes", createdBy);
     createTranslationIfNotExists("testcase.notes.viewOnly", languageCode, "View only", createdBy);
     createTranslationIfNotExists("testcase.notes.fullscreen", languageCode, "Fullscreen", createdBy);

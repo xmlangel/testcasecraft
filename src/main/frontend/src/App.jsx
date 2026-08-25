@@ -166,6 +166,7 @@ const TRACKED_PAGE_PATHS = [
   "/llm-config",
   "/projectdashboard",
 ];
+import { CHROME_ICON_SX } from "./components/common/iconSizes.js";
 import {
   getDynamicApiUrl,
   getShowExploratorySessionTab,
@@ -999,6 +1000,7 @@ const AppContent = () => {
           {/* 사용자 매뉴얼 (한/영) — 새 탭으로 열기 */}
           <Box sx={{ ml: 1 }}>
             <IconButton
+              sx={CHROME_ICON_SX}
               color="inherit"
               onClick={() => window.open("/manual", "_blank")}
               aria-label="user manual"
@@ -1012,6 +1014,7 @@ const AppContent = () => {
           {/* 네비게이션 구조 전환 (가로 탭 ↔ 좌측 사이드바) */}
           <Box sx={{ ml: 1 }}>
             <IconButton
+              sx={CHROME_ICON_SX}
               color="inherit"
               onClick={toggleNavMode}
               aria-label="toggle navigation layout"

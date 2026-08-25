@@ -1367,6 +1367,9 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.markdown.orderedList", languageCode, "번호 목록", createdBy);
     createTranslationIfNotExists("testcase.markdown.taskList", languageCode, "체크리스트", createdBy);
     createTranslationIfNotExists("testcase.markdown.table", languageCode, "표 넣기", createdBy);
+
+    // 트리 머리 선택 상태 한글
+    createTranslationIfNotExists("testcase.tree.selectedCount", languageCode, "선택", createdBy);
     createTranslationIfNotExists("testcase.notes.edit", languageCode, "비고 수정", createdBy);
     createTranslationIfNotExists("testcase.notes.viewOnly", languageCode, "보기 모드", createdBy);
     createTranslationIfNotExists("testcase.notes.fullscreen", languageCode, "전체화면", createdBy);

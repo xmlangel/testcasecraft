@@ -44,6 +44,7 @@ import {
 } from "../../utils/treeUtils.jsx";
 import NoSelectionPlaceholder from "../common/NoSelectionPlaceholder.jsx";
 import useBookmarks from "../../hooks/useBookmarks.js";
+import { CHROME_ICON_SX } from "../common/iconSizes.js";
 
 const TestCaseHybridForm = ({
   testCaseId,
@@ -359,7 +360,7 @@ const TestCaseHybridForm = ({
   };
 
   return (
-    <Box>
+    <Box sx={CHROME_ICON_SX}>
       {/* 선택 항목 경로 브레드크럼 (조상 폴더 클릭 시 해당 폴더로 이동) */}
       {breadcrumbItems.length > 0 && (
         <Breadcrumbs

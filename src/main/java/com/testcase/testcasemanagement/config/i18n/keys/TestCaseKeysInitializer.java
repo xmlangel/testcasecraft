@@ -1779,6 +1779,9 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("testcase.markdown.orderedList", "testcase", "마크다운 툴바 번호 목록 버튼 툴팁", "번호 목록");
     createTranslationKeyIfNotExists("testcase.markdown.taskList", "testcase", "마크다운 툴바 체크리스트 버튼 툴팁", "체크리스트");
     createTranslationKeyIfNotExists("testcase.markdown.table", "testcase", "마크다운 툴바 표 넣기 버튼 툴팁", "표 넣기");
+
+    // 트리 머리 선택 상태 문구
+    createTranslationKeyIfNotExists("testcase.tree.selectedCount", "testcase", "트리 머리에서 고른 항목 수 앞에 붙는 말", "선택");
     createTranslationKeyIfNotExists("testcase.notes.edit", "testcase", "비고 편집 모드 전환 버튼 툴팁", "비고 수정");
     createTranslationKeyIfNotExists("testcase.notes.viewOnly", "testcase", "비고 보기 모드 전환 버튼 툴팁", "보기 모드");
     createTranslationKeyIfNotExists("testcase.notes.fullscreen", "testcase", "비고 전체화면 버튼 툴팁", "전체화면");

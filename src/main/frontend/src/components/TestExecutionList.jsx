@@ -45,6 +45,7 @@ import { useTranslation } from "../context/I18nContext.jsx";
 import { ExecutionStatus } from "../models/testExecution.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
 import { canEditProjectContent } from "./TestCaseTree/utils/permissionUtils.js";
+import { IN_PROGRESS_CHIP_WITH_ICON_SX } from "./common/inProgressPulse.js";
 
 const EXECUTIONS_PER_PAGE = 5;
 // 리스트를 보고 있는 동안 진행률/상태를 자동 갱신하는 폴링 주기(ms)
@@ -337,15 +338,17 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
             icon={<ScheduleIcon />}
             label={t("testExecution.status.notStarted")}
             color="default"
+            variant="outlined"
           />
         );
       case ExecutionStatus.INPROGRESS:
         return (
           <Chip
             size="small"
-            icon={<PlayArrowIcon />}
+            icon={<CircularProgress size={11} thickness={6} color="inherit" />}
             label={t("testExecution.status.inProgress")}
-            color="primary"
+            color="warning"
+            sx={IN_PROGRESS_CHIP_WITH_ICON_SX}
           />
         );
       case ExecutionStatus.COMPLETED:

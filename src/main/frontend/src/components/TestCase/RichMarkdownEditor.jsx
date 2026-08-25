@@ -27,6 +27,8 @@ import {
   TableHeader,
 } from "@tiptap/extension-table";
 import { computeMarkdownEditorHeight } from "../../utils/markdownEditorHeight.js";
+import { useScrollOverflow } from "../../hooks/useScrollOverflow.js";
+import ScrollHint from "../common/ScrollHint.jsx";
 
 /**
  * Tiptap 기반 리치 마크다운 필드 에디터.
@@ -158,6 +160,14 @@ const RichMarkdownEditor = ({
     floor,
     computeMarkdownEditorHeight(value, { maxLines }),
   );
+
+  // 내용이 상한을 넘으면 위·아래에 그라데이션을 얹어 가려진 부분이 있음을 알린다.
+  const scroll = useScrollOverflow();
+
+  // ResizeObserver 가 없는 환경에서도 값이 바뀌면 최소한 한 번은 다시 재도록 한다.
+  useEffect(() => {
+    scroll.measure();
+  }, [scroll, value, minHeight]);
 
   const isDark = theme?.palette?.mode === "dark";
   const borderColor = error ? theme.palette.error.main : theme.palette.divider;
@@ -310,7 +320,9 @@ const RichMarkdownEditor = ({
         )}
 
         <Box
+          ref={scroll.ref}
           sx={{
+            position: "relative",
             minHeight,
             maxHeight: minHeight,
             overflowY: "auto",
@@ -337,6 +349,16 @@ const RichMarkdownEditor = ({
               lineHeight: 1.3,
             },
             "& .rich-markdown-surface p": { margin: "0.35em 0" },
+            /*
+             * 첫·마지막 블록의 바깥 여백을 없앤다.
+             *
+             * 본문에 패딩이 없어 마지막 문단의 아래 여백이 밖으로 새어 나와 스크롤
+             * 높이에 더해진다. 실측에서 내용이 한 줄뿐인데도 상자가 정확히 5px
+             * 넘쳤고(171 대 166, 105 대 100), 그만큼이 넘침으로 판정되어 가려진
+             * 내용이 없는데도 스크롤 표시가 붙었다.
+             */
+            "& .rich-markdown-surface > :first-child": { marginTop: 0 },
+            "& .rich-markdown-surface > :last-child": { marginBottom: 0 },
             "& .rich-markdown-surface ul, & .rich-markdown-surface ol": {
               paddingLeft: "1.4em",
               margin: "0.35em 0",
@@ -399,7 +421,9 @@ const RichMarkdownEditor = ({
             },
           }}
         >
+          <ScrollHint {...scroll} position="top" />
           <EditorContent editor={editor} />
+          <ScrollHint {...scroll} position="bottom" />
         </Box>
       </Box>
 
