@@ -224,7 +224,7 @@ function ExploratorySessionListTab({
         {!sessionsLoading && filteredSessions.length === 0 && (
           <Grid size={12}>
             <Box sx={{ py: 8, textAlign: "center", opacity: 0.6 }}>
-              <Typography variant="body1">
+              <Typography variant="body2">
                 {t("exploratory.session.empty", "조건에 맞는 세션이 없습니다.")}
               </Typography>
             </Box>

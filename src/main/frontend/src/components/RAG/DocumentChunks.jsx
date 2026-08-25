@@ -873,7 +873,7 @@ function DocumentChunks({
 
           {!loading && !error && chunks.length === 0 && (
             <Box sx={{ textAlign: "center", py: 4 }}>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body2" color="text.secondary">
                 {t(
                   "rag.chunks.empty",
                   "청크가 없습니다. 문서를 먼저 분석해주세요.",

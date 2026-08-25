@@ -551,7 +551,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         {/* 요약 목록 테이블 */}
         {documentSummaries.length === 0 ? (
           <Box sx={{ textAlign: "center", py: 4 }}>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body2" color="text.secondary">
               {t("rag.summary.empty", "LLM 분석이 완료된 문서가 없습니다.")}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>

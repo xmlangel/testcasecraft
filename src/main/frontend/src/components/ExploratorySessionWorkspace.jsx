@@ -30,6 +30,7 @@ import ExploratorySessionListTab from "./exploratory/ExploratorySessionListTab.j
 import ExploratorySessionEditorTab from "./exploratory/ExploratorySessionEditorTab.jsx";
 import ExploratoryDebriefTab from "./exploratory/ExploratoryDebriefTab.jsx";
 import ExploratoryDetailTab from "./exploratory/ExploratoryDetailTab.jsx";
+import { FORM_LABEL_TYPOGRAPHY } from "../styles/layoutConstants";
 
 const formatSeconds = (seconds) => {
   const hh = String(Math.floor(seconds / 3600)).padStart(2, "0");
@@ -1044,6 +1045,7 @@ function ExploratorySessionWorkspace({ projectId }) {
   return (
     <Paper
       sx={{
+        ...FORM_LABEL_TYPOGRAPHY,
         p: 0,
         minHeight: "calc(100vh - 160px)",
         background: isGlass

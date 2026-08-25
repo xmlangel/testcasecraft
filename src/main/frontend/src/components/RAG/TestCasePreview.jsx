@@ -143,7 +143,7 @@ function TestCasePreview({ testCaseData, projectId, onSuccess }) {
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
             {t("testcase.field.name", "테스트케이스명")}
           </Typography>
-          <Typography variant="body1" sx={{ fontWeight: "medium", mb: 2 }}>
+          <Typography variant="body2" sx={{ fontWeight: "medium", mb: 2 }}>
             {testCaseData.name}
           </Typography>
 

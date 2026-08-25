@@ -32,6 +32,7 @@ import { useThreadManagement } from "./hooks/useThreadManagement.js";
 import { useLlmConfigManagement } from "./hooks/useLlmConfigManagement.js";
 import { useChatSender } from "./hooks/useChatSender.js";
 import { debugLog } from "../../utils/logger.js";
+import { FORM_LABEL_TYPOGRAPHY } from "../../styles/layoutConstants";
 
 /**
  * RAG 채팅 인터페이스 컴포넌트
@@ -834,11 +835,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             <SettingsIcon
               sx={{ fontSize: 80, color: "text.secondary", mb: 2 }}
             />
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="h6" gutterBottom>
               {t("rag.chat.llmNotConfigured", "기본 LLM 설정이 필요합니다")}
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               color="text.secondary"
               sx={{ mb: 3, maxWidth: 500 }}
             >
@@ -874,7 +875,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             }}
           >
             <CircularProgress size={40} sx={{ mb: 2 }} />
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body2" color="text.secondary">
               {t("rag.chat.checkingLlm", "LLM 설정 확인 중...")}
             </Typography>
           </Box>
@@ -1014,6 +1015,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       <Paper
         elevation={2}
         sx={{
+          ...FORM_LABEL_TYPOGRAPHY,
           height: "600px",
           display: "flex",
           flexDirection: "column",

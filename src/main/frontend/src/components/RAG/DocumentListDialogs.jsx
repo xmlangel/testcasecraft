@@ -98,7 +98,7 @@ function DocumentListDialogs({
           {t("rag.document.global.promoteTitle", "공통 문서로 이동")}
         </DialogTitle>
         <DialogContent dividers>
-          <Typography variant="body1" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ mb: 2 }}>
             {t(
               "rag.document.global.promoteDescription",
               "선택한 문서를 모든 프로젝트에서 참조할 수 있는 공통 RAG 문서로 이동합니다.",
@@ -142,7 +142,7 @@ function DocumentListDialogs({
           {t("rag.document.global.requestTitle", "공통 문서 등록 요청")}
         </DialogTitle>
         <DialogContent dividers>
-          <Typography variant="body1" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ mb: 2 }}>
             {t(
               "rag.document.global.requestDescription",
               "관리자에게 이 문서를 공통 RAG 문서로 등록해달라고 요청합니다.",

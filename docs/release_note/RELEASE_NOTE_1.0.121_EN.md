@@ -108,6 +108,12 @@ Icon sizes in the app chrome came in three flavors: 24px for bookmarks and setti
 
 Everything is 18px now: top bar, breadcrumb, tree header, left menu, and the individual-form/spreadsheet switcher.
 
+#### 🔤 Text sizes on the RAG and exploratory screens now match the rest
+
+Those two screens looked oversized. Switch, checkbox, and input labels used the 16px default, and nineteen places specified 16px body text. Everywhere else uses 14px.
+
+They are 14px now, and RAG section headings dropped from 24px to 20px to match the heading level used elsewhere. Measured, the share of text at 16px or larger went from 38% to 24% on RAG and from 32% to 21% on the exploratory screen; what remains is the breadcrumb and page title that every screen has.
+
 #### 🧹 Removed a JIRA integration error message
 
 Opening a screen without a configured JIRA server printed an error in the browser console. Not configuring it is a normal state, yet it looked like a failure. Nothing on screen was affected.

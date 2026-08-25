@@ -200,7 +200,7 @@ function ExploratoryDetailTab({
                         <PersonIcon
                           sx={{ fontSize: 18, color: "primary.light" }}
                         />
-                        <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
                           {session.tester}
                         </Typography>
                       </Stack>
@@ -218,7 +218,7 @@ function ExploratoryDetailTab({
                         <TimeIcon
                           sx={{ fontSize: 18, color: "warning.light" }}
                         />
-                        <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
                           {session.durationMin} min
                         </Typography>
                       </Stack>
@@ -232,7 +232,7 @@ function ExploratoryDetailTab({
                       >
                         {t("exploratory.editor.field.version", "버전")}
                       </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
                         {raw.productVersion || "N/A"}
                       </Typography>
                     </Stack>
@@ -246,7 +246,7 @@ function ExploratoryDetailTab({
                         {t("exploratory.editor.field.environment", "환경")}
                       </Typography>
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{ fontWeight: 700, noWrap: true }}
                       >
                         {raw.environmentSummary || "Default"}

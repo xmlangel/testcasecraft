@@ -229,3 +229,20 @@ export const CHROME_TYPOGRAPHY = {
     lineHeight: 1.5,
   },
 };
+
+/**
+ * 폼 컨트롤 라벨의 글자 규격 (한 곳에서 정의).
+ *
+ * MUI 의 기본 라벨은 body1(16px)이라 화면 대부분이 쓰는 14px 보다 크다. 대부분 화면은
+ * size="small" 이나 body2 로 낮춰 쓰고 있었는데, RAG 화면만 기본값을 그대로 써서
+ * 글자가 유독 커 보였다(실측: 같은 화면에서 16px 열 곳, 테스트케이스 화면은 네 곳).
+ *
+ * 컨테이너에 한 번 얹어 그 안의 스위치·체크박스 라벨과 입력 라벨을 함께 맞춘다.
+ * 컴포넌트마다 손으로 적으면 한쪽만 바뀌어 다시 어긋난다.
+ */
+export const FORM_LABEL_TYPOGRAPHY = {
+  "& .MuiFormControlLabel-label": { fontSize: "0.875rem" },
+  "& .MuiInputLabel-root": { fontSize: "0.875rem" },
+  "& .MuiInputBase-input": { fontSize: "0.875rem" },
+  "& .MuiMenuItem-root": { fontSize: "0.875rem" },
+};
