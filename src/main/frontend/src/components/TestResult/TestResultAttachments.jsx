@@ -19,6 +19,7 @@ import {
   Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import TestResultAttachmentsView from "../TestCase/TestResultAttachmentsView.jsx";
+import { ACTION_BUTTON_SIZE } from "../common/actionButtonSize.js";
 
 const TestResultAttachments = ({
   attachedFiles,
@@ -66,6 +67,7 @@ const TestResultAttachments = ({
           <Button
             variant="outlined"
             component="span"
+            size={ACTION_BUTTON_SIZE}
             disabled={isViewer || isFileUploading}
             startIcon={
               isFileUploading ? (

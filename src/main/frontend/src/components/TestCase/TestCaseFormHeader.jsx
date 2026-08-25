@@ -19,6 +19,7 @@ import {
   ErrorOutline as ErrorOutlineIcon,
 } from "@mui/icons-material";
 import VersionIndicator from "./VersionIndicator.jsx";
+import { ACTION_BUTTON_SIZE } from "../common/actionButtonSize.js";
 
 /**
  * 테스트케이스 폼 헤더 컴포넌트
@@ -121,7 +122,7 @@ const TestCaseFormHeader = ({
             onClick={onAddNew}
             color="secondary"
             variant="outlined"
-            size="small"
+            size={ACTION_BUTTON_SIZE}
             startIcon={<AddIcon />}
             data-testid="testcase-add-new-button"
           >
@@ -166,6 +167,7 @@ const TestCaseFormHeader = ({
                 onClick={onCancel}
                 color="inherit"
                 variant="outlined"
+                size={ACTION_BUTTON_SIZE}
                 data-testid="testcase-header-cancel-button"
               >
                 {t("testcase.form.button.cancel", "취소")}
@@ -174,6 +176,7 @@ const TestCaseFormHeader = ({
                 onClick={onSave}
                 variant="contained"
                 color="primary"
+                size={ACTION_BUTTON_SIZE}
                 disabled={isSaving}
                 startIcon={
                   isSaving ? <CircularProgress size={20} /> : <SaveIcon />
@@ -190,6 +193,7 @@ const TestCaseFormHeader = ({
                 <Button
                   variant="outlined"
                   color="secondary"
+                  size={ACTION_BUTTON_SIZE}
                   onClick={onCreateVersion}
                   startIcon={<SaveVersionIcon />}
                 >
@@ -200,6 +204,7 @@ const TestCaseFormHeader = ({
                 <Button
                   variant="outlined"
                   color="error"
+                  size={ACTION_BUTTON_SIZE}
                   onClick={onDelete}
                   startIcon={<DeleteIcon />}
                   data-testid="testcase-header-delete-button"

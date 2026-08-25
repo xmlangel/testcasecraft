@@ -36,4 +36,20 @@ export const computeMarkdownEditorHeight = (
   return CHROME_PX + visibleLines * LINE_PX;
 };
 
+/**
+ * 내용이 아무리 많아도 편집기가 넘지 않는 높이(px).
+ *
+ * `computeMarkdownEditorHeight` 는 마크다운 원문의 줄 수를 세므로, 좁은 칸에서 한
+ * 논리 줄이 여러 줄로 접히면 필요한 높이를 실제보다 작게 잡는다. 실측에서 스텝
+ * 편집기(칸 폭 45%)에 다섯 줄짜리 코드 블록을 넣었더니 화면에는 열 줄 넘게 그려졌고,
+ * 상자는 다섯 줄 높이로 고정되어 뒷부분이 잘렸다. 그래서 상자의 상한은 원문 줄 수와
+ * 무관하게 이 값으로 두고, 접혀서 늘어난 내용도 여기까지는 보이게 한다.
+ *
+ * @param {object} [opts]
+ * @param {number} [opts.maxLines=10] 보여 줄 최대 줄 수(그 이상은 상자 안에서 스크롤)
+ * @returns {number} 높이 상한(px)
+ */
+export const markdownEditorHeightCeiling = ({ maxLines = 10 } = {}) =>
+  CHROME_PX + maxLines * LINE_PX;
+
 export default computeMarkdownEditorHeight;

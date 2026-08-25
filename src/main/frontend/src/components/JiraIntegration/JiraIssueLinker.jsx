@@ -34,6 +34,7 @@ import { jiraService } from "../../services/jiraService";
 import { useTheme } from "@mui/material/styles";
 import { useI18n } from "../../context/I18nContext";
 import JiraIssueCreationDialog from "./JiraIssueCreationDialog.jsx";
+import { ACTION_BUTTON_SIZE } from "../common/actionButtonSize.js";
 
 const JiraIssueLinker = ({
   testResult = null,
@@ -477,6 +478,7 @@ const JiraIssueLinker = ({
               />
               <Button
                 variant="contained"
+                size={ACTION_BUTTON_SIZE}
                 onClick={handleSearch}
                 disabled={loading || !searchQuery.trim()}
                 startIcon={
@@ -488,6 +490,7 @@ const JiraIssueLinker = ({
               <Button
                 variant="outlined"
                 color="secondary"
+                size={ACTION_BUTTON_SIZE}
                 onClick={() => setCreationDialogOpen(true)}
                 startIcon={<AddIcon />}
                 disabled={loading}
@@ -647,6 +650,7 @@ const JiraIssueLinker = ({
                 <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
                   <Button
                     variant="contained"
+                    size={ACTION_BUTTON_SIZE}
                     startIcon={<AddIcon />}
                     onClick={() => handleLinkIssue(selectedIssue)}
                     disabled={linkedIssues.some(
@@ -659,12 +663,17 @@ const JiraIssueLinker = ({
                   </Button>
                   <Button
                     variant="outlined"
+                    size={ACTION_BUTTON_SIZE}
                     startIcon={<LaunchIcon />}
                     onClick={() => openJiraIssue(selectedIssue.key)}
                   >
                     {t("jira.linker.openInJira", "JIRA에서 열기")}
                   </Button>
-                  <Button variant="text" onClick={() => setSelectedIssue(null)}>
+                  <Button
+                    variant="text"
+                    size={ACTION_BUTTON_SIZE}
+                    onClick={() => setSelectedIssue(null)}
+                  >
                     {t("common.button.cancel", "취소")}
                   </Button>
                 </Box>

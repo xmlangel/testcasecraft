@@ -26,7 +26,10 @@ import {
   TableCell,
   TableHeader,
 } from "@tiptap/extension-table";
-import { computeMarkdownEditorHeight } from "../../utils/markdownEditorHeight.js";
+import {
+  computeMarkdownEditorHeight,
+  markdownEditorHeightCeiling,
+} from "../../utils/markdownEditorHeight.js";
 import { useScrollOverflow } from "../../hooks/useScrollOverflow.js";
 import ScrollHint from "../common/ScrollHint.jsx";
 
@@ -159,6 +162,12 @@ const RichMarkdownEditor = ({
   const minHeight = Math.max(
     floor,
     computeMarkdownEditorHeight(value, { maxLines }),
+  );
+  // 상한은 원문 줄 수와 따로 잡는다. 좁은 칸에서 한 줄이 여러 줄로 접히면 원문
+  // 기준 높이로는 부족해 뒷부분이 잘리고, 그 자리에서 글이 끝난 것처럼 보인다.
+  const maxHeight = Math.max(
+    minHeight,
+    markdownEditorHeightCeiling({ maxLines }),
   );
 
   // 내용이 상한을 넘으면 위·아래에 그라데이션을 얹어 가려진 부분이 있음을 알린다.
@@ -324,7 +333,7 @@ const RichMarkdownEditor = ({
           sx={{
             position: "relative",
             minHeight,
-            maxHeight: minHeight,
+            maxHeight,
             overflowY: "auto",
             px: 1.5,
             py: 1,
@@ -374,7 +383,10 @@ const RichMarkdownEditor = ({
                 ? "rgba(255,255,255,0.08)"
                 : "rgba(0,0,0,0.06)",
               padding: "0.1em 0.35em",
-              borderRadius: 3,
+              // 픽셀로 못박는다. 숫자로 두면 sx 가 theme.shape.borderRadius(16) 를
+              // 곱해 48px 이 되고, 인라인 코드가 알약처럼 그려져 앞뒤 글자가 배경
+              // 밖으로 밀려 나갔다.
+              borderRadius: "3px",
               fontSize: "0.85em",
             },
             "& .rich-markdown-surface pre": {
@@ -382,8 +394,14 @@ const RichMarkdownEditor = ({
                 ? "rgba(255,255,255,0.06)"
                 : "rgba(0,0,0,0.05)",
               padding: "0.7em 0.9em",
-              borderRadius: 4,
+              // 같은 이유로 픽셀 고정. 숫자 4 는 64px 로 부풀어, 코드 블록 첫 줄과
+              // 마지막 줄이 둥근 모서리에 잘려 읽을 수 없었다.
+              borderRadius: "4px",
               overflowX: "auto",
+              // 스텝 칸은 폭이 좁아 가로 스크롤로 두면 긴 명령의 뒷부분이 옆으로
+              // 숨는다. 접어서 아래로 흘리고, 높이는 상한까지 늘어난다.
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
             },
             "& .rich-markdown-surface pre code": {
               backgroundColor: "transparent",
