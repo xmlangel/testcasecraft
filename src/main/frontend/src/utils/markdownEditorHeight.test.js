@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { computeMarkdownEditorHeight } from "./markdownEditorHeight.js";
+import {
+  computeMarkdownEditorHeight,
+  markdownEditorHeightCeiling,
+} from "./markdownEditorHeight.js";
 
 // 내부 상수에 의존하지 않도록, 줄 수 동등성으로 동작을 검증한다.
 const lines = (n) => Array.from({ length: n }, (_, i) => `l${i}`).join("\n");
@@ -39,6 +42,28 @@ describe("computeMarkdownEditorHeight", () => {
   it("maxLines(기본 10) 를 넘으면 더 커지지 않는다 (스크롤)", () => {
     expect(computeMarkdownEditorHeight(lines(20))).toBe(
       computeMarkdownEditorHeight(lines(10)),
+    );
+  });
+});
+
+describe("markdownEditorHeightCeiling", () => {
+  const lines = (n) =>
+    Array.from({ length: n }, (_, i) => `줄 ${i + 1}`).join("\n");
+
+  it("maxLines 를 꽉 채운 내용의 높이와 같다", () => {
+    expect(markdownEditorHeightCeiling()).toBe(
+      computeMarkdownEditorHeight(lines(10)),
+    );
+    expect(markdownEditorHeightCeiling({ maxLines: 20 })).toBe(
+      computeMarkdownEditorHeight(lines(20), { maxLines: 20 }),
+    );
+  });
+
+  it("원문이 짧아도 상한은 줄지 않는다", () => {
+    // 좁은 칸에서 한 줄이 여러 줄로 접히는 경우가 이 상한을 쓰는 이유다.
+    // 원문 기준 높이는 작아지지만 상한은 그대로여서 접힌 내용도 보인다.
+    expect(markdownEditorHeightCeiling()).toBeGreaterThan(
+      computeMarkdownEditorHeight("한 줄"),
     );
   });
 });

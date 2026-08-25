@@ -68,6 +68,7 @@ import FolderForm from "./TestCase/FolderForm.jsx";
 import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
 import RagStatusBadge from "./TestCase/RagStatusBadge.jsx";
 import { serverErrorMessage } from "../utils/apiError.js";
+import { ACTION_BUTTON_SIZE } from "./common/actionButtonSize.js";
 
 const TabPanel = (props) => {
   const { children, value, index, ...other } = props;
@@ -1736,6 +1737,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onClick={handleCancel}
               color="inherit"
               variant="outlined"
+              size={ACTION_BUTTON_SIZE}
               data-testid="testcase-cancel-button"
             >
               {t("testcase.form.button.cancel", "취소")}
@@ -1744,6 +1746,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             <Button
               variant="contained"
               color="primary"
+              size={ACTION_BUTTON_SIZE}
               onClick={handleSave}
               disabled={isSaveDisabled() || isSaving}
               startIcon={
@@ -1765,6 +1768,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               <Button
                 variant="outlined"
                 color="secondary"
+                size={ACTION_BUTTON_SIZE}
                 onClick={handleCreateVersion}
                 startIcon={<SaveVersionIcon />}
               >
