@@ -117,8 +117,14 @@ def open_user_menu(page: Page) -> None:
 
 
 def open_admin_menu(page: Page) -> None:
-    """헤더 '관리 메뉴' 드롭다운 열기."""
-    page.get_by_text("관리 메뉴", exact=False).first.click()
+    """헤더 '관리 메뉴' 드롭다운 열기.
+
+    라벨은 번역 키(`header.nav.managementMenu`)를 거치므로 UI 언어에 따라 갈린다.
+    한글만 찾으면 영문 캡처 회차에서 30초를 기다린 뒤 실패한다(2026-08-23 실측).
+    """
+    page.get_by_text(
+        re.compile(r"(관리\s*메뉴|Management\s*Menu)", re.I)
+    ).first.click(timeout=15_000)
     page.wait_for_timeout(300)
 
 
@@ -509,6 +515,58 @@ def open_localized_guide(page: Page) -> None:
     page.wait_for_timeout(1_500)
 
 
+def open_automated_link_dialog(page: Page) -> None:
+    """플랜 목록 행의 [자동화 테스트 연결] 아이콘 → 연결 다이얼로그 (§7).
+
+    아이콘은 플랜을 관리할 수 있는 역할에만 노출된다(PM·LEAD). 권한이 없는 계정으로
+    캡처하면 버튼이 없어 타임아웃이 난다.
+    """
+    page.wait_for_selector('[data-testid^="testplan-link-button-"]', timeout=15_000)
+    page.locator('[data-testid^="testplan-link-button-"]').first.click(timeout=5_000)
+    page.get_by_role("dialog").wait_for(timeout=10_000)
+    page.wait_for_timeout(800)
+
+
+def open_filtered_cases_dialog(page: Page) -> None:
+    """결과 통계 카드의 미실행·실패 항목 클릭 → 케이스 목록 다이얼로그 (§9).
+
+    클릭 가능한 항목은 미실행·실패 둘뿐이다. 해당 건수가 0이면 목록이 비어 보이므로
+    데이터가 있는 프로젝트에서 캡처한다.
+    """
+    # 클릭 가능한 항목에만 ▼ 표시가 붙는다. 라벨 문구는 번역 키를 거쳐 한/영이 갈리지만
+    # 이 기호는 그대로라, 언어와 무관하게 같은 셀렉터로 잡힌다.
+    # 클릭 핸들러는 라벨을 감싼 Box 에 있어 텍스트 노드 바로 위 div 를 누른다.
+    marker = page.locator("text=▼")
+    marker.first.wait_for(timeout=15_000)
+    marker.first.locator("xpath=ancestor::div[1]").first.click(timeout=5_000)
+    page.get_by_role("dialog").wait_for(timeout=10_000)
+    page.wait_for_timeout(800)
+
+
+def open_performance_metrics_tab(page: Page) -> None:
+    """전체 대시보드의 세 번째 탭(성능 메트릭)으로 이동 (§17-2).
+
+    탭 라벨은 번역 키를 거치므로 한/영 양쪽 문구를 함께 받는다.
+    """
+    tab = page.get_by_role(
+        "tab", name=re.compile(r"(성능\s*메트릭|Performance\s*Metrics)", re.I)
+    )
+    tab.first.click(timeout=15_000)
+    page.wait_for_timeout(1_200)
+
+
+def open_server_time_panel(page: Page) -> None:
+    """화면에 고정된 시계 아이콘을 눌러 서버 시간·버전 패널을 펼친다 (§17).
+
+    ADMIN 계정에만 보인다. 기본 상태는 접힘이라 아이콘만 있고, 눌러야 값이 나온다.
+    """
+    icon = page.get_by_role(
+        "button", name=re.compile(r"(서버 시간|Server time)", re.I)
+    )
+    icon.first.click(timeout=15_000)
+    page.wait_for_timeout(1_200)
+
+
 def open_cross_project_dialog(page: Page) -> None:
     """트리 전체 선택 → [프로젝트 이동/복사] 버튼 → 일괄 작업 다이얼로그 (§5-5, v1.0.93).
 
@@ -822,6 +880,31 @@ STEPS: list[Step] = [
         "111_project_edit_form",
         url="/projects",
         prepare=open_project_edit_form,
+        wait_ms=800,
+    ),  # △
+    # ── 13. 글로만 설명하던 화면 (2026-08-23 기능 단위 감사에서 검출) ────────
+    Step(
+        "112_plan_automated_link",
+        url=_project_path("/testplans"),
+        prepare=open_automated_link_dialog,
+        wait_ms=800,
+    ),  # △
+    Step(
+        "113_filtered_cases_dialog",
+        url=_project_path("/results"),
+        prepare=open_filtered_cases_dialog,
+        wait_ms=800,
+    ),  # △
+    Step(
+        "114_performance_metrics",
+        url="/dashboard",
+        prepare=open_performance_metrics_tab,
+        wait_ms=1_000,
+    ),  # △
+    Step(
+        "115_server_time_panel",
+        url="/dashboard",
+        prepare=open_server_time_panel,
         wait_ms=800,
     ),  # △
 ]

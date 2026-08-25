@@ -1,4 +1,8 @@
-# E2E Testing Guide (최종 업데이트: 2026-02-06)
+# E2E Testing Guide
+
+최종 갱신: 2026-08-23 21:40 KST
+
+<!-- verify: ignore 면 번호 — '화면 번호'(앱의 S0~S11 화면 ID 배지)가 정규식에 걸린 오탐. 문서 면수 표기가 아니고, 이 문서의 '페이지'는 모두 웹 페이지를 가리킨다. -->
 
 이 문서는 Playwright를 사용한 E2E (End-to-End) 테스트 작성 및 실행 가이드입니다.
 
@@ -63,8 +67,11 @@ npx playwright install chromium
 `src/test/e2e/playwright.config.js` 파일에서 주요 설정을 관리합니다.
 
 - **BaseURL**: `http://localhost:8080` (백엔드가 서빙하는 프론트엔드 주소)
-- **Test Matches**: `**/*.js` 또는 `**/*.spec.js`
-- **Timeout**: 기본 30,000ms
+- **testDir / testMatch**: `.` / `**/*.js` (확장자가 `.js` 인 파일을 전부 후보로 잡습니다). `.spec.js` 로만 한정되지 않으므로, `pages/` 나 `utils/` 에 테스트가 아닌 파일을 두더라도 로드는 됩니다.
+- **Timeout**: 테스트 20,000ms / `expect` 5,000ms
+- **아티팩트**: 스크린샷·비디오 항상 캡처(`screenshot: "on"`, `video: "on"`), trace 는 첫 재시도에서만
+- **재시도·워커**: CI 에서 재시도 2회·워커 1개, 로컬은 재시도 없음·`fullyParallel`
+- **브라우저**: chromium 하나
 
 ## 🚀 테스트 실행 방법
 
@@ -102,20 +109,22 @@ npx playwright test regression --workers=1 --reporter=line --headed
 
 #### 2. 독립 실행형 Node 스크립트 (Standalone)
 
-일반 Node.js 스크립트로 작성된 테스트입니다. (과거 버전 호환용)
+`authentication/` 과 `dashboard/` 에는 Playwright Test Runner 규약을 따르지 않고 일반 Node.js 스크립트로 작성된 파일이 있습니다(과거 버전 호환용). 파일명이 `*-test.js` 로 끝나며 `*.spec.js` 가 아닙니다.
 
 ```bash
-# E2E 디렉토리로 이동
 cd src/test/e2e
 
 # node 명령어로 직접 실행
-node attachment-complete-test.js
+node authentication/login-success-test.js
+node dashboard/dashboard-main-test.js
 ```
+
+`package.json` 의 `test:ict-*` 스크립트도 이 계열입니다. 다만 그 스크립트가 가리키는 러너 파일(`ict-138-comprehensive-test-runner.js` 등)은 현재 저장소에 없어 실행되지 않습니다. **새 테스트는 이 방식으로 작성하지 않고 `*.spec.js` + Fixtures 형태로 작성합니다.**
 
 ### 테스트 결과 확인
 
 - **HTML 리포트**: `npx playwright show-report`
-- **스크린샷**: `src/test/e2e/regression/screenshots/` 또는 `src/test/e2e/test-results/` 디렉토리 확인
+- **스크린샷·비디오**: `src/test/e2e/test-results/` (Playwright 가 테스트별 폴더로 생성). `BasePage.screen()` 으로 직접 찍은 것은 `src/test/e2e/screenshots/` 또는 `test-screenshots/` 에 쌓입니다.
 
 ## 📝 테스트 작성 가이드
 
@@ -129,7 +138,9 @@ node attachment-complete-test.js
 
 #### Page Objects (`pages/*.js`)
 
-특정 화면의 셀렉터와 비즈니스 동작을 정의합니다.
+특정 화면의 셀렉터와 비즈니스 동작을 정의합니다. 현재 여덟 개입니다: `BasePage`, `LoginPage`, `ProjectListPage`, `TestCasePage`, `TestPlanPage`, `TestExecutionPage`, `TestResultPage`, `AutomationPage`.
+
+새 화면을 다루기 전에 이 목록을 먼저 확인합니다. 같은 화면의 셀렉터를 스펙 파일에 다시 적으면 UI 가 바뀔 때 고칠 자리가 흩어집니다.
 
 ```javascript
 class LoginPage extends BasePage {
@@ -185,9 +196,9 @@ test("테스트 시나리오 설명", async ({ loginPage, projectListPage, page 
 - `src/test/e2e/config/credentials.js`에서 `ADMIN_USERNAME`, `ADMIN_PASSWORD`를 임포트하여 사용합니다.
 - CI/CD 환경 적용을 위해, 필요 시 `TEST_ADMIN_USERNAME`, `TEST_ADMIN_PASSWORD` 환경 변수로 주입합니다.
 
-## � 트러블슈팅
+## 🔧 트러블슈팅
 
-### 1. 모듈을 찾을 수 없는 오류 (Cannot find module 'playwright')
+### 1. `Cannot find module 'playwright'`
 
 - **원인**: `src/test/e2e` 디렉토리에서 `npm install`을 실행하지 않음
 - **해결**: `cd src/test/e2e && npm install` 실행
@@ -212,15 +223,27 @@ test("테스트 시나리오 설명", async ({ loginPage, projectListPage, page 
 **현재 애플리케이션 플로우**:
 
 ```
-로그인 (/) → 프로젝트 페이지 (/projects) → 개별 프로젝트 (/projects/{id}) → 탭 메뉴
+로그인 (/login) → 프로젝트 목록 (/projects) → 프로젝트 대시보드 (/projects/{projectId}) → 탭 메뉴
 ```
 
-**주요 탭 메뉴 경로**:
+**주요 탭 경로**:
 
-- 대시보드: `/projects/{id}/dashboard`
-- 테스트케이스: `/projects/{id}/testcases`
-- 테스트실행: `/projects/{id}/executions`
-- 자동화 테스트: `/projects/{id}/automation`
+| 화면 | 경로 |
+| :--- | :--- |
+| 프로젝트 대시보드 | `/projects/{projectId}` (`/dashboard` 접미가 붙지 않습니다) |
+| 테스트케이스 | `/projects/{projectId}/testcases` |
+| 테스트 플랜 | `/projects/{projectId}/testplans` |
+| 테스트 실행 | `/projects/{projectId}/executions` |
+| 테스트 결과·통계 | `/projects/{projectId}/results` |
+| 자동화 테스트 | `/projects/{projectId}/automation` |
+| JUnit 결과 | `/projects/{projectId}/junit` |
+| RAG 문서 | `/projects/{projectId}/rag` |
+| 탐색 세션 | `/projects/{projectId}/exploratory` |
+| 프로젝트 설정 | `/projects/{projectId}/settings` |
+
+**전체 주소 정본은 사용자 매뉴얼 16-4절 「화면 주소 모음」입니다** (`docs/manual/new/USER_MANUAL.md`). 짧은 주소, 관리자 주소, 화면 번호(S0~S11)까지 함께 있습니다. 여기 표는 E2E 에서 자주 쓰는 것만 추린 것이므로, 주소가 어긋나면 매뉴얼을 기준으로 삼습니다.
+
+화면 오른쪽 아래의 **화면 번호 배지**(`S0`~`S11`)로 어느 화면에 도달했는지 확인할 수 있습니다. URL 검증만으로는 SPA 라우팅이 렌더까지 마쳤는지 알 수 없으므로, 배지를 함께 보는 것이 더 확실합니다.
 
 ## 📊 테스트 실행 시나리오 예시
 

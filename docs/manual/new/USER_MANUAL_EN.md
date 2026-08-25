@@ -87,7 +87,7 @@ Click the **[Sign Up]** button to register your account. The system automaticall
 
 ![Login screen after sign-up](images_en/04_signup_complete.png)
 
-> ⚠️ **If you see an error message** — Network errors like `Failed to fetch` may indicate a service connection configuration issue. Contact your operations team (see [`DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md) §9 for details).
+> ⚠️ **If you see an error message** — Network errors like `Failed to fetch` may indicate a service connection configuration issue. Contact your operations team (see [`DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md) section 10-2 for details).
 
 ### 1-3. Login
 
@@ -516,6 +516,17 @@ Enter the name and description on the left, then pick the cases to include from 
 
 The same form opens with the stored values. The header shows how many cases the plan holds, and clearing a checkbox removes that case from the plan. Removing a case from a plan that already has executions leaves the earlier results untouched.
 
+#### Linking automated tests
+
+The **🔗 Link automated tests** icon on each plan row opens a dialog for attaching automated tests to that plan. The number chip on the row is the current link count, and clicking the chip opens the same dialog.
+
+![Link automated tests](images_en/112_plan_automated_link.png)
+
+- Each uploaded automation run is listed with its **name, status, upload time, test count (passes), and file name**.
+- The search box matches the **execution name or the file name**. Press **[Link]** on the entry you want; already-attached entries show **[Unlink]** instead.
+- **The icon appears only for roles that can manage the plan** (PM, LEAD). Signed in as VIEWER, TESTER, or DEVELOPER, the icon is absent.
+- Once linked, those runs count toward the plan in the **Automated tests** totals on the Test Results screen.
+
 > **Changed 2026-07-31 (new layout)**: With the left-side menu layout active, test plans display in a **2-section (list + detail)** format. The left panel shows the plan tree (with execution entries visible under each plan), and the right panel displays the selected plan's content. There is no popup or full-screen mode — everything stays within the layout. In the tab-based layout, the existing popup/full-screen behavior is preserved.
 
 ![Plan workspace — tree + details](images_en/98_plan_workspace.png)
@@ -635,7 +646,17 @@ The **Manual tests / Automated tests / Combined** toggle below decides which res
 
 > **Changed on 2026-06-05 (v1.0.80)**: PDF export no longer cuts off long test steps (step/expected result) at page boundaries; they now print in full across multiple pages.
 
-### 9-1. QA Summary
+### 9-1. Opening the Not Run / Failed case list
+
+In the statistics card, the **Not Run** and **Failed** entries carry a `▼` marker. Click one and the matching cases open as a list, so you do not have to hunt through the tree to find out which cases the number refers to.
+
+![Failed case list](images_en/113_filtered_cases_dialog.png)
+
+- The list has four columns: **Test Case · Folder Path · Test Plan · Go to**.
+- **[Go to]** jumps straight to that case.
+- Passed and Blocked entries have no `▼`. Clicking them does nothing, which is expected.
+
+### 9-2. QA Summary
 
 On the **Detail Table** tab of the Test Results screen, **selecting a single test execution filter** displays a **"QA Summary"** panel above the results table. This is a free-form space for recording your evaluation, observations, and follow-up actions after completing that execution.
 
@@ -843,7 +864,8 @@ The **`⚠ JIRA`** badge in the header indicates that JIRA settings are not conf
 | Test result changed after viewing the result input screen | This does not occur in v1.0.80 or later — improved to prevent saving when viewing only (see Section 8-2). Empty Not Run records created in earlier versions are automatically cleaned up when actual results are entered |
 | "Advanced Spreadsheet" mode not visible in input mode selection | Normal behavior — this feature is currently hidden. Use the standard spreadsheet mode |
 | Screen continuously loading | Likely a temporary network error — try refreshing. If it persists, contact your system administrator |
-| `Failed to fetch` during signup | Possible server-side environment variable issue — contact your system administrator. See details in [`docs/deployment/DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md) Section 9 |
+| A `🚨 Request Limit Exceeded` dialog appears | The same IP sent more than **60 requests per second**. The dialog clears when its countdown reaches zero, and **[Retry now]** retries immediately. It typically appears from rapid repeated refreshes or several tabs polling the same screen. On a shared corporate network the count is aggregated across users, so report it to your system administrator if it recurs |
+| `Failed to fetch` during signup | Possible server-side environment variable issue — contact your system administrator. See details in [`docs/deployment/DOCKER_SETUP.md`](../../deployment/DOCKER_SETUP.md) section 10-2 |
 
 ### 16-3. Installation & Operations Documentation
 
@@ -944,6 +966,33 @@ Dropdown items:
 **[Dashboard]** in the header provides an operations statistics view spanning all organizations and projects.
 
 ![Global dashboard](images_en/80_global_dashboard.png)
+
+The screen is titled **System Dashboard**, with cards across the top for total organizations, total projects, total test cases, total users, and total project memberships. Three tabs sit below them.
+
+| Tab | Contents |
+|---|---|
+| Organization Status | Composition and headcount per organization and project |
+| Test Statistics | Result distribution across all projects |
+| Performance Metrics | Server resources and cache state |
+
+The **Performance Metrics** tab reports operational state as numbers.
+
+![Performance metrics](images_en/114_performance_metrics.png)
+
+- **System resources**: CPU, memory, and disk utilization
+- **Cache performance**: hit rate for the project cache and the test case cache, with hit and miss counts. A low hit rate means the same lookups are going all the way to the database each time
+- **[Refresh]** re-reads the values for that moment. Nothing updates automatically, and the **Last updated** timestamp beside it tells you when the shown values were read
+
+### 17-2-1. Checking server time and version
+
+Signed in as ADMIN, a **clock icon** is pinned to the **bottom-left** of the screen. It starts collapsed; click it and the server time and app version expand on one line.
+
+![Server time and version panel](images_en/115_server_time_panel.png)
+
+- The time is **converted to your profile time zone**, and the badge next to it names that zone (`UTC`, `KST`, and so on). With no time zone set, it displays UTC. When a recorded result timestamp looks wrong, check this badge first. Change the setting in [§13-3](#13-3-language--time-zone-settings).
+- The app version appears alongside, so quote that value when you file a question.
+- While expanded it re-reads **every 30 seconds**. Closing it with ✕ stops the polling.
+- **Non-ADMIN accounts do not see the icon.**
 
 ### 17-3. Organization Management
 
@@ -1223,3 +1272,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-07-02 | Reflected v1.0.93: new "Move / Copy to Another Project" subsection (Section 5-5) — select via tree checkboxes → **[Move/Copy to Project]** button → bulk operations dialog (target project/folder). Move carries results via mirroring and needs edit on both sides; copy duplicates cases only and needs view on source + edit on target. Added dedicated-button note to the Section 5-3 auto-blocked list. Also reflected in `test_case_manual.md` Section 3.7. Synchronized same sections in Korean edition. |
 | 2026-07-31 | Reflected UI changes since 2026-07-02 based on v1.0.102. A(Layout selector): Section 3-1 header breadcrumb change + Section 13-7 theme settings add menu structure selection. B(Plans/Executions 2-section): Sections 7 and 8 add new layout descriptions (new layout only). C(Tree search): Section 4-4 filter refreshed — search by name/ID/tag, comma-separated complex search, select-all captures visible items only; new image 100_tree_filter_search. D(Result tags): Section 8 filter panel adds tag item — multi-select, direct input, tag inheritance. E(Attachments): Section 8-1 result entry screen adds test case attachments section. F(Linked items): existing Section 4 handles it (image updates only post-2026-07-02). Synchronized same sections/images (images_en) in Korean edition. |
 | 2026-08-19 | Reflected the new Project Settings screen: added `/projects/{projectId}/settings` to the Section 16-4 address table and a new "Where roles are assigned" block in Section 18-4 — gear icon entry, General tab (name, description, display order; PROJECT_MANAGER and ADMIN) and Members tab (add, change role, remove; PROJECT_MANAGER, LEAD_DEVELOPER, ADMIN). The backend was tightened as well so that project settings changes are limited to PM and ADMIN (previously LEAD_DEVELOPER and organization admins also passed). Screenshots are not captured yet. Synchronized same sections in Korean edition. |
+| 2026-08-23 | Added five undocumented screens found in a feature-level audit: Section 7 "Linking automated tests" (🔗 icon and link-count chip on the plan row, manage roles only) · Section 9-1 "Opening the Not Run / Failed case list" (click a `▼` entry on the statistics card → four columns for case, folder path, plan, and go-to; the former QA Summary moves to Section 9-2) · Section 17-2 the three global dashboard tabs and "Performance Metrics" (CPU, memory, disk; project and test case cache hit rates; manual refresh) · Section 17-2-1 "Checking server time and version" (ADMIN only, bottom-left clock icon, converted to the profile time zone with a zone badge, 30-second polling) · Section 16-2 the request-limit dialog (countdown and [Retry now] after more than 60 requests per second from one IP). Four new captures (112–115) plus four capture STEPS and prepare callbacks. Korean images were recaptured against **ShopFlow (SHOP)** — they had been shot against ShopFlow EN data — and the `DOCKER_SETUP.md` section 9 references were corrected to section 10-2. Synchronized same sections/images (images_en) in Korean edition. |
