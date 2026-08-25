@@ -52,7 +52,7 @@ describe("JiraHistoryDialog 노트 마크다운", () => {
     ]);
     render(<JiraHistoryDialog open jiraIssueKey="AS-1" onClose={vi.fn()} />);
     await screen.findByText("문단1");
-    const root = document.querySelector(".wmde-markdown");
+    const root = document.querySelector(".markdown-body");
     expect(root).toBeTruthy();
     expect(root.style.whiteSpace).not.toBe("pre-wrap");
   });

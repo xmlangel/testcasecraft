@@ -1,4 +1,4 @@
-// src/components/TestCase/RichMarkdownFieldEditor.jsx
+// src/components/TestCase/RichMarkdownEditor.jsx
 
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
@@ -40,7 +40,7 @@ import { computeMarkdownEditorHeight } from "../../utils/markdownEditorHeight.js
  * 잡는데 Tiptap 은 textarea 가 아니라 그 값이 없다. 그래서 자리표시자가 커서 위치가
  * 아니라 본문 끝에 붙는다. 값이 깨지지는 않지만 위치는 어긋난다.
  */
-const RichMarkdownFieldEditor = ({
+const RichMarkdownEditor = ({
   label,
   value,
   placeholder,
@@ -54,10 +54,14 @@ const RichMarkdownFieldEditor = ({
   onChange,
   onPaste,
   testid,
+  hideHelperText = false,
 }) => {
-  // 에디터가 스스로 내보낸 마지막 마크다운. 외부 value 가 이 값과 같으면
-  // 다시 밀어 넣지 않는다. 넣으면 타이핑마다 커서가 문서 앞으로 튄다.
-  const lastEmittedRef = useRef(value || "");
+  // 에디터가 마지막으로 주고받은 마크다운. 외부 value 가 이 값과 같으면 다시 밀어
+  // 넣지 않는다. 넣으면 타이핑마다 커서가 문서 앞으로 튄다.
+  //
+  // 초기값은 null 이다(빈 문자열이 아니다). 아래 동기화 효과가 첫 실행에서 반드시
+  // 한 번 돌아야 하고, value 가 "" 인 경우까지 구분해야 하기 때문이다.
+  const lastEmittedRef = useRef(null);
 
   const extensions = useMemo(
     () => [
@@ -78,10 +82,20 @@ const RichMarkdownFieldEditor = ({
 
   const editor = useEditor({
     extensions,
-    content: value || "",
+    // 초기 내용을 여기서 주지 않는다. useEditor 의 content 로 넣으면 그 로드가
+    // onUpdate 를 발화시켜 정규화된 마크다운이 부모로 올라간다. 값 주입은 아래
+    // 동기화 효과가 emitUpdate:false 로 한 곳에서만 처리한다.
+    content: "",
     contentType: "markdown",
     editable: !isViewer,
-    onUpdate: ({ editor: instance }) => {
+    onUpdate: ({ editor: instance, transaction }) => {
+      // 문서가 실제로 바뀐 트랜잭션만 부모로 올린다.
+      //
+      // Tiptap 은 선택 이동·플러그인 초기화처럼 내용이 그대로인 트랜잭션에서도
+      // onUpdate 를 부른다(실측 4회, 전부 docChanged=false). 그것을 그대로 올리면
+      // 사용자가 한 글자도 고치지 않고 저장했는데 정규화된 마크다운이 저장된다.
+      // 실측에서 "## 제목\n- 항목" 이 "## 제목\n\n- 항목" 으로 변했다.
+      if (transaction && !transaction.docChanged) return;
       const markdown = instance.getMarkdown();
       lastEmittedRef.current = markdown;
       onChange(markdown);
@@ -107,27 +121,37 @@ const RichMarkdownFieldEditor = ({
     },
   });
 
-  // 외부에서 값이 바뀐 경우(폼 초기화, 이미지 업로드 완료 치환 등) 동기화한다.
+  // 외부에서 값이 바뀐 경우(폼 초기화, 구간 편집 시작, 이미지 업로드 완료 치환 등)
+  // 동기화한다.
+  //
+  // emitUpdate:false 가 중요하다. 기본값으로 두면 값을 밀어 넣는 것만으로 onUpdate 가
+  // 발화해 정규화된 마크다운이 부모로 올라간다. 그러면 사용자가 한 글자도 고치지 않고
+  // 저장했는데 문서가 바뀐다 — 실측에서 "## 제목\n- 항목" 이 "## 제목\n\n- 항목" 으로
+  // 변했다. 사용자가 실제로 편집할 때만 값을 올린다.
   useEffect(() => {
     if (!editor) return;
     const incoming = value || "";
     if (incoming === lastEmittedRef.current) return;
     lastEmittedRef.current = incoming;
-    editor.commands.setContent(incoming, { contentType: "markdown" });
+    editor.commands.setContent(incoming, {
+      contentType: "markdown",
+      emitUpdate: false,
+    });
   }, [editor, value]);
 
   useEffect(() => {
     if (editor) editor.setEditable(!isViewer);
   }, [editor, isViewer]);
 
-  const displayHelperText =
-    helperText ||
-    (!value
-      ? t("testcase.helper.enterContent", "내용을 입력하세요.")
-      : t(
-          "testcase.helper.markdownSupported",
-          "Markdown 문법을 사용할 수 있습니다.",
-        ));
+  const displayHelperText = hideHelperText
+    ? null
+    : helperText ||
+      (!value
+        ? t("testcase.helper.enterContent", "내용을 입력하세요.")
+        : t(
+            "testcase.helper.markdownSupported",
+            "Markdown 문법을 사용할 수 있습니다.",
+          ));
 
   const floor = typeof height === "number" ? height : parseInt(height, 10) || 0;
   const minHeight = Math.max(
@@ -392,7 +416,7 @@ const RichMarkdownFieldEditor = ({
   );
 };
 
-RichMarkdownFieldEditor.propTypes = {
+RichMarkdownEditor.propTypes = {
   label: PropTypes.string,
   value: PropTypes.string,
   placeholder: PropTypes.string,
@@ -406,6 +430,7 @@ RichMarkdownFieldEditor.propTypes = {
   onChange: PropTypes.func.isRequired,
   onPaste: PropTypes.func,
   testid: PropTypes.string,
+  hideHelperText: PropTypes.bool,
 };
 
-export default RichMarkdownFieldEditor;
+export default RichMarkdownEditor;

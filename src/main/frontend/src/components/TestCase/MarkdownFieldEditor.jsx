@@ -2,14 +2,18 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import { Box, Typography } from "@mui/material";
-import MDEditor from "@uiw/react-md-editor";
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
-import { computeMarkdownEditorHeight } from "../../utils/markdownEditorHeight.js";
+import RichMarkdownEditor from "./RichMarkdownEditor.jsx";
 
 /**
- * 텍스트/마크다운 모드를 지원하는 필드 에디터 컴포넌트
+ * 텍스트/마크다운 필드 에디터.
+ *
+ * 예전에는 @uiw/react-md-editor 의 좌우 분할 미리보기를 그렸다. 지금은 Tiptap 기반
+ * RichMarkdownEditor 로 위임한다 — 미리보기 패널 없이 서식이 본문에 그대로 그려지고,
+ * 저장 값은 그대로 마크다운이다. 호출부 여섯 곳이 이 컴포넌트를 쓰므로 이름과 props 를
+ * 그대로 두고 내부만 바꿨다.
+ *
+ * preview prop 은 예전 에디터의 표시 모드였다("edit" | "live" | "preview").
+ * Tiptap 에는 그런 모드가 없어 "preview" 만 읽기 전용으로 옮기고 나머지는 무시한다.
  */
 const MarkdownFieldEditor = ({
   label,
@@ -24,92 +28,41 @@ const MarkdownFieldEditor = ({
   t,
   onChange,
   onPaste,
-  defaultMarkdownMode = true,
   testid,
   preview,
-}) => {
-  const displayHelperText =
-    helperText ||
-    (!value
-      ? t("testcase.helper.enterContent", "내용을 입력하세요.")
-      : t(
-          "testcase.helper.markdownSupported",
-          "Markdown 문법을 사용할 수 있습니다.",
-        ));
-
-  // 내용이 없으면 최소 높이, 있으면 maxLines(기본 10줄)까지 자동 확장 후 스크롤.
-  // height 를 넘기면 그 값을 최소 높이(floor)로 사용한다(기존 호출부 호환).
-  const floor = typeof height === "number" ? height : parseInt(height, 10) || 0;
-  const dynamicHeight = Math.max(
-    floor,
-    computeMarkdownEditorHeight(value, { maxLines }),
-  );
-
-  return (
-    <Box sx={{ mt: label ? 2 : 0 }}>
-      {label && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 1,
-          }}
-        >
-          <Typography variant="subtitle2" color={error ? "error" : "inherit"}>
-            {label}
-          </Typography>
-        </Box>
-      )}
-      <Box
-        data-color-mode={theme.palette.mode}
-        sx={{
-          mt: 1,
-          "& .w-md-editor": {
-            border: error ? `1px solid ${theme.palette.error.main}` : undefined,
-          },
-        }}
-      >
-        <MDEditor
-          value={value}
-          onChange={(val) => onChange(val || "")}
-          preview={preview || "live"}
-          height={dynamicHeight}
-          visibleDragbar
-          textareaProps={{
-            placeholder,
-            onPaste,
-            "data-testid": testid,
-          }}
-          disabled={isViewer}
-        />
-      </Box>
-      {displayHelperText && (
-        <Typography
-          variant="caption"
-          color={error ? "error" : "text.secondary"}
-          sx={{ mt: 0.5, display: "block" }}
-        >
-          {displayHelperText}
-        </Typography>
-      )}
-    </Box>
-  );
-};
+}) => (
+  <RichMarkdownEditor
+    label={label}
+    value={value}
+    placeholder={placeholder}
+    height={height}
+    maxLines={maxLines}
+    isViewer={isViewer || preview === "preview"}
+    error={error}
+    helperText={helperText}
+    theme={theme}
+    t={t}
+    onChange={onChange}
+    onPaste={onPaste}
+    testid={testid}
+  />
+);
 
 MarkdownFieldEditor.propTypes = {
-  label: PropTypes.string.isRequired,
+  label: PropTypes.string,
   value: PropTypes.string,
   placeholder: PropTypes.string,
   height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   maxLines: PropTypes.number,
   isViewer: PropTypes.bool,
+  error: PropTypes.bool,
   helperText: PropTypes.string,
   theme: PropTypes.object.isRequired,
   t: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   onPaste: PropTypes.func,
-  preview: PropTypes.oneOf(["live", "edit", "preview"]),
+  testid: PropTypes.string,
+  preview: PropTypes.string,
 };
 
 export default MarkdownFieldEditor;

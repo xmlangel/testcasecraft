@@ -38,17 +38,21 @@ export const JiraProvider = ({ children }) => {
       try {
         const baseUrl = await getApiBaseUrl();
         const res = await api(`${baseUrl}/api/jira/server-url`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.serverUrl) {
+        if (res.status === 204) {
+          // 서버가 "설정 없음"을 본문 없이 204 로 알린다. res.ok 가 true 이므로
+          // 그대로 res.json() 을 부르면 빈 본문에서 파싱이 터져 콘솔에 오류가 남았다.
+          // 설정하지 않은 상태는 정상이라 조용히 넘긴다.
+          setJiraServerUrl(null);
+        } else if (res.ok) {
+          const body = await res.text();
+          const data = body ? JSON.parse(body) : null;
+          if (data?.serverUrl) {
             setJiraServerUrl(data.serverUrl);
           } else {
-            console.warn("JIRA 서버 URL이 설정되지 않았습니다.");
             setJiraServerUrl(null);
           }
         } else if (res.status === 404) {
           // URL이 설정되지 않은 경우
-          console.warn("JIRA 서버 URL이 설정되지 않았습니다.");
           setJiraServerUrl(null);
         } else {
           console.warn("JIRA 서버 URL을 가져올 수 없습니다.");

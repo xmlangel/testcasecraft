@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { createTheme } from "@mui/material/styles";
-import RichMarkdownFieldEditor from "./RichMarkdownFieldEditor.jsx";
+import RichMarkdownEditor from "./RichMarkdownEditor.jsx";
 
 const theme = createTheme();
 const t = (key, fallback) => fallback || key;
@@ -11,7 +11,7 @@ const Harness = ({ initial = "", onChangeSpy, isViewer = false }) => {
   const [value, setValue] = useState(initial);
   return (
     <>
-      <RichMarkdownFieldEditor
+      <RichMarkdownEditor
         label="설명"
         value={value}
         placeholder="폴더 설명"
@@ -37,7 +37,7 @@ const Harness = ({ initial = "", onChangeSpy, isViewer = false }) => {
  * (elementFromPoint is not a function / readDOMChange 예외). 그래서 여기서는 렌더
  * 결과와 권한, 외부 값 동기화만 확인하고, 입력 동작은 실제 브라우저에서 확인했다.
  */
-describe("RichMarkdownFieldEditor", () => {
+describe("RichMarkdownEditor", () => {
   it("마크다운 값을 서식으로 렌더한다", () => {
     render(
       <Harness
@@ -80,7 +80,7 @@ describe("RichMarkdownFieldEditor", () => {
 
   it("외부에서 값이 바뀌면 본문에 반영한다", () => {
     const { rerender } = render(
-      <RichMarkdownFieldEditor
+      <RichMarkdownEditor
         label="설명"
         value="처음 값"
         theme={theme}
@@ -92,7 +92,7 @@ describe("RichMarkdownFieldEditor", () => {
     );
     expect(screen.getByTestId("ext").textContent).toContain("처음 값");
     rerender(
-      <RichMarkdownFieldEditor
+      <RichMarkdownEditor
         label="설명"
         value="바뀐 값"
         theme={theme}

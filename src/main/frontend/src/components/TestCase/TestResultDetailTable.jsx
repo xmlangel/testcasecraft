@@ -79,14 +79,14 @@ import MarkdownViewer from "../common/MarkdownViewer.jsx";
 // 다크 배경 툴팁 안에서 마크다운 코드블록이 라이트 테마(흰 배경)로 렌더링되어
 // 글자가 보이지 않는 문제 보정 — 코드 영역을 어두운 배경 + 밝은 글자로 강제
 const TOOLTIP_MARKDOWN_SX = {
-  "& .wmde-markdown pre": {
+  "& .markdown-body pre": {
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  "& .wmde-markdown pre code, & .wmde-markdown pre tt": {
+  "& .markdown-body pre code, & .markdown-body pre tt": {
     color: "#e6edf3",
     backgroundColor: "transparent",
   },
-  "& .wmde-markdown code, & .wmde-markdown tt": {
+  "& .markdown-body code, & .markdown-body tt": {
     color: "#e6edf3",
     backgroundColor: "rgba(0, 0, 0, 0.45)",
   },

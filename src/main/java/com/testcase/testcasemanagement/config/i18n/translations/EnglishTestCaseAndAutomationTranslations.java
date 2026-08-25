@@ -1911,6 +1911,21 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.notes.copy_message", languageCode, "Notes copied to clipboard.", createdBy);
 
+    // Rich markdown editor toolbar / notes display mode English
+    createTranslationIfNotExists("testcase.markdown.bold", languageCode, "Bold", createdBy);
+    createTranslationIfNotExists("testcase.markdown.italic", languageCode, "Italic", createdBy);
+    createTranslationIfNotExists("testcase.markdown.code", languageCode, "Code", createdBy);
+    createTranslationIfNotExists("testcase.markdown.heading", languageCode, "Heading", createdBy);
+    createTranslationIfNotExists("testcase.markdown.quote", languageCode, "Quote", createdBy);
+    createTranslationIfNotExists("testcase.markdown.bulletList", languageCode, "Bullet list", createdBy);
+    createTranslationIfNotExists("testcase.markdown.orderedList", languageCode, "Numbered list", createdBy);
+    createTranslationIfNotExists("testcase.markdown.taskList", languageCode, "Checklist", createdBy);
+    createTranslationIfNotExists("testcase.markdown.table", languageCode, "Insert table", createdBy);
+    createTranslationIfNotExists("testcase.notes.edit", languageCode, "Edit notes", createdBy);
+    createTranslationIfNotExists("testcase.notes.viewOnly", languageCode, "View only", createdBy);
+    createTranslationIfNotExists("testcase.notes.fullscreen", languageCode, "Fullscreen", createdBy);
+    createTranslationIfNotExists("testcase.notes.exitFullscreen", languageCode, "Exit fullscreen", createdBy);
+
     // Export PDF orientation options English
     createTranslationIfNotExists(
         "testResult.export.pdf.orientation.label", languageCode, "Orientation", createdBy);

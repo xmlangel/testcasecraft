@@ -1769,6 +1769,21 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.notes.copy_message", "testcase", "노트 복사 성공 메시지", "노트가 클립보드에 복사되었습니다.");
 
+    // 리치 마크다운 에디터 툴바·비고 표시 모드 키들
+    createTranslationKeyIfNotExists("testcase.markdown.bold", "testcase", "마크다운 툴바 굵게 버튼 툴팁", "굵게");
+    createTranslationKeyIfNotExists("testcase.markdown.italic", "testcase", "마크다운 툴바 기울임 버튼 툴팁", "기울임");
+    createTranslationKeyIfNotExists("testcase.markdown.code", "testcase", "마크다운 툴바 코드 버튼 툴팁", "코드");
+    createTranslationKeyIfNotExists("testcase.markdown.heading", "testcase", "마크다운 툴바 제목 버튼 툴팁", "제목");
+    createTranslationKeyIfNotExists("testcase.markdown.quote", "testcase", "마크다운 툴바 인용 버튼 툴팁", "인용");
+    createTranslationKeyIfNotExists("testcase.markdown.bulletList", "testcase", "마크다운 툴바 목록 버튼 툴팁", "목록");
+    createTranslationKeyIfNotExists("testcase.markdown.orderedList", "testcase", "마크다운 툴바 번호 목록 버튼 툴팁", "번호 목록");
+    createTranslationKeyIfNotExists("testcase.markdown.taskList", "testcase", "마크다운 툴바 체크리스트 버튼 툴팁", "체크리스트");
+    createTranslationKeyIfNotExists("testcase.markdown.table", "testcase", "마크다운 툴바 표 넣기 버튼 툴팁", "표 넣기");
+    createTranslationKeyIfNotExists("testcase.notes.edit", "testcase", "비고 편집 모드 전환 버튼 툴팁", "비고 수정");
+    createTranslationKeyIfNotExists("testcase.notes.viewOnly", "testcase", "비고 보기 모드 전환 버튼 툴팁", "보기 모드");
+    createTranslationKeyIfNotExists("testcase.notes.fullscreen", "testcase", "비고 전체화면 버튼 툴팁", "전체화면");
+    createTranslationKeyIfNotExists("testcase.notes.exitFullscreen", "testcase", "비고 전체화면 나가기 버튼 툴팁", "전체화면 나가기");
+
     // Import / Export 관련 키들
     createTranslationKeyIfNotExists(
         "testcase.io.title", "testcase", "Import/Export 다이얼로그 제목", "테스트케이스 Import / Export");

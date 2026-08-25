@@ -47,9 +47,9 @@ import DocumentChunks from "../RAG/DocumentChunks.jsx";
 import DocumentAnalysis from "../RAG/DocumentAnalysis.jsx";
 import axiosInstance from "../../utils/axiosInstance.js";
 import { API_CONFIG } from "../../utils/apiConstants.js";
-import MDEditor from "@uiw/react-md-editor";
 import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 import { isDebugEnabled } from "../../utils/logger.js";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 const SUMMARY_PAGE_SIZE = 10;
 
@@ -246,13 +246,13 @@ const GlobalDocumentManager = ({ onSuccess }) => {
         ? "rgba(15, 23, 42, 0.9)"
         : "rgba(255, 255, 255, 0.6)",
       backdropFilter: "blur(18px) saturate(170%)",
-      "& .wmde-markdown": {
+      "& .markdown-body": {
         p: 3,
         bgcolor: "transparent",
         fontFamily: "'Bricolage Grotesque', sans-serif",
         color: baseTextColor,
       },
-      "& .wmde-markdown h3": {
+      "& .markdown-body h3": {
         fontFamily: "'Bricolage Grotesque', sans-serif",
         fontSize: "1.5rem",
         fontWeight: 600,
@@ -264,7 +264,7 @@ const GlobalDocumentManager = ({ onSuccess }) => {
         }`,
         paddingLeft: "12px",
       },
-      "& .wmde-markdown hr": {
+      "& .markdown-body hr": {
         my: 2,
         height: "3px",
         background: headingGradient,
@@ -1319,7 +1319,7 @@ const GlobalDocumentManager = ({ onSuccess }) => {
                     className="glass-surface shadow-glass-medium"
                     sx={summaryMarkdownStyles}
                   >
-                    <MDEditor.Markdown source={summaryContent} />
+                    <MarkdownViewer content={summaryContent} />
                   </Box>
                 )}
                 <Box

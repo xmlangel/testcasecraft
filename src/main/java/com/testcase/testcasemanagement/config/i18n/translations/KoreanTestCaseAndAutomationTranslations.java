@@ -1357,6 +1357,21 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.notes.copy_message", languageCode, "노트가 클립보드에 복사되었습니다.", createdBy);
 
+    // 리치 마크다운 에디터 툴바·비고 표시 모드 한글
+    createTranslationIfNotExists("testcase.markdown.bold", languageCode, "굵게", createdBy);
+    createTranslationIfNotExists("testcase.markdown.italic", languageCode, "기울임", createdBy);
+    createTranslationIfNotExists("testcase.markdown.code", languageCode, "코드", createdBy);
+    createTranslationIfNotExists("testcase.markdown.heading", languageCode, "제목", createdBy);
+    createTranslationIfNotExists("testcase.markdown.quote", languageCode, "인용", createdBy);
+    createTranslationIfNotExists("testcase.markdown.bulletList", languageCode, "목록", createdBy);
+    createTranslationIfNotExists("testcase.markdown.orderedList", languageCode, "번호 목록", createdBy);
+    createTranslationIfNotExists("testcase.markdown.taskList", languageCode, "체크리스트", createdBy);
+    createTranslationIfNotExists("testcase.markdown.table", languageCode, "표 넣기", createdBy);
+    createTranslationIfNotExists("testcase.notes.edit", languageCode, "비고 수정", createdBy);
+    createTranslationIfNotExists("testcase.notes.viewOnly", languageCode, "보기 모드", createdBy);
+    createTranslationIfNotExists("testcase.notes.fullscreen", languageCode, "전체화면", createdBy);
+    createTranslationIfNotExists("testcase.notes.exitFullscreen", languageCode, "전체화면 나가기", createdBy);
+
     // 내보내기 PDF 방향 옵션 한글
     createTranslationIfNotExists(
         "testResult.export.pdf.orientation.label", languageCode, "출력 방향", createdBy);

@@ -41,11 +41,9 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { useRAG } from "../../context/RAGContext.jsx";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
-import MDEditor from "@uiw/react-md-editor";
 import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
 import { serverErrorMessage } from "../../utils/apiError.js";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 const CHUNK_PAGE_SIZE = 50; // 한 번에 로드할 청크 개수
 const MAX_CHUNK_API_LIMIT = 100; // 백엔드 RAG API가 허용하는 최대 limit 값
@@ -152,13 +150,13 @@ function DocumentChunks({
         : "rgba(255, 255, 255, 0.85)",
       p: 2,
       mt: 1,
-      "& .wmde-markdown": {
+      "& .markdown-body": {
         p: 0,
         bgcolor: "transparent",
         fontFamily: "'Bricolage Grotesque', sans-serif",
         color: baseTextColor,
       },
-      "& .wmde-markdown h1, & .wmde-markdown h2, & .wmde-markdown h3": {
+      "& .markdown-body h1, & .markdown-body h2, & .markdown-body h3": {
         background: headingGradient,
         WebkitBackgroundClip: "text",
         backgroundClip: "text",
@@ -166,13 +164,13 @@ function DocumentChunks({
         mt: 1.5,
         mb: 0.75,
       },
-      "& .wmde-markdown p": {
+      "& .markdown-body p": {
         mb: 0.75,
         mt: 0,
         lineHeight: 1.6,
         color: baseTextColor,
       },
-      "& .wmde-markdown code": {
+      "& .markdown-body code": {
         fontFamily: "'JetBrains Mono', monospace",
         bgcolor: isDarkMode
           ? alpha(theme.palette.common.white, 0.1)
@@ -188,7 +186,7 @@ function DocumentChunks({
             : "rgba(6, 182, 212, 0.2)"
         }`,
       },
-      "& .wmde-markdown pre": {
+      "& .markdown-body pre": {
         fontFamily: "'JetBrains Mono', monospace",
         bgcolor: isDarkMode
           ? alpha(theme.palette.common.black, 0.3)
@@ -203,7 +201,7 @@ function DocumentChunks({
           isDarkMode ? theme.palette.divider : "rgba(6, 182, 212, 0.3)"
         }`,
       },
-      "& .wmde-markdown blockquote": {
+      "& .markdown-body blockquote": {
         borderLeft: `4px solid ${
           isDarkMode ? theme.palette.primary.main : "rgba(6, 182, 212, 0.4)"
         }`,
@@ -215,7 +213,7 @@ function DocumentChunks({
         fontStyle: "italic",
         color: isDarkMode ? theme.palette.grey[300] : "#64748B",
       },
-      "& .wmde-markdown ul, & .wmde-markdown ol": {
+      "& .markdown-body ul, & .markdown-body ol": {
         pl: 3,
         mb: 0.75,
         mt: 0,
@@ -1011,7 +1009,7 @@ function DocumentChunks({
                                 }
                                 sx={chunkMarkdownStyles}
                               >
-                                <MDEditor.Markdown source={displayText || ""} />
+                                <MarkdownViewer content={displayText || ""} />
                               </Box>
                               {chunk.chunkText.length > 200 && (
                                 <Button
@@ -1280,8 +1278,8 @@ function DocumentChunks({
                         sx={{ mb: 1 }}
                       />
                       <Box data-color-mode={colorMode} sx={chunkMarkdownStyles}>
-                        <MDEditor.Markdown
-                          source={(entry.llmResponse || "").trim()}
+                        <MarkdownViewer
+                          content={(entry.llmResponse || "").trim()}
                         />
                       </Box>
                     </Box>
@@ -1378,7 +1376,7 @@ function DocumentChunks({
                     overflow: "auto",
                   }}
                 >
-                  <MDEditor.Markdown source={selectedSummary.chunkText || ""} />
+                  <MarkdownViewer content={selectedSummary.chunkText || ""} />
                 </Box>
               </Box>
 
@@ -1410,8 +1408,8 @@ function DocumentChunks({
                       <CircularProgress size={24} />
                     </Box>
                   ) : (
-                    <MDEditor.Markdown
-                      source={
+                    <MarkdownViewer
+                      content={
                         selectedSummary.llmResponse ||
                         t(
                           "rag.chunks.summaryNotReady",

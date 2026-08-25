@@ -25,7 +25,6 @@ import {
   AttachFile as AttachFileIcon,
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
-import MDEditor from "@uiw/react-md-editor";
 import { useTranslation } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { jiraService } from "../../services/jiraService";
@@ -33,6 +32,7 @@ import TestResultAttachmentsView from "../TestCase/TestResultAttachmentsView.jsx
 import { getResultIcon } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 /**
  * JIRA 이슈별 테스트 히스토리 다이얼로그 (ICT-188)
@@ -203,8 +203,8 @@ function JiraHistoryDialog({ open, onClose, jiraIssueKey }) {
                             data-color-mode={darkMode ? "dark" : "light"}
                             sx={MARKDOWN_PREWRAP_SX}
                           >
-                            <MDEditor.Markdown
-                              source={r.notes}
+                            <MarkdownViewer
+                              content={r.notes}
                               style={{
                                 backgroundColor: "transparent",
                                 color: theme.palette.text.primary,

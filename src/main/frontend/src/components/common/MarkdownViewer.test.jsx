@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import MarkdownViewer from "./MarkdownViewer.jsx";
 
 // 마크다운 표시 과도한 공백 회귀 방지:
-// 버그는 whiteSpace:"pre-wrap" 을 마크다운 루트(.wmde-markdown)에 적용해
+// 버그는 whiteSpace:"pre-wrap" 을 마크다운 루트(.markdown-body)에 적용해
 // 블록 사이 개행까지 빈 줄로 렌더링한 것. 수정 후 루트에는 pre-wrap 이 없고,
 // pre-wrap 은 p/li 로만 한정된다.
 describe("MarkdownViewer", () => {
@@ -24,11 +24,20 @@ describe("MarkdownViewer", () => {
     expect(screen.getByText("둘째 문단")).toBeInTheDocument();
   });
 
-  it("마크다운 루트(.wmde-markdown)에 인라인 white-space:pre-wrap 을 적용하지 않는다", () => {
+  // 훅 순서 회귀 가드: early return 을 useMemo 앞에 두면 이 전환에서 React 가
+  // "Rendered more hooks than during the previous render" 로 죽는다.
+  it("빈 내용에서 값이 채워져도 오류 없이 렌더한다", () => {
+    const { rerender, container } = render(<MarkdownViewer content="" />);
+    expect(container).toBeEmptyDOMElement();
+    rerender(<MarkdownViewer content="나중에 채운 내용" />);
+    expect(screen.getByText("나중에 채운 내용")).toBeInTheDocument();
+  });
+
+  it("마크다운 루트(.markdown-body)에 인라인 white-space:pre-wrap 을 적용하지 않는다", () => {
     const { container } = render(
       <MarkdownViewer content={"문단1\n\n문단2\n\n문단3"} />,
     );
-    const root = container.querySelector(".wmde-markdown");
+    const root = container.querySelector(".markdown-body");
     expect(root).toBeTruthy();
     // 회귀 가드: 루트 인라인 스타일에 pre-wrap 이 다시 들어오면 실패
     expect(root.style.whiteSpace).not.toBe("pre-wrap");

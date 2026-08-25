@@ -19,7 +19,7 @@ import {
   WrapText as WrapTextIcon,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
-import MDEditor from "@uiw/react-md-editor";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 
 const Subtitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
@@ -58,15 +58,15 @@ const buildWrapSx = ({ wrap }) =>
   wrap
     ? {
         // 마크다운 본문에만 적용 — 표 헤더("No." 등) 글자 단위 쪼개짐 방지
-        "& .wmde-markdown": {
+        "& .markdown-body": {
           wordBreak: "break-word",
           overflowWrap: "anywhere",
         },
-        "& .wmde-markdown pre, & .wmde-markdown pre > code": {
+        "& .markdown-body pre, & .markdown-body pre > code": {
           whiteSpace: "pre-wrap",
           wordBreak: "break-all",
         },
-        "& .wmde-markdown code": {
+        "& .markdown-body code": {
           wordBreak: "break-all",
         },
       }
@@ -226,8 +226,8 @@ const TestCaseDetails = ({ testCase, t }) => {
         </Box>
         {testCase.description && (
           <Box data-color-mode={darkMode ? "dark" : "light"}>
-            <MDEditor.Markdown
-              source={testCase.description}
+            <MarkdownViewer
+              content={testCase.description}
               style={{
                 padding: "8px 12px",
                 backgroundColor: darkMode
@@ -258,8 +258,8 @@ const TestCaseDetails = ({ testCase, t }) => {
         </Subtitle>
         {testCase.preCondition && (
           <Box data-color-mode={darkMode ? "dark" : "light"}>
-            <MDEditor.Markdown
-              source={testCase.preCondition}
+            <MarkdownViewer
+              content={testCase.preCondition}
               style={{
                 padding: "8px 12px",
                 backgroundColor: darkMode
@@ -300,8 +300,8 @@ const TestCaseDetails = ({ testCase, t }) => {
                             data-color-mode={darkMode ? "dark" : "light"}
                             sx={stepCellSx}
                           >
-                            <MDEditor.Markdown
-                              source={step.description || ""}
+                            <MarkdownViewer
+                              content={step.description || ""}
                               style={{
                                 fontSize: "0.875rem",
                                 backgroundColor: "transparent",
@@ -315,8 +315,8 @@ const TestCaseDetails = ({ testCase, t }) => {
                             data-color-mode={darkMode ? "dark" : "light"}
                             sx={stepCellSx}
                           >
-                            <MDEditor.Markdown
-                              source={step.expectedResult || ""}
+                            <MarkdownViewer
+                              content={step.expectedResult || ""}
                               style={{
                                 fontSize: "0.875rem",
                                 backgroundColor: "transparent",
@@ -341,8 +341,8 @@ const TestCaseDetails = ({ testCase, t }) => {
           </Subtitle>
           {testCase.expectedResults && (
             <Box data-color-mode={darkMode ? "dark" : "light"}>
-              <MDEditor.Markdown
-                source={testCase.expectedResults}
+              <MarkdownViewer
+                content={testCase.expectedResults}
                 style={{
                   padding: "8px 12px",
                   backgroundColor: darkMode
@@ -366,8 +366,8 @@ const TestCaseDetails = ({ testCase, t }) => {
               {t("testResult.form.postCondition")}
             </Subtitle>
             <Box data-color-mode={darkMode ? "dark" : "light"}>
-              <MDEditor.Markdown
-                source={testCase.postCondition}
+              <MarkdownViewer
+                content={testCase.postCondition}
                 style={{
                   padding: "8px 12px",
                   backgroundColor: darkMode
@@ -437,8 +437,8 @@ const TestCaseDetails = ({ testCase, t }) => {
               {t("testResult.form.testTechnique")}
             </Subtitle>
             <Box data-color-mode={darkMode ? "dark" : "light"}>
-              <MDEditor.Markdown
-                source={testCase.testTechnique}
+              <MarkdownViewer
+                content={testCase.testTechnique}
                 style={{
                   padding: "8px 12px",
                   backgroundColor: darkMode
