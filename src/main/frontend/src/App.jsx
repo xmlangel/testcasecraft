@@ -426,6 +426,12 @@ const AppContent = () => {
   const isCaseResultRoute =
     /\/executions\/[^/]+\/testcases\/[^/]+\/result$/.test(location.pathname);
 
+  // 자동화 결과 상세(.../junit-results/:id, .../automation-results/:id)도 케이스 결과와
+  // 같은 규칙을 따른다. 좌측 메뉴 모드에서는 상단 바·좌측 메뉴를 유지한 채 오른쪽
+  // 영역에서 열린다. 이 분기가 없어 이 화면만 껍데기 없이 전체 화면으로 떴다.
+  const isAutomationDetailRoute =
+    /\/(junit-results|automation-results)\/[^/]+$/.test(location.pathname);
+
   const isTestExecutionsSection = () => {
     const path = location.pathname;
     const searchParams = new URLSearchParams(location.search);
@@ -1419,7 +1425,11 @@ const AppContent = () => {
                     {/* 자동화 테스트도 다른 영역과 같은 Paper 위에 얹는다 — 배경 통일 */}
                     {tabIndex === 5 && (
                       <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
-                        <JunitResultDashboard />
+                        {isAutomationDetailRoute ? (
+                          <JunitResultDetail embedded />
+                        ) : (
+                          <JunitResultDashboard />
+                        )}
                       </Paper>
                     )}
                     {/* RAG 문서 탭: RAG 활성화 + tabIndex 6일 때만 표시 */}
@@ -1493,6 +1503,12 @@ function ExecutionDetailRoute() {
 function CaseResultRoute() {
   const { isSidebarMode } = useNavMode();
   return isSidebarMode ? <AppContent /> : <TestCaseResultPage />;
+}
+
+/** 자동화 결과 상세도 같은 규칙 — 좌측 메뉴 모드면 껍데기 안에서 연다. */
+function AutomationDetailRoute() {
+  const { isSidebarMode } = useNavMode();
+  return isSidebarMode ? <AppContent /> : <JunitResultDetail />;
 }
 
 // 전체화면 실행 상세 페이지
@@ -1640,7 +1656,7 @@ const AppWrapper = () => {
             path="/junit-results/:testResultId"
             element={
               <ProtectedRoute>
-                <JunitResultDetail />
+                <AutomationDetailRoute />
               </ProtectedRoute>
             }
           />
@@ -1648,7 +1664,7 @@ const AppWrapper = () => {
             path="/projects/:projectId/junit-results/:testResultId"
             element={
               <ProtectedRoute>
-                <JunitResultDetail />
+                <AutomationDetailRoute />
               </ProtectedRoute>
             }
           />

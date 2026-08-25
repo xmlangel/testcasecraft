@@ -508,6 +508,7 @@ export default function JunitResultDashboard() {
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button
+            size="small"
             variant="outlined"
             startIcon={<Refresh />}
             onClick={() => loadData()}
@@ -518,6 +519,7 @@ export default function JunitResultDashboard() {
           </Button>
           {canRecordResults && (
             <Button
+              size="small"
               variant="contained"
               startIcon={<CloudUpload />}
               onClick={() => setUploadDialogOpen(true)}

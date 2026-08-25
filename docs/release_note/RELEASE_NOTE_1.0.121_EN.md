@@ -108,6 +108,14 @@ Icon sizes in the app chrome came in three flavors: 24px for bookmarks and setti
 
 Everything is 18px now: top bar, breadcrumb, tree header, left menu, and the individual-form/spreadsheet switcher.
 
+#### 🖥️ Automation result detail opens in the same frame as other screens
+
+This screen alone appeared full-page, without the top bar or left menu. Execution detail and case result screens open inside the app frame in left-menu mode, but automation result detail was missing that rule, so the menu vanished when navigating there and it was hard to tell where you were.
+
+The same rule applies now. In left-menu mode it opens inside the frame; in tab mode it opens standalone as before. The legacy path (`/junit-results/...`) was aligned too.
+
+The page title dropped from 34px to 24px, matching the heading level used elsewhere. Section labels and filter inputs are 14px, and chart legends and axis ticks are 13px and 12px. Action buttons on the screen (back to automation, export to PDF and CSV, refresh, upload result) went from 39px to 33px, matching buttons on other screens.
+
 #### 🔤 Text sizes now match across screens
 
 Three screens looked oversized: RAG, exploratory sessions, and automation. Switch, checkbox, and input labels used the 16px default, and nineteen places specified 16px body text. On the automation screen, section labels and chart legend and axis ticks were 16px. Everywhere else uses 14px.
