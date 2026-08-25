@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import TestCaseFormHeader from "./TestCaseFormHeader.jsx";
 import TestCaseFormMetadata from "./TestCaseFormMetadata.jsx";
-import MarkdownFieldEditor from "./MarkdownFieldEditor.jsx";
+import RichMarkdownFieldEditor from "./RichMarkdownFieldEditor.jsx";
 import VersionDialog from "./VersionDialog.jsx";
 
 /**
@@ -100,7 +100,7 @@ const FolderForm = ({
             disabled={isViewer}
           />
 
-          <MarkdownFieldEditor
+          <RichMarkdownFieldEditor
             label={t("testcase.form.description", "설명")}
             value={testCase.description || ""}
             placeholder={t("testcase.form.folderDescription", "폴더 설명")}
