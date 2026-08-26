@@ -180,16 +180,7 @@ public class RagQueryAnalyzer {
       LlmClient.LlmResponse response = llmClient.chat(llmConfig, messages, 0.1, 800);
       String content = response.getContent().trim();
 
-      // JSON 추출 (코드 블록 제거 등)
-      if (content.contains("```json")) {
-        content = content.substring(content.indexOf("```json") + 7);
-        content = content.substring(0, content.lastIndexOf("```"));
-      } else if (content.contains("```")) {
-        content = content.substring(content.indexOf("```") + 3);
-        content = content.substring(0, content.lastIndexOf("```"));
-      }
-
-      return objectMapper.readValue(content, QueryIntent.class);
+      return objectMapper.readValue(extractJson(content), QueryIntent.class);
 
     } catch (Exception e) {
       log.error("질의 의도 분석 실패, 기본값 반환: {}", e.getMessage());
@@ -200,6 +191,37 @@ public class RagQueryAnalyzer {
           .justification("분석 실패로 인한 기본값 적용")
           .build();
     }
+  }
+
+  /**
+   * 모델 응답에서 JSON 본문만 뽑아낸다.
+   *
+   * <p>모델이 JSON 을 코드펜스로 감싸거나(```json … ```), 추론 모델(예: gemma4:e2b)처럼 설명 문장 사이에 끼워 넣는다. 예전에는
+   * 펜스를 `lastIndexOf("```")` 로 잘랐는데, 여는 펜스만 있고 닫는 펜스가 없으면 -1 이 되어 {@code substring(0, -1)} 이
+   * 예외를 던졌다(실측: Range [0, -1)). 그래서 펜스는 짝이 맞을 때만 걷어내고, 그다음 첫 `{` 부터 마지막 `}` 까지를 취해 앞뒤 산문을
+   * 버린다. 어느 경우에도 예외로 죽지 않고, 못 찾으면 원본을 그대로 넘겨 상위 catch 가 기본값으로 처리하게 둔다.
+   */
+  private String extractJson(String raw) {
+    String content = raw == null ? "" : raw.trim();
+
+    // 1. 코드펜스가 여닫이 짝으로 있으면 그 안쪽만 취한다.
+    int fenceStart = content.indexOf("```");
+    if (fenceStart >= 0) {
+      int bodyStart = content.indexOf('\n', fenceStart);
+      bodyStart = bodyStart < 0 ? fenceStart + 3 : bodyStart + 1;
+      int fenceEnd = content.indexOf("```", bodyStart);
+      if (fenceEnd > bodyStart) {
+        content = content.substring(bodyStart, fenceEnd).trim();
+      }
+    }
+
+    // 2. 첫 '{' 부터 마지막 '}' 까지 — 앞뒤 설명 문장을 버린다.
+    int objStart = content.indexOf('{');
+    int objEnd = content.lastIndexOf('}');
+    if (objStart >= 0 && objEnd > objStart) {
+      return content.substring(objStart, objEnd + 1);
+    }
+    return content;
   }
 
   /**
