@@ -50,12 +50,10 @@ public class RagDataSummarizer {
     }
 
     // 전체 목록 요청이거나 상한 안이면 요약하지 않고 그대로 넘긴다.
+    // 원본 JSON 을 그대로 넘기면 소형 모델이 답을 못 만든다 — 결과를 나열하지 못하고 얼버무리거나,
+    // 중첩 구조를 흉내 내다 같은 줄을 무한 반복하는 열화가 실측됐다. 마크다운 표로 넘기면 모델이 그대로 옮긴다.
     if (forceFullList || data.size() <= RAW_PASS_THROUGH_LIMIT) {
-      try {
-        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(data);
-      } catch (Exception e) {
-        return data.toString();
-      }
+      return toMarkdownTable(data);
     }
 
     try {
@@ -93,6 +91,57 @@ public class RagDataSummarizer {
       log.error("데이터 요약 실패: {}", e.getMessage());
       return String.format("총 %d건의 데이터가 조회되었습니다. (요약 실패)", data.size());
     }
+  }
+
+  /** 한 셀에 담을 최대 글자 수. 비고(notes)가 길어 프롬프트가 부풀는 것을 막는다. */
+  private static final int MAX_CELL = 200;
+
+  /**
+   * 조회 결과를 마크다운 표로 만든다.
+   *
+   * <p>열은 첫 행의 키 순서를 따르고, 뒤 행에만 있는 키는 뒤에 덧붙인다(행마다 키가 달라도 빠지지 않게).
+   * 셀의 줄바꿈은 공백으로 바꾸고 파이프는 이스케이프하며, 너무 길면 잘라 프롬프트 크기를 묶는다.
+   */
+  private String toMarkdownTable(java.util.List<java.util.Map<String, Object>> data) {
+    java.util.List<String> cols = new java.util.ArrayList<>();
+    for (java.util.Map<String, Object> row : data) {
+      for (String k : row.keySet()) {
+        if (!cols.contains(k)) {
+          cols.add(k);
+        }
+      }
+    }
+    if (cols.isEmpty()) {
+      return "총 " + data.size() + "건 조회됨.";
+    }
+    StringBuilder sb = new StringBuilder();
+    sb.append("총 ").append(data.size()).append("건 조회됨.\n\n");
+    sb.append("| ").append(String.join(" | ", cols)).append(" |\n");
+    sb.append("|");
+    for (int i = 0; i < cols.size(); i++) {
+      sb.append(" --- |");
+    }
+    sb.append("\n");
+    for (java.util.Map<String, Object> row : data) {
+      sb.append("|");
+      for (String c : cols) {
+        sb.append(' ').append(cell(row.get(c))).append(" |");
+      }
+      sb.append("\n");
+    }
+    return sb.toString().trim();
+  }
+
+  /** 값 하나를 표 셀 문자열로. null·줄바꿈·파이프·길이를 정리한다. */
+  private String cell(Object v) {
+    if (v == null) {
+      return "";
+    }
+    String s = String.valueOf(v).replaceAll("\\s+", " ").replace("|", "\\|").trim();
+    if (s.length() > MAX_CELL) {
+      s = s.substring(0, MAX_CELL) + "…";
+    }
+    return s;
   }
 
   /**
