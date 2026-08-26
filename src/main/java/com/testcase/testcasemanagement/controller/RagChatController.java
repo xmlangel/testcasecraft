@@ -40,7 +40,8 @@ public class RagChatController {
    * @return 채팅 응답 (LLM 답변 + 출처 정보)
    */
   @PostMapping
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize(
+      "#request.projectId != null && @projectSecurityService.canAccessProject(#request.projectId.toString())")
   @Operation(
       summary = "RAG 기반 채팅",
       description =
@@ -80,7 +81,8 @@ public class RagChatController {
    * @return SSE Emitter
    */
   @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize(
+      "#request.projectId != null && @projectSecurityService.canAccessProject(#request.projectId.toString())")
   @Operation(
       summary = "RAG 기반 채팅 (스트리밍)",
       description =
