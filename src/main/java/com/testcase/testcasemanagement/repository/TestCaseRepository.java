@@ -155,11 +155,16 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
   Optional<TestCase> findByProjectIdAndDisplayId(
       @Param("projectId") String projectId, @Param("displayId") String displayId);
 
-  // 키워드 검색 메서드 추가 (이름 및 설명 검색)
+  // 키워드 검색 (이름·설명·사전조건·기법·태그까지 대상) — RAG 키워드 검색 경로에서 사용.
+  // 태그는 별도 컬렉션 테이블이라 상관 서브쿼리(EXISTS)로 매칭한다.
   @Query(
-      "SELECT t FROM TestCase t WHERE t.project.id = :projectId "
+      "SELECT DISTINCT t FROM TestCase t WHERE t.project.id = :projectId "
           + "AND (LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')) "
-          + "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+          + "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+          + "OR LOWER(t.preCondition) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+          + "OR LOWER(t.testTechnique) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+          + "OR EXISTS (SELECT 1 FROM t.tags tag "
+          + "WHERE LOWER(tag) LIKE LOWER(CONCAT('%', :keyword, '%'))))")
   List<TestCase> searchByKeyword(
       @Param("projectId") String projectId, @Param("keyword") String keyword);
 

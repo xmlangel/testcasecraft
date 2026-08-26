@@ -4,10 +4,12 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.web.servlet.MockMvc;
@@ -108,5 +110,42 @@ public class ControllerP0AuthzRegressionTest extends AbstractTestNGSpringContext
             .getResponse()
             .getStatus();
     org.testng.Assert.assertEquals(status, 403, "TESTER 의 첨부 정리는 403 이어야 함, 실제=" + status);
+  }
+
+  /**
+   * RAG 채팅은 인증뿐 아니라 요청한 프로젝트 접근 권한이 필요하다. 비인증 요청은 401/403 이어야 한다.
+   *
+   * <p>이전에는 @PreAuthorize("isAuthenticated()") 만 있어, 인증만 되면 권한 없는 프로젝트의 데이터를
+   * 조회할 수 있었다(크로스 프로젝트 유출). canAccessProject 로 전환한 뒤의 회귀 가드다.
+   */
+  @Test
+  public void unauthenticated_ragChat_isRejected() throws Exception {
+    int status =
+        mockMvc
+            .perform(
+                post("/api/rag/chat")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"projectId\":\"11111111-1111-1111-1111-111111111111\",\"message\":\"안녕\"}"))
+            .andReturn()
+            .getResponse()
+            .getStatus();
+    assertRejected(status, "비인증 RAG 채팅");
+  }
+
+  /** RAG 채팅 스트리밍도 같은 보호 경계를 가진다(비인증 차단). */
+  @Test
+  public void unauthenticated_ragChatStream_isRejected() throws Exception {
+    int status =
+        mockMvc
+            .perform(
+                post("/api/rag/chat/stream")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"projectId\":\"11111111-1111-1111-1111-111111111111\",\"message\":\"안녕\"}"))
+            .andReturn()
+            .getResponse()
+            .getStatus();
+    assertRejected(status, "비인증 RAG 채팅 스트리밍");
   }
 }
