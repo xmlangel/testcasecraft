@@ -137,16 +137,18 @@ public class RagQueryAnalyzer {
 5. needsFullList: 사용자가 '모두', '전체', '나열', '목록 다', '36개 다'와 같이 수집된 데이터를 요약하지 말고 모두 보여달라고 명시적으로 요청하는 경우 true
 6. searchKeywords: 검색이 필요한 경우 사용할 핵심 키워드 목록
 7. generatedSql: 통계·목록·특정 조건 검색이 필요하면, 위 스키마로 프로젝트 ID(%s)에 대한 단일 SELECT 를 작성하세요.
-   - 태그로 케이스 찾기(예: '수정' 태그):
-     SELECT t.display_id, t.name, tg.tag FROM testcases t JOIN testcase_tags tg ON tg.testcase_id = t.id WHERE t.project_id = '%s' AND tg.tag ILIKE '%%수정%%'
+   - 키워드로 케이스 찾기(제목·설명·태그를 함께 본다 — 태그만 보지 마라. 태그가 없는 프로젝트가 많다):
+     SELECT DISTINCT t.display_id, t.name FROM testcases t LEFT JOIN testcase_tags tg ON tg.testcase_id = t.id WHERE t.project_id = '%s' AND (t.name ILIKE '%%수정%%' OR t.description ILIKE '%%수정%%' OR tg.tag ILIKE '%%수정%%')
+   - 실행 결과/비고에서 키워드 찾기(예: '수정' 이 들어간 결과):
+     SELECT t.display_id, t.name, r.result, r.notes FROM test_results r JOIN testcases t ON t.id = r.test_case_id WHERE t.project_id = '%s' AND r.notes ILIKE '%%수정%%'
    - QA 의견/총평 보기:
      SELECT name, status, qa_summary FROM test_executions WHERE project_id = '%s' AND qa_summary IS NOT NULL
-   - 실패한 결과와 비고 보기:
-     SELECT t.display_id, t.name, r.result, r.notes FROM test_results r JOIN testcases t ON t.id = r.test_case_id WHERE t.project_id = '%s' AND r.result = 'FAIL'
    - 스텝 내용으로 찾기:
      SELECT DISTINCT t.display_id, t.name FROM testcasesteps s JOIN testcases t ON t.id = s.testcase_id WHERE t.project_id = '%s' AND s.description ILIKE '%%로그인%%'
    - 케이스 개수:
      SELECT count(*) FROM testcases WHERE project_id = '%s' AND type = 'testcase'
+   - 키워드가 태그인지 제목/본문인지 확실치 않으면 제목·설명·태그를 함께 본다(태그만으로 좁히지 마라).
+   - '실행 결과/실행 이력에서 ~ 찾아줘' 류는 test_results.notes 를 본다.
    - 부분 문자열 검색은 대소문자 무시 ILIKE '%%키워드%%' 를 쓴다.
 
 [보안 규칙 - 필독]
