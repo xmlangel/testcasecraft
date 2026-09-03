@@ -21,6 +21,7 @@ import {
   DialogActions,
   Button,
   Grid, // Added Grid import
+  Collapse,
 } from "@mui/material";
 import {
   Close as CloseIcon,
@@ -40,6 +41,8 @@ import {
   Image as ImageIcon,
   InsertDriveFile as FileIcon,
   Download as DownloadIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from "@mui/icons-material";
 import { useTheme, alpha } from "@mui/material/styles";
 import { useAppContext } from "../../context/AppContext";
@@ -49,6 +52,209 @@ import { useI18n } from "../../context/I18nContext";
  * 테스트 케이스 상세 패널 컴포넌트
  * tracelog와 testbody를 탭 형태로 표시
  */
+/**
+ * 문자열이 JSON 묶음인지 본다.
+ *
+ * 자동화 도구가 스텝 타임라인처럼 구조가 있는 값을 속성으로 올린다. 그 값을 한 덩어리
+ * 문자열로 그리면 줄이 끝없이 이어져 읽을 수 없다.
+ */
+const parseJsonValue = (value) => {
+  if (typeof value !== "string") {
+    return Array.isArray(value) || (value && typeof value === "object")
+      ? value
+      : null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return null;
+  try {
+    const parsed = JSON.parse(trimmed);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+/** 값 하나를 읽을 수 있는 형태로. 원시 값은 그대로, 묶음은 다시 들어간다 */
+const JsonNode = ({ label, value, depth = 0, isDarkMode, theme }) => {
+  const nested = value && typeof value === "object";
+  if (!nested) {
+    return (
+      <Box sx={{ display: "flex", gap: 1, py: 0.25, pl: depth * 1.5 }}>
+        {label != null && (
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 700, color: "text.secondary", flexShrink: 0 }}
+          >
+            {label}
+          </Typography>
+        )}
+        <Typography
+          variant="caption"
+          sx={{
+            fontFamily: "monospace",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            color:
+              typeof value === "number" || typeof value === "boolean"
+                ? theme.palette.info.main
+                : "text.primary",
+          }}
+        >
+          {value == null ? "—" : String(value)}
+        </Typography>
+      </Box>
+    );
+  }
+
+  const entries = Array.isArray(value)
+    ? value.map((v, i) => [`${i + 1}`, v])
+    : Object.entries(value);
+
+  return (
+    <Box sx={{ pl: depth * 1.5 }}>
+      {label != null && (
+        <Typography
+          variant="caption"
+          sx={{ fontWeight: 700, color: "primary.main", display: "block" }}
+        >
+          {label}
+        </Typography>
+      )}
+      <Box
+        sx={{
+          borderLeft: depth > 0 ? `2px solid ${theme.palette.divider}` : "none",
+          pl: depth > 0 ? 1 : 0,
+          mb: 0.5,
+        }}
+      >
+        {entries.map(([k, v]) => (
+          <JsonNode
+            key={k}
+            label={k}
+            value={v}
+            depth={0}
+            isDarkMode={isDarkMode}
+            theme={theme}
+          />
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
+/** JSON 속성 하나. 기본은 접혀 있고 원문 보기로 바꿀 수 있다 */
+const JsonProperty = ({ name, parsed, raw, isDarkMode, theme, t }) => {
+  const [open, setOpen] = useState(false);
+  const [showRaw, setShowRaw] = useState(false);
+  const count = Array.isArray(parsed)
+    ? parsed.length
+    : Object.keys(parsed).length;
+
+  return (
+    <Box>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <IconButton size="small" onClick={() => setOpen((v) => !v)}>
+          {open ? (
+            <ExpandLessIcon fontSize="small" />
+          ) : (
+            <ExpandMoreIcon fontSize="small" />
+          )}
+        </IconButton>
+        <Typography
+          variant="caption"
+          onClick={() => setOpen((v) => !v)}
+          sx={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            fontSize: "0.7rem",
+            cursor: "pointer",
+            color: "text.secondary",
+          }}
+        >
+          {name}
+        </Typography>
+        <Chip
+          size="small"
+          label={
+            Array.isArray(parsed)
+              ? t("junit.testcase.jsonItems", "항목 {n}").replace("{n}", count)
+              : t("junit.testcase.jsonFields", "칸 {n}").replace("{n}", count)
+          }
+          sx={{ height: 18, fontSize: "0.65rem" }}
+        />
+        <Box sx={{ flex: 1 }} />
+        {open && (
+          <Button size="small" onClick={() => setShowRaw((v) => !v)}>
+            {showRaw
+              ? t("junit.testcase.jsonStructured", "구조 보기")
+              : t("junit.testcase.jsonRaw", "원문 보기")}
+          </Button>
+        )}
+      </Box>
+
+      <Collapse in={open} unmountOnExit>
+        <Box sx={{ pl: 4, pt: 0.5 }}>
+          {showRaw ? (
+            <Box
+              component="pre"
+              sx={{
+                m: 0,
+                p: 1,
+                borderRadius: 1,
+                bgcolor: isDarkMode
+                  ? alpha(theme.palette.background.paper, 0.9)
+                  : "#fbfbfd",
+                border: `1px solid ${theme.palette.divider}`,
+                fontFamily: "monospace",
+                fontSize: "0.75rem",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                maxHeight: 320,
+                overflow: "auto",
+              }}
+            >
+              {(() => {
+                try {
+                  return JSON.stringify(parsed, null, 2);
+                } catch {
+                  return String(raw);
+                }
+              })()}
+            </Box>
+          ) : (
+            <Box sx={{ maxHeight: 400, overflow: "auto" }}>
+              {(Array.isArray(parsed)
+                ? parsed.map((v, i) => [`${i + 1}`, v])
+                : Object.entries(parsed)
+              ).map(([k, v]) => (
+                <Box
+                  key={k}
+                  sx={{
+                    mb: 0.75,
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: isDarkMode
+                      ? alpha(theme.palette.background.paper, 0.6)
+                      : "#ffffff",
+                    border: `1px solid ${theme.palette.divider}`,
+                  }}
+                >
+                  <JsonNode
+                    label={k}
+                    value={v}
+                    isDarkMode={isDarkMode}
+                    theme={theme}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+      </Collapse>
+    </Box>
+  );
+};
+
 const TestCaseDetailPanel = ({
   testCaseId,
   refreshTrigger = 0,
@@ -344,55 +550,83 @@ const TestCaseDetailPanel = ({
             Execution Properties
           </Typography>
           <Grid container spacing={1}>
-            {filteredProperties.map(([key, value]) => (
-              <Grid
-                item
-                xs={12}
-                sm={
-                  key.length > 20 || (value && value.toString().length > 50)
-                    ? 12
-                    : 6
-                }
-                key={key}
-              >
-                <Box
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 1,
-                    bgcolor: isDarkMode
-                      ? alpha(theme.palette.background.paper, 0.8)
-                      : "#ffffff",
-                    border: `1px solid ${theme.palette.divider}`,
-                    height: "100%",
-                  }}
+            {filteredProperties.map(([key, value]) => {
+              const parsed = parseJsonValue(value);
+              if (parsed) {
+                return (
+                  <Grid item xs={12} key={key}>
+                    <Box
+                      sx={{
+                        p: 1,
+                        borderRadius: 1,
+                        bgcolor: isDarkMode
+                          ? alpha(theme.palette.background.paper, 0.8)
+                          : "#ffffff",
+                        border: `1px solid ${theme.palette.divider}`,
+                      }}
+                    >
+                      <JsonProperty
+                        name={key}
+                        parsed={parsed}
+                        raw={value}
+                        isDarkMode={isDarkMode}
+                        theme={theme}
+                        t={t}
+                      />
+                    </Box>
+                  </Grid>
+                );
+              }
+              return (
+                <Grid
+                  item
+                  xs={12}
+                  sm={
+                    key.length > 20 || (value && value.toString().length > 50)
+                      ? 12
+                      : 6
+                  }
+                  key={key}
                 >
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
+                  <Box
                     sx={{
-                      fontWeight: "bold",
-                      display: "block",
-                      mb: 0.5,
-                      textTransform: "uppercase",
-                      fontSize: "0.7rem",
+                      p: 1.5,
+                      borderRadius: 1,
+                      bgcolor: isDarkMode
+                        ? alpha(theme.palette.background.paper, 0.8)
+                        : "#ffffff",
+                      border: `1px solid ${theme.palette.divider}`,
+                      height: "100%",
                     }}
                   >
-                    {key}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: "monospace",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    {String(value)}
-                  </Typography>
-                </Box>
-              </Grid>
-            ))}
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{
+                        fontWeight: "bold",
+                        display: "block",
+                        mb: 0.5,
+                        textTransform: "uppercase",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {key}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: "monospace",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      {String(value)}
+                    </Typography>
+                  </Box>
+                </Grid>
+              );
+            })}
           </Grid>
         </CardContent>
       </Card>
@@ -516,6 +750,49 @@ const TestCaseDetailPanel = ({
                   >
                     STEP {step.index || idx + 1}
                   </Typography>
+                  {step.content && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1.5,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {step.content}
+                    </Typography>
+                  )}
+
+                  {step.action && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ fontWeight: "bold", display: "block", mb: 0.5 }}
+                      >
+                        {t("junit.testcase.stepAction")}
+                      </Typography>
+                      <Box
+                        component="pre"
+                        sx={{
+                          m: 0,
+                          p: 1,
+                          borderRadius: 1,
+                          bgcolor: isDarkMode
+                            ? alpha(theme.palette.info.main, 0.08)
+                            : "#f5f7fa",
+                          fontFamily: "monospace",
+                          fontSize: "0.8rem",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          overflow: "auto",
+                        }}
+                      >
+                        {step.action}
+                      </Box>
+                    </Box>
+                  )}
+
                   {step.sql && (
                     <Box sx={{ mb: 2 }}>
                       <Typography
@@ -606,7 +883,14 @@ const TestCaseDetailPanel = ({
                     {Object.entries(step)
                       .filter(
                         ([key]) =>
-                          !["index", "sql", "expected", "actual"].includes(key),
+                          ![
+                            "index",
+                            "sql",
+                            "expected",
+                            "actual",
+                            "content",
+                            "action",
+                          ].includes(key),
                       )
                       .map(([key, value]) => (
                         <Box key={key} sx={{ flex: 1, minWidth: "200px" }}>

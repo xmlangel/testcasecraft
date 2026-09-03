@@ -698,6 +698,12 @@ Four addresses reach this same screen.
 | `/automation-tests/{testResultId}` | Short alias that omits the project |
 | `/junit-results/{testResultId}` | The same alias |
 
+#### Step Timeline
+
+For agent-driven cases, the **Tracelog** tab lists the steps in order. Each step shows what the agent set out to do, the action it took, what it observed, and the page address at that moment. Above the list, the case's stated expected result sits beside the actual result the agent reported.
+
+When a verdict alone does not point to the cause, use this timeline to trace which step changed what. Step order matches the Attachments tab, so you can read the text and view the screenshot for the same step side by side.
+
 #### Case Attachments (Screenshots)
 
 Selecting an individual test opens three tabs on the right: **Tracelog**, **Test Body**, and **Attachments**. The Attachments tab lays out the files attached to that case in a grid, with images previewed inline. Click one to enlarge it or download it.

@@ -236,6 +236,19 @@ Full error message, stack trace, and reproduction info for selected case.
 - Notes (multi-line)
 - `[Save]` `[Cancel]`
 
+#### 3.5.0 Step Timeline (Tracelog Tab)
+
+Appears only when the automation tool uploaded a step record.
+
+| Slot | Content |
+|---|---|
+| Header | `STEP {order}` |
+| Body | What the step set out to do |
+| Code block | `수행 동작` label plus the actual action |
+| Actual result | What was observed. Follows the verdict color |
+| Label/value pairs | Address, verdict, elapsed, screenshot presence, and any remaining fields |
+| Two slots above | `EXPECTED` (from the case) and `ACTUAL` (from the tool) |
+
 #### 3.5.1 Panel Tabs
 
 | Tab | Content | Default |
