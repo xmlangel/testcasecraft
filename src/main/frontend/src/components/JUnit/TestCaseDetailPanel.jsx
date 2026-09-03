@@ -73,6 +73,8 @@ const TestCaseDetailPanel = ({
   const [attachments, setAttachments] = useState([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [previewAttachment, setPreviewAttachment] = useState(null);
+  // 인증이 필요한 주소라 <img src> 로는 못 그린다. 받아 온 blob 주소를 첨부 id 로 든다
+  const [thumbUrls, setThumbUrls] = useState({});
 
   // 상태별 설정
   const statusConfig = {
@@ -155,12 +157,59 @@ const TestCaseDetailPanel = ({
         return;
       }
       const data = await response.json();
-      setAttachments(data.success ? data.attachments || [] : []);
+      const list = data.success ? data.attachments || [] : [];
+      setAttachments(list);
+      loadThumbs(list);
     } catch (err) {
       console.error("자동화 케이스 첨부 로드 실패:", err);
       setAttachments([]);
     } finally {
       setAttachmentsLoading(false);
+    }
+  };
+
+  // 이미지 본문을 인증된 요청으로 받아 blob 주소로 만든다.
+  //
+  // 내려받기 주소는 인증 헤더를 요구하므로 <img src> 를 그대로 걸면 요청이 거부되고
+  // 깨진 이미지만 남는다. 토큰을 주소에 실으면 브라우저 이력·리퍼러·접근 로그에
+  // 남으므로 그 길은 쓰지 않는다. 제품의 다른 첨부 화면도 같은 방식이다.
+  const loadThumbs = async (list) => {
+    for (const att of list) {
+      if (!att.image) continue;
+      try {
+        const res = await api(att.downloadUrl, { method: "GET" });
+        if (!res.ok) continue;
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        setThumbUrls((prev) => {
+          if (prev[att.id]) {
+            window.URL.revokeObjectURL(url);
+            return prev;
+          }
+          return { ...prev, [att.id]: url };
+        });
+      } catch (err) {
+        console.error("자동화 케이스 첨부 이미지 로드 실패:", att.id, err);
+      }
+    }
+  };
+
+  // 인증된 요청으로 받아 내려준다. <a download> 는 헤더를 싣지 못한다
+  const downloadAttachment = async (att) => {
+    try {
+      const res = await api(att.downloadUrl, { method: "GET" });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = att.originalFileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("자동화 케이스 첨부 내려받기 실패:", att.id, err);
     }
   };
 
@@ -179,6 +228,17 @@ const TestCaseDetailPanel = ({
       loadAttachments();
     }
   }, [testCaseId, refreshTrigger]);
+
+  // 다른 케이스로 옮기거나 패널을 닫으면 앞서 만든 blob 주소를 되돌린다.
+  // 정리하지 않으면 케이스를 넘길수록 이미지가 메모리에 쌓인다
+  useEffect(() => {
+    return () => {
+      setThumbUrls((prev) => {
+        Object.values(prev).forEach((url) => window.URL.revokeObjectURL(url));
+        return {};
+      });
+    };
+  }, [testCaseId]);
 
   const fetchPreviousNote = async () => {
     try {
@@ -1132,12 +1192,11 @@ const TestCaseDetailPanel = ({
                 {attachments.map((att) => (
                   <Grid item xs={12} sm={6} md={4} key={att.id}>
                     <Card variant="outlined" sx={{ height: "100%" }}>
-                      {att.image ? (
+                      {att.image && thumbUrls[att.id] ? (
                         <Box
                           component="img"
-                          src={att.downloadUrl}
+                          src={thumbUrls[att.id]}
                           alt={att.originalFileName}
-                          loading="lazy"
                           onClick={() => setPreviewAttachment(att)}
                           sx={{
                             width: "100%",
@@ -1149,6 +1208,18 @@ const TestCaseDetailPanel = ({
                             bgcolor: isDarkMode ? "grey.900" : "grey.100",
                           }}
                         />
+                      ) : att.image ? (
+                        <Box
+                          sx={{
+                            height: 160,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: isDarkMode ? "grey.900" : "grey.100",
+                          }}
+                        >
+                          <CircularProgress size={24} />
+                        </Box>
                       ) : (
                         <Box
                           sx={{
@@ -1496,20 +1567,24 @@ const TestCaseDetailPanel = ({
         <DialogContent
           sx={{ p: 0, bgcolor: isDarkMode ? "grey.900" : "grey.100" }}
         >
-          {previewAttachment && (
+          {previewAttachment && thumbUrls[previewAttachment.id] ? (
             <Box
               component="img"
-              src={previewAttachment.downloadUrl}
+              src={thumbUrls[previewAttachment.id]}
               alt={previewAttachment.originalFileName}
               sx={{ width: "100%", display: "block" }}
             />
+          ) : (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
+              <CircularProgress size={28} />
+            </Box>
           )}
         </DialogContent>
         <DialogActions>
           <Button
-            component="a"
-            href={previewAttachment?.downloadUrl}
-            download={previewAttachment?.originalFileName}
+            onClick={() =>
+              previewAttachment && downloadAttachment(previewAttachment)
+            }
             startIcon={<DownloadIcon />}
           >
             {t("junit.testcase.downloadAttachment")}

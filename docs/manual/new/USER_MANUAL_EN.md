@@ -702,7 +702,7 @@ Four addresses reach this same screen.
 
 Selecting an individual test opens three tabs on the right: **Tracelog**, **Test Body**, and **Attachments**. The Attachments tab lays out the files attached to that case in a grid, with images previewed inline. Click one to enlarge it or download it.
 
-Agent-driven runs leave the screen state of failed cases here. When a verdict alone does not explain what happened, you can look at what the screen showed at that moment. If nothing is attached, the tab shows only "No attachments for this case."
+Agent-driven runs leave **one screenshot per step**, for passing and failing cases alike. Each description carries its position, such as `SHOP-123 스텝 2/4`, so you can trace what changed at which step. If nothing is attached, the tab shows only "No attachments for this case."
 
 | Item | Rule |
 |---|---|

@@ -277,6 +277,14 @@ Full error message, stack trace, and reproduction info for selected case.
 | Count per case | 30 |
 | Re-upload of same filename | Reuses the existing attachment instead of stacking a new one |
 
+**What External QA Agents Leave**
+
+| Item | Rule |
+|---|---|
+| When | One screenshot per step, regardless of verdict |
+| Description | `{case display ID} 스텝 {order}/{total}` |
+| Over the limit | Keeps the later ones, since failures usually occur late in a run |
+
 ---
 
 ## 4. Sample Data
