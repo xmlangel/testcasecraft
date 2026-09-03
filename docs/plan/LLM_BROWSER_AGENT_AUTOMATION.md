@@ -1698,3 +1698,99 @@ const canRun = connection?.isActive && connection?.connectionVerified;
 2. **프로젝트당 에이전트 1개로 시작?** (`UNIQUE(project_id)`) 나중에 다중으로 확장 경로는 열려 있다
 3. **전역 킬스위치 기본값** — `false` 권장 (기존 배포에 영향 0)
 4. **연결 테스트 응답을 어디까지 보여줄지** — 버전만? 아니면 지원 프로필 목록까지? (프로필 목록을 받아오면 설정 화면에서 드롭다운으로 고를 수 있어 편하지만, SSRF 노출면이 넓어진다)
+
+---
+---
+
+# 부록 E. 구현 기록
+
+작성: 2026-09-03 18:20 KST
+
+**부록 C·D 의 권고대로 외부 호출형(B+)으로 구현했다.** 본문 1~16절의 내장형(A) 설계는 채택하지 않았다. 제품 안에 `AgentRun`·`AgentStepLog` 테이블과 SSE 를 넣는 대신, 에이전트를 별도 스택에 두고 제품에는 연동 설정만 더했다.
+
+## E1. 무엇이 어디에 생겼나
+
+### 에이전트 스택 (제품 밖)
+
+`~/kmdata/git/xmlangel/testcase/testcase-agent/` 에 별도 git 저장소로 뒀다. 제품 릴리즈에 묶이지 않는다.
+
+```
+core/models.py · prompt_builder.py · guardrails.py · normalizer.py
+     engines.py · agent_loop.py · llm.py · masking.py · png.py
+adapters/base.py · testcasecraft.py
+profiles/loader.py · example.profile.json
+store/db.py
+web/main.py · service.py · broker.py · templates/{base,index,new,run}.html
+scripts/contract_check.py · make_profile.py · prune.py · run_dev.sh · test_all.sh
+tests/fake_tms.py · test_core.py · test_adapter_contract.py
+      test_run_loop.py · test_web.py
+Dockerfile · Dockerfile.runner · docker-compose.yml
+requirements.txt · requirements-agent.txt · .env.example · README.md
+```
+
+### 제품 안 (연동 설정만)
+
+| 구분 | 파일 |
+|---|---|
+| 신규 백엔드 | `model/AgentConnection.java` · `dto/AgentConnectionDto.java` · `repository/AgentConnectionRepository.java` · `service/AgentConnectionService.java` · `controller/AgentConnectionController.java` |
+| 신규 i18n | `config/i18n/keys/AgentConnectionKeysInitializer.java` · `translations/{Korean,English}AgentConnectionTranslations.java` (키 35개) |
+| 수정 백엔드 | `config/i18n/TranslationKeyDataInitializer.java` · `TranslationDataInitializer.java` · `resources/application.yml` |
+| 신규 프런트 | `components/Project/AgentConnectionSettings.jsx` · `services/agentConnectionService.js` · `hooks/useAgentConnection.js` |
+| 수정 프런트 | `components/Project/ProjectSettingsPage.jsx` (탭) · `components/JunitResult/JunitResultDashboard.jsx` (딥링크 버튼) |
+| 신규 시험 | `test/.../service/AgentConnectionUrlGuardTest.java` · `AgentConnectionProbeTest.java` |
+| 문서 | `screen_spec/1.프로젝트/02·04` · `screen_spec/8.자동화테스트/02·04` · `manual/new/USER_MANUAL.md` · `USER_MANUAL_EN.md` |
+
+**테이블 1개 · 파일 약 15개.** 부록 D6 이 예상한 「약 10 파일 + 테이블 1」에서 시험 2개와 문서를 더한 규모다. 내장형(A)의 26 파일 + 테이블 3 + 컬럼 2 는 발생하지 않았다. 제품의 트랜잭션·비동기·실시간 경로를 건드리지 않았다.
+
+## E2. 착수 후 정정한 계획 4건
+
+계획서를 실제 코드에 대 보니 틀린 전제가 넷 더 있었다. 부록 A1 이 세 건을 정정했고, 이 절이 넷을 더 정정한다.
+
+| # | 계획서 | 실측 | 어떻게 처리했나 |
+|---|---|---|---|
+| 1 | C6-1 ⑤ `results/bulk` 로 케이스별 판정 일괄 기록 | `BulkTestResultDto` 의 `result` 는 **단일 필드**다. 케이스 여러 건에 공통 판정 하나를 적용한다 | 건별 `POST /{id}/results` 로 바꿨다. 어댑터가 매 건 기록 후 재조회해 결과 ID 를 회수한다 |
+| 2 | C4 봇 계정 `role = TESTER` | `TESTER` 는 결과 기록만 통과한다. 실행 생성은 `canEditProject` → `hasEditRole` 이고 그 쿼리에 `TESTER` 가 없다 | 최소 롤을 **`CONTRIBUTOR`** 로 문서화하고 목 서버 시험으로 고정했다 |
+| 3 | 7절 프로필·실행 API 를 제품에 둔다 | 외부형에서는 프로필이 에이전트 앱 자산이다 | 프로필을 에이전트 쪽 파일 저장소로 옮기고 컨텍스트를 Fernet 으로 암호화했다. 제품에는 프로필 **식별자만** 저장한다 |
+| 4 | A9 스크린샷을 MinIO 에 | 외부형에서는 제품 MinIO 에 접근할 이유가 없다 | 에이전트 자체 저장소에 두고, **실패 건의 마지막 3장만** 제품 첨부 API 로 올린다. 제품 스토리지를 아낀다 |
+
+## E3. 검증
+
+| 층 | 건수 | 무엇을 확인했나 |
+|---|---|---|
+| 에이전트 core 단위 | 57 | 프롬프트에 비밀값 부재 · 마스킹 양방향 · SSRF·도메인·금지행동 · 정규화 안전 착지(코드펜스 미종결 회귀 포함) |
+| 어댑터 계약 | 21 | 목 TMS 로 8단계 · 판정 매핑 4종 · 권한 경로(`TESTER` 로 실행 생성 거부) · 완료 후 기록 차단 |
+| 실행 루프 | 37 | 케이스별 상이 판정 적재 · 실패 건만 증거 첨부 · 가드레일 위반 · 스텝 상한 · 엔진 크래시 격리 · 취소 후 미도달 `NOT_RUN` 채움 · 비용 상한 · 기록 실패 후 재시도 대기 · 저장소에 비밀값 부재 |
+| 웹 계층 | 37 | 토큰 게이트 · `/health` 두 필드만 · 딥링크 미리 선택 · SSE 흐름 · 폴링 폴백 · 프로필 없이도 기동 · TMS 불통 시에도 앱 생존 |
+| 제품 URL 가드 | 9 | 스킴·계정정보·질의문자열·메타데이터 거부 · 사설 IP 허용 · 딥링크 조립 · 실행가능 두 조건 |
+| 제품 연결 테스트 | 10 | 경로 `/health` 고정 · GET 고정 · 응답 본문 비노출(비밀 문자열 4경로) · 리다이렉트 미추적 · 큰 응답 거부 · 닫힌 포트 3초 내 실패 · 킬스위치 |
+| 교차 확인 | — | 에이전트 실제 `/health` 응답이 `{"status":"ok","version":"0.1.0"}` 두 필드로, 제품 프로브의 기대와 일치 |
+| 빌드·감사 | — | `compileJava` 통과 · 프런트 `vite build` 통과 · 기획 문서 규격 검사 통과 · 화면 커버리지 갭 0건 · 신규 문구 하드코딩 한국어 0건 · 신규 산문 AI 티 0건 |
+
+**합계 171건.** 브라우저·LLM·제품 인스턴스가 하나도 없는 환경에서 에이전트 시험 152건이 전부 돈다. 목 TMS 가 제품 API 를 흉내내고 `ScriptedEngine` 이 브라우저를 대신한다. 부록 C7 이 요구한 어댑터 계약 테스트가 이것이며, 제품 API 가 바뀌어 어댑터가 조용히 틀리는 것을 이 시험이 잡는다.
+
+## E4. 아직 하지 않은 것
+
+| 항목 | 상태 |
+|---|---|
+| `BrowserUseEngine` 실제 구동 | 코드는 있으나 `browser-use` 미설치 환경이라 실행 확인은 남아 있다. 지연 임포트라 미설치 상태에서도 앱이 기동하고 `available()` 이 사유를 돌린다 |
+| 실제 제품 인스턴스로 계약 확인 | `scripts/contract_check.py` 를 목 서버로만 돌렸다. 봇 계정을 만든 뒤 실제 인스턴스에 한 번 돌려야 한다 |
+| 봇 계정 생성 | 운영 판단이 필요하다. 계정명과 넣을 프로젝트를 정해야 한다 |
+| 화면 캡처 | 매뉴얼 17-10절에 캡처가 없다. `AGENT_INTEGRATION_ENABLED=true` 로 띄운 뒤 `manual-capture` 로 찍는다 |
+| 부록 D7 의 라이브 검증 6항목 | 단위·통합 시험으로 다섯을 덮었고, 「자동화 화면이 픽셀 단위로 같다」는 실제 기동 후 눈으로 봐야 한다 |
+| 병렬 실행 | 순차 그대로다. 부록 A13 이 지목한 유일한 체감 레버이므로 4주 실측 뒤 판단한다 |
+
+## E5. 켜는 순서
+
+```
+① 제품 — AGENT_INTEGRATION_ENABLED=true 로 기동
+② 제품 — 봇 계정 생성 → 대상 프로젝트에 CONTRIBUTOR 로 추가
+③ 에이전트 — cp .env.example .env 후 제품 주소·봇 계정·암호화 키를 채운다
+④ 에이전트 — python3 scripts/contract_check.py --project-id <ID>   ← 여기서 403 이면 ②로
+⑤ 에이전트 — python3 scripts/make_profile.py profiles/example.profile.json
+⑥ 에이전트 — pip install -r requirements-agent.txt && playwright install chromium
+⑦ 에이전트 — docker compose up -d  (또는 bash scripts/run_dev.sh)
+⑧ 제품 — 프로젝트 설정 > 에이전트 연동 에 이름·주소·토큰을 넣고 [연결 테스트]
+⑨ 제품 — 자동화 테스트 화면의 「{이름}으로 실행」 으로 진입
+```
+
+④가 관문이다. 여기가 통하지 않으면 나머지를 만들어도 결과를 올릴 수 없다.

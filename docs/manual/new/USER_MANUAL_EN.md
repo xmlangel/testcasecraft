@@ -918,7 +918,7 @@ Every screen has its own address. Sharing the address opens the exact same scree
 | `/projects/{projectId}/rag` | RAG documents | S9 |
 | `/projects/{projectId}/exploratory` | Exploratory sessions | S10 |
 | `/projects/{projectId}/bookmarks` | My bookmarks | S2 |
-| `/projects/{projectId}/settings` | Project settings (General / Members) | S1 |
+| `/projects/{projectId}/settings` | Project settings (General / Members / Agent) | S1 |
 
 **Short addresses and pass-through**
 
@@ -1128,6 +1128,26 @@ Change the name, code, owning organization, and description. The code is the val
 
 > When a new project is created, the creator automatically becomes **PROJECT_MANAGER**. Users with VIEWER or TESTER permissions will not see this menu or only certain options are enabled.
 
+### 17-10. Agent Connection (PM)
+
+The **Agent** tab in `/projects/{projectId}/settings` connects an external QA agent. The agent reads test cases written in plain language and drives a real browser to run them. It is a separate app that lives outside this product; only its verdicts and evidence come back as a test execution.
+
+The tab stays hidden in two cases: `AGENT_INTEGRATION_ENABLED` is off on the server, or you are not a project manager.
+
+| Field | What it is for |
+|---|---|
+| Agent name | This name appears on the button in the Automation Tests screen. |
+| Agent URL | The address of the agent app. It must start with `http` or `https`. |
+| Auth token | The token the agent app expects. Leave it blank to keep the current one; a saved token is never shown again. |
+| Default profile | The profile identifier registered in the agent app. Allowed domains, forbidden actions, and test accounts live there. |
+| Use in this project | While this is off, nothing agent-related appears in the Automation Tests screen. It ships off. |
+
+**[Test connection]** calls only the agent's health address and reads two values from the response, its status and version. Save first to enable the button.
+
+Once the connection is on and verified, a `Run with {name}` button appears in the **Automation Tests** header. The button only opens the agent app in a new tab; it has nothing to do with how results travel back into the product. So even when the button does not work, you can still start a run from the agent app itself.
+
+**Worth knowing.** Each case takes 30 to 60 seconds and costs money. Re-running the same case gives slightly different behavior, so pair it with JUnit automation whenever a regression needs to be reproducible. Verdicts are drafts; a person confirms them. Executions created by the agent carry an `[AI]` prefix in their name and an `ai-agent` tag, which separates them from runs a person performed. File upload and captcha scenarios are not supported.
+
 ---
 
 ## 18. Glossary
@@ -1186,12 +1206,13 @@ Frequently used terms in the manual are compiled here for reference when first u
 
 **Where roles are assigned**
 
-The gear icon at the top right of a project screen opens **Project Settings** (`/projects/{projectId}/settings`), which has two tabs.
+The gear icon at the top right of a project screen opens **Project Settings** (`/projects/{projectId}/settings`), which has three tabs.
 
 | Tab | What it does | Who can use it |
 |---|---|---|
 | General | Change project name, description, and display order (the code cannot be changed after creation) | PROJECT_MANAGER, ADMIN |
 | Members | Add a member by searching for the user, change a role from the dropdown, remove a member | PROJECT_MANAGER, LEAD_DEVELOPER, ADMIN |
+| Agent | Connect an external QA agent (see Section 17-10). Hidden while the server-side switch is off | PROJECT_MANAGER, ADMIN |
 
 Type two or more characters in the user search box to find people whose username, name, or email matches. Users who already belong to the project and inactive accounts never appear, so a pick never fails as a duplicate. The organization member invite dialog uses the same search.
 
@@ -1273,3 +1294,4 @@ A single user can be PM on Project A and VIEWER on Project B — permissions are
 | 2026-07-31 | Reflected UI changes since 2026-07-02 based on v1.0.102. A(Layout selector): Section 3-1 header breadcrumb change + Section 13-7 theme settings add menu structure selection. B(Plans/Executions 2-section): Sections 7 and 8 add new layout descriptions (new layout only). C(Tree search): Section 4-4 filter refreshed — search by name/ID/tag, comma-separated complex search, select-all captures visible items only; new image 100_tree_filter_search. D(Result tags): Section 8 filter panel adds tag item — multi-select, direct input, tag inheritance. E(Attachments): Section 8-1 result entry screen adds test case attachments section. F(Linked items): existing Section 4 handles it (image updates only post-2026-07-02). Synchronized same sections/images (images_en) in Korean edition. |
 | 2026-08-19 | Reflected the new Project Settings screen: added `/projects/{projectId}/settings` to the Section 16-4 address table and a new "Where roles are assigned" block in Section 18-4 — gear icon entry, General tab (name, description, display order; PROJECT_MANAGER and ADMIN) and Members tab (add, change role, remove; PROJECT_MANAGER, LEAD_DEVELOPER, ADMIN). The backend was tightened as well so that project settings changes are limited to PM and ADMIN (previously LEAD_DEVELOPER and organization admins also passed). Screenshots are not captured yet. Synchronized same sections in Korean edition. |
 | 2026-08-23 | Added five undocumented screens found in a feature-level audit: Section 7 "Linking automated tests" (🔗 icon and link-count chip on the plan row, manage roles only) · Section 9-1 "Opening the Not Run / Failed case list" (click a `▼` entry on the statistics card → four columns for case, folder path, plan, and go-to; the former QA Summary moves to Section 9-2) · Section 17-2 the three global dashboard tabs and "Performance Metrics" (CPU, memory, disk; project and test case cache hit rates; manual refresh) · Section 17-2-1 "Checking server time and version" (ADMIN only, bottom-left clock icon, converted to the profile time zone with a zone badge, 30-second polling) · Section 16-2 the request-limit dialog (countdown and [Retry now] after more than 60 requests per second from one IP). Four new captures (112–115) plus four capture STEPS and prepare callbacks. Korean images were recaptured against **ShopFlow (SHOP)** — they had been shot against ShopFlow EN data — and the `DOCKER_SETUP.md` section 9 references were corrected to section 10-2. Synchronized same sections/images (images_en) in Korean edition. |
+| 2026-09-03 | Added Section 17-10 "Agent Connection (PM)". Project Settings gains a third tab where you register an external QA agent's name, URL, token, and default profile, then verify the connection. The tab stays hidden while the server environment variable `AGENT_INTEGRATION_ENABLED` is off. Updated the Section 16-4 address table and the Section 18-4 tab table to three tabs. Documented that the agent is a separate app outside the product and only verdicts and evidence come back as a test execution, that its executions carry an `[AI]` prefix and an `ai-agent` tag, and the duration, cost, non-determinism, and unsupported scenarios. Screenshots are not captured yet. Synchronized same sections in Korean edition. |

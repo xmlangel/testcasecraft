@@ -55,6 +55,8 @@ import projectMemberService, {
   PROJECT_ROLES,
 } from "../../services/projectMemberService.js";
 import MemberSearchAutocomplete from "../common/MemberSearchAutocomplete.jsx";
+import AgentConnectionSettings from "./AgentConnectionSettings.jsx";
+import useAgentConnection from "../../hooks/useAgentConnection.js";
 import {
   canManageProjectMembers,
   canManageProjectSettings,
@@ -62,6 +64,8 @@ import {
 
 const TAB_GENERAL = "general";
 const TAB_MEMBERS = "members";
+// 에이전트 연동. 전역 킬스위치가 꺼져 있으면 탭 자체가 뜨지 않는다.
+const TAB_AGENT = "agent";
 
 /** 다른 영역 패널(대시보드 등)과 같은 높이 규칙 — 화면이 짧아 보이지 않게 맞춘다. */
 const PANEL_MIN_HEIGHT = "calc(100vh - 180px)";
@@ -125,14 +129,27 @@ export default function ProjectSettingsPage() {
 
   const canEditMembers = canManageProjectMembers(projectRole);
   const canEditSettings = canManageProjectSettings(projectRole);
+  // 조회가 실패하면 enabled 가 false 로 남아 탭이 숨는다. 실패의 기본값이 숨김이다.
+  const { enabled: agentIntegrationEnabled } = useAgentConnection(projectId);
 
   // 일반 탭이 없는 역할(리드)은 멤버 탭에서 시작한다. 초기값을 그대로 두면
   // 어느 탭도 고르지 않은 상태로 빈 화면이 뜬다.
   useEffect(() => {
-    if (!roleLoading && !canEditSettings && tab === TAB_GENERAL) {
+    if (
+      !roleLoading &&
+      !canEditSettings &&
+      (tab === TAB_GENERAL || tab === TAB_AGENT)
+    ) {
       setTab(TAB_MEMBERS);
     }
   }, [roleLoading, canEditSettings, tab]);
+
+  // 킬스위치가 꺼지거나 기능이 사라졌는데 에이전트 탭에 머물러 있으면 되돌린다
+  useEffect(() => {
+    if (!agentIntegrationEnabled && tab === TAB_AGENT) {
+      setTab(canEditSettings ? TAB_GENERAL : TAB_MEMBERS);
+    }
+  }, [agentIntegrationEnabled, tab, canEditSettings]);
 
   // 역할 라벨. 번역 키와 한국어 기본값을 t() 안에 두어야 i18n 스캐너가 하드코딩으로 세지 않는다.
   const roleLabel = useCallback(
@@ -332,6 +349,13 @@ export default function ProjectSettingsPage() {
             label={t("projectSettings.tab.members", "멤버")}
             data-testid="project-settings-tab-members"
           />
+          {agentIntegrationEnabled && canEditSettings && (
+            <Tab
+              value={TAB_AGENT}
+              label={t("projectSettings.tab.agent", "에이전트 연동")}
+              data-testid="project-settings-tab-agent"
+            />
+          )}
         </Tabs>
 
         {loading ? (
@@ -397,6 +421,11 @@ export default function ProjectSettingsPage() {
               </Button>
             </Box>
           </Paper>
+        ) : tab === TAB_AGENT ? (
+          <AgentConnectionSettings
+            projectId={projectId}
+            canEdit={canEditSettings}
+          />
         ) : (
           <Box>
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>

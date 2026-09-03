@@ -79,6 +79,8 @@ import { useAppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../context/I18nContext";
 import useProjectRole from "../../hooks/useProjectRole.js";
+import useAgentConnection from "../../hooks/useAgentConnection.js";
+import agentConnectionService from "../../services/agentConnectionService.js";
 import { canRecordTestResult } from "../TestCaseTree/utils/permissionUtils.js";
 import JunitProcessingProgress from "../JUnit/JunitProcessingProgress";
 import PageTitle from "../common/PageTitle";
@@ -210,6 +212,37 @@ export default function JunitResultDashboard() {
   // 자동화 결과는 결과를 남기는 동작이다. 백엔드도 업로드·삭제를
   // canUploadToProject(= 결과 기록 권한)로 막으므로 화면도 같은 기준을 쓴다.
   const { projectRole } = useProjectRole(activeProject?.id, user);
+  // 외부 QA 에이전트 연동. 조회가 실패하면 enabled 가 false 로 남아 버튼이 안 뜬다.
+  const {
+    enabled: agentEnabled,
+    runnable: agentRunnable,
+    name: agentName,
+  } = useAgentConnection(activeProject?.id);
+
+  /**
+   * 에이전트 앱을 새 창으로 연다.
+   *
+   * 이 버튼은 API 를 호출하지 않는다. 딥링크로 에이전트 앱을 열 뿐이고, 결과가 제품으로
+   * 돌아오는 경로와 무관하다. 버튼이 깨져도 기능은 죽지 않는다.
+   */
+  const openAgentApp = useCallback(async () => {
+    if (!activeProject?.id) return;
+    try {
+      const connection = await agentConnectionService.get(activeProject.id);
+      const link = agentConnectionService.buildDeepLink(
+        connection,
+        activeProject.id,
+        [],
+      );
+      if (link) {
+        window.open(link, "_blank", "noopener,noreferrer");
+      }
+    } catch (e) {
+      setError(
+        `${t("agentConnection.requestFailed", "요청을 처리하지 못했습니다")}: ${e.message}`,
+      );
+    }
+  }, [activeProject?.id, t]);
   const canRecordResults = canRecordTestResult(projectRole);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
@@ -527,6 +560,37 @@ export default function JunitResultDashboard() {
               data-testid="automation-upload-button"
             >
               {t("junit.dashboard.uploadResult")}
+            </Button>
+          )}
+          {agentEnabled && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<SmartToyIcon />}
+              disabled={!agentRunnable}
+              title={
+                agentRunnable
+                  ? t(
+                      "agentConnection.run.newTab",
+                      "에이전트 앱이 새 창에서 열립니다. 결과는 테스트실행으로 들어옵니다.",
+                    )
+                  : t(
+                      "agentConnection.run.disabled",
+                      "에이전트 서버에 연결할 수 없습니다",
+                    )
+              }
+              onClick={openAgentApp}
+              data-testid="automation-agent-run-button"
+            >
+              {agentRunnable
+                ? t("agentConnection.run.button", "{name}으로 실행").replace(
+                    "{name}",
+                    agentName || t("agentConnection.title", "외부 QA 에이전트"),
+                  )
+                : t(
+                    "agentConnection.run.disabled",
+                    "에이전트 서버에 연결할 수 없습니다",
+                  )}
             </Button>
           )}
         </Box>
