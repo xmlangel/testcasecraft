@@ -583,7 +583,7 @@ export default function JunitResultDashboard() {
               data-testid="automation-agent-run-button"
             >
               {agentRunnable
-                ? t("agentConnection.run.button", "{name}으로 실행").replace(
+                ? t("agentConnection.run.button", "{name} 실행").replace(
                     "{name}",
                     agentName || t("agentConnection.title", "외부 QA 에이전트"),
                   )

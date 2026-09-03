@@ -67,7 +67,9 @@ public class AgentConnectionKeysInitializer {
     createKey("agentConnection.status.saveFirst", "저장 먼저 안내", "먼저 저장한 뒤 연결을 확인합니다.");
 
     // 자동화 화면 버튼
-    createKey("agentConnection.run.button", "에이전트 실행 버튼", "{name}으로 실행");
+    // 조사를 쓰지 않는다. 이름이 사용자 입력이라 라틴 문자·숫자로 끝날 수 있어
+    // '으로/로' 를 규칙으로 맞출 수 없다. 실측에서 '에이전트으로' 가 나왔다.
+    createKey("agentConnection.run.button", "에이전트 실행 버튼", "{name} 실행");
     createKey(
         "agentConnection.run.disabled", "실행 버튼 비활성 안내", "에이전트 서버에 연결할 수 없습니다");
     createKey(

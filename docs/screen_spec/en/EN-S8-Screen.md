@@ -40,6 +40,17 @@ Automated tests consist of two screens: result list and result detail.
 |---|---|---|---|
 | Title | `Automated Tests` — `subtitle1`, 600 | — | All |
 | `[+ JUnit Result Upload]` | `contained`, `small`, `+ cloud upload` icon | Open H dialog | Upload permission |
+| `[{name} 실행]` (Run {name}) | `outlined`, `small`, robot icon | Open the external agent app in a new tab (Section 2.10) | Project read permission |
+
+**The agent button is drawn only when the conditions hold.** One call decides it: `GET /api/projects/{projectId}/agent-connection/runnable`.
+
+| Response | Button |
+|---|---|
+| `enabled=false` (global switch off, or the lookup failed) | Not drawn |
+| `enabled=true`, `runnable=false` | Disabled with `에이전트 서버에 연결할 수 없습니다` (Cannot reach the agent server) |
+| `enabled=true`, `runnable=true` | Enabled with `{name} 실행` (Run {name}) |
+
+When the lookup fails, `enabled` stays false and the button disappears. **Hiding on failure is the intent.** Written the other way, the button would remain after the agent died and a user would press it.
 
 ---
 
@@ -167,6 +178,24 @@ Width `md`. Title `Upload JUnit XML File`.
 
 ---
 
+
+### 2.10 External QA Agent Run Button
+
+A **deep link** to the external agent that runs plain-language cases in a browser. The button does not call the run API.
+
+```
+{agent URL}/runs/new?tms=testcasecraft&base={product URL}&projectId={projectId}
+```
+
+It opens in a new tab (`_blank`, `noopener,noreferrer`). The agent app picks cases, runs them, and shows progress; results travel back through the product's public API.
+
+**The button and the feature are separate.** How results reach the product has nothing to do with this button, so a broken button does not break the feature. Conversely, taking the agent stack down leaves results already recorded in the Test Execution and Test Result screens untouched.
+
+An execution created by the agent is separated from one a person performed by three marks: the `[AI]` prefix in its name, the `ai-agent` tag, and `에이전트 초안 — QA 확정 전` (Agent draft — before QA confirms) on the first line of the QA summary. These are a convention rather than code, enforced on the agent side.
+
+The connection is configured in the Agent tab of the Project Settings screen (S1).
+
+---
 ## 3. Detail Screen (JunitResultDetail)
 
 Route: `/projects/{projectId}/automation-results/{testResultId}`

@@ -85,7 +85,7 @@ public class KoreanAgentConnectionTranslations {
     create("agentConnection.status.lastTest", lang, "마지막 확인", by);
     create("agentConnection.status.latency", lang, "응답 시간", by);
     create("agentConnection.status.saveFirst", lang, "먼저 저장한 뒤 연결을 확인합니다.", by);
-    create("agentConnection.run.button", lang, "{name}으로 실행", by);
+    create("agentConnection.run.button", lang, "{name} 실행", by);
     create("agentConnection.run.disabled", lang, "에이전트 서버에 연결할 수 없습니다", by);
     create(
         "agentConnection.run.newTab",
