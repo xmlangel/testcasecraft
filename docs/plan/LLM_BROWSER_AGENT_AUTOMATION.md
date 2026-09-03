@@ -1403,3 +1403,298 @@ B 는 A 의 습작이 아니다. **B 의 `core/` 가 곧 A 의 `agent-runner/` �
 | **4. 운영** | 비용 집계 · 취소 · 재시도 · 부록 B8 지표 | 4주 실측 후 계속/축소/중단 판단 |
 
 **Phase 0 이 핵심이다.** 반나절이면 된다. 여기서 API 가 실제로 다 통하는지 확인되면 나머지는 순수하게 외부 앱 개발이라 제품 리스크가 0 이다. 먼저 이것부터 해보는 걸 권한다.
+
+---
+---
+
+# 부록 D. 컨테이너 구성과 프로젝트별 연동 설정
+
+> 추가일: 2026-09-03
+> 계기: "agent-runner 자체가 신규로 컨테이너로 뜨는 거지? 없어도 동작하게" / "프로젝트 설정에서 On/Off, 에이전트 이름을 지정하거나 해서 On 인 경우 주소 같은 것들을 설정할 수 있는 구조로"
+
+![에이전트 연동 구성](images/llm-browser-agent/06-agent-connection.svg)
+
+## D1. 컨테이너 — 맞다. 신규다. 그리고 제품 compose 밖이다
+
+**예, agent-runner 는 새로 뜨는 컨테이너다.** 다만 부록 C 의 외부 호출형으로 가면 **제품 스택의 사이드카가 아니다.** 위치가 다르다.
+
+| | 내장형(A) 였다면 | **외부형(B) 이면** |
+|---|---|---|
+| compose 파일 | `docker-compose-build/docker-compose.yml` 에 서비스 추가 | **별도 compose 스택** |
+| 함께 뜨는가 | `docker compose up` 에 딸려 온다 | **따로 뜬다** |
+| 제품이 없으면 | 의미 없음 | 에이전트 앱은 그대로 뜬다 (다른 TMS 를 볼 수도 있다) |
+| 에이전트가 없으면 | 제품에 기능 하나가 죽는다 | **제품은 에이전트의 존재를 아예 모른다** |
+| 이미지 1.5GB | 제품 배포에 포함 | **제품 배포에 안 들어간다** |
+
+에이전트 스택은 이렇게 생긴다.
+
+```yaml
+# testcase-agent/docker-compose.yml  (제품 레포와 무관한 별도 스택)
+services:
+  agent-web:                    # 자체 UI + API. 사람이 여기서 실행하고 관전한다
+  agent-runner:                 # browser-use + Playwright + Chromium
+  agent-store:                  # 스텝로그 · 프롬프트 · 비용 · 스크린샷 (postgres 또는 sqlite+파일)
+```
+
+제품 스택(`app` · `postgres` · `minio` · `rag-service`)은 **한 줄도 안 바뀐다.**
+
+## D2. "없어도 동작"의 세 층위
+
+층위를 나눠서 봐야 한다. 세 개 다 성립해야 한다.
+
+**① 에이전트 스택이 아예 없어도 제품이 정상**
+→ 외부형에서는 **설계상 공짜다.** 제품은 에이전트를 호출하지 않는다. 반대로 에이전트가 제품을 호출한다. 의존 방향이 한쪽이라 제품 쪽에 죽을 코드가 없다.
+단 D4 의 연동 설정 UI 를 넣으면 그 한 곳만 예외가 되므로, 거기만 방어하면 끝난다.
+
+**② 에이전트 앱이 브라우저/LLM 없이도 기동**
+→ agent-web 은 뜨고, 실행 버튼만 비활성 + 사유 표시. Chromium 이나 LLM 키가 없으면 기동 자체가 실패하게 만들면 안 된다. 설정 화면에 들어가서 고칠 수도 없게 된다.
+
+**③ 제품 API 가 바뀌어도 에이전트가 조용히 틀리지 않는다**
+→ 어댑터 계약 테스트(부록 C7)가 CI 에서 깨져야 한다. 가장 위험한 실패는 "결과를 올렸다고 표시되는데 실제로는 안 올라간 것"이다. 기록 후 **읽어서 확인**하는 단계를 넣는다.
+
+## D3. 선례 — 이 제품에 이미 있다
+
+새로 발명할 게 없다. **`rag-service` 가 정확히 "있으면 쓰고 없으면 숨긴다"로 돌고 있다.**
+
+| 층 | RAG 가 하는 방식 | 파일 |
+|---|---|---|
+| 상태 엔드포인트 | `GET /api/system-settings/rag/status` → `{enabled, vectorWriteEnabled}`. `SecurityConfig` 에서 `permitAll` | `SystemSettingController.java:50` |
+| 빌드 타임 킬스위치 | `VITE_ENABLE_RAG === "false"` 면 프런트가 아예 비활성으로 시작 | `context/RAGContext.jsx:24` |
+| 런타임 상태 | `isRagEnabled` 를 컨텍스트가 들고 화면들이 참조 | `RAGContext.jsx:84,227,377` |
+| **메뉴 자체를 숨김** | `requires: "rag"` 항목을 `getVisibleNavItems({isRagEnabled})` 가 걸러낸다 | `navigation/projectNavItems.js` |
+| 부재 시 기본값 | `@Value("${rag.api.url:http://localhost:8001}")` — 없으면 기본값, 기동 실패 아님 | `config/RagClientConfig.java:26` |
+| 개별 화면 가드 | `if (!isRagEnabled) return;` 로 조회 스킵 | `TestCaseForm.jsx:418`, `RagStatusBadge.jsx:100` |
+
+**이 6층을 그대로 복사한다.** 다른 점은 하나 — RAG 는 전역 설정이고, 사용자가 요청한 것은 **프로젝트별** 설정이다.
+
+## D4. 프로젝트별 에이전트 연동 설정
+
+### D4-1. 어디에 붙이나
+
+`ProjectSettingsPage.jsx`(577줄)가 이미 `Tabs` 구조다.
+
+```jsx
+// 현재 — components/Project/ProjectSettingsPage.jsx:317-335
+<Tabs value={tab} onChange={...} data-testid="project-settings-tabs">
+  <Tab value={TAB_GENERAL} label={t("projectSettings.tab.general", "일반")} />
+  <Tab value={TAB_MEMBERS} label={t("projectSettings.tab.members", "멤버")} />
+</Tabs>
+```
+
+**세 번째 탭을 더한다.** 라우트(`/projects/{id}/settings`)도, 화면 ID 도 안 늘어난다.
+
+```jsx
+<Tab value={TAB_AGENT} label={t("projectSettings.tab.agent", "에이전트 연동")}
+     data-testid="project-settings-tab-agent" />
+```
+
+권한은 **기존 `canEditSettings` 게이팅을 그대로 쓴다** — 이 페이지가 이미 `canEditSettings` 가 false 면 일반 탭을 못 보게 하고 멤버 탭으로 튕긴다. 에이전트 탭도 같은 기준을 적용한다.
+
+### D4-2. 엔티티
+
+필드 모양은 **`JiraConfig` 를 그대로 베낀다.** 외부 서비스 연동 설정의 검증된 형태다(주소 + 암호화 토큰 + 활성 플래그 + 연결 검증 상태 3종).
+
+```java
+@Entity
+@Table(name = "agent_connections",
+       uniqueConstraints = @UniqueConstraint(name="uk_agent_conn_project", columnNames="project_id"))
+public class AgentConnection {
+  @Id @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(columnDefinition = "VARCHAR(36)", updatable = false)
+  private String id;
+
+  @Column(name = "project_id", nullable = false, length = 36)
+  private String projectId;
+
+  /** 화면에 노출되는 이름. "스테이징 QA 에이전트" 처럼 사람이 알아볼 이름 */
+  @Column(nullable = false, length = 100)
+  private String name;
+
+  /** 에이전트 앱 주소. 예: https://qa-agent.internal:8080 */
+  @Column(name = "server_url", nullable = false, length = 500)
+  private String serverUrl;
+
+  /** 인증 토큰 — LlmConfig.encryptedApiKey · JiraConfig.encryptedApiToken 과 같은 암호화 경로 */
+  @Column(name = "encrypted_token", columnDefinition = "TEXT")
+  private String encryptedToken;
+
+  /** 에이전트 앱에 있는 기본 프로필 식별자 (정책·컨텍스트 묶음) */
+  @Column(name = "default_profile", length = 100)
+  private String defaultProfile;
+
+  /** On/Off. 기본은 꺼짐 */
+  @Column(name = "is_active", nullable = false)
+  private Boolean isActive = false;
+
+  // 연결 검증 상태 — JiraConfig·LlmConfig 와 동일한 3종 세트
+  @Column(name = "connection_verified")           private Boolean connectionVerified = false;
+  @Column(name = "last_connection_test")          private LocalDateTime lastConnectionTest;
+  @Column(name = "last_connection_error", columnDefinition="TEXT") private String lastConnectionError;
+  @Column(name = "agent_version", length = 50)    private String agentVersion;
+
+  @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
+  @Column(name = "updated_at") private LocalDateTime updatedAt;
+  @Column(name = "updated_by", length = 100) private String updatedBy;
+}
+```
+
+**설계 결정 3가지**
+
+1. **`isActive` 기본값은 `false`.** 기존 프로젝트가 업그레이드로 갑자기 새 UI 를 보면 안 된다. 명시적으로 켜야 나타난다.
+2. **`UNIQUE(project_id)` — 지금은 프로젝트당 하나.** 나중에 여러 에이전트를 등록하고 싶어지면 이 제약을 풀고 `is_default` 를 더한다. `LlmConfig` 가 이미 그 구조(`isDefault` + 여러 행)라 확장 경로가 검증돼 있다.
+3. **`name` 을 왜 두나.** 화면 문구가 `"에이전트로 실행"` 이 아니라 **`"스테이징 QA 에이전트로 실행"`** 이 된다. 프로젝트마다 다른 에이전트(스테이징용/개발용)를 가리킬 수 있고, 여러 개로 늘릴 때 그대로 쓰인다.
+
+### D4-3. API
+
+```
+GET    /api/projects/{projectId}/agent-connection
+       → { id, name, serverUrl, defaultProfile, isActive,
+           connectionVerified, lastConnectionTest, agentVersion,
+           hasToken: true }              ← 토큰 값은 절대 반환하지 않는다
+       404 면 「미설정」 상태
+
+PUT    /api/projects/{projectId}/agent-connection
+       { name, serverUrl, token?, defaultProfile, isActive }
+       · token 을 생략하면 기존 값 유지 (빈 문자열이면 삭제)
+       · @PreAuthorize("@projectSecurityService.canManageProject(#projectId)")
+
+POST   /api/projects/{projectId}/agent-connection/test
+       → { ok: true, version: "0.3.1", latencyMs: 120 }
+       또는 { ok: false, error: "연결할 수 없습니다 (timeout)" }
+
+DELETE /api/projects/{projectId}/agent-connection
+```
+
+### D4-4. 연결 테스트의 SSRF 문제 — 여기가 위험하다
+
+**사용자가 주소를 직접 입력하고, 백엔드가 그 주소를 호출한다.** 전형적인 SSRF 구조다. 그런데 **에이전트는 내부망에 있으므로 "사설 IP 차단"이라는 흔한 방어를 쓸 수 없다.**
+
+그래서 방어를 다르게 짠다.
+
+| 방어 | 내용 |
+|---|---|
+| **권한** | 프로젝트 관리 권한자만 설정·테스트 가능. 아무나 못 부른다 |
+| **경로 고정** | 사용자가 준 `serverUrl` 에 **`/health` 만 붙여 호출**한다. 임의 경로를 못 찍는다 |
+| **응답 비노출** | 응답 본문을 그대로 돌려주지 않는다. `{status, version}` **두 필드만 파싱**해서 반환. 나머지는 버린다 → 내부 서비스를 스캔해도 얻을 게 없다 |
+| **메서드 고정** | `GET` 만. POST·PUT 불가 |
+| **리다이렉트 금지** | 3xx 를 따라가지 않는다 |
+| **타임아웃** | 연결 3초 · 읽기 3초. 포트 스캔용 타이밍 채널을 줄인다 |
+| **스킴 제한** | `http`/`https` 만. `file:`·`gopher:` 등 거부 |
+| **감사** | 설정 변경과 연결 테스트를 기존 `AuditLog` 에 남긴다 |
+
+**프런트에서 직접 호출하지 않는 이유** — 내부망 주소를 브라우저가 못 찾거나 CORS 에 막힌다. 백엔드 프록시가 맞고, 대신 위 7가지로 좁힌다.
+
+### D4-5. 전역 킬스위치
+
+프로젝트 설정보다 위에 하나 더 둔다. 셀프호스팅에서 **이 기능을 아예 못 켜게** 하려면 필요하다.
+
+```yaml
+# application.yml
+agent:
+  integration:
+    enabled: ${AGENT_INTEGRATION_ENABLED:false}   # 기본 꺼짐
+```
+
+`false` 면 API 가 `404`, 프로젝트 설정에 **탭 자체가 안 뜬다.** RAG 의 `VITE_ENABLE_RAG` 대응이다.
+
+## D5. On/Off 가 실제로 무엇을 바꾸나
+
+| 상태 | 프로젝트 설정 | 자동화 화면 | 케이스 화면 |
+|---|---|---|---|
+| **① 전역 Off** | 탭 없음 | 변화 없음 | 변화 없음 |
+| **② 미설정 (기본)** | 탭 있음, 빈 폼 | 변화 없음 | 변화 없음 |
+| **③ 설정됨 · Off** | 값 유지, 토글만 Off | 변화 없음 | 변화 없음 |
+| **④ On · 응답 정상** | ✓ 연결됨 + 버전 | **「{이름}으로 실행」 버튼** | 「에이전트 실행 이력」 링크 |
+| **⑤ On · 응답 없음** | ✗ 오류 + 마지막 성공 시각 | 버튼 비활성 + 사유 | 링크 숨김 |
+
+**게이팅을 넣는 지점은 딱 두 곳이다.**
+
+```jsx
+// 1) 자동화 화면 — App.jsx:1426 블록 안 또는 JunitResultDashboard 헤더
+const { connection } = useAgentConnection(projectId);   // 신규 훅
+const canRun = connection?.isActive && connection?.connectionVerified;
+{connection?.isActive && (
+  <Button disabled={!canRun} onClick={openAgentApp}>
+    {canRun ? `${connection.name}으로 실행` : "에이전트 서버에 연결할 수 없습니다"}
+  </Button>
+)}
+
+// 2) 프로젝트 설정 — 탭 노출
+{agentIntegrationEnabled && <Tab value={TAB_AGENT} label="에이전트 연동" />}
+```
+
+`connection` 조회가 실패하면 `undefined` → 버튼이 안 뜬다. **실패의 기본값이 "숨김"이 되게** 짠다. 반대로 짜면 에이전트가 죽었을 때 버튼이 남아 사용자가 누른다.
+
+### D5-1. 버튼이 하는 일 — 딥링크
+
+버튼은 API 를 호출하지 않는다. **에이전트 앱을 열 뿐이다.**
+
+```
+{serverUrl}/runs/new?tms=testcasecraft
+                    &base={제품 주소}
+                    &projectId={projectId}
+                    &cases={선택한 케이스 ID 목록}
+```
+
+에이전트 앱이 케이스를 미리 골라놓은 상태로 뜬다. **결과가 제품으로 돌아오는 건 부록 C6-1 의 API 경로이고 이 버튼과 무관하다.** 버튼이 없어도, 심지어 제품 UI 를 안 거쳐도 에이전트 앱에서 직접 실행할 수 있다. 버튼은 편의일 뿐이다.
+
+이 분리가 중요하다 — **버튼이 깨져도 기능이 안 죽는다.**
+
+## D6. 그래서 제품 변경이 0 은 아니다 — 정확한 비용
+
+부록 C 는 "제품 변경 0"이라고 했다. 연동 설정 UI 를 넣기로 하면 그게 아니게 된다. 정직하게 센다.
+
+| | 내장형(A) | **연동 설정만 있는 외부형(B+)** |
+|---|---|---|
+| 백엔드 신규 | 12 파일 | **4** (엔티티 · 리포지터리 · 컨트롤러 · 서비스) |
+| 백엔드 수정 | 4 (`AsyncConfig`·`SecurityConfig`·`JunitTestResult`·i18n) | **1** (i18n 키) |
+| 프런트 신규 | 7 | **3** (`AgentConnectionSettings.jsx` · `agentConnectionService.js` · `useAgentConnection.js`) |
+| 프런트 수정 | 3 | **2** (`ProjectSettingsPage.jsx` 탭 · 자동화 화면 버튼) |
+| DB | 테이블 3 + 컬럼 2 | **테이블 1** |
+| SSE · 비동기 · 큐 | 필요 | **불필요** |
+| 스크린샷 파이프라인 | 필요 | 불필요 (기존 첨부 API 사용) |
+| prod DDL | 테이블 3 + 컬럼 변경 | **테이블 1** |
+| 매뉴얼 한/영 · 화면 감사 | 새 화면 → 전체 | **설정 탭 1개 분량** |
+
+**약 10 파일 + 테이블 1개.** A안의 26 파일 + 테이블 3 + 컬럼 2 대비 3분의 1 이하고, 무엇보다 **제품의 중요 경로(트랜잭션·비동기·실시간)를 안 건드린다.** 설정 테이블 하나가 늘어나는 것뿐이다.
+
+## D7. "없어도 동작"을 어떻게 검증하나
+
+문서에 적어놓고 안 재보면 의미가 없다. **회귀 테스트에 넣는다.**
+
+- [ ] `AGENT_INTEGRATION_ENABLED=false` 로 기동 → 프로젝트 설정에 에이전트 탭이 없다. API 는 404
+- [ ] 전역 On · 프로젝트 미설정 → 자동화 화면이 지금과 **픽셀 단위로 같다**
+- [ ] 프로젝트 On 설정 후 **에이전트 스택 전체를 내린다** → 설정 화면에 오류 표시, 자동화 화면 버튼 비활성, **제품의 다른 기능 전부 정상**
+- [ ] 에이전트 주소를 존재하지 않는 호스트로 바꾼다 → 3초 안에 실패하고 화면이 멈추지 않는다
+- [ ] 연결 테스트로 `http://localhost:5432`(내부 postgres)를 찍는다 → **응답 본문이 노출되지 않는다** (D4-4 검증)
+- [ ] 에이전트가 결과를 올린 뒤 에이전트 스택을 내린다 → **이미 올라간 결과는 그대로 조회된다** (제품 데이터로 살아 있다)
+
+마지막 항목이 이 설계의 핵심이다. **에이전트는 결과를 만들어 제품에 넘기고 빠지는 도구**다. 넘긴 뒤에는 없어도 된다.
+
+## D8. 정리 — 최종 그림
+
+```
+[제품 스택]  변경: 설정 테이블 1 + 파일 약 10        ← 항상 뜬다. 에이전트 없어도 완전 동작
+     │
+     │ 프로젝트 설정 > 에이전트 연동
+     │   On/Off · 이름 · 주소 · 토큰 · 기본 프로필 · 연결 테스트
+     │
+     ├── (Off/미설정) → 에이전트 관련 UI 가 전부 사라진다
+     │
+     └── (On) → 자동화 화면에 「{이름}으로 실행」 버튼 (딥링크)
+                     ↓
+[에이전트 스택]  별도 compose · 별도 배포 · 따로 죽어도 무해
+     agent-web · agent-runner · agent-store
+                     ↓
+     제품 공개 API 로 결과 반납 (봇 계정 JWT)
+     실행 생성 → 결과 기록 → 스크린샷 첨부 → 완료
+                     ↓
+[제품]  테스트실행·테스트결과 화면에 판정과 증거가 남는다  ← 에이전트가 사라져도 영구 보존
+```
+
+### 결정할 것
+
+1. **연동 설정을 이번에 넣나, 나중에 넣나** — 없어도 에이전트 앱은 완전히 동작한다(주소를 사람이 알고 있으면 된다). 넣으면 제품 변경이 0 → 약 10 파일이 된다. **부록 C 의 Phase 0 을 먼저 하고, 되는 걸 확인한 뒤 이 설정을 넣는 순서를 권한다.**
+2. **프로젝트당 에이전트 1개로 시작?** (`UNIQUE(project_id)`) 나중에 다중으로 확장 경로는 열려 있다
+3. **전역 킬스위치 기본값** — `false` 권장 (기존 배포에 영향 0)
+4. **연결 테스트 응답을 어디까지 보여줄지** — 버전만? 아니면 지원 프로필 목록까지? (프로필 목록을 받아오면 설정 화면에서 드롭다운으로 고를 수 있어 편하지만, SSRF 노출면이 넓어진다)
