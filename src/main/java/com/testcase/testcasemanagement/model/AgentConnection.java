@@ -58,6 +58,22 @@ public class AgentConnection {
   @Column(name = "server_url", nullable = false, length = 500)
   private String serverUrl;
 
+  /**
+   * 브라우저가 딥링크를 열 때 쓸 주소. 비면 {@link #serverUrl} 을 쓴다.
+   *
+   * <p>왜 칸이 둘인가. {@code serverUrl} 은 <b>서버</b>가 연결 확인에 쓰고, 딥링크는
+   * <b>브라우저</b>가 연다. 두 시점이 다르다. 운영에서는 같은 이름으로 양쪽이 닿으므로
+   * 이 칸을 비워 둔다.
+   *
+   * <p>갈리는 배치가 실제로 있다. 제품이 컨테이너 안이면 서버는 {@code
+   * host.docker.internal} 로만 에이전트에 닿고, 브라우저는 그 이름을 풀지 못한다
+   * ({@code ERR_NAME_NOT_RESOLVED}). 반대로 {@code localhost} 를 넣으면 서버가
+   * 자기 자신을 가리켜 연결 확인이 깨지고, 그러면 버튼이 비활성된다. 한 칸으로는
+   * 어떤 값을 넣어도 둘 다 만족하지 못한다.
+   */
+  @Column(name = "browser_url", length = 500)
+  private String browserUrl;
+
   /** 인증 토큰. JiraConfig.encryptedApiToken 과 같은 암호화 경로를 쓴다. */
   @Column(name = "encrypted_token", columnDefinition = "TEXT")
   private String encryptedToken;
@@ -114,5 +130,12 @@ public class AgentConnection {
   /** 실행 버튼을 띄울 수 있는 상태인가. 켜져 있고 연결이 확인된 경우만 참이다. */
   public boolean isRunnable() {
     return Boolean.TRUE.equals(this.isActive) && Boolean.TRUE.equals(this.connectionVerified);
+  }
+
+  /** 브라우저가 열 주소. 별도 지정이 없으면 서버 주소를 그대로 쓴다. */
+  public String effectiveBrowserUrl() {
+    return (this.browserUrl == null || this.browserUrl.isBlank())
+        ? this.serverUrl
+        : this.browserUrl;
   }
 }

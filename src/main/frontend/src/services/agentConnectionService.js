@@ -121,7 +121,12 @@ class AgentConnectionService {
    * 무관하다. 링크가 깨져도 기능은 죽지 않는다.
    */
   buildDeepLink(connection, projectId, caseIds = []) {
-    if (!connection?.serverUrl) return null;
+    // 브라우저가 열 주소를 쓴다. 서버가 연결을 확인한 주소와 다를 수 있다 —
+    // 제품이 컨테이너 안이면 서버는 host.docker.internal 로만 닿고 브라우저는
+    // 그 이름을 풀지 못한다.
+    const target =
+      connection?.effectiveBrowserUrl || connection?.browserUrl || connection?.serverUrl;
+    if (!target) return null;
     const params = new URLSearchParams({
       tms: "testcasecraft",
       base: window.location.origin,
@@ -129,7 +134,7 @@ class AgentConnectionService {
     });
     if (caseIds.length > 0) params.set("cases", caseIds.join(","));
     if (connection.defaultProfile) params.set("profile", connection.defaultProfile);
-    return `${connection.serverUrl.replace(/\/+$/, "")}/runs/new?${params.toString()}`;
+    return `${target.replace(/\/+$/, "")}/runs/new?${params.toString()}`;
   }
 }
 

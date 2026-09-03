@@ -31,7 +31,16 @@ public class AgentConnectionKeysInitializer {
     createKey("agentConnection.field.name", "이름 라벨", "에이전트 이름");
     createKey("agentConnection.field.nameHint", "이름 안내", "자동화 화면 버튼에 이 이름이 그대로 나옵니다.");
     createKey("agentConnection.field.serverUrl", "주소 라벨", "에이전트 주소");
-    createKey("agentConnection.field.serverUrlHint", "주소 안내", "http 또는 https 로 시작하는 주소를 넣습니다.");
+    // 한 칸이 두 시점을 만족해야 한다. 서버는 연결 테스트로, 브라우저는 딥링크로
+    // 같은 주소를 쓴다. 실측에서 도커 안 제품은 host.docker.internal 로만 닿고
+    // 브라우저는 그 이름을 풀지 못해 갈렸다.
+    createKey(
+        "agentConnection.field.serverUrlHint", "주소 안내", "http 또는 https 로 시작하고, 브라우저와 서버 양쪽에서 닿는 주소를 넣습니다.");
+    createKey("agentConnection.field.browserUrl", "브라우저용 주소 라벨", "브라우저용 주소 (선택)");
+    createKey(
+        "agentConnection.field.browserUrlHint",
+        "브라우저용 주소 안내",
+        "비워 두면 위 주소를 그대로 씁니다. 서버가 닿는 주소와 브라우저가 닿는 주소가 다를 때만 채웁니다 — 실행 버튼은 이 주소를 엽니다.");
     createKey("agentConnection.field.token", "토큰 라벨", "인증 토큰");
     createKey(
         "agentConnection.field.tokenHint", "토큰 안내", "비워 두면 기존 값을 그대로 씁니다. 저장된 토큰은 화면에 보이지 않습니다.");

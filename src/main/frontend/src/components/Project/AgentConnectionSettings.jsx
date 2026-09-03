@@ -40,6 +40,7 @@ import { useDateFormatter } from "../../hooks/useDateFormatter.js";
 const EMPTY_FORM = {
   name: "",
   serverUrl: "",
+  browserUrl: "",
   token: "",
   defaultProfile: "",
   isActive: false,
@@ -78,6 +79,7 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
           ? {
               name: found.name || "",
               serverUrl: found.serverUrl || "",
+              browserUrl: found.browserUrl || "",
               token: "",
               defaultProfile: found.defaultProfile || "",
               isActive: Boolean(found.isActive),
@@ -104,6 +106,7 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
       const payload = {
         name: form.name.trim(),
         serverUrl: form.serverUrl.trim(),
+        browserUrl: form.browserUrl.trim(),
         defaultProfile: form.defaultProfile.trim(),
         isActive: form.isActive,
       };
@@ -265,12 +268,26 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
         placeholder="https://qa-agent.internal:8090"
         helperText={t(
           "agentConnection.field.serverUrlHint",
-          "http 또는 https 로 시작하는 주소를 넣습니다.",
+          "http 또는 https 로 시작하고, 브라우저와 서버 양쪽에서 닿는 주소를 넣습니다.",
         )}
         fullWidth
         margin="normal"
         disabled={!canEdit}
         inputProps={{ maxLength: 500, "data-testid": "agent-connection-url" }}
+      />
+      <TextField
+        label={t("agentConnection.field.browserUrl", "브라우저용 주소 (선택)")}
+        value={form.browserUrl}
+        onChange={(e) => setForm((cur) => ({ ...cur, browserUrl: e.target.value }))}
+        placeholder="http://localhost:8090"
+        helperText={t(
+          "agentConnection.field.browserUrlHint",
+          "비워 두면 위 주소를 그대로 씁니다. 서버가 닿는 주소와 브라우저가 닿는 주소가 다를 때만 채웁니다 — 실행 버튼은 이 주소를 엽니다.",
+        )}
+        fullWidth
+        margin="normal"
+        disabled={!canEdit}
+        inputProps={{ maxLength: 500, "data-testid": "agent-connection-browser-url" }}
       />
       <TextField
         label={t("agentConnection.field.token", "인증 토큰")}
@@ -340,6 +357,13 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
               ? formatDate(connection.lastConnectionTest)
               : "-"}
           </Typography>
+          {connection.effectiveBrowserUrl &&
+            connection.effectiveBrowserUrl !== connection.serverUrl && (
+              <Typography variant="caption" color="text.secondary" display="block">
+                {t("agentConnection.field.browserUrl", "브라우저용 주소 (선택)")}:{" "}
+                {connection.effectiveBrowserUrl}
+              </Typography>
+            )}
           {connection.agentVersion && (
             <Typography variant="caption" color="text.secondary" display="block">
               {t("agentConnection.status.version", "에이전트 버전")}:{" "}

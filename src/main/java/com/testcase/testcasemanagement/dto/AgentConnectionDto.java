@@ -31,6 +31,10 @@ public class AgentConnectionDto {
   @Size(max = 500, message = "에이전트 주소는 500자 이내로 입력해주세요")
   private String serverUrl;
 
+  /** 브라우저가 딥링크를 열 때 쓸 주소. 비면 serverUrl 을 쓴다. */
+  @Size(max = 500, message = "브라우저용 주소는 500자 이내로 입력해주세요")
+  private String browserUrl;
+
   /**
    * 요청에서만 쓴다. 생략하면 기존 토큰을 유지하고, 빈 문자열이면 삭제한다. 응답에는 담지 않는다.
    */
@@ -48,6 +52,8 @@ public class AgentConnectionDto {
   private String lastConnectionError;
   private String agentVersion;
   private Boolean runnable;
+  /** 버튼이 실제로 열 주소. browserUrl 이 있으면 그것, 없으면 serverUrl. */
+  private String effectiveBrowserUrl;
   private LocalDateTime updatedAt;
   private String updatedBy;
 

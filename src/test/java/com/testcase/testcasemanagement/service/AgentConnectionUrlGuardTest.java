@@ -118,6 +118,40 @@ public class AgentConnectionUrlGuardTest {
   }
 
   @Test
+  public void 브라우저용_주소가_없으면_서버_주소를_쓴다() {
+    AgentConnection conn = new AgentConnection();
+    conn.setProjectId("p-1");
+    conn.setServerUrl("http://host.docker.internal:8090");
+
+    assertEquals(conn.effectiveBrowserUrl(), "http://host.docker.internal:8090");
+    assertTrue(
+        service.buildDeepLink(conn, null, List.of())
+            .startsWith("http://host.docker.internal:8090/runs/new"));
+
+    conn.setBrowserUrl("   ");
+    assertEquals(
+        conn.effectiveBrowserUrl(),
+        "http://host.docker.internal:8090",
+        "공백만 있으면 없는 것으로 본다");
+  }
+
+  @Test
+  public void 브라우저용_주소가_있으면_딥링크가_그것을_쓴다() {
+    // 서버는 host.docker.internal 로만 닿고 브라우저는 그 이름을 풀지 못하는 배치가
+    // 실제로 있다. 두 시점이 갈릴 때 버튼은 브라우저용 주소를 열어야 한다.
+    AgentConnection conn = new AgentConnection();
+    conn.setProjectId("p-1");
+    conn.setServerUrl("http://host.docker.internal:8090");
+    conn.setBrowserUrl("http://localhost:8090");
+
+    assertEquals(conn.effectiveBrowserUrl(), "http://localhost:8090");
+    String link = service.buildDeepLink(conn, "http://localhost:8080", List.of("c-1"));
+    assertTrue(link.startsWith("http://localhost:8090/runs/new"), link);
+    assertTrue(!link.contains("host.docker.internal"), link);
+    assertTrue(link.contains("projectId=p-1"), link);
+  }
+
+  @Test
   public void 실행가능_판정은_두_조건을_모두_요구한다() {
     AgentConnection conn = new AgentConnection();
     conn.setIsActive(true);

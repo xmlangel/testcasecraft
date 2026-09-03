@@ -1137,7 +1137,8 @@ The tab stays hidden in two cases: `AGENT_INTEGRATION_ENABLED` is off on the ser
 | Field | What it is for |
 |---|---|
 | Agent name | This name appears on the button in the Automation Tests screen. |
-| Agent URL | The address of the agent app. It must start with `http` or `https`. |
+| Agent URL | The address of the agent app. It must start with `http` or `https`. This is what the server uses to verify the connection. |
+| Browser URL (optional) | Leave it blank to reuse the address above. Fill it only when the server and the browser reach the agent at different addresses. The run button opens this one. |
 | Auth token | The token the agent app expects. Leave it blank to keep the current one; a saved token is never shown again. |
 | Default profile | The profile identifier registered in the agent app. Allowed domains, forbidden actions, and test accounts live there. |
 | Use in this project | While this is off, nothing agent-related appears in the Automation Tests screen. It ships off. |

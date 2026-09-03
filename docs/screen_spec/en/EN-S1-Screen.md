@@ -238,6 +238,7 @@ Table from section 5 of `00_전체_업무프로세스.md` (English: overall work
 |---|---|---|
 | Agent name | `TextField`, up to 100 chars, required | Becomes the button label in the automation screen |
 | Agent URL | `TextField`, up to 500 chars, required | `http` or `https` only. User info and query strings are rejected. A trailing slash is stripped before saving |
+| Browser URL (optional) | `TextField`, up to 500 chars | **Blank reuses the address above.** Fill it only when the server and the browser reach the agent at different addresses. The run button opens this one |
 | Auth token | `TextField type=password` | Stored encrypted. **The value is never returned** — only `hasToken` comes back |
 | Default profile | `TextField`, up to 100 chars | The profile identifier in the agent app |
 | Use in this project | `Switch`, off by default | Nothing appears in the automation screen until it is on |
@@ -250,6 +251,8 @@ Table from section 5 of `00_전체_업무프로세스.md` (English: overall work
 **The token field has three branches.** Omitted (field absent from the request) keeps the current value, an empty string deletes it, and a value replaces it. The screen omits the field entirely when the box is blank.
 
 **Changing the URL discards the earlier verification.** `connectionVerified`, `agentVersion`, and `lastConnectionError` are cleared. An earlier result cannot be trusted for a different address.
+
+**Why there are two address fields.** The `Agent URL` is what the **server** uses for the connection test; the deep link is opened by the **browser**. Deployments where those differ do exist. With the product inside a container the server reaches the agent only at `host.docker.internal`, which the browser cannot resolve. Put `localhost` there instead and the server points at itself, the connection test breaks, and the button goes disabled. In production both sides reach the agent by the same name, so the second field stays blank.
 
 ### 6-1-2. What the connection test narrows
 

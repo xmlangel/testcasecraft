@@ -45,7 +45,13 @@ public class KoreanAgentConnectionTranslations {
     create(
         "agentConnection.field.serverUrlHint",
         lang,
-        "http 또는 https 로 시작하는 주소를 넣습니다.",
+        "http 또는 https 로 시작하고, 브라우저와 서버 양쪽에서 닿는 주소를 넣습니다.",
+        by);
+    create("agentConnection.field.browserUrl", lang, "브라우저용 주소 (선택)", by);
+    create(
+        "agentConnection.field.browserUrlHint",
+        lang,
+        "비워 두면 위 주소를 그대로 씁니다. 서버가 닿는 주소와 브라우저가 닿는 주소가 다를 때만 채웁니다 — 실행 버튼은 이 주소를 엽니다.",
         by);
     create("agentConnection.field.token", lang, "인증 토큰", by);
     create(

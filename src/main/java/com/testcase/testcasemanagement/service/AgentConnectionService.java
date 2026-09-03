@@ -119,6 +119,10 @@ public class AgentConnectionService {
 
     entity.setName(dto.getName().trim());
     entity.setServerUrl(normalizedUrl);
+    // 브라우저용 주소도 같은 규칙으로 좁힌다. 다만 여기서는 도달성을 확인하지 않는다 —
+    // 서버가 닿지 못하는 것이 정상인 자리다
+    String browserUrl = trimToNull(dto.getBrowserUrl());
+    entity.setBrowserUrl(browserUrl == null ? null : validateAndNormalizeUrl(browserUrl));
     entity.setDefaultProfile(trimToNull(dto.getDefaultProfile()));
     entity.setIsActive(Boolean.TRUE.equals(dto.getIsActive()));
     entity.setUpdatedBy(username);
@@ -307,6 +311,8 @@ public class AgentConnectionService {
         .id(e.getId())
         .name(e.getName())
         .serverUrl(e.getServerUrl())
+        .browserUrl(e.getBrowserUrl())
+        .effectiveBrowserUrl(e.effectiveBrowserUrl())
         .defaultProfile(e.getDefaultProfile())
         .isActive(e.getIsActive())
         .hasToken(e.getEncryptedToken() != null && !e.getEncryptedToken().isBlank())
@@ -340,7 +346,7 @@ public class AgentConnectionService {
 
   /** 딥링크 URL 을 만든다. 케이스 목록은 화면이 붙인다. */
   public String buildDeepLink(AgentConnection entity, String productBaseUrl, List<String> caseIds) {
-    StringBuilder sb = new StringBuilder(entity.getServerUrl());
+    StringBuilder sb = new StringBuilder(entity.effectiveBrowserUrl());
     sb.append("/runs/new?tms=testcasecraft");
     if (productBaseUrl != null && !productBaseUrl.isBlank()) {
       sb.append("&base=").append(java.net.URLEncoder.encode(productBaseUrl,

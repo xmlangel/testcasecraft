@@ -49,7 +49,13 @@ public class EnglishAgentConnectionTranslations {
     create(
         "agentConnection.field.serverUrlHint",
         lang,
-        "Enter a URL that starts with http or https.",
+        "Enter a URL that starts with http or https and is reachable from both the browser and the server.",
+        by);
+    create("agentConnection.field.browserUrl", lang, "Browser URL (optional)", by);
+    create(
+        "agentConnection.field.browserUrlHint",
+        lang,
+        "Leave it blank to reuse the address above. Fill it only when the server and the browser reach the agent at different addresses — the run button opens this one.",
         by);
     create("agentConnection.field.token", lang, "Auth token", by);
     create(

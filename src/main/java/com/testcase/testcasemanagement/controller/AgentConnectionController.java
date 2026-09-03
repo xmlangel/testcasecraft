@@ -60,6 +60,7 @@ public class AgentConnectionController {
       return ResponseEntity.ok(Map.of("enabled", false, "runnable", false));
     }
     boolean runnable = service.isRunnable(projectId);
+    AgentConnectionDto conn = service.get(projectId).orElse(null);
     return ResponseEntity.ok(
         Map.of(
             "enabled",
@@ -67,7 +68,13 @@ public class AgentConnectionController {
             "runnable",
             runnable,
             "name",
-            service.get(projectId).map(AgentConnectionDto::getName).orElse("")));
+            conn == null ? "" : String.valueOf(conn.getName()),
+            // 버튼이 열 주소를 함께 준다. 화면이 다시 조회하지 않아도 되고,
+            // serverUrl 과 다를 수 있다는 사실이 응답에 드러난다
+            "browserUrl",
+            conn == null || conn.getEffectiveBrowserUrl() == null
+                ? ""
+                : conn.getEffectiveBrowserUrl()));
   }
 
   @PutMapping
