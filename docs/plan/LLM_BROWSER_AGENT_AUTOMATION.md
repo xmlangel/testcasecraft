@@ -1147,3 +1147,259 @@ CLAUDE.md 규약 때문에 코드만 끝내면 릴리즈가 안 된다.
 - [ ] 화면 커버리지 감사(`screen-coverage-audit`) 통과
 - [ ] 릴리즈 노트 한/영
 - [ ] **B7 「맡기면 안 되는 케이스」를 매뉴얼과 화면 안내문 양쪽에 넣는다** — 이게 없으면 누군가 결제 케이스를 돌린다
+
+---
+---
+
+# 부록 C. 배치 방식 재검토 — 내장이 아니라 외부에서 호출한다면
+
+> 추가일: 2026-09-03
+> 계기: "독립적으로 붙여서 할 수 있는 방법은 없나. 내부에 들어가는 것보다 호출해서 하는 방식이 확장성 면에서 더 나을 것 같다"
+
+## C1. 결론 먼저
+
+**맞다. 그리고 생각보다 훨씬 쉽다 — testcasecraft 코드를 한 줄도 안 바꾸고 된다.**
+
+§1~§16 은 이 기능을 제품 안에 넣는 것을 전제로 썼다. 그런데 착지 지점을 다시 보니, **에이전트가 필요로 하는 것(케이스 읽기 · 실행 만들기 · 결과 쓰기 · 스크린샷 붙이기)이 이미 전부 공개 API 로 열려 있다.** 참고 글의 잡코리아 팀이 TestRail 을 API 로 다룬 것과 정확히 같은 위치에 우리가 설 수 있다.
+
+바꿔 말하면 — **우리는 TestRail 자리에 서고, 에이전트는 밖에 둔다.**
+
+![배치 방식 비교](images/llm-browser-agent/05-deployment-options.svg)
+
+## C2. 밖에서 붙을 수 있나 — 열려 있는 표면 확인
+
+| 필요한 것 | 이미 있는가 | 근거 |
+|---|---|---|
+| 케이스 목록·상세(스텝 포함) 읽기 | **있다** | `mcp-server/src/tools/testcase.ts` — `testcase_list` `testcase_get` `testcase_search`. 스키마에 `steps(description, expectedResult)` `preCondition` `postCondition` `expectedResults` 포함 |
+| 테스트 실행 만들기 | **있다** | `TestExecutionController` `POST /api/test-executions` · `/{id}/start` · `/{id}/complete` |
+| 결과 기록 | **있다** | `POST /api/test-executions/{id}/results` · **`/results/bulk`** (일괄). MCP `testexecution_record_result` |
+| **스크린샷 첨부** | **있다** | `TestResultAttachmentController` `POST /api/attachments/upload/{testResultId}` (multipart) |
+| 자동화 결과로 올리기 | **있다** | `POST /api/junit-results/upload` (multipart JUnit XML) |
+| QA 요약 남기기 | **있다** | `PUT /api/test-executions/{id}/qa-summary` (마크다운) |
+| 서비스 인증 | **있다 (단 함정 있음)** | `ApiKeyAuthenticationFilter` (`X-API-KEY`) + JWT. → C4 |
+| 도구화된 접근 | **있다** | MCP 서버 **59 도구**. 이미 "외부에서 이 제품을 조작한다"는 설계가 존재한다 |
+
+**중요한 함의** — `mcp-server/` 가 존재한다는 것 자체가 이 제품이 **이미 "밖에서 호출당하는 것"을 정식 설계로 갖고 있다**는 뜻이다. 에이전트는 그 60번째 소비자가 되면 된다. 새로운 통합 방식을 발명하는 게 아니다.
+
+## C3. 결과를 어디에 착지시키나 — 이게 진짜 선택이다
+
+경로가 두 개인데 **능력이 다르다.** 위 도식 하단 참조.
+
+| | (1) 자동화 결과 업로드 | (2) 테스트실행 결과 기록 |
+|---|---|---|
+| API | `POST /api/junit-results/upload` (JUnit XML) | `POST /api/test-executions` → `/start` → `/results/bulk` → `/complete` |
+| 뜨는 화면 | S8 자동화 테스트 | 테스트실행 · 테스트결과 (사람 실행과 같은 곳) |
+| 판정 값 | `PASSED/FAILED/ERROR/SKIPPED` | `PASS/FAIL/BLOCKED/NOT_RUN` |
+| 케이스 역참조 | XML 로는 `linkedTestCaseId` 를 못 채운다 | `testCaseId` 를 직접 넣는다 — **정확하다** |
+| **스크린샷** | **불가.** 첨부 API 가 없다 | **가능.** `POST /api/attachments/upload/{testResultId}` |
+| Jira | 없음 | `TestResult` 에 `jiraIssueKey` 등 필드가 이미 있다 |
+| QA 지표 | 자동화 대시보드에만 | 사람 실행 지표와 **섞인다** → C6 에서 처리 |
+
+**(2) 를 주 경로로 택한다.** 스크린샷이 갈랐다. 부록 B6 이 요구하는 **"PASS 표본 검증"은 증거 이미지 없이는 불가능**하다. 증거를 못 붙이는 결과는 QA 가 믿을 수 없고, 못 믿는 결과는 안 쓰인다.
+
+(1) 은 **보조**로 남긴다 — 스크린샷이 필요 없는 CI 요약 적재나, 자동화 대시보드 통계에도 남기고 싶을 때 같은 실행을 XML 로 한 번 더 올린다.
+
+## C4. 인증의 함정 — `X-API-KEY` 로는 결과를 못 쓴다
+
+**이게 외부 방식의 유일한 진짜 걸림돌이고, 안 짚으면 구현 이틀째에 403 을 보고 헤맨다.**
+
+`ApiKeyAuthenticationFilter` 는 API 키가 맞으면 이렇게 인증한다.
+
+```java
+new UsernamePasswordAuthenticationToken(
+    "service-account", null,
+    Collections.singletonList(new SimpleGrantedAuthority("ROLE_TESTER")));
+```
+
+principal 이 문자열 `"service-account"` 다. 그런데 권한 검사는 이렇게 생겼다.
+
+```java
+// security/ProjectSecurityService.java:558
+public boolean canUploadToProject(String projectId, String username) {
+  if (userRepository.findByUsername(username)... ) return true;      // ADMIN 인가?
+  return userRepository.findByUsername(username)                     // 실제 User 조회
+      .map(user -> projectUserRepository.hasResultEntryRole(projectId, user.getId()))
+      .orElse(false);                                                // ← 없으면 false
+}
+```
+
+`"service-account"` 라는 **User 행은 DB 에 없다.** `findByUsername` 이 비어서 `orElse(false)` → **403**. 코드베이스 전체에 `service-account` 특례 처리는 없다(`ServiceApiKeyController` 의 토큰 발급 로직 외에는 등장하지 않는다).
+
+**해법 — 전용 봇 사용자 계정 + JWT.**
+
+MCP 서버가 `auth_login` / `auth_refresh` / `auth_status` 도구를 갖고 있는 이유가 이거다. **MCP 도 API 키가 아니라 실제 사용자 JWT 로 붙는다.** 같은 길을 간다.
+
+```
+1. 봇 계정 생성        예: qa-agent@<사내도메인>   role = TESTER
+2. 대상 프로젝트에 멤버로 추가 — 결과기록 권한(hasResultEntryRole 을 만족하는 편집 롤)
+3. 외부 앱이 POST /api/auth/login → JWT 획득 → 만료 전 /api/auth/refresh
+4. 모든 호출에 Authorization: Bearer
+```
+
+**ADMIN 을 주지 않는다.** `canUploadToProject` 첫 줄이 ADMIN 을 무조건 통과시키므로 편하긴 하지만, 에이전트가 모든 프로젝트에 쓸 수 있게 된다. **프로젝트별로 필요한 곳에만 TESTER 로 넣는다.** 이러면 "에이전트가 어느 프로젝트를 건드릴 수 있나"가 제품의 기존 권한 화면에서 그대로 보인다 — 별도 권한 체계를 안 만들어도 된다.
+
+## C5. 세 가지 안
+
+| | **A. 내장형** | **B. 외부 호출형** | **C. 하이브리드** |
+|---|---|---|---|
+| 제품 코드 변경 | 약 26 파일 | **0** | 링크 버튼 1~2 곳 |
+| DB 스키마 | 테이블 3 + 컬럼 2 | **0** | 0 |
+| prod 배포 영향 | `ddl-auto=validate` → 수동 DDL 필요 | **없음** | 없음 |
+| 릴리즈 게이트 | 매뉴얼 한/영 · 화면 커버리지 감사 · i18n 감사 · E2E · 릴리즈 노트 | **없음** (외부 앱 자체 기준) | 최소 |
+| 배포 주기 | 제품 릴리즈에 종속 | **독립. 하루 열 번도 가능** | 독립 |
+| 장애 격리 | 에이전트 문제가 제품으로 전이 | **완전 격리** | 격리 |
+| 제품 UI 안 실시간 | **있음** | 없음 (외부 앱 UI 로 대체) | 없음 |
+| 원클릭 진입 | 자동화 화면에서 바로 | 다른 앱을 연다 | **버튼으로 연결** |
+| 다른 TMS 재사용 | 불가 | **가능. 어댑터만 갈아끼움** | 가능 |
+| 브라우저 이미지(1.5GB) | 제품 배포에 포함 | 외부에만 | 외부에만 |
+| 셀프호스팅 영향 | §15-5 문제 발생 | **문제 자체가 없어짐** | 없음 |
+| 검증 실패 시 | 제품에 흉터가 남음 | **레포를 지우면 끝** | 거의 없음 |
+
+**사용자 판단이 맞다.** 특히 이 제품의 릴리즈 게이트가 무겁다는 게 결정적이다 — CLAUDE.md 에 하네스가 5개(MCP · 매뉴얼 한영 · i18n 감사 · 온톨로지 · 화면 커버리지 감사) 걸려 있고, 화면을 하나 더하면 "화면 ID 정의 7곳"을 함께 고쳐야 한다. **아직 될지 안 될지 모르는 기능을 그 게이트 안으로 끌고 들어갈 이유가 없다.**
+
+## C6. 권장 — B 로 간다. 구체 설계
+
+### C6-1. 한 번의 실행이 API 로 어떻게 보이나
+
+```
+① POST /api/auth/login                        봇 계정 → JWT
+② GET  /api/testcases/projects/{projectId}     또는 MCP testcase_list / testcase_get
+                                                → 스텝·전제조건·기대결과 확보
+③ POST /api/test-executions                   { name: "[AI] 스모크 2026-09-03 09:00",
+                                                 projectId, testPlanId?, tags: ["ai-agent"] }
+④ POST /api/test-executions/{id}/start
+
+   ── 케이스마다 (외부 앱 안에서) ──
+   · 프롬프트 빌드 → browser-use 로 실행 → 스텝 로그·스크린샷을 자체 저장소에
+   · 결과 정규화 후처리 → { status, summary, evidence, errors }
+   · 외부 앱 자체 UI 로 실시간 표시  ← 제품에 SSE 를 안 넣어도 되는 지점
+
+⑤ POST /api/test-executions/{id}/results/bulk  케이스별 판정 일괄 기록
+                                                { testCaseId, result, notes }
+   notes 에 담을 것: 요약 + 근거 + 외부 앱 실행 상세 링크 + 소요·비용
+⑥ POST /api/attachments/upload/{testResultId}  실패 스텝 스크린샷 (건별 multipart)
+⑦ PUT  /api/test-executions/{id}/qa-summary    마크다운 요약
+                                                (완주율 · 오판 후보 · 비용 · 상세 링크)
+⑧ POST /api/test-executions/{id}/complete
+
+   ── 선택 (보조 경로) ──
+⑨ POST /api/junit-results/upload               같은 결과를 JUnit XML 로도 적재
+                                                → 자동화 대시보드 통계에 반영
+```
+
+### C6-2. QA 지표가 섞이는 문제 (§15-1 의 답)
+
+경로 (2) 를 쓰면 에이전트 결과가 사람 실행 지표와 같은 테이블에 들어간다. 본문 §15-1 에서 "별도 결정 필요"로 남겨둔 항목이다. **외부 방식에서는 이렇게 푼다.**
+
+- 실행명에 **`[AI]` 접두**를 강제한다 — 목록에서 눈으로 갈린다
+- `TestExecution.tags` 에 **`ai-agent`** 를 넣는다 (엔티티에 `Set<String> tags` 가 이미 있다)
+- `qaSummary` 첫 줄에 **"에이전트 초안 — QA 확정 전"** 을 박는다
+- **사람 실행과 절대 같은 `TestExecution` 에 쓰지 않는다.** 실행 단위를 분리하면 나중에 지표에서 걷어내기 쉽다
+
+이건 규칙이지 코드가 아니다. 제품 변경 없이 운영으로 강제할 수 있다.
+
+### C6-3. 외부 앱 구조
+
+```
+testcase-agent/                      (별도 레포)
+  core/
+    prompt_builder.py                케이스 → 프롬프트  (부록 A8 그대로)
+    agent_loop.py                    browser-use + Playwright + LangChain
+    normalizer.py                    후처리 LLM → 표준 JSON  (부록 A2-1 매핑)
+    guardrails.py                    허용 도메인 · 금지 행동 · SSRF 차단 (A11)
+  adapters/
+    base.py                          ★ TmsAdapter 인터페이스
+    testcasecraft.py                 우리 제품용 구현
+    testrail.py                      (나중)
+  profiles/                          정책 JSON + 컨텍스트 JSON (암호화)
+  web/                               자체 UI — 실행 · 실시간 관전 · 트리아지 보조
+  store/                             스텝로그 · 프롬프트 · 비용 · 스크린샷
+```
+
+**어댑터 인터페이스를 처음부터 뺀다.** 이게 "확장성"의 실체다.
+
+```python
+class TmsAdapter(Protocol):
+    def list_cases(self, project_id: str, flt: CaseFilter) -> list[Case]: ...
+    def start_run(self, project_id: str, name: str, tags: list[str]) -> RunHandle: ...
+    def record(self, run: RunHandle, case_id: str, verdict: Verdict,
+               summary: str, evidence: list[str]) -> ResultId: ...
+    def attach(self, result_id: ResultId, image: bytes, caption: str) -> None: ...
+    def finish(self, run: RunHandle, summary_md: str) -> None: ...
+```
+
+testcasecraft 구현은 C6-1 의 8단계를 이 5개 메서드에 매핑한 것이 전부다. TestRail 로 갈아끼우는 일이 **파일 하나**가 된다.
+
+### C6-4. 실시간 관전은 어디서 하나
+
+제품 안에 SSE 를 넣지 않는다. **외부 앱이 자기 UI 에서 보여준다.** 부록 A4 의 어려운 부분(emitter 레지스트리 · 하트비트 · 프록시 버퍼링 · `fetch` 스트림 파서 추출)이 **통째로 사라진다.** 외부 앱은 자기 프로세스 안이라 WebSocket 이든 SSE 든 편한 걸 쓰면 된다.
+
+제품 쪽 사용자는 실행이 끝난 뒤 **테스트결과 화면에서 판정과 스크린샷을 본다.** `notes` 에 넣은 외부 앱 링크를 누르면 스텝 단위 상세로 간다.
+
+## C7. B 가 포기하는 것과 우회
+
+| 잃는 것 | 얼마나 아픈가 | 우회 |
+|---|---|---|
+| 제품 UI 안 실시간 관전 | **가장 큰 손실.** 참고 글이 꼽은 핵심 가치 | 외부 앱 UI 로 대체. 실무상 QA 가 20분을 계속 보고 있지도 않다 |
+| 원클릭 진입 | 중간 | 자동화 화면에 외부 앱 링크 버튼 1개 (하이브리드 C). 코드 몇 줄 |
+| 스텝 로그·비용이 제품 DB 에 없음 | 낮음 | 외부 앱이 보관. `notes` 에 링크. 제품은 판정과 증거만 갖는다 |
+| 단일 권한 체계 | 낮음 | C4 의 봇 계정이 **제품 권한 체계를 그대로 쓴다.** 사실상 안 잃는다 |
+| 스크린샷 이중 보관 | 낮음 | 외부 앱(전체) + 제품(실패 건만). 오히려 제품 스토리지를 아낀다 |
+| API 계약 드리프트 | **새로 생기는 위험** | 어댑터 계약 테스트를 외부 앱 CI 에 둔다. `mcp-server/` 가 이미 같은 위험을 안고 운영 중이라 선례가 있다 |
+
+## C8. 배치 방식이 바뀌어도 살아남는 것
+
+앞서 쓴 부록 A·B 가 낭비되지 않는다. 어느 쪽으로 가든 그대로 쓰인다.
+
+| 항목 | A(내장) | **B(외부)** | 비고 |
+|---|---|---|---|
+| A2-1 `JunitTestCase` 필드 매핑 | ✅ | 부분 | 경로 (1) 쓸 때만 |
+| A2 NOT NULL 4개 처리 | ✅ | ❌ | 제품이 자기 API 로 채운다 — **문제 자체가 사라진다** |
+| A3 트랜잭션 경계 | ✅ | 변형 | 외부 앱 자체 트랜잭션으로 |
+| A4 SSE 설계 | ✅ | ❌ | **통째로 불필요** |
+| A5 DB 큐·재기동 복구 | ✅ | ✅ | 외부 앱에도 그대로 필요 |
+| A6 멱등성·하트비트·취소 | ✅ | ✅ | 그대로 |
+| A7 LLM 계층 분석 | ✅ | ✅ | 외부는 처음부터 LangChain — 더 깔끔 |
+| A8 프롬프트 빌더·비밀값 분리 | ✅ | ✅ | **핵심 자산. 그대로** |
+| A9 스크린샷 저장 | ✅ | 변형 | MinIO → 외부 앱 저장소 |
+| A10 실패 모드 10종 | ✅ | ✅ | 그대로 |
+| A11 보안(SSRF·자격증명·가드레일) | ✅ | ✅ | **그대로. 오히려 더 중요** |
+| A13 용량·비용 산정 | ✅ | ✅ | 그대로 |
+| **부록 B 전체 (QA 관점)** | ✅ | ✅ | **배치 방식과 무관하게 100% 유효** |
+
+**부록 B 는 한 글자도 안 바뀐다.** 케이스 쓰는 법 · FAIL 3분류 · PASS 표본 검증 · 지표 6개 · 4주 시나리오는 에이전트가 안에 있든 밖에 있든 똑같다. QA 가 실제로 겪는 일은 배치 방식과 무관하기 때문이다.
+
+## C9. 나중에 A 로 옮기고 싶어지면
+
+B 는 A 의 습작이 아니다. **B 의 `core/` 가 곧 A 의 `agent-runner/` 다.**
+
+전환 시 새로 하는 일은 이것뿐이다.
+1. `adapters/testcasecraft.py` 의 HTTP 호출을 **DB 직접 접근으로** 바꾼다
+2. 제품에 `AgentRun`·`AgentStepLog` 테이블과 SSE 를 추가한다 (부록 A3~A5)
+3. 외부 앱의 `web/` 을 제품 React 컴포넌트로 옮긴다
+
+`core/` 의 프롬프트 빌더 · 정규화 · 가드레일 · 에이전트 루프는 **그대로 간다.** 즉 B 로 시작하는 데 드는 매몰 비용이 거의 없다.
+
+**반대는 성립하지 않는다.** A 로 먼저 만들면 제품 엔티티·트랜잭션·SSE 에 얽혀서 밖으로 떼어내기 어렵다. **순서가 중요하다 — B 를 먼저 하고, 정말 상품 기능이 되면 그때 A 로 흡수한다.**
+
+## C10. 결정할 것
+
+1. **결과 착지 주 경로** — (2) 테스트실행 결과 기록으로 확정? (스크린샷 때문에 (2) 를 권장. (1) 은 보조)
+2. **레포 위치** — 완전 별도 레포 vs `testcasecraft/agent/` 하위 디렉터리 (별도 레포를 권장 — 릴리즈 독립성이 이 방식의 핵심 이득인데 같은 레포에 두면 절반이 사라진다)
+3. **봇 계정** — 계정명과 권한 범위. 어느 프로젝트에 넣을지
+4. **TMS 어댑터** — 처음부터 인터페이스를 뺄지, testcasecraft 전용으로 빠르게 갈지 (인터페이스를 빼두는 비용은 반나절, 나중에 뽑아내는 비용은 며칠)
+5. **하이브리드 링크** — 자동화 화면에 외부 앱 링크 버튼을 넣을지 (넣는다면 제품 변경이 0 은 아니게 되지만 몇 줄이다)
+
+### 다음 단계 제안
+
+이 방향으로 가면 §11 의 Phase 0~5 를 다시 쓴다. 대략 이렇게 줄어든다.
+
+| Phase | 내용 | 완료 기준 |
+|---|---|---|
+| **0. 계약 확인** | 봇 계정 생성 → 로그인 → 케이스 조회 → 실행 생성 → 결과 1건 기록 → 스크린샷 첨부 → 완료. **에이전트 없이 스크립트로만** | API 8단계가 실제로 통한다. 403 이 없다 |
+| **1. 에이전트 루프** | browser-use 로 케이스 1건 실행 → 어댑터로 결과 적재 | 제품 화면에 판정과 스크린샷이 뜬다 |
+| **2. 프로필·가드레일** | 컨텍스트 주입 · 허용 도메인 · 금지 행동 | 케이스 본문에 계정 없이 로그인 통과 |
+| **3. 자체 UI** | 실행 · 실시간 관전 · 트리아지 보조 | 20건 스모크를 화면에서 돌리고 지켜본다 |
+| **4. 운영** | 비용 집계 · 취소 · 재시도 · 부록 B8 지표 | 4주 실측 후 계속/축소/중단 판단 |
+
+**Phase 0 이 핵심이다.** 반나절이면 된다. 여기서 API 가 실제로 다 통하는지 확인되면 나머지는 순수하게 외부 앱 개발이라 제품 리스크가 0 이다. 먼저 이것부터 해보는 걸 권한다.
