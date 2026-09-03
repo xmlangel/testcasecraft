@@ -934,6 +934,14 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
    *
    * @param executionIds 테스트 실행 ID 목록
    * @return 실행 ID별 상태별 개수 목록 (test_execution_id, result, count)
+   *
+   * <p>플랜 조인이 LEFT 인 이유가 있다. 예전에는 INNER JOIN 이라 {@code test_plan_id} 가 null 인 실행은
+   * 조인이 한 행도 만들지 못해 집계가 통째로 비었다. 실행 생성 API 가 플랜을 요구하지 않으므로 플랜 없는
+   * 실행이 정상 입력인데, 그런 실행은 목록에서 진척률 0% 로 보였다. 외부 QA 에이전트가 케이스를 직접
+   * 골라 실행하며 드러났다.
+   *
+   * <p>플랜이 있는 실행의 집계는 바뀌지 않는다. {@code tpc.test_case_id IS NOT NULL} 조건이 예전
+   * INNER JOIN 과 같은 행만 남기고, {@code te.test_plan_id IS NULL} 갈래만 새로 센다.
    */
   @Query(
       value =
@@ -942,8 +950,9 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
               + " test_case_id ORDER BY executed_at DESC NULLS LAST) as rn     FROM test_results  "
               + "   WHERE test_execution_id IN :executionIds ) SELECT     lr.test_execution_id,   "
               + "  lr.result,     COUNT(*) as count FROM latest_results lr JOIN test_executions te"
-              + " ON te.id = lr.test_execution_id JOIN test_plan_cases tpc ON tpc.test_plan_id ="
-              + " te.test_plan_id AND tpc.test_case_id = lr.test_case_id WHERE lr.rn = 1 GROUP BY"
+              + " ON te.id = lr.test_execution_id LEFT JOIN test_plan_cases tpc ON"
+              + " tpc.test_plan_id = te.test_plan_id AND tpc.test_case_id = lr.test_case_id WHERE"
+              + " lr.rn = 1 AND (te.test_plan_id IS NULL OR tpc.test_case_id IS NOT NULL) GROUP BY"
               + " lr.test_execution_id, lr.result",
       nativeQuery = true)
   List<Map<String, Object>> findSummaryByExecutionIds(
