@@ -702,7 +702,9 @@ Four addresses reach this same screen.
 
 For agent-driven cases, the **Tracelog** tab lists the steps in order. Each step shows what the agent set out to do, the action it took, what it observed, and the page address at that moment. Above the list, the case's stated expected result sits beside the actual result the agent reported.
 
-When a verdict alone does not point to the cause, use this timeline to trace which step changed what. Step order matches the Attachments tab, so you can read the text and view the screenshot for the same step side by side.
+**Each step carries the screenshot taken at that moment.** Click a preview to open it at full size. When a verdict alone does not point to the cause, read the text and view the image together to trace which step changed what.
+
+Structured values, such as the raw step record, sit collapsed under **Execution Properties**. Expanding one lays out its fields; switching to `Raw` shows the indented original.
 
 #### Case Attachments (Screenshots)
 

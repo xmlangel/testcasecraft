@@ -246,8 +246,19 @@ Appears only when the automation tool uploaded a step record.
 | Body | What the step set out to do |
 | Code block | `수행 동작` label plus the actual action |
 | Actual result | What was observed. Follows the verdict color |
-| Label/value pairs | Address, verdict, elapsed, screenshot presence, and any remaining fields |
+| Preview | The screenshot for that step. Click to enlarge. Matched to an attachment by filename |
+| Label/value pairs | Address, verdict, elapsed, and any remaining fields |
 | Two slots above | `EXPECTED` (from the case) and `ACTUAL` (from the tool) |
+
+#### 3.5.0-1 Structured Properties
+
+When an Execution Properties value is a JSON collection, it renders as a collapsible block.
+
+| State | Display |
+|---|---|
+| Collapsed (default) | Property name plus a size chip (`N items` or `N fields`) |
+| Expanded, structured | One box per entry, field names beside values |
+| Expanded, raw | Indented original, scrollable within a height cap |
 
 #### 3.5.1 Panel Tabs
 

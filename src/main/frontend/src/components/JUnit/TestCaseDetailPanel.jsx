@@ -193,7 +193,7 @@ const JsonProperty = ({ name, parsed, raw, isDarkMode, theme, t }) => {
       </Box>
 
       <Collapse in={open} unmountOnExit>
-        <Box sx={{ pl: 4, pt: 0.5 }}>
+        <Box sx={{ pl: 4, pt: 0.5, width: "100%" }}>
           {showRaw ? (
             <Box
               component="pre"
@@ -211,6 +211,8 @@ const JsonProperty = ({ name, parsed, raw, isDarkMode, theme, t }) => {
                 wordBreak: "break-word",
                 maxHeight: 320,
                 overflow: "auto",
+                width: "100%",
+                boxSizing: "border-box",
               }}
             >
               {(() => {
@@ -554,11 +556,12 @@ const TestCaseDetailPanel = ({
               const parsed = parseJsonValue(value);
               if (parsed) {
                 return (
-                  <Grid item xs={12} key={key}>
+                  <Grid size={12} key={key}>
                     <Box
                       sx={{
                         p: 1,
                         borderRadius: 1,
+                        width: "100%",
                         bgcolor: isDarkMode
                           ? alpha(theme.palette.background.paper, 0.8)
                           : "#ffffff",
@@ -579,13 +582,13 @@ const TestCaseDetailPanel = ({
               }
               return (
                 <Grid
-                  item
-                  xs={12}
-                  sm={
-                    key.length > 20 || (value && value.toString().length > 50)
-                      ? 12
-                      : 6
-                  }
+                  size={{
+                    xs: 12,
+                    sm:
+                      key.length > 20 || (value && value.toString().length > 50)
+                        ? 12
+                        : 6,
+                  }}
                   key={key}
                 >
                   <Box
@@ -750,6 +753,54 @@ const TestCaseDetailPanel = ({
                   >
                     STEP {step.index || idx + 1}
                   </Typography>
+                  {(() => {
+                    // 스텝이 가리키는 첨부를 파일명으로 찾아 그 자리에 그린다.
+                    // 글과 그림이 떨어져 있으면 어느 단계의 화면인지 맞춰 보아야 한다
+                    const shotName = step["첨부"];
+                    if (!shotName) return null;
+                    const att = attachments.find(
+                      (a) => a.originalFileName === shotName,
+                    );
+                    if (!att) return null;
+                    const url = thumbUrls[att.id];
+                    return (
+                      <Box sx={{ mb: 1.5 }}>
+                        {url ? (
+                          <Box
+                            component="img"
+                            src={url}
+                            alt={att.description || shotName}
+                            onClick={() => setPreviewAttachment(att)}
+                            sx={{
+                              width: "100%",
+                              maxHeight: 220,
+                              objectFit: "cover",
+                              objectPosition: "top",
+                              borderRadius: 1,
+                              border: `1px solid ${theme.palette.divider}`,
+                              cursor: "zoom-in",
+                              display: "block",
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              height: 120,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: 1,
+                              border: `1px solid ${theme.palette.divider}`,
+                              bgcolor: isDarkMode ? "grey.900" : "grey.100",
+                            }}
+                          >
+                            <CircularProgress size={20} />
+                          </Box>
+                        )}
+                      </Box>
+                    );
+                  })()}
+
                   {step.content && (
                     <Typography
                       variant="body2"
@@ -890,6 +941,7 @@ const TestCaseDetailPanel = ({
                             "actual",
                             "content",
                             "action",
+                            "첨부",
                           ].includes(key),
                       )
                       .map(([key, value]) => (
@@ -1474,7 +1526,7 @@ const TestCaseDetailPanel = ({
             {!attachmentsLoading && attachments.length > 0 && (
               <Grid container spacing={2}>
                 {attachments.map((att) => (
-                  <Grid item xs={12} sm={6} md={4} key={att.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={att.id}>
                     <Card variant="outlined" sx={{ height: "100%" }}>
                       {att.image && thumbUrls[att.id] ? (
                         <Box
