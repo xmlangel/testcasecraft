@@ -698,6 +698,22 @@ Four addresses reach this same screen.
 | `/automation-tests/{testResultId}` | Short alias that omits the project |
 | `/junit-results/{testResultId}` | The same alias |
 
+#### Case Attachments (Screenshots)
+
+Selecting an individual test opens three tabs on the right: **Tracelog**, **Test Body**, and **Attachments**. The Attachments tab lays out the files attached to that case in a grid, with images previewed inline. Click one to enlarge it or download it.
+
+Agent-driven runs leave the screen state of failed cases here. When a verdict alone does not explain what happened, you can look at what the screen showed at that moment. If nothing is attached, the tab shows only "No attachments for this case."
+
+| Item | Rule |
+|---|---|
+| Who can attach | Same permission as uploading automation results |
+| Who can view | Anyone who can view the project can download |
+| File types | Images (png, jpg, gif, webp), text (txt, log, json, html), pdf |
+| Size per file | Up to 20MB |
+| Count per case | Up to 30 |
+
+Re-uploading the same filename reuses the existing attachment instead of stacking a new one. To replace the content, delete it and upload again.
+
 ---
 
 ## 11. RAG Documents & Chat

@@ -765,6 +765,11 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("junit.testcase.noData", languageCode, "데이터 없음", createdBy);
     createTranslationIfNotExists(
         "junit.testcase.noDetailInfo", languageCode, "테스트 케이스 상세 정보가 없습니다.", createdBy);
+    createTranslationIfNotExists("junit.testcase.attachments", languageCode, "첨부", createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.noAttachments", languageCode, "이 케이스에 붙은 첨부가 없습니다.", createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.downloadAttachment", languageCode, "내려받기", createdBy);
     createTranslationIfNotExists("junit.testcase.edit", languageCode, "테스트 케이스 편집", createdBy);
     createTranslationIfNotExists("junit.testcase.close", languageCode, "닫기", createdBy);
     createTranslationIfNotExists("junit.testcase.previous", languageCode, "이전 테스트 케이스", createdBy);

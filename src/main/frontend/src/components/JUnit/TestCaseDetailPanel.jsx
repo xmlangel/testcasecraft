@@ -37,6 +37,9 @@ import {
   NavigateNext as NavigateNextIcon,
   Assignment as PropertiesIcon,
   Description as DescriptionIcon,
+  Image as ImageIcon,
+  InsertDriveFile as FileIcon,
+  Download as DownloadIcon,
 } from "@mui/icons-material";
 import { useTheme, alpha } from "@mui/material/styles";
 import { useAppContext } from "../../context/AppContext";
@@ -67,6 +70,9 @@ const TestCaseDetailPanel = ({
   const [tabValue, setTabValue] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [previousNoteInfo, setPreviousNoteInfo] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState(null);
 
   // 상태별 설정
   const statusConfig = {
@@ -132,11 +138,45 @@ const TestCaseDetailPanel = ({
     }
   };
 
+  // 이 케이스에 붙은 첨부(스크린샷 등)를 불러온다
+  const loadAttachments = async () => {
+    if (!testCaseId) {
+      setAttachments([]);
+      return;
+    }
+    setAttachmentsLoading(true);
+    try {
+      const response = await api(
+        `/api/junit-results/cases/${testCaseId}/attachments`,
+        { method: "GET" },
+      );
+      if (!response.ok) {
+        setAttachments([]);
+        return;
+      }
+      const data = await response.json();
+      setAttachments(data.success ? data.attachments || [] : []);
+    } catch (err) {
+      console.error("자동화 케이스 첨부 로드 실패:", err);
+      setAttachments([]);
+    } finally {
+      setAttachmentsLoading(false);
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes == null) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  };
+
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
     if (testCaseId) {
       loadTestCaseDetails();
       fetchPreviousNote();
+      loadAttachments();
     }
   }, [testCaseId, refreshTrigger]);
 
@@ -842,6 +882,16 @@ const TestCaseDetailPanel = ({
             iconPosition="start"
             sx={{ minHeight: "48px" }}
           />
+          <Tab
+            label={
+              attachments.length > 0
+                ? `${t("junit.testcase.attachments")} (${attachments.length})`
+                : t("junit.testcase.attachments")
+            }
+            icon={<ImageIcon />}
+            iconPosition="start"
+            sx={{ minHeight: "48px" }}
+          />
         </Tabs>
       </Box>
 
@@ -1059,6 +1109,107 @@ const TestCaseDetailPanel = ({
               !testCaseDetails.testbody.systemErr && (
                 <Alert severity="info">{t("junit.testbody.noOutput")}</Alert>
               )}
+          </Box>
+        </TabPanel>
+
+        {/* 첨부 탭 — 실행 당시 화면을 함께 본다 */}
+        <TabPanel value={tabValue} index={2}>
+          <Box sx={{ height: "100%", overflow: "auto" }}>
+            {attachmentsLoading && (
+              <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+                <CircularProgress size={28} />
+              </Box>
+            )}
+
+            {!attachmentsLoading && attachments.length === 0 && (
+              <Alert severity="info" sx={{ mt: 1 }}>
+                {t("junit.testcase.noAttachments")}
+              </Alert>
+            )}
+
+            {!attachmentsLoading && attachments.length > 0 && (
+              <Grid container spacing={2}>
+                {attachments.map((att) => (
+                  <Grid item xs={12} sm={6} md={4} key={att.id}>
+                    <Card variant="outlined" sx={{ height: "100%" }}>
+                      {att.image ? (
+                        <Box
+                          component="img"
+                          src={att.downloadUrl}
+                          alt={att.originalFileName}
+                          loading="lazy"
+                          onClick={() => setPreviewAttachment(att)}
+                          sx={{
+                            width: "100%",
+                            height: 160,
+                            objectFit: "cover",
+                            objectPosition: "top",
+                            cursor: "zoom-in",
+                            display: "block",
+                            bgcolor: isDarkMode ? "grey.900" : "grey.100",
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            height: 160,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: isDarkMode ? "grey.900" : "grey.100",
+                          }}
+                        >
+                          <FileIcon
+                            sx={{ fontSize: 48, color: "text.disabled" }}
+                          />
+                        </Box>
+                      )}
+                      <CardContent sx={{ py: 1.5 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 600, wordBreak: "break-all" }}
+                        >
+                          {att.originalFileName}
+                        </Typography>
+                        {att.description && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: "block", mt: 0.5 }}
+                          >
+                            {att.description}
+                          </Typography>
+                        )}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            mt: 1,
+                          }}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            {formatFileSize(att.fileSize)}
+                          </Typography>
+                          <Tooltip
+                            title={t("junit.testcase.downloadAttachment")}
+                          >
+                            <IconButton
+                              size="small"
+                              component="a"
+                              href={att.downloadUrl}
+                              download={att.originalFileName}
+                            >
+                              <DownloadIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
           </Box>
         </TabPanel>
       </Box>
@@ -1315,6 +1466,58 @@ const TestCaseDetailPanel = ({
             )}
           </Box>
         </DialogContent>
+      </Dialog>
+
+      {/* 첨부 이미지 확대 보기 */}
+      <Dialog
+        open={Boolean(previewAttachment)}
+        onClose={() => setPreviewAttachment(null)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle sx={{ pr: 6 }}>
+          {previewAttachment?.originalFileName}
+          {previewAttachment?.description && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block" }}
+            >
+              {previewAttachment.description}
+            </Typography>
+          )}
+          <IconButton
+            onClick={() => setPreviewAttachment(null)}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent
+          sx={{ p: 0, bgcolor: isDarkMode ? "grey.900" : "grey.100" }}
+        >
+          {previewAttachment && (
+            <Box
+              component="img"
+              src={previewAttachment.downloadUrl}
+              alt={previewAttachment.originalFileName}
+              sx={{ width: "100%", display: "block" }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            component="a"
+            href={previewAttachment?.downloadUrl}
+            download={previewAttachment?.originalFileName}
+            startIcon={<DownloadIcon />}
+          >
+            {t("junit.testcase.downloadAttachment")}
+          </Button>
+          <Button onClick={() => setPreviewAttachment(null)}>
+            {t("common.close")}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Paper>
   );

@@ -1316,6 +1316,11 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("junit.testcase.noData", "junit", "데이터 없음", "데이터 없음");
     createTranslationKeyIfNotExists(
         "junit.testcase.noDetailInfo", "junit", "상세 정보 없음", "테스트 케이스 상세 정보가 없습니다.");
+    createTranslationKeyIfNotExists("junit.testcase.attachments", "junit", "첨부", "첨부");
+    createTranslationKeyIfNotExists(
+        "junit.testcase.noAttachments", "junit", "첨부 없음", "이 케이스에 붙은 첨부가 없습니다.");
+    createTranslationKeyIfNotExists(
+        "junit.testcase.downloadAttachment", "junit", "첨부 내려받기", "내려받기");
     createTranslationKeyIfNotExists("junit.testcase.edit", "junit", "테스트 케이스 편집", "테스트 케이스 편집");
     createTranslationKeyIfNotExists("junit.testcase.close", "junit", "닫기", "닫기");
     createTranslationKeyIfNotExists("junit.testcase.previous", "junit", "이전 테스트 케이스", "이전 테스트 케이스");

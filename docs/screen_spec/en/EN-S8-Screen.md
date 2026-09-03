@@ -236,6 +236,47 @@ Full error message, stack trace, and reproduction info for selected case.
 - Notes (multi-line)
 - `[Save]` `[Cancel]`
 
+#### 3.5.1 Panel Tabs
+
+| Tab | Content | Default |
+|---|---|---|
+| Tracelog | Properties, detailed steps, failure message | ○ |
+| Test Body | Properties, detailed steps, system out, system err | — |
+| Attachments | Files attached to this case. Count appended to the tab label when present | — |
+
+#### 3.5.2 Attachments Tab
+
+| State | Display |
+|---|---|
+| Loading | Spinner |
+| No attachments | Single informational line |
+| Attachments present | Card grid (1-3 columns by viewport width) |
+
+**Card Structure**
+
+| Part | Image | Non-image |
+|---|---|---|
+| Top | Preview (fixed height, top-anchored crop). Click to enlarge | File glyph |
+| Bottom | Filename, description, size, download button | Same |
+
+**Enlarged View**
+
+| Element | Behavior |
+|---|---|
+| Title | Filename and description |
+| Body | Original-size image fitted to viewport width |
+| Footer buttons | `[Download]` `[Close]` |
+| Dismiss | Click outside also closes |
+
+**Constraints**
+
+| Item | Value |
+|---|---|
+| Accepted formats | png, jpg, jpeg, gif, webp, txt, log, json, html, pdf |
+| Size per file | 20MB |
+| Count per case | 30 |
+| Re-upload of same filename | Reuses the existing attachment instead of stacking a new one |
+
 ---
 
 ## 4. Sample Data
