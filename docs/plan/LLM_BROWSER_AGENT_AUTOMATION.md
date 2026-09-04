@@ -1301,7 +1301,7 @@ MCP 서버가 `auth_login` / `auth_refresh` / `auth_status` 도구를 갖고 있
 ### C6-3. 외부 앱 구조
 
 ```
-testcase-agent/                      (별도 레포)
+testcasecraft-agent/                      (별도 레포)
   core/
     prompt_builder.py                케이스 → 프롬프트  (부록 A8 그대로)
     agent_loop.py                    browser-use + Playwright + LangChain
@@ -1429,7 +1429,7 @@ B 는 A 의 습작이 아니다. **B 의 `core/` 가 곧 A 의 `agent-runner/` �
 에이전트 스택은 이렇게 생긴다.
 
 ```yaml
-# testcase-agent/docker-compose.yml  (제품 레포와 무관한 별도 스택)
+# testcasecraft-agent/docker-compose.yml  (제품 레포와 무관한 별도 스택)
 services:
   agent-web:                    # 자체 UI + API. 사람이 여기서 실행하고 관전한다
   agent-runner:                 # browser-use + Playwright + Chromium
@@ -1712,7 +1712,7 @@ const canRun = connection?.isActive && connection?.connectionVerified;
 
 ### 에이전트 스택 (제품 밖)
 
-`~/kmdata/git/xmlangel/testcase/testcase-agent/` 에 별도 git 저장소로 뒀다. 제품 릴리즈에 묶이지 않는다.
+`~/kmdata/git/xmlangel/testcase/testcasecraft-agent/` 에 별도 git 저장소로 뒀다. 제품 릴리즈에 묶이지 않는다.
 
 ```
 core/models.py · prompt_builder.py · guardrails.py · normalizer.py

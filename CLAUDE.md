@@ -57,7 +57,7 @@
 
 ## 외부 QA 에이전트 연동 (제품 밖 스택)
 
-자연어 테스트 케이스를 브라우저에서 실행하는 에이전트는 **이 저장소에 없다.** `~/kmdata/git/xmlangel/testcase/testcase-agent` 의 별도 레포이고 별도 compose 로 뜬다. 에이전트가 제품의 공개 API 로 결과를 올리고, 제품은 에이전트의 `/health` 만 확인한다. 호출 방향이 이 한쪽뿐이라 에이전트가 없어도 제품에 죽는 코드가 없다.
+자연어 테스트 케이스를 브라우저에서 실행하는 에이전트는 **이 저장소에 없다.** `~/kmdata/git/xmlangel/testcase/testcasecraft-agent` 의 별도 레포이고 별도 compose 로 뜬다. 에이전트가 제품의 공개 API 로 결과를 올리고, 제품은 에이전트의 `/health` 만 확인한다. 호출 방향이 이 한쪽뿐이라 에이전트가 없어도 제품에 죽는 코드가 없다.
 
 **제품 쪽 자산은 연동 설정뿐이다.** `AgentConnection` 엔티티 + 서비스·컨트롤러, 프로젝트 설정의 세 번째 탭(`AgentConnectionSettings.jsx`), 자동화 화면의 딥링크 버튼, i18n `agentConnection.*` 키. 실행·스텝 로그·비용·스크린샷은 제품 DB 에 없다.
 
