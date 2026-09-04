@@ -40,6 +40,17 @@ Automated tests consist of two screens: result list and result detail.
 |---|---|---|---|
 | Title | `Automated Tests` — `subtitle1`, 600 | — | All |
 | `[+ JUnit Result Upload]` | `contained`, `small`, `+ cloud upload` icon | Open H dialog | Upload permission |
+| `[{name} 실행]` (Run {name}) | `outlined`, `small`, robot icon | Open the external agent app in a new tab (Section 2.10) | Project read permission |
+
+**The agent button is drawn only when the conditions hold.** One call decides it: `GET /api/projects/{projectId}/agent-connection/runnable`.
+
+| Response | Button |
+|---|---|
+| `enabled=false` (global switch off, or the lookup failed) | Not drawn |
+| `enabled=true`, `runnable=false` | Disabled with `에이전트 서버에 연결할 수 없습니다` (Cannot reach the agent server) |
+| `enabled=true`, `runnable=true` | Enabled with `{name} 실행` (Run {name}) |
+
+When the lookup fails, `enabled` stays false and the button disappears. **Hiding on failure is the intent.** Written the other way, the button would remain after the agent died and a user would press it.
 
 ---
 
@@ -167,6 +178,24 @@ Width `md`. Title `Upload JUnit XML File`.
 
 ---
 
+
+### 2.10 External QA Agent Run Button
+
+A **deep link** to the external agent that runs plain-language cases in a browser. The button does not call the run API.
+
+```
+{agent URL}/runs/new?tms=testcasecraft&base={product URL}&projectId={projectId}
+```
+
+It opens in a new tab (`_blank`, `noopener,noreferrer`). The agent app picks cases, runs them, and shows progress; results travel back through the product's public API.
+
+**The button and the feature are separate.** How results reach the product has nothing to do with this button, so a broken button does not break the feature. Conversely, taking the agent stack down leaves results already recorded in the Test Execution and Test Result screens untouched.
+
+An execution created by the agent is separated from one a person performed by three marks: the `[AI]` prefix in its name, the `ai-agent` tag, and `에이전트 초안 — QA 확정 전` (Agent draft — before QA confirms) on the first line of the QA summary. These are a convention rather than code, enforced on the agent side.
+
+The connection is configured in the Agent tab of the Project Settings screen (S1).
+
+---
 ## 3. Detail Screen (JunitResultDetail)
 
 Route: `/projects/{projectId}/automation-results/{testResultId}`
@@ -206,6 +235,79 @@ Full error message, stack trace, and reproduction info for selected case.
 - Priority (High/Medium/Low)
 - Notes (multi-line)
 - `[Save]` `[Cancel]`
+
+#### 3.5.0 Step Timeline (Tracelog Tab)
+
+Appears only when the automation tool uploaded a step record.
+
+| Slot | Content |
+|---|---|
+| Header | `STEP {order}` |
+| Body | What the step set out to do |
+| Code block | `수행 동작` label plus the actual action |
+| Actual result | What was observed. Follows the verdict color |
+| Preview | The screenshot for that step. Click to enlarge. Matched to an attachment by filename |
+| Label/value pairs | Address, verdict, elapsed, and any remaining fields |
+| Two slots above | `EXPECTED` (from the case) and `ACTUAL` (from the tool) |
+
+#### 3.5.0-1 Structured Properties
+
+When an Execution Properties value is a JSON collection, it renders as a collapsible block.
+
+| State | Display |
+|---|---|
+| Collapsed (default) | Property name plus a size chip (`N items` or `N fields`) |
+| Expanded, structured | One box per entry, field names beside values |
+| Expanded, raw | Indented original, scrollable within a height cap |
+
+#### 3.5.1 Panel Tabs
+
+| Tab | Content | Default |
+|---|---|---|
+| Tracelog | Properties, detailed steps, failure message | ○ |
+| Test Body | Properties, detailed steps, system out, system err | — |
+| Attachments | Files attached to this case. Count appended to the tab label when present | — |
+
+#### 3.5.2 Attachments Tab
+
+| State | Display |
+|---|---|
+| Loading | Spinner |
+| No attachments | Single informational line |
+| Attachments present | Card grid (1-3 columns by viewport width) |
+
+**Card Structure**
+
+| Part | Image | Non-image |
+|---|---|---|
+| Top | Preview (fixed height, top-anchored crop). Click to enlarge | File glyph |
+| Bottom | Filename, description, size, download button | Same |
+
+**Enlarged View**
+
+| Element | Behavior |
+|---|---|
+| Title | Filename and description |
+| Body | Original-size image fitted to viewport width |
+| Footer buttons | `[Download]` `[Close]` |
+| Dismiss | Click outside also closes |
+
+**Constraints**
+
+| Item | Value |
+|---|---|
+| Accepted formats | png, jpg, jpeg, gif, webp, txt, log, json, html, pdf |
+| Size per file | 20MB |
+| Count per case | 30 |
+| Re-upload of same filename | Reuses the existing attachment instead of stacking a new one |
+
+**What External QA Agents Leave**
+
+| Item | Rule |
+|---|---|
+| When | One screenshot per step, regardless of verdict |
+| Description | `{case display ID} 스텝 {order}/{total}` |
+| Over the limit | Keeps the later ones, since failures usually occur late in a run |
 
 ---
 

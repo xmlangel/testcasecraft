@@ -51,6 +51,10 @@ public class TranslationDataInitializer {
   private final EnglishBookmarkTranslations englishBookmarkTranslations;
   private final KoreanProjectSettingsTranslations koreanProjectSettingsTranslations;
   private final EnglishProjectSettingsTranslations englishProjectSettingsTranslations;
+
+  // 2026-09-03 에이전트 연동 설정 탭
+  private final KoreanAgentConnectionTranslations koreanAgentConnectionTranslations;
+  private final EnglishAgentConnectionTranslations englishAgentConnectionTranslations;
   // 2026-08-03 화면 ID 배지
   private final KoreanScreenIdTranslations koreanScreenIdTranslations;
   private final EnglishScreenIdTranslations englishScreenIdTranslations;
@@ -113,6 +117,10 @@ public class TranslationDataInitializer {
     step("englishBookmarkTranslations", englishBookmarkTranslations::initialize);
     step("koreanProjectSettingsTranslations", koreanProjectSettingsTranslations::initialize);
     step("englishProjectSettingsTranslations", englishProjectSettingsTranslations::initialize);
+
+    // 2026-09-03 에이전트 연동 설정 탭
+    step("koreanAgentConnectionTranslations", koreanAgentConnectionTranslations::initialize);
+    step("englishAgentConnectionTranslations", englishAgentConnectionTranslations::initialize);
 
     // 2026-08-03 화면 ID 배지
     step("koreanScreenIdTranslations", koreanScreenIdTranslations::initialize);

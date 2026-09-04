@@ -21,6 +21,7 @@ import {
   DialogActions,
   Button,
   Grid, // Added Grid import
+  Collapse,
 } from "@mui/material";
 import {
   Close as CloseIcon,
@@ -37,6 +38,11 @@ import {
   NavigateNext as NavigateNextIcon,
   Assignment as PropertiesIcon,
   Description as DescriptionIcon,
+  Image as ImageIcon,
+  InsertDriveFile as FileIcon,
+  Download as DownloadIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from "@mui/icons-material";
 import { useTheme, alpha } from "@mui/material/styles";
 import { useAppContext } from "../../context/AppContext";
@@ -46,6 +52,211 @@ import { useI18n } from "../../context/I18nContext";
  * 테스트 케이스 상세 패널 컴포넌트
  * tracelog와 testbody를 탭 형태로 표시
  */
+/**
+ * 문자열이 JSON 묶음인지 본다.
+ *
+ * 자동화 도구가 스텝 타임라인처럼 구조가 있는 값을 속성으로 올린다. 그 값을 한 덩어리
+ * 문자열로 그리면 줄이 끝없이 이어져 읽을 수 없다.
+ */
+const parseJsonValue = (value) => {
+  if (typeof value !== "string") {
+    return Array.isArray(value) || (value && typeof value === "object")
+      ? value
+      : null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return null;
+  try {
+    const parsed = JSON.parse(trimmed);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+/** 값 하나를 읽을 수 있는 형태로. 원시 값은 그대로, 묶음은 다시 들어간다 */
+const JsonNode = ({ label, value, depth = 0, isDarkMode, theme }) => {
+  const nested = value && typeof value === "object";
+  if (!nested) {
+    return (
+      <Box sx={{ display: "flex", gap: 1, py: 0.25, pl: depth * 1.5 }}>
+        {label != null && (
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 700, color: "text.secondary", flexShrink: 0 }}
+          >
+            {label}
+          </Typography>
+        )}
+        <Typography
+          variant="caption"
+          sx={{
+            fontFamily: "monospace",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            color:
+              typeof value === "number" || typeof value === "boolean"
+                ? theme.palette.info.main
+                : "text.primary",
+          }}
+        >
+          {value == null ? "—" : String(value)}
+        </Typography>
+      </Box>
+    );
+  }
+
+  const entries = Array.isArray(value)
+    ? value.map((v, i) => [`${i + 1}`, v])
+    : Object.entries(value);
+
+  return (
+    <Box sx={{ pl: depth * 1.5 }}>
+      {label != null && (
+        <Typography
+          variant="caption"
+          sx={{ fontWeight: 700, color: "primary.main", display: "block" }}
+        >
+          {label}
+        </Typography>
+      )}
+      <Box
+        sx={{
+          borderLeft: depth > 0 ? `2px solid ${theme.palette.divider}` : "none",
+          pl: depth > 0 ? 1 : 0,
+          mb: 0.5,
+        }}
+      >
+        {entries.map(([k, v]) => (
+          <JsonNode
+            key={k}
+            label={k}
+            value={v}
+            depth={0}
+            isDarkMode={isDarkMode}
+            theme={theme}
+          />
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
+/** JSON 속성 하나. 기본은 접혀 있고 원문 보기로 바꿀 수 있다 */
+const JsonProperty = ({ name, parsed, raw, isDarkMode, theme, t }) => {
+  const [open, setOpen] = useState(false);
+  const [showRaw, setShowRaw] = useState(false);
+  const count = Array.isArray(parsed)
+    ? parsed.length
+    : Object.keys(parsed).length;
+
+  return (
+    <Box>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <IconButton size="small" onClick={() => setOpen((v) => !v)}>
+          {open ? (
+            <ExpandLessIcon fontSize="small" />
+          ) : (
+            <ExpandMoreIcon fontSize="small" />
+          )}
+        </IconButton>
+        <Typography
+          variant="caption"
+          onClick={() => setOpen((v) => !v)}
+          sx={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            fontSize: "0.7rem",
+            cursor: "pointer",
+            color: "text.secondary",
+          }}
+        >
+          {name}
+        </Typography>
+        <Chip
+          size="small"
+          label={
+            Array.isArray(parsed)
+              ? t("junit.testcase.jsonItems", "항목 {n}").replace("{n}", count)
+              : t("junit.testcase.jsonFields", "칸 {n}").replace("{n}", count)
+          }
+          sx={{ height: 18, fontSize: "0.65rem" }}
+        />
+        <Box sx={{ flex: 1 }} />
+        {open && (
+          <Button size="small" onClick={() => setShowRaw((v) => !v)}>
+            {showRaw
+              ? t("junit.testcase.jsonStructured", "구조 보기")
+              : t("junit.testcase.jsonRaw", "원문 보기")}
+          </Button>
+        )}
+      </Box>
+
+      <Collapse in={open} unmountOnExit>
+        <Box sx={{ pl: 4, pt: 0.5, width: "100%" }}>
+          {showRaw ? (
+            <Box
+              component="pre"
+              sx={{
+                m: 0,
+                p: 1,
+                borderRadius: 1,
+                bgcolor: isDarkMode
+                  ? alpha(theme.palette.background.paper, 0.9)
+                  : "#fbfbfd",
+                border: `1px solid ${theme.palette.divider}`,
+                fontFamily: "monospace",
+                fontSize: "0.75rem",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                maxHeight: 320,
+                overflow: "auto",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            >
+              {(() => {
+                try {
+                  return JSON.stringify(parsed, null, 2);
+                } catch {
+                  return String(raw);
+                }
+              })()}
+            </Box>
+          ) : (
+            <Box sx={{ maxHeight: 400, overflow: "auto" }}>
+              {(Array.isArray(parsed)
+                ? parsed.map((v, i) => [`${i + 1}`, v])
+                : Object.entries(parsed)
+              ).map(([k, v]) => (
+                <Box
+                  key={k}
+                  sx={{
+                    mb: 0.75,
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: isDarkMode
+                      ? alpha(theme.palette.background.paper, 0.6)
+                      : "#ffffff",
+                    border: `1px solid ${theme.palette.divider}`,
+                  }}
+                >
+                  <JsonNode
+                    label={k}
+                    value={v}
+                    isDarkMode={isDarkMode}
+                    theme={theme}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+      </Collapse>
+    </Box>
+  );
+};
+
 const TestCaseDetailPanel = ({
   testCaseId,
   refreshTrigger = 0,
@@ -67,6 +278,11 @@ const TestCaseDetailPanel = ({
   const [tabValue, setTabValue] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [previousNoteInfo, setPreviousNoteInfo] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState(null);
+  // 인증이 필요한 주소라 <img src> 로는 못 그린다. 받아 온 blob 주소를 첨부 id 로 든다
+  const [thumbUrls, setThumbUrls] = useState({});
 
   // 상태별 설정
   const statusConfig = {
@@ -132,13 +348,105 @@ const TestCaseDetailPanel = ({
     }
   };
 
+  // 이 케이스에 붙은 첨부(스크린샷 등)를 불러온다
+  const loadAttachments = async () => {
+    if (!testCaseId) {
+      setAttachments([]);
+      return;
+    }
+    setAttachmentsLoading(true);
+    try {
+      const response = await api(
+        `/api/junit-results/cases/${testCaseId}/attachments`,
+        { method: "GET" },
+      );
+      if (!response.ok) {
+        setAttachments([]);
+        return;
+      }
+      const data = await response.json();
+      const list = data.success ? data.attachments || [] : [];
+      setAttachments(list);
+      loadThumbs(list);
+    } catch (err) {
+      console.error("자동화 케이스 첨부 로드 실패:", err);
+      setAttachments([]);
+    } finally {
+      setAttachmentsLoading(false);
+    }
+  };
+
+  // 이미지 본문을 인증된 요청으로 받아 blob 주소로 만든다.
+  //
+  // 내려받기 주소는 인증 헤더를 요구하므로 <img src> 를 그대로 걸면 요청이 거부되고
+  // 깨진 이미지만 남는다. 토큰을 주소에 실으면 브라우저 이력·리퍼러·접근 로그에
+  // 남으므로 그 길은 쓰지 않는다. 제품의 다른 첨부 화면도 같은 방식이다.
+  const loadThumbs = async (list) => {
+    for (const att of list) {
+      if (!att.image) continue;
+      try {
+        const res = await api(att.downloadUrl, { method: "GET" });
+        if (!res.ok) continue;
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        setThumbUrls((prev) => {
+          if (prev[att.id]) {
+            window.URL.revokeObjectURL(url);
+            return prev;
+          }
+          return { ...prev, [att.id]: url };
+        });
+      } catch (err) {
+        console.error("자동화 케이스 첨부 이미지 로드 실패:", att.id, err);
+      }
+    }
+  };
+
+  // 인증된 요청으로 받아 내려준다. <a download> 는 헤더를 싣지 못한다
+  const downloadAttachment = async (att) => {
+    try {
+      const res = await api(att.downloadUrl, { method: "GET" });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = att.originalFileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("자동화 케이스 첨부 내려받기 실패:", att.id, err);
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes == null) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  };
+
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
     if (testCaseId) {
       loadTestCaseDetails();
       fetchPreviousNote();
+      loadAttachments();
     }
   }, [testCaseId, refreshTrigger]);
+
+  // 다른 케이스로 옮기거나 패널을 닫으면 앞서 만든 blob 주소를 되돌린다.
+  // 정리하지 않으면 케이스를 넘길수록 이미지가 메모리에 쌓인다
+  useEffect(() => {
+    return () => {
+      setThumbUrls((prev) => {
+        Object.values(prev).forEach((url) => window.URL.revokeObjectURL(url));
+        return {};
+      });
+    };
+  }, [testCaseId]);
 
   const fetchPreviousNote = async () => {
     try {
@@ -244,55 +552,84 @@ const TestCaseDetailPanel = ({
             Execution Properties
           </Typography>
           <Grid container spacing={1}>
-            {filteredProperties.map(([key, value]) => (
-              <Grid
-                item
-                xs={12}
-                sm={
-                  key.length > 20 || (value && value.toString().length > 50)
-                    ? 12
-                    : 6
-                }
-                key={key}
-              >
-                <Box
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 1,
-                    bgcolor: isDarkMode
-                      ? alpha(theme.palette.background.paper, 0.8)
-                      : "#ffffff",
-                    border: `1px solid ${theme.palette.divider}`,
-                    height: "100%",
+            {filteredProperties.map(([key, value]) => {
+              const parsed = parseJsonValue(value);
+              if (parsed) {
+                return (
+                  <Grid size={12} key={key}>
+                    <Box
+                      sx={{
+                        p: 1,
+                        borderRadius: 1,
+                        width: "100%",
+                        bgcolor: isDarkMode
+                          ? alpha(theme.palette.background.paper, 0.8)
+                          : "#ffffff",
+                        border: `1px solid ${theme.palette.divider}`,
+                      }}
+                    >
+                      <JsonProperty
+                        name={key}
+                        parsed={parsed}
+                        raw={value}
+                        isDarkMode={isDarkMode}
+                        theme={theme}
+                        t={t}
+                      />
+                    </Box>
+                  </Grid>
+                );
+              }
+              return (
+                <Grid
+                  size={{
+                    xs: 12,
+                    sm:
+                      key.length > 20 || (value && value.toString().length > 50)
+                        ? 12
+                        : 6,
                   }}
+                  key={key}
                 >
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
+                  <Box
                     sx={{
-                      fontWeight: "bold",
-                      display: "block",
-                      mb: 0.5,
-                      textTransform: "uppercase",
-                      fontSize: "0.7rem",
+                      p: 1.5,
+                      borderRadius: 1,
+                      bgcolor: isDarkMode
+                        ? alpha(theme.palette.background.paper, 0.8)
+                        : "#ffffff",
+                      border: `1px solid ${theme.palette.divider}`,
+                      height: "100%",
                     }}
                   >
-                    {key}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: "monospace",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    {String(value)}
-                  </Typography>
-                </Box>
-              </Grid>
-            ))}
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{
+                        fontWeight: "bold",
+                        display: "block",
+                        mb: 0.5,
+                        textTransform: "uppercase",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {key}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: "monospace",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      {String(value)}
+                    </Typography>
+                  </Box>
+                </Grid>
+              );
+            })}
           </Grid>
         </CardContent>
       </Card>
@@ -416,6 +753,97 @@ const TestCaseDetailPanel = ({
                   >
                     STEP {step.index || idx + 1}
                   </Typography>
+                  {(() => {
+                    // 스텝이 가리키는 첨부를 파일명으로 찾아 그 자리에 그린다.
+                    // 글과 그림이 떨어져 있으면 어느 단계의 화면인지 맞춰 보아야 한다
+                    const shotName = step["첨부"];
+                    if (!shotName) return null;
+                    const att = attachments.find(
+                      (a) => a.originalFileName === shotName,
+                    );
+                    if (!att) return null;
+                    const url = thumbUrls[att.id];
+                    return (
+                      <Box sx={{ mb: 1.5 }}>
+                        {url ? (
+                          <Box
+                            component="img"
+                            src={url}
+                            alt={att.description || shotName}
+                            onClick={() => setPreviewAttachment(att)}
+                            sx={{
+                              width: "100%",
+                              maxHeight: 220,
+                              objectFit: "cover",
+                              objectPosition: "top",
+                              borderRadius: 1,
+                              border: `1px solid ${theme.palette.divider}`,
+                              cursor: "zoom-in",
+                              display: "block",
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              height: 120,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: 1,
+                              border: `1px solid ${theme.palette.divider}`,
+                              bgcolor: isDarkMode ? "grey.900" : "grey.100",
+                            }}
+                          >
+                            <CircularProgress size={20} />
+                          </Box>
+                        )}
+                      </Box>
+                    );
+                  })()}
+
+                  {step.content && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1.5,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {step.content}
+                    </Typography>
+                  )}
+
+                  {step.action && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ fontWeight: "bold", display: "block", mb: 0.5 }}
+                      >
+                        {t("junit.testcase.stepAction")}
+                      </Typography>
+                      <Box
+                        component="pre"
+                        sx={{
+                          m: 0,
+                          p: 1,
+                          borderRadius: 1,
+                          bgcolor: isDarkMode
+                            ? alpha(theme.palette.info.main, 0.08)
+                            : "#f5f7fa",
+                          fontFamily: "monospace",
+                          fontSize: "0.8rem",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          overflow: "auto",
+                        }}
+                      >
+                        {step.action}
+                      </Box>
+                    </Box>
+                  )}
+
                   {step.sql && (
                     <Box sx={{ mb: 2 }}>
                       <Typography
@@ -506,7 +934,15 @@ const TestCaseDetailPanel = ({
                     {Object.entries(step)
                       .filter(
                         ([key]) =>
-                          !["index", "sql", "expected", "actual"].includes(key),
+                          ![
+                            "index",
+                            "sql",
+                            "expected",
+                            "actual",
+                            "content",
+                            "action",
+                            "첨부",
+                          ].includes(key),
                       )
                       .map(([key, value]) => (
                         <Box key={key} sx={{ flex: 1, minWidth: "200px" }}>
@@ -842,6 +1278,16 @@ const TestCaseDetailPanel = ({
             iconPosition="start"
             sx={{ minHeight: "48px" }}
           />
+          <Tab
+            label={
+              attachments.length > 0
+                ? `${t("junit.testcase.attachments")} (${attachments.length})`
+                : t("junit.testcase.attachments")
+            }
+            icon={<ImageIcon />}
+            iconPosition="start"
+            sx={{ minHeight: "48px" }}
+          />
         </Tabs>
       </Box>
 
@@ -1059,6 +1505,118 @@ const TestCaseDetailPanel = ({
               !testCaseDetails.testbody.systemErr && (
                 <Alert severity="info">{t("junit.testbody.noOutput")}</Alert>
               )}
+          </Box>
+        </TabPanel>
+
+        {/* 첨부 탭 — 실행 당시 화면을 함께 본다 */}
+        <TabPanel value={tabValue} index={2}>
+          <Box sx={{ height: "100%", overflow: "auto" }}>
+            {attachmentsLoading && (
+              <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+                <CircularProgress size={28} />
+              </Box>
+            )}
+
+            {!attachmentsLoading && attachments.length === 0 && (
+              <Alert severity="info" sx={{ mt: 1 }}>
+                {t("junit.testcase.noAttachments")}
+              </Alert>
+            )}
+
+            {!attachmentsLoading && attachments.length > 0 && (
+              <Grid container spacing={2}>
+                {attachments.map((att) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={att.id}>
+                    <Card variant="outlined" sx={{ height: "100%" }}>
+                      {att.image && thumbUrls[att.id] ? (
+                        <Box
+                          component="img"
+                          src={thumbUrls[att.id]}
+                          alt={att.originalFileName}
+                          onClick={() => setPreviewAttachment(att)}
+                          sx={{
+                            width: "100%",
+                            height: 160,
+                            objectFit: "cover",
+                            objectPosition: "top",
+                            cursor: "zoom-in",
+                            display: "block",
+                            bgcolor: isDarkMode ? "grey.900" : "grey.100",
+                          }}
+                        />
+                      ) : att.image ? (
+                        <Box
+                          sx={{
+                            height: 160,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: isDarkMode ? "grey.900" : "grey.100",
+                          }}
+                        >
+                          <CircularProgress size={24} />
+                        </Box>
+                      ) : (
+                        <Box
+                          sx={{
+                            height: 160,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: isDarkMode ? "grey.900" : "grey.100",
+                          }}
+                        >
+                          <FileIcon
+                            sx={{ fontSize: 48, color: "text.disabled" }}
+                          />
+                        </Box>
+                      )}
+                      <CardContent sx={{ py: 1.5 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 600, wordBreak: "break-all" }}
+                        >
+                          {att.originalFileName}
+                        </Typography>
+                        {att.description && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: "block", mt: 0.5 }}
+                          >
+                            {att.description}
+                          </Typography>
+                        )}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            mt: 1,
+                          }}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            {formatFileSize(att.fileSize)}
+                          </Typography>
+                          <Tooltip
+                            title={t("junit.testcase.downloadAttachment")}
+                          >
+                            <IconButton
+                              size="small"
+                              component="a"
+                              href={att.downloadUrl}
+                              download={att.originalFileName}
+                            >
+                              <DownloadIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
           </Box>
         </TabPanel>
       </Box>
@@ -1315,6 +1873,62 @@ const TestCaseDetailPanel = ({
             )}
           </Box>
         </DialogContent>
+      </Dialog>
+
+      {/* 첨부 이미지 확대 보기 */}
+      <Dialog
+        open={Boolean(previewAttachment)}
+        onClose={() => setPreviewAttachment(null)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle sx={{ pr: 6 }}>
+          {previewAttachment?.originalFileName}
+          {previewAttachment?.description && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block" }}
+            >
+              {previewAttachment.description}
+            </Typography>
+          )}
+          <IconButton
+            onClick={() => setPreviewAttachment(null)}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent
+          sx={{ p: 0, bgcolor: isDarkMode ? "grey.900" : "grey.100" }}
+        >
+          {previewAttachment && thumbUrls[previewAttachment.id] ? (
+            <Box
+              component="img"
+              src={thumbUrls[previewAttachment.id]}
+              alt={previewAttachment.originalFileName}
+              sx={{ width: "100%", display: "block" }}
+            />
+          ) : (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
+              <CircularProgress size={28} />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              previewAttachment && downloadAttachment(previewAttachment)
+            }
+            startIcon={<DownloadIcon />}
+          >
+            {t("junit.testcase.downloadAttachment")}
+          </Button>
+          <Button onClick={() => setPreviewAttachment(null)}>
+            {t("common.close")}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Paper>
   );
