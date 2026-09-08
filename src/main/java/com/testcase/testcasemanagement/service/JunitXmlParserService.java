@@ -338,6 +338,10 @@ public class JunitXmlParserService {
           } else if (("Description".equalsIgnoreCase(name) || "description".equalsIgnoreCase(name))
               && testCase.getUserTitle() == null) {
             testCase.setUserTitle(value);
+          } else if (isStepTimelineKey(name) && testCase.getTestSteps() == null) {
+            // 스텝 타임라인을 JSON 배열로 그대로 받는다. 파이프로 나눈 한 줄짜리는
+            // 관찰·주소·판정을 칸으로 가를 수 없어 사후 분석에 쓸 수 없다.
+            applyStepTimeline(testCase, value);
           } else if (("Step".equalsIgnoreCase(name) || "step".equalsIgnoreCase(name))
               && testCase.getTestSteps() == null) {
             // ICT-337: 'Step' 속성이 있으면 파이프(|) 기준으로 분리하여 testSteps 데이터 구성
@@ -647,6 +651,40 @@ public class JunitXmlParserService {
     }
   }
 
+  /**
+   * 스텝 타임라인을 담는 속성 이름인지.
+   *
+   * <p>자동화 도구가 스텝마다 무엇을 했고 무엇을 봤는지 남기는 자리다. 판정만 남으면 왜 그
+   * 판정이 나왔는지 되짚을 수 없다.
+   */
+  private boolean isStepTimelineKey(String key) {
+    return "TestSteps".equalsIgnoreCase(key)
+        || "test_steps".equalsIgnoreCase(key)
+        || "AgentSteps".equalsIgnoreCase(key)
+        || "agent_steps".equalsIgnoreCase(key);
+  }
+
+  /**
+   * 스텝 타임라인 JSON 을 그대로 반영한다.
+   *
+   * <p>배열이 아니거나 파싱에 실패하면 아무것도 넣지 않는다. 깨진 값을 넣으면 상세 조회가
+   * 매번 파싱에 실패해 화면에서 스텝이 통째로 사라진다.
+   */
+  private void applyStepTimeline(JunitTestCase testCase, String json) {
+    if (json == null || json.isBlank()) {
+      return;
+    }
+    try {
+      List<?> parsed = objectMapper.readValue(json, List.class);
+      if (parsed.isEmpty()) {
+        return;
+      }
+      testCase.setTestSteps(objectMapper.writeValueAsString(parsed));
+    } catch (Exception e) {
+      logger.warn("스텝 타임라인 JSON 을 읽지 못했다: {}", e.getMessage());
+    }
+  }
+
   /** 추출된 메타데이터를 테스트 케이스 필드에 반영 */
   private void applyMetadataToTestCase(JunitTestCase testCase, String key, String value) {
     if (key == null || value == null) return;
@@ -663,6 +701,10 @@ public class JunitXmlParserService {
     } else if ("actual_result".equalsIgnoreCase(key) || "actual".equalsIgnoreCase(key)) {
       if (testCase.getActualResult() == null || testCase.getActualResult().isEmpty()) {
         testCase.setActualResult(value);
+      }
+    } else if (isStepTimelineKey(key)) {
+      if (testCase.getTestSteps() == null || testCase.getTestSteps().isEmpty()) {
+        applyStepTimeline(testCase, value);
       }
     } else if ("step".equalsIgnoreCase(key)) {
       if (testCase.getTestSteps() == null || testCase.getTestSteps().isEmpty()) {
@@ -779,9 +821,18 @@ public class JunitXmlParserService {
 
   /** 자식 요소의 텍스트 내용 가져오기 */
   private String getChildElementText(Element parentElement, String childTagName) {
-    NodeList childNodes = parentElement.getElementsByTagName(childTagName);
-    if (childNodes.getLength() > 0) {
-      return childNodes.item(0).getTextContent();
+    // 바로 아래 자식만 본다.
+    //
+    // getElementsByTagName 은 모든 하위를 훑으므로, 스위트에 자기 <system-out> 이 없으면
+    // 첫 케이스의 출력을 스위트 출력으로 가져온다. 그러면 상세 화면이 케이스마다
+    // 「Suite-level System Out」 자리에 남의 글을 붙여 보여 준다. 실측으로 확인했다.
+    NodeList childNodes = parentElement.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      Node node = childNodes.item(i);
+      if (node.getNodeType() == Node.ELEMENT_NODE
+          && childTagName.equals(node.getNodeName())) {
+        return node.getTextContent();
+      }
     }
     return null;
   }

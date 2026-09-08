@@ -105,6 +105,7 @@ Core knowledge for new developers and QA.
 | Item | Core content |
 |---|---|
 | **Permission gates** | Upload requires upload permission, editing requires result entry permission, delete requires project admin permission |
+| **Agent button** | A deep link only. It does not call the run API, so a broken button does not break the feature. One call decides whether it shows — `agent-connection/runnable` — and a failed lookup defaults to hidden |
 | **API response fields** | `content`, `totalPages`, `totalElements` must be included |
 | **Status value management** | Separate `JunitTestStatus` enum (PASSED/FAILED/ERROR/SKIPPED) from `JunitProcessStatus` enum (PROCESSING/COMPLETED/FAILED) |
 | **Color definition** | Reuse `RESULT_COLORS`, `STATUS_COLORS`, `CHART_COLORS`; do not duplicate |

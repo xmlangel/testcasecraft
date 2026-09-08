@@ -46,6 +46,9 @@ public class TranslationKeyDataInitializer {
   // 2026-08-03 화면 ID 배지 (기획 문서 docs/screen_spec 의 화면 구분)
   private final ScreenIdKeysInitializer screenIdKeysInitializer;
 
+  // 2026-09-03 에이전트 연동 설정 탭
+  private final AgentConnectionKeysInitializer agentConnectionKeysInitializer;
+
   /**
    * 시딩 중 영속성 컨텍스트를 비우기 위한 것. 같은 트랜잭션을 유지하므로 롤백 성질은 그대로다.
    *
@@ -100,6 +103,9 @@ public class TranslationKeyDataInitializer {
 
     // 2026-08-03 화면 ID 배지
     step("screenIdKeysInitializer", screenIdKeysInitializer::initialize);
+
+    // 2026-09-03 에이전트 연동 설정 탭
+    step("agentConnectionKeysInitializer", agentConnectionKeysInitializer::initialize);
 
     log.info("번역 키 데이터 초기화 완료");
   }

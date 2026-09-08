@@ -598,11 +598,45 @@ public class TestExecutionService {
       dto.setSkippedCount(blocked);
       dto.setProgress(total > 0 ? (completed * 100 / total) : 0);
     } else {
-      dto.setTotalCount(0);
-      dto.setPassedCount(0);
-      dto.setFailedCount(0);
-      dto.setSkippedCount(0);
-      dto.setProgress(0);
+      // 플랜이 없는 실행은 기록된 결과를 분모로 센다.
+      //
+      // 이 경로가 왜 필요한가 — 실행 생성 API 는 testPlanId 를 요구하지 않는다. 플랜
+      // 없이 만든 실행은 결과가 온전히 들어와도 집계가 전부 0 으로 고정돼, 목록과
+      // 상세에서 진척률 0% 로 보였다. 외부 QA 에이전트가 케이스를 직접 골라 실행하며
+      // 드러난 결함이고, 사람이 플랜 없이 만든 실행도 같은 증상을 봤다.
+      //
+      // 플랜이 있는 실행의 집계는 한 글자도 바뀌지 않는다.
+      Map<String, TestResult> latestByCase = new HashMap<>();
+      for (TestResult r : sortedEntityResults) {
+        if (!latestByCase.containsKey(r.getTestCaseId())) {
+          latestByCase.put(r.getTestCaseId(), r);
+        }
+      }
+      int total = latestByCase.size();
+      int passed = 0;
+      int failed = 0;
+      int blocked = 0;
+      int completed = 0;
+      for (TestResult latest : latestByCase.values()) {
+        String resultStatus = latest.getResult();
+        if (resultStatus == null
+            || TestResultStatus.NOT_RUN.value().equalsIgnoreCase(resultStatus)) {
+          continue;
+        }
+        completed++;
+        if (TestResultStatus.PASS.value().equalsIgnoreCase(resultStatus)) {
+          passed++;
+        } else if (TestResultStatus.FAIL.value().equalsIgnoreCase(resultStatus)) {
+          failed++;
+        } else if (TestResultStatus.BLOCKED.value().equalsIgnoreCase(resultStatus)) {
+          blocked++;
+        }
+      }
+      dto.setTotalCount(total);
+      dto.setPassedCount(passed);
+      dto.setFailedCount(failed);
+      dto.setSkippedCount(blocked);
+      dto.setProgress(total > 0 ? (completed * 100 / total) : 0);
     }
 
     // 3. 결과 리스트 설정 (요청된 경우만)
@@ -766,11 +800,20 @@ public class TestExecutionService {
                     dto.setSkippedCount((int) blocked);
                     dto.setProgress(total > 0 ? (int) (completed * 100 / total) : 0);
                   } else {
-                    dto.setTotalCount(0);
-                    dto.setPassedCount(0);
-                    dto.setFailedCount(0);
-                    dto.setSkippedCount(0);
-                    dto.setProgress(0);
+                    // 플랜이 없으면 기록된 결과를 분모로 센다. 상세 경로와 같은 규칙을
+                    // 쓴다 — 한쪽만 채우면 같은 실행인데 화면마다 진척률이 달라진다.
+                    long passed = counts.getOrDefault(TestResultStatus.PASS.value(), 0L);
+                    long failed = counts.getOrDefault(TestResultStatus.FAIL.value(), 0L);
+                    long blocked = counts.getOrDefault(TestResultStatus.BLOCKED.value(), 0L);
+                    long notRun = counts.getOrDefault(TestResultStatus.NOT_RUN.value(), 0L);
+                    long completed = passed + failed + blocked;
+                    long total = completed + notRun;
+
+                    dto.setTotalCount((int) total);
+                    dto.setPassedCount((int) passed);
+                    dto.setFailedCount((int) failed);
+                    dto.setSkippedCount((int) blocked);
+                    dto.setProgress(total > 0 ? (int) (completed * 100 / total) : 0);
                   }
 
                   dto.setResults(null);
