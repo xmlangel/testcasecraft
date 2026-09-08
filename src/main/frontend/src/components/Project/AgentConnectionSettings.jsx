@@ -116,7 +116,9 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
       const saved = await agentConnectionService.save(projectId, payload);
       setConnection(saved);
       setForm((cur) => ({ ...cur, token: "" }));
-      setNotice(t("agentConnection.saved", "에이전트 연동 설정을 저장했습니다."));
+      setNotice(
+        t("agentConnection.saved", "에이전트 연동 설정을 저장했습니다."),
+      );
     } catch (e) {
       showError(e);
     } finally {
@@ -142,7 +144,9 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
           )} ${result.latencyMs ?? "-"}ms`,
         );
       } else {
-        setError(result?.error || t("agentConnection.status.failed", "연결할 수 없음"));
+        setError(
+          result?.error || t("agentConnection.status.failed", "연결할 수 없음"),
+        );
       }
     } catch (e) {
       showError(e);
@@ -158,7 +162,9 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
       await agentConnectionService.remove(projectId);
       setConnection(null);
       setForm(EMPTY_FORM);
-      setNotice(t("agentConnection.deleted", "에이전트 연동 설정을 삭제했습니다."));
+      setNotice(
+        t("agentConnection.deleted", "에이전트 연동 설정을 삭제했습니다."),
+      );
     } catch (e) {
       showError(e);
     }
@@ -233,7 +239,11 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
         </Alert>
       )}
       {!connection && (
-        <Alert severity="info" sx={{ mb: 2 }} data-testid="agent-connection-unset">
+        <Alert
+          severity="info"
+          sx={{ mb: 2 }}
+          data-testid="agent-connection-unset"
+        >
           {t("agentConnection.unset", "아직 연결된 에이전트가 없습니다.")}
         </Alert>
       )}
@@ -243,7 +253,11 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
         </Alert>
       )}
       {notice && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice(null)}>
+        <Alert
+          severity="success"
+          sx={{ mb: 2 }}
+          onClose={() => setNotice(null)}
+        >
           {notice}
         </Alert>
       )}
@@ -264,11 +278,16 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
       <TextField
         label={t("agentConnection.field.serverUrl", "에이전트 주소")}
         value={form.serverUrl}
-        onChange={(e) => setForm((cur) => ({ ...cur, serverUrl: e.target.value }))}
-        placeholder="https://qa-agent.internal:8090"
+        onChange={(e) =>
+          setForm((cur) => ({ ...cur, serverUrl: e.target.value }))
+        }
+        placeholder="http://host.docker.internal:8090"
         helperText={t(
           "agentConnection.field.serverUrlHint",
-          "http 또는 https 로 시작하고, 브라우저와 서버 양쪽에서 닿는 주소를 넣습니다.",
+          "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 둘 다 도커로 띄웠다면 " +
+            "http://host.docker.internal:8090 을 넣습니다 — 제품도 컨테이너라 " +
+            "localhost 는 자기 자신을 가리킵니다. 제품을 도커 밖에서 돌리면 " +
+            "http://localhost:8090 입니다.",
         )}
         fullWidth
         margin="normal"
@@ -278,16 +297,23 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
       <TextField
         label={t("agentConnection.field.browserUrl", "브라우저용 주소 (선택)")}
         value={form.browserUrl}
-        onChange={(e) => setForm((cur) => ({ ...cur, browserUrl: e.target.value }))}
+        onChange={(e) =>
+          setForm((cur) => ({ ...cur, browserUrl: e.target.value }))
+        }
         placeholder="http://localhost:8090"
         helperText={t(
           "agentConnection.field.browserUrlHint",
-          "비워 두면 위 주소를 그대로 씁니다. 서버가 닿는 주소와 브라우저가 닿는 주소가 다를 때만 채웁니다 — 실행 버튼은 이 주소를 엽니다.",
+          "실행 버튼이 여는 주소입니다. 위에 host.docker.internal 을 넣었다면 " +
+            "여기에 http://localhost:8090 을 넣습니다 — 그 이름은 컨테이너 안에서만 " +
+            "풀리고 사람의 브라우저는 알지 못합니다. 두 주소가 같으면 비워 둡니다.",
         )}
         fullWidth
         margin="normal"
         disabled={!canEdit}
-        inputProps={{ maxLength: 500, "data-testid": "agent-connection-browser-url" }}
+        inputProps={{
+          maxLength: 500,
+          "data-testid": "agent-connection-browser-url",
+        }}
       />
       <TextField
         label={t("agentConnection.field.token", "인증 토큰")}
@@ -299,11 +325,13 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
           connection?.hasToken
             ? `${t("agentConnection.field.tokenSaved", "토큰이 저장되어 있습니다.")} ${t(
                 "agentConnection.field.tokenHint",
-                "비워 두면 기존 값을 그대로 씁니다. 저장된 토큰은 화면에 보이지 않습니다.",
+                "에이전트 쪽 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. " +
+                  "비워 두면 기존 값을 그대로 쓰고, 저장된 토큰은 화면에 보이지 않습니다.",
               )}`
             : t(
                 "agentConnection.field.tokenHint",
-                "비워 두면 기존 값을 그대로 씁니다. 저장된 토큰은 화면에 보이지 않습니다.",
+                "에이전트 쪽 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. " +
+                  "비워 두면 기존 값을 그대로 쓰고, 저장된 토큰은 화면에 보이지 않습니다.",
               )
         }
         fullWidth
@@ -319,12 +347,16 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
         }
         helperText={t(
           "agentConnection.field.defaultProfileHint",
-          "에이전트 앱에 등록한 프로필 식별자입니다. 정책과 컨텍스트가 그 안에 있습니다.",
+          "에이전트 앱에 등록한 프로필 식별자입니다. 정책과 컨텍스트가 그 안에 있고, " +
+            "처음 설치하면 local 하나가 들어 있습니다.",
         )}
         fullWidth
         margin="normal"
         disabled={!canEdit}
-        inputProps={{ maxLength: 100, "data-testid": "agent-connection-profile" }}
+        inputProps={{
+          maxLength: 100,
+          "data-testid": "agent-connection-profile",
+        }}
       />
 
       <FormControlLabel
@@ -348,6 +380,23 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
         )}
       </Typography>
 
+      {/* 켰다고 실행되지 않는다. 에이전트는 제품 밖의 별도 스택이라 그쪽 컨테이너를
+          띄워야 한다. 이 안내가 없으면 켜 두고 왜 안 도는지 찾게 된다 */}
+      {form.isActive && (
+        <Alert
+          severity="warning"
+          sx={{ mt: 1.5 }}
+          data-testid="agent-connection-run-notice"
+        >
+          {t(
+            "agentConnection.field.isActiveRunNotice",
+            "에이전트는 제품과 별개로 도는 스택입니다. 켜는 것만으로 실행되지 않고, " +
+              "에이전트 컨테이너를 띄운 뒤 위 주소로 연결을 확인해야 자동화 화면에서 " +
+              "쓸 수 있습니다.",
+          )}
+        </Alert>
+      )}
+
       {connection && (
         <Box sx={{ mt: 2 }}>
           <Divider sx={{ mb: 1.5 }} />
@@ -359,13 +408,24 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
           </Typography>
           {connection.effectiveBrowserUrl &&
             connection.effectiveBrowserUrl !== connection.serverUrl && (
-              <Typography variant="caption" color="text.secondary" display="block">
-                {t("agentConnection.field.browserUrl", "브라우저용 주소 (선택)")}:{" "}
-                {connection.effectiveBrowserUrl}
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                display="block"
+              >
+                {t(
+                  "agentConnection.field.browserUrl",
+                  "브라우저용 주소 (선택)",
+                )}
+                : {connection.effectiveBrowserUrl}
               </Typography>
             )}
           {connection.agentVersion && (
-            <Typography variant="caption" color="text.secondary" display="block">
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+            >
               {t("agentConnection.status.version", "에이전트 버전")}:{" "}
               {connection.agentVersion}
             </Typography>
@@ -408,12 +468,24 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
         )}
       </Box>
       {!connection && canEdit && (
-        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-          {t("agentConnection.status.saveFirst", "먼저 저장한 뒤 연결을 확인합니다.")}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          display="block"
+          sx={{ mt: 1 }}
+        >
+          {t(
+            "agentConnection.status.saveFirst",
+            "먼저 저장한 뒤 연결을 확인합니다.",
+          )}
         </Typography>
       )}
 
-      <Alert severity="warning" sx={{ mt: 3 }} data-testid="agent-connection-limits">
+      <Alert
+        severity="warning"
+        sx={{ mt: 3 }}
+        data-testid="agent-connection-limits"
+      >
         {t(
           "agentConnection.limits",
           "케이스 하나에 30초에서 1분이 걸리고 비용이 듭니다. 같은 케이스를 다시 돌리면 행동이 조금씩 달라집니다. 판정은 초안이며 확정은 사람이 합니다. 파일 업로드와 캡차가 들어간 시나리오는 지원하지 않습니다.",
@@ -434,7 +506,11 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
           <Button onClick={() => setConfirmDelete(false)}>
             {t("common.cancel", "취소")}
           </Button>
-          <Button color="error" onClick={handleDelete} data-testid="agent-connection-delete-confirm">
+          <Button
+            color="error"
+            onClick={handleDelete}
+            data-testid="agent-connection-delete-confirm"
+          >
             {t("agentConnection.delete", "연동 삭제")}
           </Button>
         </DialogActions>

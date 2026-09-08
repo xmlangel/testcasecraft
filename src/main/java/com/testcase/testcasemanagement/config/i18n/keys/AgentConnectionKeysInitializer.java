@@ -35,24 +35,28 @@ public class AgentConnectionKeysInitializer {
     // 같은 주소를 쓴다. 실측에서 도커 안 제품은 host.docker.internal 로만 닿고
     // 브라우저는 그 이름을 풀지 못해 갈렸다.
     createKey(
-        "agentConnection.field.serverUrlHint", "주소 안내", "http 또는 https 로 시작하고, 브라우저와 서버 양쪽에서 닿는 주소를 넣습니다.");
+        "agentConnection.field.serverUrlHint", "주소 안내", "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 둘 다 도커로 띄웠다면 http://host.docker.internal:8090 을 넣습니다 — 제품도 컨테이너라 localhost 는 자기 자신을 가리킵니다. 제품을 도커 밖에서 돌리면 http://localhost:8090 입니다.");
     createKey("agentConnection.field.browserUrl", "브라우저용 주소 라벨", "브라우저용 주소 (선택)");
     createKey(
         "agentConnection.field.browserUrlHint",
         "브라우저용 주소 안내",
-        "비워 두면 위 주소를 그대로 씁니다. 서버가 닿는 주소와 브라우저가 닿는 주소가 다를 때만 채웁니다 — 실행 버튼은 이 주소를 엽니다.");
+        "실행 버튼이 여는 주소입니다. 위에 host.docker.internal 을 넣었다면 여기에 http://localhost:8090 을 넣습니다 — 그 이름은 컨테이너 안에서만 풀리고 사람의 브라우저는 알지 못합니다. 두 주소가 같으면 비워 둡니다.");
     createKey("agentConnection.field.token", "토큰 라벨", "인증 토큰");
     createKey(
-        "agentConnection.field.tokenHint", "토큰 안내", "비워 두면 기존 값을 그대로 씁니다. 저장된 토큰은 화면에 보이지 않습니다.");
+        "agentConnection.field.tokenHint", "토큰 안내", "에이전트 쪽 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 비워 두면 기존 값을 그대로 쓰고, 저장된 토큰은 화면에 보이지 않습니다.");
     createKey("agentConnection.field.tokenSaved", "토큰 저장됨 표시", "토큰이 저장되어 있습니다.");
     createKey("agentConnection.field.defaultProfile", "기본 프로필 라벨", "기본 프로필");
     createKey(
         "agentConnection.field.defaultProfileHint",
         "기본 프로필 안내",
-        "에이전트 앱에 등록한 프로필 식별자입니다. 정책과 컨텍스트가 그 안에 있습니다.");
+        "에이전트 앱에 등록한 프로필 식별자입니다. 정책과 컨텍스트가 그 안에 있고, 처음 설치하면 local 하나가 들어 있습니다.");
     createKey("agentConnection.field.isActive", "활성 토글 라벨", "이 프로젝트에서 사용");
     createKey(
         "agentConnection.field.isActiveHint", "활성 토글 안내", "꺼 두면 자동화 화면에 에이전트 관련 항목이 나타나지 않습니다.");
+    createKey(
+        "agentConnection.field.isActiveRunNotice",
+        "활성 시 컨테이너 실행 안내",
+        "에이전트는 제품과 별개로 도는 스택입니다. 켜는 것만으로 실행되지 않고, 에이전트 컨테이너를 띄운 뒤 위 주소로 연결을 확인해야 자동화 화면에서 쓸 수 있습니다.");
 
     // 동작
     createKey("agentConnection.save", "저장 버튼", "저장");

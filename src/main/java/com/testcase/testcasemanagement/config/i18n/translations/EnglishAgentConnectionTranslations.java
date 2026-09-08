@@ -49,32 +49,39 @@ public class EnglishAgentConnectionTranslations {
     create(
         "agentConnection.field.serverUrlHint",
         lang,
-        "Enter a URL that starts with http or https and is reachable from both the browser and the server.",
+        "The address the product server uses to reach the agent. With both in Docker, use http://host.docker.internal:8090 — the product is a container too, so localhost points at itself. Running the product outside Docker, use http://localhost:8090.",
         by);
     create("agentConnection.field.browserUrl", lang, "Browser URL (optional)", by);
     create(
         "agentConnection.field.browserUrlHint",
         lang,
-        "Leave it blank to reuse the address above. Fill it only when the server and the browser reach the agent at different addresses — the run button opens this one.",
+        "The address the run button opens. If you put host.docker.internal above, use http://localhost:8090 here — that name resolves only inside containers and a person's browser does not know it. Leave empty when both addresses match.",
         by);
     create("agentConnection.field.token", lang, "Auth token", by);
     create(
         "agentConnection.field.tokenHint",
         lang,
-        "Leave it blank to keep the current token. A saved token is never shown.",
+        "Use the same value as AGENT_API_TOKEN in the agent's .env. Leave empty to keep the stored token; it is never shown here.",
         by);
     create("agentConnection.field.tokenSaved", lang, "A token is saved.", by);
     create("agentConnection.field.defaultProfile", lang, "Default profile", by);
     create(
         "agentConnection.field.defaultProfileHint",
         lang,
-        "The profile identifier registered in the agent app. Its policy and context live there.",
+        "The profile identifier registered in the agent app. Its policy and context live there, and a fresh install ships one named local.",
         by);
     create("agentConnection.field.isActive", lang, "Use in this project", by);
     create(
         "agentConnection.field.isActiveHint",
         lang,
         "While this is off, nothing agent-related appears in the automation screen.",
+        by);
+    create(
+        "agentConnection.field.isActiveRunNotice",
+        lang,
+        "The agent runs as a separate stack. Turning this on does not start it — bring up the"
+            + " agent container and verify the connection above before the automation screen"
+            + " can use it.",
         by);
     create("agentConnection.save", lang, "Save", by);
     create("agentConnection.saved", lang, "Agent connection saved.", by);
