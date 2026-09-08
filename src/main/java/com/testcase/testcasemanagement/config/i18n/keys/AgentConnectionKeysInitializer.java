@@ -35,12 +35,12 @@ public class AgentConnectionKeysInitializer {
     // 같은 주소를 쓴다. 실측에서 도커 안 제품은 host.docker.internal 로만 닿고
     // 브라우저는 그 이름을 풀지 못해 갈렸다.
     createKey(
-        "agentConnection.field.serverUrlHint", "주소 안내", "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 씁니다 — http://agent:8090. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 적고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다.");
+        "agentConnection.field.serverUrlHint", "주소 안내", "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 넣습니다. 예를 들어 http://agent:8090 입니다. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 넣고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다.");
     createKey("agentConnection.field.browserUrl", "브라우저용 주소 라벨", "브라우저용 주소 (선택)");
     createKey(
         "agentConnection.field.browserUrlHint",
         "브라우저용 주소 안내",
-        "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 적습니다 — 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다.");
+        "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 넣습니다. 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다.");
     createKey("agentConnection.field.token", "토큰 라벨", "인증 토큰");
     createKey(
         "agentConnection.field.tokenHint", "토큰 안내", "에이전트 쪽 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 비워 두면 기존 값을 그대로 쓰고, 저장된 토큰은 화면에 보이지 않습니다.");

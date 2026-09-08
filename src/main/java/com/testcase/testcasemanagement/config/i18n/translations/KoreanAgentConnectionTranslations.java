@@ -45,13 +45,13 @@ public class KoreanAgentConnectionTranslations {
     create(
         "agentConnection.field.serverUrlHint",
         lang,
-        "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 씁니다 — http://agent:8090. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 적고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다.",
+        "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 넣습니다. 예를 들어 http://agent:8090 입니다. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 넣고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다.",
         by);
     create("agentConnection.field.browserUrl", lang, "브라우저용 주소 (선택)", by);
     create(
         "agentConnection.field.browserUrlHint",
         lang,
-        "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 적습니다 — 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다.",
+        "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 넣습니다. 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다.",
         by);
     create("agentConnection.field.token", lang, "인증 토큰", by);
     create(
