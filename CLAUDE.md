@@ -66,6 +66,7 @@
 - 결과는 `TestExecution` 으로 들어오고 실행명 `[AI]` 접두 · 태그 `ai-agent` · QA 총평 첫 줄로 사람 실행과 갈린다
 - 연결 테스트는 `/health` 만 GET 으로 찍고 `status`·`version` 두 필드만 파싱한다. 응답 본문을 그대로 돌려주지 않는다 (SSRF)
 - 설계 정본: `docs/plan/LLM_BROWSER_AGENT_AUTOMATION.md` 부록 C·D·E
+- 설치·연동 절차와 주소 함정: `docs/deployment/AGENT_INTEGRATION.md`
 
 ---
 
