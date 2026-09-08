@@ -32,8 +32,17 @@ An execution created without a test plan showed 0% progress and zero verdict cou
 
 **Impact:** existing executions show correct numbers when reopened.
 
+#### A readable page while the server comes up
+
+During the 30 to 60 seconds a restart takes, nothing answered and the edge served its own English 502 page. That page does not say what to wait for or when to come back.
+
+A gateway now sits in front and keeps answering. It shows the error code (502 Bad Gateway) along with plain wording: the problem may be temporary, try again shortly, and contact your server administrator if the page keeps showing. It refreshes itself every 15 seconds and renders in Korean or English based on the language saved in the browser.
+
+**Impact:** the gateway takes over the port the edge already pointed at, so nothing changes on the server side.
+
 ### Verified
 
 - Turning the integration on and off in project settings, and the connection test, against a real agent.
 - Ran a session through the agent and reviewed the results and attached screens in the automation dashboard.
+- Stopped the app to confirm the 502 page appears, then started it again and saw the normal screen return in 9 seconds.
 - Field hints correct themselves at startup. Sites that edited the translations keep their own wording.

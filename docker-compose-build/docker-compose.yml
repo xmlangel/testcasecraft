@@ -57,9 +57,12 @@ services:
 
       # Frontend API Configuration
       - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL:-http://localhost:8080}
-    ports:
-      - "${HTTP_PORT}:${SERVER_PORT}"
-      - "${HTTPS_PORT}:${SERVER_PORT}"
+    # 포트는 gateway 가 연다. 앱이 기동하는 30초에서 1분 동안 아무도 응답하지 않으면
+    # Cloudflare 가 영문 502 를 대신 내는데, 그 화면은 무엇을 기다려야 하는지 알려
+    # 주지 않는다. 같은 포트를 gateway 가 이어받으므로 앞단(터널·프록시) 설정은
+    # 그대로 둬도 된다
+    expose:
+      - "${SERVER_PORT}"
     volumes:
       # 자동 생성된 JWT_SECRET 영속화 (컨테이너 재생성에도 세션 유지)
       - ./data/app:/app/data
@@ -99,6 +102,31 @@ services:
     restart: always
 
   # FastAPI RAG Service
+  # 앞단 게이트웨이 — 앱이 준비되기 전에도 사람이 읽을 수 있는 화면을 낸다.
+  # nginx 는 몇백 밀리초면 뜨므로 앱을 기다리는 동안에도 계속 응답한다.
+  gateway:
+    image: nginx:1.27-alpine
+    container_name: testcasecraft-gateway
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./gateway/starting.html:/usr/share/nginx/html/starting.html:ro
+    networks:
+      - testcasecraft-network
+    # depends_on 에 condition 을 걸지 않는다. 앱을 기다리면 그 동안 안내 화면도
+    # 못 내보내 게이트웨이를 둔 이유가 사라진다
+    depends_on:
+      - app
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1/gateway-health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
   rag-service:
     # 태그는 .env 의 RAG_SERVICE_IMAGE_TAG 로 고정할 수 있다. 지정하지 않으면
     # latest 를 쓴다 — 새 이미지를 받으려면 `docker compose pull rag-service` 를
