@@ -80,7 +80,7 @@ public class KoreanAgentConnectionTranslations {
     create(
         "agentConnection.field.isActiveRunStep1",
         lang,
-        "에이전트를 내려받아 .env 를 채우고 docker compose up -d 로 띄웁니다. 기본 포트는 8090 입니다.",
+        "docker pull xmlangel/testcasecraft-agent 로 이미지를 받아 띄웁니다. 기본 포트는 8090 입니다.",
         by);
     create(
         "agentConnection.field.isActiveRunStep2",

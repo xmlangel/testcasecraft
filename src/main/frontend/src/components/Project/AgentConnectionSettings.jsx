@@ -48,8 +48,8 @@ const EMPTY_FORM = {
   isActive: false,
 };
 
-/** 에이전트 저장소. 제품 밖의 별도 스택이라 여기서 내려받아 띄운다. */
-const AGENT_REPO_URL = "https://github.com/xmlangel/testcasecraft-agent";
+/** 에이전트 이미지. 제품 밖의 별도 스택이라 여기서 받아 띄운다. */
+const AGENT_IMAGE_URL = "https://hub.docker.com/r/xmlangel/testcasecraft-agent";
 
 const AgentConnectionSettings = ({ projectId, canEdit }) => {
   const { t } = useI18n();
@@ -403,15 +403,15 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
             <li>
               {t(
                 "agentConnection.field.isActiveRunStep1",
-                "에이전트를 내려받아 .env 를 채우고 docker compose up -d 로 띄웁니다. 기본 포트는 8090 입니다.",
+                "docker pull xmlangel/testcasecraft-agent 로 이미지를 받아 띄웁니다. 기본 포트는 8090 입니다.",
               )}{" "}
               <Link
-                href={AGENT_REPO_URL}
+                href={AGENT_IMAGE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-testid="agent-connection-repo-link"
               >
-                {AGENT_REPO_URL}
+                {AGENT_IMAGE_URL}
               </Link>
             </li>
             <li>

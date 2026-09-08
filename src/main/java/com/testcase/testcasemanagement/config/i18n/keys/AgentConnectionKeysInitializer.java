@@ -56,7 +56,7 @@ public class AgentConnectionKeysInitializer {
     createKey(
         "agentConnection.field.isActiveRunNotice", "활성 시 실행 안내 머리말", "켜는 것만으로 실행되지 않습니다. 에이전트는 제품 밖에서 도는 별도 스택이라 그쪽을 먼저 띄워야 합니다.");
     createKey(
-        "agentConnection.field.isActiveRunStep1", "활성 시 실행 안내 1단계", "에이전트를 내려받아 .env 를 채우고 docker compose up -d 로 띄웁니다. 기본 포트는 8090 입니다.");
+        "agentConnection.field.isActiveRunStep1", "활성 시 실행 안내 1단계", "docker pull xmlangel/testcasecraft-agent 로 이미지를 받아 띄웁니다. 기본 포트는 8090 입니다.");
     createKey(
         "agentConnection.field.isActiveRunStep2", "활성 시 실행 안내 2단계", "위 인증 토큰에는 그 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 값이 다르면 연결 확인이 되지 않습니다.");
     createKey(

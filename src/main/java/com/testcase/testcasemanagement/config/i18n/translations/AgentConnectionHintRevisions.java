@@ -52,6 +52,18 @@ public class AgentConnectionHintRevisions {
                   + " points at itself. Running the product outside Docker, use"
                   + " http://localhost:8090."),
           new Revision(
+              "agentConnection.field.isActiveRunStep1",
+              "ko",
+              "에이전트를 내려받아 .env 를 채우고 docker compose up -d 로 띄웁니다. 기본 포트는 8090 입니다.",
+              "docker pull xmlangel/testcasecraft-agent 로 이미지를 받아 띄웁니다. 기본 포트는 8090 입니다."),
+          new Revision(
+              "agentConnection.field.isActiveRunStep1",
+              "en",
+              "Get the agent, fill in its .env, and start it with docker compose up -d."
+                  + " The default port is 8090.",
+              "Pull the image with docker pull xmlangel/testcasecraft-agent and start it."
+                  + " The default port is 8090."),
+          new Revision(
               "agentConnection.field.isActiveRunNotice",
               "ko",
               "에이전트는 제품과 별개로 도는 스택입니다. 켜는 것만으로 실행되지 않고, 에이전트 컨테이너를 띄운 뒤 위"
