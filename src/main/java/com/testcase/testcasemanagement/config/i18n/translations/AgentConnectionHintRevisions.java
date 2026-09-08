@@ -52,6 +52,32 @@ public class AgentConnectionHintRevisions {
                   + " points at itself. Running the product outside Docker, use"
                   + " http://localhost:8090."),
           new Revision(
+              "agentConnection.field.isActiveRunNotice",
+              "ko",
+              "에이전트는 제품과 별개로 도는 스택입니다. 켜는 것만으로 실행되지 않고, 에이전트 컨테이너를 띄운 뒤 위"
+                  + " 주소로 연결을 확인해야 자동화 화면에서 쓸 수 있습니다.",
+              "켜는 것만으로 실행되지 않습니다. 에이전트는 제품 밖에서 도는 별도 스택이라 그쪽을 먼저 띄워야 합니다."),
+          new Revision(
+              "agentConnection.field.isActiveRunNotice",
+              "en",
+              "The agent runs as a separate stack. Turning this on does not start it — bring up the"
+                  + " agent container and verify the connection above before the automation screen"
+                  + " can use it.",
+              "Turning this on does not run anything. The agent is a separate stack outside the"
+                  + " product, so bring that up first."),
+          new Revision(
+              "agentConnection.field.isActiveRunStep2",
+              "ko",
+              "위 인증 토큰에는 그 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 값이 다르면 연결 확인에서 막힙니다.",
+              "위 인증 토큰에는 그 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 값이 다르면 연결 확인이 되지 않습니다."),
+          new Revision(
+              "agentConnection.field.isActiveRunStep2",
+              "en",
+              "Put the same value as AGENT_API_TOKEN from that .env into the auth token above."
+                  + " A different value fails the connection test.",
+              "Put the same value as AGENT_API_TOKEN from that .env into the auth token above."
+                  + " The connection test does not pass when the values differ."),
+          new Revision(
               "agentConnection.field.browserUrlHint",
               "ko",
               "비워 두면 위 주소를 그대로 씁니다. 서버가 닿는 주소와 브라우저가 닿는 주소가 다를 때만 채웁니다 — 실행 버튼은 이"

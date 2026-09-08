@@ -11,6 +11,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  AlertTitle,
+  Link,
   Box,
   Button,
   Chip,
@@ -45,6 +47,9 @@ const EMPTY_FORM = {
   defaultProfile: "",
   isActive: false,
 };
+
+/** 에이전트 저장소. 제품 밖의 별도 스택이라 여기서 내려받아 띄운다. */
+const AGENT_REPO_URL = "https://github.com/xmlangel/testcasecraft-agent";
 
 const AgentConnectionSettings = ({ projectId, canEdit }) => {
   const { t } = useI18n();
@@ -388,12 +393,40 @@ const AgentConnectionSettings = ({ projectId, canEdit }) => {
           sx={{ mt: 1.5 }}
           data-testid="agent-connection-run-notice"
         >
-          {t(
-            "agentConnection.field.isActiveRunNotice",
-            "에이전트는 제품과 별개로 도는 스택입니다. 켜는 것만으로 실행되지 않고, " +
-              "에이전트 컨테이너를 띄운 뒤 위 주소로 연결을 확인해야 자동화 화면에서 " +
-              "쓸 수 있습니다.",
-          )}
+          <AlertTitle sx={{ fontSize: "0.875rem" }}>
+            {t(
+              "agentConnection.field.isActiveRunNotice",
+              "켜는 것만으로 실행되지 않습니다. 에이전트는 제품 밖에서 도는 별도 스택이라 그쪽을 먼저 띄워야 합니다.",
+            )}
+          </AlertTitle>
+          <Box component="ol" sx={{ m: 0, pl: 2.5, "& li": { mb: 0.5 } }}>
+            <li>
+              {t(
+                "agentConnection.field.isActiveRunStep1",
+                "에이전트를 내려받아 .env 를 채우고 docker compose up -d 로 띄웁니다. 기본 포트는 8090 입니다.",
+              )}{" "}
+              <Link
+                href={AGENT_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="agent-connection-repo-link"
+              >
+                {AGENT_REPO_URL}
+              </Link>
+            </li>
+            <li>
+              {t(
+                "agentConnection.field.isActiveRunStep2",
+                "위 인증 토큰에는 그 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 값이 다르면 연결 확인이 되지 않습니다.",
+              )}
+            </li>
+            <li>
+              {t(
+                "agentConnection.field.isActiveRunStep3",
+                "연결 테스트를 눌러 확인합니다. 통과해야 자동화 화면에 에이전트 항목이 나타납니다.",
+              )}
+            </li>
+          </Box>
         </Alert>
       )}
 

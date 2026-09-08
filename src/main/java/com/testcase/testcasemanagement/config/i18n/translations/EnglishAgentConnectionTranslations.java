@@ -79,9 +79,22 @@ public class EnglishAgentConnectionTranslations {
     create(
         "agentConnection.field.isActiveRunNotice",
         lang,
-        "The agent runs as a separate stack. Turning this on does not start it — bring up the"
-            + " agent container and verify the connection above before the automation screen"
-            + " can use it.",
+        "Turning this on does not run anything. The agent is a separate stack outside the product, so bring that up first.",
+        by);
+    create(
+        "agentConnection.field.isActiveRunStep1",
+        lang,
+        "Get the agent, fill in its .env, and start it with docker compose up -d. The default port is 8090.",
+        by);
+    create(
+        "agentConnection.field.isActiveRunStep2",
+        lang,
+        "Put the same value as AGENT_API_TOKEN from that .env into the auth token above. The connection test does not pass when the values differ.",
+        by);
+    create(
+        "agentConnection.field.isActiveRunStep3",
+        lang,
+        "Press Test connection. It has to pass before agent items appear in the automation screen.",
         by);
     create("agentConnection.save", lang, "Save", by);
     create("agentConnection.saved", lang, "Agent connection saved.", by);

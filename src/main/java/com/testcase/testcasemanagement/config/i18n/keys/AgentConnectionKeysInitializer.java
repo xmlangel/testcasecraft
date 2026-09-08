@@ -54,10 +54,13 @@ public class AgentConnectionKeysInitializer {
     createKey(
         "agentConnection.field.isActiveHint", "활성 토글 안내", "꺼 두면 자동화 화면에 에이전트 관련 항목이 나타나지 않습니다.");
     createKey(
-        "agentConnection.field.isActiveRunNotice",
-        "활성 시 컨테이너 실행 안내",
-        "에이전트는 제품과 별개로 도는 스택입니다. 켜는 것만으로 실행되지 않고, 에이전트 컨테이너를 띄운 뒤 위 주소로 연결을 확인해야 자동화 화면에서 쓸 수 있습니다.");
-
+        "agentConnection.field.isActiveRunNotice", "활성 시 실행 안내 머리말", "켜는 것만으로 실행되지 않습니다. 에이전트는 제품 밖에서 도는 별도 스택이라 그쪽을 먼저 띄워야 합니다.");
+    createKey(
+        "agentConnection.field.isActiveRunStep1", "활성 시 실행 안내 1단계", "에이전트를 내려받아 .env 를 채우고 docker compose up -d 로 띄웁니다. 기본 포트는 8090 입니다.");
+    createKey(
+        "agentConnection.field.isActiveRunStep2", "활성 시 실행 안내 2단계", "위 인증 토큰에는 그 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 값이 다르면 연결 확인이 되지 않습니다.");
+    createKey(
+        "agentConnection.field.isActiveRunStep3", "활성 시 실행 안내 3단계", "연결 테스트를 눌러 확인합니다. 통과해야 자동화 화면에 에이전트 항목이 나타납니다.");
     // 동작
     createKey("agentConnection.save", "저장 버튼", "저장");
     createKey("agentConnection.saved", "저장 완료", "에이전트 연동 설정을 저장했습니다.");

@@ -75,8 +75,22 @@ public class KoreanAgentConnectionTranslations {
     create(
         "agentConnection.field.isActiveRunNotice",
         lang,
-        "에이전트는 제품과 별개로 도는 스택입니다. 켜는 것만으로 실행되지 않고, 에이전트 컨테이너를 띄운 뒤 위"
-            + " 주소로 연결을 확인해야 자동화 화면에서 쓸 수 있습니다.",
+        "켜는 것만으로 실행되지 않습니다. 에이전트는 제품 밖에서 도는 별도 스택이라 그쪽을 먼저 띄워야 합니다.",
+        by);
+    create(
+        "agentConnection.field.isActiveRunStep1",
+        lang,
+        "에이전트를 내려받아 .env 를 채우고 docker compose up -d 로 띄웁니다. 기본 포트는 8090 입니다.",
+        by);
+    create(
+        "agentConnection.field.isActiveRunStep2",
+        lang,
+        "위 인증 토큰에는 그 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 값이 다르면 연결 확인이 되지 않습니다.",
+        by);
+    create(
+        "agentConnection.field.isActiveRunStep3",
+        lang,
+        "연결 테스트를 눌러 확인합니다. 통과해야 자동화 화면에 에이전트 항목이 나타납니다.",
         by);
     create("agentConnection.save", lang, "저장", by);
     create("agentConnection.saved", lang, "에이전트 연동 설정을 저장했습니다.", by);
