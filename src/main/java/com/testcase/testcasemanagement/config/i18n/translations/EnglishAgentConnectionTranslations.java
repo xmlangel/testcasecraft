@@ -49,13 +49,13 @@ public class EnglishAgentConnectionTranslations {
     create(
         "agentConnection.field.serverUrlHint",
         lang,
-        "The address the product server uses to reach the agent. With both in Docker, use http://host.docker.internal:8090 — the product is a container too, so localhost points at itself. Running the product outside Docker, use http://localhost:8090.",
+        "The address the product server uses to reach the agent. Brought up in the same docker compose, use the service name: http://agent:8090. The product runs inside a container, so localhost points at itself and does not work. Hosted elsewhere, use that address; outside Docker on the same machine, use the host IP on Linux or http://host.docker.internal:8090 on macOS and Windows.",
         by);
     create("agentConnection.field.browserUrl", lang, "Browser URL (optional)", by);
     create(
         "agentConnection.field.browserUrlHint",
         lang,
-        "The address the run button opens. If you put host.docker.internal above, use http://localhost:8090 here — that name resolves only inside containers and a person's browser does not know it. Leave empty when both addresses match.",
+        "The address the run button opens. The address above is a name containers use for each other, which a person's browser does not know. Put an address a person can open here — http://localhost:8090 when viewed on the same machine. Leave empty when both addresses match.",
         by);
     create("agentConnection.field.token", lang, "Auth token", by);
     create(

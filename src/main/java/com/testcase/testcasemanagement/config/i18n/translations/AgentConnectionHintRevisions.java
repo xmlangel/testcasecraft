@@ -52,6 +52,14 @@ public class AgentConnectionHintRevisions {
                   + " points at itself. Running the product outside Docker, use"
                   + " http://localhost:8090."),
           new Revision(
+              "agentConnection.field.serverUrlHint", "ko",
+              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 둘 다 도커로 띄웠다면 http://host.docker.internal:8090 을 넣습니다 — 제품도 컨테이너라 localhost 는 자기 자신을 가리킵니다. 제품을 도커 밖에서 돌리면 http://localhost:8090 입니다.",
+              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 씁니다 — http://agent:8090. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 적고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다."),
+          new Revision(
+              "agentConnection.field.browserUrlHint", "ko",
+              "실행 버튼이 여는 주소입니다. 위에 host.docker.internal 을 넣었다면 여기에 http://localhost:8090 을 넣습니다 — 그 이름은 컨테이너 안에서만 풀리고 사람의 브라우저는 알지 못합니다. 두 주소가 같으면 비워 둡니다.",
+              "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 적습니다 — 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다."),
+          new Revision(
               "agentConnection.field.isActiveRunStep1",
               "ko",
               "에이전트를 내려받아 .env 를 채우고 docker compose up -d 로 띄웁니다. 기본 포트는 8090 입니다.",
