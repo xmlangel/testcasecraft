@@ -38,7 +38,8 @@ public class KoreanProjectSettingsTranslations {
     create("projectSettings.general.displayOrder", lang, "정렬 순서", by);
     create("projectSettings.general.save", lang, "저장", by);
     create("projectSettings.general.saved", lang, "프로젝트 설정을 저장했습니다.", by);
-    create("projectSettings.general.readonly", lang, "프로젝트 정보 변경은 프로젝트 매니저와 시스템 관리자만 할 수 있습니다.", by);
+    create(
+        "projectSettings.general.readonly", lang, "프로젝트 정보 변경은 프로젝트 매니저와 시스템 관리자만 할 수 있습니다.", by);
     create("projectSettings.members.invite", lang, "멤버 추가", by);
     create("projectSettings.members.username", lang, "사용자명", by);
     create("projectSettings.members.inviteSubmit", lang, "추가", by);

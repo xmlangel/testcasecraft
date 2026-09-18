@@ -8,8 +8,8 @@ import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.Locale;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,22 +46,45 @@ public class RagQueryAnalyzer {
   /**
    * 조회가 필요 없는 것이 확실한 문구.
    *
-   * <p>여기 걸리면 LLM 을 부르지 않는다. 의도 분석은 스키마 설명과 판단 규칙을 합쳐 1,968자를 매번 보내고 실측에서 7.3초가 걸렸다. 인사 한마디에 같은
-   * 값을 보낼 이유가 없다.
+   * <p>여기 걸리면 LLM 을 부르지 않는다. 의도 분석은 스키마 설명과 판단 규칙을 합쳐 1,968자를 매번 보내고 실측에서 7.3초가 걸렸다. 인사 한마디에 같은 값을
+   * 보낼 이유가 없다.
    *
-   * <p><b>확실한 것만 넣는다.</b> 오판의 비용이 비대칭이다. 잘못 걸러 조회를 건너뛰면 답변 품질이 떨어지지만, 잘못 통과시켜도 지금과 같다. 그래서
-   * 애매한 문구는 통과시킨다.
+   * <p><b>확실한 것만 넣는다.</b> 오판의 비용이 비대칭이다. 잘못 걸러 조회를 건너뛰면 답변 품질이 떨어지지만, 잘못 통과시켜도 지금과 같다. 그래서 애매한 문구는
+   * 통과시킨다.
    *
    * <p>공백을 뺀 형태로 적는다. 견줄 때도 공백을 걷어내므로 「잘 부탁드립니다」는 `잘부탁드립니다` 로 걸린다.
    */
   private static final Set<String> CHIT_CHAT =
       Set.of(
-          "안녕", "안녕하세요", "안녕하십니까", "반갑습니다", "반가워요",
-          "고마워", "고마워요", "고맙습니다", "감사", "감사해요", "감사합니다",
-          "수고하셨습니다", "수고하세요", "잘부탁드립니다",
-          "네", "예", "응", "ㅇㅇ", "ㅇㅋ", "알겠습니다", "알겠어요",
-          "hi", "hello", "hey", "thanks", "thankyou", "ok", "okay", "yes");
-
+          "안녕",
+          "안녕하세요",
+          "안녕하십니까",
+          "반갑습니다",
+          "반가워요",
+          "고마워",
+          "고마워요",
+          "고맙습니다",
+          "감사",
+          "감사해요",
+          "감사합니다",
+          "수고하셨습니다",
+          "수고하세요",
+          "잘부탁드립니다",
+          "네",
+          "예",
+          "응",
+          "ㅇㅇ",
+          "ㅇㅋ",
+          "알겠습니다",
+          "알겠어요",
+          "hi",
+          "hello",
+          "hey",
+          "thanks",
+          "thankyou",
+          "ok",
+          "okay",
+          "yes");
 
   /** 사용자의 질문을 분석하여 의도를 파악합니다. */
   public QueryIntent analyzeIntent(String message, String projectId) {
@@ -171,9 +194,8 @@ public class RagQueryAnalyzer {
   "justification": "판단 근거 요약"
 }
 """,
-              dbSchema,
-              projectId, projectId, projectId, projectId, projectId,
-              projectId, projectId, projectId, projectId);
+              dbSchema, projectId, projectId, projectId, projectId, projectId, projectId, projectId,
+              projectId, projectId);
 
       List<RagChatMessage> messages = new ArrayList<>();
       messages.add(RagChatMessage.system(systemPrompt));
@@ -198,10 +220,10 @@ public class RagQueryAnalyzer {
   /**
    * 모델 응답에서 JSON 본문만 뽑아낸다.
    *
-   * <p>모델이 JSON 을 코드펜스로 감싸거나(```json … ```), 추론 모델(예: gemma4:e2b)처럼 설명 문장 사이에 끼워 넣는다. 예전에는
-   * 펜스를 `lastIndexOf("```")` 로 잘랐는데, 여는 펜스만 있고 닫는 펜스가 없으면 -1 이 되어 {@code substring(0, -1)} 이
-   * 예외를 던졌다(실측: Range [0, -1)). 그래서 펜스는 짝이 맞을 때만 걷어내고, 그다음 첫 `{` 부터 마지막 `}` 까지를 취해 앞뒤 산문을
-   * 버린다. 어느 경우에도 예외로 죽지 않고, 못 찾으면 원본을 그대로 넘겨 상위 catch 가 기본값으로 처리하게 둔다.
+   * <p>모델이 JSON 을 코드펜스로 감싸거나(```json … ```), 추론 모델(예: gemma4:e2b)처럼 설명 문장 사이에 끼워 넣는다. 예전에는 펜스를
+   * `lastIndexOf("```")` 로 잘랐는데, 여는 펜스만 있고 닫는 펜스가 없으면 -1 이 되어 {@code substring(0, -1)} 이 예외를
+   * 던졌다(실측: Range [0, -1)). 그래서 펜스는 짝이 맞을 때만 걷어내고, 그다음 첫 `{` 부터 마지막 `}` 까지를 취해 앞뒤 산문을 버린다. 어느 경우에도
+   * 예외로 죽지 않고, 못 찾으면 원본을 그대로 넘겨 상위 catch 가 기본값으로 처리하게 둔다.
    */
   private String extractJson(String raw) {
     String content = raw == null ? "" : raw.trim();
@@ -229,11 +251,11 @@ public class RagQueryAnalyzer {
   /**
    * 조회 없이 답할 수 있는 문구인지 본다.
    *
-   * <p>정형 문구와 <b>완전히 같을 때만</b> 걸러낸다. 문장부호와 공백은 걷어내고 견주므로 「안녕하세요!」와 「  안녕  」은 같은 것으로 본다. 낱말이 하나라도
-   * 더 붙으면(「안녕하세요, 몇 건인가요?」) 통과시켜 LLM 이 판단하게 한다.
+   * <p>정형 문구와 <b>완전히 같을 때만</b> 걸러낸다. 문장부호와 공백은 걷어내고 견주므로 「안녕하세요!」와 「 안녕 」은 같은 것으로 본다. 낱말이 하나라도 더
+   * 붙으면(「안녕하세요, 몇 건인가요?」) 통과시켜 LLM 이 판단하게 한다.
    *
-   * <p>처음에는 길이 상한과 조회 낱말 검사를 함께 뒀는데, 회귀 확인에서 <b>둘 다 도달할 수 없는 코드</b>임이 드러났다. 완전 일치가 이미 그 경우를
-   * 막으므로 앞의 검사를 지워도 판정이 같았다. 조건을 늘리면 안전해 보이지만 실제로는 읽는 사람만 헷갈린다.
+   * <p>처음에는 길이 상한과 조회 낱말 검사를 함께 뒀는데, 회귀 확인에서 <b>둘 다 도달할 수 없는 코드</b>임이 드러났다. 완전 일치가 이미 그 경우를 막으므로 앞의
+   * 검사를 지워도 판정이 같았다. 조건을 늘리면 안전해 보이지만 실제로는 읽는 사람만 헷갈린다.
    */
   private boolean needsNoLookup(String message) {
     if (message == null) {

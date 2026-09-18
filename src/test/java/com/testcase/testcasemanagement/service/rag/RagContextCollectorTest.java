@@ -94,8 +94,7 @@ public class RagContextCollectorTest {
     // RAG 문서가 지난 대화라면 파일명이 뜻을 담지 않는다. 메타데이터의 스레드 제목이 더 낫다.
     when(ragService.searchSimilar(any()))
         .thenReturn(
-            searchResponse(
-                result("chunk-1.txt", "지난 대화 내용", Map.of("threadTitle", "배포 절차 문의"))));
+            searchResponse(result("chunk-1.txt", "지난 대화 내용", Map.of("threadTitle", "배포 절차 문의"))));
 
     List<RagChatContext> contexts = collector.searchRelevantContext(request("질문"));
 
@@ -121,8 +120,7 @@ public class RagContextCollectorTest {
     when(ragService.searchSimilar(any()))
         .thenReturn(
             searchResponse(
-                result("절차서.md", "내용", null),
-                result("규정.md", "내용", Map.of("threadTitle", "   "))));
+                result("절차서.md", "내용", null), result("규정.md", "내용", Map.of("threadTitle", "   "))));
 
     List<RagChatContext> contexts = collector.searchRelevantContext(request("질문"));
 
@@ -160,10 +158,7 @@ public class RagContextCollectorTest {
     when(sqlExecutor.executeSelect(anyString(), anyString()))
         .thenThrow(new RuntimeException("문법 오류"));
     QueryIntent intent =
-        QueryIntent.builder()
-            .needsStatistics(true)
-            .generatedSql("SELECT 1")
-            .build();
+        QueryIntent.builder().needsStatistics(true).generatedSql("SELECT 1").build();
 
     Map<String, Object> context = collector.fetchDbContext("p-1", intent);
 

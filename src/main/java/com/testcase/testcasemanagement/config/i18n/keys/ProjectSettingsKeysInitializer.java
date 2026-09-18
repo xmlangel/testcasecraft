@@ -33,7 +33,9 @@ public class ProjectSettingsKeysInitializer {
     createKey("projectSettings.general.save", "저장 버튼", "저장");
     createKey("projectSettings.general.saved", "저장 완료 안내", "프로젝트 설정을 저장했습니다.");
     createKey(
-        "projectSettings.general.readonly", "설정 읽기 전용 안내", "프로젝트 정보 변경은 프로젝트 매니저와 시스템 관리자만 할 수 있습니다.");
+        "projectSettings.general.readonly",
+        "설정 읽기 전용 안내",
+        "프로젝트 정보 변경은 프로젝트 매니저와 시스템 관리자만 할 수 있습니다.");
 
     // 멤버 탭
     createKey("projectSettings.members.invite", "멤버 추가 영역 제목", "멤버 추가");
@@ -43,7 +45,8 @@ public class ProjectSettingsKeysInitializer {
     createKey("projectSettings.members.removed", "멤버 제거 완료", "멤버를 제거했습니다.");
     createKey("projectSettings.members.roleUpdated", "역할 변경 완료", "역할을 변경했습니다.");
     createKey("projectSettings.members.remove", "멤버 제거 버튼", "멤버 제거");
-    createKey("projectSettings.members.removeConfirm", "멤버 제거 확인", "{username} 을(를) 이 프로젝트에서 제거하시겠습니까?");
+    createKey(
+        "projectSettings.members.removeConfirm", "멤버 제거 확인", "{username} 을(를) 이 프로젝트에서 제거하시겠습니까?");
     createKey("projectSettings.members.empty", "멤버 없음", "프로젝트 멤버가 없습니다.");
     createKey(
         "projectSettings.members.hint",

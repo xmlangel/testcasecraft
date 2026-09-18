@@ -4,13 +4,11 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
 import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
 import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
 import com.testcase.testcasemanagement.dto.llm.LlmModelQueryRequest;
-import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.util.List;
 import java.util.Optional;
-import reactor.core.publisher.Mono;
-import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
 
 /** LLM 설정 서비스 인터페이스 */
 public interface LlmConfigService {
@@ -62,18 +60,18 @@ public interface LlmConfigService {
   /**
    * 제공자 모델 가용성 확인
    *
-   * <p>각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. <b>확인 자체가 무료 일일 한도를 태운다</b>(실측: 한도 50건). 그래서 화면은 고른 모델
-   * 하나만 확인하는 것을 기본으로 하고, 전체 확인은 소모량을 알린 뒤에만 보낸다.
+   * <p>각 모델에 최소 요청을 보내 지금 쓸 수 있는지 본다. <b>확인 자체가 무료 일일 한도를 태운다</b>(실측: 한도 50건). 그래서 화면은 고른 모델 하나만
+   * 확인하는 것을 기본으로 하고, 전체 확인은 소모량을 알린 뒤에만 보낸다.
    *
-   * <p>{@code modelIds} 를 비우면 무료 모델 전체를 확인한다. {@code alreadyChecked} 에 담긴 모델은 확인하지 않고 건너뛴다. 같은
-   * 회차에서 버튼을 여러 번 눌러도 한도가 다시 쓰이지 않게 하려는 것이다.
+   * <p>{@code modelIds} 를 비우면 무료 모델 전체를 확인한다. {@code alreadyChecked} 에 담긴 모델은 확인하지 않고 건너뛴다. 같은 회차에서
+   * 버튼을 여러 번 눌러도 한도가 다시 쓰이지 않게 하려는 것이다.
    */
 
   /**
    * 가용성 확인을 백그라운드 작업으로 시작한다.
    *
-   * <p>확인은 최악의 경우 몇 분이 걸린다(OpenRouter 2분 30초, NVIDIA 6분). 결과를 기다려 돌려주면 리버스 프록시 타임아웃에 먼저 걸려 응답을
-   * 아예 받지 못하고, 그동안 확인은 서버에서 계속 도는데 결과가 버려진다.
+   * <p>확인은 최악의 경우 몇 분이 걸린다(OpenRouter 2분 30초, NVIDIA 6분). 결과를 기다려 돌려주면 리버스 프록시 타임아웃에 먼저 걸려 응답을 아예
+   * 받지 못하고, 그동안 확인은 서버에서 계속 도는데 결과가 버려진다.
    *
    * @return 작업 ID 와 대상 개수를 담은 상태. 결과는 {@link #findProbeJob} 으로 받는다
    */
@@ -95,8 +93,8 @@ public interface LlmConfigService {
   /**
    * 모델 목록을 내주는 제공자 목록
    *
-   * <p>화면이 어느 제공자에서 목록 선택기를 띄울지, 전수 확인을 기본으로 권할지 정하는 데 쓴다. 제공자 목록을 화면에 박아 두면 제공자를 더할 때마다 화면도
-   * 고쳐야 하므로 서버가 알려 준다.
+   * <p>화면이 어느 제공자에서 목록 선택기를 띄울지, 전수 확인을 기본으로 권할지 정하는 데 쓴다. 제공자 목록을 화면에 박아 두면 제공자를 더할 때마다 화면도 고쳐야
+   * 하므로 서버가 알려 준다.
    */
   List<LlmModelCatalogInfo> listModelCatalogProviders();
 

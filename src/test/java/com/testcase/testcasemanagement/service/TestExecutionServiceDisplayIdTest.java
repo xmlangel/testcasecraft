@@ -97,9 +97,9 @@ public class TestExecutionServiceDisplayIdTest {
   /**
    * 심어 둔 인증 컨텍스트를 지운다.
    *
-   * <p>{@code SecurityContextHolder} 는 JVM 전역 정적 상태다. 정리하지 않으면 같은 포크에 배정된 다음 시험이 이 시험의 인증 정보를
-   * 그대로 보고, 자기가 심은 것으로 착각한다. 실제로 {@code SecurityContextUtilIsCurrentUserTest} 가 간헐적으로 실패했고
-   * 단독 실행에서는 통지해 원인을 찾기 어려웠다.
+   * <p>{@code SecurityContextHolder} 는 JVM 전역 정적 상태다. 정리하지 않으면 같은 포크에 배정된 다음 시험이 이 시험의 인증 정보를 그대로
+   * 보고, 자기가 심은 것으로 착각한다. 실제로 {@code SecurityContextUtilIsCurrentUserTest} 가 간헐적으로 실패했고 단독 실행에서는 통지해
+   * 원인을 찾기 어려웠다.
    */
   @AfterMethod
   public void clearSecurityContext() {

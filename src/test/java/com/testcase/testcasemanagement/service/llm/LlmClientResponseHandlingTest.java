@@ -34,15 +34,17 @@ public class LlmClientResponseHandlingTest {
 
     LlmClient.LlmResponse response =
         client.chat(
-            config(LlmProvider.NVIDIA, "https://integrate.api.nvidia.com", "meta/llama-3.1-8b-instruct"),
+            config(
+                LlmProvider.NVIDIA,
+                "https://integrate.api.nvidia.com",
+                "meta/llama-3.1-8b-instruct"),
             oneMessage("say ok"),
             0.5,
             5);
 
     assertEquals(response.getContent(), "OK", "본문");
     assertTrue(response.getTokensUsed() > 0, "토큰 수가 실린다");
-    assertEquals(
-        response.getModel(), "meta/llama-3.1-8b-instruct", "모델은 설정값을 그대로 돌려준다");
+    assertEquals(response.getModel(), "meta/llama-3.1-8b-instruct", "모델은 설정값을 그대로 돌려준다");
   }
 
   @Test(description = "실제 NVIDIA 403 상항은 인증 실패로 읽는다")
@@ -75,7 +77,8 @@ public class LlmClientResponseHandlingTest {
             LlmClient.LlmClientException.class,
             () ->
                 client.chat(
-                    config(LlmProvider.NVIDIA, "https://integrate.api.nvidia.com", "01-ai/yi-large"),
+                    config(
+                        LlmProvider.NVIDIA, "https://integrate.api.nvidia.com", "01-ai/yi-large"),
                     oneMessage("ok"),
                     0.5,
                     1));
@@ -103,11 +106,9 @@ public class LlmClientResponseHandlingTest {
                     1));
 
     assertTrue(e.getMessage().contains("429"), "상태코드");
+    assertTrue(e.getMessage().contains("openrouter.ai/api/v1/chat/completions"), "호출 주소");
     assertTrue(
-        e.getMessage().contains("openrouter.ai/api/v1/chat/completions"), "호출 주소");
-    assertTrue(
-        e.getMessage().contains("free-models-per-day"),
-        "제공자가 보낸 사유를 그대로 싣는다: " + e.getMessage());
+        e.getMessage().contains("free-models-per-day"), "제공자가 보낸 사유를 그대로 싣는다: " + e.getMessage());
   }
 
   @Test(description = "상항에 choices 가 없으면 거부한다")

@@ -1373,7 +1373,8 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.notes.edit", languageCode, "비고 수정", createdBy);
     createTranslationIfNotExists("testcase.notes.viewOnly", languageCode, "보기 모드", createdBy);
     createTranslationIfNotExists("testcase.notes.fullscreen", languageCode, "전체화면", createdBy);
-    createTranslationIfNotExists("testcase.notes.exitFullscreen", languageCode, "전체화면 나가기", createdBy);
+    createTranslationIfNotExists(
+        "testcase.notes.exitFullscreen", languageCode, "전체화면 나가기", createdBy);
 
     // 내보내기 PDF 방향 옵션 한글
     createTranslationIfNotExists(

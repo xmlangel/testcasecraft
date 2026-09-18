@@ -22,8 +22,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
  * <ul>
  *   <li>{@code /v1/models} 상항에 <b>가격도 모달리티도 없다</b>({@code id}·{@code object}·{@code created}·{@code
  *       owned_by} 뿐). 무료·채팅 판정을 메타데이터로 할 수 없어 ID 패턴으로 추정한다.
- *   <li>목록에 오른 모델의 <b>상당수가 이 계정에서 404</b> 를 낸다({@code Not found for account}). 실측에서 채팅 후보 77개 중
- *       실제로 쓸 수 있는 것이 28개였다. 그래서 확인이 곧 유일한 판정 수단이다.
+ *   <li>목록에 오른 모델의 <b>상당수가 이 계정에서 404</b> 를 낸다({@code Not found for account}). 실측에서 채팅 후보 77개 중 실제로
+ *       쓸 수 있는 것이 28개였다. 그래서 확인이 곧 유일한 판정 수단이다.
  *   <li>확인에 <b>한도 제약이 사실상 없다</b>. 160회 넘게 두드렸는데 429 가 한 번도 없었다.
  *   <li>처음 호출하는 모델은 <b>콜드 스타트로 수십 초</b>가 걸린다.
  * </ul>
@@ -41,16 +41,15 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
   /**
    * 키 검증에 쓰는 모델.
    *
-   * <p>이 모델이 계정에 없어도 된다. 키가 유효하면 404 가 오고 무효하면 403 이 오므로 코드로 갈린다. 널리 제공되는 작은 모델을 골라 콜드 스타트 대기를
-   * 줄인다.
+   * <p>이 모델이 계정에 없어도 된다. 키가 유효하면 404 가 오고 무효하면 403 이 오므로 코드로 갈린다. 널리 제공되는 작은 모델을 골라 콜드 스타트 대기를 줄인다.
    */
   private static final String KEY_CHECK_MODEL = "meta/llama-3.1-8b-instruct";
 
   /**
    * 채팅으로 쓸 수 없는 모델을 걸러내는 ID 패턴.
    *
-   * <p>상항에 모달리티가 없어 이름으로 추정한다. 추정이므로 새 모델이 나오면 어긋날 수 있는데, 가용성 확인이 실제 호출로 그것을 걸러낸다. 표본으로 검집했다.
-   * 제외한 모델 다섯 개를 실제로 호출해 보니 전부 404 였다.
+   * <p>상항에 모달리티가 없어 이름으로 추정한다. 추정이므로 새 모델이 나오면 어긋날 수 있는데, 가용성 확인이 실제 호출로 그것을 걸러낸다. 표본으로 검집했다. 제외한
+   * 모델 다섯 개를 실제로 호출해 보니 전부 404 였다.
    */
   private static final Pattern NON_CHAT =
       Pattern.compile(
@@ -73,8 +72,8 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
   /**
    * 전수 확인을 기본으로 권한다.
    *
-   * <p>목록의 3분의 2가 계정에 없어 404 를 낸다. 확인하지 않으면 사용자가 쓸 수 없는 모델을 고르고, 그것을 저장한 뒤 대화에서 실패를 만난다. 확인에 한도
-   * 부담이 없으므로 미리 걸러 주는 편이 낫다.
+   * <p>목록의 3분의 2가 계정에 없어 404 를 낸다. 확인하지 않으면 사용자가 쓸 수 없는 모델을 고르고, 그것을 저장한 뒤 대화에서 실패를 만난다. 확인에 한도 부담이
+   * 없으므로 미리 걸러 주는 편이 낫다.
    */
   @Override
   public boolean probeRecommendedByDefault() {
@@ -160,8 +159,7 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
       if (id.isBlank() || "null".equals(id) || NON_CHAT.matcher(id).find()) {
         continue;
       }
-      models.add(
-          LlmModelDTO.builder().id(id).name(id).availability(Availability.UNKNOWN).build());
+      models.add(LlmModelDTO.builder().id(id).name(id).availability(Availability.UNKNOWN).build());
     }
 
     models.sort(Comparator.comparing(LlmModelDTO::getId));
@@ -186,8 +184,7 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
         return verdict(modelId, Availability.UNAVAILABLE, "채팅 형식 입력을 받지 않는 모델입니다 (400).");
       }
       if (status == 429) {
-        return verdict(
-            modelId, Availability.RATE_LIMITED, "요청이 제한되었습니다 (429). 잠시 뒤 다시 확인해 보세요.");
+        return verdict(modelId, Availability.RATE_LIMITED, "요청이 제한되었습니다 (429). 잠시 뒤 다시 확인해 보세요.");
       }
       if (status == 503) {
         // 그 모델의 워커가 혼잡한 상태다. 모델 자체는 쓸 수 있으므로 다시 확인할 여지를 남긴다.
@@ -220,9 +217,12 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
   private void verifyApiKey(String apiKey) {
     Map<String, Object> body =
         Map.of(
-            "model", KEY_CHECK_MODEL,
-            "messages", List.of(Map.of("role", "user", "content", "ok")),
-            "max_tokens", 1);
+            "model",
+            KEY_CHECK_MODEL,
+            "messages",
+            List.of(Map.of("role", "user", "content", "ok")),
+            "max_tokens",
+            1);
 
     try {
       client(apiKey)

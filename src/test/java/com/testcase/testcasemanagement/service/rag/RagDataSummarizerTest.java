@@ -59,7 +59,8 @@ public class RagDataSummarizerTest {
   @Test(description = "임계 안이면 원본을 그대로 넘긴다")
   public void passesRawDataWithinThreshold() {
     // 원본을 넘기면 답변 LLM 이 표 구조를 그대로 읽는다. 요약문을 거치면 그 구조가 사라진다.
-    String result = summarizer.summarize(rows(RagDataSummarizer.RAW_PASS_THROUGH_LIMIT), "질문", false);
+    String result =
+        summarizer.summarize(rows(RagDataSummarizer.RAW_PASS_THROUGH_LIMIT), "질문", false);
 
     assertTrue(result.contains("로그인 케이스 0"), "원본 값이 그대로 들어간다");
     verify(llmClient, never()).chat(any(), any(), anyDouble(), anyInt());

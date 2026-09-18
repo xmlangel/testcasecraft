@@ -21,8 +21,8 @@ import org.springframework.stereotype.Component;
  * <p>이 클래스는 저장소나 외부 서비스에 의존하지 않는다. 받은 재료(검색 결과·DB 통계·질의 의도·설정)로 문자열을 만드는 일만 한다. 그래서 시험에서 목을 만들지 않고
  * 곧바로 확인할 수 있고, 분기가 열한 갈래라 시험 값어치가 크다.
  *
- * <p>`RagChatServiceImpl` 에서 떼어냈다. 그 클래스는 의존성이 열넷이고 채팅 실행·컨텍스트 조립·프롬프트 조립·모델 결정을 함께 다뤄, 프롬프트 한 줄을 고치려면
- * 나머지 셋을 함께 이해해야 했다.
+ * <p>`RagChatServiceImpl` 에서 떼어냈다. 그 클래스는 의존성이 열넷이고 채팅 실행·컨텍스트 조립·프롬프트 조립·모델 결정을 함께 다뤄, 프롬프트 한 줄을
+ * 고치려면 나머지 셋을 함께 이해해야 했다.
  */
 @Component
 @Slf4j
@@ -168,9 +168,7 @@ public class RagPromptBuilder {
         prompt.append(
             String.format(
                 "[출처 %d: %s (유사도: %.2f)]\n",
-                i + 1,
-                source,
-                context.getSimilarity() != null ? context.getSimilarity() : 0.0));
+                i + 1, source, context.getSimilarity() != null ? context.getSimilarity() : 0.0));
         prompt.append(context.getChunkText());
         prompt.append("\n\n");
       }
