@@ -7,11 +7,11 @@ import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.rag.RagChatThread;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
+import com.testcase.testcasemanagement.security.EncryptionUtil;
 import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
 import com.testcase.testcasemanagement.service.llm.LlmModelCatalog;
 import com.testcase.testcasemanagement.service.llm.LlmModelCatalogFactory;
-import com.testcase.testcasemanagement.security.EncryptionUtil;
 import com.testcase.testcasemanagement.service.rag.RagChatTurn;
 import com.testcase.testcasemanagement.service.rag.RagContextCollector;
 import com.testcase.testcasemanagement.service.rag.RagPromptBuilder;
@@ -21,9 +21,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.RejectedExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -199,37 +198,35 @@ public class RagChatServiceImpl implements RagChatService {
                         log.error("❌ SSE 전송 실패", e);
                         emitter.completeWithError(e);
                       }
-                      });
+                    });
 
-                  // 스트리밍이 정상적으로 완료되지 않은 경우 강제 완료
-                  if (!streamCompleted[0]) {
-                    log.warn("⚠️ 스트리밍이 완료되지 않아 강제 종료합니다");
-                    emitter.send(SseEmitter.event().name("done").data(""));
-                    emitter.complete();
-                  }
-                } catch (Exception streamEx) {
-                  log.error("❌ LLM 스트리밍 처리 중 에러", streamEx);
-                  throw streamEx;
+                // 스트리밍이 정상적으로 완료되지 않은 경우 강제 완료
+                if (!streamCompleted[0]) {
+                  log.warn("⚠️ 스트리밍이 완료되지 않아 강제 종료합니다");
+                  emitter.send(SseEmitter.event().name("done").data(""));
+                  emitter.complete();
                 }
-
-              } catch (Exception e) {
-                log.error("❌ RAG 채팅 스트리밍 실패", e);
-                try {
-                  emitter.send(SseEmitter.event().name("error").data(e.getMessage()));
-                  emitter.completeWithError(e);
-                } catch (Exception ex) {
-                  log.error("❌ 에러 전송 실패", ex);
-                }
+              } catch (Exception streamEx) {
+                log.error("❌ LLM 스트리밍 처리 중 에러", streamEx);
+                throw streamEx;
               }
+
+            } catch (Exception e) {
+              log.error("❌ RAG 채팅 스트리밍 실패", e);
+              try {
+                emitter.send(SseEmitter.event().name("error").data(e.getMessage()));
+                emitter.completeWithError(e);
+              } catch (Exception ex) {
+                log.error("❌ 에러 전송 실패", ex);
+              }
+            }
           });
     } catch (RejectedExecutionException e) {
       // 동시 대화가 풀 상한을 넘었다. 조용히 실패하면 화면이 답을 기다리며 멈춘 것처럼 보인다.
       log.warn("⚠️ 스트리밍 스레드 풀이 가득 차 요청을 거부했다: active={}", streamExecutor.getActiveCount());
       try {
         emitter.send(
-            SseEmitter.event()
-                .name("error")
-                .data("지금 대화가 많아 처리할 수 없습니다. 잠시 뒤 다시 시도해 주세요."));
+            SseEmitter.event().name("error").data("지금 대화가 많아 처리할 수 없습니다. 잠시 뒤 다시 시도해 주세요."));
         emitter.complete();
       } catch (Exception sendError) {
         log.error("❌ 거부 안내 전송 실패", sendError);
@@ -243,9 +240,9 @@ public class RagChatServiceImpl implements RagChatService {
   /**
    * 한 번의 질의에 필요한 재료를 모은다.
    *
-   * <p>동기 채팅과 스트리밍 채팅이 이 준비 단계를 똑같이 수행하고 마지막 호출만 다르다. 예전에는 두 메서드가 각자 열여덟 줄을 갖고 있어, 검색 조건이나 프롬프트
-   * 조립을 고칠 때 두 곳을 함께 고쳐야 했다. LLM 클라이언트 여섯 개를 합치기 전에 겪은 것과 같은 형태이고, 그때 오류 문구 처리가 한 곳에만 있어 나머지
-   * 다섯이 사용자에게 {@code null} 을 보인 실례가 있다.
+   * <p>동기 채팅과 스트리밍 채팅이 이 준비 단계를 똑같이 수행하고 마지막 호출만 다르다. 예전에는 두 메서드가 각자 열여덟 줄을 갖고 있어, 검색 조건이나 프롬프트 조립을
+   * 고칠 때 두 곳을 함께 고쳐야 했다. LLM 클라이언트 여섯 개를 합치기 전에 겪은 것과 같은 형태이고, 그때 오류 문구 처리가 한 곳에만 있어 나머지 다섯이 사용자에게
+   * {@code null} 을 보인 실례가 있다.
    *
    * @param streaming 로그에 스트리밍 여부를 밝히기 위한 것. 준비 내용 자체는 두 경로가 같다
    */
@@ -289,9 +286,9 @@ public class RagChatServiceImpl implements RagChatService {
   /**
    * 이번 질의에 쓸 LLM 설정을 정한다.
    *
-   * <p>요청이 모델을 지정했으면 그 모델로 바꿔 쓴다. 관리자가 설정을 고치지 않고도 사용자가 화면에서 모델을 골라 쓸 수 있게 하려는 것이다. 다만 아무 모델이나
-   * 허용하면 사용자가 유료 모델을 골라 과금이 발생한다. 그래서 <b>모델 목록을 내주는 제공자에 한해, 그 목록에 있는 모델만</b> 허용한다. 목록에 없으면 요청을
-   * 거부하지 않고 설정의 기본 모델로 진행하며 그 사실을 로그에 남긴다. 모델 하나 때문에 대화가 끊기는 것보다 낫다.
+   * <p>요청이 모델을 지정했으면 그 모델로 바꿔 쓴다. 관리자가 설정을 고치지 않고도 사용자가 화면에서 모델을 골라 쓸 수 있게 하려는 것이다. 다만 아무 모델이나 허용하면
+   * 사용자가 유료 모델을 골라 과금이 발생한다. 그래서 <b>모델 목록을 내주는 제공자에 한해, 그 목록에 있는 모델만</b> 허용한다. 목록에 없으면 요청을 거부하지 않고
+   * 설정의 기본 모델로 진행하며 그 사실을 로그에 남긴다. 모델 하나 때문에 대화가 끊기는 것보다 낫다.
    *
    * <p>저장된 엔티티를 그대로 고치면 영속 상태가 바뀌어 DB 에 반영될 수 있다. 그래서 복사본을 만들어 쓴다.
    */
@@ -373,9 +370,6 @@ public class RagChatServiceImpl implements RagChatService {
           .orElseThrow(() -> new IllegalStateException("기본 LLM 설정이 없습니다. 관리자에게 문의하세요."));
     }
   }
-
-
-
 
   private void checkRagEnabled() {
     if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {

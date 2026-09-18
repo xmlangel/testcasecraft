@@ -15,11 +15,11 @@ import org.springframework.stereotype.Component;
 /**
  * 가용성 확인 작업을 담아 두는 곳.
  *
- * <p>메모리에 둔다. 이 앱은 단일 인스턴스로 뜨고 기존 캐시도 인스턴스 로컬이라 DB 테이블을 만들 이유가 없다. 대신 <b>재시작하면 진행 중인 작업이
- * 사라진다.</b> 확인은 다시 누르면 되는 일이라 감당할 수 있다고 판단했다. 인스턴스를 늘릴 때는 저장소를 옮겨야 한다.
+ * <p>메모리에 둔다. 이 앱은 단일 인스턴스로 뜨고 기존 캐시도 인스턴스 로컬이라 DB 테이블을 만들 이유가 없다. 대신 <b>재시작하면 진행 중인 작업이 사라진다.</b>
+ * 확인은 다시 누르면 되는 일이라 감당할 수 있다고 판단했다. 인스턴스를 늘릴 때는 저장소를 옮겨야 한다.
  *
- * <p>완료된 작업을 지우지 않으면 메모리가 계속 늘어난다. 새 작업을 시작할 때 낡은 것을 함께 정리한다. 별도 스케줄러를 두지 않은 이유는 작업 수가 적어(동시
- * 여덟까지) 정리 비용이 무시할 만하기 때문이다.
+ * <p>완료된 작업을 지우지 않으면 메모리가 계속 늘어난다. 새 작업을 시작할 때 낡은 것을 함께 정리한다. 별도 스케줄러를 두지 않은 이유는 작업 수가 적어(동시 여덟까지)
+ * 정리 비용이 무시할 만하기 때문이다.
  */
 @Component
 @Slf4j
@@ -51,10 +51,12 @@ public class LlmModelProbeJobStore {
   public String start(int total) {
     purgeExpired();
 
-    long running = jobs.values().stream().filter(e -> e.job.getStatus() == LlmModelProbeJob.Status.RUNNING).count();
+    long running =
+        jobs.values().stream()
+            .filter(e -> e.job.getStatus() == LlmModelProbeJob.Status.RUNNING)
+            .count();
     if (running >= MAX_RUNNING_JOBS) {
-      throw new IllegalStateException(
-          "확인 작업이 " + running + "개 돌고 있습니다. 하나가 끝난 뒤 다시 시도해 주세요.");
+      throw new IllegalStateException("확인 작업이 " + running + "개 돌고 있습니다. 하나가 끝난 뒤 다시 시도해 주세요.");
     }
 
     String jobId = UUID.randomUUID().toString();
@@ -116,7 +118,9 @@ public class LlmModelProbeJobStore {
 
   /** 지금 돌고 있는 작업 수. */
   public long runningCount() {
-    return jobs.values().stream().filter(e -> e.job.getStatus() == LlmModelProbeJob.Status.RUNNING).count();
+    return jobs.values().stream()
+        .filter(e -> e.job.getStatus() == LlmModelProbeJob.Status.RUNNING)
+        .count();
   }
 
   /** 보관 기간이 지난 작업을 지운다. */
@@ -137,5 +141,4 @@ public class LlmModelProbeJobStore {
       this.done = done;
     }
   }
-
 }

@@ -24,14 +24,14 @@ import org.springframework.stereotype.Component;
 /**
  * 질의에 답하는 데 쓸 재료를 모은다.
  *
- * <p>두 갈래가 있다. RAG 문서에서 비슷한 내용을 찾는 것과, 질의 의도에 따라 DB 에서 통계·케이스·실행 이력·SQL 결과를 가져오는 것이다. 둘 다 외부에서
- * 재료를 가져오는 일이라 한 곳에 두었다.
+ * <p>두 갈래가 있다. RAG 문서에서 비슷한 내용을 찾는 것과, 질의 의도에 따라 DB 에서 통계·케이스·실행 이력·SQL 결과를 가져오는 것이다. 둘 다 외부에서 재료를
+ * 가져오는 일이라 한 곳에 두었다.
  *
  * <p>`RagChatServiceImpl` 에서 떼어냈다. 그 클래스가 이 두 메서드 때문에 저장소·대시보드·질의 분석·SQL 실행·요약까지 일곱을 의존했고, 채팅 흐름을
  * 읽으려는 사람이 그것들을 함께 봐야 했다.
  *
- * <p>실패를 삼키는 것이 이 클래스의 성질이다. DB 조회가 실패해도 예외를 올리지 않고 그만큼 빈 재료로 답한다. 재료가 부족한 답이 답이 없는 것보다 나으므로
- * 의도한 것이고, 대신 무엇이 실패했는지 로그에 남긴다.
+ * <p>실패를 삼키는 것이 이 클래스의 성질이다. DB 조회가 실패해도 예외를 올리지 않고 그만큼 빈 재료로 답한다. 재료가 부족한 답이 답이 없는 것보다 나으므로 의도한
+ * 것이고, 대신 무엇이 실패했는지 로그에 남긴다.
  */
 @Component
 @RequiredArgsConstructor
@@ -107,7 +107,6 @@ public class RagContextCollector {
             })
         .collect(Collectors.toList());
   }
-
 
   /** 의도에 따른 DB 데이터 조회 */
   public Map<String, Object> fetchDbContext(String projectId, QueryIntent intent) {

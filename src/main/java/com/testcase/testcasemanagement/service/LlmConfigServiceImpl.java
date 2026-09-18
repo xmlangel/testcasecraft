@@ -2,21 +2,22 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.llm.LlmConfigDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
 import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
 import com.testcase.testcasemanagement.dto.llm.LlmModelQueryRequest;
-import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import com.testcase.testcasemanagement.dto.rag.RagChatMessage;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
-import com.testcase.testcasemanagement.service.llm.LlmApiUrlNormalizer;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
+import com.testcase.testcasemanagement.service.llm.LlmApiUrlNormalizer;
 import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
-import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
 import com.testcase.testcasemanagement.service.llm.LlmModelCatalog;
 import com.testcase.testcasemanagement.service.llm.LlmModelCatalogFactory;
+import com.testcase.testcasemanagement.service.llm.LlmModelProbeJobStore;
 import jakarta.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
@@ -26,10 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
-import com.testcase.testcasemanagement.service.llm.LlmModelProbeJobStore;
 
 /** LLM 설정 서비스 구현 */
 @Service
@@ -364,7 +362,6 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     return catalog.listSelectableModels(resolveApiKey(request, provider));
   }
 
-
   @Override
   public LlmModelProbeJob startProbeJob(LlmModelQueryRequest request) {
     LlmProvider provider = resolveProvider(request);
@@ -584,8 +581,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   /**
    * 저장 전에 API URL 을 정규화한다.
    *
-   * <p>정규화 규칙 자체는 {@link LlmApiUrlNormalizer} 가 정본이다. 예전에는 이 메서드가 자체 규칙을 갖고 있었는데 OPENWEBUI·OPENAI
-   * 두 제공자만, 그것도 호출 경로 전체를 넣은 경우만 처리해서 OpenRouter 에 {@code https://openrouter.ai/api/v1} 을 넣으면 경로가 두 번
+   * <p>정규화 규칙 자체는 {@link LlmApiUrlNormalizer} 가 정본이다. 예전에는 이 메서드가 자체 규칙을 갖고 있었는데 OPENWEBUI·OPENAI 두
+   * 제공자만, 그것도 호출 경로 전체를 넣은 경우만 처리해서 OpenRouter 에 {@code https://openrouter.ai/api/v1} 을 넣으면 경로가 두 번
    * 붙어 404 가 났다. 규칙을 두 벌로 두면 한쪽만 고치게 되므로 클라이언트와 같은 정의를 쓴다.
    */
   private String normalizeApiUrl(LlmProvider provider, String apiUrl) {

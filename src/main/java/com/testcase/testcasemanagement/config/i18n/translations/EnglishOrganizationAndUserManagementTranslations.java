@@ -1112,8 +1112,8 @@ public class EnglishOrganizationAndUserManagementTranslations {
       case KEY_MISSING -> log.warn("Translation key not found: {}", keyName);
       case CREATED -> log.debug("Translation created: {} - {}", keyName, languageCode);
       case UPDATED -> log.debug("Translation updated: {} - {}", keyName, languageCode);
-      case UNCHANGED ->
-          log.debug("Translation exists and is identical: {} - {}", keyName, languageCode);
+      case UNCHANGED -> log.debug(
+          "Translation exists and is identical: {} - {}", keyName, languageCode);
       default -> {
         // LANGUAGE_MISSING 과 그 밖의 결과는 원래도 조용히 지나갔다.
       }

@@ -19,19 +19,19 @@ import reactor.core.publisher.Flux;
 /**
  * OpenAI 호환 채팅 완성 API 를 쓰는 제공자의 공통 구현.
  *
- * <p>지원하는 제공자 여섯(OpenAI·Ollama·OpenWebUI·Perplexity·OpenRouter·NVIDIA)이 모두 같은 요청·상항 형태를 쓴다. 합치기
- * 전 6개 파일의 유사도가 평균 96% 였고, 제공자 이름을 지운 뒤 남는 실제 차이는 넷뿐이었다.
+ * <p>지원하는 제공자 여섯(OpenAI·Ollama·OpenWebUI·Perplexity·OpenRouter·NVIDIA)이 모두 같은 요청·상항 형태를 쓴다. 합치기 전
+ * 6개 파일의 유사도가 평균 96% 였고, 제공자 이름을 지운 뒤 남는 실제 차이는 넷뿐이었다.
  *
  * <ol>
  *   <li>호출 경로 — {@link LlmApiUrlNormalizer#chatCompletionsPathOf} 가 제공자별로 알려 준다
  *   <li>추가 헤더 — OpenRouter 가 자기 식별 헤더 둘을 요구한다. {@link #customizeHeaders} 로 연다
- *   <li>인증 헤더 조건 — Ollama 는 키가 {@code not-required} 면 헤더를 붙이지 않는다. {@link
- *       #requiresAuthorization} 로 연다
+ *   <li>인증 헤더 조건 — Ollama 는 키가 {@code not-required} 면 헤더를 붙이지 않는다. {@link #requiresAuthorization} 로
+ *       연다
  *   <li>표시 이름 — 로그와 실패 문구에 쓴다
  * </ol>
  *
- * <p>합치기 전 커밋 10개가 클라이언트 3개 이상을 동시에 고쳤다. 같은 수정을 반복 복제해 온 이력이고, 실제로 드리프트도 생겼다. 상항 오류 메시지가 null 일
- * 때의 처리가 OpenWebUI 에만 있어 나머지 다섯은 {@code null} 이라는 문구를 사용자에게 보였다. 여기서는 모든 제공자에 적용한다.
+ * <p>합치기 전 커밋 10개가 클라이언트 3개 이상을 동시에 고쳤다. 같은 수정을 반복 복제해 온 이력이고, 실제로 드리프트도 생겼다. 상항 오류 메시지가 null 일 때의
+ * 처리가 OpenWebUI 에만 있어 나머지 다섯은 {@code null} 이라는 문구를 사용자에게 보였다. 여기서는 모든 제공자에 적용한다.
  */
 @Slf4j
 public abstract class OpenAiCompatibleLlmClient implements LlmClient {
@@ -72,8 +72,7 @@ public abstract class OpenAiCompatibleLlmClient implements LlmClient {
   /**
    * 이 키로 인증 헤더를 붙일지 정한다.
    *
-   * <p>기본은 항상 붙인다. Ollama 는 로컬 서버라 키가 필요 없는 경우가 있고, 그때 관리자가 {@code not-required} 를 넣어 두므로 헤더를
-   * 생략한다.
+   * <p>기본은 항상 붙인다. Ollama 는 로컬 서버라 키가 필요 없는 경우가 있고, 그때 관리자가 {@code not-required} 를 넣어 두므로 헤더를 생략한다.
    */
   protected boolean requiresAuthorization(String apiKey) {
     return true;
@@ -317,18 +316,23 @@ public abstract class OpenAiCompatibleLlmClient implements LlmClient {
       Integer maxTokens,
       boolean stream) {
     return Map.of(
-        "model", config.getModelName(),
-        "messages", messages,
-        "temperature", temperature != null ? temperature : DEFAULT_TEMPERATURE,
-        "max_tokens", maxTokens != null ? maxTokens : DEFAULT_MAX_TOKENS,
-        "stream", stream);
+        "model",
+        config.getModelName(),
+        "messages",
+        messages,
+        "temperature",
+        temperature != null ? temperature : DEFAULT_TEMPERATURE,
+        "max_tokens",
+        maxTokens != null ? maxTokens : DEFAULT_MAX_TOKENS,
+        "stream",
+        stream);
   }
 
   /**
    * 상태코드가 있는 실패를 문구로 옮긴다.
    *
-   * <p>실패 문구에 <b>실제로 호출한 주소를 함께 싣는다.</b> 상태코드만으로는 경로가 어긋난 것을 알 수 없다. 등록 URL 뒤에 호출 경로가 두 번 붙어
-   * 404 가 나던 회귀가 실제로 있었다.
+   * <p>실패 문구에 <b>실제로 호출한 주소를 함께 싣는다.</b> 상태코드만으로는 경로가 어긋난 것을 알 수 없다. 등록 URL 뒤에 호출 경로가 두 번 붙어 404 가
+   * 나던 회귀가 실제로 있었다.
    */
   private LlmClientException responseException(
       LlmConfig config, WebClientResponseException e, boolean streaming) {
@@ -363,8 +367,7 @@ public abstract class OpenAiCompatibleLlmClient implements LlmClient {
   /**
    * 예외 문구가 비어 있으면 클래스 이름을 쓴다.
    *
-   * <p>합치기 전에는 이 처리가 OpenWebUI 에만 있어 나머지 다섯 제공자는 사용자에게 {@code null} 이라는 문구를 보였다. 복제된 코드가 어긋난
-   * 자리다.
+   * <p>합치기 전에는 이 처리가 OpenWebUI 에만 있어 나머지 다섯 제공자는 사용자에게 {@code null} 이라는 문구를 보였다. 복제된 코드가 어긋난 자리다.
    */
   private String safeMessage(Exception e) {
     return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();

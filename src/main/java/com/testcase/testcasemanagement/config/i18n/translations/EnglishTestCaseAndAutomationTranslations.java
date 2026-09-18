@@ -1917,17 +1917,24 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.markdown.code", languageCode, "Code", createdBy);
     createTranslationIfNotExists("testcase.markdown.heading", languageCode, "Heading", createdBy);
     createTranslationIfNotExists("testcase.markdown.quote", languageCode, "Quote", createdBy);
-    createTranslationIfNotExists("testcase.markdown.bulletList", languageCode, "Bullet list", createdBy);
-    createTranslationIfNotExists("testcase.markdown.orderedList", languageCode, "Numbered list", createdBy);
-    createTranslationIfNotExists("testcase.markdown.taskList", languageCode, "Checklist", createdBy);
-    createTranslationIfNotExists("testcase.markdown.table", languageCode, "Insert table", createdBy);
+    createTranslationIfNotExists(
+        "testcase.markdown.bulletList", languageCode, "Bullet list", createdBy);
+    createTranslationIfNotExists(
+        "testcase.markdown.orderedList", languageCode, "Numbered list", createdBy);
+    createTranslationIfNotExists(
+        "testcase.markdown.taskList", languageCode, "Checklist", createdBy);
+    createTranslationIfNotExists(
+        "testcase.markdown.table", languageCode, "Insert table", createdBy);
 
     // Tree header selection English
-    createTranslationIfNotExists("testcase.tree.selectedCount", languageCode, "Selected", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.selectedCount", languageCode, "Selected", createdBy);
     createTranslationIfNotExists("testcase.notes.edit", languageCode, "Edit notes", createdBy);
     createTranslationIfNotExists("testcase.notes.viewOnly", languageCode, "View only", createdBy);
-    createTranslationIfNotExists("testcase.notes.fullscreen", languageCode, "Fullscreen", createdBy);
-    createTranslationIfNotExists("testcase.notes.exitFullscreen", languageCode, "Exit fullscreen", createdBy);
+    createTranslationIfNotExists(
+        "testcase.notes.fullscreen", languageCode, "Fullscreen", createdBy);
+    createTranslationIfNotExists(
+        "testcase.notes.exitFullscreen", languageCode, "Exit fullscreen", createdBy);
 
     // Export PDF orientation options English
     createTranslationIfNotExists(
@@ -2075,8 +2082,8 @@ public class EnglishTestCaseAndAutomationTranslations {
       case KEY_MISSING -> log.warn("Translation key not found: {}", keyName);
       case CREATED -> log.debug("Translation created: {} - {}", keyName, languageCode);
       case UPDATED -> log.debug("Translation updated: {} - {}", keyName, languageCode);
-      case UNCHANGED ->
-          log.debug("Translation exists and is identical: {} - {}", keyName, languageCode);
+      case UNCHANGED -> log.debug(
+          "Translation exists and is identical: {} - {}", keyName, languageCode);
       default -> {
         // LANGUAGE_MISSING 과 그 밖의 결과는 원래도 조용히 지나갔다.
       }

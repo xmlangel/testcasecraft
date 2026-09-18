@@ -38,7 +38,8 @@ public class KoreanProjectSettingsTranslations {
     create("projectSettings.general.displayOrder", lang, "정렬 순서", by);
     create("projectSettings.general.save", lang, "저장", by);
     create("projectSettings.general.saved", lang, "프로젝트 설정을 저장했습니다.", by);
-    create("projectSettings.general.readonly", lang, "프로젝트 정보 변경은 프로젝트 매니저와 시스템 관리자만 할 수 있습니다.", by);
+    create(
+        "projectSettings.general.readonly", lang, "프로젝트 정보 변경은 프로젝트 매니저와 시스템 관리자만 할 수 있습니다.", by);
     create("projectSettings.members.invite", lang, "멤버 추가", by);
     create("projectSettings.members.username", lang, "사용자명", by);
     create("projectSettings.members.inviteSubmit", lang, "추가", by);
@@ -70,6 +71,8 @@ public class KoreanProjectSettingsTranslations {
     create("projectSettings.role.tester", lang, "테스터", by);
     create("projectSettings.role.contributor", lang, "기여자", by);
     create("projectSettings.role.viewer", lang, "뷰어", by);
+    create("projectSettings.role.group.canCreate", lang, "만들고 고칠 수 있음", by);
+    create("projectSettings.role.group.viewOnly", lang, "만들 수 없음", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

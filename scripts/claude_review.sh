@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # 스테이징된 변경분을 claude CLI(헤드리스)로 리뷰한다.
 #
-# pre-commit 훅 `claude-code-review` 에서 커밋 직전에 실행된다.
+# pre-commit 훅 `claude-code-review` 로 등록되어 있지만 커밋할 때 자동으로 돌지는
+# 않는다(stages: [manual]). 리뷰를 받고 싶을 때만 부른다:
+#   pre-commit run --hook-stage manual claude-code-review
+#   bash scripts/claude_review.sh
 # 리뷰는 권고다 — 지적이 있어도 커밋을 막지 않는다. LLM 판정은 매번 달라서
 # 차단 근거로 쓰면 정상 커밋이 막히고, 그러면 사람들이 --no-verify 를 쓰게 되어
 # 훅 전체가 무력해진다. 차단이 필요하면 CLAUDE_REVIEW_BLOCK=1.
@@ -14,7 +17,10 @@
 #   CLAUDE_REVIEW_MODEL      사용할 모델 (기본: CLI 기본값)
 #   CLAUDE_REVIEW_BLOCK=1    VERDICT: ISSUES 면 커밋 중단
 #
-# 이번 커밋만 건너뛰기: SKIP=claude-code-review git commit ...
+# 대기 한도 주의: 아래 CLAUDE_REVIEW_TIMEOUT 은 timeout 명령이 있을 때만 걸린다.
+# macOS 기본 환경에는 그 명령이 없어 한도가 적용되지 않는다. 실측에서 698줄 diff 가
+# 12분, 305줄 diff 가 11분을 넘겨도 끝나지 않았다. 커밋 훅에서 뺀 이유가 이것이다.
+# 한도를 걸려면 coreutils 를 설치하고 gtimeout 을 timeout 으로 쓸 수 있게 한다.
 #
 # 알려진 부작용: 헤드리스 호출도 하나의 Claude 세션이라, 이 프로젝트의 SessionEnd
 # 훅이 `.claude/SESSION_LOG.md` 의 "미요약 세션" 표에 리뷰 1회당 한 줄을 남긴다.

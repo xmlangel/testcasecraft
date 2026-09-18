@@ -31,16 +31,14 @@ public class EnglishProjectSettingsTranslations {
     create(
         "projectSettings.denied",
         lang,
-        "Only project managers, lead developers, and system administrators can open project settings.",
+        "Only project managers, lead developers, and system administrators can open project"
+            + " settings.",
         by);
     create("projectSettings.tab.general", lang, "General", by);
     create("projectSettings.tab.members", lang, "Members", by);
     create("projectSettings.general.code", lang, "Project code", by);
     create(
-        "projectSettings.general.codeHint",
-        lang,
-        "The code cannot be changed after creation.",
-        by);
+        "projectSettings.general.codeHint", lang, "The code cannot be changed after creation.", by);
     create("projectSettings.general.name", lang, "Project name", by);
     create("projectSettings.general.description", lang, "Description", by);
     create("projectSettings.general.displayOrder", lang, "Display order", by);
@@ -59,10 +57,7 @@ public class EnglishProjectSettingsTranslations {
     create("projectSettings.members.roleUpdated", lang, "Role updated.", by);
     create("projectSettings.members.remove", lang, "Remove member", by);
     create(
-        "projectSettings.members.removeConfirm",
-        lang,
-        "Remove {username} from this project?",
-        by);
+        "projectSettings.members.removeConfirm", lang, "Remove {username} from this project?", by);
     create("projectSettings.members.empty", lang, "This project has no members.", by);
     create(
         "projectSettings.members.hint",
@@ -86,6 +81,8 @@ public class EnglishProjectSettingsTranslations {
     create("projectSettings.role.tester", lang, "Tester", by);
     create("projectSettings.role.contributor", lang, "Contributor", by);
     create("projectSettings.role.viewer", lang, "Viewer", by);
+    create("projectSettings.role.group.canCreate", lang, "Can create and edit", by);
+    create("projectSettings.role.group.viewOnly", lang, "Cannot create", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

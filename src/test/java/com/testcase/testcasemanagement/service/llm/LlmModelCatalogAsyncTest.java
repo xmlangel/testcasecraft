@@ -4,13 +4,12 @@ import static com.testcase.testcasemanagement.service.llm.LlmClientTestSupport.o
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import reactor.core.publisher.Mono;
 import org.testng.annotations.Test;
+import reactor.core.publisher.Mono;
 
 /**
  * 가용성 확인이 호출한 스레드를 막지 않음을 고정한다.

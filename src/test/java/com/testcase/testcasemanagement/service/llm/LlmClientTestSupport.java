@@ -10,10 +10,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.mockito.Mockito;
-import org.springframework.http.HttpStatus;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -31,8 +31,8 @@ import reactor.core.publisher.Mono;
  *   <li><b>상항 해석</b> — {@code src/test/resources/llm-responses/} 의 실제 상항 파일로 검집한다.
  * </ol>
  *
- * <p><b>상항을 손으로 쓰지 않는 것이 요점이다.</b> 손으로 쓴 상항은 실제 API 가 바뀌어도 시험이 계속 통지해 거짓 통지를 만든다. 그 폴더의 파일은 실제
- * 호출에서 잡은 것이고 {@code capture.sh} 로 다시 잡을 수 있다.
+ * <p><b>상항을 손으로 쓰지 않는 것이 요점이다.</b> 손으로 쓴 상항은 실제 API 가 바뀌어도 시험이 계속 통지해 거짓 통지를 만든다. 그 폴더의 파일은 실제 호출에서
+ * 잡은 것이고 {@code capture.sh} 로 다시 잡을 수 있다.
  */
 public final class LlmClientTestSupport {
 
@@ -127,9 +127,7 @@ public final class LlmClientTestSupport {
                 DataBufferFactory factory = new DefaultDataBufferFactory();
                 Flux<DataBuffer> body =
                     Flux.fromIterable(chunks)
-                        .map(
-                            chunk ->
-                                factory.wrap(chunk.getBytes(StandardCharsets.UTF_8)));
+                        .map(chunk -> factory.wrap(chunk.getBytes(StandardCharsets.UTF_8)));
                 return Mono.just(
                     ClientResponse.create(HttpStatus.OK)
                         .header("Content-Type", MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -191,9 +189,7 @@ public final class LlmClientTestSupport {
     try (InputStream in = LlmClientTestSupport.class.getResourceAsStream(path)) {
       if (in == null) {
         throw new AssertionError(
-            "실제 상항 파일이 없다: "
-                + path
-                + ". src/test/resources/llm-responses/capture.sh 로 잡는다.");
+            "실제 상항 파일이 없다: " + path + ". src/test/resources/llm-responses/capture.sh 로 잡는다.");
       }
       return new String(in.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException e) {

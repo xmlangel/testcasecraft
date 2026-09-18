@@ -1360,6 +1360,10 @@ const AppContent = () => {
                             ? editingTestPlanId
                             : null
                         }
+                        initialCreatePlan={
+                          showTestPlanForm && !editingTestPlanId
+                        }
+                        onExitCreatePlan={handleCloseTestPlanForm}
                       />
                     )}
                     {tabIndex === 2 && !isSidebarMode && (

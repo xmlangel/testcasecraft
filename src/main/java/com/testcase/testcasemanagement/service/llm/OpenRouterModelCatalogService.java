@@ -22,12 +22,12 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 /**
  * OpenRouter 무료 모델 카탈로그
  *
- * <p>목록 상항에 가격과 모달리티가 있어 무료·채팅 판정을 메타데이터로 한다. 대신 <b>확인이 무료 일일 한도를 태운다</b>(실측 한도 50건, 무료 모델
- * 20개). 그래서 화면은 고른 모델 하나만 확인하는 것을 기본으로 한다.
+ * <p>목록 상항에 가격과 모달리티가 있어 무료·채팅 판정을 메타데이터로 한다. 대신 <b>확인이 무료 일일 한도를 태운다</b>(실측 한도 50건, 무료 모델 20개).
+ * 그래서 화면은 고른 모델 하나만 확인하는 것을 기본으로 한다.
  *
  * <p>한도 소진을 메타데이터로 알 수 없다는 것도 실측으로 확인했다. {@code /models/{slug}/endpoints} 는 429 를 내는 모델에도 {@code
- * status=0}·{@code uptime=100} 을 돌려주고, 정상 상항 헤더에는 한도 정보가 없다. 429 상항 헤더에만 들어 있어 한 번 걸린 뒤에야 잔량과
- * 초기화 시각을 알 수 있다.
+ * status=0}·{@code uptime=100} 을 돌려주고, 정상 상항 헤더에는 한도 정보가 없다. 429 상항 헤더에만 들어 있어 한 번 걸린 뒤에야 잔량과 초기화
+ * 시각을 알 수 있다.
  *
  * <p>확인 절차 자체는 {@link AbstractLlmModelCatalog} 가 담당한다.
  */
@@ -62,8 +62,8 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
   /**
    * 전수 확인을 권하지 않는다.
    *
-   * <p>목록에 오른 모델은 대개 쓸 수 있고(실측: 20개 중 사용 가능 14~17개, 나머지는 일시적 혼잡), 확인 자체가 무료 일일 한도 50건을 태운다. 전수
-   * 확인 한 번이 하루치의 40% 다. 쓸 모델은 하나이므로 그 하나만 확인하는 편이 낫다.
+   * <p>목록에 오른 모델은 대개 쓸 수 있고(실측: 20개 중 사용 가능 14~17개, 나머지는 일시적 혼잡), 확인 자체가 무료 일일 한도 50건을 태운다. 전수 확인 한
+   * 번이 하루치의 40% 다. 쓸 모델은 하나이므로 그 하나만 확인하는 편이 낫다.
    */
   @Override
   public boolean probeRecommendedByDefault() {
@@ -83,8 +83,8 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
   /**
    * 낮게 잡는다.
    *
-   * <p>확인 자체가 한도를 태우므로, 계정 한도에 걸렸을 때 이미 날아간 요청이 곧 낭비다. 동시 실행이 곧 최악의 낭비량이다. 12 로 두면 12건을 버리고 4 로
-   * 두면 4건을 버린다.
+   * <p>확인 자체가 한도를 태우므로, 계정 한도에 걸렸을 때 이미 날아간 요청이 곧 낭비다. 동시 실행이 곧 최악의 낭비량이다. 12 로 두면 12건을 버리고 4 로 두면
+   * 4건을 버린다.
    */
   @Override
   protected int probeConcurrency() {
@@ -223,8 +223,7 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
           return verdict(
               modelId,
               Availability.ACCOUNT_LIMIT,
-              "계정의 일일 무료 요청 한도를 다 썼습니다. 다른 무료 모델을 골라도 해결되지 않습니다. "
-                  + resetPhrase(kind.reset()));
+              "계정의 일일 무료 요청 한도를 다 썼습니다. 다른 무료 모델을 골라도 해결되지 않습니다. " + resetPhrase(kind.reset()));
         }
         return verdict(
             modelId,
@@ -269,9 +268,7 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
     } catch (WebClientResponseException e) {
       if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
         throw new LlmClient.LlmClientException(
-            "OpenRouter 가 이 API Key 를 거부했습니다 ("
-                + e.getStatusCode().value()
-                + "). 키를 다시 확인해 주세요.",
+            "OpenRouter 가 이 API Key 를 거부했습니다 (" + e.getStatusCode().value() + "). 키를 다시 확인해 주세요.",
             e);
       }
       throw new LlmClient.LlmClientException(
@@ -297,9 +294,9 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
   /**
    * 429 상항이 계정 단위 한도인지 모델 단위 혼잡인지 가른다.
    *
-   * <p>판정 근거는 {@code error.metadata.limit_source} 다. 실측값은 계정 쪽이 {@code
-   * openrouter_free_tier_daily}, 모델 쪽이 {@code upstream_provider_shared_pool} 이다. 필드가 없으면 모델 쪽으로
-   * 본다. 계정 한도를 잘못 단정해 확인을 멈추면 쓸 수 있는 모델을 놓치기 때문이다.
+   * <p>판정 근거는 {@code error.metadata.limit_source} 다. 실측값은 계정 쪽이 {@code openrouter_free_tier_daily},
+   * 모델 쪽이 {@code upstream_provider_shared_pool} 이다. 필드가 없으면 모델 쪽으로 본다. 계정 한도를 잘못 단정해 확인을 멈추면 쓸 수 있는
+   * 모델을 놓치기 때문이다.
    */
   private RateLimitKind classifyRateLimit(String responseBody) {
     if (responseBody == null || responseBody.isBlank()) {
@@ -373,8 +370,8 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
   /**
    * OpenRouter 오류 본문에서 사람이 읽을 문구만 뽑는다.
    *
-   * <p>본문이 {@code {"error":{"message":…,"metadata":{"raw":…}}}} 형태이고, 실제 사유는 대개 {@code metadata.raw}
-   * 안에 있다. 원문 JSON 을 그대로 화면에 실으면 읽히지 않으므로 문장만 남긴다.
+   * <p>본문이 {@code {"error":{"message":…,"metadata":{"raw":…}}}} 형태이고, 실제 사유는 대개 {@code
+   * metadata.raw} 안에 있다. 원문 JSON 을 그대로 화면에 실으면 읽히지 않으므로 문장만 남긴다.
    */
   private String extractMessage(String responseBody) {
     if (responseBody == null || responseBody.isBlank()) {

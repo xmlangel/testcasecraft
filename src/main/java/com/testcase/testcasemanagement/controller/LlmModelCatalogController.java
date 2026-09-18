@@ -4,7 +4,7 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.dto.ApiResponse;
 import com.testcase.testcasemanagement.dto.llm.LlmModelCatalogInfo;
 import com.testcase.testcasemanagement.dto.llm.LlmModelDTO;
-import com.testcase.testcasemanagement.dto.llm.LlmModelProbeResponse;
+import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
 import com.testcase.testcasemanagement.dto.llm.LlmModelQueryRequest;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.service.LlmConfigService;
@@ -16,23 +16,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
-import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * LLM 모델 카탈로그 API 컨트롤러
  *
- * <p>설정 CRUD 와 갈라 둔 이유는 성격이 다르기 때문이다. 설정 CRUD 는 우리 DB 를 다루고, 여기는 <b>제공자에게 물어보는 일</b>만 한다. 어떤
- * 모델이 있는지, 그 모델을 지금 쓸 수 있는지는 제공자가 아는 것이고 우리는 그것을 옮겨 줄 뿐이다.
+ * <p>설정 CRUD 와 갈라 둔 이유는 성격이 다르기 때문이다. 설정 CRUD 는 우리 DB 를 다루고, 여기는 <b>제공자에게 물어보는 일</b>만 한다. 어떤 모델이
+ * 있는지, 그 모델을 지금 쓸 수 있는지는 제공자가 아는 것이고 우리는 그것을 옮겨 줄 뿐이다.
  *
  * <p>제공자마다 목록의 성질이 크게 다르다는 것이 이 API 를 이해하는 핵심이다. 실측으로 확인한 차이가 각 엔드포인트 설명에 적혀 있다.
  *
@@ -217,8 +215,7 @@ public class LlmModelCatalogController {
             () ->
                 ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(
-                        ApiResponse.error(
-                            "확인 작업을 찾을 수 없습니다. 10분이 지나 지워졌거나 서버가 다시 시작됐을 수 있습니다.")));
+                        ApiResponse.error("확인 작업을 찾을 수 없습니다. 10분이 지나 지워졌거나 서버가 다시 시작됐을 수 있습니다.")));
   }
 
   /** 작업 상태를 사람이 읽을 문구로 만든다. */
@@ -229,6 +226,4 @@ public class LlmModelCatalogController {
       case FAILED -> "확인 실패";
     };
   }
-
-
 }

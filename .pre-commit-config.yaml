@@ -59,8 +59,18 @@ repos:
 
       # 스테이징된 코드 변경분을 claude CLI(헤드리스)로 리뷰한다 — 권고이며 커밋을
       # 막지 않는다. claude 가 없거나 응답 실패면 안내만 남기고 통과.
-      # 이번 커밋만 건너뛰기: SKIP=claude-code-review git commit ...
+      #
+      # 커밋할 때 자동으로 돌지 않는다(stages: [manual]). 리뷰를 받고 싶을 때만 부른다:
+      #   pre-commit run --hook-stage manual claude-code-review
+      #   bash scripts/claude_review.sh          # 같은 결과를 바로 본다
       # 지적이 있을 때 커밋을 멈추려면: CLAUDE_REVIEW_BLOCK=1
+      #
+      # 자동 실행을 뺀 이유는 대기 시간이 제어되지 않아서다. claude_review.sh 는
+      # CLAUDE_REVIEW_TIMEOUT(기본 180초)을 두지만 timeout 명령이 있을 때만 적용하는데,
+      # macOS 기본 환경에는 그 명령이 없다. 실측에서 57파일 698줄 diff 는 12분, 23파일
+      # 305줄 diff 는 11분이 지나도 끝나지 않아 커밋이 그 자리에 묶였다. 멈춘 커밋을
+      # 중간에 끊으면 pre-commit 이 치워 둔 미스테이징 변경이 복원되지 않아 그 회차
+      # 작업이 통째로 사라지기도 했다(캐시의 patch 파일에서 되살렸다).
       - id: claude-code-review
         name: Claude Code Review (staged)
         entry: bash scripts/claude_review.sh
@@ -69,7 +79,7 @@ repos:
         pass_filenames: false
         require_serial: true
         verbose: true
-        stages: [pre-commit]
+        stages: [manual]
 
       # 로컬 ollama 로 리뷰하던 대안 (기본 비활성 — 위 claude 훅으로 대체)
       # - id: ollama-code-review
