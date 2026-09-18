@@ -57,9 +57,15 @@ vi.mock("../hooks/useProjectRole.js", () => ({
 
 // 플랜 편집·실행 상세는 별도 컴포넌트라 여기서는 자리만 확인한다
 vi.mock("./TestPlanForm.jsx", () => ({
-  default: ({ testPlanId, inline }) => (
+  default: ({ testPlanId, inline, onSave, onCancel }) => (
     <div data-testid="stub-plan-form">
-      plan={testPlanId} inline={String(Boolean(inline))}
+      plan={String(testPlanId)} inline={String(Boolean(inline))}
+      <button type="button" onClick={() => onSave?.("tp9")}>
+        저장 흉내
+      </button>
+      <button type="button" onClick={() => onCancel?.()}>
+        취소 흉내
+      </button>
     </div>
   ),
 }));
@@ -335,5 +341,113 @@ describe("PlanExecutionWorkspace", () => {
     await waitFor(() =>
       expect(screen.queryByTestId("workspace-new-execution")).toBeNull(),
     );
+  });
+
+  it("편집 가능한 역할에는 플랜 만들기 입구가 있다", () => {
+    setup({ mode: "plans" });
+    expect(screen.getByTestId("workspace-new-plan")).toBeInTheDocument();
+  });
+
+  it("플랜 만들기를 누르면 상세 열에 빈 플랜 폼이 열린다", async () => {
+    setup({ mode: "plans" });
+    fireEvent.click(screen.getByTestId("workspace-new-plan"));
+    const form = await screen.findByTestId("stub-plan-form");
+    expect(form).toHaveTextContent("plan=null");
+    expect(form).toHaveTextContent("inline=true");
+  });
+
+  it("새 플랜을 저장하면 방금 만든 플랜이 상세 열에 열린다", async () => {
+    setup({ mode: "plans" });
+    fireEvent.click(screen.getByTestId("workspace-new-plan"));
+    fireEvent.click(await screen.findByText("저장 흉내"));
+    await waitFor(() =>
+      expect(screen.getByTestId("stub-plan-form")).toHaveTextContent(
+        "plan=tp9",
+      ),
+    );
+  });
+
+  it("주소로 새 플랜 화면에 들어오면 빈 폼이 바로 열린다", async () => {
+    setup({ mode: "plans", initialCreatePlan: true });
+    const form = await screen.findByTestId("stub-plan-form");
+    expect(form).toHaveTextContent("plan=null");
+  });
+
+  it("조회 전용 역할에는 플랜 만들기 입구가 없다", async () => {
+    roleState.projectRole = "VIEWER";
+    setup({ mode: "plans" });
+    await waitFor(() =>
+      expect(screen.queryByTestId("workspace-new-plan")).toBeNull(),
+    );
+  });
+
+  it("결과만 기록하는 역할에도 플랜 만들기 입구가 없다", async () => {
+    roleState.projectRole = "TESTER";
+    setup({ mode: "plans" });
+    await waitFor(() =>
+      expect(screen.queryByTestId("workspace-new-plan")).toBeNull(),
+    );
+  });
+
+  it("실행 영역에는 플랜 만들기 입구가 없다", async () => {
+    setup({ mode: "executions" });
+    await waitFor(() =>
+      expect(screen.queryByTestId("workspace-new-plan")).toBeNull(),
+    );
+  });
+
+  it("실행 영역에도 실행 만들기 입구가 있다", async () => {
+    setup({ mode: "executions" });
+    expect(
+      await screen.findByTestId("workspace-new-execution-top"),
+    ).toBeInTheDocument();
+  });
+
+  it("실행 영역에서는 플랜을 고르지 않아도 실행 폼이 열린다", async () => {
+    setup({ mode: "executions" });
+    fireEvent.click(await screen.findByTestId("workspace-new-execution-top"));
+    const form = await screen.findByTestId("stub-execution-form");
+    expect(form).toHaveTextContent("exec=null");
+  });
+
+  it("조회 전용 역할에는 실행 영역의 실행 만들기 입구도 없다", async () => {
+    roleState.projectRole = "VIEWER";
+    setup({ mode: "executions" });
+    await waitFor(() =>
+      expect(screen.queryByTestId("workspace-new-execution-top")).toBeNull(),
+    );
+  });
+
+  it("실행을 열어 본 뒤 만들기를 눌러도 직전 실행의 플랜을 물려받지 않는다", async () => {
+    setup({ mode: "executions" });
+    fireEvent.click(await screen.findByText("1차 실행"));
+    await waitFor(() =>
+      expect(screen.getByTestId("stub-execution-form")).toHaveTextContent(
+        "exec=ex1",
+      ),
+    );
+    fireEvent.click(screen.getByTestId("workspace-new-execution-top"));
+    const form = await screen.findByTestId("stub-execution-form");
+    expect(form).toHaveTextContent("exec=null");
+    expect(form).toHaveTextContent("plan=null");
+  });
+
+  it("주소로 새 플랜 화면에 들어온 뒤 취소하면 상위에도 알린다", async () => {
+    const onExitCreatePlan = vi.fn();
+    setup({ mode: "plans", initialCreatePlan: true, onExitCreatePlan });
+    fireEvent.click(await screen.findByText("취소 흉내"));
+    await waitFor(() => expect(onExitCreatePlan).toHaveBeenCalled());
+  });
+
+  it("생성 중이 아닐 때 플랜을 고르는 것은 상위에 알리지 않는다", async () => {
+    const onExitCreatePlan = vi.fn();
+    setup({ mode: "plans", onExitCreatePlan });
+    fireEvent.click(await screen.findByText("회귀 플랜"));
+    await waitFor(() =>
+      expect(screen.getByTestId("stub-plan-form")).toHaveTextContent(
+        "plan=tp1",
+      ),
+    );
+    expect(onExitCreatePlan).not.toHaveBeenCalled();
   });
 });

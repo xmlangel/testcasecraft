@@ -54,13 +54,21 @@ public class ProjectUser {
     updatedAt = LocalDateTime.now();
   }
 
-  // 프로젝트 내 역할 정의
+  /**
+   * 프로젝트 내 역할. 권한이 넓은 것부터 좁은 것으로 선언한다.
+   *
+   * <p>앞의 넷은 ProjectUserRepository.hasEditRole() 이 통과시키는 편집 역할이고, 뒤의 둘은 아니다. 테스터는 플랜·케이스를 만들지 못하지만
+   * 실행 결과는 기록한다(canRecordTestResult).
+   *
+   * <p>{@code @Enumerated(EnumType.STRING)} 이라 이 순서는 저장 값에 영향을 주지 않는다. 화면의 역할 선택 목록
+   * (projectMemberService.js 의 PROJECT_ROLES)과 같은 순서로 둔다.
+   */
   public enum ProjectRole {
     PROJECT_MANAGER("프로젝트 매니저"),
     LEAD_DEVELOPER("리드 개발자"),
     DEVELOPER("개발자"),
-    TESTER("테스터"),
     CONTRIBUTOR("기여자"),
+    TESTER("테스터"),
     VIEWER("뷰어");
 
     private final String description;

@@ -515,6 +515,7 @@ public class KoreanI18nGapTranslations {
         "testPlan.workspace.executions", languageCode, "이 플랜의 실행", createdBy);
     createTranslationIfNotExists(
         "testPlan.workspace.newExecution", languageCode, "실행 만들기", createdBy);
+    createTranslationIfNotExists("testPlan.workspace.newPlan", languageCode, "플랜 만들기", createdBy);
     createTranslationIfNotExists("testPlan.workspace.filter", languageCode, "이름으로 찾기", createdBy);
     createTranslationIfNotExists(
         "testPlan.workspace.filterExecution", languageCode, "실행 이름으로 찾기", createdBy);

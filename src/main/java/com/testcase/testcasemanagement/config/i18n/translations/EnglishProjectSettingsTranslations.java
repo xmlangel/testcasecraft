@@ -81,6 +81,8 @@ public class EnglishProjectSettingsTranslations {
     create("projectSettings.role.tester", lang, "Tester", by);
     create("projectSettings.role.contributor", lang, "Contributor", by);
     create("projectSettings.role.viewer", lang, "Viewer", by);
+    create("projectSettings.role.group.canCreate", lang, "Can create and edit", by);
+    create("projectSettings.role.group.viewOnly", lang, "Cannot create", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

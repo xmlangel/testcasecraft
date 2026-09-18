@@ -71,6 +71,8 @@ public class KoreanProjectSettingsTranslations {
     create("projectSettings.role.tester", lang, "테스터", by);
     create("projectSettings.role.contributor", lang, "기여자", by);
     create("projectSettings.role.viewer", lang, "뷰어", by);
+    create("projectSettings.role.group.canCreate", lang, "만들고 고칠 수 있음", by);
+    create("projectSettings.role.group.viewOnly", lang, "만들 수 없음", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

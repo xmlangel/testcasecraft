@@ -72,6 +72,8 @@ public class ProjectSettingsKeysInitializer {
     createKey("projectSettings.role.tester", "역할 라벨 TESTER", "테스터");
     createKey("projectSettings.role.contributor", "역할 라벨 CONTRIBUTOR", "기여자");
     createKey("projectSettings.role.viewer", "역할 라벨 VIEWER", "뷰어");
+    createKey("projectSettings.role.group.canCreate", "역할 선택 구분 — 생성 가능", "만들고 고칠 수 있음");
+    createKey("projectSettings.role.group.viewOnly", "역할 선택 구분 — 생성 불가", "만들 수 없음");
   }
 
   /** 프로젝트 설정 밖(조직 관리)에서도 쓰는 키. 분류를 따로 둬 어느 화면 것인지 헷갈리지 않게 한다. */
