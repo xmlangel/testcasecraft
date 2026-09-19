@@ -36,7 +36,9 @@ const base = async (projectId) =>
 const readError = async (response) => {
   try {
     const data = await response.json();
-    return data?.message || data?.error || data?.detail || `HTTP ${response.status}`;
+    return (
+      data?.message || data?.error || data?.detail || `HTTP ${response.status}`
+    );
   } catch {
     return `HTTP ${response.status}`;
   }
@@ -125,7 +127,9 @@ class AgentConnectionService {
     // 제품이 컨테이너 안이면 서버는 host.docker.internal 로만 닿고 브라우저는
     // 그 이름을 풀지 못한다.
     const target =
-      connection?.effectiveBrowserUrl || connection?.browserUrl || connection?.serverUrl;
+      connection?.effectiveBrowserUrl ||
+      connection?.browserUrl ||
+      connection?.serverUrl;
     if (!target) return null;
     const params = new URLSearchParams({
       tms: "testcasecraft",
@@ -133,7 +137,8 @@ class AgentConnectionService {
       projectId,
     });
     if (caseIds.length > 0) params.set("cases", caseIds.join(","));
-    if (connection.defaultProfile) params.set("profile", connection.defaultProfile);
+    if (connection.defaultProfile)
+      params.set("profile", connection.defaultProfile);
     return `${target.replace(/\/+$/, "")}/runs/new?${params.toString()}`;
   }
 }
