@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="15">
+<meta name="robots" content="noindex">
+<title>502 Bad Gateway · TestcaseCraft</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1a1d21; --dim: #5b6570;
+    --line: #e3e7eb; --accent: #065fd4;
+    --codebg: #fdecec; --codeink: #b3261e; --codeline: #f5c9c6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171a; --card:#1c2024; --ink:#e8eaed; --dim:#9aa4ae;
+            --line:#2b3136; --accent:#7aa7f0;
+            --codebg:#3a2321; --codeink:#f2b8b5; --codeline:#5c3330; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center;
+    justify-content: center; padding: 24px; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Noto Sans KR", "Malgun Gothic", sans-serif;
+    line-height: 1.6;
+  }
+  .card {
+    width: 100%; max-width: 520px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 32px 28px;
+  }
+  .code {
+    display: inline-block; margin-bottom: 12px; padding: 4px 10px; border-radius: 6px;
+    background: var(--codebg); color: var(--codeink); border: 1px solid var(--codeline);
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  h1 { margin: 0 0 6px; font-size: 21px; letter-spacing: -0.2px; }
+  p  { margin: 0 0 14px; color: var(--dim); font-size: 15px; }
+  .bar {
+    height: 4px; border-radius: 4px; background: var(--line); overflow: hidden;
+    margin: 18px 0 20px;
+  }
+  .bar i {
+    display: block; height: 100%; width: 34%; border-radius: 4px;
+    background: var(--accent); animation: slide 1.4s ease-in-out infinite;
+  }
+  @keyframes slide {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(320%); }
+  }
+  ul { margin: 0 0 4px; padding-left: 18px; color: var(--dim); font-size: 14px; }
+  li { margin-bottom: 6px; }
+  .foot {
+    margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line);
+    font-size: 13px; color: var(--dim);
+  }
+  .unused-en { margin-top: 10px; font-size: 13px; color: var(--dim); }
+  button {
+    margin-top: 4px; padding: 9px 16px; font-size: 14px; cursor: pointer;
+    color: #fff; background: var(--accent); border: 0; border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="code">502 Bad Gateway</div>
+
+    <div data-lang="ko">
+      <h1>서버에 연결하지 못했습니다</h1>
+      <p>서버에 일시적인 문제가 있을 수 있습니다. 대개 <strong>1분 안에</strong> 복구됩니다.</p>
+      <div class="bar"><i></i></div>
+      <ul>
+        <li>잠시 후 다시 시도해 주세요. 이 화면은 15초마다 저절로 새로 고쳐집니다.</li>
+        <li>저장된 내용은 그대로 남아 있습니다.</li>
+        <li>같은 화면이 계속되면 서버 관리자에게 연락해 주세요.</li>
+      </ul>
+      <button onclick="location.reload()">지금 다시 시도</button>
+    </div>
+
+    <div data-lang="en" hidden>
+      <h1>Could not reach the server</h1>
+      <p>The server may be having a temporary problem. It is usually back
+         <strong>within a minute</strong>.</p>
+      <div class="bar"><i></i></div>
+      <ul>
+        <li>Please try again shortly. This page refreshes itself every 15 seconds.</li>
+        <li>Anything already saved is still there.</li>
+        <li>If this keeps showing, contact your server administrator.</li>
+      </ul>
+      <button onclick="location.reload()">Try again</button>
+    </div>
+
+  </main>
+<script>
+  // 제품이 언어를 localStorage 에 남긴다. 이 화면은 앱이 응답하지 않을 때 뜨므로
+  // 서버에 물을 수 없고, 그 값만으로 고른다. 값이 없으면 브라우저 언어를 본다.
+  (function () {
+    var lang = "ko";
+    try {
+      var saved = localStorage.getItem("preferred-language");
+      if (saved) {
+        lang = String(saved).toLowerCase().indexOf("en") === 0 ? "en" : "ko";
+      } else if (navigator.language && navigator.language.toLowerCase().indexOf("ko") !== 0) {
+        lang = "en";  // 한국어가 아닌 브라우저는 영어로 본다
+      }
+    } catch (e) {
+      // 저장소를 막아 둔 브라우저. 기본값으로 둔다
+    }
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-lang]").forEach(function (el) {
+      el.hidden = el.getAttribute("data-lang") !== lang;
+    });
+  })();
+</script>
+</body>
+</html>
