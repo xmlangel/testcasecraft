@@ -1,8 +1,8 @@
 # Release Note - v1.0.127
 
-## [1.0.127] - 2026-09-19
+## [1.0.127] - 2026-09-20
 
-Written: 2026-09-19 23:48 KST
+Written: 2026-09-20 00:05 KST
 
 An external QA agent — an LLM that reads test cases written in plain language and drives a real browser — is now wired into the product. The agent runs as a separate stack outside the product; what the product gains is per-project connection settings and a place for the results to land.
 
@@ -40,9 +40,18 @@ A gateway now sits in front and keeps answering. It shows the error code (502 Ba
 
 **Impact:** the gateway takes over the port the edge already pointed at, so nothing changes on the server side.
 
+#### The setup procedure is now written down
+
+`docs/deployment/AGENT_INTEGRATION.md` is new. It covers the three layers that all have to be on (the global environment variable, the per-project setting, and the agent container), the permissions the bot account needs, which side each of the two address fields is read from, and what to check first when a connection fails.
+
+It records what actually went wrong while connecting to a remote server: `host.docker.internal` failing to resolve on a Linux host so the connection check fails, a data folder owned by the wrong user leaving the container in a restart loop, and `localhost` in `TCC_BASE_URL` making the agent call itself.
+
+**Impact:** documentation only. Nothing the product does has changed.
+
 ### Verified
 
 - Turning the integration on and off in project settings, and the connection test, against a real agent.
 - Ran a session through the agent and reviewed the results and attached screens in the automation dashboard.
 - Stopped the app to confirm the 502 page appears, then started it again and saw the normal screen return in 9 seconds.
 - Field hints correct themselves at startup. Sites that edited the translations keep their own wording.
+- After merging master, the full suites ran: 766 backend tests and 724 frontend tests, all passing.
