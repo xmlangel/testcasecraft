@@ -124,13 +124,18 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
         projectId: activeProject.id,
       };
 
+      let savedId = testPlanId;
       if (testPlanId) {
         await updateTestPlan({ ...payload, id: testPlanId });
       } else {
-        await addTestPlan(payload);
+        // 호출한 화면이 방금 만든 플랜을 곧바로 열 수 있도록 식별자를 넘긴다.
+        // 지금 addTestPlan 은 id 문자열을 돌려주지만, 저장 결과 객체를 돌려주도록
+        // 바뀌더라도 엉뚱한 값이 식별자로 흘러가지 않게 형태를 좁혀서 받는다.
+        const created = await addTestPlan(payload);
+        savedId = typeof created === "string" ? created : created?.id;
       }
 
-      onSave?.();
+      onSave?.(savedId ?? null);
     } catch (err) {
       setError(
         t("testPlan.error.saveFailed", "저장 처리 중 오류가 발생했습니다: ") +

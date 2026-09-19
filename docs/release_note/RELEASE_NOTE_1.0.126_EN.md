@@ -1,48 +1,44 @@
 # Release Note - v1.0.126
 
-## [1.0.126] - 2026-09-08
+## [1.0.126] - 2026-09-18
 
-Written: 2026-09-08 22:10 KST
-
-An external QA agent — an LLM that reads test cases written in plain language and drives a real browser — is now wired into the product. The agent runs as a separate stack outside the product; what the product gains is per-project connection settings and a place for the results to land.
+Creating a test plan was impossible on the sidebar layout. Creating a run also required picking a plan first. Both screens now carry a create button above their list. The role picker in project settings separates roles that can create from roles that cannot.
 
 ### Highlights
 
-#### Connect an agent per project
+#### The create-plan button is back on the sidebar layout
 
-Project settings now has an **Agent connection** tab. Enter the agent address, auth token, and default profile, verify the connection, then decide whether this project uses it.
+When the screen structure moved to the sidebar layout, the test plan screen was replaced by a new arrangement, but the button for creating a plan did not come along. Only opening an existing plan or creating a run beneath it worked; the plan itself could not be created. Typing the plan-creation address directly opened an empty screen.
 
-**It is off by default.** Turning it on starts nothing. The agent runs as a stack of its own, so its container has to be up. The screen says so while the toggle is on.
+The horizontal tab layout kept working, so the same account saw different behavior depending on the screen structure.
 
-Each field now states what to put in it. The two address fields are where setups go wrong most often. The product is a container too, so `localhost` points at itself; conversely `host.docker.internal` resolves only inside containers and a person's browser does not know it. Get only one of the two right and either the server connects while the run button fails to open, or the button opens while the connection test fails.
+A **New plan** button now sits above the plan list, and pressing it opens the new plan form on the right. After saving, the plan just created opens in place.
 
-**Impact:** projects that do not use the integration behave exactly as before. To block the feature across an organization, override `AGENT_INTEGRATION_ENABLED=false`.
+**Impact:** Sidebar users can create plans. Roles without permission still do not see the button.
 
-#### See the agent's screenshots in the dashboard
+#### Runs can be created without picking a plan first
 
-Results the agent uploads land as automation test results. So they never blend into human runs, the run name carries `[AI]`, the tag is `ai-agent`, and the first line of the summary marks it as a draft.
+The create-run button lived only inside the plan detail, so entering the test run screen still required selecting a plan before a run could be created. The button now sits above the run list, and the owning plan is chosen inside the run form.
 
-Each case gained an **attachment layer** that holds the screens captured during the run. Open them from the list as a preview, or find them inline at the matching step in the step timeline. Values stored as JSON render as a collapsible tree.
+Opening a run and then pressing create no longer carries over the plan of the run just viewed.
 
-**Impact:** only failed cases get the last three screens. Passing cases get none, which keeps storage small.
+**Impact:** A new run can be created straight from the run screen.
 
-#### Executions without a test plan reported zeros
+#### The role picker separates roles that can create from roles that cannot
 
-An execution created without a test plan showed 0% progress and zero verdict counts. The cases had run and the results were stored; only the screen failed to reflect them.
+The role list in project settings read Project Manager, Lead Developer, Developer, Tester, Contributor, Viewer. That order invites reading permissions as descending, but Tester cannot create while Contributor below it can, so the list order and the permission boundary disagreed.
 
-**Impact:** existing executions show correct numbers when reopened.
+The order is now Project Manager, Lead Developer, Developer, Contributor, Tester, Viewer, and the dropdown places a divider between the two groups, labeled **Can create and edit** and **Cannot create**.
 
-#### A readable page while the server comes up
+| Role | Create plans and cases | Record run results | Manage members |
+|---|---|---|---|
+| Project Manager | Yes | Yes | Yes |
+| Lead Developer | Yes | Yes | Yes |
+| Developer | Yes | Yes | No |
+| Contributor | Yes | Yes | No |
+| Tester | No | Yes | No |
+| Viewer | No | No | No |
 
-During the 30 to 60 seconds a restart takes, nothing answered and the edge served its own English 502 page. That page does not say what to wait for or when to come back.
+Roles are stored by name, so reordering leaves already-assigned members untouched.
 
-A gateway now sits in front and keeps answering. It shows the error code (502 Bad Gateway) along with plain wording: the problem may be temporary, try again shortly, and contact your server administrator if the page keeps showing. It refreshes itself every 15 seconds and renders in Korean or English based on the language saved in the browser.
-
-**Impact:** the gateway takes over the port the edge already pointed at, so nothing changes on the server side.
-
-### Verified
-
-- Turning the integration on and off in project settings, and the connection test, against a real agent.
-- Ran a session through the agent and reviewed the results and attached screens in the automation dashboard.
-- Stopped the app to confirm the 502 page appears, then started it again and saw the normal screen return in 9 seconds.
-- Field hints correct themselves at startup. Sites that edited the translations keep their own wording.
+**Impact:** When inviting a member or changing a role, what that role can do is visible in the list itself.

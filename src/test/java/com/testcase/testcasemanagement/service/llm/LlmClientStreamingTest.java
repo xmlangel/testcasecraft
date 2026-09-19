@@ -67,11 +67,7 @@ public class LlmClientStreamingTest {
   @Test(dataProvider = "제공자별", description = "SSE 청크를 순서대로 이어 붙인다")
   public void joinsChunksInOrder(LlmProvider provider, ClientFactory factory, String apiUrl) {
     LlmClientTestSupport.StreamStubExchange stub =
-        stream(
-            sseDelta("안"),
-            sseDelta("녕"),
-            sseDelta("하세요"),
-            "data: [DONE]\n\n");
+        stream(sseDelta("안"), sseDelta("녕"), sseDelta("하세요"), "data: [DONE]\n\n");
     LlmClient client = factory.apply(stub.builder());
     LlmClientTestSupport.RecordedStream recorded = new LlmClientTestSupport.RecordedStream();
 
@@ -81,9 +77,7 @@ public class LlmClientStreamingTest {
     assertEquals(recorded.chunks().size(), 3, provider + ": 청크 개수");
   }
 
-  @Test(
-      dataProvider = "제공자별",
-      description = "청크 경계가 줄 중간에 걸려도 줄을 온전히 읽는다")
+  @Test(dataProvider = "제공자별", description = "청크 경계가 줄 중간에 걸려도 줄을 온전히 읽는다")
   public void handlesChunkBoundaryInsideLine(
       LlmProvider provider, ClientFactory factory, String apiUrl) {
     // 한 줄이 두 청크에 걸쳐 도착하는 상황이다. 라인 버퍼가 없으면 앞뒤가 잘려 파싱에 실패한다.
@@ -103,8 +97,7 @@ public class LlmClientStreamingTest {
   @Test(dataProvider = "제공자별", description = "[DONE] 을 받으면 완료를 한 번만 알린다")
   public void signalsCompletionOnceOnDone(
       LlmProvider provider, ClientFactory factory, String apiUrl) {
-    LlmClientTestSupport.StreamStubExchange stub =
-        stream(sseDelta("끝"), "data: [DONE]\n\n");
+    LlmClientTestSupport.StreamStubExchange stub = stream(sseDelta("끝"), "data: [DONE]\n\n");
     LlmClient client = factory.apply(stub.builder());
     LlmClientTestSupport.RecordedStream recorded = new LlmClientTestSupport.RecordedStream();
 
@@ -113,9 +106,7 @@ public class LlmClientStreamingTest {
     assertEquals(recorded.completionCount(), 1, provider + ": 완료 신호는 한 번만 간다");
   }
 
-  @Test(
-      dataProvider = "제공자별",
-      description = "finish_reason 과 [DONE] 이 함께 와도 완료를 한 번만 알린다")
+  @Test(dataProvider = "제공자별", description = "finish_reason 과 [DONE] 이 함께 와도 완료를 한 번만 알린다")
   public void doesNotSignalCompletionTwice(
       LlmProvider provider, ClientFactory factory, String apiUrl) {
     // 제공자가 finish_reason 을 보낸 뒤 [DONE] 까지 보내는 경우다. 둘 다 완료로 처리하면
@@ -134,9 +125,7 @@ public class LlmClientStreamingTest {
     assertEquals(recorded.text(), "답", provider + ": 본문");
   }
 
-  @Test(
-      dataProvider = "제공자별",
-      description = "[DONE] 없이 스트림이 끝나도 완료를 알린다")
+  @Test(dataProvider = "제공자별", description = "[DONE] 없이 스트림이 끝나도 완료를 알린다")
   public void signalsCompletionWhenStreamEndsWithoutDone(
       LlmProvider provider, ClientFactory factory, String apiUrl) {
     // 제공자가 [DONE] 을 보내지 않고 연결을 닫는 경우다. 완료를 알리지 않으면 화면에
@@ -155,12 +144,7 @@ public class LlmClientStreamingTest {
   public void skipsBlankAndNonDataLines(
       LlmProvider provider, ClientFactory factory, String apiUrl) {
     LlmClientTestSupport.StreamStubExchange stub =
-        stream(
-            "\n",
-            ": keep-alive\n\n",
-            sseDelta("본문"),
-            "\n\n",
-            "data: [DONE]\n\n");
+        stream("\n", ": keep-alive\n\n", sseDelta("본문"), "\n\n", "data: [DONE]\n\n");
     LlmClient client = factory.apply(stub.builder());
     LlmClientTestSupport.RecordedStream recorded = new LlmClientTestSupport.RecordedStream();
 
@@ -169,11 +153,8 @@ public class LlmClientStreamingTest {
     assertEquals(recorded.text(), "본문", provider + ": 데이터 줄만 읽는다");
   }
 
-  @Test(
-      dataProvider = "제공자별",
-      description = "내용이 빈 델타는 청크로 넘기지 않는다")
-  public void ignoresEmptyDeltaContent(
-      LlmProvider provider, ClientFactory factory, String apiUrl) {
+  @Test(dataProvider = "제공자별", description = "내용이 빈 델타는 청크로 넘기지 않는다")
+  public void ignoresEmptyDeltaContent(LlmProvider provider, ClientFactory factory, String apiUrl) {
     LlmClientTestSupport.StreamStubExchange stub =
         stream(
             "data: {\"choices\":[{\"delta\":{\"role\":\"assistant\"}}]}\n\n",
@@ -189,17 +170,11 @@ public class LlmClientStreamingTest {
     assertEquals(recorded.text(), "실제", provider + ": 본문");
   }
 
-  @Test(
-      dataProvider = "제공자별",
-      description = "깨진 JSON 줄이 섞여도 나머지를 계속 읽는다")
+  @Test(dataProvider = "제공자별", description = "깨진 JSON 줄이 섞여도 나머지를 계속 읽는다")
   public void survivesMalformedLine(LlmProvider provider, ClientFactory factory, String apiUrl) {
     // 스트림 중간에 해석할 수 없는 줄이 오는 경우다. 거기서 멈추면 이미 받은 답변까지 잃는다.
     LlmClientTestSupport.StreamStubExchange stub =
-        stream(
-            sseDelta("앞"),
-            "data: {이건 JSON 이 아니다\n\n",
-            sseDelta("뒤"),
-            "data: [DONE]\n\n");
+        stream(sseDelta("앞"), "data: {이건 JSON 이 아니다\n\n", sseDelta("뒤"), "data: [DONE]\n\n");
     LlmClient client = factory.apply(stub.builder());
     LlmClientTestSupport.RecordedStream recorded = new LlmClientTestSupport.RecordedStream();
 
@@ -228,11 +203,8 @@ public class LlmClientStreamingTest {
         provider + ": Accept 에 event-stream 을 요구한다");
   }
 
-  @Test(
-      dataProvider = "제공자별",
-      description = "choices 첫 요소가 null 이어도 스트리밍이 정상 완료된다")
-  public void survivesNullFirstChoice(
-      LlmProvider provider, ClientFactory factory, String apiUrl) {
+  @Test(dataProvider = "제공자별", description = "choices 첫 요소가 null 이어도 스트리밍이 정상 완료된다")
+  public void survivesNullFirstChoice(LlmProvider provider, ClientFactory factory, String apiUrl) {
     // 현재 동작을 고정하는 특성화 시험이다. null 요소를 만나도 다음 조각과 완료 신호가
     // 정상으로 온다. 앞으로 이 처리를 바꿔 스트림을 끊도록 하면 이 시험이 알려 준다.
     // 회귀 확인 실측 — 클라이언트의 null 검사를 지워도 이 시험은 통과한다. catch 가 조각

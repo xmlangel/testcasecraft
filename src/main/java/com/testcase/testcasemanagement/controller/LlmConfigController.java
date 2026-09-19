@@ -26,8 +26,8 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>제공자 접속 설정을 우리 DB 에서 다룬다. 등록·수정·삭제·기본값 지정·연결 테스트가 여기 있다.
  *
- * <p>모델 목록과 가용성은 {@link LlmModelCatalogController} 가 담당한다. 성격이 다르기 때문에 갈라 두었다. 이쪽은 우리 DB 를 다루고,
- * 그쪽은 제공자에게 물어보는 일만 한다.
+ * <p>모델 목록과 가용성은 {@link LlmModelCatalogController} 가 담당한다. 성격이 다르기 때문에 갈라 두었다. 이쪽은 우리 DB 를 다루고, 그쪽은
+ * 제공자에게 물어보는 일만 한다.
  *
  * <p>대부분의 API 가 ADMIN 권한을 요구한다. 예외는 기본 설정 존재 확인과 사용자용 활성 목록 조회다.
  */

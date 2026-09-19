@@ -11,7 +11,7 @@
 //
 // 진입 자체를 역할로 막는다. 백엔드 멤버 API 는 hasManagementRole 로 두 역할만
 // 통과시키므로, 다른 역할에게 화면을 열어 주면 저장 단계에서 403 만 보게 된다.
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
@@ -27,6 +27,7 @@ import {
   FormControl,
   IconButton,
   InputLabel,
+  ListSubheader,
   MenuItem,
   Paper,
   Select,
@@ -58,6 +59,7 @@ import MemberSearchAutocomplete from "../common/MemberSearchAutocomplete.jsx";
 import AgentConnectionSettings from "./AgentConnectionSettings.jsx";
 import useAgentConnection from "../../hooks/useAgentConnection.js";
 import {
+  canEditProjectContent,
   canManageProjectMembers,
   canManageProjectSettings,
 } from "../TestCaseTree/utils/permissionUtils.js";
@@ -173,6 +175,39 @@ export default function ProjectSettingsPage() {
     },
     [t],
   );
+
+  // 역할 선택지. 만들 수 있는 역할과 없는 역할을 선으로 가른다.
+  // 이름만 늘어놓으면 어디까지가 생성 가능한지 화면에서 알 수 없고, 권한 경계가
+  // 목록 순서와 어긋나 있던 시절에는 잘못 고르기도 쉬웠다.
+  // 무리를 나누는 기준은 권한 판정 정본(canEditProjectContent)을 그대로 쓴다 —
+  // 여기에 역할 이름을 다시 적으면 정본이 바뀔 때 화면만 옛 기준으로 남는다.
+  const roleMenuItems = useMemo(() => {
+    const canCreate = PROJECT_ROLES.filter((role) =>
+      canEditProjectContent(role),
+    );
+    const viewOnly = PROJECT_ROLES.filter(
+      (role) => !canEditProjectContent(role),
+    );
+    return [
+      <ListSubheader key="role-group-create">
+        {t("projectSettings.role.group.canCreate", "만들고 고칠 수 있음")}
+      </ListSubheader>,
+      ...canCreate.map((role) => (
+        <MenuItem key={role} value={role}>
+          {roleLabel(role)}
+        </MenuItem>
+      )),
+      <Divider key="role-group-divider" component="li" />,
+      <ListSubheader key="role-group-view">
+        {t("projectSettings.role.group.viewOnly", "만들 수 없음")}
+      </ListSubheader>,
+      ...viewOnly.map((role) => (
+        <MenuItem key={role} value={role}>
+          {roleLabel(role)}
+        </MenuItem>
+      )),
+    ];
+  }, [roleLabel, t]);
 
   const searchCandidates = useCallback(
     (query) => projectMemberService.searchCandidates(projectId, query),
@@ -458,11 +493,7 @@ export default function ProjectSettingsPage() {
                     onChange={(e) => setInviteRole(e.target.value)}
                     data-testid="project-settings-invite-role"
                   >
-                    {PROJECT_ROLES.map((role) => (
-                      <MenuItem key={role} value={role}>
-                        {roleLabel(role)}
-                      </MenuItem>
-                    ))}
+                    {roleMenuItems}
                   </Select>
                 </FormControl>
                 <Button
@@ -526,11 +557,7 @@ export default function ProjectSettingsPage() {
                             }
                             data-testid={`project-settings-role-${member.user?.username}`}
                           >
-                            {PROJECT_ROLES.map((role) => (
-                              <MenuItem key={role} value={role}>
-                                {roleLabel(role)}
-                              </MenuItem>
-                            ))}
+                            {roleMenuItems}
                           </Select>
                         </TableCell>
                         <TableCell align="right">

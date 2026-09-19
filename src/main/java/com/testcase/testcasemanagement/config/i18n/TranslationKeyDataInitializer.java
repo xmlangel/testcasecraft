@@ -52,9 +52,8 @@ public class TranslationKeyDataInitializer {
   /**
    * 시딩 중 영속성 컨텍스트를 비우기 위한 것. 같은 트랜잭션을 유지하므로 롤백 성질은 그대로다.
    *
-   * <p>왜 필요한가 — 헬퍼가 항목마다 `findBy...` 로 조회하는데, JPA 는 조회 전에 보류 중인 변경을
-   * flush 하고 관리 중인 엔티티를 dirty check 한다. 컨텍스트가 커질수록 이 비용이 커져 뒤 단계가
-   * 앞 단계보다 느려진다. 실측에서 같은 분량의 한국어 49초 대 영어 75초로 벌어졌다.
+   * <p>왜 필요한가 — 헬퍼가 항목마다 `findBy...` 로 조회하는데, JPA 는 조회 전에 보류 중인 변경을 flush 하고 관리 중인 엔티티를 dirty check
+   * 한다. 컨텍스트가 커질수록 이 비용이 커져 뒤 단계가 앞 단계보다 느려진다. 실측에서 같은 분량의 한국어 49초 대 영어 75초로 벌어졌다.
    */
   @PersistenceContext private EntityManager entityManager;
 

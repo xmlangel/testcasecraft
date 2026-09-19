@@ -41,7 +41,8 @@ public class RagChatController {
    */
   @PostMapping
   @PreAuthorize(
-      "#request.projectId != null && @projectSecurityService.canAccessProject(#request.projectId.toString())")
+      "#request.projectId != null &&"
+          + " @projectSecurityService.canAccessProject(#request.projectId.toString())")
   @Operation(
       summary = "RAG 기반 채팅",
       description =
@@ -82,7 +83,8 @@ public class RagChatController {
    */
   @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   @PreAuthorize(
-      "#request.projectId != null && @projectSecurityService.canAccessProject(#request.projectId.toString())")
+      "#request.projectId != null &&"
+          + " @projectSecurityService.canAccessProject(#request.projectId.toString())")
   @Operation(
       summary = "RAG 기반 채팅 (스트리밍)",
       description =

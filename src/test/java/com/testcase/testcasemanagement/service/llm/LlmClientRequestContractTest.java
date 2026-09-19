@@ -9,7 +9,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import java.util.function.Function;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,8 +20,8 @@ import org.testng.annotations.Test;
  *
  * <p>클라이언트 6종을 기반 클래스로 합치는 리팩토링의 안전망이다. 합친 뒤에도 각 제공자가 같은 URL·헤더·본문을 보내야 한다.
  *
- * <p>요청은 우리가 만드는 것이므로 외부 API 가 바뀌어도 이 시험은 흔들리지 않는다. 그래서 손으로 적어 둘 값이 없고 유지보수 부담도 없다. 요청 형태를
- * 의도적으로 바꿀 때만 이 시험이 실패하고, 그때 고치는 것이 곧 의도의 기록이 된다.
+ * <p>요청은 우리가 만드는 것이므로 외부 API 가 바뀌어도 이 시험은 흔들리지 않는다. 그래서 손으로 적어 둘 값이 없고 유지보수 부담도 없다. 요청 형태를 의도적으로 바꿀
+ * 때만 이 시험이 실패하고, 그때 고치는 것이 곧 의도의 기록이 된다.
  *
  * <p>실측 근거 — 지금 6종의 실제 차이는 넷뿐이다(제공자 값 · OpenRouter 추가 헤더 2개 · Ollama 인증 헤더 생략 · OpenWebUI 널 처리).
  * 나머지는 포매터가 줄을 다르게 접은 것이다. 그래서 합칠 수 있다고 판단했고, 이 시험이 그 넷을 지킨다.
@@ -90,9 +89,7 @@ public class LlmClientRequestContractTest {
     assertEquals(stub.firstRequest().method().name(), "POST", provider + ": 메서드");
   }
 
-  @Test(
-      dataProvider = "제공자별_요청계약",
-      description = "등록 URL 에 호출 경로가 이미 붙어 있어도 주소가 같다")
+  @Test(dataProvider = "제공자별_요청계약", description = "등록 URL 에 호출 경로가 이미 붙어 있어도 주소가 같다")
   public void normalizesRedundantPath(
       LlmProvider provider, ClientFactory factory, String apiUrl, String expectedUrl) {
     String path = LlmApiUrlNormalizer.chatCompletionsPathOf(provider);
@@ -135,9 +132,7 @@ public class LlmClientRequestContractTest {
     assertEquals(stub.header("X-Title"), "Test Case Management Tool", "X-Title");
   }
 
-  @Test(
-      dataProvider = "제공자별_요청계약",
-      description = "OpenRouter 식별 헤더는 다른 제공자에 붙지 않는다")
+  @Test(dataProvider = "제공자별_요청계약", description = "OpenRouter 식별 헤더는 다른 제공자에 붙지 않는다")
   public void otherProvidersDoNotSendOpenRouterHeaders(
       LlmProvider provider, ClientFactory factory, String apiUrl, String expectedUrl) {
     if (provider == LlmProvider.OPENROUTER) {
@@ -166,8 +161,7 @@ public class LlmClientRequestContractTest {
   @Test(description = "Ollama 는 키가 not-required 면 인증 헤더를 보내지 않는다")
   public void ollamaOmitsAuthorizationWhenNotRequired() {
     LlmClientTestSupport.StubExchange stub = ok(minimalChatResponse());
-    LlmClient client =
-        new OllamaClient(stub.builder(), fixedKey("not-required"), mapper());
+    LlmClient client = new OllamaClient(stub.builder(), fixedKey("not-required"), mapper());
 
     client.chat(
         config(LlmProvider.OLLAMA, "http://localhost:11434", "m"), oneMessage("안녕"), 0.5, 10);

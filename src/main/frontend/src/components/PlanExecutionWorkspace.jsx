@@ -89,6 +89,8 @@ function PlanExecutionWorkspace({
   projectId,
   initialPlanId = null,
   initialExecutionId = null,
+  initialCreatePlan = false,
+  onExitCreatePlan,
 }) {
   const { t } = useI18n();
   const { user } = useAuth();
@@ -106,6 +108,10 @@ function PlanExecutionWorkspace({
   const [selectedExecutionId, setSelectedExecutionId] =
     useState(initialExecutionId);
   const [creatingExecution, setCreatingExecution] = useState(false);
+  // 새 플랜을 만드는 중인지 — 상세 열에 빈 TestPlanForm 이 열린다.
+  const [creatingPlan, setCreatingPlan] = useState(
+    mode === "plans" && initialCreatePlan,
+  );
   const [executionsByPlan, setExecutionsByPlan] = useState({});
   const [expandedPlanIds, setExpandedPlanIds] = useState([]);
   const [loadingPlanIds, setLoadingPlanIds] = useState([]);
@@ -265,6 +271,18 @@ function PlanExecutionWorkspace({
     if (initialPlanId) setSelectedPlanId(initialPlanId);
   }, [initialPlanId]);
 
+  // 주소로 새 플랜 화면(.../testplans/new)에 들어오거나 빠져나갈 때 상태를 맞춘다.
+  useEffect(() => {
+    if (mode !== "plans") return;
+    if (initialCreatePlan) {
+      setCreatingPlan(true);
+      setSelectedExecutionId(null);
+      setCreatingExecution(false);
+    } else {
+      setCreatingPlan(false);
+    }
+  }, [mode, initialCreatePlan]);
+
   // 플랜을 고르면 그 가지를 펼쳐 실행을 보여준다 (플랜 영역의 트리)
   useEffect(() => {
     if (mode !== "plans" || !selectedPlanId) return;
@@ -310,16 +328,39 @@ function PlanExecutionWorkspace({
   const effectivePlanId =
     mode === "plans" ? selectedPlanId : selectedExecution?.testPlanId || null;
 
+  // 생성 화면을 닫을 때는 상위에도 알린다. 주소(.../testplans/new)로 들어온 경우
+  // App 의 showTestPlanForm 이 켜진 채로 남아 있어서, 여기서만 닫으면 화면과 주소가
+  // 어긋난다. 그 상태로 컴포넌트가 다시 마운트되면 빈 폼이 되살아나 방금 고른 플랜을
+  // 덮는다.
+  // 생성 중일 때만 상위에 알린다. 그냥 목록에서 플랜을 고르는 경우까지 알리면
+  // 주소가 매번 목록으로 되돌아간다.
+  const closeCreatePlan = useCallback(() => {
+    if (!creatingPlan) return;
+    setCreatingPlan(false);
+    onExitCreatePlan?.();
+  }, [creatingPlan, onExitCreatePlan]);
+
   const handleSelectPlan = (plan) => {
     setCreatingExecution(false);
+    closeCreatePlan();
     setSelectedExecutionId(null);
     setSelectedPlanId(plan.id);
   };
 
   const handleSelectExecution = (exec) => {
     setCreatingExecution(false);
+    closeCreatePlan();
     setSelectedExecutionId(exec.id);
     if (exec.testPlanId) setSelectedPlanId(exec.testPlanId);
+  };
+
+  // 새 플랜을 저장하면 생성 화면을 닫고 방금 만든 플랜을 그대로 연다.
+  const handleAfterPlanCreated = (createdPlanId) => {
+    closeCreatePlan();
+    if (createdPlanId) {
+      setSelectedExecutionId(null);
+      setSelectedPlanId(createdPlanId);
+    }
   };
 
   const togglePlanBranch = (planId) => {
@@ -329,6 +370,27 @@ function PlanExecutionWorkspace({
     } else {
       expandPlan(planId);
     }
+  };
+
+  const handleStartCreatePlan = () => {
+    setCreatingExecution(false);
+    setSelectedExecutionId(null);
+    setSelectedPlanId(null);
+    setCreatingPlan(true);
+  };
+
+  // 실행 영역에서는 플랜을 고르지 않은 상태로도 실행을 만들 수 있다.
+  // 소속 플랜은 실행 폼 안에서 고른다 — 가로 탭 레이아웃의 실행 목록과 같은 흐름이다.
+  //
+  // selectedPlanId 를 반드시 비운다. 실행을 하나 열어 보면 handleSelectExecution 이
+  // 그 실행의 소속 플랜을 골라 두는데, 그 상태로 만들기를 누르면 직전에 보던 플랜이
+  // 새 실행에 조용히 상속된다. 처음 들어와 누를 때와 결과가 달라지므로 화면에서
+  // 확인하지 않은 플랜에 실행이 붙는다.
+  const handleStartCreateExecution = () => {
+    closeCreatePlan();
+    setSelectedExecutionId(null);
+    setSelectedPlanId(null);
+    setCreatingExecution(true);
   };
 
   const handleAfterExecutionSaved = () => {
@@ -486,6 +548,29 @@ function PlanExecutionWorkspace({
               {listTitle}
             </Typography>
             <Chip size="small" label={listCount} />
+            <Box sx={{ flexGrow: 1 }} />
+            {canEdit && (
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={
+                  isExecutionsMode
+                    ? handleStartCreateExecution
+                    : handleStartCreatePlan
+                }
+                data-testid={
+                  isExecutionsMode
+                    ? "workspace-new-execution-top"
+                    : "workspace-new-plan"
+                }
+                sx={{ whiteSpace: "nowrap" }}
+              >
+                {isExecutionsMode
+                  ? t("testPlan.workspace.newExecution", "실행 만들기")
+                  : t("testPlan.workspace.newPlan", "플랜 만들기")}
+              </Button>
+            )}
           </>
         )}
         <Tooltip
@@ -767,7 +852,21 @@ function PlanExecutionWorkspace({
     </Box>
   );
 
-  if (creatingExecution && effectivePlanId && canEdit) {
+  if (mode === "plans" && creatingPlan && canEdit) {
+    detail = (
+      <TestPlanForm
+        key="new-plan"
+        testPlanId={null}
+        inline
+        onCancel={closeCreatePlan}
+        onSave={handleAfterPlanCreated}
+      />
+    );
+  } else if (
+    creatingExecution &&
+    canEdit &&
+    (isExecutionsMode || effectivePlanId)
+  ) {
     detail = (
       <>
         {mode === "plans" && backToPlan}
@@ -841,6 +940,8 @@ PlanExecutionWorkspace.propTypes = {
   projectId: PropTypes.string,
   initialPlanId: PropTypes.string,
   initialExecutionId: PropTypes.string,
+  initialCreatePlan: PropTypes.bool,
+  onExitCreatePlan: PropTypes.func,
 };
 
 export default PlanExecutionWorkspace;

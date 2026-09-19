@@ -15,8 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
  * {@code llm_config.provider} 의 CHECK 제약을 현재 enum 값과 맞춘다.
  *
  * <p>Hibernate 는 {@code @Enumerated(EnumType.STRING)} 컬럼에 값 목록 CHECK 제약을 만든다. 그런데 {@code ddl-auto:
- * update} 는 <b>기존 제약을 갱신하지 않는다</b>. 그래서 enum 에 제공자를 추가하면 새로 만든 DB 에서는 되고, 이미 테이블이 있는 DB 에서는 저장이
- * 제약 위반으로 실패한다. 화면에는 새 제공자가 보이는데 저장만 안 되는 상태가 된다.
+ * update} 는 <b>기존 제약을 갱신하지 않는다</b>. 그래서 enum 에 제공자를 추가하면 새로 만든 DB 에서는 되고, 이미 테이블이 있는 DB 에서는 저장이 제약
+ * 위반으로 실패한다. 화면에는 새 제공자가 보이는데 저장만 안 되는 상태가 된다.
  *
  * <p>제공자를 더할 때마다 사람이 SQL 을 돌리게 하면 잊기 마련이므로, 부팅할 때 제약과 enum 을 대조해 어긋나면 다시 만든다. 값이 이미 맞으면 아무것도 하지
  * 않으므로 매 부팅 실행돼도 멱등하다.
@@ -88,8 +88,7 @@ public class LlmProviderConstraintRunner implements CommandLineRunner {
             .collect(Collectors.joining(", "));
 
     entityManager
-        .createNativeQuery(
-            "ALTER TABLE llm_config DROP CONSTRAINT IF EXISTS " + CONSTRAINT_NAME)
+        .createNativeQuery("ALTER TABLE llm_config DROP CONSTRAINT IF EXISTS " + CONSTRAINT_NAME)
         .executeUpdate();
     entityManager
         .createNativeQuery(

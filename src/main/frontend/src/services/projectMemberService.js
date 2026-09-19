@@ -11,13 +11,23 @@
 
 import apiService from "./apiService.js";
 
-/** 프로젝트 내 역할 목록. 백엔드 ProjectUser.ProjectRole 과 같은 순서·같은 값이다. */
+/**
+ * 프로젝트 내 역할 목록. 값은 백엔드 ProjectUser.ProjectRole 과 같고, 순서는 권한이
+ * 넓은 것부터 좁은 것으로 세운다.
+ *
+ * 앞의 넷이 플랜·케이스를 만들 수 있는 역할이고(ProjectUser.hasEditRole 의 집합과 같다),
+ * 뒤의 둘은 만들 수 없다. 예전에는 테스터가 기여자보다 위에 있어서, 목록을 위에서부터
+ * 읽으면 권한이 계단처럼 내려간다고 오해하기 쉬웠다.
+ *
+ * 역할은 데이터베이스에 문자열로 저장되므로(@Enumerated(EnumType.STRING)) 이 순서를
+ * 바꿔도 기존 멤버의 역할은 그대로다.
+ */
 export const PROJECT_ROLES = [
   "PROJECT_MANAGER",
   "LEAD_DEVELOPER",
   "DEVELOPER",
-  "TESTER",
   "CONTRIBUTOR",
+  "TESTER",
   "VIEWER",
 ];
 

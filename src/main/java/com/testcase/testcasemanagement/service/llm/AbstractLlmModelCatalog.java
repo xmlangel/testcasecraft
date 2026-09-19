@@ -23,16 +23,16 @@ import reactor.core.publisher.Mono;
 /**
  * 모델 카탈로그의 공통 골격.
  *
- * <p>목록을 만드는 방법은 제공자마다 크게 다르지만(OpenRouter 는 가격과 모달리티를 보고, NVIDIA 는 ID 패턴으로 추정한다) 가용성을 확인하는 절차는
- * 같다. 대상을 정리하고, 정해진 동시 실행 수로 최소 요청을 보내고, 결과를 슬러그 순으로 모아 집계한다.
+ * <p>목록을 만드는 방법은 제공자마다 크게 다르지만(OpenRouter 는 가격과 모달리티를 보고, NVIDIA 는 ID 패턴으로 추정한다) 가용성을 확인하는 절차는 같다.
+ * 대상을 정리하고, 정해진 동시 실행 수로 최소 요청을 보내고, 결과를 슬러그 순으로 모아 집계한다.
  *
  * <p>제공자가 채우는 자리는 셋이다.
  *
  * <ol>
- *   <li>{@link #probeConcurrency()}·{@link #probeTimeout()}·{@link #probeLimit()} — 확인 강도. OpenRouter 는
- *       확인이 무료 일일 한도를 태우므로 낮게, NVIDIA 는 한도 부담이 없고 대상이 많아 높게 잡는다
- *   <li>{@link #interpretFailure} — 실패를 어떻게 읽을지. 같은 상태코드가 제공자마다 다른 뜻이다. NVIDIA 의 404 는 계정에 없는
- *       모델이고, OpenRouter 의 429 는 두 종류로 갈린다
+ *   <li>{@link #probeConcurrency()}·{@link #probeTimeout()}·{@link #probeLimit()} — 확인 강도.
+ *       OpenRouter 는 확인이 무료 일일 한도를 태우므로 낮게, NVIDIA 는 한도 부담이 없고 대상이 많아 높게 잡는다
+ *   <li>{@link #interpretFailure} — 실패를 어떻게 읽을지. 같은 상태코드가 제공자마다 다른 뜻이다. NVIDIA 의 404 는 계정에 없는 모델이고,
+ *       OpenRouter 의 429 는 두 종류로 갈린다
  *   <li>{@link #accountLimit()} — 계정 한도 상태. 한도 개념이 없는 제공자는 비운다
  * </ol>
  */
@@ -99,8 +99,7 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
   // ── 공통 골격 ────────────────────────────────────────────────────────────
 
   @Override
-  public Mono<LlmModelProbeResponse> probeAvailability(
-      String apiKey, Collection<String> modelIds) {
+  public Mono<LlmModelProbeResponse> probeAvailability(String apiKey, Collection<String> modelIds) {
     return probeAvailability(apiKey, modelIds, null);
   }
 
@@ -213,9 +212,12 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
 
     Map<String, Object> body =
         Map.of(
-            "model", modelId,
-            "messages", List.of(Map.of("role", "user", "content", "ok")),
-            "max_tokens", 1);
+            "model",
+            modelId,
+            "messages",
+            List.of(Map.of("role", "user", "content", "ok")),
+            "max_tokens",
+            1);
 
     requestsSent.incrementAndGet();
 
@@ -236,7 +238,8 @@ public abstract class AbstractLlmModelCatalog implements LlmModelCatalog {
   protected WebClient client(String apiKey) {
     return customizeClient(
             webClientBuilder
-                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(maxResponseBytes()))
+                .codecs(
+                    configurer -> configurer.defaultCodecs().maxInMemorySize(maxResponseBytes()))
                 .baseUrl(baseUrl())
                 .defaultHeader("Authorization", "Bearer " + apiKey))
         .build();
