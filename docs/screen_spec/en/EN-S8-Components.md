@@ -170,6 +170,25 @@ Saved content: status, priority, notes
 
 **DELETE** `/api/junit-results/{testResultId}` (on delete selection and confirmation from menu)
 
+### 6.7 Case Attachment List
+
+**GET** `/api/junit-results/cases/{testCaseId}/attachments` (on Attachments tab selection)
+
+Returns: filename, size, type, description, created time, uploader, image flag, download URL
+
+### 6.8 Case Attachment Download and Preview
+
+**GET** `/api/junit-results/attachments/{attachmentId}/download`
+
+Images render inline; other formats are served as downloads. Anyone who can view the project can retrieve them.
+
+### 6.9 Case Attachment Upload and Delete
+
+**POST** `/api/junit-results/cases/{testCaseId}/attachments`
+**DELETE** `/api/junit-results/attachments/{attachmentId}`
+
+Uses the same permission as uploading automation results. External QA agents use this path to leave run screenshots.
+
 ---
 
 ## 7. Responsive and Accessibility Specification

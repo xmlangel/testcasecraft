@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="940" viewBox="0 0 1060 940" font-family="Apple SD Gothic Neo, Noto Sans KR, Malgun Gothic, sans-serif">
+  <defs>
+    <marker id="a2" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" fill="#3f4854"/></marker>
+    <marker id="a2r" markerWidth="9" markerHeight="9" refX="1" refY="3.2" orient="auto"><path d="M8,0 L0,3.2 L8,6.4 z" fill="#3f4854"/></marker>
+    <style>
+      .head { fill:#e8f1fd; stroke:#5b8def; stroke-width:1.3; rx:7; }
+      .headr{ fill:#eef3ee; stroke:#7ba07b; stroke-width:1.3; rx:7; }
+      .heade{ fill:#f3eef7; stroke:#9b7fb8; stroke-width:1.3; rx:7; }
+      .hl   { font-size:12.5px; font-weight:700; fill:#232a33; text-anchor:middle; }
+      .life { stroke:#c2c8d2; stroke-width:1.2; stroke-dasharray:4 4; }
+      .msg  { stroke:#3f4854; stroke-width:1.4; fill:none; marker-end:url(#a2); }
+      .msgb { stroke:#3f4854; stroke-width:1.4; fill:none; marker-end:url(#a2); stroke-dasharray:5 3; }
+      .m    { font-size:11.5px; fill:#232a33; font-weight:600; }
+      .n    { font-size:10.5px; fill:#6b7482; }
+      .loop { fill:none; stroke:#d8a15b; stroke-width:1.4; rx:8; }
+      .loopl{ font-size:11.5px; font-weight:700; fill:#a8701f; }
+      .act  { fill:#dfe6f2; stroke:#8fa4c4; stroke-width:1; }
+    </style>
+  </defs>
+
+  <text x="30" y="30" font-size="18" font-weight="700" fill="#1d232b">에이전트 실행 1건의 흐름 — 요청부터 결과 적재까지</text>
+  <text x="30" y="48" class="n">점선 화살표 = 응답/이벤트 · 주황 박스 = 반복 구간</text>
+
+  <!-- lifelines -->
+  <rect class="head"  x="30"  y="62" width="130" height="34"/><text class="hl" x="95"  y="84">QA 사용자</text>
+  <rect class="head"  x="185" y="62" width="150" height="34"/><text class="hl" x="260" y="84">React (S8)</text>
+  <rect class="head"  x="365" y="62" width="180" height="34"/><text class="hl" x="455" y="84">Spring Boot</text>
+  <rect class="head"  x="580" y="62" width="180" height="34"/><text class="hl" x="670" y="84">agent-runner</text>
+  <rect class="heade" x="795" y="62" width="115" height="34"/><text class="hl" x="852" y="84">LLM</text>
+  <rect class="headr" x="930" y="62" width="100" height="34"/><text class="hl" x="980" y="84">DB / MinIO</text>
+
+  <line class="life" x1="95"  y1="96" x2="95"  y2="905"/>
+  <line class="life" x1="260" y1="96" x2="260" y2="905"/>
+  <line class="life" x1="455" y1="96" x2="455" y2="905"/>
+  <line class="life" x1="670" y1="96" x2="670" y2="905"/>
+  <line class="life" x1="852" y1="96" x2="852" y2="905"/>
+  <line class="life" x1="980" y1="96" x2="980" y2="905"/>
+
+  <path class="msg" d="M95,128 L256,128"/>
+  <text class="m" x="102" y="122">케이스 선택 → 「에이전트로 실행」</text>
+
+  <path class="msg" d="M260,164 L451,164"/>
+  <text class="m" x="267" y="158">POST /api/automation-tests/agent-runs</text>
+  <text class="n" x="267" y="178">{ testCaseIds, profileId, llmConfigId }</text>
+
+  <path class="msg" d="M455,206 L976,206"/>
+  <text class="m" x="462" y="200">AgentRun 저장 (status = QUEUED)  ·  동시 실행 상한 확인</text>
+
+  <path class="msgb" d="M451,240 L264,240"/>
+  <text class="m" x="270" y="234">202 { agentRunId, totalCases }</text>
+
+  <path class="msg" d="M260,274 L451,274"/>
+  <text class="m" x="267" y="268">GET /agent-runs/{id}/stream  →  SseEmitter 등록 (구독)</text>
+
+  <rect class="act" x="450" y="286" width="10" height="560"/>
+
+  <path class="msg" d="M455,312 L666,312"/>
+  <text class="m" x="462" y="306">POST /run  — 프롬프트 · 정책 · 컨텍스트 · LLM 설정</text>
+  <text class="n" x="462" y="326">ServiceApiKey 인증 · 내부 네트워크만</text>
+
+  <!-- loop case -->
+  <rect class="loop" x="405" y="344" width="620" height="330"/>
+  <text class="loopl" x="418" y="362">loop  케이스마다 (프로세스 1개 격리)</text>
+
+  <rect class="loop" x="420" y="374" width="595" height="242"/>
+  <text class="loopl" x="432" y="392">loop  스텝마다 (상한 max_steps_per_case, 스텝 타임아웃 30초)</text>
+
+  <path class="msg" d="M670,418 L848,418"/>
+  <text class="m" x="677" y="412">현재 화면 + 목표 → 다음 액션 추론 (use_vision)</text>
+  <path class="msgb" d="M848,448 L674,448"/>
+  <text class="m" x="682" y="442">action { click / type / navigate / assert }</text>
+
+  <path class="msg" d="M670,482 L670,502"/>
+  <text class="m" x="680" y="497">Playwright → Chromium 실행</text>
+
+  <path class="msg" d="M670,532 L976,532"/>
+  <text class="m" x="677" y="526">스크린샷 put  agent-runs/{runId}/{step}.webp</text>
+
+  <path class="msg" d="M666,566 L459,566"/>
+  <text class="m" x="466" y="560">POST /api/internal/agent-runs/{id}/events  (step)</text>
+  <text class="n" x="466" y="580">thought · action · observation · 토큰 · 비용</text>
+
+  <path class="msg" d="M455,604 L976,604"/>
+  <text class="m" x="462" y="598">AgentStepLog 저장</text>
+  <path class="msgb" d="M451,604 L264,604"/>
+  <text class="m" x="270" y="598">SSE  event: step</text>
+
+  <path class="msg" d="M666,648 L459,648"/>
+  <text class="m" x="466" y="642">case-done — 에이전트 원문 결과</text>
+  <path class="msg" d="M455,668 L848,668"/>
+  <text class="m" x="600" y="662">결과 정규화 후처리 → { status, summary, evidence, errors }</text>
+
+  <path class="msg" d="M666,706 L459,706"/>
+  <text class="m" x="466" y="700">run-done  (또는 실패 / 취소)</text>
+
+  <path class="msg" d="M455,742 L976,742"/>
+  <text class="m" x="462" y="736">AgentJunitWriter — JunitTestResult + Suite + Case 적재 (단일 트랜잭션)</text>
+  <text class="n" x="462" y="756">source = LLM_AGENT · linkedTestCaseId 채움 → 케이스 역참조가 그대로 동작</text>
+
+  <path class="msgb" d="M451,790 L264,790"/>
+  <text class="m" x="270" y="784">SSE  event: run-done { junitResultId, totalCostUsd }</text>
+
+  <path class="msgb" d="M256,824 L99,824"/>
+  <text class="m" x="106" y="818">자동화 목록에 「AI 에이전트」 배지로 결과 1건 생성</text>
+
+  <rect x="30" y="852" width="1000" height="60" fill="#fdf3e7" stroke="#d8a15b" stroke-width="1.2" rx="8"/>
+  <text class="m" x="44" y="872">실패 경로 — 런너 무응답·프로세스 크래시·타임아웃</text>
+  <text class="n" x="44" y="890">워커가 하트비트를 놓치면 AgentRun.status = FAILED 로 확정하고, 진행분 스텝로그는 남긴다. 스텝이 1건이라도 있으면 부분 결과로 JunitTestResult 를 만든다(케이스 미도달분은 SKIPPED).</text>
+</svg>

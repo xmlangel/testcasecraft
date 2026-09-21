@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.security;
 import com.testcase.testcasemanagement.dto.rag.RagDocumentResponse;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.ProjectUser.ProjectRole;
+import com.testcase.testcasemanagement.repository.JunitCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.JunitTestCaseRepository;
 import com.testcase.testcasemanagement.repository.JunitTestResultRepository;
 import com.testcase.testcasemanagement.repository.JunitTestSuiteRepository;
@@ -54,6 +55,7 @@ public class ProjectSecurityService {
   @Autowired private JunitTestSuiteRepository junitTestSuiteRepository;
 
   @Autowired private JunitTestCaseRepository junitTestCaseRepository;
+  @Autowired private JunitCaseAttachmentRepository junitCaseAttachmentRepository;
 
   @Autowired private TestSessionRepository testSessionRepository;
 
@@ -286,6 +288,20 @@ public class ProjectSecurityService {
   public boolean canModifyJunitCase(String caseId) {
     return projectPermission(
         junitTestCaseRepository.findProjectIdByCaseId(caseId), this::canUploadToProject);
+  }
+
+  /** 자동화 케이스 첨부가 속한 프로젝트를 현재 사용자가 조회할 수 있는지 */
+  public boolean canAccessJunitCaseAttachment(String attachmentId) {
+    return projectPermission(
+        junitCaseAttachmentRepository.findProjectIdByAttachmentId(attachmentId),
+        this::canAccessProject);
+  }
+
+  /** 자동화 케이스 첨부를 지울 수 있는지. 붙일 수 있는 사람과 같은 기준이다 */
+  public boolean canDeleteJunitCaseAttachment(String attachmentId) {
+    return projectPermission(
+        junitCaseAttachmentRepository.findProjectIdByAttachmentId(attachmentId),
+        this::canUploadToProject);
   }
 
   /** 탐색적 세션이 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 */

@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="770" viewBox="0 0 1060 770" font-family="Apple SD Gothic Neo, Noto Sans KR, Malgun Gothic, sans-serif">
+  <defs>
+    <marker id="a5" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" fill="#5b6472"/></marker>
+    <marker id="a5b" markerWidth="9" markerHeight="9" refX="1" refY="3.2" orient="auto"><path d="M8,0 L0,3.2 L8,6.4 z" fill="#5b6472"/></marker>
+    <style>
+      .pa  { fill:#fbf6f4; stroke:#c2907f; stroke-width:1.6; rx:10; }
+      .pb  { fill:#f2f7f2; stroke:#6f9c6f; stroke-width:1.8; rx:10; }
+      .in  { fill:#ffffff; stroke:#c9cfd8; stroke-width:1.2; rx:7; }
+      .mod { fill:#fdeceb; stroke:#d0736b; stroke-width:1.2; rx:6; }
+      .keep{ fill:#eef1f4; stroke:#98a2b0; stroke-width:1.2; rx:6; }
+      .new { fill:#e8f1fd; stroke:#5b8def; stroke-width:1.2; rx:6; }
+      .cd1 { fill:#fdf6e6; stroke:#d8a15b; stroke-width:1.4; rx:9; }
+      .cd2 { fill:#eef3ee; stroke:#5f9160; stroke-width:1.8; rx:9; }
+      .h   { font-size:15px; font-weight:700; fill:#1d232b; }
+      .t   { font-size:12.5px; font-weight:700; fill:#232a33; }
+      .f   { font-size:11px; fill:#3d4552; }
+      .n   { font-size:10.5px; fill:#6b7482; }
+      .g   { font-size:11px; fill:#2f6b31; font-weight:700; }
+      .r   { font-size:11px; fill:#a4423a; font-weight:700; }
+      .ar  { stroke:#5b6472; stroke-width:1.6; fill:none; marker-end:url(#a5); }
+      .ar2 { stroke:#5b6472; stroke-width:1.6; fill:none; marker-end:url(#a5); marker-start:url(#a5b); }
+      .al  { font-size:10.5px; fill:#40495a; font-weight:600; }
+    </style>
+  </defs>
+
+  <text x="30" y="30" font-size="18" font-weight="700" fill="#1d232b">배치 방식 — 제품 안에 넣나, 밖에서 호출하나</text>
+  <text x="30" y="49" class="n">빨강 = 제품 코드 변경 · 회색 = 무변경 · 파랑 = 신규 독립 자산</text>
+
+  <!-- Option A -->
+  <rect class="pa" x="30" y="62" width="490" height="376"/>
+  <text class="h" x="46" y="86">A. 내장형 — 제품 안에 넣는다  (§1~§16 계획)</text>
+
+  <rect class="in" x="46" y="98" width="458" height="200"/>
+  <text class="t" x="58" y="118">testcasecraft  (수정됨)</text>
+  <rect class="mod" x="58" y="128" width="212" height="46"/>
+  <text class="f" x="68" y="146">백엔드 신규 12 파일</text><text class="n" x="68" y="163">컨트롤러3 · 서비스9 · 엔티티3</text>
+  <rect class="mod" x="280" y="128" width="212" height="46"/>
+  <text class="f" x="290" y="146">프런트 신규 7 · 수정 3</text><text class="n" x="290" y="163">App.jsx · 대시보드 배지</text>
+  <rect class="mod" x="58" y="182" width="212" height="46"/>
+  <text class="f" x="68" y="200">DB 테이블 3 신규</text><text class="n" x="68" y="217">JunitTestResult 컬럼 2</text>
+  <rect class="mod" x="280" y="182" width="212" height="46"/>
+  <text class="f" x="290" y="200">AsyncConfig · SecurityConfig</text><text class="n" x="290" y="217">i18n 키 · 매뉴얼 한/영</text>
+  <rect class="mod" x="58" y="236" width="434" height="46"/>
+  <text class="f" x="68" y="254">agent-runner 컨테이너가 제품 배포에 포함된다</text>
+  <text class="n" x="68" y="271">Chromium 포함 이미지 약 1.5GB — 셀프호스팅 고객에게도 강제된다</text>
+
+  <text class="r" x="46" y="322">비용  변경 파일 약 26 · prod 는 ddl-auto=validate 라 수동 DDL · 릴리즈가 제품 주기에 묶임</text>
+  <text class="r" x="46" y="342">위험  에이전트 장애가 QA 제품으로 전이 · 화면 커버리지 감사/매뉴얼 한영이 릴리즈 게이트</text>
+  <text class="g" x="46" y="368">이득  제품 안에서 원클릭 · 실시간 관전 · 단일 권한 체계 · 케이스 역참조가 자연스럽다</text>
+  <text class="n" x="46" y="392">쓸 때  이 기능이 제품의 정식 상품 기능이 되는 것이 확정됐을 때</text>
+  <text class="n" x="46" y="412">착수  최소 4~5 Phase (계획 §11)</text>
+
+  <!-- Option B -->
+  <rect class="pb" x="540" y="62" width="490" height="376"/>
+  <text class="h" x="556" y="86">B. 외부 호출형 — 밖에서 붙인다  ← 권장</text>
+
+  <rect class="new" x="556" y="98" width="458" height="118"/>
+  <text class="t" x="568" y="118">testcase-agent  (신규 독립 앱 · 별도 레포)</text>
+  <text class="f" x="568" y="139">· 자체 UI — 실시간 스텝 · 스크린샷 관전 (SSE 를 자기 안에서 해결)</text>
+  <text class="f" x="568" y="158">· 에이전트 루프 — browser-use + Playwright + LangChain</text>
+  <text class="f" x="568" y="177">· 자체 DB/스토리지 — 스텝 로그 · 프롬프트 · 비용 · 스크린샷</text>
+  <text class="f" x="568" y="196">· TMS 어댑터 — testcasecraft / TestRail / Xray 를 갈아끼운다</text>
+
+  <path class="ar2" d="M785,220 L785,250"/>
+  <text class="al" x="600" y="240">읽기 REST·MCP 59도구  /  쓰기 실행·결과·첨부 API</text>
+
+  <rect class="keep" x="556" y="254" width="458" height="88"/>
+  <text class="t" x="568" y="274">testcasecraft  (한 줄도 안 바꾼다)</text>
+  <text class="f" x="568" y="294">이미 열려 있다 — 케이스 조회 · 실행 생성 · 결과 기록 · 첨부 업로드</text>
+  <text class="n" x="568" y="312">인증은 X-API-KEY 가 아니라 전용 봇 계정 JWT (부록 C4 — 권한 검사에서 걸린다)</text>
+  <text class="n" x="568" y="330">봇 계정에 해당 프로젝트 결과기록 권한(TESTER + 편집 롤)을 준다</text>
+
+  <text class="g" x="556" y="368">이득  제품 변경 0 · DDL 0 · 독립 배포 · 장애 격리 · 다른 TMS 에도 붙는 물건이 된다</text>
+  <text class="r" x="556" y="392">비용  제품 UI 안에서 실시간을 못 본다 · 화면 2개를 오간다 · 봇 계정 운영</text>
+  <text class="n" x="556" y="414">쓸 때  아직 검증 단계일 때 = 지금.  실패해도 제품에 흉터가 안 남는다</text>
+
+  <!-- landing zones -->
+  <text class="h" x="30" y="470">B 로 갈 때의 진짜 선택 — 결과를 어디에 착지시키나 (능력이 다르다)</text>
+
+  <rect class="cd1" x="30" y="484" width="490" height="266"/>
+  <text class="t" x="46" y="508">(1) 자동화 결과 업로드</text>
+  <text class="n" x="46" y="528">POST /api/junit-results/upload   (multipart JUnit XML)</text>
+  <text class="f" x="46" y="554">뜨는 화면    S8 자동화 테스트 — 기존 대시보드/상세 그대로</text>
+  <text class="f" x="46" y="576">판정          PASSED / FAILED / ERROR / SKIPPED</text>
+  <text class="f" x="46" y="598">한 번에        XML 하나로 케이스 수십 건</text>
+  <text class="f" x="46" y="620">케이스 역참조   XML 로는 linkedTestCaseId 를 못 채운다</text>
+  <text class="r" x="46" y="644">스크린샷      첨부 API 가 없다 — 붙일 자리가 없음</text>
+  <text class="f" x="46" y="666">Jira            연동 필드 없음</text>
+  <text class="n" x="46" y="692">QA 지표        자동화 대시보드에만 반영 (사람 실행 지표와 안 섞임)</text>
+  <text class="n" x="46" y="716">→ 보조 경로. 스크린샷이 필요 없는 요약 적재나 CI 연동에 쓴다</text>
+
+  <rect class="cd2" x="540" y="484" width="490" height="266"/>
+  <text class="t" x="556" y="508">(2) 테스트실행 결과 기록   ← 주 경로 권장</text>
+  <text class="n" x="556" y="528">POST /api/test-executions → /start → /results(bulk) → /complete</text>
+  <text class="f" x="556" y="554">뜨는 화면    테스트실행 · 테스트결과 — 사람 실행과 같은 화면</text>
+  <text class="f" x="556" y="576">판정          PASS / FAIL / BLOCKED / NOT_RUN</text>
+  <text class="f" x="556" y="598">한 번에        /results/bulk 로 일괄 기록</text>
+  <text class="f" x="556" y="620">케이스 역참조   testCaseId 를 직접 넣는다 — 정확하다</text>
+  <text class="g" x="556" y="644">스크린샷      POST /api/attachments/upload/{testResultId} 로 붙는다</text>
+  <text class="f" x="556" y="666">Jira            TestResult 에 jira 연동 필드가 이미 있다</text>
+  <text class="n" x="556" y="692">QA 지표        섞일 수 있다 → 실행명을 [AI] 접두로 분리 (부록 C6)</text>
+  <text class="n" x="556" y="716">→ 스크린샷이 붙는지가 갈랐다. 증거 없는 판정은 QA 가 못 믿는다</text>
+</svg>

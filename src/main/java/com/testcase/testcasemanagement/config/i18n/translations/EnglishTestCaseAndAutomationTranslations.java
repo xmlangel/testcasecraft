@@ -1229,6 +1229,24 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "No test case detail information available.",
         createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.stepAction", languageCode, "ACTION", createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.jsonItems", languageCode, "{n} items", createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.jsonFields", languageCode, "{n} fields", createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.jsonStructured", languageCode, "Structured", createdBy);
+    createTranslationIfNotExists("junit.testcase.jsonRaw", languageCode, "Raw", createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.attachments", languageCode, "Attachments", createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.noAttachments",
+        languageCode,
+        "No attachments for this case.",
+        createdBy);
+    createTranslationIfNotExists(
+        "junit.testcase.downloadAttachment", languageCode, "Download", createdBy);
     createTranslationIfNotExists("junit.testcase.edit", languageCode, "Edit Test Case", createdBy);
     createTranslationIfNotExists("junit.testcase.close", languageCode, "Close", createdBy);
     createTranslationIfNotExists(

@@ -220,6 +220,70 @@ Table from section 5 of `00_전체_업무프로세스.md` (English: overall work
 
 ---
 
+## 6-1. Project Settings screen · Agent tab
+
+`/projects/{projectId}/settings` has no screen ID of its own; it maps to S1. Creating a new screen ID would mean changing the seven places where screen IDs are defined, so tabs handle it instead. There are three tabs.
+
+| Tab | What it does | Who can use it |
+|---|---|---|
+| General | Change name, description, display order | PROJECT_MANAGER, ADMIN |
+| Members | Add a member, change a role, remove a member | PROJECT_MANAGER, LEAD_DEVELOPER, ADMIN |
+| **Agent** | Register an external QA agent and verify the connection | PROJECT_MANAGER, ADMIN |
+
+> The element definitions for the General and Members tabs are not in this document yet. That gap predates this section and is out of its scope.
+
+### 6-1-1. Agent tab elements
+
+| Element | Display | Save rule |
+|---|---|---|
+| Agent name | `TextField`, up to 100 chars, required | Becomes the button label in the automation screen |
+| Agent URL | `TextField`, up to 500 chars, required | `http` or `https` only. User info and query strings are rejected. A trailing slash is stripped before saving |
+| Browser URL (optional) | `TextField`, up to 500 chars | **Blank reuses the address above.** Fill it only when the server and the browser reach the agent at different addresses. The run button opens this one |
+| Auth token | `TextField type=password` | Stored encrypted. **The value is never returned** — only `hasToken` comes back |
+| Default profile | `TextField`, up to 100 chars | The profile identifier in the agent app |
+| Use in this project | `Switch`, off by default | Nothing appears in the automation screen until it is on |
+| Status chip | `연결됨` (Connected) · `연결할 수 없음` (Cannot connect) · `확인하지 않음` (Not checked) | The last connection test result |
+| `[Save]` | `contained` | Enabled once name and URL are filled |
+| `[Test connection]` | `outlined` | Enabled once a connection is saved |
+| `[Remove connection]` | `text`, `error` | Goes through a confirmation dialog |
+| Limits notice | `Alert severity="warning"` | Duration, cost, non-determinism, and unsupported scenarios are shown on the screen |
+
+**The token field has three branches.** Omitted (field absent from the request) keeps the current value, an empty string deletes it, and a value replaces it. The screen omits the field entirely when the box is blank.
+
+**Changing the URL discards the earlier verification.** `connectionVerified`, `agentVersion`, and `lastConnectionError` are cleared. An earlier result cannot be trusted for a different address.
+
+**Why there are two address fields.** The `Agent URL` is what the **server** uses for the connection test; the deep link is opened by the **browser**. Deployments where those differ do exist. With the product inside a container the server reaches the agent only at `host.docker.internal`, which the browser cannot resolve. Put `localhost` there instead and the server points at itself, the connection test breaks, and the button goes disabled. In production both sides reach the agent by the same name, so the second field stays blank.
+
+### 6-1-2. What the connection test narrows
+
+A user supplies the address and the server calls it, which is an SSRF shape. Blocking private IPs outright is not available because an agent on an internal network is the normal deployment, so it is narrowed differently.
+
+| Defense | Content |
+|---|---|
+| Permission | Only a project manager can save or test |
+| Fixed path | Only `/health` is appended to the supplied address |
+| Response not exposed | Only `status` and `version` are parsed; everything else is discarded |
+| Fixed method | `GET` only |
+| No redirects | A 3xx is treated as a failure rather than followed |
+| Timeout | 3 seconds each for connect and read |
+| Scheme limit | `http` and `https` only |
+| Metadata blocked | The `169.254.169.254` family cannot even be saved |
+| Audit | Setting changes and connection tests go to `AuditLog` |
+
+### 6-1-3. Global kill switch
+
+`agent.integration.enabled` (environment variable `AGENT_INTEGRATION_ENABLED`, default `false`).
+
+| State | Project Settings | Automation screen |
+|---|---|---|
+| Global off | No tab. The API returns 404 | No change |
+| Global on · not configured | Tab present, empty form | No change |
+| Configured · off | Values kept, only the toggle off | No change |
+| On · connection verified | Status chip `연결됨` | `{name} 실행` (Run {name}) button |
+| On · no response | Status chip `연결할 수 없음` plus the reason | Button disabled with the reason |
+
+---
+
 ## 7. 04 Requirement correspondence
 
 | Requirement from 04 | Area in this document |

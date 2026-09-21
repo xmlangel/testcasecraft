@@ -185,6 +185,19 @@ jira:
       # DEV/TEST 전용 기본 키(EncryptionUtil 이 읽는 경로). 운영은 application-prod.yml 에서 JIRA_ENCRYPTION_KEY 필수.
       key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
 
+# 외부 QA 에이전트 연동 (부록 D4-5 전역 킬스위치)
+#
+# 에이전트는 제품 밖의 별도 스택이다. 이 값이 false 면 프로젝트 설정에 탭이 뜨지
+# 않고 관련 API 가 404 를 준다.
+#
+# **기본은 켜짐이되 켠다고 무엇이 일어나지는 않는다.** 실제 사용 여부는 프로젝트
+# 설정의 `is_active` 가 정하고 그쪽 기본이 꺼짐이다. 전역을 꺼짐으로 두면 탭을
+# 보려고 `.env` 를 고쳐야 해서, 화면에서 정하게 한 취지가 무색해진다. 조직 차원에서
+# 이 기능을 막으려면 `AGENT_INTEGRATION_ENABLED=false` 로 덮는다.
+agent:
+  integration:
+    enabled: ${AGENT_INTEGRATION_ENABLED:true}
+
 # 프론트엔드 기능 제어 설정 (런타임용)
 frontend:
   show-exploratory-session-tab: ${SHOW_EXPLORATORY_SESSION_TAB:false}

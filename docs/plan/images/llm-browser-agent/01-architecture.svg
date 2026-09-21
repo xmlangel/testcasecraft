@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="790" viewBox="0 0 1060 790" font-family="Apple SD Gothic Neo, Noto Sans KR, Malgun Gothic, sans-serif">
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto">
+      <path d="M0,0 L8,3.2 L0,6.4 z" fill="#5b6472"/>
+    </marker>
+    <style>
+      .grp   { fill:#f7f8fa; stroke:#c9cfd8; stroke-width:1.4; rx:10; }
+      .glbl  { font-size:14px; font-weight:700; fill:#2f3742; }
+      .newb  { fill:#e8f1fd; stroke:#5b8def; stroke-width:1.3; rx:7; }
+      .reub  { fill:#eef3ee; stroke:#7ba07b; stroke-width:1.3; rx:7; }
+      .infb  { fill:#fdf3e7; stroke:#d8a15b; stroke-width:1.3; rx:7; }
+      .extb  { fill:#f3eef7; stroke:#9b7fb8; stroke-width:1.3; rx:7; }
+      .t     { font-size:12.5px; fill:#232a33; font-weight:600; }
+      .s     { font-size:11px; fill:#5b6472; }
+      .lnk   { stroke:#5b6472; stroke-width:1.5; fill:none; marker-end:url(#ar); }
+      .lbl   { font-size:11px; fill:#40495a; font-weight:600; }
+    </style>
+  </defs>
+
+  <text x="30" y="30" font-size="18" font-weight="700" fill="#1d232b">LLM 브라우저 에이전트 — 컴포넌트 아키텍처</text>
+  <text x="30" y="48" class="s">파랑 = 신규 · 초록 = 기존 재사용 · 주황 = 인프라 · 보라 = 외부</text>
+
+  <!-- (1) Browser -->
+  <rect class="grp" x="30" y="62" width="730" height="104"/>
+  <text class="glbl" x="44" y="82">① 브라우저 — React SPA · 화면 ID S8 「자동화 테스트」 서브탭</text>
+  <rect class="newb" x="46" y="94" width="165" height="58"/>
+  <text class="t" x="56" y="114">AgentRunPanel</text><text class="s" x="56" y="131">실행 목록 · 새 실행</text><text class="s" x="56" y="146">source 배지 표시</text>
+  <rect class="newb" x="222" y="94" width="165" height="58"/>
+  <text class="t" x="232" y="114">AgentRunSetupDialog</text><text class="s" x="232" y="131">케이스 선택 · 프로필</text><text class="s" x="232" y="146">LLM · 예상 비용</text>
+  <rect class="newb" x="398" y="94" width="165" height="58"/>
+  <text class="t" x="408" y="114">AgentRunLiveView</text><text class="s" x="408" y="131">스텝 타임라인</text><text class="s" x="408" y="146">스크린샷 뷰어</text>
+  <rect class="newb" x="574" y="94" width="165" height="58"/>
+  <text class="t" x="584" y="114">useAgentRunStream</text><text class="s" x="584" y="131">fetch + getReader()</text><text class="s" x="584" y="146">useRagChat 선례 동일</text>
+
+  <path class="lnk" d="M300,166 L300,198"/>
+  <text class="lbl" x="310" y="186">POST /agent-runs · GET /agent-runs/{id}/stream  (JWT + projectSecurityService)</text>
+
+  <!-- (2) Spring -->
+  <rect class="grp" x="30" y="198" width="730" height="256"/>
+  <text class="glbl" x="44" y="218">② Spring Boot — 기존 앱에 추가</text>
+  <rect class="newb" x="46" y="228" width="225" height="42"/>
+  <text class="t" x="56" y="246">AgentRunController</text><text class="s" x="56" y="262">실행 · 조회 · 취소 · SSE</text>
+  <rect class="newb" x="282" y="228" width="225" height="42"/>
+  <text class="t" x="292" y="246">AgentProfileController</text><text class="s" x="292" y="262">정책/컨텍스트 CRUD (마스킹)</text>
+  <rect class="newb" x="518" y="228" width="225" height="42"/>
+  <text class="t" x="528" y="246">AgentEventController</text><text class="s" x="528" y="262">내부 콜백 · ServiceApiKey</text>
+
+  <rect class="newb" x="46" y="280" width="225" height="42"/>
+  <text class="t" x="56" y="298">AgentRunService</text><text class="s" x="56" y="314">검증 · 동시성 상한 · 취소</text>
+  <rect class="newb" x="282" y="280" width="225" height="42"/>
+  <text class="t" x="292" y="298">AgentRunWorker  @Async</text><text class="s" x="292" y="314">런너 호출 · 수명주기</text>
+  <rect class="newb" x="518" y="280" width="225" height="42"/>
+  <text class="t" x="528" y="298">AgentEventBroker</text><text class="s" x="528" y="314">SseEmitter 레지스트리 · 팬아웃</text>
+
+  <rect class="newb" x="46" y="332" width="225" height="42"/>
+  <text class="t" x="56" y="350">AgentPromptBuilder</text><text class="s" x="56" y="366">TestCase+TestStep+Profile</text>
+  <rect class="newb" x="282" y="332" width="225" height="42"/>
+  <text class="t" x="292" y="350">AgentResultNormalizer</text><text class="s" x="292" y="366">후처리 LLM → 표준 JSON</text>
+  <rect class="newb" x="518" y="332" width="225" height="42"/>
+  <text class="t" x="528" y="350">AgentJunitWriter</text><text class="s" x="528" y="366">Result/Suite/Case 적재</text>
+
+  <rect class="reub" x="46" y="386" width="166" height="52"/>
+  <text class="t" x="56" y="404">LlmClientFactory</text><text class="s" x="56" y="420">기존 클라이언트 6종</text><text class="s" x="56" y="433">OPENAI·OLLAMA·…</text>
+  <rect class="reub" x="224" y="386" width="166" height="52"/>
+  <text class="t" x="234" y="404">MinIOService</text><text class="s" x="234" y="420">presignedUrl 발급</text><text class="s" x="234" y="433">스크린샷 조회</text>
+  <rect class="reub" x="402" y="386" width="166" height="52"/>
+  <text class="t" x="412" y="404">AsyncConfig</text><text class="s" x="412" y="420">agentRunExecutor</text><text class="s" x="412" y="433">전용 풀 신설</text>
+  <rect class="reub" x="580" y="386" width="163" height="52"/>
+  <text class="t" x="590" y="404">projectSecurity</text><text class="s" x="590" y="420">Service</text><text class="s" x="590" y="433">@PreAuthorize 재사용</text>
+
+  <path class="lnk" d="M200,454 L200,494"/>
+  <text class="lbl" x="210" y="478">POST /run  (내부망)</text>
+  <path class="lnk" d="M620,494 L620,454"/>
+  <text class="lbl" x="410" y="478" text-anchor="end">스텝 콜백 POST /api/internal/agent-runs/{id}/events</text>
+
+  <!-- (3) runner -->
+  <rect class="grp" x="30" y="494" width="730" height="152"/>
+  <text class="glbl" x="44" y="514">③ agent-runner — Python 사이드카 (신규 컨테이너 · rag-service 선례와 동일 패턴)</text>
+  <rect class="newb" x="46" y="524" width="225" height="42"/>
+  <text class="t" x="56" y="542">FastAPI</text><text class="s" x="56" y="558">/run · /cancel · /health</text>
+  <rect class="newb" x="282" y="524" width="225" height="42"/>
+  <text class="t" x="292" y="542">RunSupervisor</text><text class="s" x="292" y="558">큐 · 타임아웃 · 취소 신호</text>
+  <rect class="newb" x="518" y="524" width="225" height="42"/>
+  <text class="t" x="528" y="542">CallbackSender</text><text class="s" x="528" y="558">지수백오프 재시도</text>
+  <rect class="newb" x="46" y="578" width="697" height="52"/>
+  <text class="t" x="56" y="597">자식 프로세스 — 케이스 1건 = multiprocessing.Process 1개 (브라우저 크래시 격리)</text>
+  <text class="s" x="56" y="615">browser-use Agent (use_vision) + LangChain + Playwright + Chromium(headless) → Queue 로 스텝 이벤트 방출</text>
+
+  <!-- infra column -->
+  <rect class="infb" x="790" y="228" width="240" height="94"/>
+  <text class="t" x="802" y="248">PostgreSQL</text>
+  <text class="s" x="802" y="266">agent_runs · agent_step_logs</text>
+  <text class="s" x="802" y="282">agent_profiles  (신규 3)</text>
+  <text class="s" x="802" y="298">junit_test_results/suites/cases</text>
+  <text class="s" x="802" y="314">ddl-auto: dev=update / prod=validate</text>
+
+  <rect class="infb" x="790" y="346" width="240" height="76"/>
+  <text class="t" x="802" y="366">MinIO</text>
+  <text class="s" x="802" y="384">버킷 재사용 · 키 네임스페이스</text>
+  <text class="s" x="802" y="400">agent-runs/{runId}/{step}.webp</text>
+  <text class="s" x="802" y="415">보존 30일 (수명주기 규칙)</text>
+
+  <rect class="extb" x="790" y="446" width="240" height="112"/>
+  <text class="t" x="802" y="466">LLM 제공자 (외부)</text>
+  <text class="s" x="802" y="484">에이전트 추론 — 런너가 직접 호출</text>
+  <text class="s" x="802" y="500">결과 정규화 — 백엔드가 호출</text>
+  <text class="s" x="802" y="518">OpenAI · OpenRouter · Ollama</text>
+  <text class="s" x="802" y="534">OpenWebUI · Perplexity · NVIDIA</text>
+  <text class="s" x="802" y="550">Anthropic 은 미보유 → §17.7</text>
+
+  <path class="lnk" d="M760,270 L788,270"/>
+  <text class="lbl" x="762" y="262">JPA</text>
+  <path class="lnk" d="M760,376 L788,376"/>
+  <text class="lbl" x="762" y="368">presign</text>
+  <path class="lnk" d="M760,560 L788,400"/>
+  <text class="lbl" x="768" y="470">스크린샷 put</text>
+  <path class="lnk" d="M760,600 L788,520"/>
+  <text class="lbl" x="768" y="596">추론</text>
+
+  <!-- (4) result -->
+  <rect class="grp" x="30" y="666" width="1000" height="102"/>
+  <text class="glbl" x="44" y="686">④ 결과 적재 — 화면을 새로 만들지 않는 지점</text>
+  <rect class="newb" x="46" y="700" width="200" height="50"/>
+  <text class="t" x="56" y="720">AgentRun 완료</text><text class="s" x="56" y="738">스텝로그 + 정규화 결과</text>
+  <path class="lnk" d="M248,725 L292,725"/>
+  <rect class="newb" x="294" y="700" width="200" height="50"/>
+  <text class="t" x="304" y="720">AgentJunitWriter</text><text class="s" x="304" y="738">상태 4종 매핑 · 1 트랜잭션</text>
+  <path class="lnk" d="M496,725 L540,725"/>
+  <rect class="reub" x="542" y="700" width="220" height="50"/>
+  <text class="t" x="552" y="720">JunitTestResult</text><text class="s" x="552" y="738">source = LLM_AGENT</text>
+  <path class="lnk" d="M764,725 L808,725"/>
+  <rect class="reub" x="810" y="700" width="220" height="50"/>
+  <text class="t" x="820" y="720">기존 대시보드/상세</text><text class="s" x="820" y="738">JunitResultDashboard·Detail</text>
+</svg>

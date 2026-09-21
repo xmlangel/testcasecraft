@@ -18,6 +18,10 @@
 | **S1-06** | Edit project | 02 **Area F·G** | Working |
 | **S1-07** | Transfer organization — select target and move belonging | 02 **Area F·H** | Working |
 | **S1-08** | Delete and force delete in **two modes with different warning levels** | 02 **Area F·I** | Working |
+| **S1-10** | Register an external QA agent in project settings (name, URL, token, default profile) | 02 **Section 6-1-1** | Normal |
+| **S1-11** | Turn the agent connection on and off per project. It ships off and must be turned on before anything appears in the automation screen | 02 **Section 6-1-3** | Normal |
+| **S1-12** | The connection test calls only the agent's `/health` and returns two values, its status and version | 02 **Section 6-1-2** | Normal |
+| **S1-13** | A global kill switch turns the feature off per deployment. While off there is no tab and the API returns 404 | 02 **Section 6-1-3** | Normal |
 | **S1-09** | Expand organization project members on card (5 + `+N more`) | 02 **Area D** 7, 9 | Working |
 | **S1-10** | Use different member query API based on belonging | 03 section 3.2 | Working |
 | **S1-11** | Query member API once per organization even with multiple projects | 03 section 3.1 | Working |

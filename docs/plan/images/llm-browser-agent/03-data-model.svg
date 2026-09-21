@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="700" viewBox="0 0 1060 700" font-family="Apple SD Gothic Neo, Noto Sans KR, Malgun Gothic, sans-serif">
+  <defs>
+    <marker id="a3" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" fill="#5b6472"/></marker>
+    <style>
+      .new { fill:#e8f1fd; stroke:#3f74d6; stroke-width:1.6; rx:8; }
+      .old { fill:#eef1f4; stroke:#98a2b0; stroke-width:1.3; rx:8; }
+      .chg { fill:#fdf3e7; stroke:#d8a15b; stroke-width:1.6; rx:8; }
+      .tn  { font-size:13px; font-weight:700; fill:#1d232b; }
+      .f   { font-size:10.8px; fill:#3d4552; }
+      .pk  { font-size:10.8px; fill:#3d4552; font-weight:700; }
+      .rel { stroke:#5b6472; stroke-width:1.4; fill:none; marker-end:url(#a3); }
+      .rl  { font-size:10.5px; fill:#40495a; font-weight:600; }
+      .lg  { font-size:11.5px; fill:#5b6472; }
+    </style>
+  </defs>
+
+  <text x="30" y="30" font-size="18" font-weight="700" fill="#1d232b">데이터 모델 — 신규 3개 · 변경 1개 · 나머지는 그대로</text>
+  <text x="30" y="50" class="lg">파랑 = 신규 테이블 · 주황 = 컬럼 추가 · 회색 = 무변경 (읽기만)</text>
+
+  <!-- AgentProfile -->
+  <rect class="new" x="30" y="70" width="240" height="150"/>
+  <text class="tn" x="42" y="92">AgentProfile  (신규)</text>
+  <text class="pk" x="42" y="112">PK id</text>
+  <text class="f"  x="42" y="129">project_id</text>
+  <text class="f"  x="42" y="146">prompt_template</text>
+  <text class="f"  x="42" y="163">guardrails_json</text>
+  <text class="f"  x="42" y="180">context_json_encrypted  🔒</text>
+  <text class="f"  x="42" y="197">is_default</text>
+  <text class="f"  x="42" y="214">created_at / updated_at</text>
+
+  <!-- AgentRun -->
+  <rect class="new" x="330" y="70" width="270" height="248"/>
+  <text class="tn" x="342" y="92">AgentRun  (신규)</text>
+  <text class="pk" x="342" y="112">PK id</text>
+  <text class="f"  x="342" y="129">project_id · test_plan_id</text>
+  <text class="f"  x="342" y="146">run_name</text>
+  <text class="f"  x="342" y="163">FK profile_id → AgentProfile</text>
+  <text class="f"  x="342" y="180">FK llm_config_id → LlmConfig</text>
+  <text class="f"  x="342" y="197">status  QUEUED/RUNNING/</text>
+  <text class="f"  x="342" y="212">        COMPLETED/FAILED/CANCELLED</text>
+  <text class="f"  x="342" y="229">total_cases · finished_cases</text>
+  <text class="f"  x="342" y="246">junit_result_id  (완료 후)</text>
+  <text class="f"  x="342" y="263">total_cost_usd · 토큰 합계</text>
+  <text class="f"  x="342" y="280">started_at · ended_at</text>
+  <text class="f"  x="342" y="297">triggered_by · error_message</text>
+
+  <!-- agent_run_case_ids -->
+  <rect class="new" x="330" y="336" width="270" height="66"/>
+  <text class="tn" x="342" y="358">agent_run_case_ids  (신규)</text>
+  <text class="f"  x="342" y="376">agent_run_id (FK)</text>
+  <text class="f"  x="342" y="393">test_case_id · display_order</text>
+
+  <!-- AgentStepLog -->
+  <rect class="new" x="30" y="260" width="240" height="248"/>
+  <text class="tn" x="42" y="282">AgentStepLog  (신규)</text>
+  <text class="pk" x="42" y="302">PK id</text>
+  <text class="f"  x="42" y="319">FK agent_run_id</text>
+  <text class="f"  x="42" y="336">test_case_id · case_step_no</text>
+  <text class="f"  x="42" y="353">step_index  (실행 내 전역)</text>
+  <text class="f"  x="42" y="370">action_type</text>
+  <text class="f"  x="42" y="387">thought / action / observation</text>
+  <text class="f"  x="42" y="404">screenshot_key  (MinIO)</text>
+  <text class="f"  x="42" y="421">page_url</text>
+  <text class="f"  x="42" y="438">status  RUNNING/OK/WARN/FAILED</text>
+  <text class="f"  x="42" y="455">input/output_tokens · cost_usd</text>
+  <text class="f"  x="42" y="472">latency_ms</text>
+  <text class="f"  x="42" y="489">occurred_at</text>
+
+  <!-- LlmConfig -->
+  <rect class="old" x="660" y="70" width="240" height="96"/>
+  <text class="tn" x="672" y="92">LlmConfig  (무변경)</text>
+  <text class="f"  x="672" y="112">provider · apiUrl · modelName</text>
+  <text class="f"  x="672" y="129">encryptedApiKey</text>
+  <text class="f"  x="672" y="146">isDefault · isActive</text>
+  <text class="f"  x="672" y="161">→ LlmClientFactory 로 클라이언트 획득</text>
+
+  <!-- JunitTestResult -->
+  <rect class="chg" x="660" y="196" width="370" height="128"/>
+  <text class="tn" x="672" y="218">JunitTestResult  (컬럼 2개 추가)</text>
+  <text class="f"  x="672" y="238">+ source        XML_UPLOAD | LLM_AGENT   기본 XML_UPLOAD</text>
+  <text class="f"  x="672" y="255">+ agent_run_id  VARCHAR(36) nullable</text>
+  <text class="f"  x="672" y="276">⚠ fileName · fileSize · testExecutionName · uploadedBy</text>
+  <text class="f"  x="672" y="291">   이 nullable = false → 에이전트 결과는 값을 채워 넣는다</text>
+  <text class="f"  x="672" y="306">   (파일명 = 실행명 기반 합성, 크기 0, §17.2 참조)</text>
+
+  <!-- JunitTestSuite / Case -->
+  <rect class="old" x="660" y="352" width="370" height="70"/>
+  <text class="tn" x="672" y="374">JunitTestSuite  (무변경)</text>
+  <text class="f"  x="672" y="393">name = 폴더 경로 · tests/failures/errors/skipped/time</text>
+  <text class="f"  x="672" y="410">systemOut · systemErr · userNotes · tags</text>
+
+  <rect class="old" x="660" y="446" width="370" height="122"/>
+  <text class="tn" x="672" y="468">JunitTestCase  (무변경 — 필드가 이미 넉넉하다)</text>
+  <text class="f"  x="672" y="487">name · className · time · status</text>
+  <text class="f"  x="672" y="504">failureMessage · stackTrace · systemOut · systemErr</text>
+  <text class="f"  x="672" y="521">expectedResult · actualResult · testSteps  ← 에이전트 서술 그대로</text>
+  <text class="f"  x="672" y="538">attachments (TEXT) ← 스크린샷 키 목록 JSON</text>
+  <text class="f"  x="672" y="555">userStatus ← QA 가 오판을 덮어쓰는 자리 (§18.5)</text>
+
+  <!-- TestCase / TestStep -->
+  <rect class="old" x="330" y="440" width="270" height="128"/>
+  <text class="tn" x="342" y="462">TestCase / TestStep  (읽기만)</text>
+  <text class="f"  x="342" y="481">name · description · preCondition</text>
+  <text class="f"  x="342" y="498">postCondition · expectedResults</text>
+  <text class="f"  x="342" y="515">steps[] { stepNumber, description,</text>
+  <text class="f"  x="342" y="530">          expectedResult }</text>
+  <text class="f"  x="342" y="547">isAutomated · executionType · displayId</text>
+  <text class="f"  x="342" y="564">→ 프롬프트 빌더의 유일한 입력</text>
+
+  <!-- relations -->
+  <path class="rel" d="M270,140 L326,140"/><text class="rl" x="276" y="134">1:N</text>
+  <path class="rel" d="M330,300 L274,330"/><text class="rl" x="278" y="300">1:N</text>
+  <path class="rel" d="M420,318 L420,332"/><text class="rl" x="428" y="330">1:N</text>
+  <path class="rel" d="M600,150 L656,130"/><text class="rl" x="604" y="142">N:1</text>
+  <path class="rel" d="M600,250 L656,250"/><text class="rl" x="604" y="244">1:1</text>
+  <path class="rel" d="M600,500 L656,500"/><text class="rl" x="602" y="494">linkedTestCaseId</text>
+  <path class="rel" d="M845,324 L845,348"/><text class="rl" x="852" y="342">1:N</text>
+  <path class="rel" d="M845,422 L845,442"/><text class="rl" x="852" y="438">1:N</text>
+
+  <rect x="30" y="600" width="1000" height="76" fill="#eef1f4" stroke="#98a2b0" stroke-width="1.2" rx="8"/>
+  <text class="tn" x="44" y="622">마이그레이션 — 이 레포 규약대로 SQL 스크립트를 쓰지 않는다</text>
+  <text class="f"  x="44" y="642">dev 는 spring.jpa.hibernate.ddl-auto=update 가 테이블 3개와 컬럼 2개를 만든다. prod 는 validate 라 스키마가 없으면 기동이 실패한다 —</text>
+  <text class="f"  x="44" y="659">운영 반영 전에 DDL 을 뽑아 릴리즈 노트에 첨부하고, source 컬럼은 DEFAULT 'XML_UPLOAD' 로 기존 행을 백필한 뒤 NOT NULL 을 건다.</text>
+</svg>
