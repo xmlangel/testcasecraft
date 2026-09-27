@@ -1,0 +1,26 @@
+name: Branch Flow Guard
+
+# 브랜치 흐름을  feat/* · core/* · doc/*  →  dev  →  master  로 고정한다.
+# master 로 가는 PR 은 promote-dev.sh 가 만든 release/* 브랜치만 받는다.
+# 규칙 정본은 scripts/git-guard/branch-flow.sh 이다.
+on:
+  pull_request:
+    branches: [dev, master]
+
+permissions:
+  contents: read
+
+jobs:
+  flow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 브랜치 흐름 확인
+        run: |
+          git fetch -q origin dev
+          bash scripts/git-guard/branch-flow.sh \
+            "${{ github.base_ref }}" "${{ github.head_ref }}" \
+            "${{ github.event.pull_request.head.sha }}"
