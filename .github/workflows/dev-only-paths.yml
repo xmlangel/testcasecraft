@@ -1,0 +1,23 @@
+name: Dev-only Paths Guard
+
+# .claude · .agent · .agents 는 dev 브랜치에서만 관리한다.
+# 로컬 훅(.githooks)은 설치하지 않았거나 --no-verify 로 건너뛸 수 있으므로,
+# master 로 들어가는 PR 과 push 를 여기서 한 번 더 막는다.
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: dev 전용 경로가 트리에 없는지 확인
+        run: bash scripts/git-guard/dev-only-paths.sh --tree HEAD
