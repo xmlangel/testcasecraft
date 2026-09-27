@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# 설치: git config core.hooksPath .githooks
+exec "$(git rev-parse --show-toplevel)/scripts/git-guard/dev-only-paths.sh" --staged

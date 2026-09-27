@@ -275,6 +275,8 @@ CLAUDE.local.md
 CLAUDE.md
 **/CLAUDE.md
 .claude/
+.agent/
+.agents/
 ~$*
 
 .mcp.json
