@@ -90,6 +90,13 @@ class RequirementService {
     return response.json();
   }
 
+  async getProjectRelations(projectId) {
+    const response = await apiService.get(
+      `/api/projects/${projectId}/requirement-relations`,
+    );
+    return response.json();
+  }
+
   async getRelations(requirementId) {
     const response = await apiService.get(
       `/api/requirements/${requirementId}/relations`,

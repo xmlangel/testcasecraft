@@ -5,9 +5,15 @@
 //   커버리지: TC 가 연결되지 않은 요구사항 찾기
 //   리포트:   테스트플랜 기준 요구사항별 판정
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import PropTypes from "prop-types";
-import { Alert, Box, Paper, Tab, Tabs } from "@mui/material";
+import { Alert, Box, CircularProgress, Paper, Tab, Tabs } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
@@ -18,6 +24,11 @@ import requirementService from "../../services/requirementService.js";
 import RequirementListView from "./RequirementListView.jsx";
 import RequirementCoverageView from "./RequirementCoverageView.jsx";
 import RequirementReportView from "./RequirementReportView.jsx";
+
+// 관계도는 그래프 라이브러리를 쓰므로 탭을 열 때만 불러온다
+const RequirementNetworkView = React.lazy(
+  () => import("./RequirementNetworkView.jsx"),
+);
 import {
   RequirementDialog,
   RequirementSpecDialog,
@@ -201,6 +212,10 @@ function RequirementWorkspace({ projectId }) {
           label={t("requirement.view.report", "리포트")}
           data-testid="requirement-view-report"
         />
+        <Tab
+          label={t("requirement.view.network", "관계도")}
+          data-testid="requirement-view-network"
+        />
       </Tabs>
       {error && (
         <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
@@ -240,6 +255,24 @@ function RequirementWorkspace({ projectId }) {
             testPlans={testPlans}
             testExecutions={testExecutions}
           />
+        )}
+        {view === 3 && (
+          <Suspense fallback={<CircularProgress size={24} />}>
+            <RequirementNetworkView
+              projectId={projectId}
+              specs={specs}
+              requirements={requirements}
+              testCases={testCases}
+              testPlans={testPlans}
+              canEdit={canEdit}
+              onAddLinks={(reqId, ids) =>
+                runAndReplace(requirementService.addTestCases(reqId, ids))
+              }
+              onRemoveLink={(reqId, tcId) =>
+                runAndReplace(requirementService.removeTestCase(reqId, tcId))
+              }
+            />
+          </Suspense>
         )}
       </Box>
 

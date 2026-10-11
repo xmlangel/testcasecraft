@@ -418,6 +418,22 @@ public class RequirementIntegrationTest extends AbstractTestNGSpringContextTests
             .getStatus(),
         403);
 
+    // 관계도용 프로젝트 전체 조회: 지금까지 건 2건, 비멤버는 403
+    JsonNode all =
+        ok(
+            get("/api/projects/" + projectA.getId() + "/requirement-relations"),
+            viewerToken,
+            null,
+            200);
+    Assert.assertEquals(all.size(), 2);
+    Assert.assertEquals(
+        call(
+                get("/api/projects/" + projectA.getId() + "/requirement-relations"),
+                outsiderToken,
+                null)
+            .getStatus(),
+        403);
+
     // 요구사항을 지우면 그 요구사항이 걸린 관계도 사라진다
     ok(delete("/api/requirements/" + child), editorToken, null, 204);
     JsonNode afterDelete =

@@ -116,6 +116,38 @@ public class EnglishRequirementTranslations {
     create("requirement.relation.related", lang, "Related", by);
     create("requirement.relation.remove", lang, "Remove relation", by);
     create("requirement.relation.title", lang, "Relations", by);
+    create("requirement.network.betweenness", lang, "Betweenness centrality", by);
+    create("requirement.network.degree", lang, "Connections", by);
+    create(
+        "requirement.network.empty",
+        lang,
+        "No connected requirements. Link test cases or add relations to see them here.",
+        by);
+    create("requirement.network.fit", lang, "Fit to screen", by);
+    create("requirement.network.hop1", lang, "1-step neighbors", by);
+    create("requirement.network.hop2", lang, "2-step neighbors", by);
+    create("requirement.network.hops", lang, "Highlight range", by);
+    create("requirement.network.isolated", lang, "Isolated requirements", by);
+    create(
+        "requirement.network.isolatedHint",
+        lang,
+        "Requirements with no test case and no relation. Click a node to open its details here.",
+        by);
+    create(
+        "requirement.network.isolatedSharedHint",
+        lang,
+        "Requirements that share no test case with another requirement.",
+        by);
+    create(
+        "requirement.network.legend.shared", lang, "Line width / number = shared test cases", by);
+    create("requirement.network.legend.testcase", lang, "■ Test case", by);
+    create("requirement.network.mode.network", lang, "Requirement–TC network", by);
+    create("requirement.network.mode.shared", lang, "Shared-TC network", by);
+    create("requirement.network.noResult", lang, "None", by);
+    create("requirement.network.resultPlan", lang, "TC result color (plan)", by);
+    create("requirement.network.showTestCases", lang, "Show TC nodes", by);
+    create("requirement.network.sizeBy", lang, "Node size", by);
+    create("requirement.view.network", lang, "Network", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

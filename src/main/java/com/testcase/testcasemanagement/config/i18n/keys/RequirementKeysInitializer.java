@@ -107,6 +107,37 @@ public class RequirementKeysInitializer {
     createKey("requirement.relation.related", "요구사항 관리 · 관련", "관련");
     createKey("requirement.relation.remove", "요구사항 관리 · 관계 해제", "관계 해제");
     createKey("requirement.relation.title", "요구사항 관리 · 관계", "관계");
+    createKey("requirement.network.betweenness", "요구사항 관리 · 매개 중심성", "매개 중심성");
+    createKey("requirement.network.degree", "요구사항 관리 · 연결 수", "연결 수");
+    createKey(
+        "requirement.network.empty",
+        "요구사항 관리 · 선으로 이어진 요구사항이 없습니다. TC 를 연결하거나",
+        "선으로 이어진 요구사항이 없습니다. TC 를 연결하거나 관계를 걸면 여기에 나타납니다.");
+    createKey("requirement.network.fit", "요구사항 관리 · 화면 맞춤", "화면 맞춤");
+    createKey("requirement.network.hop1", "요구사항 관리 · 1단계 이웃", "1단계 이웃");
+    createKey("requirement.network.hop2", "요구사항 관리 · 2단계 이웃", "2단계 이웃");
+    createKey("requirement.network.hops", "요구사항 관리 · 강조 범위", "강조 범위");
+    createKey("requirement.network.isolated", "요구사항 관리 · 고립된 요구사항", "고립된 요구사항");
+    createKey(
+        "requirement.network.isolatedHint",
+        "요구사항 관리 · TC 도 관계도 없는 요구사항입니다. 노드를 누르면 여",
+        "TC 도 관계도 없는 요구사항입니다. 노드를 누르면 여기에 상세가 열립니다.");
+    createKey(
+        "requirement.network.isolatedSharedHint",
+        "요구사항 관리 · 다른 요구사항과 함께 쓰는 TC 가 없는 요구사항입니다",
+        "다른 요구사항과 함께 쓰는 TC 가 없는 요구사항입니다.");
+    createKey(
+        "requirement.network.legend.shared",
+        "요구사항 관리 · 선 두께·숫자 = 함께 쓰는 TC 수",
+        "선 두께·숫자 = 함께 쓰는 TC 수");
+    createKey("requirement.network.legend.testcase", "요구사항 관리 · ■ 테스트케이스", "■ 테스트케이스");
+    createKey("requirement.network.mode.network", "요구사항 관리 · 요구사항·TC 네트워크", "요구사항·TC 네트워크");
+    createKey("requirement.network.mode.shared", "요구사항 관리 · TC 공유 네트워크", "TC 공유 네트워크");
+    createKey("requirement.network.noResult", "요구사항 관리 · 표시 안 함", "표시 안 함");
+    createKey("requirement.network.resultPlan", "요구사항 관리 · TC 결과 색(플랜)", "TC 결과 색(플랜)");
+    createKey("requirement.network.showTestCases", "요구사항 관리 · TC 노드 표시", "TC 노드 표시");
+    createKey("requirement.network.sizeBy", "요구사항 관리 · 노드 크기", "노드 크기");
+    createKey("requirement.view.network", "요구사항 관리 · 관계도", "관계도");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

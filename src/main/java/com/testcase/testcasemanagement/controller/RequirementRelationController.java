@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.dto.requirement.RequirementRelationEdge;
 import com.testcase.testcasemanagement.dto.requirement.RequirementRelationRequest;
 import com.testcase.testcasemanagement.dto.requirement.RequirementRelationResponse;
 import com.testcase.testcasemanagement.service.RequirementRelationService;
@@ -32,6 +33,12 @@ public class RequirementRelationController {
   @GetMapping("/requirements/{id}/relations")
   public List<RequirementRelationResponse> getRelations(@PathVariable String id) {
     return relationService.getRelations(id);
+  }
+
+  @Operation(summary = "프로젝트의 요구사항 관계 전체(관계도용)")
+  @GetMapping("/projects/{projectId}/requirement-relations")
+  public List<RequirementRelationEdge> getProjectRelations(@PathVariable String projectId) {
+    return relationService.getProjectRelations(projectId);
   }
 
   @Operation(summary = "요구사항 관계 추가", description = "경로의 요구사항이 source, 본문의 targetId 가 target 이다.")

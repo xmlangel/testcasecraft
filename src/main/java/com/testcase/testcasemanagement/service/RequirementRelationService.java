@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.service;
 
+import com.testcase.testcasemanagement.dto.requirement.RequirementRelationEdge;
 import com.testcase.testcasemanagement.dto.requirement.RequirementRelationResponse;
 import com.testcase.testcasemanagement.exception.ResourceNotFoundException;
 import com.testcase.testcasemanagement.exception.ResourceNotValidException;
@@ -77,6 +78,18 @@ public class RequirementRelationService {
         .sorted(
             Comparator.comparing(RequirementRelationResponse::type)
                 .thenComparing(RequirementRelationResponse::otherDocId))
+        .toList();
+  }
+
+  /** 관계도용: 프로젝트의 관계 전체를 한 번에 돌려준다. */
+  @Transactional(readOnly = true)
+  public List<RequirementRelationEdge> getProjectRelations(String projectId) {
+    requirementService.requireAccess(projectId);
+    return relationRepository.findByProjectId(projectId).stream()
+        .map(
+            r ->
+                new RequirementRelationEdge(
+                    r.getId(), r.getSourceId(), r.getTargetId(), r.getType().name()))
         .toList();
   }
 

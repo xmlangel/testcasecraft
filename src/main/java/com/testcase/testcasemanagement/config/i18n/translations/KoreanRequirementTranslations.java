@@ -115,6 +115,27 @@ public class KoreanRequirementTranslations {
     create("requirement.relation.related", lang, "관련", by);
     create("requirement.relation.remove", lang, "관계 해제", by);
     create("requirement.relation.title", lang, "관계", by);
+    create("requirement.network.betweenness", lang, "매개 중심성", by);
+    create("requirement.network.degree", lang, "연결 수", by);
+    create(
+        "requirement.network.empty", lang, "선으로 이어진 요구사항이 없습니다. TC 를 연결하거나 관계를 걸면 여기에 나타납니다.", by);
+    create("requirement.network.fit", lang, "화면 맞춤", by);
+    create("requirement.network.hop1", lang, "1단계 이웃", by);
+    create("requirement.network.hop2", lang, "2단계 이웃", by);
+    create("requirement.network.hops", lang, "강조 범위", by);
+    create("requirement.network.isolated", lang, "고립된 요구사항", by);
+    create(
+        "requirement.network.isolatedHint", lang, "TC 도 관계도 없는 요구사항입니다. 노드를 누르면 여기에 상세가 열립니다.", by);
+    create("requirement.network.isolatedSharedHint", lang, "다른 요구사항과 함께 쓰는 TC 가 없는 요구사항입니다.", by);
+    create("requirement.network.legend.shared", lang, "선 두께·숫자 = 함께 쓰는 TC 수", by);
+    create("requirement.network.legend.testcase", lang, "■ 테스트케이스", by);
+    create("requirement.network.mode.network", lang, "요구사항·TC 네트워크", by);
+    create("requirement.network.mode.shared", lang, "TC 공유 네트워크", by);
+    create("requirement.network.noResult", lang, "표시 안 함", by);
+    create("requirement.network.resultPlan", lang, "TC 결과 색(플랜)", by);
+    create("requirement.network.showTestCases", lang, "TC 노드 표시", by);
+    create("requirement.network.sizeBy", lang, "노드 크기", by);
+    create("requirement.view.network", lang, "관계도", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {
