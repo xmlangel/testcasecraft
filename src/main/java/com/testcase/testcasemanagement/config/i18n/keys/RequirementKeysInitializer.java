@@ -98,6 +98,15 @@ public class RequirementKeysInitializer {
     createKey("requirement.prev", "요구사항 관리 · 이전", "이전");
     createKey("requirement.coverage.chart.bySpec", "요구사항 관리 · 요구사항 문서별 커버리지", "요구사항 문서별 커버리지");
     createKey("requirement.coverage.chart.overall", "요구사항 관리 · 전체 커버리지", "전체 커버리지");
+    createKey("requirement.relation.child", "요구사항 관리 · 하위 요구사항", "하위 요구사항");
+    createKey("requirement.relation.dependedBy", "요구사항 관리 · 이 요구사항에 의존", "이 요구사항에 의존");
+    createKey("requirement.relation.dependsOn", "요구사항 관리 · 의존 대상", "의존 대상");
+    createKey(
+        "requirement.relation.none", "요구사항 관리 · 다른 요구사항과 맺은 관계가 없습니다.", "다른 요구사항과 맺은 관계가 없습니다.");
+    createKey("requirement.relation.parent", "요구사항 관리 · 상위 요구사항", "상위 요구사항");
+    createKey("requirement.relation.related", "요구사항 관리 · 관련", "관련");
+    createKey("requirement.relation.remove", "요구사항 관리 · 관계 해제", "관계 해제");
+    createKey("requirement.relation.title", "요구사항 관리 · 관계", "관계");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

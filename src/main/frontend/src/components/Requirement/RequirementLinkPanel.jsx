@@ -24,6 +24,7 @@ import { LinkOff as LinkOffIcon } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
 import { LinkedTestCaseDialog } from "./LinkedItemDialogs.jsx";
+import RequirementRelationsSection from "./RequirementRelationsSection.jsx";
 import {
   REQUIREMENT_STATUSES,
   REQUIREMENT_TYPES,
@@ -36,6 +37,8 @@ function RequirementLinkPanel({
   requirement,
   testCases,
   canEdit,
+  requirements = [],
+  onSelectRequirement = () => {},
   onAdd,
   onRemove,
 }) {
@@ -196,6 +199,12 @@ function RequirementLinkPanel({
           </Button>
         </Box>
       )}
+      <RequirementRelationsSection
+        requirement={requirement}
+        requirements={requirements}
+        canEdit={canEdit}
+        onSelectRequirement={onSelectRequirement}
+      />
       <LinkedTestCaseDialog
         testCaseIds={[...linked]}
         initialId={openCaseId}
@@ -211,6 +220,8 @@ RequirementLinkPanel.propTypes = {
   requirement: PropTypes.object.isRequired,
   testCases: PropTypes.array.isRequired,
   canEdit: PropTypes.bool.isRequired,
+  requirements: PropTypes.array,
+  onSelectRequirement: PropTypes.func,
   onAdd: PropTypes.func.isRequired,
   onRemove: PropTypes.func.isRequired,
 };

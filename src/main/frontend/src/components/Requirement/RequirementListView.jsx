@@ -273,6 +273,8 @@ function RequirementListView({
             requirement={selectedReq}
             testCases={testCases}
             canEdit={canEdit}
+            requirements={requirements}
+            onSelectRequirement={setSelectedReqId}
             onAdd={(ids) => onAddLinks(selectedReq.id, ids)}
             onRemove={(tcId) => onRemoveLink(selectedReq.id, tcId)}
           />

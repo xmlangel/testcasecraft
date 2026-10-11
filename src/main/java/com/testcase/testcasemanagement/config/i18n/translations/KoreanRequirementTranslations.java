@@ -107,6 +107,14 @@ public class KoreanRequirementTranslations {
     create("requirement.prev", lang, "이전", by);
     create("requirement.coverage.chart.bySpec", lang, "요구사항 문서별 커버리지", by);
     create("requirement.coverage.chart.overall", lang, "전체 커버리지", by);
+    create("requirement.relation.child", lang, "하위 요구사항", by);
+    create("requirement.relation.dependedBy", lang, "이 요구사항에 의존", by);
+    create("requirement.relation.dependsOn", lang, "의존 대상", by);
+    create("requirement.relation.none", lang, "다른 요구사항과 맺은 관계가 없습니다.", by);
+    create("requirement.relation.parent", lang, "상위 요구사항", by);
+    create("requirement.relation.related", lang, "관련", by);
+    create("requirement.relation.remove", lang, "관계 해제", by);
+    create("requirement.relation.title", lang, "관계", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

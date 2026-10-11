@@ -12,6 +12,7 @@ import com.testcase.testcasemanagement.model.RequirementSpec;
 import com.testcase.testcasemanagement.model.RequirementTestCaseLink;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
+import com.testcase.testcasemanagement.repository.RequirementRelationRepository;
 import com.testcase.testcasemanagement.repository.RequirementRepository;
 import com.testcase.testcasemanagement.repository.RequirementSpecRepository;
 import com.testcase.testcasemanagement.repository.RequirementTestCaseLinkRepository;
@@ -46,6 +47,7 @@ public class RequirementService {
   private final RequirementSpecRepository specRepository;
   private final RequirementRepository requirementRepository;
   private final RequirementTestCaseLinkRepository linkRepository;
+  private final RequirementRelationRepository relationRepository;
   private final TestCaseRepository testCaseRepository;
   private final ProjectRepository projectRepository;
   private final ProjectSecurityService projectSecurityService;
@@ -55,6 +57,7 @@ public class RequirementService {
       RequirementSpecRepository specRepository,
       RequirementRepository requirementRepository,
       RequirementTestCaseLinkRepository linkRepository,
+      RequirementRelationRepository relationRepository,
       TestCaseRepository testCaseRepository,
       ProjectRepository projectRepository,
       ProjectSecurityService projectSecurityService,
@@ -62,6 +65,7 @@ public class RequirementService {
     this.specRepository = specRepository;
     this.requirementRepository = requirementRepository;
     this.linkRepository = linkRepository;
+    this.relationRepository = relationRepository;
     this.testCaseRepository = testCaseRepository;
     this.projectRepository = projectRepository;
     this.projectSecurityService = projectSecurityService;
@@ -128,7 +132,7 @@ public class RequirementService {
     return toSpecResponse(specRepository.save(spec));
   }
 
-  /** 문서와 하위 문서, 그 안의 요구사항과 TC 연결을 함께 지운다. 테스트케이스 자체는 지우지 않는다. */
+  /** 문서와 하위 문서, 그 안의 요구사항과 TC 연결·요구사항 관계를 함께 지운다. 테스트케이스 자체는 지우지 않는다. */
   public void deleteSpec(String id) {
     RequirementSpec spec = findSpec(id);
     requireEdit(spec.getProject().getId());
@@ -136,8 +140,9 @@ public class RequirementService {
     Set<String> specIds = subtreeIds(spec.getId());
     List<Requirement> requirements = requirementRepository.findBySpecIdIn(specIds);
     if (!requirements.isEmpty()) {
-      linkRepository.deleteByRequirementIdIn(
-          requirements.stream().map(Requirement::getId).toList());
+      List<String> requirementIds = requirements.stream().map(Requirement::getId).toList();
+      linkRepository.deleteByRequirementIdIn(requirementIds);
+      relationRepository.deleteInvolving(requirementIds);
       requirementRepository.deleteAll(requirements);
     }
     specRepository.deleteAllById(specIds);
@@ -216,6 +221,7 @@ public class RequirementService {
     Requirement requirement = findRequirement(id);
     requireEdit(requirement.getProject().getId());
     linkRepository.deleteByRequirementIdIn(List.of(id));
+    relationRepository.deleteInvolving(List.of(id));
     requirementRepository.delete(requirement);
   }
 
@@ -342,7 +348,7 @@ public class RequirementService {
     }
   }
 
-  private void requireEdit(String projectId) {
+  void requireEdit(String projectId) {
     if (!projectSecurityService.canEditProject(projectId)) {
       throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + projectId);
     }
@@ -368,7 +374,7 @@ public class RequirementService {
     return spec;
   }
 
-  private Requirement findRequirement(String id) {
+  Requirement findRequirement(String id) {
     return requirementRepository
         .findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("요구사항을 찾을 수 없습니다: " + id));

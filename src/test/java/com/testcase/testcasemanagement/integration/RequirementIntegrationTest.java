@@ -344,6 +344,88 @@ public class RequirementIntegrationTest extends AbstractTestNGSpringContextTests
         403);
   }
 
+  @Test
+  public void relations_directionCycleDuplicateAndCleanup() throws Exception {
+    String specId =
+        ok(
+                post("/api/requirement-specs"),
+                editorToken,
+                Map.of("projectId", projectA.getId(), "docId", "SRS-R", "title", "관계"),
+                201)
+            .get("id")
+            .asText();
+    String parent =
+        ok(post("/api/requirements"), editorToken, requirementBody(specId, "R-1", "VALID", 1), 201)
+            .get("id")
+            .asText();
+    String child =
+        ok(post("/api/requirements"), editorToken, requirementBody(specId, "R-2", "VALID", 1), 201)
+            .get("id")
+            .asText();
+    String other =
+        ok(post("/api/requirements"), editorToken, requirementBody(specId, "R-3", "VALID", 1), 201)
+            .get("id")
+            .asText();
+
+    // 상위·하위: 양쪽에서 방향이 반대로 보인다
+    JsonNode fromParent =
+        ok(
+            post("/api/requirements/" + parent + "/relations"),
+            editorToken,
+            Map.of("targetId", child, "type", "PARENT_OF"),
+            200);
+    Assert.assertEquals(fromParent.get(0).get("direction").asText(), "OUTGOING");
+    JsonNode fromChild =
+        ok(get("/api/requirements/" + child + "/relations"), editorToken, null, 200);
+    Assert.assertEquals(fromChild.get(0).get("direction").asText(), "INCOMING");
+    Assert.assertEquals(fromChild.get(0).get("otherDocId").asText(), "R-1");
+
+    // 순환·자기 자신·중복은 400
+    Assert.assertEquals(
+        call(
+                post("/api/requirements/" + child + "/relations"),
+                editorToken,
+                Map.of("targetId", parent, "type", "PARENT_OF"))
+            .getStatus(),
+        400);
+    Assert.assertEquals(
+        call(
+                post("/api/requirements/" + parent + "/relations"),
+                editorToken,
+                Map.of("targetId", parent, "type", "RELATED_TO"))
+            .getStatus(),
+        400);
+    ok(
+        post("/api/requirements/" + parent + "/relations"),
+        editorToken,
+        Map.of("targetId", other, "type", "RELATED_TO"),
+        200);
+    // 관련은 방향이 없어 반대쪽에서 다시 걸어도 중복이다
+    Assert.assertEquals(
+        call(
+                post("/api/requirements/" + other + "/relations"),
+                editorToken,
+                Map.of("targetId", parent, "type", "RELATED_TO"))
+            .getStatus(),
+        400);
+
+    // 조회 전용은 관계를 걸 수 없다
+    Assert.assertEquals(
+        call(
+                post("/api/requirements/" + other + "/relations"),
+                viewerToken,
+                Map.of("targetId", child, "type", "DEPENDS_ON"))
+            .getStatus(),
+        403);
+
+    // 요구사항을 지우면 그 요구사항이 걸린 관계도 사라진다
+    ok(delete("/api/requirements/" + child), editorToken, null, 204);
+    JsonNode afterDelete =
+        ok(get("/api/requirements/" + parent + "/relations"), editorToken, null, 200);
+    Assert.assertEquals(afterDelete.size(), 1);
+    Assert.assertEquals(afterDelete.get(0).get("type").asText(), "RELATED_TO");
+  }
+
   private TestExecution newExecution(TestPlan plan, String name) {
     TestExecution execution = new TestExecution();
     execution.setName(name + " " + uid);

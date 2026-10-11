@@ -90,6 +90,28 @@ class RequirementService {
     return response.json();
   }
 
+  async getRelations(requirementId) {
+    const response = await apiService.get(
+      `/api/requirements/${requirementId}/relations`,
+    );
+    return response.json();
+  }
+
+  async addRelation(sourceId, targetId, type) {
+    const response = await apiService.post(
+      `/api/requirements/${sourceId}/relations`,
+      { targetId, type },
+    );
+    return response.json();
+  }
+
+  async deleteRelation(relationId) {
+    const response = await apiService.delete(
+      `/api/requirement-relations/${relationId}`,
+    );
+    return response.ok;
+  }
+
   async getCoverage(projectId) {
     const response = await apiService.get(
       `/api/projects/${projectId}/requirements/coverage`,

@@ -15,6 +15,7 @@ import com.testcase.testcasemanagement.model.Requirement;
 import com.testcase.testcasemanagement.model.RequirementSpec;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
+import com.testcase.testcasemanagement.repository.RequirementRelationRepository;
 import com.testcase.testcasemanagement.repository.RequirementRepository;
 import com.testcase.testcasemanagement.repository.RequirementSpecRepository;
 import com.testcase.testcasemanagement.repository.RequirementTestCaseLinkRepository;
@@ -57,6 +58,7 @@ public class RequirementServiceTest {
             specRepository,
             requirementRepository,
             linkRepository,
+            Mockito.mock(RequirementRelationRepository.class),
             testCaseRepository,
             projectRepository,
             security,

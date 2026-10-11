@@ -108,6 +108,14 @@ public class EnglishRequirementTranslations {
     create("requirement.prev", lang, "Previous", by);
     create("requirement.coverage.chart.bySpec", lang, "Coverage by requirement document", by);
     create("requirement.coverage.chart.overall", lang, "Overall coverage", by);
+    create("requirement.relation.child", lang, "Child requirement", by);
+    create("requirement.relation.dependedBy", lang, "Depended on by", by);
+    create("requirement.relation.dependsOn", lang, "Depends on", by);
+    create("requirement.relation.none", lang, "No relations to other requirements.", by);
+    create("requirement.relation.parent", lang, "Parent requirement", by);
+    create("requirement.relation.related", lang, "Related", by);
+    create("requirement.relation.remove", lang, "Remove relation", by);
+    create("requirement.relation.title", lang, "Relations", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {
