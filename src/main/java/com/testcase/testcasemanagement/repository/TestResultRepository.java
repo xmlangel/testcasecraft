@@ -30,6 +30,21 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
    */
   List<TestResult> findByTestCaseIdIn(java.util.Collection<String> testCaseIds);
 
+  /**
+   * 테스트 플랜에 속한 모든 실행의 결과를 (testCaseId, result, executedAt) 행으로 조회한다. 요구사항 기반 리포트가 TC 별 최신 결과를 고를 때
+   * 쓴다. 엔티티 대신 세 컬럼만 읽어 첨부·태그 지연 로딩을 피한다.
+   */
+  @Query(
+      "SELECT r.testCaseId, r.result, r.executedAt FROM TestResult r JOIN r.testExecution e "
+          + "WHERE e.testPlanId = :testPlanId")
+  List<Object[]> findResultRowsByTestPlanId(@Param("testPlanId") String testPlanId);
+
+  /** 실행 하나의 결과를 (testCaseId, result, executedAt) 행으로 조회한다. */
+  @Query(
+      "SELECT r.testCaseId, r.result, r.executedAt FROM TestResult r "
+          + "WHERE r.testExecution.id = :executionId")
+  List<Object[]> findResultRowsByExecutionId(@Param("executionId") String executionId);
+
   @Query(
       "SELECT tr FROM TestResult tr "
           + "JOIN tr.testExecution te "
