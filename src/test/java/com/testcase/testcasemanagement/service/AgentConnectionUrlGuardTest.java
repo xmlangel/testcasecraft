@@ -66,7 +66,7 @@ public class AgentConnectionUrlGuardTest {
             "http://100.100.200.200")) {
       IllegalArgumentException e =
           expectThrows(IllegalArgumentException.class, () -> service.validateAndNormalizeUrl(bad));
-      assertTrue(e.getMessage().contains("등록할 수 없습니다"), bad + " -> " + e.getMessage());
+      assertTrue(e.getMessage().contains("cannot be registered"), bad + " -> " + e.getMessage());
     }
   }
 

@@ -78,7 +78,7 @@ public class UserManagementService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
     return convertToResponse(user);
   }
@@ -92,12 +92,12 @@ public class UserManagementService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
     // 이메일 중복 검사
     if (updateRequest.getEmail() != null && !updateRequest.getEmail().equals(user.getEmail())) {
       if (userRepository.existsByEmail(updateRequest.getEmail())) {
-        throw new ResourceNotValidException("이미 사용 중인 이메일입니다: " + updateRequest.getEmail(), null);
+        throw new ResourceNotValidException("Email is already in use: " + updateRequest.getEmail(), null);
       }
       user.setEmail(updateRequest.getEmail());
     }
@@ -122,7 +122,7 @@ public class UserManagementService {
       String normalizedTimezone = TimezoneValidator.normalizeTimezone(updateRequest.getTimezone());
       if (!TimezoneValidator.isValidTimezone(normalizedTimezone)) {
         throw new ResourceNotValidException(
-            "유효하지 않은 timezone입니다: " + updateRequest.getTimezone(), null);
+            "Invalid timezone: " + updateRequest.getTimezone(), null);
       }
       user.setTimezone(normalizedTimezone);
     }
@@ -159,11 +159,11 @@ public class UserManagementService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
     // 자기 자신의 역할을 변경하려는 경우 방지
     if (user.getId().equals(currentUser.getId())) {
-      throw new ResourceNotValidException("자신의 역할은 변경할 수 없습니다.", null);
+      throw new ResourceNotValidException("You cannot change your own role.", null);
     }
 
     String oldRole = user.getRole();
@@ -191,7 +191,7 @@ public class UserManagementService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
     // 현재 비밀번호 확인 (관리자가 다른 사용자 비밀번호 변경 시에는 현재 비밀번호 확인 생략 가능)
     // 값이 없거나 빈 문자열이면 확인을 건너뛴다.
@@ -199,7 +199,7 @@ public class UserManagementService {
     if (currentPassword != null
         && !currentPassword.isBlank()
         && !passwordEncoder.matches(currentPassword, user.getPassword())) {
-      throw new ResourceNotValidException("현재 비밀번호가 일치하지 않습니다.", null);
+      throw new ResourceNotValidException("Current password does not match.", null);
     }
 
     // 새 비밀번호 유효성 검사
@@ -225,12 +225,12 @@ public class UserManagementService {
     User user =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + currentUsername));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUsername));
 
     // 현재 비밀번호 확인 (필수)
     if (passwordRequest.getCurrentPassword() == null
         || !passwordEncoder.matches(passwordRequest.getCurrentPassword(), user.getPassword())) {
-      throw new ResourceNotValidException("현재 비밀번호가 일치하지 않습니다.", null);
+      throw new ResourceNotValidException("Current password does not match.", null);
     }
 
     // 새 비밀번호 유효성 검사
@@ -238,7 +238,7 @@ public class UserManagementService {
 
     // 현재 비밀번호와 새 비밀번호가 같은지 확인
     if (passwordEncoder.matches(passwordRequest.getNewPassword(), user.getPassword())) {
-      throw new ResourceNotValidException("새 비밀번호는 현재 비밀번호와 달라야 합니다.", null);
+      throw new ResourceNotValidException("New password must be different from the current password.", null);
     }
 
     // 비밀번호 변경
@@ -254,15 +254,15 @@ public class UserManagementService {
   /** 비밀번호 유효성 검사 */
   private void validatePassword(String password) {
     if (password == null || password.trim().isEmpty()) {
-      throw new ResourceNotValidException("비밀번호는 필수입니다.", null);
+      throw new ResourceNotValidException("Password is required.", null);
     }
 
     if (password.length() < 8) {
-      throw new ResourceNotValidException("비밀번호는 최소 8자 이상이어야 합니다.", null);
+      throw new ResourceNotValidException("Password must be at least 8 characters long.", null);
     }
 
     if (password.length() > 100) {
-      throw new ResourceNotValidException("비밀번호는 최대 100자까지 입력 가능합니다.", null);
+      throw new ResourceNotValidException("Password must be at most 100 characters long.", null);
     }
 
     // 영문, 숫자, 특수문자 조합 확인
@@ -276,7 +276,7 @@ public class UserManagementService {
     if (hasSpecial) complexity++;
 
     if (complexity < 2) {
-      throw new ResourceNotValidException("비밀번호는 영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다.", null);
+      throw new ResourceNotValidException("Password must include at least 2 of: letters, digits, special characters.", null);
     }
   }
 
@@ -345,11 +345,11 @@ public class UserManagementService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
     // 자기 자신을 비활성화하려는 경우 방지
     if (user.getId().equals(currentUser.getId()) && !isActive) {
-      throw new ResourceNotValidException("자신의 계정은 비활성화할 수 없습니다.", null);
+      throw new ResourceNotValidException("You cannot deactivate your own account.", null);
     }
 
     user.setIsActive(isActive);
@@ -370,10 +370,10 @@ public class UserManagementService {
     User user =
         userRepository
             .findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + username));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
 
     if (!"ADMIN".equals(user.getRole())) {
-      throw new com.testcase.testcasemanagement.exception.AccessDeniedException("관리자 권한이 필요합니다.");
+      throw new com.testcase.testcasemanagement.exception.AccessDeniedException("Administrator privileges are required.");
     }
 
     return user;

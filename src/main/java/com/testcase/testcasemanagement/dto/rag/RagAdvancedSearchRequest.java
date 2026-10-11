@@ -26,8 +26,8 @@ import lombok.NoArgsConstructor;
 public class RagAdvancedSearchRequest {
 
   /** 검색 쿼리 텍스트 */
-  @NotBlank(message = "검색 쿼리는 필수입니다")
-  @Size(min = 1, max = 10000, message = "검색 쿼리는 1~10000자여야 합니다")
+  @NotBlank(message = "Search query is required")
+  @Size(min = 1, max = 10000, message = "Search query must be between 1 and 10000 characters")
   @JsonProperty("query_text")
   @JsonAlias({"queryText", "query_text"})
   private String queryText;
@@ -41,7 +41,7 @@ public class RagAdvancedSearchRequest {
    * 검색 방법 vector: 순수 벡터 검색 bm25: 순수 키워드 검색 hybrid: 하이브리드 (벡터 + BM25) hybrid_rerank: 하이브리드 +
    * Reranker (권장)
    */
-  @NotNull(message = "검색 방법은 필수입니다")
+  @NotNull(message = "Search method is required")
   @Builder.Default
   @JsonProperty("search_method")
   @JsonAlias({"searchMethod", "search_method"})
@@ -56,7 +56,7 @@ public class RagAdvancedSearchRequest {
   private Double similarityThreshold = 0.6;
 
   /** 최대 결과 수 */
-  @NotNull(message = "최대 결과 수는 필수입니다")
+  @NotNull(message = "Maximum result count is required")
   @Min(1)
   @Max(100)
   @Builder.Default

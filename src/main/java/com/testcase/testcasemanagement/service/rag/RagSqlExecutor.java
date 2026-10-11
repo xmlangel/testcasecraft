@@ -57,7 +57,7 @@ public class RagSqlExecutor {
   @Transactional(readOnly = true)
   public List<Map<String, Object>> executeSelect(String sql, String projectId) {
     if (!isSafeSelect(sql, projectId)) {
-      throw new IllegalArgumentException("허용되지 않은 SQL 쿼리이거나 다른 프로젝트 데이터에 접근을 시도했습니다.");
+      throw new IllegalArgumentException("The SQL query is not allowed or attempts to access another project's data.");
     }
 
     log.info("Executing RAG SQL for project {}: {}", projectId, sql);
@@ -75,7 +75,7 @@ public class RagSqlExecutor {
       return jdbcTemplate.queryForList(limitedSql);
     } catch (Exception e) {
       log.error("SQL 실행 실패: {}", e.getMessage());
-      throw new RuntimeException("SQL 실행 중 오류가 발생했습니다: " + e.getMessage());
+      throw new RuntimeException("An error occurred while executing SQL: " + e.getMessage());
     }
   }
 

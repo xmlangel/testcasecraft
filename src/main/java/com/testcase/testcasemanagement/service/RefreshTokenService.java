@@ -48,7 +48,7 @@ public class RefreshTokenService {
       // 사용자 확인
       Optional<User> userOpt = userRepository.findById(userId);
       if (userOpt.isEmpty()) {
-        throw new RuntimeException("사용자를 찾을 수 없습니다: " + userId);
+        throw new RuntimeException("User not found: " + userId);
       }
 
       User user = userOpt.get();
@@ -68,7 +68,7 @@ public class RefreshTokenService {
 
       // 여전히 중복이면 에러
       if (refreshTokenRepository.findByToken(tokenValue).isPresent()) {
-        throw new RuntimeException("고유한 토큰 생성에 실패했습니다");
+        throw new RuntimeException("Failed to generate a unique token");
       }
 
       // 만료 시간 계산 (밀리초를 LocalDateTime으로 변환)
@@ -86,7 +86,7 @@ public class RefreshTokenService {
 
     } catch (Exception e) {
       logger.error("Refresh Token 생성 실패 - 사용자: {}, 오류: {}", userId, e.getMessage());
-      throw new RuntimeException("Refresh Token 생성에 실패했습니다: " + e.getMessage());
+      throw new RuntimeException("Failed to create refresh token: " + e.getMessage());
     }
   }
 

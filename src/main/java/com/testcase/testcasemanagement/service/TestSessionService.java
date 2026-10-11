@@ -53,13 +53,13 @@ public class TestSessionService {
         projectRepository
             .findById(request.getProjectId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다: " + request.getProjectId()));
+                () -> new ResourceNotFoundException("Project not found: " + request.getProjectId()));
 
     TestCharter charter = testCharterService.findActiveCharter(request.getCharterId());
 
     if (!charter.getProject().getId().equals(project.getId())) {
       throw new ResourceNotValidException(
-          "세션 프로젝트와 차터 프로젝트가 일치하지 않습니다.",
+          "The session project does not match the charter project.",
           Map.of("projectId", project.getId(), "charterProjectId", charter.getProject().getId()));
     }
 
@@ -88,19 +88,19 @@ public class TestSessionService {
             TestSession.SessionStatus.COMPLETED,
             TestSession.SessionStatus.SUBMITTED,
             TestSession.SessionStatus.NEEDS_UPDATE),
-        "세션 수정은 DRAFT, COMPLETED, SUBMITTED 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
+        "A session can only be updated in DRAFT, COMPLETED, SUBMITTED, or NEEDS_UPDATE status.");
 
     Project project =
         projectRepository
             .findById(request.getProjectId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다: " + request.getProjectId()));
+                () -> new ResourceNotFoundException("Project not found: " + request.getProjectId()));
 
     TestCharter charter =
         testCharterService.getCharterById(request.getCharterId()); // findActiveCharter 대신 일반 조회 사용
     if (!charter.getProject().getId().equals(project.getId())) {
       throw new ResourceNotValidException(
-          "세션 프로젝트와 차터 프로젝트가 일치하지 않습니다.",
+          "The session project does not match the charter project.",
           Map.of("projectId", project.getId(), "charterProjectId", charter.getProject().getId()));
     }
 
@@ -111,7 +111,7 @@ public class TestSessionService {
 
   public TestSessionResponseDto startSession(String id) {
     TestSession session = findById(id);
-    ensureStatus(session, List.of(TestSession.SessionStatus.DRAFT), "시작은 DRAFT 상태에서만 가능합니다.");
+    ensureStatus(session, List.of(TestSession.SessionStatus.DRAFT), "A session can only be started in DRAFT status.");
 
     session.setStatus(TestSession.SessionStatus.RUNNING);
     if (session.getStartedAt() == null) {
@@ -124,7 +124,7 @@ public class TestSessionService {
 
   public TestSessionResponseDto pauseSession(String id, String reason) {
     TestSession session = findById(id);
-    ensureStatus(session, List.of(TestSession.SessionStatus.RUNNING), "중단은 RUNNING 상태에서만 가능합니다.");
+    ensureStatus(session, List.of(TestSession.SessionStatus.RUNNING), "A session can only be paused in RUNNING status.");
 
     TestSessionInterruption interruption = new TestSessionInterruption();
     interruption.setSession(session);
@@ -145,11 +145,11 @@ public class TestSessionService {
             TestSession.SessionStatus.PAUSED,
             TestSession.SessionStatus.COMPLETED,
             TestSession.SessionStatus.NEEDS_UPDATE),
-        "재개는 DRAFT, PAUSED, COMPLETED 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
+        "A session can only be resumed in DRAFT, PAUSED, COMPLETED, or NEEDS_UPDATE status.");
 
     if (session.getStartedAt() == null) {
       throw new ResourceNotValidException(
-          "시작 기록이 없는 세션은 재개할 수 없습니다. 대신 시작을 눌러주세요.", java.util.Collections.emptyMap());
+          "A session with no start record cannot be resumed. Start it instead.", java.util.Collections.emptyMap());
     }
 
     if (session.getStatus() == TestSession.SessionStatus.PAUSED) {
@@ -176,7 +176,7 @@ public class TestSessionService {
             TestSession.SessionStatus.DRAFT,
             TestSession.SessionStatus.RUNNING,
             TestSession.SessionStatus.PAUSED),
-        "종료는 DRAFT, RUNNING 또는 PAUSED 상태에서만 가능합니다.");
+        "A session can only be ended in DRAFT, RUNNING, or PAUSED status.");
 
     if (session.getStatus() == TestSession.SessionStatus.DRAFT) {
       if (session.getStartedAt() == null) {
@@ -209,7 +209,7 @@ public class TestSessionService {
             TestSession.SessionStatus.DRAFT,
             TestSession.SessionStatus.COMPLETED,
             TestSession.SessionStatus.NEEDS_UPDATE),
-        "제출은 DRAFT, COMPLETED 또는 NEEDS_UPDATE 상태에서만 가능합니다.");
+        "A session can only be submitted in DRAFT, COMPLETED, or NEEDS_UPDATE status.");
 
     session.setStatus(TestSession.SessionStatus.SUBMITTED);
     session.setSubmittedAt(LocalDateTime.now());
@@ -220,7 +220,7 @@ public class TestSessionService {
   public TestSessionResponseDto approveSession(String id, String comment) {
     TestSession session = findById(id);
     ensureStatus(
-        session, List.of(TestSession.SessionStatus.SUBMITTED), "승인은 SUBMITTED 상태에서만 가능합니다.");
+        session, List.of(TestSession.SessionStatus.SUBMITTED), "A session can only be approved in SUBMITTED status.");
 
     session.setStatus(TestSession.SessionStatus.APPROVED);
     session.setReviewComment(comment);
@@ -234,7 +234,7 @@ public class TestSessionService {
   public TestSessionResponseDto requestUpdate(String id, String comment) {
     TestSession session = findById(id);
     ensureStatus(
-        session, List.of(TestSession.SessionStatus.SUBMITTED), "보완 요청은 SUBMITTED 상태에서만 가능합니다.");
+        session, List.of(TestSession.SessionStatus.SUBMITTED), "An update can only be requested in SUBMITTED status.");
 
     session.setStatus(TestSession.SessionStatus.NEEDS_UPDATE);
     session.setReviewComment(comment);
@@ -257,7 +257,7 @@ public class TestSessionService {
       int size,
       String sort) {
     if (!projectRepository.existsById(projectId)) {
-      throw new ResourceNotFoundException("프로젝트를 찾을 수 없습니다: " + projectId);
+      throw new ResourceNotFoundException("Project not found: " + projectId);
     }
 
     Sort sortSpec = parseSort(sort);
@@ -292,7 +292,7 @@ public class TestSessionService {
             + request.getSetupAdminPct();
     if (sum != 100) {
       throw new ResourceNotValidException(
-          "시간 비율 합계는 100이어야 합니다.", Map.of("timeDistributionSum", String.valueOf(sum)));
+          "The time distribution must sum to 100.", Map.of("timeDistributionSum", String.valueOf(sum)));
     }
   }
 
@@ -375,7 +375,7 @@ public class TestSessionService {
   private TestSession findById(String id) {
     return testSessionRepository
         .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("세션을 찾을 수 없습니다: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Session not found: " + id));
   }
 
   private void ensureStatus(

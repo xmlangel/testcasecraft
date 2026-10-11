@@ -102,7 +102,7 @@ public class DashboardController {
             logger.error("테스트 결과 요약 조회 실패 - 프로젝트: {}, 오류: {}", projectId, e.getMessage());
 
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "테스트 결과 요약을 조회할 수 없습니다.");
+            errorResponse.put("error", "Unable to retrieve the test result summary.");
             errorResponse.put("message", e.getMessage());
 
             return ResponseEntity.status(500).body(errorResponse);
@@ -165,7 +165,7 @@ public class DashboardController {
             logger.error("오픈 테스트런 결과 조회 실패 - 프로젝트: {}, 오류: {}", projectId, e.getMessage());
 
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "오픈 테스트런 결과를 조회할 수 없습니다.");
+            errorResponse.put("error", "Unable to retrieve open test run results.");
             errorResponse.put("message", e.getMessage());
 
             return ResponseEntity.status(500).body(errorResponse);
@@ -240,7 +240,7 @@ public class DashboardController {
             logger.error("대시보드 종합 정보 조회 실패 - 프로젝트: {}, 오류: {}", projectId, e.getMessage());
 
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "대시보드 종합 정보를 조회할 수 없습니다.");
+            errorResponse.put("error", "Unable to retrieve the dashboard overview.");
             errorResponse.put("message", e.getMessage());
 
             return ResponseEntity.status(500).body(errorResponse);
@@ -542,7 +542,7 @@ public class DashboardController {
             logger.error("테스트 결과 추이 조회 실패 - 프로젝트: {}, 오류: {}", projectId, e.getMessage());
 
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "테스트 결과 추이를 조회할 수 없습니다.");
+            errorResponse.put("error", "Unable to retrieve the test result trend.");
             errorResponse.put("message", e.getMessage());
 
             return ResponseEntity.status(500).body(errorResponse);

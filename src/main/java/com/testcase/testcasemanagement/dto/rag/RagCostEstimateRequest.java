@@ -48,12 +48,12 @@ public class RagCostEstimateRequest {
   private String llmBaseUrl;
 
   /** 프롬프트 템플릿 ({chunk_text} 플레이스홀더 포함) FastAPI: prompt_template */
-  @NotBlank(message = "프롬프트 템플릿은 필수입니다")
+  @NotBlank(message = "Prompt template is required")
   @JsonProperty("prompt_template")
   private String promptTemplate;
 
   /** LLM 응답 최대 토큰 수 FastAPI: max_tokens */
-  @Positive(message = "최대 토큰 수는 양수여야 합니다")
+  @Positive(message = "Max tokens must be a positive number")
   @JsonProperty("max_tokens")
   private Integer maxTokens;
 }

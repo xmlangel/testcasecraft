@@ -163,7 +163,7 @@ public class JiraSecurityConfig {
   /** JIRA 서버 URL 검증 및 정규화 */
   public String validateAndNormalizeJiraUrl(String serverUrl) {
     if (serverUrl == null || serverUrl.trim().isEmpty()) {
-      throw new IllegalArgumentException("JIRA 서버 URL이 필요합니다");
+      throw new IllegalArgumentException("JIRA server URL is required");
     }
 
     String normalizedUrl = serverUrl.trim();
@@ -187,17 +187,17 @@ public class JiraSecurityConfig {
       // 포트 번호 검증
       int port = url.getPort();
       if (port != -1 && (port < 1 || port > 65535)) {
-        throw new IllegalArgumentException("유효하지 않은 포트 번호: " + port);
+        throw new IllegalArgumentException("Invalid port number: " + port);
       }
 
       // 호스트명 검증
       String host = url.getHost();
       if (host == null || host.trim().isEmpty()) {
-        throw new IllegalArgumentException("유효하지 않은 호스트명");
+        throw new IllegalArgumentException("Invalid hostname");
       }
 
     } catch (Exception e) {
-      throw new IllegalArgumentException("유효하지 않은 JIRA 서버 URL: " + normalizedUrl, e);
+      throw new IllegalArgumentException("Invalid JIRA server URL: " + normalizedUrl, e);
     }
 
     // 마지막 슬래시 제거

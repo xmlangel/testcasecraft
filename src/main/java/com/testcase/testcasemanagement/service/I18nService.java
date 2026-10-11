@@ -39,7 +39,7 @@ public class I18nService {
   public Language getDefaultLanguage() {
     return languageRepository
         .findByIsDefaultTrue()
-        .orElseThrow(() -> new RuntimeException("기본 언어가 설정되지 않았습니다"));
+        .orElseThrow(() -> new RuntimeException("Default language is not configured"));
   }
 
   /** 언어 코드로 언어 조회 */

@@ -102,7 +102,7 @@ public class TestCaseController {
     } catch (Exception e) {
       log.error("move 실패: id={}", id, e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "서버 오류", "message", e.getMessage()));
+          .body(Map.of("error", "Server error", "message", e.getMessage()));
     }
   }
 
@@ -130,7 +130,7 @@ public class TestCaseController {
     } catch (Exception e) {
       log.error("move-batch 실패", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "서버 오류", "message", e.getMessage()));
+          .body(Map.of("error", "Server error", "message", e.getMessage()));
     }
   }
 
@@ -163,7 +163,7 @@ public class TestCaseController {
     } catch (Exception e) {
       log.error("cross-move 실패", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "서버 오류", "message", String.valueOf(e.getMessage())));
+          .body(Map.of("error", "Server error", "message", String.valueOf(e.getMessage())));
     }
   }
 
@@ -192,7 +192,7 @@ public class TestCaseController {
     } catch (Exception e) {
       log.error("cross-copy 실패", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "서버 오류", "message", String.valueOf(e.getMessage())));
+          .body(Map.of("error", "Server error", "message", String.valueOf(e.getMessage())));
     }
   }
 
@@ -225,7 +225,7 @@ public class TestCaseController {
       // 내부 예외 상세(스택트레이스·예외 클래스·원문 메시지)는 서버 로그로만 남기고 응답엔 노출하지 않는다 (CWE-209)
       log.error("테스트케이스 생성 중 오류 발생", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "테스트케이스 생성 중 서버 오류가 발생했습니다."));
+          .body(Map.of("error", "A server error occurred while creating the test case."));
     }
   }
 
@@ -251,7 +251,7 @@ public class TestCaseController {
       // 내부 예외 상세는 서버 로그로만 남기고 응답엔 노출하지 않는다 (CWE-209)
       log.error("테스트케이스 업데이트 중 오류 발생 - ID: {}", id, e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "테스트케이스 업데이트 중 서버 오류가 발생했습니다."));
+          .body(Map.of("error", "A server error occurred while updating the test case."));
     }
   }
 
@@ -281,7 +281,7 @@ public class TestCaseController {
   @PostMapping("/batch/delete")
   public ResponseEntity<?> batchDeleteTestCases(@RequestBody List<String> ids) {
     if (ids == null || ids.isEmpty()) {
-      return ResponseEntity.badRequest().body(Map.of("error", "삭제할 ID 목록이 비어있습니다."));
+      return ResponseEntity.badRequest().body(Map.of("error", "The list of IDs to delete is empty."));
     }
 
     try {
@@ -296,7 +296,7 @@ public class TestCaseController {
     } catch (Exception e) {
       log.error("일괄 삭제 중 오류 발생", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "일괄 삭제 중 서버 오류 발생", "message", e.getMessage()));
+          .body(Map.of("error", "Server error during bulk delete", "message", e.getMessage()));
     }
   }
 
@@ -335,7 +335,7 @@ public class TestCaseController {
 
       // 입력 검증
       if (testCaseDtos == null || testCaseDtos.isEmpty()) {
-        return ResponseEntity.badRequest().body(Map.of("error", "테스트케이스 목록이 비어있습니다."));
+        return ResponseEntity.badRequest().body(Map.of("error", "The test case list is empty."));
       }
 
       // 배치 저장 실행
@@ -357,7 +357,7 @@ public class TestCaseController {
     } catch (Exception e) {
       // 내부 예외 상세는 서버 로그로만 남기고 응답엔 노출하지 않는다 (CWE-209)
       log.error("ICT-373: 배치 저장 중 예외 발생", e);
-      return ResponseEntity.internalServerError().body(Map.of("error", "배치 저장 중 서버 오류가 발생했습니다."));
+      return ResponseEntity.internalServerError().body(Map.of("error", "A server error occurred during batch save."));
     }
   }
 
@@ -453,19 +453,19 @@ public class TestCaseController {
       validateMappingJson(root);
       return mapper.treeToValue(root, CsvMappingConfig.class);
     } catch (JsonProcessingException e) {
-      throw new InvalidMappingException("JSON 파싱 오류: " + e.getOriginalMessage());
+      throw new InvalidMappingException("JSON parsing error: " + e.getOriginalMessage());
     }
   }
 
   private void validateMappingJson(JsonNode root) {
     // 필수 필드 검증
     if (!root.has("fieldMappings")) {
-      throw new IllegalArgumentException("fieldMappings 필드가 존재하지 않습니다");
+      throw new IllegalArgumentException("The fieldMappings field does not exist");
     }
 
     JsonNode mappings = root.get("fieldMappings");
     if (mappings.isEmpty()) {
-      throw new IllegalArgumentException("최소 하나의 필드 매핑이 필요합니다");
+      throw new IllegalArgumentException("At least one field mapping is required");
     }
 
     // 변환기 타입 검증
@@ -474,7 +474,7 @@ public class TestCaseController {
         if (!converter.has("csvColumn")
             || !converter.has("targetField")
             || !converter.has("targetType")) {
-          throw new IllegalArgumentException("converter 필드 형식이 올바르지 않습니다");
+          throw new IllegalArgumentException("The converter field format is invalid");
         }
       }
     }
@@ -599,7 +599,7 @@ public class TestCaseController {
   public ResponseEntity<?> importTestCasesStandardCsv(
       @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
     if (file.getSize() > 5 * 1024 * 1024) {
-      return ResponseEntity.badRequest().body(Map.of("error", "파일 크기가 5MB를 초과합니다"));
+      return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 5MB"));
     }
     try {
       List<TestCase> imported =
@@ -612,7 +612,7 @@ public class TestCaseController {
           .body(Map.of("error", e.getMessage(), "details", e.getErrors()));
     } catch (Exception e) {
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "처리 실패", "message", e.getMessage()));
+          .body(Map.of("error", "Processing failed", "message", e.getMessage()));
     }
   }
 
@@ -624,7 +624,7 @@ public class TestCaseController {
   public ResponseEntity<?> importTestCasesStandardExcel(
       @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
     if (file.getSize() > 10 * 1024 * 1024) {
-      return ResponseEntity.badRequest().body(Map.of("error", "파일 크기가 10MB를 초과합니다"));
+      return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 10MB"));
     }
     try {
       List<TestCase> imported =
@@ -637,7 +637,7 @@ public class TestCaseController {
           .body(Map.of("error", e.getMessage(), "details", e.getErrors()));
     } catch (Exception e) {
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "처리 실패", "message", e.getMessage()));
+          .body(Map.of("error", "Processing failed", "message", e.getMessage()));
     }
   }
 
@@ -647,7 +647,7 @@ public class TestCaseController {
   public ResponseEntity<?> importTestCasesJson(
       @RequestParam("file") MultipartFile file, @RequestParam("projectId") String projectId) {
     if (file.getSize() > 5 * 1024 * 1024) {
-      return ResponseEntity.badRequest().body(Map.of("error", "파일 크기가 5MB를 초과합니다"));
+      return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 5MB"));
     }
     try {
       List<TestCase> imported = testCaseService.importFromJson(file.getInputStream(), projectId);
@@ -659,7 +659,7 @@ public class TestCaseController {
           .body(Map.of("error", e.getMessage(), "details", e.getErrors()));
     } catch (Exception e) {
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "처리 실패", "message", e.getMessage()));
+          .body(Map.of("error", "Processing failed", "message", e.getMessage()));
     }
   }
 
@@ -675,7 +675,7 @@ public class TestCaseController {
       return ResponseEntity.ok(result);
     } catch (Exception e) {
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "검증 실패", "message", e.getMessage()));
+          .body(Map.of("error", "Validation failed", "message", e.getMessage()));
     }
   }
 
@@ -745,7 +745,7 @@ public class TestCaseController {
               "message", "Google Sheets export 완료", "spreadsheetId", request.getGoogleSheetId()));
     } catch (Exception e) {
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "Google Sheets export 실패", "message", e.getMessage()));
+          .body(Map.of("error", "Google Sheets export failed", "message", e.getMessage()));
     }
   }
 
@@ -773,7 +773,7 @@ public class TestCaseController {
 
       if (steps.isEmpty()) {
         return ResponseEntity.badRequest()
-            .body(Map.of("error", "스텝 정보가 없습니다. 최소 1개 이상의 스텝을 입력해주세요."));
+            .body(Map.of("error", "No step information provided. Enter at least one step."));
       }
 
       Map<String, String> result =
@@ -790,7 +790,7 @@ public class TestCaseController {
     } catch (Exception e) {
       log.error("❌ AI 메타 생성 중 오류 발생", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "AI 생성 중 오류가 발생했습니다.", "message", e.getMessage()));
+          .body(Map.of("error", "An error occurred during AI generation.", "message", e.getMessage()));
     }
   }
 }

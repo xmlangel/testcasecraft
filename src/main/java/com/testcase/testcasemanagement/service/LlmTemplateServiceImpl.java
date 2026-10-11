@@ -22,7 +22,7 @@ public class LlmTemplateServiceImpl implements LlmTemplateService {
     LlmTemplate template =
         llmTemplateRepository
             .findById("default")
-            .orElseThrow(() -> new RuntimeException("기본 LLM 템플릿이 존재하지 않습니다"));
+            .orElseThrow(() -> new RuntimeException("Default LLM template does not exist"));
 
     return convertToDTO(template);
   }
@@ -35,7 +35,7 @@ public class LlmTemplateServiceImpl implements LlmTemplateService {
     LlmTemplate template =
         llmTemplateRepository
             .findById("default")
-            .orElseThrow(() -> new RuntimeException("기본 LLM 템플릿이 존재하지 않습니다"));
+            .orElseThrow(() -> new RuntimeException("Default LLM template does not exist"));
 
     // 필드 업데이트
     if (templateDTO.getPromptTemplate() != null) {

@@ -100,7 +100,7 @@ public class ServiceApiKeyController {
             .count();
     if (activeCount >= 10) {
       return ResponseEntity.badRequest()
-          .body(Map.of("success", false, "message", "API 키는 최대 10개까지 발급할 수 있습니다."));
+          .body(Map.of("success", false, "message", "A maximum of 10 API keys can be issued."));
     }
     return generateApiKey(name, username);
   }
@@ -134,7 +134,7 @@ public class ServiceApiKeyController {
     String apiKey = request.getHeader("X-API-KEY");
     if (apiKey == null || apiKey.isBlank()) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(Map.of("error", "X-API-KEY 헤더가 누락되었습니다."));
+          .body(Map.of("error", "The X-API-KEY header is missing."));
     }
 
     String apiKeyHash = ApiKeyHasher.sha256Hex(apiKey);
@@ -142,12 +142,12 @@ public class ServiceApiKeyController {
         serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKeyHash);
     if (keyOpt.isEmpty()) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(Map.of("error", "유효하지 않은 API 키입니다."));
+          .body(Map.of("error", "Invalid API key."));
     }
 
     ServiceApiKey serviceApiKey = keyOpt.get();
     if (serviceApiKey.getExpiresAt().isBefore(LocalDateTime.now())) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "만료된 API 키입니다."));
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "The API key has expired."));
     }
 
     // 임시 토큰 저장소에도 원본 키 대신 해시를 담는다 (인메모리 노출 표면 축소).
@@ -163,21 +163,21 @@ public class ServiceApiKeyController {
     String token = body.get("token");
     if (token == null || token.isBlank()) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(Map.of("error", "token 필드가 누락되었습니다."));
+          .body(Map.of("error", "The token field is missing."));
     }
 
     // 저장소에는 API 키 해시가 담겨 있다 (issueRedirectToken 참조).
     String apiKeyHash = redirectTokenStore.consumeToken(token);
     if (apiKeyHash == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(Map.of("error", "임시 토큰이 유효하지 않거나 만료되었습니다."));
+          .body(Map.of("error", "The temporary token is invalid or has expired."));
     }
 
     Optional<ServiceApiKey> keyOpt =
         serviceApiKeyRepository.findByApiKeyAndIsActiveTrue(apiKeyHash);
     if (keyOpt.isEmpty()) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(Map.of("error", "API 키가 비활성화되었습니다."));
+          .body(Map.of("error", "API key has been deactivated."));
     }
 
     ServiceApiKey serviceApiKey = keyOpt.get();

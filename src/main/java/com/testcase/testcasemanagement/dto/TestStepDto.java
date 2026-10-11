@@ -16,10 +16,10 @@ import lombok.Setter;
 public class TestStepDto {
   private int stepNumber;
 
-  @NotBlank(message = "단계 설명은 필수 항목입니다")
-  @Size(max = 10000, message = "단계 설명은 10,000자 이내로 입력해주세요")
+  @NotBlank(message = "Step description is required")
+  @Size(max = 10000, message = "Step description must be 10,000 characters or fewer")
   private String description; // ✅ 필수 필드
 
-  @Size(max = 10000, message = "기대 결과는 10,000자 이내로 입력해주세요")
+  @Size(max = 10000, message = "Expected result must be 10,000 characters or fewer")
   private String expectedResult;
 }

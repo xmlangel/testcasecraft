@@ -137,7 +137,7 @@ public class TestSessionController {
       return TestSession.SessionStatus.valueOf(status.toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException ex) {
       throw new ResourceNotValidException(
-          "유효하지 않은 status 값입니다: " + status, Map.of("status", status));
+          "Invalid status value: " + status, Map.of("status", status));
     }
   }
 }

@@ -102,9 +102,9 @@ public class JiraApiService {
           log.warn(
               "JIRA 인증 실패(익명으로 강등됨): username={}, url={}", testConfig.getUsername(), serverUrl);
           return createFailureStatus(
-              "인증 실패",
-              "이메일(Atlassian 계정)과 API 토큰을 확인하세요. Jira Cloud 는 잘못된 자격증명을 익명 요청으로"
-                  + " 처리하므로 서버 정보 조회만으로는 인증을 확인할 수 없습니다.");
+              "Authentication failed",
+              "Check your email (Atlassian account) and API token. Jira Cloud treats invalid credentials as anonymous requests,"
+                  + " so authentication cannot be verified by fetching server info alone.");
         }
 
         success = true;
@@ -121,22 +121,22 @@ public class JiraApiService {
     } catch (HttpClientErrorException e) {
       log.warn("JIRA 연결 실패 - 클라이언트 오류: {}", e.getMessage());
       jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 인증 실패", e));
-      return createFailureStatus("인증 실패 또는 권한 부족: " + e.getStatusCode(), e.getMessage());
+      return createFailureStatus("Authentication failed or insufficient permissions: " + e.getStatusCode(), e.getMessage());
 
     } catch (HttpServerErrorException e) {
       log.warn("JIRA 연결 실패 - 서버 오류: {}", e.getMessage());
       jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 서버 오류", e));
-      return createFailureStatus("JIRA 서버 오류: " + e.getStatusCode(), e.getMessage());
+      return createFailureStatus("JIRA server error: " + e.getStatusCode(), e.getMessage());
 
     } catch (ResourceAccessException e) {
       log.warn("JIRA 연결 실패 - 네트워크 오류: {}", e.getMessage());
       jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 네트워크 오류", e));
-      return createFailureStatus("네트워크 연결 실패", "JIRA 서버에 접근할 수 없습니다: " + e.getMessage());
+      return createFailureStatus("Network connection failed", "Unable to reach the JIRA server: " + e.getMessage());
 
     } catch (Exception e) {
       log.error("JIRA 연결 테스트 중 예외 발생", e);
       jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 연결 테스트 예외", e));
-      return createFailureStatus("연결 테스트 실패", e.getMessage());
+      return createFailureStatus("Connection test failed", e.getMessage());
     } finally {
       // 모니터링 메트릭 기록
       final boolean finalSuccess = success;
@@ -147,7 +147,7 @@ public class JiraApiService {
           });
     }
 
-    return createFailureStatus("알 수 없는 오류", "연결 테스트 실패");
+    return createFailureStatus("Unknown error", "Connection test failed");
   }
 
   /** 프로젝트 목록 한 페이지 크기. Jira Cloud project/search 상한이 50 이다. */
@@ -394,7 +394,7 @@ public class JiraApiService {
 
       return JiraConfigDto.IssueCreateResponseDto.builder()
           .success(false)
-          .errorMessage("이슈 생성 실패: " + response.getStatusCode())
+          .errorMessage("Failed to create issue: " + response.getStatusCode())
           .build();
 
     } catch (Exception e) {
@@ -402,7 +402,7 @@ public class JiraApiService {
       jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 이슈 생성 오류", e));
       return JiraConfigDto.IssueCreateResponseDto.builder()
           .success(false)
-          .errorMessage("이슈 생성 중 오류 발생: " + e.getMessage())
+          .errorMessage("An error occurred while creating the issue: " + e.getMessage())
           .build();
     } finally {
       final boolean finalSuccess = success;
@@ -859,7 +859,7 @@ public class JiraApiService {
         return JiraConfigDto.IssueExistsDto.builder()
             .exists(false)
             .issueKey(issueKey)
-            .errorMessage("잘못된 이슈 키 형식입니다. (예: TEST-123)")
+            .errorMessage("Invalid issue key format. (e.g., TEST-123)")
             .build();
       }
 
@@ -901,20 +901,20 @@ public class JiraApiService {
         return JiraConfigDto.IssueExistsDto.builder()
             .exists(false)
             .issueKey(issueKey)
-            .errorMessage("이슈를 찾을 수 없습니다.")
+            .errorMessage("Issue not found.")
             .build();
       } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
         return JiraConfigDto.IssueExistsDto.builder()
             .exists(false)
             .issueKey(issueKey)
-            .errorMessage("이슈에 접근할 권한이 없습니다.")
+            .errorMessage("You do not have permission to access this issue.")
             .build();
       } else {
         log.warn("JIRA 이슈 확인 실패 - 클라이언트 오류: {}", e.getMessage());
         return JiraConfigDto.IssueExistsDto.builder()
             .exists(false)
             .issueKey(issueKey)
-            .errorMessage("인증 실패 또는 권한 부족")
+            .errorMessage("Authentication failed or insufficient permissions")
             .build();
       }
     } catch (HttpServerErrorException e) {
@@ -922,21 +922,21 @@ public class JiraApiService {
       return JiraConfigDto.IssueExistsDto.builder()
           .exists(false)
           .issueKey(issueKey)
-          .errorMessage("JIRA 서버 오류")
+          .errorMessage("JIRA server error")
           .build();
     } catch (ResourceAccessException e) {
       log.warn("JIRA 이슈 확인 실패 - 네트워크 오류: {}", e.getMessage());
       return JiraConfigDto.IssueExistsDto.builder()
           .exists(false)
           .issueKey(issueKey)
-          .errorMessage("네트워크 연결 실패")
+          .errorMessage("Network connection failed")
           .build();
     } catch (Exception e) {
       log.error("JIRA 이슈 존재 확인 중 예외 발생: issueKey={}", issueKey, e);
       return JiraConfigDto.IssueExistsDto.builder()
           .exists(false)
           .issueKey(issueKey)
-          .errorMessage("알 수 없는 오류가 발생했습니다.")
+          .errorMessage("An unknown error occurred.")
           .build();
     } finally {
       // 모니터링 메트릭 기록
@@ -950,7 +950,7 @@ public class JiraApiService {
     return JiraConfigDto.IssueExistsDto.builder()
         .exists(false)
         .issueKey(issueKey)
-        .errorMessage("알 수 없는 오류가 발생했습니다.")
+        .errorMessage("An unknown error occurred.")
         .build();
   }
 
@@ -982,7 +982,7 @@ public class JiraApiService {
    */
   private String normalizeServerUrlForDisplay(String serverUrl) {
     if (serverUrl == null || serverUrl.isEmpty()) {
-      throw new IllegalArgumentException("서버 URL이 필요합니다");
+      throw new IllegalArgumentException("Server URL is required");
     }
 
     serverUrl = serverUrl.trim();
@@ -1010,17 +1010,17 @@ public class JiraApiService {
     try {
       uri = URI.create(normalizedUrl);
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("유효하지 않은 서버 URL 입니다");
+      throw new IllegalArgumentException("Invalid server URL");
     }
 
     String scheme = uri.getScheme();
     if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
-      throw new IllegalArgumentException("서버 URL 은 http/https 스킴만 허용됩니다");
+      throw new IllegalArgumentException("Server URL must use the http or https scheme");
     }
 
     String host = uri.getHost();
     if (host == null || host.isEmpty()) {
-      throw new IllegalArgumentException("서버 URL 의 호스트가 유효하지 않습니다");
+      throw new IllegalArgumentException("Server URL has an invalid host");
     }
 
     if (allowPrivateTargets) {
@@ -1031,11 +1031,11 @@ public class JiraApiService {
     try {
       addresses = InetAddress.getAllByName(host);
     } catch (UnknownHostException e) {
-      throw new IllegalArgumentException("서버 호스트를 확인할 수 없습니다: " + host);
+      throw new IllegalArgumentException("Unable to resolve server host: " + host);
     }
     for (InetAddress address : addresses) {
       if (isBlockedTarget(address)) {
-        throw new IllegalArgumentException("허용되지 않는 내부/사설 대상입니다: " + host);
+        throw new IllegalArgumentException("Internal/private target is not allowed: " + host);
       }
     }
   }
@@ -1089,9 +1089,9 @@ public class JiraApiService {
 
     } catch (HttpClientErrorException e) {
       if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-        throw new RuntimeException("프로젝트를 찾을 수 없습니다: " + projectKey);
+        throw new RuntimeException("Project not found: " + projectKey);
       } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
-        throw new RuntimeException("프로젝트 접근 권한이 없습니다: " + projectKey);
+        throw new RuntimeException("No access permission for project: " + projectKey);
       }
       throw e;
     }

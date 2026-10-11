@@ -63,7 +63,7 @@ public class LlmClientResponseHandlingTest {
                     0.5,
                     1));
 
-    assertTrue(e.getMessage().contains("인증"), "인증 실패임을 알린다: " + e.getMessage());
+    assertTrue(e.getMessage().contains("authentication"), "인증 실패임을 알린다: " + e.getMessage());
   }
 
   @Test(description = "실제 NVIDIA 404 상항은 상태코드와 호출 주소를 함께 알린다")
@@ -160,6 +160,6 @@ public class LlmClientResponseHandlingTest {
                     1));
 
     assertTrue(e.getMessage().contains("401"), "상태코드를 알린다: " + e.getMessage());
-    assertTrue(e.getMessage().contains("인증"), "인증 실패임을 알린다: " + e.getMessage());
+    assertTrue(e.getMessage().contains("authentication"), "인증 실패임을 알린다: " + e.getMessage());
   }
 }

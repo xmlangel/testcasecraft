@@ -36,26 +36,26 @@ public class JwtTokenUtil {
   @PostConstruct
   void validateSecretOnStartup() {
     final String hint =
-        " JWT_SECRET 은 Base64 문자열(A-Z a-z 0-9 + / =)이어야 하며, 디코딩 후 64바이트(512비트) 이상이어야 합니다."
-            + " / JWT_SECRET must be a Base64 string (A-Z a-z 0-9 + / =) that decodes to at least"
+        ""
+            + " JWT_SECRET must be a Base64 string (A-Z a-z 0-9 + / =) that decodes to at least"
             + " 64 bytes (512 bits)."
-            + " 생성 예 (How to generate): openssl rand -base64 64 | tr -d '\\n'";
+            + " How to generate: openssl rand -base64 64 | tr -d '\\n'";
     try {
       getSigningKey();
     } catch (DecodingException e) {
       throw new IllegalStateException(
-          "JWT_SECRET 이 유효한 Base64 문자열이 아닙니다 (하이픈/언더스코어 등 사용 불가)."
-              + " / JWT_SECRET is not a valid Base64 string (characters like '-' or '_' are not"
+          ""
+              + "JWT_SECRET is not a valid Base64 string (characters like '-' or '_' are not"
               + " allowed)."
               + hint
-              + " — 원인 (Cause): "
+              + " Cause: "
               + e.getMessage(),
           e);
     } catch (IllegalArgumentException e) {
       throw new IllegalStateException(
-          "JWT_SECRET 길이가 부족합니다. / JWT_SECRET is too short."
+          "JWT_SECRET is too short."
               + hint
-              + " — 원인 (Cause): "
+              + " Cause: "
               + e.getMessage(),
           e);
     }
@@ -70,10 +70,10 @@ public class JwtTokenUtil {
   private void validateKeyLength(byte[] keyBytes) {
     if (keyBytes.length * 8 < 512) {
       throw new IllegalArgumentException(
-          "HS512 알고리즘은 512비트(64바이트) 이상의 키가 필요합니다. / HS512 requires a key of at least 512 bits"
-              + " (64 bytes). 현재 키 길이 (Current key length): "
+          "HS512 requires a key of at least 512 bits"
+              + " (64 bytes). Current key length: "
               + (keyBytes.length * 8)
-              + "비트 (bits)");
+              + " bits");
     }
   }
 
@@ -169,7 +169,7 @@ public class JwtTokenUtil {
       final Claims claims = extractAllClaims(token);
       return claimsResolver.apply(claims);
     } catch (JwtException e) {
-      throw new JwtException("토큰 파싱 실패: " + e.getMessage());
+      throw new JwtException("Token parsing failed: " + e.getMessage());
     }
   }
 

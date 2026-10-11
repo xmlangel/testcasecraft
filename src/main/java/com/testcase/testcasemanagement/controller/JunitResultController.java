@@ -72,13 +72,13 @@ public class JunitResultController {
       // 파일 유효성 기본 검증
       if (file.isEmpty()) {
         response.put("success", false);
-        response.put("error", "업로드된 파일이 비어있습니다.");
+        response.put("error", "The uploaded file is empty.");
         return ResponseEntity.badRequest().body(response);
       }
 
       if (!isValidXmlFile(file)) {
         response.put("success", false);
-        response.put("error", "XML 파일만 업로드 가능합니다.");
+        response.put("error", "Only XML files can be uploaded.");
         return ResponseEntity.badRequest().body(response);
       }
 
@@ -137,7 +137,7 @@ public class JunitResultController {
       logger.error("JUnit XML 파일 처리 실패: {}", e.getMessage(), e);
 
       response.put("success", false);
-      response.put("error", "파일 처리 중 오류가 발생했습니다: " + e.getMessage());
+      response.put("error", "An error occurred while processing the file: " + e.getMessage());
 
       return ResponseEntity.status(500).body(response);
 
@@ -145,7 +145,7 @@ public class JunitResultController {
       logger.error("예상치 못한 오류 발생: {}", e.getMessage(), e);
 
       response.put("success", false);
-      response.put("error", "서버 내부 오류가 발생했습니다.");
+      response.put("error", "An internal server error occurred.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -196,7 +196,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 결과 목록을 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve test result list.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -215,7 +215,7 @@ public class JunitResultController {
       if (testResult.isEmpty()) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
-        response.put("error", "테스트 결과를 찾을 수 없습니다.");
+        response.put("error", "Test result not found.");
         return ResponseEntity.notFound().build();
       }
 
@@ -233,7 +233,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 결과를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve test result.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -261,7 +261,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "연결된 테스트케이스를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve linked test cases.");
       return ResponseEntity.status(500).body(response);
     }
   }
@@ -286,7 +286,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 스위트 목록을 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve test suite list.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -330,7 +330,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 케이스 목록을 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve test case list.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -376,7 +376,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "JUnit 케이스를 검색할 수 없습니다.");
+      response.put("error", "Unable to search JUnit cases.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -411,7 +411,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "JUnit 케이스를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve JUnit cases.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -453,7 +453,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "실패한 테스트 케이스를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve failed test cases.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -483,7 +483,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "가장 느린 테스트 케이스를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve slowest test cases.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -533,7 +533,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 케이스를 업데이트할 수 없습니다.");
+      response.put("error", "Unable to update test case.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -556,7 +556,7 @@ public class JunitResultController {
         return ResponseEntity.ok(response);
       } else {
         response.put("success", false);
-        response.put("error", "테스트 결과를 찾을 수 없습니다.");
+        response.put("error", "Test result not found.");
         return ResponseEntity.notFound().build();
       }
 
@@ -565,7 +565,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 결과를 삭제할 수 없습니다.");
+      response.put("error", "Unable to delete test result.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -619,7 +619,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "진행률을 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve progress.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -646,7 +646,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "활성 처리 작업을 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve active processing jobs.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -692,7 +692,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "JUnit 요약 통계를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve JUnit summary statistics.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -724,7 +724,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "배치 JUnit 요약 통계를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve batch JUnit summary statistics.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -824,7 +824,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "통계 데이터를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve statistics data.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -922,7 +922,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "이전 노트를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve previous notes.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -944,7 +944,7 @@ public class JunitResultController {
       if (testCase.isEmpty()) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
-        response.put("error", "테스트 케이스를 찾을 수 없습니다.");
+        response.put("error", "Test case not found.");
         return ResponseEntity.notFound().build();
       }
 
@@ -1054,7 +1054,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 케이스 상세 정보를 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve test case details.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -1083,7 +1083,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 플랜을 연결할 수 없습니다.");
+      response.put("error", "Unable to link test plan.");
 
       return ResponseEntity.status(500).body(response);
     }
@@ -1112,7 +1112,7 @@ public class JunitResultController {
 
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
-      response.put("error", "테스트 결과 목록을 조회할 수 없습니다.");
+      response.put("error", "Unable to retrieve test result list.");
 
       return ResponseEntity.status(500).body(response);
     }

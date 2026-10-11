@@ -70,16 +70,16 @@ public class JiraConfigService {
     try {
       // 입력 데이터 검증
       if (configDto == null) {
-        throw new IllegalArgumentException("설정 데이터가 null입니다");
+        throw new IllegalArgumentException("Configuration data is null");
       }
       if (configDto.getServerUrl() == null || configDto.getServerUrl().trim().isEmpty()) {
-        throw new IllegalArgumentException("서버 URL이 필요합니다");
+        throw new IllegalArgumentException("Server URL is required");
       }
       if (configDto.getUsername() == null || configDto.getUsername().trim().isEmpty()) {
-        throw new IllegalArgumentException("사용자명이 필요합니다");
+        throw new IllegalArgumentException("Username is required");
       }
       if (configDto.getApiToken() == null || configDto.getApiToken().trim().isEmpty()) {
-        throw new IllegalArgumentException("API 토큰이 필요합니다");
+        throw new IllegalArgumentException("API token is required");
       }
 
       log.debug(
@@ -90,7 +90,7 @@ public class JiraConfigService {
       // 암호화 키 설정 확인
       if (!encryptionUtil.isEncryptionKeyConfigured()) {
         log.error("❌ 암호화 키가 설정되지 않음");
-        throw new RuntimeException("암호화 키가 설정되지 않았습니다. 관리자에게 문의하세요.");
+        throw new RuntimeException("Encryption key is not configured. Please contact your administrator.");
       }
 
       // 기존 활성화된 설정이 있으면 비활성화
@@ -111,7 +111,7 @@ public class JiraConfigService {
         log.debug("🔐 API 토큰 암호화 성공");
       } catch (Exception e) {
         log.error("❌ API 토큰 암호화 실패", e);
-        throw new RuntimeException("API 토큰 암호화에 실패했습니다", e);
+        throw new RuntimeException("Failed to encrypt API token", e);
       }
 
       // 새로운 설정 생성
@@ -137,12 +137,12 @@ public class JiraConfigService {
       log.error("❌ JIRA 설정 저장 실패: userId={}", userId, e);
 
       // 구체적인 에러 메시지 제공
-      String errorMessage = "JIRA 설정 저장 실패";
+      String errorMessage = "Failed to save JIRA configuration";
       if (e.getMessage() != null) {
-        if (e.getMessage().contains("암호화")) {
-          errorMessage = "암호화 처리 중 오류가 발생했습니다";
+        if (e.getMessage().contains("암호화") || e.getMessage().toLowerCase(Locale.ROOT).contains("encrypt")) {
+          errorMessage = "An error occurred during encryption";
         } else if (e.getMessage().contains("database") || e.getMessage().contains("constraint")) {
-          errorMessage = "데이터베이스 저장 중 오류가 발생했습니다";
+          errorMessage = "An error occurred while saving to the database";
         } else {
           errorMessage = e.getMessage();
         }
@@ -198,7 +198,7 @@ public class JiraConfigService {
 
     } catch (Exception e) {
       log.error("JIRA 설정 수정 실패: userId={}, configId={}", userId, configId, e);
-      throw new RuntimeException("JIRA 설정 수정 실패", e);
+      throw new RuntimeException("Failed to update JIRA configuration", e);
     }
   }
 
@@ -213,7 +213,7 @@ public class JiraConfigService {
         return JiraConfigDto.ConnectionStatusDto.builder()
             .isConnected(false)
             .status("ERROR")
-            .message("JIRA API 서비스가 초기화되지 않았습니다.")
+            .message("JIRA API service is not initialized.")
             .lastTested(LocalDateTime.now())
             .build();
       }
@@ -244,7 +244,7 @@ public class JiraConfigService {
           return JiraConfigDto.ConnectionStatusDto.builder()
               .isConnected(false)
               .status("ERROR")
-              .message("저장된 JIRA 설정을 찾을 수 없습니다.")
+              .message("Saved JIRA configuration not found.")
               .lastTested(LocalDateTime.now())
               .build();
         }
@@ -259,7 +259,7 @@ public class JiraConfigService {
         return JiraConfigDto.ConnectionStatusDto.builder()
             .isConnected(false)
             .status("ERROR")
-            .message("연결 테스트 결과를 받을 수 없습니다.")
+            .message("Unable to get the connection test result.")
             .lastTested(LocalDateTime.now())
             .build();
       }
@@ -294,7 +294,7 @@ public class JiraConfigService {
       return JiraConfigDto.ConnectionStatusDto.builder()
           .isConnected(false)
           .status("ERROR")
-          .message("연결 테스트 중 오류 발생: " + e.getMessage())
+          .message("Error during connection test: " + e.getMessage())
           .lastTested(LocalDateTime.now())
           .build();
     }
@@ -348,12 +348,12 @@ public class JiraConfigService {
       decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
     } catch (Exception e) {
       log.warn("JIRA API 토큰 복호화 실패: userId={}, configId={}", userId, config.getId());
-      config.markConnectionFailure("API 토큰을 읽을 수 없습니다. 토큰을 다시 입력해 주세요.");
+      config.markConnectionFailure("Unable to read the API token. Please re-enter the token.");
       jiraConfigRepository.save(config);
       return JiraConfigDto.ConnectionStatusDto.builder()
           .isConnected(false)
-          .status("토큰 복호화 실패")
-          .message("저장된 API 토큰을 읽을 수 없습니다. 토큰을 다시 입력해 주세요.")
+          .status("Token decryption failed")
+          .message("Unable to read the saved API token. Please re-enter the token.")
           .lastTested(config.getLastConnectionTest())
           .build();
     }
@@ -425,7 +425,7 @@ public class JiraConfigService {
             log.info("✅ JIRA 연결 자동 재검증 성공: userId={}, configId={}", userId, config.getId());
           } else {
             // 재검증 실패
-            String errorMsg = status != null ? status.getMessage() : "재검증 응답 없음";
+            String errorMsg = status != null ? status.getMessage() : "No re-validation response";
             config.markConnectionFailure(errorMsg);
             jiraConfigRepository.save(config);
             log.warn(
@@ -453,7 +453,7 @@ public class JiraConfigService {
         log.warn("JIRA 코멘트 추가 실패: userId={}, issueKey={}", userId, issueKey);
 
         // 실패 시 연결 상태 재확인
-        config.markConnectionFailure("코멘트 추가 실패");
+        config.markConnectionFailure("Failed to add comment");
         jiraConfigRepository.save(config);
       }
 
@@ -514,7 +514,7 @@ public class JiraConfigService {
       if (configOpt.isEmpty()) {
         return JiraConfigDto.IssueCreateResponseDto.builder()
             .success(false)
-            .errorMessage("활성화된 JIRA 설정을 찾을 수 없습니다.")
+            .errorMessage("Active JIRA configuration not found.")
             .build();
       }
 
@@ -533,7 +533,7 @@ public class JiraConfigService {
       log.error("JIRA 이슈 생성 서비스 오류: userId={}", userId, e);
       return JiraConfigDto.IssueCreateResponseDto.builder()
           .success(false)
-          .errorMessage("이슈 생성 중 시스템 오류 발생: " + e.getMessage())
+          .errorMessage("System error while creating issue: " + e.getMessage())
           .build();
     }
   }
@@ -633,7 +633,7 @@ public class JiraConfigService {
 
         } catch (Exception e) {
           log.warn("개별 설정 연결 테스트 실패: configId={}", config.getId(), e);
-          config.markConnectionFailure("배치 테스트 실패: " + e.getMessage());
+          config.markConnectionFailure("Batch test failed: " + e.getMessage());
           jiraConfigRepository.save(config);
         }
       }
@@ -662,7 +662,7 @@ public class JiraConfigService {
         return JiraConfigDto.IssueExistsDto.builder()
             .exists(false)
             .issueKey(issueKey)
-            .errorMessage("JIRA 설정이 없습니다.")
+            .errorMessage("No JIRA configuration found.")
             .build();
       }
 
@@ -691,7 +691,7 @@ public class JiraConfigService {
       return JiraConfigDto.IssueExistsDto.builder()
           .exists(false)
           .issueKey(issueKey)
-          .errorMessage("시스템 오류가 발생했습니다.")
+          .errorMessage("A system error occurred.")
           .build();
     }
   }
@@ -706,7 +706,13 @@ public class JiraConfigService {
         || normalized.contains("인증")
         || normalized.contains("권한")
         || normalized.contains("서버")
-        || normalized.contains("시스템 오류");
+        || normalized.contains("시스템 오류")
+        || normalized.contains("connection")
+        || normalized.contains("network")
+        || normalized.contains("authentication")
+        || normalized.contains("permission")
+        || normalized.contains("server")
+        || normalized.contains("system error");
   }
 
   /** JIRA 설정 활성화/비활성화 */
@@ -804,7 +810,7 @@ public class JiraConfigService {
       return java.util.Map.of(
           "key", jsonNode.path("key").asText(),
           "summary", jsonNode.path("fields").path("summary").asText(),
-          "error", "변환 실패");
+          "error", "Conversion failed");
     }
   }
 

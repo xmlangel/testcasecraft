@@ -15,41 +15,41 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TestSessionRequestDto {
 
-  @NotBlank(message = "projectId는 필수입니다.")
+  @NotBlank(message = "projectId is required.")
   private String projectId;
 
-  @NotBlank(message = "charterId는 필수입니다.")
+  @NotBlank(message = "charterId is required.")
   private String charterId;
 
-  @NotBlank(message = "title은 필수입니다.")
+  @NotBlank(message = "title is required.")
   private String title;
 
   private String testerId;
   private String leadId;
 
-  @NotBlank(message = "testerName은 필수입니다.")
+  @NotBlank(message = "testerName is required.")
   private String testerName;
 
-  @NotBlank(message = "leadName은 필수입니다.")
+  @NotBlank(message = "leadName is required.")
   private String leadName;
 
-  @NotNull(message = "netDurationMinutes는 필수입니다.")
-  @Min(value = 1, message = "netDurationMinutes는 1 이상이어야 합니다.")
+  @NotNull(message = "netDurationMinutes is required.")
+  @Min(value = 1, message = "netDurationMinutes must be at least 1.")
   private Integer netDurationMinutes;
 
-  @NotNull(message = "testExecutionPct는 필수입니다.")
-  @Min(value = 0, message = "testExecutionPct는 0 이상이어야 합니다.")
-  @Max(value = 100, message = "testExecutionPct는 100 이하여야 합니다.")
+  @NotNull(message = "testExecutionPct is required.")
+  @Min(value = 0, message = "testExecutionPct must be at least 0.")
+  @Max(value = 100, message = "testExecutionPct must be at most 100.")
   private Integer testExecutionPct;
 
-  @NotNull(message = "bugInvestigationPct는 필수입니다.")
-  @Min(value = 0, message = "bugInvestigationPct는 0 이상이어야 합니다.")
-  @Max(value = 100, message = "bugInvestigationPct는 100 이하여야 합니다.")
+  @NotNull(message = "bugInvestigationPct is required.")
+  @Min(value = 0, message = "bugInvestigationPct must be at least 0.")
+  @Max(value = 100, message = "bugInvestigationPct must be at most 100.")
   private Integer bugInvestigationPct;
 
-  @NotNull(message = "setupAdminPct는 필수입니다.")
-  @Min(value = 0, message = "setupAdminPct는 0 이상이어야 합니다.")
-  @Max(value = 100, message = "setupAdminPct는 100 이하여야 합니다.")
+  @NotNull(message = "setupAdminPct is required.")
+  @Min(value = 0, message = "setupAdminPct must be at least 0.")
+  @Max(value = 100, message = "setupAdminPct must be at most 100.")
   private Integer setupAdminPct;
 
   private String environmentSummary;

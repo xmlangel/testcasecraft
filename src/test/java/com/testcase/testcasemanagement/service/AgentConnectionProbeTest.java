@@ -159,7 +159,7 @@ public class AgentConnectionProbeTest {
   public void 리다이렉트를_따라가지_않는다() {
     AgentConnectionDto.ConnectionTestResult r = run("redirect");
     assertFalse(r.isOk());
-    assertTrue(r.getError().contains("리다이렉트"), r.getError());
+    assertTrue(r.getError().contains("redirect"), r.getError());
   }
 
   @Test
@@ -173,7 +173,7 @@ public class AgentConnectionProbeTest {
   public void 준비되지_않은_에이전트를_실패로_본다() {
     AgentConnectionDto.ConnectionTestResult r = run("notready");
     assertFalse(r.isOk());
-    assertTrue(r.getError().contains("준비되지"), r.getError());
+    assertTrue(r.getError().contains("not ready"), r.getError());
   }
 
   @Test
@@ -196,7 +196,7 @@ public class AgentConnectionProbeTest {
     long elapsed = System.currentTimeMillis() - started;
 
     assertFalse(r.isOk());
-    assertTrue(r.getError().contains("연결할 수 없습니다"), r.getError());
+    assertTrue(r.getError().contains("Unable to connect"), r.getError());
     assertTrue(elapsed < 6000, "제한 시간 안에 끝나야 한다. 실제 " + elapsed + "ms");
   }
 

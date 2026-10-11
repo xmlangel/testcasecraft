@@ -18,28 +18,28 @@ import lombok.Setter;
 public class BulkTestResultDto {
 
   /** 결과를 입력할 테스트케이스 ID 목록 */
-  @NotEmpty(message = "테스트케이스 ID 목록은 필수입니다")
+  @NotEmpty(message = "Test case ID list is required")
   private List<String> testCaseIds;
 
   private List<String> displayIds;
 
   /** 공통 결과 값 */
-  @NotBlank(message = "결과 값은 필수입니다")
-  @Pattern(regexp = "^(PASS|FAIL|BLOCKED|NOT_RUN)$", message = "유효하지 않은 결과 값입니다")
+  @NotBlank(message = "Result value is required")
+  @Pattern(regexp = "^(PASS|FAIL|BLOCKED|NOT_RUN)$", message = "Invalid result value")
   private String result;
 
   /** 공통 비고 */
-  @Size(max = 10000, message = "notes는 10,000자 이내로 입력해주세요")
+  @Size(max = 10000, message = "notes must be 10,000 characters or fewer")
   private String notes;
 
   /** 공통 태그 */
   private List<String> tags;
 
   /** 공통 JIRA 이슈 키 */
-  @Size(max = 500, message = "JIRA 이슈 키는 500자 이내로 입력해주세요")
+  @Size(max = 500, message = "JIRA issue key must be 500 characters or fewer")
   @Pattern(
       regexp = "^$|^[A-Z][A-Z0-9]+-[0-9]+(,[A-Z][A-Z0-9]+-[0-9]+)*$",
-      message = "JIRA 이슈 키는 'PROJECT-123' 또는 'PRJ-1,PRJ-2' 형식이어야 합니다")
+      message = "JIRA issue key must be in the format 'PROJECT-123' or 'PRJ-1,PRJ-2'")
   private String jiraIssueKey;
 
   @Override

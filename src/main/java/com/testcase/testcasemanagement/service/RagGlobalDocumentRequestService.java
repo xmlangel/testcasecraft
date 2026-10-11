@@ -38,7 +38,7 @@ public class RagGlobalDocumentRequestService {
             .orElseThrow(() -> new ResourceNotFoundException("Document not found in RAG API"));
 
     if (GLOBAL_PROJECT_ID.equals(document.getProjectId())) {
-      throw new IllegalStateException("이미 공통 RAG 문서입니다.");
+      throw new IllegalStateException("This is already a common RAG document.");
     }
 
     repository
@@ -46,7 +46,7 @@ public class RagGlobalDocumentRequestService {
             documentId, RagGlobalDocumentRequestStatus.PENDING)
         .ifPresent(
             existing -> {
-              throw new IllegalStateException("이미 처리 대기 중인 요청이 있습니다.");
+              throw new IllegalStateException("A request is already pending.");
             });
 
     RagGlobalDocumentRequest entity =
@@ -79,10 +79,10 @@ public class RagGlobalDocumentRequestService {
     RagGlobalDocumentRequest request =
         repository
             .findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException("RAG 글로벌 문서 요청", requestId));
+            .orElseThrow(() -> new ResourceNotFoundException("RAG global document request", requestId));
 
     if (!request.isPending()) {
-      throw new IllegalStateException("이미 처리된 요청입니다.");
+      throw new IllegalStateException("This request has already been processed.");
     }
 
     ragService.moveDocumentToGlobal(request.getDocumentId(), processedBy, note);
@@ -100,10 +100,10 @@ public class RagGlobalDocumentRequestService {
     RagGlobalDocumentRequest request =
         repository
             .findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException("RAG 글로벌 문서 요청", requestId));
+            .orElseThrow(() -> new ResourceNotFoundException("RAG global document request", requestId));
 
     if (!request.isPending()) {
-      throw new IllegalStateException("이미 처리된 요청입니다.");
+      throw new IllegalStateException("This request has already been processed.");
     }
 
     request.setStatus(RagGlobalDocumentRequestStatus.REJECTED);

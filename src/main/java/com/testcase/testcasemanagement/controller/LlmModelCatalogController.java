@@ -159,7 +159,7 @@ public class LlmModelCatalogController {
     } catch (Exception e) {
       log.error("❌ OpenRouter 무료 모델 목록 조회 실패", e);
       return ResponseEntity.badRequest()
-          .body(ApiResponse.error("무료 모델 목록 조회 실패: " + e.getMessage()));
+          .body(ApiResponse.error("Failed to retrieve free model list: " + e.getMessage()));
     }
   }
 
@@ -194,7 +194,7 @@ public class LlmModelCatalogController {
       return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
     } catch (Exception e) {
       log.error("❌ 확인 작업 시작 실패", e);
-      return ResponseEntity.badRequest().body(ApiResponse.error("확인 시작 실패: " + e.getMessage()));
+      return ResponseEntity.badRequest().body(ApiResponse.error("Failed to start check: " + e.getMessage()));
     }
   }
 
@@ -215,7 +215,7 @@ public class LlmModelCatalogController {
             () ->
                 ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(
-                        ApiResponse.error("확인 작업을 찾을 수 없습니다. 10분이 지나 지워졌거나 서버가 다시 시작됐을 수 있습니다.")));
+                        ApiResponse.error("Check job not found. It may have been removed after 10 minutes or the server may have restarted.")));
   }
 
   /** 작업 상태를 사람이 읽을 문구로 만든다. */

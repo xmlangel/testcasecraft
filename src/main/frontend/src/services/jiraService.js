@@ -168,12 +168,16 @@ class JiraService {
           enhancedError = new Error(
             "서버 오류가 발생했습니다. 관리자에게 문의하세요.",
           );
-        } else if (error.message.includes("암호화")) {
+        } else if (
+          error.message.includes("암호화") ||
+          error.message.toLowerCase().includes("encrypt")
+        ) {
           enhancedError = new Error(
             "서버 암호화 설정에 문제가 있습니다. 관리자에게 문의하세요.",
           );
         } else if (
           error.message.includes("네트워크") ||
+          error.message.toLowerCase().includes("network") ||
           error.message.includes("fetch")
         ) {
           enhancedError = new Error("네트워크 연결을 확인해주세요.");

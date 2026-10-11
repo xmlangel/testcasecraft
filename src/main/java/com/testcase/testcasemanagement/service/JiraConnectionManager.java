@@ -178,7 +178,7 @@ public class JiraConnectionManager {
 
     } catch (Exception e) {
       log.error("JIRA 연결 생성 실패: serverUrl={}", serverUrl, e);
-      throw new RuntimeException("JIRA 연결 생성 실패", e);
+      throw new RuntimeException("Failed to create JIRA connection", e);
     }
   }
 
