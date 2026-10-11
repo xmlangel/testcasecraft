@@ -18,11 +18,10 @@ import {
   TextField,
   Tooltip,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { LinkOff as LinkOffIcon } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
-import MarkdownFieldEditor from "../TestCase/MarkdownFieldEditor.jsx";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
 import {
   REQUIREMENT_STATUSES,
   REQUIREMENT_TYPES,
@@ -39,7 +38,6 @@ function RequirementLinkPanel({
   onRemove,
 }) {
   const { t } = useI18n();
-  const theme = useTheme();
   const [selected, setSelected] = useState([]);
   const [saving, setSaving] = useState(false);
 
@@ -87,13 +85,7 @@ function RequirementLinkPanel({
       </Stack>
       {requirement.scope && (
         <Box sx={{ mb: 2 }}>
-          <MarkdownFieldEditor
-            value={requirement.scope}
-            theme={theme}
-            t={t}
-            isViewer
-            onChange={() => {}}
-          />
+          <MarkdownViewer content={requirement.scope} />
         </Box>
       )}
 

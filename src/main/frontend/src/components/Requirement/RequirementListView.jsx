@@ -22,7 +22,6 @@ import {
   TableRow,
   Tooltip,
   Typography,
-  useTheme,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -31,39 +30,14 @@ import {
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import RequirementLinkPanel from "./RequirementLinkPanel.jsx";
-import MarkdownFieldEditor from "../TestCase/MarkdownFieldEditor.jsx";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import { getAllChildIds } from "../../utils/treeUtils.jsx";
 import {
   COVERAGE_META,
   REQUIREMENT_STATUSES,
   findLabel,
   flattenSpecTree,
 } from "./requirementConstants.js";
-
-const coverageOf = (req) => {
-  if (req.status === "NOT_TESTABLE" || req.status === "OBSOLETE")
-    return "EXCLUDED";
-  const linked = (req.linkedTestCaseIds || []).length;
-  if (linked === 0) return "UNCOVERED";
-  return linked >= Math.max(req.expectedCoverage || 0, 1)
-    ? "COVERED"
-    : "PARTIAL";
-};
-
-/** 문서 자신과 모든 하위 문서의 ID */
-const subtreeIds = (specs, rootId) => {
-  const ids = new Set([rootId]);
-  let grew = true;
-  while (grew) {
-    grew = false;
-    specs.forEach((spec) => {
-      if (spec.parentId && ids.has(spec.parentId) && !ids.has(spec.id)) {
-        ids.add(spec.id);
-        grew = true;
-      }
-    });
-  }
-  return ids;
-};
 
 function RequirementListView({
   specs,
@@ -80,7 +54,6 @@ function RequirementListView({
   onRemoveLink,
 }) {
   const { t } = useI18n();
-  const theme = useTheme();
   const [selectedSpecId, setSelectedSpecId] = useState(null);
   const [selectedReqId, setSelectedReqId] = useState(null);
 
@@ -88,7 +61,10 @@ function RequirementListView({
   const specById = useMemo(() => new Map(specs.map((s) => [s.id, s])), [specs]);
   const visible = useMemo(() => {
     if (!selectedSpecId) return requirements;
-    const ids = subtreeIds(specs, selectedSpecId);
+    const ids = new Set([
+      selectedSpecId,
+      ...getAllChildIds(specs, selectedSpecId),
+    ]);
     return requirements.filter((req) => ids.has(req.specId));
   }, [requirements, specs, selectedSpecId]);
   const selectedReq = requirements.find((req) => req.id === selectedReqId);
@@ -191,13 +167,7 @@ function RequirementListView({
         </Stack>
         {selectedSpec?.scope && (
           <Box sx={{ mb: 1 }}>
-            <MarkdownFieldEditor
-              value={selectedSpec.scope}
-              theme={theme}
-              t={t}
-              isViewer
-              onChange={() => {}}
-            />
+            <MarkdownViewer content={selectedSpec.scope} />
           </Box>
         )}
         <Paper variant="outlined">
@@ -220,7 +190,8 @@ function RequirementListView({
             </TableHead>
             <TableBody>
               {visible.map((req) => {
-                const coverage = COVERAGE_META[coverageOf(req)];
+                const coverage =
+                  COVERAGE_META[req.coverage] || COVERAGE_META.UNCOVERED;
                 return (
                   <TableRow
                     key={req.id}

@@ -15,6 +15,7 @@ public record RequirementResponse(
     Integer expectedCoverage,
     Integer displayOrder,
     List<String> linkedTestCaseIds,
+    String coverage,
     String createdBy,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {}

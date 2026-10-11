@@ -429,6 +429,8 @@ public class RequirementService {
         r.getExpectedCoverage(),
         r.getDisplayOrder(),
         new ArrayList<>(linkedTestCaseIds),
+        RequirementVerdicts.coverage(
+            r.getStatus(), r.getExpectedCoverage(), linkedTestCaseIds.size()),
         r.getCreatedBy(),
         r.getCreatedAt(),
         r.getUpdatedAt());

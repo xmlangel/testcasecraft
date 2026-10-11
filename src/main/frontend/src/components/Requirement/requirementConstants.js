@@ -3,6 +3,8 @@
 // 요구사항 상태·유형·판정 값. 백엔드 Requirement.Status / Requirement.Type /
 // RequirementVerdicts 와 같은 이름을 쓴다.
 
+import { buildChildrenMap } from "../../utils/treeUtils.jsx";
+
 export const REQUIREMENT_STATUSES = [
   { value: "DRAFT", i18nKey: "requirement.status.DRAFT", label: "초안" },
   { value: "REVIEW", i18nKey: "requirement.status.REVIEW", label: "검토 중" },
@@ -110,23 +112,21 @@ export const findLabel = (list, value, t) => {
   return item ? t(item.i18nKey, item.label) : value;
 };
 
-/** parentId 트리를 깊이 우선으로 펼쳐 [{spec, depth}] 로 돌려준다. */
+/**
+ * parentId 트리를 깊이 우선으로 펼쳐 [{spec, depth}] 로 돌려준다.
+ * 자식 인덱스는 TC 트리와 같은 buildChildrenMap 을 쓴다(최상위 키 "root").
+ */
 export const flattenSpecTree = (specs) => {
-  const byParent = new Map();
-  specs.forEach((spec) => {
-    const key = spec.parentId || null;
-    if (!byParent.has(key)) byParent.set(key, []);
-    byParent.get(key).push(spec);
-  });
+  const children = buildChildrenMap(specs);
   const ids = new Set(specs.map((spec) => spec.id));
   const out = [];
-  const visit = (parentId, depth) => {
-    (byParent.get(parentId) || []).forEach((spec) => {
+  const visit = (key, depth) => {
+    (children.get(key) || []).forEach((spec) => {
       out.push({ spec, depth });
       visit(spec.id, depth + 1);
     });
   };
-  visit(null, 0);
+  visit("root", 0);
   // 부모가 사라진 문서도 버리지 않고 최상위로 보여 준다
   specs
     .filter((spec) => spec.parentId && !ids.has(spec.parentId))

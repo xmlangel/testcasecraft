@@ -214,6 +214,8 @@ public class RequirementIntegrationTest extends AbstractTestNGSpringContextTests
             Map.of("ids", List.of(tc1.getId())),
             200);
     Assert.assertEquals(linked.get("linkedTestCaseIds").size(), 1);
+    // 목록 응답에도 커버리지 판정이 실린다(화면이 같은 규칙을 다시 계산하지 않도록)
+    Assert.assertEquals(linked.get("coverage").asText(), "PARTIAL");
     Assert.assertEquals(
         call(
                 post("/api/requirements/" + req1 + "/test-cases"),
