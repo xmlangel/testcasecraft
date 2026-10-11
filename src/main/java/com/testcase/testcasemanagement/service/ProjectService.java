@@ -68,24 +68,24 @@ public class ProjectService {
   public Project createProject(String name, String description, String organizationId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
     // 조직에 속한 프로젝트인 경우 조직 생성 권한 확인
     Organization organization = null;
     if (organizationId != null) {
       if (!projectSecurityService.canCreateProject(organizationId, currentUsername)) {
-        throw new AccessDeniedException("해당 조직에 프로젝트를 생성할 권한이 없습니다.");
+        throw new AccessDeniedException("You do not have permission to create projects in this organization.");
       }
       organization =
           organizationRepository
               .findById(organizationId)
-              .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+              .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
     }
 
     // 프로젝트 코드 자동 생성
@@ -179,7 +179,7 @@ public class ProjectService {
   public List<Project> getAccessibleProjects() {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 시스템 관리자는 모든 프로젝트 조회 가능 (조직 정보 포함)
@@ -190,7 +190,7 @@ public class ProjectService {
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
     // 사용자가 접근 가능한 프로젝트 목록 조회 (직접 멤버 + 조직 멤버십을 통한 접근)
     return projectRepository.findAccessibleProjectsByUserId(currentUser.getId());
@@ -201,12 +201,12 @@ public class ProjectService {
   public List<Project> getOrganizationProjects(String organizationId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 조직 접근 권한 확인
     if (!organizationSecurityService.canAccessOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("조직의 프로젝트 목록을 조회할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to view this organization's projects.");
     }
 
     return projectRepository.findByOrganizationId(organizationId);
@@ -217,35 +217,35 @@ public class ProjectService {
   public Project getProject(String projectId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 접근 권한 확인
     if (!projectSecurityService.canAccessProject(projectId, currentUsername)) {
-      throw new AccessDeniedException("프로젝트에 접근할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to access this project.");
     }
 
     return projectRepository
         .findByIdWithOrganization(projectId)
-        .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
   }
 
   /** 프로젝트 정보 수정 */
   public Project updateProject(String projectId, String name, String description) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 관리 권한 확인
     if (!projectSecurityService.canManageProject(projectId, currentUsername)) {
-      throw new AccessDeniedException("프로젝트를 수정할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to update this project.");
     }
 
     Project project =
         projectRepository
             .findById(projectId)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
     project.setName(name);
     project.setDescription(description);
@@ -258,19 +258,19 @@ public class ProjectService {
   public void deleteProject(String projectId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 프로젝트 매니저 권한 또는 시스템 관리자 권한 확인
     if (!projectSecurityService.isProjectManager(projectId, currentUsername)
         && !securityContextUtil.isSystemAdmin()) {
-      throw new AccessDeniedException("프로젝트를 삭제할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to delete this project.");
     }
 
     Project project =
         projectRepository
             .findById(projectId)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
     // 연관된 멤버 관계 먼저 삭제
     projectUserRepository.deleteByProjectId(projectId);
@@ -283,31 +283,31 @@ public class ProjectService {
   public ProjectUser inviteMember(String projectId, String username, ProjectUser.ProjectRole role) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 멤버 초대 권한 확인
     if (!projectSecurityService.canInviteMembers(projectId, currentUsername)) {
-      throw new AccessDeniedException("멤버를 초대할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to invite members.");
     }
 
     // 초대할 사용자 존재 확인
     User invitedUser =
         userRepository
             .findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("초대할 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User to invite not found."));
 
     // 프로젝트 존재 확인
     Project project =
         projectRepository
             .findById(projectId)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
     // 이미 멤버인지 확인
     Optional<ProjectUser> existingMember =
         projectUserRepository.findByProjectIdAndUserId(projectId, invitedUser.getId());
     if (existingMember.isPresent()) {
-      throw new IllegalArgumentException("이미 프로젝트의 멤버입니다.");
+      throw new IllegalArgumentException("The user is already a member of this project.");
     }
 
     // 프로젝트 매니저 역할은 현재 프로젝트 매니저 또는 시스템 관리자만 부여 가능.
@@ -315,7 +315,7 @@ public class ProjectService {
     if (role == ProjectUser.ProjectRole.PROJECT_MANAGER) {
       if (!projectSecurityService.isProjectManager(projectId, currentUsername)
           && !securityContextUtil.isSystemAdmin()) {
-        throw new AccessDeniedException("프로젝트 매니저 권한을 부여할 수 없습니다.");
+        throw new AccessDeniedException("Cannot grant the project manager role.");
       }
     }
 
@@ -334,18 +334,18 @@ public class ProjectService {
   public void removeMember(String projectId, String targetUserId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 멤버 제거 권한 확인
     if (!projectSecurityService.canRemoveMember(projectId, targetUserId, currentUsername)) {
-      throw new AccessDeniedException("멤버를 제거할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to remove members.");
     }
 
     ProjectUser projectUser =
         projectUserRepository
             .findByProjectIdAndUserId(projectId, targetUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트 멤버를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project member not found."));
 
     projectUserRepository.delete(projectUser);
   }
@@ -355,25 +355,25 @@ public class ProjectService {
       String projectId, String targetUserId, ProjectUser.ProjectRole newRole) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 관리 권한 확인
     if (!projectSecurityService.canManageProject(projectId, currentUsername)) {
-      throw new AccessDeniedException("멤버 역할을 변경할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to change member roles.");
     }
 
     ProjectUser projectUser =
         projectUserRepository
             .findByProjectIdAndUserId(projectId, targetUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트 멤버를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project member not found."));
 
     // 프로젝트 매니저 역할 변경은 현재 프로젝트 매니저 또는 시스템 관리자만 가능
     if (newRole == ProjectUser.ProjectRole.PROJECT_MANAGER
         || projectUser.getRoleInProject() == ProjectUser.ProjectRole.PROJECT_MANAGER) {
       if (!projectSecurityService.isProjectManager(projectId, currentUsername)
           && !securityContextUtil.isSystemAdmin()) {
-        throw new AccessDeniedException("프로젝트 매니저 권한과 관련된 변경을 할 수 없습니다.");
+        throw new AccessDeniedException("Cannot make changes involving the project manager role.");
       }
     }
 
@@ -387,30 +387,30 @@ public class ProjectService {
   public Project transferProject(String projectId, String newOrganizationId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 프로젝트 매니저 권한 또는 시스템 관리자 권한 확인
     if (!projectSecurityService.isProjectManager(projectId, currentUsername)
         && !securityContextUtil.isSystemAdmin()) {
-      throw new AccessDeniedException("프로젝트를 이전할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to transfer this project.");
     }
 
     Project project =
         projectRepository
             .findById(projectId)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
     // 새 조직에 프로젝트 생성 권한 확인
     if (newOrganizationId != null) {
       if (!projectSecurityService.canCreateProject(newOrganizationId, currentUsername)) {
-        throw new AccessDeniedException("대상 조직에 프로젝트를 생성할 권한이 없습니다.");
+        throw new AccessDeniedException("You do not have permission to create projects in the target organization.");
       }
 
       Organization newOrganization =
           organizationRepository
               .findById(newOrganizationId)
-              .orElseThrow(() -> new ResourceNotFoundException("대상 조직을 찾을 수 없습니다."));
+              .orElseThrow(() -> new ResourceNotFoundException("Target organization not found."));
 
       project.setOrganization(newOrganization);
     } else {
@@ -427,12 +427,12 @@ public class ProjectService {
   public List<ProjectUser> getProjectMembers(String projectId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 접근 권한 확인
     if (!projectSecurityService.canAccessProject(projectId, currentUsername)) {
-      throw new AccessDeniedException("프로젝트 멤버 목록을 조회할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to view the project member list.");
     }
 
     return projectUserRepository.findByProjectId(projectId);
@@ -449,11 +449,11 @@ public class ProjectService {
   /** 프로젝트 저장 (기존 saveProject 호환) */
   public Project saveProject(Project project) {
     if (project.getName() == null || project.getName().trim().isEmpty()) {
-      throw new IllegalArgumentException("프로젝트 이름이 필요합니다.");
+      throw new IllegalArgumentException("Project name is required.");
     }
 
     if (project.getCode() == null || project.getCode().trim().isEmpty()) {
-      throw new IllegalArgumentException("프로젝트 코드가 필요합니다.");
+      throw new IllegalArgumentException("Project code is required.");
     }
 
     // 새 프로젝트 생성 (ID가 없는 경우)
@@ -473,29 +473,29 @@ public class ProjectService {
       String name, String code, String description, String organizationId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
     // 코드 중복 검사
     if (projectRepository.existsByCode(code)) {
-      throw new DataIntegrityViolationException("이미 사용 중인 프로젝트 코드입니다: " + code);
+      throw new DataIntegrityViolationException("Project code is already in use: " + code);
     }
 
     // 조직에 속한 프로젝트인 경우 조직 생성 권한 확인
     Organization organization = null;
     if (organizationId != null) {
       if (!projectSecurityService.canCreateProject(organizationId, currentUsername)) {
-        throw new AccessDeniedException("해당 조직에 프로젝트를 생성할 권한이 없습니다.");
+        throw new AccessDeniedException("You do not have permission to create projects in this organization.");
       }
       organization =
           organizationRepository
               .findById(organizationId)
-              .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+              .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
     }
 
     // 새 프로젝트 생성
@@ -524,7 +524,7 @@ public class ProjectService {
     Project existingProject =
         projectRepository
             .findById(project.getId())
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
     // 필드 업데이트
     existingProject.setName(project.getName());
@@ -552,13 +552,13 @@ public class ProjectService {
     Project existingProject =
         projectRepository
             .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
     // 코드 변경 시 중복 검증 및 DisplayID 업데이트
     if (dto.getCode() != null && !dto.getCode().equals(existingProject.getCode())) {
       // 중복 검증
       if (projectRepository.existsByCode(dto.getCode())) {
-        throw new DataIntegrityViolationException("이미 사용 중인 프로젝트 코드입니다: " + dto.getCode());
+        throw new DataIntegrityViolationException("Project code is already in use: " + dto.getCode());
       }
 
       String oldCode = existingProject.getCode();
@@ -584,7 +584,7 @@ public class ProjectService {
       Organization newOrganization =
           organizationRepository
               .findById(dto.getOrganizationId())
-              .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+              .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
       existingProject.setOrganization(newOrganization);
     } else {
       // 독립 프로젝트로 변경
@@ -598,19 +598,19 @@ public class ProjectService {
   public Project deleteProject(String id, boolean force) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 프로젝트 매니저 권한 또는 시스템 관리자 권한 확인
     if (!projectSecurityService.isProjectManager(id, currentUsername)
         && !securityContextUtil.isSystemAdmin()) {
-      throw new AccessDeniedException("프로젝트를 삭제할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to delete this project.");
     }
 
     Project project =
         projectRepository
             .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
     if (force) {
       // 강제 삭제: 모든 연관 데이터와 함께 삭제
@@ -711,7 +711,7 @@ public class ProjectService {
 
       } catch (Exception e) {
         System.err.println("❌ 강제 삭제 실패: " + e.getMessage());
-        throw new RuntimeException("프로젝트 강제 삭제 중 오류가 발생했습니다: " + e.getMessage(), e);
+        throw new RuntimeException("An error occurred while force-deleting the project: " + e.getMessage(), e);
       }
     } else {
       // 일반 삭제: 연관 데이터 있으면 실패
@@ -722,7 +722,7 @@ public class ProjectService {
       if (testCaseCount > 0 || testPlanCount > 0 || testExecutionCount > 0) {
         throw new DataIntegrityViolationException(
             String.format(
-                "프로젝트에 연관 데이터가 존재합니다. (테스트케이스: %d개, 테스트플랜: %d개, 테스트실행: %d개) 강제 삭제를 사용하세요.",
+                "The project has associated data (test cases: %d, test plans: %d, test executions: %d). Use force delete.",
                 testCaseCount, testPlanCount, testExecutionCount));
       }
 

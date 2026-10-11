@@ -243,7 +243,7 @@ public class JiraApiServiceProjectsTest {
                     .build());
 
     assertEquals(status.getIsConnected(), Boolean.FALSE);
-    assertEquals(status.getStatus(), "인증 실패");
+    assertEquals(status.getStatus(), "Authentication failed");
   }
 
   @Test

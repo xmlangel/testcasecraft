@@ -134,7 +134,7 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
     return verdict(
         modelId,
         Availability.ACCOUNT_LIMIT,
-        "계정 일일 무료 한도가 소진되어 확인하지 못했습니다. " + resetPhrase(limit.getResetAt()));
+        "Could not check because the account's daily free quota is exhausted. " + resetPhrase(limit.getResetAt()));
   }
 
   /**
@@ -170,19 +170,19 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
       log.error("❌ 모델 목록 조회 실패 (상태코드: {})", e.getStatusCode(), e);
       if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
         throw new LlmClient.LlmClientException(
-            "OpenRouter 인증에 실패했습니다 (401/403). 등록된 API Key 가 올바른지 확인해 주세요.", e);
+            "OpenRouter authentication failed (401/403). Check that the registered API key is correct.", e);
       }
       throw new LlmClient.LlmClientException(
-          "OpenRouter 모델 목록 조회 실패 (상태코드: " + e.getStatusCode() + ")", e);
+          "Failed to retrieve OpenRouter model list (status code: " + e.getStatusCode() + ")", e);
     } catch (LlmClient.LlmClientException e) {
       throw e;
     } catch (Exception e) {
       log.error("❌ 모델 목록 조회 실패", e);
-      throw new LlmClient.LlmClientException("OpenRouter 모델 목록 조회 실패: " + e.getMessage(), e);
+      throw new LlmClient.LlmClientException("Failed to retrieve OpenRouter model list: " + e.getMessage(), e);
     }
 
     if (response == null || !(response.get("data") instanceof List<?> rawList)) {
-      throw new LlmClient.LlmClientException("OpenRouter 모델 목록 상항을 해석할 수 없습니다");
+      throw new LlmClient.LlmClientException("Unable to parse the OpenRouter model list response");
     }
 
     List<LlmModelDTO> models = new ArrayList<>();
@@ -223,36 +223,36 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
           return verdict(
               modelId,
               Availability.ACCOUNT_LIMIT,
-              "계정의 일일 무료 요청 한도를 다 썼습니다. 다른 무료 모델을 골라도 해결되지 않습니다. " + resetPhrase(kind.reset()));
+              "The account's daily free request quota has been used up. Choosing another free model will not resolve this. " + resetPhrase(kind.reset()));
         }
         return verdict(
             modelId,
             Availability.RATE_LIMITED,
-            "이 모델의 무료 공용 풀이 지금 붐빕니다. 잠시 뒤 다시 확인하거나 다른 모델을 골라 보세요."
+            "The free shared pool for this model is busy right now. Check again shortly or choose another model."
                 + (detail.isEmpty() ? "" : " " + detail));
       }
       if (status == 401) {
         // 키 자체가 거부된 경우다. 모델 탓이 아니므로 그 사실을 밝힌다.
-        return verdict(modelId, Availability.UNAVAILABLE, "API Key 가 거부되었습니다 (401).");
+        return verdict(modelId, Availability.UNAVAILABLE, "The API key was rejected (401).");
       }
       if (status == 403) {
         return verdict(
             modelId,
             Availability.UNAVAILABLE,
-            "이 키로는 호출할 수 없는 모델입니다 (403)." + (detail.isEmpty() ? "" : " " + detail));
+            "This model cannot be called with this key (403)." + (detail.isEmpty() ? "" : " " + detail));
       }
       return verdict(
           modelId,
           Availability.UNAVAILABLE,
-          "호출 실패 (" + status + ")." + (detail.isEmpty() ? "" : " " + detail));
+          "Call failed (" + status + ")." + (detail.isEmpty() ? "" : " " + detail));
     }
 
     if (isTimeout(error)) {
-      return timeoutVerdict(modelId, "지금 매우 느립니다. 잠시 뒤 다시 확인해 보세요.");
+      return timeoutVerdict(modelId, "Very slow right now. Check again shortly.");
     }
 
     log.debug("가용성 확인 실패: model={}", modelId, error);
-    return verdict(modelId, Availability.UNAVAILABLE, "확인 실패: " + firstLine(error.getMessage()));
+    return verdict(modelId, Availability.UNAVAILABLE, "Check failed: " + firstLine(error.getMessage()));
   }
 
   /** API Key 가 유효한지 확인한다. 목록 경로는 인증을 요구하지 않으므로 인증이 필요한 경로로 본다. */
@@ -268,15 +268,15 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
     } catch (WebClientResponseException e) {
       if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
         throw new LlmClient.LlmClientException(
-            "OpenRouter 가 이 API Key 를 거부했습니다 (" + e.getStatusCode().value() + "). 키를 다시 확인해 주세요.",
+            "OpenRouter rejected this API key (" + e.getStatusCode().value() + "). Check the key again.",
             e);
       }
       throw new LlmClient.LlmClientException(
-          "OpenRouter API Key 확인 실패 (상태코드: " + e.getStatusCode() + ")", e);
+          "Failed to verify OpenRouter API key (status code: " + e.getStatusCode() + ")", e);
     } catch (LlmClient.LlmClientException e) {
       throw e;
     } catch (Exception e) {
-      throw new LlmClient.LlmClientException("OpenRouter API Key 확인 실패: " + e.getMessage(), e);
+      throw new LlmClient.LlmClientException("Failed to verify OpenRouter API key: " + e.getMessage(), e);
     }
   }
 
@@ -362,9 +362,9 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
 
   private String resetPhrase(String reset) {
     if (reset == null || reset.isBlank()) {
-      return "다음 날 한도가 초기화되거나, OpenRouter 에 크레딧을 넣으면 한도가 올라갑니다.";
+      return "The quota resets the next day, or add credits to OpenRouter to raise the quota.";
     }
-    return reset + " 에 한도가 초기화됩니다. 크레딧을 넣으면 한도를 바로 올릴 수 있습니다.";
+    return reset + " The quota resets at that time. Adding credits raises the quota immediately.";
   }
 
   /**

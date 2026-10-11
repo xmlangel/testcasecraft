@@ -254,7 +254,7 @@ public class TestCaseTreeMoveServiceTest {
 
   @Test(
       expectedExceptions = TestCaseTreeMoveService.MoveValidationException.class,
-      expectedExceptionsMessageRegExp = ".*자기 자신 또는 후손.*")
+      expectedExceptionsMessageRegExp = ".*itself or its descendants.*")
   public void move_toSelf_rejected() {
     buildTreeA();
     service.move("F2", new TestCaseMoveRequest("F2", null, null));
@@ -262,7 +262,7 @@ public class TestCaseTreeMoveServiceTest {
 
   @Test(
       expectedExceptions = TestCaseTreeMoveService.MoveValidationException.class,
-      expectedExceptionsMessageRegExp = ".*자기 자신 또는 후손.*")
+      expectedExceptionsMessageRegExp = ".*itself or its descendants.*")
   public void move_toDescendant_rejected() {
     buildTreeA();
     // F2를 F2a로 이동 시도

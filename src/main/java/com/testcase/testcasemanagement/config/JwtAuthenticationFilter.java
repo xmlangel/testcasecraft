@@ -83,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.clearContext();
 
         // 명시적으로 401 에러 반환하여 프론트엔드가 재로그인/갱신을 시도하도록 함
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증에 실패했습니다: " + e.getMessage());
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: " + e.getMessage());
         return; // 필터 체인 중단
       }
     }

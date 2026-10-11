@@ -54,22 +54,22 @@ public class TestCaseTreeMoveService {
   /** 단건 이동. */
   @Transactional
   public TestCaseMoveResultDto move(String id, TestCaseMoveRequest req) {
-    if (req == null) throw new MoveValidationException("요청 본문이 없습니다.");
+    if (req == null) throw new MoveValidationException("Request body is missing.");
     if (req.getBeforeId() != null && req.getAfterId() != null) {
-      throw new MoveValidationException("beforeId와 afterId는 동시에 지정할 수 없습니다.");
+      throw new MoveValidationException("beforeId and afterId cannot be specified together.");
     }
 
     TestCase node =
         testCaseRepository
             .findById(id)
-            .orElseThrow(() -> new MoveNotFoundException("이동할 테스트케이스를 찾을 수 없습니다: " + id));
+            .orElseThrow(() -> new MoveNotFoundException("Test case to move not found: " + id));
 
     validateAuthorization(node);
     String targetParentId = req.getTargetParentId();
     TestCase targetParent = resolveAndValidateTargetParent(node, targetParentId);
     Set<String> blockedIds = collectSelfAndDescendantIds(node.getId());
     if (targetParentId != null && blockedIds.contains(targetParentId)) {
-      throw new MoveValidationException("자기 자신 또는 후손으로 이동할 수 없습니다.");
+      throw new MoveValidationException("Cannot move a node into itself or its descendants.");
     }
 
     String oldParentId = node.getParentId();
@@ -100,10 +100,10 @@ public class TestCaseTreeMoveService {
   @Transactional
   public TestCaseMoveResultDto moveBatch(TestCaseMoveBatchRequest req) {
     if (req == null || req.getIds() == null || req.getIds().isEmpty()) {
-      throw new MoveValidationException("ids가 비어있습니다.");
+      throw new MoveValidationException("ids is empty.");
     }
     if (req.getBeforeId() != null && req.getAfterId() != null) {
-      throw new MoveValidationException("beforeId와 afterId는 동시에 지정할 수 없습니다.");
+      throw new MoveValidationException("beforeId and afterId cannot be specified together.");
     }
 
     // 중복 제거하면서 순서 유지
@@ -117,11 +117,11 @@ public class TestCaseTreeMoveService {
       TestCase n =
           testCaseRepository
               .findById(id)
-              .orElseThrow(() -> new MoveNotFoundException("테스트케이스를 찾을 수 없습니다: " + id));
+              .orElseThrow(() -> new MoveNotFoundException("Test case not found: " + id));
       validateAuthorization(n);
       if (projectId == null) projectId = n.getProject().getId();
       else if (!projectId.equals(n.getProject().getId())) {
-        throw new CrossProjectMoveException("배치 이동은 같은 프로젝트 내에서만 가능합니다.");
+        throw new CrossProjectMoveException("Batch move is only allowed within the same project.");
       }
       nodes.add(n);
     }
@@ -132,7 +132,7 @@ public class TestCaseTreeMoveService {
     Set<String> blockedIds = new HashSet<>();
     for (TestCase n : nodes) blockedIds.addAll(collectSelfAndDescendantIds(n.getId()));
     if (targetParentId != null && blockedIds.contains(targetParentId)) {
-      throw new MoveValidationException("자기 자신 또는 후손으로 이동할 수 없습니다.");
+      throw new MoveValidationException("Cannot move a node into itself or its descendants.");
     }
 
     String batchGroupId = UUID.randomUUID().toString();
@@ -261,13 +261,13 @@ public class TestCaseTreeMoveService {
       for (int i = 0; i < siblings.size(); i++) {
         if (beforeId.equals(siblings.get(i).getId())) return i;
       }
-      throw new MoveValidationException("beforeId가 target 부모의 자식이 아닙니다: " + beforeId);
+      throw new MoveValidationException("beforeId is not a child of the target parent: " + beforeId);
     }
     // afterId
     for (int i = 0; i < siblings.size(); i++) {
       if (afterId.equals(siblings.get(i).getId())) return i + 1;
     }
-    throw new MoveValidationException("afterId가 target 부모의 자식이 아닙니다: " + afterId);
+    throw new MoveValidationException("afterId is not a child of the target parent: " + afterId);
   }
 
   /** 기준 노드(removeId)는 제외하고 부모 자식 displayOrder를 1..N 으로 정규화. */
@@ -293,7 +293,7 @@ public class TestCaseTreeMoveService {
     if (TestCaseConstants.TYPE_FOLDER.equals(movingNode.getType())
         && TestCaseConstants.SYSTEM_DEFAULT_FOLDER_DESCRIPTION.equals(
             movingNode.getDescription())) {
-      throw new SystemFolderProtectedException("시스템 기본 폴더는 이동할 수 없습니다.");
+      throw new SystemFolderProtectedException("System default folders cannot be moved.");
     }
 
     if (targetParentId == null) return null; // 루트로 이동
@@ -301,28 +301,28 @@ public class TestCaseTreeMoveService {
     TestCase parent =
         testCaseRepository
             .findById(targetParentId)
-            .orElseThrow(() -> new MoveNotFoundException("대상 부모를 찾을 수 없습니다: " + targetParentId));
+            .orElseThrow(() -> new MoveNotFoundException("Target parent not found: " + targetParentId));
 
     // 같은 프로젝트
     if (!parent.getProject().getId().equals(movingNode.getProject().getId())) {
-      throw new CrossProjectMoveException("다른 프로젝트 폴더로는 이동할 수 없습니다.");
+      throw new CrossProjectMoveException("Cannot move to a folder in another project.");
     }
     // 부모는 폴더여야 함 (testcase 아래로 이동 금지)
     if (!TestCaseConstants.TYPE_FOLDER.equals(parent.getType())) {
-      throw new MoveValidationException("부모는 폴더 타입이어야 합니다: " + parent.getType());
+      throw new MoveValidationException("Parent must be a folder type: " + parent.getType());
     }
     return parent;
   }
 
   private void validateAuthorization(TestCase node) {
     if (node.getProject() == null || node.getProject().getId() == null) {
-      throw new MoveValidationException("프로젝트 정보가 없는 노드입니다: " + node.getId());
+      throw new MoveValidationException("Node has no project information: " + node.getId());
     }
     String projectId = node.getProject().getId();
     // 테스트케이스/플랜/실행 CRUD 인가의 표준 검사(canEditProject: 시스템 ADMIN 또는 프로젝트 편집 롤)와 일치시킨다.
     // 트리 이동(DnD)도 create/update/delete와 동일한 편집 행위이므로 시스템 ADMIN을 제외하는 hasEditRole은 부적절 → 403 오작동.
     if (!projectSecurityService.canEditProject(projectId)) {
-      throw new MoveForbiddenException("프로젝트 편집 권한이 없습니다: " + projectId);
+      throw new MoveForbiddenException("No edit permission for project: " + projectId);
     }
   }
 

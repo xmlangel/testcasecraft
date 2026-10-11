@@ -33,7 +33,7 @@ public class RagLlmAnalysisRequest {
   private String llmProvider;
 
   /** LLM 모델 ("gpt-4", "gpt-3.5-turbo", "claude-3-sonnet" 등) FastAPI: llm_model */
-  @NotBlank(message = "LLM 모델은 필수입니다")
+  @NotBlank(message = "LLM model is required")
   @JsonProperty("llm_model")
   private String llmModel;
 
@@ -46,12 +46,12 @@ public class RagLlmAnalysisRequest {
   private String llmBaseUrl;
 
   /** 프롬프트 템플릿 ({chunk_text} 플레이스홀더 포함) FastAPI: prompt_template */
-  @NotBlank(message = "프롬프트 템플릿은 필수입니다")
+  @NotBlank(message = "Prompt template is required")
   @JsonProperty("prompt_template")
   private String promptTemplate;
 
   /** 한 번에 처리할 청크 수 (배치 크기, 기본값: 10) FastAPI: chunk_batch_size */
-  @Positive(message = "배치 크기는 양수여야 합니다")
+  @Positive(message = "Batch size must be positive")
   @JsonProperty("chunk_batch_size")
   @Builder.Default
   private Integer chunkBatchSize = 10;
@@ -62,7 +62,7 @@ public class RagLlmAnalysisRequest {
   private Boolean pauseAfterBatch = true;
 
   /** LLM 응답 최대 토큰 수 FastAPI: max_tokens */
-  @Positive(message = "최대 토큰 수는 양수여야 합니다")
+  @Positive(message = "Max tokens must be positive")
   @JsonProperty("max_tokens")
   private Integer maxTokens;
 

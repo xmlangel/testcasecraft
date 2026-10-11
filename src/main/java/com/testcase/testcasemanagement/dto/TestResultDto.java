@@ -15,8 +15,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestResultDto {
-  @NotBlank(message = "결과 값은 필수입니다")
-  @Pattern(regexp = "^(PASS|FAIL|BLOCKED|NOT_RUN)$", message = "유효하지 않은 결과 값입니다")
+  @NotBlank(message = "Result value is required")
+  @Pattern(regexp = "^(PASS|FAIL|BLOCKED|NOT_RUN)$", message = "Invalid result value")
   private String result; // 문자열만 허용
 
   // 테스트 결과 ID (저장된 후 반환됨, 첨부파일 조회에 필요)
@@ -25,7 +25,7 @@ public class TestResultDto {
   private String testCaseId;
   private String displayId;
 
-  @Size(max = 10000, message = "notes는 10,000자 이내로 입력해주세요")
+  @Size(max = 10000, message = "notes must be 10,000 characters or fewer")
   private String notes;
 
   private String executedBy; // 사용자명 또는 ID
@@ -37,7 +37,7 @@ public class TestResultDto {
   private String testExecutionName;
 
   // ICT-178: JIRA 연동 필드 추가 (URL 입력 지원을 위해 @Pattern 제거)
-  @Size(max = 500, message = "JIRA 이슈 키는 500자 이내로 입력해주세요")
+  @Size(max = 500, message = "JIRA issue key must be 500 characters or fewer")
   private String jiraIssueKey;
 
   private int attachmentCount;

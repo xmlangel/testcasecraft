@@ -170,7 +170,7 @@ public class AgentConnectionService {
     AgentConnection entity =
         repository
             .findByProjectId(projectId)
-            .orElseThrow(() -> new IllegalStateException("에이전트 연동 설정이 없습니다"));
+            .orElseThrow(() -> new IllegalStateException("Agent integration settings not found"));
 
     long started = System.currentTimeMillis();
     AgentConnectionDto.ConnectionTestResult result = probe(entity);
@@ -202,7 +202,7 @@ public class AgentConnectionService {
     try {
       target = new URI(entity.getServerUrl() + "/health");
     } catch (URISyntaxException e) {
-      return fail("주소 형태가 잘못됐습니다");
+      return fail("Address format is invalid");
     }
 
     HttpRequest.Builder builder =
@@ -223,36 +223,36 @@ public class AgentConnectionService {
       int code = response.statusCode();
       if (code >= 300 && code < 400) {
         // 리다이렉트를 따라가지 않는다. 따라가면 경로 고정이 뚫린다
-        return fail("에이전트가 리다이렉트를 돌려줍니다 (" + code + ")");
+        return fail("Agent returned a redirect (" + code + ")");
       }
       if (code != HttpURLConnection.HTTP_OK) {
-        return fail("에이전트가 " + code + " 를 돌려줍니다");
+        return fail("Agent returned status " + code + "");
       }
       String body = response.body();
       if (body == null || body.length() > MAX_BODY_BYTES) {
-        return fail("에이전트 응답이 예상 형태가 아닙니다");
+        return fail("Agent response is not in the expected format");
       }
       JsonNode node = objectMapper.readTree(body);
       String status = text(node, "status");
       String version = text(node, "version");
       if (!"ok".equalsIgnoreCase(status)) {
-        return fail("에이전트가 준비되지 않았습니다");
+        return fail("Agent is not ready");
       }
       return AgentConnectionDto.ConnectionTestResult.builder()
           .ok(true)
           .version(version == null ? "" : version)
           .build();
     } catch (java.net.http.HttpTimeoutException e) {
-      return fail("연결할 수 없습니다 (제한 시간 초과)");
+      return fail("Unable to connect (timed out)");
     } catch (java.io.IOException e) {
-      return fail("연결할 수 없습니다");
+      return fail("Unable to connect");
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      return fail("연결 확인이 중단됐습니다");
+      return fail("Connection check was interrupted");
     } catch (RuntimeException e) {
       // 응답이 JSON 이 아닌 경우 등. 원문을 화면에 내보내지 않는다
       log.debug("에이전트 연결 테스트 실패: {}", e.getMessage());
-      return fail("에이전트 응답을 읽을 수 없습니다");
+      return fail("Unable to read the agent response");
     }
   }
 
@@ -261,31 +261,31 @@ public class AgentConnectionService {
   /** 저장 시점에 주소를 좁힌다. 여기서 막는 것이 연결 테스트에서 막는 것보다 낫다. */
   String validateAndNormalizeUrl(String raw) {
     if (raw == null || raw.isBlank()) {
-      throw new IllegalArgumentException("에이전트 주소는 필수입니다");
+      throw new IllegalArgumentException("Agent address is required");
     }
     String trimmed = raw.trim();
     URI uri;
     try {
       uri = new URI(trimmed);
     } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("에이전트 주소 형태가 잘못됐습니다");
+      throw new IllegalArgumentException("Agent address format is invalid");
     }
     String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.ROOT);
     if (!ALLOWED_SCHEMES.contains(scheme)) {
-      throw new IllegalArgumentException("에이전트 주소는 http 또는 https 로 시작해야 합니다");
+      throw new IllegalArgumentException("Agent address must start with http or https");
     }
     String host = uri.getHost();
     if (host == null || host.isBlank()) {
-      throw new IllegalArgumentException("에이전트 주소에서 호스트를 읽을 수 없습니다");
+      throw new IllegalArgumentException("Unable to read the host from the agent address");
     }
     if (BLOCKED_HOSTS.contains(host.toLowerCase(Locale.ROOT))) {
-      throw new IllegalArgumentException("이 주소는 등록할 수 없습니다");
+      throw new IllegalArgumentException("This address cannot be registered");
     }
     if (uri.getUserInfo() != null) {
-      throw new IllegalArgumentException("에이전트 주소에 계정 정보를 넣을 수 없습니다");
+      throw new IllegalArgumentException("Agent address must not contain credentials");
     }
     if (uri.getQuery() != null || uri.getFragment() != null) {
-      throw new IllegalArgumentException("에이전트 주소에 질의 문자열을 넣을 수 없습니다");
+      throw new IllegalArgumentException("Agent address must not contain a query string");
     }
     String path = uri.getRawPath() == null ? "" : uri.getRawPath();
     // 경로 뒤 슬래시를 떼서 /health 를 붙일 때 이중 슬래시가 나지 않게 한다

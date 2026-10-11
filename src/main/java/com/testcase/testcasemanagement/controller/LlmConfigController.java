@@ -164,7 +164,7 @@ public class LlmConfigController {
         .map(config -> ResponseEntity.ok(ApiResponse.success(config)))
         .orElse(
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error("LLM 설정을 찾을 수 없습니다")));
+                .body(ApiResponse.error("LLM configuration not found")));
   }
 
   @Operation(
@@ -197,7 +197,7 @@ public class LlmConfigController {
         .getDefaultConfig()
         .map(config -> ResponseEntity.ok(ApiResponse.success(config)))
         .orElse(
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("기본 LLM 설정이 없습니다")));
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("No default LLM configuration")));
   }
 
   @Operation(
@@ -276,7 +276,7 @@ public class LlmConfigController {
     } catch (Exception e) {
       log.error("❌ LLM 설정 생성 실패", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.error("LLM 설정 생성 실패: " + e.getMessage()));
+          .body(ApiResponse.error("Failed to create LLM configuration: " + e.getMessage()));
     }
   }
 
@@ -328,7 +328,7 @@ public class LlmConfigController {
     } catch (Exception e) {
       log.error("❌ LLM 설정 수정 실패", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.error("LLM 설정 수정 실패: " + e.getMessage()));
+          .body(ApiResponse.error("Failed to update LLM configuration: " + e.getMessage()));
     }
   }
 
@@ -372,7 +372,7 @@ public class LlmConfigController {
     } catch (Exception e) {
       log.error("❌ LLM 설정 삭제 실패", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.error("LLM 설정 삭제 실패: " + e.getMessage()));
+          .body(ApiResponse.error("Failed to delete LLM configuration: " + e.getMessage()));
     }
   }
 
@@ -415,7 +415,7 @@ public class LlmConfigController {
     } catch (Exception e) {
       log.error("❌ 기본 설정 지정 실패", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.error("기본 설정 지정 실패: " + e.getMessage()));
+          .body(ApiResponse.error("Failed to set default configuration: " + e.getMessage()));
     }
   }
 
@@ -460,7 +460,7 @@ public class LlmConfigController {
       return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
     } catch (Exception e) {
       log.error("❌ 연결 테스트 실패", e);
-      return ResponseEntity.badRequest().body(ApiResponse.error("연결 테스트 실패: " + e.getMessage()));
+      return ResponseEntity.badRequest().body(ApiResponse.error("Connection test failed: " + e.getMessage()));
     }
   }
 
@@ -520,7 +520,7 @@ public class LlmConfigController {
       return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
     } catch (Exception e) {
       log.error("❌ 저장하지 않고 설정 테스트 실패", e);
-      return ResponseEntity.badRequest().body(ApiResponse.error("연결 테스트 실패: " + e.getMessage()));
+      return ResponseEntity.badRequest().body(ApiResponse.error("Connection test failed: " + e.getMessage()));
     }
   }
 
@@ -564,7 +564,7 @@ public class LlmConfigController {
     } catch (Exception e) {
       log.error("❌ 활성/비활성 토글 실패", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.error("활성/비활성 토글 실패: " + e.getMessage()));
+          .body(ApiResponse.error("Failed to toggle active status: " + e.getMessage()));
     }
   }
 

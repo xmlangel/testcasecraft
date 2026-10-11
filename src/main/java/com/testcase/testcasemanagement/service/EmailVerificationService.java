@@ -52,20 +52,20 @@ public class EmailVerificationService {
           mailSettingsRepository.findFirstByOrderByCreatedAtDesc();
       if (mailSettingsOpt.isEmpty()) {
         log.warn("Mail settings not configured");
-        return CommonResponse.failure("메일 설정이 구성되지 않았습니다. 관리자에게 문의하세요.");
+        return CommonResponse.failure("Mail settings are not configured. Please contact the administrator.");
       }
 
       MailSettings mailSettings = mailSettingsOpt.get();
       if (!mailSettings.getMailEnabled()) {
         log.warn("Mail feature is disabled");
-        return CommonResponse.failure("메일 기능이 비활성화되어 있습니다. 관리자에게 문의하세요.");
+        return CommonResponse.failure("Mail feature is disabled. Please contact the administrator.");
       }
 
       // 사용자 조회
       User user =
           userRepository
               .findById(userId)
-              .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+              .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
       // 기존 미사용 토큰 삭제 (새로운 토큰으로 대체)
       emailVerificationRepository
@@ -93,10 +93,10 @@ public class EmailVerificationService {
       return CommonResponse.failure(e.getMessage());
     } catch (MessagingException e) {
       log.error("Failed to send verification email to: {}", email, e);
-      return CommonResponse.failure("이메일 발송에 실패했습니다.");
+      return CommonResponse.failure("Failed to send the email.");
     } catch (Exception e) {
       log.error("Unexpected error creating verification token", e);
-      return CommonResponse.failure("인증 토큰 생성 중 오류가 발생했습니다.");
+      return CommonResponse.failure("An error occurred while generating the verification token.");
     }
   }
 
@@ -110,7 +110,7 @@ public class EmailVerificationService {
 
       if (tokenOpt.isEmpty()) {
         log.warn("Invalid verification token: {}", tokenString);
-        return VerifyTokenResponse.failure("유효하지 않은 인증 링크입니다.", "INVALID");
+        return VerifyTokenResponse.failure("Invalid verification link.", "INVALID");
       }
 
       EmailVerificationToken token = tokenOpt.get();
@@ -123,13 +123,13 @@ public class EmailVerificationService {
           return VerifyTokenResponse.success("이미 인증이 완료되었습니다.");
         }
         log.warn("Token already used: {}", tokenString);
-        return VerifyTokenResponse.failure("이미 사용된 인증 링크입니다.", "USED");
+        return VerifyTokenResponse.failure("This verification link has already been used.", "USED");
       }
 
       // 만료된 토큰 확인
       if (token.isExpired()) {
         log.warn("Token expired: {}", tokenString);
-        return VerifyTokenResponse.failure("인증 링크가 만료되었습니다.", "EXPIRED");
+        return VerifyTokenResponse.failure("The verification link has expired.", "EXPIRED");
       }
 
       // 토큰 사용 처리
@@ -153,7 +153,7 @@ public class EmailVerificationService {
 
     } catch (Exception e) {
       log.error("Unexpected error verifying token", e);
-      return VerifyTokenResponse.failure("인증 처리 중 오류가 발생했습니다.", "ERROR");
+      return VerifyTokenResponse.failure("An error occurred during verification.", "ERROR");
     }
   }
 
@@ -164,7 +164,7 @@ public class EmailVerificationService {
       User user =
           userRepository
               .findById(userId)
-              .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+              .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
       // 사용자의 현재 이메일로 새 토큰 생성
       return createVerificationToken(userId, user.getEmail(), null);

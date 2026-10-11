@@ -97,13 +97,13 @@ public class MailSettingsService {
       Optional<MailSettings> settingsOpt = mailSettingsRepository.findFirstByOrderByCreatedAtDesc();
       if (settingsOpt.isEmpty()) {
         log.warn("메일 설정이 없습니다.");
-        throw new IllegalStateException("메일 설정이 존재하지 않습니다. 먼저 설정을 저장해 주세요.");
+        throw new IllegalStateException("Mail settings do not exist. Please save the settings first.");
       }
 
       MailSettings settings = settingsOpt.get();
       if (!settings.getMailEnabled()) {
         log.warn("메일 기능이 비활성화되어 있습니다.");
-        throw new IllegalStateException("메일 기능이 비활성화되어 있습니다. 기능을 활성화한 후 테스트해 주세요.");
+        throw new IllegalStateException("Mail is disabled. Please enable it before testing.");
       }
 
       // 동적 JavaMailSender 생성
@@ -148,7 +148,7 @@ public class MailSettingsService {
       throw e; // 인증 예외는 그대로 던짐
     } catch (Exception e) {
       log.error("메일 테스트 발송 실패", e);
-      throw new RuntimeException("메일 발송 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while sending the mail: " + e.getMessage(), e);
     }
   }
 
@@ -197,15 +197,15 @@ public class MailSettingsService {
   /** Gmail 설정 검증 */
   private void validateGmailSettings(MailSettingsDto dto) {
     if (!dto.getUsername().endsWith("@gmail.com")) {
-      throw new IllegalArgumentException("Gmail 주소만 지원됩니다. (@gmail.com으로 끝나야 함)");
+      throw new IllegalArgumentException("Only Gmail addresses are supported. (Must end with @gmail.com)");
     }
 
     if (dto.getPassword() == null || dto.getPassword().length() < 8) {
-      throw new IllegalArgumentException("Gmail 앱 비밀번호는 8자 이상이어야 합니다.");
+      throw new IllegalArgumentException("Gmail app password must be at least 8 characters.");
     }
 
     if (dto.getFromName() == null || dto.getFromName().trim().isEmpty()) {
-      throw new IllegalArgumentException("발신자 이름은 필수입니다.");
+      throw new IllegalArgumentException("Sender name is required.");
     }
   }
 

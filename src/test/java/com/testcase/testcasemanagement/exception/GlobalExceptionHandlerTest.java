@@ -37,7 +37,7 @@ public class GlobalExceptionHandlerTest {
     ErrorResponse body = resp.getBody();
     assertNotNull(body);
     assertEquals(body.getErrorCode(), "DATA_CONFLICT");
-    assertEquals(body.getMessage(), "이미 등록된 이메일입니다.");
+    assertEquals(body.getMessage(), "This email is already registered.");
     assertNotNull(body.getDetails());
     assertEquals(body.getDetails().get("field"), "email");
     assertEquals(body.getDetails().get("value"), "km.kim@skaiworldwide.co.kr");
@@ -52,7 +52,7 @@ public class GlobalExceptionHandlerTest {
         handler.handleDataIntegrityViolation(new DataIntegrityViolationException(pgMessage));
 
     assertEquals(resp.getStatusCode(), HttpStatus.CONFLICT);
-    assertEquals(resp.getBody().getMessage(), "이미 등록된 사용자 이름입니다.");
+    assertEquals(resp.getBody().getMessage(), "This username is already registered.");
     assertEquals(resp.getBody().getDetails().get("field"), "username");
   }
 
@@ -64,7 +64,7 @@ public class GlobalExceptionHandlerTest {
     ResponseEntity<ErrorResponse> resp =
         handler.handleDataIntegrityViolation(new DataIntegrityViolationException(pgMessage));
 
-    assertEquals(resp.getBody().getMessage(), "이미 등록된 custom_field입니다.");
+    assertEquals(resp.getBody().getMessage(), "This custom_field is already registered.");
     assertEquals(resp.getBody().getDetails().get("field"), "custom_field");
   }
 
@@ -74,7 +74,7 @@ public class GlobalExceptionHandlerTest {
     ResponseEntity<ErrorResponse> resp =
         handler.handleDataIntegrityViolation(new DataIntegrityViolationException(pgMessage));
 
-    assertEquals(resp.getBody().getMessage(), "이미 등록된 값입니다. 입력값을 확인해주세요.");
+    assertEquals(resp.getBody().getMessage(), "This value is already registered. Please check your input.");
     assertNull(resp.getBody().getDetails(), "Detail이 없으면 details도 null이어야 한다");
   }
 
@@ -86,7 +86,7 @@ public class GlobalExceptionHandlerTest {
     ResponseEntity<ErrorResponse> resp =
         handler.handleDataIntegrityViolation(new DataIntegrityViolationException(pgMessage));
 
-    assertEquals(resp.getBody().getMessage(), "참조 중인 데이터가 있어 작업을 완료할 수 없습니다.");
+    assertEquals(resp.getBody().getMessage(), "The operation cannot be completed because the data is still referenced.");
   }
 
   @Test
@@ -96,7 +96,7 @@ public class GlobalExceptionHandlerTest {
     ResponseEntity<ErrorResponse> resp =
         handler.handleDataIntegrityViolation(new DataIntegrityViolationException(pgMessage));
 
-    assertEquals(resp.getBody().getMessage(), "필수 입력 항목이 누락되었습니다.");
+    assertEquals(resp.getBody().getMessage(), "A required field is missing.");
   }
 
   @Test
@@ -105,7 +105,7 @@ public class GlobalExceptionHandlerTest {
         handler.handleDataIntegrityViolation(
             new DataIntegrityViolationException("some opaque DB error"));
 
-    assertEquals(resp.getBody().getMessage(), "데이터 무결성 위반이 발생했습니다. 입력값을 확인해주세요.");
+    assertEquals(resp.getBody().getMessage(), "A data integrity violation occurred. Please check your input.");
   }
 
   @Test

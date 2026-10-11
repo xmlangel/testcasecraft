@@ -1030,7 +1030,7 @@ public class UserManagementController {
       UserDto.Response userDto = userManagementService.getUserById(userId);
       if (userDto == null) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("message", "사용자를 찾을 수 없습니다."));
+            .body(Map.of("message", "User not found."));
       }
 
       // Extract base URL from request
@@ -1049,7 +1049,7 @@ public class UserManagementController {
     } catch (Exception e) {
       log.error("Failed to send verification email", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("message", "이메일 발송 중 오류가 발생했습니다."));
+          .body(Map.of("message", "An error occurred while sending the email."));
     }
   }
 }

@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 public class RagEmbeddingRequest {
 
   /** 임베딩을 생성할 문서 ID */
-  @NotNull(message = "문서 ID는 필수입니다")
+  @NotNull(message = "Document ID is required")
   @JsonProperty("document_id")
   private UUID documentId;
 }

@@ -344,20 +344,20 @@ public abstract class OpenAiCompatibleLlmClient implements LlmClient {
       return new LlmClientException(
           displayName()
               + " API "
-              + (streaming ? "스트리밍 " : "")
-              + "인증에 실패했습니다 ("
+              + (streaming ? "streaming " : "")
+              + "authentication failed ("
               + status
-              + "). 등록된 API Key가 올바르고 만료되지 않았는지 확인해 주세요.",
+              + "). Check that the registered API key is valid and has not expired.",
           e);
     }
 
     String endpoint = LlmApiUrlNormalizer.resolveEndpoint(config.getApiUrl(), chatPath());
-    String prefix = displayName() + " API " + (streaming ? "스트리밍 " : "") + "호출 실패";
+    String prefix = displayName() + " API " + (streaming ? "streaming " : "") + "call failed";
     return new LlmClientException(
         prefix
-            + " (상태코드: "
+            + " (status code: "
             + e.getStatusCode()
-            + "): [호출 주소: "
+            + "): [endpoint: "
             + endpoint
             + "] "
             + e.getResponseBodyAsString(),

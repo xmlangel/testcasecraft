@@ -69,8 +69,8 @@ public class ProjectDto {
       requiredMode = Schema.RequiredMode.REQUIRED,
       maxLength = 30,
       pattern = "^[A-Z][A-Z0-9_-]*$")
-  @NotBlank(message = "코드는 필수 항목입니다")
-  @Size(max = 30, message = "코드는 30자 이내로 입력해주세요")
+  @NotBlank(message = "Code is required")
+  @Size(max = 30, message = "Code must be 30 characters or fewer")
   private String code; // ✅ 필수 필드
 
   @Schema(
@@ -100,7 +100,7 @@ public class ProjectDto {
       example = "proj-a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       accessMode = Schema.AccessMode.READ_ONLY,
       maxLength = 36)
-  @Size(max = 36, message = "ID는 36자 이내로 입력해주세요")
+  @Size(max = 36, message = "ID must be 36 characters or fewer")
   private String id;
 
   @Schema(
@@ -131,8 +131,8 @@ public class ProjectDto {
       example = "2025 모바일 앱 테스트",
       requiredMode = Schema.RequiredMode.REQUIRED,
       maxLength = 100)
-  @NotBlank(message = "이름은 필수 항목입니다")
-  @Size(max = 100, message = "이름은 100자 이내로 입력해주세요")
+  @NotBlank(message = "Name is required")
+  @Size(max = 100, message = "Name must be 100 characters or fewer")
   private String name; // ✅ 필수 필드
 
   @Schema(
@@ -169,7 +169,7 @@ public class ProjectDto {
               + "- API 연동 및 데이터 동기화 \n"
               + "- 오프라인 모드 및 성능",
       maxLength = 1000)
-  @Size(max = 1000, message = "설명은 1000자 이내로 입력해주세요")
+  @Size(max = 1000, message = "Description must be 1000 characters or fewer")
   private String description;
 
   @Schema(
@@ -229,7 +229,7 @@ public class ProjectDto {
       example = "2025-01-01T09:00:00",
       accessMode = Schema.AccessMode.READ_ONLY,
       format = "date-time")
-  @Size(max = 30, message = "생성일시는 30자 이내로 입력해주세요")
+  @Size(max = 30, message = "Created date-time must be 30 characters or fewer")
   private String createdAt;
 
   @Schema(
@@ -260,7 +260,7 @@ public class ProjectDto {
       example = "2025-01-15T14:30:00",
       accessMode = Schema.AccessMode.READ_ONLY,
       format = "date-time")
-  @Size(max = 30, message = "수정일시는 30자 이내로 입력해주세요")
+  @Size(max = 30, message = "Updated date-time must be 30 characters or fewer")
   private String updatedAt;
 
   @Schema(
@@ -297,6 +297,6 @@ public class ProjectDto {
       maxLength = 36,
       nullable = true)
   // 조직 ID (조직에 속한 프로젝트인 경우)
-  @Size(max = 36, message = "조직 ID는 36자 이내로 입력해주세요")
+  @Size(max = 36, message = "Organization ID must be 36 characters or fewer")
   private String organizationId;
 }

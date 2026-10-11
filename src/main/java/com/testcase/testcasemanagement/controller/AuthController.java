@@ -85,7 +85,7 @@ public class AuthController {
         errorResponse.put("role", user.getRole());
       }
       errorResponse.put("field", "username");
-      errorResponse.put("message", "이미 사용 중인 사용자 이름입니다.");
+      errorResponse.put("message", "Username is already in use.");
       return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
@@ -98,7 +98,7 @@ public class AuthController {
         errorResponse.put("role", user.getRole());
       }
       errorResponse.put("field", "email");
-      errorResponse.put("message", "이미 등록된 이메일입니다.");
+      errorResponse.put("message", "Email is already registered.");
       return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
@@ -139,7 +139,7 @@ public class AuthController {
       Optional<User> userEntityOpt = userRepository.findByUsername(user.getUsername());
 
       if (userEntityOpt.isEmpty()) {
-        return ResponseEntity.status(404).body(Map.of("message", "사용자를 찾을 수 없습니다"));
+        return ResponseEntity.status(404).body(Map.of("message", "User not found"));
       }
 
       User userEntity = userEntityOpt.get();
@@ -151,7 +151,7 @@ public class AuthController {
             .body(
                 Map.of(
                     "errorCode", "ACCOUNT_DISABLED",
-                    "message", "계정이 비활성화되었습니다. 관리자에게 문의하세요."));
+                    "message", "Account is disabled. Please contact an administrator."));
       }
 
       // Access Token 생성
@@ -198,21 +198,21 @@ public class AuthController {
           .body(
               Map.of(
                   "errorCode", "ACCOUNT_DISABLED",
-                  "message", "계정이 비활성화되었습니다. 관리자에게 문의하세요."));
+                  "message", "Account is disabled. Please contact an administrator."));
     } catch (org.springframework.security.authentication.BadCredentialsException e) {
       // 잘못된 자격 증명 처리
       return ResponseEntity.status(401)
           .body(
               Map.of(
                   "errorCode", "INVALID_CREDENTIALS",
-                  "message", "사용자명 또는 비밀번호가 올바르지 않습니다."));
+                  "message", "Invalid username or password."));
     } catch (Exception e) {
       log.error("ERROR - Authentication failure", e);
       return ResponseEntity.status(401)
           .body(
               Map.of(
                   "errorCode", "AUTHENTICATION_FAILED",
-                  "message", "인증에 실패했습니다. 다시 시도해주세요."));
+                  "message", "Authentication failed. Please try again."));
     }
   }
 
@@ -226,7 +226,7 @@ public class AuthController {
           .body(
               Map.of(
                   "errorCode", "AUTHENTICATION_REQUIRED",
-                  "message", "인증이 필요합니다. 로그인 후 다시 시도해주세요."));
+                  "message", "Authentication required. Please log in and try again."));
     }
 
     // 인증된 사용자의 username 추출
@@ -278,8 +278,8 @@ public class AuthController {
           .body(
               Map.of(
                   "errorCode", "AUTHENTICATION_REQUIRED",
-                  "message", "인증이 필요합니다. 로그인 후 다시 시도해주세요.",
-                  "details", "JWT 토큰이 유효하지 않거나 만료되었습니다. localStorage를 확인하고 다시 로그인해주세요."));
+                  "message", "Authentication required. Please log in and try again.",
+                  "details", "The JWT token is invalid or has expired. Check localStorage and log in again."));
     }
 
     String username = authentication.getName();
@@ -290,8 +290,8 @@ public class AuthController {
           .body(
               Map.of(
                   "errorCode", "USER_NOT_FOUND",
-                  "message", "사용자를 찾을 수 없습니다.",
-                  "details", "인증된 사용자명: " + username));
+                  "message", "User not found.",
+                  "details", "Authenticated username: " + username));
     }
 
     User user = userOpt.get();
@@ -313,7 +313,7 @@ public class AuthController {
   @GetMapping("/me/preferences")
   public ResponseEntity<?> getMyPreferences(Authentication authentication) {
     if (authentication == null) {
-      return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
+      return ResponseEntity.status(401).body(Map.of("message", "Authentication required."));
     }
     String username = authentication.getName();
     Optional<User> userOpt = userRepository.findByUsername(username);
@@ -330,7 +330,7 @@ public class AuthController {
   public ResponseEntity<?> updateMyPreferences(
       Authentication authentication, @RequestBody Map<String, Object> body) {
     if (authentication == null) {
-      return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
+      return ResponseEntity.status(401).body(Map.of("message", "Authentication required."));
     }
     String username = authentication.getName();
     Optional<User> userOpt = userRepository.findByUsername(username);
@@ -361,7 +361,7 @@ public class AuthController {
   public ResponseEntity<?> patchMyPreferences(
       Authentication authentication, @RequestBody Map<String, Object> body) {
     if (authentication == null) {
-      return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
+      return ResponseEntity.status(401).body(Map.of("message", "Authentication required."));
     }
     Object key = body == null ? null : body.get("key");
     if (!(key instanceof String) || ((String) key).isBlank()) {
@@ -403,7 +403,7 @@ public class AuthController {
       String refreshTokenValue = request.get("refreshToken");
 
       if (refreshTokenValue == null || refreshTokenValue.trim().isEmpty()) {
-        return ResponseEntity.badRequest().body(Map.of("message", "Refresh Token이 필요합니다"));
+        return ResponseEntity.badRequest().body(Map.of("message", "Refresh token is required"));
       }
 
       // Refresh Token으로 새로운 Access Token 생성
@@ -411,7 +411,7 @@ public class AuthController {
           refreshTokenService.refreshAccessToken(refreshTokenValue);
 
       if (newAccessTokenOpt.isEmpty()) {
-        return ResponseEntity.status(401).body(Map.of("message", "유효하지 않은 Refresh Token입니다"));
+        return ResponseEntity.status(401).body(Map.of("message", "Invalid refresh token"));
       }
 
       // 응답 생성
@@ -424,7 +424,7 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("message", "토큰 갱신 중 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("message", "An error occurred while refreshing the token: " + e.getMessage()));
     }
   }
 
@@ -454,7 +454,7 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("message", "로그아웃 중 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("message", "An error occurred during logout: " + e.getMessage()));
     }
   }
 
@@ -464,14 +464,14 @@ public class AuthController {
   public ResponseEntity<?> logoutAll(Authentication authentication) {
     try {
       if (authentication == null) {
-        return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다"));
+        return ResponseEntity.status(401).body(Map.of("message", "Authentication required"));
       }
 
       String username = authentication.getName();
       Optional<User> userOpt = userRepository.findByUsername(username);
 
       if (userOpt.isEmpty()) {
-        return ResponseEntity.status(404).body(Map.of("message", "사용자를 찾을 수 없습니다"));
+        return ResponseEntity.status(404).body(Map.of("message", "User not found"));
       }
 
       // 사용자의 모든 Refresh Token 무효화
@@ -481,7 +481,7 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("message", "로그아웃 중 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("message", "An error occurred during logout: " + e.getMessage()));
     }
   }
 
@@ -497,7 +497,7 @@ public class AuthController {
             .body(
                 Map.of(
                     "errorCode", "AUTHENTICATION_REQUIRED",
-                    "message", "인증이 필요합니다. 로그인 후 다시 시도해주세요."));
+                    "message", "Authentication required. Please log in and try again."));
       }
 
       // 입력값 검증
@@ -507,7 +507,7 @@ public class AuthController {
             .body(
                 Map.of(
                     "errorCode", "CURRENT_PASSWORD_REQUIRED",
-                    "message", "현재 비밀번호를 입력해주세요."));
+                    "message", "Current password is required."));
       }
 
       if (passwordRequest.getNewPassword() == null
@@ -516,7 +516,7 @@ public class AuthController {
             .body(
                 Map.of(
                     "errorCode", "NEW_PASSWORD_REQUIRED",
-                    "message", "새 비밀번호를 입력해주세요."));
+                    "message", "New password is required."));
       }
 
       // 비밀번호 변경 처리
@@ -546,7 +546,7 @@ public class AuthController {
                   "errorCode",
                   "INTERNAL_SERVER_ERROR",
                   "message",
-                  "비밀번호 변경 중 오류가 발생했습니다: " + e.getMessage()));
+                  "An error occurred while changing the password: " + e.getMessage()));
     }
   }
 
@@ -586,7 +586,7 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("message", "토큰 검증 중 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("message", "An error occurred while validating the token: " + e.getMessage()));
     }
   }
 
@@ -597,19 +597,19 @@ public class AuthController {
       Authentication authentication, @RequestBody Map<String, String> request) {
     try {
       if (authentication == null) {
-        return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다"));
+        return ResponseEntity.status(401).body(Map.of("message", "Authentication required"));
       }
 
       String languageCode = request.get("languageCode");
       if (languageCode == null || languageCode.trim().isEmpty()) {
-        return ResponseEntity.badRequest().body(Map.of("message", "언어 코드가 필요합니다"));
+        return ResponseEntity.badRequest().body(Map.of("message", "Language code is required"));
       }
 
       String username = authentication.getName();
       Optional<User> userOpt = userRepository.findByUsername(username);
 
       if (userOpt.isEmpty()) {
-        return ResponseEntity.status(404).body(Map.of("message", "사용자를 찾을 수 없습니다"));
+        return ResponseEntity.status(404).body(Map.of("message", "User not found"));
       }
 
       User user = userOpt.get();
@@ -630,7 +630,7 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("message", "언어 설정 업데이트 중 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("message", "An error occurred while updating the language setting: " + e.getMessage()));
     }
   }
 
@@ -642,7 +642,7 @@ public class AuthController {
     try {
       if (authentication == null) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(Map.of("success", false, "message", "인증이 필요합니다"));
+            .body(Map.of("success", false, "message", "Authentication required"));
       }
 
       String username = authentication.getName();
@@ -650,7 +650,7 @@ public class AuthController {
 
       if (userOpt.isEmpty()) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("success", false, "message", "사용자를 찾을 수 없습니다"));
+            .body(Map.of("success", false, "message", "User not found"));
       }
 
       User user = userOpt.get();
@@ -671,7 +671,7 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("success", false, "message", "이메일 발송 중 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("success", false, "message", "An error occurred while sending the email: " + e.getMessage()));
     }
   }
 }

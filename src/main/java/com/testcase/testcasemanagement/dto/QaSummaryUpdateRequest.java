@@ -15,6 +15,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class QaSummaryUpdateRequest {
 
-  @Size(max = 10000, message = "QA 총평은 10,000자를 초과할 수 없습니다.")
+  @Size(max = 10000, message = "QA summary cannot exceed 10,000 characters.")
   private String qaSummary;
 }

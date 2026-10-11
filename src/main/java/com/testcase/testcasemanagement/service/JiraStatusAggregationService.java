@@ -155,7 +155,7 @@ public class JiraStatusAggregationService {
           jiraConfigRepository
               .findById(config.getId())
               .orElseThrow(
-                  () -> new IllegalStateException("JIRA 설정을 찾을 수 없습니다: " + config.getId()));
+                  () -> new IllegalStateException("JIRA configuration not found: " + config.getId()));
       String decryptedToken = encryptionUtil.decrypt(configEntity.getEncryptedApiToken());
 
       JsonNode issueInfo =
@@ -164,7 +164,7 @@ public class JiraStatusAggregationService {
 
       if (issueInfo == null) {
         log.warn("JIRA 이슈 정보를 조회할 수 없습니다: {}", jiraId);
-        return createFailedSummary(projectId, jiraId, "JIRA 이슈 정보 조회 실패");
+        return createFailedSummary(projectId, jiraId, "Failed to retrieve JIRA issue information");
       }
 
       List<TestResult> testResults =
@@ -208,7 +208,7 @@ public class JiraStatusAggregationService {
           jiraConfigRepository
               .findById(config.getId())
               .orElseThrow(
-                  () -> new IllegalStateException("JIRA 설정을 찾을 수 없습니다: " + config.getId()));
+                  () -> new IllegalStateException("JIRA configuration not found: " + config.getId()));
       String decryptedToken = encryptionUtil.decrypt(configEntity.getEncryptedApiToken());
 
       // 배치 크기로 나누어 처리 (JIRA API 제한 고려)
@@ -410,7 +410,7 @@ public class JiraStatusAggregationService {
             createFailedSummary(
                 results.get(0).getTestExecution().getProject().getId(),
                 originalKeyMap.getOrDefault(issueKey, issueKey),
-                "JIRA 이슈 정보를 찾을 수 없습니다");
+                "JIRA issue information not found");
       } else {
         summary =
             buildSummaryFromData(
@@ -682,10 +682,10 @@ public class JiraStatusAggregationService {
       String projectId, String jiraId, String errorMessage) {
     return JiraStatusSummaryDto.builder()
         .jiraIssueKey(jiraId)
-        .currentStatus("확인 불가")
+        .currentStatus("Unavailable")
         .issueType("정보 없음")
         .priority("정보 없음")
-        .summary("이슈 정보를 가져올 수 없습니다")
+        .summary("Unable to retrieve issue information")
         .linkedTestCount(0L)
         .testResultDistribution(new HashMap<>())
         .syncStatus("FAILED")

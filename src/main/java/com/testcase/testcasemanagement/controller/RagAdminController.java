@@ -109,7 +109,7 @@ public class RagAdminController {
     } catch (Exception e) {
       log.error("RAG 고아 문서 정리 중 오류 발생", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "정리 작업 실패: " + e.getMessage()));
+          .body(Map.of("error", "Cleanup failed: " + e.getMessage()));
     }
   }
 }

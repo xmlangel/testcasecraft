@@ -169,11 +169,11 @@ public class JiraStatusController {
 
     try {
       if (projectIds == null || projectIds.isEmpty()) {
-        return ResponseEntity.badRequest().body("프로젝트 ID 목록이 필요합니다");
+        return ResponseEntity.badRequest().body("Project ID list is required");
       }
 
       if (projectIds.size() > 20) {
-        return ResponseEntity.badRequest().body("한 번에 최대 20개 프로젝트까지만 조회 가능합니다");
+        return ResponseEntity.badRequest().body("A maximum of 20 projects can be queried at once");
       }
 
       // 병렬 스트림을 사용한 배치 처리
@@ -233,7 +233,7 @@ public class JiraStatusController {
       } else {
         // 전체 프로젝트 통계는 향후 구현
         log.warn("전체 프로젝트 JIRA 상태 통계는 아직 구현되지 않았습니다");
-        return ResponseEntity.badRequest().body("프로젝트 ID가 필요합니다");
+        return ResponseEntity.badRequest().body("Project ID is required");
       }
 
       // 통계 계산
@@ -272,7 +272,7 @@ public class JiraStatusController {
         jiraIssueKeys != null ? jiraIssueKeys.size() : 0);
 
     if (jiraIssueKeys == null || jiraIssueKeys.isEmpty()) {
-      return ResponseEntity.badRequest().body("JIRA 이슈 키 목록이 필요합니다");
+      return ResponseEntity.badRequest().body("JIRA issue key list is required");
     }
 
     try {
@@ -313,7 +313,7 @@ public class JiraStatusController {
         jiraIssueKeys != null ? jiraIssueKeys.size() : 0);
 
     if (jiraIssueKeys == null || jiraIssueKeys.isEmpty()) {
-      return ResponseEntity.badRequest().body("JIRA 이슈 키 목록이 필요합니다");
+      return ResponseEntity.badRequest().body("JIRA issue key list is required");
     }
 
     try {
@@ -332,10 +332,10 @@ public class JiraStatusController {
         return ResponseEntity.badRequest().body("JIRA_CONFIG_MISSING");
       }
       log.error("JIRA 상태 데이터베이스 동기화 실패", e);
-      return ResponseEntity.internalServerError().body("JIRA 상태 동기화 중 오류가 발생했습니다");
+      return ResponseEntity.internalServerError().body("An error occurred while synchronizing JIRA status");
     } catch (Exception e) {
       log.error("JIRA 상태 데이터베이스 동기화 실패", e);
-      return ResponseEntity.internalServerError().body("JIRA 상태 동기화 중 오류가 발생했습니다");
+      return ResponseEntity.internalServerError().body("An error occurred while synchronizing JIRA status");
     }
   }
 

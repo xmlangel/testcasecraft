@@ -10,13 +10,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TestCharterRequestDto {
 
-  @NotBlank(message = "projectId는 필수입니다.")
+  @NotBlank(message = "projectId is required.")
   private String projectId;
 
-  @NotBlank(message = "title은 필수입니다.")
+  @NotBlank(message = "title is required.")
   private String title;
 
-  @NotBlank(message = "mission은 필수입니다.")
+  @NotBlank(message = "mission is required.")
   private String mission;
 
   private String areas;

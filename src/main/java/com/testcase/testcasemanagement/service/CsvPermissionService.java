@@ -66,7 +66,7 @@ public class CsvPermissionService {
           // 파싱 실패한 라인은 오류로 기록하고 계속 진행
           BulkPermissionChangeDto errorChange = new BulkPermissionChangeDto();
           errorChange.setValid(false);
-          errorChange.setValidationMessage("라인 " + lineNumber + " 파싱 실패: " + e.getMessage());
+          errorChange.setValidationMessage("Line " + lineNumber + " failed to parse: " + e.getMessage());
           changes.add(errorChange);
         }
       }
@@ -82,7 +82,7 @@ public class CsvPermissionService {
     String[] fields = line.split(",");
 
     if (fields.length < 6) {
-      throw new IllegalArgumentException("필드 수가 부족합니다. 최소 6개 필드가 필요합니다.");
+      throw new IllegalArgumentException("Not enough fields. At least 6 fields are required.");
     }
 
     BulkPermissionChangeDto change = new BulkPermissionChangeDto();
@@ -112,7 +112,7 @@ public class CsvPermissionService {
       if (user.isPresent()) {
         change.setUserId(user.get().getId());
       } else {
-        validationErrors.append("사용자를 찾을 수 없습니다: ").append(change.getUsername()).append("; ");
+        validationErrors.append("User not found: ").append(change.getUsername()).append("; ");
       }
     }
 
@@ -124,7 +124,7 @@ public class CsvPermissionService {
         change.setResourceType("ORGANIZATION");
       } else {
         validationErrors
-            .append("조직을 찾을 수 없습니다: ")
+            .append("Organization not found: ")
             .append(change.getOrganizationName())
             .append("; ");
       }
@@ -137,13 +137,13 @@ public class CsvPermissionService {
         change.setResourceId(project.get().getId());
         change.setResourceType("PROJECT");
       } else {
-        validationErrors.append("프로젝트를 찾을 수 없습니다: ").append(change.getProjectName()).append("; ");
+        validationErrors.append("Project not found: ").append(change.getProjectName()).append("; ");
       }
     }
 
     // 변경 유형 검증
     if (!isValidChangeType(change.getChangeType())) {
-      validationErrors.append("유효하지 않은 변경 유형: ").append(change.getChangeType()).append("; ");
+      validationErrors.append("Invalid change type: ").append(change.getChangeType()).append("; ");
     }
 
     // 역할 검증
@@ -151,10 +151,10 @@ public class CsvPermissionService {
       if (change.getResourceType() != null) {
         if ("ORGANIZATION".equals(change.getResourceType())
             && !isValidOrganizationRole(change.getNewRole())) {
-          validationErrors.append("유효하지 않은 조직 역할: ").append(change.getNewRole()).append("; ");
+          validationErrors.append("Invalid organization role: ").append(change.getNewRole()).append("; ");
         } else if ("PROJECT".equals(change.getResourceType())
             && !isValidProjectRole(change.getNewRole())) {
-          validationErrors.append("유효하지 않은 프로젝트 역할: ").append(change.getNewRole()).append("; ");
+          validationErrors.append("Invalid project role: ").append(change.getNewRole()).append("; ");
         }
       }
     }

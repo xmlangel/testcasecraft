@@ -23,16 +23,16 @@ public class AgentConnectionDto {
 
   private String id;
 
-  @NotBlank(message = "에이전트 이름은 필수입니다")
-  @Size(max = 100, message = "에이전트 이름은 100자 이내로 입력해주세요")
+  @NotBlank(message = "Agent name is required")
+  @Size(max = 100, message = "Agent name must be 100 characters or fewer")
   private String name;
 
-  @NotBlank(message = "에이전트 주소는 필수입니다")
-  @Size(max = 500, message = "에이전트 주소는 500자 이내로 입력해주세요")
+  @NotBlank(message = "Agent URL is required")
+  @Size(max = 500, message = "Agent URL must be 500 characters or fewer")
   private String serverUrl;
 
   /** 브라우저가 딥링크를 열 때 쓸 주소. 비면 serverUrl 을 쓴다. */
-  @Size(max = 500, message = "브라우저용 주소는 500자 이내로 입력해주세요")
+  @Size(max = 500, message = "Browser URL must be 500 characters or fewer")
   private String browserUrl;
 
   /**
@@ -40,7 +40,7 @@ public class AgentConnectionDto {
    */
   private String token;
 
-  @Size(max = 100, message = "기본 프로필은 100자 이내로 입력해주세요")
+  @Size(max = 100, message = "Default profile must be 100 characters or fewer")
   private String defaultProfile;
 
   private Boolean isActive;

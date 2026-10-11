@@ -66,7 +66,7 @@ public class TestResultApiController {
     } catch (Exception e) {
       log.error("테스트 결과 검색 실패: {}", e.getMessage(), e);
       return ResponseEntity.status(500)
-          .body(ApiResponse.error("SEARCH_FAILED", "테스트 결과 검색에 실패했습니다: " + e.getMessage()));
+          .body(ApiResponse.error("SEARCH_FAILED", "Failed to search test results: " + e.getMessage()));
     }
   }
 
@@ -104,7 +104,7 @@ public class TestResultApiController {
       log.error("테스트 결과 상세 조회 실패: {}", e.getMessage(), e);
       return ResponseEntity.status(500)
           .body(
-              ApiResponse.error("DETAIL_FETCH_FAILED", "테스트 결과 상세 조회에 실패했습니다: " + e.getMessage()));
+              ApiResponse.error("DETAIL_FETCH_FAILED", "Failed to retrieve test result details: " + e.getMessage()));
     }
   }
 
@@ -133,7 +133,7 @@ public class TestResultApiController {
     } catch (Exception e) {
       log.error("종합 통계 조회 실패: {}", e.getMessage(), e);
       return ResponseEntity.status(500)
-          .body(ApiResponse.error("STATISTICS_FAILED", "통계 생성에 실패했습니다: " + e.getMessage()));
+          .body(ApiResponse.error("STATISTICS_FAILED", "Failed to generate statistics: " + e.getMessage()));
     }
   }
 
@@ -163,7 +163,7 @@ public class TestResultApiController {
       log.error("기본 통계 조회 실패: {}", e.getMessage(), e);
       return ResponseEntity.status(500)
           .body(
-              ApiResponse.error("BASIC_STATISTICS_FAILED", "기본 통계 조회에 실패했습니다: " + e.getMessage()));
+              ApiResponse.error("BASIC_STATISTICS_FAILED", "Failed to retrieve basic statistics: " + e.getMessage()));
     }
   }
 
@@ -198,7 +198,7 @@ public class TestResultApiController {
     } catch (Exception e) {
       log.error("대시보드 차트 데이터 조회 실패: {}", e.getMessage(), e);
       return ResponseEntity.status(500)
-          .body(ApiResponse.error("CHART_DATA_FAILED", "차트 데이터 조회에 실패했습니다: " + e.getMessage()));
+          .body(ApiResponse.error("CHART_DATA_FAILED", "Failed to retrieve chart data: " + e.getMessage()));
     }
   }
 
@@ -261,7 +261,7 @@ public class TestResultApiController {
     } catch (Exception e) {
       log.error("API 상태 조회 실패: {}", e.getMessage(), e);
       return ResponseEntity.status(500)
-          .body(ApiResponse.error("HEALTH_CHECK_FAILED", "API 상태 조회에 실패했습니다"));
+          .body(ApiResponse.error("HEALTH_CHECK_FAILED", "Failed to retrieve API status"));
     }
   }
 
@@ -368,7 +368,7 @@ public class TestResultApiController {
       return ResponseEntity.status(500)
           .body(
               ApiResponse.error(
-                  "TEST_PLANS_FETCH_FAILED", "테스트 플랜 목록 조회에 실패했습니다: " + e.getMessage()));
+                  "TEST_PLANS_FETCH_FAILED", "Failed to retrieve test plan list: " + e.getMessage()));
     }
   }
 
@@ -431,7 +431,7 @@ public class TestResultApiController {
       return ResponseEntity.status(500)
           .body(
               ApiResponse.error(
-                  "TEST_EXECUTIONS_FETCH_FAILED", "테스트 실행 목록 조회에 실패했습니다: " + e.getMessage()));
+                  "TEST_EXECUTIONS_FETCH_FAILED", "Failed to retrieve test execution list: " + e.getMessage()));
     }
   }
 
@@ -505,7 +505,7 @@ public class TestResultApiController {
       return ResponseEntity.status(500)
           .body(
               ApiResponse.error(
-                  "FILTERED_RESULTS_FETCH_FAILED", "필터링된 테스트 결과 조회에 실패했습니다: " + e.getMessage()));
+                  "FILTERED_RESULTS_FETCH_FAILED", "Failed to retrieve filtered test results: " + e.getMessage()));
     }
   }
 

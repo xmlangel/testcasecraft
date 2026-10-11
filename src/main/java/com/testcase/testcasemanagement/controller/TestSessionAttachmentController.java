@@ -45,7 +45,7 @@ public class TestSessionAttachmentController {
     try {
       User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
       if (currentUser == null) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "인증이 필요합니다."));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Authentication required."));
       }
 
       TestSessionAttachmentDto attachmentDto =

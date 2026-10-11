@@ -29,11 +29,11 @@ public class RagAnalysisSummaryRequest {
   private UUID jobId;
 
   /** 요약 제목 FastAPI: title */
-  @NotBlank(message = "요약 제목은 필수입니다")
+  @NotBlank(message = "Summary title is required")
   private String title;
 
   /** 요약 내용 FastAPI: summary_content */
-  @NotBlank(message = "요약 내용은 필수입니다")
+  @NotBlank(message = "Summary content is required")
   @JsonProperty("summary_content")
   private String summaryContent;
 

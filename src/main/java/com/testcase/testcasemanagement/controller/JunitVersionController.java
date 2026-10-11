@@ -59,7 +59,7 @@ public class JunitVersionController {
       logger.error("파일 버전 생성 실패: {}", e.getMessage(), e);
 
       response.put("success", false);
-      response.put("error", "버전 생성 실패: " + e.getMessage());
+      response.put("error", "Failed to create version: " + e.getMessage());
 
       return ResponseEntity.status(500).body(response);
     }
@@ -88,7 +88,7 @@ public class JunitVersionController {
       logger.error("버전 히스토리 조회 실패: {}", e.getMessage(), e);
 
       response.put("success", false);
-      response.put("error", "히스토리 조회 실패: " + e.getMessage());
+      response.put("error", "Failed to retrieve history: " + e.getMessage());
 
       return ResponseEntity.status(500).body(response);
     }
@@ -127,7 +127,7 @@ public class JunitVersionController {
       logger.error("버전 복원 실패: {}", e.getMessage(), e);
 
       response.put("success", false);
-      response.put("error", "버전 복원 실패: " + e.getMessage());
+      response.put("error", "Failed to restore version: " + e.getMessage());
 
       return ResponseEntity.status(500).body(response);
     }
@@ -158,7 +158,7 @@ public class JunitVersionController {
       logger.error("버전 비교 실패: {}", e.getMessage(), e);
 
       response.put("success", false);
-      response.put("error", "버전 비교 실패: " + e.getMessage());
+      response.put("error", "Failed to compare versions: " + e.getMessage());
 
       return ResponseEntity.status(500).body(response);
     }
@@ -209,7 +209,7 @@ public class JunitVersionController {
       logger.error("백업 생성 실패: {}", e.getMessage(), e);
 
       response.put("success", false);
-      response.put("error", "백업 생성 실패: " + e.getMessage());
+      response.put("error", "Failed to create backup: " + e.getMessage());
 
       return ResponseEntity.status(500).body(response);
     }
@@ -237,7 +237,7 @@ public class JunitVersionController {
       logger.error("스토리지 통계 조회 실패: {}", e.getMessage(), e);
 
       response.put("success", false);
-      response.put("error", "통계 조회 실패: " + e.getMessage());
+      response.put("error", "Failed to retrieve statistics: " + e.getMessage());
 
       return ResponseEntity.status(500).body(response);
     }

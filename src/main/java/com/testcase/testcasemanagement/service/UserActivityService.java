@@ -108,7 +108,7 @@ public class UserActivityService {
       User user =
           userRepository
               .findById(userId)
-              .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+              .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
       UserActivity activity =
           UserActivity.builder()
@@ -225,7 +225,7 @@ public class UserActivityService {
     // 권한 확인: 본인 또는 시스템 관리자만 조회 가능
     if (!securityContextUtil.isSystemAdmin()
         && !securityContextUtil.getCurrentUserId().equals(userId)) {
-      throw new SecurityException("해당 사용자의 활동 이력을 조회할 권한이 없습니다.");
+      throw new SecurityException("You do not have permission to view this user's activity history.");
     }
 
     Pageable pageable = PageRequest.of(page, size);
@@ -239,7 +239,7 @@ public class UserActivityService {
     // 권한 확인
     if (!securityContextUtil.isSystemAdmin()
         && !securityContextUtil.getCurrentUserId().equals(userId)) {
-      throw new SecurityException("해당 사용자의 활동 통계를 조회할 권한이 없습니다.");
+      throw new SecurityException("You do not have permission to view this user's activity statistics.");
     }
 
     Map<String, Object> statistics = new HashMap<>();
@@ -301,7 +301,7 @@ public class UserActivityService {
   public Page<UserActivity> getAllActivities(int page, int size) {
     // 시스템 관리자만 조회 가능
     if (!securityContextUtil.isSystemAdmin()) {
-      throw new SecurityException("전체 활동 이력을 조회할 권한이 없습니다.");
+      throw new SecurityException("You do not have permission to view all activity history.");
     }
 
     Pageable pageable = PageRequest.of(page, size);
@@ -313,7 +313,7 @@ public class UserActivityService {
   public Page<UserActivity> searchActivities(String keyword, int page, int size) {
     // 시스템 관리자만 검색 가능
     if (!securityContextUtil.isSystemAdmin()) {
-      throw new SecurityException("활동 검색 권한이 없습니다.");
+      throw new SecurityException("You do not have permission to search activities.");
     }
 
     Pageable pageable = PageRequest.of(page, size);
@@ -326,7 +326,7 @@ public class UserActivityService {
     // 권한 확인
     if (!securityContextUtil.isSystemAdmin()
         && !securityContextUtil.getCurrentUserId().equals(userId)) {
-      throw new SecurityException("이상 활동 조회 권한이 없습니다.");
+      throw new SecurityException("You do not have permission to view suspicious activities.");
     }
 
     if (userId != null) {
@@ -334,7 +334,7 @@ public class UserActivityService {
     } else {
       // 시스템 관리자는 전체 이상 활동 조회 가능
       if (!securityContextUtil.isSystemAdmin()) {
-        throw new SecurityException("전체 이상 활동 조회 권한이 없습니다.");
+        throw new SecurityException("You do not have permission to view all suspicious activities.");
       }
       return userActivityRepository.findByAnomalyDetectedTrue();
     }
@@ -346,12 +346,12 @@ public class UserActivityService {
     UserActivity activity =
         userActivityRepository
             .findById(activityId)
-            .orElseThrow(() -> new ResourceNotFoundException("활동 이력을 찾을 수 없습니다: " + activityId));
+            .orElseThrow(() -> new ResourceNotFoundException("Activity history not found: " + activityId));
 
     // 권한 확인: 본인 또는 시스템 관리자만 조회 가능
     if (!securityContextUtil.isSystemAdmin()
         && !securityContextUtil.getCurrentUserId().equals(activity.getUser().getId())) {
-      throw new SecurityException("해당 활동 이력을 조회할 권한이 없습니다.");
+      throw new SecurityException("You do not have permission to view this activity history.");
     }
 
     return activity;
@@ -455,7 +455,7 @@ public class UserActivityService {
   public int cleanupOldActivities(LocalDateTime cutoffDate) {
     // 시스템 관리자만 실행 가능
     if (!securityContextUtil.isSystemAdmin()) {
-      throw new SecurityException("활동 이력 정리 권한이 없습니다.");
+      throw new SecurityException("You do not have permission to clean up activity history.");
     }
 
     List<UserActivity> oldActivities = userActivityRepository.findOldActivities(cutoffDate);

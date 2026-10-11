@@ -67,7 +67,7 @@ public class RagChatServiceImpl implements RagChatService {
           projectRepository
               .findById(request.getProjectId().toString())
               .orElseThrow(
-                  () -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다: " + request.getProjectId()));
+                  () -> new IllegalArgumentException("Project not found: " + request.getProjectId()));
 
       boolean persistConversation =
           request.getPersistConversation() == null
@@ -142,7 +142,7 @@ public class RagChatServiceImpl implements RagChatService {
       long responseTime = System.currentTimeMillis() - startTime;
 
       return RagChatResponse.builder()
-          .answer("죄송합니다. 응답 생성 중 오류가 발생했습니다.")
+          .answer("Sorry, an error occurred while generating the response.")
           .error(true)
           .errorMessage(e.getMessage())
           .generatedAt(LocalDateTime.now())
@@ -226,7 +226,7 @@ public class RagChatServiceImpl implements RagChatService {
       log.warn("⚠️ 스트리밍 스레드 풀이 가득 차 요청을 거부했다: active={}", streamExecutor.getActiveCount());
       try {
         emitter.send(
-            SseEmitter.event().name("error").data("지금 대화가 많아 처리할 수 없습니다. 잠시 뒤 다시 시도해 주세요."));
+            SseEmitter.event().name("error").data("Too many conversations are in progress right now. Please try again shortly."));
         emitter.complete();
       } catch (Exception sendError) {
         log.error("❌ 거부 안내 전송 실패", sendError);
@@ -363,11 +363,11 @@ public class RagChatServiceImpl implements RagChatService {
     if (llmConfigId != null) {
       return llmConfigRepository
           .findById(llmConfigId)
-          .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + llmConfigId));
+          .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + llmConfigId));
     } else {
       return llmConfigRepository
           .findByIsDefaultTrueAndIsActiveTrue()
-          .orElseThrow(() -> new IllegalStateException("기본 LLM 설정이 없습니다. 관리자에게 문의하세요."));
+          .orElseThrow(() -> new IllegalStateException("No default LLM configuration found. Please contact the administrator."));
     }
   }
 

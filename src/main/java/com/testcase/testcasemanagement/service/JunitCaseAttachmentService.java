@@ -58,7 +58,7 @@ public class JunitCaseAttachmentService {
         junitTestCaseRepository
             .findById(caseId)
             .orElseThrow(
-                () -> new IllegalArgumentException("자동화 결과 케이스를 찾을 수 없습니다: " + caseId));
+                () -> new IllegalArgumentException("Automation result case not found: " + caseId));
 
     String cleanName = StringUtils.cleanPath(file.getOriginalFilename());
     var existing = attachmentRepository.findActiveByCaseIdAndName(caseId, cleanName);
@@ -69,7 +69,7 @@ public class JunitCaseAttachmentService {
 
     if (attachmentRepository.findActiveByCaseId(caseId).size() >= MAX_PER_CASE) {
       throw new IllegalStateException(
-          "한 케이스에 붙일 수 있는 첨부는 " + MAX_PER_CASE + "개까지입니다.");
+          "A single case can have at most " + MAX_PER_CASE + " attachments.");
     }
 
     String storedFileName = uniqueName(cleanName);
@@ -104,7 +104,7 @@ public class JunitCaseAttachmentService {
   public JunitCaseAttachment get(String attachmentId) {
     return attachmentRepository
         .findActiveById(attachmentId)
-        .orElseThrow(() -> new IllegalArgumentException("첨부를 찾을 수 없습니다: " + attachmentId));
+        .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
   }
 
   @Transactional(readOnly = true)
@@ -128,20 +128,20 @@ public class JunitCaseAttachmentService {
 
   private void validate(MultipartFile file) {
     if (file == null || file.isEmpty()) {
-      throw new IllegalArgumentException("빈 파일은 붙일 수 없습니다.");
+      throw new IllegalArgumentException("Empty files cannot be attached.");
     }
     if (file.getSize() > MAX_FILE_SIZE) {
       throw new IllegalArgumentException(
-          "파일이 너무 큽니다. " + (MAX_FILE_SIZE / 1024 / 1024) + "MB 까지 붙일 수 있습니다.");
+          "File is too large. " + (MAX_FILE_SIZE / 1024 / 1024) + "MB maximum.");
     }
     String name = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
     if (name.isBlank() || name.contains("..")) {
-      throw new IllegalArgumentException("파일명이 올바르지 않습니다.");
+      throw new IllegalArgumentException("Invalid file name.");
     }
     String ext = StringUtils.getFilenameExtension(name);
     if (ext == null || !ALLOWED_EXTENSIONS.contains(ext.toLowerCase())) {
       throw new IllegalArgumentException(
-          "지원하지 않는 파일 형식입니다. 허용된 형식: " + String.join(", ", ALLOWED_EXTENSIONS));
+          "Unsupported file type. Allowed types: " + String.join(", ", ALLOWED_EXTENSIONS));
     }
   }
 

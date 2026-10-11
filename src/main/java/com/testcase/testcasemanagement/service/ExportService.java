@@ -198,7 +198,7 @@ public class ExportService {
       try {
         return PdfFontFactory.createFont(StandardFonts.HELVETICA);
       } catch (Exception ex) {
-        throw new RuntimeException("PDF 폰트 생성 완전 실패: " + ex.getMessage(), ex);
+        throw new RuntimeException("PDF font creation failed completely: " + ex.getMessage(), ex);
       }
     }
   }
@@ -406,7 +406,7 @@ public class ExportService {
       return out.toByteArray();
 
     } catch (Exception e) {
-      throw new RuntimeException("Excel 파일 생성 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while generating the Excel file: " + e.getMessage(), e);
     }
   }
 
@@ -458,7 +458,7 @@ public class ExportService {
       return out.toByteArray();
 
     } catch (Exception e) {
-      throw new RuntimeException("PDF 파일 생성 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while generating the PDF file: " + e.getMessage(), e);
     }
   }
 
@@ -488,7 +488,7 @@ public class ExportService {
       return out.toByteArray();
 
     } catch (Exception e) {
-      throw new RuntimeException("CSV 파일 생성 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while generating the CSV file: " + e.getMessage(), e);
     }
   }
 

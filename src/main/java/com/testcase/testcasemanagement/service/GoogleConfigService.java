@@ -36,13 +36,13 @@ public class GoogleConfigService {
   @Transactional
   public GoogleConfig saveConfig(String usernameOrId, String jsonKeyContent) throws Exception {
     if (jsonKeyContent == null || jsonKeyContent.trim().isEmpty()) {
-      throw new IllegalArgumentException("JSON 키 내용은 필수입니다.");
+      throw new IllegalArgumentException("JSON key content is required.");
     }
 
     // 1. 사용자 확보
     User user =
         findUserByIdentifier(usernameOrId)
-            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + usernameOrId));
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + usernameOrId));
 
     log.info("저장 프로세스 시작: User={}, ID={}", user.getUsername(), user.getId());
 
@@ -52,10 +52,10 @@ public class GoogleConfigService {
     try {
       root = objectMapper.readTree(trimmedJson);
       if (!root.has("client_email") || !root.has("project_id") || !root.has("private_key")) {
-        throw new IllegalArgumentException("올바른 Google 서비스 계정 형식이 아닙니다.");
+        throw new IllegalArgumentException("Not a valid Google service account format.");
       }
     } catch (Exception e) {
-      throw new IllegalArgumentException("지원되지 않는 JSON 형식입니다: " + e.getMessage());
+      throw new IllegalArgumentException("Unsupported JSON format: " + e.getMessage());
     }
 
     String clientEmail = root.get("client_email").asText();
