@@ -42,7 +42,7 @@ public class TestCaseAiGenerationService {
     LlmConfig llmConfig =
         llmConfigRepository
             .findByIsDefaultTrueAndIsActiveTrue()
-            .orElseThrow(() -> new IllegalStateException("기본 LLM 설정이 없습니다. 관리자에게 문의하세요."));
+            .orElseThrow(() -> new IllegalStateException("No default LLM configuration found. Please contact your administrator."));
 
     log.info(
         "🔧 LLM 설정 사용: provider={}, model={}", llmConfig.getProvider(), llmConfig.getModelName());

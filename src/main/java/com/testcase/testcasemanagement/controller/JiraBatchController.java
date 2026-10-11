@@ -65,7 +65,7 @@ public class JiraBatchController {
     } catch (Exception e) {
       log.error("배치 코멘트 추가 API 오류: userId={}", authentication.getName(), e);
       return ResponseEntity.internalServerError()
-          .body(BatchResponseDto.error(null, "배치 처리 중 서버 오류가 발생했습니다."));
+          .body(BatchResponseDto.error(null, "A server error occurred during batch processing."));
     }
   }
 
@@ -96,7 +96,7 @@ public class JiraBatchController {
     } catch (Exception e) {
       log.error("배치 프로젝트 조회 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body(BatchResponseDto.error(null, "배치 처리 중 서버 오류가 발생했습니다."));
+          .body(BatchResponseDto.error(null, "A server error occurred during batch processing."));
     }
   }
 
@@ -129,7 +129,7 @@ public class JiraBatchController {
     } catch (Exception e) {
       log.error("배치 연결 테스트 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body(BatchResponseDto.error(null, "배치 처리 중 서버 오류가 발생했습니다."));
+          .body(BatchResponseDto.error(null, "A server error occurred during batch processing."));
     }
   }
 
@@ -156,7 +156,7 @@ public class JiraBatchController {
     } catch (Exception e) {
       log.error("배치 작업 통계 조회 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "통계 조회 중 서버 오류가 발생했습니다."));
+          .body(Map.of("success", false, "message", "A server error occurred while retrieving statistics."));
     }
   }
 
@@ -174,14 +174,14 @@ public class JiraBatchController {
     } catch (Exception e) {
       log.error("배치 통계 정리 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "통계 정리 중 서버 오류가 발생했습니다."));
+          .body(Map.of("success", false, "message", "A server error occurred while cleaning up statistics."));
     }
   }
 
   // Request/Response DTOs
 
   public static class BatchCommentRequestDto {
-    @NotEmpty(message = "코멘트 목록이 비어있습니다")
+    @NotEmpty(message = "Comment list must not be empty")
     private List<@Valid CommentDto> comments;
 
     public List<CommentDto> getComments() {
@@ -193,10 +193,10 @@ public class JiraBatchController {
     }
 
     public static class CommentDto {
-      @NotNull(message = "이슈 키는 필수입니다")
+      @NotNull(message = "Issue key is required")
       private String issueKey;
 
-      @NotNull(message = "코멘트 내용은 필수입니다")
+      @NotNull(message = "Comment content is required")
       private String comment;
 
       public String getIssueKey() {
@@ -218,7 +218,7 @@ public class JiraBatchController {
   }
 
   public static class BatchProjectRequestDto {
-    @NotEmpty(message = "사용자 ID 목록이 비어있습니다")
+    @NotEmpty(message = "User ID list must not be empty")
     private List<@NotNull String> userIds;
 
     public List<String> getUserIds() {
@@ -231,7 +231,7 @@ public class JiraBatchController {
   }
 
   public static class BatchConnectionTestRequestDto {
-    @NotEmpty(message = "설정 ID 목록이 비어있습니다")
+    @NotEmpty(message = "Configuration ID list must not be empty")
     private List<@NotNull String> configIds;
 
     public List<String> getConfigIds() {

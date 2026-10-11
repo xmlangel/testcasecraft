@@ -40,6 +40,7 @@ import ProjectManager from "./components/ProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import ProjectSidebar from "./components/ProjectSidebar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { getVisibleNavItems } from "./components/navigation/projectNavItems.js";
 
 // 화면을 열 때 그 화면 몫만 받는다. 전에는 이 목록 전부가 첫 요청에 실려 왔다.
 const PlanExecutionWorkspace = React.lazy(
@@ -102,6 +103,9 @@ const CommonDocumentManagement = React.lazy(
 );
 const RAGDocumentManager = React.lazy(
   () => import("./components/RAG/RAGDocumentManager.jsx"),
+);
+const RequirementWorkspace = React.lazy(
+  () => import("./components/Requirement/RequirementWorkspace.jsx"),
 );
 const ExploratorySessionWorkspace = React.lazy(
   () => import("./components/ExploratorySessionWorkspace.jsx"),
@@ -274,6 +278,15 @@ const AppContent = () => {
       ? 7
       : 6
     : -1;
+  // 요구사항 탭은 목록 맨 뒤라 RAG·탐색 세션 노출 여부에 따라 번호가 바뀐다.
+  // 번호를 박지 않고 보이는 항목에서 위치를 찾는다(projectNavItems 규칙).
+  const visibleNavItems = getVisibleNavItems({
+    isRagEnabled,
+    showExploratory: showExploratorySessionTab,
+  });
+  const REQUIREMENTS_TAB = visibleNavItems.findIndex(
+    (item) => item.key === "requirements",
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -482,6 +495,12 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/exploratory/);
   };
 
+  // URL이 요구사항 섹션인지 확인
+  const isRequirementsSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/requirements/);
+  };
+
   // URL이 프로젝트 설정 화면인지 확인 (영역 탭이 아니라 프로젝트 안의 별도 화면)
   const isProjectSettingsSection = () => {
     const path = location.pathname;
@@ -594,6 +613,9 @@ const AppContent = () => {
             setTabIndex(0);
           }
           setActiveTestCaseId(null);
+        } else if (isRequirementsSection()) {
+          setTabIndex(REQUIREMENTS_TAB);
+          setActiveTestCaseId(null);
         } else if (isProjectSettingsSection()) {
           // 설정은 영역 탭이 아니다. 탭 번호를 바꾸면 돌아갔을 때 보던 영역을 잃는다.
           setActiveTestCaseId(null);
@@ -632,7 +654,7 @@ const AppContent = () => {
 
   React.useEffect(() => {
     if (!showExploratorySessionTab) {
-      const maxVisibleTabIndex = isRagEnabled ? 6 : 5;
+      const maxVisibleTabIndex = visibleNavItems.length - 1;
       if (tabIndex > maxVisibleTabIndex) {
         setTabIndex(0);
       }
@@ -649,11 +671,24 @@ const AppContent = () => {
       !isTestResultsSection() &&
       !isAutomationTestsSection() &&
       !isRagSection() &&
-      !isExploratorySection()
+      !isExploratorySection() &&
+      !isRequirementsSection()
     ) {
       setTabIndex(0);
     }
   }, [activeProject, location.pathname]);
+
+  // RAG 설정은 늦게 도착할 수 있고 그때 요구사항 탭 번호가 바뀐다. URL 기준으로 다시 맞춘다.
+  React.useEffect(() => {
+    if (
+      isRequirementsSection() &&
+      REQUIREMENTS_TAB >= 0 &&
+      tabIndex !== REQUIREMENTS_TAB
+    ) {
+      setTabIndex(REQUIREMENTS_TAB);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [REQUIREMENTS_TAB, location.pathname]);
 
   const handleProjectSelect = (projectId) => {
     navigate(`/projects/${projectId}`);
@@ -663,7 +698,10 @@ const AppContent = () => {
     setTabIndex(newValue);
     const projectId = activeProject?.id;
     if (projectId) {
-      if (newValue === 1) {
+      if (newValue === REQUIREMENTS_TAB) {
+        // 요구사항 탭 — 번호가 6·7 과 겹칠 수 있어 가장 먼저 본다
+        navigate(`/projects/${projectId}/requirements`);
+      } else if (newValue === 1) {
         // 테스트케이스 탭
         if (activeTestCaseId) {
           navigate(`/projects/${projectId}/testcases/${activeTestCaseId}`);
@@ -1452,6 +1490,9 @@ const AppContent = () => {
                           />
                         </Box>
                       )}
+                    {tabIndex === REQUIREMENTS_TAB && activeProject && (
+                      <RequirementWorkspace projectId={activeProject.id} />
+                    )}
                   </Box>
                 </Box>
               </>

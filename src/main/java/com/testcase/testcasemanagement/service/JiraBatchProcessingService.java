@@ -90,7 +90,7 @@ public class JiraBatchProcessingService {
       // 사용자의 활성 JIRA 설정 조회
       JiraConfig jiraConfig = getActiveJiraConfig(userId);
       if (jiraConfig == null) {
-        return BatchOperationResult.failure(operationId, "활성화된 JIRA 설정이 없습니다.");
+        return BatchOperationResult.failure(operationId, "No active JIRA configuration found.");
       }
 
       String decryptedApiToken = encryptionUtil.decrypt(jiraConfig.getEncryptedApiToken());
@@ -138,7 +138,7 @@ public class JiraBatchProcessingService {
     } catch (Exception e) {
       log.error("배치 코멘트 작업 실패: operationId={}", operationId, e);
       stats.recordError();
-      return BatchOperationResult.failure(operationId, "배치 작업 실패: " + e.getMessage());
+      return BatchOperationResult.failure(operationId, "Batch operation failed: " + e.getMessage());
     }
   }
 
@@ -183,7 +183,7 @@ public class JiraBatchProcessingService {
     } catch (Exception e) {
       log.error("배치 프로젝트 조회 실패: operationId={}", operationId, e);
       stats.recordError();
-      return BatchOperationResult.failure(operationId, "배치 작업 실패: " + e.getMessage());
+      return BatchOperationResult.failure(operationId, "Batch operation failed: " + e.getMessage());
     }
   }
 
@@ -233,7 +233,7 @@ public class JiraBatchProcessingService {
     } catch (Exception e) {
       log.error("배치 연결 테스트 실패: operationId={}", operationId, e);
       stats.recordError();
-      return BatchOperationResult.failure(operationId, "배치 작업 실패: " + e.getMessage());
+      return BatchOperationResult.failure(operationId, "Batch operation failed: " + e.getMessage());
     }
   }
 
@@ -293,7 +293,7 @@ public class JiraBatchProcessingService {
                 JiraConfig config = getActiveJiraConfig(userId);
                 if (config == null) {
                   stats.recordError();
-                  return new BatchProjectResult(userId, false, null, "활성 JIRA 설정 없음");
+                  return new BatchProjectResult(userId, false, null, "No active JIRA configuration");
                 }
 
                 String apiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
@@ -338,7 +338,7 @@ public class JiraBatchProcessingService {
                             JiraConfigDto.ConnectionStatusDto.builder()
                                 .isConnected(false)
                                 .status("SERVICE_UNAVAILABLE")
-                                .message("JIRA API 서비스 사용 불가")
+                                .message("JIRA API service unavailable")
                                 .build());
                 stats.recordSuccess();
 
@@ -352,7 +352,7 @@ public class JiraBatchProcessingService {
                     JiraConfigDto.ConnectionStatusDto.builder()
                         .isConnected(false)
                         .status("ERROR")
-                        .message("테스트 실패: " + e.getMessage())
+                        .message("Test failed: " + e.getMessage())
                         .lastTested(LocalDateTime.now())
                         .build();
 

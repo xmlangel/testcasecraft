@@ -62,7 +62,7 @@ public class RagChatConversationService {
                 return existing;
               })
           .orElseThrow(
-              () -> new IllegalArgumentException("채팅 스레드를 찾을 수 없습니다: " + request.getThreadId()));
+              () -> new IllegalArgumentException("Chat thread not found: " + request.getThreadId()));
     }
 
     String inferredTitle =
@@ -104,7 +104,7 @@ public class RagChatConversationService {
         projectRepository
             .findById(request.getProjectId().toString())
             .orElseThrow(
-                () -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다: " + request.getProjectId()));
+                () -> new IllegalArgumentException("Project not found: " + request.getProjectId()));
 
     RagChatThread thread =
         RagChatThread.builder()
@@ -137,7 +137,7 @@ public class RagChatConversationService {
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "채팅 스레드를 찾을 수 없습니다: " + threadId));
+                        HttpStatus.NOT_FOUND, "Chat thread not found: " + threadId));
     if (thread.getCategories() == null) {
       thread.setCategories(new HashSet<>());
     } else {
@@ -154,7 +154,7 @@ public class RagChatConversationService {
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "채팅 스레드를 찾을 수 없습니다: " + request.getThreadId()));
+                        HttpStatus.NOT_FOUND, "Chat thread not found: " + request.getThreadId()));
 
     if (request.getTitle() != null) {
       thread.setTitle(request.getTitle());
@@ -197,7 +197,7 @@ public class RagChatConversationService {
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "채팅 스레드를 찾을 수 없습니다: " + threadId));
+                        HttpStatus.NOT_FOUND, "Chat thread not found: " + threadId));
 
     List<RagChatMessage> messages = messageRepository.findByThread_IdOrderByCreatedAtAsc(threadId);
     for (RagChatMessage message : messages) {
@@ -494,10 +494,10 @@ public class RagChatConversationService {
         messageRepository
             .findById(request.getMessageId())
             .orElseThrow(
-                () -> new IllegalArgumentException("메시지를 찾을 수 없습니다: " + request.getMessageId()));
+                () -> new IllegalArgumentException("Message not found: " + request.getMessageId()));
 
     if (message.getRole() != RagChatMessageRole.ASSISTANT) {
-      throw new IllegalStateException("어시스턴트 응답만 편집할 수 있습니다.");
+      throw new IllegalStateException("Only assistant responses can be edited.");
     }
 
     message.setContent(request.getContent());
@@ -553,10 +553,10 @@ public class RagChatConversationService {
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다: " + messageId));
+                        HttpStatus.NOT_FOUND, "Message not found: " + messageId));
 
     if (message.getRole() != RagChatMessageRole.ASSISTANT) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "어시스턴트 응답만 삭제할 수 있습니다.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only assistant responses can be deleted.");
     }
 
     String embeddingMessageId = message.getEmbeddingMessageId();
@@ -593,7 +593,7 @@ public class RagChatConversationService {
         projectRepository
             .findById(request.getProjectId().toString())
             .orElseThrow(
-                () -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다: " + request.getProjectId()));
+                () -> new IllegalArgumentException("Project not found: " + request.getProjectId()));
 
     RagChatCategory category =
         RagChatCategory.builder()
@@ -613,7 +613,7 @@ public class RagChatConversationService {
         categoryRepository
             .findById(request.getCategoryId())
             .orElseThrow(
-                () -> new IllegalArgumentException("카테고리를 찾을 수 없습니다: " + request.getCategoryId()));
+                () -> new IllegalArgumentException("Category not found: " + request.getCategoryId()));
 
     if (StringUtils.hasText(request.getName())) {
       category.setName(request.getName());

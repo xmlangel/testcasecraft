@@ -56,7 +56,7 @@ public class JiraConfigController {
             .body(
                 Map.of(
                     "error", "UNAUTHORIZED",
-                    "message", "인증이 필요합니다."));
+                    "message", "Authentication required."));
       }
 
       Optional<JiraConfigDto> jiraConfig = jiraConfigService.getActiveConfigByUserId(userId);
@@ -77,7 +77,7 @@ public class JiraConfigController {
           .body(
               Map.of(
                   "error", "INTERNAL_SERVER_ERROR",
-                  "message", "JIRA 서버 URL 조회 중 오류가 발생했습니다."));
+                  "message", "An error occurred while retrieving the JIRA server URL."));
     }
   }
 
@@ -148,15 +148,15 @@ public class JiraConfigController {
       // 필수 필드 검증
       if (configDto.getServerUrl() == null || configDto.getServerUrl().trim().isEmpty()) {
         log.warn("❌ 서버 URL 누락: userId={}", userId);
-        return ResponseEntity.badRequest().body(Map.of("error", "JIRA 서버 URL이 필요합니다"));
+        return ResponseEntity.badRequest().body(Map.of("error", "JIRA server URL is required"));
       }
       if (configDto.getUsername() == null || configDto.getUsername().trim().isEmpty()) {
         log.warn("❌ 사용자명 누락: userId={}", userId);
-        return ResponseEntity.badRequest().body(Map.of("error", "사용자명이 필요합니다"));
+        return ResponseEntity.badRequest().body(Map.of("error", "Username is required"));
       }
       if (configDto.getApiToken() == null || configDto.getApiToken().trim().isEmpty()) {
         log.warn("❌ API 토큰 누락: userId={}", userId);
-        return ResponseEntity.badRequest().body(Map.of("error", "API 토큰이 필요합니다"));
+        return ResponseEntity.badRequest().body(Map.of("error", "API token is required"));
       }
 
       log.debug(
@@ -203,13 +203,13 @@ public class JiraConfigController {
       log.error("❌ JIRA 설정 저장 실패 - 런타임 오류: {}", e.getMessage());
 
       // 구체적인 HTTP 상태 코드 반환
-      if (e.getMessage() != null && e.getMessage().contains("암호화")) {
+      if (e.getMessage() != null && e.getMessage().contains("ncryption")) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(
                 Map.of(
-                    "error", "JIRA 암호화 설정 오류",
-                    "detail", "서버에서 JIRA_ENCRYPTION_KEY 환경변수가 설정되지 않았습니다. 관리자에게 문의하세요.",
-                    "solution", "관리자는 다음 환경변수를 설정해주세요: JIRA_ENCRYPTION_KEY",
+                    "error", "JIRA encryption configuration error",
+                    "detail", "The JIRA_ENCRYPTION_KEY environment variable is not set on the server. Contact your administrator.",
+                    "solution", "Administrators must set the following environment variable: JIRA_ENCRYPTION_KEY",
                     "code", "ENCRYPTION_KEY_NOT_SET"));
       } else {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -219,7 +219,7 @@ public class JiraConfigController {
     } catch (Exception e) {
       log.error("❌ JIRA 설정 저장 실패 - 예상치 못한 오류", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("error", "시스템 오류가 발생했습니다", "detail", e.getMessage()));
+          .body(Map.of("error", "A system error occurred", "detail", e.getMessage()));
     }
   }
 
@@ -303,7 +303,7 @@ public class JiraConfigController {
           JiraConfigDto.ConnectionStatusDto.builder()
               .isConnected(false)
               .status("ERROR")
-              .message("연결 테스트 중 오류 발생: " + e.getMessage())
+              .message("Error during connection test: " + e.getMessage())
               .build();
 
       return ResponseEntity.ok(errorStatus);
@@ -334,13 +334,13 @@ public class JiraConfigController {
       } else {
         log.warn("JIRA 설정 삭제 실패: userId={}, configId={}", userId, configId);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("success", false, "message", "설정을 찾을 수 없거나 삭제 권한이 없습니다."));
+            .body(Map.of("success", false, "message", "Configuration not found or you do not have permission to delete it."));
       }
 
     } catch (Exception e) {
       log.error("JIRA 설정 삭제 중 오류", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("success", false, "message", "삭제 중 오류 발생"));
+          .body(Map.of("success", false, "message", "Error occurred during deletion"));
     }
   }
 
@@ -367,13 +367,13 @@ public class JiraConfigController {
         return ResponseEntity.ok(Map.of("success", true, "message", "설정이 활성화되었습니다."));
       } else {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("success", false, "message", "설정을 찾을 수 없거나 권한이 없습니다."));
+            .body(Map.of("success", false, "message", "Configuration not found or you do not have permission."));
       }
 
     } catch (Exception e) {
       log.error("JIRA 설정 활성화 중 오류", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("success", false, "message", "활성화 중 오류 발생"));
+          .body(Map.of("success", false, "message", "Error occurred during activation"));
     }
   }
 
@@ -427,7 +427,7 @@ public class JiraConfigController {
           || comment == null
           || comment.trim().isEmpty()) {
         return ResponseEntity.badRequest()
-            .body(Map.of("success", false, "message", "issueKey와 comment는 필수입니다."));
+            .body(Map.of("success", false, "message", "issueKey and comment are required."));
       }
 
       boolean success = jiraConfigService.addTestResultComment(userId, issueKey, comment);
@@ -438,7 +438,7 @@ public class JiraConfigController {
       } else {
         log.warn("JIRA 코멘트 추가 실패: userId={}, issueKey={}", userId, issueKey);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("success", false, "message", "코멘트 추가에 실패했습니다."));
+            .body(Map.of("success", false, "message", "Failed to add comment."));
       }
 
     } catch (Exception e) {
@@ -449,7 +449,7 @@ public class JiraConfigController {
           comment != null ? comment.length() : 0,
           e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("success", false, "message", "코멘트 추가 중 오류 발생: " + e.getMessage()));
+          .body(Map.of("success", false, "message", "Error occurred while adding comment: " + e.getMessage()));
     }
   }
 
@@ -468,7 +468,7 @@ public class JiraConfigController {
       if (securityContextUtil == null) {
         log.error("SecurityContextUtil이 null입니다.");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(Map.of("hasConfig", false, "error", "인증 서비스 오류"));
+            .body(Map.of("hasConfig", false, "error", "Authentication service error"));
       }
 
       String userId = securityContextUtil.getCurrentUserId();
@@ -477,7 +477,7 @@ public class JiraConfigController {
       if (userId == null) {
         log.warn("사용자 ID가 null입니다. 인증 정보를 확인하세요.");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(Map.of("hasConfig", false, "error", "사용자 인증이 필요합니다"));
+            .body(Map.of("hasConfig", false, "error", "User authentication required"));
       }
 
       Optional<JiraConfigDto> config = jiraConfigService.getActiveConfigByUserId(userId);
@@ -518,7 +518,7 @@ public class JiraConfigController {
     } catch (Exception e) {
       log.error("JIRA 연결 상태 확인 실패", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("hasConfig", false, "error", "상태 확인 중 오류 발생"));
+          .body(Map.of("hasConfig", false, "error", "Error occurred during status check"));
     }
   }
 
@@ -543,7 +543,7 @@ public class JiraConfigController {
       // 필수 필드 검증
       if (query == null || query.trim().isEmpty()) {
         return ResponseEntity.badRequest()
-            .body(Map.of("success", false, "message", "검색 쿼리가 필요합니다."));
+            .body(Map.of("success", false, "message", "Search query is required."));
       }
 
       // 최대 결과 수 제한
@@ -555,7 +555,7 @@ public class JiraConfigController {
       Optional<JiraConfigDto> config = jiraConfigService.getActiveConfigByUserId(userId);
       if (config.isEmpty()) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("success", false, "message", "활성화된 JIRA 설정이 없습니다."));
+            .body(Map.of("success", false, "message", "No active JIRA configuration."));
       }
 
       JiraConfigDto configDto = config.get();
@@ -576,7 +576,7 @@ public class JiraConfigController {
     } catch (Exception e) {
       log.error("JIRA 이슈 검색 중 오류", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("success", false, "message", "이슈 검색 중 오류 발생: " + e.getMessage()));
+          .body(Map.of("success", false, "message", "Error occurred while searching issues: " + e.getMessage()));
     }
   }
 }

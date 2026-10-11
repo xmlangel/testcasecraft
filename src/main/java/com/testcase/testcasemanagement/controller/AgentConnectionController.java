@@ -123,7 +123,7 @@ public class AgentConnectionController {
   /** 전역 킬스위치. 꺼져 있으면 기능이 존재하지 않는 것처럼 보인다. */
   private void requireEnabled() {
     if (!service.isIntegrationEnabled()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "에이전트 연동이 활성화되지 않았습니다");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Agent integration is not enabled");
     }
   }
 }

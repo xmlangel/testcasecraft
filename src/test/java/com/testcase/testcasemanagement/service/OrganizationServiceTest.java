@@ -128,7 +128,7 @@ public class OrganizationServiceTest {
       fail("AccessDeniedException이 발생해야 함");
     } catch (AccessDeniedException exception) {
       // Expected exception
-      assertEquals("인증이 필요합니다.", exception.getMessage());
+      assertEquals("Authentication required.", exception.getMessage());
     }
     verify(organizationRepository, never()).save(any());
   }
@@ -144,7 +144,7 @@ public class OrganizationServiceTest {
       organizationService.createOrganization("Test Org", "Description");
       fail("ResourceNotFoundException이 발생해야 함");
     } catch (ResourceNotFoundException exception) {
-      assertEquals("사용자를 찾을 수 없습니다.", exception.getMessage());
+      assertEquals("User not found.", exception.getMessage());
     }
   }
 
@@ -227,7 +227,7 @@ public class OrganizationServiceTest {
       organizationService.getOrganization(orgId);
       fail("AccessDeniedException이 발생해야 함");
     } catch (AccessDeniedException exception) {
-      assertEquals("조직에 접근할 권한이 없습니다.", exception.getMessage());
+      assertEquals("You do not have permission to access this organization.", exception.getMessage());
     }
     verify(organizationRepository, never()).findById(any());
   }
@@ -295,7 +295,7 @@ public class OrganizationServiceTest {
       organizationService.deleteOrganization(orgId, false);
       fail("AccessDeniedException이 발생해야 함");
     } catch (AccessDeniedException exception) {
-      assertEquals("조직을 삭제할 권한이 없습니다.", exception.getMessage());
+      assertEquals("You do not have permission to delete this organization.", exception.getMessage());
     }
     verify(organizationRepository, never()).delete(any());
   }
@@ -362,7 +362,7 @@ public class OrganizationServiceTest {
       organizationService.inviteMember(orgId, username, role);
       fail("IllegalArgumentException이 발생해야 함");
     } catch (IllegalArgumentException exception) {
-      assertEquals("이미 조직의 멤버입니다.", exception.getMessage());
+      assertEquals("User is already a member of the organization.", exception.getMessage());
     }
     verify(organizationUserRepository, never()).save(any());
   }

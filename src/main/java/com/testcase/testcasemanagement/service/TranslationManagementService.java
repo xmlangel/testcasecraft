@@ -39,7 +39,7 @@ public class TranslationManagementService {
   public Language createLanguage(
       String code, String name, String nativeName, Boolean isDefault, Integer sortOrder) {
     if (languageRepository.existsByCode(code)) {
-      throw new RuntimeException("이미 존재하는 언어 코드입니다: " + code);
+      throw new RuntimeException("Language code already exists: " + code);
     }
 
     if (isDefault != null && isDefault) {
@@ -79,7 +79,7 @@ public class TranslationManagementService {
     Language language =
         languageRepository
             .findById(languageId)
-            .orElseThrow(() -> new RuntimeException("언어를 찾을 수 없습니다: " + languageId));
+            .orElseThrow(() -> new RuntimeException("Language not found: " + languageId));
 
     if (name != null) language.setName(name);
     if (nativeName != null) language.setNativeName(nativeName);
@@ -115,10 +115,10 @@ public class TranslationManagementService {
     Language language =
         languageRepository
             .findById(languageId)
-            .orElseThrow(() -> new RuntimeException("언어를 찾을 수 없습니다: " + languageId));
+            .orElseThrow(() -> new RuntimeException("Language not found: " + languageId));
 
     if (language.getIsDefault()) {
-      throw new RuntimeException("기본 언어는 삭제할 수 없습니다");
+      throw new RuntimeException("The default language cannot be deleted");
     }
 
     languageRepository.delete(language);
@@ -135,7 +135,7 @@ public class TranslationManagementService {
   public TranslationKey createTranslationKey(
       String keyName, String category, String description, String defaultValue) {
     if (translationKeyRepository.existsByKeyName(keyName)) {
-      throw new RuntimeException("이미 존재하는 번역 키입니다: " + keyName);
+      throw new RuntimeException("Translation key already exists: " + keyName);
     }
 
     TranslationKey translationKey =
@@ -155,7 +155,7 @@ public class TranslationManagementService {
     TranslationKey translationKey =
         translationKeyRepository
             .findById(keyId)
-            .orElseThrow(() -> new RuntimeException("번역 키를 찾을 수 없습니다: " + keyId));
+            .orElseThrow(() -> new RuntimeException("Translation key not found: " + keyId));
 
     if (category != null) translationKey.setCategory(category);
     if (description != null) translationKey.setDescription(description);
@@ -176,7 +176,7 @@ public class TranslationManagementService {
     TranslationKey translationKey =
         translationKeyRepository
             .findById(keyId)
-            .orElseThrow(() -> new RuntimeException("번역 키를 찾을 수 없습니다: " + keyId));
+            .orElseThrow(() -> new RuntimeException("Translation key not found: " + keyId));
 
     translationKeyRepository.delete(translationKey);
 
@@ -504,34 +504,34 @@ public class TranslationManagementService {
       String keyName, String languageCode, String value, String context, String updatedBy) {
     // 입력 값 유효성 검사
     if (keyName == null || keyName.trim().isEmpty()) {
-      throw new IllegalArgumentException("번역 키 이름은 필수입니다");
+      throw new IllegalArgumentException("Translation key name is required");
     }
     if (languageCode == null || languageCode.trim().isEmpty()) {
-      throw new IllegalArgumentException("언어 코드는 필수입니다");
+      throw new IllegalArgumentException("Language code is required");
     }
     if (value == null || value.trim().isEmpty()) {
-      throw new IllegalArgumentException("번역 값은 필수입니다");
+      throw new IllegalArgumentException("Translation value is required");
     }
     if (updatedBy == null || updatedBy.trim().isEmpty()) {
-      throw new IllegalArgumentException("수정자 정보는 필수입니다");
+      throw new IllegalArgumentException("Modifier information is required");
     }
 
     TranslationKey translationKey =
         translationKeyRepository
             .findByKeyName(keyName.trim())
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 번역 키입니다: " + keyName));
+            .orElseThrow(() -> new IllegalArgumentException("Translation key does not exist: " + keyName));
 
     if (!translationKey.getIsActive()) {
-      throw new IllegalStateException("비활성화된 번역 키입니다: " + keyName);
+      throw new IllegalStateException("Translation key is disabled: " + keyName);
     }
 
     Language language =
         languageRepository
             .findByCode(languageCode.trim())
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 언어 코드입니다: " + languageCode));
+            .orElseThrow(() -> new IllegalArgumentException("Language code does not exist: " + languageCode));
 
     if (!language.getIsActive()) {
-      throw new IllegalStateException("비활성화된 언어입니다: " + languageCode);
+      throw new IllegalStateException("Language is disabled: " + languageCode);
     }
 
     // 기존 번역 검색
@@ -591,10 +591,10 @@ public class TranslationManagementService {
           e.getMessage());
 
       if (e.getMessage() != null && e.getMessage().contains("constraint")) {
-        throw new IllegalStateException("데이터베이스 제약조건 위반: 이미 동일한 번역이 존재할 수 있습니다");
+        throw new IllegalStateException("Database constraint violation: an identical translation may already exist");
       }
 
-      throw new RuntimeException("번역 저장 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while saving the translation: " + e.getMessage(), e);
     }
   }
 
@@ -603,7 +603,7 @@ public class TranslationManagementService {
     Translation translation =
         translationRepository
             .findById(translationId)
-            .orElseThrow(() -> new RuntimeException("번역을 찾을 수 없습니다: " + translationId));
+            .orElseThrow(() -> new RuntimeException("Translation not found: " + translationId));
 
     translationRepository.delete(translation);
 
@@ -633,7 +633,7 @@ public class TranslationManagementService {
         String context = translationData.get("context");
 
         if (keyName == null || languageCode == null || value == null) {
-          errors.add("필수 필드 누락: keyName, languageCode, value");
+          errors.add("Missing required fields: keyName, languageCode, value");
           failureCount++;
           continue;
         }
@@ -642,7 +642,7 @@ public class TranslationManagementService {
         successCount++;
 
       } catch (Exception e) {
-        errors.add("번역 생성 실패: " + e.getMessage());
+        errors.add("Failed to create translation: " + e.getMessage());
         failureCount++;
       }
     }
@@ -662,7 +662,7 @@ public class TranslationManagementService {
     Translation translation =
         translationRepository
             .findById(translationId)
-            .orElseThrow(() -> new RuntimeException("번역을 찾을 수 없습니다: " + translationId));
+            .orElseThrow(() -> new RuntimeException("Translation not found: " + translationId));
 
     translation.setIsActive(false);
     translationRepository.save(translation);
@@ -681,7 +681,7 @@ public class TranslationManagementService {
     Translation translation =
         translationRepository
             .findById(translationId)
-            .orElseThrow(() -> new RuntimeException("번역을 찾을 수 없습니다: " + translationId));
+            .orElseThrow(() -> new RuntimeException("Translation not found: " + translationId));
 
     translation.setIsActive(true);
     translationRepository.save(translation);
@@ -811,7 +811,7 @@ public class TranslationManagementService {
         try {
           String[] fields = parseCsvLine(line);
           if (fields.length < 3) {
-            errors.add("라인 " + lineNumber + ": 필수 필드가 부족합니다 (keyName, languageCode, value)");
+            errors.add("Line " + lineNumber + ": missing required fields (keyName, languageCode, value)");
             errorCount++;
             continue;
           }
@@ -824,14 +824,14 @@ public class TranslationManagementService {
 
           // 필수 필드 검증
           if (keyName.isEmpty() || languageCode.isEmpty() || value.isEmpty()) {
-            errors.add("라인 " + lineNumber + ": 필수 필드가 비어있습니다");
+            errors.add("Line " + lineNumber + ": required fields are empty");
             errorCount++;
             continue;
           }
 
           // 언어 코드 존재 확인
           if (!languageRepository.existsByCode(languageCode)) {
-            errors.add("라인 " + lineNumber + ": 존재하지 않는 언어 코드입니다: " + languageCode);
+            errors.add("Line " + lineNumber + ": language code does not exist: " + languageCode);
             errorCount++;
             continue;
           }
@@ -869,7 +869,7 @@ public class TranslationManagementService {
             Language language =
                 languageRepository
                     .findByCode(languageCode)
-                    .orElseThrow(() -> new RuntimeException("언어를 찾을 수 없습니다: " + languageCode));
+                    .orElseThrow(() -> new RuntimeException("Language not found: " + languageCode));
 
             Translation newTranslation = new Translation();
             newTranslation.setTranslationKey(translationKey);
@@ -884,7 +884,7 @@ public class TranslationManagementService {
           }
 
         } catch (Exception e) {
-          errors.add("라인 " + lineNumber + ": " + e.getMessage());
+          errors.add("Line " + lineNumber + ": " + e.getMessage());
           errorCount++;
         }
       }
@@ -906,7 +906,7 @@ public class TranslationManagementService {
 
     } catch (IOException e) {
       result.put("success", false);
-      result.put("message", "CSV 파일 읽기 중 오류가 발생했습니다: " + e.getMessage());
+      result.put("message", "An error occurred while reading the CSV file: " + e.getMessage());
     }
 
     return result;

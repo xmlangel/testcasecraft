@@ -127,7 +127,7 @@ public class TestExecutionController {
       if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
         String message =
             i18nService.getTranslation(
-                "testExecution.error.alreadyCompleted", "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
+                "testExecution.error.alreadyCompleted", "This test execution is already completed. Results can no longer be entered or modified.");
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -152,7 +152,7 @@ public class TestExecutionController {
       if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
         String message =
             i18nService.getTranslation(
-                "testExecution.error.alreadyCompleted", "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
+                "testExecution.error.alreadyCompleted", "This test execution is already completed. Results can no longer be entered or modified.");
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -213,7 +213,7 @@ public class TestExecutionController {
       if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
         String message =
             i18nService.getTranslation(
-                "testExecution.error.alreadyCompleted", "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
+                "testExecution.error.alreadyCompleted", "This test execution is already completed. Results can no longer be entered or modified.");
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -243,7 +243,7 @@ public class TestExecutionController {
       if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
         String message =
             i18nService.getTranslation(
-                "testExecution.error.alreadyCompleted", "이미 완료된 테스트 실행입니다. 결과를 입력하거나 수정할 수 없습니다.");
+                "testExecution.error.alreadyCompleted", "This test execution is already completed. Results can no longer be entered or modified.");
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

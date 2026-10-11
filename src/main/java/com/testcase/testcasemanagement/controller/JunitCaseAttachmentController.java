@@ -56,7 +56,7 @@ public class JunitCaseAttachmentController {
               : userRepository.findByUsername(userDetails.getUsername()).orElse(null);
       if (uploader == null) {
         body.put("success", false);
-        body.put("error", "로그인 정보를 확인할 수 없습니다.");
+        body.put("error", "Unable to verify login information.");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
       }
 
@@ -72,7 +72,7 @@ public class JunitCaseAttachmentController {
     } catch (Exception e) {
       log.error("자동화 케이스 첨부 실패 (케이스 {}): {}", caseId, e.getMessage(), e);
       body.put("success", false);
-      body.put("error", "첨부를 저장할 수 없습니다.");
+      body.put("error", "Unable to save the attachment.");
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
   }

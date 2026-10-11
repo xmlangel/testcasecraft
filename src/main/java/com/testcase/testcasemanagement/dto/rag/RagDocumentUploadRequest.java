@@ -16,11 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class RagDocumentUploadRequest {
 
   /** 업로드할 파일 */
-  @NotNull(message = "파일은 필수입니다")
+  @NotNull(message = "File is required")
   private MultipartFile file;
 
   /** 프로젝트 ID */
-  @NotNull(message = "프로젝트 ID는 필수입니다")
+  @NotNull(message = "Project ID is required")
   private UUID projectId;
 
   /** 업로더 사용자명 */

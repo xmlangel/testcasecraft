@@ -165,10 +165,10 @@ public class SchedulerConfigService {
   private void checkRagEnabledForScheduler(String taskKey) {
     if (!systemSettingService.getBooleanSetting("RAG_ENABLED", true)) {
       throw new IllegalStateException(
-          "RAG 기능이 비활성화되어 있어 '"
+          "Cannot enable the '"
               + taskKey
-              + "' 스케줄러를 활성화할 수 없습니다. "
-              + "RAG 시스템 설정에서 RAG를 먼저 활성화해주세요.");
+              + "' scheduler because the RAG feature is disabled. "
+              + "Enable RAG in the RAG system settings first.");
     }
   }
 

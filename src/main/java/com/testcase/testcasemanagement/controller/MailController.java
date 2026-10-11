@@ -69,7 +69,7 @@ public class MailController {
       }
       return ResponseEntity.ok().body("메일이 성공적으로 발송되었습니다.");
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body("메일 발송 실패: " + e.getMessage());
+      return ResponseEntity.internalServerError().body("Failed to send mail: " + e.getMessage());
     }
   }
 }

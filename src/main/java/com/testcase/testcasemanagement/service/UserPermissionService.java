@@ -47,7 +47,7 @@ public class UserPermissionService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
 
     // 조직 멤버십 조회
     List<OrganizationUser> orgMemberships = organizationUserRepository.findByUserId(userId);
@@ -71,23 +71,23 @@ public class UserPermissionService {
   public void addUserToOrganization(String userId, String organizationId, OrganizationRole role) {
     // 권한 확인
     if (!organizationSecurityService.canManageOrganization(organizationId)) {
-      throw new RuntimeException("조직 관리 권한이 없습니다.");
+      throw new RuntimeException("No permission to manage the organization.");
     }
 
     // 중복 체크
     if (organizationUserRepository.existsByOrganizationIdAndUserId(organizationId, userId)) {
-      throw new RuntimeException("사용자가 이미 조직의 멤버입니다.");
+      throw new RuntimeException("User is already a member of the organization.");
     }
 
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
 
     Organization organization =
         organizationRepository
             .findById(organizationId)
-            .orElseThrow(() -> new RuntimeException("조직을 찾을 수 없습니다: " + organizationId));
+            .orElseThrow(() -> new RuntimeException("Organization not found: " + organizationId));
 
     OrganizationUser orgUser = new OrganizationUser();
     orgUser.setUser(user);
@@ -105,23 +105,23 @@ public class UserPermissionService {
   public void addUserToProject(String userId, String projectId, ProjectRole role) {
     // 권한 확인
     if (!projectSecurityService.canManageProject(projectId)) {
-      throw new RuntimeException("프로젝트 관리 권한이 없습니다.");
+      throw new RuntimeException("No permission to manage the project.");
     }
 
     // 중복 체크
     if (projectUserRepository.existsByProjectIdAndUserId(projectId, userId)) {
-      throw new RuntimeException("사용자가 이미 프로젝트의 멤버입니다.");
+      throw new RuntimeException("User is already a member of the project.");
     }
 
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
 
     Project project =
         projectRepository
             .findById(projectId)
-            .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다: " + projectId));
+            .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
 
     ProjectUser projectUser = new ProjectUser();
     projectUser.setUser(user);
@@ -140,13 +140,13 @@ public class UserPermissionService {
       String userId, String organizationId, OrganizationRole newRole) {
     // 권한 확인
     if (!organizationSecurityService.canManageOrganization(organizationId)) {
-      throw new RuntimeException("조직 관리 권한이 없습니다.");
+      throw new RuntimeException("No permission to manage the organization.");
     }
 
     OrganizationUser orgUser =
         organizationUserRepository
             .findByOrganizationIdAndUserId(organizationId, userId)
-            .orElseThrow(() -> new RuntimeException("조직 멤버십을 찾을 수 없습니다."));
+            .orElseThrow(() -> new RuntimeException("Organization membership not found."));
 
     OrganizationRole oldRole = orgUser.getRoleInOrganization();
     orgUser.setRoleInOrganization(newRole);
@@ -166,13 +166,13 @@ public class UserPermissionService {
   public void changeProjectRole(String userId, String projectId, ProjectRole newRole) {
     // 권한 확인
     if (!projectSecurityService.canManageProject(projectId)) {
-      throw new RuntimeException("프로젝트 관리 권한이 없습니다.");
+      throw new RuntimeException("No permission to manage the project.");
     }
 
     ProjectUser projectUser =
         projectUserRepository
             .findByProjectIdAndUserId(projectId, userId)
-            .orElseThrow(() -> new RuntimeException("프로젝트 멤버십을 찾을 수 없습니다."));
+            .orElseThrow(() -> new RuntimeException("Project membership not found."));
 
     ProjectRole oldRole = projectUser.getRoleInProject();
     projectUser.setRoleInProject(newRole);
@@ -192,13 +192,13 @@ public class UserPermissionService {
   public void removeUserFromOrganization(String userId, String organizationId) {
     // 권한 확인
     if (!organizationSecurityService.canRemoveMember(organizationId, userId)) {
-      throw new RuntimeException("멤버 제거 권한이 없습니다.");
+      throw new RuntimeException("No permission to remove members.");
     }
 
     OrganizationUser orgUser =
         organizationUserRepository
             .findByOrganizationIdAndUserId(organizationId, userId)
-            .orElseThrow(() -> new RuntimeException("조직 멤버십을 찾을 수 없습니다."));
+            .orElseThrow(() -> new RuntimeException("Organization membership not found."));
 
     String oldRole = orgUser.getRoleInOrganization().toString();
     organizationUserRepository.delete(orgUser);
@@ -212,13 +212,13 @@ public class UserPermissionService {
   public void removeUserFromProject(String userId, String projectId) {
     // 권한 확인
     if (!projectSecurityService.canRemoveMember(projectId, userId)) {
-      throw new RuntimeException("멤버 제거 권한이 없습니다.");
+      throw new RuntimeException("No permission to remove members.");
     }
 
     ProjectUser projectUser =
         projectUserRepository
             .findByProjectIdAndUserId(projectId, userId)
-            .orElseThrow(() -> new RuntimeException("프로젝트 멤버십을 찾을 수 없습니다."));
+            .orElseThrow(() -> new RuntimeException("Project membership not found."));
 
     String oldRole = projectUser.getRoleInProject().toString();
     projectUserRepository.delete(projectUser);
@@ -233,7 +233,7 @@ public class UserPermissionService {
   public List<UserPermissionDto> getOrganizationMembers(String organizationId) {
     // 권한 확인
     if (!organizationSecurityService.canAccessOrganization(organizationId)) {
-      throw new RuntimeException("조직 접근 권한이 없습니다.");
+      throw new RuntimeException("No permission to access the organization.");
     }
 
     List<OrganizationUser> orgUsers =
@@ -252,7 +252,7 @@ public class UserPermissionService {
   public List<UserPermissionDto> getProjectMembers(String projectId) {
     // 권한 확인
     if (!projectSecurityService.canAccessProject(projectId)) {
-      throw new RuntimeException("프로젝트 접근 권한이 없습니다.");
+      throw new RuntimeException("No permission to access the project.");
     }
 
     List<ProjectUser> projectUsers = projectUserRepository.findByProjectId(projectId);
@@ -270,7 +270,7 @@ public class UserPermissionService {
     // 권한 충돌 검증
     List<PermissionConflictDto> conflicts = validatePermissionChanges(changes);
     if (!conflicts.isEmpty()) {
-      throw new RuntimeException("권한 충돌이 발견되었습니다. 먼저 충돌을 해결해주세요.");
+      throw new RuntimeException("Permission conflicts were found. Please resolve the conflicts first.");
     }
 
     for (BulkPermissionChangeDto change : changes) {
@@ -338,7 +338,7 @@ public class UserPermissionService {
           conflicts.add(
               new PermissionConflictDto(
                   "DUPLICATE_MEMBERSHIP",
-                  "사용자가 이미 조직의 멤버입니다.",
+                  "User is already a member of the organization.",
                   change.getUserId(),
                   change.getResourceId()));
         }
@@ -350,7 +350,7 @@ public class UserPermissionService {
           conflicts.add(
               new PermissionConflictDto(
                   "DUPLICATE_MEMBERSHIP",
-                  "사용자가 이미 프로젝트의 멤버입니다.",
+                  "User is already a member of the project.",
                   change.getUserId(),
                   change.getResourceId()));
         }
@@ -362,7 +362,7 @@ public class UserPermissionService {
         conflicts.add(
             new PermissionConflictDto(
                 "INSUFFICIENT_PERMISSION",
-                "조직 관리 권한이 없습니다.",
+                "No permission to manage the organization.",
                 change.getUserId(),
                 change.getResourceId()));
       }
@@ -372,7 +372,7 @@ public class UserPermissionService {
         conflicts.add(
             new PermissionConflictDto(
                 "INSUFFICIENT_PERMISSION",
-                "프로젝트 관리 권한이 없습니다.",
+                "No permission to manage the project.",
                 change.getUserId(),
                 change.getResourceId()));
       }

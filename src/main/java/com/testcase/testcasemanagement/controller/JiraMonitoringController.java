@@ -49,7 +49,7 @@ public class JiraMonitoringController {
       return ResponseEntity.internalServerError()
           .body(
               Map.of(
-                  "success", false, "message", "헬스 체크 중 서버 오류가 발생했습니다.", "error", e.getMessage()));
+                  "success", false, "message", "A server error occurred during the health check.", "error", e.getMessage()));
     }
   }
 
@@ -77,7 +77,7 @@ public class JiraMonitoringController {
       return ResponseEntity.internalServerError()
           .body(
               Map.of(
-                  "success", false, "message", "메트릭 조회 중 서버 오류가 발생했습니다.", "error", e.getMessage()));
+                  "success", false, "message", "A server error occurred while retrieving metrics.", "error", e.getMessage()));
     }
   }
 
@@ -108,7 +108,7 @@ public class JiraMonitoringController {
                   "success",
                   false,
                   "message",
-                  "시간별 메트릭 조회 중 서버 오류가 발생했습니다.",
+                  "A server error occurred while retrieving hourly metrics.",
                   "error",
                   e.getMessage()));
     }
@@ -135,7 +135,7 @@ public class JiraMonitoringController {
     } catch (Exception e) {
       log.error("시스템 리포트 생성 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body("시스템 리포트 생성 중 오류가 발생했습니다: " + e.getMessage());
+          .body("An error occurred while generating the system report: " + e.getMessage());
     }
   }
 
@@ -179,7 +179,7 @@ public class JiraMonitoringController {
                   "success",
                   false,
                   "message",
-                  "JSON 리포트 생성 중 서버 오류가 발생했습니다.",
+                  "A server error occurred while generating the JSON report.",
                   "error",
                   e.getMessage()));
     }
@@ -207,7 +207,7 @@ public class JiraMonitoringController {
       return ResponseEntity.internalServerError()
           .body(
               Map.of(
-                  "success", false, "message", "메트릭 리셋 중 서버 오류가 발생했습니다.", "error", e.getMessage()));
+                  "success", false, "message", "A server error occurred while resetting metrics.", "error", e.getMessage()));
     }
   }
 
@@ -249,7 +249,7 @@ public class JiraMonitoringController {
     } catch (Exception e) {
       log.error("모니터링 요약 조회 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "모니터링 요약 조회 중 서버 오류가 발생했습니다."));
+          .body(Map.of("success", false, "message", "A server error occurred while retrieving the monitoring summary."));
     }
   }
 
@@ -279,7 +279,7 @@ public class JiraMonitoringController {
               Map.of(
                   "success", false,
                   "status", "DOWN",
-                  "message", "시스템 응답 중 오류가 발생했습니다."));
+                  "message", "An error occurred while the system was responding."));
     }
   }
 }

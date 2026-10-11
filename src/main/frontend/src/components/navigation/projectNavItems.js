@@ -90,6 +90,14 @@ export const PROJECT_NAV_ITEMS = [
     testId: "tab-exploratory",
     requires: "exploratory",
   },
+  // 맨 뒤에 둔다. 중간에 넣으면 기존 항목의 tabIndex 가 밀린다(파일 머리 주석).
+  {
+    key: "requirements",
+    icon: "requirements",
+    i18nKey: "projectHeader.tabs.requirements",
+    label: "요구사항",
+    testId: "tab-requirements",
+  },
 ];
 
 /**

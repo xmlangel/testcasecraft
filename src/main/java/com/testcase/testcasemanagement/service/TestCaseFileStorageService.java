@@ -71,7 +71,7 @@ public class TestCaseFileStorageService {
     TestCase testCase =
         testCaseRepository
             .findById(testCaseId)
-            .orElseThrow(() -> new IllegalArgumentException("테스트케이스를 찾을 수 없습니다: " + testCaseId));
+            .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
     // MinIO에 파일 저장
     String storedFileName = generateUniqueFileName(file.getOriginalFilename());
@@ -147,10 +147,10 @@ public class TestCaseFileStorageService {
     TestCaseAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     if (!attachment.isDownloadable()) {
-      throw new IllegalStateException("다운로드할 수 없는 파일입니다: " + attachmentId);
+      throw new IllegalStateException("File cannot be downloaded: " + attachmentId);
     }
 
     // MinIO에서 파일 다운로드
@@ -166,7 +166,7 @@ public class TestCaseFileStorageService {
     TestCaseAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     return toDto(attachment);
   }
@@ -176,7 +176,7 @@ public class TestCaseFileStorageService {
     TestCaseAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     // 논리적 삭제
     attachment.setStatus(TestCaseAttachment.AttachmentStatus.DELETED);
@@ -206,17 +206,17 @@ public class TestCaseFileStorageService {
   @Transactional(readOnly = true)
   public TestCaseAttachment getAttachmentByPublicToken(String id, String publicAccessToken) {
     if (publicAccessToken == null || publicAccessToken.isBlank()) {
-      throw new IllegalArgumentException("다운로드 토큰이 필요합니다.");
+      throw new IllegalArgumentException("Download token is required.");
     }
 
     TestCaseAttachment attachment =
         attachmentRepository
             .findByIdAndPublicAccessToken(id, publicAccessToken)
             .orElseThrow(
-                () -> new IllegalStateException("유효하지 않은 공개 토큰이거나 첨부파일을 찾을 수 없습니다: id=" + id));
+                () -> new IllegalStateException("Invalid public token or attachment not found: id=" + id));
 
     if (attachment.getStatus() != TestCaseAttachment.AttachmentStatus.ACTIVE) {
-      throw new IllegalStateException("비활성화된 첨부파일입니다. 현재 상태: " + attachment.getStatus());
+      throw new IllegalStateException("Attachment is disabled. Current status: " + attachment.getStatus());
     }
 
     return attachment;
@@ -248,24 +248,24 @@ public class TestCaseFileStorageService {
   /** 파일 유효성 검증 */
   private void validateFile(MultipartFile file) {
     if (file.isEmpty()) {
-      throw new IllegalArgumentException("빈 파일은 업로드할 수 없습니다.");
+      throw new IllegalArgumentException("Empty files cannot be uploaded.");
     }
 
     if (file.getSize() > maxFileSize) {
       throw new IllegalArgumentException(
-          "파일 크기가 제한을 초과했습니다. 최대: " + (maxFileSize / 1024 / 1024) + "MB");
+          "File size exceeds the limit. Maximum: " + (maxFileSize / 1024 / 1024) + "MB");
     }
 
     String originalFileName = file.getOriginalFilename();
     if (originalFileName == null || originalFileName.trim().isEmpty()) {
-      throw new IllegalArgumentException("파일명이 유효하지 않습니다.");
+      throw new IllegalArgumentException("Invalid file name.");
     }
 
     // 파일 확장자 검증
     String extension = getFileExtension(originalFileName);
     if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
       throw new IllegalArgumentException(
-          "지원하지 않는 파일 형식입니다. 허용된 형식: " + String.join(", ", ALLOWED_EXTENSIONS));
+          "Unsupported file type. Allowed types: " + String.join(", ", ALLOWED_EXTENSIONS));
     }
 
     // MIME 타입 검증 (추가적인 보안)
@@ -474,7 +474,7 @@ public class TestCaseFileStorageService {
     TestCaseAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     attachment.setIsUsedInContent(true);
     attachment.setUsedAt(LocalDateTime.now());

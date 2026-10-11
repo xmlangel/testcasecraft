@@ -36,7 +36,7 @@ public class TestPlanService {
   public TestPlan createTestPlan(TestPlanDto dto) {
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(dto.getProjectId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + dto.getProjectId());
+      throw new AccessDeniedException("No permission to edit project: " + dto.getProjectId());
     }
 
     // 프로젝트 존재 여부 체크
@@ -59,7 +59,7 @@ public class TestPlanService {
     // 프로젝트 편집 권한 검사
     if (dto.getProjectId() != null) {
       if (!projectSecurityService.canEditProject(dto.getProjectId())) {
-        throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + dto.getProjectId());
+        throw new AccessDeniedException("No permission to edit project: " + dto.getProjectId());
       }
     }
 
@@ -93,7 +93,7 @@ public class TestPlanService {
             .findById(id)
             .orElseThrow(() -> new RuntimeException("TestPlan not found with id: " + id));
     if (!projectSecurityService.canEditProject(testPlan.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + testPlan.getProject().getId());
+      throw new AccessDeniedException("No permission to edit project: " + testPlan.getProject().getId());
     }
 
     testPlanRepository.deleteById(id);
@@ -104,7 +104,7 @@ public class TestPlanService {
     testPlan.ifPresent(
         plan -> {
           if (!projectSecurityService.canAccessProject(plan.getProject().getId())) {
-            throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + plan.getProject().getId());
+            throw new AccessDeniedException("No permission to access project: " + plan.getProject().getId());
           }
         });
     return testPlan;
@@ -112,7 +112,7 @@ public class TestPlanService {
 
   public List<TestPlan> getTestPlansByProject(String projectId) {
     if (!projectSecurityService.canAccessProject(projectId)) {
-      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+      throw new AccessDeniedException("No permission to access project: " + projectId);
     }
     return testPlanRepository.findByProjectId(projectId);
   }

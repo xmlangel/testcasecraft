@@ -491,7 +491,7 @@ public class TestCaseAttachmentController {
     try {
       if (daysOld < 0 || daysOld > 365) {
         return ResponseEntity.badRequest()
-            .body(createErrorResponse("daysOld는 0~365 사이의 값이어야 합니다."));
+            .body(createErrorResponse("daysOld must be between 0 and 365."));
       }
 
       TestCaseFileStorageService.CleanupResult result =
@@ -518,7 +518,7 @@ public class TestCaseAttachmentController {
     } catch (Exception e) {
       log.error("미사용 첨부파일 정리 중 오류: {}", e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(createErrorResponse("미사용 첨부파일 정리 중 오류가 발생했습니다."));
+          .body(createErrorResponse("An error occurred while cleaning up unused attachments."));
     }
   }
 

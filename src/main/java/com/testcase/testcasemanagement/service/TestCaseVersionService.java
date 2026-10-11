@@ -43,7 +43,7 @@ public class TestCaseVersionService {
     TestCase testCase =
         testCaseRepository
             .findById(testCaseId)
-            .orElseThrow(() -> new IllegalArgumentException("테스트케이스를 찾을 수 없습니다: " + testCaseId));
+            .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
     // 기존 현재 버전을 비활성화
     versionRepository.deactivateAllVersionsForTestCase(testCaseId);
@@ -149,7 +149,7 @@ public class TestCaseVersionService {
     TestCaseVersion targetVersion =
         versionRepository
             .findById(versionId)
-            .orElseThrow(() -> new IllegalArgumentException("버전을 찾을 수 없습니다: " + versionId));
+            .orElseThrow(() -> new IllegalArgumentException("Version not found: " + versionId));
 
     // 해당 테스트케이스 조회
     TestCase testCase =
@@ -158,7 +158,7 @@ public class TestCaseVersionService {
             .orElseThrow(
                 () ->
                     new IllegalArgumentException(
-                        "테스트케이스를 찾을 수 없습니다: " + targetVersion.getTestCaseId()));
+                        "Test case not found: " + targetVersion.getTestCaseId()));
 
     // 기존 현재 버전들을 모두 비활성화
     versionRepository.deactivateAllVersionsForTestCase(targetVersion.getTestCaseId());
@@ -224,11 +224,11 @@ public class TestCaseVersionService {
     TestCaseVersion version1 =
         versionRepository
             .findById(versionId1)
-            .orElseThrow(() -> new IllegalArgumentException("버전을 찾을 수 없습니다: " + versionId1));
+            .orElseThrow(() -> new IllegalArgumentException("Version not found: " + versionId1));
     TestCaseVersion version2 =
         versionRepository
             .findById(versionId2)
-            .orElseThrow(() -> new IllegalArgumentException("버전을 찾을 수 없습니다: " + versionId2));
+            .orElseThrow(() -> new IllegalArgumentException("Version not found: " + versionId2));
 
     Map<String, Object> comparison = new HashMap<>();
     comparison.put("version1", convertToDto(version1));

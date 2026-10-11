@@ -16,7 +16,7 @@ describe("projectNavItems", () => {
     expect(new Set(testIds).size).toBe(testIds.length);
   });
 
-  it("조건 없는 항목 6개가 항상 먼저 온다", () => {
+  it("조건 없는 항목 6개가 항상 먼저 오고 요구사항이 맨 뒤에 붙는다", () => {
     const always = getVisibleNavItems();
     expect(always.map((i) => i.key)).toEqual([
       "dashboard",
@@ -25,17 +25,19 @@ describe("projectNavItems", () => {
       "executions",
       "results",
       "automation",
+      "requirements",
     ]);
   });
 
-  it("RAG·탐색 세션 모두 켜지면 8개, 탐색 세션이 마지막", () => {
+  it("RAG·탐색 세션 모두 켜지면 9개, 탐색 세션 뒤에 요구사항", () => {
     const items = getVisibleNavItems({
       isRagEnabled: true,
       showExploratory: true,
     });
-    expect(items).toHaveLength(8);
+    expect(items).toHaveLength(9);
     expect(items[6].key).toBe("rag");
     expect(items[7].key).toBe("exploratory");
+    expect(items[8].key).toBe("requirements");
   });
 
   it("RAG 만 꺼지면 탐색 세션이 6번째 위치로 당겨진다 (App.jsx EXPLORATORY_TAB 규칙)", () => {
@@ -43,8 +45,22 @@ describe("projectNavItems", () => {
       isRagEnabled: false,
       showExploratory: true,
     });
-    expect(items).toHaveLength(7);
+    expect(items).toHaveLength(8);
     expect(items.findIndex((i) => i.key === "exploratory")).toBe(6);
+  });
+
+  it("요구사항은 맨 뒤라 기존 항목의 tabIndex 를 밀지 않는다 (App.jsx REQUIREMENTS_TAB)", () => {
+    const cases = [
+      [{ isRagEnabled: false, showExploratory: false }, 6],
+      [{ isRagEnabled: true, showExploratory: false }, 7],
+      [{ isRagEnabled: false, showExploratory: true }, 7],
+      [{ isRagEnabled: true, showExploratory: true }, 8],
+    ];
+    for (const [opts, expected] of cases) {
+      const items = getVisibleNavItems(opts);
+      expect(items.findIndex((i) => i.key === "requirements")).toBe(expected);
+      expect(items.at(-1).key).toBe("requirements");
+    }
   });
 
   it("개수 배지는 케이스·플랜·실행 세 항목에만 붙는다", () => {

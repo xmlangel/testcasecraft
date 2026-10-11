@@ -375,7 +375,7 @@ public class ProjectController {
     // 임의 인증 사용자가 타 프로젝트를 덮어쓸 수 있다(하이재킹). 생성 경로에서는 id를 허용하지 않는다.
     if (projectDto.getId() != null && !projectDto.getId().trim().isEmpty()) {
       return ResponseEntity.badRequest()
-          .body(Map.of("error", "프로젝트 생성 요청에는 id를 포함할 수 없습니다. 수정은 PUT /api/projects/{id}를 사용하세요."));
+          .body(Map.of("error", "The project creation request must not include an id. Use PUT /api/projects/{id} to update."));
     }
 
     // 기존 수동 코드 필드 검증 로직 제거
@@ -396,7 +396,7 @@ public class ProjectController {
       } catch (Exception e) {
         log.debug("Organization 설정 실패: " + e.getMessage()); // 디버그 로그
         return ResponseEntity.badRequest()
-            .body(Map.of("error", "유효하지 않은 조직 ID입니다: " + projectDto.getOrganizationId()));
+            .body(Map.of("error", "Invalid organization ID: " + projectDto.getOrganizationId()));
       }
     }
 
@@ -949,10 +949,10 @@ public class ProjectController {
 
     // 필수 파라미터 검증
     if (code == null || code.trim().isEmpty()) {
-      throw new IllegalArgumentException("프로젝트 코드는 필수입니다");
+      throw new IllegalArgumentException("Project code is required");
     }
     if (name == null || name.trim().isEmpty()) {
-      throw new IllegalArgumentException("프로젝트 이름은 필수입니다");
+      throw new IllegalArgumentException("Project name is required");
     }
 
     log.debug(

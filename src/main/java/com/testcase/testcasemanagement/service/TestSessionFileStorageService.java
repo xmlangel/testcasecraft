@@ -48,7 +48,7 @@ public class TestSessionFileStorageService {
     TestSession session =
         sessionRepository
             .findById(sessionId)
-            .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다: " + sessionId));
+            .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
 
     String storedFileName = generateUniqueFileName(file.getOriginalFilename());
     String objectKey = "sessions/" + sessionId + "/" + storedFileName;
@@ -95,10 +95,10 @@ public class TestSessionFileStorageService {
     TestSessionAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     if (!attachment.isDownloadable()) {
-      throw new IllegalStateException("다운로드할 수 없는 파일입니다: " + attachmentId);
+      throw new IllegalStateException("File cannot be downloaded: " + attachmentId);
     }
 
     InputStream inputStream = minioService.downloadFile(attachment.getFilePath());
@@ -110,7 +110,7 @@ public class TestSessionFileStorageService {
     TestSessionAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     return toDto(attachment);
   }
@@ -120,7 +120,7 @@ public class TestSessionFileStorageService {
     TestSessionAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     attachment.setDescription(description);
     TestSessionAttachment updated = attachmentRepository.save(attachment);
@@ -131,7 +131,7 @@ public class TestSessionFileStorageService {
     TestSessionAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     attachment.setStatus(TestSessionAttachment.AttachmentStatus.DELETED);
     attachmentRepository.save(attachment);
@@ -149,23 +149,23 @@ public class TestSessionFileStorageService {
 
   private void validateFile(MultipartFile file) {
     if (file.isEmpty()) {
-      throw new IllegalArgumentException("빈 파일은 업로드할 수 없습니다.");
+      throw new IllegalArgumentException("Empty files cannot be uploaded.");
     }
 
     if (file.getSize() > maxFileSize) {
       throw new IllegalArgumentException(
-          "파일 크기가 제한을 초과했습니다. 최대: " + (maxFileSize / 1024 / 1024) + "MB");
+          "File size exceeds the limit. Maximum: " + (maxFileSize / 1024 / 1024) + "MB");
     }
 
     String originalFileName = file.getOriginalFilename();
     if (originalFileName == null || originalFileName.trim().isEmpty()) {
-      throw new IllegalArgumentException("파일명이 유효하지 않습니다.");
+      throw new IllegalArgumentException("Invalid file name.");
     }
 
     String extension = getFileExtension(originalFileName);
     if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
       throw new IllegalArgumentException(
-          "지원하지 않는 파일 형식입니다. 허용된 형식: " + String.join(", ", ALLOWED_EXTENSIONS));
+          "Unsupported file type. Allowed types: " + String.join(", ", ALLOWED_EXTENSIONS));
     }
   }
 

@@ -291,17 +291,27 @@ function UserProfileDialog({
       );
 
       if (error.message) {
-        if (error.message.includes("네트워크")) {
+        const lowerMessage = error.message.toLowerCase();
+        if (
+          error.message.includes("네트워크") ||
+          lowerMessage.includes("network")
+        ) {
           errorMessage = t(
             "profile.jira.error.network",
             "네트워크 연결을 확인해주세요.",
           );
-        } else if (error.message.includes("인증")) {
+        } else if (
+          error.message.includes("인증") ||
+          lowerMessage.includes("authenticat")
+        ) {
           errorMessage = t(
             "profile.jira.error.authentication",
             "로그인이 만료되었습니다. 다시 로그인해주세요.",
           );
-        } else if (error.message.includes("암호화")) {
+        } else if (
+          error.message.includes("암호화") ||
+          lowerMessage.includes("encrypt")
+        ) {
           errorMessage = t(
             "profile.jira.error.encryption",
             "서버 설정에 문제가 있습니다. 관리자에게 문의하세요.",

@@ -132,22 +132,22 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
       log.error("❌ NVIDIA 모델 목록 조회 실패 (상태코드: {})", e.getStatusCode(), e);
       if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
         throw new LlmClient.LlmClientException(
-            "NVIDIA 가 이 API Key 를 거부했습니다 ("
+            "NVIDIA rejected this API key ("
                 + e.getStatusCode().value()
-                + "). build.nvidia.com 에서 발급한 nvapi- 키인지 확인해 주세요.",
+                + "). Check that it is an nvapi- key issued at build.nvidia.com.",
             e);
       }
       throw new LlmClient.LlmClientException(
-          "NVIDIA 모델 목록 조회 실패 (상태코드: " + e.getStatusCode() + ")", e);
+          "Failed to retrieve NVIDIA model list (status code: " + e.getStatusCode() + ")", e);
     } catch (LlmClient.LlmClientException e) {
       throw e;
     } catch (Exception e) {
       log.error("❌ NVIDIA 모델 목록 조회 실패", e);
-      throw new LlmClient.LlmClientException("NVIDIA 모델 목록 조회 실패: " + e.getMessage(), e);
+      throw new LlmClient.LlmClientException("Failed to retrieve NVIDIA model list: " + e.getMessage(), e);
     }
 
     if (response == null || !(response.get("data") instanceof List<?> rawList)) {
-      throw new LlmClient.LlmClientException("NVIDIA 모델 목록 상항을 해석할 수 없습니다");
+      throw new LlmClient.LlmClientException("Unable to parse the NVIDIA model list response");
     }
 
     List<LlmModelDTO> models = new ArrayList<>();
@@ -174,32 +174,32 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
       int status = e.getStatusCode().value();
       if (status == 404) {
         // NVIDIA 목록에는 있으나 이 계정에서 쓸 수 없는 모델이다. 실측에서 가장 많은 사유였다.
-        return verdict(modelId, Availability.UNAVAILABLE, "이 계정에서 제공하지 않는 모델입니다 (404).");
+        return verdict(modelId, Availability.UNAVAILABLE, "This model is not available for this account (404).");
       }
       if (status == 401 || status == 403) {
-        return verdict(modelId, Availability.UNAVAILABLE, "API Key 가 거부되었습니다 (" + status + ").");
+        return verdict(modelId, Availability.UNAVAILABLE, "API key was rejected (" + status + ").");
       }
       if (status == 400) {
         // 텍스트 입력을 받지 않는 모델(문서 파싱 등)이 여기로 온다.
-        return verdict(modelId, Availability.UNAVAILABLE, "채팅 형식 입력을 받지 않는 모델입니다 (400).");
+        return verdict(modelId, Availability.UNAVAILABLE, "This model does not accept chat-format input (400).");
       }
       if (status == 429) {
-        return verdict(modelId, Availability.RATE_LIMITED, "요청이 제한되었습니다 (429). 잠시 뒤 다시 확인해 보세요.");
+        return verdict(modelId, Availability.RATE_LIMITED, "Request was rate limited (429). Try again shortly.");
       }
       if (status == 503) {
         // 그 모델의 워커가 혼잡한 상태다. 모델 자체는 쓸 수 있으므로 다시 확인할 여지를 남긴다.
         return verdict(
-            modelId, Availability.RATE_LIMITED, "이 모델의 서버가 지금 붐빕니다 (503). 잠시 뒤 다시 확인해 보세요.");
+            modelId, Availability.RATE_LIMITED, "The server for this model is busy right now (503). Try again shortly.");
       }
-      return verdict(modelId, Availability.UNAVAILABLE, "호출 실패 (" + status + ").");
+      return verdict(modelId, Availability.UNAVAILABLE, "Call failed (" + status + ").");
     }
 
     if (isTimeout(error)) {
-      return timeoutVerdict(modelId, "처음 호출하는 모델은 준비에 시간이 걸립니다. 잠시 뒤 다시 확인해 보세요.");
+      return timeoutVerdict(modelId, "A model called for the first time takes time to prepare. Try again shortly.");
     }
 
     log.debug("NVIDIA 가용성 확인 실패: model={}", modelId, error);
-    return verdict(modelId, Availability.UNAVAILABLE, "확인 실패: " + firstLine(error.getMessage()));
+    return verdict(modelId, Availability.UNAVAILABLE, "Check failed: " + firstLine(error.getMessage()));
   }
 
   /**
@@ -238,9 +238,9 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
       int status = e.getStatusCode().value();
       if (status == 401 || status == 403) {
         throw new LlmClient.LlmClientException(
-            "NVIDIA 가 이 API Key 를 거부했습니다 ("
+            "NVIDIA rejected this API key ("
                 + status
-                + "). build.nvidia.com 에서 발급한 nvapi- 키인지 확인해 주세요.",
+                + "). Check that it is an nvapi- key issued at build.nvidia.com.",
             e);
       }
       // 404(계정에 없는 모델)·429·503 은 키 문제가 아니다. 통지시킨다.

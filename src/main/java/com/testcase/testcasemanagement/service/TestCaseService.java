@@ -116,7 +116,7 @@ public class TestCaseService {
     // 프로젝트 편집 권한 검사 (생성 권한)
     if (testCaseDto.getProjectId() != null && !testCaseDto.getProjectId().isEmpty()) {
       if (!projectSecurityService.canEditProject(testCaseDto.getProjectId())) {
-        throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + testCaseDto.getProjectId());
+        throw new AccessDeniedException("No permission to edit the project: " + testCaseDto.getProjectId());
       }
     }
 
@@ -160,7 +160,7 @@ public class TestCaseService {
                   })
               .orElseGet(
                   () -> {
-                    errors.put("parentId", "해당 상위 폴더를 찾을 수 없습니다.");
+                    errors.put("parentId", "Parent folder not found.");
                     return false;
                   });
 
@@ -221,7 +221,7 @@ public class TestCaseService {
   public TestCase findById(String id) {
     return testCaseRepository
         .findByIdWithSteps(id)
-        .orElseThrow(() -> new RuntimeException("테스트케이스를 찾을 수 없습니다: " + id));
+        .orElseThrow(() -> new RuntimeException("Test case not found: " + id));
   }
 
   /**
@@ -242,12 +242,12 @@ public class TestCaseService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(testCase.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + testCase.getProject().getId());
+      throw new AccessDeniedException("No permission to edit the project: " + testCase.getProject().getId());
     }
 
     if (TestCaseConstants.TYPE_FOLDER.equals(testCase.getType())
         && TestCaseConstants.SYSTEM_DEFAULT_FOLDER_DESCRIPTION.equals(testCase.getDescription())) {
-      throw new RuntimeException("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다.");
+      throw new RuntimeException("The initially created test case folder cannot be deleted.");
     }
 
     // 1. 모든 후손 ID를 DB에서 미리 수집 (재귀 없이)
@@ -389,7 +389,7 @@ public class TestCaseService {
         deleteTestCase(id);
         successCount++;
       } catch (Exception e) {
-        String errorMsg = String.format("ID %s 삭제 실패: %s", id, e.getMessage());
+        String errorMsg = String.format("Failed to delete ID %s: %s", id, e.getMessage());
         log.error(errorMsg, e);
         errors.add(errorMsg);
       }
@@ -408,7 +408,7 @@ public class TestCaseService {
 
   public List<TestCase> getTestCasesByProjectId(String projectId) {
     if (!projectSecurityService.canAccessProject(projectId)) {
-      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+      throw new AccessDeniedException("No permission to access the project: " + projectId);
     }
     return testCaseRepository.findAllByProjectIdWithSteps(projectId);
   }
@@ -416,7 +416,7 @@ public class TestCaseService {
   /** 프로젝트 내에서 사용된 모든 테스트케이스 태그를 알파벳 순으로 조회한다. */
   public Set<String> getProjectTags(String projectId) {
     if (!projectSecurityService.canAccessProject(projectId)) {
-      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+      throw new AccessDeniedException("No permission to access the project: " + projectId);
     }
     List<TestCase> testCases = testCaseRepository.findByProjectId(projectId);
     return testCases.stream()
@@ -432,7 +432,7 @@ public class TestCaseService {
     // 프로젝트 편집 권한 검사 (수정 권한)
     if (testCaseDto.getProjectId() != null && !testCaseDto.getProjectId().isEmpty()) {
       if (!projectSecurityService.canEditProject(testCaseDto.getProjectId())) {
-        throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + testCaseDto.getProjectId());
+        throw new AccessDeniedException("No permission to edit the project: " + testCaseDto.getProjectId());
       }
     }
 
@@ -476,7 +476,7 @@ public class TestCaseService {
                   })
               .orElseGet(
                   () -> {
-                    errors.put("parentId", "해당 상위 폴더를 찾을 수 없습니다.");
+                    errors.put("parentId", "Parent folder not found.");
                     return false;
                   });
 
@@ -745,7 +745,7 @@ public class TestCaseService {
   /** 시스템 전체 테스트케이스 조회 (프로젝트 스코프 없음) — 시스템 ADMIN만 허용 */
   public List<TestCaseDto> getAllTestCasesWithParentName() {
     if (!projectSecurityService.isSystemAdmin()) {
-      throw new AccessDeniedException("전체 테스트케이스 조회는 시스템 관리자만 가능합니다.");
+      throw new AccessDeniedException("Only system administrators can retrieve all test cases.");
     }
     List<TestCase> entities = getAllTestCases();
     Map<String, String> pathCache = new HashMap<>();
@@ -757,7 +757,7 @@ public class TestCaseService {
   /** 시스템 전체 테스트케이스 트리 조회 (프로젝트 스코프 없음) — 시스템 ADMIN만 허용 */
   public List<TestCase> getAllTestCasesForTree() {
     if (!projectSecurityService.isSystemAdmin()) {
-      throw new AccessDeniedException("전체 테스트케이스 조회는 시스템 관리자만 가능합니다.");
+      throw new AccessDeniedException("Only system administrators can retrieve all test cases.");
     }
     return getAllTestCases();
   }
@@ -766,7 +766,7 @@ public class TestCaseService {
     TestCase entity = findById(id);
     if (entity.getProject() != null
         && !projectSecurityService.canAccessProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No permission to access the project: " + entity.getProject().getId());
     }
     return toDtoWithParentName(entity);
   }
@@ -840,7 +840,7 @@ public class TestCaseService {
 
     if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
       throw new CsvImportException(
-          "필드 매핑 정보가 필요합니다", Collections.singletonList(Map.of("error", "No field mappings")));
+          "Field mapping information is required", Collections.singletonList(Map.of("error", "No field mappings")));
     }
 
     if (!projectOpt.isPresent()) {
@@ -872,7 +872,7 @@ public class TestCaseService {
                 Map.of(
                     "row", i + 1,
                     "data", row,
-                    "message", "Excel 내 parentId + displayOrder 중복: " + key));
+                    "message", "Duplicate parentId + displayOrder in Excel: " + key));
             continue;
           }
         }
@@ -893,7 +893,7 @@ public class TestCaseService {
               Map.of(
                   "row", i + 1,
                   "data", row,
-                  "message", "DB에 이미 존재하는 parentId + displayOrder: " + key));
+                  "message", "parentId + displayOrder already exists in the DB: " + key));
           continue;
         }
         testCaseRepository.save(tc);
@@ -933,7 +933,7 @@ public class TestCaseService {
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() == 404) {
         throw new ResourceNotValidException(
-            "구글시트 문서(spreadsheetId)가 존재하지 않습니다: " + spreadsheetId,
+            "Google Sheets document (spreadsheetId) does not exist: " + spreadsheetId,
             Map.of("entity", "spreadsheet", "spreadsheetId", spreadsheetId));
       }
       throw e;
@@ -945,7 +945,7 @@ public class TestCaseService {
             .anyMatch(sheet -> sheetName.equals(sheet.getProperties().getTitle()));
     if (!sheetFound) {
       throw new ResourceNotValidException(
-          "구글시트 시트명(sheetName)이 존재하지 않습니다: " + sheetName,
+          "Google Sheets sheet name (sheetName) does not exist: " + sheetName,
           Map.of("entity", "sheet", "sheetName", sheetName));
     }
 
@@ -956,7 +956,7 @@ public class TestCaseService {
       response = sheetsService.spreadsheets().values().get(spreadsheetId, range).execute();
     } catch (GoogleJsonResponseException e) {
       throw new ResourceNotValidException(
-          "구글시트 데이터 조회 실패: " + e.getDetails().getMessage(),
+          "Failed to retrieve Google Sheets data: " + e.getDetails().getMessage(),
           Map.of("entity", "sheet", "sheetName", sheetName));
     }
     List<List<Object>> sheetValues = response.getValues();
@@ -1035,7 +1035,7 @@ public class TestCaseService {
 
           if (nameDuplicateCount > 0) {
             String msg =
-                String.format("행 %d: '%s' 항목은 해당 폴더에 이미 존재합니다. (이름 중복)", i + 1, tc.getName());
+                String.format("Row %d: '%s' already exists in the folder. (Duplicate name)", i + 1, tc.getName());
             errors.add(
                 Map.of(
                     "row",
@@ -1045,7 +1045,7 @@ public class TestCaseService {
                     "message",
                     msg,
                     "guide",
-                    "기존 항목을 수정하시려면 'DisplayID'를 입력하거나, 시트의 이름을 변경해 주세요."));
+                    "To modify an existing item, enter its 'DisplayID' or rename the item in the sheet."));
             continue; // 중복 시 해당 행 스킵
           }
 
@@ -1077,13 +1077,13 @@ public class TestCaseService {
     // [중간 단계: 오류 발생 시 즉시 중단 및 롤백]
     // 하나라도 오류가 발견되면 전체 저장을 수행하지 않습니다.
     if (!errors.isEmpty()) {
-      StringBuilder fullMessage = new StringBuilder("구글 시트 가져오기 중 오류가 발견되어 전체 작업을 중단했습니다.\n");
-      fullMessage.append("- 하나라도 오류가 있는 경우 데이터가 저장되지 않습니다.\n");
-      fullMessage.append("- 중복된 이름은 허용되지 않습니다.\n");
-      fullMessage.append("- 업데이트를 원하시면 'DisplayID' 컬럼 값을 유지해 주세요.\n\n");
-      fullMessage.append("상세 오류 내역:\n");
+      StringBuilder fullMessage = new StringBuilder("Errors were found while importing from Google Sheets, so the entire operation was aborted.\n");
+      fullMessage.append("- If there is any error, no data is saved.\n");
+      fullMessage.append("- Duplicate names are not allowed.\n");
+      fullMessage.append("- To update existing items, keep the 'DisplayID' column values.\n\n");
+      fullMessage.append("Error details:\n");
       for (Map<String, Object> err : errors) {
-        fullMessage.append(String.format("[%s번 행] %s\n", err.get("row"), err.get("message")));
+        fullMessage.append(String.format("[Row %s] %s\n", err.get("row"), err.get("message")));
       }
 
       throw new ResourceNotValidException(
@@ -1148,7 +1148,7 @@ public class TestCaseService {
       }
     } catch (Exception e) {
       throw new CsvImportException(
-          "엑셀 파싱 오류: " + e.getMessage(),
+          "Excel parsing error: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
     return rows;
@@ -1425,7 +1425,7 @@ public class TestCaseService {
     }
     for (String projectId : projectIds) {
       if (!projectSecurityService.canEditProject(projectId)) {
-        throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + projectId);
+        throw new AccessDeniedException("No permission to edit the project: " + projectId);
       }
     }
 
@@ -1463,7 +1463,7 @@ public class TestCaseService {
                 testCaseRepository
                     .findById(dto.getId())
                     .orElseThrow(
-                        () -> new IllegalArgumentException("테스트케이스를 찾을 수 없습니다: " + dto.getId()));
+                        () -> new IllegalArgumentException("Test case not found: " + dto.getId()));
 
             // 기존 데이터 마이그레이션: version이 null이면 0으로 초기화 (네이티브 쿼리 사용)
             if (entity.getVersion() == null) {
@@ -1478,7 +1478,7 @@ public class TestCaseService {
             if (dto.getVersion() != null
                 && entity.getVersion() != null
                 && !dto.getVersion().equals(entity.getVersion())) {
-              throw new RuntimeException("데이터가 다른 사용자에 의해 변경되었습니다. 새로고침 후 다시 시도해주세요.");
+              throw new RuntimeException("The data was modified by another user. Please refresh and try again.");
             }
 
             // 업데이트 로직 (updateEntityFromDto 호출)
@@ -1509,7 +1509,7 @@ public class TestCaseService {
                       .orElseThrow(
                           () ->
                               new IllegalArgumentException(
-                                  "프로젝트를 찾을 수 없습니다: " + dto.getProjectId())));
+                                  "Project not found: " + dto.getProjectId())));
             }
 
             // 부모 설정 및 고아 노드 방지 (방안 2)
@@ -1616,7 +1616,7 @@ public class TestCaseService {
               com.testcase.testcasemanagement.dto.BatchSaveResult.BatchError.builder()
                   .index(i)
                   .testCaseName(dto.getName())
-                  .errorMessage("데이터 검증 실패: " + e.getMessage())
+                  .errorMessage("Data validation failed: " + e.getMessage())
                   .errorDetails(e.getClass().getSimpleName())
                   .build());
         }
@@ -1677,7 +1677,7 @@ public class TestCaseService {
 
     } catch (Exception e) {
       log.error("배치 저장 중 예외 발생", e);
-      throw new RuntimeException("배치 저장 실패: " + e.getMessage(), e);
+      throw new RuntimeException("Batch save failed: " + e.getMessage(), e);
     }
 
     int successCount = savedTestCases.size();
@@ -1927,7 +1927,7 @@ public class TestCaseService {
     if ("folder".equals(testCase.getType())) {
       return Map.of(
           "success", false,
-          "message", "폴더는 RAG 등록 대상이 아닙니다.",
+          "message", "Folders cannot be registered to RAG.",
           "ragVectorized", false);
     }
 
@@ -1948,7 +1948,7 @@ public class TestCaseService {
           "단일 TestCase RAG 수동 벡터화 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
       return Map.of(
           "success", false,
-          "message", "RAG 등록 중 오류가 발생했습니다: " + e.getMessage(),
+          "message", "An error occurred during RAG registration: " + e.getMessage(),
           "ragVectorized", false);
     }
   }
@@ -2039,7 +2039,7 @@ public class TestCaseService {
   @Transactional(readOnly = true)
   public Optional<TestCase> findByDisplayIdWithRedirect(String displayId, String projectId) {
     if (!projectSecurityService.canAccessProject(projectId)) {
-      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+      throw new AccessDeniedException("No permission to access the project: " + projectId);
     }
 
     // 1. 현재 DisplayID로 조회 시도
@@ -2213,7 +2213,7 @@ public class TestCaseService {
     try {
       return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
     } catch (Exception e) {
-      throw new RuntimeException("샘플 JSON 생성 실패", e);
+      throw new RuntimeException("Failed to generate sample JSON", e);
     }
   }
 
@@ -2289,7 +2289,7 @@ public class TestCaseService {
       }
     } catch (Exception e) {
       throw new CsvImportException(
-          "CSV 파싱 오류: " + e.getMessage(),
+          "CSV parsing error: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
     return rows;
@@ -2332,7 +2332,7 @@ public class TestCaseService {
       }
     } catch (Exception e) {
       throw new CsvImportException(
-          "Excel 파싱 오류: " + e.getMessage(),
+          "Excel parsing error: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
     return rows;
@@ -2352,7 +2352,7 @@ public class TestCaseService {
       JsonNode testCasesNode = root.get("testCases");
       if (testCasesNode == null || !testCasesNode.isArray()) {
         throw new CsvImportException(
-            "JSON 형식 오류: testCases 배열이 없습니다",
+            "Invalid JSON format: testCases array is missing",
             Collections.singletonList(Map.of("error", "testCases array missing")));
       }
       // JSON → List<Map<String,String>> 변환
@@ -2392,7 +2392,7 @@ public class TestCaseService {
       throw e;
     } catch (Exception e) {
       throw new CsvImportException(
-          "JSON 처리 오류: " + e.getMessage(),
+          "JSON processing error: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
   }
@@ -2426,7 +2426,7 @@ public class TestCaseService {
       try {
         String name = row.getOrDefault("name", "").trim();
         if (name.isEmpty()) {
-          errors.add(Map.of("row", i + 2, "message", "폴더명이 비어있습니다"));
+          errors.add(Map.of("row", i + 2, "message", "Folder name is empty"));
           continue;
         }
         if (folderNameToId.containsKey(name)) continue; // 이미 존재
@@ -2448,7 +2448,7 @@ public class TestCaseService {
         folderNameToId.put(name, folder.getId());
         saved.add(folder);
       } catch (Exception e) {
-        errors.add(Map.of("row", i + 2, "message", "폴더 생성 실패: " + e.getMessage()));
+        errors.add(Map.of("row", i + 2, "message", "Failed to create folder: " + e.getMessage()));
       }
     }
 
@@ -2461,7 +2461,7 @@ public class TestCaseService {
       try {
         String name = row.getOrDefault("name", "").trim();
         if (name.isEmpty()) {
-          errors.add(Map.of("row", i + 2, "message", "이름이 비어있습니다"));
+          errors.add(Map.of("row", i + 2, "message", "Name is empty"));
           continue;
         }
 
@@ -2510,12 +2510,12 @@ public class TestCaseService {
         testCaseRepository.save(tc);
         saved.add(tc);
       } catch (Exception e) {
-        errors.add(Map.of("row", i + 2, "message", "테스트케이스 생성 실패: " + e.getMessage()));
+        errors.add(Map.of("row", i + 2, "message", "Failed to create test case: " + e.getMessage()));
       }
     }
 
     if (!errors.isEmpty()) {
-      throw new CsvImportException("Import 중 오류 발생 (" + errors.size() + "건)", errors);
+      throw new CsvImportException("Error occurred during import (" + errors.size() + " errors)", errors);
     }
     return saved;
   }
@@ -2562,7 +2562,7 @@ public class TestCaseService {
           rows = parseJsonToRowMaps(is);
           break;
         default:
-          throw new IllegalArgumentException("지원하지 않는 형식: " + format);
+          throw new IllegalArgumentException("Unsupported format: " + format);
       }
     } catch (CsvImportException e) {
       ImportValidationResultDto result = new ImportValidationResultDto();
@@ -2591,19 +2591,19 @@ public class TestCaseService {
 
       if (name.isEmpty()) {
         errors.add(
-            new ImportValidationResultDto.ValidationError(rowNum, "name", "이름은 필수 항목입니다", name));
+            new ImportValidationResultDto.ValidationError(rowNum, "name", "Name is required", name));
         rowValid = false;
       }
       if (!type.isEmpty() && !VALID_TYPES.contains(type)) {
         errors.add(
             new ImportValidationResultDto.ValidationError(
-                rowNum, "type", "유효하지 않은 타입 (folder 또는 testcase)", type));
+                rowNum, "type", "Invalid type (folder or testcase)", type));
         rowValid = false;
       }
       if (!priority.isEmpty() && !VALID_PRIORITIES.contains(priority)) {
         errors.add(
             new ImportValidationResultDto.ValidationError(
-                rowNum, "priority", "유효하지 않은 우선순위 (HIGH, MEDIUM, LOW)", priority));
+                rowNum, "priority", "Invalid priority (HIGH, MEDIUM, LOW)", priority));
         rowValid = false;
       }
 
@@ -2672,7 +2672,7 @@ public class TestCaseService {
       }
     } catch (Exception e) {
       throw new CsvImportException(
-          "JSON 파싱 오류: " + e.getMessage(),
+          "JSON parsing error: " + e.getMessage(),
           Collections.singletonList(Map.of("error", e.getMessage())));
     }
     return rows;
@@ -2783,7 +2783,7 @@ public class TestCaseService {
     try {
       return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
     } catch (Exception e) {
-      throw new RuntimeException("JSON export 실패", e);
+      throw new RuntimeException("JSON export failed", e);
     }
   }
 

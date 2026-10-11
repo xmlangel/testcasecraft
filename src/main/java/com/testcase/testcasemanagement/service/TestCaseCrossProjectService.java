@@ -94,10 +94,10 @@ public class TestCaseCrossProjectService {
 
     // 권한: 출발 + 대상 모두 편집권한
     if (!projectSecurityService.hasEditRole(ctx.sourceProjectId)) {
-      throw new MoveForbiddenException("출발 프로젝트 편집 권한이 없습니다: " + ctx.sourceProjectId);
+      throw new MoveForbiddenException("No edit permission for the source project: " + ctx.sourceProjectId);
     }
     if (!projectSecurityService.hasEditRole(ctx.targetProject.getId())) {
-      throw new MoveForbiddenException("대상 프로젝트 편집 권한이 없습니다: " + ctx.targetProject.getId());
+      throw new MoveForbiddenException("No edit permission for the target project: " + ctx.targetProject.getId());
     }
 
     SequenceAllocator seq = new SequenceAllocator(maxSeq(ctx.targetProject.getId()));
@@ -171,10 +171,10 @@ public class TestCaseCrossProjectService {
 
     // 권한: 출발 조회 + 대상 편집
     if (!projectSecurityService.canAccessProject(ctx.sourceProjectId)) {
-      throw new MoveForbiddenException("출발 프로젝트 조회 권한이 없습니다: " + ctx.sourceProjectId);
+      throw new MoveForbiddenException("No view permission for the source project: " + ctx.sourceProjectId);
     }
     if (!projectSecurityService.hasEditRole(ctx.targetProject.getId())) {
-      throw new MoveForbiddenException("대상 프로젝트 편집 권한이 없습니다: " + ctx.targetProject.getId());
+      throw new MoveForbiddenException("No edit permission for the target project: " + ctx.targetProject.getId());
     }
 
     SequenceAllocator seq = new SequenceAllocator(maxSeq(ctx.targetProject.getId()));
@@ -224,17 +224,17 @@ public class TestCaseCrossProjectService {
   /** 공통 검증 + 대상 부모/프로젝트 해석 + 이동 대상 서브트리 수집. */
   private Context prepare(CrossProjectTransferRequest req) {
     if (req == null || req.getIds() == null || req.getIds().isEmpty()) {
-      throw new MoveValidationException("ids가 비어있습니다.");
+      throw new MoveValidationException("ids must not be empty.");
     }
     if (req.getTargetProjectId() == null || req.getTargetProjectId().isBlank()) {
-      throw new MoveValidationException("targetProjectId가 필요합니다.");
+      throw new MoveValidationException("targetProjectId is required.");
     }
 
     Project targetProject =
         projectRepository
             .findById(req.getTargetProjectId())
             .orElseThrow(
-                () -> new MoveNotFoundException("대상 프로젝트를 찾을 수 없습니다: " + req.getTargetProjectId()));
+                () -> new MoveNotFoundException("Target project not found: " + req.getTargetProjectId()));
 
     // 입력 노드 로드 + 같은 출발 프로젝트 보장 + 시스템 폴더 보호
     List<String> orderedIds = new ArrayList<>(new LinkedHashSet<>(req.getIds()));
@@ -244,16 +244,16 @@ public class TestCaseCrossProjectService {
       TestCase n =
           testCaseRepository
               .findById(id)
-              .orElseThrow(() -> new MoveNotFoundException("테스트케이스를 찾을 수 없습니다: " + id));
+              .orElseThrow(() -> new MoveNotFoundException("Test case not found: " + id));
       if (n.getProject() == null || n.getProject().getId() == null) {
-        throw new MoveValidationException("프로젝트 정보가 없는 노드입니다: " + n.getId());
+        throw new MoveValidationException("Node has no project information: " + n.getId());
       }
       if (sourceProjectId == null) sourceProjectId = n.getProject().getId();
       else if (!sourceProjectId.equals(n.getProject().getId())) {
-        throw new MoveValidationException("선택한 케이스는 모두 같은 출발 프로젝트에 속해야 합니다.");
+        throw new MoveValidationException("All selected cases must belong to the same source project.");
       }
       if (isSystemFolder(n)) {
-        throw new SystemFolderProtectedException("시스템 기본 폴더는 이동/복사할 수 없습니다.");
+        throw new SystemFolderProtectedException("System default folders cannot be moved or copied.");
       }
       roots.add(n);
     }
@@ -266,13 +266,13 @@ public class TestCaseCrossProjectService {
               .findById(targetParentId)
               .orElseThrow(
                   () ->
-                      new MoveNotFoundException("대상 부모 폴더를 찾을 수 없습니다: " + req.getTargetParentId()));
+                      new MoveNotFoundException("Target parent folder not found: " + req.getTargetParentId()));
       if (parent.getProject() == null
           || !targetProject.getId().equals(parent.getProject().getId())) {
-        throw new MoveValidationException("대상 부모 폴더가 대상 프로젝트에 속하지 않습니다: " + targetParentId);
+        throw new MoveValidationException("Target parent folder does not belong to the target project: " + targetParentId);
       }
       if (!TestCaseConstants.TYPE_FOLDER.equals(parent.getType())) {
-        throw new MoveValidationException("대상 부모는 폴더 타입이어야 합니다: " + parent.getType());
+        throw new MoveValidationException("Target parent must be a folder type: " + parent.getType());
       }
     }
 
@@ -293,7 +293,7 @@ public class TestCaseCrossProjectService {
 
     // 대상 부모가 옮기는 서브트리 안에 있으면 순환 — 차단
     if (targetParentId != null && movedIds.contains(targetParentId)) {
-      throw new MoveValidationException("자기 자신 또는 후손으로 이동/복사할 수 없습니다.");
+      throw new MoveValidationException("Cannot move or copy into itself or one of its descendants.");
     }
 
     Context ctx = new Context();

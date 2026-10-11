@@ -41,19 +41,35 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
   // API 응답 메시지를 번역 키로 변환하는 헬퍼 함수
   const getApiMessageTranslation = (message) => {
     if (!message) return "";
+    const lower = message.toLowerCase();
 
     if (
       message.includes("연결 성공") ||
       message.toLowerCase().includes("success")
     ) {
       return t("jira.api.connectionSuccess", "JIRA 연결 성공");
-    } else if (message.includes("인증 실패") || message.includes("권한")) {
+    } else if (
+      message.includes("인증 실패") ||
+      message.includes("권한") ||
+      lower.includes("authentication failed") ||
+      lower.includes("permission")
+    ) {
       return t("jira.api.authFailure", "인증 실패 또는 권한 부족");
-    } else if (message.includes("서버 오류")) {
+    } else if (
+      message.includes("서버 오류") ||
+      lower.includes("server error")
+    ) {
       return t("jira.api.serverError", "JIRA 서버 오류");
-    } else if (message.includes("네트워크") || message.includes("연결 실패")) {
+    } else if (
+      message.includes("네트워크") ||
+      message.includes("연결 실패") ||
+      lower.includes("network")
+    ) {
       return t("jira.api.networkError", "네트워크 연결 실패");
-    } else if (message.includes("테스트 실패")) {
+    } else if (
+      message.includes("테스트 실패") ||
+      lower.includes("connection test failed")
+    ) {
       return t("jira.api.testFailure", "연결 테스트 실패");
     } else {
       return t("jira.api.unknownError", message); // fallback to original message

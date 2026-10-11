@@ -100,7 +100,7 @@ public class JiraIntegrationController {
             JiraConfigDto.IssueExistsDto.builder()
                 .exists(false)
                 .issueKey(issueKey)
-                .errorMessage("사용자 정보를 찾을 수 없습니다.")
+                .errorMessage("User information not found.")
                 .build());
       }
 
@@ -114,7 +114,7 @@ public class JiraIntegrationController {
           JiraConfigDto.IssueExistsDto.builder()
               .exists(false)
               .issueKey(issueKey)
-              .errorMessage("시스템 오류가 발생했습니다.")
+              .errorMessage("A system error occurred.")
               .build());
     }
   }
@@ -131,7 +131,7 @@ public class JiraIntegrationController {
         return ResponseEntity.ok(
             JiraConfigDto.IssueCreateResponseDto.builder()
                 .success(false)
-                .errorMessage("사용자 정보를 찾을 수 없습니다.")
+                .errorMessage("User information not found.")
                 .build());
       }
 
@@ -144,7 +144,7 @@ public class JiraIntegrationController {
       return ResponseEntity.ok(
           JiraConfigDto.IssueCreateResponseDto.builder()
               .success(false)
-              .errorMessage("이슈 생성 중 오류 발생: " + e.getMessage())
+              .errorMessage("Error while creating issue: " + e.getMessage())
               .build());
     }
   }
@@ -187,12 +187,12 @@ public class JiraIntegrationController {
           testResultRepository
               .findById(testResultId)
               .orElseThrow(
-                  () -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + testResultId));
+                  () -> new IllegalArgumentException("Test result not found: " + testResultId));
 
       // 이슈 키 유효성 검증
       if (!jiraIntegrationService.isValidJiraIssueKey(jiraIssueKey)) {
         return ResponseEntity.badRequest()
-            .body(Map.of("success", false, "message", "유효하지 않은 JIRA 이슈 키입니다"));
+            .body(Map.of("success", false, "message", "Invalid JIRA issue key"));
       }
 
       // JIRA 코멘트 추가
@@ -220,14 +220,14 @@ public class JiraIntegrationController {
         return ResponseEntity.ok(
             Map.of("success", true, "message", "테스트 결과가 JIRA 이슈에 성공적으로 추가되었습니다"));
       } else {
-        return ResponseEntity.ok(Map.of("success", false, "message", "JIRA 코멘트 추가에 실패했습니다"));
+        return ResponseEntity.ok(Map.of("success", false, "message", "Failed to add JIRA comment"));
       }
 
     } catch (Exception e) {
       log.error(
           "테스트 결과 JIRA 코멘트 추가 실패: testResultId={}, jiraIssueKey={}", testResultId, jiraIssueKey, e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("success", false, "message", "A server error occurred: " + e.getMessage()));
     }
   }
 
@@ -364,7 +364,7 @@ public class JiraIntegrationController {
     } catch (Exception e) {
       log.error("실패한 JIRA 동기화 재시도 실패", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("success", false, "message", "A server error occurred: " + e.getMessage()));
     }
   }
 
@@ -403,7 +403,7 @@ public class JiraIntegrationController {
     } catch (Exception e) {
       log.error("타임아웃된 JIRA 동기화 정리 실패", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
+          .body(Map.of("success", false, "message", "A server error occurred: " + e.getMessage()));
     }
   }
 

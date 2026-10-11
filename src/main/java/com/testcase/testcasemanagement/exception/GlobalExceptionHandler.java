@@ -107,12 +107,12 @@ public class GlobalExceptionHandler {
     ErrorResponse response =
         new ErrorResponse(
             ex.getErrorCode(),
-            "대시보드 데이터 조회 중 오류가 발생했습니다: " + ex.getMessage(),
+            "An error occurred while retrieving dashboard data: " + ex.getMessage(),
             LocalDateTime.now(),
             Map.of(
                 "component", ex.getComponent(),
                 "errorType", "DATA_RETRIEVAL",
-                "suggestion", "잠시 후 다시 시도해주세요."));
+                "suggestion", "Please try again later."));
 
     return new ResponseEntity<>(response, HttpStatus.SERVICE_UNAVAILABLE);
   }
@@ -133,12 +133,12 @@ public class GlobalExceptionHandler {
     ErrorResponse response =
         new ErrorResponse(
             ex.getErrorCode(),
-            "캐시 처리 중 오류가 발생했지만 서비스는 계속 이용할 수 있습니다.",
+            "A cache error occurred, but the service remains available.",
             LocalDateTime.now(),
             Map.of(
                 "component", ex.getComponent(),
                 "errorType", "CACHE_ERROR",
-                "impact", "응답 시간이 다소 느려질 수 있습니다."));
+                "impact", "Response times may be slightly slower."));
 
     return new ResponseEntity<>(response, HttpStatus.OK); // 캐시 오류는 서비스 가용성에 영향 없음
   }
@@ -159,12 +159,12 @@ public class GlobalExceptionHandler {
     ErrorResponse response =
         new ErrorResponse(
             ex.getErrorCode(),
-            "통계 계산 중 오류가 발생했습니다: " + ex.getMessage(),
+            "An error occurred while calculating statistics: " + ex.getMessage(),
             LocalDateTime.now(),
             Map.of(
                 "component", ex.getComponent(),
                 "errorType", "STATISTICS_ERROR",
-                "fallback", "기본값이 반환됩니다."));
+                "fallback", "Default values will be returned."));
 
     return new ResponseEntity<>(response, HttpStatus.PARTIAL_CONTENT);
   }
@@ -185,12 +185,12 @@ public class GlobalExceptionHandler {
     ErrorResponse response =
         new ErrorResponse(
             ex.getErrorCode(),
-            "쿼리 실행 시간이 예상보다 오래 걸렸습니다: " + ex.getMessage(),
+            "Query execution took longer than expected: " + ex.getMessage(),
             LocalDateTime.now(),
             Map.of(
                 "component", ex.getComponent(),
                 "errorType", "QUERY_PERFORMANCE",
-                "recommendation", "시스템 관리자에게 문의하세요."));
+                "recommendation", "Please contact the system administrator."));
 
     return new ResponseEntity<>(response, HttpStatus.REQUEST_TIMEOUT);
   }
@@ -225,7 +225,7 @@ public class GlobalExceptionHandler {
         request.getDescription(false));
 
     ErrorResponse response =
-        new ErrorResponse("ACCESS_DENIED", "접근 권한이 없습니다.", LocalDateTime.now(), null);
+        new ErrorResponse("ACCESS_DENIED", "Access denied.", LocalDateTime.now(), null);
 
     return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
   }
@@ -292,7 +292,7 @@ public class GlobalExceptionHandler {
         request.getDescription(false));
 
     ErrorResponse response =
-        new ErrorResponse("AUTHENTICATION_REQUIRED", "인증이 필요합니다.", LocalDateTime.now(), null);
+        new ErrorResponse("AUTHENTICATION_REQUIRED", "Authentication required.", LocalDateTime.now(), null);
 
     return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }
@@ -309,7 +309,7 @@ public class GlobalExceptionHandler {
 
     ErrorResponse response =
         new ErrorResponse(
-            "INSUFFICIENT_AUTHENTICATION", "적절한 인증이 필요합니다.", LocalDateTime.now(), null);
+            "INSUFFICIENT_AUTHENTICATION", "Proper authentication is required.", LocalDateTime.now(), null);
 
     return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }
@@ -342,7 +342,7 @@ public class GlobalExceptionHandler {
                     (existing, replacement) -> existing + ", " + replacement));
 
     String errorMessage =
-        "유효하지 않은 요청 데이터: "
+        "Invalid request data: "
             + errors.entrySet().stream()
                 .map(e -> String.format("[%s] %s", e.getKey(), e.getValue()))
                 .collect(Collectors.joining(", "));
@@ -380,36 +380,36 @@ public class GlobalExceptionHandler {
 
   private static final Map<String, String> FIELD_LABELS =
       Map.of(
-          "email", "이메일",
-          "username", "사용자 이름",
-          "name", "이름",
-          "project_key", "프로젝트 키",
-          "project_name", "프로젝트 이름");
+          "email", "email",
+          "username", "username",
+          "name", "name",
+          "project_key", "project key",
+          "project_name", "project name");
 
   private String translateDataIntegrityMessage(String rawMessage) {
     if (rawMessage == null) {
-      return "이미 존재하는 데이터입니다. 입력값을 확인해주세요.";
+      return "Data already exists. Please check your input.";
     }
 
     java.util.regex.Matcher m = PG_DUPLICATE_KEY_DETAIL.matcher(rawMessage);
     if (m.find()) {
       String column = m.group(1);
       String label = FIELD_LABELS.getOrDefault(column, column);
-      return String.format("이미 등록된 %s입니다.", label);
+      return String.format("This %s is already registered.", label);
     }
 
     String lower = rawMessage.toLowerCase();
     if (lower.contains("duplicate") || lower.contains("unique constraint")) {
-      return "이미 등록된 값입니다. 입력값을 확인해주세요.";
+      return "This value is already registered. Please check your input.";
     }
     if (lower.contains("foreign key") || lower.contains("violates foreign key constraint")) {
-      return "참조 중인 데이터가 있어 작업을 완료할 수 없습니다.";
+      return "The operation cannot be completed because the data is still referenced.";
     }
     if (lower.contains("not-null") || lower.contains("null value")) {
-      return "필수 입력 항목이 누락되었습니다.";
+      return "A required field is missing.";
     }
 
-    return "데이터 무결성 위반이 발생했습니다. 입력값을 확인해주세요.";
+    return "A data integrity violation occurred. Please check your input.";
   }
 
   private Map<String, String> extractDataIntegrityDetails(String rawMessage) {
@@ -467,13 +467,13 @@ public class GlobalExceptionHandler {
 
     Map<String, String> details = new HashMap<>();
     details.put("retryAfter", "60");
-    details.put("message", "60초 후에 다시 시도해주세요.");
+    details.put("message", "Please try again in 60 seconds.");
     details.put("requestPath", request.getDescription(false));
 
     ErrorResponse response =
         new ErrorResponse(
             "RATE_LIMIT_EXCEEDED",
-            "동일 IP에서 1초에 10번 이상 요청이 발생했습니다. 60초 후 다시 시도해주세요.",
+            "Too many requests from the same IP (more than 10 per second). Please try again in 60 seconds.",
             LocalDateTime.now(),
             details);
 
@@ -570,7 +570,7 @@ public class GlobalExceptionHandler {
     ErrorResponse response =
         new ErrorResponse(
             "INTERNAL_ERROR",
-            "서버 내부 오류가 발생했습니다. (traceId: " + traceId + ")",
+            "An internal server error occurred. (traceId: " + traceId + ")",
             LocalDateTime.now(),
             null);
     return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);

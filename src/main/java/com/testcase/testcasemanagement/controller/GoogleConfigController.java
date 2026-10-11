@@ -25,7 +25,7 @@ public class GoogleConfigController {
   public ResponseEntity<?> getMyConfig(Authentication authentication) {
     if (authentication == null) {
       log.warn("인증 정보가 없습니다.");
-      return ResponseEntity.status(401).body(Map.of("message", "인증이 필요합니다."));
+      return ResponseEntity.status(401).body(Map.of("message", "Authentication required."));
     }
 
     String userId = authentication.getName();
@@ -56,7 +56,7 @@ public class GoogleConfigController {
     String jsonKeyContent = request.get("jsonKeyContent");
 
     if (jsonKeyContent == null || jsonKeyContent.trim().isEmpty()) {
-      return ResponseEntity.badRequest().body(Map.of("message", "JSON 키 내용은 필수입니다."));
+      return ResponseEntity.badRequest().body(Map.of("message", "JSON key content is required."));
     }
 
     try {
@@ -66,7 +66,7 @@ public class GoogleConfigController {
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     } catch (Exception e) {
       log.error("Google 설정 저장 실패: ", e);
-      return ResponseEntity.internalServerError().body(Map.of("message", "설정 저장 중 서버 오류가 발생했습니다."));
+      return ResponseEntity.internalServerError().body(Map.of("message", "A server error occurred while saving the configuration."));
     }
   }
 
@@ -88,12 +88,12 @@ public class GoogleConfigController {
     String sheetName = request.get("sheetName");
 
     if (spreadsheetId == null || spreadsheetId.trim().isEmpty()) {
-      return ResponseEntity.badRequest().body(Map.of("message", "Spreadsheet ID는 필수입니다."));
+      return ResponseEntity.badRequest().body(Map.of("message", "Spreadsheet ID is required."));
     }
 
     if (type == null || (!type.equals("import") && !type.equals("export"))) {
       return ResponseEntity.badRequest()
-          .body(Map.of("message", "올바른 Type(import/export)을 지정해야 합니다."));
+          .body(Map.of("message", "A valid Type (import/export) must be specified."));
     }
 
     googleConfigService.updateLastUsedSheet(userId, type, spreadsheetId, sheetName);

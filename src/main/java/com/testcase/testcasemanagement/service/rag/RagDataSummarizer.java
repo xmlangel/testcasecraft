@@ -122,6 +122,6 @@ public class RagDataSummarizer {
   private LlmConfig getLlmConfig() {
     return llmConfigRepository
         .findByIsDefaultTrueAndIsActiveTrue()
-        .orElseThrow(() -> new IllegalStateException("기본 LLM 설정이 없습니다."));
+        .orElseThrow(() -> new IllegalStateException("No default LLM configuration found."));
   }
 }

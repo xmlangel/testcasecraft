@@ -17,7 +17,7 @@ public class TestPlanDto {
   private String description;
   private List<String> testCaseIds;
 
-  @NotNull(message = "프로젝트 ID는 필수 항목입니다")
+  @NotNull(message = "Project ID is required")
   private String projectId;
 
   private LocalDateTime createdAt;

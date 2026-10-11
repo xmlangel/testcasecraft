@@ -68,14 +68,14 @@ public class EncryptionUtil {
   private SecretKey getEncryptionKey() {
     if (encryptionKeyBase64 == null || encryptionKeyBase64.trim().isEmpty()) {
       throw new IllegalStateException(
-          "암호화 키가 설정되지 않았습니다. jira.security.encryption.key 환경변수를 설정하세요.");
+          "Encryption key is not configured. Set the jira.security.encryption.key environment variable.");
     }
 
     // 운영(prod)에서 저장소에 커밋된 공개 기본 키로 암호화하는 것은 실질 평문 저장이다 → fail-closed.
     // (비-운영에서는 warnOnInsecureKey 가 경고만 하고 계속 진행 — 개발/테스트 무마찰 유지)
     if (isProdProfileActive() && isUsingCommittedDefaultKey()) {
       throw new IllegalStateException(
-          "운영에서 저장소에 커밋된 기본 암호화 키가 사용되고 있습니다. 환경변수 JIRA_ENCRYPTION_KEY 로 고유 키를 주입하세요"
+          "The default encryption key committed to the repository is in use in production. Inject a unique key via the JIRA_ENCRYPTION_KEY environment variable"
               + "(EncryptionUtil.generateEncryptionKey()).");
     }
 
@@ -83,7 +83,7 @@ public class EncryptionUtil {
       byte[] decodedKey = Base64.getDecoder().decode(encryptionKeyBase64);
       return new SecretKeySpec(decodedKey, ALGORITHM);
     } catch (IllegalArgumentException e) {
-      throw new IllegalStateException("암호화 키 형식이 올바르지 않습니다.", e);
+      throw new IllegalStateException("Invalid encryption key format.", e);
     }
   }
 
@@ -95,7 +95,7 @@ public class EncryptionUtil {
       SecretKey secretKey = keyGenerator.generateKey();
       return Base64.getEncoder().encodeToString(secretKey.getEncoded());
     } catch (Exception e) {
-      throw new RuntimeException("암호화 키 생성 실패", e);
+      throw new RuntimeException("Failed to generate encryption key", e);
     }
   }
 
@@ -133,7 +133,7 @@ public class EncryptionUtil {
 
       return Base64.getEncoder().encodeToString(encryptedWithIv);
     } catch (Exception e) {
-      throw new RuntimeException("암호화 실패", e);
+      throw new RuntimeException("Encryption failed", e);
     }
   }
 
@@ -171,7 +171,7 @@ public class EncryptionUtil {
       byte[] decrypted = cipher.doFinal(encrypted);
       return new String(decrypted, StandardCharsets.UTF_8);
     } catch (Exception e) {
-      throw new RuntimeException("복호화 실패", e);
+      throw new RuntimeException("Decryption failed", e);
     }
   }
 

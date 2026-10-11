@@ -72,7 +72,7 @@ public class TestResultStatisticsService {
 
     } catch (Exception e) {
       log.error("통계 생성 중 오류 발생: {}", e.getMessage(), e);
-      throw new RuntimeException("통계 생성 실패: " + e.getMessage(), e);
+      throw new RuntimeException("Failed to generate statistics: " + e.getMessage(), e);
     }
   }
 

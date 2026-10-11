@@ -42,13 +42,13 @@ public class OrganizationService {
   public Organization createOrganization(String name, String description) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
     // 조직 생성
     Organization organization = new Organization();
@@ -86,7 +86,7 @@ public class OrganizationService {
   public List<Organization> getAccessibleOrganizations() {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     List<Organization> organizations;
@@ -99,7 +99,7 @@ public class OrganizationService {
       User currentUser =
           userRepository
               .findByUsername(currentUsername)
-              .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+              .orElseThrow(() -> new ResourceNotFoundException("User not found."));
       organizations = organizationRepository.findByUserIdWithMembers(currentUser.getId());
     }
 
@@ -134,35 +134,35 @@ public class OrganizationService {
   public Organization getOrganization(String organizationId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 접근 권한 확인
     if (!organizationSecurityService.canAccessOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("조직에 접근할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to access this organization.");
     }
 
     return organizationRepository
         .findByIdWithMembers(organizationId)
-        .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
   }
 
   /** 조직 정보 수정 */
   public Organization updateOrganization(String organizationId, String name, String description) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 관리 권한 확인
     if (!organizationSecurityService.canManageOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("조직을 수정할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to update this organization.");
     }
 
     Organization organization =
         organizationRepository
             .findById(organizationId)
-            .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
 
     String oldName = organization.getName();
     String oldDescription = organization.getDescription();
@@ -194,19 +194,19 @@ public class OrganizationService {
   public void deleteOrganization(String organizationId, boolean force) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 소유자 권한 또는 시스템 관리자 권한 확인
     if (!organizationSecurityService.isOrganizationOwner(organizationId, currentUsername)
         && !securityContextUtil.isSystemAdmin()) {
-      throw new AccessDeniedException("조직을 삭제할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to delete this organization.");
     }
 
     Organization organization =
         organizationRepository
             .findById(organizationId)
-            .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
 
     String organizationName = organization.getName();
 
@@ -218,7 +218,7 @@ public class OrganizationService {
         // 일반 삭제: 프로젝트가 있으면 삭제 불가
         throw new IllegalStateException(
             String.format(
-                "조직에 %d개의 프로젝트가 존재합니다. 강제 삭제(force=true)를 사용하거나 프로젝트를 먼저 삭제해주세요.",
+                "The organization has %d project(s). Use force delete (force=true) or delete the projects first.",
                 projects.size()));
       } else {
         // 강제 삭제: 프로젝트들을 모두 삭제
@@ -252,26 +252,26 @@ public class OrganizationService {
   public Organization transferOwnership(String organizationId, String newOwnerUserId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 소유자 권한 또는 시스템 관리자 권한 확인
     if (!organizationSecurityService.isOrganizationOwner(organizationId, currentUsername)
         && !securityContextUtil.isSystemAdmin()) {
-      throw new AccessDeniedException("조직 소유권을 이전할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to transfer organization ownership.");
     }
 
     // 조직 존재 확인
     Organization organization =
         organizationRepository
             .findById(organizationId)
-            .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
 
     // 새로운 소유자가 조직의 멤버인지 확인
     OrganizationUser newOwnerMember =
         organizationUserRepository
             .findByOrganizationIdAndUserId(organizationId, newOwnerUserId)
-            .orElseThrow(() -> new IllegalStateException("새로운 소유자는 조직의 멤버여야 합니다."));
+            .orElseThrow(() -> new IllegalStateException("The new owner must be a member of the organization."));
 
     // 조직의 현재 OWNER 찾기 (로그인한 사용자가 아닌 실제 OWNER)
     List<OrganizationUser> allMembers =
@@ -281,11 +281,11 @@ public class OrganizationService {
             .filter(
                 member -> member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER)
             .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException("현재 소유자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Current owner not found."));
 
     // 자기 자신에게 이전하는 경우 방지
     if (currentOwner.getUser().getId().equals(newOwnerUserId)) {
-      throw new IllegalStateException("현재 소유자가 이미 동일한 사용자입니다.");
+      throw new IllegalStateException("The current owner is already the same user.");
     }
 
     // 기존 소유자를 MANAGER(ADMIN)로 변경
@@ -318,38 +318,38 @@ public class OrganizationService {
       String organizationId, String username, OrganizationUser.OrganizationRole role) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 멤버 초대 권한 확인
     if (!organizationSecurityService.canInviteMembers(organizationId, currentUsername)) {
-      throw new AccessDeniedException("멤버를 초대할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to invite members.");
     }
 
     // 초대할 사용자 존재 확인
     User invitedUser =
         userRepository
             .findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("초대할 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User to invite not found."));
 
     // 조직 존재 확인
     Organization organization =
         organizationRepository
             .findById(organizationId)
-            .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
 
     // 이미 멤버인지 확인
     Optional<OrganizationUser> existingMember =
         organizationUserRepository.findByOrganizationIdAndUserId(
             organizationId, invitedUser.getId());
     if (existingMember.isPresent()) {
-      throw new IllegalArgumentException("이미 조직의 멤버입니다.");
+      throw new IllegalArgumentException("User is already a member of the organization.");
     }
 
     // 소유자 역할은 현재 소유자만 부여 가능
     if (role == OrganizationUser.OrganizationRole.OWNER) {
       if (!organizationSecurityService.isOrganizationOwner(organizationId, currentUsername)) {
-        throw new AccessDeniedException("소유자 권한을 부여할 수 없습니다.");
+        throw new AccessDeniedException("Owner role cannot be granted.");
       }
       // 조직당 OWNER는 1명만 존재해야 함 (transferOwnership()이 단일 OWNER를 전제로 동작함)
       boolean ownerAlreadyExists =
@@ -359,7 +359,7 @@ public class OrganizationService {
                       member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER);
       if (ownerAlreadyExists) {
         throw new IllegalStateException(
-            "조직에는 이미 OWNER가 존재합니다. 소유권을 이전하려면 transferOwnership을 사용하세요.");
+            "The organization already has an OWNER. Use transferOwnership to transfer ownership.");
       }
     }
 
@@ -384,19 +384,19 @@ public class OrganizationService {
   public void removeMember(String organizationId, String targetUserId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 멤버 제거 권한 확인
     if (!organizationSecurityService.canRemoveMember(
         organizationId, targetUserId, currentUsername)) {
-      throw new AccessDeniedException("멤버를 제거할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to remove members.");
     }
 
     OrganizationUser organizationUser =
         organizationUserRepository
             .findByOrganizationIdAndUserId(organizationId, targetUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("조직 멤버를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Organization member not found."));
 
     String removedRole = organizationUser.getRoleInOrganization().toString();
     organizationUserRepository.delete(organizationUser);
@@ -411,24 +411,24 @@ public class OrganizationService {
       String organizationId, String targetUserId, OrganizationUser.OrganizationRole newRole) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 관리 권한 확인
     if (!organizationSecurityService.canManageOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("멤버 역할을 변경할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to change member roles.");
     }
 
     OrganizationUser organizationUser =
         organizationUserRepository
             .findByOrganizationIdAndUserId(organizationId, targetUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("조직 멤버를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Organization member not found."));
 
     // 소유자 역할 변경은 현재 소유자만 가능
     if (newRole == OrganizationUser.OrganizationRole.OWNER
         || organizationUser.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER) {
       if (!organizationSecurityService.isOrganizationOwner(organizationId, currentUsername)) {
-        throw new AccessDeniedException("소유자 권한과 관련된 변경을 할 수 없습니다.");
+        throw new AccessDeniedException("Changes involving the owner role are not allowed.");
       }
     }
 
@@ -442,7 +442,7 @@ public class OrganizationService {
                       member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER);
       if (ownerAlreadyExists) {
         throw new IllegalStateException(
-            "조직에는 이미 OWNER가 존재합니다. 소유권을 이전하려면 transferOwnership을 사용하세요.");
+            "The organization already has an OWNER. Use transferOwnership to transfer ownership.");
       }
     }
 
@@ -467,12 +467,12 @@ public class OrganizationService {
   public List<OrganizationUser> getOrganizationMembers(String organizationId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 접근 권한 확인
     if (!organizationSecurityService.canAccessOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("조직 멤버 목록을 조회할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to view the organization member list.");
     }
 
     return organizationUserRepository.findByOrganizationId(organizationId);

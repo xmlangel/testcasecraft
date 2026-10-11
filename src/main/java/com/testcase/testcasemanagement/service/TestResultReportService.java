@@ -652,12 +652,12 @@ public class TestResultReportService {
           return exportService.exportToCsv(reportData, filter);
 
         default:
-          throw new IllegalArgumentException("지원하지 않는 내보내기 형식입니다: " + format);
+          throw new IllegalArgumentException("Unsupported export format: " + format);
       }
     } catch (IllegalArgumentException e) {
       throw e;
     } catch (Exception e) {
-      throw new RuntimeException("파일 내보내기 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while exporting the file: " + e.getMessage(), e);
     }
   }
 
@@ -710,7 +710,7 @@ public class TestResultReportService {
       return result;
 
     } catch (Exception e) {
-      throw new RuntimeException("계층적 리포트 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while retrieving the hierarchical report: " + e.getMessage(), e);
     }
   }
 
@@ -746,10 +746,10 @@ public class TestResultReportService {
           return new byte[0]; // Placeholder - implement hierarchical CSV export
 
         default:
-          throw new IllegalArgumentException("지원하지 않는 내보내기 형식입니다: " + format);
+          throw new IllegalArgumentException("Unsupported export format: " + format);
       }
     } catch (Exception e) {
-      throw new RuntimeException("계층적 리포트 내보내기 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while exporting the hierarchical report: " + e.getMessage(), e);
     }
   }
 
@@ -796,7 +796,7 @@ public class TestResultReportService {
       return new PageImpl<>(pagedCases, pageable, completeCases.size());
 
     } catch (Exception e) {
-      throw new RuntimeException("완전한 테스트 케이스 목록 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
+      throw new RuntimeException("An error occurred while retrieving the complete test case list: " + e.getMessage(), e);
     }
   }
 

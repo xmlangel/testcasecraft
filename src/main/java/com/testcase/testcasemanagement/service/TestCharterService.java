@@ -28,7 +28,7 @@ public class TestCharterService {
         projectRepository
             .findById(request.getProjectId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다: " + request.getProjectId()));
+                () -> new ResourceNotFoundException("Project not found: " + request.getProjectId()));
 
     TestCharter charter = new TestCharter();
     charter.setProject(project);
@@ -45,7 +45,7 @@ public class TestCharterService {
   @Transactional(readOnly = true)
   public List<TestCharterResponseDto> getProjectCharters(String projectId) {
     if (!projectRepository.existsById(projectId)) {
-      throw new ResourceNotFoundException("프로젝트를 찾을 수 없습니다: " + projectId);
+      throw new ResourceNotFoundException("Project not found: " + projectId);
     }
 
     return testCharterRepository.findByProjectIdOrderByCreatedAtDesc(projectId).stream()
@@ -85,7 +85,7 @@ public class TestCharterService {
     TestCharter charter = findCharter(id);
     if (charter.getStatus() != TestCharter.CharterStatus.ACTIVE) {
       throw new ResourceNotValidException(
-          "ARCHIVED 차터는 신규 세션 생성에 사용할 수 없습니다.",
+          "An ARCHIVED charter cannot be used to create new sessions.",
           Map.of("charterId", id, "status", charter.getStatus().name()));
     }
     return charter;
@@ -99,7 +99,7 @@ public class TestCharterService {
   private TestCharter findCharter(String id) {
     return testCharterRepository
         .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("차터를 찾을 수 없습니다: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Charter not found: " + id));
   }
 
   private TestCharter.CharterStatus parseStatus(
@@ -111,7 +111,7 @@ public class TestCharterService {
     try {
       return TestCharter.CharterStatus.valueOf(value.toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException ex) {
-      throw new ResourceNotValidException("유효하지 않은 차터 상태값입니다.", Map.of("status", value));
+      throw new ResourceNotValidException("Invalid charter status value.", Map.of("status", value));
     }
   }
 

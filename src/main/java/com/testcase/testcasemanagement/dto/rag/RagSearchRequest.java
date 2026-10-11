@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
 public class RagSearchRequest {
 
   /** 검색 쿼리 텍스트 유사한 청크를 검색할 텍스트 */
-  @NotBlank(message = "검색 쿼리는 필수입니다")
-  @Size(min = 1, max = 10000, message = "검색 쿼리는 1~10000자여야 합니다")
+  @NotBlank(message = "Search query is required")
+  @Size(min = 1, max = 10000, message = "Search query must be 1 to 10000 characters")
   @JsonProperty("query_text")
   @JsonAlias({"queryText", "query_text"})
   private String queryText;
@@ -45,7 +45,7 @@ public class RagSearchRequest {
   private Double similarityThreshold = 0.7;
 
   /** 최대 결과 수 반환할 최대 검색 결과 개수 기본값: 10, 최대: 100 */
-  @NotNull(message = "최대 결과 수는 필수입니다")
+  @NotNull(message = "Maximum number of results is required")
   @Min(1)
   @Max(100)
   @Builder.Default

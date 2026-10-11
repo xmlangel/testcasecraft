@@ -49,23 +49,23 @@ public class GroupService {
   public Group createOrganizationGroup(String name, String description, String organizationId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
     // 조직 그룹 생성 권한 확인
     if (!groupSecurityService.canCreateGroup(organizationId, null, currentUsername)) {
-      throw new AccessDeniedException("해당 조직에 그룹을 생성할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to create a group in this organization.");
     }
 
     Organization organization =
         organizationRepository
             .findById(organizationId)
-            .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Organization not found."));
 
     // 그룹 생성
     Group group = new Group();
@@ -92,23 +92,23 @@ public class GroupService {
   public Group createProjectGroup(String name, String description, String projectId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
     // 프로젝트 그룹 생성 권한 확인
     if (!groupSecurityService.canCreateGroup(null, projectId, currentUsername)) {
-      throw new AccessDeniedException("해당 프로젝트에 그룹을 생성할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to create a group in this project.");
     }
 
     Project project =
         projectRepository
             .findById(projectId)
-            .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
     // 그룹 생성
     Group group = new Group();
@@ -136,7 +136,7 @@ public class GroupService {
   public List<Group> getAccessibleGroups() {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 시스템 관리자는 모든 그룹 조회 가능
@@ -147,7 +147,7 @@ public class GroupService {
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
     // 사용자가 접근 가능한 그룹 목록 조회 (직접 멤버 + 조직/프로젝트 멤버십을 통한 접근)
     return groupRepository.findAccessibleGroupsByUserId(currentUser.getId());
@@ -158,12 +158,12 @@ public class GroupService {
   public List<Group> getOrganizationGroups(String organizationId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 조직 접근 권한 확인
     if (!organizationSecurityService.canAccessOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("조직의 그룹 목록을 조회할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to view the group list of this organization.");
     }
 
     return groupRepository.findByOrganizationId(organizationId);
@@ -174,12 +174,12 @@ public class GroupService {
   public List<Group> getProjectGroups(String projectId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 프로젝트 접근 권한 확인
     if (!projectSecurityService.canAccessProject(projectId, currentUsername)) {
-      throw new AccessDeniedException("프로젝트의 그룹 목록을 조회할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to view the group list of this project.");
     }
 
     return groupRepository.findByProjectId(projectId);
@@ -190,35 +190,35 @@ public class GroupService {
   public Group getGroup(String groupId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 접근 권한 확인
     if (!groupSecurityService.canAccessGroup(groupId, currentUsername)) {
-      throw new AccessDeniedException("그룹에 접근할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to access this group.");
     }
 
     return groupRepository
         .findById(groupId)
-        .orElseThrow(() -> new ResourceNotFoundException("그룹을 찾을 수 없습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("Group not found."));
   }
 
   /** 그룹 정보 수정 */
   public Group updateGroup(String groupId, String name, String description) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 관리 권한 확인
     if (!groupSecurityService.canManageGroup(groupId, currentUsername)) {
-      throw new AccessDeniedException("그룹을 수정할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to update this group.");
     }
 
     Group group =
         groupRepository
             .findById(groupId)
-            .orElseThrow(() -> new ResourceNotFoundException("그룹을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Group not found."));
 
     group.setName(name);
     group.setDescription(description);
@@ -231,19 +231,19 @@ public class GroupService {
   public void deleteGroup(String groupId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 그룹 리더 권한 또는 시스템 관리자 권한 확인
     if (!groupSecurityService.isGroupLeader(groupId, currentUsername)
         && !securityContextUtil.isSystemAdmin()) {
-      throw new AccessDeniedException("그룹을 삭제할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to delete this group.");
     }
 
     Group group =
         groupRepository
             .findById(groupId)
-            .orElseThrow(() -> new ResourceNotFoundException("그룹을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Group not found."));
 
     // 연관된 멤버 관계 먼저 삭제
     groupMemberRepository.deleteByGroupId(groupId);
@@ -256,37 +256,37 @@ public class GroupService {
   public GroupMember inviteMember(String groupId, String username, GroupMember.GroupRole role) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 멤버 초대 권한 확인
     if (!groupSecurityService.canInviteMembers(groupId, currentUsername)) {
-      throw new AccessDeniedException("멤버를 초대할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to invite members.");
     }
 
     // 초대할 사용자 존재 확인
     User invitedUser =
         userRepository
             .findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("초대할 사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("User to invite not found."));
 
     // 그룹 존재 확인
     Group group =
         groupRepository
             .findById(groupId)
-            .orElseThrow(() -> new ResourceNotFoundException("그룹을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Group not found."));
 
     // 이미 멤버인지 확인
     Optional<GroupMember> existingMember =
         groupMemberRepository.findByGroupIdAndUserId(groupId, invitedUser.getId());
     if (existingMember.isPresent()) {
-      throw new IllegalArgumentException("이미 그룹의 멤버입니다.");
+      throw new IllegalArgumentException("The user is already a member of the group.");
     }
 
     // 그룹 리더 역할은 현재 그룹 리더만 부여 가능
     if (role == GroupMember.GroupRole.LEADER) {
       if (!groupSecurityService.isGroupLeader(groupId, currentUsername)) {
-        throw new AccessDeniedException("그룹 리더 권한을 부여할 수 없습니다.");
+        throw new AccessDeniedException("Cannot grant group leader permission.");
       }
     }
 
@@ -305,18 +305,18 @@ public class GroupService {
   public void removeMember(String groupId, String targetUserId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 멤버 제거 권한 확인
     if (!groupSecurityService.canRemoveMember(groupId, targetUserId, currentUsername)) {
-      throw new AccessDeniedException("멤버를 제거할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to remove members.");
     }
 
     GroupMember groupMember =
         groupMemberRepository
             .findByGroupIdAndUserId(groupId, targetUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("그룹 멤버를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Group member not found."));
 
     groupMemberRepository.delete(groupMember);
   }
@@ -326,24 +326,24 @@ public class GroupService {
       String groupId, String targetUserId, GroupMember.GroupRole newRole) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 관리 권한 확인
     if (!groupSecurityService.canManageGroup(groupId, currentUsername)) {
-      throw new AccessDeniedException("멤버 역할을 변경할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to change member roles.");
     }
 
     GroupMember groupMember =
         groupMemberRepository
             .findByGroupIdAndUserId(groupId, targetUserId)
-            .orElseThrow(() -> new ResourceNotFoundException("그룹 멤버를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException("Group member not found."));
 
     // 그룹 리더 역할 변경은 현재 그룹 리더만 가능
     if (newRole == GroupMember.GroupRole.LEADER
         || groupMember.getRoleInGroup() == GroupMember.GroupRole.LEADER) {
       if (!groupSecurityService.isGroupLeader(groupId, currentUsername)) {
-        throw new AccessDeniedException("그룹 리더 권한과 관련된 변경을 할 수 없습니다.");
+        throw new AccessDeniedException("Cannot make changes related to group leader permission.");
       }
     }
 
@@ -358,12 +358,12 @@ public class GroupService {
   public List<GroupMember> getGroupMembers(String groupId) {
     String currentUsername = securityContextUtil.getCurrentUsername();
     if (currentUsername == null) {
-      throw new AccessDeniedException("인증이 필요합니다.");
+      throw new AccessDeniedException("Authentication required.");
     }
 
     // 접근 권한 확인
     if (!groupSecurityService.canAccessGroup(groupId, currentUsername)) {
-      throw new AccessDeniedException("그룹 멤버 목록을 조회할 권한이 없습니다.");
+      throw new AccessDeniedException("You do not have permission to view the group member list.");
     }
 
     return groupMemberRepository.findByGroupId(groupId);

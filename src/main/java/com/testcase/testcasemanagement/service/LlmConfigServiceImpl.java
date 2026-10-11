@@ -113,7 +113,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     // 이름 중복 체크
     if (llmConfigRepository.existsByName(configDTO.getName())) {
-      throw new IllegalArgumentException("이미 존재하는 설정 이름입니다: " + configDTO.getName());
+      throw new IllegalArgumentException("Configuration name already exists: " + configDTO.getName());
     }
 
     // 암호화 키 확인
@@ -128,7 +128,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     String normalizedApiUrl = normalizeApiUrl(configDTO.getProvider(), configDTO.getApiUrl());
     if (normalizedApiUrl == null || normalizedApiUrl.isEmpty()) {
-      throw new IllegalArgumentException("API URL이 필요합니다");
+      throw new IllegalArgumentException("API URL is required");
     }
     config.setApiUrl(normalizedApiUrl);
     config.setModelName(configDTO.getModelName());
@@ -148,7 +148,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       config.setEncryptedApiKey(encryptedApiKey);
     } catch (Exception e) {
       log.error("❌ API Key 암호화 실패", e);
-      throw new RuntimeException("API Key 암호화 실패: " + e.getMessage());
+      throw new RuntimeException("Failed to encrypt API key: " + e.getMessage());
     }
 
     // 기본 설정으로 지정 시 다른 설정들의 기본 플래그 제거
@@ -171,12 +171,12 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     LlmConfig config =
         llmConfigRepository
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + id));
+            .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + id));
 
     // 이름 중복 체크 (자신 제외)
     if (configDTO.getName() != null && !configDTO.getName().equals(config.getName())) {
       if (llmConfigRepository.existsByNameAndIdNot(configDTO.getName(), id)) {
-        throw new IllegalArgumentException("이미 존재하는 설정 이름입니다: " + configDTO.getName());
+        throw new IllegalArgumentException("Configuration name already exists: " + configDTO.getName());
       }
       config.setName(configDTO.getName());
     }
@@ -190,7 +190,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
           configDTO.getProvider() != null ? configDTO.getProvider() : config.getProvider();
       String normalizedApiUrl = normalizeApiUrl(targetProvider, configDTO.getApiUrl());
       if (normalizedApiUrl == null || normalizedApiUrl.isEmpty()) {
-        throw new IllegalArgumentException("API URL이 필요합니다");
+        throw new IllegalArgumentException("API URL is required");
       }
       config.setApiUrl(normalizedApiUrl);
     }
@@ -223,7 +223,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         config.setEncryptedApiKey(encryptedApiKey);
       } catch (Exception e) {
         log.error("❌ API Key 암호화 실패", e);
-        throw new RuntimeException("API Key 암호화 실패: " + e.getMessage());
+        throw new RuntimeException("Failed to encrypt API key: " + e.getMessage());
       }
     }
 
@@ -247,13 +247,13 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     LlmConfig config =
         llmConfigRepository
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + id));
+            .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + id));
 
     // 기본 설정이면서 유일한 설정인 경우 삭제 불가
     if (config.getIsDefault()) {
       long activeCount = llmConfigRepository.countByIsActiveTrue();
       if (activeCount <= 1) {
-        throw new IllegalStateException("기본 설정이면서 유일한 설정은 삭제할 수 없습니다.");
+        throw new IllegalStateException("The default configuration cannot be deleted when it is the only one.");
       }
     }
 
@@ -269,10 +269,10 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     LlmConfig config =
         llmConfigRepository
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + id));
+            .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + id));
 
     if (!config.getIsActive()) {
-      throw new IllegalStateException("비활성 설정은 기본 설정으로 지정할 수 없습니다.");
+      throw new IllegalStateException("An inactive configuration cannot be set as the default.");
     }
 
     // 다른 설정들의 기본 플래그 제거
@@ -293,7 +293,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     LlmConfig config =
         llmConfigRepository
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + id));
+            .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + id));
 
     try {
       // 간단한 테스트 요청 (모델 목록 조회 또는 간단한 질의)
@@ -308,7 +308,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       log.error("❌ 연결 테스트 실패: id={}", id, e);
       config.markConnectionFailure(e.getMessage());
       llmConfigRepository.save(config);
-      throw new RuntimeException("연결 테스트 실패: " + e.getMessage());
+      throw new RuntimeException("Connection test failed: " + e.getMessage());
     }
 
     return convertToDTO(config);
@@ -332,7 +332,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     String normalizedApiUrl = normalizeApiUrl(configDTO.getProvider(), configDTO.getApiUrl());
     if (normalizedApiUrl == null || normalizedApiUrl.isEmpty()) {
-      throw new IllegalArgumentException("유효한 API URL이 필요합니다");
+      throw new IllegalArgumentException("A valid API URL is required");
     }
     tempConfig.setApiUrl(normalizedApiUrl);
     tempConfig.setModelName(configDTO.getModelName());
@@ -343,7 +343,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       tempConfig.setEncryptedApiKey(encryptedApiKey);
     } catch (Exception e) {
       log.error("❌ API Key 암호화 실패", e);
-      throw new RuntimeException("API Key 암호화 실패: " + e.getMessage());
+      throw new RuntimeException("Failed to encrypt API key: " + e.getMessage());
     }
 
     // 연결 테스트 수행 (예외 발생 시 자동으로 전파됨)
@@ -434,7 +434,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   /** 요청의 제공자. 비우면 OPENROUTER 로 본다(옛 요청 형태와의 호환). */
   private LlmProvider resolveProvider(LlmModelQueryRequest request) {
     if (request == null) {
-      throw new IllegalArgumentException("요청 본문이 필요합니다");
+      throw new IllegalArgumentException("Request body is required");
     }
     return request.getProvider() == null ? LlmProvider.OPENROUTER : request.getProvider();
   }
@@ -445,7 +445,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         .orElseThrow(
             () ->
                 new IllegalArgumentException(
-                    provider.getDisplayName() + " 는 모델 목록을 제공하지 않습니다. 모델 이름을 직접 입력해 주세요."));
+                    provider.getDisplayName() + " does not provide a model list. Please enter the model name manually."));
   }
 
   /**
@@ -462,7 +462,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     String configId = request.getConfigId();
     if (configId == null || configId.isBlank()) {
-      throw new IllegalArgumentException("API Key 또는 저장된 설정 ID 가 필요합니다");
+      throw new IllegalArgumentException("Either an API key or a saved configuration ID is required");
     }
 
     if (!encryptionUtil.isEncryptionKeyConfigured()) {
@@ -472,13 +472,13 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     LlmConfig config =
         llmConfigRepository
             .findById(configId)
-            .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + configId));
+            .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + configId));
 
     if (config.getProvider() != provider) {
       throw new IllegalArgumentException(
-          "요청한 제공자와 저장된 설정이 다릅니다: 요청="
+          "Requested provider does not match the saved configuration: requested="
               + provider.getDisplayName()
-              + ", 설정="
+              + ", configured="
               + config.getProvider().getDisplayName());
     }
 
@@ -486,7 +486,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       return encryptionUtil.decrypt(config.getEncryptedApiKey());
     } catch (Exception e) {
       log.error("❌ 저장된 API Key 복호화 실패: configId={}", configId, e);
-      throw new IllegalStateException("저장된 API Key 를 읽을 수 없습니다. 키를 다시 입력해 주세요.");
+      throw new IllegalStateException("Unable to read the saved API key. Please enter the key again.");
     }
   }
 
@@ -524,13 +524,13 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     LlmConfig config =
         llmConfigRepository
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("LLM 설정을 찾을 수 없습니다: " + id));
+            .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + id));
 
     // 기본 설정이면서 유일한 활성 설정인 경우 비활성화 불가
     if (config.getIsDefault() && config.getIsActive()) {
       long activeCount = llmConfigRepository.countByIsActiveTrue();
       if (activeCount <= 1) {
-        throw new IllegalStateException("기본 설정이면서 유일한 설정은 비활성화할 수 없습니다.");
+        throw new IllegalStateException("The default configuration cannot be deactivated when it is the only one.");
       }
     }
 
@@ -558,7 +558,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     String normalizedApiUrl = normalizeApiUrl(config.getProvider(), config.getApiUrl());
     if (normalizedApiUrl == null || normalizedApiUrl.isEmpty()) {
-      throw new IllegalStateException("유효한 LLM API URL이 설정되지 않았습니다.");
+      throw new IllegalStateException("A valid LLM API URL is not configured.");
     }
     config.setApiUrl(normalizedApiUrl);
 
@@ -574,7 +574,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
           config.getProvider(),
           config.getModelName(),
           e);
-      throw new RuntimeException("LLM API 연결 실패: " + e.getMessage(), e);
+      throw new RuntimeException("LLM API connection failed: " + e.getMessage(), e);
     }
   }
 
@@ -667,19 +667,19 @@ public class LlmConfigServiceImpl implements LlmConfigService {
   /** Config DTO 검증 */
   private void validateConfigDTO(LlmConfigDTO configDTO) {
     if (configDTO.getName() == null || configDTO.getName().trim().isEmpty()) {
-      throw new IllegalArgumentException("설정 이름이 필요합니다");
+      throw new IllegalArgumentException("Configuration name is required");
     }
     if (configDTO.getProvider() == null) {
-      throw new IllegalArgumentException("제공자가 필요합니다");
+      throw new IllegalArgumentException("Provider is required");
     }
     if (configDTO.getApiUrl() == null || configDTO.getApiUrl().trim().isEmpty()) {
-      throw new IllegalArgumentException("API URL이 필요합니다");
+      throw new IllegalArgumentException("API URL is required");
     }
     if (configDTO.getApiKey() == null || configDTO.getApiKey().trim().isEmpty()) {
-      throw new IllegalArgumentException("API Key가 필요합니다");
+      throw new IllegalArgumentException("API key is required");
     }
     if (configDTO.getModelName() == null || configDTO.getModelName().trim().isEmpty()) {
-      throw new IllegalArgumentException("모델 이름이 필요합니다");
+      throw new IllegalArgumentException("Model name is required");
     }
   }
 }

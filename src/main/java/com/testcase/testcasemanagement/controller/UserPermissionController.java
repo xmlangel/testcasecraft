@@ -59,7 +59,7 @@ public class UserPermissionController {
     User user =
         userRepository
             .findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + username));
+            .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
     UserPermissionDto permissions = userPermissionService.getUserPermissions(user.getId());
     return ResponseEntity.ok(permissions);
@@ -354,7 +354,7 @@ public class UserPermissionController {
   /** 에러 처리 - 권한 부족 */
   @ExceptionHandler(SecurityException.class)
   public ResponseEntity<Map<String, String>> handleSecurityException(SecurityException e) {
-    return ResponseEntity.status(403).body(Map.of("error", "권한 부족", "message", e.getMessage()));
+    return ResponseEntity.status(403).body(Map.of("error", "Insufficient permissions", "message", e.getMessage()));
   }
 
   /** CSV 파일 업로드 및 권한 변경 미리보기 */
@@ -365,7 +365,7 @@ public class UserPermissionController {
       @RequestParam("file") MultipartFile file) {
     try {
       if (file.isEmpty()) {
-        return ResponseEntity.badRequest().body(Map.of("error", "파일이 비어있습니다."));
+        return ResponseEntity.badRequest().body(Map.of("error", "The file is empty."));
       }
 
       List<BulkPermissionChangeDto> changes = csvPermissionService.parseCsvFile(file);
@@ -374,7 +374,7 @@ public class UserPermissionController {
       return ResponseEntity.ok(result);
     } catch (IOException e) {
       return ResponseEntity.status(500)
-          .body(Map.of("error", "파일 처리 중 오류가 발생했습니다.", "message", e.getMessage()));
+          .body(Map.of("error", "An error occurred while processing the file.", "message", e.getMessage()));
     }
   }
 
@@ -411,7 +411,7 @@ public class UserPermissionController {
               String.valueOf(validatedChanges.size())));
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("error", "권한 변경 처리 중 오류가 발생했습니다.", "message", e.getMessage()));
+          .body(Map.of("error", "An error occurred while processing the permission changes.", "message", e.getMessage()));
     }
   }
 
@@ -423,12 +423,12 @@ public class UserPermissionController {
   @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
   public ResponseEntity<Map<String, String>> handleAccessDenied(
       org.springframework.security.access.AccessDeniedException e) {
-    return ResponseEntity.status(403).body(Map.of("error", "접근 거부", "message", "접근 권한이 없습니다."));
+    return ResponseEntity.status(403).body(Map.of("error", "Access denied", "message", "Access denied."));
   }
 
   /** 에러 처리 - 일반 런타임 에러 */
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
-    return ResponseEntity.status(400).body(Map.of("error", "요청 처리 실패", "message", e.getMessage()));
+    return ResponseEntity.status(400).body(Map.of("error", "Request failed", "message", e.getMessage()));
   }
 }

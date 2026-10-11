@@ -250,7 +250,7 @@ public class TranslationManagementController {
 
       Map<String, Object> errorResponse = new HashMap<>();
       errorResponse.put("success", false);
-      errorResponse.put("message", "번역 저장 중 오류가 발생했습니다: " + e.getMessage());
+      errorResponse.put("message", "An error occurred while saving the translation: " + e.getMessage());
       errorResponse.put("error", e.getClass().getSimpleName());
 
       return ResponseEntity.badRequest().body(errorResponse);
@@ -278,7 +278,7 @@ public class TranslationManagementController {
 
     Boolean isActive = request.get("isActive");
     if (isActive == null) {
-      throw new RuntimeException("isActive 필드가 필요합니다");
+      throw new RuntimeException("The isActive field is required");
     }
 
     if (isActive) {
@@ -356,7 +356,7 @@ public class TranslationManagementController {
 
     } catch (Exception e) {
       log.error("CSV 내보내기 실패: {}", e.getMessage(), e);
-      throw new RuntimeException("CSV 내보내기 중 오류가 발생했습니다: " + e.getMessage());
+      throw new RuntimeException("An error occurred while exporting CSV: " + e.getMessage());
     }
   }
 
@@ -370,11 +370,11 @@ public class TranslationManagementController {
 
     try {
       if (file.isEmpty()) {
-        throw new RuntimeException("업로드된 파일이 비어있습니다");
+        throw new RuntimeException("The uploaded file is empty");
       }
 
       if (!file.getOriginalFilename().toLowerCase().endsWith(".csv")) {
-        throw new RuntimeException("CSV 파일만 업로드 가능합니다");
+        throw new RuntimeException("Only CSV files can be uploaded");
       }
 
       String updatedBy = authentication.getName();
@@ -389,7 +389,7 @@ public class TranslationManagementController {
 
       Map<String, Object> errorResponse = new HashMap<>();
       errorResponse.put("success", false);
-      errorResponse.put("message", "CSV 가져오기 중 오류가 발생했습니다: " + e.getMessage());
+      errorResponse.put("message", "An error occurred while importing CSV: " + e.getMessage());
       errorResponse.put("error", e.getClass().getSimpleName());
 
       return ResponseEntity.badRequest().body(errorResponse);

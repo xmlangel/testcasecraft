@@ -23,12 +23,12 @@ import lombok.NoArgsConstructor;
 public class RagChatRequest {
 
   /** 프로젝트 ID (UUID) */
-  @NotNull(message = "프로젝트 ID는 필수입니다.")
+  @NotNull(message = "Project ID is required.")
   @JsonProperty("projectId")
   private UUID projectId;
 
   /** 사용자 메시지 */
-  @NotBlank(message = "메시지는 필수입니다.")
+  @NotBlank(message = "Message is required.")
   @JsonProperty("message")
   private String message;
 

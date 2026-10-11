@@ -51,13 +51,13 @@ public class TestResultEditService {
             .orElseThrow(
                 () ->
                     new IllegalArgumentException(
-                        "테스트 결과를 찾을 수 없습니다: " + request.getOriginalTestResultId()));
+                        "Test result not found: " + request.getOriginalTestResultId()));
 
     // 현재 사용자 조회
     User currentUser =
         userRepository
             .findById(currentUserId)
-            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + currentUserId));
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUserId));
 
     // 다음 편집 버전 번호 생성
     Integer nextVersion = editRepository.getNextEditVersion(request.getOriginalTestResultId());
@@ -101,16 +101,16 @@ public class TestResultEditService {
     TestResultEdit edit =
         editRepository
             .findById(editId)
-            .orElseThrow(() -> new IllegalArgumentException("편집본을 찾을 수 없습니다: " + editId));
+            .orElseThrow(() -> new IllegalArgumentException("Edit not found: " + editId));
 
     // 권한 확인
     if (!edit.getEditedBy().getId().equals(currentUserId)) {
-      throw new IllegalArgumentException("편집 권한이 없습니다");
+      throw new IllegalArgumentException("You do not have permission to edit");
     }
 
     // 편집 가능 상태 확인
     if (!edit.isEditable()) {
-      throw new IllegalArgumentException("편집할 수 없는 상태입니다: " + edit.getEditStatus());
+      throw new IllegalArgumentException("Edit is not in an editable state: " + edit.getEditStatus());
     }
 
     // 편집 내용 업데이트
@@ -144,21 +144,21 @@ public class TestResultEditService {
         editRepository
             .findById(request.getEditId())
             .orElseThrow(
-                () -> new IllegalArgumentException("편집본을 찾을 수 없습니다: " + request.getEditId()));
+                () -> new IllegalArgumentException("Edit not found: " + request.getEditId()));
 
     User approver =
         userRepository
             .findById(approverId)
-            .orElseThrow(() -> new IllegalArgumentException("승인자를 찾을 수 없습니다: " + approverId));
+            .orElseThrow(() -> new IllegalArgumentException("Approver not found: " + approverId));
 
     // 승인 대기 상태 확인
     if (edit.getEditStatus() != TestResultEdit.EditStatus.PENDING) {
-      throw new IllegalArgumentException("승인 대기 상태가 아닙니다: " + edit.getEditStatus());
+      throw new IllegalArgumentException("Edit is not pending approval: " + edit.getEditStatus());
     }
 
     // 자가 승인 방지
     if (edit.getEditedBy().getId().equals(approverId)) {
-      throw new IllegalArgumentException("자신의 편집본은 승인할 수 없습니다");
+      throw new IllegalArgumentException("You cannot approve your own edit");
     }
 
     if (Boolean.TRUE.equals(request.getApproved())) {
@@ -180,16 +180,16 @@ public class TestResultEditService {
     TestResultEdit edit =
         editRepository
             .findById(editId)
-            .orElseThrow(() -> new IllegalArgumentException("편집본을 찾을 수 없습니다: " + editId));
+            .orElseThrow(() -> new IllegalArgumentException("Edit not found: " + editId));
 
     User applier =
         userRepository
             .findById(applierId)
-            .orElseThrow(() -> new IllegalArgumentException("적용자를 찾을 수 없습니다: " + applierId));
+            .orElseThrow(() -> new IllegalArgumentException("Applier not found: " + applierId));
 
     // 승인된 상태 확인
     if (edit.getEditStatus() != TestResultEdit.EditStatus.APPROVED) {
-      throw new IllegalArgumentException("승인된 편집본이 아닙니다: " + edit.getEditStatus());
+      throw new IllegalArgumentException("Edit is not approved: " + edit.getEditStatus());
     }
 
     try {
@@ -223,7 +223,7 @@ public class TestResultEditService {
           .editId(edit.getId())
           .originalTestResultId(edit.getOriginalTestResult().getId())
           .success(false)
-          .message("편집본 적용 중 오류가 발생했습니다: " + e.getMessage())
+          .message("An error occurred while applying the edit: " + e.getMessage())
           .build();
     }
   }
@@ -235,11 +235,11 @@ public class TestResultEditService {
     TestResultEdit edit =
         editRepository
             .findById(editId)
-            .orElseThrow(() -> new IllegalArgumentException("편집본을 찾을 수 없습니다: " + editId));
+            .orElseThrow(() -> new IllegalArgumentException("Edit not found: " + editId));
 
     // 적용된 편집본만 되돌리기 가능
     if (!edit.isApplied()) {
-      throw new IllegalArgumentException("적용된 편집본만 되돌릴 수 있습니다");
+      throw new IllegalArgumentException("Only applied edits can be reverted");
     }
 
     edit.revert();
@@ -256,16 +256,16 @@ public class TestResultEditService {
     TestResultEdit edit =
         editRepository
             .findById(editId)
-            .orElseThrow(() -> new IllegalArgumentException("편집본을 찾을 수 없습니다: " + editId));
+            .orElseThrow(() -> new IllegalArgumentException("Edit not found: " + editId));
 
     // 권한 확인
     if (!edit.getEditedBy().getId().equals(userId)) {
-      throw new IllegalArgumentException("삭제 권한이 없습니다");
+      throw new IllegalArgumentException("You do not have permission to delete");
     }
 
     // DRAFT 상태만 삭제 가능
     if (edit.getEditStatus() != TestResultEdit.EditStatus.DRAFT) {
-      throw new IllegalArgumentException("DRAFT 상태의 편집본만 삭제할 수 있습니다");
+      throw new IllegalArgumentException("Only edits in DRAFT status can be deleted");
     }
 
     editRepository.delete(edit);

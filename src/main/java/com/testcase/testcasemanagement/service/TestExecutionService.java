@@ -115,7 +115,7 @@ public class TestExecutionService {
   public TestExecutionDto createTestExecution(TestExecutionDto dto) {
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(dto.getProjectId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + dto.getProjectId());
+      throw new AccessDeniedException("No edit permission for project: " + dto.getProjectId());
     }
 
     TestExecution entity = toEntity(dto);
@@ -143,12 +143,12 @@ public class TestExecutionService {
               .findById(testPlanId)
               .orElseThrow(() -> new NoSuchElementException("TestPlan not found: " + testPlanId));
       if (!projectSecurityService.canAccessProject(plan.getProject().getId())) {
-        throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + plan.getProject().getId());
+        throw new AccessDeniedException("No access permission for project: " + plan.getProject().getId());
       }
       executions = testExecutionRepository.findByTestPlanId(testPlanId);
     } else {
       if (!projectSecurityService.isSystemAdmin()) {
-        throw new AccessDeniedException("전체 테스트 실행 조회는 시스템 관리자만 가능합니다.");
+        throw new AccessDeniedException("Only system administrators can view all test executions.");
       }
       executions = testExecutionRepository.findAll();
     }
@@ -161,7 +161,7 @@ public class TestExecutionService {
         testExecutionRepository.findByIdWithResults(id).map(entity -> toDto(entity, true));
     if (result.isPresent()
         && !projectSecurityService.canAccessProject(result.get().getProjectId())) {
-      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + result.get().getProjectId());
+      throw new AccessDeniedException("No access permission for project: " + result.get().getProjectId());
     }
     return result;
   }
@@ -175,7 +175,7 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
     }
 
     entity.setName(dto.getName());
@@ -198,7 +198,7 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
     }
 
     entity.setQaSummary(qaSummary);
@@ -220,7 +220,7 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
     }
 
     // 결과 노트에 붙여넣은 이미지는 함께 지우지 않는다. 같은 이미지를 다른 결과가 참조할 수
@@ -238,7 +238,7 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
     }
 
     entity.setStatus("INPROGRESS");
@@ -257,7 +257,7 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
     }
 
     entity.setStatus("COMPLETED");
@@ -276,7 +276,7 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
     }
 
     // Only allow restarting of completed test executions
@@ -301,7 +301,7 @@ public class TestExecutionService {
 
     // 결과 기록 권한 검사 (PM/LEAD/DEV/CONTRIBUTOR 편집 롤 + TESTER)
     if (!projectSecurityService.canRecordTestResult(entity.getProject().getId())) {
-      throw new AccessDeniedException("결과 기록 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No permission to record results: " + entity.getProject().getId());
     }
 
     if ("COMPLETED".equals(entity.getStatus())) {
@@ -326,17 +326,17 @@ public class TestExecutionService {
 
           // JIRA 설정이 없는 경우는 검증을 건너뛰고 계속 진행
           if (validationResult.getErrorMessage() != null
-              && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+              && validationResult.getErrorMessage().contains("JIRA configuration is required")) {
             System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
           } else if (!validationResult.getExists()) {
             // JIRA 설정은 있지만 이슈가 존재하지 않는 경우만 에러 처리
             throw new IllegalArgumentException(
                 String.format(
-                    "존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                    "JIRA issue does not exist: %s (%s)",
                     jiraIssueKey,
                     validationResult.getErrorMessage() != null
                         ? validationResult.getErrorMessage()
-                        : "이슈를 찾을 수 없습니다"));
+                        : "Issue not found"));
           }
         } catch (IllegalArgumentException e) {
           throw e;
@@ -358,11 +358,11 @@ public class TestExecutionService {
               .orElseThrow(
                   () ->
                       new IllegalArgumentException(
-                          "DisplayID를 찾을 수 없습니다: " + resultDto.getDisplayId()));
+                          "DisplayID not found: " + resultDto.getDisplayId()));
     }
 
     if (testCaseId == null || testCaseId.trim().isEmpty()) {
-      throw new IllegalArgumentException("testCaseId 또는 displayId가 필요합니다.");
+      throw new IllegalArgumentException("testCaseId or displayId is required.");
     }
 
     // 항상 새로운 결과를 추가
@@ -404,7 +404,7 @@ public class TestExecutionService {
 
     // 결과 기록 권한 검사 (PM/LEAD/DEV/CONTRIBUTOR 편집 롤 + TESTER)
     if (!projectSecurityService.canRecordTestResult(entity.getProject().getId())) {
-      throw new AccessDeniedException("결과 기록 권한이 없습니다: " + entity.getProject().getId());
+      throw new AccessDeniedException("No permission to record results: " + entity.getProject().getId());
     }
 
     if ("COMPLETED".equals(entity.getStatus())) {
@@ -429,16 +429,16 @@ public class TestExecutionService {
               jiraIntegrationService.checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
 
           if (validationResult.getErrorMessage() != null
-              && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+              && validationResult.getErrorMessage().contains("JIRA configuration is required")) {
             System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
           } else if (!validationResult.getExists()) {
             throw new IllegalArgumentException(
                 String.format(
-                    "존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                    "JIRA issue does not exist: %s (%s)",
                     jiraIssueKey,
                     validationResult.getErrorMessage() != null
                         ? validationResult.getErrorMessage()
-                        : "이슈를 찾을 수 없습니다"));
+                        : "Issue not found"));
           }
         } catch (IllegalArgumentException e) {
           throw e;
@@ -466,14 +466,14 @@ public class TestExecutionService {
                   .findByProjectIdAndDisplayId(entity.getProject().getId(), displayId)
                   .map(TestCase::getId)
                   .orElseThrow(
-                      () -> new IllegalArgumentException("DisplayID를 찾을 수 없습니다: " + displayId));
+                      () -> new IllegalArgumentException("DisplayID not found: " + displayId));
           finalTestCaseIds.add(caseId);
         }
       }
     }
 
     if (finalTestCaseIds.isEmpty()) {
-      throw new IllegalArgumentException("결과를 입력할 테스트케이스 ID 또는 DisplayID가 없습니다.");
+      throw new IllegalArgumentException("No test case ID or DisplayID was provided for the result.");
     }
 
     for (String testCaseId : finalTestCaseIds) {
@@ -714,7 +714,7 @@ public class TestExecutionService {
   public Page<TestExecutionDto> getTestExecutionsByProject(
       String projectId, String name, Pageable pageable) {
     if (!projectSecurityService.canAccessProject(projectId)) {
-      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+      throw new AccessDeniedException("No access permission for project: " + projectId);
     }
     // 1. 실행 목록 페이징 조회 (results fetch 제거로 매우 빨라짐)
     org.springframework.data.domain.Page<TestExecution> executionPage;
@@ -834,7 +834,7 @@ public class TestExecutionService {
               if (testCase.getProject() != null
                   && !projectSecurityService.canAccessProject(testCase.getProject().getId())) {
                 throw new AccessDeniedException(
-                    "프로젝트 접근 권한이 없습니다: " + testCase.getProject().getId());
+                    "No access permission for project: " + testCase.getProject().getId());
               }
             });
     List<TestResult> results = testResultRepository.findByTestCaseId(testCaseId);
@@ -885,7 +885,7 @@ public class TestExecutionService {
     TestResult existingResult =
         testResultRepository
             .findById(resultId)
-            .orElseThrow(() -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + resultId));
+            .orElseThrow(() -> new IllegalArgumentException("Test result not found: " + resultId));
 
     if (existingResult.getTestExecution() != null
         && "COMPLETED".equals(existingResult.getTestExecution().getStatus())) {
@@ -896,7 +896,7 @@ public class TestExecutionService {
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + currentUsername));
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUsername));
 
     // 3. 권한 확인: 실행한 본인 OR ADMIN OR MANAGER
     boolean isOwner =
@@ -908,7 +908,7 @@ public class TestExecutionService {
     if (!isOwner && !isAdmin && !isManager) {
       throw new SecurityException(
           String.format(
-              "권한이 없습니다. (사용자: %s, 역할: %s, 소유자: %s)",
+              "Permission denied. (user: %s, role: %s, owner: %s)",
               currentUsername,
               currentUser.getRole(),
               existingResult.getExecutedBy() != null
@@ -939,16 +939,16 @@ public class TestExecutionService {
                 jiraIntegrationService.checkJiraIssueExists(currentUsername, jiraIssueKey);
 
             if (validationResult.getErrorMessage() != null
-                && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+                && validationResult.getErrorMessage().contains("JIRA configuration is required")) {
               System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
             } else if (!validationResult.getExists()) {
               throw new IllegalArgumentException(
                   String.format(
-                      "존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                      "JIRA issue does not exist: %s (%s)",
                       jiraIssueKey,
                       validationResult.getErrorMessage() != null
                           ? validationResult.getErrorMessage()
-                          : "이슈를 찾을 수 없습니다"));
+                          : "Issue not found"));
             }
           } catch (IllegalArgumentException e) {
             throw e;
@@ -1015,7 +1015,7 @@ public class TestExecutionService {
     TestResult existingResult =
         testResultRepository
             .findById(resultId)
-            .orElseThrow(() -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + resultId));
+            .orElseThrow(() -> new IllegalArgumentException("Test result not found: " + resultId));
 
     if (existingResult.getTestExecution() != null
         && "COMPLETED".equals(existingResult.getTestExecution().getStatus())) {
@@ -1026,7 +1026,7 @@ public class TestExecutionService {
     User currentUser =
         userRepository
             .findByUsername(currentUsername)
-            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + currentUsername));
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUsername));
 
     // 3. 권한 확인: ADMIN OR MANAGER만
     boolean isAdmin = "ADMIN".equals(currentUser.getRole());
@@ -1035,7 +1035,7 @@ public class TestExecutionService {
     if (!isAdmin && !isManager) {
       throw new SecurityException(
           String.format(
-              "삭제 권한이 없습니다. Admin 또는 Manager만 삭제할 수 있습니다. (사용자: %s, 역할: %s)",
+              "Delete permission denied. Only Admin or Manager can delete. (user: %s, role: %s)",
               currentUsername, currentUser.getRole()));
     }
 

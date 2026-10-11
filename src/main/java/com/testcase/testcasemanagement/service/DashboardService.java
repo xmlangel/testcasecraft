@@ -66,7 +66,7 @@ public class DashboardService {
           } catch (Exception e) {
             logger.error("getRecentTestResults 실행 중 오류 발생: {}", e.getMessage());
             throw new DashboardException.DataRetrievalException(
-                "최근 테스트 결과 조회에 실패했습니다: " + e.getMessage(), "RecentTestResults");
+                "Failed to retrieve recent test results: " + e.getMessage(), "RecentTestResults");
           }
         });
   }
@@ -99,7 +99,7 @@ public class DashboardService {
                 projectId,
                 e.getMessage());
             throw new DashboardException.DataRetrievalException(
-                "프로젝트별 최근 테스트 결과 조회에 실패했습니다: " + e.getMessage(), "ProjectRecentTestResults");
+                "Failed to retrieve recent test results by project: " + e.getMessage(), "ProjectRecentTestResults");
           }
         });
   }

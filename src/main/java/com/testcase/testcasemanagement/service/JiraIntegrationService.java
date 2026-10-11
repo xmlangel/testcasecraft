@@ -164,7 +164,7 @@ public class JiraIntegrationService {
             userId, response.getIssueKey(), request.getTestResultId(), response);
       } catch (Exception e) {
         log.error("JIRA 이슈 생성 후 첨부파일 업로드 실패: issueKey={}", response.getIssueKey(), e);
-        response.setAttachmentErrorMessage("첨부파일 업로드 중 오류 발생: " + e.getMessage());
+        response.setAttachmentErrorMessage("Error while uploading attachments: " + e.getMessage());
       }
     }
 
@@ -269,7 +269,7 @@ public class JiraIntegrationService {
         return JiraConfigDto.IssueExistsDto.builder()
             .exists(false)
             .issueKey(issueKey)
-            .errorMessage("이슈 키가 입력되지 않았습니다.")
+            .errorMessage("Issue key was not provided.")
             .build();
       }
 
@@ -278,7 +278,7 @@ public class JiraIntegrationService {
         return JiraConfigDto.IssueExistsDto.builder()
             .exists(false)
             .issueKey(issueKey)
-            .errorMessage("잘못된 이슈 키 형식입니다. (예: TEST-123)")
+            .errorMessage("Invalid issue key format. (e.g., TEST-123)")
             .build();
       }
 
@@ -287,7 +287,7 @@ public class JiraIntegrationService {
         return JiraConfigDto.IssueExistsDto.builder()
             .exists(false)
             .issueKey(issueKey)
-            .errorMessage("JIRA 설정이 필요합니다.")
+            .errorMessage("JIRA configuration is required.")
             .build();
       }
 
@@ -299,7 +299,7 @@ public class JiraIntegrationService {
       return JiraConfigDto.IssueExistsDto.builder()
           .exists(false)
           .issueKey(issueKey)
-          .errorMessage("시스템 오류가 발생했습니다.")
+          .errorMessage("A system error occurred.")
           .build();
     }
   }
