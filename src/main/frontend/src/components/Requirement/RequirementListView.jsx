@@ -22,6 +22,7 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -30,6 +31,7 @@ import {
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import RequirementLinkPanel from "./RequirementLinkPanel.jsx";
+import MarkdownFieldEditor from "../TestCase/MarkdownFieldEditor.jsx";
 import {
   COVERAGE_META,
   REQUIREMENT_STATUSES,
@@ -78,6 +80,7 @@ function RequirementListView({
   onRemoveLink,
 }) {
   const { t } = useI18n();
+  const theme = useTheme();
   const [selectedSpecId, setSelectedSpecId] = useState(null);
   const [selectedReqId, setSelectedReqId] = useState(null);
 
@@ -187,13 +190,15 @@ function RequirementListView({
           )}
         </Stack>
         {selectedSpec?.scope && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ whiteSpace: "pre-wrap", mb: 1 }}
-          >
-            {selectedSpec.scope}
-          </Typography>
+          <Box sx={{ mb: 1 }}>
+            <MarkdownFieldEditor
+              value={selectedSpec.scope}
+              theme={theme}
+              t={t}
+              isViewer
+              onChange={() => {}}
+            />
+          </Box>
         )}
         <Paper variant="outlined">
           <Table size="small" data-testid="requirement-table">

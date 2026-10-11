@@ -14,8 +14,10 @@ import {
   MenuItem,
   Stack,
   TextField,
+  useTheme,
 } from "@mui/material";
 import { useI18n } from "../../context/I18nContext.jsx";
+import MarkdownFieldEditor from "../TestCase/MarkdownFieldEditor.jsx";
 import {
   REQUIREMENT_STATUSES,
   REQUIREMENT_TYPES,
@@ -41,6 +43,7 @@ export function RequirementSpecDialog({
   onSubmit,
 }) {
   const { t } = useI18n();
+  const theme = useTheme();
   const [form, setForm] = useState(EMPTY_SPEC);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -54,6 +57,7 @@ export function RequirementSpecDialog({
 
   const set = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
+  const setScope = (value) => setForm((prev) => ({ ...prev, scope: value }));
 
   // 자기 자신은 부모 후보에서 뺀다. 하위 문서로 옮기는 경우는 서버가 막는다.
   const parentOptions = flattenSpecTree(specs).filter(
@@ -115,12 +119,13 @@ export function RequirementSpecDialog({
               </MenuItem>
             ))}
           </TextField>
-          <TextField
+          <MarkdownFieldEditor
             label={t("requirement.field.scope", "범위·설명")}
             value={form.scope || ""}
-            onChange={set("scope")}
-            multiline
-            minRows={3}
+            theme={theme}
+            t={t}
+            onChange={setScope}
+            testid="requirement-scope-input"
           />
         </Stack>
       </DialogContent>
@@ -149,6 +154,7 @@ RequirementSpecDialog.propTypes = {
 
 export function RequirementDialog({ open, initial, specs, onClose, onSubmit }) {
   const { t } = useI18n();
+  const theme = useTheme();
   const [form, setForm] = useState(EMPTY_REQUIREMENT);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -162,6 +168,7 @@ export function RequirementDialog({ open, initial, specs, onClose, onSubmit }) {
 
   const set = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
+  const setScope = (value) => setForm((prev) => ({ ...prev, scope: value }));
 
   const handleSubmit = async () => {
     setSaving(true);
@@ -266,12 +273,13 @@ export function RequirementDialog({ open, initial, specs, onClose, onSubmit }) {
               sx={{ width: 130 }}
             />
           </Stack>
-          <TextField
+          <MarkdownFieldEditor
             label={t("requirement.field.scope", "범위·설명")}
             value={form.scope || ""}
-            onChange={set("scope")}
-            multiline
-            minRows={5}
+            theme={theme}
+            t={t}
+            onChange={setScope}
+            testid="requirement-scope-input"
           />
         </Stack>
       </DialogContent>

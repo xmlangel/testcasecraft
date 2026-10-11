@@ -18,9 +18,11 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { LinkOff as LinkOffIcon } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
+import MarkdownFieldEditor from "../TestCase/MarkdownFieldEditor.jsx";
 import {
   REQUIREMENT_STATUSES,
   REQUIREMENT_TYPES,
@@ -37,6 +39,7 @@ function RequirementLinkPanel({
   onRemove,
 }) {
   const { t } = useI18n();
+  const theme = useTheme();
   const [selected, setSelected] = useState([]);
   const [saving, setSaving] = useState(false);
 
@@ -83,9 +86,15 @@ function RequirementLinkPanel({
         />
       </Stack>
       {requirement.scope && (
-        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", mb: 2 }}>
-          {requirement.scope}
-        </Typography>
+        <Box sx={{ mb: 2 }}>
+          <MarkdownFieldEditor
+            value={requirement.scope}
+            theme={theme}
+            t={t}
+            isViewer
+            onChange={() => {}}
+          />
+        </Box>
       )}
 
       <Typography variant="subtitle2" sx={{ mt: 1 }}>
