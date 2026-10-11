@@ -91,6 +91,11 @@ public class RequirementKeysInitializer {
     createKey("requirement.noScope", "요구사항 관리 · 작성된 범위·설명이 없습니다.", "작성된 범위·설명이 없습니다.");
     createKey("requirement.openRequirement", "요구사항 관리 · 요구사항 화면으로 이동", "요구사항 화면으로 이동");
     createKey("requirement.openTestCase", "요구사항 관리 · 테스트케이스 화면으로 이동", "테스트케이스 화면으로 이동");
+    createKey("requirement.collapse", "요구사항 관리 · 접기", "접기");
+    createKey("requirement.filterLinked", "요구사항 관리 · 연결된 TC 에서 찾기", "연결된 TC 에서 찾기");
+    createKey("requirement.next", "요구사항 관리 · 다음", "다음");
+    createKey("requirement.noMatch", "요구사항 관리 · 검색 결과가 없습니다.", "검색 결과가 없습니다.");
+    createKey("requirement.prev", "요구사항 관리 · 이전", "이전");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

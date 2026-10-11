@@ -24,6 +24,17 @@ import {
 import { useI18n } from "../../context/I18nContext.jsx";
 import requirementService from "../../services/requirementService.js";
 import { VERDICT_META } from "./requirementConstants.js";
+import { LinkedTestCaseDialog } from "./LinkedItemDialogs.jsx";
+
+// 요구사항 하나에 TC 가 많아도 행이 길어지지 않게 이만큼만 보이고 나머지는 「+N」으로 접는다
+const CHIP_LIMIT = 5;
+
+// 접혀 있어도 판정 이유가 보이게 판정 우선순위(실패 > 차단 > 미실행 > 통과) 순으로 칩을 놓는다
+const RESULT_ORDER = { FAIL: 0, BLOCKED: 1, NOT_RUN: 2, PASS: 3 };
+const byResult = (cases) =>
+  [...cases].sort(
+    (a, b) => (RESULT_ORDER[a.result] ?? 2) - (RESULT_ORDER[b.result] ?? 2),
+  );
 
 function RequirementReportView({ projectId, testPlans, testExecutions }) {
   const { t } = useI18n();
@@ -32,6 +43,8 @@ function RequirementReportView({ projectId, testPlans, testExecutions }) {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [expanded, setExpanded] = useState({});
+  const [openCase, setOpenCase] = useState(null);
 
   const planExecutions = testExecutions.filter(
     (ex) => ex.testPlanId === testPlanId,
@@ -165,7 +178,10 @@ function RequirementReportView({ projectId, testPlans, testExecutions }) {
                           spacing={0.5}
                           sx={{ flexWrap: "wrap", rowGap: 0.5 }}
                         >
-                          {item.testCases.map((tc) => {
+                          {(expanded[item.requirementId]
+                            ? byResult(item.testCases)
+                            : byResult(item.testCases).slice(0, CHIP_LIMIT)
+                          ).map((tc) => {
                             const caseMeta =
                               VERDICT_META[tc.result] || VERDICT_META.NOT_RUN;
                             return (
@@ -175,9 +191,31 @@ function RequirementReportView({ projectId, testPlans, testExecutions }) {
                                 variant="outlined"
                                 color={caseMeta.color}
                                 label={`${tc.displayId || ""} ${tc.name || tc.testCaseId}`.trim()}
+                                onClick={() =>
+                                  setOpenCase({ item, id: tc.testCaseId })
+                                }
+                                data-testid="report-case-chip"
                               />
                             );
                           })}
+                          {item.testCases.length > CHIP_LIMIT && (
+                            <Chip
+                              size="small"
+                              label={
+                                expanded[item.requirementId]
+                                  ? t("requirement.collapse", "접기")
+                                  : `+${item.testCases.length - CHIP_LIMIT}`
+                              }
+                              onClick={() =>
+                                setExpanded((prev) => ({
+                                  ...prev,
+                                  [item.requirementId]:
+                                    !prev[item.requirementId],
+                                }))
+                              }
+                              data-testid="report-case-more"
+                            />
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -188,6 +226,30 @@ function RequirementReportView({ projectId, testPlans, testExecutions }) {
           </Paper>
         </>
       )}
+      <LinkedTestCaseDialog
+        testCaseIds={
+          openCase ? openCase.item.testCases.map((tc) => tc.testCaseId) : []
+        }
+        initialId={openCase?.id || null}
+        testCases={
+          openCase
+            ? openCase.item.testCases.map((tc) => ({
+                id: tc.testCaseId,
+                displayId: tc.displayId,
+                name: tc.name,
+              }))
+            : []
+        }
+        resultById={
+          openCase
+            ? Object.fromEntries(
+                openCase.item.testCases.map((tc) => [tc.testCaseId, tc.result]),
+              )
+            : null
+        }
+        projectId={projectId}
+        onClose={() => setOpenCase(null)}
+      />
     </Box>
   );
 }

@@ -101,6 +101,11 @@ public class EnglishRequirementTranslations {
     create("requirement.noScope", lang, "No scope or description written.", by);
     create("requirement.openRequirement", lang, "Open in Requirements", by);
     create("requirement.openTestCase", lang, "Open test case", by);
+    create("requirement.collapse", lang, "Collapse", by);
+    create("requirement.filterLinked", lang, "Find in linked test cases", by);
+    create("requirement.next", lang, "Next", by);
+    create("requirement.noMatch", lang, "No matches.", by);
+    create("requirement.prev", lang, "Previous", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

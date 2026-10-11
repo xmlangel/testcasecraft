@@ -43,6 +43,7 @@ function RequirementLinkPanel({
   const [selected, setSelected] = useState([]);
   const [saving, setSaving] = useState(false);
   const [openCaseId, setOpenCaseId] = useState(null);
+  const [filter, setFilter] = useState("");
 
   const linked = useMemo(
     () => new Set(requirement.linkedTestCaseIds || []),
@@ -52,6 +53,15 @@ function RequirementLinkPanel({
     () => new Map(testCases.map((tc) => [tc.id, tc])),
     [testCases],
   );
+  const visibleLinked = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    const ids = [...linked];
+    if (!q) return ids;
+    return ids.filter((id) => {
+      const tc = byId.get(id);
+      return (tc ? caseLabel(tc) : id).toLowerCase().includes(q);
+    });
+  }, [linked, byId, filter]);
   const candidates = useMemo(
     () => testCases.filter((tc) => !linked.has(tc.id)),
     [testCases, linked],
@@ -101,43 +111,61 @@ function RequirementLinkPanel({
           {t("requirement.noLinkedCases", "연결된 테스트케이스가 없습니다.")}
         </Typography>
       ) : (
-        <List dense>
-          {[...linked].map((tcId) => {
-            const tc = byId.get(tcId);
-            return (
-              <ListItem
-                key={tcId}
-                disablePadding
-                secondaryAction={
-                  canEdit && (
-                    <Tooltip title={t("requirement.unlink", "연결 해제")}>
-                      <IconButton
-                        edge="end"
-                        size="small"
-                        onClick={() => onRemove(tcId)}
-                      >
-                        <LinkOffIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  )
-                }
-              >
-                <ListItemButton
-                  onClick={() => setOpenCaseId(tcId)}
-                  data-testid="requirement-linked-case"
+        <>
+          {/* 연결이 많아도 패널이 늘어나지 않게: 검색 + 높이 제한 */}
+          {linked.size > 5 && (
+            <TextField
+              size="small"
+              fullWidth
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder={t("requirement.filterLinked", "연결된 TC 에서 찾기")}
+              sx={{ mt: 1 }}
+              inputProps={{ "data-testid": "requirement-linked-filter" }}
+            />
+          )}
+          <List
+            dense
+            sx={{ maxHeight: 320, overflowY: "auto" }}
+            data-testid="requirement-linked-list"
+          >
+            {visibleLinked.map((tcId) => {
+              const tc = byId.get(tcId);
+              return (
+                <ListItem
+                  key={tcId}
+                  disablePadding
+                  secondaryAction={
+                    canEdit && (
+                      <Tooltip title={t("requirement.unlink", "연결 해제")}>
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          onClick={() => onRemove(tcId)}
+                        >
+                          <LinkOffIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )
+                  }
                 >
-                  <ListItemText
-                    primary={tc ? caseLabel(tc) : tcId}
-                    secondary={t(
-                      "requirement.clickToView",
-                      "눌러서 작성 내용 보기",
-                    )}
-                  />
-                </ListItemButton>
-              </ListItem>
-            );
-          })}
-        </List>
+                  <ListItemButton
+                    onClick={() => setOpenCaseId(tcId)}
+                    data-testid="requirement-linked-case"
+                  >
+                    <ListItemText
+                      primary={tc ? caseLabel(tc) : tcId}
+                      secondary={t(
+                        "requirement.clickToView",
+                        "눌러서 작성 내용 보기",
+                      )}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              );
+            })}
+          </List>
+        </>
       )}
 
       {canEdit && (
@@ -169,7 +197,9 @@ function RequirementLinkPanel({
         </Box>
       )}
       <LinkedTestCaseDialog
-        testCaseId={openCaseId}
+        testCaseIds={[...linked]}
+        initialId={openCaseId}
+        testCases={testCases}
         projectId={requirement.projectId}
         onClose={() => setOpenCaseId(null)}
       />

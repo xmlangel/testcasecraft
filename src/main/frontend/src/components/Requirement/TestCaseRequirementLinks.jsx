@@ -98,7 +98,11 @@ function TestCaseRequirementLinks({ testCaseId, projectId, readOnly = false }) {
             {t("requirement.testCase.none", "연결된 요구사항이 없습니다.")}
           </Typography>
         ) : (
-          <List dense disablePadding sx={{ mb: 1 }}>
+          <List
+            dense
+            disablePadding
+            sx={{ mb: 1, maxHeight: 280, overflowY: "auto" }}
+          >
             {linked.map((req) => (
               <ListItemButton
                 key={req.id}

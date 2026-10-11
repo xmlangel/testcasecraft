@@ -100,6 +100,11 @@ public class KoreanRequirementTranslations {
     create("requirement.noScope", lang, "작성된 범위·설명이 없습니다.", by);
     create("requirement.openRequirement", lang, "요구사항 화면으로 이동", by);
     create("requirement.openTestCase", lang, "테스트케이스 화면으로 이동", by);
+    create("requirement.collapse", lang, "접기", by);
+    create("requirement.filterLinked", lang, "연결된 TC 에서 찾기", by);
+    create("requirement.next", lang, "다음", by);
+    create("requirement.noMatch", lang, "검색 결과가 없습니다.", by);
+    create("requirement.prev", lang, "이전", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {
