@@ -25,6 +25,7 @@ import {
   REQUIREMENT_STATUSES,
   findLabel,
 } from "./requirementConstants.js";
+import RequirementCoverageCharts from "./RequirementCoverageCharts.jsx";
 
 const Stat = ({ label, value, testId }) => (
   <Paper
@@ -45,7 +46,7 @@ Stat.propTypes = {
   testId: PropTypes.string,
 };
 
-function RequirementCoverageView({ coverage }) {
+function RequirementCoverageView({ coverage, specs = [] }) {
   const { t } = useI18n();
   const [gapsOnly, setGapsOnly] = useState(false);
 
@@ -91,6 +92,7 @@ function RequirementCoverageView({ coverage }) {
           value={coverage.total - coverage.testable}
         />
       </Stack>
+      <RequirementCoverageCharts coverage={coverage} specs={specs} />
       <FormControlLabel
         control={
           <Switch
@@ -160,6 +162,7 @@ function RequirementCoverageView({ coverage }) {
 
 RequirementCoverageView.propTypes = {
   coverage: PropTypes.object,
+  specs: PropTypes.array,
 };
 
 export default RequirementCoverageView;

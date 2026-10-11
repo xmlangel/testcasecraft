@@ -96,6 +96,8 @@ public class RequirementKeysInitializer {
     createKey("requirement.next", "요구사항 관리 · 다음", "다음");
     createKey("requirement.noMatch", "요구사항 관리 · 검색 결과가 없습니다.", "검색 결과가 없습니다.");
     createKey("requirement.prev", "요구사항 관리 · 이전", "이전");
+    createKey("requirement.coverage.chart.bySpec", "요구사항 관리 · 요구사항 문서별 커버리지", "요구사항 문서별 커버리지");
+    createKey("requirement.coverage.chart.overall", "요구사항 관리 · 전체 커버리지", "전체 커버리지");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

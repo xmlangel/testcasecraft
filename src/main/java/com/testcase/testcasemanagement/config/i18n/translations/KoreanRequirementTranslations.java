@@ -105,6 +105,8 @@ public class KoreanRequirementTranslations {
     create("requirement.next", lang, "다음", by);
     create("requirement.noMatch", lang, "검색 결과가 없습니다.", by);
     create("requirement.prev", lang, "이전", by);
+    create("requirement.coverage.chart.bySpec", lang, "요구사항 문서별 커버리지", by);
+    create("requirement.coverage.chart.overall", lang, "전체 커버리지", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

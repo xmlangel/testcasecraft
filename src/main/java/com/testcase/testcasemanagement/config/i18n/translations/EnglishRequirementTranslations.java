@@ -106,6 +106,8 @@ public class EnglishRequirementTranslations {
     create("requirement.next", lang, "Next", by);
     create("requirement.noMatch", lang, "No matches.", by);
     create("requirement.prev", lang, "Previous", by);
+    create("requirement.coverage.chart.bySpec", lang, "Coverage by requirement document", by);
+    create("requirement.coverage.chart.overall", lang, "Overall coverage", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

@@ -231,7 +231,9 @@ function RequirementWorkspace({ projectId }) {
             }
           />
         )}
-        {view === 1 && <RequirementCoverageView coverage={coverage} />}
+        {view === 1 && (
+          <RequirementCoverageView coverage={coverage} specs={specs} />
+        )}
         {view === 2 && (
           <RequirementReportView
             projectId={projectId}
