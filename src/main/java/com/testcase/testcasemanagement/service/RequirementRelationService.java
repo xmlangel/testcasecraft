@@ -101,20 +101,20 @@ public class RequirementRelationService {
 
     Requirement target = requirementService.findRequirement(targetId);
     if (!projectId.equals(target.getProject().getId())) {
-      throw invalid("다른 프로젝트의 요구사항과는 관계를 맺을 수 없습니다.", "targetId", targetId);
+      throw invalid("Cannot relate to a requirement in another project.", "targetId", targetId);
     }
     if (sourceId.equals(targetId)) {
-      throw invalid("자기 자신과는 관계를 맺을 수 없습니다.", "targetId", targetId);
+      throw invalid("A requirement cannot be related to itself.", "targetId", targetId);
     }
     RequirementRelation.Type type = parseType(typeName);
 
     if (relationRepository.existsBySourceIdAndTargetIdAndType(sourceId, targetId, type)
         || (type == RequirementRelation.Type.RELATED_TO
             && relationRepository.existsBySourceIdAndTargetIdAndType(targetId, sourceId, type))) {
-      throw invalid("이미 같은 관계가 있습니다.", "targetId", targetId);
+      throw invalid("This relation already exists.", "targetId", targetId);
     }
     if (type == RequirementRelation.Type.PARENT_OF && isDescendant(targetId, sourceId)) {
-      throw invalid("하위 요구사항을 다시 상위로 지정할 수 없습니다(순환).", "targetId", targetId);
+      throw invalid("A child requirement cannot be set as a parent (cycle).", "targetId", targetId);
     }
 
     relationRepository.save(
@@ -127,7 +127,7 @@ public class RequirementRelationService {
     RequirementRelation relation =
         relationRepository
             .findById(relationId)
-            .orElseThrow(() -> new ResourceNotFoundException("관계를 찾을 수 없습니다: " + relationId));
+            .orElseThrow(() -> new ResourceNotFoundException("Relation not found: " + relationId));
     Requirement source = requirementService.findRequirement(relation.getSourceId());
     requirementService.requireEdit(source.getProject().getId());
     relationRepository.delete(relation);
@@ -155,7 +155,7 @@ public class RequirementRelationService {
     try {
       return RequirementRelation.Type.valueOf(value.trim().toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException ex) {
-      throw invalid("허용되지 않는 관계 종류입니다.", "type", value);
+      throw invalid("Relation type is not allowed.", "type", value);
     }
   }
 

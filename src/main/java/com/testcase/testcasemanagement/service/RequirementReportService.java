@@ -105,7 +105,7 @@ public class RequirementReportService {
           testExecutionRepository
               .findById(executionId)
               .orElseThrow(
-                  () -> new ResourceNotFoundException("테스트 실행을 찾을 수 없습니다: " + executionId));
+                  () -> new ResourceNotFoundException("Test execution not found: " + executionId));
       requireSameProject(execution.getProject().getId(), projectId, "executionId", executionId);
       planId = execution.getTestPlanId();
       rows = testResultRepository.findResultRowsByExecutionId(executionId);
@@ -113,18 +113,18 @@ public class RequirementReportService {
       rows = testResultRepository.findResultRowsByTestPlanId(testPlanId);
     } else {
       throw new ResourceNotValidException(
-          "testPlanId 또는 executionId 중 하나는 필요합니다.", Map.of("testPlanId", ""));
+          "Either testPlanId or executionId is required.", Map.of("testPlanId", ""));
     }
     if (planId == null) {
       throw new ResourceNotValidException(
-          "테스트 플랜에 연결되지 않은 실행입니다.", Map.of("executionId", String.valueOf(executionId)));
+          "This execution is not linked to a test plan.", Map.of("executionId", String.valueOf(executionId)));
     }
     final String resolvedPlanId = planId;
     TestPlan plan =
         testPlanRepository
             .findById(resolvedPlanId)
             .orElseThrow(
-                () -> new ResourceNotFoundException("테스트 플랜을 찾을 수 없습니다: " + resolvedPlanId));
+                () -> new ResourceNotFoundException("Test plan not found: " + resolvedPlanId));
     requireSameProject(plan.getProject().getId(), projectId, "testPlanId", resolvedPlanId);
 
     Set<String> planCaseIds = new HashSet<>(plan.getTestCaseIds());
@@ -188,7 +188,7 @@ public class RequirementReportService {
   private static void requireSameProject(
       String actual, String expected, String field, String value) {
     if (!expected.equals(actual)) {
-      throw new ResourceNotFoundException(field + " 를 찾을 수 없습니다: " + value);
+      throw new ResourceNotFoundException(field + " not found: " + value);
     }
   }
 }

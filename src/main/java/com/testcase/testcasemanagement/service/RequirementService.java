@@ -87,7 +87,7 @@ public class RequirementService {
     Project project = findProject(request.projectId());
     String docId = request.docId().trim();
     if (specRepository.existsByProjectIdAndDocId(project.getId(), docId)) {
-      throw invalid("이미 사용 중인 문서 ID입니다.", "docId", docId);
+      throw invalid("Document ID is already in use.", "docId", docId);
     }
     if (request.parentId() != null) {
       findSpecInProject(request.parentId(), project.getId());
@@ -112,13 +112,13 @@ public class RequirementService {
     String docId = request.docId().trim();
     if (!docId.equals(spec.getDocId())
         && specRepository.existsByProjectIdAndDocId(projectId, docId)) {
-      throw invalid("이미 사용 중인 문서 ID입니다.", "docId", docId);
+      throw invalid("Document ID is already in use.", "docId", docId);
     }
     if (!Objects.equals(request.parentId(), spec.getParentId())) {
       if (request.parentId() != null) {
         findSpecInProject(request.parentId(), projectId);
         if (subtreeIds(spec.getId()).contains(request.parentId())) {
-          throw invalid("자기 자신이나 하위 문서 아래로 옮길 수 없습니다.", "parentId", request.parentId());
+          throw invalid("Cannot move a document under itself or its descendant.", "parentId", request.parentId());
         }
       }
       spec.setParentId(request.parentId());
@@ -186,7 +186,7 @@ public class RequirementService {
     Project project = findProject(request.projectId());
     String docId = request.docId().trim();
     if (requirementRepository.existsByProjectIdAndDocId(project.getId(), docId)) {
-      throw invalid("이미 사용 중인 요구사항 ID입니다.", "docId", docId);
+      throw invalid("Requirement ID is already in use.", "docId", docId);
     }
 
     Requirement requirement = new Requirement();
@@ -206,7 +206,7 @@ public class RequirementService {
     String docId = request.docId().trim();
     if (!docId.equals(requirement.getDocId())
         && requirementRepository.existsByProjectIdAndDocId(projectId, docId)) {
-      throw invalid("이미 사용 중인 요구사항 ID입니다.", "docId", docId);
+      throw invalid("Requirement ID is already in use.", "docId", docId);
     }
     if (!request.specId().equals(requirement.getSpec().getId())) {
       requirement.setSpec(findSpecInProject(request.specId(), projectId));
@@ -290,14 +290,14 @@ public class RequirementService {
     String projectId = testCase.getProject().getId();
     requireEdit(projectId);
     if (!"testcase".equals(testCase.getType())) {
-      throw invalid("폴더에는 요구사항을 연결할 수 없습니다.", "testCaseId", testCaseId);
+      throw invalid("Requirements cannot be linked to a folder.", "testCaseId", testCaseId);
     }
 
     Set<String> wanted = new LinkedHashSet<>(requirementIds);
     for (String reqId : wanted) {
       Requirement requirement = findRequirement(reqId);
       if (!projectId.equals(requirement.getProject().getId())) {
-        throw invalid("다른 프로젝트의 요구사항은 연결할 수 없습니다.", "requirementId", reqId);
+        throw invalid("Cannot link a requirement from another project.", "requirementId", reqId);
       }
     }
     Set<String> current = new HashSet<>();
@@ -344,32 +344,32 @@ public class RequirementService {
 
   void requireAccess(String projectId) {
     if (!projectSecurityService.canAccessProject(projectId)) {
-      throw new AccessDeniedException("프로젝트 접근 권한이 없습니다: " + projectId);
+      throw new AccessDeniedException("No access to project: " + projectId);
     }
   }
 
   void requireEdit(String projectId) {
     if (!projectSecurityService.canEditProject(projectId)) {
-      throw new AccessDeniedException("프로젝트 편집 권한이 없습니다: " + projectId);
+      throw new AccessDeniedException("No edit permission for project: " + projectId);
     }
   }
 
   private Project findProject(String projectId) {
     return projectRepository
         .findById(projectId)
-        .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다: " + projectId));
+        .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
   }
 
   private RequirementSpec findSpec(String id) {
     return specRepository
         .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("요구사항 문서를 찾을 수 없습니다: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Requirement document not found: " + id));
   }
 
   private RequirementSpec findSpecInProject(String id, String projectId) {
     RequirementSpec spec = findSpec(id);
     if (!projectId.equals(spec.getProject().getId())) {
-      throw invalid("다른 프로젝트의 요구사항 문서입니다.", "specId", id);
+      throw invalid("Requirement document belongs to another project.", "specId", id);
     }
     return spec;
   }
@@ -377,22 +377,22 @@ public class RequirementService {
   Requirement findRequirement(String id) {
     return requirementRepository
         .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("요구사항을 찾을 수 없습니다: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Requirement not found: " + id));
   }
 
   private TestCase findTestCase(String id) {
     return testCaseRepository
         .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("테스트케이스를 찾을 수 없습니다: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Test case not found: " + id));
   }
 
   private void requireTestCaseInProject(String testCaseId, String projectId) {
     TestCase testCase = findTestCase(testCaseId);
     if (!projectId.equals(testCase.getProject().getId())) {
-      throw invalid("다른 프로젝트의 테스트케이스는 연결할 수 없습니다.", "testCaseId", testCaseId);
+      throw invalid("Cannot link a test case from another project.", "testCaseId", testCaseId);
     }
     if (!"testcase".equals(testCase.getType())) {
-      throw invalid("폴더는 요구사항에 연결할 수 없습니다.", "testCaseId", testCaseId);
+      throw invalid("Folders cannot be linked to a requirement.", "testCaseId", testCaseId);
     }
   }
 
@@ -400,7 +400,7 @@ public class RequirementService {
     try {
       return Enum.valueOf(type, value.trim().toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException ex) {
-      throw invalid("허용되지 않는 값입니다.", field, value);
+      throw invalid("Value is not allowed.", field, value);
     }
   }
 

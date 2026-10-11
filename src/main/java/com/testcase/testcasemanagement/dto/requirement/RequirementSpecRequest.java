@@ -8,9 +8,9 @@ import jakarta.validation.constraints.Size;
  * null 일 때 기존 값을 둔다.
  */
 public record RequirementSpecRequest(
-    @NotBlank(message = "projectId는 필수입니다.") String projectId,
+    @NotBlank(message = "projectId is required.") String projectId,
     String parentId,
-    @NotBlank(message = "docId는 필수입니다.") @Size(max = 64) String docId,
-    @NotBlank(message = "title은 필수입니다.") @Size(max = 200) String title,
+    @NotBlank(message = "docId is required.") @Size(max = 64) String docId,
+    @NotBlank(message = "title is required.") @Size(max = 200) String title,
     String scope,
     Integer displayOrder) {}
