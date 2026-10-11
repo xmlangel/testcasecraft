@@ -277,6 +277,13 @@ CLAUDE.md
 .claude/
 .agent/
 .agents/
+AGENTS*.md
+**/AGENTS*.md
+CLAUDE*.md
+**/CLAUDE*.md
+GEMINI*.md
+**/GEMINI*.md
+.github/copilot-instructions.md
 ~$*
 
 .mcp.json
