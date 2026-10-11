@@ -42,6 +42,7 @@ import FieldVisibilityMenu from "./TestCase/FieldVisibilityMenu.jsx";
 import { useFieldVisibility } from "./TestCase/useFieldVisibility.jsx";
 import { useUiPreference } from "./TestCase/useUiPreference.jsx";
 import TestCaseAttachments from "./TestCase/TestCaseAttachments.jsx";
+import TestCaseRequirementLinks from "./Requirement/TestCaseRequirementLinks.jsx";
 import { useRAG } from "../context/RAGContext.jsx";
 import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import useAutoSave from "../hooks/useAutoSave.js";
@@ -1691,6 +1692,14 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                 </Accordion>
               </Grid>
             </Grid>
+            {/* 요구사항 연결 — 저장된 테스트케이스에만 (폴더 제외) */}
+            {testCaseId && !isFolder && projectId && (
+              <TestCaseRequirementLinks
+                testCaseId={testCaseId}
+                projectId={projectId}
+                readOnly={isViewer}
+              />
+            )}
           </TabPanel>
 
           {/* 첨부 파일 탭 */}

@@ -26,6 +26,7 @@ import {
   SmartToy as SmartToyIcon,
   Description as DescriptionIcon,
   TravelExplore as TravelExploreIcon,
+  Rule as RuleIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
   StarBorder as StarBorderIcon,
@@ -58,6 +59,7 @@ const TAB_ICONS = {
   automation: SmartToyIcon,
   rag: DescriptionIcon,
   exploratory: TravelExploreIcon,
+  requirements: RuleIcon,
 };
 
 // 탭 라벨 우측 개수 배지 ("테스트 케이스 | 20" 형태)

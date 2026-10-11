@@ -22,6 +22,7 @@ import {
   SmartToy as SmartToyIcon,
   Description as DescriptionIcon,
   TravelExplore as TravelExploreIcon,
+  Rule as RuleIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
@@ -47,6 +48,7 @@ const ICONS = {
   automation: SmartToyIcon,
   rag: DescriptionIcon,
   exploratory: TravelExploreIcon,
+  requirements: RuleIcon,
 };
 
 /** 항목 우측 개수 배지. 접힌 상태에서는 표시하지 않는다(폭이 없다). */

@@ -30,6 +30,8 @@
     "@tiptap/react": "^3.30.3",
     "@tiptap/starter-kit": "^3.30.3",
     "axios": "^1.13.2",
+    "cytoscape": "^3.34.3",
+    "cytoscape-fcose": "^2.2.0",
     "date-fns": "^4.1.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.2",
