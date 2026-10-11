@@ -96,6 +96,10 @@ public class KoreanRequirementTranslations {
     create("requirement.view.coverage", lang, "커버리지", by);
     create("requirement.view.list", lang, "요구사항", by);
     create("requirement.view.report", lang, "리포트", by);
+    create("requirement.clickToView", lang, "눌러서 작성 내용 보기", by);
+    create("requirement.noScope", lang, "작성된 범위·설명이 없습니다.", by);
+    create("requirement.openRequirement", lang, "요구사항 화면으로 이동", by);
+    create("requirement.openTestCase", lang, "테스트케이스 화면으로 이동", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

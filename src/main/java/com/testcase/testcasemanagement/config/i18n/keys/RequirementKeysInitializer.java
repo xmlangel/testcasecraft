@@ -87,6 +87,10 @@ public class RequirementKeysInitializer {
     createKey("requirement.view.coverage", "요구사항 관리 · 커버리지", "커버리지");
     createKey("requirement.view.list", "요구사항 관리 · 요구사항", "요구사항");
     createKey("requirement.view.report", "요구사항 관리 · 리포트", "리포트");
+    createKey("requirement.clickToView", "요구사항 관리 · 눌러서 작성 내용 보기", "눌러서 작성 내용 보기");
+    createKey("requirement.noScope", "요구사항 관리 · 작성된 범위·설명이 없습니다.", "작성된 범위·설명이 없습니다.");
+    createKey("requirement.openRequirement", "요구사항 관리 · 요구사항 화면으로 이동", "요구사항 화면으로 이동");
+    createKey("requirement.openTestCase", "요구사항 관리 · 테스트케이스 화면으로 이동", "테스트케이스 화면으로 이동");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

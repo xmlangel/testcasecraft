@@ -3,7 +3,7 @@
 // 왼쪽: 요구사항 문서 트리 / 가운데: 선택한 문서(하위 포함)의 요구사항 표 /
 // 오른쪽: 선택한 요구사항 상세와 TC 연결.
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -44,6 +44,7 @@ function RequirementListView({
   requirements,
   testCases,
   canEdit,
+  initialRequirementId = null,
   onAddSpec,
   onEditSpec,
   onDeleteSpec,
@@ -55,7 +56,11 @@ function RequirementListView({
 }) {
   const { t } = useI18n();
   const [selectedSpecId, setSelectedSpecId] = useState(null);
-  const [selectedReqId, setSelectedReqId] = useState(null);
+  const [selectedReqId, setSelectedReqId] = useState(initialRequirementId);
+
+  useEffect(() => {
+    if (initialRequirementId) setSelectedReqId(initialRequirementId);
+  }, [initialRequirementId]);
 
   const tree = useMemo(() => flattenSpecTree(specs), [specs]);
   const specById = useMemo(() => new Map(specs.map((s) => [s.id, s])), [specs]);
@@ -282,6 +287,7 @@ RequirementListView.propTypes = {
   requirements: PropTypes.array.isRequired,
   testCases: PropTypes.array.isRequired,
   canEdit: PropTypes.bool.isRequired,
+  initialRequirementId: PropTypes.string,
   onAddSpec: PropTypes.func.isRequired,
   onEditSpec: PropTypes.func.isRequired,
   onDeleteSpec: PropTypes.func.isRequired,

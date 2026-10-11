@@ -97,6 +97,10 @@ public class EnglishRequirementTranslations {
     create("requirement.view.coverage", lang, "Coverage", by);
     create("requirement.view.list", lang, "Requirements", by);
     create("requirement.view.report", lang, "Report", by);
+    create("requirement.clickToView", lang, "Click to view details", by);
+    create("requirement.noScope", lang, "No scope or description written.", by);
+    create("requirement.openRequirement", lang, "Open in Requirements", by);
+    create("requirement.openTestCase", lang, "Open test case", by);
   }
 
   private void create(String keyName, String languageCode, String value, String createdBy) {

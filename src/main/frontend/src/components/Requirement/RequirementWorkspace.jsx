@@ -8,6 +8,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Alert, Box, Paper, Tab, Tabs } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -30,6 +31,9 @@ function RequirementWorkspace({ projectId }) {
   const canEdit = canEditProjectContent(projectRole);
 
   const [view, setView] = useState(0);
+  // TC 화면의 「요구사항 화면으로 이동」이 ?requirementId= 로 들어온다
+  const [searchParams] = useSearchParams();
+  const initialRequirementId = searchParams.get("requirementId");
   const [specs, setSpecs] = useState([]);
   const [requirements, setRequirements] = useState([]);
   const [coverage, setCoverage] = useState(null);
@@ -210,6 +214,7 @@ function RequirementWorkspace({ projectId }) {
             requirements={requirements}
             testCases={testCases}
             canEdit={canEdit}
+            initialRequirementId={initialRequirementId}
             onAddSpec={(parentId) => setSpecDialog({ parentId })}
             onEditSpec={(spec) => setSpecDialog(spec)}
             onDeleteSpec={handleDeleteSpec}

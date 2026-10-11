@@ -12,6 +12,7 @@ import {
   IconButton,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   Paper,
   Stack,
@@ -22,6 +23,7 @@ import {
 import { LinkOff as LinkOffIcon } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import { LinkedTestCaseDialog } from "./LinkedItemDialogs.jsx";
 import {
   REQUIREMENT_STATUSES,
   REQUIREMENT_TYPES,
@@ -40,6 +42,7 @@ function RequirementLinkPanel({
   const { t } = useI18n();
   const [selected, setSelected] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [openCaseId, setOpenCaseId] = useState(null);
 
   const linked = useMemo(
     () => new Set(requirement.linkedTestCaseIds || []),
@@ -104,6 +107,7 @@ function RequirementLinkPanel({
             return (
               <ListItem
                 key={tcId}
+                disablePadding
                 secondaryAction={
                   canEdit && (
                     <Tooltip title={t("requirement.unlink", "연결 해제")}>
@@ -118,7 +122,18 @@ function RequirementLinkPanel({
                   )
                 }
               >
-                <ListItemText primary={tc ? caseLabel(tc) : tcId} />
+                <ListItemButton
+                  onClick={() => setOpenCaseId(tcId)}
+                  data-testid="requirement-linked-case"
+                >
+                  <ListItemText
+                    primary={tc ? caseLabel(tc) : tcId}
+                    secondary={t(
+                      "requirement.clickToView",
+                      "눌러서 작성 내용 보기",
+                    )}
+                  />
+                </ListItemButton>
               </ListItem>
             );
           })}
@@ -153,6 +168,11 @@ function RequirementLinkPanel({
           </Button>
         </Box>
       )}
+      <LinkedTestCaseDialog
+        testCaseId={openCaseId}
+        projectId={requirement.projectId}
+        onClose={() => setOpenCaseId(null)}
+      />
     </Paper>
   );
 }
