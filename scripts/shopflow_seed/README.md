@@ -43,6 +43,7 @@ python3 06_results.py
 python3 05b_execution_status.py
 python3 05c_reset_notstarted.py
 python3 08_junit_imports.py
+python3 09_requirements.py         # 요구사항 예시 (ko 셋만)
 python3 07_verify.py
 ```
 
@@ -114,6 +115,7 @@ scripts/shopflow_seed/
 ├── 06_results.py        # 결과 + 담당자 5명 분포
 ├── 07_verify.py         # 최종 검증 보고서
 ├── 08_junit_imports.py  # 자동화 결과 3종 (multipart 업로드)
+├── 09_requirements.py   # 요구사항 문서 3 · 요구사항 11 · TC 연결 14 · 관계 6 (ko 셋만)
 ├── 99_fix_case_type.py  # 백업 패치 (type → "testcase" 보정)
 ├── seed.sh              # 통합 러너 ko|en|both
 ├── data/
