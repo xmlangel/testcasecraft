@@ -163,6 +163,62 @@ public class RequirementIntegrationTest extends AbstractTestNGSpringContextTests
   }
 
   @Test
+  public void blankDocIdsAreNumberedFromProjectCodeAndSpec() throws Exception {
+    String code = projectA.getCode();
+    JsonNode next =
+        ok(
+            get("/api/projects/" + projectA.getId() + "/requirement-specs/next-doc-id"),
+            viewerToken,
+            null,
+            200);
+    Assert.assertEquals(next.get("docId").asText(), "R-" + code + "-001");
+
+    Map<String, Object> specBody = new HashMap<>();
+    specBody.put("projectId", projectA.getId());
+    specBody.put("title", "결제");
+    JsonNode spec1 = ok(post("/api/requirement-specs"), editorToken, specBody, 201);
+    JsonNode spec2 = ok(post("/api/requirement-specs"), editorToken, specBody, 201);
+    Assert.assertEquals(spec1.get("docId").asText(), "R-" + code + "-001");
+    Assert.assertEquals(spec2.get("docId").asText(), "R-" + code + "-002");
+
+    String spec2Id = spec2.get("id").asText();
+    String head = "R-" + code + "-002-";
+    Assert.assertEquals(
+        ok(
+                get("/api/requirement-specs/" + spec2Id + "/next-requirement-doc-id"),
+                viewerToken,
+                null,
+                200)
+            .get("docId")
+            .asText(),
+        head + "001");
+    Assert.assertEquals(
+        ok(post("/api/requirements"), editorToken, requirementBody(spec2Id, "", "VALID", 1), 201)
+            .get("docId")
+            .asText(),
+        head + "001");
+    ok(
+        post("/api/requirements"),
+        editorToken,
+        requirementBody(spec2Id, head + "007", "VALID", 1),
+        201);
+    Assert.assertEquals(
+        ok(post("/api/requirements"), editorToken, requirementBody(spec2Id, null, "VALID", 1), 201)
+            .get("docId")
+            .asText(),
+        head + "008");
+
+    // 비멤버는 번호도 받아 갈 수 없다
+    Assert.assertEquals(
+        call(
+                get("/api/requirement-specs/" + spec2Id + "/next-requirement-doc-id"),
+                outsiderToken,
+                null)
+            .getStatus(),
+        403);
+  }
+
+  @Test
   public void fullFlow_specRequirementLinkCoverageReportAndDelete() throws Exception {
     // 문서
     JsonNode spec =

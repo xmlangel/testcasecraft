@@ -2,7 +2,7 @@
 //
 // 요구사항 문서·요구사항 입력 대화상자. 저장은 부모가 하고 여기서는 값만 모은다.
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Alert,
@@ -90,7 +90,10 @@ export function RequirementSpecDialog({
             label={t("requirement.field.specDocId", "문서 ID")}
             value={form.docId}
             onChange={set("docId")}
-            required
+            helperText={t(
+              "requirement.field.docIdAutoHint",
+              "비워 두면 다음 번호가 자동으로 붙습니다.",
+            )}
             inputProps={{ maxLength: 64, "data-testid": "spec-doc-id" }}
           />
           <TextField
@@ -134,7 +137,7 @@ export function RequirementSpecDialog({
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={saving || !form.docId.trim() || !form.title.trim()}
+          disabled={saving || !form.title.trim()}
           data-testid="spec-save"
         >
           {t("common.save", "저장")}
@@ -152,19 +155,52 @@ RequirementSpecDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
 };
 
-export function RequirementDialog({ open, initial, specs, onClose, onSubmit }) {
+export function RequirementDialog({
+  open,
+  initial,
+  specs,
+  onClose,
+  onSubmit,
+  suggestDocId,
+}) {
   const { t } = useI18n();
   const theme = useTheme();
   const [form, setForm] = useState(EMPTY_REQUIREMENT);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+  // 마지막으로 채워 준 자동 번호. 사용자가 고치지 않았을 때만 문서를 바꾸면 새 번호로 갈아 끼운다.
+  const suggestedRef = useRef("");
 
   useEffect(() => {
     if (open) {
       setForm({ ...EMPTY_REQUIREMENT, ...initial });
       setError(null);
+      suggestedRef.current = "";
     }
   }, [open, initial]);
+
+  const isNew = !initial?.id;
+  useEffect(() => {
+    if (!open || !isNew || !form.specId || !suggestDocId) return undefined;
+    let cancelled = false;
+    suggestDocId(form.specId)
+      .then((docId) => {
+        if (cancelled) return;
+        const previous = suggestedRef.current;
+        suggestedRef.current = docId;
+        setForm((prev) =>
+          prev.docId === "" || prev.docId === previous
+            ? { ...prev, docId }
+            : prev,
+        );
+      })
+      .catch(() => {
+        // 번호를 못 받아 오면 비워 두고 서버가 저장할 때 붙인다.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isNew, form.specId, suggestDocId]);
 
   const set = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
@@ -200,7 +236,10 @@ export function RequirementDialog({ open, initial, specs, onClose, onSubmit }) {
               label={t("requirement.field.docId", "요구사항 ID")}
               value={form.docId}
               onChange={set("docId")}
-              required
+              helperText={t(
+                "requirement.field.docIdAutoHint",
+                "비워 두면 다음 번호가 자동으로 붙습니다.",
+              )}
               sx={{ width: 200 }}
               inputProps={{
                 maxLength: 64,
@@ -288,9 +327,7 @@ export function RequirementDialog({ open, initial, specs, onClose, onSubmit }) {
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={
-            saving || !form.docId.trim() || !form.title.trim() || !form.specId
-          }
+          disabled={saving || !form.title.trim() || !form.specId}
           data-testid="requirement-save"
         >
           {t("common.save", "저장")}
@@ -300,4 +337,7 @@ export function RequirementDialog({ open, initial, specs, onClose, onSubmit }) {
   );
 }
 
-RequirementDialog.propTypes = RequirementSpecDialog.propTypes;
+RequirementDialog.propTypes = {
+  ...RequirementSpecDialog.propTypes,
+  suggestDocId: PropTypes.func,
+};

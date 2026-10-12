@@ -98,6 +98,60 @@ public class RequirementServiceTest {
   }
 
   @Test
+  public void nextDocIdContinuesFromLargestNumberAndIgnoresOtherFormats() {
+    Assert.assertEquals(
+        RequirementService.nextDocId(
+            "R-ONTS-",
+            List.of("R-ONTS-001", "R-ONTS-009", "R-ONTS-002", "R-ONTS-X", "R-ONTS-001-003")),
+        "R-ONTS-010");
+    Assert.assertEquals(RequirementService.nextDocId("R-ONTS-", List.of()), "R-ONTS-001");
+    Assert.assertEquals(
+        RequirementService.nextDocId("R-ONTS-", List.of("R-ONTS-1234")), "R-ONTS-1235");
+  }
+
+  @Test
+  public void blankRequirementIdIsNumberedUnderItsSpecId() {
+    RequirementSpec spec = spec("spec-A", projectA, null);
+    spec.setDocId("R-ONTS-002");
+    when(specRepository.findById("spec-A")).thenReturn(Optional.of(spec));
+    when(requirementRepository.findDocIdsByPrefix("proj-A", "R-ONTS-002-"))
+        .thenReturn(List.of("R-ONTS-002-001", "R-ONTS-002-004"));
+
+    var created =
+        service.createRequirement(
+            new RequirementRequest("proj-A", "spec-A", "  ", "요구사항", null, null, null, 1, null));
+
+    Assert.assertEquals(created.docId(), "R-ONTS-002-005");
+  }
+
+  @Test
+  public void blankSpecIdIsGeneratedFromProjectCode() {
+    projectA.setCode("onts");
+    when(specRepository.findDocIdsByPrefix("proj-A", "R-ONTS-"))
+        .thenReturn(List.of("R-ONTS-001", "R-ONTS-002"));
+
+    var created =
+        service.createSpec(new RequirementSpecRequest("proj-A", null, null, "문서", null, null));
+
+    Assert.assertEquals(created.docId(), "R-ONTS-003");
+  }
+
+  @Test
+  public void blankIdOnUpdateKeepsExistingId() {
+    Requirement existing = requirement("r1", projectA);
+    existing.setDocId("R-ONTS-001-007");
+    when(requirementRepository.findById("r1")).thenReturn(Optional.of(existing));
+
+    var updated =
+        service.updateRequirement(
+            "r1",
+            new RequirementRequest(
+                "proj-A", existing.getSpec().getId(), "", "바뀐 제목", null, null, null, 1, null));
+
+    Assert.assertEquals(updated.docId(), "R-ONTS-001-007");
+  }
+
+  @Test
   public void requirementCannotUseSpecOfAnotherProject() {
     RequirementSpec foreign = spec("spec-B", projectB, null);
     when(specRepository.findById("spec-B")).thenReturn(Optional.of(foreign));

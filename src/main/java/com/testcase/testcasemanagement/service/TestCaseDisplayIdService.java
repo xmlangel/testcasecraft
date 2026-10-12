@@ -50,7 +50,7 @@ public class TestCaseDisplayIdService {
    * @param project 프로젝트
    * @return 프로젝트 코드 (예: PROJ, TEST, WEB)
    */
-  private String extractProjectCode(Project project) {
+  static String extractProjectCode(Project project) {
     // 1. 프로젝트의 code 필드가 있으면 사용
     if (project.getCode() != null && !project.getCode().trim().isEmpty()) {
       return project.getCode().trim().toUpperCase();

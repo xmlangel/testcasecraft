@@ -13,6 +13,13 @@ class RequirementService {
     return response.json();
   }
 
+  async getNextSpecDocId(projectId) {
+    const response = await apiService.get(
+      `/api/projects/${projectId}/requirement-specs/next-doc-id`,
+    );
+    return (await response.json()).docId;
+  }
+
   async createSpec(spec) {
     const response = await apiService.post("/api/requirement-specs", spec);
     return response.json();
@@ -38,6 +45,13 @@ class RequirementService {
       `/api/projects/${projectId}/requirements`,
     );
     return response.json();
+  }
+
+  async getNextRequirementDocId(specId) {
+    const response = await apiService.get(
+      `/api/requirement-specs/${specId}/next-requirement-doc-id`,
+    );
+    return (await response.json()).docId;
   }
 
   async createRequirement(requirement) {
