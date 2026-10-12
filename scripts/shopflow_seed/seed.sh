@@ -41,6 +41,7 @@ run_one() {
   python3 05b_execution_status.py
   python3 05c_reset_notstarted.py
   python3 08_junit_imports.py
+  python3 09_requirements.py   # 요구사항 예시 (ko 셋만)
   python3 07_verify.py
 }
 
