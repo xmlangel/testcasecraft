@@ -30,6 +30,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class RequirementService {
+
+  /**
+   * 문서 자동 번호의 머리. 테스트케이스 ID(ONTS-001)와 같은 프로젝트 코드 앞에 붙인다(R-ONTS-001). 요구사항은 소속 문서 ID 뒤에 번호를
+   * 붙인다(R-ONTS-001-001).
+   */
+  static final String SPEC_ID_PREFIX = "R-";
+
+  /** {@code doc_id} 열 길이. */
+  private static final int MAX_DOC_ID_LENGTH = 64;
 
   private final RequirementSpecRepository specRepository;
   private final RequirementRepository requirementRepository;
@@ -84,9 +95,11 @@ public class RequirementService {
 
   public RequirementSpecResponse createSpec(RequirementSpecRequest request) {
     requireEdit(request.projectId());
-    Project project = findProject(request.projectId());
-    String docId = request.docId().trim();
-    if (specRepository.existsByProjectIdAndDocId(project.getId(), docId)) {
+    Project project = lockProject(request.projectId());
+    String docId = trimToEmpty(request.docId());
+    if (docId.isEmpty()) {
+      docId = nextSpecDocId(project);
+    } else if (specRepository.existsByProjectIdAndDocId(project.getId(), docId)) {
       throw invalid("Document ID is already in use.", "docId", docId);
     }
     if (request.parentId() != null) {
@@ -108,8 +121,12 @@ public class RequirementService {
     RequirementSpec spec = findSpec(id);
     String projectId = spec.getProject().getId();
     requireEdit(projectId);
+    lockProject(projectId);
 
-    String docId = request.docId().trim();
+    String docId = trimToEmpty(request.docId());
+    if (docId.isEmpty()) {
+      docId = spec.getDocId();
+    }
     if (!docId.equals(spec.getDocId())
         && specRepository.existsByProjectIdAndDocId(projectId, docId)) {
       throw invalid("Document ID is already in use.", "docId", docId);
@@ -183,15 +200,18 @@ public class RequirementService {
 
   public RequirementResponse createRequirement(RequirementRequest request) {
     requireEdit(request.projectId());
-    Project project = findProject(request.projectId());
-    String docId = request.docId().trim();
-    if (requirementRepository.existsByProjectIdAndDocId(project.getId(), docId)) {
+    Project project = lockProject(request.projectId());
+    RequirementSpec spec = findSpecInProject(request.specId(), project.getId());
+    String docId = trimToEmpty(request.docId());
+    if (docId.isEmpty()) {
+      docId = nextRequirementDocId(spec);
+    } else if (requirementRepository.existsByProjectIdAndDocId(project.getId(), docId)) {
       throw invalid("Requirement ID is already in use.", "docId", docId);
     }
 
     Requirement requirement = new Requirement();
     requirement.setProject(project);
-    requirement.setSpec(findSpecInProject(request.specId(), project.getId()));
+    requirement.setSpec(spec);
     requirement.setDocId(docId);
     requirement.setCreatedBy(securityContextUtil.getCurrentUsername());
     applyFields(requirement, request);
@@ -202,8 +222,12 @@ public class RequirementService {
     Requirement requirement = findRequirement(id);
     String projectId = requirement.getProject().getId();
     requireEdit(projectId);
+    lockProject(projectId);
 
-    String docId = request.docId().trim();
+    String docId = trimToEmpty(request.docId());
+    if (docId.isEmpty()) {
+      docId = requirement.getDocId();
+    }
     if (!docId.equals(requirement.getDocId())
         && requirementRepository.existsByProjectIdAndDocId(projectId, docId)) {
       throw invalid("Requirement ID is already in use.", "docId", docId);
@@ -240,6 +264,62 @@ public class RequirementService {
     if (request.displayOrder() != null) {
       requirement.setDisplayOrder(request.displayOrder());
     }
+  }
+
+  // ---------------------------------------------------------------- 자동 번호
+
+  /** 새 문서에 붙일 다음 ID(예: R-ONTS-003). 입력칸에 미리 채워 보여 주는 용도다. */
+  @Transactional(readOnly = true)
+  public String suggestSpecDocId(String projectId) {
+    requireAccess(projectId);
+    return nextSpecDocId(findProject(projectId));
+  }
+
+  /** 문서에 새 요구사항을 넣을 때 붙일 다음 ID(예: R-ONTS-003-012). */
+  @Transactional(readOnly = true)
+  public String suggestRequirementDocId(String specId) {
+    RequirementSpec spec = findSpec(specId);
+    requireAccess(spec.getProject().getId());
+    return nextRequirementDocId(spec);
+  }
+
+  private String nextSpecDocId(Project project) {
+    String head = SPEC_ID_PREFIX + TestCaseDisplayIdService.extractProjectCode(project) + "-";
+    return nextDocId(head, specRepository.findDocIdsByPrefix(project.getId(), head));
+  }
+
+  /** 번호는 프로젝트 전체에서 같은 머리를 쓰는 ID 를 보고 정하므로 다른 문서로 옮긴 요구사항과도 겹치지 않는다. */
+  private String nextRequirementDocId(RequirementSpec spec) {
+    String head = spec.getDocId() + "-";
+    String projectId = spec.getProject().getId();
+    String docId = nextDocId(head, requirementRepository.findDocIdsByPrefix(projectId, head));
+    if (docId.length() > MAX_DOC_ID_LENGTH) {
+      throw invalid(
+          "Document ID is too long to number its requirements. Enter the requirement ID manually.",
+          "docId",
+          docId);
+    }
+    return docId;
+  }
+
+  /**
+   * {@code head} 뒤에 숫자만 붙은 기존 ID 중 가장 큰 번호의 다음 값. 번호는 테스트케이스 ID 처럼 세 자리로 채운다. 직접 입력한 다른 형식의 ID 는 번호
+   * 계산에서 빠진다.
+   */
+  static String nextDocId(String head, Collection<String> existing) {
+    Pattern pattern = Pattern.compile(Pattern.quote(head) + "(\\d{1,9})");
+    int max =
+        existing.stream()
+            .map(pattern::matcher)
+            .filter(Matcher::matches)
+            .mapToInt(m -> Integer.parseInt(m.group(1)))
+            .max()
+            .orElse(0);
+    return String.format("%s%03d", head, max + 1);
+  }
+
+  private static String trimToEmpty(String value) {
+    return value == null ? "" : value.trim();
   }
 
   // ---------------------------------------------------------------- TC 연결
@@ -352,6 +432,16 @@ public class RequirementService {
     if (!projectSecurityService.canEditProject(projectId)) {
       throw new AccessDeniedException("No edit permission for project: " + projectId);
     }
+  }
+
+  /**
+   * 프로젝트를 커밋까지 잠그고 가져온다. 자동 번호를 정하는 일과 문서 ID 중복 검사를 한 줄로 세워, 동시에 저장한 두 건이 같은 ID 로
+   * 중복 제약에 걸려 실패하지 않게 한다.
+   */
+  private Project lockProject(String projectId) {
+    return projectRepository
+        .findByIdForUpdate(projectId)
+        .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
   }
 
   private Project findProject(String projectId) {

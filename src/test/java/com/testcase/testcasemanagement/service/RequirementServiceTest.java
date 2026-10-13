@@ -24,6 +24,7 @@ import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import java.util.List;
 import java.util.Optional;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.springframework.security.access.AccessDeniedException;
 import org.testng.Assert;
@@ -67,6 +68,7 @@ public class RequirementServiceTest {
     projectA = project("proj-A");
     projectB = project("proj-B");
     lenient().when(projectRepository.findById("proj-A")).thenReturn(Optional.of(projectA));
+    lenient().when(projectRepository.findByIdForUpdate("proj-A")).thenReturn(Optional.of(projectA));
     lenient().when(security.canAccessProject(anyString())).thenReturn(true);
     lenient().when(security.canEditProject(anyString())).thenReturn(true);
     lenient().when(securityContextUtil.getCurrentUsername()).thenReturn("tester");
@@ -95,6 +97,71 @@ public class RequirementServiceTest {
             service.createSpec(
                 new RequirementSpecRequest("proj-A", null, " SRS-01 ", "문서", null, null)));
     verify(specRepository, never()).save(any());
+  }
+
+  @Test
+  public void nextDocIdContinuesFromLargestNumberAndIgnoresOtherFormats() {
+    Assert.assertEquals(
+        RequirementService.nextDocId(
+            "R-ONTS-",
+            List.of("R-ONTS-001", "R-ONTS-009", "R-ONTS-002", "R-ONTS-X", "R-ONTS-001-003")),
+        "R-ONTS-010");
+    Assert.assertEquals(RequirementService.nextDocId("R-ONTS-", List.of()), "R-ONTS-001");
+    Assert.assertEquals(
+        RequirementService.nextDocId("R-ONTS-", List.of("R-ONTS-1234")), "R-ONTS-1235");
+  }
+
+  @Test
+  public void blankRequirementIdIsNumberedUnderItsSpecId() {
+    RequirementSpec spec = spec("spec-A", projectA, null);
+    spec.setDocId("R-ONTS-002");
+    when(specRepository.findById("spec-A")).thenReturn(Optional.of(spec));
+    when(requirementRepository.findDocIdsByPrefix("proj-A", "R-ONTS-002-"))
+        .thenReturn(List.of("R-ONTS-002-001", "R-ONTS-002-004"));
+
+    var created =
+        service.createRequirement(
+            new RequirementRequest("proj-A", "spec-A", "  ", "요구사항", null, null, null, 1, null));
+
+    Assert.assertEquals(created.docId(), "R-ONTS-002-005");
+  }
+
+  @Test
+  public void blankSpecIdIsGeneratedFromProjectCode() {
+    projectA.setCode("onts");
+    when(specRepository.findDocIdsByPrefix("proj-A", "R-ONTS-"))
+        .thenReturn(List.of("R-ONTS-001", "R-ONTS-002"));
+
+    var created =
+        service.createSpec(new RequirementSpecRequest("proj-A", null, null, "문서", null, null));
+
+    Assert.assertEquals(created.docId(), "R-ONTS-003");
+  }
+
+  @Test
+  public void projectIsLockedBeforeTheNextIdIsRead() {
+    when(specRepository.findDocIdsByPrefix(anyString(), anyString())).thenReturn(List.of());
+
+    service.createSpec(new RequirementSpecRequest("proj-A", null, "", "문서", null, null));
+
+    InOrder order = Mockito.inOrder(projectRepository, specRepository);
+    order.verify(projectRepository).findByIdForUpdate("proj-A");
+    order.verify(specRepository).findDocIdsByPrefix(anyString(), anyString());
+  }
+
+  @Test
+  public void blankIdOnUpdateKeepsExistingId() {
+    Requirement existing = requirement("r1", projectA);
+    existing.setDocId("R-ONTS-001-007");
+    when(requirementRepository.findById("r1")).thenReturn(Optional.of(existing));
+
+    var updated =
+        service.updateRequirement(
+            "r1",
+            new RequirementRequest(
+                "proj-A", existing.getSpec().getId(), "", "바뀐 제목", null, null, null, 1, null));
+
+    Assert.assertEquals(updated.docId(), "R-ONTS-001-007");
   }
 
   @Test

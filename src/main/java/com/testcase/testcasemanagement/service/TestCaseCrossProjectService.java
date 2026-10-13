@@ -449,6 +449,8 @@ public class TestCaseCrossProjectService {
   }
 
   private int maxSeq(String projectId) {
+    // 대상 프로젝트에서 동시에 만든 케이스와 순번이 겹치지 않도록 커밋까지 잠근다.
+    projectRepository.findByIdForUpdate(projectId);
     Integer max = testCaseRepository.findMaxSequentialIdByProjectId(projectId);
     return max == null ? 0 : max;
   }

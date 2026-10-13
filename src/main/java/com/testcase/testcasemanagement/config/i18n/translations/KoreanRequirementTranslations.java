@@ -39,6 +39,7 @@ public class KoreanRequirementTranslations {
     create("requirement.empty", lang, "요구사항이 없습니다.", by);
     create("requirement.field.coverage", lang, "커버리지", by);
     create("requirement.field.docId", lang, "요구사항 ID", by);
+    create("requirement.field.docIdAutoHint", lang, "비워 두면 다음 번호가 자동으로 붙습니다.", by);
     create("requirement.field.expectedCoverage", lang, "필요 TC 수", by);
     create("requirement.field.linked", lang, "연결 TC", by);
     create("requirement.field.noParent", lang, "(최상위)", by);

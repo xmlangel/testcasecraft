@@ -133,6 +133,22 @@ function RequirementWorkspace({ projectId }) {
       prev.map((r) => (r.id === updated.id ? updated : r)),
     );
 
+  // 새 문서는 다음 번호를 미리 채워 연다. 못 받아 오면 비워 두고 서버가 저장할 때 붙인다.
+  const openNewSpec = async (parentId) => {
+    let docId = "";
+    try {
+      docId = await requirementService.getNextSpecDocId(projectId);
+    } catch {
+      // 비워 둔 채로 연다.
+    }
+    setSpecDialog({ parentId, docId });
+  };
+
+  const suggestRequirementDocId = useCallback(
+    (specId) => requirementService.getNextRequirementDocId(specId),
+    [],
+  );
+
   const handleSaveSpec = async (form) => {
     const body = { ...form, projectId };
     if (specDialog?.id) {
@@ -230,7 +246,7 @@ function RequirementWorkspace({ projectId }) {
             testCases={testCases}
             canEdit={canEdit}
             initialRequirementId={initialRequirementId}
-            onAddSpec={(parentId) => setSpecDialog({ parentId })}
+            onAddSpec={openNewSpec}
             onEditSpec={(spec) => setSpecDialog(spec)}
             onDeleteSpec={handleDeleteSpec}
             onAddRequirement={(specId) =>
@@ -288,6 +304,7 @@ function RequirementWorkspace({ projectId }) {
         initial={reqDialog}
         specs={specs}
         onClose={() => setReqDialog(null)}
+        suggestDocId={suggestRequirementDocId}
         onSubmit={handleSaveRequirement}
       />
     </Paper>
