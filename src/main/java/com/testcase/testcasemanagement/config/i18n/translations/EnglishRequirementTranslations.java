@@ -39,6 +39,7 @@ public class EnglishRequirementTranslations {
     create("requirement.empty", lang, "No requirements.", by);
     create("requirement.field.coverage", lang, "Coverage", by);
     create("requirement.field.docId", lang, "Requirement ID", by);
+    create("requirement.field.docIdAutoHint", lang, "Leave blank to assign the next number.", by);
     create("requirement.field.expectedCoverage", lang, "Needed test cases", by);
     create("requirement.field.linked", lang, "Linked TCs", by);
     create("requirement.field.noParent", lang, "(Top level)", by);

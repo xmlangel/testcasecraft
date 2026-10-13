@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -49,6 +50,11 @@ public class RequirementController {
   }
 
   @Operation(summary = "요구사항 문서 생성")
+  @GetMapping("/projects/{projectId}/requirement-specs/next-doc-id")
+  public Map<String, String> nextSpecDocId(@PathVariable String projectId) {
+    return Map.of("docId", requirementService.suggestSpecDocId(projectId));
+  }
+
   @PostMapping("/requirement-specs")
   public ResponseEntity<RequirementSpecResponse> createSpec(
       @Valid @RequestBody RequirementSpecRequest request) {
@@ -78,6 +84,11 @@ public class RequirementController {
   }
 
   @Operation(summary = "요구사항 단건 조회")
+  @GetMapping("/requirement-specs/{specId}/next-requirement-doc-id")
+  public Map<String, String> nextRequirementDocId(@PathVariable String specId) {
+    return Map.of("docId", requirementService.suggestRequirementDocId(specId));
+  }
+
   @GetMapping("/requirements/{id}")
   public RequirementResponse getRequirement(@PathVariable String id) {
     return requirementService.getRequirement(id);

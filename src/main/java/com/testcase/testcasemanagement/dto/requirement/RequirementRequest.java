@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 public record RequirementRequest(
     @NotBlank(message = "projectId is required.") String projectId,
     @NotBlank(message = "specId is required.") String specId,
-    @NotBlank(message = "docId is required.") @Size(max = 64) String docId,
+    @Size(max = 64) String docId,
     @NotBlank(message = "title is required.") @Size(max = 200) String title,
     String scope,
     String status,

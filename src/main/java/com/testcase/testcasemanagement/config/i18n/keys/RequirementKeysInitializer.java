@@ -30,6 +30,8 @@ public class RequirementKeysInitializer {
     createKey("requirement.empty", "요구사항 관리 · 요구사항이 없습니다.", "요구사항이 없습니다.");
     createKey("requirement.field.coverage", "요구사항 관리 · 커버리지", "커버리지");
     createKey("requirement.field.docId", "요구사항 관리 · 요구사항 ID", "요구사항 ID");
+    createKey(
+        "requirement.field.docIdAutoHint", "요구사항 관리 · ID 자동 번호 안내", "비워 두면 다음 번호가 자동으로 붙습니다.");
     createKey("requirement.field.expectedCoverage", "요구사항 관리 · 필요 TC 수", "필요 TC 수");
     createKey("requirement.field.linked", "요구사항 관리 · 연결 TC", "연결 TC");
     createKey("requirement.field.noParent", "요구사항 관리 · (최상위)", "(최상위)");
