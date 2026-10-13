@@ -95,7 +95,7 @@ public class RequirementService {
 
   public RequirementSpecResponse createSpec(RequirementSpecRequest request) {
     requireEdit(request.projectId());
-    Project project = findProject(request.projectId());
+    Project project = lockProject(request.projectId());
     String docId = trimToEmpty(request.docId());
     if (docId.isEmpty()) {
       docId = nextSpecDocId(project);
@@ -121,6 +121,7 @@ public class RequirementService {
     RequirementSpec spec = findSpec(id);
     String projectId = spec.getProject().getId();
     requireEdit(projectId);
+    lockProject(projectId);
 
     String docId = trimToEmpty(request.docId());
     if (docId.isEmpty()) {
@@ -199,7 +200,7 @@ public class RequirementService {
 
   public RequirementResponse createRequirement(RequirementRequest request) {
     requireEdit(request.projectId());
-    Project project = findProject(request.projectId());
+    Project project = lockProject(request.projectId());
     RequirementSpec spec = findSpecInProject(request.specId(), project.getId());
     String docId = trimToEmpty(request.docId());
     if (docId.isEmpty()) {
@@ -221,6 +222,7 @@ public class RequirementService {
     Requirement requirement = findRequirement(id);
     String projectId = requirement.getProject().getId();
     requireEdit(projectId);
+    lockProject(projectId);
 
     String docId = trimToEmpty(request.docId());
     if (docId.isEmpty()) {
@@ -430,6 +432,16 @@ public class RequirementService {
     if (!projectSecurityService.canEditProject(projectId)) {
       throw new AccessDeniedException("No edit permission for project: " + projectId);
     }
+  }
+
+  /**
+   * 프로젝트를 커밋까지 잠그고 가져온다. 자동 번호를 정하는 일과 문서 ID 중복 검사를 한 줄로 세워, 동시에 저장한 두 건이 같은 ID 로
+   * 중복 제약에 걸려 실패하지 않게 한다.
+   */
+  private Project lockProject(String projectId) {
+    return projectRepository
+        .findByIdForUpdate(projectId)
+        .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
   }
 
   private Project findProject(String projectId) {

@@ -2,9 +2,11 @@
 package com.testcase.testcasemanagement.repository;
 
 import com.testcase.testcasemanagement.model.Project;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -20,6 +22,14 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
   boolean existsByCode(String code);
 
   Optional<Project> findByCode(String code);
+
+  /**
+   * 프로젝트 행을 트랜잭션이 끝날 때까지 잠근다. 프로젝트 안에서 다음 번호(테스트케이스 순번, 요구사항 문서·요구사항 ID)를 정하는 작업을 한 줄로 세워, 동시에 저장한
+   * 두 건이 같은 번호를 받지 않게 한다.
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT p FROM Project p WHERE p.id = :id")
+  Optional<Project> findByIdForUpdate(@Param("id") String id);
 
   // ID로 조회하면서 조직 정보를 함께 fetch
   @Query("SELECT p FROM Project p LEFT JOIN FETCH p.organization WHERE p.id = :id")

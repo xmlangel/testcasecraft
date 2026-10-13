@@ -24,6 +24,7 @@ import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import java.util.List;
 import java.util.Optional;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.springframework.security.access.AccessDeniedException;
 import org.testng.Assert;
@@ -67,6 +68,7 @@ public class RequirementServiceTest {
     projectA = project("proj-A");
     projectB = project("proj-B");
     lenient().when(projectRepository.findById("proj-A")).thenReturn(Optional.of(projectA));
+    lenient().when(projectRepository.findByIdForUpdate("proj-A")).thenReturn(Optional.of(projectA));
     lenient().when(security.canAccessProject(anyString())).thenReturn(true);
     lenient().when(security.canEditProject(anyString())).thenReturn(true);
     lenient().when(securityContextUtil.getCurrentUsername()).thenReturn("tester");
@@ -134,6 +136,17 @@ public class RequirementServiceTest {
         service.createSpec(new RequirementSpecRequest("proj-A", null, null, "문서", null, null));
 
     Assert.assertEquals(created.docId(), "R-ONTS-003");
+  }
+
+  @Test
+  public void projectIsLockedBeforeTheNextIdIsRead() {
+    when(specRepository.findDocIdsByPrefix(anyString(), anyString())).thenReturn(List.of());
+
+    service.createSpec(new RequirementSpecRequest("proj-A", null, "", "문서", null, null));
+
+    InOrder order = Mockito.inOrder(projectRepository, specRepository);
+    order.verify(projectRepository).findByIdForUpdate("proj-A");
+    order.verify(specRepository).findDocIdsByPrefix(anyString(), anyString());
   }
 
   @Test

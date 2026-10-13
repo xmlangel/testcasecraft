@@ -191,6 +191,8 @@ public class TestCaseService {
 
     // ICT-339: 순차 ID 자동 생성 (프로젝트별 순차 증가)
     if (entity.getSequentialId() == null) {
+      // 동시에 만든 케이스가 같은 순번을 받지 않도록 커밋까지 프로젝트를 잠근다.
+      projectRepository.findByIdForUpdate(project.getId());
       Integer maxSequentialId = testCaseRepository.findMaxSequentialIdByProjectId(project.getId());
       entity.setSequentialId(maxSequentialId == null ? 1 : maxSequentialId + 1);
     }
@@ -1550,6 +1552,8 @@ public class TestCaseService {
 
               // 프로젝트별로 최대 sequentialId 캐싱 (첫 번째 조회만 DB 접근)
               if (!projectMaxSeqIdMap.containsKey(projectId)) {
+                // 다른 저장과 순번이 겹치지 않도록 커밋까지 프로젝트를 잠근다.
+                projectRepository.findByIdForUpdate(projectId);
                 Integer maxSequentialId =
                     testCaseRepository.findMaxSequentialIdByProjectId(projectId);
                 projectMaxSeqIdMap.put(projectId, maxSequentialId == null ? 0 : maxSequentialId);
