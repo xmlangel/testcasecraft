@@ -69,7 +69,7 @@ public class TestCase {
   @Column(name = "is_automated")
   private Boolean isAutomated = Boolean.FALSE;
 
-  @Comment("실행 유형: 테스트 실행 방식 (값 영역: Manual, Automated)")
+  @Comment("실행 유형: 테스트 실행 방식 (값 영역: Manual, Automation, Hybrid)")
   @Column(name = "execution_type", length = 50)
   private String executionType = "Manual";
 
@@ -85,7 +85,6 @@ public class TestCase {
   @Comment(value = "테스트 케이스 식별자: 각 스텝이 속한 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
   @Comment(value = "스텝 설명: 이 스텝에서 수행할 작업 설명", on = "description")
   @Comment(value = "기대 결과: 이 스텝 실행 후 기대하는 결과", on = "expected_result")
-  @Comment(value = "스텝 번호: 이 스텝의 순서 (값 영역: 1 이상의 정수)", on = "step_number")
   @Comment(value = "스텝 순서: 테이블 내 스텝의 정렬 위치", on = "step_order")
   @ElementCollection
   @CollectionTable(name = "testcasesteps", joinColumns = @JoinColumn(name = "testcase_id"))

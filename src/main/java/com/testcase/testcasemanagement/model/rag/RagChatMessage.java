@@ -37,7 +37,7 @@ public class RagChatMessage {
   @JoinColumn(name = "thread_id", nullable = false)
   private RagChatThread thread;
 
-  @Comment("메시지 역할: 이 메시지의 발신자 역할")
+  @Comment("메시지 역할: 이 메시지의 발신자 역할 (값 영역: SYSTEM, USER, ASSISTANT)")
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false, length = 20)
   private RagChatMessageRole role;

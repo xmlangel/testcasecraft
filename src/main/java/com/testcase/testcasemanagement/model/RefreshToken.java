@@ -39,7 +39,6 @@ public class RefreshToken {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
-  @Comment("사용자: 이 토큰을 소유한 사용자")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", insertable = false, updatable = false)
   private User user;

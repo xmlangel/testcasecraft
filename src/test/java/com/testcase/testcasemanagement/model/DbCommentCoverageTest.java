@@ -4,17 +4,24 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import java.lang.reflect.Field;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
+import org.hibernate.annotations.Comment;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.model.relational.Namespace;
@@ -38,7 +45,7 @@ import org.testng.annotations.Test;
  * <p>DB 설명은 한국어 한 가지로 둔다. ISO/IEC 11179 는 언어별 이름·정의를 따로 관리하므로, 영어 이름·정의는 데이터 사전 {@code
  * db/comments/data-dictionary.csv} 에 별도 열로 둔다. 데이터 사전의 한국어 열과 {@code db/comments/db-comments.sql} 은 엔티티에서
  * 생성하며, 영어 열은 사람이 채운다. 다시 만들려면 환경 변수 {@code DBCOMMENTS_WRITE=true} 를 주고 실행한다. 이미 채운 영어 열은
- * 유지되고, 새로 생긴 행의 영어 열은 비어 있어 이 테스트가 실패한다.
+ * 유지되고, 새로 생긴 행과 한국어 열이 바뀐 행은 영어 열이 비어 이 테스트가 실패한다.
  */
 public class DbCommentCoverageTest {
 
@@ -63,9 +70,14 @@ public class DbCommentCoverageTest {
 
   private StandardServiceRegistry registry;
   private Metadata metadata;
+  private final List<Class<?>> entityClasses = new ArrayList<>();
 
   @BeforeClass
-  public void buildMetadata() {
+  public void buildMetadata() throws ClassNotFoundException {
+    // 상대 경로로 파일을 읽고 쓰므로, 모듈 루트가 아닌 곳에서 실행하면 엉뚱한 비교나 엉뚱한 위치의 파일 생성이 된다.
+    assertTrue(
+        Files.isDirectory(SQL_FILE.getParent()),
+        SQL_FILE.getParent() + " 이 없다. 작업 디렉터리가 모듈 루트가 아니다: " + Path.of("").toAbsolutePath());
     registry =
         new StandardServiceRegistryBuilder()
             .applySetting("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect")
@@ -83,6 +95,7 @@ public class DbCommentCoverageTest {
     scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
     for (BeanDefinition definition : scanner.findCandidateComponents(ENTITY_PACKAGE)) {
       sources.addAnnotatedClassName(definition.getBeanClassName());
+      entityClasses.add(Class.forName(definition.getBeanClassName()));
     }
     metadata = sources.buildMetadata();
   }
@@ -147,13 +160,45 @@ public class DbCommentCoverageTest {
       if (!ENGLISH_NAME.matcher(row.get(5)).matches()
           || row.get(6).isEmpty()
           || HANGUL.matcher(row.get(5) + row.get(6) + row.get(7)).find()
-          || hasKoreanDomain != hasEnglishDomain) {
+          || hasKoreanDomain != hasEnglishDomain
+          || !domainItems(row.get(7)).containsAll(codeItems(row.get(4)))) {
         invalid.add(key);
       }
     }
     assertTrue(
         invalid.isEmpty(),
         DICTIONARY_FILE + " 에서 영어 열이 비었거나 형식이 맞지 않는 행 " + invalid.size() + "개: " + invalid);
+  }
+
+  @Test
+  public void enum_컬럼의_값_영역이_enum_상수와_같다() {
+    List<String> invalid = new ArrayList<>();
+    for (Class<?> entity : entityClasses) {
+      for (Field field : entity.getDeclaredFields()) {
+        Enumerated enumerated = field.getAnnotation(Enumerated.class);
+        Comment comment = field.getAnnotation(Comment.class);
+        if (enumerated == null
+            || enumerated.value() != EnumType.STRING
+            || comment == null
+            || !comment.on().isEmpty()
+            || !field.getType().isEnum()) {
+          continue;
+        }
+        Set<String> constants = new TreeSet<>();
+        for (Object constant : field.getType().getEnumConstants()) {
+          constants.add(((Enum<?>) constant).name());
+        }
+        var matcher = KOREAN_COMMENT.matcher(comment.value());
+        Set<String> domain =
+            matcher.matches() && matcher.group(3) != null
+                ? new TreeSet<>(domainItems(matcher.group(3)))
+                : Set.of();
+        if (!domain.equals(constants)) {
+          invalid.add(entity.getSimpleName() + "." + field.getName() + " 설명=" + domain + " enum=" + constants);
+        }
+      }
+    }
+    assertTrue(invalid.isEmpty(), "값 영역이 enum 상수와 다른 컬럼 " + invalid.size() + "개: " + invalid);
   }
 
   @Test
@@ -205,7 +250,9 @@ public class DbCommentCoverageTest {
         row.addAll(List.of(object.comment(), "", ""));
       }
       List<String> previous = existing.get(object.key());
-      row.addAll(previous == null ? List.of("", "", "") : previous.subList(5, 8));
+      // 한국어 열이 바뀐 행은 영어 열을 비워, 번역을 다시 채우기 전까지 영어 열 검사가 실패하게 한다.
+      boolean koreanUnchanged = previous != null && previous.subList(2, 5).equals(row.subList(2, 5));
+      row.addAll(koreanUnchanged ? previous.subList(5, 8) : List.of("", "", ""));
       rows.add(row);
     }
     return rows;
@@ -214,6 +261,7 @@ public class DbCommentCoverageTest {
   private Map<String, List<String>> readDictionary() throws IOException {
     List<List<String>> records =
         parseCsv(Files.readString(DICTIONARY_FILE, StandardCharsets.UTF_8));
+    assertTrue(!records.isEmpty(), DICTIONARY_FILE + " 이 비어 있다. DBCOMMENTS_WRITE=true 로 다시 생성한다.");
     assertEquals(records.get(0), DICTIONARY_HEADER, DICTIONARY_FILE + " 의 머리행이 다르다.");
     Map<String, List<String>> rows = new LinkedHashMap<>();
     for (List<String> record : records.subList(1, records.size())) {
@@ -304,6 +352,17 @@ public class DbCommentCoverageTest {
       records.add(record);
     }
     return records;
+  }
+
+  private static List<String> domainItems(String domain) {
+    return domain.isEmpty() ? List.of() : Arrays.asList(domain.split(", "));
+  }
+
+  /** 한국어 값 영역에서 한글이 없는 항목(코드 값). 영어 값 영역에도 그대로 있어야 한다. 범위(0~100)는 표기를 옮겨도 되므로 뺀다. */
+  private static List<String> codeItems(String domain) {
+    return domainItems(domain).stream()
+        .filter(item -> !HANGUL.matcher(item).find() && !item.contains("~"))
+        .toList();
   }
 
   private static boolean isWriteMode() {

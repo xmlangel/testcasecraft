@@ -47,7 +47,7 @@ public class RagGlobalDocumentRequest {
   @Column(name = "request_message", columnDefinition = "TEXT")
   private String requestMessage;
 
-  @Comment("상태: 이 요청의 처리 상태 (값 영역: PENDING, PROCESSING, COMPLETED, REJECTED, FAILED)")
+  @Comment("상태: 이 요청의 처리 상태 (값 영역: PENDING, APPROVED, REJECTED, FAILED)")
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 30)
   private RagGlobalDocumentRequestStatus status;

@@ -8,7 +8,7 @@ COMMENT ON COLUMN agent_connections.browser_url IS '브라우저 URL: 딥링크 
 COMMENT ON COLUMN agent_connections.connection_verified IS '연결 검증 여부: 마지막 검증 시 서버와 정상 연결됨을 확인했는지 (값 영역: true, false)';
 COMMENT ON COLUMN agent_connections.created_at IS '생성 일시: 이 행이 처음 저장된 일시';
 COMMENT ON COLUMN agent_connections.default_profile IS '기본 프로필 식별자: 에이전트 앱의 기본 정책·컨텍스트 묶음 식별자';
-COMMENT ON COLUMN agent_connections.encrypted_token IS '인증 토큰: 암호화된 에이전트 접근 인증값';
+COMMENT ON COLUMN agent_connections.encrypted_token IS '인증 토큰: 에이전트 접근 인증값 (값 영역: 암호문)';
 COMMENT ON COLUMN agent_connections.id IS '식별자: 이 연동 설정을 유일하게 가리키는 값 (값 영역: UUID 36자)';
 COMMENT ON COLUMN agent_connections.is_active IS '활성 여부: 이 연동이 화면에 표시되고 실행 가능한지 (값 영역: true, false)';
 COMMENT ON COLUMN agent_connections.last_connection_error IS '마지막 연결 오류: 가장 최근 연결 시도에서 발생한 오류 메시지';
@@ -20,10 +20,10 @@ COMMENT ON COLUMN agent_connections.updated_at IS '수정 일시: 이 행이 마
 COMMENT ON COLUMN agent_connections.updated_by IS '수정자 명: 이 행을 마지막으로 변경한 사용자의 사용자명';
 
 COMMENT ON TABLE audit_logs IS '감사 로그: 사용자·프로젝트·조직 같은 주요 대상에 대한 생성·수정·삭제 기록';
-COMMENT ON COLUMN audit_logs.action IS '작업 코드: 수행된 작업의 종류 (값 영역: CREATE, UPDATE, DELETE, ARCHIVE)';
+COMMENT ON COLUMN audit_logs.action IS '작업 코드: 수행된 작업의 종류 (값 영역: CREATE, READ, UPDATE, DELETE, INVITE_MEMBER, REMOVE_MEMBER, UPDATE_MEMBER_ROLE, GRANT_PERMISSION, REVOKE_PERMISSION, TRANSFER, LOGIN, LOGOUT, ACTIVATE, DEACTIVATE, ARCHIVE, RESTORE)';
 COMMENT ON COLUMN audit_logs.details IS '작업 상세: 변경된 필드와 값, 또는 작업 상세 정보';
 COMMENT ON COLUMN audit_logs.entity_id IS '엔티티 식별자: 변경된 엔티티의 식별자값';
-COMMENT ON COLUMN audit_logs.entity_type IS '엔티티 유형: 변경된 엔티티의 종류 (값 영역: USER, PROJECT, ORGANIZATION, TESTCASE 등)';
+COMMENT ON COLUMN audit_logs.entity_type IS '엔티티 유형: 변경된 엔티티의 종류 (값 영역: USER, ORGANIZATION, ORGANIZATION_USER, PROJECT, PROJECT_USER, GROUP, GROUP_MEMBER, TEST_CASE, TEST_PLAN, TEST_EXECUTION, TEST_RESULT, SYSTEM, AUTHENTICATION)';
 COMMENT ON COLUMN audit_logs.id IS '식별자: 이 감사 로그 기록을 유일하게 가리키는 값 (값 영역: UUID)';
 COMMENT ON COLUMN audit_logs.performed_by IS '수행자 식별자: 이 작업을 수행한 사용자 (값 영역: users.id 참조)';
 COMMENT ON COLUMN audit_logs.timestamp IS '기록 일시: 이 작업이 수행된 일시';
@@ -72,7 +72,7 @@ COMMENT ON COLUMN email_verification_tokens.user_id IS '사용자 식별자: 이
 COMMENT ON TABLE google_config IS 'Google 설정: 사용자의 Google Sheets 연동 인증 정보';
 COMMENT ON COLUMN google_config.client_email IS '클라이언트 이메일: Google 서비스 계정 또는 OAuth 사용자 이메일 (값 영역: 200자 이하 이메일)';
 COMMENT ON COLUMN google_config.created_at IS '생성 일시: 이 행이 처음 저장된 일시';
-COMMENT ON COLUMN google_config.encrypted_json_key IS '암호화된 JSON 키: Google 인증용 JSON 키 전체 (암호화됨)';
+COMMENT ON COLUMN google_config.encrypted_json_key IS 'JSON 키: Google 인증용 JSON 키 전체 (값 영역: 암호문)';
 COMMENT ON COLUMN google_config.id IS '식별자: 이 Google 설정 기록을 유일하게 가리키는 값 (값 영역: UUID 36자)';
 COMMENT ON COLUMN google_config.is_active IS '활성 여부: 이 Google 설정을 사용할 수 있는지 (값 영역: true, false)';
 COMMENT ON COLUMN google_config.last_export_sheet_name IS '마지막 내보내기 시트 명: 가장 최근에 내보낸 시트의 이름 (값 영역: 200자 이하)';
@@ -103,7 +103,7 @@ COMMENT ON COLUMN groups.updated_at IS '수정 일시: 이 행이 마지막으�
 COMMENT ON TABLE jira_config IS 'Jira 연동 설정: 사용자별 Jira 서버 접속 정보와 연결 검증 상태';
 COMMENT ON COLUMN jira_config.connection_verified IS '연결 검증 여부: 마지막 연결 테스트의 성공 여부';
 COMMENT ON COLUMN jira_config.created_at IS '생성 일시: 이 행이 처음 저장된 일시';
-COMMENT ON COLUMN jira_config.encrypted_api_token IS '암호화된 API 토큰: Jira 서버 인증에 사용할 암호화된 API 토큰';
+COMMENT ON COLUMN jira_config.encrypted_api_token IS 'API 토큰: Jira 서버 인증에 사용할 API 토큰 (값 영역: 암호문)';
 COMMENT ON COLUMN jira_config.id IS '설정 식별자: 이 행을 유일하게 가리키는 값 (값 영역: UUID 36자)';
 COMMENT ON COLUMN jira_config.is_active IS '활성 여부: 이 설정을 사용할지 여부';
 COMMENT ON COLUMN jira_config.last_connection_error IS '마지막 연결 오류: 마지막 연결 시도 실패 시 오류 메시지';
@@ -212,7 +212,7 @@ COMMENT ON COLUMN llm_config.analysis_model_name IS '분석용 모델명: 질의
 COMMENT ON COLUMN llm_config.api_url IS 'API URL: 해당 LLM 제공자의 API 엔드포인트 주소';
 COMMENT ON COLUMN llm_config.connection_verified IS '연결 검증 여부: 마지막 연결 테스트의 성공 여부';
 COMMENT ON COLUMN llm_config.created_at IS '생성 일시: 이 행이 처음 저장된 일시';
-COMMENT ON COLUMN llm_config.encrypted_api_key IS '암호화된 API 키: LLM 제공자 인증에 사용할 암호화된 API 키';
+COMMENT ON COLUMN llm_config.encrypted_api_key IS 'API 키: LLM 제공자 인증에 사용할 API 키 (값 영역: 암호문)';
 COMMENT ON COLUMN llm_config.id IS '설정 식별자: 이 행을 유일하게 가리키는 값 (값 영역: UUID 36자)';
 COMMENT ON COLUMN llm_config.is_active IS '활성 여부: 이 설정을 사용할 수 있는지 여부';
 COMMENT ON COLUMN llm_config.is_default IS '기본 설정 여부: 사용자가 명시하지 않을 때 기본으로 사용할 설정인지 여부';
@@ -281,7 +281,7 @@ COMMENT ON COLUMN project_users.updated_at IS '수정 일시: 이 행이 마지�
 COMMENT ON COLUMN project_users.user_id IS '사용자 식별자: 프로젝트의 멤버인 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)';
 
 COMMENT ON TABLE projects IS '프로젝트: 테스트 케이스, 테스트 플랜, 테스트 실행을 함께 관리하는 작업 단위';
-COMMENT ON COLUMN projects.code IS '프로젝트 코드: 프로젝트를 구분하는 짧은 코드, 프로젝트 단위로 유일 (값 영역: 50자 이하)';
+COMMENT ON COLUMN projects.code IS '프로젝트 코드: 프로젝트를 구분하는 짧은 코드, 시스템 전체에서 유일 (값 영역: 50자 이하)';
 COMMENT ON COLUMN projects.createdat IS '생성 일시: 이 행이 처음 저장된 일시';
 COMMENT ON COLUMN projects.description IS '설명: 프로젝트의 목적과 범위에 대한 상세 설명';
 COMMENT ON COLUMN projects.display_order IS '표시 순서: 프로젝트 목록에서의 정렬 순서 (값 영역: 0 이상)';
@@ -314,7 +314,7 @@ COMMENT ON COLUMN rag_chat_messages.llm_model IS 'LLM 모델: 이 메시지를 �
 COMMENT ON COLUMN rag_chat_messages.llm_provider IS 'LLM 제공자: 이 메시지를 생성한 LLM 제공자 이름';
 COMMENT ON COLUMN rag_chat_messages.metadata_json IS '메타데이터: JSON 형식으로 저장된 추가 메타데이터';
 COMMENT ON COLUMN rag_chat_messages.parent_message_id IS '부모 메시지 식별자: 이 메시지가 응답하는 상위 메시지 (값 영역: rag_chat_messages.id 참조)';
-COMMENT ON COLUMN rag_chat_messages.role IS '메시지 역할: 이 메시지의 발신자 역할';
+COMMENT ON COLUMN rag_chat_messages.role IS '메시지 역할: 이 메시지의 발신자 역할 (값 영역: SYSTEM, USER, ASSISTANT)';
 COMMENT ON COLUMN rag_chat_messages.temperature IS '온도 파라미터: LLM 생성 시 사용한 온도 값';
 COMMENT ON COLUMN rag_chat_messages.thread_id IS '채팅 스레드 식별자: 이 메시지가 속한 채팅 스레드 (값 영역: rag_chat_threads.id 참조)';
 COMMENT ON COLUMN rag_chat_messages.tokens_used IS '사용 토큰: 이 메시지 생성에 소비된 토큰 수';
@@ -347,7 +347,7 @@ COMMENT ON COLUMN rag_global_document_requests.project_id IS '프로젝트 식�
 COMMENT ON COLUMN rag_global_document_requests.request_message IS '요청 메시지: 요청에 포함된 메모 또는 요청 사유';
 COMMENT ON COLUMN rag_global_document_requests.requested_by IS '요청자 명: 이 요청을 제출한 사용자 (값 영역: 100자 이하)';
 COMMENT ON COLUMN rag_global_document_requests.response_message IS '응답 메시지: 처리 결과 메시지';
-COMMENT ON COLUMN rag_global_document_requests.status IS '상태: 이 요청의 처리 상태 (값 영역: PENDING, PROCESSING, COMPLETED, REJECTED, FAILED)';
+COMMENT ON COLUMN rag_global_document_requests.status IS '상태: 이 요청의 처리 상태 (값 영역: PENDING, APPROVED, REJECTED, FAILED)';
 
 COMMENT ON TABLE refresh_tokens IS '리프레시 토큰: 로그인한 사용자가 액세스 토큰을 다시 발급받을 때 제출하는 토큰';
 COMMENT ON COLUMN refresh_tokens.created_at IS '생성 일시: 이 행이 처음 저장된 일시';
@@ -454,7 +454,7 @@ COMMENT ON COLUMN test_case_attachments.id IS '식별자: 이 첨부를 유일�
 COMMENT ON COLUMN test_case_attachments.is_used_in_content IS '본문 사용 여부: 이 파일이 케이스 본문에 실제로 인라인 포함되었는지 (값 영역: true, false)';
 COMMENT ON COLUMN test_case_attachments.mime_type IS 'MIME 유형: 파일의 미디어 유형 (값 영역: 100자 이하, 예: image/png)';
 COMMENT ON COLUMN test_case_attachments.original_file_name IS '원본 파일명: 업로드 시 사용자가 제공한 파일 이름 (값 영역: 255자 이하)';
-COMMENT ON COLUMN test_case_attachments.public_access_token IS '공개 접근 토큰: 로그인하지 않고 이 파일에 접근할 수 있는 일회용 토큰 (값 영역: 64자 이하)';
+COMMENT ON COLUMN test_case_attachments.public_access_token IS '공개 접근 토큰: 첨부가 ACTIVE 인 동안 로그인 없이 이 파일에 계속 접근할 수 있는 고정 토큰 (값 영역: 64자 이하)';
 COMMENT ON COLUMN test_case_attachments.status IS '상태: 이 첨부가 활성인지 삭제 표기되었는지 (값 영역: ACTIVE, DELETED)';
 COMMENT ON COLUMN test_case_attachments.stored_file_name IS '저장된 파일명: 저장소에 저장할 때 사용한 충돌 없는 새 파일 이름 (값 영역: 255자 이하)';
 COMMENT ON COLUMN test_case_attachments.test_case_id IS '테스트 케이스 식별자: 이 첨부가 올려진 테스트 케이스 (값 영역: testcases.id 참조, 케이스 삭제 시 null)';
@@ -578,7 +578,7 @@ COMMENT ON COLUMN test_session_attachments.id IS '식별자: 이 첨부를 유�
 COMMENT ON COLUMN test_session_attachments.is_used_in_content IS '본문 사용 여부: 이 파일이 세션 노트에 실제로 인라인 포함되었는지 (값 영역: true, false)';
 COMMENT ON COLUMN test_session_attachments.mime_type IS 'MIME 유형: 파일의 미디어 유형 (값 영역: 100자 이하, 예: image/png)';
 COMMENT ON COLUMN test_session_attachments.original_file_name IS '원본 파일명: 업로드 시 사용자가 제공한 파일 이름 (값 영역: 255자 이하)';
-COMMENT ON COLUMN test_session_attachments.public_access_token IS '공개 접근 토큰: 로그인하지 않고 이 파일에 접근할 수 있는 일회용 토큰 (값 영역: 100자 이하)';
+COMMENT ON COLUMN test_session_attachments.public_access_token IS '공개 접근 토큰: 첨부가 ACTIVE 인 동안 로그인 없이 이 파일에 계속 접근할 수 있는 고정 토큰 (값 영역: 100자 이하)';
 COMMENT ON COLUMN test_session_attachments.session_id IS '테스트 세션 식별자: 이 첨부가 수집된 테스트 세션 (값 영역: test_sessions.id 참조)';
 COMMENT ON COLUMN test_session_attachments.status IS '상태: 이 첨부가 활성인지 삭제 표기되었는지 (값 영역: ACTIVE, DELETED)';
 COMMENT ON COLUMN test_session_attachments.stored_file_name IS '저장된 파일명: 저장소에 저장할 때 사용한 충돌 없는 새 파일 이름 (값 영역: 255자 이하)';
@@ -672,14 +672,14 @@ COMMENT ON COLUMN testcase_tags.testcase_id IS '테스트 케이스 식별자: �
 
 COMMENT ON TABLE testcase_versions IS '테스트 케이스 버전: 저장 시점마다 남긴 테스트 케이스 내용의 사본';
 COMMENT ON COLUMN testcase_versions.change_summary IS '변경 요약: 이전 버전과의 주요 변경 사항';
-COMMENT ON COLUMN testcase_versions.change_type IS '변경 유형: 버전이 생성된 이유 (값 영역: CREATE, UPDATE, MANUAL_SAVE)';
+COMMENT ON COLUMN testcase_versions.change_type IS '변경 유형: 버전이 생성된 이유 (값 영역: CREATE, UPDATE, MANUAL_SAVE, RESTORE)';
 COMMENT ON COLUMN testcase_versions.created_at IS '생성 일시: 이 버전이 처음 저장된 일시';
 COMMENT ON COLUMN testcase_versions.created_by IS '생성자 식별자: 이 버전을 생성한 사용자 (값 영역: users.id 참조)';
 COMMENT ON COLUMN testcase_versions.created_by_name IS '생성자명: 조회 성능 최적화를 위해 복제한 생성자의 사용자명';
 COMMENT ON COLUMN testcase_versions.description IS '설명: 테스트 케이스의 상세 설명';
 COMMENT ON COLUMN testcase_versions.display_id IS '표시 ID: 사용자가 보는 테스트 케이스 ID';
 COMMENT ON COLUMN testcase_versions.display_order IS '표시 순서: 같은 폴더 내에서 나타나는 순서';
-COMMENT ON COLUMN testcase_versions.execution_type IS '실행 유형: 테스트 실행 방식 (값 영역: Manual, Automated 등)';
+COMMENT ON COLUMN testcase_versions.execution_type IS '실행 유형: 테스트 실행 방식 (값 영역: Manual, Automation, Hybrid)';
 COMMENT ON COLUMN testcase_versions.expected_results IS '기대 결과: 테스트 케이스의 기대 결과';
 COMMENT ON COLUMN testcase_versions.id IS '버전 식별자: 이 행을 유일하게 가리키는 값 (값 영역: UUID 36자)';
 COMMENT ON COLUMN testcase_versions.is_automated IS '자동화 여부: 이 테스트 케이스를 자동화 테스트로 실행하는지 여부 (값 영역: true, false)';
@@ -708,7 +708,7 @@ COMMENT ON COLUMN testcases.created_by IS '생성자 명: 이 케이스를 처�
 COMMENT ON COLUMN testcases.description IS '설명: 이 테스트 케이스 또는 폴더에 대한 상세 설명';
 COMMENT ON COLUMN testcases.display_id IS '표시 식별자: 프로젝트코드와 순차번호 조합 (값 영역: 50자 이하)';
 COMMENT ON COLUMN testcases.display_order IS '표시 순서: 같은 폴더에서 이 케이스의 표시 위치 (값 영역: 정수)';
-COMMENT ON COLUMN testcases.execution_type IS '실행 유형: 테스트 실행 방식 (값 영역: Manual, Automated)';
+COMMENT ON COLUMN testcases.execution_type IS '실행 유형: 테스트 실행 방식 (값 영역: Manual, Automation, Hybrid)';
 COMMENT ON COLUMN testcases.expected_results IS '기대 결과: 이 테스트 전체의 최종 기대 결과 (스텝별과 다를 수 있음)';
 COMMENT ON COLUMN testcases.id IS '식별자: 이 테스트 케이스를 유일하게 가리키는 값 (값 영역: UUID 36자)';
 COMMENT ON COLUMN testcases.is_automated IS '자동화 여부: 이 테스트 케이스가 자동화되었는지 (값 영역: true, false)';
@@ -728,7 +728,7 @@ COMMENT ON COLUMN testcases.version IS '낙관적 잠금 버전: 동시에 수�
 COMMENT ON TABLE testcasesteps IS '테스트 스텝: 테스트 케이스를 수행하는 순서별 단계와 그 단계의 기대 결과';
 COMMENT ON COLUMN testcasesteps.description IS '스텝 설명: 이 스텝에서 수행할 작업 설명';
 COMMENT ON COLUMN testcasesteps.expected_result IS '기대 결과: 이 스텝 실행 후 기대하는 결과';
-COMMENT ON COLUMN testcasesteps.step_number IS '스텝 번호: 이 스텝의 순서 (값 영역: 1 이상의 정수)';
+COMMENT ON COLUMN testcasesteps.step_number IS '스텝 번호: 이 스텝의 순서 번호 (값 영역: 1 이상의 정수)';
 COMMENT ON COLUMN testcasesteps.step_order IS '스텝 순서: 테이블 내 스텝의 정렬 위치';
 COMMENT ON COLUMN testcasesteps.testcase_id IS '테스트 케이스 식별자: 각 스텝이 속한 테스트 케이스 (값 영역: testcases.id 참조)';
 
@@ -755,7 +755,7 @@ COMMENT ON COLUMN translations.updated_at IS '수정 일시: 이 행이 마지�
 COMMENT ON COLUMN translations.updated_by IS '최종 수정자 명: 이 번역을 마지막으로 수정한 사용자의 사용자명';
 
 COMMENT ON TABLE user_activities IS '사용자 활동: 사용자의 로그인, 화면 접근, 작업 수행 기록';
-COMMENT ON COLUMN user_activities.activity_category IS '활동 분류: 활동이 속한 상위 카테고리 (값 영역: AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, SYSTEM)';
+COMMENT ON COLUMN user_activities.activity_category IS '활동 분류: 활동이 속한 상위 카테고리 (값 영역: AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, ORGANIZATION_MANAGEMENT, SYSTEM_ADMINISTRATION, USER_PROFILE)';
 COMMENT ON COLUMN user_activities.activity_type IS '활동 유형: 구체적인 활동 종류 (값 영역: LOGIN, LOGOUT, PROJECT_ACCESS, TESTCASE_CREATE, TESTCASE_UPDATE 등)';
 COMMENT ON COLUMN user_activities.anomaly_detected IS '이상 활동 감지: 이 활동이 평상시와 다른 이상 패턴인지 (값 영역: true, false)';
 COMMENT ON COLUMN user_activities.details IS '상세 정보: 활동의 추가 정보 또는 JSON 형태의 매개변수';

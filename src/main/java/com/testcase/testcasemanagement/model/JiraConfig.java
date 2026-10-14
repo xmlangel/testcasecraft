@@ -40,7 +40,7 @@ public class JiraConfig {
   @Column(nullable = false, length = 100)
   private String username;
 
-  @Comment("암호화된 API 토큰: Jira 서버 인증에 사용할 암호화된 API 토큰")
+  @Comment("API 토큰: Jira 서버 인증에 사용할 API 토큰 (값 영역: 암호문)")
   @JsonIgnore
   @Column(nullable = false, columnDefinition = "TEXT")
   private String encryptedApiToken;

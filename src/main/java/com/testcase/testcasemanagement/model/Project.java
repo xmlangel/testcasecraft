@@ -39,7 +39,7 @@ public class Project {
   @Column(name = "display_order")
   private Integer displayOrder = 0; // 기본값 할당
 
-  @Comment("프로젝트 코드: 프로젝트를 구분하는 짧은 코드, 프로젝트 단위로 유일 (값 영역: 50자 이하)")
+  @Comment("프로젝트 코드: 프로젝트를 구분하는 짧은 코드, 시스템 전체에서 유일 (값 영역: 50자 이하)")
   @Column(name = "code", nullable = false, length = 50, unique = true)
   private String code; // ✅ NOT NULL + 유니크 제약조건
 

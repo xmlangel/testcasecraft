@@ -38,7 +38,7 @@ public class UserActivity {
   private String
       activityType; // LOGIN, LOGOUT, PROJECT_ACCESS, TESTCASE_CREATE, TESTCASE_UPDATE, etc.
 
-  @Comment("활동 분류: 활동이 속한 상위 카테고리 (값 영역: AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, SYSTEM)")
+  @Comment("활동 분류: 활동이 속한 상위 카테고리 (값 영역: AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, ORGANIZATION_MANAGEMENT, SYSTEM_ADMINISTRATION, USER_PROFILE)")
   @Column(name = "activity_category", nullable = false, length = 30)
   private String activityCategory; // AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, SYSTEM
 

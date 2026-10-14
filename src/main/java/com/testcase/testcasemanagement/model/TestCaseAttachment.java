@@ -68,7 +68,7 @@ public class TestCaseAttachment {
   private String filePath;
 
   /** 공개 링크 접근을 위한 토큰 (UUID 기반) */
-  @Comment("공개 접근 토큰: 로그인하지 않고 이 파일에 접근할 수 있는 일회용 토큰 (값 영역: 64자 이하)")
+  @Comment("공개 접근 토큰: 첨부가 ACTIVE 인 동안 로그인 없이 이 파일에 계속 접근할 수 있는 고정 토큰 (값 영역: 64자 이하)")
   @Column(name = "public_access_token", length = 64, unique = true)
   private String publicAccessToken;
 

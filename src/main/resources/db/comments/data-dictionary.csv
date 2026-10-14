@@ -5,7 +5,7 @@ agent_connections,browser_url,브라우저 URL,딥링크 실행 시 브라우저
 agent_connections,connection_verified,연결 검증 여부,마지막 검증 시 서버와 정상 연결됨을 확인했는지,"true, false",Connection Verified Indicator,whether the last verification confirmed a successful connection to the server,"true, false"
 agent_connections,created_at,생성 일시,이 행이 처음 저장된 일시,,Created Date Time,date and time this row was first saved,
 agent_connections,default_profile,기본 프로필 식별자,에이전트 앱의 기본 정책·컨텍스트 묶음 식별자,,Default Profile Identifier,identifier of the default policy and context bundle of the agent app,
-agent_connections,encrypted_token,인증 토큰,암호화된 에이전트 접근 인증값,,Authentication Token,encrypted authentication value for agent access,
+agent_connections,encrypted_token,인증 토큰,에이전트 접근 인증값,암호문,Authentication Token,authentication value for agent access,ciphertext
 agent_connections,id,식별자,이 연동 설정을 유일하게 가리키는 값,UUID 36자,Identifier,value that uniquely identifies this integration setting,"UUID, 36 characters"
 agent_connections,is_active,활성 여부,이 연동이 화면에 표시되고 실행 가능한지,"true, false",Active Indicator,indicator of whether this integration is shown on screen and can be run,"true, false"
 agent_connections,last_connection_error,마지막 연결 오류,가장 최근 연결 시도에서 발생한 오류 메시지,,Last Connection Error,error message produced by the most recent connection attempt,
@@ -16,10 +16,10 @@ agent_connections,server_url,서버 URL,에이전트 앱의 서버 주소,500자
 agent_connections,updated_at,수정 일시,이 행이 마지막으로 변경된 일시,,Updated Date Time,date and time this row was last changed,
 agent_connections,updated_by,수정자 명,이 행을 마지막으로 변경한 사용자의 사용자명,,Updater Name,username of the user who last changed this row,
 audit_logs,,감사 로그,사용자·프로젝트·조직 같은 주요 대상에 대한 생성·수정·삭제 기록,,Audit Log,"record of creation, update, and deletion of key targets such as users, projects, and organizations",
-audit_logs,action,작업 코드,수행된 작업의 종류,"CREATE, UPDATE, DELETE, ARCHIVE",Action Code,kind of action performed,"CREATE, UPDATE, DELETE, ARCHIVE"
+audit_logs,action,작업 코드,수행된 작업의 종류,"CREATE, READ, UPDATE, DELETE, INVITE_MEMBER, REMOVE_MEMBER, UPDATE_MEMBER_ROLE, GRANT_PERMISSION, REVOKE_PERMISSION, TRANSFER, LOGIN, LOGOUT, ACTIVATE, DEACTIVATE, ARCHIVE, RESTORE",Action Code,kind of action performed,"CREATE, READ, UPDATE, DELETE, INVITE_MEMBER, REMOVE_MEMBER, UPDATE_MEMBER_ROLE, GRANT_PERMISSION, REVOKE_PERMISSION, TRANSFER, LOGIN, LOGOUT, ACTIVATE, DEACTIVATE, ARCHIVE, RESTORE"
 audit_logs,details,작업 상세,"변경된 필드와 값, 또는 작업 상세 정보",,Action Details,"changed fields and values, or detailed information about the action",
 audit_logs,entity_id,엔티티 식별자,변경된 엔티티의 식별자값,,Entity Identifier,identifier value of the changed entity,
-audit_logs,entity_type,엔티티 유형,변경된 엔티티의 종류,"USER, PROJECT, ORGANIZATION, TESTCASE 등",Entity Type,kind of the changed entity,"USER, PROJECT, ORGANIZATION, TESTCASE, etc."
+audit_logs,entity_type,엔티티 유형,변경된 엔티티의 종류,"USER, ORGANIZATION, ORGANIZATION_USER, PROJECT, PROJECT_USER, GROUP, GROUP_MEMBER, TEST_CASE, TEST_PLAN, TEST_EXECUTION, TEST_RESULT, SYSTEM, AUTHENTICATION",Entity Type,kind of the changed entity,"USER, ORGANIZATION, ORGANIZATION_USER, PROJECT, PROJECT_USER, GROUP, GROUP_MEMBER, TEST_CASE, TEST_PLAN, TEST_EXECUTION, TEST_RESULT, SYSTEM, AUTHENTICATION"
 audit_logs,id,식별자,이 감사 로그 기록을 유일하게 가리키는 값,UUID,Identifier,value that uniquely identifies this audit log record,UUID
 audit_logs,performed_by,수행자 식별자,이 작업을 수행한 사용자,users.id 참조,Performer Identifier,user who performed this action,references users.id
 audit_logs,timestamp,기록 일시,이 작업이 수행된 일시,,Recorded Date Time,date and time this operation was performed,
@@ -62,7 +62,7 @@ email_verification_tokens,user_id,사용자 식별자,이 토큰으로 검증할
 google_config,,Google 설정,사용자의 Google Sheets 연동 인증 정보,,Google Configuration,authentication information for the user's Google Sheets integration,
 google_config,client_email,클라이언트 이메일,Google 서비스 계정 또는 OAuth 사용자 이메일,200자 이하 이메일,Client Email,email of a Google service account or OAuth user,email of up to 200 characters
 google_config,created_at,생성 일시,이 행이 처음 저장된 일시,,Created Date Time,date and time this row was first saved,
-google_config,encrypted_json_key,암호화된 JSON 키,Google 인증용 JSON 키 전체 (암호화됨),,Encrypted JSON Key,"complete JSON key for Google authentication, stored encrypted",
+google_config,encrypted_json_key,JSON 키,Google 인증용 JSON 키 전체,암호문,JSON Key,complete JSON key for Google authentication,ciphertext
 google_config,id,식별자,이 Google 설정 기록을 유일하게 가리키는 값,UUID 36자,Identifier,value that uniquely identifies this Google configuration record,"UUID, 36 characters"
 google_config,is_active,활성 여부,이 Google 설정을 사용할 수 있는지,"true, false",Active Indicator,indicator of whether this Google configuration can be used,"true, false"
 google_config,last_export_sheet_name,마지막 내보내기 시트 명,가장 최근에 내보낸 시트의 이름,200자 이하,Last Export Sheet Name,name of the most recently exported sheet,up to 200 characters
@@ -90,7 +90,7 @@ groups,updated_at,수정 일시,이 행이 마지막으로 변경된 일시,,Upd
 jira_config,,Jira 연동 설정,사용자별 Jira 서버 접속 정보와 연결 검증 상태,,Jira Integration Configuration,per-user Jira server connection information and connection verification status,
 jira_config,connection_verified,연결 검증 여부,마지막 연결 테스트의 성공 여부,,Connection Verified Indicator,whether the last connection test succeeded,
 jira_config,created_at,생성 일시,이 행이 처음 저장된 일시,,Created Date Time,date and time this row was first saved,
-jira_config,encrypted_api_token,암호화된 API 토큰,Jira 서버 인증에 사용할 암호화된 API 토큰,,Encrypted API Token,encrypted API token used for Jira server authentication,
+jira_config,encrypted_api_token,API 토큰,Jira 서버 인증에 사용할 API 토큰,암호문,API Token,API token used for Jira server authentication,ciphertext
 jira_config,id,설정 식별자,이 행을 유일하게 가리키는 값,UUID 36자,Configuration Identifier,value that uniquely identifies this row,"UUID, 36 characters"
 jira_config,is_active,활성 여부,이 설정을 사용할지 여부,,Active Indicator,indicator of whether this configuration is to be used,
 jira_config,last_connection_error,마지막 연결 오류,마지막 연결 시도 실패 시 오류 메시지,,Last Connection Error,error message from the last connection attempt when it failed,
@@ -193,7 +193,7 @@ llm_config,analysis_model_name,분석용 모델명,질의 분류와 데이터 �
 llm_config,api_url,API URL,해당 LLM 제공자의 API 엔드포인트 주소,,API URL,API endpoint address of the LLM provider,
 llm_config,connection_verified,연결 검증 여부,마지막 연결 테스트의 성공 여부,,Connection Verified Indicator,whether the last connection test succeeded,
 llm_config,created_at,생성 일시,이 행이 처음 저장된 일시,,Created Date Time,date and time this row was first saved,
-llm_config,encrypted_api_key,암호화된 API 키,LLM 제공자 인증에 사용할 암호화된 API 키,,Encrypted API Key,encrypted API key used for LLM provider authentication,
+llm_config,encrypted_api_key,API 키,LLM 제공자 인증에 사용할 API 키,암호문,API Key,API key used for LLM provider authentication,ciphertext
 llm_config,id,설정 식별자,이 행을 유일하게 가리키는 값,UUID 36자,Configuration Identifier,value that uniquely identifies this row,"UUID, 36 characters"
 llm_config,is_active,활성 여부,이 설정을 사용할 수 있는지 여부,,Active Indicator,indicator of whether this configuration can be used,
 llm_config,is_default,기본 설정 여부,사용자가 명시하지 않을 때 기본으로 사용할 설정인지 여부,,Default Configuration Indicator,whether this configuration is used by default when the user does not specify one,
@@ -220,7 +220,7 @@ mail_settings,created_at,생성 일시,이 행이 처음 저장된 일시,,Creat
 mail_settings,from_name,발신자 명,메일 From 헤더에 표시될 이름,,Sender Name,name displayed in the mail From header,
 mail_settings,id,식별자,메일 설정을 구분하는 일련번호,,Identifier,serial number that distinguishes a mail setting,
 mail_settings,mail_enabled,메일 활성화 여부,메일 전송 기능의 사용 여부,"true, false",Mail Enabled Indicator,whether the mail sending feature is enabled,"true, false"
-mail_settings,password,암호,SMTP 서버 인증에 사용하는 암호,암호문,Password,password used for SMTP server authentication,encrypted text
+mail_settings,password,암호,SMTP 서버 인증에 사용하는 암호,암호문,Password,password used for SMTP server authentication,ciphertext
 mail_settings,smtp_host,SMTP 호스트,메일을 전송할 SMTP 서버 주소,,SMTP Host,address of the SMTP server that sends mail,
 mail_settings,smtp_port,SMTP 포트,SMTP 서버 연결 포트,"587(TLS), 465(SSL), 25",SMTP Port,port used to connect to the SMTP server,"587(TLS), 465(SSL), 25"
 mail_settings,updated_at,수정 일시,이 행이 마지막으로 변경된 일시,,Updated Date Time,date and time this row was last changed,
@@ -255,7 +255,7 @@ project_users,role_in_project,프로젝트 역할 코드,이 멤버가 프로젝
 project_users,updated_at,수정 일시,이 행이 마지막으로 변경된 일시,,Updated Date Time,date and time this row was last changed,
 project_users,user_id,사용자 식별자,프로젝트의 멤버인 사용자를 가리키는 값,"users.id 참조, UUID 36자",User Identifier,value that points to the user who is a member of the project,"references users.id, UUID, 36 characters"
 projects,,프로젝트,"테스트 케이스, 테스트 플랜, 테스트 실행을 함께 관리하는 작업 단위",,Project,"unit of work that manages test cases, test plans, and test executions together",
-projects,code,프로젝트 코드,"프로젝트를 구분하는 짧은 코드, 프로젝트 단위로 유일",50자 이하,Project Code,"short code that distinguishes a project, unique per project",up to 50 characters
+projects,code,프로젝트 코드,"프로젝트를 구분하는 짧은 코드, 시스템 전체에서 유일",50자 이하,Project Code,"short code that distinguishes a project, unique across the system",up to 50 characters
 projects,createdat,생성 일시,이 행이 처음 저장된 일시,,Created Date Time,date and time this row was first saved,
 projects,description,설명,프로젝트의 목적과 범위에 대한 상세 설명,,Description,detailed description of the purpose and scope of the project,
 projects,display_order,표시 순서,프로젝트 목록에서의 정렬 순서,0 이상,Display Order,sort order in the project list,0 or greater
@@ -286,7 +286,7 @@ rag_chat_messages,llm_model,LLM 모델,이 메시지를 생성한 LLM 모델명,
 rag_chat_messages,llm_provider,LLM 제공자,이 메시지를 생성한 LLM 제공자 이름,,LLM Provider,name of the LLM provider that generated this message,
 rag_chat_messages,metadata_json,메타데이터,JSON 형식으로 저장된 추가 메타데이터,,Metadata,additional metadata stored in JSON format,
 rag_chat_messages,parent_message_id,부모 메시지 식별자,이 메시지가 응답하는 상위 메시지,rag_chat_messages.id 참조,Parent Message Identifier,parent message to which this message responds,references rag_chat_messages.id
-rag_chat_messages,role,메시지 역할,이 메시지의 발신자 역할,,Message Role,role of the sender of this message,
+rag_chat_messages,role,메시지 역할,이 메시지의 발신자 역할,"SYSTEM, USER, ASSISTANT",Message Role,role of the sender of this message,"SYSTEM, USER, ASSISTANT"
 rag_chat_messages,temperature,온도 파라미터,LLM 생성 시 사용한 온도 값,,Temperature Parameter,temperature value used for LLM generation,
 rag_chat_messages,thread_id,채팅 스레드 식별자,이 메시지가 속한 채팅 스레드,rag_chat_threads.id 참조,Chat Thread Identifier,chat thread this message belongs to,references rag_chat_threads.id
 rag_chat_messages,tokens_used,사용 토큰,이 메시지 생성에 소비된 토큰 수,,Used Token Count,number of tokens consumed to generate this message,
@@ -316,7 +316,7 @@ rag_global_document_requests,project_id,프로젝트 식별자,이 요청을 제
 rag_global_document_requests,request_message,요청 메시지,요청에 포함된 메모 또는 요청 사유,,Request Message,note or reason for the request included with the request,
 rag_global_document_requests,requested_by,요청자 명,이 요청을 제출한 사용자,100자 이하,Requester Name,user who submitted this request,up to 100 characters
 rag_global_document_requests,response_message,응답 메시지,처리 결과 메시지,,Response Message,message describing the processing result,
-rag_global_document_requests,status,상태,이 요청의 처리 상태,"PENDING, PROCESSING, COMPLETED, REJECTED, FAILED",Status,processing status of this request,"PENDING, PROCESSING, COMPLETED, REJECTED, FAILED"
+rag_global_document_requests,status,상태,이 요청의 처리 상태,"PENDING, APPROVED, REJECTED, FAILED",Status,processing status of this request,"PENDING, APPROVED, REJECTED, FAILED"
 refresh_tokens,,리프레시 토큰,로그인한 사용자가 액세스 토큰을 다시 발급받을 때 제출하는 토큰,,Refresh Token,token a logged-in user submits to be issued a new access token,
 refresh_tokens,created_at,생성 일시,이 행이 처음 저장된 일시,,Created Date Time,date and time this row was first saved,
 refresh_tokens,expiry_date,만료 일시,이 토큰이 더 이상 유효하지 않은 시점,,Expiration Date Time,point in time after which this token is no longer valid,
@@ -413,7 +413,7 @@ test_case_attachments,id,식별자,이 첨부를 유일하게 가리키는 값,U
 test_case_attachments,is_used_in_content,본문 사용 여부,이 파일이 케이스 본문에 실제로 인라인 포함되었는지,"true, false",Used In Content Indicator,whether this file is actually included inline in the test case body,"true, false"
 test_case_attachments,mime_type,MIME 유형,파일의 미디어 유형,"100자 이하, 예: image/png",MIME Type,media type of the file,"up to 100 characters, e.g. image/png"
 test_case_attachments,original_file_name,원본 파일명,업로드 시 사용자가 제공한 파일 이름,255자 이하,Original File Name,file name provided by the user at upload time,up to 255 characters
-test_case_attachments,public_access_token,공개 접근 토큰,로그인하지 않고 이 파일에 접근할 수 있는 일회용 토큰,64자 이하,Public Access Token,one-time token that allows access to this file without logging in,up to 64 characters
+test_case_attachments,public_access_token,공개 접근 토큰,첨부가 ACTIVE 인 동안 로그인 없이 이 파일에 계속 접근할 수 있는 고정 토큰,64자 이하,Public Access Token,fixed token that keeps allowing access to this file without logging in while the attachment is ACTIVE,up to 64 characters
 test_case_attachments,status,상태,이 첨부가 활성인지 삭제 표기되었는지,"ACTIVE, DELETED",Status,whether this attachment is active or marked as deleted,"ACTIVE, DELETED"
 test_case_attachments,stored_file_name,저장된 파일명,저장소에 저장할 때 사용한 충돌 없는 새 파일 이름,255자 이하,Stored File Name,new collision-free file name used when saving the file to storage,up to 255 characters
 test_case_attachments,test_case_id,테스트 케이스 식별자,이 첨부가 올려진 테스트 케이스,"testcases.id 참조, 케이스 삭제 시 null",Test Case Identifier,test case to which this attachment was uploaded,"references testcases.id, null when the case is deleted"
@@ -525,7 +525,7 @@ test_session_attachments,id,식별자,이 첨부를 유일하게 가리키는 �
 test_session_attachments,is_used_in_content,본문 사용 여부,이 파일이 세션 노트에 실제로 인라인 포함되었는지,"true, false",Used In Content Indicator,whether this file is actually included inline in the session note,"true, false"
 test_session_attachments,mime_type,MIME 유형,파일의 미디어 유형,"100자 이하, 예: image/png",MIME Type,media type of the file,"up to 100 characters, e.g. image/png"
 test_session_attachments,original_file_name,원본 파일명,업로드 시 사용자가 제공한 파일 이름,255자 이하,Original File Name,file name provided by the user at upload time,up to 255 characters
-test_session_attachments,public_access_token,공개 접근 토큰,로그인하지 않고 이 파일에 접근할 수 있는 일회용 토큰,100자 이하,Public Access Token,one-time token that allows access to this file without logging in,up to 100 characters
+test_session_attachments,public_access_token,공개 접근 토큰,첨부가 ACTIVE 인 동안 로그인 없이 이 파일에 계속 접근할 수 있는 고정 토큰,100자 이하,Public Access Token,fixed token that keeps allowing access to this file without logging in while the attachment is ACTIVE,up to 100 characters
 test_session_attachments,session_id,테스트 세션 식별자,이 첨부가 수집된 테스트 세션,test_sessions.id 참조,Test Session Identifier,test session in which this attachment was collected,references test_sessions.id
 test_session_attachments,status,상태,이 첨부가 활성인지 삭제 표기되었는지,"ACTIVE, DELETED",Status,whether this attachment is active or marked as deleted,"ACTIVE, DELETED"
 test_session_attachments,stored_file_name,저장된 파일명,저장소에 저장할 때 사용한 충돌 없는 새 파일 이름,255자 이하,Stored File Name,new collision-free file name used when saving the file to storage,up to 255 characters
@@ -561,7 +561,7 @@ test_sessions,achievement,성취도,이 세션의 목표 달성 정도를 백분
 test_sessions,activity_notes,활동 노트,"세션 중 수행한 추가 활동(예: 성능 테스트, 보안 검증)에 대한 기록",,Activity Note Text,"record of additional activities performed during the session (for example, performance testing or security verification)",
 test_sessions,blockers,장애물,세션 수행 중 마주친 테스트를 막는 환경 이슈 또는 요구사항 모호함,,Blocker Text,environment issue or requirement ambiguity encountered during the session that blocked testing,
 test_sessions,bug_headline,결함 요약,"세션에서 발견한 결함의 분포, 심각도, 특성을 한 문장으로 정리",,Defect Summary,"one-sentence summary of the distribution, severity, and characteristics of the defects found in the session",
-test_sessions,bug_investigation_pct,결함 조사 비율,세션 시간 중 발견된 결함 조사에 사용한 비율,"0~100, %",Defect Investigation Percentage,share of the session time spent investigating the defects found,"0 to 100, percent"
+test_sessions,bug_investigation_pct,결함 조사 비율,세션 시간 중 발견된 결함 조사에 사용한 비율,"0~100, %",Defect Investigation Percentage,share of the session time spent investigating the defects found,"0 to 100, %"
 test_sessions,charter_id,테스트 차터 식별자,이 세션에서 수행할 테스트 활동을 정의한 차터,test_charters.id 참조,Test Charter Identifier,charter that defines the test activity to be performed in this session,references test_charters.id
 test_sessions,charter_snapshot_mission,차터 미션 스냅샷,세션 시점의 차터 미션 내용,,Charter Mission Snapshot Text,charter mission content as of the session,
 test_sessions,charter_snapshot_title,차터 제목 스냅샷,세션 시점의 차터 제목,200자 이하,Charter Title Snapshot,charter title as of the session,up to 200 characters
@@ -608,14 +608,14 @@ testcase_tags,tag,태그 명,사용자가 붙인 태그 문자열,100자 이하,
 testcase_tags,testcase_id,테스트 케이스 식별자,태그가 붙은 테스트 케이스,testcases.id 참조,Test Case Identifier,test case to which the tag is attached,references testcases.id
 testcase_versions,,테스트 케이스 버전,저장 시점마다 남긴 테스트 케이스 내용의 사본,,Test Case Version,copy of the test case content kept at each save,
 testcase_versions,change_summary,변경 요약,이전 버전과의 주요 변경 사항,,Change Summary,main changes from the previous version,
-testcase_versions,change_type,변경 유형,버전이 생성된 이유,"CREATE, UPDATE, MANUAL_SAVE",Change Type,reason the version was created,"CREATE, UPDATE, MANUAL_SAVE"
+testcase_versions,change_type,변경 유형,버전이 생성된 이유,"CREATE, UPDATE, MANUAL_SAVE, RESTORE",Change Type,reason the version was created,"CREATE, UPDATE, MANUAL_SAVE, RESTORE"
 testcase_versions,created_at,생성 일시,이 버전이 처음 저장된 일시,,Created Date Time,date and time this version was first saved,
 testcase_versions,created_by,생성자 식별자,이 버전을 생성한 사용자,users.id 참조,Creator Identifier,user who created this version,references users.id
 testcase_versions,created_by_name,생성자명,조회 성능 최적화를 위해 복제한 생성자의 사용자명,,Creator Name,"username of the creator, duplicated to optimize query performance",
 testcase_versions,description,설명,테스트 케이스의 상세 설명,,Description,detailed description of the test case,
 testcase_versions,display_id,표시 ID,사용자가 보는 테스트 케이스 ID,,Display ID,test case ID seen by the user,
 testcase_versions,display_order,표시 순서,같은 폴더 내에서 나타나는 순서,,Display Order,order in which the item appears within the same folder,
-testcase_versions,execution_type,실행 유형,테스트 실행 방식,"Manual, Automated 등",Execution Type,method by which the test is executed,"Manual, Automated, etc."
+testcase_versions,execution_type,실행 유형,테스트 실행 방식,"Manual, Automation, Hybrid",Execution Type,method by which the test is executed,"Manual, Automation, Hybrid"
 testcase_versions,expected_results,기대 결과,테스트 케이스의 기대 결과,,Expected Result,expected result of the test case,
 testcase_versions,id,버전 식별자,이 행을 유일하게 가리키는 값,UUID 36자,Version Identifier,value that uniquely identifies this row,"UUID, 36 characters"
 testcase_versions,is_automated,자동화 여부,이 테스트 케이스를 자동화 테스트로 실행하는지 여부,"true, false",Automated Indicator,whether this test case is executed as an automated test,"true, false"
@@ -643,7 +643,7 @@ testcases,created_by,생성자 명,이 케이스를 처음 작성한 사용자�
 testcases,description,설명,이 테스트 케이스 또는 폴더에 대한 상세 설명,,Description,detailed description of this test case or folder,
 testcases,display_id,표시 식별자,프로젝트코드와 순차번호 조합,50자 이하,Display Identifier,combination of the project code and a sequential number,up to 50 characters
 testcases,display_order,표시 순서,같은 폴더에서 이 케이스의 표시 위치,정수,Display Order,display position of this case within the same folder,integer
-testcases,execution_type,실행 유형,테스트 실행 방식,"Manual, Automated",Execution Type,method by which the test is executed,"Manual, Automated"
+testcases,execution_type,실행 유형,테스트 실행 방식,"Manual, Automation, Hybrid",Execution Type,method by which the test is executed,"Manual, Automation, Hybrid"
 testcases,expected_results,기대 결과,이 테스트 전체의 최종 기대 결과 (스텝별과 다를 수 있음),,Expected Result,final expected result of this entire test (may differ from the per-step results),
 testcases,id,식별자,이 테스트 케이스를 유일하게 가리키는 값,UUID 36자,Identifier,value that uniquely identifies this test case,"UUID, 36 characters"
 testcases,is_automated,자동화 여부,이 테스트 케이스가 자동화되었는지,"true, false",Automated Indicator,whether this test case has been automated,"true, false"
@@ -662,7 +662,7 @@ testcases,version,낙관적 잠금 버전,동시에 수정한 내용이 서로 �
 testcasesteps,,테스트 스텝,테스트 케이스를 수행하는 순서별 단계와 그 단계의 기대 결과,,Test Step,"ordered step for performing a test case, together with the expected result of that step",
 testcasesteps,description,스텝 설명,이 스텝에서 수행할 작업 설명,,Step Description,description of the action to perform in this step,
 testcasesteps,expected_result,기대 결과,이 스텝 실행 후 기대하는 결과,,Expected Result,result expected after this step is executed,
-testcasesteps,step_number,스텝 번호,이 스텝의 순서,1 이상의 정수,Step Number,order of this step,integer of 1 or greater
+testcasesteps,step_number,스텝 번호,이 스텝의 순서 번호,1 이상의 정수,Step Number,order number of this step,integer of 1 or greater
 testcasesteps,step_order,스텝 순서,테이블 내 스텝의 정렬 위치,,Step Order,sort position of the step within the table,
 testcasesteps,testcase_id,테스트 케이스 식별자,각 스텝이 속한 테스트 케이스,testcases.id 참조,Test Case Identifier,test case to which each step belongs,references testcases.id
 translation_keys,,번역 키,화면 문구를 언어별로 번역할 때 기준이 되는 키,,Translation Key,key used as the reference when translating screen text into each language,
@@ -686,7 +686,7 @@ translations,translation_value,번역 내용,소스 문자열을 대상 언어�
 translations,updated_at,수정 일시,이 행이 마지막으로 변경된 일시,,Updated Date Time,date and time this row was last changed,
 translations,updated_by,최종 수정자 명,이 번역을 마지막으로 수정한 사용자의 사용자명,,Last Modifier Name,username of the user who last modified this translation,
 user_activities,,사용자 활동,"사용자의 로그인, 화면 접근, 작업 수행 기록",,User Activity,"record of a user login, screen access, or action performed",
-user_activities,activity_category,활동 분류,활동이 속한 상위 카테고리,"AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, SYSTEM",Activity Category Code,higher-level category to which the activity belongs,"AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, SYSTEM"
+user_activities,activity_category,활동 분류,활동이 속한 상위 카테고리,"AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, ORGANIZATION_MANAGEMENT, SYSTEM_ADMINISTRATION, USER_PROFILE",Activity Category Code,higher-level category to which the activity belongs,"AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, ORGANIZATION_MANAGEMENT, SYSTEM_ADMINISTRATION, USER_PROFILE"
 user_activities,activity_type,활동 유형,구체적인 활동 종류,"LOGIN, LOGOUT, PROJECT_ACCESS, TESTCASE_CREATE, TESTCASE_UPDATE 등",Activity Type Code,specific kind of activity,"LOGIN, LOGOUT, PROJECT_ACCESS, TESTCASE_CREATE, TESTCASE_UPDATE, etc."
 user_activities,anomaly_detected,이상 활동 감지,이 활동이 평상시와 다른 이상 패턴인지,"true, false",Anomaly Detected Indicator,whether this activity shows an abnormal pattern that differs from usual behavior,"true, false"
 user_activities,details,상세 정보,활동의 추가 정보 또는 JSON 형태의 매개변수,,Detail Text,additional information about the activity or parameters in JSON form,

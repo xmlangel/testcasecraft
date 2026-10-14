@@ -82,7 +82,7 @@ public class AgentConnection {
   private String browserUrl;
 
   /** 인증 토큰. JiraConfig.encryptedApiToken 과 같은 암호화 경로를 쓴다. */
-  @Comment("인증 토큰: 암호화된 에이전트 접근 인증값")
+  @Comment("인증 토큰: 에이전트 접근 인증값 (값 영역: 암호문)")
   @Column(name = "encrypted_token", columnDefinition = "TEXT")
   private String encryptedToken;
 

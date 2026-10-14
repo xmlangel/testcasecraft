@@ -92,7 +92,7 @@ public class TestCaseVersion {
   @Column(name = "is_automated")
   private Boolean isAutomated = Boolean.FALSE;
 
-  @Comment("실행 유형: 테스트 실행 방식 (값 영역: Manual, Automated 등)")
+  @Comment("실행 유형: 테스트 실행 방식 (값 영역: Manual, Automation, Hybrid)")
   @Column(name = "execution_type", length = 50)
   private String executionType = "Manual";
 
@@ -152,7 +152,7 @@ public class TestCaseVersion {
   private LocalDateTime originalUpdatedAt;
 
   /** 변경 유형 (CREATE, UPDATE, MANUAL_SAVE) */
-  @Comment("변경 유형: 버전이 생성된 이유 (값 영역: CREATE, UPDATE, MANUAL_SAVE)")
+  @Comment("변경 유형: 버전이 생성된 이유 (값 영역: CREATE, UPDATE, MANUAL_SAVE, RESTORE)")
   @Column(name = "change_type", length = 20)
   private String changeType = "UPDATE";
 

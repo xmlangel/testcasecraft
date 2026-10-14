@@ -85,7 +85,7 @@ public class TestSessionAttachment {
   @Column(nullable = false, length = 20)
   private AttachmentStatus status;
 
-  @Comment("공개 접근 토큰: 로그인하지 않고 이 파일에 접근할 수 있는 일회용 토큰 (값 영역: 100자 이하)")
+  @Comment("공개 접근 토큰: 첨부가 ACTIVE 인 동안 로그인 없이 이 파일에 계속 접근할 수 있는 고정 토큰 (값 영역: 100자 이하)")
   @Column(name = "public_access_token", length = 100)
   private String publicAccessToken;
 

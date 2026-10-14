@@ -42,7 +42,7 @@ public class GoogleConfig {
   @Column(nullable = false, length = 100)
   private String projectId;
 
-  @Comment("암호화된 JSON 키: Google 인증용 JSON 키 전체 (암호화됨)")
+  @Comment("JSON 키: Google 인증용 JSON 키 전체 (값 영역: 암호문)")
   @JsonIgnore
   @Column(nullable = false, columnDefinition = "TEXT")
   private String encryptedJsonKey; // 암호화된 JSON 원본

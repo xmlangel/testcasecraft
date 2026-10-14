@@ -45,7 +45,7 @@ public class LlmConfig {
   private String apiUrl;
 
   /** 암호화된 API Key AES-256으로 암호화하여 저장 */
-  @Comment("암호화된 API 키: LLM 제공자 인증에 사용할 암호화된 API 키")
+  @Comment("API 키: LLM 제공자 인증에 사용할 API 키 (값 영역: 암호문)")
   @JsonIgnore
   @Column(nullable = false, columnDefinition = "TEXT")
   private String encryptedApiKey;
