@@ -6,12 +6,14 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
+import org.hibernate.annotations.Comment;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Comment("프로젝트 구성원: 프로젝트에 속한 사용자와 그 프로젝트 안에서의 역할")
 @Table(
     name = "project_users",
     uniqueConstraints = {@UniqueConstraint(columnNames = {"project_id", "user_id"})},
@@ -20,26 +22,32 @@ import lombok.*;
       @Index(name = "idx_user_project", columnList = "user_id, project_id")
     })
 public class ProjectUser {
+  @Comment("프로젝트 사용자 식별자: 이 프로젝트 멤버십 행을 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
+  @Comment(value = "프로젝트 식별자: 이 멤버가 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)", on = "project_id")
   @ManyToOne(optional = false)
   @JoinColumn(name = "project_id")
   @JsonBackReference("project-users")
   private Project project;
 
+  @Comment(value = "사용자 식별자: 프로젝트의 멤버인 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)", on = "user_id")
   @ManyToOne(optional = false)
   @JoinColumn(name = "user_id")
   private User user;
 
+  @Comment(value = "프로젝트 역할 코드: 이 멤버가 프로젝트에서 맡는 역할을 나타내는 코드 (값 영역: PROJECT_MANAGER, LEAD_DEVELOPER, DEVELOPER, CONTRIBUTOR, TESTER, VIEWER)", on = "role_in_project")
   @Enumerated(EnumType.STRING)
   @Column(name = "role_in_project", nullable = false, length = 30)
   private ProjectRole roleInProject; // PROJECT_MANAGER, CONTRIBUTOR, VIEWER
 
+  @Comment(value = "생성 일시: 이 행이 처음 저장된 일시", on = "created_at")
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
+  @Comment(value = "수정 일시: 이 행이 마지막으로 변경된 일시", on = "updated_at")
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 

@@ -7,12 +7,14 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.*;
+import org.hibernate.annotations.Comment;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Comment("테스트 케이스: 프로젝트 안에서 관리하는 테스트 절차 하나, 또는 테스트 케이스를 묶는 폴더")
 @Table(
     name = "testcases",
     // uniqueConstraints 제거 - 스프레드시트 일괄 수정 시 순서 문제로 충돌 발생
@@ -30,83 +32,113 @@ import lombok.*;
     })
 public class TestCase {
 
+  @Comment("식별자: 이 테스트 케이스를 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(columnDefinition = "VARCHAR(36)", updatable = false)
   private String id;
 
+  @Comment("프로젝트 식별자: 이 테스트 케이스가 속한 프로젝트 (값 영역: projects.id 참조)")
   @ManyToOne(optional = false)
   @JoinColumn(name = "project_id")
   @JsonBackReference("project-testcases")
   private Project project;
 
+  @Comment("테스트 케이스 명: 사용자가 볼 수 있는 케이스 또는 폴더 이름")
   @Column(columnDefinition = "TEXT", nullable = false)
   private String name;
 
   /** "testcase", "folder", "systemFolder" 중 하나 */
+  @Comment("유형 코드: 트리 상에서 이 행의 역할 (값 영역: testcase, folder, systemFolder)")
   @Column(columnDefinition = "TEXT")
   private String type;
 
+  @Comment("설명: 이 테스트 케이스 또는 폴더에 대한 상세 설명")
   @Column(columnDefinition = "TEXT")
   private String description;
 
+  @Comment("사전 조건: 이 테스트를 시작하기 전 필요한 상태")
   @Column(columnDefinition = "TEXT")
   private String preCondition;
 
+  @Comment("사후 조건: 이 테스트 완료 후 정리할 상태 또는 복구 작업")
   @Column(columnDefinition = "TEXT", name = "post_condition")
   private String postCondition;
 
+  @Comment("자동화 여부: 이 테스트 케이스가 자동화되었는지 (값 영역: true, false)")
   @Column(name = "is_automated")
   private Boolean isAutomated = Boolean.FALSE;
 
+  @Comment("실행 유형: 테스트 실행 방식 (값 영역: Manual, Automated)")
   @Column(name = "execution_type", length = 50)
   private String executionType = "Manual";
 
+  @Comment("테스트 기법: 이 케이스가 사용하는 테스트 설계 기법")
   @Column(columnDefinition = "TEXT", name = "test_technique")
   private String testTechnique;
 
+  @Comment("상위 폴더 식별자: 이 케이스의 부모 폴더 (값 영역: testcases.id 참조, 비면 루트)")
   @Column(name = "parent_id")
   private String parentId;
 
+  @Comment("테스트 스텝: 테스트 케이스를 수행하는 순서별 단계와 그 단계의 기대 결과")
+  @Comment(value = "테스트 케이스 식별자: 각 스텝이 속한 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
+  @Comment(value = "스텝 설명: 이 스텝에서 수행할 작업 설명", on = "description")
+  @Comment(value = "기대 결과: 이 스텝 실행 후 기대하는 결과", on = "expected_result")
+  @Comment(value = "스텝 번호: 이 스텝의 순서 (값 영역: 1 이상의 정수)", on = "step_number")
+  @Comment(value = "스텝 순서: 테이블 내 스텝의 정렬 위치", on = "step_order")
   @ElementCollection
   @CollectionTable(name = "testcasesteps", joinColumns = @JoinColumn(name = "testcase_id"))
   @OrderColumn(name = "step_order")
   private List<TestStep> steps;
 
+  @Comment("기대 결과: 이 테스트 전체의 최종 기대 결과 (스텝별과 다를 수 있음)")
   @Column(columnDefinition = "TEXT", name = "expected_results")
   private String expectedResults;
 
+  @Comment("표시 순서: 같은 폴더에서 이 케이스의 표시 위치 (값 영역: 정수)")
   @Column(name = "display_order", nullable = false)
   private Integer displayOrder = 1;
 
   // ICT-130: 대시보드 통계를 위한 우선순위 필드 추가
+  @Comment("우선순위 코드: 실행 계획 수립 시 중요도 구분 (값 영역: HIGH, MEDIUM, LOW)")
   @Column(name = "priority")
   private String priority = "MEDIUM"; // HIGH, MEDIUM, LOW
 
   // ICT-339: 사용자 식별 가능한 순차 ID 추가
+  @Comment("순차 식별자: 사용자가 읽을 수 있는 일련번호 (값 영역: 1 이상의 정수)")
   @Column(name = "sequential_id")
   private Integer sequentialId;
 
   // ICT-341: 프로젝트코드-넘버 형식의 표시 ID 추가
+  @Comment("표시 식별자: 프로젝트코드와 순차번호 조합 (값 영역: 50자 이하)")
   @Column(name = "display_id", length = 50)
   private String displayId;
 
+  @Comment("생성 일시: 이 케이스가 처음 저장된 일시")
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
+  @Comment("수정 일시: 이 케이스가 마지막으로 변경된 일시")
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
   // 작성자 정보
+  @Comment("생성자 명: 이 케이스를 처음 작성한 사용자의 사용자명 (값 영역: 100자 이하)")
   @Column(name = "created_by", length = 100)
   private String createdBy;
 
   // 수정자 정보
+  @Comment("수정자 명: 이 케이스를 마지막으로 변경한 사용자의 사용자명 (값 영역: 100자 이하)")
   @Column(name = "updated_by", length = 100)
   private String updatedBy;
 
+  @Comment("낙관적 잠금 버전: 동시에 수정한 내용이 서로 덮어쓰지 않도록 저장할 때마다 1씩 늘어나는 번호")
   @Version private Long version;
 
+  @Comment("테스트 케이스 태그: 테스트 케이스에 붙인 분류 태그")
+  @Comment(value = "테스트 케이스 식별자: 태그가 붙은 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
+  @Comment(value = "태그 명: 사용자가 붙인 태그 문자열 (값 영역: 100자 이하)", on = "tag")
   @org.hibernate.annotations.BatchSize(size = 100)
   @ElementCollection
   @CollectionTable(name = "testcase_tags", joinColumns = @JoinColumn(name = "testcase_id"))
@@ -119,6 +151,9 @@ public class TestCase {
   @CollectionTable(
       name = "testcase_linked_documents",
       joinColumns = @JoinColumn(name = "testcase_id"))
+  @Comment("테스트 케이스 연결 문서: 테스트 케이스에 연결한 RAG 문서")
+  @Comment(value = "테스트 케이스 식별자: 문서가 연결된 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
+  @Comment(value = "문서 식별자: 연결된 RAG 문서의 ID (값 영역: UUID 36자)", on = "document_id")
   @Column(name = "document_id", length = 36)
   private List<String> linkedDocumentIds;
 
@@ -128,6 +163,9 @@ public class TestCase {
   @CollectionTable(
       name = "testcase_linked_test_cases",
       joinColumns = @JoinColumn(name = "testcase_id"))
+  @Comment("테스트 케이스 상호 연결: 자동화 테스트 케이스와 원본 수동 테스트 케이스의 연결")
+  @Comment(value = "테스트 케이스 식별자: 이 링크가 있는 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
+  @Comment(value = "연결된 테스트 케이스 식별자: 링크 대상 테스트 케이스 (값 영역: testcases.id 참조)", on = "linked_test_case_id")
   @Column(name = "linked_test_case_id", length = 36)
   private List<String> linkedTestCaseIds;
 
@@ -141,6 +179,9 @@ public class TestCase {
   @CollectionTable(
       name = "testcase_linked_junit_cases",
       joinColumns = @JoinColumn(name = "testcase_id"))
+  @Comment("테스트 케이스 연결 JUnit 케이스: 수동 테스트 케이스를 자동화한 JUnit 테스트 케이스의 연결")
+  @Comment(value = "테스트 케이스 식별자: 이 링크가 있는 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
+  @Comment(value = "JUnit 자동화 케이스 식별자: 연결된 자동화 테스트 (값 영역: junit_test_cases.id 참조)", on = "junit_test_case_id")
   @Column(name = "junit_test_case_id", length = 36)
   private List<String> linkedJunitTestCaseIds;
 
