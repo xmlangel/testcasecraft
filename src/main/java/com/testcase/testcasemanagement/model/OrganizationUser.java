@@ -13,7 +13,7 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Comment("조직 구성원: 조직에 속한 사용자와 그 조직 안에서의 역할 | Organization Member: user belonging to an organization and that user's role within the organization")
+@Comment("조직 구성원: 조직에 속한 사용자와 그 조직 안에서의 역할")
 @Table(
     name = "organization_users",
     uniqueConstraints = {@UniqueConstraint(columnNames = {"organization_id", "user_id"})},
@@ -22,32 +22,32 @@ import org.hibernate.annotations.Comment;
       @Index(name = "idx_user_org", columnList = "user_id, organization_id")
     })
 public class OrganizationUser {
-  @Comment("조직 사용자 식별자: 이 조직 멤버십 행을 유일하게 가리키는 값 (값 영역: UUID 36자) | Organization User Identifier: value that uniquely identifies this organization membership row (Value domain: UUID, 36 characters)")
+  @Comment("조직 사용자 식별자: 이 조직 멤버십 행을 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  @Comment(value = "조직 식별자: 이 멤버가 속한 조직을 가리키는 값 (값 영역: organizations.id 참조, UUID 36자) | Organization Identifier: value that identifies the organization this member belongs to (Value domain: references organizations.id, UUID, 36 characters)", on = "organization_id")
+  @Comment(value = "조직 식별자: 이 멤버가 속한 조직을 가리키는 값 (값 영역: organizations.id 참조, UUID 36자)", on = "organization_id")
   @JsonBackReference("organization-members")
   @ManyToOne(optional = false)
   @JoinColumn(name = "organization_id")
   private Organization organization;
 
-  @Comment(value = "사용자 식별자: 조직의 멤버인 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자) | User Identifier: value that points to the user who is a member of the organization (Value domain: references users.id, UUID, 36 characters)", on = "user_id")
+  @Comment(value = "사용자 식별자: 조직의 멤버인 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)", on = "user_id")
   @ManyToOne(optional = false)
   @JoinColumn(name = "user_id")
   private User user;
 
-  @Comment(value = "조직 역할 코드: 이 멤버가 조직에서 맡는 역할을 나타내는 코드 (값 영역: OWNER, ADMIN, MEMBER) | Organization Role Code: code representing the role this member holds in the organization (Value domain: OWNER, ADMIN, MEMBER)", on = "role_in_organization")
+  @Comment(value = "조직 역할 코드: 이 멤버가 조직에서 맡는 역할을 나타내는 코드 (값 영역: OWNER, ADMIN, MEMBER)", on = "role_in_organization")
   @Enumerated(EnumType.STRING)
   @Column(name = "role_in_organization", nullable = false, length = 20)
   private OrganizationRole roleInOrganization; // OWNER, ADMIN, MEMBER
 
-  @Comment(value = "생성 일시: 이 행이 처음 저장된 일시 | Created Date Time: date and time this row was first saved", on = "created_at")
+  @Comment(value = "생성 일시: 이 행이 처음 저장된 일시", on = "created_at")
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  @Comment(value = "수정 일시: 이 행이 마지막으로 변경된 일시 | Updated Date Time: date and time this row was last changed", on = "updated_at")
+  @Comment(value = "수정 일시: 이 행이 마지막으로 변경된 일시", on = "updated_at")
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 

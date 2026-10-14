@@ -22,7 +22,7 @@ import org.hibernate.annotations.Comment;
 @Setter
 @NoArgsConstructor
 @Entity
-@Comment("테스트 세션 첨부: 테스트 세션 실행 중 수집한 파일 | Test Session Attachment: file collected while a test session was running")
+@Comment("테스트 세션 첨부: 테스트 세션 실행 중 수집한 파일")
 @Table(
     name = "test_session_attachments",
     indexes = {
@@ -36,64 +36,64 @@ public class TestSessionAttachment {
     DELETED
   }
 
-  @Comment("식별자: 이 첨부를 유일하게 가리키는 값 (값 영역: UUID 36자) | Identifier: value that uniquely identifies this attachment (Value domain: UUID, 36 characters)")
+  @Comment("식별자: 이 첨부를 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(columnDefinition = "VARCHAR(36)", updatable = false)
   private String id;
 
-  @Comment("테스트 세션 식별자: 이 첨부가 수집된 테스트 세션 (값 영역: test_sessions.id 참조) | Test Session Identifier: test session in which this attachment was collected (Value domain: references test_sessions.id)")
+  @Comment("테스트 세션 식별자: 이 첨부가 수집된 테스트 세션 (값 영역: test_sessions.id 참조)")
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "session_id", nullable = false)
   private TestSession session;
 
-  @Comment("원본 파일명: 업로드 시 사용자가 제공한 파일 이름 (값 영역: 255자 이하) | Original File Name: file name provided by the user at upload time (Value domain: up to 255 characters)")
+  @Comment("원본 파일명: 업로드 시 사용자가 제공한 파일 이름 (값 영역: 255자 이하)")
   @Column(name = "original_file_name", nullable = false, length = 255)
   private String originalFileName;
 
-  @Comment("저장된 파일명: 저장소에 저장할 때 사용한 충돌 없는 새 파일 이름 (값 영역: 255자 이하) | Stored File Name: new collision-free file name used when saving the file to storage (Value domain: up to 255 characters)")
+  @Comment("저장된 파일명: 저장소에 저장할 때 사용한 충돌 없는 새 파일 이름 (값 영역: 255자 이하)")
   @Column(name = "stored_file_name", nullable = false, length = 255)
   private String storedFileName;
 
-  @Comment("파일 크기: 첨부 파일의 바이트 수 (값 영역: 0 이상의 정수) | File Size: number of bytes in the attached file (Value domain: integer of 0 or greater)")
+  @Comment("파일 크기: 첨부 파일의 바이트 수 (값 영역: 0 이상의 정수)")
   @Column(name = "file_size", nullable = false)
   private Long fileSize;
 
-  @Comment("MIME 유형: 파일의 미디어 유형 (값 영역: 100자 이하, 예: image/png) | MIME Type: media type of the file (Value domain: up to 100 characters, e.g. image/png)")
+  @Comment("MIME 유형: 파일의 미디어 유형 (값 영역: 100자 이하, 예: image/png)")
   @Column(name = "mime_type", length = 100)
   private String mimeType;
 
-  @Comment("파일 경로: 오브젝트 저장소에 저장된 파일의 경로 또는 키 (값 영역: 500자 이하) | File Path: path or key of the file stored in object storage (Value domain: up to 500 characters)")
+  @Comment("파일 경로: 오브젝트 저장소에 저장된 파일의 경로 또는 키 (값 영역: 500자 이하)")
   @Column(name = "file_path", nullable = false, length = 500)
   private String filePath;
 
-  @Comment("업로드자 식별자: 이 첨부를 업로드한 사용자 (값 영역: users.id 참조) | Uploader Identifier: user who uploaded this attachment (Value domain: references users.id)")
+  @Comment("업로드자 식별자: 이 첨부를 업로드한 사용자 (값 영역: users.id 참조)")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "uploaded_by")
   private User uploadedBy;
 
-  @Comment("설명: 첨부 파일에 대한 설명 (값 영역: 500자 이하) | Description: description of the attached file (Value domain: up to 500 characters)")
+  @Comment("설명: 첨부 파일에 대한 설명 (값 영역: 500자 이하)")
   @Column(name = "description", length = 500)
   private String description;
 
-  @Comment("생성 일시: 이 첨부가 수집된 일시 | Created Date Time: date and time this attachment was collected")
+  @Comment("생성 일시: 이 첨부가 수집된 일시")
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
-  @Comment("상태: 이 첨부가 활성인지 삭제 표기되었는지 (값 영역: ACTIVE, DELETED) | Status: whether this attachment is active or marked as deleted (Value domain: ACTIVE, DELETED)")
+  @Comment("상태: 이 첨부가 활성인지 삭제 표기되었는지 (값 영역: ACTIVE, DELETED)")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private AttachmentStatus status;
 
-  @Comment("공개 접근 토큰: 로그인하지 않고 이 파일에 접근할 수 있는 일회용 토큰 (값 영역: 100자 이하) | Public Access Token: one-time token that allows access to this file without logging in (Value domain: up to 100 characters)")
+  @Comment("공개 접근 토큰: 로그인하지 않고 이 파일에 접근할 수 있는 일회용 토큰 (값 영역: 100자 이하)")
   @Column(name = "public_access_token", length = 100)
   private String publicAccessToken;
 
-  @Comment("본문 사용 여부: 이 파일이 세션 노트에 실제로 인라인 포함되었는지 (값 영역: true, false) | Used In Content Indicator: whether this file is actually included inline in the session note (Value domain: true, false)")
+  @Comment("본문 사용 여부: 이 파일이 세션 노트에 실제로 인라인 포함되었는지 (값 영역: true, false)")
   @Column(name = "is_used_in_content")
   private Boolean isUsedInContent = false;
 
-  @Comment("본문 삽입 일시: 이 파일이 본문에 처음 포함된 일시 | Content Insertion Date Time: date and time this file was first included in the body")
+  @Comment("본문 삽입 일시: 이 파일이 본문에 처음 포함된 일시")
   @Column(name = "used_at")
   private LocalDateTime usedAt;
 

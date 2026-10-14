@@ -17,7 +17,7 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Comment("테스트 실행: 테스트 플랜을 기준으로 테스트 케이스를 수행하는 한 회차 | Test Execution: single round of performing test cases based on a test plan")
+@Comment("테스트 실행: 테스트 플랜을 기준으로 테스트 케이스를 수행하는 한 회차")
 @Table(
     name = "test_executions",
     indexes = {
@@ -40,32 +40,32 @@ import org.hibernate.annotations.Comment;
       @Index(name = "idx_test_execution_project_created", columnList = "project_id, created_at")
     })
 public class TestExecution {
-  @Comment("실행 식별자: 이 행을 유일하게 가리키는 값 (값 영역: UUID 36자) | Execution Identifier: value that uniquely identifies this row (Value domain: UUID, 36 characters)")
+  @Comment("실행 식별자: 이 행을 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  @Comment("실행명: 이 테스트 실행을 구분하는 이름 | Execution Name: name that distinguishes this test execution")
+  @Comment("실행명: 이 테스트 실행을 구분하는 이름")
   private String name;
 
-  @Comment("테스트 플랜 식별자: 이 실행이 기반한 테스트 플랜 (값 영역: test_plans.id 참조) | Test Plan Identifier: test plan on which this execution is based (Value domain: references test_plans.id)")
+  @Comment("테스트 플랜 식별자: 이 실행이 기반한 테스트 플랜 (값 영역: test_plans.id 참조)")
   @Column(name = "test_plan_id")
   private String testPlanId;
 
-  @Comment("프로젝트 식별자: 이 테스트 실행이 속한 프로젝트 (값 영역: projects.id 참조) | Project Identifier: project to which this test execution belongs (Value domain: references projects.id)")
+  @Comment("프로젝트 식별자: 이 테스트 실행이 속한 프로젝트 (값 영역: projects.id 참조)")
   @ManyToOne(optional = false)
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;
 
-  @Comment("설명: 이 테스트 실행의 목적과 범위에 대한 설명 | Description: description of the purpose and scope of this test execution")
+  @Comment("설명: 이 테스트 실행의 목적과 범위에 대한 설명")
   private String description;
 
-  @Comment("상태: 테스트 실행의 진행 상태 (값 영역: NOTSTARTED, INPROGRESS, COMPLETED) | Status: progress status of the test execution (Value domain: NOTSTARTED, INPROGRESS, COMPLETED)")
+  @Comment("상태: 테스트 실행의 진행 상태 (값 영역: NOTSTARTED, INPROGRESS, COMPLETED)")
   private String status; // NOTSTARTED, INPROGRESS, COMPLETED
 
-  @Comment("시작 일시: 이 테스트 실행을 시작한 일시 | Start Date Time: date and time this test execution was started")
+  @Comment("시작 일시: 이 테스트 실행을 시작한 일시")
   private LocalDateTime startDate;
-  @Comment("종료 일시: 이 테스트 실행을 완료한 일시 | End Date Time: date and time this test execution was completed")
+  @Comment("종료 일시: 이 테스트 실행을 완료한 일시")
   private LocalDateTime endDate;
 
   @OneToMany(
@@ -80,24 +80,24 @@ public class TestExecution {
   @CollectionTable(
       name = "test_execution_tags",
       joinColumns = @JoinColumn(name = "test_execution_id"))
-  @Comment("테스트 실행 태그: 테스트 실행에 붙인 분류 태그 | Test Execution Tag: classification tag attached to a test execution")
-  @Comment(value = "테스트 실행 식별자: 태그가 붙은 테스트 실행 (값 영역: test_executions.id 참조) | Test Execution Identifier: test execution to which the tag is attached (Value domain: references test_executions.id)", on = "test_execution_id")
-  @Comment(value = "태그: 사용자가 붙인 태그 문자열 | Tag: tag string attached by a user", on = "tag")
+  @Comment("테스트 실행 태그: 테스트 실행에 붙인 분류 태그")
+  @Comment(value = "테스트 실행 식별자: 태그가 붙은 테스트 실행 (값 영역: test_executions.id 참조)", on = "test_execution_id")
+  @Comment(value = "태그: 사용자가 붙인 태그 문자열", on = "tag")
   @Column(name = "tag", length = 100)
   private java.util.Set<String> tags;
 
   // QA 총평 — 실행 단위 마크다운 코멘트 (고급 내보내기 상단에 표시)
-  @Comment("QA 총평: 이 테스트 실행에 대한 QA의 마크다운 코멘트 | QA Summary: QA comment in Markdown on this test execution")
+  @Comment("QA 총평: 이 테스트 실행에 대한 QA의 마크다운 코멘트")
   @Column(columnDefinition = "TEXT")
   private String qaSummary;
 
-  @Comment("QA 총평 수정자: QA 총평을 마지막으로 수정한 사용자명 | QA Summary Updater: username of the user who last changed the QA summary")
+  @Comment("QA 총평 수정자: QA 총평을 마지막으로 수정한 사용자명")
   private String qaSummaryUpdatedBy;
-  @Comment("QA 총평 수정 일시: QA 총평이 마지막으로 변경된 일시 | QA Summary Updated Date Time: date and time the QA summary was last changed")
+  @Comment("QA 총평 수정 일시: QA 총평이 마지막으로 변경된 일시")
   private LocalDateTime qaSummaryUpdatedAt;
 
-  @Comment("생성 일시: 이 행이 처음 저장된 일시 | Created Date Time: date and time this row was first saved")
+  @Comment("생성 일시: 이 행이 처음 저장된 일시")
   private LocalDateTime createdAt;
-  @Comment("수정 일시: 이 행이 마지막으로 변경된 일시 | Updated Date Time: date and time this row was last changed")
+  @Comment("수정 일시: 이 행이 마지막으로 변경된 일시")
   private LocalDateTime updatedAt;
 }
