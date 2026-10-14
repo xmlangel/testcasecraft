@@ -1,54 +1,59 @@
 # DB 테이블·컬럼 설명 작성 규칙 (ISO/IEC 11179 기준)
 
-작성: 2026-10-14 14:30 KST
+작성: 2026-10-14 14:30 KST · 최종 갱신: 2026-10-14 14:45 KST (영어 병기)
 
 DB 의 모든 테이블과 컬럼에는 설명(`COMMENT`)을 단다. 설명은 엔티티의 `@Comment` 에 쓰고, DB 에는 Hibernate 가 옮긴다. 이 문서는 그 설명을 ISO/IEC 11179 의 명명 규칙(5부)과 정의 규칙(4부)에 맞춰 쓰는 방법을 정한다.
 
 ## 1. 설명의 형식
 
+설명은 한국어와 영어를 한 줄에 함께 쓰고 ` | ` 로 나눈다. PostgreSQL 은 테이블·컬럼마다 설명을 한 칸만 두기 때문이다. 줄바꿈으로 나누지 않는 이유는 DB 클라이언트와 스키마 분석 도구가 설명을 한 줄로 보여 주는 경우가 많아서다.
+
 ```text
-<명칭>: <정의> (값 영역: <허용 값·형식·단위>)
+<명칭>: <정의> (값 영역: <허용 값·형식·단위>) | <Name>: <definition> (Value domain: <values>)
 ```
+
+한국어 부분과 영어 부분은 각각 그것만 읽어도 뜻이 통하게 쓴다. 그래서 값 영역도 양쪽에 둔다.
 
 | 부분 | 필수 | 내용 |
 |---|---|---|
 | 명칭 | 예 | 객체 클래스 + 특성 + 표현 용어. 테이블은 객체 클래스만 쓴다 |
 | 정의 | 예 | 그 데이터가 무엇인지 서술하는 설명구. 마침표 없이 끝낸다 |
 | 값 영역 | 아니오 | 코드·enum·주석·제약으로 확인한 허용 값, 형식, 단위. 확인하지 못했으면 쓰지 않는다 |
+| 영어 부분 | 예 | 한국어 부분과 같은 내용. 명칭은 Title Case, 정의는 소문자로 시작하는 설명구로 쓰고 마침표를 찍지 않는다 |
 
 예시:
 
 ```text
-테스트 케이스: 프로젝트 안에서 하나의 확인 절차와 기대 결과를 담는 단위. 폴더 노드도 같은 테이블에 저장한다
-테스트 케이스 유형 코드: 트리에서 이 행이 맡는 역할을 구분하는 코드 (값 영역: testcase, folder, systemFolder)
-프로젝트 식별자: 이 테스트 케이스가 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)
-자동화 여부: 이 테스트 케이스가 자동화 테스트로 실행되는지를 나타내는 값 (값 영역: true, false)
+테스트 케이스: 프로젝트 안에서 관리하는 테스트 절차 하나, 또는 테스트 케이스를 묶는 폴더 | Test Case: a single test procedure managed within a project, or a folder that groups test cases
+유형 코드: 트리에서 이 행이 맡는 역할 (값 영역: testcase, folder, systemFolder) | Type Code: role of this row in the tree (Value domain: testcase, folder, systemFolder)
+프로젝트 식별자: 이 테스트 케이스가 속한 프로젝트 (값 영역: projects.id 참조) | Project Identifier: project this test case belongs to (Value domain: references projects.id)
+자동화 여부: 이 테스트 케이스가 자동화 테스트로 실행되는지 나타내는 값 (값 영역: true, false) | Automated Indicator: whether this test case runs as an automated test (Value domain: true, false)
 ```
 
 ## 2. 명칭: 객체 클래스 + 특성 + 표현 용어
 
 ISO/IEC 11179-5 는 데이터 요소의 이름을 세 부분으로 짓는다. 객체 클래스는 무엇에 대한 데이터인지(테스트 케이스), 특성은 그 대상의 어떤 성질인지(유형), 표현 용어는 값이 어떤 형태인지(코드)를 나타낸다. 객체 클래스가 테이블 이름과 같으면 생략해도 된다(`testcases.name` → `테스트 케이스 명` 또는 `명칭`).
 
-표현 용어는 아래 목록에서 고른다. 같은 형태의 값에는 테이블이 달라도 같은 용어를 쓴다.
+표현 용어는 아래 목록에서 고른다. 같은 형태의 값에는 테이블이 달라도 같은 용어를 쓴다. 영어 명칭도 같은 순서(`Object Class + Property + Representation Term`)로 짓는다(`프로젝트 식별자` → `Project Identifier`).
 
-| 표현 용어 | 쓰는 경우 | 예 |
-|---|---|---|
-| 식별자 | 행을 유일하게 가리키는 값, 다른 행을 참조하는 값 | 프로젝트 식별자 |
-| 번호 | 사람이 읽는 일련번호 | 순차 번호 |
-| 명 | 짧은 이름 | 프로젝트 명 |
-| 내용 | 여러 줄이 될 수 있는 본문 | 사전 조건 내용 |
-| 코드 | 정해진 값 집합 가운데 하나 | 우선순위 코드 |
-| 여부 | 참·거짓 | 활성 여부 |
-| 일시 | 날짜와 시각 | 생성 일시 |
-| 일자 | 날짜만 | 방문 일자 |
-| 수 | 개수 | 실패 수 |
-| 순서 | 정렬 위치 | 표시 순서 |
-| 크기 | 바이트 수 | 파일 크기 |
-| 시간 | 걸린 시간 | 실행 시간 |
-| 경로 | 파일·저장소 경로 | 저장 경로 |
-| URL | 웹 주소 | 서버 URL |
-| 목록 | JSON 배열 등 여러 값을 한 칸에 담은 것 | 태그 목록 |
-| 값 | 위 어디에도 해당하지 않는 단일 값 | 설정 값 |
+| 표현 용어 | 영어 | 쓰는 경우 | 예 |
+|---|---|---|---|
+| 식별자 | Identifier | 행을 유일하게 가리키는 값, 다른 행을 참조하는 값 | 프로젝트 식별자 |
+| 번호 | Number | 사람이 읽는 일련번호 | 순차 번호 |
+| 명 | Name | 짧은 이름 | 프로젝트 명 |
+| 내용 | Text | 여러 줄이 될 수 있는 본문 | 사전 조건 내용 |
+| 코드 | Code | 정해진 값 집합 가운데 하나 | 우선순위 코드 |
+| 여부 | Indicator | 참·거짓 | 활성 여부 |
+| 일시 | Date Time | 날짜와 시각 | 생성 일시 |
+| 일자 | Date | 날짜만 | 방문 일자 |
+| 수 | Count | 개수 | 실패 수 |
+| 순서 | Order | 정렬 위치 | 표시 순서 |
+| 크기 | Size | 바이트 수 | 파일 크기 |
+| 시간 | Duration | 걸린 시간 | 실행 시간 |
+| 경로 | Path | 파일·저장소 경로 | 저장 경로 |
+| URL | URL | 웹 주소 | 서버 URL |
+| 목록 | List | JSON 배열 등 여러 값을 한 칸에 담은 것 | 태그 목록 |
+| 값 | Value | 위 어디에도 해당하지 않는 단일 값 | 설정 값 |
 
 ## 3. 정의: ISO/IEC 11179-4 규칙
 
@@ -68,7 +73,7 @@ ISO/IEC 11179-5 는 데이터 요소의 이름을 세 부분으로 짓는다. �
 - 기능·용도·절차를 정의에 섞지 않는다. 다만 낙관적 잠금 버전처럼 용도가 곧 뜻인 컬럼은 예외다.
 - 명칭을 되풀이해서 정의를 대신하지 않는다(순환 정의 금지). `생성 일시: 생성된 일시` 는 정보가 없다.
 - 같은 개념에는 같은 낱말을 쓴다. 한 곳에서 `사용자`, 다른 곳에서 `회원` 이라고 쓰지 않는다.
-- 200자를 넘기지 않는다.
+- 간결하게 쓴다. 글자 수 상한은 두지 않는다. 설명이 잘리지 않고 그대로 보여야 하기 때문이다.
 
 ## 4. 값 영역
 
@@ -84,16 +89,18 @@ ISO/IEC 11179-5 는 데이터 요소의 이름을 세 부분으로 짓는다. �
 | JSON | `JSON 배열` 또는 `JSON 객체`, 확인되면 원소 형태 |
 | 암호화 값 | `암호문`. 평문의 형식이나 키 정보는 적지 않는다 |
 
+영어 값 영역에서는 코드 값, enum 상수, 테이블·컬럼 이름을 그대로 두고 한국어 부분만 옮긴다(`projects.id 참조, UUID 36자` → `references projects.id, UUID, 36 characters`, `100자 이하` → `up to 100 characters`).
+
 ## 5. 공통 컬럼의 표준 설명
 
 여러 테이블에 같은 뜻으로 나오는 컬럼은 아래 문구를 그대로 쓴다. 테이블마다 뜻이 다르면(예: `created_by` 에 사용자명이 아니라 사용자 식별자가 들어가는 경우) 실제 내용에 맞게 고쳐 쓴다.
 
 | 컬럼 | 설명 |
 |---|---|
-| `created_at` | `생성 일시: 이 행이 처음 저장된 일시` |
-| `updated_at` | `수정 일시: 이 행이 마지막으로 변경된 일시` |
-| `created_by` | `생성자 명: 이 행을 처음 저장한 사용자의 사용자명` |
-| `updated_by` | `수정자 명: 이 행을 마지막으로 변경한 사용자의 사용자명` |
+| `created_at` | `생성 일시: 이 행이 처음 저장된 일시 \| Created Date Time: date and time this row was first saved` |
+| `updated_at` | `수정 일시: 이 행이 마지막으로 변경된 일시 \| Updated Date Time: date and time this row was last changed` |
+| `created_by` | `생성자 명: 이 행을 처음 저장한 사용자의 사용자명 \| Creator Name: username of the user who first saved this row` |
+| `updated_by` | `수정자 명: 이 행을 마지막으로 변경한 사용자의 사용자명 \| Updater Name: username of the user who last changed this row` |
 | `version` (`@Version`) | `낙관적 잠금 버전: 동시에 수정한 내용이 서로 덮어쓰지 않도록 저장할 때마다 1씩 늘어나는 번호` |
 
 ## 6. 엔티티에 쓰는 방법
@@ -102,11 +109,11 @@ ISO/IEC 11179-5 는 데이터 요소의 이름을 세 부분으로 짓는다. �
 
 ```java
 @Entity
-@Comment("테스트 케이스: 프로젝트 안에서 하나의 확인 절차와 기대 결과를 담는 단위")
+@Comment("테스트 케이스: 프로젝트 안에서 관리하는 테스트 절차 하나, 또는 테스트 케이스를 묶는 폴더 | Test Case: a single test procedure managed within a project, or a folder that groups test cases")
 @Table(name = "testcases")
 public class TestCase {
 
-  @Comment("테스트 케이스 유형 코드: 트리에서 이 행이 맡는 역할을 구분하는 코드 (값 영역: testcase, folder, systemFolder)")
+  @Comment("유형 코드: 트리에서 이 행이 맡는 역할 (값 영역: testcase, folder, systemFolder) | Type Code: role of this row in the tree (Value domain: testcase, folder, systemFolder)")
   @Column(columnDefinition = "TEXT")
   private String type;
 ```
@@ -114,9 +121,9 @@ public class TestCase {
 `@ElementCollection`·`@JoinTable` 이 만드는 테이블은 필드 하나에 설명을 여러 개 붙인다. `on` 이 없는 `@Comment` 는 그 테이블의 설명이 되고, `on` 을 준 `@Comment` 는 그 이름의 컬럼 설명이 된다. 조인 컬럼과 순서 컬럼(`@OrderColumn`)도 이 방법으로 단다.
 
 ```java
-@Comment("테스트 케이스 태그: 테스트 케이스에 붙인 분류 태그")
-@Comment(value = "테스트 케이스 식별자: 태그가 붙은 테스트 케이스를 가리키는 값 (값 영역: testcases.id 참조)", on = "testcase_id")
-@Comment(value = "태그 명: 사용자가 붙인 태그 문자열 (값 영역: 100자 이하)", on = "tag")
+@Comment("테스트 케이스 태그: 테스트 케이스에 붙인 분류 태그 | Test Case Tag: classification tag attached to a test case")
+@Comment(value = "테스트 케이스 식별자: 태그가 붙은 테스트 케이스 (값 영역: testcases.id 참조) | Test Case Identifier: test case the tag is attached to (Value domain: references testcases.id)", on = "testcase_id")
+@Comment(value = "태그 명: 사용자가 붙인 태그 문자열 (값 영역: 100자 이하) | Tag Name: tag string entered by a user (Value domain: up to 100 characters)", on = "tag")
 @ElementCollection
 @CollectionTable(name = "testcase_tags", joinColumns = @JoinColumn(name = "testcase_id"))
 @Column(name = "tag", length = 100)
@@ -143,11 +150,12 @@ DBCOMMENTS_WRITE=true ./gradlew test --tests '*DbCommentCoverageTest' --rerun
 
 ## 8. 누락 검사
 
-`DbCommentCoverageTest` 가 두 가지를 검사한다.
+`DbCommentCoverageTest` 가 세 가지를 검사한다.
 
 | 검사 | 실패하는 경우 |
 |---|---|
 | 모든 테이블과 컬럼에 설명이 있다 | 엔티티를 추가하거나 필드를 늘리면서 `@Comment` 를 빠뜨렸다 |
+| 모든 설명이 한국어와 영어로 되어 있다 | ` | ` 로 나눈 앞부분에 한글이 없거나, 뒷부분이 `Name: definition` 형식이 아니다 |
 | `db-comments.sql` 이 엔티티와 같다 | `@Comment` 를 고친 뒤 SQL 을 다시 생성하지 않았다 |
 
 ## 참고

@@ -8,29 +8,29 @@ import org.hibernate.annotations.Comment;
 
 /** 일별 방문 요약 엔티티 일별 총 방문 수와 고유 방문자 수를 데이터베이스에 영속화합니다. */
 @Entity
-@Comment("일별 방문 요약: 하루 단위로 집계한 방문 수와 고유 방문자 수")
+@Comment("일별 방문 요약: 하루 단위로 집계한 방문 수와 고유 방문자 수 | Daily Visit Summary: visit count and unique visitor count aggregated per day")
 @Table(
     name = "daily_visit_summaries",
     indexes = {@Index(name = "idx_daily_summary_date", columnList = "visit_date", unique = true)})
 public class DailyVisitSummary {
 
-  @Comment("식별자: 이 일일 요약 기록을 유일하게 가리키는 값 (값 영역: UUID 36자)")
+  @Comment("식별자: 이 일일 요약 기록을 유일하게 가리키는 값 (값 영역: UUID 36자) | Identifier: value that uniquely identifies this daily summary record (Value domain: UUID, 36 characters)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
   /** 방문 날짜 (일 단위) */
-  @Comment("방문 일자: 이 통계가 나타내는 날짜 (값 영역: 일 단위, 날짜만)")
+  @Comment("방문 일자: 이 통계가 나타내는 날짜 (값 영역: 일 단위, 날짜만) | Visit Date: date this statistic represents (Value domain: day granularity, date only)")
   @Column(name = "visit_date", nullable = false, unique = true)
   private LocalDate visitDate;
 
   /** 총 방문 횟수 */
-  @Comment("총 방문 수: 이 날짜의 모든 페이지 접근 횟수 합계 (값 영역: 0 이상의 정수)")
+  @Comment("총 방문 수: 이 날짜의 모든 페이지 접근 횟수 합계 (값 영역: 0 이상의 정수) | Total Visit Count: sum of all page accesses on this date (Value domain: integer of 0 or greater)")
   @Column(name = "total_visits", nullable = false)
   private Long totalVisits = 0L;
 
   /** 고유 방문자 수 */
-  @Comment("고유 방문자 수: 이 날짜에 접근한 서로 다른 사용자·세션의 개수 (값 영역: 0 이상의 정수)")
+  @Comment("고유 방문자 수: 이 날짜에 접근한 서로 다른 사용자·세션의 개수 (값 영역: 0 이상의 정수) | Unique Visitor Count: number of distinct users or sessions that accessed on this date (Value domain: integer greater than or equal to 0)")
   @Column(name = "unique_visitors", nullable = false)
   private Long uniqueVisitors = 0L;
 

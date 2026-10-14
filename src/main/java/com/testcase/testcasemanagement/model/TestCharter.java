@@ -26,7 +26,7 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Comment("테스트 차터: 테스트 활동의 목표와 범위를 정의하는 문서")
+@Comment("테스트 차터: 테스트 활동의 목표와 범위를 정의하는 문서 | Test Charter: document that defines the goal and scope of a test activity")
 @Table(
     name = "test_charters",
     indexes = {
@@ -40,47 +40,47 @@ public class TestCharter {
     ARCHIVED
   }
 
-  @Comment("테스트 차터 식별자: 이 테스트 차터를 유일하게 가리키는 값 (값 영역: UUID 36자)")
+  @Comment("테스트 차터 식별자: 이 테스트 차터를 유일하게 가리키는 값 (값 영역: UUID 36자) | Test Charter Identifier: value that uniquely points to this test charter (Value domain: UUID, 36 characters)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(columnDefinition = "VARCHAR(36)", updatable = false)
   private String id;
 
-  @Comment(value = "프로젝트 식별자: 이 테스트 차터가 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)", on = "project_id")
+  @Comment(value = "프로젝트 식별자: 이 테스트 차터가 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자) | Project Identifier: value that points to the project to which this test charter belongs (Value domain: references projects.id, UUID, 36 characters)", on = "project_id")
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;
 
-  @Comment("차터 제목: 테스트 차터의 이름 또는 제목")
+  @Comment("차터 제목: 테스트 차터의 이름 또는 제목 | Charter Title: name or title of the test charter")
   @Column(nullable = false, length = 200)
   private String title;
 
-  @Comment("미션: 이 테스트 차터의 목표와 목적을 설명하는 내용")
+  @Comment("미션: 이 테스트 차터의 목표와 목적을 설명하는 내용 | Mission: text describing the goal and purpose of this test charter")
   @Column(nullable = false, columnDefinition = "TEXT")
   private String mission;
 
-  @Comment("테스트 영역: 차터에서 다루는 테스트 범위 또는 기능 영역을 설명하는 내용")
+  @Comment("테스트 영역: 차터에서 다루는 테스트 범위 또는 기능 영역을 설명하는 내용 | Test Area: text describing the test scope or functional area covered by the charter")
   @Column(name = "areas", columnDefinition = "TEXT")
   private String areas;
 
-  @Comment("태그 목록: 테스트 차터를 분류하는 태그들을 쉼표로 구분하여 저장한 값")
+  @Comment("태그 목록: 테스트 차터를 분류하는 태그들을 쉼표로 구분하여 저장한 값 | Tag List: value storing the tags that classify the test charter, separated by commas")
   @Column(name = "tags", columnDefinition = "TEXT")
   private String tags;
 
-  @Comment("생성자 명: 이 테스트 차터를 생성한 사용자의 식별자")
+  @Comment("생성자: 이 테스트 차터를 생성한 사용자를 나타내는 값 | Creator: value that identifies the user who created this test charter")
   @Column(name = "created_by", length = 100)
   private String createdBy;
 
-  @Comment("차터 상태: 테스트 차터의 현재 상태 (값 영역: ACTIVE, ARCHIVED)")
+  @Comment("차터 상태: 테스트 차터의 현재 상태 (값 영역: ACTIVE, ARCHIVED) | Charter Status: current status of the test charter (Value domain: ACTIVE, ARCHIVED)")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private CharterStatus status;
 
-  @Comment(value = "생성 일시: 이 행이 처음 저장된 일시", on = "created_at")
+  @Comment(value = "생성 일시: 이 행이 처음 저장된 일시 | Created Date Time: date and time this row was first saved", on = "created_at")
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
-  @Comment(value = "수정 일시: 이 행이 마지막으로 변경된 일시", on = "updated_at")
+  @Comment(value = "수정 일시: 이 행이 마지막으로 변경된 일시 | Updated Date Time: date and time this row was last changed", on = "updated_at")
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 

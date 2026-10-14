@@ -24,7 +24,7 @@ import org.hibernate.annotations.Comment;
 @Setter
 @NoArgsConstructor
 @Entity
-@Comment("요구사항 테스트 케이스 연결: 요구사항을 확인하는 테스트 케이스의 연결")
+@Comment("요구사항 테스트 케이스 연결: 요구사항을 확인하는 테스트 케이스의 연결 | Requirement Test Case Link: link between a requirement and a test case that verifies it")
 @Table(
     name = "requirement_test_case_links",
     uniqueConstraints =
@@ -37,25 +37,25 @@ import org.hibernate.annotations.Comment;
     })
 public class RequirementTestCaseLink {
 
-  @Comment("요구사항 테스트 케이스 연결 식별자: 이 연결 행을 유일하게 가리키는 값 (값 영역: UUID 36자)")
+  @Comment("요구사항 테스트 케이스 연결 식별자: 이 연결 행을 유일하게 가리키는 값 (값 영역: UUID 36자) | Requirement Test Case Link Identifier: value that uniquely identifies this link row (Value domain: UUID, 36 characters)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(columnDefinition = "VARCHAR(36)", updatable = false)
   private String id;
 
-  @Comment(value = "요구사항 식별자: 이 연결의 요구사항 쪽을 가리키는 값 (값 영역: UUID 36자)", on = "requirement_id")
+  @Comment(value = "요구사항 식별자: 이 연결의 요구사항 쪽을 가리키는 값 (값 영역: UUID 36자) | Requirement Identifier: value that refers to the requirement side of this link (Value domain: UUID, 36 characters)", on = "requirement_id")
   @Column(name = "requirement_id", nullable = false, columnDefinition = "VARCHAR(36)")
   private String requirementId;
 
-  @Comment(value = "테스트 케이스 식별자: 이 연결의 테스트 케이스 쪽을 가리키는 값 (값 영역: UUID 36자)", on = "test_case_id")
+  @Comment(value = "테스트 케이스 식별자: 이 연결의 테스트 케이스 쪽을 가리키는 값 (값 영역: UUID 36자) | Test Case Identifier: value that points to the test case side of this link (Value domain: UUID, 36 characters)", on = "test_case_id")
   @Column(name = "test_case_id", nullable = false, columnDefinition = "VARCHAR(36)")
   private String testCaseId;
 
-  @Comment("생성자 명: 이 연결을 생성한 사용자의 식별자")
+  @Comment("생성자: 이 연결을 생성한 사용자를 나타내는 값 | Creator: value that identifies the user who created this link")
   @Column(name = "created_by", length = 100)
   private String createdBy;
 
-  @Comment(value = "생성 일시: 이 행이 처음 저장된 일시", on = "created_at")
+  @Comment(value = "생성 일시: 이 행이 처음 저장된 일시 | Created Date Time: date and time this row was first saved", on = "created_at")
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 

@@ -18,7 +18,7 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Comment("JUnit 테스트 케이스: JUnit XML 에서 읽은 테스트 메서드 하나의 실행 결과")
+@Comment("JUnit 테스트 케이스: JUnit XML 에서 읽은 테스트 메서드 하나의 실행 결과 | JUnit Test Case: execution result of one test method read from JUnit XML")
 @Table(
     name = "junit_test_cases",
     indexes = {
@@ -29,14 +29,14 @@ import org.hibernate.annotations.Comment;
     })
 public class JunitTestCase {
 
-  @Comment("JUnit 테스트 케이스 식별자: 이 테스트 케이스를 유일하게 가리키는 값 (값 영역: UUID 36자)")
+  @Comment("JUnit 테스트 케이스 식별자: 이 테스트 케이스를 유일하게 가리키는 값 (값 영역: UUID 36자) | JUnit Test Case Identifier: value that uniquely identifies this test case (Value domain: UUID, 36 characters)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(columnDefinition = "VARCHAR(36)", updatable = false)
   private String id;
 
   /** 상위 테스트 스위트 */
-  @Comment(value = "JUnit 테스트 스위트 식별자: 이 테스트 케이스가 속한 스위트를 가리키는 값 (값 영역: junit_test_suites.id 참조, UUID 36자)", on = "junit_test_suite_id")
+  @Comment(value = "JUnit 테스트 스위트 식별자: 이 테스트 케이스가 속한 스위트를 가리키는 값 (값 영역: junit_test_suites.id 참조, UUID 36자) | JUnit Test Suite Identifier: value that points to the suite to which this test case belongs (Value domain: references junit_test_suites.id, UUID, 36 characters)", on = "junit_test_suite_id")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "junit_test_suite_id", nullable = false)
   @JsonBackReference
@@ -44,118 +44,118 @@ public class JunitTestCase {
   private JunitTestSuite junitTestSuite;
 
   /** 테스트 메소드 이름 */
-  @Comment("테스트 메서드 명: JUnit XML에서 정의된 테스트 메서드의 이름")
+  @Comment("테스트 메서드 명: JUnit XML에서 정의된 테스트 메서드의 이름 | Test Method Name: name of the test method defined in the JUnit XML")
   @Column(nullable = false, length = 255)
   private String name;
 
   /** 클래스명 (풀패키지명 포함) */
-  @Comment("클래스 명: 테스트 메서드가 속한 클래스의 정규화된 이름(패키지 포함)")
+  @Comment("클래스 명: 테스트 메서드가 속한 클래스의 정규화된 이름(패키지 포함) | Class Name: fully qualified name (including package) of the class the test method belongs to")
   @Column(nullable = false, length = 500)
   private String className;
 
   /** 실행 시간 (초) */
-  @Comment("테스트 실행 시간: 이 테스트 케이스가 실행되는 데 걸린 시간 (값 영역: 초, 소수점 2자리)")
+  @Comment("테스트 실행 시간: 이 테스트 케이스가 실행되는 데 걸린 시간 (값 영역: 초, 소수점 2자리) | Test Execution Duration: time taken to run this test case (Value domain: seconds, 2 decimal places)")
   @Column(nullable = false)
   private Double time = 0.0;
 
   /** 테스트 상태 (PASSED, FAILED, ERROR, SKIPPED) */
-  @Comment("테스트 상태 코드: JUnit XML에서 파싱한 테스트 실행 결과 (값 영역: PASSED, FAILED, ERROR, SKIPPED)")
+  @Comment("테스트 상태 코드: JUnit XML에서 파싱한 테스트 실행 결과 (값 영역: PASSED, FAILED, ERROR, SKIPPED) | Test Status Code: test execution result parsed from the JUnit XML (Value domain: PASSED, FAILED, ERROR, SKIPPED)")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private JunitTestStatus status = JunitTestStatus.PASSED;
 
   /** 실패/에러 메시지 */
-  @Comment("실패/에러 메시지: 테스트가 실패하거나 에러가 발생했을 때의 메시지 내용")
+  @Comment("실패/에러 메시지: 테스트가 실패하거나 에러가 발생했을 때의 메시지 내용 | Failure or Error Message: message text produced when a test fails or an error occurs")
   @Column(columnDefinition = "TEXT")
   private String failureMessage;
 
   /** 실패/에러 타입 */
-  @Comment("실패/에러 유형: 예외의 클래스명 또는 실패 유형")
+  @Comment("실패/에러 유형: 예외의 클래스명 또는 실패 유형 | Failure or Error Type: class name of the exception or type of failure")
   @Column(length = 255)
   private String failureType;
 
   /** 스택 트레이스 */
-  @Comment("스택 트레이스: 실패/에러 발생 시의 스택 추적 정보")
+  @Comment("스택 트레이스: 실패/에러 발생 시의 스택 추적 정보 | Stack Trace: stack trace information captured when a failure or error occurs")
   @Column(columnDefinition = "TEXT")
   private String stackTrace;
 
   /** 스킵 메시지 */
-  @Comment("스킵 메시지: 테스트가 스킵되었을 때의 사유 메시지")
+  @Comment("스킵 메시지: 테스트가 스킵되었을 때의 사유 메시지 | Skip Message: message stating the reason a test was skipped")
   @Column(columnDefinition = "TEXT")
   private String skipMessage;
 
   /** 시스템 아웃 로그 */
-  @Comment("표준 출력 로그: 테스트 실행 중 표준 출력 스트림에 기록된 내용")
+  @Comment("표준 출력 로그: 테스트 실행 중 표준 출력 스트림에 기록된 내용 | Standard Output Log Text: content written to the standard output stream during test execution")
   @Column(columnDefinition = "TEXT")
   private String systemOut;
 
   /** 시스템 에러 로그 */
-  @Comment("표준 에러 로그: 테스트 실행 중 표준 에러 스트림에 기록된 내용")
+  @Comment("표준 에러 로그: 테스트 실행 중 표준 에러 스트림에 기록된 내용 | Standard Error Log Text: content written to the standard error stream during test execution")
   @Column(columnDefinition = "TEXT")
   private String systemErr;
 
   /** 기대 결과 (상위 수준) */
-  @Comment("기대 결과: 테스트에서 예상되는 결과를 사용자가 정의한 내용")
+  @Comment("기대 결과: 테스트에서 예상되는 결과를 사용자가 정의한 내용 | Expected Result: user-defined content describing the result expected from the test")
   @Column(columnDefinition = "TEXT")
   private String expectedResult;
 
   /** 실제 결과 (상위 수준) */
-  @Comment("실제 결과: 테스트 실행 후 실제로 나타난 결과를 사용자가 기록한 내용")
+  @Comment("실제 결과: 테스트 실행 후 실제로 나타난 결과를 사용자가 기록한 내용 | Actual Result: result that actually appeared after test execution, as recorded by the user")
   @Column(columnDefinition = "TEXT")
   private String actualResult;
 
   /** 단계별 테스트 결과 (JSON 형식) */
-  @Comment("테스트 단계: 테스트의 각 단계별 수행 결과를 JSON 형식으로 저장한 내용")
+  @Comment("테스트 단계: 테스트의 각 단계별 수행 결과를 JSON 형식으로 저장한 내용 | Test Step Text: content storing the result of each step of the test in JSON format")
   @Column(columnDefinition = "TEXT")
   private String testSteps;
 
   /** 사용자가 편집한 제목 */
-  @Comment("사용자 정의 제목: 사용자가 입력하거나 수정한 테스트 케이스의 제목")
+  @Comment("사용자 정의 제목: 사용자가 입력하거나 수정한 테스트 케이스의 제목 | User Defined Title: title of the test case entered or edited by the user")
   @Column(length = 500)
   private String userTitle;
 
   /** 사용자가 편집한 설명 */
-  @Comment("사용자 정의 설명: 사용자가 입력하거나 수정한 테스트 케이스의 상세 설명")
+  @Comment("사용자 정의 설명: 사용자가 입력하거나 수정한 테스트 케이스의 상세 설명 | User Defined Description: detailed description of the test case entered or edited by the user")
   @Column(columnDefinition = "TEXT")
   private String userDescription;
 
   /** 사용자가 편집한 메모 */
-  @Comment("사용자 정의 메모: 사용자가 작성한 추가 노트 또는 의견")
+  @Comment("사용자 정의 메모: 사용자가 작성한 추가 노트 또는 의견 | User Defined Note: additional note or comment written by the user")
   @Column(columnDefinition = "TEXT")
   private String userNotes;
 
   /** 태그 (콤마로 구분) */
-  @Comment("태그 목록: 테스트 케이스를 분류하는 태그들을 쉼표로 구분하여 저장한 값")
+  @Comment("태그 목록: 테스트 케이스를 분류하는 태그들을 쉼표로 구분하여 저장한 값 | Tag List: value storing the tags that classify the test case, separated by commas")
   @Column(length = 500)
   private String tags;
 
   /** 우선순위 (사용자 설정) */
-  @Comment("우선순위 코드: 사용자가 지정한 테스트 케이스의 우선순위")
+  @Comment("우선순위 코드: 사용자가 지정한 테스트 케이스의 우선순위 | Priority Code: priority of the test case as assigned by the user")
   @Column(length = 20)
   private String priority;
 
   /** 사용자가 변경한 상태 */
-  @Comment("사용자 정의 상태: 사용자가 원본 상태를 덮어쓰기 위해 입력한 상태 (값 영역: PASSED, FAILED, ERROR, SKIPPED)")
+  @Comment("사용자 정의 상태: 사용자가 원본 상태를 덮어쓰기 위해 입력한 상태 (값 영역: PASSED, FAILED, ERROR, SKIPPED) | User Defined Status: status entered by the user to override the original status (Value domain: PASSED, FAILED, ERROR, SKIPPED)")
   @Enumerated(EnumType.STRING)
   @Column(length = 20)
   private JunitTestStatus userStatus;
 
   /** 첨부파일 경로들 (JSON 배열 형태로 저장) */
-  @Comment("첨부 파일 목록: 테스트 케이스와 함께 첨부된 파일 경로를 JSON 배열로 저장한 값")
+  @Comment("첨부 파일 목록: 테스트 케이스와 함께 첨부된 파일 경로를 JSON 배열로 저장한 값 | Attachment File List: value storing the paths of files attached with the test case as a JSON array")
   @Column(columnDefinition = "TEXT")
   private String attachments;
 
   /** 추가 속성 정보 (JSON 형식) */
-  @Comment("추가 속성: JUnit XML에서 정의된 기타 속성 정보를 JSON 형식으로 저장한 값")
+  @Comment("추가 속성: JUnit XML에서 정의된 기타 속성 정보를 JSON 형식으로 저장한 값 | Additional Property Text: value storing other properties defined in the JUnit XML in JSON format")
   @Column(columnDefinition = "TEXT")
   private String properties;
 
   /** 최종 수정 시간 */
-  @Comment("최종 수정 일시: 이 테스트 케이스 정보가 마지막으로 변경된 일시")
+  @Comment("최종 수정 일시: 이 테스트 케이스 정보가 마지막으로 변경된 일시 | Last Modified Date Time: date and time this test case information was last changed")
   private LocalDateTime lastModifiedAt;
 
   /** 최종 수정자 */
-  @Comment(value = "최종 수정자 식별자: 이 테스트 케이스를 마지막으로 수정한 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)", on = "last_modified_by")
+  @Comment(value = "최종 수정자 식별자: 이 테스트 케이스를 마지막으로 수정한 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자) | Last Modifier Identifier: value that identifies the user who last modified this test case (Value domain: references users.id, UUID, 36 characters)", on = "last_modified_by")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "last_modified_by")
   private User lastModifiedBy;

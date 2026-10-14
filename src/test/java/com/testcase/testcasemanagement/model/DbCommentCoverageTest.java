@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.model.relational.Namespace;
@@ -38,6 +39,8 @@ import org.testng.annotations.Test;
 public class DbCommentCoverageTest {
 
   private static final String ENTITY_PACKAGE = "com.testcase.testcasemanagement.model";
+  private static final Pattern KOREAN_PART = Pattern.compile("^[^:]+: .*[가-힣].*$");
+  private static final Pattern ENGLISH_PART = Pattern.compile("^[A-Z][^:가-힣]*: [^가-힣]+$");
   private static final Path SQL_FILE = Path.of("src/main/resources/db/comments/db-comments.sql");
 
   private StandardServiceRegistry registry;
@@ -85,6 +88,32 @@ public class DbCommentCoverageTest {
       }
     }
     assertTrue(missing.isEmpty(), "설명이 없는 테이블·컬럼 " + missing.size() + "개: " + missing);
+  }
+
+  @Test
+  public void 모든_설명이_한국어와_영어로_되어_있다() {
+    List<String> invalid = new ArrayList<>();
+    for (Table table : tables()) {
+      checkBilingual(table.getName(), table.getComment(), invalid);
+      for (Column column : table.getColumns()) {
+        checkBilingual(table.getName() + "." + column.getName(), column.getComment(), invalid);
+      }
+    }
+    assertTrue(invalid.isEmpty(), "한국어 | 영어 형식이 아닌 설명 " + invalid.size() + "개: " + invalid);
+  }
+
+  private static void checkBilingual(String name, String comment, List<String> invalid) {
+    if (isBlank(comment)) {
+      return;
+    }
+    String[] parts = comment.split(" \\| ", -1);
+    boolean valid =
+        parts.length == 2
+            && KOREAN_PART.matcher(parts[0]).matches()
+            && ENGLISH_PART.matcher(parts[1]).matches();
+    if (!valid) {
+      invalid.add(name);
+    }
   }
 
   @Test
