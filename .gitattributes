@@ -1,0 +1,3 @@
+# 테스트가 생성 파일을 원문 그대로 비교하므로 체크아웃 환경과 관계없이 LF 로 둔다.
+src/main/resources/db/comments/*.csv text eol=lf
+src/main/resources/db/comments/*.sql text eol=lf

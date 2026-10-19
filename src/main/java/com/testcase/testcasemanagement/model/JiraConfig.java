@@ -8,18 +8,22 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Comment;
 
 @Entity
+@Comment("Jira 연동 설정: 사용자별 Jira 서버 접속 정보와 연결 검증 상태")
 @Table(name = "jira_config")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class JiraConfig {
+  @Comment("설정 식별자: 이 행을 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
+  @Comment("사용자 식별자: 이 설정을 소유한 사용자 (값 영역: users.id 참조)")
   @Column(name = "user_id", nullable = false)
   private String userId;
 
@@ -28,34 +32,44 @@ public class JiraConfig {
   @JsonIgnore
   private User user;
 
+  @Comment("서버 URL: Jira 서버의 기본 주소")
   @Column(nullable = false, length = 500)
   private String serverUrl;
 
+  @Comment("사용자명: Jira 서버에 로그인할 사용자명")
   @Column(nullable = false, length = 100)
   private String username;
 
+  @Comment("API 토큰: Jira 서버 인증에 사용할 API 토큰 (값 영역: 암호문)")
   @JsonIgnore
   @Column(nullable = false, columnDefinition = "TEXT")
   private String encryptedApiToken;
 
+  @Comment("테스트 프로젝트 키: 연결 검증에 사용할 Jira 프로젝트 키")
   @Column(length = 50)
   private String testProjectKey;
 
+  @Comment("활성 여부: 이 설정을 사용할지 여부")
   @Column(nullable = false)
   private Boolean isActive = true;
 
+  @Comment("연결 검증 여부: 마지막 연결 테스트의 성공 여부")
   @Column(name = "connection_verified")
   private Boolean connectionVerified = false;
 
+  @Comment("마지막 연결 테스트 일시: 마지막으로 연결을 검증한 시각")
   @Column(name = "last_connection_test")
   private LocalDateTime lastConnectionTest;
 
+  @Comment("마지막 연결 오류: 마지막 연결 시도 실패 시 오류 메시지")
   @Column(name = "last_connection_error", columnDefinition = "TEXT")
   private String lastConnectionError;
 
+  @Comment("생성 일시: 이 행이 처음 저장된 일시")
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
+  @Comment("수정 일시: 이 행이 마지막으로 변경된 일시")
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 

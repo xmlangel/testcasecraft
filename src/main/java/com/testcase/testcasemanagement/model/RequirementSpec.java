@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Comment;
 
 /**
  * 요구사항 문서(TestLink 의 Requirement Specification). 프로젝트 안에서 n단 트리를 이루며 요구사항을 묶는다.
@@ -27,6 +28,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
+@Comment("요구사항 명세: 프로젝트 안에서 요구사항을 계층 구조로 묶는 문서")
 @Table(
     name = "requirement_specs",
     uniqueConstraints =
@@ -39,37 +41,47 @@ import lombok.Setter;
     })
 public class RequirementSpec {
 
+  @Comment("식별자: 요구사항 명세를 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(columnDefinition = "VARCHAR(36)", updatable = false)
   private String id;
 
+  @Comment("프로젝트: 이 명세가 속한 프로젝트 (값 영역: projects.id 참조)")
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;
 
+  @Comment("상위 명세 식별자: 트리 구조에서 상위 노드를 가리키는 값, 최상위는 null (값 영역: requirement_specs.id 참조)")
   @Column(name = "parent_id", columnDefinition = "VARCHAR(36)")
   private String parentId;
 
   /** 사람이 붙이는 문서 식별자(예: SRS-01). 프로젝트 안에서 유일하다. */
+  @Comment("문서 식별자: 사용자가 부여한 명세 코드, 프로젝트 내 유일 (값 영역: 64자 이하)")
   @Column(name = "doc_id", nullable = false, length = 64)
   private String docId;
 
+  @Comment("제목: 명세의 이름 (값 영역: 200자 이하)")
   @Column(nullable = false, length = 200)
   private String title;
 
+  @Comment("범위: 이 명세가 다루는 범위와 제약조건")
   @Column(columnDefinition = "TEXT")
   private String scope;
 
+  @Comment("표시 순서: 같은 레벨 명세들의 정렬 순서 (값 영역: 1 이상)")
   @Column(name = "display_order")
   private Integer displayOrder = 1;
 
+  @Comment("생성자: 이 행을 처음 저장한 사용자")
   @Column(name = "created_by", length = 100)
   private String createdBy;
 
+  @Comment("생성 일시: 이 행이 처음 저장된 일시")
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
+  @Comment("수정 일시: 이 행이 마지막으로 변경된 일시")
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 

@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
+import org.hibernate.annotations.Comment;
 
 /**
  * 테스트케이스 트리 이동(DnD)의 감사 로그.
@@ -16,6 +17,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Entity
+@Comment("테스트 케이스 이동 감사 로그: 사용자가 트리에서 테스트 케이스를 옮긴 기록")
 @Table(
     name = "tc_move_audit_log",
     indexes = {
@@ -25,39 +27,50 @@ import lombok.*;
     })
 public class TestCaseMoveAuditLog {
 
+  @Comment("식별자: 이동 기록을 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(columnDefinition = "VARCHAR(36)", updatable = false)
   private String id;
 
+  @Comment("테스트 케이스 식별자: 이동한 테스트 케이스 (값 영역: testcases.id 참조)")
   @Column(name = "testcase_id", columnDefinition = "VARCHAR(36)", nullable = false)
   private String testcaseId;
 
+  @Comment("이동 전 부모 식별자: 이동하기 전 트리에서 부모의 위치 (값 영역: testcases.id 참조)")
   @Column(name = "from_parent_id", columnDefinition = "VARCHAR(36)")
   private String fromParentId;
 
+  @Comment("이동 후 부모 식별자: 이동한 후 트리에서 부모의 위치 (값 영역: testcases.id 참조)")
   @Column(name = "to_parent_id", columnDefinition = "VARCHAR(36)")
   private String toParentId;
 
+  @Comment("이동 전 순서: 이동하기 전 같은 레벨 내에서의 순서 (값 영역: 0 이상)")
   @Column(name = "from_display_order")
   private Integer fromDisplayOrder;
 
+  @Comment("이동 후 순서: 이동한 후 같은 레벨 내에서의 순서 (값 영역: 0 이상)")
   @Column(name = "to_display_order", nullable = false)
   private Integer toDisplayOrder;
 
+  @Comment("이동자: 이 이동을 수행한 사용자")
   @Column(name = "moved_by", length = 100, nullable = false)
   private String movedBy;
 
+  @Comment("이동 일시: 이동이 발생한 일시")
   @Column(name = "moved_at", nullable = false)
   private LocalDateTime movedAt;
 
   /** "single" | "batch" */
+  @Comment("요청 유형: 단건 이동 또는 배치 이동 여부 (값 영역: single, batch)")
   @Column(name = "request_kind", length = 16, nullable = false)
   private String requestKind;
 
+  @Comment("배치 그룹 식별자: 같은 배치 호출에 속한 이동들을 묶는 값 (값 영역: UUID 36자)")
   @Column(name = "batch_group_id", columnDefinition = "VARCHAR(36)")
   private String batchGroupId;
 
+  @Comment("프로젝트 식별자: 이 이동이 발생한 프로젝트 (값 영역: projects.id 참조)")
   @Column(name = "project_id", columnDefinition = "VARCHAR(36)", nullable = false)
   private String projectId;
 
