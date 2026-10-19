@@ -5,12 +5,14 @@ package com.testcase.testcasemanagement.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
+import org.hibernate.annotations.Comment;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Comment("그룹 구성원: 그룹에 속한 사용자와 그 그룹 안에서의 역할")
 @Table(
     name = "group_members",
     uniqueConstraints = {@UniqueConstraint(columnNames = {"group_id", "user_id"})},
@@ -19,25 +21,31 @@ import lombok.*;
       @Index(name = "idx_user_group", columnList = "user_id, group_id")
     })
 public class GroupMember {
+  @Comment("그룹 멤버 식별자: 이 그룹 멤버십 행을 유일하게 가리키는 값 (값 영역: UUID 36자)")
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
+  @Comment(value = "그룹 식별자: 이 멤버가 속한 그룹을 가리키는 값 (값 영역: groups.id 참조, UUID 36자)", on = "group_id")
   @ManyToOne(optional = false)
   @JoinColumn(name = "group_id")
   private Group group;
 
+  @Comment(value = "사용자 식별자: 그룹의 멤버인 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)", on = "user_id")
   @ManyToOne(optional = false)
   @JoinColumn(name = "user_id")
   private User user;
 
+  @Comment(value = "그룹 역할 코드: 이 멤버가 그룹에서 맡는 역할을 나타내는 코드 (값 영역: LEADER, CO_LEADER, MEMBER)", on = "role_in_group")
   @Enumerated(EnumType.STRING)
   @Column(name = "role_in_group", nullable = false, length = 20)
   private GroupRole roleInGroup; // LEADER, MEMBER
 
+  @Comment(value = "생성 일시: 이 행이 처음 저장된 일시", on = "created_at")
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
+  @Comment(value = "수정 일시: 이 행이 마지막으로 변경된 일시", on = "updated_at")
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
