@@ -12,13 +12,10 @@ import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import com.testcase.testcasemanagement.repository.TestPlanRepository;
-import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.security.OrganizationSecurityService;
 import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class ProjectService {
-
-  @PersistenceContext private EntityManager entityManager;
 
   @Autowired private ProjectRepository projectRepository;
 
@@ -54,11 +49,7 @@ public class ProjectService {
 
   @Autowired private TestExecutionRepository testExecutionRepository;
 
-  @Autowired private TestResultRepository testResultRepository;
-
-  @Autowired
-  private com.testcase.testcasemanagement.repository.RagChatThreadRepository
-      ragChatThreadRepository;
+  @Autowired private ProjectDataPurger projectDataPurger;
 
   @Autowired
   private com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository
@@ -614,105 +605,9 @@ public class ProjectService {
 
     if (force) {
       // 강제 삭제: 모든 연관 데이터와 함께 삭제
-      System.out.println("🚨 강제 삭제 시작: " + project.getName() + " (ID: " + id + ")");
-
-      try {
-        // 0. RAG 관련 데이터 삭제 (가장 먼저 삭제)
-        // rag_chat_thread_categories 조인 테이블 삭제
-        int ragThreadCategoriesDeleted =
-            entityManager
-                .createNativeQuery(
-                    "DELETE FROM rag_chat_thread_categories WHERE thread_id IN "
-                        + "(SELECT id FROM rag_chat_threads WHERE project_id = :projectId)")
-                .setParameter("projectId", id)
-                .executeUpdate();
-        System.out.println("   ✅ RAG 채팅 스레드 카테고리 " + ragThreadCategoriesDeleted + "개 삭제 완료");
-
-        // rag_chat_messages 삭제 (채팅 스레드의 메시지)
-        int ragMessagesDeleted =
-            entityManager
-                .createNativeQuery(
-                    "DELETE FROM rag_chat_messages WHERE thread_id IN "
-                        + "(SELECT id FROM rag_chat_threads WHERE project_id = :projectId)")
-                .setParameter("projectId", id)
-                .executeUpdate();
-        System.out.println("   ✅ RAG 채팅 메시지 " + ragMessagesDeleted + "개 삭제 완료");
-
-        // rag_chat_threads 삭제
-        ragChatThreadRepository.deleteByProject_Id(id);
-        System.out.println("   ✅ RAG 채팅 스레드 삭제 완료");
-
-        // 1. @ElementCollection 태그 테이블 먼저 삭제
-        // test_result_tags 삭제
-        int resultTagsDeleted =
-            entityManager
-                .createNativeQuery(
-                    "DELETE FROM test_result_tags WHERE test_result_id IN "
-                        + "(SELECT tr.id FROM test_results tr "
-                        + "JOIN test_executions te ON tr.test_execution_id = te.id "
-                        + "WHERE te.project_id = :projectId)")
-                .setParameter("projectId", id)
-                .executeUpdate();
-        System.out.println("   ✅ 테스트 결과 태그 " + resultTagsDeleted + "개 삭제 완료");
-
-        // test_execution_tags 삭제
-        int executionTagsDeleted =
-            entityManager
-                .createNativeQuery(
-                    "DELETE FROM test_execution_tags WHERE test_execution_id IN "
-                        + "(SELECT id FROM test_executions WHERE project_id = :projectId)")
-                .setParameter("projectId", id)
-                .executeUpdate();
-        System.out.println("   ✅ 테스트 실행 태그 " + executionTagsDeleted + "개 삭제 완료");
-
-        // 2. 테스트 결과 첨부파일 삭제 (test_results보다 먼저 삭제 필요)
-        int attachmentsDeleted =
-            entityManager
-                .createNativeQuery(
-                    "DELETE FROM test_result_attachments WHERE test_result_id IN "
-                        + "(SELECT tr.id FROM test_results tr "
-                        + "JOIN test_executions te ON tr.test_execution_id = te.id "
-                        + "WHERE te.project_id = :projectId)")
-                .setParameter("projectId", id)
-                .executeUpdate();
-        System.out.println("   ✅ 테스트 결과 첨부파일 " + attachmentsDeleted + "개 삭제 완료");
-
-        // 3. 테스트 결과 삭제
-        testResultRepository.deleteByProjectId(id);
-        System.out.println("   ✅ 테스트 결과 삭제 완료");
-
-        // 4. 테스트 실행 삭제
-        long executionCount = testExecutionRepository.countByProjectId(id);
-        if (executionCount > 0) {
-          testExecutionRepository.deleteByProjectId(id);
-          System.out.println("   ✅ 테스트 실행 " + executionCount + "개 삭제됨");
-        }
-
-        // 5. 테스트 플랜 삭제
-        long planCount = testPlanRepository.countByProjectId(id);
-        if (planCount > 0) {
-          testPlanRepository.deleteByProjectId(id);
-          System.out.println("   ✅ 테스트 플랜 " + planCount + "개 삭제됨");
-        }
-
-        // 6. 테스트 케이스 삭제
-        long caseCount = testCaseRepository.countByProjectId(id);
-        if (caseCount > 0) {
-          testCaseRepository.deleteByProjectId(id);
-          System.out.println("   ✅ 테스트 케이스 " + caseCount + "개 삭제됨");
-        }
-
-        // 7. 프로젝트 멤버 관계 삭제
-        projectUserRepository.deleteByProjectId(id);
-
-        // 8. 프로젝트 삭제
-        projectRepository.delete(project);
-        System.out.println("🎉 강제 삭제 완료: " + project.getName());
-
-      } catch (Exception e) {
-        System.err.println("❌ 강제 삭제 실패: " + e.getMessage());
-        throw new RuntimeException("An error occurred while force-deleting the project: " + e.getMessage(), e);
-      }
+      projectDataPurger.purge(id);
+      projectUserRepository.deleteByProjectId(id);
+      projectRepository.delete(project);
     } else {
       // 일반 삭제: 연관 데이터 있으면 실패
       long testCaseCount = testCaseRepository.countByProjectId(id);
