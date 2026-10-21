@@ -50,6 +50,6 @@ esac
 if [[ -n "$hits" ]]; then
   echo "✖ '$branch' 에는 dev 전용 경로를 커밋할 수 없습니다." >&2
   echo "$hits" | sed 's/^/    /' >&2
-  echo "  feat/·core/·doc/ 브랜치에서 커밋해 dev 로 보내고, master 반영은 scripts/git-guard/promote-dev.sh 로 합니다." >&2
+  echo "  feat/·fix/·core/·doc/ 브랜치에서 커밋해 dev 로 보내고, master 반영은 scripts/git-guard/promote-dev.sh 로 합니다." >&2
   exit 1
 fi

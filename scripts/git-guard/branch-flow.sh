@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# 브랜치 흐름을 고정한다:  feat/* · core/* · doc/*  →  dev  →  master
+# 브랜치 흐름을 고정한다:  feat/* · fix/* · core/* · doc/*  →  dev  →  master
 #
 #   usage: branch-flow.sh <base> <head> [<head-ref>]
 #
-# - base 가 dev    : head 는 feat/ · core/ · doc/ 로 시작해야 한다.
+# - base 가 dev    : head 는 feat/ · fix/ · core/ · doc/ 로 시작해야 한다.
 # - base 가 master : head 는 release/ 로 시작해야 한다(promote-dev.sh 가 만든다).
 #                    그리고 origin/dev 에 없는 커밋은 dev 전용 경로를 지우는 것만 허용한다.
 #                    dev 는 dev 전용 파일을 추적하므로 master 로 직접 병합하지 않는다.
@@ -21,8 +21,8 @@ fail() { echo "✖ $*" >&2; exit 1; }
 
 case "$base" in
   dev)
-    [[ "$head" =~ ^(feat|core|doc)/ ]] \
-      || fail "dev 로는 feat/ · core/ · doc/ 브랜치만 병합할 수 있습니다 (받은 값: $head)"
+    [[ "$head" =~ ^(feat|fix|core|doc)/ ]] \
+      || fail "dev 로는 feat/ · fix/ · core/ · doc/ 브랜치만 병합할 수 있습니다 (받은 값: $head)"
     ;;
   master|main)
     [[ "$head" =~ ^release/ ]] \
