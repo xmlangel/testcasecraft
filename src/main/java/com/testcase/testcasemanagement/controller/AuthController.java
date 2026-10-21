@@ -663,7 +663,12 @@ public class AuthController {
       EmailVerificationDto.CommonResponse result =
           emailVerificationService.createVerificationToken(user.getId(), user.getEmail(), baseUrl);
       if (result.isSuccess()) {
-        return ResponseEntity.ok(Map.of("success", true, "message", result.getMessage()));
+        // ICT-439: 발송은 비동기다. 화면이 requestId 로 발송 결과를 조회한다
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("success", true);
+        body.put("message", result.getMessage());
+        body.put("requestId", result.getRequestId());
+        return ResponseEntity.ok(body);
       } else {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("success", false, "message", result.getMessage()));

@@ -61,4 +61,19 @@ public class EmailVerificationController {
     CommonResponse response = emailVerificationService.resendVerificationEmail(userId);
     return ResponseEntity.ok(response);
   }
+
+  /** ICT-439: 인증 메일 발송 결과 조회 (요청한 본인 또는 관리자) */
+  @GetMapping("/send-status/{requestId}")
+  @PreAuthorize("isAuthenticated()")
+  @Operation(
+      summary = "인증 메일 발송 결과 조회",
+      description = "인증 메일은 비동기로 발송합니다. 발송 요청 응답의 requestId 로 결과(PENDING, SENT, FAILED)를 조회합니다.")
+  public ResponseEntity<SendStatusResponse> getSendStatus(
+      @Parameter(description = "발송 요청 식별자", required = true) @PathVariable String requestId) {
+    return emailVerificationService
+        .getSendStatus(
+            requestId, securityContextUtil.getCurrentUserId(), securityContextUtil.isSystemAdmin())
+        .map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
 }

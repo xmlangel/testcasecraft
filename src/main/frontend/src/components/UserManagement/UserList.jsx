@@ -67,6 +67,10 @@ import UserDetailDialog from "./UserDetailDialog.jsx";
 import LoadingSpinner from "../atoms/LoadingSpinner/LoadingSpinner.jsx";
 import ErrorMessage from "../atoms/ErrorMessage/ErrorMessage.jsx";
 import { formatDateOnlySafe } from "../../utils/dateUtils";
+import {
+  describeMailSendResult,
+  waitForMailSendResult,
+} from "../../utils/mailSendStatus.js";
 import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
@@ -148,7 +152,16 @@ const UserList = () => {
 
         const result = await response.json();
 
-        if (response.ok && result.success) {
+        if (response.ok && result.success && result.requestId) {
+          // ICT-439: 서버는 발송을 접수만 하고 응답한다. 실제 발송 결과를 조회해 실패도 보여 준다
+          setSnackbar({
+            open: true,
+            message: t("userList.email.sending", "인증 이메일을 보내는 중입니다..."),
+            severity: "info",
+          });
+          const sendResult = await waitForMailSendResult(result.requestId, (url) => api(url));
+          setSnackbar({ open: true, ...describeMailSendResult(t, sendResult) });
+        } else if (response.ok && result.success) {
           setSnackbar({
             open: true,
             message: t("userList.email.sent", "인증 이메일이 발송되었습니다."),

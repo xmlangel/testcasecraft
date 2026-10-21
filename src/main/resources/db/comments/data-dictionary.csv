@@ -56,6 +56,9 @@ email_verification_tokens,email,이메일 주소,검증 대상 이메일 주소,
 email_verification_tokens,expires_at,만료 일시,이 토큰이 사용 불가능해지는 일시,발급 일시 + 24시간,Expiration Date Time,date and time at which this token becomes unusable,issue date time + 24 hours
 email_verification_tokens,id,식별자,이 토큰 기록을 유일하게 가리키는 값,UUID 36자,Identifier,value that uniquely identifies this token record,"UUID, 36 characters"
 email_verification_tokens,is_used,사용 여부,이 토큰으로 검증이 완료됐는지,"true, false",Used Indicator,whether verification has been completed with this token,"true, false"
+email_verification_tokens,send_error_code,발송 오류 코드,발송이 실패한 원인의 분류,"CONNECT_FAILED, AUTH_FAILED, TIMEOUT, REJECTED, SEND_FAILED",Send Error Code,classification of the reason sending failed,"CONNECT_FAILED, AUTH_FAILED, TIMEOUT, REJECTED, SEND_FAILED"
+email_verification_tokens,send_finished_at,발송 종료 일시,발송이 성공 또는 실패로 끝난 일시,,Send Finished Date Time,date and time sending ended in success or failure,
+email_verification_tokens,send_status,발송 상태,"인증 메일 발송 결과, 비어 있으면 상태 기록 이전에 발급된 토큰","PENDING, SENT, FAILED",Send Status,"result of sending the verification email, empty for tokens issued before status was recorded","PENDING, SENT, FAILED"
 email_verification_tokens,token,검증 토큰,이메일 확인 링크에 사용되는 일회용 토큰,100자 이하,Verification Token,one-time token used in the email confirmation link,up to 100 characters
 email_verification_tokens,used_at,사용 일시,이 토큰으로 검증이 완료된 일시,,Used Date Time,date and time verification was completed with this token,
 email_verification_tokens,user_id,사용자 식별자,이 토큰으로 검증할 사용자,users.id 참조,User Identifier,user to be verified with this token,references users.id

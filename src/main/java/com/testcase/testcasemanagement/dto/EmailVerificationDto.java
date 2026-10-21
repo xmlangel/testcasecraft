@@ -49,13 +49,33 @@ public class EmailVerificationDto {
   public static class CommonResponse {
     private boolean success;
     private String message;
+    // ICT-439: 메일을 비동기로 보낼 때 발송 결과를 조회할 식별자. 발송을 접수하지 않은 응답에서는 null
+    private String requestId;
+
+    public CommonResponse(boolean success, String message) {
+      this(success, message, null);
+    }
 
     public static CommonResponse success(String message) {
       return new CommonResponse(true, message);
     }
 
+    public static CommonResponse accepted(String message, String requestId) {
+      return new CommonResponse(true, message, requestId);
+    }
+
     public static CommonResponse failure(String message) {
       return new CommonResponse(false, message);
     }
+  }
+
+  /** ICT-439: 인증 메일 발송 결과 조회 응답 */
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class SendStatusResponse {
+    private String requestId;
+    private String status; // PENDING, SENT, FAILED
+    private String errorCode; // CONNECT_FAILED, AUTH_FAILED, TIMEOUT, REJECTED, SEND_FAILED, null
   }
 }

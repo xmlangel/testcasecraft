@@ -52,6 +52,20 @@ public class EmailVerificationToken {
   @Comment("사용 일시: 이 토큰으로 검증이 완료된 일시")
   @Column private LocalDateTime usedAt;
 
+  @Comment("발송 상태: 인증 메일 발송 결과, 비어 있으면 상태 기록 이전에 발급된 토큰 (값 영역: PENDING, SENT, FAILED)")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "send_status", length = 20)
+  private SendStatus sendStatus;
+
+  @Comment("발송 오류 코드: 발송이 실패한 원인의 분류 (값 영역: CONNECT_FAILED, AUTH_FAILED, TIMEOUT, REJECTED, SEND_FAILED)")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "send_error_code", length = 30)
+  private SendErrorCode sendErrorCode;
+
+  @Comment("발송 종료 일시: 발송이 성공 또는 실패로 끝난 일시")
+  @Column(name = "send_finished_at")
+  private LocalDateTime sendFinishedAt;
+
   @Comment("생성 일시: 이 토큰이 발급된 일시")
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
@@ -73,5 +87,21 @@ public class EmailVerificationToken {
   // 토큰 사용 가능 여부 확인
   public boolean isValid() {
     return !isUsed && !isExpired();
+  }
+
+  /** ICT-439: 인증 메일은 비동기로 보내므로 결과를 토큰에 남겨 화면이 조회한다. */
+  public enum SendStatus {
+    PENDING,
+    SENT,
+    FAILED
+  }
+
+  /** 발송 실패 원인. 화면에 보여 줄 문구는 이 코드로 고르고, 예외 원문은 로그에만 남긴다. */
+  public enum SendErrorCode {
+    CONNECT_FAILED,
+    AUTH_FAILED,
+    TIMEOUT,
+    REJECTED,
+    SEND_FAILED
   }
 }

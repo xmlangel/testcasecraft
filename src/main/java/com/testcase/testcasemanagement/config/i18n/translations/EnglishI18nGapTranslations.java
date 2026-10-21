@@ -1246,6 +1246,24 @@ public class EnglishI18nGapTranslations {
         "userList.email.notVerified", languageCode, "Not Verified", createdBy);
     createTranslationIfNotExists(
         "userList.email.sent", languageCode, "Verification email sent.", createdBy);
+    createTranslationIfNotExists(
+        "userList.email.sending", languageCode, "Sending the verification email...", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.sending", languageCode, "Sending the verification email...", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.result.sent", languageCode, "Verification email sent. Please check your inbox.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.result.unknown", languageCode, "The send result could not be confirmed yet. Check your inbox shortly, and try again if the email does not arrive.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.connectFailed", languageCode, "Could not connect to the mail server, so the verification email was not sent. Ask the administrator to check the mail server host and port.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.authFailed", languageCode, "Mail server login failed, so the verification email was not sent. Ask the administrator to check the mail account settings.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.timeout", languageCode, "The mail server did not respond, so the verification email was not sent. Please try again later.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.rejected", languageCode, "Too many emails are being sent, so the verification email was not sent. Please try again later.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.failed", languageCode, "Failed to send the verification email. Please try again later.", createdBy);
     createTranslationIfNotExists("userList.email.verified", languageCode, "Verified", createdBy);
     createTranslationIfNotExists(
         "userList.table.emailVerified", languageCode, "Email Verified", createdBy);

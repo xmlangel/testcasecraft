@@ -3,39 +3,51 @@ package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.EmailVerificationDto.*;
 import com.testcase.testcasemanagement.model.EmailVerificationToken;
+import com.testcase.testcasemanagement.model.EmailVerificationToken.SendErrorCode;
+import com.testcase.testcasemanagement.model.EmailVerificationToken.SendStatus;
 import com.testcase.testcasemanagement.model.MailSettings;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.EmailVerificationRepository;
 import com.testcase.testcasemanagement.repository.MailSettingsRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
-import com.testcase.testcasemanagement.security.EncryptionUtil;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.AuthenticationFailedException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.MailSendException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailVerificationService {
 
   private final EmailVerificationRepository emailVerificationRepository;
   private final UserRepository userRepository;
   private final MailSettingsRepository mailSettingsRepository;
-  private final EncryptionUtil encryptionUtil;
+  private final VerificationMailSender verificationMailSender;
+  private final Executor mailSendExecutor;
 
-  @Value("${app.frontend.url:http://localhost:8080}")
-  private String frontendUrl;
+  public EmailVerificationService(
+      EmailVerificationRepository emailVerificationRepository,
+      UserRepository userRepository,
+      MailSettingsRepository mailSettingsRepository,
+      VerificationMailSender verificationMailSender,
+      @Qualifier("mailSendExecutor") Executor mailSendExecutor) {
+    this.emailVerificationRepository = emailVerificationRepository;
+    this.userRepository = userRepository;
+    this.mailSettingsRepository = mailSettingsRepository;
+    this.verificationMailSender = verificationMailSender;
+    this.mailSendExecutor = mailSendExecutor;
+  }
 
   /** 인증 토큰 생성 및 이메일 발송 */
   public CommonResponse createVerificationToken(String userId, String email) {
@@ -45,8 +57,9 @@ public class EmailVerificationService {
   /**
    * 인증 토큰 생성 및 이메일 발송 (Base URL 지정)
    *
-   * <p>ICT-439: 트랜잭션을 걸지 않는다. 토큰 저장을 먼저 커밋하고 SMTP 발송은 트랜잭션 밖에서 해서, 메일을 보내는 동안
-   * 트랜잭션을 열어 두지 않는다.
+   * <p>ICT-439: 트랜잭션을 걸지 않는다. 토큰을 발송 대기(PENDING) 상태로 먼저 커밋하고, SMTP 발송은 발송 전용 스레드 풀에
+   * 넘긴 뒤 곧바로 응답한다. 요청 스레드가 메일 서버를 기다리지 않으므로 DB 연결과 요청 스레드를 붙잡지 않는다. 발송 결과는 토큰에
+   * 기록하고 화면은 {@link #getSendStatus} 로 조회해 실패를 보여 준다.
    */
   public CommonResponse createVerificationToken(String userId, String email, String baseUrl) {
     try {
@@ -82,21 +95,32 @@ public class EmailVerificationService {
       token.setEmail(email);
       token.setIsUsed(false);
       token.setExpiresAt(LocalDateTime.now().plusHours(24));
+      token.setSendStatus(SendStatus.PENDING);
 
       emailVerificationRepository.save(token);
+      String requestId = token.getId();
+      String tokenValue = token.getToken();
+      String userName = user.getName();
 
-      // 메일 설정을 사용하여 이메일 발송
-      sendVerificationEmail(mailSettings, email, token.getToken(), user.getName(), baseUrl);
+      try {
+        mailSendExecutor.execute(
+            () -> sendAndRecord(requestId, mailSettings, email, tokenValue, userName, baseUrl));
+      } catch (RejectedExecutionException e) {
+        log.error("Verification email rejected, send queue is full: {} (request: {})", email, requestId, e);
+        recordResult(requestId, SendStatus.FAILED, SendErrorCode.REJECTED);
+        return CommonResponse.failure("Too many emails are being sent. Please try again later.");
+      }
 
-      log.info("Email verification token created for user: {} (email: {})", userId, email);
-      return CommonResponse.success("인증 이메일이 발송되었습니다.");
+      log.info(
+          "Email verification token created and send queued for user: {} (email: {}, request: {})",
+          userId,
+          email,
+          requestId);
+      return CommonResponse.accepted("인증 이메일 발송을 요청했습니다.", requestId);
 
     } catch (IllegalArgumentException e) {
       log.error("Invalid user ID: {}", userId, e);
       return CommonResponse.failure(e.getMessage());
-    } catch (MessagingException e) {
-      log.error("Failed to send verification email to: {}", email, e);
-      return CommonResponse.failure("Failed to send the email.");
     } catch (Exception e) {
       log.error("Unexpected error creating verification token", e);
       return CommonResponse.failure("An error occurred while generating the verification token.");
@@ -177,159 +201,87 @@ public class EmailVerificationService {
     }
   }
 
-  /** 인증 이메일 발송 (MailSettings 사용) */
-  private void sendVerificationEmail(
-      MailSettings mailSettings, String toEmail, String token, String userName, String baseUrl)
-      throws MessagingException {
-    String base = (baseUrl != null && !baseUrl.isEmpty()) ? baseUrl : frontendUrl;
-    // Remove trailing slash if present
-    if (base.endsWith("/")) {
-      base = base.substring(0, base.length() - 1);
+  /**
+   * 인증 메일 발송 결과 조회. 요청한 본인 또는 관리자만 볼 수 있다.
+   *
+   * <p>남의 발송 기록이면 없는 것과 같이 빈 값을 돌려준다. 존재 여부를 알려 주지 않기 위해서다.
+   */
+  public Optional<SendStatusResponse> getSendStatus(
+      String requestId, String currentUserId, boolean isAdmin) {
+    return emailVerificationRepository
+        .findById(requestId)
+        .filter(token -> isAdmin || token.getUser().getId().equals(currentUserId))
+        .map(
+            token ->
+                new SendStatusResponse(
+                    token.getId(),
+                    // 상태 기록 이전에 발급된 토큰은 발송 결과를 그때 응답으로 이미 알렸다. 화면이 조회할 일이 없어 SENT 로 둔다
+                    token.getSendStatus() == null ? SendStatus.SENT.name() : token.getSendStatus().name(),
+                    token.getSendErrorCode() == null ? null : token.getSendErrorCode().name()));
+  }
+
+  /** 발송 전용 스레드에서 메일을 보내고 결과를 토큰에 기록한다. 예외를 밖으로 던지지 않는다. */
+  void sendAndRecord(
+      String requestId,
+      MailSettings mailSettings,
+      String email,
+      String tokenValue,
+      String userName,
+      String baseUrl) {
+    try {
+      verificationMailSender.send(mailSettings, email, tokenValue, userName, baseUrl);
+      recordResult(requestId, SendStatus.SENT, null);
+    } catch (Exception e) {
+      SendErrorCode code = classify(e);
+      log.error(
+          "Failed to send verification email to: {} (request: {}, reason: {})",
+          email,
+          requestId,
+          code,
+          e);
+      recordResult(requestId, SendStatus.FAILED, code);
     }
-    String verificationLink = base + "/verify-email?token=" + token;
-
-    // 다이나믹 JavaMailSender 생성
-    JavaMailSender mailSender = createMailSender(mailSettings);
-
-    String htmlContent = buildEmailTemplate(userName, verificationLink);
-    String subject = "[TestCaseCraft] 이메일 인증을 완료해주세요";
-    String fromEmail = mailSettings.getFromName() + " <" + mailSettings.getUsername() + ">";
-
-    // 이메일 발송
-    MimeMessage message = mailSender.createMimeMessage();
-    MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-    helper.setFrom(fromEmail);
-    helper.setTo(toEmail);
-    helper.setSubject(subject);
-    helper.setText(htmlContent, true);
-
-    mailSender.send(message);
-    log.info("Verification email sent to: {} using mail settings", toEmail);
   }
 
-  /** MailSettings로부터 JavaMailSender 동적 생성 */
-  private JavaMailSender createMailSender(MailSettings settings) {
-    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-    mailSender.setHost(settings.getSmtpHost());
-    mailSender.setPort(settings.getSmtpPort());
-    mailSender.setUsername(settings.getUsername());
-
-    // 비밀번호 복호화
-    String decryptedPassword = encryptionUtil.decrypt(settings.getPassword());
-    mailSender.setPassword(decryptedPassword);
-
-    // SMTP 속성 설정
-    Properties props = mailSender.getJavaMailProperties();
-    props.put("mail.transport.protocol", "smtp");
-    props.put("mail.smtp.auth", settings.getUseAuth() ? "true" : "false");
-    props.put("mail.smtp.starttls.enable", settings.getUseTLS() ? "true" : "false");
-    props.put("mail.debug", "false");
-    // ICT-439: 메일 서버가 응답하지 않을 때 요청이 끝나지 않는 것을 막는다
-    props.put("mail.smtp.connectiontimeout", "5000");
-    props.put("mail.smtp.timeout", "5000");
-    props.put("mail.smtp.writetimeout", "5000");
-
-    return mailSender;
+  private void recordResult(String requestId, SendStatus status, SendErrorCode errorCode) {
+    try {
+      emailVerificationRepository
+          .findById(requestId)
+          .ifPresent(
+              token -> {
+                token.setSendStatus(status);
+                token.setSendErrorCode(errorCode);
+                token.setSendFinishedAt(LocalDateTime.now());
+                emailVerificationRepository.save(token);
+              });
+    } catch (Exception e) {
+      // 기록에 실패해도 발송 결과는 위 로그에 남아 있다. 화면은 조회 시간이 지나면 확인 불가로 안내한다.
+      log.error("Failed to record verification email result (request: {}, status: {})", requestId, status, e);
+    }
   }
 
-  /** HTML 이메일 템플릿 생성 */
-  private String buildEmailTemplate(String userName, String verificationLink) {
-    return """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
+  /** 예외 원인 사슬을 따라가 화면에 보여 줄 실패 분류를 고른다. 예외 원문은 내부 정보라 화면에 내보내지 않는다. */
+  static SendErrorCode classify(Throwable error) {
+    for (Throwable t = error; t != null; t = t.getCause() == t ? null : t.getCause()) {
+      if (t instanceof MailAuthenticationException || t instanceof AuthenticationFailedException) {
+        return SendErrorCode.AUTH_FAILED;
+      }
+      if (t instanceof SocketTimeoutException) {
+        return SendErrorCode.TIMEOUT;
+      }
+      if (t instanceof ConnectException || t instanceof UnknownHostException) {
+        return SendErrorCode.CONNECT_FAILED;
+      }
+      // 메시지 단위 실패는 원인 사슬이 아니라 실패 메시지 목록에 담겨 온다
+      if (t instanceof MailSendException mailSendException) {
+        for (Exception messageException : mailSendException.getMessageExceptions()) {
+          SendErrorCode code = classify(messageException);
+          if (code != SendErrorCode.SEND_FAILED) {
+            return code;
+          }
         }
-        .container {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            color: #1976d2;
-            margin: 0;
-        }
-        .content {
-            background-color: white;
-            padding: 25px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 30px;
-            background-color: #1976d2;
-            color: white !important;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .button:hover {
-            background-color: #1565c0;
-        }
-        .footer {
-            text-align: center;
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 20px;
-        }
-        .warning {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin-top: 20px;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>TestCaseCraft</h1>
-            <p>이메일 인증</p>
-        </div>
-        <div class="content">
-            <p>안녕하세요, <strong>%s</strong>님!</p>
-            <p>TestCaseCraft의 이메일 인증을 완료하기 위해 아래 버튼을 클릭해주세요.</p>
-            <div style="text-align: center;">
-                <a href="%s" class="button">이메일 인증하기</a>
-            </div>
-            <p>버튼이 작동하지 않는 경우, 아래 링크를 복사하여 브라우저에 붙여넣어주세요:</p>
-            <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 0.9em;">
-                %s
-            </p>
-            <div class="warning">
-                <strong>⚠️ 중요 안내</strong>
-                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
-                    <li>이 인증 링크는 <strong>24시간 동안만</strong> 유효합니다.</li>
-                    <li>인증 링크는 <strong>1회만</strong> 사용 가능합니다.</li>
-                    <li>본인이 요청하지 않은 경우, 이 이메일을 무시해주세요.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer">
-            <p>본 메일은 발신 전용이므로 회신되지 않습니다.</p>
-            <p>&copy; 2025 TestCaseCraft. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
-"""
-        .formatted(userName, verificationLink, verificationLink);
+      }
+    }
+    return SendErrorCode.SEND_FAILED;
   }
 }

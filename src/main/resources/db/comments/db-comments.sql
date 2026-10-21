@@ -65,6 +65,9 @@ COMMENT ON COLUMN email_verification_tokens.email IS '이메일 주소: 검증 �
 COMMENT ON COLUMN email_verification_tokens.expires_at IS '만료 일시: 이 토큰이 사용 불가능해지는 일시 (값 영역: 발급 일시 + 24시간)';
 COMMENT ON COLUMN email_verification_tokens.id IS '식별자: 이 토큰 기록을 유일하게 가리키는 값 (값 영역: UUID 36자)';
 COMMENT ON COLUMN email_verification_tokens.is_used IS '사용 여부: 이 토큰으로 검증이 완료됐는지 (값 영역: true, false)';
+COMMENT ON COLUMN email_verification_tokens.send_error_code IS '발송 오류 코드: 발송이 실패한 원인의 분류 (값 영역: CONNECT_FAILED, AUTH_FAILED, TIMEOUT, REJECTED, SEND_FAILED)';
+COMMENT ON COLUMN email_verification_tokens.send_finished_at IS '발송 종료 일시: 발송이 성공 또는 실패로 끝난 일시';
+COMMENT ON COLUMN email_verification_tokens.send_status IS '발송 상태: 인증 메일 발송 결과, 비어 있으면 상태 기록 이전에 발급된 토큰 (값 영역: PENDING, SENT, FAILED)';
 COMMENT ON COLUMN email_verification_tokens.token IS '검증 토큰: 이메일 확인 링크에 사용되는 일회용 토큰 (값 영역: 100자 이하)';
 COMMENT ON COLUMN email_verification_tokens.used_at IS '사용 일시: 이 토큰으로 검증이 완료된 일시';
 COMMENT ON COLUMN email_verification_tokens.user_id IS '사용자 식별자: 이 토큰으로 검증할 사용자 (값 영역: users.id 참조)';
