@@ -162,16 +162,19 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
   @Query(
       value =
           "SELECT "
-              + "    COUNT(DISTINCT tc.id) as total_test_cases, "
-              + "    COUNT(DISTINCT tp.id) as total_test_plans, "
-              + "    COUNT(DISTINCT te.id) as total_test_executions, "
-              + "    MAX(tr.executed_at) as last_execution_date "
-              + "FROM testcases tc "
-              + "LEFT JOIN test_plans tp ON tc.project_id = tp.project_id "
-              + "LEFT JOIN test_executions te ON tc.project_id = te.project_id "
-              + "LEFT JOIN test_results tr ON tc.id = tr.test_case_id "
-              + "WHERE tc.project_id = :projectId "
-              + "AND tc.type = 'testcase' ",
+              + "    (SELECT COUNT(*) FROM testcases tc"
+              + "      WHERE tc.project_id = :projectId AND tc.type = 'testcase') as total_test_cases, "
+              + "    CASE WHEN EXISTS (SELECT 1 FROM testcases tc"
+              + "      WHERE tc.project_id = :projectId AND tc.type = 'testcase')"
+              + "      THEN (SELECT COUNT(*) FROM test_plans tp WHERE tp.project_id = :projectId)"
+              + "      ELSE 0 END as total_test_plans, "
+              + "    CASE WHEN EXISTS (SELECT 1 FROM testcases tc"
+              + "      WHERE tc.project_id = :projectId AND tc.type = 'testcase')"
+              + "      THEN (SELECT COUNT(*) FROM test_executions te WHERE te.project_id = :projectId)"
+              + "      ELSE 0 END as total_test_executions, "
+              + "    (SELECT MAX(tr.executed_at) FROM test_results tr"
+              + "      JOIN testcases tc ON tc.id = tr.test_case_id"
+              + "      WHERE tc.project_id = :projectId AND tc.type = 'testcase') as last_execution_date ",
       nativeQuery = true)
   Map<String, Object> findProjectBasicStatistics(@Param("projectId") String projectId);
 
@@ -219,13 +222,11 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
               + " 1 END) as blocked_test_cases,     COUNT(CASE WHEN latest_results.result ="
               + " 'SKIPPED' THEN 1 END) as skipped_test_cases,     COUNT(CASE WHEN"
               + " latest_results.result IS NULL THEN 1 END) as not_run_test_cases FROM testcases tc"
-              + " LEFT JOIN (     SELECT tr1.test_case_id, tr1.result     FROM test_results tr1    "
-              + " JOIN test_executions te1 ON tr1.test_execution_id = te1.id     WHERE"
-              + " te1.project_id = :projectId     AND tr1.executed_at = (         SELECT"
-              + " MAX(tr2.executed_at)         FROM test_results tr2         JOIN test_executions"
-              + " te2 ON tr2.test_execution_id = te2.id         WHERE tr2.test_case_id ="
-              + " tr1.test_case_id         AND te2.project_id = :projectId         AND"
-              + " tr2.executed_at IS NOT NULL     ) ) latest_results ON tc.id ="
+              + " LEFT JOIN (     SELECT DISTINCT ON (tr1.test_case_id) tr1.test_case_id,"
+              + " tr1.result     FROM test_results tr1     JOIN test_executions te1 ON"
+              + " tr1.test_execution_id = te1.id     WHERE te1.project_id = :projectId     AND"
+              + " tr1.executed_at IS NOT NULL     ORDER BY tr1.test_case_id, tr1.executed_at DESC"
+              + " ) latest_results ON tc.id ="
               + " latest_results.test_case_id WHERE tc.project_id = :projectId "
               + " AND tc.type = 'testcase' ",
       nativeQuery = true)
@@ -243,14 +244,12 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
               + " END) as active_priority_high_cases,     COUNT(CASE WHEN tc.priority = 'MEDIUM'"
               + " AND latest_results.result IS NULL THEN 1 END) as active_priority_medium_cases,   "
               + "  COUNT(CASE WHEN tc.priority = 'LOW' AND latest_results.result IS NULL THEN 1"
-              + " END) as active_priority_low_cases FROM testcases tc LEFT JOIN (     SELECT"
-              + " tr1.test_case_id, tr1.result     FROM test_results tr1     JOIN test_executions"
-              + " te1 ON tr1.test_execution_id = te1.id     WHERE te1.project_id = :projectId    "
-              + " AND tr1.executed_at IS NOT NULL     AND tr1.executed_at = (         SELECT"
-              + " MAX(tr2.executed_at)         FROM test_results tr2         JOIN test_executions"
-              + " te2 ON tr2.test_execution_id = te2.id         WHERE tr2.test_case_id ="
-              + " tr1.test_case_id         AND te2.project_id = :projectId         AND"
-              + " tr2.executed_at IS NOT NULL     ) ) latest_results ON tc.id ="
+              + " END) as active_priority_low_cases FROM testcases tc"
+              + " LEFT JOIN (     SELECT DISTINCT ON (tr1.test_case_id) tr1.test_case_id,"
+              + " tr1.result     FROM test_results tr1     JOIN test_executions te1 ON"
+              + " tr1.test_execution_id = te1.id     WHERE te1.project_id = :projectId     AND"
+              + " tr1.executed_at IS NOT NULL     ORDER BY tr1.test_case_id, tr1.executed_at DESC"
+              + " ) latest_results ON tc.id ="
               + " latest_results.test_case_id WHERE tc.project_id = :projectId "
               + " AND tc.type = 'testcase' ",
       nativeQuery = true)
