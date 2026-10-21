@@ -68,11 +68,17 @@ export function describeMailSendResult(t, result) {
   if (result.status === MAIL_SEND_STATUS.SENT) {
     return {
       severity: "success",
-      message: t("mailSend.result.sent", "인증 이메일이 발송되었습니다. 이메일을 확인하세요."),
+      message: t(
+        "mailSend.result.sent",
+        "인증 이메일이 발송되었습니다. 이메일을 확인하세요.",
+      ),
     };
   }
   if (result.status === MAIL_SEND_STATUS.FAILED) {
-    return { severity: "error", message: describeMailSendError(t, result.errorCode) };
+    return {
+      severity: "error",
+      message: describeMailSendError(t, result.errorCode),
+    };
   }
   return {
     severity: "warning",
@@ -106,6 +112,9 @@ function describeMailSendError(t, errorCode) {
         "발송 요청이 몰려 인증 이메일을 보내지 못했습니다. 잠시 뒤 다시 시도하세요.",
       );
     default:
-      return t("mailSend.error.failed", "인증 이메일 발송에 실패했습니다. 잠시 뒤 다시 시도하세요.");
+      return t(
+        "mailSend.error.failed",
+        "인증 이메일 발송에 실패했습니다. 잠시 뒤 다시 시도하세요.",
+      );
   }
 }

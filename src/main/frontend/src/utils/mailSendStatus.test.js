@@ -5,7 +5,8 @@ import {
   waitForMailSendResult,
 } from "./mailSendStatus.js";
 
-const json = (body, ok = true) => Promise.resolve({ ok, json: () => Promise.resolve(body) });
+const json = (body, ok = true) =>
+  Promise.resolve({ ok, json: () => Promise.resolve(body) });
 const t = (_key, fallback) => fallback;
 const noWait = () => Promise.resolve();
 
@@ -16,10 +17,14 @@ describe("waitForMailSendResult", () => {
       .mockReturnValueOnce(json({ status: "PENDING" }))
       .mockReturnValueOnce(json({ status: "FAILED", errorCode: "TIMEOUT" }));
 
-    const result = await waitForMailSendResult("req 1", fetchFn, { wait: noWait });
+    const result = await waitForMailSendResult("req 1", fetchFn, {
+      wait: noWait,
+    });
 
     expect(result).toEqual({ status: "FAILED", errorCode: "TIMEOUT" });
-    expect(fetchFn).toHaveBeenCalledWith("/api/email-verification/send-status/req%201");
+    expect(fetchFn).toHaveBeenCalledWith(
+      "/api/email-verification/send-status/req%201",
+    );
     expect(fetchFn).toHaveBeenCalledTimes(2);
   });
 
@@ -51,12 +56,18 @@ describe("waitForMailSendResult", () => {
 
 describe("describeMailSendResult", () => {
   it("결과마다 심각도를 고른다", () => {
-    expect(describeMailSendResult(t, { status: "SENT" }).severity).toBe("success");
-    expect(describeMailSendResult(t, { status: "FAILED", errorCode: "AUTH_FAILED" })).toEqual({
+    expect(describeMailSendResult(t, { status: "SENT" }).severity).toBe(
+      "success",
+    );
+    expect(
+      describeMailSendResult(t, { status: "FAILED", errorCode: "AUTH_FAILED" }),
+    ).toEqual({
       severity: "error",
       message: expect.stringContaining("로그인에 실패"),
     });
-    expect(describeMailSendResult(t, { status: "UNKNOWN" }).severity).toBe("warning");
+    expect(describeMailSendResult(t, { status: "UNKNOWN" }).severity).toBe(
+      "warning",
+    );
   });
 
   it("모르는 원인 코드는 일반 실패 문구로 보여 준다", () => {

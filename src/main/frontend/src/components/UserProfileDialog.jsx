@@ -234,14 +234,18 @@ function UserProfileDialog({
 
       if (response.ok && result.success && result.requestId) {
         // ICT-439: 서버는 발송을 접수만 하고 응답한다. 실제 발송 결과를 조회해 실패도 보여 준다
-        setSuccess(t("profile.email.sending", "인증 이메일을 보내는 중입니다..."));
+        setSuccess(
+          t("profile.email.sending", "인증 이메일을 보내는 중입니다..."),
+        );
         setError("");
-        const sendResult = await waitForMailSendResult(result.requestId, (url) =>
-          fetch(url, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-          }),
+        const sendResult = await waitForMailSendResult(
+          result.requestId,
+          (url) =>
+            fetch(url, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              },
+            }),
         );
         const { severity, message } = describeMailSendResult(t, sendResult);
         if (severity === "success") {
