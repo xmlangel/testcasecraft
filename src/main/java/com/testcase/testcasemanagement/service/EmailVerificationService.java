@@ -38,13 +38,16 @@ public class EmailVerificationService {
   private String frontendUrl;
 
   /** 인증 토큰 생성 및 이메일 발송 */
-  @Transactional
   public CommonResponse createVerificationToken(String userId, String email) {
     return createVerificationToken(userId, email, null);
   }
 
-  /** 인증 토큰 생성 및 이메일 발송 (Base URL 지정) */
-  @Transactional
+  /**
+   * 인증 토큰 생성 및 이메일 발송 (Base URL 지정)
+   *
+   * <p>ICT-439: 트랜잭션을 걸지 않는다. 토큰 저장을 먼저 커밋하고 SMTP 발송은 트랜잭션 밖에서 해서, 메일을 보내는 동안
+   * 트랜잭션을 열어 두지 않는다.
+   */
   public CommonResponse createVerificationToken(String userId, String email, String baseUrl) {
     try {
       // ⚠️ 메일 설정 활성화 여부 확인
@@ -158,7 +161,6 @@ public class EmailVerificationService {
   }
 
   /** 인증 이메일 재발송 */
-  @Transactional
   public CommonResponse resendVerificationEmail(String userId) {
     try {
       User user =
@@ -222,6 +224,10 @@ public class EmailVerificationService {
     props.put("mail.smtp.auth", settings.getUseAuth() ? "true" : "false");
     props.put("mail.smtp.starttls.enable", settings.getUseTLS() ? "true" : "false");
     props.put("mail.debug", "false");
+    // ICT-439: 메일 서버가 응답하지 않을 때 요청이 끝나지 않는 것을 막는다
+    props.put("mail.smtp.connectiontimeout", "5000");
+    props.put("mail.smtp.timeout", "5000");
+    props.put("mail.smtp.writetimeout", "5000");
 
     return mailSender;
   }
