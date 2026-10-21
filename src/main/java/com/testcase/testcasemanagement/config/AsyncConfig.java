@@ -3,9 +3,13 @@
 package com.testcase.testcasemanagement.config;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /** ICT-200: 대량 파일 처리를 위한 비동기 설정 JUnit XML 파일의 백그라운드 처리를 위한 스레드 풀 구성 */
@@ -43,6 +47,28 @@ public class AsyncConfig {
     executor.initialize();
 
     return executor;
+  }
+
+  /**
+   * ICT-439: 인증 메일 발송 전용 스레드 풀.
+   *
+   * <p>메일 서버가 느려도 요청 스레드와 DB 연결을 붙잡지 않도록 발송을 이 풀로 넘긴다. 한 통이 SMTP 시간 제한(5초)에 걸려도 다른 비동기 작업이
+   * 밀리지 않게 일반 풀과 나눴다. 대기열이 가득 차면 거부하고, 호출한 쪽이 발송 실패로 기록해 화면에 알린다.
+   *
+   * <p>Spring {@code ThreadPoolTaskExecutor} 가 아니라 JDK {@link ThreadPoolExecutor} 로 만든다. {@code
+   * ThreadPoolTaskExecutor} 타입 하나만 받는 {@code ragChatStreamExecutor} 주입이 후보 둘을 만나 컨텍스트가 뜨지 않기
+   * 때문이다(반환 타입만 {@link Executor} 로 바꿔서는 이미 만들어진 인스턴스 타입으로 매칭돼 막히지 않았다). 종료 시에는 Spring 이
+   * {@code shutdown()} 을 불러 대기 중인 발송을 마저 처리한다.
+   */
+  @Bean(name = "mailSendExecutor", destroyMethod = "shutdown")
+  public ThreadPoolExecutor mailSendExecutor() {
+    return new ThreadPoolExecutor(
+        2,
+        4,
+        60,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(100),
+        new CustomizableThreadFactory("MailSend-"));
   }
 
   /** 일반적인 비동기 작업용 스레드 풀 가벼운 비동기 작업용 */

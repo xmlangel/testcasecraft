@@ -172,6 +172,10 @@ public class MailSettingsService {
     props.put("mail.smtp.auth", settings.getUseAuth() ? "true" : "false");
     props.put("mail.smtp.starttls.enable", settings.getUseTLS() ? "true" : "false");
     props.put("mail.debug", "false");
+    // ICT-439: 메일 서버가 응답하지 않을 때 요청이 끝나지 않는 것을 막는다
+    props.put("mail.smtp.connectiontimeout", "5000");
+    props.put("mail.smtp.timeout", "5000");
+    props.put("mail.smtp.writetimeout", "5000");
 
     return mailSender;
   }

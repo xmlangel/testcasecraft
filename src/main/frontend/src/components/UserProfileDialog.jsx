@@ -38,6 +38,10 @@ import {
 } from "@mui/icons-material";
 import { useTheme as useAppTheme } from "../context/ThemeContext.jsx";
 import {
+  describeMailSendResult,
+  waitForMailSendResult,
+} from "../utils/mailSendStatus.js";
+import {
   useNavMode,
   NAV_MODE_TABS,
   NAV_MODE_SIDEBAR,
@@ -228,7 +232,30 @@ function UserProfileDialog({
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
+      if (response.ok && result.success && result.requestId) {
+        // ICT-439: 서버는 발송을 접수만 하고 응답한다. 실제 발송 결과를 조회해 실패도 보여 준다
+        setSuccess(
+          t("profile.email.sending", "인증 이메일을 보내는 중입니다..."),
+        );
+        setError("");
+        const sendResult = await waitForMailSendResult(
+          result.requestId,
+          (url) =>
+            fetch(url, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              },
+            }),
+        );
+        const { severity, message } = describeMailSendResult(t, sendResult);
+        if (severity === "success") {
+          setSuccess(message);
+          setError("");
+        } else {
+          setError(message);
+          setSuccess("");
+        }
+      } else if (response.ok && result.success) {
         setSuccess(
           t(
             "profile.email.sent",
