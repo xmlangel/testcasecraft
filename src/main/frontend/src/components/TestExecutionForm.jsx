@@ -86,6 +86,7 @@ import {
 const FILTERS_STORAGE_PREFIX = "testExecutionForm.filters.";
 // priority·result·tags 는 다중 선택(배열), 나머지는 단일 텍스트.
 const EMPTY_FILTERS = {
+  caseId: "", // ICT-435: 케이스 아이디(TC-0001 등)
   name: "",
   priority: [],
   result: [],
@@ -986,8 +987,13 @@ const TestExecutionForm = ({
 
       let matches = true;
 
+      // ICT-435: 케이스 아이디 필터 (콤마로 여러 개 — 하나라도 포함되면 통과)
+      if (filters.caseId && !matchesAnyTerm(node.displayId, filters.caseId)) {
+        matches = false;
+      }
+
       // 이름 필터 (콤마로 여러 개 — 하나라도 포함되면 통과)
-      if (filters.name && !matchesAnyTerm(node.name, filters.name)) {
+      if (matches && filters.name && !matchesAnyTerm(node.name, filters.name)) {
         matches = false;
       }
 

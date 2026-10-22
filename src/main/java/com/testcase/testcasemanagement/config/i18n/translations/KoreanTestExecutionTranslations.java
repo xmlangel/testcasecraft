@@ -380,6 +380,13 @@ public class KoreanTestExecutionTranslations {
         "testExecution.filter.executedBy.placeholder", languageCode, "username", createdBy);
     createTranslationIfNotExists(
         "testExecution.filter.jiraIssueKey", languageCode, "JIRA 아이디", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.filter.testCaseId", languageCode, "케이스 아이디", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.filter.testCaseId.placeholder",
+        languageCode,
+        "TC-0001, TC-0002 (콤마로 여러 개)",
+        createdBy);
     createTranslationIfNotExists("testExecution.filter.apply", languageCode, "적용", createdBy);
     createTranslationIfNotExists("testExecution.filter.clear", languageCode, "초기화", createdBy);
     createTranslationIfNotExists(
