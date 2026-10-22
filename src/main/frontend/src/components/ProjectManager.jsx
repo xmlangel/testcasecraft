@@ -427,11 +427,7 @@ const ProjectManager = ({ onSelectProject }) => {
   const getOrganizationProjects = () => {
     const orgProjects = {};
 
-    // ICT-288 수정: 조직 API 실패 시 프로젝트 데이터에서 조직 정보 추출
-    const availableOrganizations =
-      organizations.length > 0
-        ? organizations
-        : extractOrganizationsFromProjects();
+    const availableOrganizations = getAvailableOrganizations();
 
     availableOrganizations.forEach((org) => {
       orgProjects[org.id] = getProjectsByOrganization(org.id);
@@ -462,6 +458,18 @@ const ProjectManager = ({ onSelectProject }) => {
       }
     });
 
+    return Array.from(orgMap.values());
+  };
+
+  // 조직 목록 API는 사용자가 멤버인 조직만 돌려준다. 조직 멤버가 아니어도 그 조직의
+  // 프로젝트에 직접 초대될 수 있으므로, 프로젝트에서 뽑은 조직을 합쳐야 빠지지 않는다.
+  const getAvailableOrganizations = () => {
+    const orgMap = new Map(organizations.map((org) => [org.id, org]));
+    extractOrganizationsFromProjects().forEach((org) => {
+      if (!orgMap.has(org.id)) {
+        orgMap.set(org.id, org);
+      }
+    });
     return Array.from(orgMap.values());
   };
 
@@ -720,11 +728,7 @@ const ProjectManager = ({ onSelectProject }) => {
 
   // Rendered more hooks error fix: Move conditional return after hooks
 
-  // ICT-288 수정: 조직 정보 추출을 여기서 수행
-  const availableOrganizations =
-    organizations.length > 0
-      ? organizations
-      : extractOrganizationsFromProjects();
+  const availableOrganizations = getAvailableOrganizations();
   const organizationProjects = getOrganizationProjectsWithOrgs(
     availableOrganizations,
   );
@@ -1005,9 +1009,9 @@ const ProjectManager = ({ onSelectProject }) => {
                   </Grid>
                 )}
 
-                {org.id !== organizations[organizations.length - 1].id && (
-                  <Divider sx={{ mt: 4 }} />
-                )}
+                {org.id !==
+                  availableOrganizations[availableOrganizations.length - 1]
+                    .id && <Divider sx={{ mt: 4 }} />}
               </Box>
             ));
           })()}

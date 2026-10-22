@@ -4,13 +4,19 @@ package com.testcase.testcasemanagement.service;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
+import com.testcase.testcasemanagement.dto.JiraConfigDto;
+import com.testcase.testcasemanagement.model.TestCaseAttachment;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.User;
+import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -28,11 +34,14 @@ public class JiraIntegrationServiceTest {
 
   @Mock private MinIOService minIOService;
 
+  @Mock private TestCaseAttachmentRepository testCaseAttachmentRepository;
+
   @BeforeMethod
   void setUp() {
     MockitoAnnotations.openMocks(this);
     jiraIntegrationService =
-        new JiraIntegrationService(jiraConfigService, testResultRepository, minIOService);
+        new JiraIntegrationService(
+            jiraConfigService, testResultRepository, minIOService, testCaseAttachmentRepository);
     // @Value 로 주입되는 필드의 기본값을 ReflectionTestUtils 로 설정
     ReflectionTestUtils.setField(
         jiraIntegrationService, "issueKeyPattern", "^[A-Z][A-Z0-9]+-[0-9]+$");
@@ -203,6 +212,78 @@ public class JiraIntegrationServiceTest {
     testResult.setExecutedBy(user);
 
     return testResult;
+  }
+
+  @Test
+  public void createIssue_embedsInlineImagesAsJiraAttachments() throws Exception {
+    // Given: 설명에 이 서버 주소로 된 본문 이미지가 있다
+    String description =
+        "### 테스트 단계\n1. 클릭 <img src=\"/api/testcase-attachments/public/att-1?token=tok1\""
+            + " alt=\"shot\" />";
+    JiraConfigDto.IssueCreateRequestDto request =
+        JiraConfigDto.IssueCreateRequestDto.builder()
+            .projectKey("ICT")
+            .summary("[Test Fail] 로그인")
+            .description(description)
+            .issueTypeId("10001")
+            .build();
+
+    TestCaseAttachment attachment = new TestCaseAttachment();
+    attachment.setId("att-1");
+    attachment.setOriginalFileName("shot 1.png");
+    attachment.setMimeType("image/png");
+    attachment.setFilePath("testcases/att-1.png");
+    attachment.setStatus(TestCaseAttachment.AttachmentStatus.ACTIVE);
+
+    when(jiraConfigService.createIssue(eq("u1"), any()))
+        .thenReturn(
+            JiraConfigDto.IssueCreateResponseDto.builder().success(true).issueKey("ICT-9").build());
+    when(testCaseAttachmentRepository.findByIdAndPublicAccessToken("att-1", "tok1"))
+        .thenReturn(Optional.of(attachment));
+    when(minIOService.downloadFile("testcases/att-1.png"))
+        .thenReturn(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+    when(jiraConfigService.uploadAttachment(anyString(), anyString(), anyString(), any(), any()))
+        .thenReturn(true);
+    when(jiraConfigService.updateIssueDescriptionWiki(anyString(), anyString(), anyString()))
+        .thenReturn(true);
+
+    // When
+    jiraIntegrationService.createIssue("u1", request);
+
+    // Then: 처음 만들 때는 서버 주소 대신 자리 표시를 보낸다
+    ArgumentCaptor<JiraConfigDto.IssueCreateRequestDto> created =
+        ArgumentCaptor.forClass(JiraConfigDto.IssueCreateRequestDto.class);
+    verify(jiraConfigService).createIssue(eq("u1"), created.capture());
+    assertFalse(created.getValue().getDescription().contains("/api/"));
+    assertTrue(created.getValue().getDescription().contains("[image: shot]"));
+    // 원본 요청은 바꾸지 않는다
+    assertEquals(request.getDescription(), description);
+
+    // 이미지를 첨부로 올리고 설명을 위키 이미지 구문으로 갱신한다
+    verify(jiraConfigService)
+        .uploadAttachment(eq("u1"), eq("ICT-9"), eq("image-1-shot_1.png"), any(), eq("image/png"));
+    ArgumentCaptor<String> wiki = ArgumentCaptor.forClass(String.class);
+    verify(jiraConfigService).updateIssueDescriptionWiki(eq("u1"), eq("ICT-9"), wiki.capture());
+    assertTrue(wiki.getValue().contains("!image-1-shot_1.png|thumbnail!"), wiki.getValue());
+  }
+
+  @Test
+  public void createIssue_withoutInlineImages_keepsExistingFlow() {
+    JiraConfigDto.IssueCreateRequestDto request =
+        JiraConfigDto.IssueCreateRequestDto.builder()
+            .projectKey("ICT")
+            .summary("s")
+            .description("본문만 있음")
+            .build();
+    when(jiraConfigService.createIssue(eq("u1"), same(request)))
+        .thenReturn(
+            JiraConfigDto.IssueCreateResponseDto.builder().success(true).issueKey("ICT-9").build());
+
+    jiraIntegrationService.createIssue("u1", request);
+
+    verify(jiraConfigService).createIssue(eq("u1"), same(request));
+    verify(jiraConfigService, never()).updateIssueDescriptionWiki(any(), any(), any());
+    verifyNoInteractions(testCaseAttachmentRepository);
   }
 
   private TestExecution createTestExecution() {

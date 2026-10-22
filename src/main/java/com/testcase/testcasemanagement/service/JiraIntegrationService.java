@@ -2,14 +2,18 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
+import com.testcase.testcasemanagement.model.TestCaseAttachment;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.TestResultAttachment;
 import com.testcase.testcasemanagement.model.TestResultStatus;
+import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.util.JiraInlineImages;
 import com.testcase.testcasemanagement.util.JiraKeyUtils;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +34,7 @@ public class JiraIntegrationService {
   private final JiraConfigService jiraConfigService;
   private final TestResultRepository testResultRepository;
   private final MinIOService minIOService;
+  private final TestCaseAttachmentRepository testCaseAttachmentRepository;
 
   @Value("${app.jira.auto-comment.enabled:true}")
   private boolean autoCommentEnabled;
@@ -153,7 +158,33 @@ public class JiraIntegrationService {
         request.getProjectKey(),
         request.getSummary());
 
-    JiraConfigDto.IssueCreateResponseDto response = jiraConfigService.createIssue(userId, request);
+    // ICT-436: 본문 이미지(이 서버 주소)는 JIRA 에서 열리지 않는다. 처음에는 자리 표시 문구로 만들고,
+    // 이슈가 생긴 뒤 이미지를 첨부로 올려 본문에 다시 그린다.
+    JiraInlineImages.Extracted inlineImages = JiraInlineImages.extract(request.getDescription());
+    JiraConfigDto.IssueCreateRequestDto createRequest = request;
+    if (inlineImages.hasImages()) {
+      createRequest =
+          JiraConfigDto.IssueCreateRequestDto.builder()
+              .projectKey(request.getProjectKey())
+              .summary(request.getSummary())
+              .description(JiraInlineImages.withPlaceholders(inlineImages))
+              .issueTypeId(request.getIssueTypeId())
+              .issueTypeName(request.getIssueTypeName())
+              .testResultId(request.getTestResultId())
+              .build();
+    }
+
+    JiraConfigDto.IssueCreateResponseDto response =
+        jiraConfigService.createIssue(userId, createRequest);
+
+    if (Boolean.TRUE.equals(response.getSuccess()) && inlineImages.hasImages()) {
+      try {
+        embedInlineImages(userId, response.getIssueKey(), inlineImages);
+      } catch (Exception e) {
+        // 이슈는 이미 만들어졌다. 본문 이미지는 자리 표시로 남기고 생성 결과는 그대로 돌려준다.
+        log.error("JIRA 본문 이미지 반영 실패: issueKey={}", response.getIssueKey(), e);
+      }
+    }
 
     // 이슈 생성 성공 시 첨부파일 업로드 처리
     if (Boolean.TRUE.equals(response.getSuccess())
@@ -169,6 +200,59 @@ public class JiraIntegrationService {
     }
 
     return response;
+  }
+
+  /**
+   * ICT-436: 설명에 삽입된 본문 이미지를 JIRA 첨부로 올리고, 설명을 위키 마크업으로 갱신해 본문에 이미지를 그린다. 같은 이름의 첨부가 여럿이면 위키 참조가
+   * 엉키므로 순번을 붙여 파일명을 겹치지 않게 한다. 토큰이 맞지 않거나 비활성인 첨부는 건너뛰고 자리 표시로 남긴다.
+   */
+  private void embedInlineImages(
+      String userId, String issueKey, JiraInlineImages.Extracted inlineImages) {
+    Map<Integer, String> uploadedNames = new HashMap<>();
+    List<JiraInlineImages.InlineImage> images = inlineImages.images();
+    for (int i = 0; i < images.size(); i++) {
+      JiraInlineImages.InlineImage image = images.get(i);
+      Optional<TestCaseAttachment> attachmentOpt =
+          testCaseAttachmentRepository.findByIdAndPublicAccessToken(
+              image.attachmentId(), image.token());
+      if (attachmentOpt.isEmpty()
+          || attachmentOpt.get().getStatus() != TestCaseAttachment.AttachmentStatus.ACTIVE) {
+        log.warn("JIRA 본문 이미지로 쓸 첨부를 찾지 못함: attachmentId={}", image.attachmentId());
+        continue;
+      }
+      TestCaseAttachment attachment = attachmentOpt.get();
+      String fileName = "image-" + (i + 1) + "-" + safeFileName(attachment.getOriginalFileName());
+      try (InputStream fileStream = minIOService.downloadFile(attachment.getFilePath())) {
+        boolean uploaded =
+            jiraConfigService.uploadAttachment(
+                userId, issueKey, fileName, fileStream.readAllBytes(), attachment.getMimeType());
+        if (uploaded) {
+          uploadedNames.put(i, fileName);
+        } else {
+          log.warn("JIRA 본문 이미지 업로드 실패: issueKey={}, fileName={}", issueKey, fileName);
+        }
+      } catch (Exception e) {
+        log.error("JIRA 본문 이미지 처리 오류: issueKey={}, fileName={}", issueKey, fileName, e);
+      }
+    }
+
+    if (uploadedNames.isEmpty()) {
+      return;
+    }
+    boolean updated =
+        jiraConfigService.updateIssueDescriptionWiki(
+            userId, issueKey, JiraInlineImages.toWiki(inlineImages, uploadedNames));
+    if (!updated) {
+      log.warn("JIRA 이슈 설명에 본문 이미지를 반영하지 못함: issueKey={}", issueKey);
+    }
+  }
+
+  /** 위키 마크업의 이미지 구문({@code !이름|옵션!})을 깨뜨리는 문자를 파일명에서 뺀다. */
+  private static String safeFileName(String name) {
+    if (name == null || name.isBlank()) {
+      return "image.png";
+    }
+    return name.replaceAll("[!|\\[\\]{}\\s/\\\\]+", "_");
   }
 
   /** 테스트 결과의 첨부파일들을 JIRA 이슈에 업로드 */

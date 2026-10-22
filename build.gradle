@@ -151,7 +151,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.131-SNAPSHOT'
+version = '1.0.132-SNAPSHOT'
 base {
     archivesName = 'TestCaseCraft'
 }

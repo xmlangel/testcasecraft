@@ -13,6 +13,7 @@ import {
   Breadcrumbs,
   CircularProgress,
   Backdrop,
+  IconButton,
   Link,
   ToggleButton,
   ToggleButtonGroup,
@@ -22,6 +23,8 @@ import {
 import {
   ViewList as FormIcon,
   TableChart as SpreadsheetIcon,
+  ChevronLeft as PrevIcon,
+  ChevronRight as NextIcon,
 } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext.jsx";
@@ -38,6 +41,7 @@ import {
   getAllDescendants,
   getAllChildIds,
   getAncestorIds,
+  getTreeOrderedTestCaseIds,
   isUnfiledTestCase,
   VIRTUAL_ALL_CASES_ID,
   VIRTUAL_UNFILED_ID,
@@ -277,6 +281,32 @@ const TestCaseHybridForm = ({
     ];
   }, [selectedItem, folderListItems]);
 
+  // ICT-433: 작성 화면에서 트리를 다시 누르지 않고 이전/다음 케이스로 넘어간다.
+  // 순서는 좌측 트리와 같다. 폴더·가상 노드를 보고 있을 때는 내보이지 않는다.
+  const caseNav = useMemo(() => {
+    if (inputMode !== "form" || selectedItem?.type !== "testcase") return null;
+    const orderedIds = getTreeOrderedTestCaseIds(folderListItems);
+    const index = orderedIds.findIndex(
+      (id) => String(id) === String(selectedItem.id),
+    );
+    if (index < 0) return null;
+    return {
+      index,
+      total: orderedIds.length,
+      prevId: index > 0 ? orderedIds[index - 1] : null,
+      nextId: index < orderedIds.length - 1 ? orderedIds[index + 1] : null,
+    };
+  }, [inputMode, selectedItem, folderListItems]);
+
+  const goToCase = useCallback(
+    (id) => {
+      if (!id || !onSelectTestCase) return;
+      const target = folderListItems.find((tc) => String(tc.id) === String(id));
+      if (target) onSelectTestCase(target);
+    },
+    [folderListItems, onSelectTestCase],
+  );
+
   // 현재 선택된 폴더 이름 추출 (새 행 생성 시 기본값으로 사용)
   const activeFolderName = useMemo(() => {
     const selectedItem = testCases.find(
@@ -361,39 +391,97 @@ const TestCaseHybridForm = ({
 
   return (
     <Box sx={CHROME_ICON_SX}>
-      {/* 선택 항목 경로 브레드크럼 (조상 폴더 클릭 시 해당 폴더로 이동) */}
-      {breadcrumbItems.length > 0 && (
-        <Breadcrumbs
-          separator="›"
-          aria-label="testcase-path"
-          sx={{ mb: 1 }}
-          data-testid="testcase-breadcrumb"
+      {/* 선택 항목 경로 브레드크럼 (조상 폴더 클릭 시 해당 폴더로 이동) + 이전/다음 케이스 */}
+      {(breadcrumbItems.length > 0 || caseNav) && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
+            mb: 1,
+          }}
         >
-          {breadcrumbItems.map((item, idx) =>
-            idx < breadcrumbItems.length - 1 ? (
-              <Link
-                key={item.id}
-                component="button"
-                type="button"
-                underline="hover"
-                color="inherit"
-                variant="body2"
-                onClick={() => onSelectTestCase && onSelectTestCase(item)}
-              >
-                {item.name}
-              </Link>
-            ) : (
-              <Typography
-                key={item.id}
-                variant="body2"
-                color="text.primary"
-                fontWeight={600}
-              >
-                {item.name}
-              </Typography>
-            ),
+          {breadcrumbItems.length > 0 && (
+            <Breadcrumbs
+              separator="›"
+              aria-label="testcase-path"
+              sx={{ minWidth: 0 }}
+              data-testid="testcase-breadcrumb"
+            >
+              {breadcrumbItems.map((item, idx) =>
+                idx < breadcrumbItems.length - 1 ? (
+                  <Link
+                    key={item.id}
+                    component="button"
+                    type="button"
+                    underline="hover"
+                    color="inherit"
+                    variant="body2"
+                    onClick={() => onSelectTestCase && onSelectTestCase(item)}
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <Typography
+                    key={item.id}
+                    variant="body2"
+                    color="text.primary"
+                    fontWeight={600}
+                  >
+                    {item.name}
+                  </Typography>
+                ),
+              )}
+            </Breadcrumbs>
           )}
-        </Breadcrumbs>
+          {caseNav && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                ml: "auto",
+                flexShrink: 0,
+              }}
+              data-testid="testcase-nav"
+            >
+              <Tooltip title={t("testcase.nav.prev", "이전 케이스")}>
+                <span>
+                  <IconButton
+                    size="small"
+                    aria-label={t("testcase.nav.prev", "이전 케이스")}
+                    disabled={!caseNav.prevId}
+                    onClick={() => goToCase(caseNav.prevId)}
+                    data-testid="testcase-nav-prev"
+                  >
+                    <PrevIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                data-testid="testcase-nav-position"
+              >
+                {caseNav.index + 1} / {caseNav.total}
+              </Typography>
+              <Tooltip title={t("testcase.nav.next", "다음 케이스")}>
+                <span>
+                  <IconButton
+                    size="small"
+                    aria-label={t("testcase.nav.next", "다음 케이스")}
+                    disabled={!caseNav.nextId}
+                    onClick={() => goToCase(caseNav.nextId)}
+                    data-testid="testcase-nav-next"
+                  >
+                    <NextIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Box>
+          )}
+        </Box>
       )}
 
       {/* 입력 모드 선택 — 편집 권한이 있을 때만 내보인다. 없으면 개별 폼만 쓴다. */}

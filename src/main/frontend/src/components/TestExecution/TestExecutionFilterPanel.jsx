@@ -95,6 +95,22 @@ const TestExecutionFilterPanel = ({
       <Collapse in={expanded}>
         <Box sx={{ px: 2, pb: 2 }}>
           <Grid container spacing={1.5}>
+            {/* ICT-435: 케이스 아이디 */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <TextField
+                id="filter-testcase-id"
+                label={t("testExecution.filter.testCaseId", "케이스 아이디")}
+                value={filters.caseId || ""}
+                onChange={(e) => onFilterChange("caseId", e.target.value)}
+                fullWidth
+                size="small"
+                placeholder={t(
+                  "testExecution.filter.testCaseId.placeholder",
+                  "TC-0001, TC-0002 (콤마로 여러 개)",
+                )}
+              />
+            </Grid>
+
             {/* 테스트 케이스명 */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField

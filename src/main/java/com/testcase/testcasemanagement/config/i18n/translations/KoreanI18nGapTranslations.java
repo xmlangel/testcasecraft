@@ -966,6 +966,24 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("userList.email.notVerified", languageCode, "미인증", createdBy);
     createTranslationIfNotExists(
         "userList.email.sent", languageCode, "인증 이메일이 발송되었습니다.", createdBy);
+    createTranslationIfNotExists(
+        "userList.email.sending", languageCode, "인증 이메일을 보내는 중입니다...", createdBy);
+    createTranslationIfNotExists(
+        "profile.email.sending", languageCode, "인증 이메일을 보내는 중입니다...", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.result.sent", languageCode, "인증 이메일이 발송되었습니다. 이메일을 확인하세요.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.result.unknown", languageCode, "발송 결과를 아직 확인하지 못했습니다. 잠시 뒤 메일함을 확인하고, 메일이 오지 않으면 다시 시도하세요.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.connectFailed", languageCode, "메일 서버에 연결하지 못해 인증 이메일을 보내지 못했습니다. 관리자에게 메일 서버 주소와 포트를 확인해 달라고 요청하세요.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.authFailed", languageCode, "메일 서버 로그인에 실패해 인증 이메일을 보내지 못했습니다. 관리자에게 메일 계정 설정을 확인해 달라고 요청하세요.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.timeout", languageCode, "메일 서버가 응답하지 않아 인증 이메일을 보내지 못했습니다. 잠시 뒤 다시 시도하세요.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.rejected", languageCode, "발송 요청이 몰려 인증 이메일을 보내지 못했습니다. 잠시 뒤 다시 시도하세요.", createdBy);
+    createTranslationIfNotExists(
+        "mailSend.error.failed", languageCode, "인증 이메일 발송에 실패했습니다. 잠시 뒤 다시 시도하세요.", createdBy);
     createTranslationIfNotExists("userList.email.verified", languageCode, "인증됨", createdBy);
     createTranslationIfNotExists("userList.table.emailVerified", languageCode, "이메일 인증", createdBy);
     createTranslationIfNotExists(

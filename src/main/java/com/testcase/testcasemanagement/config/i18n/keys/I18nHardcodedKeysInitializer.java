@@ -2223,6 +2223,11 @@ public class I18nHardcodedKeysInitializer {
         "i18n 하드코딩 보강 (2026-06-06)",
         "이 파일을 삭제하시겠습니까?");
     createTranslationKeyIfNotExists(
+        "testcaseAttachments.deleteInlineConfirm",
+        "testcaseAttachments",
+        "ICT-449 본문 삽입 이미지 삭제 경고",
+        "이 이미지는 테스트케이스 본문에 삽입되어 있습니다. 삭제하면 본문에서 이미지가 표시되지 않습니다. 삭제하시겠습니까?");
+    createTranslationKeyIfNotExists(
         "testcaseAttachments.deleteError",
         "testcaseAttachments",
         "i18n 하드코딩 보강 (2026-06-06)",

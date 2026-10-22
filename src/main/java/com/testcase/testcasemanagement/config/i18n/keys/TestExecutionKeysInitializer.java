@@ -478,6 +478,13 @@ public class TestExecutionKeysInitializer {
     createTranslationKeyIfNotExists(
         "testExecution.filter.jiraIssueKey", "testExecution", "JIRA 아이디 필터", "JIRA 아이디");
     createTranslationKeyIfNotExists(
+        "testExecution.filter.testCaseId", "testExecution", "ICT-435 케이스 아이디 필터", "케이스 아이디");
+    createTranslationKeyIfNotExists(
+        "testExecution.filter.testCaseId.placeholder",
+        "testExecution",
+        "ICT-435 케이스 아이디 필터 입력 안내",
+        "TC-0001, TC-0002 (콤마로 여러 개)");
+    createTranslationKeyIfNotExists(
         "testExecution.filter.apply", "testExecution", "필터 적용 버튼", "적용");
     createTranslationKeyIfNotExists(
         "testExecution.filter.clear", "testExecution", "필터 초기화 버튼", "초기화");
