@@ -79,6 +79,69 @@ describe("TestCaseAttachments", () => {
     expect(screen.getByTestId("tc-attachment-delete")).toBeInTheDocument();
   });
 
+  it("readOnly 에 canDelete 를 주면 업로드 없이 삭제만 연다", async () => {
+    respondWith([attachment]);
+    render(<TestCaseAttachments testCaseId="tc-1" readOnly canDelete />);
+
+    await screen.findByText("screenshot.png");
+    expect(screen.queryByTestId("tc-attachment-upload")).toBeNull();
+    expect(screen.getByTestId("tc-attachment-delete")).toBeInTheDocument();
+  });
+
+  it("편집 모드라도 canDelete={false} 면 삭제 버튼을 감춘다", async () => {
+    respondWith([attachment]);
+    render(<TestCaseAttachments testCaseId="tc-1" canDelete={false} />);
+
+    await screen.findByText("screenshot.png");
+    expect(screen.queryByTestId("tc-attachment-delete")).toBeNull();
+  });
+
+  it.each([
+    ["사용 표시된 이미지", { ...attachment, isUsedInContent: true }],
+    [
+      "설명이 본문 삽입 문구인 이미지",
+      { ...attachment, description: "본문에 삽입된 이미지" },
+    ],
+  ])("%s 를 지우면 본문 이미지가 깨진다고 경고한다", async (_, target) => {
+    respondWith([target]);
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<TestCaseAttachments testCaseId="tc-1" readOnly canDelete />);
+
+    fireEvent.click(await screen.findByTestId("tc-attachment-delete"));
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      expect.stringContaining("본문에 삽입되어 있습니다"),
+    );
+    expect(apiMock).not.toHaveBeenCalledWith(
+      "/api/testcase-attachments/att-1",
+      expect.anything(),
+    );
+    confirmSpy.mockRestore();
+  });
+
+  it("일반 파일은 기존 확인 문구로 묻고, 확인하면 DELETE 후 목록을 다시 읽는다", async () => {
+    respondWith([textAttachment]);
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<TestCaseAttachments testCaseId="tc-1" readOnly canDelete />);
+
+    fireEvent.click(await screen.findByTestId("tc-attachment-delete"));
+
+    expect(confirmSpy).toHaveBeenCalledWith("이 파일을 삭제하시겠습니까?");
+    await waitFor(() =>
+      expect(apiMock).toHaveBeenCalledWith("/api/testcase-attachments/att-2", {
+        method: "DELETE",
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        apiMock.mock.calls.filter(
+          ([url]) => url === "/api/testcase-attachments/testcase/tc-1",
+        ),
+      ).toHaveLength(2),
+    );
+    confirmSpy.mockRestore();
+  });
+
   it("백엔드가 배열로 준 업로드 일시도 Invalid date 없이 표기한다", async () => {
     // 백엔드는 LocalDateTime 을 [년,월,일,시,분,초,나노초] 배열로 내보낸다.
     // 컴포넌트가 new Date() 를 직접 호출하면 이 형태에서 "Invalid Date" 가 됐다.

@@ -1407,6 +1407,11 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcaseAttachments.deleteConfirm", languageCode, "이 파일을 삭제하시겠습니까?", createdBy);
     createTranslationIfNotExists(
+        "testcaseAttachments.deleteInlineConfirm",
+        languageCode,
+        "이 이미지는 테스트케이스 본문에 삽입되어 있습니다. 삭제하면 본문에서 이미지가 표시되지 않습니다. 삭제하시겠습니까?",
+        createdBy);
+    createTranslationIfNotExists(
         "testcaseAttachments.deleteError", languageCode, "파일 삭제에 실패했습니다.", createdBy);
     createTranslationIfNotExists(
         "testcaseAttachments.deleteTooltip", languageCode, "삭제", createdBy);

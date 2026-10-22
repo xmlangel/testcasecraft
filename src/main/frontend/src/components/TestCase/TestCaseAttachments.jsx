@@ -46,12 +46,15 @@ import { useDateFormatter } from "../../hooks/useDateFormatter";
  *
  * readOnly      — 업로드·삭제 UI를 감추고 조회(미리보기·다운로드)만 제공.
  *                 테스트 결과 입력 화면처럼 케이스를 수정하지 않는 곳에서 쓴다.
+ * canDelete     — 삭제 버튼 노출 여부. 기본은 !readOnly. 조회 전용 화면에서도 편집 권한이
+ *                 있는 사용자에게 삭제만 열어 줄 때 readOnly 와 함께 true 로 넘긴다(ICT-449).
  * hideWhenEmpty — 첨부가 없으면 섹션 자체를 렌더하지 않는다("없습니다" 안내도 생략).
  * title         — 헤더 문구 교체. 결과 첨부와 구분해야 하는 화면에서 사용.
  */
 const TestCaseAttachments = ({
   testCaseId,
   readOnly = false,
+  canDelete,
   hideWhenEmpty = false,
   title,
 }) => {
@@ -60,6 +63,7 @@ const TestCaseAttachments = ({
   // 업로드 일시 표기는 공용 포맷터를 쓴다 — 백엔드가 LocalDateTime 을 배열로
   // 내보내므로 new Date() 직접 호출은 "Invalid Date" 가 된다.
   const { formatDate } = useDateFormatter();
+  const showDelete = canDelete ?? !readOnly;
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -273,16 +277,24 @@ const TestCaseAttachments = ({
   };
 
   // 파일 삭제
-  const handleDelete = async (attachmentId) => {
-    if (
-      !window.confirm(
-        t("testcaseAttachments.deleteConfirm", "이 파일을 삭제하시겠습니까?"),
-      )
-    )
-      return;
+  // 본문에 삽입된 이미지인지 — 저장 시 mark-used 로 표시된 값을 우선 보고, 표시 전에 붙여 넣은
+  // 이미지는 업로드 때 남긴 설명 문구로 판정한다.
+  const isInlineImage = (attachment) =>
+    attachment.isUsedInContent === true ||
+    attachment.description ===
+      t("testcase.inlineImage.description", "본문에 삽입된 이미지");
+
+  const handleDelete = async (attachment) => {
+    const confirmMessage = isInlineImage(attachment)
+      ? t(
+          "testcaseAttachments.deleteInlineConfirm",
+          "이 이미지는 테스트케이스 본문에 삽입되어 있습니다. 삭제하면 본문에서 이미지가 표시되지 않습니다. 삭제하시겠습니까?",
+        )
+      : t("testcaseAttachments.deleteConfirm", "이 파일을 삭제하시겠습니까?");
+    if (!window.confirm(confirmMessage)) return;
 
     try {
-      const response = await api(`/api/testcase-attachments/${attachmentId}`, {
+      const response = await api(`/api/testcase-attachments/${attachment.id}`, {
         method: "DELETE",
       });
 
@@ -568,7 +580,7 @@ const TestCaseAttachments = ({
                         <DownloadIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    {!readOnly && (
+                    {showDelete && (
                       <Tooltip
                         title={t("testcaseAttachments.deleteTooltip", "삭제")}
                       >
@@ -576,7 +588,7 @@ const TestCaseAttachments = ({
                           size="small"
                           color="error"
                           data-testid="tc-attachment-delete"
-                          onClick={() => handleDelete(attachment.id)}
+                          onClick={() => handleDelete(attachment)}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -826,6 +838,7 @@ const TestCaseAttachments = ({
 TestCaseAttachments.propTypes = {
   testCaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   readOnly: PropTypes.bool,
+  canDelete: PropTypes.bool,
   hideWhenEmpty: PropTypes.bool,
   title: PropTypes.node,
 };
