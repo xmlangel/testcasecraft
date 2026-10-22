@@ -428,6 +428,13 @@ public class EnglishTestExecutionTranslations {
         "testExecution.filter.executedBy.placeholder", languageCode, "username", createdBy);
     createTranslationIfNotExists(
         "testExecution.filter.jiraIssueKey", languageCode, "JIRA Issue Key", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.filter.testCaseId", languageCode, "Test Case ID", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.filter.testCaseId.placeholder",
+        languageCode,
+        "TC-0001, TC-0002 (comma-separated)",
+        createdBy);
     createTranslationIfNotExists("testExecution.filter.apply", languageCode, "Apply", createdBy);
     createTranslationIfNotExists("testExecution.filter.clear", languageCode, "Clear", createdBy);
     createTranslationIfNotExists(
