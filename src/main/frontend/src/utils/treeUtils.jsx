@@ -124,6 +124,25 @@ export const findItemInTree = (tree, id) => {
   return null;
 };
 
+// ICT-433: 작성 화면의 이전/다음 이동 순서. 좌측 트리와 같은 규칙(displayOrder 정렬 →
+// 부모·자식 구조 → 깊이 우선)으로 펼친 뒤 테스트케이스 ID만 남긴다. 트리와 순서가
+// 어긋나면 "다음"이 화면에 보이는 다음 항목이 아니게 되므로 정렬 기준을 트리에 맞춘다.
+export const getTreeOrderedTestCaseIds = (items) => {
+  if (!Array.isArray(items) || items.length === 0) return [];
+  const sorted = items
+    .slice()
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+  const ids = [];
+  const walk = (nodes) => {
+    nodes.forEach((node) => {
+      if (node.type === "testcase") ids.push(node.id);
+      if (node.children && node.children.length > 0) walk(node.children);
+    });
+  };
+  walk(listToTree(sorted));
+  return ids;
+};
+
 // 폴더 아이템인지 체크
 export const isFolder = (item) => item && item.type === "folder";
 

@@ -674,6 +674,43 @@ public class JiraApiService {
     }
   }
 
+  /**
+   * ICT-436: 이슈 설명을 위키 마크업으로 갱신한다. v3(ADF)는 본문 이미지에 미디어 ID 가 필요하지만, v2 는 {@code !파일명|thumbnail!}
+   * 을 받아 같은 이슈의 첨부를 본문에 그려 준다. 첨부를 올린 뒤에 호출해야 파일명이 첨부로 풀린다.
+   */
+  public boolean updateIssueDescriptionWiki(
+      String serverUrl, String username, String apiToken, String issueKey, String wikiText) {
+    try {
+      String normalizedUrl = normalizeServerUrl(serverUrl);
+      String issueUrl = normalizedUrl + "/rest/api/2/issue/" + issueKey;
+      String authHeader = createBasicAuthHeader(username, apiToken);
+
+      ObjectNode fields = objectMapper.createObjectNode();
+      fields.put("description", wikiText);
+      ObjectNode root = objectMapper.createObjectNode();
+      root.set("fields", fields);
+
+      HttpHeaders headers = createHeaders(authHeader);
+      headers.setContentType(MediaType.APPLICATION_JSON);
+      HttpEntity<String> entity =
+          new HttpEntity<>(objectMapper.writeValueAsString(root), headers);
+
+      RestTemplate optimizedRestTemplate =
+          jiraConnectionManager != null
+              ? jiraConnectionManager.getRestTemplate(normalizedUrl)
+              : restTemplate;
+
+      ResponseEntity<String> response =
+          optimizedRestTemplate.exchange(
+              URI.create(issueUrl), HttpMethod.PUT, entity, String.class);
+
+      return response.getStatusCode().is2xxSuccessful();
+    } catch (Exception e) {
+      log.error("JIRA 이슈 설명 갱신 실패: issueKey={}", issueKey, e);
+      return false;
+    }
+  }
+
   /** JIRA 이슈에 코멘트 추가 */
   public boolean addCommentToIssue(
       String serverUrl, String username, String apiToken, String issueKey, String comment) {
