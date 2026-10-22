@@ -567,6 +567,28 @@ public class JiraConfigService {
     }
   }
 
+  /** ICT-436: 이슈 설명을 위키 마크업으로 갱신 (본문 이미지를 첨부로 다시 그릴 때 사용) */
+  public boolean updateIssueDescriptionWiki(String userId, String issueKey, String wikiText) {
+    try {
+      Optional<JiraConfig> configOpt = jiraConfigRepository.findByUserIdAndIsActiveTrue(userId);
+
+      if (configOpt.isEmpty()) {
+        log.warn("활성화된 JIRA 설정 없음: userId={}", userId);
+        return false;
+      }
+
+      JiraConfig config = configOpt.get();
+      String decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
+
+      return jiraApiService.updateIssueDescriptionWiki(
+          config.getServerUrl(), config.getUsername(), decryptedApiToken, issueKey, wikiText);
+
+    } catch (Exception e) {
+      log.error("JIRA 이슈 설명 갱신 서비스 오류: userId={}, issueKey={}", userId, issueKey, e);
+      return false;
+    }
+  }
+
   /** 프로젝트별 이슈 유형 조회 */
   public List<JiraConfigDto.IssueTypeDto> getProjectIssueTypes(String userId, String projectKey) {
     try {

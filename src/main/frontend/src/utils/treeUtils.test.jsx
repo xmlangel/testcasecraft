@@ -1,5 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { getFilteredNavTestCaseIds, extractTestCaseIds } from "./treeUtils.jsx";
+import {
+  getFilteredNavTestCaseIds,
+  extractTestCaseIds,
+  getTreeOrderedTestCaseIds,
+} from "./treeUtils.jsx";
+
+describe("getTreeOrderedTestCaseIds", () => {
+  it("트리에 보이는 순서(displayOrder, 폴더 깊이 우선)로 케이스 ID 를 낸다", () => {
+    const items = [
+      { id: "tc-root", type: "testcase", parentId: null, displayOrder: 2 },
+      { id: "f1", type: "folder", parentId: null, displayOrder: 1 },
+      { id: "tc-b", type: "testcase", parentId: "f1", displayOrder: 2 },
+      { id: "tc-a", type: "testcase", parentId: "f1", displayOrder: 1 },
+      { id: "f2", type: "folder", parentId: "f1", displayOrder: 3 },
+      { id: "tc-c", type: "testcase", parentId: "f2", displayOrder: 1 },
+    ];
+    expect(getTreeOrderedTestCaseIds(items)).toEqual([
+      "tc-a",
+      "tc-b",
+      "tc-c",
+      "tc-root",
+    ]);
+  });
+
+  it("빈 입력은 빈 배열을 반환한다", () => {
+    expect(getTreeOrderedTestCaseIds([])).toEqual([]);
+    expect(getTreeOrderedTestCaseIds(null)).toEqual([]);
+  });
+});
 
 describe("extractTestCaseIds", () => {
   it("테스트케이스 노드의 ID만 순서대로 추출하고 폴더는 제외한다", () => {
