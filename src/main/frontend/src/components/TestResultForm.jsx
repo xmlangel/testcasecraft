@@ -31,7 +31,10 @@ import TestResultFloatingMenu from "./TestResult/TestResultFloatingMenu.jsx";
 import useInlineImagePaste from "../hooks/useInlineImagePaste.js";
 import InlineImageDialog from "./TestCase/InlineImageDialog.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
-import { canRecordTestResult } from "./TestCaseTree/utils/permissionUtils.js";
+import {
+  canDelete as canDeleteProjectContent,
+  canRecordTestResult,
+} from "./TestCaseTree/utils/permissionUtils.js";
 import useResultShortcuts from "../hooks/useResultShortcuts.js";
 
 const KEY_RESULT_MAP = {
@@ -892,10 +895,12 @@ const TestResultForm = ({
         <>
           <TestCaseDetails testCase={testCase} t={t} />
 
-          {/* 케이스에 붙은 첨부파일 — 실행 중 참고용 조회 전용(업로드·삭제는 케이스 편집에서) */}
+          {/* 케이스에 붙은 첨부파일 — 업로드는 케이스 편집에서 하고, 삭제는 케이스 편집 권한
+              (TESTER 제외)이 있을 때만 연다. 서버도 같은 기준(canEditTestCaseAttachment)으로 막는다. */}
           <TestCaseAttachments
             testCaseId={testCaseId}
             readOnly
+            canDelete={canDeleteProjectContent(projectRole)}
             hideWhenEmpty
             title={t(
               "testResult.caseAttachments.title",

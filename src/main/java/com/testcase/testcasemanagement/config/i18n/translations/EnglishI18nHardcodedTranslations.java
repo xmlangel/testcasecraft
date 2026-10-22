@@ -1795,6 +1795,11 @@ public class EnglishI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testcaseAttachments.deleteConfirm", languageCode, "Delete this file?", createdBy);
     createTranslationIfNotExists(
+        "testcaseAttachments.deleteInlineConfirm",
+        languageCode,
+        "This image is embedded in the test case body. Deleting it will break the image in the body. Delete it?",
+        createdBy);
+    createTranslationIfNotExists(
         "testcaseAttachments.deleteError", languageCode, "Failed to delete file", createdBy);
     createTranslationIfNotExists(
         "testcaseAttachments.deleteTooltip", languageCode, "Delete", createdBy);
