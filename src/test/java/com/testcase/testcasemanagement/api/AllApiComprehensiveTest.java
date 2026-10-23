@@ -2589,10 +2589,11 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
       groups = {"api-comprehensive-test", "mail"},
       priority = 19)
   @Story("메일")
-  @Description("메일 발송 - 잘못된 요청")
-  public void testSendMailInvalidRequest() {
+  @Description("메일 발송 API 제거 확인 (ICT-443) - 발신자를 지정한 요청도 발송되지 않는다")
+  public void testSendMailEndpointRemoved() {
     Map<String, Object> mailRequest = new HashMap<>();
-    mailRequest.put("to", "");
+    mailRequest.put("from", "ceo@example.com");
+    mailRequest.put("to", "victim@example.com");
     mailRequest.put("subject", "Test");
     mailRequest.put("text", "Test");
 
@@ -2603,7 +2604,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         .when()
         .post("/api/mail/send")
         .then()
-        .statusCode(anyOf(is(200), is(400), is(500)));
+        .statusCode(greaterThanOrEqualTo(400));
   }
 
   // ==================== 20. JunitVersionController 테스트 ====================
