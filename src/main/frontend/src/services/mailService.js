@@ -168,32 +168,6 @@ class MailService {
       throw new Error(`Gmail 설정 가이드 조회 실패: ${error.message}`);
     }
   }
-
-  /**
-   * 메일 발송 (일반 용도)
-   * @param {Object} mailData - 메일 데이터 {to, subject, text, isHtml}
-   */
-  async sendMail(mailData) {
-    try {
-      if (!API_BASE) {
-        API_BASE = await getDynamicApiUrl();
-      }
-      const response = await fetch(`${API_BASE}/api/mail/send`, {
-        method: "POST",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(mailData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.text();
-    } catch (error) {
-      throw new Error(`메일 발송 실패: ${error.message}`);
-    }
-  }
 }
 
 // 싱글톤 패턴으로 인스턴스 생성
