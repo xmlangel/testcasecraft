@@ -53,7 +53,7 @@ public class ConfigController {
     String dynamicUrl = buildDynamicApiUrl(request);
     config.put("apiBaseUrl", dynamicUrl);
     config.put("contextPath", contextPath);
-    config.put("environment", activeProfile);
+    // 실행 profile 은 넣지 않는다. 이 응답은 로그인 전에 열려 있다 (ICT-445). 필요하면 관리자 전용 /environment 를 쓴다.
     config.put("serverTimeZone", java.util.TimeZone.getDefault().getID());
     config.put("showExploratorySessionTab", showExploratorySessionTab);
 
