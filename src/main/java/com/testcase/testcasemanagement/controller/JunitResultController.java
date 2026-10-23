@@ -154,7 +154,9 @@ public class JunitResultController {
   /** 프로젝트별 테스트 결과 목록 조회 */
   @GetMapping("/projects/{projectId}")
   @Operation(summary = "프로젝트 테스트 결과 목록", description = "특정 프로젝트의 JUnit 테스트 결과 목록을 조회합니다.")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize(
+      "(hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER'))"
+          + " and @projectSecurityService.canAccessProject(#projectId)")
   public ResponseEntity<Map<String, Object>> getTestResultsByProject(
       @PathVariable String projectId,
       @RequestParam(value = "page", defaultValue = "0") int page,
@@ -672,7 +674,9 @@ public class JunitResultController {
   /** 프로젝트별 JUnit 요약 통계 조회 (ICT-211) */
   @GetMapping("/projects/{projectId}/summary")
   @Operation(summary = "프로젝트 JUnit 요약 통계", description = "프로젝트의 JUnit 테스트 결과 요약 통계를 조회합니다.")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize(
+      "(hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER'))"
+          + " and @projectSecurityService.canAccessProject(#projectId)")
   public ResponseEntity<Map<String, Object>> getProjectJunitSummary(
       @PathVariable String projectId, Authentication authentication) {
 
@@ -703,7 +707,9 @@ public class JunitResultController {
   @Operation(
       summary = "여러 프로젝트 JUnit 요약 통계",
       description = "여러 프로젝트의 JUnit 테스트 결과 요약 통계를 배치로 조회합니다.")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize(
+      "(hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER'))"
+          + " and @projectSecurityService.canAccessProjects(#projectIds)")
   public ResponseEntity<Map<String, Object>> getBatchProjectJunitSummary(
       @RequestBody List<String> projectIds, Authentication authentication) {
 
@@ -733,7 +739,11 @@ public class JunitResultController {
   /** JUnit 통계 조회 (대시보드용) */
   @GetMapping("/statistics")
   @Operation(summary = "JUnit 통계 조회", description = "프로젝트별 JUnit 테스트 결과 통계를 조회합니다.")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER')")
+  // projectId 가 없으면 집계 없이 0 을 돌려주므로 projectId 가 있을 때만 프로젝트 접근을 검사한다.
+  @PreAuthorize(
+      "(hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER'))"
+          + " and (#projectId == null or #projectId.trim().isEmpty()"
+          + " or @projectSecurityService.canAccessProject(#projectId))")
   public ResponseEntity<Map<String, Object>> getJunitStatistics(
       @RequestParam(value = "projectId", required = false) String projectId,
       @RequestParam(value = "timeRange", defaultValue = "7d") String timeRange,
@@ -895,6 +905,7 @@ public class JunitResultController {
 
   /** 이전 테스트 실행 노트 조회 */
   @GetMapping("/testcases/{testCaseId}/previous-notes")
+  @PreAuthorize("@projectSecurityService.canAccessJunitCase(#testCaseId)")
   @Operation(summary = "이전 노트 조회", description = "동일한 테스트 케이스의 이전 실행에서 작성한 노트를 조회합니다.")
   public ResponseEntity<Map<String, Object>> getPreviousTestCaseNote(
       @PathVariable String testCaseId) {
@@ -1091,6 +1102,7 @@ public class JunitResultController {
 
   /** 테스트 플랜에 연결된 테스트 결과 목록 조회 */
   @GetMapping("/by-plan/{testPlanId}")
+  @PreAuthorize("@projectSecurityService.canAccessTestPlan(#testPlanId)")
   @Operation(summary = "테스트 플랜별 결과 목록", description = "테스트 플랜에 연결된 테스트 결과 목록을 조회합니다.")
   public ResponseEntity<Map<String, Object>> getTestResultsByTestPlan(
       @PathVariable String testPlanId) {
@@ -1120,6 +1132,7 @@ public class JunitResultController {
 
   /** 플랜별 JUnit 비교 통계 조회 (View Type: By Plan) */
   @GetMapping("/comparison/by-plan")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
   @Operation(summary = "플랜별 JUnit 비교 통계", description = "프로젝트의 테스트 플랜별 JUnit 테스트 결과 통계를 비교합니다.")
   public ResponseEntity<List<Map<String, Object>>> getComparisonStatisticsByPlan(
       @Parameter(description = "프로젝트 ID") @RequestParam String projectId) {
@@ -1138,6 +1151,7 @@ public class JunitResultController {
 
   /** 실행자별 JUnit 비교 통계 조회 (View Type: By Executor) */
   @GetMapping("/comparison/by-executor")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
   @Operation(summary = "실행자별 JUnit 비교 통계", description = "프로젝트의 실행자별 JUnit 테스트 결과 통계를 비교합니다.")
   public ResponseEntity<List<Map<String, Object>>> getComparisonStatisticsByExecutor(
       @Parameter(description = "프로젝트 ID") @RequestParam String projectId) {
