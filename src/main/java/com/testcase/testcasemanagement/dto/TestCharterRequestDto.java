@@ -21,6 +21,5 @@ public class TestCharterRequestDto {
 
   private String areas;
   private String tags;
-  private String createdBy;
   private String status;
 }

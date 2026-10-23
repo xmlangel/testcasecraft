@@ -8,6 +8,7 @@ import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCharter;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCharterRepository;
+import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -23,6 +24,8 @@ public class TestCharterService {
 
   @Autowired private ProjectRepository projectRepository;
 
+  @Autowired private SecurityContextUtil securityContextUtil;
+
   public TestCharterResponseDto createCharter(TestCharterRequestDto request) {
     Project project =
         projectRepository
@@ -36,7 +39,8 @@ public class TestCharterService {
     charter.setMission(request.getMission());
     charter.setAreas(request.getAreas());
     charter.setTags(request.getTags());
-    charter.setCreatedBy(request.getCreatedBy());
+    // ICT-444: 작성자는 요청 본문이 아니라 인증 주체에서 가져온다. 본문 값을 쓰면 남의 이름으로 차터를 남길 수 있다.
+    charter.setCreatedBy(securityContextUtil.getCurrentUsername());
     charter.setStatus(parseStatus(request.getStatus(), TestCharter.CharterStatus.ACTIVE));
 
     return toDto(testCharterRepository.save(charter));

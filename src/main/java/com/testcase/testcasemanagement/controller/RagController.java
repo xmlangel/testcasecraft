@@ -7,6 +7,8 @@ import com.testcase.testcasemanagement.model.rag.RagGlobalDocumentRequestStatus;
 import com.testcase.testcasemanagement.service.RagGlobalDocumentRequestService;
 import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.service.TestCaseService;
+import com.testcase.testcasemanagement.service.llm.LlmCallRateLimiter;
+import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,6 +43,7 @@ public class RagController {
   private final RagService ragService;
   private final TestCaseService testCaseService;
   private final RagGlobalDocumentRequestService ragGlobalDocumentRequestService;
+  private final LlmCallRateLimiter llmCallRateLimiter;
 
   /**
    * 문서 업로드 엔드포인트
@@ -199,9 +202,16 @@ public class RagController {
    * <p>POST /api/rag/search/advanced
    */
   @Operation(summary = "고급 검색", description = "벡터, BM25, 하이브리드 등 다양한 방식으로 검색합니다.")
+  // ICT-444: projectId 가 있으면 그 프로젝트 접근 권한을 본다. 없으면 RAG 서비스가 공통 문서만 검색하므로 막지 않는다.
   @PostMapping("/search/advanced")
+  @PreAuthorize(
+      "#request.projectId == null"
+          + " or @projectSecurityService.canAccessProject(#request.projectId.toString())")
   public ResponseEntity<RagSearchResponse> searchAdvanced(
       @Valid @RequestBody RagAdvancedSearchRequest request) {
+    // reranker 계산이 드는 호출이다. 아래 catch(Exception) 이 429 를 500 으로 바꾸지 않도록 try 밖에서 허가받는다.
+    llmCallRateLimiter.acquire(
+        "rag-search-advanced", SecurityContextUtil.getCurrentUsernameStatic());
 
     log.info(
         "REST API: Advanced search request - query={}, method={}",

@@ -840,6 +840,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          // 서버가 이 프로젝트의 편집 권한을 확인한다 (ICT-444).
+          projectId,
           steps: validSteps.map((s) => ({
             description: s.description || "",
             expectedResult: s.expectedResult || "",
@@ -875,7 +877,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       setIsAiGenerating(false);
       isAiGeneratingRef.current = false;
     }
-  }, [testCase, api, t]);
+  }, [testCase, api, t, projectId]);
 
   // 자동 모드: steps 변경 감지 시 AI 생성 (Name이 비어 있을 때만)
   useEffect(() => {

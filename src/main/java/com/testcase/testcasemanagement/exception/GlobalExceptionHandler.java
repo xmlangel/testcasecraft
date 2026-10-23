@@ -458,7 +458,7 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(response, status);
   }
 
-  /** Rate Limit 초과 예외 처리 (Resilience4j) */
+  /** Rate Limit 초과 예외 처리 (Resilience4j). ICT-444 의 LLM 호출 사용자별 제한(LlmCallRateLimiter)이 이 경로로 온다. */
   @ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
   public ResponseEntity<ErrorResponse> handleRateLimitException(
       io.github.resilience4j.ratelimiter.RequestNotPermitted ex, WebRequest request) {
@@ -473,7 +473,7 @@ public class GlobalExceptionHandler {
     ErrorResponse response =
         new ErrorResponse(
             "RATE_LIMIT_EXCEEDED",
-            "Too many requests from the same IP (more than 10 per second). Please try again in 60 seconds.",
+            "Too many requests. Please try again in 60 seconds.",
             LocalDateTime.now(),
             details);
 
