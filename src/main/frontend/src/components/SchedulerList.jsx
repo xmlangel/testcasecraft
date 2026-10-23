@@ -28,6 +28,7 @@ import {
 } from "@mui/icons-material";
 import StyledDashboardPaper from "./common/StyledDashboardPaper";
 import { useI18n } from "../context/I18nContext";
+import apiService from "../services/apiService.js";
 
 const SchedulerList = () => {
   const theme = useTheme();
@@ -42,7 +43,7 @@ const SchedulerList = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("/api/admin/scheduler/tasks");
+      const response = await apiService.get("/api/admin/scheduler/tasks");
       if (!response.ok) {
         throw new Error("Failed to load scheduler information");
       }

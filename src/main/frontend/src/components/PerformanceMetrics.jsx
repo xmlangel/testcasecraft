@@ -27,6 +27,7 @@ import {
 import CountUp from "react-countup";
 import StyledDashboardPaper from "./common/StyledDashboardPaper";
 import { useI18n } from "../context/I18nContext";
+import apiService from "../services/apiService.js";
 
 const PerformanceMetricCard = ({
   title,
@@ -106,14 +107,18 @@ const PerformanceMetrics = () => {
       setError("");
 
       // 대시보드 메트릭 조회
-      const metricsResponse = await fetch("/api/monitoring/metrics/dashboard");
+      const metricsResponse = await apiService.get(
+        "/api/monitoring/metrics/dashboard",
+      );
       if (!metricsResponse.ok) {
         throw new Error("Failed to load metrics");
       }
       const metricsData = await metricsResponse.json();
 
       // 시스템 리소스 조회
-      const resourcesResponse = await fetch("/api/monitoring/system/resources");
+      const resourcesResponse = await apiService.get(
+        "/api/monitoring/system/resources",
+      );
       if (!resourcesResponse.ok) {
         throw new Error("Failed to load system resources");
       }
@@ -121,7 +126,9 @@ const PerformanceMetrics = () => {
 
       // 사용량 메트릭 조회
       try {
-        const usageResponse = await fetch("/api/monitoring/usage/page-visits");
+        const usageResponse = await apiService.get(
+          "/api/monitoring/usage/page-visits",
+        );
         if (usageResponse.ok) {
           const usageData = await usageResponse.json();
           setUsageMetrics(usageData);

@@ -1267,7 +1267,9 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
   @Story("모니터링")
   @Description("대시보드 헬스체크")
   public void testDashboardHealthCheck() {
+    // ICT-445: 모니터링 조회는 관리자 전용
     given()
+        .header("Authorization", "Bearer " + jwtToken)
         .when()
         .get("/api/monitoring/health/dashboard")
         .then()
@@ -1280,7 +1282,9 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
   @Story("모니터링")
   @Description("대시보드 성능 메트릭 조회")
   public void testGetDashboardMetrics() {
+    // ICT-445: 모니터링 조회는 관리자 전용
     given()
+        .header("Authorization", "Bearer " + jwtToken)
         .when()
         .get("/api/monitoring/metrics/dashboard")
         .then()
@@ -1294,7 +1298,9 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
   @Story("모니터링")
   @Description("시스템 리소스 상태 조회")
   public void testGetSystemResources() {
+    // ICT-445: 모니터링 조회는 관리자 전용
     given()
+        .header("Authorization", "Bearer " + jwtToken)
         .when()
         .get("/api/monitoring/health/resources")
         .then()
