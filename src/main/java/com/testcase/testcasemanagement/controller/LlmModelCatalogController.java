@@ -8,6 +8,8 @@ import com.testcase.testcasemanagement.dto.llm.LlmModelProbeJob;
 import com.testcase.testcasemanagement.dto.llm.LlmModelQueryRequest;
 import com.testcase.testcasemanagement.exception.EncryptionKeyNotConfiguredException;
 import com.testcase.testcasemanagement.service.LlmConfigService;
+import com.testcase.testcasemanagement.service.llm.LlmCallRateLimiter;
+import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import io.swagger.v3.oas.annotations.Operation;
 // Swagger ApiResponse는 전체 경로 사용 (com.testcase...ApiResponse와 충돌 방지)
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -45,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class LlmModelCatalogController {
 
   private final LlmConfigService llmConfigService;
+  private final LlmCallRateLimiter llmCallRateLimiter;
 
   @Operation(
       summary = "모델 목록을 내주는 제공자",
@@ -103,6 +106,8 @@ public class LlmModelCatalogController {
   })
   @GetMapping("/models/for-chat")
   public ResponseEntity<ApiResponse<List<LlmModelDTO>>> listSelectableModelsForChat() {
+    // ICT-444: 저장된 키로 제공자 API 를 부르므로 사용자별 호출 빈도를 제한한다. 목록은 전역 기본 설정의 것이라 프로젝트 검사는 없다.
+    llmCallRateLimiter.acquire("models-for-chat", SecurityContextUtil.getCurrentUsernameStatic());
     List<LlmModelDTO> models = llmConfigService.listSelectableModelsForChat();
     return ResponseEntity.ok(ApiResponse.success(models, "무료 모델 " + models.size() + "개"));
   }

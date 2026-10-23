@@ -16,6 +16,7 @@ import com.testcase.testcasemanagement.repository.RagChatThreadRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestCaseVersionRepository;
+import com.testcase.testcasemanagement.repository.TestCharterRepository;
 import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultEditRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
@@ -58,6 +59,8 @@ public class ProjectSecurityService {
   @Autowired private JunitCaseAttachmentRepository junitCaseAttachmentRepository;
 
   @Autowired private TestSessionRepository testSessionRepository;
+
+  @Autowired private TestCharterRepository testCharterRepository;
 
   @Autowired private TestCaseVersionRepository testCaseVersionRepository;
 
@@ -328,6 +331,15 @@ public class ProjectSecurityService {
   public boolean canRunTestSessionById(String sessionId) {
     return projectPermission(
         testSessionRepository.findProjectIdById(sessionId), this::canRunTestSession);
+  }
+
+  /**
+   * 테스트 차터를 수정할 수 있는지. 차터가 속한 프로젝트에서 세션을 진행할 수 있는 사람(편집 롤 + TESTER + 시스템 관리자)과 같은 기준이다. 차터를 만드는
+   * 기준(canRunTestSession)과 맞춘다. 차터가 없으면 fail-closed.
+   */
+  public boolean canEditCharter(String charterId) {
+    return projectPermission(
+        testCharterRepository.findProjectIdById(charterId), this::canRunTestSession);
   }
 
   /**

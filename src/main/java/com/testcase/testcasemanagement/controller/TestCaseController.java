@@ -27,7 +27,9 @@ import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.MoveForbi
 import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.MoveNotFoundException;
 import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.MoveValidationException;
 import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.SystemFolderProtectedException;
+import com.testcase.testcasemanagement.service.llm.LlmCallRateLimiter;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
+import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -51,6 +53,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/testcases")
 public class TestCaseController {
   @Autowired private TestCaseRepository testCaseRepository;
+  @Autowired private LlmCallRateLimiter llmCallRateLimiter;
 
   private final TestCaseService testCaseService;
   private final ObjectMapper objectMapper;
@@ -756,14 +759,23 @@ public class TestCaseController {
    *
    * <p>Step, ExpectedResult, PreCondition 정보를 받아 LLM으로 적절한 이름과 설명을 생성합니다.
    *
-   * @param requestBody { steps: [{description, expectedResult}], preCondition, description }
+   * <p>ICT-444: LLM 비용이 드는 호출이라 본문의 projectId 에 대해 편집 권한을 요구하고, 사용자별 호출 빈도를 제한한다. 이 기능은
+   * 테스트케이스 편집 화면에서만 쓰므로 프로젝트 없는 호출은 받지 않는다.
+   *
+   * @param requestBody { projectId, steps: [{description, expectedResult}], preCondition,
+   *     description }
    * @return { name, description }
    */
   @Operation(
       summary = "AI 메타 자동 생성",
       description = "Step/Expected/PreCondition 정보로 테스트케이스 Name과 Description을 AI가 자동 생성합니다.")
   @PostMapping("/ai/generate-meta")
+  @PreAuthorize(
+      "#requestBody['projectId'] != null"
+          + " and @projectSecurityService.canEditProject(#requestBody['projectId'])")
   public ResponseEntity<?> generateMetaWithAi(@RequestBody Map<String, Object> requestBody) {
+    // 아래 catch(Exception) 이 429 를 500 으로 바꾸지 않도록 try 밖에서 허가받는다.
+    llmCallRateLimiter.acquire("generate-meta", SecurityContextUtil.getCurrentUsernameStatic());
     try {
       @SuppressWarnings("unchecked")
       List<Map<String, String>> steps =
