@@ -231,7 +231,7 @@ public class SecurityConfig {
   // API Key 인증 필터 생성
   @Bean
   public ApiKeyAuthenticationFilter apiKeyAuthenticationFilter() {
-    return new ApiKeyAuthenticationFilter(serviceApiKeyRepository);
+    return new ApiKeyAuthenticationFilter(serviceApiKeyRepository, userDetailsService);
   }
 
   // JWT 인증 필터 생성
