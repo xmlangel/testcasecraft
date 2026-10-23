@@ -16,6 +16,7 @@ import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+  private static final String RESERVED_USERNAME_PREFIX = "service-account";
 
   private final AuthenticationManager authenticationManager;
   private final JwtTokenUtil jwtTokenUtil;
@@ -73,6 +76,15 @@ public class AuthController {
     if (user == null || user.getUsername() == null || user.getPassword() == null) {
       return ResponseEntity.badRequest()
           .body(Map.of("message", "Username and password are required"));
+    }
+
+    // ICT-441: 예전 API 키 가상 계정 이름(service-account)과 겹치는 사용자명은 받지 않는다.
+    if (isReservedUsername(user.getUsername())) {
+      Map<String, Object> errorResponse = new HashMap<>();
+      errorResponse.put("username", user.getUsername());
+      errorResponse.put("field", "username");
+      errorResponse.put("message", "This username is reserved and cannot be used.");
+      return ResponseEntity.badRequest().body(errorResponse);
     }
 
     if (userRepository.existsByUsername(user.getUsername())) {
@@ -123,6 +135,12 @@ public class AuthController {
     successResponse.put("message", "User registered successfully");
 
     return ResponseEntity.ok(successResponse);
+  }
+
+  /** 시스템 예약 사용자명인지 확인한다. service-account 로 시작하면 대소문자와 앞뒤 공백에 관계없이 예약어다. */
+  static boolean isReservedUsername(String username) {
+    return username != null
+        && username.trim().toLowerCase(Locale.ROOT).startsWith(RESERVED_USERNAME_PREFIX);
   }
 
   @Operation(summary = "로그인", description = "사용자 인증 후 액세스 토큰과 리프레시 토큰을 발급합니다.")
