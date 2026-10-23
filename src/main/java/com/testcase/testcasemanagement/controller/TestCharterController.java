@@ -34,14 +34,18 @@ public class TestCharterController {
   }
 
   @GetMapping("/projects/{projectId}/charters")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize(
+      "(hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER'))"
+          + " and @projectSecurityService.canAccessProject(#projectId)")
   public ResponseEntity<List<TestCharterResponseDto>> getProjectCharters(
       @PathVariable String projectId) {
     return ResponseEntity.ok(testCharterService.getProjectCharters(projectId));
   }
 
   @GetMapping("/charters/{id}")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
+  @PreAuthorize(
+      "(hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER'))"
+          + " and @projectSecurityService.canAccessTestCharter(#id)")
   public ResponseEntity<TestCharterResponseDto> getCharter(@PathVariable String id) {
     return ResponseEntity.ok(testCharterService.getCharter(id));
   }

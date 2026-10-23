@@ -14,6 +14,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Test Result - Reporting", description = "테스트 결과 보고서 API")
@@ -32,6 +33,7 @@ public class TestResultReportController {
   // 1. 프로젝트별 테스트 결과
   @Operation(summary = "프로젝트별 테스트 결과", description = "특정 프로젝트의 테스트 결과를 요약하여 조회합니다.")
   @GetMapping("/by-project/{projectId}")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
   public ResponseEntity<Map<String, Object>> getTestResultsByProject(
       @PathVariable String projectId) {
     Map<String, Object> result = testResultReportService.getTestResultsByProject(projectId);
@@ -41,6 +43,7 @@ public class TestResultReportController {
   // 2. 프로젝트별 담당자 테스트 결과
   @Operation(summary = "프로젝트별 담당자 테스트 결과", description = "특정 프로젝트의 담당자별 테스트 결과를 조회합니다.")
   @GetMapping("/by-project/{projectId}/by-assignee")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
   public ResponseEntity<List<Map<String, Object>>> getTestResultsByProjectAndAssignee(
       @PathVariable String projectId) {
     List<Map<String, Object>> result =
@@ -51,6 +54,7 @@ public class TestResultReportController {
   // 3. 테스트플랜별 테스트 결과
   @Operation(summary = "테스트플랜별 테스트 결과", description = "특정 테스트 계획의 테스트 결과를 요약하여 조회합니다.")
   @GetMapping("/by-testplan/{testPlanId}")
+  @PreAuthorize("@projectSecurityService.canAccessTestPlan(#testPlanId)")
   public ResponseEntity<Map<String, Object>> getTestResultsByTestPlan(
       @PathVariable String testPlanId) {
     Map<String, Object> result = testResultReportService.getTestResultsByTestPlan(testPlanId);
@@ -60,6 +64,7 @@ public class TestResultReportController {
   // 4. 테스트플랜별 담당자 테스트 결과
   @Operation(summary = "테스트플랜별 담당자 테스트 결과", description = "특정 테스트 계획의 담당자별 테스트 결과를 조회합니다.")
   @GetMapping("/by-testplan/{testPlanId}/by-assignee")
+  @PreAuthorize("@projectSecurityService.canAccessTestPlan(#testPlanId)")
   public ResponseEntity<List<Map<String, Object>>> getTestResultsByTestPlanAndAssignee(
       @PathVariable String testPlanId) {
     List<Map<String, Object>> result =
@@ -72,6 +77,9 @@ public class TestResultReportController {
   /** ICT-185: 테스트 결과 통계 조회 Pass/Fail/NotRun/Blocked 통계를 반환 */
   @Operation(summary = "테스트 결과 통계 조회", description = "Pass/Fail/NotRun/Blocked 통계를 조회합니다.")
   @GetMapping("/statistics")
+  // projectId·testPlanId·testExecutionId 를 모두 검사한다. 하나도 없으면(전체 통계) 관리자만 통과한다.
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope(#projectId, #testPlanId, {#testExecutionId})")
   public ResponseEntity<TestResultStatisticsDto> getTestResultStatistics(
       @RequestParam(required = false) String projectId,
       @RequestParam(required = false) List<String> testPlanId,
@@ -85,6 +93,9 @@ public class TestResultReportController {
   /** ICT-185: 상세 테스트 결과 리포트 조회 (페이징 지원) 폴더/케이스/결과/시행일자/실행자/비고/JIRA ID 포함 */
   @Operation(summary = "상세 테스트 결과 리포트 조회", description = "필터 조건을 적용하여 상세 테스트 결과 리포트를 조회합니다.")
   @PostMapping("/report")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#filter.projectId, #filter.testPlanIds, #filter.testExecutionIds)")
   public ResponseEntity<Page<TestResultReportDto>> getDetailedTestResultReport(
       @RequestBody TestResultFilterDto filter) {
 
@@ -95,6 +106,8 @@ public class TestResultReportController {
   /** ICT-185: 간단한 상세 테스트 결과 리포트 조회 (GET 버전) */
   @Operation(summary = "간단한 상세 테스트 결과 리포트 조회", description = "기본 파라미터로 상세 테스트 결과 리포트를 조회합니다.")
   @GetMapping("/report")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope(#projectId, #testPlanId, {#testExecutionId})")
   public ResponseEntity<Page<TestResultReportDto>> getDetailedTestResultReportSimple(
       @RequestParam(required = false) String projectId,
       @RequestParam(required = false) List<String> testPlanId,
@@ -121,6 +134,7 @@ public class TestResultReportController {
   /** ICT-185: JIRA 상태 통합 리스트 조회 중복 제거된 JIRA 상태와 연결된 테스트 정보 */
   @Operation(summary = "JIRA 상태 통합 리스트 조회", description = "테스트 결과와 연동된 JIRA 상태 요약을 조회합니다.")
   @GetMapping("/jira-status")
+  @PreAuthorize("@projectSecurityService.canAccessResultScope(#projectId, #testPlanId, null)")
   public ResponseEntity<List<JiraStatusSummaryDto>> getJiraStatusSummary(
       @RequestParam(required = false) String projectId,
       @RequestParam(required = false) List<String> testPlanId,
@@ -136,6 +150,9 @@ public class TestResultReportController {
   /** ICT-185: 테스트 결과 내보내기 (Excel/PDF/CSV) */
   @Operation(summary = "테스트 결과 내보내기", description = "테스트 결과를 Excel, PDF, CSV 형식으로 내보냅니다.")
   @PostMapping("/export")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#filter.projectId, #filter.testPlanIds, #filter.testExecutionIds)")
   public ResponseEntity<byte[]> exportTestResultReport(@RequestBody TestResultFilterDto filter) {
 
     byte[] exportData = testResultReportService.exportTestResultReport(filter);
@@ -175,6 +192,9 @@ public class TestResultReportController {
   /** ICT-283: 계층적 테스트 결과 상세 리포트 조회 테스트플랜 > 실행 > 케이스 3단계 계층 구조로 반환 미실행 케이스도 포함한 완전한 리포트 */
   @Operation(summary = "계층적 상세 리포트 조회", description = "테스트플랜 > 실행 > 케이스 3단계 계층 구조의 리포트를 조회합니다.")
   @PostMapping("/detailed-report")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#filter.projectId, #filter.testPlanIds, #filter.testExecutionIds)")
   public ResponseEntity<Map<String, Object>> getHierarchicalTestResultReport(
       @RequestBody TestResultFilterDto filter) {
 
@@ -186,6 +206,8 @@ public class TestResultReportController {
   /** ICT-283: 계층적 테스트 결과 상세 리포트 조회 (GET 버전) */
   @Operation(summary = "계층적 상세 리포트 조회 (GET)", description = "기본 파라미터로 계층적 상세 리포트를 조회합니다.")
   @GetMapping("/detailed-report/{projectId}")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope(#projectId, #testPlanId, {#testExecutionId})")
   public ResponseEntity<Map<String, Object>> getHierarchicalTestResultReportSimple(
       @PathVariable String projectId,
       @RequestParam(required = false) List<String> testPlanId,
@@ -212,6 +234,9 @@ public class TestResultReportController {
   /** ICT-283: 계층적 리포트 내보내기 전용 엔드포인트 컬럼 선택 및 계층 구조를 유지한 내보내기 */
   @Operation(summary = "계층적 리포트 내보내기", description = "계층적 구조를 유지하여 리포트를 내보냅니다.")
   @PostMapping("/export-hierarchical")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#filter.projectId, #filter.testPlanIds, #filter.testExecutionIds)")
   public ResponseEntity<byte[]> exportHierarchicalTestResultReport(
       @RequestBody TestResultFilterDto filter) {
 
@@ -235,6 +260,8 @@ public class TestResultReportController {
   /** ICT-283: 테스트 케이스 완전 목록 조회 (미실행 포함) LEFT JOIN을 통한 모든 테스트 케이스와 실행 결과 조합 */
   @Operation(summary = "테스트 케이스 완전 목록 조회", description = "미실행 케이스를 포함한 전체 테스트 케이스 실행 현황을 조회합니다.")
   @GetMapping("/complete-cases/{projectId}")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope(#projectId, {#testPlanId}, null)")
   public ResponseEntity<Page<TestResultReportDto>> getCompleteTestCasesList(
       @PathVariable String projectId,
       @RequestParam(required = false) String testPlanId,

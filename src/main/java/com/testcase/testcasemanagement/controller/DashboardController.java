@@ -307,6 +307,8 @@ public class DashboardController {
    * @return 최근 테스트 결과 목록
    */
   @GetMapping("/recent-test-results")
+  // 모든 프로젝트의 결과를 담는 전체 조회라 관리자만 쓴다. 프로젝트 사용자는 프로젝트·플랜별 경로를 쓴다.
+  @PreAuthorize("hasRole('ADMIN')")
   @Operation(summary = "최근 테스트 결과 조회", description = "전체 최근 테스트케이스 결과를 조회합니다.")
   public ResponseEntity<List<RecentTestResultDto>> getRecentTestResults(
       @RequestParam(value = "limit", defaultValue = "10") int limit,
@@ -350,6 +352,7 @@ public class DashboardController {
    * @return 최근 테스트 결과 목록
    */
   @GetMapping("/projects/{projectId}/recent-test-results")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
   public ResponseEntity<List<RecentTestResultDto>> getRecentTestResultsByProject(
       @PathVariable String projectId,
       @RequestParam(value = "limit", defaultValue = "10") int limit) {
@@ -375,6 +378,7 @@ public class DashboardController {
    * @return 최근 테스트 결과 목록
    */
   @GetMapping("/test-plans/{testPlanId}/recent-test-results")
+  @PreAuthorize("@projectSecurityService.canAccessTestPlan(#testPlanId)")
   public ResponseEntity<List<RecentTestResultDto>> getRecentTestResultsByTestPlan(
       @PathVariable String testPlanId,
       @RequestParam(value = "limit", defaultValue = "10") int limit) {
@@ -423,6 +427,7 @@ public class DashboardController {
    * @return 오픈 테스트런 담당자별 결과 목록
    */
   @GetMapping("/projects/{projectId}/open-test-runs/assignee-results")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
   public ResponseEntity<List<OpenTestRunAssigneeResultDto>> getOpenTestRunAssigneeResultsByProject(
       @PathVariable String projectId,
       @RequestParam(value = "limit", defaultValue = "20") int limit) {
@@ -571,6 +576,8 @@ public class DashboardController {
    * @return 진행 중인 테스트 실행 진행률 목록
    */
   @GetMapping("/in-progress-test-executions")
+  // 모든 프로젝트의 실행을 담는 전체 조회라 관리자만 쓴다. 프로젝트 사용자는 프로젝트별 경로를 쓴다.
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<TestExecutionProgressDto>> getInProgressTestExecutions(
       @RequestParam(value = "limit", defaultValue = "10") int limit) {
 

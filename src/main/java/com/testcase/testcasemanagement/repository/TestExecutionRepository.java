@@ -11,6 +11,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface TestExecutionRepository extends JpaRepository<TestExecution, String> {
+
+  /** 실행이 속한 프로젝트 ID. 인가 판정에서 투영용으로 쓴다. */
+  @Query("SELECT e.project.id FROM TestExecution e WHERE e.id = :testExecutionId")
+  Optional<String> findProjectIdById(@Param("testExecutionId") String testExecutionId);
+
   @Query(
       "SELECT te FROM TestExecution te WHERE te.testPlanId = :testPlanId ORDER BY te.startDate"
           + " DESC")

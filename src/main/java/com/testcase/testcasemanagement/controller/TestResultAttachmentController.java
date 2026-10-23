@@ -108,6 +108,7 @@ public class TestResultAttachmentController {
   }
 
   /** 테스트 결과별 첨부파일 목록 조회 */
+  @PreAuthorize("@projectSecurityService.canAccessTestResult(#testResultId)")
   @GetMapping("/testresult/{testResultId}")
   @Operation(summary = "첨부파일 목록 조회", description = "특정 테스트 결과의 첨부파일 목록을 조회합니다.")
   @ApiResponses(

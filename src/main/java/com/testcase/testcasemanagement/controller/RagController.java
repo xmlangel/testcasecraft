@@ -175,6 +175,10 @@ public class RagController {
    */
   @Operation(summary = "유사도 검색", description = "질의와 유사한 문서 청크를 검색합니다.")
   @PostMapping("/search/similar")
+  // projectId 가 없으면 모든 프로젝트 문서를 검색하므로 관리자만 허용한다(문서 목록 조회와 같은 규칙).
+  @PreAuthorize(
+      "#request.projectId == null ? hasRole('ADMIN') "
+          + ": @projectSecurityService.canAccessProject(#request.projectId.toString())")
   public ResponseEntity<RagSearchResponse> searchSimilar(
       @Valid @RequestBody RagSearchRequest request) {
 
@@ -474,6 +478,7 @@ public class RagController {
    */
   @Operation(summary = "테스트케이스 RAG 등록 상태 조회", description = "단일 테스트케이스의 RAG 벡터화 여부를 조회합니다.")
   @GetMapping("/testcases/{testCaseId}/status")
+  @PreAuthorize("@projectSecurityService.canAccessTestCase(#testCaseId)")
   public ResponseEntity<Map<String, Object>> getTestCaseVectorizationStatus(
       @PathVariable String testCaseId) {
 
@@ -949,6 +954,9 @@ public class RagController {
    */
   @Operation(summary = "LLM 분석 작업 목록", description = "LLM 분석 작업 목록을 조회합니다.")
   @GetMapping("/llm-analysis/jobs")
+  @PreAuthorize(
+      "#projectId == null ? hasRole('ADMIN') "
+          + ": @projectSecurityService.canAccessProject(#projectId.toString())")
   public ResponseEntity<RagLlmAnalysisJobListResponse> listLlmAnalysisJobs(
       @RequestParam(value = "projectId", required = false) UUID projectId,
       @RequestParam(value = "status", required = false) String status,
