@@ -44,26 +44,15 @@ public class SecurityContextUtil {
     return getCurrentUser().map(User::getName).orElse("System User"); // 인증되지 않은 경우 시스템 사용자로 처리
   }
 
-  /** ICT-349: 정적 메소드 버전 (TestCaseVersionService에서 사용) */
-  public static String getCurrentUserIdStatic() {
+  /** ICT-451: 정적 메소드 버전. 인증되지 않았으면 null 을 반환한다. */
+  public static String getCurrentUsernameStatic() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication != null
         && authentication.isAuthenticated()
         && !authentication.getName().equals("anonymousUser")) {
-      return authentication.getName(); // username을 userId로 사용
+      return authentication.getName();
     }
-    return "system";
-  }
-
-  /** ICT-349: 정적 메소드 버전 (TestCaseVersionService에서 사용) */
-  public static String getCurrentUserNameStatic() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication != null
-        && authentication.isAuthenticated()
-        && !authentication.getName().equals("anonymousUser")) {
-      return authentication.getName(); // 일단 username을 반환
-    }
-    return "System User";
+    return null;
   }
 
   /** 현재 사용자가 인증되었는지 확인 */
