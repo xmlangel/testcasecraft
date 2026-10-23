@@ -514,6 +514,12 @@ public class TestCaseService {
             .findById(id)
             .orElseThrow(() -> new RuntimeException("TestCase not found"));
 
+    // ICT-446: 요청의 projectId 가 아니라 DB 에 저장된 케이스의 프로젝트로도 편집 권한을 검사한다.
+    if (entity.getProject() == null
+        || !projectSecurityService.canEditProject(entity.getProject().getId())) {
+      throw new AccessDeniedException("No permission to edit the test case: " + id);
+    }
+
     // 기존 tags 백업 (null check)
     List<String> oldTags =
         entity.getTags() != null ? new ArrayList<>(entity.getTags()) : new ArrayList<>();
@@ -1418,11 +1424,27 @@ public class TestCaseService {
   public com.testcase.testcasemanagement.dto.BatchSaveResult batchSaveTestCases(
       List<com.testcase.testcasemanagement.dto.TestCaseDto> testCaseDtos) {
 
-    // 모든 항목의 프로젝트에 대한 편집 권한 검사
+    // 모든 항목의 프로젝트에 대한 편집 권한 검사 (ICT-446)
+    // - projectId 가 빈 항목이 하나라도 있으면 검사를 건너뛰지 않고 배치 전체를 거부한다.
+    // - 기존 케이스 수정은 요청 값이 아니라 DB 에 저장된 케이스의 프로젝트로도 검사한다.
     Set<String> projectIds = new HashSet<>();
-    for (com.testcase.testcasemanagement.dto.TestCaseDto dto : testCaseDtos) {
-      if (dto.getProjectId() != null && !dto.getProjectId().isEmpty()) {
-        projectIds.add(dto.getProjectId());
+    for (int i = 0; i < testCaseDtos.size(); i++) {
+      com.testcase.testcasemanagement.dto.TestCaseDto dto = testCaseDtos.get(i);
+      if (dto.getProjectId() == null || dto.getProjectId().trim().isEmpty()) {
+        throw new IllegalArgumentException("projectId is required (index " + i + ")");
+      }
+      projectIds.add(dto.getProjectId());
+
+      boolean isExisting = dto.getId() != null && !dto.getId().startsWith("temp-");
+      if (isExisting) {
+        // 없는 케이스는 아래 변환 단계에서 항목별 오류로 기록된다.
+        Optional<TestCase> stored = testCaseRepository.findById(dto.getId());
+        if (stored.isPresent()) {
+          if (stored.get().getProject() == null) {
+            throw new AccessDeniedException("No permission to edit the test case: " + dto.getId());
+          }
+          projectIds.add(stored.get().getProject().getId());
+        }
       }
     }
     for (String projectId : projectIds) {

@@ -92,7 +92,7 @@ public class WriteEndpointAuthorizationTest {
         "서비스 계층에서 검사한다 — TestCaseService 가 canEditProject 를 확인한다(118·244·434줄)");
     ALLOWED.put(
         "TestPlanController.java",
-        "서비스 계층에서 검사한다 — TestPlanService 가 canEditProject 를 확인한다(38·61·95줄)");
+        "서비스 계층에서 검사한다 — TestPlanService 가 canEditProject 를 확인한다(40·68·94줄)");
     ALLOWED.put(
         "TestExecutionController.java",
         "서비스 계층에서 검사한다 — TestExecutionService 가 canEditProject·canRecordTestResult 를 확인한다");
