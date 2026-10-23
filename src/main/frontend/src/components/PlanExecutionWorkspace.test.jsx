@@ -78,9 +78,11 @@ vi.mock("./TestExecutionForm.jsx", () => ({
 }));
 
 const getMock = vi.fn();
+const deleteMock = vi.fn();
 vi.mock("../services/apiService.js", () => ({
   default: {
     get: (...args) => getMock(...args),
+    delete: (...args) => deleteMock(...args),
   },
 }));
 
@@ -96,6 +98,8 @@ describe("PlanExecutionWorkspace", () => {
   beforeEach(() => {
     roleState.projectRole = "PROJECT_MANAGER";
     getMock.mockReset();
+    deleteMock.mockReset();
+    deleteMock.mockResolvedValue({ ok: true });
     getMock.mockResolvedValue({
       json: async () => [
         {
@@ -449,5 +453,96 @@ describe("PlanExecutionWorkspace", () => {
       ),
     );
     expect(onExitCreatePlan).not.toHaveBeenCalled();
+  });
+
+  // ICT-452: 세로 모드에는 실행 삭제 입구가 없어 가로 모드로 바꿔야만 지울 수 있었다.
+  describe("실행 삭제 (ICT-452)", () => {
+    it("실행 영역에서 확인 후 삭제하면 목록과 상세에서 빠진다", async () => {
+      setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-item-ex1"),
+      );
+      await waitFor(() =>
+        expect(screen.getByTestId("stub-execution-form")).toBeInTheDocument(),
+      );
+
+      fireEvent.click(screen.getByTestId("workspace-execution-delete-ex1"));
+      // 확인 전에는 지우지 않는다
+      expect(deleteMock).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByTestId("workspace-execution-delete-confirm"));
+
+      await waitFor(() =>
+        expect(deleteMock).toHaveBeenCalledWith("/api/test-executions/ex1"),
+      );
+      await waitFor(() =>
+        expect(screen.queryByTestId("workspace-execution-item-ex1")).toBeNull(),
+      );
+      expect(screen.queryByTestId("stub-execution-form")).toBeNull();
+    });
+
+    it("삭제 버튼을 눌러도 실행 상세가 열리지 않고, 취소하면 지우지 않는다", async () => {
+      setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      );
+      expect(screen.queryByTestId("stub-execution-form")).toBeNull();
+
+      fireEvent.click(screen.getByTestId("workspace-execution-delete-cancel"));
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId("workspace-execution-delete-confirm"),
+        ).toBeNull(),
+      );
+      expect(deleteMock).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId("workspace-execution-item-ex1"),
+      ).toBeInTheDocument();
+    });
+
+    it("플랜 트리 아래 실행도 지울 수 있다", async () => {
+      setup();
+      fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      );
+      fireEvent.click(screen.getByTestId("workspace-execution-delete-confirm"));
+
+      await waitFor(() =>
+        expect(deleteMock).toHaveBeenCalledWith("/api/test-executions/ex1"),
+      );
+      await waitFor(() =>
+        expect(screen.queryByTestId("workspace-execution-item-ex1")).toBeNull(),
+      );
+    });
+
+    it("삭제가 실패하면 창에 이유를 보여 주고 목록은 그대로 둔다", async () => {
+      deleteMock.mockRejectedValue(
+        new Error("이 작업을 수행할 권한이 없습니다."),
+      );
+      setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      );
+      fireEvent.click(screen.getByTestId("workspace-execution-delete-confirm"));
+
+      expect(
+        await screen.findByText("이 작업을 수행할 권한이 없습니다."),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByTestId("workspace-execution-item-ex1"),
+      ).toBeInTheDocument();
+    });
+
+    it.each(["VIEWER", "TESTER"])(
+      "%s 역할에는 삭제 입구가 없다",
+      async (role) => {
+        roleState.projectRole = role;
+        setup({ mode: "executions" });
+        await screen.findByTestId("workspace-execution-item-ex1");
+        expect(
+          screen.queryByTestId("workspace-execution-delete-ex1"),
+        ).toBeNull();
+      },
+    );
   });
 });
