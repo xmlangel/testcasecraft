@@ -354,6 +354,13 @@ public class TestCaseController {
         return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).body(result);
       }
 
+    } catch (IllegalArgumentException e) {
+      // ICT-446: projectId 누락 등 요청 오류는 400 으로 거부한다
+      log.warn("ICT-373: 배치 저장 요청 거부: {}", e.getMessage());
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    } catch (org.springframework.security.access.AccessDeniedException e) {
+      // 인가 실패는 403으로 전달 (GlobalExceptionHandler가 처리) — 500으로 삼키지 않는다
+      throw e;
     } catch (Exception e) {
       // 내부 예외 상세는 서버 로그로만 남기고 응답엔 노출하지 않는다 (CWE-209)
       log.error("ICT-373: 배치 저장 중 예외 발생", e);
