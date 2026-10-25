@@ -10,10 +10,12 @@ import com.testcase.testcasemanagement.repository.TestPlanRepository;
 import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class TestPlanService {
 
@@ -56,34 +58,31 @@ public class TestPlanService {
   }
 
   public TestPlan updateTestPlan(String id, TestPlanDto dto) {
-    // 프로젝트 편집 권한 검사
-    if (dto.getProjectId() != null) {
-      if (!projectSecurityService.canEditProject(dto.getProjectId())) {
-        throw new AccessDeniedException("No permission to edit project: " + dto.getProjectId());
-      }
+    TestPlan existingPlan =
+        testPlanRepository
+            .findById(id)
+            .orElseThrow(() -> new RuntimeException("TestPlan not found with id: " + id));
+
+    // ICT-446: 요청 값이 아니라 DB 에 저장된 플랜의 프로젝트로 편집 권한을 검사한다.
+    String storedProjectId = existingPlan.getProject().getId();
+    if (!projectSecurityService.canEditProject(storedProjectId)) {
+      throw new AccessDeniedException("No permission to edit project: " + storedProjectId);
     }
 
-    return testPlanRepository
-        .findById(id)
-        .map(
-            existingPlan -> {
-              existingPlan.setName(dto.getName());
-              existingPlan.setDescription(dto.getDescription());
-              existingPlan.setTestCaseIds(dto.getTestCaseIds());
+    // 수정으로는 플랜의 프로젝트를 바꾸지 않는다. 요청의 projectId 가 달라도 무시한다.
+    if (dto.getProjectId() != null && !dto.getProjectId().equals(storedProjectId)) {
+      log.warn(
+          "updateTestPlan: 요청 projectId({})가 저장된 값({})과 달라 무시합니다. planId={}",
+          dto.getProjectId(),
+          storedProjectId,
+          id);
+    }
 
-              // 프로젝트 변경이 있는 경우만 업데이트
-              if (dto.getProjectId() != null
-                  && !dto.getProjectId().equals(existingPlan.getProject().getId())) {
-                Project project =
-                    projectRepository
-                        .findById(dto.getProjectId())
-                        .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
-                existingPlan.setProject(project);
-              }
+    existingPlan.setName(dto.getName());
+    existingPlan.setDescription(dto.getDescription());
+    existingPlan.setTestCaseIds(dto.getTestCaseIds());
 
-              return testPlanRepository.save(existingPlan);
-            })
-        .orElseThrow(() -> new RuntimeException("TestPlan not found with id: " + id));
+    return testPlanRepository.save(existingPlan);
   }
 
   public void deleteTestPlan(String id) {

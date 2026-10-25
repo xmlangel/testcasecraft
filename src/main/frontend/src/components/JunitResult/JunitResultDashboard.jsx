@@ -84,6 +84,7 @@ import agentConnectionService from "../../services/agentConnectionService.js";
 import { canRecordTestResult } from "../TestCaseTree/utils/permissionUtils.js";
 import JunitProcessingProgress from "../JUnit/JunitProcessingProgress";
 import PageTitle from "../common/PageTitle";
+import apiService from "../../services/apiService.js";
 
 // 색상 팔레트 (Allure 스타일)
 import {
@@ -1517,7 +1518,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
   useEffect(() => {
     const loadUploadLimits = async () => {
       try {
-        const response = await fetch("/api/config/upload-limits");
+        const response = await apiService.get("/api/config/upload-limits");
         if (response.ok) {
           const limits = await response.json();
           setUploadLimits(limits);

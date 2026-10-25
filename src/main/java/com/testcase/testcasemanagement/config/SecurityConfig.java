@@ -138,14 +138,29 @@ public class SecurityConfig {
                     .authenticated() // 인증된 사용자 전용 API
                     .requestMatchers("/api/auth/**")
                     .permitAll() // 로그인, 회원가입 등
-                    .requestMatchers("/api/config/**")
-                    .permitAll() // 설정 API 허용
+                    // ICT-445: 로그인 전 화면이 쓰는 조회만 공개한다. 나머지는 아래 규칙으로 인증·관리자를 요구한다.
+                    // 설정: 앱 기동 시 API 주소·시간대를 읽는 조회만 공개. 실행 profile 을 돌려주는 /environment 는 관리자.
+                    .requestMatchers(HttpMethod.GET, "/api/config", "/api/config/api-url")
+                    .permitAll()
+                    .requestMatchers("/api/config/environment")
+                    .hasRole("ADMIN")
                     .requestMatchers("/api/system-settings/rag/status")
                     .permitAll() // RAG 서비스 상태 확인 허용
+                    // 모니터링: 방문 기록은 로그인 사용자, 서버 정보·메트릭 조회는 관리자 (ICT-445)
+                    .requestMatchers(HttpMethod.POST, "/api/monitoring/usage/page-visits")
+                    .authenticated()
                     .requestMatchers("/api/monitoring/**")
-                    .permitAll() // 모니터링 API 허용
-                    .requestMatchers("/api/i18n/**")
-                    .permitAll() // 다국어 API 허용
+                    .hasRole("ADMIN")
+                    // 다국어: 캐시 비우기는 관리자, 로그인 화면이 쓰는 언어 목록·번역 조회만 공개 (ICT-445)
+                    .requestMatchers(HttpMethod.POST, "/api/i18n/cache/clear")
+                    .hasRole("ADMIN")
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/i18n/languages",
+                        "/api/i18n/languages/default",
+                        "/api/i18n/translations/**",
+                        "/api/i18n/translation/**")
+                    .permitAll()
                     .requestMatchers("/api/testcase-attachments/public/**")
                     .permitAll()
                     .requestMatchers("/api/rag/**")
@@ -157,10 +172,11 @@ public class SecurityConfig {
                     .permitAll() // 임시 토큰 → JWT 교환 (1회성)
                     .requestMatchers("/api/email-verification/**")
                     .permitAll() // 이메일 인증 API 허용
-                    .requestMatchers("/api/guides/**")
-                    .permitAll() // 가이드 API 허용
-                    .requestMatchers("/api/manual/**")
-                    .permitAll() // 사용자 매뉴얼 API 허용 (로그인 화면 링크 지원)
+                    // 매뉴얼·가이드 조회: 로그인 화면의 매뉴얼 링크와 매뉴얼 안의 가이드 링크가 로그인 전에 연다 (GET 만)
+                    .requestMatchers(HttpMethod.GET, "/api/guides/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/manual/**")
+                    .permitAll()
                     // 액추에이터: 헬스체크(프로브)만 공개, 나머지(scheduledtasks·metrics 등)는 ADMIN 전용.
                     // (이전: /actuator·/actuator/scheduledtasks 까지 permitAll → 내부 스케줄·정보 비인증 노출)
                     .requestMatchers("/actuator/health", "/actuator/health/**")
@@ -173,10 +189,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/apiauth/me")
                     .authenticated()
-                    // 스케줄러 정보 "조회(GET)"만 허용 — 변경(PUT/POST)은 아래 /api/admin/** 규칙으로
-                    // ADMIN 권한이 강제된다. (이전: 전체 permitAll → 비인증 변경/실행 가능 취약점)
-                    .requestMatchers(HttpMethod.GET, "/api/admin/scheduler/**")
-                    .permitAll()
+                    // 스케줄러 조회·변경 모두 아래 /api/admin/** 규칙으로 ADMIN 을 요구한다.
+                    // (이전: GET 은 permitAll → 비인증 사용자에게 스케줄 설정 노출, ICT-445)
                     // 역할 기반 접근 제어 (더 구체적인 경로가 먼저)
                     .requestMatchers("/api/admin/**")
                     .hasRole("ADMIN")
@@ -231,7 +245,7 @@ public class SecurityConfig {
   // API Key 인증 필터 생성
   @Bean
   public ApiKeyAuthenticationFilter apiKeyAuthenticationFilter() {
-    return new ApiKeyAuthenticationFilter(serviceApiKeyRepository);
+    return new ApiKeyAuthenticationFilter(serviceApiKeyRepository, userDetailsService);
   }
 
   // JWT 인증 필터 생성

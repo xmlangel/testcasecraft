@@ -1267,7 +1267,9 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
   @Story("모니터링")
   @Description("대시보드 헬스체크")
   public void testDashboardHealthCheck() {
+    // ICT-445: 모니터링 조회는 관리자 전용
     given()
+        .header("Authorization", "Bearer " + jwtToken)
         .when()
         .get("/api/monitoring/health/dashboard")
         .then()
@@ -1280,7 +1282,9 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
   @Story("모니터링")
   @Description("대시보드 성능 메트릭 조회")
   public void testGetDashboardMetrics() {
+    // ICT-445: 모니터링 조회는 관리자 전용
     given()
+        .header("Authorization", "Bearer " + jwtToken)
         .when()
         .get("/api/monitoring/metrics/dashboard")
         .then()
@@ -1294,7 +1298,9 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
   @Story("모니터링")
   @Description("시스템 리소스 상태 조회")
   public void testGetSystemResources() {
+    // ICT-445: 모니터링 조회는 관리자 전용
     given()
+        .header("Authorization", "Bearer " + jwtToken)
         .when()
         .get("/api/monitoring/health/resources")
         .then()
@@ -2589,10 +2595,11 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
       groups = {"api-comprehensive-test", "mail"},
       priority = 19)
   @Story("메일")
-  @Description("메일 발송 - 잘못된 요청")
-  public void testSendMailInvalidRequest() {
+  @Description("메일 발송 API 제거 확인 (ICT-443) - 발신자를 지정한 요청도 발송되지 않는다")
+  public void testSendMailEndpointRemoved() {
     Map<String, Object> mailRequest = new HashMap<>();
-    mailRequest.put("to", "");
+    mailRequest.put("from", "ceo@example.com");
+    mailRequest.put("to", "victim@example.com");
     mailRequest.put("subject", "Test");
     mailRequest.put("text", "Test");
 
@@ -2603,7 +2610,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         .when()
         .post("/api/mail/send")
         .then()
-        .statusCode(anyOf(is(200), is(400), is(500)));
+        .statusCode(greaterThanOrEqualTo(400));
   }
 
   // ==================== 20. JunitVersionController 테스트 ====================

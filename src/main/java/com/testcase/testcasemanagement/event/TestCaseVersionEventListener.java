@@ -41,7 +41,10 @@ public class TestCaseVersionEventListener {
 
       // 새 버전 생성
       versionService.createVersionFromTestCase(
-          event.getTestCaseId(), event.getChangeType(), event.getChangeSummary());
+          event.getTestCaseId(),
+          event.getChangeType(),
+          event.getChangeSummary(),
+          event.getActorUsername());
 
       log.info(
           "ICT-349: 테스트케이스 버전 이벤트 처리 완료 - TestCase: {}, Type: {}",

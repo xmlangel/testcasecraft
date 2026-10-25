@@ -9,6 +9,7 @@ import {
 import packageJson from "../../package.json";
 const APP_VERSION = packageJson.version;
 import { useAppContext } from "../context/AppContext";
+import apiService from "../services/apiService.js";
 import { formatDateTime, getTimezoneOffset } from "../utils/timezoneUtils";
 
 const ServerTimeDisplay = () => {
@@ -24,7 +25,7 @@ const ServerTimeDisplay = () => {
 
   const fetchServerTime = async () => {
     try {
-      const response = await fetch("/api/monitoring/server-time-iso");
+      const response = await apiService.get("/api/monitoring/server-time-iso");
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }

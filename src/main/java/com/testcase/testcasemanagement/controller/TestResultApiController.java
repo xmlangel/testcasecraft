@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /** ICT-208: 테스트 결과 조회 및 통계 API 통합 컨트롤러 기존 분산된 API들을 통합하고 표준화된 형식으로 제공합니다. */
@@ -40,6 +41,9 @@ public class TestResultApiController {
 
   /** 테스트 결과 목록 조회 (통합 API) */
   @PostMapping("/search")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#query.projectId, #query.testPlanIds, #query.testExecutionIds)")
   @Operation(summary = "테스트 결과 검색", description = "다양한 조건으로 테스트 결과를 검색하고 페이징 처리된 결과를 반환합니다.")
   public ResponseEntity<ApiResponse<List<TestResultReportDto>>> searchTestResults(
       @RequestBody TestResultQueryDto query) {
@@ -72,6 +76,10 @@ public class TestResultApiController {
 
   /** 테스트 결과 상세 조회 */
   @GetMapping("/{resultId}")
+  @PreAuthorize(
+      "#resultType == 'junitResult'"
+          + " ? @projectSecurityService.canAccessJunitResult(#resultId)"
+          + " : @projectSecurityService.canAccessTestResult(#resultId)")
   @Operation(summary = "테스트 결과 상세 조회", description = "특정 테스트 결과의 상세 정보를 조회합니다.")
   public ResponseEntity<ApiResponse<Object>> getTestResultDetail(
       @Parameter(description = "테스트 결과 ID") @PathVariable String resultId,
@@ -110,6 +118,9 @@ public class TestResultApiController {
 
   /** 종합 통계 조회 */
   @PostMapping("/statistics/comprehensive")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#query.projectId, #query.testPlanIds, #query.testExecutionIds)")
   @Operation(summary = "종합 테스트 결과 통계", description = "지정된 조건에 따른 종합적인 테스트 결과 통계를 제공합니다.")
   public ResponseEntity<ApiResponse<TestResultSummaryDto>> getComprehensiveStatistics(
       @RequestBody TestResultQueryDto query) {
@@ -139,6 +150,9 @@ public class TestResultApiController {
 
   /** 기본 통계 조회 (기존 API 호환) */
   @GetMapping("/statistics/basic")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#projectId, {#testPlanId}, {#testExecutionId})")
   @Operation(summary = "기본 테스트 결과 통계", description = "기본적인 테스트 결과 통계를 제공합니다.")
   public ResponseEntity<ApiResponse<TestResultStatisticsDto>> getBasicStatistics(
       @Parameter(description = "프로젝트 ID") @RequestParam(required = false) String projectId,
@@ -169,6 +183,7 @@ public class TestResultApiController {
 
   /** 대시보드용 차트 데이터 조회 */
   @GetMapping("/dashboard/charts")
+  @PreAuthorize("@projectSecurityService.canAccessResultScope(#projectId, null, null)")
   @Operation(summary = "대시보드 차트 데이터", description = "대시보드에서 사용할 차트 데이터를 제공합니다.")
   public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardChartData(
       @Parameter(description = "프로젝트 ID") @RequestParam(required = false) String projectId,
@@ -204,6 +219,9 @@ public class TestResultApiController {
 
   /** 테스트 결과 내보내기 */
   @PostMapping("/export")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#query.projectId, #query.testPlanIds, #query.testExecutionIds)")
   @Operation(summary = "테스트 결과 내보내기", description = "테스트 결과를 지정된 형식으로 내보냅니다.")
   public ResponseEntity<byte[]> exportTestResults(@RequestBody TestResultQueryDto query) {
 
@@ -437,6 +455,9 @@ public class TestResultApiController {
 
   /** 필터링된 테스트 결과 조회 */
   @GetMapping("/filter/results")
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope("
+          + "#projectId, {#testPlanId}, {#testExecutionId})")
   @Operation(summary = "필터링된 테스트 결과 조회", description = "테스트 플랜 및 테스트 실행으로 필터링된 테스트 결과를 조회합니다.")
   public ResponseEntity<ApiResponse<List<TestResultReportDto>>> getFilteredTestResults(
       @Parameter(description = "프로젝트 ID") @RequestParam String projectId,
@@ -511,6 +532,7 @@ public class TestResultApiController {
 
   /** 플랜별 비교 통계 조회 (View Type: By Plan) */
   @GetMapping("/comparison/by-plan")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
   @Operation(summary = "플랜별 비교 통계", description = "프로젝트의 테스트 플랜별 테스트 결과 통계를 비교합니다.")
   public ResponseEntity<List<Map<String, Object>>> getComparisonStatisticsByPlan(
       @Parameter(description = "프로젝트 ID") @RequestParam String projectId) {
@@ -529,6 +551,7 @@ public class TestResultApiController {
 
   /** 실행자별 비교 통계 조회 (View Type: By Executor) */
   @GetMapping("/comparison/by-executor")
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
   @Operation(summary = "실행자별 비교 통계", description = "프로젝트의 실행자별 테스트 결과 통계를 비교합니다.")
   public ResponseEntity<List<Map<String, Object>>> getComparisonStatisticsByExecutor(
       @Parameter(description = "프로젝트 ID") @RequestParam String projectId) {
@@ -547,6 +570,7 @@ public class TestResultApiController {
 
   /** 실행별 비교 통계 조회 (View Type: By Execution) */
   @GetMapping("/comparison/by-execution")
+  @PreAuthorize("@projectSecurityService.canAccessResultScope(#projectId, #testPlanId, null)")
   @Operation(
       summary = "실행별 비교 통계",
       description = "프로젝트의 테스트 실행별 테스트 결과 통계를 비교합니다. 테스트 플랜 ID로 필터링 가능합니다.")

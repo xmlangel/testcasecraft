@@ -17,6 +17,7 @@ import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,6 +41,8 @@ public class DashboardService {
 
   // ICT-134: 모니터링 서비스 주입
   @Autowired private MonitoringService monitoringService;
+
+  @Autowired private ProjectSecurityService projectSecurityService;
 
   /**
    * 전체 최근 테스트케이스 결과 조회 (ICT-134: 모니터링 추가)
@@ -127,6 +130,18 @@ public class DashboardService {
    */
   public List<OpenTestRunAssigneeResultDto> getOpenTestRunAssigneeResults(int limit) {
     List<TestResult> allResults = testResultRepository.findByOpenTestRuns();
+    // 프로젝트를 고르지 않은 대시보드가 부르는 전체 조회다. 관리자가 아니면 접근할 수 있는 프로젝트의 결과만 남긴다.
+    if (!projectSecurityService.isSystemAdmin()) {
+      Map<String, Boolean> accessByProject = new HashMap<>();
+      allResults =
+          allResults.stream()
+              .filter(
+                  tr ->
+                      accessByProject.computeIfAbsent(
+                          tr.getTestExecution().getProject().getId(),
+                          projectSecurityService::canAccessProject))
+              .collect(Collectors.toList());
+    }
     return processAssigneeResults(allResults, limit);
   }
 

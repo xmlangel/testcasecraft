@@ -19,8 +19,8 @@ import org.testng.annotations.Test;
 /**
  * 스케줄러 설정 변경 엔드포인트 인가 회귀 가드.
  *
- * <p>이전에 {@code /api/admin/scheduler/**} 가 전체 permitAll 이라 비인증 사용자도 스케줄러 설정을 변경/실행할 수 있었다. GET 만
- * permitAll 로 좁히고 변경(PUT/POST)은 ADMIN 으로 강제했음을 검증한다.
+ * <p>이전에 {@code /api/admin/scheduler/**} 가 전체 permitAll 이라 비인증 사용자도 스케줄러 설정을 변경/실행할 수 있었다. 변경(PUT/POST)이
+ * ADMIN 으로 강제됐음을 검증한다. 조회(GET)도 ICT-445 에서 ADMIN 으로 좁혔고 {@link PublicApiLockdownAuthzTest} 가 검증한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc

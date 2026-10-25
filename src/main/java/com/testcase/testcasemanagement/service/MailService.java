@@ -23,27 +23,6 @@ public class MailService {
     mailSender.send(message);
   }
 
-  // 발신자 주소 지정 가능 (Gmail에 등록된 별칭 주소 사용)
-  public void sendMailWithCustomSender(String from, String to, String subject, String text)
-      throws MessagingException {
-    MimeMessage message = mailSender.createMimeMessage();
-    MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-    helper.setFrom(from); // 발신자 주소 지정
-    helper.setTo(to);
-    helper.setSubject(subject);
-    helper.setText(text, false);
-    mailSender.send(message);
-  }
-
-  // HTML 형식 메일 발송 (발신자 주소 지정 가능)
-  public void sendHtmlMail(String from, String to, String subject, String htmlContent)
-      throws MessagingException {
-    MimeMessage message = mailSender.createMimeMessage();
-    MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-    helper.setFrom(from); // 발신자 주소 지정
-    helper.setTo(to);
-    helper.setSubject(subject);
-    helper.setText(htmlContent, true); // HTML 형식 활성화
-    mailSender.send(message);
-  }
+  // ICT-443: 발신자를 호출자가 정하는 메서드(sendMailWithCustomSender·sendHtmlMail)는 제거했다.
+  // 쓰던 곳이 POST /api/mail/send 하나였고, 발신자 사칭 메일을 보내는 통로였다.
 }

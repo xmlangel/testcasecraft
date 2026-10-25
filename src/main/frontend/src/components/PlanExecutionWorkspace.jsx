@@ -19,6 +19,11 @@ import {
   InputAdornment,
   Tooltip,
   Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -30,6 +35,7 @@ import {
   ChevronRight as ChevronRightIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
@@ -124,6 +130,10 @@ function PlanExecutionWorkspace({
   const [execFetchingMore, setExecFetchingMore] = useState(false);
   const [execHasMore, setExecHasMore] = useState(false);
   const [execPage, setExecPage] = useState(0);
+  // ICT-452: 지울 실행 (확인 창이 열려 있는 동안만 값이 있다)
+  const [executionToDelete, setExecutionToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   const plansOfProject = useMemo(
     () =>
@@ -393,6 +403,65 @@ function PlanExecutionWorkspace({
     setCreatingExecution(true);
   };
 
+  const handleRequestDeleteExecution = (event, exec) => {
+    // 행을 누른 것으로 처리되면 상세가 열리므로 막는다
+    event.stopPropagation();
+    setDeleteError(null);
+    setExecutionToDelete(exec);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    if (deleting) return;
+    setExecutionToDelete(null);
+    setDeleteError(null);
+  };
+
+  /** ICT-452: 가로 모드 실행 목록과 같은 API 로 지우고, 두 목록과 선택 상태에서 뺀다. */
+  const handleConfirmDeleteExecution = async () => {
+    if (!executionToDelete) return;
+    const deletedId = String(executionToDelete.id);
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await apiService.delete(`/api/test-executions/${deletedId}`);
+      setProjectExecutions((prev) =>
+        prev.filter((exec) => String(exec.id) !== deletedId),
+      );
+      setExecutionsByPlan((prev) => {
+        const next = {};
+        Object.entries(prev).forEach(([planKey, list]) => {
+          next[planKey] = (list || []).filter(
+            (exec) => String(exec.id) !== deletedId,
+          );
+        });
+        return next;
+      });
+      if (String(selectedExecutionId) === deletedId) {
+        setSelectedExecutionId(null);
+      }
+      setExecutionToDelete(null);
+    } catch (err) {
+      setDeleteError(err?.message || "unknown");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const renderDeleteExecutionButton = (exec) =>
+    canEdit && (
+      <Tooltip title={t("testExecution.list.delete.title", "테스트 실행 삭제")}>
+        <IconButton
+          size="small"
+          aria-label="delete"
+          onClick={(event) => handleRequestDeleteExecution(event, exec)}
+          data-testid={`workspace-execution-delete-${exec.id}`}
+          sx={{ ml: 0.5, alignSelf: "center", color: "error.main" }}
+        >
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    );
+
   const handleAfterExecutionSaved = () => {
     setCreatingExecution(false);
     if (mode === "executions") {
@@ -495,6 +564,7 @@ function PlanExecutionWorkspace({
                 </Box>
               }
             />
+            {renderDeleteExecutionButton(exec)}
           </ListItemButton>
         );
       })}
@@ -768,6 +838,7 @@ function PlanExecutionWorkspace({
                                   }}
                                 />
                               )}
+                              {renderDeleteExecutionButton(exec)}
                             </ListItemButton>
                           );
                         })
@@ -931,6 +1002,51 @@ function PlanExecutionWorkspace({
           <Box sx={{ overflowY: "auto", flexGrow: 1 }}>{detail}</Box>
         </Paper>
       </Box>
+      <Dialog
+        open={Boolean(executionToDelete)}
+        onClose={handleCloseDeleteDialog}
+        disableRestoreFocus
+      >
+        <DialogTitle>
+          {t("testExecution.list.delete.title", "테스트 실행 삭제")}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t(
+              "testExecution.list.delete.confirm",
+              "정말로 이 테스트 실행을 삭제하시겠습니까?",
+            )}
+          </DialogContentText>
+          {executionToDelete?.name && (
+            <Typography sx={{ mt: 1, fontWeight: 600 }}>
+              {executionToDelete.name}
+            </Typography>
+          )}
+          {deleteError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseDeleteDialog}
+            disabled={deleting}
+            data-testid="workspace-execution-delete-cancel"
+          >
+            {t("testExecution.list.delete.cancel", "취소")}
+          </Button>
+          <Button
+            onClick={handleConfirmDeleteExecution}
+            color="error"
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={20} /> : null}
+            data-testid="workspace-execution-delete-confirm"
+          >
+            {t("testExecution.list.delete.delete", "삭제")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

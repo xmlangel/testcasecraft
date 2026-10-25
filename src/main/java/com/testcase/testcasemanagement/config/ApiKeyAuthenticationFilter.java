@@ -9,18 +9,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
   private final ServiceApiKeyRepository serviceApiKeyRepository;
+  private final UserDetailsService userDetailsService;
 
   @Override
   protected void doFilterInternal(
@@ -42,18 +44,25 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         ServiceApiKey serviceApiKey = keyOpt.get();
 
         if (serviceApiKey.getExpiresAt().isAfter(LocalDateTime.now())) {
-          // Create an authentication token with a system/service identity
+          // ICT-440: 키를 발급한 사용자로 인증하고 권한도 그 사용자의 역할을 따른다.
+          // 발급자가 없거나 비활성이면 키를 쓸 수 없다(예전 가상 계정 service-account 는 쓰지 않는다).
+          UserDetails issuer = loadIssuer(serviceApiKey);
+          if (issuer == null) {
+            logger.debug("API Key issuer is missing or inactive: " + serviceApiKey.getName());
+            response.sendError(
+                HttpServletResponse.SC_UNAUTHORIZED, "API Key issuer is not an active user");
+            return;
+          }
           UsernamePasswordAuthenticationToken authentication =
-              new UsernamePasswordAuthenticationToken(
-                  "service-account",
-                  null,
-                  Collections.singletonList(
-                      new SimpleGrantedAuthority("ROLE_TESTER")) // Give it tester role
-                  // to access data
-                  );
+              new UsernamePasswordAuthenticationToken(issuer, null, issuer.getAuthorities());
 
           SecurityContextHolder.getContext().setAuthentication(authentication);
-          logger.debug("API Key authentication successful for: " + serviceApiKey.getName());
+          logger.debug(
+              "API Key authentication successful for: "
+                  + serviceApiKey.getName()
+                  + " (issuer "
+                  + issuer.getUsername()
+                  + ")");
         } else {
           logger.debug("API Key is expired: " + serviceApiKey.getName());
           // We can either return 401 directly or let it fall through and fail later
@@ -68,5 +77,19 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  /** 키 발급자를 사용자로 불러온다. 발급자가 비었거나, 없거나, 비활성이면 null. */
+  private UserDetails loadIssuer(ServiceApiKey serviceApiKey) {
+    String issuer = serviceApiKey.getCreatedBy();
+    if (issuer == null || issuer.isBlank()) {
+      return null;
+    }
+    try {
+      UserDetails user = userDetailsService.loadUserByUsername(issuer);
+      return user.isEnabled() ? user : null;
+    } catch (AuthenticationException e) {
+      return null;
+    }
   }
 }

@@ -45,6 +45,8 @@ public class WriteEndpointAuthorizationTest {
           "RagController.java",
           "TestSessionController.java",
           "TestSessionAttachmentController.java",
+          // ICT-444: 차터 생성이 시스템 역할만 봐서 아무 프로젝트에나 만들 수 있었다.
+          "TestCharterController.java",
           "ProjectController.java");
 
   /** 쓰기 동작에 쓸 수 있는 인가 술어. 프로젝트 역할을 실제로 가리는 것만 넣는다. */
@@ -71,6 +73,7 @@ public class WriteEndpointAuthorizationTest {
           "canRunTestSession",
           "canApproveTestSession",
           "canDeleteTestSession",
+          "canEditCharter",
           "canManageMembers",
           "canUpdateProjectSettings",
           "canManageProject",
@@ -92,7 +95,7 @@ public class WriteEndpointAuthorizationTest {
         "서비스 계층에서 검사한다 — TestCaseService 가 canEditProject 를 확인한다(118·244·434줄)");
     ALLOWED.put(
         "TestPlanController.java",
-        "서비스 계층에서 검사한다 — TestPlanService 가 canEditProject 를 확인한다(38·61·95줄)");
+        "서비스 계층에서 검사한다 — TestPlanService 가 canEditProject 를 확인한다(40·68·94줄)");
     ALLOWED.put(
         "TestExecutionController.java",
         "서비스 계층에서 검사한다 — TestExecutionService 가 canEditProject·canRecordTestResult 를 확인한다");
@@ -174,6 +177,23 @@ public class WriteEndpointAuthorizationTest {
     assertTrue(start >= 0, "선언을 찾지 못했다: " + declaration);
     int end = src.indexOf("\n  }", start);
     return src.substring(start, end < 0 ? src.length() : end);
+  }
+
+  /**
+   * ICT-444: 차터 수정 술어가 차터 → 프로젝트 투영 뒤 진행 권한을 보는지 정의에서 확인한다. 엔드포인트 표현에는 hasRole('ADMIN') 이 함께 있어, 술어
+   * 정의가 풀려도 위 검사만으로는 드러나지 않는다.
+   */
+  @Test(description = "차터 수정 술어가 차터가 속한 프로젝트의 진행 권한을 본다")
+  public void charterEditPredicateChecksProjectPermission() throws IOException {
+    String src =
+        Files.readString(
+            Path.of(
+                "src/main/java/com/testcase/testcasemanagement/security/ProjectSecurityService.java"),
+            StandardCharsets.UTF_8);
+
+    String body = body(src, "public boolean canEditCharter(String charterId) {");
+    assertTrue(body.contains("testCharterRepository.findProjectIdById"), "차터의 프로젝트를 찾지 않는다");
+    assertTrue(body.contains("canRunTestSession"), "canEditCharter 가 세션 진행 권한을 쓰지 않는다");
   }
 
   @Test(description = "예외 목록의 모든 항목에 사유가 붙어 있다")

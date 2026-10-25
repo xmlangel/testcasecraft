@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,9 +20,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,6 +33,7 @@ public class ServiceApiKeyController {
   private final ServiceApiKeyRepository serviceApiKeyRepository;
   private final RedirectTokenStore redirectTokenStore;
   private final JwtTokenUtil jwtTokenUtil;
+  private final UserDetailsService userDetailsService;
 
   // ===================== 관리자 전용 API =====================
 
@@ -50,8 +50,10 @@ public class ServiceApiKeyController {
   @PreAuthorize("hasRole('ADMIN')")
   @Operation(summary = "새로운 서비스 API 키 발급 (관리자, 기본 1년 유효)")
   public ResponseEntity<Map<String, Object>> generateKeyAdmin(
-      @RequestParam(defaultValue = "Jira Integration Key") String name) {
-    return generateApiKey(name, "admin");
+      @RequestParam(defaultValue = "Jira Integration Key") String name,
+      @AuthenticationPrincipal UserDetails userDetails) {
+    // ICT-440: 키는 발급자 권한으로 동작하므로 실제로 발급한 관리자를 남긴다(예전엔 "admin" 고정).
+    return generateApiKey(name, userDetails.getUsername());
   }
 
   @DeleteMapping("/api/admin/service-api-keys/{id}")
@@ -181,13 +183,19 @@ public class ServiceApiKeyController {
     }
 
     ServiceApiKey serviceApiKey = keyOpt.get();
-    // service-account 용 UserDetails 생성 후 JWT 발급
-    UserDetails serviceUser =
-        User.builder()
-            .username("service-account:" + serviceApiKey.getName())
-            .password("")
-            .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_TESTER")))
-            .build();
+    // ICT-440: 키 발급자로 JWT 를 발급한다. 발급자가 없거나 비활성이면 교환하지 않는다.
+    UserDetails serviceUser;
+    try {
+      String issuer = serviceApiKey.getCreatedBy();
+      serviceUser =
+          issuer == null || issuer.isBlank() ? null : userDetailsService.loadUserByUsername(issuer);
+    } catch (AuthenticationException e) {
+      serviceUser = null;
+    }
+    if (serviceUser == null || !serviceUser.isEnabled()) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(Map.of("error", "The API key issuer is not an active user."));
+    }
 
     String accessToken = jwtTokenUtil.generateAccessToken(serviceUser);
     return ResponseEntity.ok(

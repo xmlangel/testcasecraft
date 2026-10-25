@@ -7,6 +7,8 @@ import com.testcase.testcasemanagement.model.rag.RagGlobalDocumentRequestStatus;
 import com.testcase.testcasemanagement.service.RagGlobalDocumentRequestService;
 import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.service.TestCaseService;
+import com.testcase.testcasemanagement.service.llm.LlmCallRateLimiter;
+import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,6 +43,7 @@ public class RagController {
   private final RagService ragService;
   private final TestCaseService testCaseService;
   private final RagGlobalDocumentRequestService ragGlobalDocumentRequestService;
+  private final LlmCallRateLimiter llmCallRateLimiter;
 
   /**
    * 문서 업로드 엔드포인트
@@ -172,6 +175,10 @@ public class RagController {
    */
   @Operation(summary = "유사도 검색", description = "질의와 유사한 문서 청크를 검색합니다.")
   @PostMapping("/search/similar")
+  // projectId 가 없으면 모든 프로젝트 문서를 검색하므로 관리자만 허용한다(문서 목록 조회와 같은 규칙).
+  @PreAuthorize(
+      "#request.projectId == null ? hasRole('ADMIN') "
+          + ": @projectSecurityService.canAccessProject(#request.projectId.toString())")
   public ResponseEntity<RagSearchResponse> searchSimilar(
       @Valid @RequestBody RagSearchRequest request) {
 
@@ -199,9 +206,16 @@ public class RagController {
    * <p>POST /api/rag/search/advanced
    */
   @Operation(summary = "고급 검색", description = "벡터, BM25, 하이브리드 등 다양한 방식으로 검색합니다.")
+  // ICT-444: projectId 가 있으면 그 프로젝트 접근 권한을 본다. 없으면 RAG 서비스가 공통 문서만 검색하므로 막지 않는다.
   @PostMapping("/search/advanced")
+  @PreAuthorize(
+      "#request.projectId == null"
+          + " or @projectSecurityService.canAccessProject(#request.projectId.toString())")
   public ResponseEntity<RagSearchResponse> searchAdvanced(
       @Valid @RequestBody RagAdvancedSearchRequest request) {
+    // reranker 계산이 드는 호출이다. 아래 catch(Exception) 이 429 를 500 으로 바꾸지 않도록 try 밖에서 허가받는다.
+    llmCallRateLimiter.acquire(
+        "rag-search-advanced", SecurityContextUtil.getCurrentUsernameStatic());
 
     log.info(
         "REST API: Advanced search request - query={}, method={}",
@@ -464,6 +478,7 @@ public class RagController {
    */
   @Operation(summary = "테스트케이스 RAG 등록 상태 조회", description = "단일 테스트케이스의 RAG 벡터화 여부를 조회합니다.")
   @GetMapping("/testcases/{testCaseId}/status")
+  @PreAuthorize("@projectSecurityService.canAccessTestCase(#testCaseId)")
   public ResponseEntity<Map<String, Object>> getTestCaseVectorizationStatus(
       @PathVariable String testCaseId) {
 
@@ -939,6 +954,9 @@ public class RagController {
    */
   @Operation(summary = "LLM 분석 작업 목록", description = "LLM 분석 작업 목록을 조회합니다.")
   @GetMapping("/llm-analysis/jobs")
+  @PreAuthorize(
+      "#projectId == null ? hasRole('ADMIN') "
+          + ": @projectSecurityService.canAccessProject(#projectId.toString())")
   public ResponseEntity<RagLlmAnalysisJobListResponse> listLlmAnalysisJobs(
       @RequestParam(value = "projectId", required = false) UUID projectId,
       @RequestParam(value = "status", required = false) String status,

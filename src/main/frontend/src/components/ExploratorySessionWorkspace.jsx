@@ -497,7 +497,6 @@ function ExploratorySessionWorkspace({ projectId }) {
       title: charterForm.title.trim(),
       mission: charterForm.mission.trim(),
       status: charterForm.status,
-      createdBy: user?.username || user?.id || "exploratory-user",
     };
 
     try {

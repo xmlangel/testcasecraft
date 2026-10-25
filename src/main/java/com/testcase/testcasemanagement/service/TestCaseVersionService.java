@@ -9,8 +9,10 @@ import com.testcase.testcasemanagement.dto.TestCaseVersionDto;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.TestCaseVersion;
 import com.testcase.testcasemanagement.model.TestStep;
+import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestCaseVersionRepository;
+import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -33,13 +35,25 @@ public class TestCaseVersionService {
   private final TestCaseVersionRepository versionRepository;
   private final TestCaseRepository testCaseRepository;
   private final ObjectMapper objectMapper;
+  private final UserRepository userRepository;
 
   // ============ 버전 생성 관련 메소드들 ============
 
-  /** 테스트케이스 수정 시 자동으로 새 버전 생성 */
+  /** 테스트케이스 수정 시 자동으로 새 버전 생성 (작성자는 현재 로그인 사용자) */
   @Transactional
   public TestCaseVersionDto createVersionFromTestCase(
       String testCaseId, String changeType, String changeSummary) {
+    return createVersionFromTestCase(
+        testCaseId, changeType, changeSummary, SecurityContextUtil.getCurrentUsernameStatic());
+  }
+
+  /**
+   * ICT-451: 작성자를 지정해 새 버전 생성. 비동기 리스너처럼 로그인 정보가 없는 스레드에서 부를 때 요청 시점에 확정한 username 을 넘긴다.
+   * actorUsername 이 null 이면 System User 로 기록한다.
+   */
+  @Transactional
+  public TestCaseVersionDto createVersionFromTestCase(
+      String testCaseId, String changeType, String changeSummary, String actorUsername) {
     TestCase testCase =
         testCaseRepository
             .findById(testCaseId)
@@ -62,9 +76,16 @@ public class TestCaseVersionService {
       }
     }
 
-    // 현재 사용자 정보 가져오기
-    String currentUserId = SecurityContextUtil.getCurrentUserIdStatic();
-    String currentUserName = SecurityContextUtil.getCurrentUserNameStatic();
+    // 작성자 정보: id 칸은 username, 이름 칸은 사용자 표시 이름(없으면 username)
+    String currentUserId = actorUsername != null ? actorUsername : "system";
+    String currentUserName =
+        actorUsername == null
+            ? "System User"
+            : userRepository
+                .findByUsername(actorUsername)
+                .map(User::getName)
+                .filter(name -> !name.isBlank())
+                .orElse(actorUsername);
 
     // 새 버전 생성
     TestCaseVersion version = new TestCaseVersion();

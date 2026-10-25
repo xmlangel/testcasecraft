@@ -187,6 +187,9 @@ public class TestResultEditController {
   /** 편집본 목록 조회 (필터링 지원) */
   @Operation(summary = "편집본 목록 조회", description = "다양한 필터 조건으로 편집본 목록을 조회합니다.")
   @GetMapping
+  // projectId·testExecutionId 로 범위를 정해야 한다. 둘 다 없으면(전체 목록) 관리자만 통과한다.
+  @PreAuthorize(
+      "@projectSecurityService.canAccessResultScope(#projectId, null, {#testExecutionId})")
   public ResponseEntity<Page<TestResultEditDto>> getEdits(
       @RequestParam(required = false) String projectId,
       @RequestParam(required = false) String testExecutionId,
@@ -233,6 +236,7 @@ public class TestResultEditController {
 
   /** 특정 테스트 결과의 편집 이력 조회 */
   @Operation(summary = "특정 테스트 결과의 편집 이력 조회", description = "특정 테스트 결과에 대한 모든 편집 이력을 조회합니다.")
+  @PreAuthorize("@projectSecurityService.canAccessTestResult(#testResultId)")
   @GetMapping("/test-result/{testResultId}/history")
   public ResponseEntity<List<TestResultEditDto>> getEditHistory(@PathVariable String testResultId) {
 
@@ -249,6 +253,7 @@ public class TestResultEditController {
 
   /** 특정 테스트 결과의 활성 편집본 조회 */
   @Operation(summary = "특정 테스트 결과의 활성 편집본 조회", description = "특정 테스트 결과의 현재 진행 중인 편집본을 조회합니다.")
+  @PreAuthorize("@projectSecurityService.canAccessTestResult(#testResultId)")
   @GetMapping("/test-result/{testResultId}/active")
   public ResponseEntity<TestResultEditDto> getActiveEdit(@PathVariable String testResultId) {
 
@@ -289,6 +294,8 @@ public class TestResultEditController {
 
   /** 승인 대기 중인 편집본 목록 조회 (관리자/승인권한자용) */
   @Operation(summary = "승인 대기 목록 조회", description = "승인이 필요한 편집본 목록을 조회합니다.")
+  // 승인 대기 목록은 모든 프로젝트의 편집본을 담는다. 승인·적용 엔드포인트와 같은 역할만 볼 수 있다.
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
   @GetMapping("/pending-approvals")
   public ResponseEntity<Page<TestResultEditDto>> getPendingApprovals(
       @RequestParam(defaultValue = "0") int page,

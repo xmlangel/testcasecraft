@@ -16,6 +16,9 @@ import com.testcase.testcasemanagement.repository.RagChatThreadRepository;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestCaseVersionRepository;
+import com.testcase.testcasemanagement.repository.TestCharterRepository;
+import com.testcase.testcasemanagement.repository.TestExecutionRepository;
+import com.testcase.testcasemanagement.repository.TestPlanRepository;
 import com.testcase.testcasemanagement.repository.TestResultAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultEditRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
@@ -24,6 +27,8 @@ import com.testcase.testcasemanagement.repository.TestSessionRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -59,7 +64,13 @@ public class ProjectSecurityService {
 
   @Autowired private TestSessionRepository testSessionRepository;
 
+  @Autowired private TestCharterRepository testCharterRepository;
+
   @Autowired private TestCaseVersionRepository testCaseVersionRepository;
+
+  @Autowired private TestPlanRepository testPlanRepository;
+
+  @Autowired private TestExecutionRepository testExecutionRepository;
 
   @Autowired private TestResultRepository testResultRepository;
 
@@ -220,6 +231,18 @@ public class ProjectSecurityService {
         testCaseVersionRepository.findProjectIdById(versionId), this::canEditProject);
   }
 
+  /**
+   * 테스트케이스 버전이 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지. 관리자가 아니면 미존재 시 거부한다.
+   *
+   * <p>ICT-442 로 검사를 붙인 조회 경로의 판정(버전·결과·플랜·실행·차터)은 시스템 관리자를 먼저 통과시킨다. 관리자가 없는 ID 로 부르면 404 나 빈
+   * 결과를 받던 기존 동작을 그대로 두기 위해서다.
+   */
+  public boolean canAccessTestCaseVersion(String versionId) {
+    return securityContextUtil.isSystemAdmin()
+        || projectPermission(
+            testCaseVersionRepository.findProjectIdById(versionId), this::canAccessProject);
+  }
+
   /** 테스트케이스 첨부파일이 속한 프로젝트에 현재 사용자가 접근(조회/다운로드)할 수 있는지 */
   public boolean canAccessTestCaseAttachment(String attachmentId) {
     return projectPermission(
@@ -252,6 +275,85 @@ public class ProjectSecurityService {
   public boolean canRecordTestResultById(String testResultId) {
     return projectPermission(
         testResultRepository.findProjectIdById(testResultId), this::canRecordTestResult);
+  }
+
+  /** 테스트 결과가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 (결과 → 실행 → 프로젝트, 미존재 시 fail-closed). */
+  public boolean canAccessTestResult(String testResultId) {
+    return securityContextUtil.isSystemAdmin()
+        || projectPermission(
+            testResultRepository.findProjectIdById(testResultId), this::canAccessProject);
+  }
+
+  /** 테스트 플랜이 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 (미존재 시 fail-closed) */
+  public boolean canAccessTestPlan(String testPlanId) {
+    return securityContextUtil.isSystemAdmin()
+        || projectPermission(
+            testPlanRepository.findProjectIdById(testPlanId), this::canAccessProject);
+  }
+
+  /** 테스트 실행이 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 (미존재 시 fail-closed) */
+  public boolean canAccessTestExecution(String testExecutionId) {
+    return securityContextUtil.isSystemAdmin()
+        || projectPermission(
+            testExecutionRepository.findProjectIdById(testExecutionId), this::canAccessProject);
+  }
+
+  /** 테스트 차터가 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지 (미존재 시 fail-closed) */
+  public boolean canAccessTestCharter(String charterId) {
+    return securityContextUtil.isSystemAdmin()
+        || projectPermission(
+            testCharterRepository.findProjectIdById(charterId), this::canAccessProject);
+  }
+
+  /** 여러 프로젝트를 한 번에 조회할 때, 목록의 모든 프로젝트에 현재 사용자가 접근할 수 있는지 */
+  public boolean canAccessProjects(List<String> projectIds) {
+    return projectIds != null && projectIds.stream().allMatch(this::canAccessProject);
+  }
+
+  /**
+   * 테스트 결과 조회 필터(프로젝트·플랜·실행 ID)를 현재 사용자가 쓸 수 있는지.
+   *
+   * <p>결과 조회 서비스는 실행 ID 나 플랜 ID 가 있으면 projectId 를 보지 않고 그 ID 로만 조회한다. 그래서 projectId 하나만 검사하면 자기
+   * 프로젝트 ID 에 남의 실행 ID 를 붙여 우회할 수 있다. 넘어온 ID 를 모두 검사한다.
+   *
+   * <p>시스템 관리자는 항상 통과한다(전체 조회 포함). 그 밖의 사용자는 범위를 정하는 ID 가 하나도 없으면 거부한다. 전체 조회가 되기 때문이다. 빈
+   * 문자열은 없는 것으로 본다.
+   */
+  public boolean canAccessResultScope(
+      String projectId, Collection<String> testPlanIds, Collection<String> testExecutionIds) {
+    if (securityContextUtil.isSystemAdmin()) {
+      return true;
+    }
+    boolean scoped = false;
+    if (projectId != null && !projectId.isBlank()) {
+      if (!canAccessProject(projectId)) {
+        return false;
+      }
+      scoped = true;
+    }
+    if (testPlanIds != null) {
+      for (String planId : testPlanIds) {
+        if (planId == null || planId.isBlank()) {
+          continue;
+        }
+        if (!canAccessTestPlan(planId)) {
+          return false;
+        }
+        scoped = true;
+      }
+    }
+    if (testExecutionIds != null) {
+      for (String executionId : testExecutionIds) {
+        if (executionId == null || executionId.isBlank()) {
+          continue;
+        }
+        if (!canAccessTestExecution(executionId)) {
+          return false;
+        }
+        scoped = true;
+      }
+    }
+    return scoped;
   }
 
   /** 결과 편집본이 속한 프로젝트에 현재 사용자가 결과를 기록할 수 있는지 (편집본 → 원본 결과 → 실행 → 프로젝트). */
@@ -328,6 +430,15 @@ public class ProjectSecurityService {
   public boolean canRunTestSessionById(String sessionId) {
     return projectPermission(
         testSessionRepository.findProjectIdById(sessionId), this::canRunTestSession);
+  }
+
+  /**
+   * 테스트 차터를 수정할 수 있는지. 차터가 속한 프로젝트에서 세션을 진행할 수 있는 사람(편집 롤 + TESTER + 시스템 관리자)과 같은 기준이다. 차터를 만드는
+   * 기준(canRunTestSession)과 맞춘다. 차터가 없으면 fail-closed.
+   */
+  public boolean canEditCharter(String charterId) {
+    return projectPermission(
+        testCharterRepository.findProjectIdById(charterId), this::canRunTestSession);
   }
 
   /**

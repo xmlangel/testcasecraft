@@ -35,6 +35,7 @@ public class TestCaseVersionController {
 
   // ============ 버전 조회 API ============
 
+  @PreAuthorize("@projectSecurityService.canAccessTestCase(#testCaseId)")
   @GetMapping("/testcase/{testCaseId}/history")
   @Operation(summary = "테스트케이스 버전 히스토리 조회", description = "특정 테스트케이스의 모든 버전 히스토리를 조회합니다.")
   public ResponseEntity<ApiResponse<List<TestCaseVersionDto>>> getVersionHistory(
@@ -50,6 +51,7 @@ public class TestCaseVersionController {
     }
   }
 
+  @PreAuthorize("@projectSecurityService.canAccessTestCase(#testCaseId)")
   @GetMapping("/testcase/{testCaseId}/current")
   @Operation(summary = "테스트케이스 현재 버전 조회", description = "특정 테스트케이스의 현재 활성 버전을 조회합니다.")
   public ResponseEntity<ApiResponse<TestCaseVersionDto>> getCurrentVersion(
@@ -69,6 +71,7 @@ public class TestCaseVersionController {
     }
   }
 
+  @PreAuthorize("@projectSecurityService.canAccessTestCaseVersion(#versionId)")
   @GetMapping("/{versionId}")
   @Operation(summary = "버전 상세 조회", description = "특정 버전의 상세 정보를 조회합니다.")
   public ResponseEntity<ApiResponse<TestCaseVersionDto>> getVersionDetail(
@@ -88,6 +91,7 @@ public class TestCaseVersionController {
     }
   }
 
+  @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
   @GetMapping("/project/{projectId}/current")
   @Operation(summary = "프로젝트 현재 버전들 조회", description = "특정 프로젝트의 모든 현재 버전들을 조회합니다.")
   public ResponseEntity<ApiResponse<List<TestCaseVersionDto>>> getCurrentVersionsByProject(
@@ -160,6 +164,9 @@ public class TestCaseVersionController {
 
   // ============ 버전 비교 API ============
 
+  @PreAuthorize(
+      "@projectSecurityService.canAccessTestCaseVersion(#versionId1)"
+          + " and @projectSecurityService.canAccessTestCaseVersion(#versionId2)")
   @GetMapping("/{versionId1}/compare/{versionId2}")
   @Operation(summary = "버전 비교", description = "두 버전 간의 차이점을 비교합니다.")
   public ResponseEntity<ApiResponse<Map<String, Object>>> compareVersions(
