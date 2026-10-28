@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.config;
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import jakarta.persistence.EntityManager;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,14 +65,15 @@ public class LlmProviderConstraintRunner implements CommandLineRunner {
   }
 
   private String currentDefinition() {
-    Object result =
+    // 네이티브 쿼리는 원시 타입 List 를 돌려주므로 List<?> 로 받아야 unchecked 경고가 나지 않는다
+    List<?> rows =
         entityManager
             .createNativeQuery(
                 "SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = :name")
             .setParameter("name", CONSTRAINT_NAME)
-            .getResultStream()
-            .findFirst()
-            .orElse(null);
+            .setMaxResults(1)
+            .getResultList();
+    Object result = rows.isEmpty() ? null : rows.get(0);
     return result == null ? null : String.valueOf(result);
   }
 
