@@ -124,3 +124,26 @@ export const buildStepResultSheetRows = (rows) => {
   });
   return out;
 };
+
+/**
+ * Jira 댓글용: FAIL·BLOCKED 스텝만 「기대 / 실제」 형식으로. 해당 스텝이 없으면 빈 문자열.
+ * steps 는 { stepNumber, description, expectedResult, result, actualResult } 목록.
+ */
+export const formatProblemStepsMarkdown = (steps, labels) => {
+  const problems = [...(steps || [])]
+    .filter(
+      (s) => s.result === TestResult.FAIL || s.result === TestResult.BLOCKED,
+    )
+    .sort((a, b) => a.stepNumber - b.stepNumber);
+  if (problems.length === 0) return "";
+  const lines = [`**${labels.title}**`];
+  problems.forEach((s) => {
+    lines.push(
+      `- ${s.stepNumber}. ${s.result}${s.description ? ` ${s.description}` : ""}`,
+    );
+    if (s.expectedResult)
+      lines.push(`  - ${labels.expected}: ${s.expectedResult}`);
+    if (s.actualResult) lines.push(`  - ${labels.actual}: ${s.actualResult}`);
+  });
+  return `${lines.join("\n")}\n\n`;
+};

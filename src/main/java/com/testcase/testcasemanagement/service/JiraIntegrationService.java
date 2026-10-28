@@ -7,6 +7,7 @@ import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.TestResultAttachment;
 import com.testcase.testcasemanagement.model.TestResultStatus;
+import com.testcase.testcasemanagement.model.TestResultStep;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.util.JiraInlineImages;
@@ -447,6 +448,7 @@ public class JiraIntegrationService {
         comment.append(": ").append(truncatedNotes);
       }
       comment.append("\n");
+      appendProblemSteps(comment, result, "  ");
     }
 
     if (failedResults.size() > 5) {
@@ -483,7 +485,55 @@ public class JiraIntegrationService {
       comment.append("\n**상세 내용:**\n").append(testResult.getNotes());
     }
 
+    // ICT-469: 실패·차단 스텝을 기대 / 실제 형식으로
+    if (hasProblemSteps(testResult)) {
+      comment.append("\n\n**실패·차단 스텝:**\n");
+      appendProblemSteps(comment, testResult, "");
+    }
+
     return comment.toString();
+  }
+
+  private static boolean isProblemStep(TestResultStep step) {
+    return "FAIL".equals(step.getResult()) || "BLOCKED".equals(step.getResult());
+  }
+
+  private static boolean hasProblemSteps(TestResult result) {
+    return result.getSteps() != null
+        && result.getSteps().stream().anyMatch(JiraIntegrationService::isProblemStep);
+  }
+
+  /** ICT-469: FAIL·BLOCKED 스텝을 한 줄씩, 아래에 기대·실제 결과 */
+  static void appendProblemSteps(StringBuilder comment, TestResult result, String indent) {
+    if (!hasProblemSteps(result)) {
+      return;
+    }
+    result.getSteps().stream()
+        .filter(JiraIntegrationService::isProblemStep)
+        .sorted(java.util.Comparator.comparingInt(TestResultStep::getStepNumber))
+        .forEach(
+            st -> {
+              comment
+                  .append(indent)
+                  .append("- 스텝 ")
+                  .append(st.getStepNumber())
+                  .append(" ")
+                  .append(st.getResult());
+              if (st.getDescription() != null && !st.getDescription().isBlank()) {
+                comment.append(": ").append(st.getDescription());
+              }
+              comment.append("\n");
+              if (st.getExpectedResult() != null && !st.getExpectedResult().isBlank()) {
+                comment
+                    .append(indent)
+                    .append("  - 기대: ")
+                    .append(st.getExpectedResult())
+                    .append("\n");
+              }
+              if (st.getActualResult() != null && !st.getActualResult().isBlank()) {
+                comment.append(indent).append("  - 실제: ").append(st.getActualResult()).append("\n");
+              }
+            });
   }
 
   private String buildTestExecutionSummaryComment(

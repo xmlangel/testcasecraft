@@ -148,3 +148,34 @@ describe("stepResults 내보내기 (ICT-469)", () => {
     expect(rows[0]).toHaveLength(STEP_RESULT_SHEET_HEADERS.length);
   });
 });
+
+describe("stepResults Jira 댓글 (ICT-469)", () => {
+  it("FAIL·BLOCKED 스텝만 기대·실제로 적는다", async () => {
+    const { formatProblemStepsMarkdown } = await import("./stepResults.js");
+    const labels = {
+      title: "실패·차단 스텝",
+      expected: "기대",
+      actual: "실제",
+    };
+    expect(
+      formatProblemStepsMarkdown([{ stepNumber: 1, result: "PASS" }], labels),
+    ).toBe("");
+    expect(
+      formatProblemStepsMarkdown(
+        [
+          { stepNumber: 3, result: "BLOCKED", description: "로그아웃" },
+          {
+            stepNumber: 2,
+            result: "FAIL",
+            description: "저장",
+            expectedResult: "알림",
+            actualResult: "반응 없음",
+          },
+        ],
+        labels,
+      ),
+    ).toBe(
+      "**실패·차단 스텝**\n- 2. FAIL 저장\n  - 기대: 알림\n  - 실제: 반응 없음\n- 3. BLOCKED 로그아웃\n\n",
+    );
+  });
+});

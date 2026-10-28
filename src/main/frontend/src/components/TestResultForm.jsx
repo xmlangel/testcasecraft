@@ -175,6 +175,16 @@ const TestResultForm = ({
     () => toStepPayload(stepBase, stepResults),
     [stepBase, stepResults],
   );
+  // ICT-469: Jira 댓글에 실패 스텝을 넣으려고 스텝 설명·기대 결과와 입력값을 합친다
+  const jiraSteps = useMemo(
+    () =>
+      stepBase.map((st) => ({
+        ...st,
+        result: stepResults[st.stepNumber]?.result || TestResult.NOT_RUN,
+        actualResult: stepResults[st.stepNumber]?.actualResult || "",
+      })),
+    [stepBase, stepResults],
+  );
   const savedStepPayload = useMemo(
     () =>
       toStepPayload(
@@ -1203,7 +1213,7 @@ const TestResultForm = ({
         <JiraCommentDialog
           open={jiraDialogOpen}
           onClose={() => setJiraDialogOpen(false)}
-          testResult={{ result, notes, jiraIssueKey }}
+          testResult={{ result, notes, jiraIssueKey, steps: jiraSteps }}
           testCase={testCase}
           linkedIssues={linkedIssues}
           onCommentAdded={handleJiraCommentAdded}
@@ -1321,7 +1331,7 @@ const TestResultForm = ({
       <JiraCommentDialog
         open={jiraDialogOpen}
         onClose={() => setJiraDialogOpen(false)}
-        testResult={{ result, notes, jiraIssueKey }}
+        testResult={{ result, notes, jiraIssueKey, steps: jiraSteps }}
         testCase={testCase}
         linkedIssues={linkedIssues}
         onCommentAdded={handleJiraCommentAdded}
