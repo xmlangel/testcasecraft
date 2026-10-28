@@ -8,6 +8,7 @@ export const getDefaultColumnVisibility = () => ({
   testCase: true,
   description: false,
   result: true,
+  stepResults: true, // ICT-469: 스텝별 결과 요약 (기본 표시)
   executedDate: true,
   executor: true,
   notes: true,
@@ -33,6 +34,7 @@ export const getDefaultColumnOrder = () => [
   "testCase",
   "description",
   "result",
+  "stepResults",
   "preCondition",
   "postCondition",
   "steps",

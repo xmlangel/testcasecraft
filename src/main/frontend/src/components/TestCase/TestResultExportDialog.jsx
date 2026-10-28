@@ -32,6 +32,11 @@ import { format as formatDate } from "date-fns";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import {
+  formatStepResultsText,
+  buildStepResultSheetRows,
+  STEP_RESULT_SHEET_HEADERS,
+} from "../../utils/stepResults.js";
+import {
   addNanumGothicToJsPDF,
   setupKoreanFontFallback,
 } from "../../assets/fonts/nanumGothicFont.js";
@@ -355,6 +360,8 @@ const TestResultExportDialog = ({
         );
       case "steps":
         return formatSteps(value || []);
+      case "stepResults":
+        return formatStepResultsText(value);
       case "tags":
         return (value || []).length ? value.join(", ") : "-";
       case "linkedDocuments":
@@ -401,6 +408,7 @@ const TestResultExportDialog = ({
       postCondition: "Post-condition",
       expectedResults: "Expected Results",
       steps: "Steps",
+      stepResults: "Step Results",
       isAutomated: "Automated",
       executionType: "Execution Type",
       testTechnique: "Test Technique",
@@ -434,6 +442,15 @@ const TestResultExportDialog = ({
     const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "TestResults");
+    // ICT-469: 스텝 결과가 있으면 「케이스 × 스텝」 상세 시트를 덧붙인다
+    const stepRows = buildStepResultSheetRows(rows);
+    if (stepRows.length > 0) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.aoa_to_sheet([STEP_RESULT_SHEET_HEADERS, ...stepRows]),
+        "StepResults",
+      );
+    }
     XLSX.writeFile(workbook, fileName);
   };
 
@@ -1509,6 +1526,8 @@ footer.report{border-top:1px solid var(--border);margin-top:30px;padding:18px 28
             return "expectedResults";
           case "steps":
             return "steps";
+          case "stepResults":
+            return "stepResults";
           default:
             return col.field;
         }

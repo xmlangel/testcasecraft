@@ -77,3 +77,50 @@ export const passAllEmptySteps = (caseSteps, map) => {
 export const sameStepPayload = (caseSteps, a, b) =>
   JSON.stringify(toStepPayload(caseSteps, a)) ===
   JSON.stringify(toStepPayload(caseSteps, b));
+
+/** 내보내기 셀용 한 줄씩 텍스트. 스텝 결과가 없으면 "-" */
+export const formatStepResultsText = (steps) => {
+  if (!steps || steps.length === 0) return "-";
+  return [...steps]
+    .sort((a, b) => a.stepNumber - b.stepNumber)
+    .map(
+      (s) =>
+        `${s.stepNumber}. ${s.result || TestResult.NOT_RUN}${
+          s.actualResult ? ` - ${s.actualResult}` : ""
+        }`,
+    )
+    .join("\n");
+};
+
+export const STEP_RESULT_SHEET_HEADERS = [
+  "Display ID",
+  "Test Case",
+  "Result",
+  "Step No.",
+  "Step",
+  "Expected Result",
+  "Step Result",
+  "Actual Result",
+];
+
+/** 「케이스 × 스텝」 상세 시트 행. 스텝 결과가 있는 행만 펼친다. */
+export const buildStepResultSheetRows = (rows) => {
+  const out = [];
+  (rows || []).forEach((row) => {
+    [...(row.stepResults || [])]
+      .sort((a, b) => a.stepNumber - b.stepNumber)
+      .forEach((s) => {
+        out.push([
+          row.displayId || "",
+          row.testCase || "",
+          row.result || "",
+          s.stepNumber,
+          s.description || "",
+          s.expectedResult || "",
+          s.result || TestResult.NOT_RUN,
+          s.actualResult || "",
+        ]);
+      });
+  });
+  return out;
+};

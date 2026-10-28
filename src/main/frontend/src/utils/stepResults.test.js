@@ -95,3 +95,56 @@ describe("stepResults (ICT-469)", () => {
     });
   });
 });
+
+describe("stepResults 내보내기 (ICT-469)", () => {
+  it("셀 텍스트는 번호 순서로 결과와 실제 결과", async () => {
+    const { formatStepResultsText } = await import("./stepResults.js");
+    expect(formatStepResultsText([])).toBe("-");
+    expect(
+      formatStepResultsText([
+        { stepNumber: 2, result: "FAIL", actualResult: "반응 없음" },
+        { stepNumber: 1, result: "PASS" },
+      ]),
+    ).toBe("1. PASS\n2. FAIL - 반응 없음");
+  });
+
+  it("상세 시트는 스텝 결과가 있는 케이스만 스텝마다 한 줄", async () => {
+    const { buildStepResultSheetRows, STEP_RESULT_SHEET_HEADERS } =
+      await import("./stepResults.js");
+    const rows = buildStepResultSheetRows([
+      {
+        displayId: "TC-1",
+        testCase: "로그인",
+        result: "FAIL",
+        stepResults: [
+          {
+            stepNumber: 1,
+            description: "열기",
+            expectedResult: "화면",
+            result: "PASS",
+          },
+          {
+            stepNumber: 2,
+            description: "저장",
+            expectedResult: "알림",
+            result: "FAIL",
+            actualResult: "없음",
+          },
+        ],
+      },
+      { displayId: "TC-2", testCase: "스텝 없음", result: "PASS" },
+    ]);
+    expect(rows).toHaveLength(2);
+    expect(rows[1]).toEqual([
+      "TC-1",
+      "로그인",
+      "FAIL",
+      2,
+      "저장",
+      "알림",
+      "FAIL",
+      "없음",
+    ]);
+    expect(rows[0]).toHaveLength(STEP_RESULT_SHEET_HEADERS.length);
+  });
+});

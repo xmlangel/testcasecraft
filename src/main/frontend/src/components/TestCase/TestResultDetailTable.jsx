@@ -46,6 +46,7 @@ import {
   getDefaultColumnVisibility,
   getDefaultColumnOrder,
 } from "./tableColumnDefaults.js";
+import StepResultsSummary from "../TestResult/StepResultsSummary.jsx";
 import useColumnPreferences from "./hooks/useColumnPreferences.js";
 import TestResultErrorState from "./TestResultErrorState.jsx";
 import TestResultAttachmentDialog from "./TestResultAttachmentDialog.jsx";
@@ -391,6 +392,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             postCondition: testCase?.postCondition || "",
             expectedResults: testCase?.expectedResults || "",
             steps: testCase?.steps || [],
+            stepResults: result.stepResults || [], // ICT-469
             isAutomated:
               typeof testCase?.isAutomated === "boolean"
                 ? testCase.isAutomated
@@ -835,6 +837,29 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             </Typography>
           </Tooltip>
         ),
+      },
+      // ICT-469: 스텝별 결과 요약
+      {
+        field: "stepResults",
+        headerName: t("testResult.column.stepResults", "스텝 결과"),
+        width: 220,
+        headerClassName: "table-header",
+        sortable: false,
+        renderCell: (params) =>
+          params.value?.length ? (
+            <Box
+              sx={{ py: 0.5, maxHeight: 200, overflow: "auto", width: "100%" }}
+            >
+              <StepResultsSummary steps={params.value} t={t} compact />
+            </Box>
+          ) : (
+            <Typography
+              variant="body2"
+              sx={{ fontSize: "0.875rem", color: "text.secondary" }}
+            >
+              -
+            </Typography>
+          ),
       },
       // ICT-275: 스텝 정보 컬럼 (세로 배치)
       {
