@@ -175,6 +175,7 @@ const TestResultForm = ({
     () => toStepPayload(stepBase, stepResults),
     [stepBase, stepResults],
   );
+
   // ICT-469: Jira 댓글에 실패 스텝을 넣으려고 스텝 설명·기대 결과와 입력값을 합친다
   const jiraSteps = useMemo(
     () =>
@@ -194,6 +195,20 @@ const TestResultForm = ({
     [stableCurrentResult?.steps],
   );
 
+  // ICT-469: 보낼 steps. 저장된 스텝 결과를 모두 비운 경우에는 null 대신 전체 NOT_RUN 을 보내야
+  // 서버가 기존 스텝 결과를 지운다 (steps 를 빼면 서버는 기존 값을 그대로 둔다)
+  const stepsToSend = useMemo(
+    () =>
+      stepPayload ??
+      (savedStepPayload
+        ? stepBase.map((st) => ({
+            stepNumber: st.stepNumber,
+            result: TestResult.NOT_RUN,
+          }))
+        : null),
+    [stepPayload, savedStepPayload, stepBase],
+  );
+
   // 자동 저장용 데이터 (fullPage 모드 + 사용자가 실제 수정한 경우에만 활성화)
   // userEdited=false면 null을 반환해 useAutoSave의 디바운스 저장과
   // 언마운트 저장을 모두 비활성화한다 — 보기만 할 때는 절대 저장하지 않는다.
@@ -204,7 +219,7 @@ const TestResultForm = ({
       notes,
       tags,
       jiraIssueKey,
-      steps: stepPayload,
+      steps: stepsToSend,
       // baseline(markSaved)은 신규 결과에서 _resultId를 null로 설정하므로
       // undefined가 아닌 null로 정규화해야 dirty 오탐(입력 없이 저장)을 막는다.
       _resultId: stableCurrentResult?.id ?? null,
@@ -216,7 +231,7 @@ const TestResultForm = ({
     notes,
     tags,
     jiraIssueKey,
-    stepPayload,
+    stepsToSend,
     stableCurrentResult?.id,
   ]);
 
@@ -677,8 +692,8 @@ const TestResultForm = ({
         if (processedJiraKey) {
           requestData.jiraIssueKey = processedJiraKey;
         }
-        if (stepPayload) {
-          requestData.steps = stepPayload;
+        if (stepsToSend) {
+          requestData.steps = stepsToSend;
         }
 
         // 변경 사항 비교: 기존 결과가 있고, 결과/노트/태그/JIRA가 모두 동일하며
@@ -789,6 +804,7 @@ const TestResultForm = ({
       stableCurrentResult,
       stepPayload,
       savedStepPayload,
+      stepsToSend,
     ],
   );
 

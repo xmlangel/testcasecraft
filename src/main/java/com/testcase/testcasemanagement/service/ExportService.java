@@ -595,7 +595,7 @@ public class ExportService {
       case "steps":
         return formatStepsForExport(result.getSteps());
       case "stepResults":
-        return formatStepResultsForExport(result.getStepResults());
+        return fitExcelCell(formatStepResultsForExport(result.getStepResults()));
       default:
         return null;
     }
@@ -617,6 +617,13 @@ public class ExportService {
                         ? " - " + st.getActualResult()
                         : ""))
         .collect(java.util.stream.Collectors.joining("\n"));
+  }
+
+  /** Excel 셀 한 칸의 최대 글자 수(32,767)를 넘으면 잘라 낸다. 넘기면 POI 가 예외를 낸다. */
+  private static String fitExcelCell(String value) {
+    if (value == null) return "";
+    int max = 32767;
+    return value.length() <= max ? value : value.substring(0, max - 3) + "...";
   }
 
   /** ICT-469: 스텝 결과가 있는 케이스만 스텝마다 한 줄씩 펼친 시트. 없으면 시트를 만들지 않는다. */
@@ -655,7 +662,7 @@ public class ExportService {
         };
         for (int i = 0; i < values.length; i++) {
           Cell cell = row.createCell(i);
-          cell.setCellValue(values[i] != null ? values[i] : "");
+          cell.setCellValue(fitExcelCell(values[i]));
           cell.setCellStyle(dataStyle);
         }
       }
