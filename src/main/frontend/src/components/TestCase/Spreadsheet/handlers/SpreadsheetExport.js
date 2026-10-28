@@ -6,6 +6,24 @@ import {
 } from "../../../../assets/fonts/nanumGothicFont.js";
 import { logError, debugLog } from "../../../../utils/logger.js";
 import { convertDataForExport } from "../utils/SpreadsheetUtils.js";
+import { markdownToExportText } from "../../../../utils/markdownRender.js";
+
+/**
+ * ICT-470: 읽기용 내보내기에서는 본문 이미지가 든 셀을 평문으로 바꾼다.
+ * 이미지 주소는 서버 기준 상대 경로라 파일 안에서 열리지 않고 공개 토큰만 남는다.
+ * 이미지가 없는 셀은 markdownToExportText 가 원문 그대로 돌려준다.
+ * raw 가 true 면 다시 가져오기(import)용으로 원문을 그대로 둔다.
+ */
+export const prepareExportRows = (rows, { raw = false, imageLabel } = {}) =>
+  raw
+    ? rows
+    : rows.map((row) =>
+        row.map((cell) =>
+          typeof cell === "string"
+            ? markdownToExportText(cell, imageLabel)
+            : cell,
+        ),
+      );
 
 /**
  * CSV Export 함수
@@ -18,12 +36,15 @@ export const exportToCSV = (
   spreadsheetData,
   columnLabels,
   t = (key, fallback) => fallback,
+  { raw = false } = {},
 ) => {
   try {
-    const { headers, rows } = convertDataForExport(
-      spreadsheetData,
-      columnLabels,
-    );
+    const converted = convertDataForExport(spreadsheetData, columnLabels);
+    const { headers } = converted;
+    const rows = prepareExportRows(converted.rows, {
+      raw,
+      imageLabel: t("export.imagePlaceholder", "이미지"),
+    });
 
     if (rows.length === 0) {
       return {
@@ -95,12 +116,15 @@ export const exportToExcel = (
   spreadsheetData,
   columnLabels,
   t = (key, fallback) => fallback,
+  { raw = false } = {},
 ) => {
   try {
-    const { headers, rows } = convertDataForExport(
-      spreadsheetData,
-      columnLabels,
-    );
+    const converted = convertDataForExport(spreadsheetData, columnLabels);
+    const { headers } = converted;
+    const rows = prepareExportRows(converted.rows, {
+      raw,
+      imageLabel: t("export.imagePlaceholder", "이미지"),
+    });
 
     if (rows.length === 0) {
       return {

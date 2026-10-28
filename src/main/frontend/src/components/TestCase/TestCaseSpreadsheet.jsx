@@ -956,39 +956,65 @@ const TestCaseSpreadsheet = ({
     setExportMenuAnchor(null);
   };
 
-  const handleExportCSV = useCallback(() => {
-    const result = exportToCSV(spreadsheetData, memoizedColumnLabels, t);
-    setSnackbarMessage(result.message);
-    setSnackbarSeverity(result.severity);
-    setSnackbarOpen(true);
-    handleExportMenuClose();
-  }, [spreadsheetData, memoizedColumnLabels, t]);
-
-  const handleExportExcel = useCallback(async () => {
-    handleExportMenuClose();
-    setLocalLoading(true);
-    try {
-      const result = await exportToExcel(
-        spreadsheetData,
-        memoizedColumnLabels,
-        t,
-      );
+  // raw: 다시 가져오기(import)용으로 본문 이미지 원문을 그대로 둔다 (ICT-470)
+  const runExportCSV = useCallback(
+    (raw) => {
+      const result = exportToCSV(spreadsheetData, memoizedColumnLabels, t, {
+        raw,
+      });
       setSnackbarMessage(result.message);
       setSnackbarSeverity(result.severity);
       setSnackbarOpen(true);
-    } catch (error) {
-      setSnackbarMessage(
-        t(
-          "testcase.spreadsheet.excelExportError",
-          "Excel 내보내기 중 오류가 발생했습니다.",
-        ),
-      );
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
-    } finally {
-      setLocalLoading(false);
-    }
-  }, [spreadsheetData, memoizedColumnLabels, t]);
+      handleExportMenuClose();
+    },
+    [spreadsheetData, memoizedColumnLabels, t],
+  );
+  const handleExportCSV = useCallback(
+    () => runExportCSV(false),
+    [runExportCSV],
+  );
+  const handleExportCSVRaw = useCallback(
+    () => runExportCSV(true),
+    [runExportCSV],
+  );
+
+  const runExportExcel = useCallback(
+    async (raw) => {
+      handleExportMenuClose();
+      setLocalLoading(true);
+      try {
+        const result = await exportToExcel(
+          spreadsheetData,
+          memoizedColumnLabels,
+          t,
+          { raw },
+        );
+        setSnackbarMessage(result.message);
+        setSnackbarSeverity(result.severity);
+        setSnackbarOpen(true);
+      } catch (error) {
+        setSnackbarMessage(
+          t(
+            "testcase.spreadsheet.excelExportError",
+            "Excel 내보내기 중 오류가 발생했습니다.",
+          ),
+        );
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+      } finally {
+        setLocalLoading(false);
+      }
+    },
+    [spreadsheetData, memoizedColumnLabels, t],
+  );
+  const handleExportExcel = useCallback(
+    () => runExportExcel(false),
+    [runExportExcel],
+  );
+  const handleExportExcelRaw = useCallback(
+    () => runExportExcel(true),
+    [runExportExcel],
+  );
 
   const handleExportPDF = useCallback(async () => {
     handleExportMenuClose();
@@ -1426,6 +1452,8 @@ const TestCaseSpreadsheet = ({
           onExportCsv={handleExportCSV}
           onExportExcel={handleExportExcel}
           onExportPdf={handleExportPDF}
+          onExportCsvRaw={handleExportCSVRaw}
+          onExportExcelRaw={handleExportExcelRaw}
           t={t}
         />
       </Card>

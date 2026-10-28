@@ -535,6 +535,31 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "Microsoft Excel format (.xlsx)",
         createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.csvRaw.title",
+        languageCode,
+        "Export to CSV (raw, for import)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.csvRaw.description",
+        languageCode,
+        "Keeps inline images as-is. Use for re-import",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.excelRaw.title",
+        languageCode,
+        "Export to Excel (raw, for import)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.excelRaw.description",
+        languageCode,
+        "Keeps inline images as-is. Use for re-import",
+        createdBy);
+    createTranslationIfNotExists(
+        "export.imagePlaceholder",
+        languageCode,
+        "Image",
+        createdBy);
 
     // Validation system English translations
     createTranslationIfNotExists(

@@ -7,6 +7,7 @@
 // - parseMarkdownBlocks: 마크다운 → 블록 배열 (HTML·PDF 렌더러 공통 입력)
 // - markdownToHtml: 블록 → HTML 문자열 (내보낸 HTML 리포트용)
 // - markdownToPlainText: 블록 → 순수 텍스트 (서식 없는 출력용)
+// - markdownToExportText: 엑셀·CSV 등 파일 셀용 텍스트 (이미지를 표기로 바꾸고 주소·토큰 제거)
 
 // 자리표시자 구분자. 사용자가 입력할 수 없는 제어문자를 쓴다.
 // 원시 NUL 바이트를 파일에 박으면 git·grep 이 이 소스를 바이너리로 취급하므로
@@ -246,12 +247,16 @@ export const inlineToHtml = (text = "") => {
   );
 };
 
-/** 인라인 마크업을 벗겨 순수 텍스트로. PDF 텍스트 등 서식 없는 출력용. */
-export const stripInlineMarkdown = (text = "") => {
+/** 인라인 마크업을 벗겨 순수 텍스트로. PDF 텍스트 등 서식 없는 출력용.
+ *  options.imageText 가 있으면 이미지를 대체 텍스트 대신 그 함수의 결과로 바꾼다. */
+export const stripInlineMarkdown = (text = "", options = {}) => {
+  const { imageText } = options;
   const { masked, codes } = extractInlineCode(text);
   const out = applyEmphasis(
     masked
-      .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, (_, alt) =>
+        imageText ? imageText(alt) : alt,
+      )
       .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1"),
     { boldItalic: "$1", bold: "$1", italic: "$1$2", strike: "$1" },
   );
@@ -336,25 +341,26 @@ const blockToHtml = (block) => {
 export const markdownToHtml = (markdown = "") =>
   parseMarkdownBlocks(markdown).map(blockToHtml).join("");
 
-const blockToPlainLines = (block) => {
+const blockToPlainLines = (block, options = {}) => {
+  const strip = (text) => stripInlineMarkdown(text, options);
   switch (block.type) {
     case "heading":
-      return [stripInlineMarkdown(block.text)];
+      return [strip(block.text)];
     case "paragraph":
-      return stripInlineMarkdown(block.text).split("\n");
+      return strip(block.text).split("\n");
     case "list":
       return block.items.map(
         (item, idx) =>
           `${"  ".repeat(item.depth)}${block.ordered ? `${idx + 1}.` : "•"} ` +
-          stripInlineMarkdown(item.text).replace(/\n/g, " "),
+          strip(item.text).replace(/\n/g, " "),
       );
     case "code":
       return [...block.lines];
     case "quote":
-      return block.blocks.flatMap(blockToPlainLines);
+      return block.blocks.flatMap((inner) => blockToPlainLines(inner, options));
     case "table":
       return [block.header, ...block.rows].map((row) =>
-        row.map((cell) => stripInlineMarkdown(cell)).join(" | "),
+        row.map((cell) => strip(cell)).join(" | "),
       );
     case "hr":
       return ["────────"];
@@ -364,8 +370,38 @@ const blockToPlainLines = (block) => {
 };
 
 /** 마크다운 → 순수 텍스트 (블록 사이 빈 줄 유지) */
-export const markdownToPlainText = (markdown = "") =>
+export const markdownToPlainText = (markdown = "", options = {}) =>
   parseMarkdownBlocks(markdown)
-    .map((block) => blockToPlainLines(block).join("\n"))
+    .map((block) => blockToPlainLines(block, options).join("\n"))
     .join("\n\n")
     .trim();
+
+// 편집기가 이미지를 붙일 때 넣는 기본 대체 텍스트. 이 값은 정보가 없으므로 표기에서 뺀다.
+const GENERIC_IMAGE_ALT = /^\s*(?:image|img|이미지)?\s*$/i;
+
+// 편집기가 넣을 수 있는 HTML 이미지 태그. 대체 텍스트만 남긴다.
+const HTML_IMG = /<img\b[^>]*>/gi;
+const HTML_IMG_ALT = /\balt\s*=\s*["']([^"']*)["']/i;
+const HAS_EXPORT_IMAGE = /!\[[^\]]*\]\([^)]*\)|<img\b/i;
+
+/**
+ * ICT-470: 엑셀·CSV·PDF 등 파일로 내보낼 셀 텍스트.
+ *
+ * 비고·설명에 들어간 본문 이미지는 `/api/testcase-attachments/public/{id}?token=...` 상대 주소라서
+ * 내보낸 파일 안에서는 열리지 않고, 공개 토큰만 파일에 남는다. 이미지는 `[이미지: 대체텍스트]` 로 바꾸고
+ * 나머지 마크다운 기호는 걷어 낸다. 주소와 토큰은 결과에 남지 않는다.
+ * 이미지가 없는 텍스트는 원문을 그대로 돌려준다(기존 내보내기 결과 유지).
+ */
+export const markdownToExportText = (markdown, imageLabel = "이미지") => {
+  if (markdown === null || markdown === undefined) return "";
+  if (!HAS_EXPORT_IMAGE.test(String(markdown))) return String(markdown);
+  const imageText = (alt) =>
+    GENERIC_IMAGE_ALT.test(alt || "")
+      ? `[${imageLabel}]`
+      : `[${imageLabel}: ${alt.trim()}]`;
+  const withoutHtmlImages = String(markdown).replace(HTML_IMG, (tag) => {
+    const alt = tag.match(HTML_IMG_ALT);
+    return imageText(alt ? alt[1] : "");
+  });
+  return markdownToPlainText(withoutHtmlImages, { imageText });
+};

@@ -14,6 +14,7 @@ import com.testcase.testcasemanagement.dto.TestResultFilterDto;
 import com.testcase.testcasemanagement.dto.TestResultReportDto;
 import com.testcase.testcasemanagement.dto.TestResultStepDto;
 import com.testcase.testcasemanagement.model.TestResultStatus;
+import com.testcase.testcasemanagement.util.ExportText;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.time.format.DateTimeFormatter;
@@ -576,7 +577,7 @@ public class ExportService {
       case "executorName":
         return result.getExecutorName();
       case "notes":
-        return result.getNotes();
+        return ExportText.toPlain(result.getNotes());
       case "jiraIssueKey":
         return result.getJiraIssueKey();
       case "jiraStatus":
@@ -589,9 +590,9 @@ public class ExportService {
         return result.getCategory();
         // 새로 추가된 컬럼들의 필드 값 처리 추가
       case "preCondition":
-        return result.getPreCondition();
+        return ExportText.toPlain(result.getPreCondition());
       case "expectedResults":
-        return result.getExpectedResults();
+        return ExportText.toPlain(result.getExpectedResults());
       case "steps":
         return formatStepsForExport(result.getSteps());
       case "stepResults":
@@ -687,7 +688,7 @@ public class ExportService {
 
     // 스텝이 문자열인 경우 그대로 반환
     if (steps instanceof String) {
-      return (String) steps;
+      return ExportText.toPlain((String) steps);
     }
 
     // 스텝이 배열이나 리스트인 경우 포맷팅
@@ -707,7 +708,7 @@ public class ExportService {
           sb.append("Step ").append(testStep.getStepNumber()).append(": ");
 
           if (testStep.getDescription() != null && !testStep.getDescription().trim().isEmpty()) {
-            sb.append("설명: ").append(testStep.getDescription().trim());
+            sb.append("설명: ").append(ExportText.toPlain(testStep.getDescription().trim()));
           }
 
           if (testStep.getExpectedResult() != null
@@ -715,7 +716,7 @@ public class ExportService {
             if (testStep.getDescription() != null && !testStep.getDescription().trim().isEmpty()) {
               sb.append(" | ");
             }
-            sb.append("예상결과: ").append(testStep.getExpectedResult().trim());
+            sb.append("예상결과: ").append(ExportText.toPlain(testStep.getExpectedResult().trim()));
           }
 
           // 설명과 예상결과가 모두 비어있는 경우
@@ -736,13 +737,13 @@ public class ExportService {
           String expectedResult = (String) stepMap.get("expectedResult");
 
           if (description != null && !description.trim().isEmpty()) {
-            sb.append("설명: ").append(description.trim());
+            sb.append("설명: ").append(ExportText.toPlain(description.trim()));
           }
           if (expectedResult != null && !expectedResult.trim().isEmpty()) {
             if (description != null && !description.trim().isEmpty()) {
               sb.append(" | ");
             }
-            sb.append("예상결과: ").append(expectedResult.trim());
+            sb.append("예상결과: ").append(ExportText.toPlain(expectedResult.trim()));
           }
 
         } else {
