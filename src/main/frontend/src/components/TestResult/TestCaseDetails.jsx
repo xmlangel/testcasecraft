@@ -32,6 +32,9 @@ const STEP_RESULT_OPTIONS = [
   { value: "BLOCKED", label: "B", color: "warning" },
 ];
 
+// 서버 TestResultStepDto.actualResult 의 @Size(max = 10000) 과 같은 값
+const STEP_ACTUAL_MAX = 10000;
+
 const Subtitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
@@ -436,7 +439,24 @@ const TestCaseDetails = ({
                                 isViewer={stepInputDisabled}
                                 theme={theme}
                                 t={t}
-                                hideHelperText
+                                // 서버 한도(10,000자)를 넘으면 저장이 거부되므로 칸에서 먼저 알린다
+                                error={
+                                  (
+                                    stepResults[step.stepNumber]
+                                      ?.actualResult || ""
+                                  ).length > STEP_ACTUAL_MAX
+                                }
+                                hideHelperText={
+                                  (
+                                    stepResults[step.stepNumber]
+                                      ?.actualResult || ""
+                                  ).length <= STEP_ACTUAL_MAX
+                                }
+                                helperText={t(
+                                  "testResult.steps.actualResultTooLong",
+                                  "실제 결과는 {max}자까지 저장할 수 있습니다.",
+                                  { max: STEP_ACTUAL_MAX.toLocaleString() },
+                                )}
                                 dense
                                 keepLineBreaks
                                 testid={`step-${step.stepNumber}-actual`}
