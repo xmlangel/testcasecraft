@@ -657,7 +657,8 @@ public class TestResultReportService {
     } catch (IllegalArgumentException e) {
       throw e;
     } catch (Exception e) {
-      throw new RuntimeException("An error occurred while exporting the file: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "An error occurred while exporting the file: " + e.getMessage(), e);
     }
   }
 
@@ -710,7 +711,8 @@ public class TestResultReportService {
       return result;
 
     } catch (Exception e) {
-      throw new RuntimeException("An error occurred while retrieving the hierarchical report: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "An error occurred while retrieving the hierarchical report: " + e.getMessage(), e);
     }
   }
 
@@ -749,7 +751,8 @@ public class TestResultReportService {
           throw new IllegalArgumentException("Unsupported export format: " + format);
       }
     } catch (Exception e) {
-      throw new RuntimeException("An error occurred while exporting the hierarchical report: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "An error occurred while exporting the hierarchical report: " + e.getMessage(), e);
     }
   }
 
@@ -796,7 +799,8 @@ public class TestResultReportService {
       return new PageImpl<>(pagedCases, pageable, completeCases.size());
 
     } catch (Exception e) {
-      throw new RuntimeException("An error occurred while retrieving the complete test case list: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "An error occurred while retrieving the complete test case list: " + e.getMessage(), e);
     }
   }
 
@@ -1469,6 +1473,7 @@ public class TestResultReportService {
         .preCondition(testCase != null ? testCase.getPreCondition() : null)
         .expectedResults(testCase != null ? testCase.getExpectedResults() : null)
         .steps(testCase != null ? testCase.getSteps() : null)
+        .stepResults(toStepResultDtos(result)) // ICT-469
         .attachmentCount(result.getActiveAttachmentCount())
         .build();
   }
@@ -1548,6 +1553,7 @@ public class TestResultReportService {
         .preCondition(testCase != null ? testCase.getPreCondition() : null)
         .expectedResults(testCase != null ? testCase.getExpectedResults() : null)
         .steps(testCase != null ? testCase.getSteps() : null)
+        .stepResults(toStepResultDtos(result)) // ICT-469
         .attachmentCount(result.getActiveAttachmentCount())
         .build();
   }
@@ -1627,9 +1633,19 @@ public class TestResultReportService {
 
   /** ICT-208: 테스트 결과 상세 조회 (통합 API용) */
   public Object getTestResultDetail(String resultId) {
-    // TestResult 조회 로직 구현 (기존 로직 활용)
-    // 실제 구현에서는 TestResult 엔티티 조회 후 DTO 변환
-    return null;
+    // ICT-469: 비어 있던 구현을 채운다. 스텝별 결과(stepResults)를 함께 싣는다
+    return testResultRepository.findById(resultId).map(this::convertToReportDto).orElse(null);
+  }
+
+  /** ICT-469: 결과의 스텝별 결과를 응답용으로 바꾼다. */
+  private static List<com.testcase.testcasemanagement.dto.TestResultStepDto> toStepResultDtos(
+      TestResult result) {
+    if (result.getSteps() == null || result.getSteps().isEmpty()) {
+      return new ArrayList<>();
+    }
+    return result.getSteps().stream()
+        .map(com.testcase.testcasemanagement.dto.TestResultStepDto::fromEntity)
+        .collect(Collectors.toList());
   }
 
   private void updateLatestStatusCount(TestResultStatisticsDto statistics, String result) {
