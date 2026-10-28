@@ -1075,6 +1075,7 @@ public class TestResultReportService {
         dto.setPriority(tc.getPriority());
         dto.setCategory(tc.getType());
         dto.setExecutionCount(0); // 미실행 시 0
+        applyTestCaseDetails(dto, tc);
 
         // 플랜 정보 추가 (미실행 케이스라도 플랜 필터가 있으면 플랜 정보를 명시)
         if (!"PROJ".equals(planId) && planNameById.containsKey(planId)) {
@@ -1449,33 +1450,52 @@ public class TestResultReportService {
         result.getTestExecution() != null ? result.getTestExecution().getTestPlanId() : null;
     String testPlanName = testPlanId != null ? testPlanNameMap.get(testPlanId) : null;
 
-    return TestResultReportDto.builder()
-        .testCaseId(result.getTestCaseId())
-        .testCaseName(testCaseName)
-        .folderPath(folderPath)
-        .testPlanName(testPlanName)
-        .result(result.getResult())
-        .executedAt(result.getExecutedAt())
-        .executedBy(result.getExecutedBy() != null ? result.getExecutedBy().getId() : null)
-        .executorName(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null)
-        .notes(result.getNotes())
-        .tags(toSortedTagList(result.getTags())) // ICT-427
-        .jiraIssueKey(result.getJiraIssueKey())
-        .jiraIssueUrl(result.getJiraIssueUrl())
-        .jiraStatus(result.getJiraStatus())
-        .jiraSyncStatus(
-            result.getJiraSyncStatus() != null ? result.getJiraSyncStatus().toString() : null)
-        .testExecutionId(
-            result.getTestExecution() != null ? result.getTestExecution().getId() : null)
-        .testExecutionName(
-            result.getTestExecution() != null ? result.getTestExecution().getName() : null)
-        .testPlanId(testPlanId)
-        .preCondition(testCase != null ? testCase.getPreCondition() : null)
-        .expectedResults(testCase != null ? testCase.getExpectedResults() : null)
-        .steps(testCase != null ? testCase.getSteps() : null)
-        .stepResults(toStepResultDtos(result)) // ICT-469
-        .attachmentCount(result.getActiveAttachmentCount())
-        .build();
+    TestResultReportDto dto =
+        TestResultReportDto.builder()
+            .testCaseId(result.getTestCaseId())
+            .testCaseName(testCaseName)
+            .folderPath(folderPath)
+            .testPlanName(testPlanName)
+            .result(result.getResult())
+            .executedAt(result.getExecutedAt())
+            .executedBy(result.getExecutedBy() != null ? result.getExecutedBy().getId() : null)
+            .executorName(
+                result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null)
+            .notes(result.getNotes())
+            .tags(toSortedTagList(result.getTags())) // ICT-427
+            .jiraIssueKey(result.getJiraIssueKey())
+            .jiraIssueUrl(result.getJiraIssueUrl())
+            .jiraStatus(result.getJiraStatus())
+            .jiraSyncStatus(
+                result.getJiraSyncStatus() != null ? result.getJiraSyncStatus().toString() : null)
+            .testExecutionId(
+                result.getTestExecution() != null ? result.getTestExecution().getId() : null)
+            .testExecutionName(
+                result.getTestExecution() != null ? result.getTestExecution().getName() : null)
+            .testPlanId(testPlanId)
+            .preCondition(testCase != null ? testCase.getPreCondition() : null)
+            .expectedResults(testCase != null ? testCase.getExpectedResults() : null)
+            .steps(testCase != null ? testCase.getSteps() : null)
+            .stepResults(toStepResultDtos(result)) // ICT-469
+            .attachmentCount(result.getActiveAttachmentCount())
+            .build();
+    applyTestCaseDetails(dto, testCase);
+    return dto;
+  }
+
+  /** ICT-472: 서버 내보내기 열(Display ID·설명·사후 조건·자동화·실행 타입·기법·연결 문서)용 케이스 정보 */
+  static void applyTestCaseDetails(TestResultReportDto dto, TestCase testCase) {
+    if (testCase == null) return;
+    dto.setDisplayId(testCase.getDisplayId());
+    dto.setDescription(testCase.getDescription());
+    dto.setPostCondition(testCase.getPostCondition());
+    dto.setIsAutomated(testCase.getIsAutomated());
+    dto.setExecutionType(testCase.getExecutionType());
+    dto.setTestTechnique(testCase.getTestTechnique());
+    dto.setLinkedDocumentIds(
+        testCase.getLinkedDocumentIds() != null
+            ? new ArrayList<>(testCase.getLinkedDocumentIds())
+            : null);
   }
 
   /** 폴더 경로 캐시를 사용한 재귀 경로 생성 (DB 왕복 없음) */
@@ -1527,35 +1547,41 @@ public class TestResultReportService {
       }
     }
 
-    return TestResultReportDto.builder()
-        .testCaseId(result.getTestCaseId())
-        .testCaseName(testCaseName != null ? testCaseName : "알 수 없는 테스트케이스")
-        .folderPath(folderPath != null ? folderPath : "루트")
-        .testPlanName(testPlanName)
-        .result(result.getResult())
-        .executedAt(result.getExecutedAt())
-        .executedBy(result.getExecutedBy() != null ? result.getExecutedBy().getId() : null)
-        .executorName(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null)
-        .notes(result.getNotes())
-        .tags(toSortedTagList(result.getTags())) // ICT-427
-        .jiraIssueKey(result.getJiraIssueKey())
-        .jiraIssueUrl(result.getJiraIssueUrl())
-        .jiraStatus(result.getJiraStatus())
-        .jiraSyncStatus(
-            result.getJiraSyncStatus() != null ? result.getJiraSyncStatus().toString() : null)
-        .testExecutionId(
-            result.getTestExecution() != null ? result.getTestExecution().getId() : null)
-        .testExecutionName(
-            result.getTestExecution() != null ? result.getTestExecution().getName() : null)
-        .testPlanId(
-            result.getTestExecution() != null ? result.getTestExecution().getTestPlanId() : null)
-        // ICT-277: 새로운 필드들 추가 - TestCase에서 가져오기
-        .preCondition(testCase != null ? testCase.getPreCondition() : null)
-        .expectedResults(testCase != null ? testCase.getExpectedResults() : null)
-        .steps(testCase != null ? testCase.getSteps() : null)
-        .stepResults(toStepResultDtos(result)) // ICT-469
-        .attachmentCount(result.getActiveAttachmentCount())
-        .build();
+    TestResultReportDto dto =
+        TestResultReportDto.builder()
+            .testCaseId(result.getTestCaseId())
+            .testCaseName(testCaseName != null ? testCaseName : "알 수 없는 테스트케이스")
+            .folderPath(folderPath != null ? folderPath : "루트")
+            .testPlanName(testPlanName)
+            .result(result.getResult())
+            .executedAt(result.getExecutedAt())
+            .executedBy(result.getExecutedBy() != null ? result.getExecutedBy().getId() : null)
+            .executorName(
+                result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null)
+            .notes(result.getNotes())
+            .tags(toSortedTagList(result.getTags())) // ICT-427
+            .jiraIssueKey(result.getJiraIssueKey())
+            .jiraIssueUrl(result.getJiraIssueUrl())
+            .jiraStatus(result.getJiraStatus())
+            .jiraSyncStatus(
+                result.getJiraSyncStatus() != null ? result.getJiraSyncStatus().toString() : null)
+            .testExecutionId(
+                result.getTestExecution() != null ? result.getTestExecution().getId() : null)
+            .testExecutionName(
+                result.getTestExecution() != null ? result.getTestExecution().getName() : null)
+            .testPlanId(
+                result.getTestExecution() != null
+                    ? result.getTestExecution().getTestPlanId()
+                    : null)
+            // ICT-277: 새로운 필드들 추가 - TestCase에서 가져오기
+            .preCondition(testCase != null ? testCase.getPreCondition() : null)
+            .expectedResults(testCase != null ? testCase.getExpectedResults() : null)
+            .steps(testCase != null ? testCase.getSteps() : null)
+            .stepResults(toStepResultDtos(result)) // ICT-469
+            .attachmentCount(result.getActiveAttachmentCount())
+            .build();
+    applyTestCaseDetails(dto, testCase);
+    return dto;
   }
 
   /** 테스트 케이스의 폴더 경로를 재귀적으로 생성 */

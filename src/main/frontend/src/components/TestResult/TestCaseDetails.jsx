@@ -13,7 +13,6 @@ import {
   TableRow,
   ToggleButton,
   ToggleButtonGroup,
-  TextField,
   Button,
   Tooltip,
 } from "@mui/material";
@@ -23,6 +22,7 @@ import {
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import RichMarkdownEditor from "../TestCase/RichMarkdownEditor.jsx";
 import { countEnteredSteps } from "../../utils/stepResults.js";
 
 // ICT-469: 스텝 결과 버튼 (P/F/B). 다시 누르면 NOT_RUN 으로 되돌린다
@@ -31,6 +31,9 @@ const STEP_RESULT_OPTIONS = [
   { value: "FAIL", label: "F", color: "error" },
   { value: "BLOCKED", label: "B", color: "warning" },
 ];
+
+// 서버 TestResultStepDto.actualResult 의 @Size(max = 10000) 과 같은 값
+const STEP_ACTUAL_MAX = 10000;
 
 const Subtitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
@@ -416,29 +419,47 @@ const TestCaseDetails = ({
                               </ToggleButtonGroup>
                             </TableCell>
                             <TableCell sx={{ verticalAlign: "top" }}>
-                              <TextField
-                                size="small"
-                                fullWidth
-                                multiline
-                                maxRows={6}
-                                disabled={stepInputDisabled}
-                                placeholder={t(
-                                  "testResult.steps.actualResultPlaceholder",
-                                  "관찰한 내용이나 메모",
-                                )}
+                              {/* ICT-472: 마크다운 입력. 표 칸에 맞게 작은 글씨로 그리고, 예전에
+                                  일반 텍스트로 저장된 한 줄 바꿈도 그대로 보여 준다 */}
+                              <RichMarkdownEditor
                                 value={
                                   stepResults[step.stepNumber]?.actualResult ||
                                   ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   onStepChange(step.stepNumber, {
-                                    actualResult: e.target.value,
+                                    actualResult: value || "",
                                   })
                                 }
-                                inputProps={{
-                                  "data-testid": `step-${step.stepNumber}-actual`,
-                                  maxLength: 10000,
-                                }}
+                                placeholder={t(
+                                  "testResult.steps.actualResultPlaceholder",
+                                  "관찰한 내용이나 메모",
+                                )}
+                                maxLines={6}
+                                isViewer={stepInputDisabled}
+                                theme={theme}
+                                t={t}
+                                // 서버 한도(10,000자)를 넘으면 저장이 거부되므로 칸에서 먼저 알린다
+                                error={
+                                  (
+                                    stepResults[step.stepNumber]
+                                      ?.actualResult || ""
+                                  ).length > STEP_ACTUAL_MAX
+                                }
+                                hideHelperText={
+                                  (
+                                    stepResults[step.stepNumber]
+                                      ?.actualResult || ""
+                                  ).length <= STEP_ACTUAL_MAX
+                                }
+                                helperText={t(
+                                  "testResult.steps.actualResultTooLong",
+                                  "실제 결과는 {max}자까지 저장할 수 있습니다.",
+                                  { max: STEP_ACTUAL_MAX.toLocaleString() },
+                                )}
+                                dense
+                                keepLineBreaks
+                                testid={`step-${step.stepNumber}-actual`}
                               />
                             </TableCell>
                           </>

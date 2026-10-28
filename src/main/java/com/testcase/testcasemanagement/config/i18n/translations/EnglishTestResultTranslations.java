@@ -236,6 +236,11 @@ public class EnglishTestResultTranslations {
         "What you observed, or a note",
         createdBy);
     createTranslationIfNotExists(
+        "testResult.steps.actualResultTooLong",
+        languageCode,
+        "Actual result can be up to {max} characters.",
+        createdBy);
+    createTranslationIfNotExists(
         "testResult.steps.passAll", languageCode, "Pass all steps", createdBy);
     createTranslationIfNotExists(
         "testResult.steps.enteredCount", languageCode, "{entered}/{total} entered", createdBy);

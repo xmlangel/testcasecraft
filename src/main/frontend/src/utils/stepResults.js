@@ -143,7 +143,12 @@ export const formatProblemStepsMarkdown = (steps, labels) => {
     );
     if (s.expectedResult)
       lines.push(`  - ${labels.expected}: ${s.expectedResult}`);
-    if (s.actualResult) lines.push(`  - ${labels.actual}: ${s.actualResult}`);
+    // ICT-472: 실제 결과는 여러 줄 마크다운일 수 있다. 다음 줄을 목록 항목 안으로
+    // 들여 써야 목록이 끊기지 않는다
+    if (s.actualResult)
+      lines.push(
+        `  - ${labels.actual}: ${s.actualResult.replace(/\r?\n/g, "\n    ")}`,
+      );
   });
   return `${lines.join("\n")}\n\n`;
 };

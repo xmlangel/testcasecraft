@@ -82,4 +82,70 @@ public class ExportServiceStepResultsTest {
     byte[] bytes = exportService.exportToPdf(new PageImpl<>(List.of(withSteps())), filter());
     assertTrue(new String(bytes, 0, 5, StandardCharsets.ISO_8859_1).startsWith("%PDF-"));
   }
+
+  @Test
+  public void excelStepResultsAreMarkdownStripped() throws Exception {
+    TestResultReportDto r = withSteps();
+    r.setStepResults(
+        List.of(new TestResultStepDto(1, "FAIL", "**오류** ![shot](/api/x?token=abc)", "열기", "화면")));
+    byte[] bytes = exportService.exportToExcel(new PageImpl<>(List.of(r)), filter());
+    try (Workbook wb = new XSSFWorkbook(new ByteArrayInputStream(bytes))) {
+      String cell = wb.getSheetAt(0).getRow(1).getCell(2).getStringCellValue();
+      assertFalse(cell.contains("token"), cell);
+      assertFalse(cell.contains("**"), cell);
+      String actual = wb.getSheet("스텝 결과").getRow(1).getCell(6).getStringCellValue();
+      assertFalse(actual.contains("token"), actual);
+    }
+  }
+
+  /** ICT-472: 화면 표에서 켤 수 있는 열이 서버 내보내기에서도 값과 헤더를 갖는다 */
+  @Test
+  public void excelHasRemainingTableColumns() throws Exception {
+    TestResultReportDto r = withoutSteps();
+    r.setDisplayId("TC-7");
+    r.setDescription("설명 ![캡처](/api/x?token=abc)");
+    r.setPostCondition("로그아웃");
+    r.setIsAutomated(true);
+    r.setExecutionType("Automation");
+    r.setTestTechnique("경계값 분석");
+    r.setTags(List.of("smoke", "login"));
+    r.setLinkedDocumentIds(List.of("doc-1"));
+    r.setAttachmentCount(2);
+    TestResultFilterDto f = new TestResultFilterDto();
+    List<String> cols =
+        List.of(
+            "displayId",
+            "description",
+            "postCondition",
+            "isAutomated",
+            "executionType",
+            "testTechnique",
+            "tags",
+            "linkedDocuments",
+            "attachments");
+    f.setDisplayColumns(cols);
+    byte[] bytes = exportService.exportToExcel(new PageImpl<>(List.of(r)), f);
+    try (Workbook wb = new XSSFWorkbook(new ByteArrayInputStream(bytes))) {
+      Sheet main = wb.getSheetAt(0);
+      String[] expectedHeaders = {
+        "Display ID", "설명", "사후 조건", "자동화 여부", "실행 타입", "테스트 기법", "태그", "연결된 RAG 문서", "첨부파일"
+      };
+      String[] expectedValues = {
+        "TC-7",
+        "설명 [이미지: 캡처]",
+        "로그아웃",
+        "Automation",
+        "Automation",
+        "경계값 분석",
+        "smoke, login",
+        "doc-1",
+        "첨부 2건"
+      };
+      for (int i = 0; i < cols.size(); i++) {
+        assertEquals(main.getRow(0).getCell(i).getStringCellValue(), expectedHeaders[i]);
+        assertEquals(
+            main.getRow(1).getCell(i).getStringCellValue(), expectedValues[i], cols.get(i));
+      }
+    }
+  }
 }

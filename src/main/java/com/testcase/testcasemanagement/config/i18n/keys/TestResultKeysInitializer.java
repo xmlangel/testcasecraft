@@ -206,6 +206,11 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.steps.actualResultPlaceholder", "testResult", "실제 결과 입력 안내", "관찰한 내용이나 메모");
     createTranslationKeyIfNotExists(
+        "testResult.steps.actualResultTooLong",
+        "testResult",
+        "실제 결과 글자 수 초과 안내",
+        "실제 결과는 {max}자까지 저장할 수 있습니다.");
+    createTranslationKeyIfNotExists(
         "testResult.steps.passAll", "testResult", "모든 스텝 Pass 버튼", "모든 스텝 Pass");
     createTranslationKeyIfNotExists(
         "testResult.steps.enteredCount", "testResult", "입력한 스텝 수", "{entered}/{total} 입력");
