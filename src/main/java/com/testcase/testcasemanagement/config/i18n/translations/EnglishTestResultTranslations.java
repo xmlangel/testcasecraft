@@ -224,6 +224,23 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists("testResult.steps.empty", languageCode, "No steps", createdBy);
     createTranslationIfNotExists(
         "testResult.steps.description", languageCode, "Description", createdBy);
+    // ICT-469: step results
+    createTranslationIfNotExists("testResult.steps.title", languageCode, "Step results", createdBy);
+    createTranslationIfNotExists("testResult.steps.step", languageCode, "Step", createdBy);
+    createTranslationIfNotExists("testResult.steps.result", languageCode, "Result", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.actualResult", languageCode, "Actual result", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.actualResultPlaceholder",
+        languageCode,
+        "What you observed, or a note",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAll", languageCode, "Pass all steps", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.enteredCount", languageCode, "{entered}/{total} entered", createdBy);
+    createTranslationIfNotExists(
+        "testResult.column.stepResults", languageCode, "Step results", createdBy);
 
     // Column Headers (Extended)
     createTranslationIfNotExists("testResult.column.folder", languageCode, "Folder", createdBy);

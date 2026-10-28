@@ -228,6 +228,8 @@ public class JiraIntegrationKeysInitializer {
         "조치 필요: 실패한 테스트를 검토하고 관련 이슈를 수정해 주세요.");
     createTranslationKeyIfNotExists(
         "jira.comment.template.footer", "jira", "자동 생성 푸터", "Test Case Manager에서 자동 생성됨");
+    createTranslationKeyIfNotExists(
+        "jira.comment.template.problemSteps", "jira", "실패·차단 스텝 제목", "실패·차단 스텝");
 
     // JIRA Summary 관련 추가 키들
     createTranslationKeyIfNotExists(
