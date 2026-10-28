@@ -36,6 +36,12 @@ import {
   canRecordTestResult,
 } from "./TestCaseTree/utils/permissionUtils.js";
 import useResultShortcuts from "../hooks/useResultShortcuts.js";
+import {
+  stepResultsFromSaved,
+  toStepPayload,
+  rollupStepResults,
+  passAllEmptySteps,
+} from "../utils/stepResults.js";
 
 const KEY_RESULT_MAP = {
   N: TestResult.NOT_RUN,
@@ -77,6 +83,8 @@ const TestResultForm = ({
   const isViewer = !canRecordTestResult(projectRole);
   const [result, setResult] = useState(TestResult.NOT_RUN);
   const [notes, setNotes] = useState("");
+  // ICT-469: 스텝별 결과 { [stepNumber]: { result, actualResult } }
+  const [stepResults, setStepResults] = useState({});
   const [tags, setTags] = useState([]);
   const [jiraIssueKey, setJiraIssueKey] = useState("");
   const [loading, setLoading] = useState(true);
@@ -143,6 +151,7 @@ const TestResultForm = ({
       tags: currentResult.tags,
       jiraIssueKey: currentResult.jiraIssueKey,
       id: currentResult.id,
+      steps: currentResult.steps || [],
     };
   }, [
     currentResult?.result,
@@ -151,7 +160,29 @@ const TestResultForm = ({
     currentResult?.id,
     // tags는 배열이므로 JSON으로 비교
     JSON.stringify(currentResult?.tags || []),
+    JSON.stringify(currentResult?.steps || []),
   ]);
+
+  // ICT-469: 스텝 결과의 기준 스텝. 저장된 결과에 실행 당시 사본이 있으면 그것을, 없으면 지금 케이스 스텝을 쓴다
+  const stepBase = useMemo(
+    () =>
+      stableCurrentResult?.steps?.length
+        ? stableCurrentResult.steps
+        : testCase?.steps || [],
+    [stableCurrentResult?.steps, testCase?.steps],
+  );
+  const stepPayload = useMemo(
+    () => toStepPayload(stepBase, stepResults),
+    [stepBase, stepResults],
+  );
+  const savedStepPayload = useMemo(
+    () =>
+      toStepPayload(
+        stableCurrentResult?.steps || [],
+        stepResultsFromSaved(stableCurrentResult?.steps),
+      ),
+    [stableCurrentResult?.steps],
+  );
 
   // 자동 저장용 데이터 (fullPage 모드 + 사용자가 실제 수정한 경우에만 활성화)
   // userEdited=false면 null을 반환해 useAutoSave의 디바운스 저장과
@@ -163,6 +194,7 @@ const TestResultForm = ({
       notes,
       tags,
       jiraIssueKey,
+      steps: stepPayload,
       // baseline(markSaved)은 신규 결과에서 _resultId를 null로 설정하므로
       // undefined가 아닌 null로 정규화해야 dirty 오탐(입력 없이 저장)을 막는다.
       _resultId: stableCurrentResult?.id ?? null,
@@ -174,6 +206,7 @@ const TestResultForm = ({
     notes,
     tags,
     jiraIssueKey,
+    stepPayload,
     stableCurrentResult?.id,
   ]);
 
@@ -190,6 +223,9 @@ const TestResultForm = ({
       };
       if (data.jiraIssueKey?.trim()) {
         requestData.jiraIssueKey = data.jiraIssueKey;
+      }
+      if (data.steps) {
+        requestData.steps = data.steps;
       }
 
       if (data._resultId) {
@@ -214,7 +250,8 @@ const TestResultForm = ({
             data.result === "NOTRUN") &&
           !(data.notes && data.notes.trim()) &&
           !(data.tags && data.tags.length) &&
-          !(data.jiraIssueKey && data.jiraIssueKey.trim());
+          !(data.jiraIssueKey && data.jiraIssueKey.trim()) &&
+          !data.steps;
         if (isEmptyNew) {
           return;
         }
@@ -254,6 +291,7 @@ const TestResultForm = ({
       setResult(TestResult.NOT_RUN);
       setNotes("");
       setTags([]);
+      setStepResults({});
       setJiraIssueKey("");
       setLinkedIssues([]);
       setDetectedJiraIssues([]);
@@ -263,6 +301,7 @@ const TestResultForm = ({
           notes: "",
           tags: [],
           jiraIssueKey: "",
+          steps: null,
           _resultId: null,
         },
         { skipStatusReset: true },
@@ -275,6 +314,7 @@ const TestResultForm = ({
     setResult(stableCurrentResult.result || TestResult.NOT_RUN);
     setNotes(stableCurrentResult.notes || "");
     setTags(stableCurrentResult.tags || []);
+    setStepResults(stepResultsFromSaved(stableCurrentResult.steps));
     const initialJiraKey = stableCurrentResult.jiraIssueKey || "";
     setJiraIssueKey(initialJiraKey);
 
@@ -318,6 +358,10 @@ const TestResultForm = ({
         notes: stableCurrentResult.notes || "",
         tags: stableCurrentResult.tags || [],
         jiraIssueKey: stableCurrentResult.jiraIssueKey || "",
+        steps: toStepPayload(
+          stableCurrentResult.steps || [],
+          stepResultsFromSaved(stableCurrentResult.steps),
+        ),
         // autoSaveData와 동일하게 null로 정규화 (undefined는 JSON에서 탈락해 dirty 오탐)
         _resultId: stableCurrentResult.id ?? null,
       },
@@ -623,6 +667,9 @@ const TestResultForm = ({
         if (processedJiraKey) {
           requestData.jiraIssueKey = processedJiraKey;
         }
+        if (stepPayload) {
+          requestData.steps = stepPayload;
+        }
 
         // 변경 사항 비교: 기존 결과가 있고, 결과/노트/태그/JIRA가 모두 동일하며
         // 새로 첨부한 파일이 없으면 저장하지 않고 이전 결과를 그대로 유지한다.
@@ -639,6 +686,7 @@ const TestResultForm = ({
           (stableCurrentResult.jiraIssueKey || "") ===
             (processedJiraKey || "") &&
           areTagsEqual(stableCurrentResult.tags || [], tags || []) &&
+          JSON.stringify(savedStepPayload) === JSON.stringify(stepPayload) &&
           attachedFiles.length === 0;
 
         // 신규(기존 결과 없음)인데 결과가 NOT_RUN이고 노트/태그/JIRA/첨부가
@@ -651,6 +699,7 @@ const TestResultForm = ({
           !(notes && notes.trim()) &&
           (!tags || tags.length === 0) &&
           !(processedJiraKey && processedJiraKey.trim()) &&
+          !stepPayload &&
           attachedFiles.length === 0;
 
         if (isUnchanged || isEmptyNew) {
@@ -728,8 +777,34 @@ const TestResultForm = ({
       t,
       isPreviousResultEdit,
       stableCurrentResult,
+      stepPayload,
+      savedStepPayload,
     ],
   );
+
+  // ICT-469: 스텝 결과를 바꾸면 종합 결과를 다시 계산한다. 사람이 종합 결과를 바꾸면 다음 스텝 변경 전까지 그 값을 쓴다
+  const handleStepChange = useCallback(
+    (stepNumber, patch) => {
+      setUserEdited(true);
+      const prev = stepResults[stepNumber] || {
+        result: TestResult.NOT_RUN,
+        actualResult: "",
+      };
+      const next = { ...stepResults, [stepNumber]: { ...prev, ...patch } };
+      setStepResults(next);
+      if (patch.result !== undefined) {
+        setResult(rollupStepResults(stepBase, next));
+      }
+    },
+    [stepResults, stepBase],
+  );
+
+  const handlePassAllSteps = useCallback(() => {
+    setUserEdited(true);
+    const next = passAllEmptySteps(stepBase, stepResults);
+    setStepResults(next);
+    setResult(rollupStepResults(stepBase, next));
+  }, [stepResults, stepBase]);
 
   const handleFileUploads = async (testResultId) => {
     if (!testResultId || attachedFiles.length === 0) return;
@@ -893,7 +968,18 @@ const TestResultForm = ({
         </Alert>
       ) : testCase ? (
         <>
-          <TestCaseDetails testCase={testCase} t={t} />
+          <TestCaseDetails
+            testCase={
+              stableCurrentResult?.steps?.length
+                ? { ...testCase, steps: stableCurrentResult.steps }
+                : testCase
+            }
+            t={t}
+            stepResults={stepResults}
+            onStepChange={handleStepChange}
+            onPassAllSteps={handlePassAllSteps}
+            stepInputDisabled={isViewer}
+          />
 
           {/* 케이스에 붙은 첨부파일 — 업로드는 케이스 편집에서 하고, 삭제는 케이스 편집 권한
               (TESTER 제외)이 있을 때만 연다. 서버도 같은 기준(canEditTestCaseAttachment)으로 막는다. */}

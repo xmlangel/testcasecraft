@@ -1,0 +1,79 @@
+// ICT-469: 스텝별 결과 입력 도우미
+// 상태 모양: { [stepNumber]: { result, actualResult } }. 없는 스텝은 NOT_RUN·빈 실제 결과로 본다.
+import { TestResult } from "../models/testExecution.jsx";
+
+const sortedNumbers = (caseSteps = []) =>
+  [...(caseSteps || [])].map((s) => s.stepNumber).sort((a, b) => a - b);
+
+/** 저장된 결과의 steps 배열을 입력 상태로 바꾼다. */
+export const stepResultsFromSaved = (savedSteps) => {
+  const map = {};
+  (savedSteps || []).forEach((s) => {
+    map[s.stepNumber] = {
+      result: s.result || TestResult.NOT_RUN,
+      actualResult: s.actualResult || "",
+    };
+  });
+  return map;
+};
+
+const entryOf = (map, n) =>
+  map?.[n] || { result: TestResult.NOT_RUN, actualResult: "" };
+
+/** 스텝에 하나라도 값이 들어갔는지. 아무것도 없으면 steps 를 보내지 않는다(기존 동작). */
+export const hasStepInput = (caseSteps, map) =>
+  sortedNumbers(caseSteps).some((n) => {
+    const e = entryOf(map, n);
+    return (
+      (e.result && e.result !== TestResult.NOT_RUN) ||
+      !!(e.actualResult && e.actualResult.trim())
+    );
+  });
+
+/** 요청용 steps 배열. 입력이 없으면 null. */
+export const toStepPayload = (caseSteps, map) => {
+  if (!hasStepInput(caseSteps, map)) return null;
+  return sortedNumbers(caseSteps).map((n) => {
+    const e = entryOf(map, n);
+    const item = { stepNumber: n, result: e.result || TestResult.NOT_RUN };
+    if (e.actualResult && e.actualResult.trim())
+      item.actualResult = e.actualResult;
+    return item;
+  });
+};
+
+/** 스텝 결과로 종합 결과 계산. FAIL > BLOCKED > 미완료(NOT_RUN) > 모두 PASS. 서버 규칙과 같다. */
+export const rollupStepResults = (caseSteps, map) => {
+  const numbers = sortedNumbers(caseSteps);
+  if (numbers.length === 0) return TestResult.NOT_RUN;
+  const values = numbers.map((n) => entryOf(map, n).result);
+  if (values.includes(TestResult.FAIL)) return TestResult.FAIL;
+  if (values.includes(TestResult.BLOCKED)) return TestResult.BLOCKED;
+  if (values.some((v) => v !== TestResult.PASS)) return TestResult.NOT_RUN;
+  return TestResult.PASS;
+};
+
+/** 입력한 스텝 수 / 전체 스텝 수 (NOT_RUN 이 아닌 스텝) */
+export const countEnteredSteps = (caseSteps, map) => {
+  const numbers = sortedNumbers(caseSteps);
+  const entered = numbers.filter(
+    (n) => entryOf(map, n).result !== TestResult.NOT_RUN,
+  ).length;
+  return { entered, total: numbers.length };
+};
+
+/** 비어 있는 스텝(NOT_RUN)을 모두 PASS 로 채운다. 이미 고른 값은 그대로 둔다. */
+export const passAllEmptySteps = (caseSteps, map) => {
+  const next = { ...(map || {}) };
+  sortedNumbers(caseSteps).forEach((n) => {
+    const e = entryOf(next, n);
+    if (e.result === TestResult.NOT_RUN)
+      next[n] = { ...e, result: TestResult.PASS };
+  });
+  return next;
+};
+
+/** 두 입력 상태가 요청 기준으로 같은지 (변경 없음 판정용) */
+export const sameStepPayload = (caseSteps, a, b) =>
+  JSON.stringify(toStepPayload(caseSteps, a)) ===
+  JSON.stringify(toStepPayload(caseSteps, b));

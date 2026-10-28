@@ -12,6 +12,9 @@ import {
   TableHead,
   TableRow,
   ToggleButton,
+  ToggleButtonGroup,
+  TextField,
+  Button,
   Tooltip,
 } from "@mui/material";
 import {
@@ -20,6 +23,14 @@ import {
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import { countEnteredSteps } from "../../utils/stepResults.js";
+
+// ICT-469: 스텝 결과 버튼 (P/F/B). 다시 누르면 NOT_RUN 으로 되돌린다
+const STEP_RESULT_OPTIONS = [
+  { value: "PASS", label: "P", color: "success" },
+  { value: "FAIL", label: "F", color: "error" },
+  { value: "BLOCKED", label: "B", color: "warning" },
+];
 
 const Subtitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
@@ -72,7 +83,16 @@ const buildWrapSx = ({ wrap }) =>
       }
     : {};
 
-const TestCaseDetails = ({ testCase, t }) => {
+// stepResults·onStepChange 를 넘기면 스텝 표에 결과와 실제 결과 칸이 붙는다(ICT-469). 넘기지 않으면 기존 표 그대로.
+const TestCaseDetails = ({
+  testCase,
+  t,
+  stepResults = null,
+  onStepChange = null,
+  onPassAllSteps = null,
+  stepInputDisabled = false,
+}) => {
+  const withStepResults = !!stepResults && !!onStepChange;
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
   const [viewOptions, setViewOptions] = useState(readViewOptions);
@@ -277,16 +297,53 @@ const TestCaseDetails = ({ testCase, t }) => {
 
         {testCase.steps?.length > 0 && (
           <Box sx={{ mt: 1, mb: 1.5 }}>
-            <Subtitle variant="subtitle2" gutterBottom>
-              {t("testResult.form.testSteps")}
-            </Subtitle>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Subtitle variant="subtitle2" gutterBottom sx={{ flexGrow: 1 }}>
+                {t("testResult.form.testSteps")}
+                {withStepResults &&
+                  (() => {
+                    const { entered, total } = countEnteredSteps(
+                      testCase.steps,
+                      stepResults,
+                    );
+                    return ` (${t("testResult.steps.enteredCount", "{entered}/{total} 입력", { entered, total })})`;
+                  })()}
+              </Subtitle>
+              {withStepResults && onPassAllSteps && !stepInputDisabled && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="success"
+                  onClick={onPassAllSteps}
+                  data-testid="pass-all-steps"
+                >
+                  {t("testResult.steps.passAll", "모든 스텝 Pass")}
+                </Button>
+              )}
+            </Box>
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell width="10%">No.</TableCell>
-                    <TableCell width="60%">Step</TableCell>
-                    <TableCell width="30%">Expected</TableCell>
+                    <TableCell width={withStepResults ? "6%" : "10%"}>
+                      No.
+                    </TableCell>
+                    <TableCell width={withStepResults ? "32%" : "60%"}>
+                      Step
+                    </TableCell>
+                    <TableCell width={withStepResults ? "22%" : "30%"}>
+                      Expected
+                    </TableCell>
+                    {withStepResults && (
+                      <>
+                        <TableCell width="14%">
+                          {t("testResult.steps.result", "결과")}
+                        </TableCell>
+                        <TableCell width="26%">
+                          {t("testResult.steps.actualResult", "실제 결과")}
+                        </TableCell>
+                      </>
+                    )}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -325,6 +382,67 @@ const TestCaseDetails = ({ testCase, t }) => {
                             />
                           </Box>
                         </TableCell>
+                        {withStepResults && (
+                          <>
+                            <TableCell sx={{ verticalAlign: "top" }}>
+                              <ToggleButtonGroup
+                                size="small"
+                                exclusive
+                                disabled={stepInputDisabled}
+                                value={
+                                  stepResults[step.stepNumber]?.result ||
+                                  "NOT_RUN"
+                                }
+                                onChange={(_, value) =>
+                                  onStepChange(step.stepNumber, {
+                                    result: value || "NOT_RUN",
+                                  })
+                                }
+                                aria-label={`step-${step.stepNumber}-result`}
+                              >
+                                {STEP_RESULT_OPTIONS.map((opt) => (
+                                  <ToggleButton
+                                    key={opt.value}
+                                    value={opt.value}
+                                    color={opt.color}
+                                    data-testid={`step-${step.stepNumber}-${opt.value}`}
+                                    sx={{ px: 1, py: 0.25, fontWeight: 700 }}
+                                  >
+                                    <Tooltip title={opt.value}>
+                                      <span>{opt.label}</span>
+                                    </Tooltip>
+                                  </ToggleButton>
+                                ))}
+                              </ToggleButtonGroup>
+                            </TableCell>
+                            <TableCell sx={{ verticalAlign: "top" }}>
+                              <TextField
+                                size="small"
+                                fullWidth
+                                multiline
+                                maxRows={6}
+                                disabled={stepInputDisabled}
+                                placeholder={t(
+                                  "testResult.steps.actualResultPlaceholder",
+                                  "관찰한 내용이나 메모",
+                                )}
+                                value={
+                                  stepResults[step.stepNumber]?.actualResult ||
+                                  ""
+                                }
+                                onChange={(e) =>
+                                  onStepChange(step.stepNumber, {
+                                    actualResult: e.target.value,
+                                  })
+                                }
+                                inputProps={{
+                                  "data-testid": `step-${step.stepNumber}-actual`,
+                                  maxLength: 10000,
+                                }}
+                              />
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                 </TableBody>
