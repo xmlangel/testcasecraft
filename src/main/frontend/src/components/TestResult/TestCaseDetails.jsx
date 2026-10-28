@@ -13,7 +13,6 @@ import {
   TableRow,
   ToggleButton,
   ToggleButtonGroup,
-  TextField,
   Button,
   Tooltip,
 } from "@mui/material";
@@ -23,6 +22,7 @@ import {
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import RichMarkdownEditor from "../TestCase/RichMarkdownEditor.jsx";
 import { countEnteredSteps } from "../../utils/stepResults.js";
 
 // ICT-469: 스텝 결과 버튼 (P/F/B). 다시 누르면 NOT_RUN 으로 되돌린다
@@ -416,29 +416,30 @@ const TestCaseDetails = ({
                               </ToggleButtonGroup>
                             </TableCell>
                             <TableCell sx={{ verticalAlign: "top" }}>
-                              <TextField
-                                size="small"
-                                fullWidth
-                                multiline
-                                maxRows={6}
-                                disabled={stepInputDisabled}
-                                placeholder={t(
-                                  "testResult.steps.actualResultPlaceholder",
-                                  "관찰한 내용이나 메모",
-                                )}
+                              {/* ICT-472: 마크다운 입력. 표 칸에 맞게 작은 글씨로 그리고, 예전에
+                                  일반 텍스트로 저장된 한 줄 바꿈도 그대로 보여 준다 */}
+                              <RichMarkdownEditor
                                 value={
                                   stepResults[step.stepNumber]?.actualResult ||
                                   ""
                                 }
-                                onChange={(e) =>
+                                onChange={(value) =>
                                   onStepChange(step.stepNumber, {
-                                    actualResult: e.target.value,
+                                    actualResult: value || "",
                                   })
                                 }
-                                inputProps={{
-                                  "data-testid": `step-${step.stepNumber}-actual`,
-                                  maxLength: 10000,
-                                }}
+                                placeholder={t(
+                                  "testResult.steps.actualResultPlaceholder",
+                                  "관찰한 내용이나 메모",
+                                )}
+                                maxLines={6}
+                                isViewer={stepInputDisabled}
+                                theme={theme}
+                                t={t}
+                                hideHelperText
+                                dense
+                                keepLineBreaks
+                                testid={`step-${step.stepNumber}-actual`}
                               />
                             </TableCell>
                           </>

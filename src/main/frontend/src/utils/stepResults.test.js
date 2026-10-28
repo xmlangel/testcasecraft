@@ -178,4 +178,14 @@ describe("stepResults Jira 댓글 (ICT-469)", () => {
       "**실패·차단 스텝**\n- 2. FAIL 저장\n  - 기대: 알림\n  - 실제: 반응 없음\n- 3. BLOCKED 로그아웃\n\n",
     );
   });
+
+  it("여러 줄 실제 결과는 목록 항목 안으로 들여 쓴다 (ICT-472)", async () => {
+    const { formatProblemStepsMarkdown } = await import("./stepResults.js");
+    expect(
+      formatProblemStepsMarkdown(
+        [{ stepNumber: 1, result: "FAIL", actualResult: "첫 줄\r\n둘째 줄" }],
+        { title: "T", expected: "기대", actual: "실제" },
+      ),
+    ).toBe("**T**\n- 1. FAIL\n  - 실제: 첫 줄\n    둘째 줄\n\n");
+  });
 });

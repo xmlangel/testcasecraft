@@ -12,6 +12,8 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import { preserveLineBreaks } from "../../utils/markdownLineBreaks.js";
 
 const RESULT_COLOR = {
   PASS: "success",
@@ -108,8 +110,15 @@ const StepResultsSummary = ({ steps, t, compact = false }) => {
                 label={s.result || "NOT_RUN"}
               />
             </TableCell>
-            <TableCell sx={{ whiteSpace: "pre-wrap" }}>
-              {s.actualResult || ""}
+            <TableCell>
+              {/* ICT-472: 실제 결과는 마크다운으로 입력받는다 */}
+              <MarkdownViewer
+                content={preserveLineBreaks(s.actualResult || "")}
+                style={{
+                  fontSize: "0.8rem",
+                  backgroundColor: "transparent",
+                }}
+              />
             </TableCell>
           </TableRow>
         ))}
