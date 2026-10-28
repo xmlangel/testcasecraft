@@ -76,6 +76,8 @@ export const ExportMenu = ({
   onExportCsv,
   onExportExcel,
   onExportPdf,
+  onExportCsvRaw,
+  onExportExcelRaw,
   t,
 }) => (
   <Menu
@@ -114,6 +116,40 @@ export const ExportMenu = ({
         )}
       />
     </MenuItem>
+    {onExportCsvRaw && (
+      <MenuItem onClick={onExportCsvRaw}>
+        <ListItemIcon>
+          <DownloadIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText
+          primary={t(
+            "testcase.spreadsheet.export.csvRaw.title",
+            "CSV로 내보내기 (가져오기용 원문)",
+          )}
+          secondary={t(
+            "testcase.spreadsheet.export.csvRaw.description",
+            "본문 이미지를 그대로 둡니다. 다시 가져오기할 때 사용",
+          )}
+        />
+      </MenuItem>
+    )}
+    {onExportExcelRaw && (
+      <MenuItem onClick={onExportExcelRaw}>
+        <ListItemIcon>
+          <GetAppIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText
+          primary={t(
+            "testcase.spreadsheet.export.excelRaw.title",
+            "Excel로 내보내기 (가져오기용 원문)",
+          )}
+          secondary={t(
+            "testcase.spreadsheet.export.excelRaw.description",
+            "본문 이미지를 그대로 둡니다. 다시 가져오기할 때 사용",
+          )}
+        />
+      </MenuItem>
+    )}
     <MenuItem onClick={onExportPdf}>
       <ListItemIcon>
         <DownloadIcon fontSize="small" color="primary" />
@@ -138,5 +174,7 @@ ExportMenu.propTypes = {
   onExportCsv: PropTypes.func,
   onExportExcel: PropTypes.func,
   onExportPdf: PropTypes.func,
+  onExportCsvRaw: PropTypes.func,
+  onExportExcelRaw: PropTypes.func,
   t: PropTypes.func.isRequired,
 };

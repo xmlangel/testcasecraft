@@ -41,6 +41,7 @@ import { useTheme } from "../../context/ThemeContext.jsx";
 import { API_ENDPOINTS, buildUrl } from "../../utils/apiConstants.js";
 import {
   escapeHtml,
+  markdownToExportText,
   markdownToHtml,
   parseMarkdownBlocks,
 } from "../../utils/markdownRender.js";
@@ -316,11 +317,15 @@ const TestResultExportDialog = ({
     return steps
       .map((step, index) => {
         const number = step.stepNumber || index + 1;
-        const description = step.description ? ` ${step.description}` : "";
+        const imageLabel = t("export.imagePlaceholder", "이미지");
+        const description = step.description
+          ? ` ${markdownToExportText(step.description, imageLabel)}`
+          : "";
         const expected = step.expectedResult
-          ? ` (${t("testResult.steps.expectedResult", "예상결과")}: ${
-              step.expectedResult
-            })`
+          ? ` (${t("testResult.steps.expectedResult", "예상결과")}: ${markdownToExportText(
+              step.expectedResult,
+              imageLabel,
+            )})`
           : "";
         return `${number}.${description}${expected}`;
       })
@@ -377,7 +382,11 @@ const TestResultExportDialog = ({
       case "preCondition":
       case "postCondition":
       case "expectedResults":
-        return value ? value : "-";
+        // ICT-470: 본문 이미지 주소·공개 토큰을 파일에 남기지 않고 평문으로 내보낸다
+        return (
+          markdownToExportText(value, t("export.imagePlaceholder", "이미지")) ||
+          "-"
+        );
       default:
         return safeString(value);
     }
