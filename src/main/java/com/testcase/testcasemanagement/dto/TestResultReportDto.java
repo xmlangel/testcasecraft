@@ -56,6 +56,15 @@ public class TestResultReportDto {
   private String expectedResults; // 전체 예상결과
   private Object steps; // 스텝 정보 (JSON 배열 또는 문자열)
 
+  // ICT-472: 서버 내보내기에서 화면 표와 같은 열을 낼 수 있도록 케이스 정보를 함께 싣는다
+  private String displayId;
+  private String description;
+  private String postCondition;
+  private Boolean isAutomated;
+  private String executionType;
+  private String testTechnique;
+  private java.util.List<String> linkedDocumentIds;
+
   // ICT-469: 스텝별 결과 (실행 당시 스텝 설명·기대 결과 사본 포함). 스텝 결과 없이 기록된 결과는 빈 목록
   private java.util.List<TestResultStepDto> stepResults;
 

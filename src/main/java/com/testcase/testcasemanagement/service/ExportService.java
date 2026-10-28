@@ -71,6 +71,16 @@ public class ExportService {
     map.put("expectedResults", "전체 예상결과");
     map.put("steps", "스텝 정보");
     map.put("stepResults", "스텝 결과");
+    // ICT-472: 화면 표에서 켤 수 있는 나머지 열
+    map.put("displayId", "Display ID");
+    map.put("description", "설명");
+    map.put("postCondition", "사후 조건");
+    map.put("isAutomated", "자동화 여부");
+    map.put("executionType", "실행 타입");
+    map.put("testTechnique", "테스트 기법");
+    map.put("tags", "태그");
+    map.put("linkedDocuments", "연결된 RAG 문서");
+    map.put("attachments", "첨부파일");
     COLUMN_DISPLAY_NAMES = Collections.unmodifiableMap(map);
   }
 
@@ -597,9 +607,34 @@ public class ExportService {
         return formatStepsForExport(result.getSteps());
       case "stepResults":
         return fitExcelCell(formatStepResultsForExport(result.getStepResults()));
+        // ICT-472: 화면 표에서 켤 수 있는 나머지 열
+      case "displayId":
+        return result.getDisplayId();
+      case "description":
+        return ExportText.toPlain(result.getDescription());
+      case "postCondition":
+        return ExportText.toPlain(result.getPostCondition());
+      case "isAutomated":
+        return result.getIsAutomated() == null
+            ? null
+            : (result.getIsAutomated() ? "Automation" : "Manual");
+      case "executionType":
+        return result.getExecutionType();
+      case "testTechnique":
+        return result.getTestTechnique();
+      case "tags":
+        return joinOrNull(result.getTags());
+      case "linkedDocuments":
+        return joinOrNull(result.getLinkedDocumentIds());
+      case "attachments":
+        return result.getAttachmentCount() > 0 ? "첨부 " + result.getAttachmentCount() + "건" : null;
       default:
         return null;
     }
+  }
+
+  private static String joinOrNull(List<String> values) {
+    return values == null || values.isEmpty() ? null : String.join(", ", values);
   }
 
   /** ICT-469: 스텝 결과를 셀 하나에 한 줄씩 ("1. PASS", "2. FAIL - 실제 결과") */
@@ -615,7 +650,7 @@ public class ExportService {
                     + ". "
                     + (st.getResult() != null ? st.getResult() : "NOT_RUN")
                     + (st.getActualResult() != null && !st.getActualResult().isBlank()
-                        ? " - " + st.getActualResult()
+                        ? " - " + ExportText.toPlain(st.getActualResult())
                         : ""))
         .collect(java.util.stream.Collectors.joining("\n"));
   }
@@ -656,10 +691,11 @@ public class ExportService {
           r.getTestCaseName(),
           getResultDisplayName(r.getResult()),
           String.valueOf(st.getStepNumber()),
-          st.getDescription(),
-          st.getExpectedResult(),
+          // ICT-472: 스텝 본문과 실제 결과는 마크다운이라 평문으로 바꿔 싣는다
+          ExportText.toPlain(st.getDescription()),
+          ExportText.toPlain(st.getExpectedResult()),
           st.getResult(),
-          st.getActualResult()
+          ExportText.toPlain(st.getActualResult())
         };
         for (int i = 0; i < values.length; i++) {
           Cell cell = row.createCell(i);
