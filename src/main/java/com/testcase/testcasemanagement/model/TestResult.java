@@ -37,13 +37,16 @@ public class TestResult {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  @Comment(value = "테스트 실행 식별자: 이 결과가 속한 테스트 실행을 가리키는 값 (값 영역: test_executions.id 참조, UUID 36자)", on = "test_execution_id")
+  @Comment(
+      value = "테스트 실행 식별자: 이 결과가 속한 테스트 실행을 가리키는 값 (값 영역: test_executions.id 참조, UUID 36자)",
+      on = "test_execution_id")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "test_execution_id")
   private TestExecution testExecution;
 
   @Comment("테스트 케이스 식별자: 실행한 테스트 케이스의 ID (값 영역: UUID 36자)")
   private String testCaseId;
+
   @Comment("테스트 결과 상태: 테스트의 실행 결과 (값 영역: NOT_RUN, PASS, FAIL, BLOCKED)")
   private String result; // NOT_RUN, PASS, FAIL, BLOCKED
 
@@ -54,7 +57,9 @@ public class TestResult {
   @Comment("테스트 실행 일시: 이 테스트 케이스가 실제로 실행된 일시")
   private LocalDateTime executedAt;
 
-  @Comment(value = "실행자 식별자: 이 테스트를 실행한 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)", on = "executed_by")
+  @Comment(
+      value = "실행자 식별자: 이 테스트를 실행한 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)",
+      on = "executed_by")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "executed_by")
   private User executedBy;
@@ -77,7 +82,9 @@ public class TestResult {
   private String jiraCommentId;
 
   /** JIRA 동기화 상태 */
-  @Comment("Jira 동기화 상태: 테스트 결과의 Jira 동기화 진행 상태 (값 영역: NOT_SYNCED, PENDING, IN_PROGRESS, SYNCED, FAILED, RETRY_REQUIRED)")
+  @Comment(
+      "Jira 동기화 상태: 테스트 결과의 Jira 동기화 진행 상태 (값 영역: NOT_SYNCED, PENDING, IN_PROGRESS, SYNCED, FAILED,"
+          + " RETRY_REQUIRED)")
   @Enumerated(EnumType.STRING)
   @Column(name = "jira_sync_status", length = 50)
   private JiraSyncStatus jiraSyncStatus = JiraSyncStatus.NOT_SYNCED;
@@ -161,6 +168,15 @@ public class TestResult {
   @Column(name = "tag", length = 100)
   @org.hibernate.annotations.BatchSize(size = 50)
   private java.util.Set<String> tags;
+
+  // ICT-469: 스텝별 결과 (스텝 번호 순서). 비어 있으면 케이스 결과 하나로만 기록된 결과다.
+  @Comment("스텝별 결과: 테스트 결과 안에서 스텝마다 기록한 결과와 실제 결과")
+  @Comment(value = "테스트 결과 식별자: 스텝 결과가 속한 테스트 결과 (값 영역: test_results.id 참조)", on = "test_result_id")
+  @ElementCollection(fetch = FetchType.LAZY)
+  @CollectionTable(name = "test_result_steps", joinColumns = @JoinColumn(name = "test_result_id"))
+  @OrderBy("stepNumber ASC")
+  @org.hibernate.annotations.BatchSize(size = 100)
+  private List<TestResultStep> steps = new ArrayList<>();
 
   // ICT-361: 테스트 결과 첨부파일 관계
 

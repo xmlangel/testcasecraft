@@ -31,8 +31,8 @@ import org.testng.annotations.Test;
 /**
  * 프로젝트 강제 삭제 회귀 테스트.
  *
- * <p>요구사항·탐색 세션·북마크·그룹·케이스 첨부·결과 수정 이력이 있는 프로젝트를 강제 삭제하면 외래 키 위반(409)으로 실패하던 결함을 막는다.
- * 삭제 대상이 native SQL 의 테이블 이름 목록이라 실제 Postgres 로만 검증할 수 있다.
+ * <p>요구사항·탐색 세션·북마크·그룹·케이스 첨부·결과 수정 이력이 있는 프로젝트를 강제 삭제하면 외래 키 위반(409)으로 실패하던 결함을 막는다. 삭제 대상이 native
+ * SQL 의 테이블 이름 목록이라 실제 Postgres 로만 검증할 수 있다.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -127,6 +127,7 @@ public class ProjectDataPurgerTest extends AbstractTestNGSpringContextTests {
     insert("test_execution_tags", Map.of("test_execution_id", exec));
     String result = insert("test_results", Map.of("test_execution_id", exec, "test_case_id", tc));
     insert("test_result_tags", Map.of("test_result_id", result));
+    insert("test_result_steps", Map.of("test_result_id", result));
     insert("test_result_attachments", Map.of("test_result_id", result));
     insert("test_result_edits", Map.of("original_test_result_id", result));
 
@@ -216,8 +217,8 @@ public class ProjectDataPurgerTest extends AbstractTestNGSpringContextTests {
   }
 
   /**
-   * 한 행을 넣고 id 를 돌려준다. 지정하지 않은 NOT NULL 컬럼은 타입에 맞는 값으로 채운다. 각 테이블의 필수 컬럼을 테스트에 적어 두면 엔티티가 바뀔
-   * 때마다 테스트가 깨지므로, 스키마를 읽어 채운다.
+   * 한 행을 넣고 id 를 돌려준다. 지정하지 않은 NOT NULL 컬럼은 타입에 맞는 값으로 채운다. 각 테이블의 필수 컬럼을 테스트에 적어 두면 엔티티가 바뀔 때마다
+   * 테스트가 깨지므로, 스키마를 읽어 채운다.
    */
   private String insert(String table, Map<String, Object> overrides) {
     Map<String, Object> row = new LinkedHashMap<>(overrides);
@@ -263,8 +264,7 @@ public class ProjectDataPurgerTest extends AbstractTestNGSpringContextTests {
               row.values().toArray()));
     }
     jdbc.update(
-        "INSERT INTO " + table + " (" + cols + ") VALUES (" + marks + ")",
-        row.values().toArray());
+        "INSERT INTO " + table + " (" + cols + ") VALUES (" + marks + ")", row.values().toArray());
     return (String) row.get("id");
   }
 
@@ -283,8 +283,8 @@ public class ProjectDataPurgerTest extends AbstractTestNGSpringContextTests {
     return switch (dataType) {
       case "boolean" -> false;
       case "integer", "smallint", "bigint", "numeric", "double precision", "real" -> 0;
-      case "timestamp without time zone", "timestamp with time zone", "date" ->
-          new Timestamp(System.currentTimeMillis());
+      case "timestamp without time zone", "timestamp with time zone", "date" -> new Timestamp(
+          System.currentTimeMillis());
       default -> {
         String v = column + "-" + UUID.randomUUID().toString().substring(0, 8);
         yield maxLength == null ? v : v.substring(0, Math.min(v.length(), maxLength.intValue()));

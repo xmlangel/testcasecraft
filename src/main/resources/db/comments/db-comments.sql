@@ -539,6 +539,14 @@ COMMENT ON COLUMN test_result_edits.is_active IS '활성 여부: 이 편집본�
 COMMENT ON COLUMN test_result_edits.original_snapshot IS '원본 스냅샷: 편집 전 원본 테스트 결과의 JSON 형식 스냅샷';
 COMMENT ON COLUMN test_result_edits.original_test_result_id IS '원본 테스트 결과 식별자: 편집 대상인 원본 테스트 결과 (값 영역: test_results.id 참조)';
 
+COMMENT ON TABLE test_result_steps IS '스텝별 결과: 테스트 결과 안에서 스텝마다 기록한 결과와 실제 결과';
+COMMENT ON COLUMN test_result_steps.actual_result IS '실제 결과: 이 스텝에서 관찰한 내용이나 메모';
+COMMENT ON COLUMN test_result_steps.description IS '스텝 설명 사본: 실행 당시 케이스 스텝의 설명';
+COMMENT ON COLUMN test_result_steps.expected_result IS '기대 결과 사본: 실행 당시 케이스 스텝의 기대 결과';
+COMMENT ON COLUMN test_result_steps.result IS '스텝 결과: 이 스텝의 실행 결과 (값 영역: NOT_RUN, PASS, FAIL, BLOCKED)';
+COMMENT ON COLUMN test_result_steps.step_number IS '스텝 번호: 케이스 스텝의 순서 번호 (값 영역: 1 이상의 정수)';
+COMMENT ON COLUMN test_result_steps.test_result_id IS '테스트 결과 식별자: 스텝 결과가 속한 테스트 결과 (값 영역: test_results.id 참조)';
+
 COMMENT ON TABLE test_result_tags IS '테스트 결과 태그: 테스트 결과를 분류하는 태그 목록';
 COMMENT ON COLUMN test_result_tags.tag IS '태그 값: 테스트 결과에 붙인 태그 문자열 (값 영역: 100자 이하)';
 COMMENT ON COLUMN test_result_tags.test_result_id IS '테스트 결과 식별자: 태그가 붙은 테스트 결과 (값 영역: test_results.id 참조)';

@@ -251,6 +251,8 @@ public class KoreanJiraIntegrationTranslations {
         createdBy);
     createTranslationIfNotExists(
         "jira.comment.template.footer", languageCode, "Test Case Manager에서 자동 생성됨", createdBy);
+    createTranslationIfNotExists(
+        "jira.comment.template.problemSteps", languageCode, "실패·차단 스텝", createdBy);
 
     // JIRA 히스토리 다이얼로그 (ICT-188)
     createTranslationIfNotExists(

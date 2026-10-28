@@ -12,6 +12,7 @@ import com.itextpdf.layout.element.Table;
 import com.opencsv.CSVWriter;
 import com.testcase.testcasemanagement.dto.TestResultFilterDto;
 import com.testcase.testcasemanagement.dto.TestResultReportDto;
+import com.testcase.testcasemanagement.dto.TestResultStepDto;
 import com.testcase.testcasemanagement.model.TestResultStatus;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
@@ -68,6 +69,7 @@ public class ExportService {
     map.put("preCondition", "사전설정");
     map.put("expectedResults", "전체 예상결과");
     map.put("steps", "스텝 정보");
+    map.put("stepResults", "스텝 결과");
     COLUMN_DISPLAY_NAMES = Collections.unmodifiableMap(map);
   }
 
@@ -397,6 +399,9 @@ public class ExportService {
         }
       }
 
+      // ICT-469: 스텝 결과가 있으면 「케이스 × 스텝」 상세 시트
+      createStepResultsSheet(workbook, content, headerStyle, dataStyle);
+
       // 통계 시트 추가 (옵션)
       if (filter.getIncludeStatistics() != null && filter.getIncludeStatistics()) {
         createStatisticsSheet(workbook, reportData);
@@ -406,7 +411,8 @@ public class ExportService {
       return out.toByteArray();
 
     } catch (Exception e) {
-      throw new RuntimeException("An error occurred while generating the Excel file: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "An error occurred while generating the Excel file: " + e.getMessage(), e);
     }
   }
 
@@ -458,7 +464,8 @@ public class ExportService {
       return out.toByteArray();
 
     } catch (Exception e) {
-      throw new RuntimeException("An error occurred while generating the PDF file: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "An error occurred while generating the PDF file: " + e.getMessage(), e);
     }
   }
 
@@ -488,7 +495,8 @@ public class ExportService {
       return out.toByteArray();
 
     } catch (Exception e) {
-      throw new RuntimeException("An error occurred while generating the CSV file: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "An error occurred while generating the CSV file: " + e.getMessage(), e);
     }
   }
 
@@ -586,8 +594,84 @@ public class ExportService {
         return result.getExpectedResults();
       case "steps":
         return formatStepsForExport(result.getSteps());
+      case "stepResults":
+        return fitExcelCell(formatStepResultsForExport(result.getStepResults()));
       default:
         return null;
+    }
+  }
+
+  /** ICT-469: 스텝 결과를 셀 하나에 한 줄씩 ("1. PASS", "2. FAIL - 실제 결과") */
+  static String formatStepResultsForExport(List<TestResultStepDto> stepResults) {
+    if (stepResults == null || stepResults.isEmpty()) {
+      return "";
+    }
+    return stepResults.stream()
+        .sorted(java.util.Comparator.comparingInt(TestResultStepDto::getStepNumber))
+        .map(
+            st ->
+                st.getStepNumber()
+                    + ". "
+                    + (st.getResult() != null ? st.getResult() : "NOT_RUN")
+                    + (st.getActualResult() != null && !st.getActualResult().isBlank()
+                        ? " - " + st.getActualResult()
+                        : ""))
+        .collect(java.util.stream.Collectors.joining("\n"));
+  }
+
+  /** Excel 셀 한 칸의 최대 글자 수(32,767)를 넘으면 잘라 낸다. 넘기면 POI 가 예외를 낸다. */
+  private static String fitExcelCell(String value) {
+    if (value == null) return "";
+    int max = 32767;
+    return value.length() <= max ? value : value.substring(0, max - 3) + "...";
+  }
+
+  /** ICT-469: 스텝 결과가 있는 케이스만 스텝마다 한 줄씩 펼친 시트. 없으면 시트를 만들지 않는다. */
+  private void createStepResultsSheet(
+      Workbook workbook,
+      List<TestResultReportDto> content,
+      CellStyle headerStyle,
+      CellStyle dataStyle) {
+    if (content.stream()
+        .noneMatch(r -> r.getStepResults() != null && !r.getStepResults().isEmpty())) {
+      return;
+    }
+    Sheet sheet = workbook.createSheet("스텝 결과");
+    String[] headers = {"테스트케이스명", "결과", "스텝 번호", "스텝", "기대 결과", "스텝 결과", "실제 결과"};
+    Row headerRow = sheet.createRow(0);
+    for (int i = 0; i < headers.length; i++) {
+      Cell cell = headerRow.createCell(i);
+      cell.setCellValue(headers[i]);
+      cell.setCellStyle(headerStyle);
+    }
+    int rowIndex = 1;
+    for (TestResultReportDto r : content) {
+      if (r.getStepResults() == null) continue;
+      List<TestResultStepDto> steps = new java.util.ArrayList<>(r.getStepResults());
+      steps.sort(java.util.Comparator.comparingInt(TestResultStepDto::getStepNumber));
+      for (TestResultStepDto st : steps) {
+        Row row = sheet.createRow(rowIndex++);
+        String[] values = {
+          r.getTestCaseName(),
+          getResultDisplayName(r.getResult()),
+          String.valueOf(st.getStepNumber()),
+          st.getDescription(),
+          st.getExpectedResult(),
+          st.getResult(),
+          st.getActualResult()
+        };
+        for (int i = 0; i < values.length; i++) {
+          Cell cell = row.createCell(i);
+          cell.setCellValue(fitExcelCell(values[i]));
+          cell.setCellStyle(dataStyle);
+        }
+      }
+    }
+    for (int i = 0; i < headers.length; i++) {
+      sheet.autoSizeColumn(i);
+      if (sheet.getColumnWidth(i) > EXCEL_MAX_COLUMN_WIDTH) {
+        sheet.setColumnWidth(i, EXCEL_MAX_COLUMN_WIDTH);
+      }
     }
   }
 

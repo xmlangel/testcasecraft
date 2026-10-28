@@ -123,11 +123,16 @@ public class TestExecutionController {
     try {
       TestExecutionDto updated = testExecutionService.updateTestResult(executionId, resultDto);
       return ResponseEntity.ok(updated);
+    } catch (IllegalArgumentException e) {
+      // ICT-469: 없는 스텝 번호·결과 누락 등 요청 오류는 400
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     } catch (IllegalStateException e) {
       if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
         String message =
             i18nService.getTranslation(
-                "testExecution.error.alreadyCompleted", "This test execution is already completed. Results can no longer be entered or modified.");
+                "testExecution.error.alreadyCompleted",
+                "This test execution is already completed. Results can no longer be entered or"
+                    + " modified.");
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -152,7 +157,9 @@ public class TestExecutionController {
       if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
         String message =
             i18nService.getTranslation(
-                "testExecution.error.alreadyCompleted", "This test execution is already completed. Results can no longer be entered or modified.");
+                "testExecution.error.alreadyCompleted",
+                "This test execution is already completed. Results can no longer be entered or"
+                    + " modified.");
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -213,7 +220,9 @@ public class TestExecutionController {
       if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
         String message =
             i18nService.getTranslation(
-                "testExecution.error.alreadyCompleted", "This test execution is already completed. Results can no longer be entered or modified.");
+                "testExecution.error.alreadyCompleted",
+                "This test execution is already completed. Results can no longer be entered or"
+                    + " modified.");
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -243,7 +252,9 @@ public class TestExecutionController {
       if ("COMPLETED_EXECUTION".equals(e.getMessage())) {
         String message =
             i18nService.getTranslation(
-                "testExecution.error.alreadyCompleted", "This test execution is already completed. Results can no longer be entered or modified.");
+                "testExecution.error.alreadyCompleted",
+                "This test execution is already completed. Results can no longer be entered or"
+                    + " modified.");
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

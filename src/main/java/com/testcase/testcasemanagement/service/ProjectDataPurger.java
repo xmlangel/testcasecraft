@@ -16,9 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 프로젝트 강제 삭제에서 프로젝트에 딸린 데이터를 모두 지운다.
  *
- * <p>프로젝트 행을 지우기 전에, 프로젝트·테스트케이스·테스트결과를 외래 키로 참조하는 행을 자식부터 지워야 한다. 하나라도 남으면 프로젝트 삭제가 외래 키
- * 위반(409)으로 실패한다. 외래 키 없이 ID 만 저장하는 테이블(요구사항 연결·관계, JUnit 결과, 케이스 버전 등)은 삭제를 막지는 않지만 지우지 않으면
- * 고아 행으로 남으므로 함께 지운다.
+ * <p>프로젝트 행을 지우기 전에, 프로젝트·테스트케이스·테스트결과를 외래 키로 참조하는 행을 자식부터 지워야 한다. 하나라도 남으면 프로젝트 삭제가 외래 키 위반(409)으로
+ * 실패한다. 외래 키 없이 ID 만 저장하는 테이블(요구사항 연결·관계, JUnit 결과, 케이스 버전 등)은 삭제를 막지는 않지만 지우지 않으면 고아 행으로 남으므로 함께
+ * 지운다.
  *
  * <p>새 기능이 프로젝트에 딸린 테이블을 추가하면 이 목록에도 넣어야 한다. {@code ProjectDataPurgerTest} 가 프로젝트를 참조하는 외래 키를 DB 에서
  * 읽어 이 목록과 대조하므로, 넣지 않으면 그 테스트가 실패한다.
@@ -57,6 +57,7 @@ public class ProjectDataPurger {
           step("rag_chat_categories", "project_id = :projectId"),
           // 테스트 결과
           step("test_result_tags", "test_result_id IN (" + RESULTS + ")"),
+          step("test_result_steps", "test_result_id IN (" + RESULTS + ")"),
           step("test_result_attachments", "test_result_id IN (" + RESULTS + ")"),
           step("test_result_edits", "original_test_result_id IN (" + RESULTS + ")"),
           step("test_results", "test_execution_id IN (" + EXECUTIONS + ")"),
@@ -96,8 +97,7 @@ public class ProjectDataPurger {
           step("bookmark_collections", "project_id = :projectId"),
           // 그룹
           step(
-              "group_members",
-              "group_id IN (SELECT id FROM groups WHERE project_id = :projectId)"),
+              "group_members", "group_id IN (SELECT id FROM groups WHERE project_id = :projectId)"),
           step("groups", "project_id = :projectId"),
           // 테스트케이스에 딸린 엔티티. 케이스 자체는 JPQL 로 지워 요소 컬렉션까지 정리한다.
           step("test_case_attachments", "test_case_id IN (" + CASES + ")"),

@@ -1,6 +1,6 @@
 package com.testcase.testcasemanagement.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
@@ -15,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestResultDto {
-  @NotBlank(message = "Result value is required")
+  // ICT-469: steps 를 보내면 result 를 빼도 된다(서버가 스텝 결과로 계산). steps 도 없으면 서비스가 거부한다.
   @Pattern(regexp = "^(PASS|FAIL|BLOCKED|NOT_RUN)$", message = "Invalid result value")
   private String result; // 문자열만 허용
 
@@ -43,6 +43,9 @@ public class TestResultDto {
   private int attachmentCount;
 
   private List<String> tags;
+
+  // ICT-469: 스텝별 결과. 보내지 않으면 지금처럼 케이스 결과 하나로만 기록한다.
+  @Valid private List<TestResultStepDto> steps;
 
   @Override
   public String toString() {

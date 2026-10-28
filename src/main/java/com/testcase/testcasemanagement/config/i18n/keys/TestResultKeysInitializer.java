@@ -197,6 +197,20 @@ public class TestResultKeysInitializer {
         "testResult.tooltip.noPostCondition", "testResult", "사후조건 없음 툴팁", "사후조건 없음");
     createTranslationKeyIfNotExists("testResult.steps.empty", "testResult", "스텝 없음", "스텝 없음");
     createTranslationKeyIfNotExists("testResult.steps.description", "testResult", "스텝 설명 라벨", "설명");
+    // ICT-469: 스텝별 결과
+    createTranslationKeyIfNotExists("testResult.steps.title", "testResult", "스텝 결과 제목", "스텝 결과");
+    createTranslationKeyIfNotExists("testResult.steps.step", "testResult", "스텝 열", "스텝");
+    createTranslationKeyIfNotExists("testResult.steps.result", "testResult", "스텝 결과 열", "결과");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.actualResult", "testResult", "스텝 실제 결과 열", "실제 결과");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.actualResultPlaceholder", "testResult", "실제 결과 입력 안내", "관찰한 내용이나 메모");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.passAll", "testResult", "모든 스텝 Pass 버튼", "모든 스텝 Pass");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.enteredCount", "testResult", "입력한 스텝 수", "{entered}/{total} 입력");
+    createTranslationKeyIfNotExists(
+        "testResult.column.stepResults", "testResult", "스텝 결과 컬럼", "스텝 결과");
 
     // 컬럼 헤더 (확장)
     createTranslationKeyIfNotExists("testResult.column.folder", "testResult", "폴더 컬럼", "폴더");

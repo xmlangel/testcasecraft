@@ -37,6 +37,7 @@ import { useDateFormatter } from "../../hooks/useDateFormatter";
 import TestResultForm from "../TestResultForm.jsx";
 import { MARKDOWN_PREWRAP_SX } from "../common/markdownStyles.js";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import StepResultsSummary from "../TestResult/StepResultsSummary.jsx";
 
 // 노트 보기 형식(markdown | text) — 사용자 선택을 브라우저에 유지
 const NOTES_VIEW_MODE_KEY = "testExecution.prevResults.notesViewMode";
@@ -354,8 +355,9 @@ function PreviousResultsDialog({
                               </Box>
                             )
                           ) : (
-                            "-"
+                            !r.steps?.length && "-"
                           )}
+                          <StepResultsSummary steps={r.steps} t={t} compact />
                         </TableCell>
                         <TableCell>
                           {r.tags && r.tags.length > 0 ? (

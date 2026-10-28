@@ -165,6 +165,18 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.tooltip.noPostCondition", languageCode, "사후조건 없음", createdBy);
     createTranslationIfNotExists("testResult.steps.empty", languageCode, "스텝 없음", createdBy);
+    // ICT-469: 스텝별 결과
+    createTranslationIfNotExists("testResult.steps.title", languageCode, "스텝 결과", createdBy);
+    createTranslationIfNotExists("testResult.steps.step", languageCode, "스텝", createdBy);
+    createTranslationIfNotExists("testResult.steps.result", languageCode, "결과", createdBy);
+    createTranslationIfNotExists("testResult.steps.actualResult", languageCode, "실제 결과", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.actualResultPlaceholder", languageCode, "관찰한 내용이나 메모", createdBy);
+    createTranslationIfNotExists("testResult.steps.passAll", languageCode, "모든 스텝 Pass", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.enteredCount", languageCode, "{entered}/{total} 입력", createdBy);
+    createTranslationIfNotExists("testResult.column.stepResults", languageCode, "스텝 결과", createdBy);
+
     createTranslationIfNotExists("testResult.steps.description", languageCode, "설명", createdBy);
 
     // 컬럼 헤더 (확장)

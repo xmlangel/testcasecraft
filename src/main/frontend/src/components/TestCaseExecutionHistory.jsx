@@ -1,6 +1,7 @@
 // src/main/frontend/src/components/TestCaseExecutionHistory.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import StepResultsSummary from "./TestResult/StepResultsSummary.jsx";
 import {
   Box,
   Typography,
@@ -235,7 +236,8 @@ const TestCaseExecutionHistory = ({ testCaseId }) => {
                     whiteSpace: "normal",
                   }}
                 >
-                  {item.notes || "-"}
+                  {item.notes || (!item.steps?.length && "-")}
+                  <StepResultsSummary steps={item.steps} t={t} compact />
                 </TableCell>
               </TableRow>
             ))}
