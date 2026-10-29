@@ -5,7 +5,6 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
@@ -46,15 +45,7 @@ public class OpenApiConfig {
             .title("TestCaseCraft API")
             .description("TestCaseCraft 테스트케이스 관리 시스템 REST API 문서")
             .version(buildProperties != null ? buildProperties.getVersion() : "unknown")
-            .contact(
-                new Contact()
-                    .name("TestcaseCraft - Website")
-                    .email("kwangmyung.kim@gmail.com")
-                    .url("https://github.com/xmlangel/testcasecraft/releases"))
-            .license(
-                new License()
-                    .name("MIT License")
-                    .url("https://github.com/xmlangel/testcasecraft/blob/master/LICENSE"));
+            .contact(new Contact().name("TestcaseCraft").email("kwangmyung.kim@gmail.com"));
 
     // JWT 보안 스키마 정의
     String jwtSchemeName = "bearerAuth";
@@ -111,11 +102,18 @@ public class OpenApiConfig {
         }
         String js =
             new String(transformed.getInputStream().readAllBytes(), StandardCharsets.UTF_8)
-                .replace("SwaggerUIBundle({", "SwaggerUIBundle({\n" + ACCESS_TOKEN_INTERCEPTOR);
+                .replace("SwaggerUIBundle({", "SwaggerUIBundle({\n" + ACCESS_TOKEN_INTERCEPTOR)
+                .replace(
+                    "SwaggerUIBundle.plugins.DownloadUrl",
+                    "SwaggerUIBundle.plugins.DownloadUrl,\n" + HIDE_SPEC_URL_PLUGIN);
         return new TransformedResource(transformed, js.getBytes(StandardCharsets.UTF_8));
       }
     };
   }
+
+  /** 제목 아래의 명세 주소(/api-docs) 링크를 지운다. 새 탭으로 열면 Authorization 헤더가 실리지 않아 401 만 보이기 때문이다. */
+  private static final String HIDE_SPEC_URL_PLUGIN =
+      "      () => ({ wrapComponents: { InfoUrl: () => () => null } })";
 
   private static final String ACCESS_TOKEN_INTERCEPTOR =
       "    requestInterceptor: (req) => {\n"
