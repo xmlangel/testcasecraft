@@ -444,6 +444,31 @@ public class TestCaseKeysInitializer {
         "Excel 내보내기 설명",
         "Microsoft Excel 형식 (.xlsx)");
     createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.csvRaw.title",
+        "testcase",
+        "CSV 원문 내보내기 제목",
+        "CSV로 내보내기 (가져오기용 원문)");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.csvRaw.description",
+        "testcase",
+        "CSV 원문 내보내기 설명",
+        "본문 이미지를 그대로 둡니다. 다시 가져오기할 때 사용");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.excelRaw.title",
+        "testcase",
+        "Excel 원문 내보내기 제목",
+        "Excel로 내보내기 (가져오기용 원문)");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.export.excelRaw.description",
+        "testcase",
+        "Excel 원문 내보내기 설명",
+        "본문 이미지를 그대로 둡니다. 다시 가져오기할 때 사용");
+    createTranslationKeyIfNotExists(
+        "export.imagePlaceholder",
+        "export",
+        "내보낸 파일의 본문 이미지 자리 표기 (ICT-470)",
+        "이미지");
+    createTranslationKeyIfNotExists(
         "testcase.spreadsheet.export.pdf.title", "testcase", "PDF 내보내기 상세 제목", "PDF 내보내기(상세)");
     createTranslationKeyIfNotExists(
         "testcase.spreadsheet.export.pdf.description",
@@ -1035,8 +1060,6 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.button.changeOrder", "testResult", "순서 변경 버튼", "순서 변경");
     createTranslationKeyIfNotExists("testResult.button.reset", "testResult", "기본값 버튼", "기본값");
-    createTranslationKeyIfNotExists(
-        "testResult.button.advancedExport", "testResult", "고급 내보내기 버튼", "고급 내보내기");
     createTranslationKeyIfNotExists("testResult.button.column", "testResult", "컬럼 버튼", "컬럼");
     createTranslationKeyIfNotExists("testResult.button.order", "testResult", "순서 버튼", "순서");
     createTranslationKeyIfNotExists("testResult.button.export", "testResult", "내보내기 버튼", "내보내기");

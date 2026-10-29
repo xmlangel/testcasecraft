@@ -5,6 +5,8 @@ import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.LanguageRepository;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
 import com.testcase.testcasemanagement.repository.TranslationRepository;
+import com.testcase.testcasemanagement.util.ExportLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -187,8 +189,6 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists("testResult.button.order", languageCode, "Order", createdBy);
     createTranslationIfNotExists("testResult.button.export", languageCode, "Export", createdBy);
     createTranslationIfNotExists(
-        "testResult.button.advancedExport", languageCode, "Advanced Export", createdBy);
-    createTranslationIfNotExists(
         "testResult.button.viewDetail", languageCode, "View Details", createdBy);
     createTranslationIfNotExists("testResult.button.edit", languageCode, "Edit", createdBy);
 
@@ -224,6 +224,35 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists("testResult.steps.empty", languageCode, "No steps", createdBy);
     createTranslationIfNotExists(
         "testResult.steps.description", languageCode, "Description", createdBy);
+    // ICT-469: step results
+    createTranslationIfNotExists("testResult.steps.title", languageCode, "Step results", createdBy);
+    createTranslationIfNotExists("testResult.steps.step", languageCode, "Step", createdBy);
+    createTranslationIfNotExists("testResult.steps.result", languageCode, "Result", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.actualResult", languageCode, "Actual result", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.actualResultPlaceholder",
+        languageCode,
+        "What you observed, or a note",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.actualResultTooLong",
+        languageCode,
+        "Actual result can be up to {max} characters.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAll", languageCode, "Pass all steps", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAllMemoHelp",
+        languageCode,
+        "What you enter is added to the notes.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAllConfirm", languageCode, "Apply Pass", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.enteredCount", languageCode, "{entered}/{total} entered", createdBy);
+    createTranslationIfNotExists(
+        "testResult.column.stepResults", languageCode, "Step results", createdBy);
 
     // Column Headers (Extended)
     createTranslationIfNotExists("testResult.column.folder", languageCode, "Folder", createdBy);
@@ -358,8 +387,6 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.button.changeOrder", languageCode, "Change Order", createdBy);
     createTranslationIfNotExists("testResult.button.reset", languageCode, "Reset", createdBy);
-    createTranslationIfNotExists(
-        "testResult.button.advancedExport", languageCode, "Advanced Export", createdBy);
     createTranslationIfNotExists("testResult.button.column", languageCode, "Column", createdBy);
     createTranslationIfNotExists("testResult.button.order", languageCode, "Order", createdBy);
     createTranslationIfNotExists("testResult.button.export", languageCode, "Export", createdBy);
@@ -606,6 +633,11 @@ public class EnglishTestResultTranslations {
         "testResult.form.jiraIntegration", languageCode, "JIRA Integration", createdBy);
     createTranslationIfNotExists(
         "testResult.form.jiraComment", languageCode, "JIRA Comment", createdBy);
+
+    // ICT-473: server-side export files (Excel, CSV, PDF)
+    for (LabelTable.Entry e : ExportLabels.TABLE.entries()) {
+      createTranslationIfNotExists(ExportLabels.TABLE.fullKey(e), languageCode, e.en(), createdBy);
+    }
   }
 
   private void createTranslationIfNotExists(

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { exportToCSV, exportToExcel } from "./SpreadsheetExport.js";
+import {
+  exportToCSV,
+  exportToExcel,
+  prepareExportRows,
+} from "./SpreadsheetExport.js";
 
 // 셀 헬퍼: convertDataForExport 가 기대하는 { value } 형태
 const cell = (value) => ({ value });
@@ -47,5 +51,21 @@ describe("SpreadsheetExport", () => {
       expect(result.success).toBe(false);
       expect(result.severity).toBe("warning");
     });
+  });
+});
+
+describe("prepareExportRows (ICT-470)", () => {
+  const img = "![image](/api/testcase-attachments/public/abc?token=secret)";
+
+  it("이미지가 든 셀만 평문으로 바꾼다", () => {
+    const rows = [["로그인_*관리*", `결과 ${img}`, 3]];
+    expect(prepareExportRows(rows)).toEqual([
+      ["로그인_*관리*", "결과 [이미지]", 3],
+    ]);
+  });
+
+  it("raw 면 원문을 그대로 둔다(다시 가져오기용)", () => {
+    const rows = [[`결과 ${img}`]];
+    expect(prepareExportRows(rows, { raw: true })).toBe(rows);
   });
 });

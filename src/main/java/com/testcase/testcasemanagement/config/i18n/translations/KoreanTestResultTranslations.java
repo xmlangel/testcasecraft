@@ -5,6 +5,8 @@ import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.LanguageRepository;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
 import com.testcase.testcasemanagement.repository.TranslationRepository;
+import com.testcase.testcasemanagement.util.ExportLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -137,8 +139,6 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists("testResult.button.column", languageCode, "컬럼", createdBy);
     createTranslationIfNotExists("testResult.button.order", languageCode, "순서", createdBy);
     createTranslationIfNotExists("testResult.button.export", languageCode, "내보내기", createdBy);
-    createTranslationIfNotExists(
-        "testResult.button.advancedExport", languageCode, "고급 내보내기", createdBy);
     createTranslationIfNotExists("testResult.button.viewDetail", languageCode, "상세보기", createdBy);
     createTranslationIfNotExists("testResult.button.edit", languageCode, "편집", createdBy);
 
@@ -165,6 +165,27 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.tooltip.noPostCondition", languageCode, "사후조건 없음", createdBy);
     createTranslationIfNotExists("testResult.steps.empty", languageCode, "스텝 없음", createdBy);
+    // ICT-469: 스텝별 결과
+    createTranslationIfNotExists("testResult.steps.title", languageCode, "스텝 결과", createdBy);
+    createTranslationIfNotExists("testResult.steps.step", languageCode, "스텝", createdBy);
+    createTranslationIfNotExists("testResult.steps.result", languageCode, "결과", createdBy);
+    createTranslationIfNotExists("testResult.steps.actualResult", languageCode, "실제 결과", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.actualResultPlaceholder", languageCode, "관찰한 내용이나 메모", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.actualResultTooLong",
+        languageCode,
+        "실제 결과는 {max}자까지 저장할 수 있습니다.",
+        createdBy);
+    createTranslationIfNotExists("testResult.steps.passAll", languageCode, "모든 스텝 Pass", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAllMemoHelp", languageCode, "입력한 내용은 노트에 기록됩니다.", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAllConfirm", languageCode, "Pass 적용", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.enteredCount", languageCode, "{entered}/{total} 입력", createdBy);
+    createTranslationIfNotExists("testResult.column.stepResults", languageCode, "스텝 결과", createdBy);
+
     createTranslationIfNotExists("testResult.steps.description", languageCode, "설명", createdBy);
 
     // 컬럼 헤더 (확장)
@@ -465,6 +486,18 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists("testResult.tab.tableFull", languageCode, "상세 테이블 보기", createdBy);
     createTranslationIfNotExists(
         "testResult.tab.tableDescription", languageCode, "테스트 결과를 테이블 형태로 확인", createdBy);
+
+    // ICT-473: 키와 영어 번역만 있고 한국어가 빠져 있던 열 이름. 결과 표 머리글과 같은 값을 쓴다
+    createTranslationIfNotExists("testResult.column.executor", languageCode, "실행자", createdBy);
+    createTranslationIfNotExists("testResult.column.executedDate", languageCode, "시행일자", createdBy);
+    createTranslationIfNotExists("testResult.column.attachments", languageCode, "첨부파일", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.expectedResult", languageCode, "예상결과", createdBy);
+
+    // ICT-473: 서버 내보내기 파일(엑셀·CSV·PDF) 문구
+    for (LabelTable.Entry e : ExportLabels.TABLE.entries()) {
+      createTranslationIfNotExists(ExportLabels.TABLE.fullKey(e), languageCode, e.ko(), createdBy);
+    }
   }
 
   private void createTranslationIfNotExists(

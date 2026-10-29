@@ -490,6 +490,13 @@ test_result_edits,id,편집 식별자,이 행을 유일하게 가리키는 값,U
 test_result_edits,is_active,활성 여부,이 편집본이 현재 적용 중인 편집본인지 여부,"true, false",Active Indicator,indicator of whether this edited version is the one currently applied,"true, false"
 test_result_edits,original_snapshot,원본 스냅샷,편집 전 원본 테스트 결과의 JSON 형식 스냅샷,,Original Snapshot,JSON-format snapshot of the original test result before editing,
 test_result_edits,original_test_result_id,원본 테스트 결과 식별자,편집 대상인 원본 테스트 결과,test_results.id 참조,Original Test Result Identifier,original test result being edited,references test_results.id
+test_result_steps,,스텝별 결과,테스트 결과 안에서 스텝마다 기록한 결과와 실제 결과,,Step Result,result recorded for each step within a test result,
+test_result_steps,actual_result,실제 결과,이 스텝에서 관찰한 내용이나 메모,,Actual Result,what was observed or noted in this step,
+test_result_steps,description,스텝 설명 사본,실행 당시 케이스 스텝의 설명,,Step Description Copy,description of the test case step at execution time,
+test_result_steps,expected_result,기대 결과 사본,실행 당시 케이스 스텝의 기대 결과,,Expected Result Copy,expected result of the test case step at execution time,
+test_result_steps,result,스텝 결과,이 스텝의 실행 결과,"NOT_RUN, PASS, FAIL, BLOCKED",Step Result Status,execution result of this step,"NOT_RUN, PASS, FAIL, BLOCKED"
+test_result_steps,step_number,스텝 번호,케이스 스텝의 순서 번호,1 이상의 정수,Step Number,order number of the test case step,integer of 1 or more
+test_result_steps,test_result_id,테스트 결과 식별자,스텝 결과가 속한 테스트 결과,test_results.id 참조,Test Result Identifier,test result that the step result belongs to,references test_results.id
 test_result_tags,,테스트 결과 태그,테스트 결과를 분류하는 태그 목록,,Test Result Tag,tag list that classifies test results,
 test_result_tags,tag,태그 값,테스트 결과에 붙인 태그 문자열,100자 이하,Tag Value,tag string attached to a test result,up to 100 characters
 test_result_tags,test_result_id,테스트 결과 식별자,태그가 붙은 테스트 결과,test_results.id 참조,Test Result Identifier,test result the tag is attached to,references test_results.id

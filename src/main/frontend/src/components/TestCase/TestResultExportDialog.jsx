@@ -32,6 +32,11 @@ import { format as formatDate } from "date-fns";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import {
+  formatStepResultsText,
+  buildStepResultSheetRows,
+  STEP_RESULT_SHEET_HEADERS,
+} from "../../utils/stepResults.js";
+import {
   addNanumGothicToJsPDF,
   setupKoreanFontFallback,
 } from "../../assets/fonts/nanumGothicFont.js";
@@ -41,9 +46,11 @@ import { useTheme } from "../../context/ThemeContext.jsx";
 import { API_ENDPOINTS, buildUrl } from "../../utils/apiConstants.js";
 import {
   escapeHtml,
+  markdownToExportText,
   markdownToHtml,
   parseMarkdownBlocks,
 } from "../../utils/markdownRender.js";
+import { preserveLineBreaks } from "../../utils/markdownLineBreaks.js";
 import { drawMarkdownBlocks } from "../../utils/pdf/markdownPdf.js";
 import {
   getResultLabel,
@@ -210,7 +217,7 @@ const TestResultExportDialog = ({
   qaSummaryUpdatedBy = "",
 }) => {
   const { api } = useAppContext();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const { mode: themeMode } = useTheme();
   const [exportFormat, setExportFormat] = useState("EXCEL");
   const [pdfOrientation, setPdfOrientation] = useState("landscape");
@@ -316,11 +323,15 @@ const TestResultExportDialog = ({
     return steps
       .map((step, index) => {
         const number = step.stepNumber || index + 1;
-        const description = step.description ? ` ${step.description}` : "";
+        const imageLabel = t("export.imagePlaceholder", "이미지");
+        const description = step.description
+          ? ` ${markdownToExportText(step.description, imageLabel)}`
+          : "";
         const expected = step.expectedResult
-          ? ` (${t("testResult.steps.expectedResult", "예상결과")}: ${
-              step.expectedResult
-            })`
+          ? ` (${t("testResult.steps.expectedResult", "예상결과")}: ${markdownToExportText(
+              step.expectedResult,
+              imageLabel,
+            )})`
           : "";
         return `${number}.${description}${expected}`;
       })
@@ -342,6 +353,107 @@ const TestResultExportDialog = ({
     return value;
   };
 
+  const exportImageLabel = () => t("export.imagePlaceholder", "이미지");
+
+  const stepResultsAsPlainText = (steps) =>
+    (steps || []).map((s) => ({
+      ...s,
+      actualResult: s.actualResult
+        ? markdownToExportText(s.actualResult, exportImageLabel())
+        : "",
+    }));
+
+  /*
+   * ICT-472: PDF·HTML 카드에 들어가는 항목.
+   *
+   * 예전에는 카드 항목이 설명·사전조건·단계·예상결과·비고 다섯 개로 고정되어 있어
+   * 사용자가 다른 열을 켜도 카드에 나오지 않았다. 지금은 열 전체를 정보 줄과 본문
+   * 섹션으로 나눠 둔다. rowData 에는 사용자가 켠 열만 들어 있으므로, 켜지 않은
+   * 항목은 alwaysShow 가 아닌 한 카드에서 빠진다.
+   */
+  const buildCardLayout = () => ({
+    infoFields: [
+      { label: "ID", header: "Display ID", alwaysShow: true },
+      {
+        label: t("testCase.priority.label", "우선순위"),
+        header: "Priority",
+        alwaysShow: true,
+      },
+      {
+        label: t("testResult.column.executor", "실행자"),
+        header: "Executor",
+        alwaysShow: true,
+      },
+      {
+        label: t("testResult.column.executedDate", "시행일자"),
+        header: "Executed Date",
+        alwaysShow: true,
+      },
+      { label: "JIRA ID", header: "JIRA ID", alwaysShow: true },
+      { label: t("testResult.column.folder", "폴더"), header: "Folder" },
+      {
+        label: t("testResult.column.jiraStatus", "JIRA 상태"),
+        header: "JIRA Status",
+      },
+      {
+        label: t("testcase.form.isAutomated", "자동화 여부"),
+        header: "Automated",
+      },
+      {
+        label: t("testcase.form.executionType", "실행 타입"),
+        header: "Execution Type",
+      },
+      { label: t("testCase.form.tags", "태그"), header: "Tags" },
+      {
+        label: t("testResult.column.linkedDocuments", "연결된 RAG 문서"),
+        header: "Linked Documents",
+      },
+      {
+        label: t("testResult.column.attachments", "첨부파일"),
+        header: "Attachments",
+      },
+    ],
+    sections: [
+      { title: t("testcase.column.description", "설명"), field: "Description" },
+      {
+        title: t("testResult.form.preCondition", "사전조건"),
+        field: "Pre-condition",
+      },
+      { title: t("testResult.form.testSteps", "테스트 단계"), field: "Steps" },
+      {
+        title: t("testResult.column.stepResults", "스텝 결과"),
+        field: "Step Results",
+        isStepResults: true,
+      },
+      {
+        title: t("testResult.form.expectedResult", "예상결과"),
+        field: "Expected Results",
+      },
+      {
+        title: t("testResult.column.postCondition", "사후 조건"),
+        field: "Post-condition",
+      },
+      {
+        title: t("testcase.form.testTechnique", "테스트 기법"),
+        field: "Test Technique",
+      },
+      { title: t("testcase.column.notes", "비고"), field: "Notes" },
+    ],
+  });
+
+  const cardInfoPairs = (infoFields, headers, rowData) =>
+    infoFields
+      .filter((f) => f.alwaysShow || headers.includes(f.header))
+      .map((f) => ({ label: f.label, value: rowData[f.header] || "-" }));
+
+  // 카드에 그릴 스텝 결과. 열이 꺼져 있거나 저장된 스텝 결과가 없으면 빈 목록
+  const cardStepResults = (headers, row) =>
+    headers.includes("Step Results")
+      ? [...(row?.stepResults || [])].sort(
+          (a, b) => a.stepNumber - b.stepNumber,
+        )
+      : [];
+
   const formatCellValue = (row, column) => {
     const value = row?.[column.field];
     switch (column.field) {
@@ -355,6 +467,9 @@ const TestResultExportDialog = ({
         );
       case "steps":
         return formatSteps(value || []);
+      case "stepResults":
+        // ICT-472: 실제 결과는 마크다운이라 다른 본문 필드처럼 평문으로 바꿔 싣는다
+        return formatStepResultsText(stepResultsAsPlainText(value));
       case "tags":
         return (value || []).length ? value.join(", ") : "-";
       case "linkedDocuments":
@@ -377,7 +492,11 @@ const TestResultExportDialog = ({
       case "preCondition":
       case "postCondition":
       case "expectedResults":
-        return value ? value : "-";
+        // ICT-470: 본문 이미지 주소·공개 토큰을 파일에 남기지 않고 평문으로 내보낸다
+        return (
+          markdownToExportText(value, t("export.imagePlaceholder", "이미지")) ||
+          "-"
+        );
       default:
         return safeString(value);
     }
@@ -401,6 +520,7 @@ const TestResultExportDialog = ({
       postCondition: "Post-condition",
       expectedResults: "Expected Results",
       steps: "Steps",
+      stepResults: "Step Results",
       isAutomated: "Automated",
       executionType: "Execution Type",
       testTechnique: "Test Technique",
@@ -434,6 +554,22 @@ const TestResultExportDialog = ({
     const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "TestResults");
+    // ICT-469: 스텝 결과가 있으면 「케이스 × 스텝」 상세 시트를 덧붙인다
+    // ICT-472: 스텝·기대 결과·실제 결과는 마크다운이라 평문으로 바꿔 싣는다
+    const stepRows = buildStepResultSheetRows(rows).map((r) =>
+      r.map((cell, i) =>
+        [4, 5, 7].includes(i) && cell
+          ? markdownToExportText(cell, exportImageLabel())
+          : cell,
+      ),
+    );
+    if (stepRows.length > 0) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.aoa_to_sheet([STEP_RESULT_SHEET_HEADERS, ...stepRows]),
+        "StepResults",
+      );
+    }
     XLSX.writeFile(workbook, fileName);
   };
 
@@ -924,6 +1060,65 @@ const TestResultExportDialog = ({
       cursorY += 16;
     };
 
+    // ICT-472: 스텝 결과 섹션. 스텝마다 「번호. 결과」 를 결과 색으로 쓰고,
+    // 실제 결과가 있으면 그 아래에 들여 써서 줄바꿈을 살려 싣는다.
+    const stepResultColor = (result) => {
+      if (result === TEST_RESULT_TYPES.PASS) return colors.success;
+      if (result === TEST_RESULT_TYPES.FAIL) return colors.error;
+      if (result === TEST_RESULT_TYPES.BLOCKED) return colors.warning;
+      return colors.grey;
+    };
+
+    const drawStepResultsSection = (section, stepResults) => {
+      const cardWidth = usableWidth;
+      ensureSpace(40);
+      pdf.setDrawColor(240, 240, 240);
+      pdf.line(margin + 12, cursorY, margin + cardWidth - 12, cursorY);
+      cursorY += 12;
+      pdf.setTextColor(...colors.primary);
+      pdf.setFontSize(10);
+      pdf.text(section.title, margin + 12, cursorY);
+      cursorY += 14;
+
+      stepResults.forEach((step) => {
+        const result = step.result || TEST_RESULT_TYPES.NOT_RUN;
+        const applyHeadStyle = () => {
+          pdf.setFont("NanumGothic", "normal");
+          pdf.setFontSize(9);
+          pdf.setTextColor(...stepResultColor(result));
+        };
+        applyHeadStyle();
+        drawTextLines(
+          [`${step.stepNumber}. ${result}`],
+          margin + 14,
+          13,
+          applyHeadStyle,
+        );
+
+        const actual = step.actualResult
+          ? markdownToExportText(step.actualResult, exportImageLabel())
+          : "";
+        if (actual) {
+          const applyBodyStyle = () => {
+            pdf.setFont("NanumGothic", "normal");
+            pdf.setFontSize(8.5);
+            pdf.setTextColor(...colors.greyDark);
+          };
+          applyBodyStyle();
+          drawTextLines(
+            pdf.splitTextToSize(actual, cardWidth - 44),
+            margin + 26,
+            12,
+            applyBodyStyle,
+          );
+        }
+        cursorY += 2;
+      });
+      cursorY += 10;
+    };
+
+    const cardLayout = buildCardLayout();
+
     const drawListEntries = () => {
       pdf.setTextColor(...colors.black);
       pdf.setFontSize(12);
@@ -984,28 +1179,11 @@ const TestResultExportDialog = ({
         cursorY += summaryHeight + 12;
 
         // 2. 기본 정보 영역 (Label: Value 형식)
-        const infoPairs = [
-          {
-            label: "ID",
-            value: rowData["Display ID"] || rowData["displayId"] || "-",
-          },
-          {
-            label: t("testCase.priority.label", "우선순위"),
-            value: rowData["Priority"] || rowData["priority"] || "-",
-          },
-          {
-            label: t("testResult.column.executor", "수행자"),
-            value: rowData["Executor"] || rowData["executor"] || "-",
-          },
-          {
-            label: t("testResult.column.executedDate", "수행일시"),
-            value: rowData["Executed Date"] || rowData["executedDate"] || "-",
-          },
-          {
-            label: "JIRA ID",
-            value: rowData["JIRA ID"] || rowData["jiraId"] || "-",
-          },
-        ];
+        const infoPairs = cardInfoPairs(
+          cardLayout.infoFields,
+          headers,
+          rowData,
+        );
 
         pdf.setFontSize(9);
         infoPairs.forEach((pair) => {
@@ -1022,28 +1200,16 @@ const TestResultExportDialog = ({
 
         cursorY += 6;
 
-        // 3. 상세 섹션들 (설명, 단계, 기대결과 등)
-        const sections = [
-          {
-            title: t("testcase.column.description", "설명"),
-            field: "Description",
-          },
-          {
-            title: t("testResult.form.preCondition", "사전조건"),
-            field: "Pre-condition",
-          },
-          {
-            title: t("testResult.form.testSteps", "테스트 단계"),
-            field: "Steps",
-          },
-          {
-            title: t("testResult.form.expectedResult", "예상결과"),
-            field: "Expected Results",
-          },
-          { title: t("testcase.column.notes", "비고"), field: "Notes" },
-        ];
+        // 3. 상세 섹션들 (설명, 단계, 스텝 결과, 기대결과 등)
+        const { sections } = cardLayout;
+        const stepResults = cardStepResults(headers, rows[index]);
 
         sections.forEach((section) => {
+          if (section.isStepResults) {
+            if (stepResults.length)
+              drawStepResultsSection(section, stepResults);
+            return;
+          }
           const content = rowData[section.field];
           if (content && content !== "-") {
             ensureSpace(40);
@@ -1224,19 +1390,30 @@ const TestResultExportDialog = ({
       .join("");
 
     // 상세 리스트 (PDF drawListEntries 와 동일 매핑)
-    const detailSections = [
-      { title: t("testcase.column.description", "설명"), field: "Description" },
-      {
-        title: t("testResult.form.preCondition", "사전조건"),
-        field: "Pre-condition",
-      },
-      { title: t("testResult.form.testSteps", "테스트 단계"), field: "Steps" },
-      {
-        title: t("testResult.form.expectedResult", "예상결과"),
-        field: "Expected Results",
-      },
-      { title: t("testcase.column.notes", "비고"), field: "Notes" },
-    ];
+    const { infoFields, sections: detailSections } = buildCardLayout();
+
+    // ICT-472: 스텝 결과 표. 결과는 분류 색 칩, 실제 결과는 마크다운으로 그린다
+    const stepResultsHtml = (stepResults) =>
+      `<table class="steps"><thead><tr><th class="no">No.</th>` +
+      `<th class="res">${escapeHtml(t("testResult.steps.result", "결과"))}</th>` +
+      `<th>${escapeHtml(t("testResult.steps.actualResult", "실제 결과"))}</th></tr></thead><tbody>` +
+      stepResults
+        .map((step) => {
+          const type = resolveResultType(
+            step.result || TEST_RESULT_TYPES.NOT_RUN,
+          );
+          return (
+            `<tr><td class="no">${escapeHtml(String(step.stepNumber))}</td>` +
+            `<td class="res">${resultChipHtml(type)}</td>` +
+            `<td class="md">${
+              step.actualResult
+                ? markdownToHtml(preserveLineBreaks(step.actualResult))
+                : ""
+            }</td></tr>`
+          );
+        })
+        .join("") +
+      `</tbody></table>`;
 
     const entriesHtml = data
       .map((rowValues, index) => {
@@ -1248,22 +1425,8 @@ const TestResultExportDialog = ({
         const resultType = resolveResultType(rowData["Result"]);
         const resultCfg = getResultConfig(resultType);
         const title = rowData["Test Case"] || "N/A";
-        const infoPairs = [
-          { label: "ID", value: rowData["Display ID"] || "-" },
-          {
-            label: t("testCase.priority.label", "우선순위"),
-            value: rowData["Priority"] || "-",
-          },
-          {
-            label: t("testResult.column.executor", "수행자"),
-            value: rowData["Executor"] || "-",
-          },
-          {
-            label: t("testResult.column.executedDate", "수행일시"),
-            value: rowData["Executed Date"] || "-",
-          },
-          { label: "JIRA ID", value: rowData["JIRA ID"] || "-" },
-        ];
+        const infoPairs = cardInfoPairs(infoFields, headers, rowData);
+        const stepResults = cardStepResults(headers, rows[index]);
 
         const infoHtml = infoPairs
           .map(
@@ -1275,6 +1438,13 @@ const TestResultExportDialog = ({
 
         const sectionsHtml = detailSections
           .map((sec) => {
+            if (sec.isStepResults) {
+              if (!stepResults.length) return "";
+              return (
+                `<div class="fld"><div class="fld-h">${escapeHtml(sec.title)}</div>` +
+                `${stepResultsHtml(stepResults)}</div>`
+              );
+            }
             const content = rowData[sec.field];
             if (!content || content === "-") return "";
             return (
@@ -1375,6 +1545,11 @@ section.case{background:var(--surface);border:1px solid var(--border);border-rad
 .chip{border-radius:12px;padding:2px 12px;font-size:11px;font-weight:700;white-space:nowrap;line-height:1.7}
 .info-grid{display:flex;flex-wrap:wrap;gap:6px 22px;padding:12px 16px}
 .info{font-size:12.5px}.info .ik{color:var(--grey);margin-right:6px}.info .iv{color:var(--text)}
+table.steps{border-collapse:collapse;width:100%;font-size:12px}
+table.steps th,table.steps td{border:1px solid var(--border);padding:5px 8px;vertical-align:top;text-align:left}
+table.steps th{background:var(--grey-light);font-weight:700}
+table.steps .no{width:48px;text-align:center}table.steps .res{width:110px}
+table.steps td.md{font-size:12px;line-height:1.5}table.steps td.md p{margin:2px 0}
 .fld{padding:4px 16px 0}.fld-h{font-size:11px;color:var(--primary);font-weight:600;margin:10px 0 5px;text-transform:uppercase;letter-spacing:.04em}
 footer.report{border-top:1px solid var(--border);margin-top:30px;padding:18px 28px;text-align:center;color:var(--grey);font-size:11px}
 @media(max-width:760px){.kpi-grid,.bd-grid{grid-template-columns:repeat(2,1fr)}}
@@ -1509,6 +1684,8 @@ footer.report{border-top:1px solid var(--border);margin-top:30px;padding:18px 28
             return "expectedResults";
           case "steps":
             return "steps";
+          case "stepResults":
+            return "stepResults";
           default:
             return col.field;
         }
@@ -1518,6 +1695,8 @@ footer.report{border-top:1px solid var(--border);margin-top:30px;padding:18px 28
       const exportFilter = {
         projectId: projectId,
         exportFormat: exportFormat,
+        // ICT-473: 서버가 만드는 파일의 머리글·시트 이름을 화면 언어로 맞춘다
+        language: currentLanguage,
         displayColumns: displayColumns,
         includeStatistics: true,
         page: 0,

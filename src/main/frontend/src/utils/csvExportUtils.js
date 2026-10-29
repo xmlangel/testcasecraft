@@ -5,6 +5,11 @@
  * 자동화 테스트 결과를 CSV 형태로 내보내기 위한 유틸리티
  */
 
+import { markdownToExportText } from "./markdownRender.js";
+
+// ICT-470: 사용자 노트의 본문 이미지 주소·공개 토큰을 CSV 에 남기지 않는다
+const notesText = (notes) => markdownToExportText(notes || "");
+
 /**
  * 텍스트를 CSV에 안전하게 사용할 수 있도록 이스케이프 처리
  * @param {string} text - 이스케이프할 텍스트
@@ -86,7 +91,7 @@ const convertTestCaseToCSV = (testCase, index) => {
     escapeCsvText(testCase.stackTrace || ""), // 스택 트레이스
     escapeCsvText(testCase.systemOut || ""), // System Out
     escapeCsvText(testCase.systemErr || ""), // System Err
-    escapeCsvText(testCase.userNotes || ""), // 사용자 노트
+    escapeCsvText(notesText(testCase.userNotes)), // 사용자 노트
   ];
 
   return fields.join(",");
@@ -272,7 +277,7 @@ export const exportTestResultToCSV = async (
           formatDurationForCsv(testCase.time),
           escapeCsvText(testCase.systemOut || ""),
           escapeCsvText(testCase.systemErr || ""),
-          escapeCsvText(testCase.userNotes || ""),
+          escapeCsvText(notesText(testCase.userNotes)),
         ];
         csvContent += fields.join(",") + "\n";
       });
@@ -334,7 +339,7 @@ export const exportTestResultToCSV = async (
           escapeCsvText(testCase.status || ""),
           formatDurationForCsv(testCase.time),
           escapeCsvText(testCase.skipMessage || ""),
-          escapeCsvText(testCase.userNotes || ""),
+          escapeCsvText(notesText(testCase.userNotes)),
         ];
         csvContent += fields.join(",") + "\n";
       });

@@ -3,6 +3,8 @@ package com.testcase.testcasemanagement.config.i18n.keys;
 
 import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
+import com.testcase.testcasemanagement.util.JiraCommentLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -228,6 +230,8 @@ public class JiraIntegrationKeysInitializer {
         "조치 필요: 실패한 테스트를 검토하고 관련 이슈를 수정해 주세요.");
     createTranslationKeyIfNotExists(
         "jira.comment.template.footer", "jira", "자동 생성 푸터", "Test Case Manager에서 자동 생성됨");
+    createTranslationKeyIfNotExists(
+        "jira.comment.template.problemSteps", "jira", "실패·차단 스텝 제목", "실패·차단 스텝");
 
     // JIRA Summary 관련 추가 키들
     createTranslationKeyIfNotExists(
@@ -319,6 +323,12 @@ public class JiraIntegrationKeysInitializer {
         "첨부파일 업로드 중 일부 오류가 발생했습니다: {message}");
 
     log.info("JIRA 연동 관련 번역 키 초기화 완료");
+
+    // ICT-474: 서버가 남기는 Jira 자동 댓글 문구
+    for (LabelTable.Entry e : JiraCommentLabels.TABLE.entries()) {
+      createTranslationKeyIfNotExists(
+          JiraCommentLabels.TABLE.fullKey(e), "jira", e.description(), e.ko());
+    }
   }
 
   private void createTranslationKeyIfNotExists(

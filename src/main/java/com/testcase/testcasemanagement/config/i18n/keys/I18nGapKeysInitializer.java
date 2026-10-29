@@ -940,7 +940,7 @@ public class I18nGapKeysInitializer {
         "testResult.qaSummary.empty",
         "testResult",
         "실행 QA 총평 (2026-06-10)",
-        "아직 작성된 QA 총평이 없습니다. 고급 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.");
+        "아직 작성된 QA 총평이 없습니다. 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.");
     createTranslationKeyIfNotExists(
         "testResult.qaSummary.updatedBy",
         "testResult",

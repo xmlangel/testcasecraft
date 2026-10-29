@@ -6,6 +6,7 @@ import com.testcase.testcasemanagement.dto.BulkTestResultDto;
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
+import com.testcase.testcasemanagement.dto.TestResultStepDto;
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.repository.*;
@@ -143,7 +144,8 @@ public class TestExecutionService {
               .findById(testPlanId)
               .orElseThrow(() -> new NoSuchElementException("TestPlan not found: " + testPlanId));
       if (!projectSecurityService.canAccessProject(plan.getProject().getId())) {
-        throw new AccessDeniedException("No access permission for project: " + plan.getProject().getId());
+        throw new AccessDeniedException(
+            "No access permission for project: " + plan.getProject().getId());
       }
       executions = testExecutionRepository.findByTestPlanId(testPlanId);
     } else {
@@ -161,7 +163,8 @@ public class TestExecutionService {
         testExecutionRepository.findByIdWithResults(id).map(entity -> toDto(entity, true));
     if (result.isPresent()
         && !projectSecurityService.canAccessProject(result.get().getProjectId())) {
-      throw new AccessDeniedException("No access permission for project: " + result.get().getProjectId());
+      throw new AccessDeniedException(
+          "No access permission for project: " + result.get().getProjectId());
     }
     return result;
   }
@@ -175,7 +178,8 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No edit permission for project: " + entity.getProject().getId());
     }
 
     entity.setName(dto.getName());
@@ -198,7 +202,8 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No edit permission for project: " + entity.getProject().getId());
     }
 
     entity.setQaSummary(qaSummary);
@@ -220,7 +225,8 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No edit permission for project: " + entity.getProject().getId());
     }
 
     // 결과 노트에 붙여넣은 이미지는 함께 지우지 않는다. 같은 이미지를 다른 결과가 참조할 수
@@ -238,7 +244,8 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No edit permission for project: " + entity.getProject().getId());
     }
 
     entity.setStatus("INPROGRESS");
@@ -257,7 +264,8 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No edit permission for project: " + entity.getProject().getId());
     }
 
     entity.setStatus("COMPLETED");
@@ -276,7 +284,8 @@ public class TestExecutionService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("No edit permission for project: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No edit permission for project: " + entity.getProject().getId());
     }
 
     // Only allow restarting of completed test executions
@@ -301,7 +310,8 @@ public class TestExecutionService {
 
     // 결과 기록 권한 검사 (PM/LEAD/DEV/CONTRIBUTOR 편집 롤 + TESTER)
     if (!projectSecurityService.canRecordTestResult(entity.getProject().getId())) {
-      throw new AccessDeniedException("No permission to record results: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No permission to record results: " + entity.getProject().getId());
     }
 
     if ("COMPLETED".equals(entity.getStatus())) {
@@ -365,12 +375,16 @@ public class TestExecutionService {
       throw new IllegalArgumentException("testCaseId or displayId is required.");
     }
 
+    // ICT-469: 스텝별 결과 (보내지 않으면 비어 있고 종합 결과만 기록)
+    List<TestResultStep> steps = buildResultSteps(caseStepsOf(testCaseId), resultDto.getSteps());
+
     // 항상 새로운 결과를 추가
     TestResult r = new TestResult();
     r.setTestExecution(entity);
     r.setTestCaseId(testCaseId);
-    r.setResult(resultDto.getResult());
+    r.setResult(resolveOverallResult(resultDto.getResult(), steps));
     r.setNotes(resultDto.getNotes());
+    r.setSteps(steps);
 
     r.setJiraIssueKey(cleanedJiraKeys); // ICT-178: 정제된 JIRA 이슈 키 설정
     // ICT-427: 태그를 보내지 않으면 이 케이스의 이전 결과 태그를 물려받는다
@@ -404,7 +418,8 @@ public class TestExecutionService {
 
     // 결과 기록 권한 검사 (PM/LEAD/DEV/CONTRIBUTOR 편집 롤 + TESTER)
     if (!projectSecurityService.canRecordTestResult(entity.getProject().getId())) {
-      throw new AccessDeniedException("No permission to record results: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No permission to record results: " + entity.getProject().getId());
     }
 
     if ("COMPLETED".equals(entity.getStatus())) {
@@ -473,7 +488,8 @@ public class TestExecutionService {
     }
 
     if (finalTestCaseIds.isEmpty()) {
-      throw new IllegalArgumentException("No test case ID or DisplayID was provided for the result.");
+      throw new IllegalArgumentException(
+          "No test case ID or DisplayID was provided for the result.");
     }
 
     for (String testCaseId : finalTestCaseIds) {
@@ -661,6 +677,7 @@ public class TestExecutionService {
     dto.setExecutedAt(entity.getExecutedAt());
     dto.setExecutedBy(entity.getExecutedBy() != null ? entity.getExecutedBy().getUsername() : null);
     dto.setAttachmentCount(entity.getActiveAttachmentCount());
+    dto.setSteps(toStepDtos(entity.getSteps()));
 
     // tags 초기화 - size()를 호출하여 LAZY 로딩 트리거
     if (entity.getTags() != null) {
@@ -864,6 +881,7 @@ public class TestExecutionService {
               dto.setTestExecutionId(execution != null ? execution.getId() : null);
               dto.setTestExecutionName(execution != null ? execution.getName() : null);
               dto.setAttachmentCount(result.getActiveAttachmentCount());
+              dto.setSteps(toStepDtos(result.getSteps()));
               return dto;
             })
         .collect(Collectors.toList());
@@ -961,7 +979,23 @@ public class TestExecutionService {
     }
 
     // 5. TestResult 업데이트
-    existingResult.setResult(resultDto.getResult());
+    // ICT-469: steps 를 보내면 스텝 결과 전체를 교체한다. 기준 스텝은 저장된 실행 당시 사본이 있으면 그것, 없으면 지금 케이스 스텝
+    if (hasSteps(resultDto.getSteps())) {
+      List<TestStep> baseSteps =
+          existingResult.getSteps() != null && !existingResult.getSteps().isEmpty()
+              ? existingResult.getSteps().stream()
+                  .map(
+                      st ->
+                          new TestStep(
+                              st.getStepNumber(), st.getDescription(), st.getExpectedResult()))
+                  .collect(Collectors.toList())
+              : caseStepsOf(existingResult.getTestCaseId());
+      List<TestResultStep> steps = buildResultSteps(baseSteps, resultDto.getSteps());
+      existingResult.getSteps().clear();
+      existingResult.getSteps().addAll(steps);
+    }
+    existingResult.setResult(
+        resolveOverallResult(resultDto.getResult(), existingResult.getSteps()));
     existingResult.setNotes(resultDto.getNotes());
     existingResult.setJiraIssueKey(cleanedPreviousJiraKeys);
 
@@ -992,6 +1026,7 @@ public class TestExecutionService {
             ? updatedResult.getTestExecution().getName()
             : null);
     responseDto.setAttachmentCount(updatedResult.getActiveAttachmentCount());
+    responseDto.setSteps(toStepDtos(updatedResult.getSteps()));
 
     if (updatedResult.getTags() != null) {
       updatedResult.getTags().size(); // LAZY 로딩 강제 초기화
@@ -1083,5 +1118,102 @@ public class TestExecutionService {
       ids.add(matcher.group(1).toLowerCase(java.util.Locale.ROOT));
     }
     return ids;
+  }
+
+  // ===== ICT-469: 스텝별 결과 =====
+
+  private static boolean hasSteps(List<TestResultStepDto> steps) {
+    return steps != null && !steps.isEmpty();
+  }
+
+  /** 케이스의 현재 스텝. 케이스가 없거나 스텝이 없으면 빈 목록. */
+  private List<TestStep> caseStepsOf(String testCaseId) {
+    return testCaseRepository
+        .findById(testCaseId)
+        .map(TestCase::getSteps)
+        .map(ArrayList::new)
+        .orElseGet(ArrayList::new);
+  }
+
+  /**
+   * 요청한 스텝 결과를 기준 스텝과 맞춰 저장할 목록을 만든다. 기준 스텝 전체가 들어가고, 요청에 없는 스텝은 NOT_RUN 이다. 설명·기대 결과는 기준 스텝에서
+   * 복사한다(실행 당시 사본).
+   *
+   * @throws IllegalArgumentException 기준 스텝에 없는 번호이거나 같은 번호를 두 번 보낸 경우
+   */
+  static List<TestResultStep> buildResultSteps(
+      List<TestStep> baseSteps, List<TestResultStepDto> requested) {
+    if (!hasSteps(requested)) {
+      return new ArrayList<>();
+    }
+    Map<Integer, TestResultStepDto> byNumber = new LinkedHashMap<>();
+    for (TestResultStepDto dto : requested) {
+      if (byNumber.put(dto.getStepNumber(), dto) != null) {
+        throw new IllegalArgumentException("Duplicate stepNumber: " + dto.getStepNumber());
+      }
+    }
+    Set<Integer> known = new HashSet<>();
+    List<TestResultStep> out = new ArrayList<>();
+    for (TestStep base : baseSteps) {
+      if (base == null || !known.add(base.getStepNumber())) {
+        continue;
+      }
+      TestResultStepDto dto = byNumber.get(base.getStepNumber());
+      out.add(
+          new TestResultStep(
+              base.getStepNumber(),
+              base.getDescription(),
+              base.getExpectedResult(),
+              dto != null
+                  ? TestResultStatus.valueOrNotRun(dto.getResult())
+                  : TestResultStatus.NOT_RUN.value(),
+              dto != null ? dto.getActualResult() : null));
+    }
+    for (Integer n : byNumber.keySet()) {
+      if (!known.contains(n)) {
+        throw new IllegalArgumentException("Step number not found in test case: " + n);
+      }
+    }
+    out.sort(Comparator.comparingInt(TestResultStep::getStepNumber));
+    return out;
+  }
+
+  /** 종합 결과를 정한다. 보낸 값이 있으면 그대로 쓰고(사람이 바꾼 경우), 없으면 스텝 결과로 계산한다. 둘 다 없으면 거부한다. */
+  static String resolveOverallResult(String requested, List<TestResultStep> steps) {
+    if (requested != null && !requested.isBlank()) {
+      return requested;
+    }
+    if (steps == null || steps.isEmpty()) {
+      throw new IllegalArgumentException("Result value is required");
+    }
+    return rollupStepResults(steps);
+  }
+
+  /** 스텝 결과로 종합 결과를 계산한다. FAIL > BLOCKED > 미완료(NOT_RUN) > 모두 PASS. */
+  public static String rollupStepResults(List<TestResultStep> steps) {
+    boolean blocked = false;
+    boolean notRun = false;
+    for (TestResultStep st : steps) {
+      String v = st.getResult();
+      if (TestResultStatus.FAIL.value().equals(v)) {
+        return TestResultStatus.FAIL.value();
+      }
+      if (TestResultStatus.BLOCKED.value().equals(v)) {
+        blocked = true;
+      } else if (!TestResultStatus.PASS.value().equals(v)) {
+        notRun = true;
+      }
+    }
+    if (blocked) {
+      return TestResultStatus.BLOCKED.value();
+    }
+    return notRun ? TestResultStatus.NOT_RUN.value() : TestResultStatus.PASS.value();
+  }
+
+  private static List<TestResultStepDto> toStepDtos(List<TestResultStep> steps) {
+    if (steps == null || steps.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return steps.stream().map(TestResultStepDto::fromEntity).collect(Collectors.toList());
   }
 }

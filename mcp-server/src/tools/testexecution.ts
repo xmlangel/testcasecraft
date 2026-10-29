@@ -15,12 +15,21 @@ const GetInput = z.object({
   id: z.string().min(1, "테스트실행 ID 필수"),
 });
 
+// ICT-469: 스텝별 결과. stepNumber 는 케이스 스텝 번호, actualResult 는 관찰한 내용이나 메모
+const StepResultInput = z.object({
+  stepNumber: z.number().int().min(1),
+  result: z.enum(["PASS", "FAIL", "BLOCKED", "NOT_RUN"]),
+  actualResult: z.string().max(10000).optional(),
+});
+
 const RecordResultInput = z.object({
   id: z.string().min(1, "테스트실행 ID 필수"),
   testcaseId: z.string().min(1, "테스트케이스 ID 필수"),
   // 백엔드 TestResultDto @Pattern: ^(PASS|FAIL|BLOCKED|NOT_RUN)$
   // SKIP 은 하위호환용으로 받되 핸들러에서 BLOCKED 로 매핑(글로벌 exec_record.py 선례).
-  result: z.enum(["PASS", "FAIL", "BLOCKED", "NOT_RUN", "SKIP"]),
+  // steps 를 주면 result 를 빼도 된다 (서버가 FAIL > BLOCKED > 미완료 > PASS 로 계산)
+  result: z.enum(["PASS", "FAIL", "BLOCKED", "NOT_RUN", "SKIP"]).optional(),
+  steps: z.array(StepResultInput).optional(),
   comment: z.string().optional(),
   executedBy: z.string().optional(),
   executionTime: z.number().optional(),
@@ -50,6 +59,7 @@ export const testexecutionTools: Tool[] = [
     name: "testexecution_record_result",
     description:
       "테스트 케이스의 실행 결과를 기록한다. result: PASS|FAIL|BLOCKED|NOT_RUN. " +
+      "steps 로 스텝별 결과(stepNumber·result·actualResult)를 함께 넣을 수 있고, 이때 result 를 빼면 스텝 결과로 계산된다. " +
       "(SKIP 도 받지만 백엔드 계약상 BLOCKED 로 자동 매핑된다.) " +
       "'테스트 결과 기록', 'TC-123 통과 표시' 같은 요청 시 사용.",
     inputSchema: zodToJsonSchema(RecordResultInput) as any,
@@ -92,9 +102,13 @@ export const testexecutionHandlers: Record<
 
   testexecution_record_result: async (args: unknown) => {
     const input = RecordResultInput.parse(args);
+    if (!input.result && !input.steps?.length) {
+      throw new Error("result 또는 steps 중 하나는 필요하다");
+    }
     // 백엔드 TestResultDto 필드명: testCaseId / result / notes / executedBy
     // SKIP → BLOCKED 매핑(백엔드 enum 미지원 값 400 회피)
     const result = input.result === "SKIP" ? "BLOCKED" : input.result;
+    const steps = input.steps?.length ? input.steps : undefined;
     const res = await httpClient.post(
       `/api/test-executions/${encodeURIComponent(input.id)}/results`,
       {
@@ -102,6 +116,7 @@ export const testexecutionHandlers: Record<
         result,
         notes: input.comment,
         executedBy: input.executedBy,
+        steps,
       },
     );
     return res.data;

@@ -3,6 +3,7 @@ import {
   escapeHtml,
   inlineToHtml,
   markdownToHtml,
+  markdownToExportText,
   markdownToPlainText,
   parseMarkdownBlocks,
   stripInlineMarkdown,
@@ -150,5 +151,58 @@ describe("escapeHtml / inlineToHtml", () => {
 
   it("스네이크 케이스 식별자를 기울임으로 잘못 변환하지 않는다", () => {
     expect(inlineToHtml("test_case_id 확인")).toBe("test_case_id 확인");
+  });
+});
+
+describe("markdownToExportText (ICT-470)", () => {
+  const url =
+    "/api/testcase-attachments/public/025c9331-de2a-4796-b319-4a3d63e140a8?token=abc123";
+
+  it("기본 대체 텍스트의 이미지는 [이미지] 로 바꾸고 주소·토큰을 남기지 않는다", () => {
+    const text = markdownToExportText(`![image](${url})`);
+    expect(text).toBe("[이미지]");
+    expect(text).not.toContain("token");
+    expect(text).not.toContain("/api/");
+  });
+
+  it("의미 있는 대체 텍스트는 표기에 남긴다", () => {
+    expect(markdownToExportText(`로그인 실패 ![오류 화면](${url}) 확인`)).toBe(
+      "로그인 실패 [이미지: 오류 화면] 확인",
+    );
+  });
+
+  it("HTML img 태그도 바꾼다", () => {
+    expect(
+      markdownToExportText(`전 <img src="${url}" alt="스크린샷"> 후`),
+    ).toBe("전 [이미지: 스크린샷] 후");
+    expect(markdownToExportText(`<IMG src='${url}'>`)).toBe("[이미지]");
+  });
+
+  it("이미지가 있으면 나머지 마크다운 기호도 걷어 낸다", () => {
+    expect(
+      markdownToExportText(`**굵게**\n- 항목 ![a](${url})\n\n## 제목`),
+    ).toBe("굵게\n\n• 항목 [이미지: a]\n\n제목");
+  });
+
+  it("이미지가 여러 개면 모두 바꾼다", () => {
+    const text = markdownToExportText(`![image](${url})\n\n![로그](${url})`);
+    expect(text).toBe("[이미지]\n\n[이미지: 로그]");
+    expect(text).not.toContain("token=");
+  });
+
+  it("이미지가 없는 텍스트는 원문 그대로 둔다", () => {
+    const md = "**굵게**\n- 항목\nuser_name";
+    expect(markdownToExportText(md)).toBe(md);
+  });
+
+  it("라벨을 바꿀 수 있고 빈 값은 빈 문자열이다", () => {
+    expect(markdownToExportText(`![](${url})`, "Image")).toBe("[Image]");
+    expect(markdownToExportText(null)).toBe("");
+    expect(markdownToExportText(undefined)).toBe("");
+    expect(markdownToExportText("")).toBe("");
+  });
+
+  it("기존 stripInlineMarkdown 출력은 바뀌지 않는다", () => {
+    expect(stripInlineMarkdown(`![캡션](${url})`)).toBe("캡션");
   });
 });

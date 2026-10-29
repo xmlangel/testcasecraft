@@ -12,6 +12,12 @@ import {
   TableHead,
   TableRow,
   ToggleButton,
+  ToggleButtonGroup,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Tooltip,
 } from "@mui/material";
 import {
@@ -20,6 +26,18 @@ import {
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import RichMarkdownEditor from "../TestCase/RichMarkdownEditor.jsx";
+import { countEnteredSteps } from "../../utils/stepResults.js";
+
+// ICT-469: 스텝 결과 버튼 (P/F/B). 다시 누르면 NOT_RUN 으로 되돌린다
+const STEP_RESULT_OPTIONS = [
+  { value: "PASS", label: "P", color: "success" },
+  { value: "FAIL", label: "F", color: "error" },
+  { value: "BLOCKED", label: "B", color: "warning" },
+];
+
+// 서버 TestResultStepDto.actualResult 의 @Size(max = 10000) 과 같은 값
+const STEP_ACTUAL_MAX = 10000;
 
 const Subtitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
@@ -72,10 +90,39 @@ const buildWrapSx = ({ wrap }) =>
       }
     : {};
 
-const TestCaseDetails = ({ testCase, t }) => {
+// stepResults·onStepChange 를 넘기면 스텝 표에 결과와 실제 결과 칸이 붙는다(ICT-469). 넘기지 않으면 기존 표 그대로.
+const TestCaseDetails = ({
+  testCase,
+  t,
+  stepResults = null,
+  onStepChange = null,
+  onPassAllSteps = null,
+  stepInputDisabled = false,
+  // ICT-479: 입력 창이 열리고 닫힐 때 알린다. 부모는 열린 동안 판정 단축키를 끈다
+  onPassAllDialogChange = null,
+}) => {
+  const withStepResults = !!stepResults && !!onStepChange;
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
   const [viewOptions, setViewOptions] = useState(readViewOptions);
+  // ICT-479: 모든 스텝 Pass 는 입력 창에서 노트 내용을 받은 뒤 적용한다. 받은 내용은 노트에 기록된다
+  const [passAllOpen, setPassAllOpen] = useState(false);
+  const [passAllMemo, setPassAllMemo] = useState("");
+  const openPassAll = () => {
+    setPassAllOpen(true);
+    onPassAllDialogChange?.(true);
+  };
+  const closePassAll = () => {
+    setPassAllOpen(false);
+    setPassAllMemo("");
+    onPassAllDialogChange?.(false);
+  };
+  const confirmPassAll = () => {
+    const memo = passAllMemo.trim();
+    if (!memo) return;
+    onPassAllSteps(memo);
+    closePassAll();
+  };
 
   const toggleViewOption = (key) => {
     setViewOptions((prev) => {
@@ -277,16 +324,53 @@ const TestCaseDetails = ({ testCase, t }) => {
 
         {testCase.steps?.length > 0 && (
           <Box sx={{ mt: 1, mb: 1.5 }}>
-            <Subtitle variant="subtitle2" gutterBottom>
-              {t("testResult.form.testSteps")}
-            </Subtitle>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Subtitle variant="subtitle2" gutterBottom sx={{ flexGrow: 1 }}>
+                {t("testResult.form.testSteps")}
+                {withStepResults &&
+                  (() => {
+                    const { entered, total } = countEnteredSteps(
+                      testCase.steps,
+                      stepResults,
+                    );
+                    return ` (${t("testResult.steps.enteredCount", "{entered}/{total} 입력", { entered, total })})`;
+                  })()}
+              </Subtitle>
+              {withStepResults && onPassAllSteps && !stepInputDisabled && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="success"
+                  onClick={openPassAll}
+                  data-testid="pass-all-steps"
+                >
+                  {t("testResult.steps.passAll", "모든 스텝 Pass")}
+                </Button>
+              )}
+            </Box>
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell width="10%">No.</TableCell>
-                    <TableCell width="60%">Step</TableCell>
-                    <TableCell width="30%">Expected</TableCell>
+                    <TableCell width={withStepResults ? "6%" : "10%"}>
+                      No.
+                    </TableCell>
+                    <TableCell width={withStepResults ? "32%" : "60%"}>
+                      Step
+                    </TableCell>
+                    <TableCell width={withStepResults ? "22%" : "30%"}>
+                      Expected
+                    </TableCell>
+                    {withStepResults && (
+                      <>
+                        <TableCell width="14%">
+                          {t("testResult.steps.result", "결과")}
+                        </TableCell>
+                        <TableCell width="26%">
+                          {t("testResult.steps.actualResult", "실제 결과")}
+                        </TableCell>
+                      </>
+                    )}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -325,11 +409,143 @@ const TestCaseDetails = ({ testCase, t }) => {
                             />
                           </Box>
                         </TableCell>
+                        {withStepResults && (
+                          <>
+                            <TableCell sx={{ verticalAlign: "top" }}>
+                              <ToggleButtonGroup
+                                size="small"
+                                exclusive
+                                disabled={stepInputDisabled}
+                                value={
+                                  stepResults[step.stepNumber]?.result ||
+                                  "NOT_RUN"
+                                }
+                                onChange={(_, value) =>
+                                  onStepChange(step.stepNumber, {
+                                    result: value || "NOT_RUN",
+                                  })
+                                }
+                                aria-label={`step-${step.stepNumber}-result`}
+                              >
+                                {STEP_RESULT_OPTIONS.map((opt) => (
+                                  <ToggleButton
+                                    key={opt.value}
+                                    value={opt.value}
+                                    color={opt.color}
+                                    data-testid={`step-${step.stepNumber}-${opt.value}`}
+                                    sx={{ px: 1, py: 0.25, fontWeight: 700 }}
+                                  >
+                                    <Tooltip title={opt.value}>
+                                      <span>{opt.label}</span>
+                                    </Tooltip>
+                                  </ToggleButton>
+                                ))}
+                              </ToggleButtonGroup>
+                            </TableCell>
+                            <TableCell sx={{ verticalAlign: "top" }}>
+                              {/* ICT-472: 마크다운 입력. 표 칸에 맞게 작은 글씨로 그리고, 예전에
+                                  일반 텍스트로 저장된 한 줄 바꿈도 그대로 보여 준다 */}
+                              <RichMarkdownEditor
+                                value={
+                                  stepResults[step.stepNumber]?.actualResult ||
+                                  ""
+                                }
+                                onChange={(value) =>
+                                  onStepChange(step.stepNumber, {
+                                    actualResult: value || "",
+                                  })
+                                }
+                                placeholder={t(
+                                  "testResult.steps.actualResultPlaceholder",
+                                  "관찰한 내용이나 메모",
+                                )}
+                                maxLines={6}
+                                isViewer={stepInputDisabled}
+                                theme={theme}
+                                t={t}
+                                // 서버 한도(10,000자)를 넘으면 저장이 거부되므로 칸에서 먼저 알린다
+                                error={
+                                  (
+                                    stepResults[step.stepNumber]
+                                      ?.actualResult || ""
+                                  ).length > STEP_ACTUAL_MAX
+                                }
+                                hideHelperText={
+                                  (
+                                    stepResults[step.stepNumber]
+                                      ?.actualResult || ""
+                                  ).length <= STEP_ACTUAL_MAX
+                                }
+                                helperText={t(
+                                  "testResult.steps.actualResultTooLong",
+                                  "실제 결과는 {max}자까지 저장할 수 있습니다.",
+                                  { max: STEP_ACTUAL_MAX.toLocaleString() },
+                                )}
+                                dense
+                                keepLineBreaks
+                                testid={`step-${step.stepNumber}-actual`}
+                              />
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                 </TableBody>
               </Table>
             </TableContainer>
+            {/* 결과 화면의 판정 단축키(P·F·B·N·Enter)는 window 에 걸려 있다. 입력 창 안의 키가
+                거기까지 올라가면 버튼에 포커스가 있을 때 뒤 화면의 판정이 바뀌므로 여기서 멈춘다 */}
+            <Dialog
+              open={passAllOpen}
+              onClose={closePassAll}
+              onKeyDown={(e) => e.stopPropagation()}
+              // 열리면 바로 입력할 수 있게 에디터에 포커스를 둔다
+              TransitionProps={{
+                onEntered: (node) =>
+                  node
+                    ?.querySelector?.('[data-testid="pass-all-memo"]')
+                    ?.focus?.(),
+              }}
+              fullWidth
+              maxWidth="sm"
+            >
+              <DialogTitle>
+                {t("testResult.steps.passAll", "모든 스텝 Pass")}
+              </DialogTitle>
+              <DialogContent>
+                {/* 하단 노트와 같은 마크다운 에디터·같은 이름(노트)을 쓴다. 입력값은 노트 끝에 그대로 붙는다 */}
+                <Box sx={{ mt: 1 }}>
+                  <RichMarkdownEditor
+                    label={`${t("testResult.form.notes", "노트")} *`}
+                    value={passAllMemo}
+                    onChange={(value) => setPassAllMemo(value || "")}
+                    placeholder={t(
+                      "testResult.steps.passAllMemoHelp",
+                      "입력한 내용은 노트에 기록됩니다.",
+                    )}
+                    height={200}
+                    theme={theme}
+                    t={t}
+                    hideHelperText
+                    testid="pass-all-memo"
+                  />
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={closePassAll} data-testid="pass-all-cancel">
+                  {t("common.cancel", "취소")}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={confirmPassAll}
+                  disabled={!passAllMemo.trim()}
+                  data-testid="pass-all-confirm"
+                >
+                  {t("testResult.steps.passAllConfirm", "Pass 적용")}
+                </Button>
+              </DialogActions>
+            </Dialog>
           </Box>
         )}
 

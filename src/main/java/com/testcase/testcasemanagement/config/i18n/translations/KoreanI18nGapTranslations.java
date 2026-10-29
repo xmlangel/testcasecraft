@@ -643,11 +643,13 @@ public class KoreanI18nGapTranslations {
         languageCode,
         "이 실행에 대한 QA 총평을 마크다운으로 작성하세요.",
         createdBy);
-    createTranslationIfNotExists(
+    // ICT-476: "고급 내보내기" 명칭을 "내보내기"로 바꿨으므로 기존 DB 값도 덮어쓴다.
+    seedIndex.upsertTranslation(
         "testResult.qaSummary.empty",
         languageCode,
-        "아직 작성된 QA 총평이 없습니다. 고급 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.",
-        createdBy);
+        "아직 작성된 QA 총평이 없습니다. 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.",
+        createdBy,
+        true);
     createTranslationIfNotExists(
         "testResult.qaSummary.updatedBy", languageCode, "{user} · {date} 수정", createdBy);
     createTranslationIfNotExists(

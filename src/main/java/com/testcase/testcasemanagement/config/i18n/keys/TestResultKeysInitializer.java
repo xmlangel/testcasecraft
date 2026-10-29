@@ -3,6 +3,8 @@ package com.testcase.testcasemanagement.config.i18n.keys;
 
 import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
+import com.testcase.testcasemanagement.util.ExportLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -167,8 +169,6 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists("testResult.button.order", "testResult", "순서 버튼", "순서");
     createTranslationKeyIfNotExists("testResult.button.export", "testResult", "내보내기 버튼", "내보내기");
     createTranslationKeyIfNotExists(
-        "testResult.button.advancedExport", "testResult", "고급 내보내기 버튼", "고급 내보내기");
-    createTranslationKeyIfNotExists(
         "testResult.button.viewDetail", "testResult", "상세보기 버튼", "상세보기");
     createTranslationKeyIfNotExists("testResult.button.edit", "testResult", "편집 버튼", "편집");
 
@@ -197,6 +197,29 @@ public class TestResultKeysInitializer {
         "testResult.tooltip.noPostCondition", "testResult", "사후조건 없음 툴팁", "사후조건 없음");
     createTranslationKeyIfNotExists("testResult.steps.empty", "testResult", "스텝 없음", "스텝 없음");
     createTranslationKeyIfNotExists("testResult.steps.description", "testResult", "스텝 설명 라벨", "설명");
+    // ICT-469: 스텝별 결과
+    createTranslationKeyIfNotExists("testResult.steps.title", "testResult", "스텝 결과 제목", "스텝 결과");
+    createTranslationKeyIfNotExists("testResult.steps.step", "testResult", "스텝 열", "스텝");
+    createTranslationKeyIfNotExists("testResult.steps.result", "testResult", "스텝 결과 열", "결과");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.actualResult", "testResult", "스텝 실제 결과 열", "실제 결과");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.actualResultPlaceholder", "testResult", "실제 결과 입력 안내", "관찰한 내용이나 메모");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.actualResultTooLong",
+        "testResult",
+        "실제 결과 글자 수 초과 안내",
+        "실제 결과는 {max}자까지 저장할 수 있습니다.");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.passAll", "testResult", "모든 스텝 Pass 버튼", "모든 스텝 Pass");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.passAllMemoHelp", "testResult", "모든 스텝 Pass 메모 안내", "입력한 내용은 노트에 기록됩니다.");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.passAllConfirm", "testResult", "모든 스텝 Pass 적용 버튼", "Pass 적용");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.enteredCount", "testResult", "입력한 스텝 수", "{entered}/{total} 입력");
+    createTranslationKeyIfNotExists(
+        "testResult.column.stepResults", "testResult", "스텝 결과 컬럼", "스텝 결과");
 
     // 컬럼 헤더 (확장)
     createTranslationKeyIfNotExists("testResult.column.folder", "testResult", "폴더 컬럼", "폴더");
@@ -693,6 +716,12 @@ public class TestResultKeysInitializer {
         "junit.editor.error.noTestCase", "testResult", "테스트 케이스 없음 오류", "테스트 케이스를 찾을 수 없습니다");
     createTranslationKeyIfNotExists(
         "junit.editor.error.saveFailed", "testResult", "저장 실패 오류", "테스트 케이스 저장에 실패했습니다");
+
+    // ICT-473: 서버 내보내기 파일(엑셀·CSV·PDF) 문구
+    for (LabelTable.Entry e : ExportLabels.TABLE.entries()) {
+      createTranslationKeyIfNotExists(
+          ExportLabels.TABLE.fullKey(e), "testResult", e.description(), e.ko());
+    }
   }
 
   private void createTranslationKeyIfNotExists(

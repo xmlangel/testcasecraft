@@ -38,6 +38,7 @@ import {
   Visibility as PreviewIcon,
 } from "@mui/icons-material";
 import { jiraService } from "../../services/jiraService";
+import { formatProblemStepsMarkdown } from "../../utils/stepResults.js";
 import { useI18n } from "../../context/I18nContext";
 import { getLocalizedResultConfig } from "../../utils/testResultConstants";
 
@@ -147,6 +148,13 @@ const JiraCommentDialog = ({
         testResult.notes
       }\n\n`;
     }
+
+    // ICT-469: 실패·차단 스텝을 기대 / 실제 형식으로
+    generatedComment += formatProblemStepsMarkdown(testResult.steps, {
+      title: t("jira.comment.template.problemSteps", "실패·차단 스텝"),
+      expected: t("testResult.steps.expectedResult", "예상결과"),
+      actual: t("testResult.steps.actualResult", "실제 결과"),
+    });
 
     if (testResult.result === "FAIL" || testResult.result === "BLOCKED") {
       generatedComment += `**${t("jira.comment.template.actionRequired")}**\n`;

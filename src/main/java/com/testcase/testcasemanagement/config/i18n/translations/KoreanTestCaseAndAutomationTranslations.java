@@ -213,6 +213,31 @@ public class KoreanTestCaseAndAutomationTranslations {
         languageCode,
         "Microsoft  Excel 형식 (.xlsx)",
         createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.csvRaw.title",
+        languageCode,
+        "CSV로 내보내기 (가져오기용 원문)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.csvRaw.description",
+        languageCode,
+        "본문 이미지를 그대로 둡니다. 다시 가져오기할 때 사용",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.excelRaw.title",
+        languageCode,
+        "Excel로 내보내기 (가져오기용 원문)",
+        createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.export.excelRaw.description",
+        languageCode,
+        "본문 이미지를 그대로 둡니다. 다시 가져오기할 때 사용",
+        createdBy);
+    createTranslationIfNotExists(
+        "export.imagePlaceholder",
+        languageCode,
+        "이미지",
+        createdBy);
 
     // 검증 시스템 관련 한글 번역
     createTranslationIfNotExists(

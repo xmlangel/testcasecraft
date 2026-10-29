@@ -32,6 +32,7 @@ import {
 } from "../../utils/markdownEditorHeight.js";
 import { useScrollOverflow } from "../../hooks/useScrollOverflow.js";
 import ScrollHint from "../common/ScrollHint.jsx";
+import { preserveLineBreaks } from "../../utils/markdownLineBreaks.js";
 
 /**
  * Tiptap 기반 리치 마크다운 필드 에디터.
@@ -60,6 +61,8 @@ const RichMarkdownEditor = ({
   onPaste,
   testid,
   hideHelperText = false,
+  dense = false,
+  keepLineBreaks = false,
 }) => {
   // 에디터가 마지막으로 주고받은 마크다운. 외부 value 가 이 값과 같으면 다시 밀어
   // 넣지 않는다. 넣으면 타이핑마다 커서가 문서 앞으로 튄다.
@@ -138,11 +141,15 @@ const RichMarkdownEditor = ({
     const incoming = value || "";
     if (incoming === lastEmittedRef.current) return;
     lastEmittedRef.current = incoming;
-    editor.commands.setContent(incoming, {
+    // keepLineBreaks: 일반 텍스트로 저장된 값의 한 줄 바꿈이 한 문단으로 붙지 않게 한다.
+    // lastEmittedRef 에는 원래 값을 둔다. 변환한 값을 넣으면 같은 값이 다시 들어와도
+    // 다르다고 보고 매번 내용을 갈아 끼운다.
+    const content = keepLineBreaks ? preserveLineBreaks(incoming) : incoming;
+    editor.commands.setContent(content, {
       contentType: "markdown",
       emitUpdate: false,
     });
-  }, [editor, value]);
+  }, [editor, value, keepLineBreaks]);
 
   useEffect(() => {
     if (editor) editor.setEditable(!isViewer);
@@ -316,6 +323,9 @@ const RichMarkdownEditor = ({
                   <IconButton
                     size="small"
                     onClick={run(button.action)}
+                    sx={
+                      dense ? { p: 0.25, "& svg": { fontSize: 16 } } : undefined
+                    }
                     color={button.active() ? "primary" : "default"}
                     aria-label={button.title}
                     data-testid={`rich-md-${button.key}`}
@@ -335,13 +345,14 @@ const RichMarkdownEditor = ({
             minHeight,
             maxHeight,
             overflowY: "auto",
-            px: 1.5,
-            py: 1,
+            // dense: 표 칸 안에 넣는 작은 입력란(스텝 실제 결과). 글자와 여백을 줄인다.
+            px: dense ? 1 : 1.5,
+            py: dense ? 0.5 : 1,
             "& .rich-markdown-surface": {
               outline: "none",
-              minHeight: minHeight - 16,
-              fontSize: "0.875rem",
-              lineHeight: 1.7,
+              minHeight: minHeight - (dense ? 8 : 16),
+              fontSize: dense ? "0.8rem" : "0.875rem",
+              lineHeight: dense ? 1.5 : 1.7,
               color: theme.palette.text.primary,
             },
             // Placeholder 확장은 빈 문단에 data-placeholder 를 붙인다.
@@ -473,6 +484,8 @@ RichMarkdownEditor.propTypes = {
   onPaste: PropTypes.func,
   testid: PropTypes.string,
   hideHelperText: PropTypes.bool,
+  dense: PropTypes.bool,
+  keepLineBreaks: PropTypes.bool,
 };
 
 export default RichMarkdownEditor;
