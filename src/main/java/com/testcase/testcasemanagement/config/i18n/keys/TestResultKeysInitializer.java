@@ -215,15 +215,9 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.steps.passAllMemo", "testResult", "모든 스텝 Pass 메모 칸 라벨", "메모");
     createTranslationKeyIfNotExists(
-        "testResult.steps.passAllMemoHelp",
-        "testResult",
-        "모든 스텝 Pass 메모 안내",
-        "모든 스텝을 Pass 로 입력했습니다. 메모를 입력해야 저장되며, 입력한 내용은 노트에 저장됩니다.");
+        "testResult.steps.passAllMemoHelp", "testResult", "모든 스텝 Pass 메모 안내", "입력한 내용은 노트에 기록됩니다.");
     createTranslationKeyIfNotExists(
-        "testResult.steps.passAllMemoRequired",
-        "testResult",
-        "모든 스텝 Pass 메모 누락 오류",
-        "모든 스텝을 Pass 로 입력했습니다. 메모를 입력해 주세요.");
+        "testResult.steps.passAllConfirm", "testResult", "모든 스텝 Pass 적용 버튼", "Pass 적용");
     createTranslationKeyIfNotExists(
         "testResult.steps.enteredCount", "testResult", "입력한 스텝 수", "{entered}/{total} 입력");
     createTranslationKeyIfNotExists(

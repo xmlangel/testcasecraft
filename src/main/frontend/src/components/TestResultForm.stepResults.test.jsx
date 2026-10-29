@@ -69,19 +69,9 @@ vi.mock("./TestResult/TestResultFloatingMenu.jsx", () => ({
 // 스텝 입력 칸(마크다운 에디터 포함)은 TestCaseDetails 테스트가 따로 검사한다.
 // 여기서는 TestCaseDetails 가 부모에게 넘기는 onStepChange 호출만 버튼으로 흉내 낸다.
 vi.mock("./TestResult/TestCaseDetails.jsx", () => ({
-  default: ({
-    testCase,
-    onStepChange,
-    onPassAllSteps,
-    memoRequired,
-    memoFocusRequest,
-    onMemoChange,
-  }) => (
+  default: ({ testCase, onStepChange, onPassAllSteps }) => (
     <div>
-      <button onClick={onPassAllSteps}>pass-all</button>
-      <output data-testid="memo-required">{String(!!memoRequired)}</output>
-      <output data-testid="memo-focus-request">{memoFocusRequest}</output>
-      <button onClick={() => onMemoChange("전체 통과 확인")}>type-memo</button>
+      <button onClick={() => onPassAllSteps("전체 통과 확인")}>pass-all</button>
       {(testCase.steps || []).map((s) => (
         <span key={s.stepNumber}>
           {["PASS", "FAIL", "BLOCKED", "NOT_RUN"].map((r) => (
@@ -287,7 +277,7 @@ describe("TestResultForm 모든 스텝 Pass (ICT-479)", () => {
     api.mockReset();
   });
 
-  it("이미 결과가 있는 스텝까지 모두 PASS 로 바꾸고 메모를 필수로 요구한다", async () => {
+  it("이미 결과가 있는 스텝까지 모두 PASS 로 바꾸고 입력한 메모를 노트에 기록한다", async () => {
     mockApi(TWO_STEPS);
     await renderForm({
       id: "r-1",
@@ -303,28 +293,40 @@ describe("TestResultForm 모든 스텝 Pass (ICT-479)", () => {
     click("pass-all");
 
     await waitFor(() => expect(overall()).toBe(TestResult.PASS));
-    expect(screen.getByTestId("memo-required").textContent).toBe("true");
-    expect(screen.getByTestId("memo-focus-request").textContent).toBe("1");
+    expect(screen.getByTestId("notes-value").textContent).toBe(
+      "전체 통과 확인",
+    );
   });
 
-  it("메모가 비어 있으면 저장하지 않고, 입력하면 노트에 담겨 모든 스텝 PASS 로 저장된다", async () => {
+  it("기존 노트가 있으면 지우지 않고 아래에 덧붙인다", async () => {
+    mockApi(TWO_STEPS);
+    await renderForm({
+      id: "r-1",
+      result: TestResult.FAIL,
+      notes: "이전 메모",
+      steps: [
+        { stepNumber: 1, result: TestResult.PASS },
+        { stepNumber: 2, result: TestResult.FAIL },
+      ],
+    });
+
+    click("pass-all");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("notes-value").textContent).toBe(
+        "이전 메모\n\n전체 통과 확인",
+      ),
+    );
+  });
+
+  it("적용 후 저장하면 모든 스텝 PASS 와 메모가 담긴 노트가 함께 저장된다", async () => {
     mockApi(TWO_STEPS);
     await renderForm({ result: TestResult.NOT_RUN, notes: "" });
 
     click("pass-all");
     await waitFor(() => expect(overall()).toBe(TestResult.PASS));
     click("save");
-    await new Promise((r) => setTimeout(r, 50));
-    expect(savedBodies()).toHaveLength(0);
-    expect(screen.getByTestId("memo-focus-request").textContent).toBe("2");
 
-    click("type-memo");
-    await waitFor(() =>
-      expect(screen.getByTestId("notes-value").textContent).toBe(
-        "전체 통과 확인",
-      ),
-    );
-    click("save");
     await waitFor(() => expect(savedBodies()).toHaveLength(1));
     expect(savedBodies()[0].body).toMatchObject({
       result: TestResult.PASS,

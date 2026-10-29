@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,10 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   TextField,
   Tooltip,
 } from "@mui/material";
@@ -95,31 +99,24 @@ const TestCaseDetails = ({
   onStepChange = null,
   onPassAllSteps = null,
   stepInputDisabled = false,
-  // ICT-479: 모든 스텝 Pass 뒤에 받는 필수 메모. 값은 결과의 노트 필드에 그대로 들어간다
-  memoRequired = false,
-  memo = "",
-  onMemoChange = null,
-  memoFocusRequest = 0,
 }) => {
   const withStepResults = !!stepResults && !!onStepChange;
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
   const [viewOptions, setViewOptions] = useState(readViewOptions);
-  const memoInputRef = useRef(null);
-  const showMemo = memoRequired && !!onMemoChange && !stepInputDisabled;
-  const memoMissing = !(memo && memo.trim());
-
-  // ICT-479: 버튼을 누르거나 메모 없이 저장하려 하면 메모 칸으로 옮겨 바로 입력하게 한다
-  useEffect(() => {
-    if (!showMemo || !memoFocusRequest) return undefined;
-    const timer = setTimeout(() => {
-      const input = memoInputRef.current;
-      if (!input) return;
-      input.scrollIntoView?.({ behavior: "smooth", block: "center" });
-      input.focus?.();
-    }, 50);
-    return () => clearTimeout(timer);
-  }, [showMemo, memoFocusRequest]);
+  // ICT-479: 모든 스텝 Pass 는 입력 창에서 메모를 받은 뒤 적용한다. 메모는 노트에 기록된다
+  const [passAllOpen, setPassAllOpen] = useState(false);
+  const [passAllMemo, setPassAllMemo] = useState("");
+  const closePassAll = () => {
+    setPassAllOpen(false);
+    setPassAllMemo("");
+  };
+  const confirmPassAll = () => {
+    const memo = passAllMemo.trim();
+    if (!memo) return;
+    onPassAllSteps(memo);
+    closePassAll();
+  };
 
   const toggleViewOption = (key) => {
     setViewOptions((prev) => {
@@ -338,7 +335,7 @@ const TestCaseDetails = ({
                   size="small"
                   variant="outlined"
                   color="success"
-                  onClick={onPassAllSteps}
+                  onClick={() => setPassAllOpen(true)}
                   data-testid="pass-all-steps"
                 >
                   {t("testResult.steps.passAll", "모든 스텝 Pass")}
@@ -490,29 +487,51 @@ const TestCaseDetails = ({
                 </TableBody>
               </Table>
             </TableContainer>
-            {showMemo && (
-              <TextField
-                inputRef={memoInputRef}
-                fullWidth
-                multiline
-                minRows={2}
-                size="small"
-                required
-                sx={{ mt: 1.5 }}
-                label={t("testResult.steps.passAllMemo", "메모")}
-                value={memo || ""}
-                onChange={(e) => onMemoChange(e.target.value)}
-                error={memoMissing}
-                helperText={t(
-                  "testResult.steps.passAllMemoHelp",
-                  "모든 스텝을 Pass 로 입력했습니다. 메모를 입력해야 저장되며, 입력한 내용은 노트에 저장됩니다.",
-                )}
-                inputProps={{
-                  maxLength: 10000,
-                  "data-testid": "pass-all-memo",
-                }}
-              />
-            )}
+            <Dialog
+              open={passAllOpen}
+              onClose={closePassAll}
+              fullWidth
+              maxWidth="sm"
+            >
+              <DialogTitle>
+                {t("testResult.steps.passAll", "모든 스텝 Pass")}
+              </DialogTitle>
+              <DialogContent>
+                <TextField
+                  autoFocus
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  required
+                  sx={{ mt: 1 }}
+                  label={t("testResult.steps.passAllMemo", "메모")}
+                  placeholder={t(
+                    "testResult.steps.passAllMemoHelp",
+                    "입력한 내용은 노트에 기록됩니다.",
+                  )}
+                  value={passAllMemo}
+                  onChange={(e) => setPassAllMemo(e.target.value)}
+                  inputProps={{
+                    maxLength: 10000,
+                    "data-testid": "pass-all-memo",
+                  }}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={closePassAll} data-testid="pass-all-cancel">
+                  {t("common.cancel", "취소")}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={confirmPassAll}
+                  disabled={!passAllMemo.trim()}
+                  data-testid="pass-all-confirm"
+                >
+                  {t("testResult.steps.passAllConfirm", "Pass 적용")}
+                </Button>
+              </DialogActions>
+            </Dialog>
           </Box>
         )}
 
