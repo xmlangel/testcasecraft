@@ -40,7 +40,7 @@ import {
   stepResultsFromSaved,
   toStepPayload,
   rollupStepResults,
-  passAllEmptySteps,
+  passAllSteps,
 } from "../utils/stepResults.js";
 
 const KEY_RESULT_MAP = {
@@ -85,6 +85,7 @@ const TestResultForm = ({
   const [notes, setNotes] = useState("");
   // ICT-469: 스텝별 결과 { [stepNumber]: { result, actualResult } }
   const [stepResults, setStepResults] = useState({});
+  const [passAllDialogOpen, setPassAllDialogOpen] = useState(false);
   const [tags, setTags] = useState([]);
   const [jiraIssueKey, setJiraIssueKey] = useState("");
   const [loading, setLoading] = useState(true);
@@ -825,12 +826,21 @@ const TestResultForm = ({
     [stepResults, stepBase],
   );
 
-  const handlePassAllSteps = useCallback(() => {
-    setUserEdited(true);
-    const next = passAllEmptySteps(stepBase, stepResults);
-    setStepResults(next);
-    setResult(rollupStepResults(stepBase, next));
-  }, [stepResults, stepBase]);
+  // ICT-479: 입력 창에서 받은 메모를 노트에 기록한다. 기존 노트가 있으면 지우지 않고 아래에 덧붙인다
+  const handlePassAllSteps = useCallback(
+    (memo) => {
+      setUserEdited(true);
+      const next = passAllSteps(stepBase, stepResults);
+      setStepResults(next);
+      setResult(rollupStepResults(stepBase, next));
+      if (memo) {
+        setNotesByUser((prev) =>
+          prev && prev.trim() ? `${prev}\n\n${memo}` : memo,
+        );
+      }
+    },
+    [stepResults, stepBase, setNotesByUser],
+  );
 
   const handleFileUploads = async (testResultId) => {
     if (!testResultId || attachedFiles.length === 0) return;
@@ -976,7 +986,9 @@ const TestResultForm = ({
   );
 
   useResultShortcuts({
-    enabled: (open || fullPage) && !isViewer,
+    // ICT-479: 모든 스텝 Pass 입력 창이 열려 있으면 끈다. 창이 열린 직후 포커스가 아직 창 밖에
+    // 있을 때 친 글자가 판정 단축키로 먹혀 뒤 화면 결과가 바뀌고 저장된다 (브라우저에서 재현)
+    enabled: (open || fullPage) && !isViewer && !passAllDialogOpen,
     keyResultMap: KEY_RESULT_MAP,
     onVerdict: handleShortcutVerdict,
     onSave: handleShortcutSave,
@@ -1004,6 +1016,7 @@ const TestResultForm = ({
             stepResults={stepResults}
             onStepChange={handleStepChange}
             onPassAllSteps={handlePassAllSteps}
+            onPassAllDialogChange={setPassAllDialogOpen}
             stepInputDisabled={isViewer}
           />
 

@@ -243,6 +243,13 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.steps.passAll", languageCode, "Pass all steps", createdBy);
     createTranslationIfNotExists(
+        "testResult.steps.passAllMemoHelp",
+        languageCode,
+        "What you enter is added to the notes.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAllConfirm", languageCode, "Apply Pass", createdBy);
+    createTranslationIfNotExists(
         "testResult.steps.enteredCount", languageCode, "{entered}/{total} entered", createdBy);
     createTranslationIfNotExists(
         "testResult.column.stepResults", languageCode, "Step results", createdBy);

@@ -14,6 +14,10 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Tooltip,
 } from "@mui/material";
 import {
@@ -94,11 +98,31 @@ const TestCaseDetails = ({
   onStepChange = null,
   onPassAllSteps = null,
   stepInputDisabled = false,
+  // ICT-479: 입력 창이 열리고 닫힐 때 알린다. 부모는 열린 동안 판정 단축키를 끈다
+  onPassAllDialogChange = null,
 }) => {
   const withStepResults = !!stepResults && !!onStepChange;
   const theme = useTheme();
   const darkMode = theme.palette.mode === "dark";
   const [viewOptions, setViewOptions] = useState(readViewOptions);
+  // ICT-479: 모든 스텝 Pass 는 입력 창에서 노트 내용을 받은 뒤 적용한다. 받은 내용은 노트에 기록된다
+  const [passAllOpen, setPassAllOpen] = useState(false);
+  const [passAllMemo, setPassAllMemo] = useState("");
+  const openPassAll = () => {
+    setPassAllOpen(true);
+    onPassAllDialogChange?.(true);
+  };
+  const closePassAll = () => {
+    setPassAllOpen(false);
+    setPassAllMemo("");
+    onPassAllDialogChange?.(false);
+  };
+  const confirmPassAll = () => {
+    const memo = passAllMemo.trim();
+    if (!memo) return;
+    onPassAllSteps(memo);
+    closePassAll();
+  };
 
   const toggleViewOption = (key) => {
     setViewOptions((prev) => {
@@ -317,7 +341,7 @@ const TestCaseDetails = ({
                   size="small"
                   variant="outlined"
                   color="success"
-                  onClick={onPassAllSteps}
+                  onClick={openPassAll}
                   data-testid="pass-all-steps"
                 >
                   {t("testResult.steps.passAll", "모든 스텝 Pass")}
@@ -469,6 +493,59 @@ const TestCaseDetails = ({
                 </TableBody>
               </Table>
             </TableContainer>
+            {/* 결과 화면의 판정 단축키(P·F·B·N·Enter)는 window 에 걸려 있다. 입력 창 안의 키가
+                거기까지 올라가면 버튼에 포커스가 있을 때 뒤 화면의 판정이 바뀌므로 여기서 멈춘다 */}
+            <Dialog
+              open={passAllOpen}
+              onClose={closePassAll}
+              onKeyDown={(e) => e.stopPropagation()}
+              // 열리면 바로 입력할 수 있게 에디터에 포커스를 둔다
+              TransitionProps={{
+                onEntered: (node) =>
+                  node
+                    ?.querySelector?.('[data-testid="pass-all-memo"]')
+                    ?.focus?.(),
+              }}
+              fullWidth
+              maxWidth="sm"
+            >
+              <DialogTitle>
+                {t("testResult.steps.passAll", "모든 스텝 Pass")}
+              </DialogTitle>
+              <DialogContent>
+                {/* 하단 노트와 같은 마크다운 에디터·같은 이름(노트)을 쓴다. 입력값은 노트 끝에 그대로 붙는다 */}
+                <Box sx={{ mt: 1 }}>
+                  <RichMarkdownEditor
+                    label={`${t("testResult.form.notes", "노트")} *`}
+                    value={passAllMemo}
+                    onChange={(value) => setPassAllMemo(value || "")}
+                    placeholder={t(
+                      "testResult.steps.passAllMemoHelp",
+                      "입력한 내용은 노트에 기록됩니다.",
+                    )}
+                    height={200}
+                    theme={theme}
+                    t={t}
+                    hideHelperText
+                    testid="pass-all-memo"
+                  />
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={closePassAll} data-testid="pass-all-cancel">
+                  {t("common.cancel", "취소")}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={confirmPassAll}
+                  disabled={!passAllMemo.trim()}
+                  data-testid="pass-all-confirm"
+                >
+                  {t("testResult.steps.passAllConfirm", "Pass 적용")}
+                </Button>
+              </DialogActions>
+            </Dialog>
           </Box>
         )}
 

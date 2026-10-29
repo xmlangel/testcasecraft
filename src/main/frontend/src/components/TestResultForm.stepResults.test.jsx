@@ -7,11 +7,12 @@ import { TestResult } from "../models/testExecution.jsx";
 // 스텝 규칙 자체(rollupStepResults·toStepPayload)는 utils/stepResults.test.js 가 검사하므로
 // 여기서는 화면을 렌더하고 저장 버튼을 눌러 실제로 나간 요청 본문을 본다.
 // 컨텍스트·훅 반환값은 렌더마다 같은 객체여야 effect 가 무한 재실행되지 않는다.
-const { api, appCtx, i18nCtx, autoSaveHook, inlineImageHook } = vi.hoisted(
-  () => {
+const { api, appCtx, i18nCtx, autoSaveHook, inlineImageHook, shortcuts } =
+  vi.hoisted(() => {
     const api = vi.fn();
     return {
       api,
+      shortcuts: { last: null },
       appCtx: { user: { role: "USER" }, api },
       i18nCtx: { t: (key, fallback) => fallback || key },
       autoSaveHook: {
@@ -28,8 +29,7 @@ const { api, appCtx, i18nCtx, autoSaveHook, inlineImageHook } = vi.hoisted(
         updateImageDialogState: () => {},
       },
     };
-  },
-);
+  });
 
 vi.mock("../context/AppContext.jsx", () => ({ useAppContext: () => appCtx }));
 vi.mock("../context/I18nContext", () => ({ useI18n: () => i18nCtx }));
@@ -41,7 +41,11 @@ vi.mock("../hooks/useAutoSave.js", () => ({ default: () => autoSaveHook }));
 vi.mock("../hooks/useInlineImagePaste.js", () => ({
   default: () => inlineImageHook,
 }));
-vi.mock("../hooks/useResultShortcuts.js", () => ({ default: () => {} }));
+vi.mock("../hooks/useResultShortcuts.js", () => ({
+  default: (params) => {
+    shortcuts.last = params;
+  },
+}));
 vi.mock("../services/jiraService.js", () => ({
   jiraService: {
     extractIssueKeys: () => [],
@@ -69,8 +73,18 @@ vi.mock("./TestResult/TestResultFloatingMenu.jsx", () => ({
 // 스텝 입력 칸(마크다운 에디터 포함)은 TestCaseDetails 테스트가 따로 검사한다.
 // 여기서는 TestCaseDetails 가 부모에게 넘기는 onStepChange 호출만 버튼으로 흉내 낸다.
 vi.mock("./TestResult/TestCaseDetails.jsx", () => ({
-  default: ({ testCase, onStepChange }) => (
+  default: ({
+    testCase,
+    onStepChange,
+    onPassAllSteps,
+    onPassAllDialogChange,
+  }) => (
     <div>
+      <button onClick={() => onPassAllSteps("전체 통과 확인")}>pass-all</button>
+      <button onClick={() => onPassAllDialogChange(true)}>pass-all-open</button>
+      <button onClick={() => onPassAllDialogChange(false)}>
+        pass-all-close
+      </button>
       {(testCase.steps || []).map((s) => (
         <span key={s.stepNumber}>
           {["PASS", "FAIL", "BLOCKED", "NOT_RUN"].map((r) => (
@@ -108,9 +122,10 @@ vi.mock("./TestResult/TestCaseDetails.jsx", () => ({
 
 // 종합 결과 선택 칸과 저장 버튼은 TestResultNotes 안에 있다. 받은 값과 콜백을 그대로 노출한다.
 vi.mock("./TestResult/TestResultNotes.jsx", () => ({
-  default: ({ result, onResultChange, onSave }) => (
+  default: ({ result, onResultChange, onSave, notes }) => (
     <div>
       <output data-testid="overall-result">{result}</output>
+      <output data-testid="notes-value">{notes}</output>
       <button onClick={() => onResultChange(TestResult.BLOCKED)}>
         overall-BLOCKED
       </button>
@@ -267,5 +282,84 @@ describe("TestResultForm 스텝별 결과 (ICT-469)", () => {
     const [saved] = savedBodies();
     expect(saved.body.result).toBe(TestResult.BLOCKED);
     expect(saved.body).not.toHaveProperty("steps");
+  });
+});
+
+describe("TestResultForm 모든 스텝 Pass (ICT-479)", () => {
+  beforeEach(() => {
+    api.mockReset();
+  });
+
+  it("이미 결과가 있는 스텝까지 모두 PASS 로 바꾸고 입력한 메모를 노트에 기록한다", async () => {
+    mockApi(TWO_STEPS);
+    await renderForm({
+      id: "r-1",
+      result: TestResult.FAIL,
+      notes: "",
+      steps: [
+        { stepNumber: 1, result: TestResult.PASS },
+        { stepNumber: 2, result: TestResult.FAIL },
+      ],
+    });
+    expect(overall()).toBe(TestResult.FAIL);
+
+    click("pass-all");
+
+    await waitFor(() => expect(overall()).toBe(TestResult.PASS));
+    expect(screen.getByTestId("notes-value").textContent).toBe(
+      "전체 통과 확인",
+    );
+  });
+
+  it("기존 노트가 있으면 지우지 않고 아래에 덧붙인다", async () => {
+    mockApi(TWO_STEPS);
+    await renderForm({
+      id: "r-1",
+      result: TestResult.FAIL,
+      notes: "이전 메모",
+      steps: [
+        { stepNumber: 1, result: TestResult.PASS },
+        { stepNumber: 2, result: TestResult.FAIL },
+      ],
+    });
+
+    click("pass-all");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("notes-value").textContent).toBe(
+        "이전 메모\n\n전체 통과 확인",
+      ),
+    );
+  });
+
+  it("적용 후 저장하면 모든 스텝 PASS 와 메모가 담긴 노트가 함께 저장된다", async () => {
+    mockApi(TWO_STEPS);
+    await renderForm({ result: TestResult.NOT_RUN, notes: "" });
+
+    click("pass-all");
+    await waitFor(() => expect(overall()).toBe(TestResult.PASS));
+    click("save");
+
+    await waitFor(() => expect(savedBodies()).toHaveLength(1));
+    expect(savedBodies()[0].body).toMatchObject({
+      result: TestResult.PASS,
+      notes: "전체 통과 확인",
+      steps: [
+        { stepNumber: 1, result: TestResult.PASS },
+        { stepNumber: 2, result: TestResult.PASS },
+      ],
+    });
+  });
+
+  it("입력 창이 열려 있는 동안 판정 단축키를 끄고, 닫으면 다시 켠다", async () => {
+    mockApi(TWO_STEPS);
+    await renderForm({ result: TestResult.NOT_RUN, notes: "" });
+    expect(shortcuts.last.enabled).toBe(true);
+
+    click("pass-all-open");
+    await waitFor(() => expect(shortcuts.last.enabled).toBe(false));
+
+    click("pass-all-close");
+    await waitFor(() => expect(shortcuts.last.enabled).toBe(true));
   });
 });

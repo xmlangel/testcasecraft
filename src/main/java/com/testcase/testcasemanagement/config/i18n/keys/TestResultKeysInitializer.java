@@ -213,6 +213,10 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.steps.passAll", "testResult", "모든 스텝 Pass 버튼", "모든 스텝 Pass");
     createTranslationKeyIfNotExists(
+        "testResult.steps.passAllMemoHelp", "testResult", "모든 스텝 Pass 메모 안내", "입력한 내용은 노트에 기록됩니다.");
+    createTranslationKeyIfNotExists(
+        "testResult.steps.passAllConfirm", "testResult", "모든 스텝 Pass 적용 버튼", "Pass 적용");
+    createTranslationKeyIfNotExists(
         "testResult.steps.enteredCount", "testResult", "입력한 스텝 수", "{entered}/{total} 입력");
     createTranslationKeyIfNotExists(
         "testResult.column.stepResults", "testResult", "스텝 결과 컬럼", "스텝 결과");

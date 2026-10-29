@@ -179,6 +179,10 @@ public class KoreanTestResultTranslations {
         createdBy);
     createTranslationIfNotExists("testResult.steps.passAll", languageCode, "모든 스텝 Pass", createdBy);
     createTranslationIfNotExists(
+        "testResult.steps.passAllMemoHelp", languageCode, "입력한 내용은 노트에 기록됩니다.", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAllConfirm", languageCode, "Pass 적용", createdBy);
+    createTranslationIfNotExists(
         "testResult.steps.enteredCount", languageCode, "{entered}/{total} 입력", createdBy);
     createTranslationIfNotExists("testResult.column.stepResults", languageCode, "스텝 결과", createdBy);
 

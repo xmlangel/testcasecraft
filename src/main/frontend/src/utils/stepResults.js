@@ -62,13 +62,14 @@ export const countEnteredSteps = (caseSteps, map) => {
   return { entered, total: numbers.length };
 };
 
-/** 비어 있는 스텝(NOT_RUN)을 모두 PASS 로 채운다. 이미 고른 값은 그대로 둔다. */
-export const passAllEmptySteps = (caseSteps, map) => {
+/**
+ * 모든 스텝 결과를 PASS 로 바꾼다. 실제 결과 입력값은 그대로 둔다.
+ * ICT-479: 빈 스텝만 채우면 이전 결과를 불러온 재실행에서 바뀔 스텝이 없어 버튼이 무반응이었다.
+ */
+export const passAllSteps = (caseSteps, map) => {
   const next = { ...(map || {}) };
   sortedNumbers(caseSteps).forEach((n) => {
-    const e = entryOf(next, n);
-    if (e.result === TestResult.NOT_RUN)
-      next[n] = { ...e, result: TestResult.PASS };
+    next[n] = { ...entryOf(next, n), result: TestResult.PASS };
   });
   return next;
 };
