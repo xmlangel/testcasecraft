@@ -110,4 +110,50 @@ describe("StepResultsSummary (ICT-469)", () => {
     expect(screen.getByText("BLOCKED")).toBeInTheDocument();
     expect(screen.getByText("NOT_RUN")).toBeInTheDocument();
   });
+
+  describe("cards 모드 (ICT-475)", () => {
+    it("스텝마다 카드를 한 장씩 스텝 번호 순서로 표시한다", () => {
+      const steps = [
+        { stepNumber: 2, result: "FAIL", actualResult: "반응 없음" },
+        { stepNumber: 1, result: "PASS", actualResult: "" },
+        { stepNumber: 3, result: "BLOCKED", actualResult: "선행 스텝 실패" },
+      ];
+      render(<StepResultsSummary steps={steps} t={t} cards />);
+
+      expect(screen.getByTestId("step-results-cards")).toBeInTheDocument();
+      const cards = screen.getAllByTestId("step-result-card");
+      expect(cards).toHaveLength(3);
+      expect(cards[0]).toHaveTextContent("Step 1");
+      expect(cards[0]).toHaveTextContent("PASS");
+      expect(cards[1]).toHaveTextContent("Step 2");
+      expect(cards[1]).toHaveTextContent("FAIL");
+      expect(cards[1]).toHaveTextContent("반응 없음");
+      expect(cards[2]).toHaveTextContent("BLOCKED");
+    });
+
+    it("PASS 스텝도 카드로 표시한다", () => {
+      const steps = [{ stepNumber: 1, result: "PASS", actualResult: "정상" }];
+      render(<StepResultsSummary steps={steps} t={t} cards />);
+
+      expect(screen.getByText("Step 1")).toBeInTheDocument();
+      expect(screen.getByText("PASS")).toBeInTheDocument();
+      expect(screen.getByText(/정상/)).toBeInTheDocument();
+    });
+
+    it("결과가 없는 스텝은 NOT_RUN 으로 표시하고 실제 결과 줄을 생략한다", () => {
+      const steps = [{ stepNumber: 1 }];
+      render(<StepResultsSummary steps={steps} t={t} cards />);
+
+      expect(screen.getByText("NOT_RUN")).toBeInTheDocument();
+      expect(screen.queryByText(/실제 결과/)).toBeNull();
+    });
+
+    it("요약형 요소를 함께 그리지 않는다", () => {
+      const steps = [{ stepNumber: 1, result: "FAIL" }];
+      render(<StepResultsSummary steps={steps} t={t} cards />);
+
+      expect(screen.queryByTestId("step-results-summary")).toBeNull();
+      expect(screen.queryByTestId("step-results-table")).toBeNull();
+    });
+  });
 });

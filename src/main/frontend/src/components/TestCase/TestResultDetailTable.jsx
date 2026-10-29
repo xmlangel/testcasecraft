@@ -838,19 +838,38 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           </Tooltip>
         ),
       },
-      // ICT-469: 스텝별 결과 요약
+      // ICT-469: 스텝별 결과 (ICT-475: 스텝 정보 칸과 같은 카드 형태)
       {
         field: "stepResults",
         headerName: t("testResult.column.stepResults", "스텝 결과"),
-        width: 220,
+        width: 300,
         headerClassName: "table-header",
         sortable: false,
         renderCell: (params) =>
           params.value?.length ? (
             <Box
-              sx={{ py: 0.5, maxHeight: 200, overflow: "auto", width: "100%" }}
+              sx={{
+                py: 1,
+                width: "100%",
+                maxHeight: 360,
+                overflow: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "4px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "rgba(0, 0, 0, 0.1)",
+                  borderRadius: "2px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "rgba(0, 0, 0, 0.3)",
+                  borderRadius: "2px",
+                  "&:hover": {
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  },
+                },
+              }}
             >
-              <StepResultsSummary steps={params.value} t={t} compact />
+              <StepResultsSummary steps={params.value} t={t} cards />
             </Box>
           ) : (
             <Typography
@@ -1489,45 +1508,47 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-275: 컬럼 설정을 localStorage에 저장
 
   // ICT-276: 동적 행 높이 계산 - 스텝 개수와 내용에 따라 조정
+  // ICT-475: 스텝 정보·스텝 결과 두 칸 중 높은 쪽을 기준으로 삼는다
   const getRowHeight = useCallback(
     (params) => {
-      const steps = params.model.steps || [];
+      const baseHeight = 52; // 기본 행 높이
+      // 줄바꿈마다 새 줄, 한 줄 안에서는 50자당 1줄로 추정 (16px per line)
+      const textHeight = (text) =>
+        text
+          ? text
+              .split("\n")
+              .reduce(
+                (sum, line) => sum + Math.max(1, Math.ceil(line.length / 50)),
+                0,
+              ) * 16
+          : 0;
 
-      // 스텝이 없거나 스텝 컬럼이 비활성화된 경우 기본 높이
-      if (!columnVisibility.steps || steps.length === 0) {
-        return 52; // 기본 행 높이
+      let stepsHeight = 0;
+      if (columnVisibility.steps) {
+        (params.model.steps || []).forEach((step) => {
+          // 스텝 헤더 + 패딩, 설명, 예상결과, 스텝 간 여백
+          stepsHeight +=
+            32 +
+            textHeight(step.description) +
+            textHeight(step.expectedResult) +
+            8;
+        });
       }
 
-      // 기본 높이 + 스텝당 추가 높이 계산
-      const baseHeight = 52;
-      let additionalHeight = 0;
+      let stepResultsHeight = 0;
+      if (columnVisibility.stepResults !== false) {
+        (params.model.stepResults || []).forEach((step) => {
+          // 카드 머리(Step N + 결과 칩) + 패딩, 실제 결과, 스텝 간 여백
+          stepResultsHeight += 32 + textHeight(step.actualResult) + 8;
+        });
+      }
 
-      steps.forEach((step) => {
-        // 스텝 헤더 + 패딩
-        additionalHeight += 32;
-
-        // 설명 텍스트 높이 계산 (대략적)
-        if (step.description) {
-          const descriptionLines = Math.ceil(step.description.length / 50); // 50자당 1줄로 추정
-          additionalHeight += Math.max(1, descriptionLines) * 16; // 16px per line
-        }
-
-        // 예상결과 텍스트 높이 계산
-        if (step.expectedResult) {
-          const expectedResultLines = Math.ceil(
-            step.expectedResult.length / 50,
-          );
-          additionalHeight += Math.max(1, expectedResultLines) * 16;
-        }
-
-        // 스텝 간 여백
-        additionalHeight += 8;
-      });
+      const additionalHeight = Math.max(stepsHeight, stepResultsHeight);
 
       // 최소 높이 52px, 최대 높이 400px로 제한
-      return Math.min(Math.max(baseHeight, baseHeight + additionalHeight), 400);
+      return Math.min(baseHeight + additionalHeight, 400);
     },
-    [columnVisibility.steps],
+    [columnVisibility.steps, columnVisibility.stepResults],
   );
 
   // 표시할 컬럼 필터링 및 순서 적용
