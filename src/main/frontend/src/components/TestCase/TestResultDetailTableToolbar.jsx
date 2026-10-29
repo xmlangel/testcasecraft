@@ -4,49 +4,23 @@ import {
   GridToolbarContainer,
   GridToolbarColumnsButton,
   GridToolbarFilterButton,
-  GridToolbarExport,
   GridToolbarDensitySelector,
 } from "@mui/x-data-grid";
 import {
   Settings as SettingsIcon,
-  GetApp as GetAppIcon,
-  FileDownload as FileDownloadIcon,
   Autorenew as AutorenewIcon,
 } from "@mui/icons-material";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
 
-// 인쇄 시 그리드를 축소해 한 페이지에 더 많이 담기 위한 페이지 스타일
-const PRINT_SCALE_PERCENT = 30;
-const PRINT_SCALE_FACTOR = PRINT_SCALE_PERCENT / 100;
-const GRID_PRINT_PAGE_STYLE = `
-  @page {
-    size: landscape;
-    margin: 10mm;
-  }
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    transform: scale(${PRINT_SCALE_FACTOR});
-    transform-origin: top left;
-  }
-  #root, body, html {
-    width: ${100 / PRINT_SCALE_FACTOR}%;
-  }
-`;
-
+// ICT-476: 내보내기는 표 위 "내보내기" 버튼 하나로 통일한다.
+// MUI 기본 EXPORT(CSV·인쇄)와 툴바의 고급 내보내기 버튼은 제거했다.
 const TestResultDetailTableToolbar = ({
   onColumnSettingsClick,
   onColumnOrderChangeClick,
   onResetClick,
   onJiraStatusCheck,
-  onExportClick,
   jiraConfig,
   jiraStatusLoading,
   hasJiraTargets,
-  activeProject,
   t,
 }) => (
   <GridToolbarContainer sx={{ justifyContent: "space-between", p: 1 }}>
@@ -115,40 +89,6 @@ const TestResultDetailTableToolbar = ({
           </Button>
         </span>
       </Tooltip>
-    </Box>
-
-    <Box sx={{ display: "flex", gap: 1 }}>
-      {/* ICT-190: 고급 내보내기 버튼 */}
-      <Button
-        size="small"
-        startIcon={<FileDownloadIcon />}
-        onClick={onExportClick}
-        variant="outlined"
-        color="primary"
-      >
-        {t("testResult.button.advancedExport", "고급 내보내기")}
-      </Button>
-
-      <GridToolbarExport
-        printOptions={{
-          fileName: `테스트결과_${activeProject?.name || "export"}_${format(
-            new Date(),
-            "yyyyMMdd",
-            { locale: ko },
-          )}`,
-          pageStyle: GRID_PRINT_PAGE_STYLE,
-        }}
-        csvOptions={{
-          fileName: `테스트결과_${activeProject?.name || "export"}_${format(
-            new Date(),
-            "yyyyMMdd",
-            { locale: ko },
-          )}`,
-          utf8WithBom: true,
-        }}
-        startIcon={<GetAppIcon />}
-        sx={{ ml: 1 }}
-      />
     </Box>
   </GridToolbarContainer>
 );

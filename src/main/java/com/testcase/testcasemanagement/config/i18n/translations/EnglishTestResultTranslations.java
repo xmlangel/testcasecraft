@@ -188,8 +188,6 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists("testResult.button.order", languageCode, "Order", createdBy);
     createTranslationIfNotExists("testResult.button.export", languageCode, "Export", createdBy);
     createTranslationIfNotExists(
-        "testResult.button.advancedExport", languageCode, "Advanced Export", createdBy);
-    createTranslationIfNotExists(
         "testResult.button.viewDetail", languageCode, "View Details", createdBy);
     createTranslationIfNotExists("testResult.button.edit", languageCode, "Edit", createdBy);
 
@@ -381,8 +379,6 @@ public class EnglishTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.button.changeOrder", languageCode, "Change Order", createdBy);
     createTranslationIfNotExists("testResult.button.reset", languageCode, "Reset", createdBy);
-    createTranslationIfNotExists(
-        "testResult.button.advancedExport", languageCode, "Advanced Export", createdBy);
     createTranslationIfNotExists("testResult.button.column", languageCode, "Column", createdBy);
     createTranslationIfNotExists("testResult.button.order", languageCode, "Order", createdBy);
     createTranslationIfNotExists("testResult.button.export", languageCode, "Export", createdBy);

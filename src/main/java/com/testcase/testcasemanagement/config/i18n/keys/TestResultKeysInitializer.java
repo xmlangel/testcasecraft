@@ -168,8 +168,6 @@ public class TestResultKeysInitializer {
     createTranslationKeyIfNotExists("testResult.button.order", "testResult", "순서 버튼", "순서");
     createTranslationKeyIfNotExists("testResult.button.export", "testResult", "내보내기 버튼", "내보내기");
     createTranslationKeyIfNotExists(
-        "testResult.button.advancedExport", "testResult", "고급 내보내기 버튼", "고급 내보내기");
-    createTranslationKeyIfNotExists(
         "testResult.button.viewDetail", "testResult", "상세보기 버튼", "상세보기");
     createTranslationKeyIfNotExists("testResult.button.edit", "testResult", "편집 버튼", "편집");
 

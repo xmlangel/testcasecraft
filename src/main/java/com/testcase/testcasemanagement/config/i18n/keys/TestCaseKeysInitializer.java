@@ -1060,8 +1060,6 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testResult.button.changeOrder", "testResult", "순서 변경 버튼", "순서 변경");
     createTranslationKeyIfNotExists("testResult.button.reset", "testResult", "기본값 버튼", "기본값");
-    createTranslationKeyIfNotExists(
-        "testResult.button.advancedExport", "testResult", "고급 내보내기 버튼", "고급 내보내기");
     createTranslationKeyIfNotExists("testResult.button.column", "testResult", "컬럼 버튼", "컬럼");
     createTranslationKeyIfNotExists("testResult.button.order", "testResult", "순서 버튼", "순서");
     createTranslationKeyIfNotExists("testResult.button.export", "testResult", "내보내기 버튼", "내보내기");

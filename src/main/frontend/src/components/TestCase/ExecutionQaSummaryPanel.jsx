@@ -1,5 +1,5 @@
 // QA 총평 패널 — 테스트 결과 화면에서 실행(execution) 필터 선택 시 표시.
-// 실행 단위 마크다운 코멘트를 입력·저장하고, 고급 내보내기 PDF·HTML 상단에 함께 출력된다.
+// 실행 단위 마크다운 코멘트를 입력·저장하고, 내보내기 PDF·HTML 상단에 함께 출력된다.
 //
 // 총평에 마크다운 제목(#~######)이 있으면 제목 단위로 구간을 나눠 그 구간만 편집한다.
 // 총평이 길어졌을 때 편집기 하나로 전체를 다루지 않게 하려는 것.
@@ -251,7 +251,7 @@ const ExecutionQaSummaryPanel = ({ execution, onSave, saving = false }) => {
       <Typography variant="body2" color="text.secondary">
         {t(
           "testResult.qaSummary.empty",
-          "아직 작성된 QA 총평이 없습니다. 고급 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.",
+          "아직 작성된 QA 총평이 없습니다. 내보내기 PDF의 상세 리스트 위에 함께 출력됩니다.",
         )}
       </Typography>
     );
