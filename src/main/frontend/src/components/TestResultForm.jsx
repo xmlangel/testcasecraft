@@ -85,6 +85,7 @@ const TestResultForm = ({
   const [notes, setNotes] = useState("");
   // ICT-469: 스텝별 결과 { [stepNumber]: { result, actualResult } }
   const [stepResults, setStepResults] = useState({});
+  const [passAllDialogOpen, setPassAllDialogOpen] = useState(false);
   const [tags, setTags] = useState([]);
   const [jiraIssueKey, setJiraIssueKey] = useState("");
   const [loading, setLoading] = useState(true);
@@ -985,7 +986,9 @@ const TestResultForm = ({
   );
 
   useResultShortcuts({
-    enabled: (open || fullPage) && !isViewer,
+    // ICT-479: 모든 스텝 Pass 입력 창이 열려 있으면 끈다. 창이 열린 직후 포커스가 아직 창 밖에
+    // 있을 때 친 글자가 판정 단축키로 먹혀 뒤 화면 결과가 바뀌고 저장된다 (브라우저에서 재현)
+    enabled: (open || fullPage) && !isViewer && !passAllDialogOpen,
     keyResultMap: KEY_RESULT_MAP,
     onVerdict: handleShortcutVerdict,
     onSave: handleShortcutSave,
@@ -1013,6 +1016,7 @@ const TestResultForm = ({
             stepResults={stepResults}
             onStepChange={handleStepChange}
             onPassAllSteps={handlePassAllSteps}
+            onPassAllDialogChange={setPassAllDialogOpen}
             stepInputDisabled={isViewer}
           />
 

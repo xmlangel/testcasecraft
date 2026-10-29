@@ -2,7 +2,17 @@ import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-vi.mock("../TestCase/RichMarkdownEditor.jsx", () => ({ default: () => null }));
+// 메모 칸은 마크다운 에디터다. 테스트에서는 값과 onChange 만 쓰는 textarea 로 바꿔 끼운다
+vi.mock("../TestCase/RichMarkdownEditor.jsx", () => ({
+  default: ({ value, onChange, testid }) =>
+    testid === "pass-all-memo" ? (
+      <textarea
+        data-testid={testid}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    ) : null,
+}));
 vi.mock("../common/MarkdownViewer.jsx", () => ({ default: () => null }));
 
 import TestCaseDetails from "./TestCaseDetails.jsx";
