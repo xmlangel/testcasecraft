@@ -5,7 +5,7 @@ import {
   toStepPayload,
   rollupStepResults,
   countEnteredSteps,
-  passAllEmptySteps,
+  passAllSteps,
   sameStepPayload,
 } from "./stepResults.js";
 
@@ -82,17 +82,26 @@ describe("stepResults (ICT-469)", () => {
     ).toBe(false);
   });
 
-  it("모든 스텝 Pass 는 빈 스텝만 채운다", () => {
-    const next = passAllEmptySteps(caseSteps, {
+  it("모든 스텝 Pass 는 이미 고른 결과까지 모두 PASS 로 바꾸고 실제 결과는 남긴다 (ICT-479)", () => {
+    const next = passAllSteps(caseSteps, {
       2: { result: "FAIL", actualResult: "x" },
     });
     expect(next[1].result).toBe("PASS");
-    expect(next[2]).toEqual({ result: "FAIL", actualResult: "x" });
+    expect(next[2]).toEqual({ result: "PASS", actualResult: "x" });
     expect(next[3].result).toBe("PASS");
     expect(countEnteredSteps(caseSteps, next)).toEqual({
       entered: 3,
       total: 3,
     });
+  });
+
+  it("모든 스텝이 이미 값을 가진 경우에도 PASS 로 바뀐다 (ICT-479)", () => {
+    const next = passAllSteps(caseSteps, {
+      1: { result: "PASS", actualResult: "" },
+      2: { result: "FAIL", actualResult: "" },
+      3: { result: "BLOCKED", actualResult: "" },
+    });
+    expect(rollupStepResults(caseSteps, next)).toBe("PASS");
   });
 });
 

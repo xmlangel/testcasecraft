@@ -178,6 +178,17 @@ public class KoreanTestResultTranslations {
         "실제 결과는 {max}자까지 저장할 수 있습니다.",
         createdBy);
     createTranslationIfNotExists("testResult.steps.passAll", languageCode, "모든 스텝 Pass", createdBy);
+    createTranslationIfNotExists("testResult.steps.passAllMemo", languageCode, "메모", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAllMemoHelp",
+        languageCode,
+        "모든 스텝을 Pass 로 입력했습니다. 메모를 입력해야 저장되며, 입력한 내용은 노트에 저장됩니다.",
+        createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.passAllMemoRequired",
+        languageCode,
+        "모든 스텝을 Pass 로 입력했습니다. 메모를 입력해 주세요.",
+        createdBy);
     createTranslationIfNotExists(
         "testResult.steps.enteredCount", languageCode, "{entered}/{total} 입력", createdBy);
     createTranslationIfNotExists("testResult.column.stepResults", languageCode, "스텝 결과", createdBy);

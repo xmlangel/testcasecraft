@@ -40,7 +40,7 @@ import {
   stepResultsFromSaved,
   toStepPayload,
   rollupStepResults,
-  passAllEmptySteps,
+  passAllSteps,
 } from "../utils/stepResults.js";
 
 const KEY_RESULT_MAP = {
@@ -85,6 +85,10 @@ const TestResultForm = ({
   const [notes, setNotes] = useState("");
   // ICT-469: 스텝별 결과 { [stepNumber]: { result, actualResult } }
   const [stepResults, setStepResults] = useState({});
+  // ICT-479: 모든 스텝 Pass 를 쓰면 메모(노트 필드)를 필수로 받는다. editRequest 는 메모 칸으로 옮기라는 신호
+  const [notesRequiredByPassAll, setNotesRequiredByPassAll] = useState(false);
+  const [notesEditRequest, setNotesEditRequest] = useState(0);
+  const notesMissing = notesRequiredByPassAll && !(notes && notes.trim());
   const [tags, setTags] = useState([]);
   const [jiraIssueKey, setJiraIssueKey] = useState("");
   const [loading, setLoading] = useState(true);
@@ -304,12 +308,14 @@ const TestResultForm = ({
     id: executionId, // 신규/기존 모두 활성화 (실제 저장 여부는 autoSaveFn 내부에서 결정)
     data: autoSaveData,
     saveFn: autoSaveFn,
-    disabled: isViewer || !fullPage,
+    // ICT-479: 메모 필수인데 비어 있으면 자동 저장도 보류한다 (스텝만 먼저 저장되지 않게)
+    disabled: isViewer || !fullPage || notesMissing,
     debounceMs: 1500,
     t,
   });
 
   useEffect(() => {
+    setNotesRequiredByPassAll(false);
     if (!stableCurrentResult) {
       // 새로운 결과 입력 시
       setUserEdited(false);
@@ -665,6 +671,17 @@ const TestResultForm = ({
         return;
       }
 
+      if (notesMissing) {
+        setSaveError(
+          t(
+            "testResult.steps.passAllMemoRequired",
+            "모든 스텝을 Pass 로 입력했습니다. 메모를 입력해 주세요.",
+          ),
+        );
+        setNotesEditRequest((n) => n + 1);
+        return;
+      }
+
       try {
         const requestData = {
           testCaseId,
@@ -805,6 +822,7 @@ const TestResultForm = ({
       stepPayload,
       savedStepPayload,
       stepsToSend,
+      notesMissing,
     ],
   );
 
@@ -827,9 +845,11 @@ const TestResultForm = ({
 
   const handlePassAllSteps = useCallback(() => {
     setUserEdited(true);
-    const next = passAllEmptySteps(stepBase, stepResults);
+    const next = passAllSteps(stepBase, stepResults);
     setStepResults(next);
     setResult(rollupStepResults(stepBase, next));
+    setNotesRequiredByPassAll(true);
+    setNotesEditRequest((n) => n + 1);
   }, [stepResults, stepBase]);
 
   const handleFileUploads = async (testResultId) => {
@@ -1005,6 +1025,10 @@ const TestResultForm = ({
             onStepChange={handleStepChange}
             onPassAllSteps={handlePassAllSteps}
             stepInputDisabled={isViewer}
+            memoRequired={notesRequiredByPassAll}
+            memo={notes}
+            onMemoChange={setNotesByUser}
+            memoFocusRequest={notesEditRequest}
           />
 
           {/* 케이스에 붙은 첨부파일 — 업로드는 케이스 편집에서 하고, 삭제는 케이스 편집 권한
