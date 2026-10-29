@@ -58,4 +58,18 @@ describe("TestCaseDetails 모든 스텝 Pass 입력 창 (ICT-479)", () => {
     fireEvent.click(screen.getByTestId("pass-all-cancel"));
     expect(onPassAllSteps).not.toHaveBeenCalled();
   });
+
+  it("입력 창 안에서 누른 키는 화면 전체 단축키로 올라가지 않는다", () => {
+    const onWindowKey = vi.fn();
+    window.addEventListener("keydown", onWindowKey);
+    try {
+      renderDetails(vi.fn());
+      fireEvent.click(screen.getByTestId("pass-all-steps"));
+      fireEvent.keyDown(screen.getByTestId("pass-all-cancel"), { key: "f" });
+      fireEvent.keyDown(screen.getByTestId("pass-all-memo"), { key: "p" });
+      expect(onWindowKey).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener("keydown", onWindowKey);
+    }
+  });
 });

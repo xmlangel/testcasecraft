@@ -487,9 +487,12 @@ const TestCaseDetails = ({
                 </TableBody>
               </Table>
             </TableContainer>
+            {/* 결과 화면의 판정 단축키(P·F·B·N·Enter)는 window 에 걸려 있다. 입력 창 안의 키가
+                거기까지 올라가면 버튼에 포커스가 있을 때 뒤 화면의 판정이 바뀌므로 여기서 멈춘다 */}
             <Dialog
               open={passAllOpen}
               onClose={closePassAll}
+              onKeyDown={(e) => e.stopPropagation()}
               fullWidth
               maxWidth="sm"
             >
