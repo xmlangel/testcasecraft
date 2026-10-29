@@ -355,6 +355,8 @@ Resilience4j 로 제한합니다. 설정은 `application.yml` 의 `resilience4j.
 | Swagger UI | `http://localhost:8080/swagger-ui.html` |
 | OpenAPI 스펙 (JSON) | `http://localhost:8080/api-docs` |
 
+운영·개발 모두 같은 규칙이 걸립니다. Swagger UI 화면은 누구나 열 수 있지만, 화면이 불러오는 스펙(`/api-docs`)은 시스템 관리자(`ADMIN`)만 받을 수 있습니다. Swagger UI 는 같은 브라우저에서 앱에 로그인할 때 저장된 `accessToken` 을 요청 헤더에 자동으로 붙이므로, 관리자 계정으로 앱에 로그인한 뒤 Swagger UI 를 열면 됩니다. 로그인하지 않았거나 관리자가 아니면 화면에 "Failed to load API definition" 이 표시됩니다.
+
 ### 어노테이션
 
 ```java
