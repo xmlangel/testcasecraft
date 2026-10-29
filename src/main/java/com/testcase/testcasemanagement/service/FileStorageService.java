@@ -64,7 +64,8 @@ public class FileStorageService {
     TestResult testResult =
         testResultRepository
             .findById(testResultId)
-            .orElseThrow(() -> new IllegalArgumentException("Test result not found: " + testResultId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Test result not found: " + testResultId));
 
     // MinIO에 파일 저장
     String storedFileName = generateUniqueFileName(file.getOriginalFilename());
@@ -112,7 +113,8 @@ public class FileStorageService {
     TestResultAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     if (!attachment.isDownloadable()) {
       throw new IllegalStateException("File cannot be downloaded: " + attachmentId);
@@ -131,7 +133,8 @@ public class FileStorageService {
     TestResultAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     return TestResultAttachmentDto.fromEntity(attachment);
   }
@@ -141,7 +144,8 @@ public class FileStorageService {
     TestResultAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     // 논리적 삭제
     attachment.setStatus(TestResultAttachment.AttachmentStatus.DELETED);

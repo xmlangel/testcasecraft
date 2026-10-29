@@ -225,7 +225,8 @@ public class UserActivityService {
     // 권한 확인: 본인 또는 시스템 관리자만 조회 가능
     if (!securityContextUtil.isSystemAdmin()
         && !securityContextUtil.getCurrentUserId().equals(userId)) {
-      throw new SecurityException("You do not have permission to view this user's activity history.");
+      throw new SecurityException(
+          "You do not have permission to view this user's activity history.");
     }
 
     Pageable pageable = PageRequest.of(page, size);
@@ -239,7 +240,8 @@ public class UserActivityService {
     // 권한 확인
     if (!securityContextUtil.isSystemAdmin()
         && !securityContextUtil.getCurrentUserId().equals(userId)) {
-      throw new SecurityException("You do not have permission to view this user's activity statistics.");
+      throw new SecurityException(
+          "You do not have permission to view this user's activity statistics.");
     }
 
     Map<String, Object> statistics = new HashMap<>();
@@ -334,7 +336,8 @@ public class UserActivityService {
     } else {
       // 시스템 관리자는 전체 이상 활동 조회 가능
       if (!securityContextUtil.isSystemAdmin()) {
-        throw new SecurityException("You do not have permission to view all suspicious activities.");
+        throw new SecurityException(
+            "You do not have permission to view all suspicious activities.");
       }
       return userActivityRepository.findByAnomalyDetectedTrue();
     }
@@ -346,7 +349,8 @@ public class UserActivityService {
     UserActivity activity =
         userActivityRepository
             .findById(activityId)
-            .orElseThrow(() -> new ResourceNotFoundException("Activity history not found: " + activityId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Activity history not found: " + activityId));
 
     // 권한 확인: 본인 또는 시스템 관리자만 조회 가능
     if (!securityContextUtil.isSystemAdmin()

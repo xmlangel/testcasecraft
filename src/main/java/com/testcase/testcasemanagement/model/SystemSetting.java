@@ -35,5 +35,6 @@ public class SystemSetting {
   private String description;
 
   @Comment("마지막 수정 일시: 이 행이 마지막으로 변경된 일시")
-  @LastModifiedDate private LocalDateTime lastModifiedDate;
+  @LastModifiedDate
+  private LocalDateTime lastModifiedDate;
 }

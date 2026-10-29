@@ -67,7 +67,8 @@ public class RagChatServiceImpl implements RagChatService {
           projectRepository
               .findById(request.getProjectId().toString())
               .orElseThrow(
-                  () -> new IllegalArgumentException("Project not found: " + request.getProjectId()));
+                  () ->
+                      new IllegalArgumentException("Project not found: " + request.getProjectId()));
 
       boolean persistConversation =
           request.getPersistConversation() == null
@@ -226,7 +227,10 @@ public class RagChatServiceImpl implements RagChatService {
       log.warn("⚠️ 스트리밍 스레드 풀이 가득 차 요청을 거부했다: active={}", streamExecutor.getActiveCount());
       try {
         emitter.send(
-            SseEmitter.event().name("error").data("Too many conversations are in progress right now. Please try again shortly."));
+            SseEmitter.event()
+                .name("error")
+                .data(
+                    "Too many conversations are in progress right now. Please try again shortly."));
         emitter.complete();
       } catch (Exception sendError) {
         log.error("❌ 거부 안내 전송 실패", sendError);
@@ -363,11 +367,15 @@ public class RagChatServiceImpl implements RagChatService {
     if (llmConfigId != null) {
       return llmConfigRepository
           .findById(llmConfigId)
-          .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + llmConfigId));
+          .orElseThrow(
+              () -> new IllegalArgumentException("LLM configuration not found: " + llmConfigId));
     } else {
       return llmConfigRepository
           .findByIsDefaultTrueAndIsActiveTrue()
-          .orElseThrow(() -> new IllegalStateException("No default LLM configuration found. Please contact the administrator."));
+          .orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "No default LLM configuration found. Please contact the administrator."));
     }
   }
 

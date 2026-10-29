@@ -781,7 +781,9 @@ public class RagServiceImpl implements RagService {
           try {
             fetchDocument(documentId);
             // If we are here, document exists, so it was a real timeout or failure
-            throw new RuntimeException("TestCase embedding creation did not complete within the time limit (Timeout/Failure).");
+            throw new RuntimeException(
+                "TestCase embedding creation did not complete within the time limit"
+                    + " (Timeout/Failure).");
           } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains(RAG_DOCUMENT_NOT_FOUND_MESSAGE)) {
               log.info(
@@ -945,7 +947,8 @@ public class RagServiceImpl implements RagService {
           .block(DEFAULT_BLOCK_TIMEOUT);
     } catch (Exception e) {
       log.error("Failed to index conversation message in RAG", e);
-      throw new RuntimeException("Failed to save conversation message embedding: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "Failed to save conversation message embedding: " + e.getMessage(), e);
     }
   }
 
@@ -977,7 +980,8 @@ public class RagServiceImpl implements RagService {
           .block(DEFAULT_BLOCK_TIMEOUT);
     } catch (Exception e) {
       log.error("Failed to delete conversation message in RAG", e);
-      throw new RuntimeException("Failed to delete conversation message embedding: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "Failed to delete conversation message embedding: " + e.getMessage(), e);
     }
   }
 
@@ -1296,7 +1300,9 @@ public class RagServiceImpl implements RagService {
                   clientResponse ->
                       clientResponse
                           .bodyToMono(String.class)
-                          .map(error -> new RuntimeException("Failed to start LLM analysis: " + error)))
+                          .map(
+                              error ->
+                                  new RuntimeException("Failed to start LLM analysis: " + error)))
               .onStatus(
                   status -> status.is5xxServerError(),
                   clientResponse ->
@@ -1385,14 +1391,19 @@ public class RagServiceImpl implements RagService {
                       return clientResponse
                           .bodyToMono(String.class)
                           .flatMap(
-                              error -> Mono.error(new RuntimeException("Failed to retrieve analysis status: " + error)));
+                              error ->
+                                  Mono.error(
+                                      new RuntimeException(
+                                          "Failed to retrieve analysis status: " + error)));
                     }
 
                     if (statusCode.is5xxServerError()) {
                       return clientResponse
                           .bodyToMono(String.class)
                           .flatMap(
-                              error -> Mono.error(new RuntimeException("RAG API server error: " + error)));
+                              error ->
+                                  Mono.error(
+                                      new RuntimeException("RAG API server error: " + error)));
                     }
 
                     return clientResponse.bodyToMono(RagLlmAnalysisStatusResponse.class);
@@ -1469,7 +1480,10 @@ public class RagServiceImpl implements RagService {
                   clientResponse ->
                       clientResponse
                           .bodyToMono(String.class)
-                          .map(error -> new RuntimeException("Failed to retrieve analysis results: " + error)))
+                          .map(
+                              error ->
+                                  new RuntimeException(
+                                      "Failed to retrieve analysis results: " + error)))
               .onStatus(
                   status -> status.is5xxServerError(),
                   clientResponse ->
@@ -1582,7 +1596,8 @@ public class RagServiceImpl implements RagService {
                   clientResponse ->
                       clientResponse
                           .bodyToMono(String.class)
-                          .map(error -> new RuntimeException("Failed to resume analysis: " + error)))
+                          .map(
+                              error -> new RuntimeException("Failed to resume analysis: " + error)))
               .onStatus(
                   status -> status.is5xxServerError(),
                   clientResponse ->
@@ -1618,7 +1633,8 @@ public class RagServiceImpl implements RagService {
                   clientResponse ->
                       clientResponse
                           .bodyToMono(String.class)
-                          .map(error -> new RuntimeException("Failed to cancel analysis: " + error)))
+                          .map(
+                              error -> new RuntimeException("Failed to cancel analysis: " + error)))
               .onStatus(
                   status -> status.is5xxServerError(),
                   clientResponse ->
@@ -1682,7 +1698,9 @@ public class RagServiceImpl implements RagService {
                   clientResponse ->
                       clientResponse
                           .bodyToMono(String.class)
-                          .map(error -> new RuntimeException("Failed to retrieve job list: " + error)))
+                          .map(
+                              error ->
+                                  new RuntimeException("Failed to retrieve job list: " + error)))
               .onStatus(
                   statusCode -> statusCode.is5xxServerError(),
                   clientResponse ->
@@ -1756,7 +1774,9 @@ public class RagServiceImpl implements RagService {
                   clientResponse ->
                       clientResponse
                           .bodyToMono(String.class)
-                          .map(error -> new RuntimeException("Failed to retrieve summary: " + error)))
+                          .map(
+                              error ->
+                                  new RuntimeException("Failed to retrieve summary: " + error)))
               .onStatus(
                   status -> status.is5xxServerError(),
                   clientResponse ->
@@ -1809,7 +1829,10 @@ public class RagServiceImpl implements RagService {
                   clientResponse ->
                       clientResponse
                           .bodyToMono(String.class)
-                          .map(error -> new RuntimeException("Failed to retrieve summary list: " + error)))
+                          .map(
+                              error ->
+                                  new RuntimeException(
+                                      "Failed to retrieve summary list: " + error)))
               .onStatus(
                   status -> status.is5xxServerError(),
                   clientResponse ->

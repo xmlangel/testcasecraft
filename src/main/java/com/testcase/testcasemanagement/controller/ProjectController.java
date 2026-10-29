@@ -375,7 +375,11 @@ public class ProjectController {
     // 임의 인증 사용자가 타 프로젝트를 덮어쓸 수 있다(하이재킹). 생성 경로에서는 id를 허용하지 않는다.
     if (projectDto.getId() != null && !projectDto.getId().trim().isEmpty()) {
       return ResponseEntity.badRequest()
-          .body(Map.of("error", "The project creation request must not include an id. Use PUT /api/projects/{id} to update."));
+          .body(
+              Map.of(
+                  "error",
+                  "The project creation request must not include an id. Use PUT /api/projects/{id}"
+                      + " to update."));
     }
 
     // 기존 수동 코드 필드 검증 로직 제거

@@ -893,10 +893,8 @@ public class EnglishOrganizationAndUserManagementTranslations {
         "testcase.folderList.editFolder", languageCode, "Edit Folder Info", createdBy);
     createTranslationIfNotExists(
         "testcase.folderList.backToList", languageCode, "Back to case list", createdBy);
-    createTranslationIfNotExists(
-        "testcase.nav.prev", languageCode, "Previous case", createdBy);
-    createTranslationIfNotExists(
-        "testcase.nav.next", languageCode, "Next case", createdBy);
+    createTranslationIfNotExists("testcase.nav.prev", languageCode, "Previous case", createdBy);
+    createTranslationIfNotExists("testcase.nav.next", languageCode, "Next case", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.virtual.allCases", languageCode, "All Test Cases", createdBy);
     createTranslationIfNotExists(

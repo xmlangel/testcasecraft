@@ -57,9 +57,9 @@ public class EmailVerificationService {
   /**
    * 인증 토큰 생성 및 이메일 발송 (Base URL 지정)
    *
-   * <p>ICT-439: 트랜잭션을 걸지 않는다. 토큰을 발송 대기(PENDING) 상태로 먼저 커밋하고, SMTP 발송은 발송 전용 스레드 풀에
-   * 넘긴 뒤 곧바로 응답한다. 요청 스레드가 메일 서버를 기다리지 않으므로 DB 연결과 요청 스레드를 붙잡지 않는다. 발송 결과는 토큰에
-   * 기록하고 화면은 {@link #getSendStatus} 로 조회해 실패를 보여 준다.
+   * <p>ICT-439: 트랜잭션을 걸지 않는다. 토큰을 발송 대기(PENDING) 상태로 먼저 커밋하고, SMTP 발송은 발송 전용 스레드 풀에 넘긴 뒤 곧바로 응답한다.
+   * 요청 스레드가 메일 서버를 기다리지 않으므로 DB 연결과 요청 스레드를 붙잡지 않는다. 발송 결과는 토큰에 기록하고 화면은 {@link #getSendStatus} 로
+   * 조회해 실패를 보여 준다.
    */
   public CommonResponse createVerificationToken(String userId, String email, String baseUrl) {
     try {
@@ -68,13 +68,15 @@ public class EmailVerificationService {
           mailSettingsRepository.findFirstByOrderByCreatedAtDesc();
       if (mailSettingsOpt.isEmpty()) {
         log.warn("Mail settings not configured");
-        return CommonResponse.failure("Mail settings are not configured. Please contact the administrator.");
+        return CommonResponse.failure(
+            "Mail settings are not configured. Please contact the administrator.");
       }
 
       MailSettings mailSettings = mailSettingsOpt.get();
       if (!mailSettings.getMailEnabled()) {
         log.warn("Mail feature is disabled");
-        return CommonResponse.failure("Mail feature is disabled. Please contact the administrator.");
+        return CommonResponse.failure(
+            "Mail feature is disabled. Please contact the administrator.");
       }
 
       // 사용자 조회
@@ -106,7 +108,11 @@ public class EmailVerificationService {
         mailSendExecutor.execute(
             () -> sendAndRecord(requestId, mailSettings, email, tokenValue, userName, baseUrl));
       } catch (RejectedExecutionException e) {
-        log.error("Verification email rejected, send queue is full: {} (request: {})", email, requestId, e);
+        log.error(
+            "Verification email rejected, send queue is full: {} (request: {})",
+            email,
+            requestId,
+            e);
         recordResult(requestId, SendStatus.FAILED, SendErrorCode.REJECTED);
         return CommonResponse.failure("Too many emails are being sent. Please try again later.");
       }
@@ -216,7 +222,9 @@ public class EmailVerificationService {
                 new SendStatusResponse(
                     token.getId(),
                     // 상태 기록 이전에 발급된 토큰은 발송 결과를 그때 응답으로 이미 알렸다. 화면이 조회할 일이 없어 SENT 로 둔다
-                    token.getSendStatus() == null ? SendStatus.SENT.name() : token.getSendStatus().name(),
+                    token.getSendStatus() == null
+                        ? SendStatus.SENT.name()
+                        : token.getSendStatus().name(),
                     token.getSendErrorCode() == null ? null : token.getSendErrorCode().name()));
   }
 
@@ -256,7 +264,11 @@ public class EmailVerificationService {
               });
     } catch (Exception e) {
       // 기록에 실패해도 발송 결과는 위 로그에 남아 있다. 화면은 조회 시간이 지나면 확인 불가로 안내한다.
-      log.error("Failed to record verification email result (request: {}, status: {})", requestId, status, e);
+      log.error(
+          "Failed to record verification email result (request: {}, status: {})",
+          requestId,
+          status,
+          e);
     }
   }
 

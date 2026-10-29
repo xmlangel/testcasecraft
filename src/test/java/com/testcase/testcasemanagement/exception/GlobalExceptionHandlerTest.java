@@ -74,7 +74,8 @@ public class GlobalExceptionHandlerTest {
     ResponseEntity<ErrorResponse> resp =
         handler.handleDataIntegrityViolation(new DataIntegrityViolationException(pgMessage));
 
-    assertEquals(resp.getBody().getMessage(), "This value is already registered. Please check your input.");
+    assertEquals(
+        resp.getBody().getMessage(), "This value is already registered. Please check your input.");
     assertNull(resp.getBody().getDetails(), "Detail이 없으면 details도 null이어야 한다");
   }
 
@@ -86,7 +87,9 @@ public class GlobalExceptionHandlerTest {
     ResponseEntity<ErrorResponse> resp =
         handler.handleDataIntegrityViolation(new DataIntegrityViolationException(pgMessage));
 
-    assertEquals(resp.getBody().getMessage(), "The operation cannot be completed because the data is still referenced.");
+    assertEquals(
+        resp.getBody().getMessage(),
+        "The operation cannot be completed because the data is still referenced.");
   }
 
   @Test
@@ -105,7 +108,9 @@ public class GlobalExceptionHandlerTest {
         handler.handleDataIntegrityViolation(
             new DataIntegrityViolationException("some opaque DB error"));
 
-    assertEquals(resp.getBody().getMessage(), "A data integrity violation occurred. Please check your input.");
+    assertEquals(
+        resp.getBody().getMessage(),
+        "A data integrity violation occurred. Please check your input.");
   }
 
   @Test

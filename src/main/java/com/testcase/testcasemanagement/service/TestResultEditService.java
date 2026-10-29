@@ -110,7 +110,8 @@ public class TestResultEditService {
 
     // 편집 가능 상태 확인
     if (!edit.isEditable()) {
-      throw new IllegalArgumentException("Edit is not in an editable state: " + edit.getEditStatus());
+      throw new IllegalArgumentException(
+          "Edit is not in an editable state: " + edit.getEditStatus());
     }
 
     // 편집 내용 업데이트

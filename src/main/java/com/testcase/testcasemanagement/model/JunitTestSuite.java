@@ -37,7 +37,11 @@ public class JunitTestSuite {
   private String id;
 
   /** 상위 JUnit 테스트 결과 */
-  @Comment(value = "JUnit 테스트 결과 식별자: 이 스위트가 포함된 JUnit 테스트 결과를 가리키는 값 (값 영역: junit_test_results.id 참조, UUID 36자)", on = "junit_test_result_id")
+  @Comment(
+      value =
+          "JUnit 테스트 결과 식별자: 이 스위트가 포함된 JUnit 테스트 결과를 가리키는 값 (값 영역: junit_test_results.id 참조, UUID"
+              + " 36자)",
+      on = "junit_test_result_id")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "junit_test_result_id", nullable = false)
   @JsonBackReference

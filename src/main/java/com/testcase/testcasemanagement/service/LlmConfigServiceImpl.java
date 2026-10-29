@@ -113,7 +113,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     // 이름 중복 체크
     if (llmConfigRepository.existsByName(configDTO.getName())) {
-      throw new IllegalArgumentException("Configuration name already exists: " + configDTO.getName());
+      throw new IllegalArgumentException(
+          "Configuration name already exists: " + configDTO.getName());
     }
 
     // 암호화 키 확인
@@ -176,7 +177,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     // 이름 중복 체크 (자신 제외)
     if (configDTO.getName() != null && !configDTO.getName().equals(config.getName())) {
       if (llmConfigRepository.existsByNameAndIdNot(configDTO.getName(), id)) {
-        throw new IllegalArgumentException("Configuration name already exists: " + configDTO.getName());
+        throw new IllegalArgumentException(
+            "Configuration name already exists: " + configDTO.getName());
       }
       config.setName(configDTO.getName());
     }
@@ -253,7 +255,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     if (config.getIsDefault()) {
       long activeCount = llmConfigRepository.countByIsActiveTrue();
       if (activeCount <= 1) {
-        throw new IllegalStateException("The default configuration cannot be deleted when it is the only one.");
+        throw new IllegalStateException(
+            "The default configuration cannot be deleted when it is the only one.");
       }
     }
 
@@ -445,7 +448,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         .orElseThrow(
             () ->
                 new IllegalArgumentException(
-                    provider.getDisplayName() + " does not provide a model list. Please enter the model name manually."));
+                    provider.getDisplayName()
+                        + " does not provide a model list. Please enter the model name manually."));
   }
 
   /**
@@ -462,7 +466,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     String configId = request.getConfigId();
     if (configId == null || configId.isBlank()) {
-      throw new IllegalArgumentException("Either an API key or a saved configuration ID is required");
+      throw new IllegalArgumentException(
+          "Either an API key or a saved configuration ID is required");
     }
 
     if (!encryptionUtil.isEncryptionKeyConfigured()) {
@@ -472,7 +477,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     LlmConfig config =
         llmConfigRepository
             .findById(configId)
-            .orElseThrow(() -> new IllegalArgumentException("LLM configuration not found: " + configId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("LLM configuration not found: " + configId));
 
     if (config.getProvider() != provider) {
       throw new IllegalArgumentException(
@@ -486,7 +492,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
       return encryptionUtil.decrypt(config.getEncryptedApiKey());
     } catch (Exception e) {
       log.error("❌ 저장된 API Key 복호화 실패: configId={}", configId, e);
-      throw new IllegalStateException("Unable to read the saved API key. Please enter the key again.");
+      throw new IllegalStateException(
+          "Unable to read the saved API key. Please enter the key again.");
     }
   }
 
@@ -530,7 +537,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     if (config.getIsDefault() && config.getIsActive()) {
       long activeCount = llmConfigRepository.countByIsActiveTrue();
       if (activeCount <= 1) {
-        throw new IllegalStateException("The default configuration cannot be deactivated when it is the only one.");
+        throw new IllegalStateException(
+            "The default configuration cannot be deactivated when it is the only one.");
       }
     }
 

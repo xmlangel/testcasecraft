@@ -24,8 +24,8 @@ import org.testng.annotations.Test;
 /**
  * ICT-442 회귀 가드 — 결과 조회 필터(프로젝트·플랜·실행 ID) 판정.
  *
- * <p>결과 조회 서비스는 실행·플랜 ID 가 있으면 projectId 를 보지 않는다. 그래서 넘어온 ID 를 모두 검사해야 하고, 범위를 정하는 ID 가 하나도
- * 없으면(전체 조회) 관리자만 통과해야 한다.
+ * <p>결과 조회 서비스는 실행·플랜 ID 가 있으면 projectId 를 보지 않는다. 그래서 넘어온 ID 를 모두 검사해야 하고, 범위를 정하는 ID 가 하나도 없으면(전체
+ * 조회) 관리자만 통과해야 한다.
  */
 public class ResultScopeAuthzTest {
 

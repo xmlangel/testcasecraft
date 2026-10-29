@@ -158,8 +158,7 @@ public class AgentConnectionService {
       return false;
     }
     repository.delete(found.get());
-    auditService.logProjectAction(
-        projectId, AuditAction.DELETE, "에이전트 연동 설정 삭제 by " + username);
+    auditService.logProjectAction(projectId, AuditAction.DELETE, "에이전트 연동 설정 삭제 by " + username);
     return true;
   }
 
@@ -194,9 +193,7 @@ public class AgentConnectionService {
     return result;
   }
 
-  /**
-   * {@code /health} 만 GET 으로 찍고 두 필드만 꺼낸다. 응답 본문을 그대로 돌려주지 않으므로 이걸로 내부 서비스를 훑어도 얻을 것이 없다.
-   */
+  /** {@code /health} 만 GET 으로 찍고 두 필드만 꺼낸다. 응답 본문을 그대로 돌려주지 않으므로 이걸로 내부 서비스를 훑어도 얻을 것이 없다. */
   private AgentConnectionDto.ConnectionTestResult probe(AgentConnection entity) {
     URI target;
     try {
@@ -206,10 +203,7 @@ public class AgentConnectionService {
     }
 
     HttpRequest.Builder builder =
-        HttpRequest.newBuilder(target)
-            .GET()
-            .timeout(TIMEOUT)
-            .header("Accept", "application/json");
+        HttpRequest.newBuilder(target).GET().timeout(TIMEOUT).header("Accept", "application/json");
     if (entity.getEncryptedToken() != null) {
       String token = encryptionUtil.decrypt(entity.getEncryptedToken());
       if (token != null && !token.isBlank()) {
@@ -349,8 +343,9 @@ public class AgentConnectionService {
     StringBuilder sb = new StringBuilder(entity.effectiveBrowserUrl());
     sb.append("/runs/new?tms=testcasecraft");
     if (productBaseUrl != null && !productBaseUrl.isBlank()) {
-      sb.append("&base=").append(java.net.URLEncoder.encode(productBaseUrl,
-          java.nio.charset.StandardCharsets.UTF_8));
+      sb.append("&base=")
+          .append(
+              java.net.URLEncoder.encode(productBaseUrl, java.nio.charset.StandardCharsets.UTF_8));
     }
     sb.append("&projectId=").append(entity.getProjectId());
     if (caseIds != null && !caseIds.isEmpty()) {

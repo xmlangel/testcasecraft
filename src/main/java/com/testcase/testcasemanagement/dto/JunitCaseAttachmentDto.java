@@ -24,6 +24,7 @@ public class JunitCaseAttachmentDto {
   private LocalDateTime createdAt;
   private String uploadedBy;
   private boolean image;
+
   /** 내려받기·미리보기에 쓸 주소 */
   private String downloadUrl;
 

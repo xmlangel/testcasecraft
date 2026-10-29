@@ -79,7 +79,8 @@ public class RagGlobalDocumentRequestService {
     RagGlobalDocumentRequest request =
         repository
             .findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException("RAG global document request", requestId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("RAG global document request", requestId));
 
     if (!request.isPending()) {
       throw new IllegalStateException("This request has already been processed.");
@@ -100,7 +101,8 @@ public class RagGlobalDocumentRequestService {
     RagGlobalDocumentRequest request =
         repository
             .findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException("RAG global document request", requestId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("RAG global document request", requestId));
 
     if (!request.isPending()) {
       throw new IllegalStateException("This request has already been processed.");

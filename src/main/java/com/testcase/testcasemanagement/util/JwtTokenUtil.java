@@ -53,11 +53,7 @@ public class JwtTokenUtil {
           e);
     } catch (IllegalArgumentException e) {
       throw new IllegalStateException(
-          "JWT_SECRET is too short."
-              + hint
-              + " Cause: "
-              + e.getMessage(),
-          e);
+          "JWT_SECRET is too short." + hint + " Cause: " + e.getMessage(), e);
     }
   }
 

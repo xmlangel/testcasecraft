@@ -135,7 +135,10 @@ public class RequirementService {
       if (request.parentId() != null) {
         findSpecInProject(request.parentId(), projectId);
         if (subtreeIds(spec.getId()).contains(request.parentId())) {
-          throw invalid("Cannot move a document under itself or its descendant.", "parentId", request.parentId());
+          throw invalid(
+              "Cannot move a document under itself or its descendant.",
+              "parentId",
+              request.parentId());
         }
       }
       spec.setParentId(request.parentId());
@@ -435,8 +438,8 @@ public class RequirementService {
   }
 
   /**
-   * 프로젝트를 커밋까지 잠그고 가져온다. 자동 번호를 정하는 일과 문서 ID 중복 검사를 한 줄로 세워, 동시에 저장한 두 건이 같은 ID 로
-   * 중복 제약에 걸려 실패하지 않게 한다.
+   * 프로젝트를 커밋까지 잠그고 가져온다. 자동 번호를 정하는 일과 문서 ID 중복 검사를 한 줄로 세워, 동시에 저장한 두 건이 같은 ID 로 중복 제약에 걸려 실패하지 않게
+   * 한다.
    */
   private Project lockProject(String projectId) {
     return projectRepository

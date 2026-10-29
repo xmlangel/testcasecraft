@@ -95,7 +95,8 @@ public class TestSessionFileStorageService {
     TestSessionAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     if (!attachment.isDownloadable()) {
       throw new IllegalStateException("File cannot be downloaded: " + attachmentId);
@@ -110,7 +111,8 @@ public class TestSessionFileStorageService {
     TestSessionAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     return toDto(attachment);
   }
@@ -120,7 +122,8 @@ public class TestSessionFileStorageService {
     TestSessionAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     attachment.setDescription(description);
     TestSessionAttachment updated = attachmentRepository.save(attachment);
@@ -131,7 +134,8 @@ public class TestSessionFileStorageService {
     TestSessionAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     attachment.setStatus(TestSessionAttachment.AttachmentStatus.DELETED);
     attachmentRepository.save(attachment);

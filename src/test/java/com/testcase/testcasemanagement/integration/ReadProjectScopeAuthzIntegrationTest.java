@@ -44,9 +44,9 @@ import org.testng.annotations.Test;
 /**
  * ICT-442 회귀 가드 — 조회 API 가 프로젝트 소속을 검사하는지 실데이터로 확인한다.
  *
- * <p>로그인 사용자(시스템 역할 TESTER)가 자기가 속하지 않은 프로젝트의 테스트 결과·버전·차터·첨부 목록을 조회할 수 있었다. 프로젝트 A 에만 속한
- * 사용자로 A 는 열리고 B 는 403 인지 본다. 결과 조회 필터는 실행 ID 가 있으면 projectId 를 보지 않으므로, 자기 프로젝트 ID 에 남의 실행 ID
- * 를 붙이는 우회도 함께 확인한다.
+ * <p>로그인 사용자(시스템 역할 TESTER)가 자기가 속하지 않은 프로젝트의 테스트 결과·버전·차터·첨부 목록을 조회할 수 있었다. 프로젝트 A 에만 속한 사용자로 A 는
+ * 열리고 B 는 403 인지 본다. 결과 조회 필터는 실행 ID 가 있으면 projectId 를 보지 않으므로, 자기 프로젝트 ID 에 남의 실행 ID 를 붙이는 우회도 함께
+ * 확인한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -198,10 +198,12 @@ public class ReadProjectScopeAuthzIntegrationTest extends AbstractTestNGSpringCo
   @Test
   void testResultsByProject_memberAllowed_outsiderForbidden() throws Exception {
     assertOk(
-        get("/api/test-results/by-project/" + projectA.getId()).header("Authorization", memberToken),
+        get("/api/test-results/by-project/" + projectA.getId())
+            .header("Authorization", memberToken),
         "소속 프로젝트 결과 조회");
     assertForbidden(
-        get("/api/test-results/by-project/" + projectB.getId()).header("Authorization", memberToken),
+        get("/api/test-results/by-project/" + projectB.getId())
+            .header("Authorization", memberToken),
         "비소속 프로젝트 결과 조회");
   }
 

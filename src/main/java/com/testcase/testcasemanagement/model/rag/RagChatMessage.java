@@ -78,7 +78,9 @@ public class RagChatMessage {
   @Column(name = "embedding_message_id", length = 36)
   private String embeddingMessageId;
 
-  @Comment("임베딩 상태 코드: 이 메시지를 RAG 서비스에 색인 요청한 결과 (값 영역: RAG 서비스가 돌려준 상태 값, 응답이 없으면 queued, 요청 실패 시 failed)")
+  @Comment(
+      "임베딩 상태 코드: 이 메시지를 RAG 서비스에 색인 요청한 결과 (값 영역: RAG 서비스가 돌려준 상태 값, 응답이 없으면 queued, 요청 실패 시"
+          + " failed)")
   @Column(name = "embedding_status", length = 30)
   private String embeddingStatus;
 

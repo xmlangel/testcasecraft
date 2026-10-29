@@ -108,9 +108,7 @@ public class JunitCaseAttachmentController {
 
       return ResponseEntity.ok()
           .contentType(mediaType)
-          .header(
-              HttpHeaders.CONTENT_DISPOSITION,
-              disposition + "; filename*=UTF-8''" + encoded)
+          .header(HttpHeaders.CONTENT_DISPOSITION, disposition + "; filename*=UTF-8''" + encoded)
           .header(HttpHeaders.CACHE_CONTROL, "private, max-age=300")
           .body(resource);
 

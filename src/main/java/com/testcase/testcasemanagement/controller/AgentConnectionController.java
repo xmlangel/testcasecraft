@@ -79,9 +79,7 @@ public class AgentConnectionController {
 
   @PutMapping
   @PreAuthorize("@projectSecurityService.canManageProject(#projectId)")
-  @Operation(
-      summary = "연동 설정 저장",
-      description = "token 을 생략하면 기존 값을 유지하고, 빈 문자열이면 삭제합니다.")
+  @Operation(summary = "연동 설정 저장", description = "token 을 생략하면 기존 값을 유지하고, 빈 문자열이면 삭제합니다.")
   public ResponseEntity<AgentConnectionDto> save(
       @PathVariable String projectId,
       @Valid @RequestBody AgentConnectionDto dto,

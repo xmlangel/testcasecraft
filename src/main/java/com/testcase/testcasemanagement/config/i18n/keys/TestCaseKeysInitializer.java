@@ -464,10 +464,7 @@ public class TestCaseKeysInitializer {
         "Excel 원문 내보내기 설명",
         "본문 이미지를 그대로 둡니다. 다시 가져오기할 때 사용");
     createTranslationKeyIfNotExists(
-        "export.imagePlaceholder",
-        "export",
-        "내보낸 파일의 본문 이미지 자리 표기 (ICT-470)",
-        "이미지");
+        "export.imagePlaceholder", "export", "내보낸 파일의 본문 이미지 자리 표기 (ICT-470)", "이미지");
     createTranslationKeyIfNotExists(
         "testcase.spreadsheet.export.pdf.title", "testcase", "PDF 내보내기 상세 제목", "PDF 내보내기(상세)");
     createTranslationKeyIfNotExists(
@@ -879,10 +876,8 @@ public class TestCaseKeysInitializer {
         "testcase.folderList.editFolder", "testcase", "폴더 정보 편집", "폴더 정보 편집");
     createTranslationKeyIfNotExists(
         "testcase.folderList.backToList", "testcase", "케이스 목록으로 돌아가기", "케이스 목록으로 돌아가기");
-    createTranslationKeyIfNotExists(
-        "testcase.nav.prev", "testcase", "이전 케이스", "이전 케이스");
-    createTranslationKeyIfNotExists(
-        "testcase.nav.next", "testcase", "다음 케이스", "다음 케이스");
+    createTranslationKeyIfNotExists("testcase.nav.prev", "testcase", "이전 케이스", "이전 케이스");
+    createTranslationKeyIfNotExists("testcase.nav.next", "testcase", "다음 케이스", "다음 케이스");
     createTranslationKeyIfNotExists(
         "testcase.tree.virtual.allCases", "testcase", "모든 테스트케이스", "모든 테스트케이스");
     createTranslationKeyIfNotExists(
@@ -1346,8 +1341,7 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("junit.testcase.stepAction", "junit", "수행 동작", "수행 동작");
     createTranslationKeyIfNotExists("junit.testcase.jsonItems", "junit", "항목 수", "항목 {n}");
     createTranslationKeyIfNotExists("junit.testcase.jsonFields", "junit", "칸 수", "칸 {n}");
-    createTranslationKeyIfNotExists(
-        "junit.testcase.jsonStructured", "junit", "구조 보기", "구조 보기");
+    createTranslationKeyIfNotExists("junit.testcase.jsonStructured", "junit", "구조 보기", "구조 보기");
     createTranslationKeyIfNotExists("junit.testcase.jsonRaw", "junit", "원문 보기", "원문 보기");
     createTranslationKeyIfNotExists("junit.testcase.attachments", "junit", "첨부", "첨부");
     createTranslationKeyIfNotExists(

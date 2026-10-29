@@ -28,9 +28,9 @@ import org.springframework.stereotype.Component;
 /**
  * 테이블·컬럼 설명(COMMENT)을 엔티티의 {@code @Comment} 와 맞춘다.
  *
- * <p>{@code ddl-auto: update} 는 테이블을 새로 만들 때만 설명을 넣고, 이미 있는 테이블·컬럼의 설명은 추가하거나 바꾸지 않는다. 그래서
- * 운영 중인 DB 는 버전을 올려도 설명이 비어 있거나 예전 문구로 남는다. 부팅할 때 엔티티에서 생성한 {@code db/comments/db-comments.sql}
- * 을 읽어, 현재 설명과 다른 대상에만 {@code COMMENT ON} 을 실행한다. 이미 같으면 아무것도 하지 않으므로 매 부팅 실행돼도 멱등하다.
+ * <p>{@code ddl-auto: update} 는 테이블을 새로 만들 때만 설명을 넣고, 이미 있는 테이블·컬럼의 설명은 추가하거나 바꾸지 않는다. 그래서 운영 중인 DB
+ * 는 버전을 올려도 설명이 비어 있거나 예전 문구로 남는다. 부팅할 때 엔티티에서 생성한 {@code db/comments/db-comments.sql} 을 읽어, 현재 설명과
+ * 다른 대상에만 {@code COMMENT ON} 을 실행한다. 이미 같으면 아무것도 하지 않으므로 매 부팅 실행돼도 멱등하다.
  *
  * <p>DB 에 없는 테이블·컬럼은 건너뛴다. 설명은 앱 동작과 무관하므로, 실패해도 경고만 남기고 부팅은 계속한다. {@code
  * app.db-comments.sync.enabled=false} 로 끌 수 있다.
@@ -47,7 +47,8 @@ public class DbCommentSyncRunner implements CommandLineRunner {
 
   private static final Logger log = LoggerFactory.getLogger(DbCommentSyncRunner.class);
   private static final Pattern STATEMENT =
-      Pattern.compile("^COMMENT ON (TABLE|COLUMN) ([a-z0-9_]+)(?:\\.([a-z0-9_]+))? IS '((?:[^']|'')*)';$");
+      Pattern.compile(
+          "^COMMENT ON (TABLE|COLUMN) ([a-z0-9_]+)(?:\\.([a-z0-9_]+))? IS '((?:[^']|'')*)';$");
 
   private final DataSource dataSource;
 
@@ -111,7 +112,8 @@ public class DbCommentSyncRunner implements CommandLineRunner {
       if (!matcher.matches()) {
         continue;
       }
-      String key = matcher.group(3) == null ? matcher.group(2) : matcher.group(2) + "." + matcher.group(3);
+      String key =
+          matcher.group(3) == null ? matcher.group(2) : matcher.group(2) + "." + matcher.group(3);
       targets.add(new Target(key, matcher.group(4).replace("''", "'"), line.strip()));
     }
     return targets;
@@ -125,7 +127,8 @@ public class DbCommentSyncRunner implements CommandLineRunner {
     Map<String, String> comments = new HashMap<>();
     try (ResultSet tables = metaData.getTables(catalog, schema, "%", new String[] {"TABLE"})) {
       while (tables.next()) {
-        comments.put(lower(tables.getString("TABLE_NAME")), blankToNull(tables.getString("REMARKS")));
+        comments.put(
+            lower(tables.getString("TABLE_NAME")), blankToNull(tables.getString("REMARKS")));
       }
     }
     try (ResultSet columns = metaData.getColumns(catalog, schema, "%", "%")) {

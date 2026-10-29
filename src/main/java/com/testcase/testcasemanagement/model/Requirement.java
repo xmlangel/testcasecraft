@@ -93,12 +93,16 @@ public class Requirement {
   @Column(columnDefinition = "TEXT")
   private String scope;
 
-  @Comment("상태: 요구사항의 현재 생명주기 단계 (값 영역: DRAFT, REVIEW, REWORK, FINISH, IMPLEMENTED, VALID, NOT_TESTABLE, OBSOLETE)")
+  @Comment(
+      "상태: 요구사항의 현재 생명주기 단계 (값 영역: DRAFT, REVIEW, REWORK, FINISH, IMPLEMENTED, VALID, NOT_TESTABLE,"
+          + " OBSOLETE)")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private Status status = Status.VALID;
 
-  @Comment("유형: 요구사항의 분류 (값 영역: INFORMATIONAL, FEATURE, USE_CASE, USER_INTERFACE, NON_FUNCTIONAL, CONSTRAINT, SYSTEM_FUNCTION)")
+  @Comment(
+      "유형: 요구사항의 분류 (값 영역: INFORMATIONAL, FEATURE, USE_CASE, USER_INTERFACE, NON_FUNCTIONAL,"
+          + " CONSTRAINT, SYSTEM_FUNCTION)")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private Type type = Type.FEATURE;

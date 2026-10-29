@@ -555,11 +555,7 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "Keeps inline images as-is. Use for re-import",
         createdBy);
-    createTranslationIfNotExists(
-        "export.imagePlaceholder",
-        languageCode,
-        "Image",
-        createdBy);
+    createTranslationIfNotExists("export.imagePlaceholder", languageCode, "Image", createdBy);
 
     // Validation system English translations
     createTranslationIfNotExists(
@@ -1254,10 +1250,8 @@ public class EnglishTestCaseAndAutomationTranslations {
         languageCode,
         "No test case detail information available.",
         createdBy);
-    createTranslationIfNotExists(
-        "junit.testcase.stepAction", languageCode, "ACTION", createdBy);
-    createTranslationIfNotExists(
-        "junit.testcase.jsonItems", languageCode, "{n} items", createdBy);
+    createTranslationIfNotExists("junit.testcase.stepAction", languageCode, "ACTION", createdBy);
+    createTranslationIfNotExists("junit.testcase.jsonItems", languageCode, "{n} items", createdBy);
     createTranslationIfNotExists(
         "junit.testcase.jsonFields", languageCode, "{n} fields", createdBy);
     createTranslationIfNotExists(
@@ -1266,10 +1260,7 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "junit.testcase.attachments", languageCode, "Attachments", createdBy);
     createTranslationIfNotExists(
-        "junit.testcase.noAttachments",
-        languageCode,
-        "No attachments for this case.",
-        createdBy);
+        "junit.testcase.noAttachments", languageCode, "No attachments for this case.", createdBy);
     createTranslationIfNotExists(
         "junit.testcase.downloadAttachment", languageCode, "Download", createdBy);
     createTranslationIfNotExists("junit.testcase.edit", languageCode, "Edit Test Case", createdBy);

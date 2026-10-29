@@ -233,11 +233,7 @@ public class KoreanTestCaseAndAutomationTranslations {
         languageCode,
         "본문 이미지를 그대로 둡니다. 다시 가져오기할 때 사용",
         createdBy);
-    createTranslationIfNotExists(
-        "export.imagePlaceholder",
-        languageCode,
-        "이미지",
-        createdBy);
+    createTranslationIfNotExists("export.imagePlaceholder", languageCode, "이미지", createdBy);
 
     // 검증 시스템 관련 한글 번역
     createTranslationIfNotExists(
@@ -790,12 +786,10 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("junit.testcase.noData", languageCode, "데이터 없음", createdBy);
     createTranslationIfNotExists(
         "junit.testcase.noDetailInfo", languageCode, "테스트 케이스 상세 정보가 없습니다.", createdBy);
-    createTranslationIfNotExists(
-        "junit.testcase.stepAction", languageCode, "수행 동작", createdBy);
+    createTranslationIfNotExists("junit.testcase.stepAction", languageCode, "수행 동작", createdBy);
     createTranslationIfNotExists("junit.testcase.jsonItems", languageCode, "항목 {n}", createdBy);
     createTranslationIfNotExists("junit.testcase.jsonFields", languageCode, "칸 {n}", createdBy);
-    createTranslationIfNotExists(
-        "junit.testcase.jsonStructured", languageCode, "구조 보기", createdBy);
+    createTranslationIfNotExists("junit.testcase.jsonStructured", languageCode, "구조 보기", createdBy);
     createTranslationIfNotExists("junit.testcase.jsonRaw", languageCode, "원문 보기", createdBy);
     createTranslationIfNotExists("junit.testcase.attachments", languageCode, "첨부", createdBy);
     createTranslationIfNotExists(

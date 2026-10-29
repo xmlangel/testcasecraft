@@ -161,20 +161,16 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
    */
   @Query(
       value =
-          "SELECT "
-              + "    (SELECT COUNT(*) FROM testcases tc"
-              + "      WHERE tc.project_id = :projectId AND tc.type = 'testcase') as total_test_cases, "
-              + "    CASE WHEN EXISTS (SELECT 1 FROM testcases tc"
-              + "      WHERE tc.project_id = :projectId AND tc.type = 'testcase')"
-              + "      THEN (SELECT COUNT(*) FROM test_plans tp WHERE tp.project_id = :projectId)"
-              + "      ELSE 0 END as total_test_plans, "
-              + "    CASE WHEN EXISTS (SELECT 1 FROM testcases tc"
-              + "      WHERE tc.project_id = :projectId AND tc.type = 'testcase')"
-              + "      THEN (SELECT COUNT(*) FROM test_executions te WHERE te.project_id = :projectId)"
-              + "      ELSE 0 END as total_test_executions, "
-              + "    (SELECT MAX(tr.executed_at) FROM test_results tr"
-              + "      JOIN testcases tc ON tc.id = tr.test_case_id"
-              + "      WHERE tc.project_id = :projectId AND tc.type = 'testcase') as last_execution_date ",
+          "SELECT     (SELECT COUNT(*) FROM testcases tc      WHERE tc.project_id = :projectId AND"
+              + " tc.type = 'testcase') as total_test_cases,     CASE WHEN EXISTS (SELECT 1 FROM"
+              + " testcases tc      WHERE tc.project_id = :projectId AND tc.type = 'testcase')     "
+              + " THEN (SELECT COUNT(*) FROM test_plans tp WHERE tp.project_id = :projectId)     "
+              + " ELSE 0 END as total_test_plans,     CASE WHEN EXISTS (SELECT 1 FROM testcases tc "
+              + "     WHERE tc.project_id = :projectId AND tc.type = 'testcase')      THEN (SELECT"
+              + " COUNT(*) FROM test_executions te WHERE te.project_id = :projectId)      ELSE 0"
+              + " END as total_test_executions,     (SELECT MAX(tr.executed_at) FROM test_results"
+              + " tr      JOIN testcases tc ON tc.id = tr.test_case_id      WHERE tc.project_id ="
+              + " :projectId AND tc.type = 'testcase') as last_execution_date ",
       nativeQuery = true)
   Map<String, Object> findProjectBasicStatistics(@Param("projectId") String projectId);
 
@@ -948,14 +944,11 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
    *
    * @param executionIds 테스트 실행 ID 목록
    * @return 실행 ID별 상태별 개수 목록 (test_execution_id, result, count)
-   *
-   * <p>플랜 조인이 LEFT 인 이유가 있다. 예전에는 INNER JOIN 이라 {@code test_plan_id} 가 null 인 실행은
-   * 조인이 한 행도 만들지 못해 집계가 통째로 비었다. 실행 생성 API 가 플랜을 요구하지 않으므로 플랜 없는
-   * 실행이 정상 입력인데, 그런 실행은 목록에서 진척률 0% 로 보였다. 외부 QA 에이전트가 케이스를 직접
-   * 골라 실행하며 드러났다.
-   *
-   * <p>플랜이 있는 실행의 집계는 바뀌지 않는다. {@code tpc.test_case_id IS NOT NULL} 조건이 예전
-   * INNER JOIN 과 같은 행만 남기고, {@code te.test_plan_id IS NULL} 갈래만 새로 센다.
+   *     <p>플랜 조인이 LEFT 인 이유가 있다. 예전에는 INNER JOIN 이라 {@code test_plan_id} 가 null 인 실행은 조인이 한 행도 만들지
+   *     못해 집계가 통째로 비었다. 실행 생성 API 가 플랜을 요구하지 않으므로 플랜 없는 실행이 정상 입력인데, 그런 실행은 목록에서 진척률 0% 로 보였다. 외부
+   *     QA 에이전트가 케이스를 직접 골라 실행하며 드러났다.
+   *     <p>플랜이 있는 실행의 집계는 바뀌지 않는다. {@code tpc.test_case_id IS NOT NULL} 조건이 예전 INNER JOIN 과 같은 행만
+   *     남기고, {@code te.test_plan_id IS NULL} 갈래만 새로 센다.
    */
   @Query(
       value =

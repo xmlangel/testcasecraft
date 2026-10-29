@@ -59,7 +59,8 @@ public class GroupService {
 
     // 조직 그룹 생성 권한 확인
     if (!groupSecurityService.canCreateGroup(organizationId, null, currentUsername)) {
-      throw new AccessDeniedException("You do not have permission to create a group in this organization.");
+      throw new AccessDeniedException(
+          "You do not have permission to create a group in this organization.");
     }
 
     Organization organization =
@@ -102,7 +103,8 @@ public class GroupService {
 
     // 프로젝트 그룹 생성 권한 확인
     if (!groupSecurityService.canCreateGroup(null, projectId, currentUsername)) {
-      throw new AccessDeniedException("You do not have permission to create a group in this project.");
+      throw new AccessDeniedException(
+          "You do not have permission to create a group in this project.");
     }
 
     Project project =
@@ -163,7 +165,8 @@ public class GroupService {
 
     // 조직 접근 권한 확인
     if (!organizationSecurityService.canAccessOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("You do not have permission to view the group list of this organization.");
+      throw new AccessDeniedException(
+          "You do not have permission to view the group list of this organization.");
     }
 
     return groupRepository.findByOrganizationId(organizationId);
@@ -179,7 +182,8 @@ public class GroupService {
 
     // 프로젝트 접근 권한 확인
     if (!projectSecurityService.canAccessProject(projectId, currentUsername)) {
-      throw new AccessDeniedException("You do not have permission to view the group list of this project.");
+      throw new AccessDeniedException(
+          "You do not have permission to view the group list of this project.");
     }
 
     return groupRepository.findByProjectId(projectId);

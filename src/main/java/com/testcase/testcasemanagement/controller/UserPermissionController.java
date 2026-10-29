@@ -354,7 +354,8 @@ public class UserPermissionController {
   /** 에러 처리 - 권한 부족 */
   @ExceptionHandler(SecurityException.class)
   public ResponseEntity<Map<String, String>> handleSecurityException(SecurityException e) {
-    return ResponseEntity.status(403).body(Map.of("error", "Insufficient permissions", "message", e.getMessage()));
+    return ResponseEntity.status(403)
+        .body(Map.of("error", "Insufficient permissions", "message", e.getMessage()));
   }
 
   /** CSV 파일 업로드 및 권한 변경 미리보기 */
@@ -374,7 +375,12 @@ public class UserPermissionController {
       return ResponseEntity.ok(result);
     } catch (IOException e) {
       return ResponseEntity.status(500)
-          .body(Map.of("error", "An error occurred while processing the file.", "message", e.getMessage()));
+          .body(
+              Map.of(
+                  "error",
+                  "An error occurred while processing the file.",
+                  "message",
+                  e.getMessage()));
     }
   }
 
@@ -411,7 +417,12 @@ public class UserPermissionController {
               String.valueOf(validatedChanges.size())));
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("error", "An error occurred while processing the permission changes.", "message", e.getMessage()));
+          .body(
+              Map.of(
+                  "error",
+                  "An error occurred while processing the permission changes.",
+                  "message",
+                  e.getMessage()));
     }
   }
 
@@ -423,12 +434,14 @@ public class UserPermissionController {
   @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
   public ResponseEntity<Map<String, String>> handleAccessDenied(
       org.springframework.security.access.AccessDeniedException e) {
-    return ResponseEntity.status(403).body(Map.of("error", "Access denied", "message", "Access denied."));
+    return ResponseEntity.status(403)
+        .body(Map.of("error", "Access denied", "message", "Access denied."));
   }
 
   /** 에러 처리 - 일반 런타임 에러 */
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
-    return ResponseEntity.status(400).body(Map.of("error", "Request failed", "message", e.getMessage()));
+    return ResponseEntity.status(400)
+        .body(Map.of("error", "Request failed", "message", e.getMessage()));
   }
 }

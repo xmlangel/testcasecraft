@@ -23,7 +23,8 @@ public class SheetsServiceUtil {
       throw new IOException(
           "Default Google service account key file ("
               + CREDENTIALS_FILE_PATH
-              + ") does not exist. Complete the Google Sheets settings in the settings menu first so that the DB configuration is used.");
+              + ") does not exist. Complete the Google Sheets settings in the settings menu first"
+              + " so that the DB configuration is used.");
     }
     return getSheetsServiceFromStream(new FileInputStream(CREDENTIALS_FILE_PATH));
   }

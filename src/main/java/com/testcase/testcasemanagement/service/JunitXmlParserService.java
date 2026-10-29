@@ -654,8 +654,7 @@ public class JunitXmlParserService {
   /**
    * 스텝 타임라인을 담는 속성 이름인지.
    *
-   * <p>자동화 도구가 스텝마다 무엇을 했고 무엇을 봤는지 남기는 자리다. 판정만 남으면 왜 그
-   * 판정이 나왔는지 되짚을 수 없다.
+   * <p>자동화 도구가 스텝마다 무엇을 했고 무엇을 봤는지 남기는 자리다. 판정만 남으면 왜 그 판정이 나왔는지 되짚을 수 없다.
    */
   private boolean isStepTimelineKey(String key) {
     return "TestSteps".equalsIgnoreCase(key)
@@ -667,8 +666,7 @@ public class JunitXmlParserService {
   /**
    * 스텝 타임라인 JSON 을 그대로 반영한다.
    *
-   * <p>배열이 아니거나 파싱에 실패하면 아무것도 넣지 않는다. 깨진 값을 넣으면 상세 조회가
-   * 매번 파싱에 실패해 화면에서 스텝이 통째로 사라진다.
+   * <p>배열이 아니거나 파싱에 실패하면 아무것도 넣지 않는다. 깨진 값을 넣으면 상세 조회가 매번 파싱에 실패해 화면에서 스텝이 통째로 사라진다.
    */
   private void applyStepTimeline(JunitTestCase testCase, String json) {
     if (json == null || json.isBlank()) {
@@ -829,8 +827,7 @@ public class JunitXmlParserService {
     NodeList childNodes = parentElement.getChildNodes();
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node node = childNodes.item(i);
-      if (node.getNodeType() == Node.ELEMENT_NODE
-          && childTagName.equals(node.getNodeName())) {
+      if (node.getNodeType() == Node.ELEMENT_NODE && childTagName.equals(node.getNodeName())) {
         return node.getTextContent();
       }
     }

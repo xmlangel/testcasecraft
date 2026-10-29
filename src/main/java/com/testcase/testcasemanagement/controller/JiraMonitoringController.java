@@ -49,7 +49,12 @@ public class JiraMonitoringController {
       return ResponseEntity.internalServerError()
           .body(
               Map.of(
-                  "success", false, "message", "A server error occurred during the health check.", "error", e.getMessage()));
+                  "success",
+                  false,
+                  "message",
+                  "A server error occurred during the health check.",
+                  "error",
+                  e.getMessage()));
     }
   }
 
@@ -77,7 +82,12 @@ public class JiraMonitoringController {
       return ResponseEntity.internalServerError()
           .body(
               Map.of(
-                  "success", false, "message", "A server error occurred while retrieving metrics.", "error", e.getMessage()));
+                  "success",
+                  false,
+                  "message",
+                  "A server error occurred while retrieving metrics.",
+                  "error",
+                  e.getMessage()));
     }
   }
 
@@ -207,7 +217,12 @@ public class JiraMonitoringController {
       return ResponseEntity.internalServerError()
           .body(
               Map.of(
-                  "success", false, "message", "A server error occurred while resetting metrics.", "error", e.getMessage()));
+                  "success",
+                  false,
+                  "message",
+                  "A server error occurred while resetting metrics.",
+                  "error",
+                  e.getMessage()));
     }
   }
 
@@ -249,7 +264,12 @@ public class JiraMonitoringController {
     } catch (Exception e) {
       log.error("모니터링 요약 조회 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "A server error occurred while retrieving the monitoring summary."));
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "A server error occurred while retrieving the monitoring summary."));
     }
   }
 

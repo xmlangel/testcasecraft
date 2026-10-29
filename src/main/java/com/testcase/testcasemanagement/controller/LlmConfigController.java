@@ -197,7 +197,8 @@ public class LlmConfigController {
         .getDefaultConfig()
         .map(config -> ResponseEntity.ok(ApiResponse.success(config)))
         .orElse(
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("No default LLM configuration")));
+            ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("No default LLM configuration")));
   }
 
   @Operation(
@@ -460,7 +461,8 @@ public class LlmConfigController {
       return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
     } catch (Exception e) {
       log.error("❌ 연결 테스트 실패", e);
-      return ResponseEntity.badRequest().body(ApiResponse.error("Connection test failed: " + e.getMessage()));
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error("Connection test failed: " + e.getMessage()));
     }
   }
 
@@ -520,7 +522,8 @@ public class LlmConfigController {
       return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
     } catch (Exception e) {
       log.error("❌ 저장하지 않고 설정 테스트 실패", e);
-      return ResponseEntity.badRequest().body(ApiResponse.error("Connection test failed: " + e.getMessage()));
+      return ResponseEntity.badRequest()
+          .body(ApiResponse.error("Connection test failed: " + e.getMessage()));
     }
   }
 

@@ -23,8 +23,8 @@ import org.testng.annotations.Test;
 /**
  * ICT-445 회귀 가드: 로그인 전에 열려 있던 설정·모니터링·다국어·스케줄러 API 의 접근 규칙.
  *
- * <p>로그인 전 화면이 실제로 쓰는 조회(설정, 언어 목록·번역, 매뉴얼·가이드)만 공개로 남기고, 서버 정보·메트릭·스케줄 조회는 관리자, 방문 기록은 로그인
- * 사용자, 번역 캐시 비우기는 관리자로 제한했음을 확인한다.
+ * <p>로그인 전 화면이 실제로 쓰는 조회(설정, 언어 목록·번역, 매뉴얼·가이드)만 공개로 남기고, 서버 정보·메트릭·스케줄 조회는 관리자, 방문 기록은 로그인 사용자, 번역
+ * 캐시 비우기는 관리자로 제한했음을 확인한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -45,8 +45,7 @@ public class PublicApiLockdownAuthzTest extends AbstractTestNGSpringContextTests
 
   private void assertStatus(RequestBuilder request, int expected, String label) throws Exception {
     MockHttpServletResponse resp = call(request);
-    Assert.assertEquals(
-        resp.getStatus(), expected, label + " body=" + resp.getContentAsString());
+    Assert.assertEquals(resp.getStatus(), expected, label + " body=" + resp.getContentAsString());
   }
 
   private void assertNotDenied(RequestBuilder request, String label) throws Exception {
@@ -120,17 +119,13 @@ public class PublicApiLockdownAuthzTest extends AbstractTestNGSpringContextTests
   @Test
   public void scheduler_read_nonAdmin_is403() throws Exception {
     assertStatus(
-        get("/api/admin/scheduler/tasks").with(user("u").roles("USER")),
-        403,
-        "일반 사용자 스케줄 작업 조회");
+        get("/api/admin/scheduler/tasks").with(user("u").roles("USER")), 403, "일반 사용자 스케줄 작업 조회");
   }
 
   @Test
   public void scheduler_read_admin_isAllowed() throws Exception {
     assertStatus(
-        get("/api/admin/scheduler/tasks").with(user("admin").roles("ADMIN")),
-        200,
-        "관리자 스케줄 작업 조회");
+        get("/api/admin/scheduler/tasks").with(user("admin").roles("ADMIN")), 200, "관리자 스케줄 작업 조회");
   }
 
   // ---------- 다국어 ----------

@@ -260,8 +260,7 @@ public class TestResultReportController {
   /** ICT-283: 테스트 케이스 완전 목록 조회 (미실행 포함) LEFT JOIN을 통한 모든 테스트 케이스와 실행 결과 조합 */
   @Operation(summary = "테스트 케이스 완전 목록 조회", description = "미실행 케이스를 포함한 전체 테스트 케이스 실행 현황을 조회합니다.")
   @GetMapping("/complete-cases/{projectId}")
-  @PreAuthorize(
-      "@projectSecurityService.canAccessResultScope(#projectId, {#testPlanId}, null)")
+  @PreAuthorize("@projectSecurityService.canAccessResultScope(#projectId, {#testPlanId}, null)")
   public ResponseEntity<Page<TestResultReportDto>> getCompleteTestCasesList(
       @PathVariable String projectId,
       @RequestParam(required = false) String testPlanId,

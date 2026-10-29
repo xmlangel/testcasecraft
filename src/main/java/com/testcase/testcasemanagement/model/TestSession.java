@@ -150,7 +150,9 @@ public class TestSession {
   @Column(name = "tag", length = 100)
   private List<String> areaTags = new ArrayList<>();
 
-  @Comment("상태: 세션의 라이프사이클 상태 (값 영역: DRAFT, RUNNING, PAUSED, COMPLETED, SUBMITTED, NEEDS_UPDATE, APPROVED, ARCHIVED)")
+  @Comment(
+      "상태: 세션의 라이프사이클 상태 (값 영역: DRAFT, RUNNING, PAUSED, COMPLETED, SUBMITTED, NEEDS_UPDATE,"
+          + " APPROVED, ARCHIVED)")
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 30)
   private SessionStatus status;

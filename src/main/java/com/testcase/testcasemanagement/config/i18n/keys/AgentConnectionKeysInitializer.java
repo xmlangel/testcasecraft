@@ -35,15 +35,23 @@ public class AgentConnectionKeysInitializer {
     // 같은 주소를 쓴다. 실측에서 도커 안 제품은 host.docker.internal 로만 닿고
     // 브라우저는 그 이름을 풀지 못해 갈렸다.
     createKey(
-        "agentConnection.field.serverUrlHint", "주소 안내", "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 넣습니다. 예를 들어 http://agent:8090 입니다. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 넣고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다.");
+        "agentConnection.field.serverUrlHint",
+        "주소 안내",
+        "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 넣습니다. 예를 들어"
+            + " http://agent:8090 입니다. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에"
+            + " 따로 띄웠다면 그 주소를 넣고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는"
+            + " http://host.docker.internal:8090 입니다.");
     createKey("agentConnection.field.browserUrl", "브라우저용 주소 라벨", "브라우저용 주소 (선택)");
     createKey(
         "agentConnection.field.browserUrlHint",
         "브라우저용 주소 안내",
-        "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 넣습니다. 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다.");
+        "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 넣습니다. 같은"
+            + " 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다.");
     createKey("agentConnection.field.token", "토큰 라벨", "인증 토큰");
     createKey(
-        "agentConnection.field.tokenHint", "토큰 안내", "에이전트 쪽 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 비워 두면 기존 값을 그대로 쓰고, 저장된 토큰은 화면에 보이지 않습니다.");
+        "agentConnection.field.tokenHint",
+        "토큰 안내",
+        "에이전트 쪽 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 비워 두면 기존 값을 그대로 쓰고, 저장된 토큰은 화면에 보이지 않습니다.");
     createKey("agentConnection.field.tokenSaved", "토큰 저장됨 표시", "토큰이 저장되어 있습니다.");
     createKey("agentConnection.field.defaultProfile", "기본 프로필 라벨", "기본 프로필");
     createKey(
@@ -54,24 +62,30 @@ public class AgentConnectionKeysInitializer {
     createKey(
         "agentConnection.field.isActiveHint", "활성 토글 안내", "꺼 두면 자동화 화면에 에이전트 관련 항목이 나타나지 않습니다.");
     createKey(
-        "agentConnection.field.isActiveRunNotice", "활성 시 실행 안내 머리말", "켜는 것만으로 실행되지 않습니다. 에이전트는 제품 밖에서 도는 별도 스택이라 그쪽을 먼저 띄워야 합니다.");
+        "agentConnection.field.isActiveRunNotice",
+        "활성 시 실행 안내 머리말",
+        "켜는 것만으로 실행되지 않습니다. 에이전트는 제품 밖에서 도는 별도 스택이라 그쪽을 먼저 띄워야 합니다.");
     createKey(
-        "agentConnection.field.isActiveRunStep1", "활성 시 실행 안내 1단계", "docker pull xmlangel/testcasecraft-agent 로 이미지를 받아 띄웁니다. 기본 포트는 8090 입니다.");
+        "agentConnection.field.isActiveRunStep1",
+        "활성 시 실행 안내 1단계",
+        "docker pull xmlangel/testcasecraft-agent 로 이미지를 받아 띄웁니다. 기본 포트는 8090 입니다.");
     createKey(
-        "agentConnection.field.isActiveRunStep2", "활성 시 실행 안내 2단계", "위 인증 토큰에는 그 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 값이 다르면 연결 확인이 되지 않습니다.");
+        "agentConnection.field.isActiveRunStep2",
+        "활성 시 실행 안내 2단계",
+        "위 인증 토큰에는 그 .env 의 AGENT_API_TOKEN 과 같은 값을 넣습니다. 값이 다르면 연결 확인이 되지 않습니다.");
     createKey(
-        "agentConnection.field.isActiveRunStep3", "활성 시 실행 안내 3단계", "연결 테스트를 눌러 확인합니다. 통과해야 자동화 화면에 에이전트 항목이 나타납니다.");
+        "agentConnection.field.isActiveRunStep3",
+        "활성 시 실행 안내 3단계",
+        "연결 테스트를 눌러 확인합니다. 통과해야 자동화 화면에 에이전트 항목이 나타납니다.");
     // 동작
     createKey("agentConnection.save", "저장 버튼", "저장");
     createKey("agentConnection.saved", "저장 완료", "에이전트 연동 설정을 저장했습니다.");
     createKey("agentConnection.test", "연결 테스트 버튼", "연결 테스트");
     createKey("agentConnection.testing", "연결 테스트 진행", "확인하는 중...");
     createKey("agentConnection.delete", "삭제 버튼", "연동 삭제");
-    createKey(
-        "agentConnection.deleteConfirm", "삭제 확인", "이 프로젝트의 에이전트 연동 설정을 삭제하시겠습니까?");
+    createKey("agentConnection.deleteConfirm", "삭제 확인", "이 프로젝트의 에이전트 연동 설정을 삭제하시겠습니까?");
     createKey("agentConnection.deleted", "삭제 완료", "에이전트 연동 설정을 삭제했습니다.");
-    createKey(
-        "agentConnection.requestFailed", "요청 실패 접두", "요청을 처리하지 못했습니다");
+    createKey("agentConnection.requestFailed", "요청 실패 접두", "요청을 처리하지 못했습니다");
 
     // 상태
     createKey("agentConnection.status.verified", "연결 확인됨", "연결됨");
@@ -86,16 +100,15 @@ public class AgentConnectionKeysInitializer {
     // 조사를 쓰지 않는다. 이름이 사용자 입력이라 라틴 문자·숫자로 끝날 수 있어
     // '으로/로' 를 규칙으로 맞출 수 없다. 실측에서 '에이전트으로' 가 나왔다.
     createKey("agentConnection.run.button", "에이전트 실행 버튼", "{name} 실행");
-    createKey(
-        "agentConnection.run.disabled", "실행 버튼 비활성 안내", "에이전트 서버에 연결할 수 없습니다");
-    createKey(
-        "agentConnection.run.newTab", "새 창 안내", "에이전트 앱이 새 창에서 열립니다. 결과는 테스트실행으로 들어옵니다.");
+    createKey("agentConnection.run.disabled", "실행 버튼 비활성 안내", "에이전트 서버에 연결할 수 없습니다");
+    createKey("agentConnection.run.newTab", "새 창 안내", "에이전트 앱이 새 창에서 열립니다. 결과는 테스트실행으로 들어옵니다.");
 
     // 한계 고지 — 화면에도 적는다
     createKey(
         "agentConnection.limits",
         "에이전트 한계 고지",
-        "케이스 하나에 30초에서 1분이 걸리고 비용이 듭니다. 같은 케이스를 다시 돌리면 행동이 조금씩 달라집니다. 판정은 초안이며 확정은 사람이 합니다. 파일 업로드와 캡차가 들어간 시나리오는 지원하지 않습니다.");
+        "케이스 하나에 30초에서 1분이 걸리고 비용이 듭니다. 같은 케이스를 다시 돌리면 행동이 조금씩 달라집니다. 판정은 초안이며 확정은 사람이 합니다. 파일 업로드와"
+            + " 캡차가 들어간 시나리오는 지원하지 않습니다.");
   }
 
   private void createKey(String keyName, String description, String defaultValue) {

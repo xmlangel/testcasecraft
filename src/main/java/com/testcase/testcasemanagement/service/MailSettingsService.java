@@ -97,7 +97,8 @@ public class MailSettingsService {
       Optional<MailSettings> settingsOpt = mailSettingsRepository.findFirstByOrderByCreatedAtDesc();
       if (settingsOpt.isEmpty()) {
         log.warn("메일 설정이 없습니다.");
-        throw new IllegalStateException("Mail settings do not exist. Please save the settings first.");
+        throw new IllegalStateException(
+            "Mail settings do not exist. Please save the settings first.");
       }
 
       MailSettings settings = settingsOpt.get();
@@ -201,7 +202,8 @@ public class MailSettingsService {
   /** Gmail 설정 검증 */
   private void validateGmailSettings(MailSettingsDto dto) {
     if (!dto.getUsername().endsWith("@gmail.com")) {
-      throw new IllegalArgumentException("Only Gmail addresses are supported. (Must end with @gmail.com)");
+      throw new IllegalArgumentException(
+          "Only Gmail addresses are supported. (Must end with @gmail.com)");
     }
 
     if (dto.getPassword() == null || dto.getPassword().length() < 8) {

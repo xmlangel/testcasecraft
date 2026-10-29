@@ -57,7 +57,8 @@ public class RagSqlExecutor {
   @Transactional(readOnly = true)
   public List<Map<String, Object>> executeSelect(String sql, String projectId) {
     if (!isSafeSelect(sql, projectId)) {
-      throw new IllegalArgumentException("The SQL query is not allowed or attempts to access another project's data.");
+      throw new IllegalArgumentException(
+          "The SQL query is not allowed or attempts to access another project's data.");
     }
 
     log.info("Executing RAG SQL for project {}: {}", projectId, sql);

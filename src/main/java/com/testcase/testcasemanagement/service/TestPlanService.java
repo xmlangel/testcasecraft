@@ -92,7 +92,8 @@ public class TestPlanService {
             .findById(id)
             .orElseThrow(() -> new RuntimeException("TestPlan not found with id: " + id));
     if (!projectSecurityService.canEditProject(testPlan.getProject().getId())) {
-      throw new AccessDeniedException("No permission to edit project: " + testPlan.getProject().getId());
+      throw new AccessDeniedException(
+          "No permission to edit project: " + testPlan.getProject().getId());
     }
 
     testPlanRepository.deleteById(id);
@@ -103,7 +104,8 @@ public class TestPlanService {
     testPlan.ifPresent(
         plan -> {
           if (!projectSecurityService.canAccessProject(plan.getProject().getId())) {
-            throw new AccessDeniedException("No permission to access project: " + plan.getProject().getId());
+            throw new AccessDeniedException(
+                "No permission to access project: " + plan.getProject().getId());
           }
         });
     return testPlan;
