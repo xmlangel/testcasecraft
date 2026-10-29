@@ -5,6 +5,8 @@ import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.LanguageRepository;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
 import com.testcase.testcasemanagement.repository.TranslationRepository;
+import com.testcase.testcasemanagement.util.JiraCommentLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -321,6 +323,12 @@ public class KoreanJiraIntegrationTranslations {
         languageCode,
         "첨부파일 업로드 중 일부 오류가 발생했습니다: {message}",
         createdBy);
+
+    // ICT-474: 서버가 남기는 Jira 자동 댓글 문구
+    for (LabelTable.Entry e : JiraCommentLabels.TABLE.entries()) {
+      createTranslationIfNotExists(
+          JiraCommentLabels.TABLE.fullKey(e), languageCode, e.ko(), createdBy);
+    }
   }
 
   private void createTranslationIfNotExists(

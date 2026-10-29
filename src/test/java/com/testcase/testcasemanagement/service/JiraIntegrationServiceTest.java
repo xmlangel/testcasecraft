@@ -11,6 +11,7 @@ import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.repository.UserRepository;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -36,12 +37,21 @@ public class JiraIntegrationServiceTest {
 
   @Mock private TestCaseAttachmentRepository testCaseAttachmentRepository;
 
+  @Mock private UserRepository userRepository;
+
+  @Mock private I18nService i18nService;
+
   @BeforeMethod
   void setUp() {
     MockitoAnnotations.openMocks(this);
     jiraIntegrationService =
         new JiraIntegrationService(
-            jiraConfigService, testResultRepository, minIOService, testCaseAttachmentRepository);
+            jiraConfigService,
+            testResultRepository,
+            minIOService,
+            testCaseAttachmentRepository,
+            userRepository,
+            i18nService);
     // @Value 로 주입되는 필드의 기본값을 ReflectionTestUtils 로 설정
     ReflectionTestUtils.setField(
         jiraIntegrationService, "issueKeyPattern", "^[A-Z][A-Z0-9]+-[0-9]+$");

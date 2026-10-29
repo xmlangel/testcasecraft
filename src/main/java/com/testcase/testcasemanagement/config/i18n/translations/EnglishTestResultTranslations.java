@@ -6,6 +6,7 @@ import com.testcase.testcasemanagement.repository.LanguageRepository;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
 import com.testcase.testcasemanagement.repository.TranslationRepository;
 import com.testcase.testcasemanagement.util.ExportLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -631,8 +632,8 @@ public class EnglishTestResultTranslations {
         "testResult.form.jiraComment", languageCode, "JIRA Comment", createdBy);
 
     // ICT-473: server-side export files (Excel, CSV, PDF)
-    for (ExportLabels.Entry e : ExportLabels.ENTRIES) {
-      createTranslationIfNotExists(e.fullKey(), languageCode, e.en(), createdBy);
+    for (LabelTable.Entry e : ExportLabels.TABLE.entries()) {
+      createTranslationIfNotExists(ExportLabels.TABLE.fullKey(e), languageCode, e.en(), createdBy);
     }
   }
 

@@ -8,6 +8,7 @@ import com.testcase.testcasemanagement.dto.TestResultFilterDto;
 import com.testcase.testcasemanagement.dto.TestResultReportDto;
 import com.testcase.testcasemanagement.dto.TestResultStepDto;
 import com.testcase.testcasemanagement.util.ExportLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -146,7 +147,7 @@ public class ExportServiceLanguageTest {
   @Test
   public void labelTableHasUniqueKeysAndBothLanguages() {
     Set<String> keys = new HashSet<>();
-    for (ExportLabels.Entry e : ExportLabels.ENTRIES) {
+    for (LabelTable.Entry e : ExportLabels.TABLE.entries()) {
       assertTrue(keys.add(e.key()), "duplicate " + e.key());
       assertFalse(e.ko().isBlank(), e.key());
       assertFalse(e.en().isBlank(), e.key());
