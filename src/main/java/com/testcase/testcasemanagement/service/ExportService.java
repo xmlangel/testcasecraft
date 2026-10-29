@@ -15,8 +15,8 @@ import com.testcase.testcasemanagement.dto.TestResultReportDto;
 import com.testcase.testcasemanagement.dto.TestResultStepDto;
 import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.util.ExportLabels;
-import com.testcase.testcasemanagement.util.ExportLabels.Labels;
 import com.testcase.testcasemanagement.util.ExportText;
+import com.testcase.testcasemanagement.util.LabelTable.Labels;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.time.format.DateTimeFormatter;
@@ -78,13 +78,13 @@ public class ExportService {
             ? filter.getLanguage()
             : "ko";
     if (i18nService == null) {
-      return Labels.defaults(lang);
+      return ExportLabels.TABLE.defaults(lang);
     }
     try {
-      return new Labels(lang, i18nService.getTranslationsMap(lang));
+      return ExportLabels.TABLE.labels(lang, i18nService.getTranslationsMap(lang));
     } catch (Exception e) {
       log.warn("내보내기 번역 조회 실패, 기본 문구 사용 - 언어: {}", lang, e);
-      return Labels.defaults(lang);
+      return ExportLabels.TABLE.defaults(lang);
     }
   }
 

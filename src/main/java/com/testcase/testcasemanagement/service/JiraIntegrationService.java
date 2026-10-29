@@ -8,10 +8,14 @@ import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.TestResultAttachment;
 import com.testcase.testcasemanagement.model.TestResultStatus;
 import com.testcase.testcasemanagement.model.TestResultStep;
+import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.repository.UserRepository;
+import com.testcase.testcasemanagement.util.JiraCommentLabels;
 import com.testcase.testcasemanagement.util.JiraInlineImages;
 import com.testcase.testcasemanagement.util.JiraKeyUtils;
+import com.testcase.testcasemanagement.util.LabelTable.Labels;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -36,6 +40,8 @@ public class JiraIntegrationService {
   private final TestResultRepository testResultRepository;
   private final MinIOService minIOService;
   private final TestCaseAttachmentRepository testCaseAttachmentRepository;
+  private final UserRepository userRepository;
+  private final I18nService i18nService;
 
   @Value("${app.jira.auto-comment.enabled:true}")
   private boolean autoCommentEnabled;
@@ -71,11 +77,12 @@ public class JiraIntegrationService {
         return;
       }
 
+      Labels labels = labelsFor(userId);
       for (Map.Entry<String, List<TestResult>> entry : failedResultsByIssue.entrySet()) {
         String issueKey = entry.getKey();
         List<TestResult> relatedFailures = entry.getValue();
 
-        String comment = buildTestFailureComment(testExecution, relatedFailures);
+        String comment = buildTestFailureComment(testExecution, relatedFailures, labels);
 
         boolean success = jiraConfigService.addTestResultComment(userId, issueKey, comment);
 
@@ -102,7 +109,7 @@ public class JiraIntegrationService {
         return false;
       }
 
-      String comment = buildSingleTestResultComment(testResult);
+      String comment = buildSingleTestResultComment(testResult, labelsFor(userId));
 
       boolean success = jiraConfigService.addTestResultComment(userId, issueKey, comment);
 
@@ -126,7 +133,8 @@ public class JiraIntegrationService {
   public boolean addTestExecutionSummary(
       String userId, String issueKey, TestExecution testExecution, List<TestResult> testResults) {
     try {
-      String comment = buildTestExecutionSummaryComment(testExecution, testResults);
+      String comment =
+          buildTestExecutionSummaryComment(testExecution, testResults, labelsFor(userId));
 
       boolean success = jiraConfigService.addTestResultComment(userId, issueKey, comment);
 
@@ -409,27 +417,57 @@ public class JiraIntegrationService {
                 Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
   }
 
+  /** ICT-474: 댓글을 남기는 사용자의 선호 언어로 문구 묶음을 만든다. 찾지 못하면 한국어. */
+  Labels labelsFor(String userId) {
+    String lang = "ko";
+    try {
+      if (userId != null) {
+        lang =
+            userRepository
+                .findById(userId)
+                .map(User::getPreferredLanguage)
+                .filter(l -> l != null && !l.isBlank())
+                .orElse("ko");
+      }
+      return JiraCommentLabels.TABLE.labels(lang, i18nService.getTranslationsMap(lang));
+    } catch (Exception e) {
+      log.warn("Jira 댓글 번역 조회 실패, 기본 문구 사용 - 사용자: {}, 언어: {}", userId, lang, e);
+      return JiraCommentLabels.TABLE.defaults(lang);
+    }
+  }
+
+  private static String formatDateTime(java.time.LocalDateTime value, Labels labels) {
+    return value != null
+        ? value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        : labels.get("value.notSet");
+  }
+
+  private static void appendField(StringBuilder comment, Labels labels, String key, Object value) {
+    comment.append("- ").append(labels.get(key)).append(": ").append(value).append("\n");
+  }
+
   private String buildTestFailureComment(
-      TestExecution testExecution, List<TestResult> failedResults) {
+      TestExecution testExecution, List<TestResult> failedResults, Labels labels) {
     StringBuilder comment = new StringBuilder();
 
-    comment.append("🔴 **테스트 실행 실패 알림**\n\n");
+    comment.append("🔴 **").append(labels.get("failure.title")).append("**\n\n");
 
-    comment.append("**테스트 실행 정보:**\n");
-    comment.append("- 실행 ID: ").append(testExecution.getId()).append("\n");
-    comment.append("- 테스트 플랜 ID: ").append(testExecution.getTestPlanId()).append("\n");
+    comment.append("**").append(labels.get("section.testExecutionInfo")).append(":**\n");
+    appendField(comment, labels, "field.executionId", testExecution.getId());
+    appendField(comment, labels, "field.testPlanId", testExecution.getTestPlanId());
+    appendField(
+        comment, labels, "field.startDate", formatDateTime(testExecution.getStartDate(), labels));
     comment
-        .append("- 실행 시작: ")
-        .append(
-            testExecution.getStartDate() != null
-                ? testExecution
-                    .getStartDate()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                : "미설정")
-        .append("\n");
-    comment.append("- 상태: ").append(testExecution.getStatus()).append("\n\n");
+        .append("- ")
+        .append(labels.get("field.status"))
+        .append(": ")
+        .append(testExecution.getStatus())
+        .append("\n\n");
 
-    comment.append("**실패한 테스트 케이스 (").append(failedResults.size()).append("건):**\n");
+    comment
+        .append("**")
+        .append(labels.format("section.failedCases", Map.of("count", failedResults.size())))
+        .append(":**\n");
 
     for (int i = 0; i < Math.min(failedResults.size(), 5); i++) {
       TestResult result = failedResults.get(i);
@@ -448,47 +486,55 @@ public class JiraIntegrationService {
         comment.append(": ").append(truncatedNotes);
       }
       comment.append("\n");
-      appendProblemSteps(comment, result, "  ");
+      appendProblemSteps(comment, result, "  ", labels);
     }
 
     if (failedResults.size() > 5) {
-      comment.append("- ... 외 ").append(failedResults.size() - 5).append("건\n");
+      comment
+          .append("- ")
+          .append(labels.format("value.more", Map.of("count", failedResults.size() - 5)))
+          .append("\n");
     }
 
-    comment.append("\n**조치 필요:** 실패한 테스트 케이스를 검토하고 관련 이슈를 수정해 주세요.");
+    comment
+        .append("\n**")
+        .append(labels.get("failure.actionLabel"))
+        .append(":** ")
+        .append(labels.get("failure.actionText"));
 
     return comment.toString();
   }
 
-  private String buildSingleTestResultComment(TestResult testResult) {
+  private String buildSingleTestResultComment(TestResult testResult, Labels labels) {
     StringBuilder comment = new StringBuilder();
 
     String statusIcon = getStatusIcon(testResult.getResult());
-    String statusText = getStatusText(testResult.getResult());
+    String statusText = getStatusText(testResult.getResult(), labels);
 
-    comment.append(statusIcon).append(" **테스트 결과 업데이트**\n\n");
+    comment.append(statusIcon).append(" **").append(labels.get("result.title")).append("**\n\n");
 
-    comment.append("**테스트 정보:**\n");
-    comment.append("- 테스트 케이스 ID: ").append(testResult.getTestCaseId()).append("\n");
-    comment.append("- 결과: ").append(statusText).append("\n");
-    comment
-        .append("- 실행 시각: ")
-        .append(
-            testResult.getExecutedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-        .append("\n");
+    comment.append("**").append(labels.get("section.testInfo")).append(":**\n");
+    appendField(comment, labels, "field.testCaseId", testResult.getTestCaseId());
+    appendField(comment, labels, "field.result", statusText);
+    appendField(
+        comment, labels, "field.executedAt", formatDateTime(testResult.getExecutedAt(), labels));
 
     if (testResult.getExecutedBy() != null) {
-      comment.append("- 실행자: ").append(testResult.getExecutedBy().getName()).append("\n");
+      appendField(comment, labels, "field.executor", testResult.getExecutedBy().getName());
     }
 
     if (testResult.getNotes() != null && !testResult.getNotes().trim().isEmpty()) {
-      comment.append("\n**상세 내용:**\n").append(testResult.getNotes());
+      comment
+          .append("\n**")
+          .append(labels.get("section.details"))
+          .append(":**\n")
+          .append(testResult.getNotes());
     }
 
     // ICT-469: 실패·차단 스텝을 기대 / 실제 형식으로
     if (hasProblemSteps(testResult)) {
-      comment.append("\n\n**실패·차단 스텝:**\n");
-      appendProblemSteps(comment, testResult, "");
+      comment.append("\n\n**").append(labels.get("section.problemSteps")).append(":**\n");
+      appendProblemSteps(comment, testResult, "", labels);
     }
 
     return comment.toString();
@@ -503,11 +549,20 @@ public class JiraIntegrationService {
         && result.getSteps().stream().anyMatch(JiraIntegrationService::isProblemStep);
   }
 
-  /** ICT-469: FAIL·BLOCKED 스텝을 한 줄씩, 아래에 기대·실제 결과 */
+  /** ICT-469: FAIL·BLOCKED 스텝을 한 줄씩, 아래에 기대·실제 결과. 문구는 한국어 기본값 */
   static void appendProblemSteps(StringBuilder comment, TestResult result, String indent) {
+    appendProblemSteps(comment, result, indent, JiraCommentLabels.TABLE.defaults("ko"));
+  }
+
+  /** ICT-474: 문구를 요청 언어로 */
+  static void appendProblemSteps(
+      StringBuilder comment, TestResult result, String indent, Labels labels) {
     if (!hasProblemSteps(result)) {
       return;
     }
+    String stepLabel = labels.get("step.label");
+    String expectedLabel = labels.get("step.expected");
+    String actualLabel = labels.get("step.actual");
     result.getSteps().stream()
         .filter(JiraIntegrationService::isProblemStep)
         .sorted(java.util.Comparator.comparingInt(TestResultStep::getStepNumber))
@@ -515,7 +570,9 @@ public class JiraIntegrationService {
             st -> {
               comment
                   .append(indent)
-                  .append("- 스텝 ")
+                  .append("- ")
+                  .append(stepLabel)
+                  .append(" ")
                   .append(st.getStepNumber())
                   .append(" ")
                   .append(st.getResult());
@@ -526,18 +583,26 @@ public class JiraIntegrationService {
               if (st.getExpectedResult() != null && !st.getExpectedResult().isBlank()) {
                 comment
                     .append(indent)
-                    .append("  - 기대: ")
+                    .append("  - ")
+                    .append(expectedLabel)
+                    .append(": ")
                     .append(st.getExpectedResult())
                     .append("\n");
               }
               if (st.getActualResult() != null && !st.getActualResult().isBlank()) {
-                comment.append(indent).append("  - 실제: ").append(st.getActualResult()).append("\n");
+                comment
+                    .append(indent)
+                    .append("  - ")
+                    .append(actualLabel)
+                    .append(": ")
+                    .append(st.getActualResult())
+                    .append("\n");
               }
             });
   }
 
   private String buildTestExecutionSummaryComment(
-      TestExecution testExecution, List<TestResult> testResults) {
+      TestExecution testExecution, List<TestResult> testResults, Labels labels) {
     StringBuilder comment = new StringBuilder();
 
     // 결과 통계 계산
@@ -562,38 +627,57 @@ public class JiraIntegrationService {
 
     String summaryIcon = failCount > 0 ? "🔴" : (blockedCount > 0 ? "🟡" : "✅");
 
-    comment.append(summaryIcon).append(" **테스트 실행 완료 요약**\n\n");
+    comment.append(summaryIcon).append(" **").append(labels.get("summary.title")).append("**\n\n");
 
-    comment.append("**실행 정보:**\n");
-    comment.append("- 테스트 플랜 ID: ").append(testExecution.getTestPlanId()).append("\n");
+    comment.append("**").append(labels.get("section.executionInfo")).append(":**\n");
+    appendField(comment, labels, "field.testPlanId", testExecution.getTestPlanId());
+    appendField(
+        comment, labels, "field.startDate", formatDateTime(testExecution.getStartDate(), labels));
     comment
-        .append("- 실행 시작: ")
-        .append(
-            testExecution.getStartDate() != null
-                ? testExecution
-                    .getStartDate()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                : "미설정")
-        .append("\n");
-    comment.append("- 상태: ").append(testExecution.getStatus()).append("\n\n");
+        .append("- ")
+        .append(labels.get("field.status"))
+        .append(": ")
+        .append(testExecution.getStatus())
+        .append("\n\n");
 
-    comment.append("**결과 요약:**\n");
-    comment.append("- 전체: ").append(testResults.size()).append("건\n");
-    comment.append("- ✅ 통과: ").append(passCount).append("건\n");
-    comment.append("- ❌ 실패: ").append(failCount).append("건\n");
-    comment.append("- ⚠️ 차단: ").append(blockedCount).append("건\n");
-    comment.append("- ⏳ 미실행: ").append(notRunCount).append("건\n");
-    comment.append("- 📊 통과율: ").append(String.format("%.1f", passRate)).append("%\n");
+    comment.append("**").append(labels.get("section.resultSummary")).append(":**\n");
+    comment
+        .append("- ")
+        .append(labels.format("summary.total", Map.of("count", testResults.size())))
+        .append("\n");
+    comment
+        .append("- ✅ ")
+        .append(labels.format("summary.pass", Map.of("count", passCount)))
+        .append("\n");
+    comment
+        .append("- ❌ ")
+        .append(labels.format("summary.fail", Map.of("count", failCount)))
+        .append("\n");
+    comment
+        .append("- ⚠️ ")
+        .append(labels.format("summary.blocked", Map.of("count", blockedCount)))
+        .append("\n");
+    comment
+        .append("- ⏳ ")
+        .append(labels.format("summary.notRun", Map.of("count", notRunCount)))
+        .append("\n");
+    comment
+        .append("- 📊 ")
+        .append(labels.format("summary.passRate", Map.of("rate", String.format("%.1f", passRate))))
+        .append("\n");
 
     if (failCount > 0) {
-      comment.append("\n**실패한 테스트:**\n");
+      comment.append("\n**").append(labels.get("section.failedTests")).append(":**\n");
       testResults.stream()
           .filter(r -> TestResultStatus.FAIL.value().equals(r.getResult()))
           .limit(3)
           .forEach(r -> comment.append("- ").append(r.getTestCaseId()).append("\n"));
 
       if (failCount > 3) {
-        comment.append("- ... 외 ").append(failCount - 3).append("건\n");
+        comment
+            .append("- ")
+            .append(labels.format("value.more", Map.of("count", failCount - 3)))
+            .append("\n");
       }
     }
 
@@ -610,13 +694,13 @@ public class JiraIntegrationService {
     };
   }
 
-  private String getStatusText(String result) {
+  private String getStatusText(String result, Labels labels) {
     return switch (result) {
-      case "PASS" -> "통과";
-      case "FAIL" -> "실패";
-      case "BLOCKED" -> "차단";
-      case "NOT_RUN" -> "미실행";
-      default -> "알 수 없음";
+      case "PASS" -> labels.get("status.pass");
+      case "FAIL" -> labels.get("status.fail");
+      case "BLOCKED" -> labels.get("status.blocked");
+      case "NOT_RUN" -> labels.get("status.notRun");
+      default -> labels.get("status.unknown");
     };
   }
 }

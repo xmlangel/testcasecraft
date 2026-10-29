@@ -5,6 +5,8 @@ import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.LanguageRepository;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
 import com.testcase.testcasemanagement.repository.TranslationRepository;
+import com.testcase.testcasemanagement.util.JiraCommentLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -440,6 +442,12 @@ public class EnglishJiraIntegrationTranslations {
         languageCode,
         "Some errors occurred during attachment upload: {message}",
         createdBy);
+
+    // ICT-474: Jira auto comments written by the server
+    for (LabelTable.Entry e : JiraCommentLabels.TABLE.entries()) {
+      createTranslationIfNotExists(
+          JiraCommentLabels.TABLE.fullKey(e), languageCode, e.en(), createdBy);
+    }
   }
 
   private void createTranslationIfNotExists(

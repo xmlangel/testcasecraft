@@ -3,6 +3,8 @@ package com.testcase.testcasemanagement.config.i18n.keys;
 
 import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
+import com.testcase.testcasemanagement.util.JiraCommentLabels;
+import com.testcase.testcasemanagement.util.LabelTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -321,6 +323,12 @@ public class JiraIntegrationKeysInitializer {
         "첨부파일 업로드 중 일부 오류가 발생했습니다: {message}");
 
     log.info("JIRA 연동 관련 번역 키 초기화 완료");
+
+    // ICT-474: 서버가 남기는 Jira 자동 댓글 문구
+    for (LabelTable.Entry e : JiraCommentLabels.TABLE.entries()) {
+      createTranslationKeyIfNotExists(
+          JiraCommentLabels.TABLE.fullKey(e), "jira", e.description(), e.ko());
+    }
   }
 
   private void createTranslationKeyIfNotExists(
