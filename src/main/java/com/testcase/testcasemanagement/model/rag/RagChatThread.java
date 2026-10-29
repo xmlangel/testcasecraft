@@ -79,8 +79,12 @@ public class RagChatThread {
         @Index(name = "idx_rag_chat_thr_cat_category", columnList = "category_id")
       })
   @Comment("RAG 채팅 스레드 카테고리 연결: RAG 채팅 스레드와 그 스레드에 붙인 카테고리의 연결")
-  @Comment(value = "RAG 채팅 스레드 식별자: 카테고리를 붙인 RAG 채팅 스레드 (값 영역: rag_chat_threads.id 참조)", on = "thread_id")
-  @Comment(value = "RAG 채팅 카테고리 식별자: 스레드에 붙인 카테고리 (값 영역: rag_chat_categories.id 참조)", on = "category_id")
+  @Comment(
+      value = "RAG 채팅 스레드 식별자: 카테고리를 붙인 RAG 채팅 스레드 (값 영역: rag_chat_threads.id 참조)",
+      on = "thread_id")
+  @Comment(
+      value = "RAG 채팅 카테고리 식별자: 스레드에 붙인 카테고리 (값 영역: rag_chat_categories.id 참조)",
+      on = "category_id")
   @Builder.Default
   private Set<RagChatCategory> categories = new HashSet<>();
 

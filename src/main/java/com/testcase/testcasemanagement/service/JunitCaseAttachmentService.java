@@ -134,7 +134,8 @@ public class JunitCaseAttachmentService {
       throw new IllegalArgumentException(
           "File is too large. " + (MAX_FILE_SIZE / 1024 / 1024) + "MB maximum.");
     }
-    String name = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
+    String name =
+        StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
     if (name.isBlank() || name.contains("..")) {
       throw new IllegalArgumentException("Invalid file name.");
     }

@@ -218,7 +218,8 @@ public class OrganizationService {
         // 일반 삭제: 프로젝트가 있으면 삭제 불가
         throw new IllegalStateException(
             String.format(
-                "The organization has %d project(s). Use force delete (force=true) or delete the projects first.",
+                "The organization has %d project(s). Use force delete (force=true) or delete the"
+                    + " projects first.",
                 projects.size()));
       } else {
         // 강제 삭제: 프로젝트들을 모두 삭제
@@ -258,7 +259,8 @@ public class OrganizationService {
     // 소유자 권한 또는 시스템 관리자 권한 확인
     if (!organizationSecurityService.isOrganizationOwner(organizationId, currentUsername)
         && !securityContextUtil.isSystemAdmin()) {
-      throw new AccessDeniedException("You do not have permission to transfer organization ownership.");
+      throw new AccessDeniedException(
+          "You do not have permission to transfer organization ownership.");
     }
 
     // 조직 존재 확인
@@ -271,7 +273,10 @@ public class OrganizationService {
     OrganizationUser newOwnerMember =
         organizationUserRepository
             .findByOrganizationIdAndUserId(organizationId, newOwnerUserId)
-            .orElseThrow(() -> new IllegalStateException("The new owner must be a member of the organization."));
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "The new owner must be a member of the organization."));
 
     // 조직의 현재 OWNER 찾기 (로그인한 사용자가 아닌 실제 OWNER)
     List<OrganizationUser> allMembers =
@@ -472,7 +477,8 @@ public class OrganizationService {
 
     // 접근 권한 확인
     if (!organizationSecurityService.canAccessOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("You do not have permission to view the organization member list.");
+      throw new AccessDeniedException(
+          "You do not have permission to view the organization member list.");
     }
 
     return organizationUserRepository.findByOrganizationId(organizationId);

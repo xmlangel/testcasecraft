@@ -33,8 +33,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
- * ICT-439: 메일 서버가 연결만 받고 응답하지 않을 때, 인증 메일 요청은 곧바로 응답하고 발송 실패가 기록되는지, 관리자 시험 발송은
- * 시간 제한(5초) 안에 오류로 끝나는지 확인한다.
+ * ICT-439: 메일 서버가 연결만 받고 응답하지 않을 때, 인증 메일 요청은 곧바로 응답하고 발송 실패가 기록되는지, 관리자 시험 발송은 시간 제한(5초) 안에 오류로
+ * 끝나는지 확인한다.
  *
  * <p>시간 제한이 없으면 SMTP 인사말을 기다리며 요청이 끝나지 않는다.
  */
@@ -92,7 +92,8 @@ public class SmtpTimeoutTest {
     settings.setPassword("encrypted");
     settings.setUseAuth(false);
     settings.setUseTLS(false);
-    when(mailSettingsRepository.findFirstByOrderByCreatedAtDesc()).thenReturn(Optional.of(settings));
+    when(mailSettingsRepository.findFirstByOrderByCreatedAtDesc())
+        .thenReturn(Optional.of(settings));
     when(encryptionUtil.decrypt(anyString())).thenReturn("pw");
   }
 

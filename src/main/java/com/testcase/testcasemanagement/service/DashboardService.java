@@ -102,7 +102,8 @@ public class DashboardService {
                 projectId,
                 e.getMessage());
             throw new DashboardException.DataRetrievalException(
-                "Failed to retrieve recent test results by project: " + e.getMessage(), "ProjectRecentTestResults");
+                "Failed to retrieve recent test results by project: " + e.getMessage(),
+                "ProjectRecentTestResults");
           }
         });
   }

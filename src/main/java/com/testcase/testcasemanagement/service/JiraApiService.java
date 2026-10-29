@@ -103,8 +103,9 @@ public class JiraApiService {
               "JIRA 인증 실패(익명으로 강등됨): username={}, url={}", testConfig.getUsername(), serverUrl);
           return createFailureStatus(
               "Authentication failed",
-              "Check your email (Atlassian account) and API token. Jira Cloud treats invalid credentials as anonymous requests,"
-                  + " so authentication cannot be verified by fetching server info alone.");
+              "Check your email (Atlassian account) and API token. Jira Cloud treats invalid"
+                  + " credentials as anonymous requests, so authentication cannot be verified by"
+                  + " fetching server info alone.");
         }
 
         success = true;
@@ -121,7 +122,9 @@ public class JiraApiService {
     } catch (HttpClientErrorException e) {
       log.warn("JIRA 연결 실패 - 클라이언트 오류: {}", e.getMessage());
       jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 인증 실패", e));
-      return createFailureStatus("Authentication failed or insufficient permissions: " + e.getStatusCode(), e.getMessage());
+      return createFailureStatus(
+          "Authentication failed or insufficient permissions: " + e.getStatusCode(),
+          e.getMessage());
 
     } catch (HttpServerErrorException e) {
       log.warn("JIRA 연결 실패 - 서버 오류: {}", e.getMessage());
@@ -131,7 +134,8 @@ public class JiraApiService {
     } catch (ResourceAccessException e) {
       log.warn("JIRA 연결 실패 - 네트워크 오류: {}", e.getMessage());
       jiraMonitoringService.ifPresent(service -> service.recordError("JIRA 네트워크 오류", e));
-      return createFailureStatus("Network connection failed", "Unable to reach the JIRA server: " + e.getMessage());
+      return createFailureStatus(
+          "Network connection failed", "Unable to reach the JIRA server: " + e.getMessage());
 
     } catch (Exception e) {
       log.error("JIRA 연결 테스트 중 예외 발생", e);
@@ -675,8 +679,8 @@ public class JiraApiService {
   }
 
   /**
-   * ICT-436: 이슈 설명을 위키 마크업으로 갱신한다. v3(ADF)는 본문 이미지에 미디어 ID 가 필요하지만, v2 는 {@code !파일명|thumbnail!}
-   * 을 받아 같은 이슈의 첨부를 본문에 그려 준다. 첨부를 올린 뒤에 호출해야 파일명이 첨부로 풀린다.
+   * ICT-436: 이슈 설명을 위키 마크업으로 갱신한다. v3(ADF)는 본문 이미지에 미디어 ID 가 필요하지만, v2 는 {@code !파일명|thumbnail!} 을
+   * 받아 같은 이슈의 첨부를 본문에 그려 준다. 첨부를 올린 뒤에 호출해야 파일명이 첨부로 풀린다.
    */
   public boolean updateIssueDescriptionWiki(
       String serverUrl, String username, String apiToken, String issueKey, String wikiText) {
@@ -692,8 +696,7 @@ public class JiraApiService {
 
       HttpHeaders headers = createHeaders(authHeader);
       headers.setContentType(MediaType.APPLICATION_JSON);
-      HttpEntity<String> entity =
-          new HttpEntity<>(objectMapper.writeValueAsString(root), headers);
+      HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(root), headers);
 
       RestTemplate optimizedRestTemplate =
           jiraConnectionManager != null

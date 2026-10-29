@@ -20,7 +20,10 @@ public class AuditLog {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  @Comment("엔티티 유형: 변경된 엔티티의 종류 (값 영역: USER, ORGANIZATION, ORGANIZATION_USER, PROJECT, PROJECT_USER, GROUP, GROUP_MEMBER, TEST_CASE, TEST_PLAN, TEST_EXECUTION, TEST_RESULT, SYSTEM, AUTHENTICATION)")
+  @Comment(
+      "엔티티 유형: 변경된 엔티티의 종류 (값 영역: USER, ORGANIZATION, ORGANIZATION_USER, PROJECT, PROJECT_USER,"
+          + " GROUP, GROUP_MEMBER, TEST_CASE, TEST_PLAN, TEST_EXECUTION, TEST_RESULT, SYSTEM,"
+          + " AUTHENTICATION)")
   @Column(nullable = false, length = 50)
   private String entityType; // USER, PROJECT, ORGANIZATION 등
 
@@ -28,7 +31,10 @@ public class AuditLog {
   @Column(nullable = false)
   private String entityId;
 
-  @Comment("작업 코드: 수행된 작업의 종류 (값 영역: CREATE, READ, UPDATE, DELETE, INVITE_MEMBER, REMOVE_MEMBER, UPDATE_MEMBER_ROLE, GRANT_PERMISSION, REVOKE_PERMISSION, TRANSFER, LOGIN, LOGOUT, ACTIVATE, DEACTIVATE, ARCHIVE, RESTORE)")
+  @Comment(
+      "작업 코드: 수행된 작업의 종류 (값 영역: CREATE, READ, UPDATE, DELETE, INVITE_MEMBER, REMOVE_MEMBER,"
+          + " UPDATE_MEMBER_ROLE, GRANT_PERMISSION, REVOKE_PERMISSION, TRANSFER, LOGIN, LOGOUT,"
+          + " ACTIVATE, DEACTIVATE, ARCHIVE, RESTORE)")
   @Column(nullable = false, length = 50)
   private String action; // CREATE, UPDATE, DELETE 등
 

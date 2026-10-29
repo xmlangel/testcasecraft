@@ -293,7 +293,8 @@ public class JiraBatchProcessingService {
                 JiraConfig config = getActiveJiraConfig(userId);
                 if (config == null) {
                   stats.recordError();
-                  return new BatchProjectResult(userId, false, null, "No active JIRA configuration");
+                  return new BatchProjectResult(
+                      userId, false, null, "No active JIRA configuration");
                 }
 
                 String apiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());

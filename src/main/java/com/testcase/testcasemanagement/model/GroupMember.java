@@ -36,7 +36,9 @@ public class GroupMember {
   @JoinColumn(name = "user_id")
   private User user;
 
-  @Comment(value = "그룹 역할 코드: 이 멤버가 그룹에서 맡는 역할을 나타내는 코드 (값 영역: LEADER, CO_LEADER, MEMBER)", on = "role_in_group")
+  @Comment(
+      value = "그룹 역할 코드: 이 멤버가 그룹에서 맡는 역할을 나타내는 코드 (값 영역: LEADER, CO_LEADER, MEMBER)",
+      on = "role_in_group")
   @Enumerated(EnumType.STRING)
   @Column(name = "role_in_group", nullable = false, length = 20)
   private GroupRole roleInGroup; // LEADER, MEMBER

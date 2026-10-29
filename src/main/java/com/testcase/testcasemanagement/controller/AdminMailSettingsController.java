@@ -108,7 +108,8 @@ public class AdminMailSettingsController {
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     } catch (Exception e) {
       log.error("메일 설정 저장 실패", e);
-      return ResponseEntity.internalServerError().body(Map.of("message", "An error occurred while saving mail settings."));
+      return ResponseEntity.internalServerError()
+          .body(Map.of("message", "An error occurred while saving mail settings."));
     }
   }
 
@@ -168,15 +169,19 @@ public class AdminMailSettingsController {
               Map.of(
                   "message",
                   "Mail server authentication failed. (Authentication failed)\n\n"
-                      + "Cause: Gmail requires a 16-character 'app password' instead of the regular password.\n"
-                      + "Action: Refer to the Gmail setup guide and check your app password again."));
+                      + "Cause: Gmail requires a 16-character 'app password' instead of the regular"
+                      + " password.\n"
+                      + "Action: Refer to the Gmail setup guide and check your app password"
+                      + " again."));
     } catch (IllegalStateException e) {
       log.warn("메일 테스트 발송 상태 오류: {}", e.getMessage());
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     } catch (Exception e) {
       log.error("메일 테스트 발송 실패", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("message", "An error occurred while sending the test mail: " + e.getMessage()));
+          .body(
+              Map.of(
+                  "message", "An error occurred while sending the test mail: " + e.getMessage()));
     }
   }
 
@@ -192,7 +197,8 @@ public class AdminMailSettingsController {
       if (success) {
         return ResponseEntity.ok(Map.of("message", "메일 기능이 성공적으로 비활성화되었습니다."));
       } else {
-        return ResponseEntity.badRequest().body(Map.of("message", "There are no mail settings to disable."));
+        return ResponseEntity.badRequest()
+            .body(Map.of("message", "There are no mail settings to disable."));
       }
 
     } catch (Exception e) {

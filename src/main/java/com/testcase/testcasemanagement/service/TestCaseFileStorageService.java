@@ -147,7 +147,8 @@ public class TestCaseFileStorageService {
     TestCaseAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     if (!attachment.isDownloadable()) {
       throw new IllegalStateException("File cannot be downloaded: " + attachmentId);
@@ -166,7 +167,8 @@ public class TestCaseFileStorageService {
     TestCaseAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     return toDto(attachment);
   }
@@ -176,7 +178,8 @@ public class TestCaseFileStorageService {
     TestCaseAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     // 논리적 삭제
     attachment.setStatus(TestCaseAttachment.AttachmentStatus.DELETED);
@@ -213,10 +216,13 @@ public class TestCaseFileStorageService {
         attachmentRepository
             .findByIdAndPublicAccessToken(id, publicAccessToken)
             .orElseThrow(
-                () -> new IllegalStateException("Invalid public token or attachment not found: id=" + id));
+                () ->
+                    new IllegalStateException(
+                        "Invalid public token or attachment not found: id=" + id));
 
     if (attachment.getStatus() != TestCaseAttachment.AttachmentStatus.ACTIVE) {
-      throw new IllegalStateException("Attachment is disabled. Current status: " + attachment.getStatus());
+      throw new IllegalStateException(
+          "Attachment is disabled. Current status: " + attachment.getStatus());
     }
 
     return attachment;
@@ -474,7 +480,8 @@ public class TestCaseFileStorageService {
     TestCaseAttachment attachment =
         attachmentRepository
             .findById(attachmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + attachmentId));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Attachment not found: " + attachmentId));
 
     attachment.setIsUsedInContent(true);
     attachment.setUsedAt(LocalDateTime.now());

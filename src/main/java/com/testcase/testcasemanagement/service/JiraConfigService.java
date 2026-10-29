@@ -90,7 +90,8 @@ public class JiraConfigService {
       // 암호화 키 설정 확인
       if (!encryptionUtil.isEncryptionKeyConfigured()) {
         log.error("❌ 암호화 키가 설정되지 않음");
-        throw new RuntimeException("Encryption key is not configured. Please contact your administrator.");
+        throw new RuntimeException(
+            "Encryption key is not configured. Please contact your administrator.");
       }
 
       // 기존 활성화된 설정이 있으면 비활성화
@@ -139,7 +140,8 @@ public class JiraConfigService {
       // 구체적인 에러 메시지 제공
       String errorMessage = "Failed to save JIRA configuration";
       if (e.getMessage() != null) {
-        if (e.getMessage().contains("암호화") || e.getMessage().toLowerCase(Locale.ROOT).contains("encrypt")) {
+        if (e.getMessage().contains("암호화")
+            || e.getMessage().toLowerCase(Locale.ROOT).contains("encrypt")) {
           errorMessage = "An error occurred during encryption";
         } else if (e.getMessage().contains("database") || e.getMessage().contains("constraint")) {
           errorMessage = "An error occurred while saving to the database";

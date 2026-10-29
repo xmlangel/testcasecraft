@@ -53,7 +53,8 @@ public class TestSessionService {
         projectRepository
             .findById(request.getProjectId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("Project not found: " + request.getProjectId()));
+                () ->
+                    new ResourceNotFoundException("Project not found: " + request.getProjectId()));
 
     TestCharter charter = testCharterService.findActiveCharter(request.getCharterId());
 
@@ -94,7 +95,8 @@ public class TestSessionService {
         projectRepository
             .findById(request.getProjectId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("Project not found: " + request.getProjectId()));
+                () ->
+                    new ResourceNotFoundException("Project not found: " + request.getProjectId()));
 
     TestCharter charter =
         testCharterService.getCharterById(request.getCharterId()); // findActiveCharter 대신 일반 조회 사용
@@ -111,7 +113,10 @@ public class TestSessionService {
 
   public TestSessionResponseDto startSession(String id) {
     TestSession session = findById(id);
-    ensureStatus(session, List.of(TestSession.SessionStatus.DRAFT), "A session can only be started in DRAFT status.");
+    ensureStatus(
+        session,
+        List.of(TestSession.SessionStatus.DRAFT),
+        "A session can only be started in DRAFT status.");
 
     session.setStatus(TestSession.SessionStatus.RUNNING);
     if (session.getStartedAt() == null) {
@@ -124,7 +129,10 @@ public class TestSessionService {
 
   public TestSessionResponseDto pauseSession(String id, String reason) {
     TestSession session = findById(id);
-    ensureStatus(session, List.of(TestSession.SessionStatus.RUNNING), "A session can only be paused in RUNNING status.");
+    ensureStatus(
+        session,
+        List.of(TestSession.SessionStatus.RUNNING),
+        "A session can only be paused in RUNNING status.");
 
     TestSessionInterruption interruption = new TestSessionInterruption();
     interruption.setSession(session);
@@ -149,7 +157,8 @@ public class TestSessionService {
 
     if (session.getStartedAt() == null) {
       throw new ResourceNotValidException(
-          "A session with no start record cannot be resumed. Start it instead.", java.util.Collections.emptyMap());
+          "A session with no start record cannot be resumed. Start it instead.",
+          java.util.Collections.emptyMap());
     }
 
     if (session.getStatus() == TestSession.SessionStatus.PAUSED) {
@@ -220,7 +229,9 @@ public class TestSessionService {
   public TestSessionResponseDto approveSession(String id, String comment) {
     TestSession session = findById(id);
     ensureStatus(
-        session, List.of(TestSession.SessionStatus.SUBMITTED), "A session can only be approved in SUBMITTED status.");
+        session,
+        List.of(TestSession.SessionStatus.SUBMITTED),
+        "A session can only be approved in SUBMITTED status.");
 
     session.setStatus(TestSession.SessionStatus.APPROVED);
     session.setReviewComment(comment);
@@ -234,7 +245,9 @@ public class TestSessionService {
   public TestSessionResponseDto requestUpdate(String id, String comment) {
     TestSession session = findById(id);
     ensureStatus(
-        session, List.of(TestSession.SessionStatus.SUBMITTED), "An update can only be requested in SUBMITTED status.");
+        session,
+        List.of(TestSession.SessionStatus.SUBMITTED),
+        "An update can only be requested in SUBMITTED status.");
 
     session.setStatus(TestSession.SessionStatus.NEEDS_UPDATE);
     session.setReviewComment(comment);
@@ -292,7 +305,8 @@ public class TestSessionService {
             + request.getSetupAdminPct();
     if (sum != 100) {
       throw new ResourceNotValidException(
-          "The time distribution must sum to 100.", Map.of("timeDistributionSum", String.valueOf(sum)));
+          "The time distribution must sum to 100.",
+          Map.of("timeDistributionSum", String.valueOf(sum)));
     }
   }
 

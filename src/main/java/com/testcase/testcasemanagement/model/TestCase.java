@@ -133,7 +133,8 @@ public class TestCase {
   private String updatedBy;
 
   @Comment("낙관적 잠금 버전: 동시에 수정한 내용이 서로 덮어쓰지 않도록 저장할 때마다 1씩 늘어나는 번호")
-  @Version private Long version;
+  @Version
+  private Long version;
 
   @Comment("테스트 케이스 태그: 테스트 케이스에 붙인 분류 태그")
   @Comment(value = "테스트 케이스 식별자: 태그가 붙은 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
@@ -164,7 +165,9 @@ public class TestCase {
       joinColumns = @JoinColumn(name = "testcase_id"))
   @Comment("테스트 케이스 상호 연결: 자동화 테스트 케이스와 원본 수동 테스트 케이스의 연결")
   @Comment(value = "테스트 케이스 식별자: 이 링크가 있는 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
-  @Comment(value = "연결된 테스트 케이스 식별자: 링크 대상 테스트 케이스 (값 영역: testcases.id 참조)", on = "linked_test_case_id")
+  @Comment(
+      value = "연결된 테스트 케이스 식별자: 링크 대상 테스트 케이스 (값 영역: testcases.id 참조)",
+      on = "linked_test_case_id")
   @Column(name = "linked_test_case_id", length = 36)
   private List<String> linkedTestCaseIds;
 
@@ -180,7 +183,9 @@ public class TestCase {
       joinColumns = @JoinColumn(name = "testcase_id"))
   @Comment("테스트 케이스 연결 JUnit 케이스: 수동 테스트 케이스를 자동화한 JUnit 테스트 케이스의 연결")
   @Comment(value = "테스트 케이스 식별자: 이 링크가 있는 테스트 케이스 (값 영역: testcases.id 참조)", on = "testcase_id")
-  @Comment(value = "JUnit 자동화 케이스 식별자: 연결된 자동화 테스트 (값 영역: junit_test_cases.id 참조)", on = "junit_test_case_id")
+  @Comment(
+      value = "JUnit 자동화 케이스 식별자: 연결된 자동화 테스트 (값 영역: junit_test_cases.id 참조)",
+      on = "junit_test_case_id")
   @Column(name = "junit_test_case_id", length = 36)
   private List<String> linkedJunitTestCaseIds;
 

@@ -28,13 +28,17 @@ public class Group {
   @Column(nullable = false, length = 100)
   private String name;
 
-  @Comment(value = "조직 식별자: 이 그룹이 속한 조직을 가리키는 값 (값 영역: organizations.id 참조, UUID 36자)", on = "organization_id")
+  @Comment(
+      value = "조직 식별자: 이 그룹이 속한 조직을 가리키는 값 (값 영역: organizations.id 참조, UUID 36자)",
+      on = "organization_id")
   @JsonBackReference("organization-groups")
   @ManyToOne
   @JoinColumn(name = "organization_id")
   private Organization organization;
 
-  @Comment(value = "프로젝트 식별자: 이 그룹이 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)", on = "project_id")
+  @Comment(
+      value = "프로젝트 식별자: 이 그룹이 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)",
+      on = "project_id")
   @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "project_id")

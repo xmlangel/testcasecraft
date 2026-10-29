@@ -292,7 +292,8 @@ public class GlobalExceptionHandler {
         request.getDescription(false));
 
     ErrorResponse response =
-        new ErrorResponse("AUTHENTICATION_REQUIRED", "Authentication required.", LocalDateTime.now(), null);
+        new ErrorResponse(
+            "AUTHENTICATION_REQUIRED", "Authentication required.", LocalDateTime.now(), null);
 
     return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }
@@ -309,7 +310,10 @@ public class GlobalExceptionHandler {
 
     ErrorResponse response =
         new ErrorResponse(
-            "INSUFFICIENT_AUTHENTICATION", "Proper authentication is required.", LocalDateTime.now(), null);
+            "INSUFFICIENT_AUTHENTICATION",
+            "Proper authentication is required.",
+            LocalDateTime.now(),
+            null);
 
     return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }

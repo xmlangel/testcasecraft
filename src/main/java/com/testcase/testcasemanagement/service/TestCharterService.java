@@ -31,7 +31,8 @@ public class TestCharterService {
         projectRepository
             .findById(request.getProjectId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("Project not found: " + request.getProjectId()));
+                () ->
+                    new ResourceNotFoundException("Project not found: " + request.getProjectId()));
 
     TestCharter charter = new TestCharter();
     charter.setProject(project);

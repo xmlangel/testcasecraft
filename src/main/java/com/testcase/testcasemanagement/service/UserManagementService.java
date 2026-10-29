@@ -97,7 +97,8 @@ public class UserManagementService {
     // 이메일 중복 검사
     if (updateRequest.getEmail() != null && !updateRequest.getEmail().equals(user.getEmail())) {
       if (userRepository.existsByEmail(updateRequest.getEmail())) {
-        throw new ResourceNotValidException("Email is already in use: " + updateRequest.getEmail(), null);
+        throw new ResourceNotValidException(
+            "Email is already in use: " + updateRequest.getEmail(), null);
       }
       user.setEmail(updateRequest.getEmail());
     }
@@ -238,7 +239,8 @@ public class UserManagementService {
 
     // 현재 비밀번호와 새 비밀번호가 같은지 확인
     if (passwordEncoder.matches(passwordRequest.getNewPassword(), user.getPassword())) {
-      throw new ResourceNotValidException("New password must be different from the current password.", null);
+      throw new ResourceNotValidException(
+          "New password must be different from the current password.", null);
     }
 
     // 비밀번호 변경
@@ -276,7 +278,8 @@ public class UserManagementService {
     if (hasSpecial) complexity++;
 
     if (complexity < 2) {
-      throw new ResourceNotValidException("Password must include at least 2 of: letters, digits, special characters.", null);
+      throw new ResourceNotValidException(
+          "Password must include at least 2 of: letters, digits, special characters.", null);
     }
   }
 
@@ -373,7 +376,8 @@ public class UserManagementService {
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
 
     if (!"ADMIN".equals(user.getRole())) {
-      throw new com.testcase.testcasemanagement.exception.AccessDeniedException("Administrator privileges are required.");
+      throw new com.testcase.testcasemanagement.exception.AccessDeniedException(
+          "Administrator privileges are required.");
     }
 
     return user;

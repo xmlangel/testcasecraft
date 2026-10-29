@@ -207,10 +207,16 @@ public class JiraConfigController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(
                 Map.of(
-                    "error", "JIRA encryption configuration error",
-                    "detail", "The JIRA_ENCRYPTION_KEY environment variable is not set on the server. Contact your administrator.",
-                    "solution", "Administrators must set the following environment variable: JIRA_ENCRYPTION_KEY",
-                    "code", "ENCRYPTION_KEY_NOT_SET"));
+                    "error",
+                    "JIRA encryption configuration error",
+                    "detail",
+                    "The JIRA_ENCRYPTION_KEY environment variable is not set on the server."
+                        + " Contact your administrator.",
+                    "solution",
+                    "Administrators must set the following environment variable:"
+                        + " JIRA_ENCRYPTION_KEY",
+                    "code",
+                    "ENCRYPTION_KEY_NOT_SET"));
       } else {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(Map.of("error", e.getMessage()));
@@ -334,7 +340,12 @@ public class JiraConfigController {
       } else {
         log.warn("JIRA 설정 삭제 실패: userId={}, configId={}", userId, configId);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("success", false, "message", "Configuration not found or you do not have permission to delete it."));
+            .body(
+                Map.of(
+                    "success",
+                    false,
+                    "message",
+                    "Configuration not found or you do not have permission to delete it."));
       }
 
     } catch (Exception e) {
@@ -367,7 +378,12 @@ public class JiraConfigController {
         return ResponseEntity.ok(Map.of("success", true, "message", "설정이 활성화되었습니다."));
       } else {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("success", false, "message", "Configuration not found or you do not have permission."));
+            .body(
+                Map.of(
+                    "success",
+                    false,
+                    "message",
+                    "Configuration not found or you do not have permission."));
       }
 
     } catch (Exception e) {
@@ -449,7 +465,12 @@ public class JiraConfigController {
           comment != null ? comment.length() : 0,
           e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("success", false, "message", "Error occurred while adding comment: " + e.getMessage()));
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "Error occurred while adding comment: " + e.getMessage()));
     }
   }
 
@@ -576,7 +597,12 @@ public class JiraConfigController {
     } catch (Exception e) {
       log.error("JIRA 이슈 검색 중 오류", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("success", false, "message", "Error occurred while searching issues: " + e.getMessage()));
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "Error occurred while searching issues: " + e.getMessage()));
     }
   }
 }

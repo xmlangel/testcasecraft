@@ -62,7 +62,8 @@ public class RagChatConversationService {
                 return existing;
               })
           .orElseThrow(
-              () -> new IllegalArgumentException("Chat thread not found: " + request.getThreadId()));
+              () ->
+                  new IllegalArgumentException("Chat thread not found: " + request.getThreadId()));
     }
 
     String inferredTitle =
@@ -556,7 +557,8 @@ public class RagChatConversationService {
                         HttpStatus.NOT_FOUND, "Message not found: " + messageId));
 
     if (message.getRole() != RagChatMessageRole.ASSISTANT) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only assistant responses can be deleted.");
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Only assistant responses can be deleted.");
     }
 
     String embeddingMessageId = message.getEmbeddingMessageId();
@@ -613,7 +615,8 @@ public class RagChatConversationService {
         categoryRepository
             .findById(request.getCategoryId())
             .orElseThrow(
-                () -> new IllegalArgumentException("Category not found: " + request.getCategoryId()));
+                () ->
+                    new IllegalArgumentException("Category not found: " + request.getCategoryId()));
 
     if (StringUtils.hasText(request.getName())) {
       category.setName(request.getName());

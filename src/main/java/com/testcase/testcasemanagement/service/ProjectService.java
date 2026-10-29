@@ -71,7 +71,8 @@ public class ProjectService {
     Organization organization = null;
     if (organizationId != null) {
       if (!projectSecurityService.canCreateProject(organizationId, currentUsername)) {
-        throw new AccessDeniedException("You do not have permission to create projects in this organization.");
+        throw new AccessDeniedException(
+            "You do not have permission to create projects in this organization.");
       }
       organization =
           organizationRepository
@@ -197,7 +198,8 @@ public class ProjectService {
 
     // 조직 접근 권한 확인
     if (!organizationSecurityService.canAccessOrganization(organizationId, currentUsername)) {
-      throw new AccessDeniedException("You do not have permission to view this organization's projects.");
+      throw new AccessDeniedException(
+          "You do not have permission to view this organization's projects.");
     }
 
     return projectRepository.findByOrganizationId(organizationId);
@@ -395,7 +397,8 @@ public class ProjectService {
     // 새 조직에 프로젝트 생성 권한 확인
     if (newOrganizationId != null) {
       if (!projectSecurityService.canCreateProject(newOrganizationId, currentUsername)) {
-        throw new AccessDeniedException("You do not have permission to create projects in the target organization.");
+        throw new AccessDeniedException(
+            "You do not have permission to create projects in the target organization.");
       }
 
       Organization newOrganization =
@@ -423,7 +426,8 @@ public class ProjectService {
 
     // 접근 권한 확인
     if (!projectSecurityService.canAccessProject(projectId, currentUsername)) {
-      throw new AccessDeniedException("You do not have permission to view the project member list.");
+      throw new AccessDeniedException(
+          "You do not have permission to view the project member list.");
     }
 
     return projectUserRepository.findByProjectId(projectId);
@@ -481,7 +485,8 @@ public class ProjectService {
     Organization organization = null;
     if (organizationId != null) {
       if (!projectSecurityService.canCreateProject(organizationId, currentUsername)) {
-        throw new AccessDeniedException("You do not have permission to create projects in this organization.");
+        throw new AccessDeniedException(
+            "You do not have permission to create projects in this organization.");
       }
       organization =
           organizationRepository
@@ -549,7 +554,8 @@ public class ProjectService {
     if (dto.getCode() != null && !dto.getCode().equals(existingProject.getCode())) {
       // 중복 검증
       if (projectRepository.existsByCode(dto.getCode())) {
-        throw new DataIntegrityViolationException("Project code is already in use: " + dto.getCode());
+        throw new DataIntegrityViolationException(
+            "Project code is already in use: " + dto.getCode());
       }
 
       String oldCode = existingProject.getCode();
@@ -617,7 +623,8 @@ public class ProjectService {
       if (testCaseCount > 0 || testPlanCount > 0 || testExecutionCount > 0) {
         throw new DataIntegrityViolationException(
             String.format(
-                "The project has associated data (test cases: %d, test plans: %d, test executions: %d). Use force delete.",
+                "The project has associated data (test cases: %d, test plans: %d, test executions:"
+                    + " %d). Use force delete.",
                 testCaseCount, testPlanCount, testExecutionCount));
       }
 

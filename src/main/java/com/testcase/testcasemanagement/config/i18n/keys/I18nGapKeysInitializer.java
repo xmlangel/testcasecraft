@@ -1454,23 +1454,50 @@ public class I18nGapKeysInitializer {
         "이전 폴더의 태그 [{tags}]를 삭제하시겠습니까?\n'예'를 선택하면 해당 태그가 삭제되고, '아니오'를 선택하면 유지됩니다.");
 
     createTranslationKeyIfNotExists(
-        "userList.email.sending", "userList", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "인증 이메일을 보내는 중입니다...");
+        "userList.email.sending",
+        "userList",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "인증 이메일을 보내는 중입니다...");
     createTranslationKeyIfNotExists(
-        "profile.email.sending", "profile", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "인증 이메일을 보내는 중입니다...");
+        "profile.email.sending",
+        "profile",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "인증 이메일을 보내는 중입니다...");
     createTranslationKeyIfNotExists(
-        "mailSend.result.sent", "mailSend", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "인증 이메일이 발송되었습니다. 이메일을 확인하세요.");
+        "mailSend.result.sent",
+        "mailSend",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "인증 이메일이 발송되었습니다. 이메일을 확인하세요.");
     createTranslationKeyIfNotExists(
-        "mailSend.result.unknown", "mailSend", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "발송 결과를 아직 확인하지 못했습니다. 잠시 뒤 메일함을 확인하고, 메일이 오지 않으면 다시 시도하세요.");
+        "mailSend.result.unknown",
+        "mailSend",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "발송 결과를 아직 확인하지 못했습니다. 잠시 뒤 메일함을 확인하고, 메일이 오지 않으면 다시 시도하세요.");
     createTranslationKeyIfNotExists(
-        "mailSend.error.connectFailed", "mailSend", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "메일 서버에 연결하지 못해 인증 이메일을 보내지 못했습니다. 관리자에게 메일 서버 주소와 포트를 확인해 달라고 요청하세요.");
+        "mailSend.error.connectFailed",
+        "mailSend",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "메일 서버에 연결하지 못해 인증 이메일을 보내지 못했습니다. 관리자에게 메일 서버 주소와 포트를 확인해 달라고 요청하세요.");
     createTranslationKeyIfNotExists(
-        "mailSend.error.authFailed", "mailSend", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "메일 서버 로그인에 실패해 인증 이메일을 보내지 못했습니다. 관리자에게 메일 계정 설정을 확인해 달라고 요청하세요.");
+        "mailSend.error.authFailed",
+        "mailSend",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "메일 서버 로그인에 실패해 인증 이메일을 보내지 못했습니다. 관리자에게 메일 계정 설정을 확인해 달라고 요청하세요.");
     createTranslationKeyIfNotExists(
-        "mailSend.error.timeout", "mailSend", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "메일 서버가 응답하지 않아 인증 이메일을 보내지 못했습니다. 잠시 뒤 다시 시도하세요.");
+        "mailSend.error.timeout",
+        "mailSend",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "메일 서버가 응답하지 않아 인증 이메일을 보내지 못했습니다. 잠시 뒤 다시 시도하세요.");
     createTranslationKeyIfNotExists(
-        "mailSend.error.rejected", "mailSend", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "발송 요청이 몰려 인증 이메일을 보내지 못했습니다. 잠시 뒤 다시 시도하세요.");
+        "mailSend.error.rejected",
+        "mailSend",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "발송 요청이 몰려 인증 이메일을 보내지 못했습니다. 잠시 뒤 다시 시도하세요.");
     createTranslationKeyIfNotExists(
-        "mailSend.error.failed", "mailSend", "ICT-439 인증 메일 비동기 발송 (2026-10-21)", "인증 이메일 발송에 실패했습니다. 잠시 뒤 다시 시도하세요.");
+        "mailSend.error.failed",
+        "mailSend",
+        "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
+        "인증 이메일 발송에 실패했습니다. 잠시 뒤 다시 시도하세요.");
 
     log.info("i18n gap 번역 키 초기화 완료");
   }

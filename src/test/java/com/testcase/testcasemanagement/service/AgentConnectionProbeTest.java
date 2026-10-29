@@ -29,8 +29,8 @@ import org.testng.annotations.Test;
 /**
  * 연결 테스트의 SSRF 방어 검증.
  *
- * <p>사용자가 주소를 넣고 서버가 그 주소를 호출하는 구조라, 응답 본문이 그대로 화면으로 돌아가면 이 기능으로 내부 서비스를 훑을 수 있다. 그래서 {@code status}
- * 와 {@code version} 두 필드만 꺼내고 나머지는 버린다. 이 시험이 그 경계를 실제 HTTP 응답으로 확인한다.
+ * <p>사용자가 주소를 넣고 서버가 그 주소를 호출하는 구조라, 응답 본문이 그대로 화면으로 돌아가면 이 기능으로 내부 서비스를 훑을 수 있다. 그래서 {@code
+ * status} 와 {@code version} 두 필드만 꺼내고 나머지는 버린다. 이 시험이 그 경계를 실제 HTTP 응답으로 확인한다.
  */
 public class AgentConnectionProbeTest {
 
@@ -59,11 +59,11 @@ public class AgentConnectionProbeTest {
           switch (mode.get()) {
             case "ok" -> body = "{\"status\":\"ok\",\"version\":\"0.3.1\"}";
             case "verbose" ->
-                // 에이전트가 내부 정보를 흘리는 응답. 두 필드만 통과해야 한다
-                body =
-                    "{\"status\":\"ok\",\"version\":\"0.3.1\",\"env\":{\"DB_PASSWORD\":\""
-                        + SECRET_MARKER
-                        + "\"},\"hosts\":[\"pg.internal\"]}";
+            // 에이전트가 내부 정보를 흘리는 응답. 두 필드만 통과해야 한다
+            body =
+                "{\"status\":\"ok\",\"version\":\"0.3.1\",\"env\":{\"DB_PASSWORD\":\""
+                    + SECRET_MARKER
+                    + "\"},\"hosts\":[\"pg.internal\"]}";
             case "notready" -> body = "{\"status\":\"degraded\",\"version\":\"0.3.1\"}";
             case "html" -> body = "<html><body>" + SECRET_MARKER + "</body></html>";
             case "error500" -> {
@@ -184,8 +184,7 @@ public class AgentConnectionProbeTest {
     conn.setName("죽은 에이전트");
     conn.setServerUrl("http://127.0.0.1:1");
     when(repo.findByProjectId("p-2")).thenReturn(Optional.of(conn));
-    when(repo.save(any(AgentConnection.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(repo.save(any(AgentConnection.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     AgentConnectionService svc =
         new AgentConnectionService(repo, mock(EncryptionUtil.class), mock(AuditService.class));

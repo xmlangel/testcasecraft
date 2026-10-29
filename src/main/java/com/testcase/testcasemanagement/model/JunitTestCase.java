@@ -36,7 +36,10 @@ public class JunitTestCase {
   private String id;
 
   /** 상위 테스트 스위트 */
-  @Comment(value = "JUnit 테스트 스위트 식별자: 이 테스트 케이스가 속한 스위트를 가리키는 값 (값 영역: junit_test_suites.id 참조, UUID 36자)", on = "junit_test_suite_id")
+  @Comment(
+      value =
+          "JUnit 테스트 스위트 식별자: 이 테스트 케이스가 속한 스위트를 가리키는 값 (값 영역: junit_test_suites.id 참조, UUID 36자)",
+      on = "junit_test_suite_id")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "junit_test_suite_id", nullable = false)
   @JsonBackReference
@@ -155,7 +158,9 @@ public class JunitTestCase {
   private LocalDateTime lastModifiedAt;
 
   /** 최종 수정자 */
-  @Comment(value = "최종 수정자 식별자: 이 테스트 케이스를 마지막으로 수정한 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)", on = "last_modified_by")
+  @Comment(
+      value = "최종 수정자 식별자: 이 테스트 케이스를 마지막으로 수정한 사용자를 가리키는 값 (값 영역: users.id 참조, UUID 36자)",
+      on = "last_modified_by")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "last_modified_by")
   private User lastModifiedBy;

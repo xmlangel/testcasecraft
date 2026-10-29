@@ -155,7 +155,8 @@ public class JiraStatusAggregationService {
           jiraConfigRepository
               .findById(config.getId())
               .orElseThrow(
-                  () -> new IllegalStateException("JIRA configuration not found: " + config.getId()));
+                  () ->
+                      new IllegalStateException("JIRA configuration not found: " + config.getId()));
       String decryptedToken = encryptionUtil.decrypt(configEntity.getEncryptedApiToken());
 
       JsonNode issueInfo =
@@ -208,7 +209,8 @@ public class JiraStatusAggregationService {
           jiraConfigRepository
               .findById(config.getId())
               .orElseThrow(
-                  () -> new IllegalStateException("JIRA configuration not found: " + config.getId()));
+                  () ->
+                      new IllegalStateException("JIRA configuration not found: " + config.getId()));
       String decryptedToken = encryptionUtil.decrypt(configEntity.getEncryptedApiToken());
 
       // 배치 크기로 나누어 처리 (JIRA API 제한 고려)

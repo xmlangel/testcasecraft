@@ -284,7 +284,8 @@ public class TestCaseController {
   @PostMapping("/batch/delete")
   public ResponseEntity<?> batchDeleteTestCases(@RequestBody List<String> ids) {
     if (ids == null || ids.isEmpty()) {
-      return ResponseEntity.badRequest().body(Map.of("error", "The list of IDs to delete is empty."));
+      return ResponseEntity.badRequest()
+          .body(Map.of("error", "The list of IDs to delete is empty."));
     }
 
     try {
@@ -367,7 +368,8 @@ public class TestCaseController {
     } catch (Exception e) {
       // 내부 예외 상세는 서버 로그로만 남기고 응답엔 노출하지 않는다 (CWE-209)
       log.error("ICT-373: 배치 저장 중 예외 발생", e);
-      return ResponseEntity.internalServerError().body(Map.of("error", "A server error occurred during batch save."));
+      return ResponseEntity.internalServerError()
+          .body(Map.of("error", "A server error occurred during batch save."));
     }
   }
 
@@ -766,8 +768,8 @@ public class TestCaseController {
    *
    * <p>Step, ExpectedResult, PreCondition 정보를 받아 LLM으로 적절한 이름과 설명을 생성합니다.
    *
-   * <p>ICT-444: LLM 비용이 드는 호출이라 본문의 projectId 에 대해 편집 권한을 요구하고, 사용자별 호출 빈도를 제한한다. 이 기능은
-   * 테스트케이스 편집 화면에서만 쓰므로 프로젝트 없는 호출은 받지 않는다.
+   * <p>ICT-444: LLM 비용이 드는 호출이라 본문의 projectId 에 대해 편집 권한을 요구하고, 사용자별 호출 빈도를 제한한다. 이 기능은 테스트케이스 편집
+   * 화면에서만 쓰므로 프로젝트 없는 호출은 받지 않는다.
    *
    * @param requestBody { projectId, steps: [{description, expectedResult}], preCondition,
    *     description }
@@ -809,7 +811,9 @@ public class TestCaseController {
     } catch (Exception e) {
       log.error("❌ AI 메타 생성 중 오류 발생", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("error", "An error occurred during AI generation.", "message", e.getMessage()));
+          .body(
+              Map.of(
+                  "error", "An error occurred during AI generation.", "message", e.getMessage()));
     }
   }
 }

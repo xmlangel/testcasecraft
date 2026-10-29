@@ -332,10 +332,12 @@ public class JiraStatusController {
         return ResponseEntity.badRequest().body("JIRA_CONFIG_MISSING");
       }
       log.error("JIRA 상태 데이터베이스 동기화 실패", e);
-      return ResponseEntity.internalServerError().body("An error occurred while synchronizing JIRA status");
+      return ResponseEntity.internalServerError()
+          .body("An error occurred while synchronizing JIRA status");
     } catch (Exception e) {
       log.error("JIRA 상태 데이터베이스 동기화 실패", e);
-      return ResponseEntity.internalServerError().body("An error occurred while synchronizing JIRA status");
+      return ResponseEntity.internalServerError()
+          .body("An error occurred while synchronizing JIRA status");
     }
   }
 

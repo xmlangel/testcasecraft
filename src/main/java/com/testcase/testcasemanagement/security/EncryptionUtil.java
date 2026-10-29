@@ -68,14 +68,16 @@ public class EncryptionUtil {
   private SecretKey getEncryptionKey() {
     if (encryptionKeyBase64 == null || encryptionKeyBase64.trim().isEmpty()) {
       throw new IllegalStateException(
-          "Encryption key is not configured. Set the jira.security.encryption.key environment variable.");
+          "Encryption key is not configured. Set the jira.security.encryption.key environment"
+              + " variable.");
     }
 
     // 운영(prod)에서 저장소에 커밋된 공개 기본 키로 암호화하는 것은 실질 평문 저장이다 → fail-closed.
     // (비-운영에서는 warnOnInsecureKey 가 경고만 하고 계속 진행 — 개발/테스트 무마찰 유지)
     if (isProdProfileActive() && isUsingCommittedDefaultKey()) {
       throw new IllegalStateException(
-          "The default encryption key committed to the repository is in use in production. Inject a unique key via the JIRA_ENCRYPTION_KEY environment variable"
+          "The default encryption key committed to the repository is in use in production. Inject a"
+              + " unique key via the JIRA_ENCRYPTION_KEY environment variable"
               + "(EncryptionUtil.generateEncryptionKey()).");
     }
 

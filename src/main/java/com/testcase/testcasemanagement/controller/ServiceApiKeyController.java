@@ -19,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
@@ -149,7 +149,8 @@ public class ServiceApiKeyController {
 
     ServiceApiKey serviceApiKey = keyOpt.get();
     if (serviceApiKey.getExpiresAt().isBefore(LocalDateTime.now())) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "The API key has expired."));
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(Map.of("error", "The API key has expired."));
     }
 
     // 임시 토큰 저장소에도 원본 키 대신 해시를 담는다 (인메모리 노출 표면 축소).

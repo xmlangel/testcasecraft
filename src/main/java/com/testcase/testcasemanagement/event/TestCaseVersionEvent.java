@@ -21,8 +21,8 @@ public class TestCaseVersionEvent extends ApplicationEvent {
   private final Long eventTimestamp;
 
   /**
-   * ICT-451: 변경한 사용자의 username. 리스너는 비동기 스레드에서 돌아 로그인 정보를 읽지 못하므로 이벤트를 만드는 요청 스레드에서 확정해 둔다.
-   * 로그인 없이 발행되면 null 이다.
+   * ICT-451: 변경한 사용자의 username. 리스너는 비동기 스레드에서 돌아 로그인 정보를 읽지 못하므로 이벤트를 만드는 요청 스레드에서 확정해 둔다. 로그인 없이
+   * 발행되면 null 이다.
    */
   private final String actorUsername;
 
