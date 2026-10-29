@@ -69,6 +69,7 @@ public class TestResultFilterDto {
   // 내보내기 옵션
   private String exportFormat; // EXCEL, PDF, CSV
   private Boolean includeCharts; // 차트 포함 여부 (PDF용)
+  private String language; // ICT-473: 파일 문구 언어 (ko, en). 없으면 한국어
 
   // 캐시 관련
   private Boolean useCache;

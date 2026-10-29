@@ -40,6 +40,12 @@ public final class ExportText {
 
   /** 내보내기 셀 값으로 바꾼다. {@code null} 은 {@code null} 그대로 돌려준다. */
   public static String toPlain(String text) {
+    return toPlain(text, IMAGE_LABEL);
+  }
+
+  /** ICT-473: 이미지 표기를 내보내는 사람의 언어로 바꿔 넣는다. */
+  public static String toPlain(String text, String imageLabel) {
+    String label = imageLabel == null || imageLabel.isBlank() ? IMAGE_LABEL : imageLabel;
     if (text == null || !(MD_IMG.matcher(text).find() || HTML_IMG.matcher(text).find())) {
       return text;
     }
@@ -49,9 +55,9 @@ public final class ExportText {
             text,
             m -> {
               Matcher alt = HTML_ALT.matcher(m.group());
-              return imageText(alt.find() ? alt.group(1) : "");
+              return imageText(alt.find() ? alt.group(1) : "", label);
             });
-    out = replace(MD_IMG, out, m -> imageText(m.group(1)));
+    out = replace(MD_IMG, out, m -> imageText(m.group(1), label));
     out = LINK.matcher(out).replaceAll("$1");
     out = HEADING.matcher(out).replaceAll("");
     out = BOLD.matcher(out).replaceAll("$2");
@@ -61,11 +67,11 @@ public final class ExportText {
     return out;
   }
 
-  private static String imageText(String alt) {
+  private static String imageText(String alt, String label) {
     if (alt == null || GENERIC_ALT.matcher(alt).matches()) {
-      return "[" + IMAGE_LABEL + "]";
+      return "[" + label + "]";
     }
-    return "[" + IMAGE_LABEL + ": " + alt.trim() + "]";
+    return "[" + label + ": " + alt.trim() + "]";
   }
 
   private static String replace(

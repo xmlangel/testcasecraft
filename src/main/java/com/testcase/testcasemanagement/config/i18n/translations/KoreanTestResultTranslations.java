@@ -5,6 +5,7 @@ import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.LanguageRepository;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
 import com.testcase.testcasemanagement.repository.TranslationRepository;
+import com.testcase.testcasemanagement.util.ExportLabels;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -482,6 +483,18 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists("testResult.tab.tableFull", languageCode, "상세 테이블 보기", createdBy);
     createTranslationIfNotExists(
         "testResult.tab.tableDescription", languageCode, "테스트 결과를 테이블 형태로 확인", createdBy);
+
+    // ICT-473: 키와 영어 번역만 있고 한국어가 빠져 있던 열 이름. 결과 표 머리글과 같은 값을 쓴다
+    createTranslationIfNotExists("testResult.column.executor", languageCode, "실행자", createdBy);
+    createTranslationIfNotExists("testResult.column.executedDate", languageCode, "시행일자", createdBy);
+    createTranslationIfNotExists("testResult.column.attachments", languageCode, "첨부파일", createdBy);
+    createTranslationIfNotExists(
+        "testResult.steps.expectedResult", languageCode, "예상결과", createdBy);
+
+    // ICT-473: 서버 내보내기 파일(엑셀·CSV·PDF) 문구
+    for (ExportLabels.Entry e : ExportLabels.ENTRIES) {
+      createTranslationIfNotExists(e.fullKey(), languageCode, e.ko(), createdBy);
+    }
   }
 
   private void createTranslationIfNotExists(

@@ -134,7 +134,7 @@ public class ExportServiceStepResultsTest {
         "TC-7",
         "설명 [이미지: 캡처]",
         "로그아웃",
-        "Automation",
+        "자동화", // ICT-473: 화면 내보내기와 같은 한국어 값
         "Automation",
         "경계값 분석",
         "smoke, login",

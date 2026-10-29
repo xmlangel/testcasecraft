@@ -83,7 +83,7 @@ const StepResultsSummary = ({ steps, t, compact = false }) => {
             {t("testResult.steps.step", "스텝")}
           </TableCell>
           <TableCell width="24%">
-            {t("testResult.steps.expectedResult", "기대 결과")}
+            {t("testResult.steps.expectedResult", "예상결과")}
           </TableCell>
           <TableCell width="12%">
             {t("testResult.steps.result", "결과")}
