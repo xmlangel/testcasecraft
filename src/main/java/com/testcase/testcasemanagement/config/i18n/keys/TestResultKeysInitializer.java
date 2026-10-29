@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.config.i18n.keys;
 
 import com.testcase.testcasemanagement.config.i18n.I18nSeedIndex;
 import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
+import com.testcase.testcasemanagement.util.ExportLabels;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -712,6 +713,11 @@ public class TestResultKeysInitializer {
         "junit.editor.error.noTestCase", "testResult", "테스트 케이스 없음 오류", "테스트 케이스를 찾을 수 없습니다");
     createTranslationKeyIfNotExists(
         "junit.editor.error.saveFailed", "testResult", "저장 실패 오류", "테스트 케이스 저장에 실패했습니다");
+
+    // ICT-473: 서버 내보내기 파일(엑셀·CSV·PDF) 문구
+    for (ExportLabels.Entry e : ExportLabels.ENTRIES) {
+      createTranslationKeyIfNotExists(e.fullKey(), "testResult", e.description(), e.ko());
+    }
   }
 
   private void createTranslationKeyIfNotExists(

@@ -217,7 +217,7 @@ const TestResultExportDialog = ({
   qaSummaryUpdatedBy = "",
 }) => {
   const { api } = useAppContext();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const { mode: themeMode } = useTheme();
   const [exportFormat, setExportFormat] = useState("EXCEL");
   const [pdfOrientation, setPdfOrientation] = useState("landscape");
@@ -380,12 +380,12 @@ const TestResultExportDialog = ({
         alwaysShow: true,
       },
       {
-        label: t("testResult.column.executor", "수행자"),
+        label: t("testResult.column.executor", "실행자"),
         header: "Executor",
         alwaysShow: true,
       },
       {
-        label: t("testResult.column.executedDate", "수행일시"),
+        label: t("testResult.column.executedDate", "시행일자"),
         header: "Executed Date",
         alwaysShow: true,
       },
@@ -1695,6 +1695,8 @@ footer.report{border-top:1px solid var(--border);margin-top:30px;padding:18px 28
       const exportFilter = {
         projectId: projectId,
         exportFormat: exportFormat,
+        // ICT-473: 서버가 만드는 파일의 머리글·시트 이름을 화면 언어로 맞춘다
+        language: currentLanguage,
         displayColumns: displayColumns,
         includeStatistics: true,
         page: 0,

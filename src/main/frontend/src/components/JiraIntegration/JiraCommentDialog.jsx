@@ -152,7 +152,7 @@ const JiraCommentDialog = ({
     // ICT-469: 실패·차단 스텝을 기대 / 실제 형식으로
     generatedComment += formatProblemStepsMarkdown(testResult.steps, {
       title: t("jira.comment.template.problemSteps", "실패·차단 스텝"),
-      expected: t("testResult.steps.expectedResult", "기대 결과"),
+      expected: t("testResult.steps.expectedResult", "예상결과"),
       actual: t("testResult.steps.actualResult", "실제 결과"),
     });
 

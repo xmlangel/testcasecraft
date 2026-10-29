@@ -14,17 +14,18 @@ import com.testcase.testcasemanagement.dto.TestResultFilterDto;
 import com.testcase.testcasemanagement.dto.TestResultReportDto;
 import com.testcase.testcasemanagement.dto.TestResultStepDto;
 import com.testcase.testcasemanagement.model.TestResultStatus;
+import com.testcase.testcasemanagement.util.ExportLabels;
+import com.testcase.testcasemanagement.util.ExportLabels.Labels;
 import com.testcase.testcasemanagement.util.ExportText;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -50,46 +51,42 @@ public class ExportService {
           "notes",
           "jiraIssueKey");
 
-  private static final Map<String, String> COLUMN_DISPLAY_NAMES;
+  /** ICT-473: 결과 코드 → 문구 키. */
+  private static final Map<String, String> RESULT_LABEL_KEYS =
+      Map.of(
+          TestResultStatus.PASS.value(), "result.pass",
+          TestResultStatus.FAIL.value(), "result.fail",
+          TestResultStatus.BLOCKED.value(), "result.blocked",
+          TestResultStatus.NOT_RUN.value(), "result.notRun");
 
-  static {
-    Map<String, String> map = new HashMap<>();
-    map.put("testPlanName", "테스트플랜명");
-    map.put("testExecutionName", "테스트실행명");
-    map.put("folderPath", "폴더 경로");
-    map.put("testCaseName", "테스트케이스명");
-    map.put("result", "결과");
-    map.put("executedAt", "실행일시");
-    map.put("executorName", "실행자");
-    map.put("notes", "비고");
-    map.put("jiraIssueKey", "JIRA ID");
-    map.put("jiraStatus", "JIRA 상태");
-    map.put("jiraSyncStatus", "JIRA 동기화");
-    map.put("priority", "우선순위");
-    map.put("category", "카테고리");
-    map.put("preCondition", "사전설정");
-    map.put("expectedResults", "전체 예상결과");
-    map.put("steps", "스텝 정보");
-    map.put("stepResults", "스텝 결과");
-    // ICT-472: 화면 표에서 켤 수 있는 나머지 열
-    map.put("displayId", "Display ID");
-    map.put("description", "설명");
-    map.put("postCondition", "사후 조건");
-    map.put("isAutomated", "자동화 여부");
-    map.put("executionType", "실행 타입");
-    map.put("testTechnique", "테스트 기법");
-    map.put("tags", "태그");
-    map.put("linkedDocuments", "연결된 RAG 문서");
-    map.put("attachments", "첨부파일");
-    COLUMN_DISPLAY_NAMES = Collections.unmodifiableMap(map);
+  private final I18nService i18nService;
+
+  @Autowired
+  public ExportService(I18nService i18nService) {
+    this.i18nService = i18nService;
   }
 
-  private static final Map<String, String> RESULT_DISPLAY_NAMES =
-      Map.of(
-          TestResultStatus.PASS.value(), "성공",
-          TestResultStatus.FAIL.value(), "실패",
-          TestResultStatus.BLOCKED.value(), "차단됨",
-          TestResultStatus.NOT_RUN.value(), "미실행");
+  /** 번역 DB 없이 쓰는 생성자. 문구는 {@link ExportLabels} 의 한국어 값을 쓴다. */
+  public ExportService() {
+    this(null);
+  }
+
+  /** ICT-473: 내보내기 요청에 실린 언어로 문구 묶음을 만든다. 언어가 없으면 한국어. */
+  Labels labelsFor(TestResultFilterDto filter) {
+    String lang =
+        filter != null && filter.getLanguage() != null && !filter.getLanguage().isBlank()
+            ? filter.getLanguage()
+            : "ko";
+    if (i18nService == null) {
+      return Labels.defaults(lang);
+    }
+    try {
+      return new Labels(lang, i18nService.getTranslationsMap(lang));
+    } catch (Exception e) {
+      log.warn("내보내기 번역 조회 실패, 기본 문구 사용 - 언어: {}", lang, e);
+      return Labels.defaults(lang);
+    }
+  }
 
   private static String cachedFontName = null;
   private static String cachedFontPath = null;
@@ -366,10 +363,11 @@ public class ExportService {
 
   /** 테스트 결과를 Excel 형식으로 내보내기 */
   public byte[] exportToExcel(Page<TestResultReportDto> reportData, TestResultFilterDto filter) {
+    Labels labels = labelsFor(filter);
     try (Workbook workbook = new XSSFWorkbook();
         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
-      Sheet sheet = workbook.createSheet("테스트 결과 리포트");
+      Sheet sheet = workbook.createSheet(labels.get("sheet.report"));
 
       // 헤더 스타일 생성
       CellStyle headerStyle = workbook.createCellStyle();
@@ -386,7 +384,7 @@ public class ExportService {
 
       // 헤더 행 생성
       Row headerRow = sheet.createRow(0);
-      String[] headers = getColumnHeaders(filter);
+      String[] headers = getColumnHeaders(filter, labels);
       for (int i = 0; i < headers.length; i++) {
         Cell cell = headerRow.createCell(i);
         cell.setCellValue(headers[i]);
@@ -398,7 +396,7 @@ public class ExportService {
       for (int i = 0; i < content.size(); i++) {
         Row row = sheet.createRow(i + 1);
         TestResultReportDto result = content.get(i);
-        populateExcelRow(row, result, filter, dataStyle);
+        populateExcelRow(row, result, filter, dataStyle, labels);
       }
 
       // 컬럼 너비 자동 조정
@@ -411,11 +409,11 @@ public class ExportService {
       }
 
       // ICT-469: 스텝 결과가 있으면 「케이스 × 스텝」 상세 시트
-      createStepResultsSheet(workbook, content, headerStyle, dataStyle);
+      createStepResultsSheet(workbook, content, headerStyle, dataStyle, labels);
 
       // 통계 시트 추가 (옵션)
       if (filter.getIncludeStatistics() != null && filter.getIncludeStatistics()) {
-        createStatisticsSheet(workbook, reportData);
+        createStatisticsSheet(workbook, reportData, labels);
       }
 
       workbook.write(out);
@@ -429,6 +427,7 @@ public class ExportService {
 
   /** 테스트 결과를 PDF 형식으로 내보내기: 한글 폰트 지원 추가 */
   public byte[] exportToPdf(Page<TestResultReportDto> reportData, TestResultFilterDto filter) {
+    Labels labels = labelsFor(filter);
     try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
       PdfWriter writer = new PdfWriter(out);
@@ -439,21 +438,26 @@ public class ExportService {
       PdfFont koreanFont = createKoreanFont();
 
       // 제목 추가
-      document.add(new Paragraph("테스트 결과 리포트").setFont(koreanFont).setFontSize(20).setBold());
+      document.add(
+          new Paragraph(labels.get("pdf.title")).setFont(koreanFont).setFontSize(20).setBold());
 
       // 생성 정보 추가
       document.add(
-          new Paragraph("생성일시: " + java.time.LocalDateTime.now().format(DATE_FORMATTER))
+          new Paragraph(
+                  labels.format(
+                      "pdf.generatedAt",
+                      Map.of("date", java.time.LocalDateTime.now().format(DATE_FORMATTER))))
               .setFont(koreanFont)
               .setFontSize(10));
       document.add(
-          new Paragraph("총 " + reportData.getTotalElements() + "건의 결과")
+          new Paragraph(
+                  labels.format("pdf.totalCount", Map.of("count", reportData.getTotalElements())))
               .setFont(koreanFont)
               .setFontSize(10));
       document.add(new Paragraph(" ")); // 공백 줄
 
       // 테이블 생성
-      String[] headers = getColumnHeaders(filter);
+      String[] headers = getColumnHeaders(filter, labels);
       Table table = new Table(headers.length);
 
       // 헤더 추가
@@ -466,7 +470,7 @@ public class ExportService {
       // 데이터 행 추가
       List<TestResultReportDto> content = reportData.getContent();
       for (TestResultReportDto result : content) {
-        populatePdfRow(table, result, filter, koreanFont);
+        populatePdfRow(table, result, filter, koreanFont, labels);
       }
 
       document.add(table);
@@ -482,6 +486,7 @@ public class ExportService {
 
   /** 테스트 결과를 CSV 형식으로 내보내기 */
   public byte[] exportToCsv(Page<TestResultReportDto> reportData, TestResultFilterDto filter) {
+    Labels labels = labelsFor(filter);
     try (ByteArrayOutputStream out = new ByteArrayOutputStream();
         OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
         CSVWriter csvWriter = new CSVWriter(writer)) {
@@ -492,13 +497,13 @@ public class ExportService {
       out.write(0xBF);
 
       // 헤더 작성
-      String[] headers = getColumnHeaders(filter);
+      String[] headers = getColumnHeaders(filter, labels);
       csvWriter.writeNext(headers);
 
       // 데이터 작성
       List<TestResultReportDto> content = reportData.getContent();
       for (TestResultReportDto result : content) {
-        String[] row = populateCsvRow(result, filter);
+        String[] row = populateCsvRow(result, filter, labels);
         csvWriter.writeNext(row);
       }
 
@@ -521,19 +526,23 @@ public class ExportService {
   }
 
   /** 필터 설정에 따른 컬럼 헤더 반환 */
-  private String[] getColumnHeaders(TestResultFilterDto filter) {
+  private String[] getColumnHeaders(TestResultFilterDto filter, Labels labels) {
     return getDisplayColumns(filter).stream()
-        .map(this::getColumnDisplayName)
+        .map(field -> getColumnDisplayName(field, labels))
         .toArray(String[]::new);
   }
 
-  /** 컬럼 필드명을 표시명으로 변환 */
-  private String getColumnDisplayName(String fieldName) {
-    return COLUMN_DISPLAY_NAMES.getOrDefault(fieldName, fieldName);
+  /** 컬럼 필드명을 표시명으로 변환. 표에 없는 필드는 필드명 그대로 쓴다. */
+  private String getColumnDisplayName(String fieldName, Labels labels) {
+    return labels.get("column." + fieldName);
   }
 
   private void populateExcelRow(
-      Row row, TestResultReportDto result, TestResultFilterDto filter, CellStyle style) {
+      Row row,
+      TestResultReportDto result,
+      TestResultFilterDto filter,
+      CellStyle style,
+      Labels labels) {
     List<String> displayColumns = getDisplayColumns(filter);
 
     int cellIndex = 0;
@@ -541,34 +550,40 @@ public class ExportService {
       Cell cell = row.createCell(cellIndex++);
       cell.setCellStyle(style);
 
-      String value = getFieldValue(result, column);
+      String value = getFieldValue(result, column, labels);
       cell.setCellValue(value != null ? value : "");
     }
   }
 
   private void populatePdfRow(
-      Table table, TestResultReportDto result, TestResultFilterDto filter, PdfFont font) {
+      Table table,
+      TestResultReportDto result,
+      TestResultFilterDto filter,
+      PdfFont font,
+      Labels labels) {
     List<String> displayColumns = getDisplayColumns(filter);
 
     for (String column : displayColumns) {
-      String value = getFieldValue(result, column);
+      String value = getFieldValue(result, column, labels);
       table.addCell(
           new com.itextpdf.layout.element.Cell()
               .add(new Paragraph(value != null ? value : "").setFont(font)));
     }
   }
 
-  private String[] populateCsvRow(TestResultReportDto result, TestResultFilterDto filter) {
+  private String[] populateCsvRow(
+      TestResultReportDto result, TestResultFilterDto filter, Labels labels) {
     List<String> displayColumns = getDisplayColumns(filter);
 
     return displayColumns.stream()
-        .map(column -> getFieldValue(result, column))
+        .map(column -> getFieldValue(result, column, labels))
         .map(value -> value != null ? value : "")
         .toArray(String[]::new);
   }
 
   /** 필드명에 따른 값 반환 */
-  private String getFieldValue(TestResultReportDto result, String fieldName) {
+  private String getFieldValue(TestResultReportDto result, String fieldName, Labels labels) {
+    String image = labels.get("value.imageLabel");
     switch (fieldName) {
       case "testPlanName":
         return result.getTestPlanName();
@@ -579,7 +594,7 @@ public class ExportService {
       case "testCaseName":
         return result.getTestCaseName();
       case "result":
-        return getResultDisplayName(result.getResult());
+        return getResultDisplayName(result.getResult(), labels);
       case "executedAt":
         return result.getExecutedAt() != null
             ? result.getExecutedAt().format(DATE_FORMATTER)
@@ -587,7 +602,7 @@ public class ExportService {
       case "executorName":
         return result.getExecutorName();
       case "notes":
-        return ExportText.toPlain(result.getNotes());
+        return ExportText.toPlain(result.getNotes(), image);
       case "jiraIssueKey":
         return result.getJiraIssueKey();
       case "jiraStatus":
@@ -600,24 +615,24 @@ public class ExportService {
         return result.getCategory();
         // 새로 추가된 컬럼들의 필드 값 처리 추가
       case "preCondition":
-        return ExportText.toPlain(result.getPreCondition());
+        return ExportText.toPlain(result.getPreCondition(), image);
       case "expectedResults":
-        return ExportText.toPlain(result.getExpectedResults());
+        return ExportText.toPlain(result.getExpectedResults(), image);
       case "steps":
-        return formatStepsForExport(result.getSteps());
+        return formatStepsForExport(result.getSteps(), labels);
       case "stepResults":
-        return fitExcelCell(formatStepResultsForExport(result.getStepResults()));
+        return fitExcelCell(formatStepResultsForExport(result.getStepResults(), image));
         // ICT-472: 화면 표에서 켤 수 있는 나머지 열
       case "displayId":
         return result.getDisplayId();
       case "description":
-        return ExportText.toPlain(result.getDescription());
+        return ExportText.toPlain(result.getDescription(), image);
       case "postCondition":
-        return ExportText.toPlain(result.getPostCondition());
+        return ExportText.toPlain(result.getPostCondition(), image);
       case "isAutomated":
         return result.getIsAutomated() == null
             ? null
-            : (result.getIsAutomated() ? "Automation" : "Manual");
+            : labels.get(result.getIsAutomated() ? "value.automated" : "value.manual");
       case "executionType":
         return result.getExecutionType();
       case "testTechnique":
@@ -627,7 +642,9 @@ public class ExportService {
       case "linkedDocuments":
         return joinOrNull(result.getLinkedDocumentIds());
       case "attachments":
-        return result.getAttachmentCount() > 0 ? "첨부 " + result.getAttachmentCount() + "건" : null;
+        return result.getAttachmentCount() > 0
+            ? labels.format("value.attachmentCount", Map.of("count", result.getAttachmentCount()))
+            : null;
       default:
         return null;
     }
@@ -639,6 +656,10 @@ public class ExportService {
 
   /** ICT-469: 스텝 결과를 셀 하나에 한 줄씩 ("1. PASS", "2. FAIL - 실제 결과") */
   static String formatStepResultsForExport(List<TestResultStepDto> stepResults) {
+    return formatStepResultsForExport(stepResults, null);
+  }
+
+  static String formatStepResultsForExport(List<TestResultStepDto> stepResults, String imageLabel) {
     if (stepResults == null || stepResults.isEmpty()) {
       return "";
     }
@@ -650,7 +671,7 @@ public class ExportService {
                     + ". "
                     + (st.getResult() != null ? st.getResult() : "NOT_RUN")
                     + (st.getActualResult() != null && !st.getActualResult().isBlank()
-                        ? " - " + ExportText.toPlain(st.getActualResult())
+                        ? " - " + ExportText.toPlain(st.getActualResult(), imageLabel)
                         : ""))
         .collect(java.util.stream.Collectors.joining("\n"));
   }
@@ -667,13 +688,23 @@ public class ExportService {
       Workbook workbook,
       List<TestResultReportDto> content,
       CellStyle headerStyle,
-      CellStyle dataStyle) {
+      CellStyle dataStyle,
+      Labels labels) {
     if (content.stream()
         .noneMatch(r -> r.getStepResults() != null && !r.getStepResults().isEmpty())) {
       return;
     }
-    Sheet sheet = workbook.createSheet("스텝 결과");
-    String[] headers = {"테스트케이스명", "결과", "스텝 번호", "스텝", "기대 결과", "스텝 결과", "실제 결과"};
+    Sheet sheet = workbook.createSheet(labels.get("sheet.stepResults"));
+    String[] headers = {
+      labels.get("column.testCaseName"),
+      labels.get("column.result"),
+      labels.get("stepSheet.stepNumber"),
+      labels.get("stepSheet.step"),
+      labels.get("stepSheet.expectedResult"),
+      labels.get("stepSheet.stepResult"),
+      labels.get("stepSheet.actualResult")
+    };
+    String image = labels.get("value.imageLabel");
     Row headerRow = sheet.createRow(0);
     for (int i = 0; i < headers.length; i++) {
       Cell cell = headerRow.createCell(i);
@@ -689,13 +720,13 @@ public class ExportService {
         Row row = sheet.createRow(rowIndex++);
         String[] values = {
           r.getTestCaseName(),
-          getResultDisplayName(r.getResult()),
+          getResultDisplayName(r.getResult(), labels),
           String.valueOf(st.getStepNumber()),
           // ICT-472: 스텝 본문과 실제 결과는 마크다운이라 평문으로 바꿔 싣는다
-          ExportText.toPlain(st.getDescription()),
-          ExportText.toPlain(st.getExpectedResult()),
+          ExportText.toPlain(st.getDescription(), image),
+          ExportText.toPlain(st.getExpectedResult(), image),
           st.getResult(),
-          ExportText.toPlain(st.getActualResult())
+          ExportText.toPlain(st.getActualResult(), image)
         };
         for (int i = 0; i < values.length; i++) {
           Cell cell = row.createCell(i);
@@ -712,19 +743,23 @@ public class ExportService {
     }
   }
 
-  /** 결과 코드를 한글 표시명으로 변환 */
-  private String getResultDisplayName(String result) {
-    if (result == null) return "미실행";
-    return RESULT_DISPLAY_NAMES.getOrDefault(result.toUpperCase(), result);
+  /** 결과 코드를 요청 언어의 표시명으로 변환 */
+  private String getResultDisplayName(String result, Labels labels) {
+    if (result == null) return labels.get("result.notRun");
+    String key = RESULT_LABEL_KEYS.get(result.toUpperCase());
+    return key != null ? labels.get(key) : result;
   }
 
   /** 스텝 정보를 내보내기용으로 포맷팅 스텝 배열을 문자열로 변환하여 내보내기에 포함 */
-  private String formatStepsForExport(Object steps) {
+  private String formatStepsForExport(Object steps, Labels labels) {
+    String image = labels.get("value.imageLabel");
+    String descLabel = labels.get("steps.description") + ": ";
+    String expectedLabel = labels.get("steps.expectedResult") + ": ";
     if (steps == null) return "";
 
     // 스텝이 문자열인 경우 그대로 반환
     if (steps instanceof String) {
-      return ExportText.toPlain((String) steps);
+      return ExportText.toPlain((String) steps, image);
     }
 
     // 스텝이 배열이나 리스트인 경우 포맷팅
@@ -744,7 +779,8 @@ public class ExportService {
           sb.append("Step ").append(testStep.getStepNumber()).append(": ");
 
           if (testStep.getDescription() != null && !testStep.getDescription().trim().isEmpty()) {
-            sb.append("설명: ").append(ExportText.toPlain(testStep.getDescription().trim()));
+            sb.append(descLabel)
+                .append(ExportText.toPlain(testStep.getDescription().trim(), image));
           }
 
           if (testStep.getExpectedResult() != null
@@ -752,14 +788,15 @@ public class ExportService {
             if (testStep.getDescription() != null && !testStep.getDescription().trim().isEmpty()) {
               sb.append(" | ");
             }
-            sb.append("예상결과: ").append(ExportText.toPlain(testStep.getExpectedResult().trim()));
+            sb.append(expectedLabel)
+                .append(ExportText.toPlain(testStep.getExpectedResult().trim(), image));
           }
 
           // 설명과 예상결과가 모두 비어있는 경우
           if ((testStep.getDescription() == null || testStep.getDescription().trim().isEmpty())
               && (testStep.getExpectedResult() == null
                   || testStep.getExpectedResult().trim().isEmpty())) {
-            sb.append("(내용 없음)");
+            sb.append(labels.get("steps.empty"));
           }
 
         } else if (step instanceof java.util.Map) {
@@ -773,13 +810,13 @@ public class ExportService {
           String expectedResult = (String) stepMap.get("expectedResult");
 
           if (description != null && !description.trim().isEmpty()) {
-            sb.append("설명: ").append(ExportText.toPlain(description.trim()));
+            sb.append(descLabel).append(ExportText.toPlain(description.trim(), image));
           }
           if (expectedResult != null && !expectedResult.trim().isEmpty()) {
             if (description != null && !description.trim().isEmpty()) {
               sb.append(" | ");
             }
-            sb.append("예상결과: ").append(ExportText.toPlain(expectedResult.trim()));
+            sb.append(expectedLabel).append(ExportText.toPlain(expectedResult.trim(), image));
           }
 
         } else {
@@ -799,8 +836,9 @@ public class ExportService {
   }
 
   /** 통계 시트 생성 (Excel용) */
-  private void createStatisticsSheet(Workbook workbook, Page<TestResultReportDto> reportData) {
-    Sheet statsSheet = workbook.createSheet("통계");
+  private void createStatisticsSheet(
+      Workbook workbook, Page<TestResultReportDto> reportData, Labels labels) {
+    Sheet statsSheet = workbook.createSheet(labels.get("sheet.statistics"));
 
     // 통계 계산
     List<TestResultReportDto> content = reportData.getContent();
@@ -824,23 +862,35 @@ public class ExportService {
 
     // 통계 데이터 작성
     Row headerRow = statsSheet.createRow(0);
-    headerRow.createCell(0).setCellValue("항목");
-    headerRow.createCell(1).setCellValue("수량");
-    headerRow.createCell(2).setCellValue("비율 (%)");
+    headerRow.createCell(0).setCellValue(labels.get("stats.item"));
+    headerRow.createCell(1).setCellValue(labels.get("stats.count"));
+    headerRow.createCell(2).setCellValue(labels.get("stats.ratio"));
 
-    addStatRow(statsSheet, 1, "전체", totalCount, 100.0);
+    addStatRow(statsSheet, 1, labels.get("stats.total"), totalCount, 100.0);
     addStatRow(
-        statsSheet, 2, "성공", passCount, totalCount > 0 ? (passCount * 100.0 / totalCount) : 0);
+        statsSheet,
+        2,
+        labels.get("result.pass"),
+        passCount,
+        totalCount > 0 ? (passCount * 100.0 / totalCount) : 0);
     addStatRow(
-        statsSheet, 3, "실패", failCount, totalCount > 0 ? (failCount * 100.0 / totalCount) : 0);
+        statsSheet,
+        3,
+        labels.get("result.fail"),
+        failCount,
+        totalCount > 0 ? (failCount * 100.0 / totalCount) : 0);
     addStatRow(
         statsSheet,
         4,
-        "차단됨",
+        labels.get("result.blocked"),
         blockedCount,
         totalCount > 0 ? (blockedCount * 100.0 / totalCount) : 0);
     addStatRow(
-        statsSheet, 5, "미실행", notRunCount, totalCount > 0 ? (notRunCount * 100.0 / totalCount) : 0);
+        statsSheet,
+        5,
+        labels.get("result.notRun"),
+        notRunCount,
+        totalCount > 0 ? (notRunCount * 100.0 / totalCount) : 0);
 
     // 컬럼 너비 조정
     for (int i = 0; i < 3; i++) {
