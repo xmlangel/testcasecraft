@@ -70,7 +70,7 @@ public class TestExecutionController {
     return ResponseEntity.ok(updated);
   }
 
-  // QA 총평 저장 (실행 단위 마크다운, 고급 내보내기 PDF 상단에 표시)
+  // QA 총평 저장 (실행 단위 마크다운, 내보내기 PDF 상단에 표시)
   @PutMapping("/{id}/qa-summary")
   @Operation(summary = "QA 총평 저장", description = "테스트 실행에 대한 QA 총평(마크다운)을 저장합니다.")
   public ResponseEntity<TestExecutionDto> updateQaSummary(

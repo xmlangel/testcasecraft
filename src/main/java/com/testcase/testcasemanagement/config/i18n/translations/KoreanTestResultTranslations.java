@@ -138,8 +138,6 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists("testResult.button.column", languageCode, "컬럼", createdBy);
     createTranslationIfNotExists("testResult.button.order", languageCode, "순서", createdBy);
     createTranslationIfNotExists("testResult.button.export", languageCode, "내보내기", createdBy);
-    createTranslationIfNotExists(
-        "testResult.button.advancedExport", languageCode, "고급 내보내기", createdBy);
     createTranslationIfNotExists("testResult.button.viewDetail", languageCode, "상세보기", createdBy);
     createTranslationIfNotExists("testResult.button.edit", languageCode, "편집", createdBy);
 

@@ -845,11 +845,13 @@ public class EnglishI18nGapTranslations {
         languageCode,
         "Write the QA summary for this execution in Markdown.",
         createdBy);
-    createTranslationIfNotExists(
+    // ICT-476: "고급 내보내기" 명칭을 "내보내기"로 바꿨으므로 기존 DB 값도 덮어쓴다.
+    seedIndex.upsertTranslation(
         "testResult.qaSummary.empty",
         languageCode,
-        "No QA summary yet. It will be printed above the detailed list in the advanced PDF export.",
-        createdBy);
+        "No QA summary yet. It will be printed above the detailed list in the PDF export.",
+        createdBy,
+        true);
     createTranslationIfNotExists(
         "testResult.qaSummary.updatedBy", languageCode, "Updated by {user} on {date}", createdBy);
     createTranslationIfNotExists(

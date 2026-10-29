@@ -1751,11 +1751,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                   saveColumnOrderToStorage(defaultOrder);
                 },
                 onJiraStatusCheck: handleJiraStatusCheck,
-                onExportClick: handleExportClick,
                 jiraConfig,
                 jiraStatusLoading,
                 hasJiraTargets,
-                activeProject,
                 t,
               },
             }}
