@@ -1657,18 +1657,20 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             </Typography>
           </Box>
 
-          {/* 모바일용 빠른 액션 버튼 */}
+          {/* 빠른 액션 버튼: 컬럼·순서는 모바일 전용(데스크톱은 그리드 툴바에 있음),
+              내보내기는 모든 화면 폭에서 보이는 유일한 진입점이다 (ICT-476, ICT-478) */}
           <Box
             sx={{
-              display: { xs: "flex", sm: "none" },
+              display: "flex",
               gap: 1,
-              width: "100%",
+              width: { xs: "100%", sm: "auto" },
               justifyContent: "flex-end",
               flexWrap: "wrap",
             }}
           >
             <Button
               size="small"
+              sx={{ display: { xs: "inline-flex", sm: "none" } }}
               startIcon={<SettingsIcon />}
               onClick={(event) =>
                 setColumnVisibilityMenuAnchor(event.currentTarget)
@@ -1679,6 +1681,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             </Button>
             <Button
               size="small"
+              sx={{ display: { xs: "inline-flex", sm: "none" } }}
               onClick={() => setColumnOrderDialogOpen(true)}
               variant="outlined"
             >
